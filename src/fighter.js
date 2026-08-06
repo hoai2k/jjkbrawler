@@ -1,0 +1,648 @@
+import { state } from "./state.js";
+import { clamp, sign } from "./utils.js";
+import { getCharacter } from "./characters.js";
+import { lightMove, heavyMove } from "./moves.js";
+import { spawnMelee, opponentOf, updateStatuses } from "./combat.js";
+import { performSpecial, updateSpecialState } from "./specials.js";
+import { performUltimate } from "./ultimates.js";
+import { burst, dust, popup, banner, ring } from "./particles.js";
+import { playSfx, playGrunt, startShieldLoop, stopShieldLoop } from "./audio.js";
+import {
+  GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME,
+  SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
+  DASH_MULT, SHIELD_MAX, SHIELD_DRAIN, SHIELD_REGEN, ROLL_TIME, ROLL_DIST,
+  SPOT_DODGE_TIME, AIR_DODGE_TIME, DODGE_STALE_WINDOW, METER_MAX, METER_PASSIVE,
+  LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
+  RESPAWN_X,
+} from "./constants.js";
+import { mainPlatform } from "./stages.js";
+
+export function makeFighter(id, charKey, x, facing) {
+  const char = getCharacter(charKey);
+  return {
+    id, charKey, char,
+    x, y: 0, vx: 0, vy: 0, facing,
+    stocks: state.stocks, damage: 0, meter: 0,
+    shield: SHIELD_MAX, shielding: false, shieldRaisedAt: -10, shieldStun: 0,
+    prevShield: false,
+    grounded: false, crouching: false, fastFalling: false,
+    airJumpsLeft: char.stats.airJumps, airDodged: false,
+    jumpBuffer: 0, coyote: 0, jumpHeldT: 0, jumpCut: false,
+    dashT: 0, dashDir: 0, lastTap: { dir: 0, t: -10 },
+    turnLock: 0, landTimer: 0, dropTimer: 0,
+    invuln: 1.4, hitstun: 0, hitPause: 0, shakeMag: 0,
+    dizzy: 0, dodgeStale: 0, lastDodgeAt: -10,
+    airT: 0, shieldDownSince: -10,
+    action: null, charging: null, jabStep: 0, jabResetT: 0,
+    counter: null, healing: null, installs: null, armorT: 0,
+    cooldowns: { neutral: 0, side: 0, down: 0 },
+    throatStrain: 0, throatLock: 0,
+    statuses: { burn: null, bleed: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 },
+    ledge: null, ledgeCooldown: 0, ledgeTimer: 0,
+    respawnTimer: 0, dead: false,
+    cpuDamageMul: 0,
+    animKey: "idle", animTime: 0,
+    aiState: null,
+    winner: false,
+  };
+}
+
+function stats(f) {
+  return f.char.stats;
+}
+
+function speedMul(f) {
+  let m = 1;
+  if (f.statuses.snare > 0) m *= 0.6;
+  if (f.installs && f.installs.speedMul) m *= f.installs.speedMul;
+  return m;
+}
+
+function setAnim(f, key) {
+  if (f.animKey !== key) {
+    f.animKey = key;
+    f.animTime = 0;
+  }
+}
+
+// ------------------------------------------------------------------ actions
+
+function beginAction(f, kind, dur, anim, opts = {}) {
+  f.action = { kind, t: 0, dur, anim, ...opts };
+  f.animTime = 0;
+  if (anim) setAnim(f, anim);
+}
+
+function executeMove(f, move, opts = {}) {
+  const total = move.delay + move.dur + move.recover;
+  beginAction(f, "attack", total, move.anim, { move });
+  if (move.lungeVx && f.grounded) f.vx += f.facing * move.lungeVx * 3;
+  spawnMelee(f, {
+    ...move,
+    base: move.baseKb,
+  });
+  if (opts.grunt) playGrunt(f.charKey);
+}
+
+function beginLight(f, input) {
+  let variant;
+  if (!f.grounded) {
+    variant = input.down ? "downAir" : input.up ? "upAir" : "air";
+  } else if (f.crouching || input.down) {
+    variant = "down";
+  } else if (input.up) {
+    variant = "up";
+  } else if (f.dashT > 0 || Math.abs(f.vx) > stats(f).speed * 0.7) {
+    variant = "side";
+  } else {
+    // jab chain
+    if (f.jabResetT <= 0) f.jabStep = 0;
+    const move = lightMove(f.char, "jab", f.jabStep);
+    f.jabStep = (f.jabStep + 1) % 3;
+    f.jabResetT = 0.6;
+    executeMove(f, move);
+    return;
+  }
+  executeMove(f, lightMove(f.char, variant));
+}
+
+function beginHeavy(f, input) {
+  if (!f.grounded) {
+    executeMove(f, heavyMove(f.char, "air"));
+    return;
+  }
+  const variant = input.down || f.crouching ? "down" : input.up ? "up" : "side";
+  f.charging = { variant, t: 0 };
+  setAnim(f, "charge");
+}
+
+function releaseHeavy(f) {
+  const c = f.charging;
+  if (!c) return;
+  f.charging = null;
+  const charge = clamp(c.t / 0.8, 0, 1);
+  const move = heavyMove(f.char, c.variant, charge);
+  executeMove(f, move, { grunt: charge > 0.5 });
+  if (charge > 0.25) {
+    burst(f.x, f.y - 90, f.char.theme, 14 + charge * 16, 1 + charge);
+    state.camera.shake = Math.max(state.camera.shake, 3 + charge * 4);
+  }
+}
+
+function beginDodge(f, type, dir = 0) {
+  const now = state.matchTime;
+  if (now - f.lastDodgeAt < DODGE_STALE_WINDOW) f.dodgeStale = clamp(f.dodgeStale + 1, 0, 3);
+  else f.dodgeStale = 0;
+  f.lastDodgeAt = now;
+
+  const staleMul = 1 - f.dodgeStale * 0.25;
+  const iframeMul = (f.char.passive.id === "heavenlyVoid" ? 1.25 : 1) * staleMul;
+
+  if (type === "roll") {
+    beginAction(f, "dodge", ROLL_TIME, "dodge", { lockMovement: true, keepMomentum: true });
+    f.vx = dir * (ROLL_DIST / ROLL_TIME);
+    f.invuln = Math.max(f.invuln, 0.3 * iframeMul);
+  } else if (type === "spot") {
+    beginAction(f, "dodge", SPOT_DODGE_TIME, "crouch", { lockMovement: true });
+    f.vx = 0;
+    f.invuln = Math.max(f.invuln, 0.32 * iframeMul);
+  } else {
+    beginAction(f, "dodge", AIR_DODGE_TIME, "dodge", { lockMovement: false });
+    f.invuln = Math.max(f.invuln, 0.26 * iframeMul);
+    f.airDodged = true;
+  }
+  playSfx("whoosh", 0.85);
+  dust(f.x, f.y, 8);
+}
+
+// ------------------------------------------------------------------ ledges
+
+function tryGrabLedge(f) {
+  if (f.grounded || f.ledge || f.ledgeCooldown > 0 || f.respawnTimer > 0) return;
+  // must have genuinely left the stage (no walk-off regrab loops) and not be
+  // reeling — the ledge is a recovery tool, not a combo breaker
+  if (f.vy < -70 || f.hitstun > 0.05 || f.airT < 0.18) return;
+  const plat = mainPlatform(state.platforms);
+  if (f.y < plat.y - LEDGE_GRAB_Y_ABOVE || f.y > plat.y + LEDGE_GRAB_Y_BELOW) return;
+  for (const side of [-1, 1]) {
+    const edgeX = side === -1 ? plat.x : plat.x + plat.w;
+    const outside = side === -1 ? f.x <= edgeX : f.x >= edgeX;
+    if (outside && Math.abs(f.x - edgeX) <= LEDGE_GRAB_X) {
+      f.ledge = { side, edgeX, plat };
+      f.x = edgeX + (side === -1 ? -LEDGE_HANG_X : LEDGE_HANG_X);
+      f.y = plat.y + LEDGE_HANG_Y;
+      f.vx = 0; f.vy = 0;
+      f.action = null;
+      f.charging = null;
+      f.shielding = false;
+      f.airJumpsLeft = stats(f).airJumps;
+      f.airDodged = false;
+      f.facing = side === -1 ? 1 : -1;
+      f.invuln = Math.max(f.invuln, 0.28);
+      f.ledgeTimer = 0;
+      f.fastFalling = false;
+      playSfx("landing", 0.3);
+      dust(f.x, f.y, 8);
+      return;
+    }
+  }
+}
+
+function updateLedge(f, dt, input) {
+  const l = f.ledge;
+  f.ledgeTimer += dt;
+  setAnim(f, "ledge");
+  const inward = l.side === -1 ? input.right : input.left;
+  const outward = l.side === -1 ? input.left : input.right;
+
+  if (f.ledgeTimer > 2.8 || input.down || outward) {
+    f.ledge = null;
+    f.ledgeCooldown = 0.45;
+    f.vx = (l.side === -1 ? -1 : 1) * 130;
+    f.vy = 90;
+    return;
+  }
+  if (input.jumpP) {
+    f.ledge = null;
+    f.ledgeCooldown = 0.5;
+    f.x = l.edgeX + (l.side === -1 ? 40 : -40);
+    f.y = l.plat.y - 8;
+    f.vy = -stats(f).jump * 0.95;
+    f.invuln = Math.max(f.invuln, 0.32);
+    dust(f.x, f.y, 10);
+    return;
+  }
+  if (input.lightP || input.heavyP) {
+    f.ledge = null;
+    f.ledgeCooldown = 0.55;
+    f.x = l.edgeX + (l.side === -1 ? 52 : -52);
+    f.y = l.plat.y;
+    f.grounded = true;
+    f.invuln = Math.max(f.invuln, 0.3);
+    executeMove(f, { ...lightMove(f.char, "side"), label: "Ledge " + f.char.light.label });
+    return;
+  }
+  if (inward || input.shieldHeld) {
+    const roll = input.shieldHeld;
+    f.ledge = null;
+    f.ledgeCooldown = 0.55;
+    f.x = l.edgeX + (l.side === -1 ? (roll ? 110 : 56) : (roll ? -110 : -56));
+    f.y = l.plat.y;
+    f.grounded = true;
+    f.vx = 0;
+    f.invuln = Math.max(f.invuln, roll ? 0.55 : 0.34);
+    dust(f.x, f.y, 8);
+  }
+}
+
+// ---------------------------------------------------------------- platforms
+
+function resolvePlatforms(f, prevY) {
+  f.grounded = false;
+  for (const plat of state.platforms) {
+    if (f.dropTimer > 0 && plat.kind !== "main") continue;
+    const margin = plat.kind === "main" ? 14 : 24;
+    if (f.x < plat.x - margin || f.x > plat.x + plat.w + margin) continue;
+    if (f.vy < 0) continue;
+    if (prevY <= plat.y + 4 && f.y >= plat.y) {
+      f.y = plat.y;
+      f.vy = 0;
+      if (!f.wasGrounded) {
+        f.landTimer = 0.14;
+        f.animTime = 0;
+        playSfx("landing", 0.3);
+        dust(f.x, f.y, 8);
+      }
+      f.grounded = true;
+      f.currentPlatform = plat;
+      f.airJumpsLeft = stats(f).airJumps;
+      f.airDodged = false;
+      f.fastFalling = false;
+      f.coyote = COYOTE_TIME;
+      break;
+    }
+  }
+}
+
+// ------------------------------------------------------------------- KO
+
+export function ringOut(f) {
+  const opp = opponentOf(f);
+  f.stocks -= 1;
+  playSfx("gone", 1);
+  state.camera.shake = Math.max(state.camera.shake, 16);
+  state.slowMo = Math.max(state.slowMo, 0.35);
+  state.screenFlash = { color: opp ? opp.char.theme : "#ffffff", life: 0.28, maxLife: 0.28 };
+  const bx = clamp(f.x, 80, 1200);
+  const by = clamp(f.y, 80, 640);
+  burst(bx, by, f.char.theme, 54, 1.9);
+  ring(bx, by, f.char.theme, 200);
+  banner("KO!", "#ffffff", { y: 200, size: 84, life: 1.0 });
+
+  // clear this fighter's combat objects — including scripted entities
+  // (domains, traps, summons), so a KO'd fighter's ultimate stops fighting
+  for (let i = state.hitboxes.length - 1; i >= 0; i--) if (state.hitboxes[i].owner === f) state.hitboxes.splice(i, 1);
+  for (let i = state.projectiles.length - 1; i >= 0; i--) if (state.projectiles[i].owner === f) state.projectiles.splice(i, 1);
+  for (let i = state.entities.length - 1; i >= 0; i--) if (state.entities[i].owner === f) state.entities.splice(i, 1);
+  if (state.domainOverlay && state.domainOverlay.ownerId === f.id) state.domainOverlay = null;
+
+  f.action = null; f.charging = null; f.counter = null; f.healing = null;
+  f.installs = null; f.hitstun = 0; f.statuses = { burn: null, bleed: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 };
+  f.vx = 0; f.vy = 0; f.ledge = null; f.dizzy = 0; f.armorT = 0;
+
+  if (f.stocks <= 0) {
+    f.dead = true;
+    f.x = -9999;
+    return;
+  }
+  f.respawnTimer = 1.4;
+}
+
+function respawn(f) {
+  f.respawnTimer = 0;
+  const respawnSets = {
+    2: { 1: 430, 2: 850 },
+    3: { 1: 320, 2: 640, 3: 960 },
+    4: RESPAWN_X,
+  };
+  f.x = respawnSets[state.fighters.length]?.[f.id] || RESPAWN_X[f.id] || 640;
+  f.y = 230;
+  f.vx = 0; f.vy = 0;
+  f.damage = 0;
+  f.shield = SHIELD_MAX;
+  f.invuln = 2.1;
+  f.grounded = false;
+  f.airJumpsLeft = stats(f).airJumps;
+  f.facing = f.x < 640 ? 1 : -1;
+  dust(f.x, f.y, 20);
+}
+
+// -------------------------------------------------------------- main update
+
+export function updateFighter(f, dt, input) {
+  if (f.dead) return;
+
+  // hitlag freeze: only the freeze timer runs
+  if (f.hitPause > 0) {
+    f.hitPause -= dt;
+    return;
+  }
+  f.shakeMag = Math.max(0, f.shakeMag - dt * 30);
+
+  // timers
+  f.invuln = Math.max(0, f.invuln - dt);
+  f.hitstun = Math.max(0, f.hitstun - dt);
+  f.shieldStun = Math.max(0, f.shieldStun - dt);
+  f.landTimer = Math.max(0, f.landTimer - dt);
+  f.dropTimer = Math.max(0, f.dropTimer - dt);
+  f.jumpBuffer = Math.max(0, f.jumpBuffer - dt);
+  f.coyote = Math.max(0, f.coyote - dt);
+  f.turnLock = Math.max(0, f.turnLock - dt);
+  f.ledgeCooldown = Math.max(0, f.ledgeCooldown - dt);
+  f.jabResetT = Math.max(0, f.jabResetT - dt);
+  f.throatLock = Math.max(0, f.throatLock - dt);
+  f.throatStrain = Math.max(0, f.throatStrain - dt * 0.5);
+  f.armorT = Math.max(0, f.armorT - dt);
+  f.airT = f.grounded ? 0 : f.airT + dt;
+  for (const k of Object.keys(f.cooldowns)) f.cooldowns[k] = Math.max(0, f.cooldowns[k] - dt);
+
+  // meter trickle
+  let trickle = METER_PASSIVE;
+  if (f.char.passive.id === "gamblersFlow") trickle *= 1.3;
+  f.meter = clamp(f.meter + trickle * dt, 0, METER_MAX);
+
+  updateStatuses(f, dt);
+  updateSpecialState(f, dt);
+
+  // installs
+  if (f.installs) {
+    f.installs.t -= dt;
+    if (f.installs.healPerSec) f.damage = Math.max(0, f.damage - f.installs.healPerSec * dt);
+    if (f.installs.t <= 0) {
+      popup(f.x, f.y - 170, `${f.installs.label} FADED`, "#9aa4c0", 16);
+      f.installs = null;
+    }
+  }
+  if (f.counter) {
+    f.counter.t -= dt;
+    if (f.counter.t <= 0) f.counter = null;
+  }
+  if (f.healing) {
+    f.healing.t -= dt;
+    f.damage = Math.max(0, f.damage - f.healing.rate * dt);
+    if (f.healing.t % 0.2 < dt) burst(f.x, f.y - 90, "#a5ffd8", 3, 0.4);
+    if (f.healing.t <= 0) f.healing = null;
+  }
+
+  // respawn platform
+  if (f.respawnTimer > 0) {
+    f.respawnTimer -= dt;
+    if (f.respawnTimer <= 0) respawn(f);
+    return;
+  }
+
+  // shield-break dizzy
+  if (f.dizzy > 0) {
+    f.dizzy -= dt;
+    setAnim(f, "dizzy");
+    if (!f.grounded) {
+      f.vy = Math.min(f.vy + GRAVITY * dt, MAX_FALL);
+    } else {
+      f.vx *= Math.pow(0.8, dt * 60);
+    }
+    const prevY = f.y;
+    f.wasGrounded = f.grounded;
+    f.x += f.vx * dt;
+    f.y += f.vy * dt;
+    resolvePlatforms(f, prevY);
+    return;
+  }
+
+  // hanging on ledge
+  if (f.ledge) {
+    updateLedge(f, dt, input);
+    return;
+  }
+
+  const st = stats(f);
+  const inHitstun = f.hitstun > 0;
+  const canAct = !inHitstun && !f.action && !f.charging && f.shieldStun <= 0;
+
+  // ---- charging heavy
+  if (f.charging) {
+    if (!f.grounded) {
+      f.charging = null; // knocked or slipped off the ground: charge fizzles
+    } else {
+      f.charging.t += dt;
+      if (!input.heavyHeld || f.charging.t >= 0.8) releaseHeavy(f);
+      else if (Math.random() < 0.3) burst(f.x, f.y - 90, f.char.theme, 1, 0.5);
+    }
+  }
+
+  // ---- action progress
+  if (f.action) {
+    f.action.t += dt;
+    if (f.action.t >= f.action.dur) {
+      f.action = null;
+    }
+  }
+
+  // ---- shield handling
+  // the shield stays up through shield-stun (blocking a hit must not strip
+  // the guard against multi-hit strings); new raises require canAct
+  const holdingShield = input.shieldHeld && f.grounded && f.shield > 6 && !f.crouching && f.dizzy <= 0;
+  const wantShield = holdingShield && (canAct || (f.shielding && f.shieldStun > 0 && !f.action));
+  if (wantShield && !f.shielding) {
+    f.shielding = true;
+    // parry timing only counts for a deliberate fresh raise — mashing the
+    // button keeps the stale timestamp and never re-opens the parry window
+    if (state.matchTime - f.shieldDownSince >= 0.25) {
+      f.shieldRaisedAt = state.matchTime;
+    }
+    startShieldLoop();
+  } else if (!wantShield && f.shielding) {
+    f.shielding = false;
+    f.shieldDownSince = state.matchTime;
+    stopShieldLoop();
+  }
+  if (f.shielding) {
+    f.shield = Math.max(0, f.shield - SHIELD_DRAIN * dt);
+    if (f.shield <= 0) {
+      f.shielding = false;
+      stopShieldLoop();
+    }
+  } else {
+    f.shield = clamp(f.shield + SHIELD_REGEN * dt, 0, SHIELD_MAX);
+  }
+
+  // ---- dodges
+  const shieldPressed = input.shieldHeld && !f.prevShield;
+  f.prevShield = input.shieldHeld;
+
+  if (canAct) {
+    if (f.grounded && f.shielding) {
+      if (input.down) {
+        beginDodge(f, "spot");
+        f.shielding = false;
+        stopShieldLoop();
+      } else if (input.dirX !== 0) {
+        beginDodge(f, "roll", input.dirX);
+        f.shielding = false;
+        stopShieldLoop();
+      }
+    } else if (!f.grounded && shieldPressed && !f.airDodged) {
+      beginDodge(f, "air");
+      f.vx += input.dirX * 340;
+      if (input.up) f.vy = Math.min(f.vy, -260);
+      if (input.down) f.vy = Math.max(f.vy, 260);
+    }
+  }
+
+  // ---- crouch
+  f.crouching = f.grounded && canAct && input.down && !f.shielding;
+
+  // ---- attacks & specials
+  if (canAct && !f.shielding) {
+    if (input.ultP && f.meter >= METER_MAX) {
+      performUltimate(f);
+    } else if (input.ultP && f.meter < METER_MAX) {
+      popup(f.x, f.y - 160, "NOT READY", "#9aa4c0", 15);
+    } else if (input.specialP) {
+      const slot = input.down || f.crouching ? "down" : (input.dirX !== 0 ? "side" : "neutral");
+      performSpecial(f, slot);
+    } else if (input.heavyP) {
+      beginHeavy(f, input);
+    } else if (input.lightP) {
+      beginLight(f, input);
+    }
+  }
+
+  // ---- movement
+  const locked = f.action?.lockMovement || (f.action && f.action.kind === "attack" && f.grounded) ||
+    f.charging || f.shielding || inHitstun || f.healing || (f.counter && f.counter.holdStill);
+
+  const moveMul = speedMul(f);
+  const maxSpeed = (f.grounded ? st.speed : st.airSpeed) * moveMul * (f.dashT > 0 ? DASH_MULT : 1);
+  const accel = st.accel * (f.grounded ? 1 : 0.62) * moveMul;
+
+  if (!locked && !f.crouching) {
+    const dir = input.dirX;
+    if (dir !== 0) {
+      // dash detection: double tap
+      const tapped = (dir === 1 && input.right && !f.prevRight) || (dir === -1 && input.left && !f.prevLeft);
+      if (tapped && f.grounded) {
+        if (f.lastTap.dir === dir && state.matchTime - f.lastTap.t < DASH_TAP_WINDOW) {
+          f.dashT = DASH_TIME;
+          f.dashDir = dir;
+          dust(f.x - dir * 20, f.y, 8);
+          playSfx("whoosh", 0.5);
+        }
+        f.lastTap = { dir, t: state.matchTime };
+      }
+      if (f.grounded && dir !== sign(f.vx) && Math.abs(f.vx) > 60 && f.turnLock <= 0) {
+        f.turnLock = 0.08;
+      }
+      if (f.turnLock <= 0) {
+        f.vx += dir * accel * dt;
+        f.vx = clamp(f.vx, -maxSpeed, maxSpeed);
+      } else {
+        f.vx *= Math.pow(st.friction, dt * 80);
+      }
+      if (!inHitstun && f.dashT <= 0) f.facing = dir;
+    } else if (f.grounded) {
+      f.vx *= Math.pow(st.friction, dt * 60);
+      if (Math.abs(f.vx) < 8) f.vx = 0;
+    }
+  } else if (f.grounded && (f.crouching || f.shielding || f.charging)) {
+    f.vx *= Math.pow(st.friction, dt * 90);
+    if (Math.abs(f.vx) < 8) f.vx = 0;
+  } else if (inHitstun) {
+    f.vx *= Math.pow(0.988, dt * 60);
+  } else if (f.grounded && !f.action?.keepMomentum) {
+    // locked ground action (attack/special lunge): momentum carries but decays
+    f.vx *= Math.pow(st.friction, dt * 40);
+    if (Math.abs(f.vx) < 8) f.vx = 0;
+  }
+
+  if (f.dashT > 0) {
+    f.dashT -= dt;
+    if (input.dirX === -f.dashDir) f.dashT = 0;
+  }
+
+  // face the opponent when standing still
+  if (f.grounded && !f.action && !inHitstun && input.dirX === 0 && Math.abs(f.vx) < 40) {
+    const opp = opponentOf(f);
+    if (opp && !opp.dead) f.facing = opp.x >= f.x ? 1 : -1;
+  }
+  f.prevLeft = input.left;
+  f.prevRight = input.right;
+
+  // ---- jumping
+  if (input.jumpP) f.jumpBuffer = JUMP_BUFFER;
+
+  const wantsDrop = f.grounded && (f.crouching || input.down) && f.jumpBuffer > 0 &&
+    !locked && !f.charging && f.currentPlatform && f.currentPlatform.kind !== "main";
+  if (wantsDrop) {
+    f.jumpBuffer = 0;
+    f.dropTimer = 0.24;
+    f.grounded = false;
+    f.y += 9;
+    f.vy = Math.max(f.vy, 80);
+  } else if (f.jumpBuffer > 0 && !locked && !f.crouching) {
+    if (f.grounded || f.coyote > 0) {
+      f.jumpBuffer = 0;
+      f.coyote = 0;
+      f.vy = -st.jump;
+      f.grounded = false;
+      f.jumpHeldT = 0;
+      f.jumpCut = false;
+      if (f.action?.kind === "dodge") f.action = null;
+      dust(f.x, f.y, 12);
+    } else if (f.airJumpsLeft > 0 && !inHitstun) {
+      f.jumpBuffer = 0;
+      f.airJumpsLeft -= 1;
+      f.vy = -st.jump * AIR_JUMP_MULT;
+      f.fastFalling = false;
+      dust(f.x, f.y, 10);
+      playSfx("whoosh", 0.4);
+    }
+  }
+
+  // short hop: releasing jump early cuts upward velocity
+  if (!f.grounded && f.vy < 0 && !f.jumpCut) {
+    f.jumpHeldT += dt;
+    if (!input.jumpHeld && f.jumpHeldT < SHORT_HOP_WINDOW + 0.06) {
+      f.vy *= SHORT_HOP_CUT;
+      f.jumpCut = true;
+    }
+  }
+
+  // fast fall
+  if (!f.grounded && f.vy > -80 && input.down && !f.fastFalling && f.hitstun <= 0) {
+    f.fastFalling = true;
+    f.vy = Math.max(f.vy, 320);
+  }
+
+  // ---- physics
+  if (!f.grounded) {
+    const fallCap = f.fastFalling ? MAX_FALL * FASTFALL_MULT : MAX_FALL;
+    f.vy = Math.min(f.vy + GRAVITY * dt, fallCap);
+  }
+
+  const prevY = f.y;
+  f.wasGrounded = f.grounded;
+  f.x += f.vx * dt;
+  f.y += f.vy * dt;
+  if (f.vy >= 0 || f.grounded) resolvePlatforms(f, prevY);
+  else f.grounded = false;
+
+  if (!f.grounded && f.vy > -70) tryGrabLedge(f);
+
+  // ---- blast zones
+  if (f.y > BLAST.bottom || f.x < BLAST.left || f.x > BLAST.right || f.y < BLAST.top) {
+    ringOut(f);
+    return;
+  }
+
+  // ---- animation selection
+  pickAnim(f, input);
+  f.animTime += dt;
+}
+
+function pickAnim(f, input) {
+  if (f.action) {
+    if (f.action.anim) setAnim(f, f.action.anim);
+    return;
+  }
+  if (f.charging) { setAnim(f, "charge"); return; }
+  if (f.hitstun > 0) { setAnim(f, "hurt"); return; }
+  if (f.healing) { setAnim(f, "specialDown"); return; }
+  if (f.counter) { setAnim(f, "specialDown"); return; }
+  if (f.shielding) { setAnim(f, "shield"); return; }
+  if (!f.grounded) { setAnim(f, f.vy < 0 ? "jump" : "fall"); return; }
+  if (f.crouching) { setAnim(f, "crouch"); return; }
+  if (f.dashT > 0) { setAnim(f, "dash"); return; }
+  if (Math.abs(f.vx) > 50) { setAnim(f, "run"); return; }
+  if (f.landTimer > 0) { setAnim(f, "land"); return; }
+  setAnim(f, "idle");
+}

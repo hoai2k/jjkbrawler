@@ -1,0 +1,93 @@
+import { CHARACTER_KEYS } from "./characters.js";
+import { STAGES } from "./stages.js";
+
+export const images = new Map();
+export let spriteManifest = null;
+
+// Asset URLs are resolved against THIS MODULE rather than the document, so a
+// page served from a subdirectory (e.g. /workbench/) loads the same files the
+// game does instead of looking for them beside itself.
+const ASSET_BASE = new URL("../", import.meta.url);
+const assetUrl = (path) => new URL(path, ASSET_BASE).href;
+
+const EFFECT_KEYS = [
+  "blue", "red", "purple", "dismantle", "fuga", "sword_beam", "wind_scythe", "nail",
+  "rainbow_dragon", "cursed_spirit_orb", "ember", "cursed_bud", "chain", "shutter",
+  "lava_geyser", "root_spikes", "scissors_curse", "shrine", "triceratops",
+  "uzumaki", "meteor", "tempest", "nail_storm", "scream_wave",
+  "cursed_tool", "ratio_wave", "soul_isomer", "speech_word", "drum_burst", "soul_touch",
+  "aura_gold", "aura_pink", "aura_violet", "aura_orange", "aura_green",
+  "boogie_clap", "domain_gamble",
+];
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`Failed to load ${src}`));
+    img.src = src;
+  });
+}
+
+export function getImage(key) {
+  return images.get(key) || null;
+}
+
+export function frameMeta(charKey, frameKey) {
+  const char = spriteManifest?.characters?.[charKey];
+  const meta = char ? char[frameKey] || null : null;
+  if (!meta || meta.faceLeft !== undefined) return meta;
+  const nativeLeft = spriteManifest?.nativeLeft?.[charKey];
+  return nativeLeft?.includes(frameKey) ? { ...meta, faceLeft: true } : meta;
+}
+
+export function frameImage(charKey, frameKey) {
+  return images.get(`sprite:${charKey}:${frameKey}`) || null;
+}
+
+export async function loadAssets(onProgress) {
+  const manifestRes = await fetch(assetUrl("assets/sprites/manifest.json"));
+  spriteManifest = await manifestRes.json();
+  // Sheet art is drawn facing RIGHT by default (verified against every
+  // character's run row). `nativeLeft` lists the exceptions that are drawn
+  // facing left; the renderer mirrors those instead.
+  for (const [charKey, frames] of Object.entries(spriteManifest.nativeLeft || {})) {
+    for (const frameKey of frames) {
+      const meta = spriteManifest.characters?.[charKey]?.[frameKey];
+      if (meta) meta.faceLeft = true;
+    }
+  }
+
+  const jobs = [];
+  const add = (key, src) => jobs.push({ key, src: assetUrl(src) });
+
+  for (const charKey of CHARACTER_KEYS) {
+    const frames = spriteManifest.characters[charKey] || {};
+    for (const [frameKey, meta] of Object.entries(frames)) {
+      add(`sprite:${charKey}:${frameKey}`, `assets/sprites/${meta.file}`);
+    }
+  }
+  for (const stage of STAGES) {
+    add(`bg:${stage.key}`, `assets/backgrounds/${stage.bgFile}`);
+  }
+  add("summon:mahoraga", "assets/sprites/summons/mahoraga.png");
+  add("summon:rika", "assets/sprites/summons/rika.png");
+  add("summon:divineDogWhite", "assets/sprites/summons/divine_dog_white.png");
+  add("summon:divineDogBlack", "assets/sprites/summons/divine_dog_black.png");
+  add("summon:nue", "assets/sprites/summons/nue.png");
+  for (const key of EFFECT_KEYS) add(`effect:${key}`, `assets/sprites/effects/${key}.png`);
+
+  let done = 0;
+  await Promise.all(
+    jobs.map(async (job) => {
+      try {
+        const img = await loadImage(job.src);
+        images.set(job.key, img);
+      } catch (err) {
+        console.warn(err.message);
+      }
+      done += 1;
+      if (onProgress) onProgress(done, jobs.length);
+    })
+  );
+}

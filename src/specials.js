@@ -1,0 +1,521 @@
+// Special-move behaviors. Each character defines three specials in
+// characters.js whose `type` maps to a handler here. Signature mechanics
+// (Boogie Woogie, Idle Transfiguration, throat strain, gambles, mode cores)
+// get bespoke handlers; common shapes share primitives.
+
+import { state } from "./state.js";
+import { clamp, sign, rand, chance } from "./utils.js";
+import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox } from "./combat.js";
+import { burst, dust, ring, popup, banner } from "./particles.js";
+import { playSfx, playGrunt } from "./audio.js";
+import { METER_MAX } from "./constants.js";
+import { rectsOverlap } from "./utils.js";
+import { getImage } from "./assets.js";
+
+// Installs have priorities: ultimate transformations (2) cannot be
+// overwritten by special-move buffs (1).
+export function applyInstall(f, install, priority = 1) {
+  if (f.installs && (f.installs.priority || 1) > priority) {
+    popup(f.x, f.y - 170, "ALREADY SURGING", "#9aa4c0", 15);
+    return false;
+  }
+  f.installs = { ...install, priority };
+  return true;
+}
+
+function beginSpecialAction(f, slot, dur, opts = {}) {
+  f.action = { kind: "special", t: 0, dur, anim: slotAnim(slot), events: [], ...opts };
+  f.animTime = 0;
+  f.animKey = slotAnim(slot);
+}
+
+function slotAnim(slot) {
+  return slot === "neutral" ? "specialNeutral" : slot === "side" ? "specialSide" : "specialDown";
+}
+
+export function performSpecial(f, slot) {
+  const cfg = f.char.specials[slot] || f.char.specials.neutral;
+  if (!cfg) return;
+  if (f.cooldowns[slot] > 0) return;
+  if (f.statuses.silence > 0) {
+    popup(f.x, f.y - 160, "TECHNIQUE SEALED", "#a8aeb8", 16);
+    return;
+  }
+  if (f.char.passive.id === "throatStrain") {
+    if (f.throatLock > 0) {
+      popup(f.x, f.y - 160, "*cough*", "#d7d9e7", 16);
+      return;
+    }
+  }
+
+  const handler = HANDLERS[cfg.type];
+  if (!handler) return;
+  f.cooldowns[slot] = cfg.cooldown || 1.2;
+  handler(f, cfg.p || {}, cfg, slot);
+
+  if (f.char.passive.id === "throatStrain" && cfg.strain) {
+    f.throatStrain += cfg.strain;
+    if (f.throatStrain >= 3) {
+      f.throatStrain = 0;
+      f.throatLock = 2.5;
+      popup(f.x, f.y - 176, "THROAT STRAIN!", "#ff8a8a", 18);
+    }
+  }
+}
+
+const HANDLERS = {
+  projectile(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.42);
+    playGrunt(f.charKey);
+    const count = p.count || 1;
+    for (let i = 0; i < count; i++) {
+      const spreadVy = count > 1 ? (i - (count - 1) / 2) * (p.spread || 100) : 0;
+      spawnProjectile(f, { ...p, vy: (p.vy || 0) + spreadVy });
+    }
+    burst(f.x + f.facing * 70, f.y - 86, p.color || f.char.theme, 16, 0.9);
+    grantSummonMeter(f, cfg);
+  },
+
+  wave(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.46);
+    playGrunt(f.charKey);
+    const count = p.count || 1;
+    for (let i = 0; i < count; i++) {
+      spawnProjectile(f, { ...p, wave: true, ox: 60 + i * 54, sprite: p.sprites?.[i % p.sprites.length] });
+    }
+    dust(f.x + f.facing * 50, f.y, 10);
+    grantSummonMeter(f, cfg);
+  },
+
+  dashStrike(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), (p.delay || 0.06) + (p.dur || 0.2) + 0.22, { lockMovement: true, keepMomentum: true });
+    playGrunt(f.charKey);
+    f.vx = f.facing * (p.vel || 520);
+    if (p.iframes) f.invuln = Math.max(f.invuln, p.iframes);
+    if (p.armor) f.armorT = (p.delay || 0.06) + (p.dur || 0.2) + 0.15;
+    spawnMelee(f, { ...p, base: p.base });
+    dust(f.x - f.facing * 30, f.y, 10);
+  },
+
+  burst(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), (p.delay || 0.1) + (p.dur || 0.16) + 0.26);
+    playGrunt(f.charKey);
+    spawnMelee(f, { ...p });
+    if (p.sprite) spawnSummonFlash(f, p.sprite, 0.52, p.spriteH || 220, p.spriteForward || 105);
+    if (p.unblockable) ring(f.x + f.facing * 70, f.y - 90, p.color || f.char.theme, 80);
+  },
+
+  commandGrab(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.5);
+    playGrunt(f.charKey);
+    spawnMelee(f, {
+      delay: 0.12, dur: 0.14, ox: 24, oy: -104, w: p.range || 120, h: 110,
+      dmg: p.dmg, base: p.base, growth: p.growth, angle: p.angle,
+      effect: p.effect, label: cfg.name, unblockable: true, sfx: "blast",
+    });
+    if (p.sprite) spawnSummonFlash(f, p.sprite, 0.5, p.spriteH || 150, p.spriteForward || 78);
+    burst(f.x + f.facing * 70, f.y - 96, p.color || f.char.theme, 18, 0.8);
+  },
+
+  counter(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), p.window || 0.55, { lockMovement: true });
+    f.counter = {
+      t: p.window || 0.55, holdStill: true,
+      dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: p.angle,
+      label: cfg.name, name: "INFINITY",
+    };
+    ring(f.x, f.y - 90, p.color || f.char.theme, 100);
+    playSfx("shield", 0.7, 1.4);
+  },
+
+  install(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.5);
+    playGrunt(f.charKey);
+    const ok = applyInstall(f, {
+      t: p.duration, label: p.label || cfg.name, color: p.color || f.char.theme,
+      speedMul: p.speedMul, dmgMul: p.dmgMul, armor: p.armor,
+      unblockable: p.unblockable, healPerSec: p.healPerSec,
+      contactBurn: p.contactBurn, dmgTakenMul: p.dmgTakenMul, aura: p.aura,
+    });
+    if (!ok) return;
+    banner(p.label || cfg.name, p.color || f.char.theme, { y: 240, size: 38, life: 1.0 });
+    ring(f.x, f.y - 90, p.color || f.char.theme, 140);
+    burst(f.x, f.y - 90, p.color || f.char.theme, 26, 1.2);
+    playSfx("ult", 0.6);
+  },
+
+  trap(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.48);
+    playGrunt(f.charKey);
+    const opp = opponentOf(f);
+    const tx = p.atOpponent && opp ? opp.x : f.x + f.facing * (p.dist || 220);
+    const ground = groundYAt();
+    state.entities.push(makeTrap(f, clamp(tx, 80, 1200), ground, p, cfg.name));
+  },
+
+  swap(f, p, cfg) {
+    const opp = opponentOf(f);
+    beginSpecialAction(f, currentSlot(cfg, f), 0.5);
+    if (p.sprite) spawnSummonFlash(f, p.sprite, 0.42, p.spriteH || 190, 0);
+    if (!opp || opp.dead || Math.abs(opp.x - f.x) > (p.range || 560) || opp.respawnTimer > 0) {
+      popup(f.x, f.y - 160, "clap.", "#b66cff", 18);
+      playSfx("miss", 0.8);
+      return;
+    }
+    playGrunt(f.charKey);
+    if (opp.ledge) { opp.ledge = null; opp.ledgeCooldown = 0.5; }
+    if (f.ledge) { f.ledge = null; f.ledgeCooldown = 0.5; }
+    const fx = f.x, fy = f.y, ox = opp.x, oy = opp.y;
+    burst(fx, fy - 90, p.color, 20, 1);
+    burst(ox, oy - 90, p.color, 20, 1);
+    f.x = clamp(ox, 90, 1190); f.y = oy;
+    opp.x = clamp(fx, 90, 1190); opp.y = fy;
+    f.grounded = false; opp.grounded = false;
+    f.vy = Math.min(f.vy, 0); opp.vy = Math.min(opp.vy, 0);
+    f.facing = sign(opp.x - f.x) || f.facing;
+    popup(f.x, f.y - 170, "BOOGIE WOOGIE", p.color, 22);
+    playSfx("blast", 0.8, 1.3);
+    state.camera.shake = Math.max(state.camera.shake, 6);
+    // followup window: quick strike as they reel
+    spawnMelee(f, {
+      delay: 0.08, dur: 0.16, ox: 30, oy: -100, w: 170, h: 110,
+      dmg: 11, base: 380, growth: 6.6, angle: 0.4, label: "Boogie Woogie", sfx: "punch",
+    });
+  },
+
+  shadowPort(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.34);
+    burst(f.x, f.y - 70, p.color || "#20244a", 22, 1);
+    dust(f.x, f.y, 12);
+    f.x = clamp(f.x + f.facing * (p.dist || 300), 70, 1210);
+    f.invuln = Math.max(f.invuln, p.iframes || 0.4);
+    burst(f.x, f.y - 70, p.color || "#20244a", 22, 1);
+    playSfx("whoosh", 0.9, 0.8);
+  },
+
+  heal(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), p.duration || 1.4, { lockMovement: true });
+    f.healing = { t: p.duration || 1.4, rate: p.healPerSec || 8 };
+    ring(f.x, f.y - 90, p.color || "#a5ffd8", 90);
+    playSfx("shield", 0.5, 1.5);
+  },
+
+  gamble(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.5);
+    playGrunt(f.charKey);
+    if (p.takada) {
+      f.meter = clamp(f.meter + 8, 0, METER_MAX);
+      f.damage = Math.max(0, f.damage - 2);
+      popup(f.x, f.y - 170, "TAKADA-CHAN ♥", "#ffd6f2", 22);
+      ring(f.x, f.y - 90, "#ffd6f2", 110);
+      return;
+    }
+    const roll = Math.random();
+    if (roll < 0.35) {
+      f.meter = clamp(f.meter + 18, 0, METER_MAX);
+      popup(f.x, f.y - 170, "REACH! +METER", "#ffd35a", 20);
+    } else if (roll < 0.6) {
+      f.damage = Math.max(0, f.damage - 8);
+      popup(f.x, f.y - 170, "LUCKY! HEALED", "#a5ffd8", 20);
+    } else if (roll < 0.8) {
+      if (applyInstall(f, { t: 4, label: "HOT STREAK", color: "#ff62cf", dmgMul: 1.15 })) {
+        popup(f.x, f.y - 170, "HOT STREAK!", "#ff62cf", 20);
+      }
+    } else {
+      f.meter = clamp(f.meter - 6, 0, METER_MAX);
+      popup(f.x, f.y - 170, "BUST… -METER", "#ff8a8a", 18);
+    }
+    burst(f.x, f.y - 100, "#ffd35a", 18, 0.9);
+  },
+
+  modeToggle(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.4);
+    if (f.installs && f.installs.id === "gorilla") {
+      f.installs = null;
+      popup(f.x, f.y - 170, "PANDA CORE", "#8ea0b8", 20);
+      return;
+    }
+    playGrunt(f.charKey);
+    const ok = applyInstall(f, {
+      id: "gorilla", t: p.duration, label: p.label, color: p.color,
+      dmgMul: p.dmgMul, speedMul: p.speedMul, armor: p.armor,
+    });
+    if (!ok) return;
+    banner(p.label, p.color, { y: 240, size: 36, life: 0.9 });
+    burst(f.x, f.y - 100, p.color, 26, 1.2);
+    state.camera.shake = Math.max(state.camera.shake, 5);
+  },
+
+  shout(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.5);
+    spawnMelee(f, {
+      delay: 0.1, dur: 0.12, ox: p.ox ?? 40, oy: p.oy ?? -120, w: p.w, h: p.h,
+      dmg: p.dmg, base: p.base, growth: p.growth, angle: p.angle,
+      label: cfg.name, sfx: "blast", unblockable: !!p.ultShout,
+    });
+    ring(f.x + f.facing * 80, f.y - 100, p.color, 120);
+    playSfx("blast", 0.9, 1.2);
+  },
+
+  crush(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.5);
+    const opp = opponentOf(f);
+    if (!opp || opp.dead || Math.abs(opp.x - f.x) > p.range || opp.respawnTimer > 0) {
+      popup(f.x, f.y - 160, "…too far", "#9aa4c0", 15);
+      return;
+    }
+    ring(opp.x, opp.y - 90, p.color, 100);
+    const res = applyHit(f, opp, {
+      dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: 0.1,
+      label: cfg.name, sfx: "blast",
+    }, "script");
+    if (res === "hit") {
+      opp.vy = 860;
+      opp.vx *= 0.3;
+      opp.grounded = false;
+    }
+  },
+
+  detonate(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.44);
+    const opp = opponentOf(f);
+    const marks = opp ? opp.statuses.nailMarks : 0;
+    if (!opp || marks <= 0) {
+      popup(f.x, f.y - 160, "no nails set…", "#9aa4c0", 15);
+      return;
+    }
+    playGrunt(f.charKey);
+    burst(opp.x, opp.y - 90, "#ff9a6a", 16 + marks * 8, 1 + marks * 0.2);
+    ring(opp.x, opp.y - 90, "#ff9a6a", 70 + marks * 25);
+    applyHit(f, opp, {
+      dmg: p.dmgPerMark * marks,
+      baseKb: p.base + marks * 40,
+      growth: p.growthPerMark * marks,
+      angle: p.angle, label: `Hairpin ×${marks}`, sfx: "blast",
+    }, "script");
+    opp.statuses.nailMarks = 0;
+    opp.statuses.nailT = 0;
+  },
+
+  resonance(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.55);
+    const opp = opponentOf(f);
+    const marks = opp ? opp.statuses.nailMarks : 0;
+    if (!opp || marks <= 0) {
+      popup(f.x, f.y - 160, "no nails set…", "#9aa4c0", 15);
+      return;
+    }
+    if (opp.invuln > 0 || opp.respawnTimer > 0 || opp.dead) {
+      popup(f.x, f.y - 160, "…no resonance", "#9aa4c0", 15);
+      return;
+    }
+    playGrunt(f.charKey);
+    const dmg = Math.round(p.dmgPerMark * marks * 10) / 10;
+    opp.damage = Math.min(999, opp.damage + dmg);
+    opp.hitstun = Math.max(opp.hitstun, p.hitstun);
+    opp.statuses.nailMarks = Math.floor(marks / 2);
+    burst(opp.x, opp.y - 90, p.color, 26, 1.1);
+    ring(opp.x, opp.y - 90, p.color, 120);
+    popup(opp.x, opp.y - 140, `RESONANCE ${dmg}%`, p.color, 22);
+    popup(f.x, f.y - 160, "…hurts, right?", "#d86a4a", 15);
+    playSfx("blast", 0.9, 0.8);
+    state.camera.shake = Math.max(state.camera.shake, 7);
+  },
+
+  updraft(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.42);
+    playGrunt(f.charKey);
+    const x = f.x + f.facing * 90;
+    state.entities.push(makeWindColumn(f, x, p));
+    f.vy = Math.min(f.vy, -(p.liftSelf ? 650 : 0));
+    f.fastFalling = false;
+    playSfx("whoosh", 1, 0.7);
+  },
+
+  feint(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.55, { lockMovement: true, keepMomentum: true, events: [] });
+    f.vx = -f.facing * 520;
+    f.invuln = Math.max(f.invuln, p.iframes || 0.28);
+    dust(f.x, f.y, 10);
+    f.action.events.push({
+      at: 0.18,
+      fn: (self) => {
+        self.vx = self.facing * (p.lunge || 560);
+        spawnMelee(self, { ...p, delay: 0.04 });
+        playSfx("whoosh", 0.9, 1.2);
+      },
+    });
+  },
+};
+
+function spawnSummonFlash(owner, spriteKey, duration, height, forward) {
+  state.entities.push({
+    owner, t: 0, dead: false,
+    update(dt) {
+      this.t += dt;
+      if (this.t >= duration || owner.dead) this.dead = true;
+    },
+    draw(ctx) {
+      const img = getImage(spriteKey);
+      if (!img) return;
+      const h = height;
+      const w = img.width * h / img.height;
+      const alpha = Math.sin(Math.min(1, this.t / duration) * Math.PI) * 0.9;
+      ctx.save();
+      ctx.translate(owner.x + owner.facing * forward, owner.y + 12);
+      ctx.scale(owner.facing > 0 ? -1 : 1, 1);
+      ctx.globalAlpha = alpha;
+      ctx.shadowColor = "#dfe8ff";
+      ctx.shadowBlur = 18;
+      ctx.drawImage(img, -w / 2, -h, w, h);
+      ctx.restore();
+    },
+  });
+}
+
+function currentSlot(cfg, f) {
+  const s = f.char.specials;
+  if (s.neutral === cfg) return "neutral";
+  if (s.side === cfg) return "side";
+  return "down";
+}
+
+function grantSummonMeter(f, cfg) {
+  const id = f.char.passive.id;
+  if (id === "tenShadows") f.meter = clamp(f.meter + 3, 0, METER_MAX);
+  if (id === "curseHoard") f.meter = clamp(f.meter + 4, 0, METER_MAX);
+}
+
+function groundYAt() {
+  return state.platforms.length ? state.platforms[0].y : 568;
+}
+
+function makeTrap(owner, x, groundY, p, name) {
+  return {
+    kind: "trap",
+    owner,
+    x, y: groundY,
+    t: 0, armTime: p.armTime, lifetime: p.armTime + p.lifetime,
+    w: p.w, h: p.h, fired: false, dead: false, color: p.color,
+    hit: new Set(),
+    update(dt) {
+      this.t += dt;
+      if (this.t >= this.lifetime) this.dead = true;
+      if (this.t < this.armTime) return;
+      if (!this.fired) {
+        this.fired = true;
+        burst(this.x, this.y - this.h * 0.4, this.color, 24, 1.2);
+        dust(this.x, this.y, 14);
+        playSfx("blast", 0.8, 0.9);
+        state.camera.shake = Math.max(state.camera.shake, 5);
+      }
+      const rect = { x: this.x - this.w / 2, y: this.y - this.h, w: this.w, h: this.h };
+      for (const t of state.fighters) {
+        if (t === owner || t.dead || t.respawnTimer > 0 || this.hit.has(t)) continue;
+        if (rectsOverlap(rect, hurtbox(t))) {
+          this.hit.add(t);
+          applyHit(owner, t, {
+            dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: p.angle,
+            effect: p.effect, label: name, sfx: "blast",
+          }, "script");
+        }
+      }
+    },
+    draw(ctx) {
+      const armed = this.t >= this.armTime;
+      const prog = Math.min(1, this.t / this.armTime);
+      ctx.save();
+      if (!armed) {
+        ctx.globalAlpha = 0.55;
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y - 6, 16 + prog * 26, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 0.25 + prog * 0.3;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y - 4, 30 + prog * 18, 9, 0, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        const fade = 1 - (this.t - this.armTime) / (this.lifetime - this.armTime);
+        const sprite = p.sprite ? getImage(p.sprite) : null;
+        if (sprite) {
+          const h = p.spriteH || this.h;
+          const w = sprite.width * h / sprite.height;
+          ctx.globalAlpha = Math.min(1, fade * 1.35);
+          ctx.shadowColor = this.color;
+          ctx.shadowBlur = 14;
+          ctx.drawImage(sprite, this.x - w / 2, this.y - h, w, h);
+          ctx.restore();
+          return;
+        }
+        ctx.globalAlpha = 0.75 * fade;
+        ctx.fillStyle = this.color;
+        const w = this.w, h = this.h * (0.6 + 0.4 * fade);
+        // jagged pillar
+        ctx.beginPath();
+        ctx.moveTo(this.x - w / 2, this.y);
+        ctx.lineTo(this.x - w / 4, this.y - h * 0.7);
+        ctx.lineTo(this.x, this.y - h);
+        ctx.lineTo(this.x + w / 4, this.y - h * 0.65);
+        ctx.lineTo(this.x + w / 2, this.y);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    },
+  };
+}
+
+function makeWindColumn(owner, x, p) {
+  return {
+    kind: "wind",
+    owner,
+    x, t: 0, dur: 0.55, dead: false, hit: new Set(),
+    update(dt) {
+      this.t += dt;
+      if (this.t >= this.dur) { this.dead = true; return; }
+      const groundY = groundYAt();
+      const rect = { x: this.x - p.w / 2, y: groundY - p.h, w: p.w, h: p.h };
+      for (const t of state.fighters) {
+        if (t === owner || t.dead || t.respawnTimer > 0 || this.hit.has(t)) continue;
+        if (rectsOverlap(rect, hurtbox(t))) {
+          this.hit.add(t);
+          const res = applyHit(owner, t, {
+            dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: 1.45,
+            label: "Updraft", sfx: "whoosh", effect: "gust",
+          }, "script");
+          if (res === "hit") t.vy = Math.min(t.vy, -720);
+        }
+      }
+    },
+    draw(ctx) {
+      const groundY = groundYAt();
+      const fade = 1 - this.t / this.dur;
+      ctx.save();
+      ctx.globalAlpha = 0.4 * fade;
+      ctx.strokeStyle = p.color || "#d5d6ff";
+      ctx.lineWidth = 4;
+      for (let i = 0; i < 4; i++) {
+        const off = ((this.t * 700 + i * 80) % p.h);
+        ctx.beginPath();
+        ctx.ellipse(this.x, groundY - off, p.w * 0.4, 12, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+    },
+  };
+}
+
+// Per-frame special bookkeeping: timed action events.
+export function updateSpecialState(f, dt) {
+  if (f.action && f.action.events && f.action.events.length) {
+    for (const ev of f.action.events) {
+      if (!ev.fired && f.action.t >= ev.at) {
+        ev.fired = true;
+        ev.fn(f);
+      }
+    }
+  }
+}
