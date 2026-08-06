@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sprite Workbench — JJK Brawler II</title>
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="stylesheet" href="workbench.css">
+  </head>
+  <body>
+    <header class="bar">
+      <strong>Sprite Workbench</strong>
+      <span class="hint">Renders through the game's own sprite pipeline — what you see is what the game draws.</span>
+      <span class="history">
+        <button id="undoBtn" class="ghost sm" title="Undo (Cmd/Ctrl+Z)">↶ Undo</button>
+        <button id="redoBtn" class="ghost sm" title="Redo (Cmd/Ctrl+Shift+Z)">↷ Redo</button>
+      </span>
+      <span id="loadState" class="loading">loading assets…</span>
+    </header>
+
+    <main class="layout">
+      <!-- ---------------------------------------------------------- stage -->
+      <section class="stage-col">
+        <div class="stage-wrap">
+          <canvas id="stage" width="760" height="620"></canvas>
+          <div id="frameTag" class="frame-tag">—</div>
+        </div>
+
+        <div class="row">
+          <div class="group grow">
+            <label>Viewer zoom <span class="sub" id="zoomVal">1.9×</span></label>
+            <input type="range" id="zoomRange" min="0.6" max="5" step="0.05" value="1.9">
+          </div>
+          <div class="group">
+            <label>Background</label>
+            <div id="bgSwatches" class="swatches"></div>
+          </div>
+        </div>
+
+        <div class="group">
+          <label>Reference overlays</label>
+          <div class="chips">
+            <label class="chip"><input type="checkbox" id="refSelf"> This character's idle</label>
+            <label class="chip"><input type="checkbox" id="refGojo"> Gojo idle (size benchmark)</label>
+            <label class="chip"><input type="checkbox" id="showPlatform" checked> Game platform</label>
+            <label class="chip"><input type="checkbox" id="showGuides" checked> Guides</label>
+            <label class="chip"><input type="checkbox" id="showBox"> Sprite bounds</label>
+          </div>
+        </div>
+      </section>
+
+      <!-- --------------------------------------------------------- panel -->
+      <section class="panel">
+        <div class="group">
+          <label for="charSel">Character</label>
+          <select id="charSel"></select>
+        </div>
+
+        <div class="group">
+          <label>Pose <span class="sub" id="poseCount"></span></label>
+          <div id="poseList" class="pose-list"></div>
+        </div>
+
+        <div class="group">
+          <label>Size <span class="sub" id="scaleVal"></span></label>
+          <input type="range" id="scaleRange" min="0.4" max="2.2" step="0.005" value="1">
+          <div class="nudge">
+            <button data-scale="-0.05">−5%</button>
+            <button data-scale="-0.01">−1%</button>
+            <button data-scale="0.01">+1%</button>
+            <button data-scale="0.05">+5%</button>
+          </div>
+        </div>
+
+        <div class="group">
+          <label>Horizontal position <span class="sub" id="offsetVal"></span></label>
+          <input type="range" id="offsetRange" min="-120" max="120" step="0.5" value="0">
+          <div class="nudge">
+            <button data-off="-10">←10</button>
+            <button data-off="-1">←1</button>
+            <button data-off="1">1→</button>
+            <button data-off="10">10→</button>
+          </div>
+        </div>
+
+        <div class="group">
+          <label>Ground contact <span class="sub" id="groundVal"></span></label>
+          <input type="range" id="groundRange" min="-120" max="120" step="0.5" value="0">
+          <div class="nudge">
+            <button data-ground="-10">↑10</button>
+            <button data-ground="-1">↑1</button>
+            <button data-ground="1">↓1</button>
+            <button data-ground="10">↓10</button>
+          </div>
+          <p class="note">Sets where the sprite meets the floor. Defaults to the
+            lowest opaque pixel, which is wrong when perspective puts one foot
+            lower than the standing plane — raise it so the <em>near</em> foot
+            rests on the platform.</p>
+        </div>
+
+        <div class="group">
+          <label>Head height target <span class="sub" id="headVal"></span></label>
+          <input type="range" id="headRange" min="80" max="280" step="0.5" value="160">
+          <div class="nudge">
+            <button data-head="-5">↓5</button>
+            <button data-head="-1">↓1</button>
+            <button data-head="1">↑1</button>
+            <button data-head="5">↑5</button>
+          </div>
+          <p class="note">A per-character target, independent of any sprite.
+            Scale the idle pose until the hair meets this bar, then every other
+            pose can be judged against the same line.</p>
+          <button id="resetHead" class="ghost">Reset head height</button>
+        </div>
+
+        <div class="group">
+          <button id="resetFrame" class="ghost">Reset this pose</button>
+          <button id="resetChar" class="ghost">Reset character</button>
+        </div>
+
+        <div class="group">
+          <label>Changes <span class="sub" id="dirtyCount">none</span></label>
+          <button id="exportBtn" class="primary">Export adjustments for this character</button>
+          <textarea id="exportOut" rows="9" spellcheck="false"
+                    placeholder="Adjust some poses, then press Export. Paste the result back to Claude."></textarea>
+          <button id="copyBtn" class="ghost">Copy to clipboard</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="workbench.js"></script>
+  </body>
+</html>
