@@ -1,0 +1,13 @@
+# Temporary: verifies hosted runners execute at all. Remove once Pages works.
+name: Runner diagnostic
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "runner reached"
