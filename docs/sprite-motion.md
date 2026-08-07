@@ -19,7 +19,7 @@ already keeps, so one frame can lean, tumble, breathe and swing. No new art.
 independently in `combat.js` from the fighter's position, so none of it can
 change what connects.
 
-**Every number you would want to tweak lives in `src/tuning.js`** — amplitudes,
+**Every number you would want to tweak lives in `src/config_tuning.js`** — amplitudes,
 tumble thresholds, squash depth, trail length. Nothing in that file is
 load-bearing; edit it freely without reading the code that consumes it.
 
@@ -27,7 +27,7 @@ load-bearing; edit it freely without reading the code that consumes it.
 
 | File | Role |
 |---|---|
-| `src/tuning.js` | **every hand-tweakable value.** Start here |
+| `src/config_tuning.js` | **every hand-tweakable value.** Start here |
 | `src/motion.js` | `fighterTransform(f)` → `{rotation, scaleX, scaleY, offsetX, offsetY}` |
 | `src/sprites.js` | anchors, and `drawCharFrame`'s transform support |
 | `src/fighter.js` | `updatePresentation()` — steps spin, facing sweep, timers, trail |
@@ -142,7 +142,7 @@ idle ghost stay on screen as a size reference. `AIRBORNE_STATES` in
 
 ## Tuning
 
-All of it is in `src/tuning.js`:
+All of it is in `src/config_tuning.js`:
 
 - **Tumble too much / too little** — `TUMBLE_SPIN_PER_KB`, `TUMBLE_KB_MIN`,
   `TUMBLE_SPIN_MAX`.
@@ -156,6 +156,6 @@ Three files are meant for hand editing, and the split is deliberate:
 
 | File | Holds | Affects |
 |---|---|---|
-| `src/config.js` | roster grouping, every player-facing string | nothing mechanical |
-| `src/tuning.js` | motion, tumble, squash, trails, DI, move staling | how it feels |
+| `src/config_menus.js` | roster grouping, every player-facing string | nothing mechanical |
+| `src/config_tuning.js` | motion, tumble, squash, trails, DI, move staling | how it feels |
 | `src/constants.js` | gravity, jump height, shield economy, blast zones | what the game is |

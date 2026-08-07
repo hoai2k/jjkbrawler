@@ -252,7 +252,7 @@ whether the style suffix lands. Compare it against `meimei_card.jpg` (already
 live in the same grid), adjust the suffix if needed, then batch the rest.
 
 After that, work **group by group** — the select screen is now split into
-labelled rows (`CHARACTER_GROUPS` in `src/config.js`), so finishing a whole
+labelled rows (`CHARACTER_GROUPS` in `src/config_menus.js`), so finishing a whole
 group makes that row internally consistent even while others are pending:
 
 1. **Sorcerers** — `gojo`, `nanami`, `todo`, `momo`, `hakari`, `toji`

@@ -19,7 +19,7 @@ import { SHIELD_MAX, MAX_FALL } from "./constants.js";
 import {
   MOTION as A, SQUASH, SQUASH_DEPTH as S, TRAIL_STRENGTH,
   LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME,
-} from "./tuning.js";
+} from "./config_tuning.js";
 
 const TAU = Math.PI * 2;
 

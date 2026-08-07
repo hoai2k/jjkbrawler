@@ -1,7 +1,7 @@
 import { frameMeta, frameImage, spriteManifest } from "./assets.js";
 import { animFor, CHARACTERS, DEFAULT_ANIMS } from "./characters.js";
 import { CELL_W, CELL_H, CELL_FOOT_Y } from "./constants.js";
-import { COM_BODY_FRAC, LEDGE_GRIP_Y_FRAC } from "./tuning.js";
+import { COM_BODY_FRAC, LEDGE_GRIP_Y_FRAC } from "./config_tuning.js";
 import { clamp } from "./utils.js";
 
 // ---------------------------------------------------------------- anchors

@@ -14,7 +14,7 @@ import { CHARACTERS, CHARACTER_KEYS, animFor } from "../src/characters.js";
 import { lightMove, heavyMove } from "../src/moves.js";
 import { fighterTransform } from "../src/motion.js";
 import { SHIELD_MAX, MAX_FALL } from "../src/constants.js";
-import { TUMBLE_SPIN_MAX, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "../src/tuning.js";
+import { TUMBLE_SPIN_MAX, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "../src/config_tuning.js";
 
 const $ = (id) => document.getElementById(id);
 const view = $("actionsView");

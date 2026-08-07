@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, randomCharacterKey } from "./characters.js";
+import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, RESOLVED_GROUPS, randomCharacterKey } from "./characters.js";
 import { STAGES } from "./stages.js";
 import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
@@ -7,7 +7,7 @@ import { METER_MAX } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
 import { setSpriteSet } from "./assets.js";
-import { CHARACTER_GROUPS, RANDOM_GROUP, TEXT } from "./config.js";
+import { RANDOM_GROUP, TEXT } from "./config_menus.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -27,6 +27,7 @@ export function initUi(cb) {
   for (const id of [
     "hud", "utilityActions", "menuOverlay", "stageOverlay", "movesOverlay", "roundOverlay", "pauseOverlay",
     "settingsOverlay", "loadOverlay", "loadStatus", "loadBar", "loadBarFill", "characterGrid", "stageGrid",
+    "matchupBar",
     "p1PickCard", "p2PickCard", "p3PickCard", "p4PickCard",
     "p1PickImage", "p2PickImage", "p3PickImage", "p4PickImage",
     "p1PickName", "p2PickName", "p3PickName", "p4PickName",
@@ -61,7 +62,7 @@ export function initUi(cb) {
   window.addEventListener("resize", layoutCharacterGrid);
 }
 
-// Screens whose wording never changes at runtime still comes from config.js, so
+// Screens whose wording never changes at runtime still comes from config_menus.js, so
 // every player-facing string lives in one file. Anything dynamic is written by
 // the render functions below.
 function applyStaticText() {
@@ -184,7 +185,9 @@ function tryStart() {
 
 function buildCharacterGrid() {
   els.characterGrid.innerHTML = "";
-  for (const group of CHARACTER_GROUPS) {
+  // RESOLVED_GROUPS, not the raw config: a typo'd key would otherwise reach
+  // buildCharacterCard and take the whole select screen down on `.name`.
+  for (const group of RESOLVED_GROUPS) {
     els.characterGrid.appendChild(buildGroupSection(group.key, group.label, group.members));
   }
   // Random is its own trailing tile rather than a member of any category.
@@ -477,8 +480,10 @@ export function updateSelectionUi() {
     els[`p${id}PickRandomArt`].classList.toggle("hidden", !random);
     if (char) els[`p${id}PickImage`].src = `assets/cards/${key}_card.jpg`;
     else els[`p${id}PickImage`].removeAttribute("src");
+    // The hero card is the one place with room for the character's full name;
+    // roster tiles and the in-match HUD stay on the short form.
     els[`p${id}PickName`].textContent =
-      char ? char.name : random ? TEXT.slot.randomName : TEXT.slot.empty;
+      char ? (char.fullName || char.name) : random ? TEXT.slot.randomName : TEXT.slot.empty;
     els[`p${id}PickInfo`].innerHTML = char ? heroInfoHtml(char) : random ? randomInfoHtml() : "";
 
     badge.textContent = drawn ? TEXT.slot.randomBadge : TEXT.slot.readyBadge;
@@ -488,6 +493,12 @@ export function updateSelectionUi() {
     els[`p${id}PickCard`].classList.toggle("is-active", state.activePicker === id);
     els[`p${id}PickCard`].classList.toggle("is-ready", state.ready[id]);
   }
+  // Three and four hero cards share the same bar, so each one is much narrower
+  // than in a 1v1. The full name has to shrink with them, and CSS cannot see a
+  // flex item's computed width — so publish the count and let it key off that.
+  els.matchupBar.dataset.slots = String(
+    [1, 2, 3, 4].filter((id) => !els[`p${id}PickCard`].classList.contains("hidden")).length
+  );
   els.p2PickLabel.textContent = state.mode === "cpu" ? TEXT.slot.cpu : TEXT.slot.player(2);
   const go = allReady();
   els.startButton.disabled = !go;
