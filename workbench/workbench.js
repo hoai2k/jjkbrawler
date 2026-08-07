@@ -901,9 +901,36 @@ function exportAll() {
     .sort()
     .map(payloadFor)
     .filter(Boolean);
-  $("exportOut").value = payloads.length
+  const json = payloads.length
     ? JSON.stringify(payloads.length === 1 ? payloads[0] : payloads, null, 2)
-    : "// no changes yet";
+    : "";
+  $("exportOut").value = json || "// no changes yet";
+  if (json) downloadJson(json, exportFileName(payloads));
+}
+
+/** Named after what is in it, so a folder of exports is readable months later:
+ *  `gojo-adjustments.json`, or `roster-adjustments.json` for a multi-character
+ *  session. No timestamp — the file system already records that, and a name
+ *  that changes every second cannot be overwritten in place. */
+function exportFileName(payloads) {
+  const who = payloads.length === 1 ? payloads[0].character : "roster";
+  return `${who}-adjustments.json`;
+}
+
+/** Save the export as a file rather than leaving it in the textarea to be
+ *  selected and copied by hand. The textarea stays filled — reading the diff
+ *  before sending it on is the normal thing to do. */
+function downloadJson(json, filename) {
+  const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  // Freed on the next tick: revoking synchronously can beat the download in
+  // some browsers and save an empty file.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 // ------------------------------------------------------------------ boot
