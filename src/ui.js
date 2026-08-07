@@ -30,7 +30,9 @@ export function initUi(cb) {
     "p1PickImage", "p2PickImage", "p3PickImage", "p4PickImage",
     "p1PickName", "p2PickName", "p3PickName", "p4PickName",
     "p1PickLabel", "p2PickLabel", "p3PickLabel", "p4PickLabel",
-    "startButton", "movesButton", "settingsButton", "fullscreenButton", "controllerStatus",
+    "p1PickInfo", "p2PickInfo", "p3PickInfo", "p4PickInfo",
+    "p1PickReady", "p2PickReady", "p3PickReady", "p4PickReady",
+    "startButton", "movesButton", "settingsButton", "fullscreenButton", "controllerStatus", "menuHint",
     "p1Panel", "p2Panel", "p3Panel", "p4Panel",
     "p1Name", "p2Name", "p3Name", "p4Name",
     "p1Damage", "p2Damage", "p3Damage", "p4Damage",
@@ -55,6 +57,57 @@ export function initUi(cb) {
   updateMenuButtons();
 }
 
+// ------------------------------------------------- ready / lock-in helpers
+
+// The CPU slot (P2 in single-player) never needs to lock in; it is always
+// considered ready with whatever fighter is currently assigned to it.
+function isCpuSlot(id) {
+  return state.playerCount === 1 && id === 2;
+}
+
+function humanIds() {
+  return PLAYER_IDS.slice(0, state.playerCount);
+}
+
+function allReady() {
+  return humanIds().every((id) => state.ready[id]);
+}
+
+export function resetReady() {
+  for (const id of PLAYER_IDS) state.ready[id] = false;
+  state.activePicker = 1;
+}
+
+// Commit a fighter for a slot. Humans lock in (ready); the CPU slot just takes
+// the fighter and hands the shared cursor back to Player 1.
+function selectFighter(id, key) {
+  state.selection[id] = key;
+  if (isCpuSlot(id)) {
+    state.activePicker = 1;
+  } else {
+    state.ready[id] = true;
+    const next = humanIds().find((h) => !state.ready[h]);
+    if (next) state.activePicker = next;
+  }
+  updateSelectionUi();
+  playSfx("slash", 0.3, 1.4);
+}
+
+function unready(id) {
+  const target = state.ready[id] ? id : [...humanIds()].reverse().find((h) => state.ready[h]);
+  if (!target) return false;
+  state.ready[target] = false;
+  state.activePicker = target;
+  updateSelectionUi();
+  playSfx("whoosh", 0.3, 0.9);
+  return true;
+}
+
+function tryStart() {
+  if (!allReady()) return;
+  els.startButton.click();
+}
+
 function buildCharacterGrid() {
   els.characterGrid.innerHTML = "";
   for (const key of CHARACTER_KEYS) {
@@ -63,13 +116,7 @@ function buildCharacterGrid() {
     btn.className = "char-card";
     btn.dataset.character = key;
     btn.innerHTML = `<img src="assets/cards/${key}_card.jpg" alt="${char.name}"><span>${char.name}</span>`;
-    btn.addEventListener("click", () => {
-      state.selection[state.activePicker] = key;
-      const maxPicker = state.playerCount === 1 ? 2 : state.playerCount;
-      if (state.activePicker < maxPicker) setActivePicker(state.activePicker + 1);
-      updateSelectionUi();
-      playSfx("slash", 0.3, 1.4);
-    });
+    btn.addEventListener("click", () => selectFighter(state.activePicker, key));
     btn.addEventListener("contextmenu", (e) => {
       e.preventDefault();
       state.selection[2] = key;
@@ -180,6 +227,31 @@ export function updateMenuButtons() {
     `Sprites: ${state.spriteSet === "alternate" ? "Alternate" : "Default"}`;
 }
 
+// Stat bars for the hero cards, normalized against the full roster so a bar
+// at 100% means "best in the game", not an absolute number.
+const STAT_DEFS = [
+  { label: "Speed", value: (c) => c.stats.speed },
+  { label: "Power", value: (c) => c.heavy.dmg + c.light.dmg },
+  { label: "Weight", value: (c) => c.stats.weight },
+];
+const STAT_RANGES = STAT_DEFS.map((def) => {
+  const values = CHARACTER_KEYS.map((k) => def.value(CHARACTERS[k]));
+  return { min: Math.min(...values), max: Math.max(...values) };
+});
+
+function heroInfoHtml(char) {
+  const bars = STAT_DEFS.map((def, i) => {
+    const { min, max } = STAT_RANGES[i];
+    const pct = Math.round(15 + 85 * ((def.value(char) - min) / (max - min || 1)));
+    return `<span class="hero-stat"><i>${def.label}</i><b><u style="width:${pct}%"></u></b></span>`;
+  }).join("");
+  return `
+    <em class="hero-epithet">${char.epithet}</em>
+    <span class="hero-stats">${bars}</span>
+    <span class="hero-ult"><i>Ultimate</i> ${char.ultimate.name}</span>
+  `;
+}
+
 export function updateSelectionUi() {
   for (const btn of els.characterGrid.children) {
     const key = btn.dataset.character;
@@ -196,12 +268,23 @@ export function updateSelectionUi() {
   }
   for (const id of PLAYER_IDS) {
     const key = state.selection[id];
+    const char = CHARACTERS[key];
+    const ready = state.ready[id] || isCpuSlot(id);
     els[`p${id}PickImage`].src = `assets/cards/${key}_card.jpg`;
-    els[`p${id}PickName`].textContent = CHARACTERS[key].name;
+    els[`p${id}PickName`].textContent = char.name;
+    els[`p${id}PickInfo`].innerHTML = heroInfoHtml(char);
+    els[`p${id}PickReady`].classList.toggle("hidden", !state.ready[id]);
     els[`p${id}PickCard`].classList.toggle("hidden", id > 2 && id > state.playerCount);
     els[`p${id}PickCard`].classList.toggle("is-active", state.activePicker === id);
+    els[`p${id}PickCard`].classList.toggle("is-ready", ready && !isCpuSlot(id));
   }
   els.p2PickLabel.textContent = state.mode === "cpu" ? "CPU" : "Player 2";
+  const go = allReady();
+  els.startButton.disabled = !go;
+  els.startButton.textContent = go ? "Choose Stage" : "Waiting for fighters…";
+  els.menuHint.textContent = go
+    ? "All fighters locked — confirm again (A / Enter) to choose the stage. B / Backspace un-readies."
+    : "Pick a fighter to lock in. B / Backspace un-readies · LB/RB cycles the corner menus.";
   updatePickerCursorClasses();
 }
 
@@ -353,7 +436,7 @@ export function updateControllerStatus(count) {
     const who = joined === 1 ? "VS CPU" : `${joined} players joined`;
     els.controllerStatus.textContent = waiting
       ? `${who} — press any button on another controller to join`
-      : `${who} — each player has their own fighter cursor; Start continues`;
+      : `${who} — A locks your fighter, A again starts · B backs out · LB/RB corner menus`;
   }
 }
 
@@ -379,7 +462,7 @@ function menuFocusables() {
   if (!overlayId) return [];
   const overlay = els[overlayId];
   return [...overlay.querySelectorAll("button, input[type=range]")]
-    .filter((el) => !el.classList.contains("hidden") && el.offsetParent !== null);
+    .filter((el) => !el.classList.contains("hidden") && el.offsetParent !== null && !el.disabled);
 }
 
 function defaultFocus() {
@@ -412,6 +495,8 @@ function updatePickerCursorClasses() {
     for (const id of PLAYER_IDS) btn.classList.remove(`pad-focus-p${id}`);
   }
   for (const id of PLAYER_IDS.slice(0, state.playerCount)) {
+    // a ready player's cursor disappears: their pick is committed
+    if (state.ready[id]) continue;
     const key = pickerCursor[id];
     if (!key) continue;
     els.characterGrid.querySelector(`[data-character="${key}"]`)?.classList.add(`pad-focus-p${id}`);
@@ -453,11 +538,71 @@ function movePickerCursor(playerId, dx, dy) {
   if (best) setPickerCursor(playerId, best.dataset.character);
 }
 
+// LB/RB on the menu cycle a highlight through the utility buttons in the top
+// right corner, then wrap back to the fighter grid (or the start button once
+// everyone is locked in). A activates the highlighted button.
+const UTILITY_IDS = ["movesButton", "settingsButton", "fullscreenButton"];
+let utilityIdx = -1;
+let menuHighlightEl = null;
+
+function setMenuHighlight(el) {
+  if (menuHighlightEl === el) return;
+  if (menuHighlightEl) menuHighlightEl.classList.remove("pad-focus");
+  menuHighlightEl = el;
+  if (el) {
+    el.classList.add("pad-focus");
+    playSfx("whoosh", 0.25, 1.6);
+  }
+}
+
+function syncMenuHighlight() {
+  if (utilityIdx >= 0) setMenuHighlight(els[UTILITY_IDS[utilityIdx]]);
+  else setMenuHighlight(allReady() ? els.startButton : null);
+}
+
+function cycleUtility(dir) {
+  const n = UTILITY_IDS.length;
+  utilityIdx = dir > 0
+    ? (utilityIdx >= n - 1 ? -1 : utilityIdx + 1)
+    : (utilityIdx < 0 ? n - 1 : utilityIdx - 1);
+}
+
 function updateCharacterPickerPads(dt) {
   const pads = padsMenuStates();
+
+  if (pads.some((p) => p.pageNextP)) cycleUtility(1);
+  else if (pads.some((p) => p.pagePrevP)) cycleUtility(-1);
+
+  // While a utility button is highlighted, A presses go to it, not the grid.
+  if (utilityIdx >= 0) {
+    if (pads.some((p) => p.confirmP)) {
+      const el = els[UTILITY_IDS[utilityIdx]];
+      utilityIdx = -1;
+      setMenuHighlight(null);
+      playSfx("slash", 0.3, 1.5);
+      el.click();
+      return;
+    }
+    if (pads.some((p) => p.backP)) utilityIdx = -1;
+    syncMenuHighlight();
+    updatePickerCursorClasses();
+    return;
+  }
+
   for (let i = 0; i < Math.min(4, pads.length, state.playerCount); i++) {
     const playerId = i + 1;
     const pad = pads[i];
+    const repeat = pickerRepeat[i];
+
+    // Ready players stop steering the grid. A starts the match (once everyone
+    // is ready); B releases their pick so they can browse again.
+    if (state.ready[playerId]) {
+      repeat.dir = null;
+      if (pad.backP) unready(playerId);
+      else if (pad.confirmP) tryStart();
+      continue;
+    }
+
     if (!pickerCursor[playerId]) pickerCursor[playerId] = state.selection[playerId];
     let dx = 0, dy = 0;
     if (pad.left) dx = -1;
@@ -465,7 +610,6 @@ function updateCharacterPickerPads(dt) {
     else if (pad.up) dy = -1;
     else if (pad.down) dy = 1;
     const dirKey = dx !== 0 ? `x${dx}` : dy !== 0 ? `y${dy}` : null;
-    const repeat = pickerRepeat[i];
     if (dirKey) {
       if (repeat.dir !== dirKey) {
         repeat.dir = dirKey;
@@ -477,11 +621,10 @@ function updateCharacterPickerPads(dt) {
       }
     } else repeat.dir = null;
     if (pad.confirmP) {
-      state.selection[playerId] = pickerCursor[playerId] || state.selection[playerId];
-      updateSelectionUi();
-      playSfx("slash", 0.3, 1.35);
+      selectFighter(playerId, pickerCursor[playerId] || state.selection[playerId]);
     }
   }
+  syncMenuHighlight();
   updatePickerCursorClasses();
 }
 
@@ -490,6 +633,9 @@ export function clearMenuFocus() {
   focusEl = null;
   navRepeat.dir = null;
   for (const repeat of pickerRepeat) repeat.dir = null;
+  utilityIdx = -1;
+  if (menuHighlightEl) menuHighlightEl.classList.remove("pad-focus");
+  menuHighlightEl = null;
 }
 
 function moveFocus(dx, dy) {
@@ -544,6 +690,12 @@ function activateFocus() {
     return;
   }
   if (focusEl.tagName === "INPUT") return; // sliders adjust with left/right
+  // On the fighter grid, a confirm from a player who is already locked in is
+  // the "second press": it starts the match instead of re-picking.
+  if (state.phase === "menu" && focusEl.classList.contains("char-card") && state.ready[state.activePicker]) {
+    tryStart();
+    return;
+  }
   playSfx("slash", 0.3, 1.5);
   focusEl.click();
 }
@@ -613,7 +765,8 @@ function bindMenuKeyboardNav() {
       activateFocus();
     } else if (code === "Backspace") {
       e.preventDefault();
-      menuBack();
+      if (state.phase === "menu") unready(state.activePicker);
+      else menuBack();
     }
   });
   // real mouse use hides the pad cursor until the pad speaks again

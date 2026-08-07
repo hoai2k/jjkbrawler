@@ -9,7 +9,7 @@ import { updateCamera } from "./camera.js";
 import { draw } from "./render.js";
 import { getStage } from "./stages.js";
 import { makeAiState, aiInput, cpuDamageMul } from "./ai.js";
-import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers } from "./ui.js";
+import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady } from "./ui.js";
 import { FIXED_DT, MAX_FIXED_STEPS, WORLD } from "./constants.js";
 
 const canvas = document.getElementById("gameCanvas");
@@ -89,6 +89,7 @@ function resetMatch() {
 }
 
 function quitToMenu() {
+  resetReady();
   setPhase("menu");
   updateSelectionUi();
   updateMenuButtons();

@@ -77,35 +77,44 @@
             <img class="game-logo" src="assets/ui/logo.png" alt="JJK Brawler II">
           </div>
 
-          <div id="characterGrid" class="character-grid" aria-label="Fighter select"></div>
-
           <div id="matchupBar" class="matchup-bar">
             <button id="p1PickCard" class="matchup-side is-active" type="button">
               <span id="p1PickLabel">Player 1</span>
               <img id="p1PickImage" src="assets/cards/gojo_card.jpg" alt="Player 1 fighter">
               <strong id="p1PickName">Gojo</strong>
-            </button>
-            <button id="p2PickCard" class="matchup-side" type="button">
-              <span id="p2PickLabel">CPU</span>
-              <img id="p2PickImage" src="assets/cards/sukuna_card.jpg" alt="Player 2 fighter">
-              <strong id="p2PickName">Sukuna</strong>
+              <div id="p1PickInfo" class="hero-info"></div>
+              <i id="p1PickReady" class="hero-ready hidden">Ready</i>
             </button>
             <button id="p3PickCard" class="matchup-side hidden" type="button">
               <span id="p3PickLabel">Player 3</span>
               <img id="p3PickImage" src="assets/cards/megumi_card.jpg" alt="Player 3 fighter">
               <strong id="p3PickName">Megumi</strong>
-            </button>
-            <button id="p4PickCard" class="matchup-side hidden" type="button">
-              <span id="p4PickLabel">Player 4</span>
-              <img id="p4PickImage" src="assets/cards/nobara_card.jpg" alt="Player 4 fighter">
-              <strong id="p4PickName">Nobara</strong>
+              <div id="p3PickInfo" class="hero-info"></div>
+              <i id="p3PickReady" class="hero-ready hidden">Ready</i>
             </button>
             <div class="matchup-center">
               <img class="vs-badge" src="assets/ui/vs_badge.png" alt="Versus">
               <button id="startButton" class="primary-action" type="button">Choose Stage</button>
             </div>
+            <button id="p4PickCard" class="matchup-side hidden" type="button">
+              <span id="p4PickLabel">Player 4</span>
+              <img id="p4PickImage" src="assets/cards/nobara_card.jpg" alt="Player 4 fighter">
+              <strong id="p4PickName">Nobara</strong>
+              <div id="p4PickInfo" class="hero-info"></div>
+              <i id="p4PickReady" class="hero-ready hidden">Ready</i>
+            </button>
+            <button id="p2PickCard" class="matchup-side" type="button">
+              <span id="p2PickLabel">CPU</span>
+              <img id="p2PickImage" src="assets/cards/sukuna_card.jpg" alt="Player 2 fighter">
+              <strong id="p2PickName">Sukuna</strong>
+              <div id="p2PickInfo" class="hero-info"></div>
+              <i id="p2PickReady" class="hero-ready hidden">Ready</i>
+            </button>
           </div>
 
+          <div id="characterGrid" class="character-grid" aria-label="Fighter select"></div>
+
+          <p id="menuHint" class="controller-status">Pick a fighter to lock in — confirm again to start. B / Backspace un-readies.</p>
           <p id="controllerStatus" class="controller-status hidden"></p>
         </div>
 

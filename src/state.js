@@ -10,6 +10,9 @@ export const state = {
   // exists (currently Hanami's round-6 redesign). See assets.js.
   spriteSet: "default",
   selection: { 1: "gojo", 2: "sukuna", 3: "megumi", 4: "nobara" },
+  // Per-player lock-in on the fighter select screen. A player who is ready has
+  // committed a fighter; the match can start once every human slot is ready.
+  ready: { 1: false, 2: false, 3: false, 4: false },
   activePicker: 1,
   stageKey: "trainingBridge",
 
