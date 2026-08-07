@@ -11,7 +11,9 @@ export const state = {
   spriteSet: "default",
   // What each slot picked on the select screen. May be RANDOM_KEY, which
   // resolves to a different fighter every match. The CPU defaults to random.
-  selection: { 1: "gojo", 2: "__random", 3: "megumi", 4: "nobara" },
+  // P1 starts empty on purpose: the player picks their own fighter rather than
+  // inheriting one. The other slots keep defaults so a 1P game is one click.
+  selection: { 1: null, 2: "__random", 3: "megumi", 4: "nobara" },
   // Concrete fighter each slot is actually using this match, after RANDOM_KEY
   // has been resolved. This is what fighters are built from.
   roster: { 1: "gojo", 2: "sukuna", 3: "megumi", 4: "nobara" },

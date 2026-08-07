@@ -48,7 +48,9 @@ function isHumanSlot(id) {
 function resolveRoster(entrantCount) {
   for (let id = 1; id <= entrantCount; id++) {
     const picked = state.selection[id];
-    if (picked !== RANDOM_KEY) {
+    // An unpicked slot (P1 before anyone chooses) draws like Random rather than
+    // building a fighter from nothing; readying normally guarantees a pick.
+    if (picked && picked !== RANDOM_KEY) {
       state.roster[id] = picked;
       continue;
     }

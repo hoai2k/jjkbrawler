@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, randomCharacterKey } from "./characters.js";
+import { CHARACTER_GROUPS, CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { STAGES } from "./stages.js";
 import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
@@ -25,7 +25,7 @@ export function initUi(cb) {
   callbacks = cb;
   for (const id of [
     "hud", "utilityActions", "menuOverlay", "stageOverlay", "movesOverlay", "roundOverlay", "pauseOverlay",
-    "settingsOverlay", "loadOverlay", "loadStatus", "characterGrid", "stageGrid",
+    "settingsOverlay", "loadOverlay", "loadStatus", "loadBar", "loadBarFill", "characterGrid", "stageGrid",
     "p1PickCard", "p2PickCard", "p3PickCard", "p4PickCard",
     "p1PickImage", "p2PickImage", "p3PickImage", "p4PickImage",
     "p1PickName", "p2PickName", "p3PickName", "p4PickName",
@@ -56,6 +56,7 @@ export function initUi(cb) {
   bindMenuKeyboardNav();
   updateSelectionUi();
   updateMenuButtons();
+  window.addEventListener("resize", layoutCharacterGrid);
 }
 
 // ------------------------------------------------- ready / lock-in helpers
@@ -121,22 +122,95 @@ function tryStart() {
 
 function buildCharacterGrid() {
   els.characterGrid.innerHTML = "";
-  for (const key of [...CHARACTER_KEYS, RANDOM_KEY]) {
-    const random = key === RANDOM_KEY;
-    const name = random ? "Random" : CHARACTERS[key].name;
-    const btn = document.createElement("button");
-    btn.className = random ? "char-card char-card--random" : "char-card";
-    btn.dataset.character = key;
-    btn.innerHTML = random
-      ? `<b class="random-glyph">?</b><span>${name}</span>`
-      : `<img src="assets/cards/${key}_card.jpg" alt="${name}"><span>${name}</span>`;
-    btn.addEventListener("click", () => selectFighter(state.activePicker, key));
-    btn.addEventListener("contextmenu", (e) => {
-      e.preventDefault();
-      state.selection[2] = key;
-      updateSelectionUi();
-    });
-    els.characterGrid.appendChild(btn);
+  for (const group of CHARACTER_GROUPS) {
+    els.characterGrid.appendChild(buildGroupSection(group.key, group.label, group.members));
+  }
+  // Random is its own trailing tile rather than a member of any category.
+  const wildcard = buildGroupSection("random", "Wildcard", [RANDOM_KEY]);
+  wildcard.classList.add("char-group--wildcard");
+  els.characterGrid.appendChild(wildcard);
+
+  // getComputedStyle hands back custom properties unresolved ("clamp(78px,
+  // 15vh, 200px)"), so the responsive base size is measured off a probe element
+  // that is actually laid out at that width.
+  const probe = document.createElement("span");
+  probe.className = "card-probe";
+  probe.setAttribute("aria-hidden", "true");
+  els.characterGrid.appendChild(probe);
+}
+
+function buildGroupSection(key, label, members) {
+  const section = document.createElement("section");
+  section.className = "char-group";
+  section.dataset.group = key;
+  // Widths are driven off the member count, so any number of groups of any
+  // size lays itself out from this one variable.
+  section.style.setProperty("--members", members.length);
+
+  const heading = document.createElement("h3");
+  heading.className = "char-group-title";
+  heading.textContent = label;
+  section.appendChild(heading);
+
+  const cards = document.createElement("div");
+  cards.className = "char-group-cards";
+  for (const member of members) cards.appendChild(buildCharacterCard(member));
+  section.appendChild(cards);
+  return section;
+}
+
+function buildCharacterCard(key) {
+  const random = key === RANDOM_KEY;
+  const name = random ? "Random" : CHARACTERS[key].name;
+  const btn = document.createElement("button");
+  btn.className = random ? "char-card char-card--random" : "char-card";
+  btn.dataset.character = key;
+  btn.innerHTML = random
+    ? `<b class="random-glyph">?</b><span>${name}</span>`
+    : `<img src="assets/cards/${key}_card.jpg" alt="${name}"><span>${name}</span>`;
+  btn.addEventListener("click", () => selectFighter(state.activePicker, key));
+  btn.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    state.selection[2] = key;
+    updateSelectionUi();
+  });
+  return btn;
+}
+
+const MIN_CARD_PX = 44;
+
+// Sizes the roster to the window: portraits scale with the viewport, groups sit
+// side by side while they fit, columns are balanced so rows come out even (six
+// fighters in two rows read as 3+3, never 5+1), and the whole thing shrinks
+// until the matchup bar below it still fits on screen. Runs on resize and
+// whenever the menu is shown; nothing here is tied to the current roster size.
+export function layoutCharacterGrid() {
+  const grid = els.characterGrid;
+  if (!grid || !grid.clientWidth) return; // hidden overlay: nothing to measure
+  const base = grid.querySelector(".card-probe")?.getBoundingClientRect().width || 90;
+  let size = base;
+  for (let pass = 0; pass < 12; pass++) {
+    grid.style.setProperty("--card-size", `${Math.round(size)}px`);
+    applyColumns(grid, size);
+    if (els.menuOverlay.scrollHeight <= els.menuOverlay.clientHeight || size <= MIN_CARD_PX) break;
+    size = Math.max(MIN_CARD_PX, size * 0.9);
+  }
+}
+
+function applyColumns(grid, cardSize) {
+  const groups = [...grid.querySelectorAll(".char-group:not(.char-group--wildcard) .char-group-cards")]
+    .filter((el) => el.childElementCount);
+  if (!groups.length) return;
+  // One column count for the whole roster, taken from the narrowest group, then
+  // trimmed per group so its rows come out even.
+  const gap = parseFloat(getComputedStyle(groups[0]).columnGap) || 0;
+  const narrowest = Math.min(...groups.map((el) => el.clientWidth));
+  const fit = Math.max(1, Math.floor((narrowest + gap) / (cardSize + gap)));
+  for (const cards of groups) {
+    const count = cards.childElementCount;
+    const cols = Math.min(fit, count);
+    const rows = Math.ceil(count / cols);
+    cards.style.setProperty("--cols", Math.ceil(count / rows));
   }
 }
 
@@ -286,7 +360,7 @@ function shownKey(id) {
 
 export function updateSelectionUi() {
   syncCpuRoll();
-  for (const btn of els.characterGrid.children) {
+  for (const btn of els.characterGrid.querySelectorAll(".char-card")) {
     const key = btn.dataset.character;
     const visiblePlayers = state.playerCount === 1 ? [1, 2] : PLAYER_IDS.slice(0, state.playerCount);
     for (const id of PLAYER_IDS) btn.classList.toggle(`is-p${id}`, visiblePlayers.includes(id) && key === shownKey(id));
@@ -301,18 +375,22 @@ export function updateSelectionUi() {
   }
   for (const id of PLAYER_IDS) {
     // A random slot shows a "?" tile, except the CPU once it has drawn: then
-    // the card reveals the fighter the next match will actually use.
+    // the card reveals the fighter the next match will actually use. A slot
+    // nobody has picked yet (P1 at boot) shows an empty placeholder instead of
+    // a portrait — an unset key would build "undefined_card.jpg" and 404.
     const drawn = id === 2 && state.selection[id] === RANDOM_KEY ? state.cpuRoll : null;
     const key = drawn || state.selection[id];
     const random = key === RANDOM_KEY;
-    const char = random ? null : CHARACTERS[key];
+    const char = key && !random ? CHARACTERS[key] : null;
     const badge = els[`p${id}PickReady`];
 
-    els[`p${id}PickImage`].classList.toggle("hidden", random);
+    els[`p${id}PickCard`].classList.toggle("is-empty", !key);
+    els[`p${id}PickImage`].classList.toggle("hidden", !char);
     els[`p${id}PickRandomArt`].classList.toggle("hidden", !random);
-    if (!random) els[`p${id}PickImage`].src = `assets/cards/${key}_card.jpg`;
-    els[`p${id}PickName`].textContent = random ? "Random" : char.name;
-    els[`p${id}PickInfo`].innerHTML = random ? randomInfoHtml() : heroInfoHtml(char);
+    if (char) els[`p${id}PickImage`].src = `assets/cards/${key}_card.jpg`;
+    else els[`p${id}PickImage`].removeAttribute("src");
+    els[`p${id}PickName`].textContent = char ? char.name : random ? "Random" : "Choose a fighter";
+    els[`p${id}PickInfo`].innerHTML = char ? heroInfoHtml(char) : random ? randomInfoHtml() : "";
 
     badge.textContent = drawn ? "Random" : "Ready";
     badge.classList.toggle("hero-ready--random", !!drawn);
@@ -361,13 +439,17 @@ export function setPhase(phase) {
   }
   els.utilityActions.classList.toggle("hidden", phase === "loading");
   els.hud.classList.toggle("hidden", !["playing", "paused", "roundOver"].includes(phase));
+  // The roster can only be measured once its overlay is on screen.
+  if (phase === "menu") layoutCharacterGrid();
   if (phase === "moves") renderMoveList();
   clearMenuFocus();
   syncMusic(phase);
 }
 
 export function setLoadProgress(done, total) {
-  els.loadStatus.textContent = `Loading ${done}/${total}`;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  els.loadBarFill.style.width = `${pct}%`;
+  els.loadBar.setAttribute("aria-valuenow", String(pct));
 }
 
 // ------------------------------------------------------------------- moves
@@ -512,7 +594,10 @@ function defaultFocus() {
   const items = menuFocusables();
   if (!items.length) return null;
   if (state.phase === "menu") {
-    const current = els.characterGrid.querySelector(`[data-character="${state.selection[state.activePicker]}"]`);
+    const key = state.selection[state.activePicker];
+    const current = key
+      ? els.characterGrid.querySelector(`[data-character="${key}"]`)
+      : els.characterGrid.querySelector(".char-card");
     if (current) return current;
   }
   if (state.phase === "stageSelect") {
@@ -646,7 +731,8 @@ function updateCharacterPickerPads(dt) {
       continue;
     }
 
-    if (!pickerCursor[playerId]) pickerCursor[playerId] = state.selection[playerId];
+    // An unselected slot parks its cursor on the first fighter in the grid.
+    if (!pickerCursor[playerId]) pickerCursor[playerId] = state.selection[playerId] || CHARACTER_KEYS[0];
     let dx = 0, dy = 0;
     if (pad.left) dx = -1;
     else if (pad.right) dx = 1;
