@@ -80,8 +80,13 @@ html, body {
 }
 
 .icon-button:hover { color: var(--accent); border-color: var(--accent); transform: translateY(-1px); }
-.icon-button svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.icon-button:first-of-type svg, .icon-button:nth-of-type(2) svg { fill: currentColor; stroke: none; }
+.icon-button svg { pointer-events: none; width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+/* Filled-path icons (speaker, gear) vs stroked ones (fullscreen). Keyed off a
+   class rather than position, so inserting a button cannot flip an icon's fill. */
+.icon-button--filled svg { fill: currentColor; stroke: none; }
+
+/* Muted reads at a glance without needing the tooltip. */
+.icon-button.is-muted { color: var(--accent-2); border-color: rgba(255, 76, 85, 0.55); }
 .icon-button--info { font: 900 1.25rem/1 Georgia, serif; }
 
 /* ---------- HUD ---------- */
