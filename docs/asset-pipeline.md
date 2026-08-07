@@ -261,6 +261,49 @@ cannot move, be timed or be reused, and it inflates the fighter's bounding box.
 As projectiles they do all three. His volley uses `spritePool`, drawing a random
 curse per shot.
 
+## How the art gets loaded (lazy, in `src/assets.js`)
+
+Sprite art is ~450 MB across 23 fighters and a match uses at most four of them,
+so nothing waits on the whole roster. The loader splits three ways:
+
+| Function | What it fetches | When |
+|---|---|---|
+| `loadCoreAssets()` | `manifest.json` only (~230 KB) | before the menu, blocking |
+| `startBackgroundLoad()` | shared art, then each fighter, then stage backdrops | behind the menu |
+| `ensureMatchAssets(keys, stage)` | whatever this match still lacks | at match start |
+| `loadAllAssets()` | everything, awaited | the workbench only |
+
+The menu itself needs no canvas art: select-screen portraits (`assets/cards/`)
+and stage tiles are plain `<img>` tags the browser fetches on its own. So the
+blocking load is one JSON file, and the title screen appears in well under a
+second.
+
+Behind it, a **pump** walks a queue one group at a time. A group is one
+fighter's frames (plus their alternate set), one stage backdrop, or the
+`shared` bundle — effects, summons, domain backdrops, stage-hazard props. One
+group at a time is deliberate: a fighter is ~30 files, which already saturates
+the six connections a browser opens per host, so running several at once would
+only mean the fighter a player just picked queues behind three they did not.
+
+Two levels of priority sit on top:
+
+- **Looking at a fighter** (pad cursor, mouse hover) calls `previewCharacter()`,
+  which moves them to the head of the queue. It starts no download of its own,
+  so sweeping across the roster cannot kick off twenty parallel loads.
+- **Choosing a fighter** calls `claimCharacter()`, which starts them
+  immediately, outside the queue, and makes the pump defer until every claim has
+  finished. The CPU's random draw and the default fighters on slots 3 and 4 are
+  claimed the same way.
+
+`ensureMatchAssets()` is the backstop, and it waits on the entrants and the
+stage backdrop **only**. Everything in `shared` has a procedural fallback in the
+renderer — a summon or effect that has not arrived yet draws its stand-in shape
+— whereas `drawCharFrame` bails on a missing image, so a fighter without frames
+would be invisible. That is the whole reason the gate exists. In practice it
+never shows itself: a fighter claimed at pick time is in memory long before the
+player has chosen a stage. It does show for a Random slot, which only resolves
+to a concrete fighter inside `resetMatch()` — and re-resolves on every rematch.
+
 ## Staging changes for upload
 
 There is no VCS here, so `tools/collect_updates.py` tracks what still needs

@@ -7,7 +7,7 @@
 // recovery timing derived from moves.js. Nothing is re-implemented, which is
 // the whole point — a pose that looks wrong here is wrong in the game.
 
-import { loadAssets, frameImage, frameMeta, getImage, spriteManifest } from "../src/assets.js";
+import { loadAllAssets, frameImage, frameMeta, getImage, spriteManifest } from "../src/assets.js";
 import { drawCharFrame, currentFrame, warmAnchors, anchorScreenPos } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS, animFor } from "../src/characters.js";
@@ -656,7 +656,7 @@ async function boot() {
     if (e.key === "Escape") closeDrawer();
   });
 
-  await loadAssets(() => {});
+  await loadAllAssets();
   warmAnchors(CHARACTER_KEYS);
   $("loadState").textContent = "assets loaded";
   $("loadState").classList.add("done");

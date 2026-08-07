@@ -6,7 +6,7 @@ import { cpuLevelName } from "./ai.js";
 import { METER_MAX, ULT_METER_COST } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
-import { setSpriteSet } from "./assets.js";
+import { setSpriteSet, previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
 import { RANDOM_GROUP, TEXT } from "./config_menus.js";
 
 const $ = (id) => document.getElementById(id);
@@ -40,7 +40,7 @@ export function initUi(cb) {
     "p1PickInfo", "p2PickInfo", "p3PickInfo", "p4PickInfo",
     "p1PickReady", "p2PickReady", "p3PickReady", "p4PickReady",
     "p1PickRandomArt", "p2PickRandomArt", "p3PickRandomArt", "p4PickRandomArt",
-    "startButton", "movesButton", "settingsButton", "fullscreenButton", "controllerStatus", "menuHint",
+    "startButton", "movesButton", "settingsButton", "fullscreenButton", "controllerStatus", "menuHint", "loadHint",
     "p1Panel", "p2Panel", "p3Panel", "p4Panel",
     "p1Name", "p2Name", "p3Name", "p4Name",
     "p1Damage", "p2Damage", "p3Damage", "p4Damage",
@@ -65,7 +65,33 @@ export function initUi(cb) {
   bindMenuKeyboardNav();
   updateSelectionUi();
   updateMenuButtons();
+  updateLoadHint();
+  onLoadProgress(updateLoadHint);
   window.addEventListener("resize", layoutCharacterGrid);
+}
+
+// The roster streams in behind the menu, so a match can occasionally have to
+// wait a moment for a fighter nobody had looked at yet. Saying so up front is
+// the difference between "still loading" and "why did it freeze".
+let loadHintShown = null;
+let loadHintCount = -1;
+
+function updateLoadHint() {
+  if (!els.loadHint) return;
+  const { charsReady, charsTotal } = loadProgress();
+  // This fires once per image — several hundred times — but the line only ever
+  // shows a count of fighters, so it is rewritten only when that count moves.
+  if (charsReady === loadHintCount) return;
+  loadHintCount = charsReady;
+  const done = charsReady >= charsTotal;
+  if (!done) els.loadHint.textContent = TEXT.menu.loadingRoster(charsReady, charsTotal);
+  if (done === !loadHintShown) return; // text-only update; the box is the same size
+  loadHintShown = !done;
+  els.loadHint.classList.toggle("hidden", done);
+  // Showing or hiding the line changes how much vertical room the roster has,
+  // and the fitted grid height is pinned, so it has to be re-measured. Without
+  // this the cards stay at their squeezed size after loading finishes.
+  if (state.phase === "menu") layoutCharacterGrid();
 }
 
 // Screens whose wording never changes at runtime still comes from config_menus.js, so
@@ -137,13 +163,22 @@ export function resetReady() {
 function syncCpuRoll() {
   const auto = state.playerCount === 1 && state.selection[2] === RANDOM_KEY;
   if (!auto || !allReady()) state.cpuRoll = null;
-  else if (!state.cpuRoll) state.cpuRoll = randomCharacterKey();
+  else if (!state.cpuRoll) {
+    state.cpuRoll = randomCharacterKey();
+    // The roll is shown on the select screen and honoured by the match, so it
+    // is as committed as a human's pick — fetch it the same way.
+    claimCharacter(state.cpuRoll);
+  }
 }
 
 // Commit a fighter for a slot. Humans lock in (ready); the CPU slot just takes
 // the fighter and hands the shared cursor back to Player 1.
 function selectFighter(id, key) {
   state.selection[id] = key;
+  // Committed, so this fighter's art is definitely needed: start it now instead
+  // of waiting for the background queue to reach them. Random resolves at match
+  // start, so there is nothing to fetch for it yet.
+  if (key !== RANDOM_KEY) claimCharacter(key);
   if (isCpuSlot(id)) {
     state.activePicker = 1;
   } else {
@@ -512,6 +547,13 @@ export function syncControllerPlayers(count) {
   if (joined <= state.playerCount) return;
   state.playerCount = joined;
   state.mode = joined === 1 ? state.mode : "local";
+  // Slots 3 and 4 arrive holding a default fighter nobody picked by hand. A pad
+  // joining is the first moment we know those slots are in play, so their art
+  // is claimed here rather than being discovered at the match gate.
+  for (let id = 1; id <= joined; id++) {
+    const key = state.selection[id];
+    if (key && key !== RANDOM_KEY) claimCharacter(key);
+  }
   updateMenuButtons();
   updateSelectionUi();
 }
@@ -849,6 +891,10 @@ function setPickerCursor(playerId, key, { quiet = false } = {}) {
   if (state.ready[playerId]) return;
   if (!key || pickerCursor[playerId] === key) return;
   pickerCursor[playerId] = key;
+  // Looking at a fighter is a hint, not a commitment: they move to the head of
+  // the background queue rather than starting a download of their own, so
+  // sweeping across the roster cannot kick off twenty parallel loads.
+  if (key !== RANDOM_KEY) previewCharacter(key);
   // Repaints the hero card too: the cursor drives the transient preview.
   updateSelectionUi();
   if (!quiet) playSfx("whoosh", 0.2, 1.6);

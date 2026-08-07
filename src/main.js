@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { loadAssets } from "./assets.js";
+import { loadCoreAssets, startBackgroundLoad, ensureMatchAssets, matchAssetsPending } from "./assets.js";
 import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, joinedPlayerCount, blankInput } from "./input.js";
 import { initAudio, setBattleStage, syncMusic } from "./audio.js";
 import { makeFighter, updateFighter } from "./fighter.js";
@@ -32,7 +32,7 @@ function resizeCanvas() {
 
 function startMatch(stageKey) {
   state.stageKey = stageKey;
-  resetMatch();
+  return resetMatch();
 }
 
 // Slot 1/2 have keyboard maps; slot 3/4 need a connected gamepad to be human.
@@ -61,21 +61,38 @@ function resolveRoster(entrantCount) {
   state.cpuRoll = null;
 }
 
-function resetMatch() {
+// Bumped by every match start. An await in the middle of resetMatch is a window
+// in which the player can back out or start something else, and the stale call
+// must not then seize the screen.
+let matchToken = 0;
+
+async function resetMatch() {
+  const token = ++matchToken;
+  const entrantCount = state.playerCount === 1 ? 2 : state.playerCount;
+  // Resolved BEFORE the assets are gathered, because a Random slot only becomes
+  // a concrete fighter here — and it re-rolls every rematch, so this is the
+  // first point at which the match knows what art it needs.
+  resolveRoster(entrantCount);
+  const entrants = Array.from({ length: entrantCount }, (_, i) => state.roster[i + 1]);
+
+  if (matchAssetsPending(entrants, state.stageKey)) {
+    setPhase("loading");
+    await ensureMatchAssets(entrants, state.stageKey, setLoadProgress);
+    if (token !== matchToken || state.phase !== "loading") return; // superseded
+  }
+
   const stage = getStage(state.stageKey);
   // Pick this match's battle track before the phase flips to "playing".
   setBattleStage(stage.key);
   state.platforms = stage.platforms.map((p) => ({ ...p }));
   const groundY = state.platforms[0].y;
 
-  const entrantCount = state.playerCount === 1 ? 2 : state.playerCount;
   const spawnSets = {
     2: [430, 850],
     3: [320, 640, 960],
     4: [250, 500, 780, 1030],
   };
   const spawns = spawnSets[entrantCount];
-  resolveRoster(entrantCount);
   state.fighters = Array.from({ length: entrantCount }, (_, i) => {
     const id = i + 1;
     const x = spawns[i];
@@ -289,12 +306,17 @@ async function init() {
   initUi({ startMatch, resetMatch, quitToMenu, togglePause });
   setPhase("loading");
   try {
-    await loadAssets(setLoadProgress);
+    await loadCoreAssets();
   } catch (err) {
     document.getElementById("loadStatus").textContent = `Asset load failed: ${err.message}`;
     return;
   }
   setPhase("menu");
+  // The roster is ~450 MB of sprite art and a match uses at most four fighters,
+  // so it streams in behind the menu instead of in front of it. Choosing a
+  // fighter pulls them to the front of that queue (see ui.js), and startMatch
+  // waits on whatever is still missing.
+  startBackgroundLoad();
   previousTime = performance.now();
   lastFrameAt = previousTime;
   rafPending = true;

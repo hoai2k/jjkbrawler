@@ -35,9 +35,11 @@ or shrinks downward from a fixed head position rather than sliding off the bar.
 The same applies to the idle's size control. Neither is true of any other pose:
 only the idle drives the character's size.
 
-Solving happens in `loadAssets()`, because it needs the manifest's body
-measurements. The game and both workbenches all go through it, so they cannot
-disagree about how tall a fighter is.
+Solving happens in `loadCoreAssets()`, because it needs the manifest's body
+measurements — and it is in the *core* load, before any sprite has been
+fetched, so a fighter is already the right size the first time they are drawn
+however late their art arrives. The game and both workbenches all go through it,
+so they cannot disagree about how tall a fighter is.
 
 ## Why heights are compressed
 

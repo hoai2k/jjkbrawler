@@ -29,6 +29,22 @@ await page.waitForSelector('[data-character="gojo"]', { timeout: 60000 });
 await page.click('[data-character="gojo"]');
 await page.waitForTimeout(400);
 
+// Sprite art loads lazily now (src/assets.js), so picking a stage can put a
+// short loading screen in front of the match while the entrants' frames arrive.
+// Wait for the fight to actually be running rather than for a fixed delay.
+async function waitForMatch(timeout = 90000) {
+  const deadline = Date.now() + timeout;
+  for (;;) {
+    const ready = await page.evaluate(async () => {
+      const { state } = await import("/src/state.js");
+      return state.phase === "playing" && state.fighters.length > 0;
+    });
+    if (ready) return;
+    if (Date.now() > deadline) throw new Error(`match never started (${current})`);
+    await page.waitForTimeout(120);
+  }
+}
+
 const results = [];
 for (let i = 0; i < STAGE_KEYS.length; i++) {
   current = STAGE_KEYS[i];
@@ -39,7 +55,7 @@ for (let i = 0; i < STAGE_KEYS.length; i++) {
   await page.click("#startButton");
   await page.waitForSelector(".stage-card", { timeout: 5000 });
   await page.locator(".stage-card").nth(i).click();
-  await page.waitForTimeout(400);
+  await waitForMatch();
 
   const report = await page.evaluate(async (stageKey) => {
     const { state } = await import("/src/state.js");
@@ -84,7 +100,7 @@ await page.click("#settingsBackButton");
 await page.click("#startButton");
 await page.waitForSelector(".stage-card");
 await page.locator(".stage-card").nth(9).click(); // Bone Sanctum
-await page.waitForTimeout(400);
+await waitForMatch();
 const off = await page.evaluate(async () => {
   const { state } = await import("/src/state.js");
   state.matchTime = 25;

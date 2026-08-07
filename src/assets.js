@@ -73,6 +73,108 @@ export function getImage(key) {
   return images.get(key) || null;
 }
 
+// Sprite art is ~450 MB across 23 fighters, and a match uses at most four of
+// them. Rather than hold the title screen hostage to all of it, the loader is
+// split three ways:
+//
+//   loadCoreAssets()      the manifest, and nothing else. ~230 KB, so the menu
+//                         is interactive almost immediately. Select-screen
+//                         portraits and stage tiles are plain <img> tags the
+//                         browser fetches on its own, so the menu needs no
+//                         canvas art at all.
+//   startBackgroundLoad() shared art (effects, summons, stage backdrops) and
+//                         then the roster, one fighter at a time, in the
+//                         background while the player is choosing.
+//   ensureMatchAssets()   the gate. Whatever this match actually needs and does
+//                         not have yet, loaded before the fight begins.
+//
+// A fighter a player is looking at jumps the queue; one they have committed to
+// starts loading immediately, outside the queue. In practice that means the art
+// is already in hand by the time they have picked a stage, and the gate below
+// resolves without ever showing itself.
+
+// Six at a time is what a browser will open per host anyway; queueing beyond
+// that just moves the wait from the network into the browser's own backlog.
+const MAX_PARALLEL = 6;
+
+const loadedGroups = new Set();   // group ids fully in memory
+const groupLoads = new Map();     // group id -> in-flight promise
+const groupStats = new Map();     // group id -> { done, total } files
+let queue = [];                   // group ids waiting for the background pump
+let pumping = false;
+let claims = Promise.resolve();   // fighters a player committed to; the pump defers to these
+const listeners = new Set();
+
+function announce() {
+  for (const fn of listeners) fn();
+}
+
+/** Subscribe to loading progress; returns an unsubscribe function. Fires after
+ *  every image and after every completed group. */
+export function onLoadProgress(fn) {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+
+/** Background progress for the select-screen hint. Counted in fighters rather
+ *  than files because that is the unit the player cares about: a fighter is
+ *  either ready to play or is not. */
+export function loadProgress() {
+  let ready = 0;
+  for (const key of CHARACTER_KEYS) if (loadedGroups.has(`char:${key}`)) ready += 1;
+  return { charsReady: ready, charsTotal: CHARACTER_KEYS.length };
+}
+
+export function isCharacterReady(charKey) {
+  return loadedGroups.has(`char:${charKey}`);
+}
+
+async function runJobs(jobs, stats) {
+  let next = 0;
+  const worker = async () => {
+    while (next < jobs.length) {
+      const job = jobs[next++];
+      try {
+        images.set(job.key, await loadImage(job.src));
+      } catch (err) {
+        if (!job.optional) console.warn(err.message);
+      }
+      stats.done += 1;
+      announce();
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(MAX_PARALLEL, jobs.length) }, worker));
+}
+
+/** Load one group by id, at most once. Safe to call from anywhere, any number
+ *  of times: repeat calls join the in-flight load rather than re-fetching. */
+function loadGroup(id) {
+  if (loadedGroups.has(id)) return Promise.resolve();
+  const existing = groupLoads.get(id);
+  if (existing) return existing;
+  const jobs = groupJobs(id);
+  const stats = { done: 0, total: jobs.length };
+  groupStats.set(id, stats);
+  const p = runJobs(jobs, stats).then(() => {
+    loadedGroups.add(id);
+    announce();
+  });
+  groupLoads.set(id, p);
+  return p;
+}
+
+/** File counts across a set of groups, for a progress bar over a specific
+ *  wait (the match gate) rather than over the whole background load. */
+function statsFor(ids) {
+  let done = 0;
+  let total = 0;
+  for (const id of ids) {
+    const s = groupStats.get(id);
+    if (s) { done += s.done; total += s.total; }
+  }
+  return { done, total };
+}
+
 // Alternate art sets. A character can ship a second look (Hanami's round-6
 // redesign) that the player opts into in Settings; unlisted frames fall through
 // to the default set, so an alternate only needs the frames that differ.
@@ -109,7 +211,9 @@ export function frameImage(charKey, frameKey) {
   return images.get(`sprite:${charKey}:${frameKey}`) || null;
 }
 
-export async function loadAssets(onProgress) {
+/** The manifest, and only the manifest. Everything the menu draws is HTML, so
+ *  this is the whole of the blocking load. */
+export async function loadCoreAssets() {
   const manifestRes = await fetch(assetUrl("assets/sprites/manifest.json"));
   spriteManifest = await manifestRes.json();
   // Sheet art is drawn facing RIGHT by default (verified against every
@@ -131,19 +235,39 @@ export async function loadAssets(onProgress) {
   // drawn. Doing it here rather than at each call site means the game and both
   // workbenches cannot disagree about how tall a fighter is.
   applyAllHeightScales();
+}
 
+// ------------------------------------------------------------- group catalogue
+
+/** Group ids are "char:<key>", "stage:<key>", or "shared". */
+function groupJobs(id) {
   const jobs = [];
   const add = (key, src) => jobs.push({ key, src: assetUrl(src) });
+  const optional = (key, src) => jobs.push({ key, src: assetUrl(src), optional: true });
 
-  for (const charKey of CHARACTER_KEYS) {
+  if (id.startsWith("char:")) {
+    const charKey = id.slice(5);
     const frames = spriteManifest.characters[charKey] || {};
     for (const [frameKey, meta] of Object.entries(frames)) {
       add(`sprite:${charKey}:${frameKey}`, `assets/sprites/${meta.file}`);
     }
+    // A fighter's alternate look travels with them: switching art sets in
+    // Settings must never be the thing that triggers a download mid-match.
+    for (const [frameKey, meta] of Object.entries(spriteManifest.alternates?.[charKey] || {})) {
+      add(`alt:${charKey}:${frameKey}`, `assets/sprites/${meta.file}`);
+    }
+    return jobs;
   }
-  for (const stage of STAGES) {
-    add(`bg:${stage.key}`, `assets/backgrounds/${stage.bgFile}`);
+
+  if (id.startsWith("stage:")) {
+    const stage = STAGES.find((s) => s.key === id.slice(6));
+    if (stage) add(`bg:${stage.key}`, `assets/backgrounds/${stage.bgFile}`);
+    return jobs;
   }
+
+  // "shared" — art that belongs to no one fighter and could turn up in any
+  // match. Every one of these has a procedural fallback in the renderer, which
+  // is why the match gate does not wait on them.
   add("summon:mahoraga", "assets/sprites/summons/mahoraga.png");
   add("summon:rika", "assets/sprites/summons/rika.png");
   add("summon:divineDogWhite", "assets/sprites/summons/divine_dog_white.png");
@@ -154,13 +278,6 @@ export async function loadAssets(onProgress) {
   add("summon:rainbow_dragon", "assets/sprites/summons/rainbow_dragon.png");
   add("summon:transfigured_human", "assets/sprites/summons/transfigured_human.png");
   add("summon:inventory_curse", "assets/sprites/summons/inventory_curse.png");
-  // Kept for the next fighter staged ahead of their art (see STAGED_EFFECT_KEYS).
-  const optional = (key, src) => jobs.push({ key, src: assetUrl(src), optional: true });
-  for (const [charKey, frames] of Object.entries(spriteManifest.alternates || {})) {
-    for (const [frameKey, meta] of Object.entries(frames)) {
-      add(`alt:${charKey}:${frameKey}`, `assets/sprites/${meta.file}`);
-    }
-  }
 
   for (const key of EFFECT_KEYS) add(`effect:${key}`, `assets/sprites/effects/${key}.png`);
   // Round-7 effects load automatically the moment their fighter is promoted
@@ -179,18 +296,111 @@ export async function loadAssets(onProgress) {
   for (const key of STAGE_FX_SPRITES) {
     optional(`stagefx:${key}`, `assets/sprites/effects/${key}.png`);
   }
+  return jobs;
+}
 
-  let done = 0;
-  await Promise.all(
-    jobs.map(async (job) => {
-      try {
-        const img = await loadImage(job.src);
-        images.set(job.key, img);
-      } catch (err) {
-        if (!job.optional) console.warn(err.message);
-      }
-      done += 1;
-      if (onProgress) onProgress(done, jobs.length);
-    })
-  );
+// ------------------------------------------------------------ background pump
+
+/** Every group, awaited. The game never wants this — it is for the sprite
+ *  workbench, which browses arbitrary frames of arbitrary fighters and so has
+ *  no useful notion of "the ones this match needs". */
+export async function loadAllAssets(onProgress) {
+  await loadCoreAssets();
+  const ids = [
+    "shared",
+    ...CHARACTER_KEYS.map((k) => `char:${k}`),
+    ...STAGES.map((s) => `stage:${s.key}`),
+  ];
+  const off = onProgress
+    ? onLoadProgress(() => {
+        const { done, total } = statsFor(ids);
+        onProgress(done, total);
+      })
+    : null;
+  try {
+    await Promise.all(ids.map(loadGroup));
+  } finally {
+    off?.();
+  }
+}
+
+/** Everything the game will eventually want, in the order it wants it. */
+export function startBackgroundLoad() {
+  if (queue.length || pumping) return;
+  queue = ["shared", ...CHARACTER_KEYS.map((k) => `char:${k}`), ...STAGES.map((s) => `stage:${s.key}`)];
+  pump();
+}
+
+// One group at a time, deliberately. Each fighter is ~30 files, which already
+// saturates the connection budget — running several at once would only mean a
+// fighter the player just picked has to queue behind three they did not.
+async function pump() {
+  if (pumping) return;
+  pumping = true;
+  while (queue.length) {
+    // Claimed fighters get the pipe to themselves. Without this the background
+    // load would keep half the connections while a player waits on the one
+    // fighter they actually picked. The group already in flight when a claim
+    // arrives still finishes alongside it — one fighter of overlap, not five.
+    await claims;
+    const id = queue.shift();
+    if (loadedGroups.has(id) || groupLoads.has(id)) continue; // taken by a priority request
+    await loadGroup(id);
+  }
+  pumping = false;
+}
+
+/** Move a fighter to the head of the background queue: the player is looking at
+ *  them, so they are the most likely next pick. */
+export function previewCharacter(charKey) {
+  const id = `char:${charKey}`;
+  const at = queue.indexOf(id);
+  if (at > 0) {
+    queue.splice(at, 1);
+    queue.unshift(id);
+  }
+}
+
+/** The player has committed to this fighter, so start now rather than waiting
+ *  for the pump — this is art the match is definitely going to need. */
+export function claimCharacter(charKey) {
+  if (!charKey || !spriteManifest?.characters?.[charKey]) return;
+  const p = loadGroup(`char:${charKey}`);
+  // The pump waits on this, so claims from all four seats are served before the
+  // background resumes. Settled, not resolved: a claim that fails must not
+  // wedge the queue behind a rejected promise.
+  claims = Promise.allSettled([claims, p]).then(() => {});
+}
+
+/** Everything this match cannot start without: the fighters actually entering
+ *  it, and the stage they are fighting on. Shared art keeps loading in the
+ *  background — a summon or effect that has not arrived yet falls back to its
+ *  procedural look, whereas a fighter with no frames would be invisible. */
+export async function ensureMatchAssets(charKeys, stageKey, onProgress) {
+  const ids = matchGroupIds(charKeys, stageKey);
+  const off = onProgress
+    ? onLoadProgress(() => {
+        const { done, total } = statsFor(ids);
+        onProgress(done, total);
+      })
+    : null;
+  try {
+    // Started together, so the fighters download in parallel rather than one
+    // player waiting out the other's art.
+    await Promise.all(ids.map(loadGroup));
+  } finally {
+    off?.();
+  }
+}
+
+/** True when ensureMatchAssets would actually have to wait, so the caller can
+ *  skip putting a loading screen in front of a match that is ready to go. */
+export function matchAssetsPending(charKeys, stageKey) {
+  return matchGroupIds(charKeys, stageKey).some((id) => !loadedGroups.has(id));
+}
+
+function matchGroupIds(charKeys, stageKey) {
+  const ids = [...new Set(charKeys.filter(Boolean).map((k) => `char:${k}`))];
+  if (stageKey) ids.push(`stage:${stageKey}`);
+  return ids;
 }

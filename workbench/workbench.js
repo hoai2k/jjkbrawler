@@ -6,7 +6,7 @@
 // the renderer reads. So the preview can never drift from what the game shows,
 // and any fix applied elsewhere in the pipeline appears here immediately.
 
-import { loadAssets, frameImage, spriteManifest } from "../src/assets.js";
+import { loadAllAssets, frameImage, spriteManifest } from "../src/assets.js";
 import {
   drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly,
   anchorScreenPos, screenPosToLocal, warmAnchors, EXTRA_ANCHORS,
@@ -966,7 +966,7 @@ async function boot() {
     if (e.key === "ArrowDown") { state.frame = frames[(i + 1) % frames.length]; syncAll(); e.preventDefault(); }
   });
 
-  await loadAssets(() => {});
+  await loadAllAssets();
   warmAnchors(CHARACTER_KEYS);
   $("loadState").textContent = "assets loaded";
   $("loadState").classList.add("done");
