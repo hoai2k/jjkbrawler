@@ -52,7 +52,7 @@ export function initUi(cb) {
     "movesModeButton",
     "randomStageButton", "stageBackButton", "roundKicker", "winnerText", "rematchButton", "menuButton",
     "resumeButton", "pauseResetButton", "pauseMenuButton",
-    "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsSpritesButton", "musicVolumeRange", "musicVolumeLabel",
+    "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsSpritesButton", "settingsBoardsButton", "musicVolumeRange", "musicVolumeLabel",
     "sfxVolumeRange", "sfxVolumeLabel", "settingsBackButton",
   ]) {
     els[id] = $(id);
@@ -332,6 +332,12 @@ function bindMenuButtons() {
     setSpriteSet(state.spriteSet);
     updateMenuButtons();
   });
+  // Takes effect on the next match start; an in-progress match keeps the
+  // gimmick it began with (initStageFx reads this in resetMatch).
+  els.settingsBoardsButton.addEventListener("click", () => {
+    state.activeBoards = !state.activeBoards;
+    updateMenuButtons();
+  });
   const musicClick = () => {
     cycleMusicMode();
     updateMenuButtons();
@@ -402,6 +408,7 @@ export function updateMenuButtons() {
   els.settingsSpritesButton.textContent = TEXT.settings.sprites(
     state.spriteSet === "alternate" ? TEXT.settings.spriteAlternate : TEXT.settings.spriteDefault
   );
+  els.settingsBoardsButton.textContent = TEXT.settings.activeBoards(state.activeBoards);
 }
 
 // Stat bars for the hero cards, normalized against the full roster so a bar

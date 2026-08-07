@@ -47,40 +47,44 @@ Branch: `claude/board-gameplay-variety-audit-9kifjf` → merge to `main` when do
 
 | # | Stage | Gimmick | Status |
 |---|---|---|---|
-| 1 | trainingBridge | none — baseline; cosmetic falling leaves | ☐ |
-| 2 | quietHall | silence bell: every ~25s, 4s all-specials seal | ☐ |
-| 3 | floodedGate | surge wave sweeps main platform, pushes (no dmg) | ☐ |
-| 4 | shibuyaNight | curtain: 8s window, meter builds much faster | ☐ |
-| 5 | curseMaw | fangs snap up at both main-platform edges (7%) | ☐ |
-| 6 | gardenSteps | terraced layout + blooming flower heals 8% | ☐ |
-| 7 | lanternCorridor | falling lantern → burn patch ~2.5s | ☐ |
-| 8 | sunkenCrossing | slick surface (frictionPow ≈ 0.35) | ☐ |
-| 9 | neonSplit | center energy wall 5s, 6% to cross | ☐ |
-| 10 | boneSanctum | side/top platforms rattle → phase intangible | ☐ |
-| 11 | bridgeDuel | whole main platform drifts ±70px (8s period) | ☐ |
-| 12 | academyHall | bell: platforms glide between preset layouts | ☐ |
-| 13 | mistPier | fog bank hides fighters as silhouettes 6s | ☐ |
-| 14 | crosswalkRush | telegraphed traffic streaks at ground level (5%) | ☐ |
-| 15 | cursedTeeth | falling fangs (shadow telegraph) + inhale suction | ☐ |
-| 16 | riverGate | alternating crosswind drifts airborne fighters | ☐ |
-| 17 | schoolWing | weak curse blob: pop for +8 meter, or 4% touch | ☐ |
-| 18 | emptyCity | top platform crumbles under weight, reforms 5s | ☐ |
-| 19 | billboardRoof | lightning strikes top platform after flashes (8%) | ☐ |
-| 20 | domainCore | gravity 0.88× + orbiting side platforms | ☐ |
+| 1 | trainingBridge | none — baseline; cosmetic falling leaves | ☑ |
+| 2 | quietHall | silence bell: every ~25s, 4s all-specials seal | ☑ |
+| 3 | floodedGate | surge wave sweeps main platform, pushes (no dmg) | ☑ |
+| 4 | shibuyaNight | curtain: 8s window, meter builds much faster | ☑ |
+| 5 | curseMaw | fangs snap up at both main-platform edges (7%) | ☑ |
+| 6 | gardenSteps | terraced layout + blooming flower heals 8% | ☑ |
+| 7 | lanternCorridor | falling lantern → burn patch ~2.5s | ☑ |
+| 8 | sunkenCrossing | slick surface (frictionPow ≈ 0.35) | ☑ |
+| 9 | neonSplit | center energy wall 5s, 6% to cross | ☑ |
+| 10 | boneSanctum | side/top platforms rattle → phase intangible | ☑ |
+| 11 | bridgeDuel | whole main platform drifts ±70px (8s period) | ☑ |
+| 12 | academyHall | bell: platforms glide between preset layouts | ☑ |
+| 13 | mistPier | fog bank hides fighters as silhouettes 6s | ☑ |
+| 14 | crosswalkRush | telegraphed traffic streaks at ground level (5%) | ☑ |
+| 15 | cursedTeeth | falling fangs (shadow telegraph) + inhale suction | ☑ |
+| 16 | riverGate | alternating crosswind drifts airborne fighters | ☑ |
+| 17 | schoolWing | weak curse blob: pop for +8 meter, or 4% touch | ☑ |
+| 18 | emptyCity | top platform crumbles under weight, reforms 5s | ☑ |
+| 19 | billboardRoof | lightning strikes top platform after flashes (8%) | ☑ |
+| 20 | domainCore | gravity 0.88× + orbiting side platforms | ☑ |
 
 ## Task checklist
 
 - [x] Merge ideas doc to main; write this plan; merge plan to main
-- [ ] Framework: stage_fx.js scaffold, initStageFx, stageMods, hazardZones,
+- [x] Framework: stage_fx.js scaffold, initStageFx, stageMods, hazardZones,
       toggle in state.js, fighter.js gravity/friction/ghost, render.js hooks
-- [ ] Settings toggle "Active Boards" (index.html + ui.js + config_menus.js)
-- [ ] Stages 1–10 gimmicks
-- [ ] Stages 11–20 gimmicks (incl. gardenSteps layout edit in stages.js)
-- [ ] AI hazard-zone reaction
-- [ ] Asset requests round 9D + optional loads in assets.js with fallbacks
-- [ ] Docs: game-mechanics.md §6 update; tick the table above
-- [ ] Playtest via `node tools/check_imports.mjs` (no browser here) + manual
-      code review of each gimmick's math; then commit, push, **merge to main**
+- [x] Settings toggle "Active Boards" (index.html + ui.js + config_menus.js)
+- [x] Stages 1–10 gimmicks
+- [x] Stages 11–20 gimmicks (incl. gardenSteps layout edit in stages.js)
+- [x] AI hazard-zone reaction
+- [x] Asset requests round 9D + optional loads in assets.js with fallbacks
+- [x] Docs: game-mechanics.md §6 update; tick the table above
+- [x] Verified: `node tools/check_imports.mjs` clean, plus a real headless
+      Playwright run (`tools/smoke_stages.mjs`) — all 20 boards played with
+      their gimmick live, no page errors, hazards landed on the CPU, toggle
+      Off restored static boards, and the 11 console 404s were exactly the
+      optional 9C domain backgrounds + 9D stage sprites (fallback path).
+- [x] Commit, push, **merge to main**
 
 ## Guardrails (from the ideas doc — enforce in code review)
 
