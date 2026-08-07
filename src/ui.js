@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { CHARACTER_GROUPS, CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, randomCharacterKey } from "./characters.js";
+import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { STAGES } from "./stages.js";
 import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
@@ -7,6 +7,7 @@ import { METER_MAX } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
 import { setSpriteSet } from "./assets.js";
+import { CHARACTER_GROUPS, RANDOM_GROUP, TEXT } from "./config.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -50,6 +51,7 @@ export function initUi(cb) {
     els[id] = $(id);
   }
 
+  applyStaticText();
   buildCharacterGrid();
   buildStageGrid();
   bindMenuButtons();
@@ -57,6 +59,47 @@ export function initUi(cb) {
   updateSelectionUi();
   updateMenuButtons();
   window.addEventListener("resize", layoutCharacterGrid);
+}
+
+// Screens whose wording never changes at runtime still comes from config.js, so
+// every player-facing string lives in one file. Anything dynamic is written by
+// the render functions below.
+function applyStaticText() {
+  const set = (el, text) => { if (el) el.textContent = text; };
+  set(els.pauseButton, TEXT.pause.pauseButton);
+  set(els.startButton, TEXT.menu.startWaiting);
+  set(els.loadStatus, TEXT.loading.title);
+  set(els.randomStageButton, TEXT.stages.random);
+  set(els.stageBackButton, TEXT.stages.back);
+  set(els.movesPrevButton, TEXT.moves.prev);
+  set(els.movesNextButton, TEXT.moves.next);
+  set(els.movesBackButton, TEXT.moves.back);
+  set(els.rematchButton, TEXT.roundOver.rematch);
+  set(els.menuButton, TEXT.roundOver.fighterSelect);
+  set(els.resumeButton, TEXT.pause.resume);
+  set(els.pauseResetButton, TEXT.pause.reset);
+  set(els.pauseMenuButton, TEXT.pause.quit);
+  set(els.settingsBackButton, TEXT.settings.back);
+  for (const id of PLAYER_IDS) {
+    set(els[`p${id}PickLabel`], TEXT.slot.player(id));
+    set(els[`p${id}PickReady`], TEXT.slot.readyBadge);
+    set(els[`p${id}PickRandomArt`], TEXT.slot.randomGlyph);
+  }
+  // Overlay headings are keyed off the markup rather than ids, since they are
+  // pure decoration with nothing to address them by.
+  const heading = (overlay, eyebrow, title) => {
+    const lockup = els[overlay]?.querySelector(".title-lockup");
+    if (!lockup) return;
+    set(lockup.querySelector(".eyebrow"), eyebrow);
+    if (title !== undefined) set(lockup.querySelector("h2"), title);
+  };
+  heading("menuOverlay", TEXT.menu.eyebrow);
+  heading("stageOverlay", TEXT.stages.eyebrow, TEXT.stages.title);
+  heading("pauseOverlay", TEXT.pause.eyebrow, TEXT.pause.title);
+  heading("settingsOverlay", TEXT.settings.eyebrow, TEXT.settings.title);
+  heading("loadOverlay", TEXT.loading.eyebrow, TEXT.loading.title);
+  const logo = els.menuOverlay?.querySelector(".game-logo");
+  if (logo) logo.alt = TEXT.menu.logoAlt;
 }
 
 // ------------------------------------------------- ready / lock-in helpers
@@ -101,6 +144,12 @@ function selectFighter(id, key) {
     const next = humanIds().find((h) => !state.ready[h]);
     if (next) state.activePicker = next;
   }
+  // The pick is settled, so this player stops pointing at the grid: their
+  // cursor ring and keyboard focus both go away until they back out with B.
+  if (state.ready[id]) {
+    pickerCursor[id] = null;
+    if (focusEl?.dataset?.character) clearMenuFocus();
+  }
   updateSelectionUi();
   playLockIn(id);
   playSfx("slash", 0.3, 1.4);
@@ -121,6 +170,8 @@ function unready(id) {
   if (!target) return false;
   state.ready[target] = false;
   state.activePicker = target;
+  // Backing out puts the cursor back where the pick was made.
+  pickerCursor[target] = state.selection[target] || CHARACTER_KEYS[0];
   updateSelectionUi();
   playSfx("whoosh", 0.3, 0.9);
   return true;
@@ -137,9 +188,11 @@ function buildCharacterGrid() {
     els.characterGrid.appendChild(buildGroupSection(group.key, group.label, group.members));
   }
   // Random is its own trailing tile rather than a member of any category.
-  const wildcard = buildGroupSection("random", "Wildcard", [RANDOM_KEY]);
-  wildcard.classList.add("char-group--wildcard");
-  els.characterGrid.appendChild(wildcard);
+  if (RANDOM_GROUP.show !== false) {
+    const wildcard = buildGroupSection(RANDOM_GROUP.key, RANDOM_GROUP.label, [RANDOM_KEY]);
+    wildcard.classList.add("char-group--wildcard");
+    els.characterGrid.appendChild(wildcard);
+  }
 
   // getComputedStyle hands back custom properties unresolved ("clamp(78px,
   // 15vh, 200px)"), so the responsive base size is measured off a probe element
@@ -172,12 +225,12 @@ function buildGroupSection(key, label, members) {
 
 function buildCharacterCard(key) {
   const random = key === RANDOM_KEY;
-  const name = random ? "Random" : CHARACTERS[key].name;
+  const name = random ? TEXT.slot.randomName : CHARACTERS[key].name;
   const btn = document.createElement("button");
   btn.className = random ? "char-card char-card--random" : "char-card";
   btn.dataset.character = key;
   btn.innerHTML = random
-    ? `<b class="random-glyph">?</b><span>${name}</span>`
+    ? `<b class="random-glyph">${TEXT.slot.randomGlyph}</b><span>${name}</span>`
     : `<img src="assets/cards/${key}_card.jpg" alt="${name}"><span>${name}</span>`;
   btn.addEventListener("click", () => selectFighter(state.activePicker, key));
   // Hovering previews the fighter in the active picker's hero card, the same
@@ -201,6 +254,7 @@ const MIN_CARD_PX = 44;
 export function layoutCharacterGrid() {
   const grid = els.characterGrid;
   if (!grid || !grid.clientWidth) return; // hidden overlay: nothing to measure
+  grid.style.removeProperty("--grid-height"); // measure the natural size first
   const base = grid.querySelector(".card-probe")?.getBoundingClientRect().width || 90;
   let size = base;
   for (let pass = 0; pass < 12; pass++) {
@@ -209,6 +263,8 @@ export function layoutCharacterGrid() {
     if (els.menuOverlay.scrollHeight <= els.menuOverlay.clientHeight || size <= MIN_CARD_PX) break;
     size = Math.max(MIN_CARD_PX, size * 0.9);
   }
+  // Pin the fitted height so the roster cannot shift while a player is choosing.
+  grid.style.setProperty("--grid-height", `${Math.ceil(grid.getBoundingClientRect().height)}px`);
 }
 
 function applyColumns(grid, cardSize) {
@@ -322,19 +378,20 @@ function bindMenuButtons() {
 
 export function updateMenuButtons() {
   const label = MUSIC_MODES[audioSettings.musicMode].label;
-  els.settingsMusicButton.textContent = `Music: ${label}`;
-  els.settingsCpuButton.textContent = `CPU Difficulty: ${cpuLevelName(state.cpuLevel)}`;
-  els.settingsStocksButton.textContent = `Lives per fighter: ${state.stocks}`;
-  els.settingsSpritesButton.textContent =
-    `Sprites: ${state.spriteSet === "alternate" ? "Alternate" : "Default"}`;
+  els.settingsMusicButton.textContent = TEXT.settings.music(label);
+  els.settingsCpuButton.textContent = TEXT.settings.cpu(cpuLevelName(state.cpuLevel));
+  els.settingsStocksButton.textContent = TEXT.settings.stocks(state.stocks);
+  els.settingsSpritesButton.textContent = TEXT.settings.sprites(
+    state.spriteSet === "alternate" ? TEXT.settings.spriteAlternate : TEXT.settings.spriteDefault
+  );
 }
 
 // Stat bars for the hero cards, normalized against the full roster so a bar
 // at 100% means "best in the game", not an absolute number.
 const STAT_DEFS = [
-  { label: "Speed", value: (c) => c.stats.speed },
-  { label: "Power", value: (c) => c.heavy.dmg + c.light.dmg },
-  { label: "Weight", value: (c) => c.stats.weight },
+  { label: TEXT.slot.stats.speed, value: (c) => c.stats.speed },
+  { label: TEXT.slot.stats.power, value: (c) => c.heavy.dmg + c.light.dmg },
+  { label: TEXT.slot.stats.weight, value: (c) => c.stats.weight },
 ];
 const STAT_RANGES = STAT_DEFS.map((def) => {
   const values = CHARACTER_KEYS.map((k) => def.value(CHARACTERS[k]));
@@ -345,9 +402,9 @@ function randomInfoHtml() {
   const bars = STAT_DEFS.map((def) =>
     `<span class="hero-stat"><i>${def.label}</i><b></b></span>`).join("");
   return `
-    <em class="hero-epithet">Drawn fresh every round</em>
+    <em class="hero-epithet">${TEXT.slot.randomBlurb}</em>
     <span class="hero-stats">${bars}</span>
-    <span class="hero-ult"><i>Ultimate</i> ???</span>
+    <span class="hero-ult"><i>${TEXT.slot.ultimateLabel}</i> ${TEXT.slot.unknownUltimate}</span>
   `;
 }
 
@@ -358,19 +415,25 @@ function heroInfoHtml(char) {
     return `<span class="hero-stat"><i>${def.label}</i><b><u style="width:${pct}%"></u></b></span>`;
   }).join("");
   return `
-    <em class="hero-epithet">${char.epithet}</em>
+    <em class="hero-epithet" title="${char.epithet}">${char.epithet}</em>
     <span class="hero-stats">${bars}</span>
-    <span class="hero-ult"><i>Ultimate</i> ${char.ultimate.name}</span>
+    <span class="hero-ult" title="${char.ultimate.name}"><i>${TEXT.slot.ultimateLabel}</i> ${char.ultimate.name}</span>
   `;
 }
 
-// The fighter a slot is currently hovering but has not committed. Shown in that
-// player's hero card so they can read a fighter's stats before locking in;
-// cleared the moment they lock in or hand the cursor over.
-function previewKey(id) {
-  if (state.ready[id] || state.activePicker !== id) return null;
-  const key = pickerCursor[id];
-  return key && key !== state.selection[id] ? key : null;
+// A human slot that has not locked in is "browsing": its card shows whatever
+// the cursor is over (or its last pick) greyed out, because nothing is settled
+// yet. The CPU slot never browses — it is committed to whatever it holds.
+function isBrowsing(id) {
+  return !state.ready[id] && !isCpuSlot(id);
+}
+
+// The fighter a browsing slot is pointing at right now. Falls back to its last
+// pick so backing out with B keeps showing the fighter it was on.
+function browsingKey(id) {
+  if (!isBrowsing(id)) return null;
+  const cursor = state.activePicker === id ? pickerCursor[id] : null;
+  return cursor || state.selection[id];
 }
 
 // What each slot's card should point at right now. Normally the selection
@@ -402,39 +465,35 @@ export function updateSelectionUi() {
     // nobody has picked yet (P1 at boot) shows an empty placeholder instead of
     // a portrait — an unset key would build "undefined_card.jpg" and 404.
     const drawn = id === 2 && state.selection[id] === RANDOM_KEY ? state.cpuRoll : null;
-    const preview = previewKey(id);
-    const key = drawn || preview || state.selection[id];
+    const browsing = isBrowsing(id);
+    const key = drawn || (browsing ? browsingKey(id) : state.selection[id]);
     const random = key === RANDOM_KEY;
     const char = key && !random ? CHARACTERS[key] : null;
     const badge = els[`p${id}PickReady`];
 
-    els[`p${id}PickCard`].classList.toggle("is-preview", !!preview);
+    els[`p${id}PickCard`].classList.toggle("is-browsing", browsing && !!key);
     els[`p${id}PickCard`].classList.toggle("is-empty", !key);
     els[`p${id}PickImage`].classList.toggle("hidden", !char);
     els[`p${id}PickRandomArt`].classList.toggle("hidden", !random);
     if (char) els[`p${id}PickImage`].src = `assets/cards/${key}_card.jpg`;
     else els[`p${id}PickImage`].removeAttribute("src");
-    els[`p${id}PickName`].textContent = char ? char.name : random ? "Random" : "Choose a fighter";
+    els[`p${id}PickName`].textContent =
+      char ? char.name : random ? TEXT.slot.randomName : TEXT.slot.empty;
     els[`p${id}PickInfo`].innerHTML = char ? heroInfoHtml(char) : random ? randomInfoHtml() : "";
 
-    badge.textContent = drawn ? "Random" : "Ready";
+    badge.textContent = drawn ? TEXT.slot.randomBadge : TEXT.slot.readyBadge;
     badge.classList.toggle("hero-ready--random", !!drawn);
     badge.classList.toggle("hidden", !state.ready[id] && !drawn);
     els[`p${id}PickCard`].classList.toggle("hidden", id > 2 && id > state.playerCount);
     els[`p${id}PickCard`].classList.toggle("is-active", state.activePicker === id);
     els[`p${id}PickCard`].classList.toggle("is-ready", state.ready[id]);
   }
-  els.p2PickLabel.textContent = state.mode === "cpu" ? "CPU" : "Player 2";
+  els.p2PickLabel.textContent = state.mode === "cpu" ? TEXT.slot.cpu : TEXT.slot.player(2);
   const go = allReady();
   els.startButton.disabled = !go;
-  els.startButton.textContent = go ? "Choose Stage" : "Waiting for fighters…";
-  els.menuHint.textContent = go
-    ? "All fighters locked — confirm again (A / Enter) to choose the stage. B / Backspace un-readies."
-    : "Pick a fighter to lock in. B / Backspace un-readies · LB/RB cycles the corner menus.";
+  els.startButton.textContent = go ? TEXT.menu.startReady : TEXT.menu.startWaiting;
+  els.menuHint.textContent = go ? TEXT.menu.hintReady : TEXT.menu.hintPicking;
   updatePickerCursorClasses();
-  // A hero card grows when it goes from empty to showing a fighter, so the
-  // roster has to be re-fitted or the menu spills into a scrollbar.
-  layoutCharacterGrid();
 }
 
 export function syncControllerPlayers(count) {
@@ -485,8 +544,8 @@ export function setLoadProgress(done, total) {
 function renderMoveList() {
   const key = CHARACTER_KEYS[movesIndex];
   const c = CHARACTERS[key];
-  els.movesTitle.textContent = `${c.name} — ${c.epithet}`;
-  els.movesKicker.textContent = "Controller guide";
+  els.movesTitle.textContent = TEXT.moves.heading(c.name, c.epithet);
+  els.movesKicker.textContent = TEXT.moves.kicker;
   const s = c.specials;
   els.movesPanel.innerHTML = `
     <div class="controller-guide">
@@ -509,21 +568,18 @@ function renderMoveList() {
         <text class="controller-trigger" x="113" y="27">LT · SHIELD / DODGE</text><text class="controller-trigger" x="547" y="27" text-anchor="end">RT · SHIELD / DODGE</text>
       </svg>
       <div class="controller-tips">
-        <span><strong>Left stick twice</strong> Dash</span>
-        <span><strong>Down in air</strong> Fast-fall</span>
-        <span><strong>Shield + direction</strong> Dodge</span>
-        <span><strong>Tap shield on impact</strong> Parry</span>
+        ${TEXT.moves.tips.map(([input, action]) => `<span><strong>${input}</strong> ${action}</span>`).join("")}
       </div>
     </div>
     <p class="moves-blurb"><strong>${c.passive.name}:</strong> ${c.passive.desc}</p>
-    <div class="moves-section">Signature techniques</div>
+    <div class="moves-section">${TEXT.moves.sectionTitle}</div>
     <dl class="moves-table">
-      <dt>B · Special</dt><dd><strong>${s.neutral.name}</strong> — ${s.neutral.desc}</dd>
-      <dt>Side + B</dt><dd><strong>${s.side.name}</strong> — ${s.side.desc}</dd>
-      <dt>Down + B</dt><dd><strong>${s.down.name}</strong> — ${s.down.desc}</dd>
-      <dt>LB / RB</dt><dd><strong>${c.ultimate.name}</strong> — ${c.ultimate.desc} <em>Requires full Cursed Energy.</em></dd>
+      <dt>${TEXT.moves.specialNeutral}</dt><dd><strong>${s.neutral.name}</strong> — ${s.neutral.desc}</dd>
+      <dt>${TEXT.moves.specialSide}</dt><dd><strong>${s.side.name}</strong> — ${s.side.desc}</dd>
+      <dt>${TEXT.moves.specialDown}</dt><dd><strong>${s.down.name}</strong> — ${s.down.desc}</dd>
+      <dt>${TEXT.moves.ultimate}</dt><dd><strong>${c.ultimate.name}</strong> — ${c.ultimate.desc} <em>${TEXT.moves.ultimateNote}</em></dd>
     </dl>
-    <p class="keyboard-hint">Keyboard: P1 uses WASD + J/K/L/I + Left Shift. P2 uses arrows + ,/./&#47;/&#39; + Right Shift.</p>
+    <p class="keyboard-hint">${TEXT.moves.keyboardHint}</p>
   `;
 }
 
@@ -572,12 +628,12 @@ function renderMeter(fillEl, labelEl, f) {
   fillEl.style.width = `${pct}%`;
   const full = f.meter >= METER_MAX;
   fillEl.parentElement.classList.toggle("meter--full", full);
-  labelEl.textContent = full ? "ULTIMATE READY" : "";
+  labelEl.textContent = full ? TEXT.hud.ultimateReady : "";
 }
 
 export function showRoundOver(winner, loser) {
-  els.roundKicker.textContent = "Match complete";
-  els.winnerText.textContent = winner ? `${winner.char.name} wins!` : "Draw";
+  els.roundKicker.textContent = TEXT.roundOver.kicker;
+  els.winnerText.textContent = winner ? TEXT.roundOver.winner(winner.char.name) : TEXT.roundOver.draw;
   setPhase("roundOver");
 }
 
@@ -766,7 +822,8 @@ function updateCharacterPickerPads(dt) {
       continue;
     }
 
-    // An unselected slot parks its cursor on the first fighter in the grid.
+    // A slot with no cursor yet (fresh boot, or just backed out) parks on its
+    // own pick, else on the first fighter in the grid.
     if (!pickerCursor[playerId]) pickerCursor[playerId] = state.selection[playerId] || CHARACTER_KEYS[0];
     let dx = 0, dy = 0;
     if (pad.left) dx = -1;
