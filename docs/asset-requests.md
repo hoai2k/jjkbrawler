@@ -43,10 +43,20 @@ into it works. Raw files live there until processed, then move to
 PNG, **one subject per file**, no text, no watermark, no border, no grids.
 (Hero cards are the exception: JPEG, full-bleed background — see 9A.)
 
-- **Background:** true alpha if possible; otherwise solid magenta `#FF00FF` —
-  except warm-palette characters (Sukuna, Nobara, Momo, Hakari, Yuji, Choso,
-  and now Uro and Gakuganji — see 9E), which need mid-grey `#808080`. A magenta
-  key eats pink and red tones.
+- **Background:** a **flat key screen**, solid magenta `#FF00FF` — except
+  warm-palette characters (Sukuna, Nobara, Momo, Hakari, Yuji, Choso, and now
+  Uro and Gakuganji — see 9E), which need mid-grey `#808080`. A magenta key
+  eats pink and red tones.
+
+  Our generator **cannot output a true alpha channel** — every delivery is an
+  opaque plate on a flat colour field, which is why the repo talks about green,
+  magenta and grey screens rather than transparency. So the key screen is not a
+  fallback, it is the format, and the transparency in `assets/sprites/` is
+  something `tools/intake.py` cuts on import. That makes the *quality of the
+  screen* the thing that decides whether a sprite comes out clean: pick a
+  screen colour that appears nowhere in the character, keep it perfectly flat
+  and unlit, and do not let it bounce colour onto hair or cloth edges. Round 9F
+  is a whole request that exists because a screen leaked.
 - **Facing:** draw everything **facing RIGHT**. If your generator prefers left,
   say so and it gets batch-mirrored on import.
 - **Framing:** full body inside the frame with margin on **all four sides**.
@@ -120,7 +130,7 @@ and a recipe for fetching more in that directory's README.
 | yuji | "Yuji Itadori from Jujutsu Kaisen, athletic teenage boy with short spiky salmon-pink hair and brown eyes, wearing a dark navy high-collared jujutsu school uniform jacket over a red hoodie, matching dark trousers and white sneakers" *(grey key)* |
 | choso | "Choso from Jujutsu Kaisen, pale serious young man with long black hair tied into two high loose buns with strands framing his face, a dark horizontal marking across the bridge of his nose, wearing a loose black robe-like tunic with pale trim, wide sleeves, dark trousers and simple shoes" *(grey key)* |
 | meimei | "Mei Mei from Jujutsu Kaisen, tall elegant woman with very long silver-lavender hair worn in thick loose braids, calm confident expression, wearing a fitted black high-collared long-sleeved dress with gold buttons and dark tights, carrying a large single-headed battle axe" |
-| uro | "Takako Uro from Jujutsu Kaisen, lean athletic woman with a fierce confident grin, pale violet-pink hair sweeping upward and outward in wild flame-like curling points, sharp violet eyes with heavy dark eyeliner, large gold cylindrical drop earrings, a black choker and a black band on each wrist, wearing a close-fitting pale-cyan cloud-form garment that wraps her torso and hips like a sleeveless bodysuit, bare arms and legs, barefoot with violet-painted nails" *(grey key)* |
+| uro | "Takako Uro from Jujutsu Kaisen, lean athletic woman with a fierce confident grin, pale violet-pink hair sweeping upward and outward in wild flame-like curling points, sharp violet eyes with heavy dark eyeliner, large gold cylindrical drop earrings, a black choker and a black band on each wrist, her only covering a wrap of pale-cyan cloud vapour clinging across her chest and hips with soft drifting edges, bare arms and legs, barefoot with violet-painted nails" *(grey key)* |
 | reggie | "Reggie Star from Jujutsu Kaisen, tall lean man with straight shoulder-length blond hair parted at the side, heavy-lidded tired eyes and a narrow pointed chin beard, wearing a shaggy knee-length tunic and matching shoulder cape built from layered rows of torn white paper receipts with small pale mint-green printed tabs, bare arms and bare lower legs, barefoot" |
 | gakuganji | "Yoshinobu Gakuganji from Jujutsu Kaisen, stern hunched elderly man, bald on top with long straight white hair falling past his shoulders at the sides, a long thin white beard and drooping moustache, deeply wrinkled face with hooded eyes and gold hoop earrings, wearing a cream-white kimono top under a black band T-shirt with the kimono sleeves hanging loose, wide dark-purple hakama trousers, white tabi socks and wooden geta sandals, a crimson-red Flying-V electric guitar slung across his chest on a strap" *(grey key)* |
 
@@ -140,7 +150,7 @@ Six independent parts; any can be delivered on its own.
 - **9C** — 7 Domain Expansion backgrounds for the new domain feature
 - **9D** — 4 stage-hazard props for the Active Boards update (optional polish)
 - **9E** — redraw Gakuganji, Reggie and Uro from the anime reference; their current art is the wrong character (93 sprites + 3 cards)
-- **9F** — redeliver Mahito's 16 generated poses with a clean alpha channel (16 sprites)
+- **9F** — redeliver Mahito's 16 generated poses on a clean key screen; the current ones carry residue from two different keys (16 sprites)
 
 **9E is the highest-value part of this round.** 9A–9D are polish on art that is
 already right; 9E replaces three fighters who are drawn as people who do not
@@ -451,7 +461,7 @@ it lands, simply replaces its procedural stand-in. They load as optional
 `stagefx:*` keys (see `STAGE_FX_SPRITES` in `src/assets.js`); a missing file is
 not an error.
 
-Deliver like every other effect sprite: PNG with alpha (or magenta key), one
+Deliver like every other effect sprite: PNG on a flat magenta key screen, one
 subject per file, margin on all sides, to `assets/intake/effects/`.
 
 | File | Used on | Prompt |
@@ -520,7 +530,11 @@ written to be sufficient — but read the reference yourself before approving a
 frame, because the failure mode this round is fixing is exactly "the text
 sounded plausible and nobody looked".
 
-### Design notes and the one deliberate deviation
+### Design notes
+
+**Follow the reference.** No deliberate deviations this round — where a design
+looks unusual, that is the design, and "tidying" it is how these three ended up
+wrong in the first place.
 
 - **Gakuganji.** The reference render shows him hunched over a walking cane in
   civilian repose; that is his default portrait, not his fighting design. Draw
@@ -533,15 +547,15 @@ sounded plausible and nobody looked".
   printed tabs, ragged along every hem. It should read as paper in motion — the
   edges lift and flutter on every fast pose. He is barefoot and his lower legs
   are bare; do not add trousers or shoes.
-- **Uro — deviation, read this.** In the reference her cloud-form clothing is
-  drawn as scattered patches over an otherwise bare body. **Do not reproduce
-  that.** Draw the cyan cloud-form as a single opaque garment with full
-  coverage — a sleeveless bodysuit silhouette, torso and hips continuous, no
-  gaps — while keeping the colour, the soft cloud-edge texture and the bare
-  arms, legs and feet. Everything else about her (hair, earrings, choker,
-  wristbands, eyes, nails) follows the reference exactly. This is a knowing
-  departure so the fighter is drawable as a game sprite; it is not an error to
-  "correct" back.
+- **Uro.** Her clothing *is* the cloud-form: pale-cyan vapour clinging across
+  the chest and hips with soft, torn, drifting edges, over otherwise bare skin
+  — she wears no fabric, no bodysuit and no shoes. Draw it as in the reference,
+  with the vapour opaque enough to read as covering at sprite size and its
+  edges moving with the pose. The hair is the other half of her silhouette:
+  pale violet-pink, sweeping *upward and outward* in wild curling points, wider
+  than her shoulders, and it holds that shape in every frame including the
+  crouches and the roll — it does not fall flat. Earrings, choker, wristbands,
+  eye makeup and nail colour all follow the reference.
 
 ### Delivery spec
 
@@ -553,7 +567,9 @@ three:
 - **Key colour.** `uro` and `gakuganji` move to mid-grey `#808080`; a magenta
   key eats Uro's pink hair and Gakuganji's red guitar and purple hakama.
   `reggie` stays on magenta `#FF00FF` (his palette is white, blond and mint —
-  nothing magenta-adjacent). True alpha beats either.
+  nothing magenta-adjacent). Uro is the harder key of the three: her cloud-form
+  is pale and soft-edged and her hair is a mass of fine points, so keep the
+  grey flat and make sure no grey light spills into either.
 - **One zoom per character, again.** Uro is the character this rule was written
   for: her round-7 `idle_b` came back ~15% larger than `idle_a`, and since idle
   alternates between them at 2.2 fps she visibly pulsed while standing still.
@@ -692,11 +708,13 @@ and `idle_b` only shows as a pulse in motion.
 
 ---
 
-## 9F. Mahito — clean alpha redelivery, 16 poses
+## 9F. Mahito — clean-key redelivery, 16 poses
 
-Mahito's design is right and his art is good; the **alpha channel is dirty**.
-His frames were keyed off a coloured background and the key never fully
-released, so every frame carries leftover chroma.
+Mahito's design is right and his art is good; the **alpha in the runtime files
+is dirty**, and it is dirty because the key screen it was cut from was dirty.
+The generator hands us an opaque plate on a flat colour field and
+`tools/intake.py` cuts the transparency, so anything the screen leaks onto the
+art becomes fringe the moment it is keyed. On his set the screen leaked badly.
 
 ### What is actually wrong
 
@@ -727,26 +745,35 @@ offenders:
 
 The **16 generated poses** — `idle_a`, `idle_b`, `run_a`, `run_b`,
 `jump_rise`, `fall`, `hurt`, `guard`, `attack_air`, `attack_up`, `charge`,
-`dizzy`, `ledge_hang`, `victory`, `dodge_roll`, `dodge_air` — redelivered with
-a clean alpha channel. Same character block, same poses, same figure scale
-(idle `bodyH` 283); this is a keying fix, not a redesign, so **matching the
-existing frames is the goal** — if the art itself is regenerated rather than
-re-keyed, match the current design exactly.
+`dizzy`, `ledge_hang`, `victory`, `dodge_roll`, `dodge_air` — redelivered on a
+clean key screen. Same character block, same poses, same figure scale (idle
+`bodyH` 283); this is a keying fix, not a redesign, so **matching the existing
+frames is the goal** — the new plates should look like the current ones with
+the screen behaving itself.
 
-What "clean" means here:
+Since the generator cannot give us transparency, "clean" is entirely a property
+of the plate:
 
-- **True alpha, not a key.** Deliver PNG with a real alpha channel and no
-  background colour anywhere. Every problem in the table above comes from
-  flattening onto a colour and cutting it back out; skipping that step skips
-  the whole class of bug. If a key is unavoidable, mid-grey `#808080` — his
-  palette is grey-blue and a magenta key smears into it.
-- **Cut the gaps.** The holes between hair strands are background and must be
-  transparent, not filled with whatever colour the key left behind.
-- **Keep the anti-aliasing.** Soft, feathered edges — a hard 0/255 alpha is the
-  `dodge_roll` / `dodge_air` failure. Partial alpha belongs on the outline;
-  the body interior stays fully opaque.
-- **No colour fringe.** No pixel of the delivered art may be a colour that is
-  not in Mahito's palette.
+- **One screen, and the right one: mid-grey `#808080`.** His palette is
+  grey-blue, black and pale skin. Do not use green — green is what round 5 used
+  and it is still sitting in his hair — and do not use magenta, which smears
+  into his blue-greys. His current set carries residue from *both*, so these
+  frames have been keyed at least twice; deliver each one keyed once, on grey.
+- **Flat and unlit.** The screen must be a single exact value across the whole
+  canvas: no gradient, no vignette, no light bouncing off it onto him. Screen
+  light spilling into hair and cloth edges is what makes a fringe impossible to
+  cut cleanly later.
+- **Nothing translucent against the screen.** Wherever the background shows
+  through the figure — between hair strands, under an arm, inside the gap of a
+  bent knee — it must be the pure screen value, not a blend of screen and hair.
+  Those blended gap pixels are exactly what survives as speckle.
+- **Soft edges, but only from the art.** Keep the outline anti-aliased against
+  the screen — that is what gives the final sprite its feathered edge.
+  `dodge_roll` and `dodge_air` currently have hard 0/255 alpha and visibly
+  jagged silhouettes, which is the other failure to avoid.
+- **No key colour inside the figure.** No grey matching the screen value
+  anywhere on him; if a design element genuinely needs that grey, shift it a few
+  values so the key cannot eat it.
 
 His other 20 files are `r{row}c{col}` cells from the original sprite sheet and
 are **not** part of this request — they are low-resolution legacy frames with a
