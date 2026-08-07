@@ -7,7 +7,7 @@
 import { STAGES } from "./stages.js";
 import {
   BOARD_MUSIC_DIR, BOARD_TRACKS, FALLBACK_TRACKS, MENU_TRACK, MUSIC_DIR, MUSIC_EXT,
-  UNUSED_BOARD_TRACKS,
+  MUSIC_MODES as MUSIC_MODE_CONFIG, UNUSED_BOARD_TRACKS,
 } from "./config_music.js";
 
 const SFX_FILES = {
@@ -56,14 +56,17 @@ const BOARD_TRACK_SET = new Set(BOARD_TRACKS);
 // pause stay silent (pause holds the match track rather than switching away).
 const MENU_PHASES = new Set(["menu", "stageSelect", "moves", "settings", "roundOver"]);
 
-// "Stage" is the default: each board's own track, or a random original where a
-// board has none. The two explicit entries force one original everywhere, which
-// is also how a player mutes a stage track they dislike.
-export const MUSIC_MODES = [
-  { label: "Stage", auto: true },
-  ...FALLBACK_TRACKS.map((t, i) => ({ label: t.label, track: i })),
-  { label: "Off", off: true },
+// Default: the stage's own track. Random: anything in the library, board tracks
+// and originals alike, drawn fresh per match. Off: silence everywhere.
+export const MUSIC_MODES = MUSIC_MODE_CONFIG;
+
+// Everything Random can land on.
+const ALL_BATTLE_SRCS = [
+  ...BOARD_TRACKS.map((name) => trackUrl(BOARD_MUSIC_DIR, name)),
+  ...FALLBACK_SRCS,
 ];
+
+const pick = (list) => list[Math.floor(Math.random() * list.length)];
 
 // A stage name in BOARD_TRACKS that matches no stage would silently never play,
 // and a track file whose name has a typo looks exactly the same. Say so.
@@ -140,15 +143,15 @@ export function stopShieldLoop() {
   }
 }
 
-// The battle track for a stage: its own if one was delivered, else a random
-// original. An explicit music mode overrides both.
+// The battle track for a match, by mode: the stage's own track (falling back to
+// a random original if that stage has none), anything in the library, or none.
 function resolveBattleSrc(stageKey) {
-  const mode = MUSIC_MODES[audioSettings.musicMode];
-  if (mode.off) return null;
-  if (mode.track !== undefined) return FALLBACK_SRCS[mode.track];
+  const mode = MUSIC_MODES[audioSettings.musicMode] || MUSIC_MODES[0];
+  if (mode.key === "off") return null;
+  if (mode.key === "random") return pick(ALL_BATTLE_SRCS);
   const stage = STAGES.find((s) => s.key === stageKey);
   if (stage && BOARD_TRACK_SET.has(stage.name)) return trackUrl(BOARD_MUSIC_DIR, stage.name);
-  return FALLBACK_SRCS[Math.floor(Math.random() * FALLBACK_SRCS.length)];
+  return pick(FALLBACK_SRCS);
 }
 
 // Called when a match starts. Re-rolls the fallback, so a rematch on a stage
@@ -162,7 +165,7 @@ export function syncMusic(phase) {
   if (!musicEl) return;
   const menu = MENU_PHASES.has(phase);
   const src = phase === "playing" ? battleSrc : menu ? MENU_SRC : null;
-  const off = MUSIC_MODES[audioSettings.musicMode].off;
+  const off = (MUSIC_MODES[audioSettings.musicMode] || MUSIC_MODES[0]).key === "off";
   const volume = audioSettings.musicVolume * (menu ? MENU_TRACK.volumeScale : 1);
 
   if (!src || off || audioSettings.musicVolume <= 0) {

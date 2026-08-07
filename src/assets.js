@@ -39,6 +39,12 @@ const EFFECT_KEYS = [
 // when the next fighter is staged.
 const STAGED_EFFECT_KEYS = {};
 
+// Stage-hazard polish art (Active Boards — src/stage_fx.js), requested as
+// round 9D in docs/asset-requests.md. Optional: every hazard draws a
+// procedural canvas fallback, so a missing file changes nothing visible
+// except polish.
+const STAGE_FX_SPRITES = ["stage_lantern", "stage_fang", "stage_flower", "stage_weak_curse"];
+
 // Domain Expansion backgrounds — a full-screen environment that replaces the
 // stage while a domain is open (src/domains.js, drawn by state.domainOverlay).
 // Optional: until the art lands the renderer just dims the stage and grades it
@@ -169,6 +175,9 @@ export async function loadAssets(onProgress) {
     if (CHARACTER_KEYS.includes(charKey)) {
       optional(`domain:${name}`, `assets/backgrounds/domains/${name}.jpg`);
     }
+  }
+  for (const key of STAGE_FX_SPRITES) {
+    optional(`stagefx:${key}`, `assets/sprites/effects/${key}.png`);
   }
 
   let done = 0;

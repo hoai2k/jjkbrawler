@@ -8,6 +8,7 @@ import { updateParticles, banner } from "./particles.js";
 import { updateCamera } from "./camera.js";
 import { draw } from "./render.js";
 import { getStage } from "./stages.js";
+import { initStageFx } from "./stage_fx.js";
 import { RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { makeAiState, aiInput, cpuDamageMul } from "./ai.js";
 import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady } from "./ui.js";
@@ -105,6 +106,10 @@ function resetMatch() {
   state.slowMo = 0;
   state.matchTime = 0;
   state.camera.x = 640; state.camera.y = 360; state.camera.zoom = 1; state.camera.shake = 0; state.camera.kick = 0;
+
+  // Stage identity (Active Boards): field modifiers + the gimmick entity.
+  // After the arrays are cleared, so the fx entity survives the reset.
+  initStageFx();
 
   introT = 1.6;
   endT = 0;
