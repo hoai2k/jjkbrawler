@@ -333,9 +333,17 @@ export const CHARACTERS = {
         p: { speed: 520, vy: -120, gravity: 260, r: 38, dur: 1.0, dmg: 11, base: 360, growth: 7.0, angle: 0.5, color: "#7c8cff", effect: "snare", label: "Nue", sprite: "summon:nue", spriteH: 132 },
       },
       side: {
-        name: "Divine Dogs", type: "wave", cooldown: 1.3,
-        desc: "Twin wolves loosed from shadow sprint the floor and tear through whatever they catch.",
-        p: { speed: 640, r: 34, dur: 1.15, dmg: 12, base: 380, growth: 7.2, angle: 0.34, color: "#3a3f68", count: 2, gap: 0.14, effect: "snare", label: "Divine Dogs", sprites: ["summon:divineDogWhite", "summon:divineDogBlack"], spriteH: 118 },
+        name: "Divine Dogs", type: "summon", cooldown: 7.5,
+        desc: "Both wolves step out of his shadow and hunt at his side, tearing at whoever they corner.",
+        p: {
+          id: "divineDogs", behavior: "chaser", duration: 6, speed: 470, maxActive: 2,
+          color: "#3a3f68", h: 118, hitW: 90, hitH: 96, standOff: 24,
+          attack: { dmg: 6.5, base: 240, growth: 4.6, angle: 0.34, cd: 0.9, effect: "snare", sfx: "slash" },
+          units: [
+            { sprites: ["summon:divineDogWhite"], backOff: 40 },
+            { sprites: ["summon:divineDogBlack"], backOff: 90, firstAttackDelay: 0.9 },
+          ],
+        },
       },
       down: {
         name: "Shadow Sink", type: "shadowPort", cooldown: 2.4,
@@ -650,9 +658,17 @@ export const CHARACTERS = {
         p: { vel: 640, iframes: 0.16, delay: 0.05, dur: 0.2, ox: 84, oy: -90, w: 250, h: 96, dmg: 14, base: 470, growth: 7.2, angle: 0.24, effect: "silence", label: "Inverted Spear", sfx: "slashHeavy" },
       },
       down: {
-        name: "Serpent Feint", type: "feint", cooldown: 1.7,
-        desc: "A ghost-quiet backstep that flows straight into a lunging counter-slash.",
-        p: { back: 260, lunge: 560, delay: 0.16, dur: 0.16, ox: 70, oy: -90, w: 220, h: 96, dmg: 13, base: 430, growth: 7.0, angle: 0.3, iframes: 0.28, label: "Serpent Feint", sfx: "slash" },
+        name: "Inventory Curse", type: "summon", cooldown: 9,
+        desc: "The pact-bound curse uncoils at his shoulder and spits cursed tools from its gullet.",
+        p: {
+          id: "inventoryCurse", behavior: "support", duration: 6, maxActive: 1,
+          color: "#9fb8a8", h: 96, hover: { back: 76, up: 158 },
+          sprites: ["summon:inventory_curse", "effect:cursed_spirit_orb"],
+          attack: {
+            cd: 1.15,
+            projectile: { speed: 760, r: 20, dur: 0.7, dmg: 7, base: 300, growth: 5.6, angle: 0.3, color: "#cfd6de", effect: "heavenly", sprite: "effect:cursed_tool", spriteH: 70 },
+          },
+        },
       },
     },
     ultimate: {
@@ -739,9 +755,14 @@ export const CHARACTERS = {
         p: { vel: 560, iframes: 0.1, delay: 0.05, dur: 0.24, ox: 66, oy: -94, w: 204, h: 104, dmg: 13, base: 410, growth: 7.0, angle: 0.3, effect: "soulMark", label: "Distortion", sfx: "slash" },
       },
       down: {
-        name: "Polymorphic Soul Isomer", type: "wave", cooldown: 2.4,
-        desc: "Pinches off a shard of his own soul: a scuttling isomer that bursts on contact.",
-        p: { speed: 300, r: 30, dur: 2.2, dmg: 12, base: 400, growth: 6.8, angle: 0.6, color: "#8f5cd8", count: 1, explode: 70, effect: "soulMark", label: "Isomer", sprite: "effect:soul_isomer", spriteH: 96 },
+        name: "Transfigured Human", type: "summon", cooldown: 3.4,
+        desc: "Reshapes a stored soul into a shambling experiment that lurches after the enemy and bursts.",
+        p: {
+          id: "transfigured", behavior: "bomber", duration: 4.5, speed: 330, maxActive: 2,
+          color: "#8f5cd8", h: 104, hitW: 64, hitH: 88,
+          sprites: ["summon:transfigured_human", "effect:soul_isomer"],
+          attack: { dmg: 12, base: 400, growth: 6.8, angle: 0.6, r: 90, effect: "soulMark" },
+        },
       },
     },
     ultimate: {
@@ -782,9 +803,14 @@ export const CHARACTERS = {
         p: { speed: 420, vy: -10, r: 26, dur: 1.1, dmg: 8, base: 280, growth: 5.8, angle: 0.4, color: "#7d58d8", count: 3, spread: 170, homing: 130, effect: "curseDrain", label: "Spirit Volley", spritePool: ["effect:curse_a", "effect:curse_b", "effect:curse_c", "effect:curse_d"], spriteH: 96 },
       },
       side: {
-        name: "Rainbow Dragon", type: "wave", cooldown: 1.7,
-        desc: "His prized heavy-hitter surges along the ground and bites like a landslide.",
-        p: { speed: 520, r: 46, dur: 1.2, dmg: 15, base: 470, growth: 7.6, angle: 0.42, color: "#9d7dff", count: 1, label: "Rainbow Dragon", sprite: "effect:curse_dragon", spriteH: 170 },
+        name: "Rainbow Dragon", type: "summon", cooldown: 8,
+        desc: "His prized heavy-hitter is released onto the stage and hunts until the technique is spent.",
+        p: {
+          id: "rainbowDragon", behavior: "chaser", duration: 5, speed: 380, maxActive: 1,
+          color: "#9d7dff", h: 170, hitW: 130, hitH: 130, standOff: 40,
+          sprites: ["summon:rainbow_dragon", "effect:curse_dragon"],
+          attack: { dmg: 11, base: 380, growth: 6.6, angle: 0.42, cd: 1.05, effect: "curseDrain", sfx: "slashHeavy" },
+        },
       },
       down: {
         name: "Kuchisake-Onna's Scissors", type: "trap", cooldown: 2.3,

@@ -113,6 +113,13 @@ export async function loadAssets(onProgress) {
   add("summon:divineDogWhite", "assets/sprites/summons/divine_dog_white.png");
   add("summon:divineDogBlack", "assets/sprites/summons/divine_dog_black.png");
   add("summon:nue", "assets/sprites/summons/nue.png");
+  // Dedicated art for these is requested but not delivered yet
+  // (docs/asset-requests.md, round 7). The summon system falls back to
+  // placeholder effect sprites until the files exist, so these load quietly.
+  const optional = (key, src) => jobs.push({ key, src: assetUrl(src), optional: true });
+  optional("summon:rainbow_dragon", "assets/sprites/summons/rainbow_dragon.png");
+  optional("summon:transfigured_human", "assets/sprites/summons/transfigured_human.png");
+  optional("summon:inventory_curse", "assets/sprites/summons/inventory_curse.png");
   for (const [charKey, frames] of Object.entries(spriteManifest.alternates || {})) {
     for (const [frameKey, meta] of Object.entries(frames)) {
       add(`alt:${charKey}:${frameKey}`, `assets/sprites/${meta.file}`);
@@ -135,7 +142,7 @@ export async function loadAssets(onProgress) {
         const img = await loadImage(job.src);
         images.set(job.key, img);
       } catch (err) {
-        console.warn(err.message);
+        if (!job.optional) console.warn(err.message);
       }
       done += 1;
       if (onProgress) onProgress(done, jobs.length);

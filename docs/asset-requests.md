@@ -345,3 +345,64 @@ fix all four — at the cost of building an effect system per technique.
 Not a request yet, just the trade-off recorded while it is fresh. If you want
 to go that way, the technique rows (`r3c0`–`r3c3`) are where it matters, and
 they are already due for regeneration on other grounds.
+
+---
+
+## Round 8 — Summon minions (new)
+
+(Numbered 8 because `asset-requests-round7.md` — the six new fighters — was
+requested in parallel. The two rounds are independent; either can be
+delivered first.)
+
+The summoning system (`src/summons.js`) now fields persistent minions for
+Megumi, Geto, Mahito, and Toji. Megumi's shikigami already have art
+(`assets/sprites/summons/`). Three minions are running on placeholder effect
+sprites and want dedicated art. Same delivery spec as round 5 (transparent or
+magenta background, facing RIGHT, body ≥600 px tall, one subject per file, no
+text/watermark). Drop the files at the exact paths below — the game prefers
+them automatically over the placeholders, no code change needed.
+
+### `assets/sprites/summons/rainbow_dragon.png` (Geto)
+
+Currently falls back to `effects/curse_dragon.png` (cut from his card art —
+usable but low-res and semi-effect-like).
+
+> A massive serpentine cursed spirit dragon from dark fantasy anime, long
+> sinuous body coiled mid-slither, iridescent scales shimmering violet, teal
+> and magenta, gaping jaw with rows of jagged teeth, four short clawed limbs,
+> tattered fins along the spine, wreathed in wisps of purple cursed energy,
+> full body visible facing right, side view, dynamic hunting pose low to the
+> ground, dark anime style with clean lineart and cel shading, transparent
+> background, no text
+
+### `assets/sprites/summons/transfigured_human.png` (Mahito)
+
+Currently falls back to `effects/soul_isomer.png` (a small orb — reads as a
+projectile, not a creature).
+
+> A grotesque transfigured human cursed creature from dark supernatural anime,
+> lumpy asymmetric flesh body with mismatched limbs, small vestigial arms and
+> one oversized arm used as a front leg, distorted half-melted face with
+> misplaced eyes, pale purple-grey skin with patches of lavender, shambling
+> hunched lurching pose, full body visible facing right, side view, unsettling
+> but PG-13 (no gore or blood), dark anime style with clean lineart and cel
+> shading, transparent background, no text
+
+### `assets/sprites/summons/inventory_curse.png` (Toji)
+
+Currently falls back to `effects/cursed_spirit_orb.png` (generic orb).
+
+> A small pact-bound inventory cursed spirit from dark fantasy anime, a
+> floating worm-like curse with a segmented pale green-grey body coiled into a
+> loose spiral, its head is a wide unzipping vertical mouth lined with blunt
+> teeth opening to reveal a dark storage void, tiny beady white eyes, faint
+> green cursed-energy haze around it, hovering pose with the tail curling
+> under, full body visible facing right, side view, creepy-cute proportions,
+> dark anime style with clean lineart and cel shading, transparent background,
+> no text
+
+### Optional round 8 extras (nice-to-have, not wired yet)
+
+- `summons/divine_dog_white.png` / `divine_dog_black.png` regenerations at
+  ≥600 px if the current ones look soft next to new art (they now run and
+  lunge on stage far longer than before, so quality shows more).
