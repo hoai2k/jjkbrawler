@@ -74,6 +74,15 @@ curseHoard) apply to summon casts.
 
 ## Status: COMPLETE — feature merged. This doc can be deleted next session.
 
+Post-rebase note: a parallel session landed six staged fighters and select
+screen changes on main mid-feature. The summon branch was rebased on top
+(clean, no overlapping edits — their kits still had the old moves), the
+asset-request section was renumbered to Round 8 (Round 7 = the six fighters
+in asset-requests-round7.md), and the full summon suite re-passed after the
+rebase, including a stock-loss verification (Divine Dogs KO'd an AI-disabled
+dummy — 'dmg=0' in earlier failing runs was respawn resetting damage, not a
+broken summon).
+
 ## Testing notes
 
 Local server: `npm start` → http://127.0.0.1:5174. Headless scripts live in
