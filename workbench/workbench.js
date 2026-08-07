@@ -27,7 +27,20 @@ const BENCHMARK_INSET = 78;
 const CELL_W = 313.5;
 // Scalar fields the workbench can edit. `anchors` is edited too but is nested,
 // so snapshot/restore/compare handle it separately.
-const EDITABLE = ["renderScale", "ox", "bodyBottom", "faceLeft"];
+const EDITABLE = ["renderScale", "ox", "bodyBottom", "faceLeft", "needsReplacement"];
+// Fields that are true/false rather than a number, so comparison and export
+// treat them differently (and `false` is a meaningful value, not "unset").
+const BOOLEAN_FIELDS = new Set(["faceLeft", "needsReplacement"]);
+
+// What the pose list shows. "Unedited" is the working view: the poses the game
+// draws that nobody has adjusted yet, so a pass through a character does not
+// keep re-presenting work already done.
+const VIEWS = {
+  unedited: { label: "Unedited only", keep: (c, k) => isUsed(c, k) && !hasSavedEdits(c, k) },
+  edited: { label: "Edited only", keep: (c, k) => hasSavedEdits(c, k) },
+  used: { label: "Used in game", keep: (c, k) => isUsed(c, k) },
+  all: { label: "All sprites", keep: () => true },
+};
 const HANDLE_R = 7;
 
 const BACKGROUNDS = [
@@ -43,7 +56,7 @@ const state = {
   anchor: null,
   anchorShown: {},     // name -> false to hide; anchors are shown by default
   dragging: false,
-  showAll: false,      // show frames the game never draws
+  view: "unedited",    // key into VIEWS
 };
 
 // ---------------------------------------------------------------- helpers
@@ -56,14 +69,13 @@ function allFramesOf(charKey) {
   return Object.keys(spriteManifest?.characters?.[charKey] || {}).sort();
 }
 
-/** Poses the pose list offers. A character's sheet carries every cell that was
- *  ever extracted, but the game only ever draws the ones an animation names —
- *  editing the rest is wasted work, so they are hidden behind "show all". */
+/** Poses the pose list offers, filtered by the current view. May be empty —
+ *  "Edited only" on an untouched character legitimately matches nothing, and
+ *  quietly widening the filter would be a lie about what you are looking at.
+ *  The selected pose stays on the canvas either way. */
 function framesOf(charKey) {
-  const all = allFramesOf(charKey);
-  if (state.showAll) return all;
-  const used = all.filter((k) => statesUsing(charKey, k).length > 0);
-  return used.length ? used : all;
+  const view = VIEWS[state.view] || VIEWS.unedited;
+  return allFramesOf(charKey).filter((k) => view.keep(charKey, k));
 }
 
 /** The RAW manifest object the renderer reads. `frameMeta` may hand back a
@@ -171,10 +183,28 @@ function isDirty(charKey, frameKey) {
   const orig = state.originals[charKey]?.[frameKey];
   if (!orig) return false;
   const meta = rawMeta(charKey, frameKey);
-  return EDITABLE.some((f) => (f === "faceLeft"
+  return EDITABLE.some((f) => (BOOLEAN_FIELDS.has(f)
       ? !!meta[f] !== !!orig[f]
       : Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4))
     || anchorsDirty(charKey, frameKey);
+}
+
+/** Adjustments already committed to the codebase, as opposed to the unsaved
+ *  ones this session marks with a dot. `edited` is written by
+ *  apply_sprite_adjustments.py; a replacement request counts too, since that
+ *  pose has been dealt with either way. */
+function hasSavedEdits(charKey, frameKey) {
+  const meta = rawMeta(charKey, frameKey);
+  if (!meta) return false;
+  return Object.keys(meta.edited || {}).length > 0 || !!meta.needsReplacement;
+}
+
+function isUsed(charKey, frameKey) {
+  return statesUsingFrame(charKey, frameKey).length > 0;
+}
+
+function needsReplacement(charKey, frameKey) {
+  return !!rawMeta(charKey, frameKey)?.needsReplacement;
 }
 
 function dirtyFrames(charKey) {
@@ -454,6 +484,10 @@ function refreshControls() {
   $("groundNote").hidden = !airborne;
   document.querySelectorAll("[data-ground]").forEach((b) => (b.disabled = airborne));
 
+  const flagged = !!meta.needsReplacement;
+  $("replaceBox").checked = flagged;
+  $("replaceVal").textContent = flagged ? "flagged for redraw" : "";
+
   const mirrored = !!meta.faceLeft;
   $("mirrorBox").checked = mirrored;
   $("mirrorVal").textContent = mirrored
@@ -567,13 +601,23 @@ function buildPoseList() {
   list.innerHTML = "";
   const frames = framesOf(state.char);
   const hidden = allFramesOf(state.char).length - frames.length;
-  $("poseCount").textContent = `${frames.length} frames`
-    + (hidden > 0 ? ` · ${hidden} unused hidden` : "");
+  const flagged = frames.filter((k) => needsReplacement(state.char, k)).length;
+  $("poseCount").textContent = `${frames.length} shown`
+    + (hidden > 0 ? ` · ${hidden} hidden` : "")
+    + (flagged > 0 ? ` · ${flagged} to redraw` : "");
+  if (!frames.length) {
+    const empty = document.createElement("p");
+    empty.className = "note";
+    empty.textContent = "Nothing matches this view.";
+    list.appendChild(empty);
+  }
   for (const key of frames) {
     remember(state.char, key);
     const b = document.createElement("button");
     b.textContent = key;
-    b.className = (key === state.frame ? "sel " : "") + (isDirty(state.char, key) ? "dirty" : "");
+    b.className = (key === state.frame ? "sel " : "")
+      + (isDirty(state.char, key) ? "dirty " : "")
+      + (needsReplacement(state.char, key) ? "flagged" : "");
     b.onclick = () => { state.frame = key; syncAll(); };
     list.appendChild(b);
   }
@@ -585,7 +629,9 @@ function setChar(charKey) {
   state.char = charKey;
   $("charSel").value = charKey;   // also called from ?char= and undo, not just the select
   const frames = framesOf(charKey);
-  state.frame = frames.includes("idle_a") ? "idle_a" : frames[0];
+  const fallback = allFramesOf(charKey);
+  state.frame = frames.includes("idle_a") ? "idle_a"
+    : frames[0] ?? (fallback.includes("idle_a") ? "idle_a" : fallback[0]);
   frames.forEach((k) => remember(charKey, k));
   rememberHead(charKey);
   syncAll();
@@ -626,6 +672,18 @@ function applyGround(dy, commit) {
   // contact has to re-solve, or the head would drift off the bar.
   applyHeightScale(state.char);
   refreshControls(); buildPoseList(); render();
+}
+
+/** Flag this pose's ART as wrong and needing to be redrawn. It rides along
+ *  with the placement values through export and apply_sprite_adjustments.py;
+ *  tools/list_replacements.py collects the flagged poses for the asset request
+ *  list, and intake clears the flag when the new art lands. */
+function applyNeedsReplacement(on) {
+  pushHistory(state.char, state.frame);
+  const meta = rawMeta(state.char, state.frame);
+  if (on) meta.needsReplacement = true;
+  else delete meta.needsReplacement;
+  refreshControls(); buildPoseList(); refreshTag(); render();
 }
 
 /** Mirror this frame. The sheets are drawn facing right; a frame the artist
@@ -689,9 +747,9 @@ function payloadFor(charKey) {
     const entry = {};
     for (const f of EDITABLE) {
       const value = meta[f];
-      if (f === "faceLeft") {
-        // a boolean, and `false` is meaningful: it turns OFF a mirror that
-        // `nativeLeft` would otherwise re-apply on every load
+      if (BOOLEAN_FIELDS.has(f)) {
+        // `false` is meaningful, not "unset": it turns OFF a mirror that
+        // `nativeLeft` would otherwise re-apply, or clears a redraw request
         if (!!value !== !!orig[f]) entry[f] = !!value;
         continue;
       }
@@ -830,14 +888,25 @@ async function boot() {
   canvas.addEventListener("pointerup", endDrag);
   canvas.addEventListener("pointercancel", endDrag);
 
-  $("showAllFrames").onchange = (e) => {
-    state.showAll = e.target.checked;
-    // the hidden set can contain the selected pose; fall back to a visible one
-    if (!framesOf(state.char).includes(state.frame)) state.frame = framesOf(state.char)[0];
+  const viewSel = $("viewSel");
+  for (const [key, cfg] of Object.entries(VIEWS)) {
+    const o = document.createElement("option");
+    o.value = key; o.textContent = cfg.label;
+    viewSel.appendChild(o);
+  }
+  viewSel.value = state.view;
+  viewSel.onchange = () => {
+    state.view = viewSel.value;
+    // move to a visible pose when the filter hides the current one, but keep it
+    // selected when the filter matches nothing at all — better a stale canvas
+    // than a blank one
+    const visible = framesOf(state.char);
+    if (visible.length && !visible.includes(state.frame)) state.frame = visible[0];
     syncAll();
   };
 
   $("mirrorBox").onchange = (e) => applyMirror(e.target.checked);
+  $("replaceBox").onchange = (e) => applyNeedsReplacement(e.target.checked);
 
   $("undoBtn").onclick = undo;
   $("redoBtn").onclick = redo;

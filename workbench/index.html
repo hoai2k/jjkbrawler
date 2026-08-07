@@ -73,13 +73,27 @@
 
         <div class="group">
           <label>Pose <span class="sub" id="poseCount"></span></label>
-          <div class="chips tight">
-            <label class="chip"><input type="checkbox" id="showAllFrames"> View all sprites</label>
-          </div>
+          <select id="viewSel"></select>
           <div id="poseList" class="pose-list"></div>
-          <p class="note">Only poses an animation actually draws are listed.
-            The sheets carry extra cells the game never shows; tick above to
-            reach them.</p>
+          <p class="note"><strong>Unedited only</strong> is the working view:
+            poses the game draws that have no adjustments saved in the codebase
+            yet, so a pass through a character does not keep re-presenting work
+            already done. <strong>Edited only</strong> is everything you have
+            touched, <strong>Used in game</strong> drops the filter on edits,
+            and <strong>All</strong> adds the sheet cells the game never draws.
+            The dot marks unsaved changes; a flagged pose is marked separately.</p>
+        </div>
+
+        <div class="group">
+          <label>Artwork <span class="sub" id="replaceVal"></span></label>
+          <div class="chips">
+            <label class="chip"><input type="checkbox" id="replaceBox"> Sprite needs replacement</label>
+          </div>
+          <p class="note">Marks this pose's <em>art</em> as wrong and needing a
+            redraw, as opposed to its placement being wrong. It exports with
+            everything else; the flagged poses are then collected into the asset
+            request list, and clearing happens automatically when the new art is
+            imported.</p>
         </div>
 
         <div class="group">

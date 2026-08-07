@@ -164,6 +164,20 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 .pose-list button:hover { border-color: var(--line); }
 .pose-list button.sel { background: #1d3550; border-color: var(--accent); color: #fff; }
 .pose-list button.dirty::after { content: " ●"; color: var(--warn); }
+/* A redraw request is a different thing from an unsaved change, so it reads
+   differently: the art is wrong, not the numbers. */
+.pose-list button.flagged { border-color: rgba(255, 120, 140, 0.5); }
+.pose-list button.flagged::before { content: "✂ "; color: #ff8898; }
+
+.panel select {
+  background: #0e111b;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 12.5px;
+}
 
 .nudge { display: flex; gap: 5px; }
 .nudge button {
