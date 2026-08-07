@@ -6,7 +6,7 @@
 // the renderer reads. So the preview can never drift from what the game shows,
 // and any fix applied elsewhere in the pipeline appears here immediately.
 
-import { loadAssets, frameImage, spriteManifest } from "../src/assets.js";
+import { loadCoreAssets, loadFrame, frameImage, spriteManifest } from "../src/assets.js";
 import {
   drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly,
   anchorScreenPos, screenPosToLocal, warmAnchors, EXTRA_ANCHORS,
@@ -16,6 +16,7 @@ import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
 import { headHeightTarget, applyHeightScale, hasHeightOverride, heightRatio } from "../src/heights.js";
 import { initTooltips, setHelp } from "./tooltip.js";
+import { makeCharLoader, frameLoaded } from "./lazy_sprites.js";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("stage");
@@ -354,8 +355,18 @@ function drawGhost(charKey, frameKey, alpha, x = canvas.width / 2) {
  *  underneath the pose. It answers a different question from the self-ghost:
  *  "is this character the right size next to the rest of the roster", which is
  *  a comparison you read side by side, not by overlaying two silhouettes. */
+function benchmarkKey() {
+  return rawMeta("gojo", "idle_a") ? "idle_a" : "r0c0";
+}
+
+/** Gojo's idle is the roster's size reference, so it is drawn next to every
+ *  character. Loaded on its own rather than waiting for his whole set. */
+async function loadBenchmarkFrame() {
+  if (await loadFrame("gojo", benchmarkKey())) render();
+}
+
 function drawBenchmark() {
-  const key = rawMeta("gojo", "idle_a") ? "idle_a" : "r0c0";
+  const key = benchmarkKey();
   const x = PLATFORM_X + BENCHMARK_INSET;
   drawGhost("gojo", key, 0.85, x);
   ctx.save();
@@ -414,7 +425,12 @@ function render() {
     if (k !== state.frame) drawGhost(state.char, k, 0.32);
   }
 
-  if ($("spinPreview").checked) {
+  // Art streams in per character, so the pose can be selected before its image
+  // exists. drawCharFrame silently draws nothing in that case, which is
+  // indistinguishable from a broken sprite — say so instead.
+  if (!frameLoaded(state.char, state.frame)) {
+    drawCanvasSpinner(cx);
+  } else if ($("spinPreview").checked) {
     drawSpinPreview(cx);
   } else {
     drawCharFrame(ctx, state.char, state.frame, cx, GROUND_Y, {
@@ -438,6 +454,29 @@ function render() {
   for (const name of anchorNames(state.char, state.frame)) {
     if (isAnchorShown(name)) drawAnchorHandle(name, name === state.anchor);
   }
+}
+
+/** Drawn where the sprite will be, so the wait reads as "this pose is coming"
+ *  rather than "this pose is blank". Animated from the clock rather than a
+ *  timer: `render()` is already called on every arrival and every edit, and a
+ *  rAF loop just to spin an arc would keep the page busy for no reason. */
+function drawCanvasSpinner(cx) {
+  const t = performance.now() / 1000;
+  const cy = GROUND_Y - 150;
+  ctx.save();
+  ctx.strokeStyle = "rgba(120, 170, 255, 0.28)";
+  ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.arc(cx, cy, 26, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = "rgba(120, 170, 255, 0.95)";
+  ctx.lineCap = "round";
+  ctx.beginPath(); ctx.arc(cx, cy, 26, t * 4, t * 4 + 1.5); ctx.stroke();
+  ctx.fillStyle = "rgba(154, 164, 192, 0.9)";
+  ctx.font = "600 12px Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(`loading ${state.char}/${state.frame}…`, cx, cy + 52);
+  ctx.restore();
+  // One frame of animation per render, and renders stop once the art lands.
+  requestAnimationFrame(() => { if (!frameLoaded(state.char, state.frame)) render(); });
 }
 
 /** Spin the pose about its centre of mass, so a badly-placed anchor is obvious
@@ -636,18 +675,75 @@ function buildPoseList() {
   }
 }
 
-function syncAll() { buildPoseList(); refreshTag(); refreshControls(); render(); }
+// Every path that changes the selected pose ends here — the pose list, the
+// arrow keys, undo/redo, a view change, `?frame=` — so asking the loader for
+// the current frame in one place covers all of them. It is a no-op once that
+// frame is in memory.
+function syncAll() {
+  buildPoseList();
+  refreshTag();
+  refreshControls();
+  rememberInUrl();
+  charLoader.prioritize(state.frame);
+  refreshLoadState();
+  render();
+}
 
-function setChar(charKey) {
+// `wantFrame` is the pose to open on — the action workbench's `?frame=`
+// hand-off. It has to be known HERE rather than applied afterwards, because
+// this is what tells the loader which frame to fetch first; setting it later
+// would mean downloading the default idle and then the pose you asked for.
+function setChar(charKey, wantFrame = null) {
   state.char = charKey;
   $("charSel").value = charKey;   // also called from ?char= and undo, not just the select
   const frames = framesOf(charKey);
   const fallback = allFramesOf(charKey);
-  state.frame = frames.includes("idle_a") ? "idle_a"
+  state.frame = fallback.includes(wantFrame) ? wantFrame
+    : frames.includes("idle_a") ? "idle_a"
     : frames[0] ?? (fallback.includes("idle_a") ? "idle_a" : fallback[0]);
   frames.forEach((k) => remember(charKey, k));
   rememberHead(charKey);
+  // Art for this character may not be here yet; the panels are driven by the
+  // manifest, so everything except the canvas is correct immediately.
+  charLoader.start(charKey, state.frame);
   syncAll();
+}
+
+/** Keep the address bar pointing at what is on screen, so a reload — or a link
+ *  handed to someone else — comes back to the same character and pose instead
+ *  of resetting to Gojo's idle. `replaceState`, not `pushState`: flipping
+ *  through poses should not fill the back button with every one you glanced at.
+ *
+ *  `?frame=` started as a one-shot hand-off from the action workbench; writing
+ *  it continuously costs nothing, because boot validates it against the
+ *  character's own frames and falls back to the idle if it does not belong. */
+function rememberInUrl() {
+  const url = new URL(location.href);
+  if (url.searchParams.get("char") === state.char && url.searchParams.get("frame") === state.frame) return;
+  url.searchParams.set("char", state.char);
+  if (state.frame) url.searchParams.set("frame", state.frame);
+  else url.searchParams.delete("frame");
+  history.replaceState(null, "", url);
+}
+
+// Streams the current character's frames, selected pose first. Every arrival
+// repaints, because the pose on screen may be the one that just landed.
+const charLoader = makeCharLoader({
+  onFirst: () => { refreshLoadState(); render(); },
+  onFrame: () => { refreshLoadState(); render(); },
+  onDone: () => refreshLoadState(),
+});
+
+function refreshLoadState() {
+  const el = $("loadState");
+  if (!el) return;
+  const waiting = charLoader.waiting;
+  const left = charLoader.remaining;
+  el.classList.toggle("spinning", waiting);
+  el.classList.toggle("done", !waiting && left === 0);
+  el.textContent = waiting ? `loading ${state.char}…`
+    : left ? `${state.char}: ${left} more frame${left === 1 ? "" : "s"}…`
+    : "assets loaded";
 }
 
 // --- edits. `commit` marks a discrete action worth an undo entry.
@@ -1002,22 +1098,33 @@ async function boot() {
 
   initTooltips();
 
-  await loadAssets(() => {});
+  // The manifest alone — every number the panels show, and everything
+  // warmAnchors needs. Sprite art follows per character, so opening the
+  // workbench no longer means downloading the whole roster to edit one pose.
+  await loadCoreAssets();
   warmAnchors(CHARACTER_KEYS);
-  $("loadState").textContent = "assets loaded";
-  $("loadState").classList.add("done");
+  $("loadState").textContent = "manifest loaded";
 
   const params = new URLSearchParams(location.search);
-  setChar(CHARACTER_KEYS.includes(params.get("char")) ? params.get("char") : "gojo");
+  const wanted = params.get("char");
+  const startChar = CHARACTER_KEYS.includes(wanted) ? wanted : "gojo";
 
-  // `?frame=` lets the action workbench hand off a specific pose to edit.
+  // `?frame=` lets the action workbench hand off a specific pose to edit. It is
+  // resolved BEFORE setChar so the pose you were sent to is the one fetched
+  // first, rather than fetching the default idle and then discarding it.
   const frame = params.get("frame");
-  if (frame && framesOf(state.char).includes(frame)) {
-    state.frame = frame;
-    syncAll();
+  const wantedFrame = frame && allFramesOf(startChar).includes(frame) ? frame : null;
+  setChar(startChar, wantedFrame);
+  if (wantedFrame) {
     const btn = $("poseList").querySelector("button.sel");
     if (btn) $("poseList").scrollTop = Math.max(0, btn.offsetTop - $("poseList").clientHeight / 2);
   }
+
+  // The size benchmark is Gojo's idle standing beside whatever you are editing,
+  // so it is needed on every character, not just his. Fetched alongside the
+  // first character rather than as part of it — it is one frame, and waiting on
+  // it would delay the pose you actually came to look at.
+  loadBenchmarkFrame();
   refreshHistoryButtons();
 }
 

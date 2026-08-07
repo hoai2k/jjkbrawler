@@ -7,13 +7,14 @@
 // recovery timing derived from moves.js. Nothing is re-implemented, which is
 // the whole point — a pose that looks wrong here is wrong in the game.
 
-import { loadAssets, frameImage, frameMeta, getImage, spriteManifest } from "../src/assets.js";
+import { loadCoreAssets, loadSharedImage, frameImage, frameMeta, getImage, spriteManifest } from "../src/assets.js";
 import { drawCharFrame, currentFrame, warmAnchors, anchorScreenPos } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS, animFor } from "../src/characters.js";
 import { lightMove, heavyMove } from "../src/moves.js";
 import { fighterTransform } from "../src/motion.js";
 import { initTooltips } from "./tooltip.js";
+import { makeCharLoader, frameLoaded } from "./lazy_sprites.js";
 import { SHIELD_MAX, MAX_FALL } from "../src/constants.js";
 import { TUMBLE_SPIN_MAX, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "../src/config_tuning.js";
 
@@ -287,6 +288,10 @@ function render() {
   }
 
   const frame = currentFrame(state.char, a.anim, state.t);
+  // Art streams in per character, so playback can reach a frame before its
+  // image has. drawCharFrame draws nothing in that case, which would read as a
+  // hole in the animation — hold the spinner over it instead.
+  if (!frameLoaded(state.char, frame)) { drawLoadingSpinner(cx, feetY, frame); return; }
   const m = $("aMotion").checked ? fighterTransform(mockFighter(a)) : null;
   drawCharFrame(ctx, state.char, frame, cx, feetY, {
     scale: CHARACTERS[state.char].scale * state.zoom,
@@ -436,16 +441,25 @@ function openDrawer(a) {
   const extras = a.extras || [];
   $("aExtrasWrap").hidden = extras.length === 0;
   const ex = $("aExtras");
-  ex.innerHTML = "";
-  for (const ref of extras) {
-    const img = getImage(ref);
-    ex.appendChild(spriteTile({
-      href: img?.src,
-      thumb: img?.src,
-      title: ref.split(":")[1],
-      sub: ref.startsWith("summon:") ? "summon" : "effect",
-    }));
-  }
+  const drawExtras = () => {
+    ex.innerHTML = "";
+    for (const ref of extras) {
+      const img = getImage(ref);
+      ex.appendChild(spriteTile({
+        href: img?.src,
+        thumb: img?.src,
+        title: ref.split(":")[1],
+        sub: ref.startsWith("summon:") ? "summon" : "effect",
+      }));
+    }
+  };
+  drawExtras();
+  // Effects and summons are no longer bulk-loaded at boot, so the two or three
+  // this move spawns are fetched on their own and the tiles redrawn once they
+  // land. Redrawn only if this drawer is still showing the same action.
+  const forAction = a;
+  Promise.all(extras.filter((ref) => !getImage(ref)).map(loadSharedImage))
+    .then((got) => { if (got.some(Boolean) && state.action === forAction) drawExtras(); });
 }
 
 function closeDrawer() {
@@ -491,6 +505,10 @@ function playAction(a) {
   state.action = a;
   state.t = 0;
   state.playing = true;
+  rememberInUrl();
+  // The pose this action opens on may still be queued behind the rest of the
+  // set; pull it forward so playback starts on art rather than a spinner.
+  charLoader.prioritize(currentFrame(state.char, a.anim, 0));
   buildActionList();
   buildTimeline();
   openDrawer(a);
@@ -501,6 +519,25 @@ function replay() {
   if (!state.action) return;
   state.t = 0;
   state.playing = true;
+}
+
+/** Shown where the pose will be while its art is still on the way. The action
+ *  workbench already runs a rAF loop, so this needs no animation of its own. */
+function drawLoadingSpinner(cx, feetY, frameKey) {
+  const t = performance.now() / 1000;
+  const cy = feetY - 150;
+  ctx.save();
+  ctx.strokeStyle = "rgba(120, 170, 255, 0.28)";
+  ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.arc(cx, cy, 26, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = "rgba(120, 170, 255, 0.95)";
+  ctx.lineCap = "round";
+  ctx.beginPath(); ctx.arc(cx, cy, 26, t * 4, t * 4 + 1.5); ctx.stroke();
+  ctx.fillStyle = "rgba(154, 164, 192, 0.9)";
+  ctx.font = "600 12px Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(`loading ${state.char}/${frameKey}…`, cx, cy + 52);
+  ctx.restore();
 }
 
 // ------------------------------------------------------------------- loop
@@ -651,28 +688,62 @@ async function boot() {
 
   initTooltips();
 
-  await loadAssets(() => {});
+  // The manifest carries every timing and measurement the panels read, so the
+  // page is fully usable off it; sprite art follows per character.
+  await loadCoreAssets();
   warmAnchors(CHARACTER_KEYS);
-  $("loadState").textContent = "assets loaded";
-  $("loadState").classList.add("done");
+  $("loadState").textContent = "manifest loaded";
 
   const params = new URLSearchParams(location.search);
-  setChar(CHARACTER_KEYS.includes(params.get("char")) ? params.get("char") : "gojo");
-
-  const wanted = params.get("action");
-  const first = actionsFor(state.char).flatMap((g) => g.items);
-  playAction(first.find((i) => i.id === wanted) || first[0]);
+  const wantedChar = params.get("char");
+  const wantedAction = params.get("action");
+  setChar(CHARACTER_KEYS.includes(wantedChar) ? wantedChar : "gojo", wantedAction);
 
   requestAnimationFrame((t) => { last = t; tick(t); });
 }
 
-function setChar(charKey) {
+function setChar(charKey, wantedAction = null) {
   state.char = charKey;
   $("aChar").value = charKey;
-  const keep = state.action?.id;
+  const keep = wantedAction || state.action?.id;
   const items = actionsFor(charKey).flatMap((g) => g.items);
   const next = items.find((i) => i.id === keep) || items[0];
+  // Fetch the pose this action opens on first, so playback has something to
+  // show immediately rather than after the whole set has arrived.
+  charLoader.start(charKey, next ? currentFrame(charKey, next.anim, 0) : null);
   if (next) playAction(next); else buildActionList();
+}
+
+// Streams the current character's frames. The rAF loop repaints continuously,
+// so arrivals need no redraw of their own — only the status line does.
+const charLoader = makeCharLoader({
+  onFirst: refreshLoadState,
+  onFrame: refreshLoadState,
+  onDone: refreshLoadState,
+});
+
+function refreshLoadState() {
+  const el = $("loadState");
+  if (!el) return;
+  const left = charLoader.remaining;
+  el.classList.toggle("spinning", charLoader.waiting || left > 0);
+  el.classList.toggle("done", !charLoader.waiting && left === 0);
+  el.textContent = charLoader.waiting ? `loading ${state.char}…`
+    : left ? `${state.char}: ${left} more frame${left === 1 ? "" : "s"}…`
+    : "assets loaded";
+}
+
+/** Keep the address bar on the current character and action, so a reload comes
+ *  back to what you were looking at. `replaceState` so flipping through actions
+ *  does not fill the back button. */
+function rememberInUrl() {
+  const url = new URL(location.href);
+  const char = state.char;
+  const action = state.action?.id || null;
+  if (url.searchParams.get("char") === char && url.searchParams.get("action") === action) return;
+  url.searchParams.set("char", char);
+  if (action) url.searchParams.set("action", action); else url.searchParams.delete("action");
+  history.replaceState(null, "", url);
 }
 
 // `spriteManifest` is only read through the game's helpers, but a missing

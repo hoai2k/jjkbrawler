@@ -72,6 +72,10 @@ export const TEXT = {
     startWaiting: "Waiting for fighters…",
     hintPicking: "Pick a fighter to lock in. B / Backspace un-readies · LB/RB cycles the corner menus.",
     hintReady: "All fighters locked — confirm again (A / Enter) to choose the stage. B / Backspace un-readies.",
+    // Shown while the roster streams in behind the select screen. Any fighter
+    // is playable before this finishes; picking one just pulls their art to the
+    // front of the queue. Hidden once every fighter is in memory.
+    loadingRoster: (ready, total) => `Loading fighters… ${ready}/${total} ready · pick anyone, yours loads first`,
   },
 
   // The four hero cards above the roster

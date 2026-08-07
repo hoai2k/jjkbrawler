@@ -824,6 +824,10 @@ html, body {
 
 .controller-status { color: var(--text-dim); font-size: 0.72rem; margin: 0; }
 
+/* Roster streaming in behind the select screen. Deliberately quiet — nothing
+   is blocked while it shows, so it must not read as a warning. */
+.load-hint { opacity: 0.7; font-variant-numeric: tabular-nums; }
+
 /* ---------- Stage select ---------- */
 
 .stage-grid {
