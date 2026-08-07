@@ -23,6 +23,19 @@ import { DOMAIN_METER_COST } from "./constants.js";
 const GROUND = () => state.platforms[0]?.y ?? 568;
 
 /** The domain a fighter currently has open, or null. */
+// Each domain's signature sound, layered under the shared expansion sting.
+// Keyed by the backdrop sprite because that is what a domain definition
+// actually carries at runtime.
+const DOMAIN_STING = {
+  "domain:unlimited_void": "domainUnlimitedVoid",
+  "domain:malevolent_shrine": "domainMalevolentShrine",
+  "domain:shadow_garden": "domainShadowGarden",
+  "domain:self_embodiment": "domainSelfEmbodiment",
+  "domain:iron_mountain": "domainIronMountain",
+  "domain:idle_death_gamble": "domainIdleDeathGamble",
+  "domain:mutual_love": "domainMutualLove",
+};
+
 export function activeDomain(f) {
   const d = state.domain;
   return d && d.owner === f && !d.dead ? d : null;
@@ -62,7 +75,10 @@ export function performDomain(f, slot = 0) {
   state.camera.shake = Math.max(state.camera.shake, 16);
   banner("DOMAIN EXPANSION", color, { y: 150, size: 34, life: 2.0 });
   banner(def.name.toUpperCase(), color, { y: 205, size: 50, life: 2.2 });
-  playSfx("ult", 1);
+  playSfx("domainExpansion", 1);
+  // Signature layer under the shared sting, keyed off the domain's backdrop
+  // sprite — the one stable identifier a domain definition carries.
+  playSfx(DOMAIN_STING[p.bg], 1);
   playGrunt(f.charKey);
   ring(f.x, f.y - 90, color, 260);
   burst(f.x, f.y - 90, color, 60, 2.2);

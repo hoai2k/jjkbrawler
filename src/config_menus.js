@@ -175,6 +175,7 @@ export const TEXT = {
     spriteDefault: "Default",
     spriteAlternate: "Alternate",
     activeBoards: (on) => `Active Boards: ${on ? "On" : "Off"}`,
+    sfxEnabled: (on) => `Sound Effects: ${on ? "On" : "Off"}`,
     back: "Back",
   },
 

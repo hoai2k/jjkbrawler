@@ -77,7 +77,7 @@ export function updateHitboxes(dt) {
     if (hb.age < 0) continue;
     if (!hb.swung) {
       hb.swung = true;
-      playSfx("miss", 0.7);
+      playSfx("swingWhiff", 0.7);
     }
     const rect = hitboxRect(hb);
     for (const target of state.fighters) {
@@ -137,7 +137,7 @@ export function spawnProjectile(owner, cfg) {
 function explodeProjectile(p) {
   burst(p.x, p.y, p.color, 26, 1.3);
   ring(p.x, p.y, p.color, p.explode * 1.4);
-  playSfx("blast", 0.9);
+  playSfx("projectileHit", 0.9);
   for (const target of state.fighters) {
     if (target === p.owner || target.dead || target.respawnTimer > 0) continue;
     if (circleRectOverlap(p.x, p.y, p.explode, hurtbox(target))) {
@@ -204,7 +204,7 @@ export function updateProjectiles(dt) {
         burst(p.x, p.y, target.reflect.color || target.char.theme, 14, 0.9);
         ring(p.x, p.y, target.reflect.color || target.char.theme, 70);
         popup(target.x, target.y - 168, "RETURNED", target.char.theme, 20);
-        playSfx("shield", 0.9, 1.3);
+        playSfx("guardHit", 0.9, 1.3);
         continue;
       }
       if (!ducked && circleRectOverlap(p.x, p.y, p.r, box)) {
@@ -429,7 +429,7 @@ export function applyHit(owner, target, hit, source) {
       // perfect shield
       popup(target.x, target.y - 160, "PARRY!", "#ffffff", 30);
       ring(target.x, target.y - 90, target.char.theme, 90);
-      playSfx("block", 1, 1.3);
+      playSfx("guardHit", 1, 1.3);
       owner.hitPause = Math.max(owner.hitPause, 0.34);
       target.hitPause = Math.max(target.hitPause, 0.1);
       target.meter = clamp(target.meter + 6, 0, METER_MAX);
@@ -442,7 +442,7 @@ export function applyHit(owner, target, hit, source) {
     target.shield -= shieldDmg;
     target.shieldStun = 0.1 + dmg * 0.012;
     target.vx += dir * (90 + dmg * 14);
-    playSfx("block", 0.85);
+    playSfx("guardHit", 0.85);
     burst(target.x + dir * -30, target.y - 90, "#cfe4ff", 14, 0.8);
     state.camera.shake = Math.max(state.camera.shake, 3);
     if (target.shield <= 0) shieldBreak(target);
@@ -461,6 +461,7 @@ export function applyHit(owner, target, hit, source) {
     dmg *= 1.36; baseKb *= 1.22; growth *= 1.15;
     label = "7:3 " + (label || "");
     popup(target.x, target.y - 175, "7:3!", "#ffd35a", 26);
+    playSfx("hitCrit");
   }
 
   // Black Flash (Yuji): cursed energy lands within a millionth of a second of
@@ -469,6 +470,7 @@ export function applyHit(owner, target, hit, source) {
     dmg *= 1.35; baseKb *= 1.15; growth *= 1.1;
     owner.meter = clamp(owner.meter + 10, 0, METER_MAX);
     popup(target.x, target.y - 178, "BLACK FLASH!", "#ff3b30", 26);
+    playSfx("blackFlash");
     sparkLine(target.x, target.y - 96, dir, "#ff3b30", 12);
     state.camera.shake = Math.max(state.camera.shake, 8);
     state.slowMo = Math.max(state.slowMo, 0.12);
@@ -605,7 +607,7 @@ export function shieldBreak(target) {
   target.vy = -420;
   target.grounded = false;
   banner("SHIELD BREAK!", "#ff8a8a", { y: 180, size: 44, life: 1.2 });
-  playSfx("gone", 0.8, 1.4);
+  playSfx("guardBreak", 0.9);
   burst(target.x, target.y - 90, "#cfe4ff", 40, 1.4);
   state.camera.shake = Math.max(state.camera.shake, 12);
 }
@@ -616,7 +618,7 @@ export function triggerCounter(target, attacker) {
   target.invuln = Math.max(target.invuln, 0.5);
   popup(target.x, target.y - 168, c.name || "COUNTER!", target.char.theme, 26);
   ring(target.x, target.y - 90, target.char.theme, 130);
-  playSfx("blast", 1);
+  playSfx("parry", 1);
   state.slowMo = Math.max(state.slowMo, 0.16);
   state.camera.shake = Math.max(state.camera.shake, 10);
   // retaliation only lands at melee range — countering a projectile from
