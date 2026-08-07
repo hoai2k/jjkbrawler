@@ -120,11 +120,12 @@ sheets.
 
 # Round 9 — open
 
-Three independent parts; any can be delivered on its own.
+Four independent parts; any can be delivered on its own.
 
 - **9A** — regenerate the 17 original hero cards so the select screen is one style (17 images)
 - **9B** — 10 technique frames that currently show the wrong move
 - **9C** — 7 Domain Expansion backgrounds for the new domain feature
+- **9D** — 4 stage-hazard props for the Active Boards update (optional polish)
 
 ---
 
@@ -419,3 +420,37 @@ The wiki lists three more roster fighters as domain users: **Hanami**, **Uro**
 and **Yuji**. Their domains are either unnamed in canon or arrive very late in
 the series, so they have no kit here yet and no background is requested. If you
 want them, say so and they can be designed like the other seven.
+
+---
+
+## 9D. Stage-hazard props — 4 sprites (optional polish)
+
+The Active Boards update (`src/stage_fx.js`) gives every stage a gameplay
+gimmick. All of the hazard visuals are drawn procedurally on canvas, so
+**nothing is blocked and nothing looks broken without these** — each file, when
+it lands, simply replaces its procedural stand-in. They load as optional
+`stagefx:*` keys (see `STAGE_FX_SPRITES` in `src/assets.js`); a missing file is
+not an error.
+
+Deliver like every other effect sprite: PNG with alpha (or magenta key), one
+subject per file, margin on all sides, to `assets/intake/effects/`.
+
+| File | Used on | Prompt |
+|---|---|---|
+| `stage_lantern.png` | Lantern Corridor (falls and starts a small fire) | "a traditional Japanese paper lantern with a red-orange body and dark wooden ribs, glowing warmly from within, hanging from a short cord, drawn straight on" |
+| `stage_fang.png` | Curse Maw / Cursed Teeth (snapping and falling fangs) | "a single huge curved monster fang of pale bone-white ivory with a faint teal cursed-energy glow at its root, point facing UP, slight wet sheen" |
+| `stage_flower.png` | Garden Steps (healing bloom pickup) | "a small blooming flower with soft pink petals and a golden centre on a short green stem with two leaves, gentle white-green glow around the petals" |
+| `stage_weak_curse.png` | School Wing (wandering weak cursed spirit) | "a small pudgy one-eyed cursed spirit blob, dark violet mottled skin, single large yellow eye, tiny stubby arms, hunched creeping posture, faint purple aura, facing LEFT" |
+
+Append the standard style suffix from the top of this doc to each prompt.
+Sizing: these render 44–72 px tall in game, so ~400 px source height is plenty;
+`stage_fang` is drawn point-up when it erupts and rotated point-down when it
+falls, so draw it point-up. `stage_weak_curse` faces left like other mobile
+art (it is mirrored when walking right).
+
+| File | Delivered | Checked in game |
+|---|---|---|
+| `stage_lantern` | ☐ | ☐ |
+| `stage_fang` | ☐ | ☐ |
+| `stage_flower` | ☐ | ☐ |
+| `stage_weak_curse` | ☐ | ☐ |

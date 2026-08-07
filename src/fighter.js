@@ -261,6 +261,8 @@ function updateLedge(f, dt, input) {
 function resolvePlatforms(f, prevY) {
   f.grounded = false;
   for (const plat of state.platforms) {
+    // phased-out platform (Active Boards: Bone Sanctum, Empty City)
+    if (plat.ghost) continue;
     if (f.dropTimer > 0 && plat.kind !== "main") continue;
     const margin = plat.kind === "main" ? 14 : 24;
     if (f.x < plat.x - margin || f.x > plat.x + plat.w + margin) continue;
@@ -444,7 +446,7 @@ export function updateFighter(f, dt, input) {
     f.dizzy -= dt;
     setAnim(f, "dizzy");
     if (!f.grounded) {
-      f.vy = Math.min(f.vy + GRAVITY * dt, MAX_FALL);
+      f.vy = Math.min(f.vy + GRAVITY * (state.stageMods.gravityMul || 1) * dt, MAX_FALL);
     } else {
       f.vx *= Math.pow(0.8, dt * 60);
     }
@@ -607,6 +609,11 @@ export function updateFighter(f, dt, input) {
   const moveMul = speedMul(f);
   const maxSpeed = (f.grounded ? st.speed : st.airSpeed) * moveMul * (f.dashT > 0 ? DASH_MULT : 1);
   const accel = st.accel * (f.grounded ? 1 : 0.62) * moveMul;
+  // Ground friction, shaped by the stage surface (Active Boards): a slick
+  // stage (frictionPow < 1) pushes the per-character base toward 1, so
+  // momentum lingers and stops become slides.
+  const frPow = state.stageMods.frictionPow || 1;
+  const friction = frPow === 1 ? st.friction : Math.pow(st.friction, frPow);
 
   if (!locked && !f.crouching) {
     const dir = input.dirX;
@@ -629,21 +636,21 @@ export function updateFighter(f, dt, input) {
         f.vx += dir * accel * dt;
         f.vx = clamp(f.vx, -maxSpeed, maxSpeed);
       } else {
-        f.vx *= Math.pow(st.friction, dt * 80);
+        f.vx *= Math.pow(friction, dt * 80);
       }
       if (!inHitstun && f.dashT <= 0) f.facing = dir;
     } else if (f.grounded) {
-      f.vx *= Math.pow(st.friction, dt * 60);
+      f.vx *= Math.pow(friction, dt * 60);
       if (Math.abs(f.vx) < 8) f.vx = 0;
     }
   } else if (f.grounded && (f.crouching || f.shielding || f.charging)) {
-    f.vx *= Math.pow(st.friction, dt * 90);
+    f.vx *= Math.pow(friction, dt * 90);
     if (Math.abs(f.vx) < 8) f.vx = 0;
   } else if (inHitstun) {
     f.vx *= Math.pow(0.988, dt * 60);
   } else if (f.grounded && !f.action?.keepMomentum) {
     // locked ground action (attack/special lunge): momentum carries but decays
-    f.vx *= Math.pow(st.friction, dt * 40);
+    f.vx *= Math.pow(friction, dt * 40);
     if (Math.abs(f.vx) < 8) f.vx = 0;
   }
 
@@ -711,7 +718,7 @@ export function updateFighter(f, dt, input) {
   // ---- physics
   if (!f.grounded) {
     const fallCap = f.fastFalling ? MAX_FALL * FASTFALL_MULT : MAX_FALL;
-    f.vy = Math.min(f.vy + GRAVITY * dt, fallCap);
+    f.vy = Math.min(f.vy + GRAVITY * (state.stageMods.gravityMul || 1) * dt, fallCap);
   }
 
   const prevY = f.y;

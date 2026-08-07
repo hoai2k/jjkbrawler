@@ -24,6 +24,9 @@ export function draw(ctx) {
   if (state.debugHitboxes) drawDebug(ctx);
   drawParticles(ctx);
   drawPopupsWorld(ctx);
+  // Stage effects that must cover the fighters (Mist Pier's fog, Quiet Hall's
+  // hush) draw here, above the scene but still in world space.
+  for (const e of state.entities) if (e.drawTop) e.drawTop(ctx);
 
   releaseCamera(ctx);
 
@@ -59,8 +62,21 @@ function drawPlatforms(ctx) {
 
 // Exported so the sprite workbench can show a real platform to align feet
 // against, rather than an approximation that could drift from the game.
+// Active Boards may tag a platform: `ghost` (phased out — skeletal outline,
+// no collision), `shakeMag` (crumble tremor), `accent` (edge-light override).
 export function drawPlatformShape(ctx, p) {
   ctx.save();
+  if (p.shakeMag) ctx.translate((Math.random() - 0.5) * p.shakeMag, (Math.random() - 0.5) * p.shakeMag * 0.5);
+  if (p.ghost) {
+    ctx.globalAlpha = 0.3;
+    ctx.setLineDash([7, 6]);
+    ctx.strokeStyle = "rgba(180, 200, 230, 0.8)";
+    ctx.lineWidth = 2;
+    roundRect(ctx, p.x, p.y, p.w, p.h, 8);
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
   ctx.fillStyle = "rgba(2, 3, 8, 0.45)";
   roundRect(ctx, p.x + 8, p.y + 12, p.w, p.h, 8);
   ctx.fill();
@@ -79,7 +95,7 @@ export function drawPlatformShape(ctx, p) {
   roundRect(ctx, p.x, p.y, p.w, p.h, 8);
   ctx.fill();
 
-  ctx.strokeStyle = p.kind === "main" ? "rgba(255, 211, 92, 0.55)" : "rgba(97, 216, 255, 0.45)";
+  ctx.strokeStyle = p.accent || (p.kind === "main" ? "rgba(255, 211, 92, 0.55)" : "rgba(97, 216, 255, 0.45)");
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(p.x + 6, p.y + 1);
