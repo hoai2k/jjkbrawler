@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { loadAssets } from "./assets.js";
 import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, joinedPlayerCount, blankInput } from "./input.js";
-import { initAudio, syncMusic } from "./audio.js";
+import { initAudio, setBattleStage, syncMusic } from "./audio.js";
 import { makeFighter, updateFighter } from "./fighter.js";
 import { updateHitboxes, updateProjectiles } from "./combat.js";
 import { updateParticles, banner } from "./particles.js";
@@ -62,6 +62,8 @@ function resolveRoster(entrantCount) {
 
 function resetMatch() {
   const stage = getStage(state.stageKey);
+  // Pick this match's battle track before the phase flips to "playing".
+  setBattleStage(stage.key);
   state.platforms = stage.platforms.map((p) => ({ ...p }));
   const groundY = state.platforms[0].y;
 

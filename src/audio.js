@@ -1,4 +1,14 @@
 // SFX + music. New Audio element per one-shot (matches v1), with pitch jitter.
+//
+// Music has two layers: menu screens play one fixed track quietly, and a match
+// plays its stage's own track where one exists, falling back to a random pick
+// from the originals. Which files exist is declared in config_music.js.
+
+import { STAGES } from "./stages.js";
+import {
+  BOARD_MUSIC_DIR, BOARD_TRACKS, FALLBACK_TRACKS, MENU_TRACK, MUSIC_DIR, MUSIC_EXT,
+  UNUSED_BOARD_TRACKS,
+} from "./config_music.js";
 
 const SFX_FILES = {
   blast: "assets/sfx/sound_explosion.wav",
@@ -33,37 +43,57 @@ const GRUNT_GROUPS = {
 export const audioSettings = {
   musicVolume: 0.3,
   sfxVolume: 0.45,
-  musicMode: 2, // 0 track A, 1 track B, 2 mix, 3 off
+  musicMode: 0, // index into MUSIC_MODES below; 0 is per-stage music
 };
 
-const TRACKS = [
-  { label: "Final Match", src: "assets/music/The_Final_Match_Point.mp3" },
-  { label: "Iron vs Bone", src: "assets/music/Iron_Versus_Bone.mp3" },
+// Filenames carry spaces, so every src is encoded before it reaches the element.
+const trackUrl = (dir, file) => encodeURI(`${dir}${file}${MUSIC_EXT}`);
+const MENU_SRC = trackUrl(MUSIC_DIR, MENU_TRACK.file);
+const FALLBACK_SRCS = FALLBACK_TRACKS.map((t) => trackUrl(MUSIC_DIR, t.file));
+const BOARD_TRACK_SET = new Set(BOARD_TRACKS);
+
+// Menu screens share one track; "playing" gets the battle track; loading and
+// pause stay silent (pause holds the match track rather than switching away).
+const MENU_PHASES = new Set(["menu", "stageSelect", "moves", "settings", "roundOver"]);
+
+// "Stage" is the default: each board's own track, or a random original where a
+// board has none. The two explicit entries force one original everywhere, which
+// is also how a player mutes a stage track they dislike.
+export const MUSIC_MODES = [
+  { label: "Stage", auto: true },
+  ...FALLBACK_TRACKS.map((t, i) => ({ label: t.label, track: i })),
+  { label: "Off", off: true },
 ];
 
-export const MUSIC_MODES = [
-  { label: "Final Match", tracks: [0] },
-  { label: "Iron vs Bone", tracks: [1] },
-  { label: "Mix", tracks: [0, 1] },
-  { label: "Off", tracks: [] },
-];
+// A stage name in BOARD_TRACKS that matches no stage would silently never play,
+// and a track file whose name has a typo looks exactly the same. Say so.
+function validateMusicConfig() {
+  const stageNames = new Set(STAGES.map((s) => s.name));
+  const unmatched = BOARD_TRACKS.filter((name) => !stageNames.has(name));
+  if (unmatched.length) {
+    console.warn(
+      `config_music.js BOARD_TRACKS names no such stage (typo?): ${unmatched.join(", ")}`
+    );
+  }
+  const overlap = UNUSED_BOARD_TRACKS.filter((name) => stageNames.has(name));
+  if (overlap.length) {
+    console.warn(
+      `config_music.js lists these as unused but they are real stages: ${overlap.join(", ")}`
+    );
+  }
+}
+validateMusicConfig();
 
 let unlocked = false;
-let playlistIndex = 0;
 let musicEl = null;
+let battleSrc = null;   // resolved once per match so it cannot re-roll mid-fight
+let battleStageKey = null;
+let currentSrc = null;
 let shieldLoop = null;
 const active = new Set();
 
 export function initAudio() {
   musicEl = document.getElementById("musicTrack");
-  musicEl.addEventListener("ended", () => {
-    const mode = MUSIC_MODES[audioSettings.musicMode];
-    if (mode.tracks.length > 1) {
-      playlistIndex = (playlistIndex + 1) % mode.tracks.length;
-      musicEl.src = TRACKS[mode.tracks[playlistIndex]].src;
-      musicEl.play().catch(() => {});
-    }
-  });
   const unlock = () => {
     unlocked = true;
     window.removeEventListener("pointerdown", unlock);
@@ -110,23 +140,47 @@ export function stopShieldLoop() {
   }
 }
 
+// The battle track for a stage: its own if one was delivered, else a random
+// original. An explicit music mode overrides both.
+function resolveBattleSrc(stageKey) {
+  const mode = MUSIC_MODES[audioSettings.musicMode];
+  if (mode.off) return null;
+  if (mode.track !== undefined) return FALLBACK_SRCS[mode.track];
+  const stage = STAGES.find((s) => s.key === stageKey);
+  if (stage && BOARD_TRACK_SET.has(stage.name)) return trackUrl(BOARD_MUSIC_DIR, stage.name);
+  return FALLBACK_SRCS[Math.floor(Math.random() * FALLBACK_SRCS.length)];
+}
+
+// Called when a match starts. Re-rolls the fallback, so a rematch on a stage
+// without its own track can come up with the other original.
+export function setBattleStage(stageKey) {
+  battleStageKey = stageKey;
+  battleSrc = resolveBattleSrc(stageKey);
+}
+
 export function syncMusic(phase) {
   if (!musicEl) return;
-  const mode = MUSIC_MODES[audioSettings.musicMode];
-  musicEl.volume = audioSettings.musicVolume;
-  const shouldPlay = phase === "playing" && mode.tracks.length > 0 && audioSettings.musicVolume > 0;
-  if (shouldPlay) {
-    const desired = TRACKS[mode.tracks[playlistIndex % mode.tracks.length]].src;
-    if (!musicEl.src.endsWith(desired)) musicEl.src = desired;
-    musicEl.loop = mode.tracks.length === 1;
-    musicEl.play().catch(() => {});
-  } else {
+  const menu = MENU_PHASES.has(phase);
+  const src = phase === "playing" ? battleSrc : menu ? MENU_SRC : null;
+  const off = MUSIC_MODES[audioSettings.musicMode].off;
+  const volume = audioSettings.musicVolume * (menu ? MENU_TRACK.volumeScale : 1);
+
+  if (!src || off || audioSettings.musicVolume <= 0) {
     musicEl.pause();
+    return;
   }
+  musicEl.volume = Math.min(1, volume);
+  if (currentSrc !== src) {
+    currentSrc = src;
+    musicEl.src = src;
+  }
+  musicEl.loop = true;
+  musicEl.play().catch(() => {});
 }
 
 export function cycleMusicMode() {
   audioSettings.musicMode = (audioSettings.musicMode + 1) % MUSIC_MODES.length;
-  playlistIndex = 0;
+  // An explicit choice takes effect on the current match, not just the next one.
+  battleSrc = resolveBattleSrc(battleStageKey);
   return MUSIC_MODES[audioSettings.musicMode].label;
 }
