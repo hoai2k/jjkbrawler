@@ -152,6 +152,10 @@ All of it is in `src/tuning.js`:
 - **Afterimages** — `TRAIL_LEN`, `TRAIL_STEP`, `TRAIL_ALPHA`, `TRAIL_STRENGTH`.
 - **Anchor fallbacks** — `COM_BODY_FRAC`, `LEDGE_GRIP_Y_FRAC`.
 
-`src/constants.js` keeps physics, geometry and match rules — gravity, jump
-height, shield economy, blast zones. Also tweakable, but those change what the
-game *is* rather than how it reads, and code depends on their relationships.
+Three files are meant for hand editing, and the split is deliberate:
+
+| File | Holds | Affects |
+|---|---|---|
+| `src/config.js` | roster grouping, every player-facing string | nothing mechanical |
+| `src/tuning.js` | motion, tumble, squash, trails, DI, move staling | how it feels |
+| `src/constants.js` | gravity, jump height, shield economy, blast zones | what the game is |

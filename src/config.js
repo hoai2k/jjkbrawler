@@ -5,6 +5,10 @@
 // fighter between them, or rewrite any player-facing string, and the game picks
 // it up on reload. Fighter stats and kits live in characters.js; this file is
 // only about how the roster is organised and what the game says.
+//
+// The other two files meant for hand editing: tuning.js for how the game FEELS
+// (sprite motion, tumble, DI, move staling) and constants.js for physics and
+// match rules.
 // ---------------------------------------------------------------------------
 
 // Fighter-select categories, in the order they appear on screen. Each group's

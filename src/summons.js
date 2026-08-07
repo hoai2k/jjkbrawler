@@ -20,6 +20,7 @@ import { applyHit, hurtbox, spawnProjectile } from "./combat.js";
 import { burst, dust, ring } from "./particles.js";
 import { playSfx } from "./audio.js";
 import { getImage } from "./assets.js";
+import { MOTION } from "./tuning.js";
 
 function groundY() {
   return state.platforms.length ? state.platforms[0].y : 568;
@@ -168,7 +169,8 @@ export function spawnSummon(owner, cfg) {
       // Sway with the hover, and lean into a lunge. Summons are a single
       // still image held for their whole lifetime, so this is the only thing
       // separating a hovering curse from a decal pinned to the stage.
-      const sway = Math.sin(this.bob * 0.7) * 0.045 + (lunge / 16) * this.dir * 0.12;
+      const sway = Math.sin(this.bob * 0.7) * MOTION.summonSway
+                 + (lunge / 16) * this.dir * MOTION.summonLunge;
       ctx.rotate(sway);
       // summon art faces left in source unless flagged; mirror to face dir
       ctx.scale(this.dir > 0 ? (cfg.faceRight ? 1 : -1) : (cfg.faceRight ? -1 : 1), 1);

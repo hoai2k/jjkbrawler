@@ -166,10 +166,17 @@ by the game. Three steps, each separable so a bad delivery stops at the door:
    state each frame drives, for human approval.
 3. `tools/intake_import.py --approve FILE` — copies approved frames into
    `assets/sprites/` and registers them.
+4. `tools/bake_anchors.py` — measures the rotation pivot (and the ledge grip on
+   a hang pose) for anything newly registered. Skips frames whose anchors were
+   placed by hand, so it is safe to re-run over the whole roster.
 
 Placement is delegated to `extract_sprites.generated_frame_meta`. A replacement
 inherits the old frame's rendered height and foot line, so a swap changes art
 and never size; a brand-new frame borrows the character's idle scale factor.
+
+Step 4 exists because the sprites rotate now — see `docs/sprite-motion.md`. A
+frame with no `anchors.com` still draws, falling back to a heuristic; it just
+pivots less convincingly than a measured one.
 
 ### Keying, and why it is layered
 

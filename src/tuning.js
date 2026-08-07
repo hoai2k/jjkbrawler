@@ -5,14 +5,16 @@
 // a hit connects with, what an animation resolves to, or how the simulation
 // steps. The worst a bad number here does is look or feel wrong.
 //
-// The division of labour:
+// The division of labour across the three files you would edit by hand:
 //
-//   tuning.js     hand-tweakable feel: motion amplitudes, tumble, defence
-//                 knobs. Edit freely.
+//   config.js     content — roster grouping and every player-facing string.
+//                 Affects no mechanics at all.
+//   tuning.js     feel — motion amplitudes, tumble, defence knobs. Affects
+//                 how the game reads and plays, never what it contains.
 //   constants.js  physics, geometry and match rules — gravity, jump height,
 //                 shield economy, blast zones, sprite cell size. Also
-//                 tweakable, but these change what the game IS, not how it
-//                 reads, and code depends on their relationships.
+//                 tweakable, but these change what the game IS, and code
+//                 depends on their relationships.
 //
 // Background for the motion values is in docs/sprite-motion.md; for the
 // defence values, docs/combat-feel.md.
