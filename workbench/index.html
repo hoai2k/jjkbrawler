@@ -70,10 +70,11 @@
         </div>
 
         <div class="group">
-          <label data-help="Marks this pose&apos;s &lt;em&gt;art&lt;/em&gt; as wrong and needing a redraw, as opposed to its placement being wrong. It exports with everything else; the flagged poses are then collected into the asset request list, and clearing happens automatically when the new art is imported.">Artwork <span class="sub" id="replaceVal"></span></label>
+          <label data-help="Marks this pose&apos;s &lt;em&gt;art&lt;/em&gt; as wrong, as opposed to its placement being wrong — the placement controls fix that.&lt;br&gt;&lt;br&gt;The dropdown says &lt;em&gt;what&lt;/em&gt; is wrong, because a wholesale redraw and a crop fix are very different asks: &lt;b&gt;Replace&lt;/b&gt; redraws the sprite, &lt;b&gt;Fix crop&lt;/b&gt; is wrong framing or bounds, &lt;b&gt;Fix alpha&lt;/b&gt; is bad transparency, &lt;b&gt;Fix bleed&lt;/b&gt; is colour past the silhouette.&lt;br&gt;&lt;br&gt;It exports with everything else; the flagged poses are then collected into the asset request list, and clearing happens automatically when the new art is imported.">Artwork <span class="sub" id="replaceVal"></span></label>
           <div class="chips">
             <label class="chip"><input type="checkbox" id="replaceBox"> Sprite needs replacement</label>
           </div>
+          <select id="replaceKind" hidden></select>
         </div>
 
         <div class="group">

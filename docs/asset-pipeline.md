@@ -165,13 +165,29 @@ height** control edits that one number and rescales the whole sprite set.
 
 ### Replacing a sprite whose art is wrong
 
-Placement problems are fixed in the workbench. Art problems are not — the pose
-has to be redrawn. The **Sprite needs replacement** checkbox marks that, and the
-flag rides through the same export and apply path as everything else:
+Placement problems are fixed in the workbench. Art problems are not — the file
+itself has to change. The **Sprite needs replacement** checkbox marks that, and
+its dropdown says *what* is wrong, because a wholesale redraw and a crop fix are
+very different asks and a request that does not distinguish them is one someone
+has to come back and clarify:
+
+| Kind | Means |
+|---|---|
+| `replace` | redraw the sprite from scratch |
+| `crop` | the framing or bounds are wrong |
+| `alpha` | transparency is wrong or has hard edges |
+| `bleed` | colour bleeds past the silhouette |
+
+The kind is the flag's *value*, so there is one field rather than a boolean and a
+reason that could disagree. `REPLACEMENT_KINDS` in `src/sprites.js` is the single
+source of truth — `list_replacements.py` parses it from there — so adding a kind
+is one line. A legacy `true` reads as `replace`.
+
+The flag rides through the same export and apply path as everything else:
 
 ```
 workbench  ->  Export  ->  apply_sprite_adjustments.py  ->  needsReplacement: true
-python3 tools/list_replacements.py --markdown     # collect them for a request
+python3 tools/list_replacements.py --markdown     # grouped by kind, for a request
 ```
 
 The flag clears itself. `intake_import.py` rebuilds a frame's entry when new art

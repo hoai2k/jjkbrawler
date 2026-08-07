@@ -43,12 +43,15 @@ MANIFEST = os.path.join(HERE, "..", "assets", "sprites", "manifest.json")
 # and wins over it, which is why writing `false` matters rather than deleting
 # the key — see loadAssets in src/assets.js.
 #
-# needsReplacement flags a frame whose ART is wrong and should be redrawn. It is
-# a request, not a placement value — tools/list_replacements.py collects them for
-# the asset request list, and intake clears the flag when new art lands.
+# needsReplacement flags a frame whose ART is wrong. Its VALUE says what is
+# wrong — "replace", "crop", "alpha", "bleed" (REPLACEMENT_KINDS in
+# src/sprites.js) — because a wholesale redraw and a crop fix are very different
+# asks. `false` clears the flag; a legacy `true` means "replace".
+# tools/list_replacements.py collects them for the asset request list, and
+# intake clears the flag when new art lands.
 ALLOWED = {"renderScale", "ox", "bodyBottom", "anchors", "faceLeft", "needsReplacement"}
 NUMERIC = {"renderScale", "ox", "bodyBottom"}
-BOOLEAN = {"faceLeft", "needsReplacement"}
+BOOLEAN = {"faceLeft"}
 
 # Fields whose pre-edit value is worth remembering. `edited` maps each to what
 # it held before the FIRST hand edit, which does two jobs: it marks the frame as
@@ -104,11 +107,19 @@ def main():
                 if field in TRACKED:
                     # record the pristine value once, before it is overwritten
                     meta.setdefault("edited", {}).setdefault(field, meta.get(field))
+                if field == "needsReplacement":
+                    before = meta.get(field)
+                    if not value:
+                        meta.pop("needsReplacement", None)
+                        applied.append(f"{char}/{key}.needsReplacement: {before} -> cleared")
+                    else:
+                        kind = "replace" if value is True else str(value)
+                        meta["needsReplacement"] = kind
+                        applied.append(f"{char}/{key}.needsReplacement: {before} -> {kind}")
+                    continue
                 if field in BOOLEAN:
                     before = meta.get(field)
                     meta[field] = bool(value)
-                    if field == "needsReplacement" and not value:
-                        meta.pop("needsReplacement", None)
                     applied.append(f"{char}/{key}.{field}: {before} -> {bool(value)}")
                     continue
                 if field == "anchors":

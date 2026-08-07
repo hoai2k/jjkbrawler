@@ -10,6 +10,7 @@ import { loadAssets, frameImage, spriteManifest } from "../src/assets.js";
 import {
   drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly,
   anchorScreenPos, screenPosToLocal, warmAnchors, EXTRA_ANCHORS,
+  REPLACEMENT_KINDS, replacementKind,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
@@ -184,10 +185,11 @@ function isDirty(charKey, frameKey) {
   const orig = state.originals[charKey]?.[frameKey];
   if (!orig) return false;
   const meta = rawMeta(charKey, frameKey);
-  return EDITABLE.some((f) => (BOOLEAN_FIELDS.has(f)
-      ? !!meta[f] !== !!orig[f]
-      : Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4))
-    || anchorsDirty(charKey, frameKey);
+  return EDITABLE.some((f) => {
+    if (f === "needsReplacement") return replacementKind(meta) !== replacementKind(orig);
+    if (BOOLEAN_FIELDS.has(f)) return !!meta[f] !== !!orig[f];
+    return Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4;
+  }) || anchorsDirty(charKey, frameKey);
 }
 
 /** Adjustments already committed to the codebase, as opposed to the unsaved
@@ -205,7 +207,11 @@ function isUsed(charKey, frameKey) {
 }
 
 function needsReplacement(charKey, frameKey) {
-  return !!rawMeta(charKey, frameKey)?.needsReplacement;
+  return !!replacementKind(rawMeta(charKey, frameKey));
+}
+
+function kindLabel(kind) {
+  return REPLACEMENT_KINDS.find(([k]) => k === kind)?.[1] ?? kind;
 }
 
 function dirtyFrames(charKey) {
@@ -484,9 +490,11 @@ function refreshControls() {
   $("groundRange").disabled = airborne;
   document.querySelectorAll("[data-ground]").forEach((b) => (b.disabled = airborne));
 
-  const flagged = !!meta.needsReplacement;
-  $("replaceBox").checked = flagged;
-  $("replaceVal").textContent = flagged ? "flagged for redraw" : "";
+  const kind = replacementKind(meta);
+  $("replaceBox").checked = !!kind;
+  $("replaceKind").hidden = !kind;
+  $("replaceKind").value = kind || REPLACEMENT_KINDS[0][0];
+  $("replaceVal").textContent = kind ? kindLabel(kind).split(" — ")[0].toLowerCase() : "";
 
   const mirrored = !!meta.faceLeft;
   $("mirrorBox").checked = mirrored;
@@ -621,6 +629,8 @@ function buildPoseList() {
     b.className = (key === state.frame ? "sel " : "")
       + (isDirty(state.char, key) ? "dirty " : "")
       + (needsReplacement(state.char, key) ? "flagged" : "");
+    const kind = replacementKind(rawMeta(state.char, key));
+    if (kind) b.dataset.kind = kind;
     b.onclick = () => { state.frame = key; syncAll(); };
     list.appendChild(b);
   }
@@ -677,14 +687,17 @@ function applyGround(dy, commit) {
   refreshControls(); buildPoseList(); render();
 }
 
-/** Flag this pose's ART as wrong and needing to be redrawn. It rides along
- *  with the placement values through export and apply_sprite_adjustments.py;
- *  tools/list_replacements.py collects the flagged poses for the asset request
- *  list, and intake clears the flag when the new art lands. */
-function applyNeedsReplacement(on) {
+/** Flag this pose's ART as wrong, and say WHAT is wrong with it — a wholesale
+ *  redraw and a crop fix are very different asks. The kind is the flag's value,
+ *  so there is one field rather than a boolean plus a reason that could
+ *  disagree with it. It rides along with the placement values through export
+ *  and apply_sprite_adjustments.py; tools/list_replacements.py collects the
+ *  flagged poses for the asset request list, and intake clears the flag when
+ *  the new art lands. */
+function applyNeedsReplacement(kind) {
   pushHistory(state.char, state.frame);
   const meta = rawMeta(state.char, state.frame);
-  if (on) meta.needsReplacement = true;
+  if (kind) meta.needsReplacement = kind;
   else delete meta.needsReplacement;
   refreshControls(); buildPoseList(); refreshTag(); render();
 }
@@ -750,9 +763,17 @@ function payloadFor(charKey) {
     const entry = {};
     for (const f of EDITABLE) {
       const value = meta[f];
+      if (f === "needsReplacement") {
+        // the VALUE is the kind, so a change of kind counts as a change; and
+        // `false` is meaningful, clearing a request rather than leaving it
+        const now = replacementKind(meta);
+        const was = replacementKind(orig);
+        if (now !== was) entry[f] = now ?? false;
+        continue;
+      }
       if (BOOLEAN_FIELDS.has(f)) {
         // `false` is meaningful, not "unset": it turns OFF a mirror that
-        // `nativeLeft` would otherwise re-apply, or clears a redraw request
+        // `nativeLeft` would otherwise re-apply
         if (!!value !== !!orig[f]) entry[f] = !!value;
         continue;
       }
@@ -909,7 +930,17 @@ async function boot() {
   };
 
   $("mirrorBox").onchange = (e) => applyMirror(e.target.checked);
-  $("replaceBox").onchange = (e) => applyNeedsReplacement(e.target.checked);
+  const kindSel = $("replaceKind");
+  for (const [key, label] of REPLACEMENT_KINDS) {
+    const o = document.createElement("option");
+    o.value = key; o.textContent = label;
+    kindSel.appendChild(o);
+  }
+  // ticking the box asks for the kind currently shown, which defaults to a
+  // wholesale replace — the safest ask when nothing more specific is chosen
+  $("replaceBox").onchange = (e) =>
+    applyNeedsReplacement(e.target.checked ? kindSel.value : null);
+  kindSel.onchange = () => applyNeedsReplacement(kindSel.value);
 
   $("undoBtn").onclick = undo;
   $("redoBtn").onclick = redo;

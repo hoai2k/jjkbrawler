@@ -34,6 +34,28 @@ export const EXTRA_ANCHORS = {
   },
 };
 
+// What is wrong with a sprite's ART, as opposed to its placement. The sprite
+// workbench writes one of these keys as `needsReplacement`; the flag is a
+// request, and clearing it happens when new art is imported. A legacy `true`
+// means "replace", which is what the flag meant before it carried a reason.
+//
+// tools/list_replacements.py parses this list, so it is the single source of
+// truth for the set — add a kind here and the tooling follows.
+export const REPLACEMENT_KINDS = [
+  ["replace", "Replace — redraw the sprite from scratch"],
+  ["crop", "Fix crop — the framing or bounds are wrong"],
+  ["alpha", "Fix alpha — transparency is wrong or has hard edges"],
+  ["bleed", "Fix bleed — colour bleeds past the silhouette"],
+];
+
+/** The kind a frame is flagged with, or null. Normalises the legacy boolean. */
+export function replacementKind(meta) {
+  const flag = meta?.needsReplacement;
+  if (!flag) return null;
+  if (flag === true) return "replace";
+  return REPLACEMENT_KINDS.some(([k]) => k === flag) ? flag : "replace";
+}
+
 /** States a frame can appear in that never touch the floor. Frames used ONLY
  *  by these have no meaningful ground contact to set. */
 export const AIRBORNE_STATES = ["jump", "fall", "ledge", "dodge_air", "airLight"];

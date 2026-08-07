@@ -168,6 +168,10 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
    differently: the art is wrong, not the numbers. */
 .pose-list button.flagged { border-color: rgba(255, 120, 140, 0.5); }
 .pose-list button.flagged::before { content: "✂ "; color: #ff8898; }
+/* the mark says which kind, so a crop fix is not mistaken for a full redraw */
+.pose-list button.flagged[data-kind="crop"]::before { content: "⬚ "; }
+.pose-list button.flagged[data-kind="alpha"]::before { content: "◍ "; }
+.pose-list button.flagged[data-kind="bleed"]::before { content: "◐ "; }
 
 .panel select {
   background: #0e111b;
