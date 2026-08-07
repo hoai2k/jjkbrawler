@@ -130,6 +130,13 @@ one never drops another.
 
 ## Two workbench behaviours worth knowing
 
+**Facing is the game's.** The canvas draws each pose exactly as a match does,
+including the mirror applied to art drawn facing left. `nativeLeft` in the
+manifest seeded which frames those are, by guess; the **Mirror this pose**
+checkbox is the per-frame override, it wins over the list, and it exports with
+everything else. Turning a mirror *off* is meaningful and is stored as
+`faceLeft: false` rather than by deleting the key.
+
 **Unused poses are hidden.** The sheets carry cells the game never draws; the
 pose list shows only those an animation names (plus `r0c0`, which `render.js`
 draws directly for the respawn platform). *View all sprites* reveals the rest.

@@ -174,6 +174,7 @@ export const TEXT = {
     sprites: (set) => `Sprites: ${set}`,
     spriteDefault: "Default",
     spriteAlternate: "Alternate",
+    activeBoards: (on) => `Active Boards: ${on ? "On" : "Off"}`,
     back: "Back",
   },
 

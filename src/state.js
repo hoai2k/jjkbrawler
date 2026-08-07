@@ -6,6 +6,10 @@ export const state = {
   playerCount: 1,   // human players; 1 means P1 versus CPU
   cpuLevel: 1,      // 0 easy, 1 normal, 2 hard
   stocks: 3,
+  // "Active Boards" (Settings): stage gimmicks — hazards, moving platforms,
+  // surface/gravity modifiers (src/stage_fx.js). Off = every stage reverts to
+  // its static v1 layout.
+  activeBoards: true,
   // "default" | "alternate" — opts into a character's second art set where one
   // exists (currently Hanami's round-6 redesign). See assets.js.
   spriteSet: "default",
@@ -44,4 +48,12 @@ export const state = {
 
   matchTime: 0,
   debugHitboxes: false,
+
+  // Stage-wide physics modifiers, set per match by initStageFx (stage_fx.js).
+  // gravityMul scales GRAVITY; frictionPow < 1 makes ground slick (the
+  // per-character friction base is raised to this power).
+  stageMods: { gravityMul: 1, frictionPow: 1 },
+  // Telegraphed danger areas ({x, w, until, yMin?, yMax?}) advertised by stage
+  // hazards so the CPU can step out of them (ai.js).
+  hazardZones: [],
 };

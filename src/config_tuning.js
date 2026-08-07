@@ -51,9 +51,11 @@ export const HEIGHT_BASE_PX = 175.3;
 // tall as the reference", which is a neutral default rather than a claim.
 export const HEIGHT_UNKNOWN_RATIO = 1.0;
 
-// Head height is measured to the top of the hair, slightly above the detected
-// body box the manifest records; this is the constant offset between them,
-// consistent across every character (verified across all 17 original fighters).
+// FALLBACK ONLY. Characters whose idle carries a measured `bodyTop` are scaled
+// so the top of the art lands exactly on the target (see idleSpan in
+// heights.js); this approximates it from the detected body box for frames
+// tools/bake_anchors.py has not reached. Verified constant across the original
+// 17 fighters, which is why it works at all.
 export const HEAD_ABOVE_BODY = 1.014;
 
 // ---------------------------------------------------------------- anchors

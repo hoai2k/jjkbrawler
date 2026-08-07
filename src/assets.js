@@ -44,6 +44,12 @@ const STAGED_EFFECT_KEYS = {};
 // Optional: until the art lands the renderer just dims the stage and grades it
 // with the domain's colour, which reads fine, so a missing file is not an
 // error. Requested as round 9C in docs/asset-requests.md.
+// Stage-hazard polish art (Active Boards — src/stage_fx.js), requested as
+// round 9D in docs/asset-requests.md. Optional: every hazard draws a
+// procedural canvas fallback, so a missing file changes nothing visible
+// except polish.
+const STAGE_FX_SPRITES = ["stage_lantern", "stage_fang", "stage_flower", "stage_weak_curse"];
+
 const DOMAIN_BACKGROUNDS = {
   unlimited_void: "gojo",
   malevolent_shrine: "sukuna",
@@ -109,10 +115,14 @@ export async function loadAssets(onProgress) {
   // Sheet art is drawn facing RIGHT by default (verified against every
   // character's run row). `nativeLeft` lists the exceptions that are drawn
   // facing left; the renderer mirrors those instead.
+  // A per-frame `faceLeft` is an explicit decision (the sprite workbench's
+  // Mirror control writes one), so it wins. `nativeLeft` only fills in frames
+  // that have never been judged by hand — otherwise turning a mirror OFF could
+  // never stick, because this loop would turn it back on every load.
   for (const [charKey, frames] of Object.entries(spriteManifest.nativeLeft || {})) {
     for (const frameKey of frames) {
       const meta = spriteManifest.characters?.[charKey]?.[frameKey];
-      if (meta) meta.faceLeft = true;
+      if (meta && meta.faceLeft === undefined) meta.faceLeft = true;
     }
   }
 
@@ -165,6 +175,9 @@ export async function loadAssets(onProgress) {
     if (CHARACTER_KEYS.includes(charKey)) {
       optional(`domain:${name}`, `assets/backgrounds/domains/${name}.jpg`);
     }
+  }
+  for (const key of STAGE_FX_SPRITES) {
+    optional(`stagefx:${key}`, `assets/sprites/effects/${key}.png`);
   }
 
   let done = 0;

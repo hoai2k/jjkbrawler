@@ -1,6 +1,12 @@
-// 20 stages carried over from v1 — every layout: 1 main + 2 side + 1 top platform.
-// Platform kinds: "main" is solid ground with grabbable ledges; others are
-// drop-through platforms.
+// 20 stages carried over from v1 — every layout: 1 main + 2 side + 1 top platform
+// (Garden Steps breaks the mold with a terraced staircase). Platform kinds:
+// "main" is solid ground with grabbable ledges; others are drop-through.
+//
+// A stage's gameplay identity (hazards, platform motion — "Active Boards" in
+// Settings) lives in src/stage_fx.js, keyed by the stage key. The optional
+// `mods` field holds always-on-while-active field modifiers:
+//   gravityMul  — scales gravity for the whole match (Domain Core floats)
+//   frictionPow — exponent on ground friction; < 1 is slick (Sunken Crossing)
 
 export const STAGES = [
   { key: "trainingBridge", name: "Training Bridge", bgFile: "training_bridge.jpg", tint: "rgba(87, 186, 129, 0.12)", platforms: [
@@ -18,13 +24,15 @@ export const STAGES = [
   { key: "curseMaw", name: "Curse Maw", bgFile: "curse_maw.jpg", tint: "rgba(60, 215, 218, 0.13)", platforms: [
     { x: 258, y: 576, w: 764, h: 42, kind: "main" }, { x: 208, y: 442, w: 200, h: 22, kind: "side" }, { x: 872, y: 442, w: 200, h: 22, kind: "side" }, { x: 528, y: 324, w: 224, h: 20, kind: "top" }
   ] },
+  // Terraced like the garden's stone steps: each platform is one stair higher
+  // than the last, climbing left to right.
   { key: "gardenSteps", name: "Garden Steps", bgFile: "garden_steps.jpg", tint: "rgba(111, 219, 147, 0.16)", platforms: [
-    { x: 212, y: 584, w: 856, h: 42, kind: "main" }, { x: 156, y: 454, w: 210, h: 22, kind: "side" }, { x: 456, y: 332, w: 210, h: 20, kind: "top" }, { x: 820, y: 454, w: 250, h: 22, kind: "side" }
+    { x: 212, y: 584, w: 856, h: 42, kind: "main" }, { x: 150, y: 474, w: 210, h: 22, kind: "side" }, { x: 470, y: 392, w: 210, h: 20, kind: "top" }, { x: 800, y: 318, w: 240, h: 22, kind: "side" }
   ] },
   { key: "lanternCorridor", name: "Lantern Corridor", bgFile: "lantern_corridor.jpg", tint: "rgba(255, 187, 93, 0.11)", platforms: [
     { x: 252, y: 570, w: 776, h: 42, kind: "main" }, { x: 300, y: 426, w: 210, h: 22, kind: "side" }, { x: 770, y: 426, w: 210, h: 22, kind: "side" }, { x: 528, y: 304, w: 224, h: 20, kind: "top" }
   ] },
-  { key: "sunkenCrossing", name: "Sunken Crossing", bgFile: "sunken_crossing.jpg", tint: "rgba(87, 196, 255, 0.12)", platforms: [
+  { key: "sunkenCrossing", name: "Sunken Crossing", bgFile: "sunken_crossing.jpg", tint: "rgba(87, 196, 255, 0.12)", mods: { frictionPow: 0.35 }, platforms: [
     { x: 190, y: 578, w: 900, h: 42, kind: "main" }, { x: 170, y: 438, w: 260, h: 22, kind: "side" }, { x: 852, y: 438, w: 260, h: 22, kind: "side" }, { x: 520, y: 350, w: 240, h: 20, kind: "top" }
   ] },
   { key: "neonSplit", name: "Neon Split", bgFile: "neon_split.jpg", tint: "rgba(224, 82, 192, 0.12)", platforms: [
@@ -60,7 +68,7 @@ export const STAGES = [
   { key: "billboardRoof", name: "Billboard Roof", bgFile: "billboard_roof.jpg", tint: "rgba(255, 83, 148, 0.1)", platforms: [
     { x: 244, y: 580, w: 792, h: 42, kind: "main" }, { x: 248, y: 444, w: 180, h: 22, kind: "side" }, { x: 526, y: 320, w: 228, h: 20, kind: "top" }, { x: 852, y: 444, w: 180, h: 22, kind: "side" }
   ] },
-  { key: "domainCore", name: "Domain Core", bgFile: "domain_core.jpg", tint: "rgba(108, 255, 230, 0.13)", platforms: [
+  { key: "domainCore", name: "Domain Core", bgFile: "domain_core.jpg", tint: "rgba(108, 255, 230, 0.13)", mods: { gravityMul: 0.88 }, platforms: [
     { x: 196, y: 578, w: 888, h: 42, kind: "main" }, { x: 152, y: 438, w: 250, h: 22, kind: "side" }, { x: 515, y: 304, w: 250, h: 20, kind: "top" }, { x: 878, y: 438, w: 250, h: 22, kind: "side" }
   ] }
 ];

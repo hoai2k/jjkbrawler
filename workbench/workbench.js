@@ -27,7 +27,7 @@ const BENCHMARK_INSET = 78;
 const CELL_W = 313.5;
 // Scalar fields the workbench can edit. `anchors` is edited too but is nested,
 // so snapshot/restore/compare handle it separately.
-const EDITABLE = ["renderScale", "ox", "bodyBottom"];
+const EDITABLE = ["renderScale", "ox", "bodyBottom", "faceLeft"];
 const HANDLE_R = 7;
 
 const BACKGROUNDS = [
@@ -38,7 +38,10 @@ const BACKGROUNDS = [
 const state = {
   char: "gojo", frame: null, bg: BACKGROUNDS[0][0], zoom: 1.9,
   originals: {}, originalHeads: {}, originalHeadOverride: {}, undo: [], redo: [],
-  anchor: null,        // name of the anchor being edited on-canvas, or null
+  // Which anchor the arrow keys act on — set by whatever you last moved, not by
+  // a separate selection step. Every SHOWN anchor is draggable regardless.
+  anchor: null,
+  anchorShown: {},     // name -> false to hide; anchors are shown by default
   dragging: false,
   showAll: false,      // show frames the game never draws
 };
@@ -146,6 +149,11 @@ function setAnchor(charKey, frameKey, name, x, y) {
   (meta.anchors ??= {})[name] = [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
 }
 
+/** Anchors are visible unless explicitly switched off. */
+function isAnchorShown(name) {
+  return state.anchorShown[name] !== false;
+}
+
 function anchorsDirty(charKey, frameKey) {
   const orig = state.originals[charKey]?.[frameKey];
   if (!orig) return false;
@@ -163,7 +171,9 @@ function isDirty(charKey, frameKey) {
   const orig = state.originals[charKey]?.[frameKey];
   if (!orig) return false;
   const meta = rawMeta(charKey, frameKey);
-  return EDITABLE.some((f) => Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4)
+  return EDITABLE.some((f) => (f === "faceLeft"
+      ? !!meta[f] !== !!orig[f]
+      : Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4))
     || anchorsDirty(charKey, frameKey);
 }
 
@@ -268,7 +278,9 @@ function drawAnchorHandle(name, active) {
   if (!p) return;
   const colour = name === "com" ? "rgba(120, 235, 190, 1)" : "rgba(255, 196, 92, 1)";
   ctx.save();
-  ctx.globalAlpha = active ? 1 : 0.45;
+  // Every shown handle is equally draggable, so none of them should look
+  // disabled; `active` only marks the one the arrow keys will move.
+  ctx.globalAlpha = active ? 1 : 0.82;
   ctx.strokeStyle = colour;
   ctx.lineWidth = active ? 2 : 1.5;
   // crosshair + ring reads clearly over busy art in either background
@@ -285,10 +297,12 @@ function drawAnchorHandle(name, active) {
     ctx.fillStyle = colour;
     ctx.globalAlpha = 0.22;
     ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.font = "600 11px Inter, sans-serif";
-    ctx.fillText(ANCHOR_META[name]?.label ?? name, p.x + HANDLE_R * 2 + 4, p.y - 6);
   }
+  // label every visible handle, so two anchors on one pose are told apart
+  ctx.globalAlpha = active ? 1 : 0.7;
+  ctx.fillStyle = colour;
+  ctx.font = "600 11px Inter, sans-serif";
+  ctx.fillText(ANCHOR_META[name]?.label ?? name, p.x + HANDLE_R * 2 + 4, p.y - 6);
   ctx.restore();
 }
 
@@ -382,12 +396,10 @@ function render() {
     ctx.setLineDash([]);
   }
 
-  // Every anchor the frame carries, with the selected one solid. Drawn last so
-  // handles are never buried under the art.
-  if ($("showAnchors").checked || state.anchor) {
-    for (const name of anchorNames(state.char, state.frame)) {
-      drawAnchorHandle(name, name === state.anchor);
-    }
+  // Every anchor the frame carries that has not been switched off. Drawn last
+  // so handles are never buried under the art.
+  for (const name of anchorNames(state.char, state.frame)) {
+    if (isAnchorShown(name)) drawAnchorHandle(name, name === state.anchor);
   }
 }
 
@@ -407,7 +419,10 @@ function drawSpinPreview(cx) {
 function refreshTag() {
   const meta = rawMeta(state.char, state.frame);
   const states = statesUsing(state.char, state.frame);
-  const left = meta?.faceLeft || (spriteManifest?.nativeLeft?.[state.char] || []).includes(state.frame);
+  // `meta.faceLeft` is authoritative once assets are loaded — nativeLeft only
+  // seeds it, so consulting the list here would keep saying "mirrored" after
+  // the Mirror control turned it off.
+  const left = !!meta?.faceLeft;
   $("frameTag").innerHTML = `${state.char}/${state.frame}` +
     (states.length ? ` <span class="state">${states.join(", ")}</span>` : "") +
     (left ? ` <span class="flag">mirrored</span>` : "");
@@ -439,6 +454,12 @@ function refreshControls() {
   $("groundNote").hidden = !airborne;
   document.querySelectorAll("[data-ground]").forEach((b) => (b.disabled = airborne));
 
+  const mirrored = !!meta.faceLeft;
+  $("mirrorBox").checked = mirrored;
+  $("mirrorVal").textContent = mirrored
+    ? "flipped — art is drawn facing left"
+    : "as delivered — art is drawn facing right";
+
   refreshAnchorControls();
 
   // counted across every character touched this session, since that is what
@@ -459,40 +480,71 @@ function refreshControls() {
   refreshHistoryButtons();
 }
 
+/** One row per anchor the frame carries: a visibility toggle, the current
+ *  value, nudges and a reset. Every shown anchor is draggable on the canvas, so
+ *  there is nothing to "select" first — `state.anchor` only records which one
+ *  the arrow keys act on, and follows whatever you last moved. */
 function refreshAnchorControls() {
   const names = anchorNames(state.char, state.frame);
   if (!names.includes(state.anchor)) state.anchor = null;
 
-  const tabs = $("anchorTabs");
-  tabs.innerHTML = "";
+  const wrap = $("anchorRows");
+  wrap.innerHTML = "";
   for (const name of names) {
-    const b = document.createElement("button");
-    b.textContent = ANCHOR_META[name]?.label ?? name;
-    b.className = name === state.anchor ? "sel" : "";
-    b.onclick = () => {
-      // clicking the selected one deselects, so the handles can be dismissed
-      state.anchor = state.anchor === name ? null : name;
-      refreshAnchorControls();
-      render();
+    const meta = ANCHOR_META[name] ?? {};
+    const [x, y] = anchorValue(state.char, state.frame, name);
+    const stored = !!rawMeta(state.char, state.frame).anchors?.[name];
+    const changed = anchorChanged(state.char, state.frame, name);
+
+    const row = document.createElement("div");
+    row.className = "anchor-row" + (name === state.anchor ? " active" : "");
+
+    const head = document.createElement("div");
+    head.className = "anchor-head";
+    const toggle = document.createElement("label");
+    toggle.className = "chip";
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = isAnchorShown(name);
+    box.onchange = () => { state.anchorShown[name] = box.checked; render(); };
+    toggle.append(box, document.createTextNode(` Show ${meta.label ?? name}`));
+    const val = document.createElement("span");
+    val.className = "anchor-val";
+    val.textContent = `${x.toFixed(1)}, ${y.toFixed(1)}`
+      + (changed ? " (edited)" : stored ? "" : " (derived)");
+    head.append(toggle, val);
+
+    const mkNudge = (steps) => {
+      const bar = document.createElement("div");
+      bar.className = "nudge";
+      for (const [label, dx, dy] of steps) {
+        const b = document.createElement("button");
+        b.textContent = label;
+        b.onclick = () => nudgeAnchor(name, dx, dy);
+        bar.appendChild(b);
+      }
+      return bar;
     };
-    tabs.appendChild(b);
+
+    const reset = document.createElement("button");
+    reset.className = "ghost sm";
+    reset.textContent = "Reset";
+    reset.disabled = !changed;
+    reset.onclick = () => resetAnchor(name);
+
+    row.append(head,
+      mkNudge([["\u21905", -5, 0], ["\u21901", -1, 0], ["1\u2192", 1, 0], ["5\u2192", 5, 0]]),
+      mkNudge([["\u21915", 0, -5], ["\u21911", 0, -1], ["\u21931", 0, 1], ["\u21935", 0, 5]]),
+      reset);
+    wrap.appendChild(row);
   }
 
-  const body = $("anchorBody");
-  body.hidden = !state.anchor;
-  $("anchorHint").textContent = state.anchor
-    ? ANCHOR_META[state.anchor]?.hint ?? ""
-    : "Pick an anchor to place it. Its handle appears on the sprite — drag it, " +
-      "or nudge with the arrows. Stored against the artwork, so later size, " +
-      "position and ground tweaks carry it along.";
-  if (!state.anchor) return;
-
-  const [x, y] = anchorValue(state.char, state.frame, state.anchor);
-  const stored = !!rawMeta(state.char, state.frame).anchors?.[state.anchor];
-  const changed = anchorChanged(state.char, state.frame, state.anchor);
-  $("anchorVal").textContent = `${x.toFixed(1)}, ${y.toFixed(1)} px in image`
-    + (changed ? " (edited)" : stored ? "" : " (derived)");
-  $("resetAnchor").disabled = !changed;
+  $("anchorHint").textContent = names.length
+    ? (state.anchor ? ANCHOR_META[state.anchor]?.hint ?? "" : "")
+      || "Drag a handle on the sprite, or nudge it here. Anchors are stored " +
+         "against the artwork, so later size, position and ground tweaks carry " +
+         "them along."
+    : "This pose carries no anchors.";
 }
 
 /** Character-level, so it must update even when no pose is selected. */
@@ -549,6 +601,8 @@ function applyScale(relative, commit) {
   // NaN, which sticks: once written it poisons the slider and every later edit.
   rawMeta(state.char, state.frame).renderScale =
     Math.max(0.02, (orig.renderScale ?? 1) * relative);
+  // same reason as ground contact: renderScale is part of the idle's span
+  applyHeightScale(state.char);
   refreshControls(); buildPoseList(); render();
 }
 
@@ -567,7 +621,21 @@ function applyGround(dy, commit) {
   if (commit) pushHistory(state.char, state.frame);
   // slider reads as "how far down the sprite sits", so invert onto bodyBottom
   rawMeta(state.char, state.frame).bodyBottom = (orig.bodyBottom ?? 0) - dy;
+  // The character's scale is solved so the idle's TOP meets the height target,
+  // and the foot line is part of that span — so moving the idle's ground
+  // contact has to re-solve, or the head would drift off the bar.
+  applyHeightScale(state.char);
   refreshControls(); buildPoseList(); render();
+}
+
+/** Mirror this frame. The sheets are drawn facing right; a frame the artist
+ *  drew facing left is flipped so the fighter always looks where they are
+ *  going. `nativeLeft` in the manifest seeded these, but it guesses — this is
+ *  the per-frame override, and it exports with everything else. */
+function applyMirror(on) {
+  pushHistory(state.char, state.frame);
+  rawMeta(state.char, state.frame).faceLeft = on;
+  refreshControls(); buildPoseList(); refreshTag(); render();
 }
 
 function applyAnchor(name, x, y, commit) {
@@ -576,10 +644,11 @@ function applyAnchor(name, x, y, commit) {
   refreshControls(); buildPoseList(); render();
 }
 
-function nudgeAnchor(dx, dy) {
-  if (!state.anchor) return;
-  const [x, y] = anchorValue(state.char, state.frame, state.anchor);
-  applyAnchor(state.anchor, x + dx, y + dy, true);
+function nudgeAnchor(name, dx, dy) {
+  if (!name) return;
+  state.anchor = name;   // arrow keys follow whatever you last moved
+  const [x, y] = anchorValue(state.char, state.frame, name);
+  applyAnchor(name, x + dx, y + dy, true);
 }
 
 /** Back to what shipped — the measured value from tools/bake_anchors.py, or,
@@ -620,6 +689,12 @@ function payloadFor(charKey) {
     const entry = {};
     for (const f of EDITABLE) {
       const value = meta[f];
+      if (f === "faceLeft") {
+        // a boolean, and `false` is meaningful: it turns OFF a mirror that
+        // `nativeLeft` would otherwise re-apply on every load
+        if (!!value !== !!orig[f]) entry[f] = !!value;
+        continue;
+      }
       if (!Number.isFinite(value)) continue;
       if (Math.abs(value - (orig[f] ?? 0)) > 1e-4) {
         entry[f] = f === "renderScale" ? Number(value.toFixed(4)) : Number(value.toFixed(1));
@@ -724,18 +799,16 @@ async function boot() {
   canvas.addEventListener("pointerdown", (e) => {
     if (!state.frame) return;
     const p = eventToCanvas(e);
-    const names = anchorNames(state.char, state.frame);
-    let best = null, bestD = Infinity;
-    for (const name of names) {
-      const h = localToCanvas(state.char, state.frame, name);
+    let name = null, bestD = Infinity;
+    for (const n of anchorNames(state.char, state.frame)) {
+      if (!isAnchorShown(n)) continue;
+      const h = localToCanvas(state.char, state.frame, n);
       if (!h) continue;
       const d = Math.hypot(h.x - p.x, h.y - p.y);
-      if (d < bestD) { bestD = d; best = name; }
+      if (d < bestD) { bestD = d; name = n; }
     }
-    // outside every handle: only act when an anchor is already selected, so
-    // ordinary clicks on the canvas don't move anything
-    if (bestD > HANDLE_R * 2.6 && !state.anchor) return;
-    const name = bestD <= HANDLE_R * 2.6 ? best : state.anchor;
+    // a click that is not on a handle is just a click — nothing moves
+    if (!name || bestD > HANDLE_R * 2.6) return;
     if (state.anchor !== name) { state.anchor = name; refreshAnchorControls(); }
     state.dragging = true;
     canvas.setPointerCapture(e.pointerId);
@@ -757,17 +830,14 @@ async function boot() {
   canvas.addEventListener("pointerup", endDrag);
   canvas.addEventListener("pointercancel", endDrag);
 
-  document.querySelectorAll("[data-anchor]").forEach((b) => {
-    const [dx, dy] = b.dataset.anchor.split(",").map(Number);
-    b.onclick = () => nudgeAnchor(dx, dy);
-  });
-  $("resetAnchor").onclick = () => resetAnchor(state.anchor);
   $("showAllFrames").onchange = (e) => {
     state.showAll = e.target.checked;
     // the hidden set can contain the selected pose; fall back to a visible one
     if (!framesOf(state.char).includes(state.frame)) state.frame = framesOf(state.char)[0];
     syncAll();
   };
+
+  $("mirrorBox").onchange = (e) => applyMirror(e.target.checked);
 
   $("undoBtn").onclick = undo;
   $("redoBtn").onclick = redo;
@@ -796,7 +866,7 @@ async function boot() {
     catch { $("exportOut").select(); }
     setTimeout(() => ($("copyBtn").textContent = "Copy to clipboard"), 1200);
   };
-  ["refSelf", "refGojo", "showGuides", "showBox", "showPlatform", "showAnchors"]
+  ["refSelf", "refGojo", "showGuides", "showBox", "showPlatform"]
     .forEach((id) => ($(id).onchange = render));
   // the spin preview animates, so it needs a frame loop rather than one redraw
   $("spinPreview").onchange = render;
@@ -815,11 +885,11 @@ async function boot() {
     const frames = framesOf(state.char);
     const i = frames.indexOf(state.frame);
     const step = e.shiftKey ? 10 : 1;
-    if (state.anchor) {
-      if (e.key === "ArrowLeft") { nudgeAnchor(-step, 0); e.preventDefault(); return; }
-      if (e.key === "ArrowRight") { nudgeAnchor(step, 0); e.preventDefault(); return; }
-      if (e.key === "ArrowUp") { nudgeAnchor(0, -step); e.preventDefault(); return; }
-      if (e.key === "ArrowDown") { nudgeAnchor(0, step); e.preventDefault(); return; }
+    if (state.anchor && isAnchorShown(state.anchor)) {
+      if (e.key === "ArrowLeft") { nudgeAnchor(state.anchor, -step, 0); e.preventDefault(); return; }
+      if (e.key === "ArrowRight") { nudgeAnchor(state.anchor, step, 0); e.preventDefault(); return; }
+      if (e.key === "ArrowUp") { nudgeAnchor(state.anchor, 0, -step); e.preventDefault(); return; }
+      if (e.key === "ArrowDown") { nudgeAnchor(state.anchor, 0, step); e.preventDefault(); return; }
     }
     if (e.key === "ArrowLeft") { applyOffset(parseFloat($("offsetRange").value) - step, true); e.preventDefault(); }
     if (e.key === "ArrowRight") { applyOffset(parseFloat($("offsetRange").value) + step, true); e.preventDefault(); }

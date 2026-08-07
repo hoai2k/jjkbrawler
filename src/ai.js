@@ -173,6 +173,26 @@ function makePlan(f, opp, lvl) {
     else { input.jumpP = true; input.jumpHeld = true; }
   }
 
+  // step out of telegraphed stage hazards (Active Boards). Overrides the
+  // plan's movement: a free 5% from standing in the warning glow looks worse
+  // than any spacing the plan was going for.
+  const now = state.matchTime;
+  const hz = (state.hazardZones || []).find((z) =>
+    now < z.until && f.x > z.x - 20 && f.x < z.x + z.w + 20 &&
+    (z.yMin === undefined || f.y >= z.yMin) && (z.yMax === undefined || f.y <= z.yMax));
+  if (hz) {
+    const exitLeft = f.x - hz.x < hz.x + hz.w - f.x;
+    // a zone spanning the whole floor has no walkable exit — jump it instead
+    if (hz.w > 500) {
+      input.jumpP = true;
+      input.jumpHeld = true;
+    } else {
+      input.left = exitLeft;
+      input.right = !exitLeft;
+      if (chance(0.4)) { input.jumpP = true; input.jumpHeld = true; }
+    }
+  }
+
   return input;
 }
 

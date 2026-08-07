@@ -132,11 +132,42 @@ and cursed speech — a body with no cursed energy to curse.
 
 ## 6. Stages & camera
 
-All 20 arenas from v1 return: one solid main platform with grabbable ledges,
-two drop-through side platforms, and one top platform, each with its own
-painted backdrop and color grade. The camera is dynamic Smash-style: it tracks
-the fighters' midpoint and zooms with their separation (1.0×–1.18×), shakes
-with impact, and punches in on KOs.
+All 20 arenas from v1 return: one solid main platform with grabbable ledges
+plus three drop-through platforms, each with its own painted backdrop and
+color grade. The camera is dynamic Smash-style: it tracks the fighters'
+midpoint and zooms with their separation (1.0×–1.18×), shakes with impact,
+and punches in on KOs.
+
+### Active Boards
+
+Every stage also has a **gameplay identity** (`src/stage_fx.js`), toggled by
+**Settings → Active Boards** (default on; off restores the static v1 layouts).
+Design rules: hazards deal 4–8% with light, inward/upward knockback (never a
+spike), everything dangerous is telegraphed ≥1 s, ledges always work, and a
+hazard can never KO by itself. The CPU steps out of telegraphed zones.
+
+| Stage | Identity |
+|---|---|
+| Training Bridge | None — the fair one (cosmetic leaves only) |
+| Quiet Hall | Silence bell: every ~25 s a 4 s hush seals all specials |
+| Flooded Gate | Surge wave sweeps the floor; pushes, never damages |
+| Shibuya Night | A curtain falls for 8 s: everyone's meter builds fast |
+| Curse Maw | Fangs snap up at both floor edges (7%) — centre is safe |
+| Garden Steps | Terraced staircase layout; a flower blooms — first touch heals 8% |
+| Lantern Corridor | A lantern falls and burns a patch of floor |
+| Sunken Crossing | Slick: friction drops sharply, stops become slides |
+| Neon Split | A centre energy wall for 5 s; crossing costs 6% |
+| Bone Sanctum | Drop-through platforms rattle, then phase intangible |
+| Bridge Duel | The whole main platform drifts ±70 px (ledges ride along) |
+| Academy Hall | Class bell: platforms glide between four arrangements |
+| Mist Pier | Fog hides both fighters as silhouettes for 6 s |
+| Crosswalk Rush | Telegraphed light-trail traffic at ground level (5%) |
+| Cursed Teeth | Falling fangs on shadow telegraphs + a gentle inhale pull |
+| River Gate | Alternating crosswind drifts airborne fighters (petals show it) |
+| School Wing | A weak curse wanders: pop it for +8 meter, or it latches (4%) |
+| Empty City | The top platform crumbles under weight, reforms in 5 s |
+| Billboard Roof | After two flashes, lightning strikes the top platform (8%) |
+| Domain Core | 0.88× gravity; side platforms orbit slowly |
 
 ## 7. Match structure & options
 
