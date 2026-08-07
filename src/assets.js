@@ -22,9 +22,14 @@ const EFFECT_KEYS = [
   "curse_a", "curse_b", "curse_c", "curse_d", "curse_dragon",
 ];
 
-// Effects belonging to round-7 staged fighters (see STAGED_CHARACTER_KEYS in
-// characters.js). Keyed by fighter so they only load once that fighter joins
-// CHARACTER_KEYS — until then the files don't exist and shouldn't be fetched.
+// Effects belonging to round-7 fighters, keyed by fighter so they are only
+// fetched once that fighter joins CHARACTER_KEYS.
+//
+// A fighter can ship before their effect art does — Choso did — so these load
+// as OPTIONAL: a missing file stays silent instead of logging, and the
+// projectile/install renderers fall back to their procedural look. Move a
+// fighter's entry into EFFECT_KEYS once their art is actually delivered, so a
+// genuinely broken path is still reported.
 const STAGED_EFFECT_KEYS = {
   yuji: ["divergent_shock"],
   choso: ["piercing_blood", "blood_orb", "aura_crimson"],
@@ -127,11 +132,12 @@ export async function loadAssets(onProgress) {
   }
 
   for (const key of EFFECT_KEYS) add(`effect:${key}`, `assets/sprites/effects/${key}.png`);
-  // Staged-fighter effects load automatically the moment their fighter is
-  // promoted into CHARACTER_KEYS — no loader change needed at integration.
+  // Round-7 effects load automatically the moment their fighter is promoted
+  // into CHARACTER_KEYS — no loader change needed at integration. Optional
+  // because a fighter may ship ahead of their effect art (see above).
   for (const charKey of CHARACTER_KEYS) {
     for (const key of STAGED_EFFECT_KEYS[charKey] || []) {
-      add(`effect:${key}`, `assets/sprites/effects/${key}.png`);
+      optional(`effect:${key}`, `assets/sprites/effects/${key}.png`);
     }
   }
 

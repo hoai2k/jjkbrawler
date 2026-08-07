@@ -1,0 +1,13 @@
+# Delivered art staging + its processed intermediates. Neither is loaded by
+# the game: tools/intake_import.py copies approved frames into assets/sprites/,
+# and only those runtime copies belong in the repo.
+assets/intake/
+
+# Generated review boards (size/facing contact sheets) — regenerate on demand
+# with tools/size_board.py, tools/size_review.py, tools/facing_review.py.
+tools/debug/
+tools/__pycache__/
+
+# Local dev
+node_modules/
+package-lock.json

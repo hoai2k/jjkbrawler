@@ -255,6 +255,51 @@ Card prompt formula: `[CHARACTER BLOCK from section A]` + the line below +
 
 ---
 
+## Delivery status
+
+| Character | Card | 31 sprites | Effects | In roster |
+|---|---|---|---|---|
+| Choso | ✅ | ✅ | ❌ 0/3 | ✅ **shipped** |
+| Yuji | ❌ | ❌ | ❌ 0/1 | staged |
+| Mei Mei | ❌ | ❌ | ❌ 0/2 | staged |
+| Uro | ❌ | ❌ | ❌ 0/2 | staged |
+| Reggie | ❌ | ❌ | ❌ 0/6 | staged |
+| Gakuganji | ❌ | ❌ | ❌ 0/4 | staged |
+
+**Choso shipped without his effect art.** He is fully playable — his blood
+projectiles fall back to the engine's procedural crimson orb, and the Red
+Scale install to a procedural aura. Still outstanding for him:
+
+- `effects/piercing_blood.png` — his neutral currently reads as a round orb
+  rather than the supersonic needle-thin lance the move is named for. This is
+  the one that most changes how the move reads, so it is the priority.
+- `effects/blood_orb.png` — used by both Blood Meteorite and, eight times
+  over, by the Supernova ultimate, which currently draws procedural spheres.
+- `effects/aura_crimson.png` — the Red Scale install aura.
+
+Two notes for whoever generates the rest, learned from Choso's delivery:
+
+- Choso's art arrived as **raw untrimmed RGB on a grey field** rather than
+  keyed PNGs with alpha. That is fine — `tools/intake.py` keys and trims it —
+  but it must go through `assets/intake/<char>/` first, not straight into
+  `assets/sprites/`, or the game will try to draw a 1024×1536 background-plate
+  as a sprite.
+
+  Only the processed runtime copies are committed; `assets/intake/` is
+  gitignored, because the ~40 MB of raw plates and ~27 MB of intermediates add
+  nothing the game loads. Choso's untouched generator output is still
+  recoverable from history if a frame ever needs reprocessing:
+
+  ```sh
+  git checkout 20f3d03 -- assets/sprites/choso   # raw 1024x1536 RGB plates
+  ```
+- His figure scale was **consistent across poses** (standing poses within 6%
+  of each other, low poses genuinely shorter). That is exactly right, and it
+  is what let one uniform `renderScale` be used for all 31 frames. Keep doing
+  that: do not redraw each pose to fill its canvas.
+
+---
+
 ## F. Volume and sequencing
 
 1. **Yuji end to end first** (1 card + 31 poses + 1 effect). He is the most

@@ -355,15 +355,41 @@ attrition.
 - *Passive — Old-Growth Body:* 12% less damage taken while grounded — cut the
   tree down before it settles.
 
+## Choso — "Eldest Brother"
+**Canon:** The eldest Death Painting Womb — half curse, half human, animated
+by **Blood Manipulation**: Piercing Blood (blood pressurized past the speed of
+sound), Convergence, Flowing Red Scale (overclocking his own blood), and
+Supernova (orbiting blood orbs detonated at once). Personality: quiet,
+implacable, defined entirely by love for his brothers — including, after one
+very strange fight, Yuji.
+
+**Design mapping:** A zoner who pays in blood. His projectiles are the best
+pound-for-pound in the game, and every one of them costs him a sliver of his
+own health — his resource bar is his damage meter.
+- *Stats:* 405 / 1.06 — deliberate, sturdy midweight.
+- **Piercing Blood** (neutral): a near-hitscan piercing lance across the whole
+  lane. Costs 1.5% of himself per shot.
+- **Convergence: Blood Meteorite** (side): a dense arcing sphere that
+  detonates on arrival. Costs 2%.
+- **Flowing Red Scale** (down): overclocks his blood — +22% speed, +18%
+  damage, and it burns him slowly the whole time it's held.
+- **Ultimate — Supernova:** orbs of compressed blood ring the enemy, close in,
+  and all detonate inward — escapable by leaving the ring, lethal inside it.
+- *Passive — Death Painting Body:* immune to bleed and poison (he *is* the
+  blood), which also makes him the natural counter to Sukuna's chip game.
+
 ---
 
 # Round 7 — staged fighters
 
-The six fighters below are **gameplay-complete but not yet in the roster**:
+The five fighters below are **gameplay-complete but not yet in the roster**:
 their kits, mechanics, AI profiles and audio are wired in code
 (`STAGED_CHARACTER_KEYS` in `src/characters.js`), and they ship the moment
 their art lands (see `docs/asset-requests-round7.md`). Design rationale
 follows the same format as the launch roster.
+
+Choso was the first of the six to ship and now sits with the roster above —
+his art arrived in round 7 and he is selectable under *Curses and Curse Users*.
 
 ## Yuji Itadori — "Sukuna's Vessel"
 **Canon:** The vessel of the King of Curses — a physically freakish, endlessly
@@ -391,29 +417,6 @@ drama on top.
 - *Passive — Black Flash:* every melee hit has a 12% chance to spark: bonus
   damage, extra launch, and a surge of ultimate meter. Feast or famine, like
   the real thing.
-
-## Choso — "Eldest Brother"
-**Canon:** The eldest Death Painting Womb — half curse, half human, animated
-by **Blood Manipulation**: Piercing Blood (blood pressurized past the speed of
-sound), Convergence, Flowing Red Scale (overclocking his own blood), and
-Supernova (orbiting blood orbs detonated at once). Personality: quiet,
-implacable, defined entirely by love for his brothers — including, after one
-very strange fight, Yuji.
-
-**Design mapping:** A zoner who pays in blood. His projectiles are the best
-pound-for-pound in the game, and every one of them costs him a sliver of his
-own health — his resource bar is his damage meter.
-- *Stats:* 405 / 1.06 — deliberate, sturdy midweight.
-- **Piercing Blood** (neutral): a near-hitscan piercing lance across the whole
-  lane. Costs 1.5% of himself per shot.
-- **Convergence: Blood Meteorite** (side): a dense arcing sphere that
-  detonates on arrival. Costs 2%.
-- **Flowing Red Scale** (down): overclocks his blood — +22% speed, +18%
-  damage, and it burns him slowly the whole time it's held.
-- **Ultimate — Supernova:** orbs of compressed blood ring the enemy, close in,
-  and all detonate inward — escapable by leaving the ring, lethal inside it.
-- *Passive — Death Painting Body:* immune to bleed and poison (he *is* the
-  blood), which also makes him the natural counter to Sukuna's chip game.
 
 ## Mei Mei — "The Mercenary"
 **Canon:** Grade 1 sorcerer who fights exclusively for money; wields a
@@ -532,13 +535,13 @@ Weakest legs on the roster, but a stage that is always ringing.
 | Geto | Summoner-zoner | ★★★☆ | Mid | Minion attrition |
 | Jogo | Heavy zoner | ★★☆ | Heavy | Burn attrition, meteor |
 | Hanami | Fortress | ★★☆ | Very heavy | Outlasting everyone |
+| Choso | Blood zoner | ★★★☆ | Mid-heavy | Premium projectiles paid in HP |
 
 **Staged (round 7 — awaiting art):**
 
 | Fighter | Archetype | Speed | Weight | Wins by |
 |---|---|---|---|---|
 | Yuji | Rushdown brawler | ★★★★★ | Mid | Fundamentals + Black Flash spikes |
-| Choso | Blood zoner | ★★★☆ | Mid-heavy | Premium projectiles paid in HP |
 | Mei Mei | Economy all-rounder | ★★★★ | Mid | Meter economy, axe shield pressure |
 | Uro | Aerial trickster | ★★★★ | Light | Air control, reflected projectiles |
 | Reggie | Wildcard zoner | ★★★☆ | Mid | Area denial, falling appliances |
