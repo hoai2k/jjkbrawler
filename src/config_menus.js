@@ -44,12 +44,12 @@ export const CHARACTER_GROUPS = [
   {
     key: "sorcerers",
     label: "Other Sorcerers",
-    members: ["todo", "momo", "yuta", "hakari", "toji", "geto", "uro", "reggie"],
+    members: ["todo", "yuta", "geto", "hakari", "toji", "uro", "reggie", "momo"],
   },
   {
     key: "curses",
     label: "Curses and Curse Users",
-    members: ["sukuna", "mahito", "jogo", "hanami", "choso"],
+    members: ["mahito", "jogo", "hanami", "choso", "sukuna"],
   },
 ];
 
