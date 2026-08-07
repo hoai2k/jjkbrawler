@@ -10,12 +10,21 @@ import { playSfx, playGrunt, startShieldLoop, stopShieldLoop } from "./audio.js"
 import {
   GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME,
   SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
-  DASH_MULT, SHIELD_MAX, SHIELD_DRAIN, SHIELD_REGEN, ROLL_TIME, ROLL_DIST,
+  DASH_MULT, ACTION_BUFFER, AERIAL_LAND_LAG_MULT, AERIAL_LAND_LAG_MIN, SHIELD_MAX, SHIELD_DRAIN, SHIELD_REGEN, ROLL_TIME, ROLL_DIST,
   SPOT_DODGE_TIME, AIR_DODGE_TIME, DODGE_STALE_WINDOW, METER_MAX, METER_PASSIVE,
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
   RESPAWN_X,
 } from "./constants.js";
 import { mainPlatform } from "./stages.js";
+import { frameMeta } from "./assets.js";
+
+/** `dodge_roll` / `dodge_air` where the character has that art, else the old
+ *  shared `dodge`. Round 6 delivered the new frames for only some of the
+ *  roster; without this check the rest would draw NOTHING mid-dodge, because a
+ *  missing frame makes `drawCharFrame` bail. */
+function dodgeAnim(f, key) {
+  return frameMeta(f.charKey, key) ? key : "dodge";
+}
 
 export function makeFighter(id, charKey, x, facing) {
   const char = getCharacter(charKey);
@@ -29,7 +38,7 @@ export function makeFighter(id, charKey, x, facing) {
     airJumpsLeft: char.stats.airJumps, airDodged: false,
     jumpBuffer: 0, coyote: 0, jumpHeldT: 0, jumpCut: false,
     dashT: 0, dashDir: 0, lastTap: { dir: 0, t: -10 },
-    turnLock: 0, landTimer: 0, dropTimer: 0,
+    turnLock: 0, landTimer: 0, dropTimer: 0, bufferedAction: null, landLag: 0,
     invuln: 1.4, hitstun: 0, hitPause: 0, shakeMag: 0,
     dizzy: 0, dodgeStale: 0, lastDodgeAt: -10,
     airT: 0, shieldDownSince: -10,
@@ -139,7 +148,7 @@ function beginDodge(f, type, dir = 0) {
   const iframeMul = (f.char.passive.id === "heavenlyVoid" ? 1.25 : 1) * staleMul;
 
   if (type === "roll") {
-    beginAction(f, "dodge", ROLL_TIME, "dodge", { lockMovement: true, keepMomentum: true });
+    beginAction(f, "dodge", ROLL_TIME, dodgeAnim(f, "dodge_roll"), { lockMovement: true, keepMomentum: true });
     f.vx = dir * (ROLL_DIST / ROLL_TIME);
     f.invuln = Math.max(f.invuln, 0.3 * iframeMul);
   } else if (type === "spot") {
@@ -147,7 +156,7 @@ function beginDodge(f, type, dir = 0) {
     f.vx = 0;
     f.invuln = Math.max(f.invuln, 0.32 * iframeMul);
   } else {
-    beginAction(f, "dodge", AIR_DODGE_TIME, "dodge", { lockMovement: false });
+    beginAction(f, "dodge", AIR_DODGE_TIME, dodgeAnim(f, "dodge_air"), { lockMovement: false });
     f.invuln = Math.max(f.invuln, 0.26 * iframeMul);
     f.airDodged = true;
   }
@@ -252,6 +261,17 @@ function resolvePlatforms(f, prevY) {
         f.animTime = 0;
         playSfx("landing", 0.3);
         dust(f.x, f.y, 8);
+        // Landing out of an aerial costs part of that move's recovery, which
+        // is what makes aerials a commitment instead of a free poke — before
+        // this, cancelling an aerial into the ground was strictly better than
+        // finishing it.
+        if (f.action && f.action.kind === "attack" && f.action.move) {
+          const lag = Math.max(AERIAL_LAND_LAG_MIN,
+                               (f.action.move.recover || 0) * AERIAL_LAND_LAG_MULT);
+          f.action = null;
+          f.landLag = lag;
+          f.landTimer = Math.max(f.landTimer, lag);
+        }
       }
       f.grounded = true;
       f.currentPlatform = plat;
@@ -322,6 +342,12 @@ function respawn(f) {
 export function updateFighter(f, dt, input) {
   if (f.dead) return;
 
+  // Held for DI: combat.js reads the VICTIM's stick when knockback is applied,
+  // and only the owner of a fighter has their input at hand. Stored before the
+  // hitlag return so a fighter frozen in hitlag still DIs with a live stick —
+  // that freeze is exactly the window Smash players use to pick a direction.
+  f.input = input;
+
   // hitlag freeze: only the freeze timer runs
   if (f.hitPause > 0) {
     f.hitPause -= dt;
@@ -334,6 +360,7 @@ export function updateFighter(f, dt, input) {
   f.hitstun = Math.max(0, f.hitstun - dt);
   f.shieldStun = Math.max(0, f.shieldStun - dt);
   f.landTimer = Math.max(0, f.landTimer - dt);
+  f.landLag = Math.max(0, f.landLag - dt);
   f.dropTimer = Math.max(0, f.dropTimer - dt);
   f.jumpBuffer = Math.max(0, f.jumpBuffer - dt);
   f.coyote = Math.max(0, f.coyote - dt);
@@ -406,7 +433,20 @@ export function updateFighter(f, dt, input) {
 
   const st = stats(f);
   const inHitstun = f.hitstun > 0;
-  const canAct = !inHitstun && !f.action && !f.charging && f.shieldStun <= 0;
+  const canAct = !inHitstun && !f.action && !f.charging && f.shieldStun <= 0 && f.landLag <= 0;
+
+  // Attack buffering. Jump was already buffered (JUMP_BUFFER); attack, heavy
+  // and special presses were simply dropped when `canAct` was false, so an
+  // input during hitstun or the tail of a move read as the game ignoring you.
+  // A press is remembered for ACTION_BUFFER and fires the instant control
+  // returns, which is most of what "responsive" means in a fighter.
+  if (input.lightP) f.bufferedAction = { kind: "light", t: ACTION_BUFFER };
+  else if (input.heavyP) f.bufferedAction = { kind: "heavy", t: ACTION_BUFFER };
+  else if (input.specialP) f.bufferedAction = { kind: "special", t: ACTION_BUFFER };
+  if (f.bufferedAction) {
+    f.bufferedAction.t -= dt;
+    if (f.bufferedAction.t <= 0) f.bufferedAction = null;
+  }
 
   // ---- charging heavy
   if (f.charging) {
@@ -487,13 +527,22 @@ export function updateFighter(f, dt, input) {
       performUltimate(f);
     } else if (input.ultP && f.meter < METER_MAX) {
       popup(f.x, f.y - 160, "NOT READY", "#9aa4c0", 15);
-    } else if (input.specialP) {
-      const slot = input.down || f.crouching ? "down" : (input.dirX !== 0 ? "side" : "neutral");
-      performSpecial(f, slot);
-    } else if (input.heavyP) {
-      beginHeavy(f, input);
-    } else if (input.lightP) {
-      beginLight(f, input);
+    } else {
+      // A fresh press wins over a buffered one; the buffer only covers inputs
+      // that arrived while the fighter was busy.
+      const act = input.specialP ? "special"
+        : input.heavyP ? "heavy"
+        : input.lightP ? "light"
+        : f.bufferedAction?.kind;
+      if (act === "special") {
+        const slot = input.down || f.crouching ? "down" : (input.dirX !== 0 ? "side" : "neutral");
+        performSpecial(f, slot);
+      } else if (act === "heavy") {
+        beginHeavy(f, input);
+      } else if (act === "light") {
+        beginLight(f, input);
+      }
+      if (act) f.bufferedAction = null;
     }
   }
 

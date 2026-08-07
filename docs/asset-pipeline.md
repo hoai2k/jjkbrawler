@@ -205,3 +205,17 @@ dragon out of the art they were drawn into, writing them to
 cannot move, be timed or be reused, and it inflates the fighter's bounding box.
 As projectiles they do all three. His volley uses `spritePool`, drawing a random
 curse per shot.
+
+## Staging changes for upload
+
+There is no VCS here, so `tools/collect_updates.py` tracks what still needs
+uploading in `tools/.updates-ledger.json` — a map of every file ever staged to
+the mtime it had when staged. The ledger lives beside the tool, NOT inside
+`updates/`, because `updates/` is emptied after each upload.
+
+    python3 tools/collect_updates.py --new     # what changed since last staged
+    python3 tools/collect_updates.py --new --list
+
+`--hours N` and `--since` still exist for one-off queries, but `--new` is the
+one to use. A time window cannot tell "changed recently" from "changed a while
+ago and never uploaded", and the second case is the one that loses work.

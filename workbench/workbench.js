@@ -249,11 +249,20 @@ function refreshControls() {
   $("groundRange").value = dg.toFixed(1);
   $("groundVal").textContent = `${dg > 0 ? "+" : ""}${dg.toFixed(1)} px`;
 
-  const n = dirtyFrames(state.char).length;
-  const headChanged =
-    Math.abs(headHeight(state.char) - state.originalHeads[state.char]) > 1e-4;
-  $("dirtyCount").textContent = n || headChanged
-    ? `${n} pose${n === 1 ? "" : "s"}${headChanged ? " + head height" : ""} changed`
+  // counted across every character touched this session, since that is what
+  // Export now emits
+  let poses = 0, heads = 0, chars = 0;
+  for (const c of Object.keys(state.originals)) {
+    const n = dirtyFrames(c).length;
+    const headChanged = Math.abs(headHeight(c) - (state.originalHeads[c] ?? headHeight(c))) > 1e-4;
+    if (n || headChanged) chars++;
+    poses += n;
+    if (headChanged) heads++;
+  }
+  $("dirtyCount").textContent = poses || heads
+    ? `${poses} pose${poses === 1 ? "" : "s"}`
+      + (heads ? ` + ${heads} head height${heads === 1 ? "" : "s"}` : "")
+      + (chars > 1 ? ` across ${chars} characters` : "")
     : "none";
   refreshHistoryButtons();
 }
@@ -286,6 +295,7 @@ function syncAll() { buildPoseList(); refreshTag(); refreshControls(); render();
 
 function setChar(charKey) {
   state.char = charKey;
+  $("charSel").value = charKey;   // also called from ?char= and undo, not just the select
   const frames = framesOf(charKey);
   state.frame = frames.includes("idle_a") ? "idle_a" : frames[0];
   frames.forEach((k) => remember(charKey, k));
@@ -298,7 +308,11 @@ function setChar(charKey) {
 function applyScale(relative, commit) {
   const orig = state.originals[state.char][state.frame];
   if (commit) pushHistory(state.char, state.frame);
-  rawMeta(state.char, state.frame).renderScale = Math.max(0.02, orig.renderScale * relative);
+  // Sheet cells carry no `renderScale` at all — the renderer treats a missing
+  // one as 1. Reading it raw yields undefined, and `undefined * relative` is
+  // NaN, which sticks: once written it poisons the slider and every later edit.
+  rawMeta(state.char, state.frame).renderScale =
+    Math.max(0.02, (orig.renderScale ?? 1) * relative);
   refreshControls(); buildPoseList(); render();
 }
 
@@ -323,28 +337,45 @@ function applyHead(value, commit) {
   refreshControls(); render();
 }
 
-function exportChar() {
+/** One character's edits, or null if it has none. */
+function payloadFor(charKey) {
   const out = {};
-  for (const key of dirtyFrames(state.char)) {
-    const meta = rawMeta(state.char, key);
-    const orig = state.originals[state.char][key];
+  for (const key of dirtyFrames(charKey)) {
+    const meta = rawMeta(charKey, key);
+    const orig = state.originals[charKey][key];
     const entry = {};
     for (const f of EDITABLE) {
-      if (Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4) {
-        entry[f] = f === "renderScale" ? Number(meta[f].toFixed(4)) : Number(meta[f].toFixed(1));
+      const value = meta[f];
+      if (!Number.isFinite(value)) continue;
+      if (Math.abs(value - (orig[f] ?? 0)) > 1e-4) {
+        entry[f] = f === "renderScale" ? Number(value.toFixed(4)) : Number(value.toFixed(1));
       }
     }
-    out[key] = entry;
+    if (Object.keys(entry).length) out[key] = entry;
   }
-  const payload = { character: state.char };
-  const hh = headHeight(state.char);
-  if (Math.abs(hh - state.originalHeads[state.char]) > 1e-4) {
+  const payload = { character: charKey };
+  const hh = headHeight(charKey);
+  if (Math.abs(hh - (state.originalHeads[charKey] ?? hh)) > 1e-4) {
     payload.headHeight = Number(hh.toFixed(1));
   }
   if (Object.keys(out).length) payload.adjustments = out;
-  $("exportOut").value = (payload.headHeight !== undefined || payload.adjustments)
-    ? JSON.stringify(payload, null, 2)
-    : `// no changes for ${state.char}`;
+  return (payload.headHeight !== undefined || payload.adjustments) ? payload : null;
+}
+
+/** Everything edited this session, across every character.
+ *
+ *  A session usually walks the whole roster, so exporting only the character
+ *  on screen loses the rest the moment you switch. `apply_sprite_adjustments.py`
+ *  already accepts an array, so a multi-character export needs nothing new on
+ *  the other end. A lone character still exports as a bare object. */
+function exportAll() {
+  const payloads = Object.keys(state.originals)
+    .sort()
+    .map(payloadFor)
+    .filter(Boolean);
+  $("exportOut").value = payloads.length
+    ? JSON.stringify(payloads.length === 1 ? payloads[0] : payloads, null, 2)
+    : "// no changes yet";
 }
 
 // ------------------------------------------------------------------ boot
@@ -433,9 +464,9 @@ async function boot() {
     syncAll();
   };
 
-  $("exportBtn").onclick = exportChar;
+  $("exportBtn").onclick = exportAll;
   $("copyBtn").onclick = async () => {
-    if (!$("exportOut").value) exportChar();
+    if (!$("exportOut").value) exportAll();
     try { await navigator.clipboard.writeText($("exportOut").value); $("copyBtn").textContent = "Copied"; }
     catch { $("exportOut").select(); }
     setTimeout(() => ($("copyBtn").textContent = "Copy to clipboard"), 1200);
@@ -465,6 +496,15 @@ async function boot() {
 
   const params = new URLSearchParams(location.search);
   setChar(CHARACTER_KEYS.includes(params.get("char")) ? params.get("char") : "gojo");
+
+  // `?frame=` lets the action workbench hand off a specific pose to edit.
+  const frame = params.get("frame");
+  if (frame && framesOf(state.char).includes(frame)) {
+    state.frame = frame;
+    syncAll();
+    const btn = $("poseList").querySelector("button.sel");
+    if (btn) $("poseList").scrollTop = Math.max(0, btn.offsetTop - $("poseList").clientHeight / 2);
+  }
   refreshHistoryButtons();
 }
 

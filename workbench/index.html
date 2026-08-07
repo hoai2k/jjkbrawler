@@ -9,8 +9,12 @@
   </head>
   <body>
     <header class="bar">
-      <strong>Sprite Workbench</strong>
+      <strong id="wbTitle">Sprite Workbench</strong>
       <span class="hint">Renders through the game's own sprite pipeline — what you see is what the game draws.</span>
+      <nav class="modes">
+        <a id="modeSprites" href="./">Sprites</a>
+        <a id="modeActions" href="./?edit=actions">Actions</a>
+      </nav>
       <span class="history">
         <button id="undoBtn" class="ghost sm" title="Undo (Cmd/Ctrl+Z)">↶ Undo</button>
         <button id="redoBtn" class="ghost sm" title="Redo (Cmd/Ctrl+Shift+Z)">↷ Redo</button>
@@ -18,7 +22,9 @@
       <span id="loadState" class="loading">loading assets…</span>
     </header>
 
-    <main class="layout">
+    <main id="actionsView" hidden></main>
+
+    <main class="layout" id="spriteView">
       <!-- ---------------------------------------------------------- stage -->
       <section class="stage-col">
         <div class="stage-wrap">
@@ -120,14 +126,39 @@
 
         <div class="group">
           <label>Changes <span class="sub" id="dirtyCount">none</span></label>
-          <button id="exportBtn" class="primary">Export adjustments for this character</button>
+          <button id="exportBtn" class="primary">Export all adjustments (every character)</button>
           <textarea id="exportOut" rows="9" spellcheck="false"
-                    placeholder="Adjust some poses, then press Export. Paste the result back to Claude."></textarea>
+                    placeholder="Adjust poses on any number of characters, then press Export once. Paste the result back to Claude."></textarea>
           <button id="copyBtn" class="ghost">Copy to clipboard</button>
         </div>
       </section>
     </main>
 
-    <script type="module" src="workbench.js"></script>
+    <!-- Two workbenches share this shell: the sprite editor (default) and the
+         action player (?edit=actions). Only the requested one is kept in the
+         DOM, so each module owns its ids outright. -->
+    <script type="module">
+      const params = new URLSearchParams(location.search);
+      const char = params.get("char");
+      const suffix = char ? `&char=${encodeURIComponent(char)}` : "";
+      document.getElementById("modeSprites").href = `./${char ? `?char=${encodeURIComponent(char)}` : ""}`;
+      document.getElementById("modeActions").href = `./?edit=actions${suffix}`;
+
+      if (params.get("edit") === "actions") {
+        document.getElementById("spriteView").remove();
+        document.querySelector(".history").remove();
+        document.getElementById("actionsView").hidden = false;
+        document.getElementById("wbTitle").textContent = "Action Workbench";
+        document.querySelector(".hint").textContent =
+          "Play any action through the game's own animation data, then jump to the sprites it uses.";
+        document.title = "Action Workbench — JJK Brawler II";
+        document.getElementById("modeActions").classList.add("on");
+        import("./actions.js");
+      } else {
+        document.getElementById("actionsView").remove();
+        document.getElementById("modeSprites").classList.add("on");
+        import("./workbench.js");
+      }
+    </script>
   </body>
 </html>

@@ -55,6 +55,20 @@ Y_EDGES = [round(r * SHEET_H / ROWS) for r in range(ROWS + 1)]
 # large before it is treated as bleed from the row beneath.
 DETACHED_BELOW_GAP = 8
 DETACHED_BELOW_MIN_PX = 700
+# Same idea for the cells left and right. Horizontal neighbours are much more
+# common than vertical ones, and poses legitimately fling a weapon or an effect
+# out sideways, so the gap has to be far clearer before a blob counts as bleed.
+DETACHED_SIDE_GAP = 24
+DETACHED_SIDE_MIN_PX = 400
+# Flat-white pockets trapped inside the silhouette (see strip_trapped_white).
+TRAPPED_WHITE_MIN_PX = 120
+TRAPPED_WHITE_RING_OPAQUE = 0.97
+TRAPPED_WHITE_RING_DARK = 0.75
+# The ring is sampled from 4px out, not 0px: the first few pixels are the
+# anti-aliased fade from white to cloth, and measuring them makes every pocket
+# look half-bright no matter how dark the wall behind it is.
+TRAPPED_WHITE_RING_INNER = 4
+TRAPPED_WHITE_RING_OUTER = 9
 
 FRAME_OVERRIDES = {
     ("sukuna", "r0c0"): {"stripFlatWhite": True},
@@ -245,6 +259,43 @@ def strip_flat_white(frame):
     return frame
 
 
+def strip_trapped_white(frame):
+    """Remove flat near-white pockets walled in by dark pixels.
+
+    Unkeyed background survives wherever the silhouette encloses it — between
+    the legs, under an arm, inside a prop — because the chroma pass never
+    reaches those pockets from outside.
+
+    OPT-IN PER FRAME, and deliberately so. Leak and legitimate white art are
+    not separable by any measurement tried: size, per-pixel flatness, spatial
+    variance and ring darkness all overlap, and some art (Panda's belly) is
+    *flatter* than the leak it would be judged against. Run blanket, this eats
+    Panda's belly, Sukuna's cursed energy and the white blades on Maki's and
+    Toji's polearms. Use `clean_frames.py --pick` to choose blobs by eye
+    instead, and only set `stripTrappedWhite` on a frame someone has checked.
+    """
+    rgb = frame[:, :, :3].astype(np.int16)
+    opaque = frame[:, :, 3] >= 128
+    span = rgb.max(axis=2) - rgb.min(axis=2)
+    white = opaque & (rgb.min(axis=2) > 225) & (span < 16)
+    labels, n = ndimage.label(white, structure=np.ones((3, 3), np.int8))
+    if not n:
+        return frame
+    luma = rgb.mean(axis=2)
+    counts = np.bincount(labels.ravel())
+    counts[0] = 0
+    for i in np.nonzero(counts >= TRAPPED_WHITE_MIN_PX)[0]:
+        blob = labels == i
+        inner = ndimage.binary_dilation(blob, iterations=TRAPPED_WHITE_RING_INNER)
+        ring = ndimage.binary_dilation(blob, iterations=TRAPPED_WHITE_RING_OUTER) & ~inner
+        if not ring.any():
+            continue
+        if (opaque[ring].mean() >= TRAPPED_WHITE_RING_OPAQUE
+                and (luma[ring] < 105).mean() >= TRAPPED_WHITE_RING_DARK):
+            frame[blob] = 0
+    return frame
+
+
 def strip_checker(frame):
     """Remove baked-in transparency-checkerboard (interleaved flat white/gray)."""
     rgb = frame[:, :, :3].astype(np.int16)
@@ -267,10 +318,16 @@ def strip_checker(frame):
     return frame
 
 
-def fill_pinholes(frame, max_hole=60):
-    """Fill tiny fully-enclosed transparent holes (moth-eaten hair/pinpricks)
-    by inpainting from surrounding pixels. Large enclosed holes (arm loops,
-    effect rings) are intentional art and stay untouched."""
+def fill_pinholes(frame, max_hole=400):
+    """Fill fully-enclosed transparent holes (moth-eaten bodies, pinpricks) by
+    inpainting from surrounding pixels. Large enclosed holes (arm loops, the
+    dark core of an effect ring) are intentional art and stay untouched.
+
+    The ceiling was 60px, which left 250 frames across the roster peppered with
+    holes up to 400px — whole patches missing from Nanami's suit and Hanami's
+    bark. Gaps a player reads as gaps are far bigger than 400px, so raising it
+    mends the damage without touching real art; verified frame by frame on the
+    worst offenders in every character."""
     a = frame[:, :, 3]
     opaque = a >= 128
     filled = ndimage.binary_fill_holes(opaque)
@@ -398,6 +455,42 @@ def extract_character(char, src_dir, out_dir, debug_dir):
                             f"{char} {frame_key}: dropped {int(totals[cid])}px blob "
                             f"{csl[0].start - main_bottom}px below the body (row-below bleed)")
 
+            # Same for the cells either side: a blob separated from the body by
+            # a wide horizontal gutter is the neighbouring pose leaking in.
+            # Opt out per frame with {"keepDetachedSide": True}.
+            if cell_mask.any() and not override.get("keepDetachedSide"):
+                gap = override.get("detachedSideGap", DETACHED_SIDE_GAP)
+                cids = np.unique(labels[cell_mask])
+                cids = cids[cids != 0]
+                main = cids[np.argmax(totals[cids])]
+                main_cols = np.nonzero(labels == main)[1]
+                main_l, main_r = main_cols.min(), main_cols.max()
+                suspect = {}
+                for cid in cids:
+                    if cid == main or totals[cid] < DETACHED_SIDE_MIN_PX:
+                        continue
+                    csl = slices[cid - 1]
+                    if csl[1].stop <= main_l - gap:
+                        suspect[cid] = "left of"
+                    elif csl[1].start >= main_r + gap:
+                        suspect[cid] = "right of"
+
+                # A blob that matches the colour of another detached blob which
+                # is STAYING belongs to a scattered effect, not the neighbour:
+                # Inumaki's orb ring flings lavender blobs right across the cell
+                # and the outermost happens to clear the gutter.
+                mean_of = {cid: img[:, :, :3][labels == cid].mean(axis=0)
+                           for cid in cids if totals[cid] >= 200}
+                for cid, side in suspect.items():
+                    if any(o not in suspect and o != main
+                           and np.abs(mean_of[cid] - mean_of[o]).max() < 24
+                           for o in mean_of):
+                        continue
+                    cell_mask &= labels != cid
+                    warnings.append(
+                        f"{char} {frame_key}: dropped {int(totals[cid])}px blob "
+                        f"{side} the body (adjacent-cell bleed)")
+
             if cell_mask.sum() < EMPTY_CELL_ALPHA_FRACTION * (x1 - x0) * (y1 - y0):
                 # component assignment starved this cell (e.g. its sprite fused
                 # with a neighbor) -> fall back to the raw grid crop
@@ -420,6 +513,8 @@ def extract_character(char, src_dir, out_dir, debug_dir):
                 frame = strip_flat_white(frame)
             if override.get("stripChecker"):
                 frame = strip_checker(frame)
+            if override.get("stripTrappedWhite"):
+                frame = strip_trapped_white(frame)
             frame = fill_pinholes(frame)
 
             # body bottom: bottom of the largest single component in this cell —

@@ -11,6 +11,9 @@ export const BLAST = { left: -300, right: 1580, top: -420, bottom: 1000 };
 
 // jumping
 export const JUMP_BUFFER = 0.15;
+// Attack/heavy/special presses are held this long when the fighter can't act
+// yet, then fire the moment control returns (see fighter.js).
+export const ACTION_BUFFER = 0.12;
 export const COYOTE_TIME = 0.1;
 export const SHORT_HOP_WINDOW = 0.09;
 export const SHORT_HOP_CUT = 0.52;
@@ -28,6 +31,11 @@ export const SHIELD_REGEN = 14;
 export const SHIELD_DAMAGE_MULT = 1.5;
 export const SHIELD_BREAK_STUN = 2.2;
 export const PARRY_WINDOW = 0.12;
+
+// aerial landing lag: landing mid-aerial costs a fraction of that move's
+// recovery, so aerials are commitments rather than free pokes
+export const AERIAL_LAND_LAG_MULT = 0.6;
+export const AERIAL_LAND_LAG_MIN = 0.08;
 
 // dodges
 export const ROLL_TIME = 0.42;

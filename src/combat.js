@@ -303,6 +303,71 @@ function shieldDamageMult(target) {
   return target.char.passive.id === "limitlessGuard" ? 0.55 : 1;
 }
 
+// How far the stick can bend a launch, in radians. ~17 degrees, matching the
+// influence a Smash player gets; enough to change where you land, never enough
+// to ignore the hit.
+const DI_MAX_TURN = 0.30;
+// And how much it can scale launch speed by holding along the launch vector.
+const DI_SPEED = 0.08;
+
+/** The victim's stick as a unit vector, or null when they aren't holding one. */
+function diStick(target) {
+  const i = target.input;
+  if (!i) return null;
+  const x = (i.right ? 1 : 0) - (i.left ? 1 : 0);
+  const y = (i.down ? 1 : 0) - (i.up ? 1 : 0);
+  if (!x && !y) return null;
+  const m = Math.hypot(x, y);
+  return { x: x / m, y: y / m };
+}
+
+/** Launch vector for an attack angle, in screen space (y grows downward). */
+function launchVector(angle, dir) {
+  return angle < 0
+    ? { x: dir * Math.cos(Math.abs(angle)), y: Math.sin(-angle) }
+    : { x: dir * Math.cos(Math.abs(angle)), y: -Math.sin(Math.abs(angle)) };
+}
+
+function diAngle(target, angle, dir) {
+  const s = diStick(target);
+  if (!s) return angle;
+  const v = launchVector(angle, dir);
+  // Cross product: how far off the launch line the stick sits, and which side.
+  // Subtracted because a larger `angle` means a steeper *upward* launch, so
+  // holding down has to reduce it — hold a direction, go that way.
+  const cross = v.x * s.y - v.y * s.x;
+  return angle - cross * DI_MAX_TURN * dir;
+}
+
+function diSpeedScale(target, angle, dir) {
+  const s = diStick(target);
+  if (!s) return 1;
+  const v = launchVector(angle, dir);
+  return 1 + (v.x * s.x + v.y * s.y) * DI_SPEED;   // dot: along = faster
+}
+
+// Move staling. Smash keeps a queue of recently-landed moves and weakens
+// repeats, which is what stops a match collapsing into whichever single button
+// kills best. Dodges already stale here (fighter.js); attacks did not.
+const STALE_QUEUE = 9;
+const STALE_DMG_STEP = 0.09;    // ~0.28x damage at 8 repeats
+const STALE_KB_STEP = 0.06;
+
+/** Stable identity for a move, so the same attack stales across uses. */
+function moveId(hit) {
+  return hit.label || hit.anim || hit.sfx || "hit";
+}
+
+function staleCount(owner, id) {
+  return owner.recentMoves ? owner.recentMoves.filter((m) => m === id).length : 0;
+}
+
+function pushStale(owner, id) {
+  owner.recentMoves = owner.recentMoves || [];
+  owner.recentMoves.push(id);
+  if (owner.recentMoves.length > STALE_QUEUE) owner.recentMoves.shift();
+}
+
 export function applyHit(owner, target, hit, source) {
   if (target.invuln > 0 || target.dead || target.respawnTimer > 0) return "ignored";
   if (owner.dead || owner.respawnTimer > 0) return "ignored";
@@ -319,6 +384,16 @@ export function applyHit(owner, target, hit, source) {
   let baseKb = hit.baseKb;
   let growth = hit.growth;
   let label = hit.label;
+
+  // Staling is applied before every other multiplier so crits, installs and
+  // passives scale the already-weakened value rather than papering over it.
+  const mid = moveId(hit);
+  const stale = staleCount(owner, mid);
+  if (stale) {
+    dmg *= Math.max(0.25, 1 - stale * STALE_DMG_STEP);
+    baseKb *= Math.max(0.4, 1 - stale * STALE_KB_STEP);
+    growth *= Math.max(0.4, 1 - stale * STALE_KB_STEP);
+  }
 
   const unblockable = hit.unblockable || (owner.installs && owner.installs.unblockable);
 
@@ -374,6 +449,7 @@ export function applyHit(owner, target, hit, source) {
 
   dmg = Math.round(dmg * 10) / 10;
   target.damage = Math.min(999, target.damage + dmg);
+  pushStale(owner, mid);   // only landed hits stale; whiffs cost nothing
 
   // meter economy
   let mGain = dmg * METER_ON_DEAL;
@@ -386,8 +462,18 @@ export function applyHit(owner, target, hit, source) {
   // knockback
   let kb = (baseKb + target.damage * growth) / target.char.stats.weight;
   if (target.char.passive.id === "cursedCorpse") kb *= 0.9;
-  const angle = hit.angle ?? 0.35;
   const stunBonus = hit.stunBonus || 0;
+
+  // Directional Influence. The victim's stick bends the launch angle and
+  // nudges its magnitude, so surviving a hit is something the defender does
+  // rather than something that happens to them. Without it every exchange is
+  // decided entirely by the attacker and combos are all-or-nothing.
+  //
+  // Perpendicular DI: only stick input ACROSS the launch vector turns it,
+  // which is what makes the classic "DI away to live, DI in to escape" read
+  // work. Held toward/away instead trades a little launch speed.
+  const angle = diAngle(target, hit.angle ?? 0.35, dir);
+  kb *= diSpeedScale(target, hit.angle ?? 0.35, dir);
 
   if (armored) {
     popup(target.x, target.y - 150, "ARMOR", "#c9b6ff", 20);

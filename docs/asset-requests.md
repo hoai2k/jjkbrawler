@@ -201,3 +201,147 @@ Tier 1 + Tier 2 are complete for all 17 fighters (**238/238 sprites**).
   `tools/extract_sprites.py` so a re-extraction cannot overwrite them.
 - Verify with `python3 tools/audit_frames.py`, `tools/facing_review.py`, and
   the in-game smoke test in `docs/audit-guide.md` section 2.
+
+---
+
+## C. Round 6 — replacements for truncated sheet cells
+
+These are not quality upgrades: the source sheet cell physically clips the
+art, so no amount of pipeline work recovers what was never drawn. Confirmed by
+the frame's content box touching the cell edge (`ox == 0` or `oy == 0`), then
+by eye. Nothing else on the roster clips.
+
+Build each to the same **Delivery spec** above (single figure, transparent or
+flat magenta background, full body inside the canvas with margin on all four
+sides — the clipping is exactly what went wrong last time).
+
+| Frame | State it drives | What is cut off |
+|---|---|---|
+| `nobara/r2c0` | jump / air | **Raised arm and hammer cut off at the top.** Worst of the set — body art, not effect. |
+| `nobara/r4c2` | crouch attack | Lead arm runs off the left edge. |
+| `megumi/r4c3` | crouch attack | Megumi's arm and the shikigami's muzzle run off the left edge. |
+| `megumi/r3c2` | special / technique | Left edge clips the shikigami and the shadow effect. |
+| `megumi/r3c3` | ultimate | Left edge clips the purple domain sphere. |
+| `nobara/r3c2` | special (straw doll) | Left edge clips the purple cursed-energy effect. |
+| `nobara/r3c3` | ultimate | Left edge clips the purple sphere. |
+
+The last four clip **effects rather than the character**, so they are lower
+priority than the first three — a clipped sphere reads as a design choice in
+motion, a clipped arm never does.
+
+### Hair flat-cut in the source art
+
+A separate failure from the ones above. These frames sit well inside their
+cell — there is 49–76px of clear space over the head — so nothing truncated
+them. **The art was drawn with the top of the hair sliced off**, a flat
+horizontal edge across the skull. No pipeline change can recover it.
+
+| Frame | State it drives |
+|---|---|
+| `gojo/r3c0` | special / technique |
+| `gojo/r3c1` | ultimate |
+| `gojo/r3c2` | ultimate |
+| `inumaki/r0c3` | attack |
+
+Gojo's is the most visible on the roster: his hair is white against a dark
+stage and it is his silhouette. When regenerating, give the head **generous
+headroom** — the hair should end well inside the canvas, not near its edge.
+
+### Full clipped-frame list (second manual pass)
+
+Same delivery spec; the figure and its effect must sit fully inside the canvas
+with margin on all four sides.
+
+**Clipped at the LEFT**
+
+| Frame | Cause |
+|---|---|
+| `geto/r2c2` | runs off the cell edge |
+| `hanami/r2c2` | runs off the cell edge |
+| `megumi/r3c2` | runs off the cell edge |
+| `hakari/r3c2` | drawn cut off — and overhangs 27px into the neighbouring cell |
+| `geto/r3c2`, `maki/r3c2`, `megumi/r3c3`, `megumi/r4c3` | drawn cut off |
+
+**Clipped at the TOP**
+
+| Frame | Cause |
+|---|---|
+| `hanami/r2c0` | runs off the cell edge |
+| `gojo/r3c0`, `r3c1`, `r3c2`, `r3c3` | hair drawn flat-cut |
+| `hakari/r3c0`, `r3c2`, `r3c3` | drawn cut off |
+| `hanami/r3c2`, `r3c3` | drawn cut off |
+| `inumaki/r3c0`, `r3c1`, `r3c2` | drawn cut off |
+| `jogo/r3c2`, `r3c3` | drawn cut off |
+| `megumi/r3c0`, `r3c1`, `r3c2` | drawn cut off |
+
+Only 4 of these actually reach their cell boundary; the rest sit 30–77px
+inside it, meaning **the source art was drawn already cropped**. Both need the
+same fix, but it is worth knowing the sheet grid is not at fault for most of
+them — regenerating at a larger canvas will not help unless the *pose* is
+reframed to include the whole figure.
+
+### Note for whoever generates round 6
+
+The round-5 art arrived keyed off a **green** background, which left a green
+halo on every soft edge — hair worst of all — on 205 frames. It has been
+repaired in-place (`clean_frames.py --defringe`), but the cleanest fix is
+upstream: deliver with real alpha, or key against **magenta `#FF00FF`**, which
+no character on this roster wears.
+
+### Clipped-frame list (third manual pass)
+
+| Frame | Clipped |
+|---|---|
+| `momo/r1c2`, `panda/r3c1`, `yuta/r2c2`, `nanami/r3c2` | left — reaches the cell edge |
+| `nobara/r4c2`, `panda/r4c2` | left — drawn cut off |
+| `momo/r3c0`, `nanami/r3c1`, `nanami/r3c3`, `nobara/r2c0` | top — reaches the cell edge |
+| `nobara/r3c0`, `r3c2`, `r3c3` | top — drawn cut off |
+| `yuta/r3c0`, `r3c1`, `r3c2`, `r3c3` | top — drawn cut off (whole technique row) |
+| `sukuna/r0c3` | bottom — reaches the cell edge |
+
+`yuta/r3c0`–`r3c3` is the notable one: his entire technique row is cut off at
+the top, so it is worth reframing as a set rather than one frame at a time.
+
+### Clipped-frame list (fourth pass — reviewed against the crop sheets)
+
+Of 83 candidates flagged by the tooling, review confirmed **8** are genuinely
+cut off. The rest merely sit near a cell boundary and are fine. Detecting a
+clipped pose from geometry alone does not work — this is the ratio to expect.
+
+| Frame | Note |
+|---|---|
+| `geto/r0c3` | |
+| `hakari/r2c1` | |
+| `hakari/r2c3` | |
+| `momo/r2c2` | |
+| `momo/r2c0` | uncertain — depends whether the source art extends further |
+| `nanami/r2c3` | |
+| `sukuna/r3c2` | |
+| `yuta/r2c0` | |
+
+---
+
+## Baked-in magic effects
+
+Reviewing the bleed sheets established that **every** detached blob on the
+roster is a magic effect drawn into the sprite — not a neighbouring cell
+leaking in. Nothing needs removing, and the automatic bleed rules should stay
+narrow.
+
+It does raise a design question worth deciding before the next round: **should
+technique frames ship with their effects drawn on, or clean?**
+
+Effects baked into the sprite mean:
+
+- they cannot be recoloured, scaled or timed independently of the pose
+- they inflate the frame's bounding box, which drags `ox`/`bodyBottom` around
+  and makes size normalisation between poses harder
+- the same pose cannot be reused for a different move
+- every automatic check for stray blobs has to be loosened to tolerate them
+
+Frames drawn **without** effects, with the effect layered by the engine, would
+fix all four — at the cost of building an effect system per technique.
+
+Not a request yet, just the trade-off recorded while it is fresh. If you want
+to go that way, the technique rows (`r3c0`–`r3c3`) are where it matters, and
+they are already due for regeneration on other grounds.
