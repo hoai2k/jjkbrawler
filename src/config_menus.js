@@ -38,23 +38,18 @@
 export const CHARACTER_GROUPS = [
   {
     key: "students",
-    label: "Tokyo Jujutsu Students",
-    members: ["yuji", "yuta", "maki", "megumi", "nobara", "inumaki", "panda"],
+    label: "Tokyo Jujutsu High",
+    members: ["gojo", "yuji", "nobara", "megumi", "maki", "inumaki", "panda", "nanami", "meimei", "gakuganji"],
   },
   {
     key: "sorcerers",
-    label: "Sorcerers",
-    members: ["gojo", "nanami", "todo", "momo", "hakari", "toji", "meimei", "gakuganji"],
-  },
-  {
-    key: "culling",
-    label: "Culling Game",
-    members: ["uro", "reggie"],
+    label: "Other Sorcerers",
+    members: ["todo", "yuta", "geto", "hakari", "toji", "uro", "reggie", "momo"],
   },
   {
     key: "curses",
     label: "Curses and Curse Users",
-    members: ["sukuna", "mahito", "jogo", "hanami", "geto", "choso"],
+    members: ["mahito", "jogo", "hanami", "choso", "sukuna"],
   },
 ];
 
@@ -126,6 +121,20 @@ export const TEXT = {
     domainNote: "Costs a FULL Cursed Energy bar.",
     domainHowTo: "How it plays:",
     domainNone: "This fighter has no Domain Expansion. Only sorcerers who have mastered one can open a domain — the rest put the whole bar into their ultimate instead.",
+    // Multi-player split view: every human player reads their own fighter at
+    // the same time instead of taking turns paging through one shared list.
+    splitKicker: "Move lists",
+    splitHeading: "Every player's fighter",
+    playerBadge: (id) => `P${id}`,
+    browseAll: "Browse all fighters",
+    backToPlayers: "Your fighters",
+    yourKeys: (id) => `Keyboard P${id}:`,
+    keyLines: {
+      1: "WASD move · J light · K heavy · L special · I ultimate · U domain · Left Shift shield",
+      2: "Arrows move · , light · . heavy · / special · ' ultimate · ; domain · Right Shift shield",
+      3: "Gamepad only",
+      4: "Gamepad only",
+    },
     tips: [
       ["Left stick twice", "Dash"],
       ["Down in air", "Fast-fall"],

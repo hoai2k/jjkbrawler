@@ -568,6 +568,11 @@ than waiting out an animation. The in-game moves screen carries the same
 different d-pad directions (◀ and ▶). Nobody has two yet; the input path and
 the moves screen already handle it.
 
+When two or more human players are on different fighters, the move list opens
+as a **column per player** so everyone reads their own kit — domain included —
+at the same time, rather than passing one shared list around. *Browse all
+fighters* switches back to the single paging view.
+
 | Fighter | Domain | What it does | What you do |
 |---|---|---|---|
 | Gojo | **Unlimited Void** | The enemy receives infinite information and can act on none of it — total paralysis for 5.5 s. | Every hit banks a purple orb; when the domain closes, all of them detonate at once. Hit them as many times as you can. |
