@@ -4,33 +4,10 @@
 // Frame keys are sheet cells "r{row}c{col}" resolved via assets/sprites/manifest.json.
 // Sheet rows: 0 idle/poses, 1 run, 2 air, 3 technique effects, 4 crouch.
 
-// Roster grouping used by the fighter-select grid. Three buckets, sized 6/6/5:
-// the Tokyo class, everyone else on the human side (faculty, Kyoto, the
-// non-sorcerer), and the curses plus Geto, who is human but fights entirely
-// through the curses he manipulates. The select screen lays itself out from
-// this list alone, so a new fighter or a new category needs nothing but an
-// entry here.
-export const CHARACTER_GROUPS = [
-  {
-    key: "students",
-    label: "Tokyo Jujutsu Students",
-    members: ["yuta", "maki", "megumi", "nobara", "inumaki", "panda"],
-  },
-  {
-    key: "sorcerers",
-    label: "Sorcerers",
-    members: ["gojo", "nanami", "todo", "momo", "hakari", "toji"],
-  },
-  {
-    key: "curses",
-    label: "Curses and Curse Users",
-    members: ["sukuna", "mahito", "jogo", "hanami", "geto"],
-  },
-];
+import { CHARACTER_GROUPS } from "./config.js";
 
-// Grid order, move-list order and asset-load order all follow the groups, so
-// there is one roster ordering rather than two that can drift apart.
-export const CHARACTER_KEYS = CHARACTER_GROUPS.flatMap((g) => g.members);
+// The roster itself is defined further down; CHARACTER_KEYS is derived from the
+// config groups once the kits exist (see the bottom of this file).
 
 // Round-7 fighters: kits, mechanics, AI and audio are fully wired, but their
 // art has not been delivered yet (see docs/asset-requests-round7.md). To ship
@@ -1150,14 +1127,27 @@ export const CHARACTERS = {
   },
 };
 
-// A playable fighter that never made it into a group would silently vanish from
-// the select screen, so say so loudly. Staged round-7 fighters are excluded by
-// design and don't count.
+// Grid order, move-list order and asset-load order all follow the groups in
+// config.js, so there is one roster ordering rather than two that can drift
+// apart. A key listed in a group with no kit here is dropped rather than
+// crashing the select screen; the warning below names it.
+export const CHARACTER_KEYS = CHARACTER_GROUPS
+  .flatMap((g) => g.members)
+  .filter((key) => CHARACTERS[key]);
+
+// Config typos are worth saying out loud: a fighter in no group is unreachable,
+// and a group member with no kit would break the grid. Staged round-7 fighters
+// are excluded from the roster by design and don't count as either.
 const ungrouped = Object.keys(CHARACTERS).filter(
   (key) => !CHARACTER_KEYS.includes(key) && !STAGED_CHARACTER_KEYS.includes(key)
 );
 if (ungrouped.length) {
   console.warn(`Not listed in CHARACTER_GROUPS, so unselectable: ${ungrouped.join(", ")}`);
+}
+
+const unknown = CHARACTER_GROUPS.flatMap((g) => g.members).filter((key) => !CHARACTERS[key]);
+if (unknown.length) {
+  console.warn(`Listed in CHARACTER_GROUPS but no such fighter: ${unknown.join(", ")}`);
 }
 
 export function getCharacter(key) {

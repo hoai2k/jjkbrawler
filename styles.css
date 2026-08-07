@@ -356,6 +356,8 @@ html, body {
   align-items: flex-start;
   gap: 10px 20px;
   width: 100%;
+  /* Held steady once fitted, so nothing reflows while a player is choosing. */
+  min-height: var(--grid-height, auto);
 }
 
 /* Measured, never seen: carries the responsive base card width in a form
@@ -384,7 +386,7 @@ html, body {
      balances the rows (six fighters wrap 3+3, never 5+1). The auto-fit value is
      the fallback for the first paint, before anything has been measured. */
   grid-template-columns: repeat(var(--cols, auto-fit), minmax(0, var(--card-size)));
-  justify-content: center;
+  justify-content: start;
   gap: 6px;
 }
 
@@ -513,6 +515,17 @@ html, body {
   cursor: pointer;
   color: var(--text);
   width: 220px;
+  /* Height depends on the window only, never on what the card is showing: an
+     empty, browsing and locked-in card are identical in size, so the screen
+     cannot reflow mid-selection. The constant is the fixed furniture below the
+     portrait — name, three lines of description, stat bars, ultimate — each of
+     which clips to its own line budget. */
+  --hero-art-h: clamp(84px, 14vh, 118px);
+  --hero-art-w: calc(var(--hero-art-h) * 1.42);
+  --hero-furniture: 190px; /* name + 3 description lines + stats + ultimate */
+  height: calc(var(--hero-art-h) + var(--hero-furniture));
+  justify-content: flex-start;
+  overflow: hidden;
   transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
 }
 
@@ -525,8 +538,8 @@ html, body {
 }
 
 .matchup-side img {
-  width: 168px;
-  height: 118px;
+  width: var(--hero-art-w);
+  height: var(--hero-art-h);
   object-fit: cover;
   object-position: top;
   border-radius: 10px;
@@ -547,8 +560,8 @@ html, body {
 
 .matchup-side.is-empty strong::before {
   content: "?";
-  width: 168px;
-  height: 118px;
+  width: var(--hero-art-w);
+  height: var(--hero-art-h);
   margin: 0 auto 4px;
   border: 1px dashed rgba(160, 190, 255, 0.35);
   border-radius: 10px;
@@ -559,31 +572,15 @@ html, body {
   color: rgba(160, 190, 255, 0.55);
 }
 
-/* Browsing: the card shows whoever the cursor is over, but reads as unresolved
-   until it is actually locked in. */
-.matchup-side.is-preview {
-  border-style: dashed;
-  border-color: rgba(98, 220, 255, 0.55);
+/* Browsing: nothing is committed yet, so the whole card reads as provisional —
+   greyed down, no badge. Locking in restores it to full colour. */
+.matchup-side.is-browsing img,
+.matchup-side.is-browsing .hero-random-art {
+  filter: grayscale(0.55) brightness(0.82);
 }
 
-.matchup-side.is-preview img,
-.matchup-side.is-preview .hero-random-art { opacity: 0.72; }
-.matchup-side.is-preview .hero-info { opacity: 0.78; }
-
-.matchup-side.is-preview::after {
-  content: "Previewing";
-  position: absolute;
-  top: 34px;
-  left: 16px;
-  z-index: 2;
-  font: 900 0.55rem/1 inherit;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: #04121e;
-  background: var(--accent);
-  border-radius: 20px;
-  padding: 4px 9px;
-}
+.matchup-side.is-browsing strong,
+.matchup-side.is-browsing .hero-info { opacity: 0.6; }
 
 .matchup-side.is-ready {
   border-color: #72e596;
@@ -619,8 +616,8 @@ html, body {
 .hero-random-art {
   display: grid;
   place-items: center;
-  width: 168px;
-  height: 118px;
+  width: var(--hero-art-w);
+  height: var(--hero-art-h);
   border-radius: 10px;
   border: 1px dashed rgba(160, 190, 255, 0.45);
   background:
@@ -643,13 +640,22 @@ html, body {
   flex-direction: column;
   gap: 5px;
   width: 100%;
+  margin-top: auto;
 }
 
 .hero-epithet {
   font-size: 0.66rem;
   font-style: italic;
+  line-height: 1.32;
   color: var(--text-dim);
   text-align: center;
+  /* Three lines budgeted, always reserved so the card cannot change height.
+     Longer text ellipses; the full string is on the element's title. */
+  height: calc(3 * 1.32em);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .hero-stats { display: flex; flex-direction: column; gap: 3px; }
@@ -691,6 +697,13 @@ html, body {
   color: var(--text);
   text-align: center;
   line-height: 1.3;
+  /* Label line plus two lines of name; longer names ellipse and carry the full
+     text on hover. */
+  height: calc(3 * 1.3em);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .hero-ult i {
@@ -918,18 +931,17 @@ html, body {
 @media (max-height: 700px) {
   .character-grid { --card-aspect: 5 / 4; --card-base: clamp(70px, 10vh, 92px); gap: 8px 14px; }
   #menuOverlay .game-logo { max-height: 52px; }
-  /* The hero cards give ground too, so the roster doesn't carry the whole cut. */
-  .matchup-side { width: 172px; padding: 7px 10px 6px; }
-  .matchup-side img, .hero-random-art,
-  .matchup-side.is-empty strong::before { width: 128px; height: 90px; }
+  /* The hero cards give ground too, so the roster doesn't carry the whole cut:
+     two description lines instead of three, and a shorter portrait. */
+  .matchup-side { width: 172px; padding: 7px 10px 6px; --hero-furniture: 156px; }
+  .hero-epithet { height: calc(2 * 1.32em); -webkit-line-clamp: 2; }
+  .hero-ult { height: calc(2 * 1.3em); -webkit-line-clamp: 2; }
 }
 
 @media (max-width: 900px) {
   .stage-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .matchup-bar { flex-wrap: wrap; }
   .matchup-side { width: 160px; padding: 7px; }
-  .matchup-side img, .hero-random-art,
-  .matchup-side.is-empty strong::before { width: 120px; height: 84px; }
   .controller-guide { grid-template-columns: 1fr; }
   .controller-tips { grid-template-columns: repeat(2, 1fr); }
 }
