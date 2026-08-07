@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { CHARACTER_KEYS, CHARACTERS } from "./characters.js";
+import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { STAGES } from "./stages.js";
 import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
@@ -32,6 +32,7 @@ export function initUi(cb) {
     "p1PickLabel", "p2PickLabel", "p3PickLabel", "p4PickLabel",
     "p1PickInfo", "p2PickInfo", "p3PickInfo", "p4PickInfo",
     "p1PickReady", "p2PickReady", "p3PickReady", "p4PickReady",
+    "p1PickRandomArt", "p2PickRandomArt", "p3PickRandomArt", "p4PickRandomArt",
     "startButton", "movesButton", "settingsButton", "fullscreenButton", "controllerStatus", "menuHint",
     "p1Panel", "p2Panel", "p3Panel", "p4Panel",
     "p1Name", "p2Name", "p3Name", "p4Name",
@@ -75,7 +76,17 @@ function allReady() {
 
 export function resetReady() {
   for (const id of PLAYER_IDS) state.ready[id] = false;
+  state.cpuRoll = null;
   state.activePicker = 1;
+}
+
+// The CPU draws its fighter the instant the humans finish locking in, so the
+// select screen can show who they are about to face. Backing out of a lock
+// discards the draw, so re-readying faces a fresh opponent.
+function syncCpuRoll() {
+  const auto = state.playerCount === 1 && state.selection[2] === RANDOM_KEY;
+  if (!auto || !allReady()) state.cpuRoll = null;
+  else if (!state.cpuRoll) state.cpuRoll = randomCharacterKey();
 }
 
 // Commit a fighter for a slot. Humans lock in (ready); the CPU slot just takes
@@ -110,12 +121,15 @@ function tryStart() {
 
 function buildCharacterGrid() {
   els.characterGrid.innerHTML = "";
-  for (const key of CHARACTER_KEYS) {
-    const char = CHARACTERS[key];
+  for (const key of [...CHARACTER_KEYS, RANDOM_KEY]) {
+    const random = key === RANDOM_KEY;
+    const name = random ? "Random" : CHARACTERS[key].name;
     const btn = document.createElement("button");
-    btn.className = "char-card";
+    btn.className = random ? "char-card char-card--random" : "char-card";
     btn.dataset.character = key;
-    btn.innerHTML = `<img src="assets/cards/${key}_card.jpg" alt="${char.name}"><span>${char.name}</span>`;
+    btn.innerHTML = random
+      ? `<b class="random-glyph">?</b><span>${name}</span>`
+      : `<img src="assets/cards/${key}_card.jpg" alt="${name}"><span>${name}</span>`;
     btn.addEventListener("click", () => selectFighter(state.activePicker, key));
     btn.addEventListener("contextmenu", (e) => {
       e.preventDefault();
@@ -174,7 +188,7 @@ function bindMenuButtons() {
 
   els.movesButton.addEventListener("click", () => {
     movesReturnPhase = state.phase === "moves" ? movesReturnPhase : state.phase;
-    movesIndex = CHARACTER_KEYS.indexOf(state.selection[1]);
+    movesIndex = Math.max(0, CHARACTER_KEYS.indexOf(state.selection[1]));
     setPhase("moves");
   });
   els.movesBackButton.addEventListener("click", () => setPhase(movesReturnPhase));
@@ -239,6 +253,16 @@ const STAT_RANGES = STAT_DEFS.map((def) => {
   return { min: Math.min(...values), max: Math.max(...values) };
 });
 
+function randomInfoHtml() {
+  const bars = STAT_DEFS.map((def) =>
+    `<span class="hero-stat"><i>${def.label}</i><b></b></span>`).join("");
+  return `
+    <em class="hero-epithet">Drawn fresh every round</em>
+    <span class="hero-stats">${bars}</span>
+    <span class="hero-ult"><i>Ultimate</i> ???</span>
+  `;
+}
+
 function heroInfoHtml(char) {
   const bars = STAT_DEFS.map((def, i) => {
     const { min, max } = STAT_RANGES[i];
@@ -252,14 +276,23 @@ function heroInfoHtml(char) {
   `;
 }
 
+// What each slot's card should point at right now. Normally the selection
+// itself, but once the CPU has drawn, its tag follows the drawn fighter rather
+// than sitting on the Random card.
+function shownKey(id) {
+  const drawn = id === 2 && state.selection[id] === RANDOM_KEY ? state.cpuRoll : null;
+  return drawn || state.selection[id];
+}
+
 export function updateSelectionUi() {
+  syncCpuRoll();
   for (const btn of els.characterGrid.children) {
     const key = btn.dataset.character;
     const visiblePlayers = state.playerCount === 1 ? [1, 2] : PLAYER_IDS.slice(0, state.playerCount);
-    for (const id of PLAYER_IDS) btn.classList.toggle(`is-p${id}`, visiblePlayers.includes(id) && key === state.selection[id]);
+    for (const id of PLAYER_IDS) btn.classList.toggle(`is-p${id}`, visiblePlayers.includes(id) && key === shownKey(id));
     btn.querySelectorAll(".pick-tag").forEach((el) => el.remove());
     for (const id of visiblePlayers) {
-      if (key !== state.selection[id]) continue;
+      if (key !== shownKey(id)) continue;
       const tag = document.createElement("i");
       tag.className = `pick-tag pick-tag--p${id}`;
       tag.textContent = id === 2 && state.playerCount === 1 ? "CPU" : `P${id}`;
@@ -267,16 +300,26 @@ export function updateSelectionUi() {
     }
   }
   for (const id of PLAYER_IDS) {
-    const key = state.selection[id];
-    const char = CHARACTERS[key];
-    const ready = state.ready[id] || isCpuSlot(id);
-    els[`p${id}PickImage`].src = `assets/cards/${key}_card.jpg`;
-    els[`p${id}PickName`].textContent = char.name;
-    els[`p${id}PickInfo`].innerHTML = heroInfoHtml(char);
-    els[`p${id}PickReady`].classList.toggle("hidden", !state.ready[id]);
+    // A random slot shows a "?" tile, except the CPU once it has drawn: then
+    // the card reveals the fighter the next match will actually use.
+    const drawn = id === 2 && state.selection[id] === RANDOM_KEY ? state.cpuRoll : null;
+    const key = drawn || state.selection[id];
+    const random = key === RANDOM_KEY;
+    const char = random ? null : CHARACTERS[key];
+    const badge = els[`p${id}PickReady`];
+
+    els[`p${id}PickImage`].classList.toggle("hidden", random);
+    els[`p${id}PickRandomArt`].classList.toggle("hidden", !random);
+    if (!random) els[`p${id}PickImage`].src = `assets/cards/${key}_card.jpg`;
+    els[`p${id}PickName`].textContent = random ? "Random" : char.name;
+    els[`p${id}PickInfo`].innerHTML = random ? randomInfoHtml() : heroInfoHtml(char);
+
+    badge.textContent = drawn ? "Random" : "Ready";
+    badge.classList.toggle("hero-ready--random", !!drawn);
+    badge.classList.toggle("hidden", !state.ready[id] && !drawn);
     els[`p${id}PickCard`].classList.toggle("hidden", id > 2 && id > state.playerCount);
     els[`p${id}PickCard`].classList.toggle("is-active", state.activePicker === id);
-    els[`p${id}PickCard`].classList.toggle("is-ready", ready && !isCpuSlot(id));
+    els[`p${id}PickCard`].classList.toggle("is-ready", state.ready[id]);
   }
   els.p2PickLabel.textContent = state.mode === "cpu" ? "CPU" : "Player 2";
   const go = allReady();

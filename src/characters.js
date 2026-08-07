@@ -13,9 +13,20 @@ export const CHARACTER_KEYS = [
 // art has not been delivered yet (see docs/asset-requests-round7.md). To ship
 // one, move its key from this list into CHARACTER_KEYS once its sprites are in
 // the manifest and its card is in assets/cards/ — nothing else is needed.
+// Deliberately excluded from CHARACTER_KEYS, so neither character select nor
+// randomCharacterKey() below can land on a fighter that has no sprites yet.
 export const STAGED_CHARACTER_KEYS = [
   "yuji", "choso", "meimei", "uro", "reggie", "gakuganji",
 ];
+
+// Sentinel selection meaning "draw a fresh fighter at the start of every match"
+// rather than naming one. Never a key in CHARACTERS — resolve it through
+// randomCharacterKey() before building a fighter.
+export const RANDOM_KEY = "__random";
+
+export function randomCharacterKey() {
+  return CHARACTER_KEYS[Math.floor(Math.random() * CHARACTER_KEYS.length)];
+}
 
 // Anim defaults; characters override entries whose sheet cells differ.
 export const DEFAULT_ANIMS = {

@@ -8,6 +8,7 @@ import { updateParticles, banner } from "./particles.js";
 import { updateCamera } from "./camera.js";
 import { draw } from "./render.js";
 import { getStage } from "./stages.js";
+import { RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { makeAiState, aiInput, cpuDamageMul } from "./ai.js";
 import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady } from "./ui.js";
 import { FIXED_DT, MAX_FIXED_STEPS, WORLD } from "./constants.js";
@@ -40,6 +41,23 @@ function isHumanSlot(id) {
   return id <= state.playerCount && connectedPadCount() >= id;
 }
 
+// Turn each slot's selection into the concrete fighter for this match. Random
+// slots draw fresh every time, so a player on Random gets a new fighter each
+// round. The CPU honours the roll already shown on the select screen, then
+// clears it so the next round re-draws.
+function resolveRoster(entrantCount) {
+  for (let id = 1; id <= entrantCount; id++) {
+    const picked = state.selection[id];
+    if (picked !== RANDOM_KEY) {
+      state.roster[id] = picked;
+      continue;
+    }
+    const shown = id === 2 && state.playerCount === 1 ? state.cpuRoll : null;
+    state.roster[id] = shown || randomCharacterKey();
+  }
+  state.cpuRoll = null;
+}
+
 function resetMatch() {
   const stage = getStage(state.stageKey);
   state.platforms = stage.platforms.map((p) => ({ ...p }));
@@ -52,10 +70,11 @@ function resetMatch() {
     4: [250, 500, 780, 1030],
   };
   const spawns = spawnSets[entrantCount];
+  resolveRoster(entrantCount);
   state.fighters = Array.from({ length: entrantCount }, (_, i) => {
     const id = i + 1;
     const x = spawns[i];
-    const fighter = makeFighter(id, state.selection[id], x, x < WORLD.w / 2 ? 1 : -1);
+    const fighter = makeFighter(id, state.roster[id], x, x < WORLD.w / 2 ? 1 : -1);
     fighter.y = groundY;
     fighter.grounded = true;
     return fighter;

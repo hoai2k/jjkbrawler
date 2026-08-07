@@ -760,6 +760,28 @@
     "bodyH": 234.6,
     "centroidX": 164.5,
     "renderScale": 0.237
+   },
+   "dodge_air": {
+    "w": 711,
+    "h": 926,
+    "ox": -198.8,
+    "oy": -615,
+    "bodyBottom": 310.4,
+    "bodyH": 267.6,
+    "centroidX": 199.1,
+    "renderScale": 0.289,
+    "file": "nanami/dodge_air.png"
+   },
+   "dodge_roll": {
+    "w": 1274,
+    "h": 584,
+    "ox": -480.2,
+    "oy": -273,
+    "bodyBottom": 310.4,
+    "bodyH": 168.8,
+    "centroidX": 241.4,
+    "renderScale": 0.289,
+    "file": "nanami/dodge_roll.png"
    }
   },
   "hanami": {
@@ -1125,6 +1147,28 @@
     "bodyH": 237.9,
     "centroidX": 158.2,
     "renderScale": 0.24
+   },
+   "dodge_air": {
+    "w": 798,
+    "h": 1165,
+    "ox": -242.2,
+    "oy": -854,
+    "bodyBottom": 310.4,
+    "bodyH": 341.3,
+    "centroidX": 253.7,
+    "renderScale": 0.293,
+    "file": "hanami/dodge_air.png"
+   },
+   "dodge_roll": {
+    "w": 1035,
+    "h": 876,
+    "ox": -360.8,
+    "oy": -565,
+    "bodyBottom": 310.4,
+    "bodyH": 256.7,
+    "centroidX": 213.4,
+    "renderScale": 0.293,
+    "file": "hanami/dodge_roll.png"
    }
   },
   "geto": {
@@ -2246,6 +2290,28 @@
     "bodyH": 232.1,
     "centroidX": 179.8,
     "renderScale": 0.235
+   },
+   "dodge_air": {
+    "w": 552,
+    "h": 1064,
+    "ox": -119.2,
+    "oy": -753,
+    "bodyBottom": 310.4,
+    "bodyH": 304.3,
+    "centroidX": 177.2,
+    "renderScale": 0.286,
+    "file": "mahito/dodge_air.png"
+   },
+   "dodge_roll": {
+    "w": 1049,
+    "h": 757,
+    "ox": -367.8,
+    "oy": -446,
+    "bodyBottom": 310.4,
+    "bodyH": 216.5,
+    "centroidX": 332.6,
+    "renderScale": 0.286,
+    "file": "mahito/dodge_roll.png"
    }
   },
   "sukuna": {
@@ -3006,6 +3072,28 @@
     "bodyH": 242.0,
     "centroidX": 183.9,
     "renderScale": 0.245
+   },
+   "dodge_air": {
+    "w": 548,
+    "h": 1129,
+    "ox": -117.2,
+    "oy": -818,
+    "bodyBottom": 310.4,
+    "bodyH": 335.3,
+    "centroidX": 130.5,
+    "renderScale": 0.297,
+    "file": "megumi/dodge_air.png"
+   },
+   "dodge_roll": {
+    "w": 927,
+    "h": 864,
+    "ox": -306.8,
+    "oy": -553,
+    "bodyBottom": 310.4,
+    "bodyH": 256.6,
+    "centroidX": 133.6,
+    "renderScale": 0.297,
+    "file": "megumi/dodge_roll.png"
    }
   },
   "jogo": {
@@ -3363,6 +3451,28 @@
     "bodyH": 213.3,
     "centroidX": 201.3,
     "renderScale": 0.219
+   },
+   "dodge_air": {
+    "w": 821,
+    "h": 785,
+    "ox": -253.8,
+    "oy": -474,
+    "bodyBottom": 310.4,
+    "bodyH": 207.2,
+    "centroidX": 65.8,
+    "renderScale": 0.264,
+    "file": "jogo/dodge_air.png"
+   },
+   "dodge_roll": {
+    "w": 930,
+    "h": 938,
+    "ox": -308.2,
+    "oy": -627,
+    "bodyBottom": 310.4,
+    "bodyH": 247.6,
+    "centroidX": 237.4,
+    "renderScale": 0.264,
+    "file": "jogo/dodge_roll.png"
    }
   },
   "hakari": {
@@ -3728,6 +3838,28 @@
     "bodyH": 239.5,
     "centroidX": 207.1,
     "renderScale": 0.243
+   },
+   "dodge_air": {
+    "w": 590,
+    "h": 1073,
+    "ox": -138.2,
+    "oy": -762,
+    "bodyBottom": 310.4,
+    "bodyH": 316.5,
+    "centroidX": 217.0,
+    "renderScale": 0.295,
+    "file": "hakari/dodge_air.png"
+   },
+   "dodge_roll": {
+    "w": 937,
+    "h": 719,
+    "ox": -311.8,
+    "oy": -408,
+    "bodyBottom": 310.4,
+    "bodyH": 212.1,
+    "centroidX": 179.6,
+    "renderScale": 0.295,
+    "file": "hakari/dodge_roll.png"
    }
   },
   "yuta": {
@@ -4095,6 +4227,28 @@
     "bodyH": 231.3,
     "centroidX": 244.0,
     "renderScale": 0.235
+   },
+   "dodge_air": {
+    "w": 757,
+    "h": 820,
+    "ox": -221.8,
+    "oy": -509,
+    "bodyBottom": 310.4,
+    "bodyH": 233.7,
+    "centroidX": 283.0,
+    "renderScale": 0.285,
+    "file": "yuta/dodge_air.png"
+   },
+   "dodge_roll": {
+    "w": 1212,
+    "h": 719,
+    "ox": -449.2,
+    "oy": -408,
+    "bodyBottom": 310.4,
+    "bodyH": 204.9,
+    "centroidX": 251.7,
+    "renderScale": 0.285,
+    "file": "yuta/dodge_roll.png"
    }
   },
   "nobara": {
@@ -4452,6 +4606,28 @@
     "bodyH": 238.7,
     "centroidX": 184.9,
     "renderScale": 0.273
+   },
+   "dodge_air": {
+    "w": 711,
+    "h": 852,
+    "ox": -198.8,
+    "oy": -541,
+    "bodyBottom": 310.4,
+    "bodyH": 251.3,
+    "centroidX": 196.4,
+    "renderScale": 0.295,
+    "file": "nobara/dodge_air.png"
+   },
+   "dodge_roll": {
+    "w": 1257,
+    "h": 721,
+    "ox": -471.8,
+    "oy": -410,
+    "bodyBottom": 310.4,
+    "bodyH": 212.7,
+    "centroidX": 30.7,
+    "renderScale": 0.295,
+    "file": "nobara/dodge_roll.png"
    }
   },
   "maki": {
@@ -5200,6 +5376,28 @@
     "bodyH": 205.9,
     "centroidX": 235.2,
     "renderScale": 0.208
+   },
+   "dodge_air": {
+    "w": 583,
+    "h": 1162,
+    "ox": -134.8,
+    "oy": -851,
+    "bodyBottom": 310.4,
+    "bodyH": 295.1,
+    "centroidX": 165.5,
+    "renderScale": 0.254,
+    "file": "inumaki/dodge_air.png"
+   },
+   "dodge_roll": {
+    "w": 1010,
+    "h": 682,
+    "ox": -348.2,
+    "oy": -371,
+    "bodyBottom": 310.4,
+    "bodyH": 173.2,
+    "centroidX": 192.3,
+    "renderScale": 0.254,
+    "file": "inumaki/dodge_roll.png"
    }
   },
   "panda": {
