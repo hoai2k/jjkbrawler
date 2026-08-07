@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, RESOLVED_GROUPS, randomCharacterKey } from "./characters.js";
 import { STAGES } from "./stages.js";
-import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx } from "./audio.js";
+import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx, toggleMute } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
 import { METER_MAX, ULT_METER_COST } from "./constants.js";
 import { clamp } from "./utils.js";
@@ -40,7 +40,7 @@ export function initUi(cb) {
     "p1PickInfo", "p2PickInfo", "p3PickInfo", "p4PickInfo",
     "p1PickReady", "p2PickReady", "p3PickReady", "p4PickReady",
     "p1PickRandomArt", "p2PickRandomArt", "p3PickRandomArt", "p4PickRandomArt",
-    "startButton", "movesButton", "settingsButton", "fullscreenButton", "controllerStatus", "menuHint",
+    "startButton", "movesButton", "settingsButton", "fullscreenButton", "muteButton", "controllerStatus", "menuHint",
     "p1Panel", "p2Panel", "p3Panel", "p4Panel",
     "p1Name", "p2Name", "p3Name", "p4Name",
     "p1Damage", "p2Damage", "p3Damage", "p4Damage",
@@ -87,6 +87,11 @@ function applyStaticText() {
   set(els.pauseResetButton, TEXT.pause.reset);
   set(els.pauseMenuButton, TEXT.pause.quit);
   set(els.settingsBackButton, TEXT.settings.back);
+  const tip = (el, label) => { if (el) { el.title = label; el.setAttribute("aria-label", label); } };
+  tip(els.movesButton, TEXT.utility.moves);
+  tip(els.settingsButton, TEXT.utility.settings);
+  tip(els.fullscreenButton, TEXT.utility.fullscreen);
+  updateMuteButton();
   for (const id of PLAYER_IDS) {
     set(els[`p${id}PickLabel`], TEXT.slot.player(id));
     set(els[`p${id}PickReady`], TEXT.slot.readyBadge);
@@ -353,6 +358,13 @@ function bindMenuButtons() {
   };
   els.fullscreenButton.addEventListener("click", fullscreen);
 
+  els.muteButton.addEventListener("click", () => {
+    const muted = toggleMute();
+    updateMuteButton();
+    syncMusic(state.phase);
+    if (!muted) playSfx("block", 0.7); // audible confirmation that sound is back
+  });
+
   els.settingsButton.addEventListener("click", () => {
     settingsReturnPhase = state.phase === "settings" ? settingsReturnPhase : state.phase;
     setPhase("settings");
@@ -376,6 +388,20 @@ function bindMenuButtons() {
   els.pauseMenuButton.addEventListener("click", () => callbacks.quitToMenu());
   els.rematchButton.addEventListener("click", () => callbacks.resetMatch());
   els.menuButton.addEventListener("click", () => callbacks.quitToMenu());
+}
+
+// Speaker on / speaker off, plus the wording and pressed state that go with it.
+function updateMuteButton() {
+  const btn = els.muteButton;
+  if (!btn) return;
+  const muted = audioSettings.muted;
+  btn.classList.toggle("is-muted", muted);
+  btn.setAttribute("aria-pressed", String(muted));
+  const label = muted ? TEXT.utility.unmute : TEXT.utility.mute;
+  btn.title = label;
+  btn.setAttribute("aria-label", label);
+  btn.querySelector(".icon-sound-on")?.classList.toggle("hidden", muted);
+  btn.querySelector(".icon-sound-off")?.classList.toggle("hidden", !muted);
 }
 
 export function updateMenuButtons() {
@@ -885,7 +911,7 @@ function movePickerCursor(playerId, dx, dy) {
 // LB/RB on the menu cycle a highlight through the utility buttons in the top
 // right corner, then wrap back to the fighter grid (or the start button once
 // everyone is locked in). A activates the highlighted button.
-const UTILITY_IDS = ["movesButton", "settingsButton", "fullscreenButton"];
+const UTILITY_IDS = ["movesButton", "muteButton", "settingsButton", "fullscreenButton"];
 let utilityIdx = -1;
 let menuHighlightEl = null;
 

@@ -178,6 +178,15 @@ export const TEXT = {
     back: "Back",
   },
 
+  // Toolbar buttons in the top-right corner.
+  utility: {
+    moves: "Controls and move list",
+    settings: "Settings",
+    fullscreen: "Toggle fullscreen",
+    mute: "Mute sound",
+    unmute: "Unmute sound",
+  },
+
   hud: {
     ultimateReady: "ULTIMATE READY",
     domainReady: "DOMAIN READY",

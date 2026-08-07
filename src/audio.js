@@ -41,6 +41,9 @@ const GRUNT_GROUPS = {
 };
 
 export const audioSettings = {
+  // Master mute from the toolbar. Independent of the volume sliders, so
+  // unmuting restores whatever levels were set rather than resetting them.
+  muted: false,
   musicVolume: 0.3,
   sfxVolume: 0.45,
   musicMode: 0, // index into MUSIC_MODES below; 0 is per-stage music
@@ -107,7 +110,7 @@ export function initAudio() {
 }
 
 export function playSfx(name, intensity = 1, rate = 0) {
-  if (!unlocked || audioSettings.sfxVolume <= 0) return;
+  if (!unlocked || audioSettings.muted || audioSettings.sfxVolume <= 0) return;
   const src = SFX_FILES[name];
   if (!src) return;
   if (active.size > 24) return; // safety valve
@@ -129,7 +132,7 @@ export function playGrunt(charKey) {
 }
 
 export function startShieldLoop() {
-  if (!unlocked || shieldLoop || audioSettings.sfxVolume <= 0) return;
+  if (!unlocked || shieldLoop || audioSettings.muted || audioSettings.sfxVolume <= 0) return;
   shieldLoop = new Audio(SFX_FILES.shield);
   shieldLoop.volume = Math.min(1, audioSettings.sfxVolume * 0.6);
   shieldLoop.loop = true;
@@ -168,7 +171,7 @@ export function syncMusic(phase) {
   const off = (MUSIC_MODES[audioSettings.musicMode] || MUSIC_MODES[0]).key === "off";
   const volume = audioSettings.musicVolume * (menu ? MENU_TRACK.volumeScale : 1);
 
-  if (!src || off || audioSettings.musicVolume <= 0) {
+  if (!src || off || audioSettings.muted || audioSettings.musicVolume <= 0) {
     musicEl.pause();
     return;
   }
@@ -179,6 +182,13 @@ export function syncMusic(phase) {
   }
   musicEl.loop = true;
   musicEl.play().catch(() => {});
+}
+
+// Toolbar mute. Returns the new state so the caller can repaint its icon.
+export function toggleMute() {
+  audioSettings.muted = !audioSettings.muted;
+  if (audioSettings.muted) stopShieldLoop();
+  return audioSettings.muted;
 }
 
 export function cycleMusicMode() {
