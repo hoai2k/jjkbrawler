@@ -137,9 +137,14 @@ checkbox is the per-frame override, it wins over the list, and it exports with
 everything else. Turning a mirror *off* is meaningful and is stored as
 `faceLeft: false` rather than by deleting the key.
 
-**Unused poses are hidden.** The sheets carry cells the game never draws; the
-pose list shows only those an animation names (plus `r0c0`, which `render.js`
-draws directly for the respawn platform). *View all sprites* reveals the rest.
+**The pose list is filtered.** *Unedited only* — the default — shows the poses
+the game draws that have no adjustments saved in the codebase yet, so a pass
+through a character does not keep re-presenting work already done. *Edited only*
+is everything you have touched, *Used in game* drops the edit filter, and *All*
+adds the sheet cells the game never draws (the list otherwise shows only frames
+an animation names, plus `r0c0`, which `render.js` draws for the respawn
+platform). "Edited" means committed to the manifest — the dot marks unsaved
+changes in the current session.
 
 **Airborne-only poses have no ground contact.** A frame used only by `jump`,
 `fall`, `ledge`, `dodge_air` or `airLight` never touches the floor, so the

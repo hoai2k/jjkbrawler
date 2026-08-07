@@ -42,8 +42,20 @@ MANIFEST = os.path.join(HERE, "..", "assets", "sprites", "manifest.json")
 # manifest seeded these by guess; a per-frame faceLeft is an explicit decision
 # and wins over it, which is why writing `false` matters rather than deleting
 # the key — see loadAssets in src/assets.js.
-ALLOWED = {"renderScale", "ox", "bodyBottom", "anchors", "faceLeft"}
+#
+# needsReplacement flags a frame whose ART is wrong and should be redrawn. It is
+# a request, not a placement value — tools/list_replacements.py collects them for
+# the asset request list, and intake clears the flag when new art lands.
+ALLOWED = {"renderScale", "ox", "bodyBottom", "anchors", "faceLeft", "needsReplacement"}
 NUMERIC = {"renderScale", "ox", "bodyBottom"}
+BOOLEAN = {"faceLeft", "needsReplacement"}
+
+# Fields whose pre-edit value is worth remembering. `edited` maps each to what
+# it held before the FIRST hand edit, which does two jobs: it marks the frame as
+# hand-tuned (the workbench's view filter reads it), and it lets intake roll the
+# tuning back when the art is replaced — nudges made to compensate for bad art
+# must not be inherited by the art that fixes it.
+TRACKED = {"renderScale", "ox", "bodyBottom", "faceLeft"}
 
 
 def load_payloads(sources):
@@ -89,10 +101,15 @@ def main():
                 if field not in ALLOWED:
                     skipped.append(f"{char}/{key}: ignoring unsupported field '{field}'")
                     continue
-                if field == "faceLeft":
+                if field in TRACKED:
+                    # record the pristine value once, before it is overwritten
+                    meta.setdefault("edited", {}).setdefault(field, meta.get(field))
+                if field in BOOLEAN:
                     before = meta.get(field)
                     meta[field] = bool(value)
-                    applied.append(f"{char}/{key}.faceLeft: {before} -> {bool(value)}")
+                    if field == "needsReplacement" and not value:
+                        meta.pop("needsReplacement", None)
+                    applied.append(f"{char}/{key}.{field}: {before} -> {bool(value)}")
                     continue
                 if field == "anchors":
                     # merge, so exporting one anchor never drops the others

@@ -163,6 +163,27 @@ canon height — see [character-heights.md](character-heights.md). Briefly:
 solves each character's draw scale from it. The sprite workbench's **Character
 height** control edits that one number and rescales the whole sprite set.
 
+### Replacing a sprite whose art is wrong
+
+Placement problems are fixed in the workbench. Art problems are not — the pose
+has to be redrawn. The **Sprite needs replacement** checkbox marks that, and the
+flag rides through the same export and apply path as everything else:
+
+```
+workbench  ->  Export  ->  apply_sprite_adjustments.py  ->  needsReplacement: true
+python3 tools/list_replacements.py --markdown     # collect them for a request
+```
+
+The flag clears itself. `intake_import.py` rebuilds a frame's entry when new art
+lands, which drops `needsReplacement` along with the anchors and measurements —
+and it rolls back hand tuning first, because a nudge made to compensate for bad
+art must not be inherited by the art that fixes it. `apply_sprite_adjustments.py`
+records each hand-edited field's pre-edit value in `edited` so that rollback has
+something to restore.
+
+Flagging and importing are the two ends of one pipeline, so the list is always
+what is still outstanding rather than a historical record.
+
 ### Catching poses that are sized wrong
 
 `tools/audit_frame_sizes.py` compares every pose against the height its
