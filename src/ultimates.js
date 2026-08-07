@@ -1,5 +1,7 @@
 // Ultimate attacks. Each character's `ultimate.type` maps to a director here.
-// Ultimates cost a full meter and are the cinematic centerpiece of each kit.
+// An ultimate costs HALF a bar (ULT_METER_COST) and is the cinematic centrepiece
+// of a kit; spending the full bar instead opens a Domain Expansion, for the
+// seven fighters who have one (see domains.js).
 
 import { state } from "./state.js";
 import { clamp, sign, rand } from "./utils.js";
@@ -8,6 +10,7 @@ import { burst, dust, ring, popup, banner } from "./particles.js";
 import { applyInstall } from "./specials.js";
 import { playSfx, playGrunt } from "./audio.js";
 import { circleRectOverlap, rectsOverlap } from "./utils.js";
+import { ULT_METER_COST, METER_MAX } from "./constants.js";
 import { getImage } from "./assets.js";
 
 function cinematic(f, name, color) {
@@ -30,7 +33,8 @@ function beginUltAction(f, dur, opts = {}) {
 export function performUltimate(f) {
   const ult = f.char.ultimate;
   if (!ult) return;
-  f.meter = 0;
+  // Half a bar, not the whole thing — the rest is saved toward a domain.
+  f.meter = Math.max(0, f.meter - ULT_METER_COST);
   cinematic(f, ult.name, ult.p.color || f.char.theme);
   DIRECTORS[ult.type](f, ult.p, ult);
 }
@@ -76,64 +80,6 @@ const DIRECTORS = {
           ctx.fill();
           ctx.restore();
         }
-      },
-    });
-  },
-
-  // Sukuna — Malevolent Shrine: slashes rain everywhere inside the domain.
-  domain(f, p) {
-    beginUltAction(f, 1.0);
-    state.domainOverlay = { color: p.color, life: p.duration + 0.6, maxLife: p.duration + 0.6, label: "Malevolent Shrine", ownerId: f.id };
-    state.entities.push({
-      owner: f, t: 0, tick: 0.5, dead: false,
-      update(dt) {
-        this.t += dt;
-        if (this.t >= p.duration) {
-          this.dead = true;
-          const opp = opponentOf(f);
-          if (opp && !opp.dead && opp.respawnTimer <= 0) {
-            applyHit(f, opp, {
-              dmg: 14, baseKb: p.finalBase, growth: p.growth * 2, angle: 0.6,
-              label: "Malevolent Shrine", sfx: "blast", unblockable: true, heavy: true,
-            }, "script");
-          }
-          return;
-        }
-        this.tick -= dt;
-        if (this.tick <= 0) {
-          this.tick = p.tickRate;
-          const opp = opponentOf(f);
-          if (opp && !opp.dead && opp.respawnTimer <= 0) {
-            const wasInv = opp.invuln > 0;
-            if (!wasInv) {
-              opp.damage = Math.min(999, opp.damage + p.dmgTick);
-              opp.hitstun = Math.max(opp.hitstun, 0.16);
-              if (opp.shielding) opp.shield = Math.max(0, opp.shield - 4);
-              const sx = opp.x + rand(-70, 70);
-              const sy = opp.y - rand(20, 150);
-              burst(sx, sy, p.color, 7, 0.8);
-              popup(opp.x, opp.y - 140, `${p.dmgTick}%`, p.color, 15);
-              state.camera.shake = Math.max(state.camera.shake, 3);
-            }
-          }
-          // ambient slashes
-          burst(rand(200, 1080), rand(200, 620), p.color, 4, 0.7);
-        }
-      },
-      draw(ctx) {
-        const shrine = p.sprite ? getImage(p.sprite) : null;
-        if (!shrine) return;
-        const groundY = state.platforms[0]?.y ?? 568;
-        const fadeIn = Math.min(1, this.t / 0.45);
-        const fadeOut = Math.min(1, Math.max(0, p.duration - this.t) / 0.45);
-        const h = 455;
-        const w = shrine.width * h / shrine.height;
-        ctx.save();
-        ctx.globalAlpha = 0.72 * fadeIn * fadeOut;
-        ctx.shadowColor = p.color;
-        ctx.shadowBlur = 32;
-        ctx.drawImage(shrine, 640 - w / 2, groundY - h, w, h);
-        ctx.restore();
       },
     });
   },
@@ -521,7 +467,7 @@ const DIRECTORS = {
         delay: 0.1, dur: 0.3, ox: 50, oy: -100, w: 220, h: 120,
         dmg: 14, base: 520, growth: 8, angle: 0.4, label: ult.name, sfx: "slashHeavy", heavy: true,
       });
-      f.meter = 40; // partial refund on whiffed read
+      f.meter = clamp(f.meter + ULT_METER_COST * 0.5, 0, METER_MAX); // partial refund on a whiffed read
       popup(f.x, f.y - 170, "MISSED THE MARK", "#9aa4c0", 16);
       return;
     }
@@ -933,7 +879,7 @@ const DIRECTORS = {
     const opp = opponentOf(f);
     if (!opp || opp.dead || opp.respawnTimer > 0 || Math.abs(opp.x - f.x) > p.range) {
       beginUltAction(f, 0.6);
-      f.meter = 40; // partial refund on a whiffed read, matching flurry
+      f.meter = clamp(f.meter + ULT_METER_COST * 0.5, 0, METER_MAX); // partial refund, matching flurry
       popup(f.x, f.y - 170, "THE SKY IS EMPTY", "#9aa4c0", 16);
       return;
     }

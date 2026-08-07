@@ -39,6 +39,21 @@ const EFFECT_KEYS = [
 // when the next fighter is staged.
 const STAGED_EFFECT_KEYS = {};
 
+// Domain Expansion backgrounds — a full-screen environment that replaces the
+// stage while a domain is open (src/domains.js, drawn by state.domainOverlay).
+// Optional: until the art lands the renderer just dims the stage and grades it
+// with the domain's colour, which reads fine, so a missing file is not an
+// error. Requested as round 9C in docs/asset-requests.md.
+const DOMAIN_BACKGROUNDS = {
+  unlimited_void: "gojo",
+  malevolent_shrine: "sukuna",
+  shadow_garden: "megumi",
+  self_embodiment: "mahito",
+  iron_mountain: "jogo",
+  idle_death_gamble: "hakari",
+  mutual_love: "yuta",
+};
+
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -144,6 +159,11 @@ export async function loadAssets(onProgress) {
   for (const charKey of CHARACTER_KEYS) {
     for (const key of STAGED_EFFECT_KEYS[charKey] || []) {
       optional(`effect:${key}`, `assets/sprites/effects/${key}.png`);
+    }
+  }
+  for (const [name, charKey] of Object.entries(DOMAIN_BACKGROUNDS)) {
+    if (CHARACTER_KEYS.includes(charKey)) {
+      optional(`domain:${name}`, `assets/backgrounds/domains/${name}.jpg`);
     }
   }
 

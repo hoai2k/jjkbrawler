@@ -98,6 +98,7 @@ function resetMatch() {
   state.popups.length = 0;
   state.banners.length = 0;
   state.domainOverlay = null;
+  state.domain = null;
   state.screenFlash = null;
   state.slowMo = 0;
   state.matchTime = 0;

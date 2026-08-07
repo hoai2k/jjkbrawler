@@ -40,6 +40,7 @@ export const state = {
   slowMo: 0,
   screenFlash: null, // {color, life, maxLife}
   domainOverlay: null, // {color, life, maxLife, ownerId, label}
+  domain: null,        // the live Domain Expansion entity, or null (domains.js)
 
   matchTime: 0,
   debugHitboxes: false,

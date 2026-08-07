@@ -12,7 +12,14 @@ adding all three; they should not drift from the heading here.
 
 **Reading a kit:** every character has universal lights/heavies (same inputs,
 different reach/speed/damage/effects), three specials (neutral, side, down),
-one meter-funded ultimate, and one always-on passive. Stats shown as
+one ultimate, and one always-on passive. Seven of them also have a **Domain
+Expansion** — see the section at the end.
+
+**Cursed Energy has two tiers.** An ultimate costs **half** a bar, so a match
+has several. A Domain Expansion costs the **whole** bar and only the seven
+fighters who canonically have one can open it. That is what makes the second
+half of the bar a decision instead of a formality: bank it for the domain, or
+spend it now on a second ultimate. Stats shown as
 *speed / weight* where speed is ground px/s and weight divides knockback
 (higher = harder to launch).
 
@@ -76,8 +83,9 @@ mouthy, thrives on momentum and risk.
 - **Restless Rush** (side): advancing multi-hit flurry.
 - **Reserve Balance** (down): **spin the reels** — random heal, meter, damage
   buff, or a dud. Pure Hakari.
-- **Ultimate — JACKPOT:** 8 s install: constant healing, hyper-armor (no
-  hitstun), +damage, +speed. He does not stop coming.
+- **Ultimate — JACKPOT:** he skips the reels and simply collects — an 8 s
+  install of constant healing, hyper-armor (no hitstun), +damage and +speed.
+  Playing the reels for a bigger payout is his Domain Expansion.
 - *Passive — Gambler's Flow:* builds ultimate meter 30% faster than anyone
   else. The house always reaches jackpot eventually.
 
@@ -278,9 +286,10 @@ on everything, and the game's most oppressive ultimate.
 - **Cleave** (side): a two-hit carving dash.
 - **Divine Flame: Fuga** (down): "Open." — an arcing fire arrow that
   detonates.
-- **Ultimate — Domain Expansion: Malevolent Shrine:** the shrine manifests;
-  for 3.6 s slashes rain on the opponent *anywhere in the arena*, shields
-  included, capped by a massive finishing cleave.
+- **Ultimate — Dismantle: Merciless Barrage:** a carving rush too fast to
+  read, closed with a Cleave that adjusts to whatever it meets. (Malevolent
+  Shrine moved to his Domain Expansion, where it belongs — it is a domain, not
+  a single attack.)
 - *Passive — King's Contempt:* +10% damage to opponents past 80% — he plays
   with food, then eats.
 
@@ -336,8 +345,9 @@ a meteor onto Shibuya. Personality: proud, perpetually disrespected, explodes
   Disaster Curse).
 - **Ember Insects** (neutral): arcing fire lobs.
 - **Lava Geyser** (side): the floor under the *opponent* erupts — anti-camp.
-- **Coffin of the Iron Mountain** (down): furnace armor — unstaggerable and
-  searing to the touch (melee attackers get burned).
+- **Furnace Shell** (down): furnace armor — unstaggerable and searing to the
+  touch (melee attackers get burned). Renamed: *Coffin of the Iron Mountain*
+  is the name of his domain, which he now actually has.
 - **Ultimate — Maximum: Meteor:** a falling star on the opponent's position;
   the crater keeps burning.
 
@@ -538,6 +548,44 @@ Weakest legs on the roster, but a stage that is always ringing.
 All 23 fighters are live. The six round-7 additions (Choso, Mei Mei, Uro, Yuji,
 Reggie, Gakuganji) were built and balanced in code before their art existed;
 that history is in [asset-requests-history.md](asset-requests-history.md).
+
+---
+
+# Domain Expansion
+
+The pinnacle of jujutsu: a barrier that manifests the sorcerer's innate domain
+and, inside it, bends the fight to their technique. In game it is the **second,
+larger super** — **D-pad ▲** on a controller, **U** (P1) / **;** (P2) on
+keyboard, costing a **full** Cursed Energy bar where an ultimate costs half.
+
+Seven fighters have one. The design rule for all of them: **a domain you watch
+is a cutscene, a domain you operate is a move.** Every one binds a live
+interaction to SPECIAL while it is open, so the player is still playing rather
+than waiting out an animation. The in-game moves screen carries the same
+"How it plays" text as the table below.
+
+`char.domains` is an array, so a fighter with more than one can bind them to
+different d-pad directions (◀ and ▶). Nobody has two yet; the input path and
+the moves screen already handle it.
+
+| Fighter | Domain | What it does | What you do |
+|---|---|---|---|
+| Gojo | **Unlimited Void** | The enemy receives infinite information and can act on none of it — total paralysis for 5.5 s. | Every hit banks a purple orb; when the domain closes, all of them detonate at once. Hit them as many times as you can. |
+| Sukuna | **Malevolent Shrine** | The wall-less shrine; slashes rain on the enemy automatically. | Press SPECIAL to snatch an orbiting blade, then LIGHT/HEAVY to unleash a colossal Cleave. The more blades still orbiting, the harder it lands. |
+| Megumi | **Chimera Shadow Garden** | The floor becomes an ocean of shadow; knockback he takes is halved. | SPECIAL sinks him and resurfaces him behind the enemy — unlimited, no cooldown — and each resurface looses a shikigami strike. |
+| Mahito | **Self-Embodiment of Perfection** | Every surface is his hand; nothing can be blocked. | Each landed hit stacks Distortion. At five stacks the soul collapses on its own for massive damage and the counter resets. |
+| Jogo | **Coffin of the Iron Mountain** | Sealed inside a volcano — the whole floor burns anything standing on it. | SPECIAL erupts a geyser directly under the enemy, free and instant, as often as you like. |
+| Hakari | **Idle Death Gamble** | The pachinko parlour with the door shut. | Three reels spin overhead; SPECIAL stops the next one. Three matching symbols is the JACKPOT — full heal, hyper-armour and +35% damage. A pair still pays something. |
+| Yuta | **Authentic Mutual Love** | Rika manifests completely and heals him continuously. | SPECIAL sends her at the enemy for a huge unblockable bite, on a short cooldown. |
+
+**Not implemented yet.** The wiki also lists Hanami, Uro and Yuji as domain
+users. Their domains are unnamed in canon or arrive very late in the series, so
+they have no kit here — a deliberate omission rather than an oversight.
+
+**Three kits were renamed** to make room, because a domain and an ultimate
+should not be the same technique: Sukuna's ultimate became *Dismantle:
+Merciless Barrage*, Hakari's became simply *JACKPOT*, and Jogo's down special
+became *Furnace Shell*.
 
 ## References
 

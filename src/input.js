@@ -7,12 +7,16 @@ const P1_KEYS = {
   left: ["KeyA"], right: ["KeyD"], up: ["KeyW"], down: ["KeyS"],
   light: ["KeyJ"], heavy: ["KeyK"], special: ["KeyL"], ult: ["KeyI"],
   shield: ["ShiftLeft"],
+  // Domain Expansion. Three slots so a fighter with more than one domain can
+  // bind them separately; only slot 0 is used by the current roster.
+  domain: ["KeyU"], domain2: ["KeyY"], domain3: ["KeyO"],
 };
 
 const P2_KEYS = {
   left: ["ArrowLeft"], right: ["ArrowRight"], up: ["ArrowUp"], down: ["ArrowDown"],
   light: ["Comma", "Numpad1"], heavy: ["Period", "Numpad2"], special: ["Slash", "Numpad3"], ult: ["Quote", "Numpad0"],
   shield: ["ShiftRight", "NumpadEnter"],
+  domain: ["Semicolon", "Numpad5"], domain2: ["BracketLeft", "Numpad4"], domain3: ["BracketRight", "Numpad6"],
 };
 
 const GAME_CODES = new Set([...Object.values(P1_KEYS).flat(), ...Object.values(P2_KEYS).flat(), "Space", "Escape", "Backquote"]);
@@ -108,16 +112,26 @@ function padButtonPressed(pad, i) {
 }
 
 // Standard mapping: 0 A jump, 1 B special, 2 X light, 3 Y heavy,
-// 4 LB ultimate, 5 RB ultimate, 6/7 LT/RT shield, 12-15 dpad.
+// 4 LB ultimate, 5 RB ultimate, 6/7 LT/RT shield.
+//
+// The D-pad (12-15) is the DOMAIN pad, not a second movement stick: up opens a
+// fighter's primary Domain Expansion, left/right open alternates where they
+// have them. Movement is the left analog stick. The d-pad used to duplicate
+// the stick, so nothing that was reachable before became unreachable — but a
+// player who moved on the d-pad has to use the stick now, which is why the
+// controls screen calls it out.
 function padSnapshot(pad) {
   const axX = Math.abs(pad.axes[0] || 0) > 0.28 ? pad.axes[0] : 0;
   const axY = Math.abs(pad.axes[1] || 0) > 0.42 ? pad.axes[1] : 0;
-  const left = axX < -0.28 || padButton(pad, 14);
-  const right = axX > 0.28 || padButton(pad, 15);
-  const up = axY < -0.5 || padButton(pad, 12);
-  const down = axY > 0.5 || padButton(pad, 13);
+  const left = axX < -0.28;
+  const right = axX > 0.28;
+  const up = axY < -0.5;
+  const down = axY > 0.5;
   return {
     left, right, up, down,
+    domainP: padButtonPressed(pad, 12),
+    domain2P: padButtonPressed(pad, 14),
+    domain3P: padButtonPressed(pad, 15),
     jumpP: padButtonPressed(pad, 0),
     jumpHeld: padButton(pad, 0),
     lightP: padButtonPressed(pad, 2),
@@ -144,6 +158,9 @@ function keysSnapshot(map) {
     specialP: anyPressed(map.special),
     ultP: anyPressed(map.ult),
     shieldHeld: anyHeld(map.shield),
+    domainP: anyPressed(map.domain || []),
+    domain2P: anyPressed(map.domain2 || []),
+    domain3P: anyPressed(map.domain3 || []),
     pauseP: false,
   };
 }
@@ -154,6 +171,7 @@ export function blankInput() {
     jumpP: false, jumpHeld: false, lightP: false,
     heavyP: false, heavyHeld: false, specialP: false, ultP: false,
     shieldHeld: false, pauseP: false, dirX: 0,
+    domainP: false, domain2P: false, domain3P: false,
   };
 }
 

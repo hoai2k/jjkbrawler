@@ -2,6 +2,7 @@ import { state } from "./state.js";
 import { clamp, sign, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, sparkLine, ring, popup, banner } from "./particles.js";
 import { playSfx } from "./audio.js";
+import { domainKnockbackMul } from "./domains.js";
 import {
   SHIELD_DAMAGE_MULT, SHIELD_BREAK_STUN, PARRY_WINDOW, METER_MAX,
   METER_ON_DEAL, METER_ON_TAKE,
@@ -500,6 +501,8 @@ export function applyHit(owner, target, hit, source) {
   let kb = (baseKb + target.damage * growth) / target.char.stats.weight;
   if (target.char.passive.id === "cursedCorpse") kb *= 0.9;
   if (target.char.passive.id === "openSky" && !target.grounded) kb *= 0.88;
+  // Chimera Shadow Garden cushions its owner — the shadow takes the impact.
+  kb *= domainKnockbackMul(target);
   const stunBonus = hit.stunBonus || 0;
 
   // Directional Influence. The victim's stick bends the launch angle and
