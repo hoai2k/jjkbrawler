@@ -251,10 +251,12 @@ html, body {
   justify-content: center;
   gap: 14px;
   padding: 22px;
+  /* Last-resort guard so a very short window can still reach the buttons
+     instead of clipping them off the bottom. */
+  overflow-y: auto;
   background:
     radial-gradient(90% 70% at 50% 10%, rgba(35, 52, 105, 0.5) 0%, transparent 60%),
     rgba(4, 6, 13, 0.93);
-  overflow-y: auto;
 }
 
 .overlay--compact { background: rgba(4, 6, 13, 0.82); backdrop-filter: blur(6px); }
@@ -275,8 +277,8 @@ html, body {
 
 .game-logo {
   display: block;
-  width: clamp(190px, 24vw, 310px);
-  max-height: 118px;
+  width: clamp(170px, 20vw, 250px);
+  max-height: 88px;
   object-fit: contain;
   filter: drop-shadow(0 0 20px rgba(98, 220, 255, 0.32));
 }
@@ -308,13 +310,96 @@ html, body {
   letter-spacing: 0.05em;
 }
 
+/* ---------- Loading ---------- */
+
+.load-bar {
+  position: relative;
+  width: min(80%, 420px);
+  height: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.load-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #1d5fd8, #62dcff);
+  box-shadow: 0 0 18px rgba(98, 220, 255, 0.55);
+  transition: width 0.18s ease-out;
+}
+
 /* ---------- Character select ---------- */
 
+/* The roster lays itself out from the group list alone: groups sit side by
+   side while they fit and wrap to their own rows when they don't, and each
+   group's cards flow into as many columns as its width allows. Adding a
+   fighter or a whole new category needs no layout change here.
+   --card-size is the portrait width, --card-aspect how hard the art is cropped
+   as vertical room runs out. */
 .character-grid {
+  /* Portraits grow with the window instead of sitting at a fixed size in the
+     middle of a large screen. layoutCharacterGrid() reads --card-base and
+     writes the fitted width back into --card-size. */
+  --card-base: clamp(78px, 15vh, 200px);
+  --card-size: var(--card-base);
+  --card-aspect: 3 / 4;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px 20px;
+  width: 100%;
+}
+
+/* Measured, never seen: carries the responsive base card width in a form
+   JavaScript can read back as a number. */
+.card-probe {
+  position: absolute;
+  width: var(--card-base);
+  height: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.char-group {
+  /* Equal widths, so every group resolves to the same column count and every
+     portrait on screen is the same size whatever the group sizes are. */
+  flex: 1 1 calc(var(--members, 6) * 46px);
+  max-width: 100%;
+}
+
+.char-group-cards {
   display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  gap: 8px;
-  width: min(96%, 1080px);
+  /* --cols is recomputed from the measured width by layoutCharacterGrid(), which
+     balances the rows (six fighters wrap 3+3, never 5+1). The auto-fit value is
+     the fallback for the first paint, before anything has been measured. */
+  grid-template-columns: repeat(var(--cols, auto-fit), minmax(0, var(--card-size)));
+  justify-content: center;
+  gap: 6px;
+}
+
+.char-group-title {
+  margin: 0 0 5px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.char-group-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--line), transparent);
 }
 
 .char-card {
@@ -326,7 +411,7 @@ html, body {
   cursor: pointer;
   background: var(--panel-soft);
   transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: var(--card-aspect, 3 / 4);
 }
 
 .char-card img {
@@ -398,7 +483,7 @@ html, body {
   background: var(--panel-soft);
   border: 1px solid var(--line);
   border-radius: 14px;
-  padding: 10px 16px;
+  padding: 7px 14px;
   cursor: pointer;
   color: var(--text);
   min-width: 150px;
@@ -414,14 +499,38 @@ html, body {
 }
 
 .matchup-side img {
-  width: 86px;
-  height: 64px;
+  width: 76px;
+  height: 54px;
   object-fit: cover;
   object-position: top;
   border-radius: 8px;
 }
 
 .matchup-side strong { font-size: 0.95rem; letter-spacing: 0.04em; }
+
+/* Unselected slot: the portrait is absent, so the name line draws a dashed
+   placeholder tile in its place. */
+.matchup-side.is-empty img { display: none; }
+
+.matchup-side.is-empty strong {
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+}
+
+.matchup-side.is-empty strong::before {
+  content: "?";
+  width: 76px;
+  height: 54px;
+  margin: 0 auto 4px;
+  border: 1px dashed rgba(160, 190, 255, 0.45);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: rgba(160, 190, 255, 0.65);
+}
 
 .matchup-side.is-active { border-color: var(--accent); box-shadow: 0 0 16px rgba(98, 220, 255, 0.35); }
 #p2PickCard.is-active { border-color: var(--p2-theme); box-shadow: 0 0 16px rgba(255, 76, 85, 0.4); }
@@ -484,6 +593,13 @@ html, body {
   font-weight: 900 !important;
   letter-spacing: 0.04em;
   box-shadow: 0 6px 20px rgba(52, 130, 240, 0.4);
+}
+
+.primary-action:disabled {
+  background: rgba(120, 140, 180, 0.28) !important;
+  color: rgba(226, 234, 255, 0.55) !important;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 .controller-status { color: var(--text-dim); font-size: 0.72rem; margin: 0; }
@@ -626,12 +742,27 @@ html, body {
 .pad-focus-p3 { outline: 3px solid var(--p3-theme); outline-offset: 2px; z-index: 3; }
 .pad-focus-p4 { outline: 3px solid var(--p4-theme); outline-offset: 2px; z-index: 3; }
 
+/* Short windows: crop the portraits to their upper bodies and let the columns
+   get narrower, rather than pushing the matchup bar off the bottom. */
+@media (max-height: 820px) {
+  .character-grid { --card-aspect: 1 / 1; --card-base: clamp(78px, 14vh, 140px); }
+  .game-logo { max-height: 74px; }
+}
+
+@media (max-height: 700px) {
+  .character-grid { --card-aspect: 5 / 4; --card-base: clamp(70px, 10vh, 92px); gap: 8px 14px; }
+  .game-logo { max-height: 56px; width: clamp(140px, 16vw, 200px); }
+  .matchup-side { padding: 5px 10px; }
+  .matchup-side img,
+  .matchup-side.is-empty strong::before { width: 62px; height: 44px; }
+}
+
 @media (max-width: 900px) {
-  .character-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .stage-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .matchup-bar { grid-template-columns: repeat(4, minmax(90px, 1fr)); }
   .matchup-side { min-width: 0; padding: 7px; }
   .matchup-side img { width: 68px; height: 52px; }
+  .matchup-side.is-empty strong::before { width: 68px; height: 52px; }
   .controller-guide { grid-template-columns: 1fr; }
   .controller-tips { grid-template-columns: repeat(2, 1fr); }
 }

@@ -9,7 +9,9 @@ export const state = {
   // "default" | "alternate" — opts into a character's second art set where one
   // exists (currently Hanami's round-6 redesign). See assets.js.
   spriteSet: "default",
-  selection: { 1: "gojo", 2: "sukuna", 3: "megumi", 4: "nobara" },
+  // P1 starts empty on purpose: the player picks their own fighter before a
+  // match can start. The other slots keep defaults so a 1P game is one click.
+  selection: { 1: null, 2: "sukuna", 3: "megumi", 4: "nobara" },
   activePicker: 1,
   stageKey: "trainingBridge",
 

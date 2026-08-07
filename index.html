@@ -80,10 +80,10 @@
           <div id="characterGrid" class="character-grid" aria-label="Fighter select"></div>
 
           <div id="matchupBar" class="matchup-bar">
-            <button id="p1PickCard" class="matchup-side is-active" type="button">
+            <button id="p1PickCard" class="matchup-side is-active is-empty" type="button">
               <span id="p1PickLabel">Player 1</span>
-              <img id="p1PickImage" src="assets/cards/gojo_card.jpg" alt="Player 1 fighter">
-              <strong id="p1PickName">Gojo</strong>
+              <img id="p1PickImage" alt="Player 1 fighter">
+              <strong id="p1PickName">Choose a fighter</strong>
             </button>
             <button id="p2PickCard" class="matchup-side" type="button">
               <span id="p2PickLabel">CPU</span>
@@ -102,7 +102,7 @@
             </button>
             <div class="matchup-center">
               <img class="vs-badge" src="assets/ui/vs_badge.png" alt="Versus">
-              <button id="startButton" class="primary-action" type="button">Choose Stage</button>
+              <button id="startButton" class="primary-action" type="button" disabled>Select Player 1</button>
             </div>
           </div>
 
@@ -185,6 +185,9 @@
           <div class="title-lockup">
             <span class="eyebrow">Summoning fighters</span>
             <h2 id="loadStatus">Loading&hellip;</h2>
+          </div>
+          <div id="loadBar" class="load-bar" role="progressbar" aria-label="Loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div id="loadBarFill" class="load-bar-fill"></div>
           </div>
         </div>
       </section>

@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { CHARACTER_KEYS, CHARACTERS } from "./characters.js";
+import { CHARACTER_GROUPS, CHARACTER_KEYS, CHARACTERS } from "./characters.js";
 import { STAGES } from "./stages.js";
 import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
@@ -25,7 +25,7 @@ export function initUi(cb) {
   callbacks = cb;
   for (const id of [
     "hud", "utilityActions", "menuOverlay", "stageOverlay", "movesOverlay", "roundOverlay", "pauseOverlay",
-    "settingsOverlay", "loadOverlay", "loadStatus", "characterGrid", "stageGrid",
+    "settingsOverlay", "loadOverlay", "loadStatus", "loadBar", "loadBarFill", "characterGrid", "stageGrid",
     "p1PickCard", "p2PickCard", "p3PickCard", "p4PickCard",
     "p1PickImage", "p2PickImage", "p3PickImage", "p4PickImage",
     "p1PickName", "p2PickName", "p3PickName", "p4PickName",
@@ -53,30 +53,99 @@ export function initUi(cb) {
   bindMenuKeyboardNav();
   updateSelectionUi();
   updateMenuButtons();
+  window.addEventListener("resize", layoutCharacterGrid);
 }
 
 function buildCharacterGrid() {
   els.characterGrid.innerHTML = "";
-  for (const key of CHARACTER_KEYS) {
-    const char = CHARACTERS[key];
-    const btn = document.createElement("button");
-    btn.className = "char-card";
-    btn.dataset.character = key;
-    btn.innerHTML = `<img src="assets/cards/${key}_card.jpg" alt="${char.name}"><span>${char.name}</span>`;
-    btn.addEventListener("click", () => {
-      state.selection[state.activePicker] = key;
-      const maxPicker = state.playerCount === 1 ? 2 : state.playerCount;
-      if (state.activePicker < maxPicker) setActivePicker(state.activePicker + 1);
-      updateSelectionUi();
-      playSfx("slash", 0.3, 1.4);
-    });
-    btn.addEventListener("contextmenu", (e) => {
-      e.preventDefault();
-      state.selection[2] = key;
-      updateSelectionUi();
-    });
-    els.characterGrid.appendChild(btn);
+  // Group headings span the full grid row, so each group starts on a new line
+  // without needing a separate grid container per group (which would break the
+  // geometric pad navigation across the whole roster).
+  for (const group of CHARACTER_GROUPS) {
+    const section = document.createElement("section");
+    section.className = "char-group";
+    section.dataset.group = group.key;
+    // Groups share the row proportionally to their size, so a 4-fighter group
+    // never takes the same width as a 9-fighter one. Any number of groups of
+    // any size lays itself out from this one variable.
+    section.style.setProperty("--members", group.members.length);
+
+    const heading = document.createElement("h3");
+    heading.className = "char-group-title";
+    heading.textContent = group.label;
+    section.appendChild(heading);
+
+    const cards = document.createElement("div");
+    cards.className = "char-group-cards";
+    for (const key of group.members) cards.appendChild(buildCharacterCard(key));
+    section.appendChild(cards);
+    els.characterGrid.appendChild(section);
   }
+  // getComputedStyle hands back custom properties unresolved ("clamp(78px,
+  // 11vh, 150px)"), so the responsive base size is measured off a probe element
+  // that is actually laid out at that width.
+  const probe = document.createElement("span");
+  probe.className = "card-probe";
+  probe.setAttribute("aria-hidden", "true");
+  els.characterGrid.appendChild(probe);
+}
+
+// Picks a column count per group from the width it actually got, then evens the
+// rows out: a group of six in two rows reads as 3+3 rather than 5+1. Runs on
+// resize and whenever the menu is shown, and works for any group size, so a new
+// fighter or a new category needs no numbers changed here.
+const MIN_CARD_PX = 44;
+
+export function layoutCharacterGrid() {
+  const grid = els.characterGrid;
+  if (!grid || !grid.clientWidth) return; // hidden overlay: nothing to measure
+  const base = grid.querySelector(".card-probe")?.getBoundingClientRect().width || 90;
+  // Shrink the portraits until the whole screen fits. However the roster grows,
+  // the matchup bar and the Start button stay on screen.
+  let size = base;
+  for (let pass = 0; pass < 12; pass++) {
+    grid.style.setProperty("--card-size", `${Math.round(size)}px`);
+    applyColumns(grid, size);
+    if (els.menuOverlay.scrollHeight <= els.menuOverlay.clientHeight || size <= MIN_CARD_PX) break;
+    size = Math.max(MIN_CARD_PX, size * 0.9);
+  }
+}
+
+function applyColumns(grid, cardSize) {
+  const groups = [...grid.querySelectorAll(".char-group-cards")].filter((el) => el.childElementCount);
+  if (!groups.length) return;
+  // One column count for the whole roster, taken from the narrowest group, then
+  // trimmed per group so its rows come out even (six in two rows is 3+3).
+  const gap = parseFloat(getComputedStyle(groups[0]).columnGap) || 0;
+  const narrowest = Math.min(...groups.map((el) => el.clientWidth));
+  const fit = Math.max(1, Math.floor((narrowest + gap) / (cardSize + gap)));
+  for (const cards of groups) {
+    const count = cards.childElementCount;
+    const cols = Math.min(fit, count);
+    const rows = Math.ceil(count / cols);
+    cards.style.setProperty("--cols", Math.ceil(count / rows));
+  }
+}
+
+function buildCharacterCard(key) {
+  const char = CHARACTERS[key];
+  const btn = document.createElement("button");
+  btn.className = "char-card";
+  btn.dataset.character = key;
+  btn.innerHTML = `<img src="assets/cards/${key}_card.jpg" alt="${char.name}"><span>${char.name}</span>`;
+  btn.addEventListener("click", () => {
+    state.selection[state.activePicker] = key;
+    const maxPicker = state.playerCount === 1 ? 2 : state.playerCount;
+    if (state.activePicker < maxPicker) setActivePicker(state.activePicker + 1);
+    updateSelectionUi();
+    playSfx("slash", 0.3, 1.4);
+  });
+  btn.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    state.selection[2] = key;
+    updateSelectionUi();
+  });
+  return btn;
 }
 
 function buildStageGrid() {
@@ -97,7 +166,10 @@ function setActivePicker(n) {
 
 function bindMenuButtons() {
   for (const id of PLAYER_IDS) els[`p${id}PickCard`].addEventListener("click", () => setActivePicker(id));
-  els.startButton.addEventListener("click", () => setPhase("stageSelect"));
+  els.startButton.addEventListener("click", () => {
+    if (!state.selection[1]) return;
+    setPhase("stageSelect");
+  });
   els.stageBackButton.addEventListener("click", () => setPhase("menu"));
   els.randomStageButton.addEventListener("click", () => {
     const stage = STAGES[Math.floor(Math.random() * STAGES.length)];
@@ -127,7 +199,7 @@ function bindMenuButtons() {
 
   els.movesButton.addEventListener("click", () => {
     movesReturnPhase = state.phase === "moves" ? movesReturnPhase : state.phase;
-    movesIndex = CHARACTER_KEYS.indexOf(state.selection[1]);
+    movesIndex = Math.max(0, CHARACTER_KEYS.indexOf(state.selection[1]));
     setPhase("moves");
   });
   els.movesBackButton.addEventListener("click", () => setPhase(movesReturnPhase));
@@ -181,7 +253,7 @@ export function updateMenuButtons() {
 }
 
 export function updateSelectionUi() {
-  for (const btn of els.characterGrid.children) {
+  for (const btn of els.characterGrid.querySelectorAll(".char-card")) {
     const key = btn.dataset.character;
     const visiblePlayers = state.playerCount === 1 ? [1, 2] : PLAYER_IDS.slice(0, state.playerCount);
     for (const id of PLAYER_IDS) btn.classList.toggle(`is-p${id}`, visiblePlayers.includes(id) && key === state.selection[id]);
@@ -196,13 +268,31 @@ export function updateSelectionUi() {
   }
   for (const id of PLAYER_IDS) {
     const key = state.selection[id];
-    els[`p${id}PickImage`].src = `assets/cards/${key}_card.jpg`;
-    els[`p${id}PickName`].textContent = CHARACTERS[key].name;
-    els[`p${id}PickCard`].classList.toggle("hidden", id > 2 && id > state.playerCount);
-    els[`p${id}PickCard`].classList.toggle("is-active", state.activePicker === id);
+    const card = els[`p${id}PickCard`];
+    const img = els[`p${id}PickImage`];
+    // An empty slot shows a placeholder tile instead of a portrait; setting an
+    // src of "undefined_card.jpg" would draw a broken image and log a 404.
+    card.classList.toggle("is-empty", !key);
+    if (key) {
+      img.src = `assets/cards/${key}_card.jpg`;
+      els[`p${id}PickName`].textContent = CHARACTERS[key].name;
+    } else {
+      img.removeAttribute("src");
+      els[`p${id}PickName`].textContent = "Choose a fighter";
+    }
+    card.classList.toggle("hidden", id > 2 && id > state.playerCount);
+    card.classList.toggle("is-active", state.activePicker === id);
   }
   els.p2PickLabel.textContent = state.mode === "cpu" ? "CPU" : "Player 2";
+  updateStartButton();
   updatePickerCursorClasses();
+}
+
+// Player 1 starts unselected, so the match cannot begin until they pick.
+function updateStartButton() {
+  const ready = !!state.selection[1];
+  els.startButton.disabled = !ready;
+  els.startButton.textContent = ready ? "Choose Stage" : "Select Player 1";
 }
 
 export function syncControllerPlayers(count) {
@@ -235,13 +325,17 @@ export function setPhase(phase) {
   }
   els.utilityActions.classList.toggle("hidden", phase === "loading");
   els.hud.classList.toggle("hidden", !["playing", "paused", "roundOver"].includes(phase));
+  // The roster can only be measured once its overlay is on screen.
+  if (phase === "menu") layoutCharacterGrid();
   if (phase === "moves") renderMoveList();
   clearMenuFocus();
   syncMusic(phase);
 }
 
 export function setLoadProgress(done, total) {
-  els.loadStatus.textContent = `Loading ${done}/${total}`;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  els.loadBarFill.style.width = `${pct}%`;
+  els.loadBar.setAttribute("aria-valuenow", String(pct));
 }
 
 // ------------------------------------------------------------------- moves
@@ -379,14 +473,17 @@ function menuFocusables() {
   if (!overlayId) return [];
   const overlay = els[overlayId];
   return [...overlay.querySelectorAll("button, input[type=range]")]
-    .filter((el) => !el.classList.contains("hidden") && el.offsetParent !== null);
+    .filter((el) => !el.classList.contains("hidden") && !el.disabled && el.offsetParent !== null);
 }
 
 function defaultFocus() {
   const items = menuFocusables();
   if (!items.length) return null;
   if (state.phase === "menu") {
-    const current = els.characterGrid.querySelector(`[data-character="${state.selection[state.activePicker]}"]`);
+    const key = state.selection[state.activePicker];
+    const current = key
+      ? els.characterGrid.querySelector(`[data-character="${key}"]`)
+      : els.characterGrid.querySelector(".char-card");
     if (current) return current;
   }
   if (state.phase === "stageSelect") {
@@ -458,7 +555,8 @@ function updateCharacterPickerPads(dt) {
   for (let i = 0; i < Math.min(4, pads.length, state.playerCount); i++) {
     const playerId = i + 1;
     const pad = pads[i];
-    if (!pickerCursor[playerId]) pickerCursor[playerId] = state.selection[playerId];
+    // An unselected slot parks its cursor on the first fighter in the grid.
+    if (!pickerCursor[playerId]) pickerCursor[playerId] = state.selection[playerId] || CHARACTER_KEYS[0];
     let dx = 0, dy = 0;
     if (pad.left) dx = -1;
     else if (pad.right) dx = 1;

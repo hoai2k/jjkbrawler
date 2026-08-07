@@ -4,10 +4,31 @@
 // Frame keys are sheet cells "r{row}c{col}" resolved via assets/sprites/manifest.json.
 // Sheet rows: 0 idle/poses, 1 run, 2 air, 3 technique effects, 4 crouch.
 
-export const CHARACTER_KEYS = [
-  "gojo", "yuta", "hakari", "maki", "megumi", "nobara", "inumaki", "panda", "todo", "momo",
-  "nanami", "toji", "sukuna", "mahito", "geto", "jogo", "hanami",
+// Roster grouping used by the fighter-select grid. Three buckets, sized 6/6/5:
+// the Tokyo class, everyone else on the human side (faculty, Kyoto, the
+// non-sorcerer), and the curses plus Geto, who is human but fights entirely
+// through the curses he manipulates.
+export const CHARACTER_GROUPS = [
+  {
+    key: "students",
+    label: "Tokyo Jujutsu Students",
+    members: ["yuta", "maki", "megumi", "nobara", "inumaki", "panda"],
+  },
+  {
+    key: "sorcerers",
+    label: "Sorcerers",
+    members: ["gojo", "nanami", "todo", "momo", "hakari", "toji"],
+  },
+  {
+    key: "curses",
+    label: "Curses and Curse Users",
+    members: ["sukuna", "mahito", "jogo", "hanami", "geto"],
+  },
 ];
+
+// Grid order, move-list order and asset-load order all follow the groups, so
+// there is one roster ordering rather than two that can drift apart.
+export const CHARACTER_KEYS = CHARACTER_GROUPS.flatMap((g) => g.members);
 
 // Anim defaults; characters override entries whose sheet cells differ.
 export const DEFAULT_ANIMS = {
@@ -814,6 +835,13 @@ export const CHARACTERS = {
     ai: { style: "heavy", range: 320 },
   },
 };
+
+// A fighter that never made it into a group would silently vanish from the
+// select screen, so say so loudly instead of shipping an unreachable character.
+const ungrouped = Object.keys(CHARACTERS).filter((key) => !CHARACTER_KEYS.includes(key));
+if (ungrouped.length) {
+  console.warn(`Not listed in CHARACTER_GROUPS, so unselectable: ${ungrouped.join(", ")}`);
+}
 
 export function getCharacter(key) {
   return CHARACTERS[key];
