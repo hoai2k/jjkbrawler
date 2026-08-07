@@ -107,7 +107,9 @@ export function drawParticles(ctx) {
       ctx.strokeStyle = p.color;
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.ringR, 0, Math.PI * 2);
+      // Floored: canvas throws on a negative radius, and an exception here
+      // aborts the whole frame's rendering, not just this one ring.
+      ctx.arc(p.x, p.y, Math.max(0, p.ringR), 0, Math.PI * 2);
       ctx.stroke();
     } else {
       ctx.fillStyle = p.color;
