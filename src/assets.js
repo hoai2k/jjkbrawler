@@ -1,4 +1,5 @@
 import { CHARACTER_KEYS } from "./characters.js";
+import { applyAllHeightScales } from "./heights.js";
 import { STAGES } from "./stages.js";
 
 export const images = new Map();
@@ -99,6 +100,12 @@ export async function loadAssets(onProgress) {
       if (meta) meta.faceLeft = true;
     }
   }
+
+  // Sizes are solved from canon height against the manifest's body measurements,
+  // so this has to happen after the manifest is parsed and before anything is
+  // drawn. Doing it here rather than at each call site means the game and both
+  // workbenches cannot disagree about how tall a fighter is.
+  applyAllHeightScales();
 
   const jobs = [];
   const add = (key, src) => jobs.push({ key, src: assetUrl(src) });

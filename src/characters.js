@@ -6,6 +6,13 @@
 // Both, plus `epithet`, mirror the headings in docs/characters.md — that file
 // is the research, this one is the data.
 //
+// `heightCm` is the character's canon height, or null where none was ever
+// published. It drives how large they are drawn: heights.js turns it into a
+// head-height target and solves `scale` from that once the manifest is loaded.
+// The `scale` literals below are only a pre-load fallback — the live value is
+// derived, so editing them by hand does nothing. Change `heightCm`, or override
+// the target in the sprite workbench.
+//
 // Frame keys are sheet cells "r{row}c{col}" resolved via assets/sprites/manifest.json.
 // Sheet rows: 0 idle/poses, 1 run, 2 air, 3 technique effects, 4 crouch.
 // The 17 launch fighters come from those sheets. The six round-7 fighters
@@ -108,6 +115,7 @@ export const CHARACTERS = {
     name: "Gojo",
     fullName: "Satoru Gojo",
     epithet: "The Honored One",
+    heightCm: 190,     // official
     theme: "#62dcff",
     shadow: "rgba(88, 220, 255, 0.36)",
     scale: 0.60,
@@ -166,6 +174,7 @@ export const CHARACTERS = {
     name: "Yuta",
     fullName: "Yuta Okkotsu",
     epithet: "Rika's Beloved",
+    heightCm: 175.3,   // cited
     theme: "#9fc7ff",
     shadow: "rgba(159, 199, 255, 0.36)",
     scale: 0.60,
@@ -211,6 +220,7 @@ export const CHARACTERS = {
     name: "Hakari",
     fullName: "Kinji Hakari",
     epithet: "The Gambler",
+    heightCm: 185,     // estimated
     theme: "#ff62cf",
     shadow: "rgba(255, 98, 207, 0.38)",
     scale: 0.60,
@@ -256,6 +266,7 @@ export const CHARACTERS = {
     name: "Maki",
     fullName: "Maki Zen'in",
     epithet: "Heavenly Restricted",
+    heightCm: 170,     // official
     theme: "#69d0a8",
     shadow: "rgba(105, 208, 168, 0.34)",
     scale: 0.60,
@@ -301,6 +312,7 @@ export const CHARACTERS = {
     name: "Megumi",
     fullName: "Megumi Fushiguro",
     epithet: "Ten Shadows",
+    heightCm: 175,     // official
     theme: "#7c8cff",
     shadow: "rgba(124, 140, 255, 0.36)",
     scale: 0.60,
@@ -354,6 +366,7 @@ export const CHARACTERS = {
     name: "Nobara",
     fullName: "Nobara Kugisaki",
     epithet: "Straw Doll Sorceress",
+    heightCm: 160,     // official
     theme: "#d86a4a",
     shadow: "rgba(216, 106, 74, 0.36)",
     scale: 0.60,
@@ -399,6 +412,7 @@ export const CHARACTERS = {
     name: "Inumaki",
     fullName: "Toge Inumaki",
     epithet: "Cursed Speech User",
+    heightCm: 164,     // official
     theme: "#d7d9e7",
     shadow: "rgba(215, 217, 231, 0.32)",
     scale: 0.60,
@@ -444,6 +458,7 @@ export const CHARACTERS = {
     name: "Panda",
     fullName: "Panda",
     epithet: "Not Just Any Panda",
+    heightCm: 200,     // official
     theme: "#8ea0b8",
     shadow: "rgba(142, 160, 184, 0.36)",
     scale: 0.57,
@@ -489,6 +504,7 @@ export const CHARACTERS = {
     name: "Todo",
     fullName: "Aoi Todo",
     epithet: "My Brother",
+    heightCm: 190,     // official
     theme: "#b66cff",
     shadow: "rgba(182, 108, 255, 0.38)",
     scale: 0.59,
@@ -534,6 +550,7 @@ export const CHARACTERS = {
     name: "Momo",
     fullName: "Momo Nishimiya",
     epithet: "Witch of the Wind",
+    heightCm: 150,     // estimated
     theme: "#b7b8ff",
     shadow: "rgba(183, 184, 255, 0.36)",
     scale: 0.59,
@@ -582,6 +599,7 @@ export const CHARACTERS = {
     name: "Nanami",
     fullName: "Kento Nanami",
     epithet: "The Salaryman",
+    heightCm: 184,     // official
     theme: "#ffd35a",
     shadow: "rgba(255, 205, 82, 0.32)",
     scale: 0.60,
@@ -628,6 +646,7 @@ export const CHARACTERS = {
     name: "Toji",
     fullName: "Toji Fushiguro",
     epithet: "The Sorcerer Killer",
+    heightCm: 187,     // cited
     theme: "#a8aeb8",
     shadow: "rgba(168, 174, 184, 0.34)",
     scale: 0.60,
@@ -681,6 +700,7 @@ export const CHARACTERS = {
     name: "Sukuna",
     fullName: "Ryomen Sukuna",
     epithet: "King of Curses",
+    heightCm: 172.7,   // cited
     theme: "#ff4c55",
     shadow: "rgba(255, 67, 75, 0.4)",
     scale: 0.60,
@@ -727,6 +747,7 @@ export const CHARACTERS = {
     name: "Mahito",
     fullName: "Mahito",
     epithet: "Soul Shaper",
+    heightCm: 179.1,   // cited
     theme: "#b56cff",
     shadow: "rgba(177, 92, 255, 0.4)",
     scale: 0.60,
@@ -777,6 +798,7 @@ export const CHARACTERS = {
     name: "Geto",
     fullName: "Suguru Geto",
     epithet: "Curse Collector",
+    heightCm: 190.5,   // cited
     theme: "#7d58d8",
     shadow: "rgba(125, 88, 216, 0.38)",
     scale: 0.60,
@@ -831,6 +853,7 @@ export const CHARACTERS = {
     name: "Jogo",
     fullName: "Jogo",
     epithet: "Disaster of Flame",
+    heightCm: 180,     // cited
     theme: "#ff7a2f",
     shadow: "rgba(255, 122, 47, 0.42)",
     scale: 0.60,
@@ -876,6 +899,7 @@ export const CHARACTERS = {
     name: "Hanami",
     fullName: "Hanami",
     epithet: "Grief of the Forest",
+    heightCm: 220,     // cited
     theme: "#9bb36b",
     shadow: "rgba(155, 179, 107, 0.4)",
     scale: 0.58,
@@ -922,6 +946,7 @@ export const CHARACTERS = {
     name: "Choso",
     fullName: "Choso",
     epithet: "Eldest Brother",
+    heightCm: 181,     // cited
     theme: "#c22e4a",
     shadow: "rgba(194, 46, 74, 0.4)",
     scale: 0.60,
@@ -960,6 +985,7 @@ export const CHARACTERS = {
     name: "Mei Mei",
     fullName: "Mei Mei",
     epithet: "The Mercenary",
+    heightCm: null,    // unknown
     theme: "#d8b95c",
     shadow: "rgba(216, 185, 92, 0.36)",
     scale: 0.60,
@@ -998,6 +1024,7 @@ export const CHARACTERS = {
     name: "Uro",
     fullName: "Takako Uro",
     epithet: "Sky Manipulator",
+    heightCm: null,    // unknown
     theme: "#8fd7e8",
     shadow: "rgba(143, 215, 232, 0.36)",
     scale: 0.60,
@@ -1036,6 +1063,7 @@ export const CHARACTERS = {
     name: "Yuji",
     fullName: "Yuji Itadori",
     epithet: "Sukuna's Vessel",
+    heightCm: 173,     // official
     theme: "#ff8264",
     shadow: "rgba(255, 130, 100, 0.38)",
     scale: 0.60,
@@ -1074,6 +1102,7 @@ export const CHARACTERS = {
     name: "Reggie Star",
     fullName: "Reggie Star",
     epithet: "The Contractor",
+    heightCm: null,    // unknown
     theme: "#86d67c",
     shadow: "rgba(134, 214, 124, 0.36)",
     scale: 0.60,
@@ -1119,6 +1148,7 @@ export const CHARACTERS = {
     name: "Gakuganji",
     fullName: "Yoshinobu Gakuganji",
     epithet: "The Old Guard",
+    heightCm: null,    // unknown
     theme: "#d89b3f",
     shadow: "rgba(216, 155, 63, 0.36)",
     scale: 0.60,
