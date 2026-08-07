@@ -366,18 +366,21 @@ html, body {
 /* ---------- Character select ---------- */
 
 /* The roster lays itself out from the group list alone: one grid holds every
-   card, and category names sit as full-width titles above their own cards.
-   Adding a fighter or a whole new category needs no layout change here. `--cols` is fitted by layoutCharacterGrid() — the fewest
-   columns (so the biggest portraits) that still fit the menu — and
-   `--card-aspect` decides how hard the art is cropped as room runs out. */
+   card, and each category is a block of columns inside it with its title over
+   the top. Adding a fighter or a whole new category needs no layout change
+   here — layoutCharacterGrid() places every child and fits `--rows` (how deep
+   the roster stacks, which decides how wide each block has to be), `--cols`
+   (the total that comes out of it) and `--card-aspect` (how hard the art is
+   cropped when the window is short). */
 .character-grid {
   --card-aspect: 3 / 4;
   position: relative;
-  /* One grid for the whole roster. Cards are 1fr cells, so they always consume
-     the full width; `--cols` is fitted by layoutCharacterGrid() to the largest
-     portraits the remaining height allows. */
+  /* One grid for the whole roster, so rows line up end to end across every
+     category instead of each block sizing its own cards. Row 1 holds the
+     titles; the card rows below it are equal, hence 1fr. */
   display: grid;
   grid-template-columns: repeat(var(--cols, 12), minmax(0, 1fr));
+  grid-template-rows: auto repeat(var(--rows, 2), 1fr);
   align-content: start;
   gap: 7px;
   width: 100%;
@@ -385,32 +388,22 @@ html, body {
   min-height: var(--grid-height, auto);
 }
 
-/* A category name is a TITLE over its own cards: spanning every column pushes
-   the group's first card onto the next row, so each category reads as its own
-   band. The cards themselves stay cells of the one roster grid, so columns line
-   up all the way down — a short category just leaves empty cells at the end of
-   its last row rather than starting a separate, differently-sized block. */
+/* A category name is a TITLE over its own block, spanning exactly the columns
+   that block occupies — the 7px column gap is what separates one category's
+   underline from the next one's. */
 .char-group-title {
-  grid-column: 1 / -1;
   margin: 0;
   display: flex;
-  align-items: center;
+  align-items: end;
   font-size: clamp(0.5rem, 0.7vw, 0.72rem);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   line-height: 1.25;
   color: var(--text-dim);
-  gap: 10px;
   border-bottom: 1px solid var(--line);
   padding-bottom: 4px;
   overflow-wrap: anywhere;
-}
-
-/* Breathing room between one category's last row and the next title, but not
-   above the first title — that one already sits against the panel's padding. */
-.char-group-title:not(:first-child) {
-  margin-top: 6px;
 }
 
 .char-card {
@@ -463,7 +456,11 @@ html, body {
 
 .char-card:hover { transform: translateY(-3px); border-color: rgba(160, 190, 255, 0.6); }
 
+/* The wildcard is one card spanning every card row at the far right, so it
+   takes its height from the rows it covers rather than from the card aspect. */
 .char-card--random {
+  aspect-ratio: auto;
+  height: 100%;
   background:
     radial-gradient(120% 100% at 50% 0%, rgba(98, 220, 255, 0.24), transparent 65%),
     linear-gradient(160deg, #1b2545, #0a0f1f);

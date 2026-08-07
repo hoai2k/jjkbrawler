@@ -245,27 +245,31 @@ function buildCharacterGrid() {
   els.characterGrid.innerHTML = "";
   // RESOLVED_GROUPS, not the raw config: a typo'd key would otherwise reach
   // buildCharacterCard and take the whole select screen down on `.name`.
-  // One continuous grid: every card is a direct child, so columns line up all
-  // the way down the roster instead of each category becoming its own block
-  // with its own card size. Category names are full-width titles, which pushes
-  // the next group's first card onto a fresh row — a short category just leaves
-  // empty cells at the end of its last row.
+  // One continuous grid, read left to right: every card is a direct child and
+  // layoutCharacterGrid() places it, so a category is a block of columns with
+  // its title over the top and the next category picks up immediately to its
+  // right. Rows line up across the whole roster; only the tail of a block that
+  // doesn't divide evenly is left empty.
   for (const group of RESOLVED_GROUPS) {
-    els.characterGrid.appendChild(buildGroupLabel(group.key, group.label));
+    els.characterGrid.appendChild(buildGroupLabel(group.key, group.label, group.members.length));
     for (const member of group.members) els.characterGrid.appendChild(buildCharacterCard(member));
   }
-  // Random belongs to no category, so it gets its own title rather than
-  // trailing the last group's row, where it would read as one of its members.
+  // Random belongs to no category, so it takes the far right end as a single
+  // full-height card — no title, because the tile already reads RANDOM.
   if (RANDOM_GROUP.show !== false) {
-    els.characterGrid.appendChild(buildGroupLabel(RANDOM_KEY, RANDOM_GROUP.label));
-    els.characterGrid.appendChild(buildCharacterCard(RANDOM_KEY));
+    const wildcard = buildCharacterCard(RANDOM_KEY);
+    wildcard.title = RANDOM_GROUP.label;
+    els.characterGrid.appendChild(wildcard);
   }
 }
 
-function buildGroupLabel(key, label) {
+// `size` is what lets the fitter shape the block without walking the cards:
+// at a given depth the category is ceil(size / rows) columns wide.
+function buildGroupLabel(key, label, size) {
   const heading = document.createElement("h3");
   heading.className = "char-group-title";
   heading.dataset.group = key;
+  heading.dataset.size = String(size);
   heading.textContent = label;
   return heading;
 }
@@ -291,46 +295,90 @@ function buildCharacterCard(key) {
   return btn;
 }
 
-// Column bounds for the roster grid. Fewer columns means bigger portraits, so
-// the fitter walks UP from the largest layout and stops at the first one the
-// menu can actually contain.
-const MIN_ROSTER_COLS = 6;
-const MAX_ROSTER_COLS = 26;
+// How many card rows the roster may stack. Two keeps the cards on one shallow
+// band; going deeper narrows the roster (each category needs fewer columns) and
+// so buys wider cards, at the cost of height.
+const MIN_ROSTER_ROWS = 2;
+const MAX_ROSTER_ROWS = 5;
 
-// Portrait shapes the fitter may fall back to, tallest first. Cropping the art
-// buys height far more cheaply than another column does: past the largest
-// category there is no row left to save, so extra columns only shrink the cards
-// and strand width the roster can never fill.
+// Portrait shapes the fitter may fall back to, tallest first — cropping the art
+// is how a row count that is otherwise right survives a short window.
 const ROSTER_ASPECTS = ["3 / 4", "1 / 1", "5 / 4", "3 / 2", "2 / 1"];
 
-// Sizes the roster to the window. Every card is a cell of one grid spanning the
-// full width, so portraits are as large as the remaining vertical space allows
-// rather than being squeezed into per-category columns. Runs on resize and
-// whenever the menu is shown; nothing here is tied to the current roster size.
+// Under this, the name plate starts losing characters, so the fitter treats the
+// layout as too cramped and stacks another row to win the width back.
+const MIN_CARD_WIDTH = 96;
+
+// Sizes the roster to the window. The row count is fixed across the whole grid
+// and each category claims however many columns its members need at that depth,
+// so the categories sit side by side and every row lines up end to end. Runs on
+// resize and whenever the menu is shown; nothing here is tied to the current
+// roster size.
 export function layoutCharacterGrid() {
   const grid = els.characterGrid;
   if (!grid || !grid.clientWidth) return; // hidden overlay: nothing to measure
   if (!grid.querySelector(".char-card")) return;
   grid.style.removeProperty("--grid-height"); // measure the natural size first
 
-  let chosen = { cols: MAX_ROSTER_COLS, aspect: ROSTER_ASPECTS[ROSTER_ASPECTS.length - 1] };
-  outer:
-  for (let cols = MIN_ROSTER_COLS; cols <= MAX_ROSTER_COLS; cols++) {
+  // Deeper layouts are wider-carded but taller, so walk from the shallowest and
+  // keep going only while the cards are still too narrow to read.
+  let fallback = null;
+  let chosen = null;
+  for (let rows = MIN_ROSTER_ROWS; rows <= MAX_ROSTER_ROWS && !chosen; rows++) {
+    placeRosterBlocks(grid, rows);
     for (const aspect of ROSTER_ASPECTS) {
-      grid.style.setProperty("--cols", String(cols));
       grid.style.setProperty("--card-aspect", aspect);
-      // scrollHeight > clientHeight means this layout overflows the menu, so
-      // crop harder — and once the crops run out, add a column.
-      if (els.menuOverlay.scrollHeight <= els.menuOverlay.clientHeight) {
-        chosen = { cols, aspect };
-        break outer;
-      }
+      // scrollHeight > clientHeight means this depth overflows the menu at this
+      // crop, so crop harder before giving up on it.
+      if (els.menuOverlay.scrollHeight > els.menuOverlay.clientHeight) continue;
+      const fit = { rows, aspect, width: grid.querySelector(".char-card").getBoundingClientRect().width };
+      // The first depth that fits is the shortest one; keep it unless its cards
+      // came out too small, in which case a deeper, wider layout is worth the
+      // height — and if none of them fit either, this is still the best we have.
+      if (!fallback || fit.width > fallback.width) fallback = fit;
+      if (fit.width >= MIN_CARD_WIDTH) chosen = fit;
+      break;
     }
   }
-  grid.style.setProperty("--cols", String(chosen.cols));
+  chosen ??= fallback ?? { rows: MIN_ROSTER_ROWS, aspect: ROSTER_ASPECTS[ROSTER_ASPECTS.length - 1] };
+  placeRosterBlocks(grid, chosen.rows);
   grid.style.setProperty("--card-aspect", chosen.aspect);
   // Pin the fitted height so the roster cannot shift while a player is choosing.
   grid.style.setProperty("--grid-height", `${Math.ceil(grid.getBoundingClientRect().height)}px`);
+}
+
+// Lays the roster out at a given depth: each category becomes a block of
+// ceil(members / rows) columns filled left to right, the blocks run end to end
+// across one grid, and the wildcard takes a single full-height column at the
+// far right. Titles ride in a row of their own above their block.
+function placeRosterBlocks(grid, rows) {
+  let col = 1;
+  let block = null;
+  let seen = 0;
+  for (const child of grid.children) {
+    if (child.classList.contains("char-group-title")) {
+      col += block ? block.width : 0;
+      block = { start: col, width: 0, size: Number(child.dataset.size) };
+      block.width = Math.ceil(block.size / rows);
+      seen = 0;
+      child.style.gridArea = `1 / ${block.start} / 2 / ${block.start + block.width}`;
+      continue;
+    }
+    if (child.classList.contains("char-card--random")) {
+      // No block of its own and no title: one card, as tall as the rest.
+      col += block ? block.width : 0;
+      block = null;
+      child.style.gridArea = `2 / ${col} / ${2 + rows} / ${col + 1}`;
+      col += 1;
+      continue;
+    }
+    const line = block.start + (seen % block.width);
+    const row = 2 + Math.floor(seen / block.width);
+    child.style.gridArea = `${row} / ${line} / ${row + 1} / ${line + 1}`;
+    seen += 1;
+  }
+  grid.style.setProperty("--cols", String(col + (block ? block.width : 0) - 1));
+  grid.style.setProperty("--rows", String(rows));
 }
 
 function buildStageGrid() {
