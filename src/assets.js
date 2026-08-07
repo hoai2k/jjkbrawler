@@ -20,21 +20,24 @@ const EFFECT_KEYS = [
   "boogie_clap", "domain_gamble",
   // Geto's summoned curses, lifted out of his round-6 art (tools/extract_curses.py)
   "curse_a", "curse_b", "curse_c", "curse_d", "curse_dragon",
+  // Round 7, delivered: Choso, Mei Mei, Uro
+  "piercing_blood", "blood_orb", "aura_crimson", "crow", "crow_flock",
+  "sky_ripple", "sky_shard",
 ];
 
-// Effects belonging to round-7 fighters, keyed by fighter so they are only
+// Effects for fighters still awaiting art, keyed by fighter so they are only
 // fetched once that fighter joins CHARACTER_KEYS.
 //
-// A fighter can ship before their effect art does — Choso did — so these load
-// as OPTIONAL: a missing file stays silent instead of logging, and the
-// projectile/install renderers fall back to their procedural look. Move a
-// fighter's entry into EFFECT_KEYS once their art is actually delivered, so a
-// genuinely broken path is still reported.
+// A fighter can ship before their effect art does — Choso did, for one round —
+// so these load as OPTIONAL: a missing file stays silent instead of logging,
+// and the projectile/install renderers fall back to their procedural look.
+// Move a fighter's keys into EFFECT_KEYS once the art is delivered AND the
+// fighter is on the roster, so a genuinely broken path is still reported.
+//
+// `divergent_shock` is already delivered but stays here because Yuji himself
+// has not shipped; it promotes with him.
 const STAGED_EFFECT_KEYS = {
   yuji: ["divergent_shock"],
-  choso: ["piercing_blood", "blood_orb", "aura_crimson"],
-  meimei: ["crow", "crow_flock"],
-  uro: ["sky_ripple", "sky_shard"],
   reggie: ["receipt_blade", "spray_cloud", "drop_vending", "drop_bike", "drop_futon", "sedan"],
   gakuganji: ["sound_wave", "feedback_wall", "concert_wave", "aura_amber"],
 };

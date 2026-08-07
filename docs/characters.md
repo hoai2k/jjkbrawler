@@ -378,46 +378,6 @@ own health — his resource bar is his damage meter.
 - *Passive — Death Painting Body:* immune to bleed and poison (he *is* the
   blood), which also makes him the natural counter to Sukuna's chip game.
 
----
-
-# Round 7 — staged fighters
-
-The five fighters below are **gameplay-complete but not yet in the roster**:
-their kits, mechanics, AI profiles and audio are wired in code
-(`STAGED_CHARACTER_KEYS` in `src/characters.js`), and they ship the moment
-their art lands (see `docs/asset-requests-round7.md`). Design rationale
-follows the same format as the launch roster.
-
-Choso was the first of the six to ship and now sits with the roster above —
-his art arrived in round 7 and he is selectable under *Curses and Curse Users*.
-
-## Yuji Itadori — "Sukuna's Vessel"
-**Canon:** The vessel of the King of Curses — a physically freakish, endlessly
-kind-hearted student whose signature is **Divergent Fist** (his cursed energy
-lags a beat behind his fist, so one punch lands twice) and, once his timing
-sharpens, **Black Flash** — cursed energy applied within a millionth of a
-second of impact, distorting space and multiplying force. Superhuman
-athleticism, the Manji Kick, and a refusal to stay down. Personality: warm,
-direct, self-sacrificing — "I'll be the cog"; he saves people so they can have
-a proper death.
-
-**Design mapping:** The honest fists-first brawler with a slot-machine heart:
-his whole kit is clean fundamentals, and the Black Flash roll is the spike of
-drama on top.
-- *Stats:* 448 / 1.02 — third-fastest ground speed; a pure rushdown frame.
-- **Divergent Fist** (neutral): a punch whose cursed-energy impact arrives a
-  beat later — one input, two hits, and the delayed hit is the launcher. Great
-  for catching shields dropped too early.
-- **Manji Kick** (side): a sliding low kick that sweeps in under pokes.
-- **Unbreakable Grit** (down): plants his feet — brief hyper-armor and reduced
-  damage. He just keeps coming, exactly like the manga panels.
-- **Ultimate — Black Flash: Consecutive:** the zone. A rush of blows where
-  every hit is on the edge of a Black Flash, capped with one that isn't on the
-  edge of anything.
-- *Passive — Black Flash:* every melee hit has a 12% chance to spark: bonus
-  damage, extra launch, and a surge of ultimate meter. Feast or famine, like
-  the real thing.
-
 ## Mei Mei — "The Mercenary"
 **Canon:** Grade 1 sorcerer who fights exclusively for money; wields a
 battle-axe and **Black Bird Manipulation** — crows as scouts and, at the
@@ -463,6 +423,47 @@ her is a good way to get shot.
   her sky.
 - *Passive — Mistress of the Air:* 12% less damage and knockback while
   airborne. Fight her on the ground; you won't get to.
+
+---
+
+# Round 7 — staged fighters
+
+The three fighters below are **gameplay-complete but not yet in the roster**:
+their kits, mechanics, AI profiles and audio are wired in code
+(`STAGED_CHARACTER_KEYS` in `src/characters.js`), and they ship the moment
+their art lands (see `docs/asset-requests-round7.md`). Design rationale
+follows the same format as the launch roster.
+
+Choso, Mei Mei and Uro have already shipped and now sit with the roster
+above — Choso under *Curses and Curse Users*, Mei Mei and Uro under
+*Sorcerers*.
+
+## Yuji Itadori — "Sukuna's Vessel"
+**Canon:** The vessel of the King of Curses — a physically freakish, endlessly
+kind-hearted student whose signature is **Divergent Fist** (his cursed energy
+lags a beat behind his fist, so one punch lands twice) and, once his timing
+sharpens, **Black Flash** — cursed energy applied within a millionth of a
+second of impact, distorting space and multiplying force. Superhuman
+athleticism, the Manji Kick, and a refusal to stay down. Personality: warm,
+direct, self-sacrificing — "I'll be the cog"; he saves people so they can have
+a proper death.
+
+**Design mapping:** The honest fists-first brawler with a slot-machine heart:
+his whole kit is clean fundamentals, and the Black Flash roll is the spike of
+drama on top.
+- *Stats:* 448 / 1.02 — third-fastest ground speed; a pure rushdown frame.
+- **Divergent Fist** (neutral): a punch whose cursed-energy impact arrives a
+  beat later — one input, two hits, and the delayed hit is the launcher. Great
+  for catching shields dropped too early.
+- **Manji Kick** (side): a sliding low kick that sweeps in under pokes.
+- **Unbreakable Grit** (down): plants his feet — brief hyper-armor and reduced
+  damage. He just keeps coming, exactly like the manga panels.
+- **Ultimate — Black Flash: Consecutive:** the zone. A rush of blows where
+  every hit is on the edge of a Black Flash, capped with one that isn't on the
+  edge of anything.
+- *Passive — Black Flash:* every melee hit has a 12% chance to spark: bonus
+  damage, extra launch, and a surge of ultimate meter. Feast or famine, like
+  the real thing.
 
 ## Reggie Star — "The Contractor"
 **Canon:** A Culling Game player whose cursed technique materializes anything
@@ -536,14 +537,14 @@ Weakest legs on the roster, but a stage that is always ringing.
 | Jogo | Heavy zoner | ★★☆ | Heavy | Burn attrition, meteor |
 | Hanami | Fortress | ★★☆ | Very heavy | Outlasting everyone |
 | Choso | Blood zoner | ★★★☆ | Mid-heavy | Premium projectiles paid in HP |
+| Mei Mei | Economy all-rounder | ★★★★ | Mid | Meter economy, axe shield pressure |
+| Uro | Aerial trickster | ★★★★ | Light | Air control, reflected projectiles |
 
 **Staged (round 7 — awaiting art):**
 
 | Fighter | Archetype | Speed | Weight | Wins by |
 |---|---|---|---|---|
 | Yuji | Rushdown brawler | ★★★★★ | Mid | Fundamentals + Black Flash spikes |
-| Mei Mei | Economy all-rounder | ★★★★ | Mid | Meter economy, axe shield pressure |
-| Uro | Aerial trickster | ★★★★ | Light | Air control, reflected projectiles |
 | Reggie | Wildcard zoner | ★★★☆ | Mid | Area denial, falling appliances |
 | Gakuganji | Sound fortress | ★☆ | Heavy | Walls of sound, unflinching trades |
 

@@ -1,12 +1,12 @@
-// All 18 fighters: stats, sprite-frame mappings, attack profiles, specials,
+// All 20 fighters: stats, sprite-frame mappings, attack profiles, specials,
 // ultimates, passives. Design rationale for every kit lives in docs/characters/.
 //
 // Frame keys are sheet cells "r{row}c{col}" resolved via assets/sprites/manifest.json.
 // Sheet rows: 0 idle/poses, 1 run, 2 air, 3 technique effects, 4 crouch.
-// Fighters delivered from round 7 onward (Choso) have no sheet at all — their
-// frames are semantic pose keys instead; see SEMANTIC_ANIMS below.
+// Fighters delivered from round 7 onward (Choso, Mei Mei, Uro) have no sheet at
+// all — their frames are semantic pose keys instead; see SEMANTIC_ANIMS below.
 
-// Roster grouping used by the fighter-select grid. Three buckets, sized 6/6/6:
+// Roster grouping used by the fighter-select grid. Three buckets, sized 6/8/6:
 // the Tokyo class, everyone else on the human side (faculty, Kyoto, the
 // non-sorcerer), and the curses plus Geto, who is human but fights entirely
 // through the curses he manipulates. The select screen lays itself out from
@@ -21,7 +21,7 @@ export const CHARACTER_GROUPS = [
   {
     key: "sorcerers",
     label: "Sorcerers",
-    members: ["gojo", "nanami", "todo", "momo", "hakari", "toji"],
+    members: ["gojo", "nanami", "todo", "momo", "hakari", "toji", "meimei", "uro"],
   },
   {
     key: "curses",
@@ -42,7 +42,7 @@ export const CHARACTER_KEYS = CHARACTER_GROUPS.flatMap((g) => g.members);
 // Deliberately excluded from CHARACTER_KEYS, so neither character select nor
 // randomCharacterKey() below can land on a fighter that has no sprites yet.
 export const STAGED_CHARACTER_KEYS = [
-  "yuji", "meimei", "uro", "reggie", "gakuganji",
+  "yuji", "reggie", "gakuganji",
 ];
 
 // Sentinel selection meaning "draw a fresh fighter at the start of every match"
@@ -956,47 +956,6 @@ export const CHARACTERS = {
     ai: { style: "zoner", range: 380 },
   },
 
-  // ================================================================ STAGED
-  // Round-7 fighters below are gameplay-complete but awaiting art.
-  // They are excluded from CHARACTER_KEYS until their sprites are delivered.
-
-  // ------------------------------------------------------------------ YUJI
-  yuji: {
-    name: "Yuji",
-    epithet: "Sukuna's Vessel",
-    theme: "#ff8264",
-    shadow: "rgba(255, 130, 100, 0.38)",
-    scale: 0.60,
-    stats: { speed: 448, airSpeed: 345, accel: 2900, jump: 780, airJumps: 1, weight: 1.02, friction: 0.86 },
-    anims: SEMANTIC_ANIMS,
-    light: { dmg: 8.5, reach: 174, speed: 1.1, angle: 0.3, effect: null, label: "Straight Right", sfx: "punch" },
-    heavy: { dmg: 16, reach: 188, speed: 1.0, angle: 0.44, effect: null, label: "Crushing Blow", sfx: "punch", shieldMul: 1.7 },
-    specials: {
-      neutral: {
-        name: "Divergent Fist", type: "echoStrike", cooldown: 1.2,
-        desc: "His cursed energy lags a beat behind the fist — one punch, two impacts.",
-        p: { delay: 0.08, dur: 0.14, ox: 46, oy: -96, w: 170, h: 104, dmg: 9, base: 300, growth: 5.6, angle: 0.34, echoDelay: 0.34, echoDmg: 8, echoBase: 440, echoGrowth: 7.2, echoAngle: 0.5, color: "#ff8264", label: "Divergent Fist", sfx: "punch", sprite: "effect:divergent_shock", spriteH: 140 },
-      },
-      side: {
-        name: "Manji Kick", type: "dashStrike", cooldown: 1.3,
-        desc: "A sliding capoeira-style low kick that sweeps in under guards and pokes.",
-        p: { vel: 560, iframes: 0.08, delay: 0.05, dur: 0.22, ox: 58, oy: -60, w: 200, h: 70, dmg: 12, base: 420, growth: 7.0, angle: 0.28, label: "Manji Kick", sfx: "punch" },
-      },
-      down: {
-        name: "Unbreakable Grit", type: "install", cooldown: 6.0,
-        desc: "Plants his feet and refuses to fall — for a moment, nothing staggers him.",
-        p: { duration: 2.8, armor: true, dmgTakenMul: 0.88, color: "#ffb37a", label: "GRIT" },
-      },
-    },
-    ultimate: {
-      name: "Black Flash: Consecutive", type: "flurry",
-      desc: "Cursed energy struck within a millionth of a second of impact — again, and again, and again. Space itself distorts.",
-      p: { hits: 5, dmg: 6, base: 210, finisherDmg: 22, finisherBase: 880, growth: 9.2, crit: true, critLabel: "BLACK FLASH", critColor: "#ff3b30", color: "#ff3b30", label: "BLACK FLASH" },
-    },
-    passive: { id: "blackFlash", name: "Black Flash", desc: "Every melee hit has a 12% chance to spark a Black Flash: bonus damage, extra launch, and a surge of ultimate meter." },
-    ai: { style: "rush", range: 210 },
-  },
-
   // --------------------------------------------------------------- MEI MEI
   meimei: {
     name: "Mei Mei",
@@ -1069,6 +1028,47 @@ export const CHARACTERS = {
     },
     passive: { id: "openSky", name: "Mistress of the Air", desc: "The sky is her territory: a third jump, and 12% less damage and knockback while airborne." },
     ai: { style: "balanced", range: 280 },
+  },
+
+  // ================================================================ STAGED
+  // Round-7 fighters below are gameplay-complete but awaiting art.
+  // They are excluded from CHARACTER_KEYS until their sprites are delivered.
+
+  // ------------------------------------------------------------------ YUJI
+  yuji: {
+    name: "Yuji",
+    epithet: "Sukuna's Vessel",
+    theme: "#ff8264",
+    shadow: "rgba(255, 130, 100, 0.38)",
+    scale: 0.60,
+    stats: { speed: 448, airSpeed: 345, accel: 2900, jump: 780, airJumps: 1, weight: 1.02, friction: 0.86 },
+    anims: SEMANTIC_ANIMS,
+    light: { dmg: 8.5, reach: 174, speed: 1.1, angle: 0.3, effect: null, label: "Straight Right", sfx: "punch" },
+    heavy: { dmg: 16, reach: 188, speed: 1.0, angle: 0.44, effect: null, label: "Crushing Blow", sfx: "punch", shieldMul: 1.7 },
+    specials: {
+      neutral: {
+        name: "Divergent Fist", type: "echoStrike", cooldown: 1.2,
+        desc: "His cursed energy lags a beat behind the fist — one punch, two impacts.",
+        p: { delay: 0.08, dur: 0.14, ox: 46, oy: -96, w: 170, h: 104, dmg: 9, base: 300, growth: 5.6, angle: 0.34, echoDelay: 0.34, echoDmg: 8, echoBase: 440, echoGrowth: 7.2, echoAngle: 0.5, color: "#ff8264", label: "Divergent Fist", sfx: "punch", sprite: "effect:divergent_shock", spriteH: 140 },
+      },
+      side: {
+        name: "Manji Kick", type: "dashStrike", cooldown: 1.3,
+        desc: "A sliding capoeira-style low kick that sweeps in under guards and pokes.",
+        p: { vel: 560, iframes: 0.08, delay: 0.05, dur: 0.22, ox: 58, oy: -60, w: 200, h: 70, dmg: 12, base: 420, growth: 7.0, angle: 0.28, label: "Manji Kick", sfx: "punch" },
+      },
+      down: {
+        name: "Unbreakable Grit", type: "install", cooldown: 6.0,
+        desc: "Plants his feet and refuses to fall — for a moment, nothing staggers him.",
+        p: { duration: 2.8, armor: true, dmgTakenMul: 0.88, color: "#ffb37a", label: "GRIT" },
+      },
+    },
+    ultimate: {
+      name: "Black Flash: Consecutive", type: "flurry",
+      desc: "Cursed energy struck within a millionth of a second of impact — again, and again, and again. Space itself distorts.",
+      p: { hits: 5, dmg: 6, base: 210, finisherDmg: 22, finisherBase: 880, growth: 9.2, crit: true, critLabel: "BLACK FLASH", critColor: "#ff3b30", color: "#ff3b30", label: "BLACK FLASH" },
+    },
+    passive: { id: "blackFlash", name: "Black Flash", desc: "Every melee hit has a 12% chance to spark a Black Flash: bonus damage, extra launch, and a surge of ultimate meter." },
+    ai: { style: "rush", range: 210 },
   },
 
   // ---------------------------------------------------------------- REGGIE
