@@ -21,7 +21,7 @@ covering a 23-fighter roster with domains, ultimates, summons and a full menu
 system. Three concrete consequences:
 
 **1. One explosion is doing most of the work.** `blast` is requested from
-**25 call sites in code plus 28 move configs** — it plays for a projectile
+**30 call sites in code plus 28 move configs** — it plays for a projectile
 popping, a counter triggering, a summon appearing, a meteor landing and a
 Domain Expansion. `punch` covers 32 move configs. The palette is so narrow
 that most of the game sounds the same.
@@ -47,6 +47,7 @@ The 14 that do have a voice share 4 files between them — every "big" character
 | **Black Flash** (Yuji signature) | `combat.js:470` | popup only, no sound |
 | **7:3 crit** (Nanami signature) | `combat.js:460` | popup only, no sound |
 | **All 7 Domain Expansions** | `domains.js:65` | every one plays the same `ult` clip as a normal ultimate |
+| **All 8 stage hazards** | `stage_fx.js` | 24 sound calls, every one a borrowed combat clip — a pitched-down sword `block` is standing in for a temple bell |
 
 The menu works but borrows combat sounds — cursor movement is a pitched-up
 `whoosh`, confirming is a `slash`, settings toggles are a sword `block`.
@@ -92,7 +93,7 @@ keeps using the current files until I switch them over.
 
 Tiers are ordered by how much each one improves the game per file delivered.
 **Tier 1 and 2 are the ones that matter** — 22 files that fix the "everything
-sounds the same" problem and the silent moments. Tiers 3–5 are depth.
+sounds the same" problem and the silent moments. Tiers 3–6 are depth.
 
 ---
 
@@ -512,6 +513,65 @@ An overwhelming outpouring of love and grief, a soaring sorrowful string swell w
 
 ---
 
+## Tier 6 — Stage hazards / Active Boards (10 files)
+
+`src/stage_fx.js` gives eight boards their own gimmick, with **24 sound calls
+that all borrow combat clips** — the Lantern Corridor bell is a sword `block`
+pitched down to 0.55, and the wandering curse on School Wing is `gruntMonster`.
+Nothing here has audio of its own.
+
+**`hazard_telegraph.wav`** · shared warning before any hazard fires · 0.5 s
+```
+A rising warning tone signalling that something dangerous is about to happen in this spot, a short tense two-note swell with a soft alarm edge, clear but not shrill, about 0.5 seconds long, mono video game hazard telegraph cue, no music, no voice
+```
+
+**`hazard_water_surge.wav`** · Flooded Gate — a wave sweeps the platform · 2.0 s
+```
+A knee-high wall of water surging across a flooded stone floor, a heavy rushing whoosh with churning foam and splashing at the leading edge, sustained then receding, about 2 seconds long, stereo water hazard sound effect, no music, no voice
+```
+
+**`hazard_fang_snap.wav`** · Curse Maw and Cursed Teeth — fangs snap shut · 0.5 s
+```
+Enormous bony fangs snapping shut like a trap, a hard wet bone-on-bone clack with a deep meaty closing thud underneath, brutal and sudden, about 0.5 seconds long, mono creature hazard sound effect, no music, no voice
+```
+
+**`hazard_bloom.wav`** · Garden Steps — a healing flower opens · 0.8 s
+```
+A large flower unfurling open with supernatural speed, a soft organic peeling rustle blossoming into a warm gentle chime, inviting and benign, about 0.8 seconds long, mono magical plant sound effect, no music, no voice
+```
+
+**`hazard_bell.wav`** · Lantern Corridor — the lantern shakes loose · 0.9 s
+```
+A single old temple bell struck once as a warning, a warm bronze ring with a natural decaying tail, calm and ominous rather than alarming, about 0.9 seconds long, mono temple bell sound effect, no music, no voice
+```
+
+**`hazard_fire_patch.wav`** · Lantern Corridor — burning floor · 1.5 s, **seamless loop**
+```
+A patch of floor burning steadily, a crackling fire bed with soft roaring underneath and occasional popping embers, designed as a seamless loop with matching start and end so it can repeat without a click, exactly 1.5 seconds long, mono fire loop sound effect, no music, no voice
+```
+
+**`hazard_electric_arc.wav`** · Neon Split — the bolt strikes and holds · 1.2 s
+```
+A high-voltage electrical bolt striking down and then holding as a sustained arc, a sharp cracking discharge followed by a buzzing crackling hum, dangerous and unstable, about 1.2 seconds long, mono electricity hazard sound effect, no music, no voice
+```
+
+**`hazard_traffic_pass.wav`** · Crosswalk Rush — traffic races through · 1.0 s
+```
+A vehicle rushing past at speed very close by, a fast doppler whoosh with a low tyre roar sweeping from one side to the other, about 1 second long, stereo traffic pass-by sound effect, no music, no voice
+```
+
+**`hazard_signal_chirp.wav`** · Crosswalk Rush — the crossing signal warns · 0.6 s
+```
+A pedestrian crossing signal chirping a warning, two or three short clean electronic beeps in a steady rhythm, everyday and slightly ominous in context, about 0.6 seconds long, mono street signal sound effect, no music, no voice
+```
+
+**`hazard_curse_latch.wav`** · School Wing — the wandering curse attaches · 0.7 s
+```
+A small parasitic creature latching onto a body, a wet sticky slap followed by a scrabbling chittering squeal, unpleasant and clingy, about 0.7 seconds long, mono creature hazard sound effect, no music, no voice
+```
+
+---
+
 ## Suggested delivery order
 
 1. **The 6 male-voice files in Tier 3** — 9 fighters including Gojo are
@@ -522,9 +582,11 @@ An overwhelming outpouring of love and grief, a soaring sorrowful string swell w
    `countdown_go` are the two players will notice most.
 4. **Tier 4** (7 files) — makes menus stop sounding like swordfights.
 5. **Tier 5** (11 files) — the identity pass.
-6. Per-domain stings and KO cries last.
+6. **Tier 6** (10 files) — Active Boards currently run entirely on borrowed
+   combat clips.
+7. Per-domain stings and KO cries last.
 
-Totals: **58 files** for tiers 1–5, plus 13 optional. Tiers 1–3 alone
+Totals: **68 files** for tiers 1–6, plus 13 optional. Tiers 1–3 alone
 (40 files) would transform how the game feels.
 
 ---
@@ -538,3 +600,4 @@ Totals: **58 files** for tiers 1–5, plus 13 optional. Tiers 1–3 alone
 | 3 — voices | 18 (+6 KO) | ☐ | ☐ |
 | 4 — menu / UI | 7 | ☐ | ☐ |
 | 5 — energy / summons / domains | 11 (+7 stings) | ☐ | ☐ |
+| 6 — stage hazards | 10 | ☐ | ☐ |
