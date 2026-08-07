@@ -7,7 +7,8 @@ numbers, so a commit or code comment citing "round 5 art" still resolves.
 **Current status: rounds 1–8 delivered. Round 9 is the only open round.**
 
 The roster is complete: all 23 fighters have a card, 31 poses and their effect
-sprites. Nothing pending blocks play — round 9 is consistency and polish.
+sprites. Nothing pending blocks play — round 9 is consistency, accuracy and
+polish.
 
 ---
 
@@ -43,8 +44,9 @@ PNG, **one subject per file**, no text, no watermark, no border, no grids.
 (Hero cards are the exception: JPEG, full-bleed background — see 9A.)
 
 - **Background:** true alpha if possible; otherwise solid magenta `#FF00FF` —
-  except warm-palette characters (Sukuna, Nobara, Momo, Hakari, Yuji, Choso),
-  which need mid-grey `#808080`. A magenta key eats pink and red tones.
+  except warm-palette characters (Sukuna, Nobara, Momo, Hakari, Yuji, Choso,
+  and now Uro and Gakuganji — see 9E), which need mid-grey `#808080`. A magenta
+  key eats pink and red tones.
 - **Facing:** draw everything **facing RIGHT**. If your generator prefers left,
   say so and it gets batch-mirrored on import.
 - **Framing:** full body inside the frame with margin on **all four sides**.
@@ -85,6 +87,17 @@ design stays identical across their card, their sprites and any new art.
 Use verbatim — these are the established designs, checked against the current
 sheets.
 
+**Check the block against the show before drawing.** The authority is the
+character's **(Anime)** full-body render on
+[jujutsu-kaisen.fandom.com](https://jujutsu-kaisen.fandom.com), not the block
+text and not the art already in the repo. Three blocks below (`uro`, `reggie`,
+`gakuganji`) described characters who look nothing like their anime designs,
+which is what section **9E** exists to fix; those three rows have been
+rewritten from the reference and their old wording is dead. Downloaded copies
+of the references live in
+[`assets/reference/canon/`](../assets/reference/canon/), with the source URLs
+and a recipe for fetching more in that directory's README.
+
 | Character | Block |
 |---|---|
 | gojo | "Satoru Gojo from Jujutsu Kaisen, tall slim young man with spiky white hair and a black blindfold over his eyes, wearing a black high-collared jujutsu uniform with dark trousers and black boots" |
@@ -104,28 +117,34 @@ sheets.
 | geto | "Suguru Geto from Jujutsu Kaisen, tall man with long black hair in a topknot, wearing a black traditional robe with gold trim over dark clothing" |
 | jogo | "Jogo from Jujutsu Kaisen, a volcano-headed cursed spirit with a single large eye, cracked earthen skin, wearing a yellow-and-black spotted fur mantle over dark trousers" |
 | hanami | "Hanami from Jujutsu Kaisen, tall upright cursed spirit with a dark grey-brown bark body, branch spurs on the shoulders, a flower growing from its head and glowing eyes in a cracked wooden face" |
-
----
 | yuji | "Yuji Itadori from Jujutsu Kaisen, athletic teenage boy with short spiky salmon-pink hair and brown eyes, wearing a dark navy high-collared jujutsu school uniform jacket over a red hoodie, matching dark trousers and white sneakers" *(grey key)* |
 | choso | "Choso from Jujutsu Kaisen, pale serious young man with long black hair tied into two high loose buns with strands framing his face, a dark horizontal marking across the bridge of his nose, wearing a loose black robe-like tunic with pale trim, wide sleeves, dark trousers and simple shoes" *(grey key)* |
 | meimei | "Mei Mei from Jujutsu Kaisen, tall elegant woman with very long silver-lavender hair worn in thick loose braids, calm confident expression, wearing a fitted black high-collared long-sleeved dress with gold buttons and dark tights, carrying a large single-headed battle axe" |
-| uro | "Takako Uro from Jujutsu Kaisen, lean athletic woman with a short dark bob haircut and sharp eyes, wearing a fitted pale combat bodysuit with purple accent panels and bandage-wrapped forearms, light flexible shoes" |
-| reggie | "Reggie Star from Jujutsu Kaisen, lean sly man with long dark hair swept back and a small chin beard, wearing a dark fur-collared jacket over a patterned shirt with dark trousers, carrying a closed dark-purple umbrella that conceals a katana" |
-| gakuganji | "Yoshinobu Gakuganji from Jujutsu Kaisen, stern elderly man, mostly bald with grey hair at the sides and a long grey beard and mustache, heavy wrinkles and hooded eyes, wearing dark traditional kimono-style robes, carrying a black electric guitar on a strap" |
+| uro | "Takako Uro from Jujutsu Kaisen, lean athletic woman with a fierce confident grin, pale violet-pink hair sweeping upward and outward in wild flame-like curling points, sharp violet eyes with heavy dark eyeliner, large gold cylindrical drop earrings, a black choker and a black band on each wrist, wearing a close-fitting pale-cyan cloud-form garment that wraps her torso and hips like a sleeveless bodysuit, bare arms and legs, barefoot with violet-painted nails" *(grey key)* |
+| reggie | "Reggie Star from Jujutsu Kaisen, tall lean man with straight shoulder-length blond hair parted at the side, heavy-lidded tired eyes and a narrow pointed chin beard, wearing a shaggy knee-length tunic and matching shoulder cape built from layered rows of torn white paper receipts with small pale mint-green printed tabs, bare arms and bare lower legs, barefoot" |
+| gakuganji | "Yoshinobu Gakuganji from Jujutsu Kaisen, stern hunched elderly man, bald on top with long straight white hair falling past his shoulders at the sides, a long thin white beard and drooping moustache, deeply wrinkled face with hooded eyes and gold hoop earrings, wearing a cream-white kimono top under a black band T-shirt with the kimono sleeves hanging loose, wide dark-purple hakama trousers, white tabi socks and wooden geta sandals, a crimson-red Flying-V electric guitar slung across his chest on a strap" *(grey key)* |
 
-*(The 17 above are the launch roster; the six below shipped in round 7.)*
+*(The 17 above are the launch roster; the six below shipped in round 7. The
+`uro`, `reggie` and `gakuganji` rows were rewritten from the anime reference in
+round 9 — see **9E**; art made against their old wording is being replaced.)*
 
 
 ---
 
 # Round 9 — open
 
-Four independent parts; any can be delivered on its own.
+Six independent parts; any can be delivered on its own.
 
 - **9A** — regenerate the 17 original hero cards so the select screen is one style (17 images)
 - **9B** — 10 technique frames that currently show the wrong move
 - **9C** — 7 Domain Expansion backgrounds for the new domain feature
 - **9D** — 4 stage-hazard props for the Active Boards update (optional polish)
+- **9E** — redraw Gakuganji, Reggie and Uro from the anime reference; their current art is the wrong character (93 sprites + 3 cards)
+- **9F** — redeliver Mahito's 16 generated poses with a clean alpha channel (16 sprites)
+
+**9E is the highest-value part of this round.** 9A–9D are polish on art that is
+already right; 9E replaces three fighters who are drawn as people who do not
+exist in the show.
 
 ---
 
@@ -454,3 +473,347 @@ art (it is mirrored when walking right).
 | `stage_fang` | ☐ | ☐ |
 | `stage_flower` | ☐ | ☐ |
 | `stage_weak_curse` | ☐ | ☐ |
+
+---
+
+## 9E. Redraw Gakuganji, Reggie and Uro from the anime reference — 93 sprites + 3 cards
+
+Round 7 built these three from written character blocks alone, without checking
+the blocks against the show. All three blocks were wrong, so all three fighters
+shipped as **the wrong character** — not stylistically off, but a different
+person wearing different clothes. Nothing about their kits, hitboxes, audio or
+effect sprites changes; this is purely their 31 poses and their hero card.
+
+Put the reference beside the current art and the gap is immediate:
+
+| | Currently in game | Anime reference |
+|---|---|---|
+| **Gakuganji** | all-black kimono, waist-length grey beard, generic black electric guitar | cream-white kimono under a black band tee, **purple hakama**, geta sandals, long white side-hair, gold hoop earrings, **crimson-red Flying-V** guitar |
+| **Reggie** | black fur-collared bomber jacket, gold-patterned shirt, black hair, purple umbrella | **blond** shoulder-length hair, shaggy tunic and cape made of **layered torn white receipts**, bare arms and legs, **barefoot** |
+| **Uro** | short black bob, white-and-purple combat bodysuit, bandaged forearms | **pale violet-pink hair flared upward in wild flame-like points**, gold cylinder earrings, black choker and wristbands, **pale-cyan cloud-form garment**, barefoot |
+
+### The reference art
+
+Every prompt in this section is drawn against the **(Anime)** full-body render
+from [jujutsu-kaisen.fandom.com](https://jujutsu-kaisen.fandom.com). Local
+copies are committed at [`assets/reference/canon/`](../assets/reference/canon/)
+so this doc keeps working if the wiki reorganises; the README there records the
+source URL of each and how to fetch others.
+
+| Character | Primary reference | Secondary | Wiki URL |
+|---|---|---|---|
+| Gakuganji | [`gakuganji_anime.png`](../assets/reference/canon/gakuganji_anime.png) | [`gakuganji_guitar_anime.png`](../assets/reference/canon/gakuganji_guitar_anime.png) — the guitar, the band tee and the sleeves-off robe | [Yoshinobu Gakuganji (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/3/3c/Yoshinobu_Gakuganji_%28Anime%29.png/revision/latest?cb=20201025154546) |
+| Reggie | [`reggie_anime.png`](../assets/reference/canon/reggie_anime.png) | [`reggie_intro_anime.png`](../assets/reference/canon/reggie_intro_anime.png) — the receipt tunic in motion | [Reggie Star (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/0/01/Reggie_Star_%28Anime%29.png/revision/latest?cb=20260403035700) |
+| Uro | [`uro_anime.png`](../assets/reference/canon/uro_anime.png) | [`uro_face_anime.png`](../assets/reference/canon/uro_face_anime.png) — hair colour, eyes, earrings | [Takako Uro (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/8/84/Takako_Uro_%28Anime%29.png/revision/latest?cb=20260324045602) |
+
+<table>
+<tr>
+<td align="center"><img src="../assets/reference/canon/gakuganji_anime.png" height="260" alt="Yoshinobu Gakuganji, anime full-body reference"><br><b>Gakuganji</b></td>
+<td align="center"><img src="../assets/reference/canon/reggie_anime.png" height="260" alt="Reggie Star, anime full-body reference"><br><b>Reggie Star</b></td>
+<td align="center"><img src="../assets/reference/canon/uro_anime.png" height="260" alt="Takako Uro, anime full-body reference"><br><b>Uro</b></td>
+</tr>
+</table>
+
+If your generator accepts an image, **feed it the primary reference** and use
+the character block as the text half. If it does not, the block alone is
+written to be sufficient — but read the reference yourself before approving a
+frame, because the failure mode this round is fixing is exactly "the text
+sounded plausible and nobody looked".
+
+### Design notes and the one deliberate deviation
+
+- **Gakuganji.** The reference render shows him hunched over a walking cane in
+  civilian repose; that is his default portrait, not his fighting design. Draw
+  him **upright and without the cane** — the guitar is the prop. Take the
+  outfit and the face from the full-body render, and take the guitar, the strap
+  and the pulled-down kimono sleeves from the technique still. The guitar is a
+  **crimson-red Flying V**, not a black superstrat.
+- **Reggie.** The receipt tunic is not fabric: it is dozens of overlapping
+  **torn paper slips** in horizontal rows, off-white with occasional pale mint
+  printed tabs, ragged along every hem. It should read as paper in motion — the
+  edges lift and flutter on every fast pose. He is barefoot and his lower legs
+  are bare; do not add trousers or shoes.
+- **Uro — deviation, read this.** In the reference her cloud-form clothing is
+  drawn as scattered patches over an otherwise bare body. **Do not reproduce
+  that.** Draw the cyan cloud-form as a single opaque garment with full
+  coverage — a sleeveless bodysuit silhouette, torso and hips continuous, no
+  gaps — while keeping the colour, the soft cloud-edge texture and the bare
+  arms, legs and feet. Everything else about her (hair, earrings, choker,
+  wristbands, eyes, nails) follows the reference exactly. This is a knowing
+  departure so the fighter is drawable as a game sprite; it is not an error to
+  "correct" back.
+
+### Delivery spec
+
+The general **Delivery spec** at the top of this doc applies unchanged — facing
+right, full body with margin on all four sides, body at least 600 px tall, one
+zoom per character, standard style suffix. Two additions specific to these
+three:
+
+- **Key colour.** `uro` and `gakuganji` move to mid-grey `#808080`; a magenta
+  key eats Uro's pink hair and Gakuganji's red guitar and purple hakama.
+  `reggie` stays on magenta `#FF00FF` (his palette is white, blond and mint —
+  nothing magenta-adjacent). True alpha beats either.
+- **One zoom per character, again.** Uro is the character this rule was written
+  for: her round-7 `idle_b` came back ~15% larger than `idle_a`, and since idle
+  alternates between them at 2.2 fps she visibly pulsed while standing still.
+  Draw all 31 at one figure scale.
+
+Deliver to `assets/intake/<key>/<pose_key>.png` as usual. The existing files
+stay in place until the replacements are imported, so a partial delivery leaves
+the game playable with a mix of old and new frames — ugly but not broken.
+
+### The 31 poses
+
+Same keys and the same pose lines as round 7, which is what the rest of the
+roster uses. Reproduced here so this section stands alone.
+
+#### Tier 1 — on screen constantly
+
+| Pose key | Pose line |
+|---|---|
+| `idle_a` | "standing at rest in a relaxed combat-ready stance, weight settled, arms loose at the sides" |
+| `idle_b` | "standing at rest, a subtle breathing shift — shoulders slightly raised, weight on the other foot, arms loose" |
+| `run_a` | "sprinting hard, front leg driving forward, opposite arm swung back, body leaning into the run" |
+| `run_b` | "sprinting hard at the opposite stride, rear leg extended behind, other arm forward, hair and clothing trailing" |
+| `jump_rise` | "leaping upward, legs tucked, arms raised for balance, clothing pulled down by the rush of air" |
+| `fall` | "descending through the air, legs reaching down toward a landing, arms out for balance" |
+| `hurt` | "recoiling from a heavy blow, head snapped back, torso arched, arms flung loose, feet leaving the ground" |
+| `guard` | "braced defensively behind a raised guard, both forearms up in front of the face and chest, knees bent, leaning into an incoming hit" |
+
+#### Tier 2 — core actions
+
+| Pose key | Pose line |
+|---|---|
+| `attack_light_a` | "throwing a fast forward jab or quick weapon strike, front arm extended, body squared" |
+| `attack_light_b` | "following through on a second fast strike, torso rotated, rear arm now extended" |
+| `attack_heavy` | "committing to a heavy full-body strike, deep stance, weapon or fist driven forward with full weight behind it" |
+| `attack_up` | "striking sharply upward at a steep angle, one arm or weapon thrust up overhead, torso arched back, gaze following the strike skyward" |
+| `attack_down` | "slamming a wide low strike into the ground, deep straddle stance, arms or weapon sweeping at ankle height to both sides" |
+| `attack_air` | "attacking in midair, body angled forward off the ground, one arm or weapon swung across in a committed aerial strike, legs trailing" |
+| `charge` | "gathering power in a braced crouch, fists or weapon drawn back, body coiled and tense, cursed energy beginning to gather" |
+| `dizzy` | "stunned and reeling with guard broken, standing unsteadily, head lolling, arms hanging limp, knees buckling" |
+| `victory` | "a confident victory pose after winning, in character — relaxed and triumphant" |
+| `ledge_hang` | "hanging one-handed from a ledge, body dangling, other arm reaching up, legs hanging straight down" |
+
+#### Tier 3 — movement detail
+
+| Pose key | Pose line |
+|---|---|
+| `dash` | "bursting into a low forward dash, body almost horizontal, trailing motion" |
+| `land` | "landing from a jump, knees deeply bent absorbing the impact, arms forward for balance" |
+| `crouch_a` | "crouching low in a guarded stance, one knee near the ground, ready to spring" |
+| `crouch_b` | "crouching low, a subtle shift — weight rocked slightly forward, arms adjusted" |
+| `crouch_attack_a` | "attacking from a low crouch, arm or weapon sweeping forward near the ground" |
+| `crouch_attack_b` | "finishing the low sweep, torso rotated, strike fully extended along the ground" |
+| `dodge_roll` | "mid combat-roll, body tucked into a tight ball, shoulder toward the ground, clothing wrapped with motion" |
+| `dodge_air` | "twisting sideways in midair to evade, body corkscrewed, arms pulled in, motion-blurred edges" |
+
+#### Technique poses — 5 each
+
+Draw the **pose only**. Projectiles, sound waves, clouds and cars are separate
+effect sprites the engine layers on top — all of those already exist and are
+**not** being redelivered — so keep any baked-in energy small and attached to
+the body.
+
+**`gakuganji`** — the guitar is the crimson Flying V in every one of these.
+
+| Pose key | Pose line |
+|---|---|
+| `special_neutral` | "striking a hard downstroke on the electric guitar, strings visibly vibrating, small ripples of energy bursting from the strings" |
+| `special_side` | "slamming a flat palm onto the guitar strings in a hard mute, arm rigid, kimono sleeves snapping forward" |
+| `special_down` | "stepping onto an effects pedal, leaning back into a high bending solo note, beard and hakama whipped upward" |
+| `ult_a` | "full shredding stance with the guitar raised high, fingers blurred on the fretboard, energy radiating outward" |
+| `ult_b` | "windmill strum at the climax of the performance, arm fully extended from the swing, head thrown back" |
+
+**`reggie`** — the umbrella-katana and the aerosol can are canon purchases and
+stay; only his clothes and hair were wrong.
+
+| Pose key | Pose line |
+|---|---|
+| `special_neutral` | "slashing forward with a katana drawn from an umbrella sheath, the empty umbrella shell in his off hand, receipt papers fluttering around him" |
+| `special_side` | "spraying a large aerosol can forward at arm's length, head turned away with a smug grimace" |
+| `special_down` | "tearing a long paper receipt in half above his head with a showman's grin" |
+| `ult_a` | "arms spread wide presenting upward like a game-show host, long receipts spiraling around him" |
+| `ult_b` | "pointing skyward with a triumphant grin, body angled back, the paper hems of his tunic swept by wind from above" |
+
+**`uro`**
+
+| Pose key | Pose line |
+|---|---|
+| `special_neutral` | "palm pressed flat against the empty air in front of her as if against glass, the air visibly denting around her hand" |
+| `special_side` | "diving forward through the air like a swimmer off a block, arms swept back along her sides, body streamlined" |
+| `special_down` | "guarded stance with both hands raised open before her, holding a curved lens of faintly distorted air" |
+| `ult_a` | "both arms raised overhead, fingers clawed as if gripping the sky itself, face fierce, body stretched tall" |
+| `ult_b` | "arms slammed down and across her body, torso twisted through the motion, hair whipping" |
+
+### Hero cards — 3
+
+Their round-7 cards are drawn from the same wrong blocks, so a sprite-only
+delivery would leave each fighter's card showing a different person from their
+in-game sprite. Same spec as the existing cards: **JPEG, 640×820**, at
+`assets/cards/<key>_card.jpg`, no text or border, head high in the frame (the
+UI crops to the top 55%). Use the **9A card style suffix** — these three
+already match the round-7 look 9A is chasing, so keeping them in that style is
+the point.
+
+| File | Card line |
+|---|---|
+| `gakuganji_card.jpg` | "mid power-chord on the crimson Flying-V, kimono sleeves and long white hair whipped by sound pressure, stern face lit from below by amber stage light, a wall of amplifier cabinets behind him" |
+| `reggie_card.jpg` | "fanning a handful of long receipts like a card sharp, umbrella-katana over one shoulder, the torn paper of his tunic lifting in the draft, neon-lit night street backdrop" |
+| `uro_card.jpg` | "one palm pressed against a visible ripple in the air, sharp confident grin, pink hair flared upward, endless open sky and clouds bending behind her" |
+
+### Integration
+
+Standard intake, with one wrinkle worth knowing before you start: these three
+already have manifest entries, so **anchor `idle_a` first and let the rest
+inherit it**. Current idle `bodyH` values to match are `uro` 285, `reggie` 291,
+`gakuganji` 283 — inside the roster band of 282–299, so the new art should land
+at the same figure size and nothing else needs retuning.
+
+```sh
+python3 tools/intake.py                     # check the delivery
+python3 tools/intake_sheets.py              # contact sheets for review
+python3 tools/intake_import.py --approve    # import + manifest update
+python3 tools/audit_frames.py               # confirm nothing regressed
+```
+
+Then eyeball each fighter in the workbench (`workbench/?char=uro`) and take one
+round in game. Watch the idle specifically — a zoom mismatch between `idle_a`
+and `idle_b` only shows as a pulse in motion.
+
+### Delivery checklist
+
+| Character | 31 poses | Card | Imported | Checked in game |
+|---|---|---|---|---|
+| `gakuganji` | ☐ | ☐ | ☐ | ☐ |
+| `reggie` | ☐ | ☐ | ☐ | ☐ |
+| `uro` | ☐ | ☐ | ☐ | ☐ |
+
+---
+
+## 9F. Mahito — clean alpha redelivery, 16 poses
+
+Mahito's design is right and his art is good; the **alpha channel is dirty**.
+His frames were keyed off a coloured background and the key never fully
+released, so every frame carries leftover chroma.
+
+### What is actually wrong
+
+Composite `assets/sprites/mahito/guard.png` over black and look at the hair:
+the narrow gaps between hair strands are filled with green and magenta speckle
+instead of being cut out, and the same residue rims the crown of the head and
+the edge of the face. It is invisible against a pale stage and obvious against
+a dark one, which is why it survived review.
+
+Measured across his 36 files: **15,739 magenta-fringe pixels and 9,966
+green-fringe pixels**. Green is the round-5 legacy key, magenta the later one —
+his set carries both. (The count is a colour heuristic — on a character who
+genuinely wears pink or purple it flags real art, which is why the roster-wide
+version of this number is not meaningful. Mahito's palette is grey-blue, black
+and pale skin, so for him every one of these pixels is residue.) The worst
+offenders:
+
+| Frame | Magenta px | Green px | Note |
+|---|---|---|---|
+| `charge.png` | 4,462 | 409 | the heaviest magenta residue of his 36 files |
+| `dodge_roll.png` | 2,504 | 0 | also **fully hard-edged** — binary alpha, no anti-aliasing at all, so the silhouette is visibly jagged |
+| `dodge_air.png` | 2,491 | 0 | same hard-edge problem |
+| `attack_up.png` | 102 | 1,667 | green trapped through the hair |
+| `run_b.png` | 86 | 1,638 | green trapped through the hair |
+| `hurt.png` | 541 | 1,316 | both keys at once |
+
+### What to deliver
+
+The **16 generated poses** — `idle_a`, `idle_b`, `run_a`, `run_b`,
+`jump_rise`, `fall`, `hurt`, `guard`, `attack_air`, `attack_up`, `charge`,
+`dizzy`, `ledge_hang`, `victory`, `dodge_roll`, `dodge_air` — redelivered with
+a clean alpha channel. Same character block, same poses, same figure scale
+(idle `bodyH` 283); this is a keying fix, not a redesign, so **matching the
+existing frames is the goal** — if the art itself is regenerated rather than
+re-keyed, match the current design exactly.
+
+What "clean" means here:
+
+- **True alpha, not a key.** Deliver PNG with a real alpha channel and no
+  background colour anywhere. Every problem in the table above comes from
+  flattening onto a colour and cutting it back out; skipping that step skips
+  the whole class of bug. If a key is unavoidable, mid-grey `#808080` — his
+  palette is grey-blue and a magenta key smears into it.
+- **Cut the gaps.** The holes between hair strands are background and must be
+  transparent, not filled with whatever colour the key left behind.
+- **Keep the anti-aliasing.** Soft, feathered edges — a hard 0/255 alpha is the
+  `dodge_roll` / `dodge_air` failure. Partial alpha belongs on the outline;
+  the body interior stays fully opaque.
+- **No colour fringe.** No pixel of the delivered art may be a colour that is
+  not in Mahito's palette.
+
+His other 20 files are `r{row}c{col}` cells from the original sprite sheet and
+are **not** part of this request — they are low-resolution legacy frames with a
+different problem, and replacing them is a separate job.
+
+### If regenerating is not worth it
+
+The repo can partly repair this in place, and it is worth trying first:
+
+```sh
+python3 tools/clean_frames.py --chars mahito --defringe --report   # dry run
+python3 tools/clean_frames.py --chars mahito --defringe
+```
+
+It repaints fringe pixels from the nearest clean neighbour, **colour only** —
+alpha is untouched. Three limits, all of which matter here:
+
+- it only recognises **green** residue (`fringe_mask` in `clean_frames.py`
+  tests `g > r` and `g > b`), so it does nothing about the ~15.7k magenta
+  pixels, which are the larger half of the problem;
+- it fixes the *colour* of the speckle but not the *silhouette* — the trapped
+  pixels stay opaque, so hair gaps end up filled with hair colour rather than
+  cut open;
+- it cannot restore anti-aliasing, so `dodge_roll` and `dodge_air` stay jagged.
+
+Good enough to stop the rainbow; not good enough to call the frames correct.
+Run it as a stopgap, then redeliver properly.
+
+| Frame | Redelivered | Alpha verified | Checked in game |
+|---|---|---|---|
+| `idle_a` | ☐ | ☐ | ☐ |
+| `idle_b` | ☐ | ☐ | ☐ |
+| `run_a` | ☐ | ☐ | ☐ |
+| `run_b` | ☐ | ☐ | ☐ |
+| `jump_rise` | ☐ | ☐ | ☐ |
+| `fall` | ☐ | ☐ | ☐ |
+| `hurt` | ☐ | ☐ | ☐ |
+| `guard` | ☐ | ☐ | ☐ |
+| `attack_air` | ☐ | ☐ | ☐ |
+| `attack_up` | ☐ | ☐ | ☐ |
+| `charge` | ☐ | ☐ | ☐ |
+| `dizzy` | ☐ | ☐ | ☐ |
+| `ledge_hang` | ☐ | ☐ | ☐ |
+| `victory` | ☐ | ☐ | ☐ |
+| `dodge_roll` | ☐ | ☐ | ☐ |
+| `dodge_air` | ☐ | ☐ | ☐ |
+
+Verify a delivery the same way the numbers above were produced — composite each
+frame over black and over green and look at the hair, then confirm no
+off-palette pixels survive:
+
+```sh
+python3 - <<'PY'
+from PIL import Image; import numpy as np
+POSES = ["idle_a", "idle_b", "run_a", "run_b", "jump_rise", "fall", "hurt",
+         "guard", "attack_air", "attack_up", "charge", "dizzy", "ledge_hang",
+         "victory", "dodge_roll", "dodge_air"]
+for k in POSES:
+    a = np.asarray(Image.open(f"assets/sprites/mahito/{k}.png").convert("RGBA")).astype(int)
+    r, g, b, al = a[..., 0], a[..., 1], a[..., 2], a[..., 3]
+    vis = al > 0
+    mag = ((r > 110) & (b > 110) & (g < r - 50) & (g < b - 50) & vis).sum()
+    grn = ((g > 110) & (g > r + 45) & (g > b + 45) & vis).sum()
+    soft = ((al > 0) & (al < 250)).sum()
+    print(f"{k:14s} magenta={mag:6d} green={grn:6d} softEdge={soft:7d}")
+PY
+```
+
+Both fringe counts should be **0**, and `softEdge` should be non-zero on every
+frame — a zero there means the alpha is binary and the edges are jagged.
