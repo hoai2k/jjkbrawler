@@ -102,7 +102,18 @@ function selectFighter(id, key) {
     if (next) state.activePicker = next;
   }
   updateSelectionUi();
+  playLockIn(id);
   playSfx("slash", 0.3, 1.4);
+}
+
+// Restarts the lock-in animation on a hero card even if it is already playing,
+// so a re-pick reads as a fresh commit rather than nothing happening.
+function playLockIn(id) {
+  const card = els[`p${id}PickCard`];
+  card.classList.remove("is-locking");
+  void card.offsetWidth;
+  card.classList.add("is-locking");
+  card.addEventListener("animationend", () => card.classList.remove("is-locking"), { once: true });
 }
 
 function unready(id) {
@@ -169,6 +180,9 @@ function buildCharacterCard(key) {
     ? `<b class="random-glyph">?</b><span>${name}</span>`
     : `<img src="assets/cards/${key}_card.jpg" alt="${name}"><span>${name}</span>`;
   btn.addEventListener("click", () => selectFighter(state.activePicker, key));
+  // Hovering previews the fighter in the active picker's hero card, the same
+  // way the pad cursor does, without committing anything.
+  btn.addEventListener("mouseenter", () => setPickerCursor(state.activePicker, key, { quiet: true }));
   btn.addEventListener("contextmenu", (e) => {
     e.preventDefault();
     state.selection[2] = key;
@@ -350,6 +364,15 @@ function heroInfoHtml(char) {
   `;
 }
 
+// The fighter a slot is currently hovering but has not committed. Shown in that
+// player's hero card so they can read a fighter's stats before locking in;
+// cleared the moment they lock in or hand the cursor over.
+function previewKey(id) {
+  if (state.ready[id] || state.activePicker !== id) return null;
+  const key = pickerCursor[id];
+  return key && key !== state.selection[id] ? key : null;
+}
+
 // What each slot's card should point at right now. Normally the selection
 // itself, but once the CPU has drawn, its tag follows the drawn fighter rather
 // than sitting on the Random card.
@@ -379,11 +402,13 @@ export function updateSelectionUi() {
     // nobody has picked yet (P1 at boot) shows an empty placeholder instead of
     // a portrait — an unset key would build "undefined_card.jpg" and 404.
     const drawn = id === 2 && state.selection[id] === RANDOM_KEY ? state.cpuRoll : null;
-    const key = drawn || state.selection[id];
+    const preview = previewKey(id);
+    const key = drawn || preview || state.selection[id];
     const random = key === RANDOM_KEY;
     const char = key && !random ? CHARACTERS[key] : null;
     const badge = els[`p${id}PickReady`];
 
+    els[`p${id}PickCard`].classList.toggle("is-preview", !!preview);
     els[`p${id}PickCard`].classList.toggle("is-empty", !key);
     els[`p${id}PickImage`].classList.toggle("hidden", !char);
     els[`p${id}PickRandomArt`].classList.toggle("hidden", !random);
@@ -407,6 +432,9 @@ export function updateSelectionUi() {
     ? "All fighters locked — confirm again (A / Enter) to choose the stage. B / Backspace un-readies."
     : "Pick a fighter to lock in. B / Backspace un-readies · LB/RB cycles the corner menus.";
   updatePickerCursorClasses();
+  // A hero card grows when it goes from empty to showing a fighter, so the
+  // roster has to be re-fitted or the menu spills into a scrollbar.
+  layoutCharacterGrid();
 }
 
 export function syncControllerPlayers(count) {
@@ -613,13 +641,19 @@ function setFocus(el) {
   focusEl = el;
   if (focusEl) {
     focusEl.classList.add("pad-focus");
+    // Keyboard focus previews too, so arrow-key browsing reads the same as pad.
+    if (state.phase === "menu" && focusEl.dataset.character) {
+      setPickerCursor(state.activePicker, focusEl.dataset.character, { quiet: true });
+    }
     focusEl.scrollIntoView({ block: "nearest", inline: "nearest" });
     playSfx("whoosh", 0.25, 1.6);
   }
 }
 
 function updatePickerCursorClasses() {
-  for (const btn of els.characterGrid?.children || []) {
+  // Cards, not the grid's direct children — those are the group sections, and
+  // clearing them would leave a cursor ring on every card ever visited.
+  for (const btn of els.characterGrid?.querySelectorAll(".char-card") || []) {
     for (const id of PLAYER_IDS) btn.classList.remove(`pad-focus-p${id}`);
   }
   for (const id of PLAYER_IDS.slice(0, state.playerCount)) {
@@ -631,11 +665,12 @@ function updatePickerCursorClasses() {
   }
 }
 
-function setPickerCursor(playerId, key) {
+function setPickerCursor(playerId, key, { quiet = false } = {}) {
   if (!key || pickerCursor[playerId] === key) return;
   pickerCursor[playerId] = key;
-  updatePickerCursorClasses();
-  playSfx("whoosh", 0.2, 1.6);
+  // Repaints the hero card too: the cursor drives the transient preview.
+  updateSelectionUi();
+  if (!quiet) playSfx("whoosh", 0.2, 1.6);
 }
 
 function movePickerCursor(playerId, dx, dy) {

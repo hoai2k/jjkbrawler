@@ -559,10 +559,45 @@ html, body {
   color: rgba(160, 190, 255, 0.55);
 }
 
+/* Browsing: the card shows whoever the cursor is over, but reads as unresolved
+   until it is actually locked in. */
+.matchup-side.is-preview {
+  border-style: dashed;
+  border-color: rgba(98, 220, 255, 0.55);
+}
+
+.matchup-side.is-preview img,
+.matchup-side.is-preview .hero-random-art { opacity: 0.72; }
+.matchup-side.is-preview .hero-info { opacity: 0.78; }
+
+.matchup-side.is-preview::after {
+  content: "Previewing";
+  position: absolute;
+  top: 34px;
+  left: 16px;
+  z-index: 2;
+  font: 900 0.55rem/1 inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #04121e;
+  background: var(--accent);
+  border-radius: 20px;
+  padding: 4px 9px;
+}
+
 .matchup-side.is-ready {
   border-color: #72e596;
   box-shadow: 0 0 0 2px rgba(114, 229, 150, 0.75), 0 0 22px rgba(114, 229, 150, 0.4);
   transform: translateY(-2px);
+}
+
+/* The commit itself: a quick snap and flare so locking in is unmistakable. */
+.matchup-side.is-locking { animation: lockIn 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.4); }
+
+@keyframes lockIn {
+  0% { transform: scale(1.06) translateY(-6px); box-shadow: 0 0 0 6px rgba(114, 229, 150, 0), 0 0 44px rgba(114, 229, 150, 0.9); filter: brightness(1.5); }
+  45% { transform: scale(0.985) translateY(0); }
+  100% { transform: translateY(-2px); box-shadow: 0 0 0 2px rgba(114, 229, 150, 0.75), 0 0 22px rgba(114, 229, 150, 0.4); filter: brightness(1); }
 }
 
 .hero-ready {
@@ -883,6 +918,10 @@ html, body {
 @media (max-height: 700px) {
   .character-grid { --card-aspect: 5 / 4; --card-base: clamp(70px, 10vh, 92px); gap: 8px 14px; }
   #menuOverlay .game-logo { max-height: 52px; }
+  /* The hero cards give ground too, so the roster doesn't carry the whole cut. */
+  .matchup-side { width: 172px; padding: 7px 10px 6px; }
+  .matchup-side img, .hero-random-art,
+  .matchup-side.is-empty strong::before { width: 128px; height: 90px; }
 }
 
 @media (max-width: 900px) {
