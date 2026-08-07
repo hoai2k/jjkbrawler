@@ -348,7 +348,11 @@ they are already due for regeneration on other grounds.
 
 ---
 
-## Round 7 — Summon minions (new)
+## Round 8 — Summon minions (new)
+
+(Numbered 8 because `asset-requests-round7.md` — the six new fighters — was
+requested in parallel. The two rounds are independent; either can be
+delivered first.)
 
 The summoning system (`src/summons.js`) now fields persistent minions for
 Megumi, Geto, Mahito, and Toji. Megumi's shikigami already have art
@@ -397,7 +401,7 @@ Currently falls back to `effects/cursed_spirit_orb.png` (generic orb).
 > dark anime style with clean lineart and cel shading, transparent background,
 > no text
 
-### Optional round 7 extras (nice-to-have, not wired yet)
+### Optional round 8 extras (nice-to-have, not wired yet)
 
 - `summons/divine_dog_white.png` / `divine_dog_black.png` regenerations at
   ≥600 px if the current ones look soft next to new art (they now run and
