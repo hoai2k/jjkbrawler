@@ -145,18 +145,24 @@
         </div>
 
         <div class="group">
-          <label>Head height target <span class="sub" id="headVal"></span></label>
-          <input type="range" id="headRange" min="80" max="280" step="0.5" value="160">
+          <label>Character height <span class="sub" id="headVal"></span></label>
+          <input type="range" id="headRange" min="110" max="240" step="0.5" value="175">
           <div class="nudge">
             <button data-head="-5">↓5</button>
             <button data-head="-1">↓1</button>
             <button data-head="1">↑1</button>
             <button data-head="5">↑5</button>
           </div>
-          <p class="note">A per-character target, independent of any sprite.
-            Scale the idle pose until the hair meets this bar, then every other
-            pose can be judged against the same line.</p>
-          <button id="resetHead" class="ghost">Reset head height</button>
+          <p class="note">The fighter's <em>global</em> size: every pose is drawn
+            at a scale solved from this, so moving it resizes the whole sprite
+            set at once. The bar on the canvas is where the top of the head
+            should land.</p>
+          <p class="note">Defaults to the character's canon height
+            (<code>heightCm</code> in characters.js), compressed toward Gojo so
+            the roster keeps its real ordering without outgrowing the shared
+            hurtbox. Fighters with no published height sit at Gojo's. Reset
+            returns to the canon-derived value.</p>
+          <button id="resetHead" class="ghost">Reset to canon height</button>
         </div>
 
         <div class="group">

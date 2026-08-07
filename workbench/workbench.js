@@ -13,6 +13,7 @@ import {
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
+import { headHeightTarget, applyHeightScale, hasHeightOverride, heightRatio } from "../src/heights.js";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("stage");
@@ -36,7 +37,7 @@ const BACKGROUNDS = [
 
 const state = {
   char: "gojo", frame: null, bg: BACKGROUNDS[0][0], zoom: 1.9,
-  originals: {}, originalHeads: {}, undo: [], redo: [],
+  originals: {}, originalHeads: {}, originalHeadOverride: {}, undo: [], redo: [],
   anchor: null,        // name of the anchor being edited on-canvas, or null
   dragging: false,
   showAll: false,      // show frames the game never draws
@@ -68,16 +69,29 @@ function rawMeta(charKey, frameKey) {
   return spriteManifest?.characters?.[charKey]?.[frameKey] || null;
 }
 
+// Head height is the character's GLOBAL size: every frame is drawn at a scale
+// solved from it (src/heights.js), so moving this resizes the whole sprite set
+// at once rather than just shifting a guide line. Unset, it resolves from the
+// fighter's canon height in characters.js; setting it here writes an override.
 function headHeight(charKey) {
-  return spriteManifest?.headHeights?.[charKey] ?? 0;
+  return headHeightTarget(charKey);
 }
 
 function setHeadHeight(charKey, value) {
   (spriteManifest.headHeights ??= {})[charKey] = Math.max(20, value);
+  applyHeightScale(charKey);   // rescale every frame of this character now
+}
+
+function clearHeadHeight(charKey) {
+  if (spriteManifest.headHeights) delete spriteManifest.headHeights[charKey];
+  applyHeightScale(charKey);
 }
 
 function rememberHead(charKey) {
   state.originalHeads[charKey] ??= headHeight(charKey);
+  if (!(charKey in state.originalHeadOverride)) {
+    state.originalHeadOverride[charKey] = spriteManifest?.headHeights?.[charKey];
+  }
 }
 
 function snapshot(charKey, frameKey) {
@@ -215,6 +229,13 @@ function refreshHistoryButtons() {
 
 function spriteScale(charKey, meta) {
   return CHARACTERS[charKey].scale * state.zoom * (meta.renderScale ?? 1);
+}
+
+/** Restoring a height means going back to the canon-derived value, which is
+ *  "no override" — not writing the number back as an explicit one. */
+function restoreHeadHeight(charKey) {
+  if (state.originalHeadOverride[charKey] === undefined) clearHeadHeight(charKey);
+  else setHeadHeight(charKey, state.originalHeadOverride[charKey]);
 }
 
 // ---- canvas <-> image-local mapping, mirroring drawCharFrame's placement so
@@ -479,8 +500,14 @@ function refreshHeadControl() {
   rememberHead(state.char);
   const hh = headHeight(state.char);
   const changed = Math.abs(hh - state.originalHeads[state.char]) > 1e-4;
+  const cm = CHARACTERS[state.char]?.heightCm;
   $("headRange").value = hh.toFixed(1);
-  $("headVal").textContent = `${hh.toFixed(1)} px${changed ? " (changed)" : ""}`;
+  const source = hasHeightOverride(state.char)
+    ? (changed ? "hand-set, changed" : "hand-set")
+    : cm ? `from ${cm} cm` : "no published height — reference default";
+  $("headVal").textContent =
+    `${hh.toFixed(1)} px · ${(heightRatio(state.char)).toFixed(3)}x · ${source}`;
+  $("resetHead").disabled = !changed && !hasHeightOverride(state.char);
 }
 
 function buildPoseList() {
@@ -678,8 +705,8 @@ async function boot() {
   });
   $("resetHead").onclick = () => {
     pushHeadHistory(state.char);
-    setHeadHeight(state.char, state.originalHeads[state.char]);
-    refreshControls(); render();
+    restoreHeadHeight(state.char);
+    refreshControls(); buildPoseList(); render();
   };
 
   document.querySelectorAll("[data-scale]").forEach((b) => {
@@ -753,7 +780,7 @@ async function boot() {
   $("resetChar").onclick = () => {
     if (Math.abs(headHeight(state.char) - state.originalHeads[state.char]) > 1e-4) {
       pushHeadHistory(state.char);
-      setHeadHeight(state.char, state.originalHeads[state.char]);
+      restoreHeadHeight(state.char);
     }
     for (const key of dirtyFrames(state.char)) {
       pushHistory(state.char, key);

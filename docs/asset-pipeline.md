@@ -155,6 +155,33 @@ than hand values.
 every pose at true in-game scale on a shared ground line with the idle head
 height marked, and `workbench/` (see below) allows live adjustment.
 
+### How big a character is overall
+
+Per-*pose* size is `bodyH`, above. How big the *character* is comes from their
+canon height — see [character-heights.md](character-heights.md). Briefly:
+`heightCm` in characters.js becomes a head-height target, and `heights.js`
+solves each character's draw scale from it. The sprite workbench's **Character
+height** control edits that one number and rescales the whole sprite set.
+
+### Catching poses that are sized wrong
+
+`tools/audit_frame_sizes.py` compares every pose against the height its
+animation state occupies across the size-reviewed roster — a crouch is short, a
+ledge hang is tall — and reports the ones that fall outside it. It never
+measures the art, which is what made the two earlier normalisation attempts
+worse than hand values; it only compares one hand-set number against others.
+
+```
+python3 tools/audit_frame_sizes.py          # report
+python3 tools/audit_frame_sizes.py --fix    # correct the outliers
+```
+
+Run it after importing a new character. Rounds 7-9 shipped without a size pass
+and it found 41 broken poses across those six fighters and none across the
+original 17 — including the same `ledge_hang` bug documented above, and `run`
+frames rendering at 0.65-0.72x instead of the 0.82x every reviewed character
+uses.
+
 ## Intake pipeline (round 6 onward)
 
 Delivered art lands in `assets/intake/<char>/<frame>.png` and is **not** loaded

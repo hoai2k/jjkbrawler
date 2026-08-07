@@ -19,6 +19,43 @@
 // Background for the motion values is in docs/sprite-motion.md; for the
 // defence values, docs/combat-feel.md.
 
+// ------------------------------------------------------------ character size
+//
+// Fighters are sized from their canon height. `heightCm` in characters.js holds
+// the real figure (null where none was ever published); everything below turns
+// that into the rendered head-height target the sprites are scaled to, which is
+// the single global height control per character.
+
+// Whose height counts as 1.0. Every other fighter is measured against this one.
+export const HEIGHT_REFERENCE = "gojo";
+
+// How much of the real height difference to keep. 1 would render the roster at
+// true relative scale, which is too wide a spread: hurtboxes are one size for
+// everyone (combat.js), so a fighter drawn much larger or smaller than their
+// hurtbox reads as hitting or being hit through thin air. 0 makes everyone
+// identical. In between keeps the ordering — the tallest is still visibly the
+// tallest — while holding the extremes close enough to stay fair.
+export const HEIGHT_COMPRESSION = 0.6;
+
+// Hard limits after compression, as a guard against a future outlier rather
+// than something the current roster reaches.
+export const HEIGHT_MIN_RATIO = 0.84;
+export const HEIGHT_MAX_RATIO = 1.14;
+
+// Rendered head height in game pixels for a fighter at ratio 1.0. Chosen so the
+// roster's average drawn height is unchanged from before heights were canon —
+// the fighters redistribute around it, the game does not globally resize.
+export const HEIGHT_BASE_PX = 175.3;
+
+// A fighter with no published height and nothing to infer from. 1.0 means "as
+// tall as the reference", which is a neutral default rather than a claim.
+export const HEIGHT_UNKNOWN_RATIO = 1.0;
+
+// Head height is measured to the top of the hair, slightly above the detected
+// body box the manifest records; this is the constant offset between them,
+// consistent across every character (verified across all 17 original fighters).
+export const HEAD_ABOVE_BODY = 1.014;
+
 // ---------------------------------------------------------------- anchors
 
 // Fraction of a frame's height above the foot line where the centre of mass
