@@ -9,6 +9,14 @@ export const CHARACTER_KEYS = [
   "nanami", "toji", "sukuna", "mahito", "geto", "jogo", "hanami",
 ];
 
+// Round-7 fighters: kits, mechanics, AI and audio are fully wired, but their
+// art has not been delivered yet (see docs/asset-requests-round7.md). To ship
+// one, move its key from this list into CHARACTER_KEYS once its sprites are in
+// the manifest and its card is in assets/cards/ — nothing else is needed.
+export const STAGED_CHARACTER_KEYS = [
+  "yuji", "choso", "meimei", "uro", "reggie", "gakuganji",
+];
+
 // Anim defaults; characters override entries whose sheet cells differ.
 export const DEFAULT_ANIMS = {
   idle: { frames: ["idle_a", "idle_b"], fps: 2.2, loop: true },
@@ -38,6 +46,40 @@ export const DEFAULT_ANIMS = {
   specialSide: { frames: ["r3c0"], fps: 8, loop: false },
   specialDown: { frames: ["r3c2"], fps: 8, loop: false },
   ult: { frames: ["r3c2", "r3c3"], fps: 7, loop: true },
+  dizzy: { frames: ["dizzy"], fps: 1, loop: true },
+  win: { frames: ["victory"], fps: 1, loop: true },
+};
+
+// Staged characters have no legacy sheet, so every animation state maps to a
+// semantic pose key (round-5 naming) rather than an r{row}c{col} cell. This is
+// the complete pose list the round-7 asset request asks for — when the art
+// lands at assets/sprites/<char>/<pose_key>.png and is registered in the
+// manifest, these animations resolve with no further code changes.
+export const STAGED_ANIMS = {
+  idle: { frames: ["idle_a", "idle_b"], fps: 2.2, loop: true },
+  run: { frames: ["run_a", "run_b"], fps: 10, loop: true },
+  dash: { frames: ["dash"], fps: 1, loop: true },
+  jump: { frames: ["jump_rise"], fps: 1, loop: true },
+  fall: { frames: ["fall"], fps: 1, loop: true },
+  land: { frames: ["land"], fps: 1, loop: false },
+  hurt: { frames: ["hurt"], fps: 1, loop: true },
+  crouch: { frames: ["crouch_a", "crouch_b"], fps: 3, loop: true },
+  crouchAttack: { frames: ["crouch_attack_a", "crouch_attack_b"], fps: 11, loop: false },
+  shield: { frames: ["guard"], fps: 1, loop: true },
+  ledge: { frames: ["ledge_hang"], fps: 1, loop: true },
+  dodge: { frames: ["dodge_roll"], fps: 1, loop: true },
+  dodge_roll: { frames: ["dodge_roll"], fps: 1, loop: true },
+  dodge_air: { frames: ["dodge_air"], fps: 1, loop: true },
+  light: { frames: ["attack_light_a", "attack_light_b"], fps: 12, loop: false },
+  airLight: { frames: ["attack_air"], fps: 8, loop: false },
+  sideHeavy: { frames: ["attack_heavy"], fps: 6, loop: false },
+  upHeavy: { frames: ["attack_up"], fps: 6, loop: false },
+  downHeavy: { frames: ["attack_down"], fps: 6, loop: false },
+  charge: { frames: ["charge"], fps: 2, loop: true },
+  specialNeutral: { frames: ["special_neutral"], fps: 8, loop: false },
+  specialSide: { frames: ["special_side"], fps: 8, loop: false },
+  specialDown: { frames: ["special_down"], fps: 8, loop: false },
+  ult: { frames: ["ult_a", "ult_b"], fps: 7, loop: true },
   dizzy: { frames: ["dizzy"], fps: 1, loop: true },
   win: { frames: ["victory"], fps: 1, loop: true },
 };
@@ -812,6 +854,239 @@ export const CHARACTERS = {
     },
     passive: { id: "barkArmor", name: "Old-Growth Body", desc: "Wood deeper than flesh: takes 12% less damage while standing on the ground." },
     ai: { style: "heavy", range: 320 },
+  },
+
+  // ================================================================ STAGED
+  // Round-7 fighters below are gameplay-complete but awaiting art.
+  // They are excluded from CHARACTER_KEYS until their sprites are delivered.
+
+  // ------------------------------------------------------------------ YUJI
+  yuji: {
+    name: "Yuji",
+    epithet: "Sukuna's Vessel",
+    theme: "#ff8264",
+    shadow: "rgba(255, 130, 100, 0.38)",
+    scale: 0.60,
+    stats: { speed: 448, airSpeed: 345, accel: 2900, jump: 780, airJumps: 1, weight: 1.02, friction: 0.86 },
+    anims: STAGED_ANIMS,
+    light: { dmg: 8.5, reach: 174, speed: 1.1, angle: 0.3, effect: null, label: "Straight Right", sfx: "punch" },
+    heavy: { dmg: 16, reach: 188, speed: 1.0, angle: 0.44, effect: null, label: "Crushing Blow", sfx: "punch", shieldMul: 1.7 },
+    specials: {
+      neutral: {
+        name: "Divergent Fist", type: "echoStrike", cooldown: 1.2,
+        desc: "His cursed energy lags a beat behind the fist — one punch, two impacts.",
+        p: { delay: 0.08, dur: 0.14, ox: 46, oy: -96, w: 170, h: 104, dmg: 9, base: 300, growth: 5.6, angle: 0.34, echoDelay: 0.34, echoDmg: 8, echoBase: 440, echoGrowth: 7.2, echoAngle: 0.5, color: "#ff8264", label: "Divergent Fist", sfx: "punch", sprite: "effect:divergent_shock", spriteH: 140 },
+      },
+      side: {
+        name: "Manji Kick", type: "dashStrike", cooldown: 1.3,
+        desc: "A sliding capoeira-style low kick that sweeps in under guards and pokes.",
+        p: { vel: 560, iframes: 0.08, delay: 0.05, dur: 0.22, ox: 58, oy: -60, w: 200, h: 70, dmg: 12, base: 420, growth: 7.0, angle: 0.28, label: "Manji Kick", sfx: "punch" },
+      },
+      down: {
+        name: "Unbreakable Grit", type: "install", cooldown: 6.0,
+        desc: "Plants his feet and refuses to fall — for a moment, nothing staggers him.",
+        p: { duration: 2.8, armor: true, dmgTakenMul: 0.88, color: "#ffb37a", label: "GRIT" },
+      },
+    },
+    ultimate: {
+      name: "Black Flash: Consecutive", type: "flurry",
+      desc: "Cursed energy struck within a millionth of a second of impact — again, and again, and again. Space itself distorts.",
+      p: { hits: 5, dmg: 6, base: 210, finisherDmg: 22, finisherBase: 880, growth: 9.2, crit: true, critLabel: "BLACK FLASH", critColor: "#ff3b30", color: "#ff3b30", label: "BLACK FLASH" },
+    },
+    passive: { id: "blackFlash", name: "Black Flash", desc: "Every melee hit has a 12% chance to spark a Black Flash: bonus damage, extra launch, and a surge of ultimate meter." },
+    ai: { style: "rush", range: 210 },
+  },
+
+  // ----------------------------------------------------------------- CHOSO
+  choso: {
+    name: "Choso",
+    epithet: "Eldest Brother",
+    theme: "#c22e4a",
+    shadow: "rgba(194, 46, 74, 0.4)",
+    scale: 0.60,
+    stats: { speed: 405, airSpeed: 315, accel: 2500, jump: 750, airJumps: 1, weight: 1.06, friction: 0.82 },
+    anims: STAGED_ANIMS,
+    light: { dmg: 8, reach: 176, speed: 1.05, angle: 0.31, effect: null, label: "Blood Edge", sfx: "slash" },
+    heavy: { dmg: 15.5, reach: 190, speed: 0.98, angle: 0.44, effect: null, label: "Crimson Arc", sfx: "slashHeavy", shieldMul: 1.6 },
+    specials: {
+      neutral: {
+        name: "Piercing Blood", type: "projectile", cooldown: 1.15,
+        desc: "Blood pressurized past the speed of sound — a needle-thin lance across the whole lane. It costs him a little of himself.",
+        p: { speed: 940, vy: 0, r: 18, dur: 0.6, dmg: 12, base: 380, growth: 7.0, angle: 0.28, color: "#c22e4a", pierce: true, bloodCost: 1.5, label: "Piercing Blood", sprite: "effect:piercing_blood", spriteH: 70 },
+      },
+      side: {
+        name: "Convergence: Blood Meteorite", type: "projectile", cooldown: 1.6,
+        desc: "Hardened blood compressed into a dense sphere that detonates on arrival.",
+        p: { speed: 520, vy: -20, gravity: 80, r: 34, dur: 1.0, dmg: 15, base: 470, growth: 7.8, angle: 0.5, color: "#a01f38", explode: 85, bloodCost: 2, label: "Blood Meteorite", sprite: "effect:blood_orb", spriteH: 88 },
+      },
+      down: {
+        name: "Flowing Red Scale", type: "install", cooldown: 6.5,
+        desc: "Overclocks his own blood — pulse, temperature, clotting, all past human limits. Holding it burns him slowly.",
+        p: { duration: 4.5, speedMul: 1.22, dmgMul: 1.18, selfDrainPerSec: 1.2, color: "#e84a63", label: "RED SCALE", aura: "effect:aura_crimson" },
+      },
+    },
+    ultimate: {
+      name: "Supernova", type: "supernova",
+      desc: "Orbs of compressed blood ring the enemy in silence — then every one of them detonates inward at once.",
+      p: { orbs: 8, radius: 240, delay: 0.8, dmgPerOrb: 4.5, finalDmg: 14, finalBase: 780, finalGrowth: 9, color: "#c22e4a", label: "SUPERNOVA", sprite: "effect:blood_orb", spriteH: 88 },
+    },
+    passive: { id: "deathPainting", name: "Death Painting Body", desc: "Half curse, half human, all blood: immune to bleed and poison. His blood techniques spend health instead of restraint." },
+    ai: { style: "zoner", range: 380 },
+  },
+
+  // --------------------------------------------------------------- MEI MEI
+  meimei: {
+    name: "Mei Mei",
+    epithet: "The Mercenary",
+    theme: "#d8b95c",
+    shadow: "rgba(216, 185, 92, 0.36)",
+    scale: 0.60,
+    stats: { speed: 425, airSpeed: 330, accel: 2650, jump: 765, airJumps: 1, weight: 1.0, friction: 0.84 },
+    anims: STAGED_ANIMS,
+    light: { dmg: 8.5, reach: 182, speed: 1.0, angle: 0.3, effect: null, label: "Axe Combo", sfx: "slash" },
+    heavy: { dmg: 16.5, reach: 196, speed: 0.95, angle: 0.44, effect: null, label: "Executioner's Cleave", sfx: "slashHeavy", shieldMul: 2.0 },
+    specials: {
+      neutral: {
+        name: "Crow Scout", type: "projectile", cooldown: 1.0,
+        desc: "A shikigami crow dives on command, wheeling after the target.",
+        p: { speed: 470, vy: -30, r: 26, dur: 1.2, dmg: 9, base: 320, growth: 6.2, angle: 0.4, color: "#d8b95c", homing: 150, label: "Crow", sprite: "effect:crow", spriteH: 84 },
+      },
+      side: {
+        name: "Axe Rush", type: "dashStrike", cooldown: 1.35,
+        desc: "She closes the distance herself — an overhead axe arc delivered with professional efficiency.",
+        p: { vel: 540, iframes: 0.1, delay: 0.06, dur: 0.22, ox: 66, oy: -96, w: 210, h: 108, dmg: 14, base: 450, growth: 7.2, angle: 0.4, shieldMul: 2.2, label: "Axe Rush", sfx: "slashHeavy" },
+      },
+      down: {
+        name: "Advance Payment", type: "payToWin", cooldown: 3.0,
+        desc: "Nothing is free. Invests a slice of ultimate meter; the returns are excellent.",
+        p: { cost: 15, duration: 4, dmgMul: 1.25, color: "#ffd35a", label: "PAID IN FULL" },
+      },
+    },
+    ultimate: {
+      name: "Bird Strike", type: "birdstrike",
+      desc: "A crow that abandons self-preservation breaks every limit. It crosses the arena like a cannon shell — and the flock follows.",
+      p: { dmg: 30, base: 900, growth: 10.5, r: 90, speed: 1050, followers: 4, followerDmg: 6, followerBase: 300, color: "#d8b95c", label: "BIRD STRIKE", sprite: "effect:crow_flock", spriteH: 220 },
+    },
+    passive: { id: "warCompensation", name: "Everything Has a Price", desc: "A professional is paid for results: +25% ultimate meter from damage dealt, and every new stock starts with an advance." },
+    ai: { style: "balanced", range: 300 },
+  },
+
+  // ------------------------------------------------------------------- URO
+  uro: {
+    name: "Uro",
+    epithet: "Sky Manipulator",
+    theme: "#8fd7e8",
+    shadow: "rgba(143, 215, 232, 0.36)",
+    scale: 0.60,
+    stats: { speed: 432, airSpeed: 385, accel: 2750, jump: 790, airJumps: 2, weight: 0.9, friction: 0.84 },
+    anims: STAGED_ANIMS,
+    light: { dmg: 8, reach: 170, speed: 1.1, angle: 0.3, effect: null, label: "Palm Arts", sfx: "punch" },
+    heavy: { dmg: 15, reach: 184, speed: 1.05, angle: 0.46, effect: null, label: "Sky-Splitting Palm", sfx: "punch", shieldMul: 1.5 },
+    specials: {
+      neutral: {
+        name: "Sky Warp Palm", type: "warpStrike", cooldown: 1.5,
+        desc: "She strikes the sky where she stands — and the blow arrives out of the air on top of the target.",
+        p: { delay: 0.32, r: 95, dmg: 12, base: 420, growth: 7.0, angle: 0.5, color: "#8fd7e8", label: "Sky Palm", sprite: "effect:sky_ripple", spriteH: 150 },
+      },
+      side: {
+        name: "Surface Dive", type: "dashStrike", cooldown: 1.25,
+        desc: "Kicks off a fold in the air itself — a swooping strike that works midair.",
+        p: { vel: 600, air: true, iframes: 0.12, delay: 0.05, dur: 0.24, ox: 56, oy: -94, w: 195, h: 100, dmg: 12, base: 400, growth: 6.8, angle: 0.36, label: "Surface Dive", sfx: "whoosh" },
+      },
+      down: {
+        name: "Sky Fold", type: "reflectCounter", cooldown: 2.8,
+        desc: "Curves the sky into a lens: melee is answered in kind, and projectiles are bent straight back at their owner.",
+        p: { window: 0.55, dmg: 13, base: 440, growth: 7.2, angle: 0.5, color: "#bfeaf5", label: "Sky Fold" },
+      },
+    },
+    ultimate: {
+      name: "Inverted Sky", type: "skyInvert",
+      desc: "The whole sky becomes her weapon — it folds shut, swallows the enemy, and slams them back into the earth.",
+      p: { range: 900, dmg: 30, base: 880, growth: 10.5, liftTime: 0.9, color: "#8fd7e8", label: "INVERTED SKY", sprite: "effect:sky_shard", spriteH: 260 },
+    },
+    passive: { id: "openSky", name: "Mistress of the Air", desc: "The sky is her territory: a third jump, and 12% less damage and knockback while airborne." },
+    ai: { style: "balanced", range: 280 },
+  },
+
+  // ---------------------------------------------------------------- REGGIE
+  reggie: {
+    name: "Reggie Star",
+    epithet: "The Contractor",
+    theme: "#86d67c",
+    shadow: "rgba(134, 214, 124, 0.36)",
+    scale: 0.60,
+    stats: { speed: 402, airSpeed: 310, accel: 2480, jump: 745, airJumps: 1, weight: 1.05, friction: 0.82 },
+    anims: STAGED_ANIMS,
+    light: { dmg: 8, reach: 178, speed: 1.0, angle: 0.3, effect: null, label: "Umbrella Blade", sfx: "slash" },
+    heavy: { dmg: 15.5, reach: 192, speed: 0.98, angle: 0.44, effect: null, label: "Contract Cleave", sfx: "slashHeavy", shieldMul: 1.6 },
+    specials: {
+      neutral: {
+        name: "Receipt: Katana Umbrella", type: "projectile", cooldown: 1.0,
+        desc: "Tears a receipt and the purchase appears mid-swing — a blade wave off the umbrella's edge.",
+        p: { speed: 580, vy: -4, r: 30, dur: 0.85, dmg: 11, base: 360, growth: 6.8, angle: 0.34, color: "#86d67c", label: "Umbrella Blade", sprite: "effect:receipt_blade", spriteH: 86 },
+      },
+      side: {
+        name: "Receipt: Insecticide", type: "cloudField", cooldown: 2.0,
+        desc: "Empties an aerosol contract downrange — a lingering cloud of poison that seeps through guards.",
+        p: { dist: 210, w: 220, h: 150, duration: 2.6, tickRate: 0.5, tickDmg: 2.2, effect: "poison", color: "#b9e78a", label: "Insecticide", sprite: "effect:spray_cloud", spriteH: 160 },
+      },
+      down: {
+        name: "Receipt: Big-Ticket Item", type: "randomDrop", cooldown: 2.6,
+        desc: "Rips a premium receipt — something heavy materializes over the enemy. Contents may vary.",
+        p: {
+          armTime: 0.55, color: "#86d67c",
+          drops: [
+            { key: "effect:drop_vending", name: "Vending Machine", dmg: 15, base: 500, growth: 7.6, w: 130, h: 220 },
+            { key: "effect:drop_bike", name: "Motorbike", dmg: 12, base: 430, growth: 7.0, w: 150, h: 150 },
+            { key: "effect:drop_futon", name: "Futon", dmg: 5, base: 220, growth: 4, w: 160, h: 100, dud: true },
+          ],
+        },
+      },
+    },
+    ultimate: {
+      name: "Grand Contract: Luxury Sedan", type: "cardrop",
+      desc: "The largest purchase on file arrives at terminal velocity — a full-size sedan, and it keeps going after it lands.",
+      p: { dmg: 32, base: 900, growth: 10.5, r: 130, fallTime: 0.9, slideSpeed: 760, slideDur: 1.1, slideDmg: 12, slideBase: 480, color: "#86d67c", label: "LUXURY SEDAN", sprite: "effect:sedan", spriteH: 170 },
+    },
+    passive: { id: "contractor", name: "Paper Trail", desc: "Every deal has fine print in his favor: special cooldowns tick 18% faster." },
+    ai: { style: "zoner", range: 380 },
+  },
+
+  // ------------------------------------------------------------- GAKUGANJI
+  gakuganji: {
+    name: "Gakuganji",
+    epithet: "The Old Guard",
+    theme: "#d89b3f",
+    shadow: "rgba(216, 155, 63, 0.36)",
+    scale: 0.60,
+    stats: { speed: 356, airSpeed: 272, accel: 2200, jump: 710, airJumps: 1, weight: 1.18, friction: 0.79 },
+    anims: STAGED_ANIMS,
+    light: { dmg: 9, reach: 172, speed: 0.92, angle: 0.32, effect: null, label: "Guitar Swing", sfx: "punch" },
+    heavy: { dmg: 17, reach: 188, speed: 0.88, angle: 0.44, effect: null, label: "Amp Smash", sfx: "slashHeavy", shieldMul: 1.7 },
+    specials: {
+      neutral: {
+        name: "Power Chord", type: "projectile", cooldown: 1.1,
+        desc: "One downstroke — cursed energy rides the riff out as a crushing wall of sound.",
+        p: { speed: 500, vy: 0, r: 40, dur: 0.8, dmg: 11, base: 380, growth: 6.8, angle: 0.36, color: "#d89b3f", pierce: true, ampable: true, label: "Power Chord", sprite: "effect:sound_wave", spriteH: 120 },
+      },
+      side: {
+        name: "Feedback Wall", type: "trap", cooldown: 1.9,
+        desc: "Plants a standing wave of shrieking feedback that erupts when crossed.",
+        p: { dist: 230, armTime: 0.4, lifetime: 3.5, w: 130, h: 180, dmg: 13, base: 430, growth: 7.0, angle: 0.7, color: "#e8b25c", label: "Feedback", sprite: "effect:feedback_wall", spriteH: 200 },
+      },
+      down: {
+        name: "Distortion Solo", type: "install", cooldown: 6.0,
+        desc: "Steps on the pedal. While the solo rings, every Power Chord comes out doubled.",
+        p: { duration: 4.5, ampUp: true, dmgMul: 1.1, color: "#ffcf7a", label: "DISTORTION", aura: "effect:aura_amber" },
+      },
+    },
+    ultimate: {
+      name: "Deadly Melody: Encore", type: "concert",
+      desc: "The full performance. Waves of amplified cursed sound roll off the stage until the closing chord throws the crowd.",
+      p: { duration: 3.0, tickRate: 0.45, dmgTick: 4, finalDmg: 16, finalBase: 800, finalGrowth: 9, radius: 520, color: "#d89b3f", label: "ENCORE", sprite: "effect:concert_wave", spriteH: 300 },
+    },
+    passive: { id: "oldGuard", name: "Unshakeable Tradition", desc: "Decades on every kind of stage: takes 25% less hitstun — the old man barely flinches." },
+    ai: { style: "zoner", range: 380 },
   },
 };
 

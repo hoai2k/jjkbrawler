@@ -25,6 +25,9 @@ const GRUNT_GROUPS = {
   jogo: "gruntMonster", hanami: "gruntMonster",
   panda: "gruntAnimal", mahito: "gruntAnimal",
   hakari: "gruntBig", todo: "gruntBig", sukuna: "gruntBig",
+  // round-7 staged fighters
+  meimei: "gruntFemale", uro: "gruntFemale",
+  choso: "gruntBig", gakuganji: "gruntBig",
 };
 
 export const audioSettings = {

@@ -5,11 +5,11 @@
 
 import { state } from "./state.js";
 import { clamp, sign, rand, chance } from "./utils.js";
-import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox } from "./combat.js";
+import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox, applyStatus } from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
 import { playSfx, playGrunt } from "./audio.js";
 import { METER_MAX } from "./constants.js";
-import { rectsOverlap } from "./utils.js";
+import { rectsOverlap, circleRectOverlap } from "./utils.js";
 import { getImage } from "./assets.js";
 
 // Installs have priorities: ultimate transformations (2) cannot be
@@ -67,7 +67,14 @@ const HANDLERS = {
   projectile(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.42);
     playGrunt(f.charKey);
-    const count = p.count || 1;
+    // Blood Manipulation (Choso): blood techniques are paid for in blood
+    if (p.bloodCost) {
+      f.damage = Math.min(999, f.damage + p.bloodCost);
+      burst(f.x, f.y - 90, "#c22e4a", 6, 0.5);
+    }
+    // Distortion Solo (Gakuganji): amped Power Chords fire an extra wave
+    let count = p.count || 1;
+    if (p.ampable && f.installs && f.installs.ampUp) count += 1;
     for (let i = 0; i < count; i++) {
       const spreadVy = count > 1 ? (i - (count - 1) / 2) * (p.spread || 100) : 0;
       // `spritePool` picks a different look per shot — Geto's volley throws a
@@ -146,6 +153,7 @@ const HANDLERS = {
       speedMul: p.speedMul, dmgMul: p.dmgMul, armor: p.armor,
       unblockable: p.unblockable, healPerSec: p.healPerSec,
       contactBurn: p.contactBurn, dmgTakenMul: p.dmgTakenMul, aura: p.aura,
+      ampUp: p.ampUp, selfDrainPerSec: p.selfDrainPerSec,
     });
     if (!ok) return;
     banner(p.label || cfg.name, p.color || f.char.theme, { y: 240, size: 38, life: 1.0 });
@@ -353,6 +361,222 @@ const HANDLERS = {
         self.vx = self.facing * (p.lunge || 560);
         spawnMelee(self, { ...p, delay: 0.04 });
         playSfx("whoosh", 0.9, 1.2);
+      },
+    });
+  },
+
+  // Yuji — Divergent Fist: the punch lands, then the cursed energy lands.
+  echoStrike(f, p, cfg) {
+    const dur = (p.delay || 0.08) + (p.echoDelay || 0.34) + 0.28;
+    beginSpecialAction(f, currentSlot(cfg, f), dur, { events: [] });
+    playGrunt(f.charKey);
+    spawnMelee(f, { ...p, label: p.label || cfg.name });
+    f.action.events.push({
+      at: (p.delay || 0.08) + (p.echoDelay || 0.34),
+      fn: (self) => {
+        spawnMelee(self, {
+          delay: 0.02, dur: 0.1, ox: p.ox, oy: p.oy,
+          w: (p.w || 170) * 1.15, h: (p.h || 104) * 1.15,
+          dmg: p.echoDmg, base: p.echoBase, growth: p.echoGrowth, angle: p.echoAngle,
+          label: "Divergent Impact", sfx: "blast",
+        });
+        burst(self.x + self.facing * 80, self.y - 96, p.color || self.char.theme, 18, 1.0);
+        if (p.sprite) spawnSummonFlash(self, p.sprite, 0.3, p.spriteH || 140, 80);
+        playSfx("blast", 0.85, 1.1);
+      },
+    });
+  },
+
+  // Mei Mei — Advance Payment: spend meter now, collect damage later.
+  payToWin(f, p, cfg) {
+    if (f.meter < p.cost) {
+      f.cooldowns[currentSlot(cfg, f)] = 0.6; // a declined card shouldn't cost the full cooldown
+      popup(f.x, f.y - 160, "INSUFFICIENT FUNDS", "#9aa4c0", 15);
+      playSfx("miss", 0.8);
+      return;
+    }
+    beginSpecialAction(f, currentSlot(cfg, f), 0.45);
+    playGrunt(f.charKey);
+    f.meter = clamp(f.meter - p.cost, 0, METER_MAX);
+    if (!applyInstall(f, { t: p.duration, label: p.label || cfg.name, color: p.color, dmgMul: p.dmgMul })) return;
+    banner(p.label || cfg.name, p.color, { y: 240, size: 34, life: 0.9 });
+    ring(f.x, f.y - 90, p.color, 120);
+    burst(f.x, f.y - 100, p.color, 20, 1.0);
+    playSfx("ult", 0.5);
+  },
+
+  // Uro — Sky Fold: a counter stance that also bends projectiles back.
+  reflectCounter(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), p.window || 0.55, { lockMovement: true });
+    f.counter = {
+      t: p.window || 0.55, holdStill: true,
+      dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: p.angle,
+      label: cfg.name, name: "SKY FOLD",
+    };
+    f.reflect = { t: p.window || 0.55, color: p.color || f.char.theme };
+    ring(f.x, f.y - 90, p.color || f.char.theme, 110);
+    playSfx("shield", 0.7, 1.2);
+  },
+
+  // Uro — Sky Warp Palm: a telegraphed strike that falls out of the air on
+  // the spot the target held when she cast it. Dodge by not standing there.
+  warpStrike(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.4);
+    playGrunt(f.charKey);
+    const opp = opponentOf(f);
+    const tx = opp && !opp.dead ? opp.x : f.x + f.facing * 240;
+    const ty = opp && !opp.dead ? opp.y - 70 : f.y - 70;
+    const delay = p.delay || 0.32;
+    state.entities.push({
+      owner: f, t: 0, dead: false,
+      update(dt) {
+        this.t += dt;
+        if (this.t < delay) return;
+        this.dead = true;
+        burst(tx, ty, p.color, 20, 1.0);
+        ring(tx, ty, p.color, 90);
+        playSfx("blast", 0.85, 1.15);
+        for (const t of state.fighters) {
+          if (t === f || t.dead || t.respawnTimer > 0) continue;
+          if (circleRectOverlap(tx, ty, p.r || 95, hurtbox(t))) {
+            applyHit(f, t, {
+              dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: p.angle,
+              label: cfg.name, sfx: "blast",
+            }, "script");
+          }
+        }
+      },
+      draw(ctx) {
+        const prog = Math.min(1, this.t / delay);
+        const img = p.sprite ? getImage(p.sprite) : null;
+        ctx.save();
+        ctx.globalAlpha = 0.35 + prog * 0.45;
+        if (img) {
+          const h = (p.spriteH || 150) * (0.6 + prog * 0.5);
+          const w = img.width * h / img.height;
+          ctx.drawImage(img, tx - w / 2, ty - h / 2, w, h);
+        } else {
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(tx, ty, 20 + prog * 50, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      },
+    });
+  },
+
+  // Reggie — Insecticide: a lingering poison cloud. Gas doesn't care about
+  // shields; it does gentle ticks with no launch, an attrition zone.
+  cloudField(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.46);
+    playGrunt(f.charKey);
+    const x = clamp(f.x + f.facing * (p.dist || 210), 80, 1200);
+    const groundY = groundYAt();
+    state.entities.push({
+      kind: "cloud", owner: f, x, y: groundY, t: 0, tick: 0.15, dead: false,
+      update(dt) {
+        this.t += dt;
+        if (this.t >= p.duration) { this.dead = true; return; }
+        this.tick -= dt;
+        if (this.tick > 0) return;
+        this.tick = p.tickRate;
+        const rect = { x: this.x - p.w / 2, y: this.y - p.h, w: p.w, h: p.h };
+        for (const t of state.fighters) {
+          if (t === f || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
+          if (rectsOverlap(rect, hurtbox(t))) {
+            t.damage = Math.min(999, t.damage + p.tickDmg);
+            applyStatus(p.effect, f, t);
+            burst(t.x, t.y - 70, p.color, 4, 0.4);
+            popup(t.x, t.y - 130, `${p.tickDmg}%`, p.color, 12);
+          }
+        }
+      },
+      draw(ctx) {
+        const fade = Math.min(1, this.t * 3) * Math.min(1, (p.duration - this.t) * 2);
+        const img = p.sprite ? getImage(p.sprite) : null;
+        ctx.save();
+        if (img) {
+          const h = p.spriteH || p.h;
+          const w = img.width * h / img.height;
+          ctx.globalAlpha = 0.6 * fade;
+          ctx.drawImage(img, this.x - w / 2, this.y - h, w, h);
+        } else {
+          ctx.globalAlpha = 0.3 * fade;
+          ctx.fillStyle = p.color;
+          for (let i = 0; i < 4; i++) {
+            const wob = Math.sin(this.t * 2.4 + i * 1.7);
+            ctx.beginPath();
+            ctx.ellipse(this.x + (i - 1.5) * p.w * 0.22 + wob * 8, this.y - p.h * (0.3 + 0.16 * i),
+                        p.w * 0.26, p.h * 0.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.restore();
+      },
+    });
+  },
+
+  // Reggie — Big-Ticket Item: something heavy falls where the enemy stood.
+  // What, exactly, depends on the receipt he tears.
+  randomDrop(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.5);
+    playGrunt(f.charKey);
+    const opp = opponentOf(f);
+    const tx = clamp(opp && !opp.dead ? opp.x : f.x + f.facing * 260, 100, 1180);
+    const drop = p.drops[Math.floor(Math.random() * p.drops.length)];
+    const groundY = groundYAt();
+    const fallT = p.armTime || 0.55;
+    state.entities.push({
+      owner: f, t: 0, dead: false, landed: false,
+      update(dt) {
+        this.t += dt;
+        if (this.t >= fallT && !this.landed) {
+          this.landed = true;
+          dust(tx, groundY, 14);
+          burst(tx, groundY - drop.h * 0.4, p.color, 20, 1.1);
+          playSfx("blast", 0.85, drop.dud ? 1.5 : 0.8);
+          state.camera.shake = Math.max(state.camera.shake, drop.dud ? 2 : 7);
+          popup(tx, groundY - drop.h - 30, drop.name.toUpperCase(), p.color, 16);
+          const rect = { x: tx - drop.w / 2, y: groundY - drop.h, w: drop.w, h: drop.h };
+          for (const t of state.fighters) {
+            if (t === f || t.dead || t.respawnTimer > 0) continue;
+            if (rectsOverlap(rect, hurtbox(t))) {
+              applyHit(f, t, {
+                dmg: drop.dmg, baseKb: drop.base, growth: drop.growth, angle: 0.9,
+                label: drop.name, sfx: "blast", heavy: !drop.dud,
+              }, "script");
+            }
+          }
+        }
+        if (this.t >= fallT + 0.6) this.dead = true;
+      },
+      draw(ctx) {
+        const img = getImage(drop.key);
+        const prog = Math.min(1, this.t / fallT);
+        const y = this.landed ? groundY : -140 + prog * (groundY + 140);
+        ctx.save();
+        if (!this.landed) {
+          ctx.globalAlpha = 0.5 + 0.3 * Math.sin(this.t * 14);
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.ellipse(tx, groundY - 4, drop.w * 0.7, 14, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        } else {
+          ctx.globalAlpha = Math.max(0, 1 - (this.t - fallT) / 0.6);
+        }
+        if (img) {
+          const w = img.width * drop.h / img.height;
+          ctx.drawImage(img, tx - w / 2, y - drop.h, w, drop.h);
+        } else {
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha *= 0.8;
+          ctx.fillRect(tx - drop.w / 2, y - drop.h, drop.w, drop.h);
+        }
+        ctx.restore();
       },
     });
   },

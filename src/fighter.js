@@ -43,10 +43,10 @@ export function makeFighter(id, charKey, x, facing) {
     dizzy: 0, dodgeStale: 0, lastDodgeAt: -10,
     airT: 0, shieldDownSince: -10,
     action: null, charging: null, jabStep: 0, jabResetT: 0,
-    counter: null, healing: null, installs: null, armorT: 0,
+    counter: null, reflect: null, healing: null, installs: null, armorT: 0,
     cooldowns: { neutral: 0, side: 0, down: 0 },
     throatStrain: 0, throatLock: 0,
-    statuses: { burn: null, bleed: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 },
+    statuses: { burn: null, bleed: null, poison: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 },
     ledge: null, ledgeCooldown: 0, ledgeTimer: 0,
     respawnTimer: 0, dead: false,
     cpuDamageMul: 0,
@@ -63,6 +63,7 @@ function stats(f) {
 function speedMul(f) {
   let m = 1;
   if (f.statuses.snare > 0) m *= 0.6;
+  if (f.statuses.poison) m *= 0.85;
   if (f.installs && f.installs.speedMul) m *= f.installs.speedMul;
   return m;
 }
@@ -306,8 +307,8 @@ export function ringOut(f) {
   for (let i = state.entities.length - 1; i >= 0; i--) if (state.entities[i].owner === f) state.entities.splice(i, 1);
   if (state.domainOverlay && state.domainOverlay.ownerId === f.id) state.domainOverlay = null;
 
-  f.action = null; f.charging = null; f.counter = null; f.healing = null;
-  f.installs = null; f.hitstun = 0; f.statuses = { burn: null, bleed: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 };
+  f.action = null; f.charging = null; f.counter = null; f.reflect = null; f.healing = null;
+  f.installs = null; f.hitstun = 0; f.statuses = { burn: null, bleed: null, poison: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 };
   f.vx = 0; f.vy = 0; f.ledge = null; f.dizzy = 0; f.armorT = 0;
 
   if (f.stocks <= 0) {
@@ -334,6 +335,11 @@ function respawn(f) {
   f.grounded = false;
   f.airJumpsLeft = stats(f).airJumps;
   f.facing = f.x < 640 ? 1 : -1;
+  // Everything Has a Price (Mei Mei): each stock opens with an advance payment
+  if (f.char.passive.id === "warCompensation" && f.meter < 25) {
+    f.meter = clamp(25, 0, METER_MAX);
+    popup(f.x, f.y - 40, "ADVANCE PAID", "#ffd35a", 16);
+  }
   dust(f.x, f.y, 20);
 }
 
@@ -371,7 +377,9 @@ export function updateFighter(f, dt, input) {
   f.throatStrain = Math.max(0, f.throatStrain - dt * 0.5);
   f.armorT = Math.max(0, f.armorT - dt);
   f.airT = f.grounded ? 0 : f.airT + dt;
-  for (const k of Object.keys(f.cooldowns)) f.cooldowns[k] = Math.max(0, f.cooldowns[k] - dt);
+  // Paper Trail (Reggie): the fine print always favors him — cooldowns run fast
+  const cdRate = f.char.passive.id === "contractor" ? 1.18 : 1;
+  for (const k of Object.keys(f.cooldowns)) f.cooldowns[k] = Math.max(0, f.cooldowns[k] - dt * cdRate);
 
   // meter trickle
   let trickle = METER_PASSIVE;
@@ -385,6 +393,8 @@ export function updateFighter(f, dt, input) {
   if (f.installs) {
     f.installs.t -= dt;
     if (f.installs.healPerSec) f.damage = Math.max(0, f.damage - f.installs.healPerSec * dt);
+    // Flowing Red Scale (Choso): overclocked blood burns him while it's held
+    if (f.installs.selfDrainPerSec) f.damage = Math.min(999, f.damage + f.installs.selfDrainPerSec * dt);
     if (f.installs.t <= 0) {
       popup(f.x, f.y - 170, `${f.installs.label} FADED`, "#9aa4c0", 16);
       f.installs = null;
@@ -393,6 +403,10 @@ export function updateFighter(f, dt, input) {
   if (f.counter) {
     f.counter.t -= dt;
     if (f.counter.t <= 0) f.counter = null;
+  }
+  if (f.reflect) {
+    f.reflect.t -= dt;
+    if (f.reflect.t <= 0) f.reflect = null;
   }
   if (f.healing) {
     f.healing.t -= dt;

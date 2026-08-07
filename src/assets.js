@@ -22,6 +22,18 @@ const EFFECT_KEYS = [
   "curse_a", "curse_b", "curse_c", "curse_d", "curse_dragon",
 ];
 
+// Effects belonging to round-7 staged fighters (see STAGED_CHARACTER_KEYS in
+// characters.js). Keyed by fighter so they only load once that fighter joins
+// CHARACTER_KEYS — until then the files don't exist and shouldn't be fetched.
+const STAGED_EFFECT_KEYS = {
+  yuji: ["divergent_shock"],
+  choso: ["piercing_blood", "blood_orb", "aura_crimson"],
+  meimei: ["crow", "crow_flock"],
+  uro: ["sky_ripple", "sky_shard"],
+  reggie: ["receipt_blade", "spray_cloud", "drop_vending", "drop_bike", "drop_futon", "sedan"],
+  gakuganji: ["sound_wave", "feedback_wall", "concert_wave", "aura_amber"],
+};
+
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -108,6 +120,13 @@ export async function loadAssets(onProgress) {
   }
 
   for (const key of EFFECT_KEYS) add(`effect:${key}`, `assets/sprites/effects/${key}.png`);
+  // Staged-fighter effects load automatically the moment their fighter is
+  // promoted into CHARACTER_KEYS — no loader change needed at integration.
+  for (const charKey of CHARACTER_KEYS) {
+    for (const key of STAGED_EFFECT_KEYS[charKey] || []) {
+      add(`effect:${key}`, `assets/sprites/effects/${key}.png`);
+    }
+  }
 
   let done = 0;
   await Promise.all(

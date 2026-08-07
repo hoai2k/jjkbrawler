@@ -561,7 +561,7 @@ const DIRECTORS = {
           label: ult.p.label, sfx: "blast", unblockable: true, heavy: true,
           effect: p.silence ? "silence" : null,
         }, "script");
-        if (p.crit) popup(t.x, t.y - 180, "7:3!!", "#ffd35a", 30);
+        if (p.crit) popup(t.x, t.y - 180, p.critLabel ? p.critLabel + "!!" : "7:3!!", p.critColor || "#ffd35a", 30);
         state.slowMo = Math.max(state.slowMo, 0.3);
       },
     });
@@ -800,6 +800,364 @@ const DIRECTORS = {
           ctx.beginPath();
           ctx.moveTo(f.x - this.dir * (40 + i * 34), f.y - 30 - i * 8);
           ctx.lineTo(f.x - this.dir * (90 + i * 34), f.y - 30 - i * 8);
+          ctx.stroke();
+        }
+        ctx.restore();
+      },
+    });
+  },
+
+  // Choso — Supernova: blood orbs ring the enemy, then all detonate inward.
+  supernova(f, p, ult) {
+    beginUltAction(f, 1.0);
+    const opp = opponentOf(f);
+    const cx = clamp(opp && !opp.dead ? opp.x : f.x + f.facing * 300, 140, 1140);
+    const cy = opp && !opp.dead ? opp.y - 90 : f.y - 90;
+    const orbGap = 0.12;
+    state.entities.push({
+      owner: f, t: 0, fired: 0, dead: false,
+      update(dt) {
+        this.t += dt;
+        if (this.t <= p.delay) return;
+        const target = opponentOf(f);
+        const should = Math.min(p.orbs, Math.floor((this.t - p.delay) / orbGap) + 1);
+        while (this.fired < should) {
+          this.fired += 1;
+          playSfx("blast", 0.45, 1.3);
+          if (target && !target.dead && target.respawnTimer <= 0 && target.invuln <= 0 &&
+              Math.hypot(target.x - cx, (target.y - 90) - cy) < p.radius) {
+            target.damage = Math.min(999, target.damage + p.dmgPerOrb);
+            target.hitstun = Math.max(target.hitstun, 0.2);
+            burst(target.x, target.y - 90, p.color, 8, 0.8);
+            popup(target.x, target.y - 140, `${p.dmgPerOrb}%`, p.color, 14);
+          }
+        }
+        if (this.fired >= p.orbs && this.t > p.delay + p.orbs * orbGap + 0.25) {
+          this.dead = true;
+          burst(cx, cy, p.color, 50, 1.8);
+          ring(cx, cy, p.color, 260);
+          playSfx("blast", 1, 0.6);
+          state.camera.shake = Math.max(state.camera.shake, 14);
+          if (target && !target.dead && target.respawnTimer <= 0 &&
+              Math.hypot(target.x - cx, (target.y - 90) - cy) < p.radius * 1.1) {
+            applyHit(f, target, {
+              dmg: p.finalDmg, baseKb: p.finalBase, growth: p.finalGrowth, angle: 0.6,
+              label: "SUPERNOVA", sfx: "blast", unblockable: true, heavy: true,
+            }, "script");
+          }
+        }
+      },
+      draw(ctx) {
+        const img = p.sprite ? getImage(p.sprite) : null;
+        const windup = Math.min(1, this.t / p.delay);
+        ctx.save();
+        for (let i = 0; i < p.orbs; i++) {
+          if (i < this.fired) continue; // converged already
+          const a = (i / p.orbs) * Math.PI * 2 + this.t * 0.8;
+          const rr = p.radius * (1.25 - windup * 0.25);
+          const ox = cx + Math.cos(a) * rr;
+          const oy = cy + Math.sin(a) * rr * 0.6;
+          if (img) {
+            const h = (p.spriteH || 88) * 0.7;
+            const w = img.width * h / img.height;
+            ctx.globalAlpha = 0.5 + windup * 0.5;
+            ctx.drawImage(img, ox - w / 2, oy - h / 2, w, h);
+          } else {
+            ctx.globalAlpha = 0.6 + windup * 0.4;
+            const grad = ctx.createRadialGradient(ox, oy, 3, ox, oy, 20);
+            grad.addColorStop(0, "#ffe0e6");
+            grad.addColorStop(1, p.color);
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(ox, oy, 18, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.restore();
+      },
+    });
+  },
+
+  // Mei Mei — Bird Strike: one crow past its limits, then the flock.
+  birdstrike(f, p, ult) {
+    beginUltAction(f, 0.9);
+    state.entities.push({
+      owner: f, t: 0, dead: false,
+      update(dt) {
+        this.t += dt;
+        if (this.t > 0.5 && !this.fired) {
+          this.fired = true;
+          spawnProjectile(f, {
+            speed: p.speed, ox: 80, oy: -100, r: p.r, dur: 1.6,
+            dmg: p.dmg, base: p.base, growth: p.growth, angle: 0.42,
+            color: p.color, pierce: true, unblockable: true,
+            label: "BIRD STRIKE", sprite: p.sprite, spriteH: p.spriteH,
+          });
+          for (let i = 0; i < p.followers; i++) {
+            spawnProjectile(f, {
+              speed: p.speed * 0.55, ox: 40 - i * 30, oy: -80 - (i % 2) * 60,
+              r: 26, dur: 1.8, dmg: p.followerDmg, base: p.followerBase, growth: 5.5,
+              angle: 0.38, color: p.color, homing: 120,
+              label: "Crow", sprite: "effect:crow", spriteH: 84,
+            });
+          }
+          playSfx("blast", 1, 0.75);
+          state.camera.shake = Math.max(state.camera.shake, 12);
+          state.slowMo = Math.max(state.slowMo, 0.18);
+        }
+        if (this.t > 0.9) this.dead = true;
+      },
+      draw(ctx) {
+        if (this.t >= 0.5) return;
+        // the flock gathers behind her
+        const g = this.t / 0.5;
+        ctx.save();
+        ctx.globalAlpha = 0.6 * g;
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 5; i++) {
+          const bx = f.x - f.facing * (60 + i * 26) + Math.sin(this.t * 9 + i) * 10;
+          const by = f.y - 130 - i * 22;
+          ctx.beginPath();
+          ctx.arc(bx, by, 10, Math.PI * 0.15, Math.PI * 0.85, true);
+          ctx.stroke();
+        }
+        ctx.restore();
+      },
+    });
+  },
+
+  // Uro — Inverted Sky: the sky folds shut around the enemy and slams them
+  // back into the earth.
+  skyInvert(f, p, ult) {
+    const opp = opponentOf(f);
+    if (!opp || opp.dead || opp.respawnTimer > 0 || Math.abs(opp.x - f.x) > p.range) {
+      beginUltAction(f, 0.6);
+      f.meter = 40; // partial refund on a whiffed read, matching flurry
+      popup(f.x, f.y - 170, "THE SKY IS EMPTY", "#9aa4c0", 16);
+      return;
+    }
+    beginUltAction(f, 1.9);
+    state.domainOverlay = { color: p.color, life: 1.9, maxLife: 1.9, label: "Inverted Sky", ownerId: f.id };
+    opp.hitstun = Math.max(opp.hitstun, 1.7);
+    state.entities.push({
+      owner: f, t: 0, phase: 0, dead: false,
+      update(dt) {
+        this.t += dt;
+        const t2 = opponentOf(f);
+        if (!t2 || t2.dead || t2.respawnTimer > 0) { this.dead = true; return; }
+        if (this.phase === 0 && this.t > 0.25) {
+          this.phase = 1;
+          t2.vy = -1100;
+          t2.grounded = false;
+          burst(t2.x, t2.y - 90, p.color, 26, 1.2);
+          playSfx("whoosh", 1, 0.7);
+        }
+        if (this.phase === 1) {
+          t2.hitstun = Math.max(t2.hitstun, 0.6);
+          if (this.t > 0.25 + p.liftTime) {
+            this.phase = 2;
+            t2.vy = 1500;
+            t2.vx = 0;
+            state.screenFlash = { color: p.color, life: 0.25, maxLife: 0.25 };
+            playSfx("blast", 1, 0.6);
+          }
+        }
+        if (this.phase === 2 && (t2.grounded || this.t > 2.2)) {
+          this.dead = true;
+          applyHit(f, t2, {
+            dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: 0.7,
+            label: "INVERTED SKY", sfx: "blast", unblockable: true, heavy: true,
+          }, "script");
+          state.camera.shake = Math.max(state.camera.shake, 16);
+          burst(t2.x, t2.y - 40, p.color, 44, 1.8);
+          ring(t2.x, t2.y - 40, p.color, 240);
+        }
+      },
+      draw(ctx) {
+        const t2 = opponentOf(f);
+        if (!t2) return;
+        const img = p.sprite ? getImage(p.sprite) : null;
+        ctx.save();
+        if (img) {
+          const h = (p.spriteH || 260) * (0.7 + Math.min(1, this.t) * 0.5);
+          const w = img.width * h / img.height;
+          ctx.translate(t2.x, t2.y - 140);
+          ctx.rotate(Math.sin(this.t * 3) * 0.15);
+          ctx.globalAlpha = 0.8;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 24;
+          ctx.drawImage(img, -w / 2, -h / 2, w, h);
+        } else {
+          // cracked-sky shards closing around the victim
+          ctx.globalAlpha = 0.55;
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = 4;
+          for (let i = 0; i < 6; i++) {
+            const a = (i / 6) * Math.PI * 2 + this.t * 1.4;
+            const rr = 150 - Math.min(1, this.t / 1.1) * 90;
+            const sx = t2.x + Math.cos(a) * rr;
+            const sy = t2.y - 90 + Math.sin(a) * rr * 0.8;
+            ctx.beginPath();
+            ctx.moveTo(sx - 12, sy + 16);
+            ctx.lineTo(sx, sy - 18);
+            ctx.lineTo(sx + 12, sy + 16);
+            ctx.closePath();
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+      },
+    });
+  },
+
+  // Reggie — Grand Contract: the sedan lands, then keeps going.
+  cardrop(f, p, ult) {
+    beginUltAction(f, 1.0);
+    const opp = opponentOf(f);
+    const tx = clamp(opp ? opp.x : f.x + f.facing * 300, 180, 1100);
+    const dir = f.facing;
+    state.entities.push({
+      owner: f, t: 0, dead: false, landed: false, slideX: tx, slideT: 0, hit: new Set(),
+      update(dt) {
+        this.t += dt;
+        const groundY = state.platforms[0]?.y ?? 568;
+        if (!this.landed && this.t >= 0.5 + p.fallTime) {
+          this.landed = true;
+          playSfx("blast", 1, 0.6);
+          state.camera.shake = Math.max(state.camera.shake, 16);
+          state.slowMo = Math.max(state.slowMo, 0.22);
+          state.screenFlash = { color: p.color, life: 0.25, maxLife: 0.25 };
+          burst(tx, groundY - 50, p.color, 60, 2.0);
+          ring(tx, groundY - 50, p.color, 240);
+          for (const t of state.fighters) {
+            if (t === f || t.dead || t.respawnTimer > 0) continue;
+            if (circleRectOverlap(tx, groundY - 50, p.r, hurtbox(t))) {
+              this.hit.add(t);
+              applyHit(f, t, {
+                dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: 0.8,
+                label: "LUXURY SEDAN", sfx: "blast", unblockable: true, heavy: true,
+              }, "script");
+            }
+          }
+        }
+        if (this.landed) {
+          this.slideT += dt;
+          this.slideX += dir * p.slideSpeed * dt;
+          for (const t of state.fighters) {
+            if (t === f || t.dead || t.respawnTimer > 0 || this.hit.has(t)) continue;
+            if (Math.abs(t.x - this.slideX) < 90 && Math.abs(t.y - groundY) < 130) {
+              this.hit.add(t);
+              applyHit(f, t, {
+                dmg: p.slideDmg, baseKb: p.slideBase, growth: 7.5, angle: 0.5,
+                label: "Runaway Sedan", sfx: "blast", heavy: true,
+              }, "script");
+            }
+          }
+          if (Math.random() < dt * 10) dust(this.slideX - dir * 60, groundY, 5);
+          if (this.slideT >= p.slideDur || this.slideX < -160 || this.slideX > 1440) this.dead = true;
+        }
+      },
+      draw(ctx) {
+        const groundY = state.platforms[0]?.y ?? 568;
+        const img = p.sprite ? getImage(p.sprite) : null;
+        const carH = p.spriteH || 170;
+        const carW = img ? img.width * carH / img.height : 300;
+        ctx.save();
+        if (!this.landed) {
+          ctx.globalAlpha = 0.5 + 0.3 * Math.sin(this.t * 16);
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.ellipse(tx, groundY - 4, 150, 18, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          if (this.t > 0.5) {
+            const prog = (this.t - 0.5) / p.fallTime;
+            const y = -200 + prog * (groundY + 200);
+            ctx.globalAlpha = 1;
+            ctx.translate(tx, y);
+            ctx.rotate(dir * 0.25 * (1 - prog));
+            if (img) ctx.drawImage(img, -carW / 2, -carH / 2, carW, carH);
+            else { ctx.fillStyle = p.color; ctx.fillRect(-140, -50, 280, 100); }
+          }
+        } else {
+          ctx.translate(this.slideX, groundY);
+          ctx.scale(dir > 0 ? 1 : -1, 1);
+          if (img) ctx.drawImage(img, -carW / 2, -carH, carW, carH);
+          else { ctx.fillStyle = p.color; ctx.fillRect(-140, -100, 280, 100); }
+        }
+        ctx.restore();
+      },
+    });
+  },
+
+  // Gakuganji — Encore: sound waves roll off him until the closing chord.
+  concert(f, p, ult) {
+    beginUltAction(f, p.duration, { lockMovement: true });
+    state.domainOverlay = { color: p.color, life: p.duration + 0.4, maxLife: p.duration + 0.4, label: "Deadly Melody", ownerId: f.id };
+    state.entities.push({
+      owner: f, t: 0, tick: 0.35, dead: false,
+      update(dt) {
+        this.t += dt;
+        if (f.dead || f.respawnTimer > 0) { this.dead = true; return; }
+        if (this.t >= p.duration) {
+          this.dead = true;
+          ring(f.x, f.y - 90, p.color, 320);
+          playSfx("blast", 1, 0.6);
+          state.camera.shake = Math.max(state.camera.shake, 14);
+          for (const t of state.fighters) {
+            if (t === f || t.dead || t.respawnTimer > 0) continue;
+            if (Math.abs(t.x - f.x) < p.radius * 1.2) {
+              applyHit(f, t, {
+                dmg: p.finalDmg, baseKb: p.finalBase, growth: p.finalGrowth, angle: 0.55,
+                label: "ENCORE", sfx: "blast", unblockable: true, heavy: true,
+              }, "script");
+            }
+          }
+          return;
+        }
+        this.tick -= dt;
+        if (this.tick <= 0) {
+          this.tick = p.tickRate;
+          playSfx("blast", 0.4, 1.4);
+          ring(f.x, f.y - 90, p.color, 140 + rand(0, 80));
+          for (const t of state.fighters) {
+            if (t === f || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
+            if (Math.abs(t.x - f.x) < p.radius) {
+              t.damage = Math.min(999, t.damage + p.dmgTick);
+              t.hitstun = Math.max(t.hitstun, 0.15);
+              t.vx += sign(t.x - f.x) * 120; // waves push outward
+              burst(t.x, t.y - 80, p.color, 5, 0.7);
+              popup(t.x, t.y - 140, `${p.dmgTick}%`, p.color, 13);
+            }
+          }
+        }
+      },
+      draw(ctx) {
+        const img = p.sprite ? getImage(p.sprite) : null;
+        if (img) {
+          const pulse = 0.8 + 0.25 * Math.sin(this.t * 9);
+          const h = (p.spriteH || 300) * pulse;
+          const w = img.width * h / img.height;
+          ctx.save();
+          ctx.globalAlpha = 0.6;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 24;
+          ctx.drawImage(img, f.x - w / 2, f.y - 110 - h / 2, w, h);
+          ctx.restore();
+          return;
+        }
+        ctx.save();
+        ctx.globalAlpha = 0.4;
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 4;
+        for (let i = 0; i < 4; i++) {
+          const rr = ((this.t * 420 + i * 130) % p.radius);
+          ctx.beginPath();
+          ctx.arc(f.x, f.y - 90, rr, -0.7, 0.7);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(f.x, f.y - 90, rr, Math.PI - 0.7, Math.PI + 0.7);
           ctx.stroke();
         }
         ctx.restore();

@@ -109,7 +109,7 @@ function makePlan(f, opp, lvl) {
   // ultimate
   if (f.meter >= METER_MAX && chance(lvl.ult)) {
     const t = f.char.ultimate.type;
-    const wantsClose = ["flurry", "domain", "shout"].includes(t);
+    const wantsClose = ["flurry", "domain", "shout", "concert", "skyInvert", "supernova"].includes(t);
     if (!wantsClose || adx < 420) input.ultP = true;
   }
 

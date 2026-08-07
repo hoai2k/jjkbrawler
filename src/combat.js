@@ -187,6 +187,21 @@ export function updateProjectiles(dt) {
       const box = hurtbox(target);
       // crouching under a high projectile dodges it
       const ducked = target.crouching && p.y < target.y - 70;
+      // Sky Fold (Uro): projectiles entering the folded sky are bent straight
+      // back at their owner instead of landing
+      if (!ducked && target.reflect && target.reflect.t > 0 &&
+          circleRectOverlap(p.x, p.y, p.r + 30, box)) {
+        p.owner = target;
+        p.vx = -p.vx;
+        p.vy = -p.vy * 0.4;
+        p.hit.clear();
+        p.dur = Math.max(p.dur, 0.7);
+        burst(p.x, p.y, target.reflect.color || target.char.theme, 14, 0.9);
+        ring(p.x, p.y, target.reflect.color || target.char.theme, 70);
+        popup(target.x, target.y - 168, "RETURNED", target.char.theme, 20);
+        playSfx("shield", 0.9, 1.3);
+        continue;
+      }
       if (!ducked && circleRectOverlap(p.x, p.y, p.r, box)) {
         if (p.explode) {
           explodeProjectile(p);
@@ -210,8 +225,10 @@ export function updateProjectiles(dt) {
 export function applyStatus(effect, owner, target, extra = {}) {
   if (!effect) return;
   const s = target.statuses;
-  const immune = target.char.passive.id === "heavenlyBody" &&
-    ["burn", "snare", "soulMark", "rootSnare", "cursedSpeech"].includes(effect);
+  const immune = (target.char.passive.id === "heavenlyBody" &&
+    ["burn", "snare", "soulMark", "rootSnare", "cursedSpeech"].includes(effect)) ||
+    // Choso is made of the stuff — bleeding and poisoning blood is pointless
+    (target.char.passive.id === "deathPainting" && ["bleed", "poison"].includes(effect));
   if (immune) {
     popup(target.x, target.y - 150, "IMMUNE", "#b8ffe2", 20);
     return;
@@ -224,6 +241,10 @@ export function applyStatus(effect, owner, target, extra = {}) {
     }
     case "bleed":
       s.bleed = { t: 3.2, tick: 0.5, dmg: 1.4, from: owner };
+      break;
+    case "poison":
+      // ticks whether or not the victim moves, and slows them (see speedMul)
+      s.poison = { t: 3.0, tick: 0.5, dmg: 1.1, from: owner };
       break;
     case "snare":
       s.snare = Math.max(s.snare || 0, 1.35);
@@ -287,6 +308,16 @@ export function updateStatuses(f, dt) {
       burst(f.x, f.y - 70, "#ff4c55", 5, 0.4);
     }
     if (s.bleed.t <= 0) s.bleed = null;
+  }
+  if (s.poison) {
+    s.poison.t -= dt;
+    s.poison.tick -= dt;
+    if (s.poison.tick <= 0) {
+      s.poison.tick = 0.5;
+      f.damage += s.poison.dmg;
+      burst(f.x, f.y - 80, "#9edb7e", 5, 0.4);
+    }
+    if (s.poison.t <= 0) s.poison = null;
   }
   if (s.snare > 0) s.snare -= dt;
   if (s.soulMark > 0) s.soulMark -= dt;
@@ -438,8 +469,20 @@ export function applyHit(owner, target, hit, source) {
     popup(target.x, target.y - 175, "7:3!", "#ffd35a", 26);
   }
 
+  // Black Flash (Yuji): cursed energy lands within a millionth of a second of
+  // the fist. Rolled before the other multipliers so installs scale it too.
+  if (owner.char.passive.id === "blackFlash" && source === "melee" && Math.random() < 0.12) {
+    dmg *= 1.35; baseKb *= 1.15; growth *= 1.1;
+    owner.meter = clamp(owner.meter + 10, 0, METER_MAX);
+    popup(target.x, target.y - 178, "BLACK FLASH!", "#ff3b30", 26);
+    sparkLine(target.x, target.y - 96, dir, "#ff3b30", 12);
+    state.camera.shake = Math.max(state.camera.shake, 8);
+    state.slowMo = Math.max(state.slowMo, 0.12);
+  }
+
   // status & passive multipliers
   if (target.statuses.soulMark > 0) { dmg *= 1.18; growth *= 1.1; }
+  if (target.char.passive.id === "openSky" && !target.grounded) dmg *= 0.88;
   if (owner.char.passive.id === "kingsContempt" && target.damage >= 80) dmg *= 1.1;
   if (owner.char.passive.id === "rikaBond" && owner.damage >= 100) dmg *= 1.12;
   if (owner.installs && owner.installs.dmgMul) dmg *= owner.installs.dmgMul;
@@ -454,6 +497,7 @@ export function applyHit(owner, target, hit, source) {
   // meter economy
   let mGain = dmg * METER_ON_DEAL;
   if (owner.char.passive.id === "gamblersFlow") mGain *= 1.3;
+  if (owner.char.passive.id === "warCompensation") mGain *= 1.25;
   owner.meter = clamp(owner.meter + mGain, 0, METER_MAX);
   target.meter = clamp(target.meter + dmg * METER_ON_TAKE, 0, METER_MAX);
   if (owner.char.passive.id === "heavenlyVoid") target.meter = clamp(target.meter - 4, 0, METER_MAX);
@@ -462,6 +506,7 @@ export function applyHit(owner, target, hit, source) {
   // knockback
   let kb = (baseKb + target.damage * growth) / target.char.stats.weight;
   if (target.char.passive.id === "cursedCorpse") kb *= 0.9;
+  if (target.char.passive.id === "openSky" && !target.grounded) kb *= 0.88;
   const stunBonus = hit.stunBonus || 0;
 
   // Directional Influence. The victim's stick bends the launch angle and
@@ -492,7 +537,9 @@ export function applyHit(owner, target, hit, source) {
       target.vy = -Math.sin(Math.abs(angle)) * kb - 120;
     }
     target.grounded = false;
-    target.hitstun = clamp(0.12 + kb * 0.00048 + stunBonus, 0.12, 1.35);
+    let stun = clamp(0.12 + kb * 0.00048 + stunBonus, 0.12, 1.35);
+    if (target.char.passive.id === "oldGuard") stun *= 0.75; // barely flinches
+    target.hitstun = stun;
     interruptActions(target);
   }
 
@@ -545,6 +592,7 @@ function interruptActions(target) {
   target.charging = null;
   if (target.healing) target.healing = null;
   target.counter = null;
+  target.reflect = null;
 }
 
 export function shieldBreak(target) {

@@ -354,6 +354,160 @@ attrition.
 
 ---
 
+# Round 7 — staged fighters
+
+The six fighters below are **gameplay-complete but not yet in the roster**:
+their kits, mechanics, AI profiles and audio are wired in code
+(`STAGED_CHARACTER_KEYS` in `src/characters.js`), and they ship the moment
+their art lands (see `docs/asset-requests-round7.md`). Design rationale
+follows the same format as the launch roster.
+
+## Yuji Itadori — "Sukuna's Vessel"
+**Canon:** The vessel of the King of Curses — a physically freakish, endlessly
+kind-hearted student whose signature is **Divergent Fist** (his cursed energy
+lags a beat behind his fist, so one punch lands twice) and, once his timing
+sharpens, **Black Flash** — cursed energy applied within a millionth of a
+second of impact, distorting space and multiplying force. Superhuman
+athleticism, the Manji Kick, and a refusal to stay down. Personality: warm,
+direct, self-sacrificing — "I'll be the cog"; he saves people so they can have
+a proper death.
+
+**Design mapping:** The honest fists-first brawler with a slot-machine heart:
+his whole kit is clean fundamentals, and the Black Flash roll is the spike of
+drama on top.
+- *Stats:* 448 / 1.02 — third-fastest ground speed; a pure rushdown frame.
+- **Divergent Fist** (neutral): a punch whose cursed-energy impact arrives a
+  beat later — one input, two hits, and the delayed hit is the launcher. Great
+  for catching shields dropped too early.
+- **Manji Kick** (side): a sliding low kick that sweeps in under pokes.
+- **Unbreakable Grit** (down): plants his feet — brief hyper-armor and reduced
+  damage. He just keeps coming, exactly like the manga panels.
+- **Ultimate — Black Flash: Consecutive:** the zone. A rush of blows where
+  every hit is on the edge of a Black Flash, capped with one that isn't on the
+  edge of anything.
+- *Passive — Black Flash:* every melee hit has a 12% chance to spark: bonus
+  damage, extra launch, and a surge of ultimate meter. Feast or famine, like
+  the real thing.
+
+## Choso — "Eldest Brother"
+**Canon:** The eldest Death Painting Womb — half curse, half human, animated
+by **Blood Manipulation**: Piercing Blood (blood pressurized past the speed of
+sound), Convergence, Flowing Red Scale (overclocking his own blood), and
+Supernova (orbiting blood orbs detonated at once). Personality: quiet,
+implacable, defined entirely by love for his brothers — including, after one
+very strange fight, Yuji.
+
+**Design mapping:** A zoner who pays in blood. His projectiles are the best
+pound-for-pound in the game, and every one of them costs him a sliver of his
+own health — his resource bar is his damage meter.
+- *Stats:* 405 / 1.06 — deliberate, sturdy midweight.
+- **Piercing Blood** (neutral): a near-hitscan piercing lance across the whole
+  lane. Costs 1.5% of himself per shot.
+- **Convergence: Blood Meteorite** (side): a dense arcing sphere that
+  detonates on arrival. Costs 2%.
+- **Flowing Red Scale** (down): overclocks his blood — +22% speed, +18%
+  damage, and it burns him slowly the whole time it's held.
+- **Ultimate — Supernova:** orbs of compressed blood ring the enemy, close in,
+  and all detonate inward — escapable by leaving the ring, lethal inside it.
+- *Passive — Death Painting Body:* immune to bleed and poison (he *is* the
+  blood), which also makes him the natural counter to Sukuna's chip game.
+
+## Mei Mei — "The Mercenary"
+**Canon:** Grade 1 sorcerer who fights exclusively for money; wields a
+battle-axe and **Black Bird Manipulation** — crows as scouts and, at the
+limit, **Bird Strike**: a crow that abandons self-preservation gains force
+beyond all reason. Personality: silken, transactional, genuinely dangerous —
+every kindness is an invoice.
+
+**Design mapping:** A balanced axe-fighter whose economy is literal: she
+converts meter to power and gets paid better than anyone for landing hits.
+- *Stats:* 425 / 1.00 — even frame, axe gives her heavy shield pressure
+  (2.0× shield damage on heavies).
+- **Crow Scout** (neutral): a homing crow dive — cheap, persistent chip.
+- **Axe Rush** (side): an advancing overhead arc with brutal shield damage.
+- **Advance Payment** (down): spends 15 ultimate meter for +25% damage over
+  4 s. If she can't afford it, the card declines.
+- **Ultimate — Bird Strike:** the limit-broken crow crosses the arena like a
+  cannon shell, unblockable, with the flock homing in behind it.
+- *Passive — Everything Has a Price:* +25% ultimate meter from damage dealt,
+  and every new stock starts with an advance payment of meter. She is never
+  not accruing.
+
+## Takako Uro — "Sky Manipulator"
+**Canon:** Heian-era assassin leader reincarnated into the Culling Game; her
+technique treats **the sky itself as a surface** she can touch, fold, bend and
+weaponize — attacks arrive from impossible angles, projectiles curve away,
+and space itself can slam shut. Personality: prickly pride over old wounds,
+a professional soldier's pragmatism, and real joy in a proper fight.
+
+**Design mapping:** The air-superiority trickster. Nothing about her plays in
+a straight line: her poke arrives out of the air behind you, and shooting at
+her is a good way to get shot.
+- *Stats:* 432 / 0.90 — light, fast, **three jumps** and the second-best air
+  drift in the game.
+- **Sky Warp Palm** (neutral): marks the spot the target holds, then the blow
+  falls out of the sky onto it a beat later — dodge by not standing there.
+- **Surface Dive** (side): kicks off a fold in the air; a swooping strike
+  that works midair and doubles as recovery.
+- **Sky Fold** (down): curves the sky into a lens — a counter stance that
+  answers melee *and bends projectiles straight back at their owner*. The
+  anti-zoner button.
+- **Ultimate — Inverted Sky:** the sky folds shut around the enemy, hoists
+  them off the earth, and slams them back into it. Whiffs if nobody is under
+  her sky.
+- *Passive — Mistress of the Air:* 12% less damage and knockback while
+  airborne. Fight her on the ground; you won't get to.
+
+## Reggie Star — "The Contractor"
+**Canon:** A Culling Game player whose cursed technique materializes anything
+he has a **purchase receipt** for — a katana umbrella, insecticide, a futon,
+and famously an entire car dropped on his opponent mid-fight. Personality:
+smug, theatrical dealmaker; treats every fight as a negotiation he has already
+won.
+
+**Design mapping:** The wildcard zoner. His screen presence is a shopping
+spree: blade waves, poison clouds, and appliances falling from the sky —
+some deliveries are better than others.
+- *Stats:* 402 / 1.05 — midweight who wants to fight from behind his purchases.
+- **Receipt: Katana Umbrella** (neutral): a blade wave off the umbrella's
+  edge — his bread-and-butter poke.
+- **Receipt: Insecticide** (side): a lingering aerosol cloud that **poisons**
+  (ticking damage plus a slow) and seeps through guards — area denial in a
+  can.
+- **Receipt: Big-Ticket Item** (down): something heavy materializes over the
+  enemy: a vending machine, a motorbike... or a futon. Terms and conditions
+  apply.
+- **Ultimate — Grand Contract: Luxury Sedan:** the car. It arrives at
+  terminal velocity on the opponent's position, then keeps going as a
+  battering ram across the floor.
+- *Passive — Paper Trail:* the fine print always favors him — special
+  cooldowns tick 18% faster, so the deliveries never stop.
+
+## Yoshinobu Gakuganji — "The Old Guard"
+**Canon:** The conservative principal of Kyoto Jujutsu High — an old man on
+the Big Three's conservative wing whose cursed technique **amplifies cursed
+energy through melody**, channeled via an electric guitar. He shreds. His
+riffs travel as destructive waves of amplified sound. Personality: stern
+traditionalist, institutional to the bone — until the guitar comes out.
+
+**Design mapping:** The slow fortress-zoner whose walls are made of sound.
+Weakest legs on the roster, but a stage that is always ringing.
+- *Stats:* 356 / 1.18 — slowest fighter in the game; plays entirely off
+  spacing and walls.
+- **Power Chord** (neutral): a piercing wall of amplified sound down the lane.
+- **Feedback Wall** (side): plants a standing wave of shrieking feedback that
+  erupts when crossed — his zoning anchor.
+- **Distortion Solo** (down): steps on the pedal — while it rings, every
+  Power Chord comes out doubled, plus a general damage lift.
+- **Ultimate — Deadly Melody: Encore:** the full performance: waves of sound
+  roll off him in both directions, shoving and grinding everyone in range,
+  until the closing chord throws the crowd.
+- *Passive — Unshakeable Tradition:* takes 25% less hitstun. Decades on every
+  kind of stage; the old man barely flinches, which makes comboing him a
+  genuinely different problem.
+
+---
+
 ## Roster balance at a glance
 
 | Fighter | Archetype | Speed | Weight | Wins by |
@@ -375,6 +529,17 @@ attrition.
 | Geto | Summoner-zoner | ★★★☆ | Mid | Minion attrition |
 | Jogo | Heavy zoner | ★★☆ | Heavy | Burn attrition, meteor |
 | Hanami | Fortress | ★★☆ | Very heavy | Outlasting everyone |
+
+**Staged (round 7 — awaiting art):**
+
+| Fighter | Archetype | Speed | Weight | Wins by |
+|---|---|---|---|---|
+| Yuji | Rushdown brawler | ★★★★★ | Mid | Fundamentals + Black Flash spikes |
+| Choso | Blood zoner | ★★★☆ | Mid-heavy | Premium projectiles paid in HP |
+| Mei Mei | Economy all-rounder | ★★★★ | Mid | Meter economy, axe shield pressure |
+| Uro | Aerial trickster | ★★★★ | Light | Air control, reflected projectiles |
+| Reggie | Wildcard zoner | ★★★☆ | Mid | Area denial, falling appliances |
+| Gakuganji | Sound fortress | ★☆ | Heavy | Walls of sound, unflinching trades |
 
 ## References
 
