@@ -59,7 +59,7 @@ function stageHit(f, { dmg, vx = 0, vy = 0, color = "#ffd35a", label = "", ifram
   if (f.shielding) {
     f.shield = Math.max(0, f.shield - dmg * 1.5);
     f.vx += vx * 0.35;
-    playSfx("block", 0.7);
+    playSfx("guardHit", 0.7);
     burst(f.x, f.y - 90, "#cfe4ff", 10, 0.6);
     if (f.shield <= 0) shieldBreak(f);
     return true;
@@ -72,7 +72,7 @@ function stageHit(f, { dmg, vx = 0, vy = 0, color = "#ffd35a", label = "", ifram
   if (label) popup(f.x, f.y - 175, label, color, 17);
   popup(f.x, f.y - 150, `${dmg}%`, color, 21);
   burst(f.x, f.y - 80, color, 14, 0.9);
-  playSfx("punch", 0.8);
+  playSfx("hitMedium", 0.8);
   state.camera.shake = Math.max(state.camera.shake, 4);
   return true;
 }
@@ -170,7 +170,7 @@ const STAGE_FX = {
         const inHush = t >= hushStart;
         if (inTelegraph && !announced) {
           announced = true;
-          playSfx("block", 0.5, 0.55); // low chime: the bell
+          playSfx("hazardBell", 0.55);
         }
         if (!inTelegraph && !inHush) announced = false;
         if (inHush) {
@@ -222,13 +222,13 @@ const STAGE_FX = {
         const dir = n % 2 === 0 ? 1 : -1;
         if (t >= WAVE_AT - TELEGRAPH && warned !== n) {
           warned = n;
-          playSfx("whoosh", 0.5, 0.6);
+          playSfx("hazardTelegraph", 0.55);
           warnZone(plat.x, plat.w, TELEGRAPH + 3);
         }
         if (t >= WAVE_AT && spawned !== n && !wave) {
           spawned = n;
           wave = { x: dir > 0 ? plat.x - 60 : plat.x + plat.w + 60, dir, hit: new Set() };
-          playSfx("blast", 0.35, 0.7);
+          playSfx("hazardWaterSurge", 0.7);
         }
         if (wave) {
           wave.x += wave.dir * 430 * dt;
@@ -242,7 +242,7 @@ const STAGE_FX = {
               f.grounded = false;
               popup(f.x, f.y - 150, "SWEPT", "#9fd8ff", 17);
               dust(f.x, f.y, 12);
-              playSfx("whoosh", 0.6);
+              playSfx("hazardWaterSurge", 0.4, 1.6);
             }
           }
           if (Math.random() < 0.5) dust(wave.x, plat.y, 2);
@@ -289,7 +289,7 @@ const STAGE_FX = {
           if (announced !== n) {
             announced = n;
             banner("A CURTAIN FALLS", "#b06cff", { y: 240, size: 36, life: 1.5 });
-            playSfx("ult", 0.35, 0.6);
+            playSfx("hazardBell", 0.5, 0.7);
           }
           for (const f of fighters()) f.meter = clamp(f.meter + 2.4 * dt, 0, METER_MAX);
           if (Math.random() < dt * 10) {
@@ -325,6 +325,7 @@ const STAGE_FX = {
       { x: plat.x + plat.w - zoneW, w: zoneW },
     ];
     let warned = -1;
+    let snapped = -1;
     return {
       update() {
         const n = Math.floor(state.matchTime / PERIOD);
@@ -333,10 +334,15 @@ const STAGE_FX = {
         const teleStart = snapStart - TELEGRAPH;
         if (t >= teleStart && warned !== n) {
           warned = n;
-          playSfx("gruntMonster", 0.4, 0.6);
+          playSfx("hazardTelegraph", 0.5, 0.75);
           for (const z of zones) warnZone(z.x, z.w, TELEGRAPH + SNAP);
         }
         if (t >= snapStart) {
+          // The jaws are heard closing whether or not they catch anyone.
+          if (snapped !== n) {
+            snapped = n;
+            playSfx("hazardFangSnap", 0.85);
+          }
           for (const z of zones) {
             for (const f of fighters()) {
               const low = f.y > plat.y - 70 && f.y <= plat.y + 30;
@@ -407,6 +413,9 @@ const STAGE_FX = {
           cycle = n;
           const plat = state.platforms[Math.floor(Math.random() * state.platforms.length)];
           bloom = { plat, x: plat.x + plat.w * (0.25 + Math.random() * 0.5), born: state.matchTime };
+          // The flower opening is worth hearing on its own — it is an
+          // invitation to walk over, not just a pickup that pays out later.
+          playSfx("hazardBloom", 0.45, 0.9);
         }
         if (!bloom) return;
         const age = state.matchTime - bloom.born;
@@ -419,7 +428,7 @@ const STAGE_FX = {
             popup(f.x, f.y - 150, "-8%", "#8fe6a4", 24);
             burst(bloom.x, bloom.plat.y - 30, "#a4f0b6", 20, 1);
             ring(bloom.x, bloom.plat.y - 20, "#8fe6a4", 70);
-            playSfx("landing", 0.4, 1.5);
+            playSfx("hazardBloom", 0.8);
             bloom = null;
             return;
           }
@@ -479,7 +488,7 @@ const STAGE_FX = {
           cycle = n;
           const x = plat.x + 80 + Math.random() * (plat.w - 160);
           lantern = { x, y: 236, phase: "swing", t: 0, vy: 0 };
-          playSfx("whoosh", 0.3, 0.55);
+          playSfx("hazardBell", 0.5);
           warnZone(x - 60, 120, TELEGRAPH + PATCH + 1.4);
         }
         if (!lantern) return;
@@ -493,7 +502,7 @@ const STAGE_FX = {
             lantern.phase = "patch";
             lantern.t = 0;
             burst(lantern.x, plat.y - 10, "#ffb45a", 22, 1.2);
-            playSfx("blast", 0.4, 1.2);
+            playSfx("hazardFirePatch", 0.75);
           }
         } else if (lantern.phase === "patch") {
           if (lantern.t >= PATCH) { lantern = null; return; }
@@ -579,6 +588,7 @@ const STAGE_FX = {
     const PERIOD = 22, TELEGRAPH = 1.5, WALL = 5;
     const plat = mainPlatform(state.platforms);
     let warned = -1;
+    let struck = -1;
     return {
       update() {
         const n = Math.floor(state.matchTime / PERIOD);
@@ -587,10 +597,15 @@ const STAGE_FX = {
         const teleStart = wallStart - TELEGRAPH;
         if (t >= teleStart && warned !== n) {
           warned = n;
-          playSfx("ult", 0.3, 1.4);
+          playSfx("hazardTelegraph", 0.5, 1.15);
           warnZone(640 - 34, 68, TELEGRAPH + WALL);
         }
         if (t >= wallStart) {
+          // The arc is audible from the moment it lands, not only on contact.
+          if (struck !== n) {
+            struck = n;
+            playSfx("hazardElectricArc", 0.9);
+          }
           for (const f of fighters()) {
             if (Math.abs(f.x - 640) < 22 && f.y > 170 && f.y < plat.y + 40) {
               const away = sign(f.x - 640) || f.facing * -1 || 1;
@@ -642,7 +657,7 @@ const STAGE_FX = {
           p.shakeMag = t >= rattleStart && t < ghostStart ? 2.5 : 0;
           const wasGhost = p.ghost;
           p.ghost = t >= ghostStart;
-          if (p.ghost && !wasGhost) playSfx("whoosh", 0.25, 0.5);
+          if (p.ghost && !wasGhost) playSfx("hazardElectricArc", 0.3, 1.5);
         });
       },
       draw() {},
@@ -687,7 +702,7 @@ const STAGE_FX = {
           rung = n;
           layout = (layout + 1) % LAYOUTS.length;
           glide = { from: plats.map((p) => ({ x: p.x, y: p.y })), to: LAYOUTS[layout], t: 0 };
-          playSfx("block", 0.45, 1.5);
+          playSfx("hazardBell", 0.6, 1.25);
           banner("CLASS CHANGE", "#d8b06a", { y: 230, size: 30, life: 1.2 });
         }
         if (glide) {
@@ -761,12 +776,12 @@ const STAGE_FX = {
         const dir = n % 2 === 0 ? 1 : -1;
         if (t >= teleStart && warned !== n) {
           warned = n;
-          playSfx("block", 0.35, 1.9);
+          playSfx("hazardSignalChirp", 0.7);
           warnZone(plat.x, plat.w, TELEGRAPH + 1.6);
         }
         if (t >= runStart && !cars) {
           cars = { dir, list: [0, 0.35, 0.7].map((d) => ({ delay: d, x: dir > 0 ? plat.x - 160 : plat.x + plat.w + 160 })) };
-          playSfx("whoosh", 0.7, 1.3);
+          playSfx("hazardTrafficPass", 0.85);
         }
         if (cars) {
           let allGone = true;
@@ -847,7 +862,7 @@ const STAGE_FX = {
           fang.t += dt;
           if (fang.phase === "shadow" && fang.t >= 1.1) {
             fang.phase = "fall";
-            playSfx("whoosh", 0.6, 0.8);
+            playSfx("hazardTelegraph", 0.45, 0.8);
           } else if (fang.phase === "fall") {
             fang.y += 1500 * dt;
             if (fang.y >= plat.y - 10) {
@@ -859,7 +874,7 @@ const STAGE_FX = {
                 }
               }
               burst(fang.x, plat.y - 16, "#e6dcff", 20, 1.1);
-              playSfx("blast", 0.4, 1.1);
+              playSfx("hazardFangSnap", 0.8);
               state.camera.shake = Math.max(state.camera.shake, 3);
               fang = null;
             }
@@ -871,7 +886,7 @@ const STAGE_FX = {
         if (it >= INHALE_EVERY - INHALE) {
           if (inhaled !== inum) {
             inhaled = inum;
-            playSfx("gruntMonster", 0.35, 0.5);
+            playSfx("hazardTelegraph", 0.4, 0.5);
             popup(640, 300, "IT INHALES…", "#b06cff", 20);
           }
           for (const f of fighters()) {
@@ -1028,7 +1043,7 @@ const STAGE_FX = {
           popper.meter = clamp(popper.meter + 8, 0, METER_MAX);
           popup(bx, by - 90, "+8 CE", "#b06cff", 22);
           burst(bx, by - 30, "#b06cff", 22, 1.1);
-          playSfx("gruntMonster", 0.4, 1.4);
+          playSfx("hazardCurseLatch", 0.6, 1.2);
           blob = null;
           return;
         }
@@ -1109,7 +1124,7 @@ const STAGE_FX = {
             top.shakeMag = 0;
             reformT = 5;
             burst(top.x + top.w / 2, top.y + 6, "#9fbdd6", 24, 1.2);
-            playSfx("blast", 0.35, 0.8);
+            playSfx("explosionSmall", 0.5, 0.8);
           }
         } else {
           crumbleT = Math.max(0, crumbleT - dt * 2);
@@ -1133,13 +1148,13 @@ const STAGE_FX = {
         const t = state.matchTime % PERIOD;
         if (t >= STRIKE_AT - 1.8 && warned !== n) {
           warned = n;
-          playSfx("blast", 0.2, 1.6);
+          playSfx("hazardTelegraph", 0.45, 1.2);
           warnZone(top.x - 20, top.w + 40, 2.1, { yMax: top.y + 40 });
         }
         boltT = Math.max(0, boltT - dt);
         if (t >= STRIKE_AT && t < STRIKE_AT + 0.1 && boltT <= 0) {
           boltT = 0.25;
-          playSfx("ult", 0.55, 0.9);
+          playSfx("hazardElectricArc", 0.95);
           state.camera.shake = Math.max(state.camera.shake, 8);
           for (const f of fighters()) {
             const onTop = (f.grounded && f.currentPlatform === top) ||

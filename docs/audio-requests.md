@@ -610,12 +610,10 @@ Totals: **68 files** for tiers 1–6, plus 13 optional. Tiers 1–3 alone
 | 3 — voices | 18 (+6 KO) | ☑ | ☑ |
 | 4 — menu / UI | 7 | ☑ | ☑ |
 | 5 — energy / summons / domains | 11 (+7 stings) | ☑ | ☑ |
-| 6 — stage hazards | 10 | ☑ | partly — see below |
+| 6 — stage hazards | 10 | ☑ | ☑ |
 
-### Not yet wired
-
-The ten Tier 6 hazard sounds are generated and in the registry, but
-`src/stage_fx.js` still calls the old generic keys. They now resolve through
-`SFX_ALIASES` to sensible replacements, so nothing is silent — but each board
-should be repointed at its own sound (`hazardBell` for the Lantern Corridor,
-`hazardWaterSurge` for the Flooded Gate, and so on) to get the benefit.
+All 26 sound calls in `src/stage_fx.js` now name a specific sound; no generic
+key is left in that file. Two hazards that were audible only when they
+connected — the Curse Maw's jaws and the Neon Split's bolt wall — now sound
+when they fire, so dodging one is no longer silent, and the Garden Steps
+flower is heard opening rather than only when someone collects it.
