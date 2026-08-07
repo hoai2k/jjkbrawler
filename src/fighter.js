@@ -699,7 +699,6 @@ export function updateFighter(f, dt, input) {
       f.takeoffT = TAKEOFF_STRETCH_TIME;
       f.fastFalling = false;
       dust(f.x, f.y, 10);
-      playSfx("doubleJump");
     }
   }
 
