@@ -115,6 +115,7 @@ const active = new Set();
 
 export function initAudio() {
   musicEl = document.getElementById("musicTrack");
+  applyMute();
   const unlock = () => {
     unlocked = true;
     window.removeEventListener("pointerdown", unlock);
@@ -130,6 +131,7 @@ export function playSfx(name, intensity = 1, rate = 0) {
   if (!entry) return; // an undelivered sound is silence, not an error
   if (active.size > MAX_VOICES) return; // safety valve
   const el = new Audio(srcFor(entry));
+  el.muted = audioSettings.muted;
   el.volume = gainFor(entry, intensity);
   el.playbackRate = rate || 0.96 + Math.random() * 0.08;
   active.add(el);
@@ -157,6 +159,7 @@ export function startShieldLoop() {
   const entry = entryFor("shield");
   if (!entry) return;
   shieldLoop = new Audio(srcFor(entry));
+  shieldLoop.muted = audioSettings.muted;
   shieldLoop.volume = gainFor(entry, 1);
   shieldLoop.loop = true;
   shieldLoop.play().catch(() => { shieldLoop = null; });
@@ -194,6 +197,7 @@ export function syncMusic(phase) {
   const off = (MUSIC_MODES[audioSettings.musicMode] || MUSIC_MODES[0]).key === "off";
   const volume = audioSettings.musicVolume * (menu ? MENU_TRACK.volumeScale : 1);
 
+  musicEl.muted = audioSettings.muted;
   if (!src || off || audioSettings.muted || audioSettings.musicVolume <= 0) {
     musicEl.pause();
     return;
@@ -207,10 +211,21 @@ export function syncMusic(phase) {
   musicEl.play().catch(() => {});
 }
 
-// Toolbar mute. Returns the new state so the caller can repaint its icon.
+// Toolbar mute. Silences everything already sounding as well as everything that
+// follows: gating playSfx alone would leave a long cue (a domain, a KO cry)
+// ringing on after the button was pressed, which reads as the button not
+// working. Returns the new state so the caller can repaint its icon.
+export function applyMute() {
+  const muted = audioSettings.muted;
+  if (musicEl) musicEl.muted = muted;
+  for (const el of active) el.muted = muted;
+  if (shieldLoop) shieldLoop.muted = muted;
+  if (muted) stopShieldLoop();
+}
+
 export function toggleMute() {
   audioSettings.muted = !audioSettings.muted;
-  if (audioSettings.muted) stopShieldLoop();
+  applyMute();
   return audioSettings.muted;
 }
 
