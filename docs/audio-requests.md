@@ -183,11 +183,6 @@ track.
 A light athletic jump taking off from solid ground, a soft cloth rustle and shoe scuff with a quick push of air, subtle and understated, dry with no reverb, about 0.2 seconds long, mono video game movement sound effect, no music, no voice
 ```
 
-**`double_jump.wav`** · air jump · 0.3 s
-```
-A mid-air second jump powered by a small burst of energy, a soft airy pulse with a gentle magical shimmer rising through it, light and weightless, dry, about 0.3 seconds long, mono anime game movement sound effect, no music, no voice
-```
-
 **`land_soft.wav`** · landing from a short hop · 0.2 s
 ```
 A light footstep landing on a hard stone surface, a soft scuffing thud with a small grit texture, dry and close with no reverb, about 0.2 seconds long, mono video game footstep sound effect, no music, no voice

@@ -29,7 +29,7 @@ export const SFX_DIR = "assets/sfx/";
 export const AUDIO_MIX = {
   // Default slider positions (0..1). Players override these in Settings.
   musicVolume: 0.28,
-  sfxVolume: 0.60,
+  sfxVolume: 0.20,
 
   // Hard ceiling applied after everything else, so a stacked frame — several
   // hits, a grunt and a hazard in the same 100 ms — cannot clip.
@@ -73,7 +73,6 @@ export const SFX = {
 
   // ---- Tier 2: movement and match flow
   jump: { file: "jump.mp3", category: "movement" },
-  doubleJump: { file: "double_jump.mp3", category: "movement" },
   landSoft: { file: "land_soft.mp3", category: "movement" },
   landHeavy: { file: "land_heavy.mp3", category: "movement" },
   dash: { file: "dash.mp3", category: "movement" },
