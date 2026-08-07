@@ -128,6 +128,15 @@ Both export through the existing flow: **Export all adjustments** →
 `tools/apply_sprite_adjustments.py`, which merges anchors per name so exporting
 one never drops another.
 
+## Finding your way around the workbench
+
+Every control's explanation lives on its **title**, as a hover bubble — the
+titles that have one carry a small `?`. They used to be paragraphs underneath
+each control, which meant a page of prose between you and the slider you wanted;
+moving them out took ~350px off the panel. `workbench/tooltip.js` owns this: put
+`data-help` on a label and it is wired automatically, including on controls that
+are rebuilt as the selection changes.
+
 ## Two workbench behaviours worth knowing
 
 **Facing is the game's.** The canvas draws each pose exactly as a match does,

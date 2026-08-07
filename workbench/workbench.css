@@ -212,7 +212,59 @@ button.ghost {
 button.ghost:hover { border-color: var(--accent); }
 
 .note { margin: 2px 0 0; font-size: 11px; color: var(--dim); }
-.note.warn { color: var(--warn); }
+
+/* ---------------- hover help ---------------- */
+
+/* A control's explanation lives on its title as `data-help` and appears in a
+   bubble, rather than as a paragraph pushing the next control down the panel. */
+[data-help] { cursor: help; }
+[data-help].help-open { color: var(--accent); }
+
+.help-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  margin-left: 5px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--dim);
+  vertical-align: 1px;
+  cursor: help;
+}
+[data-help]:hover .help-badge,
+.help-badge:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+
+/* On <body> and positioned `fixed`: the panel is 340px wide and scrolls, so a
+   bubble parented inside it would be clipped on both axes. */
+.help-bubble {
+  position: fixed;
+  z-index: 60;
+  max-width: 330px;
+  padding: 10px 12px;
+  background: #171c2b;
+  border: 1px solid rgba(130, 150, 205, 0.4);
+  border-radius: 9px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  pointer-events: none;   /* never eats the hover that opened it */
+}
+.help-bubble[hidden] { display: none; }
+.help-bubble code { font-size: 10.5px; color: var(--accent); }
+.help-bubble b { color: #fff; }
 
 .chips.tight { margin-bottom: 2px; }
 

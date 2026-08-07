@@ -44,7 +44,7 @@
         </div>
 
         <div class="group">
-          <label>Reference overlays</label>
+          <label data-help="The two references answer different questions. The character&apos;s own idle is &lt;em&gt;overlaid&lt;/em&gt;, for lining a pose up within one sprite set. Gojo stands at the left end of the platform instead, so size reads against the rest of the roster the way it does in a real match.&lt;br&gt;&lt;br&gt;Spin preview rotates the pose about its centre of mass, exactly as the game does for tumbles, rolls and leans — an anchor in the wrong place makes the body orbit instead of turn.">Reference overlays</label>
           <div class="chips">
             <label class="chip"><input type="checkbox" id="refSelf"> This character's idle (overlaid)</label>
             <label class="chip"><input type="checkbox" id="refGojo"> Gojo idle (size benchmark, stands aside)</label>
@@ -53,14 +53,6 @@
             <label class="chip"><input type="checkbox" id="showBox"> Sprite bounds</label>
             <label class="chip"><input type="checkbox" id="spinPreview"> Spin preview</label>
           </div>
-          <p class="note">The two references answer different questions. The
-            character's own idle is <em>overlaid</em>, for lining a pose up
-            within one sprite set. Gojo stands at the left end of the platform
-            instead, so size reads against the rest of the roster the way it
-            does in a real match.</p>
-          <p class="note">Spin preview rotates the pose about its centre of
-            mass, exactly as the game does for tumbles, rolls and leans — an
-            anchor in the wrong place makes the body orbit instead of turn.</p>
         </div>
       </section>
 
@@ -72,45 +64,28 @@
         </div>
 
         <div class="group">
-          <label>Pose <span class="sub" id="poseCount"></span></label>
+          <label data-help="&lt;b&gt;Unedited only&lt;/b&gt; is the working view: poses the game draws that have no adjustments saved in the codebase yet, so a pass through a character does not keep re-presenting work already done.&lt;br&gt;&lt;br&gt;&lt;b&gt;Edited only&lt;/b&gt; is everything you have touched, &lt;b&gt;Used in game&lt;/b&gt; drops the filter on edits, and &lt;b&gt;All&lt;/b&gt; adds the sheet cells the game never draws.&lt;br&gt;&lt;br&gt;The dot marks unsaved changes; a flagged pose is marked separately.">Pose <span class="sub" id="poseCount"></span></label>
           <select id="viewSel"></select>
           <div id="poseList" class="pose-list"></div>
-          <p class="note"><strong>Unedited only</strong> is the working view:
-            poses the game draws that have no adjustments saved in the codebase
-            yet, so a pass through a character does not keep re-presenting work
-            already done. <strong>Edited only</strong> is everything you have
-            touched, <strong>Used in game</strong> drops the filter on edits,
-            and <strong>All</strong> adds the sheet cells the game never draws.
-            The dot marks unsaved changes; a flagged pose is marked separately.</p>
         </div>
 
         <div class="group">
-          <label>Artwork <span class="sub" id="replaceVal"></span></label>
+          <label data-help="Marks this pose&apos;s &lt;em&gt;art&lt;/em&gt; as wrong and needing a redraw, as opposed to its placement being wrong. It exports with everything else; the flagged poses are then collected into the asset request list, and clearing happens automatically when the new art is imported.">Artwork <span class="sub" id="replaceVal"></span></label>
           <div class="chips">
             <label class="chip"><input type="checkbox" id="replaceBox"> Sprite needs replacement</label>
           </div>
-          <p class="note">Marks this pose's <em>art</em> as wrong and needing a
-            redraw, as opposed to its placement being wrong. It exports with
-            everything else; the flagged poses are then collected into the asset
-            request list, and clearing happens automatically when the new art is
-            imported.</p>
         </div>
 
         <div class="group">
-          <label>Facing <span class="sub" id="mirrorVal"></span></label>
+          <label data-help="The canvas shows the direction the game draws, facing right. The sheets are drawn facing right too, so a pose the artist drew facing &lt;em&gt;left&lt;/em&gt; needs mirroring — tick this and it will face the way the fighter is moving in a match.">Facing <span class="sub" id="mirrorVal"></span></label>
           <div class="chips">
             <label class="chip"><input type="checkbox" id="mirrorBox"> Mirror this pose</label>
           </div>
-          <p class="note">The canvas shows the direction the game draws, facing
-            right. The sheets are drawn facing right too, so a pose the artist
-            drew facing <em>left</em> needs mirroring — tick this and it will
-            face the way the fighter is moving in a match.</p>
         </div>
 
         <div class="group">
-          <label>Anchors</label>
+          <label id="anchorLabel">Anchors</label>
           <div id="anchorRows"></div>
-          <p class="note" id="anchorHint"></p>
         </div>
 
         <div class="group">
@@ -136,7 +111,7 @@
         </div>
 
         <div class="group" id="groundGroup">
-          <label>Ground contact <span class="sub" id="groundVal"></span></label>
+          <label data-help="Sets where the sprite meets the floor. Defaults to the lowest opaque pixel, which is wrong when perspective puts one foot lower than the standing plane — raise it so the &lt;em&gt;near&lt;/em&gt; foot rests on the platform.&lt;br&gt;&lt;br&gt;A pose only ever drawn in the air has no floor contact to set, so the control locks. The ground line stays on screen as a size reference against the idle.">Ground contact <span class="sub" id="groundVal"></span></label>
           <input type="range" id="groundRange" min="-120" max="120" step="0.5" value="0">
           <div class="nudge">
             <button data-ground="-10">↑10</button>
@@ -144,17 +119,10 @@
             <button data-ground="1">↓1</button>
             <button data-ground="10">↓10</button>
           </div>
-          <p class="note">Sets where the sprite meets the floor. Defaults to the
-            lowest opaque pixel, which is wrong when perspective puts one foot
-            lower than the standing plane — raise it so the <em>near</em> foot
-            rests on the platform.</p>
-          <p class="note warn" id="groundNote" hidden>This pose is only ever
-            drawn in the air, so it has no floor contact to set. The ground line
-            stays on screen as a size reference against the idle.</p>
         </div>
 
         <div class="group">
-          <label>Character height <span class="sub" id="headVal"></span></label>
+          <label data-help="The fighter&apos;s &lt;em&gt;global&lt;/em&gt; size: every pose is drawn at a scale solved from this, so moving it resizes the whole sprite set at once. The bar on the canvas is where the top of the head lands.&lt;br&gt;&lt;br&gt;Defaults to the character&apos;s canon height (&lt;code&gt;heightCm&lt;/code&gt; in characters.js), compressed toward Gojo so the roster keeps its real ordering without outgrowing the shared hurtbox. Fighters with no published height sit at Gojo&apos;s. Reset returns to the canon-derived value.">Character height <span class="sub" id="headVal"></span></label>
           <input type="range" id="headRange" min="110" max="240" step="0.5" value="175">
           <div class="nudge">
             <button data-head="-5">↓5</button>
@@ -162,15 +130,6 @@
             <button data-head="1">↑1</button>
             <button data-head="5">↑5</button>
           </div>
-          <p class="note">The fighter's <em>global</em> size: every pose is drawn
-            at a scale solved from this, so moving it resizes the whole sprite
-            set at once. The bar on the canvas is where the top of the head
-            should land.</p>
-          <p class="note">Defaults to the character's canon height
-            (<code>heightCm</code> in characters.js), compressed toward Gojo so
-            the roster keeps its real ordering without outgrowing the shared
-            hurtbox. Fighters with no published height sit at Gojo's. Reset
-            returns to the canon-derived value.</p>
           <button id="resetHead" class="ghost">Reset to canon height</button>
         </div>
 

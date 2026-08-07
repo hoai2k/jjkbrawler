@@ -13,6 +13,7 @@ import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS, animFor } from "../src/characters.js";
 import { lightMove, heavyMove } from "../src/moves.js";
 import { fighterTransform } from "../src/motion.js";
+import { initTooltips } from "./tooltip.js";
 import { SHIELD_MAX, MAX_FALL } from "../src/constants.js";
 import { TUMBLE_SPIN_MAX, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "../src/config_tuning.js";
 
@@ -553,7 +554,7 @@ function markup() {
       </div>
 
       <div class="group">
-        <label>Options</label>
+        <label data-help="Frames, fps and startup/active/recovery come from the game&apos;s own &lt;code&gt;characters.js&lt;/code&gt; and &lt;code&gt;moves.js&lt;/code&gt;, so the playback above is what a match plays. Aerials are drawn off the floor.&lt;br&gt;&lt;br&gt;&lt;b&gt;Procedural motion&lt;/b&gt; runs the real &lt;code&gt;motion.js&lt;/code&gt; against the fighter state this action implies — the tumble on Hurt, the roll on Roll, the swing arc on attacks. Untick to see the raw frames. Anything that pivots wrongly is an anchor to fix in the sprite workbench.">Options</label>
         <div class="chips">
           <label class="chip"><input type="checkbox" id="aLoop" checked> Loop</label>
           <label class="chip"><input type="checkbox" id="aShowPlatform" checked> Game platform</label>
@@ -562,14 +563,6 @@ function markup() {
           <label class="chip"><input type="checkbox" id="aMotion" checked> Procedural motion</label>
           <label class="chip"><input type="checkbox" id="aShowAnchor"> Centre of mass</label>
         </div>
-        <p class="note">Frames, fps and startup/active/recovery come from the
-          game's own <code>characters.js</code> and <code>moves.js</code>, so the
-          playback above is what a match plays. Aerials are drawn off the floor.</p>
-        <p class="note">Procedural motion runs the real <code>motion.js</code>
-          against the fighter state this action implies — the tumble on Hurt,
-          the roll on Dodge, the swing arc on attacks. Untick to see the raw
-          frames. Anything that pivots wrongly is an anchor to fix in the
-          sprite workbench.</p>
       </div>
     </section>
 
@@ -655,6 +648,8 @@ async function boot() {
     if (e.code === "Space") { e.preventDefault(); replay(); }
     if (e.key === "Escape") closeDrawer();
   });
+
+  initTooltips();
 
   await loadAssets(() => {});
   warmAnchors(CHARACTER_KEYS);
