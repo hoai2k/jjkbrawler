@@ -15,6 +15,11 @@ export const els = {};
 let callbacks = {};
 let movesIndex = 0;
 let movesReturnPhase = "menu";
+// "players" shows every human player's own fighter side by side; "browse" is
+// the original one-at-a-time list with Prev/Next. Split is the default
+// whenever it has something to say, because in a local versus match the thing
+// each player actually wants is their OWN fighter, not a tour of the roster.
+let movesMode = "players";
 let settingsReturnPhase = "menu";
 
 const STOCK_OPTIONS = [1, 2, 3, 5];
@@ -44,6 +49,7 @@ export function initUi(cb) {
     "p1MeterLabel", "p2MeterLabel", "p3MeterLabel", "p4MeterLabel",
     "p1Portrait", "p2Portrait", "p3Portrait", "p4Portrait", "pauseButton",
     "movesPanel", "movesTitle", "movesKicker", "movesPrevButton", "movesNextButton", "movesBackButton",
+    "movesModeButton",
     "randomStageButton", "stageBackButton", "roundKicker", "winnerText", "rematchButton", "menuButton",
     "resumeButton", "pauseResetButton", "pauseMenuButton",
     "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsSpritesButton", "musicVolumeRange", "musicVolumeLabel",
@@ -336,14 +342,23 @@ function bindMenuButtons() {
   els.movesButton.addEventListener("click", () => {
     movesReturnPhase = state.phase === "moves" ? movesReturnPhase : state.phase;
     movesIndex = Math.max(0, CHARACTER_KEYS.indexOf(state.selection[1]));
+    // Re-open on the split view whenever it applies, so a second player never
+    // has to find the toggle to see their own fighter.
+    movesMode = canSplitMoves() ? "players" : "browse";
     setPhase("moves");
+  });
+  els.movesModeButton.addEventListener("click", () => {
+    movesMode = movesMode === "players" ? "browse" : "players";
+    renderMoveList();
   });
   els.movesBackButton.addEventListener("click", () => setPhase(movesReturnPhase));
   els.movesPrevButton.addEventListener("click", () => {
+    movesMode = "browse";
     movesIndex = (movesIndex - 1 + CHARACTER_KEYS.length) % CHARACTER_KEYS.length;
     renderMoveList();
   });
   els.movesNextButton.addEventListener("click", () => {
+    movesMode = "browse";
     movesIndex = (movesIndex + 1) % CHARACTER_KEYS.length;
     renderMoveList();
   });
@@ -552,13 +567,87 @@ export function setLoadProgress(done, total) {
 
 // ------------------------------------------------------------------- moves
 
+/** Human players paired with the fighter they are actually going to play.
+ *
+ *  Prefers the live match roster, because that is what resolves a Random pick
+ *  into a real character and knows which slots fell back to the CPU. Falls
+ *  back to menu selections when the moves screen is opened before a match. */
+function movesPlayers() {
+  if (state.fighters && state.fighters.length) {
+    return state.fighters
+      .filter((f) => !f.aiState && CHARACTERS[f.charKey])
+      .map((f) => ({ id: f.id, key: f.charKey }));
+  }
+  return humanIds()
+    .map((id) => ({ id, key: shownKey(id) }))
+    .filter((p) => p.key && p.key !== RANDOM_KEY && CHARACTERS[p.key]);
+}
+
+/** Split only earns its space when there are at least two players AND they are
+ *  on different fighters. Two players who both picked Gojo would get two
+ *  identical columns, so that case stays on the single view. */
+function canSplitMoves() {
+  const players = movesPlayers();
+  if (players.length < 2) return false;
+  return new Set(players.map((p) => p.key)).size >= 2;
+}
+
 function renderMoveList() {
+  const split = movesMode === "players" && canSplitMoves();
+  els.movesPanel.classList.toggle("moves-panel--split", split);
+  els.movesModeButton.classList.toggle("hidden", !canSplitMoves());
+  els.movesModeButton.textContent = split ? TEXT.moves.browseAll : TEXT.moves.backToPlayers;
+  els.movesPrevButton.classList.toggle("hidden", split);
+  els.movesNextButton.classList.toggle("hidden", split);
+  if (split) renderMovesSplit();
+  else renderMovesSingle();
+}
+
+/** Every human player's fighter at once. The controller diagram is identical
+ *  for everyone, so it is drawn once above the columns rather than repeated. */
+function renderMovesSplit() {
+  const players = movesPlayers();
+  els.movesTitle.textContent = TEXT.moves.splitHeading;
+  els.movesKicker.textContent = TEXT.moves.splitKicker;
+  // Drives how much room the shared controller diagram is allowed to take:
+  // at three or four columns it gives way entirely so each player's Domain
+  // Expansion still lands above the fold.
+  els.movesPanel.dataset.players = String(players.length);
+  els.movesPanel.innerHTML = `
+    ${controllerGuide()}
+    <div class="moves-players" data-count="${players.length}">
+      ${players.map((p) => {
+        const c = CHARACTERS[p.key];
+        return `
+        <section class="moves-player" data-player="${p.id}">
+          <header class="moves-player-head">
+            <span class="moves-player-badge">${TEXT.moves.playerBadge(p.id)}</span>
+            <span class="moves-player-name">${c.fullName || c.name}</span>
+            <span class="moves-player-epithet">${c.epithet}</span>
+          </header>
+          ${characterBody(c)}
+          <p class="moves-player-keys"><strong>${TEXT.moves.yourKeys(p.id)}</strong> ${TEXT.moves.keyLines[p.id] || ""}</p>
+        </section>`;
+      }).join("")}
+    </div>
+  `;
+}
+
+function renderMovesSingle() {
   const key = CHARACTER_KEYS[movesIndex];
   const c = CHARACTERS[key];
   els.movesTitle.textContent = TEXT.moves.heading(c.name, c.epithet);
   els.movesKicker.textContent = TEXT.moves.kicker;
-  const s = c.specials;
   els.movesPanel.innerHTML = `
+    ${controllerGuide()}
+    ${characterBody(c)}
+    <p class="keyboard-hint">${TEXT.moves.keyboardHint}</p>
+  `;
+}
+
+/** The button map, identical for every fighter and every player. */
+function controllerGuide() {
+  return `
     <div class="controller-guide">
       <svg class="xbox-controller" viewBox="0 0 660 300" role="img" aria-label="Xbox controller button map">
         <path class="controller-shell" d="M180 55C128 60 94 99 80 155L53 246c-8 28 25 43 43 21l69-81h330l69 81c18 22 51 7 43-21l-27-91c-14-56-48-95-100-100-48-5-66 14-110 14S228 50 180 55Z"/>
@@ -582,7 +671,15 @@ function renderMoveList() {
       <div class="controller-tips">
         ${TEXT.moves.tips.map(([input, action]) => `<span><strong>${input}</strong> ${action}</span>`).join("")}
       </div>
-    </div>
+    </div>`;
+}
+
+/** Everything that is specific to one fighter: passive, techniques, domain.
+ *  Shared by the single view and by each column of the split view, so the two
+ *  can never drift apart. */
+function characterBody(c) {
+  const s = c.specials;
+  return `
     <p class="moves-blurb"><strong>${c.passive.name}:</strong> ${c.passive.desc}</p>
     <div class="moves-section">${TEXT.moves.sectionTitle}</div>
     <dl class="moves-table">
@@ -593,7 +690,6 @@ function renderMoveList() {
     </dl>
     <div class="moves-section">${TEXT.moves.domainSectionTitle}</div>
     ${domainRows(c)}
-    <p class="keyboard-hint">${TEXT.moves.keyboardHint}</p>
   `;
 }
 
