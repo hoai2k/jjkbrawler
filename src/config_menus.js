@@ -119,15 +119,22 @@ export const TEXT = {
     specialSide: "Side + B",
     specialDown: "Down + B",
     ultimate: "LB / RB",
-    ultimateNote: "Requires full Cursed Energy.",
+    ultimateNote: "Costs half a Cursed Energy bar.",
+    domainSectionTitle: "Domain Expansion",
+    domainInput: "D-pad ▲",
+    domainInputAlt: (n) => ["D-pad ▲", "D-pad ◀", "D-pad ▶"][n] || "D-pad ▲",
+    domainNote: "Costs a FULL Cursed Energy bar.",
+    domainHowTo: "How it plays:",
+    domainNone: "This fighter has no Domain Expansion. Only sorcerers who have mastered one can open a domain — the rest put the whole bar into their ultimate instead.",
     tips: [
       ["Left stick twice", "Dash"],
       ["Down in air", "Fast-fall"],
       ["Shield + direction", "Dodge"],
       ["Tap shield on impact", "Parry"],
+      ["D-pad ▲", "Domain Expansion"],
     ],
     keyboardHint:
-      "Keyboard: P1 uses WASD + J/K/L/I + Left Shift. P2 uses arrows + ,/./&#47;/&#39; + Right Shift.",
+      "Keyboard: P1 uses WASD + J/K/L/I + Left Shift, U for Domain. P2 uses arrows + ,/./&#47;/&#39; + Right Shift, ; for Domain. The D-pad is the domain pad on a controller — move with the left stick.",
   },
 
   pause: {
@@ -163,6 +170,7 @@ export const TEXT = {
 
   hud: {
     ultimateReady: "ULTIMATE READY",
+    domainReady: "DOMAIN READY",
   },
 
   controllers: {

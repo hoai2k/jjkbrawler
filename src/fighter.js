@@ -5,6 +5,7 @@ import { lightMove, heavyMove } from "./moves.js";
 import { spawnMelee, opponentOf, updateStatuses } from "./combat.js";
 import { performSpecial, updateSpecialState } from "./specials.js";
 import { performUltimate } from "./ultimates.js";
+import { performDomain, domainInput, canOpenDomain, activeDomain } from "./domains.js";
 import { burst, dust, popup, banner, ring } from "./particles.js";
 import { playSfx, playGrunt, startShieldLoop, stopShieldLoop } from "./audio.js";
 import {
@@ -12,6 +13,7 @@ import {
   SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
   DASH_MULT, ACTION_BUFFER, AERIAL_LAND_LAG_MULT, AERIAL_LAND_LAG_MIN, SHIELD_MAX, SHIELD_DRAIN, SHIELD_REGEN, ROLL_TIME, ROLL_DIST,
   SPOT_DODGE_TIME, AIR_DODGE_TIME, DODGE_STALE_WINDOW, METER_MAX, METER_PASSIVE,
+  ULT_METER_COST, DOMAIN_METER_COST,
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
   RESPAWN_X,
 } from "./constants.js";
@@ -317,6 +319,7 @@ export function ringOut(f) {
   for (let i = state.projectiles.length - 1; i >= 0; i--) if (state.projectiles[i].owner === f) state.projectiles.splice(i, 1);
   for (let i = state.entities.length - 1; i >= 0; i--) if (state.entities[i].owner === f) state.entities.splice(i, 1);
   if (state.domainOverlay && state.domainOverlay.ownerId === f.id) state.domainOverlay = null;
+  if (state.domain && state.domain.owner === f) state.domain = null;
 
   f.action = null; f.charging = null; f.counter = null; f.reflect = null; f.healing = null;
   f.installs = null; f.hitstun = 0; f.statuses = { burn: null, bleed: null, poison: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 };
@@ -468,7 +471,13 @@ export function updateFighter(f, dt, input) {
   // input during hitstun or the tail of a move read as the game ignoring you.
   // A press is remembered for ACTION_BUFFER and fires the instant control
   // returns, which is most of what "responsive" means in a fighter.
-  if (input.lightP) f.bufferedAction = { kind: "light", t: ACTION_BUFFER };
+  // A Domain Expansion costs the entire bar, so silently eating the press
+  // because the fighter was two frames into a jab is the worst possible
+  // outcome. It buffers like everything else, ahead of the smaller actions.
+  const pressedDomainSlot = input.domainP ? 0 : input.domain2P ? 1 : input.domain3P ? 2 : -1;
+  if (pressedDomainSlot >= 0 && f.char.domains?.[pressedDomainSlot]) {
+    f.bufferedAction = { kind: "domain", slot: pressedDomainSlot, t: ACTION_BUFFER };
+  } else if (input.lightP) f.bufferedAction = { kind: "light", t: ACTION_BUFFER };
   else if (input.heavyP) f.bufferedAction = { kind: "heavy", t: ACTION_BUFFER };
   else if (input.specialP) f.bufferedAction = { kind: "special", t: ACTION_BUFFER };
   if (f.bufferedAction) {
@@ -551,9 +560,26 @@ export function updateFighter(f, dt, input) {
 
   // ---- attacks & specials
   if (canAct && !f.shielding) {
-    if (input.ultP && f.meter >= METER_MAX) {
+    // A domain that is open owns SPECIAL (and, for Sukuna, LIGHT/HEAVY after a
+    // blade is taken) — that is the interaction the domain exists for, so it is
+    // checked before the normal action routing and swallows the press.
+    const domainAte = activeDomain(f) ? domainInput(f, input) : false;
+
+    // Domain Expansion: d-pad up / left / right, one slot each. A fresh press
+    // wins; otherwise a buffered one fires as soon as control returns.
+    const domainSlot = pressedDomainSlot >= 0 ? pressedDomainSlot
+      : f.bufferedAction?.kind === "domain" ? f.bufferedAction.slot : -1;
+    if (domainAte) {
+      // consumed by the open domain
+    } else if (domainSlot >= 0 && f.char.domains?.[domainSlot]) {
+      f.bufferedAction = null;
+      if (canOpenDomain(f, domainSlot)) performDomain(f, domainSlot);
+      else if (f.meter < DOMAIN_METER_COST) popup(f.x, f.y - 160, "NEEDS A FULL BAR", "#9aa4c0", 15);
+    } else if (pressedDomainSlot >= 0) {
+      popup(f.x, f.y - 160, "NO DOMAIN", "#9aa4c0", 15);
+    } else if (input.ultP && f.meter >= ULT_METER_COST) {
       performUltimate(f);
-    } else if (input.ultP && f.meter < METER_MAX) {
+    } else if (input.ultP && f.meter < ULT_METER_COST) {
       popup(f.x, f.y - 160, "NOT READY", "#9aa4c0", 15);
     } else {
       // A fresh press wins over a buffered one; the buffer only covers inputs

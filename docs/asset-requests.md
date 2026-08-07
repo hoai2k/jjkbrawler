@@ -122,6 +122,10 @@ sheets.
 
 Three independent parts; any can be delivered on its own.
 
+- **9A** — regenerate the 17 original hero cards so the select screen is one style (17 images)
+- **9B** — 10 technique frames that currently show the wrong move
+- **9C** — 7 Domain Expansion backgrounds for the new domain feature
+
 ---
 
 ## 9A. Regenerate the 17 original hero cards
@@ -341,3 +345,77 @@ Once delivered these are wired by pointing the character's `anims` entry at the
 new key (e.g. `specialNeutral: { frames: ["special_neutral"], … }`), which is a
 one-line change per state.
 
+---
+
+## 9C. Domain Expansion backgrounds — 7 images
+
+Domain Expansion is implemented (`src/domains.js`): seven fighters can spend a
+full Cursed Energy bar to open a domain that replaces the arena for several
+seconds and gives them a live interaction on SPECIAL. It plays now — these
+backgrounds are the missing visual.
+
+**How they are used.** While a domain is open the renderer dims the stage,
+draws this image full-bleed behind the fighters, then grades it with the
+domain's colour and adds an edge vignette (`drawDomainBackdrop` in
+`src/render.js`). Fighters, platforms and effects all draw on top. Until the
+file exists the stage is simply dimmed and graded, which reads acceptably — so
+these load as **optional** and a missing one is not an error.
+
+### Delivery spec (domain backgrounds)
+
+Different from every other asset in this doc, so read this rather than assuming:
+
+- **Format:** JPEG, **1280×720**, at `assets/backgrounds/domains/<name>.jpg`.
+- **Full-bleed, no transparency** — these are environments, not sprites, so no
+  keying and no alpha. Paint edge to edge.
+- **No characters in frame.** The fighters are drawn over the top; a figure in
+  the art would read as a second copy of somebody.
+- **Keep the centre band calm.** Fighters occupy roughly the middle 60% of the
+  frame vertically. Detail belongs at the top and the edges; a busy centre
+  fights the sprites. Think of it as a backdrop, not a splash illustration.
+- **Dark and desaturated.** The renderer already brightens and colour-grades
+  these. Art delivered at full brightness comes out washed and swallows the
+  fighters — aim for something that looks slightly too dark on its own.
+- **No text, no logo, no border, no UI.**
+
+Style suffix — append to every domain prompt:
+
+> dark atmospheric anime background illustration in the style of the Jujutsu
+> Kaisen TV anime, painted environment, dramatic perspective, deep shadows,
+> muted desaturated palette with one dominant accent colour, cinematic depth,
+> no characters, no text
+
+### The seven domains
+
+| File | Fighter | Accent | Prompt |
+|---|---|---|---|
+| `unlimited_void.jpg` | Gojo | violet-white | "an infinite white void filled with countless floating streams of information, endless overlapping translucent glyphs and diagrams receding to infinity, a single vast dark sphere hanging at the centre of an otherwise featureless plane, cold violet-white light" |
+| `malevolent_shrine.jpg` | Sukuna | crimson | "a colossal shrine of bleached skulls and bone beams standing in an open scorched courtyard with no walls around it, tattered ritual banners, ash drifting through red light, the ground scored with countless deep slash marks" |
+| `shadow_garden.jpg` | Megumi | indigo | "a still black ocean of liquid shadow stretching to the horizon under a starless indigo sky, the surface mirror-smooth and reflecting nothing, faint silhouettes of animal shapes moving beneath it" |
+| `self_embodiment.jpg` | Mahito | violet-grey | "a vast dark chamber whose walls, floor and ceiling are made entirely of enormous pale human hands pressed together in a woven lattice, fingers interlocking into a floral pattern, sickly violet light between them" |
+| `iron_mountain.jpg` | Jogo | orange-red | "the sealed interior of an erupting volcano, sheer black basalt walls rising on every side, rivers of magma running down them into a molten floor, superheated orange haze and drifting embers" |
+| `idle_death_gamble.jpg` | Hakari | hot pink | "the interior of a lavish Japanese pachinko parlour at full blaze, endless rows of machines with spinning reels, chrome and mirrored ceiling, a storm of hot pink and gold neon, confetti in the air" |
+| `mutual_love.jpg` | Yuta | pale blue-white | "a cold cathedral-like space of pale blue light, an immense ring of interlocking translucent shapes overhead like a halo, drifting white petals, the floor a still reflective plane" |
+
+### Checking them in game
+
+Pick the fighter, build a full Cursed Energy bar, press **D-pad ▲** (keyboard:
+**U** for P1). The bar has a tick at the halfway mark — half buys the ultimate,
+a full bar buys the domain.
+
+| File | Delivered | Checked in game |
+|---|---|---|
+| `unlimited_void` | ☐ | ☐ |
+| `malevolent_shrine` | ☐ | ☐ |
+| `shadow_garden` | ☐ | ☐ |
+| `self_embodiment` | ☐ | ☐ |
+| `iron_mountain` | ☐ | ☐ |
+| `idle_death_gamble` | ☐ | ☐ |
+| `mutual_love` | ☐ | ☐ |
+
+### Not requested yet
+
+The wiki lists three more roster fighters as domain users: **Hanami**, **Uro**
+and **Yuji**. Their domains are either unnamed in canon or arrive very late in
+the series, so they have no kit here yet and no background is requested. If you
+want them, say so and they can be designed like the other seven.

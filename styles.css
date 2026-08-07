@@ -190,6 +190,23 @@ html, body {
   transition: width 0.12s linear;
 }
 
+/* The half-bar mark: where the ultimate becomes affordable. Drawn on the track
+   so it stays visible as the fill passes it. */
+.meter::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+}
+
+.meter--ult .meter-fill {
+  background: linear-gradient(90deg, #7d58d8, #62dcff);
+}
+
 .meter--full .meter-fill {
   background: linear-gradient(90deg, #ffd35a, #ff62cf, #62dcff);
   animation: meterPulse 0.8s ease-in-out infinite;
@@ -893,6 +910,20 @@ html, body {
 .keyboard-hint { margin: 0; color: var(--text-dim); font-size: 0.68rem; text-align: center; }
 
 .moves-table { display: grid; grid-template-columns: 150px 1fr; gap: 7px 16px; font-size: 0.8rem; }
+/* The domain block earns extra room: its "how it plays" line is an actual
+   instruction the player has to read, not flavour text. */
+/* The d-pad is the domain pad, so it reads as a live control rather than the
+   greyed-out movement duplicate it used to be. */
+.controller-dpad--domain rect { fill: var(--accent); opacity: 0.85; }
+
+.domain-howto {
+  display: block;
+  margin-top: 4px;
+  color: var(--accent);
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+.moves-blurb--muted { color: var(--text-dim); font-style: italic; }
 
 .moves-table dt {
   font-weight: 800;

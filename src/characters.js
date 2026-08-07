@@ -157,6 +157,14 @@ export const CHARACTERS = {
       desc: "Blue and Red fused — a hollow mass of imaginary matter erased across the whole stage.",
       p: { dmg: 34, base: 900, growth: 11, color: "#b56cff", width: 190, duration: 1.5, sprite: "effect:purple", spriteH: 230 },
     },
+    // ---- Domain Expansion -------------------------------------------------
+    domains: [{
+      name: "Unlimited Void",
+      type: "unlimitedVoid",
+      desc: "Infinite information floods the mind. They receive everything and can act on none of it.",
+      howTo: "The enemy is frozen by information overload for the whole domain. Every hit you land banks a purple orb; when the domain closes, every banked orb detonates on them at once. Hit them as many times as you can.",
+      p: { duration: 5.5, color: "#b56cff", bg: "domain:unlimited_void", orbDmg: 4.5, orbBase: 90, maxOrbs: 12 },
+    }],
     passive: { id: "limitlessGuard", name: "Infinity (Passive)", desc: "Neutral stance is wrapped in Infinity: shield loses 45% less health when struck." },
     ai: { style: "balanced", range: 340 },
   },
@@ -202,6 +210,14 @@ export const CHARACTERS = {
       desc: "The Queen of Curses answers in full. Rika mirrors every blow with her own.",
       p: { duration: 9, echoDamage: 0.55, dmgMul: 1.1, armor: false, color: "#e8ecf8", label: "RIKA", sprite: "summon:rika" },
     },
+    // ---- Domain Expansion -------------------------------------------------
+    domains: [{
+      name: "Authentic Mutual Love",
+      type: "mutualLove",
+      desc: "The vow between them made real — Rika stands with him inside it, whole.",
+      howTo: "Rika manifests completely and heals you continuously. Press SPECIAL to send her at the enemy for a huge unblockable bite; she can be commanded again after a short beat.",
+      p: { duration: 7, color: "#e8ecf8", bg: "domain:mutual_love", healPerSec: 4, biteDmg: 17, biteBase: 620, biteGrowth: 8.4, biteCd: 1.1 },
+    }],
     passive: { id: "rikaBond", name: "Bond of Love", desc: "Past 100% damage, Rika's fury raises Yuta's damage by 12%." },
     ai: { style: "balanced", range: 300 },
   },
@@ -243,10 +259,18 @@ export const CHARACTERS = {
       },
     },
     ultimate: {
-      name: "Idle Death Gamble: JACKPOT", type: "install",
-      desc: "The reels line up — 4:11 of infinite cursed energy. Wounds erase themselves and nothing staggers him.",
+      name: "JACKPOT", type: "install",
+      desc: "He skips the reels and simply collects: 4:11 of infinite cursed energy. Wounds erase themselves and nothing staggers him.",
       p: { duration: 8, healPerSec: 3.2, armor: true, dmgMul: 1.15, speedMul: 1.1, color: "#ff62cf", label: "JACKPOT", aura: "effect:aura_pink", domainSprite: "effect:domain_gamble" },
     },
+    // ---- Domain Expansion -------------------------------------------------
+    domains: [{
+      name: "Idle Death Gamble",
+      type: "idleDeathGamble",
+      desc: "A pachinko parlour with the door shut. The reels decide, and the house is him.",
+      howTo: "Three reels spin above you. Press SPECIAL to stop one — stop all three on matching symbols for the JACKPOT: full heal, hyper-armour and huge damage for the rest of the round. Mismatches still pay out something small.",
+      p: { duration: 8, color: "#ff62cf", bg: "domain:idle_death_gamble", reels: 3, symbols: 4, jackpotDur: 9 },
+    }],
     passive: { id: "gamblersFlow", name: "Gambler's Flow", desc: "Lives for the rush — gains ultimate meter 30% faster than anyone." },
     ai: { style: "rush", range: 190 },
   },
@@ -345,6 +369,14 @@ export const CHARACTERS = {
       desc: "The complete ritual. The wheel turns, and the general that adapts to everything walks the stage.",
       p: { duration: 8, dmg: 11, base: 440, growth: 7.2, speed: 250, color: "#e8ecf8", selfDamageMul: 0.75, label: "MAHORAGA" },
     },
+    // ---- Domain Expansion -------------------------------------------------
+    domains: [{
+      name: "Chimera Shadow Garden",
+      type: "shadowGarden",
+      desc: "The floor becomes an ocean of shadow, and everything in it answers to him.",
+      howTo: "The stage floods with shadow. Press SPECIAL to sink and instantly resurface behind the enemy — unlimited, no cooldown — and every resurface looses a shikigami strike. Shadow also cushions you: knockback taken is halved inside.",
+      p: { duration: 7, color: "#7c8cff", bg: "domain:shadow_garden", portDmg: 9, portBase: 330, portGrowth: 6.4, kbTakenMul: 0.5 },
+    }],
     passive: { id: "tenShadows", name: "Ten Shadows Technique", desc: "Shikigami do the fighting: summon specials build 20% extra ultimate meter." },
     ai: { style: "zoner", range: 380 },
   },
@@ -714,10 +746,18 @@ export const CHARACTERS = {
       },
     },
     ultimate: {
-      name: "Domain Expansion: Malevolent Shrine", type: "domain",
-      desc: "The shrine manifests without barrier walls — Cleave and Dismantle rain on everything in the domain, guard or no guard.",
-      p: { duration: 3.6, tickRate: 0.22, dmgTick: 3.4, base: 140, growth: 3.6, finalBase: 780, ignoresShield: true, color: "#ff4c55", label: "MALEVOLENT SHRINE", sprite: "effect:shrine" },
+      name: "Dismantle: Merciless Barrage", type: "flurry",
+      desc: "A carving rush too fast to read — Dismantle after Dismantle, closed with a Cleave that finds the exact toughness of whatever it meets.",
+      p: { hits: 6, dmg: 6, base: 210, finisherDmg: 21, finisherBase: 860, growth: 9.2, color: "#ff4c55", label: "CLEAVE" },
     },
+    // ---- Domain Expansion -------------------------------------------------
+    domains: [{
+      name: "Malevolent Shrine",
+      type: "malevolentShrine",
+      desc: "The shrine of skulls, raised without walls. Everything inside its reach is already cut.",
+      howTo: "A ring of cleave-blades orbits the shrine and slashes rain on the enemy automatically. Press SPECIAL to snatch a blade out of the air, then LIGHT or HEAVY to unleash it as a colossal Cleave — the more blades still orbiting when you throw, the harder it lands.",
+      p: { duration: 7, color: "#ff4c55", bg: "domain:malevolent_shrine", blades: 6, rainTick: 0.34, rainDmg: 2.8, cleaveDmg: 15, cleaveBase: 520, cleaveGrowth: 8.2 },
+    }],
     passive: { id: "kingsContempt", name: "King's Contempt", desc: "Scents weakness: +10% damage against opponents past 80%." },
     ai: { style: "rush", range: 260 },
   },
@@ -768,6 +808,14 @@ export const CHARACTERS = {
       desc: "His true form — a streamlined killing body. Faster, crueler, and nothing blocks it.",
       p: { duration: 8, speedMul: 1.3, dmgMul: 1.12, unblockable: true, color: "#b56cff", label: "TRUE FORM", aura: "effect:aura_violet" },
     },
+    // ---- Domain Expansion -------------------------------------------------
+    domains: [{
+      name: "Self-Embodiment of Perfection",
+      type: "selfEmbodiment",
+      desc: "Every surface is his hand. Inside, a soul is something he simply reaches out and reshapes.",
+      howTo: "Every attack you land is a direct soul touch: nothing can be blocked, and each hit stacks Distortion on them. At five stacks the soul collapses on its own for massive damage and the counter resets — so keep touching them.",
+      p: { duration: 7, color: "#b56cff", bg: "domain:self_embodiment", stacksToBurst: 5, burstDmg: 22, burstBase: 760, burstGrowth: 9 },
+    }],
     passive: { id: "soulShaper", name: "Idle Transfiguration (Passive)", desc: "Every hit brushes the soul: marked victims take 18% more damage from all sources." },
     ai: { style: "rush", range: 220 },
   },
@@ -857,9 +905,9 @@ export const CHARACTERS = {
         p: { atOpponent: true, armTime: 0.45, lifetime: 0.7, w: 120, h: 260, dmg: 15, base: 470, growth: 7.6, angle: 1.2, color: "#ff5a1f", effect: "burn", label: "Geyser", sprite: "effect:lava_geyser", spriteH: 280 },
       },
       down: {
-        name: "Coffin of the Iron Mountain", type: "install", cooldown: 5.5,
+        name: "Furnace Shell", type: "install", cooldown: 5.5,
         desc: "Wraps himself in furnace heat: armored, and searing to the touch.",
-        p: { duration: 3.4, armor: true, contactBurn: true, color: "#ff7a2f", label: "IRON MOUNTAIN", aura: "effect:aura_orange" },
+        p: { duration: 3.4, armor: true, contactBurn: true, color: "#ff7a2f", label: "FURNACE SHELL", aura: "effect:aura_orange" },
       },
     },
     ultimate: {
@@ -867,6 +915,14 @@ export const CHARACTERS = {
       desc: "He pulls a piece of the sky down on the arena. The crater is the point.",
       p: { dmg: 36, base: 940, growth: 11, r: 200, fallTime: 1.1, burnField: 2.6, color: "#ff7a2f", label: "MAXIMUM: METEOR", sprite: "effect:meteor", spriteH: 310 },
     },
+    // ---- Domain Expansion -------------------------------------------------
+    domains: [{
+      name: "Coffin of the Iron Mountain",
+      type: "ironMountain",
+      desc: "The inside of a volcano, sealed shut. There is no cool air left in the world.",
+      howTo: "The whole floor becomes magma and burns anything standing on it. Press SPECIAL to erupt a geyser directly under the enemy — free and instant, as often as you like. You are immune to your own heat.",
+      p: { duration: 7, color: "#ff7a2f", bg: "domain:iron_mountain", floorTick: 0.5, floorDmg: 1.8, geyserDmg: 12, geyserBase: 400, geyserGrowth: 7 },
+    }],
     passive: { id: "disasterFlame", name: "Disaster Curse", desc: "Born of humanity's fear of eruption: his burns tick 50% harder." },
     ai: { style: "zoner", range: 400 },
   },

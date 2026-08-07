@@ -3,7 +3,7 @@ import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, RESOLVED_GROUPS, randomCharacte
 import { STAGES } from "./stages.js";
 import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
-import { METER_MAX } from "./constants.js";
+import { METER_MAX, ULT_METER_COST } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
 import { setSpriteSet } from "./assets.js";
@@ -566,7 +566,8 @@ function renderMoveList() {
         <text x="195" y="56">LB · ULTIMATE</text><text x="465" y="56">RB · ULTIMATE</text>
         <circle class="controller-stick" cx="205" cy="126" r="35"/><circle class="controller-stick-cap" cx="205" cy="126" r="21"/>
         <text class="controller-callout" x="205" y="184">MOVE · CROUCH · AIM</text>
-        <g class="controller-dpad"><rect x="270" y="168" width="62" height="22" rx="5"/><rect x="290" y="148" width="22" height="62" rx="5"/></g>
+        <g class="controller-dpad controller-dpad--domain"><rect x="270" y="168" width="62" height="22" rx="5"/><rect x="290" y="148" width="22" height="62" rx="5"/></g>
+        <text class="controller-callout" x="301" y="228">D-PAD · DOMAIN</text>
         <circle class="controller-menu" cx="305" cy="104" r="10"/><circle class="controller-menu" cx="355" cy="104" r="10"/>
         <g class="controller-face">
           <circle class="button-y" cx="468" cy="102" r="20"/><text x="468" y="108">Y</text>
@@ -590,8 +591,24 @@ function renderMoveList() {
       <dt>${TEXT.moves.specialDown}</dt><dd><strong>${s.down.name}</strong> — ${s.down.desc}</dd>
       <dt>${TEXT.moves.ultimate}</dt><dd><strong>${c.ultimate.name}</strong> — ${c.ultimate.desc} <em>${TEXT.moves.ultimateNote}</em></dd>
     </dl>
+    <div class="moves-section">${TEXT.moves.domainSectionTitle}</div>
+    ${domainRows(c)}
     <p class="keyboard-hint">${TEXT.moves.keyboardHint}</p>
   `;
+}
+
+/** Domain Expansion rows for the moves screen. A fighter can have more than
+ *  one, each on its own d-pad direction; most have none at all, and saying so
+ *  explicitly is better than an empty section the player has to interpret. */
+function domainRows(c) {
+  const list = c.domains || [];
+  if (!list.length) return `<p class="moves-blurb moves-blurb--muted">${TEXT.moves.domainNone}</p>`;
+  return `<dl class="moves-table">` + list.map((d, i) => `
+      <dt>${TEXT.moves.domainInputAlt(i)}</dt>
+      <dd>
+        <strong>${d.name}</strong> — ${d.desc} <em>${TEXT.moves.domainNote}</em>
+        <span class="domain-howto"><strong>${TEXT.moves.domainHowTo}</strong> ${d.howTo}</span>
+      </dd>`).join("") + `</dl>`;
 }
 
 // -------------------------------------------------------------------- HUD
@@ -637,9 +654,19 @@ function renderStocks(el, f) {
 function renderMeter(fillEl, labelEl, f) {
   const pct = (f.meter / METER_MAX) * 100;
   fillEl.style.width = `${pct}%`;
+  // Two thresholds now: half a bar buys an ultimate, a full bar buys a Domain
+  // Expansion. Showing only the full mark would hide the fact that the ultimate
+  // has been available since halfway.
   const full = f.meter >= METER_MAX;
+  const ult = f.meter >= ULT_METER_COST;
+  const hasDomain = !!f.char.domains?.length;
   fillEl.parentElement.classList.toggle("meter--full", full);
-  labelEl.textContent = full ? TEXT.hud.ultimateReady : "";
+  fillEl.parentElement.classList.toggle("meter--ult", ult && !full);
+  // A fighter with no domain has nothing to spend the second half on, so the
+  // bar keeps reading ULTIMATE READY rather than promising something they
+  // cannot do.
+  labelEl.textContent = full ? (hasDomain ? TEXT.hud.domainReady : TEXT.hud.ultimateReady)
+    : ult ? TEXT.hud.ultimateReady : "";
 }
 
 export function showRoundOver(winner, loser) {
