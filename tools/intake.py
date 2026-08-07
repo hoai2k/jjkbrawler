@@ -194,6 +194,14 @@ def magenta_tint_mask(rgb, alpha, min_px=300):
 # Frames a reviewer confirmed carry key-coloured motion trails.
 TINT_FIX = {
     "gojo/dodge_air", "maki/dodge_air", "toji/dodge_air", "geto/dodge_air",
+    # Same trail defect on the remaining nine characters' dodge art. Hanami is
+    # deliberately absent: her blossoms are pink, so this test cannot tell her
+    # art from the spill, and her trail reads as intentional anyway.
+    "inumaki/dodge_air", "inumaki/dodge_roll",
+    "jogo/dodge_air", "jogo/dodge_roll",
+    "mahito/dodge_roll", "megumi/dodge_roll",
+    "nanami/dodge_air", "nanami/dodge_roll",
+    "yuta/dodge_air", "yuta/dodge_roll",
 }
 # The same defect on a GREY key: a translucent trail over mid-grey comes back
 # as a neutral smear that no flatness test can catch, because the trail itself
@@ -339,7 +347,18 @@ def main():
     else:
         print("no quality flags")
     if not args.report:
-        json.dump(rows, open(os.path.join(PROCESSED, "report.json"), "w"), indent=1)
+        # Merge rather than replace: a `--chars momo` run must not wipe the
+        # other 16 characters' rows, which is what made the report claim the
+        # whole delivery was six frames.
+        path = os.path.join(PROCESSED, "report.json")
+        merged = {}
+        if os.path.exists(path):
+            for r in json.load(open(path)):
+                merged[(r["char"], r["key"])] = r
+        for r in rows:
+            merged[(r["char"], r["key"])] = r
+        json.dump(sorted(merged.values(), key=lambda r: (r["char"], r["key"])),
+                  open(path, "w"), indent=1)
         print(f"\nprocessed art -> {PROCESSED}")
 
 
