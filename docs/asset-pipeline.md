@@ -271,7 +271,8 @@ so nothing waits on the whole roster. The loader splits three ways:
 | `loadCoreAssets()` | `manifest.json` only (~230 KB) | before the menu, blocking |
 | `startBackgroundLoad()` | shared art, then each fighter, then stage backdrops | behind the menu |
 | `ensureMatchAssets(keys, stage)` | whatever this match still lacks | at match start |
-| `loadAllAssets()` | everything, awaited | the workbench only |
+| `loadFrame(char, frame)` | one frame | the workbenches, selected pose first |
+| `loadAllAssets()` | everything, awaited | nothing in-tree; kept for one-off scripts |
 
 The menu itself needs no canvas art: select-screen portraits (`assets/cards/`)
 and stage tiles are plain `<img>` tags the browser fetches on its own. So the
@@ -294,6 +295,17 @@ Two levels of priority sit on top:
   immediately, outside the queue, and makes the pump defer until every claim has
   finished. The CPU's random draw and the default fighters on slots 3 and 4 are
   claimed the same way.
+
+The two workbenches use the same core load and then stream **only the character
+on screen** (`workbench/lazy_sprites.js`): the selected pose first so there is
+something to look at, then the rest of that set behind it, with a spinner on the
+canvas until the pose has art. Switching characters abandons the previous tail —
+its frames stay cached, so switching back is instant, but no bandwidth finishes a
+set nobody is looking at. Gojo's idle is fetched separately because it is the
+size benchmark drawn beside *every* character, and the action workbench pulls the
+individual effect and summon art a move spawns via `loadSharedImage()`. Both
+mirror the current character (and pose, or action) into the URL with
+`replaceState`, so a reload or a shared link comes back to what you were editing.
 
 `ensureMatchAssets()` is the backstop, and it waits on the entrants and the
 stage backdrop **only**. Everything in `shared` has a procedural fallback in the

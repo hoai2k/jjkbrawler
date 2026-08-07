@@ -129,16 +129,30 @@ export function isCharacterReady(charKey) {
   return loadedGroups.has(`char:${charKey}`);
 }
 
+const imageLoads = new Map(); // key -> in-flight promise
+
+/** Fetch one image, at most once. Two callers wanting the same key — a group
+ *  load and a workbench frame request, say — share the single request instead
+ *  of racing. Never rejects: a failed optional image is silent, a failed
+ *  required one warns, and both leave the key absent from `images`. */
+function fetchImage(key, src, optional = false) {
+  if (images.has(key)) return Promise.resolve();
+  const inFlight = imageLoads.get(key);
+  if (inFlight) return inFlight;
+  const p = loadImage(src)
+    .then((img) => { images.set(key, img); })
+    .catch((err) => { if (!optional) console.warn(err.message); })
+    .finally(() => imageLoads.delete(key));
+  imageLoads.set(key, p);
+  return p;
+}
+
 async function runJobs(jobs, stats) {
   let next = 0;
   const worker = async () => {
     while (next < jobs.length) {
       const job = jobs[next++];
-      try {
-        images.set(job.key, await loadImage(job.src));
-      } catch (err) {
-        if (!job.optional) console.warn(err.message);
-      }
+      await fetchImage(job.key, job.src, job.optional);
       stats.done += 1;
       announce();
     }
@@ -348,6 +362,37 @@ async function pump() {
     await loadGroup(id);
   }
   pumping = false;
+}
+
+/** One frame on its own, ahead of the rest of its fighter. The sprite workbench
+ *  uses this to put the pose you selected on screen immediately and stream the
+ *  rest of the set in behind it; resolves true once the image is usable. */
+export async function loadFrame(charKey, frameKey) {
+  const meta = spriteManifest?.characters?.[charKey]?.[frameKey];
+  if (!meta) return false;
+  const key = `sprite:${charKey}:${frameKey}`;
+  await fetchImage(key, assetUrl(`assets/sprites/${meta.file}`));
+  return images.has(key);
+}
+
+/** Frame keys the manifest lists for a fighter, in manifest order. */
+export function frameKeys(charKey) {
+  return Object.keys(spriteManifest?.characters?.[charKey] || {});
+}
+
+// Built once, lazily: the shared group's key -> job map, so a caller can pull a
+// single effect or summon without the whole bundle.
+let sharedJobs = null;
+
+/** One `effect:*` / `summon:*` image on its own. The action workbench lists the
+ *  effects a move spawns, and needs their thumbnails without downloading every
+ *  effect in the game to show two of them. Resolves true if the key is usable. */
+export async function loadSharedImage(key) {
+  if (!sharedJobs) sharedJobs = new Map(groupJobs("shared").map((j) => [j.key, j]));
+  const job = sharedJobs.get(key);
+  if (!job) return false;
+  await fetchImage(job.key, job.src, job.optional);
+  return images.has(key);
 }
 
 /** Move a fighter to the head of the background queue: the player is looking at
