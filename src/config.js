@@ -24,7 +24,7 @@ export const CHARACTER_GROUPS = [
   {
     key: "sorcerers",
     label: "Sorcerers",
-    members: ["gojo", "nanami", "todo", "momo", "hakari", "toji"],
+    members: ["gojo", "nanami", "todo", "momo", "hakari", "toji", "meimei", "uro"],
   },
   {
     key: "curses",

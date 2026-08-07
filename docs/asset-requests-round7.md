@@ -6,8 +6,12 @@ Unlike previous rounds, this is not a quality pass — these are brand-new
 characters. Their gameplay is **already fully built and wired**: stats, moves,
 specials, ultimates, passives, AI profiles and audio all live in code behind
 `STAGED_CHARACTER_KEYS` (`src/characters.js`). The art below is the only
-missing piece. When it lands, integration is: import the sprites, drop the
-card, and move the character's key into `CHARACTER_KEYS` — nothing else.
+missing piece. When it lands, integration is: process and import the sprites,
+drop the card, and move the character's key from `STAGED_CHARACTER_KEYS` into
+a `CHARACTER_GROUPS` bucket — nothing else.
+
+**Choso, Mei Mei and Uro have shipped.** See *Delivery status* below for what
+is left; the remaining requests are Yuji, Reggie and Gakuganji.
 
 What each character needs:
 
@@ -81,9 +85,10 @@ around.
 ## B. Shared poses — 26 per character
 
 Every animation state for these fighters resolves through semantic pose keys
-(`STAGED_ANIMS` in `src/characters.js`) — there is no legacy sheet to fall
+(`SEMANTIC_ANIMS` in `src/characters.js`) — there is no legacy sheet to fall
 back on, so **all 26 shared poses below plus the 5 technique poses in
-section C are required** for a character to ship.
+section C are required** for a character to ship. Pose keys map 1:1 to
+`assets/sprites/<key>/<pose_key>.png`.
 
 ### Tier 1 — on screen constantly
 
@@ -259,25 +264,23 @@ Card prompt formula: `[CHARACTER BLOCK from section A]` + the line below +
 
 | Character | Card | 31 sprites | Effects | In roster |
 |---|---|---|---|---|
-| Choso | ✅ | ✅ | ❌ 0/3 | ✅ **shipped** |
-| Yuji | ❌ | ❌ | ❌ 0/1 | staged |
-| Mei Mei | ❌ | ❌ | ❌ 0/2 | staged |
-| Uro | ❌ | ❌ | ❌ 0/2 | staged |
+| Choso | ✅ | ✅ | ✅ 3/3 | ✅ **shipped** |
+| Mei Mei | ✅ | ✅ | ✅ 2/2 | ✅ **shipped** |
+| Uro | ✅ | ✅ | ✅ 2/2 | ✅ **shipped** |
+| Yuji | ❌ | ❌ | ✅ 1/1 | staged |
 | Reggie | ❌ | ❌ | ❌ 0/6 | staged |
 | Gakuganji | ❌ | ❌ | ❌ 0/4 | staged |
 
-**Choso shipped without his effect art.** He is fully playable — his blood
-projectiles fall back to the engine's procedural crimson orb, and the Red
-Scale install to a procedural aura. Still outstanding for him:
+Choso, Mei Mei and Uro are **complete** — card, all 31 poses, and all effect
+art delivered and integrated. Nothing is outstanding for them.
 
-- `effects/piercing_blood.png` — his neutral currently reads as a round orb
-  rather than the supersonic needle-thin lance the move is named for. This is
-  the one that most changes how the move reads, so it is the priority.
-- `effects/blood_orb.png` — used by both Blood Meteorite and, eight times
-  over, by the Supernova ultimate, which currently draws procedural spheres.
-- `effects/aura_crimson.png` — the Red Scale install aura.
+Yuji's `divergent_shock.png` arrived early; it stays in `STAGED_EFFECT_KEYS`
+and promotes with him. He still needs his card and 31 poses.
 
-Two notes for whoever generates the rest, learned from Choso's delivery:
+**Still outstanding overall:** Yuji (card + 31 poses), Reggie (card + 31 poses
++ 6 effects), Gakuganji (card + 31 poses + 4 effects).
+
+Notes for whoever generates the rest, learned from the deliveries so far:
 
 - Choso's art arrived as **raw untrimmed RGB on a grey field** rather than
   keyed PNGs with alpha. That is fine — `tools/intake.py` keys and trims it —
@@ -298,6 +301,21 @@ Two notes for whoever generates the rest, learned from Choso's delivery:
   is what let one uniform `renderScale` be used for all 31 frames. Keep doing
   that: do not redraw each pose to fill its canvas.
 
+- **Draw every pose of a character at the same zoom.** Uro's `idle_b` came
+  back ~15% larger than `idle_a` — the same relaxed standing pose, just
+  bigger. Idle alternates between those two frames at 2.2 fps, so she visibly
+  pulsed while standing still. It is corrected with a per-frame `renderScale`
+  in the manifest, but it is only catchable by eye, so it is much cheaper to
+  get right upstream. Mei Mei's pair matched to within 1%.
+
+- **Directional effect art must point LEFT.** The renderer mirrors a
+  projectile sprite when it travels right (`src/render.js`), so art drawn
+  pointing right flies backwards — blunt end leading. `piercing_blood` and
+  `crow_flock` both arrived pointing right and had to be flipped on import;
+  `crow` and the existing `chain` are correct references. Effects arrive on
+  the same grey/magenta fields as character art and are keyed with the same
+  routine, then trimmed by `tools/prep_effects.py`.
+
 ---
 
 ## F. Volume and sequencing
@@ -312,7 +330,7 @@ Two notes for whoever generates the rest, learned from Choso's delivery:
 4. **Tier 3 movement detail** (40 sprites) — dash/land/crouch/dodge polish.
 
 If tiers must be cut, Tier 3 falls back gracefully (states borrow the nearest
-pose via `STAGED_ANIMS` edits at import time); Tiers 1–2 and section C do not.
+pose via `SEMANTIC_ANIMS` edits at import time); Tiers 1–2 and section C do not.
 
 ---
 
