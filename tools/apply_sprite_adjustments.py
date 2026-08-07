@@ -6,7 +6,7 @@ and `ox` live against the game's real renderer, then exports JSON like:
 
     { "character": "maki",
       "adjustments": { "ledge_hang": { "renderScale": 0.3518, "ox": 47.8,
-                                       "bodyBottom": 300,
+                                       "bodyBottom": 300, "faceLeft": false,
                                        "anchors": { "com": [148.7, 512.0],
                                                     "ledge": [161.0, 40.6] } } } }
 
@@ -37,7 +37,12 @@ MANIFEST = os.path.join(HERE, "..", "assets", "sprites", "manifest.json")
 # can add their own ("ledge" is the hand that grips the edge). Image-local
 # coordinates mean an anchor stays on the same piece of artwork through any
 # later renderScale / ox / bodyBottom change. See src/sprites.js.
-ALLOWED = {"renderScale", "ox", "bodyBottom", "anchors"}
+#
+# faceLeft mirrors a frame whose art was drawn facing left. `nativeLeft` in the
+# manifest seeded these by guess; a per-frame faceLeft is an explicit decision
+# and wins over it, which is why writing `false` matters rather than deleting
+# the key — see loadAssets in src/assets.js.
+ALLOWED = {"renderScale", "ox", "bodyBottom", "anchors", "faceLeft"}
 NUMERIC = {"renderScale", "ox", "bodyBottom"}
 
 
@@ -83,6 +88,11 @@ def main():
             for field, value in changes.items():
                 if field not in ALLOWED:
                     skipped.append(f"{char}/{key}: ignoring unsupported field '{field}'")
+                    continue
+                if field == "faceLeft":
+                    before = meta.get(field)
+                    meta[field] = bool(value)
+                    applied.append(f"{char}/{key}.faceLeft: {before} -> {bool(value)}")
                     continue
                 if field == "anchors":
                     # merge, so exporting one anchor never drops the others

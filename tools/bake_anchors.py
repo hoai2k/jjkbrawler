@@ -22,6 +22,12 @@ State-specific anchors are measured too, where a rule can find them: the
 `ledge` grip on a hang pose is the centroid of the topmost band of opaque
 pixels, which is the raised hand. See EXTRA in this file.
 
+It also records `bodyTop`: the topmost opaque row, in the image's own pixels.
+That is what lets a character be scaled so the top of their head lands exactly
+on the head-height target (src/heights.js) instead of on an approximation of
+it, and it is why changing the idle's ground contact can keep the head where
+it was.
+
 Usage:
   python3 bake_anchors.py                 # every character, skip hand-edited
   python3 bake_anchors.py --only gojo maki
@@ -80,6 +86,12 @@ def _mask(path):
         else:
             scale = 1.0
     return mask, scale, bbox
+
+
+def body_top(path):
+    """Topmost opaque row, in the image's own pixels. None if fully clear."""
+    small, scale, bbox = _mask(path)
+    return None if bbox is None else round(bbox[1], 1)
 
 
 def band_centroid(path, top_frac):
@@ -152,12 +164,23 @@ def main():
 
             path = os.path.join(SPRITES, meta["file"])
             todo = [n for n in wanted if n not in anchors or args.force]
-            if not todo:
+            need_top = "bodyTop" not in meta or args.force
+            if not todo and not need_top:
                 kept += len(wanted)
                 continue
             if not os.path.exists(path):
                 missing.append(f"{char}/{key}: {meta['file']} not on disk")
                 continue
+
+            if need_top:
+                top = body_top(path)
+                if top is None:
+                    missing.append(f"{char}/{key}.bodyTop: nothing opaque to measure")
+                else:
+                    before = meta.get("bodyTop")
+                    meta["bodyTop"] = top
+                    wrote += 1
+                    print(f"  {char}/{key}.bodyTop: {before} -> {top}")
 
             kept += len(wanted) - len(todo)
             for name in todo:

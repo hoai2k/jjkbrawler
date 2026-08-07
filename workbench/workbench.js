@@ -27,7 +27,7 @@ const BENCHMARK_INSET = 78;
 const CELL_W = 313.5;
 // Scalar fields the workbench can edit. `anchors` is edited too but is nested,
 // so snapshot/restore/compare handle it separately.
-const EDITABLE = ["renderScale", "ox", "bodyBottom"];
+const EDITABLE = ["renderScale", "ox", "bodyBottom", "faceLeft"];
 const HANDLE_R = 7;
 
 const BACKGROUNDS = [
@@ -171,7 +171,9 @@ function isDirty(charKey, frameKey) {
   const orig = state.originals[charKey]?.[frameKey];
   if (!orig) return false;
   const meta = rawMeta(charKey, frameKey);
-  return EDITABLE.some((f) => Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4)
+  return EDITABLE.some((f) => (f === "faceLeft"
+      ? !!meta[f] !== !!orig[f]
+      : Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4))
     || anchorsDirty(charKey, frameKey);
 }
 
@@ -417,7 +419,10 @@ function drawSpinPreview(cx) {
 function refreshTag() {
   const meta = rawMeta(state.char, state.frame);
   const states = statesUsing(state.char, state.frame);
-  const left = meta?.faceLeft || (spriteManifest?.nativeLeft?.[state.char] || []).includes(state.frame);
+  // `meta.faceLeft` is authoritative once assets are loaded — nativeLeft only
+  // seeds it, so consulting the list here would keep saying "mirrored" after
+  // the Mirror control turned it off.
+  const left = !!meta?.faceLeft;
   $("frameTag").innerHTML = `${state.char}/${state.frame}` +
     (states.length ? ` <span class="state">${states.join(", ")}</span>` : "") +
     (left ? ` <span class="flag">mirrored</span>` : "");
@@ -448,6 +453,12 @@ function refreshControls() {
   $("groundRange").disabled = airborne;
   $("groundNote").hidden = !airborne;
   document.querySelectorAll("[data-ground]").forEach((b) => (b.disabled = airborne));
+
+  const mirrored = !!meta.faceLeft;
+  $("mirrorBox").checked = mirrored;
+  $("mirrorVal").textContent = mirrored
+    ? "flipped — art is drawn facing left"
+    : "as delivered — art is drawn facing right";
 
   refreshAnchorControls();
 
@@ -590,6 +601,8 @@ function applyScale(relative, commit) {
   // NaN, which sticks: once written it poisons the slider and every later edit.
   rawMeta(state.char, state.frame).renderScale =
     Math.max(0.02, (orig.renderScale ?? 1) * relative);
+  // same reason as ground contact: renderScale is part of the idle's span
+  applyHeightScale(state.char);
   refreshControls(); buildPoseList(); render();
 }
 
@@ -608,7 +621,21 @@ function applyGround(dy, commit) {
   if (commit) pushHistory(state.char, state.frame);
   // slider reads as "how far down the sprite sits", so invert onto bodyBottom
   rawMeta(state.char, state.frame).bodyBottom = (orig.bodyBottom ?? 0) - dy;
+  // The character's scale is solved so the idle's TOP meets the height target,
+  // and the foot line is part of that span — so moving the idle's ground
+  // contact has to re-solve, or the head would drift off the bar.
+  applyHeightScale(state.char);
   refreshControls(); buildPoseList(); render();
+}
+
+/** Mirror this frame. The sheets are drawn facing right; a frame the artist
+ *  drew facing left is flipped so the fighter always looks where they are
+ *  going. `nativeLeft` in the manifest seeded these, but it guesses — this is
+ *  the per-frame override, and it exports with everything else. */
+function applyMirror(on) {
+  pushHistory(state.char, state.frame);
+  rawMeta(state.char, state.frame).faceLeft = on;
+  refreshControls(); buildPoseList(); refreshTag(); render();
 }
 
 function applyAnchor(name, x, y, commit) {
@@ -662,6 +689,12 @@ function payloadFor(charKey) {
     const entry = {};
     for (const f of EDITABLE) {
       const value = meta[f];
+      if (f === "faceLeft") {
+        // a boolean, and `false` is meaningful: it turns OFF a mirror that
+        // `nativeLeft` would otherwise re-apply on every load
+        if (!!value !== !!orig[f]) entry[f] = !!value;
+        continue;
+      }
       if (!Number.isFinite(value)) continue;
       if (Math.abs(value - (orig[f] ?? 0)) > 1e-4) {
         entry[f] = f === "renderScale" ? Number(value.toFixed(4)) : Number(value.toFixed(1));
@@ -803,6 +836,8 @@ async function boot() {
     if (!framesOf(state.char).includes(state.frame)) state.frame = framesOf(state.char)[0];
     syncAll();
   };
+
+  $("mirrorBox").onchange = (e) => applyMirror(e.target.checked);
 
   $("undoBtn").onclick = undo;
   $("redoBtn").onclick = redo;

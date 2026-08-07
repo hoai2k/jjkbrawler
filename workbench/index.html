@@ -83,6 +83,17 @@
         </div>
 
         <div class="group">
+          <label>Facing <span class="sub" id="mirrorVal"></span></label>
+          <div class="chips">
+            <label class="chip"><input type="checkbox" id="mirrorBox"> Mirror this pose</label>
+          </div>
+          <p class="note">The canvas shows the direction the game draws, facing
+            right. The sheets are drawn facing right too, so a pose the artist
+            drew facing <em>left</em> needs mirroring — tick this and it will
+            face the way the fighter is moving in a match.</p>
+        </div>
+
+        <div class="group">
           <label>Anchors</label>
           <div id="anchorRows"></div>
           <p class="note" id="anchorHint"></p>

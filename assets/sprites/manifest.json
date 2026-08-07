@@ -18,7 +18,8 @@
       41.1,
       126.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "gojo/r0c1.png",
@@ -34,7 +35,8 @@
       45.6,
       121.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "gojo/r0c2.png",
@@ -51,7 +53,8 @@
       81.5,
       92.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "gojo/r0c3.png",
@@ -68,7 +71,8 @@
       97.9,
       98.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "gojo/r1c0.png",
@@ -85,7 +89,8 @@
       112.6,
       98.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "gojo/r1c1.png",
@@ -102,7 +107,8 @@
       100.5,
       78.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "gojo/r1c2.png",
@@ -119,7 +125,8 @@
       143.8,
       101.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "gojo/r1c3.png",
@@ -136,7 +143,8 @@
       100.5,
       78.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "gojo/r2c0.png",
@@ -153,7 +161,8 @@
       104.8,
       94.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "gojo/r2c1.png",
@@ -170,7 +179,8 @@
       104.3,
       109.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "gojo/r2c2.png",
@@ -187,7 +197,8 @@
       116.5,
       125.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "gojo/r2c3.png",
@@ -205,7 +216,8 @@
       87.0,
       95.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "file": "gojo/r3c0.png",
@@ -223,7 +235,8 @@
       111.6,
       110.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "gojo/r3c1.png",
@@ -241,7 +254,8 @@
       129.2,
       116.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "gojo/r3c2.png",
@@ -259,7 +273,8 @@
       113.6,
       87.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "gojo/r3c3.png",
@@ -276,7 +291,8 @@
       110.5,
       112.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "gojo/r4c0.png",
@@ -294,7 +310,8 @@
       60.4,
       89.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c1": {
     "file": "gojo/r4c1.png",
@@ -311,7 +328,8 @@
       44.6,
       89.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c2": {
     "file": "gojo/r4c2.png",
@@ -328,7 +346,8 @@
       106.9,
       82.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c3": {
     "file": "gojo/r4c3.png",
@@ -345,7 +364,8 @@
       92.6,
       76.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_a": {
     "file": "gojo/idle_a.png",
@@ -362,7 +382,8 @@
       148.0,
       490.0
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "idle_b": {
     "file": "gojo/idle_b.png",
@@ -379,7 +400,8 @@
       132.4,
       481.4
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "run_a": {
     "file": "gojo/run_a.png",
@@ -396,7 +418,8 @@
       429.2,
       462.2
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "run_b": {
     "file": "gojo/run_b.png",
@@ -413,7 +436,8 @@
       521.4,
       444.7
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "jump_rise": {
     "file": "gojo/jump_rise.png",
@@ -430,7 +454,8 @@
       415.8,
       453.1
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "fall": {
     "file": "gojo/fall.png",
@@ -447,7 +472,8 @@
       377.1,
       431.9
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "hurt": {
     "file": "gojo/hurt.png",
@@ -464,7 +490,8 @@
       343.0,
       439.7
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "guard": {
     "file": "gojo/guard.png",
@@ -481,7 +508,8 @@
       305.2,
       470.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_up": {
     "file": "gojo/attack_up.png",
@@ -498,7 +526,8 @@
       282.5,
       511.2
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_air": {
     "file": "gojo/attack_air.png",
@@ -515,7 +544,8 @@
       410.3,
       436.8
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "charge": {
     "file": "gojo/charge.png",
@@ -532,7 +562,8 @@
       377.5,
       461.8
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "dizzy": {
     "file": "gojo/dizzy.png",
@@ -549,7 +580,8 @@
       216.5,
       487.6
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "victory": {
     "file": "gojo/victory.png",
@@ -566,7 +598,8 @@
       153.7,
       473.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "ledge_hang": {
     "file": "gojo/ledge_hang.png",
@@ -587,7 +620,8 @@
       60.7,
       53.6
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "dodge_air": {
     "w": 516,
@@ -604,7 +638,8 @@
       245.0,
       477.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 980,
@@ -621,7 +656,8 @@
       469.9,
       411.9
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "nanami": {
@@ -639,7 +675,8 @@
       41.9,
       142.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "nanami/r0c1.png",
@@ -655,7 +692,8 @@
       50.6,
       141.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "nanami/r0c2.png",
@@ -671,7 +709,8 @@
       113.5,
       127.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "nanami/r0c3.png",
@@ -687,7 +726,8 @@
       122.7,
       122.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "nanami/r1c0.png",
@@ -703,7 +743,8 @@
       142.7,
       101.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "nanami/r1c1.png",
@@ -719,7 +760,8 @@
       152.6,
       96.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "nanami/r1c2.png",
@@ -736,7 +778,8 @@
       94.4,
       138.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "nanami/r1c3.png",
@@ -752,7 +795,8 @@
       115.7,
       134.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "nanami/r2c0.png",
@@ -768,7 +812,8 @@
       142.0,
       130.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "nanami/r2c1.png",
@@ -784,7 +829,8 @@
       143.2,
       119.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "nanami/r2c2.png",
@@ -800,7 +846,8 @@
       98.3,
       110.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "nanami/r2c3.png",
@@ -816,7 +863,8 @@
       143.5,
       112.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "file": "nanami/r3c0.png",
@@ -832,7 +880,8 @@
       130.6,
       113.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "nanami/r3c1.png",
@@ -848,7 +897,8 @@
       110.8,
       153.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "nanami/r3c2.png",
@@ -865,7 +915,8 @@
       141.2,
       149.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "nanami/r3c3.png",
@@ -881,7 +932,8 @@
       120.0,
       162.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "nanami/r4c0.png",
@@ -897,7 +949,8 @@
       81.4,
       96.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c1": {
     "file": "nanami/r4c1.png",
@@ -913,7 +966,8 @@
       79.1,
       95.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c2": {
     "file": "nanami/r4c2.png",
@@ -929,7 +983,8 @@
       79.8,
       100.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c3": {
     "file": "nanami/r4c3.png",
@@ -945,7 +1000,8 @@
       117.9,
       108.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_a": {
     "file": "nanami/idle_a.png",
@@ -962,7 +1018,8 @@
       281.4,
       511.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "idle_b": {
     "file": "nanami/idle_b.png",
@@ -979,7 +1036,8 @@
       334.1,
       497.4
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "jump_rise": {
     "file": "nanami/jump_rise.png",
@@ -996,7 +1054,8 @@
       334.9,
       420.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "fall": {
     "file": "nanami/fall.png",
@@ -1013,7 +1072,8 @@
       282.4,
       418.1
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "hurt": {
     "file": "nanami/hurt.png",
@@ -1030,7 +1090,8 @@
       283.3,
       443.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "guard": {
     "file": "nanami/guard.png",
@@ -1047,7 +1108,8 @@
       285.4,
       464.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_up": {
     "file": "nanami/attack_up.png",
@@ -1064,7 +1126,8 @@
       239.0,
       524.9
      ]
-    }
+    },
+    "bodyTop": 12
    },
    "attack_air": {
     "file": "nanami/attack_air.png",
@@ -1081,7 +1144,8 @@
       281.1,
       397.2
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "charge": {
     "file": "nanami/charge.png",
@@ -1098,7 +1162,8 @@
       319.5,
       430.9
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "dizzy": {
     "file": "nanami/dizzy.png",
@@ -1115,7 +1180,8 @@
       195.3,
       483.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "victory": {
     "file": "nanami/victory.png",
@@ -1132,7 +1198,8 @@
       231.1,
       491.4
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "ledge_hang": {
     "file": "nanami/ledge_hang.png",
@@ -1153,7 +1220,8 @@
       75.6,
       52.9
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "run_a": {
     "file": "nanami/run_a.png",
@@ -1170,7 +1238,8 @@
       449.7,
       431.4
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "run_b": {
     "file": "nanami/run_b.png",
@@ -1187,7 +1256,8 @@
       325.5,
       429.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "dodge_air": {
     "w": 711,
@@ -1204,7 +1274,8 @@
       398.8,
       431.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1274,
@@ -1221,7 +1292,8 @@
       722.2,
       285.9
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "hanami": {
@@ -1239,7 +1311,8 @@
       78.0,
       164.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "hanami/r0c1.png",
@@ -1255,7 +1328,8 @@
       96.3,
       160.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "hanami/r0c2.png",
@@ -1271,7 +1345,8 @@
       112.7,
       153.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "hanami/r0c3.png",
@@ -1287,7 +1362,8 @@
       154.5,
       139.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "hanami/r1c0.png",
@@ -1303,7 +1379,8 @@
       147.4,
       111.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "hanami/r1c1.png",
@@ -1319,7 +1396,8 @@
       136.3,
       112.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "hanami/r1c2.png",
@@ -1335,7 +1413,8 @@
       141.7,
       102.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "hanami/r1c3.png",
@@ -1351,7 +1430,8 @@
       98.3,
       111.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "hanami/r2c0.png",
@@ -1367,7 +1447,8 @@
       106.4,
       120.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "hanami/r2c1.png",
@@ -1383,7 +1464,8 @@
       131.6,
       145.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "hanami/r2c2.png",
@@ -1399,7 +1481,8 @@
       142.3,
       142.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "hanami/r2c3.png",
@@ -1415,7 +1498,8 @@
       99.7,
       138.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "file": "hanami/r3c0.png",
@@ -1431,7 +1515,8 @@
       147.3,
       158.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "hanami/r3c1.png",
@@ -1447,7 +1532,8 @@
       138.5,
       152.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "hanami/r3c2.png",
@@ -1463,7 +1549,8 @@
       129.8,
       142.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "hanami/r3c3.png",
@@ -1480,7 +1567,8 @@
       137.3,
       144.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "hanami/r4c0.png",
@@ -1498,7 +1586,8 @@
       357.9,
       486.4
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "r4c1": {
     "file": "hanami/r4c1.png",
@@ -1516,7 +1605,8 @@
       451.6,
       479.9
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "r4c2": {
     "file": "hanami/r4c2.png",
@@ -1534,7 +1624,8 @@
       410.0,
       414.8
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "r4c3": {
     "file": "hanami/r4c3.png",
@@ -1552,7 +1643,8 @@
       481.1,
       346.9
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "idle_a": {
     "file": "hanami/idle_a.png",
@@ -1569,7 +1661,8 @@
       239.2,
       562.2
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "idle_b": {
     "file": "hanami/idle_b.png",
@@ -1586,7 +1679,8 @@
       224.9,
       570.3
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "jump_rise": {
     "file": "hanami/jump_rise.png",
@@ -1603,7 +1697,8 @@
       296.8,
       473.9
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "fall": {
     "file": "hanami/fall.png",
@@ -1620,7 +1715,8 @@
       217.7,
       496.1
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "hurt": {
     "file": "hanami/hurt.png",
@@ -1637,7 +1733,8 @@
       269.0,
       519.2
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "guard": {
     "file": "hanami/guard.png",
@@ -1654,7 +1751,8 @@
       235.7,
       554.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_up": {
     "file": "hanami/attack_up.png",
@@ -1671,7 +1769,8 @@
       265.9,
       598.6
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "attack_air": {
     "file": "hanami/attack_air.png",
@@ -1688,7 +1787,8 @@
       412.1,
       407.4
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "charge": {
     "file": "hanami/charge.png",
@@ -1705,7 +1805,8 @@
       216.8,
       562.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "dizzy": {
     "file": "hanami/dizzy.png",
@@ -1722,7 +1823,8 @@
       202.1,
       539.2
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "victory": {
     "file": "hanami/victory.png",
@@ -1739,7 +1841,8 @@
       225.5,
       534.1
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "ledge_hang": {
     "file": "hanami/ledge_hang.png",
@@ -1760,7 +1863,8 @@
       110.1,
       60.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "run_a": {
     "file": "hanami/run_a.png",
@@ -1777,7 +1881,8 @@
       272.8,
       530.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "run_b": {
     "file": "hanami/run_b.png",
@@ -1794,7 +1899,8 @@
       224.1,
       558.2
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "dodge_air": {
     "w": 798,
@@ -1811,7 +1917,8 @@
       498.4,
       566.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1035,
@@ -1828,7 +1935,8 @@
       574.6,
       489.9
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "geto": {
@@ -1846,7 +1954,8 @@
       68.1,
       153.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "geto/r0c1.png",
@@ -1862,7 +1971,8 @@
       87.8,
       144.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "geto/r0c2.png",
@@ -1878,7 +1988,8 @@
       117.6,
       128.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "geto/r0c3.png",
@@ -1894,7 +2005,8 @@
       115.3,
       117.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "geto/r1c0.png",
@@ -1910,7 +2022,8 @@
       121.2,
       100.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "geto/r1c1.png",
@@ -1926,7 +2039,8 @@
       126.0,
       95.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "geto/r1c2.png",
@@ -1942,7 +2056,8 @@
       111.3,
       106.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "geto/r1c3.png",
@@ -1958,7 +2073,8 @@
       131.7,
       115.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "geto/r2c0.png",
@@ -1975,7 +2091,8 @@
       96.6,
       137.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "geto/r2c1.png",
@@ -1991,7 +2108,8 @@
       123.7,
       130.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "geto/r2c2.png",
@@ -2007,7 +2125,8 @@
       113.3,
       116.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "geto/r2c3.png",
@@ -2023,7 +2142,8 @@
       108.7,
       107.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "file": "geto/r3c0.png",
@@ -2039,7 +2159,8 @@
       148.8,
       140.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "geto/r3c1.png",
@@ -2055,7 +2176,8 @@
       97.7,
       127.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "geto/r3c2.png",
@@ -2071,7 +2193,8 @@
       119.7,
       119.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "geto/r3c3.png",
@@ -2087,7 +2210,8 @@
       121.1,
       124.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "geto/r4c0.png",
@@ -2103,7 +2227,8 @@
       100.4,
       112.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c1": {
     "w": 839,
@@ -2120,7 +2245,8 @@
       423.5,
       658.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c2": {
     "w": 1187,
@@ -2137,7 +2263,8 @@
       587.7,
       531.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c3": {
     "file": "geto/r4c3.png",
@@ -2153,7 +2280,8 @@
       116.5,
       95.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_a": {
     "file": "geto/idle_a.png",
@@ -2170,7 +2298,8 @@
       245.0,
       520.2
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "idle_b": {
     "file": "geto/idle_b.png",
@@ -2187,7 +2316,8 @@
       202.8,
       522.4
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "jump_rise": {
     "file": "geto/jump_rise.png",
@@ -2204,7 +2334,8 @@
       397.5,
       456.6
      ]
-    }
+    },
+    "bodyTop": 16
    },
    "fall": {
     "file": "geto/fall.png",
@@ -2221,7 +2352,8 @@
       381.0,
       450.3
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "hurt": {
     "file": "geto/hurt.png",
@@ -2238,7 +2370,8 @@
       358.1,
       509.9
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "guard": {
     "file": "geto/guard.png",
@@ -2255,7 +2388,8 @@
       335.5,
       521.8
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "attack_up": {
     "file": "geto/attack_up.png",
@@ -2272,7 +2406,8 @@
       221.2,
       564.8
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "attack_air": {
     "file": "geto/attack_air.png",
@@ -2289,7 +2424,8 @@
       426.0,
       371.9
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "charge": {
     "file": "geto/charge.png",
@@ -2306,7 +2442,8 @@
       220.9,
       516.0
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "dizzy": {
     "file": "geto/dizzy.png",
@@ -2323,7 +2460,8 @@
       161.4,
       538.7
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "victory": {
     "file": "geto/victory.png",
@@ -2340,7 +2478,8 @@
       226.9,
       498.2
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "ledge_hang": {
     "file": "geto/ledge_hang.png",
@@ -2361,7 +2500,8 @@
       153.8,
       53.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "run_a": {
     "file": "geto/run_a.png",
@@ -2378,7 +2518,8 @@
       444.5,
       483.8
      ]
-    }
+    },
+    "bodyTop": 16
    },
    "run_b": {
     "file": "geto/run_b.png",
@@ -2395,7 +2536,8 @@
       448.7,
       500.9
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "dodge_air": {
     "w": 1165,
@@ -2412,7 +2554,8 @@
       719.2,
       396.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1043,
@@ -2429,7 +2572,8 @@
       660.1,
       357.0
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "momo": {
@@ -2447,7 +2591,8 @@
       76.8,
       153.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "momo/r0c1.png",
@@ -2463,7 +2608,8 @@
       90.8,
       145.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "momo/r0c2.png",
@@ -2479,7 +2625,8 @@
       121.4,
       124.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "momo/r0c3.png",
@@ -2495,7 +2642,8 @@
       149.0,
       127.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "momo/r1c0.png",
@@ -2511,7 +2659,8 @@
       126.3,
       91.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "momo/r1c1.png",
@@ -2527,7 +2676,8 @@
       135.7,
       93.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "momo/r1c2.png",
@@ -2543,7 +2693,8 @@
       118.2,
       130.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "momo/r1c3.png",
@@ -2559,7 +2710,8 @@
       105.4,
       135.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "momo/r2c0.png",
@@ -2575,7 +2727,8 @@
       142.4,
       111.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "momo/r2c1.png",
@@ -2591,7 +2744,8 @@
       117.8,
       138.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "momo/r2c2.png",
@@ -2607,7 +2761,8 @@
       121.9,
       156.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "momo/r2c3.png",
@@ -2623,7 +2778,8 @@
       121.5,
       120.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "file": "momo/r3c0.png",
@@ -2639,7 +2795,8 @@
       148.1,
       139.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "momo/r3c1.png",
@@ -2655,7 +2812,8 @@
       130.4,
       151.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "momo/r3c2.png",
@@ -2671,7 +2829,8 @@
       146.5,
       103.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "momo/r3c3.png",
@@ -2688,7 +2847,8 @@
       123.8,
       160.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "momo/r4c0.png",
@@ -2705,7 +2865,8 @@
       600.6,
       650.0
      ]
-    }
+    },
+    "bodyTop": 102
    },
    "r4c1": {
     "file": "momo/r4c1.png",
@@ -2722,7 +2883,8 @@
       580.2,
       734.3
      ]
-    }
+    },
+    "bodyTop": 201
    },
    "r4c2": {
     "file": "momo/r4c2.png",
@@ -2739,7 +2901,8 @@
       599.2,
       675.1
      ]
-    }
+    },
+    "bodyTop": 121
    },
    "r4c3": {
     "file": "momo/r4c3.png",
@@ -2756,7 +2919,8 @@
       619.4,
       605.4
      ]
-    }
+    },
+    "bodyTop": 199
    },
    "idle_a": {
     "file": "momo/idle_a.png",
@@ -2773,7 +2937,8 @@
       211.6,
       510.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "idle_b": {
     "file": "momo/idle_b.png",
@@ -2790,7 +2955,8 @@
       227.9,
       503.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "jump_rise": {
     "file": "momo/jump_rise.png",
@@ -2807,7 +2973,8 @@
       480.9,
       512.8
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "fall": {
     "file": "momo/fall.png",
@@ -2824,7 +2991,8 @@
       293.4,
       466.4
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "hurt": {
     "file": "momo/hurt.png",
@@ -2841,7 +3009,8 @@
       310.0,
       479.8
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "guard": {
     "file": "momo/guard.png",
@@ -2858,7 +3027,8 @@
       365.2,
       469.6
      ]
-    }
+    },
+    "bodyTop": 16
    },
    "attack_up": {
     "file": "momo/attack_up.png",
@@ -2875,7 +3045,8 @@
       234.2,
       523.9
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_air": {
     "file": "momo/attack_air.png",
@@ -2892,7 +3063,8 @@
       433.6,
       439.8
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "charge": {
     "file": "momo/charge.png",
@@ -2909,7 +3081,8 @@
       384.4,
       521.6
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "dizzy": {
     "file": "momo/dizzy.png",
@@ -2926,7 +3099,8 @@
       322.9,
       526.9
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "victory": {
     "file": "momo/victory.png",
@@ -2943,7 +3117,8 @@
       264.7,
       500.3
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "ledge_hang": {
     "file": "momo/ledge_hang.png",
@@ -2964,7 +3139,8 @@
       79.9,
       51.8
      ]
-    }
+    },
+    "bodyTop": 8
    },
    "run_a": {
     "file": "momo/run_a.png",
@@ -2981,7 +3157,8 @@
       616.4,
       373.5
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "run_b": {
     "file": "momo/run_b.png",
@@ -2998,7 +3175,8 @@
       517.6,
       407.6
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "dodge_air": {
     "w": 935,
@@ -3015,7 +3193,8 @@
       439.5,
       468.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 928,
@@ -3032,7 +3211,8 @@
       492.0,
       565.9
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "mahito": {
@@ -3050,7 +3230,8 @@
       85.7,
       137.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "mahito/r0c1.png",
@@ -3066,7 +3247,8 @@
       96.3,
       134.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "mahito/r0c2.png",
@@ -3082,7 +3264,8 @@
       89.5,
       130.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "mahito/r0c3.png",
@@ -3098,7 +3281,8 @@
       89.1,
       125.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "mahito/r1c0.png",
@@ -3114,7 +3298,8 @@
       101.8,
       108.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "mahito/r1c1.png",
@@ -3130,7 +3315,8 @@
       112.0,
       108.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "mahito/r1c2.png",
@@ -3146,7 +3332,8 @@
       109.5,
       105.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "mahito/r1c3.png",
@@ -3162,7 +3349,8 @@
       109.2,
       98.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "mahito/r2c0.png",
@@ -3178,7 +3366,8 @@
       91.3,
       105.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "mahito/r2c1.png",
@@ -3194,7 +3383,8 @@
       108.0,
       95.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "mahito/r2c2.png",
@@ -3210,7 +3400,8 @@
       107.3,
       104.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "mahito/r2c3.png",
@@ -3226,7 +3417,8 @@
       90.6,
       125.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "file": "mahito/r3c0.png",
@@ -3242,7 +3434,8 @@
       110.9,
       124.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "mahito/r3c1.png",
@@ -3258,7 +3451,8 @@
       140.3,
       114.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "mahito/r3c2.png",
@@ -3275,7 +3469,8 @@
       143.7,
       119.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "mahito/r3c3.png",
@@ -3291,7 +3486,8 @@
       97.9,
       124.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "mahito/r4c0.png",
@@ -3307,7 +3503,8 @@
       79.7,
       95.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c1": {
     "file": "mahito/r4c1.png",
@@ -3323,7 +3520,8 @@
       78.5,
       97.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c2": {
     "file": "mahito/r4c2.png",
@@ -3339,7 +3537,8 @@
       101.1,
       96.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c3": {
     "file": "mahito/r4c3.png",
@@ -3355,7 +3554,8 @@
       114.6,
       98.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_a": {
     "file": "mahito/idle_a.png",
@@ -3372,7 +3572,8 @@
       224.9,
       476.8
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "idle_b": {
     "file": "mahito/idle_b.png",
@@ -3389,7 +3590,8 @@
       170.8,
       489.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "jump_rise": {
     "file": "mahito/jump_rise.png",
@@ -3406,7 +3608,8 @@
       375.8,
       464.7
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "fall": {
     "file": "mahito/fall.png",
@@ -3423,7 +3626,8 @@
       383.6,
       410.0
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "hurt": {
     "file": "mahito/hurt.png",
@@ -3440,7 +3644,8 @@
       325.7,
       427.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "guard": {
     "file": "mahito/guard.png",
@@ -3457,7 +3662,8 @@
       392.0,
       463.5
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "attack_up": {
     "file": "mahito/attack_up.png",
@@ -3474,7 +3680,8 @@
       286.1,
       519.4
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_air": {
     "file": "mahito/attack_air.png",
@@ -3491,7 +3698,8 @@
       354.0,
       408.9
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "charge": {
     "file": "mahito/charge.png",
@@ -3508,7 +3716,8 @@
       345.5,
       476.6
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "dizzy": {
     "file": "mahito/dizzy.png",
@@ -3525,7 +3734,8 @@
       215.4,
       483.0
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "victory": {
     "file": "mahito/victory.png",
@@ -3542,7 +3752,8 @@
       213.6,
       473.1
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "ledge_hang": {
     "file": "mahito/ledge_hang.png",
@@ -3563,7 +3774,8 @@
       135.7,
       49.3
      ]
-    }
+    },
+    "bodyTop": 10
    },
    "run_a": {
     "file": "mahito/run_a.png",
@@ -3580,7 +3792,8 @@
       439.9,
       421.5
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "run_b": {
     "file": "mahito/run_b.png",
@@ -3597,7 +3810,8 @@
       499.3,
       429.3
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "dodge_air": {
     "w": 552,
@@ -3614,7 +3828,8 @@
       296.9,
       427.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1049,
@@ -3631,7 +3846,8 @@
       700.8,
       401.2
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "sukuna": {
@@ -3650,7 +3866,8 @@
       492.7,
       653.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "w": 735,
@@ -3667,7 +3884,8 @@
       348.8,
       707.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "w": 932,
@@ -3684,7 +3902,8 @@
       493.3,
       638.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "w": 838,
@@ -3701,7 +3920,8 @@
       428.1,
       610.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "w": 1004,
@@ -3718,7 +3938,8 @@
       545.9,
       424.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "w": 1321,
@@ -3735,7 +3956,8 @@
       751.6,
       499.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "w": 1212,
@@ -3752,7 +3974,8 @@
       666.8,
       440.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "w": 1260,
@@ -3769,7 +3992,8 @@
       709.8,
       462.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "w": 951,
@@ -3786,7 +4010,8 @@
       498.0,
       526.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "w": 1304,
@@ -3803,7 +4028,8 @@
       664.4,
       505.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "w": 1232,
@@ -3820,7 +4046,8 @@
       599.2,
       531.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "w": 880,
@@ -3837,7 +4064,8 @@
       406.6,
       489.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "w": 1229,
@@ -3854,7 +4082,8 @@
       609.0,
       536.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "w": 1089,
@@ -3871,7 +4100,8 @@
       570.0,
       486.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "w": 1175,
@@ -3888,7 +4118,8 @@
       583.6,
       491.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "w": 1021,
@@ -3905,7 +4136,8 @@
       568.2,
       600.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "sukuna/r4c0.png",
@@ -3923,7 +4155,8 @@
       442.2,
       485.8
      ]
-    }
+    },
+    "bodyTop": 3
    },
    "r4c1": {
     "file": "sukuna/r4c1.png",
@@ -3941,7 +4174,8 @@
       448.2,
       358.5
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "r4c2": {
     "file": "sukuna/r4c2.png",
@@ -3959,7 +4193,8 @@
       405.9,
       369.1
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "r4c3": {
     "file": "sukuna/r4c3.png",
@@ -3977,7 +4212,8 @@
       515.2,
       291.4
      ]
-    }
+    },
+    "bodyTop": 3
    },
    "idle_a": {
     "file": "sukuna/idle_a.png",
@@ -3994,7 +4230,8 @@
       266.4,
       515.3
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "idle_b": {
     "file": "sukuna/idle_b.png",
@@ -4011,7 +4248,8 @@
       302.5,
       518.0
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "jump_rise": {
     "file": "sukuna/jump_rise.png",
@@ -4028,7 +4266,8 @@
       412.0,
       490.7
      ]
-    }
+    },
+    "bodyTop": 16
    },
    "fall": {
     "file": "sukuna/fall.png",
@@ -4045,7 +4284,8 @@
       385.5,
       471.3
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "hurt": {
     "file": "sukuna/hurt.png",
@@ -4062,7 +4302,8 @@
       304.7,
       485.9
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "guard": {
     "file": "sukuna/guard.png",
@@ -4079,7 +4320,8 @@
       275.9,
       515.7
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "attack_up": {
     "file": "sukuna/attack_up.png",
@@ -4096,7 +4338,8 @@
       392.6,
       563.9
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "attack_air": {
     "file": "sukuna/attack_air.png",
@@ -4113,7 +4356,8 @@
       414.0,
       428.8
      ]
-    }
+    },
+    "bodyTop": 18
    },
    "charge": {
     "file": "sukuna/charge.png",
@@ -4130,7 +4374,8 @@
       304.0,
       517.0
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "dizzy": {
     "file": "sukuna/dizzy.png",
@@ -4147,7 +4392,8 @@
       157.0,
       553.2
      ]
-    }
+    },
+    "bodyTop": 16
    },
    "victory": {
     "file": "sukuna/victory.png",
@@ -4164,7 +4410,8 @@
       175.4,
       510.2
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "ledge_hang": {
     "file": "sukuna/ledge_hang.png",
@@ -4185,7 +4432,8 @@
       86.7,
       51.8
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "run_a": {
     "file": "sukuna/run_a.png",
@@ -4202,7 +4450,8 @@
       430.2,
       488.3
      ]
-    }
+    },
+    "bodyTop": 16
    },
    "run_b": {
     "file": "sukuna/run_b.png",
@@ -4219,7 +4468,8 @@
       492.6,
       515.4
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "dodge_air": {
     "w": 555,
@@ -4236,7 +4486,8 @@
       311.8,
       406.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1016,
@@ -4253,7 +4504,8 @@
       494.3,
       451.8
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "megumi": {
@@ -4271,7 +4523,8 @@
       53.9,
       148.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "megumi/r0c1.png",
@@ -4287,7 +4540,8 @@
       55.9,
       149.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "megumi/r0c2.png",
@@ -4303,7 +4557,8 @@
       113.2,
       138.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "megumi/r0c3.png",
@@ -4319,7 +4574,8 @@
       109.9,
       143.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "megumi/r1c0.png",
@@ -4335,7 +4591,8 @@
       116.5,
       104.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "megumi/r1c1.png",
@@ -4351,7 +4608,8 @@
       130.9,
       98.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "megumi/r1c2.png",
@@ -4367,7 +4625,8 @@
       129.9,
       96.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "megumi/r1c3.png",
@@ -4383,7 +4642,8 @@
       131.4,
       91.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "megumi/r2c0.png",
@@ -4399,7 +4659,8 @@
       79.6,
       95.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "megumi/r2c1.png",
@@ -4415,7 +4676,8 @@
       105.8,
       89.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "megumi/r2c2.png",
@@ -4431,7 +4693,8 @@
       121.8,
       119.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "megumi/r2c3.png",
@@ -4447,7 +4710,8 @@
       84.8,
       116.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "file": "megumi/r3c0.png",
@@ -4463,7 +4727,8 @@
       124.2,
       109.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "megumi/r3c1.png",
@@ -4479,7 +4744,8 @@
       129.9,
       145.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "megumi/r3c2.png",
@@ -4496,7 +4762,8 @@
       123.5,
       111.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "megumi/r3c3.png",
@@ -4512,7 +4779,8 @@
       120.2,
       135.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "megumi/r4c0.png",
@@ -4528,7 +4796,8 @@
       86.3,
       106.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c1": {
     "file": "megumi/r4c1.png",
@@ -4544,7 +4813,8 @@
       75.7,
       104.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c2": {
     "file": "megumi/r4c2.png",
@@ -4561,7 +4831,8 @@
       100.0,
       89.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c3": {
     "file": "megumi/r4c3.png",
@@ -4577,7 +4848,8 @@
       137.1,
       96.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_a": {
     "file": "megumi/idle_a.png",
@@ -4594,7 +4866,8 @@
       166.3,
       496.4
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "idle_b": {
     "file": "megumi/idle_b.png",
@@ -4611,7 +4884,8 @@
       178.7,
       506.9
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "jump_rise": {
     "file": "megumi/jump_rise.png",
@@ -4628,7 +4902,8 @@
       346.1,
       478.7
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "fall": {
     "file": "megumi/fall.png",
@@ -4645,7 +4920,8 @@
       344.8,
       415.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "hurt": {
     "file": "megumi/hurt.png",
@@ -4662,7 +4938,8 @@
       335.1,
       460.0
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "guard": {
     "file": "megumi/guard.png",
@@ -4679,7 +4956,8 @@
       322.2,
       480.0
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_up": {
     "file": "megumi/attack_up.png",
@@ -4696,7 +4974,8 @@
       230.9,
       515.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_air": {
     "file": "megumi/attack_air.png",
@@ -4713,7 +4992,8 @@
       373.7,
       458.4
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "charge": {
     "file": "megumi/charge.png",
@@ -4730,7 +5010,8 @@
       349.4,
       481.8
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "dizzy": {
     "file": "megumi/dizzy.png",
@@ -4747,7 +5028,8 @@
       203.4,
       479.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "victory": {
     "file": "megumi/victory.png",
@@ -4764,7 +5046,8 @@
       157.2,
       486.0
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "ledge_hang": {
     "file": "megumi/ledge_hang.png",
@@ -4785,7 +5068,8 @@
       109.6,
       54.1
      ]
-    }
+    },
+    "bodyTop": 12
    },
    "run_a": {
     "file": "megumi/run_a.png",
@@ -4802,7 +5086,8 @@
       405.9,
       438.2
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "run_b": {
     "file": "megumi/run_b.png",
@@ -4819,7 +5104,8 @@
       459.4,
       450.6
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "dodge_air": {
     "w": 548,
@@ -4836,7 +5122,8 @@
       249.4,
       501.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 927,
@@ -4853,7 +5140,8 @@
       441.0,
       395.7
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "jogo": {
@@ -4871,7 +5159,8 @@
       96.5,
       136.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "jogo/r0c1.png",
@@ -4887,7 +5176,8 @@
       69.6,
       135.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "jogo/r0c2.png",
@@ -4903,7 +5193,8 @@
       106.9,
       124.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "jogo/r0c3.png",
@@ -4919,7 +5210,8 @@
       118.3,
       136.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "jogo/r1c0.png",
@@ -4935,7 +5227,8 @@
       116.6,
       84.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "jogo/r1c1.png",
@@ -4951,7 +5244,8 @@
       140.3,
       87.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "jogo/r1c2.png",
@@ -4967,7 +5261,8 @@
       141.5,
       94.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "jogo/r1c3.png",
@@ -4983,7 +5278,8 @@
       149.0,
       73.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "jogo/r2c0.png",
@@ -4999,7 +5295,8 @@
       95.5,
       114.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "jogo/r2c1.png",
@@ -5015,7 +5312,8 @@
       119.0,
       98.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "jogo/r2c2.png",
@@ -5031,7 +5329,8 @@
       125.5,
       119.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "jogo/r2c3.png",
@@ -5047,7 +5346,8 @@
       118.0,
       108.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "file": "jogo/r3c0.png",
@@ -5063,7 +5363,8 @@
       143.5,
       126.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "jogo/r3c1.png",
@@ -5079,7 +5380,8 @@
       132.5,
       113.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "jogo/r3c2.png",
@@ -5095,7 +5397,8 @@
       128.0,
       115.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "jogo/r3c3.png",
@@ -5112,7 +5415,8 @@
       124.9,
       124.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "jogo/r4c0.png",
@@ -5128,7 +5432,8 @@
       83.9,
       93.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c1": {
     "file": "jogo/r4c1.png",
@@ -5144,7 +5449,8 @@
       76.7,
       92.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c2": {
     "file": "jogo/r4c2.png",
@@ -5160,7 +5466,8 @@
       103.6,
       89.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c3": {
     "file": "jogo/r4c3.png",
@@ -5176,7 +5483,8 @@
       123.7,
       103.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_a": {
     "file": "jogo/idle_a.png",
@@ -5193,7 +5501,8 @@
       324.5,
       495.3
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "idle_b": {
     "file": "jogo/idle_b.png",
@@ -5210,7 +5519,8 @@
       264.0,
       504.4
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "jump_rise": {
     "file": "jogo/jump_rise.png",
@@ -5227,7 +5537,8 @@
       429.7,
       429.1
      ]
-    }
+    },
+    "bodyTop": 16
    },
    "fall": {
     "file": "jogo/fall.png",
@@ -5244,7 +5555,8 @@
       317.2,
       455.2
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "hurt": {
     "file": "jogo/hurt.png",
@@ -5261,7 +5573,8 @@
       348.0,
       483.3
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "guard": {
     "file": "jogo/guard.png",
@@ -5278,7 +5591,8 @@
       298.7,
       473.9
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "attack_up": {
     "file": "jogo/attack_up.png",
@@ -5295,7 +5609,8 @@
       399.6,
       512.5
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "attack_air": {
     "file": "jogo/attack_air.png",
@@ -5312,7 +5627,8 @@
       433.1,
       383.3
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "charge": {
     "file": "jogo/charge.png",
@@ -5329,7 +5645,8 @@
       352.7,
       490.1
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "dizzy": {
     "file": "jogo/dizzy.png",
@@ -5346,7 +5663,8 @@
       201.8,
       506.0
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "victory": {
     "file": "jogo/victory.png",
@@ -5363,7 +5681,8 @@
       223.5,
       484.3
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "ledge_hang": {
     "file": "jogo/ledge_hang.png",
@@ -5384,7 +5703,8 @@
       147.3,
       52.1
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "run_a": {
     "file": "jogo/run_a.png",
@@ -5401,7 +5721,8 @@
       409.3,
       455.5
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "run_b": {
     "file": "jogo/run_b.png",
@@ -5418,7 +5739,8 @@
       498.3,
       478.5
      ]
-    }
+    },
+    "bodyTop": 16
    },
    "dodge_air": {
     "w": 821,
@@ -5435,7 +5757,8 @@
       320.1,
       359.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 930,
@@ -5452,7 +5775,8 @@
       547.5,
       428.7
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "hakari": {
@@ -5470,7 +5794,8 @@
       56.3,
       151.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "hakari/r0c1.png",
@@ -5486,7 +5811,8 @@
       66.5,
       145.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "hakari/r0c2.png",
@@ -5502,7 +5828,8 @@
       115.1,
       140.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "hakari/r0c3.png",
@@ -5518,7 +5845,8 @@
       119.0,
       141.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "hakari/r1c0.png",
@@ -5534,7 +5862,8 @@
       131.7,
       106.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "hakari/r1c1.png",
@@ -5550,7 +5879,8 @@
       140.9,
       105.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "hakari/r1c2.png",
@@ -5566,7 +5896,8 @@
       131.7,
       104.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "hakari/r1c3.png",
@@ -5582,7 +5913,8 @@
       134.8,
       105.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "hakari/r2c0.png",
@@ -5598,7 +5930,8 @@
       86.7,
       73.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "hakari/r2c1.png",
@@ -5614,7 +5947,8 @@
       107.3,
       79.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "hakari/r2c2.png",
@@ -5630,7 +5964,8 @@
       122.0,
       127.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "hakari/r2c3.png",
@@ -5646,7 +5981,8 @@
       100.0,
       112.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "file": "hakari/r3c0.png",
@@ -5662,7 +5998,8 @@
       133.7,
       114.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "hakari/r3c1.png",
@@ -5678,7 +6015,8 @@
       141.9,
       135.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "hakari/r3c2.png",
@@ -5695,7 +6033,8 @@
       153.3,
       139.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "hakari/r3c3.png",
@@ -5711,7 +6050,8 @@
       120.3,
       127.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "hakari/r4c0.png",
@@ -5729,7 +6069,8 @@
       522.8,
       419.6
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "r4c1": {
     "file": "hakari/r4c1.png",
@@ -5747,7 +6088,8 @@
       457.2,
       371.2
      ]
-    }
+    },
+    "bodyTop": 5
    },
    "r4c2": {
     "file": "hakari/r4c2.png",
@@ -5765,7 +6107,8 @@
       431.5,
       333.5
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "r4c3": {
     "file": "hakari/r4c3.png",
@@ -5783,7 +6126,8 @@
       488.9,
       264.0
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "idle_a": {
     "file": "hakari/idle_a.png",
@@ -5800,7 +6144,8 @@
       197.2,
       487.8
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "idle_b": {
     "file": "hakari/idle_b.png",
@@ -5817,7 +6162,8 @@
       162.9,
       485.9
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "jump_rise": {
     "file": "hakari/jump_rise.png",
@@ -5834,7 +6180,8 @@
       346.1,
       449.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "fall": {
     "file": "hakari/fall.png",
@@ -5851,7 +6198,8 @@
       341.4,
       425.3
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "hurt": {
     "file": "hakari/hurt.png",
@@ -5868,7 +6216,8 @@
       271.7,
       442.0
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "guard": {
     "file": "hakari/guard.png",
@@ -5885,7 +6234,8 @@
       333.7,
       487.2
      ]
-    }
+    },
+    "bodyTop": 69
    },
    "attack_up": {
     "file": "hakari/attack_up.png",
@@ -5902,7 +6252,8 @@
       222.1,
       533.8
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "attack_air": {
     "file": "hakari/attack_air.png",
@@ -5919,7 +6270,8 @@
       367.0,
       424.5
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "charge": {
     "file": "hakari/charge.png",
@@ -5936,7 +6288,8 @@
       315.9,
       456.8
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "dizzy": {
     "file": "hakari/dizzy.png",
@@ -5953,7 +6306,8 @@
       269.2,
       478.3
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "victory": {
     "file": "hakari/victory.png",
@@ -5970,7 +6324,8 @@
       213.2,
       471.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "ledge_hang": {
     "file": "hakari/ledge_hang.png",
@@ -5991,7 +6346,8 @@
       104.2,
       52.1
      ]
-    }
+    },
+    "bodyTop": 8
    },
    "run_a": {
     "file": "hakari/run_a.png",
@@ -6008,7 +6364,8 @@
       412.4,
       444.1
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "run_b": {
     "file": "hakari/run_b.png",
@@ -6025,7 +6382,8 @@
       504.6,
       439.6
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "dodge_air": {
     "w": 590,
@@ -6042,7 +6400,8 @@
       355.8,
       469.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 937,
@@ -6059,7 +6418,8 @@
       491.8,
       346.2
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "yuta": {
@@ -6077,7 +6437,8 @@
       55.3,
       141.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "yuta/r0c1.png",
@@ -6093,7 +6454,8 @@
       57.6,
       137.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "yuta/r0c2.png",
@@ -6109,7 +6471,8 @@
       114.3,
       129.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "yuta/r0c3.png",
@@ -6126,7 +6489,8 @@
       112.0,
       126.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "yuta/r1c0.png",
@@ -6142,7 +6506,8 @@
       129.5,
       91.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "yuta/r1c1.png",
@@ -6158,7 +6523,8 @@
       144.9,
       90.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "yuta/r1c2.png",
@@ -6174,7 +6540,8 @@
       123.9,
       93.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "yuta/r1c3.png",
@@ -6190,7 +6557,8 @@
       118.8,
       87.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "yuta/r2c0.png",
@@ -6206,7 +6574,8 @@
       68.4,
       87.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "yuta/r2c1.png",
@@ -6222,7 +6591,8 @@
       153.1,
       88.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "yuta/r2c2.png",
@@ -6238,7 +6608,8 @@
       121.3,
       108.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "yuta/r2c3.png",
@@ -6254,7 +6625,8 @@
       92.8,
       110.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "file": "yuta/r3c0.png",
@@ -6270,7 +6642,8 @@
       146.9,
       96.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "yuta/r3c1.png",
@@ -6286,7 +6659,8 @@
       138.3,
       121.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "yuta/r3c2.png",
@@ -6303,7 +6677,8 @@
       136.1,
       129.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "yuta/r3c3.png",
@@ -6320,7 +6695,8 @@
       123.6,
       116.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "yuta/r4c0.png",
@@ -6338,7 +6714,8 @@
       454.6,
       342.1
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "r4c1": {
     "file": "yuta/r4c1.png",
@@ -6356,7 +6733,8 @@
       444.8,
       358.0
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "r4c2": {
     "file": "yuta/r4c2.png",
@@ -6374,7 +6752,8 @@
       436.3,
       246.2
      ]
-    }
+    },
+    "bodyTop": 3
    },
    "r4c3": {
     "file": "yuta/r4c3.png",
@@ -6392,7 +6771,8 @@
       500.9,
       207.0
      ]
-    }
+    },
+    "bodyTop": 3
    },
    "idle_a": {
     "file": "yuta/idle_a.png",
@@ -6409,7 +6789,8 @@
       185.9,
       505.1
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "idle_b": {
     "file": "yuta/idle_b.png",
@@ -6426,7 +6807,8 @@
       208.7,
       505.0
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "jump_rise": {
     "file": "yuta/jump_rise.png",
@@ -6443,7 +6825,8 @@
       326.0,
       465.5
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "fall": {
     "file": "yuta/fall.png",
@@ -6460,7 +6843,8 @@
       377.1,
       431.0
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "hurt": {
     "file": "yuta/hurt.png",
@@ -6477,7 +6861,8 @@
       283.4,
       481.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "guard": {
     "file": "yuta/guard.png",
@@ -6494,7 +6879,8 @@
       312.1,
       501.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_up": {
     "file": "yuta/attack_up.png",
@@ -6511,7 +6897,8 @@
       338.1,
       614.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_air": {
     "file": "yuta/attack_air.png",
@@ -6528,7 +6915,8 @@
       264.8,
       409.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "charge": {
     "file": "yuta/charge.png",
@@ -6545,7 +6933,8 @@
       363.4,
       478.2
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "dizzy": {
     "file": "yuta/dizzy.png",
@@ -6562,7 +6951,8 @@
       248.8,
       501.1
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "victory": {
     "file": "yuta/victory.png",
@@ -6579,7 +6969,8 @@
       254.5,
       463.4
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "ledge_hang": {
     "file": "yuta/ledge_hang.png",
@@ -6600,7 +6991,8 @@
       54.1,
       50.3
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "run_a": {
     "file": "yuta/run_a.png",
@@ -6617,7 +7009,8 @@
       474.9,
       439.8
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "run_b": {
     "file": "yuta/run_b.png",
@@ -6634,7 +7027,8 @@
       576.9,
       455.8
      ]
-    }
+    },
+    "bodyTop": 16
    },
    "dodge_air": {
     "w": 757,
@@ -6651,7 +7045,8 @@
       506.1,
       394.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1212,
@@ -6668,7 +7063,8 @@
       701.5,
       325.6
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "nobara": {
@@ -6686,7 +7082,8 @@
       58.8,
       146.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "nobara/r0c1.png",
@@ -6702,7 +7099,8 @@
       70.0,
       139.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "nobara/r0c2.png",
@@ -6718,7 +7116,8 @@
       113.2,
       131.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "nobara/r0c3.png",
@@ -6734,7 +7133,8 @@
       116.4,
       121.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "nobara/r1c0.png",
@@ -6750,7 +7150,8 @@
       108.7,
       101.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "nobara/r1c1.png",
@@ -6766,7 +7167,8 @@
       155.1,
       102.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "nobara/r1c2.png",
@@ -6782,7 +7184,8 @@
       124.6,
       97.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "nobara/r1c3.png",
@@ -6798,7 +7201,8 @@
       136.0,
       92.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "nobara/r2c0.png",
@@ -6814,7 +7218,8 @@
       54.5,
       112.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "nobara/r2c1.png",
@@ -6830,7 +7235,8 @@
       70.9,
       101.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "nobara/r2c2.png",
@@ -6846,7 +7252,8 @@
       114.1,
       111.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "nobara/r2c3.png",
@@ -6862,7 +7269,8 @@
       97.0,
       105.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "file": "nobara/r3c0.png",
@@ -6878,7 +7286,8 @@
       129.3,
       104.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "nobara/r3c1.png",
@@ -6894,7 +7303,8 @@
       83.9,
       112.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "nobara/r3c2.png",
@@ -6910,7 +7320,8 @@
       139.9,
       156.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "nobara/r3c3.png",
@@ -6927,7 +7338,8 @@
       122.1,
       123.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "nobara/r4c0.png",
@@ -6943,7 +7355,8 @@
       88.7,
       106.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c1": {
     "file": "nobara/r4c1.png",
@@ -6959,7 +7372,8 @@
       84.7,
       102.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c2": {
     "file": "nobara/r4c2.png",
@@ -6975,7 +7389,8 @@
       110.2,
       95.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c3": {
     "file": "nobara/r4c3.png",
@@ -6991,7 +7406,8 @@
       84.2,
       98.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_a": {
     "file": "nobara/idle_a.png",
@@ -7008,7 +7424,8 @@
       181.0,
       477.8
      ]
-    }
+    },
+    "bodyTop": 19
    },
    "idle_b": {
     "file": "nobara/idle_b.png",
@@ -7025,7 +7442,8 @@
       183.3,
       481.7
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "jump_rise": {
     "file": "nobara/jump_rise.png",
@@ -7042,7 +7460,8 @@
       350.2,
       460.5
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "fall": {
     "file": "nobara/fall.png",
@@ -7059,7 +7478,8 @@
       282.6,
       405.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "hurt": {
     "file": "nobara/hurt.png",
@@ -7076,7 +7496,8 @@
       338.2,
       448.8
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "guard": {
     "file": "nobara/guard.png",
@@ -7093,7 +7514,8 @@
       310.3,
       468.7
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "attack_up": {
     "file": "nobara/attack_up.png",
@@ -7110,7 +7532,8 @@
       274.7,
       535.4
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_air": {
     "file": "nobara/attack_air.png",
@@ -7127,7 +7550,8 @@
       304.7,
       386.7
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "charge": {
     "file": "nobara/charge.png",
@@ -7144,7 +7568,8 @@
       397.1,
       441.5
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "dizzy": {
     "file": "nobara/dizzy.png",
@@ -7161,7 +7586,8 @@
       218.6,
       466.0
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "victory": {
     "file": "nobara/victory.png",
@@ -7178,7 +7604,8 @@
       208.8,
       463.9
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "ledge_hang": {
     "file": "nobara/ledge_hang.png",
@@ -7199,7 +7626,8 @@
       93.7,
       53.0
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "run_a": {
     "file": "nobara/run_a.png",
@@ -7216,7 +7644,8 @@
       563.6,
       388.1
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "run_b": {
     "file": "nobara/run_b.png",
@@ -7233,7 +7662,8 @@
       536.2,
       398.6
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "dodge_air": {
     "w": 711,
@@ -7250,7 +7680,8 @@
       397.1,
       399.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1257,
@@ -7267,7 +7698,8 @@
       502.9,
       367.2
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "maki": {
@@ -7285,7 +7717,8 @@
       117.9,
       150.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "maki/r0c1.png",
@@ -7301,7 +7734,8 @@
       97.1,
       130.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "maki/r0c2.png",
@@ -7317,7 +7751,8 @@
       120.5,
       129.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "maki/r0c3.png",
@@ -7334,7 +7769,8 @@
       125.4,
       116.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "maki/r1c0.png",
@@ -7350,7 +7786,8 @@
       154.6,
       88.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "maki/r1c1.png",
@@ -7366,7 +7803,8 @@
       147.0,
       89.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "maki/r1c2.png",
@@ -7382,7 +7820,8 @@
       149.6,
       92.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "maki/r1c3.png",
@@ -7398,7 +7837,8 @@
       155.4,
       89.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "maki/r2c0.png",
@@ -7414,7 +7854,8 @@
       116.5,
       113.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "maki/r2c1.png",
@@ -7430,7 +7871,8 @@
       131.7,
       121.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "maki/r2c2.png",
@@ -7446,7 +7888,8 @@
       131.5,
       175.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "maki/r2c3.png",
@@ -7462,7 +7905,8 @@
       100.5,
       112.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "w": 1508,
@@ -7479,7 +7923,8 @@
       575.3,
       343.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "maki/r3c1.png",
@@ -7496,7 +7941,8 @@
       118.4,
       126.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "maki/r3c2.png",
@@ -7513,7 +7959,8 @@
       139.7,
       137.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "maki/r3c3.png",
@@ -7529,7 +7976,8 @@
       111.3,
       132.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "maki/r4c0.png",
@@ -7545,7 +7993,8 @@
       119.9,
       98.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c1": {
     "file": "maki/r4c1.png",
@@ -7561,7 +8010,8 @@
       80.7,
       103.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c2": {
     "file": "maki/r4c2.png",
@@ -7577,7 +8027,8 @@
       113.8,
       97.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c3": {
     "file": "maki/r4c3.png",
@@ -7593,7 +8044,8 @@
       133.5,
       74.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_a": {
     "file": "maki/idle_a.png",
@@ -7610,7 +8062,8 @@
       199.6,
       499.4
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "idle_b": {
     "file": "maki/idle_b.png",
@@ -7627,7 +8080,8 @@
       387.0,
       485.9
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "jump_rise": {
     "file": "maki/jump_rise.png",
@@ -7644,7 +8098,8 @@
       441.4,
       444.5
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "fall": {
     "file": "maki/fall.png",
@@ -7661,7 +8116,8 @@
       585.9,
       415.9
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "hurt": {
     "file": "maki/hurt.png",
@@ -7678,7 +8134,8 @@
       429.6,
       445.1
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "guard": {
     "file": "maki/guard.png",
@@ -7695,7 +8152,8 @@
       441.6,
       312.9
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_up": {
     "file": "maki/attack_up.png",
@@ -7712,7 +8170,8 @@
       283.0,
       585.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_air": {
     "file": "maki/attack_air.png",
@@ -7729,7 +8188,8 @@
       464.5,
       268.4
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "charge": {
     "file": "maki/charge.png",
@@ -7746,7 +8206,8 @@
       424.5,
       311.0
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "dizzy": {
     "file": "maki/dizzy.png",
@@ -7763,7 +8224,8 @@
       382.8,
       492.8
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "victory": {
     "file": "maki/victory.png",
@@ -7780,7 +8242,8 @@
       206.0,
       529.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "ledge_hang": {
     "file": "maki/ledge_hang.png",
@@ -7801,7 +8264,8 @@
       86.4,
       60.2
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "run_a": {
     "file": "maki/run_a.png",
@@ -7818,7 +8282,8 @@
       682.9,
       325.9
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "run_b": {
     "file": "maki/run_b.png",
@@ -7835,7 +8300,8 @@
       503.0,
       278.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "dodge_air": {
     "w": 939,
@@ -7852,7 +8318,8 @@
       494.8,
       469.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1436,
@@ -7869,7 +8336,8 @@
       685.0,
       385.4
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "inumaki": {
@@ -7887,7 +8355,8 @@
       43.6,
       125.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "inumaki/r0c1.png",
@@ -7903,7 +8372,8 @@
       47.4,
       123.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "inumaki/r0c2.png",
@@ -7919,7 +8389,8 @@
       103.2,
       111.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "inumaki/r0c3.png",
@@ -7935,7 +8406,8 @@
       95.4,
       115.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "inumaki/r1c0.png",
@@ -7951,7 +8423,8 @@
       130.4,
       83.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "inumaki/r1c1.png",
@@ -7967,7 +8440,8 @@
       111.3,
       83.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "inumaki/r1c2.png",
@@ -7983,7 +8457,8 @@
       116.7,
       83.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "inumaki/r1c3.png",
@@ -7999,7 +8474,8 @@
       149.1,
       75.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "inumaki/r2c0.png",
@@ -8015,7 +8491,8 @@
       73.0,
       78.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "inumaki/r2c1.png",
@@ -8031,7 +8508,8 @@
       119.8,
       71.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "inumaki/r2c2.png",
@@ -8047,7 +8525,8 @@
       127.2,
       107.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "inumaki/r2c3.png",
@@ -8063,7 +8542,8 @@
       88.3,
       99.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "file": "inumaki/r3c0.png",
@@ -8079,7 +8559,8 @@
       129.8,
       93.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "inumaki/r3c1.png",
@@ -8095,7 +8576,8 @@
       113.7,
       119.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "inumaki/r3c2.png",
@@ -8112,7 +8594,8 @@
       137.4,
       115.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "inumaki/r3c3.png",
@@ -8128,7 +8611,8 @@
       105.9,
       119.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "inumaki/r4c0.png",
@@ -8146,7 +8630,8 @@
       450.7,
       452.3
      ]
-    }
+    },
+    "bodyTop": 5
    },
    "r4c1": {
     "file": "inumaki/r4c1.png",
@@ -8164,7 +8649,8 @@
       406.0,
       341.4
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "r4c2": {
     "file": "inumaki/r4c2.png",
@@ -8182,7 +8668,8 @@
       424.5,
       438.4
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "r4c3": {
     "file": "inumaki/r4c3.png",
@@ -8200,7 +8687,8 @@
       394.4,
       270.7
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "idle_a": {
     "file": "inumaki/idle_a.png",
@@ -8217,7 +8705,8 @@
       188.6,
       496.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "idle_b": {
     "file": "inumaki/idle_b.png",
@@ -8234,7 +8723,8 @@
       134.7,
       496.9
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "jump_rise": {
     "file": "inumaki/jump_rise.png",
@@ -8251,7 +8741,8 @@
       264.0,
       463.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "fall": {
     "file": "inumaki/fall.png",
@@ -8268,7 +8759,8 @@
       365.1,
       435.2
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "hurt": {
     "file": "inumaki/hurt.png",
@@ -8285,7 +8777,8 @@
       317.7,
       467.8
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "guard": {
     "file": "inumaki/guard.png",
@@ -8302,7 +8795,8 @@
       312.6,
       479.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_up": {
     "file": "inumaki/attack_up.png",
@@ -8319,7 +8813,8 @@
       274.9,
       527.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_air": {
     "file": "inumaki/attack_air.png",
@@ -8336,7 +8831,8 @@
       330.5,
       440.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "charge": {
     "file": "inumaki/charge.png",
@@ -8353,7 +8849,8 @@
       415.1,
       454.4
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "dizzy": {
     "file": "inumaki/dizzy.png",
@@ -8371,7 +8868,8 @@
       277.6,
       496.0
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "victory": {
     "file": "inumaki/victory.png",
@@ -8388,7 +8886,8 @@
       165.9,
       474.1
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "ledge_hang": {
     "file": "inumaki/ledge_hang.png",
@@ -8409,7 +8908,8 @@
       120.1,
       51.7
      ]
-    }
+    },
+    "bodyTop": 8
    },
    "run_a": {
     "file": "inumaki/run_a.png",
@@ -8426,7 +8926,8 @@
       470.1,
       431.9
      ]
-    }
+    },
+    "bodyTop": 15
    },
    "run_b": {
     "file": "inumaki/run_b.png",
@@ -8443,7 +8944,8 @@
       548.9,
       453.9
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "dodge_air": {
     "w": 583,
@@ -8460,7 +8962,8 @@
       299.7,
       541.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1010,
@@ -8477,7 +8980,8 @@
       541.1,
       338.0
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "panda": {
@@ -8496,7 +9000,8 @@
       297.0,
       734.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "w": 848,
@@ -8513,7 +9018,8 @@
       361.5,
       668.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "w": 953,
@@ -8530,7 +9036,8 @@
       482.4,
       591.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "w": 1042,
@@ -8547,7 +9054,8 @@
       481.7,
       505.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "w": 1185,
@@ -8564,7 +9072,8 @@
       627.4,
       425.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "w": 1169,
@@ -8581,7 +9090,8 @@
       562.3,
       409.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "w": 1259,
@@ -8598,7 +9108,8 @@
       681.9,
       418.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "w": 1164,
@@ -8615,7 +9126,8 @@
       591.1,
       398.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "w": 779,
@@ -8632,7 +9144,8 @@
       387.7,
       492.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "w": 1078,
@@ -8649,7 +9162,8 @@
       440.0,
       444.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "w": 1049,
@@ -8666,7 +9180,8 @@
       517.4,
       413.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "w": 986,
@@ -8683,7 +9198,8 @@
       433.7,
       511.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "w": 1103,
@@ -8700,7 +9216,8 @@
       497.1,
       454.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "w": 1249,
@@ -8717,7 +9234,8 @@
       542.9,
       526.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "w": 1096,
@@ -8734,7 +9252,8 @@
       554.2,
       720.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "w": 1046,
@@ -8751,7 +9270,8 @@
       503.4,
       596.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "w": 858,
@@ -8768,7 +9288,8 @@
       438.4,
       594.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c1": {
     "w": 893,
@@ -8785,7 +9306,8 @@
       456.1,
       533.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c2": {
     "w": 1239,
@@ -8802,7 +9324,8 @@
       491.6,
       419.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c3": {
     "w": 1303,
@@ -8819,7 +9342,8 @@
       630.9,
       416.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_a": {
     "file": "panda/idle_a.png",
@@ -8836,7 +9360,8 @@
       240.9,
       511.3
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "idle_b": {
     "file": "panda/idle_b.png",
@@ -8853,7 +9378,8 @@
       235.0,
       509.1
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "jump_rise": {
     "file": "panda/jump_rise.png",
@@ -8870,7 +9396,8 @@
       327.7,
       474.4
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "fall": {
     "file": "panda/fall.png",
@@ -8887,7 +9414,8 @@
       398.2,
       450.0
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "hurt": {
     "file": "panda/hurt.png",
@@ -8904,7 +9432,8 @@
       318.9,
       460.8
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "guard": {
     "file": "panda/guard.png",
@@ -8921,7 +9450,8 @@
       297.2,
       486.9
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_up": {
     "file": "panda/attack_up.png",
@@ -8938,7 +9468,8 @@
       295.1,
       534.2
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_air": {
     "file": "panda/attack_air.png",
@@ -8955,7 +9486,8 @@
       274.4,
       439.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "charge": {
     "file": "panda/charge.png",
@@ -8972,7 +9504,8 @@
       434.7,
       482.4
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "dizzy": {
     "file": "panda/dizzy.png",
@@ -8989,7 +9522,8 @@
       256.7,
       496.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "victory": {
     "file": "panda/victory.png",
@@ -9006,7 +9540,8 @@
       226.7,
       545.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "ledge_hang": {
     "file": "panda/ledge_hang.png",
@@ -9027,7 +9562,8 @@
       139.3,
       54.9
      ]
-    }
+    },
+    "bodyTop": 8
    },
    "run_a": {
     "file": "panda/run_a.png",
@@ -9044,7 +9580,8 @@
       423.0,
       459.0
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "run_b": {
     "file": "panda/run_b.png",
@@ -9061,7 +9598,8 @@
       489.2,
       488.7
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "dodge_air": {
     "w": 663,
@@ -9078,7 +9616,8 @@
       312.3,
       396.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1307,
@@ -9095,7 +9634,8 @@
       748.0,
       342.9
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "todo": {
@@ -9113,7 +9653,8 @@
       80.9,
       167.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "todo/r0c1.png",
@@ -9129,7 +9670,8 @@
       101.5,
       147.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "todo/r0c2.png",
@@ -9145,7 +9687,8 @@
       123.4,
       150.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "todo/r0c3.png",
@@ -9162,7 +9705,8 @@
       117.5,
       131.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "todo/r1c0.png",
@@ -9178,7 +9722,8 @@
       125.7,
       110.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "todo/r1c1.png",
@@ -9194,7 +9739,8 @@
       149.2,
       107.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "todo/r1c2.png",
@@ -9210,7 +9756,8 @@
       129.9,
       105.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "todo/r1c3.png",
@@ -9226,7 +9773,8 @@
       137.1,
       108.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "todo/r2c0.png",
@@ -9242,7 +9790,8 @@
       102.4,
       114.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "todo/r2c1.png",
@@ -9258,7 +9807,8 @@
       112.4,
       103.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "todo/r2c2.png",
@@ -9274,7 +9824,8 @@
       141.8,
       127.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "todo/r2c3.png",
@@ -9291,7 +9842,8 @@
       117.9,
       145.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c0": {
     "file": "todo/r3c0.png",
@@ -9307,7 +9859,8 @@
       151.6,
       128.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "todo/r3c1.png",
@@ -9323,7 +9876,8 @@
       116.0,
       139.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "todo/r3c2.png",
@@ -9340,7 +9894,8 @@
       138.1,
       153.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "todo/r3c3.png",
@@ -9357,7 +9912,8 @@
       134.3,
       141.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "w": 857,
@@ -9374,7 +9930,8 @@
       425.0,
       650.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c1": {
     "w": 869,
@@ -9391,7 +9948,8 @@
       363.9,
       690.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c2": {
     "w": 966,
@@ -9408,7 +9966,8 @@
       451.5,
       531.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c3": {
     "w": 996,
@@ -9425,7 +9984,8 @@
       450.4,
       521.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_a": {
     "file": "todo/idle_a.png",
@@ -9442,7 +10002,8 @@
       208.7,
       509.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "idle_b": {
     "file": "todo/idle_b.png",
@@ -9459,7 +10020,8 @@
       187.6,
       503.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "jump_rise": {
     "file": "todo/jump_rise.png",
@@ -9476,7 +10038,8 @@
       324.1,
       466.9
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "fall": {
     "file": "todo/fall.png",
@@ -9493,7 +10056,8 @@
       324.4,
       402.3
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "hurt": {
     "file": "todo/hurt.png",
@@ -9510,7 +10074,8 @@
       305.8,
       449.1
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "guard": {
     "file": "todo/guard.png",
@@ -9527,7 +10092,8 @@
       314.6,
       489.2
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_up": {
     "file": "todo/attack_up.png",
@@ -9544,7 +10110,8 @@
       254.7,
       525.2
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_air": {
     "file": "todo/attack_air.png",
@@ -9561,7 +10128,8 @@
       343.6,
       432.5
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "charge": {
     "file": "todo/charge.png",
@@ -9578,7 +10146,8 @@
       357.6,
       495.0
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "dizzy": {
     "file": "todo/dizzy.png",
@@ -9596,7 +10165,8 @@
       290.1,
       492.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "victory": {
     "file": "todo/victory.png",
@@ -9613,7 +10183,8 @@
       248.5,
       512.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "ledge_hang": {
     "file": "todo/ledge_hang.png",
@@ -9634,7 +10205,8 @@
       119.4,
       54.5
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "run_a": {
     "file": "todo/run_a.png",
@@ -9651,7 +10223,8 @@
       378.4,
       438.3
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "run_b": {
     "file": "todo/run_b.png",
@@ -9668,7 +10241,8 @@
       442.8,
       440.6
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "dodge_air": {
     "w": 539,
@@ -9685,7 +10259,8 @@
       277.7,
       369.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1194,
@@ -9702,7 +10277,8 @@
       693.2,
       332.2
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "toji": {
@@ -9720,7 +10296,8 @@
       142.5,
       162.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c1": {
     "file": "toji/r0c1.png",
@@ -9736,7 +10313,8 @@
       90.5,
       148.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c2": {
     "file": "toji/r0c2.png",
@@ -9752,7 +10330,8 @@
       103.4,
       129.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "toji/r0c3.png",
@@ -9768,7 +10347,8 @@
       124.0,
       122.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "toji/r1c0.png",
@@ -9784,7 +10364,8 @@
       135.2,
       96.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c1": {
     "file": "toji/r1c1.png",
@@ -9800,7 +10381,8 @@
       123.8,
       90.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c2": {
     "file": "toji/r1c2.png",
@@ -9816,7 +10398,8 @@
       135.2,
       93.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "toji/r1c3.png",
@@ -9832,7 +10415,8 @@
       128.5,
       86.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c0": {
     "file": "toji/r2c0.png",
@@ -9848,7 +10432,8 @@
       59.5,
       118.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "toji/r2c1.png",
@@ -9864,7 +10449,8 @@
       140.4,
       121.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c2": {
     "file": "toji/r2c2.png",
@@ -9880,7 +10466,8 @@
       130.8,
       160.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "toji/r2c3.png",
@@ -9897,7 +10484,8 @@
       588.7,
       603.7
      ]
-    }
+    },
+    "bodyTop": 39
    },
    "r3c0": {
     "w": 1466,
@@ -9914,7 +10502,8 @@
       569.5,
       388.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c1": {
     "w": 1378,
@@ -9931,7 +10520,8 @@
       624.3,
       395.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c2": {
     "w": 1480,
@@ -9948,7 +10538,8 @@
       569.2,
       313.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r3c3": {
     "w": 951,
@@ -9965,7 +10556,8 @@
       455.8,
       544.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "toji/r4c0.png",
@@ -9983,7 +10575,8 @@
       461.1,
       387.1
      ]
-    }
+    },
+    "bodyTop": 5
    },
    "r4c1": {
     "file": "toji/r4c1.png",
@@ -10001,7 +10594,8 @@
       433.5,
       333.0
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "r4c2": {
     "file": "toji/r4c2.png",
@@ -10019,7 +10613,8 @@
       435.4,
       304.8
      ]
-    }
+    },
+    "bodyTop": 4
    },
    "r4c3": {
     "file": "toji/r4c3.png",
@@ -10037,7 +10632,8 @@
       460.0,
       282.2
      ]
-    }
+    },
+    "bodyTop": 3
    },
    "idle_a": {
     "file": "toji/idle_a.png",
@@ -10054,7 +10650,8 @@
       184.1,
       518.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "idle_b": {
     "file": "toji/idle_b.png",
@@ -10071,7 +10668,8 @@
       175.2,
       520.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "jump_rise": {
     "file": "toji/jump_rise.png",
@@ -10088,7 +10686,8 @@
       285.9,
       506.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "fall": {
     "file": "toji/fall.png",
@@ -10105,7 +10704,8 @@
       320.3,
       491.4
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "hurt": {
     "file": "toji/hurt.png",
@@ -10122,7 +10722,8 @@
       253.6,
       487.9
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "guard": {
     "file": "toji/guard.png",
@@ -10139,7 +10740,8 @@
       347.8,
       513.6
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_up": {
     "file": "toji/attack_up.png",
@@ -10156,7 +10758,8 @@
       275.0,
       543.8
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "attack_air": {
     "file": "toji/attack_air.png",
@@ -10173,7 +10776,8 @@
       373.6,
       437.7
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "charge": {
     "file": "toji/charge.png",
@@ -10190,7 +10794,8 @@
       435.4,
       497.4
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "dizzy": {
     "file": "toji/dizzy.png",
@@ -10207,7 +10812,8 @@
       232.7,
       526.1
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "victory": {
     "file": "toji/victory.png",
@@ -10224,7 +10830,8 @@
       200.1,
       515.7
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "ledge_hang": {
     "file": "toji/ledge_hang.png",
@@ -10245,7 +10852,8 @@
       79.5,
       53.0
      ]
-    }
+    },
+    "bodyTop": 13
    },
    "run_a": {
     "file": "toji/run_a.png",
@@ -10262,7 +10870,8 @@
       371.6,
       440.8
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "run_b": {
     "file": "toji/run_b.png",
@@ -10279,7 +10888,8 @@
       482.5,
       452.6
      ]
-    }
+    },
+    "bodyTop": 14
    },
    "dodge_air": {
     "w": 572,
@@ -10296,7 +10906,8 @@
       300.7,
       457.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1242,
@@ -10313,7 +10924,8 @@
       566.1,
       310.3
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "choso": {
@@ -10332,7 +10944,8 @@
       214.5,
       703.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_air": {
     "w": 1256,
@@ -10349,7 +10962,8 @@
       554.1,
       434.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_down": {
     "w": 1192,
@@ -10366,7 +10980,8 @@
       570.4,
       428.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_heavy": {
     "w": 969,
@@ -10383,7 +10998,8 @@
       467.5,
       462.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_light_a": {
     "w": 883,
@@ -10400,7 +11016,8 @@
       419.5,
       569.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_light_b": {
     "w": 908,
@@ -10417,7 +11034,8 @@
       474.8,
       550.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_up": {
     "w": 750,
@@ -10434,7 +11052,8 @@
       368.0,
       705.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "charge": {
     "w": 816,
@@ -10451,7 +11070,8 @@
       454.9,
       600.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_a": {
     "w": 880,
@@ -10468,7 +11088,8 @@
       460.5,
       541.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_attack_a": {
     "w": 1178,
@@ -10485,7 +11106,8 @@
       544.8,
       519.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_attack_b": {
     "w": 1253,
@@ -10502,7 +11124,8 @@
       497.8,
       435.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_b": {
     "w": 849,
@@ -10519,7 +11142,8 @@
       455.5,
       517.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dash": {
     "w": 1152,
@@ -10536,7 +11160,8 @@
       622.5,
       418.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dizzy": {
     "w": 490,
@@ -10553,7 +11178,8 @@
       250.4,
       710.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_air": {
     "w": 668,
@@ -10570,7 +11196,8 @@
       391.1,
       556.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1045,
@@ -10587,7 +11214,8 @@
       607.9,
       367.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "fall": {
     "w": 826,
@@ -10604,7 +11232,8 @@
       416.3,
       560.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "guard": {
     "w": 748,
@@ -10621,7 +11250,8 @@
       388.9,
       609.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "hurt": {
     "w": 604,
@@ -10638,7 +11268,8 @@
       324.9,
       617.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_b": {
     "w": 395,
@@ -10655,7 +11286,8 @@
       183.8,
       708.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "jump_rise": {
     "w": 791,
@@ -10672,7 +11304,8 @@
       430.9,
       511.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "land": {
     "w": 1022,
@@ -10689,7 +11322,8 @@
       512.6,
       539.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ledge_hang": {
     "w": 240,
@@ -10710,7 +11344,8 @@
       179.9,
       55.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "run_a": {
     "w": 1134,
@@ -10727,7 +11362,8 @@
       622.2,
       448.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "run_b": {
     "w": 1032,
@@ -10744,7 +11380,8 @@
       567.7,
       406.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_down": {
     "w": 528,
@@ -10761,7 +11398,8 @@
       253.0,
       738.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_neutral": {
     "w": 899,
@@ -10778,7 +11416,8 @@
       389.7,
       579.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_side": {
     "w": 607,
@@ -10795,7 +11434,8 @@
       302.0,
       696.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ult_a": {
     "w": 957,
@@ -10812,7 +11452,8 @@
       439.6,
       637.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ult_b": {
     "w": 780,
@@ -10829,7 +11470,8 @@
       450.4,
       602.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "victory": {
     "w": 569,
@@ -10846,7 +11488,8 @@
       189.3,
       659.4
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "meimei": {
@@ -10865,7 +11508,8 @@
       346.6,
       694.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_air": {
     "w": 1099,
@@ -10882,7 +11526,8 @@
       602.9,
       500.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_down": {
     "w": 1313,
@@ -10899,7 +11544,8 @@
       669.3,
       434.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_heavy": {
     "w": 1326,
@@ -10916,7 +11562,8 @@
       617.8,
       461.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_light_a": {
     "w": 988,
@@ -10933,7 +11580,8 @@
       615.8,
       575.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_light_b": {
     "w": 1002,
@@ -10950,7 +11598,8 @@
       532.3,
       625.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_up": {
     "w": 853,
@@ -10967,7 +11616,8 @@
       457.1,
       772.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "charge": {
     "w": 776,
@@ -10984,7 +11634,8 @@
       449.4,
       517.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_a": {
     "w": 1112,
@@ -11001,7 +11652,8 @@
       574.3,
       493.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_attack_a": {
     "w": 1280,
@@ -11018,7 +11670,8 @@
       684.4,
       479.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_attack_b": {
     "w": 1296,
@@ -11035,7 +11688,8 @@
       640.6,
       430.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_b": {
     "w": 903,
@@ -11052,7 +11706,8 @@
       524.5,
       534.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dash": {
     "w": 1141,
@@ -11069,7 +11724,8 @@
       606.7,
       399.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dizzy": {
     "w": 564,
@@ -11086,7 +11742,8 @@
       291.0,
       604.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_air": {
     "w": 819,
@@ -11103,7 +11760,8 @@
       482.1,
       589.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 926,
@@ -11120,7 +11778,8 @@
       460.7,
       548.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "fall": {
     "w": 933,
@@ -11137,7 +11796,8 @@
       476.7,
       592.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "guard": {
     "w": 864,
@@ -11154,7 +11814,8 @@
       405.7,
       745.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "hurt": {
     "w": 897,
@@ -11171,7 +11832,8 @@
       457.8,
       594.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_b": {
     "w": 712,
@@ -11188,7 +11850,8 @@
       344.5,
       698.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "jump_rise": {
     "w": 949,
@@ -11205,7 +11868,8 @@
       509.6,
       531.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "land": {
     "w": 1336,
@@ -11222,7 +11886,8 @@
       598.7,
       391.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ledge_hang": {
     "w": 598,
@@ -11243,7 +11908,8 @@
       238.5,
       55.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "run_a": {
     "w": 1090,
@@ -11260,7 +11926,8 @@
       560.7,
       433.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "run_b": {
     "w": 1277,
@@ -11277,7 +11944,8 @@
       621.5,
       405.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_down": {
     "w": 694,
@@ -11294,7 +11962,8 @@
       351.0,
       678.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_neutral": {
     "w": 803,
@@ -11311,7 +11980,8 @@
       403.5,
       673.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_side": {
     "w": 967,
@@ -11328,7 +11998,8 @@
       487.0,
       744.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ult_a": {
     "w": 977,
@@ -11345,7 +12016,8 @@
       419.6,
       630.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ult_b": {
     "w": 812,
@@ -11362,7 +12034,8 @@
       427.8,
       585.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "victory": {
     "w": 782,
@@ -11379,7 +12052,8 @@
       393.6,
       713.2
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "uro": {
@@ -11398,7 +12072,8 @@
       192.2,
       560.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_air": {
     "w": 1009,
@@ -11415,7 +12090,8 @@
       444.1,
       445.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_down": {
     "w": 1020,
@@ -11432,7 +12108,8 @@
       608.9,
       371.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_heavy": {
     "w": 1019,
@@ -11449,7 +12126,8 @@
       544.9,
       469.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_light_a": {
     "w": 714,
@@ -11466,7 +12144,8 @@
       280.2,
       502.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_light_b": {
     "w": 889,
@@ -11483,7 +12162,8 @@
       461.3,
       510.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_up": {
     "w": 588,
@@ -11500,7 +12180,8 @@
       312.0,
       667.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "charge": {
     "w": 848,
@@ -11517,7 +12198,8 @@
       453.8,
       465.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_a": {
     "w": 749,
@@ -11534,7 +12216,8 @@
       424.1,
       443.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_attack_a": {
     "w": 1034,
@@ -11551,7 +12234,8 @@
       591.4,
       363.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_attack_b": {
     "w": 1047,
@@ -11568,7 +12252,8 @@
       402.6,
       441.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_b": {
     "w": 844,
@@ -11585,7 +12270,8 @@
       475.2,
       430.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dash": {
     "w": 997,
@@ -11602,7 +12288,8 @@
       573.3,
       339.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dizzy": {
     "w": 395,
@@ -11619,7 +12306,8 @@
       188.1,
       525.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_air": {
     "w": 504,
@@ -11636,7 +12324,8 @@
       259.8,
       529.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1142,
@@ -11653,7 +12342,8 @@
       548.5,
       368.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "fall": {
     "w": 484,
@@ -11670,7 +12360,8 @@
       287.7,
       484.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "guard": {
     "w": 559,
@@ -11687,7 +12378,8 @@
       305.3,
       503.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "hurt": {
     "w": 554,
@@ -11704,7 +12396,8 @@
       241.2,
       497.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_b": {
     "w": 411,
@@ -11721,7 +12414,8 @@
       186.3,
       641.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "jump_rise": {
     "w": 621,
@@ -11738,7 +12432,8 @@
       241.9,
       526.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "land": {
     "w": 737,
@@ -11755,7 +12450,8 @@
       349.3,
       404.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ledge_hang": {
     "w": 190,
@@ -11776,7 +12472,8 @@
       54.4,
       52.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "run_a": {
     "w": 1024,
@@ -11793,7 +12490,8 @@
       588.4,
       408.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "run_b": {
     "w": 1246,
@@ -11810,7 +12508,8 @@
       681.0,
       414.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_down": {
     "w": 576,
@@ -11827,7 +12526,8 @@
       200.4,
       526.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_neutral": {
     "w": 623,
@@ -11844,7 +12544,8 @@
       209.2,
       528.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_side": {
     "w": 919,
@@ -11861,7 +12562,8 @@
       513.2,
       363.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ult_a": {
     "w": 174,
@@ -11878,7 +12580,8 @@
       78.3,
       645.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ult_b": {
     "w": 560,
@@ -11895,7 +12598,8 @@
       244.7,
       544.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "victory": {
     "w": 408,
@@ -11912,7 +12616,8 @@
       227.5,
       562.9
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "yuji": {
@@ -11931,7 +12636,8 @@
       173.3,
       694.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_air": {
     "w": 1087,
@@ -11948,7 +12654,8 @@
       476.3,
       442.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_down": {
     "w": 1231,
@@ -11965,7 +12672,8 @@
       705.1,
       349.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_heavy": {
     "w": 1145,
@@ -11982,7 +12690,8 @@
       598.2,
       469.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_light_a": {
     "w": 893,
@@ -11999,7 +12708,8 @@
       385.9,
       559.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_light_b": {
     "w": 966,
@@ -12016,7 +12726,8 @@
       480.1,
       508.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_up": {
     "w": 693,
@@ -12033,7 +12744,8 @@
       384.6,
       648.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "charge": {
     "w": 691,
@@ -12050,7 +12762,8 @@
       356.8,
       509.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_a": {
     "w": 1006,
@@ -12067,7 +12780,8 @@
       583.0,
       467.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_attack_a": {
     "w": 1394,
@@ -12084,7 +12798,8 @@
       792.5,
       400.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_attack_b": {
     "w": 1451,
@@ -12101,7 +12816,8 @@
       817.7,
       348.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_b": {
     "w": 949,
@@ -12118,7 +12834,8 @@
       503.0,
       460.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dash": {
     "w": 1159,
@@ -12135,7 +12852,8 @@
       632.7,
       326.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dizzy": {
     "w": 504,
@@ -12152,7 +12870,8 @@
       238.9,
       657.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_air": {
     "w": 566,
@@ -12169,7 +12888,8 @@
       294.7,
       544.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 727,
@@ -12186,7 +12906,8 @@
       325.8,
       311.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "fall": {
     "w": 747,
@@ -12203,7 +12924,8 @@
       485.4,
       451.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "guard": {
     "w": 714,
@@ -12220,7 +12942,8 @@
       376.8,
       623.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "hurt": {
     "w": 630,
@@ -12237,7 +12960,8 @@
       303.0,
       585.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_b": {
     "w": 301,
@@ -12254,7 +12978,8 @@
       132.0,
       666.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "jump_rise": {
     "w": 728,
@@ -12271,7 +12996,8 @@
       317.1,
       533.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "land": {
     "w": 845,
@@ -12288,7 +13014,8 @@
       378.5,
       427.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ledge_hang": {
     "w": 261,
@@ -12309,7 +13036,8 @@
       62.9,
       57.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "run_a": {
     "w": 1096,
@@ -12326,7 +13054,8 @@
       602.6,
       467.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "run_b": {
     "w": 1019,
@@ -12343,7 +13072,8 @@
       535.1,
       447.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_down": {
     "w": 564,
@@ -12360,7 +13090,8 @@
       237.2,
       657.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_neutral": {
     "w": 894,
@@ -12377,7 +13108,8 @@
       407.0,
       586.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_side": {
     "w": 1167,
@@ -12394,7 +13126,8 @@
       484.8,
       383.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ult_a": {
     "w": 972,
@@ -12411,7 +13144,8 @@
       480.7,
       490.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ult_b": {
     "w": 933,
@@ -12428,7 +13162,8 @@
       411.5,
       514.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "victory": {
     "w": 381,
@@ -12445,7 +13180,8 @@
       192.8,
       709.1
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "reggie": {
@@ -12464,7 +13200,8 @@
       237.5,
       679.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_air": {
     "w": 1351,
@@ -12481,7 +13218,8 @@
       705.0,
       379.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_down": {
     "w": 1441,
@@ -12498,7 +13236,8 @@
       709.7,
       397.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_heavy": {
     "w": 963,
@@ -12515,7 +13254,8 @@
       452.7,
       480.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_light_a": {
     "w": 908,
@@ -12532,7 +13272,8 @@
       331.9,
       559.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_light_b": {
     "w": 914,
@@ -12549,7 +13290,8 @@
       390.9,
       552.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_up": {
     "w": 736,
@@ -12566,7 +13308,8 @@
       439.3,
       766.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "charge": {
     "w": 799,
@@ -12583,7 +13326,8 @@
       427.5,
       481.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_a": {
     "w": 1055,
@@ -12600,7 +13344,8 @@
       608.0,
       483.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_attack_a": {
     "w": 1446,
@@ -12617,7 +13362,8 @@
       671.9,
       409.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_attack_b": {
     "w": 1341,
@@ -12634,7 +13380,8 @@
       556.9,
       410.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_b": {
     "w": 912,
@@ -12651,7 +13398,8 @@
       497.0,
       497.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dash": {
     "w": 1218,
@@ -12668,7 +13416,8 @@
       692.3,
       377.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dizzy": {
     "w": 571,
@@ -12685,7 +13434,8 @@
       285.4,
       630.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_air": {
     "w": 731,
@@ -12702,7 +13452,8 @@
       319.4,
       548.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1086,
@@ -12719,7 +13470,8 @@
       588.4,
       468.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "fall": {
     "w": 903,
@@ -12736,7 +13488,8 @@
       435.6,
       555.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "guard": {
     "w": 804,
@@ -12753,7 +13506,8 @@
       419.2,
       580.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "hurt": {
     "w": 671,
@@ -12770,7 +13524,8 @@
       347.1,
       570.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_b": {
     "w": 506,
@@ -12787,7 +13542,8 @@
       231.2,
       675.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "jump_rise": {
     "w": 864,
@@ -12804,7 +13560,8 @@
       480.8,
       511.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "land": {
     "w": 1133,
@@ -12821,7 +13578,8 @@
       507.4,
       510.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ledge_hang": {
     "w": 270,
@@ -12842,7 +13600,8 @@
       140.3,
       60.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "run_a": {
     "w": 929,
@@ -12859,7 +13618,8 @@
       513.6,
       455.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "run_b": {
     "w": 1166,
@@ -12876,7 +13636,8 @@
       608.7,
       480.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_down": {
     "w": 623,
@@ -12893,7 +13654,8 @@
       256.8,
       606.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_neutral": {
     "w": 947,
@@ -12910,7 +13672,8 @@
       439.3,
       600.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_side": {
     "w": 662,
@@ -12927,7 +13690,8 @@
       255.2,
       608.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ult_a": {
     "w": 712,
@@ -12944,7 +13708,8 @@
       326.7,
       619.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ult_b": {
     "w": 760,
@@ -12961,7 +13726,8 @@
       412.9,
       666.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "victory": {
     "w": 587,
@@ -12978,7 +13744,8 @@
       245.3,
       648.0
      ]
-    }
+    },
+    "bodyTop": 0
    }
   },
   "gakuganji": {
@@ -12997,7 +13764,8 @@
       219.2,
       748.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_air": {
     "w": 1192,
@@ -13014,7 +13782,8 @@
       535.8,
       517.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_down": {
     "w": 1251,
@@ -13031,7 +13800,8 @@
       656.1,
       481.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_heavy": {
     "w": 1012,
@@ -13048,7 +13818,8 @@
       506.7,
       511.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_light_a": {
     "w": 801,
@@ -13065,7 +13836,8 @@
       363.2,
       730.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_light_b": {
     "w": 973,
@@ -13082,7 +13854,8 @@
       489.1,
       690.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "attack_up": {
     "w": 679,
@@ -13099,7 +13872,8 @@
       340.9,
       839.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "charge": {
     "w": 894,
@@ -13116,7 +13890,8 @@
       410.2,
       687.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_a": {
     "w": 1131,
@@ -13133,7 +13908,8 @@
       502.2,
       681.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_attack_a": {
     "w": 1281,
@@ -13150,7 +13926,8 @@
       666.7,
       548.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_attack_b": {
     "w": 1378,
@@ -13167,7 +13944,8 @@
       521.7,
       530.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_b": {
     "w": 1145,
@@ -13184,7 +13962,8 @@
       617.3,
       487.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dash": {
     "w": 1318,
@@ -13201,7 +13980,8 @@
       589.9,
       388.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dizzy": {
     "w": 748,
@@ -13218,7 +13998,8 @@
       284.9,
       719.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_air": {
     "w": 806,
@@ -13235,7 +14016,8 @@
       351.9,
       599.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "dodge_roll": {
     "w": 1017,
@@ -13252,7 +14034,8 @@
       506.7,
       437.6
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "fall": {
     "w": 850,
@@ -13269,7 +14052,8 @@
       448.6,
       607.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "guard": {
     "w": 865,
@@ -13286,7 +14070,8 @@
       415.4,
       668.7
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "hurt": {
     "w": 823,
@@ -13303,7 +14088,8 @@
       338.4,
       631.9
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "idle_b": {
     "w": 627,
@@ -13320,7 +14106,8 @@
       198.3,
       746.8
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "jump_rise": {
     "w": 964,
@@ -13337,7 +14124,8 @@
       462.4,
       541.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "land": {
     "w": 982,
@@ -13354,7 +14142,8 @@
       464.6,
       541.5
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ledge_hang": {
     "w": 558,
@@ -13375,7 +14164,8 @@
       184.3,
       55.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "run_a": {
     "w": 1223,
@@ -13392,7 +14182,8 @@
       576.7,
       519.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "run_b": {
     "w": 1173,
@@ -13409,7 +14200,8 @@
       618.4,
       448.0
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_down": {
     "w": 785,
@@ -13426,7 +14218,8 @@
       391.8,
       701.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_neutral": {
     "w": 948,
@@ -13443,7 +14236,8 @@
       453.6,
       731.4
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "special_side": {
     "w": 925,
@@ -13460,7 +14254,8 @@
       398.3,
       749.1
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ult_a": {
     "w": 875,
@@ -13477,7 +14272,8 @@
       452.1,
       748.3
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "ult_b": {
     "w": 821,
@@ -13494,7 +14290,8 @@
       375.4,
       766.2
      ]
-    }
+    },
+    "bodyTop": 0
    },
    "victory": {
     "w": 732,
@@ -13511,7 +14308,8 @@
       288.2,
       704.3
      ]
-    }
+    },
+    "bodyTop": 0
    }
   }
  },

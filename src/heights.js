@@ -21,6 +21,7 @@
 import { CHARACTERS } from "./characters.js";
 import { spriteManifest } from "./assets.js";
 import { clamp } from "./utils.js";
+import { frameFootY } from "./sprites.js";
 import {
   HEIGHT_REFERENCE, HEIGHT_COMPRESSION, HEIGHT_MIN_RATIO, HEIGHT_MAX_RATIO,
   HEIGHT_BASE_PX, HEIGHT_UNKNOWN_RATIO, HEAD_ABOVE_BODY,
@@ -59,29 +60,45 @@ export function hasHeightOverride(charKey) {
   return Number.isFinite(override) && override > 0;
 }
 
-/** The body height of a character's idle frame, in cell units. Sprite scale is
- *  solved against this: a frame drawn `bodyH` tall renders `bodyH * scale`
- *  tall, and the head sits HEAD_ABOVE_BODY over that. */
-function idleBodyH(charKey) {
+/**
+ * How tall the character's idle stands at scale 1, from the foot line to the
+ * very top of the art — the point the head-height target names.
+ *
+ * `bodyTop` is the topmost opaque row, measured offline by
+ * tools/bake_anchors.py, so this is the real top of the head rather than an
+ * estimate of it. `bodyBottom` is in the span too, which is what makes the head
+ * hold its place when a pose's ground contact moves: shifting the foot line
+ * changes the span, the solved scale absorbs it, and the top does not move.
+ *
+ * Frames the bake has not reached fall back to `bodyH` scaled by the empirical
+ * offset between the detected body box and the hair above it.
+ */
+function idleSpan(charKey) {
   const frames = spriteManifest?.characters?.[charKey];
   if (!frames) return 0;
   for (const key of HEIGHT_FRAME) {
-    const bodyH = frames[key]?.bodyH;
-    if (bodyH) return bodyH;
+    const meta = frames[key];
+    if (!meta) continue;
+    const renderScale = meta.renderScale || 1;
+    if (Number.isFinite(meta.bodyTop)) {
+      const span = (frameFootY(meta) - (meta.oy ?? 0) - meta.bodyTop) * renderScale;
+      if (span > 0) return span;
+    }
+    if (meta.bodyH) return meta.bodyH * HEAD_ABOVE_BODY;
   }
   return 0;
 }
 
 /**
- * Solve a character's draw scale so their idle renders at the head-height
- * target, and write it onto the character. Returns the scale, or null when the
- * manifest cannot answer (in which case the authored fallback is left alone).
+ * Solve a character's draw scale so the top of their idle lands exactly on the
+ * head-height target, and write it onto the character. Returns the scale, or
+ * null when the manifest cannot answer (leaving the authored fallback alone).
  */
 export function applyHeightScale(charKey) {
   const char = CHARACTERS[charKey];
-  const bodyH = idleBodyH(charKey);
-  if (!char || !bodyH) return null;
-  char.scale = headHeightTarget(charKey) / (bodyH * HEAD_ABOVE_BODY);
+  const span = idleSpan(charKey);
+  if (!char || !span) return null;
+  char.scale = headHeightTarget(charKey) / span;
   return char.scale;
 }
 

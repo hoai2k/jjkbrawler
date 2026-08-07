@@ -24,6 +24,17 @@ heightCm            characters.js   the real figure in cm, or null if unpublishe
 fallback only — editing them does nothing. Change `heightCm`, or override the
 target in the workbench.
 
+The target names **the top of the head**, and it is met exactly: the scale is
+solved against `bodyTop`, the topmost opaque row of the idle art measured
+offline by `tools/bake_anchors.py`. Measured across the roster, every idle's
+painted top lands within 0.6 game pixels of its bar.
+
+Because the idle's foot line is part of that span, moving the idle's **ground
+contact** re-solves the scale and the head stays where it was — the sprite grows
+or shrinks downward from a fixed head position rather than sliding off the bar.
+The same applies to the idle's size control. Neither is true of any other pose:
+only the idle drives the character's size.
+
 Solving happens in `loadAssets()`, because it needs the manifest's body
 measurements. The game and both workbenches all go through it, so they cannot
 disagree about how tall a fighter is.

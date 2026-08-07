@@ -109,10 +109,14 @@ export async function loadAssets(onProgress) {
   // Sheet art is drawn facing RIGHT by default (verified against every
   // character's run row). `nativeLeft` lists the exceptions that are drawn
   // facing left; the renderer mirrors those instead.
+  // A per-frame `faceLeft` is an explicit decision (the sprite workbench's
+  // Mirror control writes one), so it wins. `nativeLeft` only fills in frames
+  // that have never been judged by hand — otherwise turning a mirror OFF could
+  // never stick, because this loop would turn it back on every load.
   for (const [charKey, frames] of Object.entries(spriteManifest.nativeLeft || {})) {
     for (const frameKey of frames) {
       const meta = spriteManifest.characters?.[charKey]?.[frameKey];
-      if (meta) meta.faceLeft = true;
+      if (meta && meta.faceLeft === undefined) meta.faceLeft = true;
     }
   }
 
