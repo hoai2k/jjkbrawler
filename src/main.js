@@ -218,8 +218,16 @@ function rafLoop(time) {
 
 function loop(time) {
   lastFrameAt = performance.now();
-  const dt = Math.min((time - previousTime) / 1000, 1 / 30);
-  previousTime = time;
+  // Clamped at BOTH ends. The ceiling covers a stall; the floor covers the fact
+  // that this loop has two callers whose clocks do not agree — the watchdog
+  // below passes `performance.now()`, while rAF passes the vsync timestamp for
+  // the START of the frame, which is a few ms EARLIER than the moment its
+  // callback runs. A watchdog tick immediately followed by a real frame
+  // therefore produced a negative dt, which ran the whole frame backwards:
+  // shrinking ring particles past zero radius until drawParticles() threw an
+  // IndexSizeError and took the rest of that frame's rendering with it.
+  const dt = Math.max(0, Math.min((time - previousTime) / 1000, 1 / 30));
+  previousTime = Math.max(previousTime, time);
 
   readGamepads();
 

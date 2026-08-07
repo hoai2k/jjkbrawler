@@ -193,43 +193,30 @@ function buildCharacterGrid() {
   els.characterGrid.innerHTML = "";
   // RESOLVED_GROUPS, not the raw config: a typo'd key would otherwise reach
   // buildCharacterCard and take the whole select screen down on `.name`.
+  // One continuous grid: every card is a direct child, so the roster packs the
+  // full width instead of splitting into per-category columns that each ran
+  // half-empty. Category names ride along as in-flow label chips — they mark
+  // where a group starts without carving the layout into separate blocks.
   for (const group of RESOLVED_GROUPS) {
-    els.characterGrid.appendChild(buildGroupSection(group.key, group.label, group.members));
+    els.characterGrid.appendChild(buildGroupLabel(group.key, group.label));
+    for (const member of group.members) els.characterGrid.appendChild(buildCharacterCard(member));
   }
-  // Random is its own trailing tile rather than a member of any category.
+  // Random belongs to no category and needs no label chip — the tile is already
+  // a dashed "?" reading RANDOM, and spending two cells to say so again left the
+  // last row nearly empty.
   if (RANDOM_GROUP.show !== false) {
-    const wildcard = buildGroupSection(RANDOM_GROUP.key, RANDOM_GROUP.label, [RANDOM_KEY]);
-    wildcard.classList.add("char-group--wildcard");
+    const wildcard = buildCharacterCard(RANDOM_KEY);
+    wildcard.title = RANDOM_GROUP.label;
     els.characterGrid.appendChild(wildcard);
   }
-
-  // getComputedStyle hands back custom properties unresolved ("clamp(78px,
-  // 15vh, 200px)"), so the responsive base size is measured off a probe element
-  // that is actually laid out at that width.
-  const probe = document.createElement("span");
-  probe.className = "card-probe";
-  probe.setAttribute("aria-hidden", "true");
-  els.characterGrid.appendChild(probe);
 }
 
-function buildGroupSection(key, label, members) {
-  const section = document.createElement("section");
-  section.className = "char-group";
-  section.dataset.group = key;
-  // Widths are driven off the member count, so any number of groups of any
-  // size lays itself out from this one variable.
-  section.style.setProperty("--members", members.length);
-
+function buildGroupLabel(key, label) {
   const heading = document.createElement("h3");
   heading.className = "char-group-title";
+  heading.dataset.group = key;
   heading.textContent = label;
-  section.appendChild(heading);
-
-  const cards = document.createElement("div");
-  cards.className = "char-group-cards";
-  for (const member of members) cards.appendChild(buildCharacterCard(member));
-  section.appendChild(cards);
-  return section;
+  return heading;
 }
 
 function buildCharacterCard(key) {
@@ -253,44 +240,35 @@ function buildCharacterCard(key) {
   return btn;
 }
 
-const MIN_CARD_PX = 44;
+// Column bounds for the roster grid. Fewer columns means bigger portraits, so
+// the fitter walks UP from the largest layout and stops at the first one the
+// menu can actually contain.
+const MIN_ROSTER_COLS = 6;
+const MAX_ROSTER_COLS = 26;
 
-// Sizes the roster to the window: portraits scale with the viewport, groups sit
-// side by side while they fit, columns are balanced so rows come out even (six
-// fighters in two rows read as 3+3, never 5+1), and the whole thing shrinks
-// until the matchup bar below it still fits on screen. Runs on resize and
+// Sizes the roster to the window. Every card is a cell of one grid spanning the
+// full width, so portraits are as large as the remaining vertical space allows
+// rather than being squeezed into per-category columns. Runs on resize and
 // whenever the menu is shown; nothing here is tied to the current roster size.
 export function layoutCharacterGrid() {
   const grid = els.characterGrid;
   if (!grid || !grid.clientWidth) return; // hidden overlay: nothing to measure
+  if (!grid.querySelector(".char-card")) return;
   grid.style.removeProperty("--grid-height"); // measure the natural size first
-  const base = grid.querySelector(".card-probe")?.getBoundingClientRect().width || 90;
-  let size = base;
-  for (let pass = 0; pass < 12; pass++) {
-    grid.style.setProperty("--card-size", `${Math.round(size)}px`);
-    applyColumns(grid, size);
-    if (els.menuOverlay.scrollHeight <= els.menuOverlay.clientHeight || size <= MIN_CARD_PX) break;
-    size = Math.max(MIN_CARD_PX, size * 0.9);
+
+  let chosen = MAX_ROSTER_COLS;
+  for (let cols = MIN_ROSTER_COLS; cols <= MAX_ROSTER_COLS; cols++) {
+    grid.style.setProperty("--cols", String(cols));
+    // scrollHeight > clientHeight means this layout overflows the menu, so keep
+    // adding columns (shrinking cards) until it stops.
+    if (els.menuOverlay.scrollHeight <= els.menuOverlay.clientHeight) {
+      chosen = cols;
+      break;
+    }
   }
+  grid.style.setProperty("--cols", String(chosen));
   // Pin the fitted height so the roster cannot shift while a player is choosing.
   grid.style.setProperty("--grid-height", `${Math.ceil(grid.getBoundingClientRect().height)}px`);
-}
-
-function applyColumns(grid, cardSize) {
-  const groups = [...grid.querySelectorAll(".char-group:not(.char-group--wildcard) .char-group-cards")]
-    .filter((el) => el.childElementCount);
-  if (!groups.length) return;
-  // One column count for the whole roster, taken from the narrowest group, then
-  // trimmed per group so its rows come out even.
-  const gap = parseFloat(getComputedStyle(groups[0]).columnGap) || 0;
-  const narrowest = Math.min(...groups.map((el) => el.clientWidth));
-  const fit = Math.max(1, Math.floor((narrowest + gap) / (cardSize + gap)));
-  for (const cards of groups) {
-    const count = cards.childElementCount;
-    const cols = Math.min(fit, count);
-    const rows = Math.ceil(count / cols);
-    cards.style.setProperty("--cols", Math.ceil(count / rows));
-  }
 }
 
 function buildStageGrid() {
@@ -863,6 +841,12 @@ function updatePickerCursorClasses() {
 }
 
 function setPickerCursor(playerId, key, { quiet = false } = {}) {
+  // A player who has locked in has stopped browsing: nothing — pad, mouse hover
+  // or keyboard focus — may move their cursor again until they press B. The pad
+  // loop already skips ready players, but the hover and focus paths call in
+  // through `state.activePicker`, which can still be pointing at someone who is
+  // ready, so the rule belongs here where every path passes.
+  if (state.ready[playerId]) return;
   if (!key || pickerCursor[playerId] === key) return;
   pickerCursor[playerId] = key;
   // Repaints the hero card too: the cursor drives the transient preview.
