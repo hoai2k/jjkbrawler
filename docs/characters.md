@@ -4,6 +4,12 @@ How each fighter's canon abilities and personality from *Jujutsu Kaisen* were
 translated into stats, specials, ultimates, and passives. Numbers live in
 `src/characters.js`; this document explains **why** each kit is the way it is.
 
+**Names:** each section heading is `Full Name — "Epithet"`, and both are
+canonical. `src/characters.js` mirrors them as `fullName` and `epithet`, next to
+the short `name` the roster tiles and in-match HUD use where space is tight. The
+hero card on the select screen shows the full name. Adding a fighter means
+adding all three; they should not drift from the heading here.
+
 **Reading a kit:** every character has universal lights/heavies (same inputs,
 different reach/speed/damage/effects), three specials (neutral, side, down),
 one meter-funded ultimate, and one always-on passive. Stats shown as

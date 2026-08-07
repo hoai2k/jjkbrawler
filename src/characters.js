@@ -1,6 +1,11 @@
 // All 20 fighters: stats, sprite-frame mappings, attack profiles, specials,
 // ultimates, passives. Design rationale for every kit lives in docs/characters/.
 //
+// `name` is the short form the roster tiles and in-match HUD use, where space
+// is tight; `fullName` is the character's full name, shown on the hero card.
+// Both, plus `epithet`, mirror the headings in docs/characters.md — that file
+// is the research, this one is the data.
+//
 // Frame keys are sheet cells "r{row}c{col}" resolved via assets/sprites/manifest.json.
 // Sheet rows: 0 idle/poses, 1 run, 2 air, 3 technique effects, 4 crouch.
 // Fighters delivered from round 7 onward (Choso, Mei Mei, Uro) have no sheet at
@@ -102,6 +107,7 @@ export const CHARACTERS = {
   // ------------------------------------------------------------------ GOJO
   gojo: {
     name: "Gojo",
+    fullName: "Satoru Gojo",
     epithet: "The Honored One",
     theme: "#62dcff",
     shadow: "rgba(88, 220, 255, 0.36)",
@@ -159,6 +165,7 @@ export const CHARACTERS = {
   // ------------------------------------------------------------------ YUTA
   yuta: {
     name: "Yuta",
+    fullName: "Yuta Okkotsu",
     epithet: "Rika's Beloved",
     theme: "#9fc7ff",
     shadow: "rgba(159, 199, 255, 0.36)",
@@ -203,6 +210,7 @@ export const CHARACTERS = {
   // ---------------------------------------------------------------- HAKARI
   hakari: {
     name: "Hakari",
+    fullName: "Kinji Hakari",
     epithet: "The Gambler",
     theme: "#ff62cf",
     shadow: "rgba(255, 98, 207, 0.38)",
@@ -247,6 +255,7 @@ export const CHARACTERS = {
   // ------------------------------------------------------------------ MAKI
   maki: {
     name: "Maki",
+    fullName: "Maki Zen'in",
     epithet: "Heavenly Restricted",
     theme: "#69d0a8",
     shadow: "rgba(105, 208, 168, 0.34)",
@@ -291,6 +300,7 @@ export const CHARACTERS = {
   // ---------------------------------------------------------------- MEGUMI
   megumi: {
     name: "Megumi",
+    fullName: "Megumi Fushiguro",
     epithet: "Ten Shadows",
     theme: "#7c8cff",
     shadow: "rgba(124, 140, 255, 0.36)",
@@ -343,6 +353,7 @@ export const CHARACTERS = {
   // ---------------------------------------------------------------- NOBARA
   nobara: {
     name: "Nobara",
+    fullName: "Nobara Kugisaki",
     epithet: "Straw Doll Sorceress",
     theme: "#d86a4a",
     shadow: "rgba(216, 106, 74, 0.36)",
@@ -387,6 +398,7 @@ export const CHARACTERS = {
   // --------------------------------------------------------------- INUMAKI
   inumaki: {
     name: "Inumaki",
+    fullName: "Toge Inumaki",
     epithet: "Cursed Speech User",
     theme: "#d7d9e7",
     shadow: "rgba(215, 217, 231, 0.32)",
@@ -431,6 +443,7 @@ export const CHARACTERS = {
   // ----------------------------------------------------------------- PANDA
   panda: {
     name: "Panda",
+    fullName: "Panda",
     epithet: "Not Just Any Panda",
     theme: "#8ea0b8",
     shadow: "rgba(142, 160, 184, 0.36)",
@@ -475,6 +488,7 @@ export const CHARACTERS = {
   // ------------------------------------------------------------------ TODO
   todo: {
     name: "Todo",
+    fullName: "Aoi Todo",
     epithet: "My Brother",
     theme: "#b66cff",
     shadow: "rgba(182, 108, 255, 0.38)",
@@ -519,6 +533,7 @@ export const CHARACTERS = {
   // ------------------------------------------------------------------ MOMO
   momo: {
     name: "Momo",
+    fullName: "Momo Nishimiya",
     epithet: "Witch of the Wind",
     theme: "#b7b8ff",
     shadow: "rgba(183, 184, 255, 0.36)",
@@ -566,6 +581,7 @@ export const CHARACTERS = {
   // ---------------------------------------------------------------- NANAMI
   nanami: {
     name: "Nanami",
+    fullName: "Kento Nanami",
     epithet: "The Salaryman",
     theme: "#ffd35a",
     shadow: "rgba(255, 205, 82, 0.32)",
@@ -611,6 +627,7 @@ export const CHARACTERS = {
   // ------------------------------------------------------------------ TOJI
   toji: {
     name: "Toji",
+    fullName: "Toji Fushiguro",
     epithet: "The Sorcerer Killer",
     theme: "#a8aeb8",
     shadow: "rgba(168, 174, 184, 0.34)",
@@ -663,6 +680,7 @@ export const CHARACTERS = {
   // ---------------------------------------------------------------- SUKUNA
   sukuna: {
     name: "Sukuna",
+    fullName: "Ryomen Sukuna",
     epithet: "King of Curses",
     theme: "#ff4c55",
     shadow: "rgba(255, 67, 75, 0.4)",
@@ -708,6 +726,7 @@ export const CHARACTERS = {
   // ---------------------------------------------------------------- MAHITO
   mahito: {
     name: "Mahito",
+    fullName: "Mahito",
     epithet: "Soul Shaper",
     theme: "#b56cff",
     shadow: "rgba(177, 92, 255, 0.4)",
@@ -757,6 +776,7 @@ export const CHARACTERS = {
   // ------------------------------------------------------------------ GETO
   geto: {
     name: "Geto",
+    fullName: "Suguru Geto",
     epithet: "Curse Collector",
     theme: "#7d58d8",
     shadow: "rgba(125, 88, 216, 0.38)",
@@ -810,6 +830,7 @@ export const CHARACTERS = {
   // ------------------------------------------------------------------ JOGO
   jogo: {
     name: "Jogo",
+    fullName: "Jogo",
     epithet: "Disaster of Flame",
     theme: "#ff7a2f",
     shadow: "rgba(255, 122, 47, 0.42)",
@@ -854,6 +875,7 @@ export const CHARACTERS = {
   // ---------------------------------------------------------------- HANAMI
   hanami: {
     name: "Hanami",
+    fullName: "Hanami",
     epithet: "Grief of the Forest",
     theme: "#9bb36b",
     shadow: "rgba(155, 179, 107, 0.4)",
@@ -899,6 +921,7 @@ export const CHARACTERS = {
   // ----------------------------------------------------------------- CHOSO
   choso: {
     name: "Choso",
+    fullName: "Choso",
     epithet: "Eldest Brother",
     theme: "#c22e4a",
     shadow: "rgba(194, 46, 74, 0.4)",
@@ -936,6 +959,7 @@ export const CHARACTERS = {
   // --------------------------------------------------------------- MEI MEI
   meimei: {
     name: "Mei Mei",
+    fullName: "Mei Mei",
     epithet: "The Mercenary",
     theme: "#d8b95c",
     shadow: "rgba(216, 185, 92, 0.36)",
@@ -973,6 +997,7 @@ export const CHARACTERS = {
   // ------------------------------------------------------------------- URO
   uro: {
     name: "Uro",
+    fullName: "Takako Uro",
     epithet: "Sky Manipulator",
     theme: "#8fd7e8",
     shadow: "rgba(143, 215, 232, 0.36)",
@@ -1014,6 +1039,7 @@ export const CHARACTERS = {
   // ------------------------------------------------------------------ YUJI
   yuji: {
     name: "Yuji",
+    fullName: "Yuji Itadori",
     epithet: "Sukuna's Vessel",
     theme: "#ff8264",
     shadow: "rgba(255, 130, 100, 0.38)",
@@ -1051,6 +1077,7 @@ export const CHARACTERS = {
   // ---------------------------------------------------------------- REGGIE
   reggie: {
     name: "Reggie Star",
+    fullName: "Reggie Star",
     epithet: "The Contractor",
     theme: "#86d67c",
     shadow: "rgba(134, 214, 124, 0.36)",
@@ -1095,6 +1122,7 @@ export const CHARACTERS = {
   // ------------------------------------------------------------- GAKUGANJI
   gakuganji: {
     name: "Gakuganji",
+    fullName: "Yoshinobu Gakuganji",
     epithet: "The Old Guard",
     theme: "#d89b3f",
     shadow: "rgba(216, 155, 63, 0.36)",
