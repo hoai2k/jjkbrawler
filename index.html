@@ -14,8 +14,12 @@
         <canvas id="gameCanvas" width="1280" height="720"></canvas>
 
         <nav id="utilityActions" class="utility-actions hidden" aria-label="Game options">
-          <button id="movesButton" class="icon-button icon-button--info" type="button" aria-label="Controls and move list" title="Controls and move list">i</button>
-          <button id="settingsButton" class="icon-button" type="button" aria-label="Settings" title="Settings">
+          <button id="movesButton" class="icon-button icon-button--filled icon-button--info" type="button" aria-label="Controls and move list" title="Controls and move list">i</button>
+          <button id="muteButton" class="icon-button icon-button--filled" type="button" aria-pressed="false" aria-label="Mute sound" title="Mute sound">
+            <svg class="icon-sound-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.4L12 5.2v13.6L7.4 14.5H4Zm12.4-1.2a5 5 0 0 1 0 7.4l1.4 1.5a7 7 0 0 0 0-10.4Zm2.7-2.9a9 9 0 0 1 0 13.2l1.4 1.5a11 11 0 0 0 0-16.2Z"/></svg>
+            <svg class="icon-sound-off hidden" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.4L12 5.2v13.6L7.4 14.5H4Zm12.3.6 1.4-1.4 2.1 2.1 2.1-2.1 1.4 1.4L21.2 12l2.1 2.1-1.4 1.4-2.1-2.1-2.1 2.1-1.4-1.4 2.1-2.1Z"/></svg>
+          </button>
+          <button id="settingsButton" class="icon-button icon-button--filled" type="button" aria-label="Settings" title="Settings">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Zm8.1 4.9.1-1.1-.1-1.1 2-1.5-2-3.5-2.4 1a8.5 8.5 0 0 0-1.9-1.1L15.5 3h-4l-.3 2.8a8.5 8.5 0 0 0-1.9 1.1l-2.4-1-2 3.5 2 1.5-.1 1.1.1 1.1-2 1.5 2 3.5 2.4-1a8.5 8.5 0 0 0 1.9 1.1l.3 2.8h4l.3-2.8a8.5 8.5 0 0 0 1.9-1.1l2.4 1 2-3.5-2-1.5Z"/></svg>
           </button>
           <button id="fullscreenButton" class="icon-button" type="button" aria-label="Toggle fullscreen" title="Toggle fullscreen">
@@ -186,6 +190,7 @@
               <span id="sfxVolumeLabel">Sound FX Volume: 45%</span>
               <input id="sfxVolumeRange" type="range" min="0" max="100" value="45">
             </label>
+            <button id="settingsSfxButton" type="button">Sound Effects: On</button>
             <button id="settingsMusicButton" type="button">Music: Mix</button>
             <button id="settingsCpuButton" type="button">CPU Difficulty: Normal</button>
             <button id="settingsStocksButton" type="button">Lives per fighter: 3</button>

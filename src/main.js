@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { loadCoreAssets, startBackgroundLoad, ensureMatchAssets, matchAssetsPending } from "./assets.js";
 import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, joinedPlayerCount, blankInput } from "./input.js";
-import { initAudio, setBattleStage, syncMusic } from "./audio.js";
+import { initAudio, playSfx, setBattleStage, syncMusic } from "./audio.js";
 import { makeFighter, updateFighter } from "./fighter.js";
 import { updateHitboxes, updateProjectiles } from "./combat.js";
 import { updateParticles, banner } from "./particles.js";
@@ -131,6 +131,7 @@ async function resetMatch() {
   introT = 1.6;
   endT = 0;
   banner("READY…", "#e8ecf8", { y: 300, size: 60, life: 1.0 });
+  playSfx("countdownReady");
   setPhase("playing");
 }
 
@@ -152,7 +153,10 @@ function updateSimulation(dt, held) {
   if (introT > 0) {
     const before = introT;
     introT -= dt;
-    if (before > 0.6 && introT <= 0.6) banner("GO!", "#ffd35a", { y: 300, size: 72, life: 0.6 });
+    if (before > 0.6 && introT <= 0.6) {
+      banner("GO!", "#ffd35a", { y: 300, size: 72, life: 0.6 });
+      playSfx("countdownGo");
+    }
     // fighters frozen during countdown
     for (const f of state.fighters) updateFighter(f, dt, blankInput());
   } else {
@@ -197,6 +201,7 @@ function updateSimulation(dt, held) {
   if (alive.length <= 1) {
     endT = 1.4;
     banner("GAME!", "#ffffff", { y: 280, size: 80, life: 1.3 });
+    playSfx("matchEnd");
     state.slowMo = Math.max(state.slowMo, 0.6);
   }
 }

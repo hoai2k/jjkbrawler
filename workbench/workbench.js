@@ -14,6 +14,7 @@ import {
 import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
 import { headHeightTarget, applyHeightScale, hasHeightOverride, heightRatio } from "../src/heights.js";
+import { initTooltips, setHelp } from "./tooltip.js";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("stage");
@@ -481,7 +482,6 @@ function refreshControls() {
                                         : `${dg > 0 ? "+" : ""}${dg.toFixed(1)} px`;
   $("groundGroup").classList.toggle("disabled", airborne);
   $("groundRange").disabled = airborne;
-  $("groundNote").hidden = !airborne;
   document.querySelectorAll("[data-ground]").forEach((b) => (b.disabled = airborne));
 
   const flagged = !!meta.needsReplacement;
@@ -573,12 +573,15 @@ function refreshAnchorControls() {
     wrap.appendChild(row);
   }
 
-  $("anchorHint").textContent = names.length
-    ? (state.anchor ? ANCHOR_META[state.anchor]?.hint ?? "" : "")
-      || "Drag a handle on the sprite, or nudge it here. Anchors are stored " +
-         "against the artwork, so later size, position and ground tweaks carry " +
-         "them along."
-    : "This pose carries no anchors.";
+  // The anchors a pose carries vary, so its help is assembled rather than
+  // written into the markup: the general rule, then a line per anchor.
+  setHelp($("anchorLabel"), names.length
+    ? "Drag a handle on the sprite, or nudge it here. Anchors are stored "
+      + "against the artwork, so later size, position and ground tweaks carry "
+      + "them along.<br><br>"
+      + names.map((n) => `<b>${ANCHOR_META[n]?.label ?? n}</b> — ${ANCHOR_META[n]?.hint ?? ""}`)
+             .join("<br><br>")
+    : "This pose carries no anchors.");
 }
 
 /** Character-level, so it must update even when no pose is selected. */
@@ -965,6 +968,8 @@ async function boot() {
     if (e.key === "ArrowUp") { state.frame = frames[(i - 1 + frames.length) % frames.length]; syncAll(); e.preventDefault(); }
     if (e.key === "ArrowDown") { state.frame = frames[(i + 1) % frames.length]; syncAll(); e.preventDefault(); }
   });
+
+  initTooltips();
 
   await loadAllAssets();
   warmAnchors(CHARACTER_KEYS);

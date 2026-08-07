@@ -7,7 +7,7 @@ import { performSpecial, updateSpecialState } from "./specials.js";
 import { performUltimate } from "./ultimates.js";
 import { performDomain, domainInput, canOpenDomain, activeDomain } from "./domains.js";
 import { burst, dust, popup, banner, ring } from "./particles.js";
-import { playSfx, playGrunt, startShieldLoop, stopShieldLoop } from "./audio.js";
+import { playSfx, playGrunt, playKoCry, startShieldLoop, stopShieldLoop } from "./audio.js";
 import {
   GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME,
   SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
@@ -171,7 +171,7 @@ function beginDodge(f, type, dir = 0) {
     f.invuln = Math.max(f.invuln, 0.26 * iframeMul);
     f.airDodged = true;
   }
-  playSfx("whoosh", 0.85);
+  playSfx("dash", 0.9);
   dust(f.x, f.y, 8);
 }
 
@@ -305,7 +305,8 @@ function resolvePlatforms(f, prevY) {
 export function ringOut(f) {
   const opp = opponentOf(f);
   f.stocks -= 1;
-  playSfx("gone", 1);
+  playSfx("launch", 1);
+  playKoCry(f.charKey);
   state.camera.shake = Math.max(state.camera.shake, 16);
   state.slowMo = Math.max(state.slowMo, 0.35);
   state.screenFlash = { color: opp ? opp.char.theme : "#ffffff", life: 0.28, maxLife: 0.28 };
@@ -338,6 +339,7 @@ export function ringOut(f) {
 
 function respawn(f) {
   f.respawnTimer = 0;
+  playSfx("respawn");
   const respawnSets = {
     2: { 1: 430, 2: 850 },
     3: { 1: 320, 2: 640, 3: 960 },
@@ -689,6 +691,7 @@ export function updateFighter(f, dt, input) {
       f.jumpCut = false;
       if (f.action?.kind === "dodge") f.action = null;
       dust(f.x, f.y, 12);
+      playSfx("jump");
     } else if (f.airJumpsLeft > 0 && !inHitstun) {
       f.jumpBuffer = 0;
       f.airJumpsLeft -= 1;
@@ -696,7 +699,7 @@ export function updateFighter(f, dt, input) {
       f.takeoffT = TAKEOFF_STRETCH_TIME;
       f.fastFalling = false;
       dust(f.x, f.y, 10);
-      playSfx("whoosh", 0.4);
+      playSfx("doubleJump");
     }
   }
 

@@ -179,7 +179,17 @@ export const TEXT = {
     spriteDefault: "Default",
     spriteAlternate: "Alternate",
     activeBoards: (on) => `Active Boards: ${on ? "On" : "Off"}`,
+    sfxEnabled: (on) => `Sound Effects: ${on ? "On" : "Off"}`,
     back: "Back",
+  },
+
+  // Toolbar buttons in the top-right corner.
+  utility: {
+    moves: "Controls and move list",
+    settings: "Settings",
+    fullscreen: "Toggle fullscreen",
+    mute: "Mute sound",
+    unmute: "Unmute sound",
   },
 
   hud: {

@@ -3,6 +3,16 @@
 Companion to `docs/asset-requests.md`, same idea: an audit of what the game
 actually needs, with a ready-to-paste prompt per file.
 
+> **STATUS: all 81 delivered and wired in.** Filenames below say `.wav`;
+> what ships is the same name as **`.mp3`** (mono, 128 kbps) — a browser has
+> to download these, and MP3 is about a fifth the size. `tools/generate_sfx.py`
+> handles the conversion. Generated with the ElevenLabs
+> sound-generation API from the prompts below (`tools/generate_sfx.py`), then
+> trimmed, length-capped and peak-normalised to -3 dBFS automatically. The
+> registry, mix and categories live in `src/config_audio.js`; the audit below
+> describes the state *before* this pass and is kept as the rationale for
+> what was made.
+
 **Every prompt below is complete.** Copy one, paste it into your generator,
 save the result under the filename above it. There is no style suffix to
 append and nothing to fill in — the format, length, dryness and "no music /
@@ -595,9 +605,17 @@ Totals: **68 files** for tiers 1–6, plus 13 optional. Tiers 1–3 alone
 
 | Tier | Files | Delivered | Wired up |
 |---|---|---|---|
-| 1 — core combat | 12 | ☐ | ☐ |
-| 2 — silent moments | 10 | ☐ | ☐ |
-| 3 — voices | 18 (+6 KO) | ☐ | ☐ |
-| 4 — menu / UI | 7 | ☐ | ☐ |
-| 5 — energy / summons / domains | 11 (+7 stings) | ☐ | ☐ |
-| 6 — stage hazards | 10 | ☐ | ☐ |
+| 1 — core combat | 12 | ☑ | ☑ |
+| 2 — silent moments | 10 | ☑ | ☑ |
+| 3 — voices | 18 (+6 KO) | ☑ | ☑ |
+| 4 — menu / UI | 7 | ☑ | ☑ |
+| 5 — energy / summons / domains | 11 (+7 stings) | ☑ | ☑ |
+| 6 — stage hazards | 10 | ☑ | partly — see below |
+
+### Not yet wired
+
+The ten Tier 6 hazard sounds are generated and in the registry, but
+`src/stage_fx.js` still calls the old generic keys. They now resolve through
+`SFX_ALIASES` to sensible replacements, so nothing is silent — but each board
+should be repointed at its own sound (`hazardBell` for the Lantern Corridor,
+`hazardWaterSurge` for the Flooded Gate, and so on) to get the benefit.

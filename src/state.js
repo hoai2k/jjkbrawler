@@ -6,6 +6,9 @@ export const state = {
   playerCount: 1,   // human players; 1 means P1 versus CPU
   cpuLevel: 1,      // 0 easy, 1 normal, 2 hard
   stocks: 3,
+  // "Sound Effects" (Settings): the whole SFX bus. Off silences every one-shot
+  // and the shield loop; music is a separate setting.
+  sfxEnabled: true,
   // "Active Boards" (Settings): stage gimmicks — hazards, moving platforms,
   // surface/gravity modifiers (src/stage_fx.js). Off = every stage reverts to
   // its static v1 layout.

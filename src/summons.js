@@ -114,7 +114,7 @@ export function spawnSummon(owner, cfg) {
         this.dead = true;
         burst(this.x, this.y - 50, cfg.color, 30, 1.3);
         ring(this.x, this.y - 50, cfg.color, (cfg.attack.r || 90) * 1.3);
-        playSfx("blast", 0.9, 1.1);
+        playSfx("summonAttack", 0.9);
         state.camera.shake = Math.max(state.camera.shake, 5);
         applyHit(owner, target, {
           dmg: cfg.attack.dmg, baseKb: cfg.attack.base, growth: cfg.attack.growth,
@@ -155,7 +155,7 @@ export function spawnSummon(owner, cfg) {
       const dy = (target.y - 80) - this.y;
       proj.vy = clamp(dy * 1.6, -260, 300);
       burst(this.x + this.dir * 20, this.y, cfg.color, 6, 0.5);
-      playSfx("whoosh", 0.6, 1.3);
+      playSfx("projectileFire", 0.7);
     },
 
     draw(ctx) {
@@ -196,6 +196,7 @@ export function spawnSummon(owner, cfg) {
     s.y = owner.y - (cfg.hover?.up ?? 150);
   }
   state.entities.push(s);
+  playSfx("summonAppear");
   burst(s.x, s.y - (cfg.hitH || 90) / 2, cfg.color, 18, 1);
   dust(s.x, groundY(), 8);
   return s;
