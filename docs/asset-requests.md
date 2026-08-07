@@ -406,3 +406,177 @@ Currently falls back to `effects/cursed_spirit_orb.png` (generic orb).
 - `summons/divine_dog_white.png` / `divine_dog_black.png` regenerations at
   ≥600 px if the current ones look soft next to new art (they now run and
   lunge on stage far longer than before, so quality shows more).
+
+---
+
+## Round 9 — Regenerate the 17 original hero cards
+
+Round 7 delivered six new fighters, and their hero cards landed in a **visibly
+different art style** from the original seventeen. Three of those six — Mei Mei,
+Uro and Choso — are now live in the roster, so the select screen currently shows
+**17 old-style cards next to 3 new-style ones** and the seam is obvious. (Yuji,
+Reggie and Gakuganji are still staged; their cards are already new-style, so
+promoting them widens the gap rather than closing it.)
+
+This round brings the old cards up to the new style so the roster reads as one
+set.
+
+Nothing else about the cards changes: same path (`assets/cards/<key>_card.jpg`),
+same **640×820** dimensions (already consistent across all 23 cards on disk —
+verified), so delivery is a straight file swap with no code change.
+
+### What actually differs
+
+Measured by putting `gojo_card.jpg` / `sukuna_card.jpg` next to
+`yuji_card.jpg` / `meimei_card.jpg`:
+
+| | Original 17 (rounds ≤6) | Round-7 six — **the target** |
+|---|---|---|
+| Crop | Full body, feet visible | **Half-body to three-quarter** — cut between the waist and mid-thigh, never showing feet |
+| Rendering | Glossy semi-3D figure render, airbrushed volumes | **Flat cel shading, crisp dark lineart** — TV-anime cel, not a statue render |
+| Background | Abstract ink / paint-splatter on **white** | **Painted environment** — a real place with atmospheric depth and shallow depth-of-field blur |
+| Lighting | Even studio light on the figure | **Directional cinematic light**, warm rim light, colored ambience |
+| Framing | Wide action pose, character small in frame | Character fills the frame, face large |
+| Reads as | A poster of a figurine | A still from the show |
+
+The two levers that matter most are **half-body crop** and **environmental
+background instead of white splatter**. Get those right and the set matches even
+if the rendering drifts slightly.
+
+### Framing constraint — keep the face high
+
+The UI crops these cards three ways, always anchored to the **top** edge
+(`object-position: top`):
+
+| Where | Crop taken | As % of the 820px height |
+|---|---|---|
+| Hero card on the select screen | top 640×450 | **top 55%** |
+| Battle HUD portrait | top 640×640 square | top 78% |
+| Roster grid thumbnail | ~ full card | top ~98% |
+
+So the **head and the readable part of the pose must sit inside the top 55%**
+of the image. All four delivered round-7 cards already satisfy this — every one
+puts the face in the top third — so following the style suffix gets it for
+free. Anything important placed low in the frame is only ever seen in the grid
+thumbnail.
+
+### Delivery spec (cards)
+
+- **Format:** JPEG, **640×820**, `assets/cards/<key>_card.jpg` (overwrite).
+- **No text, no logo, no border, no frame, no signature** — the UI draws the
+  name, and a baked border fights the card's rounded corners.
+- Full-bleed background: these are the one asset type that is *not* keyed or
+  transparent, so paint the scene edge to edge.
+- Higher-resolution generation then downscale to 640×820 is fine and preferred.
+
+### Style suffix — append to every card prompt
+
+This is the consistency lever. Use it verbatim on all seventeen:
+
+> half-body portrait cropped between the waist and mid-thigh, character turned
+> slightly toward the viewer with the head high in the frame, clean Japanese
+> TV-anime key-art style matching the Jujutsu Kaisen anime, crisp dark lineart,
+> flat cel shading with soft gradient accents,
+> painted environmental background with atmospheric depth and shallow
+> depth-of-field blur, dramatic directional lighting with warm rim light,
+> vibrant saturated colors, high detail, no text, no logo, no border
+
+And explicitly **avoid** (this is what the old cards look like, so it is worth
+negative-prompting): `full body, feet visible, white background, paint splatter,
+ink splatter background, 3D render, glossy airbrushed rendering, figurine,
+studio product shot, text, watermark, border`.
+
+### Prompt formula
+
+`[CHARACTER BLOCK]` + `,` + `[CARD LINE]` + `,` + `[STYLE SUFFIX]`
+
+Character blocks are unchanged — reuse them verbatim from **section A** above
+(the same blocks that drove the sprite rounds), so a character's outfit stays
+identical between their card and their in-game sprites.
+
+### Card lines — 17 total
+
+Each line is written for a half-body crop (upper-body action only) and picks a
+background that matches the character's in-game theme color, so the card and
+their HUD accent agree.
+
+| File | Theme | Card line |
+|---|---|---|
+| `gojo_card.jpg` | `#62dcff` | "lifting his blindfold with two fingers to reveal one glowing pale-blue Six Eyes, a sphere of blue cursed energy hovering above his other palm, moonlit Tokyo rooftop backdrop" |
+| `yuta_card.jpg` | `#9fc7ff` | "katana held up in a reverse grip, the vast translucent pale shape of Rika looming over his shoulder, cold blue-white school courtyard at night" |
+| `hakari_card.jpg` | `#ff62cf` | "grinning with his jacket hanging open, a spinning jackpot wheel of hot pink light blazing behind his head, gaudy neon arcade interior" |
+| `maki_card.jpg` | `#69d0a8` | "naginata levelled across her body, glasses catching the light, faint jade-green sheen along the blade, dim Zen'in estate corridor" |
+| `megumi_card.jpg` | `#7c8cff` | "hands locked in the shikigami ritual hand sign, indigo shadow rising around him with two wolf silhouettes forming in it, moonlit shrine grounds" |
+| `nobara_card.jpg` | `#d86a4a` | "hammer cocked back with a straw-doll nail pinched between her fingers, cocky smirk, warm orange dusk over a Tokyo side street" |
+| `inumaki_card.jpg` | `#d7d9e7` | "tugging his high collar down to speak, faint silver rings of sound rippling outward from his mouth, pale overcast schoolyard" |
+| `panda_card.jpg` | `#8ea0b8` | "arms folded with a broad confident grin, the teal cursed-energy core glowing at his shoulder, bright Kyoto exchange-event grounds" |
+| `todo_card.jpg` | `#b66cff` | "hands caught mid-clap, a violet displacement ripple bursting between his palms, dust-lit stadium arena" |
+| `momo_card.jpg` | `#b7b8ff` | "hovering side-saddle on her broom with her hat brim tipped low, pale lavender wind streaming past her, high above a cloud-broken sky" |
+| `nanami_card.jpg` | `#ffd35a` | "loosening his tie with the blunt cleaver resting on one shoulder, tired unimpressed stare, amber office-tower windows at dusk" |
+| `toji_card.jpg` | `#a8aeb8` | "the Inverted Spear of Heaven held low across him, scarred mouth curled in a lazy smile, cold grey concrete underpass" |
+| `sukuna_card.jpg` | `#ff4c55` | "all four eyes open, one hand raised with fingers curled to dismantle, crimson slashes tearing through the air around him, burning ruined skyline" |
+| `mahito_card.jpg` | `#b56cff` | "head tilted with a childlike smile, one patchwork stitched hand reaching toward the viewer, warping violet soul-light behind him, tiled sewer tunnel" |
+| `geto_card.jpg` | `#7d58d8` | "palm open with a cursed spirit orb condensing above it, serene contemptuous expression, purple-lit temple hall" |
+| `jogo_card.jpg` | `#ff7a2f` | "single eye narrowed, magma cracking and glowing along his volcanic head, embers streaming upward, scorched black earth and drifting smoke" |
+| `hanami_card.jpg` | `#9bb36b` | "one bark-clad hand outstretched with a cursed flower blooming open from the palm, glowing eyes set in the cracked wooden face, sunlit deep forest" |
+
+### Non-human notes
+
+`panda`, `jogo` and `hanami` have no waist to crop at in the usual sense —
+frame them **head-and-upper-torso** at roughly the same visual scale as the
+human cards, so their heads land in the same band of the frame. Hanami in
+particular is tall and thin; do not shrink the whole figure to fit, crop it.
+
+If Hanami is regenerated, note there is an **alternate art set** for him
+(`spriteSet: "alternate"`, his round-6 redesign) — the card should match the
+**default** design, since the card does not swap with the sprite set.
+
+### Suggested ordering
+
+**Ship `gojo_card.jpg` first, alone.** He is the most-seen card and the
+whitest / most abstract of the old backgrounds, so he is the clearest test of
+whether the style suffix lands. Compare it against `meimei_card.jpg` (already
+live in the same grid), adjust the suffix if needed, then batch the rest.
+
+After that, work **group by group** — the select screen is now split into
+labelled rows (`CHARACTER_GROUPS` in `src/config.js`), so finishing a whole
+group makes that row internally consistent even while others are pending:
+
+1. **Sorcerers** — `gojo`, `nanami`, `todo`, `momo`, `hakari`, `toji`
+   (this row already contains new-style `meimei` and `uro`, so the mismatch is
+   most visible here).
+2. **Tokyo Jujutsu Students** — `yuta`, `maki`, `megumi`, `nobara`, `inumaki`,
+   `panda` (all six are old-style, so this row is currently self-consistent —
+   it only looks wrong next to the others).
+3. **Curses and Curse Users** — `sukuna`, `mahito`, `jogo`, `hanami`, `geto`
+   (row also holds new-style `choso`). Left for last because the non-human
+   designs are the biggest style stretch.
+
+### Integration
+
+Drop the files over the existing ones and reload — the paths and dimensions are
+unchanged, so nothing in code needs touching. Worth eyeballing afterwards: the
+select screen (all 23 cards in one grid), a hero card at lock-in, and the battle
+HUD portrait, since those are the three different crops.
+
+### Delivery checklist
+
+| Card | Regenerated | Checked in grid |
+|---|---|---|
+| `gojo` | ☐ | ☐ |
+| `yuta` | ☐ | ☐ |
+| `hakari` | ☐ | ☐ |
+| `maki` | ☐ | ☐ |
+| `megumi` | ☐ | ☐ |
+| `nobara` | ☐ | ☐ |
+| `inumaki` | ☐ | ☐ |
+| `panda` | ☐ | ☐ |
+| `todo` | ☐ | ☐ |
+| `momo` | ☐ | ☐ |
+| `nanami` | ☐ | ☐ |
+| `toji` | ☐ | ☐ |
+| `sukuna` | ☐ | ☐ |
+| `mahito` | ☐ | ☐ |
+| `geto` | ☐ | ☐ |
+| `jogo` | ☐ | ☐ |
+| `hanami` | ☐ | ☐ |
