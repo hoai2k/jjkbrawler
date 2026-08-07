@@ -10,14 +10,22 @@
 
 * { box-sizing: border-box; }
 
+/* The page itself never scrolls. The header is fixed height and the two
+   columns below each scroll on their own, so reaching a control at the bottom
+   of the panel cannot push the canvas off screen. */
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
   font: 14px/1.45 "Inter", "Segoe UI", system-ui, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .bar {
+  flex: none;
   display: flex;
   align-items: baseline;
   gap: 14px;
@@ -36,6 +44,16 @@ body {
   gap: 16px;
   padding: 16px;
   align-items: start;
+  flex: 1;
+  min-height: 0;      /* lets the columns, not the page, own the overflow */
+  overflow: hidden;
+}
+
+.stage-col,
+.panel {
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;   /* a column at its end doesn't scroll the page */
 }
 
 /* ---------------- stage ---------------- */
@@ -98,8 +116,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  position: sticky;
-  top: 16px;
 }
 
 .group { display: flex; flex-direction: column; gap: 7px; }
@@ -188,23 +204,28 @@ button.ghost:hover { border-color: var(--accent); }
 
 /* ---------------- anchors ---------------- */
 
-.anchor-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
-.anchor-tabs button {
-  padding: 5px 10px;
-  font-size: 11.5px;
+#anchorRows { display: grid; gap: 10px; }
+
+/* One block per anchor the pose carries. Every shown anchor is draggable on
+   the canvas, so nothing here selects — `active` just marks the one the arrow
+   keys will move, which follows whatever you touched last. */
+.anchor-row {
+  display: grid;
+  gap: 5px;
+  padding: 8px;
   background: #0e111b;
-  color: var(--text);
   border: 1px solid var(--line);
-  border-radius: 20px;
-  cursor: pointer;
+  border-radius: 9px;
 }
-.anchor-tabs button:hover { border-color: var(--accent); }
-.anchor-tabs button.sel {
-  background: #17372e;
-  border-color: #78ebbe;
-  color: #d7fff0;
+.anchor-row.active { border-color: #78ebbe; }
+.anchor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
 }
-#anchorBody { display: grid; gap: 6px; margin-top: 6px; }
+.anchor-val { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
 
 /* A locked control stays legible — it is still a useful readout, it just
    cannot be edited for this pose. */
@@ -215,8 +236,11 @@ button.ghost:hover { border-color: var(--accent); }
 #stage { touch-action: none; }
 
 @media (max-width: 980px) {
-  .layout { grid-template-columns: 1fr; }
-  .panel { position: static; }
+  /* Stacked, there is no second column to scroll past — let the page scroll
+     normally so the panel is reachable below the canvas. */
+  body { height: auto; overflow: visible; }
+  .layout { grid-template-columns: 1fr; overflow: visible; }
+  .stage-col, .panel { max-height: none; overflow-y: visible; }
 }
 
 .history { display: flex; gap: 6px; margin-left: 18px; }
@@ -402,7 +426,10 @@ button.ghost:hover { border-color: var(--accent); }
 /* Keep every control reachable by scrolling while the drawer is parked over
    the bottom of the page. */
 #actionsView { padding-bottom: 60px; }
-body.drawer-open #actionsView { padding-bottom: 54vh; }
+/* The action drawer is fixed to the bottom of the viewport, so the column it
+   overlaps has to end above it rather than the page growing underneath. */
+body.drawer-open .stage-col,
+body.drawer-open #actionsView .panel { padding-bottom: 54vh; }
 button.sm { padding: 4px 10px; font-size: 11.5px; }
 button.ghost:disabled { opacity: 0.35; cursor: default; border-color: var(--line); }
 .group.grow { flex: 1; min-width: 220px; }

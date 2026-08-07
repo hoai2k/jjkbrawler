@@ -51,7 +51,6 @@
             <label class="chip"><input type="checkbox" id="showPlatform" checked> Game platform</label>
             <label class="chip"><input type="checkbox" id="showGuides" checked> Guides</label>
             <label class="chip"><input type="checkbox" id="showBox"> Sprite bounds</label>
-            <label class="chip"><input type="checkbox" id="showAnchors"> Anchors</label>
             <label class="chip"><input type="checkbox" id="spinPreview"> Spin preview</label>
           </div>
           <p class="note">The two references answer different questions. The
@@ -84,23 +83,8 @@
         </div>
 
         <div class="group">
-          <label>Anchors <span class="sub" id="anchorVal"></span></label>
-          <div id="anchorTabs" class="anchor-tabs"></div>
-          <div id="anchorBody" hidden>
-            <div class="nudge">
-              <button data-anchor="-5,0">←5</button>
-              <button data-anchor="-1,0">←1</button>
-              <button data-anchor="1,0">1→</button>
-              <button data-anchor="5,0">5→</button>
-            </div>
-            <div class="nudge">
-              <button data-anchor="0,-5">↑5</button>
-              <button data-anchor="0,-1">↑1</button>
-              <button data-anchor="0,1">↓1</button>
-              <button data-anchor="0,5">↓5</button>
-            </div>
-            <button id="resetAnchor" class="ghost">Reset this anchor</button>
-          </div>
+          <label>Anchors</label>
+          <div id="anchorRows"></div>
           <p class="note" id="anchorHint"></p>
         </div>
 
