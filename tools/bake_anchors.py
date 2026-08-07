@@ -18,6 +18,10 @@ pixels measured from its top-left corner — the same space the workbench edits,
 so a baked value can be dragged afterwards and a hand-placed one is never
 silently overwritten.
 
+State-specific anchors are measured too, where a rule can find them: the
+`ledge` grip on a hang pose is the centroid of the topmost band of opaque
+pixels, which is the raised hand. See EXTRA in this file.
+
 Usage:
   python3 bake_anchors.py                 # every character, skip hand-edited
   python3 bake_anchors.py --only gojo maki
@@ -52,20 +56,59 @@ ALPHA_FLOOR = 40
 # it, and it lands well inside a tenth of a source pixel.
 WORK_SIZE = 160
 
+# Extra anchors that can be measured rather than placed by hand, keyed by the
+# frame they belong on. `band` takes the centroid of the opaque pixels in the
+# top fraction of the artwork — on a ledge hang, the hand holding the edge.
+# Frame keys match the animation data in src/characters.js, where every
+# character's `ledge` state resolves to `ledge_hang`.
+EXTRA = {
+    "ledge_hang": {"ledge": {"band": 0.08}},
+}
 
-def centroid(path):
-    """Centroid of the opaque body, in the image's own pixels. None if empty."""
+
+def _mask(path):
+    """Thresholded alpha, downsampled, plus the scale back to source pixels."""
     with Image.open(path) as im:
         alpha = im.convert("RGBA").getchannel("A")
         full_w, full_h = alpha.size
         mask = alpha.point(lambda a: 255 if a >= ALPHA_FLOOR else 0)
+        bbox = mask.getbbox()
         scale = max(full_w, full_h) / WORK_SIZE
         if scale > 1:
-            small = mask.resize((max(1, round(full_w / scale)),
-                                 max(1, round(full_h / scale))), Image.BOX)
+            mask = mask.resize((max(1, round(full_w / scale)),
+                                max(1, round(full_h / scale))), Image.BOX)
         else:
-            small = mask
             scale = 1.0
+    return mask, scale, bbox
+
+
+def band_centroid(path, top_frac):
+    """Centroid of the opaque pixels in the top `top_frac` of the artwork."""
+    small, scale, bbox = _mask(path)
+    if bbox is None:
+        return None
+    w, h = small.size
+    # measured against the ART's extent, not the image's — the frames carry
+    # large transparent margins and a fraction of those would miss the body
+    top = bbox[1] / scale
+    height = (bbox[3] - bbox[1]) / scale
+    cutoff = top + height * top_frac
+    total = sx = sy = 0.0
+    for i, weight in enumerate(small.getdata()):
+        y = i // w
+        if weight and y <= cutoff:
+            total += weight
+            sx += (i % w) * weight
+            sy += y * weight
+    if total == 0:
+        return None
+    return (round((sx / total + 0.5) * scale, 1),
+            round((sy / total + 0.5) * scale, 1))
+
+
+def centroid(path):
+    """Centroid of the opaque body, in the image's own pixels. None if empty."""
+    small, scale, _ = _mask(path)
 
     w, h = small.size
     data = small.getdata()
@@ -104,21 +147,31 @@ def main():
             continue
         for key, meta in sorted(frames.items()):
             anchors = meta.get("anchors") or {}
-            if "com" in anchors and not args.force:
-                kept += 1
-                continue
+            wanted = {"com": None}
+            wanted.update(EXTRA.get(key, {}))
+
             path = os.path.join(SPRITES, meta["file"])
+            todo = [n for n in wanted if n not in anchors or args.force]
+            if not todo:
+                kept += len(wanted)
+                continue
             if not os.path.exists(path):
                 missing.append(f"{char}/{key}: {meta['file']} not on disk")
                 continue
-            point = centroid(path)
-            if point is None:
-                missing.append(f"{char}/{key}: fully transparent")
-                continue
-            before = anchors.get("com")
-            meta.setdefault("anchors", {})["com"] = list(point)
-            wrote += 1
-            print(f"  {char}/{key}: {before} -> {list(point)}")
+
+            kept += len(wanted) - len(todo)
+            for name in todo:
+                rule = wanted[name]
+                point = (band_centroid(path, rule["band"]) if rule and "band" in rule
+                         else centroid(path))
+                if point is None:
+                    missing.append(f"{char}/{key}.{name}: nothing opaque to measure")
+                    continue
+                before = anchors.get(name)
+                meta.setdefault("anchors", {})[name] = list(point)
+                anchors = meta["anchors"]
+                wrote += 1
+                print(f"  {char}/{key}.{name}: {before} -> {list(point)}")
 
     for line in missing:
         print("  SKIP " + line)

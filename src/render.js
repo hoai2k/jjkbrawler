@@ -3,6 +3,7 @@ import { getImage } from "./assets.js";
 import { getStage } from "./stages.js";
 import { drawCharFrame, currentFrame } from "./sprites.js";
 import { fighterTransform, trailStrength } from "./motion.js";
+import { TRAIL_ALPHA } from "./tuning.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
 import { hitboxRect, hurtbox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
@@ -205,7 +206,7 @@ function drawTrail(ctx, f) {
   ctx.shadowBlur = 10;
   for (let i = 0; i < f.trail.length; i++) {
     const g = f.trail[i];
-    const fade = ((i + 1) / f.trail.length) * 0.34 * strength;
+    const fade = ((i + 1) / f.trail.length) * TRAIL_ALPHA * strength;
     drawCharFrame(ctx, f.charKey, g.frame, g.x, g.y, {
       scale: f.char.scale,
       facing: g.facing,

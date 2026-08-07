@@ -13,12 +13,13 @@ import {
   DASH_MULT, ACTION_BUFFER, AERIAL_LAND_LAG_MULT, AERIAL_LAND_LAG_MIN, SHIELD_MAX, SHIELD_DRAIN, SHIELD_REGEN, ROLL_TIME, ROLL_DIST,
   SPOT_DODGE_TIME, AIR_DODGE_TIME, DODGE_STALE_WINDOW, METER_MAX, METER_PASSIVE,
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
-  RESPAWN_X, TRAIL_LEN, TRAIL_STEP, TURN_TIME,
+  RESPAWN_X,
 } from "./constants.js";
+import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "./tuning.js";
 import { mainPlatform } from "./stages.js";
 import { frameMeta } from "./assets.js";
 import { currentFrame } from "./sprites.js";
-import { trailStrength, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "./motion.js";
+import { trailStrength } from "./motion.js";
 
 /** `dodge_roll` / `dodge_air` where the character has that art, else the old
  *  shared `dodge`. Round 6 delivered the new frames for only some of the

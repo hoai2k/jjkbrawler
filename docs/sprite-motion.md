@@ -17,16 +17,19 @@ already keeps, so one frame can lean, tumble, breathe and swing. No new art.
 
 **Everything here is draw-time only.** Hurtboxes and hitboxes are computed
 independently in `combat.js` from the fighter's position, so none of it can
-change what connects. `SQUASH = 0` in `constants.js` disables squash & stretch
-outright; the amplitude table at the top of `motion.js` dials the rest.
+change what connects.
+
+**Every number you would want to tweak lives in `src/tuning.js`** — amplitudes,
+tumble thresholds, squash depth, trail length. Nothing in that file is
+load-bearing; edit it freely without reading the code that consumes it.
 
 ## Where it lives
 
 | File | Role |
 |---|---|
+| `src/tuning.js` | **every hand-tweakable value.** Start here |
 | `src/motion.js` | `fighterTransform(f)` → `{rotation, scaleX, scaleY, offsetX, offsetY}` |
 | `src/sprites.js` | anchors, and `drawCharFrame`'s transform support |
-| `src/constants.js` | tumble thresholds, `SQUASH`, trail length, turn time |
 | `src/fighter.js` | `updatePresentation()` — steps spin, facing sweep, timers, trail |
 | `src/combat.js` | sets `target.spin` on a launch past `TUMBLE_KB_MIN` |
 | `src/render.js` | afterimages, the ledge hang, projectile aiming |
@@ -74,6 +77,10 @@ navel and it stays on the navel however the frame is nudged afterwards.
 | `com` | Centre of mass — the pivot every rotation turns about. Every frame has one. |
 | `ledge` | The hand that grips the edge. The sprite is hung so this point lands on the platform corner. Only on frames used by the `ledge` state. |
 
+An anchor that has never been placed still works: it reports a derived position
+(for `com`, the fallback below; for `ledge`, `LEDGE_GRIP_Y_FRAC` down the art),
+and the renderer uses it. Placing one by hand only refines it.
+
 Adding another is an entry in `EXTRA_ANCHORS` (`src/sprites.js`) naming the
 states that need it, plus the renderer call that reads it. The workbench builds
 its editor from that table, so no UI work is required.
@@ -84,6 +91,10 @@ its editor from that table, so no UI work is required.
 writes it in as `anchors.com`. For uniform density that centroid *is* the centre
 of mass, and it is far better than any heuristic on sprawled, crouched or
 mid-swing poses — exactly the ones that rotate most.
+
+It measures state anchors too, where a rule can find them: the `ledge` grip is
+the centroid of the topmost band of opaque pixels on a hang pose, which is the
+raised hand. The `EXTRA` table in that script is where a new rule goes.
 
 ```
 python3 tools/bake_anchors.py                 # every character, skip hand-placed
@@ -103,7 +114,8 @@ comparison, and mixing it in put the pivot hundreds of pixels too low.
 
 **Sprite workbench** (`workbench/`) — pick an anchor under *Anchors*, and its
 handle appears on the sprite. Drag it on the canvas, nudge it with the arrow
-keys or the buttons, or *Reset to auto*. **Spin preview** rotates the pose about
+keys or the buttons, or *Reset this anchor* to go back to the measured value.
+**Spin preview** rotates the pose about
 its centre of mass exactly as the game does: a pivot in the wrong place makes
 the body orbit instead of turn, which is instantly obvious.
 
@@ -130,8 +142,16 @@ idle ghost stay on screen as a size reference. `AIRBORNE_STATES` in
 
 ## Tuning
 
+All of it is in `src/tuning.js`:
+
 - **Tumble too much / too little** — `TUMBLE_SPIN_PER_KB`, `TUMBLE_KB_MIN`,
-  `TUMBLE_SPIN_MAX` in `constants.js`.
-- **Squash & stretch** — `SQUASH` (0 disables), then the `S` table in
-  `motion.js`.
-- **Everything else** — the `A` amplitude table at the top of `motion.js`.
+  `TUMBLE_SPIN_MAX`.
+- **Squash & stretch** — `SQUASH` is the master dial (0 disables, 0.5 halves),
+  then `SQUASH_DEPTH` per effect.
+- **Leans, sway, breathing, swing arcs** — the `MOTION` table.
+- **Afterimages** — `TRAIL_LEN`, `TRAIL_STEP`, `TRAIL_ALPHA`, `TRAIL_STRENGTH`.
+- **Anchor fallbacks** — `COM_BODY_FRAC`, `LEDGE_GRIP_Y_FRAC`.
+
+`src/constants.js` keeps physics, geometry and match rules — gravity, jump
+height, shield economy, blast zones. Also tweakable, but those change what the
+game *is* rather than how it reads, and code depends on their relationships.

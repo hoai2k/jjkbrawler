@@ -5,8 +5,11 @@ import { playSfx } from "./audio.js";
 import {
   SHIELD_DAMAGE_MULT, SHIELD_BREAK_STUN, PARRY_WINDOW, METER_MAX,
   METER_ON_DEAL, METER_ON_TAKE,
-  TUMBLE_KB_MIN, TUMBLE_SPIN_PER_KB, TUMBLE_SPIN_MAX,
 } from "./constants.js";
+import {
+  TUMBLE_KB_MIN, TUMBLE_SPIN_PER_KB, TUMBLE_SPIN_MAX,
+  DI_MAX_TURN, DI_SPEED, STALE_QUEUE, STALE_DMG_STEP, STALE_KB_STEP,
+} from "./tuning.js";
 
 export function hurtbox(f) {
   if (f.ledge) return { x: f.x - 30, y: f.y - 82, w: 60, h: 84 };
@@ -335,13 +338,6 @@ function shieldDamageMult(target) {
   return target.char.passive.id === "limitlessGuard" ? 0.55 : 1;
 }
 
-// How far the stick can bend a launch, in radians. ~17 degrees, matching the
-// influence a Smash player gets; enough to change where you land, never enough
-// to ignore the hit.
-const DI_MAX_TURN = 0.30;
-// And how much it can scale launch speed by holding along the launch vector.
-const DI_SPEED = 0.08;
-
 /** The victim's stick as a unit vector, or null when they aren't holding one. */
 function diStick(target) {
   const i = target.input;
@@ -381,10 +377,6 @@ function diSpeedScale(target, angle, dir) {
 // Move staling. Smash keeps a queue of recently-landed moves and weakens
 // repeats, which is what stops a match collapsing into whichever single button
 // kills best. Dodges already stale here (fighter.js); attacks did not.
-const STALE_QUEUE = 9;
-const STALE_DMG_STEP = 0.09;    // ~0.28x damage at 8 repeats
-const STALE_KB_STEP = 0.06;
-
 /** Stable identity for a move, so the same attack stales across uses. */
 function moveId(hit) {
   return hit.label || hit.anim || hit.sfx || "hit";

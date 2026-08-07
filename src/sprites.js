@@ -1,6 +1,7 @@
 import { frameMeta, frameImage, spriteManifest } from "./assets.js";
 import { animFor, CHARACTERS, DEFAULT_ANIMS } from "./characters.js";
-import { CELL_W, CELL_H, CELL_FOOT_Y, COM_BODY_FRAC } from "./constants.js";
+import { CELL_W, CELL_H, CELL_FOOT_Y } from "./constants.js";
+import { COM_BODY_FRAC, LEDGE_GRIP_Y_FRAC } from "./tuning.js";
 import { clamp } from "./utils.js";
 
 // ---------------------------------------------------------------- anchors
@@ -29,7 +30,7 @@ export const EXTRA_ANCHORS = {
     // Where an unset anchor starts, as a fraction down the artwork. Landing on
     // the centre of mass would bury it under the `com` handle and be a worse
     // first guess than "the highest thing in the frame".
-    defaultYFrac: 0.04,
+    defaultYFrac: LEDGE_GRIP_Y_FRAC,
   },
 };
 
@@ -179,10 +180,9 @@ export function anchorsForFrame(charKey, frameKey) {
 //   scaleX/Y  squash & stretch, anchored at the foot line
 //   offsetX/Y world-space nudge
 //   anchorTo  { name, x, y } — place a named anchor at a world point instead
-//             of standing the frame's feet at (x, y). Only honoured once the
-//             anchor has actually been PLACED: the derived starting point an
-//             unset anchor reports is a hint for the workbench, not something
-//             to re-hang a fighter from sight unseen.
+//             of standing the frame's feet at (x, y). Uses the derived position
+//             when the anchor has not been placed by hand, so a frame gets
+//             sensible behaviour before anyone has visited it in the workbench.
 export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
   const meta = frameMeta(charKey, frameKey);
   const img = frameImage(charKey, frameKey);
@@ -204,7 +204,7 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
 
   let offX = opts.offsetX || 0;
   let offY = opts.offsetY || 0;
-  if (opts.anchorTo && meta.anchors?.[opts.anchorTo.name]) {
+  if (opts.anchorTo) {
     const a = anchorPoint(charKey, frameKey, opts.anchorTo.name, meta);
     if (a) {
       offX += opts.anchorTo.x - (x + worldX(a.x));

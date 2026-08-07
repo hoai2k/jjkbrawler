@@ -15,40 +15,11 @@
 import { state } from "./state.js";
 import { clamp } from "./utils.js";
 import { framePhase } from "./sprites.js";
-import { SQUASH, SHIELD_MAX, MAX_FALL } from "./constants.js";
-
-// Amplitudes, gathered so the whole feel can be dialled in one place.
-const A = {
-  airLean: 0.10,          // rad at full horizontal air speed
-  dashLean: 0.085,
-  turnLean: 0.07,
-  runSway: 0.022,
-  runBob: 1.6,            // px
-  idleSway: 0.011,
-  idleBob: 1.4,           // px
-  breathRate: 4.4,        // rad/s
-  shieldShake: 0.028,     // rad at a fully spent shield
-  chargeShake: 0.03,
-  chargeShift: 2.2,       // px
-  swingBack: 0.065,       // attack anticipation
-  swingThrough: 0.11,     // attack follow-through
-  hurtLean: 0.10,
-  dizzyWobble: 0.075,
-  airDodgeTilt: 0.4,
-  ledgeLean: 0.12,
-};
-
-// Squash & stretch. Deliberately small — these are multipliers on 1, so
-// `landSquash: 0.045` is a 4.5% compression at its deepest instant.
-const S = {
-  land: 0.045,
-  takeoff: 0.042,
-  fall: 0.03,
-  hit: 0.03,
-};
-
-export const LAND_SQUASH_TIME = 0.17;
-export const TAKEOFF_STRETCH_TIME = 0.13;
+import { SHIELD_MAX, MAX_FALL } from "./constants.js";
+import {
+  MOTION as A, SQUASH, SQUASH_DEPTH as S, TRAIL_STRENGTH,
+  LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME,
+} from "./tuning.js";
 
 const TAU = Math.PI * 2;
 
@@ -172,8 +143,8 @@ export function fighterTransform(f) {
  *  afterimages. Trails are the cheapest possible "this is fast" signal. */
 export function trailStrength(f) {
   if (f.respawnTimer > 0 || f.dead) return 0;
-  if (Math.abs(f.spin) > 1) return 1;
-  if (f.action?.kind === "dodge") return 0.85;
-  if (f.dashT > 0) return 0.6;
+  if (Math.abs(f.spin) > 1) return TRAIL_STRENGTH.tumble;
+  if (f.action?.kind === "dodge") return TRAIL_STRENGTH.dodge;
+  if (f.dashT > 0) return TRAIL_STRENGTH.dash;
   return 0;
 }

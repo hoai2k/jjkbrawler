@@ -13,7 +13,8 @@ import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS, animFor } from "../src/characters.js";
 import { lightMove, heavyMove } from "../src/moves.js";
 import { fighterTransform } from "../src/motion.js";
-import { SHIELD_MAX, MAX_FALL, TUMBLE_SPIN_MAX } from "../src/constants.js";
+import { SHIELD_MAX, MAX_FALL } from "../src/constants.js";
+import { TUMBLE_SPIN_MAX, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "../src/tuning.js";
 
 const $ = (id) => document.getElementById(id);
 const view = $("actionsView");
@@ -212,13 +213,13 @@ function mockFighter(a) {
     case "dash": f.dashT = 0.2; f.vx = f.char.stats.speed * 1.45 * state.facing; break;
     case "jump":
       f.grounded = false; f.vy = -f.char.stats.jump;
-      f.takeoffT = 0.13 * (1 - k);
+      f.takeoffT = TAKEOFF_STRETCH_TIME * (1 - k);
       break;
     case "fall":
       f.grounded = false; f.vy = MAX_FALL * 0.8; f.fastFalling = true;
       f.vx = f.char.stats.airSpeed * 0.7 * state.facing;
       break;
-    case "land": f.landT = 0.17 * (1 - k); break;
+    case "land": f.landT = LAND_SQUASH_TIME * (1 - k); break;
     case "charge": f.charging = { t: state.t, variant: "side" }; break;
     case "shield": f.shielding = true; f.shield = SHIELD_MAX * (1 - k * 0.9); break;
     case "dizzy": f.dizzy = 1; break;

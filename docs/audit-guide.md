@@ -19,6 +19,7 @@ over HTTP and open — `node server.mjs`, or double-click `play-mac.command` /
 src/main.js         boot, fixed-timestep loop, match flow, input latching
 src/state.js        the single mutable state object everything reads
 src/constants.js    physics + balance constants
+src/tuning.js       hand-tweakable feel dials (motion, tumble, DI, staling)
 src/characters.js   all 17 fighters as DATA (stats, anims, specials, ultimate, passive)
 src/moves.js        derives light/heavy hitboxes from each character's profile
 src/fighter.js      per-fighter state machine: movement, defense, ledges, KO
@@ -30,6 +31,7 @@ src/render.js       all drawing; sprites.js, camera.js, particles.js support it
 src/motion.js       procedural sprite motion (tumble, lean, swing) — docs/sprite-motion.md
 src/ui.js           menus, HUD, move list, gamepad/keyboard menu navigation
 tools/              offline asset pipeline (see docs/asset-pipeline.md)
+                    plus check_imports.mjs — run it after moving any export
 docs/               mechanics, character research, asset pipeline, asset requests
 ```
 
@@ -51,6 +53,9 @@ docs/               mechanics, character research, asset pipeline, asset request
   throttled in some embedded browsers. A thrown exception therefore does *not*
   permanently kill the game — it retries every frame and spams the console.
   **Always check the console for errors; a silently retrying loop looks fine.**
+- There is no build step, so nothing checks the module graph. `node --check`
+  parses a file but will not notice an import of a constant that moved.
+  `node tools/check_imports.mjs` does, and takes a second.
 
 ---
 
