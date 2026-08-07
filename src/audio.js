@@ -9,40 +9,54 @@ import {
   BOARD_MUSIC_DIR, BOARD_TRACKS, FALLBACK_TRACKS, MENU_TRACK, MUSIC_DIR, MUSIC_EXT,
   MUSIC_MODES as MUSIC_MODE_CONFIG, UNUSED_BOARD_TRACKS,
 } from "./config_music.js";
+import { AUDIO_MIX, MAX_VOICES, SFX, SFX_ALIASES, SFX_DIR } from "./config_audio.js";
+import { state } from "./state.js";
 
-const SFX_FILES = {
-  blast: "assets/sfx/sound_explosion.wav",
-  block: "assets/sfx/sound_sword_hit.mp3",
-  slash: "assets/sfx/sound_sword_hit2.mp3",
-  slashHeavy: "assets/sfx/sound_sword_hit3.mp3",
-  miss: "assets/sfx/sound_miss.mp3",
-  punch: "assets/sfx/sound_punch.mp3",
-  landing: "assets/sfx/sound_landing.wav",
-  gone: "assets/sfx/sound_gone.mp3",
-  shield: "assets/sfx/sound_shield.mp3",
-  whoosh: "assets/sfx/sound_whoosh.mp3",
-  ult: "assets/sfx/sound_blast_3.mp3",
-  gruntAnimal: "assets/sfx/sound_grunt_animal.mp3",
-  gruntBig: "assets/sfx/sound_grunt_big.mp3",
-  gruntFemale: "assets/sfx/sound_grunt_female.mp3",
-  gruntMonster: "assets/sfx/sound_grunt_monster.mp3",
-};
+// Resolve a name through the alias table, so pre-round-8 call sites keep
+// working while they are migrated.
+function entryFor(name) {
+  return SFX[name] || SFX[SFX_ALIASES[name]] || null;
+}
 
-const SFX_START = { landing: 0.03, whoosh: 0.2 };
+// A sound may declare several interchangeable files (the voice groups); one is
+// drawn per call so a repeated special never loops the identical sample.
+function srcFor(entry) {
+  const f = entry.file;
+  const file = Array.isArray(f) ? f[Math.floor(Math.random() * f.length)] : f;
+  return SFX_DIR + file;
+}
 
+// Category trim x per-sound trim x the SFX slider x the master ceiling.
+function gainFor(entry, intensity) {
+  const cat = AUDIO_MIX.categories[entry.category] ?? 1;
+  return Math.min(1, audioSettings.sfxVolume * AUDIO_MIX.master * cat * (entry.gain ?? 1) * intensity);
+}
+
+// Every fighter on the roster maps to a voice group. Before the round-8 sound
+// pass nine of them mapped to nothing and were silent when they attacked.
 const GRUNT_GROUPS = {
+  gojo: "gruntYoungMale", yuji: "gruntYoungMale", megumi: "gruntYoungMale",
+  yuta: "gruntYoungMale", inumaki: "gruntYoungMale",
+  nanami: "gruntAdultMale", toji: "gruntAdultMale", geto: "gruntAdultMale",
+  reggie: "gruntAdultMale",
   maki: "gruntFemale", momo: "gruntFemale", nobara: "gruntFemale",
+  meimei: "gruntFemale", uro: "gruntFemale",
   jogo: "gruntMonster", hanami: "gruntMonster",
   panda: "gruntAnimal", mahito: "gruntAnimal",
   hakari: "gruntBig", todo: "gruntBig", sukuna: "gruntBig",
-  // round-7 staged fighters
-  meimei: "gruntFemale", uro: "gruntFemale",
   choso: "gruntBig", gakuganji: "gruntBig",
 };
 
+// The KO cry that matches each voice group.
+const KO_FOR_GROUP = {
+  gruntYoungMale: "koYoungMale", gruntAdultMale: "koAdultMale",
+  gruntBig: "koBig", gruntFemale: "koFemale",
+  gruntMonster: "koMonster", gruntAnimal: "koAnimal",
+};
+
 export const audioSettings = {
-  musicVolume: 0.3,
-  sfxVolume: 0.45,
+  musicVolume: AUDIO_MIX.musicVolume,
+  sfxVolume: AUDIO_MIX.sfxVolume,
   musicMode: 0, // index into MUSIC_MODES below; 0 is per-stage music
 };
 
@@ -107,14 +121,13 @@ export function initAudio() {
 }
 
 export function playSfx(name, intensity = 1, rate = 0) {
-  if (!unlocked || audioSettings.sfxVolume <= 0) return;
-  const src = SFX_FILES[name];
-  if (!src) return;
-  if (active.size > 24) return; // safety valve
-  const el = new Audio(src);
-  el.volume = Math.min(1, audioSettings.sfxVolume * intensity);
+  if (!unlocked || !state.sfxEnabled || audioSettings.sfxVolume <= 0) return;
+  const entry = entryFor(name);
+  if (!entry) return; // an undelivered sound is silence, not an error
+  if (active.size > MAX_VOICES) return; // safety valve
+  const el = new Audio(srcFor(entry));
+  el.volume = gainFor(entry, intensity);
   el.playbackRate = rate || 0.96 + Math.random() * 0.08;
-  if (SFX_START[name]) el.currentTime = SFX_START[name];
   active.add(el);
   const drop = () => active.delete(el);
   el.addEventListener("ended", drop);
@@ -128,10 +141,18 @@ export function playGrunt(charKey) {
   if (group) playSfx(group, 0.9);
 }
 
+// The defeat cry, chosen from the fighter's voice group.
+export function playKoCry(charKey) {
+  const ko = KO_FOR_GROUP[GRUNT_GROUPS[charKey]];
+  if (ko) playSfx(ko, 1);
+}
+
 export function startShieldLoop() {
-  if (!unlocked || shieldLoop || audioSettings.sfxVolume <= 0) return;
-  shieldLoop = new Audio(SFX_FILES.shield);
-  shieldLoop.volume = Math.min(1, audioSettings.sfxVolume * 0.6);
+  if (!unlocked || shieldLoop || !state.sfxEnabled || audioSettings.sfxVolume <= 0) return;
+  const entry = entryFor("shield");
+  if (!entry) return;
+  shieldLoop = new Audio(srcFor(entry));
+  shieldLoop.volume = gainFor(entry, 1);
   shieldLoop.loop = true;
   shieldLoop.play().catch(() => { shieldLoop = null; });
 }

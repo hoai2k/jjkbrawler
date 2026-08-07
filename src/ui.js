@@ -52,13 +52,14 @@ export function initUi(cb) {
     "movesModeButton",
     "randomStageButton", "stageBackButton", "roundKicker", "winnerText", "rematchButton", "menuButton",
     "resumeButton", "pauseResetButton", "pauseMenuButton",
-    "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsSpritesButton", "settingsBoardsButton", "musicVolumeRange", "musicVolumeLabel",
+    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsSpritesButton", "settingsBoardsButton", "musicVolumeRange", "musicVolumeLabel",
     "sfxVolumeRange", "sfxVolumeLabel", "settingsBackButton",
   ]) {
     els[id] = $(id);
   }
 
   applyStaticText();
+  syncVolumeControls();
   buildCharacterGrid();
   buildStageGrid();
   bindMenuButtons();
@@ -107,6 +108,17 @@ function applyStaticText() {
   heading("loadOverlay", TEXT.loading.eyebrow, TEXT.loading.title);
   const logo = els.menuOverlay?.querySelector(".game-logo");
   if (logo) logo.alt = TEXT.menu.logoAlt;
+}
+
+// The sliders start wherever config_audio.js says, so the markup never has to
+// be kept in step with the mix defaults.
+function syncVolumeControls() {
+  const music = Math.round(audioSettings.musicVolume * 100);
+  const sfx = Math.round(audioSettings.sfxVolume * 100);
+  els.musicVolumeRange.value = music;
+  els.sfxVolumeRange.value = sfx;
+  els.musicVolumeLabel.textContent = TEXT.settings.musicVolume(music);
+  els.sfxVolumeLabel.textContent = TEXT.settings.sfxVolume(sfx);
 }
 
 // ------------------------------------------------- ready / lock-in helpers
@@ -159,7 +171,7 @@ function selectFighter(id, key) {
   }
   updateSelectionUi();
   playLockIn(id);
-  playSfx("slash", 0.3, 1.4);
+  playSfx("uiLockIn");
 }
 
 // Restarts the lock-in animation on a hero card even if it is already playing,
@@ -180,7 +192,7 @@ function unready(id) {
   // Backing out puts the cursor back where the pick was made.
   pickerCursor[target] = state.selection[target] || CHARACTER_KEYS[0];
   updateSelectionUi();
-  playSfx("whoosh", 0.3, 0.9);
+  playSfx("uiBack");
   return true;
 }
 
@@ -312,6 +324,12 @@ function bindMenuButtons() {
   });
   // Takes effect on the next match start; an in-progress match keeps the
   // gimmick it began with (initStageFx reads this in resetMatch).
+  els.settingsSfxButton.addEventListener("click", () => {
+    state.sfxEnabled = !state.sfxEnabled;
+    updateMenuButtons();
+    // Confirm audibly when switching back on; silence is its own confirmation.
+    if (state.sfxEnabled) playSfx("uiSelect");
+  });
   els.settingsBoardsButton.addEventListener("click", () => {
     state.activeBoards = !state.activeBoards;
     updateMenuButtons();
@@ -361,13 +379,13 @@ function bindMenuButtons() {
 
   els.musicVolumeRange.addEventListener("input", () => {
     audioSettings.musicVolume = els.musicVolumeRange.value / 100;
-    els.musicVolumeLabel.textContent = `Music Volume: ${els.musicVolumeRange.value}%`;
+    els.musicVolumeLabel.textContent = TEXT.settings.musicVolume(els.musicVolumeRange.value);
     syncMusic(state.phase);
   });
   els.sfxVolumeRange.addEventListener("input", () => {
     audioSettings.sfxVolume = els.sfxVolumeRange.value / 100;
-    els.sfxVolumeLabel.textContent = `Sound FX Volume: ${els.sfxVolumeRange.value}%`;
-    playSfx("block", 0.8);
+    els.sfxVolumeLabel.textContent = TEXT.settings.sfxVolume(els.sfxVolumeRange.value);
+    playSfx("uiSelect", 0.8);
   });
 
   els.pauseButton.addEventListener("click", () => callbacks.togglePause());
@@ -387,6 +405,7 @@ export function updateMenuButtons() {
     state.spriteSet === "alternate" ? TEXT.settings.spriteAlternate : TEXT.settings.spriteDefault
   );
   els.settingsBoardsButton.textContent = TEXT.settings.activeBoards(state.activeBoards);
+  els.settingsSfxButton.textContent = TEXT.settings.sfxEnabled(state.sfxEnabled);
 }
 
 // Stat bars for the hero cards, normalized against the full roster so a bar
@@ -821,7 +840,7 @@ function setFocus(el) {
       setPickerCursor(state.activePicker, focusEl.dataset.character, { quiet: true });
     }
     focusEl.scrollIntoView({ block: "nearest", inline: "nearest" });
-    playSfx("whoosh", 0.25, 1.6);
+    playSfx("uiMove");
   }
 }
 
@@ -851,7 +870,7 @@ function setPickerCursor(playerId, key, { quiet = false } = {}) {
   pickerCursor[playerId] = key;
   // Repaints the hero card too: the cursor drives the transient preview.
   updateSelectionUi();
-  if (!quiet) playSfx("whoosh", 0.2, 1.6);
+  if (!quiet) playSfx("uiMove");
 }
 
 function movePickerCursor(playerId, dx, dy) {
@@ -895,7 +914,7 @@ function setMenuHighlight(el) {
   menuHighlightEl = el;
   if (el) {
     el.classList.add("pad-focus");
-    playSfx("whoosh", 0.25, 1.6);
+    playSfx("uiMove");
   }
 }
 
@@ -923,7 +942,7 @@ function updateCharacterPickerPads(dt) {
       const el = els[UTILITY_IDS[utilityIdx]];
       utilityIdx = -1;
       setMenuHighlight(null);
-      playSfx("slash", 0.3, 1.5);
+      playSfx("uiSelect");
       el.click();
       return;
     }
@@ -1042,7 +1061,7 @@ function activateFocus() {
     tryStart();
     return;
   }
-  playSfx("slash", 0.3, 1.5);
+  playSfx("uiSelect");
   focusEl.click();
 }
 
@@ -1088,7 +1107,7 @@ export function updateMenuNav(dt) {
   if (pad.altP && state.phase === "menu" && focusEl?.dataset?.character) {
     state.selection[2] = focusEl.dataset.character;
     updateSelectionUi();
-    playSfx("slash", 0.3, 1.2);
+    playSfx("uiSelect");
   }
   if (state.phase === "moves") {
     if (pad.pagePrevP) els.movesPrevButton.click();
