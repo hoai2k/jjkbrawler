@@ -348,11 +348,34 @@ they are already due for regeneration on other grounds.
 
 ---
 
-## Round 8 — Summon minions (new)
+## Round 8 — Summon minions ✅ DELIVERED
 
 (Numbered 8 because `asset-requests-round7.md` — the six new fighters — was
 requested in parallel. The two rounds are independent; either can be
 delivered first.)
+
+**Status:** all three delivered, plus higher-resolution regenerations of both
+Divine Dogs. In game and verified.
+
+> **Delivery note — summons need keying too.** The five files arrived with the
+> magenta background still baked in and no alpha channel, so each one drew as a
+> solid magenta rectangle on stage. Fixed by running the repo's standard chroma
+> key over them:
+>
+> ```
+> cd tools && python3 -c "
+> from pathlib import Path
+> from process_round5_sprites import key_image
+> for n in ['rainbow_dragon','transfigured_human','inventory_curse',
+>           'divine_dog_white','divine_dog_black']:
+>     p = Path('../assets/sprites/summons')/f'{n}.png'; key_image(p, p)"
+> ```
+>
+> Magenta delivery is fine and expected — it just has to go through the key
+> before it reaches `assets/sprites/`. Character sprites get this automatically
+> via `tools/intake.py`; files dropped straight into `assets/sprites/summons/`
+> bypass that path, so they need the command above (or an alpha-transparent
+> export instead). Worth checking for any future direct-to-`summons/` drop.
 
 The summoning system (`src/summons.js`) now fields persistent minions for
 Megumi, Geto, Mahito, and Toji. Megumi's shikigami already have art
