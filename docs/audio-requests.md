@@ -3,7 +3,12 @@
 Companion to `docs/asset-requests.md`, same idea: an audit of what the game
 actually needs, with a ready-to-paste prompt per file.
 
-Everything below is measured against the code as it stands, not guessed —
+**Every prompt below is complete.** Copy one, paste it into your generator,
+save the result under the filename above it. There is no style suffix to
+append and nothing to fill in — the format, length, dryness and "no music /
+no voice" constraints are already written into each one.
+
+Everything here is measured against the code as it stands, not guessed —
 counts come from grepping `playSfx()` call sites and the `sfx:` fields in
 `src/characters.js`.
 
@@ -52,8 +57,6 @@ The menu works but borrows combat sounds — cursor movement is a pitched-up
 
 - **Format:** WAV (24-bit / 48 kHz) preferred, or MP3 at 192 kbps+. The loader
   handles both — existing files are a mix.
-- **Channels:** mono for combat/UI one-shots (the engine has no panning, so
-  stereo just doubles file size). Stereo is fine for domain/ultimate stings.
 - **Trim:** **no leading silence.** The engine plays a one-shot the instant a
   hit lands, so even 30 ms of head padding reads as lag. Two files currently
   need a hardcoded offset to work around this (`SFX_START` in `audio.js`, for
@@ -62,20 +65,14 @@ The menu works but borrows combat sounds — cursor movement is a pitched-up
   consistent *within* a tier. The engine scales volume per call, so a clip
   that arrives twice as loud as its neighbours can't be fixed without a code
   change.
-- **Length:** stay inside the per-sound budget below. Combat one-shots that
-  run long overlap themselves during combos and turn to mush (there is a
-  24-voice cap, and long clips eat it).
-- **Dry, no music, no reverb tail** unless the entry asks for it. Anything
-  with a long tail fights the background track.
-- **No speech.** Grunts are non-verbal exertion only, no words.
+- **Length:** each prompt states its own target. Combat one-shots that run
+  long overlap themselves during combos and turn to mush (there is a 24-voice
+  cap, and long clips eat it).
 - **Naming:** exactly the filename given, into `assets/sfx/`.
 
-### Prompt style suffix
-
-Append to every prompt unless the entry says otherwise:
-
-> dry punchy game sound effect, tight transient, no music, no reverb tail,
-> no speech, mono, clean
+Mono vs stereo and dry vs tail are specified per prompt — most combat and UI
+sounds are mono and dry; domain, ultimate and match-end stings are stereo with
+a tail. You don't need to decide.
 
 ---
 
@@ -103,20 +100,65 @@ sounds the same" problem and the silent moments. Tiers 3–5 are depth.
 
 These fire constantly. Right now they're covered by 4 clips.
 
-| File | When it fires | Length | Prompt |
-|---|---|---|---|
-| `hit_light.wav` | Every jab / light attack connecting | 0.2 s | "a sharp quick punch impact on a body, tight snappy thud with a little slap on the front, anime fighting game light hit" |
-| `hit_medium.wav` | Standard attack connecting | 0.3 s | "a solid punch landing on a torso, meaty low thump with a crisp attack, anime fighting game hit" |
-| `hit_heavy.wav` | Heavy / smash attacks | 0.45 s | "a devastating heavy punch impact, deep bassy body blow with a cracking transient and a short low-end boom, anime fighting game heavy hit" |
-| `hit_crit.wav` | Nanami's 7:3 crit band — **currently silent** | 0.5 s | "a perfect critical strike impact, sharp metallic ring layered over a deep body impact, a bright glassy shimmer on the tail, satisfying precision hit" |
-| `black_flash.wav` | Yuji's Black Flash proc — **currently silent** | 0.9 s | "a reality-cracking impact, distorted low boom with a sharp glassy shatter and a brief warped ringing sub-bass drop, ominous and heavy, anime power moment" |
-| `slash_light.wav` | Fast blade attacks (Yuta, Maki, Toji) | 0.25 s | "a fast katana slash cutting air and flesh, sharp metallic whisk with a wet cutting edge, quick" |
-| `slash_heavy.wav` | Heavy blade attacks | 0.4 s | "a powerful greatsword cleave, heavy metallic slash with a deep whoosh and a solid cutting impact" |
-| `swing_whiff.wav` | An attack that hits nothing | 0.25 s | "a fast arm swinging through empty air, sharp airy whoosh, no impact" |
-| `guard_hit.wav` | Attack absorbed by a shield | 0.3 s | "an impact absorbed by an energy barrier, muffled thud with a bright shimmering ring on top, magical shield deflection" |
-| `guard_break.wav` | Shield depleted → dizzy (**currently a pitched-up KO sound**) | 0.8 s | "a glass energy barrier shattering, bright crystalline crack breaking into falling shards, with a low pressure release underneath" |
-| `parry.wav` | Counter triggers (Gojo's Infinity, reflects) | 0.6 s | "a perfect parry, a bright ringing metallic clang with a sharp time-stopping shimmer, crisp and satisfying" |
-| `launch.wav` | A hit sends someone flying at high knockback | 0.5 s | "a powerful launching blow sending a body flying, deep impact followed by a fast rising doppler whoosh away from the listener" |
+**`hit_light.wav`** · every jab / light attack connecting · 0.2 s
+```
+A sharp quick punch landing on a body, tight snappy thud with a slapping crack on the front of it, close-mic and completely dry with no room reverb, one single hit about 0.2 seconds long, mono anime fighting game impact sound effect, no music, no voice
+```
+
+**`hit_medium.wav`** · standard attack connecting · 0.3 s
+```
+A solid punch landing square on a torso, meaty low thump with a crisp cracking attack on the front, close-mic and dry with no room reverb, one single hit about 0.3 seconds long, mono anime fighting game impact sound effect, no music, no voice
+```
+
+**`hit_heavy.wav`** · heavy and smash attacks · 0.45 s
+```
+A devastating heavy punch driving deep into a body, bassy low body blow with a hard cracking transient and a short punchy low-end boom, dry and close with only a minimal tail, one single hit about 0.45 seconds long, mono anime fighting game heavy impact sound effect, no music, no voice
+```
+
+**`hit_crit.wav`** · Nanami's 7:3 crit band — currently silent · 0.5 s
+```
+A perfect critical strike landing, a sharp metallic ring layered over a deep body impact with a bright glassy shimmer decaying after it, precise and satisfying, mostly dry with only the shimmer trailing, about 0.5 seconds long, mono anime fighting game critical hit sound effect, no music, no voice
+```
+
+**`black_flash.wav`** · Yuji's Black Flash proc — currently silent · 0.9 s
+```
+A reality-cracking supernatural impact, a distorted low boom with a sharp glassy shattering crack and a brief warped pitch-bending sub-bass drop underneath it, ominous heavy and slightly detuned, about 0.9 seconds long with a short decaying tail, mono anime power moment impact sound effect, no music, no voice
+```
+
+**`slash_light.wav`** · fast blade attacks (Yuta, Maki, Toji) · 0.25 s
+```
+A fast katana slash cutting through air and then flesh, a sharp metallic whisk with a wet cutting edge at the end, quick and dry with no reverb, one single slash about 0.25 seconds long, mono anime fighting game blade hit sound effect, no music, no voice
+```
+
+**`slash_heavy.wav`** · heavy blade attacks · 0.4 s
+```
+A powerful greatsword cleave, a heavy metallic slash with a deep air whoosh leading into a solid cutting impact, weighty and dry with only a minimal tail, one single swing about 0.4 seconds long, mono anime fighting game heavy blade sound effect, no music, no voice
+```
+
+**`swing_whiff.wav`** · an attack that hits nothing · 0.25 s
+```
+A fast arm swinging through empty air and connecting with nothing, a sharp airy whoosh with a clean fast decay, dry with no reverb and no impact at the end, about 0.25 seconds long, mono video game attack whiff sound effect, no music, no voice
+```
+
+**`guard_hit.wav`** · attack absorbed by a shield · 0.3 s
+```
+An attack absorbed by a magical energy barrier, a muffled cushioned thud with a bright shimmering ring layered on top of it, dry and contained, one single hit about 0.3 seconds long, mono anime fighting game shield block sound effect, no music, no voice
+```
+
+**`guard_break.wav`** · shield depleted → dizzy (currently a pitched-up KO sound) · 0.8 s
+```
+A glass-like energy barrier shattering under pressure, a bright crystalline crack breaking apart into scattering falling shards with a low pressure release underneath, about 0.8 seconds long with a short scattering tail, mono anime fighting game shield break sound effect, no music, no voice
+```
+
+**`parry.wav`** · counter triggers (Gojo's Infinity, reflects) · 0.6 s
+```
+A perfect parry deflecting an incoming strike, a bright ringing metallic clang with a sharp time-freezing shimmer rising just after it, crisp clean and satisfying, about 0.6 seconds long, mono anime fighting game counter sound effect, no music, no voice
+```
+
+**`launch.wav`** · a hit sends someone flying at high knockback · 0.5 s
+```
+A powerful blow launching a body across the screen, a deep punchy impact immediately followed by a fast rising doppler whoosh receding away into the distance, dry and forceful, about 0.5 seconds long, mono anime fighting game knockback sound effect, no music, no voice
+```
 
 ---
 
@@ -125,75 +167,245 @@ These fire constantly. Right now they're covered by 4 clips.
 Each of these is a moment the game presents visually with nothing on the audio
 track.
 
-| File | When it fires | Length | Prompt |
-|---|---|---|---|
-| `jump.wav` | Ground jump — **silent today** | 0.2 s | "a light athletic jump takeoff, soft cloth and shoe scuff with a quick air push, subtle" |
-| `double_jump.wav` | Air jump | 0.3 s | "a mid-air second jump on a burst of energy, soft airy pulse with a gentle magical shimmer" |
-| `land_soft.wav` | Landing from a short hop | 0.2 s | "a light footstep landing on a hard surface, soft scuff thud" |
-| `land_heavy.wav` | Landing from height / after a launch | 0.4 s | "a heavy body landing hard on stone, deep thud with debris scatter and a small dust puff" |
-| `dash.wav` | Ground dash (double tap) | 0.3 s | "a fast burst of forward movement, sharp low whoosh with a scraping foot push-off" |
-| `respawn.wav` | Fighter returns after a KO — **silent today** | 1.0 s | "a character materialising back into the world, a warm rising magical shimmer settling into a soft chime, hopeful" |
-| `meter_full.wav` | Ultimate meter reaches max — **silent today** | 1.2 s | "a power meter reaching full charge, a rising energy hum resolving into a bright confident chime with a subtle choir swell, triumphant and noticeable but not loud" |
-| `countdown_ready.wav` | The "READY…" banner — **silent today** | 0.8 s | "a deep resonant gong strike announcing a duel about to begin, ominous anticipation, single hit with a short tail" |
-| `countdown_go.wav` | The "GO!" banner — **silent today** | 0.6 s | "a sharp bright bell hit signalling a fight to start, urgent and energetic, single strike" |
-| `match_end.wav` | The "GAME!" banner — **silent today** | 1.5 s | "a match-ending flourish, a decisive low impact followed by a short triumphant brass and taiko sting, conclusive" |
+**`jump.wav`** · ground jump — silent today · 0.2 s
+```
+A light athletic jump taking off from solid ground, a soft cloth rustle and shoe scuff with a quick push of air, subtle and understated, dry with no reverb, about 0.2 seconds long, mono video game movement sound effect, no music, no voice
+```
+
+**`double_jump.wav`** · air jump · 0.3 s
+```
+A mid-air second jump powered by a small burst of energy, a soft airy pulse with a gentle magical shimmer rising through it, light and weightless, dry, about 0.3 seconds long, mono anime game movement sound effect, no music, no voice
+```
+
+**`land_soft.wav`** · landing from a short hop · 0.2 s
+```
+A light footstep landing on a hard stone surface, a soft scuffing thud with a small grit texture, dry and close with no reverb, about 0.2 seconds long, mono video game footstep sound effect, no music, no voice
+```
+
+**`land_heavy.wav`** · landing from height or after a launch · 0.4 s
+```
+A heavy body slamming down onto stone from a great height, a deep thud with scattering debris and a puff of dust, weighty and dry with a short tail, about 0.4 seconds long, mono video game heavy landing sound effect, no music, no voice
+```
+
+**`dash.wav`** · ground dash (double tap) · 0.3 s
+```
+A fighter bursting forward into a ground dash, a sharp low whoosh with a scraping foot push-off at the start, fast and dry with no reverb, about 0.3 seconds long, mono anime fighting game movement sound effect, no music, no voice
+```
+
+**`respawn.wav`** · fighter returns after a KO — silent today · 1.0 s
+```
+A character materialising back into the world after being defeated, a warm rising magical shimmer settling into a soft resolving chime, hopeful and clean, about 1 second long with a gentle tail, mono video game respawn sound effect, no music, no voice
+```
+
+**`meter_full.wav`** · ultimate meter reaches max — silent today · 1.2 s
+```
+A special-attack power meter reaching maximum charge, a rising energy hum resolving into a bright confident chime with a subtle choir swell underneath, noticeable and triumphant but not loud or startling, about 1.2 seconds long, mono video game power-up-ready cue, no music bed, no voice
+```
+
+**`countdown_ready.wav`** · the "READY…" banner — silent today · 0.8 s
+```
+A single deep resonant temple gong struck once to announce a duel about to begin, ominous and full of anticipation, one strike with a short controlled tail, about 0.8 seconds long, mono anime fighting game round-start cue, no music, no voice
+```
+
+**`countdown_go.wav`** · the "GO!" banner — silent today · 0.6 s
+```
+A sharp bright bell struck once to signal a fight beginning, urgent energetic and cutting, one strike with a quick decay, about 0.6 seconds long, mono anime fighting game round-start cue, no music, no voice
+```
+
+**`match_end.wav`** · the "GAME!" banner — silent today · 1.5 s
+```
+A match-ending flourish, one decisive low impact followed immediately by a short triumphant brass and taiko drum sting, conclusive and final, about 1.5 seconds long with a natural tail, stereo anime fighting game victory sting, no vocals
+```
 
 ---
 
 ## Tier 3 — Character voices (18 files)
 
-Non-verbal exertion only — **no words, no anime catchphrases.** These fire on
+Non-verbal exertion only — **no words, no catchphrases.** These fire on
 specials via `playGrunt(charKey)`.
 
-Currently 4 files cover 14 characters and 9 characters have nothing. The plan
-below is **6 voice groups × 3 variants** so repeated specials don't loop the
-identical sample, and so the 9 silent fighters get a voice.
+Currently 4 files cover 14 characters and 9 characters have nothing. Below is
+**6 voice groups × 3 variants**, so repeated specials don't loop the identical
+sample and the 9 silent fighters get a voice. The three variants in each group
+are deliberately different from each other — generate all three.
 
-Length **0.4–0.7 s** for all of these. Prompt suffix for the whole tier:
+### Young male — covers gojo, yuji, megumi, yuta, inumaki (all currently silent)
 
-> a single short non-verbal exertion grunt, dry close-mic vocal, no words, no
-> music, anime fighting game voice
+**`grunt_young_male_1.wav`** · 0.5 s
+```
+A single short sharp effort grunt from a confident young man in his late teens swinging an attack, a non-verbal clipped exhale, dry close-mic vocal recording with no reverb, about 0.5 seconds long, mono anime fighting game voice, no words, no music
+```
 
-| Files | Covers | Prompt (before the suffix) |
-|---|---|---|
-| `grunt_young_male_1/2/3.wav` | **gojo, yuji, megumi, yuta, inumaki** — all currently silent | "a young man in his late teens giving a sharp confident effort grunt while attacking" |
-| `grunt_adult_male_1/2/3.wav` | **nanami, toji, geto, reggie** — all currently silent | "a calm adult man giving a low restrained effort grunt while striking, controlled and unbothered" |
-| `grunt_big_1/2/3.wav` | hakari, todo, sukuna, choso, gakuganji | "a large powerful man giving a deep booming battle shout while swinging, heavy and aggressive" |
-| `grunt_female_1/2/3.wav` | maki, nobara, momo, meimei, uro | "a young woman giving a sharp determined effort grunt while attacking, fierce" |
-| `grunt_monster_1/2/3.wav` | jogo, hanami | "a large inhuman creature giving a guttural rumbling snarl, throaty and non-human" |
-| `grunt_animal_1/2/3.wav` | panda, mahito | "a heavy animalistic huff and growl, bestial and short" |
+**`grunt_young_male_2.wav`** · 0.5 s
+```
+A single short determined shout from a young man in his late teens throwing a hard punch, a non-verbal exertion yell with a slight rasp to it, dry close-mic vocal recording with no reverb, about 0.5 seconds long, mono anime fighting game voice, no words, no music
+```
 
-If 18 is too many for one pass, **the 6 files for young-male and adult-male are
-the priority** — they cover the 9 fighters that are currently mute, including
-Gojo, who is the default cursor position and the most-played character.
+**`grunt_young_male_3.wav`** · 0.4 s
+```
+A single clipped breathy effort grunt from a young man in his late teens striking quickly, a quiet sharp exhale with much lower energy than a shout, dry close-mic vocal recording with no reverb, about 0.4 seconds long, mono anime fighting game voice, no words, no music
+```
+
+### Adult male — covers nanami, toji, geto, reggie (all currently silent)
+
+**`grunt_adult_male_1.wav`** · 0.5 s
+```
+A single low restrained effort grunt from a calm adult man in his thirties striking an opponent, controlled and unbothered, a non-verbal chest exhale, dry close-mic vocal recording with no reverb, about 0.5 seconds long, mono anime fighting game voice, no words, no music
+```
+
+**`grunt_adult_male_2.wav`** · 0.5 s
+```
+A single short forceful exhale from a composed adult man delivering a heavy blow, deeper and firmer than a shout, non-verbal, dry close-mic vocal recording with no reverb, about 0.5 seconds long, mono anime fighting game voice, no words, no music
+```
+
+**`grunt_adult_male_3.wav`** · 0.4 s
+```
+A single quiet clipped grunt from an adult man moving with practised efficiency, understated and almost bored, non-verbal, dry close-mic vocal recording with no reverb, about 0.4 seconds long, mono anime fighting game voice, no words, no music
+```
+
+### Big — covers hakari, todo, sukuna, choso, gakuganji
+
+**`grunt_big_1.wav`** · 0.6 s
+```
+A single deep booming battle shout from a large powerful man swinging with his whole body, heavy aggressive and chest-driven, non-verbal, dry close-mic vocal recording with no reverb, about 0.6 seconds long, mono anime fighting game voice, no words, no music
+```
+
+**`grunt_big_2.wav`** · 0.5 s
+```
+A single guttural low roar from a huge muscular man delivering a crushing strike, throaty and violent, non-verbal, dry close-mic vocal recording with no reverb, about 0.5 seconds long, mono anime fighting game voice, no words, no music
+```
+
+**`grunt_big_3.wav`** · 0.5 s
+```
+A single short heavy grunt from a large man exerting enormous force, a deep compressed effort sound rather than a yell, non-verbal, dry close-mic vocal recording with no reverb, about 0.5 seconds long, mono anime fighting game voice, no words, no music
+```
+
+### Female — covers maki, nobara, momo, meimei, uro
+
+**`grunt_female_1.wav`** · 0.5 s
+```
+A single sharp determined effort grunt from a young woman attacking, fierce and focused, non-verbal, dry close-mic vocal recording with no reverb, about 0.5 seconds long, mono anime fighting game voice, no words, no music
+```
+
+**`grunt_female_2.wav`** · 0.5 s
+```
+A single short fierce shout from a young woman swinging a weapon hard, an aggressive non-verbal exertion yell, dry close-mic vocal recording with no reverb, about 0.5 seconds long, mono anime fighting game voice, no words, no music
+```
+
+**`grunt_female_3.wav`** · 0.4 s
+```
+A single quiet clipped exhale from a young woman striking quickly and precisely, controlled and low energy, non-verbal, dry close-mic vocal recording with no reverb, about 0.4 seconds long, mono anime fighting game voice, no words, no music
+```
+
+### Monster — covers jogo, hanami
+
+**`grunt_monster_1.wav`** · 0.6 s
+```
+A single guttural rumbling snarl from a large inhuman creature attacking, throaty wet and clearly non-human, non-verbal, dry close-mic recording with no reverb, about 0.6 seconds long, mono monster creature voice for a fighting game, no words, no music
+```
+
+**`grunt_monster_2.wav`** · 0.5 s
+```
+A single low grinding growl from a monstrous creature exerting force, deep and gravelly with an unnatural resonance, non-verbal, dry close-mic recording with no reverb, about 0.5 seconds long, mono monster creature voice for a fighting game, no words, no music
+```
+
+**`grunt_monster_3.wav`** · 0.5 s
+```
+A single short hissing rasp from an inhuman creature lunging, airy and venomous rather than deep, non-verbal, dry close-mic recording with no reverb, about 0.5 seconds long, mono monster creature voice for a fighting game, no words, no music
+```
+
+### Animal — covers panda, mahito
+
+**`grunt_animal_1.wav`** · 0.5 s
+```
+A single heavy animalistic huff and growl from a large beast swinging, bestial and short, non-verbal, dry close-mic recording with no reverb, about 0.5 seconds long, mono animal creature voice for a fighting game, no words, no music
+```
+
+**`grunt_animal_2.wav`** · 0.5 s
+```
+A single deep chuffing bark from a large heavy animal striking, blunt and percussive, non-verbal, dry close-mic recording with no reverb, about 0.5 seconds long, mono animal creature voice for a fighting game, no words, no music
+```
+
+**`grunt_animal_3.wav`** · 0.4 s
+```
+A single short snorting exhale from a big animal bracing and pushing, low and breathy, non-verbal, dry close-mic recording with no reverb, about 0.4 seconds long, mono animal creature voice for a fighting game, no words, no music
+```
 
 ### KO cries (6 files, optional)
 
-Same six groups, played when a fighter is knocked out. Length 0.8–1.2 s.
+Played when a fighter is knocked out and flies off the stage.
 
-> `ko_young_male.wav`, `ko_adult_male.wav`, `ko_big.wav`, `ko_female.wav`,
-> `ko_monster.wav`, `ko_animal.wav`
+**`ko_young_male.wav`** · 1.0 s
+```
+A single short pained cry from a young man in his late teens being knocked away, fading and receding into the distance as it goes, non-verbal, close-mic vocal with a doppler falloff, about 1 second long, mono anime fighting game defeat voice, no words, no music
+```
 
-Prompt: "a single short pained cry of being knocked away, fading as it recedes
-into the distance, non-verbal, anime fighting game defeat voice" + the group's
-voice description.
+**`ko_adult_male.wav`** · 1.0 s
+```
+A single short pained grunt from an adult man being knocked away, restrained even in defeat, fading and receding into the distance, non-verbal, close-mic vocal with a doppler falloff, about 1 second long, mono anime fighting game defeat voice, no words, no music
+```
+
+**`ko_big.wav`** · 1.2 s
+```
+A single deep bellowing cry of defeat from a huge powerful man being launched away, fading and receding into the distance, non-verbal, close-mic vocal with a doppler falloff, about 1.2 seconds long, mono anime fighting game defeat voice, no words, no music
+```
+
+**`ko_female.wav`** · 1.0 s
+```
+A single short pained cry from a young woman being knocked away, fading and receding into the distance, non-verbal, close-mic vocal with a doppler falloff, about 1 second long, mono anime fighting game defeat voice, no words, no music
+```
+
+**`ko_monster.wav`** · 1.2 s
+```
+A single dying shriek from a large inhuman creature being blasted away, guttural and wet, fading and receding into the distance, non-verbal, close-mic recording with a doppler falloff, about 1.2 seconds long, mono monster defeat voice for a fighting game, no words, no music
+```
+
+**`ko_animal.wav`** · 1.0 s
+```
+A single yelping howl from a large beast being knocked away, fading and receding into the distance, non-verbal, close-mic recording with a doppler falloff, about 1 second long, mono animal defeat voice for a fighting game, no words, no music
+```
 
 ---
 
 ## Tier 4 — Menu and UI (7 files)
 
-The menu currently borrows combat sounds. These are quiet, quick, and should
-feel like UI rather than fighting.
+The menu currently borrows combat sounds. These should feel like UI rather
+than fighting — quiet, quick, synthetic.
 
-| File | When it fires | Length | Prompt |
-|---|---|---|---|
-| `ui_move.wav` | Cursor moves between fighters / options | 0.1 s | "a soft crisp UI cursor tick, short synthetic blip, subtle and clean" |
-| `ui_select.wav` | Confirming a menu button | 0.2 s | "a positive UI confirmation click, short bright two-tone chime" |
-| `ui_back.wav` | Backing out of a screen | 0.2 s | "a soft UI cancel sound, short descending two-tone blip, gentle" |
-| `ui_lock_in.wav` | A player locks in their fighter | 0.6 s | "a decisive character-select lock-in, a solid stamp impact with a bright energetic shimmer rising after it, satisfying commitment" |
-| `ui_denied.wav` | Trying to start before everyone is ready | 0.3 s | "a soft UI error buzz, short muted low double blip, discouraging but not harsh" |
-| `ui_start.wav` | Leaving the menu to begin a match | 1.0 s | "a match-starting flourish, a rising energetic swell resolving into a bright impact, exciting" |
-| `ui_pause.wav` | Opening or closing the pause menu | 0.3 s | "a game pausing, a short muffled downward whoosh with a soft filtered thud" |
+**`ui_move.wav`** · cursor moves between fighters or options · 0.1 s
+```
+A soft crisp user interface cursor tick, a very short clean synthetic blip, subtle and unobtrusive, dry with no reverb, about 0.1 seconds long, mono game menu sound effect, no music, no voice
+```
+
+**`ui_select.wav`** · confirming a menu button · 0.2 s
+```
+A positive user interface confirmation click, a short bright two-tone synthetic chime moving upward, clean and satisfying, dry with no reverb, about 0.2 seconds long, mono game menu sound effect, no music, no voice
+```
+
+**`ui_back.wav`** · backing out of a screen · 0.2 s
+```
+A soft user interface cancel sound, a short descending two-tone synthetic blip, gentle and non-punishing, dry with no reverb, about 0.2 seconds long, mono game menu sound effect, no music, no voice
+```
+
+**`ui_lock_in.wav`** · a player locks in their fighter · 0.6 s
+```
+A decisive character-select lock-in, a solid stamping impact with a bright energetic shimmer rising immediately after it, satisfying and committed, about 0.6 seconds long, mono fighting game menu sound effect, no music, no voice
+```
+
+**`ui_denied.wav`** · trying to start before everyone is ready · 0.3 s
+```
+A soft user interface error buzz, a short muted low double blip, discouraging but not harsh or startling, dry with no reverb, about 0.3 seconds long, mono game menu sound effect, no music, no voice
+```
+
+**`ui_start.wav`** · leaving the menu to begin a match · 1.0 s
+```
+A match-starting flourish, a rising energetic synthetic swell resolving into one bright impact, exciting and forward-driving, about 1 second long, stereo fighting game menu transition sound effect, no music bed, no voice
+```
+
+**`ui_pause.wav`** · opening or closing the pause menu · 0.3 s
+```
+A game pausing, a short muffled downward whoosh with a soft low-pass filtered thud at the end, about 0.3 seconds long, mono game menu sound effect, no music, no voice
+```
 
 ---
 
@@ -202,42 +414,108 @@ feel like UI rather than fighting.
 Where the game's identity lives, and where `blast` is currently doing the most
 undeserved work.
 
-| File | When it fires | Length | Prompt |
-|---|---|---|---|
-| `energy_charge.wav` | Holding a chargeable heavy | 1.5 s, **loopable** | "cursed energy gathering, a low rising electrical hum with crackling arcs building in intensity, seamless loop, ominous" |
-| `projectile_fire.wav` | Launching an energy projectile | 0.4 s | "firing a ball of cursed energy, a compressed woosh with a low electrical thrum leaving the hand" |
-| `projectile_hit.wav` | Energy projectile connecting | 0.5 s | "a ball of cursed energy bursting on impact, sharp energetic pop with a low bass thump and crackling residue" |
-| `explosion_small.wav` | Small bursts, traps springing | 0.6 s | "a small tight explosion, punchy debris burst with a short low tail" |
-| `explosion_large.wav` | Meteors, big ultimate impacts | 1.5 s | "a huge devastating explosion, enormous low-end boom with a long rumbling debris tail and a sharp cracking transient" |
-| `summon_appear.wav` | A shikigami / curse is summoned | 0.8 s | "a creature being summoned out of shadow, a low swelling whoosh with a dark magical shimmer and a bestial growl at the end" |
-| `summon_attack.wav` | A summon lunges and bites | 0.4 s | "a beast lunging bite, sharp snapping jaws with a wet snarl, quick" |
-| `ultimate_activate.wav` | Any ultimate firing | 1.5 s | "a devastating ultimate technique activating, a deep charging swell exploding into a powerful energy release, cinematic and heavy" |
-| `domain_expansion.wav` | **All 7 domains share one clip today** | 3.0 s | "a reality-warping domain unfolding, a vast low rumbling swell with an inverted reversed shimmer, a deep resonant bell strike, and the world sealing shut around the listener, ominous and enormous, stereo" |
-| `domain_collapse.wav` | A domain ending | 1.5 s | "a sealed domain shattering and reality snapping back, glass-like cracking with a reversed whoosh and a low pressure release" |
-| `install_activate.wav` | A transformation buff turning on (True Form, Gorilla Mode) | 1.2 s | "a character powering up and transforming, a rising energy surge with a heavy pulsing bass swell and crackling aura, intense" |
+**`energy_charge.wav`** · holding a chargeable heavy · 1.5 s, **seamless loop**
+```
+Supernatural cursed energy gathering and building, a low rising electrical hum with crackling arcs growing in intensity, ominous and tense, designed as a seamless loop with matching start and end so it can repeat without a click, exactly 1.5 seconds long, mono video game charge loop, no music, no voice
+```
+
+**`projectile_fire.wav`** · launching an energy projectile · 0.4 s
+```
+Firing a ball of cursed energy from the hand, a compressed whoosh with a low electrical thrum as it leaves and accelerates away, dry and punchy, about 0.4 seconds long, mono anime fighting game projectile launch, no music, no voice
+```
+
+**`projectile_hit.wav`** · energy projectile connecting · 0.5 s
+```
+A ball of cursed energy bursting on impact, a sharp energetic pop with a low bass thump underneath and crackling electrical residue after it, about 0.5 seconds long with a short tail, mono anime fighting game projectile impact, no music, no voice
+```
+
+**`explosion_small.wav`** · small bursts, traps springing · 0.6 s
+```
+A small tight explosion, a punchy debris burst with a short low tail and scattering fragments, contained rather than cinematic, about 0.6 seconds long, mono video game explosion sound effect, no music, no voice
+```
+
+**`explosion_large.wav`** · meteors, big ultimate impacts · 1.5 s
+```
+A huge devastating explosion, an enormous low-end boom with a sharp cracking transient at the front and a long rumbling debris tail rolling away after it, cinematic and overwhelming, about 1.5 seconds long, stereo video game explosion sound effect, no music, no voice
+```
+
+**`summon_appear.wav`** · a shikigami or curse is summoned · 0.8 s
+```
+A creature being summoned out of a pool of shadow, a low swelling whoosh with a dark magical shimmer and a short bestial growl arriving at the end, about 0.8 seconds long, mono anime fighting game summon sound effect, no music, no voice
+```
+
+**`summon_attack.wav`** · a summon lunges and bites · 0.4 s
+```
+A beast lunging forward and biting, sharp snapping jaws with a wet snarl behind them, fast and dry, about 0.4 seconds long, mono creature attack sound effect for a fighting game, no music, no voice
+```
+
+**`ultimate_activate.wav`** · any ultimate firing · 1.5 s
+```
+A devastating ultimate technique activating, a deep charging swell building and then exploding into a powerful energy release, cinematic and heavy, about 1.5 seconds long with a natural tail, stereo anime fighting game ultimate sound effect, no music bed, no voice
+```
+
+**`domain_expansion.wav`** · all 7 domains share one clip today · 3.0 s
+```
+A reality-warping domain unfolding and sealing shut around the listener, a vast low rumbling swell with an inverted reversed shimmer rising through it, one deep resonant bell strike, and the air closing in at the end, ominous enormous and cinematic, about 3 seconds long with a long tail, stereo anime supernatural sound effect, no music bed, no voice
+```
+
+**`domain_collapse.wav`** · a domain ending · 1.5 s
+```
+A sealed domain shattering and reality snapping back into place, glass-like cracking with a reversed whoosh and a low pressure release at the end, about 1.5 seconds long with a decaying tail, stereo anime supernatural sound effect, no music, no voice
+```
+
+**`install_activate.wav`** · a transformation buff turning on (True Form, Gorilla Mode) · 1.2 s
+```
+A character powering up and transforming, a rising energy surge with a heavy pulsing bass swell and a crackling aura settling in around them, intense and physical, about 1.2 seconds long, mono anime fighting game power-up sound effect, no music, no voice
+```
 
 ### Per-domain stings (7 files, stretch goal)
 
-The seven domains defined in `src/domains.js` currently all announce with the
-same clip. If you want each to feel distinct, add a **1.5–2 s** signature layer
-to sit under the shared `domain_expansion.wav`:
+The seven domains in `src/domains.js` all announce with the same clip today.
+These are signature layers meant to sit **under** `domain_expansion.wav`, so
+each keeps its own character without having to carry the whole moment.
 
-| File | Domain | Prompt |
-|---|---|---|
-| `domain_unlimited_void.wav` | Gojo — Unlimited Void | "infinite information flooding a mind, a vast airy void tone with layered whispering static swelling into overwhelming silence, cold and endless" |
-| `domain_malevolent_shrine.wav` | Sukuna — Malevolent Shrine | "a shrine of bone and slaughter manifesting, deep ritual drums with wet bone-cracking and a menacing low choir, brutal" |
-| `domain_shadow_garden.wav` | Megumi — Chimera Shadow Garden | "a garden of living shadow spreading, a soft dark liquid rush with rising inky whooshes and distant animal growls" |
-| `domain_self_embodiment.wav` | Mahito — Self-Embodiment of Perfection | "souls being reshaped, an unsettling warped choral drone with wet stretching and morphing textures, deeply wrong" |
-| `domain_iron_mountain.wav` | Jogo — Coffin of the Iron Mountain | "a volcanic mountain sealing shut, immense grinding stone with roaring magma and a deep suffocating heat rumble" |
-| `domain_idle_death_gamble.wav` | Hakari — Idle Death Gamble | "a pachinko parlour of fate exploding into life, cascading metal balls with bright manic jackpot bells and gaudy arcade fanfare" |
-| `domain_mutual_love.wav` | Yuta — Authentic Mutual Love | "an overwhelming outpouring of love and grief, a soaring sorrowful string swell with a warm protective hum underneath, beautiful and sad" |
+**`domain_unlimited_void.wav`** · Gojo — Unlimited Void · 2.0 s
+```
+Infinite information flooding into a mind all at once, a vast airy void tone with layered whispering static swelling and then dropping into overwhelming silence, cold endless and disorienting, about 2 seconds long with a long tail, stereo supernatural atmosphere layer, no music, no voice
+```
+
+**`domain_malevolent_shrine.wav`** · Sukuna — Malevolent Shrine · 2.0 s
+```
+A shrine built of bone and slaughter manifesting from the ground, deep ritual taiko drums with wet bone-cracking textures and a menacing low male choir underneath, brutal and sacrificial, about 2 seconds long with a long tail, stereo supernatural atmosphere layer, no lyrics
+```
+
+**`domain_shadow_garden.wav`** · Megumi — Chimera Shadow Garden · 2.0 s
+```
+A garden of living shadow spreading outward across the ground, a soft dark liquid rush with rising inky whooshes and distant animal growls moving through it, about 2 seconds long with a long tail, stereo supernatural atmosphere layer, no music, no voice
+```
+
+**`domain_self_embodiment.wav`** · Mahito — Self-Embodiment of Perfection · 2.0 s
+```
+Human souls being reshaped against their will, an unsettling warped choral drone with wet stretching and morphing flesh textures woven through it, deeply wrong and nauseating, about 2 seconds long with a long tail, stereo supernatural atmosphere layer, no lyrics
+```
+
+**`domain_iron_mountain.wav`** · Jogo — Coffin of the Iron Mountain · 2.0 s
+```
+A volcanic mountain sealing shut around a victim, immense grinding stone with roaring magma underneath and a deep suffocating heat rumble, crushing and airless, about 2 seconds long with a long tail, stereo supernatural atmosphere layer, no music, no voice
+```
+
+**`domain_idle_death_gamble.wav`** · Hakari — Idle Death Gamble · 2.0 s
+```
+A pachinko parlour of fate exploding into life, cascading metal balls with bright manic jackpot bells and gaudy arcade fanfare stacking on top of each other, chaotic and euphoric, about 2 seconds long with a long tail, stereo arcade atmosphere layer, no voice
+```
+
+**`domain_mutual_love.wav`** · Yuta — Authentic Mutual Love · 2.0 s
+```
+An overwhelming outpouring of love and grief, a soaring sorrowful string swell with a warm protective hum underneath it, beautiful and devastating at once, about 2 seconds long with a long tail, stereo emotional atmosphere layer, no lyrics
+```
 
 ---
 
 ## Suggested delivery order
 
-1. **Tier 3's 6 male-voice files** — 9 fighters including Gojo are literally
-   mute right now. Biggest gap per file.
+1. **The 6 male-voice files in Tier 3** — 9 fighters including Gojo are
+   literally mute right now. Biggest gap per file.
 2. **Tier 1** (12 files) — breaks up the one-explosion-for-everything problem
    in the moment-to-moment game.
 3. **Tier 2** (10 files) — fills the silent moments. `meter_full` and
