@@ -910,6 +910,78 @@ html, body {
 .keyboard-hint { margin: 0; color: var(--text-dim); font-size: 0.68rem; text-align: center; }
 
 .moves-table { display: grid; grid-template-columns: 150px 1fr; gap: 7px 16px; font-size: 0.8rem; }
+/* ---------- Move list: multi-player split ---------- */
+
+/* One column per human player, so everyone reads their own fighter at the same
+   time instead of passing the screen around. The panel is wider here because
+   it is carrying two to four kits rather than one. */
+.moves-panel--split { width: min(98%, 1500px); max-height: 78vh; }
+
+/* The button map is identical for everyone and already familiar, so in the
+   split view it yields vertical space to the thing players actually came for:
+   their own fighter's techniques and domain. Without this the Domain
+   Expansion block starts below the fold. */
+.moves-panel--split .controller-guide { gap: 12px; }
+.moves-panel--split .xbox-controller { max-height: 150px; }
+.moves-panel--split .controller-tips { gap: 4px; }
+/* Three or four kits cannot share a screen with the diagram as well. The tips
+   row survives because it is the part that is not already on the pad itself. */
+.moves-panel--split[data-players="3"] .xbox-controller,
+.moves-panel--split[data-players="4"] .xbox-controller { display: none; }
+.moves-panel--split[data-players="3"] .controller-guide,
+.moves-panel--split[data-players="4"] .controller-guide { grid-template-columns: 1fr; }
+.moves-panel--split[data-players="3"] .controller-tips,
+.moves-panel--split[data-players="4"] .controller-tips { grid-template-columns: repeat(5, 1fr); }
+.moves-panel--split .controller-tips span { padding: 4px 8px; font-size: 0.72rem; }
+
+.moves-players {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(var(--player-cols, 2), minmax(0, 1fr));
+}
+.moves-players[data-count="3"] { --player-cols: 3; }
+.moves-players[data-count="4"] { --player-cols: 4; }
+
+.moves-player {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: rgba(8, 12, 24, 0.55);
+  border-top: 3px solid var(--seat, var(--accent));
+  min-width: 0;
+}
+.moves-player[data-player="1"] { --seat: var(--p1-theme); }
+.moves-player[data-player="2"] { --seat: var(--p2-theme); }
+.moves-player[data-player="3"] { --seat: var(--p3-theme); }
+.moves-player[data-player="4"] { --seat: var(--p4-theme); }
+
+.moves-player-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.moves-player-badge {
+  font-weight: 900;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: #05060d;
+  background: var(--seat);
+  border-radius: 5px;
+  padding: 2px 7px;
+}
+.moves-player-name { font-weight: 800; font-size: 1rem; }
+.moves-player-epithet { color: var(--text-dim); font-size: 0.78rem; font-style: italic; }
+.moves-player-keys { color: var(--text-dim); font-size: 0.7rem; line-height: 1.45; margin: 8px 0 0; }
+
+/* Columns are narrow, so the label/description grid becomes a stack rather
+   than squeezing a 150px gutter out of a quarter-width column. */
+.moves-player .moves-table { grid-template-columns: 1fr; gap: 2px 0; font-size: 0.74rem; }
+.moves-player .moves-table dt { color: var(--accent); font-weight: 800; font-size: 0.66rem; letter-spacing: 0.05em; }
+.moves-player .moves-table dd { margin: 0 0 6px; }
+.moves-player .moves-blurb { font-size: 0.74rem; }
+.moves-player .moves-section { margin-top: 8px; }
+.moves-player .domain-howto { font-size: 0.95em; }
+
+@media (max-width: 1100px) {
+  .moves-players { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 /* The domain block earns extra room: its "how it plays" line is an actual
    instruction the player has to read, not flavour text. */
 /* The d-pad is the domain pad, so it reads as a live control rather than the
