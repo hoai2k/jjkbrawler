@@ -245,21 +245,20 @@ function buildCharacterGrid() {
   els.characterGrid.innerHTML = "";
   // RESOLVED_GROUPS, not the raw config: a typo'd key would otherwise reach
   // buildCharacterCard and take the whole select screen down on `.name`.
-  // One continuous grid: every card is a direct child, so the roster packs the
-  // full width instead of splitting into per-category columns that each ran
-  // half-empty. Category names ride along as in-flow label chips — they mark
-  // where a group starts without carving the layout into separate blocks.
+  // One continuous grid: every card is a direct child, so columns line up all
+  // the way down the roster instead of each category becoming its own block
+  // with its own card size. Category names are full-width titles, which pushes
+  // the next group's first card onto a fresh row — a short category just leaves
+  // empty cells at the end of its last row.
   for (const group of RESOLVED_GROUPS) {
     els.characterGrid.appendChild(buildGroupLabel(group.key, group.label));
     for (const member of group.members) els.characterGrid.appendChild(buildCharacterCard(member));
   }
-  // Random belongs to no category and needs no label chip — the tile is already
-  // a dashed "?" reading RANDOM, and spending two cells to say so again left the
-  // last row nearly empty.
+  // Random belongs to no category, so it gets its own title rather than
+  // trailing the last group's row, where it would read as one of its members.
   if (RANDOM_GROUP.show !== false) {
-    const wildcard = buildCharacterCard(RANDOM_KEY);
-    wildcard.title = RANDOM_GROUP.label;
-    els.characterGrid.appendChild(wildcard);
+    els.characterGrid.appendChild(buildGroupLabel(RANDOM_KEY, RANDOM_GROUP.label));
+    els.characterGrid.appendChild(buildCharacterCard(RANDOM_KEY));
   }
 }
 
@@ -298,6 +297,12 @@ function buildCharacterCard(key) {
 const MIN_ROSTER_COLS = 6;
 const MAX_ROSTER_COLS = 26;
 
+// Portrait shapes the fitter may fall back to, tallest first. Cropping the art
+// buys height far more cheaply than another column does: past the largest
+// category there is no row left to save, so extra columns only shrink the cards
+// and strand width the roster can never fill.
+const ROSTER_ASPECTS = ["3 / 4", "1 / 1", "5 / 4", "3 / 2", "2 / 1"];
+
 // Sizes the roster to the window. Every card is a cell of one grid spanning the
 // full width, so portraits are as large as the remaining vertical space allows
 // rather than being squeezed into per-category columns. Runs on resize and
@@ -308,17 +313,22 @@ export function layoutCharacterGrid() {
   if (!grid.querySelector(".char-card")) return;
   grid.style.removeProperty("--grid-height"); // measure the natural size first
 
-  let chosen = MAX_ROSTER_COLS;
+  let chosen = { cols: MAX_ROSTER_COLS, aspect: ROSTER_ASPECTS[ROSTER_ASPECTS.length - 1] };
+  outer:
   for (let cols = MIN_ROSTER_COLS; cols <= MAX_ROSTER_COLS; cols++) {
-    grid.style.setProperty("--cols", String(cols));
-    // scrollHeight > clientHeight means this layout overflows the menu, so keep
-    // adding columns (shrinking cards) until it stops.
-    if (els.menuOverlay.scrollHeight <= els.menuOverlay.clientHeight) {
-      chosen = cols;
-      break;
+    for (const aspect of ROSTER_ASPECTS) {
+      grid.style.setProperty("--cols", String(cols));
+      grid.style.setProperty("--card-aspect", aspect);
+      // scrollHeight > clientHeight means this layout overflows the menu, so
+      // crop harder — and once the crops run out, add a column.
+      if (els.menuOverlay.scrollHeight <= els.menuOverlay.clientHeight) {
+        chosen = { cols, aspect };
+        break outer;
+      }
     }
   }
-  grid.style.setProperty("--cols", String(chosen));
+  grid.style.setProperty("--cols", String(chosen.cols));
+  grid.style.setProperty("--card-aspect", chosen.aspect);
   // Pin the fitted height so the roster cannot shift while a player is choosing.
   grid.style.setProperty("--grid-height", `${Math.ceil(grid.getBoundingClientRect().height)}px`);
 }
