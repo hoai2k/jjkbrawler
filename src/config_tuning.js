@@ -7,9 +7,9 @@
 //
 // The division of labour across the three files you would edit by hand:
 //
-//   config.js     content — roster grouping and every player-facing string.
+//   config_menus.js     content — roster grouping and every player-facing string.
 //                 Affects no mechanics at all.
-//   tuning.js     feel — motion amplitudes, tumble, defence knobs. Affects
+//   config_tuning.js     feel — motion amplitudes, tumble, defence knobs. Affects
 //                 how the game reads and plays, never what it contains.
 //   constants.js  physics, geometry and match rules — gravity, jump height,
 //                 shield economy, blast zones, sprite cell size. Also

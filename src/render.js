@@ -3,7 +3,7 @@ import { getImage } from "./assets.js";
 import { getStage } from "./stages.js";
 import { drawCharFrame, currentFrame } from "./sprites.js";
 import { fighterTransform, trailStrength } from "./motion.js";
-import { TRAIL_ALPHA } from "./tuning.js";
+import { TRAIL_ALPHA } from "./config_tuning.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
 import { hitboxRect, hurtbox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";

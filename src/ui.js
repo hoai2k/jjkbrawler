@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, randomCharacterKey } from "./characters.js";
+import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, RESOLVED_GROUPS, randomCharacterKey } from "./characters.js";
 import { STAGES } from "./stages.js";
 import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
@@ -7,7 +7,7 @@ import { METER_MAX } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
 import { setSpriteSet } from "./assets.js";
-import { CHARACTER_GROUPS, RANDOM_GROUP, TEXT } from "./config.js";
+import { RANDOM_GROUP, TEXT } from "./config_menus.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -61,7 +61,7 @@ export function initUi(cb) {
   window.addEventListener("resize", layoutCharacterGrid);
 }
 
-// Screens whose wording never changes at runtime still comes from config.js, so
+// Screens whose wording never changes at runtime still comes from config_menus.js, so
 // every player-facing string lives in one file. Anything dynamic is written by
 // the render functions below.
 function applyStaticText() {
@@ -184,7 +184,9 @@ function tryStart() {
 
 function buildCharacterGrid() {
   els.characterGrid.innerHTML = "";
-  for (const group of CHARACTER_GROUPS) {
+  // RESOLVED_GROUPS, not the raw config: a typo'd key would otherwise reach
+  // buildCharacterCard and take the whole select screen down on `.name`.
+  for (const group of RESOLVED_GROUPS) {
     els.characterGrid.appendChild(buildGroupSection(group.key, group.label, group.members));
   }
   // Random is its own trailing tile rather than a member of any category.

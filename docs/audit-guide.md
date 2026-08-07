@@ -19,7 +19,7 @@ over HTTP and open — `node server.mjs`, or double-click `play-mac.command` /
 src/main.js         boot, fixed-timestep loop, match flow, input latching
 src/state.js        the single mutable state object everything reads
 src/constants.js    physics + balance constants
-src/tuning.js       hand-tweakable feel dials (motion, tumble, DI, staling)
+src/config_tuning.js       hand-tweakable feel dials (motion, tumble, DI, staling)
 src/characters.js   all 17 fighters as DATA (stats, anims, specials, ultimate, passive)
 src/moves.js        derives light/heavy hitboxes from each character's profile
 src/fighter.js      per-fighter state machine: movement, defense, ledges, KO

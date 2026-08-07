@@ -9,7 +9,7 @@ import {
 import {
   TUMBLE_KB_MIN, TUMBLE_SPIN_PER_KB, TUMBLE_SPIN_MAX,
   DI_MAX_TURN, DI_SPEED, STALE_QUEUE, STALE_DMG_STEP, STALE_KB_STEP,
-} from "./tuning.js";
+} from "./config_tuning.js";
 
 export function hurtbox(f) {
   if (f.ledge) return { x: f.x - 30, y: f.y - 82, w: 60, h: 84 };

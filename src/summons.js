@@ -20,7 +20,7 @@ import { applyHit, hurtbox, spawnProjectile } from "./combat.js";
 import { burst, dust, ring } from "./particles.js";
 import { playSfx } from "./audio.js";
 import { getImage } from "./assets.js";
-import { MOTION } from "./tuning.js";
+import { MOTION } from "./config_tuning.js";
 
 function groundY() {
   return state.platforms.length ? state.platforms[0].y : 568;

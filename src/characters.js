@@ -6,7 +6,7 @@
 // Fighters delivered from round 7 onward (Choso, Mei Mei, Uro) have no sheet at
 // all — their frames are semantic pose keys instead; see SEMANTIC_ANIMS below.
 
-import { CHARACTER_GROUPS } from "./config.js";
+import { CHARACTER_GROUPS } from "./config_menus.js";
 
 // The roster itself is defined further down; CHARACTER_KEYS is derived from the
 // config groups once the kits exist (see the bottom of this file).
@@ -1130,13 +1130,33 @@ export const CHARACTERS = {
   },
 };
 
-// Grid order, move-list order and asset-load order all follow the groups in
-// config.js, so there is one roster ordering rather than two that can drift
-// apart. A key listed in a group with no kit here is dropped rather than
-// crashing the select screen; the warning below names it.
-export const CHARACTER_KEYS = CHARACTER_GROUPS
-  .flatMap((g) => g.members)
-  .filter((key) => CHARACTERS[key]);
+// The roster, resolved from config_menus.js. Editing CHARACTER_GROUPS there is
+// the ONLY thing needed to reorder fighters, move one between categories, add a
+// category or delete one: grid order, move-list order and asset-load order all
+// read from this, so there is one roster ordering rather than several that can
+// drift apart.
+//
+// Resolved, not trusted verbatim. A hand-edited config will eventually contain a
+// typo, a fighter left in two categories after a move, or a category emptied out
+// rather than deleted — none of which should take the select screen down. So:
+// drop members with no kit, drop a repeat of a fighter already placed in an
+// earlier category, and drop categories left with nothing in them. Every case is
+// warned about below rather than passing silently.
+export const RESOLVED_GROUPS = (() => {
+  const seen = new Set();
+  return CHARACTER_GROUPS
+    .map((group) => ({
+      ...group,
+      members: (group.members || []).filter((key) => {
+        if (!CHARACTERS[key] || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }),
+    }))
+    .filter((group) => group.members.length > 0);
+})();
+
+export const CHARACTER_KEYS = RESOLVED_GROUPS.flatMap((g) => g.members);
 
 // Config typos are worth saying out loud: a fighter in no group is unreachable,
 // and a group member with no kit would break the grid. Staged round-7 fighters
@@ -1148,9 +1168,22 @@ if (ungrouped.length) {
   console.warn(`Not listed in CHARACTER_GROUPS, so unselectable: ${ungrouped.join(", ")}`);
 }
 
-const unknown = CHARACTER_GROUPS.flatMap((g) => g.members).filter((key) => !CHARACTERS[key]);
+const listed = CHARACTER_GROUPS.flatMap((g) => g.members || []);
+const unknown = listed.filter((key) => !CHARACTERS[key]);
 if (unknown.length) {
   console.warn(`Listed in CHARACTER_GROUPS but no such fighter: ${unknown.join(", ")}`);
+}
+
+const duplicated = [...new Set(listed.filter((key, i) => CHARACTERS[key] && listed.indexOf(key) !== i))];
+if (duplicated.length) {
+  console.warn(`Listed in more than one CHARACTER_GROUPS category, keeping the first: ${duplicated.join(", ")}`);
+}
+
+const emptied = CHARACTER_GROUPS
+  .filter((g) => !RESOLVED_GROUPS.some((r) => r.key === g.key))
+  .map((g) => g.key);
+if (emptied.length) {
+  console.warn(`CHARACTER_GROUPS category with no usable members, hidden: ${emptied.join(", ")}`);
 }
 
 export function getCharacter(key) {

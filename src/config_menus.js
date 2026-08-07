@@ -6,19 +6,35 @@
 // it up on reload. Fighter stats and kits live in characters.js; this file is
 // only about how the roster is organised and what the game says.
 //
-// The other two files meant for hand editing: tuning.js for how the game FEELS
-// (sprite motion, tumble, DI, move staling) and constants.js for physics and
-// match rules.
+// The other two files meant for hand editing: config_tuning.js for how the
+// game FEELS (sprite motion, tumble, DI, move staling) and constants.js for
+// physics and match rules.
 // ---------------------------------------------------------------------------
 
 // Fighter-select categories, in the order they appear on screen. Each group's
 // `members` are character keys from CHARACTERS in characters.js, shown left to
-// right. The select screen sizes itself from this list, so adding a member, a
-// whole group, or reordering either needs no other change.
+// right.
 //
-// A character key listed here that has no entry in CHARACTERS is ignored with a
-// console warning; a playable character missing from every group also warns,
-// because it would be unreachable.
+// This array is the ONLY thing to edit to change the roster's shape. All of
+// these work by editing it and reloading, with no other change anywhere:
+//
+//   * reorder the categories       — move the objects around
+//   * reorder fighters in one      — move the keys inside `members`
+//   * recategorise a fighter       — move its key to another group's `members`
+//   * add a category               — add `{ key, label, members: [...] }`
+//   * delete a category            — remove the object (or empty its `members`)
+//   * rename a category            — change its `label`
+//
+// The select grid, the move list, the load order and CHARACTER_KEYS all read
+// from here, so there is one roster ordering rather than several that drift.
+// Widths come from each group's member count, so any number of categories of
+// any size lays itself out.
+//
+// Hand edits get checked rather than trusted, and each problem warns to the
+// console instead of breaking the screen: a key with no fighter is dropped, a
+// fighter left in two categories keeps its first placement, a category with
+// nothing usable in it is hidden, and a playable fighter in no category at all
+// is reported as unreachable. See RESOLVED_GROUPS in characters.js.
 export const CHARACTER_GROUPS = [
   {
     key: "students",

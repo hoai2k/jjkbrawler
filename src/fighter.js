@@ -15,7 +15,7 @@ import {
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
   RESPAWN_X,
 } from "./constants.js";
-import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "./tuning.js";
+import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "./config_tuning.js";
 import { mainPlatform } from "./stages.js";
 import { frameMeta } from "./assets.js";
 import { currentFrame } from "./sprites.js";

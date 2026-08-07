@@ -19,6 +19,10 @@ const canvas = $("stage");
 const ctx = canvas.getContext("2d");
 
 const GROUND_Y = 470;
+// The platform the stage draws, and how far onto it the size benchmark stands.
+const PLATFORM_W = 680;
+const PLATFORM_X = 380 - PLATFORM_W / 2;
+const BENCHMARK_INSET = 78;
 const CELL_W = 313.5;
 // Scalar fields the workbench can edit. `anchors` is edited too but is nested,
 // so snapshot/restore/compare handle it separately.
@@ -267,11 +271,27 @@ function drawAnchorHandle(name, active) {
   ctx.restore();
 }
 
-function drawGhost(charKey, frameKey, alpha) {
+function drawGhost(charKey, frameKey, alpha, x = canvas.width / 2) {
   if (!rawMeta(charKey, frameKey) || !frameImage(charKey, frameKey)) return;
-  drawCharFrame(ctx, charKey, frameKey, canvas.width / 2, GROUND_Y, {
+  drawCharFrame(ctx, charKey, frameKey, x, GROUND_Y, {
     scale: CHARACTERS[charKey].scale * state.zoom, facing: 1, alpha,
   });
+}
+
+/** The size benchmark stands at the left end of the platform rather than
+ *  underneath the pose. It answers a different question from the self-ghost:
+ *  "is this character the right size next to the rest of the roster", which is
+ *  a comparison you read side by side, not by overlaying two silhouettes. */
+function drawBenchmark() {
+  const key = rawMeta("gojo", "idle_a") ? "idle_a" : "r0c0";
+  const x = PLATFORM_X + BENCHMARK_INSET;
+  drawGhost("gojo", key, 0.85, x);
+  ctx.save();
+  ctx.fillStyle = "rgba(154, 164, 192, 0.9)";
+  ctx.font = "600 11px Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Gojo idle — size benchmark", x, GROUND_Y + 60);
+  ctx.restore();
 }
 
 function render() {
@@ -285,7 +305,7 @@ function render() {
   if ($("showPlatform").checked) {
     ctx.save();
     ctx.translate(0, GROUND_Y);
-    drawPlatformShape(ctx, { x: cx - 340, y: 0, w: 680, h: 42, kind: "main" });
+    drawPlatformShape(ctx, { x: PLATFORM_X, y: 0, w: PLATFORM_W, h: 42, kind: "main" });
     ctx.restore();
   }
 
@@ -311,11 +331,12 @@ function render() {
     }
   }
 
-  // usable on Gojo himself as well — comparing a pose against his own idle
-  // benchmark is exactly as useful as comparing another character's
-  if ($("refGojo").checked) {
-    drawGhost("gojo", rawMeta("gojo", "idle_a") ? "idle_a" : "r0c0", 0.3);
-  }
+  // usable on Gojo himself as well — standing a pose next to his idle is
+  // exactly as useful as standing it next to another character's
+  if ($("refGojo").checked) drawBenchmark();
+  // The self-ghost stays overlaid: within one sprite set the question is
+  // whether this pose lines up with the character's own idle, and that is only
+  // readable when the two occupy the same space.
   if ($("refSelf").checked) {
     const k = rawMeta(state.char, "idle_a") ? "idle_a" : "r0c0";
     if (k !== state.frame) drawGhost(state.char, k, 0.32);

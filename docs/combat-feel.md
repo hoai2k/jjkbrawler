@@ -132,7 +132,7 @@ Zero console errors over 259 samples.
 
 **Tuning knobs**, if any of it feels wrong. `DI_MAX_TURN` (0.30 rad ~ 17
 degrees), `DI_SPEED` (0.08), `STALE_DMG_STEP` (0.09) and `STALE_KB_STEP` (0.06)
-live in `src/tuning.js` alongside the sprite-motion dials; `ACTION_BUFFER`
+live in `src/config_tuning.js` alongside the sprite-motion dials; `ACTION_BUFFER`
 (0.12s) and `AERIAL_LAND_LAG_MULT` (0.6) are match rules, so they stay in
 `src/constants.js`.
 

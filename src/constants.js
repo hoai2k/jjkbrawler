@@ -67,5 +67,5 @@ export const CELL_H = 313.6;
 export const CELL_FOOT_Y = 0.92;
 
 // Feel dials — motion amplitudes, tumble, trails, DI and move staling — live
-// in src/tuning.js. This file is physics, geometry and match rules: things
+// in src/config_tuning.js. This file is physics, geometry and match rules: things
 // other code depends on the relationships between.
