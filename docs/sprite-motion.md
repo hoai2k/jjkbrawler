@@ -88,9 +88,25 @@ its editor from that table, so no UI work is required.
 ### Where the values come from
 
 `tools/bake_anchors.py` measures each PNG's opaque-pixel centroid offline and
-writes it in as `anchors.com`. For uniform density that centroid *is* the centre
-of mass, and it is far better than any heuristic on sprawled, crouched or
-mid-swing poses — exactly the ones that rotate most.
+writes it in as `anchors.com`. The centroid is far better than any heuristic on
+sprawled, crouched or mid-swing poses — exactly the ones that rotate most —
+because it reads the actual pose rather than assuming an upright body.
+
+It is not the whole answer, though, because a centroid assumes **uniform
+density** and a human is not uniform. Legs are about a third of body mass but
+occupy far more than a third of a standing silhouette's area, so the area
+centroid is dragged down into the thighs, below the midsection a body really
+pivots about. The script corrects for that with `COM_LIFT_FRAC`, raising the
+measured point by 6.5% of the character's height.
+
+That number is measured rather than chosen. Gojo's 28 hand-placed anchors —
+dragged from the sprite's centre to his stomach, one pose at a time — are the
+reference, and against them the lift halves the raw centroid's error (26 px RMS
+against 55) and removes its bias entirely (+0.4 px against +41). It beat both a
+flat anatomical fraction and every blend of the two, because the centroid still
+carries the pose and a flat fraction throws that away. As a cross-check, the
+hand-placed points sit at 0.570 ± 0.053 of body height above the feet, which is
+the textbook figure for a standing human.
 
 It measures state anchors too, where a rule can find them: the `ledge` grip is
 the centroid of the topmost band of opaque pixels on a hang pose, which is the
@@ -104,6 +120,13 @@ python3 tools/bake_anchors.py --force         # re-measure hand-placed anchors t
 
 It **never overwrites a hand-placed anchor** without `--force`, so re-running it
 after new art lands is safe. Run it whenever frames are added.
+
+Note the flip side: because it skips frames that already carry an anchor, a
+change to how the measurement works reaches existing art only under `--force`.
+When `COM_LIFT_FRAC` was introduced, the 22 characters holding untouched raw
+bakes were re-measured with `--force --only <those characters>`, and Gojo was
+left out so his hand-placed values survived. Do the same for the next such
+change: check which frames are still raw bakes before forcing anything.
 
 The runtime fallback in `defaultCom` only applies to frames the bake hasn't
 reached. It must stay in image pixels: `ox`, `oy`, `bodyBottom` and `centroidX`
@@ -126,7 +149,10 @@ match. *Centre of mass* overlays the pivot.
 
 Both export through the existing flow: **Export all adjustments** →
 `tools/apply_sprite_adjustments.py`, which merges anchors per name so exporting
-one never drops another.
+one never drops another. The button downloads the JSON as a file named after
+what is in it — `gojo-adjustments.json`, or `roster-adjustments.json` when the
+session touched several characters — and also leaves it in the textarea to read
+or copy. Nothing is downloaded when nothing has been edited.
 
 ## Finding your way around the workbench
 
