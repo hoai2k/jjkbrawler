@@ -9,7 +9,16 @@ export const state = {
   // "default" | "alternate" — opts into a character's second art set where one
   // exists (currently Hanami's round-6 redesign). See assets.js.
   spriteSet: "default",
-  selection: { 1: "gojo", 2: "sukuna", 3: "megumi", 4: "nobara" },
+  // What each slot picked on the select screen. May be RANDOM_KEY, which
+  // resolves to a different fighter every match. The CPU defaults to random.
+  selection: { 1: "gojo", 2: "__random", 3: "megumi", 4: "nobara" },
+  // Concrete fighter each slot is actually using this match, after RANDOM_KEY
+  // has been resolved. This is what fighters are built from.
+  roster: { 1: "gojo", 2: "sukuna", 3: "megumi", 4: "nobara" },
+  // The CPU's random draw, rolled the moment the humans lock in so the select
+  // screen can show who they are about to face. Cleared once a match consumes
+  // it, so every rematch faces a fresh opponent.
+  cpuRoll: null,
   // Per-player lock-in on the fighter select screen. A player who is ready has
   // committed a fighter; the match can start once every human slot is ready.
   ready: { 1: false, 2: false, 3: false, 4: false },

@@ -9,6 +9,15 @@ export const CHARACTER_KEYS = [
   "nanami", "toji", "sukuna", "mahito", "geto", "jogo", "hanami",
 ];
 
+// Sentinel selection meaning "draw a fresh fighter at the start of every match"
+// rather than naming one. Never a key in CHARACTERS — resolve it through
+// randomCharacterKey() before building a fighter.
+export const RANDOM_KEY = "__random";
+
+export function randomCharacterKey() {
+  return CHARACTER_KEYS[Math.floor(Math.random() * CHARACTER_KEYS.length)];
+}
+
 // Anim defaults; characters override entries whose sheet cells differ.
 export const DEFAULT_ANIMS = {
   idle: { frames: ["idle_a", "idle_b"], fps: 2.2, loop: true },
