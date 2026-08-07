@@ -377,9 +377,11 @@ function bindMenuButtons() {
   els.fullscreenButton.addEventListener("click", fullscreen);
 
   els.muteButton.addEventListener("click", () => {
+    // Silence first, repaint second: if anything ever threw while updating the
+    // icon, the audio must already be muted rather than left running.
     const muted = toggleMute();
-    updateMuteButton();
     syncMusic(state.phase);
+    updateMuteButton();
     if (!muted) playSfx("uiSelect"); // audible confirmation that sound is back
   });
 
@@ -1142,6 +1144,14 @@ export function updateMenuNav(dt) {
 }
 
 function bindMenuKeyboardNav() {
+  // M mutes from anywhere, including mid-match, where the menu handler below
+  // deliberately stays out of the way.
+  window.addEventListener("keydown", (e) => {
+    if ((e.code || e.key) !== "KeyM" || state.phase === "loading") return;
+    e.preventDefault();
+    els.muteButton.click();
+  });
+
   window.addEventListener("keydown", (e) => {
     if (state.phase === "playing" || state.phase === "loading") return;
     const map = {
