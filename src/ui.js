@@ -6,6 +6,7 @@ import { cpuLevelName } from "./ai.js";
 import { METER_MAX } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
+import { setSpriteSet } from "./assets.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -40,7 +41,7 @@ export function initUi(cb) {
     "movesPanel", "movesTitle", "movesKicker", "movesPrevButton", "movesNextButton", "movesBackButton",
     "randomStageButton", "stageBackButton", "roundKicker", "winnerText", "rematchButton", "menuButton",
     "resumeButton", "pauseResetButton", "pauseMenuButton",
-    "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "musicVolumeRange", "musicVolumeLabel",
+    "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsSpritesButton", "musicVolumeRange", "musicVolumeLabel",
     "sfxVolumeRange", "sfxVolumeLabel", "settingsBackButton",
   ]) {
     els[id] = $(id);
@@ -112,6 +113,11 @@ function bindMenuButtons() {
     state.stocks = STOCK_OPTIONS[(i + 1) % STOCK_OPTIONS.length];
     updateMenuButtons();
   });
+  els.settingsSpritesButton.addEventListener("click", () => {
+    state.spriteSet = state.spriteSet === "alternate" ? "default" : "alternate";
+    setSpriteSet(state.spriteSet);
+    updateMenuButtons();
+  });
   const musicClick = () => {
     cycleMusicMode();
     updateMenuButtons();
@@ -170,6 +176,8 @@ export function updateMenuButtons() {
   els.settingsMusicButton.textContent = `Music: ${label}`;
   els.settingsCpuButton.textContent = `CPU Difficulty: ${cpuLevelName(state.cpuLevel)}`;
   els.settingsStocksButton.textContent = `Lives per fighter: ${state.stocks}`;
+  els.settingsSpritesButton.textContent =
+    `Sprites: ${state.spriteSet === "alternate" ? "Alternate" : "Default"}`;
 }
 
 export function updateSelectionUi() {

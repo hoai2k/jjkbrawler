@@ -18,6 +18,8 @@ const EFFECT_KEYS = [
   "cursed_tool", "ratio_wave", "soul_isomer", "speech_word", "drum_burst", "soul_touch",
   "aura_gold", "aura_pink", "aura_violet", "aura_orange", "aura_green",
   "boogie_clap", "domain_gamble",
+  // Geto's summoned curses, lifted out of his round-6 art (tools/extract_curses.py)
+  "curse_a", "curse_b", "curse_c", "curse_d", "curse_dragon",
 ];
 
 function loadImage(src) {
@@ -33,7 +35,27 @@ export function getImage(key) {
   return images.get(key) || null;
 }
 
+// Alternate art sets. A character can ship a second look (Hanami's round-6
+// redesign) that the player opts into in Settings; unlisted frames fall through
+// to the default set, so an alternate only needs the frames that differ.
+export let spriteSet = "default";
+
+export function setSpriteSet(name) {
+  spriteSet = name === "alternate" ? "alternate" : "default";
+}
+
+export function hasAlternate(charKey) {
+  return !!spriteManifest?.alternates?.[charKey];
+}
+
+function altMeta(charKey, frameKey) {
+  if (spriteSet !== "alternate") return null;
+  return spriteManifest?.alternates?.[charKey]?.[frameKey] || null;
+}
+
 export function frameMeta(charKey, frameKey) {
+  const alt = altMeta(charKey, frameKey);
+  if (alt) return alt;
   const char = spriteManifest?.characters?.[charKey];
   const meta = char ? char[frameKey] || null : null;
   if (!meta || meta.faceLeft !== undefined) return meta;
@@ -42,6 +64,10 @@ export function frameMeta(charKey, frameKey) {
 }
 
 export function frameImage(charKey, frameKey) {
+  if (altMeta(charKey, frameKey)) {
+    const img = images.get(`alt:${charKey}:${frameKey}`);
+    if (img) return img;
+  }
   return images.get(`sprite:${charKey}:${frameKey}`) || null;
 }
 
@@ -75,6 +101,12 @@ export async function loadAssets(onProgress) {
   add("summon:divineDogWhite", "assets/sprites/summons/divine_dog_white.png");
   add("summon:divineDogBlack", "assets/sprites/summons/divine_dog_black.png");
   add("summon:nue", "assets/sprites/summons/nue.png");
+  for (const [charKey, frames] of Object.entries(spriteManifest.alternates || {})) {
+    for (const [frameKey, meta] of Object.entries(frames)) {
+      add(`alt:${charKey}:${frameKey}`, `assets/sprites/${meta.file}`);
+    }
+  }
+
   for (const key of EFFECT_KEYS) add(`effect:${key}`, `assets/sprites/effects/${key}.png`);
 
   let done = 0;

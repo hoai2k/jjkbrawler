@@ -23,6 +23,11 @@ export const DEFAULT_ANIMS = {
   shield: { frames: ["guard"], fps: 1, loop: true },
   ledge: { frames: ["ledge_hang"], fps: 1, loop: true },
   dodge: { frames: ["r1c2"], fps: 1, loop: true },
+  // Round-6 art. Roll and air dodge used to borrow the sprint frame, so a
+  // fighter mid-evade looked like they were running on the spot. Characters
+  // without the new art fall back to `dodge` (see `animFor`).
+  dodge_roll: { frames: ["dodge_roll"], fps: 1, loop: true },
+  dodge_air: { frames: ["dodge_air"], fps: 1, loop: true },
   light: { frames: ["r3c0", "r3c1"], fps: 12, loop: false },
   airLight: { frames: ["attack_air"], fps: 8, loop: false },
   sideHeavy: { frames: ["r3c0"], fps: 6, loop: false },
@@ -695,12 +700,15 @@ export const CHARACTERS = {
       neutral: {
         name: "Cursed Spirit Volley", type: "projectile", cooldown: 1.2,
         desc: "Releases a handful of lesser curses that drift hungrily toward the enemy.",
-        p: { speed: 420, vy: -10, r: 26, dur: 1.1, dmg: 8, base: 280, growth: 5.8, angle: 0.4, color: "#7d58d8", count: 3, spread: 170, homing: 130, effect: "curseDrain", label: "Spirit Volley", sprite: "effect:cursed_spirit_orb", spriteH: 82 },
+        // Each of the three shots draws a different curse, cut from his own
+        // round-6 art. The volley is the one move where seeing a MENAGERIE
+        // rather than three identical orbs sells what Geto actually does.
+        p: { speed: 420, vy: -10, r: 26, dur: 1.1, dmg: 8, base: 280, growth: 5.8, angle: 0.4, color: "#7d58d8", count: 3, spread: 170, homing: 130, effect: "curseDrain", label: "Spirit Volley", spritePool: ["effect:curse_a", "effect:curse_b", "effect:curse_c", "effect:curse_d"], spriteH: 96 },
       },
       side: {
         name: "Rainbow Dragon", type: "wave", cooldown: 1.7,
         desc: "His prized heavy-hitter surges along the ground and bites like a landslide.",
-        p: { speed: 520, r: 46, dur: 1.2, dmg: 15, base: 470, growth: 7.6, angle: 0.42, color: "#9d7dff", count: 1, label: "Rainbow Dragon", sprite: "effect:rainbow_dragon", spriteH: 150 },
+        p: { speed: 520, r: 46, dur: 1.2, dmg: 15, base: 470, growth: 7.6, angle: 0.42, color: "#9d7dff", count: 1, label: "Rainbow Dragon", sprite: "effect:curse_dragon", spriteH: 170 },
       },
       down: {
         name: "Kuchisake-Onna's Scissors", type: "trap", cooldown: 2.3,

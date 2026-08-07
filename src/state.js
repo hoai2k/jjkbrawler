@@ -6,6 +6,9 @@ export const state = {
   playerCount: 1,   // human players; 1 means P1 versus CPU
   cpuLevel: 1,      // 0 easy, 1 normal, 2 hard
   stocks: 3,
+  // "default" | "alternate" — opts into a character's second art set where one
+  // exists (currently Hanami's round-6 redesign). See assets.js.
+  spriteSet: "default",
   selection: { 1: "gojo", 2: "sukuna", 3: "megumi", 4: "nobara" },
   activePicker: 1,
   stageKey: "trainingBridge",

@@ -70,7 +70,13 @@ const HANDLERS = {
     const count = p.count || 1;
     for (let i = 0; i < count; i++) {
       const spreadVy = count > 1 ? (i - (count - 1) / 2) * (p.spread || 100) : 0;
-      spawnProjectile(f, { ...p, vy: (p.vy || 0) + spreadVy });
+      // `spritePool` picks a different look per shot — Geto's volley throws a
+      // random cursed spirit each time rather than the same orb three times.
+      // Cosmetic only: the hitbox is identical whichever is drawn.
+      const sprite = p.spritePool
+        ? p.spritePool[Math.floor(Math.random() * p.spritePool.length)]
+        : p.sprite;
+      spawnProjectile(f, { ...p, vy: (p.vy || 0) + spreadVy, sprite });
     }
     burst(f.x + f.facing * 70, f.y - 86, p.color || f.char.theme, 16, 0.9);
     grantSummonMeter(f, cfg);
@@ -81,7 +87,11 @@ const HANDLERS = {
     playGrunt(f.charKey);
     const count = p.count || 1;
     for (let i = 0; i < count; i++) {
-      spawnProjectile(f, { ...p, wave: true, ox: 60 + i * 54, sprite: p.sprites?.[i % p.sprites.length] });
+      // Only override the sprite when a per-shot list is supplied. Passing
+      // `sprite: undefined` unconditionally shadowed `p.sprite` from the
+      // spread, so every single-sprite wave (Geto's dragon) drew nothing.
+      const sprite = p.sprites ? p.sprites[i % p.sprites.length] : p.sprite;
+      spawnProjectile(f, { ...p, wave: true, ox: 60 + i * 54, sprite });
     }
     dust(f.x + f.facing * 50, f.y, 10);
     grantSummonMeter(f, cfg);

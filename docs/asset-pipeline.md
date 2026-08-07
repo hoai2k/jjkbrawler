@@ -154,3 +154,54 @@ than hand values.
 **So sizing is a human-in-the-loop judgement.** `tools/size_review.py` renders
 every pose at true in-game scale on a shared ground line with the idle head
 height marked, and `workbench/` (see below) allows live adjustment.
+
+## Intake pipeline (round 6 onward)
+
+Delivered art lands in `assets/intake/<char>/<frame>.png` and is **not** loaded
+by the game. Three steps, each separable so a bad delivery stops at the door:
+
+1. `tools/intake.py` — keys the background, straightens facing, measures body
+   height / clipping / green fringe / holes, writes `assets/intake/_processed/`.
+2. `tools/intake_sheets.py` — before/after boards labelled with the animation
+   state each frame drives, for human approval.
+3. `tools/intake_import.py --approve FILE` — copies approved frames into
+   `assets/sprites/` and registers them.
+
+Placement is delegated to `extract_sprites.generated_frame_meta`. A replacement
+inherits the old frame's rendered height and foot line, so a swap changes art
+and never size; a brand-new frame borrows the character's idle scale factor.
+
+### Keying, and why it is layered
+
+Three passes, each narrower than the last, because a single rule cannot tell
+background from art:
+
+- **border flood fill** — key colour reachable from the canvas edge
+- **strict pass** — unmistakable key colour anywhere, for background sealed
+  inside the silhouette
+- **flat-fill pass** — key colour that is also locally uniform; art over the
+  same colour carries lineart and shading, background does not
+
+Translucent motion trails drawn over the key come back tinted and defeat all
+three. Those are cleared per-frame via `TINT_FIX` / `GREY_TINT_FIX`, named by a
+reviewer, never swept.
+
+**Facing is not automated.** `detect_facing` returned near-zero confidence on
+two thirds of round 6. Only confident calls are acted on; the rest are marked on
+the board and corrected via `FACING_OVERRIDE`.
+
+## Alternate sprite sets
+
+`manifest.alternates.<char>.<frame>` holds a second art set, opted into with
+**Settings → Sprites: Default / Alternate**. Unlisted frames fall through to the
+default set, so an alternate only ships the frames that differ. Hanami's
+round-6 redesign is the first (8 frames).
+
+## Summoned-curse sprites
+
+`tools/extract_curses.py` lifts Geto's four cursed spirits and his rainbow
+dragon out of the art they were drawn into, writing them to
+`assets/sprites/effects/`. Baking a creature into a fighter frame means it
+cannot move, be timed or be reused, and it inflates the fighter's bounding box.
+As projectiles they do all three. His volley uses `spritePool`, drawing a random
+curse per shot.
