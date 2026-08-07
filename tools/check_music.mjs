@@ -21,6 +21,7 @@ const config = await import(path.join(ROOT, "src/config_music.js"));
 const { BOARD_MUSIC_DIR, BOARD_TRACKS, FALLBACK_TRACKS, MENU_TRACK, MUSIC_DIR, UNUSED_BOARD_TRACKS } = config;
 
 const write = process.argv.includes("--write");
+const CONFIG_SRC = fs.readFileSync(CONFIG_PATH, "utf8");
 const stageNames = STAGES.map((s) => s.name);
 const stageNameSet = new Set(stageNames);
 
@@ -103,14 +104,16 @@ if (withoutTrack.length) notes.push(`Stages using the fallback originals (${with
 if (write) {
   const matched = onDisk.filter((n) => stageNameSet.has(n));
   const unmatched = onDisk.filter((n) => !stageNameSet.has(n));
-  const render = (names) => names.map((n) => `  "${n}",`).join("\n");
-  let src = fs.readFileSync(CONFIG_PATH, "utf8");
+  const render = (names) => (names.length ? `\n${names.map((n) => `  "${n}",`).join("\n")}\n` : "");
+  let src = CONFIG_SRC;
   src = src.replace(/export const BOARD_TRACKS = \[[\s\S]*?\];/,
-    `export const BOARD_TRACKS = [\n${render(matched)}\n];`);
+    `export const BOARD_TRACKS = [${render(matched)}];`);
   src = src.replace(/export const UNUSED_BOARD_TRACKS = \[[\s\S]*?\];/,
-    `export const UNUSED_BOARD_TRACKS = [\n${render(unmatched)}\n];`);
+    `export const UNUSED_BOARD_TRACKS = [${render(unmatched)}];`);
   fs.writeFileSync(CONFIG_PATH, src);
   console.log(`Rewrote config_music.js: ${matched.length} board tracks, ${unmatched.length} unused.`);
+  console.log("Re-run without --write to check the result.");
+  process.exit(0); // the checks above ran against the pre-write config
 }
 
 console.log(`Stages: ${stageNames.length} · board files: ${onDisk.length} · configured: ${BOARD_TRACKS.length}`);
