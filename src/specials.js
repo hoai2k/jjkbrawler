@@ -11,6 +11,7 @@ import { playSfx, playGrunt } from "./audio.js";
 import { METER_MAX } from "./constants.js";
 import { rectsOverlap, circleRectOverlap } from "./utils.js";
 import { getImage } from "./assets.js";
+import { spawnSummon } from "./summons.js";
 
 // Installs have priorities: ultimate transformations (2) cannot be
 // overwritten by special-move buffs (1).
@@ -64,6 +65,20 @@ export function performSpecial(f, slot) {
 }
 
 const HANDLERS = {
+  // Persistent minions (see summons.js). `p` is the summon config; `p.units`
+  // optionally spawns several minions per cast with per-unit overrides
+  // (Megumi's two Divine Dogs).
+  summon(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.5);
+    playGrunt(f.charKey);
+    for (const unit of p.units || [{}]) {
+      spawnSummon(f, { label: cfg.name, ...p, ...unit });
+    }
+    ring(f.x, f.y - 80, p.color || f.char.theme, 110);
+    playSfx("blast", 0.6, 1.2);
+    grantSummonMeter(f, cfg);
+  },
+
   projectile(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.42);
     playGrunt(f.charKey);
