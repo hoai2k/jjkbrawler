@@ -6,7 +6,9 @@ and `ox` live against the game's real renderer, then exports JSON like:
 
     { "character": "maki",
       "adjustments": { "ledge_hang": { "renderScale": 0.3518, "ox": 47.8,
-                                       "bodyBottom": 300 } } }
+                                       "bodyBottom": 300,
+                                       "anchors": { "com": [148.7, 512.0],
+                                                    "ledge": [161.0, 40.6] } } } }
 
 This writes those values into `assets/sprites/manifest.json`. Multiple payloads
 can be applied at once — paste several into one file as a JSON array, or pass
@@ -29,7 +31,14 @@ MANIFEST = os.path.join(HERE, "..", "assets", "sprites", "manifest.json")
 # renderScale = size, ox = horizontal centring, bodyBottom = ground contact
 # (where the sprite's feet meet the floor — not necessarily its lowest pixel,
 # since perspective can put one foot below the standing plane).
-ALLOWED = {"renderScale", "ox", "bodyBottom"}
+#
+# anchors = named points in the SOURCE IMAGE's own pixels, from its top-left
+# corner: "com" is the centre of mass every rotation pivots about, and states
+# can add their own ("ledge" is the hand that grips the edge). Image-local
+# coordinates mean an anchor stays on the same piece of artwork through any
+# later renderScale / ox / bodyBottom change. See src/sprites.js.
+ALLOWED = {"renderScale", "ox", "bodyBottom", "anchors"}
+NUMERIC = {"renderScale", "ox", "bodyBottom"}
 
 
 def load_payloads(sources):
@@ -74,6 +83,14 @@ def main():
             for field, value in changes.items():
                 if field not in ALLOWED:
                     skipped.append(f"{char}/{key}: ignoring unsupported field '{field}'")
+                    continue
+                if field == "anchors":
+                    # merge, so exporting one anchor never drops the others
+                    anchors = meta.setdefault("anchors", {})
+                    for name, point in value.items():
+                        before = anchors.get(name)
+                        anchors[name] = [round(float(point[0]), 1), round(float(point[1]), 1)]
+                        applied.append(f"{char}/{key}.anchors.{name}: {before} -> {anchors[name]}")
                     continue
                 before = meta.get(field)
                 meta[field] = value

@@ -5,6 +5,7 @@ import { playSfx } from "./audio.js";
 import {
   SHIELD_DAMAGE_MULT, SHIELD_BREAK_STUN, PARRY_WINDOW, METER_MAX,
   METER_ON_DEAL, METER_ON_TAKE,
+  TUMBLE_KB_MIN, TUMBLE_SPIN_PER_KB, TUMBLE_SPIN_MAX,
 } from "./constants.js";
 
 export function hurtbox(f) {
@@ -537,6 +538,13 @@ export function applyHit(owner, target, hit, source) {
       target.vy = -Math.sin(Math.abs(angle)) * kb - 120;
     }
     target.grounded = false;
+    // Tumble. Past a threshold the victim rotates through the launch rather
+    // than sliding through it rigidly — the single biggest readability win on
+    // a hit, since `hurt` is one still frame for every character.
+    if (kb > TUMBLE_KB_MIN) {
+      const rate = Math.min((kb - TUMBLE_KB_MIN) * TUMBLE_SPIN_PER_KB, TUMBLE_SPIN_MAX);
+      target.spin = dir * rate;
+    }
     let stun = clamp(0.12 + kb * 0.00048 + stunBonus, 0.12, 1.35);
     if (target.char.passive.id === "oldGuard") stun *= 0.75; // barely flinches
     target.hitstun = stun;

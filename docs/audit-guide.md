@@ -27,6 +27,7 @@ src/specials.js     special-move handlers (type -> behavior) + shared primitives
 src/ultimates.js    the 17 cinematic ultimates (type -> director)
 src/ai.js           CPU opponent, 3 difficulty levels
 src/render.js       all drawing; sprites.js, camera.js, particles.js support it
+src/motion.js       procedural sprite motion (tumble, lean, swing) — docs/sprite-motion.md
 src/ui.js           menus, HUD, move list, gamepad/keyboard menu navigation
 tools/              offline asset pipeline (see docs/asset-pipeline.md)
 docs/               mechanics, character research, asset pipeline, asset requests
@@ -43,6 +44,9 @@ docs/               mechanics, character research, asset pipeline, asset request
   outlive its owner's death and keep dealing damage (this was a real bug).
 - Sprite frames are pre-processed offline. The renderer does no per-frame pixel
   work. Frame placement comes from `assets/sprites/manifest.json`.
+- Most animation states are ONE still frame. The life in them is procedural,
+  from `motion.js`, and it is draw-time only — it can never change what a hit
+  connects with. See `docs/sprite-motion.md`.
 - The main loop has a `setInterval` watchdog because `requestAnimationFrame` is
   throttled in some embedded browsers. A thrown exception therefore does *not*
   permanently kill the game — it retries every frame and spams the console.

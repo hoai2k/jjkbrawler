@@ -7,9 +7,12 @@
 // and any fix applied elsewhere in the pipeline appears here immediately.
 
 import { loadAssets, frameImage, spriteManifest } from "../src/assets.js";
-import { drawCharFrame } from "../src/sprites.js";
+import {
+  drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly,
+  anchorScreenPos, screenPosToLocal, warmAnchors, EXTRA_ANCHORS,
+} from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
-import { CHARACTERS, CHARACTER_KEYS, DEFAULT_ANIMS } from "../src/characters.js";
+import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("stage");
@@ -17,8 +20,10 @@ const ctx = canvas.getContext("2d");
 
 const GROUND_Y = 470;
 const CELL_W = 313.5;
-// Fields the workbench can edit; also the shape of an undo entry.
+// Scalar fields the workbench can edit. `anchors` is edited too but is nested,
+// so snapshot/restore/compare handle it separately.
 const EDITABLE = ["renderScale", "ox", "bodyBottom"];
+const HANDLE_R = 7;
 
 const BACKGROUNDS = [
   ["#12151f", "dark"], ["#5c6478", "grey"], ["#f2f4f8", "white"],
@@ -28,17 +33,29 @@ const BACKGROUNDS = [
 const state = {
   char: "gojo", frame: null, bg: BACKGROUNDS[0][0], zoom: 1.9,
   originals: {}, originalHeads: {}, undo: [], redo: [],
+  anchor: null,        // name of the anchor being edited on-canvas, or null
+  dragging: false,
+  showAll: false,      // show frames the game never draws
 };
 
 // ---------------------------------------------------------------- helpers
 
 function statesUsing(charKey, frameKey) {
-  const anims = { ...DEFAULT_ANIMS, ...(CHARACTERS[charKey].anims || {}) };
-  return Object.entries(anims).filter(([, a]) => a.frames.includes(frameKey)).map(([n]) => n);
+  return statesUsingFrame(charKey, frameKey);
 }
 
-function framesOf(charKey) {
+function allFramesOf(charKey) {
   return Object.keys(spriteManifest?.characters?.[charKey] || {}).sort();
+}
+
+/** Poses the pose list offers. A character's sheet carries every cell that was
+ *  ever extracted, but the game only ever draws the ones an animation names —
+ *  editing the rest is wasted work, so they are hidden behind "show all". */
+function framesOf(charKey) {
+  const all = allFramesOf(charKey);
+  if (state.showAll) return all;
+  const used = all.filter((k) => statesUsing(charKey, k).length > 0);
+  return used.length ? used : all;
 }
 
 /** The RAW manifest object the renderer reads. `frameMeta` may hand back a
@@ -63,12 +80,59 @@ function snapshot(charKey, frameKey) {
   const meta = rawMeta(charKey, frameKey);
   const out = {};
   for (const f of EDITABLE) out[f] = meta[f];
+  // deep so an undo entry can't alias the live anchors object
+  out.anchors = meta.anchors ? JSON.parse(JSON.stringify(meta.anchors)) : null;
   return out;
 }
 
 function restore(charKey, frameKey, snap) {
   const meta = rawMeta(charKey, frameKey);
   for (const f of EDITABLE) meta[f] = snap[f];
+  if (snap.anchors) meta.anchors = JSON.parse(JSON.stringify(snap.anchors));
+  else delete meta.anchors;
+}
+
+// ------------------------------------------------------------------ anchors
+//
+// Anchors are stored in the SOURCE IMAGE's own pixels, so they ride along with
+// every later size / horizontal / ground-contact tweak: a point put on a
+// character's navel stays on the navel however the frame is nudged afterwards.
+// See src/sprites.js for the full contract.
+
+const ANCHOR_META = {
+  com: {
+    label: "Centre of mass",
+    hint: "The pivot every rotation turns about — tumbles, rolls, leans and " +
+          "the idle sway. Defaults to the detected centroid at navel height.",
+  },
+  ...EXTRA_ANCHORS,
+};
+
+/** Anchors offered for the current frame: `com` always, plus any state-specific
+ *  one the frame's animations call for. */
+function anchorNames(charKey, frameKey) {
+  return ["com", ...anchorsForFrame(charKey, frameKey)];
+}
+
+/** Current value in image-local px, resolved from the default when unset. */
+function anchorValue(charKey, frameKey, name) {
+  const v = anchorLocal(charKey, frameKey, name);
+  if (v) return v;
+  // An extra anchor with nothing stored starts life at the centre of mass,
+  // which is a far better first guess than the image's corner.
+  return anchorLocal(charKey, frameKey, "com") || [0, 0];
+}
+
+function setAnchor(charKey, frameKey, name, x, y) {
+  const meta = rawMeta(charKey, frameKey);
+  (meta.anchors ??= {})[name] = [Math.round(x * 10) / 10, Math.round(y * 10) / 10];
+}
+
+function anchorsDirty(charKey, frameKey) {
+  const orig = state.originals[charKey]?.[frameKey];
+  if (!orig) return false;
+  const now = rawMeta(charKey, frameKey).anchors || null;
+  return JSON.stringify(now) !== JSON.stringify(orig.anchors || null);
 }
 
 function remember(charKey, frameKey) {
@@ -81,7 +145,8 @@ function isDirty(charKey, frameKey) {
   const orig = state.originals[charKey]?.[frameKey];
   if (!orig) return false;
   const meta = rawMeta(charKey, frameKey);
-  return EDITABLE.some((f) => Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4);
+  return EDITABLE.some((f) => Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4)
+    || anchorsDirty(charKey, frameKey);
 }
 
 function dirtyFrames(charKey) {
@@ -148,6 +213,60 @@ function spriteScale(charKey, meta) {
   return CHARACTERS[charKey].scale * state.zoom * (meta.renderScale ?? 1);
 }
 
+// ---- canvas <-> image-local mapping, mirroring drawCharFrame's placement so
+// a handle sits exactly where the renderer would put that point.
+
+function viewOpts(charKey, name) {
+  return { scale: CHARACTERS[charKey].scale * state.zoom, facing: 1, name };
+}
+
+function localToCanvas(charKey, frameKey, name) {
+  return anchorScreenPos(charKey, frameKey, canvas.width / 2, GROUND_Y, viewOpts(charKey, name));
+}
+
+function canvasToLocal(charKey, frameKey, px, py) {
+  return screenPosToLocal(charKey, frameKey, px, py, canvas.width / 2, GROUND_Y, viewOpts(charKey));
+}
+
+/** Pointer event -> canvas pixels. The canvas is laid out responsively, so its
+ *  backing store and its CSS box are different sizes. */
+function eventToCanvas(e) {
+  const r = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - r.left) * (canvas.width / r.width),
+    y: (e.clientY - r.top) * (canvas.height / r.height),
+  };
+}
+
+function drawAnchorHandle(name, active) {
+  const p = localToCanvas(state.char, state.frame, name);
+  if (!p) return;
+  const colour = name === "com" ? "rgba(120, 235, 190, 1)" : "rgba(255, 196, 92, 1)";
+  ctx.save();
+  ctx.globalAlpha = active ? 1 : 0.45;
+  ctx.strokeStyle = colour;
+  ctx.lineWidth = active ? 2 : 1.5;
+  // crosshair + ring reads clearly over busy art in either background
+  ctx.beginPath();
+  ctx.moveTo(p.x - HANDLE_R * 2, p.y); ctx.lineTo(p.x - 3, p.y);
+  ctx.moveTo(p.x + 3, p.y); ctx.lineTo(p.x + HANDLE_R * 2, p.y);
+  ctx.moveTo(p.x, p.y - HANDLE_R * 2); ctx.lineTo(p.x, p.y - 3);
+  ctx.moveTo(p.x, p.y + 3); ctx.lineTo(p.x, p.y + HANDLE_R * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, HANDLE_R, 0, Math.PI * 2);
+  ctx.stroke();
+  if (active) {
+    ctx.fillStyle = colour;
+    ctx.globalAlpha = 0.22;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.font = "600 11px Inter, sans-serif";
+    ctx.fillText(ANCHOR_META[name]?.label ?? name, p.x + HANDLE_R * 2 + 4, p.y - 6);
+  }
+  ctx.restore();
+}
+
 function drawGhost(charKey, frameKey, alpha) {
   if (!rawMeta(charKey, frameKey) || !frameImage(charKey, frameKey)) return;
   drawCharFrame(ctx, charKey, frameKey, canvas.width / 2, GROUND_Y, {
@@ -202,9 +321,13 @@ function render() {
     if (k !== state.frame) drawGhost(state.char, k, 0.32);
   }
 
-  drawCharFrame(ctx, state.char, state.frame, cx, GROUND_Y, {
-    scale: CHARACTERS[state.char].scale * state.zoom, facing: 1,
-  });
+  if ($("spinPreview").checked) {
+    drawSpinPreview(cx);
+  } else {
+    drawCharFrame(ctx, state.char, state.frame, cx, GROUND_Y, {
+      scale: CHARACTERS[state.char].scale * state.zoom, facing: 1,
+    });
+  }
 
   if ($("showBox").checked) {
     const meta = rawMeta(state.char, state.frame);
@@ -216,6 +339,25 @@ function render() {
                    meta.w * s, meta.h * s);
     ctx.setLineDash([]);
   }
+
+  // Every anchor the frame carries, with the selected one solid. Drawn last so
+  // handles are never buried under the art.
+  if ($("showAnchors").checked || state.anchor) {
+    for (const name of anchorNames(state.char, state.frame)) {
+      drawAnchorHandle(name, name === state.anchor);
+    }
+  }
+}
+
+/** Spin the pose about its centre of mass, so a badly-placed anchor is obvious
+ *  — an off-centre pivot makes the body orbit instead of turn. */
+function drawSpinPreview(cx) {
+  const t = performance.now() / 1000;
+  drawCharFrame(ctx, state.char, state.frame, cx, GROUND_Y, {
+    scale: CHARACTERS[state.char].scale * state.zoom,
+    facing: 1,
+    rotation: t * 1.6,
+  });
 }
 
 // -------------------------------------------------------------- ui wiring
@@ -245,9 +387,17 @@ function refreshControls() {
 
   // positive slider = sprite sits LOWER, which reads more naturally than the
   // underlying bodyBottom (where a bigger value lifts the art)
+  const airborne = isAirborneOnly(state.char, state.frame);
   const dg = (orig.bodyBottom ?? 0) - (meta.bodyBottom ?? 0);
   $("groundRange").value = dg.toFixed(1);
-  $("groundVal").textContent = `${dg > 0 ? "+" : ""}${dg.toFixed(1)} px`;
+  $("groundVal").textContent = airborne ? "n/a — never touches the floor"
+                                        : `${dg > 0 ? "+" : ""}${dg.toFixed(1)} px`;
+  $("groundGroup").classList.toggle("disabled", airborne);
+  $("groundRange").disabled = airborne;
+  $("groundNote").hidden = !airborne;
+  document.querySelectorAll("[data-ground]").forEach((b) => (b.disabled = airborne));
+
+  refreshAnchorControls();
 
   // counted across every character touched this session, since that is what
   // Export now emits
@@ -267,6 +417,42 @@ function refreshControls() {
   refreshHistoryButtons();
 }
 
+function refreshAnchorControls() {
+  const names = anchorNames(state.char, state.frame);
+  if (!names.includes(state.anchor)) state.anchor = null;
+
+  const tabs = $("anchorTabs");
+  tabs.innerHTML = "";
+  for (const name of names) {
+    const b = document.createElement("button");
+    b.textContent = ANCHOR_META[name]?.label ?? name;
+    b.className = name === state.anchor ? "sel" : "";
+    b.onclick = () => {
+      // clicking the selected one deselects, so the handles can be dismissed
+      state.anchor = state.anchor === name ? null : name;
+      refreshAnchorControls();
+      render();
+    };
+    tabs.appendChild(b);
+  }
+
+  const body = $("anchorBody");
+  body.hidden = !state.anchor;
+  $("anchorHint").textContent = state.anchor
+    ? ANCHOR_META[state.anchor]?.hint ?? ""
+    : "Pick an anchor to place it. Its handle appears on the sprite — drag it, " +
+      "or nudge with the arrows. Stored against the artwork, so later size, " +
+      "position and ground tweaks carry it along.";
+  if (!state.anchor) return;
+
+  const [x, y] = anchorValue(state.char, state.frame, state.anchor);
+  const stored = !!rawMeta(state.char, state.frame).anchors?.[state.anchor];
+  const changed = anchorChanged(state.char, state.frame, state.anchor);
+  $("anchorVal").textContent = `${x.toFixed(1)}, ${y.toFixed(1)} px in image`
+    + (changed ? " (edited)" : stored ? "" : " (derived)");
+  $("resetAnchor").disabled = !changed;
+}
+
 /** Character-level, so it must update even when no pose is selected. */
 function refreshHeadControl() {
   rememberHead(state.char);
@@ -280,7 +466,9 @@ function buildPoseList() {
   const list = $("poseList");
   list.innerHTML = "";
   const frames = framesOf(state.char);
-  $("poseCount").textContent = `${frames.length} frames`;
+  const hidden = allFramesOf(state.char).length - frames.length;
+  $("poseCount").textContent = `${frames.length} frames`
+    + (hidden > 0 ? ` · ${hidden} unused hidden` : "");
   for (const key of frames) {
     remember(state.char, key);
     const b = document.createElement("button");
@@ -324,11 +512,49 @@ function applyOffset(dx, commit) {
 }
 
 function applyGround(dy, commit) {
+  // A frame only ever drawn in the air has no floor contact to set; the floor
+  // stays visible in the viewer purely as a size reference against the idle.
+  if (isAirborneOnly(state.char, state.frame)) return;
   const orig = state.originals[state.char][state.frame];
   if (commit) pushHistory(state.char, state.frame);
   // slider reads as "how far down the sprite sits", so invert onto bodyBottom
   rawMeta(state.char, state.frame).bodyBottom = (orig.bodyBottom ?? 0) - dy;
   refreshControls(); buildPoseList(); render();
+}
+
+function applyAnchor(name, x, y, commit) {
+  if (commit) pushHistory(state.char, state.frame);
+  setAnchor(state.char, state.frame, name, x, y);
+  refreshControls(); buildPoseList(); render();
+}
+
+function nudgeAnchor(dx, dy) {
+  if (!state.anchor) return;
+  const [x, y] = anchorValue(state.char, state.frame, state.anchor);
+  applyAnchor(state.anchor, x + dx, y + dy, true);
+}
+
+/** Back to what shipped — the measured value from tools/bake_anchors.py, or,
+ *  for a frame the bake never reached, back to the derived fallback. Deleting
+ *  outright would throw away the measurement in favour of the guess. */
+function resetAnchor(name) {
+  const orig = state.originals[state.char][state.frame].anchors;
+  const meta = rawMeta(state.char, state.frame);
+  if (!anchorChanged(state.char, state.frame, name)) return;
+  pushHistory(state.char, state.frame);
+  if (orig && name in orig) {
+    (meta.anchors ??= {})[name] = [...orig[name]];
+  } else if (meta.anchors) {
+    delete meta.anchors[name];
+    if (!Object.keys(meta.anchors).length) delete meta.anchors;
+  }
+  refreshControls(); buildPoseList(); render();
+}
+
+function anchorChanged(charKey, frameKey, name) {
+  const orig = state.originals[charKey]?.[frameKey]?.anchors?.[name] || null;
+  const now = rawMeta(charKey, frameKey).anchors?.[name] || null;
+  return JSON.stringify(orig) !== JSON.stringify(now);
 }
 
 function applyHead(value, commit) {
@@ -351,6 +577,7 @@ function payloadFor(charKey) {
         entry[f] = f === "renderScale" ? Number(value.toFixed(4)) : Number(value.toFixed(1));
       }
     }
+    if (anchorsDirty(charKey, key) && meta.anchors) entry.anchors = meta.anchors;
     if (Object.keys(entry).length) out[key] = entry;
   }
   const payload = { character: charKey };
@@ -444,6 +671,56 @@ async function boot() {
     b.onclick = () => applyGround(parseFloat($("groundRange").value) + parseFloat(b.dataset.ground), true);
   });
 
+  // ---- on-canvas anchor editing. Grabbing near a handle selects it, so an
+  // anchor can be picked up directly instead of via the panel first.
+  canvas.addEventListener("pointerdown", (e) => {
+    if (!state.frame) return;
+    const p = eventToCanvas(e);
+    const names = anchorNames(state.char, state.frame);
+    let best = null, bestD = Infinity;
+    for (const name of names) {
+      const h = localToCanvas(state.char, state.frame, name);
+      if (!h) continue;
+      const d = Math.hypot(h.x - p.x, h.y - p.y);
+      if (d < bestD) { bestD = d; best = name; }
+    }
+    // outside every handle: only act when an anchor is already selected, so
+    // ordinary clicks on the canvas don't move anything
+    if (bestD > HANDLE_R * 2.6 && !state.anchor) return;
+    const name = bestD <= HANDLE_R * 2.6 ? best : state.anchor;
+    if (state.anchor !== name) { state.anchor = name; refreshAnchorControls(); }
+    state.dragging = true;
+    canvas.setPointerCapture(e.pointerId);
+    const [lx, ly] = canvasToLocal(state.char, state.frame, p.x, p.y);
+    applyAnchor(name, lx, ly, true);
+    e.preventDefault();
+  });
+  canvas.addEventListener("pointermove", (e) => {
+    if (!state.dragging || !state.anchor) return;
+    const p = eventToCanvas(e);
+    const [lx, ly] = canvasToLocal(state.char, state.frame, p.x, p.y);
+    applyAnchor(state.anchor, lx, ly, false);
+  });
+  const endDrag = (e) => {
+    if (!state.dragging) return;
+    state.dragging = false;
+    try { canvas.releasePointerCapture(e.pointerId); } catch { /* already gone */ }
+  };
+  canvas.addEventListener("pointerup", endDrag);
+  canvas.addEventListener("pointercancel", endDrag);
+
+  document.querySelectorAll("[data-anchor]").forEach((b) => {
+    const [dx, dy] = b.dataset.anchor.split(",").map(Number);
+    b.onclick = () => nudgeAnchor(dx, dy);
+  });
+  $("resetAnchor").onclick = () => resetAnchor(state.anchor);
+  $("showAllFrames").onchange = (e) => {
+    state.showAll = e.target.checked;
+    // the hidden set can contain the selected pose; fall back to a visible one
+    if (!framesOf(state.char).includes(state.frame)) state.frame = framesOf(state.char)[0];
+    syncAll();
+  };
+
   $("undoBtn").onclick = undo;
   $("redoBtn").onclick = redo;
 
@@ -471,8 +748,14 @@ async function boot() {
     catch { $("exportOut").select(); }
     setTimeout(() => ($("copyBtn").textContent = "Copy to clipboard"), 1200);
   };
-  ["refSelf", "refGojo", "showGuides", "showBox", "showPlatform"]
+  ["refSelf", "refGojo", "showGuides", "showBox", "showPlatform", "showAnchors"]
     .forEach((id) => ($(id).onchange = render));
+  // the spin preview animates, so it needs a frame loop rather than one redraw
+  $("spinPreview").onchange = render;
+  (function spinLoop() {
+    if ($("spinPreview").checked) render();
+    requestAnimationFrame(spinLoop);
+  })();
 
   window.addEventListener("keydown", (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
@@ -484,6 +767,12 @@ async function boot() {
     const frames = framesOf(state.char);
     const i = frames.indexOf(state.frame);
     const step = e.shiftKey ? 10 : 1;
+    if (state.anchor) {
+      if (e.key === "ArrowLeft") { nudgeAnchor(-step, 0); e.preventDefault(); return; }
+      if (e.key === "ArrowRight") { nudgeAnchor(step, 0); e.preventDefault(); return; }
+      if (e.key === "ArrowUp") { nudgeAnchor(0, -step); e.preventDefault(); return; }
+      if (e.key === "ArrowDown") { nudgeAnchor(0, step); e.preventDefault(); return; }
+    }
     if (e.key === "ArrowLeft") { applyOffset(parseFloat($("offsetRange").value) - step, true); e.preventDefault(); }
     if (e.key === "ArrowRight") { applyOffset(parseFloat($("offsetRange").value) + step, true); e.preventDefault(); }
     if (e.key === "ArrowUp") { state.frame = frames[(i - 1 + frames.length) % frames.length]; syncAll(); e.preventDefault(); }
@@ -491,6 +780,7 @@ async function boot() {
   });
 
   await loadAssets(() => {});
+  warmAnchors(CHARACTER_KEYS);
   $("loadState").textContent = "assets loaded";
   $("loadState").classList.add("done");
 

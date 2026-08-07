@@ -13,10 +13,12 @@ import {
   DASH_MULT, ACTION_BUFFER, AERIAL_LAND_LAG_MULT, AERIAL_LAND_LAG_MIN, SHIELD_MAX, SHIELD_DRAIN, SHIELD_REGEN, ROLL_TIME, ROLL_DIST,
   SPOT_DODGE_TIME, AIR_DODGE_TIME, DODGE_STALE_WINDOW, METER_MAX, METER_PASSIVE,
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
-  RESPAWN_X,
+  RESPAWN_X, TRAIL_LEN, TRAIL_STEP, TURN_TIME,
 } from "./constants.js";
 import { mainPlatform } from "./stages.js";
 import { frameMeta } from "./assets.js";
+import { currentFrame } from "./sprites.js";
+import { trailStrength, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "./motion.js";
 
 /** `dodge_roll` / `dodge_air` where the character has that art, else the old
  *  shared `dodge`. Round 6 delivered the new frames for only some of the
@@ -51,6 +53,11 @@ export function makeFighter(id, charKey, x, facing) {
     respawnTimer: 0, dead: false,
     cpuDamageMul: 0,
     animKey: "idle", animTime: 0,
+    // presentation-only state, consumed by motion.js / render.js. Kept on the
+    // fighter (and stepped at the fixed rate) so it stays deterministic and
+    // freezes with the rest of the fighter during hitlag.
+    spin: 0, spinAngle: 0, facingVis: facing,
+    landT: 0, takeoffT: 0, trail: [], trailTick: 0,
     aiState: null,
     winner: false,
   };
@@ -182,6 +189,7 @@ function tryGrabLedge(f) {
       f.x = edgeX + (side === -1 ? -LEDGE_HANG_X : LEDGE_HANG_X);
       f.y = plat.y + LEDGE_HANG_Y;
       f.vx = 0; f.vy = 0;
+      f.spin = 0;
       f.action = null;
       f.charging = null;
       f.shielding = false;
@@ -259,6 +267,8 @@ function resolvePlatforms(f, prevY) {
       f.vy = 0;
       if (!f.wasGrounded) {
         f.landTimer = 0.14;
+        f.landT = LAND_SQUASH_TIME;
+        f.spin = 0;                  // always come to rest on your feet
         f.animTime = 0;
         playSfx("landing", 0.3);
         dust(f.x, f.y, 8);
@@ -310,6 +320,7 @@ export function ringOut(f) {
   f.action = null; f.charging = null; f.counter = null; f.reflect = null; f.healing = null;
   f.installs = null; f.hitstun = 0; f.statuses = { burn: null, bleed: null, poison: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 };
   f.vx = 0; f.vy = 0; f.ledge = null; f.dizzy = 0; f.armorT = 0;
+  f.spin = 0; f.spinAngle = 0; f.trail.length = 0;
 
   if (f.stocks <= 0) {
     f.dead = true;
@@ -335,6 +346,7 @@ function respawn(f) {
   f.grounded = false;
   f.airJumpsLeft = stats(f).airJumps;
   f.facing = f.x < 640 ? 1 : -1;
+  f.facingVis = f.facing;
   // Everything Has a Price (Mei Mei): each stock opens with an advance payment
   if (f.char.passive.id === "warCompensation" && f.meter < 25) {
     f.meter = clamp(25, 0, METER_MAX);
@@ -360,6 +372,7 @@ export function updateFighter(f, dt, input) {
     return;
   }
   f.shakeMag = Math.max(0, f.shakeMag - dt * 30);
+  updatePresentation(f, dt);
 
   // timers
   f.invuln = Math.max(0, f.invuln - dt);
@@ -636,6 +649,7 @@ export function updateFighter(f, dt, input) {
       f.jumpBuffer = 0;
       f.coyote = 0;
       f.vy = -st.jump;
+      f.takeoffT = TAKEOFF_STRETCH_TIME;
       f.grounded = false;
       f.jumpHeldT = 0;
       f.jumpCut = false;
@@ -645,6 +659,7 @@ export function updateFighter(f, dt, input) {
       f.jumpBuffer = 0;
       f.airJumpsLeft -= 1;
       f.vy = -st.jump * AIR_JUMP_MULT;
+      f.takeoffT = TAKEOFF_STRETCH_TIME;
       f.fastFalling = false;
       dust(f.x, f.y, 10);
       playSfx("whoosh", 0.4);
@@ -690,6 +705,47 @@ export function updateFighter(f, dt, input) {
   // ---- animation selection
   pickAnim(f, input);
   f.animTime += dt;
+}
+
+// Draw-time state that still has to advance on the fixed clock: tumble spin,
+// the facing sweep, the squash timers and the trail history. Runs after the
+// hitlag early-return, so a frozen fighter is frozen here too.
+function updatePresentation(f, dt) {
+  f.landT = Math.max(0, f.landT - dt);
+  f.takeoffT = Math.max(0, f.takeoffT - dt);
+
+  // Tumble: spin while reeling, then unwind to upright so a fighter always
+  // lands on their feet rather than frozen at whatever angle hitstun ended on.
+  if (f.hitstun > 0 && !f.grounded) {
+    f.spinAngle += f.spin * dt;
+  } else if (f.spin !== 0 || f.spinAngle !== 0) {
+    f.spin *= Math.pow(0.02, dt);
+    const target = Math.round(f.spinAngle / (Math.PI * 2)) * Math.PI * 2;
+    f.spinAngle += (target - f.spinAngle) * (1 - Math.pow(0.001, dt));
+    if (Math.abs(f.spin) < 0.05) f.spin = 0;
+    if (Math.abs(f.spinAngle - target) < 0.01) f.spinAngle = 0;
+  }
+
+  // Facing flips used to snap the mirror in a single frame, which reads as a
+  // teleport. Sweeping the mirror through zero reads as a turn.
+  if (f.facingVis !== f.facing) {
+    const step = dt / TURN_TIME * 2;
+    f.facingVis = Math.abs(f.facing - f.facingVis) <= step
+      ? f.facing
+      : f.facingVis + Math.sign(f.facing - f.facingVis) * step;
+  }
+
+  // Afterimage samples. Recorded on the sim clock so the tail length is the
+  // same distance regardless of display refresh rate.
+  if (trailStrength(f) > 0) {
+    if (++f.trailTick >= TRAIL_STEP) {
+      f.trailTick = 0;
+      f.trail.push({ x: f.x, y: f.y, facing: f.facingVis, frame: currentFrame(f.charKey, f.animKey, f.animTime), rot: f.spinAngle });
+      if (f.trail.length > TRAIL_LEN) f.trail.shift();
+    }
+  } else if (f.trail.length) {
+    f.trail.shift();
+  }
 }
 
 function pickAnim(f, input) {

@@ -65,3 +65,31 @@ export const CELL_H = 313.6;
 
 // where the feet sit inside a sprite cell when no body-bottom data applies
 export const CELL_FOOT_Y = 0.92;
+
+// ------------------------------------------------------------------- motion
+// Procedural sprite motion. Most animation states are a single still frame
+// (see docs/sprite-motion.md), so the life in a fighter's movement comes from
+// transforming that frame rather than from more art. Every effect below is
+// draw-time only — hitboxes and hurtboxes are untouched.
+
+// Fraction of a frame's body height above the foot line where the centre of
+// mass sits when a sprite carries no explicit `anchors.com`. Roughly navel
+// height, which is where a human body actually pivots.
+export const COM_BODY_FRAC = 0.55;
+
+// Tumble. Above this knockback a launched fighter spins; the rate is
+// proportional to knockback beyond it, capped so heavy hits stay readable.
+export const TUMBLE_KB_MIN = 620;
+export const TUMBLE_SPIN_PER_KB = 0.0055;   // rad/s per unit of knockback
+export const TUMBLE_SPIN_MAX = 13.5;        // rad/s
+
+// Master dial for squash & stretch. 0 disables it outright; 1 is the tuned
+// amount, which is deliberately subtle (~4% at its strongest).
+export const SQUASH = 1;
+
+// Motion trails: how many afterimages, and how long the tail is.
+export const TRAIL_LEN = 5;
+export const TRAIL_STEP = 2;                // sim steps between samples
+
+// Seconds a facing flip takes to sweep through side-on, instead of snapping.
+export const TURN_TIME = 0.07;

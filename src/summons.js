@@ -165,6 +165,11 @@ export function spawnSummon(owner, cfg) {
       ctx.save();
       ctx.globalAlpha = Math.max(0, Math.min(1, fade));
       ctx.translate(this.x + this.dir * lunge, this.y + hoverBob);
+      // Sway with the hover, and lean into a lunge. Summons are a single
+      // still image held for their whole lifetime, so this is the only thing
+      // separating a hovering curse from a decal pinned to the stage.
+      const sway = Math.sin(this.bob * 0.7) * 0.045 + (lunge / 16) * this.dir * 0.12;
+      ctx.rotate(sway);
       // summon art faces left in source unless flagged; mirror to face dir
       ctx.scale(this.dir > 0 ? (cfg.faceRight ? 1 : -1) : (cfg.faceRight ? -1 : 1), 1);
       ctx.shadowColor = cfg.color;

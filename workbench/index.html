@@ -51,7 +51,12 @@
             <label class="chip"><input type="checkbox" id="showPlatform" checked> Game platform</label>
             <label class="chip"><input type="checkbox" id="showGuides" checked> Guides</label>
             <label class="chip"><input type="checkbox" id="showBox"> Sprite bounds</label>
+            <label class="chip"><input type="checkbox" id="showAnchors"> Anchors</label>
+            <label class="chip"><input type="checkbox" id="spinPreview"> Spin preview</label>
           </div>
+          <p class="note">Spin preview rotates the pose about its centre of
+            mass, exactly as the game does for tumbles, rolls and leans — an
+            anchor in the wrong place makes the body orbit instead of turn.</p>
         </div>
       </section>
 
@@ -64,7 +69,34 @@
 
         <div class="group">
           <label>Pose <span class="sub" id="poseCount"></span></label>
+          <div class="chips tight">
+            <label class="chip"><input type="checkbox" id="showAllFrames"> View all sprites</label>
+          </div>
           <div id="poseList" class="pose-list"></div>
+          <p class="note">Only poses an animation actually draws are listed.
+            The sheets carry extra cells the game never shows; tick above to
+            reach them.</p>
+        </div>
+
+        <div class="group">
+          <label>Anchors <span class="sub" id="anchorVal"></span></label>
+          <div id="anchorTabs" class="anchor-tabs"></div>
+          <div id="anchorBody" hidden>
+            <div class="nudge">
+              <button data-anchor="-5,0">←5</button>
+              <button data-anchor="-1,0">←1</button>
+              <button data-anchor="1,0">1→</button>
+              <button data-anchor="5,0">5→</button>
+            </div>
+            <div class="nudge">
+              <button data-anchor="0,-5">↑5</button>
+              <button data-anchor="0,-1">↑1</button>
+              <button data-anchor="0,1">↓1</button>
+              <button data-anchor="0,5">↓5</button>
+            </div>
+            <button id="resetAnchor" class="ghost">Reset this anchor</button>
+          </div>
+          <p class="note" id="anchorHint"></p>
         </div>
 
         <div class="group">
@@ -89,7 +121,7 @@
           </div>
         </div>
 
-        <div class="group">
+        <div class="group" id="groundGroup">
           <label>Ground contact <span class="sub" id="groundVal"></span></label>
           <input type="range" id="groundRange" min="-120" max="120" step="0.5" value="0">
           <div class="nudge">
@@ -102,6 +134,9 @@
             lowest opaque pixel, which is wrong when perspective puts one foot
             lower than the standing plane — raise it so the <em>near</em> foot
             rests on the platform.</p>
+          <p class="note warn" id="groundNote" hidden>This pose is only ever
+            drawn in the air, so it has no floor contact to set. The ground line
+            stays on screen as a size reference against the idle.</p>
         </div>
 
         <div class="group">

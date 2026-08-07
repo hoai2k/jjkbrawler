@@ -2,6 +2,7 @@ import { state } from "./state.js";
 import { getImage } from "./assets.js";
 import { getStage } from "./stages.js";
 import { drawCharFrame, currentFrame } from "./sprites.js";
+import { fighterTransform, trailStrength } from "./motion.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
 import { hitboxRect, hurtbox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
@@ -104,7 +105,14 @@ function drawProjectiles(ctx) {
       const w = sprite.width * h / sprite.height;
       ctx.save();
       ctx.translate(p.x, p.y + (p.wave ? p.r * 0.68 : 0));
-      ctx.scale(p.vx > 0 ? -1 : 1, 1);
+      // Point the art along its actual flight path. An arcing shot used to
+      // hold one orientation the whole way, which read as a sliding decal.
+      // The art faces LEFT natively and is mirrored when travelling right, so
+      // the nose already points along vx; the rotation only has to add the
+      // vertical component, measured in that same mirrored frame.
+      const flip = p.vx > 0 ? -1 : 1;
+      if (p.vy) ctx.rotate(Math.atan2(-flip * p.vy, -flip * p.vx));
+      ctx.scale(flip, 1);
       ctx.shadowColor = p.color;
       ctx.shadowBlur = 12;
       ctx.drawImage(sprite, -w / 2, -h / 2, w, h);
@@ -158,11 +166,22 @@ function drawFighters(ctx) {
       ctx.drawImage(transformed, -w / 2, -h, w, h);
       ctx.restore();
     } else {
+      drawTrail(ctx, f);
+      const m = fighterTransform(f);
       drawCharFrame(ctx, f.charKey, frameKey, f.x + shakeX, f.y, {
         scale: f.char.scale,
-        facing: f.facing,
+        facing: f.facingVis,
         alpha: flicker ? 0.6 : 1,
-        rotation: f.ledge ? f.facing * 0.12 : 0,
+        rotation: m.rotation,
+        scaleX: m.scaleX,
+        scaleY: m.scaleY,
+        offsetX: m.offsetX,
+        offsetY: m.offsetY,
+        // A frame with a ledge-grip anchor is hung from that hand on the real
+        // platform corner, instead of standing its feet in mid-air beside it.
+        anchorTo: f.ledge
+          ? { name: "ledge", x: f.ledge.edgeX, y: f.ledge.plat.y }
+          : null,
         glow: glowing ? (f.installs ? f.installs.color : f.char.shadow) : f.char.shadow,
         glowBlur: glowing ? 26 : 12,
       });
@@ -174,6 +193,27 @@ function drawFighters(ctx) {
     if (f.statuses.nailMarks > 0) drawNailMarks(ctx, f);
     drawShieldMeter(ctx, f);
   }
+}
+
+// Afterimages behind a dash, roll, air dodge or tumble. The cheapest possible
+// "this is fast" signal, and the one that costs no new art at all.
+function drawTrail(ctx, f) {
+  const strength = trailStrength(f);
+  if (!strength || f.trail.length < 2) return;
+  ctx.save();
+  ctx.shadowColor = f.char.theme;
+  ctx.shadowBlur = 10;
+  for (let i = 0; i < f.trail.length; i++) {
+    const g = f.trail[i];
+    const fade = ((i + 1) / f.trail.length) * 0.34 * strength;
+    drawCharFrame(ctx, f.charKey, g.frame, g.x, g.y, {
+      scale: f.char.scale,
+      facing: g.facing,
+      alpha: fade,
+      rotation: g.rot,
+    });
+  }
+  ctx.restore();
 }
 
 function drawShadow(ctx, f) {

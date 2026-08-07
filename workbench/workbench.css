@@ -182,6 +182,37 @@ button.ghost {
 button.ghost:hover { border-color: var(--accent); }
 
 .note { margin: 2px 0 0; font-size: 11px; color: var(--dim); }
+.note.warn { color: var(--warn); }
+
+.chips.tight { margin-bottom: 2px; }
+
+/* ---------------- anchors ---------------- */
+
+.anchor-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.anchor-tabs button {
+  padding: 5px 10px;
+  font-size: 11.5px;
+  background: #0e111b;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  cursor: pointer;
+}
+.anchor-tabs button:hover { border-color: var(--accent); }
+.anchor-tabs button.sel {
+  background: #17372e;
+  border-color: #78ebbe;
+  color: #d7fff0;
+}
+#anchorBody { display: grid; gap: 6px; margin-top: 6px; }
+
+/* A locked control stays legible — it is still a useful readout, it just
+   cannot be edited for this pose. */
+.group.disabled { opacity: 0.5; }
+.group.disabled input[type="range"] { cursor: not-allowed; }
+
+/* the canvas is a direct-manipulation surface once anchors are on screen */
+#stage { touch-action: none; }
 
 @media (max-width: 980px) {
   .layout { grid-template-columns: 1fr; }

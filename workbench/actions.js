@@ -8,10 +8,12 @@
 // the whole point — a pose that looks wrong here is wrong in the game.
 
 import { loadAssets, frameImage, frameMeta, getImage, spriteManifest } from "../src/assets.js";
-import { drawCharFrame, currentFrame } from "../src/sprites.js";
+import { drawCharFrame, currentFrame, warmAnchors, anchorScreenPos } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS, animFor } from "../src/characters.js";
 import { lightMove, heavyMove } from "../src/moves.js";
+import { fighterTransform } from "../src/motion.js";
+import { SHIELD_MAX, MAX_FALL, TUMBLE_SPIN_MAX } from "../src/constants.js";
 
 const $ = (id) => document.getElementById(id);
 const view = $("actionsView");
@@ -29,7 +31,11 @@ const BACKGROUNDS = [
 const STATES = [
   ["idle", "Idle"], ["run", "Run"], ["dash", "Dash"], ["jump", "Jump", true],
   ["fall", "Fall", true], ["land", "Land"], ["crouch", "Crouch"],
-  ["shield", "Shield"], ["dodge", "Dodge"], ["ledge", "Ledge hang", true],
+  ["shield", "Shield"], ["dodge", "Dodge"],
+  // The two states a match actually plays; `dodge` above is only the fallback
+  // for characters whose round-6 art never landed.
+  ["dodge_roll", "Roll"], ["dodge_air", "Air dodge", true],
+  ["ledge", "Ledge hang", true],
   ["hurt", "Hurt"], ["dizzy", "Dizzy"], ["charge", "Charge (smash)"],
   ["win", "Victory"],
 ];
@@ -170,6 +176,66 @@ function actionsFor(charKey) {
   return groups;
 }
 
+// ------------------------------------------------------- procedural motion
+//
+// Most states are one still frame, so the game leans, tumbles, swings and
+// breathes them procedurally (src/motion.js). Judging that here means standing
+// up the fighter state the real match would be in while this action plays —
+// the transform itself then comes from the game's own code, unmodified.
+
+function mockFighter(a) {
+  const f = {
+    id: 1, charKey: state.char, char: CHARACTERS[state.char],
+    x: 0, y: 0, vx: 0, vy: 0, facing: state.facing,
+    animKey: a.anim, animTime: state.t,
+    spin: 0, spinAngle: 0, hitstun: 0, dizzy: 0, ledge: null,
+    action: null, charging: null, shielding: false,
+    grounded: !a.air, dashT: 0, dashDir: state.facing, turnLock: 0,
+    shield: SHIELD_MAX, landT: 0, takeoffT: 0, shakeMag: 0, fastFalling: false,
+  };
+  const k = state.t / Math.max(a.duration, 1e-3);
+
+  if (a.move) {
+    f.action = { kind: "attack", t: state.t, dur: a.duration, move: a.move };
+    return f;
+  }
+  switch (a.anim) {
+    case "dodge_roll": case "dodge":
+      f.action = { kind: "dodge", t: state.t, dur: a.duration };
+      f.vx = 500 * state.facing;
+      break;
+    case "dodge_air":
+      f.action = { kind: "dodge", t: state.t, dur: a.duration };
+      f.grounded = false; f.vx = 340 * state.facing;
+      break;
+    case "run": f.vx = f.char.stats.speed * state.facing; break;
+    case "dash": f.dashT = 0.2; f.vx = f.char.stats.speed * 1.45 * state.facing; break;
+    case "jump":
+      f.grounded = false; f.vy = -f.char.stats.jump;
+      f.takeoffT = 0.13 * (1 - k);
+      break;
+    case "fall":
+      f.grounded = false; f.vy = MAX_FALL * 0.8; f.fastFalling = true;
+      f.vx = f.char.stats.airSpeed * 0.7 * state.facing;
+      break;
+    case "land": f.landT = 0.17 * (1 - k); break;
+    case "charge": f.charging = { t: state.t, variant: "side" }; break;
+    case "shield": f.shielding = true; f.shield = SHIELD_MAX * (1 - k * 0.9); break;
+    case "dizzy": f.dizzy = 1; break;
+    case "ledge":
+      f.grounded = false;
+      f.ledge = { side: state.facing === 1 ? -1 : 1, edgeX: 0, plat: { y: 0 } };
+      break;
+    case "hurt":
+      // show the tumble, which is the whole point of a one-frame hurt pose
+      f.grounded = false; f.hitstun = 1; f.vx = 700 * -state.facing;
+      f.spin = TUMBLE_SPIN_MAX * 0.45 * -state.facing;
+      f.spinAngle = f.spin * state.t;
+      break;
+  }
+  return f;
+}
+
 // ------------------------------------------------------------------- draw
 
 function activeWindow(a) {
@@ -219,11 +285,18 @@ function render() {
   }
 
   const frame = currentFrame(state.char, a.anim, state.t);
+  const m = $("aMotion").checked ? fighterTransform(mockFighter(a)) : null;
   drawCharFrame(ctx, state.char, frame, cx, feetY, {
     scale: CHARACTERS[state.char].scale * state.zoom,
     facing: state.facing,
+    rotation: m?.rotation ?? 0,
+    scaleX: m?.scaleX ?? 1,
+    scaleY: m?.scaleY ?? 1,
+    offsetX: m?.offsetX ?? 0,
+    offsetY: m?.offsetY ?? 0,
   });
 
+  if ($("aShowAnchor").checked) drawComMarker(frame, cx, feetY);
   if ($("aShowBoxes").checked) drawBoxes(a, cx, feetY);
 
   const win = activeWindow(a);
@@ -235,6 +308,27 @@ function render() {
 
   paintTimeline();
   highlightCurrentSprite(frame);
+}
+
+/** The pivot the motion above turns about, so a rotation that looks wrong can
+ *  be traced to its anchor and fixed in the sprite workbench. */
+function drawComMarker(frameKey, cx, feetY) {
+  const p = anchorScreenPos(state.char, frameKey, cx, feetY, {
+    scale: CHARACTERS[state.char].scale * state.zoom, facing: state.facing, name: "com",
+  });
+  if (!p) return;
+  const px = p.x, py = p.y;
+  ctx.save();
+  ctx.strokeStyle = "rgba(120, 235, 190, 0.9)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(px - 13, py); ctx.lineTo(px - 3, py);
+  ctx.moveTo(px + 3, py); ctx.lineTo(px + 13, py);
+  ctx.moveTo(px, py - 13); ctx.lineTo(px, py - 3);
+  ctx.moveTo(px, py + 3); ctx.lineTo(px, py + 13);
+  ctx.stroke();
+  ctx.restore();
 }
 
 function paintTimeline() {
@@ -464,10 +558,17 @@ function markup() {
           <label class="chip"><input type="checkbox" id="aShowPlatform" checked> Game platform</label>
           <label class="chip"><input type="checkbox" id="aShowBoxes"> Hurtbox / hitbox</label>
           <label class="chip"><input type="checkbox" id="aFlip"> Face left</label>
+          <label class="chip"><input type="checkbox" id="aMotion" checked> Procedural motion</label>
+          <label class="chip"><input type="checkbox" id="aShowAnchor"> Centre of mass</label>
         </div>
         <p class="note">Frames, fps and startup/active/recovery come from the
           game's own <code>characters.js</code> and <code>moves.js</code>, so the
           playback above is what a match plays. Aerials are drawn off the floor.</p>
+        <p class="note">Procedural motion runs the real <code>motion.js</code>
+          against the fighter state this action implies — the tumble on Hurt,
+          the roll on Dodge, the swing arc on attacks. Untick to see the raw
+          frames. Anything that pivots wrongly is an anchor to fix in the
+          sprite workbench.</p>
       </div>
     </section>
 
@@ -555,6 +656,7 @@ async function boot() {
   });
 
   await loadAssets(() => {});
+  warmAnchors(CHARACTER_KEYS);
   $("loadState").textContent = "assets loaded";
   $("loadState").classList.add("done");
 
