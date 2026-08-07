@@ -20,27 +20,23 @@ const EFFECT_KEYS = [
   "boogie_clap", "domain_gamble",
   // Geto's summoned curses, lifted out of his round-6 art (tools/extract_curses.py)
   "curse_a", "curse_b", "curse_c", "curse_d", "curse_dragon",
-  // Round 7, delivered: Choso, Mei Mei, Uro
+  // Round 7 — Choso, Mei Mei, Uro, Yuji, Reggie, Gakuganji
   "piercing_blood", "blood_orb", "aura_crimson", "crow", "crow_flock",
-  "sky_ripple", "sky_shard",
+  "sky_ripple", "sky_shard", "divergent_shock",
+  "receipt_blade", "spray_cloud", "drop_vending", "drop_bike", "drop_futon", "sedan",
+  "sound_wave", "feedback_wall", "concert_wave", "aura_amber",
 ];
 
-// Effects for fighters still awaiting art, keyed by fighter so they are only
-// fetched once that fighter joins CHARACTER_KEYS.
+// Effects for fighters whose art has not been delivered yet, keyed by fighter
+// so they are only fetched once that fighter joins CHARACTER_KEYS. These load
+// as OPTIONAL: a missing file stays silent instead of logging, and the
+// projectile/install renderers fall back to their procedural look, so a
+// fighter can ship ahead of their effects (Choso did, for one round).
 //
-// A fighter can ship before their effect art does — Choso did, for one round —
-// so these load as OPTIONAL: a missing file stays silent instead of logging,
-// and the projectile/install renderers fall back to their procedural look.
-// Move a fighter's keys into EFFECT_KEYS once the art is delivered AND the
-// fighter is on the roster, so a genuinely broken path is still reported.
-//
-// `divergent_shock` is already delivered but stays here because Yuji himself
-// has not shipped; it promotes with him.
-const STAGED_EFFECT_KEYS = {
-  yuji: ["divergent_shock"],
-  reggie: ["receipt_blade", "spray_cloud", "drop_vending", "drop_bike", "drop_futon", "sedan"],
-  gakuganji: ["sound_wave", "feedback_wall", "concert_wave", "aura_amber"],
-};
+// Empty right now — every effect the roster references is delivered and lives
+// in EFFECT_KEYS above, where a broken path IS reported. Populate this again
+// when the next fighter is staged.
+const STAGED_EFFECT_KEYS = {};
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -121,13 +117,13 @@ export async function loadAssets(onProgress) {
   add("summon:divineDogWhite", "assets/sprites/summons/divine_dog_white.png");
   add("summon:divineDogBlack", "assets/sprites/summons/divine_dog_black.png");
   add("summon:nue", "assets/sprites/summons/nue.png");
-  // Dedicated art for these is requested but not delivered yet
-  // (docs/asset-requests.md, round 7). The summon system falls back to
-  // placeholder effect sprites until the files exist, so these load quietly.
+  // Delivered in round 8, so these are required like any other summon — a
+  // broken path here should be reported, not swallowed.
+  add("summon:rainbow_dragon", "assets/sprites/summons/rainbow_dragon.png");
+  add("summon:transfigured_human", "assets/sprites/summons/transfigured_human.png");
+  add("summon:inventory_curse", "assets/sprites/summons/inventory_curse.png");
+  // Kept for the next fighter staged ahead of their art (see STAGED_EFFECT_KEYS).
   const optional = (key, src) => jobs.push({ key, src: assetUrl(src), optional: true });
-  optional("summon:rainbow_dragon", "assets/sprites/summons/rainbow_dragon.png");
-  optional("summon:transfigured_human", "assets/sprites/summons/transfigured_human.png");
-  optional("summon:inventory_curse", "assets/sprites/summons/inventory_curse.png");
   for (const [charKey, frames] of Object.entries(spriteManifest.alternates || {})) {
     for (const [frameKey, meta] of Object.entries(frames)) {
       add(`alt:${charKey}:${frameKey}`, `assets/sprites/${meta.file}`);

@@ -436,11 +436,17 @@ html, body {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 10px 4px 4px;
-  font-size: 0.62rem;
+  padding: 10px 2px 4px;
+  /* Scales with the portrait rather than sitting at a fixed size, because the
+     longest single-word name on the roster (GAKUGANJI, 9 characters) has to
+     fit the tile at every responsive card size — at a fixed 0.62rem it ran
+     past the edge and `overflow: hidden` clipped it to "GAKUGA". Multi-word
+     names (REGGIE STAR) still wrap to two lines, which is why this scales the
+     text instead of forcing `nowrap`. */
+  font-size: clamp(0.37rem, calc(var(--card-size, 78px) * 0.105), 0.62rem);
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.03em;
   text-align: center;
   color: #fff;
   background: linear-gradient(180deg, transparent, rgba(2, 4, 10, 0.92));

@@ -1,88 +1,86 @@
-# Asset Requests — image-generation prompts
+# Asset Requests — open requests
 
-Rounds 1–4 are **delivered, integrated, and verified**. Round 4 in particular
-fixed every crouch-row outfit mismatch — all seven characters now wear the same
-costume ducking as standing (verified in `tools/debug/round4_check.png`).
+Everything in this file is **outstanding**. Delivered rounds are recorded in
+[asset-requests-history.md](asset-requests-history.md) — including the round
+numbers, so a commit or code comment citing "round 5 art" still resolves.
 
-Round 5 below is the **quality pass**: regenerating the frames that still come
-from the original sprite sheets, plus the poses the game needs and doesn't have.
+**Current status: rounds 1–8 delivered. Round 9 is the only open round.**
+
+The roster is complete: all 23 fighters have a card, 31 poses and their effect
+sprites. Nothing pending blocks play — round 9 is consistency and polish.
 
 ---
 
-## Why round 5 exists
+## Where to deliver
 
-Two measured findings:
+**Upload art to `assets/intake/`, never to `assets/sprites/`.**
 
-**1. The original sheet art is ~2.5x lower resolution than your generated art.**
-Extracted sheet frames give a character body of **256-296 px**; the round 3/4
-generated frames give **674-700 px**. The game draws a fighter ~230 px tall, so
-the sheet frames run at roughly 1:1 with no headroom and look soft, while the
-new art downsamples ~3x and looks crisp. Side by side
-(`tools/debug/resolution_compare.png`) the difference is obvious — and it is
-worst on the frames players stare at most: idle, run, jump.
-**221 of 340 frames** are under 260 px.
+```
+assets/intake/<character>/<pose_key>.png    sprites
+assets/intake/effects/<name>.png            technique effects
+assets/intake/summons/<name>.png            summon minions
+assets/intake/cards/<key>_card.jpg          hero cards
+assets/intake/backgrounds/<name>.jpg        stage / domain backgrounds
+```
 
-**2. Seven animation states have no art and borrow an unrelated frame.**
-The engine has 24 animation states but only 20 source frames per character, so
-several states draw something that doesn't depict the action:
+`assets/sprites/` holds **finished runtime art only** — keyed, trimmed, alpha,
+registered in `manifest.json`. Generated art arrives as an untrimmed plate on a
+flat colour field with no alpha, so a raw file landing there makes the game try
+to draw a 1024×1536 background as a sprite. Every round so far has arrived that
+way, so this is the normal case rather than a mistake — it just has to go
+through the pipeline first.
 
-| State | Currently draws | Problem |
-|---|---|---|
-| `shield` | the idle frame | Players hold shield constantly; they just stand there |
-| `upHeavy` / up-attack | the **jump** frame | Up-attacks look like jumping, not striking upward |
-| `airLight` / air attack | the **jump** frame | Aerials are identical to jumping |
-| `charge` | the idle frame | No windup read on chargeable smashes |
-| `dizzy` (shield break) | the hurt frame | The big punish moment has no distinct art |
-| `win` | the idle frame | Victory screen is just a standing pose |
-| `ledge` | the fall frame | Hanging characters look like they're falling |
-
-Good news: `idle` animates fine on every character (silhouette difference
-20-76%, nothing static), and facing / anchors / sizing are fully handled by the
-pipeline now — so this round is purely about art quality and coverage.
+`assets/intake/` is tracked by git (only `_processed/` is ignored) so uploading
+into it works. Raw files live there until processed, then move to
+`assets/reference/round<N>/` as the permanent archive. See
+[assets/intake/README.md](../assets/intake/README.md) for the full flow.
 
 ---
 
 ## Delivery spec
 
 PNG, **one subject per file**, no text, no watermark, no border, no grids.
+(Hero cards are the exception: JPEG, full-bleed background — see 9A.)
 
-- **Background:** true alpha transparency if possible; otherwise solid magenta
-  `#FF00FF` — except for characters with pink/red/peach palettes (Sukuna,
-  Nobara, Momo, Hakari), which should use mid-grey `#808080`.
+- **Background:** true alpha if possible; otherwise solid magenta `#FF00FF` —
+  except warm-palette characters (Sukuna, Nobara, Momo, Hakari, Yuji, Choso),
+  which need mid-grey `#808080`. A magenta key eats pink and red tones.
 - **Facing:** draw everything **facing RIGHT**. If your generator prefers left,
-  that is fine — just tell me, and I will batch-mirror on import; the tooling
-  fixes anchors and centres automatically.
-- **Framing:** full body inside the frame, feet near the bottom, small margin.
-  Padding is trimmed automatically.
-- **Resolution:** higher is better — please keep the character's body **at
-  least 600 px tall**. This is the single biggest quality lever.
-- **Consistency:** same design, outfit and proportions across all of a
-  character's frames.
-- **Opacity:** character bodies must be 100% opaque; only genuine effects
-  (glow, mist, spirit wisps) may be translucent.
+  say so and it gets batch-mirrored on import.
+- **Framing:** full body inside the frame with margin on **all four sides**.
+  Nothing may touch the canvas edge.
+- **Resolution:** character body **at least 600 px tall**.
+- **One zoom per character.** Draw every pose of a character at the same figure
+  scale — do not redraw each pose to fill its canvas. Standing poses should
+  measure within a few percent of each other; low poses (crouch, roll, run) are
+  genuinely shorter. This is the single most expensive thing to fix later: it is
+  only catchable by eye, and a mismatch between two frames of the same idle
+  makes the character visibly pulse while standing still.
+- **Opacity:** bodies 100% opaque; only genuine effects (glow, mist, sound
+  waves) may be translucent.
 
-Style suffix — append to every prompt:
+Style suffix — append to every sprite prompt:
 
 > clean Japanese anime key-art style matching the Jujutsu Kaisen TV anime,
 > crisp dark lineart, cel shading with soft gradient accents, vibrant colors,
 > high detail, full body, no text
 
----
+Prompt formula: `[CHARACTER BLOCK]`, `[POSE LINE]`, facing right,
+`[STYLE SUFFIX]`.
 
-## How to build a prompt
+### Directional effects point LEFT
 
-Combine a **character block** (SS A) with a **pose line** (SS B):
-
-> `[CHARACTER BLOCK]`, `[POSE LINE]`, facing right, `[STYLE SUFFIX]`
-
-File naming: `assets/sprites/<character>/<pose_key>.png` — e.g.
-`assets/sprites/gojo/guard.png`. These use semantic keys instead of the old
-`r0c0` grid names; the engine resolves frames by name, so this works directly
-and is far easier to maintain.
+The projectile renderer mirrors a sprite when it travels right, so art drawn
+pointing right flies backwards with its blunt end leading. Draw travelling
+effects (beams, lances, diving creatures) **pointing left**; `chain.png` and
+`crow.png` are the correct references.
 
 ---
 
-## A. Character blocks
+## Character blocks
+
+Used verbatim as `[CHARACTER BLOCK]` in every prompt below, so a character's
+design stays identical across their card, their sprites and any new art.
 
 Use verbatim — these are the established designs, checked against the current
 sheets.
@@ -108,338 +106,30 @@ sheets.
 | hanami | "Hanami from Jujutsu Kaisen, tall upright cursed spirit with a dark grey-brown bark body, branch spurs on the shoulders, a flower growing from its head and glowing eyes in a cracked wooden face" |
 
 ---
+| yuji | "Yuji Itadori from Jujutsu Kaisen, athletic teenage boy with short spiky salmon-pink hair and brown eyes, wearing a dark navy high-collared jujutsu school uniform jacket over a red hoodie, matching dark trousers and white sneakers" *(grey key)* |
+| choso | "Choso from Jujutsu Kaisen, pale serious young man with long black hair tied into two high loose buns with strands framing his face, a dark horizontal marking across the bridge of his nose, wearing a loose black robe-like tunic with pale trim, wide sleeves, dark trousers and simple shoes" *(grey key)* |
+| meimei | "Mei Mei from Jujutsu Kaisen, tall elegant woman with very long silver-lavender hair worn in thick loose braids, calm confident expression, wearing a fitted black high-collared long-sleeved dress with gold buttons and dark tights, carrying a large single-headed battle axe" |
+| uro | "Takako Uro from Jujutsu Kaisen, lean athletic woman with a short dark bob haircut and sharp eyes, wearing a fitted pale combat bodysuit with purple accent panels and bandage-wrapped forearms, light flexible shoes" |
+| reggie | "Reggie Star from Jujutsu Kaisen, lean sly man with long dark hair swept back and a small chin beard, wearing a dark fur-collared jacket over a patterned shirt with dark trousers, carrying a closed dark-purple umbrella that conceals a katana" |
+| gakuganji | "Yoshinobu Gakuganji from Jujutsu Kaisen, stern elderly man, mostly bald with grey hair at the sides and a long grey beard and mustache, heavy wrinkles and hooded eyes, wearing dark traditional kimono-style robes, carrying a black electric guitar on a strap" |
 
-## B. Poses
+*(The 17 above are the launch roster; the six below shipped in round 7.)*
 
-### Tier 1 — frames players see constantly (regenerate for sharpness)
-
-On screen almost every frame of a match, and currently the softest art in the
-game.
-
-| Pose key | Pose line |
-|---|---|
-| `idle_a` | "standing at rest in a relaxed combat-ready stance, weight settled, arms loose at the sides" |
-| `idle_b` | "standing at rest, a subtle breathing shift — shoulders slightly raised, weight on the other foot, arms loose" |
-| `run_a` | "sprinting hard, front leg driving forward, opposite arm swung back, body leaning into the run" |
-| `run_b` | "sprinting hard at the opposite stride, rear leg extended behind, other arm forward, hair and clothing trailing" |
-| `jump_rise` | "leaping upward, legs tucked, arms raised for balance, clothing pulled down by the rush of air" |
-| `fall` | "descending through the air, legs reaching down toward a landing, arms out for balance" |
-| `hurt` | "recoiling from a heavy blow, head snapped back, torso arched, arms flung loose, feet leaving the ground" |
-
-### Tier 2 — missing poses (biggest gameplay win)
-
-Each replaces a state that currently draws an unrelated frame.
-
-| Pose key | Pose line |
-|---|---|
-| `guard` | "braced defensively behind a raised guard, both forearms up in front of the face and chest, knees bent, leaning into an incoming hit" |
-| `attack_up` | "striking sharply upward at a steep angle, one arm or weapon thrust up overhead, torso arched back, gaze following the strike skyward" |
-| `attack_air` | "attacking in midair, body angled forward off the ground, one arm or weapon swung across in a committed aerial strike, legs trailing" |
-| `charge` | "gathering power in a braced crouch, fists or weapon drawn back, body coiled and tense, cursed energy beginning to gather" |
-| `dizzy` | "stunned and reeling with guard broken, standing unsteadily, head lolling, arms hanging limp, knees buckling" |
-| `victory` | "a confident victory pose after winning, in character — relaxed and triumphant" |
-| `ledge_hang` | "hanging one-handed from a ledge, body dangling, other arm reaching up, legs hanging straight down" |
-
-### Tier 3 — optional, lower priority
-
-The technique frames have large baked-in energy effects and read acceptably at
-game size. Regenerate only for a fully uniform set.
-
-| Pose key | Pose line |
-|---|---|
-| `attack_light_a` | "throwing a fast forward jab or quick weapon strike, front arm extended, body squared" |
-| `attack_light_b` | "following through on a second fast strike, torso rotated, rear arm now extended" |
-| `attack_heavy` | "committing to a heavy full-body strike, deep stance, weapon or fist driven forward with full weight behind it" |
-| `crouch` | "crouching low in a guarded stance, one knee near the ground, ready to spring" |
-| `dash` | "bursting into a low forward dash, body almost horizontal, trailing motion" |
 
 ---
 
-## Volume and sequencing
+# Round 9 — open
 
-Tier 1 + Tier 2 is **14 poses x 17 characters = 238 images** — a lot, so a
-sensible order:
-
-1. **One character end to end first** (Gojo, Tier 1 + 2 = 14 images). I will
-   wire it up, verify in game, and send back a before/after comparison so you
-   can judge the payoff before committing to the rest.
-2. **Tier 2 for all 17** (119) — adds capability the game does not have; the
-   difference is immediately visible in play.
-3. **Tier 1 for all 17** (119) — the sharpness upgrade on the most-seen frames.
-4. **Tier 3** only if you want everything uniform.
-
-### Round 5 delivery status
-
-Tier 1 + Tier 2 are complete for all 17 fighters (**238/238 sprites**).
-
-- Untouched ImageGen source renders are archived under
-  `assets/reference/round5/<character>/`. Nothing in that directory is loaded
-  by the game, so the whole reference archive can be removed independently.
-- Transparent, cropped runtime copies live under
-  `assets/sprites/<character>/<pose_key>.png`.
-- `tools/process_round5_sprites.py` reproducibly derives the runtime PNGs from
-  the archived chroma sources, including edge decontamination and safety
-  padding.
-- `tools/integrate_round5_sprites.py` registers all semantic frames in the
-  manifest. `DEFAULT_ANIMS` now uses the new sprites roster-wide, while each
-  fighter's existing special/ultimate overrides remain intact.
-- Tier 3 remains optional and was not generated in this pass.
+Three independent parts; any can be delivered on its own.
 
 ---
 
-## Integration notes
-
-- Drop files at `assets/sprites/<character>/<pose_key>.png`.
-- Import with facing/size/anchor handled automatically:
-  ```sh
-  python3 tools/sprite_facing.py --import <file> --char gojo --frame guard
-  ```
-  Add `--face left` if the art faces left — that skips the detector, which is
-  only ~83% accurate and should not be trusted blind.
-- New keys need wiring into `DEFAULT_ANIMS` / per-character `anims` in
-  `src/characters.js`, and registering in `GENERATED_FRAME_TARGETS` in
-  `tools/extract_sprites.py` so a re-extraction cannot overwrite them.
-- Verify with `python3 tools/audit_frames.py`, `tools/facing_review.py`, and
-  the in-game smoke test in `docs/audit-guide.md` section 2.
-
----
-
-## C. Round 6 — replacements for truncated sheet cells
-
-These are not quality upgrades: the source sheet cell physically clips the
-art, so no amount of pipeline work recovers what was never drawn. Confirmed by
-the frame's content box touching the cell edge (`ox == 0` or `oy == 0`), then
-by eye. Nothing else on the roster clips.
-
-Build each to the same **Delivery spec** above (single figure, transparent or
-flat magenta background, full body inside the canvas with margin on all four
-sides — the clipping is exactly what went wrong last time).
-
-| Frame | State it drives | What is cut off |
-|---|---|---|
-| `nobara/r2c0` | jump / air | **Raised arm and hammer cut off at the top.** Worst of the set — body art, not effect. |
-| `nobara/r4c2` | crouch attack | Lead arm runs off the left edge. |
-| `megumi/r4c3` | crouch attack | Megumi's arm and the shikigami's muzzle run off the left edge. |
-| `megumi/r3c2` | special / technique | Left edge clips the shikigami and the shadow effect. |
-| `megumi/r3c3` | ultimate | Left edge clips the purple domain sphere. |
-| `nobara/r3c2` | special (straw doll) | Left edge clips the purple cursed-energy effect. |
-| `nobara/r3c3` | ultimate | Left edge clips the purple sphere. |
-
-The last four clip **effects rather than the character**, so they are lower
-priority than the first three — a clipped sphere reads as a design choice in
-motion, a clipped arm never does.
-
-### Hair flat-cut in the source art
-
-A separate failure from the ones above. These frames sit well inside their
-cell — there is 49–76px of clear space over the head — so nothing truncated
-them. **The art was drawn with the top of the hair sliced off**, a flat
-horizontal edge across the skull. No pipeline change can recover it.
-
-| Frame | State it drives |
-|---|---|
-| `gojo/r3c0` | special / technique |
-| `gojo/r3c1` | ultimate |
-| `gojo/r3c2` | ultimate |
-| `inumaki/r0c3` | attack |
-
-Gojo's is the most visible on the roster: his hair is white against a dark
-stage and it is his silhouette. When regenerating, give the head **generous
-headroom** — the hair should end well inside the canvas, not near its edge.
-
-### Full clipped-frame list (second manual pass)
-
-Same delivery spec; the figure and its effect must sit fully inside the canvas
-with margin on all four sides.
-
-**Clipped at the LEFT**
-
-| Frame | Cause |
-|---|---|
-| `geto/r2c2` | runs off the cell edge |
-| `hanami/r2c2` | runs off the cell edge |
-| `megumi/r3c2` | runs off the cell edge |
-| `hakari/r3c2` | drawn cut off — and overhangs 27px into the neighbouring cell |
-| `geto/r3c2`, `maki/r3c2`, `megumi/r3c3`, `megumi/r4c3` | drawn cut off |
-
-**Clipped at the TOP**
-
-| Frame | Cause |
-|---|---|
-| `hanami/r2c0` | runs off the cell edge |
-| `gojo/r3c0`, `r3c1`, `r3c2`, `r3c3` | hair drawn flat-cut |
-| `hakari/r3c0`, `r3c2`, `r3c3` | drawn cut off |
-| `hanami/r3c2`, `r3c3` | drawn cut off |
-| `inumaki/r3c0`, `r3c1`, `r3c2` | drawn cut off |
-| `jogo/r3c2`, `r3c3` | drawn cut off |
-| `megumi/r3c0`, `r3c1`, `r3c2` | drawn cut off |
-
-Only 4 of these actually reach their cell boundary; the rest sit 30–77px
-inside it, meaning **the source art was drawn already cropped**. Both need the
-same fix, but it is worth knowing the sheet grid is not at fault for most of
-them — regenerating at a larger canvas will not help unless the *pose* is
-reframed to include the whole figure.
-
-### Note for whoever generates round 6
-
-The round-5 art arrived keyed off a **green** background, which left a green
-halo on every soft edge — hair worst of all — on 205 frames. It has been
-repaired in-place (`clean_frames.py --defringe`), but the cleanest fix is
-upstream: deliver with real alpha, or key against **magenta `#FF00FF`**, which
-no character on this roster wears.
-
-### Clipped-frame list (third manual pass)
-
-| Frame | Clipped |
-|---|---|
-| `momo/r1c2`, `panda/r3c1`, `yuta/r2c2`, `nanami/r3c2` | left — reaches the cell edge |
-| `nobara/r4c2`, `panda/r4c2` | left — drawn cut off |
-| `momo/r3c0`, `nanami/r3c1`, `nanami/r3c3`, `nobara/r2c0` | top — reaches the cell edge |
-| `nobara/r3c0`, `r3c2`, `r3c3` | top — drawn cut off |
-| `yuta/r3c0`, `r3c1`, `r3c2`, `r3c3` | top — drawn cut off (whole technique row) |
-| `sukuna/r0c3` | bottom — reaches the cell edge |
-
-`yuta/r3c0`–`r3c3` is the notable one: his entire technique row is cut off at
-the top, so it is worth reframing as a set rather than one frame at a time.
-
-### Clipped-frame list (fourth pass — reviewed against the crop sheets)
-
-Of 83 candidates flagged by the tooling, review confirmed **8** are genuinely
-cut off. The rest merely sit near a cell boundary and are fine. Detecting a
-clipped pose from geometry alone does not work — this is the ratio to expect.
-
-| Frame | Note |
-|---|---|
-| `geto/r0c3` | |
-| `hakari/r2c1` | |
-| `hakari/r2c3` | |
-| `momo/r2c2` | |
-| `momo/r2c0` | uncertain — depends whether the source art extends further |
-| `nanami/r2c3` | |
-| `sukuna/r3c2` | |
-| `yuta/r2c0` | |
-
----
-
-## Baked-in magic effects
-
-Reviewing the bleed sheets established that **every** detached blob on the
-roster is a magic effect drawn into the sprite — not a neighbouring cell
-leaking in. Nothing needs removing, and the automatic bleed rules should stay
-narrow.
-
-It does raise a design question worth deciding before the next round: **should
-technique frames ship with their effects drawn on, or clean?**
-
-Effects baked into the sprite mean:
-
-- they cannot be recoloured, scaled or timed independently of the pose
-- they inflate the frame's bounding box, which drags `ox`/`bodyBottom` around
-  and makes size normalisation between poses harder
-- the same pose cannot be reused for a different move
-- every automatic check for stray blobs has to be loosened to tolerate them
-
-Frames drawn **without** effects, with the effect layered by the engine, would
-fix all four — at the cost of building an effect system per technique.
-
-Not a request yet, just the trade-off recorded while it is fresh. If you want
-to go that way, the technique rows (`r3c0`–`r3c3`) are where it matters, and
-they are already due for regeneration on other grounds.
-
----
-
-## Round 8 — Summon minions ✅ DELIVERED
-
-(Numbered 8 because `asset-requests-round7.md` — the six new fighters — was
-requested in parallel. The two rounds are independent; either can be
-delivered first.)
-
-**Status:** all three delivered, plus higher-resolution regenerations of both
-Divine Dogs. In game and verified.
-
-> **Delivery note — summons need keying too.** The five files arrived with the
-> magenta background still baked in and no alpha channel, so each one drew as a
-> solid magenta rectangle on stage. Fixed by running the repo's standard chroma
-> key over them:
->
-> ```
-> cd tools && python3 -c "
-> from pathlib import Path
-> from process_round5_sprites import key_image
-> for n in ['rainbow_dragon','transfigured_human','inventory_curse',
->           'divine_dog_white','divine_dog_black']:
->     p = Path('../assets/sprites/summons')/f'{n}.png'; key_image(p, p)"
-> ```
->
-> Magenta delivery is fine and expected — it just has to go through the key
-> before it reaches `assets/sprites/`. Character sprites get this automatically
-> via `tools/intake.py`; files dropped straight into `assets/sprites/summons/`
-> bypass that path, so they need the command above (or an alpha-transparent
-> export instead). Worth checking for any future direct-to-`summons/` drop.
-
-The summoning system (`src/summons.js`) now fields persistent minions for
-Megumi, Geto, Mahito, and Toji. Megumi's shikigami already have art
-(`assets/sprites/summons/`). Three minions are running on placeholder effect
-sprites and want dedicated art. Same delivery spec as round 5 (transparent or
-magenta background, facing RIGHT, body ≥600 px tall, one subject per file, no
-text/watermark). Drop the files at the exact paths below — the game prefers
-them automatically over the placeholders, no code change needed.
-
-### `assets/sprites/summons/rainbow_dragon.png` (Geto)
-
-Currently falls back to `effects/curse_dragon.png` (cut from his card art —
-usable but low-res and semi-effect-like).
-
-> A massive serpentine cursed spirit dragon from dark fantasy anime, long
-> sinuous body coiled mid-slither, iridescent scales shimmering violet, teal
-> and magenta, gaping jaw with rows of jagged teeth, four short clawed limbs,
-> tattered fins along the spine, wreathed in wisps of purple cursed energy,
-> full body visible facing right, side view, dynamic hunting pose low to the
-> ground, dark anime style with clean lineart and cel shading, transparent
-> background, no text
-
-### `assets/sprites/summons/transfigured_human.png` (Mahito)
-
-Currently falls back to `effects/soul_isomer.png` (a small orb — reads as a
-projectile, not a creature).
-
-> A grotesque transfigured human cursed creature from dark supernatural anime,
-> lumpy asymmetric flesh body with mismatched limbs, small vestigial arms and
-> one oversized arm used as a front leg, distorted half-melted face with
-> misplaced eyes, pale purple-grey skin with patches of lavender, shambling
-> hunched lurching pose, full body visible facing right, side view, unsettling
-> but PG-13 (no gore or blood), dark anime style with clean lineart and cel
-> shading, transparent background, no text
-
-### `assets/sprites/summons/inventory_curse.png` (Toji)
-
-Currently falls back to `effects/cursed_spirit_orb.png` (generic orb).
-
-> A small pact-bound inventory cursed spirit from dark fantasy anime, a
-> floating worm-like curse with a segmented pale green-grey body coiled into a
-> loose spiral, its head is a wide unzipping vertical mouth lined with blunt
-> teeth opening to reveal a dark storage void, tiny beady white eyes, faint
-> green cursed-energy haze around it, hovering pose with the tail curling
-> under, full body visible facing right, side view, creepy-cute proportions,
-> dark anime style with clean lineart and cel shading, transparent background,
-> no text
-
-### Optional round 8 extras (nice-to-have, not wired yet)
-
-- `summons/divine_dog_white.png` / `divine_dog_black.png` regenerations at
-  ≥600 px if the current ones look soft next to new art (they now run and
-  lunge on stage far longer than before, so quality shows more).
-
----
-
-## Round 9 — Regenerate the 17 original hero cards
+## 9A. Regenerate the 17 original hero cards
 
 Round 7 delivered six new fighters, and their hero cards landed in a **visibly
-different art style** from the original seventeen. Three of those six — Mei Mei,
-Uro and Choso — are now live in the roster, so the select screen currently shows
-**17 old-style cards next to 3 new-style ones** and the seam is obvious. (Yuji,
-Reggie and Gakuganji are still staged; their cards are already new-style, so
-promoting them widens the gap rather than closing it.)
+different art style** from the original seventeen. All six are now live, so the
+select screen shows a clear seam between the two styles. (All six round-7 fighters have since shipped, so the split is now **17 old-style
+cards against 6 new-style ones**.)
 
 This round brings the old cards up to the new style so the roster reads as one
 set.
@@ -513,7 +203,7 @@ studio product shot, text, watermark, border`.
 
 `[CHARACTER BLOCK]` + `,` + `[CARD LINE]` + `,` + `[STYLE SUFFIX]`
 
-Character blocks are unchanged — reuse them verbatim from **section A** above
+Character blocks are unchanged — reuse them verbatim from **Character blocks** above
 (the same blocks that drove the sprite rounds), so a character's outfit stays
 identical between their card and their in-game sprites.
 
@@ -566,11 +256,10 @@ labelled rows (`CHARACTER_GROUPS` in `src/config.js`), so finishing a whole
 group makes that row internally consistent even while others are pending:
 
 1. **Sorcerers** — `gojo`, `nanami`, `todo`, `momo`, `hakari`, `toji`
-   (this row already contains new-style `meimei` and `uro`, so the mismatch is
-   most visible here).
+   (this row also contains new-style `meimei` and `gakuganji`, so the mismatch
+   is most visible here).
 2. **Tokyo Jujutsu Students** — `yuta`, `maki`, `megumi`, `nobara`, `inumaki`,
-   `panda` (all six are old-style, so this row is currently self-consistent —
-   it only looks wrong next to the others).
+   `panda` (this row also holds new-style `yuji`).
 3. **Curses and Curse Users** — `sukuna`, `mahito`, `jogo`, `hanami`, `geto`
    (row also holds new-style `choso`). Left for last because the non-human
    designs are the biggest style stretch.
@@ -603,3 +292,52 @@ HUD portrait, since those are the three different crops.
 | `geto` | ☐ | ☐ |
 | `jogo` | ☐ | ☐ |
 | `hanami` | ☐ | ☐ |
+
+---
+
+## 9B. Technique frames that show the wrong move — 10 frames
+
+Carried over from the missing-sprites audit. These are **not** missing files,
+so nothing 404s and nothing appears in the console — the state resolves to a
+generic cell from the original sprite sheet that does not depict the technique
+being used. Verified still outstanding against `src/characters.js`.
+
+All ten belong to the original 17, who still use `r{row}c{col}` sheet cells for
+states round 5 did not cover.
+
+| Character / state | Move it should show | Currently draws |
+|---|---|---|
+| `maki` / `specialNeutral` | Cursed Tool Toss | `r1c2` — her dash frame |
+| `nobara` / `specialNeutral` | Straw Doll: Nail Shot | `r0c2` |
+| `geto` / `specialNeutral` | Cursed Spirit Volley | `r3c2` |
+| `geto` / `specialSide` | Rainbow Dragon | `r3c0` |
+| `geto` / `downHeavy` | Kuchisake-Onna's Scissors | `r2c2` |
+| `hakari` / `specialDown` | Reserve Balance | `r4c3` |
+| `megumi` / `specialNeutral` | Nue | `r3c2` |
+| `hanami` / `specialNeutral` | Cursed Buds | `r3c2` |
+| `hanami` / `specialSide` | Root Eruption | `r2c2` |
+| `jogo` / `specialSide` | Lava Geyser | `r2c2` |
+
+Deliver as semantic pose keys, the same naming the round-7 fighters use, so the
+frame is addressed by what it is rather than by a grid position:
+
+| File | Pose line |
+|---|---|
+| `maki/special_neutral.png` | "hurling a spinning cursed tool forward underarm, weight rotated through the throw, arm following through across the body" |
+| `nobara/special_neutral.png` | "firing cursed nails from a drawn-back hammer, nails streaking from the hammer head, off hand flicked open" |
+| `geto/special_neutral.png` | "releasing a handful of small cursed spirits from an open palm held forward, robe sleeve falling back" |
+| `geto/special_side.png` | "both arms sweeping outward to loose a huge serpentine cursed spirit low along the ground, body braced against the recoil" |
+| `geto/attack_down.png` | "swinging a heavy overhead blow straight down into the ground, deep stance, robe billowing with the drop" |
+| `hakari/special_down.png` | "slamming an open palm down as a pachinko reel of light spins beside him, cocky grin, jacket flaring" |
+| `megumi/special_neutral.png` | "flicking a hand out low as a winged shadow shikigami launches forward from beneath him, shadow pooling at his feet" |
+| `hanami/special_neutral.png` | "lobbing a cluster of seed pods underhand from a bark-clad palm, branch arm extended forward" |
+| `hanami/special_side.png` | "driving one arm down into the earth to raise roots, torso twisted low, bark shoulders hunched" |
+| `jogo/special_side.png` | "thrusting a hand toward the ground to erupt a magma vent, single eye narrowed, heat haze rippling off the volcanic head" |
+
+Each needs the same **one zoom per character** treatment as everything else:
+match the figure scale of that character's existing `idle_a`.
+
+Once delivered these are wired by pointing the character's `anims` entry at the
+new key (e.g. `specialNeutral: { frames: ["special_neutral"], … }`), which is a
+one-line change per state.
+

@@ -1,26 +1,25 @@
-// All 20 fighters: stats, sprite-frame mappings, attack profiles, specials,
+// All 23 fighters: stats, sprite-frame mappings, attack profiles, specials,
 // ultimates, passives. Design rationale for every kit lives in docs/characters/.
 //
 // Frame keys are sheet cells "r{row}c{col}" resolved via assets/sprites/manifest.json.
 // Sheet rows: 0 idle/poses, 1 run, 2 air, 3 technique effects, 4 crouch.
-// Fighters delivered from round 7 onward (Choso, Mei Mei, Uro) have no sheet at
-// all — their frames are semantic pose keys instead; see SEMANTIC_ANIMS below.
+// The 17 launch fighters come from those sheets. The six round-7 fighters
+// (Choso, Mei Mei, Uro, Yuji, Reggie, Gakuganji) have no sheet at all — their
+// frames are semantic pose keys instead; see SEMANTIC_ANIMS below.
 
 import { CHARACTER_GROUPS } from "./config.js";
 
 // The roster itself is defined further down; CHARACTER_KEYS is derived from the
 // config groups once the kits exist (see the bottom of this file).
 
-// Round-7 fighters: kits, mechanics, AI and audio are fully wired, but their
-// art has not been delivered yet (see docs/asset-requests-round7.md). To ship
-// one, register its sprites in the manifest, drop its card in assets/cards/,
-// then move its key out of here and into a CHARACTER_GROUPS bucket above —
-// nothing else is needed (Choso shipped this way).
-// Deliberately excluded from CHARACTER_KEYS, so neither character select nor
-// randomCharacterKey() below can land on a fighter that has no sprites yet.
-export const STAGED_CHARACTER_KEYS = [
-  "yuji", "reggie", "gakuganji",
-];
+// Fighters whose kits are wired but whose art has not been delivered, so they
+// must not reach character select or randomCharacterKey(). Empty right now:
+// the whole roster has shipped. To stage a new fighter, add its kit to
+// CHARACTERS and list its key here; to ship it, register its sprites in the
+// manifest, drop its card in assets/cards/, then move the key out of here and
+// into a CHARACTER_GROUPS bucket in src/config.js. Nothing else is needed —
+// all six round-7 fighters shipped exactly that way.
+export const STAGED_CHARACTER_KEYS = [];
 
 // Sentinel selection meaning "draw a fresh fighter at the start of every match"
 // rather than naming one. Never a key in CHARACTERS — resolve it through
@@ -1006,10 +1005,6 @@ export const CHARACTERS = {
     passive: { id: "openSky", name: "Mistress of the Air", desc: "The sky is her territory: a third jump, and 12% less damage and knockback while airborne." },
     ai: { style: "balanced", range: 280 },
   },
-
-  // ================================================================ STAGED
-  // Round-7 fighters below are gameplay-complete but awaiting art.
-  // They are excluded from CHARACTER_KEYS until their sprites are delivered.
 
   // ------------------------------------------------------------------ YUJI
   yuji: {

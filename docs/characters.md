@@ -424,20 +424,6 @@ her is a good way to get shot.
 - *Passive — Mistress of the Air:* 12% less damage and knockback while
   airborne. Fight her on the ground; you won't get to.
 
----
-
-# Round 7 — staged fighters
-
-The three fighters below are **gameplay-complete but not yet in the roster**:
-their kits, mechanics, AI profiles and audio are wired in code
-(`STAGED_CHARACTER_KEYS` in `src/characters.js`), and they ship the moment
-their art lands (see `docs/asset-requests-round7.md`). Design rationale
-follows the same format as the launch roster.
-
-Choso, Mei Mei and Uro have already shipped and now sit with the roster
-above — Choso under *Curses and Curse Users*, Mei Mei and Uro under
-*Sorcerers*.
-
 ## Yuji Itadori — "Sukuna's Vessel"
 **Canon:** The vessel of the King of Curses — a physically freakish, endlessly
 kind-hearted student whose signature is **Divergent Fist** (his cursed energy
@@ -539,14 +525,13 @@ Weakest legs on the roster, but a stage that is always ringing.
 | Choso | Blood zoner | ★★★☆ | Mid-heavy | Premium projectiles paid in HP |
 | Mei Mei | Economy all-rounder | ★★★★ | Mid | Meter economy, axe shield pressure |
 | Uro | Aerial trickster | ★★★★ | Light | Air control, reflected projectiles |
-
-**Staged (round 7 — awaiting art):**
-
-| Fighter | Archetype | Speed | Weight | Wins by |
-|---|---|---|---|---|
 | Yuji | Rushdown brawler | ★★★★★ | Mid | Fundamentals + Black Flash spikes |
 | Reggie | Wildcard zoner | ★★★☆ | Mid | Area denial, falling appliances |
 | Gakuganji | Sound fortress | ★☆ | Heavy | Walls of sound, unflinching trades |
+
+All 23 fighters are live. The six round-7 additions (Choso, Mei Mei, Uro, Yuji,
+Reggie, Gakuganji) were built and balanced in code before their art existed;
+that history is in [asset-requests-history.md](asset-requests-history.md).
 
 ## References
 
