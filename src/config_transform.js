@@ -33,9 +33,16 @@ export const TRANSFORM_POSES = [
 // set redrawn after that round delivers the cycle and not the pair, and must
 // not fail the readiness check for lacking art it was told not to draw — so a
 // pose listed here counts as present when every frame of its alternative is.
+// The wind-up/strike pairs supersede the single `attack_heavy` / `attack_air`
+// the same way, and for the same reason: a set redrawn after round 11 delivers
+// the pair and never the single, so expecting the single would report a
+// complete set as incomplete — and, in the workbench, list a pose nobody should
+// go and draw. Mahoraga is the first set in that position.
 export const TRANSFORM_POSE_ALTERNATIVES = {
   run_a: RUN_CYCLE_FRAMES,
   run_b: RUN_CYCLE_FRAMES,
+  attack_heavy: ["attack_heavy_a", "attack_heavy_b"],
+  attack_air: ["attack_air_a", "attack_air_b"],
 };
 
 export const TRANSFORMS = {

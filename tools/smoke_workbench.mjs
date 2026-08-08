@@ -263,6 +263,27 @@ await page.uncheck("#mirrorBox");
 await page.waitForTimeout(500);
 check((await shot()) === afterSwitch, "un-ticking it returns exactly where it started");
 
+// ---- a sprite the game does not draw appears in one view only
+//
+// "All sprites" is the view that shows everything; every other view is a
+// question about the working set. `edited` never asked, so a retired sheet cell
+// still carrying the tuning it was given while it was in use showed up as work
+// that had been done — the poses most likely to appear being exactly the ones a
+// re-point had just taken out of the game.
+await page.goto(`${BASE}/workbench/?char=geto`, { waitUntil: "domcontentloaded" });
+await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
+const cells = async () => page.evaluate(() =>
+  [...document.querySelectorAll("#poseList button:not(.pose-variant)")]
+    .filter((b) => /r\dc\d/.test(b.textContent)).length);
+for (const view of ["unedited", "edited", "used"]) {
+  await page.selectOption("#viewSel", view);
+  await page.waitForTimeout(400);
+  check((await cells()) === 0, `"${view}" hides the sheet cells nothing draws`);
+}
+await page.selectOption("#viewSel", "all");
+await page.waitForTimeout(400);
+check((await cells()) > 0, `"All sprites" still shows them`, `${await cells()} cell(s)`);
+
 // ---- the centre of mass is offered only where something turns about it
 //
 // Most poses lean, sway, swing or tumble, and all of that turns about the com.

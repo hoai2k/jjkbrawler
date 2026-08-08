@@ -12,8 +12,8 @@ closed with four of its seventeen fighters finished — Gojo, Mahito, Nobara and
 Yuta each have one sprite per action — and **the thirteen it did not reach rolled
 into round 11 rather than staying open behind it**, so a round's numbers are
 always the real remaining work. Round 11 is part-delivered: **11A (Mahoraga) is
-done**, and Geto, Hakari, Hanami, Inumaki and Jogo are done within 11B, leaving
-eight fighters there. Round 12 has three parts: eight fix-up poses caught while
+done**, and Geto, Hakari, Hanami, Inumaki, Jogo, Maki and Megumi are done within
+11B, leaving six fighters there. Round 12 has three parts: ten fix-up poses caught while
 placing the delivered sets in the sprite workbench, the **four-frame run
 cycle** for the whole roster — the redesign that retires the two-frame run —
 and the knocked-flat **`prone` pose** the new knockdown mechanic simulates
@@ -222,17 +222,17 @@ the game already ships, not the set on disk.
 Three parts; any can be delivered on its own.
 
 - ~~**11A** — redraw Mahoraga from the shikigami's canon design~~ **delivered** (33 sprites)
-- **11B** — finish the semantic sets for the 8 fighters still on sheet cells (142 sprites)
+- **11B** — finish the semantic sets for the 6 fighters still on sheet cells (108 sprites)
 - **11C** — wind-up/strike pairs for the 6 round-7 fighters (24 sprites)
 - **11D** — one improvement request: Reggie's crouch attack does not read as the action (1 sprite)
 
-**167 sprites left.** 11B is the bulk of it and the one that changes how the
-roster reads: eight fighters still play a sprint frame for a punch. 11C is the
+**133 sprites left.** 11B is the bulk of it and the one that changes how the
+roster reads: six fighters still play a sprint frame for a punch. 11C is the
 smallest and finishes a transition already made everywhere else.
 
 **11A is done** — Mahoraga arrived as the canon shikigami, all 33 poses, and is
-integrated. **Geto, Hakari, Hanami, Inumaki and Jogo are done in 11B**, which is
-why the count moved from thirteen fighters to eight. Their sections below are struck through rather
+integrated. **Geto, Hakari, Hanami, Inumaki, Jogo, Maki and Megumi are done in
+11B**, which is why the count moved from thirteen fighters to six. Their sections below are struck through rather
 than deleted, so a delivery citing "11A" still resolves; the full record moves to
 the history file when the round closes.
 
@@ -350,13 +350,13 @@ skirt, so **key on magenta `#FF00FF`** — a grey screen would fight the body.
 
 ---
 
-## 11B. Finish the semantic sets — 142 sprites across 8 fighters
+## 11B. Finish the semantic sets — 108 sprites across 6 fighters
 
 This is round 10A, carried forward with every fighter it has finished removed
 from it. Gojo, Mahito, Nobara and Yuta got there in round 10, and **Geto (15
-poses), Hakari (17), Hanami (16), Inumaki (18) and Jogo (17) have since been
-delivered and integrated** — all five are re-pointed and off this list. The
-remaining eight still run on **4×5 sprite sheet cells** named `r{row}c{col}`, where one
+poses), Hakari (17), Hanami (16), Inumaki (18), Jogo (17), Maki (17) and Megumi
+(17) have since been delivered and integrated** — all seven are re-pointed and
+off this list. The remaining six still run on **4×5 sprite sheet cells** named `r{row}c{col}`, where one
 cell has to serve several actions at once.
 
 The problem was never the naming. It is that a sprint pose is what plays when
@@ -376,8 +376,8 @@ Counts differ because round 9B already delivered some of the technique frames.
 | ~~Hanami~~ | `hanami` | ~~16~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
 | ~~Toge Inumaki~~ | `inumaki` | ~~18~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
 | ~~Jogo~~ | `jogo` | ~~17~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| Maki Zen'in | `maki` | 17 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
-| Megumi Fushiguro | `megumi` | 17 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
+| ~~Maki Zen'in~~ | `maki` | ~~17~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
+| ~~Megumi Fushiguro~~ | `megumi` | ~~17~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
 | Momo Nishimiya | `momo` | 18 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_neutral` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
 | Kento Nanami | `nanami` | 18 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_neutral` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
 | Panda | `panda` | 18 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_neutral` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
@@ -579,14 +579,15 @@ two together makes the blocking ones wait behind the wish list.
 
 # Round 12 — open
 
-Two parts; either can be delivered on its own.
+Three parts; any can be delivered on its own.
 
 - **12A** — ten workbench catches: poses that turned out not to be the action they are named for (10 sprites)
 - **12B** — the four-frame run cycle, roster-wide (92 sprites)
+- **12C** — a `prone` pose, knocked flat on their back, roster-wide (23 sprites)
 
-**102 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
+**125 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
 is what makes the roster finally *run* instead of vibrating between two nearly
-identical poses.
+identical poses. 12C is the one the engine is already simulating without art.
 
 ---
 

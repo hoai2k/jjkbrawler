@@ -20,7 +20,7 @@ import { drawPlatformShape } from "../src/render.js";
 import { lightMove, heavyMove, VISIBLE_ART_REACH } from "../src/moves.js";
 import { PIVOTED_STATES } from "../src/motion.js";
 import { CHARACTERS, CHARACTER_KEYS, SPRITE_ACTORS, getActor } from "../src/characters.js";
-import { TRANSFORM_POSES } from "../src/config_transform.js";
+import { TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "../src/config_transform.js";
 import {
   headHeightTarget, applyHeightScale, hasHeightOverride, heightRatio, measuredIdleSpan,
 } from "../src/heights.js";
@@ -55,7 +55,13 @@ const BOOLEAN_FIELDS = new Set(["faceLeft"]);
 // the dot beside it is what says you have touched it. See hasSavedEdits().
 const VIEWS = {
   unedited: { label: "No saved edits (to do)", keep: (c, k) => isUsed(c, k) && !hasSavedEdits(c, k) },
-  edited: { label: "Has saved edits (done)", keep: (c, k) => hasSavedEdits(c, k) },
+  // Also gated on `isUsed`: "All sprites" is the one view that shows art the
+  // game does not draw, and every other view is a question about the working
+  // set. Without the gate this one leaked — a retired sheet cell keeps the
+  // `edited` record of the tuning it was given while it was still in use, so
+  // the poses most likely to appear here are exactly the ones a re-point had
+  // just taken out of the game.
+  edited: { label: "Has saved edits (done)", keep: (c, k) => isUsed(c, k) && hasSavedEdits(c, k) },
   used: { label: "Used in game", keep: (c, k) => isUsed(c, k) },
   all: { label: "All sprites", keep: () => true },
 };
@@ -214,8 +220,16 @@ function allFramesOf(charKey) {
   }
   const delivered = Object.keys(spriteManifest?.characters?.[charKey] || {});
   // An actor lists the poses its transformation needs even before they exist,
-  // so an incomplete set reads as a checklist rather than an empty page.
-  if (isActor(charKey)) return [...new Set([...delivered, ...TRANSFORM_POSES])].sort();
+  // so an incomplete set reads as a checklist rather than an empty page — minus
+  // any whose newer replacement has already landed, the same substitution the
+  // readiness check makes (TRANSFORM_POSE_ALTERNATIVES). Otherwise a set that
+  // delivered the wind-up/strike pairs still shows the single `attack_heavy`
+  // it superseded, as a pose someone might go and draw.
+  if (isActor(charKey)) {
+    const met = (pose) => TRANSFORM_POSE_ALTERNATIVES[pose]?.every((k) => delivered.includes(k));
+    const wanted = TRANSFORM_POSES.filter((pose) => delivered.includes(pose) || !met(pose));
+    return [...new Set([...delivered, ...wanted])].sort();
+  }
   return delivered.sort();
 }
 
@@ -721,10 +735,20 @@ function hasSavedEdits(charKey, frameKey) {
 }
 
 function isUsed(charKey, frameKey) {
-  // Every shared sprite is in the game by definition, and an actor's pose is
-  // expected whether or not it has been drawn — neither is filtered out by the
-  // "used in game" views the way an unused sheet cell is.
-  if (isOther(charKey) || isActor(charKey)) return true;
+  // Shared effect and summon art has no anim table to ask — the code that
+  // spawns each one decides when it appears — so it is in the game by
+  // definition and the question does not apply.
+  if (isOther(charKey)) return true;
+  // An ACTOR is asked the same question as a fighter. It used to be exempt,
+  // from when `animsOf` could not resolve a SPRITE_ACTOR's table at all and the
+  // honest answer was unavailable; that is fixed (src/sprites.js), so exempting
+  // them now just smuggles retired art into a filtered view. It is how
+  // Mahoraga's superseded `attack_air`/`attack_heavy` — the last of a design
+  // the game no longer draws — kept appearing under "used in game".
+  //
+  // A pose an actor is EXPECTED to have but nobody has drawn still counts as
+  // used: its state names it, so the transform will play it the moment the art
+  // lands, and listing it is what makes the set readable as a checklist.
   return statesUsingFrame(charKey, frameKey).length > 0;
 }
 

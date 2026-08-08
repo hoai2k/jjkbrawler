@@ -301,13 +301,10 @@ export const CHARACTERS = {
     shadow: "rgba(105, 208, 168, 0.34)",
     scale: 0.60,
     stats: { speed: 452, airSpeed: 340, accel: 2860, jump: 775, airJumps: 1, weight: 1.0, friction: 0.86 },
-    anims: {
-      light: { frames: ["r0c2", "r1c2"], fps: 12, loop: false },
-      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
-      specialNeutral: { frames: ["special_neutral"], fps: 8, loop: false },
-      specialSide: { frames: ["r3c0", "r3c1"], fps: 10, loop: false },
-      specialDown: { frames: ["r3c3"], fps: 4, loop: true },
-      ult: { frames: ["r3c2", "r3c1"], fps: 7, loop: true },
+    // Round 11B delivered her last seventeen poses. Inherits the semantic
+    // table; the slow looping down-special is her own, kept.
+    anims: { ...SEMANTIC_ANIMS,
+      specialDown: { frames: ["special_down"], fps: 4, loop: true },
     },
     light: { dmg: 8.5, reach: 196, speed: 1.1, angle: 0.26, effect: "weaponBreak", label: "Naginata Combo", sfx: "slash" },
     heavy: { dmg: 15.5, reach: 210, speed: 1.05, angle: 0.42, effect: "weaponBreak", label: "Dragon-Bone Arc", sfx: "slashHeavy", shieldMul: 2.2 },
@@ -347,14 +344,9 @@ export const CHARACTERS = {
     shadow: "rgba(124, 140, 255, 0.36)",
     scale: 0.60,
     stats: { speed: 418, airSpeed: 330, accel: 2620, jump: 765, airJumps: 1, weight: 0.96, friction: 0.84 },
-    anims: {
-      light: { frames: ["r0c2", "r0c3"], fps: 12, loop: false },
-      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
-      specialNeutral: { frames: ["special_neutral"], fps: 8, loop: false },
-      specialSide: { frames: ["r3c0", "r3c1"], fps: 9, loop: false },
-      specialDown: { frames: ["r1c2"], fps: 8, loop: false },
-      ult: { frames: ["r3c3", "r2c3"], fps: 7, loop: true },
-    },
+    // Round 11B delivered his last seventeen poses, so every action has its own
+    // drawing and every override here was saying what the shared table says.
+    anims: SEMANTIC_ANIMS,
     light: { dmg: 8, reach: 172, speed: 1.05, angle: 0.3, effect: null, label: "Shadow Combo", sfx: "punch" },
     heavy: { dmg: 15, reach: 188, speed: 1.0, angle: 0.44, effect: "snare", label: "Divine Dog Fang", sfx: "slashHeavy", shieldMul: 1.6 },
     specials: {
