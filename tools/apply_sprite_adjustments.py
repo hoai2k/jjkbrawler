@@ -86,6 +86,10 @@ VARIANT_PLACEMENT = [
 VARIANT_REVIEW = ["needsReplacement", "wantsImprovement", "edited"]
 VARIANT_BANKED = VARIANT_PLACEMENT + VARIANT_REVIEW
 
+# Kinds that only mean something about an option, never about the pose.
+# Mirrors VARIANT_ONLY_KINDS in src/sprites.js.
+VARIANT_ONLY_KINDS = {"delete"}
+
 
 def load_payloads(sources):
     payloads = []
@@ -163,8 +167,21 @@ def main():
                     skipped.append(f"{char}/{pose}: {opt['file']} is not an option")
                     continue
                 for field, value in opt.items():
-                    if field != "file":
-                        target[field] = value
+                    if field == "file":
+                        continue
+                    if field == "needsReplacement":
+                        # A delete tag on a DRAWING: "we have something better,
+                        # discard this one at the next cleanup". False clears it,
+                        # so untagging exports as clearly as tagging.
+                        before = target.get(field)
+                        if value:
+                            target[field] = value
+                            applied.append(f"{char}/{pose} [{opt['file']}]: tagged {value}")
+                        elif before:
+                            target.pop(field, None)
+                            applied.append(f"{char}/{pose} [{opt['file']}]: {before} -> cleared")
+                        continue
+                    target[field] = value
 
         for pose, file in (payload.get("variantChoice") or {}).items():
             meta = frames.get(pose)
@@ -180,8 +197,16 @@ def main():
             for field in VARIANT_BANKED:
                 meta.pop(field, None)
             for field, value in chosen.items():
-                if field != "label":
-                    meta[field] = value
+                if field == "label":
+                    continue
+                # "Delete variant" says discard this one OF SEVERAL — a sentence
+                # only an option can carry. Mirroring it onto the pose would put
+                # it in front of list_replacements.py twice, once as a pose
+                # needing work and once as the deletion it already collects from
+                # the variants list.
+                if field == "needsReplacement" and value in VARIANT_ONLY_KINDS:
+                    continue
+                meta[field] = value
             applied.append(f"{char}/{pose}.file: {before} -> {file}")
 
         # The scale reference the character's size is solved against. Written

@@ -177,6 +177,13 @@ has to come back and clarify:
 | `crop` | the framing or bounds are wrong |
 | `alpha` | transparency is wrong or has hard edges |
 | `bleed` | colour bleeds past the silhouette |
+| `delete` | this DRAWING is surplus — discard it and keep the other variant. Only offered on a pose that has more than one drawing, so a deletion can never leave a pose with no art. Stored on the variant option rather than the pose, because it names one image out of several. |
+
+**Answering these flags is a procedure, not a judgement call each time.** Ask for
+a "full sprite cleanup" and [docs/sprite-cleanup.md](sprite-cleanup.md) is what
+runs: deletions applied, alpha/crop/bleed fixed in place with a before/after
+contact sheet and workbench deep links to approve, and everything needing new art
+folded into the open asset-request round.
 
 The kind is the flag's *value*, so there is one field rather than a boolean and a
 reason that could disagree. `REPLACEMENT_KINDS` in `src/sprites.js` is the single

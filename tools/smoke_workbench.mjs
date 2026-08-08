@@ -212,13 +212,14 @@ try { swapped = JSON.parse(await page.inputValue("#exportOut")); } catch { /* re
 const forHanami = (Array.isArray(swapped) ? swapped : [swapped])
   .find((p) => p?.character === "hanami");
 const banked = Object.fromEntries(
-  (forHanami?.variantPlacement?.dodge_air ?? []).map((o) => [o.file, o.needsReplacement ?? null]));
+  (forHanami?.variantPlacement?.dodge_air ?? []).map((o) => [o.file, o.needsReplacement ?? false]));
 check(forHanami?.variantChoice?.dodge_air === alt,
   "the pose switched to the other drawing", JSON.stringify(forHanami?.variantChoice));
 check(banked["hanami/dodge_air.png"] === "alpha",
   "the flag stays with the drawing it was passed on", JSON.stringify(banked));
-check(banked[alt] === null || banked[alt] === undefined,
-  "the drawing switched to does not inherit it");
+// `false` rather than absent: the export always states a drawing's tag, so
+// clearing one travels as clearly as setting one.
+check(!banked[alt], "the drawing switched to does not inherit it", JSON.stringify(banked[alt]));
 check(forHanami?.adjustments?.dodge_air?.needsReplacement === undefined,
   "and it is not left behind on the pose");
 
