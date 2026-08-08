@@ -172,14 +172,35 @@ checkbox is the per-frame override, it wins over the list, and it exports with
 everything else. Turning a mirror *off* is meaningful and is stored as
 `faceLeft: false` rather than by deleting the key.
 
-**The pose list is filtered.** *Unedited only* — the default — shows the poses
-the game draws that have no adjustments saved in the codebase yet, so a pass
-through a character does not keep re-presenting work already done. *Edited only*
-is everything you have touched, *Used in game* drops the edit filter, and *All*
-adds the sheet cells the game never draws (the list otherwise shows only frames
-an animation names, plus `r0c0`, which `render.js` draws for the respawn
-platform). "Edited" means committed to the manifest — the dot marks unsaved
-changes in the current session.
+**Two independent questions get asked about a pose, and they must not be
+confused.** Mixing them is a bug that has already been shipped once, so it has
+its own regression test (`tools/smoke_workbench.mjs`).
+
+| | question | shows up as | changes when |
+|---|---|---|---|
+| **Saved state** | had this pose already been dealt with *before the page loaded*? | which view it appears in | you apply an export and reload |
+| **Session state** | has it changed *since the page loaded*? | the yellow dot | you edit it |
+
+So the pose list is a **work list that holds still while you work**. Editing a
+pose — including flagging its art as needing replacement — never moves it
+between views; it only picks up a dot. It leaves the to-do list once your export
+has been applied to the manifest and the page reloaded, and not before. Reading
+the live manifest to answer the first question is what broke this: the workbench
+mutates that object in place, so an in-session flag looked like a committed one
+and the pose vanished the instant it was marked.
+
+**The pose list is filtered.** *No saved edits (to do)* — the default — shows the
+poses the game draws that nobody has committed an adjustment for yet, so a pass
+through a character does not keep re-presenting work already done. *Has saved
+edits (done)* is the other half, *Used in game* drops the filter entirely, and
+*All* adds the sheet cells the game never draws (the list otherwise shows only
+frames an animation names, plus `r0c0`, which `render.js` draws for the respawn
+platform).
+
+**The filter never limits what an edit reaches.** Export, the change count and
+*Reset character* all read every frame of the character, not the ones the view
+happens to show — otherwise switching views would silently drop work from an
+export, or leave some behind on a reset.
 
 **Airborne-only poses have no ground contact.** A frame used only by `jump`,
 `fall`, `ledge`, `dodge_air` or `airLight` never touches the floor, so the

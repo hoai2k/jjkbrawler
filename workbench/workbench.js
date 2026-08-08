@@ -35,12 +35,14 @@ const EDITABLE = ["renderScale", "ox", "bodyBottom", "faceLeft", "needsReplaceme
 // treat them differently (and `false` is a meaningful value, not "unset").
 const BOOLEAN_FIELDS = new Set(["faceLeft", "needsReplacement"]);
 
-// What the pose list shows. "Unedited" is the working view: the poses the game
-// draws that nobody has adjusted yet, so a pass through a character does not
-// keep re-presenting work already done.
+// What the pose list shows. These filter on what is SAVED in the codebase, not
+// on what you have done since the page loaded — "unedited" means "no adjustment
+// has been committed for this pose yet", so it is a to-do list of poses nobody
+// has dealt with. Working on a pose must not remove it from that list mid-edit;
+// the dot beside it is what says you have touched it. See hasSavedEdits().
 const VIEWS = {
-  unedited: { label: "Unedited only", keep: (c, k) => isUsed(c, k) && !hasSavedEdits(c, k) },
-  edited: { label: "Edited only", keep: (c, k) => hasSavedEdits(c, k) },
+  unedited: { label: "No saved edits (to do)", keep: (c, k) => isUsed(c, k) && !hasSavedEdits(c, k) },
+  edited: { label: "Has saved edits (done)", keep: (c, k) => hasSavedEdits(c, k) },
   used: { label: "Used in game", keep: (c, k) => isUsed(c, k) },
   all: { label: "All sprites", keep: () => true },
 };
@@ -193,14 +195,44 @@ function isDirty(charKey, frameKey) {
   }) || anchorsDirty(charKey, frameKey);
 }
 
-/** Adjustments already committed to the codebase, as opposed to the unsaved
- *  ones this session marks with a dot. `edited` is written by
- *  apply_sprite_adjustments.py; a replacement request counts too, since that
- *  pose has been dealt with either way. */
+// Two INDEPENDENT questions get asked about a frame, and they must not be
+// confused — mixing them is what made a pose vanish the instant it was flagged:
+//
+//   isDirty()       has this changed SINCE THE SESSION OPENED?
+//                   -> the yellow dot, the change count, and what Export emits.
+//   hasSavedEdits() had this already been dealt with BEFORE the session opened?
+//                   -> which view ("Unedited only" / "Edited only") it appears in.
+//
+// So the pose list is a work list, and it holds still while you work: an edit
+// made now never moves a frame between views, because the answer to the second
+// question cannot change until the export is applied and the page reloaded. The
+// dot is how you see what you have done in the meantime.
+const savedAtLoad = new Set();      // "char/frame" that arrived already dealt with
+const savedScanned = new Set();     // characters whose saved state has been read
+
+/** Read a character's committed state ONCE, before anything can be edited.
+ *  `rawMeta` is the live manifest object the workbench mutates in place, so
+ *  asking it later would report an in-session flag as a committed one. */
+function rememberSaved(charKey) {
+  if (savedScanned.has(charKey)) return;
+  savedScanned.add(charKey);
+  for (const key of allFramesOf(charKey)) {
+    const meta = rawMeta(charKey, key);
+    if (!meta) continue;
+    // `edited` is written by apply_sprite_adjustments.py; a replacement request
+    // counts too, since either way that pose has been decided about.
+    if (Object.keys(meta.edited || {}).length > 0 || meta.needsReplacement) {
+      savedAtLoad.add(`${charKey}/${key}`);
+    }
+  }
+}
+
+/** Adjustments committed to the codebase before this session started, as
+ *  opposed to the unsaved ones the dot marks. Self-initialising, so it is safe
+ *  to call from the view predicates that run before setChar finishes. */
 function hasSavedEdits(charKey, frameKey) {
-  const meta = rawMeta(charKey, frameKey);
-  if (!meta) return false;
-  return Object.keys(meta.edited || {}).length > 0 || !!meta.needsReplacement;
+  rememberSaved(charKey);
+  return savedAtLoad.has(`${charKey}/${frameKey}`);
 }
 
 function isUsed(charKey, frameKey) {
@@ -215,8 +247,13 @@ function kindLabel(kind) {
   return REPLACEMENT_KINDS.find(([k]) => k === kind)?.[1] ?? kind;
 }
 
+/** Every frame of this character edited this session — NOT filtered by the
+ *  current view. Export, the change count and Reset character all read this,
+ *  and all three would be wrong if the pose list's filter could hide an edit
+ *  from them: an export would silently drop work, and a reset would silently
+ *  leave some behind. */
 function dirtyFrames(charKey) {
-  return framesOf(charKey).filter((k) => isDirty(charKey, k));
+  return allFramesOf(charKey).filter((k) => isDirty(charKey, k));
 }
 
 // ------------------------------------------------------------ undo / redo
