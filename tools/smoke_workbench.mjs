@@ -118,6 +118,69 @@ await page.waitForTimeout(300);
 const reset = await page.evaluate(() => document.getElementById("dirtyCount").textContent);
 check(/none/i.test(reset), "Reset character clears edits the view was hiding", JSON.stringify(reset));
 
+// ---- the placement controls: a slider paired with a typeable number, no nudges
+await page.selectOption("#viewSel", "unedited");
+await page.waitForTimeout(250);
+await page.evaluate(() => document.querySelectorAll("#poseList button")[0].click());
+await page.waitForTimeout(200);
+check(await page.evaluate(() => !document.querySelector("[data-scale],[data-off],[data-ground]")),
+  "the +/- nudge buttons are gone");
+check(await page.evaluate(() => {
+  const g = [...document.querySelectorAll(".panel .group")]
+    .map((el) => el.querySelector("label")?.textContent.trim() ?? "");
+  const at = (re) => g.findIndex((t) => re.test(t));
+  return at(/^Size/) < at(/^Anchors/) && at(/^Ground/) < at(/^Anchors/) && at(/^Horizontal/) < at(/^Anchors/);
+}), "Size / Horizontal / Ground sit above Anchors");
+await page.evaluate(() => {
+  const n = document.getElementById("scaleNum");
+  n.value = "80"; n.dispatchEvent(new Event("change", { bubbles: true }));
+});
+await page.waitForTimeout(200);
+check(Math.abs(await page.evaluate(() => parseFloat(document.getElementById("scaleRange").value)) - 0.8) < 0.01,
+  "typing into the number box moves the slider");
+await page.evaluate(() => {
+  const n = document.getElementById("scaleNum");
+  n.value = "not a number"; n.dispatchEvent(new Event("change", { bubbles: true }));
+});
+await page.waitForTimeout(200);
+check(Math.abs(await page.evaluate(() => parseFloat(document.getElementById("scaleRange").value)) - 0.8) < 0.01,
+  "junk in the number box is rejected rather than applied");
+
+// ---- arrows walk the pose GRID, and no longer nudge placement
+const gridStart = await page.evaluate(() => {
+  document.querySelectorAll("#poseList button")[0].click();
+  return document.querySelector("#poseList button.sel")?.textContent;
+});
+await page.waitForTimeout(200);
+const offBefore = await page.evaluate(() => parseFloat(document.getElementById("offsetRange").value));
+const walk = [];
+for (const key of ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"]) {
+  await page.evaluate(() => document.body.focus());
+  await page.keyboard.press(key);
+  await page.waitForTimeout(160);
+  walk.push(await page.evaluate(() => document.querySelector("#poseList button.sel")?.textContent));
+}
+check(new Set(walk).size > 1 && walk[walk.length - 1] === gridStart,
+  "arrows walk the pose grid and right/down/left/up returns", `${gridStart} -> ${walk.join(" -> ")}`);
+check(await page.evaluate(() => parseFloat(document.getElementById("offsetRange").value)) === offBefore,
+  "arrows no longer move the sprite");
+
+// ---- the improvement request, a separate lower-priority flag
+await page.check("#improveBox");
+await page.waitForTimeout(150);
+await page.selectOption("#improveKind", "pose");
+await page.waitForTimeout(250);
+check(await page.evaluate(() => {
+  const el = document.querySelector("#poseList button.sel");
+  return !!el?.classList.contains("wanted") && !!el?.classList.contains("dirty");
+}), "an improvement request marks the pose and raises the dot");
+await page.click("#exportBtn");
+await page.waitForTimeout(300);
+let improved = null;
+try { improved = JSON.parse(await page.inputValue("#exportOut")); } catch { /* reported below */ }
+check(Object.values(improved?.adjustments ?? {}).some((v) => v.wantsImprovement === "pose"),
+  "it exports as wantsImprovement, separately from needsReplacement");
+
 check(!errors.length, "no page errors", errors.slice(0, 2).join(" | "));
 await browser.close();
 console.log(fails ? `\n${fails} check(s) failed` : "\nAll checks pass");

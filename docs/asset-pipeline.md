@@ -190,15 +190,62 @@ workbench  ->  Export  ->  apply_sprite_adjustments.py  ->  needsReplacement: tr
 python3 tools/list_replacements.py --markdown     # grouped by kind, for a request
 ```
 
-The flag clears itself. `intake_import.py` rebuilds a frame's entry when new art
-lands, which drops `needsReplacement` along with the anchors and measurements —
-and it rolls back hand tuning first, because a nudge made to compensate for bad
-art must not be inherited by the art that fixes it. `apply_sprite_adjustments.py`
-records each hand-edited field's pre-edit value in `edited` so that rollback has
-something to restore.
+#### What survives the redraw
+
+A wholesale redraw and a crop fix are not the same event, so they do not get the
+same treatment on the way back in. `REPLACEMENT_PLACEMENT` in `src/sprites.js`
+maps each kind to how much of the existing placement is still meaningful, and
+`intake_import.py` follows it:
+
+| Kind | Survives | Because |
+|---|---|---|
+| `alpha` | **keep** | same drawing, same bounds — every measurement and anchor is still exactly right |
+| `crop`, `bleed` | **reframe** | same drawing, moved bounds — the tuning still applies, but the numbers have to be re-pointed at the new framing |
+| `replace` | **discard** | a different drawing; nothing about the old placement means anything |
+
+An unflagged frame is treated as a wholesale replacement, which is the safe
+reading: nothing said the art was merely being touched up.
+
+The reframe is the delicate one, and it is delicate in two ways. Anchors are
+stored in the image's own pixels, so they move when the framing does. And a
+frame's `oy` and `bodyBottom` are *independent* — `bodyBottom` is the foot line,
+`oy` is where the art sits, and the gap between them is a hand-tuned ground
+contact for a pose drawn in perspective. Re-deriving either from the other
+silently throws that away.
+
+So a touch-up's placement is derived from **how far the re-crop moved the
+drawing**, not rebuilt from scratch: `ox`/`oy` shift by the change in the content
+box, the anchors ride along with them, and `renderScale` is held so the drawing
+comes back at exactly the size it had. Matching rendered *heights* instead would
+be wrong — trimming a bleed makes the content box smaller, and stretching the
+result back would quietly enlarge the fighter.
+
+`tools/test_intake_placement.py` proves it, against synthetic re-crops of real
+art where the right answer is known: the art stands in the same place, the tuned
+ground contact survives, and the anchor keeps both its height above the feet and
+its offset across the body.
+
+#### Clearing
+
+The flags clear themselves. `intake_import.py` drops `needsReplacement` and
+`wantsImprovement` when the new art lands; on a `discard` it drops the anchors
+and measurements too, and rolls back hand tuning first, because a nudge made to
+compensate for bad art must not be inherited by the art that fixes it.
+`apply_sprite_adjustments.py` records each hand-edited field's pre-edit value in
+`edited` so that rollback has something to restore.
 
 Flagging and importing are the two ends of one pipeline, so the list is always
 what is still outstanding rather than a historical record.
+
+### Improvement requests
+
+`wantsImprovement` is the softer ask: the art *works*, it is just not as good as
+it should be. One of `quality` (rough or sloppily executed), `pose` (reads
+poorly, or is not the action it stands for) or `character` (likeness or costume
+is off) — `IMPROVEMENT_KINDS` in `src/sprites.js`.
+
+It travels the same export/apply path and is listed by the same tool, but
+separately and after the replacements, because nothing is blocked by one.
 
 ### Catching poses that are sized wrong
 
