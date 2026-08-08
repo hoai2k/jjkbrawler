@@ -118,13 +118,13 @@ export const TEXT = {
     specialSide: "Side + B",
     specialDown: "Down + B",
     ultimate: "LB / RB",
-    ultimateNote: "Costs half a Cursed Energy bar.",
+    ultimateNote: "Costs a FULL Cursed Energy bar.",
     domainSectionTitle: "Domain Expansion",
     domainInput: "D-pad ▲",
     domainInputAlt: (n) => ["D-pad ▲", "D-pad ◀", "D-pad ▶"][n] || "D-pad ▲",
     domainNote: "Costs a FULL Cursed Energy bar.",
     domainHowTo: "How it plays:",
-    domainNone: "This fighter has no Domain Expansion. Only sorcerers who have mastered one can open a domain — the rest put the whole bar into their ultimate instead.",
+    domainNone: "This fighter has no Domain Expansion. Only sorcerers who have mastered one can open a domain — for everyone else a full bar means one thing: the ultimate.",
     // Multi-player split view: every human player reads their own fighter at
     // the same time instead of taking turns paging through one shared list.
     splitKicker: "Move lists",
