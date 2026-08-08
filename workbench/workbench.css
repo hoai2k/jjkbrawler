@@ -590,3 +590,130 @@ button.ghost:disabled { opacity: 0.35; cursor: default; border-color: var(--line
   padding: 0 4px;
 }
 .action-row .reset-action:hover { color: var(--text); }
+
+/* ---- secondary action rows: preview on the left, current sprite as the
+   button that opens the picker ---- */
+.action-row { grid-template-columns: 1fr auto auto; }
+
+.action-row .action-name {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+}
+.action-row .action-name:hover { color: var(--accent, #62dcff); }
+.action-row.active .action-name { color: var(--accent, #62dcff); font-weight: 800; }
+
+.action-row .action-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  max-width: 190px;
+  padding: 5px 9px;
+  border: 1px solid var(--line, rgba(120, 140, 200, 0.25));
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+}
+.action-row .action-pick:hover { border-color: var(--accent, #62dcff); }
+.action-row .action-pick i {
+  font-style: normal;
+  font-size: 9px;
+  opacity: 0.55;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ---- sprite picker ---- */
+.picker-modal { position: fixed; inset: 0; z-index: 60; }
+.picker-backdrop { position: absolute; inset: 0; background: rgba(3, 5, 12, 0.72); }
+
+.picker-panel {
+  position: relative;
+  margin: 4vh auto;
+  width: min(94vw, 1080px);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px 18px;
+  border-radius: 16px;
+  border: 1px solid var(--line, rgba(120, 140, 200, 0.25));
+  background: #0d1120;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+.picker-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.picker-panel header .sub { display: block; }
+
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.picker-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px 9px;
+  border-radius: 12px;
+  border: 1px solid var(--line, rgba(120, 140, 200, 0.25));
+  background: #12172a;
+  color: var(--text);
+  cursor: pointer;
+  /* A tile lifts under the pointer, so the one about to be chosen is obvious
+     in a grid of thirty similar silhouettes. */
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+.picker-tile:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent, #62dcff);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
+}
+.picker-tile canvas { display: block; }
+.picker-tile span { font-size: 11px; text-align: center; line-height: 1.25; }
+.picker-tile span i {
+  display: block;
+  font-style: normal;
+  font-size: 9px;
+  opacity: 0.55;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.picker-tile.current {
+  border-color: var(--accent, #62dcff);
+  box-shadow: inset 0 0 0 1px var(--accent, #62dcff);
+}
+
+/* Right-click enlargement, floating wherever it was opened. */
+.picker-preview {
+  position: fixed;
+  z-index: 70;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid var(--accent, #62dcff);
+  background: #0b0f1c;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+.picker-preview canvas { display: block; }
+.picker-preview span { display: block; margin-top: 6px; font-size: 11px; text-align: center; }
+.picker-preview span i {
+  font-style: normal;
+  opacity: 0.6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}

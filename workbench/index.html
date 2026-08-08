@@ -164,7 +164,30 @@
           <button id="copyBtn" class="ghost">Copy to clipboard</button>
         </div>
       </section>
-    </main>
+        </main>
+
+    <!-- Sprite picker: opened from a secondary action, closes on choice. The
+         tiles are drawn from the real sprites, since choosing what an action
+         looks like is a visual decision. -->
+    <div id="spritePicker" class="picker-modal" hidden>
+      <div class="picker-backdrop" data-close></div>
+      <div class="picker-panel" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+        <header>
+          <div>
+            <strong id="pickerTitle">Choose a sprite</strong>
+            <span class="sub" id="pickerSub"></span>
+          </div>
+          <button id="pickerClose" class="ghost sm" type="button" data-close>Close</button>
+        </header>
+        <p class="note">Click a sprite to use it · right-click to see it larger</p>
+        <div id="pickerGrid" class="picker-grid"></div>
+      </div>
+      <div id="pickerPreview" class="picker-preview" hidden>
+        <canvas id="pickerPreviewCanvas" width="420" height="460"></canvas>
+        <span id="pickerPreviewLabel"></span>
+      </div>
+    </div>
+
 
     <!-- Two workbenches share this shell: the sprite editor (default) and the
          action player (?edit=actions). Only the requested one is kept in the

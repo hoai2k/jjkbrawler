@@ -171,6 +171,10 @@ const state = {
   anchorShown: {},     // name -> false to hide; anchors are shown by default
   dragging: false,
   view: "unedited",    // key into VIEWS
+  // The secondary action being previewed: the canvas shows the sprite it is
+  // pointed at now, and the saved choice stands where the size benchmark does,
+  // so a reassignment can be read as a before/after rather than from memory.
+  actionRow: null,     // { name, index, saved }
 };
 
 // ---------------------------------------------------------------- helpers
@@ -547,6 +551,22 @@ async function loadBenchmarkFrame() {
   if (await loadFrame("gojo", benchmarkKey())) render();
 }
 
+/** The action's committed sprite, standing where the size benchmark does. */
+function drawSavedAction() {
+  const key = state.actionRow.saved;
+  const x = PLATFORM_X + BENCHMARK_INSET;
+  drawGhost(state.char, key, 0.85, x);
+  ctx.save();
+  ctx.fillStyle = "rgba(154, 164, 192, 0.9)";
+  ctx.font = "600 11px Inter, sans-serif";
+  ctx.textAlign = "center";
+  const label = frameLabel(state.char, key);
+  ctx.fillText(`saved: ${label.sub || label.name}`, x, GROUND_Y + 60);
+  ctx.fillStyle = "rgba(120, 170, 255, 0.9)";
+  ctx.fillText(stateLabel(state.actionRow.name), x, GROUND_Y + 76);
+  ctx.restore();
+}
+
 function drawBenchmark() {
   const key = benchmarkKey();
   const x = PLATFORM_X + BENCHMARK_INSET;
@@ -596,9 +616,11 @@ function render() {
     }
   }
 
-  // usable on Gojo himself as well — standing a pose next to his idle is
-  // exactly as useful as standing it next to another character's
-  if ($("refGojo").checked) drawBenchmark();
+  // While a secondary action is being previewed, the benchmark slot shows what
+  // that action is SAVED as, so the change reads side by side. Otherwise it is
+  // Gojo's idle as the roster size reference.
+  if (state.actionRow?.saved && state.actionRow.saved !== state.frame) drawSavedAction();
+  else if ($("refGojo").checked) drawBenchmark();
   // The self-ghost stays overlaid: within one sprite set the question is
   // whether this pose lines up with the character's own idle, and that is only
   // readable when the two occupy the same space.
@@ -800,6 +822,19 @@ function rememberAnims(charKey) {
   state.originalAnims[charKey] = snap;
 }
 
+/** Show what an action currently draws, with its committed choice beside it. */
+function previewAction(row) {
+  state.actionRow = { name: row.name, index: row.index, saved: savedActionFrame(state.char, row.name, row.index) };
+  state.frame = row.frame;
+  syncAll();
+}
+
+/** The frame this action drew when the page loaded — what is committed in the
+ *  repo, as opposed to whatever it is pointed at right now. */
+function savedActionFrame(charKey, stateName, index) {
+  return state.originalAnims[charKey]?.[stateName]?.[index] ?? null;
+}
+
 function buildActionRows() {
   const box = $("actionRows");
   if (!box) return;
@@ -818,20 +853,28 @@ function buildActionRows() {
   }
   for (const row of rows) {
     const el = document.createElement("div");
-    el.className = "action-row" + (row.overridden ? " overridden" : "");
-    const name = document.createElement("span");
+    const active = state.actionRow?.name === row.name && state.actionRow?.index === row.index;
+    el.className = "action-row"
+      + (row.overridden ? " overridden" : "")
+      + (active ? " active" : "");
+
+    // The action's name previews it: canvas shows what it draws now, the
+    // benchmark slot shows what it is saved as.
+    const name = document.createElement("button");
+    name.className = "action-name";
     name.textContent = row.label;
-    const sel = document.createElement("select");
-    for (const key of frames) {
-      const label = frameLabel(state.char, key);
-      const o = document.createElement("option");
-      o.value = key;
-      o.textContent = label.sub ? `${label.name} · ${label.sub}` : label.name;
-      if (key === row.frame) o.selected = true;
-      sel.appendChild(o);
-    }
-    sel.onchange = () => setActionFrame(state.char, row.name, row.index, sel.value);
-    el.append(name, sel);
+    name.title = "Show this action on the canvas";
+    name.onclick = () => previewAction(row);
+
+    // The current sprite, and the way to change it.
+    const pick = document.createElement("button");
+    pick.className = "action-pick";
+    const label = frameLabel(state.char, row.frame);
+    pick.innerHTML = `${label.name}${label.sub ? `<i>${label.sub}</i>` : ""}`;
+    pick.title = "Choose a different sprite for this action";
+    pick.onclick = () => openSpritePicker(row);
+
+    el.append(name, pick);
     if (row.overridden) {
       const reset = document.createElement("button");
       reset.className = "reset-action";
@@ -843,6 +886,123 @@ function buildActionRows() {
     }
     box.appendChild(el);
   }
+}
+
+// ------------------------------------------------------- sprite picker
+//
+// Every sprite the character has, drawn rather than named: choosing what an
+// action looks like is a visual decision, and a dropdown of file names is not
+// one. Right-click enlarges a tile in place, for the cases where a thumbnail is
+// too small to judge.
+
+let pickerRow = null;
+
+function openSpritePicker(row) {
+  pickerRow = row;
+  const modal = $("spritePicker");
+  const grid = $("pickerGrid");
+  $("pickerTitle").textContent = `${stateLabel(row.name)} — choose a sprite`;
+  $("pickerSub").textContent = `${actorOf(state.char).name} · currently ${row.frame}`;
+  grid.innerHTML = "";
+  for (const key of allFramesOf(state.char)) {
+    grid.appendChild(buildPickerTile(key, row));
+  }
+  modal.hidden = false;
+  closePickerPreview();
+  // Focus the current choice so the keyboard lands somewhere sensible.
+  grid.querySelector(".picker-tile.current")?.scrollIntoView({ block: "center" });
+}
+
+function closeSpritePicker() {
+  pickerRow = null;
+  $("spritePicker").hidden = true;
+  closePickerPreview();
+}
+
+function buildPickerTile(key, row) {
+  const tile = document.createElement("button");
+  tile.className = "picker-tile" + (key === row.frame ? " current" : "");
+  const label = frameLabel(state.char, key);
+  const states = statesUsing(state.char, key);
+
+  const cv = document.createElement("canvas");
+  cv.width = 132; cv.height = 132;
+  tile.appendChild(cv);
+
+  const cap = document.createElement("span");
+  cap.innerHTML = `${label.name}${label.sub ? `<i>${label.sub}</i>` : ""}`;
+  tile.appendChild(cap);
+
+  tile.title = states.length
+    ? `${key} — also drawn by ${states.map(stateLabel).join(", ")}`
+    : `${key} — unused, nothing draws it`;
+
+  drawTileSprite(cv, key);
+  tile.onclick = () => {
+    setActionFrame(state.char, row.name, row.index, key);
+    previewAction({ ...row, frame: key });
+    closeSpritePicker();
+  };
+  tile.oncontextmenu = (e) => { e.preventDefault(); openPickerPreview(key, e.clientX, e.clientY); };
+  return tile;
+}
+
+/** One tile's art, fetched if this character's set has not streamed in yet. */
+function drawTileSprite(cv, key) {
+  const c = cv.getContext("2d");
+  c.clearRect(0, 0, cv.width, cv.height);
+  const meta = rawMeta(state.char, key);
+  const img = frameImage(state.char, key);
+  if (!meta || !img) {
+    c.fillStyle = "rgba(154, 164, 192, 0.5)";
+    c.font = "600 10px Inter, sans-serif";
+    c.textAlign = "center";
+    c.fillText(img ? "no data" : "loading…", cv.width / 2, cv.height / 2);
+    if (!img) loadFrame(state.char, key).then((ok) => { if (ok) drawTileSprite(cv, key); });
+    return;
+  }
+  // Fitted to the tile rather than drawn at game scale: these are for telling
+  // poses apart, and a tall pose and a wide one should both fill the box.
+  const pad = 10;
+  const scale = Math.min((cv.width - pad * 2) / meta.w, (cv.height - pad * 2) / meta.h);
+  c.drawImage(img, cv.width / 2 - (meta.w * scale) / 2, cv.height - pad - meta.h * scale,
+              meta.w * scale, meta.h * scale);
+}
+
+/** Right-click preview: the same sprite, big enough to judge. */
+function openPickerPreview(key, clientX, clientY) {
+  const box = $("pickerPreview");
+  const cv = $("pickerPreviewCanvas");
+  const meta = rawMeta(state.char, key);
+  const img = frameImage(state.char, key);
+  if (!meta) return;
+  // A tile can be right-clicked before its art has streamed in; fetch it and
+  // come back rather than doing nothing.
+  if (!img) {
+    loadFrame(state.char, key).then((ok) => { if (ok && !$("spritePicker").hidden) openPickerPreview(key, clientX, clientY); });
+    return;
+  }
+  const c = cv.getContext("2d");
+  c.clearRect(0, 0, cv.width, cv.height);
+  const pad = 16;
+  const scale = Math.min((cv.width - pad * 2) / meta.w, (cv.height - pad * 2) / meta.h);
+  c.drawImage(img, cv.width / 2 - (meta.w * scale) / 2, cv.height - pad - meta.h * scale,
+              meta.w * scale, meta.h * scale);
+  const label = frameLabel(state.char, key);
+  $("pickerPreviewLabel").innerHTML =
+    `${label.name}${label.sub ? ` <i>${label.sub}</i>` : ""} · ${meta.w}×${meta.h}`;
+  box.hidden = false;
+  // Kept on screen whichever corner it was opened from.
+  const r = box.getBoundingClientRect();
+  const x = Math.min(Math.max(8, clientX + 14), window.innerWidth - r.width - 8);
+  const y = Math.min(Math.max(8, clientY - r.height / 2), window.innerHeight - r.height - 8);
+  box.style.left = `${x}px`;
+  box.style.top = `${y}px`;
+}
+
+function closePickerPreview() {
+  const box = $("pickerPreview");
+  if (box) box.hidden = true;
 }
 
 /** Actions re-pointed away from what the kit gives them, for the export. */
@@ -1102,7 +1262,7 @@ function buildPoseList() {
       + (wantsImprovement(state.char, key) ? "wanted" : "");
     const kind = replacementKind(rawMeta(state.char, key));
     if (kind) b.dataset.kind = kind;
-    b.onclick = () => { state.frame = key; syncAll(); };
+    b.onclick = () => { state.actionRow = null; state.frame = key; syncAll(); };
     list.appendChild(b);
   }
 }
@@ -1176,6 +1336,7 @@ function syncAll() {
 // would mean downloading the default idle and then the pose you asked for.
 function setChar(charKey, wantFrame = null) {
   state.char = charKey;
+  state.actionRow = null;   // an action preview belongs to the character it was opened from
   $("charSel").value = charKey;   // also called from ?char= and undo, not just the select
   const frames = framesOf(charKey);
   const fallback = allFramesOf(charKey);
@@ -1505,6 +1666,22 @@ async function boot() {
     charSel.appendChild(o);
   }
   charSel.onchange = () => setChar(charSel.value);
+
+  // Picker: the backdrop and Close dismiss it, Escape does too, and a plain
+  // click anywhere drops the right-click enlargement.
+  const picker = $("spritePicker");
+  picker?.addEventListener("click", (e) => {
+    if (e.target.dataset.close !== undefined) closeSpritePicker();
+    else closePickerPreview();
+  });
+  picker?.addEventListener("contextmenu", (e) => {
+    if (!e.target.closest(".picker-tile")) { e.preventDefault(); closePickerPreview(); }
+  });
+  window.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || $("spritePicker").hidden) return;
+    e.stopPropagation();
+    closeSpritePicker();
+  }, true);
 
   const sw = $("bgSwatches");
   BACKGROUNDS.forEach(([colour, name], i) => {
