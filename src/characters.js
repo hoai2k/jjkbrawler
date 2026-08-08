@@ -491,13 +491,11 @@ export const CHARACTERS = {
     shadow: "rgba(142, 160, 184, 0.36)",
     scale: 0.57,
     stats: { speed: 356, airSpeed: 275, accel: 2220, jump: 730, airJumps: 1, weight: 1.28, friction: 0.78 },
-    anims: {
-      light: { frames: ["r2c0", "r1c3"], fps: 11, loop: false },
-      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c1"], fps: 6, loop: false },
-      specialNeutral: { frames: ["r3c0"], fps: 8, loop: false },
-      specialSide: { frames: ["r1c3"], fps: 8, loop: false },
-      specialDown: { frames: ["r3c2"], fps: 6, loop: false },
-      ult: { frames: ["r3c2", "r3c3"], fps: 7, loop: true },
+    // Round 11B delivered his last eighteen poses. Inherits the semantic table;
+    // the slower jab and down-special are his own timing, kept.
+    anims: { ...SEMANTIC_ANIMS,
+      light: { frames: ["attack_light_a", "attack_light_b"], fps: 11, loop: false },
+      specialDown: { frames: ["special_down"], fps: 6, loop: false },
     },
     light: { dmg: 9.5, reach: 178, speed: 0.92, angle: 0.3, effect: null, label: "Panda Paw", sfx: "punch" },
     heavy: { dmg: 18, reach: 196, speed: 0.88, angle: 0.44, effect: null, label: "Cursed Corpse Slam", sfx: "punch", shieldMul: 1.8 },
@@ -627,14 +625,11 @@ export const CHARACTERS = {
     shadow: "rgba(255, 205, 82, 0.32)",
     scale: 0.60,
     stats: { speed: 388, airSpeed: 285, accel: 2380, jump: 715, airJumps: 1, weight: 1.14, friction: 0.8 },
-    anims: {
-      light: { frames: ["r0c2", "r0c3"], fps: 12, loop: false },
-      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r2c0", "r2c1"], fps: 8, loop: false },
-      downHeavy: { frames: ["r3c0"], fps: 6, loop: false },
-      specialNeutral: { frames: ["r1c3"], fps: 8, loop: false },
-      specialSide: { frames: ["r1c2"], fps: 8, loop: false },
-      specialDown: { frames: ["r3c1"], fps: 3, loop: true },
-      ult: { frames: ["r3c2", "r3c3"], fps: 7, loop: true },
+    // Round 11B delivered his last eighteen poses. Inherits the semantic table;
+    // the faster heavy and the very slow looping down-special are his own.
+    anims: { ...SEMANTIC_ANIMS,
+      sideHeavy: { ...SEMANTIC_ANIMS.sideHeavy, fps: 8 },
+      specialDown: { frames: ["special_down"], fps: 3, loop: true },
     },
     light: { dmg: 9, reach: 176, speed: 0.95, angle: 0.29, effect: null, label: "Ratio Strike", sfx: "slash", critBand: { center: 132, tolerance: 30 } },
     heavy: { dmg: 16.5, reach: 192, speed: 0.92, angle: 0.42, effect: null, label: "Ratio Cleave", sfx: "slashHeavy", shieldMul: 1.7, critBand: { center: 160, tolerance: 36 } },
