@@ -132,11 +132,15 @@ and cursed speech — a body with no cursed energy to curse.
 
 ## 6. Stages & camera
 
-All 20 arenas from v1 return: one solid main platform with grabbable ledges
-plus three drop-through platforms, each with its own painted backdrop and
-color grade. The camera is dynamic Smash-style: it tracks the fighters'
-midpoint and zooms with their separation (1.0×–1.18×), shakes with impact,
-and punches in on KOs.
+All 20 arenas from v1 return: one solid main platform (the lowest surface,
+with grabbable ledges) plus **2–6 drop-through platforms** in a deliberate
+per-stage archetype — arenas open to the sky, five-platform skylines, rafter
+galleries, twin towers, staircases, a six-bone ribcage, orbit fields (the
+full set and the jump-reach rules live in
+`docs/stage-variety-plan.md`, enforced by `tools/audit_stage_reach.mjs`).
+Each has its own painted backdrop and color grade. The camera is dynamic
+Smash-style: it tracks the fighters' midpoint and zooms with their
+separation (1.0×–1.18×), shakes with impact, and punches in on KOs.
 
 ### Active Boards
 

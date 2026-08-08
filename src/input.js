@@ -23,7 +23,13 @@ const GAME_CODES = new Set([...Object.values(P1_KEYS).flat(), ...Object.values(P
 
 const padPrev = new Map(); // pad index -> button pressed array
 const padNow = new Map();
+const padDeflected = new Map(); // pad index -> was any axis pushed last frame
 let joinedPlayers = 1;
+
+// How far a stick must be pushed to read as a deliberate join. Well past the
+// movement deadzone, because a controller resting with a drifting stick must
+// not walk itself into the match.
+const JOIN_AXIS = 0.55;
 
 // Fallback for environments that deliver key events without `code`
 // (some remote/embedded browsers). Real keyboards always populate `code`.
@@ -75,9 +81,17 @@ export function readGamepads() {
     padPrev.set(pad.index, prev);
     padNow.set(pad.index, now);
     // Player 1 always owns the first controller. Additional controller slots
-    // join only after their player presses a button, preventing passive USB or
-    // Bluetooth connections from unexpectedly replacing the CPU.
-    if (slot > 0 && now.some((down, i) => down && !prev[i])) {
+    // join only once their player does something deliberate, so a passive USB
+    // or Bluetooth connection cannot replace the CPU on its own.
+    //
+    // Any input counts, not just buttons: picking a pad up and pushing the
+    // stick is how people expect to say "I'm in", and a player who did that and
+    // saw nothing happen had no way to know a button was the magic word.
+    const deflected = pad.axes.some((a) => Math.abs(a) > JOIN_AXIS);
+    const wasDeflected = padDeflected.get(pad.index) || false;
+    padDeflected.set(pad.index, deflected);
+    const acted = now.some((down, i) => down && !prev[i]) || (deflected && !wasDeflected);
+    if (slot > 0 && acted) {
       joinedPlayers = Math.max(joinedPlayers, Math.min(4, slot + 1));
     }
   }
