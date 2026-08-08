@@ -179,7 +179,7 @@ export const VARIANT_PLACEMENT = [
  *  Kept separate from VARIANT_PLACEMENT because the two are cleared at
  *  different moments — intake drops the review fields when new art lands, and
  *  re-measures the placement ones. */
-export const VARIANT_REVIEW = ["needsReplacement", "wantsImprovement", "edited"];
+export const VARIANT_REVIEW = ["needsReplacement", "wantsImprovement", "edited", "surfacedReviewed"];
 
 /** Everything banked onto the option a pose is leaving, and restored from the
  *  one it arrives at. */
@@ -339,6 +339,18 @@ export function statesUsingFrame(charKey, frameKey) {
   // though no animation names it.
   if (frameKey === "r0c0") states.push("respawn");
   return states;
+}
+
+/** True when the only way the game reaches this frame is a state's `fallback`
+ *  — no animation names it directly.
+ *
+ *  These are the poses the check above used to miss: drawn in every match, and
+ *  reported unused everywhere the workbench asked. The workbench lists them so
+ *  the ones that were never sized because of it can be found. */
+export function drawnByFallbackOnly(charKey, frameKey) {
+  const anims = Object.values(animsOf(charKey));
+  if (anims.some((a) => a.frames.includes(frameKey))) return false;
+  return anims.some((a) => presentFrames(charKey, a).frames.includes(frameKey));
 }
 
 /** True when every state that draws this frame happens off the ground, so it

@@ -19,6 +19,12 @@ list: the poses reviewed as they stand, whose `replaced` marker (written by
 intake) should come off without an adjustment. A pose that IS adjusted comes off
 the list by that alone — having been retuned is the whole point of the list.
 
+The same list also carries poses the game has always drawn through a state's
+`fallback`, which the workbench used to report as drawn by nothing and so never
+offered up to be sized. Those have no intake marker to remove, so reviewing one
+as it stands writes `surfacedReviewed` instead; adjusting one clears it, the
+same way an adjustment clears `replaced`.
+
 Usage:
   python3 apply_sprite_adjustments.py patch.json [more.json ...]
   pbpaste | python3 apply_sprite_adjustments.py -        # straight from clipboard
@@ -93,7 +99,7 @@ VARIANT_PLACEMENT = [
     "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
     "centroidX", "renderScale", "rotationDeg", "anchors", "faceLeft",
 ]
-VARIANT_REVIEW = ["needsReplacement", "wantsImprovement", "edited"]
+VARIANT_REVIEW = ["needsReplacement", "wantsImprovement", "edited", "surfacedReviewed"]
 VARIANT_BANKED = VARIANT_PLACEMENT + VARIANT_REVIEW
 
 # Kinds that only mean something about an option, never about the pose.
@@ -273,12 +279,15 @@ def main():
                 meta[field] = value
                 applied.append(f"{char}/{key}.{field}: {before} -> {value}")
             # Retuning a pose whose art was just replaced is exactly what the
-            # updated list asks for, so the marker comes off with the work.
-            if meta.pop("replaced", None):
+            # updated list asks for, so the marker comes off with the work. A
+            # surfaced pose leaves by the same door: `edited` now records it as
+            # tuned, which is what put it on the list for lacking.
+            if meta.pop("replaced", None) or meta.pop("surfacedReviewed", None):
                 applied.append(f"{char}/{key}: off the updated list (adjusted)")
 
         # Poses reviewed as they stand: the new art needed nothing, so the only
-        # thing to record is that someone looked.
+        # thing to record is that someone looked. An intake marker is removed; a
+        # surfaced pose has none to remove, so the looking is what gets written.
         for key in (payload.get("clearUpdated") or []):
             meta = frames.get(key)
             if meta is None:
@@ -286,8 +295,11 @@ def main():
                 continue
             if meta.pop("replaced", None):
                 applied.append(f"{char}/{key}: off the updated list (reviewed)")
+            elif not meta.get("surfacedReviewed"):
+                meta["surfacedReviewed"] = True
+                applied.append(f"{char}/{key}: off the updated list (reviewed as drawn)")
             else:
-                skipped.append(f"{char}/{key}: not on the updated list")
+                skipped.append(f"{char}/{key}: already off the updated list")
 
     for line in applied:
         print("  " + line)

@@ -46,7 +46,7 @@ PLACEMENT = [
     "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
     "centroidX", "renderScale", "rotationDeg", "anchors", "faceLeft",
 ]
-REVIEW = ["needsReplacement", "wantsImprovement", "edited"]
+REVIEW = ["needsReplacement", "wantsImprovement", "edited", "surfacedReviewed"]
 BANKED = PLACEMENT + REVIEW
 
 
