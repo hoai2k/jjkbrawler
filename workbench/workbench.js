@@ -210,6 +210,18 @@ function statesUsing(charKey, frameKey) {
   return statesUsingFrame(charKey, frameKey);
 }
 
+// The two idle poses lead every character's list: they are the reference the
+// other poses get compared against, so they should be a click away rather than
+// wherever the alphabet happens to put them.
+const REFERENCE_POSES = ["idle_a", "idle_b"];
+function poseRank(key) {
+  const i = REFERENCE_POSES.indexOf(key);
+  return i === -1 ? REFERENCE_POSES.length : i;
+}
+function byPose(a, b) {
+  return poseRank(a) - poseRank(b) || a.localeCompare(b);
+}
+
 function allFramesOf(charKey) {
   // Grouped by what they are, then alphabetical: technique effects first
   // (much the largest group and the one most often reviewed), then the
@@ -228,9 +240,9 @@ function allFramesOf(charKey) {
   if (isActor(charKey)) {
     const met = (pose) => TRANSFORM_POSE_ALTERNATIVES[pose]?.every((k) => delivered.includes(k));
     const wanted = TRANSFORM_POSES.filter((pose) => delivered.includes(pose) || !met(pose));
-    return [...new Set([...delivered, ...wanted])].sort();
+    return [...new Set([...delivered, ...wanted])].sort(byPose);
   }
-  return delivered.sort();
+  return delivered.slice().sort(byPose);
 }
 
 /** True for a pose the character is expected to have but nobody has delivered.
