@@ -418,6 +418,23 @@ html, body {
   object-position: top;
 }
 
+/* Most of the card art is painted low-key, and at tile size against a dark
+   menu it reads as murky. A small lift on the select screen evens the roster
+   out without touching the files. Uro and Hakari are already bright, so they
+   opt out — lifting them only washes the art out. Keyed off the file name so
+   the roster tile, the hero card and any other use of the same art agree. */
+.char-card img,
+.matchup-side img {
+  filter: brightness(1.18) saturate(1.04);
+}
+
+.char-card img[src$="uro_card.jpg"],
+.char-card img[src$="hakari_card.jpg"],
+.matchup-side img[src$="uro_card.jpg"],
+.matchup-side img[src$="hakari_card.jpg"] {
+  filter: none;
+}
+
 .char-card span {
   position: absolute;
   left: 0;
