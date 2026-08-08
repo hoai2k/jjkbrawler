@@ -10,6 +10,7 @@ import { hitboxRect, hurtbox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
 import { WORLD, SHIELD_MAX, PARRY_WINDOW } from "./constants.js";
 import { clamp } from "./utils.js";
+import { headHeightTarget } from "./heights.js";
 
 export function draw(ctx) {
   ctx.clearRect(0, 0, WORLD.w, WORLD.h);
@@ -191,6 +192,8 @@ function drawFighters(ctx) {
     } else {
       drawTrail(ctx, f);
       const m = fighterTransform(f);
+      const prop = spriteActor.prop;
+      if (prop?.behind) drawProp(ctx, f, spriteActor, spriteKey, shakeX);
       drawCharFrame(ctx, spriteKey, frameKey, f.x + shakeX, f.y, {
         scale: spriteActor.scale,
         facing: f.facingVis,
@@ -210,12 +213,47 @@ function drawFighters(ctx) {
       });
     }
 
+    if (spriteActor.prop && !spriteActor.prop.behind) drawProp(ctx, f, spriteActor, spriteKey, shakeX);
     if (f.shielding) drawShieldBubble(ctx, f);
     if (f.dizzy > 0) drawDizzyStars(ctx, f);
     if (f.counter) drawCounterAura(ctx, f);
     if (f.statuses.nailMarks > 0) drawNailMarks(ctx, f);
     drawShieldMeter(ctx, f);
   }
+}
+
+/** A piece of art a character WEARS rather than draws: Mahoraga's karma wheel.
+ *
+ *  The point of drawing it here instead of in the sprite is that it does not
+ *  inherit the body's transform. fighterTransform leans, swings and tumbles the
+ *  fighter, and a roll spins them a full turn; the wheel hangs level through all
+ *  of it, which is what it does in the source and what makes it read as a thing
+ *  suspended near him rather than a decoration stuck to his head.
+ *
+ *  Placed off the FOOT LINE rather than off the art's top edge, so it does not
+ *  jump when a pose is framed differently — crouches and rolls put the top of
+ *  the image somewhere else entirely, and the feet are the one landmark every
+ *  pose shares. */
+function drawProp(ctx, f, actor, spriteKey, shakeX) {
+  const cfg = actor.prop;
+  const img = getImage(cfg.sprite);
+  if (!img) return;                       // optional art; absent is fine
+
+  // Sized off the ACTOR being drawn, not the fighter wearing it. Megumi wears
+  // Mahoraga for her ultimate, and the wheel belongs to the 260 cm shikigami on
+  // screen rather than to the student underneath.
+  const height = headHeightTarget(spriteKey) || 200;
+  const h = height * (cfg.size ?? 0.4);
+  const w = img.width * h / img.height;
+  const t = state.matchTime;
+  const bob = cfg.bob ? Math.sin(t * cfg.bob.rate + f.id * 2.1) * cfg.bob.px : 0;
+
+  ctx.save();
+  ctx.translate(f.x + shakeX, f.y - height * (cfg.rise ?? 1.2) + bob);
+  if (cfg.spin) ctx.rotate(t * cfg.spin);
+  ctx.globalAlpha = f.respawnTimer > 0 ? 0.5 : 1;
+  ctx.drawImage(img, -w / 2, -h / 2, w, h);
+  ctx.restore();
 }
 
 // Afterimages behind a dash, roll, air dodge or tumble. The cheapest possible

@@ -253,10 +253,23 @@ export function warmAnchors(charKeys) {
   }
 }
 
-/** The foot line in cell coordinates, clamped exactly as the renderer clamps
- *  it — the workbench needs the same number to place its overlays. */
+/** The foot line in cell coordinates. The workbench places its overlays with
+ *  this too, so both agree on where the floor is.
+ *
+ *  A `bodyBottom` written into the manifest is a decision somebody made while
+ *  looking at the sprite, and it is honoured as given. Only the FALLBACK is
+ *  clamped — that is a guess at 92% of cell height for a frame nobody has
+ *  measured, and the bounds are there to keep a guess from putting a sprite
+ *  somewhere absurd.
+ *
+ *  It used to clamp both, which quietly capped how far a pose could be moved:
+ *  Mahoraga's art is 1,612 px tall against a 313.6 px cell, so his foot line
+ *  needs to sit well past the old ceiling of 1.2 cells, and the workbench's
+ *  slider went dead partway along with nothing on screen saying why. */
 export function frameFootY(meta) {
-  return clamp(meta.bodyBottom ?? CELL_H * CELL_FOOT_Y, CELL_H * 0.45, CELL_H * 1.2);
+  const set = meta.bodyBottom;
+  if (Number.isFinite(set)) return set;
+  return clamp(CELL_H * CELL_FOOT_Y, CELL_H * 0.45, CELL_H * 1.2);
 }
 
 /** Animation states that draw this frame, across the character's own overrides

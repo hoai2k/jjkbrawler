@@ -85,9 +85,9 @@
         </div>
 
         <div class="group" id="groundGroup">
-          <label data-help="Sets where the sprite meets the floor. Defaults to the lowest opaque pixel, which is wrong when perspective puts one foot lower than the standing plane — raise it so the &lt;em&gt;near&lt;/em&gt; foot rests on the platform.&lt;br&gt;&lt;br&gt;A pose only ever drawn in the air has no floor contact to set, so the control locks. The ground line stays on screen as a size reference against the idle.">Ground contact <span class="sub" id="groundVal"></span></label>
+          <label data-help="Sets where the sprite meets the floor. Defaults to the lowest opaque pixel, which is wrong when perspective puts one foot lower than the standing plane — raise it so the &lt;em&gt;near&lt;/em&gt; foot rests on the platform.&lt;br&gt;&lt;br&gt;A pose only ever drawn in the air has no floor contact to set, so the control locks. The ground line stays on screen as a size reference against the idle.&lt;br&gt;&lt;br&gt;The track covers the usual range; a pose that needs more can have the number typed in and the slider grows to reach it.">Ground contact <span class="sub" id="groundVal"></span></label>
           <div class="slider-row">
-            <input type="range" id="groundRange" min="-120" max="120" step="0.5" value="0">
+            <input type="range" id="groundRange" min="-360" max="360" step="0.5" value="0">
             <input type="number" id="groundNum" class="num" step="0.5" inputmode="decimal" aria-label="Ground contact, pixels">
             <span class="unit">px</span>
           </div>

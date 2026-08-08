@@ -1,4 +1,4 @@
-import { CHARACTER_KEYS } from "./characters.js";
+import { CHARACTER_KEYS, SPRITE_ACTORS } from "./characters.js";
 import { applyAllHeightScales } from "./heights.js";
 import { STAGES } from "./stages.js";
 
@@ -305,6 +305,13 @@ function groupJobs(id) {
   for (const [name, charKey] of Object.entries(DOMAIN_BACKGROUNDS)) {
     if (CHARACTER_KEYS.includes(charKey)) {
       optional(`domain:${name}`, `assets/backgrounds/domains/${name}.jpg`);
+    }
+  }
+  // Props: art a character wears rather than draws — see PROP in characters.js.
+  for (const actor of Object.values(SPRITE_ACTORS)) {
+    if (actor.prop?.sprite?.startsWith("effect:")) {
+      const key = actor.prop.sprite.slice("effect:".length);
+      optional(`effect:${key}`, `assets/sprites/effects/${key}.png`);
     }
   }
   for (const key of STAGE_FX_SPRITES) {

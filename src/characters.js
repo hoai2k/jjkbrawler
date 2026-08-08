@@ -1342,6 +1342,29 @@ export const SPRITE_ACTORS = {
     theme: "#e8ecf8",
     shadow: "rgba(232, 236, 248, 0.4)",
     anims: SEMANTIC_ANIMS,
+    // The karma wheel hanging over his head. It used to be drawn into all 31
+    // poses, which meant it tumbled with him — a dodge roll sent it round with
+    // the body when the whole point is that it hangs level, indifferent to what
+    // he is doing. Drawn separately it keeps its own orientation, is keyed once
+    // instead of 31 times, and can drift and bob on its own clock.
+    prop: {
+      sprite: "effect:mahoraga_wheel",
+      // As a fraction of his drawn height: how big, and how far above his feet
+      // the centre sits. Above 1 puts it clear of the top of his head.
+      // Both as a fraction of his drawn height, measured off where the artist
+      // had drawn it: across his standing poses the wheel spanned 0.25-0.26 of
+      // his foot-to-head height and its centre sat 1.09 of that height above the
+      // floor. Keeping those numbers means removing it changed nothing on
+      // screen except that it now hangs on its own.
+      size: 0.26,
+      rise: 1.09,
+      behind: true,        // drawn before the body, so his horns cross in front
+      bob: { px: 7, rate: 1.1 },   // a slow hover, unrelated to his animation
+      // Radians/sec. Off by default: the delivered art holds one orientation,
+      // and a turning wheel is a statement about Mahoraga adapting rather than
+      // idle decoration. The knob is here for when the ultimate wants it.
+      spin: 0,
+    },
   },
 };
 
