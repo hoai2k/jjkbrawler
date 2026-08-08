@@ -13,7 +13,7 @@ Yuta each have one sprite per action — and **the thirteen it did not reach rol
 into round 11 rather than staying open behind it**, so a round's numbers are
 always the real remaining work. Round 11 is part-delivered: **11A (Mahoraga) is
 done**, and Geto, Hakari, Hanami, Inumaki, Jogo, Maki, Megumi and Momo are done
-within 11B, leaving five fighters there. Round 12 has three parts: ten fix-up poses caught while
+within 11B, leaving five fighters there. Round 12 has three parts: fifteen fix-up poses caught while
 placing the delivered sets in the sprite workbench, the **four-frame run
 cycle** for the whole roster — the redesign that retires the two-frame run —
 and the knocked-flat **`prone` pose** the new knockdown mechanic simulates
@@ -582,23 +582,31 @@ two together makes the blocking ones wait behind the wish list.
 
 Three parts; any can be delivered on its own.
 
-- **12A** — ten workbench catches: poses that turned out not to be the action they are named for (10 sprites)
+- **12A** — fifteen workbench catches: poses that are wrong on the art or wrong as the action (15 sprites)
 - **12B** — the four-frame run cycle, roster-wide (92 sprites)
 - **12C** — a `prone` pose, knocked flat on their back, roster-wide (23 sprites)
 
-**125 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
+**130 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
 is what makes the roster finally *run* instead of vibrating between two nearly
 identical poses. 12C is the one the engine is already simulating without art.
 
 ---
 
-## 12A. Workbench catches — 10 sprites
+## 12A. Workbench catches — 15 sprites
 
 Everything here came out of placing the delivered semantic sets in the sprite
-workbench: with each pose finally drawn at its real size and standing on the real
-ground line, ten of them turned out not to be the action they are named for.
-Nothing in this round is in round 11 — 11B and 11C skip Gojo, Mahito, Nobara,
-Hakari and Mahoraga entirely, all five being finished fighters.
+workbench: seen at their real size and standing on the real ground line, fifteen
+poses turned out to be wrong — some as drawings, some as the action they stand
+for. Nothing in this round is in round 11; every fighter listed here has a
+finished set, so 11B and 11C do not cover them.
+
+Two kinds of fault, and they want different things from a redraw:
+
+- **The drawing is broken.** A hand that does not close on the weapon it is
+  holding, a shaft that bends where it crosses the body. These are `replace`.
+- **The drawing is fine, the pose is not the action.** A crouch that is not
+  crouched, a strike that does not travel the way the move travels. These are
+  `pose` — keep the character, the costume and the finish, change the body.
 
 **Six of the ten are a crouch that is not crouched**, across five different
 fighters and two separate delivery rounds. Whatever the pose line says today, it
@@ -616,6 +624,22 @@ is not reading as "get low": see the note under the table.
 | Mahoraga | `mahoraga` | `crouch_a` | Pose | Not crouched — a standing stride |
 | Mahoraga | `mahoraga` | `crouch_attack_b` | Pose | Not crouched; the follow-through happens standing |
 | Nobara Kugisaki | `nobara` | `special_down` | Pose | Hammers the ground; Resonance strikes a doll |
+| Maki Zen'in | `maki` | `attack_air_a` | **Replace** | Hands and weapon are malformed |
+| Maki Zen'in | `maki` | `attack_heavy_a` | **Replace** | The lead hand does not close on the shaft, which kinks where it crosses her body |
+| Maki Zen'in | `maki` | `ult_b` | **Replace** | Hands and weapon are malformed |
+| Maki Zen'in | `maki` | `crouch_b` | Pose | Not low enough — barely below `crouch_a` |
+| Maki Zen'in | `maki` | `crouch_attack_b` | Pose | The follow-through does not travel toward the attack |
+
+### Hands on a weapon
+
+Maki's three `replace` frames are all the same failure, and it is the one to
+watch for on every armed fighter: **the hand does not grip.** The fingers pass
+through the shaft, or close on empty air beside it, or the shaft bends through
+the fist as though it were rope. `attack_heavy_a` has both — the lead hand never
+closes, and the naginata kinks where it crosses her chest.
+
+Her `attack_heavy_b` is the reference: two hands, both closed, the shaft dead
+straight through them. Draw the grip first and the pose around it.
 
 ### The crouch keeps coming back standing
 
