@@ -206,7 +206,7 @@ def import_one(man, char, pose, label, dry_run, log):
     return True
 
 
-def select(man, char, pose, file, log):
+def select(man, char, pose, file, log, at=None):
     """Point a pose at one of its options, carrying that image's own placement."""
     entry = (man.get("variants") or {}).get(char, {}).get(pose)
     meta = man["characters"].get(char, {}).get(pose)
@@ -215,11 +215,19 @@ def select(man, char, pose, file, log):
         log.append(f"SKIP {char}/{pose}: cannot select {file}")
         return
     before = meta.get("file")
+    # Selecting a freshly imported drawing puts its own measured numbers on the
+    # pose, which means the tuning the pose was carrying stops applying — the
+    # same event intake_import records, arrived at from the other direction. So
+    # it goes on the workbench's updated list too, with what has to be redone.
+    note = intake_import.replaced_note(meta, "discard", at or intake_import.now_stamp(),
+                                       how="variant")
     for field in build_variants.PLACEMENT:
         meta.pop(field, None)
     for field, value in chosen.items():
         if field != "label":
             meta[field] = value
+    if note:
+        meta["replaced"] = note
     log.append(f"{char}/{pose}: selected {before} -> {file}")
 
 
@@ -238,6 +246,7 @@ def run_plan(man, rows, label, dry_run, log):
     here."""
     approvals = {}
     changed = 0
+    at = intake_import.now_stamp()   # one stamp per round, as intake_import does
     for char, pose, how, _ in rows:
         if how in ("new", "replace"):
             approvals.setdefault(char, []).append(pose)
@@ -246,7 +255,7 @@ def run_plan(man, rows, label, dry_run, log):
             continue
         changed += 1
         if how == "promote" and not dry_run:
-            select(man, char, pose, f"{char}/{ALT_DIR}/{pose}.png", log)
+            select(man, char, pose, f"{char}/{ALT_DIR}/{pose}.png", log, at)
     return approvals, changed
 
 

@@ -14,6 +14,11 @@ This writes those values into `assets/sprites/manifest.json`. Multiple payloads
 can be applied at once — paste several into one file as a JSON array, or pass
 several files.
 
+`clearUpdated` is the other half of the workbench's "All Recently Updated Poses"
+list: the poses reviewed as they stand, whose `replaced` marker (written by
+intake) should come off without an adjustment. A pose that IS adjusted comes off
+the list by that alone — having been retuned is the whole point of the list.
+
 Usage:
   python3 apply_sprite_adjustments.py patch.json [more.json ...]
   pbpaste | python3 apply_sprite_adjustments.py -        # straight from clipboard
@@ -267,6 +272,22 @@ def main():
                 before = meta.get(field)
                 meta[field] = value
                 applied.append(f"{char}/{key}.{field}: {before} -> {value}")
+            # Retuning a pose whose art was just replaced is exactly what the
+            # updated list asks for, so the marker comes off with the work.
+            if meta.pop("replaced", None):
+                applied.append(f"{char}/{key}: off the updated list (adjusted)")
+
+        # Poses reviewed as they stand: the new art needed nothing, so the only
+        # thing to record is that someone looked.
+        for key in (payload.get("clearUpdated") or []):
+            meta = frames.get(key)
+            if meta is None:
+                skipped.append(f"{char}/{key}: not in manifest")
+                continue
+            if meta.pop("replaced", None):
+                applied.append(f"{char}/{key}: off the updated list (reviewed)")
+            else:
+                skipped.append(f"{char}/{key}: not on the updated list")
 
     for line in applied:
         print("  " + line)

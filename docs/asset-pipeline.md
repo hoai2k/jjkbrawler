@@ -260,6 +260,43 @@ compensate for bad art must not be inherited by the art that fixes it.
 Flagging and importing are the two ends of one pipeline, so the list is always
 what is still outstanding rather than a historical record.
 
+#### Finding what the round overwrote
+
+Rolling the tuning back is right, and it leaves work to do: those poses now stand
+at whatever the placement maths derived for the new art, and someone has to go
+back through them. They are scattered across the roster by definition — a round
+touches four fighters — and one character at a time is the wrong shape for
+finding them, which meant opening every character and remembering which poses
+had been tuned before the delivery.
+
+So an import over existing art leaves a marker on the pose:
+
+```json
+"replaced": { "at": "2026-08-08T18:22:04+00:00", "kept": "discard",
+              "how": "import", "lost": ["ox", "renderScale", "anchors"] }
+```
+
+`lost` is what has to be redone — the keys of the `edited` map that was rolled
+back, plus the anchors when those went with the drawing. An empty `lost` is a
+touch-up that came back with its tuning intact: worth a look, not a re-tune. A
+brand-new pose gets no marker; it overwrote nothing, and it is already in its
+character's *no saved edits* list. `intake_variants.py` writes one too when it
+selects a delivered alternate over the art a pose was pointing at, because the
+pose's numbers stop applying just the same.
+
+The sprite workbench's character dropdown ends with **All Recently Updated
+Poses**, which is those markers listed across the whole roster, newest round
+first and the poses that lost tuning at the top. It is not a character: selecting
+a pose switches to its character underneath, so the panel, the export and the
+undo stack go on working on real characters — one pass can walk poses belonging
+to four fighters and export all four at once, which the export already handled.
+
+It drains the same way the flags do. Adjusting a pose takes it off the list, since
+being retuned is the entire point of being on it; **Mark reviewed** is for the
+other outcome — the new art needed nothing — and exports as `clearUpdated`, which
+`apply_sprite_adjustments.py` reads. Neither takes effect until the export is
+applied, so a pose stays on the list, ticked or dotted, while it is worked on.
+
 ### Improvement requests
 
 `wantsImprovement` is the softer ask: the art *works*, it is just not as good as
