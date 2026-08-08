@@ -11,8 +11,9 @@ sprites, and nothing outstanding blocks play. Round 9 closed in full. Round 10
 closed with four of its seventeen fighters finished — Gojo, Mahito, Nobara and
 Yuta each have one sprite per action — and **the thirteen it did not reach rolled
 into round 11 rather than staying open behind it**, so a round's numbers are
-always the real remaining work. Round 12 has two parts: seven fix-up poses
-caught while placing round 10's sets in the sprite workbench, and the
+always the real remaining work. Round 12 has three parts: seven fix-up poses
+caught while placing round 10's sets in the sprite workbench, the knocked-flat
+`prone` pose the new knockdown mechanic simulates until it is drawn (12C), and the
 **four-frame run cycle** for the whole roster — the redesign that retires the
 two-frame run.
 
@@ -783,3 +784,47 @@ can land one fighter at a time.
 3. Check the loop in the sprite workbench: the four frames play in order under
    the Run state, and a scale mismatch between them shows up as pulsing there
    before it ships.
+
+---
+
+## 12C. A prone pose — knocked flat on their back, 23 sprites
+
+### Why
+
+The game now has a KNOCKDOWN: Reggie's runaway sedan (and anything else that
+sets `knockdown` on a hit) leaves its victim lying flat on the ground for about
+a second before they get up. Every fighter can be on the receiving end, so every
+fighter needs the pose.
+
+**Nothing is blocked.** Until a fighter's `prone` art lands, the game simulates
+it — their `hurt` pose swept 90 degrees onto its back (`fighter.js`,
+`prone` in the shared animation tables). That reads fine at speed; a drawn pose
+reads better. Deliveries can land one fighter at a time and each takes effect on
+import with no code change, the same fallback machinery as the wind-up/strike
+pairs.
+
+### What to deliver
+
+One pose per fighter:
+
+| Pose | Pose line |
+|---|---|
+| `prone` | flat on their back on the ground, arms out, legs dropped, head tilted — dazed but conscious, the beat after being run over. Drawn HORIZONTAL: the body lies along the ground plane, feet toward the right edge of the frame |
+
+Facing note: the standard spec says faces right — for this pose that means
+**feet to the right**, since the body is horizontal. The renderer mirrors it
+for a fighter facing left like any other frame.
+
+Match each fighter's canonical reference image for costume, proportions and line
+weight. Same delivery spec as everything else; body length on the plate around
+the usual ~290 px figure scale, lying down.
+
+Deliver to:
+
+```
+assets/intake/<character>/prone.png
+```
+
+All 23 fighters. Mahoraga also gets one if 11A is being drawn anyway — the
+transform can be knocked down like anyone else (his armour eats the hit, but a
+future knockdown that pierces armour would want it).

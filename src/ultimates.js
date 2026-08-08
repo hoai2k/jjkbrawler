@@ -6,7 +6,7 @@
 
 import { state } from "./state.js";
 import { clamp, sign, rand } from "./utils.js";
-import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox } from "./combat.js";
+import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox, ownerStick } from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
 import { applyInstall } from "./specials.js";
 import { TRANSFORMS, TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "./config_transform.js";
@@ -751,7 +751,22 @@ const DIRECTORS = {
         }
         f.vx = this.dir * p.speed;
         f.facing = this.dir;
-        if ((this.dir === 1 && f.x > 1150) || (this.dir === -1 && f.x < 130)) {
+        // Turn at the edge of the platform he is ON, not at the stage bounds:
+        // a stampede that charges off the end of the main platform just dumps
+        // Panda into the blast zone mid-ultimate. The platform is found by
+        // where his feet are, so a rampage started on a side platform paces
+        // that platform instead.
+        let left = 130;
+        let right = 1150;
+        if (f.grounded) {
+          const plat = state.platforms.find((q) =>
+            !q.ghost && Math.abs(q.y - f.y) <= 2 && f.x >= q.x - 30 && f.x <= q.x + q.w + 30);
+          if (plat) {
+            left = Math.max(left, plat.x + 45);
+            right = Math.min(right, plat.x + plat.w - 45);
+          }
+        }
+        if ((this.dir === 1 && f.x > right) || (this.dir === -1 && f.x < left)) {
           this.dir *= -1;
           this.pass += 1;
           dust(f.x, f.y, 16);
@@ -991,19 +1006,32 @@ const DIRECTORS = {
     });
   },
 
-  // Reggie — Grand Contract: the sedan lands, then keeps going.
+  // Reggie — Grand Contract. The sedan falls onto the main platform, bounces
+  // on its suspension with the wheels screaming, and — the moment they bite —
+  // launches whichever way Reggie's RIGHT STICK says. Untouched, it charges at
+  // the opponent, so ignoring the stick still produces the old move.
+  //
+  // Anyone it lands on or runs over is knocked FLAT (`knockdown` in applyHit):
+  // being hit by a car is not something you flinch through.
   cardrop(f, p, ult) {
     beginUltAction(f, 1.0);
     const opp = opponentOf(f);
     const tx = clamp(opp ? opp.x : f.x + f.facing * 300, 180, 1100);
-    const dir = f.facing;
+    const bounceDur = p.bounceDur ?? 0.85;
     state.entities.push({
-      owner: f, t: 0, dead: false, landed: false, slideX: tx, slideT: 0, hit: new Set(),
+      owner: f, t: 0, dead: false,
+      phase: "falling",             // falling -> bouncing -> driving
+      phaseT: 0,
+      x: tx, dir: 0,                // dir picked during the bounce
+      hit: new Set(),
       update(dt) {
         this.t += dt;
+        this.phaseT += dt;
         const groundY = state.platforms[0]?.y ?? 568;
-        if (!this.landed && this.t >= 0.5 + p.fallTime) {
-          this.landed = true;
+
+        if (this.phase === "falling" && this.t >= 0.5 + p.fallTime) {
+          this.phase = "bouncing";
+          this.phaseT = 0;
           playSfx("blast", 1, 0.6);
           state.camera.shake = Math.max(state.camera.shake, 16);
           state.slowMo = Math.max(state.slowMo, 0.22);
@@ -1017,25 +1045,44 @@ const DIRECTORS = {
               applyHit(f, t, {
                 dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: 0.8,
                 label: "LUXURY SEDAN", sfx: "blast", unblockable: true, heavy: true,
+                knockdown: true,
               }, "script");
             }
           }
         }
-        if (this.landed) {
-          this.slideT += dt;
-          this.slideX += dir * p.slideSpeed * dt;
+
+        if (this.phase === "bouncing") {
+          // The stick is read for the whole bounce and the LAST push wins, so
+          // the player can change their mind right up until traction.
+          const stick = ownerStick(f);
+          if (stick.x) this.dir = sign(stick.x);
+          if (Math.random() < dt * 30) dust(this.x + rand(-70, 70), groundY, 3);
+          if (this.phaseT >= bounceDur) {
+            this.phase = "driving";
+            this.phaseT = 0;
+            // No input: charge the opponent, which is what the old move did.
+            if (!this.dir) this.dir = opp && !opp.dead ? sign(opp.x - this.x) || f.facing : f.facing;
+            playSfx("swingWhiff", 1, 0.55);   // the tyres finally biting
+            burst(this.x - this.dir * 110, groundY - 20, p.color, 24, 1.2);
+            state.camera.shake = Math.max(state.camera.shake, 8);
+          }
+        }
+
+        if (this.phase === "driving") {
+          this.x += this.dir * p.slideSpeed * dt;
           for (const t of state.fighters) {
             if (t === f || t.dead || t.respawnTimer > 0 || this.hit.has(t)) continue;
-            if (Math.abs(t.x - this.slideX) < 90 && Math.abs(t.y - groundY) < 130) {
+            if (Math.abs(t.x - this.x) < 90 && Math.abs(t.y - groundY) < 130) {
               this.hit.add(t);
               applyHit(f, t, {
                 dmg: p.slideDmg, baseKb: p.slideBase, growth: 7.5, angle: 0.5,
                 label: "Runaway Sedan", sfx: "blast", heavy: true,
+                knockdown: true,
               }, "script");
             }
           }
-          if (Math.random() < dt * 10) dust(this.slideX - dir * 60, groundY, 5);
-          if (this.slideT >= p.slideDur || this.slideX < -160 || this.slideX > 1440) this.dead = true;
+          if (Math.random() < dt * 10) dust(this.x - this.dir * 60, groundY, 5);
+          if (this.phaseT >= p.slideDur || this.x < -160 || this.x > 1440) this.dead = true;
         }
       },
       draw(ctx) {
@@ -1043,8 +1090,9 @@ const DIRECTORS = {
         const img = p.sprite ? getImage(p.sprite) : null;
         const carH = p.spriteH || 170;
         const carW = img ? img.width * carH / img.height : 300;
+        const face = this.dir || f.facing;
         ctx.save();
-        if (!this.landed) {
+        if (this.phase === "falling") {
           ctx.globalAlpha = 0.5 + 0.3 * Math.sin(this.t * 16);
           ctx.strokeStyle = p.color;
           ctx.lineWidth = 3;
@@ -1056,17 +1104,47 @@ const DIRECTORS = {
             const y = -200 + prog * (groundY + 200);
             ctx.globalAlpha = 1;
             ctx.translate(tx, y);
-            ctx.rotate(dir * 0.25 * (1 - prog));
+            ctx.rotate(f.facing * 0.25 * (1 - prog));
             if (img) ctx.drawImage(img, -carW / 2, -carH / 2, carW, carH);
             else { ctx.fillStyle = p.color; ctx.fillRect(-140, -50, 280, 100); }
           }
+          ctx.restore();
         } else {
-          ctx.translate(this.slideX, groundY);
-          ctx.scale(dir > 0 ? 1 : -1, 1);
+          // Suspension bounce: decaying hops after the landing, a residual
+          // rock while the wheels spin, dead level once it is driving.
+          let lift = 0;
+          let rock = 0;
+          if (this.phase === "bouncing") {
+            const k = this.phaseT / bounceDur;
+            lift = Math.abs(Math.sin(k * Math.PI * 3)) * 34 * (1 - k) * (1 - k);
+            rock = Math.sin(this.phaseT * 40) * 0.02 * (1 - k);
+          }
+          ctx.translate(this.x, groundY - lift);
+          ctx.rotate(rock);
+          ctx.scale(face > 0 ? 1 : -1, 1);
           if (img) ctx.drawImage(img, -carW / 2, -carH, carW, carH);
-          else { ctx.fillStyle = p.color; ctx.fillRect(-140, -100, 280, 100); }
+          else { ctx.fillStyle = p.color; ctx.fillRect(-140, -carH, 280, 100); }
+          ctx.restore();
+          if (this.phase === "bouncing") {
+            // Spinning wheels as skid blurs under each axle, brightening toward
+            // traction so the launch is telegraphed rather than sudden.
+            const k = this.phaseT / bounceDur;
+            ctx.save();
+            ctx.globalAlpha = 0.35 + 0.45 * k;
+            ctx.strokeStyle = p.color;
+            ctx.lineWidth = 5;
+            for (const ax of [-carW * 0.3, carW * 0.3]) {
+              for (let i = 0; i < 3; i++) {
+                const len = 14 + i * 10 + k * 26;
+                ctx.beginPath();
+                ctx.moveTo(this.x + ax - len, groundY - 6 - i * 3);
+                ctx.lineTo(this.x + ax + len, groundY - 6 - i * 3);
+                ctx.stroke();
+              }
+            }
+            ctx.restore();
+          }
         }
-        ctx.restore();
       },
     });
   },

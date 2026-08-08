@@ -10,13 +10,14 @@ import {
   loadCoreAssets, loadFrame, frameImage, spriteManifest, sharedSpriteKeys, loadSharedImage, getImage,
 } from "../src/assets.js";
 import {
-  drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly, animsOf,
+  drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly, animsOf, resolvedAnim,
   drawnByFallbackOnly,
   anchorScreenPos, screenPosToLocal, warmAnchors, EXTRA_ANCHORS,
   REPLACEMENT_KINDS, replacementKind, IMPROVEMENT_KINDS, improvementKind,
   variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
+import { lightMove, heavyMove, VISIBLE_ART_REACH } from "../src/moves.js";
 import { PIVOTED_STATES } from "../src/motion.js";
 import { CHARACTERS, CHARACTER_KEYS, SPRITE_ACTORS, getActor } from "../src/characters.js";
 import { TRANSFORM_POSES } from "../src/config_transform.js";
@@ -1012,6 +1013,8 @@ function render() {
     ctx.setLineDash([]);
   }
 
+  if (!isOther(state.char)) drawRangeTargets(cx);
+
   // Every anchor the frame carries that has not been switched off. Drawn last
   // so handles are never buried under the art.
   if (!isOther(state.char) && !isPending(state.char, state.frame)) {
@@ -1019,6 +1022,89 @@ function render() {
       if (isAnchorShown(name)) drawAnchorHandle(name, name === state.anchor);
     }
   }
+}
+
+// ------------------------------------------------------- attack range targets
+//
+// For a pose that is the STRIKE of an attack — the last frame of its animation,
+// never the wind-up — draw a target at the far edge of that attack's hitbox, so
+// the sprite's visible reach can be eyeballed against the range the game
+// actually plays. Everything here is COMPUTED from the game's own moves.js at
+// render time (lightMove / heavyMove, and the VISIBLE_ART_REACH the energy
+// wake starts from), so when move data changes, these markers change with it —
+// there is no copied number to drift.
+
+// Which concrete moves each attack animation stands for. A frame serving
+// several states gets a target per distinct move.
+const RANGE_MOVES = {
+  light: (c) => [["Jab finisher", lightMove(c, "jab", 2)], ["Side tilt", lightMove(c, "side")]],
+  crouchAttack: (c) => [["Down tilt", lightMove(c, "down")]],
+  airLight: (c) => [["Air light", lightMove(c, "air")], ["Air heavy", heavyMove(c, "air")]],
+  sideHeavy: (c) => [["Side smash", heavyMove(c, "side")]],
+  upHeavy: (c) => [["Up smash", heavyMove(c, "up")]],
+  downHeavy: (c) => [["Down smash", heavyMove(c, "down")]],
+};
+
+function drawRangeTargets(cx) {
+  const char = CHARACTERS[state.char];
+  if (!char?.light || !char?.heavy) return;   // sprite actors have no kit
+  const moves = [];
+  for (const anim of statesUsing(state.char, state.frame)) {
+    const make = RANGE_MOVES[anim];
+    if (!make) continue;
+    // Strike frames only: the wind-up of a pair gets no target, because its
+    // job is to not have connected yet.
+    const frames = resolvedAnim(state.char, anim).frames;
+    if (frames.length > 1 && frames.indexOf(state.frame) < frames.length - 1) continue;
+    for (const [label, m] of make(char)) moves.push([anim, label, m]);
+  }
+  if (!moves.length) return;
+
+  const z = state.zoom;   // world px -> canvas px at this viewer zoom
+  ctx.save();
+  ctx.font = "600 10.5px Inter, sans-serif";
+  ctx.textAlign = "left";
+
+  // Where the art stops being trusted: past this the game draws its energy
+  // wake (drawReachWakes in render.js), so art short of a far target is fine —
+  // the gap is filled in play. The line is where those two regimes meet.
+  const capX = cx + VISIBLE_ART_REACH * z;
+  ctx.strokeStyle = "rgba(150, 160, 190, 0.5)";
+  ctx.setLineDash([3, 5]);
+  ctx.beginPath(); ctx.moveTo(capX, GROUND_Y - 190 * z); ctx.lineTo(capX, GROUND_Y); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = "rgba(150, 160, 190, 0.85)";
+  ctx.fillText("art cap — energy wake beyond", capX + 4, GROUND_Y - 190 * z + 10);
+
+  const seen = new Set();
+  moves.forEach(([anim, label, m], i) => {
+    const far = m.ox + m.w;                     // hitbox far edge, world px
+    const key = Math.round(far);
+    if (seen.has(key)) return;                  // two moves, same reach: one target
+    seen.add(key);
+    const x = cx + far * z;
+    const cy = GROUND_Y + (m.oy + m.h / 2) * z; // hitbox vertical centre
+    ctx.strokeStyle = "rgba(255, 120, 90, 0.9)";
+    ctx.lineWidth = 1.5;
+    // Crosshair at the hitbox's far edge and vertical centre — the last point
+    // this attack connects at.
+    ctx.beginPath(); ctx.arc(x, cy, 9, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, cy, 2, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x - 14, cy); ctx.lineTo(x - 4, cy);
+    ctx.moveTo(x + 4, cy); ctx.lineTo(x + 14, cy);
+    ctx.moveTo(x, cy - 14); ctx.lineTo(x, cy - 4);
+    ctx.moveTo(x, cy + 4); ctx.lineTo(x, cy + 14);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(255, 140, 110, 0.95)";
+    // Near the right edge the label flips to the left of the crosshair, so a
+    // long-reach move's caption is not cropped off the canvas.
+    const text = `${label} · ${Math.round(far)}px`;
+    const flip = x > canvas.width - 130;
+    ctx.textAlign = flip ? "right" : "left";
+    ctx.fillText(text, x + (flip ? -12 : 12), cy - 12 - (i % 2) * 13);
+  });
+  ctx.restore();
 }
 
 /** A shared effect/summon sprite, drawn at the height the game draws it where
