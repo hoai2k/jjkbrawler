@@ -157,8 +157,21 @@ def main():
                     skipped.append(f"{char}/{pose}: {opt['file']} is not an option")
                     continue
                 for field, value in opt.items():
-                    if field != "file":
-                        target[field] = value
+                    if field == "file":
+                        continue
+                    if field == "needsReplacement":
+                        # A delete tag on a DRAWING: "we have something better,
+                        # discard this one at the next cleanup". False clears it,
+                        # so untagging exports as clearly as tagging.
+                        before = target.get(field)
+                        if value:
+                            target[field] = value
+                            applied.append(f"{char}/{pose} [{opt['file']}]: tagged {value}")
+                        elif before:
+                            target.pop(field, None)
+                            applied.append(f"{char}/{pose} [{opt['file']}]: {before} -> cleared")
+                        continue
+                    target[field] = value
 
         for pose, file in (payload.get("variantChoice") or {}).items():
             meta = frames.get(pose)

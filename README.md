@@ -38,3 +38,5 @@ Press `Esc` to pause. The in-game `i` button lists the full move set.
 - [Game mechanics](docs/game-mechanics.md)
 - [Characters](docs/characters.md)
 - [Asset pipeline](docs/asset-pipeline.md)
+- [Full sprite cleanup](docs/sprite-cleanup.md) — the runbook for answering every
+  flag set in the sprite workbench

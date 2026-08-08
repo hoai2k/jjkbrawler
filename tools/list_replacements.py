@@ -35,6 +35,14 @@ when new art lands, which drops them along with the rest of the old settings.
 Flagging and importing are the two ends of one pipeline, so this list is always
 "still outstanding", never a historical record.
 
+**Delete variant** is a fifth kind and behaves differently: it is tagged on one
+DRAWING of a pose that has several (`manifest.variants`), not on the pose, and it
+means "we have something better, discard this one". It clears only by being acted
+on — nothing gets imported to clear it. Listed separately for that reason.
+
+Answering all of these at once is the "full sprite cleanup" procedure in
+docs/sprite-cleanup.md.
+
 Usage:
   python3 list_replacements.py              # grouped by character
   python3 list_replacements.py --markdown   # a table to paste into a request doc
@@ -131,16 +139,47 @@ def main():
                 })
         return out
 
+    def collect_variant_deletes():
+        """Delete tags live on the variant OPTION, not the pose, because they
+        name one drawing out of several. They are collected here so a cleanup
+        sees them alongside the pose-level flags rather than having to walk the
+        variants section separately."""
+        out = []
+        for char, poses in sorted((man.get("variants") or {}).items()):
+            for key, entry in sorted(poses.items()):
+                selected = chars.get(char, {}).get(key, {}).get("file")
+                for opt in entry.get("options", []):
+                    if opt.get("needsReplacement") != "delete":
+                        continue
+                    states = sorted(s for s, fr in anims[char].items() if key in fr)
+                    out.append({
+                        "character": char,
+                        "name": names.get(char, char),
+                        "frame": key,
+                        "file": opt["file"],
+                        "label": opt.get("label", ""),
+                        "kind": "delete",
+                        "kindLabel": kinds.get("delete", "Delete variant"),
+                        "placement": "none",
+                        "selected": opt["file"] == selected,
+                        "keepInstead": selected,
+                        "states": states,
+                        "used": bool(states),
+                    })
+        return out
+
     rows = collect("needsReplacement", kinds, "replace")
+    deletes = collect_variant_deletes()
     rows.sort(key=lambda r: (order.index(r["kind"]), r["character"], r["frame"]))
     wants = collect("wantsImprovement", want_kinds, "quality")
     wants.sort(key=lambda r: (want_order.index(r["kind"]), r["character"], r["frame"]))
 
     if args.json:
-        print(json.dumps({"replacements": rows, "improvements": wants}, indent=2))
+        print(json.dumps({"replacements": rows, "improvements": wants,
+                          "deletions": deletes}, indent=2))
         return
 
-    if not rows and not wants:
+    if not rows and not wants and not deletes:
         print("no sprites flagged")
         return
 
@@ -162,6 +201,18 @@ def main():
                 print(f"### {kinds[kind]}\n")
                 print(f"On delivery: **{PLACEMENT_NOTE[placement.get(kind, 'discard')]}.**\n")
                 md_table(group)
+        if deletes:
+            print(f"## Variants tagged for deletion — {len(deletes)} drawing(s)\n")
+            print("Discarded at the next cleanup. The pose keeps whatever "
+                  "drawing is selected; a tagged drawing that IS the selected "
+                  "one has to be repointed first.\n")
+            print("| Character | Pose | Drawing to delete | Keeping |")
+            print("|---|---|---|---|")
+            for r in deletes:
+                warn = " **(currently selected)**" if r["selected"] else ""
+                print(f"| {r['name']} | `{r['frame']}` | `{r['file']}`{warn} "
+                      f"| `{r['keepInstead']}` |")
+            print()
         if wants:
             print(f"## Improvement requests — {len(wants)} sprite(s)\n")
             print("Lower priority: the art works, it is just not as good as it "
@@ -191,6 +242,13 @@ def main():
                     print(f"  {r['name']} ({current})")
                 drives = ", ".join(r["states"]) or "not drawn by any animation"
                 print(f"    {r['frame']:22} {drives}")
+        print()
+
+    if deletes:
+        print(f"{len(deletes)} variant drawing(s) tagged for deletion")
+        for r in deletes:
+            warn = "  <- CURRENTLY SELECTED, repoint the pose first" if r["selected"] else ""
+            print(f"  {r['name']} {r['frame']:20} delete {r['file']}{warn}")
         print()
 
     listing("flagged for replacement", rows, kinds, order, True)

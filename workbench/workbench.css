@@ -261,6 +261,10 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 .variant-menu button:hover { background: #1a2030; }
 .variant-menu button.current { background: #1d3550; color: #fff; }
 .variant-menu button.current .variant-label::after { content: " ✓"; color: var(--accent); }
+/* Tagged for deletion at the next cleanup — struck through, because it is still
+   selectable until then and needs to read as on its way out rather than gone. */
+.variant-menu button.doomed .variant-label { text-decoration: line-through; }
+.variant-menu button.doomed .variant-label::before { content: "🗑 "; text-decoration: none; }
 .variant-label { font-size: 12px; }
 .variant-file {
   display: block;
@@ -280,6 +284,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 .pose-list button.flagged[data-kind="crop"]::before { content: "⬚ "; }
 .pose-list button.flagged[data-kind="alpha"]::before { content: "◍ "; }
 .pose-list button.flagged[data-kind="bleed"]::before { content: "◐ "; }
+.pose-list button.flagged[data-kind="delete"]::before { content: "🗑 "; }
 /* A wish, not a fault: the art works. Marked distinctly from a replacement
    request so the two never end up in the same queue by eye. */
 .pose-list button.wanted { border-color: rgba(120, 170, 255, 0.45); }

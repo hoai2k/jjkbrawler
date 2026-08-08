@@ -13,7 +13,7 @@ import {
   drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly, animsOf,
   anchorScreenPos, screenPosToLocal, warmAnchors, EXTRA_ANCHORS,
   REPLACEMENT_KINDS, replacementKind, IMPROVEMENT_KINDS, improvementKind,
-  variantsOf, VARIANT_PLACEMENT,
+  variantsOf, VARIANT_PLACEMENT, VARIANT_ONLY_KINDS,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS, SPRITE_ACTORS, getActor } from "../src/characters.js";
@@ -269,6 +269,32 @@ async function chooseVariant(charKey, frameKey, file) {
 
 // Frames whose drawing was switched this session, so the export can say so.
 const variantPicks = new Map();
+
+// Drawings whose delete tag was changed this session. Tracked separately from
+// the pose's own flags because the tag belongs to an IMAGE: you mark the bad
+// drawing, then switch back to the good one, and the mark has to stay on the
+// drawing you marked rather than follow the selection.
+const variantFlagEdits = new Set();
+
+/** The variant option the pose is currently pointing at, if it has any. */
+function currentOption(charKey, frameKey) {
+  const entry = variantEntry(charKey, frameKey);
+  const meta = rawMeta(charKey, frameKey);
+  if (!entry || !meta) return null;
+  return entry.options.find((o) => o.file === meta.file) || null;
+}
+
+/** True when the drawing on screen is tagged for deletion. */
+function isDeleteTagged(charKey, frameKey) {
+  return currentOption(charKey, frameKey)?.needsReplacement === "delete";
+}
+
+/** Any drawing of this pose tagged for deletion — what the pose list marks, so
+ *  a tagged variant is findable without opening every chevron. */
+function hasDeleteTag(charKey, frameKey) {
+  const entry = variantEntry(charKey, frameKey);
+  return !!entry?.options.some((o) => o.needsReplacement === "delete");
+}
 
 /** The RAW manifest object the renderer reads. `frameMeta` may hand back a
  *  copy, so all mutation must go through this or edits would be discarded. */
@@ -1211,11 +1237,22 @@ function refreshControls() {
   $("groundRange").disabled = airborne;
   $("groundNum").disabled = airborne;
 
-  const kind = replacementKind(meta);
+  // A delete tag lives on the drawing rather than the pose, so it is read from
+  // the variant option — but it presents as just another kind of "this art is
+  // wrong", which is what it is.
+  const deleting = isDeleteTagged(state.char, state.frame);
+  const kind = deleting ? "delete" : replacementKind(meta);
   $("replaceBox").checked = !!kind;
   $("replaceKind").hidden = !kind;
   $("replaceKind").value = kind || REPLACEMENT_KINDS[0][0];
   $("replaceVal").textContent = kind ? kindLabel(kind).split(" — ")[0].toLowerCase() : "";
+  // Deleting the only drawing a pose has would leave a hole where a sprite
+  // should be, so the option is not offered until there is something to fall
+  // back to.
+  const alternatives = poseVariants(state.char, state.frame).length > 1;
+  for (const opt of $("replaceKind").options) {
+    if (VARIANT_ONLY_KINDS.has(opt.value)) opt.hidden = !alternatives;
+  }
 
   const want = improvementKind(meta);
   $("improveBox").checked = !!want;
@@ -1371,11 +1408,12 @@ function buildPoseList() {
     b.title = states.length
       ? `${key} — ${states.map(stateLabel).join(", ")}`
       : `${key} — not drawn by any state`;
+    const doomed = hasDeleteTag(state.char, key);
     b.className = (key === state.frame ? "sel " : "")
-      + (isDirty(state.char, key) ? "dirty " : "")
-      + (needsReplacement(state.char, key) ? "flagged " : "")
+      + (isDirty(state.char, key) || variantFlagEdits.has(`${state.char}/${key}`) ? "dirty " : "")
+      + (needsReplacement(state.char, key) || doomed ? "flagged " : "")
       + (wantsImprovement(state.char, key) ? "wanted" : "");
-    const kind = replacementKind(rawMeta(state.char, key));
+    const kind = doomed ? "delete" : replacementKind(rawMeta(state.char, key));
     if (kind) b.dataset.kind = kind;
     b.onclick = () => { state.actionRow = null; state.frame = key; syncAll(); };
 
@@ -1421,7 +1459,8 @@ function openVariantMenu(anchor, frameKey, options) {
   menu.dataset.frame = frameKey;
   for (const opt of options) {
     const row = document.createElement("button");
-    row.className = opt.current ? "current" : "";
+    row.className = (opt.current ? "current " : "")
+      + (opt.needsReplacement === "delete" ? "doomed" : "");
     // The file is the identity of a drawing, so it is shown rather than hidden
     // behind a label — two options can reasonably share a label.
     row.innerHTML = `<span class="variant-label">${opt.label || "Untitled"}</span>`
@@ -1610,8 +1649,25 @@ function applyGround(dy, commit) {
 function applyNeedsReplacement(kind) {
   pushHistory(state.char, state.frame);
   const meta = rawMeta(state.char, state.frame);
-  if (kind) meta.needsReplacement = kind;
+  const option = currentOption(state.char, state.frame);
+
+  // "Delete variant" is a statement about one DRAWING, so it is stored on the
+  // variant option. The other kinds are statements about the pose's art in
+  // general and stay on the pose, where the request collectors already read
+  // them. The two are mutually exclusive: art being thrown away is not also
+  // being redrawn.
+  if (option) {
+    const had = option.needsReplacement === "delete";
+    if (kind === "delete") option.needsReplacement = "delete";
+    else if (had) delete option.needsReplacement;
+    if (had !== (kind === "delete")) {
+      variantFlagEdits.add(`${state.char}/${state.frame}`);
+    }
+  }
+  if (kind === "delete") delete meta.needsReplacement;
+  else if (kind) meta.needsReplacement = kind;
   else delete meta.needsReplacement;
+
   refreshControls(); buildPoseList(); refreshTag(); render();
 }
 
@@ -1718,14 +1774,28 @@ function payloadFor(charKey) {
     const [who, pose] = id.split("/");
     if (who === charKey) picks[pose] = file;
   }
+  // A delete tag is banked the same way the numbers are: onto the option, by
+  // file. Poses that only had a tag changed still need their options exported,
+  // so they join `picks` for the placement pass without a selection change.
+  const flagged = new Set();
+  for (const id of variantFlagEdits) {
+    const [who, pose] = id.split("/");
+    if (who === charKey) flagged.add(pose);
+  }
 
   const payload = { character: charKey };
-  if (Object.keys(picks).length) {
-    payload.variantChoice = picks;
+  if (Object.keys(picks).length || flagged.size) {
+    if (Object.keys(picks).length) payload.variantChoice = picks;
+    const poses = new Set([...Object.keys(picks), ...flagged]);
     payload.variantPlacement = Object.fromEntries(
-      Object.keys(picks).map((pose) => {
+      [...poses].map((pose) => {
         const entry = variantEntry(charKey, pose);
-        return [pose, entry ? entry.options.map((o) => ({ file: o.file, ...takePlacement(o) })) : []];
+        return [pose, entry ? entry.options.map((o) => ({
+          file: o.file,
+          ...takePlacement(o),
+          // Always present, so clearing a tag exports as clearly as setting one.
+          needsReplacement: o.needsReplacement || false,
+        })) : []];
       }),
     );
   }
@@ -1741,7 +1811,7 @@ function payloadFor(charKey) {
   const span = spriteManifest?.heightSpans?.[charKey];
   if (Number.isFinite(span) && span !== state.originalSpans[charKey]) payload.heightSpan = span;
   return (payload.headHeight !== undefined || payload.adjustments || payload.animOverrides
-          || payload.heightSpan !== undefined || payload.variantChoice) ? payload : null;
+          || payload.heightSpan !== undefined || payload.variantPlacement) ? payload : null;
 }
 
 /** Everything edited this session, across every character.

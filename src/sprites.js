@@ -46,7 +46,14 @@ export const REPLACEMENT_KINDS = [
   ["crop", "Fix crop — the framing or bounds are wrong"],
   ["alpha", "Fix alpha — transparency is wrong or has hard edges"],
   ["bleed", "Fix bleed — colour bleeds past the silhouette"],
+  // Only offered on a pose with more than one drawing (VARIANT_ONLY_KINDS
+  // below): the ask is not "fix this art" but "we have something better, throw
+  // this one away". Deleting the only drawing a pose has would leave a hole.
+  ["delete", "Delete variant — discard this drawing at the next cleanup"],
 ];
+
+/** Kinds that only make sense when a pose has an alternative to fall back on. */
+export const VARIANT_ONLY_KINDS = new Set(["delete"]);
 
 // How much of the existing placement survives a redraw, which decides what the
 // intake has to do when the new art lands. Read by tools/list_replacements.py
@@ -65,6 +72,9 @@ export const REPLACEMENT_PLACEMENT = {
   crop: "reframe",
   bleed: "reframe",
   alpha: "keep",
+  // A deletion has no incoming art, so there is no placement to decide. The
+  // entry exists so the value is never silently treated as "discard".
+  delete: "none",
 };
 
 // A softer ask than a replacement: the art works, but it could be better. These
