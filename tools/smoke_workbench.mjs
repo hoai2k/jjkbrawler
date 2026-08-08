@@ -232,6 +232,37 @@ check(!banked[alt], "the drawing switched to does not inherit it", JSON.stringif
 check(forHanami?.adjustments?.dodge_air?.needsReplacement === undefined,
   "and it is not left behind on the pose");
 
+// ---- the Mirror box tells the truth about the drawing that is on screen
+//
+// `nativeLeft` marks frames whose art was DRAWN facing left. It was measured
+// against the art the pose shipped with, so it must not answer for an alternate
+// selected later — that art came through an intake that mirrors everything to
+// face right. When it did, switching to an alternate left the canvas mirrored
+// while the Mirror box, reading the manifest entry where the switch had just
+// cleared the value, showed unmirrored: a state no setting of the box could
+// reproduce. Ticking it wrote a value the renderer was already using; only
+// UN-ticking moved the sprite, which is the wrong way round.
+const shot = async () => (await page.locator("#stage").screenshot()).toString("base64");
+await page.goto(`${BASE}/workbench/?char=hanami&frame=r4c0`, { waitUntil: "domcontentloaded" });
+await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
+await page.selectOption("#viewSel", "all");
+await page.waitForTimeout(600);
+const sel = page.locator(".pose-cell").filter({ has: page.locator("button.sel") }).first();
+await sel.locator(".pose-variant").click({ force: true });
+await page.waitForTimeout(250);
+await page.locator(".variant-menu button", { hasText: "hanami_alt/r4c0.png" }).first().click();
+await page.waitForTimeout(1500);
+
+const afterSwitch = await shot();
+check(!(await page.isChecked("#mirrorBox")),
+  "an alternate does not inherit the delivered drawing's nativeLeft guess");
+await page.check("#mirrorBox");
+await page.waitForTimeout(500);
+check((await shot()) !== afterSwitch, "ticking Mirror moves the sprite on the first click");
+await page.uncheck("#mirrorBox");
+await page.waitForTimeout(500);
+check((await shot()) === afterSwitch, "un-ticking it returns exactly where it started");
+
 // ---- the centre of mass is offered only where something turns about it
 //
 // Most poses lean, sway, swing or tumble, and all of that turns about the com.
