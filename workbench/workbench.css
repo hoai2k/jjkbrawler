@@ -509,15 +509,27 @@ button.ghost:hover { border-color: var(--accent); }
 .timeline .tick { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(232, 236, 248, 0.28); }
 .timeline .play-head { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent); }
 
+/* The action list is the panel — everything else in that column is a character
+   picker above it and the export box below. So it takes the height rather than
+   being given a slice of it: it grows into whatever the two of them leave, and
+   `min-height` stops the flex shrink from squeezing 30-odd actions into a slit
+   when the content is taller than the viewport. No `max-height` of its own —
+   the panel's height is the limit, and a second one only fought with it. */
 .actions-panel {
   position: relative;      /* so a button's offsetTop is panel-relative */
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: calc(100vh - 190px);
+  flex: 1 1 auto;
+  min-height: 240px;
   overflow-y: auto;
   padding-right: 4px;
 }
+/* The panel is content-height everywhere else, which is right for a column of
+   controls; here it has to reach the bottom of the layout for the list to have
+   anything to grow into. */
+#actionsView.layout { align-items: stretch; }
+#actionsView .panel > .group { flex: 0 0 auto; }
 .actions-panel > label {
   font-size: 11px;
   text-transform: uppercase;
