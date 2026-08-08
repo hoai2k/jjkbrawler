@@ -102,6 +102,15 @@
           </div>
         </div>
 
+        <div class="group" id="rotationGroup">
+          <label data-help="Tilts the pose about its &lt;b&gt;centre of mass&lt;/b&gt; — the same pivot the game turns it about, so a corrected pose stays corrected through every lean, swing and tumble.&lt;br&gt;&lt;br&gt;This is for art drawn off square, not for animation: the game adds its own rotation on top of whatever is set here. Positive tilts clockwise, and the tilt mirrors with the sprite when the fighter turns around.">Rotation <span class="sub" id="rotationVal"></span></label>
+          <div class="slider-row">
+            <input type="range" id="rotationRange" min="-30" max="30" step="0.5" value="0">
+            <input type="number" id="rotationNum" class="num" step="0.5" inputmode="decimal" aria-label="Rotation, degrees">
+            <span class="unit">°</span>
+          </div>
+        </div>
+
         <div class="group">
           <label data-help="Marks this pose&apos;s &lt;em&gt;art&lt;/em&gt; as wrong, as opposed to its placement being wrong — the placement controls fix that.&lt;br&gt;&lt;br&gt;The dropdown says &lt;em&gt;what&lt;/em&gt; is wrong, because a wholesale redraw and a crop fix are very different asks: &lt;b&gt;Replace&lt;/b&gt; redraws the sprite, &lt;b&gt;Fix crop&lt;/b&gt; is wrong framing or bounds, &lt;b&gt;Fix alpha&lt;/b&gt; is bad transparency, &lt;b&gt;Fix bleed&lt;/b&gt; is colour past the silhouette.&lt;br&gt;&lt;br&gt;It exports with everything else; the flagged poses are then collected into the asset request list, and clearing happens automatically when the new art is imported.">Artwork <span class="sub" id="replaceVal"></span></label>
           <div class="chips">
@@ -142,8 +151,11 @@
 
 
         <div class="group" id="anchorGroup">
-          <label id="anchorLabel">Anchors</label>
+          <label id="anchorLabel" data-help="Named points in the artwork&apos;s own pixels, so they ride along with any later size, ground-contact or horizontal change.&lt;br&gt;&lt;br&gt;&lt;b&gt;Centre of mass&lt;/b&gt; is the pivot every rotation turns about. It is hidden on poses the game never turns — the specials, the ultimate and the victory pose are drawn square — and shown on everything else. Tick &lt;b&gt;Place it anyway&lt;/b&gt; if you want it: a special thrown in mid-air still picks up the airborne lean, and setting a Rotation on any pose makes the pivot matter immediately.">Anchors <span class="sub" id="anchorNote"></span></label>
           <div id="anchorRows"></div>
+          <div class="chips" id="anchorForceRow" hidden>
+            <label class="chip"><input type="checkbox" id="anchorForce"> Place it anyway</label>
+          </div>
         </div>
 
         <div class="group" id="heightGroup">

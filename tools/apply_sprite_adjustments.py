@@ -54,16 +54,21 @@ OTHER_KEY = "__other"
 # tools/list_replacements.py collects them for the asset request list, and
 # intake clears the flag when new art lands.
 #
+# rotationDeg tilts the pose about its centre of mass, in degrees, clockwise
+# positive. It corrects art drawn off square; the game adds its own procedural
+# rotation on top. Absolute rather than a delta — a drawing has no inherent tilt
+# to be relative to, so 0 is square and the key is dropped at 0.
+#
 # wantsImprovement is the softer ask: the art works, it is just not as good as
 # it should be. Its value is "quality", "pose" or "character"
 # (IMPROVEMENT_KINDS in src/sprites.js). Collected at a lower priority, since
 # nothing is blocked by one.
-ALLOWED = {"renderScale", "ox", "bodyBottom", "anchors", "faceLeft",
+ALLOWED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "anchors", "faceLeft",
            "needsReplacement", "wantsImprovement"}
 # Flags whose VALUE is a kind string. `false` clears; a legacy `true` means the
 # first kind in the list.
 KIND_FIELDS = {"needsReplacement": "replace", "wantsImprovement": "quality"}
-NUMERIC = {"renderScale", "ox", "bodyBottom"}
+NUMERIC = {"renderScale", "ox", "bodyBottom", "rotationDeg"}
 BOOLEAN = {"faceLeft"}
 
 # Fields whose pre-edit value is worth remembering. `edited` maps each to what
@@ -71,7 +76,7 @@ BOOLEAN = {"faceLeft"}
 # hand-tuned (the workbench's view filter reads it), and it lets intake roll the
 # tuning back when the art is replaced — nudges made to compensate for bad art
 # must not be inherited by the art that fixes it.
-TRACKED = {"renderScale", "ox", "bodyBottom", "faceLeft"}
+TRACKED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "faceLeft"}
 
 # Cleared off a pose before the chosen drawing's own values are written in, so a
 # variant that does not set a field cannot inherit the previous drawing's. That
@@ -81,7 +86,7 @@ TRACKED = {"renderScale", "ox", "bodyBottom", "faceLeft"}
 # build_variants.py.
 VARIANT_PLACEMENT = [
     "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
-    "centroidX", "renderScale", "anchors", "faceLeft",
+    "centroidX", "renderScale", "rotationDeg", "anchors", "faceLeft",
 ]
 VARIANT_REVIEW = ["needsReplacement", "wantsImprovement", "edited"]
 VARIANT_BANKED = VARIANT_PLACEMENT + VARIANT_REVIEW

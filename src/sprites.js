@@ -4,6 +4,8 @@ import { CELL_W, CELL_H, CELL_FOOT_Y } from "./constants.js";
 import { COM_BODY_FRAC, LEDGE_GRIP_Y_FRAC } from "./config_tuning.js";
 import { clamp } from "./utils.js";
 
+const DEG = Math.PI / 180;
+
 // ---------------------------------------------------------------- anchors
 //
 // A frame carries named anchor points in `meta.anchors`, stored as
@@ -162,7 +164,7 @@ export function hasVariants(charKey, frameKey) {
 /** The placement fields that travel with an image rather than with the pose. */
 export const VARIANT_PLACEMENT = [
   "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
-  "centroidX", "renderScale", "anchors", "faceLeft",
+  "centroidX", "renderScale", "rotationDeg", "anchors", "faceLeft",
 ];
 
 /** The review fields, which travel with the image for the same reason.
@@ -371,7 +373,8 @@ export function anchorsForFrame(charKey, frameKey) {
 // detected body-bottom as the foot line so ground animations don't bob.
 //
 // Optional transforms, all draw-time only:
-//   rotation  radians, turned about the frame's centre of mass
+//   rotation  radians, turned about the frame's centre of mass, on top of the
+//             pose's own baked `rotationDeg`
 //   scaleX/Y  squash & stretch, anchored at the foot line
 //   offsetX/Y world-space nudge
 //   anchorTo  { name, x, y } — place a named anchor at a world point instead
@@ -407,7 +410,13 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
     }
   }
 
-  const rotation = opts.rotation || 0;
+  // `rotationDeg` is the pose's OWN tilt, baked in the workbench: art drawn a
+  // few degrees off square, corrected once here rather than in every caller.
+  // It mirrors with the drawing (× facing) — a figure leaning into its right
+  // leans into its left once flipped — where `opts.rotation` is already in
+  // world space, because motion.js decides per effect whether a lean should
+  // mirror and multiplies by facing itself.
+  const rotation = (opts.rotation || 0) + (meta.rotationDeg || 0) * DEG * facing;
   const sx = opts.scaleX ?? 1;
   const sy = opts.scaleY ?? 1;
   const needsPivot = rotation !== 0 || sx !== 1 || sy !== 1;

@@ -223,6 +223,71 @@ check(!banked[alt], "the drawing switched to does not inherit it", JSON.stringif
 check(forHanami?.adjustments?.dodge_air?.needsReplacement === undefined,
   "and it is not left behind on the pose");
 
+// ---- the centre of mass is offered only where something turns about it
+//
+// Most poses lean, sway, swing or tumble, and all of that turns about the com.
+// The specials, the ultimate and the victory pose do not — they run on action
+// kinds fighterTransform never tests — so placing an anchor on them is work
+// with no effect, and the row is hidden with the reason in its place.
+await page.goto(`${BASE}/workbench/?char=yuji&frame=special_side`, { waitUntil: "domcontentloaded" });
+await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
+await page.waitForTimeout(400);
+
+const anchors = () => page.evaluate(() => ({
+  rows: document.querySelectorAll("#anchorRows .anchor-row").length,
+  note: document.getElementById("anchorNote").textContent,
+  offerHidden: document.getElementById("anchorForceRow").hidden,
+}));
+let anc = await anchors();
+check(anc.rows === 0, "a pose the game never turns hides its centre of mass", JSON.stringify(anc));
+check(!!anc.note && !anc.offerHidden, "and says why, with the override beside it", JSON.stringify(anc.note));
+
+await page.check("#anchorForce");
+await page.waitForTimeout(250);
+anc = await anchors();
+check(anc.rows === 1, "'Place it anyway' brings it back", JSON.stringify(anc));
+await page.uncheck("#anchorForce");
+await page.waitForTimeout(250);
+
+await page.goto(`${BASE}/workbench/?char=yuji&frame=idle_a`, { waitUntil: "domcontentloaded" });
+await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
+await page.waitForTimeout(400);
+anc = await anchors();
+check(anc.rows >= 1 && anc.offerHidden, "a pose that does turn shows it without asking", JSON.stringify(anc));
+
+// ---- rotation: a baked tilt about that same centre of mass
+const canvasHash = () => page.evaluate(() => {
+  const c = document.querySelector("canvas");
+  const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+  let h = 0;
+  for (let i = 0; i < d.length; i += 997) h = (h * 31 + d[i]) >>> 0;
+  return h;
+});
+await page.goto(`${BASE}/workbench/?char=yuji&frame=special_side`, { waitUntil: "domcontentloaded" });
+await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
+await page.waitForTimeout(500);
+const square = await canvasHash();
+await page.evaluate(() => {
+  const n = document.getElementById("rotationNum");
+  n.value = "15"; n.dispatchEvent(new Event("change", { bubbles: true }));
+});
+await page.waitForTimeout(500);
+check(await canvasHash() !== square, "a rotation redraws the pose tilted");
+check(/15/.test(await page.evaluate(() => document.getElementById("rotationVal").textContent)),
+  "the readout states the angle");
+// The tilt turns about the com, so the anchor stops being decorative the
+// moment one is set — even on a pose nothing else turns.
+check((await anchors()).rows === 1, "setting a rotation un-hides the centre of mass");
+
+await page.click("#exportBtn");
+await page.waitForTimeout(300);
+let tilted = null;
+try { tilted = JSON.parse(await page.inputValue("#exportOut")); } catch { /* reported below */ }
+const forYuji = (Array.isArray(tilted) ? tilted : [tilted]).find((p) => p?.character === "yuji");
+check(forYuji?.adjustments?.special_side?.rotationDeg === 15,
+  "and it exports as rotationDeg in degrees",
+  JSON.stringify(forYuji?.adjustments?.special_side));
+
 check(!errors.length, "no page errors", errors.slice(0, 2).join(" | "));
 await browser.close();
 console.log(fails ? `\n${fails} check(s) failed` : "\nAll checks pass");

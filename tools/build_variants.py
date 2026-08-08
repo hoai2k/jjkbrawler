@@ -44,7 +44,7 @@ MANIFEST = os.path.join(SPRITES, "manifest.json")
 # one is what gets written.
 PLACEMENT = [
     "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
-    "centroidX", "renderScale", "anchors", "faceLeft",
+    "centroidX", "renderScale", "rotationDeg", "anchors", "faceLeft",
 ]
 REVIEW = ["needsReplacement", "wantsImprovement", "edited"]
 BANKED = PLACEMENT + REVIEW

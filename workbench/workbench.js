@@ -16,6 +16,7 @@ import {
   variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
+import { PIVOTED_STATES } from "../src/motion.js";
 import { CHARACTERS, CHARACTER_KEYS, SPRITE_ACTORS, getActor } from "../src/characters.js";
 import { TRANSFORM_POSES } from "../src/config_transform.js";
 import {
@@ -36,7 +37,8 @@ const BENCHMARK_INSET = 78;
 const CELL_W = 313.5;
 // Scalar fields the workbench can edit. `anchors` is edited too but is nested,
 // so snapshot/restore/compare handle it separately.
-const EDITABLE = ["renderScale", "ox", "bodyBottom", "faceLeft", "needsReplacement", "wantsImprovement"];
+const EDITABLE = ["renderScale", "ox", "bodyBottom", "rotationDeg", "faceLeft",
+                  "needsReplacement", "wantsImprovement"];
 // Fields whose VALUE is a kind string rather than a number, so a change of kind
 // is a change and `false` means "cleared" rather than "unset".
 const KIND_FIELDS = { needsReplacement: replacementKind, wantsImprovement: improvementKind };
@@ -173,6 +175,9 @@ const state = {
   // a separate selection step. Every SHOWN anchor is draggable regardless.
   anchor: null,
   anchorShown: {},     // name -> false to hide; anchors are shown by default
+  // "char/frame" the centre of mass was asked for on despite nothing turning
+  // that pose. Session-only: it changes what the panel offers, not the art.
+  anchorForced: new Set(),
   dragging: false,
   view: "unedited",    // key into VIEWS
   // The secondary action being previewed: the canvas shows the sprite it is
@@ -410,10 +415,30 @@ const ANCHOR_META = {
   ...EXTRA_ANCHORS,
 };
 
-/** Anchors offered for the current frame: `com` always, plus any state-specific
- *  one the frame's animations call for. */
+/** Anchors offered for the current frame: `com` when it does anything, plus any
+ *  state-specific one the frame's animations call for. */
 function anchorNames(charKey, frameKey) {
-  return ["com", ...anchorsForFrame(charKey, frameKey)];
+  const extra = anchorsForFrame(charKey, frameKey);
+  return comPivots(charKey, frameKey) ? ["com", ...extra] : extra;
+}
+
+/** Whether this frame's centre of mass is a pivot anything actually turns
+ *  about — the question of whether it is worth placing.
+ *
+ *  Three ways to earn it. The pose has a baked tilt, which turns about the com
+ *  by definition. Or one of the animation states that draw it is one the game
+ *  turns or deforms (PIVOTED_STATES in motion.js). Or the workbench has been
+ *  told to show it anyway for this frame, which is the escape hatch for the
+ *  cases the list cannot see: a special thrown in mid-air picks up the airborne
+ *  lean, and nothing in the manifest says whether a given special is ever used
+ *  off the ground.
+ *
+ *  A cell no animation draws gets nothing — until an action is pointed at it,
+ *  at which point statesUsingFrame starts answering and this follows. */
+function comPivots(charKey, frameKey) {
+  if (state.anchorForced.has(`${charKey}/${frameKey}`)) return true;
+  if (rawMeta(charKey, frameKey)?.rotationDeg) return true;
+  return statesUsingFrame(charKey, frameKey).some((s) => PIVOTED_STATES.has(s));
 }
 
 /** Current value in image-local px, resolved from the default when unset. */
@@ -1170,8 +1195,9 @@ function dirtyActions(charKey) {
 
 // Which half of the panel applies. Shared sprites carry no placement data, so
 // showing sliders that write into nothing would be a lie about what they do.
-const PLACEMENT_GROUPS = ["scaleGroup", "offsetGroup", "groundGroup", "anchorGroup",
-                          "heightGroup", "mirrorGroup", "referenceGroup", "resetGroup"];
+const PLACEMENT_GROUPS = ["scaleGroup", "offsetGroup", "groundGroup", "rotationGroup",
+                          "anchorGroup", "heightGroup", "mirrorGroup", "referenceGroup",
+                          "resetGroup"];
 
 function applyPanelMode() {
   const other = isOther(state.char);
@@ -1184,7 +1210,8 @@ function applyPanelMode() {
   // the panel does not jump around as the set fills in, but they are greyed
   // and inert rather than pretending to edit something.
   const pending = !other && isPending(state.char, state.frame);
-  for (const id of ["scaleGroup", "offsetGroup", "groundGroup", "anchorGroup", "mirrorGroup"]) {
+  for (const id of ["scaleGroup", "offsetGroup", "groundGroup", "rotationGroup",
+                    "anchorGroup", "mirrorGroup"]) {
     const group = $(id);
     if (!group) continue;
     group.classList.toggle("disabled", pending);
@@ -1247,6 +1274,10 @@ function refreshControls() {
   setPair("ground", dg);
   $("groundVal").textContent = airborne ? "n/a — never touches the floor"
                                         : `${dg > 0 ? "+" : ""}${dg.toFixed(1)} px`;
+  const deg = rawMeta(state.char, state.frame).rotationDeg ?? 0;
+  setPair("rotation", deg);
+  $("rotationVal").textContent = deg ? `${deg > 0 ? "+" : ""}${deg.toFixed(1)}°` : "square";
+
   $("groundGroup").classList.toggle("disabled", airborne);
   $("groundRange").disabled = airborne;
   $("groundNum").disabled = airborne;
@@ -1310,6 +1341,20 @@ function refreshControls() {
 function refreshAnchorControls() {
   const names = anchorNames(state.char, state.frame);
   if (!names.includes(state.anchor)) state.anchor = null;
+
+  // The centre of mass is offered only where something turns about it. Where
+  // nothing does, the row goes and a one-line reason takes its place, with the
+  // override beside it — hidden, not removed, because "this pose never turns"
+  // is a fact worth reading rather than a silently missing control.
+  const id = `${state.char}/${state.frame}`;
+  const forced = state.anchorForced.has(id);
+  const pivots = names.includes("com");
+  const drawnBy = statesUsingFrame(state.char, state.frame);
+  $("anchorForceRow").hidden = pivots && !forced;
+  $("anchorForce").checked = forced;
+  $("anchorNote").textContent = pivots
+    ? ""
+    : drawnBy.length ? "the game draws this one square" : "nothing draws this one";
 
   const wrap = $("anchorRows");
   wrap.innerHTML = "";
@@ -1640,6 +1685,19 @@ function applyOffset(dx, commit) {
   refreshControls(); buildPoseList(); render();
 }
 
+/** The pose's own tilt, in degrees about its centre of mass. Unlike the other
+ *  three this is an ABSOLUTE value rather than a delta from the delivered art:
+ *  a drawing has no inherent tilt to be relative to, so 0 means square. */
+function applyRotation(deg, commit) {
+  if (commit) pushHistory(state.char, state.frame);
+  const meta = rawMeta(state.char, state.frame);
+  if (Math.abs(deg) < 1e-4) delete meta.rotationDeg;
+  else meta.rotationDeg = Number(deg.toFixed(2));
+  // A tilted pose turns about its centre of mass, so the anchor stops being
+  // decorative the moment this is nonzero — refreshAnchorControls picks that up.
+  refreshControls(); buildPoseList(); render();
+}
+
 function applyGround(dy, commit) {
   // A frame only ever drawn in the air has no floor contact to set; the floor
   // stays visible in the viewer purely as a size reference against the idle.
@@ -1895,6 +1953,7 @@ const PAIRS = {
   scale: { show: (v) => v * 100, store: (v) => v / 100, digits: 1 },
   offset: { show: (v) => v, store: (v) => v, digits: 1 },
   ground: { show: (v) => v, store: (v) => v, digits: 1 },
+  rotation: { show: (v) => v, store: (v) => v, digits: 1 },
 };
 
 /** Write a value to both halves of a pair, without either echoing back. */
@@ -2004,6 +2063,7 @@ async function boot() {
   bindPair("scale", applyScale);
   bindPair("offset", applyOffset);
   bindPair("ground", applyGround);
+  bindPair("rotation", applyRotation);
   bindSlider("headRange", applyHead);
   document.querySelectorAll("[data-head]").forEach((b) => {
     b.onclick = () => applyHead(headHeight(state.char) + parseFloat(b.dataset.head), true);
@@ -2119,6 +2179,12 @@ async function boot() {
   };
   ["showComparison", "selfIdleMode", "showGuides", "showBox", "showPlatform"]
     .forEach((id) => ($(id).onchange = render));
+  $("anchorForce").onchange = () => {
+    const id = `${state.char}/${state.frame}`;
+    if ($("anchorForce").checked) state.anchorForced.add(id);
+    else state.anchorForced.delete(id);
+    refreshAnchorControls(); render();
+  };
   // the spin preview animates, so it needs a frame loop rather than one redraw
   $("spinPreview").onchange = render;
   (function spinLoop() {

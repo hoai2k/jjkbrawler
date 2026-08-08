@@ -39,6 +39,39 @@ function actionPhase(f) {
   return { name: "recover", k: clamp(k, 0, 1) };
 }
 
+// Which animation states fighterTransform below actually turns or deforms.
+//
+// Not every pose moves. The function is a chain of branches on SIMULATION state
+// — hitstun, action kind, timers, animKey — and a few states match no branch at
+// all: `specialNeutral`, `specialSide`, `specialDown` and `ult` run on action
+// kinds ("special", "ult") that nothing here tests, and `win` is a grounded
+// idle-that-is-not-idle. Those are drawn square, so the centre of mass they
+// would pivot about has nothing to do, and the workbench hides the anchor for
+// frames only they draw (see comPivots there).
+//
+// "Only they draw" is the whole caveat. A special thrown in mid-air still picks
+// up the airborne lean, and any pose can be launched — though a launched
+// fighter switches to `hurt`, so it is their hurt frame that tumbles, not this
+// one. The workbench states it that way and lets the anchor be shown anyway.
+//
+// Listed rather than derived because the branches test simulation state that
+// does not exist outside a match. Keep it in step with fighterTransform: a new
+// branch that reads `f.animKey` or a new action kind belongs here too.
+export const PIVOTED_STATES = new Set([
+  "idle", "crouch",              // breathing sway
+  "run",                         // stride sway and bob
+  "dash",                        // lean into the sprint
+  "jump", "fall",                // air lean, and the stretch into a fast fall
+  "land",                        // landing squash
+  "hurt", "dizzy",               // flinch, tumble, wobble
+  "shield",                      // shake as the shield is spent
+  "ledge",                       // hanging lean
+  "dodge", "dodge_roll", "dodge_air",   // the roll actually rolls
+  "charge",                      // charge shake
+  // every `kind: "attack"` move — swingRotation carries all of them
+  "light", "airLight", "sideHeavy", "upHeavy", "downHeavy", "crouchAttack",
+]);
+
 /** A swing arc for attacks that are one held pose: wind back through startup,
  *  whip through the active window, settle over recovery. */
 function swingRotation(f) {
