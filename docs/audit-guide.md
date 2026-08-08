@@ -63,6 +63,7 @@ docs/               mechanics, character research, asset pipeline, asset request
       node tools/check_music.mjs        # stage/track wiring, no browser needed
       node tools/smoke_stages.mjs       # every stage's Active Boards gimmick
       node tools/smoke_workbench.mjs    # the sprite workbench's edit tracking
+      python3 tools/test_intake_placement.py   # touch-up re-import, no browser
 
 ---
 
