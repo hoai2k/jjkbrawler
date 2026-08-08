@@ -13,7 +13,7 @@ import {
   drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly, animsOf,
   anchorScreenPos, screenPosToLocal, warmAnchors, EXTRA_ANCHORS,
   REPLACEMENT_KINDS, replacementKind, IMPROVEMENT_KINDS, improvementKind,
-  variantsOf, VARIANT_PLACEMENT, VARIANT_ONLY_KINDS,
+  variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS, SPRITE_ACTORS, getActor } from "../src/characters.js";
@@ -224,7 +224,10 @@ function framesOf(charKey) {
 // OWN placement, so choosing one is not just a file swap: it restores that
 // image's size, centring, ground contact and anchors, and banks the outgoing
 // image's current numbers first. Otherwise tuning drawing A and then looking at
-// drawing B would silently apply A's numbers to B and lose A's.
+// drawing B would silently apply A's numbers to B and lose A's. The review
+// flags ride along for the same reason — a "fix alpha" is a verdict on one
+// drawing, and following the pose instead would pin it to whichever art is
+// selected at the time.
 
 function poseVariants(charKey, frameKey) {
   if (isOther(charKey)) return [];
@@ -235,12 +238,23 @@ function variantEntry(charKey, frameKey) {
   return spriteManifest?.variants?.[charKey]?.[frameKey] || null;
 }
 
-/** Copy the placement fields the workbench edits off a meta object. */
-function takePlacement(meta) {
+/** Copy the fields that belong to the drawing — placement and review both —
+ *  off a meta object. */
+function takeBanked(meta) {
   const out = {};
-  for (const field of VARIANT_PLACEMENT) {
+  for (const field of VARIANT_BANKED) {
     if (meta[field] !== undefined) out[field] = meta[field];
   }
+  return out;
+}
+
+/** What the POSE mirrors from the drawing it now points at: everything banked,
+ *  minus the kinds that only mean something about an option. "Delete variant"
+ *  says discard this one of several — a sentence the pose cannot carry, and one
+ *  the request collectors read off the variants list instead. */
+function poseView(option) {
+  const out = takeBanked(option);
+  if (VARIANT_ONLY_KINDS.has(out.needsReplacement)) delete out.needsReplacement;
   return out;
 }
 
@@ -255,10 +269,10 @@ async function chooseVariant(charKey, frameKey, file) {
   // Bank what is on screen back onto the image it belongs to, including any
   // adjustment made this session, before it is replaced.
   const outgoing = entry.options.find((o) => o.file === meta.file);
-  if (outgoing) Object.assign(outgoing, takePlacement(meta));
+  if (outgoing) Object.assign(outgoing, takeBanked(meta));
 
-  for (const field of VARIANT_PLACEMENT) delete meta[field];
-  Object.assign(meta, takePlacement(incoming), { file });
+  for (const field of VARIANT_BANKED) delete meta[field];
+  Object.assign(meta, poseView(incoming), { file });
   variantPicks.set(`${charKey}/${frameKey}`, file);
 
   // The new art has almost certainly never been fetched — the streamer only
@@ -1792,7 +1806,7 @@ function payloadFor(charKey) {
         const entry = variantEntry(charKey, pose);
         return [pose, entry ? entry.options.map((o) => ({
           file: o.file,
-          ...takePlacement(o),
+          ...takeBanked(o),
           // Always present, so clearing a tag exports as clearly as setting one.
           needsReplacement: o.needsReplacement || false,
         })) : []];
