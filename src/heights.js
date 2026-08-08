@@ -90,13 +90,34 @@ function idleSpan(charKey) {
 }
 
 /**
+ * The span a character's scale is solved against.
+ *
+ * Normally the idle's own, measured above — but a value pinned in
+ * `heightSpans` wins. That pin is what lets the idle be adjusted like any other
+ * pose: without it, nudging the idle's size or ground contact moves the span,
+ * which re-solves the scale, which resizes every OTHER pose in the set. Once
+ * the reference is pinned, the character's size is the height target's job
+ * alone, which is where it belongs.
+ */
+export function referenceSpan(charKey) {
+  const pinned = spriteManifest?.heightSpans?.[charKey];
+  if (Number.isFinite(pinned) && pinned > 0) return pinned;
+  return idleSpan(charKey);
+}
+
+/** The span as measured from the art right now, for whoever pins it. */
+export function measuredIdleSpan(charKey) {
+  return idleSpan(charKey);
+}
+
+/**
  * Solve a character's draw scale so the top of their idle lands exactly on the
  * head-height target, and write it onto the character. Returns the scale, or
  * null when the manifest cannot answer (leaving the authored fallback alone).
  */
 export function applyHeightScale(charKey) {
   const char = getActor(charKey);
-  const span = idleSpan(charKey);
+  const span = referenceSpan(charKey);
   if (!char || !span) return null;
   char.scale = headHeightTarget(charKey) / span;
   return char.scale;

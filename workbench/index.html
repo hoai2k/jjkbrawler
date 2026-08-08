@@ -75,6 +75,33 @@
           <div id="poseList" class="pose-list"></div>
         </div>
 
+        <div class="group" id="scaleGroup">
+          <label data-help="This pose&apos;s own size, as a percentage of the art as delivered. It affects &lt;em&gt;this pose only&lt;/em&gt; — including the idle, which is a pose like any other here.&lt;br&gt;&lt;br&gt;To resize the whole character, use &lt;b&gt;Character height&lt;/b&gt; further down: that is the one control the whole sprite set is solved from.">Size <span class="sub" id="scaleVal"></span></label>
+          <div class="slider-row">
+            <input type="range" id="scaleRange" min="0.4" max="2.2" step="0.005" value="1">
+            <input type="number" id="scaleNum" class="num" step="0.1" inputmode="decimal" aria-label="Size, percent of delivered">
+            <span class="unit">%</span>
+          </div>
+        </div>
+
+        <div class="group" id="groundGroup">
+          <label data-help="Sets where the sprite meets the floor. Defaults to the lowest opaque pixel, which is wrong when perspective puts one foot lower than the standing plane — raise it so the &lt;em&gt;near&lt;/em&gt; foot rests on the platform.&lt;br&gt;&lt;br&gt;A pose only ever drawn in the air has no floor contact to set, so the control locks. The ground line stays on screen as a size reference against the idle.">Ground contact <span class="sub" id="groundVal"></span></label>
+          <div class="slider-row">
+            <input type="range" id="groundRange" min="-120" max="120" step="0.5" value="0">
+            <input type="number" id="groundNum" class="num" step="0.5" inputmode="decimal" aria-label="Ground contact, pixels">
+            <span class="unit">px</span>
+          </div>
+        </div>
+
+        <div class="group" id="offsetGroup">
+          <label>Horizontal position <span class="sub" id="offsetVal"></span></label>
+          <div class="slider-row">
+            <input type="range" id="offsetRange" min="-120" max="120" step="0.5" value="0">
+            <input type="number" id="offsetNum" class="num" step="0.5" inputmode="decimal" aria-label="Horizontal position, pixels">
+            <span class="unit">px</span>
+          </div>
+        </div>
+
         <div class="group">
           <label data-help="Marks this pose&apos;s &lt;em&gt;art&lt;/em&gt; as wrong, as opposed to its placement being wrong — the placement controls fix that.&lt;br&gt;&lt;br&gt;The dropdown says &lt;em&gt;what&lt;/em&gt; is wrong, because a wholesale redraw and a crop fix are very different asks: &lt;b&gt;Replace&lt;/b&gt; redraws the sprite, &lt;b&gt;Fix crop&lt;/b&gt; is wrong framing or bounds, &lt;b&gt;Fix alpha&lt;/b&gt; is bad transparency, &lt;b&gt;Fix bleed&lt;/b&gt; is colour past the silhouette.&lt;br&gt;&lt;br&gt;It exports with everything else; the flagged poses are then collected into the asset request list, and clearing happens automatically when the new art is imported.">Artwork <span class="sub" id="replaceVal"></span></label>
           <div class="chips">
@@ -108,32 +135,11 @@
           <div id="usageInfo" class="note"></div>
         </div>
 
-        <div class="group" id="scaleGroup">
-          <label>Size <span class="sub" id="scaleVal"></span></label>
-          <div class="slider-row">
-            <input type="range" id="scaleRange" min="0.4" max="2.2" step="0.005" value="1">
-            <input type="number" id="scaleNum" class="num" step="0.1" inputmode="decimal" aria-label="Size, percent of delivered">
-            <span class="unit">%</span>
-          </div>
-        </div>
 
-        <div class="group" id="offsetGroup">
-          <label>Horizontal position <span class="sub" id="offsetVal"></span></label>
-          <div class="slider-row">
-            <input type="range" id="offsetRange" min="-120" max="120" step="0.5" value="0">
-            <input type="number" id="offsetNum" class="num" step="0.5" inputmode="decimal" aria-label="Horizontal position, pixels">
-            <span class="unit">px</span>
-          </div>
-        </div>
 
-        <div class="group" id="groundGroup">
-          <label data-help="Sets where the sprite meets the floor. Defaults to the lowest opaque pixel, which is wrong when perspective puts one foot lower than the standing plane — raise it so the &lt;em&gt;near&lt;/em&gt; foot rests on the platform.&lt;br&gt;&lt;br&gt;A pose only ever drawn in the air has no floor contact to set, so the control locks. The ground line stays on screen as a size reference against the idle.">Ground contact <span class="sub" id="groundVal"></span></label>
-          <div class="slider-row">
-            <input type="range" id="groundRange" min="-120" max="120" step="0.5" value="0">
-            <input type="number" id="groundNum" class="num" step="0.5" inputmode="decimal" aria-label="Ground contact, pixels">
-            <span class="unit">px</span>
-          </div>
-        </div>
+
+
+
 
         <div class="group" id="anchorGroup">
           <label id="anchorLabel">Anchors</label>
@@ -141,7 +147,7 @@
         </div>
 
         <div class="group" id="heightGroup">
-          <label data-help="The fighter&apos;s &lt;em&gt;global&lt;/em&gt; size: every pose is drawn at a scale solved from this, so moving it resizes the whole sprite set at once. The bar on the canvas is where the top of the head lands.&lt;br&gt;&lt;br&gt;Defaults to the character&apos;s canon height (&lt;code&gt;heightCm&lt;/code&gt; in characters.js), compressed toward Gojo so the roster keeps its real ordering without outgrowing the shared hurtbox. Fighters with no published height sit at Gojo&apos;s. Reset returns to the canon-derived value.">Character height <span class="sub" id="headVal"></span></label>
+          <label data-help="The fighter&apos;s &lt;em&gt;global&lt;/em&gt; size: every pose is drawn at a scale solved from this, so moving it resizes the whole sprite set at once. The bar on the canvas is where the top of the head lands.&lt;br&gt;&lt;br&gt;Defaults to the character&apos;s canon height (&lt;code&gt;heightCm&lt;/code&gt; in characters.js), compressed toward Gojo so the roster keeps its real ordering without outgrowing the shared hurtbox. Fighters with no published height sit at Gojo&apos;s. Reset returns to the canon-derived value.&lt;br&gt;&lt;br&gt;The scale is solved against the idle&apos;s span. Once the idle has been adjusted by hand that span is pinned, so the idle becomes an ordinary pose and can be sized and grounded freely — the bar on the canvas is then the character&apos;s target rather than a line the idle is glued to.">Character height <span class="sub" id="headVal"></span></label>
           <input type="range" id="headRange" min="110" max="240" step="0.5" value="175">
           <div class="nudge">
             <button data-head="-5">↓5</button>

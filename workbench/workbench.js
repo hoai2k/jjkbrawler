@@ -17,7 +17,9 @@ import {
 import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS, SPRITE_ACTORS, getActor } from "../src/characters.js";
 import { TRANSFORM_POSES } from "../src/config_transform.js";
-import { headHeightTarget, applyHeightScale, hasHeightOverride, heightRatio } from "../src/heights.js";
+import {
+  headHeightTarget, applyHeightScale, hasHeightOverride, heightRatio, measuredIdleSpan,
+} from "../src/heights.js";
 import { initTooltips, setHelp } from "./tooltip.js";
 import { makeCharLoader, frameLoaded } from "./lazy_sprites.js";
 
@@ -164,7 +166,8 @@ const BACKGROUNDS = [
 
 const state = {
   char: "gojo", frame: null, bg: BACKGROUNDS[0][0], zoom: 1.9,
-  originals: {}, originalHeads: {}, originalHeadOverride: {}, originalAnims: {}, undo: [], redo: [],
+  originals: {}, originalHeads: {}, originalHeadOverride: {}, originalAnims: {},
+  originalSpans: {}, undo: [], redo: [],
   // Which anchor the arrow keys act on — set by whatever you last moved, not by
   // a separate selection step. Every SHOWN anchor is draggable regardless.
   anchor: null,
@@ -245,6 +248,34 @@ function setHeadHeight(charKey, value) {
 function clearHeadHeight(charKey) {
   if (spriteManifest.headHeights) delete spriteManifest.headHeights[charKey];
   applyHeightScale(charKey);
+}
+
+// The frame the character's scale is solved against.
+const HEIGHT_FRAMES = ["idle_a", "r0c0"];
+
+function isHeightReferenceFrame(charKey, frameKey) {
+  for (const key of HEIGHT_FRAMES) {
+    if (rawMeta(charKey, key)) return key === frameKey;
+  }
+  return false;
+}
+
+/** Freeze the character's scale reference at what it is NOW, before an edit to
+ *  the idle changes it. Otherwise resizing the idle re-solves the scale and
+ *  every other pose in the set moves with it — which is the height target's
+ *  job, not the idle's. Pinned once; later idle edits ride on the frozen value. */
+function pinHeightSpan(charKey, frameKey) {
+  if (!isHeightReferenceFrame(charKey, frameKey)) return;
+  spriteManifest.heightSpans ??= {};
+  if (Number.isFinite(spriteManifest.heightSpans[charKey])) return;
+  const span = measuredIdleSpan(charKey);
+  if (span > 0) spriteManifest.heightSpans[charKey] = Number(span.toFixed(2));
+}
+
+function rememberSpan(charKey) {
+  if (!(charKey in state.originalSpans)) {
+    state.originalSpans[charKey] = spriteManifest?.heightSpans?.[charKey];
+  }
 }
 
 function rememberHead(charKey) {
@@ -1368,6 +1399,7 @@ function setChar(charKey, wantFrame = null) {
     : frames[0] ?? (fallback.includes("idle_a") ? "idle_a" : fallback[0]);
   frames.forEach((k) => remember(charKey, k));
   rememberHead(charKey);
+  rememberSpan(charKey);
   // Art for this character may not be here yet; the panels are driven by the
   // manifest, so everything except the canvas is correct immediately. Shared
   // sprites are fetched one at a time in syncAll instead — there is no bundle.
@@ -1420,9 +1452,11 @@ function applyScale(relative, commit) {
   // Sheet cells carry no `renderScale` at all — the renderer treats a missing
   // one as 1. Reading it raw yields undefined, and `undefined * relative` is
   // NaN, which sticks: once written it poisons the slider and every later edit.
+  // Pinned BEFORE the write: the idle's own size is a per-pose adjustment like
+  // any other, so the character's scale reference freezes at what it was.
+  pinHeightSpan(state.char, state.frame);
   rawMeta(state.char, state.frame).renderScale =
     Math.max(0.02, (orig.renderScale ?? 1) * relative);
-  // same reason as ground contact: renderScale is part of the idle's span
   applyHeightScale(state.char);
   refreshControls(); buildPoseList(); render();
 }
@@ -1441,10 +1475,8 @@ function applyGround(dy, commit) {
   const orig = state.originals[state.char][state.frame];
   if (commit) pushHistory(state.char, state.frame);
   // slider reads as "how far down the sprite sits", so invert onto bodyBottom
+  pinHeightSpan(state.char, state.frame);   // see applySize
   rawMeta(state.char, state.frame).bodyBottom = (orig.bodyBottom ?? 0) - dy;
-  // The character's scale is solved so the idle's TOP meets the height target,
-  // and the foot line is part of that span — so moving the idle's ground
-  // contact has to re-solve, or the head would drift off the bar.
   applyHeightScale(state.char);
   refreshControls(); buildPoseList(); render();
 }
@@ -1567,8 +1599,12 @@ function payloadFor(charKey) {
   if (Object.keys(out).length) payload.adjustments = out;
   const actions = dirtyActions(charKey);
   if (Object.keys(actions).length) payload.animOverrides = actions;
-  return (payload.headHeight !== undefined || payload.adjustments || payload.animOverrides)
-    ? payload : null;
+  // The pinned reference travels with the edit that caused it, or the applied
+  // manifest would re-derive the span from the new idle and resize the set.
+  const span = spriteManifest?.heightSpans?.[charKey];
+  if (Number.isFinite(span) && span !== state.originalSpans[charKey]) payload.heightSpan = span;
+  return (payload.headHeight !== undefined || payload.adjustments || payload.animOverrides
+          || payload.heightSpan !== undefined) ? payload : null;
 }
 
 /** Everything edited this session, across every character.

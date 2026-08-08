@@ -130,6 +130,15 @@ def main():
             if not man.get("animOverrides"):
                 man.pop("animOverrides", None)
 
+        # The scale reference the character's size is solved against. Written
+        # when the idle itself is adjusted: from then on the idle is a pose like
+        # any other, and the character's size belongs to the height target.
+        if "heightSpan" in payload:
+            spans = man.setdefault("heightSpans", {})
+            before = spans.get(char)
+            spans[char] = payload["heightSpan"]
+            applied.append(f"{char}.heightSpan: {before} -> {payload['heightSpan']}")
+
         if "headHeight" in payload:
             heads = man.setdefault("headHeights", {})
             before = heads.get(char)
