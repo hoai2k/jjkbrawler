@@ -28,6 +28,10 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 MANIFEST = os.path.join(HERE, "..", "assets", "sprites", "manifest.json")
 
+# The workbench's pseudo-character for shared effect/summon art. Its edits go to
+# manifest["otherSprites"], not under any character.
+OTHER_KEY = "__other"
+
 # renderScale = size, ox = horizontal centring, bodyBottom = ground contact
 # (where the sprite's feet meet the floor — not necessarily its lowest pixel,
 # since perspective can put one foot below the standing plane).
@@ -94,8 +98,17 @@ def main():
 
     for payload in load_payloads(args.sources):
         char = payload.get("character")
-        frames = man["characters"].get(char)
-        if not frames:
+        if char == OTHER_KEY:
+            # The workbench's "Other Sprites" entry: shared effect/summon art,
+            # which has no per-frame placement data. Only the review flags apply,
+            # and they live in their own manifest section keyed by sprite key
+            # ("effect:blue", "summon:nue") rather than under a character.
+            frames = man.setdefault("otherSprites", {})
+            for key in (payload.get("adjustments") or {}):
+                frames.setdefault(key, {})
+        else:
+            frames = man["characters"].get(char)
+        if frames is None:
             skipped.append(f"unknown character '{char}'")
             continue
         if "headHeight" in payload:
@@ -106,7 +119,7 @@ def main():
 
         for key, changes in (payload.get("adjustments") or {}).items():
             meta = frames.get(key)
-            if not meta:
+            if meta is None:
                 skipped.append(f"{char}/{key}: not in manifest")
                 continue
             for field, value in changes.items():

@@ -6,14 +6,17 @@
 // the renderer reads. So the preview can never drift from what the game shows,
 // and any fix applied elsewhere in the pipeline appears here immediately.
 
-import { loadCoreAssets, loadFrame, frameImage, spriteManifest } from "../src/assets.js";
+import {
+  loadCoreAssets, loadFrame, frameImage, spriteManifest, sharedSpriteKeys, loadSharedImage, getImage,
+} from "../src/assets.js";
 import {
   drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly,
   anchorScreenPos, screenPosToLocal, warmAnchors, EXTRA_ANCHORS,
   REPLACEMENT_KINDS, replacementKind, IMPROVEMENT_KINDS, improvementKind,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
-import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
+import { CHARACTERS, CHARACTER_KEYS, SPRITE_ACTORS, getActor } from "../src/characters.js";
+import { TRANSFORM_POSES } from "../src/config_transform.js";
 import { headHeightTarget, applyHeightScale, hasHeightOverride, heightRatio } from "../src/heights.js";
 import { initTooltips, setHelp } from "./tooltip.js";
 import { makeCharLoader, frameLoaded } from "./lazy_sprites.js";
@@ -49,6 +52,59 @@ const VIEWS = {
   used: { label: "Used in game", keep: (c, k) => isUsed(c, k) },
   all: { label: "All sprites", keep: () => true },
 };
+// Two kinds of entry in the character list are not fighters.
+//
+// SPRITE_ACTORS (Mahoraga) own a full sprite set and are drawn exactly like a
+// fighter, so everything here works on them unchanged — they simply have no
+// kit. Their poses are listed from TRANSFORM_POSES even before any art exists,
+// so the set can be tracked as it arrives rather than appearing all at once.
+//
+// "Other Sprites" is the shared effect/summon art. It has no per-frame
+// placement data at all — the code that spawns each one decides its size and
+// position — so the placement half of the panel does not apply to it and is
+// hidden. What it supports is looking at the art and flagging it.
+const OTHER_KEY = "__other";
+const OTHER_LABEL = "Other Sprites";
+const ACTOR_KEYS = Object.keys(SPRITE_ACTORS);
+
+const isOther = (charKey) => charKey === OTHER_KEY;
+const isActor = (charKey) => ACTOR_KEYS.includes(charKey);
+
+/** Character-ish record for anything selectable, real fighter or not. */
+function actorOf(charKey) {
+  if (isOther(charKey)) return { name: OTHER_LABEL, scale: 1 };
+  return getActor(charKey) || { name: charKey, scale: 1 };
+}
+
+/** Where a shared sprite is drawn from, and how tall the game draws it. Built
+ *  by walking the kits for `sprite:`/`sprites:` references, so it stays true as
+ *  moves change instead of being a second list to maintain. */
+let sharedUsageCache = null;
+function sharedUsage() {
+  if (sharedUsageCache) return sharedUsageCache;
+  sharedUsageCache = new Map();
+  const note = (key, who, label, h) => {
+    if (!key) return;
+    const list = sharedUsageCache.get(key) || [];
+    list.push({ who, label, h });
+    sharedUsageCache.set(key, list);
+  };
+  const walk = (node, who, label) => {
+    if (!node || typeof node !== "object") return;
+    if (typeof node.sprite === "string") note(node.sprite, who, label, node.spriteH);
+    if (Array.isArray(node.sprites)) for (const k of node.sprites) note(k, who, label, node.spriteH);
+    if (typeof node.aura === "string") note(node.aura, who, `${label} (aura)`, node.spriteH);
+    if (typeof node.domainSprite === "string") note(node.domainSprite, who, `${label} (domain)`, node.spriteH);
+    for (const v of Object.values(node)) if (v && typeof v === "object") walk(v, who, label);
+  };
+  for (const key of CHARACTER_KEYS) {
+    const c = CHARACTERS[key];
+    for (const [slot, def] of Object.entries(c.specials || {})) walk(def, c.name, def.name || slot);
+    if (c.ultimate) walk(c.ultimate, c.name, c.ultimate.name || "Ultimate");
+  }
+  return sharedUsageCache;
+}
+
 const HANDLE_R = 7;
 
 const BACKGROUNDS = [
@@ -74,7 +130,25 @@ function statesUsing(charKey, frameKey) {
 }
 
 function allFramesOf(charKey) {
-  return Object.keys(spriteManifest?.characters?.[charKey] || {}).sort();
+  // Grouped by what they are, then alphabetical: technique effects first
+  // (much the largest group and the one most often reviewed), then the
+  // shikigami and other summons, then the domain backdrops.
+  if (isOther(charKey)) {
+    const rank = (k) => (k.startsWith("effect:") ? 0 : k.startsWith("summon:") ? 1 : 2);
+    return sharedSpriteKeys().slice().sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+  }
+  const delivered = Object.keys(spriteManifest?.characters?.[charKey] || {});
+  // An actor lists the poses its transformation needs even before they exist,
+  // so an incomplete set reads as a checklist rather than an empty page.
+  if (isActor(charKey)) return [...new Set([...delivered, ...TRANSFORM_POSES])].sort();
+  return delivered.sort();
+}
+
+/** True for a pose the character is expected to have but nobody has delivered.
+ *  Only actors can be in this state; a fighter's list comes from the manifest,
+ *  so every entry exists by definition. */
+function isPending(charKey, frameKey) {
+  return !isOther(charKey) && !spriteManifest?.characters?.[charKey]?.[frameKey];
 }
 
 /** Poses the pose list offers, filtered by the current view. May be empty —
@@ -89,6 +163,15 @@ function framesOf(charKey) {
 /** The RAW manifest object the renderer reads. `frameMeta` may hand back a
  *  copy, so all mutation must go through this or edits would be discarded. */
 function rawMeta(charKey, frameKey) {
+  // Shared sprites have no manifest entry of their own, so their review flags
+  // live in a section beside the characters. Created on demand: an untouched
+  // sprite should add nothing to the file.
+  if (isOther(charKey)) {
+    if (!spriteManifest) return null;
+    spriteManifest.otherSprites ||= {};
+    spriteManifest.otherSprites[frameKey] ||= {};
+    return spriteManifest.otherSprites[frameKey];
+  }
   return spriteManifest?.characters?.[charKey]?.[frameKey] || null;
 }
 
@@ -240,6 +323,10 @@ function hasSavedEdits(charKey, frameKey) {
 }
 
 function isUsed(charKey, frameKey) {
+  // Every shared sprite is in the game by definition, and an actor's pose is
+  // expected whether or not it has been drawn — neither is filtered out by the
+  // "used in game" views the way an unused sheet cell is.
+  if (isOther(charKey) || isActor(charKey)) return true;
   return statesUsingFrame(charKey, frameKey).length > 0;
 }
 
@@ -321,7 +408,7 @@ function refreshHistoryButtons() {
 // ------------------------------------------------------------------- draw
 
 function spriteScale(charKey, meta) {
-  return CHARACTERS[charKey].scale * state.zoom * (meta.renderScale ?? 1);
+  return actorOf(charKey).scale * state.zoom * (meta.renderScale ?? 1);
 }
 
 /** Restoring a height means going back to the canon-derived value, which is
@@ -335,7 +422,7 @@ function restoreHeadHeight(charKey) {
 // a handle sits exactly where the renderer would put that point.
 
 function viewOpts(charKey, name) {
-  return { scale: CHARACTERS[charKey].scale * state.zoom, facing: 1, name };
+  return { scale: actorOf(charKey).scale * state.zoom, facing: 1, name };
 }
 
 function localToCanvas(charKey, frameKey, name) {
@@ -392,7 +479,7 @@ function drawAnchorHandle(name, active) {
 function drawGhost(charKey, frameKey, alpha, x = canvas.width / 2) {
   if (!rawMeta(charKey, frameKey) || !frameImage(charKey, frameKey)) return;
   drawCharFrame(ctx, charKey, frameKey, x, GROUND_Y, {
-    scale: CHARACTERS[charKey].scale * state.zoom, facing: 1, alpha,
+    scale: actorOf(charKey).scale * state.zoom, facing: 1, alpha,
   });
 }
 
@@ -448,7 +535,7 @@ function render() {
 
     // The head-height bar is a per-character TARGET, independent of any
     // sprite, so an idle can be scaled to meet it instead of dragging it along.
-    const hh = headHeight(state.char);
+    const hh = isOther(state.char) ? 0 : headHeight(state.char);
     if (hh) {
       const headY = GROUND_Y - hh * state.zoom;
       ctx.strokeStyle = "rgba(200, 160, 70, 0.85)";
@@ -473,17 +560,21 @@ function render() {
   // Art streams in per character, so the pose can be selected before its image
   // exists. drawCharFrame silently draws nothing in that case, which is
   // indistinguishable from a broken sprite — say so instead.
-  if (!frameLoaded(state.char, state.frame)) {
+  if (isOther(state.char)) {
+    drawSharedSprite(cx);
+  } else if (isPending(state.char, state.frame)) {
+    drawPendingNotice(cx);
+  } else if (!frameLoaded(state.char, state.frame)) {
     drawCanvasSpinner(cx);
   } else if ($("spinPreview").checked) {
     drawSpinPreview(cx);
   } else {
     drawCharFrame(ctx, state.char, state.frame, cx, GROUND_Y, {
-      scale: CHARACTERS[state.char].scale * state.zoom, facing: 1,
+      scale: actorOf(state.char).scale * state.zoom, facing: 1,
     });
   }
 
-  if ($("showBox").checked) {
+  if ($("showBox").checked && !isOther(state.char) && !isPending(state.char, state.frame)) {
     const meta = rawMeta(state.char, state.frame);
     const s = spriteScale(state.char, meta);
     ctx.strokeStyle = "rgba(255, 120, 160, 0.8)";
@@ -496,9 +587,69 @@ function render() {
 
   // Every anchor the frame carries that has not been switched off. Drawn last
   // so handles are never buried under the art.
-  for (const name of anchorNames(state.char, state.frame)) {
-    if (isAnchorShown(name)) drawAnchorHandle(name, name === state.anchor);
+  if (!isOther(state.char) && !isPending(state.char, state.frame)) {
+    for (const name of anchorNames(state.char, state.frame)) {
+      if (isAnchorShown(name)) drawAnchorHandle(name, name === state.anchor);
+    }
   }
+}
+
+/** A shared effect/summon sprite, drawn at the height the game draws it where
+ *  that is known, and at its own pixel height where it is not. Nothing here is
+ *  adjustable — the point is to see the art as it appears in a match. */
+const sharedTried = new Set();
+
+function drawSharedSprite(cx) {
+  const img = getImage(state.frame);
+  if (!img) {
+    const done = sharedTried.has(state.frame);
+    ctx.fillStyle = "rgba(154, 164, 192, 0.9)";
+    ctx.font = "600 12px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(done ? "not delivered yet" : `loading ${state.frame}…`, cx, GROUND_Y - 150);
+    if (done) {
+      ctx.font = "500 11px Inter, sans-serif";
+      ctx.fillText(state.frame, cx, GROUND_Y - 130);
+    }
+    ctx.textAlign = "left";
+    return;
+  }
+  let h = (gameHeightOf(state.frame) || img.height) * state.zoom;
+  // Domain backdrops are full-screen images rather than sprites; shown whole
+  // instead of overflowing the canvas by a factor of ten.
+  const maxH = GROUND_Y - 20;
+  if (h > maxH) h = maxH;
+  const w = img.width * h / img.height;
+  ctx.drawImage(img, cx - w / 2, GROUND_Y - h, w, h);
+  if ($("showBox").checked) {
+    ctx.strokeStyle = "rgba(255, 120, 160, 0.8)";
+    ctx.setLineDash([4, 4]);
+    ctx.strokeRect(cx - w / 2, GROUND_Y - h, w, h);
+    ctx.setLineDash([]);
+  }
+}
+
+/** An actor pose nobody has delivered yet. Says so plainly rather than showing
+ *  a spinner that will never finish. */
+function drawPendingNotice(cx) {
+  ctx.save();
+  ctx.strokeStyle = "rgba(154, 164, 192, 0.4)";
+  ctx.setLineDash([6, 6]);
+  ctx.strokeRect(cx - 90, GROUND_Y - 260, 180, 260);
+  ctx.setLineDash([]);
+  ctx.fillStyle = "rgba(154, 164, 192, 0.9)";
+  ctx.font = "600 13px Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("not delivered yet", cx, GROUND_Y - 140);
+  ctx.font = "500 11px Inter, sans-serif";
+  ctx.fillText(state.frame, cx, GROUND_Y - 120);
+  ctx.restore();
+}
+
+/** The height the game draws a shared sprite at, from the kit that spawns it. */
+function gameHeightOf(key) {
+  const uses = sharedUsage().get(key) || [];
+  return uses.find((u) => Number.isFinite(u.h))?.h ?? null;
 }
 
 /** Drawn where the sprite will be, so the wait reads as "this pose is coming"
@@ -529,13 +680,54 @@ function drawCanvasSpinner(cx) {
 function drawSpinPreview(cx) {
   const t = performance.now() / 1000;
   drawCharFrame(ctx, state.char, state.frame, cx, GROUND_Y, {
-    scale: CHARACTERS[state.char].scale * state.zoom,
+    scale: actorOf(state.char).scale * state.zoom,
     facing: 1,
     rotation: t * 1.6,
   });
 }
 
 // -------------------------------------------------------------- ui wiring
+
+// Which half of the panel applies. Shared sprites carry no placement data, so
+// showing sliders that write into nothing would be a lie about what they do.
+const PLACEMENT_GROUPS = ["scaleGroup", "offsetGroup", "groundGroup", "anchorGroup",
+                          "heightGroup", "mirrorGroup", "referenceGroup", "resetGroup"];
+
+function applyPanelMode() {
+  const other = isOther(state.char);
+  for (const id of PLACEMENT_GROUPS) $(id)?.toggleAttribute("hidden", other);
+  $("usageGroup")?.toggleAttribute("hidden", !other);
+  if (other) refreshUsageInfo();
+
+  // A pose with no art yet has nothing to place: the controls stay visible so
+  // the panel does not jump around as the set fills in, but they are greyed
+  // and inert rather than pretending to edit something.
+  const pending = !other && isPending(state.char, state.frame);
+  for (const id of ["scaleGroup", "offsetGroup", "groundGroup", "anchorGroup", "mirrorGroup"]) {
+    const group = $(id);
+    if (!group) continue;
+    group.classList.toggle("disabled", pending);
+    for (const input of group.querySelectorAll("input, select, button")) input.disabled = pending;
+  }
+}
+
+/** Who spawns this sprite, and how big the game draws it. */
+function refreshUsageInfo() {
+  const box = $("usageInfo");
+  if (!box) return;
+  const img = getImage(state.frame);
+  const uses = sharedUsage().get(state.frame) || [];
+  const size = img ? `${img.width}×${img.height} delivered` : "not loaded";
+  const drawn = gameHeightOf(state.frame);
+  const lines = [
+    `<b>${state.frame}</b>`,
+    size + (drawn ? ` · drawn ${drawn}px tall in game` : " · size decided by the code that spawns it"),
+  ];
+  lines.push(uses.length
+    ? uses.map((u) => `${u.who} — ${u.label}`).join("<br>")
+    : "No kit references this sprite — it is spawned from code (a stage hazard, a domain, or a shikigami).");
+  box.innerHTML = lines.join("<br>");
+}
 
 function refreshTag() {
   const meta = rawMeta(state.char, state.frame);
@@ -691,7 +883,7 @@ function refreshHeadControl() {
   rememberHead(state.char);
   const hh = headHeight(state.char);
   const changed = Math.abs(hh - state.originalHeads[state.char]) > 1e-4;
-  const cm = CHARACTERS[state.char]?.heightCm;
+  const cm = actorOf(state.char)?.heightCm;
   $("headRange").value = hh.toFixed(1);
   const source = hasHeightOverride(state.char)
     ? (changed ? "hand-set, changed" : "hand-set")
@@ -778,11 +970,16 @@ function syncAll() {
   // and refreshControls would then throw on the missing original and abort the
   // whole repaint. That is what made mirroring look like it did nothing.
   remember(state.char, state.frame);
+  applyPanelMode();
   buildPoseList();
   refreshTag();
   refreshControls();
   rememberInUrl();
-  charLoader.prioritize(state.frame);
+  if (isOther(state.char)) {
+    const key = state.frame;
+    loadSharedImage(key).then(() => { sharedTried.add(key); refreshUsageInfo(); render(); });
+  }
+  else charLoader.prioritize(state.frame);
   refreshLoadState();
   render();
 }
@@ -802,8 +999,9 @@ function setChar(charKey, wantFrame = null) {
   frames.forEach((k) => remember(charKey, k));
   rememberHead(charKey);
   // Art for this character may not be here yet; the panels are driven by the
-  // manifest, so everything except the canvas is correct immediately.
-  charLoader.start(charKey, state.frame);
+  // manifest, so everything except the canvas is correct immediately. Shared
+  // sprites are fetched one at a time in syncAll instead — there is no bundle.
+  if (!isOther(charKey)) charLoader.start(charKey, state.frame);
   syncAll();
 }
 
@@ -1107,9 +1305,14 @@ function clampNum(v, lo, hi) {
 
 async function boot() {
   const charSel = $("charSel");
-  for (const key of CHARACTER_KEYS) {
+  // Fighters first, then the non-fighter entries: an actor with its own sprite
+  // set (Mahoraga), then the shared effect and summon art.
+  for (const key of [...CHARACTER_KEYS, ...ACTOR_KEYS, OTHER_KEY]) {
     const o = document.createElement("option");
-    o.value = key; o.textContent = CHARACTERS[key].name;
+    o.value = key;
+    o.textContent = isOther(key) ? OTHER_LABEL
+      : isActor(key) ? `${actorOf(key).name} (not a fighter)`
+      : CHARACTERS[key].name;
     charSel.appendChild(o);
   }
   charSel.onchange = () => setChar(charSel.value);

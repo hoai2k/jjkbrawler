@@ -384,6 +384,14 @@ export function frameKeys(charKey) {
 // single effect or summon without the whole bundle.
 let sharedJobs = null;
 
+/** Every shared sprite key — the `effect:*` and `summon:*` art that belongs to
+ *  no single fighter. The sprite workbench lists these under "Other Sprites",
+ *  which is the only place they can be reviewed: they are not in the manifest,
+ *  so nothing else enumerates them. */
+export function sharedSpriteKeys() {
+  return groupJobs("shared").map((j) => j.key);
+}
+
 /** One `effect:*` / `summon:*` image on its own. The action workbench lists the
  *  effects a move spawns, and needs their thumbnails without downloading every
  *  effect in the game to show two of them. Resolves true if the key is usable. */

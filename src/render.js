@@ -2,6 +2,7 @@ import { state } from "./state.js";
 import { getImage } from "./assets.js";
 import { getStage } from "./stages.js";
 import { drawCharFrame, currentFrame } from "./sprites.js";
+import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
 import { TRAIL_ALPHA } from "./config_tuning.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
@@ -165,7 +166,12 @@ function drawFighters(ctx) {
     drawShadow(ctx, f);
     drawInstallAura(ctx, f);
 
-    const frameKey = currentFrame(f.charKey, f.animKey, f.animTime);
+    // A transformed fighter (Megumi as Mahoraga) draws from another actor's
+    // sprite set for the duration of the install; everything else about them —
+    // kit, controls, hurtbox — is unchanged.
+    const spriteKey = f.spriteChar || f.charKey;
+    const spriteActor = getActor(spriteKey) || f.char;
+    const frameKey = currentFrame(spriteKey, f.animKey, f.animTime);
     const flicker = f.invuln > 0.1 && Math.floor(f.invuln * 16) % 2 === 0;
     const shakeX = f.shakeMag > 0 ? (Math.random() - 0.5) * f.shakeMag : 0;
     const glowing = ["specialNeutral", "specialSide", "specialDown", "ult", "charge"].includes(f.animKey) || f.installs;
@@ -185,8 +191,8 @@ function drawFighters(ctx) {
     } else {
       drawTrail(ctx, f);
       const m = fighterTransform(f);
-      drawCharFrame(ctx, f.charKey, frameKey, f.x + shakeX, f.y, {
-        scale: f.char.scale,
+      drawCharFrame(ctx, spriteKey, frameKey, f.x + shakeX, f.y, {
+        scale: spriteActor.scale,
         facing: f.facingVis,
         alpha: flicker ? 0.6 : 1,
         rotation: m.rotation,

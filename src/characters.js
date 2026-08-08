@@ -1307,7 +1307,32 @@ export function getCharacter(key) {
   return CHARACTERS[key];
 }
 
+// Drawable actors that are NOT fighters: nobody selects them, they have no kit
+// and no card, but they own a full sprite set so anything that draws a fighter
+// can draw them instead. Mahoraga is one because Megumi's ultimate turns into
+// him (config_transform.js) rather than summoning him beside her.
+export const SPRITE_ACTORS = {
+  mahoraga: {
+    name: "Mahoraga",
+    fullName: "Eight-Handled Sword Divergent Sila Divine General Mahoraga",
+    // Drawn markedly larger than any fighter — the point of the transformation
+    // is that the thing on screen is enormous.
+    scale: 0.95,
+    heightCm: 260,
+    theme: "#e8ecf8",
+    shadow: "rgba(232, 236, 248, 0.4)",
+    anims: SEMANTIC_ANIMS,
+  },
+};
+
+/** A fighter or a sprite-only actor, whichever owns this key. Anything that
+ *  only needs to DRAW should look up through here rather than CHARACTERS, so
+ *  actors work everywhere a fighter does. */
+export function getActor(key) {
+  return CHARACTERS[key] || SPRITE_ACTORS[key] || null;
+}
+
 export function animFor(charKey, animKey) {
-  const char = CHARACTERS[charKey];
-  return (char.anims && char.anims[animKey]) || DEFAULT_ANIMS[animKey] || DEFAULT_ANIMS.idle;
+  const char = getActor(charKey);
+  return (char?.anims && char.anims[animKey]) || DEFAULT_ANIMS[animKey] || DEFAULT_ANIMS.idle;
 }

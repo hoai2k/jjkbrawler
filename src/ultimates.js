@@ -9,6 +9,8 @@ import { clamp, sign, rand } from "./utils.js";
 import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox } from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
 import { applyInstall } from "./specials.js";
+import { TRANSFORMS, TRANSFORM_POSES } from "./config_transform.js";
+import { frameMeta } from "./assets.js";
 import { playSfx, playGrunt } from "./audio.js";
 import { circleRectOverlap, rectsOverlap } from "./utils.js";
 import { ULT_METER_COST, METER_MAX } from "./constants.js";
@@ -29,6 +31,15 @@ function beginUltAction(f, dur, opts = {}) {
   f.animTime = 0;
   f.animKey = "ult";
   f.invuln = Math.max(f.invuln, Math.min(dur + 0.1, 1.2));
+}
+
+// A transform only runs when it is switched on AND every pose it could be asked
+// to draw is in the manifest. A half-delivered set would leave the fighter
+// invisible mid-match, so anything missing falls back to the old behaviour
+// rather than to a hole.
+export function transformReady(cfg) {
+  if (!cfg?.enabled) return false;
+  return TRANSFORM_POSES.every((pose) => !!frameMeta(cfg.actor, pose));
 }
 
 export function performUltimate(f) {
@@ -86,8 +97,27 @@ const DIRECTORS = {
     });
   },
 
-  // Megumi — Mahoraga stalks the stage.
+  // Megumi — Mahoraga. Two shapes, one ultimate: once the sprite set is
+  // delivered Megumi BECOMES him (config_transform.js); until then he stalks
+  // the stage as a separate entity, which is what shipped.
   summon(f, p) {
+    const transform = TRANSFORMS.mahoraga;
+    if (transformReady(transform)) {
+      beginUltAction(f, 0.9);
+      applyInstall(f, {
+        t: p.duration,
+        label: transform.label,
+        color: transform.color,
+        dmgTakenMul: p.selfDamageMul,
+        ...transform.install,
+        // Read by fighter.js when the install expires, and by render.js every
+        // frame while it runs.
+        spriteChar: transform.actor,
+      }, 2);
+      f.spriteChar = transform.actor;
+      state.camera.shake = Math.max(state.camera.shake, 10);
+      return;
+    }
     beginUltAction(f, 0.9);
     applyInstall(f, { t: p.duration, label: "MAHORAGA", color: p.color, dmgTakenMul: p.selfDamageMul }, 2);
     const opp = opponentOf(f);

@@ -49,6 +49,9 @@ export function makeFighter(id, charKey, x, facing) {
     airT: 0, shieldDownSince: -10,
     action: null, charging: null, jabStep: 0, jabResetT: 0,
     counter: null, reflect: null, healing: null, installs: null, armorT: 0,
+    // Set while an ultimate has this fighter wearing another actor's sprite set
+    // (config_transform.js); null means "draw my own body".
+    spriteChar: null,
     cooldowns: { neutral: 0, side: 0, down: 0 },
     throatStrain: 0, throatLock: 0,
     statuses: { burn: null, bleed: null, poison: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 },
@@ -325,7 +328,7 @@ export function ringOut(f) {
   if (state.domain && state.domain.owner === f) state.domain = null;
 
   f.action = null; f.charging = null; f.counter = null; f.reflect = null; f.healing = null;
-  f.installs = null; f.hitstun = 0; f.statuses = { burn: null, bleed: null, poison: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 };
+  f.installs = null; f.spriteChar = null; f.hitstun = 0; f.statuses = { burn: null, bleed: null, poison: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 };
   f.vx = 0; f.vy = 0; f.ledge = null; f.dizzy = 0; f.armorT = 0;
   f.spin = 0; f.spinAngle = 0; f.trail.length = 0;
 
@@ -418,6 +421,9 @@ export function updateFighter(f, dt, input) {
     if (f.installs.selfDrainPerSec) f.damage = Math.min(999, f.damage + f.installs.selfDrainPerSec * dt);
     if (f.installs.t <= 0) {
       popup(f.x, f.y - 170, `${f.installs.label} FADED`, "#9aa4c0", 16);
+      // A transformation ends with the install that carried it: back to your
+      // own body (config_transform.js).
+      if (f.installs.spriteChar) f.spriteChar = null;
       f.installs = null;
     }
   }
