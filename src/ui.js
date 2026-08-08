@@ -908,10 +908,10 @@ export function updateControllerStatus(count) {
   if (count > 0) {
     const joined = state.playerCount;
     const waiting = Math.max(0, Math.min(4, count) - joined);
-    const who = joined === 1 ? "VS CPU" : `${joined} players joined`;
+    const who = joined === 1 ? TEXT.controllers.vsCpu : TEXT.controllers.joined(joined);
     els.controllerStatus.textContent = waiting
-      ? `${who} — press any button on another controller to join`
-      : `${who} — A locks your fighter, A again starts · B backs out · LB/RB corner menus`;
+      ? TEXT.controllers.waiting(who)
+      : TEXT.controllers.allJoined(who);
   }
 }
 
@@ -936,19 +936,28 @@ function menuFocusables() {
   const overlayId = OVERLAY_FOR_PHASE[state.phase];
   if (!overlayId) return [];
   const overlay = els[overlayId];
+  // The roster drops out of the keyboard walk once the player driving it has
+  // locked in: a committed player has no selector to move, so directions take
+  // them to the buttons below instead of putting a highlight back on the grid.
+  // B (Backspace) releases the pick and the cards come back.
+  const gridInert = state.phase === "menu" && state.ready[state.activePicker];
   return [...overlay.querySelectorAll("button, input[type=range]")]
-    .filter((el) => !el.classList.contains("hidden") && el.offsetParent !== null && !el.disabled);
+    .filter((el) => !el.classList.contains("hidden") && el.offsetParent !== null && !el.disabled)
+    .filter((el) => !(gridInert && el.classList.contains("char-card")));
 }
 
 function defaultFocus() {
   const items = menuFocusables();
   if (!items.length) return null;
+  // A locked-in player starts on the start button, not on the roster: their pick
+  // is made, so the only thing left to point at is the match. menuFocusables()
+  // has already dropped the cards in that case, hence the membership test.
   if (state.phase === "menu") {
     const key = state.selection[state.activePicker];
     const current = key
       ? els.characterGrid.querySelector(`[data-character="${key}"]`)
       : els.characterGrid.querySelector(".char-card");
-    if (current) return current;
+    if (current && items.includes(current)) return current;
   }
   if (state.phase === "stageSelect") {
     const first = els.stageGrid.querySelector(".stage-card");
