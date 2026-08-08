@@ -1006,8 +1006,8 @@ This round finishes that transition for the other 17.
 ### What to deliver
 
 **15 new poses per fighter × 17 fighters = 255 sprites, plus one redraw of
-`nobara/dodge_air` — 256 in all.** The 16 they already
-have are correct and stay as they are. What is missing everywhere:
+`nobara/dodge_air` — 256 in all.** The 16 poses they already have are correct
+and stay as they are. What is missing everywhere:
 
 | | Poses to draw |
 |---|---|
