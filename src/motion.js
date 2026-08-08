@@ -15,6 +15,7 @@
 import { state } from "./state.js";
 import { clamp } from "./utils.js";
 import { cyclePhase } from "./sprites.js";
+import { headHeightTarget } from "./heights.js";
 import { SHIELD_MAX, MAX_FALL } from "./constants.js";
 import {
   MOTION as A, SQUASH, SQUASH_DEPTH as S, TRAIL_STRENGTH,
@@ -99,6 +100,16 @@ export function fighterTransform(f) {
   // one-frame `hurt` pose is enough: a body spinning through the air sells the
   // hit far better than the same body sliding through it.
   rot += f.spinAngle;
+
+  // Simulated knockdown: the body rotates about its centre of mass, which for a
+  // standing pose sits half a body-height up — so a fighter tipped 90 degrees
+  // hovers there. Lower them with the tip so the flat body lies ON the floor,
+  // proportional to how far tipped they are, and the same slide carries them
+  // back up as the get-up unwinds.
+  if (f.prone > 0 && f.hitstun <= 0 && f.grounded) {
+    const flatness = Math.min(1, Math.abs(f.spinAngle) / (Math.PI / 2));
+    dy += flatness * (headHeightTarget(f.spriteChar || f.charKey) * 0.55 - 26);
+  }
 
   if (f.dizzy > 0) {
     rot += Math.sin(t * 7 + phase(f)) * A.dizzyWobble;

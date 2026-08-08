@@ -26,6 +26,9 @@ export function ownerStick(f) {
 
 export function hurtbox(f) {
   if (f.ledge) return { x: f.x - 30, y: f.y - 82, w: 60, h: 84 };
+  // Lying flat: long and low, matching what is drawn. High pokes whiff over a
+  // downed fighter, which is most of what makes a knockdown mean anything.
+  if (f.prone > 0 && f.hitstun <= 0 && f.grounded) return { x: f.x - 54, y: f.y - 44, w: 108, h: 44 };
   if (f.crouching) return { x: f.x - 36, y: f.y - 68, w: 72, h: 68 };
   return { x: f.x - 32, y: f.y - 108, w: 64, h: 108 };
 }
@@ -646,6 +649,11 @@ export function applyHit(owner, target, hit, source) {
     let stun = clamp(0.12 + kb * 0.00048 + stunBonus, 0.12, 1.35);
     if (target.char.passive.id === "oldGuard") stun *= 0.75; // barely flinches
     target.hitstun = stun;
+    // A fresh launch overrides a knockdown: getting hit off the floor is being
+    // hit, not lying down. Moves that WANT the victim flat (`knockdown: true`,
+    // e.g. Reggie's sedan) arm the prone timer instead — it starts counting
+    // once they are down and the hitstun has run out (see fighter.js).
+    target.prone = hit.knockdown ? Math.max(target.prone, hit.proneTime ?? 1.1) : 0;
     interruptActions(target);
   }
 

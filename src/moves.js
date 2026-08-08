@@ -14,6 +14,13 @@ function round1(v) {
 // margin so swings connect where they look like they connect.
 const REACH_SCALE = 0.62;
 
+// How far in front of a fighter the ART can visibly reach, in world px. The
+// renderer draws an energy wake from here to the hitbox's far edge whenever a
+// move out-ranges its sprite, so a hit that connects at 160 px is SEEN to
+// connect rather than landing out of thin air. The sprite workbench draws its
+// range target from the same number, so the two cannot drift.
+export const VISIBLE_ART_REACH = 94;
+
 function r(reach) {
   return reach * REACH_SCALE;
 }

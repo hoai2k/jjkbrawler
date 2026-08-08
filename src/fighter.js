@@ -45,7 +45,7 @@ export function makeFighter(id, charKey, x, facing) {
     dashT: 0, dashDir: 0, lastTap: { dir: 0, t: -10 },
     turnLock: 0, landTimer: 0, dropTimer: 0, bufferedAction: null, landLag: 0,
     invuln: 1.4, hitstun: 0, hitPause: 0, shakeMag: 0,
-    dizzy: 0, dodgeStale: 0, lastDodgeAt: -10,
+    dizzy: 0, prone: 0, dodgeStale: 0, lastDodgeAt: -10,
     airT: 0, shieldDownSince: -10,
     action: null, charging: null, jabStep: 0, jabResetT: 0,
     counter: null, reflect: null, healing: null, installs: null, armorT: 0,
@@ -332,7 +332,7 @@ export function ringOut(f) {
 
   f.action = null; f.charging = null; f.counter = null; f.reflect = null; f.healing = null;
   f.installs = null; f.spriteChar = null; f.hitstun = 0; f.statuses = { burn: null, bleed: null, poison: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 };
-  f.vx = 0; f.vy = 0; f.ledge = null; f.dizzy = 0; f.armorT = 0;
+  f.vx = 0; f.vy = 0; f.ledge = null; f.dizzy = 0; f.prone = 0; f.armorT = 0;
   f.spin = 0; f.spinAngle = 0; f.trail.length = 0;
 
   if (f.stocks <= 0) {
@@ -460,6 +460,31 @@ export function updateFighter(f, dt, input) {
       f.vy = Math.min(f.vy + GRAVITY * (state.stageMods.gravityMul || 1) * dt, MAX_FALL);
     } else {
       f.vx *= Math.pow(0.8, dt * 60);
+    }
+    const prevY = f.y;
+    f.wasGrounded = f.grounded;
+    f.x += f.vx * dt;
+    f.y += f.vy * dt;
+    resolvePlatforms(f, prevY);
+    return;
+  }
+
+  // Knocked flat (Reggie's sedan and anything else with `knockdown` on the
+  // hit). The launch itself plays out as normal hitstun; once that has run out
+  // the victim lies where they fell, helpless, then gets back up with a moment
+  // of invulnerability so a knockdown is not a free re-hit loop. Airborne
+  // victims keep falling first — the clock only runs on the floor.
+  if (f.prone > 0 && f.hitstun <= 0) {
+    setAnim(f, "prone");
+    if (f.grounded) {
+      f.prone -= dt;
+      f.vx *= Math.pow(0.72, dt * 60);
+      if (f.prone <= 0) {
+        f.invuln = Math.max(f.invuln, 0.45);
+        dust(f.x, f.y, 8);
+      }
+    } else {
+      f.vy = Math.min(f.vy + GRAVITY * (state.stageMods.gravityMul || 1) * dt, MAX_FALL);
     }
     const prevY = f.y;
     f.wasGrounded = f.grounded;
@@ -762,7 +787,18 @@ function updatePresentation(f, dt) {
 
   // Tumble: spin while reeling, then unwind to upright so a fighter always
   // lands on their feet rather than frozen at whatever angle hitstun ended on.
-  if (f.hitstun > 0 && !f.grounded) {
+  //
+  // Prone comes first: a knocked-down fighter sweeps to flat on their back and
+  // HOLDS there. When the timer ends this branch stops matching and the
+  // existing unwind below stands them back up — π/2 rounds to a target of 0 —
+  // so the get-up animates for free.
+  if (f.prone > 0 && f.hitstun <= 0 && f.grounded && !frameMeta(f.spriteChar || f.charKey, "prone")) {
+    // Simulated only: a real delivered `prone` pose is already lying down and
+    // must not be tipped over on top of that.
+    f.spin = 0;
+    const flat = -f.facing * Math.PI / 2;
+    f.spinAngle += (flat - f.spinAngle) * (1 - Math.pow(0.0005, dt));
+  } else if (f.hitstun > 0 && !f.grounded) {
     f.spinAngle += f.spin * dt;
   } else if (f.spin !== 0 || f.spinAngle !== 0) {
     f.spin *= Math.pow(0.02, dt);

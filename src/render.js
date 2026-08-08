@@ -11,6 +11,7 @@ import { applyCamera, releaseCamera } from "./camera.js";
 import { WORLD, SHIELD_MAX, PARRY_WINDOW } from "./constants.js";
 import { clamp } from "./utils.js";
 import { headHeightTarget } from "./heights.js";
+import { VISIBLE_ART_REACH } from "./moves.js";
 
 export function draw(ctx) {
   ctx.clearRect(0, 0, WORLD.w, WORLD.h);
@@ -22,6 +23,7 @@ export function draw(ctx) {
 
   for (const e of state.entities) if (e.draw) e.draw(ctx);
   drawProjectiles(ctx);
+  drawReachWakes(ctx);
   drawFighters(ctx);
   if (state.debugHitboxes) drawDebug(ctx);
   drawParticles(ctx);
@@ -155,6 +157,64 @@ function drawProjectiles(ctx) {
     ctx.stroke();
     ctx.restore();
   }
+}
+
+// Several kits hit further than any sprite can visibly reach — the art caps at
+// ~94 px in front of the fighter (VISIBLE_ART_REACH) while Mei Mei's heavy
+// connects past 160. Without this, those hits land out of thin air. An energy
+// wake in the fighter's theme colour fills the gap from where the art ends to
+// where the hitbox does, for exactly the active frames of the swing, so what
+// the player SEES connect is what the engine says connected.
+function drawReachWakes(ctx) {
+  for (const hb of state.hitboxes) {
+    if (hb.age < 0 || hb.age > hb.dur) continue;               // active frames only
+    const f = hb.owner;
+    if (!f || f.dead || !f.char || f.hitPause > 0) continue;
+    const facing = hb.facing ?? f.facing;
+    const cy = f.y + hb.oy + hb.h / 2;
+    const halfH = Math.min(hb.h / 2, 44);
+    // Swell and fade across the active window, so the wake reads as the swing
+    // travelling outward rather than as a rectangle switching on.
+    const k = hb.age / hb.dur;
+    const alpha = 0.72 * Math.sin(Math.min(1, k) * Math.PI);
+    const color = f.char.theme || "#8fd3ff";
+    // Forward always; backward too for the down-smash quakes, whose box spans
+    // both sides of the fighter (negative ox).
+    wake(ctx, f.x, cy, facing, hb.ox + hb.w, halfH, alpha, color);
+    wake(ctx, f.x, cy, -facing, -hb.ox, halfH, alpha, color);
+  }
+}
+
+/** One tapered energy blade from the edge of the visible art out to `far`
+ *  world-px in front of `x`, in direction `dir`. No-op when the art covers it. */
+function wake(ctx, x, cy, dir, far, halfH, alpha, color) {
+  if (far - VISIBLE_ART_REACH < 18) return;
+  const startX = x + dir * VISIBLE_ART_REACH;
+  const endX = x + dir * far;
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.globalAlpha = alpha;
+  const grad = ctx.createLinearGradient(startX, 0, endX, 0);
+  grad.addColorStop(0, "rgba(255,255,255,0)");
+  grad.addColorStop(0.55, color);
+  grad.addColorStop(1, "#ffffff");
+  ctx.fillStyle = grad;
+  // A tapered blade: full height at the tip, pinched where it leaves the art.
+  ctx.beginPath();
+  ctx.moveTo(startX, cy - halfH * 0.25);
+  ctx.quadraticCurveTo((startX + endX) / 2, cy - halfH, endX, cy - halfH * 0.7);
+  ctx.quadraticCurveTo(endX + dir * 14, cy, endX, cy + halfH * 0.7);
+  ctx.quadraticCurveTo((startX + endX) / 2, cy + halfH, startX, cy + halfH * 0.25);
+  ctx.closePath();
+  ctx.fill();
+  // A bright crescent at the very tip — the point of contact.
+  ctx.globalAlpha = alpha * 1.3;
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(endX - dir * 8, cy, halfH * 0.8, -1.1, 1.1);
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawFighters(ctx) {

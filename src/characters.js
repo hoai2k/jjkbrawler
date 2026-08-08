@@ -84,6 +84,9 @@ export const DEFAULT_ANIMS = {
   specialDown: { frames: ["r3c2"], fps: 8, loop: false },
   ult: { frames: ["r3c2", "r3c3"], fps: 7, loop: true },
   dizzy: { frames: ["dizzy"], fps: 1, loop: true },
+  // Knocked flat (round-12 art request). Until the pose is delivered the
+  // renderer simulates it: `hurt` swept 90 degrees onto the back (fighter.js).
+  prone: { frames: ["prone"], fallback: ["hurt"], fps: 1, loop: true },
   win: { frames: ["victory"], fps: 1, loop: true },
 };
 
@@ -130,6 +133,9 @@ export const SEMANTIC_ANIMS = {
   specialDown: { frames: ["special_down"], fps: 8, loop: false },
   ult: { frames: ["ult_a", "ult_b"], fps: 7, loop: true },
   dizzy: { frames: ["dizzy"], fps: 1, loop: true },
+  // Knocked flat (round-12 art request). Until the pose is delivered the
+  // renderer simulates it: `hurt` swept 90 degrees onto the back (fighter.js).
+  prone: { frames: ["prone"], fallback: ["hurt"], fps: 1, loop: true },
   win: { frames: ["victory"], fps: 1, loop: true },
 };
 
