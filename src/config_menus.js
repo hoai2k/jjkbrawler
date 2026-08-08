@@ -134,8 +134,8 @@ export const TEXT = {
     backToPlayers: "Your fighters",
     yourKeys: (id) => `Keyboard P${id}:`,
     keyLines: {
-      1: "WASD move · J light · K heavy · L special · I ultimate · U domain · Left Shift shield",
-      2: "Arrows move · , light · . heavy · / special · ' ultimate · ; domain · Right Shift shield",
+      1: "WASD move · J light · K heavy · L special · I ultimate · U domain · Left Shift shield · TFGH steer summons",
+      2: "Arrows move · , light · . heavy · / special · ' ultimate · ; domain · Right Shift shield · 8456 steer summons",
       3: "Gamepad only",
       4: "Gamepad only",
     },
@@ -145,9 +145,10 @@ export const TEXT = {
       ["Shield + direction", "Dodge"],
       ["Tap shield on impact", "Parry"],
       ["D-pad ▲", "Domain Expansion"],
+      ["Right stick", "Steer your summons"],
     ],
     keyboardHint:
-      "Keyboard: P1 uses WASD + J/K/L/I + Left Shift, U for Domain. P2 uses arrows + ,/./&#47;/&#39; + Right Shift, ; for Domain. The D-pad is the domain pad on a controller — move with the left stick.",
+      "Keyboard: P1 uses WASD + J/K/L/I + Left Shift, U for Domain, TFGH to steer summons. P2 uses arrows + ,/./&#47;/&#39; + Right Shift, ; for Domain, 8/4/5/6 to steer summons. The D-pad is the domain pad on a controller — move with the left stick, and the right stick takes over any summon you have on the stage.",
   },
 
   pause: {

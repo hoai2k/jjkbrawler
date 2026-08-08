@@ -10,6 +10,10 @@ const P1_KEYS = {
   // Domain Expansion. Three slots so a fighter with more than one domain can
   // bind them separately; only slot 0 is used by the current roster.
   domain: ["KeyU"], domain2: ["KeyY"], domain3: ["KeyO"],
+  // Summon steering — the keyboard's stand-in for the right stick. A cluster
+  // left of the attack keys, so it is reachable without leaving the WASD hand's
+  // neighbours; see summons.js for what it drives.
+  steerUp: ["KeyT"], steerLeft: ["KeyF"], steerDown: ["KeyG"], steerRight: ["KeyH"],
 };
 
 const P2_KEYS = {
@@ -17,6 +21,9 @@ const P2_KEYS = {
   light: ["Comma", "Numpad1"], heavy: ["Period", "Numpad2"], special: ["Slash", "Numpad3"], ult: ["Quote", "Numpad0"],
   shield: ["ShiftRight", "NumpadEnter"],
   domain: ["Semicolon", "Numpad5"], domain2: ["BracketLeft", "Numpad4"], domain3: ["BracketRight", "Numpad6"],
+  // The numpad is fully spoken for by P2's buttons, so their steering cluster
+  // is the number row in the same 8/4/5/6 shape.
+  steerUp: ["Digit8"], steerLeft: ["Digit4"], steerDown: ["Digit5"], steerRight: ["Digit6"],
 };
 
 const GAME_CODES = new Set([...Object.values(P1_KEYS).flat(), ...Object.values(P2_KEYS).flat(), "Space", "Escape", "Backquote"]);
@@ -30,6 +37,11 @@ let joinedPlayers = 1;
 // movement deadzone, because a controller resting with a drifting stick must
 // not walk itself into the match.
 const JOIN_AXIS = 0.55;
+
+// Right-stick deadzone for summon steering. Wider than the movement stick's,
+// because this stick is normally at rest: a summon that twitches off its hunt
+// because of controller drift is worse than one that needs a deliberate push.
+export const AIM_DEADZONE = 0.34;
 
 // Fallback for environments that deliver key events without `code`
 // (some remote/embedded browsers). Real keyboards always populate `code`.
@@ -134,6 +146,10 @@ function padButtonPressed(pad, i) {
 // the stick, so nothing that was reachable before became unreachable — but a
 // player who moved on the d-pad has to use the stick now, which is why the
 // controls screen calls it out.
+//
+// The RIGHT stick (axes 2/3) steers this player's active summons — nothing
+// else reads it, so a player with no summon out loses nothing by resting a
+// thumb on it.
 function padSnapshot(pad) {
   const axX = Math.abs(pad.axes[0] || 0) > 0.28 ? pad.axes[0] : 0;
   const axY = Math.abs(pad.axes[1] || 0) > 0.42 ? pad.axes[1] : 0;
@@ -141,8 +157,12 @@ function padSnapshot(pad) {
   const right = axX > 0.28;
   const up = axY < -0.5;
   const down = axY > 0.5;
+  const rx = pad.axes[2] || 0;
+  const ry = pad.axes[3] || 0;
   return {
     left, right, up, down,
+    aimX: Math.abs(rx) > AIM_DEADZONE ? rx : 0,
+    aimY: Math.abs(ry) > AIM_DEADZONE ? ry : 0,
     domainP: padButtonPressed(pad, 12),
     domain2P: padButtonPressed(pad, 14),
     domain3P: padButtonPressed(pad, 15),
@@ -161,9 +181,14 @@ function padSnapshot(pad) {
 function keysSnapshot(map) {
   const anyHeld = (codes) => codes.some((c) => held.has(c));
   const anyPressed = (codes) => codes.some((c) => pressed.has(c));
+  // Keyboard steering is all-or-nothing per direction; the pad's analog
+  // magnitude is the richer version of the same axis.
+  const axis = (neg, pos) => (anyHeld(pos || []) ? 1 : 0) - (anyHeld(neg || []) ? 1 : 0);
   return {
     left: anyHeld(map.left), right: anyHeld(map.right),
     up: anyHeld(map.up), down: anyHeld(map.down),
+    aimX: axis(map.steerLeft, map.steerRight),
+    aimY: axis(map.steerUp, map.steerDown),
     jumpP: anyPressed(map.up),
     jumpHeld: anyHeld(map.up),
     lightP: anyPressed(map.light),
@@ -186,12 +211,27 @@ export function blankInput() {
     heavyP: false, heavyHeld: false, specialP: false, ultP: false,
     shieldHeld: false, pauseP: false, dirX: 0,
     domainP: false, domain2P: false, domain3P: false,
+    // Right-stick summon steering, -1..1 each. Analog on a pad, ±1 on keys.
+    aimX: 0, aimY: 0,
   };
 }
 
+// Buttons merge by OR; the analog axes merge by whichever source is pushed
+// furthest, so a pad and a keyboard on the same player cannot cancel out or
+// collapse a stick to a boolean.
+const AXIS_KEYS = new Set(["dirX", "aimX", "aimY"]);
+
 function mergeInputs(a, b) {
   const out = blankInput();
-  for (const key of Object.keys(out)) out[key] = !!(a[key] || b[key]);
+  for (const key of Object.keys(out)) {
+    if (AXIS_KEYS.has(key)) {
+      const av = a[key] || 0;
+      const bv = b[key] || 0;
+      out[key] = Math.abs(av) >= Math.abs(bv) ? av : bv;
+    } else {
+      out[key] = !!(a[key] || b[key]);
+    }
+  }
   return out;
 }
 

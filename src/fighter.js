@@ -62,6 +62,9 @@ export function makeFighter(id, charKey, x, facing) {
     spin: 0, spinAngle: 0, facingVis: facing,
     landT: 0, takeoffT: 0, trail: [], trailTick: 0,
     aiState: null,
+    // The input this fighter last acted on, written by the sim loop. Summons
+    // read it to find their owner's right stick (see summons.js).
+    lastInput: null,
     winner: false,
   };
 }

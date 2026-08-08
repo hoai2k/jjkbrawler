@@ -108,6 +108,28 @@ command grabs, installs, teleports, gambles — plus bespoke signature logic
 (Boogie Woogie's swap, Cursed Speech's throat strain, the Gorilla core, etc.).
 Specials have individual cooldowns (0.8–7 s) instead of resource costs.
 
+### Summons, and steering them
+
+Four specials put a persistent creature on the stage rather than a hitbox:
+Megumi's **Divine Dogs** (two chasers), Geto's **Rainbow Dragon** (chaser),
+Mahito's **Transfigured Human** (bomber — detonates on contact), and Toji's
+**Inventory Curse** (support — hovers at his shoulder and shoots). They are
+lifetime-limited, capped per caster, and die with their owner.
+
+Each one **hunts on its own** the moment it lands, so casting one costs no
+attention. Push the **right stick** (keyboard: `TFGH` for P1, `8/4/5/6` for P2)
+and you take it over instead — it goes where you point until the stick has been
+centred for 1.2 s, then resumes hunting. A driven summon is marked with a white
+chevron and moves 15% faster than a hunting one.
+
+Steering is movement only. Attacks stay automatic — chasers bite on contact,
+bombers detonate, the support summon keeps firing on its cooldown — so driving
+one never means abandoning your own fighter mid-combo. Grounded summons take
+the horizontal axis; the flyer takes both. All of a player's live summons answer
+the same stick, so Megumi's two dogs drive as a pack.
+
+CPU fighters do not pilot; their summons always hunt.
+
 **Cursed Energy meter** (0–100): builds from dealing damage (×0.5), taking
 damage (×0.85), and slowly over time (+1.1/s). At 100, the ultimate button
 spends it all on the character's **cinematic ultimate** — a domain, a meteor,
@@ -197,6 +219,7 @@ hazard can never KO by itself. The CPU steps out of telegraphed zones.
 | Special | L | / | B |
 | Ultimate | I | ' | LB / RB |
 | Shield / dodges | Left Shift | Right Shift | Triggers |
+| Steer summons | T / F / G / H | 8 / 4 / 5 / 6 | Right stick |
 | Pause | Space / Esc | — | Start |
 
 ## 9. Hitboxes vs. visuals

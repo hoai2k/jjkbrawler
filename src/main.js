@@ -158,13 +158,17 @@ function updateSimulation(dt, held) {
       playSfx("countdownGo");
     }
     // fighters frozen during countdown
-    for (const f of state.fighters) updateFighter(f, dt, blankInput());
+    for (const f of state.fighters) updateFighter(f, dt, (f.lastInput = blankInput()));
   } else {
     for (const f of state.fighters) {
       let input;
       if (f.aiState) input = aiInput(f);
       else input = held[f.id] || blankInput();
       if (f.dizzy > 0 || endT > 0) input = blankInput();
+      // Summons update after the fighters and steer off their owner's stick,
+      // so the input a fighter acted on this step is kept where they can read
+      // it rather than threaded through every entity's update().
+      f.lastInput = input;
       updateFighter(f, dt, input);
     }
   }

@@ -10,6 +10,14 @@
 //   bomber  — pursuer that detonates on contact and dies
 //   support — hovers behind its owner and fires projectiles at the target
 //
+// PILOTING. Every summon hunts on its own the moment it lands, so casting one
+// is never worse than it was. Push the RIGHT STICK and the owner takes the
+// reins instead: the summon goes where the stick points until the stick has
+// been at rest for PILOT_RELEASE seconds, then resumes hunting. It keeps
+// attacking on contact either way — you steer it, you do not have to also
+// swing it, which is what makes driving one playable alongside your own
+// fighter. Grounded summons take the horizontal axis only; flyers take both.
+//
 // Summons are lifetime-limited and capped per (owner, id): recasting past the
 // cap dismisses the oldest. They die with their owner's elimination; match
 // reset clears state.entities wholesale.
@@ -22,8 +30,30 @@ import { playSfx } from "./audio.js";
 import { getImage } from "./assets.js";
 import { MOTION } from "./config_tuning.js";
 
+// Seconds of a centred stick before a piloted summon goes back to hunting on
+// its own. Long enough to survive a thumb repositioning mid-drive, short enough
+// that letting go reads as "you have it back" rather than as a stuck summon.
+const PILOT_RELEASE = 1.2;
+
+// A piloted summon moves at this multiple of its hunting speed. Slightly faster
+// is the reward for spending attention on it.
+const PILOT_SPEED_MUL = 1.15;
+
+// Vertical bounds for a flying summon under manual control, so it cannot be
+// driven into the blast zones or under the stage.
+const PILOT_CEILING = 90;
+
 function groundY() {
   return state.platforms.length ? state.platforms[0].y : 568;
+}
+
+// The owner's right stick, or a centred stick for anyone who has no live input
+// this step (CPU fighters, the pre-match countdown). CPUs never pilot: they get
+// the automatic behavior, which is the same one they had before.
+function pilotStick(owner) {
+  const input = owner.lastInput;
+  if (!input || owner.aiState) return { x: 0, y: 0 };
+  return { x: input.aimX || 0, y: input.aimY || 0 };
 }
 
 function nearestTarget(owner, x) {
@@ -72,6 +102,11 @@ export function spawnSummon(owner, cfg) {
     attackCd: cfg.firstAttackDelay ?? 0.5,
     lungeT: 0,
     dead: false,
+    // Piloting. `piloted` latches on the first deliberate push of the right
+    // stick and stays on through momentary re-centring, which is what `idleT`
+    // measures.
+    piloted: false,
+    idleT: 0,
 
     dismiss() {
       if (this.dead) return;
@@ -86,9 +121,54 @@ export function spawnSummon(owner, cfg) {
       this.attackCd -= dt;
       this.lungeT = Math.max(0, this.lungeT - dt);
 
+      const stick = pilotStick(owner);
+      const pushed = stick.x !== 0 || stick.y !== 0;
+      if (pushed) {
+        this.idleT = 0;
+        // The hand-off is worth announcing once: a summon that silently stops
+        // hunting looks broken.
+        if (!this.piloted) {
+          this.piloted = true;
+          ring(this.x, this.y - (cfg.hitH ?? 90) / 2, cfg.color, 60);
+          playSfx("summonAppear", 0.45);
+        }
+      } else if (this.piloted) {
+        this.idleT += dt;
+        if (this.idleT >= PILOT_RELEASE) this.piloted = false;
+      }
+
       const target = nearestTarget(owner, this.x);
-      if (this.behavior === "support") this.updateSupport(dt, target);
+      if (this.piloted) this.updatePiloted(dt, stick, target);
+      else if (this.behavior === "support") this.updateSupport(dt, target);
       else this.updatePursuit(dt, target);
+    },
+
+    // Manual control. Movement comes from the stick; everything else — what it
+    // does when it reaches someone — is the automatic behavior's job, so a
+    // driven summon hits exactly as hard as one that found its own way there.
+    updatePiloted(dt, stick, target) {
+      const speed = (cfg.speed ?? 420) * PILOT_SPEED_MUL;
+      const flies = this.behavior === "support";
+      if (stick.x) {
+        this.x = clamp(this.x + stick.x * speed * dt, 90, 1190);
+        this.dir = sign(stick.x);
+      } else if (target) {
+        // Still face what it would bite, so a summon held steady over an enemy
+        // does not sit there looking the wrong way.
+        this.dir = sign(target.x - this.x) || this.dir;
+      }
+      if (flies) {
+        // Held steady it keeps bobbing, so a parked flyer still reads as alive.
+        const vy = stick.y ? stick.y * speed : Math.sin(this.bob) * 26;
+        this.y = clamp(this.y + vy * dt, PILOT_CEILING, groundY());
+      } else {
+        this.y = groundY();
+        if (stick.x && Math.random() < dt * 6) dust(this.x - this.dir * 20, this.y, 3);
+      }
+      if (!target) return;
+      // Contact resolves through the same code paths as an automatic hunt.
+      if (flies) this.fireSupport(target);
+      else this.tryContact(target);
     },
 
     // chaser + bomber share pursuit; they differ in what contact means.
@@ -102,8 +182,12 @@ export function spawnSummon(owner, cfg) {
       }
       this.y = groundY();
       if (Math.random() < dt * 5) dust(this.x - this.dir * 20, this.y, 3);
-      if (!target) return;
+      if (target) this.tryContact(target);
+    },
 
+    // What touching an enemy means, for both the automatic hunt and a piloted
+    // drive. Bombers spend themselves; chasers bite on a cooldown.
+    tryContact(target) {
       const rect = {
         x: this.x - (cfg.hitW ?? 70) / 2, y: this.y - (cfg.hitH ?? 90),
         w: cfg.hitW ?? 70, h: cfg.hitH ?? 90,
@@ -142,7 +226,14 @@ export function spawnSummon(owner, cfg) {
       this.x += (anchorX - this.x) * Math.min(1, dt * 6);
       this.y += (anchorY - this.y) * Math.min(1, dt * 6);
       this.dir = target ? (sign(target.x - this.x) || this.dir) : owner.facing;
-      if (!target || this.attackCd > 0) return;
+      if (target) this.fireSupport(target);
+    },
+
+    // A support summon's shot, on its own cooldown. Shared with piloted flight,
+    // where the player picks the firing position and the summon still picks the
+    // moment.
+    fireSupport(target) {
+      if (this.attackCd > 0) return;
       this.attackCd = cfg.attack.cd ?? 1.2;
       const proj = spawnProjectile(owner, {
         ...cfg.attack.projectile,
@@ -175,7 +266,10 @@ export function spawnSummon(owner, cfg) {
       // summon art faces left in source unless flagged; mirror to face dir
       ctx.scale(this.dir > 0 ? (cfg.faceRight ? 1 : -1) : (cfg.faceRight ? -1 : 1), 1);
       ctx.shadowColor = cfg.color;
-      ctx.shadowBlur = 14;
+      // A driven summon glows harder than one running itself. With four
+      // fighters and several summons on screen, the player needs to see at a
+      // glance which one their stick is actually moving.
+      ctx.shadowBlur = this.piloted ? 26 : 14;
       if (img) {
         const h = cfg.h ?? 110;
         const w = img.width * h / img.height;
@@ -189,6 +283,30 @@ export function spawnSummon(owner, cfg) {
         ctx.fill();
       }
       ctx.restore();
+
+      // The pilot marker rides above the summon, outside the mirrored and
+      // rotated transform so it never flips or tilts with the art.
+      if (this.piloted) {
+        const top = this.y + hoverBob - (cfg.h ?? 110) - 16;
+        ctx.save();
+        // Pulses, but never dims to the point of being missable. Drawn white
+        // with a dark outline rather than in the summon's theme colour — the
+        // dogs' navy would vanish against half the stages.
+        ctx.globalAlpha = Math.max(0, Math.min(1, fade)) * (0.78 + 0.22 * Math.sin(this.bob * 2));
+        ctx.beginPath();
+        ctx.moveTo(this.x, top + 12);
+        ctx.lineTo(this.x - 9, top);
+        ctx.lineTo(this.x + 9, top);
+        ctx.closePath();
+        ctx.fillStyle = "#ffffff";
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.55)";
+        ctx.lineWidth = 2;
+        ctx.shadowColor = cfg.color;
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
     },
   };
 
