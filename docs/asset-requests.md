@@ -981,7 +981,7 @@ fills them in as they arrive.
 
 # Round 10 — open
 
-## 10A. Retire the sheet cells — 255 sprites across the 17 original fighters
+## 10A. Retire the sheet cells — 256 sprites across the 17 original fighters
 
 The 17 original fighters still run mostly on their **4×5 sprite sheets**. Each
 has 16 semantic poses delivered by later rounds and **20 grid cells** named
@@ -1009,8 +1009,9 @@ This round finishes that transition for the other 17.
 
 ### What to deliver
 
-**15 new poses per fighter × 17 fighters = 255 sprites.** The 16 they already
-have are correct and stay as they are. What is missing everywhere:
+**15 new poses per fighter × 17 fighters = 255 sprites, plus one redraw of
+`nobara/dodge_air` — 256 in all.** The 16 poses they already have are correct
+and stay as they are. What is missing everywhere:
 
 | | Poses to draw |
 |---|---|
@@ -1023,6 +1024,25 @@ Already delivered, do not redraw: `idle_a`, `idle_b`, `run_a`, `run_b`,
 `jump_rise`, `fall`, `hurt`, `guard`, `ledge_hang`, `dizzy`, `victory`,
 `charge`, `attack_air`, `attack_up`, `dodge_roll`, `dodge_air`.
 
+**One exception: `nobara/dodge_air`.** It is on that list but it is flagged
+**Replace** in the workbench, so draw it again for Nobara only. Everyone else's
+`dodge_air` stands.
+
+### The flagged cells this round retires
+
+Eleven cells carry a workbench flag saying the art itself is wrong. None of them
+needs a separate commission — each is a pose already in the table above, and
+drawing that pose retires the flag. They are called out here so the ones that
+matter get a second look rather than being drawn on autopilot.
+
+| Cell | Flag | Drives | Retired by | Watch for |
+|---|---|---|---|---|
+| `nobara/r2c2` | Fix alpha | down heavy | `attack_down` | Two defects, one redraw. An 853 px patch of the original background is still opaque between her sleeve, thigh and shoe (`docs/sprite-fixes/nobara-r2c2-alpha.png`), and the pose is a crouched hand-plant standing in for a *down heavy*. Draw her striking downward at the ground in front, weight dropping onto it — and key the background out. |
+| `nobara/r3c2` | Replace | down special, ultimate | `special_down`, `ult_a` | One cell doing two jobs. The round gives each its own sprite. |
+| `nobara/r3c3` | Replace | ultimate | `ult_b` | Pairs with `ult_a` as the release. |
+| `nobara/dodge_air` | Replace | air dodge | `dodge_air` | The exception noted above — the only pose here outside the 15. |
+| `gojo/r3c0`, `gojo/r3c1`, `gojo/r4c3`, `nobara/r2c0`, `nobara/r3c0`, `nobara/r4c2`, `nobara/r4c3` | Fix crop | see 10D | `special_side`, `ult_a`/`ult_b`, `crouch_attack_a`, `attack_heavy_a`/`_b` | All seven are cut through by the frame edge. Measurements and a marked-up sheet are in 10D; the only instruction they add is to keep the figure fully inside the plate. |
+
 Delivery path as always:
 
 ```
@@ -1031,7 +1051,7 @@ assets/intake/<character>/<pose_key>.png
 
 ### Consistency is the point of this round
 
-These 255 sprites are going to sit beside 16 existing ones per fighter, so
+These 256 sprites are going to sit beside 16 existing ones per fighter, so
 **matching the delivered set matters more than any individual frame looking
 good.** For each fighter, put their `idle_a` beside what you are drawing and
 check:
@@ -1213,3 +1233,36 @@ the move goes live, within about 10 ms.
 that round should be drawn as `attack_heavy_a` + `attack_heavy_b` directly rather
 than as a single `attack_heavy` that would immediately need splitting. Everything
 else in 10A is unchanged.
+
+---
+
+## 10D. Seven cells the extraction cut through
+
+Seven cells are flagged **Fix crop** in the workbench, and all seven turn out to
+be the same defect: opaque art sitting on the image border, because the cell was
+extracted with the figure already touching the edge of its cell. There is no
+edit that recovers them — the pixels were never committed, and the source sheets
+are not in the repo or its history — so they are listed here rather than fixed.
+
+Contact sheet: `docs/sprite-fixes/crop-flagged-diagnosis.png`.
+
+| Cell | Drives | Clipped run (L/R/T/B px) | What is missing |
+|---|---|---|---|
+| `gojo/r3c0` | side special | 3 / 3 / **29** / **14** | hair sliced flat on top, boot soles cut |
+| `gojo/r3c1` | ultimate | 4 / **12** / **28** / 7 | hair sliced flat on top, cursed-energy arc cut at the right |
+| `gojo/r4c3` | crouch attack | **21** / 3 / 1 / **19** | rear hand cut off at the left, boot cut at the bottom |
+| `nobara/r2c0` | side heavy | 4 / 3 / **14** / 4 | the hammer head, cut off above the frame |
+| `nobara/r3c0` | side special | 5 / **17** / **59** / 9 | hair and the slash arc, cut at the top and right |
+| `nobara/r4c2` | crouch attack | **16** / 4 / **14** / **24** | lead hand cut off at the left, shoe cut at the bottom |
+| `nobara/r4c3` | crouch attack | **74** / 5 / 13 / **17** | a 74 px column of coat cut off at the left |
+
+Every one of these already falls inside 10A: they drive `special_side`, `ult`,
+`crouch_attack` and the heavy, all of which 10A and 10C redraw for all 17
+fighters. So there is nothing
+extra to commission — just draw those poses with the figure fully inside the
+plate and a margin around it, and these seven retire with the rest of the cells.
+
+The lesson generalises: **all 344 sheet cells have hard binary alpha and every
+one of them touches its own border.** The flagged seven are the cases where the
+cut lands somewhere the eye catches it. A delivered pose should never have an
+opaque pixel on the image edge.
