@@ -19,7 +19,7 @@ const EFFECT_KEYS = [
   "cursed_tool", "ratio_wave", "soul_isomer", "speech_word", "drum_burst", "soul_touch",
   "aura_gold", "aura_pink", "aura_violet", "aura_orange", "aura_green",
   "boogie_clap", "domain_gamble",
-  // Geto's summoned curses, lifted out of his round-6 art (tools/extract_curses.py)
+  // Geto's summoned curses, cut out of his delivered art (tools/recut_curses.py)
   "curse_a", "curse_b", "curse_c", "curse_d", "curse_dragon",
   // Round 7 — Choso, Mei Mei, Uro, Yuji, Reggie, Gakuganji
   "piercing_blood", "blood_orb", "aura_crimson", "crow", "crow_flock",

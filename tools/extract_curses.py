@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""Cut Geto's summoned curses out of his delivered art into standalone sprites.
+"""SUPERSEDED by tools/recut_curses.py. Kept as the record of the first pass.
+
+This cut fixed rectangles out of the round-6 art, which clipped limbs, dragged
+each spirit's purple energy trail along with it, and took Geto's hand into the
+dragon's crop. The replacement cuts by content instead — see that file for why
+removing the purple first is what makes the rest possible.
+
+It will not run as-is: it reads `assets/intake/_processed/geto/`, which is
+gitignored and long since cleared.
+
+Cut Geto's summoned curses out of his delivered art into standalone sprites.
 
 The round-6 `specialSide` and `specialNeutral` art drew whole extra creatures
 INTO Geto's own sprite. That is wrong for a fighter frame — the curse cannot
