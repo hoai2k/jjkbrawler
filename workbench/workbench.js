@@ -1666,9 +1666,12 @@ function buildPoseList() {
   const frames = framesOf(state.char);
   const hidden = allFramesOf(state.char).length - frames.length;
   const flagged = frames.filter((k) => needsReplacement(state.char, k)).length;
+  // The dimmed ones are counted separately and named for what they are waiting
+  // on, so the number that matters — how many of these are actually yours to
+  // place — can be read off the line rather than counted off the grid.
   $("poseCount").textContent = `${frames.length} shown`
     + (hidden > 0 ? ` · ${hidden} hidden` : "")
-    + (flagged > 0 ? ` · ${flagged} to redraw` : "");
+    + (flagged > 0 ? ` · ${frames.length - flagged} to place · ${flagged} awaiting redraw` : "");
   if (!frames.length) {
     const empty = document.createElement("p");
     empty.className = "note";
@@ -1699,9 +1702,13 @@ function buildPoseEntry(charKey, key, { owner = false } = {}) {
   const sub = owner ? `${actorOf(charKey).name} · ${key}` : label.sub;
   b.innerHTML = sub ? `${label.name}<i class="pose-file">${sub}</i>` : label.name;
   const states = statesUsing(charKey, key);
-  b.title = (owner ? `${charKey}/${key}` : key)
-    + (states.length ? ` — ${states.map(stateLabel).join(", ")}` : " — not drawn by any state");
   const doomed = hasDeleteTag(charKey, key);
+  // The dimmed cells need to say WHY they are dim, or they read as disabled.
+  const requested = needsReplacement(charKey, key) && !doomed;
+  b.title = (owner ? `${charKey}/${key}` : key)
+    + (states.length ? ` — ${states.map(stateLabel).join(", ")}` : " — not drawn by any state")
+    + (requested ? " — already requested for redraw; placing it now is optional,"
+                 + " the replacement is measured from scratch" : "");
   const selected = charKey === state.char && key === state.frame;
   b.className = (selected ? "sel " : "")
     + (isDirty(charKey, key) || variantFlagEdits.has(`${charKey}/${key}`) ? "dirty " : "")
