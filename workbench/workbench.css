@@ -556,3 +556,37 @@ body.drawer-open #actionsView .panel { padding-bottom: 54vh; }
 button.sm { padding: 4px 10px; font-size: 11.5px; }
 button.ghost:disabled { opacity: 0.35; cursor: default; border-color: var(--line); }
 .group.grow { flex: 1; min-width: 220px; }
+
+/* A sheet cell is listed by the action it serves, with the file it lives in
+   underneath — the name on disk is still what an asset request cites. */
+.pose-list button .pose-file {
+  display: block;
+  font-style: normal;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ---- secondary actions: states that borrow another state's sprite ---- */
+.action-rows { display: flex; flex-direction: column; gap: 6px; }
+
+.action-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-row > span { font-size: 12px; color: var(--text); }
+.action-row select { max-width: 190px; }
+.action-row.overridden > span { color: var(--accent, #62dcff); font-weight: 700; }
+.action-row .reset-action {
+  background: none;
+  border: 0;
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0 4px;
+}
+.action-row .reset-action:hover { color: var(--text); }

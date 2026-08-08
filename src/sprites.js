@@ -178,8 +178,32 @@ export function frameFootY(meta) {
 
 /** Animation states that draw this frame, across the character's own overrides
  *  and the shared defaults. Empty means the game never draws it. */
+/** A character's animation table with any workbench reassignments applied.
+ *
+ *  The 17 original fighters came from sprite SHEETS, so one cell often serves
+ *  several states — Maki's `r1c2` is her dash, her dodge, her jab and her
+ *  neutral special at once. `animOverrides` in the manifest lets a state be
+ *  re-pointed at a different sprite without touching characters.js, which is
+ *  what the workbench's secondary-action editor writes. */
+export function animsOf(charKey) {
+  const base = { ...DEFAULT_ANIMS, ...(CHARACTERS[charKey]?.anims || {}) };
+  const overrides = spriteManifest?.animOverrides?.[charKey];
+  if (!overrides) return base;
+  const out = { ...base };
+  for (const [state, frames] of Object.entries(overrides)) {
+    if (!Array.isArray(frames) || !frames.length) continue;
+    out[state] = { ...(base[state] || DEFAULT_ANIMS.idle), frames };
+  }
+  return out;
+}
+
+/** The frames a state draws right now, override included. */
+export function resolvedAnim(charKey, animKey) {
+  return animsOf(charKey)[animKey] || animFor(charKey, animKey);
+}
+
 export function statesUsingFrame(charKey, frameKey) {
-  const anims = { ...DEFAULT_ANIMS, ...(CHARACTERS[charKey]?.anims || {}) };
+  const anims = animsOf(charKey);
   const states = Object.entries(anims)
     .filter(([, a]) => a.frames.includes(frameKey))
     .map(([name]) => name);
@@ -321,7 +345,7 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
 }
 
 export function currentFrame(charKey, animKey, animTime) {
-  const anim = animFor(charKey, animKey);
+  const anim = resolvedAnim(charKey, animKey);
   const idx = Math.floor(animTime * anim.fps);
   const i = anim.loop ? idx % anim.frames.length : Math.min(idx, anim.frames.length - 1);
   return anim.frames[i];
