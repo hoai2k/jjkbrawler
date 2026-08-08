@@ -190,6 +190,29 @@ def centroid(path):
             round((sy / total + 0.5) * scale, 1))
 
 
+# What a measurement writes, and therefore what has to travel with the image.
+# A subset of VARIANT_PLACEMENT in src/sprites.js — the fields this tool sets.
+MEASURED = ["anchors", "bodyTop"]
+
+
+def bank_onto_selected(man, targets):
+    """Copy what was measured onto the variant option the pose is pointing at."""
+    n = 0
+    for char in targets:
+        for pose, entry in ((man.get("variants") or {}).get(char, {})).items():
+            meta = man["characters"].get(char, {}).get(pose)
+            if not meta:
+                continue
+            option = next((o for o in entry["options"] if o["file"] == meta.get("file")), None)
+            if option is None:
+                continue
+            for field in MEASURED:
+                if field in meta and option.get(field) != meta[field]:
+                    option[field] = meta[field]
+                    n += 1
+    return n
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", nargs="*", help="limit to these character keys")
@@ -247,14 +270,22 @@ def main():
                 wrote += 1
                 print(f"  {char}/{key}.{name}: {before} -> {list(point)}")
 
+    # A measurement is a fact about the DRAWING, so it has to land on the variant
+    # option too, not only on the pose that currently mirrors it. Without this a
+    # chevron round-trip in the workbench would drop everything measured here:
+    # switching away banks the pose's fields onto the outgoing option, but the
+    # option seeded before this ran has no anchors to bank back from.
+    banked = bank_onto_selected(man, targets)
+
     for line in missing:
         print("  SKIP " + line)
-    print(f"{wrote} measured, {kept} kept (already placed), {len(missing)} skipped")
+    print(f"{wrote} measured, {kept} kept (already placed), {len(missing)} skipped"
+          + (f", {banked} banked onto the drawing" if banked else ""))
 
     if args.dry_run:
         print("(dry run — manifest not written)")
         return
-    if wrote:
+    if wrote or banked:
         json.dump(man, open(MANIFEST, "w"), indent=1)
         print("manifest updated")
 
