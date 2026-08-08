@@ -9,7 +9,7 @@ import { clamp, sign, rand } from "./utils.js";
 import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox } from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
 import { applyInstall } from "./specials.js";
-import { TRANSFORMS, TRANSFORM_POSES } from "./config_transform.js";
+import { TRANSFORMS, TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "./config_transform.js";
 import { frameMeta } from "./assets.js";
 import { playSfx, playGrunt } from "./audio.js";
 import { circleRectOverlap, rectsOverlap } from "./utils.js";
@@ -39,7 +39,9 @@ function beginUltAction(f, dur, opts = {}) {
 // rather than to a hole.
 export function transformReady(cfg) {
   if (!cfg?.enabled) return false;
-  return TRANSFORM_POSES.every((pose) => !!frameMeta(cfg.actor, pose));
+  const has = (pose) => !!frameMeta(cfg.actor, pose);
+  return TRANSFORM_POSES.every((pose) =>
+    has(pose) || (TRANSFORM_POSE_ALTERNATIVES[pose]?.every(has) ?? false));
 }
 
 export function performUltimate(f) {

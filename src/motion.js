@@ -14,7 +14,7 @@
 
 import { state } from "./state.js";
 import { clamp } from "./utils.js";
-import { framePhase } from "./sprites.js";
+import { cyclePhase } from "./sprites.js";
 import { SHIELD_MAX, MAX_FALL } from "./constants.js";
 import {
   MOTION as A, SQUASH, SQUASH_DEPTH as S, TRAIL_STRENGTH,
@@ -139,9 +139,14 @@ export function fighterTransform(f) {
     // caught mid-pivot: lean against the direction being abandoned
     rot += -f.facing * A.turnLean * clamp(f.turnLock / 0.08, 0, 1);
   } else if (f.animKey === "run") {
-    const k = framePhase(f.charKey, f.animKey, f.animTime);
-    rot += Math.sin(k * TAU) * A.runSway * f.facing;
-    dy -= Math.abs(Math.sin(k * Math.PI)) * A.runBob;
+    // Sway once per stride cycle, bob once per footfall — twice per cycle —
+    // measured against however many frames the run resolved to, so the timing
+    // holds for both the four-frame cycle and the two-frame fallback. The
+    // cycle art draws its own rise and fall (reach low, pass high), so the
+    // procedural bob backs off to half on it rather than doubling the bounce.
+    const { phase: c, frames } = cyclePhase(f.charKey, f.animKey, f.animTime);
+    rot += Math.sin(c * TAU) * A.runSway * f.facing;
+    dy -= Math.abs(Math.sin(c * TAU)) * A.runBob * (frames > 2 ? 0.5 : 1);
   } else if (f.animKey === "idle" || f.animKey === "crouch") {
     const b = t * A.breathRate + phase(f);
     rot += Math.sin(b) * A.idleSway * f.facing;

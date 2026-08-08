@@ -10,7 +10,7 @@ proportions, age, palette, line weight and shading** (10B in
 whoever you are drawing before you draw anything else for them; where `idle_a`
 and an older sheet cell disagree, `idle_a` wins.
 
-`roster_idle.png` is all twenty side by side at **matched figure scale** on a
+`roster_idle.png` is all twenty-three side by side at **matched figure scale** on a
 common floor line — the check that catches a fighter drawn a head too tall, which
 no single-character reference can show you.
 
@@ -19,12 +19,20 @@ reference that silently changes when the art changes is not a reference, and the
 request docs have to keep resolving after a sprite is replaced. Re-run that tool
 when a fighter's idle is deliberately updated.
 
-**Gakuganji, Reggie Star and Uro are not here.** They are being redrawn from
-scratch (9E) precisely because their current art does not match their anime
-designs, so their `idle_a` is what must *not* be matched — use their anime files
-below instead. Once 9E lands, their new idles join the rest.
+**Every fighter has one except Mahoraga.** His set is being redrawn from
+scratch (11A) precisely because his current art does not match the shikigami's
+canon design, so his `idle_a` is what must *not* be matched — his canon is
+`mahoraga_canon.png` until the redraw lands. Gakuganji, Reggie Star and Uro
+were in the same position until round 9E replaced their idles; their
+`<char>_idle.png` files are here now and canonical like everyone else's.
 
 ## `<char>_anime.png` — what the show says they look like
+
+These seeded the initial designs, and they stay — a design question ("what does
+Gakuganji's guitar look like?") is still answered here. But **where a fighter
+has a `<char>_idle.png`, that idle is the canon to draw against**: it carries
+the figure scale, line weight and shading the delivered set actually has, which
+the wiki art does not.
 
 Screen-accurate reference art pulled from
 [jujutsu-kaisen.fandom.com](https://jujutsu-kaisen.fandom.com), used as the

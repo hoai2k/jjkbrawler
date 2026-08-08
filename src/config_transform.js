@@ -14,16 +14,29 @@
 // transformReady() in ultimates.js for the check.
 // ---------------------------------------------------------------------------
 
+import { RUN_CYCLE_FRAMES } from "./characters.js";
+
 // Every pose a transformed fighter can be asked to draw. A set missing any of
 // these would pop holes mid-fight, so the readiness check demands all of them.
 export const TRANSFORM_POSES = [
   "idle_a", "idle_b", "run_a", "run_b", "dash", "jump_rise", "fall", "land",
+  // (run_a/run_b may instead be satisfied by the four-frame run cycle — see
+  // TRANSFORM_POSE_ALTERNATIVES below.)
   "hurt", "crouch_a", "crouch_b", "crouch_attack_a", "crouch_attack_b",
   "guard", "ledge_hang", "dodge_roll", "dodge_air",
   "attack_light_a", "attack_light_b", "attack_heavy", "attack_up", "attack_down",
   "attack_air", "charge", "special_neutral", "special_side", "special_down",
   "ult_a", "ult_b", "dizzy", "victory",
 ];
+
+// The four-frame run cycle (round 12) supersedes the `run_a`/`run_b` pair. A
+// set redrawn after that round delivers the cycle and not the pair, and must
+// not fail the readiness check for lacking art it was told not to draw — so a
+// pose listed here counts as present when every frame of its alternative is.
+export const TRANSFORM_POSE_ALTERNATIVES = {
+  run_a: RUN_CYCLE_FRAMES,
+  run_b: RUN_CYCLE_FRAMES,
+};
 
 export const TRANSFORMS = {
   // Megumi's ultimate. Canon-wise the Ten Shadows user does not become
