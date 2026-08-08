@@ -111,6 +111,25 @@ def main():
         if frames is None:
             skipped.append(f"unknown character '{char}'")
             continue
+        # Which sprite each action draws. The workbench's secondary-action
+        # editor writes these when a state is pointed at a different cell; the
+        # game reads them in animsOf() (src/sprites.js), so characters.js does
+        # not change. An empty list clears an override.
+        if "animOverrides" in payload:
+            table = man.setdefault("animOverrides", {}).setdefault(char, {})
+            for stateName, frames in payload["animOverrides"].items():
+                before = table.get(stateName)
+                if not frames:
+                    table.pop(stateName, None)
+                    applied.append(f"{char}.{stateName}: {before} -> cleared")
+                else:
+                    table[stateName] = list(frames)
+                    applied.append(f"{char}.{stateName}: {before} -> {list(frames)}")
+            if not table:
+                man["animOverrides"].pop(char, None)
+            if not man.get("animOverrides"):
+                man.pop("animOverrides", None)
+
         if "headHeight" in payload:
             heads = man.setdefault("headHeights", {})
             before = heads.get(char)

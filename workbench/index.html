@@ -146,6 +146,11 @@
           <button id="resetHead" class="ghost">Reset to canon height</button>
         </div>
 
+        <div class="group" id="secondaryGroup">
+          <label data-help="The 17 original fighters came from 4×5 sprite &lt;em&gt;sheets&lt;/em&gt;, so one cell often has to serve several actions at once — Maki&apos;s sprint cell is her dash, her dodge, her jab and her neutral special.&lt;br&gt;&lt;br&gt;The pose list names each cell after the action it was drawn as. This section lists the &lt;b&gt;other&lt;/b&gt; actions — the ones borrowing a sprite that belongs to something else — and lets you point each at a different sprite, including the unused cells the sheets left over.&lt;br&gt;&lt;br&gt;A change here is a &lt;em&gt;mapping&lt;/em&gt;, not art: it exports alongside the pose adjustments and is applied to the manifest, so characters.js does not have to change. ↺ puts an action back to the sprite the kit gives it.">Secondary actions <span class="sub" id="secondaryCount"></span></label>
+          <div id="actionRows" class="action-rows"></div>
+        </div>
+
         <div class="group" id="resetGroup">
           <button id="resetFrame" class="ghost">Reset this pose</button>
           <button id="resetChar" class="ghost">Reset character</button>

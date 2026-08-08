@@ -4,7 +4,7 @@ Everything in this file is **outstanding**. Delivered rounds are recorded in
 [asset-requests-history.md](asset-requests-history.md) — including the round
 numbers, so a commit or code comment citing "round 5 art" still resolves.
 
-**Current status: rounds 1–8 delivered. Round 9 is the only open round.**
+**Current status: rounds 1–8 delivered. Rounds 9 and 10 are open.**
 
 The roster is complete: all 23 fighters have a card, 31 poses and their effect
 sprites. Nothing pending blocks play — round 9 is consistency, accuracy and
@@ -972,3 +972,121 @@ whenever the transform is off or the set is incomplete.
 Sprites can be reviewed before then: Mahoraga is already selectable in the
 [sprite workbench](../workbench/), which shows the 31 poses as pending and
 fills them in as they arrive.
+
+---
+
+# Round 10 — open
+
+## 10A. Retire the sheet cells — 255 sprites across the 17 original fighters
+
+The 17 original fighters still run mostly on their **4×5 sprite sheets**. Each
+has 16 semantic poses delivered by later rounds and **20 grid cells** named
+`r{row}c{col}` — 225 of which the game still draws.
+
+The problem is not the naming. It is that **one cell has to serve several
+actions at once**, and the actions differ per fighter:
+
+| Cell | What it serves |
+|---|---|
+| `maki/r1c2` | dash **and** dodge **and** the second half of her jab **and** her neutral special |
+| `gojo/r1c2` | dash **and** dodge |
+| `megumi/r1c2` | dash **and** dodge **and** her down special |
+| `r4c0` (all 17) | crouch **and** land |
+| `r3c0` | 12 different combinations across the roster — side heavy, side special, neutral special, ultimate, in various pairs |
+
+So a sprint pose is what plays when Maki throws a punch, and a crouch is what
+plays when anyone lands. Every one of those actions looks wrong, and no amount
+of re-pointing fixes it because there is no fourth sprite to point at. The
+round-7 fighters (Yuji, Choso, Meimei, Uro, Reggie, Gakuganji) do not have this
+problem: they were generated **one pose per action**, 31 files each, and they
+read correctly because of it.
+
+This round finishes that transition for the other 17.
+
+### What to deliver
+
+**15 new poses per fighter × 17 fighters = 255 sprites.** The 16 they already
+have are correct and stay as they are. What is missing everywhere:
+
+| | Poses to draw |
+|---|---|
+| **Attacks** | `attack_light_a`, `attack_light_b`, `attack_heavy`, `attack_down` |
+| **Techniques** | `special_neutral`, `special_side`, `special_down`, `ult_a`, `ult_b` |
+| **Crouch** | `crouch_a`, `crouch_b`, `crouch_attack_a`, `crouch_attack_b` |
+| **Movement** | `dash`, `land` |
+
+Already delivered, do not redraw: `idle_a`, `idle_b`, `run_a`, `run_b`,
+`jump_rise`, `fall`, `hurt`, `guard`, `ledge_hang`, `dizzy`, `victory`,
+`charge`, `attack_air`, `attack_up`, `dodge_roll`, `dodge_air`.
+
+Delivery path as always:
+
+```
+assets/intake/<character>/<pose_key>.png
+```
+
+### Consistency is the point of this round
+
+These 255 sprites are going to sit beside 16 existing ones per fighter, so
+**matching the delivered set matters more than any individual frame looking
+good.** For each fighter, put their `idle_a` beside what you are drawing and
+check:
+
+- **Same costume, same proportions, same age.** The sheets and the round-3/4/5
+  additions already disagree in places; this round should agree with the
+  *semantic* files, which are the newer and better art.
+- **Same figure scale.** Body height ~290 px on a ~1024×1536 plate, matching
+  their existing `idle_a`. The engine solves the final scale per fighter from
+  `heightCm`, so do not compensate.
+- **Same line weight and shading.** One character's set should look like it was
+  drawn in one sitting.
+- **Facing right**, one subject per file, flat key screen — the standard
+  delivery spec at the top of this file. Warm-palette fighters (Sukuna, Nobara,
+  Momo, Hakari) key on mid-grey `#808080`, everyone else on magenta `#FF00FF`.
+
+### Pose lines
+
+Combine each fighter's character block with the line below. Where a pose is a
+technique, the fighter's own kit decides what it looks like — the special names
+are in `src/characters.js` and on the move list in game.
+
+| Pose | Pose line |
+|---|---|
+| `attack_light_a` | fast opening jab or short slash, lead hand, body square, minimal wind-up |
+| `attack_light_b` | the follow-up strike with the other hand, hips rotated through it — reads as the second half of a two-hit combo |
+| `attack_heavy` | committed heavy blow, full body weight behind it, wide arc |
+| `attack_down` | striking downward at the ground in front, weight dropping onto it |
+| `special_neutral` | performing their **neutral special** — the named technique, mid-execution, with its cursed energy forming but not yet released |
+| `special_side` | their **side special**, moving forward into it |
+| `special_down` | their **down special**, weight low, technique breaking out of the ground or the body |
+| `ult_a` | the wind-up of their **ultimate**: gathering, energy at maximum, before release |
+| `ult_b` | the release of that ultimate, arms and body fully committed |
+| `crouch_a` | crouched low, guard up, alert — not resting |
+| `crouch_b` | the same crouch a fraction lower, weight settled |
+| `crouch_attack_a` | attacking from the crouch, low sweep or upward strike from the knees |
+| `crouch_attack_b` | the follow-through of that low attack |
+| `dash` | sprinting flat out, body angled forward past the leading foot — a running pose, distinct from `run_a`/`run_b` which are the mid-stride cycle |
+| `land` | absorbing a landing, knees bent, one hand near the floor, dust at the feet — distinct from a crouch, which holds |
+
+### The unused cells stay
+
+Each fighter has 5–8 grid cells nothing draws (115 across the roster). **Do not
+delete them.** They are alternate poses the sheets happened to contain, and the
+sprite workbench can now point any action at any sprite — so an unused cell is a
+candidate for a secondary action rather than dead weight. They stay in the
+manifest and stay visible in the workbench under "All sprites".
+
+### Integrating
+
+1. Import with `tools/intake.py`, which registers the new poses.
+2. Point each fighter's kit at them: the animation tables in `src/characters.js`
+   currently name grid cells, and this is what replaces those names. The
+   round-7 fighters' tables are the model — they inherit `SEMANTIC_ANIMS`
+   wholesale and override almost nothing.
+3. Anything not re-pointed keeps working: an action still naming a grid cell
+   draws the grid cell exactly as it does today, so this can land fighter by
+   fighter rather than all at once.
+
+The result is 23 fighters with one sprite per action and no shared cells, which
+is what makes the roster read consistently — and it retires the `r{row}c{col}`
+vocabulary from everything except the leftovers.

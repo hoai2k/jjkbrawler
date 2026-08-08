@@ -10,7 +10,7 @@ import {
   loadCoreAssets, loadFrame, frameImage, spriteManifest, sharedSpriteKeys, loadSharedImage, getImage,
 } from "../src/assets.js";
 import {
-  drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly,
+  drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly, animsOf,
   anchorScreenPos, screenPosToLocal, warmAnchors, EXTRA_ANCHORS,
   REPLACEMENT_KINDS, replacementKind, IMPROVEMENT_KINDS, improvementKind,
 } from "../src/sprites.js";
@@ -63,6 +63,56 @@ const VIEWS = {
 // placement data at all — the code that spawns each one decides its size and
 // position — so the placement half of the panel does not apply to it and is
 // hidden. What it supports is looking at the art and flagging it.
+// A sheet cell usually serves several states at once, so the pose list needs
+// one of them to name it by. Order is "what was this cell drawn as": movement
+// before the attacks that borrow it, because on the original 4x5 sheets row 1
+// is the run row and row 4 the crouch row, and those cells are sprint and
+// crouch poses that attacks were later pointed at for want of anything better.
+const STATE_ORDER = [
+  "idle", "run", "dash", "crouch", "crouchAttack", "jump", "fall", "land",
+  "ledge", "shield", "dodge", "dodge_roll", "dodge_air",
+  "light", "airLight", "sideHeavy", "upHeavy", "downHeavy", "charge",
+  "specialNeutral", "specialSide", "specialDown", "ult", "hurt", "dizzy",
+  "win", "respawn",
+];
+
+const STATE_LABELS = {
+  idle: "Idle", run: "Run", dash: "Dash", crouch: "Crouch",
+  crouchAttack: "Crouch attack", jump: "Jump", fall: "Fall", land: "Land",
+  ledge: "Ledge hang", shield: "Guard", dodge: "Dodge", dodge_roll: "Dodge roll",
+  dodge_air: "Air dodge", light: "Light attack", airLight: "Air attack",
+  sideHeavy: "Side heavy", upHeavy: "Up heavy", downHeavy: "Down heavy",
+  charge: "Charge", specialNeutral: "Special · neutral",
+  specialSide: "Special · side", specialDown: "Special · down",
+  ult: "Ultimate", hurt: "Hurt", dizzy: "Dizzy", win: "Victory",
+  respawn: "Respawn platform",
+};
+
+const stateLabel = (name) => STATE_LABELS[name] || name;
+const stateRank = (name) => {
+  const i = STATE_ORDER.indexOf(name);
+  return i < 0 ? STATE_ORDER.length : i;
+};
+
+/** The state a frame is named by: the first one in STATE_ORDER that draws it.
+ *  Null for a frame nothing draws — an unused sheet cell has no action. */
+function primaryState(charKey, frameKey) {
+  const states = statesUsing(charKey, frameKey);
+  if (!states.length) return null;
+  return states.slice().sort((a, b) => stateRank(a) - stateRank(b))[0];
+}
+
+/** What to call a frame in the UI. Semantic files already say what they are, so
+ *  they keep their own name; a grid cell is shown by the action it serves, with
+ *  the file name kept alongside because that is what is on disk. */
+function frameLabel(charKey, frameKey) {
+  if (!/^r\dc\d$/.test(frameKey)) return { name: frameKey, sub: "" };
+  const primary = primaryState(charKey, frameKey);
+  return primary
+    ? { name: stateLabel(primary), sub: frameKey }
+    : { name: frameKey, sub: "unused" };
+}
+
 const OTHER_KEY = "__other";
 const OTHER_LABEL = "Other Sprites";
 const ACTOR_KEYS = Object.keys(SPRITE_ACTORS);
@@ -114,7 +164,7 @@ const BACKGROUNDS = [
 
 const state = {
   char: "gojo", frame: null, bg: BACKGROUNDS[0][0], zoom: 1.9,
-  originals: {}, originalHeads: {}, originalHeadOverride: {}, undo: [], redo: [],
+  originals: {}, originalHeads: {}, originalHeadOverride: {}, originalAnims: {}, undo: [], redo: [],
   // Which anchor the arrow keys act on — set by whatever you last moved, not by
   // a separate selection step. Every SHOWN anchor is draggable regardless.
   anchor: null,
@@ -686,6 +736,129 @@ function drawSpinPreview(cx) {
   });
 }
 
+// ------------------------------------------------- secondary action editor
+//
+// Which sprite each action draws. The pose list covers the actions a sprite was
+// drawn FOR; this covers the rest — the states that borrow a cell belonging to
+// something else, which on the sheet-era fighters is most of their kit.
+
+/** States that are not the primary owner of the sprite they draw, plus any
+ *  state that has been re-pointed by hand (so a change can be undone even once
+ *  it no longer looks secondary). */
+function secondaryActions(charKey) {
+  if (isOther(charKey) || !spriteManifest?.characters?.[charKey]) return [];
+  const anims = animsOf(charKey);
+  const rows = [];
+  for (const [name, anim] of Object.entries(anims)) {
+    const overridden = !!spriteManifest?.animOverrides?.[charKey]?.[name];
+    anim.frames.forEach((frame, i) => {
+      if (!frame) return;
+      // A state is listed when the sprite it draws was drawn for something
+      // else. A two-frame cycle is listed per slot, since each half can be
+      // borrowing separately.
+      if (!overridden && primaryState(charKey, frame) === name) return;
+      rows.push({
+        name, frame, index: i, overridden,
+        label: anim.frames.length > 1
+          ? `${stateLabel(name)} (${i + 1} of ${anim.frames.length})`
+          : stateLabel(name),
+      });
+    });
+  }
+  return rows.sort((a, b) => stateRank(a.name) - stateRank(b.name) || a.index - b.index);
+}
+
+function setActionFrame(charKey, stateName, index, frameKey) {
+  spriteManifest.animOverrides ||= {};
+  const forChar = (spriteManifest.animOverrides[charKey] ||= {});
+  const original = originalAnimFrames(charKey, stateName);
+  const current = (forChar[stateName] || original || []).slice();
+  current[index] = frameKey;
+  // Back to exactly what the kit gives: drop the override rather than storing a
+  // copy of it, so an export never carries a change that changes nothing.
+  if (original && current.length === original.length && current.every((f, i) => f === original[i])) {
+    delete forChar[stateName];
+  } else {
+    forChar[stateName] = current;
+  }
+  if (!Object.keys(forChar).length) delete spriteManifest.animOverrides[charKey];
+  syncAll();
+}
+
+/** The frames the kit itself gives this state, ignoring any override. */
+function originalAnimFrames(charKey, stateName) {
+  return state.originalAnims[charKey]?.[stateName] ?? null;
+}
+
+function rememberAnims(charKey) {
+  if (state.originalAnims[charKey] || isOther(charKey)) return;
+  const snap = {};
+  // The manifest's overrides are themselves saved state, so "original" means
+  // what is committed — reverting a row returns to the file, not to whatever
+  // the kit said before a previous session's export.
+  for (const [name, anim] of Object.entries(animsOf(charKey))) snap[name] = anim.frames.slice();
+  state.originalAnims[charKey] = snap;
+}
+
+function buildActionRows() {
+  const box = $("actionRows");
+  if (!box) return;
+  const rows = secondaryActions(state.char);
+  const frames = allFramesOf(state.char);
+  $("secondaryCount").textContent = rows.length ? `${rows.length}` : "none";
+  box.innerHTML = "";
+  if (!rows.length) {
+    const note = document.createElement("p");
+    note.className = "note";
+    note.textContent = isOther(state.char)
+      ? "Shared sprites are spawned by code, not by an animation table."
+      : "Every action here draws its own sprite.";
+    box.appendChild(note);
+    return;
+  }
+  for (const row of rows) {
+    const el = document.createElement("div");
+    el.className = "action-row" + (row.overridden ? " overridden" : "");
+    const name = document.createElement("span");
+    name.textContent = row.label;
+    const sel = document.createElement("select");
+    for (const key of frames) {
+      const label = frameLabel(state.char, key);
+      const o = document.createElement("option");
+      o.value = key;
+      o.textContent = label.sub ? `${label.name} · ${label.sub}` : label.name;
+      if (key === row.frame) o.selected = true;
+      sel.appendChild(o);
+    }
+    sel.onchange = () => setActionFrame(state.char, row.name, row.index, sel.value);
+    el.append(name, sel);
+    if (row.overridden) {
+      const reset = document.createElement("button");
+      reset.className = "reset-action";
+      reset.title = "Back to the sprite the kit gives this action";
+      reset.textContent = "↺";
+      reset.onclick = () => setActionFrame(state.char, row.name, row.index,
+        originalAnimFrames(state.char, row.name)?.[row.index]);
+      el.appendChild(reset);
+    }
+    box.appendChild(el);
+  }
+}
+
+/** Actions re-pointed away from what the kit gives them, for the export. */
+function dirtyActions(charKey) {
+  const out = {};
+  const overrides = spriteManifest?.animOverrides?.[charKey] || {};
+  for (const [name, frames] of Object.entries(overrides)) {
+    const original = originalAnimFrames(charKey, name);
+    if (!Array.isArray(frames) || !frames.length) continue;
+    if (!original || frames.length !== original.length || frames.some((f, i) => f !== original[i])) {
+      out[name] = frames;
+    }
+  }
+  return out;
+}
+
 // -------------------------------------------------------------- ui wiring
 
 // Which half of the panel applies. Shared sprites carry no placement data, so
@@ -696,6 +869,7 @@ const PLACEMENT_GROUPS = ["scaleGroup", "offsetGroup", "groundGroup", "anchorGro
 function applyPanelMode() {
   const other = isOther(state.char);
   for (const id of PLACEMENT_GROUPS) $(id)?.toggleAttribute("hidden", other);
+  $("secondaryGroup")?.toggleAttribute("hidden", other);
   $("usageGroup")?.toggleAttribute("hidden", !other);
   if (other) refreshUsageInfo();
 
@@ -737,7 +911,7 @@ function refreshTag() {
   // the Mirror control turned it off.
   const left = !!meta?.faceLeft;
   $("frameTag").innerHTML = `${state.char}/${state.frame}` +
-    (states.length ? ` <span class="state">${states.join(", ")}</span>` : "") +
+    (states.length ? ` <span class="state">${states.map(stateLabel).join(", ")}</span>` : "") +
     (left ? ` <span class="flag">mirrored</span>` : "");
 }
 
@@ -792,17 +966,20 @@ function refreshControls() {
 
   // counted across every character touched this session, since that is what
   // Export now emits
-  let poses = 0, heads = 0, chars = 0;
+  let poses = 0, heads = 0, chars = 0, actions = 0;
   for (const c of Object.keys(state.originals)) {
     const n = dirtyFrames(c).length;
     const headChanged = Math.abs(headHeight(c) - (state.originalHeads[c] ?? headHeight(c))) > 1e-4;
-    if (n || headChanged) chars++;
+    const a = Object.keys(dirtyActions(c)).length;
+    if (n || headChanged || a) chars++;
     poses += n;
+    actions += a;
     if (headChanged) heads++;
   }
-  $("dirtyCount").textContent = poses || heads
-    ? `${poses} pose${poses === 1 ? "" : "s"}`
-      + (heads ? ` + ${heads} head height${heads === 1 ? "" : "s"}` : "")
+  $("dirtyCount").textContent = poses || heads || actions
+    ? [poses ? `${poses} pose${poses === 1 ? "" : "s"}` : "",
+       heads ? `${heads} head height${heads === 1 ? "" : "s"}` : "",
+       actions ? `${actions} action${actions === 1 ? "" : "s"}` : ""].filter(Boolean).join(" + ")
       + (chars > 1 ? ` across ${chars} characters` : "")
     : "none";
   refreshHistoryButtons();
@@ -911,7 +1088,14 @@ function buildPoseList() {
   for (const key of frames) {
     remember(state.char, key);
     const b = document.createElement("button");
-    b.textContent = key;
+    const label = frameLabel(state.char, key);
+    b.innerHTML = label.sub
+      ? `${label.name}<i class="pose-file">${label.sub}</i>`
+      : label.name;
+    const states = statesUsing(state.char, key);
+    b.title = states.length
+      ? `${key} — ${states.map(stateLabel).join(", ")}`
+      : `${key} — not drawn by any state`;
     b.className = (key === state.frame ? "sel " : "")
       + (isDirty(state.char, key) ? "dirty " : "")
       + (needsReplacement(state.char, key) ? "flagged " : "")
@@ -970,7 +1154,9 @@ function syncAll() {
   // and refreshControls would then throw on the missing original and abort the
   // whole repaint. That is what made mirroring look like it did nothing.
   remember(state.char, state.frame);
+  rememberAnims(state.char);
   applyPanelMode();
+  buildActionRows();
   buildPoseList();
   refreshTag();
   refreshControls();
@@ -1195,7 +1381,10 @@ function payloadFor(charKey) {
     payload.headHeight = Number(hh.toFixed(1));
   }
   if (Object.keys(out).length) payload.adjustments = out;
-  return (payload.headHeight !== undefined || payload.adjustments) ? payload : null;
+  const actions = dirtyActions(charKey);
+  if (Object.keys(actions).length) payload.animOverrides = actions;
+  return (payload.headHeight !== undefined || payload.adjustments || payload.animOverrides)
+    ? payload : null;
 }
 
 /** Everything edited this session, across every character.
