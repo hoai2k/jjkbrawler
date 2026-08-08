@@ -32,10 +32,13 @@ Usage:
 
 import argparse
 import os
+import tempfile
 
 import numpy as np
 from PIL import Image, ImageDraw
 from scipy import ndimage
+
+import dekey_fringe
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SPRITES = os.path.join(HERE, "..", "assets", "sprites")
@@ -67,6 +70,29 @@ SPIRITS = [
     ("curse_c", "specialSide", (800, 520)),    # small grey cyclops
     ("curse_d", "specialSide", (1200, 500)),   # brown shaggy cyclops
 ]
+
+# curse_b's far arm has no hand IN THE SOURCE. The artist drew it reaching into
+# the cursed-energy trail and painted the trail over the top, opaquely — checked
+# at every saturation threshold from 0.45 to 0.88, and no green ever appears
+# under the purple. So there is nothing to recover, and the arm ends in a blunt
+# stub wherever the trail is cut away.
+#
+# What it does have is its OWN other hand, in the clear on the near side. That
+# one is mirrored, turned to the far arm's angle and tucked under the forearm,
+# which is a graft rather than a redraw — it is the creature's own anatomy, at
+# its own scale, in its own palette and line weight.
+#
+# Composited BEHIND the creature so the forearm covers the wrist: the join is
+# then hidden by art that was already there, rather than by a blend that has to
+# be got exactly right.
+GRAFT = {
+    "spirit": "curse_b",
+    "hand_box": (1074, 277, 1128, 331),   # the near hand, wrist ring excluded
+    "wrist": (1076, 309),                 # where it meets the forearm
+    "target": (842, 280),                 # a few px inside the far arm's stub
+    "rotate": 20,                         # far arm sits ~20 deg above the near one
+    "scale": 0.95,                        # foreshortened slightly, being further away
+}
 
 # Geto's outstretched hand, and the burst of pink and yellow glow around his
 # fingertips where the dragon is pouring out.
@@ -167,7 +193,89 @@ def trim(rgba):
     return rgba[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
 
 
-def cut_spirit(src, seed):
+def dekey(rgba):
+    """Run the roster's own de-fringe over a cut sprite.
+
+    The spirits are cut from art that was keyed off a magenta screen, so every
+    silhouette carries the usual pink rim — including the near hand, which is
+    then mirrored onto the far arm and brings its rim along. dekey_fringe.py
+    already solves exactly this, judging each edge pixel against the nearest
+    clean one rather than against a fixed threshold, so it is used rather than
+    reimplemented.
+
+    It has to run BEFORE the feather: it refuses art whose alpha is mostly soft,
+    on the reasonable grounds that soft alpha means it is not looking at a keyed
+    edge. Via a temp file because that is the interface it exposes; the cost is
+    one write of a 300x200 PNG."""
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "cut.png")
+        Image.fromarray(rgba).save(path)
+        try:
+            dropped, fixed = dekey_fringe.defringe(path, "magenta")
+            if dropped or fixed:
+                print(f"      de-fringed: {dropped} dropped, {fixed} recoloured")
+        except dekey_fringe.Soft as e:
+            print(f"      de-fringe skipped: alpha too soft ({e})")
+        return np.asarray(Image.open(path).convert("RGBA"))
+
+
+def graft_hand(out):
+    """Mirror curse_b's near hand onto its far arm. Works in source pixels on the
+    un-trimmed canvas, so every number stays a source coordinate."""
+    # Resample PREMULTIPLIED. A transparent pixel still carries a colour, and
+    # scaling or rotating blends it into the visible edge — which is where a
+    # halo comes from. Multiplying by alpha first means transparent pixels
+    # contribute nothing, and the division afterwards restores the colour.
+    src = out.astype(np.float32)
+    a = src[:, :, 3:4] / 255.0
+    src[:, :, :3] *= a
+    im = Image.fromarray(src.astype(np.uint8))
+
+    x0, y0, x1, y1 = GRAFT["hand_box"]
+    patch = im.crop((x0, y0, x1, y1)).transpose(Image.FLIP_LEFT_RIGHT)
+    wx = patch.width - (GRAFT["wrist"][0] - x0)
+    wy = GRAFT["wrist"][1] - y0
+
+    scale = GRAFT["scale"]
+    if scale != 1:
+        patch = patch.resize((round(patch.width * scale), round(patch.height * scale)), Image.LANCZOS)
+        wx *= scale
+        wy *= scale
+    rot = GRAFT["rotate"]
+    if rot:
+        bw, bh = patch.size
+        patch = patch.rotate(rot, resample=Image.BICUBIC, expand=True)
+        th = np.deg2rad(rot)
+        dx, dy = wx - bw / 2, wy - bh / 2
+        wx = dx * np.cos(th) + dy * np.sin(th) + patch.width / 2
+        wy = -dx * np.sin(th) + dy * np.cos(th) + patch.height / 2
+
+    # Re-harden the alpha. Resampling twice — LANCZOS to scale, BICUBIC to
+    # rotate — leaves the fingers semi-transparent, because they are only three
+    # pixels across and every filter pass eats into a structure that thin. The
+    # result reads as a ghost hand beside a solid creature. Threshold it back to
+    # a hard silhouette here; the one deliberate feather pass at the end of the
+    # cut then softens it exactly as much as everything else.
+    pa = np.asarray(patch).astype(np.float32)
+    solid = pa[:, :, 3] > 110
+    # Un-premultiply, then threshold back to a hard silhouette.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        pa[:, :, :3] = np.where(pa[:, :, 3:4] > 0, pa[:, :, :3] * 255.0 / np.maximum(pa[:, :, 3:4], 1), 0)
+    pa[:, :, 3] = np.where(solid, 255, 0)
+    # A transparent pixel still carries a colour, and the feather at the end of
+    # the cut raises some of them back above zero — which is how a magenta rim
+    # reappears on art that was already cleaned. Clear the colour too, so there
+    # is nothing left to resurrect.
+    pa[~solid] = 0
+    patch = Image.fromarray(np.clip(pa, 0, 255).astype(np.uint8))
+
+    tx, ty = GRAFT["target"]
+    layer = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    layer.paste(patch, (round(tx - wx), round(ty - wy)))
+    return np.asarray(Image.alpha_composite(layer, im)).astype(np.int16)
+
+
+def cut_spirit(src, seed, name=None):
     rgba = load(src)
     mask = purple_mask(rgba)
     body = despill(rgba, mask)
@@ -175,9 +283,17 @@ def cut_spirit(src, seed):
     keep = component_at((body[:, :, 3] > SOLID), seed)
     out = body.copy()
     out[~keep] = 0
-    out[:, :, 3] = feather(out[:, :, 3])
+    # Clamp to the creature BEFORE grafting: the graft is deliberately outside
+    # the component, so doing it the other way round would erase the new hand.
     out[~ndimage.binary_dilation(keep, np.ones((3, 3), bool))] = 0
-    return trim(out.astype(np.uint8))
+    if name == GRAFT["spirit"]:
+        out = graft_hand(out)
+    out = dekey(trim(out.astype(np.uint8))).astype(np.int16)
+    # Same guard, now for the whole sprite: nothing transparent keeps a colour,
+    # so the feather below can only soften art that is actually there.
+    out[out[:, :, 3] == 0] = 0
+    out[:, :, 3] = feather(out[:, :, 3])
+    return out.astype(np.uint8)
 
 
 def cut_dragon():
@@ -262,7 +378,7 @@ def main():
 
     rows = []
     for name, src, seed in SPIRITS:
-        after = Image.fromarray(cut_spirit(src, seed))
+        after = Image.fromarray(cut_spirit(src, seed, name))
         before = Image.open(os.path.join(OUT, f"{name}.png")).convert("RGBA")
         rows.append((name, before, after))
         print(f"  {name}: {before.size[0]}x{before.size[1]} -> {after.size[0]}x{after.size[1]}")
