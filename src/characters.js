@@ -583,16 +583,11 @@ export const CHARACTERS = {
     shadow: "rgba(183, 184, 255, 0.36)",
     scale: 0.59,
     stats: { speed: 428, airSpeed: 372, accel: 2760, jump: 770, airJumps: 2, weight: 0.88, friction: 0.84 },
-    anims: {
-      light: { frames: ["r0c2", "r0c3"], fps: 12, loop: false },
-      run: { ...RUN_ANIM, fps: 12, fallbackFps: 9 },  // keeps her slightly slower cadence
-      jump: { frames: ["jump_rise"], fps: 1, loop: true },
-      fall: { frames: ["fall"], fps: 1, loop: true },
-      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r2c0"], fps: 6, loop: false },
-      specialNeutral: { frames: ["r1c2"], fps: 8, loop: false },
-      specialSide: { frames: ["r1c1"], fps: 8, loop: false },
-      specialDown: { frames: ["r3c3"], fps: 6, loop: false },
-      ult: { frames: ["r3c1", "r3c0"], fps: 7, loop: true },
+    // Round 11B delivered her last eighteen poses. Inherits the semantic table;
+    // her slower run cadence and down-special timing are her own, kept.
+    anims: { ...SEMANTIC_ANIMS,
+      run: { ...RUN_ANIM, fps: 12, fallbackFps: 9 },
+      specialDown: { frames: ["special_down"], fps: 6, loop: false },
     },
     light: { dmg: 7.5, reach: 180, speed: 1.05, angle: 0.3, effect: "gust", label: "Broom Sweep", sfx: "whoosh" },
     heavy: { dmg: 14, reach: 194, speed: 1.0, angle: 0.46, effect: "gust", label: "Gale Swing", sfx: "whoosh", shieldMul: 1.5 },
