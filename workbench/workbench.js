@@ -2218,12 +2218,20 @@ async function boot() {
   // warmAnchors needs. Sprite art follows per character, so opening the
   // workbench no longer means downloading the whole roster to edit one pose.
   await loadCoreAssets();
-  warmAnchors(CHARACTER_KEYS);
+  // Actors own a full sprite set and are edited here like anyone else, so their
+  // shipped centres of mass have to be resolved before any of these controls
+  // can move the numbers those defaults are derived from.
+  warmAnchors([...CHARACTER_KEYS, ...ACTOR_KEYS]);
   $("loadState").textContent = "manifest loaded";
 
   const params = new URLSearchParams(location.search);
   const wanted = params.get("char");
-  const startChar = CHARACTER_KEYS.includes(wanted) ? wanted : "gojo";
+  // The same set the dropdown offers. Restricting the deep link to fighters
+  // made Mahoraga selectable but not linkable, which is backwards: a
+  // non-fighter is exactly what someone needs a link to, having no card or
+  // roster tile to find it by.
+  const selectable = [...CHARACTER_KEYS, ...ACTOR_KEYS, OTHER_KEY];
+  const startChar = selectable.includes(wanted) ? wanted : "gojo";
 
   // `?frame=` lets the action workbench hand off a specific pose to edit. It is
   // resolved BEFORE setChar so the pose you were sent to is the one fetched
