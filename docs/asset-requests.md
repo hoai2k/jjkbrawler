@@ -4,11 +4,13 @@ Everything in this file is **outstanding**. Delivered rounds are recorded in
 [asset-requests-history.md](asset-requests-history.md) — including the round
 numbers, so a commit or code comment citing "round 5 art" still resolves.
 
-**Current status: rounds 1–8 delivered. Rounds 9 and 10 are open.**
+**Current status: rounds 1–8 delivered. Rounds 9, 10 and 11 are open.**
 
 The roster is complete: all 23 fighters have a card, 31 poses and their effect
 sprites. Nothing pending blocks play — round 9 is consistency, accuracy and
-polish, and round 10 is finishing the one-sprite-per-action transition.
+polish, round 10 is finishing the one-sprite-per-action transition, and round 11
+redraws Mahoraga, whose set is now a playable body rather than a summon walking
+past and does not hold up to it.
 
 Two sections apply to every other request in this file, so read them first:
 **10B** names each fighter's canonical reference image, and **10C** replaces the
@@ -1274,3 +1276,90 @@ The lesson generalises: **all 344 sheet cells have hard binary alpha and every
 one of them touches its own border.** The flagged seven are the cases where the
 cut lands somewhere the eye catches it. A delivered pose should never have an
 opaque pixel on the image edge.
+
+---
+
+## 11. Redraw Mahoraga from the shikigami's canon design — 31 sprites
+
+### Why
+
+Megumi's ultimate now TRANSFORMS him into Mahoraga — he wears the shikigami and
+the player drives it, rather than watching one walk around beside him
+(`src/config_transform.js`). That puts all 31 poses on screen as a playable
+body, which is a much harder test than a summon walking past, and the round-9
+set does not survive it: **it is not the shikigami's design.**
+
+Set the delivered `idle_a` beside the canon image and the disagreements are not
+details:
+
+| | Canon | Round-9 delivery |
+|---|---|---|
+| Head | Face fully covered, white blade-like plates sweeping back from it | Open face with three visible eyes |
+| Hair | None — plates and a long white tail | Heavy black mane over the shoulders |
+| Wheel | **Brass/gold**, eight spokes with ball finials, sitting close behind the head | **Black**, floating detached well above the head |
+| Body | Chalk white, chain-and-tassel necklace at the collar | Chalk white, no necklace |
+| Dress | Dark tattered skirt, violet sash, violet wrist and ankle wraps | Dark hakama, beige wraps |
+| Weapon | Huge bone/stone sword | None |
+
+All 31 poses are flagged `needsReplacement: "replace"` in the manifest, so
+`python3 tools/list_replacements.py --markdown` lists them and intake clears the
+flags when the new art lands.
+
+### The canon reference
+
+```
+assets/reference/canon/mahoraga_canon.png
+```
+
+That is the full-body shikigami render the game already ships as
+`summons/mahoraga.png`. **It is the authority for the design** — head, wheel,
+necklace, skirt, wraps, tail, sword. It is a standing three-quarter pose, so it
+answers *what he looks like*, not what each action looks like; the poses come
+from the list below.
+
+This is the same relationship 10B sets up for the roster, with one difference:
+Mahoraga's canon is this render rather than an `idle_a`, because his existing
+`idle_a` is the thing being replaced.
+
+### What to deliver
+
+The full transform set — the same 31 poses every round-7 fighter has, since a
+transform draws from all of them and a missing one leaves a hole mid-fight:
+
+| | Poses |
+|---|---|
+| **Stance** | `idle_a`, `idle_b`, `crouch_a`, `crouch_b`, `guard`, `dizzy`, `victory` |
+| **Movement** | `run_a`, `run_b`, `dash`, `jump_rise`, `fall`, `land`, `ledge_hang`, `dodge_roll`, `dodge_air` |
+| **Attacks** | `attack_light_a`, `attack_light_b`, `attack_heavy_a` + `attack_heavy_b`, `attack_up`, `attack_down`, `attack_air_a` + `attack_air_b`, `crouch_attack_a`, `crouch_attack_b`, `charge` |
+| **Techniques** | `special_neutral`, `special_side`, `special_down`, `ult_a`, `ult_b` |
+| **Reaction** | `hurt` |
+
+Pose lines are in **10A**; the wind-up/strike pairs are **10C**. Note the
+attack list uses the `_a`/`_b` pairs rather than the single `attack_heavy` the
+round-9 set delivered — Mahoraga is being redrawn from scratch, so there is no
+reason to deliver the superseded shape.
+
+### Two things specific to him
+
+**Draw the wheel INTO the pose, at the right size and place, but expect it to be
+cut out.** The karma wheel is composited separately at runtime
+(`effect:mahoraga_wheel`) precisely so it hangs level while he tumbles — a wheel
+painted into every pose rolled with his body on a dodge, which is the opposite
+of what it is for. Drawing it in keeps the poses readable and gives the intake
+something to measure against; it gets lifted the same way Geto's curses were
+(`tools/recut_curses.py` is the model).
+
+**He is enormous, and that is the point.** `heightCm: 260` against a roster
+averaging ~175, and `scale: 0.95` on top. Draw him at the same *figure scale* as
+everyone else — body ~290 px on the plate, per the delivery spec — and let the
+engine do the enlarging. Compensating by drawing him bigger on the plate would
+stack with the height solve and put his head off the top of the screen.
+
+### Delivery
+
+```
+assets/intake/mahoraga/<pose_key>.png
+```
+
+Standard spec at the top of this file. He is chalk-white against a dark
+skirt, so **key on magenta `#FF00FF`** — a grey screen would fight the body.

@@ -31,9 +31,19 @@ export const TRANSFORMS = {
   // far better than watching one walk around beside you, and it puts the
   // player in control of the payoff instead of spectating it.
   mahoraga: {
-    // Art not delivered yet (asset request 9G). While this is false Megumi
-    // keeps summoning Mahoraga as a separate stalking entity.
-    enabled: false,
+    // Whose ultimate this is. The loader reads it to fetch the actor's art
+    // alongside that fighter's, because a transform into a sprite set nobody
+    // downloaded draws nothing and the fighter disappears for the duration.
+    fighter: "megumi",
+    // On since round 9G delivered all 31 poses. Megumi now BECOMES Mahoraga
+    // for the duration and the player drives him; the separate stalking entity
+    // in ultimates.js is the fallback for a set that fails transformReady().
+    //
+    // The art is flagged for redraw in round 11 — it does not match the
+    // shikigami's canon design — but a transform in art that needs work still
+    // plays better than watching a summon walk around beside you, so this is
+    // not waiting on that.
+    enabled: true,
     actor: "mahoraga",
     label: "MAHORAGA",
     color: "#e8ecf8",
@@ -46,3 +56,12 @@ export const TRANSFORMS = {
     },
   },
 };
+
+/** Actors a fighter can turn into, so their art can be loaded with the
+ *  fighter's own. Only transforms that are switched ON count: a disabled one
+ *  never runs, and fetching its set would be a download for nothing. */
+export function transformActorsFor(fighterKey) {
+  return Object.values(TRANSFORMS)
+    .filter((t) => t.enabled && t.fighter === fighterKey)
+    .map((t) => t.actor);
+}

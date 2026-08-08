@@ -23,14 +23,22 @@
 // Summons are lifetime-limited and capped per (owner, id): recasting past the
 // cap dismisses the oldest. They die with their owner's elimination; match
 // reset clears state.entities wholesale.
+//
+// THEY CAN ALSO BE KILLED. A summon has hit points and takes damage from any
+// enemy attack that reaches it — melee, projectile, another summon's bite. That
+// makes casting one a real commitment rather than free board presence: the
+// opponent can answer it by hitting it, instead of only by running away from it
+// until the timer runs out. Damage does not knock a summon back; it wears it
+// down and then it bursts.
 
 import { state } from "./state.js";
 import { clamp, sign, rand, rectsOverlap } from "./utils.js";
 import { applyHit, hurtbox, spawnProjectile, ownerStick } from "./combat.js";
-import { burst, dust, ring } from "./particles.js";
+import { burst, dust, ring, popup } from "./particles.js";
 import { playSfx } from "./audio.js";
 import { getImage } from "./assets.js";
 import { MOTION } from "./config_tuning.js";
+import { METER_MAX } from "./constants.js";
 
 // Seconds of a centred stick before a piloted summon goes back to hunting on
 // its own. Long enough to survive a thumb repositioning mid-drive, short enough
@@ -55,6 +63,22 @@ const PILOT_FASTFALL = 1.7;
 // How far up the stick must go to count as a jump. Well above the deadzone, so
 // steering a flyer diagonally never launches a dog.
 const PILOT_JUMP_AXIS = 0.6;
+
+// Hit points by behaviour, when a kit does not name its own. A bomber spends
+// itself on contact, so it is glass; a support summon sits behind its owner
+// where it is hard to reach, so it does not need much either. The chaser is the
+// one that walks into the fight, and the one worth the opponent's time to kill.
+const DEFAULT_HP = { chaser: 46, bomber: 22, support: 34 };
+
+// Killing a summon is worth meter, on the same principle as popping a stage
+// hazard: it took real attacks to do, and it should not be a pure tempo loss
+// for the player who did it.
+const KILL_METER = 6;
+
+function grantMeterForKill(f) {
+  if (!f || f.dead) return;
+  f.meter = clamp(f.meter + KILL_METER, 0, METER_MAX);
+}
 
 function groundY() {
   return state.platforms.length ? state.platforms[0].y : 568;
@@ -150,10 +174,43 @@ export function spawnSummon(owner, cfg) {
     airborne: false,
     jumpArmed: true,
 
+    // Hit points. Scaled off the summon's own reach in the kit config rather
+    // than a flat number: a bomber that dies on contact anyway should not
+    // soak the same punishment as a chaser meant to hold ground for six
+    // seconds.
+    hp: cfg.hp ?? DEFAULT_HP[cfg.behavior || "chaser"] ?? 40,
+    maxHp: cfg.hp ?? DEFAULT_HP[cfg.behavior || "chaser"] ?? 40,
+    hurtT: 0,          // white flash after taking a hit
+    // The box it occupies, published on the entity so combat.js can test
+    // against it without reaching into this module's config.
+    hitW: cfg.hitW ?? 70,
+    hitH: cfg.hitH ?? 90,
+
     dismiss() {
       if (this.dead) return;
       this.dead = true;
       burst(this.x, this.y - (cfg.hitH || 90) / 2, cfg.color, 14, 0.8);
+    },
+
+    /** Take damage from an enemy attack. Returns true if this killed it. */
+    damage(amount, source) {
+      if (this.dead) return false;
+      this.hp -= amount;
+      this.hurtT = 0.12;
+      burst(this.x, this.y - (cfg.hitH ?? 90) / 2, "#ffffff", 6, 0.5);
+      playSfx("hitLight", 0.5, 1.15);
+      if (this.hp > 0) return false;
+      // Destroyed rather than dismissed: bigger burst, a ring, and a shake, so
+      // killing one reads as an achievement rather than as the timer running
+      // out.
+      this.dead = true;
+      burst(this.x, this.y - (cfg.hitH ?? 90) / 2, cfg.color, 26, 1.2);
+      ring(this.x, this.y - (cfg.hitH ?? 90) / 2, cfg.color, 90);
+      playSfx("summonAttack", 0.8, 0.8);
+      state.camera.shake = Math.max(state.camera.shake, 4);
+      popup(this.x, this.y - (cfg.hitH ?? 90) - 20, "DESTROYED", cfg.color, 16);
+      if (source) grantMeterForKill(source);
+      return true;
     },
 
     update(dt) {
@@ -162,6 +219,7 @@ export function spawnSummon(owner, cfg) {
       if (this.t >= this.dur || owner.dead) { this.dismiss(); return; }
       this.attackCd -= dt;
       this.lungeT = Math.max(0, this.lungeT - dt);
+      this.hurtT = Math.max(0, this.hurtT - dt);
 
       const stick = ownerStick(owner);
       const pushed = stick.x !== 0 || stick.y !== 0;
@@ -372,7 +430,33 @@ export function spawnSummon(owner, cfg) {
         ctx.arc(0, -(cfg.h ?? 110) / 2, (cfg.h ?? 110) / 3, 0, Math.PI * 2);
         ctx.fill();
       }
+      // A hit flashes the whole silhouette white, the same read a fighter's
+      // hitlag gives: something landed, and it landed on THIS one.
+      if (this.hurtT > 0 && img) {
+        const h = cfg.h ?? 110;
+        const w = img.width * h / img.height;
+        ctx.globalCompositeOperation = "source-atop";
+        ctx.globalAlpha = Math.min(1, this.hurtT / 0.12) * 0.75;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(-w / 2, -h, w, h);
+      }
       ctx.restore();
+
+      // Health, once it has taken any. Hidden at full so the stage is not
+      // littered with bars for summons nobody has touched.
+      if (this.hp < this.maxHp) {
+        const frac = Math.max(0, this.hp / this.maxHp);
+        const w = 42;
+        const bx = this.x - w / 2;
+        const by = this.y + hoverBob - (cfg.h ?? 110) - 8;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, Math.min(1, fade));
+        ctx.fillStyle = "rgba(6, 9, 18, 0.75)";
+        ctx.fillRect(bx - 1, by - 1, w + 2, 5);
+        ctx.fillStyle = frac > 0.35 ? cfg.color : "#ff6b6b";
+        ctx.fillRect(bx, by, w * frac, 3);
+        ctx.restore();
+      }
 
       // The pilot marker rides above the summon, outside the mirrored and
       // rotated transform so it never flips or tilts with the art.

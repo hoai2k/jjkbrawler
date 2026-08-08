@@ -15235,7 +15235,8 @@
       382.0,
       642.0
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "attack_down": {
     "w": 778,
@@ -15253,7 +15254,8 @@
       410.9,
       788.7
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "attack_heavy": {
     "w": 734,
@@ -15271,7 +15273,8 @@
       388.3,
       692.1
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "attack_light_a": {
     "w": 832,
@@ -15289,7 +15292,8 @@
       271.9,
       745.0
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "attack_light_b": {
     "w": 695,
@@ -15307,7 +15311,8 @@
       275.5,
       750.4
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "attack_up": {
     "w": 469,
@@ -15325,7 +15330,8 @@
       246.7,
       669.3
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "charge": {
     "w": 605,
@@ -15343,7 +15349,8 @@
       300.4,
       756.4
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "crouch_a": {
     "w": 717,
@@ -15361,7 +15368,8 @@
       364.9,
       687.3
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "crouch_attack_a": {
     "w": 758,
@@ -15379,7 +15387,8 @@
       405.2,
       649.5
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "crouch_attack_b": {
     "w": 763,
@@ -15397,7 +15406,8 @@
       377.2,
       754.2
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "crouch_b": {
     "w": 750,
@@ -15415,7 +15425,8 @@
       358.6,
       785.6
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "dash": {
     "w": 864,
@@ -15433,7 +15444,8 @@
       434.4,
       548.8
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "dizzy": {
     "w": 555,
@@ -15451,7 +15463,8 @@
       276.2,
       773.4
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "dodge_air": {
     "w": 645,
@@ -15469,7 +15482,8 @@
       347.4,
       630.8
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "dodge_roll": {
     "w": 714,
@@ -15487,7 +15501,8 @@
       384.5,
       628.9
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "fall": {
     "w": 863,
@@ -15505,7 +15520,8 @@
       415.8,
       648.7
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "guard": {
     "w": 509,
@@ -15523,7 +15539,8 @@
       258.1,
       758.5
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "hurt": {
     "w": 837,
@@ -15541,7 +15558,8 @@
       436.3,
       706.5
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "idle_a": {
     "w": 514,
@@ -15559,7 +15577,8 @@
       257.8,
       766.9
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "idle_b": {
     "w": 519,
@@ -15577,7 +15596,8 @@
       266.1,
       762.8
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "jump_rise": {
     "w": 596,
@@ -15595,7 +15615,8 @@
       284.9,
       625.2
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "land": {
     "w": 832,
@@ -15613,7 +15634,8 @@
       420.5,
       672.5
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "ledge_hang": {
     "w": 532,
@@ -15635,7 +15657,8 @@
       422.0,
       75.7
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "run_a": {
     "w": 884,
@@ -15653,7 +15676,8 @@
       398.4,
       691.6
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "run_b": {
     "w": 841,
@@ -15671,7 +15695,8 @@
       410.5,
       709.3
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "special_down": {
     "w": 872,
@@ -15689,7 +15714,8 @@
       454.6,
       736.7
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "special_neutral": {
     "w": 845,
@@ -15707,7 +15733,8 @@
       371.4,
       725.7
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "special_side": {
     "w": 799,
@@ -15725,7 +15752,8 @@
       363.4,
       668.1
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "ult_a": {
     "w": 699,
@@ -15743,7 +15771,8 @@
       413.6,
       776.9
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "ult_b": {
     "w": 899,
@@ -15761,7 +15790,8 @@
       383.5,
       755.3
      ]
-    }
+    },
+    "needsReplacement": "replace"
    },
    "victory": {
     "w": 559,
@@ -15779,7 +15809,8 @@
       284.5,
       763.8
      ]
-    }
+    },
+    "needsReplacement": "replace"
    }
   }
  },

@@ -1,6 +1,7 @@
 import { CHARACTER_KEYS, SPRITE_ACTORS } from "./characters.js";
 import { applyAllHeightScales } from "./heights.js";
 import { STAGES } from "./stages.js";
+import { transformActorsFor } from "./config_transform.js";
 
 export const images = new Map();
 export let spriteManifest = null;
@@ -465,6 +466,14 @@ export function matchAssetsPending(charKeys, stageKey) {
 
 function matchGroupIds(charKeys, stageKey) {
   const ids = [...new Set(charKeys.filter(Boolean).map((k) => `char:${k}`))];
+  // A fighter who can TRANSFORM needs the actor's art too. It is not optional
+  // the way a summon's is: an ultimate that swaps the sprite set for one that
+  // was never fetched draws nothing at all, and the fighter vanishes for the
+  // duration. Megumi is the only case today (Mahoraga), and it costs one extra
+  // set only when he is actually in the match.
+  for (const key of charKeys.filter(Boolean)) {
+    for (const actor of transformActorsFor(key)) ids.push(`char:${actor}`);
+  }
   if (stageKey) ids.push(`stage:${stageKey}`);
-  return ids;
+  return [...new Set(ids)];
 }

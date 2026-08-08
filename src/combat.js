@@ -69,6 +69,35 @@ export function spawnMelee(owner, cfg) {
   });
 }
 
+// ------------------------------------------------------------ hitting summons
+//
+// A summon is a target, not just a threat. Every enemy attack that overlaps one
+// wears it down, and enough of them destroy it — so answering a shikigami is
+// something a player can DO, rather than something they wait out.
+//
+// Deliberately not a fighter: no knockback, no hitstun, no shield, no percent.
+// It has hit points and it bursts. Treating it as a fighter would mean a summon
+// could be launched off the stage, which turns every summon into a free KO
+// setup for whoever hits it hardest.
+
+/** The box a summon occupies, in the same shape as a fighter's hurtbox. */
+export function summonBox(s) {
+  const w = s.hitW ?? 70;
+  const h = s.hitH ?? 90;
+  return { x: s.x - w / 2, y: s.y - h, w, h };
+}
+
+/** Live summons an attacker is entitled to hit: anyone else's. */
+function enemySummons(attacker) {
+  const out = [];
+  for (const e of state.entities) {
+    if (e.kind !== "summon" || e.dead || !e.damage) continue;
+    if (e.owner === attacker) continue;
+    out.push(e);
+  }
+  return out;
+}
+
 export function hitboxRect(hb) {
   const o = hb.owner;
   const facing = hb.facing ?? o.facing;
@@ -104,6 +133,18 @@ export function updateHitboxes(dt) {
         rec.nextAt = hb.age + hb.rehitRate;
         hb.hits.set(target, rec);
       }
+    }
+    // Summons share the hitbox's own re-hit bookkeeping, so a multi-hit move
+    // rakes one the same number of times it would rake a fighter.
+    for (const s of enemySummons(o)) {
+      let rec = hb.hits.get(s);
+      if (rec && (rec.count >= hb.maxHits || hb.age < rec.nextAt)) continue;
+      if (!rectsOverlap(rect, summonBox(s))) continue;
+      s.damage(hb.dmg, o);
+      if (!rec) rec = { count: 0, nextAt: 0 };
+      rec.count += 1;
+      rec.nextAt = hb.age + hb.rehitRate;
+      hb.hits.set(s, rec);
     }
   }
 }
@@ -229,6 +270,24 @@ export function updateProjectiles(dt) {
 
     let remove = p.dur <= 0 || p.x < -160 || p.x > 1440 || p.y > 1050;
     if (remove && p.explode && p.dur <= 0) explodeProjectile(p);
+
+    // Summons are hit before fighters are considered, so a shikigami standing
+    // between its owner and a projectile actually blocks it — which is half the
+    // point of putting one on the stage. A piercing shot carries on through.
+    if (!remove) {
+      for (const s of enemySummons(p.owner)) {
+        if (p.hit.has(s)) continue;
+        if (!circleRectOverlap(p.x, p.y, p.r, summonBox(s))) continue;
+        p.hit.add(s);
+        s.damage(p.dmg, p.owner);
+        burst(p.x, p.y, p.color, 10, 0.7);
+        if (!p.pierce) {
+          if (p.explode) explodeProjectile(p);
+          remove = true;
+          break;
+        }
+      }
+    }
 
     if (!remove && target && target.respawnTimer <= 0 && !p.hit.has(target)) {
       const box = hurtbox(target);
