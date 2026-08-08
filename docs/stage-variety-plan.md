@@ -91,3 +91,80 @@ Branch: `claude/board-gameplay-variety-audit-9kifjf` → merge to `main` when do
 Hazard damage 4–8%, fixed light knockback angled inward/upward, never a spike,
 ≥1s telegraph, one gimmick per stage, main-platform ledges always work, KO
 impossible from a hazard alone.
+
+---
+
+# Phase 2 — Platform configurations (follow-up request)
+
+Goal: break the uniform "2 side + 1 top" structure. Every board keeps its main
+(lowest) platform at its current height; above it sit **2–6** other platforms
+in one of a fixed set of archetypes (no random variation).
+
+## Reach budget (measured)
+
+Jump impulses are 710–800 (`characters.js`) at gravity 2350
+(`constants.js`): single-jump rise **107–136 px**, single + air jump
+**~198–250 px** (air jump = 92% power). The game's existing tier gap (main →
+side) is 140 px — already a double-jump step for everyone. Rules derived:
+
+- **Vertical step between adjacent tiers: ≤ 140 px** (≤ 180 absolute max).
+- **Highest platform y ≥ 235**, so a full single jump from it (max 136 px)
+  stays below the top of the board (y = 0). Blast top is −420 — far away.
+- Every platform must be reachable via a chain of such steps with horizontal
+  overlap/adjacency (checked by `tools/audit_stage_reach.mjs`).
+- Main platforms keep their current y (566–584); spawn/respawn x (250–1030)
+  always has the main below it.
+
+## Archetype set (researched against Smash stage design)
+
+| Archetype | Model | Shape |
+|---|---|---|
+| Crossroads | Battlefield | 2 side + 1 top triangle (the classic) |
+| Arena | Pokémon Stadium | 2 platforms, open sky above — juggles and KOs off the top |
+| Skyline | Big Battlefield | 5 platforms in 3 tiers — vertical playground |
+| Ribcage | Dracula's Castle | 6 platforms in 3 tiers (paired with phasing so ~1–2 are out at a time) |
+| Staircase | Yoshi's Island | ascending terraces |
+| Islands | Fountain of Dreams | 3 small refuge platforms at varied heights |
+| Gallery | Hyrule Temple corridor | a row of same-height rafters (a "second floor") |
+| Twin towers | Frigate Orpheon | 2 stacks left/right, nothing across the middle |
+| Overpass | Halberd deck | one wide bridge platform + small high perches |
+| Tower | Luigi's Mansion | a centre stack climbing off wide low ledges |
+| Orbit field | Smashville ×4 | several small moving platforms (moving ⇒ more of them) |
+
+## Per-stage assignment
+
+| Stage | Archetype | Others | Why |
+|---|---|---|---|
+| trainingBridge | Crossroads (unchanged) | 3 | stays the declared neutral board |
+| quietHall | Arena (2 wide rafters, y 438) | 2 | open sky suits the pure-melee hush |
+| floodedGate | Islands (2 low + 1 high, small) | 3 | refuge rocks above the surge |
+| shibuyaNight | Skyline (3 tiers to y 240) | 5 | the city climbs |
+| curseMaw | Arena ("molars", y 442) | 2 | more air = more room to dodge chomps |
+| gardenSteps | Staircase (kept) | 3 | already themed |
+| lanternCorridor | Gallery (3 rafters, y 428) | 3 | lanterns land ON the rafters now |
+| sunkenCrossing | Arena (2 × w300 lanes) | 2 | long slides need open floor |
+| neonSplit | Twin towers (2+2, clear centre) | 4 | the bolt owns the middle |
+| boneSanctum | Ribcage (6, three tiers) | 6 | more bones to phase |
+| bridgeDuel | Arena (2 torii roofs) | 2 | duel purity over a moving floor |
+| academyHall | Transforming (now 4 plats, 4 layouts) | 4 | moving ⇒ more platforms |
+| mistPier | Islands (2 docks + lantern post) | 3 | low, memorable shapes for the fog |
+| crosswalkRush | Overpass (w520 bridge + 2 signs) | 3 | the pedestrian bridge over traffic |
+| cursedTeeth | Crossroads (tight centre funnel) | 3 | fangs fall through the funnel |
+| riverGate | Islands (asymmetric, spread) | 3 | wind matters between far platforms |
+| schoolWing | Twin towers (balconies 2+2) | 4 | windows and walkways |
+| emptyCity | Ruins: 2 low + **2 crumbling rooftops** | 4 | decay, doubled |
+| billboardRoof | Tower (2 ledges + mid + strike top) | 4 | lightning wants a summit |
+| domainCore | Orbit field (4 orbiting shards) | 4 | moving ⇒ more platforms |
+
+## Phase 2 checklist
+
+- [x] stages.js: new layouts per the table
+- [x] stage_fx.js: academyHall 4-platform layouts; emptyCity multi-rooftop
+      crumble; domainCore even orbit phases for N platforms; lantern &
+      falling fang land on the topmost surface under their x (rafters!)
+- [x] tools/audit_stage_reach.mjs: static reachability + height-cap audit
+      (it caught two real flaws pre-fix: Crosswalk's overpass was a 168px
+      hop, and River Gate's mid platform was only reachable from above)
+- [x] Verify: audit 0 errors/0 warnings; full smoke suite green on all 20
+      boards; screenshots confirm skyline/ribcage/overpass/tower/orbits
+- [x] Docs (game-mechanics §6 note) + merge to main
