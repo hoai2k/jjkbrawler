@@ -12,7 +12,11 @@ This tool:
   3. downscales to a game-relevant resolution,
   4. reports before/after so regressions are visible.
 
-Idempotent — safe to re-run after every art delivery.
+Idempotent — safe to re-run after every art delivery. That property is load
+bearing and was once broken: the speck filter used to measure blobs at `a >= 40`
+AFTER the art had been downscaled, so every re-run found the softened edges of
+small features below the bar and deleted them. It now measures the visible
+footprint, which resampling preserves.
 
 Usage:  python3 prep_effects.py [--dirs effects,summons] [--max 700] [--dry-run]
 """
@@ -27,7 +31,8 @@ from scipy import ndimage
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "sprites")
 
 ALPHA_FLOOR = 8       # below this is treated as fully transparent
-MIN_SPECK_PX = 40     # isolated blobs smaller than this are keying noise
+MIN_SPECK_PX = 40     # isolated blobs smaller than this are keying noise,
+                      # measured on the VISIBLE footprint — see prep() for why
 
 
 def prep(path, max_dim, dry_run=False):
@@ -35,12 +40,27 @@ def prep(path, max_dim, dry_run=False):
     h0, w0 = img.shape[:2]
     a = img[:, :, 3]
 
+    # Sized on VISIBLE pixels, not solid ones, and this is the difference between
+    # a tool that is idempotent and one that is not. Downscaling softens a small
+    # feature's edges, so measuring it at `a >= 40` gives a smaller count every
+    # time it is resampled: re-running would keep finding "new" specks and eat
+    # them. On aura_amber a second run deleted 144 px in 5 blobs, which were
+    # embers thrown off the aura. `a > ALPHA_FLOOR` is stable under resampling
+    # because it counts the same footprint each time.
     solid = a >= 40
+    visible = a > ALPHA_FLOOR
     if solid.any():
         labels, n = ndimage.label(solid, structure=np.ones((3, 3), np.int8))
-        counts = np.bincount(labels.ravel())
+        # Grow each component over its own soft skirt before counting, so a blob
+        # is judged on the size it reads at, not on its opaque core.
+        footprint = ndimage.label(visible, structure=np.ones((3, 3), np.int8))[0]
+        counts = np.bincount(footprint.ravel())
         counts[0] = 0
-        keep_ids = np.nonzero(counts >= MIN_SPECK_PX)[0]
+        # A solid component survives if the visible blob it sits inside is big
+        # enough; keying noise is small by both measures.
+        owner = np.zeros(n + 1, dtype=np.int64)
+        owner[labels[solid]] = footprint[solid]
+        keep_ids = np.nonzero(counts[owner] >= MIN_SPECK_PX)[0]
         if len(keep_ids):
             # keep only pixels near a surviving component (preserves soft glow)
             keep_mask = np.isin(labels, keep_ids)
