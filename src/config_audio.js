@@ -12,7 +12,9 @@
 // the file; use gain when the file is right and only its role in the mix is
 // wrong.
 //
-// Generation prompts for all of these live in docs/audio-requests.md.
+// Generation prompts for all of these live in docs/audio-requests-history.md —
+// that round is delivered, but the prompts are what tools/generate_sfx.py reads
+// to regenerate or re-roll a file, so they stay live input.
 // ---------------------------------------------------------------------------
 
 export const SFX_DIR = "assets/sfx/";

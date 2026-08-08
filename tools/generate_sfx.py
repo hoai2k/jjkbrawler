@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate every sound in docs/audio-requests.md via the ElevenLabs API.
+"""Generate every sound in docs/audio-requests-history.md via the ElevenLabs API.
 
 Parses the doc (filename + prompt + target length), requests raw PCM, then
 applies the same post-processing the doc asks a human supplier for: trim
@@ -20,7 +20,10 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
-DOC = os.path.join(ROOT, "docs", "audio-requests.md")
+# The prompts live in the HISTORY doc: that round is delivered, but a prompt is
+# how a file gets regenerated or re-rolled, so they stay this tool's input
+# rather than becoming a record nobody reads.
+DOC = os.path.join(ROOT, "docs", "audio-requests-history.md")
 OUT = os.path.join(ROOT, "assets", "sfx")
 SR = 44100
 PEAK_TARGET = 10 ** (-3.0 / 20)      # -3 dBFS

@@ -40,3 +40,7 @@ Press `Esc` to pause. The in-game `i` button lists the full move set.
 - [Asset pipeline](docs/asset-pipeline.md)
 - [Full sprite cleanup](docs/sprite-cleanup.md) — the runbook for answering every
   flag set in the sprite workbench
+- [Asset requests](docs/asset-requests.md) — open art rounds
+  ([history](docs/asset-requests-history.md))
+- [Audio requests](docs/audio-requests.md) — nothing outstanding; the sound round
+  and its prompts are in [history](docs/audio-requests-history.md)
