@@ -42,10 +42,20 @@ export function randomCharacterKey() {
   return CHARACTER_KEYS[Math.floor(Math.random() * CHARACTER_KEYS.length)];
 }
 
+// The four-frame run cycle (round 12): reach (full stride, one leg planted
+// under the hips, the other reaching) and pass (legs crossing beneath the
+// body) for each leg lead. A two-frame run can never show a stride — both
+// frames read as the same half of it — and the art cannot be mirrored to fake
+// the other half because every costume is asymmetric. 13 fps puts the full
+// cycle at ~0.31 s, a sprint cadence of ~3 strides a second; the old pair
+// plays via `fallback` at its original 10 fps until a fighter's cycle lands.
+export const RUN_CYCLE_FRAMES = ["run_reach_a", "run_pass_a", "run_reach_b", "run_pass_b"];
+const RUN_ANIM = { frames: RUN_CYCLE_FRAMES, fallback: ["run_a", "run_b"], fps: 13, fallbackFps: 10, loop: true };
+
 // Anim defaults; characters override entries whose sheet cells differ.
 export const DEFAULT_ANIMS = {
   idle: { frames: ["idle_a", "idle_b"], fps: 2.2, loop: true },
-  run: { frames: ["run_a", "run_b"], fps: 10, loop: true },
+  run: RUN_ANIM,
   dash: { frames: ["r1c2"], fps: 1, loop: true },
   jump: { frames: ["jump_rise"], fps: 1, loop: true },
   fall: { frames: ["fall"], fps: 1, loop: true },
@@ -84,7 +94,7 @@ export const DEFAULT_ANIMS = {
 // manifest, these animations resolve with no further code changes.
 export const SEMANTIC_ANIMS = {
   idle: { frames: ["idle_a", "idle_b"], fps: 2.2, loop: true },
-  run: { frames: ["run_a", "run_b"], fps: 10, loop: true },
+  run: RUN_ANIM,
   dash: { frames: ["dash"], fps: 1, loop: true },
   jump: { frames: ["jump_rise"], fps: 1, loop: true },
   fall: { frames: ["fall"], fps: 1, loop: true },
@@ -585,7 +595,7 @@ export const CHARACTERS = {
     stats: { speed: 428, airSpeed: 372, accel: 2760, jump: 770, airJumps: 2, weight: 0.88, friction: 0.84 },
     anims: {
       light: { frames: ["r0c2", "r0c3"], fps: 12, loop: false },
-      run: { frames: ["run_a", "run_b"], fps: 9, loop: true },
+      run: { ...RUN_ANIM, fps: 12, fallbackFps: 9 },  // keeps her slightly slower cadence
       jump: { frames: ["jump_rise"], fps: 1, loop: true },
       fall: { frames: ["fall"], fps: 1, loop: true },
       sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r2c0"], fps: 6, loop: false },

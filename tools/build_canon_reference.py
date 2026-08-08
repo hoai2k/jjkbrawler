@@ -11,10 +11,12 @@ directory are copies — a request doc has to keep resolving after the sprite it
 points at is replaced, and a reference that silently changes when the art changes
 is not a reference.
 
-**Gakuganji, Reggie Star and Uro are excluded.** They are being redrawn from
-scratch (9E) because their current art does not match their anime designs, so
-their `idle_a` is precisely what must NOT be matched. Their canonical reference
-is the anime art already in this directory.
+**Mahoraga is excluded.** His whole set is being redrawn from scratch (11A)
+because the round-9 delivery does not match the shikigami's canon design, so
+his `idle_a` is precisely what must NOT be matched. His canonical reference is
+`mahoraga_canon.png`, already in this directory. Gakuganji, Reggie Star and Uro
+used to be excluded for the same reason; round 9E replaced their idles, and
+those idles are canonical like everyone else's.
 
 Two outputs:
 
@@ -44,8 +46,8 @@ MANIFEST = os.path.join(SPRITES, "manifest.json")
 CANON = os.path.join(HERE, "..", "assets", "reference", "canon")
 CHARACTERS_JS = os.path.join(HERE, "..", "src", "characters.js")
 
-# Being redrawn from scratch in 9E: their existing art is the thing to ignore.
-REDRAW = {"gakuganji", "reggie", "uro"}
+# Being redrawn from scratch in 11A: his existing art is the thing to ignore.
+REDRAW = {"mahoraga"}
 
 # Body height every figure is scaled to on the contact sheet. Matches the
 # ~290 px the asset requests ask for on a 1024x1536 plate, so the sheet reads at
@@ -152,7 +154,7 @@ def main():
         sheet.save(sheet_path)
 
     excluded = sorted(REDRAW)
-    print(f"\n  {len(rows)} written, {len(excluded)} excluded (being redrawn in 9E): "
+    print(f"\n  {len(rows)} written, {len(excluded)} excluded (being redrawn in 11A): "
           + ", ".join(excluded))
     if args.dry_run:
         print("  dry run — nothing written")
