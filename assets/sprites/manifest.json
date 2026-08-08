@@ -517,17 +517,23 @@
     "h": 1016,
     "ox": -123.8,
     "oy": -693,
-    "bodyBottom": 261,
+    "bodyBottom": 252,
     "bodyH": 310.0,
     "centroidX": 159.6,
-    "renderScale": 0.3177,
+    "renderScale": 0.3113,
     "anchors": {
      "com": [
       307.5,
       452.4
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.3177,
+     "bodyBottom": 261,
+     "rotationDeg": null
+    },
+    "rotationDeg": 3.5
    },
    "attack_air": {
     "file": "gojo/attack_air.png",
@@ -676,15 +682,20 @@
     "bodyBottom": 310.4,
     "bodyH": 287.5,
     "centroidX": 196.7,
-    "renderScale": 0.281,
+    "renderScale": 0.1812,
     "file": "gojo/attack_air_a.png",
     "bodyTop": 0,
     "anchors": {
      "com": [
-      526.5,
-      434.1
+      620.7,
+      497.0
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.281,
+     "faceLeft": null
+    },
+    "faceLeft": true
    },
    "attack_air_b": {
     "w": 952,
@@ -694,14 +705,17 @@
     "bodyBottom": 310.4,
     "bodyH": 360.2,
     "centroidX": 33.6,
-    "renderScale": 0.281,
+    "renderScale": 0.2079,
     "file": "gojo/attack_air_b.png",
     "bodyTop": 0,
     "anchors": {
      "com": [
-      353.7,
-      392.1
+      294.3,
+      465.9
      ]
+    },
+    "edited": {
+     "renderScale": 0.281
     }
    },
    "attack_down": {
@@ -725,12 +739,12 @@
    "attack_heavy_a": {
     "w": 893,
     "h": 1359,
-    "ox": -289.8,
+    "ox": -311.3,
     "oy": -1048,
-    "bodyBottom": 310.4,
+    "bodyBottom": 255.4,
     "bodyH": 381.9,
     "centroidX": 186.1,
-    "renderScale": 0.281,
+    "renderScale": 0.1869,
     "file": "gojo/attack_heavy_a.png",
     "bodyTop": 0,
     "anchors": {
@@ -738,24 +752,35 @@
       475.7,
       528.8
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.281,
+     "ox": -289.8,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": 3.5
    },
    "attack_heavy_b": {
     "w": 956,
     "h": 1181,
     "ox": -321.2,
     "oy": -870,
-    "bodyBottom": 310.4,
+    "bodyBottom": 269.9,
     "bodyH": 331.9,
     "centroidX": 176.7,
-    "renderScale": 0.281,
+    "renderScale": 0.2122,
     "file": "gojo/attack_heavy_b.png",
     "bodyTop": 0,
     "anchors": {
      "com": [
-      500.3,
-      470.8
+      453.7,
+      435.5
      ]
+    },
+    "edited": {
+     "renderScale": 0.281,
+     "bodyBottom": 310.4
     }
    },
    "attack_light_a": {
@@ -4412,7 +4437,7 @@
     "bodyBottom": 310.4,
     "bodyH": 303.9,
     "centroidX": 66.7,
-    "renderScale": 0.226,
+    "renderScale": 0.2045,
     "file": "mahito/attack_air_a.png",
     "bodyTop": 0,
     "anchors": {
@@ -4420,12 +4445,15 @@
       356.7,
       452.7
      ]
+    },
+    "edited": {
+     "renderScale": 0.226
     }
    },
    "attack_air_b": {
     "w": 999,
     "h": 1253,
-    "ox": -342.8,
+    "ox": -249.3,
     "oy": -942,
     "bodyBottom": 310.4,
     "bodyH": 282.9,
@@ -4438,6 +4466,9 @@
       401.1,
       382.1
      ]
+    },
+    "edited": {
+     "ox": -342.8
     }
    },
    "attack_down": {
@@ -4461,9 +4492,9 @@
    "attack_heavy_a": {
     "w": 968,
     "h": 1304,
-    "ox": -327.2,
+    "ox": -447.2,
     "oy": -993,
-    "bodyBottom": 310.4,
+    "bodyBottom": 207.4,
     "bodyH": 294.4,
     "centroidX": 154.2,
     "renderScale": 0.226,
@@ -4471,17 +4502,23 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      482.8,
-      434.0
+      653.8,
+      458.0
      ]
-    }
+    },
+    "edited": {
+     "ox": -327.2,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": 2.5
    },
    "attack_heavy_b": {
     "w": 954,
     "h": 1347,
-    "ox": -320.2,
+    "ox": -200.2,
     "oy": -1036,
-    "bodyBottom": 310.4,
+    "bodyBottom": 206.9,
     "bodyH": 304.2,
     "centroidX": 69.9,
     "renderScale": 0.226,
@@ -4489,10 +4526,16 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      389.5,
-      464.4
+      354.5,
+      478.0
      ]
-    }
+    },
+    "edited": {
+     "ox": -320.2,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": 6.5
    },
    "attack_light_a": {
     "w": 844,
@@ -16544,10 +16587,10 @@
     "h": 1096,
     "ox": -330.8,
     "oy": -785,
-    "bodyBottom": 310.4,
+    "bodyBottom": 286.4,
     "bodyH": 232.1,
     "centroidX": 142.5,
-    "renderScale": 0.212,
+    "renderScale": 0.2205,
     "file": "gakuganji/run_b.png",
     "bodyTop": 0,
     "anchors": {
@@ -16555,6 +16598,10 @@
       472.6,
       476.0
      ]
+    },
+    "edited": {
+     "renderScale": 0.212,
+     "bodyBottom": 310.4
     }
    },
    "special_down": {
