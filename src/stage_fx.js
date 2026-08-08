@@ -106,6 +106,18 @@ function movePlatform(plat, nx, ny) {
 
 const smoothstep = (t) => t * t * (3 - 2 * t);
 
+// The topmost landable surface under a world x — where a dropped object
+// (lantern, fang) actually comes to rest now that layouts have rafters and
+// bridges above the main floor. Falls back to the main platform.
+function surfaceUnder(x) {
+  let best = null;
+  for (const p of state.platforms) {
+    if (p.ghost || x < p.x || x > p.x + p.w) continue;
+    if (!best || p.y < best.y) best = p;
+  }
+  return best || mainPlatform(state.platforms);
+}
+
 // Soft telegraph glow over a platform section.
 function glowRect(ctx, x, y, w, h, color, alpha) {
   ctx.save();
@@ -478,9 +490,11 @@ const STAGE_FX = {
         if (t >= PERIOD - TELEGRAPH - 1.2 && cycle !== n) {
           cycle = n;
           const x = plat.x + 80 + Math.random() * (plat.w - 160);
-          lantern = { x, y: 236, phase: "swing", t: 0, vy: 0 };
+          // the lantern lands on whatever is under it — a rafter counts
+          const landY = surfaceUnder(x).y;
+          lantern = { x, y: 236, phase: "swing", t: 0, vy: 0, landY };
           playSfx("whoosh", 0.3, 0.55);
-          warnZone(x - 60, 120, TELEGRAPH + PATCH + 1.4);
+          warnZone(x - 60, 120, TELEGRAPH + PATCH + 1.4, { yMin: landY - 90, yMax: landY + 30 });
         }
         if (!lantern) return;
         lantern.t += dt;
@@ -489,17 +503,17 @@ const STAGE_FX = {
         } else if (lantern.phase === "fall") {
           lantern.vy += 2000 * dt;
           lantern.y += lantern.vy * dt;
-          if (lantern.y >= plat.y - 6) {
+          if (lantern.y >= lantern.landY - 6) {
             lantern.phase = "patch";
             lantern.t = 0;
-            burst(lantern.x, plat.y - 10, "#ffb45a", 22, 1.2);
+            burst(lantern.x, lantern.landY - 10, "#ffb45a", 22, 1.2);
             playSfx("blast", 0.4, 1.2);
           }
         } else if (lantern.phase === "patch") {
           if (lantern.t >= PATCH) { lantern = null; return; }
-          if (Math.random() < dt * 22) burst(lantern.x + (Math.random() - 0.5) * 100, plat.y - 8, "#ff8c3a", 2, 0.5);
+          if (Math.random() < dt * 22) burst(lantern.x + (Math.random() - 0.5) * 100, lantern.landY - 8, "#ff8c3a", 2, 0.5);
           for (const f of fighters()) {
-            const inPatch = f.grounded && Math.abs(f.x - lantern.x) < 58 && Math.abs(f.y - plat.y) < 24;
+            const inPatch = f.grounded && Math.abs(f.x - lantern.x) < 58 && Math.abs(f.y - lantern.landY) < 26;
             if (inPatch && !f.statuses.burn) {
               f.statuses.burn = { t: 1.1, tick: 0.45, dmg: 1.0, from: f };
               popup(f.x, f.y - 150, "SCORCHED", "#ff8c3a", 15);
@@ -512,7 +526,7 @@ const STAGE_FX = {
         ctx.save();
         if (lantern.phase === "patch") {
           const a = 0.35 * Math.min(1, (PATCH - lantern.t) * 2);
-          glowRect(ctx, lantern.x - 58, plat.y - 14, 116, 16, "#ff8c3a", a + 0.12 * Math.sin(state.matchTime * 20));
+          glowRect(ctx, lantern.x - 58, lantern.landY - 14, 116, 16, "#ff8c3a", a + 0.12 * Math.sin(state.matchTime * 20));
         } else {
           const sway = lantern.phase === "swing" ? Math.sin(lantern.t * 9) * (6 + lantern.t * 10) : 0;
           const x = lantern.x + sway;
@@ -667,14 +681,16 @@ const STAGE_FX = {
   // -- Academy Hall: class change. On the bell, the three drop-through
   // platforms glide between preset arrangements. Solid the whole way.
   academyHall() {
-    const PERIOD = 30, GLIDE = 1.5;
+    const PERIOD = 30, GLIDE = 2;
     const plats = state.platforms.filter((p) => p.kind !== "main");
-    // Arrangements for [side A (w220), side B (w220), top (w256)].
+    // Arrangements for [side A (w220), side B (w220), top C (w256),
+    // lectern D (w160)] — assembly, both staircases, and study rows with the
+    // lectern raised to a summit. Steps stay ≤140 px (the reach budget).
     const LAYOUTS = [
-      [{ x: 268, y: 426 }, { x: 792, y: 426 }, { x: 512, y: 294 }],
-      [{ x: 170, y: 462 }, { x: 430, y: 376 }, { x: 690, y: 296 }],
-      [{ x: 890, y: 462 }, { x: 630, y: 376 }, { x: 334, y: 296 }],
-      [{ x: 330, y: 470 }, { x: 730, y: 470 }, { x: 512, y: 336 }],
+      [{ x: 250, y: 446 }, { x: 810, y: 446 }, { x: 512, y: 320 }, { x: 560, y: 452 }],
+      [{ x: 170, y: 470 }, { x: 430, y: 390 }, { x: 660, y: 310 }, { x: 930, y: 470 }],
+      [{ x: 890, y: 470 }, { x: 630, y: 390 }, { x: 364, y: 310 }, { x: 190, y: 470 }],
+      [{ x: 280, y: 456 }, { x: 780, y: 456 }, { x: 512, y: 352 }, { x: 560, y: 238 }],
     ];
     let layout = 0;
     let glide = null; // { from: [{x,y}], to: [{x,y}], t }
@@ -840,8 +856,10 @@ const STAGE_FX = {
         if (ft >= FANG_EVERY - 2.2 && fangCycle !== fn) {
           fangCycle = fn;
           const x = plat.x + 60 + Math.random() * (plat.w - 120);
-          fang = { x, y: -60, phase: "shadow", t: 0 };
-          warnZone(x - 55, 110, 2.4);
+          // fangs pierce down to the topmost surface — a platform can be hit
+          const landY = surfaceUnder(x).y;
+          fang = { x, y: -60, phase: "shadow", t: 0, landY };
+          warnZone(x - 55, 110, 2.4, { yMin: landY - 90, yMax: landY + 30 });
         }
         if (fang) {
           fang.t += dt;
@@ -850,15 +868,15 @@ const STAGE_FX = {
             playSfx("whoosh", 0.6, 0.8);
           } else if (fang.phase === "fall") {
             fang.y += 1500 * dt;
-            if (fang.y >= plat.y - 10) {
+            if (fang.y >= fang.landY - 10) {
               for (const f of fighters()) {
-                const low = f.y > plat.y - 70 && f.y < plat.y + 30;
+                const low = f.y > fang.landY - 70 && f.y < fang.landY + 30;
                 if (low && Math.abs(f.x - fang.x) < 48) {
                   const away = sign(f.x - fang.x) || 1;
                   stageHit(f, { dmg: 6, vx: away * 160, vy: -350, color: "#b06cff", label: "FANG" });
                 }
               }
-              burst(fang.x, plat.y - 16, "#e6dcff", 20, 1.1);
+              burst(fang.x, fang.landY - 16, "#e6dcff", 20, 1.1);
               playSfx("blast", 0.4, 1.1);
               state.camera.shake = Math.max(state.camera.shake, 3);
               fang = null;
@@ -888,7 +906,7 @@ const STAGE_FX = {
           ctx.globalAlpha = 0.42;
           ctx.fillStyle = "#1a0b2e";
           ctx.beginPath();
-          ctx.ellipse(fang.x, plat.y + 4, spread, 7, 0, 0, Math.PI * 2);
+          ctx.ellipse(fang.x, fang.landY + 4, spread, 7, 0, 0, Math.PI * 2);
           ctx.fill();
           if (fang.phase === "fall") {
             const img = fxImage("stage_fang");
@@ -1083,38 +1101,40 @@ const STAGE_FX = {
     };
   },
 
-  // -- Empty City: decay. The top platform crumbles under weight and
-  // reforms; the side platforms are the sound ones.
+  // -- Empty City: decay. Both derelict rooftops (the "top" platforms)
+  // crumble under weight and reform independently; the low ledges are sound.
   emptyCity() {
-    const top = state.platforms.find((p) => p.kind === "top") || state.platforms[3];
-    let crumbleT = 0;
-    let reformT = 0;
+    const roofs = state.platforms.filter((p) => p.kind === "top");
+    const st = roofs.map(() => ({ crumbleT: 0, reformT: 0 }));
     return {
       update(dt) {
-        if (top.ghost) {
-          reformT -= dt;
-          if (reformT <= 0) {
-            top.ghost = false;
-            crumbleT = 0;
-            dust(top.x + top.w / 2, top.y, 12);
+        roofs.forEach((roof, i) => {
+          const s = st[i];
+          if (roof.ghost) {
+            s.reformT -= dt;
+            if (s.reformT <= 0) {
+              roof.ghost = false;
+              s.crumbleT = 0;
+              dust(roof.x + roof.w / 2, roof.y, 12);
+            }
+            return;
           }
-          return;
-        }
-        const loaded = fighters().some((f) => f.grounded && f.currentPlatform === top);
-        if (loaded) {
-          crumbleT += dt;
-          top.shakeMag = 1.5 + (crumbleT / 1.2) * 3;
-          if (crumbleT >= 1.2) {
-            top.ghost = true;
-            top.shakeMag = 0;
-            reformT = 5;
-            burst(top.x + top.w / 2, top.y + 6, "#9fbdd6", 24, 1.2);
-            playSfx("blast", 0.35, 0.8);
+          const loaded = fighters().some((f) => f.grounded && f.currentPlatform === roof);
+          if (loaded) {
+            s.crumbleT += dt;
+            roof.shakeMag = 1.5 + (s.crumbleT / 1.2) * 3;
+            if (s.crumbleT >= 1.2) {
+              roof.ghost = true;
+              roof.shakeMag = 0;
+              s.reformT = 5;
+              burst(roof.x + roof.w / 2, roof.y + 6, "#9fbdd6", 24, 1.2);
+              playSfx("blast", 0.35, 0.8);
+            }
+          } else {
+            s.crumbleT = Math.max(0, s.crumbleT - dt * 2);
+            roof.shakeMag = s.crumbleT > 0 ? 1.5 : 0;
           }
-        } else {
-          crumbleT = Math.max(0, crumbleT - dt * 2);
-          top.shakeMag = crumbleT > 0 ? 1.5 : 0;
-        }
+        });
       },
       draw() {},
     };
@@ -1199,7 +1219,8 @@ const STAGE_FX = {
       update() {
         const w = (state.matchTime * Math.PI * 2) / 9;
         sides.forEach((p, i) => {
-          const phase = i * Math.PI;
+          // phases spread evenly around the circle, however many shards orbit
+          const phase = (i * Math.PI * 2) / sides.length;
           movePlatform(p, bases[i].x + Math.cos(w + phase) * 46, bases[i].y + Math.sin(w + phase) * 24);
         });
       },
