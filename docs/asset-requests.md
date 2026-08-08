@@ -1033,7 +1033,7 @@ matter get a second look rather than being drawn on autopilot.
 
 | Cell | Flag | Drives | Retired by | Watch for |
 |---|---|---|---|---|
-| `nobara/r2c2` | Fix alpha | down heavy | `attack_down` | The white background patch between her sleeve, thigh and shoe is patched in the repo (see `docs/sprite-fixes/`), but the pose is still a crouched hand-plant serving a *down heavy*. The redraw is the real fix: her striking downward at the ground in front, weight dropping onto it. |
+| `nobara/r2c2` | Fix alpha | down heavy | `attack_down` | Two defects, one redraw. An 853 px patch of the original background is still opaque between her sleeve, thigh and shoe (`docs/sprite-fixes/nobara-r2c2-alpha.png`), and the pose is a crouched hand-plant standing in for a *down heavy*. Draw her striking downward at the ground in front, weight dropping onto it — and key the background out. |
 | `nobara/r3c2` | Replace | down special, ultimate | `special_down`, `ult_a` | One cell doing two jobs. The round gives each its own sprite. |
 | `nobara/r3c3` | Replace | ultimate | `ult_b` | Pairs with `ult_a` as the release. |
 | `nobara/dodge_air` | Replace | air dodge | `dodge_air` | The exception noted above — the only pose here outside the 15. |
