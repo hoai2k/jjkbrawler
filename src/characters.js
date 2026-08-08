@@ -234,13 +234,10 @@ export const CHARACTERS = {
     shadow: "rgba(255, 98, 207, 0.38)",
     scale: 0.60,
     stats: { speed: 415, airSpeed: 305, accel: 2560, jump: 745, airJumps: 1, weight: 1.08, friction: 0.82 },
-    anims: {
-      light: { frames: ["r0c2", "r0c3"], fps: 12, loop: false },
-      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
-      specialNeutral: { frames: ["r3c0"], fps: 8, loop: false },
-      specialSide: { frames: ["r1c3", "r3c0"], fps: 10, loop: false },
+    // Round 11B delivered his last seventeen poses. Inherits the semantic
+    // table; the slower down-special is his own timing, kept.
+    anims: { ...SEMANTIC_ANIMS,
       specialDown: { frames: ["special_down"], fps: 4, loop: false },
-      ult: { frames: ["r3c2", "r3c3"], fps: 7, loop: true },
     },
     light: { dmg: 8.5, reach: 172, speed: 1.05, angle: 0.28, effect: null, label: "Fever Jab", sfx: "punch" },
     heavy: { dmg: 16, reach: 184, speed: 1.0, angle: 0.44, effect: null, label: "Shutter Knuckle", sfx: "punch", shieldMul: 1.7 },
@@ -843,16 +840,10 @@ export const CHARACTERS = {
     shadow: "rgba(125, 88, 216, 0.38)",
     scale: 0.60,
     stats: { speed: 398, airSpeed: 305, accel: 2440, jump: 745, airJumps: 1, weight: 1.04, friction: 0.82 },
-    anims: {
-      light: { frames: ["r0c3", "r3c0"], fps: 12, loop: false },
-      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c1"], fps: 6, loop: false },
-      shield: { frames: ["guard"], fps: 1, loop: true },
-      downHeavy: { frames: ["attack_down"], fps: 6, loop: false },
-      specialNeutral: { frames: ["special_neutral"], fps: 8, loop: false },
-      specialSide: { frames: ["special_side"], fps: 8, loop: false },
-      specialDown: { frames: ["r2c2"], fps: 8, loop: false },
-      ult: { frames: ["r2c1", "r3c2"], fps: 7, loop: true },
-    },
+    // Round 11B delivered his last fifteen poses, so every action has its own
+    // drawing and every override here was saying the same thing the shared
+    // table already says.
+    anims: SEMANTIC_ANIMS,
     light: { dmg: 8.5, reach: 176, speed: 1.0, angle: 0.32, effect: "curseDrain", label: "Cursed Spirit Strike", sfx: "punch" },
     heavy: { dmg: 15.5, reach: 192, speed: 0.98, angle: 0.44, effect: "curseDrain", label: "Curse Hammer", sfx: "slashHeavy", shieldMul: 1.7 },
     specials: {
@@ -1314,29 +1305,21 @@ export const SPRITE_ACTORS = {
     theme: "#e8ecf8",
     shadow: "rgba(232, 236, 248, 0.4)",
     anims: SEMANTIC_ANIMS,
-    // The karma wheel hanging over his head. It used to be drawn into all 31
-    // poses, which meant it tumbled with him — a dodge roll sent it round with
-    // the body when the whole point is that it hangs level, indifferent to what
-    // he is doing. Drawn separately it keeps its own orientation, is keyed once
-    // instead of 31 times, and can drift and bob on its own clock.
-    prop: {
-      sprite: "effect:mahoraga_wheel",
-      // As a fraction of his drawn height: how big, and how far above his feet
-      // the centre sits. Above 1 puts it clear of the top of his head.
-      // Both as a fraction of his drawn height, measured off where the artist
-      // had drawn it: across his standing poses the wheel spanned 0.25-0.26 of
-      // his foot-to-head height and its centre sat 1.09 of that height above the
-      // floor. Keeping those numbers means removing it changed nothing on
-      // screen except that it now hangs on its own.
-      size: 0.26,
-      rise: 1.09,
-      behind: true,        // drawn before the body, so his horns cross in front
-      bob: { px: 7, rate: 1.1 },   // a slow hover, unrelated to his animation
-      // Radians/sec. Off by default: the delivered art holds one orientation,
-      // and a turning wheel is a statement about Mahoraga adapting rather than
-      // idle decoration. The knob is here for when the ultimate wants it.
-      spin: 0,
-    },
+    // No `prop` block, deliberately. The round-9 art drew the karma wheel as a
+    // large black halo floating detached above his head, so it had to be cut
+    // out and composited separately — otherwise a dodge roll sent it tumbling
+    // with the body when the whole point is that it hangs level.
+    //
+    // Round 11A redraws him from the shikigami's canon design, where the wheel
+    // is brass, small, and mounted ON the headdress. A wheel that is part of
+    // the head SHOULD turn with the head, so it is drawn into all 33 poses and
+    // there is nothing to lift. The prop would simply put a second wheel in the
+    // air above the first.
+    //
+    // `effect:mahoraga_wheel` and the extraction tool (tools/split_mahoraga_wheel.py)
+    // are kept rather than deleted: nothing loads the sprite while no actor
+    // declares a prop, and the machinery is what any future hovering attachment
+    // would be built from.
   },
 };
 
