@@ -876,6 +876,10 @@ export const CHARACTERS = {
         desc: "His prized heavy-hitter is released onto the stage and hunts until the technique is spent.",
         p: {
           id: "rainbowDragon", behavior: "chaser", duration: 5, speed: 380, maxActive: 1,
+          // Unlike the other summons, the round-8 dragon art is drawn facing
+          // RIGHT, so the renderer's default mirror pointed it away from its
+          // target the whole time it was chasing.
+          faceRight: true,
           color: "#9d7dff", h: 170, hitW: 130, hitH: 130, standOff: 40,
           sprites: ["summon:rainbow_dragon", "effect:curse_dragon"],
           attack: { dmg: 11, base: 380, growth: 6.6, angle: 0.42, cd: 1.05, effect: "curseDrain", sfx: "slashHeavy" },
