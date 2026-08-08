@@ -362,6 +362,10 @@ export const CHARACTERS = {
         desc: "Both wolves step out of his shadow and hunt at his side, tearing at whoever they corner.",
         p: {
           id: "divineDogs", behavior: "chaser", duration: 6, speed: 470, maxActive: 2,
+          // Both dogs' art is drawn facing RIGHT, against the renderer's
+          // face-left default. Set here on `p` rather than per-unit so the
+          // white and black dog cannot drift apart.
+          faceRight: true,
           color: "#3a3f68", h: 118, hitW: 90, hitH: 96, standOff: 24,
           attack: { dmg: 6.5, base: 240, growth: 4.6, angle: 0.34, cd: 0.9, effect: "snare", sfx: "slash" },
           units: [
