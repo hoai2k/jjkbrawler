@@ -12583,7 +12583,7 @@
     "bodyBottom": 241.4,
     "bodyH": 278.2,
     "centroidX": 36.1,
-    "renderScale": 0.2463,
+    "renderScale": 0.2512,
     "file": "uro/attack_light_a.png",
     "bodyTop": 0,
     "anchors": {
@@ -12608,7 +12608,7 @@
     "bodyBottom": 227.9,
     "bodyH": 267.4,
     "centroidX": 26.5,
-    "renderScale": 0.2408,
+    "renderScale": 0.2492,
     "file": "uro/attack_light_b.png",
     "bodyTop": 0,
     "anchors": {
@@ -12721,7 +12721,7 @@
     "bodyBottom": 240.4,
     "bodyH": 207.6,
     "centroidX": 117.8,
-    "renderScale": 0.238,
+    "renderScale": 0.2404,
     "file": "uro/crouch_attack_b.png",
     "bodyTop": 0,
     "anchors": {
@@ -13928,7 +13928,7 @@
    "attack_light_a": {
     "w": 905,
     "h": 1403,
-    "ox": -295.8,
+    "ox": -407.8,
     "oy": -1092,
     "bodyBottom": 247.9,
     "bodyH": 255.8,
@@ -13945,14 +13945,17 @@
     "edited": {
      "renderScale": 0.182,
      "bodyBottom": 310.4,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "ox": -295.8,
+     "faceLeft": null
     },
-    "rotationDeg": -2
+    "rotationDeg": -2,
+    "faceLeft": true
    },
    "attack_light_b": {
     "w": 942,
     "h": 1288,
-    "ox": -314.2,
+    "ox": -355.2,
     "oy": -977,
     "bodyBottom": 243.4,
     "bodyH": 256.2,
@@ -13969,9 +13972,12 @@
     "edited": {
      "renderScale": 0.199,
      "bodyBottom": 310.4,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "ox": -314.2,
+     "faceLeft": null
     },
-    "rotationDeg": -2
+    "rotationDeg": -2,
+    "faceLeft": true
    },
    "attack_up": {
     "w": 648,
