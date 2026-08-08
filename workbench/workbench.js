@@ -11,6 +11,7 @@ import {
 } from "../src/assets.js";
 import {
   drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly, animsOf,
+  drawnByFallbackOnly,
   anchorScreenPos, screenPosToLocal, warmAnchors, EXTRA_ANCHORS,
   REPLACEMENT_KINDS, replacementKind, IMPROVEMENT_KINDS, improvementKind,
   variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS,
@@ -259,7 +260,53 @@ function framesOf(charKey) {
 /** The intake marker on a pose, or null. */
 function updateNote(charKey, frameKey) {
   if (isOther(charKey)) return null;
-  return spriteManifest?.characters?.[charKey]?.[frameKey]?.replaced || null;
+  return spriteManifest?.characters?.[charKey]?.[frameKey]?.replaced
+    || surfacedNote(charKey, frameKey);
+}
+
+// A second way onto the list, and the same job: poses that need a look now and
+// would otherwise have to be hunted for.
+//
+// `statesUsingFrame` used to answer against the frames a state DECLARES rather
+// than the ones it resolves to, so a pose the game only reaches through its
+// state's `fallback` was reported unused — filtered out of the in-game views,
+// and so never opened to be sized. Fixing that (src/sprites.js) hands the
+// workbench a set of poses that have always been in the game and have never
+// been looked at. They are scattered across the roster exactly the way an
+// intake round's are, which is what this list is for.
+//
+// Only on characters that have been worked on before, though. On a fighter
+// nobody has touched, every pose is unsized and these are not special — they
+// would bury the poses that genuinely came back needing something. A character
+// someone has already been through is the case this is about: the set looked
+// finished, and these were missing from it.
+function isSurfaced(charKey, frameKey) {
+  if (isOther(charKey)) return false;
+  const meta = spriteManifest?.characters?.[charKey]?.[frameKey];
+  if (!meta || meta.replaced) return false;
+  // Sized already, or dealt with as it stands — either way it has been seen.
+  if (Object.keys(meta.edited || {}).length > 0 || meta.surfacedReviewed) return false;
+  if (!drawnByFallbackOnly(charKey, frameKey)) return false;
+  return charHasTuning(charKey);
+}
+
+/** Whether anyone has ever tuned this character. Reads the committed `edited`
+ *  records rather than this session's, so opening a fighter and nudging one
+ *  pose does not summon their whole untouched set onto the list. */
+const tunedChars = new Map();
+function charHasTuning(charKey) {
+  if (!tunedChars.has(charKey)) {
+    rememberSaved(charKey);
+    tunedChars.set(charKey, allFramesOf(charKey)
+      .some((key) => hasSavedEdits(charKey, key)));
+  }
+  return tunedChars.get(charKey);
+}
+
+/** The stand-in marker for a surfaced pose, shaped like an intake one so the
+ *  panel, the list and the reviewed toggle all read it the same way. */
+function surfacedNote(charKey, frameKey) {
+  return isSurfaced(charKey, frameKey) ? { at: "", kept: "keep", how: "surfaced", lost: [] } : null;
 }
 
 // Poses marked reviewed this session. Session-only, exactly like an edit: the
@@ -302,8 +349,11 @@ function recentUpdates() {
       });
     }
   }
+  // A dated intake round leads; the surfaced poses, which have no round to
+  // belong to, sit under them rather than interleaving by an empty timestamp.
   return out.sort((a, b) =>
-    b.at.localeCompare(a.at)
+    (a.how === "surfaced" ? 1 : 0) - (b.how === "surfaced" ? 1 : 0)
+    || b.at.localeCompare(a.at)
     || (b.lost.length ? 1 : 0) - (a.lost.length ? 1 : 0)
     || a.char.localeCompare(b.char)
     || a.frame.localeCompare(b.frame));
@@ -312,6 +362,12 @@ function recentUpdates() {
 /** What was overwritten, in a sentence. Reads off the marker rather than
  *  guessing, so "nothing was lost" is stated rather than implied by silence. */
 function updateSummary(note) {
+  if (note.how === "surfaced") {
+    return "The game draws this pose through its state's <b>fallback</b>, and "
+      + "the check for what a state draws used to miss that — so it was filtered "
+      + "out of the in-game views and never came up to be sized.<br>"
+      + "It has been in every match all along. Size it against the idle.";
+  }
   const when = note.at ? new Date(note.at) : null;
   const landed = when && !Number.isNaN(when.getTime())
     ? when.toLocaleString() : (note.at || "an earlier round");
@@ -1539,6 +1595,7 @@ function refreshUpdatedControl() {
   if (!note) return;
   const reviewed = isUpdateReviewed(state.char, state.frame);
   $("updatedVal").textContent = reviewed ? "reviewed — clears on export"
+    : note.how === "surfaced" ? "newly in the in-game list — never sized"
     : note.lost?.length ? "tuning rolled back" : "tuning carried over";
   $("updatedInfo").innerHTML = updateSummary(note);
   const btn = $("updatedClear");
@@ -1641,9 +1698,11 @@ function buildRecentPoseList(list) {
   const entries = recentUpdates();
   const reviewed = entries.filter((e) => isUpdateReviewed(e.char, e.frame)).length;
   const retune = entries.filter((e) => e.lost.length).length;
+  const surfaced = entries.filter((e) => e.how === "surfaced").length;
   $("poseCount").textContent = entries.length
     ? `${entries.length} updated`
       + (retune ? ` · ${retune} to re-tune` : "")
+      + (surfaced ? ` · ${surfaced} newly in game` : "")
       + (reviewed ? ` · ${reviewed} reviewed` : "")
     : "none";
   if (!entries.length) {
