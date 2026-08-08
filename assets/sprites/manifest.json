@@ -14785,5 +14785,223 @@
     "file": "hanami_alt/specialSide.png"
    }
   }
+ },
+ "variants": {
+  "hanami": {
+   "dodge_air": {
+    "options": [
+     {
+      "file": "hanami/dodge_air.png",
+      "label": "Delivered",
+      "w": 798,
+      "h": 1165,
+      "ox": -242.2,
+      "oy": -854,
+      "bodyBottom": 310.4,
+      "bodyH": 341.3,
+      "bodyTop": 0,
+      "centroidX": 253.7,
+      "renderScale": 0.293,
+      "anchors": {
+       "com": [
+        498.4,
+        490.6
+       ]
+      }
+     },
+     {
+      "file": "hanami_alt/dodge_air.png",
+      "label": "Alternate set",
+      "w": 798,
+      "h": 1165,
+      "ox": -242.2,
+      "oy": -854,
+      "bodyBottom": 310.4,
+      "bodyH": 341.3,
+      "centroidX": 253.7,
+      "renderScale": 0.293
+     }
+    ]
+   },
+   "dodge_roll": {
+    "options": [
+     {
+      "file": "hanami/dodge_roll.png",
+      "label": "Delivered",
+      "w": 1035,
+      "h": 876,
+      "ox": -360.8,
+      "oy": -565,
+      "bodyBottom": 310.4,
+      "bodyH": 256.7,
+      "bodyTop": 0,
+      "centroidX": 213.4,
+      "renderScale": 0.293,
+      "anchors": {
+       "com": [
+        574.6,
+        433.0
+       ]
+      }
+     },
+     {
+      "file": "hanami_alt/dodge_roll.png",
+      "label": "Alternate set",
+      "w": 1035,
+      "h": 876,
+      "ox": -360.8,
+      "oy": -565,
+      "bodyBottom": 310.4,
+      "bodyH": 256.7,
+      "centroidX": 213.4,
+      "renderScale": 0.293
+     }
+    ]
+   },
+   "r4c0": {
+    "options": [
+     {
+      "file": "hanami/r4c0.png",
+      "label": "Delivered",
+      "w": 740,
+      "h": 900,
+      "ox": -213.2,
+      "oy": -587,
+      "bodyBottom": 309,
+      "bodyH": 174,
+      "bodyTop": 4,
+      "centroidX": 142.9,
+      "renderScale": 0.195,
+      "anchors": {
+       "com": [
+        357.9,
+        428.4
+       ]
+      },
+      "faceLeft": true
+     },
+     {
+      "file": "hanami_alt/r4c0.png",
+      "label": "Alternate set",
+      "w": 840,
+      "h": 1144,
+      "ox": -263.2,
+      "oy": -835,
+      "bodyBottom": 309.0,
+      "bodyH": 175.5,
+      "centroidX": 197.5,
+      "renderScale": 0.153
+     }
+    ]
+   },
+   "r4c1": {
+    "options": [
+     {
+      "file": "hanami/r4c1.png",
+      "label": "Delivered",
+      "w": 840,
+      "h": 900,
+      "ox": -263.8,
+      "oy": -587,
+      "bodyBottom": 309,
+      "bodyH": 178,
+      "bodyTop": 4,
+      "centroidX": 188.6,
+      "renderScale": 0.2,
+      "anchors": {
+       "com": [
+        451.6,
+        421.9
+       ]
+      },
+      "faceLeft": true
+     },
+     {
+      "file": "hanami_alt/r4c1.png",
+      "label": "Alternate set",
+      "w": 836,
+      "h": 1216,
+      "ox": -261.2,
+      "oy": -907,
+      "bodyBottom": 309.0,
+      "bodyH": 180.0,
+      "centroidX": 161.9,
+      "renderScale": 0.148
+     }
+    ]
+   },
+   "r4c2": {
+    "options": [
+     {
+      "file": "hanami/r4c2.png",
+      "label": "Delivered",
+      "w": 900,
+      "h": 766,
+      "ox": -293.2,
+      "oy": -454,
+      "bodyBottom": 309,
+      "bodyH": 173,
+      "bodyTop": 4,
+      "centroidX": 116.4,
+      "renderScale": 0.228,
+      "anchors": {
+       "com": [
+        410.0,
+        365.5
+       ]
+      },
+      "faceLeft": true
+     },
+     {
+      "file": "hanami_alt/r4c2.png",
+      "label": "Alternate set",
+      "w": 966,
+      "h": 1176,
+      "ox": -326.2,
+      "oy": -867,
+      "bodyBottom": 309.0,
+      "bodyH": 174.6,
+      "centroidX": 232.8,
+      "renderScale": 0.148
+     }
+    ]
+   },
+   "r4c3": {
+    "options": [
+     {
+      "file": "hanami/r4c3.png",
+      "label": "Delivered",
+      "w": 900,
+      "h": 616,
+      "ox": -293.2,
+      "oy": -304,
+      "bodyBottom": 309,
+      "bodyH": 183,
+      "bodyTop": 4,
+      "centroidX": 187.3,
+      "renderScale": 0.3,
+      "anchors": {
+       "com": [
+        481.1,
+        307.3
+       ]
+      },
+      "faceLeft": true
+     },
+     {
+      "file": "hanami_alt/r4c3.png",
+      "label": "Alternate set",
+      "w": 1377,
+      "h": 1030,
+      "ox": -531.8,
+      "oy": -721,
+      "bodyBottom": 309.0,
+      "bodyH": 184.8,
+      "centroidX": 193.8,
+      "renderScale": 0.179
+     }
+    ]
+   }
+  }
  }
 }

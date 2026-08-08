@@ -210,6 +210,66 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   cursor: pointer;
 }
 .pose-list button:hover { border-color: var(--line); }
+
+/* A pose with more than one drawing: the cell still fills the grid slot, with
+   the chevron sitting inside its right edge rather than taking a slot of its
+   own — the grid must look the same whether a pose has variants or not. */
+.pose-cell { position: relative; display: flex; }
+.pose-cell > button:first-child { flex: 1; padding-right: 20px; min-width: 0; }
+.pose-variant {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 18px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+}
+.pose-variant:hover { color: var(--text); background: rgba(255, 255, 255, 0.08); }
+
+.variant-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 220px;
+  max-width: 300px;
+  padding: 4px;
+  background: #0e111b;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+}
+.variant-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+}
+.variant-menu button:hover { background: #1a2030; }
+.variant-menu button.current { background: #1d3550; color: #fff; }
+.variant-menu button.current .variant-label::after { content: " ✓"; color: var(--accent); }
+.variant-label { font-size: 12px; }
+.variant-file {
+  display: block;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  font-style: normal;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
 .pose-list button.sel { background: #1d3550; border-color: var(--accent); color: #fff; }
 .pose-list button.dirty::after { content: " ●"; color: var(--warn); }
 /* A redraw request is a different thing from an unsaved change, so it reads
