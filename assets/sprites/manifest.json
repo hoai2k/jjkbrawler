@@ -19196,66 +19196,26 @@
    }
   },
   "mahoraga": {
-   "attack_air": {
-    "w": 721,
-    "h": 1434,
-    "ox": -203.8,
-    "oy": -1123,
-    "bodyBottom": 310.4,
-    "bodyH": 358.5,
-    "centroidX": 180.0,
-    "renderScale": 0.25,
-    "file": "mahoraga/attack_air.png",
-    "bodyTop": 0,
-    "anchors": {
-     "com": [
-      382.0,
-      642.0
-     ]
-    }
-   },
    "attack_down": {
     "w": 971,
     "h": 1249,
     "ox": -328.8,
     "oy": -938,
-    "bodyBottom": 310.4,
+    "bodyBottom": 244.9,
     "bodyH": 382.2,
     "centroidX": 131.8,
-    "renderScale": 0.306,
+    "renderScale": 0.3963,
     "file": "mahoraga/attack_down.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       459.6,
       549.6
      ]
-    }
-   },
-   "attack_heavy": {
-    "w": 734,
-    "h": 1610,
-    "ox": -210.2,
-    "oy": -1299,
-    "bodyBottom": 310.4,
-    "bodyH": 402.5,
-    "centroidX": 177.0,
-    "renderScale": 0.25,
-    "file": "mahoraga/attack_heavy.png",
-    "bodyTop": 0,
-    "anchors": {
-     "com": [
-      388.3,
-      692.1
-     ]
+    },
+    "edited": {
+     "renderScale": 0.306,
+     "bodyBottom": 310.4
     }
    },
    "attack_light_a": {
@@ -19263,77 +19223,68 @@
     "h": 1291,
     "ox": -355.2,
     "oy": -980,
-    "bodyBottom": 310.4,
+    "bodyBottom": 246.4,
     "bodyH": 402.8,
     "centroidX": 96.3,
-    "renderScale": 0.312,
+    "renderScale": 0.3853,
     "file": "mahoraga/attack_light_a.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       452.3,
       537.9
      ]
+    },
+    "edited": {
+     "renderScale": 0.312,
+     "bodyBottom": 310.4
     }
    },
    "attack_light_b": {
     "w": 974,
     "h": 1267,
-    "ox": -330.2,
+    "ox": -366.2,
     "oy": -956,
-    "bodyBottom": 310.4,
+    "bodyBottom": 233.4,
     "bodyH": 404.0,
     "centroidX": 218.8,
-    "renderScale": 0.319,
+    "renderScale": 0.4019,
     "file": "mahoraga/attack_light_b.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       549.6,
       527.3
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.319,
+     "ox": -330.2,
+     "bodyBottom": 310.4,
+     "faceLeft": null
+    },
+    "faceLeft": true
    },
    "attack_up": {
     "w": 759,
     "h": 1480,
     "ox": -222.8,
     "oy": -1169,
-    "bodyBottom": 310.4,
+    "bodyBottom": 283.4,
     "bodyH": 410.8,
     "centroidX": 169.7,
-    "renderScale": 0.278,
+    "renderScale": 0.4073,
     "file": "mahoraga/attack_up.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       392.7,
       704.7
      ]
+    },
+    "edited": {
+     "renderScale": 0.278,
+     "bodyBottom": 310.4
     }
    },
    "charge": {
@@ -19341,77 +19292,68 @@
     "h": 1246,
     "ox": -337.8,
     "oy": -935,
-    "bodyBottom": 310.4,
+    "bodyBottom": 226.4,
     "bodyH": 406.2,
     "centroidX": 101.1,
-    "renderScale": 0.326,
+    "renderScale": 0.4059,
     "file": "mahoraga/charge.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       439.3,
       516.1
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.326,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": -5
    },
    "crouch_a": {
     "w": 989,
     "h": 1234,
     "ox": -337.8,
     "oy": -923,
-    "bodyBottom": 310.4,
+    "bodyBottom": 200.4,
     "bodyH": 347.0,
     "centroidX": 108.1,
-    "renderScale": 0.281,
+    "renderScale": 0.4313,
     "file": "mahoraga/crouch_a.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       445.5,
       539.4
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.281,
+     "bodyBottom": 310.4
+    },
+    "wantsImprovement": "pose"
    },
    "crouch_attack_a": {
     "w": 848,
     "h": 1180,
     "ox": -267.2,
     "oy": -869,
-    "bodyBottom": 310.4,
+    "bodyBottom": 141.4,
     "bodyH": 342.2,
     "centroidX": 196.7,
-    "renderScale": 0.29,
+    "renderScale": 0.3944,
     "file": "mahoraga/crouch_attack_a.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       464.6,
       503.3
      ]
+    },
+    "edited": {
+     "renderScale": 0.29,
+     "bodyBottom": 310.4
     }
    },
    "crouch_attack_b": {
@@ -19419,51 +19361,44 @@
     "h": 1256,
     "ox": -282.2,
     "oy": -945,
-    "bodyBottom": 310.4,
+    "bodyBottom": 264.9,
     "bodyH": 401.0,
     "centroidX": 150.4,
-    "renderScale": 0.319,
+    "renderScale": 0.4003,
     "file": "mahoraga/crouch_attack_b.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       433.7,
       568.6
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.319,
+     "bodyBottom": 310.4
+    },
+    "wantsImprovement": "pose"
    },
    "crouch_b": {
     "w": 1002,
     "h": 1184,
     "ox": -344.2,
     "oy": -873,
-    "bodyBottom": 310.4,
+    "bodyBottom": 294.4,
     "bodyH": 388.5,
     "centroidX": 100.8,
-    "renderScale": 0.328,
+    "renderScale": 0.4166,
     "file": "mahoraga/crouch_b.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       444.2,
       506.5
      ]
+    },
+    "edited": {
+     "renderScale": 0.328,
+     "bodyBottom": 310.4
     }
    },
    "dash": {
@@ -19474,22 +19409,17 @@
     "bodyBottom": 310.4,
     "bodyH": 292.2,
     "centroidX": 109.5,
-    "renderScale": 0.27,
+    "renderScale": 0.4239,
     "file": "mahoraga/dash.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       454.5,
       454.4
      ]
+    },
+    "edited": {
+     "renderScale": 0.27
     }
    },
    "dizzy": {
@@ -19497,25 +19427,21 @@
     "h": 1167,
     "ox": -324.8,
     "oy": -856,
-    "bodyBottom": 310.4,
+    "bodyBottom": 296.4,
     "bodyH": 402.8,
     "centroidX": 101.9,
-    "renderScale": 0.345,
+    "renderScale": 0.4295,
     "file": "mahoraga/dizzy.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       427.0,
       502.9
      ]
+    },
+    "edited": {
+     "renderScale": 0.345,
+     "bodyBottom": 310.4
     }
    },
    "dodge_air": {
@@ -19526,22 +19452,17 @@
     "bodyBottom": 310.4,
     "bodyH": 348.8,
     "centroidX": 91.6,
-    "renderScale": 0.257,
+    "renderScale": 0.3894,
     "file": "mahoraga/dodge_air.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       430.8,
       530.7
      ]
+    },
+    "edited": {
+     "renderScale": 0.257
     }
    },
    "dodge_roll": {
@@ -19552,22 +19473,17 @@
     "bodyBottom": 310.4,
     "bodyH": 335.2,
     "centroidX": 138.2,
-    "renderScale": 0.319,
+    "renderScale": 0.3732,
     "file": "mahoraga/dodge_roll.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      487.8,
-      462.7
+      516.8,
+      504.4
      ]
+    },
+    "edited": {
+     "renderScale": 0.319
     }
    },
    "fall": {
@@ -19578,22 +19494,17 @@
     "bodyBottom": 310.4,
     "bodyH": 391.0,
     "centroidX": 102.2,
-    "renderScale": 0.339,
+    "renderScale": 0.4593,
     "file": "mahoraga/fall.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       421.5,
       476.6
      ]
+    },
+    "edited": {
+     "renderScale": 0.339
     }
    },
    "guard": {
@@ -19601,77 +19512,68 @@
     "h": 1353,
     "ox": -312.8,
     "oy": -1042,
-    "bodyBottom": 310.4,
+    "bodyBottom": 231.9,
     "bodyH": 403.0,
     "centroidX": 188.5,
-    "renderScale": 0.298,
+    "renderScale": 0.3814,
     "file": "mahoraga/guard.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       501.6,
       576.9
      ]
+    },
+    "edited": {
+     "renderScale": 0.298,
+     "bodyBottom": 310.4
     }
    },
    "hurt": {
     "w": 974,
     "h": 1367,
-    "ox": -330.2,
+    "ox": -292.2,
     "oy": -1056,
-    "bodyBottom": 310.4,
+    "bodyBottom": 194.4,
     "bodyH": 392.8,
     "centroidX": 198.7,
-    "renderScale": 0.287,
+    "renderScale": 0.3875,
     "file": "mahoraga/hurt.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      529.3,
-      553.6
+      428.0,
+      535.4
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.287,
+     "ox": -330.2,
+     "bodyBottom": 310.4,
+     "faceLeft": null
+    },
+    "faceLeft": true
    },
    "idle_a": {
     "w": 949,
     "h": 1142,
     "ox": -317.8,
     "oy": -831,
-    "bodyBottom": 310.4,
+    "bodyBottom": 289.4,
     "bodyH": 403.0,
     "centroidX": 101.2,
-    "renderScale": 0.353,
+    "renderScale": 0.4465,
     "file": "mahoraga/idle_a.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       419.5,
       488.1
      ]
+    },
+    "edited": {
+     "renderScale": 0.353,
+     "bodyBottom": 310.4
     }
    },
    "idle_b": {
@@ -19679,51 +19581,43 @@
     "h": 1250,
     "ox": -332.2,
     "oy": -939,
-    "bodyBottom": 310.4,
+    "bodyBottom": 254.4,
     "bodyH": 402.5,
     "centroidX": 97.2,
-    "renderScale": 0.322,
+    "renderScale": 0.4057,
     "file": "mahoraga/idle_b.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       429.5,
       511.6
      ]
+    },
+    "edited": {
+     "renderScale": 0.322,
+     "bodyBottom": 310.4
     }
    },
    "jump_rise": {
     "w": 947,
     "h": 1344,
-    "ox": -316.8,
+    "ox": -277.3,
     "oy": -1033,
     "bodyBottom": 310.4,
     "bodyH": 386.5,
     "centroidX": 101.6,
-    "renderScale": 0.288,
+    "renderScale": 0.4018,
     "file": "mahoraga/jump_rise.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      419.8,
-      512.4
+      452.4,
+      538.4
      ]
+    },
+    "edited": {
+     "renderScale": 0.288,
+     "ox": -316.8
     }
    },
    "land": {
@@ -19731,25 +19625,21 @@
     "h": 1053,
     "ox": -341.2,
     "oy": -742,
-    "bodyBottom": 310.4,
+    "bodyBottom": 285.4,
     "bodyH": 310.8,
     "centroidX": 94.4,
-    "renderScale": 0.295,
+    "renderScale": 0.3953,
     "file": "mahoraga/land.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       435.3,
       510.5
      ]
+    },
+    "edited": {
+     "renderScale": 0.295,
+     "bodyBottom": 310.4
     }
    },
    "ledge_hang": {
@@ -19760,16 +19650,8 @@
     "bodyBottom": 310.4,
     "bodyH": 400.7,
     "centroidX": 191.2,
-    "renderScale": 0.283,
+    "renderScale": 0.4938,
     "file": "mahoraga/ledge_hang.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
@@ -19780,6 +19662,9 @@
       381.7,
       56.5
      ]
+    },
+    "edited": {
+     "renderScale": 0.283
     }
    },
    "run_a": {
@@ -19790,22 +19675,17 @@
     "bodyBottom": 310.4,
     "bodyH": 370.8,
     "centroidX": 112.2,
-    "renderScale": 0.303,
+    "renderScale": 0.3924,
     "file": "mahoraga/run_a.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       457.5,
       515.3
      ]
+    },
+    "edited": {
+     "renderScale": 0.303
     }
    },
    "run_b": {
@@ -19813,25 +19693,21 @@
     "h": 1307,
     "ox": -350.2,
     "oy": -996,
-    "bodyBottom": 310.4,
+    "bodyBottom": 291.4,
     "bodyH": 374.0,
     "centroidX": 95.3,
-    "renderScale": 0.286,
+    "renderScale": 0.3747,
     "file": "mahoraga/run_b.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       445.5,
       540.7
      ]
+    },
+    "edited": {
+     "renderScale": 0.286,
+     "bodyBottom": 310.4
     }
    },
    "special_down": {
@@ -19839,25 +19715,21 @@
     "h": 1265,
     "ox": -345.2,
     "oy": -954,
-    "bodyBottom": 310.4,
+    "bodyBottom": 71.4,
     "bodyH": 357.2,
     "centroidX": 134.6,
-    "renderScale": 0.282,
+    "renderScale": 0.368,
     "file": "mahoraga/special_down.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       480.4,
       613.7
      ]
+    },
+    "edited": {
+     "renderScale": 0.282,
+     "bodyBottom": 310.4
     }
    },
    "special_neutral": {
@@ -19865,25 +19737,21 @@
     "h": 1327,
     "ox": -340.2,
     "oy": -1016,
-    "bodyBottom": 310.4,
+    "bodyBottom": 276.9,
     "bodyH": 396.8,
     "centroidX": 113.7,
-    "renderScale": 0.299,
+    "renderScale": 0.3827,
     "file": "mahoraga/special_neutral.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       455.0,
       574.6
      ]
+    },
+    "edited": {
+     "renderScale": 0.299,
+     "bodyBottom": 310.4
     }
    },
    "special_side": {
@@ -19891,51 +19759,45 @@
     "h": 1004,
     "ox": -318.8,
     "oy": -693,
-    "bodyBottom": 310.4,
+    "bodyBottom": 274.9,
     "bodyH": 393.5,
     "centroidX": 102.6,
-    "renderScale": 0.392,
+    "renderScale": 0.492,
     "file": "mahoraga/special_side.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       423.0,
       447.4
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.392,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": -3
    },
    "ult_a": {
     "w": 1001,
     "h": 1466,
     "ox": -343.8,
     "oy": -1155,
-    "bodyBottom": 310.4,
+    "bodyBottom": 248.4,
     "bodyH": 410.0,
     "centroidX": 135.8,
-    "renderScale": 0.28,
+    "renderScale": 0.385,
     "file": "mahoraga/ult_a.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       478.9,
       601.1
      ]
+    },
+    "edited": {
+     "renderScale": 0.28,
+     "bodyBottom": 310.4
     }
    },
    "ult_b": {
@@ -19943,62 +19805,56 @@
     "h": 1286,
     "ox": -344.2,
     "oy": -975,
-    "bodyBottom": 310.4,
+    "bodyBottom": 175.9,
     "bodyH": 406.2,
     "centroidX": 166.9,
-    "renderScale": 0.316,
+    "renderScale": 0.4503,
     "file": "mahoraga/ult_b.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       513.1,
       598.4
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.316,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": -13.5
    },
    "victory": {
     "w": 947,
     "h": 1499,
     "ox": -316.8,
     "oy": -1188,
-    "bodyBottom": 310.4,
+    "bodyBottom": 291.4,
     "bodyH": 403.8,
     "centroidX": 85.1,
-    "renderScale": 0.269,
+    "renderScale": 0.4291,
     "file": "mahoraga/victory.png",
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "discard",
-     "how": "import",
-     "lost": [
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       402.0,
       749.3
      ]
+    },
+    "edited": {
+     "renderScale": 0.269,
+     "bodyBottom": 310.4
     }
    },
    "attack_air_a": {
     "w": 982,
     "h": 1338,
-    "ox": -334.2,
+    "ox": -270.7,
     "oy": -1027,
     "bodyBottom": 310.4,
     "bodyH": 334.5,
     "centroidX": 89.8,
-    "renderScale": 0.25,
+    "renderScale": 0.3937,
     "file": "mahoraga/attack_air_a.png",
     "bodyTop": 0,
     "anchors": {
@@ -20007,35 +19863,31 @@
       488.0
      ]
     },
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -334.2
     }
    },
    "attack_air_b": {
     "w": 988,
     "h": 1188,
-    "ox": -337.2,
+    "ox": -217.7,
     "oy": -877,
     "bodyBottom": 310.4,
     "bodyH": 297.0,
     "centroidX": 7.9,
-    "renderScale": 0.25,
+    "renderScale": 0.4412,
     "file": "mahoraga/attack_air_b.png",
     "bodyTop": 0,
     "anchors": {
      "com": [
-      345.6,
-      428.7
+      406.0,
+      489.6
      ]
     },
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -337.2
     }
    },
    "attack_heavy_a": {
@@ -20043,10 +19895,10 @@
     "h": 1134,
     "ox": -345.8,
     "oy": -823,
-    "bodyBottom": 310.4,
+    "bodyBottom": 295.9,
     "bodyH": 283.5,
     "centroidX": 98.7,
-    "renderScale": 0.25,
+    "renderScale": 0.4088,
     "file": "mahoraga/attack_heavy_a.png",
     "bodyTop": 0,
     "anchors": {
@@ -20055,11 +19907,9 @@
       450.8
      ]
     },
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 310.4
     }
    },
    "attack_heavy_b": {
@@ -20067,10 +19917,10 @@
     "h": 996,
     "ox": -342.2,
     "oy": -685,
-    "bodyBottom": 310.4,
+    "bodyBottom": 291.9,
     "bodyH": 249.0,
     "centroidX": 31.5,
-    "renderScale": 0.25,
+    "renderScale": 0.4763,
     "file": "mahoraga/attack_heavy_b.png",
     "bodyTop": 0,
     "anchors": {
@@ -20079,11 +19929,9 @@
       431.0
      ]
     },
-    "replaced": {
-     "at": "2026-08-08T21:33:54+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 310.4
     }
    }
   }
@@ -20157,7 +20005,9 @@
    "r4c3"
   ]
  },
- "headHeights": {},
+ "headHeights": {
+  "mahoraga": 222
+ },
  "alternates": {
   "hanami": {
    "dodge_air": {
@@ -22366,6 +22216,7 @@
   "choso": 290.91,
   "geto": 290.87,
   "hakari": 292.34,
-  "hanami": 289.48
+  "hanami": 289.48,
+  "mahoraga": 402.91
  }
 }

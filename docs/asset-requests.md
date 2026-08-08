@@ -579,22 +579,26 @@ two together makes the blocking ones wait behind the wish list.
 
 Two parts; either can be delivered on its own.
 
-- **12A** — eight workbench catches: poses that turned out not to be the action they are named for (8 sprites)
+- **12A** — ten workbench catches: poses that turned out not to be the action they are named for (10 sprites)
 - **12B** — the four-frame run cycle, roster-wide (92 sprites)
 
-**100 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
+**102 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
 is what makes the roster finally *run* instead of vibrating between two nearly
 identical poses.
 
 ---
 
-## 12A. Workbench catches — 8 sprites
+## 12A. Workbench catches — 10 sprites
 
 Everything here came out of placing the delivered semantic sets in the sprite
 workbench: with each pose finally drawn at its real size and standing on the real
-ground line, eight of them turned out not to be the action they are named for.
-Nothing in this round is in round 11 — 11B and 11C skip Gojo, Mahito, Nobara and
-Hakari entirely, all four being finished fighters.
+ground line, ten of them turned out not to be the action they are named for.
+Nothing in this round is in round 11 — 11B and 11C skip Gojo, Mahito, Nobara,
+Hakari and Mahoraga entirely, all five being finished fighters.
+
+**Six of the ten are a crouch that is not crouched**, across five different
+fighters and two separate delivery rounds. Whatever the pose line says today, it
+is not reading as "get low": see the note under the table.
 
 | Fighter | Key | Pose | Kind | Ask |
 |---|---|---|---|---|
@@ -605,7 +609,31 @@ Hakari entirely, all four being finished fighters.
 | Satoru Gojo | `gojo` | `crouch_b` | Pose | Not crouched |
 | Satoru Gojo | `gojo` | `crouch_attack_b` | Pose | Not crouched, and the strike goes upward |
 | Mahito | `mahito` | `crouch_b` | Pose | Not crouched |
+| Mahoraga | `mahoraga` | `crouch_a` | Pose | Not crouched — a standing stride |
+| Mahoraga | `mahoraga` | `crouch_attack_b` | Pose | Not crouched; the follow-through happens standing |
 | Nobara Kugisaki | `nobara` | `special_down` | Pose | Hammers the ground; Resonance strikes a doll |
+
+### The crouch keeps coming back standing
+
+`gojo/crouch_b`, `gojo/crouch_attack_b`, `mahito/crouch_b`,
+`mahoraga/crouch_a`, `mahoraga/crouch_attack_b` and `reggie/crouch_attack_b`
+(11D) are all the same miss, from three different rounds: a figure standing
+upright with the knees slightly bent, which reads as `idle` rather than as a
+crouch. It survives review every time because in isolation it is a good drawing
+— it only fails beside the fighter's own `idle_a`, where nothing has moved.
+
+So the pose lines are not enough on their own. For any crouch pose in this round
+or later, the test is comparative and it is the one to draw against:
+
+> Put the crouch beside that fighter's `idle_a`. **The head must drop by at
+> least a quarter of the figure's standing height.** Hips down toward heel
+> height, thighs closer to horizontal than vertical, back angled forward, and
+> the silhouette measurably shorter and wider than the idle. If the two images
+> have the same outline at the shoulders, it is not a crouch.
+
+`crouch_attack_a` / `_b` are that same low stance with the strike coming out of
+it — the body stays down through the follow-through. A rising strike from
+standing is a different move and belongs to `attack_up`.
 
 ## Hakari's air dodge — an alpha fix, not a redraw — 1 sprite
 
