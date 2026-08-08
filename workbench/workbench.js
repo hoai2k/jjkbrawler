@@ -10,7 +10,7 @@ import { loadCoreAssets, loadFrame, frameImage, spriteManifest } from "../src/as
 import {
   drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly,
   anchorScreenPos, screenPosToLocal, warmAnchors, EXTRA_ANCHORS,
-  REPLACEMENT_KINDS, replacementKind,
+  REPLACEMENT_KINDS, replacementKind, IMPROVEMENT_KINDS, improvementKind,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
@@ -30,10 +30,13 @@ const BENCHMARK_INSET = 78;
 const CELL_W = 313.5;
 // Scalar fields the workbench can edit. `anchors` is edited too but is nested,
 // so snapshot/restore/compare handle it separately.
-const EDITABLE = ["renderScale", "ox", "bodyBottom", "faceLeft", "needsReplacement"];
+const EDITABLE = ["renderScale", "ox", "bodyBottom", "faceLeft", "needsReplacement", "wantsImprovement"];
+// Fields whose VALUE is a kind string rather than a number, so a change of kind
+// is a change and `false` means "cleared" rather than "unset".
+const KIND_FIELDS = { needsReplacement: replacementKind, wantsImprovement: improvementKind };
 // Fields that are true/false rather than a number, so comparison and export
 // treat them differently (and `false` is a meaningful value, not "unset").
-const BOOLEAN_FIELDS = new Set(["faceLeft", "needsReplacement"]);
+const BOOLEAN_FIELDS = new Set(["faceLeft"]);
 
 // What the pose list shows. These filter on what is SAVED in the codebase, not
 // on what you have done since the page loaded — "unedited" means "no adjustment
@@ -189,7 +192,8 @@ function isDirty(charKey, frameKey) {
   if (!orig) return false;
   const meta = rawMeta(charKey, frameKey);
   return EDITABLE.some((f) => {
-    if (f === "needsReplacement") return replacementKind(meta) !== replacementKind(orig);
+    const kindOf = KIND_FIELDS[f];
+    if (kindOf) return kindOf(meta) !== kindOf(orig);
     if (BOOLEAN_FIELDS.has(f)) return !!meta[f] !== !!orig[f];
     return Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4;
   }) || anchorsDirty(charKey, frameKey);
@@ -221,7 +225,7 @@ function rememberSaved(charKey) {
     if (!meta) continue;
     // `edited` is written by apply_sprite_adjustments.py; a replacement request
     // counts too, since either way that pose has been decided about.
-    if (Object.keys(meta.edited || {}).length > 0 || meta.needsReplacement) {
+    if (Object.keys(meta.edited || {}).length > 0 || meta.needsReplacement || meta.wantsImprovement) {
       savedAtLoad.add(`${charKey}/${key}`);
     }
   }
@@ -243,8 +247,12 @@ function needsReplacement(charKey, frameKey) {
   return !!replacementKind(rawMeta(charKey, frameKey));
 }
 
-function kindLabel(kind) {
-  return REPLACEMENT_KINDS.find(([k]) => k === kind)?.[1] ?? kind;
+function kindLabel(kind, kinds = REPLACEMENT_KINDS) {
+  return kinds.find(([k]) => k === kind)?.[1] ?? kind;
+}
+
+function wantsImprovement(charKey, frameKey) {
+  return !!improvementKind(rawMeta(charKey, frameKey));
 }
 
 /** Every frame of this character edited this session — NOT filtered by the
@@ -545,32 +553,42 @@ function refreshControls() {
   refreshHeadControl();
   const meta = rawMeta(state.char, state.frame);
   if (!meta) return;
-  const orig = state.originals[state.char][state.frame];
+  // syncAll snapshots the selected pose before calling this, so the original is
+  // always here. Guarded anyway: this runs inside the repaint path, and a throw
+  // here silently takes the canvas with it rather than failing visibly.
+  const orig = state.originals[state.char]?.[state.frame];
+  if (!orig) return;
 
   const rel = (meta.renderScale ?? 1) / (orig.renderScale || 1);
-  $("scaleRange").value = rel.toFixed(3);
+  setPair("scale", rel);
   $("scaleVal").textContent = `${(rel * 100).toFixed(1)}% of delivered`;
 
   const dx = (meta.ox ?? 0) - (orig.ox ?? 0);
-  $("offsetRange").value = dx.toFixed(1);
+  setPair("offset", dx);
   $("offsetVal").textContent = `${dx > 0 ? "+" : ""}${dx.toFixed(1)} px`;
 
   // positive slider = sprite sits LOWER, which reads more naturally than the
   // underlying bodyBottom (where a bigger value lifts the art)
   const airborne = isAirborneOnly(state.char, state.frame);
   const dg = (orig.bodyBottom ?? 0) - (meta.bodyBottom ?? 0);
-  $("groundRange").value = dg.toFixed(1);
+  setPair("ground", dg);
   $("groundVal").textContent = airborne ? "n/a — never touches the floor"
                                         : `${dg > 0 ? "+" : ""}${dg.toFixed(1)} px`;
   $("groundGroup").classList.toggle("disabled", airborne);
   $("groundRange").disabled = airborne;
-  document.querySelectorAll("[data-ground]").forEach((b) => (b.disabled = airborne));
+  $("groundNum").disabled = airborne;
 
   const kind = replacementKind(meta);
   $("replaceBox").checked = !!kind;
   $("replaceKind").hidden = !kind;
   $("replaceKind").value = kind || REPLACEMENT_KINDS[0][0];
   $("replaceVal").textContent = kind ? kindLabel(kind).split(" — ")[0].toLowerCase() : "";
+
+  const want = improvementKind(meta);
+  $("improveBox").checked = !!want;
+  $("improveKind").hidden = !want;
+  $("improveKind").value = want || IMPROVEMENT_KINDS[0][0];
+  $("improveVal").textContent = want ? kindLabel(want, IMPROVEMENT_KINDS).split(" — ")[0].toLowerCase() : "";
 
   const mirrored = !!meta.faceLeft;
   $("mirrorBox").checked = mirrored;
@@ -704,7 +722,8 @@ function buildPoseList() {
     b.textContent = key;
     b.className = (key === state.frame ? "sel " : "")
       + (isDirty(state.char, key) ? "dirty " : "")
-      + (needsReplacement(state.char, key) ? "flagged" : "");
+      + (needsReplacement(state.char, key) ? "flagged " : "")
+      + (wantsImprovement(state.char, key) ? "wanted" : "");
     const kind = replacementKind(rawMeta(state.char, key));
     if (kind) b.dataset.kind = kind;
     b.onclick = () => { state.frame = key; syncAll(); };
@@ -712,11 +731,53 @@ function buildPoseList() {
   }
 }
 
+// Arrow keys walk the pose list as the GRID it is drawn as: left/right by one,
+// up/down by a row. The column count is read off the laid-out list rather than
+// hard-coded, so changing `.pose-list`'s CSS cannot make the keys disagree with
+// what is on screen.
+const ARROW_STEP = {
+  ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1],
+};
+
+function poseColumns() {
+  const list = $("poseList");
+  const cols = getComputedStyle(list).gridTemplateColumns.split(" ").filter(Boolean).length;
+  return Math.max(1, cols);
+}
+
+/** Move the selection by [dx, dy] grid cells. Clamped, not wrapped: running off
+ *  the end of a 30-pose list back to the start loses your place. */
+function movePose([dx, dy]) {
+  const frames = framesOf(state.char);
+  if (frames.length < 2) return;
+  const cols = poseColumns();
+  const i = frames.indexOf(state.frame);
+  // A pose the current view hides has no place in the grid, so start from the
+  // top rather than from -1.
+  const next = i < 0 ? 0 : clampNum(i + dx + dy * cols, 0, frames.length - 1);
+  if (next === i) return;
+  state.frame = frames[next];
+  syncAll();
+  scrollPoseIntoView();
+}
+
+/** Keep the selection visible when the keys walk past the end of the list. */
+function scrollPoseIntoView() {
+  const btn = $("poseList").querySelector("button.sel");
+  btn?.scrollIntoView({ block: "nearest" });
+}
+
 // Every path that changes the selected pose ends here — the pose list, the
 // arrow keys, undo/redo, a view change, `?frame=` — so asking the loader for
 // the current frame in one place covers all of them. It is a no-op once that
 // frame is in memory.
 function syncAll() {
+  // The SELECTED pose has to be snapshotted here, not left to buildPoseList:
+  // the list is view-filtered, so a pose the current view hides — arrived at by
+  // `?frame=`, or by the view changing under it — would never be remembered,
+  // and refreshControls would then throw on the missing original and abort the
+  // whole repaint. That is what made mirroring look like it did nothing.
+  remember(state.char, state.frame);
   buildPoseList();
   refreshTag();
   refreshControls();
@@ -835,6 +896,17 @@ function applyNeedsReplacement(kind) {
   refreshControls(); buildPoseList(); refreshTag(); render();
 }
 
+/** "This art works, but it could be better." A lower-priority ask than a
+ *  replacement, kept separate so a wish-list item never sits in the same queue
+ *  as a pose that is actually wrong. */
+function applyWantsImprovement(kind) {
+  pushHistory(state.char, state.frame);
+  const meta = rawMeta(state.char, state.frame);
+  if (kind) meta.wantsImprovement = kind;
+  else delete meta.wantsImprovement;
+  refreshControls(); buildPoseList(); refreshTag(); render();
+}
+
 /** Mirror this frame. The sheets are drawn facing right; a frame the artist
  *  drew facing left is flipped so the fighter always looks where they are
  *  going. `nativeLeft` in the manifest seeded these, but it guesses — this is
@@ -896,11 +968,12 @@ function payloadFor(charKey) {
     const entry = {};
     for (const f of EDITABLE) {
       const value = meta[f];
-      if (f === "needsReplacement") {
+      const kindOf = KIND_FIELDS[f];
+      if (kindOf) {
         // the VALUE is the kind, so a change of kind counts as a change; and
         // `false` is meaningful, clearing a request rather than leaving it
-        const now = replacementKind(meta);
-        const was = replacementKind(orig);
+        const now = kindOf(meta);
+        const was = kindOf(orig);
         if (now !== was) entry[f] = now ?? false;
         continue;
       }
@@ -984,6 +1057,54 @@ function bindSlider(id, apply) {
   el.addEventListener("change", () => { dragging = false; });
 }
 
+// Each placement control is a slider paired with the number it sets. The number
+// is what the nudge buttons used to be for, only better: it reads out the exact
+// value, and a figure noted on one pose can be typed straight into the next.
+//
+// `PAIRS` holds the conversion, because the size control is stored as a ratio
+// and shown as a percentage. Everything else is the identity.
+const PAIRS = {
+  scale: { show: (v) => v * 100, store: (v) => v / 100, digits: 1 },
+  offset: { show: (v) => v, store: (v) => v, digits: 1 },
+  ground: { show: (v) => v, store: (v) => v, digits: 1 },
+};
+
+/** Write a value to both halves of a pair, without either echoing back. */
+function setPair(name, value) {
+  const p = PAIRS[name];
+  $(`${name}Range`).value = value.toFixed(3);
+  const num = $(`${name}Num`);
+  // Leave a field being typed in alone: rewriting it would fight the caret and
+  // turn "1" into "1.0" before the second digit arrives.
+  if (document.activeElement !== num) num.value = p.show(value).toFixed(p.digits);
+}
+
+function bindPair(name, apply) {
+  const p = PAIRS[name];
+  bindSlider(`${name}Range`, apply);
+  const num = $(`${name}Num`);
+  const commit = () => {
+    const shown = parseFloat(num.value);
+    if (!Number.isFinite(shown)) { refreshControls(); return; } // junk: put it back
+    // The slider's own bounds are the valid range, so typing past them clamps
+    // rather than moving the sprite somewhere the slider cannot represent.
+    const range = $(`${name}Range`);
+    const v = clampNum(p.store(shown), parseFloat(range.min), parseFloat(range.max));
+    apply(v, true);
+  };
+  num.addEventListener("change", commit);
+  num.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { commit(); num.blur(); }
+    // Arrow keys belong to the number field while it has focus; the pose-list
+    // navigation must not steal them mid-edit.
+    e.stopPropagation();
+  });
+}
+
+function clampNum(v, lo, hi) {
+  return Math.min(hi, Math.max(lo, v));
+}
+
 async function boot() {
   const charSel = $("charSel");
   for (const key of CHARACTER_KEYS) {
@@ -1013,9 +1134,9 @@ async function boot() {
     render();
   };
 
-  bindSlider("scaleRange", applyScale);
-  bindSlider("offsetRange", applyOffset);
-  bindSlider("groundRange", applyGround);
+  bindPair("scale", applyScale);
+  bindPair("offset", applyOffset);
+  bindPair("ground", applyGround);
   bindSlider("headRange", applyHead);
   document.querySelectorAll("[data-head]").forEach((b) => {
     b.onclick = () => applyHead(headHeight(state.char) + parseFloat(b.dataset.head), true);
@@ -1025,16 +1146,6 @@ async function boot() {
     restoreHeadHeight(state.char);
     refreshControls(); buildPoseList(); render();
   };
-
-  document.querySelectorAll("[data-scale]").forEach((b) => {
-    b.onclick = () => applyScale(parseFloat($("scaleRange").value) + parseFloat(b.dataset.scale), true);
-  });
-  document.querySelectorAll("[data-off]").forEach((b) => {
-    b.onclick = () => applyOffset(parseFloat($("offsetRange").value) + parseFloat(b.dataset.off), true);
-  });
-  document.querySelectorAll("[data-ground]").forEach((b) => {
-    b.onclick = () => applyGround(parseFloat($("groundRange").value) + parseFloat(b.dataset.ground), true);
-  });
 
   // ---- on-canvas anchor editing. Grabbing near a handle selects it, so an
   // anchor can be picked up directly instead of via the panel first.
@@ -1102,6 +1213,16 @@ async function boot() {
     applyNeedsReplacement(e.target.checked ? kindSel.value : null);
   kindSel.onchange = () => applyNeedsReplacement(kindSel.value);
 
+  const wantSel = $("improveKind");
+  for (const [key, label] of IMPROVEMENT_KINDS) {
+    const o = document.createElement("option");
+    o.value = key; o.textContent = label;
+    wantSel.appendChild(o);
+  }
+  $("improveBox").onchange = (e) =>
+    applyWantsImprovement(e.target.checked ? wantSel.value : null);
+  wantSel.onchange = () => applyWantsImprovement(wantSel.value);
+
   $("undoBtn").onclick = undo;
   $("redoBtn").onclick = redo;
 
@@ -1144,20 +1265,18 @@ async function boot() {
       if (e.shiftKey) redo(); else undo();
       return;
     }
-    if (e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
-    const frames = framesOf(state.char);
-    const i = frames.indexOf(state.frame);
-    const step = e.shiftKey ? 10 : 1;
-    if (state.anchor && isAnchorShown(state.anchor)) {
-      if (e.key === "ArrowLeft") { nudgeAnchor(state.anchor, -step, 0); e.preventDefault(); return; }
-      if (e.key === "ArrowRight") { nudgeAnchor(state.anchor, step, 0); e.preventDefault(); return; }
-      if (e.key === "ArrowUp") { nudgeAnchor(state.anchor, 0, -step); e.preventDefault(); return; }
-      if (e.key === "ArrowDown") { nudgeAnchor(state.anchor, 0, step); e.preventDefault(); return; }
-    }
-    if (e.key === "ArrowLeft") { applyOffset(parseFloat($("offsetRange").value) - step, true); e.preventDefault(); }
-    if (e.key === "ArrowRight") { applyOffset(parseFloat($("offsetRange").value) + step, true); e.preventDefault(); }
-    if (e.key === "ArrowUp") { state.frame = frames[(i - 1 + frames.length) % frames.length]; syncAll(); e.preventDefault(); }
-    if (e.key === "ArrowDown") { state.frame = frames[(i + 1) % frames.length]; syncAll(); e.preventDefault(); }
+    // Anything you can type into keeps its own arrow keys.
+    const tag = e.target.tagName;
+    if (tag === "TEXTAREA" || tag === "SELECT" || tag === "INPUT") return;
+
+    // The arrows walk the POSE GRID. Stepping through poses and adjusting a
+    // couple of things on each is the workflow this tool exists for, so it gets
+    // the keys; the anchors keep their own nudge buttons and stay draggable, and
+    // placement now has a typeable number beside every slider.
+    const dir = ARROW_STEP[e.key];
+    if (!dir) return;
+    e.preventDefault();
+    movePose(dir);
   });
 
   initTooltips();

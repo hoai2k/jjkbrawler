@@ -48,12 +48,54 @@ export const REPLACEMENT_KINDS = [
   ["bleed", "Fix bleed — colour bleeds past the silhouette"],
 ];
 
+// How much of the existing placement survives a redraw, which decides what the
+// intake has to do when the new art lands. Read by tools/list_replacements.py
+// and by the asset-request write-up, so the rule lives here rather than in
+// prose someone has to remember:
+//
+//   keep    the frame comes back at the same size and framing, so every
+//           measurement and anchor is still valid — reuse them as they are.
+//   reframe the silhouette keeps its shape but the bounds move, so the
+//           measurements have to be re-derived and the anchors shifted by the
+//           change in framing (tools/intake_import.py --carry-placement).
+//   discard a different drawing entirely; nothing about the old placement
+//           means anything, so it is re-measured from scratch.
+export const REPLACEMENT_PLACEMENT = {
+  replace: "discard",
+  crop: "reframe",
+  bleed: "reframe",
+  alpha: "keep",
+};
+
+// A softer ask than a replacement: the art works, but it could be better. These
+// are collected at a LOWER priority than `needsReplacement` — nothing is broken,
+// so nothing is blocked. Stored as `wantsImprovement`.
+export const IMPROVEMENT_KINDS = [
+  ["quality", "Quality — the drawing is rough or off-model in execution"],
+  ["pose", "Pose — reads poorly, or is not the action it stands for"],
+  ["character", "Character — likeness or costume is off"],
+];
+
 /** The kind a frame is flagged with, or null. Normalises the legacy boolean. */
 export function replacementKind(meta) {
   const flag = meta?.needsReplacement;
   if (!flag) return null;
   if (flag === true) return "replace";
   return REPLACEMENT_KINDS.some(([k]) => k === flag) ? flag : "replace";
+}
+
+/** What survives a replacement of this kind: "keep", "reframe" or "discard". */
+export function replacementPlacement(meta) {
+  const kind = replacementKind(meta);
+  return kind ? REPLACEMENT_PLACEMENT[kind] ?? "discard" : null;
+}
+
+/** The improvement a frame asks for, or null. Same shape as replacementKind. */
+export function improvementKind(meta) {
+  const flag = meta?.wantsImprovement;
+  if (!flag) return null;
+  if (flag === true) return "quality";
+  return IMPROVEMENT_KINDS.some(([k]) => k === flag) ? flag : "quality";
 }
 
 /** States a frame can appear in that never touch the floor. Frames used ONLY

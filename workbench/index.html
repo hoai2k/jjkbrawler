@@ -78,48 +78,55 @@
         </div>
 
         <div class="group">
+          <label data-help="A softer ask than a replacement: the art &lt;em&gt;works&lt;/em&gt;, it is just not as good as it should be. Collected at a lower priority, because nothing is blocked.&lt;br&gt;&lt;br&gt;&lt;b&gt;Quality&lt;/b&gt; is a rough or sloppily executed drawing, &lt;b&gt;Pose&lt;/b&gt; is art that reads poorly or is not the action it stands for, &lt;b&gt;Character&lt;/b&gt; is a likeness or costume that is off.&lt;br&gt;&lt;br&gt;Independent of the replacement flag — a pose can be flagged for both, though if it needs replacing outright there is little point asking for it to be improved as well.">Improvement <span class="sub" id="improveVal"></span></label>
+          <div class="chips">
+            <label class="chip"><input type="checkbox" id="improveBox"> Request improvement</label>
+          </div>
+          <select id="improveKind" hidden></select>
+        </div>
+
+        <div class="group">
           <label data-help="The canvas shows the direction the game draws, facing right. The sheets are drawn facing right too, so a pose the artist drew facing &lt;em&gt;left&lt;/em&gt; needs mirroring — tick this and it will face the way the fighter is moving in a match.">Facing <span class="sub" id="mirrorVal"></span></label>
           <div class="chips">
             <label class="chip"><input type="checkbox" id="mirrorBox"> Mirror this pose</label>
           </div>
         </div>
 
-        <div class="group">
-          <label id="anchorLabel">Anchors</label>
-          <div id="anchorRows"></div>
-        </div>
-
+        <!-- Placement sits ABOVE the anchors: it is what a pass through a
+             character actually touches on every pose, so it should not be
+             below a box whose height varies with how many anchors a pose has.
+             Each slider is paired with the number it sets, which is editable —
+             a value read off one pose can be typed into the next. -->
         <div class="group">
           <label>Size <span class="sub" id="scaleVal"></span></label>
-          <input type="range" id="scaleRange" min="0.4" max="2.2" step="0.005" value="1">
-          <div class="nudge">
-            <button data-scale="-0.05">−5%</button>
-            <button data-scale="-0.01">−1%</button>
-            <button data-scale="0.01">+1%</button>
-            <button data-scale="0.05">+5%</button>
+          <div class="slider-row">
+            <input type="range" id="scaleRange" min="0.4" max="2.2" step="0.005" value="1">
+            <input type="number" id="scaleNum" class="num" step="0.1" inputmode="decimal" aria-label="Size, percent of delivered">
+            <span class="unit">%</span>
           </div>
         </div>
 
         <div class="group">
           <label>Horizontal position <span class="sub" id="offsetVal"></span></label>
-          <input type="range" id="offsetRange" min="-120" max="120" step="0.5" value="0">
-          <div class="nudge">
-            <button data-off="-10">←10</button>
-            <button data-off="-1">←1</button>
-            <button data-off="1">1→</button>
-            <button data-off="10">10→</button>
+          <div class="slider-row">
+            <input type="range" id="offsetRange" min="-120" max="120" step="0.5" value="0">
+            <input type="number" id="offsetNum" class="num" step="0.5" inputmode="decimal" aria-label="Horizontal position, pixels">
+            <span class="unit">px</span>
           </div>
         </div>
 
         <div class="group" id="groundGroup">
           <label data-help="Sets where the sprite meets the floor. Defaults to the lowest opaque pixel, which is wrong when perspective puts one foot lower than the standing plane — raise it so the &lt;em&gt;near&lt;/em&gt; foot rests on the platform.&lt;br&gt;&lt;br&gt;A pose only ever drawn in the air has no floor contact to set, so the control locks. The ground line stays on screen as a size reference against the idle.">Ground contact <span class="sub" id="groundVal"></span></label>
-          <input type="range" id="groundRange" min="-120" max="120" step="0.5" value="0">
-          <div class="nudge">
-            <button data-ground="-10">↑10</button>
-            <button data-ground="-1">↑1</button>
-            <button data-ground="1">↓1</button>
-            <button data-ground="10">↓10</button>
+          <div class="slider-row">
+            <input type="range" id="groundRange" min="-120" max="120" step="0.5" value="0">
+            <input type="number" id="groundNum" class="num" step="0.5" inputmode="decimal" aria-label="Ground contact, pixels">
+            <span class="unit">px</span>
           </div>
+        </div>
+
+        <div class="group">
+          <label id="anchorLabel">Anchors</label>
+          <div id="anchorRows"></div>
         </div>
 
         <div class="group">
