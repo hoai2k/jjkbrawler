@@ -65,8 +65,17 @@
       <!-- --------------------------------------------------------- panel -->
       <section class="panel">
         <div class="group">
-          <label for="charSel">Character</label>
+          <label for="charSel" data-help="A character, or one of the three entries that are not characters: an &lt;b&gt;actor&lt;/b&gt; owns a full sprite set but has no kit (Mahoraga), &lt;b&gt;Other Sprites&lt;/b&gt; is the shared effect and summon art, and &lt;b&gt;All Recently Updated Poses&lt;/b&gt; is a cross-character work list.&lt;br&gt;&lt;br&gt;That last one collects the poses a delivery landed on top of previous work — a redraw rolls the hand tuning back, so those poses have to be done again, and after a round they are scattered across the roster. Selecting one switches to its character underneath, so everything in this panel goes on editing the real thing.">Character</label>
           <select id="charSel"></select>
+        </div>
+
+        <!-- Only shown on a pose whose art was replaced under previous work. It
+             is the one piece of history the panel carries, and it is the reason
+             the pose is on the updated list. -->
+        <div class="group" id="updatedGroup" hidden>
+          <label data-help="Intake stamps a pose when it writes new art over one that already had work on it, recording when the art landed and which hand-tuned numbers were rolled back. That stamp is what &lt;b&gt;All Recently Updated Poses&lt;/b&gt; lists.&lt;br&gt;&lt;br&gt;It clears itself: adjusting the pose takes it off the list, because being retuned is the whole point of being on it. &lt;b&gt;Mark reviewed&lt;/b&gt; is for the other outcome — the new art needed nothing — and travels with the export like any other change.">Updated art <span class="sub" id="updatedVal"></span></label>
+          <div id="updatedInfo" class="note"></div>
+          <button id="updatedClear" class="ghost">Mark reviewed — take it off the updated list</button>
         </div>
 
         <div class="group">

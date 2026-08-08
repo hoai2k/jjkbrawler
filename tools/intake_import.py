@@ -33,6 +33,12 @@ reading: nothing said the art was merely being touched up.
 The flags themselves are cleared either way — flagging a sprite and importing
 its successor are the two ends of one pipeline.
 
+Every import that lands on top of EXISTING art also leaves a `replaced` marker
+on the pose, recording when the art changed and what hand work did not survive.
+That marker is what the workbench's "All Recently Updated Poses" list is built
+from: after a round, the poses whose art moved under previous work are scattered
+across the roster, and finding them by hand means opening every character.
+
   --approve FILE   JSON: {"char": ["frame", ...]} or {"char": {"frame": {...}}}
   --dry-run        report only
 
@@ -42,6 +48,7 @@ Usage:
 """
 
 import argparse
+import datetime as dt
 import json
 import os
 import shutil
@@ -80,6 +87,49 @@ def survives(stored):
     return PLACEMENT.get(kind, "discard")
 
 
+def now_stamp():
+    """One timestamp per import run, so a round sorts as a round."""
+    return dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
+
+
+def lost_work(stored, keeps):
+    """The hand work this import does NOT carry over, as field names.
+
+    `edited` is the record of hand tuning — apply_sprite_adjustments.py writes
+    each hand-set field's pre-edit value there — so its keys are exactly the
+    numbers someone chose by eye. A touch-up keeps all of it; a redraw rolls it
+    back, along with the anchors, because both were placed against art that is
+    now gone.
+    """
+    if not stored or keeps in ("keep", "reframe"):
+        return []
+    lost = sorted(stored.get("edited") or {})
+    if stored.get("anchors"):
+        lost.append("anchors")
+    return lost
+
+
+def replaced_note(stored, keeps, at, how="import"):
+    """The marker saying new art landed on top of an existing pose.
+
+    The workbench builds "All Recently Updated Poses" from these, across every
+    character at once: the poses a round overwrote are the ones whose tuning has
+    to be looked at again, and they are scattered through the roster by
+    definition. `lost` is what has to be redone, so the list can lead with them;
+    an empty `lost` is a touch-up that came back with its tuning intact.
+
+    Brand-new poses carry no marker — there was no earlier work to overwrite,
+    and they already sit in their character's "no saved edits" list.
+
+    Like the replacement flags, this clears itself rather than accumulating:
+    apply_sprite_adjustments.py drops it when the pose is adjusted again, or
+    when the workbench marks it reviewed as it stands.
+    """
+    if not stored:
+        return None
+    return {"at": at, "kept": keeps, "how": how, "lost": lost_work(stored, keeps)}
+
+
 def carry_anchors(stored, old_meta, new_meta):
     """The old anchors expressed in the NEW frame's pixels.
 
@@ -104,7 +154,7 @@ def carry_anchors(stored, old_meta, new_meta):
     return (out or None), moved
 
 
-def import_meta(stored, old_frame, new_frame, idle_meta=None):
+def import_meta(stored, old_frame, new_frame, idle_meta=None, at=None):
     """The manifest entry for `new_frame` replacing `stored`.
 
     One function so the rule has one implementation: main() imports through it
@@ -136,6 +186,9 @@ def import_meta(stored, old_frame, new_frame, idle_meta=None):
         if stored.get("faceLeft") is not None:
             meta["faceLeft"] = stored["faceLeft"]
             carried.append("mirror")
+    note = replaced_note(stored, keeps, at or now_stamp())
+    if note:
+        meta["replaced"] = note
     return meta, keeps, carried
 
 
@@ -251,6 +304,9 @@ def main():
     approvals = json.load(open(args.approve))
     man = json.load(open(MANIFEST))
     native_left = man.setdefault("nativeLeft", {})
+    # One stamp for the whole run: everything imported together is one round,
+    # and the workbench's updated list sorts by it.
+    at = now_stamp()
 
     done, skipped = [], []
     for char, frames in approvals.items():
@@ -293,6 +349,10 @@ def main():
                     meta["faceLeft"] = stored["faceLeft"]
                     carried.append("mirror")
 
+            note = replaced_note(stored, keeps, at)
+            if note:
+                meta["replaced"] = note
+
             if not args.dry_run:
                 os.makedirs(os.path.join(SPRITES, char), exist_ok=True)
                 shutil.copy2(src, os.path.join(SPRITES, char, f"{key}.png"))
@@ -320,7 +380,8 @@ def main():
                         + ("" if stored else "  (NEW frame)")
                         + (f"  [{keeps}]" if stored else "")
                         + ("  kept: " + "; ".join(carried) if carried else "")
-                        + ("  cleared: " + "; ".join(reset) if reset else ""))
+                        + ("  cleared: " + "; ".join(reset) if reset else "")
+                        + ("  -> updated list" if note else ""))
 
     for line in done:
         print("  " + line)
