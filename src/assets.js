@@ -367,10 +367,14 @@ async function pump() {
 /** One frame on its own, ahead of the rest of its fighter. The sprite workbench
  *  uses this to put the pose you selected on screen immediately and stream the
  *  rest of the set in behind it; resolves true once the image is usable. */
-export async function loadFrame(charKey, frameKey) {
+// `reload` drops the cached image first. The game never needs it — a pose's
+// file is fixed for the life of the page — but the workbench can repoint a pose
+// at a different drawing, and the cache is keyed by pose, not by file.
+export async function loadFrame(charKey, frameKey, { reload = false } = {}) {
   const meta = spriteManifest?.characters?.[charKey]?.[frameKey];
   if (!meta) return false;
   const key = `sprite:${charKey}:${frameKey}`;
+  if (reload) images.delete(key);
   await fetchImage(key, assetUrl(`assets/sprites/${meta.file}`));
   return images.has(key);
 }

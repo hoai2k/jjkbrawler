@@ -62,8 +62,10 @@ export const DEFAULT_ANIMS = {
   dodge_roll: { frames: ["dodge_roll"], fps: 1, loop: true },
   dodge_air: { frames: ["dodge_air"], fps: 1, loop: true },
   light: { frames: ["r3c0", "r3c1"], fps: 12, loop: false },
-  airLight: { frames: ["attack_air"], fps: 8, loop: false },
-  sideHeavy: { frames: ["r3c0"], fps: 6, loop: false },
+  // Wind-up then strike (see SEMANTIC_ANIMS below for the timing note). The
+  // `fallback` is what a fighter without the round-9 pair keeps drawing.
+  airLight: { frames: ["attack_air_a", "attack_air_b"], fallback: ["attack_air"], fps: 8, loop: false },
+  sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
   upHeavy: { frames: ["attack_up"], fps: 6, loop: false },
   downHeavy: { frames: ["r2c2"], fps: 6, loop: false },
   charge: { frames: ["charge"], fps: 2, loop: true },
@@ -96,8 +98,20 @@ export const SEMANTIC_ANIMS = {
   dodge_roll: { frames: ["dodge_roll"], fps: 1, loop: true },
   dodge_air: { frames: ["dodge_air"], fps: 1, loop: true },
   light: { frames: ["attack_light_a", "attack_light_b"], fps: 12, loop: false },
-  airLight: { frames: ["attack_air"], fps: 8, loop: false },
-  sideHeavy: { frames: ["attack_heavy"], fps: 6, loop: false },
+  // Wind-up then strike, the same shape the light attack has always had. The
+  // `_a`/`_b` art is a round-9 delivery; until it lands for a character, the
+  // single delivered frame is all that survives the missing-frame filter in
+  // resolvedAnim(), so these read exactly as they did before.
+  //
+  // The fps is chosen so the frames change when the HITBOX does: a heavy's
+  // startup is 0.15/speed s and 6 fps holds frame one for 0.167 s, an aerial's
+  // is 0.13/speed and 8 fps holds for 0.125 s. Close enough that the strike
+  // frame appears as the move goes live rather than at some arbitrary moment.
+  // `fallback` is what a character without the new art keeps drawing: the
+  // single delivered pose, exactly as before. It is a fallback rather than a
+  // third frame, so a fighter who HAS the pair never plays the old drawing.
+  airLight: { frames: ["attack_air_a", "attack_air_b"], fallback: ["attack_air"], fps: 8, loop: false },
+  sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["attack_heavy"], fps: 6, loop: false },
   upHeavy: { frames: ["attack_up"], fps: 6, loop: false },
   downHeavy: { frames: ["attack_down"], fps: 6, loop: false },
   charge: { frames: ["charge"], fps: 2, loop: true },
@@ -128,10 +142,10 @@ export const CHARACTERS = {
       hurt: { frames: ["hurt"], fps: 1, loop: true },
       shield: { frames: ["guard"], fps: 1, loop: true },
       ledge: { frames: ["ledge_hang"], fps: 1, loop: true },
-      airLight: { frames: ["attack_air"], fps: 8, loop: false },
+      airLight: { frames: ["attack_air_a", "attack_air_b"], fallback: ["attack_air"], fps: 8, loop: false },
       upHeavy: { frames: ["attack_up"], fps: 6, loop: false },
       light: { frames: ["r0c2", "r0c3"], fps: 12, loop: false },
-      sideHeavy: { frames: ["r0c3"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r0c3"], fps: 6, loop: false },
       downHeavy: { frames: ["r2c2"], fps: 6, loop: false },
       specialNeutral: { frames: ["r2c0"], fps: 8, loop: false },
       specialSide: { frames: ["r3c0"], fps: 8, loop: false },
@@ -189,7 +203,7 @@ export const CHARACTERS = {
     stats: { speed: 402, airSpeed: 318, accel: 2540, jump: 760, airJumps: 1, weight: 1.02, friction: 0.83 },
     anims: {
       light: { frames: ["r0c2", "r0c3"], fps: 12, loop: false },
-      sideHeavy: { frames: ["r3c0"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
       specialNeutral: { frames: ["r3c1"], fps: 8, loop: false },
       specialSide: { frames: ["r3c2"], fps: 8, loop: false },
       specialDown: { frames: ["r2c3"], fps: 4, loop: true },
@@ -243,7 +257,7 @@ export const CHARACTERS = {
     stats: { speed: 415, airSpeed: 305, accel: 2560, jump: 745, airJumps: 1, weight: 1.08, friction: 0.82 },
     anims: {
       light: { frames: ["r0c2", "r0c3"], fps: 12, loop: false },
-      sideHeavy: { frames: ["r3c0"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
       specialNeutral: { frames: ["r3c0"], fps: 8, loop: false },
       specialSide: { frames: ["r1c3", "r3c0"], fps: 10, loop: false },
       specialDown: { frames: ["r4c3"], fps: 4, loop: false },
@@ -297,7 +311,7 @@ export const CHARACTERS = {
     stats: { speed: 452, airSpeed: 340, accel: 2860, jump: 775, airJumps: 1, weight: 1.0, friction: 0.86 },
     anims: {
       light: { frames: ["r0c2", "r1c2"], fps: 12, loop: false },
-      sideHeavy: { frames: ["r3c0"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
       specialNeutral: { frames: ["r1c2"], fps: 8, loop: false },
       specialSide: { frames: ["r3c0", "r3c1"], fps: 10, loop: false },
       specialDown: { frames: ["r3c3"], fps: 4, loop: true },
@@ -343,7 +357,7 @@ export const CHARACTERS = {
     stats: { speed: 418, airSpeed: 330, accel: 2620, jump: 765, airJumps: 1, weight: 0.96, friction: 0.84 },
     anims: {
       light: { frames: ["r0c2", "r0c3"], fps: 12, loop: false },
-      sideHeavy: { frames: ["r3c0"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
       specialNeutral: { frames: ["r3c2"], fps: 8, loop: false },
       specialSide: { frames: ["r3c0", "r3c1"], fps: 9, loop: false },
       specialDown: { frames: ["r1c2"], fps: 8, loop: false },
@@ -412,7 +426,7 @@ export const CHARACTERS = {
     stats: { speed: 400, airSpeed: 308, accel: 2480, jump: 750, airJumps: 1, weight: 0.98, friction: 0.83 },
     anims: {
       light: { frames: ["r0c2", "r0c3"], fps: 12, loop: false },
-      sideHeavy: { frames: ["r2c0"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r2c0"], fps: 6, loop: false },
       specialNeutral: { frames: ["r0c2"], fps: 8, loop: false },
       specialSide: { frames: ["r3c0"], fps: 8, loop: false },
       specialDown: { frames: ["r3c2"], fps: 6, loop: false },
@@ -458,7 +472,7 @@ export const CHARACTERS = {
     stats: { speed: 408, airSpeed: 312, accel: 2500, jump: 755, airJumps: 1, weight: 0.98, friction: 0.83 },
     anims: {
       light: { frames: ["r0c2", "r0c3"], fps: 12, loop: false },
-      sideHeavy: { frames: ["r3c0"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
       specialNeutral: { frames: ["r3c0"], fps: 8, loop: false },
       specialSide: { frames: ["r0c3"], fps: 8, loop: false },
       specialDown: { frames: ["r3c1"], fps: 8, loop: false },
@@ -504,7 +518,7 @@ export const CHARACTERS = {
     stats: { speed: 356, airSpeed: 275, accel: 2220, jump: 730, airJumps: 1, weight: 1.28, friction: 0.78 },
     anims: {
       light: { frames: ["r2c0", "r1c3"], fps: 11, loop: false },
-      sideHeavy: { frames: ["r3c1"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c1"], fps: 6, loop: false },
       specialNeutral: { frames: ["r3c0"], fps: 8, loop: false },
       specialSide: { frames: ["r1c3"], fps: 8, loop: false },
       specialDown: { frames: ["r3c2"], fps: 6, loop: false },
@@ -550,7 +564,7 @@ export const CHARACTERS = {
     stats: { speed: 392, airSpeed: 295, accel: 2400, jump: 750, airJumps: 1, weight: 1.18, friction: 0.8 },
     anims: {
       light: { frames: ["r0c2", "r2c0"], fps: 12, loop: false },
-      sideHeavy: { frames: ["r3c0"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
       specialNeutral: { frames: ["r3c1", "r2c3"], fps: 9, loop: false },
       specialSide: { frames: ["r3c3"], fps: 8, loop: false },
       specialDown: { frames: ["r0c3"], fps: 4, loop: false },
@@ -599,7 +613,7 @@ export const CHARACTERS = {
       run: { frames: ["run_a", "run_b"], fps: 9, loop: true },
       jump: { frames: ["jump_rise"], fps: 1, loop: true },
       fall: { frames: ["fall"], fps: 1, loop: true },
-      sideHeavy: { frames: ["r2c0"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r2c0"], fps: 6, loop: false },
       specialNeutral: { frames: ["r1c2"], fps: 8, loop: false },
       specialSide: { frames: ["r1c1"], fps: 8, loop: false },
       specialDown: { frames: ["r3c3"], fps: 6, loop: false },
@@ -645,7 +659,7 @@ export const CHARACTERS = {
     stats: { speed: 388, airSpeed: 285, accel: 2380, jump: 715, airJumps: 1, weight: 1.14, friction: 0.8 },
     anims: {
       light: { frames: ["r0c2", "r0c3"], fps: 12, loop: false },
-      sideHeavy: { frames: ["r2c0", "r2c1"], fps: 8, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r2c0", "r2c1"], fps: 8, loop: false },
       downHeavy: { frames: ["r3c0"], fps: 6, loop: false },
       specialNeutral: { frames: ["r1c3"], fps: 8, loop: false },
       specialSide: { frames: ["r1c2"], fps: 8, loop: false },
@@ -692,7 +706,7 @@ export const CHARACTERS = {
     stats: { speed: 465, airSpeed: 350, accel: 2980, jump: 780, airJumps: 1, weight: 1.04, friction: 0.87 },
     anims: {
       light: { frames: ["r0c3", "r1c2"], fps: 13, loop: false },
-      sideHeavy: { frames: ["r3c0"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
       specialNeutral: { frames: ["r3c1"], fps: 8, loop: false },
       specialSide: { frames: ["r3c2"], fps: 8, loop: false },
       specialDown: { frames: ["r0c2"], fps: 8, loop: false },
@@ -746,7 +760,7 @@ export const CHARACTERS = {
     stats: { speed: 435, airSpeed: 322, accel: 2700, jump: 755, airJumps: 1, weight: 1.06, friction: 0.83 },
     anims: {
       light: { frames: ["r0c2", "r3c0"], fps: 12, loop: false },
-      sideHeavy: { frames: ["r3c1"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c1"], fps: 6, loop: false },
       crouchAttack: { frames: ["r4c1", "r4c2", "r4c3"], fps: 11, loop: false },
       specialNeutral: { frames: ["r3c0"], fps: 8, loop: false },
       specialSide: { frames: ["r3c3"], fps: 8, loop: false },
@@ -801,7 +815,7 @@ export const CHARACTERS = {
     stats: { speed: 422, airSpeed: 328, accel: 2600, jump: 760, airJumps: 1, weight: 0.98, friction: 0.82 },
     anims: {
       light: { frames: ["r0c2", "r0c3"], fps: 12, loop: false },
-      sideHeavy: { frames: ["r3c0"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
       specialNeutral: { frames: ["r3c1"], fps: 8, loop: false },
       specialSide: { frames: ["r3c3"], fps: 8, loop: false },
       specialDown: { frames: ["r3c2"], fps: 8, loop: false },
@@ -860,7 +874,7 @@ export const CHARACTERS = {
     stats: { speed: 398, airSpeed: 305, accel: 2440, jump: 745, airJumps: 1, weight: 1.04, friction: 0.82 },
     anims: {
       light: { frames: ["r0c3", "r3c0"], fps: 12, loop: false },
-      sideHeavy: { frames: ["r3c1"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c1"], fps: 6, loop: false },
       shield: { frames: ["guard"], fps: 1, loop: true },
       specialNeutral: { frames: ["r3c2"], fps: 8, loop: false },
       specialSide: { frames: ["r3c0"], fps: 8, loop: false },
@@ -922,7 +936,7 @@ export const CHARACTERS = {
     stats: { speed: 368, airSpeed: 288, accel: 2280, jump: 720, airJumps: 1, weight: 1.16, friction: 0.79 },
     anims: {
       light: { frames: ["r2c0", "r0c3"], fps: 11, loop: false },
-      sideHeavy: { frames: ["r3c0"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
       specialNeutral: { frames: ["r3c1"], fps: 8, loop: false },
       specialSide: { frames: ["r2c2"], fps: 8, loop: false },
       specialDown: { frames: ["r3c3"], fps: 5, loop: false },
@@ -976,7 +990,7 @@ export const CHARACTERS = {
     stats: { speed: 358, airSpeed: 278, accel: 2220, jump: 730, airJumps: 1, weight: 1.24, friction: 0.78 },
     anims: {
       light: { frames: ["r2c0"], fps: 9, loop: false },
-      sideHeavy: { frames: ["r2c1"], fps: 6, loop: false },
+      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r2c1"], fps: 6, loop: false },
       downHeavy: { frames: ["r2c2"], fps: 6, loop: false },
       specialNeutral: { frames: ["r3c2"], fps: 8, loop: false },
       specialSide: { frames: ["r2c2"], fps: 8, loop: false },

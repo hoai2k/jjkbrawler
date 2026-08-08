@@ -13,6 +13,7 @@ import {
   drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly, animsOf,
   anchorScreenPos, screenPosToLocal, warmAnchors, EXTRA_ANCHORS,
   REPLACEMENT_KINDS, replacementKind, IMPROVEMENT_KINDS, improvementKind,
+  variantsOf, VARIANT_PLACEMENT,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS, SPRITE_ACTORS, getActor } from "../src/characters.js";
@@ -216,6 +217,58 @@ function framesOf(charKey) {
   const view = VIEWS[state.view] || VIEWS.unedited;
   return allFramesOf(charKey).filter((k) => view.keep(charKey, k));
 }
+
+// ---------------------------------------------------------------- variants
+//
+// A pose can offer several drawings (src/sprites.js). Each option carries its
+// OWN placement, so choosing one is not just a file swap: it restores that
+// image's size, centring, ground contact and anchors, and banks the outgoing
+// image's current numbers first. Otherwise tuning drawing A and then looking at
+// drawing B would silently apply A's numbers to B and lose A's.
+
+function poseVariants(charKey, frameKey) {
+  if (isOther(charKey)) return [];
+  return variantsOf(charKey, frameKey);
+}
+
+function variantEntry(charKey, frameKey) {
+  return spriteManifest?.variants?.[charKey]?.[frameKey] || null;
+}
+
+/** Copy the placement fields the workbench edits off a meta object. */
+function takePlacement(meta) {
+  const out = {};
+  for (const field of VARIANT_PLACEMENT) {
+    if (meta[field] !== undefined) out[field] = meta[field];
+  }
+  return out;
+}
+
+/** Point a pose at one of its other drawings. */
+async function chooseVariant(charKey, frameKey, file) {
+  const entry = variantEntry(charKey, frameKey);
+  const meta = rawMeta(charKey, frameKey);
+  if (!entry || !meta || meta.file === file) return;
+  const incoming = entry.options.find((o) => o.file === file);
+  if (!incoming) return;
+
+  // Bank what is on screen back onto the image it belongs to, including any
+  // adjustment made this session, before it is replaced.
+  const outgoing = entry.options.find((o) => o.file === meta.file);
+  if (outgoing) Object.assign(outgoing, takePlacement(meta));
+
+  for (const field of VARIANT_PLACEMENT) delete meta[field];
+  Object.assign(meta, takePlacement(incoming), { file });
+  variantPicks.set(`${charKey}/${frameKey}`, file);
+
+  // The new art has almost certainly never been fetched — the streamer only
+  // pulls the file each pose pointed at when the character loaded.
+  await loadFrame(charKey, frameKey, { reload: true });
+  syncAll();
+}
+
+// Frames whose drawing was switched this session, so the export can say so.
+const variantPicks = new Map();
 
 /** The RAW manifest object the renderer reads. `frameMeta` may hand back a
  *  copy, so all mutation must go through this or edits would be discarded. */
@@ -1301,6 +1354,14 @@ function buildPoseList() {
   }
   for (const key of frames) {
     remember(state.char, key);
+    const options = poseVariants(state.char, key);
+    // A pose with a choice of drawings is a cell plus a chevron, so the two
+    // jobs stay separate: the cell still selects the pose, and only the chevron
+    // opens the menu. Wrapping every cell instead would change the grid for the
+    // 90% of poses that have exactly one drawing.
+    const host = options.length > 1 ? document.createElement("div") : null;
+    if (host) host.className = "pose-cell";
+
     const b = document.createElement("button");
     const label = frameLabel(state.char, key);
     b.innerHTML = label.sub
@@ -1317,8 +1378,66 @@ function buildPoseList() {
     const kind = replacementKind(rawMeta(state.char, key));
     if (kind) b.dataset.kind = kind;
     b.onclick = () => { state.actionRow = null; state.frame = key; syncAll(); };
-    list.appendChild(b);
+
+    if (!host) { list.appendChild(b); continue; }
+    host.appendChild(b);
+    host.appendChild(buildVariantChevron(key, options));
+    list.appendChild(host);
   }
+}
+
+/** The far-right chevron on a pose that has more than one drawing. Opens a menu
+ *  of them; picking one swaps which art the pose uses, bringing that image's own
+ *  placement with it. */
+function buildVariantChevron(frameKey, options) {
+  const chev = document.createElement("button");
+  chev.className = "pose-variant";
+  chev.textContent = "⌄";
+  chev.title = `${options.length} drawings for ${frameKey}`;
+  chev.setAttribute("aria-label", `Choose the drawing for ${frameKey}`);
+  chev.onclick = (e) => {
+    e.stopPropagation();     // the cell behind it selects the pose; this does not
+    openVariantMenu(chev, frameKey, options);
+  };
+  return chev;
+}
+
+function closeVariantMenu() {
+  document.querySelector(".variant-menu")?.remove();
+  document.removeEventListener("mousedown", onVariantOutside, true);
+}
+
+function onVariantOutside(e) {
+  if (!e.target.closest(".variant-menu, .pose-variant")) closeVariantMenu();
+}
+
+function openVariantMenu(anchor, frameKey, options) {
+  const existing = document.querySelector(".variant-menu");
+  closeVariantMenu();
+  if (existing?.dataset.frame === frameKey) return;   // second click closes it
+
+  const menu = document.createElement("div");
+  menu.className = "variant-menu";
+  menu.dataset.frame = frameKey;
+  for (const opt of options) {
+    const row = document.createElement("button");
+    row.className = opt.current ? "current" : "";
+    // The file is the identity of a drawing, so it is shown rather than hidden
+    // behind a label — two options can reasonably share a label.
+    row.innerHTML = `<span class="variant-label">${opt.label || "Untitled"}</span>`
+      + `<i class="variant-file">${opt.file}</i>`;
+    row.onclick = (e) => {
+      e.stopPropagation();
+      closeVariantMenu();
+      chooseVariant(state.char, frameKey, opt.file);
+    };
+    menu.appendChild(row);
+  }
+  const box = anchor.getBoundingClientRect();
+  menu.style.left = `${Math.min(box.left, window.innerWidth - 300)}px`;
+  menu.style.top = `${box.bottom + 4}px`;
+  document.body.appendChild(menu);
+  document.addEventListener("mousedown", onVariantOutside, true);
 }
 
 // Arrow keys walk the pose list as the GRID it is drawn as: left/right by one,
@@ -1591,7 +1710,25 @@ function payloadFor(charKey) {
     if (anchorsDirty(charKey, key) && meta.anchors) entry.anchors = meta.anchors;
     if (Object.keys(entry).length) out[key] = entry;
   }
+  // Which drawing each pose should use, when that was changed this session.
+  // Exported separately from the numbers because it is a different decision:
+  // the placement that travels with it is banked onto the option itself.
+  const picks = {};
+  for (const [id, file] of variantPicks) {
+    const [who, pose] = id.split("/");
+    if (who === charKey) picks[pose] = file;
+  }
+
   const payload = { character: charKey };
+  if (Object.keys(picks).length) {
+    payload.variantChoice = picks;
+    payload.variantPlacement = Object.fromEntries(
+      Object.keys(picks).map((pose) => {
+        const entry = variantEntry(charKey, pose);
+        return [pose, entry ? entry.options.map((o) => ({ file: o.file, ...takePlacement(o) })) : []];
+      }),
+    );
+  }
   const hh = headHeight(charKey);
   if (Math.abs(hh - (state.originalHeads[charKey] ?? hh)) > 1e-4) {
     payload.headHeight = Number(hh.toFixed(1));
@@ -1604,7 +1741,7 @@ function payloadFor(charKey) {
   const span = spriteManifest?.heightSpans?.[charKey];
   if (Number.isFinite(span) && span !== state.originalSpans[charKey]) payload.heightSpan = span;
   return (payload.headHeight !== undefined || payload.adjustments || payload.animOverrides
-          || payload.heightSpan !== undefined) ? payload : null;
+          || payload.heightSpan !== undefined || payload.variantChoice) ? payload : null;
 }
 
 /** Everything edited this session, across every character.

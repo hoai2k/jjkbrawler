@@ -102,6 +102,53 @@ export function improvementKind(meta) {
  *  by these have no meaningful ground contact to set. */
 export const AIRBORNE_STATES = ["jump", "fall", "ledge", "dodge_air", "airLight"];
 
+// ------------------------------------------------------------------ variants
+//
+// A pose can have more than one drawing to choose from — a redraw that may or
+// may not be better than what shipped, an alternate costume, a wind-up that
+// turned out to read as a strike. `manifest.variants[char][pose]` lists them:
+//
+//   "variants": { "hanami": { "dodge_roll": {
+//       "options": [
+//         { "file": "hanami/dodge_roll.png",     "label": "Round 5" },
+//         { "file": "hanami/alt/dodge_roll.png", "label": "Round 6 redesign" }
+//       ] } } }
+//
+// PLACEMENT BELONGS TO THE IMAGE, NOT THE POSE. Each option carries its own
+// renderScale / ox / bodyBottom / anchors, because two drawings of the same
+// action are framed differently and a shared number would be wrong for one of
+// them. Switching variants therefore restores that image's own numbers rather
+// than re-applying the previous one's.
+//
+// The SELECTED option's meta is mirrored into `characters[char][pose]`, which
+// is the only thing the game reads. That keeps the runtime exactly as it was —
+// variants are an authoring concept, resolved before the game ever loads.
+
+/** Every drawing available for a pose, selected one first-class. Always at
+ *  least one entry (the pose's own art) so callers need no special case. */
+export function variantsOf(charKey, frameKey) {
+  const meta = frameMeta(charKey, frameKey);
+  if (!meta) return [];
+  const listed = spriteManifest?.variants?.[charKey]?.[frameKey]?.options;
+  if (!listed?.length) return [{ ...meta, label: "Delivered", current: true }];
+  return listed.map((opt) => ({
+    ...opt,
+    current: opt.file === meta.file,
+  }));
+}
+
+/** True when a pose has a real choice to offer — used to decide whether the
+ *  workbench draws its chevron at all. */
+export function hasVariants(charKey, frameKey) {
+  return variantsOf(charKey, frameKey).length > 1;
+}
+
+/** The placement fields that travel with an image rather than with the pose. */
+export const VARIANT_PLACEMENT = [
+  "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
+  "centroidX", "renderScale", "anchors", "faceLeft",
+];
+
 // Fallback centre of mass, derived from the extraction data the manifest
 // already carries. Cached per frame on FIRST use — before the workbench can
 // mutate `ox` / `bodyBottom` — so an edit to those fields slides the art and
@@ -197,9 +244,35 @@ export function animsOf(charKey) {
   return out;
 }
 
+// An animation may name art that has not been delivered yet — the two-frame
+// wind-up/strike attacks are declared for the whole roster and land character by
+// character. Naming a missing frame draws NOTHING for that half of the move, so
+// the frames are filtered down to what exists:
+//
+//   some present  play those, in order — a half-delivered pair still animates
+//   none present  fall back to `fallback`, the single pose that shipped
+//   no fallback   keep the declared list, so a real gap stays visible
+const presentCache = new Map();
+
+export function clearAnimFrameCache() {
+  presentCache.clear();
+}
+
+function presentFrames(charKey, anim) {
+  const id = `${charKey}|${anim.frames.join(",")}`;
+  const hit = presentCache.get(id);
+  if (hit) return hit;
+  const has = (key) => !!frameMeta(charKey, key);
+  let frames = anim.frames.filter(has);
+  if (!frames.length && anim.fallback) frames = anim.fallback.filter(has);
+  const out = frames.length ? { ...anim, frames } : anim;
+  presentCache.set(id, out);
+  return out;
+}
+
 /** The frames a state draws right now, override included. */
 export function resolvedAnim(charKey, animKey) {
-  return animsOf(charKey)[animKey] || animFor(charKey, animKey);
+  return presentFrames(charKey, animsOf(charKey)[animKey] || animFor(charKey, animKey));
 }
 
 export function statesUsingFrame(charKey, frameKey) {

@@ -73,6 +73,14 @@ BOOLEAN = {"faceLeft"}
 # must not be inherited by the art that fixes it.
 TRACKED = {"renderScale", "ox", "bodyBottom", "faceLeft"}
 
+# Cleared off a pose before the chosen drawing's own values are written in, so a
+# variant that does not set a field cannot inherit the previous drawing's.
+# Mirrors VARIANT_PLACEMENT in src/sprites.js and PLACEMENT in build_variants.py.
+VARIANT_PLACEMENT = [
+    "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
+    "centroidX", "renderScale", "anchors", "faceLeft",
+]
+
 
 def load_payloads(sources):
     payloads = []
@@ -129,6 +137,46 @@ def main():
                 man["animOverrides"].pop(char, None)
             if not man.get("animOverrides"):
                 man.pop("animOverrides", None)
+
+        # Which drawing a pose uses, when it has more than one to choose from
+        # (tools/build_variants.py). Two halves, and both matter:
+        #   variantPlacement  banks every option's own size/centring/anchors, so
+        #                     tuning one drawing is not lost by looking at
+        #                     another — placement belongs to the IMAGE.
+        #   variantChoice     mirrors the chosen option onto the pose, which is
+        #                     the only thing the game reads.
+        for pose, options in (payload.get("variantPlacement") or {}).items():
+            entry = man.setdefault("variants", {}).setdefault(char, {}).get(pose)
+            if entry is None:
+                skipped.append(f"{char}/{pose}: no variants entry to update")
+                continue
+            by_file = {o["file"]: o for o in entry["options"]}
+            for opt in options:
+                target = by_file.get(opt["file"])
+                if target is None:
+                    skipped.append(f"{char}/{pose}: {opt['file']} is not an option")
+                    continue
+                for field, value in opt.items():
+                    if field != "file":
+                        target[field] = value
+
+        for pose, file in (payload.get("variantChoice") or {}).items():
+            meta = frames.get(pose)
+            entry = (man.get("variants") or {}).get(char, {}).get(pose)
+            if meta is None or entry is None:
+                skipped.append(f"{char}/{pose}: cannot select {file}")
+                continue
+            chosen = next((o for o in entry["options"] if o["file"] == file), None)
+            if chosen is None:
+                skipped.append(f"{char}/{pose}: {file} is not an option")
+                continue
+            before = meta.get("file")
+            for field in VARIANT_PLACEMENT:
+                meta.pop(field, None)
+            for field, value in chosen.items():
+                if field != "label":
+                    meta[field] = value
+            applied.append(f"{char}/{pose}.file: {before} -> {file}")
 
         # The scale reference the character's size is solved against. Written
         # when the idle itself is adjusted: from then on the idle is a pose like
