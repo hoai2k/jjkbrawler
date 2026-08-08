@@ -18,6 +18,8 @@ why the numbering is not strictly chronological.
 | 6 | Replacements for clipped/truncated sheet cells; Hanami redesign | Delivered |
 | 7 | Six new fighters: Choso, Mei Mei, Uro, Yuji, Reggie, Gakuganji | Delivered |
 | 8 | Summon minion art (Geto, Mahito, Toji) | Delivered |
+| 9 | Cards, technique frames, domains, stage props, three redrawn fighters, Mahito's re-key, Mahoraga (166 assets) | Delivered |
+| 10 | One sprite per action for the sheet-era fighters — Gojo, Mahito, Nobara, Yuta (72 sprites) | Delivered in part; the rest is round 11 |
 
 ---
 
@@ -161,6 +163,69 @@ both Divine Dogs.
 >
 > Delivering summons into `assets/intake/summons/` instead avoids this.
 
+## Round 9 — accuracy, polish, and three wrong characters
+
+Seven independent parts, all delivered.
+
+**9A — the 17 original hero cards.** The select screen was two styles side by
+side; regenerated so it is one. A later variation pass took it to 20 of the 23,
+with the uniform originals archived. Previous card art is kept at
+`assets/reference/cards_previous/` so any of them can be put back.
+
+**9B — ten technique frames that showed the wrong move.** Maki's neutral special
+played her *dash* frame; Geto's played a generic cell. All ten landed, and each
+one is pointed at in `src/characters.js` — art alone would have changed nothing,
+since the animation table decides which sprite a technique draws.
+
+**9C — seven Domain Expansion backgrounds.** Loaded through `optional()`, so
+until they arrived the domain simply dimmed the stage. Their absence was also
+what had been failing `tools/smoke_stages.mjs`: 20 boards passed while the run
+exited 1 on eleven 404s.
+
+**9D — four stage-hazard props.** The other half of those 404s. Keyed, trimmed
+to 700 px and de-fringed on import.
+
+**9E — Gakuganji, Reggie and Uro redrawn from the anime.** Round 7 built these
+three from written character blocks nobody checked against the show, so all
+three shipped as *a different person*: Gakuganji in a plain black robe with no
+guitar, Reggie in a bomber jacket instead of a tunic of torn receipts, Uro with
+a black bob instead of violet flame-like hair. 93 poses and 3 cards. The blocks
+in the open request were rewritten from the references at the same time, so the
+error cannot be regenerated from the doc.
+
+**9F — Mahito's 16 poses re-keyed.** His art was never the problem; the key
+screen was, and his set carried residue from two different screens at once.
+Magenta fringe across the redelivered poses went 9,159 → 8 and green 5,597 → 5.
+
+**9G — Mahoraga's 31 poses.** Delivered and integrated as an actor rather than a
+fighter — nobody selects him, and Megumi's ultimate wears him. The set is
+superseded by round 11A, which redraws him from the shikigami's canon design;
+what survives from 9G is the pipeline work around it, including the karma wheel
+being cut out into `effect:mahoraga_wheel` so it hangs level while he tumbles.
+
+---
+
+## Round 10 — one sprite per action, four fighters in
+
+The seventeen original fighters ran on 4×5 sprite sheets where **one cell serves
+several actions at once**: `r4c0` is both crouch and land for everybody, and
+`r3c0` covers twelve different combinations across the roster. No amount of
+re-pointing fixes that, because there is no fourth sprite to point at.
+
+**Delivered: Gojo, Mahito, Nobara and Yuta**, 18 poses each — 72 newly generated
+sprites, plus Nobara reusing the neutral special 9B had already produced. Each of
+the four now has one drawing per action.
+
+Two spec sections written for this round outlived it and moved into the open
+request rather than here, because they govern every round that follows: **the
+canonical reference image** (one `idle_a` per fighter, with a matched-scale
+roster sheet), and the **wind-up/strike pair** that replaced the single-frame
+heavy and aerial.
+
+**The thirteen fighters this round did not reach became round 11B**, and its
+seven-cell clipping list (10D) went with them — every one of those cells belongs
+to a pose 11B redraws.
+
 ---
 
 ## Closed audits
@@ -174,8 +239,8 @@ frame, so those fighters looked like they were running on the spot mid-roll.
 **Closed:** all 23 fighters now have both frames.
 
 The same audit's secondary finding — specials that resolve to a generic grid
-cell rather than art of the actual technique — is **still open** and now lives
-in [asset-requests.md](asset-requests.md) as round 10.
+cell rather than art of the actual technique — was round 9B for the ten worst
+cases and is otherwise round 11B.
 
 **Summoning system worklog.** The persistent-minion system (`src/summons.js`)
 for Megumi, Geto, Mahito and Toji. Feature complete and merged; its art was
