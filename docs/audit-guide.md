@@ -56,6 +56,13 @@ docs/               mechanics, character research, asset pipeline, asset request
 - There is no build step, so nothing checks the module graph. `node --check`
   parses a file but will not notice an import of a constant that moved.
   `node tools/check_imports.mjs` does, and takes a second.
+- The headless suites, all needing `npm i playwright` and a running
+  `node server.mjs`:
+
+      node tools/check_imports.mjs      # module graph, no browser needed
+      node tools/check_music.mjs        # stage/track wiring, no browser needed
+      node tools/smoke_stages.mjs       # every stage's Active Boards gimmick
+      node tools/smoke_workbench.mjs    # the sprite workbench's edit tracking
 
 ---
 
