@@ -12,6 +12,18 @@ import {
   DI_MAX_TURN, DI_SPEED, STALE_QUEUE, STALE_DMG_STEP, STALE_KB_STEP,
 } from "./config_tuning.js";
 
+// The right stick belonging to a fighter, or a centred stick when they have no
+// live input this step. CPU fighters always read as centred: aiming and steering
+// are player affordances, and their kits behave exactly as they did before.
+//
+// Lives here rather than in summons.js because both summons and projectiles need
+// it, and summons.js already depends on this module.
+export function ownerStick(f) {
+  const input = f?.lastInput;
+  if (!input || f.aiState) return { x: 0, y: 0 };
+  return { x: input.aimX || 0, y: input.aimY || 0 };
+}
+
 export function hurtbox(f) {
   if (f.ledge) return { x: f.x - 30, y: f.y - 82, w: 60, h: 84 };
   if (f.crouching) return { x: f.x - 36, y: f.y - 68, w: 72, h: 68 };
@@ -104,7 +116,9 @@ export function spawnProjectile(owner, cfg) {
     owner,
     x: cfg.x ?? owner.x + dir * (cfg.ox ?? 70),
     y: cfg.y ?? owner.y + (cfg.oy ?? -86),
-    vx: dir * (cfg.speed ?? 500),
+    // An aimed shot supplies its own velocity vector; everything else flies
+    // straight out along the caster's facing.
+    vx: cfg.vx ?? dir * (cfg.speed ?? 500),
     vy: cfg.vy ?? 0,
     gravity: cfg.gravity ?? 0,
     r: cfg.r ?? 30,
@@ -128,6 +142,11 @@ export function spawnProjectile(owner, cfg) {
     stunBonus: cfg.stunBonus || 0,
     unblockable: !!cfg.unblockable,
     shieldMul: cfg.shieldMul || 1,
+    // Creature projectiles (Nue, Geto's cursed spirits) can be flown with the
+    // right stick. `steerRate` is how fast the flight path can be turned, in
+    // radians per second.
+    steerable: !!cfg.steerable,
+    steerRate: cfg.steerRate ?? 5.2,
     hit: new Set(),
   };
   state.projectiles.push(p);
@@ -154,13 +173,36 @@ export function updateProjectiles(dt) {
     p.dur -= dt;
     const target = state.fighters.find((f) => f !== p.owner && !f.dead);
 
-    if (p.homing && target) {
+    // Flying it by hand. The path turns toward the stick at a limited rate
+    // rather than snapping, so a steered curse arcs instead of teleporting its
+    // heading, and its speed is preserved — steering redirects a shot, it does
+    // not accelerate one.
+    let steering = false;
+    if (p.steerable) {
+      const stick = ownerStick(p.owner);
+      if (stick.x || stick.y) {
+        steering = true;
+        const speed = Math.hypot(p.vx, p.vy);
+        const want = Math.atan2(stick.y, stick.x);
+        const cur = Math.atan2(p.vy, p.vx);
+        let delta = want - cur;
+        while (delta > Math.PI) delta -= Math.PI * 2;
+        while (delta < -Math.PI) delta += Math.PI * 2;
+        const turn = clamp(delta, -p.steerRate * dt, p.steerRate * dt);
+        p.vx = Math.cos(cur + turn) * speed;
+        p.vy = Math.sin(cur + turn) * speed;
+      }
+    }
+
+    // A hand-flown shot answers to the hand: its own homing and its arc would
+    // otherwise fight the stick for the same velocity.
+    if (p.homing && target && !steering) {
       const desired = sign(target.x - p.x);
       p.vx += desired * p.homing * dt * 8;
       const dy = (target.y - 60) - p.y;
       p.vy += clamp(dy, -220, 220) * dt * 3;
     }
-    p.vy += p.gravity * dt;
+    if (!steering) p.vy += p.gravity * dt;
     p.x += p.vx * dt;
     p.y += p.vy * dt;
     if (p.wave) p.y = groundY - p.r * 0.7;

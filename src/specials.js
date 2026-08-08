@@ -5,7 +5,7 @@
 
 import { state } from "./state.js";
 import { clamp, sign, rand, chance } from "./utils.js";
-import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox, applyStatus } from "./combat.js";
+import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox, applyStatus, ownerStick } from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
 import { playSfx, playGrunt } from "./audio.js";
 import { METER_MAX } from "./constants.js";
@@ -32,6 +32,16 @@ function beginSpecialAction(f, slot, dur, opts = {}) {
 
 function slotAnim(slot) {
   return slot === "neutral" ? "specialNeutral" : slot === "side" ? "specialSide" : "specialDown";
+}
+
+// The direction a fighter is aiming with the right stick, as a unit vector, or
+// null when the stick is centred. Null means "fire it the usual way" — aiming
+// is opt-in per press, so nothing changes for a player who never touches it.
+function aimVector(f) {
+  const stick = ownerStick(f);
+  const len = Math.hypot(stick.x, stick.y);
+  if (!len) return null;
+  return { x: stick.x / len, y: stick.y / len };
 }
 
 export function performSpecial(f, slot) {
@@ -90,6 +100,11 @@ const HANDLERS = {
     // Distortion Solo (Gakuganji): amped Power Chords fire an extra wave
     let count = p.count || 1;
     if (p.ampable && f.installs && f.installs.ampUp) count += 1;
+    // A steerable shot fired while the right stick is held launches along the
+    // stick instead of straight ahead. The spread is kept as an offset
+    // PERPENDICULAR to that heading, so an aimed volley fans exactly the way a
+    // forward one does, just rotated.
+    const aim = p.steerable ? aimVector(f) : null;
     for (let i = 0; i < count; i++) {
       const spreadVy = count > 1 ? (i - (count - 1) / 2) * (p.spread || 100) : 0;
       // `spritePool` picks a different look per shot — Geto's volley throws a
@@ -98,7 +113,18 @@ const HANDLERS = {
       const sprite = p.spritePool
         ? p.spritePool[Math.floor(Math.random() * p.spritePool.length)]
         : p.sprite;
-      spawnProjectile(f, { ...p, vy: (p.vy || 0) + spreadVy, sprite });
+      if (aim) {
+        const speed = p.speed ?? 500;
+        spawnProjectile(f, {
+          ...p, sprite,
+          x: f.x + aim.x * (p.ox ?? 70),
+          y: f.y - 86 + aim.y * (p.ox ?? 70),
+          vx: aim.x * speed - aim.y * spreadVy,
+          vy: aim.y * speed + aim.x * spreadVy,
+        });
+      } else {
+        spawnProjectile(f, { ...p, vy: (p.vy || 0) + spreadVy, sprite });
+      }
     }
     burst(f.x + f.facing * 70, f.y - 86, p.color || f.char.theme, 16, 0.9);
     grantSummonMeter(f, cfg);

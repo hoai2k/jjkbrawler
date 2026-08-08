@@ -355,7 +355,10 @@ export const CHARACTERS = {
       neutral: {
         name: "Great Serpent... no — Nue!", type: "projectile", cooldown: 1.15,
         desc: "The shadow bird dives across the arena, crackling with paralytic charge.",
-        p: { speed: 520, vy: -120, gravity: 260, r: 38, dur: 1.0, dmg: 11, base: 360, growth: 7.0, angle: 0.5, color: "#7c8cff", effect: "snare", label: "Nue", sprite: "summon:nue", spriteH: 132 },
+        // Nue is a creature, not a bullet: the right stick aims the launch and
+        // flies it. Steering suspends the arc, so a hand-flown Nue holds its
+        // line instead of dropping.
+        p: { speed: 520, vy: -120, gravity: 260, r: 38, dur: 1.0, dmg: 11, base: 360, growth: 7.0, angle: 0.5, color: "#7c8cff", effect: "snare", label: "Nue", sprite: "summon:nue", spriteH: 132, steerable: true, steerRate: 6.0 },
       },
       side: {
         name: "Divine Dogs", type: "summon", cooldown: 7.5,
@@ -873,7 +876,10 @@ export const CHARACTERS = {
         // Each of the three shots draws a different curse, cut from his own
         // round-6 art. The volley is the one move where seeing a MENAGERIE
         // rather than three identical orbs sells what Geto actually does.
-        p: { speed: 420, vy: -10, r: 26, dur: 1.1, dmg: 8, base: 280, growth: 5.8, angle: 0.4, color: "#7d58d8", count: 3, spread: 170, homing: 130, effect: "curseDrain", label: "Spirit Volley", spritePool: ["effect:curse_a", "effect:curse_b", "effect:curse_c", "effect:curse_d"], spriteH: 96 },
+        // Aimed as a fan: the three curses keep their spread perpendicular to
+        // whatever direction the stick picks. Steering overrides their homing —
+        // if you are flying them, you have decided where they are going.
+        p: { speed: 420, vy: -10, r: 26, dur: 1.1, dmg: 8, base: 280, growth: 5.8, angle: 0.4, color: "#7d58d8", count: 3, spread: 170, homing: 130, effect: "curseDrain", label: "Spirit Volley", spritePool: ["effect:curse_a", "effect:curse_b", "effect:curse_c", "effect:curse_d"], spriteH: 96, steerable: true, steerRate: 4.6 },
       },
       side: {
         name: "Rainbow Dragon", type: "summon", cooldown: 8,

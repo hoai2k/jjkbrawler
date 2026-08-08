@@ -141,6 +141,29 @@ resuming the hunt, and one that walks off the ledge it landed on falls.
 
 CPU fighters do not pilot; their summons always hunt.
 
+### Steering creature projectiles
+
+Two specials throw creatures rather than persistent summons, and the same stick
+flies them: Megumi's **Nue** (neutral) and Geto's **Cursed Spirit Volley**
+(neutral). Both are marked `steerable` in their kit config, which does two
+things:
+
+- **Aim on release.** Fire with the stick held and the shot launches along the
+  stick instead of straight ahead. Geto's three curses keep their spread
+  *perpendicular* to that heading, so an aimed volley fans exactly like a
+  forward one, rotated.
+- **Fly it after release.** Holding the stick turns the shot's flight path
+  toward it at a limited rate (Nue 6.0 rad/s, the volley 4.6). Speed is
+  preserved — steering redirects a shot, it never accelerates one.
+
+While you are steering, the shot's own guidance stands down: gravity stops
+(so a hand-flown Nue holds its line instead of dropping) and the volley's homing
+yields to the stick. Let go and both resume, so an unsteered shot behaves
+exactly as it always did.
+
+Aiming is opt-in per press. Nothing changes for a player who never touches the
+stick, and CPU shots are unaffected.
+
 **Cursed Energy meter** (0–100): builds from dealing damage (×0.5), taking
 damage (×0.85), and slowly over time (+1.1/s). At 100, the ultimate button
 spends it all on the character's **cinematic ultimate** — a domain, a meteor,
@@ -230,7 +253,7 @@ hazard can never KO by itself. The CPU steps out of telegraphed zones.
 | Special | L | / | B |
 | Ultimate | I | ' | LB / RB |
 | Shield / dodges | Left Shift | Right Shift | Triggers |
-| Steer summons | T / F / G / H | 8 / 4 / 5 / 6 | Right stick |
+| Steer summons / aim creature shots | T / F / G / H | 8 / 4 / 5 / 6 | Right stick |
 | Pause | Space / Esc | — | Start |
 
 ## 9. Hitboxes vs. visuals

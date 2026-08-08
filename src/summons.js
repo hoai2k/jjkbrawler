@@ -26,7 +26,7 @@
 
 import { state } from "./state.js";
 import { clamp, sign, rand, rectsOverlap } from "./utils.js";
-import { applyHit, hurtbox, spawnProjectile } from "./combat.js";
+import { applyHit, hurtbox, spawnProjectile, ownerStick } from "./combat.js";
 import { burst, dust, ring } from "./particles.js";
 import { playSfx } from "./audio.js";
 import { getImage } from "./assets.js";
@@ -91,14 +91,6 @@ function supported(x, y) {
   return false;
 }
 
-// The owner's right stick, or a centred stick for anyone who has no live input
-// this step (CPU fighters, the pre-match countdown). CPUs never pilot: they get
-// the automatic behavior, which is the same one they had before.
-function pilotStick(owner) {
-  const input = owner.lastInput;
-  if (!input || owner.aiState) return { x: 0, y: 0 };
-  return { x: input.aimX || 0, y: input.aimY || 0 };
-}
 
 function nearestTarget(owner, x) {
   let best = null;
@@ -171,7 +163,7 @@ export function spawnSummon(owner, cfg) {
       this.attackCd -= dt;
       this.lungeT = Math.max(0, this.lungeT - dt);
 
-      const stick = pilotStick(owner);
+      const stick = ownerStick(owner);
       const pushed = stick.x !== 0 || stick.y !== 0;
       if (pushed) {
         this.idleT = 0;
