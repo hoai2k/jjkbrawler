@@ -442,14 +442,9 @@ export const CHARACTERS = {
     shadow: "rgba(215, 217, 231, 0.32)",
     scale: 0.60,
     stats: { speed: 408, airSpeed: 312, accel: 2500, jump: 755, airJumps: 1, weight: 0.98, friction: 0.83 },
-    anims: {
-      light: { frames: ["r0c2", "r0c3"], fps: 12, loop: false },
-      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
-      specialNeutral: { frames: ["r3c0"], fps: 8, loop: false },
-      specialSide: { frames: ["r0c3"], fps: 8, loop: false },
-      specialDown: { frames: ["r3c1"], fps: 8, loop: false },
-      ult: { frames: ["r3c2", "r3c0"], fps: 7, loop: true },
-    },
+    // Round 11B delivered his last eighteen poses, so every action has its own
+    // drawing and every override here was saying what the shared table says.
+    anims: SEMANTIC_ANIMS,
     light: { dmg: 7.5, reach: 162, speed: 1.05, angle: 0.34, effect: null, label: "Salmon Strike", sfx: "punch" },
     heavy: { dmg: 14.5, reach: 180, speed: 1.0, angle: 0.46, effect: null, label: "Bonito Break", sfx: "punch", shieldMul: 1.5 },
     specials: {
@@ -951,14 +946,11 @@ export const CHARACTERS = {
     shadow: "rgba(155, 179, 107, 0.4)",
     scale: 0.58,
     stats: { speed: 358, airSpeed: 278, accel: 2220, jump: 730, airJumps: 1, weight: 1.24, friction: 0.78 },
-    anims: {
-      light: { frames: ["r2c0"], fps: 9, loop: false },
-      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r2c1"], fps: 6, loop: false },
-      downHeavy: { frames: ["r2c2"], fps: 6, loop: false },
-      specialNeutral: { frames: ["special_neutral"], fps: 8, loop: false },
-      specialSide: { frames: ["special_side"], fps: 8, loop: false },
-      specialDown: { frames: ["r3c0"], fps: 6, loop: false },
-      ult: { frames: ["r3c3", "r3c1"], fps: 7, loop: true },
+    // Round 11B delivered his last sixteen poses. Inherits the semantic table;
+    // the slower jab and down-special are his own timing, kept.
+    anims: { ...SEMANTIC_ANIMS,
+      light: { frames: ["attack_light_a", "attack_light_b"], fps: 9, loop: false },
+      specialDown: { frames: ["special_down"], fps: 6, loop: false },
     },
     light: { dmg: 9.5, reach: 186, speed: 0.9, angle: 0.34, effect: "rootSnare", label: "Root Lash", sfx: "punch" },
     heavy: { dmg: 17.5, reach: 200, speed: 0.88, angle: 0.44, effect: "rootSnare", label: "Timber Crush", sfx: "slashHeavy", shieldMul: 1.7 },

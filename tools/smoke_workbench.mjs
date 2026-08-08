@@ -187,17 +187,26 @@ check(Object.values(improved?.adjustments ?? {}).some((v) => v.wantsImprovement 
 // verdict on the file that has the bad transparency in it, so it has to stay
 // banked against that file: if it followed the pose instead, switching would
 // hand the flag to art nobody passed it on, and the drawing that earned it
-// would come back clean. Hanami is the only character with variants today.
+// would come back clean.
 await page.goto(`${BASE}/workbench/?char=hanami&frame=dodge_air`, { waitUntil: "domcontentloaded" });
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 await page.waitForTimeout(400);
+
+// The chevron lives in the POSE LIST, so the pose has to be in the list — and
+// the default view is "no saved edits", which drops a pose the moment one is
+// applied to it. Widen the view rather than depending on Hanami's dodge_air
+// never having been tuned.
+await page.selectOption("#viewSel", "all");
+await page.waitForTimeout(300);
 
 await page.check("#replaceBox");
 await page.waitForTimeout(150);
 await page.selectOption("#replaceKind", "alpha");
 await page.waitForTimeout(250);
 
-await page.locator(".pose-variant").first().click({ force: true });
+await page.locator(`.pose-cell [data-frame="dodge_air"], .pose-cell button.sel ~ .pose-variant`)
+  .first().click({ force: true })
+  .catch(async () => { await page.locator(".pose-variant").first().click({ force: true }); });
 await page.waitForTimeout(250);
 const alt = "hanami_alt/dodge_air.png";
 const offered = await page.locator(".variant-menu button", { hasText: alt }).count();

@@ -12,7 +12,8 @@ closed with four of its seventeen fighters finished — Gojo, Mahito, Nobara and
 Yuta each have one sprite per action — and **the thirteen it did not reach rolled
 into round 11 rather than staying open behind it**, so a round's numbers are
 always the real remaining work. Round 11 is part-delivered: **11A (Mahoraga) is
-done**, and Geto and Hakari are done within 11B, leaving eleven fighters there.
+done**, and Geto, Hakari, Hanami and Inumaki are done within 11B, leaving nine
+fighters there.
 Round 12 is small and separate: eight poses from the fighters whose semantic sets
 have landed, caught while placing them in the sprite workbench.
 
@@ -212,17 +213,17 @@ the game already ships, not the set on disk.
 Three parts; any can be delivered on its own.
 
 - ~~**11A** — redraw Mahoraga from the shikigami's canon design~~ **delivered** (33 sprites)
-- **11B** — finish the semantic sets for the 11 fighters still on sheet cells (193 sprites)
+- **11B** — finish the semantic sets for the 9 fighters still on sheet cells (159 sprites)
 - **11C** — wind-up/strike pairs for the 6 round-7 fighters (24 sprites)
 - **11D** — one improvement request: Reggie's crouch attack does not read as the action (1 sprite)
 
-**218 sprites left.** 11B is the bulk of it and the one that changes how the
-roster reads: eleven fighters still play a sprint frame for a punch. 11C is the
+**184 sprites left.** 11B is the bulk of it and the one that changes how the
+roster reads: nine fighters still play a sprint frame for a punch. 11C is the
 smallest and finishes a transition already made everywhere else.
 
 **11A is done** — Mahoraga arrived as the canon shikigami, all 33 poses, and is
-integrated. **Geto and Hakari are done in 11B**, which is why the count moved
-from thirteen fighters to eleven. Their sections below are struck through rather
+integrated. **Geto, Hakari, Hanami and Inumaki are done in 11B**, which is why
+the count moved from thirteen fighters to nine. Their sections below are struck through rather
 than deleted, so a delivery citing "11A" still resolves; the full record moves to
 the history file when the round closes.
 
@@ -337,13 +338,13 @@ skirt, so **key on magenta `#FF00FF`** — a grey screen would fight the body.
 
 ---
 
-## 11B. Finish the semantic sets — 193 sprites across 11 fighters
+## 11B. Finish the semantic sets — 159 sprites across 9 fighters
 
 This is round 10A, carried forward with every fighter it has finished removed
 from it. Gojo, Mahito, Nobara and Yuta got there in round 10, and **Geto (15
-poses) and Hakari (17) have since been delivered and integrated** — both are
-re-pointed and off this list. The remaining eleven still run on **4×5 sprite
-sheet cells** named `r{row}c{col}`, where one
+poses), Hakari (17), Hanami (16) and Inumaki (18) have since been delivered and
+integrated** — all four are re-pointed and off this list. The remaining nine
+still run on **4×5 sprite sheet cells** named `r{row}c{col}`, where one
 cell has to serve several actions at once.
 
 The problem was never the naming. It is that a sprint pose is what plays when
@@ -360,8 +361,8 @@ Counts differ because round 9B already delivered some of the technique frames.
 |---|---|---|---|
 | ~~Suguru Geto~~ | `geto` | ~~15~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
 | ~~Kinji Hakari~~ | `hakari` | ~~17~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| Hanami | `hanami` | 16 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
-| Toge Inumaki | `inumaki` | 18 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_neutral` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
+| ~~Hanami~~ | `hanami` | ~~16~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
+| ~~Toge Inumaki~~ | `inumaki` | ~~18~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
 | Jogo | `jogo` | 17 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_neutral` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
 | Maki Zen'in | `maki` | 17 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
 | Megumi Fushiguro | `megumi` | 17 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
