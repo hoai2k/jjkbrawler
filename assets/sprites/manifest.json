@@ -13675,17 +13675,21 @@
     "h": 1413,
     "ox": -100.2,
     "oy": -1102,
-    "bodyBottom": 310.4,
+    "bodyBottom": 231.9,
     "bodyH": 291.6,
     "centroidX": 158.5,
-    "renderScale": 0.206,
+    "renderScale": 0.2173,
     "file": "reggie/idle_a.png",
     "bodyTop": 0,
     "anchors": {
      "com": [
-      258.4,
-      549.0
+      301.9,
+      548.8
      ]
+    },
+    "edited": {
+     "renderScale": 0.206,
+     "bodyBottom": 310.4
     }
    },
    "attack_air": {
@@ -13709,12 +13713,12 @@
    "attack_down": {
     "w": 906,
     "h": 1185,
-    "ox": -296.2,
+    "ox": -345.7,
     "oy": -874,
-    "bodyBottom": 310.4,
+    "bodyBottom": 206.4,
     "bodyH": 165.7,
     "centroidX": 237.9,
-    "renderScale": 0.14,
+    "renderScale": 0.2275,
     "file": "reggie/attack_down.png",
     "bodyTop": 0,
     "anchors": {
@@ -13722,7 +13726,14 @@
       533.2,
       573.9
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.14,
+     "ox": -296.2,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": 4.5
    },
    "attack_heavy": {
     "w": 982,
@@ -13747,10 +13758,10 @@
     "h": 1403,
     "ox": -295.8,
     "oy": -1092,
-    "bodyBottom": 310.4,
+    "bodyBottom": 247.9,
     "bodyH": 255.8,
     "centroidX": 281.9,
-    "renderScale": 0.182,
+    "renderScale": 0.2157,
     "file": "reggie/attack_light_a.png",
     "bodyTop": 0,
     "anchors": {
@@ -13758,17 +13769,23 @@
       577.1,
       501.8
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.182,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": -2
    },
    "attack_light_b": {
     "w": 942,
     "h": 1288,
     "ox": -314.2,
     "oy": -977,
-    "bodyBottom": 310.4,
+    "bodyBottom": 243.4,
     "bodyH": 256.2,
     "centroidX": 222.0,
-    "renderScale": 0.199,
+    "renderScale": 0.2269,
     "file": "reggie/attack_light_b.png",
     "bodyTop": 0,
     "anchors": {
@@ -13776,17 +13793,23 @@
       536.8,
       490.2
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.199,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": -2
    },
    "attack_up": {
     "w": 648,
     "h": 1443,
     "ox": -167.2,
     "oy": -1132,
-    "bodyBottom": 310.4,
+    "bodyBottom": 240.4,
     "bodyH": 352.4,
     "centroidX": 187.3,
-    "renderScale": 0.244,
+    "renderScale": 0.2403,
     "file": "reggie/attack_up.png",
     "bodyTop": 0,
     "anchors": {
@@ -13794,14 +13817,20 @@
       355.9,
       653.7
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.244,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": 3.5
    },
    "charge": {
     "w": 842,
     "h": 1181,
     "ox": -264.2,
     "oy": -870,
-    "bodyBottom": 310.4,
+    "bodyBottom": 221.4,
     "bodyH": 255.8,
     "centroidX": 179.2,
     "renderScale": 0.217,
@@ -13812,17 +13841,22 @@
       443.7,
       479.6
      ]
-    }
+    },
+    "edited": {
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": 1.5
    },
    "crouch_a": {
     "w": 930,
     "h": 1011,
     "ox": -308.2,
     "oy": -700,
-    "bodyBottom": 310.4,
+    "bodyBottom": 283.9,
     "bodyH": 193.5,
     "centroidX": 145.2,
-    "renderScale": 0.191,
+    "renderScale": 0.2044,
     "file": "reggie/crouch_a.png",
     "bodyTop": 0,
     "anchors": {
@@ -13830,53 +13864,74 @@
       453.4,
       475.3
      ]
+    },
+    "edited": {
+     "renderScale": 0.191,
+     "bodyBottom": 310.4
     }
    },
    "crouch_attack_a": {
     "w": 976,
     "h": 825,
-    "ox": -331.2,
+    "ox": -451.2,
     "oy": -514,
-    "bodyBottom": 310.4,
+    "bodyBottom": 203.4,
     "bodyH": 163.2,
     "centroidX": 304.3,
-    "renderScale": 0.198,
+    "renderScale": 0.2247,
     "file": "reggie/crouch_attack_a.png",
     "bodyTop": 0,
     "anchors": {
      "com": [
-      636.1,
-      372.8
+      669.4,
+      389.8
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.198,
+     "ox": -331.2,
+     "bodyBottom": 310.4,
+     "rotationDeg": null,
+     "faceLeft": null
+    },
+    "rotationDeg": 3.5,
+    "faceLeft": true
    },
    "crouch_attack_b": {
     "w": 970,
     "h": 1232,
-    "ox": -328.2,
+    "ox": -448.2,
     "oy": -921,
-    "bodyBottom": 310.4,
+    "bodyBottom": 278.4,
     "bodyH": 159.7,
     "centroidX": 297.5,
-    "renderScale": 0.13,
+    "renderScale": 0.2269,
     "file": "reggie/crouch_attack_b.png",
     "bodyTop": 0,
     "anchors": {
      "com": [
-      626.2,
-      366.5
+      700.8,
+      404.9
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.13,
+     "ox": -328.2,
+     "bodyBottom": 310.4,
+     "faceLeft": null
+    },
+    "faceLeft": true,
+    "wantsImprovement": "pose"
    },
    "crouch_b": {
     "w": 881,
     "h": 1182,
     "ox": -283.8,
     "oy": -871,
-    "bodyBottom": 310.4,
+    "bodyBottom": 227.4,
     "bodyH": 219.2,
     "centroidX": 190.8,
-    "renderScale": 0.185,
+    "renderScale": 0.222,
     "file": "reggie/crouch_b.png",
     "bodyTop": 0,
     "anchors": {
@@ -13884,17 +13939,23 @@
       473.9,
       466.8
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.185,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": 2.5
    },
    "dash": {
     "w": 978,
     "h": 989,
     "ox": -332.2,
     "oy": -678,
-    "bodyBottom": 310.4,
+    "bodyBottom": 280.9,
     "bodyH": 173.9,
     "centroidX": 188.8,
-    "renderScale": 0.176,
+    "renderScale": 0.2112,
     "file": "reggie/dash.png",
     "bodyTop": 0,
     "anchors": {
@@ -13902,6 +13963,10 @@
       520.9,
       366.7
      ]
+    },
+    "edited": {
+     "renderScale": 0.176,
+     "bodyBottom": 310.4
     }
    },
    "dizzy": {
@@ -13909,10 +13974,10 @@
     "h": 1410,
     "ox": -200.8,
     "oy": -1099,
-    "bodyBottom": 310.4,
+    "bodyBottom": 224.9,
     "bodyH": 282.4,
     "centroidX": 138.3,
-    "renderScale": 0.2,
+    "renderScale": 0.217,
     "file": "reggie/dizzy.png",
     "bodyTop": 0,
     "anchors": {
@@ -13920,6 +13985,10 @@
       338.9,
       550.3
      ]
+    },
+    "edited": {
+     "renderScale": 0.2,
+     "bodyBottom": 310.4
     }
    },
    "dodge_air": {
@@ -13948,7 +14017,7 @@
     "bodyBottom": 310.4,
     "bodyH": 180.4,
     "centroidX": 143.7,
-    "renderScale": 0.22,
+    "renderScale": 0.2112,
     "file": "reggie/dodge_roll.png",
     "bodyTop": 0,
     "anchors": {
@@ -13956,6 +14025,9 @@
       463.0,
       324.3
      ]
+    },
+    "edited": {
+     "renderScale": 0.22
     }
    },
    "fall": {
@@ -13981,10 +14053,10 @@
     "h": 1397,
     "ox": -223.2,
     "oy": -1086,
-    "bodyBottom": 310.4,
+    "bodyBottom": 158.4,
     "bodyH": 266.7,
     "centroidX": 153.5,
-    "renderScale": 0.191,
+    "renderScale": 0.2091,
     "file": "reggie/guard.png",
     "bodyTop": 0,
     "anchors": {
@@ -13992,7 +14064,13 @@
       377.1,
       509.2
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.191,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": 8.5
    },
    "hurt": {
     "w": 889,
@@ -14002,7 +14080,7 @@
     "bodyBottom": 310.4,
     "bodyH": 234.3,
     "centroidX": 180.6,
-    "renderScale": 0.175,
+    "renderScale": 0.203,
     "file": "reggie/hurt.png",
     "bodyTop": 0,
     "anchors": {
@@ -14010,17 +14088,22 @@
       467.5,
       470.5
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.175,
+     "faceLeft": null
+    },
+    "faceLeft": true
    },
    "idle_b": {
     "w": 513,
     "h": 1413,
     "ox": -99.8,
     "oy": -1102,
-    "bodyBottom": 310.4,
+    "bodyBottom": 228.4,
     "bodyH": 292.0,
     "centroidX": 157.4,
-    "renderScale": 0.207,
+    "renderScale": 0.2184,
     "file": "reggie/idle_b.png",
     "bodyTop": 0,
     "anchors": {
@@ -14028,6 +14111,10 @@
       257.2,
       548.3
      ]
+    },
+    "edited": {
+     "renderScale": 0.207,
+     "bodyBottom": 310.4
     }
    },
    "jump_rise": {
@@ -14038,7 +14125,7 @@
     "bodyBottom": 310.4,
     "bodyH": 261.0,
     "centroidX": 102.4,
-    "renderScale": 0.221,
+    "renderScale": 0.2177,
     "file": "reggie/jump_rise.png",
     "bodyTop": 0,
     "anchors": {
@@ -14046,6 +14133,9 @@
       377.9,
       488.9
      ]
+    },
+    "edited": {
+     "renderScale": 0.221
     }
    },
    "land": {
@@ -14053,10 +14143,10 @@
     "h": 915,
     "ox": -257.2,
     "oy": -604,
-    "bodyBottom": 310.4,
+    "bodyBottom": 206.9,
     "bodyH": 200.0,
     "centroidX": 161.9,
-    "renderScale": 0.219,
+    "renderScale": 0.2015,
     "file": "reggie/land.png",
     "bodyTop": 0,
     "anchors": {
@@ -14064,6 +14154,10 @@
       420.3,
       410.6
      ]
+    },
+    "edited": {
+     "renderScale": 0.219,
+     "bodyBottom": 310.4
     }
    },
    "ledge_hang": {
@@ -14074,7 +14168,7 @@
     "bodyBottom": 310.4,
     "bodyH": 334.6,
     "centroidX": 142.5,
-    "renderScale": 0.245,
+    "renderScale": 0.2756,
     "file": "reggie/ledge_hang.png",
     "bodyTop": 0,
     "anchors": {
@@ -14086,6 +14180,9 @@
       145.4,
       51.3
      ]
+    },
+    "edited": {
+     "renderScale": 0.245
     }
    },
    "run_a": {
@@ -14129,10 +14226,10 @@
     "h": 1414,
     "ox": -205.8,
     "oy": -1103,
-    "bodyBottom": 310.4,
+    "bodyBottom": 231.9,
     "bodyH": 295.1,
     "centroidX": 180.6,
-    "renderScale": 0.209,
+    "renderScale": 0.233,
     "file": "reggie/special_down.png",
     "bodyTop": 0,
     "anchors": {
@@ -14140,17 +14237,23 @@
       386.7,
       509.5
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.209,
+     "bodyBottom": 310.4,
+     "faceLeft": null
+    },
+    "faceLeft": true
    },
    "special_neutral": {
     "w": 890,
     "h": 1445,
     "ox": -288.2,
     "oy": -1134,
-    "bodyBottom": 310.4,
+    "bodyBottom": 197.4,
     "bodyH": 275.7,
     "centroidX": 129.3,
-    "renderScale": 0.191,
+    "renderScale": 0.2216,
     "file": "reggie/special_neutral.png",
     "bodyTop": 0,
     "anchors": {
@@ -14158,35 +14261,50 @@
       419.9,
       525.0
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.191,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": 2
    },
    "special_side": {
     "w": 926,
     "h": 1331,
-    "ox": -306.2,
+    "ox": -409.7,
     "oy": -1020,
-    "bodyBottom": 310.4,
+    "bodyBottom": 232.4,
     "bodyH": 287.2,
     "centroidX": 279.1,
-    "renderScale": 0.216,
+    "renderScale": 0.2311,
     "file": "reggie/special_side.png",
     "bodyTop": 0,
     "anchors": {
      "com": [
-      584.2,
-      474.2
+      636.1,
+      486.7
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.216,
+     "ox": -306.2,
+     "bodyBottom": 310.4,
+     "rotationDeg": null,
+     "faceLeft": null
+    },
+    "rotationDeg": 1.5,
+    "faceLeft": true
    },
    "ult_a": {
     "w": 981,
     "h": 1423,
     "ox": -333.8,
     "oy": -1112,
-    "bodyBottom": 310.4,
+    "bodyBottom": 232.9,
     "bodyH": 282.8,
     "centroidX": 136.3,
-    "renderScale": 0.199,
+    "renderScale": 0.2458,
     "file": "reggie/ult_a.png",
     "bodyTop": 0,
     "anchors": {
@@ -14194,6 +14312,10 @@
       469.2,
       593.3
      ]
+    },
+    "edited": {
+     "renderScale": 0.199,
+     "bodyBottom": 310.4
     }
    },
    "ult_b": {
@@ -14201,10 +14323,10 @@
     "h": 1481,
     "ox": -258.2,
     "oy": -1170,
-    "bodyBottom": 310.4,
+    "bodyBottom": 231.9,
     "bodyH": 301.0,
     "centroidX": 183.6,
-    "renderScale": 0.203,
+    "renderScale": 0.2426,
     "file": "reggie/ult_b.png",
     "bodyTop": 0,
     "anchors": {
@@ -14212,6 +14334,10 @@
       443.9,
       638.7
      ]
+    },
+    "edited": {
+     "renderScale": 0.203,
+     "bodyBottom": 310.4
     }
    },
    "victory": {
@@ -14219,10 +14345,10 @@
     "h": 1402,
     "ox": -199.2,
     "oy": -1091,
-    "bodyBottom": 310.4,
+    "bodyBottom": 222.9,
     "bodyH": 294.9,
     "centroidX": 138.4,
-    "renderScale": 0.21,
+    "renderScale": 0.2184,
     "file": "reggie/victory.png",
     "bodyTop": 0,
     "anchors": {
@@ -14230,6 +14356,10 @@
       337.0,
       506.0
      ]
+    },
+    "edited": {
+     "renderScale": 0.21,
+     "bodyBottom": 310.4
     }
    }
   },
@@ -16674,5 +16804,8 @@
     ]
    }
   }
+ },
+ "heightSpans": {
+  "reggie": 290.95
  }
 }
