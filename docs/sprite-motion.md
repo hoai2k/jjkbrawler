@@ -5,7 +5,9 @@
 Of the animation definitions in `src/characters.js`, most resolve to a **single
 still frame**. `jump`, `fall`, `dash`, `hurt`, `dizzy`, `shield`, `ledge`,
 `dodge_roll`, `dodge_air` and nearly every special are one image held for the
-entire state. `idle` is two poses at 2.2 fps; `run` is two at 10 fps.
+entire state. `idle` is two poses at 2.2 fps; `run` is a four-frame stride
+cycle at 13 fps where the round-12 art has landed, and the old two-frame pair
+at 10 fps everywhere it has not.
 
 Drawn unchanged, that reads as static in exactly the moments that should have
 the most life: a fighter launched across the stage was a rigid pose *sliding*,
@@ -49,7 +51,7 @@ of the fighter during a hit freeze.
 | Air dodge | tilts into the dodge and back |
 | Airborne | leans into horizontal air speed; stretches into a fast fall |
 | Dash / pivot | leans forward / back against the abandoned direction |
-| Run | sways and bobs once per frame of the cycle |
+| Run | sways once per stride cycle, bobs once per footfall; the bob halves when the four-frame cycle art carries its own rise and fall |
 | Idle, crouch | breathes — a slow sway and bob, phase-offset per fighter |
 | Shield | trembles, harder as the shield is spent |
 | Charging a smash | trembles and shifts, rising with charge |

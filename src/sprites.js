@@ -313,8 +313,15 @@ function presentFrames(charKey, anim) {
   if (hit) return hit;
   const has = (key) => !!frameMeta(charKey, key);
   let frames = anim.frames.filter(has);
-  if (!frames.length && anim.fallback) frames = anim.fallback.filter(has);
-  const out = frames.length ? { ...anim, frames } : anim;
+  let fps = anim.fps;
+  if (!frames.length && anim.fallback) {
+    frames = anim.fallback.filter(has);
+    // Fallback art predates the animation it stands in for, so it can keep the
+    // frame rate it was tuned at — the two-frame run plays at its original
+    // 10 fps rather than the four-frame cycle's 13.
+    if (frames.length && anim.fallbackFps) fps = anim.fallbackFps;
+  }
+  const out = frames.length ? { ...anim, frames, fps } : anim;
   presentCache.set(id, out);
   return out;
 }
@@ -495,10 +502,13 @@ export function currentFrame(charKey, animKey, animTime) {
   return anim.frames[i];
 }
 
-/** Where the playhead sits inside the current frame, 0..1. Lets procedural
- *  motion ride a 2-frame cycle instead of hard-cutting with it. */
-export function framePhase(charKey, animKey, animTime) {
-  const anim = animFor(charKey, animKey);
-  const t = animTime * anim.fps;
-  return t - Math.floor(t);
+/** Where the playhead sits inside the whole looped cycle, 0..1, plus how many
+ *  frames the cycle resolved to. Run motion sways once per cycle and bobs once
+ *  per footfall, which only works measured against the cycle the fighter is
+ *  actually playing — four frames when the run-cycle art is in, two on the
+ *  `run_a`/`run_b` fallback. */
+export function cyclePhase(charKey, animKey, animTime) {
+  const anim = resolvedAnim(charKey, animKey);
+  const t = (animTime * anim.fps) / anim.frames.length;
+  return { phase: t - Math.floor(t), frames: anim.frames.length };
 }
