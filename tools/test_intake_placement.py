@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+"""Prove that a touched-up sprite keeps its placement through re-import.
+
+The three replacement kinds are not the same event (REPLACEMENT_PLACEMENT in
+src/sprites.js). A wholesale redraw is a different drawing, so its predecessor's
+placement means nothing. A crop or bleed fix is the SAME drawing with different
+bounds, and an alpha fix is the same drawing at the same bounds — in both of
+those, throwing the tuning away would make every touch-up cost a full re-tune.
+
+Carrying it across is easy to get subtly wrong, because anchors are stored in
+the image's own pixels and those move when the framing does — and because a
+frame's `oy` and `bodyBottom` are independent, so re-deriving either from the
+other quietly discards a hand-tuned ground contact.
+
+This checks the maths against synthetic re-crops of real art, where the right
+answer is known exactly. Everything is asserted in the space the RENDERER draws
+in — offsets from the foot line and the cell centre — because image-local
+numbers alone would pass a frame that had been shifted bodily, ox/oy having
+absorbed the move.
+
+  python3 tools/test_intake_placement.py
+"""
+
+import json
+import os
+import sys
+
+import numpy as np
+from PIL import Image
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+
+from intake_import import import_meta, survives, content_box  # noqa: E402
+
+SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+MANIFEST = os.path.join(SPRITES, "manifest.json")
+
+fails = 0
+
+
+def check(ok, label, extra=""):
+    global fails
+    if not ok:
+        fails += 1
+    print(f"{'OK  ' if ok else 'FAIL'} {label}" + (f"  {extra}" if extra else ""))
+
+
+def load(char, key, man):
+    meta = man["characters"][char][key]
+    path = os.path.join(SPRITES, meta["file"])
+    return meta, np.asarray(Image.open(path).convert("RGBA"))
+
+
+def recrop(frame, pad_left, pad_top, pad_right, pad_bottom):
+    """The same drawing with different bounds: pad or trim transparent margin.
+
+    Negative values trim, which is what fixing a too-loose crop does. The
+    DRAWING itself is untouched, so any anchor on it must survive.
+    """
+    x0, y0, x1, y1 = content_box(frame)
+    h, w = frame.shape[:2]
+    # Never cut into the content itself — that would be a different drawing.
+    left = max(0, x0 - pad_left)
+    top = max(0, y0 - pad_top)
+    right = min(w, x1 + pad_right)
+    bottom = min(h, y1 + pad_bottom)
+    out = frame[top:bottom, left:right]
+    return np.ascontiguousarray(out), (left, top)
+
+
+def main():
+    man = json.load(open(MANIFEST))
+    # A frame with a real hand-placed anchor and a non-trivial margin.
+    char, key = "gojo", "idle_a"
+    meta, frame = load(char, key, man)
+    check(bool(meta.get("anchors", {}).get("com")), f"{char}/{key} has an anchor to carry")
+
+    # Everything the renderer needs, in the space it actually draws in: cell
+    # coordinates, measured against the foot line and the cell centre. Testing
+    # image-local numbers alone would pass a frame that had been shifted
+    # bodily, since ox/oy would have absorbed the move.
+    def rendered(m, f):
+        x0, y0, x1, y1 = content_box(f)
+        com = m.get("anchors", {}).get("com")
+        return {
+            # where the drawing's box sits relative to the foot line
+            "art_bottom": (m["oy"] + y1) - m["bodyBottom"],
+            "art_centre": m["ox"] + (x0 + x1) / 2,
+            "art_h": (y1 - y0) * m["renderScale"],
+            # and where the anchor sits within the same frame of reference
+            "com_above_feet": None if not com else m["bodyBottom"] - (m["oy"] + com[1]),
+            "com_from_centre": None if not com else (m["ox"] + com[0]) - m["ox"] - (x0 + x1) / 2,
+        }
+
+    for kind, pads in (("alpha", None),
+                       ("crop", (40, 25, 40, 15)),
+                       ("bleed", (-6, -4, -6, -3))):
+        stored = dict(meta)
+        stored["needsReplacement"] = kind
+        # An alpha fix comes back at the SAME bounds — the file differs only in
+        # its transparency — so the frame is handed over untouched.
+        new_frame = frame if pads is None else recrop(frame, *pads)[0]
+
+        keeps = survives(stored)
+        check(keeps == ("keep" if kind == "alpha" else "reframe"),
+              f"{kind}: classified as {keeps}")
+
+        new_meta, _, carried = import_meta(stored, frame, new_frame)
+        before, after = rendered(meta, frame), rendered(new_meta, new_frame)
+
+        check("placement" in carried and any(c.startswith("anchors") for c in carried),
+              f"{kind}: placement and anchors are carried", ", ".join(carried))
+
+        # The drawing must come back in exactly the same place on screen.
+        check(abs(after["art_bottom"] - before["art_bottom"]) < 1.1,
+              f"{kind}: the art stands in the same place",
+              f"{before['art_bottom']:.1f} -> {after['art_bottom']:.1f} px below the foot line")
+        check(abs(after["art_centre"] - before["art_centre"]) < 1.1,
+              f"{kind}: the art keeps its horizontal position",
+              f"{before['art_centre']:.1f} -> {after['art_centre']:.1f}")
+        check(abs(new_meta["renderScale"] - meta["renderScale"]) < 1e-6,
+              f"{kind}: renderScale is unchanged — the drawing is not resized",
+              f"{meta['renderScale']} -> {new_meta['renderScale']}")
+        check(abs(new_meta["bodyBottom"] - meta["bodyBottom"]) < 0.05,
+              f"{kind}: the tuned ground contact survives",
+              f"{meta['bodyBottom']} -> {new_meta['bodyBottom']}")
+
+        # And the anchor must come back on the same point of the body.
+        check(abs(after["com_above_feet"] - before["com_above_feet"]) < 1.1,
+              f"{kind}: the anchor keeps its height above the feet",
+              f"{before['com_above_feet']:.1f} -> {after['com_above_feet']:.1f}")
+        check(abs(after["com_from_centre"] - before["com_from_centre"]) < 1.1,
+              f"{kind}: the anchor keeps its offset across the body",
+              f"{before['com_from_centre']:.1f} -> {after['com_from_centre']:.1f}")
+
+        # A trimmed bleed genuinely removes content, so the art gets shorter by
+        # exactly what was cut — at the SAME scale, never restretched.
+        if kind == "bleed":
+            check(after["art_h"] < before["art_h"],
+                  "bleed: trimming really did remove content",
+                  f"{before['art_h']:.1f} -> {after['art_h']:.1f} px tall")
+        else:
+            check(abs(after["art_h"] - before["art_h"]) < 1.1,
+                  f"{kind}: the art is the same height on screen",
+                  f"{before['art_h']:.1f} -> {after['art_h']:.1f}")
+
+    # A wholesale replace must NOT inherit any of it.
+    stored = dict(meta)
+    stored["needsReplacement"] = "replace"
+    check(survives(stored) == "discard", "replace: classified as discard")
+    redrawn, _, carried = import_meta(stored, frame, frame)
+    check(not carried, "replace: nothing is carried over", ", ".join(carried) or "(nothing)")
+    check("anchors" not in redrawn, "replace: the old anchors are dropped")
+
+    unflagged = dict(meta)
+    unflagged.pop("needsReplacement", None)
+    check(survives(unflagged) == "discard", "an unflagged frame defaults to discard")
+
+    print("\n" + (f"{fails} check(s) failed" if fails else "All checks pass"))
+    return 1 if fails else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

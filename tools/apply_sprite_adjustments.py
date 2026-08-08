@@ -49,7 +49,16 @@ MANIFEST = os.path.join(HERE, "..", "assets", "sprites", "manifest.json")
 # asks. `false` clears the flag; a legacy `true` means "replace".
 # tools/list_replacements.py collects them for the asset request list, and
 # intake clears the flag when new art lands.
-ALLOWED = {"renderScale", "ox", "bodyBottom", "anchors", "faceLeft", "needsReplacement"}
+#
+# wantsImprovement is the softer ask: the art works, it is just not as good as
+# it should be. Its value is "quality", "pose" or "character"
+# (IMPROVEMENT_KINDS in src/sprites.js). Collected at a lower priority, since
+# nothing is blocked by one.
+ALLOWED = {"renderScale", "ox", "bodyBottom", "anchors", "faceLeft",
+           "needsReplacement", "wantsImprovement"}
+# Flags whose VALUE is a kind string. `false` clears; a legacy `true` means the
+# first kind in the list.
+KIND_FIELDS = {"needsReplacement": "replace", "wantsImprovement": "quality"}
 NUMERIC = {"renderScale", "ox", "bodyBottom"}
 BOOLEAN = {"faceLeft"}
 
@@ -107,15 +116,15 @@ def main():
                 if field in TRACKED:
                     # record the pristine value once, before it is overwritten
                     meta.setdefault("edited", {}).setdefault(field, meta.get(field))
-                if field == "needsReplacement":
+                if field in KIND_FIELDS:
                     before = meta.get(field)
                     if not value:
-                        meta.pop("needsReplacement", None)
-                        applied.append(f"{char}/{key}.needsReplacement: {before} -> cleared")
+                        meta.pop(field, None)
+                        applied.append(f"{char}/{key}.{field}: {before} -> cleared")
                     else:
-                        kind = "replace" if value is True else str(value)
-                        meta["needsReplacement"] = kind
-                        applied.append(f"{char}/{key}.needsReplacement: {before} -> {kind}")
+                        kind = KIND_FIELDS[field] if value is True else str(value)
+                        meta[field] = kind
+                        applied.append(f"{char}/{key}.{field}: {before} -> {kind}")
                     continue
                 if field in BOOLEAN:
                     before = meta.get(field)
