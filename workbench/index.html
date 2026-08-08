@@ -44,10 +44,16 @@
         </div>
 
         <div class="group" id="referenceGroup">
-          <label data-help="The two references answer different questions. The character&apos;s own idle is &lt;em&gt;overlaid&lt;/em&gt;, for lining a pose up within one sprite set. Gojo stands at the left end of the platform instead, so size reads against the rest of the roster the way it does in a real match.&lt;br&gt;&lt;br&gt;Spin preview rotates the pose about its centre of mass, exactly as the game does for tumbles, rolls and leans — an anchor in the wrong place makes the body orbit instead of turn.">Reference overlays</label>
+          <label data-help="&lt;b&gt;Show comparison&lt;/b&gt; fills the slot at the left end of the platform. On a normal pose that is Gojo&apos;s idle, so size reads against the rest of the roster the way it does in a match; while a secondary action is being previewed it is that action&apos;s &lt;em&gt;saved&lt;/em&gt; sprite, so a reassignment reads as before and after. Whatever stands there is drawn normally, not ghosted.&lt;br&gt;&lt;br&gt;&lt;b&gt;This character&apos;s idle&lt;/b&gt; answers a different question — lining a pose up within one sprite set. &lt;b&gt;Overlay&lt;/b&gt; puts a faint copy under the pose for that; &lt;b&gt;Comparison&lt;/b&gt; stands it in the slot instead, solid, and takes precedence over Gojo.&lt;br&gt;&lt;br&gt;Spin preview rotates the pose about its centre of mass, exactly as the game does for tumbles, rolls and leans — an anchor in the wrong place makes the body orbit instead of turn.">Reference overlays</label>
           <div class="chips">
-            <label class="chip"><input type="checkbox" id="refSelf"> This character's idle (overlaid)</label>
-            <label class="chip"><input type="checkbox" id="refGojo"> Gojo idle (size benchmark, stands aside)</label>
+            <label class="chip"><input type="checkbox" id="showComparison" checked> Show comparison</label>
+            <label class="chip chip--select">This character's idle
+              <select id="selfIdleMode">
+                <option value="hide">Hide</option>
+                <option value="overlay">Overlay</option>
+                <option value="comparison">Comparison</option>
+              </select>
+            </label>
             <label class="chip"><input type="checkbox" id="showPlatform" checked> Game platform</label>
             <label class="chip"><input type="checkbox" id="showGuides" checked> Guides</label>
             <label class="chip"><input type="checkbox" id="showBox"> Sprite bounds</label>

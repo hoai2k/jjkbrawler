@@ -717,3 +717,15 @@ button.ghost:disabled { opacity: 0.35; cursor: default; border-color: var(--line
   opacity: 0.6;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
+
+/* A chip that holds a dropdown rather than a checkbox. */
+.chip--select { gap: 8px; white-space: nowrap; }
+.chip--select select {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line, rgba(120, 140, 200, 0.25));
+  border-radius: 6px;
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+  padding: 2px 6px;
+}

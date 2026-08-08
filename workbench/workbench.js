@@ -551,31 +551,56 @@ async function loadBenchmarkFrame() {
   if (await loadFrame("gojo", benchmarkKey())) render();
 }
 
-/** The action's committed sprite, standing where the size benchmark does. */
-function drawSavedAction() {
-  const key = state.actionRow.saved;
-  const x = PLATFORM_X + BENCHMARK_INSET;
-  drawGhost(state.char, key, 0.85, x);
-  ctx.save();
-  ctx.fillStyle = "rgba(154, 164, 192, 0.9)";
-  ctx.font = "600 11px Inter, sans-serif";
-  ctx.textAlign = "center";
-  const label = frameLabel(state.char, key);
-  ctx.fillText(`saved: ${label.sub || label.name}`, x, GROUND_Y + 60);
-  ctx.fillStyle = "rgba(120, 170, 255, 0.9)";
-  ctx.fillText(stateLabel(state.actionRow.name), x, GROUND_Y + 76);
-  ctx.restore();
+function selfIdleKey() {
+  return rawMeta(state.char, "idle_a") ? "idle_a" : rawMeta(state.char, "r0c0") ? "r0c0" : null;
 }
 
-function drawBenchmark() {
-  const key = benchmarkKey();
+/** What stands in the comparison slot, in priority order:
+ *
+ *   1. the SAVED sprite of the secondary action being previewed — the most
+ *      specific question on screen, "what am I changing this from";
+ *   2. this character's own idle, when the dropdown asks for it beside rather
+ *      than under the pose;
+ *   3. Gojo's idle, the roster size reference.
+ *
+ *  Null when the comparison is switched off, or when what it would show is
+ *  already the pose on the canvas. */
+function comparisonTarget() {
+  if (!$("showComparison").checked) return null;
+  const row = state.actionRow;
+  if (row?.saved && row.saved !== state.frame) {
+    const label = frameLabel(state.char, row.saved);
+    return {
+      charKey: state.char, frameKey: row.saved,
+      caption: `saved: ${label.sub || label.name}`, sub: stateLabel(row.name),
+    };
+  }
+  if ($("selfIdleMode").value === "comparison") {
+    const key = selfIdleKey();
+    if (key && key !== state.frame) {
+      return { charKey: state.char, frameKey: key, caption: "this character's idle" };
+    }
+  }
+  const gojo = benchmarkKey();
+  if (state.char === "gojo" && gojo === state.frame) return null;
+  return { charKey: "gojo", frameKey: gojo, caption: "Gojo idle — size benchmark" };
+}
+
+/** The comparison stands at the left end of the platform, drawn SOLID: it is a
+ *  second sprite to look at, not a tracing guide, and ghosting it made it read
+ *  as an overlay that had slipped sideways. */
+function drawComparison({ charKey, frameKey, caption, sub }) {
   const x = PLATFORM_X + BENCHMARK_INSET;
-  drawGhost("gojo", key, 0.85, x);
+  drawGhost(charKey, frameKey, 1, x);
   ctx.save();
   ctx.fillStyle = "rgba(154, 164, 192, 0.9)";
   ctx.font = "600 11px Inter, sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("Gojo idle — size benchmark", x, GROUND_Y + 60);
+  ctx.fillText(caption, x, GROUND_Y + 60);
+  if (sub) {
+    ctx.fillStyle = "rgba(120, 170, 255, 0.9)";
+    ctx.fillText(sub, x, GROUND_Y + 76);
+  }
   ctx.restore();
 }
 
@@ -616,17 +641,15 @@ function render() {
     }
   }
 
-  // While a secondary action is being previewed, the benchmark slot shows what
-  // that action is SAVED as, so the change reads side by side. Otherwise it is
-  // Gojo's idle as the roster size reference.
-  if (state.actionRow?.saved && state.actionRow.saved !== state.frame) drawSavedAction();
-  else if ($("refGojo").checked) drawBenchmark();
-  // The self-ghost stays overlaid: within one sprite set the question is
-  // whether this pose lines up with the character's own idle, and that is only
-  // readable when the two occupy the same space.
-  if ($("refSelf").checked) {
-    const k = rawMeta(state.char, "idle_a") ? "idle_a" : "r0c0";
-    if (k !== state.frame) drawGhost(state.char, k, 0.32);
+  const comparison = comparisonTarget();
+  if (comparison) drawComparison(comparison);
+  // Overlaid, and only overlaid: within one sprite set the question is whether
+  // this pose lines up with the character's own idle, and that is only readable
+  // when the two occupy the same space. Standing it aside is the Comparison
+  // option, handled above.
+  if ($("selfIdleMode").value === "overlay") {
+    const k = selfIdleKey();
+    if (k && k !== state.frame) drawGhost(state.char, k, 0.32);
   }
 
   // Art streams in per character, so the pose can be selected before its image
@@ -1620,6 +1643,9 @@ const PAIRS = {
 /** Write a value to both halves of a pair, without either echoing back. */
 function setPair(name, value) {
   const p = PAIRS[name];
+  // A pose saved with a value beyond the default span (see growRangeToFit)
+  // must not snap back to the end of the track when it is selected.
+  growRangeToFit(`${name}Range`, value);
   $(`${name}Range`).value = value.toFixed(3);
   const num = $(`${name}Num`);
   // Leave a field being typed in alone: rewriting it would fight the caret and
@@ -1634,10 +1660,12 @@ function bindPair(name, apply) {
   const commit = () => {
     const shown = parseFloat(num.value);
     if (!Number.isFinite(shown)) { refreshControls(); return; } // junk: put it back
-    // The slider's own bounds are the valid range, so typing past them clamps
-    // rather than moving the sprite somewhere the slider cannot represent.
-    const range = $(`${name}Range`);
-    const v = clampNum(p.store(shown), parseFloat(range.min), parseFloat(range.max));
+    // The typed number wins. Some sprites genuinely need more offset than the
+    // slider's default span — Mei Mei's run needs ox past -500 — and clamping
+    // to the slider silently threw those edits away. The slider grows to cover
+    // whatever was typed instead, so it can still be dragged from there.
+    const v = p.store(shown);
+    growRangeToFit(`${name}Range`, v);
     apply(v, true);
   };
   num.addEventListener("change", commit);
@@ -1651,6 +1679,19 @@ function bindPair(name, apply) {
 
 function clampNum(v, lo, hi) {
   return Math.min(hi, Math.max(lo, v));
+}
+
+/** Widen a slider so a value outside its span is still on it. Rounded outward
+ *  to a whole step so the track keeps sensible numbers, and never narrowed —
+ *  a range that grew for one pose stays put while you work through the rest. */
+function growRangeToFit(rangeId, value) {
+  const el = $(rangeId);
+  if (!el) return;
+  const min = parseFloat(el.min);
+  const max = parseFloat(el.max);
+  const pad = Math.max(Math.abs(value) * 0.1, (max - min) * 0.05);
+  if (value < min) el.min = String(Math.floor(value - pad));
+  if (value > max) el.max = String(Math.ceil(value + pad));
 }
 
 async function boot() {
@@ -1819,7 +1860,7 @@ async function boot() {
     catch { $("exportOut").select(); }
     setTimeout(() => ($("copyBtn").textContent = "Copy to clipboard"), 1200);
   };
-  ["refSelf", "refGojo", "showGuides", "showBox", "showPlatform"]
+  ["showComparison", "selfIdleMode", "showGuides", "showBox", "showPlatform"]
     .forEach((id) => ($(id).onchange = render));
   // the spin preview animates, so it needs a frame loop rather than one redraw
   $("spinPreview").onchange = render;
