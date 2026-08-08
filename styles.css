@@ -419,19 +419,42 @@ html, body {
 }
 
 /* Most of the card art is painted low-key, and at tile size against a dark
-   menu it reads as murky. A small lift on the select screen evens the roster
-   out without touching the files. Uro and Hakari are already bright, so they
-   opt out — lifting them only washes the art out. Keyed off the file name so
-   the roster tile, the hero card and any other use of the same art agree. */
+   menu it reads as murky. A lift on the select screen evens the roster out
+   without touching the files. The art was not all painted at the same key, so
+   the lift is per card: 1.18 is the house default, the tiers below carry the
+   cards that need more, and Panda — already bright, but flat — takes the
+   saturation only. Keyed off the file name so the roster tile, the hero card
+   and any other use of the same art agree. */
 .char-card img,
 .matchup-side img {
-  filter: brightness(1.18) saturate(1.04);
+  filter: brightness(var(--card-lift, 1.18)) saturate(1.04);
 }
 
-.char-card img[src$="uro_card.jpg"],
-.char-card img[src$="hakari_card.jpg"],
-.matchup-side img[src$="uro_card.jpg"],
-.matchup-side img[src$="hakari_card.jpg"] {
+/* Dim art: a stronger lift to bring it level with the rest of the roster. */
+:is(.char-card, .matchup-side) img[src$="nanami_card.jpg"],
+:is(.char-card, .matchup-side) img[src$="toji_card.jpg"],
+:is(.char-card, .matchup-side) img[src$="geto_card.jpg"],
+:is(.char-card, .matchup-side) img[src$="reggie_card.jpg"],
+:is(.char-card, .matchup-side) img[src$="meimei_card.jpg"],
+:is(.char-card, .matchup-side) img[src$="gakuganji_card.jpg"] {
+  --card-lift: 1.38;
+}
+
+/* Darkest art: near-black backgrounds that stay murky at anything less. */
+:is(.char-card, .matchup-side) img[src$="mahito_card.jpg"],
+:is(.char-card, .matchup-side) img[src$="sukuna_card.jpg"],
+:is(.char-card, .matchup-side) img[src$="choso_card.jpg"] {
+  --card-lift: 1.58;
+}
+
+/* Panda is already bright enough; only the saturation applies. */
+:is(.char-card, .matchup-side) img[src$="panda_card.jpg"] {
+  --card-lift: 1;
+}
+
+/* Uro and Hakari are bright enough as drawn — no filter at all. */
+:is(.char-card, .matchup-side) img[src$="uro_card.jpg"],
+:is(.char-card, .matchup-side) img[src$="hakari_card.jpg"] {
   filter: none;
 }
 
