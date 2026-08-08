@@ -844,3 +844,131 @@ PY
 
 Both fringe counts should be **0**, and `softEdge` should be non-zero on every
 frame — a zero there means the alpha is binary and the edges are jagged.
+
+---
+
+## 9G. Mahoraga — a full sprite set, 31 poses
+
+Megumi's ultimate currently *summons* Mahoraga: a single static PNG
+(`assets/sprites/summons/mahoraga.png`) walks across the stage as a separate
+entity while Megumi stands beside it. The plan is for the ultimate to **turn
+Megumi into him** instead — the player wears the shikigami for the duration
+rather than watching one.
+
+The code for that is already in the repo and switched off
+(`src/config_transform.js`, `enabled: false`), gated on this art existing. It
+checks every pose below is registered in `manifest.json` before it will run, so
+a partial delivery cannot leave a fighter invisible mid-match — it just keeps
+summoning until the set is complete.
+
+### What to deliver
+
+**31 poses**, the same semantic set every round-7-onward fighter uses, into:
+
+```
+assets/intake/mahoraga/<pose_key>.png
+```
+
+| | Poses |
+|---|---|
+| **Stance** | `idle_a`, `idle_b`, `victory`, `dizzy` |
+| **Movement** | `run_a`, `run_b`, `dash`, `jump_rise`, `fall`, `land`, `dodge_roll`, `dodge_air` |
+| **Crouch** | `crouch_a`, `crouch_b`, `crouch_attack_a`, `crouch_attack_b` |
+| **Defence** | `guard`, `hurt`, `ledge_hang` |
+| **Attacks** | `attack_light_a`, `attack_light_b`, `attack_heavy`, `attack_up`, `attack_down`, `attack_air` |
+| **Techniques** | `charge`, `special_neutral`, `special_side`, `special_down`, `ult_a`, `ult_b` |
+
+All 31 are required — the readiness check demands the full set.
+
+### Character block
+
+Use verbatim as the character half of every prompt:
+
+> **Mahoraga**, the Eight-Handled Sword Divergent Sila Divine General: a towering
+> humanoid shikigami with **grey-white skin over heavy muscle**, wearing loose
+> dark hakama-style trousers bound at the waist, bare-chested and barefoot.
+> **Six eyes in two vertical rows of three** down each side of a narrow bone-pale
+> face, a wide fanged mouth, and a **long dark mane of coarse hair** falling
+> behind the shoulders. Two thick **curved horns sweep back from the temples**.
+> The signature detail: a **large eight-spoked wooden dharma wheel floating
+> upright above and slightly behind the head**, its spokes carved with sutra
+> characters, turning slowly and glowing faint white — it is never attached to
+> the body and never absent. Bandage-like wrappings on the forearms; long clawed
+> fingers. Presence is ancient, patient and inevitable rather than frenzied.
+
+Style suffix as always: *clean Japanese anime key-art style matching the Jujutsu
+Kaisen TV anime, crisp dark lineart, cel shading with soft gradient accents,
+vibrant colors, high detail, full body, no text.*
+
+### Design notes
+
+- **The wheel is the character.** Every one of the 31 poses shows it. It floats
+  independently of the body, so it stays upright and roughly level with the head
+  no matter what the body is doing — it does not tilt with a dive or a roll.
+  Keep it fully inside the frame; a clipped wheel reads as a mistake.
+- **Scale.** He is drawn as the biggest thing in the game and the engine draws
+  him at roughly 1.6× a fighter (`SPRITE_ACTORS.mahoraga` in characters.js).
+  Draw the **body** at the same plate size the roster uses — body height around
+  **290 px inside a ~1024×1536 plate**, matching Megumi's `bodyH` of 295 — and
+  let the engine do the enlarging. Do not pre-scale him; a delivery drawn twice
+  as large just loses resolution when it comes back down.
+- **Silhouette over detail.** He is on screen for eight seconds at speed. Horns,
+  mane, wheel and a heavy shouldered stance should be readable at 200 px tall.
+- **He does not use cursed energy effects.** No auras, no glow around the hands,
+  no coloured trails: his techniques are physical, plus the wheel. The one
+  exception is `ult_a` / `ult_b`, where a **white cross-shaped slash** may show.
+- **Adaptation is not shown.** Do not draw the barbed-wire adaptation growths on
+  any pose — that is a later story beat and it would date the set.
+
+### Pose prompts
+
+Combine the character block with each line below.
+
+| Pose | Pose line |
+|---|---|
+| `idle_a` | standing tall at rest, weight even, arms loose at the sides, head level, wheel turning slowly behind the head |
+| `idle_b` | the same stance a breath later, chest expanded, mane and wheel shifted slightly — reads as breathing, not as a new pose |
+| `run_a` | running forward, opposite arm and leg extended, mane streaming back, heavy footfall |
+| `run_b` | the opposite stride of `run_a`, other leg forward, low centre of gravity |
+| `dash` | lunging low and fast, body angled forward past the leading foot, one hand near the ground |
+| `jump_rise` | driving upward, knees tucking, arms rising, wheel trailing just below the head |
+| `fall` | descending, legs reaching for ground, arms out for balance |
+| `land` | absorbing the landing, deep knee bend, one fist to the floor, dust at the feet |
+| `dodge_roll` | mid evasive forward roll, body tucked, shoulder leading, wheel level and unmoved above the tuck |
+| `dodge_air` | airborne mid-dodge, body curled and turned away, arms tucked, drifting sideways |
+| `crouch_a` | crouched low on both feet, forearms across the knees, head slightly lowered |
+| `crouch_b` | the crouch a fraction lower, weight settling, ready to spring |
+| `crouch_attack_a` | sweeping a clawed hand along the floor from the crouch |
+| `crouch_attack_b` | the follow-through of that sweep, arm fully across the body |
+| `guard` | braced side-on, both forearms raised and crossed to take a hit, feet planted |
+| `hurt` | knocked back, head snapped aside, one arm flung out, body twisting away |
+| `ledge_hang` | hanging one-handed from a ledge above, body straight, other arm reaching up |
+| `attack_light_a` | fast straight claw jab, lead arm extended, body square |
+| `attack_light_b` | the return strike with the other hand, hips rotated through it |
+| `attack_heavy` | full-power overhand hammer blow coming down, both hands together, whole body behind it |
+| `attack_up` | uppercut driving straight up, chin lifted, wheel spinning faster above |
+| `attack_down` | slamming both fists into the ground beneath him, shockwave dust |
+| `attack_air` | mid-air downward diagonal claw slash, body extended |
+| `charge` | gathering himself, fists clenched at the sides, head lowered, wheel accelerating — visibly winding up |
+| `special_neutral` | a wide horizontal claw rake in front of him, both hands, arms crossing outward |
+| `special_side` | charging shoulder-first as a battering ram, one arm drawn back |
+| `special_down` | driving a fist through the floor from a knee, ground cracking outward |
+| `ult_a` | arm drawn fully back with a white cross-shaped light forming at the wheel |
+| `ult_b` | the release: a single enormous cross-slash cutting the air ahead of him |
+| `dizzy` | staggered and off balance, arms hanging, head lolling, wheel wobbling out of true |
+| `victory` | standing over the fallen, one fist lowered, head raised, wheel bright and steady |
+
+### When it is delivered
+
+1. Import with `tools/intake.py` as usual, which registers the 31 poses under a
+   `mahoraga` section in `manifest.json`.
+2. Flip `enabled: true` in `src/config_transform.js`.
+3. That is the whole switch-over — `transformReady()` in `src/ultimates.js`
+   verifies the set and Megumi's ultimate becomes the transformation.
+
+The old summon path stays in the code and keeps working; it is what runs
+whenever the transform is off or the set is incomplete.
+
+Sprites can be reviewed before then: Mahoraga is already selectable in the
+[sprite workbench](../workbench/), which shows the 31 poses as pending and
+fills them in as they arrive.

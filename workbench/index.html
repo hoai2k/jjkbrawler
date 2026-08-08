@@ -43,7 +43,7 @@
           </div>
         </div>
 
-        <div class="group">
+        <div class="group" id="referenceGroup">
           <label data-help="The two references answer different questions. The character&apos;s own idle is &lt;em&gt;overlaid&lt;/em&gt;, for lining a pose up within one sprite set. Gojo stands at the left end of the platform instead, so size reads against the rest of the roster the way it does in a real match.&lt;br&gt;&lt;br&gt;Spin preview rotates the pose about its centre of mass, exactly as the game does for tumbles, rolls and leans — an anchor in the wrong place makes the body orbit instead of turn.">Reference overlays</label>
           <div class="chips">
             <label class="chip"><input type="checkbox" id="refSelf"> This character's idle (overlaid)</label>
@@ -85,7 +85,7 @@
           <select id="improveKind" hidden></select>
         </div>
 
-        <div class="group">
+        <div class="group" id="mirrorGroup">
           <label data-help="The canvas shows the direction the game draws, facing right. The sheets are drawn facing right too, so a pose the artist drew facing &lt;em&gt;left&lt;/em&gt; needs mirroring — tick this and it will face the way the fighter is moving in a match.">Facing <span class="sub" id="mirrorVal"></span></label>
           <div class="chips">
             <label class="chip"><input type="checkbox" id="mirrorBox"> Mirror this pose</label>
@@ -97,7 +97,12 @@
              below a box whose height varies with how many anchors a pose has.
              Each slider is paired with the number it sets, which is editable —
              a value read off one pose can be typed into the next. -->
-        <div class="group">
+        <div class="group" id="usageGroup" hidden>
+          <label data-help="These sprites are not part of any character&apos;s sheet: they are the shared &lt;code&gt;effect:&lt;/code&gt; and &lt;code&gt;summon:&lt;/code&gt; art the game draws for techniques, shikigami and stage props.&lt;br&gt;&lt;br&gt;They carry no per-frame placement data — the code that spawns each one decides its size and position — so the placement controls do not apply and are hidden. What you can do here is look at them at their in-game size and flag the ones that need redrawing.">Where it is used</label>
+          <div id="usageInfo" class="note"></div>
+        </div>
+
+        <div class="group" id="scaleGroup">
           <label>Size <span class="sub" id="scaleVal"></span></label>
           <div class="slider-row">
             <input type="range" id="scaleRange" min="0.4" max="2.2" step="0.005" value="1">
@@ -106,7 +111,7 @@
           </div>
         </div>
 
-        <div class="group">
+        <div class="group" id="offsetGroup">
           <label>Horizontal position <span class="sub" id="offsetVal"></span></label>
           <div class="slider-row">
             <input type="range" id="offsetRange" min="-120" max="120" step="0.5" value="0">
@@ -124,12 +129,12 @@
           </div>
         </div>
 
-        <div class="group">
+        <div class="group" id="anchorGroup">
           <label id="anchorLabel">Anchors</label>
           <div id="anchorRows"></div>
         </div>
 
-        <div class="group">
+        <div class="group" id="heightGroup">
           <label data-help="The fighter&apos;s &lt;em&gt;global&lt;/em&gt; size: every pose is drawn at a scale solved from this, so moving it resizes the whole sprite set at once. The bar on the canvas is where the top of the head lands.&lt;br&gt;&lt;br&gt;Defaults to the character&apos;s canon height (&lt;code&gt;heightCm&lt;/code&gt; in characters.js), compressed toward Gojo so the roster keeps its real ordering without outgrowing the shared hurtbox. Fighters with no published height sit at Gojo&apos;s. Reset returns to the canon-derived value.">Character height <span class="sub" id="headVal"></span></label>
           <input type="range" id="headRange" min="110" max="240" step="0.5" value="175">
           <div class="nudge">
@@ -141,7 +146,7 @@
           <button id="resetHead" class="ghost">Reset to canon height</button>
         </div>
 
-        <div class="group">
+        <div class="group" id="resetGroup">
           <button id="resetFrame" class="ghost">Reset this pose</button>
           <button id="resetChar" class="ghost">Reset character</button>
         </div>

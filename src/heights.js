@@ -18,7 +18,7 @@
 // that rescales every one of that fighter's frames at once, which is why the
 // workbench treats it as the global height control rather than a guide line.
 
-import { CHARACTERS } from "./characters.js";
+import { getActor, CHARACTERS } from "./characters.js";
 import { spriteManifest } from "./assets.js";
 import { clamp } from "./utils.js";
 import { frameFootY } from "./sprites.js";
@@ -39,7 +39,7 @@ function referenceCm() {
  * clamping. 1.0 means "the same height as the reference".
  */
 export function heightRatio(charKey) {
-  const cm = CHARACTERS[charKey]?.heightCm;
+  const cm = getActor(charKey)?.heightCm;
   if (!cm) return HEIGHT_UNKNOWN_RATIO;
   const real = cm / referenceCm();
   const compressed = 1 + (real - 1) * HEIGHT_COMPRESSION;
@@ -95,7 +95,7 @@ function idleSpan(charKey) {
  * null when the manifest cannot answer (leaving the authored fallback alone).
  */
 export function applyHeightScale(charKey) {
-  const char = CHARACTERS[charKey];
+  const char = getActor(charKey);
   const span = idleSpan(charKey);
   if (!char || !span) return null;
   char.scale = headHeightTarget(charKey) / span;

@@ -137,6 +137,9 @@ body {
 }
 
 .group { display: flex; flex-direction: column; gap: 7px; }
+/* `display: flex` above beats the browser default for [hidden], so a group the
+   panel hides for the current entry needs saying explicitly. */
+.group[hidden] { display: none; }
 .group > label {
   font-size: 11px;
   text-transform: uppercase;
