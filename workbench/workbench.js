@@ -57,7 +57,8 @@ const VIEWS = {
   used: { label: "Used in game", keep: (c, k) => isUsed(c, k) },
   all: { label: "All sprites", keep: () => true },
 };
-// Two kinds of entry in the character list are not fighters.
+// Three kinds of entry in the character list are not fighters — the third,
+// "All Recently Updated Poses", is not even a sprite set; see recentUpdates().
 //
 // SPRITE_ACTORS (Mahoraga) own a full sprite set and are drawn exactly like a
 // fighter, so everything here works on them unchanged — they simply have no
@@ -122,8 +123,14 @@ const OTHER_KEY = "__other";
 const OTHER_LABEL = "Other Sprites";
 const ACTOR_KEYS = Object.keys(SPRITE_ACTORS);
 
+// The entry that is not a sprite set at all: a cross-character work list of
+// poses an intake round wrote over work already done. See recentUpdates().
+const RECENT_KEY = "__recent";
+const RECENT_LABEL = "All Recently Updated Poses";
+
 const isOther = (charKey) => charKey === OTHER_KEY;
 const isActor = (charKey) => ACTOR_KEYS.includes(charKey);
+const inRecent = () => state.group === RECENT_KEY;
 
 /** Character-ish record for anything selectable, real fighter or not. */
 function actorOf(charKey) {
@@ -179,6 +186,10 @@ const state = {
   // that pose. Session-only: it changes what the panel offers, not the art.
   anchorForced: new Set(),
   dragging: false,
+  // RECENT_KEY while the cross-character updated list is open. `char` stays a
+  // real character throughout — every control below edits the pose that is
+  // selected, and which list it was picked from changes nothing about that.
+  group: null,
   view: "unedited",    // key into VIEWS
   // The secondary action being previewed: the canvas shows the sprite it is
   // pointed at now, and the saved choice stands where the size benchmark does,
@@ -221,6 +232,97 @@ function isPending(charKey, frameKey) {
 function framesOf(charKey) {
   const view = VIEWS[state.view] || VIEWS.unedited;
   return allFramesOf(charKey).filter((k) => view.keep(charKey, k));
+}
+
+// ------------------------------------------------------- recently updated
+//
+// The workflow this exists for: tune a batch of poses, then a delivery lands
+// and intake writes the new art over some of them. The tuning that art was
+// given is gone — a redraw rolls it back, because nudges made to compensate for
+// bad art must not be inherited by the art that fixes it — so those poses have
+// to be done again. They are scattered across the roster by definition, and one
+// character at a time is the wrong shape for finding them: a round touches four
+// fighters and you would have to open all of them and remember which.
+//
+// So the character dropdown offers one entry that is not a character. It lists
+// the poses intake overwrote, whichever character they belong to, and selecting
+// one switches to that character underneath — the panel, the export and the
+// undo stack all keep working on real characters, because that is what they are
+// still editing.
+//
+// It is a record, not a guess: `intake_import.py` stamps `replaced` onto the
+// pose it writes, saying when the art landed and which hand-tuned fields did not
+// survive. And it drains — `apply_sprite_adjustments.py` drops the marker when
+// the pose is adjusted again, or when it is marked reviewed as it stands, so the
+// list is what is still outstanding rather than a growing history.
+
+/** The intake marker on a pose, or null. */
+function updateNote(charKey, frameKey) {
+  if (isOther(charKey)) return null;
+  return spriteManifest?.characters?.[charKey]?.[frameKey]?.replaced || null;
+}
+
+// Poses marked reviewed this session. Session-only, exactly like an edit: the
+// manifest marker cannot go until an export has been applied, so these stay on
+// the list, ticked and dimmed, rather than vanishing as they are marked. Dropping
+// them on the spot would also hide what still had to be exported.
+const updatesCleared = new Set();
+
+const isUpdateReviewed = (charKey, frameKey) => updatesCleared.has(`${charKey}/${frameKey}`);
+
+function toggleUpdateReviewed(charKey, frameKey) {
+  const id = `${charKey}/${frameKey}`;
+  if (updatesCleared.has(id)) updatesCleared.delete(id);
+  else updatesCleared.add(id);
+  // The pose belongs to a character the export has to visit, and clearing is
+  // the only thing that may have happened to it.
+  remember(charKey, frameKey);
+  refreshRecentOption();
+  refreshControls(); buildPoseList();
+}
+
+/** Every pose carrying an intake marker, across the whole roster.
+ *
+ *  Ordered newest round first, and within a round the poses that LOST hand
+ *  tuning lead — they are the ones with work to redo, as against a touch-up
+ *  that came back with its numbers intact. Then by character and pose, so the
+ *  list holds still while it is worked through. */
+function recentUpdates() {
+  const out = [];
+  for (const charKey of [...CHARACTER_KEYS, ...ACTOR_KEYS]) {
+    for (const frameKey of Object.keys(spriteManifest?.characters?.[charKey] || {})) {
+      const note = updateNote(charKey, frameKey);
+      if (!note) continue;
+      out.push({
+        char: charKey, frame: frameKey,
+        at: typeof note.at === "string" ? note.at : "",
+        kept: note.kept || "discard",
+        how: note.how || "import",
+        lost: Array.isArray(note.lost) ? note.lost : [],
+      });
+    }
+  }
+  return out.sort((a, b) =>
+    b.at.localeCompare(a.at)
+    || (b.lost.length ? 1 : 0) - (a.lost.length ? 1 : 0)
+    || a.char.localeCompare(b.char)
+    || a.frame.localeCompare(b.frame));
+}
+
+/** What was overwritten, in a sentence. Reads off the marker rather than
+ *  guessing, so "nothing was lost" is stated rather than implied by silence. */
+function updateSummary(note) {
+  const when = note.at ? new Date(note.at) : null;
+  const landed = when && !Number.isNaN(when.getTime())
+    ? when.toLocaleString() : (note.at || "an earlier round");
+  const how = note.how === "variant"
+    ? "a delivered alternate was selected over it"
+    : "new art was imported over it";
+  const lost = (Array.isArray(note.lost) ? note.lost : []);
+  const what = lost.length
+    ? `Rolled back: <b>${lost.join(", ")}</b> — this pose needs tuning again.`
+    : "The tuning was carried across intact — worth a look, not a re-tune.";
+  return `${how} on ${landed}.<br>${what}`;
 }
 
 // ---------------------------------------------------------------- variants
@@ -583,7 +685,7 @@ function undo() {
   }
   state.char = entry.char;
   if (entry.frame) state.frame = entry.frame;
-  $("charSel").value = entry.char;
+  syncCharSelect();
   syncAll();
 }
 
@@ -599,7 +701,7 @@ function redo() {
   }
   state.char = entry.char;
   if (entry.frame) state.frame = entry.frame;
-  $("charSel").value = entry.char;
+  syncCharSelect();
   syncAll();
 }
 
@@ -1251,6 +1353,7 @@ function refreshTag() {
 
 function refreshControls() {
   refreshHeadControl();
+  refreshUpdatedControl();
   const meta = rawMeta(state.char, state.frame);
   if (!meta) return;
   // syncAll snapshots the selected pose before calling this, so the original is
@@ -1315,20 +1418,26 @@ function refreshControls() {
 
   // counted across every character touched this session, since that is what
   // Export now emits
-  let poses = 0, heads = 0, chars = 0, actions = 0;
-  for (const c of Object.keys(state.originals)) {
+  let poses = 0, heads = 0, chars = 0, actions = 0, reviews = 0;
+  for (const c of editedChars()) {
     const n = dirtyFrames(c).length;
     const headChanged = Math.abs(headHeight(c) - (state.originalHeads[c] ?? headHeight(c))) > 1e-4;
     const a = Object.keys(dirtyActions(c)).length;
-    if (n || headChanged || a) chars++;
+    // Only the ticks that have something to say on their own: adjusting a pose
+    // takes it off the updated list anyway, so counting that twice would
+    // overstate what the export carries.
+    const r = clearedUpdates(c).filter((pose) => !isDirty(c, pose)).length;
+    if (n || headChanged || a || r) chars++;
     poses += n;
     actions += a;
+    reviews += r;
     if (headChanged) heads++;
   }
-  $("dirtyCount").textContent = poses || heads || actions
+  $("dirtyCount").textContent = poses || heads || actions || reviews
     ? [poses ? `${poses} pose${poses === 1 ? "" : "s"}` : "",
        heads ? `${heads} head height${heads === 1 ? "" : "s"}` : "",
-       actions ? `${actions} action${actions === 1 ? "" : "s"}` : ""].filter(Boolean).join(" + ")
+       actions ? `${actions} action${actions === 1 ? "" : "s"}` : "",
+       reviews ? `${reviews} reviewed` : ""].filter(Boolean).join(" + ")
       + (chars > 1 ? ` across ${chars} characters` : "")
     : "none";
   refreshHistoryButtons();
@@ -1418,6 +1527,35 @@ function refreshAnchorControls() {
     : "This pose carries no anchors.");
 }
 
+/** The intake marker on the selected pose, and the way off the list for a pose
+ *  that turned out to need nothing. Shown wherever the pose is selected from,
+ *  not only inside the updated list — "this art was replaced under you" is worth
+ *  reading while tuning the pose it happened to. */
+function refreshUpdatedControl() {
+  const group = $("updatedGroup");
+  if (!group) return;
+  const note = updateNote(state.char, state.frame);
+  group.hidden = !note;
+  if (!note) return;
+  const reviewed = isUpdateReviewed(state.char, state.frame);
+  $("updatedVal").textContent = reviewed ? "reviewed — clears on export"
+    : note.lost?.length ? "tuning rolled back" : "tuning carried over";
+  $("updatedInfo").innerHTML = updateSummary(note);
+  const btn = $("updatedClear");
+  btn.textContent = reviewed
+    ? "↺ Put it back on the updated list"
+    : "Mark reviewed — take it off the updated list";
+}
+
+/** The dropdown entry carries its own count, so a round that overwrote work
+ *  announces itself from the closed select rather than having to be opened. */
+function refreshRecentOption() {
+  const opt = $("charSel")?.querySelector(`option[value="${RECENT_KEY}"]`);
+  if (!opt) return;
+  const waiting = recentUpdates().filter((e) => !isUpdateReviewed(e.char, e.frame)).length;
+  opt.textContent = waiting ? `${RECENT_LABEL} (${waiting})` : RECENT_LABEL;
+}
+
 /** Character-level, so it must update even when no pose is selected. */
 function refreshHeadControl() {
   rememberHead(state.char);
@@ -1436,6 +1574,13 @@ function refreshHeadControl() {
 function buildPoseList() {
   const list = $("poseList");
   list.innerHTML = "";
+  // The view filter is a question about one character's poses ("which of these
+  // has nobody dealt with"). The updated list is already a filter, of a
+  // different kind, so the select is locked while it is open rather than
+  // silently ignored.
+  $("viewSel").disabled = inRecent();
+  if (inRecent()) { buildRecentPoseList(list); return; }
+
   const frames = framesOf(state.char);
   const hidden = allFramesOf(state.char).length - frames.length;
   const flagged = frames.filter((k) => needsReplacement(state.char, k)).length;
@@ -1448,38 +1593,69 @@ function buildPoseList() {
     empty.textContent = "Nothing matches this view.";
     list.appendChild(empty);
   }
-  for (const key of frames) {
-    remember(state.char, key);
-    const options = poseVariants(state.char, key);
-    // A pose with a choice of drawings is a cell plus a chevron, so the two
-    // jobs stay separate: the cell still selects the pose, and only the chevron
-    // opens the menu. Wrapping every cell instead would change the grid for the
-    // 90% of poses that have exactly one drawing.
-    const host = options.length > 1 ? document.createElement("div") : null;
-    if (host) host.className = "pose-cell";
+  for (const key of frames) list.appendChild(buildPoseEntry(state.char, key));
+}
 
-    const b = document.createElement("button");
-    const label = frameLabel(state.char, key);
-    b.innerHTML = label.sub
-      ? `${label.name}<i class="pose-file">${label.sub}</i>`
-      : label.name;
-    const states = statesUsing(state.char, key);
-    b.title = states.length
-      ? `${key} — ${states.map(stateLabel).join(", ")}`
-      : `${key} — not drawn by any state`;
-    const doomed = hasDeleteTag(state.char, key);
-    b.className = (key === state.frame ? "sel " : "")
-      + (isDirty(state.char, key) || variantFlagEdits.has(`${state.char}/${key}`) ? "dirty " : "")
-      + (needsReplacement(state.char, key) || doomed ? "flagged " : "")
-      + (wantsImprovement(state.char, key) ? "wanted" : "");
-    const kind = doomed ? "delete" : replacementKind(rawMeta(state.char, key));
-    if (kind) b.dataset.kind = kind;
-    b.onclick = () => { state.actionRow = null; state.frame = key; syncAll(); };
+/** One cell of the pose grid. Takes the character rather than reading
+ *  `state.char`, because the updated list mixes several in one grid. */
+function buildPoseEntry(charKey, key, { owner = false } = {}) {
+  remember(charKey, key);
+  const options = poseVariants(charKey, key);
+  // A pose with a choice of drawings is a cell plus a chevron, so the two
+  // jobs stay separate: the cell still selects the pose, and only the chevron
+  // opens the menu. Wrapping every cell instead would change the grid for the
+  // 90% of poses that have exactly one drawing.
+  const host = options.length > 1 ? document.createElement("div") : null;
+  if (host) host.className = "pose-cell";
 
-    if (!host) { list.appendChild(b); continue; }
-    host.appendChild(b);
-    host.appendChild(buildVariantChevron(key, options));
-    list.appendChild(host);
+  const b = document.createElement("button");
+  const label = frameLabel(charKey, key);
+  // In the updated list a pose has to say whose it is: two characters can have
+  // an `idle_a`, and the pose name alone would be the same cell twice. The key
+  // goes with it rather than `label.sub`, which on an undrawn cell is a remark
+  // ("unused") rather than the pose's name.
+  const sub = owner ? `${actorOf(charKey).name} · ${key}` : label.sub;
+  b.innerHTML = sub ? `${label.name}<i class="pose-file">${sub}</i>` : label.name;
+  const states = statesUsing(charKey, key);
+  b.title = (owner ? `${charKey}/${key}` : key)
+    + (states.length ? ` — ${states.map(stateLabel).join(", ")}` : " — not drawn by any state");
+  const doomed = hasDeleteTag(charKey, key);
+  const selected = charKey === state.char && key === state.frame;
+  b.className = (selected ? "sel " : "")
+    + (isDirty(charKey, key) || variantFlagEdits.has(`${charKey}/${key}`) ? "dirty " : "")
+    + (needsReplacement(charKey, key) || doomed ? "flagged " : "")
+    + (wantsImprovement(charKey, key) ? "wanted " : "")
+    + (isUpdateReviewed(charKey, key) ? "reviewed" : "");
+  const kind = doomed ? "delete" : replacementKind(rawMeta(charKey, key));
+  if (kind) b.dataset.kind = kind;
+  b.onclick = () => selectPose(charKey, key);
+
+  if (!host) return b;
+  host.appendChild(b);
+  host.appendChild(buildVariantChevron(key, options));
+  return host;
+}
+
+/** The cross-character list of poses an intake round overwrote. */
+function buildRecentPoseList(list) {
+  const entries = recentUpdates();
+  const reviewed = entries.filter((e) => isUpdateReviewed(e.char, e.frame)).length;
+  const retune = entries.filter((e) => e.lost.length).length;
+  $("poseCount").textContent = entries.length
+    ? `${entries.length} updated`
+      + (retune ? ` · ${retune} to re-tune` : "")
+      + (reviewed ? ` · ${reviewed} reviewed` : "")
+    : "none";
+  if (!entries.length) {
+    const empty = document.createElement("p");
+    empty.className = "note";
+    empty.textContent = "Nothing has been overwritten since it was last dealt with. "
+      + "Poses land here when intake writes new art over a pose that already had work on it.";
+    list.appendChild(empty);
+    return;
+  }
+  for (const entry of entries) {
+    list.appendChild(buildPoseEntry(entry.char, entry.frame, { owner: true }));
   }
 }
 
@@ -1552,20 +1728,37 @@ function poseColumns() {
   return Math.max(1, cols);
 }
 
+/** What the pose grid currently holds, in the order it is drawn — one
+ *  character's filtered poses, or the whole roster's updated ones. The arrow
+ *  keys walk this, so they cannot disagree with what is on screen. */
+function poseEntries() {
+  if (inRecent()) return recentUpdates().map((e) => ({ char: e.char, frame: e.frame }));
+  return framesOf(state.char).map((frame) => ({ char: state.char, frame }));
+}
+
 /** Move the selection by [dx, dy] grid cells. Clamped, not wrapped: running off
  *  the end of a 30-pose list back to the start loses your place. */
 function movePose([dx, dy]) {
-  const frames = framesOf(state.char);
-  if (frames.length < 2) return;
+  const entries = poseEntries();
+  if (entries.length < 2) return;
   const cols = poseColumns();
-  const i = frames.indexOf(state.frame);
+  const i = entries.findIndex((e) => e.char === state.char && e.frame === state.frame);
   // A pose the current view hides has no place in the grid, so start from the
   // top rather than from -1.
-  const next = i < 0 ? 0 : clampNum(i + dx + dy * cols, 0, frames.length - 1);
+  const next = i < 0 ? 0 : clampNum(i + dx + dy * cols, 0, entries.length - 1);
   if (next === i) return;
-  state.frame = frames[next];
-  syncAll();
+  selectPose(entries[next].char, entries[next].frame);
   scrollPoseIntoView();
+}
+
+/** Select a pose from the grid. In the updated list the next pose can belong to
+ *  a different character, which means switching character underneath — its art
+ *  has to be streamed, and everything else in the panel is keyed to it. */
+function selectPose(charKey, frameKey) {
+  state.actionRow = null;
+  if (charKey !== state.char) { openChar(charKey, frameKey); return; }
+  state.frame = frameKey;
+  syncAll();
 }
 
 /** Keep the selection visible when the keys walk past the end of the list. */
@@ -1601,14 +1794,43 @@ function syncAll() {
   render();
 }
 
+/** The dropdown selects either a character or the updated list; `state.group`
+ *  is which, so the select can be re-pointed from anywhere that moves the
+ *  selection (undo, a deep link, a pose in another character's set). */
+function syncCharSelect() {
+  $("charSel").value = state.group || state.char;
+}
+
+/** Pick a real character. */
+function setChar(charKey, wantFrame = null) {
+  state.group = null;
+  openChar(charKey, wantFrame);
+}
+
+/** Open the cross-character updated list, on `wantChar/wantFrame` if that pose
+ *  is on it and on the first entry otherwise. An empty list leaves the pose on
+ *  screen alone: there is nothing to select, and blanking the canvas to say so
+ *  would be worse than the note in the list. */
+function setRecent(wantChar = null, wantFrame = null) {
+  state.group = RECENT_KEY;
+  const entries = recentUpdates();
+  const target = entries.find((e) => e.char === wantChar && e.frame === wantFrame) || entries[0];
+  if (target) { openChar(target.char, target.frame); return; }
+  // Nothing on the list: the pose on screen stays put behind the note. At boot
+  // there is no pose yet to stay on, so the character asked for is opened —
+  // an empty list must not leave a blank canvas.
+  if (state.frame) { syncCharSelect(); syncAll(); }
+  else openChar(wantChar && allFramesOf(wantChar).length ? wantChar : "gojo", wantFrame);
+}
+
 // `wantFrame` is the pose to open on — the action workbench's `?frame=`
 // hand-off. It has to be known HERE rather than applied afterwards, because
 // this is what tells the loader which frame to fetch first; setting it later
 // would mean downloading the default idle and then the pose you asked for.
-function setChar(charKey, wantFrame = null) {
+function openChar(charKey, wantFrame = null) {
   state.char = charKey;
   state.actionRow = null;   // an action preview belongs to the character it was opened from
-  $("charSel").value = charKey;   // also called from ?char= and undo, not just the select
+  syncCharSelect();   // also called from ?char= and undo, not just the select
   const frames = framesOf(charKey);
   const fallback = allFramesOf(charKey);
   state.frame = fallback.includes(wantFrame) ? wantFrame
@@ -1634,10 +1856,18 @@ function setChar(charKey, wantFrame = null) {
  *  character's own frames and falls back to the idle if it does not belong. */
 function rememberInUrl() {
   const url = new URL(location.href);
-  if (url.searchParams.get("char") === state.char && url.searchParams.get("frame") === state.frame) return;
+  // `char` is always the real character, so a link opens on the right sprite
+  // set whether or not the updated list is what it was reached through; `list`
+  // says which of the two the dropdown was on.
+  const list = inRecent() ? "updated" : null;
+  if (url.searchParams.get("char") === state.char
+      && url.searchParams.get("frame") === state.frame
+      && (url.searchParams.get("list") || null) === list) return;
   url.searchParams.set("char", state.char);
   if (state.frame) url.searchParams.set("frame", state.frame);
   else url.searchParams.delete("frame");
+  if (list) url.searchParams.set("list", list);
+  else url.searchParams.delete("list");
   history.replaceState(null, "", url);
 }
 
@@ -1806,6 +2036,25 @@ function applyHead(value, commit) {
   refreshControls(); render();
 }
 
+/** Poses of this character marked reviewed this session, as pose keys. */
+function clearedUpdates(charKey) {
+  return [...updatesCleared]
+    .map((id) => id.split("/"))
+    .filter(([who]) => who === charKey)
+    .map(([, pose]) => pose)
+    .sort();
+}
+
+/** Every character this session may have something to export for. `originals`
+ *  covers everything touched; a review tick is the one thing that can be
+ *  recorded against a pose without editing it, so it joins in. */
+function editedChars() {
+  return [...new Set([
+    ...Object.keys(state.originals),
+    ...[...updatesCleared].map((id) => id.split("/")[0]),
+  ])];
+}
+
 /** One character's edits, or null if it has none. */
 function payloadFor(charKey) {
   const out = {};
@@ -1876,6 +2125,11 @@ function payloadFor(charKey) {
     payload.headHeight = Number(hh.toFixed(1));
   }
   if (Object.keys(out).length) payload.adjustments = out;
+  // Poses whose new art turned out to need nothing. An adjusted pose leaves the
+  // updated list on the strength of the adjustment, so only the untouched ones
+  // have to be named here.
+  const reviewed = clearedUpdates(charKey).filter((pose) => !out[pose]);
+  if (reviewed.length) payload.clearUpdated = reviewed;
   const actions = dirtyActions(charKey);
   if (Object.keys(actions).length) payload.animOverrides = actions;
   // The pinned reference travels with the edit that caused it, or the applied
@@ -1883,7 +2137,8 @@ function payloadFor(charKey) {
   const span = spriteManifest?.heightSpans?.[charKey];
   if (Number.isFinite(span) && span !== state.originalSpans[charKey]) payload.heightSpan = span;
   return (payload.headHeight !== undefined || payload.adjustments || payload.animOverrides
-          || payload.heightSpan !== undefined || payload.variantPlacement) ? payload : null;
+          || payload.heightSpan !== undefined || payload.variantPlacement
+          || payload.clearUpdated) ? payload : null;
 }
 
 /** Everything edited this session, across every character.
@@ -1893,7 +2148,7 @@ function payloadFor(charKey) {
  *  already accepts an array, so a multi-character export needs nothing new on
  *  the other end. A lone character still exports as a bare object. */
 function exportAll() {
-  const payloads = Object.keys(state.originals)
+  const payloads = editedChars()
     .sort()
     .map(payloadFor)
     .filter(Boolean);
@@ -2014,15 +2269,19 @@ async function boot() {
   const charSel = $("charSel");
   // Fighters first, then the non-fighter entries: an actor with its own sprite
   // set (Mahoraga), then the shared effect and summon art.
-  for (const key of [...CHARACTER_KEYS, ...ACTOR_KEYS, OTHER_KEY]) {
+  for (const key of [...CHARACTER_KEYS, ...ACTOR_KEYS, OTHER_KEY, RECENT_KEY]) {
     const o = document.createElement("option");
     o.value = key;
-    o.textContent = isOther(key) ? OTHER_LABEL
+    o.textContent = key === RECENT_KEY ? RECENT_LABEL
+      : isOther(key) ? OTHER_LABEL
       : isActor(key) ? `${actorOf(key).name} (not a fighter)`
       : CHARACTERS[key].name;
     charSel.appendChild(o);
   }
-  charSel.onchange = () => setChar(charSel.value);
+  charSel.onchange = () =>
+    (charSel.value === RECENT_KEY ? setRecent() : setChar(charSel.value));
+
+  $("updatedClear").onclick = () => toggleUpdateReviewed(state.char, state.frame);
 
   // Picker: the backdrop and Close dismiss it, Escape does too, and a plain
   // click anywhere drops the right-click enlargement.
@@ -2223,6 +2482,7 @@ async function boot() {
   // can move the numbers those defaults are derived from.
   warmAnchors([...CHARACTER_KEYS, ...ACTOR_KEYS]);
   $("loadState").textContent = "manifest loaded";
+  refreshRecentOption();
 
   const params = new URLSearchParams(location.search);
   const wanted = params.get("char");
@@ -2238,7 +2498,11 @@ async function boot() {
   // first, rather than fetching the default idle and then discarding it.
   const frame = params.get("frame");
   const wantedFrame = frame && allFramesOf(startChar).includes(frame) ? frame : null;
-  setChar(startChar, wantedFrame);
+  // `?list=updated` comes back to the cross-character updated list rather than
+  // to the character the pose happens to belong to — which list you were working
+  // through is as much a part of where you were as which pose is selected.
+  if (params.get("list") === "updated") setRecent(startChar, wantedFrame);
+  else setChar(startChar, wantedFrame);
   if (wantedFrame) {
     const btn = $("poseList").querySelector("button.sel");
     if (btn) $("poseList").scrollTop = Math.max(0, btn.offsetTop - $("poseList").clientHeight / 2);

@@ -288,6 +288,47 @@ check(forYuji?.adjustments?.special_side?.rotationDeg === 15,
   "and it exports as rotationDeg in degrees",
   JSON.stringify(forYuji?.adjustments?.special_side));
 
+// ---- the cross-character updated list
+//
+// The dropdown's fourth kind of entry: not a character but a work list of poses
+// intake wrote new art over on top of previous work. What it contains depends on
+// what the last round overwrote — nothing to assert there — so what is checked
+// is that it is offered, that it stands on its own (the per-character view
+// filter is a different question and is locked while it is open), and that it
+// says so plainly when there is nothing outstanding.
+await page.goto(`${BASE}/workbench/?char=maki`, { waitUntil: "domcontentloaded" });
+await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
+await page.waitForTimeout(300);
+check(await page.evaluate(() =>
+  [...document.querySelectorAll("#charSel option")].some((o) => o.value === "__recent"
+    && /Recently Updated/.test(o.textContent))),
+  "the character list offers the recently-updated poses");
+
+await page.selectOption("#charSel", "__recent");
+await page.waitForTimeout(600);
+const updated = await page.evaluate(() => ({
+  locked: document.getElementById("viewSel").disabled,
+  count: document.getElementById("poseCount").textContent,
+  poses: document.querySelectorAll("#poseList button").length,
+  note: document.querySelector("#poseList .note")?.textContent ?? "",
+  list: new URL(location.href).searchParams.get("list"),
+  frame: document.getElementById("frameTag").textContent,
+}));
+check(updated.locked, "it locks the per-character view filter, which does not apply");
+check(updated.poses > 0 || /overwritten/.test(updated.note),
+  "it lists the overwritten poses, or says there are none", JSON.stringify(updated.count));
+check(updated.list === "updated", "the address bar remembers which list you are in");
+check(/\w+\/\w+/.test(updated.frame), "a pose is on the canvas either way", updated.frame);
+// Every pose on it names its own character: the list mixes them, so the pose
+// name alone would be the same cell twice over.
+if (updated.poses) {
+  check(await page.evaluate(() =>
+    [...document.querySelectorAll("#poseList button .pose-file")].every((i) => /·/.test(i.textContent))),
+    "each entry says which character it belongs to");
+  check(await page.evaluate(() => !document.getElementById("updatedGroup").hidden),
+    "and the panel explains what the round overwrote");
+}
+
 check(!errors.length, "no page errors", errors.slice(0, 2).join(" | "));
 await browser.close();
 console.log(fails ? `\n${fails} check(s) failed` : "\nAll checks pass");

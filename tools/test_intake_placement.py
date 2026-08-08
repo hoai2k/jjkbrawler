@@ -157,6 +157,33 @@ def main():
     unflagged.pop("needsReplacement", None)
     check(survives(unflagged) == "discard", "an unflagged frame defaults to discard")
 
+    # ---- the marker the workbench's updated list is built from
+    #
+    # An import over existing art has to leave a record of itself, because the
+    # work it overwrote was spread across the roster and nothing else in the
+    # manifest says the art moved. What has to be REDONE is the part that
+    # matters, so `lost` names the hand-tuned fields that were rolled back.
+    tuned = dict(meta)
+    tuned["needsReplacement"] = "replace"
+    tuned["edited"] = {"renderScale": 0.25, "bodyBottom": 300.0}
+    redrawn, _, _ = import_meta(tuned, frame, frame)
+    note = redrawn.get("replaced") or {}
+    check(note.get("kept") == "discard", "a redraw records that it discarded the tuning",
+          json.dumps(note))
+    check(note.get("lost") == ["bodyBottom", "renderScale", "anchors"],
+          "and names what has to be done again", json.dumps(note.get("lost")))
+    check(bool(note.get("at")), "with the round it landed in", str(note.get("at")))
+
+    touched = dict(tuned)
+    touched["needsReplacement"] = "crop"
+    reframed, _, _ = import_meta(touched, frame, recrop(frame, 20, 10, 20, 10)[0])
+    check((reframed.get("replaced") or {}).get("lost") == [],
+          "a touch-up says its tuning survived rather than staying silent",
+          json.dumps(reframed.get("replaced")))
+
+    fresh, _, _ = import_meta(None, None, frame, meta)
+    check("replaced" not in fresh, "a brand-new pose overwrote nothing, so it is not marked")
+
     print("\n" + (f"{fails} check(s) failed" if fails else "All checks pass"))
     return 1 if fails else 0
 

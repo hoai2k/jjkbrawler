@@ -28,6 +28,13 @@ that way, so this is the normal case, not a mistake.
 
 After that this directory is empty again, apart from this README.
 
+Step 3 also records which poses it landed on top of previous work, since a redraw
+rolls the hand tuning back and that work has to be done again. Those poses are
+the sprite workbench's **All Recently Updated Poses** list — a round's worth of
+re-tuning, gathered across every character it touched, instead of a hunt through
+the roster for the ones you remember having tuned. See
+[docs/asset-pipeline.md](../../docs/asset-pipeline.md#finding-what-the-round-overwrote).
+
 ## What happens to a plate is decided by the flag already on the pose
 
 The workbench flags say what is wrong with the art the game currently draws, so
