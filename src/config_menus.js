@@ -38,18 +38,23 @@
 export const CHARACTER_GROUPS = [
   {
     key: "students",
-    label: "Tokyo Jujutsu High",
-    members: ["gojo", "yuji", "nobara", "megumi", "maki", "inumaki", "panda", "nanami", "meimei", "gakuganji"],
+    label: "Students",
+    members: ["yuji", "nobara", "megumi", "yuta", "maki", "inumaki", "panda", "todo", "momo"],
+  },
+  {
+    key: "faculty",
+    label: "Faculty",
+    members: ["gojo", "nanami", "meimei", "gakuganji"],
   },
   {
     key: "sorcerers",
     label: "Other Sorcerers",
-    members: ["todo", "yuta", "geto", "hakari", "toji", "uro", "reggie", "momo"],
+    members: ["hakari", "toji", "uro", "reggie"],
   },
   {
     key: "curses",
     label: "Curses and Curse Users",
-    members: ["mahito", "jogo", "hanami", "choso", "sukuna"],
+    members: ["mahito", "jogo", "hanami", "geto", "choso", "sukuna"],
   },
 ];
 
