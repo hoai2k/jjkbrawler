@@ -236,8 +236,7 @@
       90.5
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "crop"
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "gojo/r3c1.png",
@@ -256,8 +255,7 @@
       86.2
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "crop"
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "gojo/r3c2.png",
@@ -367,8 +365,7 @@
       69.0
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "crop"
+    "bodyTop": 0
    },
    "idle_a": {
     "file": "gojo/idle_a.png",
@@ -3716,8 +3713,7 @@
      "renderScale": null,
      "bodyBottom": 312
     },
-    "renderScale": 0.92,
-    "needsReplacement": "replace"
+    "renderScale": 0.92
    },
    "r0c1": {
     "file": "mahito/r0c1.png",
@@ -3751,8 +3747,7 @@
       113.1
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "replace"
+    "bodyTop": 0
    },
    "r0c3": {
     "file": "mahito/r0c3.png",
@@ -3769,8 +3764,7 @@
       108.6
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "replace"
+    "bodyTop": 0
    },
    "r1c0": {
     "file": "mahito/r1c0.png",
@@ -3821,8 +3815,7 @@
       89.7
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "replace"
+    "bodyTop": 0
    },
    "r1c3": {
     "file": "mahito/r1c3.png",
@@ -3890,8 +3883,7 @@
       91.8
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "replace"
+    "bodyTop": 0
    },
    "r2c3": {
     "file": "mahito/r2c3.png",
@@ -3925,8 +3917,7 @@
       107.5
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "replace"
+    "bodyTop": 0
    },
    "r3c1": {
     "file": "mahito/r3c1.png",
@@ -3943,8 +3934,7 @@
       97.9
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "replace"
+    "bodyTop": 0
    },
    "r3c2": {
     "file": "mahito/r3c2.png",
@@ -3962,8 +3952,7 @@
       102.2
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "replace"
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "mahito/r3c3.png",
@@ -3980,8 +3969,7 @@
       108.4
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "replace"
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "mahito/r4c0.png",
@@ -4042,8 +4030,7 @@
       84.2
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "replace"
+    "bodyTop": 0
    },
    "r4c3": {
     "file": "mahito/r4c3.png",
@@ -4060,8 +4047,7 @@
       86.0
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "replace"
+    "bodyTop": 0
    },
    "idle_a": {
     "w": 531,
@@ -8563,8 +8549,7 @@
       96.9
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "replace"
+    "bodyTop": 0
    },
    "r2c1": {
     "file": "nobara/r2c1.png",
@@ -8604,8 +8589,7 @@
      "ox": 0,
      "bodyBottom": 248
     },
-    "renderScale": 0.92,
-    "needsReplacement": "alpha"
+    "renderScale": 0.92
    },
    "r2c3": {
     "file": "nobara/r2c3.png",
@@ -8645,8 +8629,7 @@
      "ox": 29,
      "bodyBottom": 311
     },
-    "renderScale": 1.005,
-    "needsReplacement": "crop"
+    "renderScale": 1.005
    },
    "r3c1": {
     "file": "nobara/r3c1.png",
@@ -8680,8 +8663,7 @@
       138.7
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "replace"
+    "bodyTop": 0
    },
    "r3c3": {
     "file": "nobara/r3c3.png",
@@ -8699,8 +8681,7 @@
       106.7
      ]
     },
-    "bodyTop": 0,
-    "needsReplacement": "replace"
+    "bodyTop": 0
    },
    "r4c0": {
     "file": "nobara/r4c0.png",
@@ -8769,8 +8750,7 @@
      "ox": 2,
      "bodyBottom": 310
     },
-    "renderScale": 0.81,
-    "needsReplacement": "crop"
+    "renderScale": 0.81
    },
    "r4c3": {
     "file": "nobara/r4c3.png",
@@ -8793,8 +8773,7 @@
      "ox": 17,
      "bodyBottom": 310
     },
-    "renderScale": 0.865,
-    "needsReplacement": "crop"
+    "renderScale": 0.865
    },
    "idle_a": {
     "file": "nobara/idle_a.png",

@@ -211,6 +211,7 @@ Three parts; any can be delivered on its own.
 - **11A** — redraw Mahoraga from the shikigami's canon design (31 sprites)
 - **11B** — finish the semantic sets for the 13 fighters round 10 did not reach (225 sprites)
 - **11C** — wind-up/strike pairs for the 6 round-7 fighters (24 sprites)
+- **11D** — one improvement request: Reggie's crouch attack does not read as the action (1 sprite)
 
 **280 sprites in total.** 11B is the bulk of it and the one that changes how the
 roster reads: thirteen fighters still play a sprint frame for a punch. 11A is the
@@ -512,3 +513,24 @@ than as a single `attack_heavy` that would immediately need splitting. Everythin
 else in 10A is unchanged.
 
 ---
+
+---
+
+## 11D. Reggie's crouch attack — 1 sprite
+
+The only **improvement** request outstanding, and the only thing in this round
+that is not blocking: `reggie/crouch_attack_b` is drawn well, it just does not
+read as the action. It is the follow-through of a low attack and looks like
+something else.
+
+| Fighter | Key | Pose | Ask |
+|---|---|---|---|
+| Reggie Star | `reggie` | `crouch_attack_b` | Pose — reads poorly, or is not the action it stands for |
+
+Pose line, from 11B's table: *the follow-through of that low attack.* His canon
+reference is `assets/reference/canon/reggie_idle.png` — the receipt tunic, bare
+arms and legs, barefoot.
+
+Keep this separate from the rest of the round when scheduling it. A `replace` is
+blocking, because something on screen is wrong; this is a wish, and burying the
+two together makes the blocking ones wait behind the wish list.

@@ -80,12 +80,29 @@ def slice_block(src, header):
 
 def anims_by_frame(src, char_keys):
     """Per character: animation state -> frame keys, the shared defaults merged
-    with that character's own overrides. Mirrors statesUsingFrame()."""
-    defaults = parse_anims(slice_block(src, "export const DEFAULT_ANIMS = {"))
+    with that character's own overrides. Mirrors statesUsingFrame().
+
+    A character picks its base table by NAME — `anims: SEMANTIC_ANIMS` for the
+    fighters built one-sprite-per-action, nothing at all for the sheet-era ones,
+    who fall through to DEFAULT_ANIMS. Reading only the defaults made every
+    semantic fighter look like their whole set was undrawn, so
+    list_replacements.py reported eight characters' poses as "not drawn by any
+    animation" while the game was drawing them perfectly well.
+    """
+    tables = {
+        "DEFAULT_ANIMS": parse_anims(slice_block(src, "export const DEFAULT_ANIMS = {")),
+        "SEMANTIC_ANIMS": parse_anims(slice_block(src, "export const SEMANTIC_ANIMS = {")),
+    }
     per_char = {}
     for key in char_keys:
         block = slice_block(src, f"\n  {key}: {{")
-        merged = dict(defaults)
+        # Two ways to name the base table: `anims: SEMANTIC_ANIMS,` outright, or
+        # `anims: { ...SEMANTIC_ANIMS, <overrides> }` when a fighter inherits it
+        # and keeps a couple of its own timings.
+        named = re.search(r"\n    anims: (?:\{ \.\.\.)?(\w+),", block)
+        merged = dict(tables.get(named.group(1) if named else "", tables["DEFAULT_ANIMS"]))
+        # An inline `anims: { ... }` block is this character's own overrides on
+        # top of whichever table they named.
         merged.update(parse_anims(slice_block(block, "    anims: {")))
         per_char[key] = merged
     return per_char
