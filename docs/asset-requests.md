@@ -1090,3 +1090,33 @@ manifest and stay visible in the workbench under "All sprites".
 The result is 23 fighters with one sprite per action and no shared cells, which
 is what makes the roster read consistently — and it retires the `r{row}c{col}`
 vocabulary from everything except the leftovers.
+
+## 10B. Seven cells the extraction cut through
+
+Seven cells are flagged **Fix crop** in the workbench, and all seven turn out to
+be the same defect: opaque art sitting on the image border, because the cell was
+extracted with the figure already touching the edge of its cell. There is no
+edit that recovers them — the pixels were never committed, and the source sheets
+are not in the repo or its history — so they are listed here rather than fixed.
+
+Contact sheet: `docs/sprite-fixes/crop-flagged-diagnosis.png`.
+
+| Cell | Drives | Clipped run (L/R/T/B px) | What is missing |
+|---|---|---|---|
+| `gojo/r3c0` | side special | 3 / 3 / **29** / **14** | hair sliced flat on top, boot soles cut |
+| `gojo/r3c1` | ultimate | 4 / **12** / **28** / 7 | hair sliced flat on top, cursed-energy arc cut at the right |
+| `gojo/r4c3` | crouch attack | **21** / 3 / 1 / **19** | rear hand cut off at the left, boot cut at the bottom |
+| `nobara/r2c0` | side heavy | 4 / 3 / **14** / 4 | the hammer head, cut off above the frame |
+| `nobara/r3c0` | side special | 5 / **17** / **59** / 9 | hair and the slash arc, cut at the top and right |
+| `nobara/r4c2` | crouch attack | **16** / 4 / **14** / **24** | lead hand cut off at the left, shoe cut at the bottom |
+| `nobara/r4c3` | crouch attack | **74** / 5 / 13 / **17** | a 74 px column of coat cut off at the left |
+
+Every one of these already falls inside 10A: they drive `special_side`, `ult`
+and `crouch_attack`, which 10A redraws for all 17 fighters. So there is nothing
+extra to commission — just draw those poses with the figure fully inside the
+plate and a margin around it, and these seven retire with the rest of the cells.
+
+The lesson generalises: **all 344 sheet cells have hard binary alpha and every
+one of them touches its own border.** The flagged seven are the cases where the
+cut lands somewhere the eye catches it. A delivered pose should never have an
+opaque pixel on the image edge.

@@ -7288,8 +7288,7 @@
      "ox": 0,
      "bodyBottom": 248
     },
-    "renderScale": 0.92,
-    "needsReplacement": "alpha"
+    "renderScale": 0.92
    },
    "r2c3": {
     "file": "nobara/r2c3.png",
