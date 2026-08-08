@@ -8,11 +8,31 @@ background's colour sitting in the leftover. On a magenta key that reads as a
 pink halo tracing every edge — subtle on one sprite, and unmistakable once the
 same sprite is drawn against a dark stage.
 
-The tell is where the key-coloured pixels are. Art that is genuinely pink or
-purple has them THROUGHOUT; fringe has them only on the rim. So this does not
-ask "is this pixel magenta" — Reggie's receipts have magenta print on them and
-Uro's whole head is violet — it asks "is this pixel within a couple of pixels of
-the silhouette edge AND close to the key colour". Both, or it is left alone.
+Two tests have to agree before a pixel is touched, because either alone gets it
+wrong on this roster.
+
+WHERE: the pixel must sit within two pixels of actual transparency. Not "near
+the outside of the sprite" — Reggie's costume is hundreds of thin receipt
+strips, so almost every pixel of him is near the silhouette's outer edge, and a
+rim test would swallow the lot. Adjacency to a TRANSPARENT pixel is the honest
+version: contamination is what the keyer left where it cut, so it hugs the alpha
+boundary wherever that boundary runs, including between the strips. On Reggie's
+ult_a, 5,545 of 5,647 magenta-dominant pixels touch transparency and 102 do not.
+
+WHAT: the pixel must be more key-coloured than the art it belongs to. Not more
+key-coloured than some fixed threshold — that was the first attempt and it fails
+twice over. Set it high and you clean the dark core of the halo and leave its
+soft tail behind, because contamination is a gradient and a hard cut takes only
+the top of it. Set it low and you start eating art that merely lives in the
+key's hue family, which on this roster means Uro's violet hair.
+
+So the comparison is LOCAL: each candidate is measured against its nearest clean
+pixel — the closest opaque pixel far enough from the boundary to be uncontaminated
+— and cleaned only if it leans toward the key by more than that neighbour does.
+Reggie's halo sits against white paper and scores far above it; Uro's hair edge
+sits against more violet hair and scores about the same, so it is left alone.
+The gradient comes out whole because a soft tail against clean paper still beats
+the paper.
 
 What happens to a fringe pixel depends on how much of it is subject:
 
@@ -28,6 +48,15 @@ What happens to a fringe pixel depends on how much of it is subject:
 The alpha bounding box therefore does not move, which is what makes this safe to
 run AFTER a workbench pass: every renderScale / bodyBottom / ox / anchor the
 manifest holds is measured from that box and stays valid.
+
+WHERE IT DOES NOT APPLY: art that is genuinely soft. The whole premise is that
+contamination sits at a hard cut, so "within two pixels of transparency" picks
+out an edge. On a glow or a mist the alpha ramps over hundreds of pixels and
+that test selects the entire effect — pointed at assets/sprites/effects it
+offered to delete 11,541 pixels of `uzumaki`, which is not fringe but the
+effect. So a sprite whose visible pixels are more than SOFT_LIMIT
+semi-transparent is skipped and reported. Character sheets sit at 0.000 to
+0.001; the effects run to 0.875.
 
 Usage:
   python3 dekey_fringe.py assets/sprites/reggie            # a directory
@@ -48,21 +77,47 @@ try:
 except ImportError:
     sys.exit("scipy is required: pip install scipy")
 
-# How close to the key a pixel has to be before it counts as contamination. Set
-# from the deliveries: real fringe sits at 200+/200+ on the key's two channels
-# with the third crushed, while art that merely leans pink keeps far more of it.
-KEYS = {
-    "magenta": lambda r, g, b: (r > 200) & (b > 200) & (g < 90),
-    "grey": lambda r, g, b: (abs(r - 128) < 26) & (abs(g - 128) < 26) & (abs(b - 128) < 26),
-    "green": lambda r, g, b: (g > 200) & (r < 90) & (b < 90),
+# How much of the key is in a pixel, as a single number per key colour: how far
+# the key's channels lead the ones it suppresses. Fringe is the key BLENDED with
+# whatever it was cutting around — over Reggie's white receipts it lands near
+# rgb(200, 90, 200), over his dark outlines near rgb(107, 11, 104) — so what
+# carries across is the RELATION between channels, never an absolute value.
+LEAN = {
+    "magenta": lambda r, g, b: np.minimum(r, b) - g,
+    "green": lambda r, g, b: g - np.maximum(r, b),
+    # Grey leads nothing, so the only thing to measure is how close to neutral
+    # mid-grey a pixel is; a pixel far from it scores negative and is safe.
+    "grey": lambda r, g, b: 60 - (np.abs(r - 128) + np.abs(g - 128) + np.abs(b - 128)),
 }
 
-# How far in from the silhouette edge fringe can reach. Keyers blur over about
-# two pixels; three gives margin without reaching into the art.
-RIM_DEPTH = 3
+# How far contamination reaches from the alpha boundary. Keyers blur over about
+# two pixels.
+REACH = 2
+
+# Above this share of semi-transparent pixels the art is soft rather than cut,
+# and the edge test stops meaning anything. See the note in the docstring.
+SOFT_LIMIT = 0.02
+
+# Two bars, and a pixel clears both or it is left alone.
+#
+# EXCESS is the local one: how much more key-leaning than its nearest clean
+# neighbour. Low enough to take the tail of the gradient, high enough that
+# ordinary shading inside one colour does not qualify.
+#
+# FLOOR is the absolute one, and it is what stops the local test running away.
+# A boundary between two ordinary colours is locally lopsided all by itself —
+# Gakuganji's purple hakama against his white haori leans 30 more than the haori
+# does, and without a floor the whole seam reads as contamination. Real spill
+# from a saturated key lands far above that.
+EXCESS = 18
+FLOOR = 45
 
 
-def defringe(path, key="magenta", dry_run=False):
+class Soft(Exception):
+    """Raised for art too soft-edged for an edge test to mean anything."""
+
+
+def defringe(path, key="magenta", dry_run=False, force=False):
     """Returns (dropped, recoloured) — the counts, whether or not it wrote."""
     img = np.array(Image.open(path).convert("RGBA"))
     rgb = img[:, :, :3].astype(int)
@@ -72,12 +127,28 @@ def defringe(path, key="magenta", dry_run=False):
     opaque = a >= 128
     if not opaque.any():
         return 0, 0
-    inner = ndimage.binary_erosion(opaque, iterations=RIM_DEPTH)
-    # The rim includes the partly-transparent skirt outside the opaque core,
-    # which is where most of the contamination actually lives.
-    rim = ~inner & (a > 8)
 
-    contaminated = rim & KEYS[key](r, g, b)
+    visible = a > 8
+    soft = float(((a > 8) & (a < 248)).sum()) / max(1, int(visible.sum()))
+    if soft > SOFT_LIMIT and not force:
+        raise Soft(soft)
+
+    # Everything within reach of a hole or an outside edge — the alpha boundary,
+    # wherever it runs. Only these can be contaminated; everything deeper in is
+    # the art, and is also what the suspects get compared against.
+    suspect = ndimage.binary_dilation(a < 128, iterations=REACH) & (a > 8)
+    clean = opaque & ~suspect
+    if not clean.any():
+        return 0, 0
+
+    # For every pixel, the nearest clean one. One distance transform answers it
+    # for the whole image, so each suspect is judged against the art it actually
+    # borders rather than against a global average.
+    _, (iy, ix) = ndimage.distance_transform_edt(~clean, return_indices=True)
+    lean = LEAN[key](r, g, b)
+    excess = lean - lean[iy, ix]
+
+    contaminated = suspect & (excess > EXCESS) & (lean > FLOOR)
     if not contaminated.any():
         return 0, 0
 
@@ -89,19 +160,7 @@ def defringe(path, key="magenta", dry_run=False):
 
     out = img.copy()
     out[drop, 3] = 0
-
-    if fix.any():
-        # Nearest clean opaque pixel, by distance transform: for every pixel it
-        # reports the index of the closest source, so one pass recolours the
-        # whole set from whatever each one is actually next to rather than from
-        # a global average that would smear one edge's colour onto another.
-        clean = opaque & ~contaminated
-        if clean.any():
-            _, (iy, ix) = ndimage.distance_transform_edt(~clean, return_indices=True)
-            out[fix, :3] = img[iy[fix], ix[fix], :3]
-        else:
-            out[fix, 3] = 0
-
+    out[fix, :3] = img[iy[fix], ix[fix], :3]
     Image.fromarray(out).save(path)
     return int(drop.sum()), int(fix.sum())
 
@@ -115,15 +174,22 @@ def targets(path):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("paths", nargs="+", help="PNG files or directories of them")
-    ap.add_argument("--key", default="magenta", choices=sorted(KEYS),
+    ap.add_argument("--key", default="magenta", choices=sorted(LEAN),
                     help="the colour the art was keyed on (default magenta)")
+    ap.add_argument("--force", action="store_true",
+                    help="run on soft-edged art too, where the edge test does not apply")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
     total_drop = total_fix = touched = 0
+    skipped = []
     for root in args.paths:
         for path in targets(root):
-            drop, fix = defringe(path, args.key, args.dry_run)
+            try:
+                drop, fix = defringe(path, args.key, args.dry_run, args.force)
+            except Soft as e:
+                skipped.append(f"{os.path.relpath(path)} ({e.args[0]:.0%} soft)")
+                continue
             if drop or fix:
                 touched += 1
                 total_drop += drop
@@ -132,6 +198,11 @@ def main():
     verb = "would clean" if args.dry_run else "cleaned"
     print(f"{verb} {total_drop + total_fix} fringe pixel(s) across {touched} sprite(s)"
           + (" (dry run — nothing written)" if args.dry_run else ""))
+    if skipped:
+        print(f"skipped {len(skipped)} soft-edged sprite(s) — an edge test says nothing "
+              f"about a glow; --force overrides:")
+        for line in skipped[:8]:
+            print("  " + line)
 
 
 if __name__ == "__main__":
