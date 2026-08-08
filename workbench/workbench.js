@@ -303,6 +303,32 @@ function charHasTuning(charKey) {
   return tunedChars.get(charKey);
 }
 
+// The dot beside a name in the character dropdown: this sprite set has been
+// worked on before. It answers the question you ask when picking who to do
+// next — the roster is long, and which fighters have already been through here
+// is otherwise something you have to remember or go and check one at a time.
+//
+// Committed state only, the same `charHasTuning` the updated list gates on, so
+// the two never disagree about who counts as done. That also means a set does
+// not sprout a dot the moment you nudge something in this session: it says
+// "before today", and this session's work is what the dirty markers are for.
+const EDITED_MARK = "● ";
+// A blank the width of the dot, so the names stay in one column rather than
+// stepping in and out as the marks come and go.
+const UNEDITED_PAD = "  ";
+
+/** Stamp the dropdown with who has been worked on. Runs once the manifest is
+ *  loaded — before it there is nothing to read, and `charHasTuning` caches. */
+function markEditedChars() {
+  for (const o of $("charSel")?.options || []) {
+    const key = o.value;
+    if (!o.dataset.name || isOther(key) || key === RECENT_KEY) continue;
+    const edited = charHasTuning(key);
+    o.textContent = (edited ? EDITED_MARK : UNEDITED_PAD) + o.dataset.name;
+    o.title = edited ? "Already worked on — this set has hand-tuned poses" : "";
+  }
+}
+
 /** The stand-in marker for a surfaced pose, shaped like an intake one so the
  *  panel, the list and the reviewed toggle all read it the same way. */
 function surfacedNote(charKey, frameKey) {
@@ -2326,15 +2352,33 @@ function growRangeToFit(rangeId, value) {
 
 async function boot() {
   const charSel = $("charSel");
-  // Fighters first, then the non-fighter entries: an actor with its own sprite
-  // set (Mahoraga), then the shared effect and summon art.
-  for (const key of [...CHARACTER_KEYS, ...ACTOR_KEYS, OTHER_KEY, RECENT_KEY]) {
+  // The fighters, alphabetically — the dropdown is something you go to a known
+  // name in, and roster order is only meaningful on the select screen. Then a
+  // rule, and under it the entries that are not fighters: an actor with its own
+  // sprite set (Mahoraga), the shared effect and summon art, and the
+  // cross-character work list, which is not a sprite set at all.
+  const fighters = [...CHARACTER_KEYS]
+    .sort((a, b) => CHARACTERS[a].name.localeCompare(CHARACTERS[b].name));
+  for (const key of fighters) {
     const o = document.createElement("option");
     o.value = key;
-    o.textContent = key === RECENT_KEY ? RECENT_LABEL
+    o.dataset.name = CHARACTERS[key].name;
+    o.textContent = o.dataset.name;
+    charSel.appendChild(o);
+  }
+  // A disabled option rather than an <hr>: it is the separator every browser
+  // renders, and being unselectable it cannot be landed on by keyboard either.
+  const rule = document.createElement("option");
+  rule.disabled = true;
+  rule.textContent = "──────────";
+  charSel.appendChild(rule);
+  for (const key of [...ACTOR_KEYS, OTHER_KEY, RECENT_KEY]) {
+    const o = document.createElement("option");
+    o.value = key;
+    o.dataset.name = key === RECENT_KEY ? RECENT_LABEL
       : isOther(key) ? OTHER_LABEL
-      : isActor(key) ? `${actorOf(key).name} (not a fighter)`
-      : CHARACTERS[key].name;
+      : `${actorOf(key).name} (not a fighter)`;
+    o.textContent = o.dataset.name;
     charSel.appendChild(o);
   }
   charSel.onchange = () =>
@@ -2541,6 +2585,7 @@ async function boot() {
   // can move the numbers those defaults are derived from.
   warmAnchors([...CHARACTER_KEYS, ...ACTOR_KEYS]);
   $("loadState").textContent = "manifest loaded";
+  markEditedChars();
   refreshRecentOption();
 
   const params = new URLSearchParams(location.search);
