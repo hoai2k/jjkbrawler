@@ -3,7 +3,7 @@ import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, RESOLVED_GROUPS, randomCharacte
 import { STAGES } from "./stages.js";
 import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx, toggleMute } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
-import { METER_MAX, ULT_METER_COST } from "./constants.js";
+import { METER_MAX } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
 import { setSpriteSet, previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
@@ -882,19 +882,16 @@ function renderStocks(el, f) {
 function renderMeter(fillEl, labelEl, f) {
   const pct = (f.meter / METER_MAX) * 100;
   fillEl.style.width = `${pct}%`;
-  // Two thresholds now: half a bar buys an ultimate, a full bar buys a Domain
-  // Expansion. Showing only the full mark would hide the fact that the ultimate
-  // has been available since halfway.
+  // One threshold: a full bar, spendable on either super. There is nothing to
+  // signal below it, so the bar is either charging or ready.
   const full = f.meter >= METER_MAX;
-  const ult = f.meter >= ULT_METER_COST;
   const hasDomain = !!f.char.domains?.length;
   fillEl.parentElement.classList.toggle("meter--full", full);
-  fillEl.parentElement.classList.toggle("meter--ult", ult && !full);
-  // A fighter with no domain has nothing to spend the second half on, so the
-  // bar keeps reading ULTIMATE READY rather than promising something they
-  // cannot do.
-  labelEl.textContent = full ? (hasDomain ? TEXT.hud.domainReady : TEXT.hud.ultimateReady)
-    : ult ? TEXT.hud.ultimateReady : "";
+  // A fighter with no domain has only one thing to spend the bar on, so they
+  // are told that rather than offered a choice they cannot make.
+  labelEl.textContent = !full ? ""
+    : hasDomain ? TEXT.hud.superChoiceReady
+    : TEXT.hud.ultimateReady;
 }
 
 export function showRoundOver(winner, loser) {

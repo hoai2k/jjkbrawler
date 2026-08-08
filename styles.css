@@ -195,22 +195,8 @@ html, body {
   transition: width 0.12s linear;
 }
 
-/* The half-bar mark: where the ultimate becomes affordable. Drawn on the track
-   so it stays visible as the fill passes it. */
-.meter::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: rgba(255, 255, 255, 0.45);
-  pointer-events: none;
-}
-
-.meter--ult .meter-fill {
-  background: linear-gradient(90deg, #7d58d8, #62dcff);
-}
+/* No half-bar mark any more: both supers cost the whole bar, so the only
+   threshold worth drawing is the end of the track itself. */
 
 .meter--full .meter-fill {
   background: linear-gradient(90deg, #ffd35a, #ff62cf, #62dcff);

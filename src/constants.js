@@ -57,12 +57,12 @@ export const METER_PASSIVE = 1.1;
 export const METER_ON_DEAL = 0.5;
 export const METER_ON_TAKE = 0.85;
 
-// Two tiers of super. An ultimate is the every-fight payoff and costs half a
-// bar, so a match has several; a Domain Expansion costs the WHOLE bar and only
-// the ten sorcerers who canonically have one can use it. Keeping the ultimate
-// cheap is what makes spending the full bar on a domain an actual decision
-// rather than the only thing meter is ever for.
-export const ULT_METER_COST = METER_MAX * 0.5;
+// Both supers cost the WHOLE bar. Filling the meter is therefore a single
+// decision rather than a schedule: spend it on the ultimate everyone has, or
+// bank the same bar for a Domain Expansion if you are one of the seven
+// fighters who has one. Charging the ultimate less would make that choice
+// free — you would simply fire the ultimate on the way to the domain.
+export const ULT_METER_COST = METER_MAX;
 export const DOMAIN_METER_COST = METER_MAX;
 
 export const RESPAWN_X = { 1: 250, 2: 500, 3: 780, 4: 1030 };

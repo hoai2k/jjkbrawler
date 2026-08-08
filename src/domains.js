@@ -1,7 +1,7 @@
 // Domain Expansion — the second, larger super.
 //
-// An ultimate costs half a bar and fires once (see ultimates.js). A domain
-// costs the WHOLE bar, runs for several seconds, and is the only super the
+// An ultimate costs a full bar and fires once (see ultimates.js). A domain
+// costs that same full bar, runs for several seconds, and is the only super the
 // player keeps *playing* while it is open: each one binds a live interaction to
 // SPECIAL (and, for Sukuna, to LIGHT/HEAVY afterwards). That is the whole design
 // brief — a domain you watch is a cutscene, a domain you operate is a move.

@@ -584,7 +584,8 @@ export function updateFighter(f, dt, input) {
     } else if (input.ultP && f.meter >= ULT_METER_COST) {
       performUltimate(f);
     } else if (input.ultP && f.meter < ULT_METER_COST) {
-      popup(f.x, f.y - 160, "NOT READY", "#9aa4c0", 15);
+      // Same wording as the domain refusal — they cost the same thing now.
+      popup(f.x, f.y - 160, "NEEDS A FULL BAR", "#9aa4c0", 15);
     } else {
       // A fresh press wins over a buffered one; the buffer only covers inputs
       // that arrived while the fighter was busy.

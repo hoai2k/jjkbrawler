@@ -430,8 +430,8 @@ Style suffix — append to every domain prompt:
 ### Checking them in game
 
 Pick the fighter, build a full Cursed Energy bar, press **D-pad ▲** (keyboard:
-**U** for P1). The bar has a tick at the halfway mark — half buys the ultimate,
-a full bar buys the domain.
+**U** for P1). A full bar buys either the ultimate or the domain, so it has to
+be full before the domain input will do anything.
 
 | File | Delivered | Checked in game |
 |---|---|---|

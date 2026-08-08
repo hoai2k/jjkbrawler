@@ -114,6 +114,10 @@ spends it all on the character's **cinematic ultimate** — a domain, a meteor,
 an install transformation, a flurry rush. Ultimates are the comeback valve:
 getting beaten up funds yours faster.
 
+A full bar is also exactly what a **Domain Expansion** costs, so the seven
+fighters who have one spend every filled bar on a choice: fire the ultimate
+now, or open the domain instead. Nobody gets both off one bar.
+
 ## 5. Status effects
 
 | Effect | Source | What it does |

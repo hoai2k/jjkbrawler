@@ -195,6 +195,9 @@ export const TEXT = {
   hud: {
     ultimateReady: "ULTIMATE READY",
     domainReady: "DOMAIN READY",
+    // A full bar buys either one, so a fighter with a domain is being offered a
+    // choice and the HUD has to say so.
+    superChoiceReady: "ULTIMATE / DOMAIN",
   },
 
   controllers: {

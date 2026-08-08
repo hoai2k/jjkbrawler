@@ -1,7 +1,8 @@
 // Ultimate attacks. Each character's `ultimate.type` maps to a director here.
-// An ultimate costs HALF a bar (ULT_METER_COST) and is the cinematic centrepiece
-// of a kit; spending the full bar instead opens a Domain Expansion, for the
-// seven fighters who have one (see domains.js).
+// An ultimate costs the FULL bar (ULT_METER_COST) and is the cinematic
+// centrepiece of a kit. A Domain Expansion costs the same full bar, so the
+// fighters who have one (see domains.js) are choosing between the two every
+// time the meter fills.
 
 import { state } from "./state.js";
 import { clamp, sign, rand } from "./utils.js";
@@ -33,7 +34,8 @@ function beginUltAction(f, dur, opts = {}) {
 export function performUltimate(f) {
   const ult = f.char.ultimate;
   if (!ult) return;
-  // Half a bar, not the whole thing — the rest is saved toward a domain.
+  // The whole bar. Firing this is choosing it over a domain, not a step on the
+  // way to one.
   f.meter = Math.max(0, f.meter - ULT_METER_COST);
   cinematic(f, ult.name, ult.p.color || f.char.theme);
   DIRECTORS[ult.type](f, ult.p, ult);
