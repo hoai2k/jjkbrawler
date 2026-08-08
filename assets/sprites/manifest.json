@@ -7719,6 +7719,414 @@
       597.1
      ]
     }
+   },
+   "attack_air_a": {
+    "w": 897,
+    "h": 1311,
+    "ox": -291.8,
+    "oy": -1000,
+    "bodyBottom": 310.4,
+    "bodyH": 346.1,
+    "centroidX": 114.6,
+    "renderScale": 0.264,
+    "file": "jogo/attack_air_a.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      405.0,
+      474.5
+     ]
+    }
+   },
+   "attack_air_b": {
+    "w": 936,
+    "h": 1190,
+    "ox": -311.2,
+    "oy": -879,
+    "bodyBottom": 310.4,
+    "bodyH": 314.2,
+    "centroidX": 90.0,
+    "renderScale": 0.264,
+    "file": "jogo/attack_air_b.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      402.2,
+      452.6
+     ]
+    }
+   },
+   "attack_down": {
+    "w": 944,
+    "h": 1140,
+    "ox": -315.2,
+    "oy": -829,
+    "bodyBottom": 310.4,
+    "bodyH": 301.0,
+    "centroidX": 186.6,
+    "renderScale": 0.264,
+    "file": "jogo/attack_down.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      500.5,
+      488.6
+     ]
+    }
+   },
+   "attack_heavy_a": {
+    "w": 969,
+    "h": 1324,
+    "ox": -327.8,
+    "oy": -1013,
+    "bodyBottom": 310.4,
+    "bodyH": 349.5,
+    "centroidX": 142.1,
+    "renderScale": 0.264,
+    "file": "jogo/attack_heavy_a.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      470.0,
+      518.2
+     ]
+    }
+   },
+   "attack_heavy_b": {
+    "w": 980,
+    "h": 1258,
+    "ox": -333.2,
+    "oy": -947,
+    "bodyBottom": 310.4,
+    "bodyH": 332.1,
+    "centroidX": 197.9,
+    "renderScale": 0.264,
+    "file": "jogo/attack_heavy_b.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      533.1,
+      501.4
+     ]
+    }
+   },
+   "attack_light_a": {
+    "w": 978,
+    "h": 1283,
+    "ox": -332.2,
+    "oy": -972,
+    "bodyBottom": 310.4,
+    "bodyH": 338.7,
+    "centroidX": 254.4,
+    "renderScale": 0.264,
+    "file": "jogo/attack_light_a.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      587.0,
+      523.0
+     ]
+    }
+   },
+   "attack_light_b": {
+    "w": 922,
+    "h": 1358,
+    "ox": -304.2,
+    "oy": -1047,
+    "bodyBottom": 310.4,
+    "bodyH": 358.5,
+    "centroidX": 208.2,
+    "renderScale": 0.264,
+    "file": "jogo/attack_light_b.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      514.7,
+      529.1
+     ]
+    }
+   },
+   "crouch_a": {
+    "w": 913,
+    "h": 1375,
+    "ox": -299.8,
+    "oy": -1064,
+    "bodyBottom": 310.4,
+    "bodyH": 363.0,
+    "centroidX": 166.0,
+    "renderScale": 0.264,
+    "file": "jogo/crouch_a.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      465.3,
+      583.3
+     ]
+    }
+   },
+   "crouch_attack_a": {
+    "w": 996,
+    "h": 1006,
+    "ox": -341.2,
+    "oy": -695,
+    "bodyBottom": 310.4,
+    "bodyH": 265.6,
+    "centroidX": 170.7,
+    "renderScale": 0.264,
+    "file": "jogo/crouch_attack_a.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      511.1,
+      418.6
+     ]
+    }
+   },
+   "crouch_attack_b": {
+    "w": 953,
+    "h": 1314,
+    "ox": -319.8,
+    "oy": -1003,
+    "bodyBottom": 310.4,
+    "bodyH": 346.9,
+    "centroidX": 166.0,
+    "renderScale": 0.264,
+    "file": "jogo/crouch_attack_b.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      486.0,
+      551.9
+     ]
+    }
+   },
+   "crouch_b": {
+    "w": 776,
+    "h": 1167,
+    "ox": -231.2,
+    "oy": -856,
+    "bodyBottom": 310.4,
+    "bodyH": 308.1,
+    "centroidX": 176.1,
+    "renderScale": 0.264,
+    "file": "jogo/crouch_b.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      406.4,
+      483.5
+     ]
+    }
+   },
+   "dash": {
+    "w": 904,
+    "h": 847,
+    "ox": -295.2,
+    "oy": -536,
+    "bodyBottom": 310.4,
+    "bodyH": 223.6,
+    "centroidX": 199.5,
+    "renderScale": 0.264,
+    "file": "jogo/dash.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      495.2,
+      297.0
+     ]
+    }
+   },
+   "land": {
+    "w": 936,
+    "h": 1119,
+    "ox": -311.2,
+    "oy": -808,
+    "bodyBottom": 310.4,
+    "bodyH": 295.4,
+    "centroidX": 121.6,
+    "renderScale": 0.264,
+    "file": "jogo/land.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      433.9,
+      491.8
+     ]
+    }
+   },
+   "special_down": {
+    "w": 905,
+    "h": 1267,
+    "ox": -295.8,
+    "oy": -956,
+    "bodyBottom": 310.4,
+    "bodyH": 334.5,
+    "centroidX": 159.2,
+    "renderScale": 0.264,
+    "file": "jogo/special_down.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      454.2,
+      597.6
+     ]
+    }
+   },
+   "special_neutral": {
+    "w": 967,
+    "h": 1294,
+    "ox": -326.8,
+    "oy": -983,
+    "bodyBottom": 310.4,
+    "bodyH": 341.6,
+    "centroidX": 235.1,
+    "renderScale": 0.264,
+    "file": "jogo/special_neutral.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      564.3,
+      523.9
+     ]
+    }
+   },
+   "ult_a": {
+    "w": 771,
+    "h": 1497,
+    "ox": -228.8,
+    "oy": -1186,
+    "bodyBottom": 310.4,
+    "bodyH": 395.2,
+    "centroidX": 98.5,
+    "renderScale": 0.264,
+    "file": "jogo/ult_a.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      326.1,
+      640.4
+     ]
+    }
+   },
+   "ult_b": {
+    "w": 996,
+    "h": 1482,
+    "ox": -341.2,
+    "oy": -1171,
+    "bodyBottom": 310.4,
+    "bodyH": 391.2,
+    "centroidX": 186.6,
+    "renderScale": 0.264,
+    "file": "jogo/ult_b.png",
+    "replaced": {
+     "at": "2026-08-08T22:15:13+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      530.6,
+      674.5
+     ]
+    }
    }
   },
   "hakari": {

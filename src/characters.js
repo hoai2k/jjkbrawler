@@ -902,13 +902,11 @@ export const CHARACTERS = {
     shadow: "rgba(255, 122, 47, 0.42)",
     scale: 0.60,
     stats: { speed: 368, airSpeed: 288, accel: 2280, jump: 720, airJumps: 1, weight: 1.16, friction: 0.79 },
-    anims: {
-      light: { frames: ["r2c0", "r0c3"], fps: 11, loop: false },
-      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
-      specialNeutral: { frames: ["r3c1"], fps: 8, loop: false },
-      specialSide: { frames: ["special_side"], fps: 8, loop: false },
-      specialDown: { frames: ["r3c3"], fps: 5, loop: false },
-      ult: { frames: ["r3c2", "r3c3"], fps: 7, loop: true },
+    // Round 11B delivered his last seventeen poses. Inherits the semantic
+    // table; the slower jab and down-special are his own timing, kept.
+    anims: { ...SEMANTIC_ANIMS,
+      light: { frames: ["attack_light_a", "attack_light_b"], fps: 11, loop: false },
+      specialDown: { frames: ["special_down"], fps: 5, loop: false },
     },
     light: { dmg: 9.5, reach: 170, speed: 0.94, angle: 0.32, effect: "burn", label: "Scorch Jab", sfx: "punch" },
     heavy: { dmg: 17.5, reach: 186, speed: 0.9, angle: 0.44, effect: "burn", label: "Magma Fist", sfx: "punch", shieldMul: 1.7 },
