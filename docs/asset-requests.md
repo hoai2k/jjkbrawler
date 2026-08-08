@@ -977,7 +977,7 @@ fills them in as they arrive.
 
 # Round 10 — open
 
-## 10A. Retire the sheet cells — 255 sprites across the 17 original fighters
+## 10A. Retire the sheet cells — 256 sprites across the 17 original fighters
 
 The 17 original fighters still run mostly on their **4×5 sprite sheets**. Each
 has 16 semantic poses delivered by later rounds and **20 grid cells** named
@@ -1005,7 +1005,8 @@ This round finishes that transition for the other 17.
 
 ### What to deliver
 
-**15 new poses per fighter × 17 fighters = 255 sprites.** The 16 they already
+**15 new poses per fighter × 17 fighters = 255 sprites, plus one redraw of
+`nobara/dodge_air` — 256 in all.** The 16 they already
 have are correct and stay as they are. What is missing everywhere:
 
 | | Poses to draw |
@@ -1019,6 +1020,25 @@ Already delivered, do not redraw: `idle_a`, `idle_b`, `run_a`, `run_b`,
 `jump_rise`, `fall`, `hurt`, `guard`, `ledge_hang`, `dizzy`, `victory`,
 `charge`, `attack_air`, `attack_up`, `dodge_roll`, `dodge_air`.
 
+**One exception: `nobara/dodge_air`.** It is on that list but it is flagged
+**Replace** in the workbench, so draw it again for Nobara only. Everyone else's
+`dodge_air` stands.
+
+### The flagged cells this round retires
+
+Eleven cells carry a workbench flag saying the art itself is wrong. None of them
+needs a separate commission — each is a pose already in the table above, and
+drawing that pose retires the flag. They are called out here so the ones that
+matter get a second look rather than being drawn on autopilot.
+
+| Cell | Flag | Drives | Retired by | Watch for |
+|---|---|---|---|---|
+| `nobara/r2c2` | Fix alpha | down heavy | `attack_down` | The white background patch between her sleeve, thigh and shoe is patched in the repo (see `docs/sprite-fixes/`), but the pose is still a crouched hand-plant serving a *down heavy*. The redraw is the real fix: her striking downward at the ground in front, weight dropping onto it. |
+| `nobara/r3c2` | Replace | down special, ultimate | `special_down`, `ult_a` | One cell doing two jobs. The round gives each its own sprite. |
+| `nobara/r3c3` | Replace | ultimate | `ult_b` | Pairs with `ult_a` as the release. |
+| `nobara/dodge_air` | Replace | air dodge | `dodge_air` | The exception noted above — the only pose here outside the 15. |
+| `gojo/r3c0`, `gojo/r3c1`, `gojo/r4c3`, `nobara/r2c0`, `nobara/r3c0`, `nobara/r4c2`, `nobara/r4c3` | Fix crop | see 10B | `special_side`, `ult_a`/`ult_b`, `crouch_attack_a`, `attack_heavy` | All seven are cut through by the frame edge. Measurements and a marked-up sheet are in 10B; the only instruction they add is to keep the figure fully inside the plate. |
+
 Delivery path as always:
 
 ```
@@ -1027,7 +1047,7 @@ assets/intake/<character>/<pose_key>.png
 
 ### Consistency is the point of this round
 
-These 255 sprites are going to sit beside 16 existing ones per fighter, so
+These 256 sprites are going to sit beside 16 existing ones per fighter, so
 **matching the delivered set matters more than any individual frame looking
 good.** For each fighter, put their `idle_a` beside what you are drawing and
 check:
