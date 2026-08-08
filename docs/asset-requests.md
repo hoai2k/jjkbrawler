@@ -4,14 +4,16 @@ Everything in this file is **outstanding**. Delivered rounds are recorded in
 [asset-requests-history.md](asset-requests-history.md) — including the round
 numbers, so a commit or code comment citing "round 5 art" still resolves.
 
-**Current status: rounds 1–10 delivered. Round 11 is open.**
+**Current status: rounds 1–10 delivered. Rounds 11 and 12 are open.**
 
 The roster is complete: all 23 fighters have a card, 31 poses and their effect
 sprites, and nothing outstanding blocks play. Round 9 closed in full. Round 10
 closed with four of its seventeen fighters finished — Gojo, Mahito, Nobara and
 Yuta each have one sprite per action — and **the thirteen it did not reach rolled
-into round 11 rather than staying open behind it**, so there is one open round at
-a time and its numbers are the real remaining work.
+into round 11 rather than staying open behind it**, so a round's numbers are
+always the real remaining work. Round 12 is small and separate: four poses from
+the four fighters round 10 *did* finish, caught while placing them in the sprite
+workbench.
 
 Read **[the canonical reference image](#the-canonical-reference-image--one-per-fighter)**
 below before drawing anything: it names the one image each fighter is matched
@@ -534,3 +536,69 @@ arms and legs, barefoot.
 Keep this separate from the rest of the round when scheduling it. A `replace` is
 blocking, because something on screen is wrong; this is a wish, and burying the
 two together makes the blocking ones wait behind the wish list.
+
+---
+
+# Round 12 — open
+
+**4 sprites.** Everything here came out of placing round 10's semantic sets in
+the sprite workbench: with each pose finally drawn at its real size and standing
+on the real ground line, four of them turned out not to be the action they are
+named for. Nothing in this round is in round 11 — 11B and 11C skip Gojo and
+Mahito entirely, because round 10 finished them.
+
+| Fighter | Key | Pose | Kind | Ask |
+|---|---|---|---|---|
+| Satoru Gojo | `gojo` | `special_down` | **Replace** | Reads as a palm strike, not as Infinity |
+| Satoru Gojo | `gojo` | `crouch_b` | Pose | Not crouched |
+| Satoru Gojo | `gojo` | `crouch_attack_b` | Pose | Not crouched, and the strike goes upward |
+| Mahito | `mahito` | `crouch_b` | Pose | Not crouched |
+
+One is blocking and three are wishes, so they can ship separately — but they are
+all four the same size of job and three of them are the same mistake, so there is
+no reason to split them.
+
+## The three crouches — 3 sprites
+
+`crouch_a` and `crouch_b` are the two frames of the crouch cycle, and `crouch_b`
+is meant to be **the same crouch a fraction lower, weight settled**. What was
+delivered for all three is a figure standing upright with the knees slightly
+bent — closer to `idle` than to `crouch_a`. On screen the character barely moves
+when the player holds down, and `crouch_attack_b` swings upward from standing
+rather than following through on a low attack.
+
+The `_a` frames are right; draw the `_b` frames against them.
+
+| Pose | What to draw |
+|---|---|
+| `gojo/crouch_b` | The same crouch as `gojo/crouch_a`, settled lower — hips down near heel height, thighs closer to horizontal, back angled forward, guard still up. This is a fighting crouch, not a rest. |
+| `mahito/crouch_b` | The same, against `mahito/crouch_a`. |
+| `gojo/crouch_attack_b` | The **follow-through of a low attack** — the arm or leg extended out at ankle-to-knee height, body still down in the crouch, weight carried through the sweep. Not a rising uppercut. |
+
+Match each fighter's own `crouch_a` for camera distance, figure scale, costume
+and line weight: these two frames play back to back at a few frames a second, so
+anything that differs between them reads as a flicker rather than a settle.
+
+## Gojo's Infinity — 1 sprite
+
+`gojo/special_down` is his **down special**, which is `Infinity` — a *counter*,
+not a strike (`src/characters.js`). What is drawn is Gojo standing square with a
+palm thrust forward, which is a good drawing of his heavy (`Lapse Palm`) and is
+close enough to it on screen that the two moves look like the same move.
+
+Draw the counter instead: **stopped**, not striking. Weight low and settled, both
+hands raised into a hold rather than one arm punched out, the body braced to
+receive something. The nullification field is the point — pale blue-white
+distortion gathering just off his palms, air bending around him — and the pose
+should read as *the attack does not arrive* rather than *he is hitting you*.
+
+```
+assets/intake/gojo/special_down.png
+assets/intake/gojo/crouch_b.png
+assets/intake/gojo/crouch_attack_b.png
+assets/intake/mahito/crouch_b.png
+```
+
+Standard delivery spec at the top of this file, keyed on magenta `#FF00FF`.
+Canon references: `assets/reference/canon/gojo_idle.png` and
+`assets/reference/canon/mahito_idle.png`.
