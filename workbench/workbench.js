@@ -1074,11 +1074,31 @@ function render() {
 const RANGE_MOVES = {
   light: (c) => [["Jab finisher", lightMove(c, "jab", 2)], ["Side tilt", lightMove(c, "side")]],
   crouchAttack: (c) => [["Down tilt", lightMove(c, "down")]],
-  airLight: (c) => [["Air light", lightMove(c, "air")], ["Air heavy", heavyMove(c, "air")]],
+  // The aerial frame serves four moves, and they are not all the same shape:
+  // the two forward ones, the rising hit above, and the meteor below.
+  airLight: (c) => [["Air light", lightMove(c, "air")], ["Air heavy", heavyMove(c, "air")],
+                    ["Up air", lightMove(c, "upAir")], ["Meteor", lightMove(c, "downAir")]],
   sideHeavy: (c) => [["Side smash", heavyMove(c, "side")]],
   upHeavy: (c) => [["Up smash", heavyMove(c, "up")]],
   downHeavy: (c) => [["Down smash", heavyMove(c, "down")]],
 };
+
+// A move's hitbox is a rectangle offset from the fighter (combat.js
+// hitboxRect), and the shape of that rectangle says what kind of attack it is.
+// Marking every one of them at "ox + w, half height" described a punch, which
+// is wrong for the three quarters of the kit that are not punches: an up smash
+// straddles the fighter and reaches UPWARD, and a quake or a meteor comes out
+// both sides at once. Read the geometry instead of assuming it.
+function rangeShape(m) {
+  const x0 = m.ox, x1 = m.ox + m.w, y0 = m.oy, y1 = m.oy + m.h;
+  if (x0 >= 0) return { kind: "forward", x0, x1, y0, y1 };
+  // Straddling the fighter: the reach is not "in front", it is out from the
+  // middle. Which way depends on the box.
+  const aspect = Math.max(m.w, m.h) / Math.min(m.w, m.h);
+  if (aspect < 1.4) return { kind: "radial", x0, x1, y0, y1 };
+  if (m.h > m.w) return { kind: "vertical", x0, x1, y0, y1 };
+  return { kind: "sweep", x0, x1, y0, y1 };
+}
 
 function drawRangeTargets(cx) {
   const char = CHARACTERS[state.char];
@@ -1091,53 +1111,147 @@ function drawRangeTargets(cx) {
     // job is to not have connected yet.
     const frames = resolvedAnim(state.char, anim).frames;
     if (frames.length > 1 && frames.indexOf(state.frame) < frames.length - 1) continue;
-    for (const [label, m] of make(char)) moves.push([anim, label, m]);
+    for (const [label, m] of make(char)) moves.push([label, m]);
   }
   if (!moves.length) return;
 
   const z = state.zoom;   // world px -> canvas px at this viewer zoom
+  const wx = (v) => cx + v * z;
+  const wy = (v) => GROUND_Y + v * z;
   ctx.save();
   ctx.font = "600 10.5px Inter, sans-serif";
   ctx.textAlign = "left";
 
+  const shapes = [];
+  const seen = new Set();
+  for (const [label, m] of moves) {
+    const box = rangeShape(m);
+    const key = [box.kind, Math.round(box.x0), Math.round(box.x1),
+                 Math.round(box.y0), Math.round(box.y1)].join(",");
+    if (seen.has(key)) continue;              // two moves, same box: one marker
+    seen.add(key);
+    shapes.push({ label, box });
+  }
+
+  // The body the game actually tests, drawn behind the markers (combat.js
+  // hurtbox). Without it a target reads as "this attack reaches miles past the
+  // fist", because the eye compares it to the DRAWING. The drawing is not what
+  // gets hit: hurtboxes are one size for the whole roster — 64x108 standing,
+  // against art drawn around 175 tall — so a fighter's reach has to clear their
+  // own box and then meet an opponent's, which starts 32px inside their art.
+  const crouched = statesUsing(state.char, state.frame)
+    .some((a) => a === "crouch" || a === "crouchAttack");
+  const hb = crouched ? { w: 72, h: 68 } : { w: 64, h: 108 };
+  ctx.strokeStyle = "rgba(120, 200, 255, 0.45)";
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.strokeRect(wx(-hb.w / 2), wy(-hb.h), hb.w * z, hb.h * z);
+  ctx.setLineDash([]);
+  ctx.fillStyle = "rgba(120, 200, 255, 0.8)";
+  ctx.textAlign = "right";
+  ctx.fillText(`hurtbox ${hb.w}x${hb.h}`, wx(-hb.w / 2) - 5, wy(-hb.h) + 11);
+  ctx.textAlign = "left";
+
   // Where the art stops being trusted: past this the game draws its energy
   // wake (drawReachWakes in render.js), so art short of a far target is fine —
-  // the gap is filled in play. The line is where those two regimes meet.
-  const capX = cx + VISIBLE_ART_REACH * z;
-  ctx.strokeStyle = "rgba(150, 160, 190, 0.5)";
-  ctx.setLineDash([3, 5]);
-  ctx.beginPath(); ctx.moveTo(capX, GROUND_Y - 190 * z); ctx.lineTo(capX, GROUND_Y); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = "rgba(150, 160, 190, 0.85)";
-  ctx.fillText("art cap — energy wake beyond", capX + 4, GROUND_Y - 190 * z + 10);
+  // the gap is filled in play. Only meaningful against a horizontal reach, so
+  // it is drawn only when one is on screen.
+  if (shapes.some((s) => s.box.kind === "forward" || s.box.kind === "sweep")) {
+    const capX = wx(VISIBLE_ART_REACH);
+    ctx.strokeStyle = "rgba(150, 160, 190, 0.5)";
+    ctx.setLineDash([3, 5]);
+    ctx.beginPath(); ctx.moveTo(capX, GROUND_Y - 190 * z); ctx.lineTo(capX, GROUND_Y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(150, 160, 190, 0.85)";
+    ctx.fillText("art cap — energy wake beyond", capX + 4, GROUND_Y - 190 * z + 10);
+  }
 
-  const seen = new Set();
-  moves.forEach(([anim, label, m], i) => {
-    const far = m.ox + m.w;                     // hitbox far edge, world px
-    const key = Math.round(far);
-    if (seen.has(key)) return;                  // two moves, same reach: one target
-    seen.add(key);
-    const x = cx + far * z;
-    const cy = GROUND_Y + (m.oy + m.h / 2) * z; // hitbox vertical centre
+  // Several moves share one frame and can land within a few px of each other —
+  // an air light and an air heavy differ by 3px of hitbox height. Captions are
+  // pushed clear of the ones already placed rather than staggered by index,
+  // which only helps when the collision happens to be with the previous one.
+  const placed = [];
+  const clearOf = (x, y) => {
+    let out = y;
+    while (placed.some((q) => Math.abs(q.x - x) < 120 && Math.abs(q.y - out) < 13)) out -= 13;
+    placed.push({ x, y: out });
+    return out;
+  };
+  shapes.forEach(({ label, box }) => {
+    const { kind, x0, x1, y0, y1 } = box;
+    // The box the game actually tests, faint behind the marker. Reading the
+    // real rectangle is the whole point — a single crosshair cannot say
+    // whether a hit comes out one side or both.
+    ctx.strokeStyle = "rgba(255, 120, 90, 0.28)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 3]);
+    ctx.strokeRect(wx(x0), wy(y0), (x1 - x0) * z, (y1 - y0) * z);
+    ctx.setLineDash([]);
+
     ctx.strokeStyle = "rgba(255, 120, 90, 0.9)";
-    ctx.lineWidth = 1.5;
-    // Crosshair at the hitbox's far edge and vertical centre — the last point
-    // this attack connects at.
-    ctx.beginPath(); ctx.arc(x, cy, 9, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(x, cy, 2, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x - 14, cy); ctx.lineTo(x - 4, cy);
-    ctx.moveTo(x + 4, cy); ctx.lineTo(x + 14, cy);
-    ctx.moveTo(x, cy - 14); ctx.lineTo(x, cy - 4);
-    ctx.moveTo(x, cy + 4); ctx.lineTo(x, cy + 14);
-    ctx.stroke();
     ctx.fillStyle = "rgba(255, 140, 110, 0.95)";
-    // Near the right edge the label flips to the left of the crosshair, so a
+    ctx.lineWidth = 1.5;
+    let tx, ty, text;
+
+    if (kind === "radial") {
+      // Out from the middle in every direction: an ellipse, drawn on the
+      // radii the box gives rather than faked as a circle.
+      const ecx = wx((x0 + x1) / 2), ecy = wy((y0 + y1) / 2);
+      ctx.beginPath();
+      ctx.ellipse(ecx, ecy, (x1 - x0) / 2 * z, (y1 - y0) / 2 * z, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath(); ctx.arc(ecx, ecy, 2, 0, Math.PI * 2); ctx.stroke();
+      tx = wx(x1); ty = ecy;
+      text = `${label} · ±${Math.round((x1 - x0) / 2)}px`;
+    } else if (kind === "vertical") {
+      // Reaches up (or down) from the fighter: mark the edge furthest from the
+      // feet, across the width it covers.
+      const up = Math.abs(y0) > Math.abs(y1);
+      const edge = wy(up ? y0 : y1);
+      ctx.beginPath(); ctx.moveTo(wx(x0), edge); ctx.lineTo(wx(x1), edge); ctx.stroke();
+      const mid = wx((x0 + x1) / 2);
+      ctx.beginPath();                                   // arrow along the reach
+      ctx.moveTo(mid, wy(0)); ctx.lineTo(mid, edge);
+      ctx.moveTo(mid - 5, edge + (up ? 8 : -8)); ctx.lineTo(mid, edge);
+      ctx.lineTo(mid + 5, edge + (up ? 8 : -8));
+      ctx.stroke();
+      tx = wx(x1); ty = edge + (up ? -6 : 14);
+      text = `${label} · ${Math.round(Math.abs(up ? y0 : y1))}px ${up ? "up" : "down"}`;
+    } else if (kind === "sweep") {
+      // Both sides at once: a tick on each edge, so it cannot be read as a
+      // forward attack that happens to start behind the fighter.
+      const mid = wy((y0 + y1) / 2);
+      for (const x of [x0, x1]) {
+        ctx.beginPath();
+        ctx.moveTo(wx(x), wy(y0)); ctx.lineTo(wx(x), wy(y1));
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.moveTo(wx(x0), mid); ctx.lineTo(wx(x1), mid);
+      ctx.stroke();
+      tx = wx(x1); ty = mid;
+      text = `${label} · ±${Math.round((x1 - x0) / 2)}px`;
+    } else {
+      // Forward: the crosshair sits on the far edge at the box's mid height,
+      // which is the last point this attack connects at.
+      const x = wx(x1), cy = wy((y0 + y1) / 2);
+      ctx.beginPath(); ctx.arc(x, cy, 9, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x, cy, 2, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x - 14, cy); ctx.lineTo(x - 4, cy);
+      ctx.moveTo(x + 4, cy); ctx.lineTo(x + 14, cy);
+      ctx.moveTo(x, cy - 14); ctx.lineTo(x, cy - 4);
+      ctx.moveTo(x, cy + 4); ctx.lineTo(x, cy + 14);
+      ctx.stroke();
+      tx = x; ty = cy - 12;
+      text = `${label} · ${Math.round(x1)}px`;
+    }
+
+    // Near the right edge the label flips to the left of its marker, so a
     // long-reach move's caption is not cropped off the canvas.
-    const text = `${label} · ${Math.round(far)}px`;
-    const flip = x > canvas.width - 130;
+    const flip = tx > canvas.width - 130;
     ctx.textAlign = flip ? "right" : "left";
-    ctx.fillText(text, x + (flip ? -12 : 12), cy - 12 - (i % 2) * 13);
+    ctx.fillText(text, tx + (flip ? -12 : 12), clearOf(tx, ty));
   });
   ctx.restore();
 }
