@@ -153,7 +153,7 @@ Six independent parts; any can be delivered on its own.
 - **9B** — 10 technique frames that currently show the wrong move
 - **9C** — 7 Domain Expansion backgrounds for the new domain feature
 - **9D** — 4 stage-hazard props for the Active Boards update (optional polish)
-- **9E** — redraw Gakuganji, Reggie and Uro from the anime reference; their current art is the wrong character (93 sprites + 3 cards). **Gakuganji's and Reggie's 31 poses are each delivered and in game; both cards, and all of Uro, are outstanding.**
+- **9E** — redraw Gakuganji, Reggie and Uro from the anime reference; their current art is the wrong character (93 sprites + 3 cards). **All 93 poses are delivered and in game. The three hero cards are the only part still outstanding.**
 - **9F** — redeliver Mahito's 16 generated poses on a clean key screen; the current ones carry residue from two different keys (16 sprites)
 
 **9E is the highest-value part of this round.** 9A–9D are polish on art that is
@@ -708,7 +708,7 @@ and `idle_b` only shows as a pulse in motion.
 |---|---|---|---|---|
 | `gakuganji` | ☑ | ☐ | ☑ | ☑ |
 | `reggie` | ☑ | ☐ | ☑ | ☑ |
-| `uro` | ☐ | ☐ | ☐ | ☐ |
+| `uro` | ☑ | ☐ | ☑ | ☑ |
 
 ---
 
