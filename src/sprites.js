@@ -114,11 +114,17 @@ export const AIRBORNE_STATES = ["jump", "fall", "ledge", "dodge_air", "airLight"
 //         { "file": "hanami/alt/dodge_roll.png", "label": "Round 6 redesign" }
 //       ] } } }
 //
-// PLACEMENT BELONGS TO THE IMAGE, NOT THE POSE. Each option carries its own
-// renderScale / ox / bodyBottom / anchors, because two drawings of the same
-// action are framed differently and a shared number would be wrong for one of
-// them. Switching variants therefore restores that image's own numbers rather
-// than re-applying the previous one's.
+// EVERY WORKBENCH JUDGEMENT BELONGS TO THE IMAGE, NOT THE POSE. Each option
+// carries its own renderScale / ox / bodyBottom / anchors, because two drawings
+// of the same action are framed differently and a shared number would be wrong
+// for one of them — and its own review flags, because "fix alpha" is something
+// you say about a drawing. Switching variants therefore restores that image's
+// own numbers and verdicts rather than re-applying the previous one's.
+//
+// What stays on the POSE is the pose's identity and what draws it: which file
+// is selected, and which animation states resolve to this key. What stays on
+// the CHARACTER is anything solved across the whole set — `headHeights`,
+// `heightSpans`, `nativeLeft`. See VARIANT_BANKED below for the exact line.
 //
 // The SELECTED option's meta is mirrored into `characters[char][pose]`, which
 // is the only thing the game reads. That keeps the runtime exactly as it was —
@@ -148,6 +154,24 @@ export const VARIANT_PLACEMENT = [
   "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
   "centroidX", "renderScale", "anchors", "faceLeft",
 ];
+
+/** The review fields, which travel with the image for the same reason.
+ *
+ *  "Fix alpha" is a statement about a DRAWING — this file has an unkeyed patch
+ *  of background in it — and it stays true whether or not the pose currently
+ *  points at that file. Leaving these on the pose would move a verdict onto art
+ *  it was never passed on: flag drawing A, switch to B, and B wears A's flag
+ *  while A quietly loses it. `edited` banks the values a drawing held before it
+ *  was hand-tuned, so it is image-specific for the same reason its numbers are.
+ *
+ *  Kept separate from VARIANT_PLACEMENT because the two are cleared at
+ *  different moments — intake drops the review fields when new art lands, and
+ *  re-measures the placement ones. */
+export const VARIANT_REVIEW = ["needsReplacement", "wantsImprovement", "edited"];
+
+/** Everything banked onto the option a pose is leaving, and restored from the
+ *  one it arrives at. */
+export const VARIANT_BANKED = [...VARIANT_PLACEMENT, ...VARIANT_REVIEW];
 
 // Fallback centre of mass, derived from the extraction data the manifest
 // already carries. Cached per frame on FIRST use — before the workbench can

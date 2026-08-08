@@ -74,12 +74,17 @@ BOOLEAN = {"faceLeft"}
 TRACKED = {"renderScale", "ox", "bodyBottom", "faceLeft"}
 
 # Cleared off a pose before the chosen drawing's own values are written in, so a
-# variant that does not set a field cannot inherit the previous drawing's.
-# Mirrors VARIANT_PLACEMENT in src/sprites.js and PLACEMENT in build_variants.py.
+# variant that does not set a field cannot inherit the previous drawing's. That
+# covers the review flags as well as the numbers: "fix alpha" is a verdict on a
+# DRAWING, and a pose that keeps it across a switch pins it to whichever art
+# happens to be selected. Mirrors VARIANT_BANKED in src/sprites.js and BANKED in
+# build_variants.py.
 VARIANT_PLACEMENT = [
     "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
     "centroidX", "renderScale", "anchors", "faceLeft",
 ]
+VARIANT_REVIEW = ["needsReplacement", "wantsImprovement", "edited"]
+VARIANT_BANKED = VARIANT_PLACEMENT + VARIANT_REVIEW
 
 
 def load_payloads(sources):
@@ -140,9 +145,10 @@ def main():
 
         # Which drawing a pose uses, when it has more than one to choose from
         # (tools/build_variants.py). Two halves, and both matter:
-        #   variantPlacement  banks every option's own size/centring/anchors, so
-        #                     tuning one drawing is not lost by looking at
-        #                     another — placement belongs to the IMAGE.
+        #   variantPlacement  banks every option's own size/centring/anchors and
+        #                     review flags, so tuning or flagging one drawing is
+        #                     not lost by looking at another — both belong to
+        #                     the IMAGE.
         #   variantChoice     mirrors the chosen option onto the pose, which is
         #                     the only thing the game reads.
         for pose, options in (payload.get("variantPlacement") or {}).items():
@@ -171,7 +177,7 @@ def main():
                 skipped.append(f"{char}/{pose}: {file} is not an option")
                 continue
             before = meta.get("file")
-            for field in VARIANT_PLACEMENT:
+            for field in VARIANT_BANKED:
                 meta.pop(field, None)
             for field, value in chosen.items():
                 if field != "label":

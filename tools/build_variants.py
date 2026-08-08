@@ -6,12 +6,13 @@ turn out better than what shipped, an alternate costume, a wind-up that reads as
 a strike. The workbench picks between them; this script keeps the list itself
 honest.
 
-PLACEMENT BELONGS TO THE IMAGE. Every option carries its own renderScale / ox /
-bodyBottom / anchors, because two drawings of the same action are framed
-differently and one shared set of numbers would be wrong for at least one of
-them. The SELECTED option's fields are mirrored into `characters[char][pose]`,
-which is the only thing the game reads — so the runtime never learns that
-variants exist.
+EVERY WORKBENCH JUDGEMENT BELONGS TO THE IMAGE. Each option carries its own
+renderScale / ox / bodyBottom / anchors, because two drawings of the same action
+are framed differently and one shared set of numbers would be wrong for at least
+one of them — and its own review flags, because "fix alpha" is something you say
+about a drawing, not about the action it happens to be serving. The SELECTED
+option's fields are mirrored into `characters[char][pose]`, which is the only
+thing the game reads — so the runtime never learns that variants exist.
 
 What it does, all idempotent:
 
@@ -39,20 +40,24 @@ SPRITES = os.path.join(HERE, "..", "assets", "sprites")
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 
 # Mirrored onto the pose when an option is selected. Kept in step with
-# VARIANT_PLACEMENT in src/sprites.js — that list is what the workbench moves,
-# this one is what gets written.
+# VARIANT_BANKED in src/sprites.js — that list is what the workbench moves, this
+# one is what gets written.
 PLACEMENT = [
     "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
     "centroidX", "renderScale", "anchors", "faceLeft",
 ]
+REVIEW = ["needsReplacement", "wantsImprovement", "edited"]
+BANKED = PLACEMENT + REVIEW
 
 
 def option_from_meta(meta, label):
-    """An option is a file plus that file's own placement — nothing else. Review
-    flags (needsReplacement, wantsImprovement) stay on the pose, since they are
-    statements about what the game currently draws."""
+    """An option is a file plus everything that is true of that file: its own
+    placement, and the review flags standing against it. A flag is a statement
+    about a DRAWING — "this one has an unkeyed patch of background in it" — so
+    it has to be seeded onto the option here, or the first variant switch would
+    hand it to art it was never passed on."""
     opt = {"file": meta["file"], "label": label}
-    for field in PLACEMENT:
+    for field in BANKED:
         if field in meta:
             opt[field] = meta[field]
     return opt

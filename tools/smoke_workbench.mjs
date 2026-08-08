@@ -181,6 +181,47 @@ try { improved = JSON.parse(await page.inputValue("#exportOut")); } catch { /* r
 check(Object.values(improved?.adjustments ?? {}).some((v) => v.wantsImprovement === "pose"),
   "it exports as wantsImprovement, separately from needsReplacement");
 
+// ---- a review flag belongs to the DRAWING, not to the pose
+//
+// A pose with variants can be pointed at a different drawing. "Fix alpha" is a
+// verdict on the file that has the bad transparency in it, so it has to stay
+// banked against that file: if it followed the pose instead, switching would
+// hand the flag to art nobody passed it on, and the drawing that earned it
+// would come back clean. Hanami is the only character with variants today.
+await page.goto(`${BASE}/workbench/?char=hanami&frame=dodge_air`, { waitUntil: "domcontentloaded" });
+await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
+await page.waitForTimeout(400);
+
+await page.check("#replaceBox");
+await page.waitForTimeout(150);
+await page.selectOption("#replaceKind", "alpha");
+await page.waitForTimeout(250);
+
+await page.locator(".pose-variant").first().click({ force: true });
+await page.waitForTimeout(250);
+const alt = "hanami_alt/dodge_air.png";
+const offered = await page.locator(".variant-menu button", { hasText: alt }).count();
+check(offered > 0, "the pose offers its other drawing", `${offered} match(es)`);
+await page.locator(".variant-menu button", { hasText: alt }).first().click();
+await page.waitForTimeout(1200);
+
+await page.click("#exportBtn");
+await page.waitForTimeout(300);
+let swapped = null;
+try { swapped = JSON.parse(await page.inputValue("#exportOut")); } catch { /* reported below */ }
+const forHanami = (Array.isArray(swapped) ? swapped : [swapped])
+  .find((p) => p?.character === "hanami");
+const banked = Object.fromEntries(
+  (forHanami?.variantPlacement?.dodge_air ?? []).map((o) => [o.file, o.needsReplacement ?? null]));
+check(forHanami?.variantChoice?.dodge_air === alt,
+  "the pose switched to the other drawing", JSON.stringify(forHanami?.variantChoice));
+check(banked["hanami/dodge_air.png"] === "alpha",
+  "the flag stays with the drawing it was passed on", JSON.stringify(banked));
+check(banked[alt] === null || banked[alt] === undefined,
+  "the drawing switched to does not inherit it");
+check(forHanami?.adjustments?.dodge_air?.needsReplacement === undefined,
+  "and it is not left behind on the pose");
+
 check(!errors.length, "no page errors", errors.slice(0, 2).join(" | "));
 await browser.close();
 console.log(fails ? `\n${fails} check(s) failed` : "\nAll checks pass");
