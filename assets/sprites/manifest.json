@@ -2583,6 +2583,60 @@
      ]
     },
     "bodyTop": 0
+   },
+   "downHeavy": {
+    "w": 951,
+    "h": 1371,
+    "ox": -318.8,
+    "oy": -1060,
+    "bodyBottom": 310.4,
+    "bodyH": 404.4,
+    "centroidX": 126.9,
+    "renderScale": 0.295,
+    "file": "geto/downHeavy.png",
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      446.2,
+      745.6
+     ]
+    }
+   },
+   "specialNeutral": {
+    "w": 1413,
+    "h": 934,
+    "ox": -549.8,
+    "oy": -623,
+    "bodyBottom": 310.4,
+    "bodyH": 275.5,
+    "centroidX": 117.0,
+    "renderScale": 0.295,
+    "file": "geto/specialNeutral.png",
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      667.2,
+      403.7
+     ]
+    }
+   },
+   "specialSide": {
+    "w": 1319,
+    "h": 942,
+    "ox": -502.8,
+    "oy": -631,
+    "bodyBottom": 310.4,
+    "bodyH": 277.9,
+    "centroidX": -8.0,
+    "renderScale": 0.295,
+    "file": "geto/specialSide.png",
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      495.3,
+      369.7
+     ]
+    }
    }
   },
   "momo": {
@@ -5151,6 +5205,24 @@
      ]
     },
     "bodyTop": 0
+   },
+   "specialNeutral": {
+    "w": 938,
+    "h": 1506,
+    "ox": -312.2,
+    "oy": -1195,
+    "bodyBottom": 310.4,
+    "bodyH": 447.3,
+    "centroidX": 88.9,
+    "renderScale": 0.297,
+    "file": "megumi/specialNeutral.png",
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      403.1,
+      476.0
+     ]
+    }
    }
   },
   "jogo": {
@@ -5786,6 +5858,24 @@
      ]
     },
     "bodyTop": 0
+   },
+   "specialSide": {
+    "w": 1457,
+    "h": 912,
+    "ox": -571.8,
+    "oy": -601,
+    "bodyBottom": 310.4,
+    "bodyH": 240.8,
+    "centroidX": 332.1,
+    "renderScale": 0.264,
+    "file": "jogo/specialSide.png",
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      904.3,
+      327.5
+     ]
+    }
    }
   },
   "hakari": {
@@ -6429,6 +6519,24 @@
      ]
     },
     "bodyTop": 0
+   },
+   "specialDown": {
+    "w": 1243,
+    "h": 1021,
+    "ox": -464.8,
+    "oy": -710,
+    "bodyBottom": 310.4,
+    "bodyH": 301.2,
+    "centroidX": 222.7,
+    "renderScale": 0.295,
+    "file": "hakari/specialDown.png",
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      688.0,
+      311.4
+     ]
+    }
    }
   },
   "yuta": {
@@ -7788,14 +7896,13 @@
     "centroidX": 196.4,
     "renderScale": 0.295,
     "file": "nobara/dodge_air.png",
+    "bodyTop": 0,
     "anchors": {
      "com": [
       397.1,
       343.8
      ]
-    },
-    "bodyTop": 0,
-    "needsReplacement": "replace"
+    }
    },
    "dodge_roll": {
     "w": 1257,
@@ -7820,6 +7927,24 @@
      "faceLeft": null
     },
     "faceLeft": true
+   },
+   "specialNeutral": {
+    "w": 945,
+    "h": 1168,
+    "ox": -315.8,
+    "oy": -857,
+    "bodyBottom": 310.4,
+    "bodyH": 344.6,
+    "centroidX": 296.2,
+    "renderScale": 0.295,
+    "file": "nobara/specialNeutral.png",
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      610.2,
+      434.9
+     ]
+    }
    }
   },
   "maki": {
@@ -8458,6 +8583,24 @@
      ]
     },
     "bodyTop": 0
+   },
+   "specialNeutral": {
+    "w": 1628,
+    "h": 735,
+    "ox": -657.2,
+    "oy": -424,
+    "bodyBottom": 310.4,
+    "bodyH": 213.9,
+    "centroidX": -198.9,
+    "renderScale": 0.291,
+    "file": "maki/specialNeutral.png",
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      459.0,
+      265.7
+     ]
+    }
    }
   },
   "inumaki": {
@@ -14999,6 +15142,1503 @@
       "bodyH": 184.8,
       "centroidX": 193.8,
       "renderScale": 0.179
+     }
+    ]
+   }
+  },
+  "geto": {
+   "dodge_air": {
+    "options": [
+     {
+      "file": "geto/dodge_air.png",
+      "label": "Delivered",
+      "w": 1165,
+      "h": 837,
+      "ox": -425.8,
+      "oy": -526,
+      "bodyBottom": 310.4,
+      "bodyH": 246.9,
+      "bodyTop": 0,
+      "centroidX": 292.9,
+      "renderScale": 0.295,
+      "anchors": {
+       "com": [
+        719.2,
+        342.3
+       ]
+      }
+     },
+     {
+      "file": "geto/alt/dodge_air.png",
+      "label": "Round 9 upload",
+      "w": 1165,
+      "h": 837,
+      "ox": -425.8,
+      "oy": -526,
+      "bodyBottom": 310.4,
+      "bodyH": 246.9,
+      "centroidX": 292.9,
+      "renderScale": 0.295
+     }
+    ]
+   },
+   "dodge_roll": {
+    "options": [
+     {
+      "file": "geto/dodge_roll.png",
+      "label": "Delivered",
+      "w": 1043,
+      "h": 759,
+      "ox": -364.8,
+      "oy": -448,
+      "bodyBottom": 310.4,
+      "bodyH": 223.9,
+      "bodyTop": 0,
+      "centroidX": 294.9,
+      "renderScale": 0.295,
+      "anchors": {
+       "com": [
+        660.1,
+        307.7
+       ]
+      }
+     },
+     {
+      "file": "geto/alt/dodge_roll.png",
+      "label": "Round 9 upload",
+      "w": 1043,
+      "h": 759,
+      "ox": -364.8,
+      "oy": -448,
+      "bodyBottom": 310.4,
+      "bodyH": 223.9,
+      "centroidX": 294.9,
+      "renderScale": 0.295
+     }
+    ]
+   },
+   "r4c1": {
+    "options": [
+     {
+      "file": "geto/r4c1.png",
+      "label": "Delivered",
+      "w": 839,
+      "h": 1117,
+      "ox": -262.8,
+      "oy": -808,
+      "bodyBottom": 309.0,
+      "bodyH": 189.0,
+      "bodyTop": 0,
+      "centroidX": 160.9,
+      "renderScale": 0.169,
+      "anchors": {
+       "com": [
+        423.5,
+        586.1
+       ]
+      }
+     },
+     {
+      "file": "geto/alt/r4c1.png",
+      "label": "Round 9 upload",
+      "w": 839,
+      "h": 1117,
+      "ox": -262.8,
+      "oy": -806,
+      "bodyBottom": 310.4,
+      "bodyH": 329.5,
+      "centroidX": 160.9,
+      "renderScale": 0.295
+     }
+    ]
+   },
+   "r4c2": {
+    "options": [
+     {
+      "file": "geto/r4c2.png",
+      "label": "Delivered",
+      "w": 1187,
+      "h": 1055,
+      "ox": -436.8,
+      "oy": -746,
+      "bodyBottom": 309.0,
+      "bodyH": 189.0,
+      "bodyTop": 0,
+      "centroidX": 150.5,
+      "renderScale": 0.179,
+      "anchors": {
+       "com": [
+        587.7,
+        463.0
+       ]
+      }
+     },
+     {
+      "file": "geto/alt/r4c2.png",
+      "label": "Round 9 upload",
+      "w": 1187,
+      "h": 1055,
+      "ox": -436.8,
+      "oy": -744,
+      "bodyBottom": 310.4,
+      "bodyH": 311.2,
+      "centroidX": 150.5,
+      "renderScale": 0.295
+     }
+    ]
+   }
+  },
+  "gojo": {
+   "attack_up": {
+    "options": [
+     {
+      "file": "gojo/attack_up.png",
+      "label": "Delivered",
+      "w": 561,
+      "h": 1016,
+      "ox": -123.8,
+      "oy": -693,
+      "bodyBottom": 261,
+      "bodyH": 310.0,
+      "bodyTop": 13,
+      "centroidX": 159.6,
+      "renderScale": 0.3177,
+      "anchors": {
+       "com": [
+        307.5,
+        452.4
+       ]
+      }
+     },
+     {
+      "file": "gojo/alt/attack_up.png",
+      "label": "Round 9 upload",
+      "w": 804,
+      "h": 1554,
+      "ox": -245.2,
+      "oy": -1243,
+      "bodyBottom": 310.4,
+      "bodyH": 436.7,
+      "centroidX": 155.1,
+      "renderScale": 0.281
+     }
+    ]
+   },
+   "dodge_air": {
+    "options": [
+     {
+      "file": "gojo/dodge_air.png",
+      "label": "Delivered",
+      "w": 516,
+      "h": 969,
+      "ox": -101.2,
+      "oy": -658,
+      "bodyBottom": 310.4,
+      "bodyH": 272.3,
+      "bodyTop": 0,
+      "centroidX": 143.8,
+      "renderScale": 0.1939,
+      "anchors": {
+       "com": [
+        219.2,
+        454.2
+       ]
+      }
+     },
+     {
+      "file": "gojo/alt/dodge_air.png",
+      "label": "Round 9 upload",
+      "w": 516,
+      "h": 969,
+      "ox": -101.2,
+      "oy": -658,
+      "bodyBottom": 310.4,
+      "bodyH": 272.3,
+      "centroidX": 143.8,
+      "renderScale": 0.281
+     }
+    ]
+   },
+   "dodge_roll": {
+    "options": [
+     {
+      "file": "gojo/dodge_roll.png",
+      "label": "Delivered",
+      "w": 980,
+      "h": 880,
+      "ox": -333.2,
+      "oy": -569,
+      "bodyBottom": 310.4,
+      "bodyH": 247.3,
+      "bodyTop": 0,
+      "centroidX": 136.3,
+      "renderScale": 0.1419,
+      "anchors": {
+       "com": [
+        429.5,
+        415.6
+       ]
+      }
+     },
+     {
+      "file": "gojo/alt/dodge_roll.png",
+      "label": "Round 9 upload",
+      "w": 980,
+      "h": 880,
+      "ox": -333.2,
+      "oy": -569,
+      "bodyBottom": 310.4,
+      "bodyH": 247.3,
+      "centroidX": 136.3,
+      "renderScale": 0.281
+     }
+    ]
+   },
+   "fall": {
+    "options": [
+     {
+      "file": "gojo/fall.png",
+      "label": "Delivered",
+      "w": 644,
+      "h": 1016,
+      "ox": -224.2,
+      "oy": -692,
+      "bodyBottom": 310,
+      "bodyH": 241.0,
+      "bodyTop": 14,
+      "centroidX": 212.6,
+      "renderScale": 0.2464,
+      "anchors": {
+       "com": [
+        337.8,
+        377.6
+       ]
+      }
+     },
+     {
+      "file": "gojo/alt/fall.png",
+      "label": "Round 9 upload",
+      "w": 886,
+      "h": 1467,
+      "ox": -286.2,
+      "oy": -1156,
+      "bodyBottom": 310.4,
+      "bodyH": 412.2,
+      "centroidX": 227.8,
+      "renderScale": 0.281
+     }
+    ]
+   },
+   "hurt": {
+    "options": [
+     {
+      "file": "gojo/hurt.png",
+      "label": "Delivered",
+      "w": 670,
+      "h": 1016,
+      "ox": -178.2,
+      "oy": -692,
+      "bodyBottom": 310,
+      "bodyH": 206.0,
+      "bodyTop": 15,
+      "centroidX": 162.9,
+      "renderScale": 0.2278,
+      "anchors": {
+       "com": [
+        385.6,
+        331.4
+       ]
+      }
+     },
+     {
+      "file": "gojo/alt/hurt.png",
+      "label": "Round 9 upload",
+      "w": 944,
+      "h": 1462,
+      "ox": -315.2,
+      "oy": -1151,
+      "bodyBottom": 310.4,
+      "bodyH": 410.8,
+      "centroidX": 172.2,
+      "renderScale": 0.281
+     }
+    ]
+   },
+   "jump_rise": {
+    "options": [
+     {
+      "file": "gojo/jump_rise.png",
+      "label": "Delivered",
+      "w": 786,
+      "h": 1016,
+      "ox": -236.2,
+      "oy": -692,
+      "bodyBottom": 310,
+      "bodyH": 231.0,
+      "bodyTop": 14,
+      "centroidX": 178.5,
+      "renderScale": 0.234,
+      "anchors": {
+       "com": [
+        449.5,
+        420.9
+       ]
+      }
+     },
+     {
+      "file": "gojo/alt/jump_rise.png",
+      "label": "Round 9 upload",
+      "w": 993,
+      "h": 1345,
+      "ox": -339.8,
+      "oy": -1034,
+      "bodyBottom": 310.4,
+      "bodyH": 377.9,
+      "centroidX": 187.4,
+      "renderScale": 0.281
+     }
+    ]
+   },
+   "run_a": {
+    "options": [
+     {
+      "file": "gojo/run_a.png",
+      "label": "Delivered",
+      "w": 811,
+      "h": 1016,
+      "ox": -281.2,
+      "oy": -693,
+      "bodyBottom": 310,
+      "bodyH": 210.0,
+      "bodyTop": 14,
+      "centroidX": 179.6,
+      "renderScale": 0.2438,
+      "anchors": {
+       "com": [
+        426.3,
+        370.5
+       ]
+      }
+     },
+     {
+      "file": "gojo/alt/run_a.png",
+      "label": "Round 9 upload",
+      "w": 1021,
+      "h": 1110,
+      "ox": -353.8,
+      "oy": -799,
+      "bodyBottom": 310.4,
+      "bodyH": 311.9,
+      "centroidX": 190.7,
+      "renderScale": 0.281
+     }
+    ]
+   },
+   "run_b": {
+    "options": [
+     {
+      "file": "gojo/run_b.png",
+      "label": "Delivered",
+      "w": 904,
+      "h": 1016,
+      "ox": -348.3,
+      "oy": -692,
+      "bodyBottom": 310,
+      "bodyH": 210.0,
+      "bodyTop": 15,
+      "centroidX": 215.6,
+      "renderScale": 0.2407,
+      "anchors": {
+       "com": [
+        536.1,
+        346.1
+       ]
+      }
+     },
+     {
+      "file": "gojo/alt/run_b.png",
+      "label": "Round 9 upload",
+      "w": 1149,
+      "h": 1121,
+      "ox": -417.8,
+      "oy": -810,
+      "bodyBottom": 310.4,
+      "bodyH": 315.0,
+      "centroidX": 213.8,
+      "renderScale": 0.281
+     }
+    ]
+   }
+  },
+  "hakari": {
+   "dodge_air": {
+    "options": [
+     {
+      "file": "hakari/dodge_air.png",
+      "label": "Delivered",
+      "w": 590,
+      "h": 1073,
+      "ox": -138.2,
+      "oy": -762,
+      "bodyBottom": 310.4,
+      "bodyH": 316.5,
+      "bodyTop": 0,
+      "centroidX": 217.0,
+      "renderScale": 0.295,
+      "anchors": {
+       "com": [
+        355.8,
+        400.1
+       ]
+      }
+     },
+     {
+      "file": "hakari/alt/dodge_air.png",
+      "label": "Round 9 upload",
+      "w": 590,
+      "h": 1073,
+      "ox": -138.2,
+      "oy": -762,
+      "bodyBottom": 310.4,
+      "bodyH": 316.5,
+      "centroidX": 217.0,
+      "renderScale": 0.295
+     }
+    ]
+   },
+   "dodge_roll": {
+    "options": [
+     {
+      "file": "hakari/dodge_roll.png",
+      "label": "Delivered",
+      "w": 937,
+      "h": 719,
+      "ox": -311.8,
+      "oy": -408,
+      "bodyBottom": 310.4,
+      "bodyH": 212.1,
+      "bodyTop": 0,
+      "centroidX": 179.6,
+      "renderScale": 0.295,
+      "anchors": {
+       "com": [
+        491.8,
+        299.5
+       ]
+      }
+     },
+     {
+      "file": "hakari/alt/dodge_roll.png",
+      "label": "Round 9 upload",
+      "w": 937,
+      "h": 719,
+      "ox": -311.8,
+      "oy": -408,
+      "bodyBottom": 310.4,
+      "bodyH": 212.1,
+      "centroidX": 179.6,
+      "renderScale": 0.295
+     }
+    ]
+   },
+   "r4c1": {
+    "options": [
+     {
+      "file": "hakari/r4c1.png",
+      "label": "Delivered",
+      "w": 900,
+      "h": 754,
+      "ox": -293.2,
+      "oy": -441,
+      "bodyBottom": 310,
+      "bodyH": 190,
+      "bodyTop": 5,
+      "centroidX": 163.5,
+      "renderScale": 0.254,
+      "anchors": {
+       "com": [
+        457.2,
+        322.7
+       ]
+      },
+      "faceLeft": true
+     },
+     {
+      "file": "hakari/alt/r4c1.png",
+      "label": "Round 9 upload",
+      "w": 1254,
+      "h": 1069,
+      "ox": -470.2,
+      "oy": -758,
+      "bodyBottom": 310.4,
+      "bodyH": 315.4,
+      "centroidX": 198.0,
+      "renderScale": 0.295
+     }
+    ]
+   },
+   "r4c2": {
+    "options": [
+     {
+      "file": "hakari/r4c2.png",
+      "label": "Delivered",
+      "w": 900,
+      "h": 624,
+      "ox": -293.2,
+      "oy": -311,
+      "bodyBottom": 310,
+      "bodyH": 155,
+      "bodyTop": 4,
+      "centroidX": 139.0,
+      "renderScale": 0.251,
+      "anchors": {
+       "com": [
+        431.5,
+        293.4
+       ]
+      },
+      "faceLeft": true
+     },
+     {
+      "file": "hakari/alt/r4c2.png",
+      "label": "Round 9 upload",
+      "w": 1458,
+      "h": 980,
+      "ox": -572.2,
+      "oy": -669,
+      "bodyBottom": 310.4,
+      "bodyH": 289.1,
+      "centroidX": 119.2,
+      "renderScale": 0.295
+     }
+    ]
+   },
+   "r4c3": {
+    "options": [
+     {
+      "file": "hakari/r4c3.png",
+      "label": "Delivered",
+      "w": 900,
+      "h": 525,
+      "ox": -293.2,
+      "oy": -211,
+      "bodyBottom": 310,
+      "bodyH": 187,
+      "bodyTop": 4,
+      "centroidX": 195.4,
+      "renderScale": 0.361,
+      "anchors": {
+       "com": [
+        488.9,
+        230.4
+       ]
+      },
+      "faceLeft": true
+     },
+     {
+      "file": "hakari/alt/r4c3.png",
+      "label": "Round 9 upload",
+      "w": 1566,
+      "h": 890,
+      "ox": -626.2,
+      "oy": -579,
+      "bodyBottom": 310.4,
+      "bodyH": 262.6,
+      "centroidX": 65.6,
+      "renderScale": 0.295
+     }
+    ]
+   }
+  },
+  "inumaki": {
+   "dodge_air": {
+    "options": [
+     {
+      "file": "inumaki/dodge_air.png",
+      "label": "Delivered",
+      "w": 583,
+      "h": 1162,
+      "ox": -134.8,
+      "oy": -851,
+      "bodyBottom": 310.4,
+      "bodyH": 295.1,
+      "bodyTop": 0,
+      "centroidX": 165.5,
+      "renderScale": 0.254,
+      "anchors": {
+       "com": [
+        299.7,
+        465.9
+       ]
+      }
+     },
+     {
+      "file": "inumaki/alt/dodge_air.png",
+      "label": "Round 9 upload",
+      "w": 583,
+      "h": 1162,
+      "ox": -134.8,
+      "oy": -851,
+      "bodyBottom": 310.4,
+      "bodyH": 295.1,
+      "centroidX": 165.5,
+      "renderScale": 0.254
+     }
+    ]
+   },
+   "dodge_roll": {
+    "options": [
+     {
+      "file": "inumaki/dodge_roll.png",
+      "label": "Delivered",
+      "w": 1010,
+      "h": 682,
+      "ox": -348.2,
+      "oy": -371,
+      "bodyBottom": 310.4,
+      "bodyH": 173.2,
+      "bodyTop": 0,
+      "centroidX": 192.3,
+      "renderScale": 0.254,
+      "anchors": {
+       "com": [
+        541.1,
+        293.7
+       ]
+      }
+     },
+     {
+      "file": "inumaki/alt/dodge_roll.png",
+      "label": "Round 9 upload",
+      "w": 1010,
+      "h": 682,
+      "ox": -348.2,
+      "oy": -371,
+      "bodyBottom": 310.4,
+      "bodyH": 173.2,
+      "centroidX": 192.3,
+      "renderScale": 0.254
+     }
+    ]
+   },
+   "r4c0": {
+    "options": [
+     {
+      "file": "inumaki/r4c0.png",
+      "label": "Delivered",
+      "w": 900,
+      "h": 832,
+      "ox": -293.2,
+      "oy": -519,
+      "bodyBottom": 309,
+      "bodyH": 174,
+      "bodyTop": 5,
+      "centroidX": 157.0,
+      "renderScale": 0.211,
+      "anchors": {
+       "com": [
+        450.7,
+        398.8
+       ]
+      },
+      "faceLeft": true
+     },
+     {
+      "file": "inumaki/alt/r4c0.png",
+      "label": "Round 9 upload",
+      "w": 1167,
+      "h": 1021,
+      "ox": -426.8,
+      "oy": -710,
+      "bodyBottom": 310.4,
+      "bodyH": 259.3,
+      "centroidX": 118.7,
+      "renderScale": 0.254
+     }
+    ]
+   }
+  },
+  "jogo": {
+   "dodge_air": {
+    "options": [
+     {
+      "file": "jogo/dodge_air.png",
+      "label": "Delivered",
+      "w": 821,
+      "h": 785,
+      "ox": -253.8,
+      "oy": -474,
+      "bodyBottom": 310.4,
+      "bodyH": 207.2,
+      "bodyTop": 0,
+      "centroidX": 65.8,
+      "renderScale": 0.264,
+      "anchors": {
+       "com": [
+        320.1,
+        308.8
+       ]
+      }
+     },
+     {
+      "file": "jogo/alt/dodge_air.png",
+      "label": "Round 9 upload",
+      "w": 821,
+      "h": 785,
+      "ox": -253.8,
+      "oy": -474,
+      "bodyBottom": 310.4,
+      "bodyH": 207.2,
+      "centroidX": 65.8,
+      "renderScale": 0.264
+     }
+    ]
+   },
+   "dodge_roll": {
+    "options": [
+     {
+      "file": "jogo/dodge_roll.png",
+      "label": "Delivered",
+      "w": 930,
+      "h": 938,
+      "ox": -308.2,
+      "oy": -627,
+      "bodyBottom": 310.4,
+      "bodyH": 247.6,
+      "bodyTop": 0,
+      "centroidX": 237.4,
+      "renderScale": 0.264,
+      "anchors": {
+       "com": [
+        547.5,
+        367.8
+       ]
+      }
+     },
+     {
+      "file": "jogo/alt/dodge_roll.png",
+      "label": "Round 9 upload",
+      "w": 930,
+      "h": 938,
+      "ox": -308.2,
+      "oy": -627,
+      "bodyBottom": 310.4,
+      "bodyH": 247.6,
+      "centroidX": 237.4,
+      "renderScale": 0.264
+     }
+    ]
+   }
+  },
+  "maki": {
+   "dodge_air": {
+    "options": [
+     {
+      "file": "maki/dodge_air.png",
+      "label": "Delivered",
+      "w": 939,
+      "h": 1001,
+      "ox": -312.8,
+      "oy": -690,
+      "bodyBottom": 310.4,
+      "bodyH": 291.3,
+      "bodyTop": 0,
+      "centroidX": 181.7,
+      "renderScale": 0.291,
+      "anchors": {
+       "com": [
+        494.8,
+        404.4
+       ]
+      }
+     },
+     {
+      "file": "maki/alt/dodge_air.png",
+      "label": "Round 9 upload",
+      "w": 939,
+      "h": 1001,
+      "ox": -312.8,
+      "oy": -690,
+      "bodyBottom": 310.4,
+      "bodyH": 291.3,
+      "centroidX": 181.7,
+      "renderScale": 0.291
+     }
+    ]
+   },
+   "dodge_roll": {
+    "options": [
+     {
+      "file": "maki/dodge_roll.png",
+      "label": "Delivered",
+      "w": 1436,
+      "h": 705,
+      "ox": -561.2,
+      "oy": -394,
+      "bodyBottom": 310.4,
+      "bodyH": 205.2,
+      "bodyTop": 0,
+      "centroidX": 123.2,
+      "renderScale": 0.291,
+      "anchors": {
+       "com": [
+        685.0,
+        339.6
+       ]
+      }
+     },
+     {
+      "file": "maki/alt/dodge_roll.png",
+      "label": "Round 9 upload",
+      "w": 1436,
+      "h": 705,
+      "ox": -561.2,
+      "oy": -394,
+      "bodyBottom": 310.4,
+      "bodyH": 205.2,
+      "centroidX": 123.2,
+      "renderScale": 0.291
+     }
+    ]
+   },
+   "r3c0": {
+    "options": [
+     {
+      "file": "maki/r3c0.png",
+      "label": "Delivered",
+      "w": 1508,
+      "h": 712,
+      "ox": -597.2,
+      "oy": -401,
+      "bodyBottom": 311.0,
+      "bodyH": 234.0,
+      "bodyTop": 0,
+      "centroidX": -22.3,
+      "renderScale": 0.329,
+      "anchors": {
+       "com": [
+        575.3,
+        297.5
+       ]
+      }
+     },
+     {
+      "file": "maki/alt/r3c0.png",
+      "label": "Round 9 upload",
+      "w": 1508,
+      "h": 712,
+      "ox": -597.2,
+      "oy": -401,
+      "bodyBottom": 310.4,
+      "bodyH": 207.2,
+      "centroidX": -22.3,
+      "renderScale": 0.291
+     }
+    ]
+   },
+   "r3c1": {
+    "options": [
+     {
+      "file": "maki/r3c1.png",
+      "label": "Delivered",
+      "w": 272,
+      "h": 250,
+      "ox": 4,
+      "oy": 44,
+      "bodyBottom": 294,
+      "bodyH": 250,
+      "bodyTop": 0,
+      "centroidX": 117.7,
+      "anchors": {
+       "com": [
+        118.4,
+        110.2
+       ]
+      },
+      "faceLeft": true
+     },
+     {
+      "file": "maki/alt/r3c1.png",
+      "label": "Round 9 upload",
+      "w": 1271,
+      "h": 996,
+      "ox": -478.8,
+      "oy": -685,
+      "bodyBottom": 310.4,
+      "bodyH": 289.8,
+      "centroidX": 48.1,
+      "renderScale": 0.291
+     }
+    ]
+   },
+   "r3c2": {
+    "options": [
+     {
+      "file": "maki/r3c2.png",
+      "label": "Delivered",
+      "w": 312,
+      "h": 275,
+      "ox": -1,
+      "oy": 36,
+      "bodyBottom": 311,
+      "bodyH": 275,
+      "bodyTop": 0,
+      "centroidX": 139.2,
+      "renderScale": 0.85,
+      "anchors": {
+       "com": [
+        139.7,
+        119.9
+       ]
+      }
+     },
+     {
+      "file": "maki/alt/r3c2.png",
+      "label": "Round 9 upload",
+      "w": 1440,
+      "h": 777,
+      "ox": -563.2,
+      "oy": -466,
+      "bodyBottom": 310.4,
+      "bodyH": 226.1,
+      "centroidX": -10.9,
+      "renderScale": 0.291
+     }
+    ]
+   },
+   "r3c3": {
+    "options": [
+     {
+      "file": "maki/r3c3.png",
+      "label": "Delivered",
+      "w": 211,
+      "h": 245,
+      "ox": 19,
+      "oy": 66,
+      "bodyBottom": 311,
+      "bodyH": 245,
+      "bodyTop": 0,
+      "centroidX": 110.6,
+      "anchors": {
+       "com": [
+        111.3,
+        116.1
+       ]
+      }
+     },
+     {
+      "file": "maki/alt/r3c3.png",
+      "label": "Round 9 upload",
+      "w": 1427,
+      "h": 833,
+      "ox": -556.8,
+      "oy": -522,
+      "bodyBottom": 310.4,
+      "bodyH": 242.4,
+      "centroidX": 27.3,
+      "renderScale": 0.291
+     }
+    ]
+   }
+  },
+  "megumi": {
+   "dodge_air": {
+    "options": [
+     {
+      "file": "megumi/dodge_air.png",
+      "label": "Delivered",
+      "w": 548,
+      "h": 1129,
+      "ox": -117.2,
+      "oy": -818,
+      "bodyBottom": 310.4,
+      "bodyH": 335.3,
+      "bodyTop": 0,
+      "centroidX": 130.5,
+      "renderScale": 0.297,
+      "anchors": {
+       "com": [
+        249.4,
+        428.3
+       ]
+      }
+     },
+     {
+      "file": "megumi/alt/dodge_air.png",
+      "label": "Round 9 upload",
+      "w": 548,
+      "h": 1129,
+      "ox": -117.2,
+      "oy": -818,
+      "bodyBottom": 310.4,
+      "bodyH": 335.3,
+      "centroidX": 130.5,
+      "renderScale": 0.297
+     }
+    ]
+   },
+   "dodge_roll": {
+    "options": [
+     {
+      "file": "megumi/dodge_roll.png",
+      "label": "Delivered",
+      "w": 927,
+      "h": 864,
+      "ox": -306.8,
+      "oy": -553,
+      "bodyBottom": 310.4,
+      "bodyH": 256.6,
+      "bodyTop": 0,
+      "centroidX": 133.6,
+      "renderScale": 0.297,
+      "anchors": {
+       "com": [
+        441.0,
+        339.6
+       ]
+      }
+     },
+     {
+      "file": "megumi/alt/dodge_roll.png",
+      "label": "Round 9 upload",
+      "w": 927,
+      "h": 864,
+      "ox": -306.8,
+      "oy": -553,
+      "bodyBottom": 310.4,
+      "bodyH": 256.6,
+      "centroidX": 133.6,
+      "renderScale": 0.297
+     }
+    ]
+   }
+  },
+  "nanami": {
+   "dodge_air": {
+    "options": [
+     {
+      "file": "nanami/dodge_air.png",
+      "label": "Delivered",
+      "w": 711,
+      "h": 926,
+      "ox": -198.8,
+      "oy": -615,
+      "bodyBottom": 310.4,
+      "bodyH": 267.6,
+      "bodyTop": 0,
+      "centroidX": 199.1,
+      "renderScale": 0.289,
+      "anchors": {
+       "com": [
+        398.8,
+        371.4
+       ]
+      }
+     },
+     {
+      "file": "nanami/alt/dodge_air.png",
+      "label": "Round 9 upload",
+      "w": 711,
+      "h": 926,
+      "ox": -198.8,
+      "oy": -615,
+      "bodyBottom": 310.4,
+      "bodyH": 267.6,
+      "centroidX": 199.1,
+      "renderScale": 0.289
+     }
+    ]
+   },
+   "dodge_roll": {
+    "options": [
+     {
+      "file": "nanami/dodge_roll.png",
+      "label": "Delivered",
+      "w": 1274,
+      "h": 584,
+      "ox": -480.2,
+      "oy": -273,
+      "bodyBottom": 310.4,
+      "bodyH": 168.8,
+      "bodyTop": 0,
+      "centroidX": 241.4,
+      "renderScale": 0.289,
+      "anchors": {
+       "com": [
+        722.2,
+        248.0
+       ]
+      }
+     },
+     {
+      "file": "nanami/alt/dodge_roll.png",
+      "label": "Round 9 upload",
+      "w": 1274,
+      "h": 584,
+      "ox": -480.2,
+      "oy": -273,
+      "bodyBottom": 310.4,
+      "bodyH": 168.8,
+      "centroidX": 241.4,
+      "renderScale": 0.289
+     }
+    ]
+   }
+  },
+  "nobara": {
+   "dodge_roll": {
+    "options": [
+     {
+      "file": "nobara/dodge_roll.png",
+      "label": "Delivered",
+      "w": 1257,
+      "h": 721,
+      "ox": -355.8,
+      "oy": -410,
+      "bodyBottom": 310.4,
+      "bodyH": 212.7,
+      "bodyTop": 0,
+      "centroidX": 30.7,
+      "renderScale": 0.177,
+      "anchors": {
+       "com": [
+        502.9,
+        320.4
+       ]
+      },
+      "faceLeft": true
+     },
+     {
+      "file": "nobara/alt/dodge_roll.png",
+      "label": "Round 9 upload",
+      "w": 1257,
+      "h": 721,
+      "ox": -471.8,
+      "oy": -410,
+      "bodyBottom": 310.4,
+      "bodyH": 212.7,
+      "centroidX": 30.7,
+      "renderScale": 0.295
+     }
+    ]
+   }
+  },
+  "toji": {
+   "dodge_air": {
+    "options": [
+     {
+      "file": "toji/dodge_air.png",
+      "label": "Delivered",
+      "w": 572,
+      "h": 877,
+      "ox": -129.2,
+      "oy": -566,
+      "bodyBottom": 310.4,
+      "bodyH": 262.2,
+      "bodyTop": 0,
+      "centroidX": 172.3,
+      "renderScale": 0.299,
+      "anchors": {
+       "com": [
+        300.7,
+        400.7
+       ]
+      }
+     },
+     {
+      "file": "toji/alt/dodge_air.png",
+      "label": "Round 9 upload",
+      "w": 572,
+      "h": 877,
+      "ox": -129.2,
+      "oy": -566,
+      "bodyBottom": 310.4,
+      "bodyH": 262.2,
+      "centroidX": 172.3,
+      "renderScale": 0.299
+     }
+    ]
+   },
+   "dodge_roll": {
+    "options": [
+     {
+      "file": "toji/dodge_roll.png",
+      "label": "Delivered",
+      "w": 1242,
+      "h": 621,
+      "ox": -464.2,
+      "oy": -310,
+      "bodyBottom": 310.4,
+      "bodyH": 185.7,
+      "bodyTop": 0,
+      "centroidX": 101.3,
+      "renderScale": 0.299,
+      "anchors": {
+       "com": [
+        566.1,
+        270.0
+       ]
+      }
+     },
+     {
+      "file": "toji/alt/dodge_roll.png",
+      "label": "Round 9 upload",
+      "w": 1242,
+      "h": 621,
+      "ox": -464.2,
+      "oy": -310,
+      "bodyBottom": 310.4,
+      "bodyH": 185.7,
+      "centroidX": 101.3,
+      "renderScale": 0.299
+     }
+    ]
+   },
+   "r3c0": {
+    "options": [
+     {
+      "file": "toji/r3c0.png",
+      "label": "Delivered",
+      "w": 1466,
+      "h": 774,
+      "ox": -576.2,
+      "oy": -463,
+      "bodyBottom": 311.0,
+      "bodyH": 247.0,
+      "bodyTop": 0,
+      "centroidX": -7.3,
+      "renderScale": 0.319,
+      "anchors": {
+       "com": [
+        569.5,
+        337.8
+       ]
+      }
+     },
+     {
+      "file": "toji/alt/r3c0.png",
+      "label": "Round 9 upload",
+      "w": 1466,
+      "h": 774,
+      "ox": -576.2,
+      "oy": -463,
+      "bodyBottom": 310.4,
+      "bodyH": 231.4,
+      "centroidX": -7.3,
+      "renderScale": 0.299
+     }
+    ]
+   },
+   "r3c1": {
+    "options": [
+     {
+      "file": "toji/r3c1.png",
+      "label": "Delivered",
+      "w": 1378,
+      "h": 781,
+      "ox": -532.2,
+      "oy": -470,
+      "bodyBottom": 311.0,
+      "bodyH": 238.1,
+      "bodyTop": 0,
+      "centroidX": 91.7,
+      "renderScale": 0.305,
+      "anchors": {
+       "com": [
+        624.3,
+        344.6
+       ]
+      }
+     },
+     {
+      "file": "toji/alt/r3c1.png",
+      "label": "Round 9 upload",
+      "w": 1378,
+      "h": 781,
+      "ox": -532.2,
+      "oy": -470,
+      "bodyBottom": 310.4,
+      "bodyH": 233.5,
+      "centroidX": 91.7,
+      "renderScale": 0.299
+     }
+    ]
+   },
+   "r3c2": {
+    "options": [
+     {
+      "file": "toji/r3c2.png",
+      "label": "Delivered",
+      "w": 1480,
+      "h": 646,
+      "ox": -583.2,
+      "oy": -335,
+      "bodyBottom": 311.0,
+      "bodyH": 246.0,
+      "bodyTop": 0,
+      "centroidX": -14.5,
+      "renderScale": 0.381,
+      "anchors": {
+       "com": [
+        569.2,
+        271.1
+       ]
+      }
+     },
+     {
+      "file": "toji/alt/r3c2.png",
+      "label": "Round 9 upload",
+      "w": 1480,
+      "h": 646,
+      "ox": -583.2,
+      "oy": -335,
+      "bodyBottom": 310.4,
+      "bodyH": 193.2,
+      "centroidX": -14.5,
+      "renderScale": 0.299
+     }
+    ]
+   },
+   "r3c3": {
+    "options": [
+     {
+      "file": "toji/r3c3.png",
+      "label": "Delivered",
+      "w": 951,
+      "h": 1058,
+      "ox": -318.8,
+      "oy": -764,
+      "bodyBottom": 294.0,
+      "bodyH": 224.0,
+      "bodyTop": 0,
+      "centroidX": 135.9,
+      "renderScale": 0.212,
+      "anchors": {
+       "com": [
+        455.8,
+        475.9
+       ]
+      }
+     },
+     {
+      "file": "toji/alt/r3c3.png",
+      "label": "Round 9 upload",
+      "w": 951,
+      "h": 1058,
+      "ox": -318.8,
+      "oy": -747,
+      "bodyBottom": 310.4,
+      "bodyH": 316.3,
+      "centroidX": 135.9,
+      "renderScale": 0.299
+     }
+    ]
+   }
+  },
+  "yuta": {
+   "dodge_air": {
+    "options": [
+     {
+      "file": "yuta/dodge_air.png",
+      "label": "Delivered",
+      "w": 757,
+      "h": 820,
+      "ox": -221.8,
+      "oy": -509,
+      "bodyBottom": 310.4,
+      "bodyH": 233.7,
+      "bodyTop": 0,
+      "centroidX": 283.0,
+      "renderScale": 0.285,
+      "anchors": {
+       "com": [
+        506.1,
+        340.7
+       ]
+      }
+     },
+     {
+      "file": "yuta/alt/dodge_air.png",
+      "label": "Round 9 upload",
+      "w": 757,
+      "h": 820,
+      "ox": -221.8,
+      "oy": -509,
+      "bodyBottom": 310.4,
+      "bodyH": 233.7,
+      "centroidX": 283.0,
+      "renderScale": 0.285
+     }
+    ]
+   },
+   "dodge_roll": {
+    "options": [
+     {
+      "file": "yuta/dodge_roll.png",
+      "label": "Delivered",
+      "w": 1212,
+      "h": 719,
+      "ox": -449.2,
+      "oy": -408,
+      "bodyBottom": 310.4,
+      "bodyH": 204.9,
+      "bodyTop": 0,
+      "centroidX": 251.7,
+      "renderScale": 0.285,
+      "anchors": {
+       "com": [
+        701.5,
+        278.9
+       ]
+      }
+     },
+     {
+      "file": "yuta/alt/dodge_roll.png",
+      "label": "Round 9 upload",
+      "w": 1212,
+      "h": 719,
+      "ox": -449.2,
+      "oy": -408,
+      "bodyBottom": 310.4,
+      "bodyH": 204.9,
+      "centroidX": 251.7,
+      "renderScale": 0.285
+     }
+    ]
+   },
+   "r4c1": {
+    "options": [
+     {
+      "file": "yuta/r4c1.png",
+      "label": "Delivered",
+      "w": 900,
+      "h": 707,
+      "ox": -292.8,
+      "oy": -396,
+      "bodyBottom": 308,
+      "bodyH": 182,
+      "bodyTop": 4,
+      "centroidX": 151.9,
+      "renderScale": 0.26,
+      "anchors": {
+       "com": [
+        444.8,
+        312.5
+       ]
+      },
+      "faceLeft": true
+     },
+     {
+      "file": "yuta/alt/r4c1.png",
+      "label": "Round 9 upload",
+      "w": 1268,
+      "h": 1040,
+      "ox": -477.2,
+      "oy": -729,
+      "bodyBottom": 310.4,
+      "bodyH": 296.4,
+      "centroidX": 159.1,
+      "renderScale": 0.285
      }
     ]
    }

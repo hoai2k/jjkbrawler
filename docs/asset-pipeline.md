@@ -179,6 +179,22 @@ has to come back and clarify:
 | `bleed` | colour bleeds past the silhouette |
 | `delete` | this DRAWING is surplus — discard it and keep the other variant. Only offered on a pose that has more than one drawing, so a deletion can never leave a pose with no art. Stored on the variant option rather than the pose, because it names one image out of several. |
 
+**A flag is also an instruction to the next import.** When new art arrives for a
+flagged pose, what happens to the old drawing is decided by what the flag said —
+`intake_variants.py --plan` reads it and reports the disposition:
+
+| Flag on the pose | Incoming art |
+|---|---|
+| `replace`, or the drawing tagged `delete` | **replaces it outright** — the old art was condemned, so nothing is kept |
+| `crop`, `alpha`, `bleed` | **added as a variant and selected**, old drawing kept as a fallback |
+| `wantsImprovement` (any kind) | same — **variant, and selected** |
+| unflagged | **added as a variant, selection unchanged** |
+
+The split is between a complaint about *existence* and a complaint about
+*degree*. "Redraw this from scratch" says the drawing should not survive;
+"the alpha is wrong" or "this could be better" says it should, until something
+demonstrably better is in hand. See [assets/intake/README.md](../assets/intake/README.md).
+
 **Answering these flags is a procedure, not a judgement call each time.** Ask for
 a "full sprite cleanup" and [docs/sprite-cleanup.md](sprite-cleanup.md) is what
 runs: deletions applied, alpha/crop/bleed fixed in place with a before/after
