@@ -124,9 +124,20 @@ chevron and moves 15% faster than a hunting one.
 
 Steering is movement only. Attacks stay automatic — chasers bite on contact,
 bombers detonate, the support summon keeps firing on its cooldown — so driving
-one never means abandoning your own fighter mid-combo. Grounded summons take
-the horizontal axis; the flyer takes both. All of a player's live summons answer
-the same stick, so Megumi's two dogs drive as a pack.
+one never means abandoning your own fighter mid-combo. All of a player's live
+summons answer the same stick, so Megumi's two dogs drive as a pack.
+
+The vertical axis depends on what the summon is:
+
+| Summon | Up | Down |
+|---|---|---|
+| Divine Dogs, Rainbow Dragon, Transfigured Human (grounded) | **Jump** — one per push, lands on platforms like a fighter | Fast-fall |
+| Inventory Curse (flyer) | Fly up | Fly down |
+
+Holding up gives one jump, not a hover: the stick has to return to centre
+before the next one. Only piloted summons jump — a hunting one has no way to
+judge when it is worth it. A summon released mid-air finishes its arc before
+resuming the hunt, and one that walks off the ledge it landed on falls.
 
 CPU fighters do not pilot; their summons always hunt.
 

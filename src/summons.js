@@ -16,7 +16,9 @@
 // been at rest for PILOT_RELEASE seconds, then resumes hunting. It keeps
 // attacking on contact either way — you steer it, you do not have to also
 // swing it, which is what makes driving one playable alongside your own
-// fighter. Grounded summons take the horizontal axis only; flyers take both.
+// fighter. Grounded summons steer horizontally and JUMP on up — landing on
+// platforms like a fighter, fast-falling on down. Only the support flyer reads
+// the vertical axis as flight.
 //
 // Summons are lifetime-limited and capped per (owner, id): recasting past the
 // cap dismisses the oldest. They die with their owner's elimination; match
@@ -43,8 +45,50 @@ const PILOT_SPEED_MUL = 1.15;
 // driven into the blast zones or under the stage.
 const PILOT_CEILING = 90;
 
+// A grounded summon's jump, for reaching platforms and airborne enemies. Only
+// piloted summons jump — hunting ones have no way to decide it is worth it, and
+// a shikigami that hops on its own looks like a bug rather than a tactic.
+const PILOT_JUMP_VY = -900;
+const PILOT_GRAVITY = 2400;
+const PILOT_FASTFALL = 1.7;
+
+// How far up the stick must go to count as a jump. Well above the deadzone, so
+// steering a flyer diagonally never launches a dog.
+const PILOT_JUMP_AXIS = 0.6;
+
 function groundY() {
   return state.platforms.length ? state.platforms[0].y : 568;
+}
+
+// The surface a falling summon should land on: the highest platform it is over
+// and was above last step. Mirrors the fighter rule (see resolvePlatforms) so
+// a dog stands where a fighter would, minus the drop-through handling — nothing
+// gives a summon the input to drop through.
+function landingY(x, prevY, y, vy) {
+  if (vy < 0) return null;
+  let best = null;
+  for (const plat of state.platforms) {
+    if (plat.ghost) continue;
+    const margin = plat.kind === "main" ? 14 : 24;
+    if (x < plat.x - margin || x > plat.x + plat.w + margin) continue;
+    if (prevY <= plat.y + 4 && y >= plat.y) {
+      if (best === null || plat.y < best) best = plat.y;
+    }
+  }
+  return best;
+}
+
+// Is there still a platform holding this summon up at `y`? A summon that walks
+// off the end of the ledge it landed on has to start falling — without this it
+// would be pinned to that height out over open air.
+function supported(x, y) {
+  for (const plat of state.platforms) {
+    if (plat.ghost) continue;
+    if (Math.abs(plat.y - y) > 1) continue;
+    const margin = plat.kind === "main" ? 14 : 24;
+    if (x >= plat.x - margin && x <= plat.x + plat.w + margin) return true;
+  }
+  return false;
 }
 
 // The owner's right stick, or a centred stick for anyone who has no live input
@@ -107,6 +151,12 @@ export function spawnSummon(owner, cfg) {
     // measures.
     piloted: false,
     idleT: 0,
+    // Airtime for a jumping grounded summon. `vy` is only meaningful while
+    // airborne; `jumpArmed` makes the jump an edge on the stick rather than a
+    // hop every frame the stick is held up.
+    vy: 0,
+    airborne: false,
+    jumpArmed: true,
 
     dismiss() {
       if (this.dead) return;
@@ -162,8 +212,22 @@ export function spawnSummon(owner, cfg) {
         const vy = stick.y ? stick.y * speed : Math.sin(this.bob) * 26;
         this.y = clamp(this.y + vy * dt, PILOT_CEILING, groundY());
       } else {
-        this.y = groundY();
-        if (stick.x && Math.random() < dt * 6) dust(this.x - this.dir * 20, this.y, 3);
+        // Up on the stick is a jump, not flight — a dog that hovered would be
+        // a different creature. Re-arms only once the stick comes back down,
+        // so holding up gives one jump rather than a hover.
+        if (stick.y <= -PILOT_JUMP_AXIS) {
+          if (this.jumpArmed && !this.airborne) {
+            this.jumpArmed = false;
+            this.airborne = true;
+            this.vy = PILOT_JUMP_VY;
+            dust(this.x, this.y, 6);
+            playSfx("jump", 0.4);
+          }
+        } else {
+          this.jumpArmed = true;
+        }
+        this.stepGravity(dt, stick.y > 0);
+        if (stick.x && !this.airborne && Math.random() < dt * 6) dust(this.x - this.dir * 20, this.y, 3);
       }
       if (!target) return;
       // Contact resolves through the same code paths as an automatic hunt.
@@ -180,9 +244,43 @@ export function spawnSummon(owner, cfg) {
         const desired = this.behavior === "bomber" ? 0 : (cfg.standOff ?? 30);
         if (gap > desired) this.x = clamp(this.x + this.dir * speed * dt, 90, 1190);
       }
-      this.y = groundY();
-      if (Math.random() < dt * 5) dust(this.x - this.dir * 20, this.y, 3);
+      // Finishes any jump the player left it in before pinning back to the
+      // ground; a hunting summon never starts one.
+      this.stepGravity(dt, false);
+      if (!this.airborne && Math.random() < dt * 5) dust(this.x - this.dir * 20, this.y, 3);
       if (target) this.tryContact(target);
+    },
+
+    // Airtime for a grounded summon. Shared by piloted and automatic movement,
+    // because a summon released mid-jump has to finish the arc — snapping it to
+    // the floor the instant the stick centres would read as a teleport.
+    stepGravity(dt, fastFall) {
+      if (!this.airborne) {
+        // Standing: hold the surface it landed on, and step off into a fall the
+        // moment that surface stops being under it.
+        if (this.y < groundY() && !supported(this.x, this.y)) {
+          this.airborne = true;
+          this.vy = 0;
+        } else {
+          if (this.y >= groundY()) this.y = groundY();
+          return;
+        }
+      }
+      const prevY = this.y;
+      this.vy += PILOT_GRAVITY * (fastFall ? PILOT_FASTFALL : 1) * dt;
+      this.y += this.vy * dt;
+      const land = landingY(this.x, prevY, this.y, this.vy);
+      const floor = groundY();
+      if (land !== null) {
+        this.y = land;
+      } else if (this.y >= floor) {
+        this.y = floor;
+      } else {
+        return;
+      }
+      this.airborne = false;
+      this.vy = 0;
+      dust(this.x, this.y, 5);
     },
 
     // What touching an enemy means, for both the automatic hunt and a piloted

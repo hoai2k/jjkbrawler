@@ -146,6 +146,7 @@ export const TEXT = {
       ["Tap shield on impact", "Parry"],
       ["D-pad ▲", "Domain Expansion"],
       ["Right stick", "Steer your summons"],
+      ["Right stick ▲", "Summon jumps (flyers climb)"],
     ],
     keyboardHint:
       "Keyboard: P1 uses WASD + J/K/L/I + Left Shift, U for Domain, TFGH to steer summons. P2 uses arrows + ,/./&#47;/&#39; + Right Shift, ; for Domain, 8/4/5/6 to steer summons. The D-pad is the domain pad on a controller — move with the left stick, and the right stick takes over any summon you have on the stage.",
