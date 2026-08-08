@@ -28,6 +28,29 @@ that way, so this is the normal case, not a mistake.
 
 After that this directory is empty again, apart from this README.
 
+## Art that is different rather than better
+
+Steps 3–5 above answer "this art replaces what shipped". Art that is a genuine
+alternative — a redraw that may not beat the incumbent, a second costume, a
+wind-up that reads as a strike — takes the other path:
+
+```
+python3 tools/intake_variants.py --survey       # what is here and what it would become
+python3 tools/intake.py                         # key it, as always
+python3 tools/intake_variants.py --import-all --label "Round 7 unused"
+```
+
+That lands the drawing at `assets/sprites/<char>/alt/<pose>.png` and adds it to
+`manifest["variants"]` as another option for that pose, **without changing what
+the game draws**. Its placement is measured from scratch, because it is a
+different drawing — placement belongs to the image, not the pose. Choosing which
+drawing a pose actually uses is then done by eye in the sprite workbench, via the
+chevron on any pose that has more than one.
+
+`--survey` is the thing to run on a folder whose contents you are unsure of: it
+reports, per plate, whether it has been keyed yet and whether the pose it names
+is already registered, already carries that exact drawing, or is new.
+
 ## Why it is tracked by git
 
 `_processed/` is gitignored, but `assets/intake/<char>/` is not. Art is

@@ -8,7 +8,11 @@ numbers, so a commit or code comment citing "round 5 art" still resolves.
 
 The roster is complete: all 23 fighters have a card, 31 poses and their effect
 sprites. Nothing pending blocks play — round 9 is consistency, accuracy and
-polish.
+polish, and round 10 is finishing the one-sprite-per-action transition.
+
+Two sections apply to every other request in this file, so read them first:
+**10B** names each fighter's canonical reference image, and **10C** replaces the
+single-frame heavy and aerial with a wind-up/strike pair.
 
 ---
 
@@ -1010,7 +1014,7 @@ have are correct and stay as they are. What is missing everywhere:
 
 | | Poses to draw |
 |---|---|
-| **Attacks** | `attack_light_a`, `attack_light_b`, `attack_heavy`, `attack_down` |
+| **Attacks** | `attack_light_a`, `attack_light_b`, `attack_heavy_a` + `attack_heavy_b` (see 10C), `attack_down` |
 | **Techniques** | `special_neutral`, `special_side`, `special_down`, `ult_a`, `ult_b` |
 | **Crouch** | `crouch_a`, `crouch_b`, `crouch_attack_a`, `crouch_attack_b` |
 | **Movement** | `dash`, `land` |
@@ -1054,7 +1058,7 @@ are in `src/characters.js` and on the move list in game.
 |---|---|
 | `attack_light_a` | fast opening jab or short slash, lead hand, body square, minimal wind-up |
 | `attack_light_b` | the follow-up strike with the other hand, hips rotated through it — reads as the second half of a two-hit combo |
-| `attack_heavy` | committed heavy blow, full body weight behind it, wide arc |
+| `attack_heavy_a` / `_b` | the wind-up and the strike of one committed heavy blow — see **10C**, which supersedes the single `attack_heavy` this row used to ask for |
 | `attack_down` | striking downward at the ground in front, weight dropping onto it |
 | `special_neutral` | performing their **neutral special** — the named technique, mid-execution, with its cursed energy forming but not yet released |
 | `special_side` | their **side special**, moving forward into it |
@@ -1090,3 +1094,122 @@ manifest and stay visible in the workbench under "All sprites".
 The result is 23 fighters with one sprite per action and no shared cells, which
 is what makes the roster read consistently — and it retires the `r{row}c{col}`
 vocabulary from everything except the leftovers.
+
+---
+
+## 10B. The canonical reference image — one per fighter
+
+Every request in this file says "match the existing set", and every round so far
+has had to work out what that means by opening files. This is the answer, once,
+for all of them: **a fighter's `idle_a` is their canonical image.**
+
+Open it before drawing anything else for that fighter, and match its **costume,
+proportions, age, palette, line weight and shading**. Where `idle_a` and an
+older sheet cell disagree — and they do, in places — `idle_a` wins. It is the
+newest full-body art, it is the pose the sprite workbench benchmarks size
+against, and it is what the player looks at most.
+
+| Fighter | Key | Canonical image |
+|---|---|---|
+| Choso | `choso` | `assets/sprites/choso/idle_a.png` |
+| Geto | `geto` | `assets/sprites/geto/idle_a.png` |
+| Gojo | `gojo` | `assets/sprites/gojo/idle_a.png` |
+| Hakari | `hakari` | `assets/sprites/hakari/idle_a.png` |
+| Hanami | `hanami` | `assets/sprites/hanami/idle_a.png` |
+| Inumaki | `inumaki` | `assets/sprites/inumaki/idle_a.png` |
+| Jogo | `jogo` | `assets/sprites/jogo/idle_a.png` |
+| Mahito | `mahito` | `assets/sprites/mahito/idle_a.png` |
+| Maki | `maki` | `assets/sprites/maki/idle_a.png` |
+| Megumi | `megumi` | `assets/sprites/megumi/idle_a.png` |
+| Mei Mei | `meimei` | `assets/sprites/meimei/idle_a.png` |
+| Momo | `momo` | `assets/sprites/momo/idle_a.png` |
+| Nanami | `nanami` | `assets/sprites/nanami/idle_a.png` |
+| Nobara | `nobara` | `assets/sprites/nobara/idle_a.png` |
+| Panda | `panda` | `assets/sprites/panda/idle_a.png` |
+| Sukuna | `sukuna` | `assets/sprites/sukuna/idle_a.png` |
+| Todo | `todo` | `assets/sprites/todo/idle_a.png` |
+| Toji | `toji` | `assets/sprites/toji/idle_a.png` |
+| Yuji | `yuji` | `assets/sprites/yuji/idle_a.png` |
+| Yuta | `yuta` | `assets/sprites/yuta/idle_a.png` |
+
+**The three exceptions are Gakuganji, Reggie Star and Uro.** They are being
+redrawn from scratch in **9E** because their existing art does not match their
+anime designs, so their `idle_a` is exactly what must *not* be matched. For
+those three the canonical reference is the **(Anime)** full-body render on
+[jujutsu-kaisen.fandom.com](https://jujutsu-kaisen.fandom.com), archived in
+[`assets/reference/canon/`](../assets/reference/canon/). Once 9E lands, their new
+`idle_a` becomes canonical like everyone else's.
+
+---
+
+## 10C. Wind-up and strike — 2 poses per fighter, 46 sprites
+
+### The problem
+
+A heavy attack and an aerial each draw **one frame** for the whole move. The
+engine already splits that move into startup, active and recovery
+(`delay` / `dur` / `recover` in `src/moves.js`), but the art cannot follow it,
+so whatever was drawn is held through all three.
+
+Which half was drawn varies by fighter, and that is the actual bug. Mei Mei's
+`attack_heavy` is a clean **wind-up** — axe raised, weight loaded, nothing struck
+yet — held for the entire swing, so her heavy never connects on screen. Others
+drew the **strike**, so the move has no anticipation and appears to teleport into
+its follow-through. Both are good drawings of half a move.
+
+### What to deliver
+
+Two poses per fighter, for both the heavy and the aerial:
+
+| Pose | What it is |
+|---|---|
+| `attack_heavy_a` | **wind-up.** Weapon or fist drawn back, weight loaded onto the rear foot, body coiled. Nothing has landed. The moment before commitment. |
+| `attack_heavy_b` | **strike.** The same swing at full extension, weight transferred through to the front foot, the arc finished. The moment of contact. |
+| `attack_air_a` | **wind-up, airborne.** Body coiled mid-jump, striking limb cocked, legs gathered. |
+| `attack_air_b` | **strike, airborne.** Fully extended through the aerial arc, legs trailing, committed. |
+
+**These two frames are one motion, drawn twice.** Same camera distance, same
+figure scale, same costume, same weapon at the same size — the only thing that
+changes is the body. If you can flip between them and see anything move that is
+not the character's own action, they will read as a glitch rather than a swing.
+
+Deliver to `assets/intake/<character>/attack_heavy_a.png` and so on, against
+that fighter's canonical `idle_a` (10B above).
+
+### The existing art is kept, not replaced
+
+Whatever a fighter has as `attack_heavy` or `attack_air` today stays in the
+repository and stays selectable. It becomes a **variant**: when the new pair
+lands, both `_a` and `_b` are seeded with the new art, and the old drawing is
+offered alongside each of them as a second option in the sprite workbench's
+chevron menu (`manifest.variants`, `tools/build_variants.py`).
+
+That matters because some of the existing art is good — Mei Mei's raised axe is a
+better wind-up than a fresh one might be. Nothing is thrown away, and the choice
+of which drawing serves which half is made per fighter, by eye, in the workbench.
+
+### It is already wired
+
+`src/characters.js` declares both attacks as two-frame animations:
+
+```js
+sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"],
+             fallback: ["attack_heavy"], fps: 6, loop: false }
+```
+
+`resolvedAnim` filters an animation down to the art that exists, so **a fighter
+without the pair draws exactly what they draw today**, and picks the pair up the
+moment it is imported. No code change per fighter, and the round can land one
+fighter at a time.
+
+The frame rate is set so the drawing changes when the **hitbox** does: a heavy's
+startup is `0.15 / speed` seconds and 6 fps holds the first frame for 0.167 s; an
+aerial's is `0.13 / speed` against 8 fps and 0.125 s. The strike frame appears as
+the move goes live, within about 10 ms.
+
+### Relationship to 10A
+
+**10A's `attack_heavy` row is superseded by this section.** The 17 fighters in
+that round should be drawn as `attack_heavy_a` + `attack_heavy_b` directly rather
+than as a single `attack_heavy` that would immediately need splitting. Everything
+else in 10A is unchanged.
