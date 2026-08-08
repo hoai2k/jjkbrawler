@@ -28,6 +28,31 @@ that way, so this is the normal case, not a mistake.
 
 After that this directory is empty again, apart from this README.
 
+## What happens to a plate is decided by the flag already on the pose
+
+The workbench flags say what is wrong with the art the game currently draws, so
+they are also the instruction for what incoming art should do about it. Nobody
+has to decide twice:
+
+| Flag on the existing pose | What the new art does |
+|---|---|
+| nothing registered under this name | **imported as the pose itself** |
+| `needs replacement: redraw from scratch`, or the drawing is tagged `delete` | **replaces the old art outright.** It was condemned; keeping it would leave the chevron offering a drawing we already decided to throw away |
+| `needs replacement: crop / alpha / bleed` | **imported as a variant AND selected.** The complaint was about degree, not existence, so the old drawing stays available in case the new one is worse |
+| `request improvement` (any kind) | same — **variant, and selected** |
+| no flag at all | **imported as a variant, selection unchanged.** Nobody asked for this pose to change, so the choice is made by eye later |
+
+```bash
+python3 tools/intake.py                       # key everything
+python3 tools/intake_variants.py --plan       # what each plate will do, and why
+python3 tools/intake_variants.py --auto --label "Round 9 upload"
+```
+
+`--auto` handles the variant cases itself and writes an approvals file for the
+replacements and new poses, which `intake_import.py` applies — that tool owns the
+placement rules and the flag clearing, and there is no reason to have a second
+implementation of either.
+
 ## Art that is different rather than better
 
 Steps 3–5 above answer "this art replaces what shipped". Art that is a genuine

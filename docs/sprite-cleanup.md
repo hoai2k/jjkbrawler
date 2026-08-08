@@ -128,6 +128,22 @@ hand over months, and the failure mode of a cleanup is not doing the wrong thing
 
 ---
 
+## The flags also steer the next import
+
+A flag is not only a to-do item for a cleanup — it is standing instruction for
+what should happen when new art arrives for that pose. `intake_variants.py
+--plan` reads it and routes each incoming plate:
+
+| Flag | Incoming art |
+|---|---|
+| `replace`, or the drawing tagged `delete` | replaces it outright; nothing kept |
+| `crop`, `alpha`, `bleed` | added as a variant **and selected**, old kept |
+| `wantsImprovement` | added as a variant **and selected**, old kept |
+| unflagged | added as a variant, selection unchanged |
+
+So flagging a sprite is worth doing even when no cleanup is imminent: it decides,
+in advance and correctly, what the next delivery does with it.
+
 ## Clearing flags
 
 Flags clear themselves at the far end of the pipeline: `intake_import.py`

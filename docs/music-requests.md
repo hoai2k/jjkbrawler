@@ -1,5 +1,11 @@
 # Music Requests — one battle theme per stage
 
+> **STATUS: all 20 delivered.** Every track listed here is in
+> `assets/music/boards/` and matches `BOARD_TRACKS` in `src/config_music.js` —
+> no track listed without a file, no file without a listing. The prompts below
+> are kept as the brief each one was written from, and as the shape a
+> replacement or a new stage's theme should follow. Nothing here is outstanding.
+
 Twenty instrumental loops, one for each stage in `src/stages.js`. Every prompt is
 written to be pasted straight into a music generator (Suno, Udio, MusicGen, or a
 human composer's brief). They deliberately span very different genres, because

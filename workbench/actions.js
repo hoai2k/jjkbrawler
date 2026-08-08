@@ -7,8 +7,12 @@
 // recovery timing derived from moves.js. Nothing is re-implemented, which is
 // the whole point — a pose that looks wrong here is wrong in the game.
 
-import { loadCoreAssets, loadSharedImage, frameImage, frameMeta, getImage, spriteManifest } from "../src/assets.js";
-import { drawCharFrame, currentFrame, warmAnchors, anchorScreenPos } from "../src/sprites.js";
+import {
+  loadCoreAssets, loadSharedImage, loadFrame, frameImage, frameMeta, getImage, spriteManifest,
+} from "../src/assets.js";
+import {
+  drawCharFrame, currentFrame, warmAnchors, anchorScreenPos, resolvedAnim, animsOf,
+} from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
 import { CHARACTERS, CHARACTER_KEYS, animFor } from "../src/characters.js";
 import { lightMove, heavyMove } from "../src/moves.js";
@@ -68,6 +72,112 @@ const state = {
 
 let canvas, ctx;
 
+// ------------------------------------------------------- re-pointing actions
+//
+// Which sprite an action draws is `animOverrides` in the manifest: the game
+// reads it in animsOf(), so a re-point needs no change to characters.js. This
+// page writes the same structure the sprite workbench does, and exports it in
+// the same shape, so one apply script serves both.
+//
+// "Original" means what is COMMITTED — the manifest as it loaded, overrides
+// included. Reverting a slot returns to the file, not to whatever the kit said
+// before some previous session's export.
+
+/** charKey -> { animName: [frameKey, ...] }, captured before any edit. */
+const originalAnims = {};
+
+function rememberAnims(charKey) {
+  if (originalAnims[charKey]) return;
+  const snap = {};
+  // Snapshot what the page actually DRAWS, not what the kit declares. The two
+  // differ wherever an animation names art that has not been delivered — the
+  // wind-up/strike pairs declare attack_heavy_a/_b for the whole roster and
+  // resolve to the delivered single pose until it lands. Snapshotting the
+  // declaration would mark every one of those slots as changed on sight.
+  for (const name of Object.keys(animsOf(charKey))) {
+    snap[name] = resolvedAnim(charKey, name).frames.slice();
+  }
+  originalAnims[charKey] = snap;
+}
+
+function originalFrames(charKey, animName) {
+  return originalAnims[charKey]?.[animName] ?? null;
+}
+
+/** Point one slot of one animation at a different sprite. */
+function setActionFrame(charKey, animName, index, frameKey) {
+  rememberAnims(charKey);
+  spriteManifest.animOverrides ||= {};
+  const forChar = (spriteManifest.animOverrides[charKey] ||= {});
+  const original = originalFrames(charKey, animName);
+  const current = (forChar[animName] || original || []).slice();
+  current[index] = frameKey;
+  // Back to exactly what was committed: drop the override rather than storing a
+  // copy of it, so an export never carries a change that changes nothing.
+  if (original && current.length === original.length && current.every((f, i) => f === original[i])) {
+    delete forChar[animName];
+  } else {
+    forChar[animName] = current;
+  }
+  if (!Object.keys(forChar).length) delete spriteManifest.animOverrides[charKey];
+}
+
+/** Animations this character has re-pointed away from what is committed. */
+function dirtyActions(charKey) {
+  const out = {};
+  const overrides = spriteManifest?.animOverrides?.[charKey] || {};
+  for (const [name, frames] of Object.entries(overrides)) {
+    if (!Array.isArray(frames) || !frames.length) continue;
+    const original = originalFrames(charKey, name);
+    if (!original || frames.length !== original.length || frames.some((f, i) => f !== original[i])) {
+      out[name] = frames;
+    }
+  }
+  return out;
+}
+
+function editedCharacters() {
+  return Object.keys(originalAnims).filter((c) => Object.keys(dirtyActions(c)).length);
+}
+
+// ---------------------------------------------------------- related sprites
+//
+// What to offer when re-pointing an action. A jump should list the jumping
+// poses, not thirty silhouettes — but the last word belongs to whoever is
+// looking, so the modal can always expand to the character's whole set. An
+// unconventional choice is a legitimate one; it just should not be the default
+// thing on screen.
+const RELATED = [
+  [/^idle$/, [/^idle/, /^r0c/]],
+  [/^(run|dash)$/, [/^run/, /^dash$/, /^r1c/]],
+  [/^(jump|fall|dodge_air)$/, [/^jump/, /^fall$/, /^dodge_air$/, /^r2c/]],
+  [/^(land|crouch|crouchAttack)$/, [/^land$/, /^crouch/, /^r4c/]],
+  [/^shield$/, [/^guard$/, /^r4c/]],
+  [/^(dodge|dodge_roll)$/, [/^dodge/, /^r1c2$/]],
+  [/^ledge$/, [/^ledge/]],
+  [/^hurt$/, [/^hurt$/, /^dizzy$/]],
+  [/^dizzy$/, [/^dizzy$/, /^hurt$/]],
+  [/^charge$/, [/^charge$/, /^attack_heavy/]],
+  [/^win$/, [/^victory$/, /^idle/]],
+  [/(Heavy|Light|light)$/, [/^attack_/, /^r2c/, /^r3c/]],
+  [/^special/, [/^special_/, /^r3c/]],
+  [/^ult$/, [/^ult_/, /^r3c/]],
+];
+
+function allFramesOf(charKey) {
+  return Object.keys(spriteManifest?.characters?.[charKey] || {});
+}
+
+/** Sprites worth offering for this animation, in manifest order. Falls back to
+ *  the whole set when an animation matches no family — better an unfiltered
+ *  list than an empty one. */
+function relatedFrames(charKey, animName) {
+  const rules = RELATED.find(([test]) => test.test(animName))?.[1];
+  if (!rules) return allFramesOf(charKey);
+  const hit = allFramesOf(charKey).filter((k) => rules.some((r) => r.test(k)));
+  return hit.length ? hit : allFramesOf(charKey);
+}
+
 // ------------------------------------------------------------ action model
 
 /** Every "effect:*" / "summon:*" image referenced anywhere inside a params
@@ -115,7 +225,7 @@ function actionsFor(charKey) {
   groups.push({
     name: "States",
     items: STATES.map(([anim, label, air]) => {
-      const a = animFor(charKey, anim);
+      const a = resolvedAnim(charKey, anim);
       return {
         id: `state:${anim}`, label, group: "States", anim, air,
         duration: Math.max(a.frames.length / (a.fps || 1), 0.3),
@@ -148,7 +258,7 @@ function actionsFor(charKey) {
     items: slots.flatMap(([slot, anim, prefix]) => {
       const cfg = char.specials?.[slot];
       if (!cfg) return [];
-      const a = animFor(charKey, anim);
+      const a = resolvedAnim(charKey, anim);
       return [{
         id: `special:${slot}`, label: `${prefix} — ${cfg.name}`, group: "Specials", anim,
         duration: a.loop ? LOOP_HOLD : Math.max(a.frames.length / (a.fps || 1), 0.45),
@@ -161,7 +271,7 @@ function actionsFor(charKey) {
   });
 
   if (char.ultimate) {
-    const a = animFor(charKey, "ult");
+    const a = resolvedAnim(charKey, "ult");
     groups.push({
       name: "Ultimate",
       items: [{
@@ -314,7 +424,9 @@ function render() {
     (phase ? ` <span class="${phase === "ACTIVE" ? "flag" : "state"}">${phase}</span>` : "");
 
   paintTimeline();
-  highlightCurrentSprite(frame);
+  // The sprite tiles deliberately do NOT follow the playhead. They are a
+  // control surface — click one to inspect or re-point it — and a tile that
+  // highlights itself as the animation runs reads as a selection nobody made.
 }
 
 /** The pivot the motion above turns about, so a rotation that looks wrong can
@@ -369,7 +481,7 @@ function buildTimeline() {
     seg(0, a.duration, "neutral", a.anim);
   }
   // Frame boundaries, so a two-frame swing shows exactly when it switches.
-  const anim = animFor(state.char, a.anim);
+  const anim = resolvedAnim(state.char, a.anim);
   const step = 1 / (anim.fps || 1);
   for (let t = step; t < a.duration - 1e-3; t += step) {
     const d = document.createElement("div");
@@ -384,11 +496,12 @@ function buildTimeline() {
 
 // -------------------------------------------------------------- the drawer
 
-function spriteTile({ href, thumb, title, sub, key }) {
+function spriteTile({ href, thumb, title, sub, key, badge, changed, was }) {
   const el = document.createElement(href ? "a" : "div");
-  el.className = "sprite-tile";
+  el.className = "sprite-tile" + (changed ? " changed" : "");
   if (href) el.href = href;
   if (key) el.dataset.frame = key;
+  if (changed) el.title = `re-pointed from ${was}`;
   const box = document.createElement("div");
   box.className = "thumb";
   if (thumb) {
@@ -399,12 +512,80 @@ function spriteTile({ href, thumb, title, sub, key }) {
     box.classList.add("missing");
     box.textContent = "missing";
   }
+  if (badge) {
+    const b = document.createElement("i");
+    b.className = "slot-badge";
+    b.textContent = badge;
+    box.appendChild(b);
+  }
   const name = document.createElement("strong");
   name.textContent = title;
   const note = document.createElement("span");
   note.textContent = sub;
   el.append(box, name, note);
   return el;
+}
+
+// ------------------------------------------------------- tile context menu
+
+function closeTileMenu() {
+  document.querySelector(".tile-menu")?.remove();
+  document.removeEventListener("mousedown", onTileMenuOutside, true);
+}
+
+function onTileMenuOutside(e) {
+  if (!e.target.closest(".tile-menu, .sprite-tile")) closeTileMenu();
+}
+
+/** Two things you can do with a sprite an action uses: go look at it properly,
+ *  or point the action at a different one. */
+function openTileMenu(tile, action, index, frameKey) {
+  const open = document.querySelector(".tile-menu");
+  closeTileMenu();
+  if (open?.dataset.slot === `${action.anim}:${index}`) return;   // click again to close
+
+  const menu = document.createElement("div");
+  menu.className = "tile-menu";
+  menu.dataset.slot = `${action.anim}:${index}`;
+
+  const item = (label, sub, onPick) => {
+    const b = document.createElement("button");
+    b.innerHTML = `<span>${label}</span>` + (sub ? `<i>${sub}</i>` : "");
+    b.onclick = (e) => { e.stopPropagation(); closeTileMenu(); onPick(); };
+    menu.appendChild(b);
+  };
+
+  // Built from the CURRENT frame, so after a re-point this opens the sprite the
+  // action actually draws rather than the one it shipped with.
+  item("View in sprite workbench", frameKey, () => {
+    window.location.href = `./?char=${state.char}&frame=${encodeURIComponent(frameKey)}`;
+  });
+  item("Change sprite…", `slot ${index + 1} of "${action.anim}"`,
+       () => openSpritePicker(action, index, frameKey));
+
+  const committed = originalFrames(state.char, action.anim)?.[index];
+  if (committed !== undefined && committed !== frameKey) {
+    item("Revert to committed", committed, () => {
+      setActionFrame(state.char, action.anim, index, committed);
+      afterActionEdit(action);
+    });
+  }
+
+  const box = tile.getBoundingClientRect();
+  menu.style.left = `${Math.min(box.left, window.innerWidth - 260)}px`;
+  menu.style.top = `${Math.min(box.bottom + 4, window.innerHeight - 140)}px`;
+  document.body.appendChild(menu);
+  document.addEventListener("mousedown", onTileMenuOutside, true);
+}
+
+/** Redraw everything a re-point changes: the tiles, the timeline, the export
+ *  button, and the animation itself — which is the point of the exercise. */
+function afterActionEdit(action) {
+  openDrawer(action);
+  buildTimeline();
+  refreshExportState();
+  state.t = 0;
+  replay();
 }
 
 function openDrawer(a) {
@@ -419,21 +600,33 @@ function openDrawer(a) {
   $("aDrawerDesc").textContent = a.desc || "";
   $("aDrawerDesc").hidden = !a.desc;
 
-  const anim = animFor(state.char, a.anim);
-  const frames = [...new Set(anim.frames)];
+  rememberAnims(state.char);
+  const anim = resolvedAnim(state.char, a.anim);
   const grid = $("aSprites");
   grid.innerHTML = "";
-  for (const key of frames) {
+  // One tile per SLOT rather than per distinct sprite: a slot is what a
+  // re-point addresses, and two slots showing the same drawing is a fact about
+  // the animation worth seeing rather than one to collapse away.
+  anim.frames.forEach((key, index) => {
     const img = frameImage(state.char, key);
     const meta = frameMeta(state.char, key);
-    grid.appendChild(spriteTile({
-      href: `./?char=${state.char}&frame=${encodeURIComponent(key)}`,
+    const committed = originalFrames(state.char, a.anim)?.[index];
+    const changed = committed !== undefined && committed !== key;
+    const tile = spriteTile({
       thumb: img?.src,
       title: key,
       sub: meta?.file ? meta.file.split("/").pop() : "not in manifest",
       key,
-    }));
-  }
+      badge: anim.frames.length > 1 ? `${index + 1} of ${anim.frames.length}` : "",
+      changed,
+      was: changed ? committed : "",
+    });
+    tile.onclick = (e) => {
+      e.preventDefault();
+      openTileMenu(tile, a, index, key);
+    };
+    grid.appendChild(tile);
+  });
 
   // Effects and summons the move spawns. They live outside the character
   // manifest, so there is nothing for the sprite workbench to edit — the tile
@@ -462,15 +655,168 @@ function openDrawer(a) {
     .then((got) => { if (got.some(Boolean) && state.action === forAction) drawExtras(); });
 }
 
+// ----------------------------------------------------------------- export
+//
+// Same payload shape the sprite workbench exports, so one apply script serves
+// both pages and neither has to know the other exists.
+
+function exportPayloads() {
+  return editedCharacters().sort().map((char) => ({
+    character: char,
+    animOverrides: dirtyActions(char),
+  }));
+}
+
+function refreshExportState() {
+  const payloads = exportPayloads();
+  const slots = payloads.reduce(
+    (n, p) => n + Object.keys(p.animOverrides).length, 0);
+  const json = payloads.length
+    ? JSON.stringify(payloads.length === 1 ? payloads[0] : payloads, null, 2)
+    : "";
+  $("aExportOut").value = json || "// no changes yet";
+  $("aExport").disabled = !payloads.length;
+  $("aExportCount").textContent = payloads.length
+    ? `${slots} action${slots === 1 ? "" : "s"} across ${payloads.length} character${payloads.length === 1 ? "" : "s"}`
+    : "none yet";
+}
+
+function downloadExport() {
+  const payloads = exportPayloads();
+  if (!payloads.length) return;
+  const json = JSON.stringify(payloads.length === 1 ? payloads[0] : payloads, null, 2);
+  // Named after what is in it, like the sprite workbench's export: a folder of
+  // these should be readable months later without opening them.
+  const who = payloads.length === 1 ? payloads[0].character : "roster";
+  const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${who}-actions.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+// ------------------------------------------------------------ sprite picker
+
+let pickerAll = false;   // survives reopening, so "show everything" stays on
+
+function openSpritePicker(action, index, currentKey) {
+  document.querySelector(".picker-modal")?.remove();
+
+  const modal = document.createElement("div");
+  modal.className = "picker-modal";
+  const backdrop = document.createElement("div");
+  backdrop.className = "picker-backdrop";
+  backdrop.onclick = () => modal.remove();
+
+  const panel = document.createElement("div");
+  panel.className = "picker-panel";
+
+  const head = document.createElement("header");
+  const heading = document.createElement("div");
+  heading.innerHTML = `<strong>Choose a sprite</strong>`
+    + `<span class="sub">${CHARACTERS[state.char].name} · ${action.label}`
+    + ` · slot ${index + 1} of "${action.anim}"</span>`;
+  const buttons = document.createElement("div");
+  buttons.className = "picker-actions";
+  const expand = document.createElement("button");
+  expand.className = "ghost sm";
+  const close = document.createElement("button");
+  close.className = "ghost sm";
+  close.textContent = "Close";
+  close.onclick = () => modal.remove();
+  buttons.append(expand, close);
+  head.append(heading, buttons);
+
+  const grid = document.createElement("div");
+  grid.className = "picker-grid";
+
+  const draw = () => {
+    const related = relatedFrames(state.char, action.anim);
+    const all = allFramesOf(state.char);
+    // Expanding is additive and keeps the related ones first, so the sensible
+    // choices do not get shuffled into the middle of the full set.
+    const keys = pickerAll ? [...related, ...all.filter((k) => !related.includes(k))] : related;
+    expand.textContent = pickerAll
+      ? `Showing all ${all.length} — show only related`
+      : `Show all ${all.length} sprites`;
+    grid.innerHTML = "";
+    if (!keys.length) {
+      const p = document.createElement("p");
+      p.className = "note";
+      p.textContent = "This character has no sprites in the manifest.";
+      grid.appendChild(p);
+    }
+    let firstUnrelated = true;
+    for (const key of keys) {
+      if (pickerAll && !related.includes(key) && firstUnrelated) {
+        firstUnrelated = false;
+        const sep = document.createElement("p");
+        sep.className = "picker-sep";
+        sep.textContent = "Everything else";
+        grid.appendChild(sep);
+      }
+      grid.appendChild(pickerTile(action, index, key, currentKey, modal));
+    }
+  };
+  expand.onclick = () => { pickerAll = !pickerAll; draw(); };
+  draw();
+
+  panel.append(head, grid);
+  modal.append(backdrop, panel);
+  document.body.appendChild(modal);
+
+  const onKey = (e) => {
+    if (e.key !== "Escape") return;
+    modal.remove();
+    document.removeEventListener("keydown", onKey, true);
+  };
+  document.addEventListener("keydown", onKey, true);
+}
+
+function pickerTile(action, index, key, currentKey, modal) {
+  const meta = frameMeta(state.char, key);
+  const img = frameImage(state.char, key);
+  const el = document.createElement("button");
+  el.className = "picker-tile" + (key === currentKey ? " current" : "");
+  const box = document.createElement("div");
+  box.className = "thumb";
+  if (img) {
+    const im = document.createElement("img");
+    im.src = img.src;
+    box.appendChild(im);
+  } else {
+    // The streamer fetches this character's frames in the background, so a
+    // sprite can be pickable before its art has arrived.
+    box.classList.add("missing");
+    box.textContent = "loading…";
+    loadFrame(state.char, key).then(() => {
+      const late = frameImage(state.char, key);
+      if (!late || !box.isConnected) return;
+      box.classList.remove("missing");
+      box.textContent = "";
+      const im = document.createElement("img");
+      im.src = late.src;
+      box.appendChild(im);
+    });
+  }
+  const label = document.createElement("span");
+  label.innerHTML = `${key}<i>${meta?.file ? meta.file.split("/").pop() : "not in manifest"}</i>`;
+  el.append(box, label);
+  el.onclick = () => {
+    modal.remove();
+    if (key === currentKey) return;
+    setActionFrame(state.char, action.anim, index, key);
+    afterActionEdit(action);
+  };
+  return el;
+}
+
 function closeDrawer() {
   $("aDrawer").classList.remove("open");
   document.body.classList.remove("drawer-open");
-}
-
-function highlightCurrentSprite(frameKey) {
-  for (const el of $("aSprites").children) {
-    el.classList.toggle("now", el.dataset.frame === frameKey);
-  }
 }
 
 // ------------------------------------------------------------------ panel
@@ -609,6 +955,13 @@ function markup() {
         <select id="aChar"></select>
       </div>
       <div id="aActions" class="actions-panel"></div>
+
+      <div class="group" id="aExportGroup">
+        <label data-help="Re-pointing an action writes &lt;code&gt;animOverrides&lt;/code&gt; into the manifest in memory. This downloads those changes for &lt;b&gt;every character edited this session&lt;/b&gt;, in the same shape the sprite workbench exports, so &lt;code&gt;tools/apply_sprite_adjustments.py&lt;/code&gt; applies both without knowing which page produced them.">Changes <span class="sub" id="aExportCount">none yet</span></label>
+        <button id="aExport" class="ghost sm" disabled>Download JSON</button>
+        <textarea id="aExportOut" class="export-out" rows="4" readonly
+                  placeholder="// no changes yet"></textarea>
+      </div>
     </section>
 
     <div id="aDrawer" class="drawer">
@@ -621,7 +974,7 @@ function markup() {
         <button id="aDrawerClose" class="ghost sm">Close</button>
       </div>
       <p id="aDrawerDesc" class="note" hidden></p>
-      <label>Sprites used <span class="sub">click to edit in the sprite workbench</span></label>
+      <label>Sprites used <span class="sub">click one to view it or point this action at a different sprite</span></label>
       <div id="aSprites" class="sprite-grid"></div>
       <div id="aExtrasWrap" hidden>
         <label>Effects &amp; summons <span class="sub">opens the PNG</span></label>
@@ -671,6 +1024,8 @@ async function boot() {
   $("aFlip").onchange = (e) => { state.facing = e.target.checked ? -1 : 1; };
   $("aPlay").onclick = () => { replay(); $("aPlay").textContent = "▶ Replay"; };
   $("aDrawerClose").onclick = () => closeDrawer();
+  $("aExport").onclick = downloadExport;
+  refreshExportState();
 
   $("aTimeline").onclick = (e) => {
     if (!state.action) return;
