@@ -496,7 +496,7 @@ function buildTimeline() {
 
 // -------------------------------------------------------------- the drawer
 
-function spriteTile({ href, thumb, title, sub, key, badge, changed, was }) {
+function spriteTile({ href, thumb, title, sub, key, badge, changed, was, pending }) {
   const el = document.createElement(href ? "a" : "div");
   el.className = "sprite-tile" + (changed ? " changed" : "");
   if (href) el.href = href;
@@ -508,6 +508,24 @@ function spriteTile({ href, thumb, title, sub, key, badge, changed, was }) {
     const img = document.createElement("img");
     img.src = thumb;
     box.appendChild(img);
+  } else if (pending) {
+    // Frames stream in per character, so "no image yet" is the normal state
+    // for a drawer opened while the fetch is still in flight — and the canvas
+    // beside it animates fine, because the player loads what it draws. Saying
+    // "missing" there accused the art of not existing. Wait for the frame the
+    // way the sprite picker does, and only call it missing if it really is.
+    box.classList.add("missing");
+    box.textContent = "loading…";
+    loadFrame(pending.char, pending.key).then(() => {
+      if (!box.isConnected) return;
+      const late = frameImage(pending.char, pending.key);
+      box.textContent = late ? "" : "missing";
+      if (!late) return;
+      box.classList.remove("missing");
+      const im = document.createElement("img");
+      im.src = late.src;
+      box.appendChild(im);
+    });
   } else {
     box.classList.add("missing");
     box.textContent = "missing";
@@ -617,6 +635,7 @@ function openDrawer(a) {
       title: key,
       sub: meta?.file ? meta.file.split("/").pop() : "not in manifest",
       key,
+      pending: { char: state.char, key },
       badge: anim.frames.length > 1 ? `${index + 1} of ${anim.frames.length}` : "",
       changed,
       was: changed ? committed : "",

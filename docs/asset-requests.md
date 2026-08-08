@@ -541,21 +541,24 @@ two together makes the blocking ones wait behind the wish list.
 
 # Round 12 — open
 
-**4 sprites.** Everything here came out of placing round 10's semantic sets in
+**7 sprites.** Everything here came out of placing round 10's semantic sets in
 the sprite workbench: with each pose finally drawn at its real size and standing
-on the real ground line, four of them turned out not to be the action they are
-named for. Nothing in this round is in round 11 — 11B and 11C skip Gojo and
-Mahito entirely, because round 10 finished them.
+on the real ground line, seven of them turned out not to be the action they are
+named for. Nothing in this round is in round 11 — 11B and 11C skip Gojo, Mahito
+and Nobara entirely, because round 10 finished them.
 
 | Fighter | Key | Pose | Kind | Ask |
 |---|---|---|---|---|
+| Nobara Kugisaki | `nobara` | `dodge_air` | **Replace** | A second, grey Nobara is drawn into the plate |
+| Nobara Kugisaki | `nobara` | `special_neutral` | **Replace** | The nails are painted in, and the game draws its own |
 | Satoru Gojo | `gojo` | `special_down` | **Replace** | Reads as a palm strike, not as Infinity |
 | Satoru Gojo | `gojo` | `crouch_b` | Pose | Not crouched |
 | Satoru Gojo | `gojo` | `crouch_attack_b` | Pose | Not crouched, and the strike goes upward |
 | Mahito | `mahito` | `crouch_b` | Pose | Not crouched |
+| Nobara Kugisaki | `nobara` | `special_down` | Pose | Hammers the ground; Resonance strikes a doll |
 
-One is blocking and three are wishes, so they can ship separately — but they are
-all four the same size of job and three of them are the same mistake, so there is
+Three are blocking and four are wishes, so they can ship separately — but they
+are all the same size of job, and three of them are the same mistake, so there is
 no reason to split them.
 
 ## The three crouches — 3 sprites
@@ -592,13 +595,47 @@ receive something. The nullification field is the point — pale blue-white
 distortion gathering just off his palms, air bending around him — and the pose
 should read as *the attack does not arrive* rather than *he is hitting you*.
 
+## Nobara's air dodge — 1 sprite
+
+`nobara/dodge_air` has **two figures on it.** Behind the drawn Nobara there is a
+full grey ghost of her — a second body, a second head of hair, a second arm —
+and the hammer belongs to the ghost, not to her: her own hands are closed on
+nothing.
+
+Whatever it was meant to be as an illustration, the game composites its own
+motion trails behind a dodging fighter (`trailStrength`, `src/motion.js`), so a
+painted-in afterimage is a grey duplicate Nobara that trails the real one and
+never fades, with a hammer floating loose beside it.
+
+Redraw as **one** figure: Nobara tucked mid-air through an evasive roll, hammer
+held in her own hand, nothing behind her. No afterimage, no speed lines, no
+second body — the engine adds all of that.
+
+## Nobara's two techniques — 2 sprites
+
+Her kit (`src/characters.js`) is specific about what these are, and neither
+drawing matches:
+
+| Pose | Technique | What is drawn | What it should be |
+|---|---|---|---|
+| `special_neutral` | **Straw Doll: Nail Shot** — cursed nails fired downrange | Hammer raised, arm out, and a row of grey nails already flying off her hand | The moment of the shot, **without the nails.** The game spawns them itself (`effect:nail`, two per cast), so the painted ones fly alongside a second set at a different size and colour. Draw the cast: hammer driving forward, nails just leaving, energy at the hand — no projectiles in flight. |
+| `special_down` | **Resonance** — drives a nail into the **straw doll**, so marked souls take the hit wherever they stand | Crouched, hammering nails into the ground | The doll is the whole point of the move and is not in the picture. Draw her low with the straw doll held or braced in one hand, hammer driving a nail into *it*, cursed energy running out of the doll rather than into the floor. Hammering the ground is already what her down-heavy looks like. |
+
+`special_down` is the wish and `special_neutral` the blocking one, because the
+doubled nails are visible in every match.
+
 ```
 assets/intake/gojo/special_down.png
 assets/intake/gojo/crouch_b.png
 assets/intake/gojo/crouch_attack_b.png
 assets/intake/mahito/crouch_b.png
+assets/intake/nobara/dodge_air.png
+assets/intake/nobara/special_neutral.png
+assets/intake/nobara/special_down.png
 ```
 
-Standard delivery spec at the top of this file, keyed on magenta `#FF00FF`.
-Canon references: `assets/reference/canon/gojo_idle.png` and
-`assets/reference/canon/mahito_idle.png`.
+Standard delivery spec at the top of this file. Gojo and Mahito key on magenta
+`#FF00FF`; Nobara is a warm palette, so hers key on mid-grey `#808080`. Canon
+references: `assets/reference/canon/gojo_idle.png`,
+`assets/reference/canon/mahito_idle.png` and
+`assets/reference/canon/nobara_idle.png`.

@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { getImage } from "./assets.js";
 import { getStage } from "./stages.js";
-import { drawCharFrame, currentFrame } from "./sprites.js";
+import { drawCharFrame, currentFrame, resolvedAnim } from "./sprites.js";
 import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
 import { TRAIL_ALPHA } from "./config_tuning.js";
@@ -389,7 +389,14 @@ function drawRespawnPlatform(ctx, f) {
   ctx.beginPath();
   ctx.ellipse(x, 250, 60, 12, 0, 0, Math.PI * 2);
   ctx.fill();
-  drawCharFrame(ctx, f.charKey, "r0c0", x, 244, { scale: f.char.scale, facing: x < 640 ? 1 : -1, alpha: 0.85 });
+  // The fighter's real idle, not a hard-coded `r0c0`. That cell was the idle
+  // back when everyone was a 4x5 sheet; every fighter now has `idle_a`, so the
+  // literal was drawing a legacy pose — flatter, front-on, off-model against
+  // the set it stands beside — for all 23 of them. Asking the idle state keeps
+  // this true through any later re-point, and `?? "r0c0"` covers a set that has
+  // somehow lost its idle rather than drawing nothing.
+  const pose = resolvedAnim(f.charKey, "idle").frames[0] ?? "r0c0";
+  drawCharFrame(ctx, f.charKey, pose, x, 244, { scale: f.char.scale, facing: x < 640 ? 1 : -1, alpha: 0.85 });
   ctx.restore();
 }
 

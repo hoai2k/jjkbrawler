@@ -80,7 +80,7 @@ const STATE_ORDER = [
   "ledge", "shield", "dodge", "dodge_roll", "dodge_air",
   "light", "airLight", "sideHeavy", "upHeavy", "downHeavy", "charge",
   "specialNeutral", "specialSide", "specialDown", "ult", "hurt", "dizzy",
-  "win", "respawn",
+  "win",
 ];
 
 const STATE_LABELS = {
@@ -92,7 +92,6 @@ const STATE_LABELS = {
   charge: "Charge", specialNeutral: "Special · neutral",
   specialSide: "Special · side", specialDown: "Special · down",
   ult: "Ultimate", hurt: "Hurt", dizzy: "Dizzy", win: "Victory",
-  respawn: "Respawn platform",
 };
 
 const stateLabel = (name) => STATE_LABELS[name] || name;

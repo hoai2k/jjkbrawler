@@ -216,25 +216,33 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
    own — the grid must look the same whether a pose has variants or not. */
 .pose-cell { position: relative; display: flex; }
 .pose-cell > button:first-child { flex: 1; padding-right: 20px; min-width: 0; }
-.pose-variant {
+/* A pose with more than one drawing is rare — a handful per fighter — and the
+   chevron is the only thing that says so, so it has to be findable without
+   being told it is there. In muted grey at 13px it read as part of the border
+   and went unnoticed entirely. Accent colour, a rule separating it from the
+   name, and a tint behind it: the same weight as any other control that says
+   "there is a choice here". */
+.pose-list .pose-variant {
   position: absolute;
   right: 0;
   top: 0;
   bottom: 0;
-  width: 18px;
+  width: 22px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 15px;
+  font-weight: 700;
   line-height: 1;
-  color: var(--muted);
-  background: none;
+  color: var(--accent);
+  background: rgba(98, 220, 255, 0.10);
   border: none;
+  border-left: 1px solid var(--line);
   border-radius: 0 6px 6px 0;
   cursor: pointer;
 }
-.pose-variant:hover { color: var(--text); background: rgba(255, 255, 255, 0.08); }
+.pose-list .pose-variant:hover { color: #06121a; background: var(--accent); }
 
 .variant-menu {
   position: fixed;

@@ -335,9 +335,6 @@ export function statesUsingFrame(charKey, frameKey) {
   const states = Object.entries(anims)
     .filter(([, a]) => presentFrames(charKey, a).frames.includes(frameKey))
     .map(([name]) => name);
-  // Drawn directly by render.js for the respawn platform, so it is in use even
-  // though no animation names it.
-  if (frameKey === "r0c0") states.push("respawn");
   return states;
 }
 
