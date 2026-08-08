@@ -11,11 +11,13 @@ sprites, and nothing outstanding blocks play. Round 9 closed in full. Round 10
 closed with four of its seventeen fighters finished — Gojo, Mahito, Nobara and
 Yuta each have one sprite per action — and **the thirteen it did not reach rolled
 into round 11 rather than staying open behind it**, so a round's numbers are
-always the real remaining work. Round 12 has three parts: seven fix-up poses
-caught while placing round 10's sets in the sprite workbench, the knocked-flat
-`prone` pose the new knockdown mechanic simulates until it is drawn (12C), and the
-**four-frame run cycle** for the whole roster — the redesign that retires the
-two-frame run.
+always the real remaining work. Round 11 is part-delivered: **11A (Mahoraga) is
+done**, and Geto, Hakari, Hanami, Inumaki and Jogo are done within 11B, leaving
+eight fighters there. Round 12 has three parts: eight fix-up poses caught while
+placing the delivered sets in the sprite workbench, the **four-frame run
+cycle** for the whole roster — the redesign that retires the two-frame run —
+and the knocked-flat **`prone` pose** the new knockdown mechanic simulates
+until it is drawn (12C).
 
 Read **[the canonical reference image](#the-canonical-reference-image--one-per-fighter)**
 below before drawing anything: it names the one image each fighter is matched
@@ -219,16 +221,20 @@ the game already ships, not the set on disk.
 
 Three parts; any can be delivered on its own.
 
-- **11A** — redraw Mahoraga from the shikigami's canon design (33 sprites)
-- **11B** — finish the semantic sets for the 13 fighters round 10 did not reach (225 sprites)
+- ~~**11A** — redraw Mahoraga from the shikigami's canon design~~ **delivered** (33 sprites)
+- **11B** — finish the semantic sets for the 8 fighters still on sheet cells (142 sprites)
 - **11C** — wind-up/strike pairs for the 6 round-7 fighters (24 sprites)
 - **11D** — one improvement request: Reggie's crouch attack does not read as the action (1 sprite)
 
-**282 sprites in total.** 11B is the bulk of it and the one that changes how the
-roster reads: thirteen fighters still play a sprint frame for a punch. 11A is the
-most visibly wrong single thing — Mahoraga is currently drawn as a character who
-does not exist. 11C is the smallest and finishes a transition already made
-everywhere else.
+**167 sprites left.** 11B is the bulk of it and the one that changes how the
+roster reads: eight fighters still play a sprint frame for a punch. 11C is the
+smallest and finishes a transition already made everywhere else.
+
+**11A is done** — Mahoraga arrived as the canon shikigami, all 33 poses, and is
+integrated. **Geto, Hakari, Hanami, Inumaki and Jogo are done in 11B**, which is
+why the count moved from thirteen fighters to eight. Their sections below are struck through rather
+than deleted, so a delivery citing "11A" still resolves; the full record moves to
+the history file when the round closes.
 
 Deliver **one complete fighter at a time** rather than one pose across everybody.
 A fighter whose set is finished can be re-pointed and played immediately; a pose
@@ -236,7 +242,25 @@ spread across the roster leaves everyone half-converted.
 
 ---
 
-## 11A. Redraw Mahoraga from the shikigami's canon design — 33 sprites
+## ~~11A. Redraw Mahoraga from the shikigami's canon design~~ — DELIVERED
+
+**Delivered and integrated.** All 33 poses arrived as the canon shikigami —
+covered face with white plates, brass eight-spoke wheel, chain necklace, tattered
+skirt with the violet sash, bone sword. The `needsReplacement` flags are cleared
+and the poses are in the workbench's "All Recently Updated" list waiting to be
+placed.
+
+**One change came out of the delivery: the karma wheel is no longer a separate
+prop.** The round-9 art drew it as a large black halo floating detached above his
+head, which is why it had to be cut out and composited — a wheel that hangs in
+the air must not tumble when he rolls. The canon design mounts it ON the
+headdress, small and brass, and a wheel that is part of the head *should* turn
+with the head. So it is drawn into all 33 poses, `SPRITE_ACTORS.mahoraga` no
+longer declares a `prop`, and `effect:mahoraga_wheel` is kept but unloaded.
+
+The original request follows, for the record.
+
+### The original request — 31 sprites
 
 ### Why
 
@@ -326,11 +350,13 @@ skirt, so **key on magenta `#FF00FF`** — a grey screen would fight the body.
 
 ---
 
-## 11B. Finish the semantic sets — 225 sprites across 13 fighters
+## 11B. Finish the semantic sets — 142 sprites across 8 fighters
 
-This is round 10A, carried forward with the four fighters it finished removed
-from it. Gojo, Mahito, Nobara and Yuta now have one sprite per action; the other
-thirteen still run on **4×5 sprite sheet cells** named `r{row}c{col}`, where one
+This is round 10A, carried forward with every fighter it has finished removed
+from it. Gojo, Mahito, Nobara and Yuta got there in round 10, and **Geto (15
+poses), Hakari (17), Hanami (16), Inumaki (18) and Jogo (17) have since been
+delivered and integrated** — all five are re-pointed and off this list. The
+remaining eight still run on **4×5 sprite sheet cells** named `r{row}c{col}`, where one
 cell has to serve several actions at once.
 
 The problem was never the naming. It is that a sprint pose is what plays when
@@ -345,11 +371,11 @@ Counts differ because round 9B already delivered some of the technique frames.
 
 | Fighter | Key | Missing | Poses |
 |---|---|---|---|
-| Suguru Geto | `geto` | 15 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_air_a` `attack_air_b` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
-| Kinji Hakari | `hakari` | 17 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_neutral` `special_side` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
-| Hanami | `hanami` | 16 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
-| Toge Inumaki | `inumaki` | 18 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_neutral` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
-| Jogo | `jogo` | 17 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_neutral` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
+| ~~Suguru Geto~~ | `geto` | ~~15~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
+| ~~Kinji Hakari~~ | `hakari` | ~~17~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
+| ~~Hanami~~ | `hanami` | ~~16~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
+| ~~Toge Inumaki~~ | `inumaki` | ~~18~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
+| ~~Jogo~~ | `jogo` | ~~17~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
 | Maki Zen'in | `maki` | 17 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
 | Megumi Fushiguro | `megumi` | 17 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
 | Momo Nishimiya | `momo` | 18 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_neutral` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
@@ -555,32 +581,50 @@ two together makes the blocking ones wait behind the wish list.
 
 Two parts; either can be delivered on its own.
 
-- **12A** — seven workbench catches: poses that turned out not to be the action they are named for (7 sprites)
+- **12A** — eight workbench catches: poses that turned out not to be the action they are named for (8 sprites)
 - **12B** — the four-frame run cycle, roster-wide (92 sprites)
 
-**99 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
+**100 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
 is what makes the roster finally *run* instead of vibrating between two nearly
 identical poses.
 
 ---
 
-## 12A. Workbench catches — 7 sprites
+## 12A. Workbench catches — 8 sprites
 
-Everything here came out of placing round 10's semantic sets in
-the sprite workbench: with each pose finally drawn at its real size and standing
-on the real ground line, seven of them turned out not to be the action they are
-named for. Nothing in this round is in round 11 — 11B and 11C skip Gojo, Mahito
-and Nobara entirely, because round 10 finished them.
+Everything here came out of placing the delivered semantic sets in the sprite
+workbench: with each pose finally drawn at its real size and standing on the real
+ground line, eight of them turned out not to be the action they are named for.
+Nothing in this round is in round 11 — 11B and 11C skip Gojo, Mahito, Nobara and
+Hakari entirely, all four being finished fighters.
 
 | Fighter | Key | Pose | Kind | Ask |
 |---|---|---|---|---|
 | Nobara Kugisaki | `nobara` | `dodge_air` | **Replace** | A second, grey Nobara is drawn into the plate |
 | Nobara Kugisaki | `nobara` | `special_neutral` | **Replace** | The nails are painted in, and the game draws its own |
 | Satoru Gojo | `gojo` | `special_down` | **Replace** | Reads as a palm strike, not as Infinity |
+| Kinji Hakari | `hakari` | `dodge_air` | **Alpha** | Unkeyed grey shadow left behind him |
 | Satoru Gojo | `gojo` | `crouch_b` | Pose | Not crouched |
 | Satoru Gojo | `gojo` | `crouch_attack_b` | Pose | Not crouched, and the strike goes upward |
 | Mahito | `mahito` | `crouch_b` | Pose | Not crouched |
 | Nobara Kugisaki | `nobara` | `special_down` | Pose | Hammers the ground; Resonance strikes a doll |
+
+## Hakari's air dodge — an alpha fix, not a redraw — 1 sprite
+
+`hakari/dodge_air` carries a large grey smudge behind the figure — a drawn
+shadow in almost exactly the mid-grey `#808080` of his key screen. Intake cuts
+the key by flooding in from the border, and a *shaded* grey is not the flat key
+colour, so it survived the cut and now hangs in the air behind him every time he
+air-dodges.
+
+This is the cheapest fix in the round: the drawing is good and the placement is
+correct, so it needs the same art with the shadow gone. Either re-export the
+plate without the ground shadow, or it can be cut in-repo against the existing
+file — the shadow is a connected region that touches nothing on the body.
+
+Redelivery, if that is the easier route: `assets/intake/hakari/dodge_air.png`,
+same pose, same framing, flat mid-grey `#808080` and **no drawn shadow of any
+kind** — the game casts its own.
 
 Three are blocking and four are wishes, so they can ship separately — but they
 are all the same size of job, and three of them are the same mistake, so there is

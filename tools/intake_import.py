@@ -51,6 +51,7 @@ import argparse
 import datetime as dt
 import json
 import os
+import subprocess
 import shutil
 
 import numpy as np
@@ -118,15 +119,21 @@ def replaced_note(stored, keeps, at, how="import"):
     definition. `lost` is what has to be redone, so the list can lead with them;
     an empty `lost` is a touch-up that came back with its tuning intact.
 
-    Brand-new poses carry no marker — there was no earlier work to overwrite,
-    and they already sit in their character's "no saved edits" list.
+    A brand-new pose gets one too, as `how: "new"`. Nothing was overwritten, so
+    `lost` is empty and it sorts below the poses with tuning to redo — but it
+    still has to be PLACED, and a round that adds fifteen poses to one fighter
+    and seventeen to another scatters that work exactly the way an overwrite
+    does. Leaving it off meant the only way to find a round's new poses was to
+    know which characters it touched and open each one, which is the thing this
+    list exists to abolish. It also keeps the flag lifecycle uniform: every
+    pose an intake round touched shows up in one place.
 
     Like the replacement flags, this clears itself rather than accumulating:
     apply_sprite_adjustments.py drops it when the pose is adjusted again, or
     when the workbench marks it reviewed as it stands.
     """
     if not stored:
-        return None
+        return {"at": at, "kept": "new", "how": "new", "lost": []}
     return {"at": at, "kept": keeps, "how": how, "lost": lost_work(stored, keeps)}
 
 
@@ -393,6 +400,23 @@ def main():
     json.dump(man, open(MANIFEST, "w"), indent=1)
     print(f"\nimported {len(done)} frame(s); manifest updated")
     print("run tools/bake_anchors.py to measure anchors and bodyTop for the new art")
+
+    # Registering art is not the same as DRAWING it. A sheet-era fighter's anim
+    # table names grid cells, so importing their semantic poses changes nothing
+    # on screen until src/characters.js is edited — and that failure is silent,
+    # which is how a delivered round can sit unused. Ask before anyone has to
+    # think to. Advisory: the import already succeeded, so a non-zero exit here
+    # is a to-do list, not a failure.
+    check = os.path.join(intake.HERE, "check_pointing.mjs")
+    if os.path.exists(check):
+        touched = sorted({c for c, _ in (k.split("/", 1) for k in
+                                         (d.split(":")[0] for d in done))})
+        r = subprocess.run(["node", check, *touched], cwd=intake.ROOT,
+                           capture_output=True, text=True)
+        out = (r.stdout or "").strip()
+        if r.returncode and out:
+            print("\nSTILL TO DO — imported, but not yet drawn:")
+            print(out)
 
 
 if __name__ == "__main__":

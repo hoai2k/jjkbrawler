@@ -78,6 +78,24 @@ def ensure_entry(man, char, pose):
     return entry
 
 
+_drawn_cache = {}
+
+
+def drawn_poses(char):
+    """Pose keys some animation state draws for this character.
+
+    Read through the audit tool's parse of src/characters.js, which resolves a
+    character's real anim table (semantic or sheet-era, plus their own
+    overrides) rather than assuming the defaults.
+    """
+    if char not in _drawn_cache:
+        from audit_frame_sizes import anims_by_frame
+        src = open(os.path.join(HERE, "..", "src", "characters.js")).read()
+        anims = anims_by_frame(src, [char]).get(char, {})
+        _drawn_cache[char] = {k for frames in anims.values() for k in frames}
+    return _drawn_cache[char]
+
+
 def add_option(man, char, pose, file, label, log):
     entry = ensure_entry(man, char, pose)
     if entry is None:
@@ -88,6 +106,31 @@ def add_option(man, char, pose, file, label, log):
     path = os.path.join(SPRITES, file)
     if not os.path.exists(path):
         log.append(f"SKIP {char}/{pose}: {file} not on disk")
+        return
+    # If that file is ALREADY registered as a pose of its own, adopt its
+    # placement rather than starting the option blank — it has been measured,
+    # and possibly hand-tuned, and a bare {file, label} would draw at no size
+    # the moment someone selected it.
+    #
+    # This is how round 9B's technique frames ended up stranded: they were
+    # delivered under STATE names (`specialNeutral`) and registered as poses,
+    # then a later round delivered the same technique under the POSE name
+    # (`special_neutral`) and the kit pointed at that. The earlier drawing stayed
+    # in the manifest, drawn by nothing and listed as its own pose.
+    twin = next((k for k, m in man["characters"].get(char, {}).items()
+                 if k != pose and isinstance(m, dict) and m.get("file") == file), None)
+    if twin:
+        entry["options"].append(option_from_meta(man["characters"][char][twin], label))
+        # Retire the standalone entry, but only once nothing draws it — the same
+        # drawing must not be both a pose and an option, or it appears twice in
+        # the workbench and two places disagree about its placement.
+        if twin not in drawn_poses(char):
+            del man["characters"][char][twin]
+            log.append(f"{char}/{pose}: + {file} ({label}, adopted from pose '{twin}', "
+                       f"which drew nothing and is retired)")
+        else:
+            log.append(f"{char}/{pose}: + {file} ({label}, placement from pose '{twin}', "
+                       f"which is still drawn and stays)")
         return
     entry["options"].append({"file": file, "label": label})
     log.append(f"{char}/{pose}: + {file} ({label})")

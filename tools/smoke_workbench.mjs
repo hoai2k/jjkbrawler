@@ -187,17 +187,26 @@ check(Object.values(improved?.adjustments ?? {}).some((v) => v.wantsImprovement 
 // verdict on the file that has the bad transparency in it, so it has to stay
 // banked against that file: if it followed the pose instead, switching would
 // hand the flag to art nobody passed it on, and the drawing that earned it
-// would come back clean. Hanami is the only character with variants today.
+// would come back clean.
 await page.goto(`${BASE}/workbench/?char=hanami&frame=dodge_air`, { waitUntil: "domcontentloaded" });
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 await page.waitForTimeout(400);
+
+// The chevron lives in the POSE LIST, so the pose has to be in the list — and
+// the default view is "no saved edits", which drops a pose the moment one is
+// applied to it. Widen the view rather than depending on Hanami's dodge_air
+// never having been tuned.
+await page.selectOption("#viewSel", "all");
+await page.waitForTimeout(300);
 
 await page.check("#replaceBox");
 await page.waitForTimeout(150);
 await page.selectOption("#replaceKind", "alpha");
 await page.waitForTimeout(250);
 
-await page.locator(".pose-variant").first().click({ force: true });
+await page.locator(`.pose-cell [data-frame="dodge_air"], .pose-cell button.sel ~ .pose-variant`)
+  .first().click({ force: true })
+  .catch(async () => { await page.locator(".pose-variant").first().click({ force: true }); });
 await page.waitForTimeout(250);
 const alt = "hanami_alt/dodge_air.png";
 const offered = await page.locator(".variant-menu button", { hasText: alt }).count();
@@ -222,6 +231,37 @@ check(banked["hanami/dodge_air.png"] === "alpha",
 check(!banked[alt], "the drawing switched to does not inherit it", JSON.stringify(banked[alt]));
 check(forHanami?.adjustments?.dodge_air?.needsReplacement === undefined,
   "and it is not left behind on the pose");
+
+// ---- the Mirror box tells the truth about the drawing that is on screen
+//
+// `nativeLeft` marks frames whose art was DRAWN facing left. It was measured
+// against the art the pose shipped with, so it must not answer for an alternate
+// selected later — that art came through an intake that mirrors everything to
+// face right. When it did, switching to an alternate left the canvas mirrored
+// while the Mirror box, reading the manifest entry where the switch had just
+// cleared the value, showed unmirrored: a state no setting of the box could
+// reproduce. Ticking it wrote a value the renderer was already using; only
+// UN-ticking moved the sprite, which is the wrong way round.
+const shot = async () => (await page.locator("#stage").screenshot()).toString("base64");
+await page.goto(`${BASE}/workbench/?char=hanami&frame=r4c0`, { waitUntil: "domcontentloaded" });
+await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
+await page.selectOption("#viewSel", "all");
+await page.waitForTimeout(600);
+const sel = page.locator(".pose-cell").filter({ has: page.locator("button.sel") }).first();
+await sel.locator(".pose-variant").click({ force: true });
+await page.waitForTimeout(250);
+await page.locator(".variant-menu button", { hasText: "hanami_alt/r4c0.png" }).first().click();
+await page.waitForTimeout(1500);
+
+const afterSwitch = await shot();
+check(!(await page.isChecked("#mirrorBox")),
+  "an alternate does not inherit the delivered drawing's nativeLeft guess");
+await page.check("#mirrorBox");
+await page.waitForTimeout(500);
+check((await shot()) !== afterSwitch, "ticking Mirror moves the sprite on the first click");
+await page.uncheck("#mirrorBox");
+await page.waitForTimeout(500);
+check((await shot()) === afterSwitch, "un-ticking it returns exactly where it started");
 
 // ---- the centre of mass is offered only where something turns about it
 //

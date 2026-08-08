@@ -1,5 +1,5 @@
 import { frameMeta, frameImage, spriteManifest } from "./assets.js";
-import { animFor, CHARACTERS, DEFAULT_ANIMS } from "./characters.js";
+import { animFor, getActor, DEFAULT_ANIMS } from "./characters.js";
 import { CELL_W, CELL_H, CELL_FOOT_Y } from "./constants.js";
 import { COM_BODY_FRAC, LEDGE_GRIP_Y_FRAC } from "./config_tuning.js";
 import { clamp } from "./utils.js";
@@ -282,7 +282,13 @@ export function frameFootY(meta) {
  *  re-pointed at a different sprite without touching characters.js, which is
  *  what the workbench's secondary-action editor writes. */
 export function animsOf(charKey) {
-  const base = { ...DEFAULT_ANIMS, ...(CHARACTERS[charKey]?.anims || {}) };
+  // `getActor`, not CHARACTERS: a SPRITE_ACTOR owns a full sprite set and its
+  // own anim table but is not in the roster, so reading CHARACTERS returned
+  // undefined for Mahoraga and fell through to the sheet-era DEFAULT_ANIMS —
+  // naming `r3c0` for a character who has never had a sprite sheet. Every
+  // answer built on this (which states draw a pose, what the workbench filters
+  // and lists, what the action player resolves) was wrong for him.
+  const base = { ...DEFAULT_ANIMS, ...(getActor(charKey)?.anims || {}) };
   const overrides = spriteManifest?.animOverrides?.[charKey];
   if (!overrides) return base;
   const out = { ...base };

@@ -208,14 +208,36 @@ function altMeta(charKey, frameKey) {
   return spriteManifest?.alternates?.[charKey]?.[frameKey] || null;
 }
 
+/** Whether the `nativeLeft` guess may speak for the drawing a pose is showing.
+ *
+ *  `nativeLeft` lists frames whose art was DRAWN facing left. It was measured
+ *  once, against the art the pose shipped with — so it says nothing about a
+ *  second drawing later offered for the same pose, which arrived through an
+ *  intake that mirrors everything to face right. Letting it answer for one was
+ *  a real bug: selecting an alternate cleared the pose's explicit faceLeft (a
+ *  banked field belongs to the drawing that earned it), this guess filled the
+ *  hole, and the sprite came up mirrored while the workbench's Mirror box —
+ *  which reads the manifest entry, where there is now no value — showed
+ *  unmirrored. Ticking the box then wrote the value it already had, so nothing
+ *  moved, and only un-ticking it took effect.
+ *
+ *  So the guess is scoped to the drawing it was made about: the pose's first
+ *  option, which is the delivered art. Any other drawing starts with no
+ *  judgement, which is the truth, and the Mirror control makes one. */
+function nativeLeftApplies(charKey, frameKey, meta) {
+  if (!spriteManifest?.nativeLeft?.[charKey]?.includes(frameKey)) return false;
+  const options = spriteManifest?.variants?.[charKey]?.[frameKey]?.options;
+  if (!options?.length) return true;
+  return options[0].file === meta.file;
+}
+
 export function frameMeta(charKey, frameKey) {
   const alt = altMeta(charKey, frameKey);
   if (alt) return alt;
   const char = spriteManifest?.characters?.[charKey];
   const meta = char ? char[frameKey] || null : null;
   if (!meta || meta.faceLeft !== undefined) return meta;
-  const nativeLeft = spriteManifest?.nativeLeft?.[charKey];
-  return nativeLeft?.includes(frameKey) ? { ...meta, faceLeft: true } : meta;
+  return nativeLeftApplies(charKey, frameKey, meta) ? { ...meta, faceLeft: true } : meta;
 }
 
 export function frameImage(charKey, frameKey) {
@@ -241,7 +263,11 @@ export async function loadCoreAssets() {
   for (const [charKey, frames] of Object.entries(spriteManifest.nativeLeft || {})) {
     for (const frameKey of frames) {
       const meta = spriteManifest.characters?.[charKey]?.[frameKey];
-      if (meta && meta.faceLeft === undefined) meta.faceLeft = true;
+      // Same scoping as frameMeta: a pose already pointing at an alternate must
+      // not have the delivered drawing's measurement baked onto it.
+      if (meta && meta.faceLeft === undefined && nativeLeftApplies(charKey, frameKey, meta)) {
+        meta.faceLeft = true;
+      }
     }
   }
 

@@ -377,8 +377,11 @@ function recentUpdates() {
   }
   // A dated intake round leads; the surfaced poses, which have no round to
   // belong to, sit under them rather than interleaving by an empty timestamp.
+  // Poses with tuning to redo lead, then the round's brand-new poses, then the
+  // surfaced ones, which belong to no round at all.
+  const rank = (e) => (e.how === "surfaced" ? 2 : e.how === "new" ? 1 : 0);
   return out.sort((a, b) =>
-    (a.how === "surfaced" ? 1 : 0) - (b.how === "surfaced" ? 1 : 0)
+    rank(a) - rank(b)
     || b.at.localeCompare(a.at)
     || (b.lost.length ? 1 : 0) - (a.lost.length ? 1 : 0)
     || a.char.localeCompare(b.char)
@@ -388,6 +391,14 @@ function recentUpdates() {
 /** What was overwritten, in a sentence. Reads off the marker rather than
  *  guessing, so "nothing was lost" is stated rather than implied by silence. */
 function updateSummary(note) {
+  if (note.how === "new") {
+    const at = note.at ? new Date(note.at) : null;
+    const when = at && !Number.isNaN(at.getTime()) ? at.toLocaleString() : (note.at || "an earlier round");
+    return `This pose did not exist before ${when} — the intake round that `
+      + "landed it created it.<br>"
+      + "Nothing was overwritten, so there is no tuning to redo. It has never "
+      + "been placed: size it against the idle and set its ground contact.";
+  }
   if (note.how === "surfaced") {
     return "The game draws this pose through its state's <b>fallback</b>, and "
       + "the check for what a state draws used to miss that — so it was filtered "
@@ -1706,6 +1717,7 @@ function refreshUpdatedControl() {
   if (!note) return;
   const reviewed = isUpdateReviewed(state.char, state.frame);
   $("updatedVal").textContent = reviewed ? "reviewed — clears on export"
+    : note.how === "new" ? "new art — never placed"
     : note.how === "surfaced" ? "newly in the in-game list — never sized"
     : note.lost?.length ? "tuning rolled back" : "tuning carried over";
   $("updatedInfo").innerHTML = updateSummary(note);
@@ -1817,17 +1829,21 @@ function buildRecentPoseList(list) {
   const reviewed = entries.filter((e) => isUpdateReviewed(e.char, e.frame)).length;
   const retune = entries.filter((e) => e.lost.length).length;
   const surfaced = entries.filter((e) => e.how === "surfaced").length;
+  const fresh = entries.filter((e) => e.how === "new").length;
   $("poseCount").textContent = entries.length
     ? `${entries.length} updated`
       + (retune ? ` · ${retune} to re-tune` : "")
+      + (fresh ? ` · ${fresh} new` : "")
       + (surfaced ? ` · ${surfaced} newly in game` : "")
       + (reviewed ? ` · ${reviewed} reviewed` : "")
     : "none";
   if (!entries.length) {
     const empty = document.createElement("p");
     empty.className = "note";
-    empty.textContent = "Nothing has been overwritten since it was last dealt with. "
-      + "Poses land here when intake writes new art over a pose that already had work on it.";
+    empty.textContent = "Nothing is waiting. Poses land here when intake delivers "
+      + "art — a new pose that has never been placed, or new art written over a "
+      + "pose that already had work on it — and leave as each one is tuned or "
+      + "marked reviewed.";
     list.appendChild(empty);
     return;
   }
