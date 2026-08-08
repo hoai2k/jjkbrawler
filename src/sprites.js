@@ -326,8 +326,14 @@ export function resolvedAnim(charKey, animKey) {
 
 export function statesUsingFrame(charKey, frameKey) {
   const anims = animsOf(charKey);
+  // Against what the state RESOLVES to, not what it declares. A state whose
+  // round-9 pair has not been drawn yet plays its `fallback`, and asking the
+  // declared list instead would call the pose the game is actually drawing
+  // unused — which hid it from the workbench's in-game views, left it out of
+  // the pivot and airborne answers below, and so kept it from ever being
+  // sized. Every fighter still on a single `attack_heavy` was in that hole.
   const states = Object.entries(anims)
-    .filter(([, a]) => a.frames.includes(frameKey))
+    .filter(([, a]) => presentFrames(charKey, a).frames.includes(frameKey))
     .map(([name]) => name);
   // Drawn directly by render.js for the respawn platform, so it is in use even
   // though no animation names it.
