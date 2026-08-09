@@ -40,7 +40,14 @@ const EFFECT_KEYS = [
 // Empty right now — every effect the roster references is delivered and lives
 // in EFFECT_KEYS above, where a broken path IS reported. Populate this again
 // when the next fighter is staged.
-const STAGED_EFFECT_KEYS = {};
+// Install auras the engine now points at but whose art has not been delivered
+// (asset-requests round 12D). Optional loads: until the file lands the install
+// draws its procedural ellipse aura exactly as before.
+const STAGED_EFFECT_KEYS = {
+  maki: ["aura_jade"],
+  panda: ["aura_slate"],
+  yuji: ["aura_indigo"],
+};
 
 // Stage-hazard polish art (Active Boards — src/stage_fx.js), requested as
 // round 9D in docs/asset-requests.md. Optional: every hazard draws a
@@ -70,6 +77,22 @@ function loadImage(src) {
     img.onerror = () => reject(new Error(`Failed to load ${src}`));
     img.src = src;
   });
+}
+
+// Optional art (staged effects, stage polish) is EXPECTED to be missing until
+// its round is delivered. Probing with fetch() first keeps a missing file
+// silent — pointing an <img> at it would log a 404 to the console on every
+// boot, which reads as an error and trips the smoke tests.
+async function loadOptionalImage(src) {
+  let res;
+  try { res = await fetch(src); } catch { return null; }
+  if (!res.ok) return null;
+  const url = URL.createObjectURL(await res.blob());
+  try {
+    return await loadImage(url);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 export function getImage(key) {
@@ -142,8 +165,8 @@ function fetchImage(key, src, optional = false) {
   if (images.has(key)) return Promise.resolve();
   const inFlight = imageLoads.get(key);
   if (inFlight) return inFlight;
-  const p = loadImage(src)
-    .then((img) => { images.set(key, img); })
+  const p = (optional ? loadOptionalImage(src) : loadImage(src))
+    .then((img) => { if (img) images.set(key, img); })
     .catch((err) => { if (!optional) console.warn(err.message); })
     .finally(() => imageLoads.delete(key));
   imageLoads.set(key, p);

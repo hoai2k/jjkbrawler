@@ -65,6 +65,17 @@ export const PROJ_EMIT = {
   fire: 30, blood: 22, feather: 10, wind: 16, sound: 5, shadow: 16, soul: 12,
 };
 
+// ------------------------------------------------------ per-character extras
+export const CHAR_FX = {
+  counterShimmer: 13,   // particles/sec orbiting a held counter (Infinity, Sky Fold)
+  healMotes: 24,        // gold motes/sec while Reverse Cursed Technique channels
+  dismantleLines: 3,    // slash lines per hit of Sukuna's barrage…
+  dismantleFinisher: 9, // …and across the finisher
+  dismantleSpan: 150,   // slash line length, px
+  seamLength: 100,      // Nanami's 7:3 seam length, px
+  swapTrailTime: 0.3,   // afterimage seconds left at both Boogie Woogie positions
+};
+
 // --------------------------------------------------------------- Black Flash
 //
 // The show's flashiest single effect: a crimson core, jagged BLACK lightning

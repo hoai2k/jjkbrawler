@@ -219,13 +219,14 @@ drawn against.
 
 # Round 12 — open
 
-Three parts; any can be delivered on its own.
+Four parts; any can be delivered on its own.
 
 - **12A** — thirty-three workbench catches: poses that have to be drawn again (33 sprites)
 - **12B** — the four-frame run cycle, roster-wide (96 sprites)
 - **12C** — a `prone` pose, knocked flat on their back, roster-wide (24 sprites)
+- **12D** — three install auras the engine now points at (3 sprites)
 
-**153 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
+**156 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
 is what makes the roster finally *run* instead of vibrating between two nearly
 identical poses. 12C is the one the engine is already simulating without art.
 
@@ -671,3 +672,38 @@ All 23 fighters plus **Mahoraga** — the transform can be knocked down like
 anyone else (his armour eats the hit today, but a future knockdown that pierces
 armour would want the pose). Round 11A is closed, so his does not arrive with
 anything else.
+
+---
+
+## 12D. Install auras — 3 sprites
+
+The install system draws a character-sized aura sprite behind a powered-up
+fighter (`drawInstallAura`, `src/render.js`) — Nanami's Overtime has
+`aura_gold.png`, Jogo's Furnace Shell `aura_orange.png`, and so on. Three
+installs ran on a procedural ellipse because no aura was ever drawn for
+them. The engine now names these files and ships **procedural placeholders**
+for all three (soft gradient plates, generated in code) — so the slots are
+live, and a delivered drawing replaces its placeholder through the normal
+intake with no code change.
+
+| File | Install | What to draw |
+|---|---|---|
+| `aura_jade.png` | Maki — Split Soul Stance / Awakening | **Not cursed energy** — she has none, and that is the point. A faint pale-jade `#b8ffe2` afterimage shell: thin vertical speed-line streaks and a barely-there rim, reading as air sheared by speed rather than as a glow. The most restrained aura in the set. |
+| `aura_slate.png` | Panda — Gorilla Mode | Heat-shimmer and steam rolling off the body: soft slate-grey `#8ea0b8` vapour with a faint warm orange-red rim at the shoulders, dense at the bottom, ragged at the top. Physical heat, not energy. |
+| `aura_indigo.png` | Yuji — Unbreakable Grit | A low, dense, dark blue-grey `#4a5578` aura hugging the silhouette, heaviest at the planted feet and forearms — endurance, weight, dug-in. No flames, no sparkle. |
+
+Match the existing aura set for format: **portrait plate, the aura alone on the
+key screen, no character in the image** — the engine composites it behind the
+fighter's own sprite at body size. Open `assets/sprites/effects/aura_gold.png`
+beside these before drawing; same canvas proportions, same soft-edged
+translucency (the delivery is opaque on the key screen; intake cuts the alpha).
+Key on magenta `#FF00FF` for jade and indigo; **grey `#808080` for
+`aura_slate`** (its warm rim would fight a magenta key).
+
+Deliver to:
+
+```
+assets/intake/effects/aura_jade.png
+assets/intake/effects/aura_slate.png
+assets/intake/effects/aura_indigo.png
+```

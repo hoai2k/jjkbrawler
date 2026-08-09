@@ -9,6 +9,7 @@ import { performDomain, domainInput, canOpenDomain, activeDomain } from "./domai
 import { burst, dust, popup, banner, ring } from "./particles.js";
 import { playSfx, playGrunt, playKoCry, startShieldLoop, stopShieldLoop } from "./audio.js";
 import { rumbleEvent } from "./rumble.js";
+import { counterShimmerFx, healMotesFx } from "./fx.js";
 import {
   GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME,
   SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
@@ -434,6 +435,8 @@ export function updateFighter(f, dt, input) {
   }
   if (f.counter) {
     f.counter.t -= dt;
+    // Infinity / Sky Fold shimmer: the stance visibly holds, not just a ring
+    counterShimmerFx(f, f.counter.color || f.char.theme, dt);
     if (f.counter.t <= 0) f.counter = null;
   }
   if (f.reflect) {
@@ -443,7 +446,9 @@ export function updateFighter(f, dt, input) {
   if (f.healing) {
     f.healing.t -= dt;
     f.damage = Math.max(0, f.damage - f.healing.rate * dt);
-    if (f.healing.t % 0.2 < dt) burst(f.x, f.y - 90, "#a5ffd8", 3, 0.4);
+    // Reverse Cursed Technique reads as warm gold motes rising off the body —
+    // the anime's one healing colour — for the whole channel.
+    healMotesFx(f, dt);
     if (f.healing.t <= 0) f.healing = null;
   }
 
