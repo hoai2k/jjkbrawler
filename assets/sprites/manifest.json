@@ -3124,198 +3124,434 @@
     "coreRight": 260.1
    },
    "idle_a": {
-    "file": "hanami/idle_a.png",
-    "w": 475,
-    "h": 1016,
-    "ox": -80.8,
-    "oy": -692,
-    "bodyBottom": 274.5,
-    "bodyH": 290.0,
-    "centroidX": 157.4,
-    "renderScale": 0.3296,
+    "w": 609,
+    "h": 1405,
+    "ox": -153.6,
+    "oy": -1095,
+    "bodyBottom": 234.3,
+    "bodyH": 297.9,
+    "centroidX": 162.6,
+    "renderScale": 0.212,
+    "file": "hanami/incoming/idle_a-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 475,
+      "h": 1016,
+      "ox": -80.8,
+      "oy": -692,
+      "bodyBottom": 274.5,
+      "bodyH": 290.0,
+      "bodyTop": 14,
+      "centroidX": 157.4,
+      "renderScale": 0.3296,
+      "anchors": {
+       "com": [
+        277.5,
+        423.8
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "bodyBottom": 310
+      },
+      "file": "hanami/idle_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 609,
+    "coreLeft": 61.5,
+    "coreRight": 544.4,
     "anchors": {
      "com": [
-      277.5,
-      423.8
+      309.4,
+      626.6
      ]
     },
-    "bodyTop": 14,
-    "edited": {
-     "renderScale": 0.293,
-     "bodyBottom": 310
-    },
-    "bodyLeft": 14,
-    "bodyRight": 461,
-    "coreLeft": 82.5,
-    "coreRight": 393.7,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "idle_b": {
-    "file": "hanami/idle_b.png",
-    "w": 436,
-    "h": 1016,
-    "ox": -61.2,
-    "oy": -693,
-    "bodyBottom": 271,
-    "bodyH": 290.0,
-    "centroidX": 162.1,
-    "renderScale": 0.3267,
+    "w": 606,
+    "h": 1384,
+    "ox": -121.4,
+    "oy": -1074,
+    "bodyBottom": 235.5,
+    "bodyH": 297.6,
+    "centroidX": 131.9,
+    "renderScale": 0.215,
+    "file": "hanami/incoming/idle_b-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 436,
+      "h": 1016,
+      "ox": -61.2,
+      "oy": -693,
+      "bodyBottom": 271,
+      "bodyH": 290.0,
+      "bodyTop": 14,
+      "centroidX": 162.1,
+      "renderScale": 0.3267,
+      "anchors": {
+       "com": [
+        224.9,
+        506.0
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "bodyBottom": 310
+      },
+      "file": "hanami/idle_b.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 606,
+    "coreLeft": 43.2,
+    "coreRight": 519.0,
     "anchors": {
      "com": [
-      224.9,
-      506.0
+      278.5,
+      603.6
      ]
     },
-    "bodyTop": 14,
-    "edited": {
-     "renderScale": 0.293,
-     "bodyBottom": 310
-    },
-    "bodyLeft": 14,
-    "bodyRight": 422,
-    "coreLeft": 88.9,
-    "coreRight": 361.9,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "jump_rise": {
-    "file": "hanami/jump_rise.png",
-    "w": 561,
-    "h": 1016,
-    "ox": -123.8,
-    "oy": -693,
-    "bodyBottom": 310,
-    "bodyH": 261.7,
-    "centroidX": 174.1,
-    "renderScale": 0.3432,
+    "w": 655,
+    "h": 1387,
+    "ox": -148.6,
+    "oy": -1077,
+    "bodyBottom": 310.0,
+    "bodyH": 267.7,
+    "centroidX": 134.6,
+    "renderScale": 0.193,
+    "file": "hanami/incoming/jump_rise-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 561,
+      "h": 1016,
+      "ox": -123.8,
+      "oy": -693,
+      "bodyBottom": 310,
+      "bodyH": 261.7,
+      "bodyTop": 13,
+      "centroidX": 174.1,
+      "renderScale": 0.3432,
+      "anchors": {
+       "com": [
+        296.8,
+        409.5
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.264
+      },
+      "file": "hanami/jump_rise.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 655,
+    "coreLeft": 52.0,
+    "coreRight": 589.5,
     "anchors": {
      "com": [
-      296.8,
-      409.5
+      307.6,
+      525.2
      ]
     },
-    "bodyTop": 13,
-    "edited": {
-     "renderScale": 0.264
-    },
-    "bodyLeft": 13,
-    "bodyRight": 548,
-    "coreLeft": 57.1,
-    "coreRight": 495.3,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "fall": {
-    "file": "hanami/fall.png",
-    "w": 433,
-    "h": 1016,
-    "ox": -59.8,
-    "oy": -693,
-    "bodyBottom": 310,
-    "bodyH": 273.0,
-    "centroidX": 158.1,
-    "renderScale": 0.3188,
+    "w": 720,
+    "h": 1263,
+    "ox": -176.7,
+    "oy": -953,
+    "bodyBottom": 310.0,
+    "bodyH": 280.4,
+    "centroidX": 130.2,
+    "renderScale": 0.222,
+    "file": "hanami/incoming/fall-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 433,
+      "h": 1016,
+      "ox": -59.8,
+      "oy": -693,
+      "bodyBottom": 310,
+      "bodyH": 273.0,
+      "bodyTop": 13,
+      "centroidX": 158.1,
+      "renderScale": 0.3188,
+      "anchors": {
+       "com": [
+        217.7,
+        431.8
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.276
+      },
+      "file": "hanami/fall.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 720,
+    "coreLeft": 55.3,
+    "coreRight": 639.4,
     "anchors": {
      "com": [
-      217.7,
-      431.8
+      333.1,
+      467.9
      ]
     },
-    "bodyTop": 13,
-    "edited": {
-     "renderScale": 0.276
-    },
-    "bodyLeft": 14,
-    "bodyRight": 420,
-    "coreLeft": 44.4,
-    "coreRight": 361.9,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "hurt": {
-    "file": "hanami/hurt.png",
-    "w": 520,
-    "h": 1016,
-    "ox": -103.2,
-    "oy": -693,
-    "bodyBottom": 262.5,
-    "bodyH": 233.4,
-    "centroidX": 165.2,
-    "renderScale": 0.3233,
+    "w": 663,
+    "h": 1315,
+    "ox": -224.0,
+    "oy": -1005,
+    "bodyBottom": 239.2,
+    "bodyH": 239.3,
+    "centroidX": 206.0,
+    "renderScale": 0.182,
+    "file": "hanami/incoming/hurt-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 520,
+      "h": 1016,
+      "ox": -103.2,
+      "oy": -693,
+      "bodyBottom": 262.5,
+      "bodyH": 233.4,
+      "bodyTop": 13,
+      "centroidX": 165.2,
+      "renderScale": 0.3233,
+      "anchors": {
+       "com": [
+        269.0,
+        454.9
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.236,
+       "bodyBottom": 310
+      },
+      "file": "hanami/hurt.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 663,
+    "coreLeft": 98.6,
+    "coreRight": 624.6,
     "anchors": {
      "com": [
-      269.0,
-      454.9
+      382.8,
+      581.3
      ]
     },
-    "bodyTop": 13,
-    "edited": {
-     "renderScale": 0.236,
-     "bodyBottom": 310
-    },
-    "bodyLeft": 13,
-    "bodyRight": 507,
-    "coreLeft": 57.1,
-    "coreRight": 438.1,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "guard": {
-    "file": "hanami/guard.png",
-    "w": 466,
-    "h": 1016,
-    "ox": -76.2,
-    "oy": -693,
-    "bodyBottom": 263.5,
-    "bodyH": 254.9,
-    "centroidX": 160.7,
-    "renderScale": 0.3277,
+    "w": 706,
+    "h": 1324,
+    "ox": -171.4,
+    "oy": -1014,
+    "bodyBottom": 238.7,
+    "bodyH": 260.8,
+    "centroidX": 131.9,
+    "renderScale": 0.197,
+    "file": "hanami/incoming/guard-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 466,
+      "h": 1016,
+      "ox": -76.2,
+      "oy": -693,
+      "bodyBottom": 263.5,
+      "bodyH": 254.9,
+      "bodyTop": 13,
+      "centroidX": 160.7,
+      "renderScale": 0.3277,
+      "anchors": {
+       "com": [
+        255.0,
+        452.3
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.257,
+       "bodyBottom": 310
+      },
+      "file": "hanami/guard.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 706,
+    "coreLeft": 49.7,
+    "coreRight": 604.1,
     "anchors": {
      "com": [
-      255.0,
-      452.3
+      327.4,
+      543.5
      ]
     },
-    "bodyTop": 13,
-    "edited": {
-     "renderScale": 0.257,
-     "bodyBottom": 310
-    },
-    "bodyLeft": 13,
-    "bodyRight": 453,
-    "coreLeft": 69.8,
-    "coreRight": 406.4,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "attack_up": {
-    "file": "hanami/attack_up.png",
-    "w": 564,
-    "h": 1016,
-    "ox": -125.2,
-    "oy": -692,
-    "bodyBottom": 280.5,
-    "bodyH": 351.2,
-    "centroidX": 139.4,
-    "renderScale": 0.3923,
+    "w": 658,
+    "h": 1466,
+    "ox": -177.6,
+    "oy": -1156,
+    "bodyBottom": 231.1,
+    "bodyH": 360.6,
+    "centroidX": 162.1,
+    "renderScale": 0.246,
+    "file": "hanami/incoming/attack_up-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 564,
+      "h": 1016,
+      "ox": -125.2,
+      "oy": -692,
+      "bodyBottom": 280.5,
+      "bodyH": 351.2,
+      "bodyTop": 14,
+      "centroidX": 139.4,
+      "renderScale": 0.3923,
+      "anchors": {
+       "com": [
+        265.9,
+        534.4
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.355,
+       "bodyBottom": 310
+      },
+      "file": "hanami/attack_up.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 658,
+    "coreLeft": 64.1,
+    "coreRight": 586.4,
     "anchors": {
      "com": [
-      265.9,
-      534.4
+      335.7,
+      718.0
      ]
     },
-    "bodyTop": 14,
-    "edited": {
-     "renderScale": 0.355,
-     "bodyBottom": 310
-    },
-    "bodyLeft": 14,
-    "bodyRight": 550,
-    "coreLeft": 88.9,
-    "coreRight": 482.6,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "attack_air": {
     "file": "hanami/attack_air.png",
@@ -3340,119 +3576,258 @@
     "coreRight": 939.8
    },
    "charge": {
-    "file": "hanami/charge.png",
-    "w": 412,
-    "h": 1016,
-    "ox": -49.2,
-    "oy": -693,
-    "bodyBottom": 262.5,
-    "bodyH": 254.9,
-    "centroidX": 166.7,
-    "renderScale": 0.3277,
+    "w": 943,
+    "h": 1184,
+    "ox": -255.5,
+    "oy": -874,
+    "bodyBottom": 246.2,
+    "bodyH": 261.7,
+    "centroidX": 97.5,
+    "renderScale": 0.221,
+    "file": "hanami/incoming/charge-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 412,
+      "h": 1016,
+      "ox": -49.2,
+      "oy": -693,
+      "bodyBottom": 262.5,
+      "bodyH": 254.9,
+      "bodyTop": 13,
+      "centroidX": 166.7,
+      "renderScale": 0.3277,
+      "anchors": {
+       "com": [
+        216.8,
+        498.2
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.257,
+       "bodyBottom": 310
+      },
+      "file": "hanami/charge.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 943,
+    "coreLeft": 88.8,
+    "coreRight": 784.4,
     "anchors": {
      "com": [
-      216.8,
-      498.2
+      411.4,
+      467.6
      ]
     },
-    "bodyTop": 13,
-    "edited": {
-     "renderScale": 0.257,
-     "bodyBottom": 310
-    },
-    "bodyLeft": 13,
-    "bodyRight": 399,
-    "coreLeft": 82.5,
-    "coreRight": 349.2,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "dizzy": {
-    "file": "hanami/dizzy.png",
-    "w": 400,
-    "h": 1016,
-    "ox": -43.2,
-    "oy": -692,
-    "bodyBottom": 276,
-    "bodyH": 283.2,
-    "centroidX": 158.2,
-    "renderScale": 0.3257,
+    "w": 681,
+    "h": 1279,
+    "ox": -203.5,
+    "oy": -969,
+    "bodyBottom": 241.1,
+    "bodyH": 291.6,
+    "centroidX": 176.5,
+    "renderScale": 0.228,
+    "file": "hanami/incoming/dizzy-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 400,
+      "h": 1016,
+      "ox": -43.2,
+      "oy": -692,
+      "bodyBottom": 276,
+      "bodyH": 283.2,
+      "bodyTop": 14,
+      "centroidX": 158.2,
+      "renderScale": 0.3257,
+      "anchors": {
+       "com": [
+        202.1,
+        475.0
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.287,
+       "bodyBottom": 310
+      },
+      "file": "hanami/dizzy.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 681,
+    "coreLeft": 87.9,
+    "coreRight": 623.5,
     "anchors": {
      "com": [
-      202.1,
-      475.0
+      359.8,
+      501.9
      ]
     },
-    "bodyTop": 14,
-    "edited": {
-     "renderScale": 0.287,
-     "bodyBottom": 310
-    },
-    "bodyLeft": 14,
-    "bodyRight": 386,
-    "coreLeft": 88.9,
-    "coreRight": 336.5,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "victory": {
-    "file": "hanami/victory.png",
-    "w": 504,
-    "h": 1016,
-    "ox": -95.2,
-    "oy": -693,
-    "bodyBottom": 278,
-    "bodyH": 290.0,
-    "centroidX": 130.8,
-    "renderScale": 0.3223,
+    "w": 856,
+    "h": 1333,
+    "ox": -402.3,
+    "oy": -1023,
+    "bodyBottom": 238.2,
+    "bodyH": 297.3,
+    "centroidX": 287.8,
+    "renderScale": 0.223,
+    "file": "hanami/incoming/victory-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 504,
+      "h": 1016,
+      "ox": -95.2,
+      "oy": -693,
+      "bodyBottom": 278,
+      "bodyH": 290.0,
+      "bodyTop": 13,
+      "centroidX": 130.8,
+      "renderScale": 0.3223,
+      "anchors": {
+       "com": [
+        225.5,
+        469.8
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "bodyBottom": 310
+      },
+      "file": "hanami/victory.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 856,
+    "coreLeft": 125.0,
+    "coreRight": 808.1,
     "anchors": {
      "com": [
-      225.5,
-      469.8
+      561.0,
+      554.2
      ]
     },
-    "bodyTop": 13,
-    "edited": {
-     "renderScale": 0.293,
-     "bodyBottom": 310
-    },
-    "bodyLeft": 13,
-    "bodyRight": 491,
-    "coreLeft": 82.5,
-    "coreRight": 450.8,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "ledge_hang": {
-    "file": "hanami/ledge_hang.png",
-    "w": 207,
-    "h": 1016,
-    "ox": 53.2,
-    "oy": -693,
-    "bodyBottom": 310,
-    "bodyH": 333.5,
-    "centroidX": 166.8,
-    "renderScale": 0.455,
+    "w": 323,
+    "h": 1331,
+    "ox": -9.3,
+    "oy": -1021,
+    "bodyBottom": 310.0,
+    "bodyH": 342.1,
+    "centroidX": 161.3,
+    "renderScale": 0.257,
+    "file": "hanami/incoming/ledge_hang-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 207,
+      "h": 1016,
+      "ox": 53.2,
+      "oy": -693,
+      "bodyBottom": 310,
+      "bodyH": 333.5,
+      "bodyTop": 13,
+      "centroidX": 166.8,
+      "renderScale": 0.455,
+      "anchors": {
+       "com": [
+        143.1,
+        459.9
+       ],
+       "ledge": [
+        116.1,
+        55.5
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.337
+      },
+      "file": "hanami/ledge_hang.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 323,
+    "coreLeft": 33.3,
+    "coreRight": 299.5,
     "anchors": {
      "com": [
-      143.1,
-      459.9
+      167.3,
+      562.0
      ],
      "ledge": [
-      116.1,
-      55.5
+      150.3,
+      56.7
      ]
     },
-    "bodyTop": 13,
-    "edited": {
-     "renderScale": 0.337
-    },
-    "bodyLeft": 13,
-    "bodyRight": 194,
-    "coreLeft": 50.8,
-    "coreRight": 184.1,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "run_a": {
     "file": "hanami/run_a.png",
@@ -3507,754 +3882,1552 @@
     "coreRight": 349.2
    },
    "dodge_air": {
-    "w": 798,
-    "h": 1165,
-    "ox": -242.2,
-    "oy": -854,
+    "w": 731,
+    "h": 1306,
+    "ox": -252.2,
+    "oy": -995,
     "bodyBottom": 310.4,
-    "bodyH": 341.3,
-    "centroidX": 253.7,
-    "renderScale": 0.23,
-    "file": "hanami/dodge_air.png",
-    "anchors": {
-     "com": [
-      498.4,
-      490.6
-     ]
+    "bodyH": 340.9,
+    "centroidX": 200.2,
+    "renderScale": 0.261,
+    "file": "hanami/incoming/dodge_air-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 798,
+      "h": 1165,
+      "ox": -242.2,
+      "oy": -854,
+      "bodyBottom": 310.4,
+      "bodyH": 341.3,
+      "bodyTop": 0,
+      "centroidX": 253.7,
+      "renderScale": 0.23,
+      "anchors": {
+       "com": [
+        498.4,
+        490.6
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293
+      },
+      "file": "hanami/dodge_air.png"
+     }
     },
     "bodyTop": 0,
-    "edited": {
-     "renderScale": 0.293
-    },
     "bodyLeft": 0,
-    "bodyRight": 798,
-    "coreLeft": 218.4,
-    "coreRight": 750.0,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
-   },
-   "dodge_roll": {
-    "w": 1035,
-    "h": 876,
-    "ox": -360.8,
-    "oy": -565,
-    "bodyBottom": 310.4,
-    "bodyH": 256.7,
-    "centroidX": 213.4,
-    "renderScale": 0.1861,
-    "file": "hanami/dodge_roll.png",
+    "bodyRight": 731,
+    "coreLeft": 106.1,
+    "coreRight": 677.5,
     "anchors": {
      "com": [
-      574.6,
-      433.0
-     ]
-    },
-    "bodyTop": 0,
-    "edited": {
-     "renderScale": 0.293
-    },
-    "bodyLeft": 0,
-    "bodyRight": 1035,
-    "coreLeft": 122.9,
-    "coreRight": 976.8,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
-   },
-   "special_neutral": {
-    "w": 995,
-    "h": 1379,
-    "ox": -340.8,
-    "oy": -1068,
-    "bodyBottom": 273.9,
-    "bodyH": 404.0,
-    "centroidX": -3.7,
-    "renderScale": 0.2315,
-    "file": "hanami/special_neutral.png",
-    "bodyTop": 0,
-    "anchors": {
-     "com": [
-      336.2,
-      646.7
-     ]
-    },
-    "edited": {
-     "renderScale": 0.293,
-     "bodyBottom": 310.4
-    },
-    "bodyLeft": 0,
-    "bodyRight": 995,
-    "coreLeft": 94.8,
-    "coreRight": 758.5,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
-   },
-   "special_side": {
-    "w": 1005,
-    "h": 1250,
-    "ox": -345.8,
-    "oy": -939,
-    "bodyBottom": 174.9,
-    "bodyH": 366.2,
-    "centroidX": 148.1,
-    "renderScale": 0.2461,
-    "file": "hanami/special_side.png",
-    "bodyTop": 0,
-    "anchors": {
-     "com": [
-      495.7,
-      594.1
-     ]
-    },
-    "edited": {
-     "renderScale": 0.293,
-     "bodyBottom": 310.4
-    },
-    "bodyLeft": 0,
-    "bodyRight": 1005,
-    "coreLeft": 117.2,
-    "coreRight": 851.6,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
-   },
-   "attack_air_a": {
-    "w": 933,
-    "h": 1423,
-    "ox": -224.3,
-    "oy": -1112,
-    "bodyBottom": 310.4,
-    "bodyH": 416.9,
-    "centroidX": 90.5,
-    "renderScale": 0.2271,
-    "file": "hanami/attack_air_a.png",
-    "bodyTop": 0,
-    "anchors": {
-     "com": [
-      380.0,
-      544.0
-     ]
-    },
-    "edited": {
-     "renderScale": 0.293,
-     "ox": -309.8
-    },
-    "bodyLeft": 0,
-    "bodyRight": 933,
-    "coreLeft": 80.0,
-    "coreRight": 853.8,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
-   },
-   "attack_air_b": {
-    "w": 977,
-    "h": 1457,
-    "ox": -226.8,
-    "oy": -1146,
-    "bodyBottom": 310.4,
-    "bodyH": 426.9,
-    "centroidX": 69.6,
-    "renderScale": 0.23,
-    "file": "hanami/attack_air_b.png",
-    "bodyTop": 0,
-    "anchors": {
-     "com": [
-      400.8,
-      565.9
-     ]
-    },
-    "edited": {
-     "renderScale": 0.293,
-     "ox": -331.8
-    },
-    "bodyLeft": 0,
-    "bodyRight": 977,
-    "coreLeft": 63.7,
-    "coreRight": 874.2,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
-   },
-   "attack_down": {
-    "w": 974,
-    "h": 1420,
-    "ox": -330.2,
-    "oy": -1109,
-    "bodyBottom": 210.9,
-    "bodyH": 416.1,
-    "centroidX": 169.1,
-    "renderScale": 0.2212,
-    "file": "hanami/attack_down.png",
-    "bodyTop": 0,
-    "anchors": {
-     "com": [
-      501.0,
-      717.0
-     ]
-    },
-    "edited": {
-     "renderScale": 0.293,
-     "bodyBottom": 310.4
-    },
-    "bodyLeft": 0,
-    "bodyRight": 974,
-    "coreLeft": 124.2,
-    "coreRight": 852.0,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
-   },
-   "attack_heavy_a": {
-    "w": 939,
-    "h": 1467,
-    "ox": -312.8,
-    "oy": -1156,
-    "bodyBottom": 227.4,
-    "bodyH": 429.8,
-    "centroidX": 195.9,
-    "renderScale": 0.2256,
-    "file": "hanami/attack_heavy_a.png",
-    "bodyTop": 0,
-    "anchors": {
-     "com": [
-      507.1,
-      682.9
-     ]
-    },
-    "edited": {
-     "renderScale": 0.293,
-     "bodyBottom": 310.4
-    },
-    "bodyLeft": 0,
-    "bodyRight": 939,
-    "coreLeft": 100.9,
-    "coreRight": 843.5,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
-   },
-   "attack_heavy_b": {
-    "w": 998,
-    "h": 1275,
-    "ox": -202.2,
-    "oy": -964,
-    "bodyBottom": 254.9,
-    "bodyH": 373.6,
-    "centroidX": 94.3,
-    "renderScale": 0.2534,
-    "file": "hanami/attack_heavy_b.png",
-    "bodyTop": 0,
-    "anchors": {
-     "com": [
-      323.3,
-      559.1
-     ]
-    },
-    "edited": {
-     "renderScale": 0.293,
-     "ox": -342.2,
-     "bodyBottom": 310.4
-    },
-    "bodyLeft": 0,
-    "bodyRight": 998,
-    "coreLeft": 55.8,
-    "coreRight": 924.4,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
-   },
-   "attack_light_a": {
-    "w": 972,
-    "h": 1506,
-    "ox": -201.7,
-    "oy": -1195,
-    "bodyBottom": 253.4,
-    "bodyH": 441.3,
-    "centroidX": 37.1,
-    "renderScale": 0.2154,
-    "file": "hanami/attack_light_a.png",
-    "bodyTop": 0,
-    "anchors": {
-     "com": [
-      415.9,
-      646.8
-     ]
-    },
-    "edited": {
-     "renderScale": 0.293,
-     "ox": -329.2,
-     "bodyBottom": 310.4
-    },
-    "bodyLeft": 0,
-    "bodyRight": 972,
-    "coreLeft": 103.5,
-    "coreRight": 818.9,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
-   },
-   "attack_light_b": {
-    "w": 948,
-    "h": 1469,
-    "ox": -317.2,
-    "oy": -1158,
-    "bodyBottom": 219.9,
-    "bodyH": 430.4,
-    "centroidX": 190.2,
-    "renderScale": 0.2241,
-    "file": "hanami/attack_light_b.png",
-    "bodyTop": 0,
-    "anchors": {
-     "com": [
-      506.7,
-      718.5
-     ]
-    },
-    "edited": {
-     "renderScale": 0.293,
-     "bodyBottom": 310.4
-    },
-    "bodyLeft": 0,
-    "bodyRight": 948,
-    "coreLeft": 146.9,
-    "coreRight": 844.7,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
-   },
-   "crouch_a": {
-    "w": 893,
-    "h": 1266,
-    "ox": -279.8,
-    "oy": -955,
-    "bodyBottom": 207.9,
-    "bodyH": 370.9,
-    "centroidX": 188.5,
-    "renderScale": 0.2212,
-    "file": "hanami/crouch_a.png",
-    "bodyTop": 0,
-    "anchors": {
-     "com": [
-      479.4,
-      587.2
-     ]
-    },
-    "edited": {
-     "renderScale": 0.293,
-     "ox": -289.8,
-     "bodyBottom": 310.4
-    },
-    "bodyLeft": 0,
-    "bodyRight": 893,
-    "coreLeft": 126.6,
-    "coreRight": 807.1,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
-   },
-   "crouch_attack_a": {
-    "w": 962,
-    "h": 1177,
-    "ox": -324.2,
-    "oy": -866,
-    "bodyBottom": 165.9,
-    "bodyH": 344.9,
-    "centroidX": 241.7,
-    "renderScale": 0.2373,
-    "file": "hanami/crouch_attack_a.png",
-    "bodyTop": 0,
-    "anchors": {
-     "com": [
-      567.2,
-      580.8
-     ]
-    },
-    "edited": {
-     "renderScale": 0.293,
-     "bodyBottom": 310.4
-    },
-    "bodyLeft": 0,
-    "bodyRight": 962,
-    "coreLeft": 117.7,
-    "coreRight": 875.4,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
-   },
-   "crouch_attack_b": {
-    "w": 972,
-    "h": 1391,
-    "ox": -291.2,
-    "oy": -1080,
-    "bodyBottom": 220.9,
-    "bodyH": 407.6,
-    "centroidX": 141.7,
-    "renderScale": 0.2285,
-    "file": "hanami/crouch_attack_b.png",
-    "bodyTop": 0,
-    "bodyLeft": 0,
-    "bodyRight": 1318,
-    "coreLeft": 140.0,
-    "coreRight": 1227.4,
-    "anchors": {
-     "com": [
-      472.3,
-      697.7
+      411.5,
+      493.1
      ]
     },
     "autoTuned": {
-     "at": "2026-08-09T16:01:37+00:00",
+     "at": "2026-08-09T23:24:31+00:00",
      "fields": {
-      "bodyBottom": "foot=0.953 (character)",
       "ox": "centre of mass, not of the box"
      }
+    }
+   },
+   "dodge_roll": {
+    "w": 1057,
+    "h": 645,
+    "ox": -454.8,
+    "oy": -334,
+    "bodyBottom": 276.3,
+    "bodyH": 256.7,
+    "centroidX": 239.8,
+    "renderScale": 0.398,
+    "file": "hanami/incoming/dodge_roll-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
     },
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
-    "edited": {
-     "renderScale": 0.293,
-     "ox": -329.2,
-     "bodyBottom": 310.4
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1035,
+      "h": 876,
+      "ox": -360.8,
+      "oy": -565,
+      "bodyBottom": 310.4,
+      "bodyH": 256.7,
+      "bodyTop": 0,
+      "centroidX": 213.4,
+      "renderScale": 0.1861,
+      "anchors": {
+       "com": [
+        574.6,
+        433.0
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293
+      },
+      "file": "hanami/dodge_roll.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1057,
+    "coreLeft": 112.3,
+    "coreRight": 1017.4,
+    "anchors": {
+     "com": [
+      612.0,
+      288.5
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "special_neutral": {
+    "w": 826,
+    "h": 1329,
+    "ox": -210.2,
+    "oy": -1018,
+    "bodyBottom": 239.4,
+    "bodyH": 404.0,
+    "centroidX": 110.7,
+    "renderScale": 0.304,
+    "file": "hanami/incoming/special_neutral-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 995,
+      "h": 1379,
+      "ox": -340.8,
+      "oy": -1068,
+      "bodyBottom": 273.9,
+      "bodyH": 404.0,
+      "bodyTop": 0,
+      "centroidX": -3.7,
+      "renderScale": 0.2315,
+      "anchors": {
+       "com": [
+        336.2,
+        646.7
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/special_neutral.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 826,
+    "coreLeft": 83.1,
+    "coreRight": 722.6,
+    "anchors": {
+     "com": [
+      365.8,
+      541.7
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "special_side": {
+    "w": 839,
+    "h": 1101,
+    "ox": -198.1,
+    "oy": -790,
+    "bodyBottom": 223.3,
+    "bodyH": 366.6,
+    "centroidX": 92.1,
+    "renderScale": 0.333,
+    "file": "hanami/incoming/special_side-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1005,
+      "h": 1250,
+      "ox": -345.8,
+      "oy": -939,
+      "bodyBottom": 174.9,
+      "bodyH": 366.2,
+      "bodyTop": 0,
+      "centroidX": 148.1,
+      "renderScale": 0.2461,
+      "anchors": {
+       "com": [
+        495.7,
+        594.1
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/special_side.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 839,
+    "coreLeft": 48.2,
+    "coreRight": 750.1,
+    "anchors": {
+     "com": [
+      355.5,
+      438.0
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "attack_air_a": {
+    "w": 837,
+    "h": 1210,
+    "ox": -343.7,
+    "oy": -899,
+    "bodyBottom": 310.4,
+    "bodyH": 417.4,
+    "centroidX": 238.7,
+    "renderScale": 0.345,
+    "file": "hanami/incoming/attack_air_a-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 933,
+      "h": 1423,
+      "ox": -224.3,
+      "oy": -1112,
+      "bodyBottom": 310.4,
+      "bodyH": 416.9,
+      "bodyTop": 0,
+      "centroidX": 90.5,
+      "renderScale": 0.2271,
+      "anchors": {
+       "com": [
+        380.0,
+        544.0
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "ox": -309.8
+      },
+      "file": "hanami/attack_air_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 837,
+    "coreLeft": 113.4,
+    "coreRight": 778.9,
+    "anchors": {
+     "com": [
+      502.5,
+      424.2
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "attack_air_b": {
+    "w": 1140,
+    "h": 796,
+    "ox": -405.7,
+    "oy": -485,
+    "bodyBottom": 310.4,
+    "bodyH": 426.7,
+    "centroidX": 149.2,
+    "renderScale": 0.536,
+    "file": "hanami/incoming/attack_air_b-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 977,
+      "h": 1457,
+      "ox": -226.8,
+      "oy": -1146,
+      "bodyBottom": 310.4,
+      "bodyH": 426.9,
+      "bodyTop": 0,
+      "centroidX": 69.6,
+      "renderScale": 0.23,
+      "anchors": {
+       "com": [
+        400.8,
+        565.9
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "ox": -331.8
+      },
+      "file": "hanami/attack_air_b.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1140,
+    "coreLeft": 106.9,
+    "coreRight": 1026.0,
+    "anchors": {
+     "com": [
+      563.0,
+      343.8
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "attack_down": {
+    "w": 981,
+    "h": 1077,
+    "ox": -331.2,
+    "oy": -766,
+    "bodyBottom": 253.0,
+    "bodyH": 415.7,
+    "centroidX": 154.2,
+    "renderScale": 0.386,
+    "file": "hanami/incoming/attack_down-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 974,
+      "h": 1420,
+      "ox": -330.2,
+      "oy": -1109,
+      "bodyBottom": 210.9,
+      "bodyH": 416.1,
+      "bodyTop": 0,
+      "centroidX": 169.1,
+      "renderScale": 0.2212,
+      "anchors": {
+       "com": [
+        501.0,
+        717.0
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/attack_down.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 981,
+    "coreLeft": 127.9,
+    "coreRight": 875.1,
+    "anchors": {
+     "com": [
+      489.3,
+      525.3
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "attack_heavy_a": {
+    "w": 721,
+    "h": 1312,
+    "ox": -153.5,
+    "oy": -1001,
+    "bodyBottom": 240.4,
+    "bodyH": 430.3,
+    "centroidX": 106.5,
+    "renderScale": 0.328,
+    "file": "hanami/incoming/attack_heavy_a-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 939,
+      "h": 1467,
+      "ox": -312.8,
+      "oy": -1156,
+      "bodyBottom": 227.4,
+      "bodyH": 429.8,
+      "bodyTop": 0,
+      "centroidX": 195.9,
+      "renderScale": 0.2256,
+      "anchors": {
+       "com": [
+        507.1,
+        682.9
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/attack_heavy_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 721,
+    "coreLeft": 49.2,
+    "coreRight": 631.4,
+    "anchors": {
+     "com": [
+      310.9,
+      541.5
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "attack_heavy_b": {
+    "w": 1041,
+    "h": 1048,
+    "ox": -253.9,
+    "oy": -737,
+    "bodyBottom": 254.6,
+    "bodyH": 373.1,
+    "centroidX": 46.9,
+    "renderScale": 0.356,
+    "file": "hanami/incoming/attack_heavy_b-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 998,
+      "h": 1275,
+      "ox": -202.2,
+      "oy": -964,
+      "bodyBottom": 254.9,
+      "bodyH": 373.6,
+      "bodyTop": 0,
+      "centroidX": 94.3,
+      "renderScale": 0.2534,
+      "anchors": {
+       "com": [
+        323.3,
+        559.1
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "ox": -342.2,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/attack_heavy_b.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1041,
+    "coreLeft": 52.4,
+    "coreRight": 890.8,
+    "anchors": {
+     "com": [
+      411.3,
+      428.9
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "attack_light_a": {
+    "w": 699,
+    "h": 1301,
+    "ox": -193.6,
+    "oy": -990,
+    "bodyBottom": 240.9,
+    "bodyH": 441.0,
+    "centroidX": 157.6,
+    "renderScale": 0.339,
+    "file": "hanami/incoming/attack_light_a-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 972,
+      "h": 1506,
+      "ox": -201.7,
+      "oy": -1195,
+      "bodyBottom": 253.4,
+      "bodyH": 441.3,
+      "bodyTop": 0,
+      "centroidX": 37.1,
+      "renderScale": 0.2154,
+      "anchors": {
+       "com": [
+        415.9,
+        646.8
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "ox": -329.2,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/attack_light_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 699,
+    "coreLeft": 73.2,
+    "coreRight": 634.2,
+    "anchors": {
+     "com": [
+      351.0,
+      520.2
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "attack_light_b": {
+    "w": 835,
+    "h": 1289,
+    "ox": -308.8,
+    "oy": -978,
+    "bodyBottom": 241.6,
+    "bodyH": 430.5,
+    "centroidX": 204.8,
+    "renderScale": 0.334,
+    "file": "hanami/incoming/attack_light_b-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 948,
+      "h": 1469,
+      "ox": -317.2,
+      "oy": -1158,
+      "bodyBottom": 219.9,
+      "bodyH": 430.4,
+      "bodyTop": 0,
+      "centroidX": 190.2,
+      "renderScale": 0.2241,
+      "anchors": {
+       "com": [
+        506.7,
+        718.5
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/attack_light_b.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 835,
+    "coreLeft": 80.6,
+    "coreRight": 781.5,
+    "anchors": {
+     "com": [
+      467.6,
+      517.2
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "crouch_a": {
+    "w": 869,
+    "h": 784,
+    "ox": -208.8,
+    "oy": -473,
+    "bodyBottom": 268.8,
+    "bodyH": 370.8,
+    "centroidX": 87.8,
+    "renderScale": 0.473,
+    "file": "hanami/incoming/crouch_a-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 893,
+      "h": 1266,
+      "ox": -279.8,
+      "oy": -955,
+      "bodyBottom": 207.9,
+      "bodyH": 370.9,
+      "bodyTop": 0,
+      "centroidX": 188.5,
+      "renderScale": 0.2212,
+      "anchors": {
+       "com": [
+        479.4,
+        587.2
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "ox": -289.8,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/crouch_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 869,
+    "coreLeft": 48.9,
+    "coreRight": 749.5,
+    "anchors": {
+     "com": [
+      366.1,
+      309.6
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "crouch_attack_a": {
+    "w": 903,
+    "h": 810,
+    "ox": -390.5,
+    "oy": -499,
+    "bodyBottom": 267.4,
+    "bodyH": 345.1,
+    "centroidX": 252.5,
+    "renderScale": 0.426,
+    "file": "hanami/incoming/crouch_attack_a-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 962,
+      "h": 1177,
+      "ox": -324.2,
+      "oy": -866,
+      "bodyBottom": 165.9,
+      "bodyH": 344.9,
+      "bodyTop": 0,
+      "centroidX": 241.7,
+      "renderScale": 0.2373,
+      "anchors": {
+       "com": [
+        567.2,
+        580.8
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/crouch_attack_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 903,
+    "coreLeft": 146.7,
+    "coreRight": 869.1,
+    "anchors": {
+     "com": [
+      547.7,
+      362.8
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "crouch_attack_b": {
+    "w": 1219,
+    "h": 833,
+    "ox": -481.7,
+    "oy": -522,
+    "bodyBottom": 266.1,
+    "bodyH": 407.3,
+    "centroidX": 185.7,
+    "renderScale": 0.489,
+    "file": "hanami/incoming/crouch_attack_b-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 972,
+      "h": 1391,
+      "ox": -291.2,
+      "oy": -1080,
+      "bodyBottom": 220.9,
+      "bodyH": 407.6,
+      "bodyTop": 0,
+      "centroidX": 141.7,
+      "renderScale": 0.2285,
+      "anchors": {
+       "com": [
+        472.3,
+        697.7
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "ox": -329.2,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/crouch_attack_b.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1219,
+    "coreLeft": 144.8,
+    "coreRight": 1097.1,
+    "anchors": {
+     "com": [
+      638.9,
+      378.3
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "crouch_b": {
-    "w": 696,
-    "h": 1358,
-    "ox": -191.2,
-    "oy": -1047,
-    "bodyBottom": 229.4,
-    "bodyH": 397.9,
-    "centroidX": 173.8,
-    "renderScale": 0.2344,
-    "file": "hanami/crouch_b.png",
+    "w": 826,
+    "h": 1239,
+    "ox": -268.6,
+    "oy": -928,
+    "bodyBottom": 244.3,
+    "bodyH": 397.7,
+    "centroidX": 169.1,
+    "renderScale": 0.321,
+    "file": "hanami/incoming/crouch_b-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 696,
+      "h": 1358,
+      "ox": -191.2,
+      "oy": -1047,
+      "bodyBottom": 229.4,
+      "bodyH": 397.9,
+      "bodyTop": 0,
+      "centroidX": 173.8,
+      "renderScale": 0.2344,
+      "anchors": {
+       "com": [
+        421.0,
+        660.9
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/crouch_b.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 872,
-    "coreLeft": 116.2,
-    "coreRight": 805.4,
+    "bodyRight": 826,
+    "coreLeft": 69.7,
+    "coreRight": 774.4,
     "anchors": {
      "com": [
-      421.0,
-      660.9
+      427.2,
+      502.1
      ]
     },
     "autoTuned": {
-     "at": "2026-08-09T16:01:37+00:00",
+     "at": "2026-08-09T23:24:31+00:00",
      "fields": {
-      "bodyBottom": "foot=0.953 (character)",
+      "bodyBottom": "foot=0.946 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
-    "edited": {
-     "renderScale": 0.293,
-     "bodyBottom": 310.4
     }
    },
    "dash": {
-    "w": 946,
-    "h": 1144,
-    "ox": -316.2,
-    "oy": -833,
-    "bodyBottom": 259.9,
-    "bodyH": 335.2,
-    "centroidX": 213.2,
-    "renderScale": 0.2666,
-    "file": "hanami/dash.png",
+    "w": 1181,
+    "h": 814,
+    "ox": -492.8,
+    "oy": -503,
+    "bodyBottom": 267.2,
+    "bodyH": 335.4,
+    "centroidX": 215.8,
+    "renderScale": 0.412,
+    "file": "hanami/incoming/dash-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 946,
+      "h": 1144,
+      "ox": -316.2,
+      "oy": -833,
+      "bodyBottom": 259.9,
+      "bodyH": 335.2,
+      "bodyTop": 0,
+      "centroidX": 213.2,
+      "renderScale": 0.2666,
+      "anchors": {
+       "com": [
+        528.4,
+        460.3
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/dash.png"
+     }
+    },
     "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1181,
+    "coreLeft": 96.0,
+    "coreRight": 1107.2,
     "anchors": {
      "com": [
-      528.4,
-      460.3
+      650.0,
+      319.4
      ]
     },
-    "edited": {
-     "renderScale": 0.293,
-     "bodyBottom": 310.4
-    },
-    "bodyLeft": 0,
-    "bodyRight": 946,
-    "coreLeft": 71.5,
-    "coreRight": 886.6,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "land": {
-    "w": 930,
-    "h": 1232,
-    "ox": -308.2,
-    "oy": -921,
-    "bodyBottom": 236.4,
-    "bodyH": 361.0,
-    "centroidX": 163.3,
-    "renderScale": 0.1948,
-    "file": "hanami/land.png",
+    "w": 1042,
+    "h": 924,
+    "ox": -360.9,
+    "oy": -613,
+    "bodyBottom": 261.2,
+    "bodyH": 361.3,
+    "centroidX": 153.4,
+    "renderScale": 0.391,
+    "file": "hanami/incoming/land-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 930,
+      "h": 1232,
+      "ox": -308.2,
+      "oy": -921,
+      "bodyBottom": 236.4,
+      "bodyH": 361.0,
+      "bodyTop": 0,
+      "centroidX": 163.3,
+      "renderScale": 0.1948,
+      "anchors": {
+       "com": [
+        472.9,
+        644.8
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/land.png"
+     }
+    },
     "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1042,
+    "coreLeft": 117.2,
+    "coreRight": 898.7,
     "anchors": {
      "com": [
-      472.9,
-      644.8
+      518.1,
+      414.2
      ]
     },
-    "edited": {
-     "renderScale": 0.293,
-     "bodyBottom": 310.4
-    },
-    "bodyLeft": 0,
-    "bodyRight": 930,
-    "coreLeft": 100.1,
-    "coreRight": 808.5,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "special_down": {
-    "w": 950,
-    "h": 1375,
-    "ox": -318.2,
-    "oy": -1064,
-    "bodyBottom": 198.4,
-    "bodyH": 402.9,
-    "centroidX": 149.4,
-    "renderScale": 0.2432,
-    "file": "hanami/special_down.png",
+    "w": 890,
+    "h": 1373,
+    "ox": -244.2,
+    "oy": -1062,
+    "bodyBottom": 237.1,
+    "bodyH": 402.3,
+    "centroidX": 112.7,
+    "renderScale": 0.293,
+    "file": "hanami/incoming/special_down-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 950,
+      "h": 1375,
+      "ox": -318.2,
+      "oy": -1064,
+      "bodyBottom": 198.4,
+      "bodyH": 402.9,
+      "bodyTop": 0,
+      "centroidX": 149.4,
+      "renderScale": 0.2432,
+      "anchors": {
+       "com": [
+        470.0,
+        726.3
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/special_down.png"
+     }
+    },
     "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 890,
+    "coreLeft": 68.7,
+    "coreRight": 780.9,
     "anchors": {
      "com": [
-      470.0,
-      726.3
+      402.5,
+      570.0
      ]
     },
-    "edited": {
-     "renderScale": 0.293,
-     "bodyBottom": 310.4
-    },
-    "bodyLeft": 0,
-    "bodyRight": 950,
-    "coreLeft": 103.1,
-    "coreRight": 825.0,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "ult_a": {
-    "w": 928,
-    "h": 1478,
-    "ox": -307.2,
-    "oy": -1167,
-    "bodyBottom": 212.4,
-    "bodyH": 433.1,
-    "centroidX": 141.1,
-    "renderScale": 0.2403,
-    "file": "hanami/ult_a.png",
+    "w": 1025,
+    "h": 1250,
+    "ox": -354.4,
+    "oy": -939,
+    "bodyBottom": 243.7,
+    "bodyH": 432.5,
+    "centroidX": 155.4,
+    "renderScale": 0.346,
+    "file": "hanami/incoming/ult_a-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 928,
+      "h": 1478,
+      "ox": -307.2,
+      "oy": -1167,
+      "bodyBottom": 212.4,
+      "bodyH": 433.1,
+      "bodyTop": 0,
+      "centroidX": 141.1,
+      "renderScale": 0.2403,
+      "anchors": {
+       "com": [
+        446.8,
+        733.8
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/ult_a.png"
+     }
+    },
     "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1025,
+    "coreLeft": 93.8,
+    "coreRight": 945.3,
     "anchors": {
      "com": [
-      446.8,
-      733.8
+      510.9,
+      512.8
      ]
     },
-    "edited": {
-     "renderScale": 0.293,
-     "bodyBottom": 310.4
-    },
-    "bodyLeft": 0,
-    "bodyRight": 928,
-    "coreLeft": 64.7,
-    "coreRight": 831.4,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "ult_b": {
-    "w": 1000,
-    "h": 1455,
-    "ox": -222.7,
-    "oy": -1144,
-    "bodyBottom": 230.4,
-    "bodyH": 426.3,
-    "centroidX": 100.5,
-    "renderScale": 0.2256,
-    "file": "hanami/ult_b.png",
+    "w": 1043,
+    "h": 1317,
+    "ox": -432.7,
+    "oy": -1006,
+    "bodyBottom": 240.1,
+    "bodyH": 426.7,
+    "centroidX": 224.7,
+    "renderScale": 0.324,
+    "file": "hanami/incoming/ult_b-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1000,
+      "h": 1455,
+      "ox": -222.7,
+      "oy": -1144,
+      "bodyBottom": 230.4,
+      "bodyH": 426.3,
+      "bodyTop": 0,
+      "centroidX": 100.5,
+      "renderScale": 0.2256,
+      "anchors": {
+       "com": [
+        444.5,
+        620.3
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.293,
+       "ox": -343.2,
+       "bodyBottom": 310.4
+      },
+      "file": "hanami/ult_b.png"
+     }
+    },
     "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1043,
+    "coreLeft": 131.7,
+    "coreRight": 979.5,
     "anchors": {
      "com": [
-      444.5,
-      620.3
+      591.3,
+      570.8
      ]
     },
-    "edited": {
-     "renderScale": 0.293,
-     "ox": -343.2,
-     "bodyBottom": 310.4
-    },
-    "bodyLeft": 0,
-    "bodyRight": 1000,
-    "coreLeft": 109.1,
-    "coreRight": 900.3,
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "prone": {
-    "w": 957,
-    "h": 251,
-    "ox": -326.8,
-    "oy": 59,
-    "bodyBottom": 227.5,
+    "w": 1495,
+    "h": 381,
+    "ox": -560.8,
+    "oy": -71,
+    "bodyBottom": 310.0,
     "bodyH": 82.7,
-    "centroidX": 161.8,
-    "renderScale": 0.352,
-    "file": "hanami/prone.png",
+    "centroidX": 126.8,
+    "renderScale": 0.217,
+    "file": "hanami/incoming/prone-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 957,
+      "h": 251,
+      "ox": -326.8,
+      "oy": 59,
+      "bodyBottom": 227.5,
+      "bodyH": 82.7,
+      "bodyTop": 0,
+      "centroidX": 161.8,
+      "renderScale": 0.352,
+      "anchors": {
+       "com": [
+        484.1,
+        120.5
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.329,
+       "bodyBottom": 310
+      },
+      "file": "hanami/prone.png"
+     }
+    },
     "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1495,
+    "coreLeft": 112.1,
+    "coreRight": 1382.9,
     "anchors": {
      "com": [
-      484.1,
-      120.5
+      717.9,
+      165.4
      ]
     },
     "autoTuned": {
-     "at": "2026-08-09T12:38:28+00:00",
+     "at": "2026-08-09T23:24:31+00:00",
      "fields": {
       "ox": "centre of mass, not of the box"
      }
-    },
-    "bodyLeft": 0,
-    "bodyRight": 957,
-    "coreLeft": 65.8,
-    "coreRight": 921.1,
-    "edited": {
-     "renderScale": 0.329,
-     "bodyBottom": 310
-    },
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    }
    },
    "run_pass_a": {
-    "w": 834,
-    "h": 1332,
-    "ox": -205.1,
-    "oy": -1021,
-    "bodyBottom": 264.9,
-    "bodyH": 439.0,
-    "centroidX": 101.6,
-    "renderScale": 0.2409,
-    "file": "hanami/run_pass_a.png",
+    "w": 799,
+    "h": 1252,
+    "ox": -320.0,
+    "oy": -1004,
+    "bodyBottom": 180.6,
+    "bodyH": 439.5,
+    "centroidX": 234.0,
+    "renderScale": 0.351,
+    "file": "hanami/incoming/run_pass_a-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 834,
+      "h": 1332,
+      "ox": -205.1,
+      "oy": -1021,
+      "bodyBottom": 264.9,
+      "bodyH": 439.0,
+      "bodyTop": 0,
+      "centroidX": 101.6,
+      "renderScale": 0.2409,
+      "anchors": {
+       "com": [
+        361.8,
+        502.6
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.33,
+       "bodyBottom": 247.9
+      },
+      "file": "hanami/run_pass_a.png"
+     }
+    },
     "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 799,
+    "coreLeft": 93.9,
+    "coreRight": 743.4,
     "anchors": {
      "com": [
-      361.8,
-      502.6
+      476.6,
+      497.3
      ]
     },
     "autoTuned": {
-     "at": "2026-08-09T12:38:28+00:00",
+     "at": "2026-08-09T23:24:31+00:00",
      "fields": {
-      "bodyBottom": "foot=0.953 (character)",
+      "bodyBottom": "foot=0.946 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "bodyLeft": 0,
-    "bodyRight": 834,
-    "coreLeft": 58.3,
-    "coreRight": 757.6,
-    "edited": {
-     "renderScale": 0.33,
-     "bodyBottom": 247.9
-    },
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    }
    },
    "run_pass_b": {
-    "w": 905,
-    "h": 1377,
-    "ox": -272.9,
-    "oy": -1066,
-    "bodyBottom": 279.3,
+    "w": 726,
+    "h": 1363,
+    "ox": -205.0,
+    "oy": -1117,
+    "bodyBottom": 172.6,
     "bodyH": 453.9,
-    "centroidX": 133.9,
-    "renderScale": 0.2277,
-    "file": "hanami/run_pass_b.png",
+    "centroidX": 155.5,
+    "renderScale": 0.333,
+    "file": "hanami/incoming/run_pass_b-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 905,
+      "h": 1377,
+      "ox": -272.9,
+      "oy": -1066,
+      "bodyBottom": 279.3,
+      "bodyH": 453.9,
+      "bodyTop": 0,
+      "centroidX": 133.9,
+      "renderScale": 0.2277,
+      "anchors": {
+       "com": [
+        429.5,
+        512.2
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.33,
+       "bodyBottom": 245.8
+      },
+      "file": "hanami/run_pass_b.png"
+     }
+    },
     "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 726,
+    "coreLeft": 76.7,
+    "coreRight": 647.4,
     "anchors": {
      "com": [
-      429.5,
-      512.2
+      361.3,
+      606.4
      ]
     },
     "autoTuned": {
-     "at": "2026-08-09T12:38:28+00:00",
+     "at": "2026-08-09T23:24:31+00:00",
      "fields": {
-      "bodyBottom": "foot=0.953 (character)",
+      "bodyBottom": "foot=0.946 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "bodyLeft": 0,
-    "bodyRight": 905,
-    "coreLeft": 86.1,
-    "coreRight": 834.8,
-    "edited": {
-     "renderScale": 0.33,
-     "bodyBottom": 245.8
-    },
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    }
    },
    "run_reach_a": {
-    "w": 963,
-    "h": 1130,
-    "ox": -386.5,
-    "oy": -819,
-    "bodyBottom": 255,
-    "bodyH": 372.4,
-    "centroidX": 218.5,
-    "renderScale": 0.2822,
-    "file": "hanami/run_reach_a.png",
+    "w": 1143,
+    "h": 982,
+    "ox": -468.2,
+    "oy": -724,
+    "bodyBottom": 205.1,
+    "bodyH": 373.2,
+    "centroidX": 210.2,
+    "renderScale": 0.38,
+    "file": "hanami/incoming/run_reach_a-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 963,
+      "h": 1130,
+      "ox": -386.5,
+      "oy": -819,
+      "bodyBottom": 255,
+      "bodyH": 372.4,
+      "bodyTop": 0,
+      "centroidX": 218.5,
+      "renderScale": 0.2822,
+      "anchors": {
+       "com": [
+        542.4,
+        445.4
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.33,
+       "bodyBottom": 257.5
+      },
+      "file": "hanami/run_reach_a.png"
+     }
+    },
     "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1143,
+    "coreLeft": 100.0,
+    "coreRight": 1035.8,
     "anchors": {
      "com": [
-      542.4,
-      445.4
+      625.5,
+      436.3
      ]
     },
     "autoTuned": {
-     "at": "2026-08-09T12:38:28+00:00",
+     "at": "2026-08-09T23:24:31+00:00",
      "fields": {
-      "bodyBottom": "foot=0.953 (character)",
+      "bodyBottom": "foot=0.946 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "bodyLeft": 0,
-    "bodyRight": 963,
-    "coreLeft": 91.8,
-    "coreRight": 896.9,
-    "edited": {
-     "renderScale": 0.33,
-     "bodyBottom": 257.5
-    },
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    }
    },
    "run_reach_b": {
-    "w": 975,
-    "h": 1081,
-    "ox": -379.6,
-    "oy": -770,
-    "bodyBottom": 259.8,
-    "bodyH": 356.3,
-    "centroidX": 205.6,
-    "renderScale": 0.2772,
-    "file": "hanami/run_reach_b.png",
+    "w": 790,
+    "h": 1387,
+    "ox": -254.2,
+    "oy": -1127,
+    "bodyBottom": 185.3,
+    "bodyH": 356.5,
+    "centroidX": 172.7,
+    "renderScale": 0.257,
+    "file": "hanami/incoming/run_reach_b-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 975,
+      "h": 1081,
+      "ox": -379.6,
+      "oy": -770,
+      "bodyBottom": 259.8,
+      "bodyH": 356.3,
+      "bodyTop": 0,
+      "centroidX": 205.6,
+      "renderScale": 0.2772,
+      "anchors": {
+       "com": [
+        535.8,
+        406.2
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+      "edited": {
+       "renderScale": 0.33
+      },
+      "file": "hanami/run_reach_b.png"
+     }
+    },
     "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 790,
+    "coreLeft": 69.3,
+    "coreRight": 710.8,
     "anchors": {
      "com": [
-      535.8,
-      406.2
+      410.8,
+      635.8
      ]
     },
     "autoTuned": {
-     "at": "2026-08-09T12:38:28+00:00",
+     "at": "2026-08-09T23:24:31+00:00",
      "fields": {
-      "bodyBottom": "foot=0.953 (character)",
+      "bodyBottom": "foot=0.946 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "bodyLeft": 0,
-    "bodyRight": 975,
-    "coreLeft": 94.6,
-    "coreRight": 912.1,
-    "edited": {
-     "renderScale": 0.33
-    },
-    "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    }
    }
   },
   "geto": {
@@ -4885,27 +6058,23 @@
     "coreRight": 990.9
    },
    "attack_down": {
-    "w": 1184,
-    "h": 983,
-    "ox": -497.1,
-    "oy": -722,
-    "bodyBottom": 223.3,
-    "bodyH": 395.3,
-    "centroidX": 218.6,
-    "renderScale": 0.402,
+    "w": 1220,
+    "h": 898,
+    "ox": -501.0,
+    "oy": -674,
+    "bodyBottom": 189.6,
+    "bodyH": 395.1,
+    "centroidX": 204.5,
+    "renderScale": 0.44,
     "file": "geto/incoming/attack_down-2.png",
     "replaced": {
-     "at": "2026-08-09T22:59:19+00:00",
+     "at": "2026-08-09T23:23:22+00:00",
      "kept": "await",
      "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
+     "lost": []
     },
     "awaitingApproval": {
-     "at": "2026-08-09T22:59:19+00:00",
+     "at": "2026-08-09T23:23:22+00:00",
      "live": {
       "w": 782,
       "h": 1363,
@@ -4933,17 +6102,17 @@
     },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 1184,
-    "coreLeft": 111.0,
-    "coreRight": 1058.2,
+    "bodyRight": 1220,
+    "coreLeft": 99.1,
+    "coreRight": 1075.1,
     "anchors": {
      "com": [
-      654.4,
-      466.1
+      658.2,
+      398.6
      ]
     },
     "autoTuned": {
-     "at": "2026-08-09T23:00:27+00:00",
+     "at": "2026-08-09T23:24:31+00:00",
      "fields": {
       "bodyBottom": "foot=0.962 (character)",
       "ox": "centre of mass, not of the box"
@@ -14955,40 +16124,67 @@
     "coreRight": 824.9
    },
    "crouch_attack_b": {
-    "w": 984,
-    "h": 945,
-    "ox": -241.3,
-    "oy": -634,
-    "bodyBottom": 229.2,
-    "bodyH": 373.3,
-    "centroidX": 129.8,
-    "renderScale": 0.2034,
-    "file": "yuta/incoming/crouch_attack_b.png",
+    "w": 1440,
+    "h": 698,
+    "ox": -358.3,
+    "oy": -434,
+    "bodyBottom": 228.9,
+    "bodyH": 373.4,
+    "centroidX": -48.2,
+    "renderScale": 0.535,
+    "file": "yuta/incoming/crouch_attack_b-3.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 984,
+      "h": 945,
+      "ox": -241.3,
+      "oy": -634,
+      "bodyBottom": 229.2,
+      "bodyH": 373.3,
+      "bodyTop": 0,
+      "centroidX": 129.8,
+      "renderScale": 0.2034,
+      "anchors": {
+       "com": [
+        374.5,
+        373.9
+       ]
+      },
+      "needsReplacement": "quality",
+      "replacementNote": "The blade runs off the right edge of the plate, so the sword ends in mid-air. It is an art fault, not a crop: the delivered plate is cut the same way, so there is nothing to recover.",
+      "edited": {
+       "renderScale": 0.395,
+       "ox": -308.3,
+       "bodyBottom": 263.7
+      },
+      "file": "yuta/incoming/crouch_attack_b.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 984,
-    "coreLeft": 55.4,
-    "coreRight": 873.3,
+    "bodyRight": 1440,
+    "coreLeft": 63.0,
+    "coreRight": 1161.0,
     "anchors": {
      "com": [
-      374.5,
-      373.9
+      515.8,
+      299.2
      ]
     },
     "autoTuned": {
-     "at": "2026-08-09T16:01:37+00:00",
+     "at": "2026-08-09T23:24:31+00:00",
      "fields": {
       "bodyBottom": "foot=0.950 (character)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "edited": {
-     "renderScale": 0.395,
-     "ox": -308.3,
-     "bodyBottom": 263.7
-    },
-    "needsReplacement": "quality",
-    "replacementNote": "The blade runs off the right edge of the plate, so the sword ends in mid-air. It is an art fault, not a crop: the delivered plate is cut the same way, so there is nothing to recover."
+    }
    },
    "crouch_b": {
     "w": 900,
@@ -23713,28 +24909,23 @@
     "coreRight": 746.0
    },
    "attack_light_b": {
-    "w": 1031,
-    "h": 1063,
-    "ox": -344.0,
-    "oy": -803,
-    "bodyBottom": 211.9,
-    "bodyH": 238.3,
-    "centroidX": 142.0,
-    "renderScale": 0.224,
+    "w": 914,
+    "h": 1043,
+    "ox": -319.3,
+    "oy": -831,
+    "bodyBottom": 164.8,
+    "bodyH": 237.8,
+    "centroidX": 175.8,
+    "renderScale": 0.228,
     "file": "choso/incoming/attack_light_b-2.png",
     "replaced": {
-     "at": "2026-08-09T22:59:19+00:00",
+     "at": "2026-08-09T23:23:22+00:00",
      "kept": "await",
      "how": "await",
-     "lost": [
-      "bodyBottom",
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
+     "lost": []
     },
     "awaitingApproval": {
-     "at": "2026-08-09T22:59:19+00:00",
+     "at": "2026-08-09T23:23:22+00:00",
      "live": {
       "w": 980,
       "h": 1119,
@@ -23763,17 +24954,17 @@
     },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 1031,
-    "coreLeft": 73.1,
-    "coreRight": 857.0,
+    "bodyRight": 914,
+    "coreLeft": 84.7,
+    "coreRight": 788.8,
     "anchors": {
      "com": [
-      500.7,
-      455.9
+      476.0,
+      446.6
      ]
     },
     "autoTuned": {
-     "at": "2026-08-09T23:00:27+00:00",
+     "at": "2026-08-09T23:24:31+00:00",
      "fields": {
       "bodyBottom": "foot=0.955 (character)",
       "ox": "centre of mass, not of the box"
@@ -26136,40 +27327,67 @@
     "rotationDeg": -9.5
    },
    "crouch_b": {
-    "w": 882,
-    "h": 1397,
-    "ox": -292.6,
-    "oy": -1086,
-    "bodyBottom": 252.7,
-    "bodyH": 222.4,
-    "centroidX": 151.6,
-    "renderScale": 0.1964,
-    "file": "uro/incoming/crouch_b.png",
+    "w": 823,
+    "h": 1347,
+    "ox": -224.4,
+    "oy": -1117,
+    "bodyBottom": 152.3,
+    "bodyH": 222.3,
+    "centroidX": 126.4,
+    "renderScale": 0.165,
+    "file": "uro/incoming/crouch_b-3.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 882,
+      "h": 1397,
+      "ox": -292.6,
+      "oy": -1086,
+      "bodyBottom": 252.7,
+      "bodyH": 222.4,
+      "bodyTop": 0,
+      "centroidX": 151.6,
+      "renderScale": 0.1964,
+      "anchors": {
+       "com": [
+        444.5,
+        984.5
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Costume doesn't match canon",
+      "edited": {
+       "renderScale": 0.159,
+       "ox": -279.1,
+       "bodyBottom": 229.7
+      },
+      "file": "uro/incoming/crouch_b.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 882,
-    "coreLeft": 122.2,
-    "coreRight": 794.5,
+    "bodyRight": 823,
+    "coreLeft": 67.3,
+    "coreRight": 749.3,
     "anchors": {
      "com": [
-      444.5,
-      984.5
+      382.6,
+      658.5
      ]
     },
     "autoTuned": {
-     "at": "2026-08-09T16:01:37+00:00",
+     "at": "2026-08-09T23:24:31+00:00",
      "fields": {
       "bodyBottom": "foot=0.942 (character)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "edited": {
-     "renderScale": 0.159,
-     "ox": -279.1,
-     "bodyBottom": 229.7
-    },
-    "needsReplacement": "character",
-    "replacementNote": "Costume doesn't match canon"
+    }
    },
    "dash": {
     "w": 885,
@@ -30648,76 +31866,130 @@
     "coreRight": 835.3
    },
    "attack_light_a": {
-    "w": 1024,
-    "h": 1291,
-    "ox": -355.2,
-    "oy": -980,
-    "bodyBottom": 246.4,
-    "bodyH": 402.8,
-    "centroidX": 96.3,
-    "renderScale": 0.3853,
-    "file": "mahoraga/attack_light_a.png",
+    "w": 1042,
+    "h": 1115,
+    "ox": -448.4,
+    "oy": -804,
+    "bodyBottom": 276.6,
+    "bodyH": 402.5,
+    "centroidX": 240.9,
+    "renderScale": 0.361,
+    "file": "mahoraga/incoming/attack_light_a-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1024,
+      "h": 1291,
+      "ox": -355.2,
+      "oy": -980,
+      "bodyBottom": 246.4,
+      "bodyH": 402.8,
+      "bodyTop": 0,
+      "centroidX": 96.3,
+      "renderScale": 0.3853,
+      "anchors": {
+       "com": [
+        452.3,
+        537.9
+       ]
+      },
+      "needsReplacement": "pose",
+      "replacementNote": "The sword never leaves the body line \u2014 the wind-up does not extend. The redraw must also carry the karma wheel, which the round-13 delivery dropped.",
+      "edited": {
+       "renderScale": 0.312,
+       "bodyBottom": 310.4
+      },
+      "file": "mahoraga/attack_light_a.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 1102,
-    "coreLeft": 160.1,
-    "coreRight": 1037.4,
+    "bodyRight": 1042,
+    "coreLeft": 188.2,
+    "coreRight": 926.8,
     "anchors": {
      "com": [
-      452.3,
-      537.9
+      607.8,
+      482.8
      ]
     },
     "autoTuned": {
-     "at": "2026-08-09T16:01:37+00:00",
+     "at": "2026-08-09T23:24:31+00:00",
      "fields": {
       "bodyBottom": "foot=0.969 (character)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "needsReplacement": "pose",
-    "replacementNote": "The sword never leaves the body line \u2014 the wind-up does not extend. The redraw must also carry the karma wheel, which the round-13 delivery dropped.",
-    "edited": {
-     "renderScale": 0.312,
-     "bodyBottom": 310.4
     }
    },
    "attack_light_b": {
-    "w": 974,
-    "h": 1267,
-    "ox": -366.2,
-    "oy": -956,
-    "bodyBottom": 233.4,
-    "bodyH": 404.0,
-    "centroidX": 218.8,
-    "renderScale": 0.4019,
-    "file": "mahoraga/attack_light_b.png",
+    "w": 1235,
+    "h": 875,
+    "ox": -302.4,
+    "oy": -564,
+    "bodyBottom": 284.0,
+    "bodyH": 404.2,
+    "centroidX": -1.6,
+    "renderScale": 0.462,
+    "file": "mahoraga/incoming/attack_light_b-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 974,
+      "h": 1267,
+      "ox": -366.2,
+      "oy": -956,
+      "bodyBottom": 233.4,
+      "bodyH": 404.0,
+      "bodyTop": 0,
+      "centroidX": 218.8,
+      "renderScale": 0.4019,
+      "anchors": {
+       "com": [
+        549.6,
+        527.3
+       ]
+      },
+      "faceLeft": true,
+      "needsReplacement": "pose",
+      "replacementNote": "The blade stays across the body, tip down and back. Nothing reaches forward. The redraw must also carry the karma wheel.",
+      "edited": {
+       "renderScale": 0.319,
+       "ox": -330.2,
+       "bodyBottom": 310.4,
+       "faceLeft": null
+      },
+      "file": "mahoraga/attack_light_b.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 1147,
-    "coreLeft": 272.4,
-    "coreRight": 1089.7,
+    "bodyRight": 1235,
+    "coreLeft": 61.8,
+    "coreRight": 995.7,
     "anchors": {
      "com": [
-      549.6,
-      527.3
+      459.6,
+      377.6
      ]
     },
     "autoTuned": {
-     "at": "2026-08-09T16:01:37+00:00",
+     "at": "2026-08-09T23:24:31+00:00",
      "fields": {
       "bodyBottom": "foot=0.969 (character)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "needsReplacement": "pose",
-    "replacementNote": "The blade stays across the body, tip down and back. Nothing reaches forward. The redraw must also carry the karma wheel.",
-    "faceLeft": true,
-    "edited": {
-     "renderScale": 0.319,
-     "ox": -330.2,
-     "bodyBottom": 310.4,
-     "faceLeft": null
     }
    },
    "attack_up": {
@@ -30869,38 +32141,65 @@
     }
    },
    "crouch_b": {
-    "w": 1002,
-    "h": 1184,
-    "ox": -344.2,
-    "oy": -873,
-    "bodyBottom": 294.4,
-    "bodyH": 388.5,
-    "centroidX": 100.8,
-    "renderScale": 0.4166,
-    "file": "mahoraga/crouch_b.png",
+    "w": 1124,
+    "h": 1044,
+    "ox": -463.9,
+    "oy": -733,
+    "bodyBottom": 278.8,
+    "bodyH": 388.4,
+    "centroidX": 215.4,
+    "renderScale": 0.372,
+    "file": "mahoraga/incoming/crouch_b-2.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1002,
+      "h": 1184,
+      "ox": -344.2,
+      "oy": -873,
+      "bodyBottom": 294.4,
+      "bodyH": 388.5,
+      "bodyTop": 0,
+      "centroidX": 100.8,
+      "renderScale": 0.4166,
+      "anchors": {
+       "com": [
+        444.2,
+        506.5
+       ]
+      },
+      "needsReplacement": "pose",
+      "replacementNote": "Upright rather than crouched, opposite the delivered crouch_a. The redraw must also carry the karma wheel.",
+      "edited": {
+       "renderScale": 0.328,
+       "bodyBottom": 310.4
+      },
+      "file": "mahoraga/crouch_b.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 1066,
-    "coreLeft": 139.9,
-    "coreRight": 986.0,
+    "bodyRight": 1124,
+    "coreLeft": 182.7,
+    "coreRight": 1046.7,
     "anchors": {
      "com": [
-      444.2,
-      506.5
+      621.2,
+      484.3
      ]
     },
     "autoTuned": {
-     "at": "2026-08-09T16:01:37+00:00",
+     "at": "2026-08-09T23:24:31+00:00",
      "fields": {
       "bodyBottom": "foot=0.969 (character)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "needsReplacement": "pose",
-    "replacementNote": "Upright rather than crouched, opposite the delivered crouch_a. The redraw must also carry the karma wheel.",
-    "edited": {
-     "renderScale": 0.328,
-     "bodyBottom": 310.4
     }
    },
    "dash": {
@@ -32710,8 +34009,8 @@
     "coreRight": 470.5,
     "anchors": {
      "com": [
-      287.0,
-      519.6
+      288.3,
+      543.3
      ],
      "ledge": [
       291.8,
@@ -32727,9 +34026,7 @@
     },
     "edited": {
      "renderScale": 0.25
-    },
-    "needsReplacement": "quality",
-    "replacementNote": "Don't draw the ledge, just draw hand(s) grabbing it"
+    }
    },
    "prone": {
     "w": 1435,
@@ -33905,14 +35202,14 @@
     "renderScale": 0.41,
     "file": "mechamaru/ledge_hang.png",
     "bodyTop": 0,
-    "bodyLeft": 0,
-    "bodyRight": 855,
-    "coreLeft": 138.1,
-    "coreRight": 716.4,
+    "bodyLeft": 248,
+    "bodyRight": 601,
+    "coreLeft": 276.2,
+    "coreRight": 578.3,
     "anchors": {
      "com": [
-      426.6,
-      544.6
+      426.4,
+      645.9
      ],
      "ledge": [
       428.7,
@@ -33928,9 +35225,7 @@
     },
     "edited": {
      "renderScale": 0.25
-    },
-    "needsReplacement": "quality",
-    "replacementNote": "Should not draw the ledge, only the hands as they would be holding onto it."
+    }
    },
    "prone": {
     "w": 1532,
@@ -34264,19 +35559,13 @@
    "attack_air_a": {
     "w": 949,
     "h": 1134,
-    "ox": -237.2,
+    "ox": -217.7,
     "oy": -823,
-    "bodyBottom": 250.5,
+    "bodyBottom": 253.5,
     "bodyH": 283.5,
     "centroidX": 76.2,
-    "renderScale": 0.25,
+    "renderScale": 0.2625,
     "file": "yuki/attack_air_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 949,
@@ -34284,8 +35573,8 @@
     "coreRight": 772.5,
     "anchors": {
      "com": [
-      394.7,
-      388.3
+      434.4,
+      452.8
      ]
     },
     "autoTuned": {
@@ -34294,24 +35583,23 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -237.2,
+     "bodyBottom": 250.5
     }
    },
    "attack_air_b": {
     "w": 1025,
     "h": 959,
-    "ox": -278.6,
+    "ox": -340.6,
     "oy": -648,
     "bodyBottom": 259.8,
     "bodyH": 239.8,
     "centroidX": 79.6,
-    "renderScale": 0.25,
+    "renderScale": 0.31,
     "file": "yuki/attack_air_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1025,
@@ -34319,8 +35607,8 @@
     "coreRight": 864.8,
     "anchors": {
      "com": [
-      435.8,
-      310.0
+      486.8,
+      359.6
      ]
     },
     "autoTuned": {
@@ -34329,6 +35617,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -278.6
     }
    },
    "attack_down": {
@@ -34339,14 +35631,8 @@
     "bodyBottom": 240.1,
     "bodyH": 332.0,
     "centroidX": 158.0,
-    "renderScale": 0.25,
+    "renderScale": 0.2325,
     "file": "yuki/attack_down.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 892,
@@ -34364,6 +35650,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "attack_heavy_a": {
@@ -34374,14 +35663,8 @@
     "bodyBottom": 243.5,
     "bodyH": 316.0,
     "centroidX": 137.0,
-    "renderScale": 0.25,
+    "renderScale": 0.2587,
     "file": "yuki/attack_heavy_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 891,
@@ -34399,29 +35682,17 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "attack_heavy_b": {
-    "w": 894,
-    "h": 1297,
-    "ox": -280.8,
-    "oy": -986,
-    "bodyBottom": 241.8,
-    "bodyH": 324.2,
-    "centroidX": 147.3,
-    "renderScale": 0.25,
-    "file": "yuki/attack_heavy_b.png",
-    "bodyTop": 0,
+    "file": "yuki/ult_b.png",
     "bodyLeft": 0,
     "bodyRight": 894,
     "coreLeft": 64.8,
     "coreRight": 778.2,
-    "anchors": {
-     "com": [
-      436.8,
-      466.0
-     ]
-    },
     "autoTuned": {
      "at": "2026-08-09T21:17:56+00:00",
      "fields": {
@@ -34429,13 +35700,26 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "needsReplacement": "pose",
-    "replacementNote": "The hook extends only 9% of standing height past the idle \u2014 the shortest heavy on the roster. She is a boxer with no weapon, so the whole body has to be behind it.",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
+    "borrowedFrom": "ult_b",
+    "w": 1172,
+    "h": 894,
+    "ox": -414.5,
+    "oy": -583,
+    "bodyBottom": 263.3,
+    "bodyH": 223.5,
+    "bodyTop": 0,
+    "centroidX": 142,
+    "renderScale": 0.3337,
+    "anchors": {
+     "com": [
+      571.7,
+      308.3
+     ]
+    },
+    "edited": {
+     "renderScale": 0.33375,
+     "ox": -414.5,
+     "bodyBottom": 263.3
     }
    },
    "attack_light_a": {
@@ -34446,14 +35730,8 @@
     "bodyBottom": 235.8,
     "bodyH": 352.0,
     "centroidX": 104.9,
-    "renderScale": 0.25,
+    "renderScale": 0.2462,
     "file": "yuki/attack_light_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 833,
@@ -34461,8 +35739,8 @@
     "coreRight": 704.0,
     "anchors": {
      "com": [
-      366.4,
-      531.9
+      377.5,
+      493.6
      ]
     },
     "autoTuned": {
@@ -34471,6 +35749,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "attack_light_b": {
@@ -34481,14 +35762,8 @@
     "bodyBottom": 237.9,
     "bodyH": 342.5,
     "centroidX": 239.7,
-    "renderScale": 0.25,
+    "renderScale": 0.2562,
     "file": "yuki/attack_light_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 907,
@@ -34505,6 +35780,9 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "attack_up": {
@@ -34512,17 +35790,11 @@
     "h": 1457,
     "ox": -112.0,
     "oy": -1146,
-    "bodyBottom": 233.2,
+    "bodyBottom": 268.7,
     "bodyH": 364.2,
     "centroidX": 122.5,
-    "renderScale": 0.25,
+    "renderScale": 0.2888,
     "file": "yuki/attack_up.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 606,
@@ -34530,8 +35802,8 @@
     "coreRight": 519.1,
     "anchors": {
      "com": [
-      271.1,
-      659.0
+      298.8,
+      647.6
      ]
     },
     "autoTuned": {
@@ -34540,6 +35812,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 233.2
     }
    },
    "charge": {
@@ -34552,12 +35828,6 @@
     "centroidX": 141.4,
     "renderScale": 0.25,
     "file": "yuki/charge.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 859,
@@ -34585,14 +35855,8 @@
     "bodyBottom": 252.2,
     "bodyH": 275.2,
     "centroidX": 153.3,
-    "renderScale": 0.25,
+    "renderScale": 0.2075,
     "file": "yuki/crouch_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 855,
@@ -34600,8 +35864,8 @@
     "coreRight": 770.7,
     "anchors": {
      "com": [
-      423.7,
-      498.6
+      413.5,
+      535.4
      ]
     },
     "autoTuned": {
@@ -34610,6 +35874,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "crouch_attack_a": {
@@ -34617,17 +35884,11 @@
     "h": 896,
     "ox": -432.4,
     "oy": -585,
-    "bodyBottom": 263.2,
+    "bodyBottom": 278.7,
     "bodyH": 224.0,
     "centroidX": 173.9,
-    "renderScale": 0.25,
+    "renderScale": 0.2412,
     "file": "yuki/crouch_attack_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1144,
@@ -34645,6 +35906,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 263.2
     }
    },
    "crouch_attack_b": {
@@ -34652,17 +35917,11 @@
     "h": 857,
     "ox": -545.4,
     "oy": -546,
-    "bodyBottom": 265.3,
+    "bodyBottom": 292.3,
     "bodyH": 214.2,
     "centroidX": 231.9,
-    "renderScale": 0.25,
+    "renderScale": 0.245,
     "file": "yuki/crouch_attack_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1254,
@@ -34680,24 +35939,23 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 265.3
+    },
+    "needsReplacement": "pose"
    },
    "crouch_b": {
     "w": 920,
     "h": 1052,
     "ox": -288.7,
     "oy": -741,
-    "bodyBottom": 254.8,
+    "bodyBottom": 221.8,
     "bodyH": 263.0,
     "centroidX": 142.2,
-    "renderScale": 0.25,
+    "renderScale": 0.21,
     "file": "yuki/crouch_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 920,
@@ -34715,6 +35973,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 254.8
     }
    },
    "dash": {
@@ -34725,14 +35987,8 @@
     "bodyBottom": 263.8,
     "bodyH": 221.2,
     "centroidX": 269.1,
-    "renderScale": 0.25,
+    "renderScale": 0.2825,
     "file": "yuki/dash.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1053,
@@ -34740,8 +35996,8 @@
     "coreRight": 1006.9,
     "anchors": {
      "com": [
-      639.3,
-      316.5
+      716.3,
+      385.9
      ]
     },
     "autoTuned": {
@@ -34750,6 +36006,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "dizzy": {
@@ -34757,17 +36016,11 @@
     "h": 1359,
     "ox": -51.7,
     "oy": -1048,
-    "bodyBottom": 238.5,
+    "bodyBottom": 197.5,
     "bodyH": 339.8,
     "centroidX": 161.2,
-    "renderScale": 0.25,
+    "renderScale": 0.265,
     "file": "yuki/dizzy.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 408,
@@ -34785,6 +36038,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 238.5
     }
    },
    "dodge_air": {
@@ -34792,17 +36049,11 @@
     "h": 1243,
     "ox": -219.3,
     "oy": -932,
-    "bodyBottom": 244.7,
+    "bodyBottom": 201.7,
     "bodyH": 310.8,
     "centroidX": 163.3,
-    "renderScale": 0.25,
+    "renderScale": 0.26,
     "file": "yuki/dodge_air.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 739,
@@ -34810,8 +36061,8 @@
     "coreRight": 660.3,
     "anchors": {
      "com": [
-      376.2,
-      356.3
+      417.4,
+      434.0
      ]
     },
     "autoTuned": {
@@ -34820,6 +36071,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 244.7
     }
    },
    "dodge_roll": {
@@ -34827,17 +36082,11 @@
     "h": 651,
     "ox": -289.7,
     "oy": -340,
-    "bodyBottom": 276.3,
+    "bodyBottom": 676.3,
     "bodyH": 162.8,
     "centroidX": 85.7,
     "renderScale": 0.25,
     "file": "yuki/dodge_roll.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1035,
@@ -34845,8 +36094,8 @@
     "coreRight": 970.3,
     "anchors": {
      "com": [
-      446.9,
-      362.7
+      455.2,
+      387.2
      ]
     },
     "autoTuned": {
@@ -34855,24 +36104,25 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "bodyBottom": 276.3,
+     "rotationDeg": null,
+     "faceLeft": null
+    },
+    "rotationDeg": 70,
+    "faceLeft": true
    },
    "fall": {
     "w": 866,
     "h": 1208,
     "ox": -259.4,
     "oy": -897,
-    "bodyBottom": 246.5,
+    "bodyBottom": 304.5,
     "bodyH": 302.0,
     "centroidX": 139.9,
-    "renderScale": 0.25,
+    "renderScale": 0.2637,
     "file": "yuki/fall.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 866,
@@ -34890,6 +36140,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 246.5
     }
    },
    "guard": {
@@ -34897,17 +36151,11 @@
     "h": 1258,
     "ox": -162.6,
     "oy": -947,
-    "bodyBottom": 243.9,
+    "bodyBottom": 257.4,
     "bodyH": 314.5,
     "centroidX": 149.6,
-    "renderScale": 0.25,
+    "renderScale": 0.2813,
     "file": "yuki/guard.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 653,
@@ -34925,24 +36173,22 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 243.9
     }
    },
    "hurt": {
     "w": 722,
     "h": 1319,
-    "ox": -240.4,
+    "ox": -288.9,
     "oy": -1008,
     "bodyBottom": 240.6,
     "bodyH": 329.8,
     "centroidX": 192.9,
-    "renderScale": 0.25,
+    "renderScale": 0.2525,
     "file": "yuki/hurt.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 722,
@@ -34950,8 +36196,8 @@
     "coreRight": 684.2,
     "anchors": {
      "com": [
-      399.5,
-      477.9
+      459.9,
+      494.1
      ]
     },
     "autoTuned": {
@@ -34960,6 +36206,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -240.4
     }
    },
    "idle_a": {
@@ -34972,12 +36222,6 @@
     "centroidX": 122.9,
     "renderScale": 0.25,
     "file": "yuki/idle_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 644,
@@ -34985,8 +36229,8 @@
     "coreRight": 532.8,
     "anchors": {
      "com": [
-      287.5,
-      564.2
+      329.1,
+      513.6
      ]
     },
     "autoTuned": {
@@ -35007,12 +36251,6 @@
     "centroidX": 123.2,
     "renderScale": 0.25,
     "file": "yuki/idle_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 641,
@@ -35020,8 +36258,8 @@
     "coreRight": 532.8,
     "anchors": {
      "com": [
-      287.4,
-      563.0
+      336.8,
+      506.7
      ]
     },
     "autoTuned": {
@@ -35037,17 +36275,11 @@
     "h": 1298,
     "ox": -246.3,
     "oy": -987,
-    "bodyBottom": 241.7,
+    "bodyBottom": 176.2,
     "bodyH": 324.5,
     "centroidX": 196.3,
-    "renderScale": 0.25,
+    "renderScale": 0.2575,
     "file": "yuki/jump_rise.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 727,
@@ -35055,8 +36287,8 @@
     "coreRight": 665.2,
     "anchors": {
      "com": [
-      405.2,
-      401.7
+      447.1,
+      459.5
      ]
     },
     "autoTuned": {
@@ -35065,6 +36297,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 241.7
     }
    },
    "land": {
@@ -35072,17 +36308,11 @@
     "h": 1048,
     "ox": -338.7,
     "oy": -737,
-    "bodyBottom": 255.1,
+    "bodyBottom": 180.1,
     "bodyH": 262.0,
     "centroidX": 169.7,
-    "renderScale": 0.25,
+    "renderScale": 0.2263,
     "file": "yuki/land.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 965,
@@ -35090,8 +36320,8 @@
     "coreRight": 844.9,
     "anchors": {
      "com": [
-      494.8,
-      419.9
+      547.9,
+      444.6
      ]
     },
     "autoTuned": {
@@ -35100,24 +36330,22 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 255.1
     }
    },
    "ledge_hang": {
     "w": 385,
     "h": 1351,
-    "ox": -50.4,
+    "ox": -58.4,
     "oy": -1040,
     "bodyBottom": 238.9,
     "bodyH": 337.8,
     "centroidX": 171.4,
-    "renderScale": 0.25,
+    "renderScale": 0.3412,
     "file": "yuki/ledge_hang.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 385,
@@ -35125,12 +36353,12 @@
     "coreRight": 354.6,
     "anchors": {
      "com": [
-      209.4,
-      563.1
+      230.0,
+      577.7
      ],
      "ledge": [
-      201.9,
-      52.3
+      202.4,
+      20.5
      ]
     },
     "autoTuned": {
@@ -35139,6 +36367,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -50.4
     }
    },
    "prone": {
@@ -35146,17 +36378,11 @@
     "h": 350,
     "ox": -667.3,
     "oy": -39,
-    "bodyBottom": 310.4,
+    "bodyBottom": 201.9,
     "bodyH": 87.5,
     "centroidX": 188.8,
     "renderScale": 0.25,
     "file": "yuki/prone.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1584,
@@ -35173,6 +36399,9 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 310.4
     }
    },
    "run_pass_a": {
@@ -35180,17 +36409,11 @@
     "h": 1250,
     "ox": -241.1,
     "oy": -939,
-    "bodyBottom": 244.3,
+    "bodyBottom": 297.3,
     "bodyH": 312.5,
     "centroidX": 132.6,
-    "renderScale": 0.25,
+    "renderScale": 0.26,
     "file": "yuki/run_pass_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 844,
@@ -35208,6 +36431,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 244.3
     }
    },
    "run_pass_b": {
@@ -35215,17 +36442,11 @@
     "h": 1379,
     "ox": -282.5,
     "oy": -1068,
-    "bodyBottom": 237.4,
+    "bodyBottom": 300.4,
     "bodyH": 344.8,
     "centroidX": 181.0,
     "renderScale": 0.25,
     "file": "yuki/run_pass_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 830,
@@ -35243,6 +36464,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 237.4
     }
    },
    "run_reach_a": {
@@ -35250,17 +36474,11 @@
     "h": 1009,
     "ox": -253.0,
     "oy": -698,
-    "bodyBottom": 257.1,
+    "bodyBottom": 301.6,
     "bodyH": 252.2,
     "centroidX": 58.5,
-    "renderScale": 0.25,
+    "renderScale": 0.315,
     "file": "yuki/run_reach_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1016,
@@ -35278,24 +36496,24 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 257.1
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "Reach should be with leg not arm"
    },
    "run_reach_b": {
     "w": 946,
     "h": 1189,
     "ox": -259.2,
     "oy": -878,
-    "bodyBottom": 247.5,
+    "bodyBottom": 308.5,
     "bodyH": 297.2,
     "centroidX": 99.7,
-    "renderScale": 0.25,
+    "renderScale": 0.2612,
     "file": "yuki/run_reach_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 946,
@@ -35313,24 +36531,24 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 247.5
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "reach should be with leg not arm."
    },
    "special_down": {
     "w": 928,
     "h": 1206,
     "ox": -281.7,
     "oy": -895,
-    "bodyBottom": 246.6,
+    "bodyBottom": 260.1,
     "bodyH": 301.5,
     "centroidX": 131.2,
-    "renderScale": 0.25,
+    "renderScale": 0.3063,
     "file": "yuki/special_down.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 928,
@@ -35348,6 +36566,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 246.6
     }
    },
    "special_neutral": {
@@ -35358,14 +36580,8 @@
     "bodyBottom": 257.8,
     "bodyH": 249.2,
     "centroidX": 132.1,
-    "renderScale": 0.25,
+    "renderScale": 0.335,
     "file": "yuki/special_neutral.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 939,
@@ -35383,6 +36599,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "special_side": {
@@ -35393,14 +36612,8 @@
     "bodyBottom": 234.6,
     "bodyH": 358.0,
     "centroidX": 142.6,
-    "renderScale": 0.25,
+    "renderScale": 0.2875,
     "file": "yuki/special_side.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 887,
@@ -35418,6 +36631,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "ult_a": {
@@ -35425,17 +36641,11 @@
     "h": 915,
     "ox": -305.7,
     "oy": -604,
-    "bodyBottom": 262.2,
+    "bodyBottom": 282.7,
     "bodyH": 228.8,
     "centroidX": 109.2,
-    "renderScale": 0.25,
+    "renderScale": 0.305,
     "file": "yuki/ult_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1020,
@@ -35453,6 +36663,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 262.2
     }
    },
    "ult_b": {
@@ -35463,14 +36677,8 @@
     "bodyBottom": 263.3,
     "bodyH": 223.5,
     "centroidX": 142.0,
-    "renderScale": 0.25,
+    "renderScale": 0.3337,
     "file": "yuki/ult_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1172,
@@ -35488,6 +36696,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "victory": {
@@ -35498,14 +36709,8 @@
     "bodyBottom": 235.3,
     "bodyH": 354.5,
     "centroidX": 119.7,
-    "renderScale": 0.25,
+    "renderScale": 0.2575,
     "file": "yuki/victory.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 678,
@@ -35521,6 +36726,1774 @@
      "at": "2026-08-09T21:17:56+00:00",
      "fields": {
       "bodyBottom": "foot=0.947 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "renderScale": 0.25
+    }
+   }
+  },
+  "kurourushi": {
+   "attack_air_a": {
+    "w": 860,
+    "h": 1320,
+    "ox": -258.5,
+    "oy": -1009,
+    "bodyBottom": 310.4,
+    "bodyH": 330.0,
+    "centroidX": 142.0,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/attack_air_a.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 860,
+      "h": 1320,
+      "ox": -273.2,
+      "oy": -1009,
+      "bodyBottom": 310.4,
+      "bodyH": 330.0,
+      "centroidX": 142.0,
+      "renderScale": 0.25,
+      "file": "kurourushi/attack_air_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 860,
+    "coreLeft": 107.2,
+    "coreRight": 660.0,
+    "anchors": {
+     "com": [
+      414.7,
+      666.8
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "attack_air_b": {
+    "w": 1373,
+    "h": 1019,
+    "ox": -360.5,
+    "oy": -708,
+    "bodyBottom": 310.4,
+    "bodyH": 254.8,
+    "centroidX": -12.5,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/attack_air_b.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1373,
+      "h": 1019,
+      "ox": -529.8,
+      "oy": -708,
+      "bodyBottom": 310.4,
+      "bodyH": 254.8,
+      "centroidX": -12.5,
+      "renderScale": 0.25,
+      "file": "kurourushi/attack_air_b.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1373,
+    "coreLeft": 94.4,
+    "coreRight": 1184.2,
+    "anchors": {
+     "com": [
+      517.9,
+      431.3
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "attack_down": {
+    "w": 930,
+    "h": 1284,
+    "ox": -283.4,
+    "oy": -973,
+    "bodyBottom": 241.9,
+    "bodyH": 321.0,
+    "centroidX": 131.9,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/attack_down.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 930,
+      "h": 1284,
+      "ox": -308.2,
+      "oy": -973,
+      "bodyBottom": 310.4,
+      "bodyH": 321.0,
+      "centroidX": 131.9,
+      "renderScale": 0.25,
+      "file": "kurourushi/attack_down.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 930,
+    "coreLeft": 96.3,
+    "coreRight": 746.3,
+    "anchors": {
+     "com": [
+      441.0,
+      674.1
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "attack_heavy_a": {
+    "w": 766,
+    "h": 1368,
+    "ox": -256.5,
+    "oy": -1057,
+    "bodyBottom": 237.3,
+    "bodyH": 342.0,
+    "centroidX": 187.0,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/attack_heavy_a.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 766,
+      "h": 1368,
+      "ox": -226.2,
+      "oy": -1057,
+      "bodyBottom": 310.4,
+      "bodyH": 342.0,
+      "centroidX": 187.0,
+      "renderScale": 0.25,
+      "file": "kurourushi/attack_heavy_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 766,
+    "coreLeft": 102.6,
+    "coreRight": 684.0,
+    "anchors": {
+     "com": [
+      415.7,
+      695.1
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "attack_heavy_b": {
+    "w": 844,
+    "h": 1431,
+    "ox": -287.5,
+    "oy": -1120,
+    "bodyBottom": 233.9,
+    "bodyH": 357.8,
+    "centroidX": 179.0,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/attack_heavy_b.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 844,
+      "h": 1431,
+      "ox": -265.2,
+      "oy": -1120,
+      "bodyBottom": 310.4,
+      "bodyH": 357.8,
+      "centroidX": 179.0,
+      "renderScale": 0.25,
+      "file": "kurourushi/attack_heavy_b.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 844,
+    "coreLeft": 116.3,
+    "coreRight": 733.4,
+    "anchors": {
+     "com": [
+      443.1,
+      730.3
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "attack_light_a": {
+    "w": 826,
+    "h": 1433,
+    "ox": -267.5,
+    "oy": -1122,
+    "bodyBottom": 233.8,
+    "bodyH": 358.2,
+    "centroidX": 168.0,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/attack_light_a.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 826,
+      "h": 1433,
+      "ox": -256.2,
+      "oy": -1122,
+      "bodyBottom": 310.4,
+      "bodyH": 358.2,
+      "centroidX": 168.0,
+      "renderScale": 0.25,
+      "file": "kurourushi/attack_light_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 826,
+    "coreLeft": 116.4,
+    "coreRight": 698.6,
+    "anchors": {
+     "com": [
+      423.8,
+      723.1
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "attack_light_b": {
+    "w": 1353,
+    "h": 909,
+    "ox": -374.7,
+    "oy": -598,
+    "bodyBottom": 262.1,
+    "bodyH": 227.2,
+    "centroidX": 11.7,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/attack_light_b.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1353,
+      "h": 909,
+      "ox": -519.8,
+      "oy": -598,
+      "bodyBottom": 310.4,
+      "bodyH": 227.2,
+      "centroidX": 11.7,
+      "renderScale": 0.25,
+      "file": "kurourushi/attack_light_b.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1353,
+    "coreLeft": 143.8,
+    "coreRight": 1116.2,
+    "anchors": {
+     "com": [
+      531.9,
+      449.4
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "attack_up": {
+    "w": 838,
+    "h": 1413,
+    "ox": -257.3,
+    "oy": -1102,
+    "bodyBottom": 234.9,
+    "bodyH": 353.2,
+    "centroidX": 151.8,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/attack_up.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 838,
+      "h": 1413,
+      "ox": -262.2,
+      "oy": -1102,
+      "bodyBottom": 310.4,
+      "bodyH": 353.2,
+      "centroidX": 151.8,
+      "renderScale": 0.25,
+      "file": "kurourushi/attack_up.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 838,
+    "coreLeft": 141.3,
+    "coreRight": 741.8,
+    "anchors": {
+     "com": [
+      415.0,
+      714.7
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "charge": {
+    "w": 1013,
+    "h": 1208,
+    "ox": -311.8,
+    "oy": -897,
+    "bodyBottom": 246.0,
+    "bodyH": 302.0,
+    "centroidX": 118.8,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/charge.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1013,
+      "h": 1208,
+      "ox": -349.8,
+      "oy": -897,
+      "bodyBottom": 310.4,
+      "bodyH": 302.0,
+      "centroidX": 118.8,
+      "renderScale": 0.25,
+      "file": "kurourushi/charge.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1013,
+    "coreLeft": 75.5,
+    "coreRight": 875.8,
+    "anchors": {
+     "com": [
+      468.4,
+      687.6
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "crouch_a": {
+    "w": 1317,
+    "h": 1036,
+    "ox": -448.9,
+    "oy": -725,
+    "bodyBottom": 255.2,
+    "bodyH": 259.0,
+    "centroidX": 103.9,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/crouch_a.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1317,
+      "h": 1036,
+      "ox": -501.8,
+      "oy": -725,
+      "bodyBottom": 310.4,
+      "bodyH": 259.0,
+      "centroidX": 103.9,
+      "renderScale": 0.25,
+      "file": "kurourushi/crouch_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1317,
+    "coreLeft": 181.1,
+    "coreRight": 979.5,
+    "anchors": {
+     "com": [
+      606.2,
+      573.9
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "crouch_attack_a": {
+    "w": 1411,
+    "h": 958,
+    "ox": -571.7,
+    "oy": -647,
+    "bodyBottom": 259.4,
+    "bodyH": 239.5,
+    "centroidX": 179.7,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/crouch_attack_a.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1411,
+      "h": 958,
+      "ox": -548.8,
+      "oy": -647,
+      "bodyBottom": 310.4,
+      "bodyH": 239.5,
+      "centroidX": 179.7,
+      "renderScale": 0.25,
+      "file": "kurourushi/crouch_attack_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1411,
+    "coreLeft": 158.7,
+    "coreRight": 1199.3,
+    "anchors": {
+     "com": [
+      729.0,
+      532.5
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "crouch_attack_b": {
+    "w": 1430,
+    "h": 881,
+    "ox": -584.8,
+    "oy": -570,
+    "bodyBottom": 263.6,
+    "bodyH": 220.2,
+    "centroidX": 183.3,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/crouch_attack_b.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1430,
+      "h": 881,
+      "ox": -558.2,
+      "oy": -570,
+      "bodyBottom": 310.4,
+      "bodyH": 220.2,
+      "centroidX": 183.3,
+      "renderScale": 0.25,
+      "file": "kurourushi/crouch_attack_b.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1430,
+    "coreLeft": 143.0,
+    "coreRight": 1215.5,
+    "anchors": {
+     "com": [
+      741.8,
+      488.4
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "crouch_b": {
+    "w": 1184,
+    "h": 936,
+    "ox": -449.6,
+    "oy": -625,
+    "bodyBottom": 260.6,
+    "bodyH": 234.0,
+    "centroidX": 171.1,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/crouch_b.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1184,
+      "h": 936,
+      "ox": -435.2,
+      "oy": -625,
+      "bodyBottom": 310.4,
+      "bodyH": 234.0,
+      "centroidX": 171.1,
+      "renderScale": 0.25,
+      "file": "kurourushi/crouch_b.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1184,
+    "coreLeft": 170.2,
+    "coreRight": 932.4,
+    "anchors": {
+     "com": [
+      606.9,
+      491.3
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "dash": {
+    "w": 1474,
+    "h": 903,
+    "ox": -521.0,
+    "oy": -592,
+    "bodyBottom": 262.4,
+    "bodyH": 225.8,
+    "centroidX": 97.5,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/dash.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1474,
+      "h": 903,
+      "ox": -580.2,
+      "oy": -592,
+      "bodyBottom": 310.4,
+      "bodyH": 225.8,
+      "centroidX": 97.5,
+      "renderScale": 0.25,
+      "file": "kurourushi/dash.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1474,
+    "coreLeft": 129.0,
+    "coreRight": 1252.9,
+    "anchors": {
+     "com": [
+      678.3,
+      474.3
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "dizzy": {
+    "w": 769,
+    "h": 1362,
+    "ox": -238.2,
+    "oy": -1051,
+    "bodyBottom": 237.7,
+    "bodyH": 340.5,
+    "centroidX": 167.2,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/dizzy.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 769,
+      "h": 1362,
+      "ox": -227.8,
+      "oy": -1051,
+      "bodyBottom": 310.4,
+      "bodyH": 340.5,
+      "centroidX": 167.2,
+      "renderScale": 0.25,
+      "file": "kurourushi/dizzy.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 769,
+    "coreLeft": 144.7,
+    "coreRight": 629.9,
+    "anchors": {
+     "com": [
+      394.0,
+      655.3
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "dodge_air": {
+    "w": 959,
+    "h": 1157,
+    "ox": -328.9,
+    "oy": -846,
+    "bodyBottom": 310.4,
+    "bodyH": 289.2,
+    "centroidX": 162.9,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/dodge_air.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 959,
+      "h": 1157,
+      "ox": -322.8,
+      "oy": -846,
+      "bodyBottom": 310.4,
+      "bodyH": 289.2,
+      "centroidX": 162.9,
+      "renderScale": 0.25,
+      "file": "kurourushi/dodge_air.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 959,
+    "coreLeft": 86.8,
+    "coreRight": 846.1,
+    "anchors": {
+     "com": [
+      487.6,
+      610.7
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "dodge_roll": {
+    "w": 1368,
+    "h": 805,
+    "ox": -480.7,
+    "oy": -494,
+    "bodyBottom": 267.7,
+    "bodyH": 201.2,
+    "centroidX": 110.2,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/dodge_roll.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1368,
+      "h": 805,
+      "ox": -527.2,
+      "oy": -494,
+      "bodyBottom": 310.4,
+      "bodyH": 201.2,
+      "centroidX": 110.2,
+      "renderScale": 0.25,
+      "file": "kurourushi/dodge_roll.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1368,
+    "coreLeft": 145.4,
+    "coreRight": 1137.2,
+    "anchors": {
+     "com": [
+      638.1,
+      443.8
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "fall": {
+    "w": 947,
+    "h": 1456,
+    "ox": -317.5,
+    "oy": -1145,
+    "bodyBottom": 310.4,
+    "bodyH": 364.0,
+    "centroidX": 157.5,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/fall.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 947,
+      "h": 1456,
+      "ox": -316.8,
+      "oy": -1145,
+      "bodyBottom": 310.4,
+      "bodyH": 364.0,
+      "centroidX": 157.5,
+      "renderScale": 0.25,
+      "file": "kurourushi/fall.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 947,
+    "coreLeft": 154.7,
+    "coreRight": 800.8,
+    "anchors": {
+     "com": [
+      474.5,
+      748.0
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "guard": {
+    "w": 882,
+    "h": 1365,
+    "ox": -294.8,
+    "oy": -1054,
+    "bodyBottom": 237.5,
+    "bodyH": 341.2,
+    "centroidX": 167.3,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/guard.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 882,
+      "h": 1365,
+      "ox": -284.2,
+      "oy": -1054,
+      "bodyBottom": 310.4,
+      "bodyH": 341.2,
+      "centroidX": 167.3,
+      "renderScale": 0.25,
+      "file": "kurourushi/guard.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 882,
+    "coreLeft": 128.0,
+    "coreRight": 742.2,
+    "anchors": {
+     "com": [
+      450.3,
+      719.5
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "hurt": {
+    "w": 853,
+    "h": 1277,
+    "ox": -329.4,
+    "oy": -966,
+    "bodyBottom": 242.2,
+    "bodyH": 319.2,
+    "centroidX": 216.4,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/hurt.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 853,
+      "h": 1277,
+      "ox": -269.8,
+      "oy": -966,
+      "bodyBottom": 310.4,
+      "bodyH": 319.2,
+      "centroidX": 216.4,
+      "renderScale": 0.25,
+      "file": "kurourushi/hurt.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 853,
+    "coreLeft": 207.5,
+    "coreRight": 742.3,
+    "anchors": {
+     "com": [
+      487.3,
+      680.4
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "idle_a": {
+    "w": 725,
+    "h": 1475,
+    "ox": -214.4,
+    "oy": -1164,
+    "bodyBottom": 231.6,
+    "bodyH": 368.8,
+    "centroidX": 165.4,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/idle_a.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 725,
+      "h": 1475,
+      "ox": -205.8,
+      "oy": -1164,
+      "bodyBottom": 310.4,
+      "bodyH": 368.8,
+      "centroidX": 165.4,
+      "renderScale": 0.25,
+      "file": "kurourushi/idle_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 725,
+    "coreLeft": 147.5,
+    "coreRight": 608.4,
+    "anchors": {
+     "com": [
+      373.3,
+      730.4
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "idle_b": {
+    "w": 717,
+    "h": 1459,
+    "ox": -211.2,
+    "oy": -1148,
+    "bodyBottom": 232.4,
+    "bodyH": 368.8,
+    "centroidX": 166.2,
+    "renderScale": 0.253,
+    "file": "kurourushi/incoming/idle_b.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 717,
+      "h": 1459,
+      "ox": -201.8,
+      "oy": -1148,
+      "bodyBottom": 310.4,
+      "bodyH": 364.8,
+      "centroidX": 166.2,
+      "renderScale": 0.25,
+      "file": "kurourushi/idle_b.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 717,
+    "coreLeft": 145.9,
+    "coreRight": 601.8,
+    "anchors": {
+     "com": [
+      370.2,
+      713.4
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "bodyH": "ratio=1.000 x idle",
+      "renderScale": "idle is uniform",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "jump_rise": {
+    "w": 877,
+    "h": 1368,
+    "ox": -282.4,
+    "oy": -1057,
+    "bodyBottom": 310.4,
+    "bodyH": 342.0,
+    "centroidX": 157.4,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/jump_rise.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 877,
+      "h": 1368,
+      "ox": -281.8,
+      "oy": -1057,
+      "bodyBottom": 310.4,
+      "bodyH": 342.0,
+      "centroidX": 157.4,
+      "renderScale": 0.25,
+      "file": "kurourushi/jump_rise.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 877,
+    "coreLeft": 102.6,
+    "coreRight": 735.3,
+    "anchors": {
+     "com": [
+      441.5,
+      613.8
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "land": {
+    "w": 733,
+    "h": 1036,
+    "ox": -215.1,
+    "oy": -725,
+    "bodyBottom": 255.2,
+    "bodyH": 259.0,
+    "centroidX": 162.1,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/land.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 733,
+      "h": 1036,
+      "ox": -209.8,
+      "oy": -725,
+      "bodyBottom": 310.4,
+      "bodyH": 259.0,
+      "centroidX": 162.1,
+      "renderScale": 0.25,
+      "file": "kurourushi/land.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 733,
+    "coreLeft": 129.5,
+    "coreRight": 582.8,
+    "anchors": {
+     "com": [
+      371.6,
+      516.9
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "ledge_hang": {
+    "w": 1004,
+    "h": 1313,
+    "ox": -370.1,
+    "oy": -1002,
+    "bodyBottom": 310.4,
+    "bodyH": 328.2,
+    "centroidX": 181.6,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/ledge_hang.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1004,
+      "h": 1313,
+      "ox": -345.2,
+      "oy": -1002,
+      "bodyBottom": 310.4,
+      "bodyH": 328.2,
+      "centroidX": 181.6,
+      "renderScale": 0.25,
+      "file": "kurourushi/ledge_hang.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1004,
+    "coreLeft": 114.9,
+    "coreRight": 837.0,
+    "anchors": {
+     "com": [
+      525.8,
+      582.9
+     ],
+     "ledge": [
+      206.4,
+      62.7
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "prone": {
+    "w": 1461,
+    "h": 604,
+    "ox": -554.1,
+    "oy": -293,
+    "bodyBottom": 310.4,
+    "bodyH": 151.0,
+    "centroidX": 137.1,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/prone.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1461,
+      "h": 604,
+      "ox": -573.8,
+      "oy": -293,
+      "bodyBottom": 310.4,
+      "bodyH": 151.0,
+      "centroidX": 137.1,
+      "renderScale": 0.25,
+      "file": "kurourushi/prone.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1461,
+    "coreLeft": 164.4,
+    "coreRight": 1296.6,
+    "anchors": {
+     "com": [
+      711.5,
+      368.0
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "run_pass_a": {
+    "w": 1245,
+    "h": 910,
+    "ox": -552.0,
+    "oy": -599,
+    "bodyBottom": 262.0,
+    "bodyH": 227.5,
+    "centroidX": 243.0,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/run_pass_a.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1245,
+      "h": 910,
+      "ox": -465.8,
+      "oy": -599,
+      "bodyBottom": 310.4,
+      "bodyH": 227.5,
+      "centroidX": 243.0,
+      "renderScale": 0.25,
+      "file": "kurourushi/run_pass_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1245,
+    "coreLeft": 171.2,
+    "coreRight": 1104.9,
+    "anchors": {
+     "com": [
+      709.0,
+      451.8
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "run_pass_b": {
+    "w": 781,
+    "h": 1313,
+    "ox": -250.3,
+    "oy": -1002,
+    "bodyBottom": 240.3,
+    "bodyH": 328.2,
+    "centroidX": 173.3,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/run_pass_b.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 781,
+      "h": 1313,
+      "ox": -233.8,
+      "oy": -1002,
+      "bodyBottom": 310.4,
+      "bodyH": 328.2,
+      "centroidX": 173.3,
+      "renderScale": 0.25,
+      "file": "kurourushi/run_pass_b.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 781,
+    "coreLeft": 147.7,
+    "coreRight": 640.1,
+    "anchors": {
+     "com": [
+      406.8,
+      656.4
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "run_reach_a": {
+    "w": 1121,
+    "h": 963,
+    "ox": -394.7,
+    "oy": -652,
+    "bodyBottom": 259.1,
+    "bodyH": 240.8,
+    "centroidX": 147.7,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/run_reach_a.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1121,
+      "h": 963,
+      "ox": -403.8,
+      "oy": -652,
+      "bodyBottom": 310.4,
+      "bodyH": 240.8,
+      "centroidX": 147.7,
+      "renderScale": 0.25,
+      "file": "kurourushi/run_reach_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1121,
+    "coreLeft": 98.1,
+    "coreRight": 966.9,
+    "anchors": {
+     "com": [
+      551.9,
+      468.3
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "run_reach_b": {
+    "w": 948,
+    "h": 1266,
+    "ox": -319.4,
+    "oy": -955,
+    "bodyBottom": 242.8,
+    "bodyH": 316.5,
+    "centroidX": 158.9,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/run_reach_b.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 948,
+      "h": 1266,
+      "ox": -317.2,
+      "oy": -955,
+      "bodyBottom": 310.4,
+      "bodyH": 316.5,
+      "centroidX": 158.9,
+      "renderScale": 0.25,
+      "file": "kurourushi/run_reach_b.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 948,
+    "coreLeft": 94.9,
+    "coreRight": 902.0,
+    "anchors": {
+     "com": [
+      477.5,
+      632.2
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "special_down": {
+    "w": 955,
+    "h": 1447,
+    "ox": -283.0,
+    "oy": -1136,
+    "bodyBottom": 233.1,
+    "bodyH": 361.8,
+    "centroidX": 119.0,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/special_down.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 955,
+      "h": 1447,
+      "ox": -320.8,
+      "oy": -1136,
+      "bodyBottom": 310.4,
+      "bodyH": 361.8,
+      "centroidX": 119.0,
+      "renderScale": 0.25,
+      "file": "kurourushi/special_down.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 955,
+    "coreLeft": 144.7,
+    "coreRight": 823.0,
+    "anchors": {
+     "com": [
+      441.9,
+      766.0
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "special_neutral": {
+    "w": 1043,
+    "h": 1332,
+    "ox": -292.1,
+    "oy": -1021,
+    "bodyBottom": 239.3,
+    "bodyH": 333.0,
+    "centroidX": 84.1,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/special_neutral.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1043,
+      "h": 1332,
+      "ox": -364.8,
+      "oy": -1021,
+      "bodyBottom": 310.4,
+      "bodyH": 333.0,
+      "centroidX": 84.1,
+      "renderScale": 0.25,
+      "file": "kurourushi/special_neutral.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1043,
+    "coreLeft": 166.5,
+    "coreRight": 865.8,
+    "anchors": {
+     "com": [
+      448.3,
+      649.0
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "special_side": {
+    "w": 1405,
+    "h": 978,
+    "ox": -389.3,
+    "oy": -667,
+    "bodyBottom": 258.3,
+    "bodyH": 244.5,
+    "centroidX": 0.3,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/special_side.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1405,
+      "h": 978,
+      "ox": -545.8,
+      "oy": -667,
+      "bodyBottom": 310.4,
+      "bodyH": 244.5,
+      "centroidX": 0.3,
+      "renderScale": 0.25,
+      "file": "kurourushi/special_side.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1405,
+    "coreLeft": 114.2,
+    "coreRight": 1159.1,
+    "anchors": {
+     "com": [
+      546.7,
+      469.5
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "ult_a": {
+    "w": 994,
+    "h": 1412,
+    "ox": -318.7,
+    "oy": -1101,
+    "bodyBottom": 235.0,
+    "bodyH": 353.0,
+    "centroidX": 135.2,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/ult_a.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 994,
+      "h": 1412,
+      "ox": -340.2,
+      "oy": -1101,
+      "bodyBottom": 310.4,
+      "bodyH": 353.0,
+      "centroidX": 135.2,
+      "renderScale": 0.25,
+      "file": "kurourushi/ult_a.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 994,
+    "coreLeft": 141.2,
+    "coreRight": 847.2,
+    "anchors": {
+     "com": [
+      477.4,
+      656.5
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "ult_b": {
+    "w": 1082,
+    "h": 1308,
+    "ox": -365.4,
+    "oy": -997,
+    "bodyBottom": 240.6,
+    "bodyH": 327.0,
+    "centroidX": 137.9,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/ult_b.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 1082,
+      "h": 1308,
+      "ox": -384.2,
+      "oy": -997,
+      "bodyBottom": 310.4,
+      "bodyH": 327.0,
+      "centroidX": 137.9,
+      "renderScale": 0.25,
+      "file": "kurourushi/ult_b.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1082,
+    "coreLeft": 106.3,
+    "coreRight": 915.6,
+    "anchors": {
+     "com": [
+      521.2,
+      604.6
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
+   },
+   "victory": {
+    "w": 867,
+    "h": 1471,
+    "ox": -311.6,
+    "oy": -1160,
+    "bodyBottom": 231.8,
+    "bodyH": 367.8,
+    "centroidX": 191.6,
+    "renderScale": 0.25,
+    "file": "kurourushi/incoming/victory.png",
+    "replaced": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-09T23:23:22+00:00",
+     "live": {
+      "w": 867,
+      "h": 1471,
+      "ox": -276.8,
+      "oy": -1160,
+      "bodyBottom": 310.4,
+      "bodyH": 367.8,
+      "centroidX": 191.6,
+      "renderScale": 0.25,
+      "file": "kurourushi/victory.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 867,
+    "coreLeft": 156.3,
+    "coreRight": 735.5,
+    "anchors": {
+     "com": [
+      467.3,
+      783.6
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T23:24:31+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.946 (roster)",
       "ox": "centre of mass, not of the box"
      }
     }
@@ -52407,6 +55380,57 @@
       "file": "yuji/idle_b.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   }
+  },
+  "yuki": {
+   "attack_heavy_b": {
+    "options": [
+     {
+      "file": "yuki/attack_heavy_b.png",
+      "label": "Delivered",
+      "w": 894,
+      "h": 1297,
+      "ox": -280.8,
+      "oy": -986,
+      "bodyBottom": 241.8,
+      "bodyH": 324.2,
+      "bodyTop": 0,
+      "centroidX": 147.3,
+      "renderScale": 0.25,
+      "anchors": {
+       "com": [
+        436.8,
+        466
+       ]
+      },
+      "needsReplacement": "pose",
+      "replacementNote": "The hook extends only 9% of standing height past the idle \u2014 the shortest heavy on the roster. She is a boxer with no weapon, so the whole body has to be behind it."
+     },
+     {
+      "file": "yuki/ult_b.png",
+      "label": "From ult_b",
+      "borrowedFrom": "ult_b",
+      "w": 1172,
+      "h": 894,
+      "ox": -414.5,
+      "oy": -583,
+      "bodyBottom": 263.3,
+      "bodyH": 223.5,
+      "bodyTop": 0,
+      "centroidX": 142,
+      "renderScale": 0.33375,
+      "anchors": {
+       "com": [
+        571.7,
+        308.3
+       ]
+      },
+      "bodyLeft": 0,
+      "bodyRight": 894,
+      "coreLeft": 64.8,
+      "coreRight": 778.2
      }
     ]
    }

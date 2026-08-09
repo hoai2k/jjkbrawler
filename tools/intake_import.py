@@ -385,7 +385,15 @@ def hold_for_approval(man, char, key, src, meta, stored, at):
     A brand-new pose never comes through here — there is nothing to compare it
     against and nothing to break, so it goes straight in.
     """
-    live = {f: stored[f] for f in LIVE_FIELDS if f in stored}
+    # The drawing the GAME is showing, which is not always the pose's own
+    # fields. On a pose that is ALREADY awaiting approval those fields describe
+    # the drawing still waiting, and the game is drawing whatever
+    # `awaitingApproval.live` names. Reading `stored` flat would have promoted
+    # an unapproved drawing into the game the moment a second delivery landed
+    # on the same pose — the one thing the approval step exists to prevent.
+    waiting = stored.get("awaitingApproval") or {}
+    live = dict(waiting["live"]) if waiting.get("live") \
+        else {f: stored[f] for f in LIVE_FIELDS if f in stored}
     rel = free_pending_path(man, char, key)
     os.makedirs(os.path.join(SPRITES, char, PENDING_DIR), exist_ok=True)
     shutil.copy2(src, os.path.join(SPRITES, rel))

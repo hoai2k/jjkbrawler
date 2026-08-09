@@ -67,31 +67,31 @@ export const SUMMON_ANIMS = {
 // do it with.
 export const SUMMON_ART = {
   // ---- delivered
-  divineDogWhite: { file: "divine_dog_white", delivered: true, faceRight: true },
-  divineDogBlack: { file: "divine_dog_black", delivered: true, faceRight: true },
-  rainbowDragon: { file: "rainbow_dragon", delivered: true, faceRight: true },
-  transfiguredHuman: { file: "transfigured_human", delivered: true },
-  inventoryCurse: { file: "inventory_curse", delivered: true },
+  divineDogWhite: { file: "divine_dog_white", delivered: true, faceRight: true, poses: true },
+  divineDogBlack: { file: "divine_dog_black", delivered: true, faceRight: true, poses: true },
+  rainbowDragon: { file: "rainbow_dragon", delivered: true, faceRight: true, poses: true },
+  transfiguredHuman: { file: "transfigured_human", delivered: true, poses: true },
+  inventoryCurse: { file: "inventory_curse", delivered: true, poses: true },
 
   // ---- Megumi's other shikigami (round 16B)
-  greatSerpent: { file: "great_serpent" },
-  toad: { file: "toad" },
-  maxElephant: { file: "max_elephant" },
-  rabbitEscape: { file: "rabbit_escape" },
+  greatSerpent: { file: "great_serpent", poses: true },
+  toad: { file: "toad", poses: true },
+  maxElephant: { file: "max_elephant", poses: true },
+  rabbitEscape: { file: "rabbit_escape", poses: true },
 
   // ---- Mahito's other transfigurations (round 16B)
-  transfiguredHulk: { file: "transfigured_hulk" },
-  transfiguredCrawler: { file: "transfigured_crawler" },
-  transfiguredSpitter: { file: "transfigured_spitter" },
+  transfiguredHulk: { file: "transfigured_hulk", poses: true },
+  transfiguredCrawler: { file: "transfigured_crawler", poses: true },
+  transfiguredSpitter: { file: "transfigured_spitter", poses: true },
 
   // ---- Geto's other stored curses (round 16B)
-  smallpoxDeity: { file: "smallpox_deity" },
-  curseHound: { file: "curse_hound" },
-  cursedWomb: { file: "cursed_womb" },
+  smallpoxDeity: { file: "smallpox_deity", poses: true },
+  curseHound: { file: "curse_hound", poses: true },
+  cursedWomb: { file: "cursed_womb", poses: true },
 
   // ---- Toji's other inventory curses (round 16B)
-  coilCurse: { file: "coil_curse" },
-  huskCurse: { file: "husk_curse" },
+  coilCurse: { file: "coil_curse", poses: true },
+  huskCurse: { file: "husk_curse", poses: true },
 };
 
 // ---------------------------------------------------------------- the pools
