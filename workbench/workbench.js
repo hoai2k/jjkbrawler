@@ -2081,39 +2081,57 @@ function refreshAnchorControls() {
     toggle.append(box, document.createTextNode(` Show ${meta.label ?? name}`));
     const val = document.createElement("span");
     val.className = "anchor-val";
-    val.textContent = `${x.toFixed(1)}, ${y.toFixed(1)}`
-      + (changed ? " (edited)" : stored ? "" : " (derived)");
+    val.textContent = changed ? "edited" : stored ? "" : "derived";
     head.append(toggle, val);
 
-    const mkNudge = (steps) => {
-      const bar = document.createElement("div");
-      bar.className = "nudge";
-      for (const [label, dx, dy] of steps) {
-        const b = document.createElement("button");
-        b.textContent = label;
-        b.onclick = () => nudgeAnchor(name, dx, dy);
-        bar.appendChild(b);
-      }
-      return bar;
+    // The handle on the canvas is how an anchor is placed; these are for the
+    // times a number is what you have — reading one off a pose that is right
+    // and typing it into the one beside it. Eight nudge buttons per anchor
+    // were a third of the panel spent stepping a value the field states
+    // outright.
+    const fields = document.createElement("div");
+    fields.className = "anchor-fields";
+    const mkField = (axis, value, at) => {
+      const label = document.createElement("label");
+      label.className = "anchor-field";
+      label.append(document.createTextNode(axis));
+      const input = document.createElement("input");
+      input.type = "number";
+      input.className = "num";
+      input.step = "0.5";
+      input.value = value.toFixed(1);
+      input.setAttribute("aria-label", `${meta.label ?? name} ${axis}`);
+      // Typing into a field marks that anchor as the active one, so its handle
+      // is the highlighted one on the canvas. Redrawn rather than rebuilt: a
+      // rebuild would take the focus out of the field being typed into.
+      input.onfocus = () => { state.anchor = name; render(); };
+      input.onchange = () => {
+        const next = Number(input.value);
+        if (!Number.isFinite(next)) return refreshAnchorControls();
+        const [cx, cy] = anchorValue(state.char, state.frame, name);
+        applyAnchor(name, at === 0 ? next : cx, at === 1 ? next : cy, true);
+      };
+      label.append(input);
+      return label;
     };
+    fields.append(mkField("X", x, 0), mkField("Y", y, 1));
 
     const reset = document.createElement("button");
     reset.className = "ghost sm";
     reset.textContent = "Reset";
     reset.disabled = !changed;
     reset.onclick = () => resetAnchor(name);
+    fields.append(reset);
 
-    row.append(head,
-      mkNudge([["\u21905", -5, 0], ["\u21901", -1, 0], ["1\u2192", 1, 0], ["5\u2192", 5, 0]]),
-      mkNudge([["\u21915", 0, -5], ["\u21911", 0, -1], ["\u21931", 0, 1], ["\u21935", 0, 5]]),
-      reset);
+    row.append(head, fields);
     wrap.appendChild(row);
   }
 
   // The anchors a pose carries vary, so its help is assembled rather than
   // written into the markup: the general rule, then a line per anchor.
   setHelp($("anchorLabel"), names.length
-    ? "Drag a handle on the sprite, or nudge it here. Anchors are stored "
+    ? "Drag a handle on the sprite, or type the pixel it belongs at. Anchors "
+      + "are stored "
       + "against the artwork, so later size, position and ground tweaks carry "
       + "them along.<br><br>"
       + names.map((n) => `<b>${ANCHOR_META[n]?.label ?? n}</b> — ${ANCHOR_META[n]?.hint ?? ""}`)
@@ -2842,13 +2860,6 @@ function applyAnchor(name, x, y, commit) {
   refreshControls(); buildPoseList(); render();
 }
 
-function nudgeAnchor(name, dx, dy) {
-  if (!name) return;
-  state.anchor = name;   // arrow keys follow whatever you last moved
-  const [x, y] = anchorValue(state.char, state.frame, name);
-  applyAnchor(name, x + dx, y + dy, true);
-}
-
 /** Back to what shipped — the measured value from tools/bake_anchors.py, or,
  *  for a frame the bake never reached, back to the derived fallback. Deleting
  *  outright would throw away the measurement in favour of the guess. */
@@ -3389,8 +3400,8 @@ async function boot() {
 
     // The arrows walk the POSE GRID. Stepping through poses and adjusting a
     // couple of things on each is the workflow this tool exists for, so it gets
-    // the keys; the anchors keep their own nudge buttons and stay draggable, and
-    // placement now has a typeable number beside every slider.
+    // the keys; anchors are dragged on the canvas or typed into their own
+    // fields, and placement has a typeable number beside every slider.
     // Tab walks the grid in READING order — the next pose, wrapping at the end
     // — where the arrows walk it geometrically. Stepping straight through a
     // character's set one pose at a time is the commonest pass there is, and it
