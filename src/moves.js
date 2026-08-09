@@ -4,6 +4,9 @@
 //   light:  jab chain (3 steps), side tilt, up tilt, down tilt (crouch), aerials
 //   heavy:  side smash (chargeable), up smash, down smash, air heavy
 
+import { STRIKE_ARC } from "./config_tuning.js";
+import { clamp } from "./utils.js";
+
 function round1(v) {
   return Math.round(v * 10) / 10;
 }
@@ -14,11 +17,12 @@ function round1(v) {
 // margin so swings connect where they look like they connect.
 const REACH_SCALE = 0.62;
 
-// How far in front of a fighter the ART can visibly reach, in world px. The
-// renderer draws an energy wake from here to the hitbox's far edge whenever a
-// move out-ranges its sprite, so a hit that connects at 160 px is SEEN to
-// connect rather than landing out of thin air. The sprite workbench draws its
-// range target from the same number, so the two cannot drift.
+// How far in front of a fighter the ART can visibly reach, in world px. Most
+// of the kit out-ranges that — Mei Mei's heavy connects past 160 — which is
+// why every swing throws a strike arc (strikeArcs below) out to the hitbox's
+// real edge: a hit that connects at 160 px is SEEN to connect rather than
+// landing out of thin air. The sprite workbench marks this cap on its range
+// targets from the same number, so the two cannot drift.
 export const VISIBLE_ART_REACH = 94;
 
 function r(reach) {
@@ -161,4 +165,85 @@ export function heavyMove(char, variant, charge = 0) {
     default:
       return heavyMove(char, "side", charge);
   }
+}
+
+// ------------------------------------------------------------- strike arcs
+//
+// Where a swing's crescent of energy is drawn. This is the ONLY place that
+// decides it, and it decides it from the hitbox: the arc's radius is the
+// distance the box actually reaches, so retuning a move's `reach` moves the
+// visual with it and neither can drift from the other.
+//
+// The one thing the box does not supply is height. Hitboxes are deliberately
+// generous downward — a jab's box runs from chest to floor so it catches a
+// crouching opponent — and drawing the arc at the box's centre would put every
+// punch at hip level. So the arc is placed off the CHARACTER instead: a
+// sideways swing hangs at the level of an outstretched arm, a rising or
+// falling one sits directly above or below. Only the reach comes from the box.
+
+/** Half the angular width of an arc of `radius` covering `half` px of the
+ *  hitbox's cross-measure, held inside the readable range. */
+function arcSpan(half, radius) {
+  const raw = Math.atan2(half * STRIKE_ARC.spanOfBox, radius);
+  return clamp(raw, STRIKE_ARC.spanMin, STRIKE_ARC.spanMax);
+}
+
+/**
+ * The arcs a melee box throws, in fighter-local coordinates with the fighter
+ * facing +x and y running downward as canvas does (so the foot line is 0 and
+ * the head is negative). The renderer mirrors the whole frame for facing.
+ *
+ * Each arc is `{ pivotY, radius, aim, span }`: a band of constant `radius`
+ * about a centre of curvature `pivotY` above the feet, covering `aim ± span`
+ * where 0 points forward, -PI/2 straight up and +PI/2 straight down.
+ *
+ * Returns 0-2 of them — two for a move that comes out both sides at once, and
+ * none for a box too small to be worth drawing around.
+ *
+ * @param {{ox:number, oy:number, w:number, h:number}} m  the hitbox
+ * @param {number} bodyH  the fighter's rendered height, foot line to head
+ */
+export function strikeArcs(m, bodyH) {
+  const x0 = m.ox, x1 = m.ox + m.w;
+  const y0 = m.oy, y1 = m.oy + m.h;
+  const armY = -STRIKE_ARC.armHeight * bodyH;
+  const hipY = -STRIKE_ARC.hipHeight * bodyH;
+  const straddles = x0 < 0;
+
+  // Straddling the fighter and taller than it is wide: the reach is upward or
+  // downward, not forward. Which one is settled by the side of the feet the
+  // box ends on.
+  if (straddles && m.h > m.w * 1.2) {
+    return y1 <= 0
+      ? vertical(armY, armY - y0, -Math.PI / 2, m.w / 2)
+      : vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2);
+  }
+  // Straddling and hanging at or below the feet: a meteor, wider than it is
+  // deep but still aimed straight down.
+  if (straddles && y0 > -m.h * 0.3) {
+    return vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2);
+  }
+
+  // Sideways. Arm height, unless the box sits low enough that the strike is
+  // plainly a low one — a crouch poke, a ground quake — in which case it draws
+  // from its own height, because that is where the fighter is swinging.
+  const low = y0 > armY + STRIKE_ARC.lowStrike * bodyH;
+  const pivotY = low ? (y0 + y1) / 2 : armY;
+  const half = m.h / 2;
+  const arcs = [];
+  if (x1 >= STRIKE_ARC.minRadius) {
+    arcs.push({ pivotY, radius: x1, aim: 0, span: arcSpan(half, x1) });
+  }
+  // Backward too, for the down-smash quakes whose box spans both sides.
+  if (-x0 >= STRIKE_ARC.minRadius) {
+    arcs.push({ pivotY, radius: -x0, aim: Math.PI, span: arcSpan(half, -x0) });
+  }
+  return arcs;
+}
+
+/** The one-arc list for a straight-up or straight-down strike — empty when the
+ *  arc would sit inside the fighter's own art. */
+function vertical(pivotY, radius, aim, half) {
+  if (radius < STRIKE_ARC.minRadius) return [];
+  return [{ pivotY, radius, aim, span: arcSpan(half, radius) }];
 }

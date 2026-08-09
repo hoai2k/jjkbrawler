@@ -9,14 +9,19 @@ Everything here is driven by flags set by hand in the
 [sprite workbench](../workbench/). Nobody has to remember what was wrong with a
 sprite — the flag on it says so, and this is the procedure that answers them all.
 
-## The four flags, and what each one means here
+## The flags, and what each one means here
 
-| Flag | Set where | What the cleanup does |
-|---|---|---|
-| `delete` | Artwork dropdown, on a pose with more than one drawing | **Deletes that image** and makes sure the pose's canonical file is the drawing that was kept |
-| `alpha`, `crop`, `bleed` | Artwork dropdown | **Attempts a fix in-place**, then shows you before/after to approve |
-| `replace` | Artwork dropdown | **Cannot be fixed by tooling** — folded into the open asset request round |
-| `wantsImprovement` (`quality`, `pose`, `character`) | Improvement dropdown | Same — folded into the request round, at lower priority |
+The two flags split by **who does the work**: `needsReplacement` needs an
+artist, `wantsImprovement` needs this runbook. `REPLACEMENT_KINDS` and
+`IMPROVEMENT_KINDS` in `src/sprites.js` are the source of truth.
+
+Listed in the order the runbook works through them:
+
+| Step | Flag | Kinds | Set where | What the cleanup does |
+|---|---|---|---|---|
+| 1 | `needsReplacement` | `delete`, on a pose with more than one drawing | Artwork dropdown | **Deletes that image** and makes sure the pose's canonical file is the drawing that was kept |
+| 2 | `wantsImprovement` | `alpha`, `crop`, `bleed` | Improvement dropdown | **Attempts a fix in-place**, then shows you before/after to approve |
+| 3 | `needsReplacement` | `quality`, `pose`, `character` | Artwork dropdown | **Cannot be fixed by tooling** — folded into the open asset request round |
 
 Start by collecting them:
 
@@ -69,7 +74,7 @@ run the affected frames back through it.
 | `crop` | the framing or bounds are wrong | **reframe** — same drawing, different bounds; re-measure and shift anchors by how far the framing moved |
 | `bleed` | colour bleeds past the silhouette | **reframe**, as above |
 
-That mapping is `REPLACEMENT_PLACEMENT` in `src/sprites.js` and it is not
+That mapping is `KIND_PLACEMENT` in `src/sprites.js` and it is not
 optional: applying the wrong one silently resizes or displaces the sprite.
 
 **Deliverable: a before/after contact sheet, plus a deep link per frame.** A
@@ -87,27 +92,29 @@ cleanup produces:
   ```
 
 Nothing is cleared until you have approved the sheet. If a fix did not work, the
-flag stays on, and that frame moves to step 3 as a `replace`.
+flag stays on, and that frame moves to step 3 — re-flagged as a
+`needsReplacement`, since the file could not be edited into the right picture
+after all.
 
 ---
 
-## 3. Replace and improvement requests — fold into the open round
+## 3. Redraws — fold into the open round
 
-`replace` means a different drawing is needed, and `wantsImprovement` means the
-drawing works but should be better. Neither is fixable by tooling, so both become
-**asset requests**.
+`quality`, `pose` and `character` all mean the same thing for this runbook:
+nothing in the file can be edited into the right picture, so it needs an artist.
+These become **asset requests**.
 
 1. `python3 tools/list_replacements.py --markdown` produces the tables in the
    shape `docs/asset-requests.md` uses.
 2. Add them to the **current open round**, not a new one — the whole point is
-   that a delivery arrives as one batch. At the time of writing that is round 9
-   (accuracy and polish) and round 10 (one sprite per action).
-3. Keep the two priorities separate in the request. A `replace` is blocking:
-   something on screen is wrong. A `wantsImprovement` is not, and burying them
-   together means the blocking ones wait behind the wish list.
+   that a delivery arrives as one batch. At the time of writing that is round 12.
+3. Lead with the kind, because it decides how much detail the request needs.
+   A `character` fault is answered by pointing at the canon reference and
+   nothing else; a `pose` fault needs the brief to say what the body should be
+   doing, since the drawing will otherwise come back good and still wrong.
 4. Every request line carries its pose line and the fighter's canonical reference
-   (`idle_a` — see 10B in the requests doc), because a redraw that does not match
-   the rest of the set just becomes the next cleanup's problem.
+   (`assets/reference/canon/<char>_idle.png`), because a redraw that does not
+   match the rest of the set just becomes the next cleanup's problem.
 
 ---
 
@@ -136,9 +143,8 @@ what should happen when new art arrives for that pose. `intake_variants.py
 
 | Flag | Incoming art |
 |---|---|
-| `replace`, or the drawing tagged `delete` | replaces it outright; nothing kept |
-| `crop`, `alpha`, `bleed` | added as a variant **and selected**, old kept |
-| `wantsImprovement` | added as a variant **and selected**, old kept |
+| any `needsReplacement`, or the selected drawing tagged `delete` | replaces it outright; nothing kept |
+| any `wantsImprovement` | added as a variant **and selected**, old kept |
 | unflagged | added as a variant, selection unchanged |
 
 So flagging a sprite is worth doing even when no cleanup is imminent: it decides,

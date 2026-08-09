@@ -11,6 +11,8 @@
 //                 Affects no mechanics at all.
 //   config_tuning.js     feel — motion amplitudes, tumble, defence knobs. Affects
 //                 how the game reads and plays, never what it contains.
+//   config_fx.js  spectacle — element particle recipes, trails, rumble.
+//                 Purely presentational; see docs/effects-plan.md.
 //   constants.js  physics, geometry and match rules — gravity, jump height,
 //                 shield economy, blast zones, sprite cell size. Also
 //                 tweakable, but these change what the game IS, and code
@@ -136,6 +138,72 @@ export const TRAIL_STRENGTH = {
   tumble: 1,
   dodge: 0.85,
   dash: 0.6,
+};
+
+// ----------------------------------------------------------- strike arcs
+//
+// The crescent of energy a swing throws out, drawn at the exact distance the
+// hitbox reaches (strikeArcs in moves.js decides where; drawStrikeArcs in
+// render.js draws it). Nothing here changes what a move hits — the arc reads
+// the hitbox, never the other way round — so these are pure look.
+
+export const STRIKE_ARC = {
+  // Height of the arc's centre of curvature, as a fraction of the character's
+  // rendered height. Sideways swings pivot at the shoulder, so the crescent
+  // hangs at the level of an outstretched arm or weapon; rising and falling
+  // ones pivot at the hips, which is where the body folds around them.
+  armHeight: 0.78,
+  hipHeight: 0.50,
+
+  // A forward box whose top edge sits this far below the shoulder is a low
+  // strike — a crouch poke, a ground quake — and draws from its own height
+  // rather than being dragged up to the arm.
+  lowStrike: 0.28,
+
+  // Angular half-width limits, radians. The arc takes its width from the
+  // hitbox (`spanOfBox` of the box's cross-measure) and is held between these
+  // so a shallow box still curves enough to read as a crescent rather than a
+  // stripe, and a huge one does not wrap around the fighter.
+  spanOfBox: 0.9,
+  spanMin: 0.46,
+  spanMax: 1.05,
+
+  // A radius under this is not worth drawing — the arc would be inside the
+  // fighter's own art.
+  minRadius: 46,
+
+  // Thickness of the band, as a fraction of its radius, and its hard limits.
+  // The soft glow around it is drawn at `glowWidth` times this.
+  thickness: 0.10,
+  thicknessMin: 6,
+  thicknessMax: 18,
+  glowWidth: 1.7,
+
+  // The swing extends to full reach over this fraction of the active window,
+  // starting from this fraction of it — the crescent travels outward rather
+  // than switching on at full size.
+  reachIn: 0.35,
+  reachFrom: 0.74,
+
+  // Faint copies of the arc drawn inside the leading one, each a step closer to
+  // the fighter and fainter than the last. They are the swing's own trail: the
+  // gap between the end of the art and the far edge of the hitbox is real (see
+  // VISIBLE_ART_REACH), and these carry the eye across it instead of leaving
+  // the crescent hanging in space.
+  echoes: 3,
+  echoStep: 0.17,     // fraction of the radius each copy falls back
+  echoFade: 0.34,     // and how much of the previous copy's opacity it keeps
+  echoNarrow: 0.13,   // and how much of its half-span it gives up, so the
+                      // trail closes to a point behind the leading edge
+  echoLag: 0.20,      // how far behind the bright head trails, in span units
+
+  // Peak opacity of the glow, the band, and the bright head that runs along
+  // the band as the swing travels.
+  glowAlpha: 0.22,
+  alpha: 0.38,
+  headAlpha: 0.55,
+  // Width of that head, as a fraction of the arc's half-span.
+  headWidth: 0.45,
 };
 
 // ------------------------------------------------------------------ turns

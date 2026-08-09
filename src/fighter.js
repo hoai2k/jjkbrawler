@@ -8,6 +8,8 @@ import { performUltimate } from "./ultimates.js";
 import { performDomain, domainInput, canOpenDomain, activeDomain } from "./domains.js";
 import { burst, dust, popup, banner, ring } from "./particles.js";
 import { playSfx, playGrunt, playKoCry, startShieldLoop, stopShieldLoop } from "./audio.js";
+import { rumbleEvent } from "./rumble.js";
+import { counterShimmerFx, healMotesFx } from "./fx.js";
 import {
   GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME,
   SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
@@ -63,7 +65,7 @@ export function makeFighter(id, charKey, x, facing) {
     // fighter (and stepped at the fixed rate) so it stays deterministic and
     // freezes with the rest of the fighter during hitlag.
     spin: 0, spinAngle: 0, facingVis: facing,
-    landT: 0, takeoffT: 0, trail: [], trailTick: 0,
+    landT: 0, takeoffT: 0, trail: [], trailTick: 0, fxTrailT: 0,
     aiState: null,
     // The input this fighter last acted on, written by the sim loop. Summons
     // read it to find their owner's right stick (see summons.js).
@@ -313,6 +315,7 @@ export function ringOut(f) {
   f.stocks -= 1;
   playSfx("launch", 1);
   playKoCry(f.charKey);
+  rumbleEvent(f, "ko");
   state.camera.shake = Math.max(state.camera.shake, 16);
   state.slowMo = Math.max(state.slowMo, 0.35);
   state.screenFlash = { color: opp ? opp.char.theme : "#ffffff", life: 0.28, maxLife: 0.28 };
@@ -432,6 +435,8 @@ export function updateFighter(f, dt, input) {
   }
   if (f.counter) {
     f.counter.t -= dt;
+    // Infinity / Sky Fold shimmer: the stance visibly holds, not just a ring
+    counterShimmerFx(f, f.counter.color || f.char.theme, dt);
     if (f.counter.t <= 0) f.counter = null;
   }
   if (f.reflect) {
@@ -441,7 +446,9 @@ export function updateFighter(f, dt, input) {
   if (f.healing) {
     f.healing.t -= dt;
     f.damage = Math.max(0, f.damage - f.healing.rate * dt);
-    if (f.healing.t % 0.2 < dt) burst(f.x, f.y - 90, "#a5ffd8", 3, 0.4);
+    // Reverse Cursed Technique reads as warm gold motes rising off the body —
+    // the anime's one healing colour — for the whole channel.
+    healMotesFx(f, dt);
     if (f.healing.t <= 0) f.healing = null;
   }
 
@@ -784,6 +791,7 @@ export function updateFighter(f, dt, input) {
 function updatePresentation(f, dt) {
   f.landT = Math.max(0, f.landT - dt);
   f.takeoffT = Math.max(0, f.takeoffT - dt);
+  f.fxTrailT = Math.max(0, f.fxTrailT - dt);
 
   // Tumble: spin while reeling, then unwind to upright so a fighter always
   // lands on their feet rather than frozen at whatever angle hitstun ended on.

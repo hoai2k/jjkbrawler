@@ -120,6 +120,12 @@ export function connectedPadCount() {
   return n;
 }
 
+/** The physical pad driving a player slot, for rumble (rumble.js). Same
+ *  mapping the input snapshots use: Nth connected pad for player N. */
+export function padForPlayer(playerId) {
+  return padFor(playerId);
+}
+
 function padFor(playerId) {
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   const list = [];

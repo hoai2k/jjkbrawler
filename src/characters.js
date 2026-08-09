@@ -165,7 +165,7 @@ export const CHARACTERS = {
       side: {
         name: "Cursed Technique Reversal: Red", type: "projectile", cooldown: 1.15,
         desc: "A repulsive blast with brutal knockback. Destroys other projectiles.",
-        p: { speed: 660, vy: -8, r: 44, dur: 0.9, dmg: 14, base: 500, growth: 8.6, angle: 0.3, color: "#ff4d5d", pierce: true, clearsProjectiles: true, label: "Red", sprite: "effect:red", spriteH: 138 },
+        p: { speed: 660, vy: -8, r: 44, dur: 0.9, dmg: 14, base: 500, growth: 8.6, angle: 0.3, color: "#ff4d5d", pierce: true, clearsProjectiles: true, fxRing: 7, label: "Red", sprite: "effect:red", spriteH: 138 },
       },
       down: {
         name: "Infinity", type: "counter", cooldown: 2.6,
@@ -220,7 +220,7 @@ export const CHARACTERS = {
       down: {
         name: "Reverse Cursed Technique", type: "heal", cooldown: 5.5,
         desc: "Channel refined cursed energy to knit wounds — interrupted if struck.",
-        p: { duration: 1.4, healPerSec: 9, color: "#a5ffd8" },
+        p: { duration: 1.4, healPerSec: 9, color: "#a5ffd8", castSfx: "healChime" },
       },
     },
     ultimate: {
@@ -298,6 +298,7 @@ export const CHARACTERS = {
     epithet: "Heavenly Restricted",
     heightCm: 170,     // official
     theme: "#69d0a8",
+    fxElement: "steel",  // Heavenly Restriction: no cursed energy — steel glints, never a glow
     shadow: "rgba(105, 208, 168, 0.34)",
     scale: 0.60,
     stats: { speed: 452, airSpeed: 340, accel: 2860, jump: 775, airJumps: 1, weight: 1.0, friction: 0.86 },
@@ -322,13 +323,13 @@ export const CHARACTERS = {
       down: {
         name: "Split Soul Stance", type: "install", cooldown: 6.5,
         desc: "Draws the katana that cuts the soul itself — for a moment, guards mean nothing.",
-        p: { duration: 3.2, unblockable: true, color: "#b8ffe2", label: "SOUL CUT" },
+        p: { duration: 3.2, unblockable: true, color: "#b8ffe2", label: "SOUL CUT", aura: "effect:aura_jade" },
       },
     },
     ultimate: {
       name: "Heavenly Restriction: Awakening", type: "install",
       desc: "Everything cursed stripped away, everything physical unleashed — the night the Zen'in clan ended.",
-      p: { duration: 8, speedMul: 1.35, dmgMul: 1.3, armor: false, color: "#69d0a8", label: "AWAKENED" },
+      p: { duration: 8, speedMul: 1.35, dmgMul: 1.3, armor: false, color: "#69d0a8", label: "AWAKENED", aura: "effect:aura_jade" },
     },
     passive: { id: "heavenlyBody", name: "Heavenly Restriction", desc: "A body beyond curses: immune to burns, snares, and soul marks." },
     ai: { style: "rush", range: 200 },
@@ -341,6 +342,7 @@ export const CHARACTERS = {
     epithet: "Ten Shadows",
     heightCm: 175,     // official
     theme: "#7c8cff",
+    fxElement: "shadow",  // hits land in shadow-stuff
     shadow: "rgba(124, 140, 255, 0.36)",
     scale: 0.60,
     stats: { speed: 418, airSpeed: 330, accel: 2620, jump: 765, airJumps: 1, weight: 0.96, friction: 0.84 },
@@ -464,7 +466,7 @@ export const CHARACTERS = {
       side: {
         name: "“Don't Move”", type: "projectile", cooldown: 1.5, strain: 1,
         desc: "The word lands and the body obeys — the target locks in place.",
-        p: { speed: 560, vy: -4, r: 36, dur: 0.85, dmg: 6, base: 120, growth: 2.0, angle: 0.3, color: "#b8bdf0", effect: "cursedSpeech", stunBonus: 0.9, label: "DON'T MOVE", sprite: "effect:speech_word", spriteH: 92 },
+        p: { speed: 560, vy: -4, r: 36, dur: 0.85, dmg: 6, base: 120, growth: 2.0, angle: 0.3, color: "#b8bdf0", effect: "cursedSpeech", stunBonus: 0.9, fxElement: "sound", label: "DON'T MOVE", sprite: "effect:speech_word", spriteH: 92 },
       },
       down: {
         name: "“Get Crushed”", type: "crush", cooldown: 2.2, strain: 2,
@@ -488,6 +490,7 @@ export const CHARACTERS = {
     epithet: "Not Just Any Panda",
     heightCm: 200,     // official
     theme: "#8ea0b8",
+    fxElement: "steel",  // a cursed corpse hits with mass, not energy — impact FX, no glow
     shadow: "rgba(142, 160, 184, 0.36)",
     scale: 0.57,
     stats: { speed: 356, airSpeed: 275, accel: 2220, jump: 730, airJumps: 1, weight: 1.28, friction: 0.78 },
@@ -513,7 +516,7 @@ export const CHARACTERS = {
       down: {
         name: "Gorilla Mode", type: "modeToggle", cooldown: 1.2,
         desc: "Switches to his brother's core: slower, but every hit lands like a drum of thunder.",
-        p: { duration: 6, dmgMul: 1.3, speedMul: 0.88, armor: true, color: "#c9b6ff", label: "GORILLA MODE" },
+        p: { duration: 6, dmgMul: 1.3, speedMul: 0.88, armor: true, color: "#c9b6ff", label: "GORILLA MODE", aura: "effect:aura_slate" },
       },
     },
     ultimate: {
@@ -562,7 +565,9 @@ export const CHARACTERS = {
     ultimate: {
       name: "Boogie Woogie: Zero-Distance Finale", type: "flurry",
       desc: "Clap. Behind you. Clap. Above you. A teleporting beatdown only brothers understand, capped with a Black Flash.",
-      p: { hits: 6, dmg: 6, base: 220, finisherDmg: 20, finisherBase: 860, growth: 9, teleport: true, color: "#b66cff", label: "BLACK FLASH" },
+      // `crit` is presentation-only in the flurry director: it prints the
+      // finisher label. Without it Todo's advertised Black Flash never showed.
+      p: { hits: 6, dmg: 6, base: 220, finisherDmg: 20, finisherBase: 860, growth: 9, teleport: true, crit: true, critLabel: "BLACK FLASH", critColor: "#ff3b30", color: "#b66cff", label: "BLACK FLASH" },
     },
     passive: { id: "bestFriend", name: "Ride the Wave", desc: "Landing heavy attacks pumps him up — +8 bonus ultimate meter per heavy hit." },
     ai: { style: "rush", range: 200 },
@@ -590,7 +595,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Wind Scythe", type: "projectile", cooldown: 0.9,
         desc: "A vacuum blade whipped off the broom bristles, sharpened with grit and gravel.",
-        p: { speed: 580, vy: -6, r: 30, dur: 0.85, dmg: 10, base: 330, growth: 6.6, angle: 0.34, color: "#b7b8ff", effect: "gust", count: 2, spread: 120, label: "Wind Scythe", sprite: "effect:wind_scythe", spriteH: 84 },
+        p: { speed: 580, vy: -6, r: 30, dur: 0.85, dmg: 10, base: 330, growth: 6.6, angle: 0.34, color: "#b7b8ff", effect: "gust", count: 2, spread: 120, fxElement: "wind", label: "Wind Scythe", sprite: "effect:wind_scythe", spriteH: 84 },
       },
       side: {
         name: "Broom Charge", type: "dashStrike", cooldown: 1.2,
@@ -663,6 +668,7 @@ export const CHARACTERS = {
     epithet: "The Sorcerer Killer",
     heightCm: 187,     // cited
     theme: "#a8aeb8",
+    fxElement: "steel",  // Heavenly Restriction: no cursed energy — steel glints, never a glow
     shadow: "rgba(168, 174, 184, 0.34)",
     scale: 0.60,
     stats: { speed: 465, airSpeed: 350, accel: 2980, jump: 780, airJumps: 1, weight: 1.04, friction: 0.87 },
@@ -740,13 +746,13 @@ export const CHARACTERS = {
       down: {
         name: "Divine Flame: Fuga", type: "projectile", cooldown: 2.3,
         desc: "“Open.” An arrow of divine fire that detonates on arrival.",
-        p: { speed: 520, vy: -30, gravity: 120, r: 40, dur: 1.1, dmg: 16, base: 520, growth: 8.6, angle: 0.5, color: "#ff8c3f", effect: "burn", explode: 90, label: "Fuga", sprite: "effect:fuga", spriteH: 94 },
+        p: { speed: 520, vy: -30, gravity: 120, r: 40, dur: 1.1, dmg: 16, base: 520, growth: 8.6, angle: 0.5, color: "#ff8c3f", effect: "burn", explode: 90, fxElement: "fire", label: "Fuga", sprite: "effect:fuga", spriteH: 94 },
       },
     },
     ultimate: {
       name: "Dismantle: Merciless Barrage", type: "flurry",
       desc: "A carving rush too fast to read — Dismantle after Dismantle, closed with a Cleave that finds the exact toughness of whatever it meets.",
-      p: { hits: 6, dmg: 6, base: 210, finisherDmg: 21, finisherBase: 860, growth: 9.2, color: "#ff4c55", label: "CLEAVE" },
+      p: { hits: 6, dmg: 6, base: 210, finisherDmg: 21, finisherBase: 860, growth: 9.2, lattice: true, color: "#ff4c55", label: "CLEAVE" },
     },
     // ---- Domain Expansion -------------------------------------------------
     domains: [{
@@ -767,6 +773,7 @@ export const CHARACTERS = {
     epithet: "Soul Shaper",
     heightCm: 179.1,   // cited
     theme: "#b56cff",
+    fxElement: "soul",  // hits touch the soul
     shadow: "rgba(177, 92, 255, 0.4)",
     scale: 0.60,
     stats: { speed: 422, airSpeed: 328, accel: 2600, jump: 760, airJumps: 1, weight: 0.98, friction: 0.82 },
@@ -780,7 +787,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Idle Transfiguration", type: "commandGrab", cooldown: 2.1,
         desc: "One touch on the soul and the body follows. Cannot be blocked — only avoided.",
-        p: { range: 120, dmg: 14, base: 420, growth: 7.0, angle: 0.7, effect: "soulMark", color: "#b56cff", label: "Idle Transfiguration", sprite: "effect:soul_touch", spriteH: 150 },
+        p: { range: 120, dmg: 14, base: 420, growth: 7.0, angle: 0.7, effect: "soulMark", color: "#b56cff", castSfx: "soulReshape", label: "Idle Transfiguration", sprite: "effect:soul_touch", spriteH: 150 },
       },
       side: {
         name: "Body Distortion Lunge", type: "dashStrike", cooldown: 1.3,
@@ -841,7 +848,7 @@ export const CHARACTERS = {
         // Aimed as a fan: the three curses keep their spread perpendicular to
         // whatever direction the stick picks. Steering overrides their homing —
         // if you are flying them, you have decided where they are going.
-        p: { speed: 420, vy: -10, r: 26, dur: 1.1, dmg: 8, base: 280, growth: 5.8, angle: 0.4, color: "#7d58d8", count: 3, spread: 170, homing: 130, effect: "curseDrain", label: "Spirit Volley", spritePool: ["effect:curse_a", "effect:curse_b", "effect:curse_c", "effect:curse_d"], spriteH: 96, steerable: true, steerRate: 4.6 },
+        p: { speed: 420, vy: -10, r: 26, dur: 1.1, dmg: 8, base: 280, growth: 5.8, angle: 0.4, color: "#7d58d8", count: 3, spread: 170, homing: 130, effect: "curseDrain", fxElement: "shadow", label: "Spirit Volley", spritePool: ["effect:curse_a", "effect:curse_b", "effect:curse_c", "effect:curse_d"], spriteH: 96, steerable: true, steerRate: 4.6 },
       },
       side: {
         name: "Rainbow Dragon", type: "summon", cooldown: 8,
@@ -879,6 +886,7 @@ export const CHARACTERS = {
     epithet: "Disaster of Flame",
     heightCm: 180,     // cited
     theme: "#ff7a2f",
+    fxElement: "fire",  // every hit burns
     shadow: "rgba(255, 122, 47, 0.42)",
     scale: 0.60,
     stats: { speed: 368, airSpeed: 288, accel: 2280, jump: 720, airJumps: 1, weight: 1.16, friction: 0.79 },
@@ -894,7 +902,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Ember Insects", type: "projectile", cooldown: 1.05,
         desc: "A swarm of blazing embers lobbed in an arc, igniting whatever they land on.",
-        p: { speed: 460, vy: -140, gravity: 320, r: 30, dur: 1.15, dmg: 10, base: 360, growth: 6.8, angle: 0.5, color: "#ff7a2f", effect: "burn", count: 2, spread: 130, label: "Embers", sprite: "effect:ember", spriteH: 86 },
+        p: { speed: 460, vy: -140, gravity: 320, r: 30, dur: 1.15, dmg: 10, base: 360, growth: 6.8, angle: 0.5, color: "#ff7a2f", effect: "burn", count: 2, spread: 130, fxElement: "fire", label: "Embers", sprite: "effect:ember", spriteH: 86 },
       },
       side: {
         name: "Lava Geyser", type: "trap", cooldown: 1.9,
@@ -975,6 +983,7 @@ export const CHARACTERS = {
     epithet: "Eldest Brother",
     heightCm: 181,     // cited
     theme: "#c22e4a",
+    fxElement: "blood",  // every hit is blood
     shadow: "rgba(194, 46, 74, 0.4)",
     scale: 0.60,
     stats: { speed: 405, airSpeed: 315, accel: 2500, jump: 750, airJumps: 1, weight: 1.06, friction: 0.82 },
@@ -985,12 +994,12 @@ export const CHARACTERS = {
       neutral: {
         name: "Piercing Blood", type: "projectile", cooldown: 1.15,
         desc: "Blood pressurized past the speed of sound — a needle-thin lance across the whole lane. It costs him a little of himself.",
-        p: { speed: 940, vy: 0, r: 18, dur: 0.6, dmg: 12, base: 380, growth: 7.0, angle: 0.28, color: "#c22e4a", pierce: true, bloodCost: 1.5, label: "Piercing Blood", sprite: "effect:piercing_blood", spriteH: 70 },
+        p: { speed: 940, vy: 0, r: 18, dur: 0.6, dmg: 12, base: 380, growth: 7.0, angle: 0.28, color: "#c22e4a", pierce: true, bloodCost: 1.5, fxElement: "blood", label: "Piercing Blood", sprite: "effect:piercing_blood", spriteH: 70 },
       },
       side: {
         name: "Convergence: Blood Meteorite", type: "projectile", cooldown: 1.6,
         desc: "Hardened blood compressed into a dense sphere that detonates on arrival.",
-        p: { speed: 520, vy: -20, gravity: 80, r: 34, dur: 1.0, dmg: 15, base: 470, growth: 7.8, angle: 0.5, color: "#a01f38", explode: 85, bloodCost: 2, label: "Blood Meteorite", sprite: "effect:blood_orb", spriteH: 88 },
+        p: { speed: 520, vy: -20, gravity: 80, r: 34, dur: 1.0, dmg: 15, base: 470, growth: 7.8, angle: 0.5, color: "#a01f38", explode: 85, bloodCost: 2, fxElement: "blood", label: "Blood Meteorite", sprite: "effect:blood_orb", spriteH: 88 },
       },
       down: {
         name: "Flowing Red Scale", type: "install", cooldown: 6.5,
@@ -1024,12 +1033,12 @@ export const CHARACTERS = {
       neutral: {
         name: "Crow Scout", type: "projectile", cooldown: 1.0,
         desc: "A shikigami crow dives on command, wheeling after the target.",
-        p: { speed: 470, vy: -30, r: 26, dur: 1.2, dmg: 9, base: 320, growth: 6.2, angle: 0.4, color: "#d8b95c", homing: 150, label: "Crow", sprite: "effect:crow", spriteH: 84 },
+        p: { speed: 470, vy: -30, r: 26, dur: 1.2, dmg: 9, base: 320, growth: 6.2, angle: 0.4, color: "#d8b95c", homing: 150, fxElement: "feather", fireSfx: "crowCaw", label: "Crow", sprite: "effect:crow", spriteH: 84 },
       },
       side: {
         name: "Axe Rush", type: "dashStrike", cooldown: 1.35,
         desc: "She closes the distance herself — an overhead axe arc delivered with professional efficiency.",
-        p: { vel: 540, iframes: 0.1, delay: 0.06, dur: 0.22, ox: 66, oy: -96, w: 210, h: 108, dmg: 14, base: 450, growth: 7.2, angle: 0.4, shieldMul: 2.2, label: "Axe Rush", sfx: "slashHeavy" },
+        p: { vel: 540, iframes: 0.1, delay: 0.06, dur: 0.22, ox: 66, oy: -96, w: 210, h: 108, dmg: 14, base: 450, growth: 7.2, angle: 0.4, shieldMul: 2.2, fxElement: "feather", label: "Axe Rush", sfx: "slashHeavy" },
       },
       down: {
         name: "Advance Payment", type: "payToWin", cooldown: 3.0,
@@ -1112,7 +1121,7 @@ export const CHARACTERS = {
       down: {
         name: "Unbreakable Grit", type: "install", cooldown: 6.0,
         desc: "Plants his feet and refuses to fall — for a moment, nothing staggers him.",
-        p: { duration: 2.8, armor: true, dmgTakenMul: 0.88, color: "#ffb37a", label: "GRIT" },
+        p: { duration: 2.8, armor: true, dmgTakenMul: 0.88, color: "#ffb37a", label: "GRIT", aura: "effect:aura_indigo" },
       },
     },
     ultimate: {
@@ -1141,7 +1150,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Receipt: Katana Umbrella", type: "projectile", cooldown: 1.0,
         desc: "Tears a receipt and the purchase appears mid-swing — a blade wave off the umbrella's edge.",
-        p: { speed: 580, vy: -4, r: 30, dur: 0.85, dmg: 11, base: 360, growth: 6.8, angle: 0.34, color: "#86d67c", label: "Umbrella Blade", sprite: "effect:receipt_blade", spriteH: 86 },
+        p: { speed: 580, vy: -4, r: 30, dur: 0.85, dmg: 11, base: 360, growth: 6.8, angle: 0.34, color: "#86d67c", fireSfx: "paperRustle", label: "Umbrella Blade", sprite: "effect:receipt_blade", spriteH: 86 },
       },
       side: {
         name: "Receipt: Insecticide", type: "cloudField", cooldown: 2.0,
@@ -1187,7 +1196,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Power Chord", type: "projectile", cooldown: 1.1,
         desc: "One downstroke — cursed energy rides the riff out as a crushing wall of sound.",
-        p: { speed: 500, vy: 0, r: 40, dur: 0.8, dmg: 11, base: 380, growth: 6.8, angle: 0.36, color: "#d89b3f", pierce: true, ampable: true, label: "Power Chord", sprite: "effect:sound_wave", spriteH: 120 },
+        p: { speed: 500, vy: 0, r: 40, dur: 0.8, dmg: 11, base: 380, growth: 6.8, angle: 0.36, color: "#d89b3f", pierce: true, ampable: true, fxElement: "sound", fireSfx: "powerChord", label: "Power Chord", sprite: "effect:sound_wave", spriteH: 120 },
       },
       side: {
         name: "Feedback Wall", type: "trap", cooldown: 1.9,

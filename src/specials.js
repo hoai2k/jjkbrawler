@@ -12,6 +12,8 @@ import { METER_MAX } from "./constants.js";
 import { rectsOverlap, circleRectOverlap } from "./utils.js";
 import { getImage } from "./assets.js";
 import { spawnSummon } from "./summons.js";
+import { dashLaunchFx, muzzleFx, glints, steelInstallFx } from "./fx.js";
+import { CHAR_FX } from "./config_fx.js";
 
 // Installs have priorities: ultimate transformations (2) cannot be
 // overwritten by special-move buffs (1).
@@ -126,7 +128,10 @@ const HANDLERS = {
         spawnProjectile(f, { ...p, vy: (p.vy || 0) + spreadVy, sprite });
       }
     }
-    burst(f.x + f.facing * 70, f.y - 86, p.color || f.char.theme, 16, 0.9);
+    muzzleFx(p.fxElement, f.x + f.facing * 70, f.y - 86, f.facing, p.color || f.char.theme);
+    // A signature firing sound (Gakuganji's chord, Mei Mei's caw). Silence
+    // until the file is delivered and registered.
+    if (p.fireSfx) playSfx(p.fireSfx, 0.9);
     grantSummonMeter(f, cfg);
   },
 
@@ -153,6 +158,7 @@ const HANDLERS = {
     if (p.armor) f.armorT = (p.delay || 0.06) + (p.dur || 0.2) + 0.15;
     spawnMelee(f, { ...p, base: p.base });
     dust(f.x - f.facing * 30, f.y, 10);
+    dashLaunchFx(f, p.color || f.char.theme, p.fxElement || f.char.fxElement);
   },
 
   burst(f, p, cfg) {
@@ -166,6 +172,7 @@ const HANDLERS = {
   commandGrab(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
     playGrunt(f.charKey);
+    if (p.castSfx) playSfx(p.castSfx, 0.9);
     spawnMelee(f, {
       delay: 0.12, dur: 0.14, ox: 24, oy: -104, w: p.range || 120, h: 110,
       dmg: p.dmg, base: p.base, growth: p.growth, angle: p.angle,
@@ -199,7 +206,9 @@ const HANDLERS = {
     if (!ok) return;
     banner(p.label || cfg.name, p.color || f.char.theme, { y: 240, size: 38, life: 1.0 });
     ring(f.x, f.y - 90, p.color || f.char.theme, 140);
-    burst(f.x, f.y - 90, p.color || f.char.theme, 26, 1.2);
+    // Steel fighters power up with speed-lines and dust, never a glow.
+    if (f.char.fxElement === "steel") steelInstallFx(f);
+    else burst(f.x, f.y - 90, p.color || f.char.theme, 26, 1.2);
     playSfx("ult", 0.6);
   },
 
@@ -229,11 +238,17 @@ const HANDLERS = {
     burst(ox, oy - 90, p.color, 20, 1);
     f.x = clamp(ox, 90, 1190); f.y = oy;
     opp.x = clamp(fx, 90, 1190); opp.y = fy;
+    // The canon read of Boogie Woogie is the discontinuity itself: both
+    // fighters' trail buffers still hold their pre-swap positions, so boosting
+    // the afterimages paints each body's ghost where it stood a frame ago.
+    f.fxTrailT = Math.max(f.fxTrailT, CHAR_FX.swapTrailTime);
+    opp.fxTrailT = Math.max(opp.fxTrailT, CHAR_FX.swapTrailTime);
     f.grounded = false; opp.grounded = false;
     f.vy = Math.min(f.vy, 0); opp.vy = Math.min(opp.vy, 0);
     f.facing = sign(opp.x - f.x) || f.facing;
     popup(f.x, f.y - 170, "BOOGIE WOOGIE", p.color, 22);
     playSfx("blast", 0.8, 1.3);
+    playSfx("boogieClap", 1); // the dry, huge clap — silence until delivered
     state.camera.shake = Math.max(state.camera.shake, 6);
     // followup window: quick strike as they reel
     spawnMelee(f, {
@@ -257,6 +272,7 @@ const HANDLERS = {
     f.healing = { t: p.duration || 1.4, rate: p.healPerSec || 8 };
     ring(f.x, f.y - 90, p.color || "#a5ffd8", 90);
     playSfx("shield", 0.5, 1.5);
+    if (p.castSfx) playSfx(p.castSfx, 0.8);
   },
 
   gamble(f, p, cfg) {
@@ -297,7 +313,7 @@ const HANDLERS = {
     playGrunt(f.charKey);
     const ok = applyInstall(f, {
       id: "gorilla", t: p.duration, label: p.label, color: p.color,
-      dmgMul: p.dmgMul, speedMul: p.speedMul, armor: p.armor,
+      dmgMul: p.dmgMul, speedMul: p.speedMul, armor: p.armor, aura: p.aura,
     });
     if (!ok) return;
     banner(p.label, p.color, { y: 240, size: 36, life: 0.9 });
@@ -312,7 +328,12 @@ const HANDLERS = {
       dmg: p.dmg, base: p.base, growth: p.growth, angle: p.angle,
       label: cfg.name, sfx: "blast", unblockable: !!p.ultShout,
     });
+    // Sound made visible: stacked concentric wavefronts and a cone of
+    // streaks, not one lonely ring.
+    ring(f.x + f.facing * 80, f.y - 100, p.color, 60);
     ring(f.x + f.facing * 80, f.y - 100, p.color, 120);
+    ring(f.x + f.facing * 80, f.y - 100, "#ffffff", 180);
+    glints(f.x + f.facing * 40, f.y - 100, f.facing, 8, 0.9, [p.color, "#ffffff"]);
     playSfx("blast", 0.9, 1.2);
   },
 

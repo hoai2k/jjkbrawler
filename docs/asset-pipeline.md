@@ -145,15 +145,25 @@ tiny figure in all 17 characters. A hanging pose extends the silhouette
 vertically, so its target must *exceed* the standing idle, not fall below it.
 Corrected to `idle_a x 1.15`.
 
-Automated correction is not available here. Head-size measurement — the obvious
-pose-invariant proxy — is unreliable on this art: on Toji's run frames the
-detector measures a "head" 478-606 px wide because it captures arms and torso.
-Two separate attempts at automatic size normalisation produced worse results
-than hand values.
+**Nothing here can be fixed by measuring the art.** Head-size measurement — the
+obvious pose-invariant proxy — is unreliable on this art: on Toji's run frames
+the detector measures a "head" 478-606 px wide because it captures arms and
+torso. Two separate attempts at automatic size normalisation produced worse
+results than hand values, and a third would too.
 
-**So sizing is a human-in-the-loop judgement.** `tools/size_review.py` renders
-every pose at true in-game scale on a shared ground line with the idle head
-height marked, and `workbench/` (see below) allows live adjustment.
+What *can* be automated is the opposite approach: never look at pixels, and
+compare one hand-set number against the others. Ten animation states turn out to
+carry a single height ratio across every size-reviewed fighter, and those are
+recoverable exactly — `tools/audit_frame_sizes.py` reports them and
+`tools/auto_tune.py` sets them on import. The other fifteen states vary 8-18%
+between characters, which is the size of the corrections themselves, so they are
+refused rather than guessed at. See
+[sprite-auto-adjust.md](sprite-auto-adjust.md).
+
+**So sizing is still a human-in-the-loop judgement** everywhere it is actually a
+judgement. `tools/size_review.py` renders every pose at true in-game scale on a
+shared ground line with the idle head height marked, and `workbench/` (see
+below) allows live adjustment.
 
 ### How big a character is overall
 
@@ -166,18 +176,35 @@ height** control edits that one number and rescales the whole sprite set.
 ### Replacing a sprite whose art is wrong
 
 Placement problems are fixed in the workbench. Art problems are not — the file
-itself has to change. The **Sprite needs replacement** checkbox marks that, and
-its dropdown says *what* is wrong, because a wholesale redraw and a crop fix are
+itself has to change. Two flags carry that, and **the line between them is who
+does the work:**
+
+- **Sprite needs replacement** (`needsReplacement`) — the drawing is wrong and
+  nothing in the file can be edited into the right picture. It goes out as an
+  asset request and comes back as new art.
+- **Improvement request** (`wantsImprovement`) — the drawing is right and the
+  *file* is wrong. That is repo work, done here with `tools/dekey_fringe.py` and
+  friends, and it never waits on a round.
+
+Each has a dropdown naming *what* is wrong, because a redraw and a re-key are
 very different asks and a request that does not distinguish them is one someone
 has to come back and clarify:
 
-| Kind | Means |
-|---|---|
-| `replace` | redraw the sprite from scratch |
-| `crop` | the framing or bounds are wrong |
-| `alpha` | transparency is wrong or has hard edges |
-| `bleed` | colour bleeds past the silhouette |
-| `delete` | this DRAWING is surplus — discard it and keep the other variant. Only offered on a pose that has more than one drawing, so a deletion can never leave a pose with no art. Stored on the variant option rather than the pose, because it names one image out of several. |
+| Flag | Kind | Means |
+|---|---|---|
+| `needsReplacement` | `quality` | the drawing is rough, malformed or off-model |
+| `needsReplacement` | `pose` | reads poorly, or is not the action it stands for |
+| `needsReplacement` | `character` | likeness or costume is off |
+| `needsReplacement` | `delete` | this DRAWING is surplus — discard it and keep the other variant. Only offered on a pose that has more than one drawing, so a deletion can never leave a pose with no art. Stored on the variant option rather than the pose, because it names one image out of several. |
+| `wantsImprovement` | `alpha` | transparency is wrong or has hard edges |
+| `wantsImprovement` | `crop` | the framing or bounds are wrong |
+| `wantsImprovement` | `bleed` | colour bleeds past the silhouette |
+
+It used to be the other way round — `replace` sat beside `fix alpha` under
+`needsReplacement`, and pose and quality complaints were filed as the softer
+wish, so the blocking list was full of things nobody needed to draw. [19efd99]
+split them by who does the work. Anything written before that uses the old
+names; a legacy `true` or `"replace"` still reads as `quality`.
 
 **A flag is also an instruction to the next import.** When new art arrives for a
 flagged pose, what happens to the old drawing is decided by what the flag said —
@@ -185,15 +212,15 @@ flagged pose, what happens to the old drawing is decided by what the flag said �
 
 | Flag on the pose | Incoming art |
 |---|---|
-| `replace`, or the drawing tagged `delete` | **replaces it outright** — the old art was condemned, so nothing is kept |
-| `crop`, `alpha`, `bleed` | **added as a variant and selected**, old drawing kept as a fallback |
-| `wantsImprovement` (any kind) | same — **variant, and selected** |
+| any `needsReplacement`, or the selected drawing tagged `delete` | **replaces it outright** — the old art was condemned, so nothing is kept |
+| any `wantsImprovement` | **added as a variant and selected**, old drawing kept as a fallback |
 | unflagged | **added as a variant, selection unchanged** |
 
-The split is between a complaint about *existence* and a complaint about
-*degree*. "Redraw this from scratch" says the drawing should not survive;
-"the alpha is wrong" or "this could be better" says it should, until something
-demonstrably better is in hand. See [assets/intake/README.md](../assets/intake/README.md).
+The split is between a verdict on the *drawing* and a complaint about the
+*file*. "Redraw this" says the drawing should not survive; "the alpha is wrong"
+says it should, and a delivery answering one is a second opinion rather than a
+replacement — kept beside the original until something is demonstrably better.
+See [assets/intake/README.md](../assets/intake/README.md).
 
 **Answering these flags is a procedure, not a judgement call each time.** Ask for
 a "full sprite cleanup" and [docs/sprite-cleanup.md](sprite-cleanup.md) is what
@@ -202,9 +229,9 @@ contact sheet and workbench deep links to approve, and everything needing new ar
 folded into the open asset-request round.
 
 The kind is the flag's *value*, so there is one field rather than a boolean and a
-reason that could disagree. `REPLACEMENT_KINDS` in `src/sprites.js` is the single
-source of truth — `list_replacements.py` parses it from there — so adding a kind
-is one line. A legacy `true` reads as `replace`.
+reason that could disagree. `REPLACEMENT_KINDS` and `IMPROVEMENT_KINDS` in
+`src/sprites.js` are the single source of truth — `list_replacements.py` parses
+both from there — so adding a kind is one line.
 
 The flag rides through the same export and apply path as everything else:
 
@@ -216,15 +243,16 @@ python3 tools/list_replacements.py --markdown     # grouped by kind, for a reque
 #### What survives the redraw
 
 A wholesale redraw and a crop fix are not the same event, so they do not get the
-same treatment on the way back in. `REPLACEMENT_PLACEMENT` in `src/sprites.js`
-maps each kind to how much of the existing placement is still meaningful, and
+same treatment on the way back in. `KIND_PLACEMENT` in `src/sprites.js` maps
+each kind to how much of the existing placement is still meaningful, and
 `intake_import.py` follows it:
 
 | Kind | Survives | Because |
 |---|---|---|
 | `alpha` | **keep** | same drawing, same bounds — every measurement and anchor is still exactly right |
 | `crop`, `bleed` | **reframe** | same drawing, moved bounds — the tuning still applies, but the numbers have to be re-pointed at the new framing |
-| `replace` | **discard** | a different drawing; nothing about the old placement means anything |
+| `quality`, `pose`, `character` | **discard** | a different drawing; nothing about the old placement means anything |
+| `delete` | **none** | there is no incoming art, so there is no placement to decide |
 
 An unflagged frame is treated as a wholesale replacement, which is the safe
 reading: nothing said the art was merely being touched up.
@@ -279,8 +307,11 @@ So an import over existing art leaves a marker on the pose:
 `lost` is what has to be redone — the keys of the `edited` map that was rolled
 back, plus the anchors when those went with the drawing. An empty `lost` is a
 touch-up that came back with its tuning intact: worth a look, not a re-tune. A
-brand-new pose gets no marker; it overwrote nothing, and it is already in its
-character's *no saved edits* list. `intake_variants.py` writes one too when it
+brand-new pose is marked too, as `how: "new"` with an empty `lost`, so it sorts
+below the poses with tuning to redo — it overwrote nothing, but it still has to
+be placed, and a round that adds fifteen poses to one fighter and seventeen to
+another scatters that work exactly the way an overwrite does.
+`intake_variants.py` writes one too when it
 selects a delivered alternate over the art a pose was pointing at, because the
 pose's numbers stop applying just the same.
 
@@ -340,6 +371,8 @@ by the game. Three steps, each separable so a bad delivery stops at the door:
 4. `tools/bake_anchors.py` — measures the rotation pivot (and the ledge grip on
    a hang pose) for anything newly registered. Skips frames whose anchors were
    placed by hand, so it is safe to re-run over the whole roster.
+5. `tools/auto_tune.py` — applies the placement corrections that are mechanical.
+   See [the tuning phase](#the-tuning-phase) below.
 
 Placement is delegated to `extract_sprites.generated_frame_meta`. A replacement
 inherits the old frame's rendered height and foot line, so a swap changes art
@@ -348,6 +381,47 @@ and never size; a brand-new frame borrows the character's idle scale factor.
 Step 4 exists because the sprites rotate now — see `docs/sprite-motion.md`. A
 frame with no `anchors.com` still draws, falling back to a heuristic; it just
 pivots less convincingly than a measured one.
+
+### The tuning phase
+
+Steps 1-4 land the art. What they cannot do is decide where it stands, and for
+years that was entirely a hand pass in the workbench.
+
+Some of it turned out not to be a judgement at all. `edited` stores each
+hand-tuned field's *pre-edit* value, which makes every correction ever made a
+labelled example — the pipeline's answer beside a human's. Asked across 1,605 of
+them, three of the corrections are mechanical and the rest are not;
+[sprite-auto-adjust.md](sprite-auto-adjust.md) is that measurement and
+`tools/auto_tune.py` is the part of it that runs.
+
+```bash
+python3 tools/auto_tune.py --report     # what the rules learned from the roster
+python3 tools/auto_tune.py --backtest   # scored against the hand values
+python3 tools/auto_tune.py --dry-run    # what it would do to the last import
+python3 tools/auto_tune.py
+```
+
+The bar for a rule is not "usually right" but **wrong in a consistent
+direction**, because a correction that guesses can land further from the answer
+than doing nothing and does it silently. Three clear it: the ground contact
+(the derived foot line is the bottom of the alpha box, which it can only ever
+be — all 513 hand corrections raised it), the horizontal centring (the derived
+`ox` centres the bounding box, so a naginata drags the body off centre), and
+the size of the ten animation states every reviewed fighter sizes identically.
+Rotation and facing do not, and are left alone.
+
+**Tuning is not an edit.** The workbench's *No saved edits (to do)* list, its
+character markers and the recently-updated list all read `meta.edited`, and
+nothing here writes there — provenance goes to `autoTuned`, which the panel
+shows as "Auto-placed · not an edit". A tuned pose is still a pose nobody has
+looked at, because a rule measured across the roster cannot say whether *this*
+drawing looks right. The tuner also never touches a field that appears in
+`edited`: a value somebody chose while looking at the sprite outranks every
+measurement in it.
+
+`tools/test_auto_tune.py` holds those guarantees down — that a hand-edited field
+survives, that nothing is marked as edited, that a non-uniform state is refused,
+and that running it twice changes nothing the second time.
 
 ### Keying, and why it is layered
 

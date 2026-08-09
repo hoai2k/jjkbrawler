@@ -148,6 +148,22 @@ export const SFX = {
   shield: { file: "sound_shield.mp3", category: "combat", gain: 0.6, loop: true },
 };
 
+// Element hit layers — played UNDER the normal hit sound when a hit's
+// fxElement (config_fx.js / characters.js) matches, at reduced gain. The keys
+// are wired in combat.js already; none of the files exist yet (they are the
+// open round in docs/audio-requests.md), and playSfx treats an unregistered
+// name as silence — so each layer switches on the moment its file is delivered
+// and registered in SFX above. Remove a row here to silence that element.
+export const ELEMENT_HIT_SFX = {
+  fire: "hitFire",
+  blood: "hitBlood",
+  steel: "hitSteel",
+  wind: "hitWind",
+  sound: "hitSound",
+  shadow: "hitShadow",
+  soul: "hitSoul",
+};
+
 // Legacy keys from before the round-8 sound pass. Call sites and move configs
 // still name these; each maps to whichever new sound now covers that role, so
 // the old names keep working and can be migrated at leisure.
