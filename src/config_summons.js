@@ -57,6 +57,14 @@ export const SUMMON_ANIMS = {
 // means here — the same shape as staging a fighter or switching on a
 // transform. Nothing is fetched speculatively, so a creature nobody has drawn
 // costs no requests.
+//
+// A STAGED fighter's summon is not listed here: its art is fetched per
+// character through STAGED_SUMMON_KEYS (assets.js) so it is only downloaded
+// once that fighter is in the match, which is the whole point of staging. It
+// belongs here — and can have poses drawn for it — once that fighter ships.
+// Everything else in this file already applies to them: a staged summon
+// animates, flinches and staggers like any other, it just has one drawing to
+// do it with.
 export const SUMMON_ART = {
   // ---- delivered
   divineDogWhite: { file: "divine_dog_white", delivered: true, faceRight: true },
