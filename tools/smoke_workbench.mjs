@@ -72,6 +72,8 @@ const after = await page.evaluate((t) => {
     present: !!el,
     dirty: !!el?.classList.contains("dirty"),
     flagged: !!el?.classList.contains("flagged"),
+    warned: !!el?.querySelector(".pose-warn"),
+    name: el?.textContent,
     count: btns.length,
     dirtyCount: document.getElementById("dirtyCount").textContent,
   };
@@ -81,6 +83,10 @@ check(after.present, `flagging "${target}" leaves it in the work list`,
   `list went ${before.length} -> ${after.count}`);
 check(after.dirty, "the yellow dot appears on it");
 check(after.flagged, "it is also marked as flagged for redraw");
+check(after.warned, "and carries the caution mark saying new art is on order");
+check(after.name === target,
+  "which is a mark, not a rename — the cell still answers to its pose name",
+  JSON.stringify(after.name));
 check(!/none/i.test(after.dirtyCount), "the change count sees it", JSON.stringify(after.dirtyCount));
 
 // Export must emit it — the original symptom was "no changes yet".
