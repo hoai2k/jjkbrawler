@@ -242,14 +242,18 @@ check(forHanami?.adjustments?.dodge_air?.needsReplacement === undefined,
 // reproduce. Ticking it wrote a value the renderer was already using; only
 // UN-ticking moved the sprite, which is the wrong way round.
 const shot = async () => (await page.locator("#stage").screenshot()).toString("base64");
-await page.goto(`${BASE}/workbench/?char=hanami&frame=r4c0`, { waitUntil: "domcontentloaded" });
+// yuta/r4c1: in `nativeLeft`, and has an alternate to switch to. Hanami's
+// r4c0 used to serve here and no longer exists as a pose of its own — the
+// sheet cells that drove an action are now offered as alternates ON that
+// action, which is the whole point of the case below.
+await page.goto(`${BASE}/workbench/?char=yuta&frame=r4c1`, { waitUntil: "domcontentloaded" });
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 await page.selectOption("#viewSel", "all");
 await page.waitForTimeout(600);
 const sel = page.locator(".pose-cell").filter({ has: page.locator("button.sel") }).first();
 await sel.locator(".pose-variant").click({ force: true });
 await page.waitForTimeout(250);
-await page.locator(".variant-menu button", { hasText: "hanami_alt/r4c0.png" }).first().click();
+await page.locator(".variant-menu button", { hasText: "yuta/alt/r4c1.png" }).first().click();
 await page.waitForTimeout(1500);
 
 const afterSwitch = await shot();
