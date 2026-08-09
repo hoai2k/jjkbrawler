@@ -124,57 +124,29 @@ body {
 
 /* ---------------- scrollbars ---------------- */
 
-/* The panel is the one column that still scrolls, so its scrollbar is part of
-   the UI rather than an accident of it: an inset, rounded thumb on a track the
-   same colour as the panel, and no arrow buttons. */
-.panel,
-.pose-list,
-.actions-panel,
-.picker-grid,
-.drawer,
-textarea {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(130, 150, 205, 0.34) transparent;
-}
-.panel::-webkit-scrollbar,
-.pose-list::-webkit-scrollbar,
-.actions-panel::-webkit-scrollbar,
-.picker-grid::-webkit-scrollbar,
-.drawer::-webkit-scrollbar,
-textarea::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-.panel::-webkit-scrollbar-track,
-.pose-list::-webkit-scrollbar-track,
-.actions-panel::-webkit-scrollbar-track,
-.picker-grid::-webkit-scrollbar-track,
-.drawer::-webkit-scrollbar-track,
-textarea::-webkit-scrollbar-track {
-  background: transparent;
-}
-.panel::-webkit-scrollbar-thumb,
-.pose-list::-webkit-scrollbar-thumb,
-.actions-panel::-webkit-scrollbar-thumb,
-.picker-grid::-webkit-scrollbar-thumb,
-.drawer::-webkit-scrollbar-thumb,
-textarea::-webkit-scrollbar-thumb {
+/* The panel is the one column that still scrolls, so its scrollbar should read
+   as part of the UI rather than an accident of it: thin, no arrow buttons, a
+   rounded thumb inset from a transparent track, in the panel's own palette.
+   Set page-wide so the pose list, the action list, the sprite picker and the
+   export boxes all match — `scrollbar-color` inherits from :root, but
+   `scrollbar-width` does not, hence the universal selector. */
+:root { scrollbar-color: rgba(130, 150, 205, 0.34) transparent; }
+* { scrollbar-width: thin; }
+
+/* The same, for engines that predate the standard properties above. */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb {
   background: rgba(130, 150, 205, 0.34);
   border: 2px solid transparent;
   background-clip: content-box;
   border-radius: 999px;
 }
-.panel::-webkit-scrollbar-thumb:hover,
-.pose-list::-webkit-scrollbar-thumb:hover,
-.actions-panel::-webkit-scrollbar-thumb:hover,
-.picker-grid::-webkit-scrollbar-thumb:hover,
-.drawer::-webkit-scrollbar-thumb:hover,
-textarea::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover {
   background: rgba(160, 190, 245, 0.55);
   background-clip: content-box;
 }
-.panel::-webkit-scrollbar-corner,
-.picker-grid::-webkit-scrollbar-corner { background: transparent; }
 
 .frame-tag {
   position: absolute;

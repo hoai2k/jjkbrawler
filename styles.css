@@ -12,9 +12,34 @@
   --p3-theme: #8cff65;
   --p4-theme: #ffd35a;
   font-size: 16px;
+
+  /* Scrollbars, wherever one turns up — the move list, the controls screen,
+     any overlay a short window makes too tall. The browser default is a bright
+     grey slab with arrow buttons that sits on top of the panels rather than in
+     them, so it takes the panels' own palette instead. `scrollbar-color`
+     inherits, so declaring it here covers every scroller on the page. */
+  scrollbar-color: rgba(120, 140, 200, 0.34) transparent;
 }
 
-* { box-sizing: border-box; }
+/* `scrollbar-width`, unlike the colour above, does not inherit — a panel of its
+   own would go back to the wide default. */
+* { box-sizing: border-box; scrollbar-width: thin; }
+
+/* The same scrollbar for engines that predate the standard properties above:
+   thin, no arrow buttons, a rounded thumb inset from a transparent track. */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(120, 140, 200, 0.34);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(150, 180, 245, 0.55);
+  background-clip: content-box;
+}
 
 html, body {
   margin: 0;
