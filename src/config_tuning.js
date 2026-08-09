@@ -11,6 +11,8 @@
 //                 Affects no mechanics at all.
 //   config_tuning.js     feel — motion amplitudes, tumble, defence knobs. Affects
 //                 how the game reads and plays, never what it contains.
+//   config_fx.js  spectacle — element particle recipes, trails, rumble.
+//                 Purely presentational; see docs/effects-plan.md.
 //   constants.js  physics, geometry and match rules — gravity, jump height,
 //                 shield economy, blast zones, sprite cell size. Also
 //                 tweakable, but these change what the game IS, and code

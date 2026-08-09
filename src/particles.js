@@ -1,6 +1,26 @@
 import { state } from "./state.js";
 import { rand, clamp } from "./utils.js";
 
+/** Low-level spawn for the element recipes in fx.js. Beyond the classic dot
+ *  fields, a particle may carry:
+ *    ramp      array of colours walked over its life (fire cooling, smoke
+ *              darkening) — wins over `color`
+ *    additive  false to draw with source-over (smoke, blood) instead of the
+ *              default "lighter" glow
+ *    shape     "streak" (a line along velocity — glints, speed lines) or
+ *              "fork" (a jagged lightning branch, fixed at spawn) — default dot
+ *    grow      per-frame size factor; >1 grows (smoke), default 0.985 shrinks
+ *    wobbleAmp / wobbleFreq  sinusoidal lateral drift (feathers, petals)
+ *    forkPts   the fork's own polyline, [[dx,dy],...], built at spawn */
+export function emit(props) {
+  if (state.particles.length > 700) return;
+  state.particles.push({
+    x: 0, y: 0, vx: 0, vy: 0, gravity: 0,
+    size: 4, life: 0.4, maxLife: 0.4, color: "#ffffff",
+    ...props,
+  });
+}
+
 export function burst(x, y, color, count = 20, force = 1) {
   if (state.particles.length > 700) return;
   for (let i = 0; i < count; i++) {
@@ -81,7 +101,11 @@ export function updateParticles(dt) {
     p.x += p.vx * dt;
     p.y += p.vy * dt;
     p.vy += p.gravity * dt;
-    p.size *= Math.pow(0.985, dt * 60);
+    if (p.wobbleAmp) {
+      const age = p.maxLife - p.life;
+      p.x += Math.sin(age * (p.wobbleFreq || 6) + (p.wobblePhase || 0)) * p.wobbleAmp * dt;
+    }
+    p.size *= Math.pow(p.grow ?? 0.985, dt * 60);
   }
   for (let i = state.popups.length - 1; i >= 0; i--) {
     const p = state.popups[i];
@@ -97,12 +121,23 @@ export function updateParticles(dt) {
   }
 }
 
+// A ramped particle walks its colour list over its life: fire cools from
+// white through orange to a dying red, smoke darkens as it thins.
+function liveColor(p) {
+  if (!p.ramp) return p.color;
+  const t = clamp(1 - p.life / p.maxLife, 0, 0.999);
+  return p.ramp[Math.floor(t * p.ramp.length)];
+}
+
 export function drawParticles(ctx) {
   ctx.save();
-  ctx.globalCompositeOperation = "lighter";
+  let op = "lighter";
+  ctx.globalCompositeOperation = op;
   for (const p of state.particles) {
     const alpha = clamp(p.life / 0.55, 0, 1);
     ctx.globalAlpha = alpha;
+    const want = p.additive === false ? "source-over" : "lighter";
+    if (want !== op) { op = want; ctx.globalCompositeOperation = op; }
     if (p.ringMax) {
       ctx.strokeStyle = p.color;
       ctx.lineWidth = 3;
@@ -111,8 +146,27 @@ export function drawParticles(ctx) {
       // aborts the whole frame's rendering, not just this one ring.
       ctx.arc(p.x, p.y, Math.max(0, p.ringR), 0, Math.PI * 2);
       ctx.stroke();
+    } else if (p.shape === "streak") {
+      // A line along the velocity — the particle IS its own motion blur.
+      const k = p.streakLen || 0.045;
+      ctx.strokeStyle = liveColor(p);
+      ctx.lineWidth = Math.max(1, p.size / 2.5);
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - p.vx * k, p.y - p.vy * k);
+      ctx.stroke();
+    } else if (p.shape === "fork" && p.forkPts) {
+      // A jagged branch, fixed where it spawned — lightning, cracks.
+      ctx.strokeStyle = liveColor(p);
+      ctx.lineWidth = Math.max(1.2, p.size / 3);
+      ctx.lineJoin = "miter";
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      for (const [dx, dy] of p.forkPts) ctx.lineTo(p.x + dx, p.y + dy);
+      ctx.stroke();
     } else {
-      ctx.fillStyle = p.color;
+      ctx.fillStyle = liveColor(p);
       ctx.beginPath();
       ctx.arc(p.x, p.y, Math.max(0.5, p.size / 2), 0, Math.PI * 2);
       ctx.fill();
