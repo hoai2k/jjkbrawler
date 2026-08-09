@@ -4,20 +4,18 @@ Everything in this file is **outstanding**. Delivered rounds are recorded in
 [asset-requests-history.md](asset-requests-history.md) — including the round
 numbers, so a commit or code comment citing "round 5 art" still resolves.
 
-**Current status: rounds 1–10 delivered. Rounds 11 and 12 are open.**
+**Current status: rounds 1–11 delivered. Round 12 is the only open round.**
 
-The roster is complete: all 23 fighters have a card, 31 poses and their effect
-sprites, and nothing outstanding blocks play. Round 9 closed in full. Round 10
-closed with four of its seventeen fighters finished — Gojo, Mahito, Nobara and
-Yuta each have one sprite per action — and **the thirteen it did not reach rolled
-into round 11 rather than staying open behind it**, so a round's numbers are
-always the real remaining work. Round 11 is part-delivered: **11A (Mahoraga) is
-done**, and twelve of 11B's thirteen fighters are done, leaving only Toji.
-Round 12 has three parts: nineteen fix-up poses caught while
-placing the delivered sets in the sprite workbench, the **four-frame run
-cycle** for the whole roster — the redesign that retires the two-frame run —
-and the knocked-flat **`prone` pose** the new knockdown mechanic simulates
-until it is drawn (12C).
+The roster is complete and **every fighter now has one sprite per action** —
+round 11 finished the conversion that round 5 started, so the 4×5 sprite sheet
+is retired and no action anywhere plays a grid cell. Nothing outstanding blocks
+play.
+
+Round 12 has three parts: nineteen fix-up poses caught while placing the
+delivered sets in the sprite workbench, the **four-frame run cycle** for the
+whole roster — the redesign that retires the two-frame run — and the
+knocked-flat **`prone` pose** the new knockdown mechanic simulates until it is
+drawn.
 
 Read **[the canonical reference image](#the-canonical-reference-image--one-per-fighter)**
 below before drawing anything: it names the one image each fighter is matched
@@ -211,369 +209,11 @@ directory for design questions, but **prefer the `<char>_idle.png` files when
 they exist**: they carry the figure scale, line weight and shading the
 delivered set actually has.
 
-**Mahoraga is the one exception left**, for the same reason and until 11A lands:
-his canon is `assets/reference/canon/mahoraga_canon.png`, the shikigami render
-the game already ships, not the set on disk.
-
----
-
-# Round 11 — open
-
-Three parts; any can be delivered on its own.
-
-- ~~**11A** — redraw Mahoraga from the shikigami's canon design~~ **delivered** (33 sprites)
-- **11B** — finish the semantic sets for Toji, the last fighter on sheet cells (18 sprites)
-- **11C** — wind-up/strike pairs for the 6 round-7 fighters (24 sprites)
-- **11D** — one improvement request: Reggie's crouch attack does not read as the action (1 sprite)
-
-**43 sprites left.** 11B is nearly done — **Toji is the last fighter still
-playing a sprint frame for a punch.** 11C is the
-smallest and finishes a transition already made everywhere else.
-
-**11A is done** — Mahoraga arrived as the canon shikigami, all 33 poses, and is
-integrated. **Twelve of the thirteen are done in 11B**; only Toji is left. Their sections below are struck through rather
-than deleted, so a delivery citing "11A" still resolves; the full record moves to
-the history file when the round closes.
-
-Deliver **one complete fighter at a time** rather than one pose across everybody.
-A fighter whose set is finished can be re-pointed and played immediately; a pose
-spread across the roster leaves everyone half-converted.
-
----
-
-## ~~11A. Redraw Mahoraga from the shikigami's canon design~~ — DELIVERED
-
-**Delivered and integrated.** All 33 poses arrived as the canon shikigami —
-covered face with white plates, brass eight-spoke wheel, chain necklace, tattered
-skirt with the violet sash, bone sword. The `needsReplacement` flags are cleared
-and the poses are in the workbench's "All Recently Updated" list waiting to be
-placed.
-
-**One change came out of the delivery: the karma wheel is no longer a separate
-prop.** The round-9 art drew it as a large black halo floating detached above his
-head, which is why it had to be cut out and composited — a wheel that hangs in
-the air must not tumble when he rolls. The canon design mounts it ON the
-headdress, small and brass, and a wheel that is part of the head *should* turn
-with the head. So it is drawn into all 33 poses, `SPRITE_ACTORS.mahoraga` no
-longer declares a `prop`, and `effect:mahoraga_wheel` is kept but unloaded.
-
-The original request follows, for the record.
-
-### The original request — 31 sprites
-
-### Why
-
-Megumi's ultimate now TRANSFORMS him into Mahoraga — he wears the shikigami and
-the player drives it, rather than watching one walk around beside him
-(`src/config_transform.js`). That puts all 31 poses on screen as a playable
-body, which is a much harder test than a summon walking past, and the round-9
-set does not survive it: **it is not the shikigami's design.**
-
-Set the delivered `idle_a` beside the canon image and the disagreements are not
-details:
-
-| | Canon | Round-9 delivery |
-|---|---|---|
-| Head | Face fully covered, white blade-like plates sweeping back from it | Open face with three visible eyes |
-| Hair | None — plates and a long white tail | Heavy black mane over the shoulders |
-| Wheel | **Brass/gold**, eight spokes with ball finials, sitting close behind the head | **Black**, floating detached well above the head |
-| Body | Chalk white, chain-and-tassel necklace at the collar | Chalk white, no necklace |
-| Dress | Dark tattered skirt, violet sash, violet wrist and ankle wraps | Dark hakama, beige wraps |
-| Weapon | Huge bone/stone sword | None |
-
-All 31 poses are flagged `needsReplacement: "replace"` in the manifest, so
-`python3 tools/list_replacements.py --markdown` lists them and intake clears the
-flags when the new art lands.
-
-### The canon reference
-
-```
-assets/reference/canon/mahoraga_canon.png
-```
-
-That is the full-body shikigami render the game already ships as
-`summons/mahoraga.png`. **It is the authority for the design** — head, wheel,
-necklace, skirt, wraps, tail, sword. It is a standing three-quarter pose, so it
-answers *what he looks like*, not what each action looks like; the poses come
-from the list below.
-
-This is the same relationship 10B sets up for the roster, with one difference:
-Mahoraga's canon is this render rather than an `idle_a`, because his existing
-`idle_a` is the thing being replaced.
-
-### What to deliver
-
-The full transform set — the poses every round-7 fighter has, since a
-transform draws from all of them and a missing one leaves a hole mid-fight:
-
-| | Poses |
-|---|---|
-| **Stance** | `idle_a`, `idle_b`, `crouch_a`, `crouch_b`, `guard`, `dizzy`, `victory` |
-| **Movement** | `run_reach_a`, `run_pass_a`, `run_reach_b`, `run_pass_b`, `dash`, `jump_rise`, `fall`, `land`, `ledge_hang`, `dodge_roll`, `dodge_air` |
-| **Attacks** | `attack_light_a`, `attack_light_b`, `attack_heavy_a` + `attack_heavy_b`, `attack_up`, `attack_down`, `attack_air_a` + `attack_air_b`, `crouch_attack_a`, `crouch_attack_b`, `charge` |
-| **Techniques** | `special_neutral`, `special_side`, `special_down`, `ult_a`, `ult_b` |
-| **Reaction** | `hurt` |
-
-Pose lines are in **10A**; the wind-up/strike pairs are **10C**; the four run
-poses are the round-12 cycle, with pose lines in **12B**. Note the attack list
-uses the `_a`/`_b` pairs rather than the single `attack_heavy` the round-9 set
-delivered, and the run list is the four-frame cycle rather than the old
-`run_a`/`run_b` pair — Mahoraga is being redrawn from scratch, so there is no
-reason to deliver a superseded shape. (The readiness check in
-`src/ultimates.js` accepts the cycle in place of the pair.)
-
-### Two things specific to him
-
-**Draw the wheel INTO the pose, at the right size and place, but expect it to be
-cut out.** The karma wheel is composited separately at runtime
-(`effect:mahoraga_wheel`) precisely so it hangs level while he tumbles — a wheel
-painted into every pose rolled with his body on a dodge, which is the opposite
-of what it is for. Drawing it in keeps the poses readable and gives the intake
-something to measure against; it gets lifted the same way Geto's curses were
-(`tools/recut_curses.py` is the model).
-
-**He is enormous, and that is the point.** `heightCm: 260` against a roster
-averaging ~175, and `scale: 0.95` on top. Draw him at the same *figure scale* as
-everyone else — body ~290 px on the plate, per the delivery spec — and let the
-engine do the enlarging. Compensating by drawing him bigger on the plate would
-stack with the height solve and put his head off the top of the screen.
-
-### Delivery
-
-```
-assets/intake/mahoraga/<pose_key>.png
-```
-
-Standard spec at the top of this file. He is chalk-white against a dark
-skirt, so **key on magenta `#FF00FF`** — a grey screen would fight the body.
-
----
-
-## 11B. Finish the semantic sets — 18 sprites, Toji only
-
-This is round 10A, carried forward with every fighter it has finished removed
-from it. Gojo, Mahito, Nobara and Yuta got there in round 10, and **Geto (15
-poses), Hakari (17), Hanami (16), Inumaki (18), Jogo (17), Maki (17), Megumi
-(17), Momo (18), Nanami (18), Panda (18), Sukuna (18) and Todo (18) have since
-been delivered and integrated** — all twelve are re-pointed and off this list.
-**Toji alone** still runs on **4×5 sprite sheet cells** named `r{row}c{col}`, where one
-cell has to serve several actions at once.
-
-The problem was never the naming. It is that a sprint pose is what plays when
-Maki throws a punch, and a crouch is what plays when anyone lands — and no amount
-of re-pointing fixes it, because there is no fourth sprite to point at.
-
-### What is missing, per fighter
-
-Counts differ because round 9B already delivered some of the technique frames.
-**On-disk filenames are the resume authority** — anything already in
-`assets/sprites/<char>/` is done, whatever a total elsewhere says.
-
-| Fighter | Key | Missing | Poses |
-|---|---|---|---|
-| ~~Suguru Geto~~ | `geto` | ~~15~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| ~~Kinji Hakari~~ | `hakari` | ~~17~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| ~~Hanami~~ | `hanami` | ~~16~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| ~~Toge Inumaki~~ | `inumaki` | ~~18~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| ~~Jogo~~ | `jogo` | ~~17~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| ~~Maki Zen'in~~ | `maki` | ~~17~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| ~~Megumi Fushiguro~~ | `megumi` | ~~17~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| ~~Momo Nishimiya~~ | `momo` | ~~18~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| ~~Kento Nanami~~ | `nanami` | ~~18~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| ~~Panda~~ | `panda` | ~~18~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| ~~Ryomen Sukuna~~ | `sukuna` | ~~18~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| ~~Aoi Todo~~ | `todo` | ~~18~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| Toji Fushiguro | `toji` | 18 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_neutral` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
-
-Deliver to:
-
-```
-assets/intake/<character>/<pose_key>.png
-```
-
-Already delivered, do not redraw: `idle_a`, `idle_b`, `run_a`, `run_b`,
-`jump_rise`, `fall`, `hurt`, `guard`, `ledge_hang`, `dizzy`, `victory`,
-`charge`, `attack_up`, `dodge_roll`, `dodge_air`.
-
-### Consistency is the point of this round
-
-These 225 sprites are going to sit beside the poses each fighter already has, so
-**matching the delivered set matters more than any individual frame looking
-good.** For each fighter, put their `idle_a` beside what you are drawing and
-check:
-
-- **Same costume, same proportions, same age.** The sheets and the round-3/4/5
-  additions already disagree in places; this round should agree with the
-  *semantic* files, which are the newer and better art.
-- **Same figure scale.** Body height ~290 px on a ~1024×1536 plate, matching
-  their existing `idle_a`. The engine solves the final scale per fighter from
-  `heightCm`, so do not compensate.
-- **Same line weight and shading.** One character's set should look like it was
-  drawn in one sitting.
-- **Facing right**, one subject per file, flat key screen — the standard
-  delivery spec at the top of this file. Warm-palette fighters (Sukuna, Nobara,
-  Momo, Hakari) key on mid-grey `#808080`, everyone else on magenta `#FF00FF`.
-
-### Pose lines
-
-Combine each fighter's character block with the line below. Where a pose is a
-technique, the fighter's own kit decides what it looks like — the special names
-are in `src/characters.js` and on the move list in game.
-
-| Pose | Pose line |
-|---|---|
-| `attack_light_a` | fast opening jab or short slash, lead hand, body square, minimal wind-up |
-| `attack_light_b` | the follow-up strike with the other hand, hips rotated through it — reads as the second half of a two-hit combo |
-| `attack_heavy_a` / `_b` | the wind-up and the strike of one committed heavy blow — see **10C**, which supersedes the single `attack_heavy` this row used to ask for |
-| `attack_down` | striking downward at the ground in front, weight dropping onto it |
-| `special_neutral` | performing their **neutral special** — the named technique, mid-execution, with its cursed energy forming but not yet released |
-| `special_side` | their **side special**, moving forward into it |
-| `special_down` | their **down special**, weight low, technique breaking out of the ground or the body |
-| `ult_a` | the wind-up of their **ultimate**: gathering, energy at maximum, before release |
-| `ult_b` | the release of that ultimate, arms and body fully committed |
-| `crouch_a` | crouched low, guard up, alert — not resting |
-| `crouch_b` | the same crouch a fraction lower, weight settled |
-| `crouch_attack_a` | attacking from the crouch, low sweep or upward strike from the knees |
-| `crouch_attack_b` | the follow-through of that low attack |
-| `dash` | sprinting flat out, body angled forward past the leading foot — a running pose, distinct from `run_a`/`run_b` which are the mid-stride cycle |
-| `land` | absorbing a landing, knees bent, one hand near the floor, dust at the feet — distinct from a crouch, which holds |
-
-### The unused cells stay
-
-Each fighter has 5–8 grid cells nothing draws (115 across the roster). **Do not
-delete them.** They are alternate poses the sheets happened to contain, and the
-sprite workbench can now point any action at any sprite — so an unused cell is a
-candidate for a secondary action rather than dead weight. They stay in the
-manifest and stay visible in the workbench under "All sprites".
-
-### Integrating
-
-1. Import with `tools/intake.py`, which registers the new poses.
-2. Point each fighter's kit at them: the animation tables in `src/characters.js`
-   currently name grid cells, and this is what replaces those names. The
-   round-7 fighters' tables are the model — they inherit `SEMANTIC_ANIMS`
-   wholesale and override almost nothing.
-3. Anything not re-pointed keeps working: an action still naming a grid cell
-   draws the grid cell exactly as it does today, so this can land fighter by
-   fighter rather than all at once.
-
-The result is 23 fighters with one sprite per action and no shared cells, which
-is what makes the roster read consistently — and it retires the `r{row}c{col}`
-vocabulary from everything except the leftovers.
-
----
-
-## 11C. Wind-up and strike — 24 sprites across 6 fighters
-
-This is round 10C, carried forward with the fighters it finished removed. The
-four sheet-era fighters round 10 completed have their pairs; so does everyone
-`11B` covers, since the pairs are in that pose list. What is left is the six
-round-7 fighters, who were built with a single-frame heavy and aerial.
-
-| Fighter | Key | Poses |
-|---|---|---|
-| Choso | `choso` | `attack_heavy_a` `attack_heavy_b` `attack_air_a` `attack_air_b` |
-| Yoshinobu Gakuganji | `gakuganji` | `attack_heavy_a` `attack_heavy_b` `attack_air_a` `attack_air_b` |
-| Mei Mei | `meimei` | `attack_heavy_a` `attack_heavy_b` `attack_air_a` `attack_air_b` |
-| Reggie Star | `reggie` | `attack_heavy_a` `attack_heavy_b` `attack_air_a` `attack_air_b` |
-| Takako Uro | `uro` | `attack_heavy_a` `attack_heavy_b` `attack_air_a` `attack_air_b` |
-| Yuji Itadori | `yuji` | `attack_heavy_a` `attack_heavy_b` `attack_air_a` `attack_air_b` |
-
-Mahoraga needs these too and is not listed: his whole set is redrawn in 11A, and
-the pairs are in that pose list.
-
-### The problem
-
-A heavy attack and an aerial each draw **one frame** for the whole move. The
-engine already splits that move into startup, active and recovery
-(`delay` / `dur` / `recover` in `src/moves.js`), but the art cannot follow it,
-so whatever was drawn is held through all three.
-
-Which half was drawn varies by fighter, and that is the actual bug. Mei Mei's
-`attack_heavy` is a clean **wind-up** — axe raised, weight loaded, nothing struck
-yet — held for the entire swing, so her heavy never connects on screen. Others
-drew the **strike**, so the move has no anticipation and appears to teleport into
-its follow-through. Both are good drawings of half a move.
-
-### What to deliver
-
-Two poses per fighter, for both the heavy and the aerial:
-
-| Pose | What it is |
-|---|---|
-| `attack_heavy_a` | **wind-up.** Weapon or fist drawn back, weight loaded onto the rear foot, body coiled. Nothing has landed. The moment before commitment. |
-| `attack_heavy_b` | **strike.** The same swing at full extension, weight transferred through to the front foot, the arc finished. The moment of contact. |
-| `attack_air_a` | **wind-up, airborne.** Body coiled mid-jump, striking limb cocked, legs gathered. |
-| `attack_air_b` | **strike, airborne.** Fully extended through the aerial arc, legs trailing, committed. |
-
-**These two frames are one motion, drawn twice.** Same camera distance, same
-figure scale, same costume, same weapon at the same size — the only thing that
-changes is the body. If you can flip between them and see anything move that is
-not the character's own action, they will read as a glitch rather than a swing.
-
-Deliver to `assets/intake/<character>/attack_heavy_a.png` and so on, against
-that fighter's canonical `idle_a` (10B above).
-
-### The existing art is kept, not replaced
-
-Whatever a fighter has as `attack_heavy` or `attack_air` today stays in the
-repository and stays selectable. It becomes a **variant**: when the new pair
-lands, both `_a` and `_b` are seeded with the new art, and the old drawing is
-offered alongside each of them as a second option in the sprite workbench's
-chevron menu (`manifest.variants`, `tools/build_variants.py`).
-
-That matters because some of the existing art is good — Mei Mei's raised axe is a
-better wind-up than a fresh one might be. Nothing is thrown away, and the choice
-of which drawing serves which half is made per fighter, by eye, in the workbench.
-
-### It is already wired
-
-`src/characters.js` declares both attacks as two-frame animations:
-
-```js
-sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"],
-             fallback: ["attack_heavy"], fps: 6, loop: false }
-```
-
-`resolvedAnim` filters an animation down to the art that exists, so **a fighter
-without the pair draws exactly what they draw today**, and picks the pair up the
-moment it is imported. No code change per fighter, and the round can land one
-fighter at a time.
-
-The frame rate is set so the drawing changes when the **hitbox** does: a heavy's
-startup is `0.15 / speed` seconds and 6 fps holds the first frame for 0.167 s; an
-aerial's is `0.13 / speed` against 8 fps and 0.125 s. The strike frame appears as
-the move goes live, within about 10 ms.
-
-### Relationship to 10A
-
-**10A's `attack_heavy` row is superseded by this section.** The 17 fighters in
-that round should be drawn as `attack_heavy_a` + `attack_heavy_b` directly rather
-than as a single `attack_heavy` that would immediately need splitting. Everything
-else in 10A is unchanged.
-
----
-
----
-
-## 11D. Reggie's crouch attack — 1 sprite
-
-The only **improvement** request outstanding, and the only thing in this round
-that is not blocking: `reggie/crouch_attack_b` is drawn well, it just does not
-read as the action. It is the follow-through of a low attack and looks like
-something else.
-
-| Fighter | Key | Pose | Ask |
-|---|---|---|---|
-| Reggie Star | `reggie` | `crouch_attack_b` | Pose — reads poorly, or is not the action it stands for |
-
-Pose line, from 11B's table: *the follow-through of that low attack.* His canon
-reference is `assets/reference/canon/reggie_idle.png` — the receipt tunic, bare
-arms and legs, barefoot.
-
-Keep this separate from the rest of the round when scheduling it. A `replace` is
-blocking, because something on screen is wrong; this is a wish, and burying the
-two together makes the blocking ones wait behind the wish list.
+**Mahoraga's canon is the shikigami render, not his `idle_a`** —
+`assets/reference/canon/mahoraga_canon.png`, the full-body art the game already
+ships. Round 11A redrew him from it, so his delivered set now agrees with it;
+the render stays the authority for his design because it is what the set was
+drawn against.
 
 ---
 
@@ -582,10 +222,10 @@ two together makes the blocking ones wait behind the wish list.
 Three parts; any can be delivered on its own.
 
 - **12A** — nineteen workbench catches: poses that are wrong on the art or wrong as the action (19 sprites)
-- **12B** — the four-frame run cycle, roster-wide (92 sprites)
-- **12C** — a `prone` pose, knocked flat on their back, roster-wide (23 sprites)
+- **12B** — the four-frame run cycle, roster-wide (96 sprites)
+- **12C** — a `prone` pose, knocked flat on their back, roster-wide (24 sprites)
 
-**134 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
+**139 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
 is what makes the roster finally *run* instead of vibrating between two nearly
 identical poses. 12C is the one the engine is already simulating without art.
 
@@ -596,8 +236,8 @@ identical poses. 12C is the one the engine is already simulating without art.
 Everything here came out of placing the delivered semantic sets in the sprite
 workbench: seen at their real size and standing on the real ground line,
 nineteen poses turned out to be wrong — some as drawings, some as the action they stand
-for. Nothing in this round is in round 11; every fighter listed here has a
-finished set, so 11B and 11C do not cover them.
+for. Round 11 is closed, so nothing here is covered by another round — every
+fighter listed has a finished set, and these are faults in it.
 
 Two kinds of fault, and they want different things from a redraw:
 
@@ -824,7 +464,7 @@ references: `assets/reference/canon/gojo_idle.png`,
 
 ---
 
-## 12B. The four-frame run cycle — 92 sprites across 23 fighters
+## 12B. The four-frame run cycle — 96 sprites across 24 characters
 
 ### Why the two-frame run is being retired
 
@@ -901,9 +541,11 @@ Things that make or break this specific set:
 
 ### Who and what to deliver
 
-All 23 roster fighters, four poses each. Mahoraga is **not** in this list —
-his cycle is part of the 11A redraw, which now asks for these four poses
-directly instead of the old pair.
+All 23 roster fighters plus **Mahoraga**, four poses each. He was held out of
+this list while round 11A was open, on the assumption his cycle would come with
+that redraw; 11A has since been delivered as the 33-pose set, which carries
+`run_a`/`run_b` and not the cycle. So he needs these four like everyone else —
+`assets/intake/mahoraga/run_reach_a.png` and the rest.
 
 ```
 assets/intake/<character>/run_reach_a.png
@@ -944,7 +586,7 @@ can land one fighter at a time.
 
 ---
 
-## 12C. A prone pose — knocked flat on their back, 23 sprites
+## 12C. A prone pose — knocked flat on their back, 24 sprites
 
 ### Why
 
@@ -982,6 +624,7 @@ Deliver to:
 assets/intake/<character>/prone.png
 ```
 
-All 23 fighters. Mahoraga also gets one if 11A is being drawn anyway — the
-transform can be knocked down like anyone else (his armour eats the hit, but a
-future knockdown that pierces armour would want it).
+All 23 fighters plus **Mahoraga** — the transform can be knocked down like
+anyone else (his armour eats the hit today, but a future knockdown that pierces
+armour would want the pose). Round 11A is closed, so his does not arrive with
+anything else.

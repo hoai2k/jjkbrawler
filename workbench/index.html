@@ -48,10 +48,14 @@
           <div class="chips">
             <label class="chip"><input type="checkbox" id="showComparison" checked> Show comparison</label>
             <label class="chip chip--select">This character's idle
+              <!-- Comparison by default: the question asked of nearly every
+                   pose is "is this the right size for this character", and
+                   standing their own idle in the slot answers it without
+                   anyone turning it on. -->
               <select id="selfIdleMode">
                 <option value="hide">Hide</option>
                 <option value="overlay">Overlay</option>
-                <option value="comparison">Comparison</option>
+                <option value="comparison" selected>Comparison</option>
               </select>
             </label>
             <label class="chip"><input type="checkbox" id="showPlatform" checked> Game platform</label>

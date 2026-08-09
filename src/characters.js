@@ -666,13 +666,12 @@ export const CHARACTERS = {
     shadow: "rgba(168, 174, 184, 0.34)",
     scale: 0.60,
     stats: { speed: 465, airSpeed: 350, accel: 2980, jump: 780, airJumps: 1, weight: 1.04, friction: 0.87 },
-    anims: {
-      light: { frames: ["r0c3", "r1c2"], fps: 13, loop: false },
-      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
-      specialNeutral: { frames: ["r3c1"], fps: 8, loop: false },
-      specialSide: { frames: ["r3c2"], fps: 8, loop: false },
-      specialDown: { frames: ["r0c2"], fps: 8, loop: false },
-      ult: { frames: ["r3c1", "r3c0"], fps: 8, loop: true },
+    // Round 11B delivered his last eighteen poses — the last fighter on the
+    // sprite sheets. Inherits the semantic table; the fast jab and quicker
+    // ultimate are his own timing, kept.
+    anims: { ...SEMANTIC_ANIMS,
+      light: { frames: ["attack_light_a", "attack_light_b"], fps: 13, loop: false },
+      ult: { frames: ["ult_a", "ult_b"], fps: 8, loop: true },
     },
     light: { dmg: 8.5, reach: 200, speed: 1.15, angle: 0.24, effect: "heavenly", label: "Spear Rush", sfx: "slash" },
     heavy: { dmg: 15.5, reach: 214, speed: 1.05, angle: 0.4, effect: "heavenly", label: "Split Soul Slash", sfx: "slashHeavy", shieldMul: 2.0 },

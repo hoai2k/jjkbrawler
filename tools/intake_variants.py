@@ -221,11 +221,23 @@ def select(man, char, pose, file, log, at=None):
     # it goes on the workbench's updated list too, with what has to be redone.
     note = intake_import.replaced_note(meta, "discard", at or intake_import.now_stamp(),
                                        how="variant")
-    for field in build_variants.PLACEMENT:
+    # BANKED, not PLACEMENT: the review flags belong to the drawing too, and
+    # clearing only the placement left the OLD drawing's verdict mirrored on the
+    # pose. A promote is exactly the case that exposes it — the delivery answers
+    # an improvement request, selects the new art, and the pose goes on asking
+    # for the redraw it just received. The workbench's own variant switch has
+    # always cleared both (VARIANT_BANKED in src/sprites.js); this is the same
+    # rule, arrived at from the import side.
+    for field in build_variants.BANKED:
         meta.pop(field, None)
     for field, value in chosen.items():
-        if field != "label":
-            meta[field] = value
+        if field == "label":
+            continue
+        # "Delete variant" is a statement about one option among several, which
+        # the pose cannot carry — the same exception the workbench makes.
+        if field == "needsReplacement" and value == "delete":
+            continue
+        meta[field] = value
     if note:
         meta["replaced"] = note
     log.append(f"{char}/{pose}: selected {before} -> {file}")
