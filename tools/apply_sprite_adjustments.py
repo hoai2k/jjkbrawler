@@ -155,6 +155,32 @@ def bank_superseded(man, char, key, note, meta):
         entry["options"].insert(0, current)
 
 
+def bank_rejected(man, char, key, note, delivered):
+    """Keep the drawing an approval just turned down, as an option on the pose.
+
+    The mirror of bank_superseded, and for the same reason: saying no is a step
+    in the comparison, not the end of it. The replacement stays on the pose as
+    an alternate carrying its own placement, so the answer can be changed later
+    — in the workbench, by the pose's own variant chevron — without the drawing
+    having to be delivered again.
+    """
+    if not delivered.get("file"):
+        return
+    entry = man.setdefault("variants", {}).setdefault(char, {}).setdefault(
+        key, {"options": []})
+    rejected = dict(delivered)
+    rejected["label"] = "Not approved"
+    rejected["supersededAt"] = note.get("at") or now_stamp()
+    entry["options"] = [o for o in entry["options"] if o["file"] != rejected["file"]]
+    entry["options"].append(rejected)
+    # The drawing that stays in play belongs in the list too, or the pose's own
+    # art would be missing from its own options.
+    live = dict(note.get("live") or {})
+    if live.get("file") and not any(o["file"] == live["file"] for o in entry["options"]):
+        live["label"] = "In game"
+        entry["options"].insert(0, live)
+
+
 def clear_fresh(man, char, key):
     """Drop the "new, not looked at" mark from this pose's variant options.
 
@@ -210,6 +236,16 @@ def main():
         if frames is None:
             skipped.append(f"unknown character '{char}'")
             continue
+        # The delivered drawing's own numbers, before this export's adjustments
+        # touch them. A "keep" verdict banks the drawing it turns down, and by
+        # the time the verdicts are read the pose's fields have already been
+        # rewritten with the ones the workbench put back — so what the option
+        # deserves is captured here, while it is still the delivered art's.
+        delivered_before = {
+            key: {f: meta[f] for f in ["file"] + VARIANT_BANKED if f in meta}
+            for key, meta in frames.items()
+            if isinstance(meta, dict) and meta.get("awaitingApproval")
+        }
         # Which sprite each action draws. The workbench's secondary-action
         # editor writes these when a state is pointed at a different cell; the
         # game reads them in animsOf() (src/sprites.js), so characters.js does
@@ -389,6 +425,13 @@ def main():
                 skipped.append(f"{char}/{key}: no replacement was waiting")
                 continue
             if verdict == "keep":
+                # The whole drawing goes back, not a field-by-field merge over
+                # the one being turned down: every field that belongs to an
+                # image is cleared first, or the rejected drawing's numbers
+                # (and anchors, and mirror) would be left wearing the old art.
+                bank_rejected(man, char, key, note, delivered_before.get(key, {}))
+                for field in VARIANT_BANKED:
+                    meta.pop(field, None)
                 for field, value in (note.get("live") or {}).items():
                     meta[field] = value
             else:

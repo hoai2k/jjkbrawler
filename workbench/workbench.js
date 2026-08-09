@@ -560,8 +560,14 @@ function poseView(option) {
   return out;
 }
 
-/** Point a pose at one of its other drawings. */
-async function chooseVariant(charKey, frameKey, file) {
+/** Point a pose at one of its other drawings.
+ *
+ *  The whole swap, in one place: bank what is leaving, clear every field that
+ *  belongs to a drawing, take the arriving one's, and re-fetch the image so
+ *  the frame's slot holds the picture whose numbers are now in play. Anything
+ *  that changes which drawing a pose uses goes through here — including an
+ *  approval, which is the same swap wearing a different question. */
+async function pointPoseAt(charKey, frameKey, file) {
   const entry = variantEntry(charKey, frameKey);
   const meta = rawMeta(charKey, frameKey);
   if (!entry || !meta || meta.file === file) return;
@@ -575,12 +581,18 @@ async function chooseVariant(charKey, frameKey, file) {
 
   for (const field of VARIANT_BANKED) delete meta[field];
   Object.assign(meta, poseView(incoming), { file });
-  variantPicks.set(`${charKey}/${frameKey}`, file);
 
   // The new art has almost certainly never been fetched — the streamer only
   // pulls the file each pose pointed at when the character loaded.
   await loadFrame(charKey, frameKey, { reload: true });
   syncAll();
+}
+
+async function chooseVariant(charKey, frameKey, file) {
+  const meta = rawMeta(charKey, frameKey);
+  if (!meta || meta.file === file) return;
+  variantPicks.set(`${charKey}/${frameKey}`, file);
+  await pointPoseAt(charKey, frameKey, file);
 }
 
 // Frames whose drawing was switched this session, so the export can say so.
@@ -1063,7 +1075,8 @@ function altCompare() {
     meta: poseView(pick),
     img: spriteFileImage(pick.file),
     file: pick.file,
-    caption: pick.supersededAt ? "the drawing this replaced"
+    caption: pick.label === "Not approved" ? "the replacement, not approved"
+      : pick.supersededAt ? "the drawing this replaced"
       : pick.label ? `alternate: ${pick.label}` : "alternate",
   };
 }
@@ -2167,21 +2180,88 @@ function refreshReviewButton() {
  *  same door every other updated-list entry leaves by. Both halves export:
  *  the option flag through `variantPlacement`, the review through
  *  `clearUpdated`. */
-function settleApproval(charKey, frameKey, approve) {
+async function settleApproval(charKey, frameKey, approve) {
   const meta = rawMeta(charKey, frameKey);
   const note = meta?.awaitingApproval;
   if (!note) return;
   pushHistory(charKey, frameKey);
-  if (!approve && note.live) {
-    // Keeping means the pose goes back to being the drawing in play, whole:
-    // its file and every number that belongs to that image.
-    for (const [field, value] of Object.entries(note.live)) meta[field] = value;
-  }
+
+  // Both drawings become options on the pose before either wins. That is what
+  // makes the decision reversible: the loser is a banked variant like any
+  // other, with its own file and its own numbers, so switching back is the
+  // same operation as switching between two alternates — and the answer can be
+  // changed as often as you like without the pose losing either drawing.
+  const pair = bankApprovalPair(charKey, frameKey, note, approve);
   delete meta.awaitingApproval;
   approvalSettled.set(`${charKey}/${frameKey}`, approve ? "approve" : "keep");
   remember(charKey, frameKey);
   if (!isUpdateReviewed(charKey, frameKey)) toggleUpdateReviewed(charKey, frameKey);
-  syncAll();
+  // Keeping means the pose IS the drawing in play again — its file and every
+  // number that belongs to that image. Field-by-field assignment left the
+  // rejected drawing's own fields behind (and, worse, left its image in the
+  // frame's slot), which is what drew the old art's numbers onto the new
+  // picture and stretched it.
+  if (!approve && pair?.live) await pointPoseAt(charKey, frameKey, pair.live);
+  else syncAll();
+}
+
+/** Swap the pose's answer after the fact, as many times as it takes. */
+async function switchApproval(charKey, frameKey, approve) {
+  const pair = approvalPairs.get(`${charKey}/${frameKey}`);
+  if (!pair) return;
+  pushHistory(charKey, frameKey);
+  approvalSettled.set(`${charKey}/${frameKey}`, approve ? "approve" : "keep");
+  labelApprovalPair(charKey, frameKey, approve);
+  await pointPoseAt(charKey, frameKey, approve ? pair.delivered : pair.live);
+}
+
+/** The two drawings an approval decides between, by file, for every pose
+ *  settled this session. */
+const approvalPairs = new Map();
+
+/** Bank the delivered drawing and the one in the game as options on the pose.
+ *
+ *  `tools/apply_sprite_adjustments.py` does the same thing when the export is
+ *  applied, so what the session shows and what the file ends up holding are
+ *  the same shape. Labels say which is which; `supersededAt` is what the
+ *  Alternate sprite view sorts on. */
+function bankApprovalPair(charKey, frameKey, note, approve) {
+  const meta = rawMeta(charKey, frameKey);
+  const live = note.live ? { ...note.live } : null;
+  if (!meta?.file) return null;
+  const entry = ((spriteManifest.variants ??= {})[charKey] ??= {})[frameKey]
+    ??= { options: [] };
+  const put = (option) => {
+    const at = entry.options.findIndex((o) => o.file === option.file);
+    if (at >= 0) entry.options[at] = { ...entry.options[at], ...option };
+    else entry.options.push(option);
+  };
+  put({ ...takeBanked(meta), file: meta.file });
+  if (live) put({ ...live });
+  const pair = { delivered: meta.file, live: live?.file || null };
+  approvalPairs.set(`${charKey}/${frameKey}`, pair);
+  labelApprovalPair(charKey, frameKey, approve, note.at);
+  return pair;
+}
+
+/** Which of the two drawings lost, in the words the apply script uses, so the
+ *  session and the applied manifest describe the pose the same way. The loser
+ *  carries the moment it lost, which is what the Alternate sprite view sorts
+ *  on — so the comparison keeps answering "what is the other one". */
+function labelApprovalPair(charKey, frameKey, approve, at) {
+  const pair = approvalPairs.get(`${charKey}/${frameKey}`);
+  const options = variantEntry(charKey, frameKey)?.options;
+  if (!pair || !options) return;
+  const stamp = at || new Date().toISOString();
+  const mark = (file, lost, label) => {
+    const option = options.find((o) => o.file === file);
+    if (!option) return;
+    option.label = label;
+    if (lost) option.supersededAt = stamp;
+    else delete option.supersededAt;
+  };
+  mark(pair.delivered, !approve, approve ? "Delivered" : "Not approved");
+  mark(pair.live, approve, approve ? "Superseded" : "In game");
 }
 
 // Decisions made this session, exported as `approvals`. Kept apart from the
@@ -2192,15 +2272,43 @@ const approvalSettled = new Map();
 function refreshApprovalControl() {
   const group = $("approvalGroup");
   if (!group) return;
+  const id = `${state.char}/${state.frame}`;
   const note = approvalNote(state.char, state.frame);
-  group.hidden = !note;
-  if (!note) return;
-  $("approvalInfo").innerHTML =
-    "<b>The canvas is showing the new art; the game is still drawing the old "
-    + `one</b> (<code>${note.live?.file || "—"}</code>).<br>`
-    + "Place it, then decide. <b>Approve</b> lets it into the game with the "
-    + "placement you have given it; <b>keep</b> puts the old drawing back and "
-    + "throws this one away. Either answer takes the pose off the updated list.";
+  const settled = approvalSettled.get(id);
+  group.hidden = !note && !settled;
+  if (group.hidden) return;
+
+  // Two states, one group. Before an answer: the question and both answers.
+  // After one: what was decided, and the other answer — a decision made by
+  // looking at two drawings is one you change by looking again, and both
+  // drawings are still on the pose either way.
+  $("approvalAsk").hidden = !note;
+  $("approvalDone").hidden = !!note;
+  if (note) {
+    $("approvalInfo").innerHTML =
+      "<b>The canvas is showing the new art; the game is still drawing the old "
+      + `one</b> (<code>${note.live?.file || "—"}</code>).<br>`
+      + "Place it, then decide. <b>Approve</b> lets it into the game with the "
+      + "placement you have given it; <b>keep</b> leaves the old drawing in "
+      + "play. Either answer takes the pose off the updated list, and either "
+      + "can be changed afterwards — both drawings stay on the pose.";
+    $("approvalLabel").textContent = "Replacement waiting";
+    $("approvalState").textContent = "not in the game yet";
+    return;
+  }
+  const approved = settled === "approve";
+  const pair = approvalPairs.get(id);
+  $("approvalLabel").textContent = "Replacement decided";
+  $("approvalState").textContent = approved ? "the new art is in" : "the old art stays";
+  $("approvalDoneInfo").innerHTML = approved
+    ? `<b>Approved</b> — the pose draws <code>${state.frame && rawMeta(state.char, state.frame)?.file || "—"}</code>, `
+      + `and <code>${pair?.live || "the drawing it replaced"}</code> is banked as an alternate.`
+    : `<b>Kept</b> — the pose still draws <code>${pair?.live || "the old art"}</code>, `
+      + `and <code>${pair?.delivered || "the replacement"}</code> is banked as an alternate.`;
+  $("approvalSwitch").textContent = approved
+    ? "Change to: keep the old art"
+    : "Change to: approve the new art";
+  $("approvalSwitch").disabled = !pair;
 }
 
 /** The auto-tune marker, in its own group so it shows on poses that carry no
@@ -3222,6 +3330,9 @@ async function boot() {
   // takes it off the updated list; they differ only in whether the art swaps.
   // The clearing is local until exported, like every other change here.
   $("approveBtn").onclick = () => settleApproval(state.char, state.frame, true);
+  $("approvalSwitch").onclick = () =>
+    switchApproval(state.char, state.frame,
+                   approvalSettled.get(`${state.char}/${state.frame}`) !== "approve");
   $("keepBtn").onclick = () => settleApproval(state.char, state.frame, false);
 
   $("undoBtn").onclick = undo;

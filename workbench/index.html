@@ -107,11 +107,23 @@
              the game. This is the confirm step: until one of these buttons is
              pressed the pose goes on drawing the art it already had. -->
         <div class="group approval" id="approvalGroup" hidden>
-          <label data-help="Since the roster finished, an intake round no longer overwrites art the moment it runs. A replacement lands beside the drawing it replaces and the pose keeps pointing at the old one, so nothing players see changes until somebody stands the two side by side and picks.&lt;br&gt;&lt;br&gt;&lt;b&gt;Approve&lt;/b&gt; swaps the art over, bringing that image's own placement with it. &lt;b&gt;Keep the current art&lt;/b&gt; leaves the pose exactly as it is. Either answer takes it off the updated list; both travel with the export like any other change.&lt;br&gt;&lt;br&gt;A brand-new pose never waits here — there is nothing to compare it against.">Replacement waiting <span class="sub">not in the game yet</span></label>
-          <div id="approvalInfo" class="note"></div>
-          <div class="chips">
-            <button id="approveBtn" class="primary sm">Approve — use the new art</button>
-            <button id="keepBtn" class="ghost sm">Keep the current art</button>
+          <label data-help="Since the roster finished, an intake round no longer overwrites art the moment it runs. A replacement lands beside the drawing it replaces and the pose keeps pointing at the old one, so nothing players see changes until somebody stands the two side by side and picks.&lt;br&gt;&lt;br&gt;&lt;b&gt;Approve&lt;/b&gt; swaps the art over, bringing that image's own placement with it. &lt;b&gt;Keep the current art&lt;/b&gt; leaves the pose exactly as it is. Either answer takes it off the updated list; both travel with the export like any other change.&lt;br&gt;&lt;br&gt;A brand-new pose never waits here — there is nothing to compare it against."><span id="approvalLabel">Replacement waiting</span> <span class="sub" id="approvalState">not in the game yet</span></label>
+          <!-- The question, while there is one. -->
+          <div id="approvalAsk">
+            <div id="approvalInfo" class="note"></div>
+            <div class="chips">
+              <button id="approveBtn" class="primary sm">Approve — use the new art</button>
+              <button id="keepBtn" class="ghost sm">Keep the current art</button>
+            </div>
+          </div>
+          <!-- And what was answered, with the other answer still on offer:
+               both drawings stay banked on the pose, so the decision is one
+               you can go back and forth on. -->
+          <div id="approvalDone" hidden>
+            <div id="approvalDoneInfo" class="note"></div>
+            <div class="chips">
+              <button id="approvalSwitch" class="ghost sm">Change the decision</button>
+            </div>
           </div>
         </div>
 
