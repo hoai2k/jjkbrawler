@@ -62,7 +62,11 @@ for (let i = 0; i < SECONDS * 10; i++) {
       fighters: state.fighters.map((f) => ({
         charKey: f.charKey, dmg: f.damage, grounded: f.grounded,
         hitstun: f.hitstun, vy: f.vy, box: hurtbox(f),
-        want: bodyMetrics(f.charKey),
+        // The actor being DRAWN, not the fighter underneath: Megumi wearing
+        // Mahoraga is a 222 px shikigami on screen and is a 222 px shikigami to
+        // hit, which is the whole point of sizing boxes off the art.
+        drawn: f.spriteChar || f.charKey,
+        want: bodyMetrics(f.spriteChar || f.charKey),
       })),
     };
   });
@@ -111,7 +115,8 @@ for (const s of samples) {
     const wr = f.box.w / f.want.width;
     const hr = f.box.h / f.want.height;
     if (wr < 0.55 || wr > 1.25 || hr > 0.95) {
-      offenders.push(`${f.charKey} ${Math.round(f.box.w)}x${Math.round(f.box.h)} `
+      offenders.push(`${f.charKey} as ${f.drawn} `
+        + `${Math.round(f.box.w)}x${Math.round(f.box.h)} `
         + `vs body ${Math.round(f.want.width)}x${Math.round(f.want.height)}`);
     }
   }
