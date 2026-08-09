@@ -4,14 +4,14 @@ import { getStage } from "./stages.js";
 import { drawCharFrame, currentFrame, resolvedAnim } from "./sprites.js";
 import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
-import { TRAIL_ALPHA } from "./config_tuning.js";
+import { TRAIL_ALPHA, STRIKE_ARC } from "./config_tuning.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
 import { hitboxRect, hurtbox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
 import { WORLD, SHIELD_MAX, PARRY_WINDOW } from "./constants.js";
 import { clamp } from "./utils.js";
 import { headHeightTarget } from "./heights.js";
-import { VISIBLE_ART_REACH } from "./moves.js";
+import { strikeArcs } from "./moves.js";
 
 export function draw(ctx) {
   ctx.clearRect(0, 0, WORLD.w, WORLD.h);
@@ -23,8 +23,12 @@ export function draw(ctx) {
 
   for (const e of state.entities) if (e.draw) e.draw(ctx);
   drawProjectiles(ctx);
-  drawReachWakes(ctx);
   drawFighters(ctx);
+  // Over the fighters, not behind them: the arc is light cutting through the
+  // air in front of the swing, and additive light over the art is what sells
+  // that. It sits far enough out (strikeArcs measures from the hitbox edge)
+  // that it never covers the body it came from.
+  drawStrikeArcs(ctx);
   if (state.debugHitboxes) drawDebug(ctx);
   drawParticles(ctx);
   drawPopupsWorld(ctx);
@@ -159,61 +163,108 @@ function drawProjectiles(ctx) {
   }
 }
 
-// Several kits hit further than any sprite can visibly reach — the art caps at
-// ~94 px in front of the fighter (VISIBLE_ART_REACH) while Mei Mei's heavy
-// connects past 160. Without this, those hits land out of thin air. An energy
-// wake in the fighter's theme colour fills the gap from where the art ends to
-// where the hitbox does, for exactly the active frames of the swing, so what
-// the player SEES connect is what the engine says connected.
-function drawReachWakes(ctx) {
+// The crescent of energy a swing cuts through the air, drawn on the arc the
+// blow actually travels: centred on the fighter, curved around them at exactly
+// the distance the hitbox reaches, for exactly the frames it is live.
+//
+// It is doing a job, not just decorating. Most of the kit out-ranges its own
+// art — the sheet caps at ~94 px in front of the fighter while Mei Mei's heavy
+// connects past 160 — so without a mark at the real edge those hits land out
+// of thin air. The arc is that mark, and because strikeArcs() measures it off
+// the hitbox, retuning a move's reach moves the arc with it.
+//
+// Everything about WHERE it goes lives in strikeArcs (moves.js); this draws it.
+function drawStrikeArcs(ctx) {
   for (const hb of state.hitboxes) {
     if (hb.age < 0 || hb.age > hb.dur) continue;               // active frames only
     const f = hb.owner;
-    if (!f || f.dead || !f.char || f.hitPause > 0) continue;
+    if (!f || f.dead || !f.char) continue;                     // summons have no theme
+    // Note that hitPause is NOT skipped: the hitbox freezes with its owner, and
+    // the arc freezing alongside it is the impact holding on screen. Dropping
+    // it here would blink the swing out at the exact moment it connected.
     const facing = hb.facing ?? f.facing;
-    const cy = f.y + hb.oy + hb.h / 2;
-    const halfH = Math.min(hb.h / 2, 44);
-    // Swell and fade across the active window, so the wake reads as the swing
-    // travelling outward rather than as a rectangle switching on.
-    const k = hb.age / hb.dur;
-    const alpha = 0.72 * Math.sin(Math.min(1, k) * Math.PI);
+    const bodyH = headHeightTarget(f.spriteChar || f.charKey) || 175;
+    const k = clamp(hb.age / Math.max(hb.dur, 0.001), 0, 1);
     const color = f.char.theme || "#8fd3ff";
-    // Forward always; backward too for the down-smash quakes, whose box spans
-    // both sides of the fighter (negative ox).
-    wake(ctx, f.x, cy, facing, hb.ox + hb.w, halfH, alpha, color);
-    wake(ctx, f.x, cy, -facing, -hb.ox, halfH, alpha, color);
+    for (const a of strikeArcs(hb, bodyH)) {
+      strikeArc(ctx, f.x, f.y + a.pivotY, facing, a, k, color);
+    }
   }
 }
 
-/** One tapered energy blade from the edge of the visible art out to `far`
- *  world-px in front of `x`, in direction `dir`. No-op when the art covers it. */
-function wake(ctx, x, cy, dir, far, halfH, alpha, color) {
-  if (far - VISIBLE_ART_REACH < 18) return;
-  const startX = x + dir * VISIBLE_ART_REACH;
-  const endX = x + dir * far;
+/** One crescent, `a` as returned by strikeArcs, `k` the fraction of the active
+ *  window elapsed. Drawn as a run of short arc strokes: a canvas gradient
+ *  cannot follow a curve, and stepping along it also buys the taper toward the
+ *  tips and the bright head that runs the length of the swing. */
+function strikeArc(ctx, x, y, facing, a, k, color) {
+  const A = STRIKE_ARC;
+  // Out to full reach over the opening of the window, so the crescent travels
+  // outward instead of switching on at its final size.
+  const radius = a.radius * (A.reachFrom + (1 - A.reachFrom) * Math.min(1, k / A.reachIn));
+  // Swell and fade over the whole of it.
+  const fade = Math.sin(k * Math.PI) ** 0.7;
+  if (fade <= 0.01) return;
+  const thick = clamp(radius * A.thickness, A.thicknessMin, A.thicknessMax);
+  // Where the bright head has got to, in the arc's own -1..1 coordinate.
+  const head = -1 + 2 * (k < 0.5 ? 2 * k * k : 1 - (1 - k) ** 2 * 2);
+
   ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(facing, 1);       // arcs are authored facing +x; mirror the frame
   ctx.globalCompositeOperation = "lighter";
-  ctx.globalAlpha = alpha;
-  const grad = ctx.createLinearGradient(startX, 0, endX, 0);
-  grad.addColorStop(0, "rgba(255,255,255,0)");
-  grad.addColorStop(0.55, color);
-  grad.addColorStop(1, "#ffffff");
-  ctx.fillStyle = grad;
-  // A tapered blade: full height at the tip, pinched where it leaves the art.
+  ctx.lineCap = "round";
+
+  const STEPS = 18;
+  // The leading crescent first, then its trail: each echo a step further in and
+  // fainter, with its bright head lagging behind the one in front of it.
+  for (let e = 0; e < A.echoes; e++) {
+    const er = radius * (1 - e * A.echoStep);
+    const eSpan = a.span * (1 - e * A.echoNarrow);
+    const eFade = fade * A.echoFade ** e;
+    const eHead = head - e * A.echoLag;
+    if (er < A.minRadius * 0.5) break;
+    for (let i = 0; i < STEPS; i++) {
+      const t0 = -1 + 2 * (i / STEPS);
+      const t1 = -1 + 2 * ((i + 1) / STEPS);
+      const mid = (t0 + t1) / 2;
+      // Tapered to nothing at both tips, and brightest wherever the head is.
+      const taper = Math.cos(mid * Math.PI / 2) ** 0.8;
+      const lit = Math.exp(-(((mid - eHead) / A.headWidth) ** 2));
+      ctx.strokeStyle = color;
+      ctx.beginPath();
+      ctx.arc(0, 0, er, a.aim + eSpan * t0, a.aim + eSpan * t1);
+      // A soft halo the whole length of the reach, so the arc is legible as a
+      // shape even where the swing has not got to yet.
+      ctx.globalAlpha = eFade * taper * A.glowAlpha;
+      ctx.lineWidth = thick * A.glowWidth;
+      ctx.stroke();
+      // The band itself, swelling where the swing is.
+      ctx.globalAlpha = eFade * taper * (A.alpha + A.headAlpha * lit);
+      ctx.lineWidth = thick * (0.45 + 0.55 * taper) * (0.6 + 0.6 * lit);
+      ctx.stroke();
+      // And a thin white core along the lit stretch — the edge doing the
+      // cutting. Only the leading crescent has one; a trail has no edge.
+      if (e === 0 && lit > 0.3) {
+        ctx.globalAlpha = eFade * taper * lit * 0.8;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = Math.max(1.4, thick * 0.2);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // The point of contact: a small bloom riding the arc where the head is.
+  const hx = Math.cos(a.aim + a.span * head) * radius;
+  const hy = Math.sin(a.aim + a.span * head) * radius;
+  const bloom = ctx.createRadialGradient(hx, hy, 0, hx, hy, thick * 1.3);
+  bloom.addColorStop(0, "#ffffff");
+  bloom.addColorStop(0.3, color);
+  bloom.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.globalAlpha = fade * 0.5;
+  ctx.fillStyle = bloom;
   ctx.beginPath();
-  ctx.moveTo(startX, cy - halfH * 0.25);
-  ctx.quadraticCurveTo((startX + endX) / 2, cy - halfH, endX, cy - halfH * 0.7);
-  ctx.quadraticCurveTo(endX + dir * 14, cy, endX, cy + halfH * 0.7);
-  ctx.quadraticCurveTo((startX + endX) / 2, cy + halfH, startX, cy + halfH * 0.25);
-  ctx.closePath();
+  ctx.arc(hx, hy, thick * 1.3, 0, Math.PI * 2);
   ctx.fill();
-  // A bright crescent at the very tip — the point of contact.
-  ctx.globalAlpha = alpha * 1.3;
-  ctx.strokeStyle = "#ffffff";
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.arc(endX - dir * 8, cy, halfH * 0.8, -1.1, 1.1);
-  ctx.stroke();
   ctx.restore();
 }
 

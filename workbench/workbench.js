@@ -1088,9 +1088,9 @@ function render() {
 // never the wind-up — draw a target at the far edge of that attack's hitbox, so
 // the sprite's visible reach can be eyeballed against the range the game
 // actually plays. Everything here is COMPUTED from the game's own moves.js at
-// render time (lightMove / heavyMove, and the VISIBLE_ART_REACH the energy
-// wake starts from), so when move data changes, these markers change with it —
-// there is no copied number to drift.
+// render time (lightMove / heavyMove, and the VISIBLE_ART_REACH the art stops
+// at), so when move data changes, these markers change with it — there is no
+// copied number to drift.
 
 // Which concrete moves each attack animation stands for. A frame serving
 // several states gets a target per distinct move.
@@ -1175,10 +1175,10 @@ function drawRangeTargets(cx) {
   ctx.fillText(`hurtbox ${hb.w}x${hb.h}`, wx(-hb.w / 2) - 5, wy(-hb.h) + 11);
   ctx.textAlign = "left";
 
-  // Where the art stops being trusted: past this the game draws its energy
-  // wake (drawReachWakes in render.js), so art short of a far target is fine —
-  // the gap is filled in play. Only meaningful against a horizontal reach, so
-  // it is drawn only when one is on screen.
+  // Where the art stops being trusted: past this the game marks the reach with
+  // the swing's strike arc (drawStrikeArcs in render.js), so art short of a far
+  // target is fine — the gap is filled in play. Only meaningful against a
+  // horizontal reach, so it is drawn only when one is on screen.
   if (shapes.some((s) => s.box.kind === "forward" || s.box.kind === "sweep")) {
     const capX = wx(VISIBLE_ART_REACH);
     ctx.strokeStyle = "rgba(150, 160, 190, 0.5)";
@@ -1186,7 +1186,7 @@ function drawRangeTargets(cx) {
     ctx.beginPath(); ctx.moveTo(capX, GROUND_Y - 190 * z); ctx.lineTo(capX, GROUND_Y); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = "rgba(150, 160, 190, 0.85)";
-    ctx.fillText("art cap — energy wake beyond", capX + 4, GROUND_Y - 190 * z + 10);
+    ctx.fillText("art cap — strike arc beyond", capX + 4, GROUND_Y - 190 * z + 10);
   }
 
   // Several moves share one frame and can land within a few px of each other —
