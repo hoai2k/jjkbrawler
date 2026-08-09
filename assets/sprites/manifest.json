@@ -906,119 +906,51 @@
     "coreRight": 831.3
    },
    "attack_heavy_a": {
-    "w": 796,
-    "h": 1372,
-    "ox": -277.4,
-    "oy": -1061,
-    "bodyBottom": 241.9,
-    "bodyH": 381.9,
-    "centroidX": 192.9,
-    "renderScale": 0.278,
-    "file": "gojo/incoming/attack_heavy_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "ox",
-      "renderScale",
-      "rotationDeg",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 893,
-      "h": 1359,
-      "ox": -311.3,
-      "oy": -1048,
-      "bodyBottom": 255.4,
-      "bodyH": 381.9,
-      "bodyTop": 0,
-      "centroidX": 186.1,
-      "renderScale": 0.1869,
-      "rotationDeg": 3.5,
-      "anchors": {
-       "com": [
-        475.7,
-        528.8
-       ]
-      },
-      "edited": {
-       "renderScale": 0.281,
-       "ox": -289.8,
-       "bodyBottom": 310.4,
-       "rotationDeg": null
-      },
-      "file": "gojo/attack_heavy_a.png"
-     }
-    },
-    "bodyTop": 0,
+    "file": "gojo/attack_heavy_a.png",
     "bodyLeft": 0,
     "bodyRight": 796,
     "coreLeft": 94.3,
     "coreRight": 720.3,
-    "anchors": {
-     "com": [
-      435.3,
-      542.4
-     ]
-    },
     "autoTuned": {
      "at": "2026-08-09T18:19:37+00:00",
      "fields": {
       "bodyBottom": "foot=0.950 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "w": 893,
+    "h": 1359,
+    "ox": -311.3,
+    "oy": -1048,
+    "bodyBottom": 255.4,
+    "bodyH": 381.9,
+    "bodyTop": 0,
+    "centroidX": 186.1,
+    "renderScale": 0.1869,
+    "rotationDeg": 3.5,
+    "anchors": {
+     "com": [
+      475.7,
+      528.8
+     ]
+    },
+    "edited": {
+     "renderScale": 0.281,
+     "ox": -289.8,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
     }
    },
    "attack_heavy_b": {
     "w": 942,
     "h": 1329,
-    "ox": -289.9,
+    "ox": -275.4,
     "oy": -1018,
-    "bodyBottom": 244.0,
+    "bodyBottom": 237,
     "bodyH": 331.9,
     "centroidX": 132.4,
-    "renderScale": 0.25,
+    "renderScale": 0.2087,
     "file": "gojo/incoming/attack_heavy_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 956,
-      "h": 1181,
-      "ox": -321.2,
-      "oy": -870,
-      "bodyBottom": 269.9,
-      "bodyH": 331.9,
-      "bodyTop": 0,
-      "centroidX": 176.7,
-      "renderScale": 0.2122,
-      "anchors": {
-       "com": [
-        453.7,
-        435.5
-       ]
-      },
-      "edited": {
-       "renderScale": 0.281,
-       "bodyBottom": 310.4
-      },
-      "file": "gojo/attack_heavy_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 942,
@@ -1026,8 +958,8 @@
     "coreRight": 847.2,
     "anchors": {
      "com": [
-      445.7,
-      539.5
+      396.6,
+      525.9
      ]
     },
     "autoTuned": {
@@ -1036,7 +968,14 @@
       "bodyBottom": "foot=0.950 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -289.9,
+     "bodyBottom": 244.0,
+     "rotationDeg": null
+    },
+    "rotationDeg": 2.5
    },
    "attack_light_a": {
     "w": 937,
@@ -2246,135 +2185,71 @@
     "coreRight": 847.2
    },
    "attack_heavy_a": {
-    "w": 874,
-    "h": 1490,
-    "ox": -306.0,
-    "oy": -1179,
-    "bodyBottom": 252.4,
-    "bodyH": 412.1,
-    "centroidX": 182.5,
-    "renderScale": 0.277,
-    "file": "nanami/incoming/attack_heavy_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 722,
-      "h": 1426,
-      "ox": -270.7,
-      "oy": -1115,
-      "bodyBottom": 235.9,
-      "bodyH": 412.1,
-      "bodyTop": 0,
-      "centroidX": 185.3,
-      "renderScale": 0.2182,
-      "anchors": {
-       "com": [
-        416.1,
-        589.3
-       ]
-      },
-      "edited": {
-       "renderScale": 0.289,
-       "ox": -204.2,
-       "bodyBottom": 310.4
-      },
-      "file": "nanami/attack_heavy_a.png"
-     }
-    },
-    "bodyTop": 0,
+    "file": "nanami/attack_heavy_a.png",
     "bodyLeft": 0,
     "bodyRight": 874,
     "coreLeft": 74.5,
     "coreRight": 791.6,
-    "anchors": {
-     "com": [
-      464.0,
-      604.8
-     ]
-    },
     "autoTuned": {
      "at": "2026-08-09T18:19:37+00:00",
      "fields": {
       "bodyBottom": "foot=0.961 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "w": 722,
+    "h": 1426,
+    "ox": -270.7,
+    "oy": -1115,
+    "bodyBottom": 235.9,
+    "bodyH": 412.1,
+    "bodyTop": 0,
+    "centroidX": 185.3,
+    "renderScale": 0.2182,
+    "anchors": {
+     "com": [
+      416.1,
+      589.3
+     ]
+    },
+    "edited": {
+     "renderScale": 0.289,
+     "ox": -204.2,
+     "bodyBottom": 310.4
     }
    },
    "attack_heavy_b": {
-    "w": 1000,
-    "h": 1176,
-    "ox": -437.5,
-    "oy": -865,
-    "bodyBottom": 264.7,
-    "bodyH": 338.1,
-    "centroidX": 251.0,
-    "renderScale": 0.288,
-    "file": "nanami/incoming/attack_heavy_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 1011,
-      "h": 1170,
-      "ox": -265.8,
-      "oy": -859,
-      "bodyBottom": 264.9,
-      "bodyH": 338.1,
-      "bodyTop": 0,
-      "centroidX": 105.1,
-      "renderScale": 0.2384,
-      "anchors": {
-       "com": [
-        441.2,
-        447.5
-       ]
-      },
-      "edited": {
-       "renderScale": 0.289,
-       "ox": -348.8,
-       "bodyBottom": 310.4
-      },
-      "file": "nanami/attack_heavy_b.png"
-     }
-    },
-    "bodyTop": 0,
+    "file": "nanami/attack_heavy_b.png",
     "bodyLeft": 0,
     "bodyRight": 1000,
     "coreLeft": 88.2,
     "coreRight": 940.8,
-    "anchors": {
-     "com": [
-      594.5,
-      436.7
-     ]
-    },
     "autoTuned": {
      "at": "2026-08-09T18:19:37+00:00",
      "fields": {
       "bodyBottom": "foot=0.961 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "w": 1011,
+    "h": 1170,
+    "ox": -265.8,
+    "oy": -859,
+    "bodyBottom": 264.9,
+    "bodyH": 338.1,
+    "bodyTop": 0,
+    "centroidX": 105.1,
+    "renderScale": 0.2384,
+    "anchors": {
+     "com": [
+      441.2,
+      447.5
+     ]
+    },
+    "edited": {
+     "renderScale": 0.289,
+     "ox": -348.8,
+     "bodyBottom": 310.4
     }
    },
    "attack_light_a": {
@@ -7227,45 +7102,8 @@
     "bodyBottom": 233.7,
     "bodyH": 291.0,
     "centroidX": 173.4,
-    "renderScale": 0.205,
+    "renderScale": 0.2163,
     "file": "mahito/incoming/idle_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 531,
-      "h": 1360,
-      "ox": -137.3,
-      "oy": -1050,
-      "bodyBottom": 233,
-      "bodyH": 290.6,
-      "bodyTop": 0,
-      "centroidX": 181.6,
-      "renderScale": 0.2258,
-      "anchors": {
-       "com": [
-        329.1,
-        524.6
-       ]
-      },
-      "edited": {
-       "renderScale": 0.214,
-       "ox": -108.8,
-       "bodyBottom": 310.0
-      },
-      "file": "mahito/idle_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 526,
@@ -7283,6 +7121,9 @@
       "bodyBottom": "foot=0.946 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.205
     }
    },
    "idle_b": {
@@ -7293,43 +7134,8 @@
     "bodyBottom": 232.8,
     "bodyH": 291.0,
     "centroidX": 173.5,
-    "renderScale": 0.203,
+    "renderScale": 0.2142,
     "file": "mahito/incoming/idle_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 430,
-      "h": 1396,
-      "ox": -58.2,
-      "oy": -1086,
-      "bodyBottom": 239.5,
-      "bodyH": 290.6,
-      "bodyTop": 0,
-      "centroidX": 164.7,
-      "renderScale": 0.2194,
-      "anchors": {
-       "com": [
-        255.8,
-        547.3
-       ]
-      },
-      "edited": {
-       "renderScale": 0.208,
-       "bodyBottom": 310.0
-      },
-      "file": "mahito/idle_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 525,
@@ -7349,6 +7155,9 @@
       "renderScale": "idle is uniform",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.203
     }
    },
    "jump_rise": {
@@ -8579,43 +8388,8 @@
     "bodyBottom": 227.5,
     "bodyH": 294.6,
     "centroidX": 138.9,
-    "renderScale": 0.209,
+    "renderScale": 0.2195,
     "file": "sukuna/incoming/idle_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 555,
-      "h": 1016,
-      "ox": -120.8,
-      "oy": -693,
-      "bodyBottom": 254.5,
-      "bodyH": 287.0,
-      "bodyTop": 14,
-      "centroidX": 146.3,
-      "renderScale": 0.3132,
-      "anchors": {
-       "com": [
-        266.4,
-        451.0
-       ]
-      },
-      "edited": {
-       "renderScale": 0.29,
-       "bodyBottom": 310
-      },
-      "file": "sukuna/idle_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 536,
@@ -8633,6 +8407,9 @@
       "bodyBottom": "foot=0.942 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.209
     }
    },
    "idle_b": {
@@ -8643,43 +8420,8 @@
     "bodyBottom": 227.6,
     "bodyH": 294.6,
     "centroidX": 142.2,
-    "renderScale": 0.209,
+    "renderScale": 0.2184,
     "file": "sukuna/incoming/idle_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 599,
-      "h": 1016,
-      "ox": -142.2,
-      "oy": -691,
-      "bodyBottom": 245.5,
-      "bodyH": 287.0,
-      "bodyTop": 15,
-      "centroidX": 160.9,
-      "renderScale": 0.3157,
-      "anchors": {
-       "com": [
-        302.5,
-        453.9
-       ]
-      },
-      "edited": {
-       "renderScale": 0.291,
-       "bodyBottom": 310
-      },
-      "file": "sukuna/idle_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 537,
@@ -8699,6 +8441,9 @@
       "renderScale": "idle is uniform",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.209
     }
    },
    "jump_rise": {
@@ -9135,117 +8880,49 @@
     "coreRight": 793.4
    },
    "attack_heavy_a": {
-    "w": 922,
-    "h": 1344,
-    "ox": -265.0,
-    "oy": -1033,
-    "bodyBottom": 232.5,
-    "bodyH": 358.7,
-    "centroidX": 117.5,
-    "renderScale": 0.267,
-    "file": "sukuna/incoming/attack_heavy_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 917,
-      "h": 1237,
-      "ox": -301.8,
-      "oy": -926,
-      "bodyBottom": 269.9,
-      "bodyH": 358.7,
-      "bodyTop": 0,
-      "centroidX": 203.2,
-      "renderScale": 0.2436,
-      "anchors": {
-       "com": [
-        507.1,
-        542.4
-       ]
-      },
-      "edited": {
-       "renderScale": 0.29,
-       "bodyBottom": 310.4
-      },
-      "file": "sukuna/attack_heavy_a.png"
-     }
-    },
-    "bodyTop": 0,
+    "file": "sukuna/attack_heavy_a.png",
     "bodyLeft": 0,
     "bodyRight": 922,
     "coreLeft": 67.2,
     "coreRight": 814.8,
-    "anchors": {
-     "com": [
-      423.2,
-      527.8
-     ]
-    },
     "autoTuned": {
      "at": "2026-08-09T18:19:37+00:00",
      "fields": {
       "bodyBottom": "foot=0.942 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "w": 917,
+    "h": 1237,
+    "ox": -301.8,
+    "oy": -926,
+    "bodyBottom": 269.9,
+    "bodyH": 358.7,
+    "bodyTop": 0,
+    "centroidX": 203.2,
+    "renderScale": 0.2436,
+    "anchors": {
+     "com": [
+      507.1,
+      542.4
+     ]
+    },
+    "edited": {
+     "renderScale": 0.29,
+     "bodyBottom": 310.4,
+     "ox": -301.8
     }
    },
    "attack_heavy_b": {
     "w": 928,
     "h": 1172,
-    "ox": -255.6,
+    "ox": -211.1,
     "oy": -861,
-    "bodyBottom": 242.5,
+    "bodyBottom": 220,
     "bodyH": 389.5,
     "centroidX": 105.1,
-    "renderScale": 0.332,
+    "renderScale": 0.2789,
     "file": "sukuna/incoming/attack_heavy_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "rotationDeg",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 1000,
-      "h": 1343,
-      "ox": -343.2,
-      "oy": -1032,
-      "bodyBottom": 143.4,
-      "bodyH": 389.5,
-      "bodyTop": 0,
-      "centroidX": 140.5,
-      "renderScale": 0.2508,
-      "rotationDeg": -7.5,
-      "anchors": {
-       "com": [
-        386.6,
-        502.3
-       ]
-      },
-      "edited": {
-       "renderScale": 0.29,
-       "bodyBottom": 310.4,
-       "rotationDeg": null
-      },
-      "file": "sukuna/attack_heavy_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 928,
@@ -9253,8 +8930,8 @@
     "coreRight": 827.7,
     "anchors": {
      "com": [
-      413.9,
-      484.6
+      354.1,
+      454.3
      ]
     },
     "autoTuned": {
@@ -9263,6 +8940,11 @@
       "bodyBottom": "foot=0.942 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.332,
+     "ox": -255.6,
+     "bodyBottom": 242.5
     }
    },
    "attack_light_a": {
@@ -9955,49 +9637,11 @@
     "h": 1505,
     "ox": -78.1,
     "oy": -1195,
-    "bodyBottom": 222.4,
+    "bodyBottom": 210.9,
     "bodyH": 301.8,
     "centroidX": 104.1,
-    "renderScale": 0.201,
+    "renderScale": 0.2151,
     "file": "megumi/incoming/idle_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "rotationDeg",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 402,
-      "h": 1016,
-      "ox": -44.2,
-      "oy": -694,
-      "bodyBottom": 253.5,
-      "bodyH": 295.0,
-      "bodyTop": 13,
-      "centroidX": 122.3,
-      "renderScale": 0.3252,
-      "rotationDeg": 4.5,
-      "anchors": {
-       "com": [
-        166.3,
-        432.0
-       ]
-      },
-      "edited": {
-       "renderScale": 0.297,
-       "bodyBottom": 310,
-       "rotationDeg": null
-      },
-      "file": "megumi/idle_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 575,
@@ -10015,6 +9659,10 @@
       "bodyBottom": "foot=0.942 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.201,
+     "bodyBottom": 222.4
     }
    },
    "idle_b": {
@@ -10022,46 +9670,11 @@
     "h": 1510,
     "ox": -81.5,
     "oy": -1200,
-    "bodyBottom": 222.1,
+    "bodyBottom": 206.6,
     "bodyH": 301.8,
     "centroidX": 106.5,
-    "renderScale": 0.2,
+    "renderScale": 0.214,
     "file": "megumi/incoming/idle_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 343,
-      "h": 1016,
-      "ox": -14.8,
-      "oy": -693,
-      "bodyBottom": 267,
-      "bodyH": 295.0,
-      "bodyTop": 13,
-      "centroidX": 163.6,
-      "renderScale": 0.3203,
-      "anchors": {
-       "com": [
-        178.7,
-        442.5
-       ]
-      },
-      "edited": {
-       "renderScale": 0.298,
-       "bodyBottom": 310
-      },
-      "file": "megumi/idle_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 577,
@@ -10081,6 +9694,10 @@
       "renderScale": "idle is uniform",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2,
+     "bodyBottom": 222.1
     }
    },
    "jump_rise": {
@@ -11335,43 +10952,8 @@
     "bodyBottom": 245.3,
     "bodyH": 268.2,
     "centroidX": 139.6,
-    "renderScale": 0.204,
+    "renderScale": 0.2101,
     "file": "jogo/incoming/idle_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 680,
-      "h": 1016,
-      "ox": -183.2,
-      "oy": -691,
-      "bodyBottom": 263,
-      "bodyH": 260.0,
-      "bodyTop": 15,
-      "centroidX": 140.7,
-      "renderScale": 0.2825,
-      "anchors": {
-       "com": [
-        324.5,
-        431.2
-       ]
-      },
-      "edited": {
-       "renderScale": 0.264,
-       "bodyBottom": 310
-      },
-      "file": "jogo/idle_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 587,
@@ -11389,7 +10971,12 @@
       "bodyBottom": "foot=0.951 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.204,
+     "faceLeft": null
+    },
+    "faceLeft": true
    },
    "idle_b": {
     "w": 583,
@@ -11399,43 +10986,8 @@
     "bodyBottom": 245.3,
     "bodyH": 268.2,
     "centroidX": 138.8,
-    "renderScale": 0.204,
+    "renderScale": 0.2091,
     "file": "jogo/incoming/idle_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 577,
-      "h": 1016,
-      "ox": -131.8,
-      "oy": -691,
-      "bodyBottom": 272,
-      "bodyH": 260.0,
-      "bodyTop": 15,
-      "centroidX": 131.3,
-      "renderScale": 0.2825,
-      "anchors": {
-       "com": [
-        264.0,
-        440.3
-       ]
-      },
-      "edited": {
-       "renderScale": 0.264,
-       "bodyBottom": 310
-      },
-      "file": "jogo/idle_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 583,
@@ -11453,7 +11005,12 @@
       "bodyBottom": "foot=0.951 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.204,
+     "faceLeft": null
+    },
+    "faceLeft": true
    },
    "jump_rise": {
     "file": "jogo/jump_rise.png",
@@ -14198,46 +13755,11 @@
     "h": 1668,
     "ox": -130.4,
     "oy": -1358,
-    "bodyBottom": 226.4,
+    "bodyBottom": 207.9,
     "bodyH": 289.6,
     "centroidX": 138.4,
-    "renderScale": 0.174,
+    "renderScale": 0.1818,
     "file": "yuta/incoming/idle_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 391,
-      "h": 1016,
-      "ox": -38.8,
-      "oy": -693,
-      "bodyBottom": 249.5,
-      "bodyH": 282.0,
-      "bodyTop": 13,
-      "centroidX": 145.5,
-      "renderScale": 0.3092,
-      "anchors": {
-       "com": [
-        209.5,
-        387.9
-       ]
-      },
-      "edited": {
-       "renderScale": 0.285,
-       "bodyBottom": 310
-      },
-      "file": "yuta/idle_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 611,
@@ -14255,6 +13777,10 @@
       "bodyBottom": "foot=0.950 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.174,
+     "bodyBottom": 226.4
     }
    },
    "idle_b": {
@@ -14262,46 +13788,11 @@
     "h": 1688,
     "ox": -133.3,
     "oy": -1378,
-    "bodyBottom": 225.4,
+    "bodyBottom": 197.9,
     "bodyH": 289.6,
     "centroidX": 141.8,
-    "renderScale": 0.172,
+    "renderScale": 0.1797,
     "file": "yuta/incoming/idle_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 429,
-      "h": 1016,
-      "ox": -57.8,
-      "oy": -693,
-      "bodyBottom": 263.5,
-      "bodyH": 282.0,
-      "bodyTop": 13,
-      "centroidX": 149.1,
-      "renderScale": 0.3035,
-      "anchors": {
-       "com": [
-        208.7,
-        440.6
-       ]
-      },
-      "edited": {
-       "renderScale": 0.285,
-       "bodyBottom": 310
-      },
-      "file": "yuta/idle_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 610,
@@ -14319,6 +13810,10 @@
       "bodyBottom": "foot=0.950 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.172,
+     "bodyBottom": 225.4
     }
    },
    "jump_rise": {
@@ -15822,39 +15317,6 @@
     "centroidX": 156.9,
     "renderScale": 0.198,
     "file": "nobara/incoming/idle_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 372,
-      "h": 1016,
-      "ox": -29.2,
-      "oy": -693,
-      "bodyBottom": 247.5,
-      "bodyH": 291.0,
-      "bodyTop": 19,
-      "centroidX": 150.7,
-      "renderScale": 0.295,
-      "anchors": {
-       "com": [
-        204.1,
-        377.4
-       ]
-      },
-      "edited": {
-       "bodyBottom": 310
-      },
-      "file": "nobara/idle_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 511,
@@ -15883,41 +15345,6 @@
     "centroidX": 158.8,
     "renderScale": 0.198,
     "file": "nobara/incoming/idle_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 354,
-      "h": 1016,
-      "ox": -20.2,
-      "oy": -693,
-      "bodyBottom": 261,
-      "bodyH": 291.0,
-      "bodyTop": 14,
-      "centroidX": 162.1,
-      "renderScale": 0.2896,
-      "anchors": {
-       "com": [
-        183.3,
-        417.4
-       ]
-      },
-      "edited": {
-       "renderScale": 0.294,
-       "bodyBottom": 310
-      },
-      "file": "nobara/idle_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 513,
@@ -17706,49 +17133,11 @@
     "h": 1171,
     "ox": -230.1,
     "oy": -922,
-    "bodyBottom": 177.9,
+    "bodyBottom": 201.4,
     "bodyH": 375.9,
     "centroidX": 78.1,
-    "renderScale": 0.321,
+    "renderScale": 0.2375,
     "file": "maki/incoming/attack_heavy_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "ox",
-      "renderScale",
-      "rotationDeg",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 954,
-      "h": 1005,
-      "ox": -273.6,
-      "oy": -694,
-      "bodyBottom": 248.5,
-      "bodyH": 375.7,
-      "bodyTop": 0,
-      "centroidX": 126.6,
-      "renderScale": 0.2805,
-      "rotationDeg": -3,
-      "anchors": {
-       "com": [
-        416.8,
-        394.3
-       ]
-      },
-      "edited": {
-       "renderScale": 0.374,
-       "ox": -290.1,
-       "rotationDeg": null
-      },
-      "file": "maki/attack_heavy_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 931,
@@ -17766,58 +17155,22 @@
       "bodyBottom": "foot=0.939 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.321,
+     "bodyBottom": 177.9
     }
    },
    "attack_heavy_b": {
     "w": 963,
     "h": 1026,
-    "ox": -207.4,
+    "ox": -204.4,
     "oy": -715,
-    "bodyBottom": 248.7,
+    "bodyBottom": 158.7,
     "bodyH": 326.2,
     "centroidX": 39.4,
     "renderScale": 0.318,
     "file": "maki/incoming/attack_heavy_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "ox",
-      "renderScale",
-      "rotationDeg",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 1007,
-      "h": 1121,
-      "ox": -186.8,
-      "oy": -810,
-      "bodyBottom": 231.4,
-      "bodyH": 326.2,
-      "bodyTop": 0,
-      "centroidX": 36.6,
-      "renderScale": 0.2619,
-      "rotationDeg": -2.5,
-      "anchors": {
-       "com": [
-        314.8,
-        428.0
-       ]
-      },
-      "edited": {
-       "renderScale": 0.291,
-       "ox": -346.8,
-       "bodyBottom": 310.4,
-       "rotationDeg": null
-      },
-      "file": "maki/attack_heavy_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 963,
@@ -17825,8 +17178,8 @@
     "coreRight": 814.4,
     "anchors": {
      "com": [
-      364.3,
-      387.9
+      306.8,
+      387.7
      ]
     },
     "autoTuned": {
@@ -17835,7 +17188,15 @@
       "bodyBottom": "foot=0.939 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "ox": -207.4,
+     "bodyBottom": 248.7,
+     "rotationDeg": null
+    },
+    "rotationDeg": -12.5,
+    "needsReplacement": "pose",
+    "replacementNote": "The spear should be thrust out to full extension."
    },
    "attack_light_a": {
     "w": 937,
@@ -18546,46 +17907,11 @@
     "h": 1464,
     "ox": -88.4,
     "oy": -1154,
-    "bodyBottom": 224.0,
+    "bodyBottom": 231,
     "bodyH": 258.1,
     "centroidX": 140.9,
-    "renderScale": 0.176,
+    "renderScale": 0.1813,
     "file": "inumaki/incoming/idle_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 398,
-      "h": 1016,
-      "ox": -42.2,
-      "oy": -693,
-      "bodyBottom": 255.5,
-      "bodyH": 251.0,
-      "bodyTop": 13,
-      "centroidX": 145.1,
-      "renderScale": 0.268,
-      "anchors": {
-       "com": [
-        188.6,
-        432.2
-       ]
-      },
-      "edited": {
-       "renderScale": 0.254,
-       "bodyBottom": 310
-      },
-      "file": "inumaki/idle_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 522,
@@ -18593,8 +17919,8 @@
     "coreRight": 430.1,
     "anchors": {
      "com": [
-      245.4,
-      617.9
+      277.7,
+      579.5
      ]
     },
     "autoTuned": {
@@ -18603,6 +17929,10 @@
       "bodyBottom": "foot=0.941 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.176,
+     "bodyBottom": 224.0
     }
    },
    "idle_b": {
@@ -18613,43 +17943,8 @@
     "bodyBottom": 221.9,
     "bodyH": 258.1,
     "centroidX": 141.8,
-    "renderScale": 0.172,
+    "renderScale": 0.1772,
     "file": "inumaki/incoming/idle_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 255,
-      "h": 1016,
-      "ox": 29.2,
-      "oy": -693,
-      "bodyBottom": 263,
-      "bodyH": 251.0,
-      "bodyTop": 13,
-      "centroidX": 164.2,
-      "renderScale": 0.2667,
-      "anchors": {
-       "com": [
-        134.7,
-        432.5
-       ]
-      },
-      "edited": {
-       "renderScale": 0.254,
-       "bodyBottom": 310
-      },
-      "file": "inumaki/idle_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 530,
@@ -18667,6 +17962,9 @@
       "bodyBottom": "foot=0.941 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.172
     }
    },
    "jump_rise": {
@@ -22848,132 +22146,74 @@
     "coreRight": 811.1
    },
    "attack_heavy_a": {
-    "w": 998,
-    "h": 1298,
-    "ox": -406.4,
-    "oy": -987,
-    "bodyBottom": 239.2,
-    "bodyH": 414.4,
-    "centroidX": 220.9,
-    "renderScale": 0.319,
-    "file": "toji/incoming/attack_heavy_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 867,
-      "h": 1386,
-      "ox": -276.8,
-      "oy": -1075,
-      "bodyBottom": 209.4,
-      "bodyH": 414.4,
-      "bodyTop": 0,
-      "centroidX": 90.5,
-      "renderScale": 0.2213,
-      "anchors": {
-       "com": [
-        367.5,
-        584.3
-       ]
-      },
-      "edited": {
-       "renderScale": 0.299,
-       "bodyBottom": 310.4
-      },
-      "file": "toji/attack_heavy_a.png"
-     }
-    },
-    "bodyTop": 0,
+    "file": "toji/attack_heavy_a.png",
     "bodyLeft": 0,
     "bodyRight": 998,
     "coreLeft": 121.7,
     "coreRight": 932.9,
-    "anchors": {
-     "com": [
-      563.5,
-      565.3
-     ]
-    },
     "autoTuned": {
      "at": "2026-08-09T18:19:37+00:00",
      "fields": {
       "bodyBottom": "foot=0.945 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "w": 867,
+    "h": 1386,
+    "ox": -276.8,
+    "oy": -1075,
+    "bodyBottom": 209.4,
+    "bodyH": 414.4,
+    "bodyTop": 0,
+    "centroidX": 90.5,
+    "renderScale": 0.2213,
+    "anchors": {
+     "com": [
+      367.5,
+      584.3
+     ]
+    },
+    "edited": {
+     "renderScale": 0.299,
+     "bodyBottom": 310.4,
+     "ox": -276.8
     }
    },
    "attack_heavy_b": {
-    "w": 1003,
-    "h": 1008,
-    "ox": -462.3,
-    "oy": -697,
-    "bodyBottom": 255.2,
-    "bodyH": 313.9,
-    "centroidX": 274.3,
-    "renderScale": 0.311,
-    "file": "toji/incoming/attack_heavy_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 992,
-      "h": 1050,
-      "ox": -339.2,
-      "oy": -739,
-      "bodyBottom": 235.9,
-      "bodyH": 313.9,
-      "bodyTop": 0,
-      "centroidX": 126.3,
-      "renderScale": 0.2676,
-      "anchors": {
-       "com": [
-        465.5,
-        438.4
-       ]
-      },
-      "edited": {
-       "renderScale": 0.299,
-       "bodyBottom": 310.4
-      },
-      "file": "toji/attack_heavy_b.png"
-     }
-    },
-    "bodyTop": 0,
+    "file": "toji/attack_heavy_b.png",
     "bodyLeft": 0,
     "bodyRight": 1003,
     "coreLeft": 176.4,
     "coreRight": 932.4,
-    "anchors": {
-     "com": [
-      618.7,
-      402.3
-     ]
-    },
     "autoTuned": {
      "at": "2026-08-09T18:19:37+00:00",
      "fields": {
       "bodyBottom": "foot=0.945 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "w": 992,
+    "h": 1050,
+    "ox": -339.2,
+    "oy": -739,
+    "bodyBottom": 235.9,
+    "bodyH": 313.9,
+    "bodyTop": 0,
+    "centroidX": 126.3,
+    "renderScale": 0.2676,
+    "anchors": {
+     "com": [
+      465.5,
+      438.4
+     ]
+    },
+    "edited": {
+     "renderScale": 0.299,
+     "bodyBottom": 310.4,
+     "ox": -339.2
+    },
+    "needsReplacement": "quality",
+    "replacementNote": "Should show full sword extended to the right in attack. (alt has a spear which is wrong)"
    },
    "attack_light_a": {
     "w": 932,
@@ -23505,46 +22745,11 @@
     "h": 1606,
     "ox": -96.8,
     "oy": -1295,
-    "bodyBottom": 243.8,
+    "bodyBottom": 220.8,
     "bodyH": 291.0,
     "centroidX": 150.8,
-    "renderScale": 0.181,
+    "renderScale": 0.1964,
     "file": "choso/incoming/idle_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 456,
-      "h": 1360,
-      "ox": -71.2,
-      "oy": -1049,
-      "bodyBottom": 244.4,
-      "bodyH": 291.0,
-      "bodyTop": 0,
-      "centroidX": 141.3,
-      "renderScale": 0.2311,
-      "anchors": {
-       "com": [
-        214.5,
-        614.7
-       ]
-      },
-      "edited": {
-       "renderScale": 0.214,
-       "bodyBottom": 310.4
-      },
-      "file": "choso/idle_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 519,
@@ -23552,8 +22757,8 @@
     "coreRight": 451.7,
     "anchors": {
      "com": [
-      255.4,
-      706.6
+      309.4,
+      673.5
      ]
     },
     "autoTuned": {
@@ -23562,6 +22767,10 @@
       "bodyBottom": "foot=0.958 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.181,
+     "bodyBottom": 243.8
     }
    },
    "attack_air": {
@@ -24043,46 +23252,11 @@
     "h": 1607,
     "ox": -91.4,
     "oy": -1296,
-    "bodyBottom": 243.8,
+    "bodyBottom": 215.8,
     "bodyH": 291.0,
     "centroidX": 151.4,
-    "renderScale": 0.181,
+    "renderScale": 0.1964,
     "file": "choso/incoming/idle_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 395,
-      "h": 1384,
-      "ox": -40.8,
-      "oy": -1073,
-      "bodyBottom": 230.4,
-      "bodyH": 296.2,
-      "bodyTop": 0,
-      "centroidX": 141.2,
-      "renderScale": 0.2311,
-      "anchors": {
-       "com": [
-        183.8,
-        619.0
-       ]
-      },
-      "edited": {
-       "renderScale": 0.214,
-       "bodyBottom": 310.4
-      },
-      "file": "choso/idle_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 507,
@@ -24102,6 +23276,10 @@
       "renderScale": "idle is uniform",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.181,
+     "bodyBottom": 243.8
     }
    },
    "jump_rise": {
@@ -26641,201 +25819,108 @@
     }
    },
    "attack_heavy_a": {
-    "w": 840,
-    "h": 1455,
-    "ox": -248.4,
-    "oy": -1229,
-    "bodyBottom": 143.1,
-    "bodyH": 299.5,
-    "centroidX": 141.9,
-    "renderScale": 0.206,
-    "file": "uro/incoming/attack_heavy_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 860,
-      "h": 1461,
-      "ox": -312.4,
-      "oy": -1150,
-      "bodyBottom": 188.5,
-      "bodyH": 299.3,
-      "bodyTop": 0,
-      "centroidX": 132.4,
-      "renderScale": 0.2347,
-      "anchors": {
-       "com": [
-        469.1,
-        735.7
-       ]
-      },
-      "edited": {
-       "renderScale": 0.205,
-       "ox": -248.9,
-       "bodyBottom": 226.0
-      },
-      "file": "uro/attack_heavy_a.png"
-     }
-    },
-    "bodyTop": 0,
+    "file": "uro/attack_heavy_a.png",
     "bodyLeft": 0,
     "bodyRight": 840,
     "coreLeft": 72.8,
     "coreRight": 782.1,
-    "anchors": {
-     "com": [
-      404.1,
-      549.1
-     ]
-    },
     "autoTuned": {
      "at": "2026-08-09T18:19:37+00:00",
      "fields": {
       "bodyBottom": "foot=0.943 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "w": 860,
+    "h": 1461,
+    "ox": -312.4,
+    "oy": -1150,
+    "bodyBottom": 188.5,
+    "bodyH": 299.3,
+    "bodyTop": 0,
+    "centroidX": 132.4,
+    "renderScale": 0.2347,
+    "anchors": {
+     "com": [
+      469.1,
+      735.7
+     ]
+    },
+    "edited": {
+     "renderScale": 0.205,
+     "ox": -248.9,
+     "bodyBottom": 226.0
     }
    },
    "attack_heavy_b": {
-    "w": 949,
-    "h": 1311,
-    "ox": -239.7,
-    "oy": -1083,
-    "bodyBottom": 153.3,
-    "bodyH": 347.0,
-    "centroidX": 78.7,
-    "renderScale": 0.265,
-    "file": "uro/incoming/attack_heavy_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 884,
-      "h": 1440,
-      "ox": -212.9,
-      "oy": -1129,
-      "bodyBottom": 227.2,
-      "bodyH": 347.1,
-      "bodyTop": 0,
-      "centroidX": 120.4,
-      "renderScale": 0.2615,
-      "anchors": {
-       "com": [
-        404.8,
-        770.0
-       ]
-      },
-      "edited": {
-       "renderScale": 0.241,
-       "ox": -248.9
-      },
-      "file": "uro/attack_heavy_b.png"
-     }
-    },
-    "bodyTop": 0,
+    "file": "uro/attack_heavy_b.png",
     "bodyLeft": 0,
     "bodyRight": 949,
     "coreLeft": 65.5,
     "coreRight": 770.2,
-    "anchors": {
-     "com": [
-      397.7,
-      484.0
-     ]
-    },
     "autoTuned": {
      "at": "2026-08-09T18:19:37+00:00",
      "fields": {
       "bodyBottom": "foot=0.943 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "w": 884,
+    "h": 1440,
+    "ox": -212.9,
+    "oy": -1129,
+    "bodyBottom": 227.2,
+    "bodyH": 347.1,
+    "bodyTop": 0,
+    "centroidX": 120.4,
+    "renderScale": 0.2615,
+    "anchors": {
+     "com": [
+      404.8,
+      770.0
+     ]
+    },
+    "edited": {
+     "renderScale": 0.241,
+     "ox": -248.9,
+     "bodyBottom": 227.2
     }
    },
    "prone": {
-    "w": 1766,
-    "h": 485,
-    "ox": -660.4,
-    "oy": -174,
-    "bodyBottom": 310.4,
-    "bodyH": 63.0,
-    "centroidX": 90.9,
-    "renderScale": 0.13,
-    "file": "uro/incoming/prone.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "rotationDeg",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 976,
-      "h": 253,
-      "ox": -301.8,
-      "oy": 57,
-      "bodyBottom": 218.9,
-      "bodyH": 63.1,
-      "bodyTop": 0,
-      "centroidX": 127.3,
-      "renderScale": 0.3797,
-      "rotationDeg": -3.5,
-      "anchors": {
-       "com": [
-        459.3,
-        117.6
-       ]
-      },
-      "needsReplacement": "character",
-      "replacementNote": "Costume doesn't match canonical exactly",
-      "edited": {
-       "renderScale": 0.249,
-       "bodyBottom": 310.4,
-       "rotationDeg": null
-      },
-      "file": "uro/prone.png"
-     }
-    },
-    "bodyTop": 0,
+    "file": "uro/prone.png",
     "bodyLeft": 0,
     "bodyRight": 1766,
     "coreLeft": 121.4,
     "coreRight": 1688.7,
-    "anchors": {
-     "com": [
-      817.6,
-      226.8
-     ]
-    },
     "autoTuned": {
      "at": "2026-08-09T18:19:37+00:00",
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "w": 976,
+    "h": 253,
+    "ox": -301.8,
+    "oy": 57,
+    "bodyBottom": 218.9,
+    "bodyH": 63.1,
+    "bodyTop": 0,
+    "centroidX": 127.3,
+    "renderScale": 0.3797,
+    "rotationDeg": -3.5,
+    "anchors": {
+     "com": [
+      459.3,
+      117.6
+     ]
+    },
+    "needsReplacement": "character",
+    "replacementNote": "Costume doesn't match canonical",
+    "edited": {
+     "renderScale": 0.249,
+     "bodyBottom": 310.4,
+     "rotationDeg": null,
+     "ox": -301.8
     }
    },
    "run_pass_a": {
@@ -26979,41 +26064,8 @@
     "bodyBottom": 232.2,
     "bodyH": 285.9,
     "centroidX": 126.4,
-    "renderScale": 0.191,
+    "renderScale": 0.1929,
     "file": "yuji/incoming/idle_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 409,
-      "h": 1388,
-      "ox": -47.8,
-      "oy": -1077,
-      "bodyBottom": 241.9,
-      "bodyH": 286.0,
-      "bodyTop": 0,
-      "centroidX": 125.7,
-      "renderScale": 0.206,
-      "anchors": {
-       "com": [
-        221.3,
-        520.3
-       ]
-      },
-      "edited": {
-       "bodyBottom": 310.4
-      },
-      "file": "yuji/idle_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 423,
@@ -27031,6 +26083,9 @@
       "bodyBottom": "foot=0.947 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.191
     }
    },
    "attack_air": {
@@ -27500,43 +26555,8 @@
     "bodyBottom": 231.9,
     "bodyH": 285.9,
     "centroidX": 126.9,
-    "renderScale": 0.19,
+    "renderScale": 0.1919,
     "file": "yuji/incoming/idle_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 301,
-      "h": 1341,
-      "ox": 6.2,
-      "oy": -1030,
-      "bodyBottom": 231.9,
-      "bodyH": 276.2,
-      "bodyTop": 0,
-      "centroidX": 137.4,
-      "renderScale": 0.2142,
-      "anchors": {
-       "com": [
-        150.6,
-        547.9
-       ]
-      },
-      "edited": {
-       "renderScale": 0.206,
-       "bodyBottom": 310.4
-      },
-      "file": "yuji/idle_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 425,
@@ -27556,6 +26576,9 @@
       "renderScale": "idle is uniform",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.19
     }
    },
    "jump_rise": {
@@ -29037,44 +28060,11 @@
     "h": 1365,
     "ox": -348.6,
     "oy": -1123,
-    "bodyBottom": 165.4,
+    "bodyBottom": 113.4,
     "bodyH": 298.7,
     "centroidX": 225.6,
     "renderScale": 0.219,
     "file": "reggie/incoming/attack_heavy_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 763,
-      "h": 1219,
-      "ox": -260.4,
-      "oy": -908,
-      "bodyBottom": 241.1,
-      "bodyH": 298.4,
-      "bodyTop": 0,
-      "centroidX": 192.4,
-      "renderScale": 0.234,
-      "anchors": {
-       "com": [
-        417.0,
-        457.6
-       ]
-      },
-      "edited": {
-       "renderScale": 0.245
-      },
-      "file": "reggie/attack_heavy_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 873,
@@ -29092,51 +28082,21 @@
       "bodyBottom": "foot=0.944 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 165.4
     }
    },
    "attack_heavy_b": {
     "w": 897,
     "h": 1100,
-    "ox": -205.1,
+    "ox": -109.1,
     "oy": -866,
-    "bodyBottom": 172.2,
+    "bodyBottom": 159.2,
     "bodyH": 271.9,
     "centroidX": 70.1,
-    "renderScale": 0.247,
+    "renderScale": 0.2631,
     "file": "reggie/incoming/attack_heavy_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 906,
-      "h": 1346,
-      "ox": -248.0,
-      "oy": -1035,
-      "bodyBottom": 233.9,
-      "bodyH": 271.7,
-      "bodyTop": 0,
-      "centroidX": 108.5,
-      "renderScale": 0.2252,
-      "anchors": {
-       "com": [
-        406.4,
-        498.7
-       ]
-      },
-      "edited": {
-       "renderScale": 0.202
-      },
-      "file": "reggie/attack_heavy_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 897,
@@ -29144,8 +28104,8 @@
     "coreRight": 852.5,
     "anchors": {
      "com": [
-      361.0,
-      404.8
+      273.7,
+      398.4
      ]
     },
     "autoTuned": {
@@ -29154,6 +28114,11 @@
       "bodyBottom": "foot=0.944 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.247,
+     "ox": -205.1,
+     "bodyBottom": 172.2
     }
    },
    "prone": {
@@ -30137,67 +29102,39 @@
     "coreRight": 577.8
    },
    "attack_air_a": {
-    "w": 994,
-    "h": 1577,
-    "ox": -321.8,
-    "oy": -1332,
-    "bodyBottom": 169.9,
-    "bodyH": 276.0,
-    "centroidX": 138.3,
-    "renderScale": 0.175,
-    "file": "gakuganji/incoming/attack_air_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 877,
-      "h": 1394,
-      "ox": -268.6,
-      "oy": -1083,
-      "bodyBottom": 244.9,
-      "bodyH": 276.7,
-      "bodyTop": 0,
-      "centroidX": 143.6,
-      "renderScale": 0.2287,
-      "anchors": {
-       "com": [
-        427.3,
-        632.7
-       ]
-      },
-      "needsReplacement": "alternate",
-      "replacementNote": "AI hand drawing error",
-      "edited": {
-       "renderScale": 0.198
-      },
-      "file": "gakuganji/attack_air_a.png"
-     }
-    },
-    "bodyTop": 0,
+    "file": "gakuganji/attack_air_a.png",
     "bodyLeft": 0,
     "bodyRight": 994,
     "coreLeft": 108.4,
     "coreRight": 906.8,
-    "anchors": {
-     "com": [
-      479.8,
-      714.2
-     ]
-    },
     "autoTuned": {
      "at": "2026-08-09T18:19:37+00:00",
      "fields": {
       "bodyBottom": "foot=0.952 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "w": 877,
+    "h": 1394,
+    "ox": -268.6,
+    "oy": -1083,
+    "bodyBottom": 244.9,
+    "bodyH": 276.7,
+    "bodyTop": 0,
+    "centroidX": 143.6,
+    "renderScale": 0.2287,
+    "anchors": {
+     "com": [
+      427.3,
+      632.7
+     ]
+    },
+    "needsReplacement": "quality",
+    "replacementNote": "AI hand drawing error",
+    "edited": {
+     "renderScale": 0.198,
+     "ox": -268.6,
+     "bodyBottom": 244.9
     }
    },
    "attack_air_b": {
@@ -30234,44 +29171,11 @@
     "h": 1448,
     "ox": -300.3,
     "oy": -1201,
-    "bodyBottom": 178.0,
+    "bodyBottom": 168,
     "bodyH": 303.0,
     "centroidX": 156.3,
-    "renderScale": 0.209,
+    "renderScale": 0.2006,
     "file": "gakuganji/incoming/attack_heavy_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 871,
-      "h": 1365,
-      "ox": -310.3,
-      "oy": -1054,
-      "bodyBottom": 246.3,
-      "bodyH": 303.1,
-      "bodyTop": 0,
-      "centroidX": 188.3,
-      "renderScale": 0.2353,
-      "anchors": {
-       "com": [
-        467.2,
-        646.8
-       ]
-      },
-      "edited": {
-       "renderScale": 0.222
-      },
-      "file": "gakuganji/attack_heavy_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 915,
@@ -30289,6 +29193,10 @@
       "bodyBottom": "foot=0.952 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.209,
+     "bodyBottom": 178.0
     }
    },
    "attack_heavy_b": {
@@ -30299,38 +29207,8 @@
     "bodyBottom": 196.0,
     "bodyH": 262.7,
     "centroidX": 32.4,
-    "renderScale": 0.224,
+    "renderScale": 0.2397,
     "file": "gakuganji/incoming/attack_heavy_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 861,
-      "h": 1245,
-      "ox": -306.6,
-      "oy": -934,
-      "bodyBottom": 251.9,
-      "bodyH": 262.7,
-      "bodyTop": 0,
-      "centroidX": 189.6,
-      "renderScale": 0.211,
-      "anchors": {
-       "com": [
-        465.3,
-        562.0
-       ]
-      },
-      "needsReplacement": "pose",
-      "file": "gakuganji/attack_heavy_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 928,
@@ -30348,6 +29226,9 @@
       "bodyBottom": "foot=0.952 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.224
     }
    },
    "prone": {
@@ -30980,48 +29861,13 @@
    "idle_a": {
     "w": 524,
     "h": 1310,
-    "ox": -103.7,
+    "ox": -127.2,
     "oy": -999,
-    "bodyBottom": 270.6,
+    "bodyBottom": 259.1,
     "bodyH": 403.1,
     "centroidX": 155.2,
-    "renderScale": 0.308,
+    "renderScale": 0.3773,
     "file": "mahoraga/incoming/idle_a.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 949,
-      "h": 1142,
-      "ox": -317.8,
-      "oy": -831,
-      "bodyBottom": 289.4,
-      "bodyH": 403.0,
-      "bodyTop": 0,
-      "centroidX": 101.2,
-      "renderScale": 0.4465,
-      "anchors": {
-       "com": [
-        419.5,
-        488.1
-       ]
-      },
-      "edited": {
-       "renderScale": 0.353,
-       "bodyBottom": 310.4
-      },
-      "file": "mahoraga/idle_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 524,
@@ -31029,8 +29875,8 @@
     "coreRight": 474.9,
     "anchors": {
      "com": [
-      260.8,
-      567.6
+      326.1,
+      583.5
      ]
     },
     "autoTuned": {
@@ -31039,53 +29885,23 @@
       "bodyBottom": "foot=0.969 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.308,
+     "ox": -103.7,
+     "bodyBottom": 270.6
     }
    },
    "idle_b": {
     "w": 513,
     "h": 1316,
-    "ox": -94.4,
+    "ox": -108.9,
     "oy": -1005,
-    "bodyBottom": 270.4,
+    "bodyBottom": 252.4,
     "bodyH": 402.5,
     "centroidX": 151.4,
-    "renderScale": 0.306,
+    "renderScale": 0.3779,
     "file": "mahoraga/incoming/idle_b.png",
-    "replaced": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T18:18:03+00:00",
-     "live": {
-      "w": 978,
-      "h": 1250,
-      "ox": -332.2,
-      "oy": -939,
-      "bodyBottom": 254.4,
-      "bodyH": 402.5,
-      "bodyTop": 0,
-      "centroidX": 97.2,
-      "renderScale": 0.4057,
-      "anchors": {
-       "com": [
-        429.5,
-        511.6
-       ]
-      },
-      "edited": {
-       "renderScale": 0.322,
-       "bodyBottom": 310.4
-      },
-      "file": "mahoraga/idle_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 513,
@@ -31093,8 +29909,8 @@
     "coreRight": 460.6,
     "anchors": {
      "com": [
-      250.2,
-      568.2
+      297.0,
+      586.4
      ]
     },
     "autoTuned": {
@@ -31103,6 +29919,11 @@
       "bodyBottom": "foot=0.969 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.306,
+     "ox": -94.4,
+     "bodyBottom": 270.4
     }
    },
    "jump_rise": {
@@ -34419,6 +33240,103 @@
       "supersededAt": "2026-08-09T16:00:44+00:00"
      }
     ]
+   },
+   "attack_heavy_b": {
+    "options": [
+     {
+      "w": 942,
+      "h": 1329,
+      "ox": -289.9,
+      "oy": -1018,
+      "bodyBottom": 244.0,
+      "bodyH": 331.9,
+      "bodyTop": 0,
+      "centroidX": 132.4,
+      "renderScale": 0.25,
+      "anchors": {
+       "com": [
+        396.6,
+        525.9
+       ]
+      },
+      "file": "gojo/incoming/attack_heavy_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 956,
+      "h": 1181,
+      "ox": -321.2,
+      "oy": -870,
+      "bodyBottom": 269.9,
+      "bodyH": 331.9,
+      "bodyTop": 0,
+      "centroidX": 176.7,
+      "renderScale": 0.2122,
+      "anchors": {
+       "com": [
+        453.7,
+        435.5
+       ]
+      },
+      "edited": {
+       "renderScale": 0.281,
+       "bodyBottom": 310.4
+      },
+      "file": "gojo/attack_heavy_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "attack_heavy_a": {
+    "options": [
+     {
+      "w": 893,
+      "h": 1359,
+      "ox": -311.3,
+      "oy": -1048,
+      "bodyBottom": 255.4,
+      "bodyH": 381.9,
+      "bodyTop": 0,
+      "centroidX": 186.1,
+      "renderScale": 0.1869,
+      "rotationDeg": 3.5,
+      "anchors": {
+       "com": [
+        475.7,
+        528.8
+       ]
+      },
+      "edited": {
+       "renderScale": 0.281,
+       "ox": -289.8,
+       "bodyBottom": 310.4,
+       "rotationDeg": null
+      },
+      "file": "gojo/attack_heavy_a.png",
+      "label": "In game"
+     },
+     {
+      "file": "gojo/incoming/attack_heavy_a.png",
+      "w": 796,
+      "h": 1372,
+      "ox": -277.4,
+      "oy": -1061,
+      "bodyBottom": 241.9,
+      "bodyH": 381.9,
+      "bodyTop": 0,
+      "centroidX": 192.9,
+      "renderScale": 0.278,
+      "anchors": {
+       "com": [
+        435.3,
+        542.4
+       ]
+      },
+      "label": "Not approved",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
    }
   },
   "hakari": {
@@ -36692,6 +35610,100 @@
       }
      }
     ]
+   },
+   "idle_a": {
+    "options": [
+     {
+      "w": 522,
+      "h": 1464,
+      "ox": -88.4,
+      "oy": -1154,
+      "bodyBottom": 224.0,
+      "bodyH": 258.1,
+      "bodyTop": 0,
+      "centroidX": 140.9,
+      "renderScale": 0.176,
+      "anchors": {
+       "com": [
+        277.7,
+        579.5
+       ]
+      },
+      "file": "inumaki/incoming/idle_a.png",
+      "label": "In game"
+     },
+     {
+      "w": 398,
+      "h": 1016,
+      "ox": -42.2,
+      "oy": -693,
+      "bodyBottom": 255.5,
+      "bodyH": 251.0,
+      "bodyTop": 13,
+      "centroidX": 145.1,
+      "renderScale": 0.268,
+      "anchors": {
+       "com": [
+        188.6,
+        432.2
+       ]
+      },
+      "edited": {
+       "renderScale": 0.254,
+       "bodyBottom": 310
+      },
+      "file": "inumaki/idle_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "idle_b": {
+    "options": [
+     {
+      "w": 530,
+      "h": 1500,
+      "ox": -93.3,
+      "oy": -1190,
+      "bodyBottom": 221.9,
+      "bodyH": 258.1,
+      "bodyTop": 0,
+      "centroidX": 141.8,
+      "renderScale": 0.172,
+      "anchors": {
+       "com": [
+        252.7,
+        631.5
+       ]
+      },
+      "file": "inumaki/incoming/idle_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 255,
+      "h": 1016,
+      "ox": 29.2,
+      "oy": -693,
+      "bodyBottom": 263,
+      "bodyH": 251.0,
+      "bodyTop": 13,
+      "centroidX": 164.2,
+      "renderScale": 0.2667,
+      "anchors": {
+       "com": [
+        134.7,
+        432.5
+       ]
+      },
+      "edited": {
+       "renderScale": 0.254,
+       "bodyBottom": 310
+      },
+      "file": "inumaki/idle_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
    }
   },
   "jogo": {
@@ -37665,6 +36677,100 @@
         107.2
        ]
       }
+     }
+    ]
+   },
+   "idle_a": {
+    "options": [
+     {
+      "w": 587,
+      "h": 1314,
+      "ox": -119.6,
+      "oy": -1004,
+      "bodyBottom": 245.3,
+      "bodyH": 268.2,
+      "bodyTop": 0,
+      "centroidX": 139.6,
+      "renderScale": 0.204,
+      "anchors": {
+       "com": [
+        275.0,
+        532.8
+       ]
+      },
+      "file": "jogo/incoming/idle_a.png",
+      "label": "In game"
+     },
+     {
+      "w": 680,
+      "h": 1016,
+      "ox": -183.2,
+      "oy": -691,
+      "bodyBottom": 263,
+      "bodyH": 260.0,
+      "bodyTop": 15,
+      "centroidX": 140.7,
+      "renderScale": 0.2825,
+      "anchors": {
+       "com": [
+        324.5,
+        431.2
+       ]
+      },
+      "edited": {
+       "renderScale": 0.264,
+       "bodyBottom": 310
+      },
+      "file": "jogo/idle_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "idle_b": {
+    "options": [
+     {
+      "w": 583,
+      "h": 1313,
+      "ox": -116.8,
+      "oy": -1003,
+      "bodyBottom": 245.3,
+      "bodyH": 268.2,
+      "bodyTop": 0,
+      "centroidX": 138.8,
+      "renderScale": 0.204,
+      "anchors": {
+       "com": [
+        273.9,
+        531.0
+       ]
+      },
+      "file": "jogo/incoming/idle_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 577,
+      "h": 1016,
+      "ox": -131.8,
+      "oy": -691,
+      "bodyBottom": 272,
+      "bodyH": 260.0,
+      "bodyTop": 15,
+      "centroidX": 131.3,
+      "renderScale": 0.2825,
+      "anchors": {
+       "com": [
+        264.0,
+        440.3
+       ]
+      },
+      "edited": {
+       "renderScale": 0.264,
+       "bodyBottom": 310
+      },
+      "file": "jogo/idle_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
      }
     ]
    }
@@ -38786,6 +37892,105 @@
       "faceLeft": true
      }
     ]
+   },
+   "attack_heavy_a": {
+    "options": [
+     {
+      "w": 931,
+      "h": 1171,
+      "ox": -230.1,
+      "oy": -922,
+      "bodyBottom": 177.9,
+      "bodyH": 375.9,
+      "bodyTop": 0,
+      "centroidX": 78.1,
+      "renderScale": 0.321,
+      "anchors": {
+       "com": [
+        386.8,
+        487.1
+       ]
+      },
+      "file": "maki/incoming/attack_heavy_a.png",
+      "label": "In game"
+     },
+     {
+      "w": 954,
+      "h": 1005,
+      "ox": -273.6,
+      "oy": -694,
+      "bodyBottom": 248.5,
+      "bodyH": 375.7,
+      "bodyTop": 0,
+      "centroidX": 126.6,
+      "renderScale": 0.2805,
+      "rotationDeg": -3,
+      "anchors": {
+       "com": [
+        416.8,
+        394.3
+       ]
+      },
+      "edited": {
+       "renderScale": 0.374,
+       "ox": -290.1,
+       "rotationDeg": null
+      },
+      "file": "maki/attack_heavy_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "attack_heavy_b": {
+    "options": [
+     {
+      "w": 963,
+      "h": 1026,
+      "ox": -207.4,
+      "oy": -715,
+      "bodyBottom": 248.7,
+      "bodyH": 326.2,
+      "bodyTop": 0,
+      "centroidX": 39.4,
+      "renderScale": 0.318,
+      "anchors": {
+       "com": [
+        306.8,
+        387.7
+       ]
+      },
+      "file": "maki/incoming/attack_heavy_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 1007,
+      "h": 1121,
+      "ox": -186.8,
+      "oy": -810,
+      "bodyBottom": 231.4,
+      "bodyH": 326.2,
+      "bodyTop": 0,
+      "centroidX": 36.6,
+      "renderScale": 0.2619,
+      "rotationDeg": -2.5,
+      "anchors": {
+       "com": [
+        314.8,
+        428.0
+       ]
+      },
+      "edited": {
+       "renderScale": 0.291,
+       "ox": -346.8,
+       "bodyBottom": 310.4,
+       "rotationDeg": null
+      },
+      "file": "maki/attack_heavy_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
    }
   },
   "megumi": {
@@ -39834,6 +39039,102 @@
       }
      }
     ]
+   },
+   "idle_a": {
+    "options": [
+     {
+      "w": 575,
+      "h": 1505,
+      "ox": -78.1,
+      "oy": -1195,
+      "bodyBottom": 222.4,
+      "bodyH": 301.8,
+      "bodyTop": 0,
+      "centroidX": 104.1,
+      "renderScale": 0.201,
+      "anchors": {
+       "com": [
+        234.8,
+        635.8
+       ]
+      },
+      "file": "megumi/incoming/idle_a.png",
+      "label": "In game"
+     },
+     {
+      "w": 402,
+      "h": 1016,
+      "ox": -44.2,
+      "oy": -694,
+      "bodyBottom": 253.5,
+      "bodyH": 295.0,
+      "bodyTop": 13,
+      "centroidX": 122.3,
+      "renderScale": 0.3252,
+      "rotationDeg": 4.5,
+      "anchors": {
+       "com": [
+        166.3,
+        432.0
+       ]
+      },
+      "edited": {
+       "renderScale": 0.297,
+       "bodyBottom": 310,
+       "rotationDeg": null
+      },
+      "file": "megumi/idle_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "idle_b": {
+    "options": [
+     {
+      "w": 577,
+      "h": 1510,
+      "ox": -81.5,
+      "oy": -1200,
+      "bodyBottom": 222.1,
+      "bodyH": 301.8,
+      "bodyTop": 0,
+      "centroidX": 106.5,
+      "renderScale": 0.2,
+      "anchors": {
+       "com": [
+        238.2,
+        638.2
+       ]
+      },
+      "file": "megumi/incoming/idle_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 343,
+      "h": 1016,
+      "ox": -14.8,
+      "oy": -693,
+      "bodyBottom": 267,
+      "bodyH": 295.0,
+      "bodyTop": 13,
+      "centroidX": 163.6,
+      "renderScale": 0.3203,
+      "anchors": {
+       "com": [
+        178.7,
+        442.5
+       ]
+      },
+      "edited": {
+       "renderScale": 0.298,
+       "bodyBottom": 310
+      },
+      "file": "megumi/idle_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
    }
   },
   "nanami": {
@@ -40794,6 +40095,102 @@
       }
      }
     ]
+   },
+   "attack_heavy_a": {
+    "options": [
+     {
+      "w": 722,
+      "h": 1426,
+      "ox": -270.7,
+      "oy": -1115,
+      "bodyBottom": 235.9,
+      "bodyH": 412.1,
+      "bodyTop": 0,
+      "centroidX": 185.3,
+      "renderScale": 0.2182,
+      "anchors": {
+       "com": [
+        416.1,
+        589.3
+       ]
+      },
+      "edited": {
+       "renderScale": 0.289,
+       "ox": -204.2,
+       "bodyBottom": 310.4
+      },
+      "file": "nanami/attack_heavy_a.png",
+      "label": "In game"
+     },
+     {
+      "file": "nanami/incoming/attack_heavy_a.png",
+      "w": 874,
+      "h": 1490,
+      "ox": -306.0,
+      "oy": -1179,
+      "bodyBottom": 252.4,
+      "bodyH": 412.1,
+      "bodyTop": 0,
+      "centroidX": 182.5,
+      "renderScale": 0.277,
+      "anchors": {
+       "com": [
+        464.0,
+        604.8
+       ]
+      },
+      "label": "Not approved",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "attack_heavy_b": {
+    "options": [
+     {
+      "w": 1011,
+      "h": 1170,
+      "ox": -265.8,
+      "oy": -859,
+      "bodyBottom": 264.9,
+      "bodyH": 338.1,
+      "bodyTop": 0,
+      "centroidX": 105.1,
+      "renderScale": 0.2384,
+      "anchors": {
+       "com": [
+        441.2,
+        447.5
+       ]
+      },
+      "edited": {
+       "renderScale": 0.289,
+       "ox": -348.8,
+       "bodyBottom": 310.4
+      },
+      "file": "nanami/attack_heavy_b.png",
+      "label": "In game"
+     },
+     {
+      "file": "nanami/incoming/attack_heavy_b.png",
+      "w": 1000,
+      "h": 1176,
+      "ox": -437.5,
+      "oy": -865,
+      "bodyBottom": 264.7,
+      "bodyH": 338.1,
+      "bodyTop": 0,
+      "centroidX": 251.0,
+      "renderScale": 0.288,
+      "anchors": {
+       "com": [
+        594.5,
+        436.7
+       ]
+      },
+      "label": "Not approved",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
    }
   },
   "nobara": {
@@ -41027,6 +40424,99 @@
       "file": "nobara/crouch_b.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T16:00:44+00:00"
+     }
+    ]
+   },
+   "idle_a": {
+    "options": [
+     {
+      "w": 511,
+      "h": 1511,
+      "ox": -98.8,
+      "oy": -1201,
+      "bodyBottom": 226.1,
+      "bodyH": 299.7,
+      "bodyTop": 0,
+      "centroidX": 156.9,
+      "renderScale": 0.198,
+      "anchors": {
+       "com": [
+        255.7,
+        604.7
+       ]
+      },
+      "file": "nobara/incoming/idle_a.png",
+      "label": "In game"
+     },
+     {
+      "w": 372,
+      "h": 1016,
+      "ox": -29.2,
+      "oy": -693,
+      "bodyBottom": 247.5,
+      "bodyH": 291.0,
+      "bodyTop": 19,
+      "centroidX": 150.7,
+      "renderScale": 0.295,
+      "anchors": {
+       "com": [
+        204.1,
+        377.4
+       ]
+      },
+      "edited": {
+       "bodyBottom": 310
+      },
+      "file": "nobara/idle_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "idle_b": {
+    "options": [
+     {
+      "w": 513,
+      "h": 1512,
+      "ox": -101.8,
+      "oy": -1202,
+      "bodyBottom": 226.0,
+      "bodyH": 298.7,
+      "bodyTop": 0,
+      "centroidX": 158.8,
+      "renderScale": 0.198,
+      "anchors": {
+       "com": [
+        257.4,
+        604.6
+       ]
+      },
+      "file": "nobara/incoming/idle_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 354,
+      "h": 1016,
+      "ox": -20.2,
+      "oy": -693,
+      "bodyBottom": 261,
+      "bodyH": 291.0,
+      "bodyTop": 14,
+      "centroidX": 162.1,
+      "renderScale": 0.2896,
+      "anchors": {
+       "com": [
+        183.3,
+        417.4
+       ]
+      },
+      "edited": {
+       "renderScale": 0.294,
+       "bodyBottom": 310
+      },
+      "file": "nobara/idle_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
      }
     ]
    }
@@ -42130,6 +41620,102 @@
       }
      }
     ]
+   },
+   "attack_heavy_b": {
+    "options": [
+     {
+      "w": 992,
+      "h": 1050,
+      "ox": -339.2,
+      "oy": -739,
+      "bodyBottom": 235.9,
+      "bodyH": 313.9,
+      "bodyTop": 0,
+      "centroidX": 126.3,
+      "renderScale": 0.2676,
+      "anchors": {
+       "com": [
+        465.5,
+        438.4
+       ]
+      },
+      "edited": {
+       "renderScale": 0.299,
+       "bodyBottom": 310.4,
+       "ox": -339.2
+      },
+      "file": "toji/attack_heavy_b.png",
+      "label": "In game"
+     },
+     {
+      "file": "toji/incoming/attack_heavy_b.png",
+      "w": 1003,
+      "h": 1008,
+      "ox": -462.3,
+      "oy": -697,
+      "bodyBottom": 255.2,
+      "bodyH": 313.9,
+      "bodyTop": 0,
+      "centroidX": 274.3,
+      "renderScale": 0.311,
+      "anchors": {
+       "com": [
+        618.7,
+        402.3
+       ]
+      },
+      "label": "Not approved",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "attack_heavy_a": {
+    "options": [
+     {
+      "w": 867,
+      "h": 1386,
+      "ox": -276.8,
+      "oy": -1075,
+      "bodyBottom": 209.4,
+      "bodyH": 414.4,
+      "bodyTop": 0,
+      "centroidX": 90.5,
+      "renderScale": 0.2213,
+      "anchors": {
+       "com": [
+        367.5,
+        584.3
+       ]
+      },
+      "edited": {
+       "renderScale": 0.299,
+       "bodyBottom": 310.4,
+       "ox": -276.8
+      },
+      "file": "toji/attack_heavy_a.png",
+      "label": "In game"
+     },
+     {
+      "file": "toji/incoming/attack_heavy_a.png",
+      "w": 998,
+      "h": 1298,
+      "ox": -406.4,
+      "oy": -987,
+      "bodyBottom": 239.2,
+      "bodyH": 414.4,
+      "bodyTop": 0,
+      "centroidX": 220.9,
+      "renderScale": 0.319,
+      "anchors": {
+       "com": [
+        563.5,
+        565.3
+       ]
+      },
+      "label": "Not approved",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
    }
   },
   "yuta": {
@@ -42356,6 +41942,100 @@
       "supersededAt": "2026-08-09T16:00:44+00:00"
      }
     ]
+   },
+   "idle_a": {
+    "options": [
+     {
+      "w": 611,
+      "h": 1668,
+      "ox": -130.4,
+      "oy": -1358,
+      "bodyBottom": 226.4,
+      "bodyH": 289.6,
+      "bodyTop": 0,
+      "centroidX": 138.4,
+      "renderScale": 0.174,
+      "anchors": {
+       "com": [
+        289.6,
+        717.5
+       ]
+      },
+      "file": "yuta/incoming/idle_a.png",
+      "label": "In game"
+     },
+     {
+      "w": 391,
+      "h": 1016,
+      "ox": -38.8,
+      "oy": -693,
+      "bodyBottom": 249.5,
+      "bodyH": 282.0,
+      "bodyTop": 13,
+      "centroidX": 145.5,
+      "renderScale": 0.3092,
+      "anchors": {
+       "com": [
+        209.5,
+        387.9
+       ]
+      },
+      "edited": {
+       "renderScale": 0.285,
+       "bodyBottom": 310
+      },
+      "file": "yuta/idle_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "idle_b": {
+    "options": [
+     {
+      "w": 610,
+      "h": 1688,
+      "ox": -133.3,
+      "oy": -1378,
+      "bodyBottom": 225.4,
+      "bodyH": 289.6,
+      "bodyTop": 0,
+      "centroidX": 141.8,
+      "renderScale": 0.172,
+      "anchors": {
+       "com": [
+        291.4,
+        725.4
+       ]
+      },
+      "file": "yuta/incoming/idle_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 429,
+      "h": 1016,
+      "ox": -57.8,
+      "oy": -693,
+      "bodyBottom": 263.5,
+      "bodyH": 282.0,
+      "bodyTop": 13,
+      "centroidX": 149.1,
+      "renderScale": 0.3035,
+      "anchors": {
+       "com": [
+        208.7,
+        440.6
+       ]
+      },
+      "edited": {
+       "renderScale": 0.285,
+       "bodyBottom": 310
+      },
+      "file": "yuta/idle_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
    }
   },
   "reggie": {
@@ -42463,6 +42143,98 @@
       },
       "label": "Not approved",
       "supersededAt": "2026-08-09T16:00:44+00:00"
+     }
+    ]
+   },
+   "attack_heavy_a": {
+    "options": [
+     {
+      "w": 873,
+      "h": 1365,
+      "ox": -348.6,
+      "oy": -1123,
+      "bodyBottom": 165.4,
+      "bodyH": 298.7,
+      "bodyTop": 0,
+      "centroidX": 225.6,
+      "renderScale": 0.219,
+      "anchors": {
+       "com": [
+        504.2,
+        550.6
+       ]
+      },
+      "file": "reggie/incoming/attack_heavy_a.png",
+      "label": "In game"
+     },
+     {
+      "w": 763,
+      "h": 1219,
+      "ox": -260.4,
+      "oy": -908,
+      "bodyBottom": 241.1,
+      "bodyH": 298.4,
+      "bodyTop": 0,
+      "centroidX": 192.4,
+      "renderScale": 0.234,
+      "anchors": {
+       "com": [
+        417.0,
+        457.6
+       ]
+      },
+      "edited": {
+       "renderScale": 0.245
+      },
+      "file": "reggie/attack_heavy_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "attack_heavy_b": {
+    "options": [
+     {
+      "w": 897,
+      "h": 1100,
+      "ox": -205.1,
+      "oy": -866,
+      "bodyBottom": 172.2,
+      "bodyH": 271.9,
+      "bodyTop": 0,
+      "centroidX": 70.1,
+      "renderScale": 0.247,
+      "anchors": {
+       "com": [
+        273.7,
+        398.4
+       ]
+      },
+      "file": "reggie/incoming/attack_heavy_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 906,
+      "h": 1346,
+      "ox": -248.0,
+      "oy": -1035,
+      "bodyBottom": 233.9,
+      "bodyH": 271.7,
+      "bodyTop": 0,
+      "centroidX": 108.5,
+      "renderScale": 0.2252,
+      "anchors": {
+       "com": [
+        406.4,
+        498.7
+       ]
+      },
+      "edited": {
+       "renderScale": 0.202
+      },
+      "file": "reggie/attack_heavy_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
      }
     ]
    }
@@ -43489,6 +43261,197 @@
        "bodyBottom": 311.0,
        "rotationDeg": null
       }
+     }
+    ]
+   },
+   "attack_heavy_b": {
+    "options": [
+     {
+      "w": 928,
+      "h": 1172,
+      "ox": -255.6,
+      "oy": -861,
+      "bodyBottom": 242.5,
+      "bodyH": 389.5,
+      "bodyTop": 0,
+      "centroidX": 105.1,
+      "renderScale": 0.332,
+      "anchors": {
+       "com": [
+        354.1,
+        454.3
+       ]
+      },
+      "file": "sukuna/incoming/attack_heavy_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 1000,
+      "h": 1343,
+      "ox": -343.2,
+      "oy": -1032,
+      "bodyBottom": 143.4,
+      "bodyH": 389.5,
+      "bodyTop": 0,
+      "centroidX": 140.5,
+      "renderScale": 0.2508,
+      "rotationDeg": -7.5,
+      "anchors": {
+       "com": [
+        386.6,
+        502.3
+       ]
+      },
+      "edited": {
+       "renderScale": 0.29,
+       "bodyBottom": 310.4,
+       "rotationDeg": null
+      },
+      "file": "sukuna/attack_heavy_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "attack_heavy_a": {
+    "options": [
+     {
+      "w": 917,
+      "h": 1237,
+      "ox": -301.8,
+      "oy": -926,
+      "bodyBottom": 269.9,
+      "bodyH": 358.7,
+      "bodyTop": 0,
+      "centroidX": 203.2,
+      "renderScale": 0.2436,
+      "anchors": {
+       "com": [
+        507.1,
+        542.4
+       ]
+      },
+      "edited": {
+       "renderScale": 0.29,
+       "bodyBottom": 310.4,
+       "ox": -301.8
+      },
+      "file": "sukuna/attack_heavy_a.png",
+      "label": "In game"
+     },
+     {
+      "file": "sukuna/incoming/attack_heavy_a.png",
+      "w": 922,
+      "h": 1344,
+      "ox": -265.0,
+      "oy": -1033,
+      "bodyBottom": 232.5,
+      "bodyH": 358.7,
+      "bodyTop": 0,
+      "centroidX": 117.5,
+      "renderScale": 0.267,
+      "anchors": {
+       "com": [
+        423.2,
+        527.8
+       ]
+      },
+      "label": "Not approved",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "idle_b": {
+    "options": [
+     {
+      "w": 537,
+      "h": 1410,
+      "ox": -97.2,
+      "oy": -1100,
+      "bodyBottom": 227.6,
+      "bodyH": 294.6,
+      "bodyTop": 0,
+      "centroidX": 142.2,
+      "renderScale": 0.209,
+      "anchors": {
+       "com": [
+        254.7,
+        613.6
+       ]
+      },
+      "file": "sukuna/incoming/idle_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 599,
+      "h": 1016,
+      "ox": -142.2,
+      "oy": -691,
+      "bodyBottom": 245.5,
+      "bodyH": 287.0,
+      "bodyTop": 15,
+      "centroidX": 160.9,
+      "renderScale": 0.3157,
+      "anchors": {
+       "com": [
+        302.5,
+        453.9
+       ]
+      },
+      "edited": {
+       "renderScale": 0.291,
+       "bodyBottom": 310
+      },
+      "file": "sukuna/idle_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "idle_a": {
+    "options": [
+     {
+      "w": 536,
+      "h": 1412,
+      "ox": -93.4,
+      "oy": -1102,
+      "bodyBottom": 227.5,
+      "bodyH": 294.6,
+      "bodyTop": 0,
+      "centroidX": 138.9,
+      "renderScale": 0.209,
+      "anchors": {
+       "com": [
+        251.7,
+        616.5
+       ]
+      },
+      "file": "sukuna/incoming/idle_a.png",
+      "label": "In game"
+     },
+     {
+      "w": 555,
+      "h": 1016,
+      "ox": -120.8,
+      "oy": -693,
+      "bodyBottom": 254.5,
+      "bodyH": 287.0,
+      "bodyTop": 14,
+      "centroidX": 146.3,
+      "renderScale": 0.3132,
+      "anchors": {
+       "com": [
+        266.4,
+        451.0
+       ]
+      },
+      "edited": {
+       "renderScale": 0.29,
+       "bodyBottom": 310
+      },
+      "file": "sukuna/idle_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
      }
     ]
    }
@@ -46295,6 +46258,100 @@
       "supersededAt": "2026-08-09T16:00:44+00:00"
      }
     ]
+   },
+   "idle_a": {
+    "options": [
+     {
+      "w": 519,
+      "h": 1606,
+      "ox": -96.8,
+      "oy": -1295,
+      "bodyBottom": 243.8,
+      "bodyH": 291.0,
+      "bodyTop": 0,
+      "centroidX": 150.8,
+      "renderScale": 0.181,
+      "anchors": {
+       "com": [
+        309.4,
+        673.5
+       ]
+      },
+      "file": "choso/incoming/idle_a.png",
+      "label": "In game"
+     },
+     {
+      "w": 456,
+      "h": 1360,
+      "ox": -71.2,
+      "oy": -1049,
+      "bodyBottom": 244.4,
+      "bodyH": 291.0,
+      "bodyTop": 0,
+      "centroidX": 141.3,
+      "renderScale": 0.2311,
+      "anchors": {
+       "com": [
+        214.5,
+        614.7
+       ]
+      },
+      "edited": {
+       "renderScale": 0.214,
+       "bodyBottom": 310.4
+      },
+      "file": "choso/idle_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "idle_b": {
+    "options": [
+     {
+      "w": 507,
+      "h": 1607,
+      "ox": -91.4,
+      "oy": -1296,
+      "bodyBottom": 243.8,
+      "bodyH": 291.0,
+      "bodyTop": 0,
+      "centroidX": 151.4,
+      "renderScale": 0.181,
+      "anchors": {
+       "com": [
+        246.2,
+        706.2
+       ]
+      },
+      "file": "choso/incoming/idle_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 395,
+      "h": 1384,
+      "ox": -40.8,
+      "oy": -1073,
+      "bodyBottom": 230.4,
+      "bodyH": 296.2,
+      "bodyTop": 0,
+      "centroidX": 141.2,
+      "renderScale": 0.2311,
+      "anchors": {
+       "com": [
+        183.8,
+        619.0
+       ]
+      },
+      "edited": {
+       "renderScale": 0.214,
+       "bodyBottom": 310.4
+      },
+      "file": "choso/idle_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
    }
   },
   "meimei": {
@@ -46516,6 +46573,154 @@
       "supersededAt": "2026-08-09T16:00:44+00:00"
      }
     ]
+   },
+   "attack_heavy_a": {
+    "options": [
+     {
+      "w": 860,
+      "h": 1461,
+      "ox": -312.4,
+      "oy": -1150,
+      "bodyBottom": 188.5,
+      "bodyH": 299.3,
+      "bodyTop": 0,
+      "centroidX": 132.4,
+      "renderScale": 0.2347,
+      "anchors": {
+       "com": [
+        469.1,
+        735.7
+       ]
+      },
+      "edited": {
+       "renderScale": 0.205,
+       "ox": -248.9,
+       "bodyBottom": 226.0
+      },
+      "file": "uro/attack_heavy_a.png",
+      "label": "In game"
+     },
+     {
+      "file": "uro/incoming/attack_heavy_a.png",
+      "w": 840,
+      "h": 1455,
+      "ox": -248.4,
+      "oy": -1229,
+      "bodyBottom": 143.1,
+      "bodyH": 299.5,
+      "bodyTop": 0,
+      "centroidX": 141.9,
+      "renderScale": 0.206,
+      "anchors": {
+       "com": [
+        404.1,
+        549.1
+       ]
+      },
+      "label": "Not approved",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "attack_heavy_b": {
+    "options": [
+     {
+      "w": 884,
+      "h": 1440,
+      "ox": -212.9,
+      "oy": -1129,
+      "bodyBottom": 227.2,
+      "bodyH": 347.1,
+      "bodyTop": 0,
+      "centroidX": 120.4,
+      "renderScale": 0.2615,
+      "anchors": {
+       "com": [
+        404.8,
+        770.0
+       ]
+      },
+      "edited": {
+       "renderScale": 0.241,
+       "ox": -248.9,
+       "bodyBottom": 227.2
+      },
+      "file": "uro/attack_heavy_b.png",
+      "label": "In game"
+     },
+     {
+      "file": "uro/incoming/attack_heavy_b.png",
+      "w": 949,
+      "h": 1311,
+      "ox": -239.7,
+      "oy": -1083,
+      "bodyBottom": 153.3,
+      "bodyH": 347.0,
+      "bodyTop": 0,
+      "centroidX": 78.7,
+      "renderScale": 0.265,
+      "anchors": {
+       "com": [
+        397.7,
+        484.0
+       ]
+      },
+      "label": "Not approved",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "prone": {
+    "options": [
+     {
+      "w": 976,
+      "h": 253,
+      "ox": -301.8,
+      "oy": 57,
+      "bodyBottom": 218.9,
+      "bodyH": 63.1,
+      "bodyTop": 0,
+      "centroidX": 127.3,
+      "renderScale": 0.3797,
+      "rotationDeg": -3.5,
+      "anchors": {
+       "com": [
+        459.3,
+        117.6
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Costume doesn't match canonical exactly",
+      "edited": {
+       "renderScale": 0.249,
+       "bodyBottom": 310.4,
+       "rotationDeg": null,
+       "ox": -301.8
+      },
+      "file": "uro/prone.png",
+      "label": "In game"
+     },
+     {
+      "file": "uro/incoming/prone.png",
+      "w": 1766,
+      "h": 485,
+      "ox": -660.4,
+      "oy": -174,
+      "bodyBottom": 310.4,
+      "bodyH": 63.0,
+      "bodyTop": 0,
+      "centroidX": 90.9,
+      "renderScale": 0.13,
+      "anchors": {
+       "com": [
+        817.6,
+        226.8
+       ]
+      },
+      "label": "Not approved",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
    }
   },
   "mahito": {
@@ -46568,6 +46773,434 @@
       "supersededAt": "2026-08-09T16:00:44+00:00"
      }
     ]
+   },
+   "idle_a": {
+    "options": [
+     {
+      "w": 526,
+      "h": 1420,
+      "ox": -122.9,
+      "oy": -1110,
+      "bodyBottom": 233.7,
+      "bodyH": 291.0,
+      "bodyTop": 0,
+      "centroidX": 173.4,
+      "renderScale": 0.205,
+      "anchors": {
+       "com": [
+        278.8,
+        578.3
+       ]
+      },
+      "file": "mahito/incoming/idle_a.png",
+      "label": "In game"
+     },
+     {
+      "w": 531,
+      "h": 1360,
+      "ox": -137.3,
+      "oy": -1050,
+      "bodyBottom": 233,
+      "bodyH": 290.6,
+      "bodyTop": 0,
+      "centroidX": 181.6,
+      "renderScale": 0.2258,
+      "anchors": {
+       "com": [
+        329.1,
+        524.6
+       ]
+      },
+      "edited": {
+       "renderScale": 0.214,
+       "ox": -108.8,
+       "bodyBottom": 310.0
+      },
+      "file": "mahito/idle_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "idle_b": {
+    "options": [
+     {
+      "w": 525,
+      "h": 1436,
+      "ox": -122.5,
+      "oy": -1126,
+      "bodyBottom": 232.8,
+      "bodyH": 291.0,
+      "bodyTop": 0,
+      "centroidX": 173.5,
+      "renderScale": 0.203,
+      "anchors": {
+       "com": [
+        277.4,
+        583.7
+       ]
+      },
+      "file": "mahito/incoming/idle_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 430,
+      "h": 1396,
+      "ox": -58.2,
+      "oy": -1086,
+      "bodyBottom": 239.5,
+      "bodyH": 290.6,
+      "bodyTop": 0,
+      "centroidX": 164.7,
+      "renderScale": 0.2194,
+      "anchors": {
+       "com": [
+        255.8,
+        547.3
+       ]
+      },
+      "edited": {
+       "renderScale": 0.208,
+       "bodyBottom": 310.0
+      },
+      "file": "mahito/idle_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   }
+  },
+  "gakuganji": {
+   "attack_heavy_a": {
+    "options": [
+     {
+      "w": 915,
+      "h": 1448,
+      "ox": -300.3,
+      "oy": -1201,
+      "bodyBottom": 178.0,
+      "bodyH": 303.0,
+      "bodyTop": 0,
+      "centroidX": 156.3,
+      "renderScale": 0.209,
+      "anchors": {
+       "com": [
+        457.0,
+        631.9
+       ]
+      },
+      "file": "gakuganji/incoming/attack_heavy_a.png",
+      "label": "In game"
+     },
+     {
+      "w": 871,
+      "h": 1365,
+      "ox": -310.3,
+      "oy": -1054,
+      "bodyBottom": 246.3,
+      "bodyH": 303.1,
+      "bodyTop": 0,
+      "centroidX": 188.3,
+      "renderScale": 0.2353,
+      "anchors": {
+       "com": [
+        467.2,
+        646.8
+       ]
+      },
+      "edited": {
+       "renderScale": 0.222
+      },
+      "file": "gakuganji/attack_heavy_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "attack_heavy_b": {
+    "options": [
+     {
+      "w": 928,
+      "h": 1175,
+      "ox": -182.9,
+      "oy": -923,
+      "bodyBottom": 196.0,
+      "bodyH": 262.7,
+      "bodyTop": 0,
+      "centroidX": 32.4,
+      "renderScale": 0.224,
+      "anchors": {
+       "com": [
+        339.1,
+        497.5
+       ]
+      },
+      "file": "gakuganji/incoming/attack_heavy_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 861,
+      "h": 1245,
+      "ox": -306.6,
+      "oy": -934,
+      "bodyBottom": 251.9,
+      "bodyH": 262.7,
+      "bodyTop": 0,
+      "centroidX": 189.6,
+      "renderScale": 0.211,
+      "anchors": {
+       "com": [
+        465.3,
+        562.0
+       ]
+      },
+      "needsReplacement": "pose",
+      "file": "gakuganji/attack_heavy_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "attack_air_a": {
+    "options": [
+     {
+      "w": 877,
+      "h": 1394,
+      "ox": -268.6,
+      "oy": -1083,
+      "bodyBottom": 244.9,
+      "bodyH": 276.7,
+      "bodyTop": 0,
+      "centroidX": 143.6,
+      "renderScale": 0.2287,
+      "anchors": {
+       "com": [
+        427.3,
+        632.7
+       ]
+      },
+      "needsReplacement": "alternate",
+      "replacementNote": "AI hand drawing error",
+      "edited": {
+       "renderScale": 0.198,
+       "ox": -268.6,
+       "bodyBottom": 244.9
+      },
+      "file": "gakuganji/attack_air_a.png",
+      "label": "In game"
+     },
+     {
+      "file": "gakuganji/incoming/attack_air_a.png",
+      "w": 994,
+      "h": 1577,
+      "ox": -321.8,
+      "oy": -1332,
+      "bodyBottom": 169.9,
+      "bodyH": 276.0,
+      "bodyTop": 0,
+      "centroidX": 138.3,
+      "renderScale": 0.175,
+      "anchors": {
+       "com": [
+        479.8,
+        714.2
+       ]
+      },
+      "label": "Not approved",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   }
+  },
+  "mahoraga": {
+   "idle_a": {
+    "options": [
+     {
+      "w": 524,
+      "h": 1310,
+      "ox": -103.7,
+      "oy": -999,
+      "bodyBottom": 270.6,
+      "bodyH": 403.1,
+      "bodyTop": 0,
+      "centroidX": 155.2,
+      "renderScale": 0.308,
+      "anchors": {
+       "com": [
+        326.1,
+        583.5
+       ]
+      },
+      "file": "mahoraga/incoming/idle_a.png",
+      "label": "In game"
+     },
+     {
+      "w": 949,
+      "h": 1142,
+      "ox": -317.8,
+      "oy": -831,
+      "bodyBottom": 289.4,
+      "bodyH": 403.0,
+      "bodyTop": 0,
+      "centroidX": 101.2,
+      "renderScale": 0.4465,
+      "anchors": {
+       "com": [
+        419.5,
+        488.1
+       ]
+      },
+      "edited": {
+       "renderScale": 0.353,
+       "bodyBottom": 310.4
+      },
+      "file": "mahoraga/idle_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "idle_b": {
+    "options": [
+     {
+      "w": 513,
+      "h": 1316,
+      "ox": -94.4,
+      "oy": -1005,
+      "bodyBottom": 270.4,
+      "bodyH": 402.5,
+      "bodyTop": 0,
+      "centroidX": 151.4,
+      "renderScale": 0.306,
+      "anchors": {
+       "com": [
+        297.0,
+        586.4
+       ]
+      },
+      "file": "mahoraga/incoming/idle_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 978,
+      "h": 1250,
+      "ox": -332.2,
+      "oy": -939,
+      "bodyBottom": 254.4,
+      "bodyH": 402.5,
+      "bodyTop": 0,
+      "centroidX": 97.2,
+      "renderScale": 0.4057,
+      "anchors": {
+       "com": [
+        429.5,
+        511.6
+       ]
+      },
+      "edited": {
+       "renderScale": 0.322,
+       "bodyBottom": 310.4
+      },
+      "file": "mahoraga/idle_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   }
+  },
+  "yuji": {
+   "idle_a": {
+    "options": [
+     {
+      "w": 423,
+      "h": 1497,
+      "ox": -24.4,
+      "oy": -1186,
+      "bodyBottom": 232.2,
+      "bodyH": 285.9,
+      "bodyTop": 0,
+      "centroidX": 126.4,
+      "renderScale": 0.191,
+      "anchors": {
+       "com": [
+        180.8,
+        637.7
+       ]
+      },
+      "file": "yuji/incoming/idle_a.png",
+      "label": "In game"
+     },
+     {
+      "w": 409,
+      "h": 1388,
+      "ox": -47.8,
+      "oy": -1077,
+      "bodyBottom": 241.9,
+      "bodyH": 286.0,
+      "bodyTop": 0,
+      "centroidX": 125.7,
+      "renderScale": 0.206,
+      "anchors": {
+       "com": [
+        221.3,
+        520.3
+       ]
+      },
+      "edited": {
+       "bodyBottom": 310.4
+      },
+      "file": "yuji/idle_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
+   },
+   "idle_b": {
+    "options": [
+     {
+      "w": 425,
+      "h": 1502,
+      "ox": -25.9,
+      "oy": -1191,
+      "bodyBottom": 231.9,
+      "bodyH": 285.9,
+      "bodyTop": 0,
+      "centroidX": 126.9,
+      "renderScale": 0.19,
+      "anchors": {
+       "com": [
+        182.1,
+        639.6
+       ]
+      },
+      "file": "yuji/incoming/idle_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 301,
+      "h": 1341,
+      "ox": 6.2,
+      "oy": -1030,
+      "bodyBottom": 231.9,
+      "bodyH": 276.2,
+      "bodyTop": 0,
+      "centroidX": 137.4,
+      "renderScale": 0.2142,
+      "anchors": {
+       "com": [
+        150.6,
+        547.9
+       ]
+      },
+      "edited": {
+       "renderScale": 0.206,
+       "bodyBottom": 310.4
+      },
+      "file": "yuji/idle_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T18:18:03+00:00"
+     }
+    ]
    }
   }
  },
@@ -46591,6 +47224,7 @@
   "sukuna": 286.81,
   "todo": 298.98,
   "toji": 296.01,
-  "yuta": 282.15
+  "yuta": 282.15,
+  "yuji": 270.88
  }
 }
