@@ -13,6 +13,13 @@
 // derived, so editing them by hand does nothing. Change `heightCm`, or override
 // the target in the sprite workbench.
 //
+// `light` and `heavy` are attack PROFILES — damage, speed, launch angle, status
+// effect, name. They no longer carry a `reach`: how far a fighter's attacks
+// connect is measured from their own artwork (src/silhouette.js) and turned
+// into hitboxes by src/moves.js, so a swing lands where it looks like it lands
+// and redrawing a pose retunes the move. The forgiveness margins are in
+// MELEE_GRACE (src/config_tuning.js). See docs/hitbox-audit.md.
+//
 // Frame keys are sheet cells "r{row}c{col}" resolved via assets/sprites/manifest.json.
 // Sheet rows: 0 idle/poses, 1 run, 2 air, 3 technique effects, 4 crouch.
 // The 17 launch fighters come from those sheets. The six round-7 fighters
@@ -154,8 +161,8 @@ export const CHARACTERS = {
     anims: { ...SEMANTIC_ANIMS,
       specialDown: { frames: ["special_down"], fps: 4, loop: true },
     },
-    light: { dmg: 7.5, reach: 168, speed: 1.1, angle: 0.32, effect: null, label: "Limitless Jab", sfx: "punch" },
-    heavy: { dmg: 15, reach: 186, speed: 1.05, angle: 0.46, effect: null, label: "Lapse Palm", sfx: "punch", shieldMul: 1.5 },
+    light: { dmg: 7.5, speed: 1.1, angle: 0.32, effect: null, label: "Limitless Jab", sfx: "punch" },
+    heavy: { dmg: 15, speed: 1.05, angle: 0.46, effect: null, label: "Lapse Palm", sfx: "punch", shieldMul: 1.5 },
     specials: {
       neutral: {
         name: "Cursed Technique Lapse: Blue", type: "projectile", cooldown: 1.0,
@@ -204,8 +211,8 @@ export const CHARACTERS = {
     anims: { ...SEMANTIC_ANIMS,
       specialDown: { frames: ["special_down"], fps: 4, loop: true },
     },
-    light: { dmg: 8.5, reach: 178, speed: 1.0, angle: 0.3, effect: null, label: "Katana Combo", sfx: "slash" },
-    heavy: { dmg: 16, reach: 196, speed: 1.0, angle: 0.44, effect: null, label: "Cursed Cleave", sfx: "slashHeavy", shieldMul: 1.6 },
+    light: { dmg: 8.5, speed: 1.0, angle: 0.3, effect: null, label: "Katana Combo", sfx: "slash" },
+    heavy: { dmg: 16, speed: 1.0, angle: 0.44, effect: null, label: "Cursed Cleave", sfx: "slashHeavy", shieldMul: 1.6 },
     specials: {
       neutral: {
         name: "Cursed Energy Slash", type: "projectile", cooldown: 1.0,
@@ -255,8 +262,8 @@ export const CHARACTERS = {
     anims: { ...SEMANTIC_ANIMS,
       specialDown: { frames: ["special_down"], fps: 4, loop: false },
     },
-    light: { dmg: 8.5, reach: 172, speed: 1.05, angle: 0.28, effect: null, label: "Fever Jab", sfx: "punch" },
-    heavy: { dmg: 16, reach: 184, speed: 1.0, angle: 0.44, effect: null, label: "Shutter Knuckle", sfx: "punch", shieldMul: 1.7 },
+    light: { dmg: 8.5, speed: 1.05, angle: 0.28, effect: null, label: "Fever Jab", sfx: "punch" },
+    heavy: { dmg: 16, speed: 1.0, angle: 0.44, effect: null, label: "Shutter Knuckle", sfx: "punch", shieldMul: 1.7 },
     specials: {
       neutral: {
         name: "Rough Energy Shutter", type: "projectile", cooldown: 1.25,
@@ -307,8 +314,8 @@ export const CHARACTERS = {
     anims: { ...SEMANTIC_ANIMS,
       specialDown: { frames: ["special_down"], fps: 4, loop: true },
     },
-    light: { dmg: 8.5, reach: 196, speed: 1.1, angle: 0.26, effect: "weaponBreak", label: "Naginata Combo", sfx: "slash" },
-    heavy: { dmg: 15.5, reach: 210, speed: 1.05, angle: 0.42, effect: "weaponBreak", label: "Dragon-Bone Arc", sfx: "slashHeavy", shieldMul: 2.2 },
+    light: { dmg: 8.5, speed: 1.1, angle: 0.26, effect: "weaponBreak", label: "Naginata Combo", sfx: "slash" },
+    heavy: { dmg: 15.5, speed: 1.05, angle: 0.42, effect: "weaponBreak", label: "Dragon-Bone Arc", sfx: "slashHeavy", shieldMul: 2.2 },
     specials: {
       neutral: {
         name: "Cursed Tool Toss", type: "projectile", cooldown: 0.95,
@@ -349,8 +356,8 @@ export const CHARACTERS = {
     // Round 11B delivered his last seventeen poses, so every action has its own
     // drawing and every override here was saying what the shared table says.
     anims: SEMANTIC_ANIMS,
-    light: { dmg: 8, reach: 172, speed: 1.05, angle: 0.3, effect: null, label: "Shadow Combo", sfx: "punch" },
-    heavy: { dmg: 15, reach: 188, speed: 1.0, angle: 0.44, effect: "snare", label: "Divine Dog Fang", sfx: "slashHeavy", shieldMul: 1.6 },
+    light: { dmg: 8, speed: 1.05, angle: 0.3, effect: null, label: "Shadow Combo", sfx: "punch" },
+    heavy: { dmg: 15, speed: 1.0, angle: 0.44, effect: "snare", label: "Divine Dog Fang", sfx: "slashHeavy", shieldMul: 1.6 },
     specials: {
       neutral: {
         name: "Great Serpent... no — Nue!", type: "projectile", cooldown: 1.15,
@@ -414,8 +421,8 @@ export const CHARACTERS = {
     anims: { ...SEMANTIC_ANIMS,
       specialDown: { frames: ["special_down"], fps: 6, loop: false },
     },
-    light: { dmg: 8, reach: 170, speed: 1.0, angle: 0.3, effect: "nailMark", label: "Hammer & Nail", sfx: "punch" },
-    heavy: { dmg: 15, reach: 186, speed: 1.0, angle: 0.46, effect: "nailMark", label: "Hammer Smash", sfx: "slashHeavy", shieldMul: 1.6 },
+    light: { dmg: 8, speed: 1.0, angle: 0.3, effect: "nailMark", label: "Hammer & Nail", sfx: "punch" },
+    heavy: { dmg: 15, speed: 1.0, angle: 0.46, effect: "nailMark", label: "Hammer Smash", sfx: "slashHeavy", shieldMul: 1.6 },
     specials: {
       neutral: {
         name: "Straw Doll: Nail Shot", type: "projectile", cooldown: 0.8,
@@ -455,8 +462,8 @@ export const CHARACTERS = {
     // Round 11B delivered his last eighteen poses, so every action has its own
     // drawing and every override here was saying what the shared table says.
     anims: SEMANTIC_ANIMS,
-    light: { dmg: 7.5, reach: 162, speed: 1.05, angle: 0.34, effect: null, label: "Salmon Strike", sfx: "punch" },
-    heavy: { dmg: 14.5, reach: 180, speed: 1.0, angle: 0.46, effect: null, label: "Bonito Break", sfx: "punch", shieldMul: 1.5 },
+    light: { dmg: 7.5, speed: 1.05, angle: 0.34, effect: null, label: "Salmon Strike", sfx: "punch" },
+    heavy: { dmg: 14.5, speed: 1.0, angle: 0.46, effect: null, label: "Bonito Break", sfx: "punch", shieldMul: 1.5 },
     specials: {
       neutral: {
         name: "“Blast Away”", type: "shout", cooldown: 1.1, strain: 1,
@@ -500,8 +507,8 @@ export const CHARACTERS = {
       light: { frames: ["attack_light_a", "attack_light_b"], fps: 11, loop: false },
       specialDown: { frames: ["special_down"], fps: 6, loop: false },
     },
-    light: { dmg: 9.5, reach: 178, speed: 0.92, angle: 0.3, effect: null, label: "Panda Paw", sfx: "punch" },
-    heavy: { dmg: 18, reach: 196, speed: 0.88, angle: 0.44, effect: null, label: "Cursed Corpse Slam", sfx: "punch", shieldMul: 1.8 },
+    light: { dmg: 9.5, speed: 0.92, angle: 0.3, effect: null, label: "Panda Paw", sfx: "punch" },
+    heavy: { dmg: 18, speed: 0.88, angle: 0.44, effect: null, label: "Cursed Corpse Slam", sfx: "punch", shieldMul: 1.8 },
     specials: {
       neutral: {
         name: "Unblockable Drumming Beat", type: "burst", cooldown: 1.5,
@@ -543,8 +550,8 @@ export const CHARACTERS = {
     anims: { ...SEMANTIC_ANIMS,
       specialDown: { frames: ["special_down"], fps: 4, loop: false },
     },
-    light: { dmg: 9, reach: 176, speed: 0.98, angle: 0.3, effect: null, label: "Brotherly Fist", sfx: "punch" },
-    heavy: { dmg: 17, reach: 190, speed: 0.94, angle: 0.44, effect: null, label: "Vigorous Chop", sfx: "punch", shieldMul: 1.7 },
+    light: { dmg: 9, speed: 0.98, angle: 0.3, effect: null, label: "Brotherly Fist", sfx: "punch" },
+    heavy: { dmg: 17, speed: 0.94, angle: 0.44, effect: null, label: "Vigorous Chop", sfx: "punch", shieldMul: 1.7 },
     specials: {
       neutral: {
         name: "Boogie Woogie", type: "swap", cooldown: 2.0,
@@ -589,8 +596,8 @@ export const CHARACTERS = {
       run: { ...RUN_ANIM, fps: 12, fallbackFps: 9 },
       specialDown: { frames: ["special_down"], fps: 6, loop: false },
     },
-    light: { dmg: 7.5, reach: 180, speed: 1.05, angle: 0.3, effect: "gust", label: "Broom Sweep", sfx: "whoosh" },
-    heavy: { dmg: 14, reach: 194, speed: 1.0, angle: 0.46, effect: "gust", label: "Gale Swing", sfx: "whoosh", shieldMul: 1.5 },
+    light: { dmg: 7.5, speed: 1.05, angle: 0.3, effect: "gust", label: "Broom Sweep", sfx: "whoosh" },
+    heavy: { dmg: 14, speed: 1.0, angle: 0.46, effect: "gust", label: "Gale Swing", sfx: "whoosh", shieldMul: 1.5 },
     specials: {
       neutral: {
         name: "Wind Scythe", type: "projectile", cooldown: 0.9,
@@ -633,8 +640,8 @@ export const CHARACTERS = {
       sideHeavy: { ...SEMANTIC_ANIMS.sideHeavy, fps: 8 },
       specialDown: { frames: ["special_down"], fps: 3, loop: true },
     },
-    light: { dmg: 9, reach: 176, speed: 0.95, angle: 0.29, effect: null, label: "Ratio Strike", sfx: "slash", critBand: { center: 132, tolerance: 30 } },
-    heavy: { dmg: 16.5, reach: 192, speed: 0.92, angle: 0.42, effect: null, label: "Ratio Cleave", sfx: "slashHeavy", shieldMul: 1.7, critBand: { center: 160, tolerance: 36 } },
+    light: { dmg: 9, speed: 0.95, angle: 0.29, effect: null, label: "Ratio Strike", sfx: "slash", critBand: { center: 132, tolerance: 30 } },
+    heavy: { dmg: 16.5, speed: 0.92, angle: 0.42, effect: null, label: "Ratio Cleave", sfx: "slashHeavy", shieldMul: 1.7, critBand: { center: 160, tolerance: 36 } },
     specials: {
       neutral: {
         name: "Ratio Technique Wave", type: "projectile", cooldown: 1.1,
@@ -679,8 +686,8 @@ export const CHARACTERS = {
       light: { frames: ["attack_light_a", "attack_light_b"], fps: 13, loop: false },
       ult: { frames: ["ult_a", "ult_b"], fps: 8, loop: true },
     },
-    light: { dmg: 8.5, reach: 200, speed: 1.15, angle: 0.24, effect: "heavenly", label: "Spear Rush", sfx: "slash" },
-    heavy: { dmg: 15.5, reach: 214, speed: 1.05, angle: 0.4, effect: "heavenly", label: "Split Soul Slash", sfx: "slashHeavy", shieldMul: 2.0 },
+    light: { dmg: 8.5, speed: 1.15, angle: 0.24, effect: "heavenly", label: "Spear Rush", sfx: "slash" },
+    heavy: { dmg: 15.5, speed: 1.05, angle: 0.4, effect: "heavenly", label: "Split Soul Slash", sfx: "slashHeavy", shieldMul: 2.0 },
     specials: {
       neutral: {
         name: "Chain of a Thousand Miles", type: "projectile", cooldown: 1.1,
@@ -730,8 +737,8 @@ export const CHARACTERS = {
     // His crouch attack loses its third frame with them: the sheet happened to
     // hold three cells worth borrowing, the semantic set is a pair everywhere.
     anims: SEMANTIC_ANIMS,
-    light: { dmg: 9, reach: 182, speed: 1.05, angle: 0.27, effect: "bleed", label: "Dismantle", sfx: "slash" },
-    heavy: { dmg: 16.5, reach: 198, speed: 1.0, angle: 0.42, effect: "bleed", label: "Cleave", sfx: "slashHeavy", shieldMul: 1.7 },
+    light: { dmg: 9, speed: 1.05, angle: 0.27, effect: "bleed", label: "Dismantle", sfx: "slash" },
+    heavy: { dmg: 16.5, speed: 1.0, angle: 0.42, effect: "bleed", label: "Cleave", sfx: "slashHeavy", shieldMul: 1.7 },
     specials: {
       neutral: {
         name: "Dismantle", type: "projectile", cooldown: 0.85,
@@ -781,8 +788,8 @@ export const CHARACTERS = {
     anims: { ...SEMANTIC_ANIMS,
       ult: { frames: ["ult_a", "ult_b"], fps: 8, loop: true },
     },
-    light: { dmg: 8, reach: 174, speed: 1.08, angle: 0.31, effect: "soulMark", label: "Soul Touch", sfx: "punch" },
-    heavy: { dmg: 15, reach: 188, speed: 1.0, angle: 0.44, effect: "soulMark", label: "Distorted Limb", sfx: "punch", shieldMul: 1.6 },
+    light: { dmg: 8, speed: 1.08, angle: 0.31, effect: "soulMark", label: "Soul Touch", sfx: "punch" },
+    heavy: { dmg: 15, speed: 1.0, angle: 0.44, effect: "soulMark", label: "Distorted Limb", sfx: "punch", shieldMul: 1.6 },
     specials: {
       neutral: {
         name: "Idle Transfiguration", type: "commandGrab", cooldown: 2.1,
@@ -836,8 +843,8 @@ export const CHARACTERS = {
     // drawing and every override here was saying the same thing the shared
     // table already says.
     anims: SEMANTIC_ANIMS,
-    light: { dmg: 8.5, reach: 176, speed: 1.0, angle: 0.32, effect: "curseDrain", label: "Cursed Spirit Strike", sfx: "punch" },
-    heavy: { dmg: 15.5, reach: 192, speed: 0.98, angle: 0.44, effect: "curseDrain", label: "Curse Hammer", sfx: "slashHeavy", shieldMul: 1.7 },
+    light: { dmg: 8.5, speed: 1.0, angle: 0.32, effect: "curseDrain", label: "Cursed Spirit Strike", sfx: "punch" },
+    heavy: { dmg: 15.5, speed: 0.98, angle: 0.44, effect: "curseDrain", label: "Curse Hammer", sfx: "slashHeavy", shieldMul: 1.7 },
     specials: {
       neutral: {
         name: "Cursed Spirit Volley", type: "projectile", cooldown: 1.2,
@@ -896,8 +903,8 @@ export const CHARACTERS = {
       light: { frames: ["attack_light_a", "attack_light_b"], fps: 11, loop: false },
       specialDown: { frames: ["special_down"], fps: 5, loop: false },
     },
-    light: { dmg: 9.5, reach: 170, speed: 0.94, angle: 0.32, effect: "burn", label: "Scorch Jab", sfx: "punch" },
-    heavy: { dmg: 17.5, reach: 186, speed: 0.9, angle: 0.44, effect: "burn", label: "Magma Fist", sfx: "punch", shieldMul: 1.7 },
+    light: { dmg: 9.5, speed: 0.94, angle: 0.32, effect: "burn", label: "Scorch Jab", sfx: "punch" },
+    heavy: { dmg: 17.5, speed: 0.9, angle: 0.44, effect: "burn", label: "Magma Fist", sfx: "punch", shieldMul: 1.7 },
     specials: {
       neutral: {
         name: "Ember Insects", type: "projectile", cooldown: 1.05,
@@ -948,8 +955,8 @@ export const CHARACTERS = {
       light: { frames: ["attack_light_a", "attack_light_b"], fps: 9, loop: false },
       specialDown: { frames: ["special_down"], fps: 6, loop: false },
     },
-    light: { dmg: 9.5, reach: 186, speed: 0.9, angle: 0.34, effect: "rootSnare", label: "Root Lash", sfx: "punch" },
-    heavy: { dmg: 17.5, reach: 200, speed: 0.88, angle: 0.44, effect: "rootSnare", label: "Timber Crush", sfx: "slashHeavy", shieldMul: 1.7 },
+    light: { dmg: 9.5, speed: 0.9, angle: 0.34, effect: "rootSnare", label: "Root Lash", sfx: "punch" },
+    heavy: { dmg: 17.5, speed: 0.88, angle: 0.44, effect: "rootSnare", label: "Timber Crush", sfx: "slashHeavy", shieldMul: 1.7 },
     specials: {
       neutral: {
         name: "Cursed Buds", type: "projectile", cooldown: 1.15,
@@ -988,8 +995,8 @@ export const CHARACTERS = {
     scale: 0.60,
     stats: { speed: 405, airSpeed: 315, accel: 2500, jump: 750, airJumps: 1, weight: 1.06, friction: 0.82 },
     anims: SEMANTIC_ANIMS,
-    light: { dmg: 8, reach: 176, speed: 1.05, angle: 0.31, effect: null, label: "Blood Edge", sfx: "slash" },
-    heavy: { dmg: 15.5, reach: 190, speed: 0.98, angle: 0.44, effect: null, label: "Crimson Arc", sfx: "slashHeavy", shieldMul: 1.6 },
+    light: { dmg: 8, speed: 1.05, angle: 0.31, effect: null, label: "Blood Edge", sfx: "slash" },
+    heavy: { dmg: 15.5, speed: 0.98, angle: 0.44, effect: null, label: "Crimson Arc", sfx: "slashHeavy", shieldMul: 1.6 },
     specials: {
       neutral: {
         name: "Piercing Blood", type: "projectile", cooldown: 1.15,
@@ -1027,8 +1034,8 @@ export const CHARACTERS = {
     scale: 0.60,
     stats: { speed: 425, airSpeed: 330, accel: 2650, jump: 765, airJumps: 1, weight: 1.0, friction: 0.84 },
     anims: SEMANTIC_ANIMS,
-    light: { dmg: 8.5, reach: 182, speed: 1.0, angle: 0.3, effect: null, label: "Axe Combo", sfx: "slash" },
-    heavy: { dmg: 16.5, reach: 196, speed: 0.95, angle: 0.44, effect: null, label: "Executioner's Cleave", sfx: "slashHeavy", shieldMul: 2.0 },
+    light: { dmg: 8.5, speed: 1.0, angle: 0.3, effect: null, label: "Axe Combo", sfx: "slash" },
+    heavy: { dmg: 16.5, speed: 0.95, angle: 0.44, effect: null, label: "Executioner's Cleave", sfx: "slashHeavy", shieldMul: 2.0 },
     specials: {
       neutral: {
         name: "Crow Scout", type: "projectile", cooldown: 1.0,
@@ -1066,8 +1073,8 @@ export const CHARACTERS = {
     scale: 0.60,
     stats: { speed: 432, airSpeed: 385, accel: 2750, jump: 790, airJumps: 2, weight: 0.9, friction: 0.84 },
     anims: SEMANTIC_ANIMS,
-    light: { dmg: 8, reach: 170, speed: 1.1, angle: 0.3, effect: null, label: "Palm Arts", sfx: "punch" },
-    heavy: { dmg: 15, reach: 184, speed: 1.05, angle: 0.46, effect: null, label: "Sky-Splitting Palm", sfx: "punch", shieldMul: 1.5 },
+    light: { dmg: 8, speed: 1.1, angle: 0.3, effect: null, label: "Palm Arts", sfx: "punch" },
+    heavy: { dmg: 15, speed: 1.05, angle: 0.46, effect: null, label: "Sky-Splitting Palm", sfx: "punch", shieldMul: 1.5 },
     specials: {
       neutral: {
         name: "Sky Warp Palm", type: "warpStrike", cooldown: 1.5,
@@ -1105,8 +1112,8 @@ export const CHARACTERS = {
     scale: 0.60,
     stats: { speed: 448, airSpeed: 345, accel: 2900, jump: 780, airJumps: 1, weight: 1.02, friction: 0.86 },
     anims: SEMANTIC_ANIMS,
-    light: { dmg: 8.5, reach: 174, speed: 1.1, angle: 0.3, effect: null, label: "Straight Right", sfx: "punch" },
-    heavy: { dmg: 16, reach: 188, speed: 1.0, angle: 0.44, effect: null, label: "Crushing Blow", sfx: "punch", shieldMul: 1.7 },
+    light: { dmg: 8.5, speed: 1.1, angle: 0.3, effect: null, label: "Straight Right", sfx: "punch" },
+    heavy: { dmg: 16, speed: 1.0, angle: 0.44, effect: null, label: "Crushing Blow", sfx: "punch", shieldMul: 1.7 },
     specials: {
       neutral: {
         name: "Divergent Fist", type: "echoStrike", cooldown: 1.2,
@@ -1144,8 +1151,8 @@ export const CHARACTERS = {
     scale: 0.60,
     stats: { speed: 402, airSpeed: 310, accel: 2480, jump: 745, airJumps: 1, weight: 1.05, friction: 0.82 },
     anims: SEMANTIC_ANIMS,
-    light: { dmg: 8, reach: 178, speed: 1.0, angle: 0.3, effect: null, label: "Umbrella Blade", sfx: "slash" },
-    heavy: { dmg: 15.5, reach: 192, speed: 0.98, angle: 0.44, effect: null, label: "Contract Cleave", sfx: "slashHeavy", shieldMul: 1.6 },
+    light: { dmg: 8, speed: 1.0, angle: 0.3, effect: null, label: "Umbrella Blade", sfx: "slash" },
+    heavy: { dmg: 15.5, speed: 0.98, angle: 0.44, effect: null, label: "Contract Cleave", sfx: "slashHeavy", shieldMul: 1.6 },
     specials: {
       neutral: {
         name: "Receipt: Katana Umbrella", type: "projectile", cooldown: 1.0,
@@ -1190,8 +1197,8 @@ export const CHARACTERS = {
     scale: 0.60,
     stats: { speed: 356, airSpeed: 272, accel: 2200, jump: 710, airJumps: 1, weight: 1.18, friction: 0.79 },
     anims: SEMANTIC_ANIMS,
-    light: { dmg: 9, reach: 172, speed: 0.92, angle: 0.32, effect: null, label: "Guitar Swing", sfx: "punch" },
-    heavy: { dmg: 17, reach: 188, speed: 0.88, angle: 0.44, effect: null, label: "Amp Smash", sfx: "slashHeavy", shieldMul: 1.7 },
+    light: { dmg: 9, speed: 0.92, angle: 0.32, effect: null, label: "Guitar Swing", sfx: "punch" },
+    heavy: { dmg: 17, speed: 0.88, angle: 0.44, effect: null, label: "Amp Smash", sfx: "slashHeavy", shieldMul: 1.7 },
     specials: {
       neutral: {
         name: "Power Chord", type: "projectile", cooldown: 1.1,
@@ -1311,6 +1318,13 @@ export const SPRITE_ACTORS = {
     // would be built from.
   },
 };
+
+// Every actor knows its own key. The tables are keyed maps, so the key was
+// always there — but a fighter object handed to moves.js or silhouette.js had
+// no way back to it, and both now need one to ask how big this character is
+// drawn. Stamped rather than typed out 24 times, so it cannot disagree.
+for (const [key, actor] of Object.entries(CHARACTERS)) actor.key = key;
+for (const [key, actor] of Object.entries(SPRITE_ACTORS)) actor.key = key;
 
 /** A fighter or a sprite-only actor, whichever owns this key. Anything that
  *  only needs to DRAW should look up through here rather than CHARACTERS, so

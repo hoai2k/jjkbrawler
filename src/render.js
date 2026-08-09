@@ -8,11 +8,12 @@ import { TRAIL_ALPHA, STRIKE_ARC } from "./config_tuning.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
 import { hitboxRect, hurtbox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
-import { WORLD, SHIELD_MAX, PARRY_WINDOW } from "./constants.js";
+import { WORLD, SHIELD_MAX, PARRY_WINDOW, SAKURAI, SAKURAI_POP } from "./constants.js";
 import { clamp, colorAlpha } from "./utils.js";
 import { PROJ_TRAIL } from "./config_fx.js";
 import { headHeightTarget } from "./heights.js";
-import { strikeArcs } from "./moves.js";
+import { strikeArcs, visibleArtReach, swingExtent } from "./moves.js";
+import { bodyWidth } from "./silhouette.js";
 
 export function draw(ctx) {
   ctx.clearRect(0, 0, WORLD.w, WORLD.h);
@@ -194,11 +195,23 @@ function drawProjectiles(ctx) {
 // blow actually travels: centred on the fighter, curved around them at exactly
 // the distance the hitbox reaches, for exactly the frames it is live.
 //
-// It is doing a job, not just decorating. Most of the kit out-ranges its own
-// art — the sheet caps at ~94 px in front of the fighter while Mei Mei's heavy
-// connects past 160 — so without a mark at the real edge those hits land out
-// of thin air. The arc is that mark, and because strikeArcs() measures it off
-// the hitbox, retuning a move's reach moves the arc with it.
+// It is doing a job, not just decorating. Melee boxes still reach past the
+// painted art — deliberately now, by a fixed grace margin per move type rather
+// than by whatever each character's drawing happened to allow (MELEE_GRACE in
+// config_tuning.js) — so without a mark at the real edge those hits land out of
+// thin air. The arc is that mark, and because strikeArcs() measures it off the
+// hitbox, retuning a move's reach moves the arc with it.
+//
+// It carries three readings, not one:
+//
+//   distance   the radius, which IS the hitbox's far edge
+//   strength   thickness, brightness and trail length, off the move's damage
+//              and how long the smash was charged
+//   angle      a short arrow at the leading edge, pointing the way the hit
+//              will throw whoever it catches
+//
+// plus a brighter ring at the sweetspot, where the move has one, so spacing
+// for the tip of a long weapon is something you can see.
 //
 // Everything about WHERE it goes lives in strikeArcs (moves.js); this draws it.
 function drawStrikeArcs(ctx) {
@@ -213,25 +226,47 @@ function drawStrikeArcs(ctx) {
     const bodyH = headHeightTarget(f.spriteChar || f.charKey) || 175;
     const k = clamp(hb.age / Math.max(hb.dur, 0.001), 0, 1);
     const color = f.char.theme || "#8fd3ff";
+    const power = arcPower(hb);
+    // Where along the arc the move is strongest, if it has such a place. A
+    // derived tip band carries its own draw radius; an authored one (Nanami's
+    // 7:3) is a centre-to-centre distance, so it comes in by half a body.
+    const sweet = hb.critBand
+      ? hb.critBand.ring ?? hb.critBand.center - bodyWidth(f.spriteChar || f.charKey) * 0.5
+      : 0;
     for (const a of strikeArcs(hb, bodyH)) {
-      strikeArc(ctx, f.x, f.y + a.pivotY, facing, a, k, color);
+      strikeArc(ctx, f.x, f.y + a.pivotY, facing, a, k, color, power, hb, sweet);
     }
   }
+}
+
+/** How heavy a swing reads, 0.35-1.6ish. Damage against the reference, plus
+ *  whatever the player put into charging it. */
+function arcPower(hb) {
+  const A = STRIKE_ARC;
+  const raw = (hb.dmg || 0) / A.powerRef * (1 + (hb.charge || 0) * A.chargeBoost);
+  return clamp(raw, A.powerMin, A.powerMax);
 }
 
 /** One crescent, `a` as returned by strikeArcs, `k` the fraction of the active
  *  window elapsed. Drawn as a run of short arc strokes: a canvas gradient
  *  cannot follow a curve, and stepping along it also buys the taper toward the
  *  tips and the bright head that runs the length of the swing. */
-function strikeArc(ctx, x, y, facing, a, k, color) {
+function strikeArc(ctx, x, y, facing, a, k, color, power = 1, hb = null, sweet = 0) {
   const A = STRIKE_ARC;
   // Out to full reach over the opening of the window, so the crescent travels
-  // outward instead of switching on at its final size.
-  const radius = a.radius * (A.reachFrom + (1 - A.reachFrom) * Math.min(1, k / A.reachIn));
+  // outward instead of switching on at its final size. The HITBOX uses the same
+  // curve (swingExtent, moves.js), so the crescent is not an impression of the
+  // swing — it is where the swing has actually got to.
+  const radius = a.radius * swingExtent(k);
   // Swell and fade over the whole of it.
-  const fade = Math.sin(k * Math.PI) ** 0.7;
+  const fade = Math.sin(k * Math.PI) ** 0.7 * (1 + (power - 1) * A.powerAlpha);
   if (fade <= 0.01) return;
-  const thick = clamp(radius * A.thickness, A.thicknessMin, A.thicknessMax);
+  // A heavy swing cuts a heavier line. Both the band's weight and the length of
+  // its trail come off the same power, so a jab and a charged smash are told
+  // apart at a glance rather than by reading a damage popup afterwards.
+  const thick = clamp(radius * A.thickness, A.thicknessMin, A.thicknessMax)
+    * (1 + (power - 1) * A.powerThickness);
+  const echoes = clamp(Math.round(A.echoes * power), A.echoesMin, A.echoesMax);
   // Where the bright head has got to, in the arc's own -1..1 coordinate.
   const head = -1 + 2 * (k < 0.5 ? 2 * k * k : 1 - (1 - k) ** 2 * 2);
 
@@ -261,7 +296,7 @@ function strikeArc(ctx, x, y, facing, a, k, color) {
   ctx.globalCompositeOperation = "lighter";
   // The leading crescent first, then its trail: each echo a step further in and
   // fainter, with its bright head lagging behind the one in front of it.
-  for (let e = 0; e < A.echoes; e++) {
+  for (let e = 0; e < echoes; e++) {
     const er = radius * (1 - e * A.echoStep);
     const eSpan = a.span * (1 - e * A.echoNarrow);
     const eFade = fade * A.echoFade ** e;
@@ -297,6 +332,20 @@ function strikeArc(ctx, x, y, facing, a, k, color) {
     }
   }
 
+  // The sweetspot, where the move has one: a bright thin ring at the distance
+  // it hits hardest. Drawn inside the arc's own frame, so it curves with the
+  // swing and sits exactly where the band is tested. Only worth drawing on a
+  // forward swing whose reach it actually falls inside.
+  if (sweet > A.minRadius * 0.5 && sweet <= a.radius * 1.02) {
+    const sr = Math.min(sweet, radius);
+    ctx.globalAlpha = fade * A.sweetAlpha;
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = A.sweetWidth;
+    ctx.beginPath();
+    ctx.arc(0, 0, sr, a.aim - a.span * 0.8, a.aim + a.span * 0.8);
+    ctx.stroke();
+  }
+
   // The point of contact: a small bloom riding the arc where the head is.
   const hx = Math.cos(a.aim + a.span * head) * radius;
   const hy = Math.sin(a.aim + a.span * head) * radius;
@@ -309,7 +358,43 @@ function strikeArc(ctx, x, y, facing, a, k, color) {
   ctx.beginPath();
   ctx.arc(hx, hy, thick * 1.3, 0, Math.PI * 2);
   ctx.fill();
+
+  // And where it will send them. A short arrow off the contact point along the
+  // launch vector — the one property of an attack that used to be completely
+  // invisible until after it had landed, which made spacing against an unknown
+  // character guesswork. Drawn in the mirrored frame, so +x is forward and the
+  // arrow reads correctly whichever way the fighter faces.
+  if (hb) drawAngleTick(ctx, hx, hy, hb, fade, power, color);
   ctx.restore();
+}
+
+/** The launch-direction arrow at the leading edge of a swing. */
+function drawAngleTick(ctx, hx, hy, hb, fade, power, color) {
+  const A = STRIKE_ARC;
+  // The Sakurai angle has no fixed value — it depends on the victim's state at
+  // the moment of contact (combat.js) — so it is shown at the angle it takes
+  // once the hit is strong enough to launch, which is the case that matters.
+  const raw = hb.angle ?? 0.35;
+  const angle = raw === SAKURAI ? SAKURAI_POP : raw;
+  const len = A.angleTick * power;
+  const dx = Math.cos(Math.abs(angle)) * len;
+  const dy = -Math.sin(angle) * len;          // canvas y grows downward
+  ctx.globalAlpha = fade * A.angleTickAlpha;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = A.angleTickWidth * power;
+  ctx.beginPath();
+  ctx.moveTo(hx, hy);
+  ctx.lineTo(hx + dx, hy + dy);
+  ctx.stroke();
+  // Arrowhead: two short barbs swept back from the tip.
+  const head = Math.atan2(dy, dx);
+  const barb = len * 0.36;
+  for (const s of [0.5, -0.5]) {
+    ctx.beginPath();
+    ctx.moveTo(hx + dx, hy + dy);
+    ctx.lineTo(hx + dx - Math.cos(head + s) * barb, hy + dy - Math.sin(head + s) * barb);
+    ctx.stroke();
+  }
 }
 
 function drawFighters(ctx) {
@@ -586,6 +671,11 @@ function drawRespawnPlatform(ctx, f) {
   ctx.restore();
 }
 
+// Boxes over the art, on the debug toggle (main.js). Everything the audit in
+// docs/hitbox-audit.md measured offline is checkable here by eye: the red box
+// is what the swing hits, the white outline is what can be hit, the amber line
+// is where the ART stops — so the amber-to-red gap IS the grace margin, and it
+// should look the same width on every character.
 function drawDebug(ctx) {
   ctx.save();
   for (const hb of state.hitboxes) {
@@ -593,12 +683,40 @@ function drawDebug(ctx) {
     const r = hitboxRect(hb);
     ctx.fillStyle = "rgba(255, 80, 80, 0.32)";
     ctx.fillRect(r.x, r.y, r.w, r.h);
+    // The sweetspot, as the distance band it actually is.
+    if (hb.critBand) {
+      const facing = hb.facing ?? hb.owner.facing;
+      ctx.strokeStyle = "rgba(255, 211, 92, 0.85)";
+      ctx.lineWidth = 1.5;
+      for (const d of [-hb.critBand.tolerance, hb.critBand.tolerance]) {
+        const x = hb.owner.x + facing * (hb.critBand.center + d);
+        ctx.beginPath();
+        ctx.moveTo(x, r.y);
+        ctx.lineTo(x, r.y + r.h);
+        ctx.stroke();
+      }
+    }
   }
   for (const f of state.fighters) {
     if (f.dead) continue;
     const r = hurtbox(f);
     ctx.strokeStyle = "rgba(255,255,255,0.8)";
+    ctx.lineWidth = 1;
     ctx.strokeRect(r.x, r.y, r.w, r.h);
+    // Where this character's artwork actually reaches, measured from their own
+    // frames (silhouette.js). A hitbox extending far past this is a hit that
+    // will land out of thin air.
+    const reach = visibleArtReach(f.char);
+    if (reach) {
+      const x = f.x + f.facing * reach;
+      ctx.strokeStyle = "rgba(255, 190, 90, 0.7)";
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(x, f.y - r.h * 1.15);
+      ctx.lineTo(x, f.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
   }
   ctx.restore();
 }

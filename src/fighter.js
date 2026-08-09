@@ -17,7 +17,7 @@ import {
   SPOT_DODGE_TIME, AIR_DODGE_TIME, DODGE_STALE_WINDOW, METER_MAX, METER_PASSIVE,
   ULT_METER_COST, DOMAIN_METER_COST,
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
-  RESPAWN_X,
+  RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE,
 } from "./constants.js";
 import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "./config_tuning.js";
 import { mainPlatform } from "./stages.js";
@@ -144,12 +144,37 @@ function beginHeavy(f, input) {
   setAnim(f, "charge");
 }
 
-function releaseHeavy(f) {
+/**
+ * Let go of a charged smash.
+ *
+ * A side smash can be ANGLED on release, by holding the right stick off
+ * horizontal — Smash's angled forward smash, three attacks out of one, and most
+ * of the vertical mixup in the grounded game. The right stick is used rather
+ * than the left because the left one already chose which smash this is: holding
+ * up or down at the start picks the up or down variant, so it has nothing left
+ * to say about aim.
+ *
+ * The hitbox is swung about the fighter rather than simply nudged, so an angled
+ * smash reaches the same distance along its new line — and because the strike
+ * arc is measured off the hitbox (moves.js), the crescent follows the aim for
+ * free.
+ */
+function releaseHeavy(f, input) {
   const c = f.charging;
   if (!c) return;
   f.charging = null;
   const charge = clamp(c.t / 0.8, 0, 1);
   const move = heavyMove(f.char, c.variant, charge);
+  const aim = clamp(input?.aimY || 0, -1, 1);
+  if (c.variant === "side" && Math.abs(aim) > 0.25) {
+    const tilt = aim * SMASH_TILT;                 // + is downward, as y is
+    const radius = move.ox + move.w * 0.5;
+    move.oy += Math.sin(tilt) * radius;
+    move.ox *= Math.cos(tilt);
+    move.w *= Math.cos(tilt);
+    move.angle = clamp(move.angle - tilt * SMASH_TILT_ANGLE, -1.2, 1.4);
+    move.label = (tilt < 0 ? "High " : "Low ") + move.label;
+  }
   executeMove(f, move, { grunt: charge > 0.5 });
   if (charge > 0.25) {
     burst(f.x, f.y - 90, f.char.theme, 14 + charge * 16, 1 + charge);
@@ -536,7 +561,7 @@ export function updateFighter(f, dt, input) {
       f.charging = null; // knocked or slipped off the ground: charge fizzles
     } else {
       f.charging.t += dt;
-      if (!input.heavyHeld || f.charging.t >= 0.8) releaseHeavy(f);
+      if (!input.heavyHeld || f.charging.t >= 0.8) releaseHeavy(f, input);
       else if (Math.random() < 0.3) burst(f.x, f.y - 90, f.char.theme, 1, 0.5);
     }
   }
