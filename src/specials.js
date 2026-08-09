@@ -76,17 +76,53 @@ export function performSpecial(f, slot) {
   }
 }
 
+// The last creature each fighter rolled out of each summon pool, so the next
+// cast can avoid repeating it. A WeakMap because fighters are rebuilt every
+// match and nothing should outlive them.
+const lastRoll = new WeakMap();
+
+/**
+ * Which creature this cast puts on the stage.
+ *
+ * A summon special names a POOL (config_summons.js) and one entry is rolled
+ * per cast, so Megumi's shikigami and Mahito's transfigurations are a draw
+ * rather than a fixture. Never the same entry twice running: a technique that
+ * happens to repeat reads as a technique that only has one creature, which is
+ * the exact impression the pools exist to kill. With one entry left there is
+ * nothing to avoid, so a single-entry pool just returns it.
+ */
+function rollSummon(f, cfg, p) {
+  if (!p.pool?.length) return null;
+  if (p.pool.length === 1) return p.pool[0];
+  const seen = lastRoll.get(f) || {};
+  const previous = seen[cfg.name];
+  const options = p.pool.filter((o) => o !== previous);
+  const choice = options[Math.floor(Math.random() * options.length)];
+  seen[cfg.name] = choice;
+  lastRoll.set(f, seen);
+  return choice;
+}
+
 const HANDLERS = {
-  // Persistent minions (see summons.js). `p` is the summon config; `p.units`
-  // optionally spawns several minions per cast with per-unit overrides
-  // (Megumi's two Divine Dogs).
+  // Persistent minions (see summons.js). `p` is the summon config; `p.pool`
+  // rolls which creature it is this time, and `units` spawns several minions
+  // per cast with per-unit overrides (Megumi's two Divine Dogs).
   summon(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
     playGrunt(f.charKey);
-    for (const unit of p.units || [{}]) {
-      spawnSummon(f, { label: cfg.name, ...p, ...unit });
+    const rolled = rollSummon(f, cfg, p);
+    // The roll wins over the special's shared defaults, and `pool` itself is
+    // dropped so it never travels into a summon's own config.
+    const { pool, ...base } = p;
+    const spec = { ...base, ...rolled };
+    for (const unit of spec.units || [{}]) {
+      spawnSummon(f, { label: cfg.name, ...spec, ...unit });
     }
-    ring(f.x, f.y - 80, p.color || f.char.theme, 110);
+    // Name what answered. With five shikigami on one button, the player has to
+    // be told which one they got — the creature is the information, not the
+    // technique, and its own art may not be drawn yet.
+    if (rolled?.name) popup(f.x, f.y - 176, rolled.name.toUpperCase(), spec.color || f.char.theme, 18);
+    ring(f.x, f.y - 80, spec.color || f.char.theme, 110);
     playSfx("blast", 0.6, 1.2);
     grantSummonMeter(f, cfg);
   },

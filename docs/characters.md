@@ -133,8 +133,13 @@ phenomenon**. Personality: reserved, tactical, self-sacrificing to a fault
 have to.
 - *Stats:* 418 / 0.96 — nimble but light.
 - **Nue** (neutral): diving shadow-bird arc that **paralyzes** (snare).
-- **Divine Dogs** (side): summons both wolves as persistent hunters that
-  chase and bite for six seconds — his shikigami fight beside him.
+- **Ten Shadows: Shikigami** (side): calls whichever shikigami answers, and it
+  is a different one every cast — the **Divine Dogs** (two hunters that chase
+  and bite), the **Great Serpent** (fast, enormous reach, fragile), the
+  **Toad** (holds ground behind him and lashes), **Max Elephant** (slow, huge,
+  very hard to remove) or a scatter of three **rabbits**. Ten shikigami is the
+  whole of his technique, so one dog forever was the one thing it should never
+  have been.
 - **Shadow Sink** (down): melts into his own shadow, teleporting through
   danger (an invincible reposition).
 - **Ultimate — Mahoraga:** the full ritual. The general drops onto the stage as
@@ -277,8 +282,10 @@ every range, and the unique ability to *turn the opponent's magic off*.
 - **Chain of a Thousand Miles** (neutral): a near-hitscan piercing chain snipe.
 - **Inverted Spear of Heaven** (side): gap-closing stab that **silences** —
   the victim's specials are sealed for 3 s. Uniquely hateful, exactly canon.
-- **Inventory Curse** (down): summons his pact-bound curse; it hovers at his
-  shoulder and hurls cursed tools at the enemy while he closes in.
+- **Open the Inventory** (down): something pact-bound comes out of storage,
+  and which one is a draw — the **Inventory Curse** (hovers at his shoulder
+  hurling cursed tools), the **Coil Curse** (chain-wrapped, let off the leash)
+  or a **Husk Curse** (carries a blade over and lets go, breaking guards).
 - **Ultimate — Zen'in Massacre Arsenal:** the inventory opens: a
   weapon-swapping execution rush that ends with a silencing finisher.
 - *Passive — Invisible to Curses:* dodge invincibility lasts 25% longer, and
@@ -320,8 +327,11 @@ of Distorted Killing. Personality: a child-philosopher sadist; souls are toys.
 - **Idle Transfiguration** (neutral): short-range **unblockable grab**. Shield
   Mahito at your peril.
 - **Body Distortion Lunge** (side): arm-blade dash.
-- **Transfigured Human** (down): summons a shambling reshaped soul that
-  bursts on contact — walking stage control.
+- **Idle Transfiguration** (down): reshapes a stored soul into whatever amuses
+  him this time — the shambling **Transfigured Human** that bursts on contact,
+  a **Bloated Hulk** that walks over and keeps hitting, two low fast
+  **Crawlers**, or a **Spitter** that hangs back and shoots. Getting the same
+  shape twice is the one thing his technique should never do.
 - **Ultimate — Instant Spirit Body of Distorted Killing:** his true form:
   +30% speed and **every attack unblockable** for 8 s.
 - *Passive — Idle Transfiguration:* the soul marks.
@@ -337,8 +347,10 @@ the fallen best friend who chose curses over "monkeys."
 - His strikes carry **curse drain** (bonus shield damage — spirits gnaw at
   guards).
 - **Cursed Spirit Volley** (neutral): three lightly-homing lesser curses.
-- **Rainbow Dragon** (side): summons his prized heavy spirit, which hunts
-  the stage on its own until the technique is spent.
+- **Cursed Spirit Release** (side): he opens the collection, and what comes
+  out is whatever his hand finds — the **Rainbow Dragon** (his prized heavy
+  hitter), a **Smallpox Deity** (hangs back, poisons), a brace of **Curse
+  Hounds** or a **Cursed Womb** that lurches over and detonates.
 - **Kuchisake-Onna's Scissors** (down): plants a lurking curse that erupts
   when the enemy steps close — trap control.
 - **Ultimate — Maximum: Uzumaki:** every stockpiled curse wrung into one

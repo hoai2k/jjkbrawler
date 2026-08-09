@@ -32,6 +32,7 @@ Usage:
 """
 
 import argparse
+import datetime as dt
 import json
 import os
 import sys
@@ -118,6 +119,40 @@ VARIANT_BANKED = VARIANT_PLACEMENT + VARIANT_REVIEW
 # Kinds that only mean something about an option, never about the pose.
 # Mirrors VARIANT_ONLY_KINDS in src/sprites.js.
 VARIANT_ONLY_KINDS = {"delete"}
+
+
+def now_stamp():
+    return dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
+
+
+def bank_superseded(man, char, key, note, meta):
+    """Keep the drawing an approval just displaced, as an option on the pose.
+
+    Approving is not the end of the comparison, it is a step in it. The question
+    the workbench's **Alternate sprite** view answers is "what was here before",
+    and if the displaced drawing were dropped that view would silently start
+    showing something else — or nothing — the moment you said yes. Banked with
+    the moment it was superseded, so the newest predecessor is the one offered.
+
+    The file is left on disk. It is small, it is the only copy of a drawing that
+    shipped for a while, and reverting is otherwise a trip through git.
+    """
+    live = dict(note.get("live") or {})
+    if not live.get("file"):
+        return
+    entry = man.setdefault("variants", {}).setdefault(char, {}).setdefault(
+        key, {"options": []})
+    entry["options"] = [o for o in entry["options"] if o["file"] != live["file"]]
+    live["label"] = "Superseded"
+    live["supersededAt"] = note.get("at") or now_stamp()
+    entry["options"].append(live)
+    # The drawing now in play belongs in the list too, or approving twice would
+    # leave the pose's current art missing from its own options.
+    if not any(o["file"] == meta.get("file") for o in entry["options"]):
+        current = {f: meta[f] for f in VARIANT_BANKED if f in meta}
+        current["file"] = meta.get("file")
+        current["label"] = "In game"
+        entry["options"].insert(0, current)
 
 
 def clear_fresh(man, char, key):
@@ -356,6 +391,8 @@ def main():
             if verdict == "keep":
                 for field, value in (note.get("live") or {}).items():
                     meta[field] = value
+            else:
+                bank_superseded(man, char, key, note, meta)
             applied.append(
                 f"{char}/{key}: replacement kept out, old art restored"
                 if verdict == "keep"
