@@ -352,14 +352,27 @@ export function layoutCharacterGrid() {
 // across one grid, and the wildcard takes a single full-height column at the
 // far right. Titles ride in a row of their own above their block.
 function placeRosterBlocks(grid, rows) {
+  // The column tracks are written out rather than left to `repeat(--cols)`, so
+  // a narrow SPACER track can sit between one category and the next. A margin
+  // on the cards at a block's edge would have done it too, and would have made
+  // those cards narrower than the rest of the roster — the cards all have to
+  // stay the same size, so the space between categories has to be a track of
+  // its own.
+  const tracks = [];
+  const card = () => tracks.push("minmax(0, 1fr)");
   let col = 1;
   let block = null;
   let seen = 0;
+  // Only BETWEEN blocks: no leading gap at the left edge of the roster.
+  const gap = () => { if (tracks.length) { tracks.push("var(--group-gap)"); col += 1; } };
+
   for (const child of grid.children) {
     if (child.classList.contains("char-group-title")) {
       col += block ? block.width : 0;
+      gap();
       block = { start: col, width: 0, size: Number(child.dataset.size) };
       block.width = Math.ceil(block.size / rows);
+      for (let i = 0; i < block.width; i++) card();
       seen = 0;
       child.style.gridArea = `1 / ${block.start} / 2 / ${block.start + block.width}`;
       continue;
@@ -367,7 +380,9 @@ function placeRosterBlocks(grid, rows) {
     if (child.classList.contains("char-card--random")) {
       // No block of its own and no title: one card, as tall as the rest.
       col += block ? block.width : 0;
+      gap();
       block = null;
+      card();
       child.style.gridArea = `2 / ${col} / ${2 + rows} / ${col + 1}`;
       col += 1;
       continue;
@@ -377,7 +392,7 @@ function placeRosterBlocks(grid, rows) {
     child.style.gridArea = `${row} / ${line} / ${row + 1} / ${line + 1}`;
     seen += 1;
   }
-  grid.style.setProperty("--cols", String(col + (block ? block.width : 0) - 1));
+  grid.style.gridTemplateColumns = tracks.join(" ");
   grid.style.setProperty("--rows", String(rows));
 }
 

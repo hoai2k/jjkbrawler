@@ -385,12 +385,19 @@ html, body {
    cropped when the window is short). */
 .character-grid {
   --card-aspect: 3 / 4;
+  /* The space between one category and the next, on top of the 7px gap either
+     side of it. A category boundary should read as a boundary — at the plain
+     gap the last card of one block and the first of the next sat as close
+     together as two cards within a block. */
+  --group-gap: clamp(5px, 0.6vw, 12px);
   position: relative;
   /* One grid for the whole roster, so rows line up end to end across every
      category instead of each block sizing its own cards. Row 1 holds the
      titles; the card rows below it are equal, hence 1fr. */
   display: grid;
-  grid-template-columns: repeat(var(--cols, 12), minmax(0, 1fr));
+  /* placeRosterBlocks() writes the real track list — one per card column, with
+     a --group-gap track between categories. This is the pre-layout fallback. */
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
   grid-template-rows: auto repeat(var(--rows, 2), 1fr);
   align-content: start;
   gap: 7px;
