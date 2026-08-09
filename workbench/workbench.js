@@ -1088,8 +1088,8 @@ function render() {
 // never the wind-up — draw a target at the far edge of that attack's hitbox, so
 // the sprite's visible reach can be eyeballed against the range the game
 // actually plays. Everything here is COMPUTED from the game's own moves.js at
-// render time (lightMove / heavyMove, and the VISIBLE_ART_REACH the energy
-// wake starts from), so when move data changes, these markers change with it —
+// render time (lightMove / heavyMove, and the VISIBLE_ART_REACH past which
+// the game draws its strike arc), so when move data changes, these markers change with it —
 // there is no copied number to drift.
 
 // Which concrete moves each attack animation stands for. A frame serving
@@ -1186,7 +1186,7 @@ function drawRangeTargets(cx) {
     ctx.beginPath(); ctx.moveTo(capX, GROUND_Y - 190 * z); ctx.lineTo(capX, GROUND_Y); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = "rgba(150, 160, 190, 0.85)";
-    ctx.fillText("art cap — energy wake beyond", capX + 4, GROUND_Y - 190 * z + 10);
+    ctx.fillText("art cap — strike arc beyond", capX + 4, GROUND_Y - 190 * z + 10);
   }
 
   // Several moves share one frame and can land within a few px of each other —

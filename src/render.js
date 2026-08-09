@@ -11,7 +11,7 @@ import { applyCamera, releaseCamera } from "./camera.js";
 import { WORLD, SHIELD_MAX, PARRY_WINDOW } from "./constants.js";
 import { clamp } from "./utils.js";
 import { headHeightTarget } from "./heights.js";
-import { VISIBLE_ART_REACH } from "./moves.js";
+
 
 export function draw(ctx) {
   ctx.clearRect(0, 0, WORLD.w, WORLD.h);
@@ -23,8 +23,11 @@ export function draw(ctx) {
 
   for (const e of state.entities) if (e.draw) e.draw(ctx);
   drawProjectiles(ctx);
-  drawReachWakes(ctx);
   drawFighters(ctx);
+  // Over the fighters, not under: an up-smash's crescent sits exactly where the
+  // raised weapon is drawn, and beneath the sprite it reads as two disconnected
+  // slivers poking out either side of the arm.
+  drawStrikeArcs(ctx);
   if (state.debugHitboxes) drawDebug(ctx);
   drawParticles(ctx);
   drawPopupsWorld(ctx);
@@ -159,60 +162,134 @@ function drawProjectiles(ctx) {
   }
 }
 
-// Several kits hit further than any sprite can visibly reach — the art caps at
-// ~94 px in front of the fighter (VISIBLE_ART_REACH) while Mei Mei's heavy
-// connects past 160. Without this, those hits land out of thin air. An energy
-// wake in the fighter's theme colour fills the gap from where the art ends to
-// where the hitbox does, for exactly the active frames of the swing, so what
-// the player SEES connect is what the engine says connected.
-function drawReachWakes(ctx) {
+// The strike arc: a crescent of energy at the exact range an attack connects,
+// the way 2D action games mark a hit that lands past the drawn weapon. It is a
+// GAMEPLAY indicator, not decoration — the radius comes from the live hitbox
+// (moves.js data flows straight through spawnMelee), so retuning a move's reach
+// moves the arc with it, with nothing copied to drift.
+//
+// Placement follows the attack's direction. A side attack centres the arc at
+// the height of the outstretched arm or weapon — the hitbox's own vertical
+// centre — sweeping ahead of the fighter. An anti-air arcs directly overhead; a
+// spike arcs directly below. The classification reads the box's geometry: a box
+// living wholly above the head is an up attack, wholly at or below the feet a
+// down attack, anything else a side one.
+function drawStrikeArcs(ctx) {
   for (const hb of state.hitboxes) {
     if (hb.age < 0 || hb.age > hb.dur) continue;               // active frames only
     const f = hb.owner;
     if (!f || f.dead || !f.char || f.hitPause > 0) continue;
     const facing = hb.facing ?? f.facing;
-    const cy = f.y + hb.oy + hb.h / 2;
-    const halfH = Math.min(hb.h / 2, 44);
-    // Swell and fade across the active window, so the wake reads as the swing
-    // travelling outward rather than as a rectangle switching on.
-    const k = hb.age / hb.dur;
-    const alpha = 0.72 * Math.sin(Math.min(1, k) * Math.PI);
+    // Sweep across the active window: the crescent travels through the arc and
+    // fades, so it reads as the swing passing through rather than switching on.
+    const k = Math.min(1, hb.age / hb.dur);
+    const alpha = 0.85 * Math.sin(k * Math.PI);
     const color = f.char.theme || "#8fd3ff";
-    // Forward always; backward too for the down-smash quakes, whose box spans
-    // both sides of the fighter (negative ox).
-    wake(ctx, f.x, cy, facing, hb.ox + hb.w, halfH, alpha, color);
-    wake(ctx, f.x, cy, -facing, -hb.ox, halfH, alpha, color);
+
+    // Classify by the BOX'S GEOMETRY, because the anim name is not available
+    // here and the shapes are unambiguous: a side attack's box sits in front of
+    // the fighter, everything that straddles them (centre ~on the fighter) is
+    // vertical or a quake.
+    //
+    //   side   ox well positive — jab, tilts, smashes, aerial swings
+    //   quake  straddling, wider than tall — the down smash, hitting both ways
+    //   up     straddling, centre above the chest — up smash, up tilt, up air
+    //   down   straddling, hanging at the feet — the down-air spike
+    const hcx = hb.ox + hb.w / 2;               // box centre, forward px
+    const cy = hb.oy + hb.h / 2;                // box centre, relative to feet
+    const armY = f.y + cy;
+
+    if (hcx > 25) {
+      // Side attack: arc ahead at the height of the outstretched arm/weapon.
+      strikeArc(ctx, f.x, armY, hb.ox + hb.w, facing === 1 ? 0 : Math.PI, facing, k, alpha, color);
+    } else if (hb.w > hb.h * 1.5) {
+      // Quake: a ground sweep both ways. One arc per side, at the box's own
+      // (low) height, radius to its edge.
+      strikeArc(ctx, f.x, armY, hb.w / 2, 0, facing, k, alpha, color);
+      strikeArc(ctx, f.x, armY, hb.w / 2, Math.PI, facing, k, alpha, color);
+    } else if (cy < -110) {
+      // Up attack: arc directly overhead, radius from the chest pivot to the
+      // box's top edge.
+      strikeArc(ctx, f.x, f.y - 70, -hb.oy - 70, -Math.PI / 2, facing, k, alpha, color);
+    } else {
+      // Down attack (aerial spike): arc directly below, radius to the box's
+      // bottom edge from the same chest pivot.
+      strikeArc(ctx, f.x, f.y - 70, hb.oy + hb.h + 70, Math.PI / 2, facing, k, alpha, color);
+    }
   }
 }
 
-/** One tapered energy blade from the edge of the visible art out to `far`
- *  world-px in front of `x`, in direction `dir`. No-op when the art covers it. */
-function wake(ctx, x, cy, dir, far, halfH, alpha, color) {
-  if (far - VISIBLE_ART_REACH < 18) return;
-  const startX = x + dir * VISIBLE_ART_REACH;
-  const endX = x + dir * far;
+// Geometry of one crescent. Sized relative to its radius so a jab's arc is a
+// short flick and a smash's a wide sweep, with floors that keep a short-range
+// arc from vanishing.
+const ARC_SPAN = 1.25;          // radians of arc the crescent covers
+const ARC_SWEEP = 0.55;         // how far the crescent travels over the window
+const ARC_SEGS = 26;
+
+/** One crescent of energy at `radius` from the pivot, centred on `baseAngle`
+ *  (world angles: 0 = right, -PI/2 = up), sweeping with `k` in 0..1. The shape
+ *  is an annular sliver pinched to points at both tips — the classic slash. */
+function strikeArc(ctx, px, py, radius, baseAngle, dir, k, alpha, color) {
+  if (radius < 40) return;                       // nothing meaningful to mark
+  const thick = clamp(radius * 0.16, 9, 22);
+  // The sweep runs in the direction of the swing: mirrored fighters swing the
+  // other way round, so the travel mirrors with them.
+  const travel = (k - 0.5) * ARC_SWEEP * (dir === 1 ? 1 : -1);
+  const a0 = baseAngle - ARC_SPAN / 2 + travel;
+  const a1 = baseAngle + ARC_SPAN / 2 + travel;
+
+  const path = () => {
+    ctx.beginPath();
+    for (let i = 0; i <= ARC_SEGS; i++) {
+      const t = i / ARC_SEGS;
+      const a = a0 + (a1 - a0) * t;
+      const x = px + Math.cos(a) * radius;
+      const y = py + Math.sin(a) * radius;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    for (let i = ARC_SEGS; i >= 0; i--) {
+      const t = i / ARC_SEGS;
+      const a = a0 + (a1 - a0) * t;
+      // Inner edge pulled toward the pivot by a half-sine, so the crescent is
+      // fat in the middle and sharpens to points at both tips.
+      const r = radius - thick * Math.sin(t * Math.PI);
+      ctx.lineTo(px + Math.cos(a) * r, py + Math.sin(a) * r);
+    }
+    ctx.closePath();
+  };
+
   ctx.save();
+  // A dark backing first, in normal compositing. The energy itself is drawn
+  // additively, which disappears into a bright background — over sky or
+  // sunlit foliage only the tips crossing something dark would survive.
+  ctx.globalAlpha = alpha * 0.55;
+  ctx.fillStyle = "rgba(8, 10, 20, 1)";
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = "rgba(8, 10, 20, 1)";
+  path();
+  ctx.stroke();
+  ctx.fill();
+
   ctx.globalCompositeOperation = "lighter";
   ctx.globalAlpha = alpha;
-  const grad = ctx.createLinearGradient(startX, 0, endX, 0);
+  // Bright at the arc, transparent toward the body: the energy lives at the
+  // range being marked, not along the whole sweep.
+  const grad = ctx.createRadialGradient(px, py, Math.max(1, radius - thick * 2), px, py, radius + 3);
   grad.addColorStop(0, "rgba(255,255,255,0)");
   grad.addColorStop(0.55, color);
   grad.addColorStop(1, "#ffffff");
   ctx.fillStyle = grad;
-  // A tapered blade: full height at the tip, pinched where it leaves the art.
-  ctx.beginPath();
-  ctx.moveTo(startX, cy - halfH * 0.25);
-  ctx.quadraticCurveTo((startX + endX) / 2, cy - halfH, endX, cy - halfH * 0.7);
-  ctx.quadraticCurveTo(endX + dir * 14, cy, endX, cy + halfH * 0.7);
-  ctx.quadraticCurveTo((startX + endX) / 2, cy + halfH, startX, cy + halfH * 0.25);
-  ctx.closePath();
+  path();
   ctx.fill();
-  // A bright crescent at the very tip — the point of contact.
-  ctx.globalAlpha = alpha * 1.3;
+
+  // A hot white line along the outer edge, strongest at the middle third —
+  // the part of the crescent that IS the contact range.
   ctx.strokeStyle = "#ffffff";
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 3;
+  ctx.globalAlpha = alpha;
   ctx.beginPath();
-  ctx.arc(endX - dir * 8, cy, halfH * 0.8, -1.1, 1.1);
+  ctx.arc(px, py, radius, a0 + ARC_SPAN * 0.18, a1 - ARC_SPAN * 0.18);
   ctx.stroke();
   ctx.restore();
 }
