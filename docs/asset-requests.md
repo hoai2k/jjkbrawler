@@ -18,11 +18,11 @@ sprite workbench. Most of round 13 has been settled; **41 poses are still in
 that queue**, 38 of them round 14's. That makes the approval pass the largest
 outstanding item here, and it is reviewing work rather than drawing work.
 
-**Hanami is drawn as the wrong character**, in all 39 of his sprites and on his
+**Hanami is drawn as the wrong character**, in all 36 of his sprites and on his
 hero card — the same fault 9E fixed for Gakuganji, Reggie and Uro. That was
 found while 17A was being written, and 17A had been pointing the redraw at the
 very art that is wrong. His block and his canonical reference have both been
-replaced; read [17A](#17a-a-full-hanami-set--39-sprites) before drawing anything
+replaced; read [17A](#17a-a-full-hanami-set--36-sprites) before drawing anything
 of his.
 
 The roster is complete and **every fighter now has one sprite per action** —
@@ -48,6 +48,12 @@ a six-pose set per creature — for the five summons already in the game, and fo
 twelve new creatures that are live in play today wearing borrowed art. It
 touches no existing file either, so it can be drawn alongside any of the
 others.
+
+Read **[pose-brief.md](pose-brief.md)** before drawing a fighter. It is the
+standing brief — what every pose has to be, the four criteria the engine
+measures, and the faults that have each cost the roster a re-request — and it is
+cumulative, so it is the reason a new set should arrive better than the last one.
+This file asks for particular art; that file says what the art has to be.
 
 Read **[the canonical reference image](#the-canonical-reference-image--one-per-fighter)**
 below before drawing anything: it names the one image each fighter is matched
@@ -279,7 +285,7 @@ horns, one arm and shoulder bound in white cloth, black hakama, bare clawed
 feet. They are not the same character, so `hanami_idle.png` is exactly what must
 *not* be matched, the way the other three were before 9E. His block above was
 rewritten from the render at the same time; the old wording is dead.
-[17A](#17a-a-full-hanami-set--39-sprites) is the redraw. When its new idle is
+[17A](#17a-a-full-hanami-set--36-sprites) is the redraw. When its new idle is
 picked, re-run `tools/build_canon_reference.py` and `hanami_idle.png` becomes
 the authority again like everyone else's.
 
@@ -620,18 +626,18 @@ ult_a  ult_b
 hurt  dizzy  prone  victory
 ```
 
-The pose lines are the shared ones — the run cycle from round 12B, the crouch
-and crouch-attack lines in [13A](asset-requests-history.md#13a-crouches-that-are-standing--22-sprites)
-and [13B](asset-requests-history.md#13b-crouch_attack-frames-that-never-get-low--10-sprites), the light
-pair in [13C](asset-requests-history.md#13c-light-attack-pairs-that-do-not-reach--7-sprites) and the
-heavy pair in [14A](#14a-heavy-strike-frames-that-do-not-extend--16-sprites).
-**Read those four before starting**: every one of them exists because a
-delivered set got that pose wrong, and this is the chance to get 144 frames
-right the first time rather than re-request them as round 17.
+**The pose lines are in [pose-brief.md](pose-brief.md), and that file is what
+these four should be drawn from.** It is the standing brief for a whole set —
+every pose line, the `_a`/`_b` flip test, the framing rule, and the list of
+faults that have each cost the roster a re-request. It exists because the pose
+lines used to live scattered across the rounds that happened to ask for them,
+which meant a new character was drawn from whatever the last round remembered.
+Reading it first is the difference between getting 144 frames right once and
+re-requesting them as round 18.
 
-Two of those matter more than the rest for these four, because reach is now
-measured off the art (`src/silhouette.js`) and a pose that does not extend is a
-fighter with short range:
+Four of its rules are worth repeating here, because they are measurable and
+because reach is now taken off the art (`src/silhouette.js`) — a pose that does
+not extend is a fighter with short range in play:
 
 - `attack_heavy_b` must put the weapon or fist **further forward than anything
   in that fighter's own `idle_a` by at least a third of their standing height**.
@@ -648,13 +654,9 @@ fighter with short range:
   [14B](#14b-a-consistent-idle-stance--20-sprites), open for twenty existing
   fighters, and these four are the chance not to join it.
 
-**Framing counts double on these four.** The [delivery
-spec](#delivery-spec) says nothing may touch the canvas edge, and an extended
-weapon is exactly what breaks that rule — round 13 delivered a Yuta
-`crouch_attack_b` whose blade ran off the right of the plate, which no amount of
-placement recovers and which is re-requested in
-[17C](#17c-caught-while-placing-round-13--2-sprites). A pose that extends needs
-the margin drawn for it, not the figure enlarged until the reach falls off.
+**Framing counts double on these four**, for the same reason: a pose that
+extends needs the margin drawn for it, rather than the figure enlarged until the
+reach falls off the plate. See [the reach margin](pose-brief.md#1-the-rules-that-hold-for-every-pose).
 
 ### What each fighter is holding, and what their poses are of
 
@@ -842,6 +844,11 @@ single still, so a creature that changes size or floats up between `idle_a` and
 `move_a` will visibly jitter. Draw the six as one sheet-in-spirit even though
 they are delivered as six files.
 
+The general rules in [pose-brief.md](pose-brief.md) hold for creatures too —
+one zoom, margin on all four sides, no painted-in motion, and `attack` extends
+past the creature's own `idle_a`. Only the pose *lines* differ, and those are in
+the table above.
+
 **Facing:** as with everything else, draw **facing RIGHT**. Three of the
 delivered summons are flagged `faceRight` in `config_summons.js` and the rest
 are mirrored on draw; keep each creature's six poses consistent with each
@@ -971,13 +978,13 @@ Round 17 is the round to add to: 14, 15 and 16 are all being worked on, so
 anything found from here lands here rather than growing a round somebody is
 already drawing against.
 
-- **17A** — a full Hanami set (39 sprites)
+- **17A** — a full Hanami set (36 sprites)
 - **17B** — Mahoraga's three light/crouch poses, redrawn (3 sprites)
 - **17C** — two caught while placing round 13 (2 sprites)
 - **17D** — a simplified card for every fighter (27 images, **new art, nothing replaced**)
 - **17E** — Hanami's hero card, redrawn to canon (1 image)
 
-**44 sprites and 28 card images.** None of it is blocking — every pose named
+**41 sprites and 28 card images.** None of it is blocking — every pose named
 here has art in the game today, each is a redraw rather than a gap, and 17D
 lands in a directory the game does not read yet.
 
@@ -991,7 +998,7 @@ including his tile in 17D — because the design authority for him changed.
 with no variant mechanism and no approval step, so it changes what a player sees
 the moment it lands.
 
-## 17A. A full Hanami set — 39 sprites
+## 17A. A full Hanami set — 36 sprites
 
 Hanami's set is the oldest on the roster: it came in at round 6 as a redesign,
 was re-pointed to the semantic pose table at round 11B, and has been patched a
@@ -1022,39 +1029,37 @@ from the render and the old wording is dead.
 **Do not match `hanami_idle.png`.** As this section was first written it named
 that file as the design authority, which would have produced a fourth tree — the
 exact way 13's Mahoraga delivery lost the karma wheel, one step earlier in the
-pipeline. His canon is now
-[`assets/reference/canon/hanami_anime.png`](../assets/reference/canon/hanami_anime.png)
-and it is marked ⚠ in
+pipeline. His canon is
+[`assets/reference/canon/hanami_anime.png`](../assets/reference/canon/hanami_anime.png),
+marked ⚠ in
 [The canonical reference image](#the-canonical-reference-image--one-per-fighter).
 The idle is still what his **size** is solved against — 220 cm, `scale: 0.58`,
-second-tallest on the roster — so expect a workbench pass on the whole set when
-it lands (see [character-heights.md](character-heights.md)). Match its scale,
-not its design; check against `roster_idle.png`, not against the old Hanami
-alone.
+second-tallest on the roster. Match its scale, not its design; check against
+`roster_idle.png`, not against the old Hanami alone.
 
 ### What to deliver
 
-**The full semantic pose table** for `hanami` — the same 39 keys every other
-fighter carries (any fighter delivered at round 11B or later carries exactly
-this list; `assets/sprites/toji/` is the model and matches Hanami's list key for
-key).
+Deliver **the full semantic pose table** for `hanami` — the same 36 keys every
+other fighter carries (`SEMANTIC_ANIMS` in `src/characters.js`, and any fighter
+delivered at round 11B or later is the model). The design is the rewritten
+character block above plus `assets/reference/canon/hanami_anime.png`.
 
-**36 of the 39 are flagged `character` in the manifest**, so
-`python3 tools/list_replacements.py` carries the worklist without this document.
-The three that are not — `attack_air`, `run_a` and `run_b` — are standby
-fallbacks the whole roster still carries: they only play if the pair or the
-four-frame cycle that superseded them goes missing, so nothing draws them today
-and `check_pointing.mjs` would rightly call a flag on them stale. They are in
-the ask anyway, because leaving three tree-bodied frames in the directory behind
-a fallback path is exactly how a retired design comes back.
+**Draw it from [pose-brief.md](pose-brief.md)**, which is the standing brief for
+a whole set: the pose lines, the measurable criteria for the idle, the crouches
+and the two strike frames, and the faults that keep coming back. Redrawing whole
+rather than piecemeal is most of the reason to do it — every round-14 brief
+applies to this set at once, and his idle is what his size is solved against, so
+expect a workbench pass over the whole set when it lands
+(see [character-heights.md](character-heights.md)).
 
-The two round-14 briefs apply to this set as it is drawn, and doing it in one
-pass is most of the reason to redraw whole rather than piecemeal:
-
-- **14A** — the heavy strike frames have to extend. Nothing reaches forward in
-  the current pair.
-- **14B** — the idle has to be a consistent stance, because it is the pose the
-  hurtbox width is measured from.
+All 36 are flagged `character` in the manifest, so
+`python3 tools/list_replacements.py` carries this worklist without the document.
+Three keys sit outside it: `attack_air`, `run_a` and `run_b` are standby
+fallbacks the whole roster still carries, superseded by the pairs and the
+four-frame cycle, so nothing draws them and a flag on them would read as stale.
+**Redraw them anyway if the set is being done whole** — leaving three
+tree-bodied frames in the directory behind a fallback path is exactly how a
+retired design comes back.
 
 **Grey key, not magenta.** His existing set is keyed off magenta, which was
 right for a brown tree. The new design is bone-cream and pale tan against black,
@@ -1204,7 +1209,7 @@ detail, `[STYLE SUFFIX]`.
 
 Character blocks are in [Character blocks](#character-blocks) above and are used
 verbatim, exactly as for sprites — **including Hanami's, which was rewritten for
-[17A](#17a-a-full-hanami-set--39-sprites)**. His tile is the pale humanoid curse,
+[17A](#17a-a-full-hanami-set--36-sprites)**. His tile is the pale humanoid curse,
 not the tree.
 
 `[THEME COLOUR]` is the fighter's `theme` in `src/characters.js` — the colour the
@@ -1290,7 +1295,7 @@ manifest entry — so landing these is a move and nothing else.
 `assets/cards/hanami_card.jpg` is the tree. It is a good painting — a
 bark-and-vine giant lit through a forest canopy, a glowing lotus in one hand —
 and it is the same wrong design as every one of his sprites.
-[17A](#17a-a-full-hanami-set--39-sprites) replaces the sprites and
+[17A](#17a-a-full-hanami-set--36-sprites) replaces the sprites and
 [17D](#17d-a-simplified-card-for-every-fighter--27-images) draws his tile from
 canon; without this the card is the last place in the game still showing the old
 character, and it is the **largest** place — the hero panel on the select screen
