@@ -58,6 +58,7 @@ for (let i = 0; i < SECONDS * 10; i++) {
     return {
       t: state.matchTime,
       hitboxes: state.hitboxes.length,
+      projectiles: state.projectiles.length,
       fighters: state.fighters.map((f) => ({
         charKey: f.charKey, dmg: f.damage, grounded: f.grounded,
         hitstun: f.hitstun, vy: f.vy, box: hurtbox(f),
@@ -82,11 +83,18 @@ check("no page errors", errors.length === 0, errors.slice(0, 3).join(" | "));
 check("match ran", samples.at(-1).t > SECONDS * 0.5,
   `matchTime ${samples.at(-1)?.t?.toFixed(1)}s`);
 
-const dealt = Math.max(...samples.at(-1).fighters.map((f) => f.dmg));
-check("hits are landing", dealt > 20, `top damage ${dealt.toFixed(1)}%`);
+// Across every sample, not the last one: percent resets to zero on a KO, so a
+// match that went well enough to take a stock would read as a match where
+// nothing ever connected.
+const dealt = Math.max(...samples.flatMap((s) => s.fighters.map((f) => f.dmg)));
+check("hits are landing", dealt > 20, `peak damage ${dealt.toFixed(1)}%`);
 
-const swung = samples.filter((s) => s.hitboxes > 0).length;
-check("attacks are being thrown", swung > 10, `${swung} samples with a live hitbox`);
+// Melee and projectiles both count. A zoner drawn as the CPU's opponent will
+// spend most of a match throwing things, and that is a legitimate match rather
+// than a broken one.
+const swung = samples.filter((s) => s.hitboxes > 0 || s.projectiles > 0).length;
+check("attacks are being thrown", swung > 10,
+  `${swung} samples with a live hitbox or projectile`);
 
 // Each fighter's hurtbox has to be the one their own art measures out to.
 // Comparing the two fighters to each other would be the obvious check and is

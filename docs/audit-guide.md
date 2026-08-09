@@ -61,9 +61,20 @@ docs/               mechanics, character research, asset pipeline, asset request
 
       node tools/check_imports.mjs      # module graph, no browser needed
       node tools/check_music.mjs        # stage/track wiring, no browser needed
+      node tools/audit_stage_reach.mjs  # platform layouts, no browser needed
+      node tools/audit_hitboxes.mjs     # reach/hurtbox/angle numbers, no browser
       node tools/smoke_stages.mjs       # every stage's Active Boards gimmick
+      node tools/smoke_combat.mjs       # a real CPU match: hits, boxes, launches
       node tools/smoke_workbench.mjs    # the sprite workbench's edit tracking
       python3 tools/test_intake_placement.py   # touch-up re-import, no browser
+
+  `audit_hitboxes.mjs` is the one to run after touching sprites, `moves.js`,
+  `combat.js` or `silhouette.js`. Hitboxes and hurtboxes are now derived from
+  the artwork (docs/hitbox-audit.md), so a sprite delivery can move a matchup —
+  it prints every fighter's reach, body and up-smash coverage and fails if the
+  invariants that make that safe have broken. It also names the frames still
+  waiting on the workbench's placement pass, which are deliberately excluded
+  from the measurements until somebody sizes them.
 
 ---
 
