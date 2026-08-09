@@ -4,7 +4,7 @@ Everything in this file is **outstanding**. Delivered rounds are recorded in
 [asset-requests-history.md](asset-requests-history.md) — including the round
 numbers, so a commit or code comment citing "round 5 art" still resolves.
 
-**Current status: rounds 1–12 delivered. Rounds 13, 14 and 15 are open.**
+**Current status: rounds 1–12 delivered. Rounds 13, 14, 15 and 16 are open.**
 
 The roster is complete and **every fighter now has one sprite per action** —
 round 11 finished the conversion that round 5 started, so the 4×5 sprite sheet
@@ -30,9 +30,17 @@ no round has asked for yet came back wrong. Four of them are the untouched half
 of a crouch pair 12A has just fixed, so those four fighters visibly pulse
 between a squat and a standing guard while the player holds down.
 
+Round 16 is the first round that is not about fighters at all: **summons now
+animate and summon specials now roll a creature out of a pool**, so it asks for
+a six-pose set per creature — for the five summons already in the game, and for
+twelve new creatures that are live in play today wearing borrowed art. It
+touches no existing file either, so it can be drawn alongside any of the
+others.
+
 Read **[the canonical reference image](#the-canonical-reference-image--one-per-fighter)**
 below before drawing anything: it names the one image each fighter is matched
-against, and it applies to every request in this file.
+against, and it applies to every request in this file. (Summons have no
+canonical reference: 16A matches the existing still, and 16B is new design.)
 
 ---
 
@@ -999,3 +1007,174 @@ Per fighter, in this order:
 No other code change is needed at any point. The loader already knows their
 effect, summon and domain-background paths and starts fetching them the moment
 the key moves (`STAGED_EFFECT_KEYS` / `STAGED_SUMMON_KEYS` in `src/assets.js`).
+
+---
+
+# Round 16 — open
+
+**Summons became creatures.** Two engine changes opened this round, and both
+of them are asking for art that did not exist as a concept before:
+
+1. **Summons animate.** A summon used to be *one still image* held for its
+   entire lifetime — which is why the renderer swayed and leaned them, because
+   a single drawing pinned to the stage reads as a decal. They now play a small
+   pose set (`src/config_summons.js`), the same way a fighter plays theirs.
+2. **Summon specials roll a creature.** Megumi's side special was the Divine
+   Dogs, every cast, forever; Mahito's was one transfigured human. Each summon
+   special now names a **pool** and draws one entry per cast, never the same
+   one twice running. Twelve creatures were written into those pools and none
+   of them have been drawn.
+
+- **16A** — the six-pose animation set for the five summons already delivered
+  (30 sprites)
+- **16B** — twelve new creatures, six poses each (72 sprites)
+
+**102 sprites in total, and none of it is blocking.** Every pose falls back to
+that creature's still, every creature without a still falls back to a borrowed
+`effect:*` stand-in named in its kit config, and failing that to a procedural
+glow. So the game plays today with placeholders, one delivered pose improves
+one state, and nothing has to arrive as a complete set to be worth arriving.
+
+**Deliver per creature, not per pose row.** Six poses of one creature is a
+finished creature; sixty scattered poses is nothing playable.
+
+---
+
+## The pose set — the same six for every creature
+
+| Pose key | What it is |
+|---|---|
+| `idle_a` | Standing, weight settled. The creature's portrait pose — this is also what everything else falls back to. |
+| `idle_b` | The same stance a breath later: head/body raised or lowered, one limb shifted. Alternates with `idle_a` at 2.4 fps, so the difference should be small and organic, not a second pose. |
+| `move_a` | Mid-stride / mid-wingbeat, one extreme of the cycle. |
+| `move_b` | The other extreme. `move_a`/`move_b` alternate at 8 fps and are what plays whenever the creature is travelling. |
+| `attack` | The strike itself, at full extension — the bite, the lash, the spit, the detonation lunge. Held for ~0.25 s, so it must read at a glance. |
+| `hurt` | Flinch: recoiling **away from the viewer's right**, body compressed, head turned in. Played when the creature is hit — see "why `hurt` matters" below. |
+
+**Every pose of a creature must be the same subject at the same scale, drawn
+on the same canvas with the feet (or the hover centre) at the same height.**
+The engine anchors these by the bottom of the image, exactly as it does the
+single still, so a creature that changes size or floats up between `idle_a` and
+`move_a` will visibly jitter. Draw the six as one sheet-in-spirit even though
+they are delivered as six files.
+
+**Facing:** as with everything else, draw **facing RIGHT**. Three of the
+delivered summons are flagged `faceRight` in `config_summons.js` and the rest
+are mirrored on draw; keep each creature's six poses consistent with each
+other and the flag sorts out the rest.
+
+### Why `hurt` matters now
+
+Summons take damage and can be destroyed, and as of this round a hit also
+**staggers** one: it is shoved along the line of the blow, thrown off its own
+behaviour for a beat, and popped off the floor if the hit was heavy enough.
+Until `hurt` is drawn the engine sells that with a lean and a white flash on
+whatever pose was showing, which works but reads as the same creature sliding.
+A drawn flinch is the difference between "that summon was hit" and "that summon
+is being beaten".
+
+---
+
+## 16A. Animation frames for the five delivered summons — 30 sprites
+
+These five already have their single still in `assets/sprites/summons/`, and
+that still stays exactly where it is — it is the fallback and the portrait.
+**Open it before drawing and match it**: same creature, same colours, same
+proportions, same canvas size. This request is the other five poses, plus an
+`idle_a` that supersedes the still as the resting pose.
+
+| Creature | Existing still | Character | Notes for the set |
+|---|---|---|---|
+| Divine Dog (White) | `divine_dog_white.png` | Megumi | Pale wolf-shikigami. `move_*` is a four-legged run; `attack` is the lunging bite the kit is named for. |
+| Divine Dog (Black) | `divine_dog_black.png` | Megumi | Its twin in dark fur — draw the pair as one animal in two colourways, same poses, so they read as a matched set on screen (they are summoned together). |
+| Rainbow Dragon | `rainbow_dragon.png` | Geto | Serpentine, iridescent. `move_*` is undulation, not legs; `attack` is the head-strike. |
+| Transfigured Human | `transfigured_human.png` | Mahito | Shambling patchwork body. `move_*` is a lurch; `attack` is the moment before it bursts — arms out, body swelling. |
+| Inventory Curse | `inventory_curse.png` | Toji | Hovering pact-bound curse. `move_*` is a hover cycle (it never touches the ground); `attack` is the gullet open, cursed tool emerging. |
+
+Deliver to `assets/intake/summons/<file>_<pose>.png`, e.g.
+
+```
+assets/intake/summons/divine_dog_white_idle_a.png
+assets/intake/summons/divine_dog_white_move_b.png
+```
+
+---
+
+## 16B. Twelve new creatures — 72 sprites
+
+Each of these is **live in the game right now**, rolling out of its character's
+summon pool and fighting with real stats — wearing a borrowed effect sprite or
+a coloured glow. The stats in `config_summons.js` are the brief: a creature
+described as slow and enormous is slow and enormous in play, so draw the thing
+the numbers describe.
+
+The single still is optional for these: `idle_a` **is** the still, and the
+loader falls back to it. Draw the six poses and nothing else.
+
+### Megumi — the other shikigami (`SHIKIGAMI_POOL`)
+
+Shadow-summoned beasts. All four share Megumi's palette: near-black bodies with
+cool blue-violet `#7c8cff` cursed-energy edge light, as if cut out of shadow.
+
+| Creature | File stem | What to draw |
+|---|---|---|
+| Great Serpent | `great_serpent` | An enormous shadow snake, body low and very long (it is drawn wide, not tall — 158 px of reach against 78 px of height). Head raised, jaw open. `attack` is the full-length strike. |
+| Toad | `toad` | A squat toad-shikigami the size of a car, sitting rather than walking — it holds ground behind Megumi and lashes with its tongue. `move_*` is a settle/shuffle, not a hop. `attack` is the tongue out at full stretch. |
+| Max Elephant | `max_elephant` | Vast four-legged shadow elephant, tallest thing in the pool (190 px) and unbothered by being hit. `attack` is the trunk sweep with a burst of water. `hurt` should barely rock — it is drawn heavy on purpose. |
+| Rabbit Escape | `rabbit_escape` | ONE small shadow rabbit, drawn alone — the engine spawns three of them. Fast, light, comic, and completely expendable; `attack` is the flying leap that ends it. |
+
+### Mahito — the other transfigurations (`TRANSFIGURED_POOL`)
+
+Reshaped souls: stitched seams, mismatched limbs, patchwork blue-grey flesh
+with violet `#b56cff` at the seams. They should look *made*, and made
+carelessly.
+
+| Creature | File stem | What to draw |
+|---|---|---|
+| Bloated Hulk | `transfigured_hulk` | A transfigured human reshaped for mass — huge torso, small head, arms that reach the floor. It walks over and keeps hitting; `attack` is a two-handed downward slam. |
+| Crawler | `transfigured_crawler` | Reshaped for speed and drawn LOW to the ground: a body running on too many limbs, face turned up. Draw one; the engine spawns two. |
+| Spitter | `transfigured_spitter` | Reshaped for range — a hovering torso with a distended mouth, trailing loose flesh. It never closes distance. `attack` is the mouth open mid-spit. |
+
+### Geto — the rest of the collection (`CURSE_POOL`)
+
+Stored cursed spirits. Unlike Mahito's, these are *whole* creatures with their
+own designs — the variety across the four is the point. Violet `#7d58d8` energy.
+
+| Creature | File stem | What to draw |
+|---|---|---|
+| Smallpox Deity | `smallpox_deity` | The canon curse: a squat pale figure covered in pox marks, arms folded, floating upright. Sickly green-white `#9fd07a` in the plague it coughs. Hovers; never lands. |
+| Curse Hound | `curse_hound` | A cheap disposable curse in the shape of a lean four-legged hound, all mouth. Draw one; the engine spawns two. |
+| Cursed Womb | `cursed_womb` | A bloated sack-bodied curse that lurches across the stage and detonates. Heavy, wet, unstable — `attack` is the moment it splits open. |
+
+### Toji — the rest of the inventory (`INVENTORY_POOL`)
+
+Curses he *keeps* rather than makes. Muted, tool-like, no cursed-energy glow of
+his own — pale grey-green `#9fb8a8`.
+
+| Creature | File stem | What to draw |
+|---|---|---|
+| Coil Curse | `coil_curse` | The one he lets off the leash: a coiled, chain-wrapped curse that uncoils to run. `attack` is the lunge, chain snapping taut. |
+| Husk Curse | `husk_curse` | A hollow humanoid husk with a cursed blade still buried in its chest. It carries the weapon over and lets go — `attack` is the husk splitting and the blade coming free. |
+
+---
+
+## Integrating a round-16 delivery
+
+Two flags in `src/config_summons.js`, and nothing else:
+
+```js
+divineDogWhite: { file: "divine_dog_white", delivered: true, poses: true, faceRight: true },
+greatSerpent:   { file: "great_serpent", poses: true },
+```
+
+- `delivered` — the single still exists and should be fetched.
+- `poses` — the six pose files exist and should be fetched.
+
+Both default **off**, and both are off for everything undelivered, so the
+loader never asks for a file nobody has drawn. Turn `poses` on for a creature
+once *any* of its poses land: the fetch of each individual pose is optional, so
+a half-delivered set is fine — a missing pose falls back to the still.
+
+The files go through the normal intake (`assets/intake/summons/` →
+`assets/sprites/summons/`); summon art is not in `manifest.json`, so there is
+nothing else to register.
