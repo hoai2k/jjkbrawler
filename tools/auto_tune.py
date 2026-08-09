@@ -106,6 +106,25 @@ MIN_CHAR_FOOT_SAMPLES = 8
 # component, say) and it should be left alone and looked at.
 MAX_FOOT_SHIFT = 0.20
 
+# States whose ground contact is NOT the sole of a standing foot, so the foot
+# fraction does not describe them.
+#
+# The fraction exists because a foot drawn in perspective hides its sole, and
+# that is true of any pose the character stands in — measured across the hand
+# tuning it holds at 0.946 whether the pose is drawn taller than wide (n=470)
+# or wider than tall (n=39, same median), so how sprawling the drawing is says
+# nothing. What breaks it is the character not being on their feet: `prone`
+# lies flat and touches the floor along its whole side, so its contact really
+# is the lowest pixel and lifting it 5% hovers the body above the ground.
+#
+# This is a list rather than a measurement because it is a fact about what the
+# pose MEANS, and there is nothing in the alpha channel that knows it. The
+# magnitude guard above catches the extreme cases either way — it is what
+# stopped momo/prone, whose art is flat enough that 0.946 wanted to move the
+# contact 37% of its height — but a pose that is quietly 5% wrong would sail
+# through, so the states are named.
+NO_STANDING_FOOT = {"prone"}
+
 
 def now_stamp():
     return datetime.datetime.now(datetime.timezone.utc).astimezone().isoformat(timespec="seconds")
@@ -227,6 +246,8 @@ def tune_frame(char, key, meta, states, foot, sizes, idle_bodyh, want):
     out = {}
 
     # ---- foot line
+    if states and all(s in NO_STANDING_FOOT for s in states):
+        want = [r for r in want if r != "foot"]
     if "foot" in want and "bodyBottom" not in edited and meta.get("oy") is not None:
         frac = foot["per_char"].get(char, foot["global"])
         if frac and m["body_bottom"]:

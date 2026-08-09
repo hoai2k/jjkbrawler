@@ -86,8 +86,13 @@ DISPOSITIONS = {
     "new": "registered as the pose itself",
     "replace": "replaces the condemned art outright",
     "promote": "added as a variant AND selected",
+    "alternate": "added as the requested alternate, selection unchanged",
     "offer": "added as a variant, selection unchanged",
 }
+
+# The replacement kind whose delivery becomes a variant. Mirrors ALTERNATE_KIND
+# in src/sprites.js.
+ALTERNATE_KIND = "alternate"
 
 def disposition(man, char, pose):
     """What should happen to an incoming plate for this pose, and why.
@@ -109,6 +114,14 @@ def disposition(man, char, pose):
     kind = meta.get("needsReplacement")
     if kind is True or kind == "replace":
         kind = "quality"          # legacy values, both meaning "redraw it"
+    # "Request alternate" is the one replacement kind that does not condemn the
+    # drawing. It went out as a request like the others, so art arrives against
+    # it — but the ask was for a SECOND opinion, so the delivery lands beside
+    # the original with the selection untouched, and choosing between them is
+    # done by eye in the workbench. Selecting it here would be answering the
+    # question the request was raised to ask.
+    if kind == ALTERNATE_KIND:
+        return "alternate", "an alternate was requested for this pose"
     if kind:
         return "replace", f"old art flagged '{kind}'"
 
@@ -173,7 +186,7 @@ def survey(man):
     return rows
 
 
-def import_one(man, char, pose, label, dry_run, log):
+def import_one(man, char, pose, label, dry_run, log, fresh=False):
     src = os.path.join(intake.PROCESSED, char, f"{pose}.png")
     if not os.path.exists(src):
         log.append(f"SKIP {char}/{pose}: not in _processed — run tools/intake.py first")
@@ -197,6 +210,12 @@ def import_one(man, char, pose, label, dry_run, log):
     meta["file"] = rel
 
     option = {"file": rel, "label": label}
+    if fresh:
+        # Nobody has looked at this drawing, and nothing on screen changed when
+        # it arrived — that is what asking for an alternate means. The workbench
+        # draws a dot on the chevron and on the option from this, because
+        # otherwise the choice waiting here is completely invisible.
+        option["fresh"] = True
     for field in build_variants.PLACEMENT:
         if field in meta:
             option[field] = meta[field]
@@ -267,12 +286,38 @@ def run_plan(man, rows, label, dry_run, log):
         if how in ("new", "replace"):
             approvals.setdefault(char, []).append(pose)
             continue
-        if not import_one(man, char, pose, label, dry_run, log):
+        if not import_one(man, char, pose, label, dry_run, log, fresh=how == "alternate"):
             continue
         changed += 1
         if how == "promote" and not dry_run:
             select(man, char, pose, f"{char}/{ALT_DIR}/{pose}.png", log, at)
+        if how == "alternate" and not dry_run:
+            answer_alternate(man, char, pose, log, at)
     return approvals, changed
+
+
+def answer_alternate(man, char, pose, log, at):
+    """Close the loop on a requested alternate: clear the ask, raise the flag.
+
+    The request is answered — the drawing arrived — so `needsReplacement` comes
+    off, the same way intake_import clears it for a redraw. What replaces it is
+    a marker putting the pose on the workbench's **All Recently Updated Poses**
+    list, because otherwise this delivery is the one kind that leaves no trace:
+    the art on screen is unchanged, the numbers are unchanged, and the only new
+    thing is an option behind a chevron nobody has a reason to open.
+
+    `lost` is empty on purpose. Nothing was overwritten and no tuning was rolled
+    back, so this is not a re-tune — it is a decision waiting to be made, and it
+    sorts below the poses that actually lost work.
+    """
+    meta = man["characters"].get(char, {}).get(pose)
+    if not meta:
+        return
+    meta.pop("needsReplacement", None)
+    meta.pop("replacementNote", None)
+    meta["replaced"] = {"at": at, "kept": "none", "how": "alternate", "lost": []}
+    log.append(f"{char}/{pose}: alternate delivered — request cleared, "
+               f"on the updated list to be chosen between")
 
 
 def main():

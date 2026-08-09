@@ -244,6 +244,43 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 }
 .pose-list .pose-variant:hover { color: #06121a; background: var(--accent); }
 
+/* A drawing a delivery just added that nobody has opened. An alternate changes
+   nothing on screen by design, so without this the chevron looks exactly as it
+   did and the choice waiting behind it is invisible. Sits ABOVE the chevron
+   rather than replacing it, so the control still reads as a control. */
+.pose-list .pose-variant.has-fresh { background: rgba(255, 185, 95, 0.16); }
+.pose-list .pose-variant.has-fresh::before {
+  content: "●";
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--warn);
+  pointer-events: none;
+}
+.pose-list .pose-variant.has-fresh:hover::before { color: #06121a; }
+.variant-menu button.fresh .variant-label::before { content: "● "; color: var(--warn); }
+
+/* Free text beside a flag: what is actually wrong with this drawing. Only
+   shown once a flag is set, since it explains one. */
+.note-input {
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text);
+  background: #0d1421;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  resize: vertical;
+  min-height: 2.6em;
+}
+.note-input:focus { outline: none; border-color: var(--accent); }
+.note-input::placeholder { color: #5a6a80; }
+
 .variant-menu {
   position: fixed;
   z-index: 60;

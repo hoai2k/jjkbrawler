@@ -40,8 +40,15 @@ PROCESSED = os.path.join(INTAKE, "_processed")
 SPRITES = os.path.join(ROOT, "assets", "sprites")
 
 SHEET_CELL = re.compile(r"^r\d+c\d+$")
-# Body height below which the art is softer than what it replaces. The sheet
+# Body size below which the art is softer than what it replaces. The sheet
 # frames it competes with sit at 256-296px; round-5 art came in at 674-700.
+#
+# Measured on the figure's LONGEST axis, not its height. Resolution is a
+# property of how big the drawing is, and a pose drawn lying down carries it
+# across the frame instead of up it — `prone` arrives about 939x208, which is a
+# perfectly sharp figure and was being flagged as low-res on every fighter in
+# the round that introduced the pose. For anything standing the long axis is
+# the height, so this changes nothing about the case it was written for.
 MIN_BODY_H = 520
 # Below this, `detect_facing` is not saying anything useful — it measured ~83%
 # on known-good data and near zero here — so the call goes to a human instead.
@@ -254,7 +261,7 @@ def measure(frame, box, src_shape):
     return {
         "w": w, "h": h,
         "bodyH": h,
-        "lowRes": h < MIN_BODY_H,
+        "lowRes": max(w, h) < MIN_BODY_H,
         "semiTrans": int(((a > 10) & (a < 245)).sum()),
         "holes": int((counts >= 60).sum()),
         "greenFringe": fringe,

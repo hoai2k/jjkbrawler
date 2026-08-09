@@ -79,7 +79,6 @@
         <div class="group" id="updatedGroup" hidden>
           <label data-help="Intake stamps a pose when it writes new art over one that already had work on it, recording when the art landed and which hand-tuned numbers were rolled back. That stamp is what &lt;b&gt;All Recently Updated Poses&lt;/b&gt; lists.&lt;br&gt;&lt;br&gt;It clears itself: adjusting the pose takes it off the list, because being retuned is the whole point of being on it. &lt;b&gt;Mark reviewed&lt;/b&gt; is for the other outcome — the new art needed nothing — and travels with the export like any other change.">Updated art <span class="sub" id="updatedVal"></span></label>
           <div id="updatedInfo" class="note"></div>
-          <button id="updatedClear" class="ghost">Mark reviewed — take it off the updated list</button>
         </div>
 
         <!-- Shown on a pose tools/auto_tune.py placed. It is NOT an edit: the
@@ -132,12 +131,22 @@
           </div>
         </div>
 
+        <!-- Directly under the sliders on purpose. Up beside the "Updated art"
+             explanation it read as a remark about the round; here it sits at
+             the end of the controls that act on the selected pose, which is
+             what it does too. -->
+        <div class="group" id="updatedClearGroup" hidden>
+          <button id="updatedClear" class="ghost">Mark reviewed — take it off the updated list</button>
+        </div>
+
         <div class="group">
           <label data-help="Marks this pose&apos;s &lt;em&gt;drawing&lt;/em&gt; as wrong — wrong enough that nothing can be edited into the right picture and it has to be drawn again. This is the ask that goes out as an asset request.&lt;br&gt;&lt;br&gt;The dropdown says &lt;em&gt;why&lt;/em&gt;, which is what the request is written from: &lt;b&gt;Quality&lt;/b&gt; is a rough, malformed or off-model drawing, &lt;b&gt;Pose&lt;/b&gt; is art that reads poorly or is not the action it stands for, &lt;b&gt;Character&lt;/b&gt; is a likeness or costume that is off, &lt;b&gt;Delete variant&lt;/b&gt; — offered only where a pose has more than one drawing — throws this one away rather than redrawing it.&lt;br&gt;&lt;br&gt;If the drawing is fine and only the FILE is wrong — a bad key, a bad crop — that is &lt;b&gt;Improvement&lt;/b&gt; below, and nobody has to redraw anything.&lt;br&gt;&lt;br&gt;It exports with everything else; flagged poses are collected into the asset request list, and clearing happens automatically when the new art is imported.">Artwork <span class="sub" id="replaceVal"></span></label>
           <div class="chips">
             <label class="chip"><input type="checkbox" id="replaceBox"> Sprite needs replacement</label>
           </div>
           <select id="replaceKind" hidden></select>
+          <textarea id="replaceNote" class="note-input" hidden rows="2"
+                    placeholder="What is wrong with it? (optional)"></textarea>
         </div>
 
         <div class="group">
@@ -146,6 +155,8 @@
             <label class="chip"><input type="checkbox" id="improveBox"> Fix this sprite’s file</label>
           </div>
           <select id="improveKind" hidden></select>
+          <textarea id="improveNote" class="note-input" hidden rows="2"
+                    placeholder="What is wrong with the file? (optional)"></textarea>
         </div>
 
         <div class="group" id="mirrorGroup">
