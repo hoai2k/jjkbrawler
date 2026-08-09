@@ -29,7 +29,7 @@ were in the same position until round 9E replaced their idles; their
 **Hanami is now the same case, and his `hanami_idle.png` is retired as an
 authority.** The delivered set draws him as a bark-and-foliage tree body; canon
 Hanami is a lean pale humanoid curse. So his `idle_a` is what must *not* be
-matched, and `hanami_anime.png` is the reference for round 14D's whole-set
+matched, and `hanami_anime.png` is the reference for round 15A's whole-set
 redraw. `hanami_idle.png` stays only so the request docs keep resolving and so
 the two designs can be put side by side — it becomes canon again, regenerated
 by `build_canon_reference.py`, once the new idle is picked.

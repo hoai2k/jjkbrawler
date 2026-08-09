@@ -57,6 +57,7 @@ for (let i = 0; i < SECONDS * 10; i++) {
     const { bodyMetrics } = await import("/src/silhouette.js");
     return {
       t: state.matchTime,
+      phase: state.phase,
       hitboxes: state.hitboxes.length,
       projectiles: state.projectiles.length,
       fighters: state.fighters.map((f) => ({
@@ -125,8 +126,17 @@ const check = (name, ok, detail = "") => {
 };
 
 check("no page errors", errors.length === 0, errors.slice(0, 3).join(" | "));
-check("match ran", samples.at(-1).t > SECONDS * 0.5,
-  `matchTime ${samples.at(-1)?.t?.toFixed(1)}s`);
+// What this is guarding against is a match that never started or died on its
+// face, not a short one. `matchTime` stops advancing the moment somebody runs
+// out of stocks, so a CPU fight that finishes inside the sample window reads
+// here exactly like one that hung — and finishing is the correct outcome, not a
+// failure. So: ran long enough, OR reached the round-over screen. (Before the
+// blast zones were checked from every state a fighter could be moved in, an
+// off-stage knockdown fell forever and no match could end early at all, which
+// is why a bare duration test held up as long as it did.)
+const ended = samples.at(-1).phase === "roundOver";
+check("match ran", samples.at(-1).t > SECONDS * 0.5 || ended,
+  `matchTime ${samples.at(-1)?.t?.toFixed(1)}s, phase ${samples.at(-1)?.phase}`);
 
 // Across every sample, not the last one: percent resets to zero on a KO, so a
 // match that went well enough to take a stock would read as a match where

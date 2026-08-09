@@ -7,7 +7,13 @@ assets/intake/<character>/<pose_key>.png     e.g. assets/intake/yuji/idle_a.png
 assets/intake/effects/<name>.png             e.g. assets/intake/effects/sedan.png
 assets/intake/summons/<name>.png
 assets/intake/cards/<key>_card.jpg
+assets/intake/cards/simple/<key>_tile.jpg
 ```
+
+**Cards take the short path.** Neither kind is keyed, trimmed, measured or
+registered in the manifest, so landing one is a move into `assets/cards/` (hero
+cards) or `assets/cards/simple/` (the simplified roster tiles asked for in round
+15B) and nothing else. Everything below is about sprites.
 
 Delivered **sound** goes to `assets/intake/sfx/` and takes the short path: it
 needs no keying or measuring, so landing it is a move into `assets/sfx/`, a key
