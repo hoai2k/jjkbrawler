@@ -144,16 +144,40 @@ export const SFX = {
   hazardSignalChirp: { file: "hazard_signal_chirp.mp3", category: "hazard" },
   hazardCurseLatch: { file: "hazard_curse_latch.mp3", category: "hazard" },
 
+  // ---- Tier 7a: element hit layers, played UNDER the normal hit sound (see
+  // ELEMENT_HIT_SFX below). Seasoning, not the meal: combat.js already scales
+  // them by damage, and the trim here keeps even a big hit's layer under the
+  // impact it is dressing.
+  hitFire: { file: "hit_fire.mp3", category: "combat", gain: 0.5 },
+  hitBlood: { file: "hit_blood.mp3", category: "combat", gain: 0.5 },
+  hitSteel: { file: "hit_steel.mp3", category: "combat", gain: 0.5 },
+  hitWind: { file: "hit_wind.mp3", category: "combat", gain: 0.5 },
+  hitSound: { file: "hit_sound.mp3", category: "combat", gain: 0.5 },
+  hitShadow: { file: "hit_shadow.mp3", category: "combat", gain: 0.5 },
+  hitSoul: { file: "hit_soul.mp3", category: "combat", gain: 0.5 },
+
+  // ---- Tier 7b: signature one-shots. Each is the sound of one technique, so
+  // they sit with the layer they belong to rather than in a group of their own.
+  boogieClap: { file: "boogie_clap.mp3", category: "combat", gain: 1.1 },
+  seamCrack: { file: "seam_crack.mp3", category: "combat" },
+  powerChord: { file: "power_chord.mp3", category: "energy" },
+  crowCaw: { file: "crow_caw.mp3", category: "energy" },
+  paperRustle: { file: "paper_flutter.mp3", category: "energy" },
+  soulReshape: { file: "soul_reshape.mp3", category: "energy" },
+  healChime: { file: "rct_chime.mp3", category: "energy", gain: 0.9 },
+  // Held under anything currently on fire — burn ticks, Furnace Shell — the
+  // way `shield` sits under a raised guard. See the fire loop in audio.js.
+  fireBurnLoop: { file: "fire_burn_loop.mp3", category: "energy", loop: true, gain: 0.55 },
+
   // ---- Originals kept for the shield loop, which has no replacement yet.
   shield: { file: "sound_shield.mp3", category: "combat", gain: 0.6, loop: true },
 };
 
 // Element hit layers — played UNDER the normal hit sound when a hit's
-// fxElement (config_fx.js / characters.js) matches, at reduced gain. The keys
-// are wired in combat.js already; none of the files exist yet (they are the
-// open round in docs/audio-requests.md), and playSfx treats an unregistered
-// name as silence — so each layer switches on the moment its file is delivered
-// and registered in SFX above. Remove a row here to silence that element.
+// fxElement (config_fx.js / characters.js) matches, at reduced gain. All seven
+// are delivered and registered in SFX above; playSfx treats an unregistered
+// name as silence, so an element listed here with no entry up there is simply
+// silent. Remove a row to silence that element.
 export const ELEMENT_HIT_SFX = {
   fire: "hitFire",
   blood: "hitBlood",

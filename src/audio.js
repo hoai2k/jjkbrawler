@@ -113,7 +113,7 @@ let duckFactor = 1;
 let battleSrc = null;   // resolved once per match so it cannot re-roll mid-fight
 let battleStageKey = null;
 let currentSrc = null;
-let shieldLoop = null;
+const loops = new Map(); // sfx key -> the Audio element holding that loop
 const active = new Set();
 
 export function initAudio() {
@@ -156,23 +156,39 @@ export function playKoCry(charKey) {
   if (ko) playSfx(ko, 1);
 }
 
-export function startShieldLoop() {
-  if (!unlocked || shieldLoop || audioSettings.muted || !state.sfxEnabled
-      || audioSettings.sfxVolume <= 0) return;
-  const entry = entryFor("shield");
-  if (!entry) return;
-  shieldLoop = new Audio(srcFor(entry));
-  shieldLoop.muted = audioSettings.muted;
-  shieldLoop.volume = gainFor(entry, 1);
-  shieldLoop.loop = true;
-  shieldLoop.play().catch(() => { shieldLoop = null; });
+// A held sound, as opposed to the one-shots playSfx fires: at most one element
+// per key, started when the thing it voices begins and stopped when it ends.
+function startLoop(name) {
+  if (loops.has(name)) return;
+  if (!unlocked || audioSettings.muted || !state.sfxEnabled || audioSettings.sfxVolume <= 0) return;
+  const entry = entryFor(name);
+  if (!entry) return; // an undelivered loop is silence, same as a one-shot
+  const el = new Audio(srcFor(entry));
+  el.muted = audioSettings.muted;
+  el.volume = gainFor(entry, 1);
+  el.loop = true;
+  loops.set(name, el);
+  el.play().catch(() => { if (loops.get(name) === el) loops.delete(name); });
 }
 
-export function stopShieldLoop() {
-  if (shieldLoop) {
-    shieldLoop.pause();
-    shieldLoop = null;
-  }
+function stopLoop(name) {
+  const el = loops.get(name);
+  if (!el) return;
+  el.pause();
+  loops.delete(name);
+}
+
+export function startShieldLoop() { startLoop("shield"); }
+export function stopShieldLoop() { stopLoop("shield"); }
+
+// The fire bed under burn ticks and Furnace Shell. Nothing owns it: whatever is
+// currently alight asks for it each frame, and it stops on the first frame
+// nobody asks — so fighters catching fire and burning out need no bookkeeping,
+// and two burning at once share one loop rather than stacking two.
+let fireWanted = false;
+
+export function noteFireBurning() {
+  fireWanted = true;
 }
 
 // The battle track for a match, by mode: the stage's own track (falling back to
@@ -229,6 +245,11 @@ export function duckMusic(to = 0.2, seconds = 0.4) {
 /** Called once per frame from the main loop; only touches the music element
  *  while a duck is live or just ended. */
 export function stepAudio(dt) {
+  // Before the music guard below: the fire bed has to stop even in a match with
+  // no music playing.
+  if (fireWanted) startLoop("fireBurnLoop");
+  else stopLoop("fireBurnLoop");
+  fireWanted = false;
   if (!musicEl || musicBaseVol == null) return;
   if (duckT > 0) {
     duckT -= dt;
@@ -244,8 +265,11 @@ export function applyMute() {
   const muted = audioSettings.muted;
   if (musicEl) musicEl.muted = muted;
   for (const el of active) el.muted = muted;
-  if (shieldLoop) shieldLoop.muted = muted;
-  if (muted) stopShieldLoop();
+  for (const el of loops.values()) el.muted = muted;
+  // Held sounds are dropped rather than left running silently: whatever is
+  // holding them re-asks every frame (the fire bed) or on its next state change
+  // (the shield), so unmuting brings back only what is still true.
+  if (muted) for (const name of [...loops.keys()]) stopLoop(name);
 }
 
 export function toggleMute() {

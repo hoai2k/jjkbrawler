@@ -21,7 +21,7 @@ nothing load-bearing, the worst a bad value does is look wrong.
 | **CP3** | **done** | Projectile trails (faded position history) + per-element in-flight emitters (embers off Fuga, droplets off Piercing Blood, feathers off crows…) |
 | **CP4** | **done** | Black Flash full treatment (red/black crackle forks, contact flash, red vignette, music duck) + controller rumble (`src/rumble.js`) |
 | **CP5** | **done** | Per-character one-offs: Maki's ult, Sukuna's Dismantle lattice, Nanami's 7:3 seam, Todo's swap silhouettes, Gojo's Blue pull / Red disc / Infinity shimmer, Yuta's heal motes, Nobara's glowing marks, Inumaki's neutral arcs, Mahito's soul ripple, Choso's boom cone, Mei Mei's feathers, Yuji's first-hit thud, Gakuganji's clipped aura |
-| **CP6** | **done** | Channel-loop SFX wiring; element/signature SFX request round in `docs/audio-requests.md` |
+| **CP6** | **done** | Channel-loop SFX wiring; element/signature SFX round requested, delivered and wired in (`docs/audio-requests-history.md`, Round 9) |
 
 Each checkpoint merges to `main` on its own, so the game is playable at every
 row of that table.
@@ -145,12 +145,13 @@ and requested properly as asset round **12D**.
 ### CP6 — sound
 
 Code: channelled states get quiet loops from existing files (`energyCharge`),
-Black Flash's duck lands with CP4. Assets: a new round in
-`docs/audio-requests.md` — the element layer (`fire_ignite`, `blood_splat`,
-`wind_slice`, `chain_rattle`, `steel_ring`, `wood_crack`) keyed to the same
-`fxElement` field, and the signature one-shots (Todo's clap, Gakuganji's real
-power chord, crow caws, paper rustle, Mahito's wet reshape, Nanami's
-glass-crack seam).
+Black Flash's duck lands with CP4. Assets: a round of its own, since delivered
+and recorded in `docs/audio-requests-history.md` (Round 9) — an element layer
+keyed to the same `fxElement` field (`hit_fire`, `hit_blood`, `hit_steel`,
+`hit_wind`, `hit_sound`, `hit_shadow`, `hit_soul`; the names here were the
+working ones, not the delivered ones), and the signature one-shots (Todo's clap,
+Gakuganji's real power chord, crow caws, paper rustle, Mahito's wet reshape,
+Nanami's glass-crack seam).
 
 ## Non-goals
 
