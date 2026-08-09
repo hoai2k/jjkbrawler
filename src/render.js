@@ -1,19 +1,23 @@
 import { state } from "./state.js";
 import { getImage } from "./assets.js";
 import { getStage } from "./stages.js";
-import { drawCharFrame, currentFrame, resolvedAnim } from "./sprites.js";
+import { drawCharFrame, currentFrame } from "./sprites.js";
 import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
 import { TRAIL_ALPHA, STRIKE_ARC } from "./config_tuning.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
 import { hitboxRect, hurtbox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
-import { WORLD, SHIELD_MAX, PARRY_WINDOW, SAKURAI, SAKURAI_POP } from "./constants.js";
+import {
+  WORLD, SHIELD_MAX, PARRY_WINDOW, SAKURAI, SAKURAI_POP,
+  RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME,
+} from "./constants.js";
 import { clamp, colorAlpha } from "./utils.js";
 import { PROJ_TRAIL } from "./config_fx.js";
 import { headHeightTarget } from "./heights.js";
 import { strikeArcs, visibleArtReach, swingExtent } from "./moves.js";
 import { bodyWidth } from "./silhouette.js";
+import { respawnX } from "./fighter.js";
 
 export function draw(ctx) {
   ctx.clearRect(0, 0, WORLD.w, WORLD.h);
@@ -400,10 +404,16 @@ function drawAngleTick(ctx, hx, hy, hb, fade, power, color) {
 function drawFighters(ctx) {
   const sorted = [...state.fighters].sort((a, b) => a.y - b.y);
   for (const f of sorted) {
-    if (f.dead || f.respawnTimer > 0) {
-      if (f.respawnTimer > 0) drawRespawnPlatform(ctx, f);
+    if (f.dead) continue;
+    if (f.respawnTimer > 0) {
+      // Still blacked out: only the marker showing where they are about to
+      // come back, so the other players can read it before it happens.
+      drawIncomingMarker(ctx, respawnX(f), RESPAWN_PLATFORM_Y, f.char.theme, f.respawnTimer);
       continue;
     }
+    // Back, standing on their revival platform — and drawn normally, because
+    // they are playing. The platform goes UNDER them.
+    if (f.respawnPlat) drawRevivalPlatform(ctx, f);
     drawShadow(ctx, f);
     drawInstallAura(ctx, f);
 
@@ -615,22 +625,54 @@ function drawNailMarks(ctx, f) {
   ctx.restore();
 }
 
-function drawRespawnPlatform(ctx, f) {
-  const x = f.id === 1 ? 430 : 850;
+// Where a KO'd fighter is about to reappear, drawn during the blackout: a ring
+// closing on the spot with the platform fading up under it. It is the only
+// warning the other players get, and the only thing telling the player who was
+// KO'd that they are a moment away from holding a stick again.
+//
+// It replaced a ghost idle pose standing on a platform. That drawing was there
+// because a respawning fighter used to be a spectator for a second and a half;
+// now they are back and playing almost immediately, and their REAL body is what
+// stands on the platform (drawRevivalPlatform below).
+function drawIncomingMarker(ctx, x, y, color, timeLeft) {
+  const p = clamp(1 - timeLeft / RESPAWN_WAIT, 0, 1);
   ctx.save();
-  ctx.globalAlpha = 0.7;
+  ctx.globalCompositeOperation = "lighter";
+  ctx.globalAlpha = 0.25 + 0.5 * p;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2 + 2 * p;
+  ctx.beginPath();
+  ctx.ellipse(x, y + 6, RESPAWN_PLATFORM_HALF_W * (2.2 - 1.2 * p), 16 * (2.2 - 1.2 * p), 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = 0.15 + 0.35 * p;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.ellipse(x, y + 6, RESPAWN_PLATFORM_HALF_W * p, 11 * p, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+// The revival platform the fighter is standing on and playing from. It dims and
+// then blinks as its time runs out, so "you are about to lose this" is readable
+// without a timer — the same job the summon expiry flash does.
+function drawRevivalPlatform(ctx, f) {
+  const plat = f.respawnPlat;
+  const p = clamp(plat.t / RESPAWN_PLATFORM_TIME, 0, 1);
+  const urgent = p < 0.34;
+  const blink = urgent ? 0.55 + 0.45 * Math.sin(state.matchTime * 26) : 1;
+  ctx.save();
+  ctx.globalAlpha = (0.35 + 0.45 * p) * blink;
   ctx.fillStyle = f.char.theme;
   ctx.beginPath();
-  ctx.ellipse(x, 250, 60, 12, 0, 0, Math.PI * 2);
+  ctx.ellipse(plat.x, plat.y + 6, RESPAWN_PLATFORM_HALF_W, 11, 0, 0, Math.PI * 2);
   ctx.fill();
-  // The fighter's real idle, not a hard-coded `r0c0`. That cell was the idle
-  // back when everyone was a 4x5 sheet; every fighter now has `idle_a`, so the
-  // literal was drawing a legacy pose — flatter, front-on, off-model against
-  // the set it stands beside — for all 23 of them. Asking the idle state keeps
-  // this true through any later re-point, and `?? "r0c0"` covers a set that has
-  // somehow lost its idle rather than drawing nothing.
-  const pose = resolvedAnim(f.charKey, "idle").frames[0] ?? "r0c0";
-  drawCharFrame(ctx, f.charKey, pose, x, 244, { scale: f.char.scale, facing: x < 640 ? 1 : -1, alpha: 0.85 });
+  ctx.globalCompositeOperation = "lighter";
+  ctx.globalAlpha = (0.4 + 0.4 * p) * blink;
+  ctx.strokeStyle = urgent ? "#ffffff" : f.char.theme;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(plat.x, plat.y + 6, RESPAWN_PLATFORM_HALF_W, 11, 0, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.restore();
 }
 

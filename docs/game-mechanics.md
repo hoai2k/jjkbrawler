@@ -31,8 +31,23 @@ and a meter-funded ultimate for every fighter.
   stun bonuses (Cursed Speech), hard-capped at 1.35 s. Launched fighters can't
   act until it ends.
 - **KOs** happen only at blast zones: past the sides (−300 / 1580), the top
-  (−420, for vertical KOs), or the bottom (1000). Losing a stock resets percent,
-  and the fighter respawns above their start point with 2.1 s of invincibility.
+  (−420, for vertical KOs), or the bottom (1000). Losing a stock resets percent
+  and starts the respawn below.
+
+### Respawning (Smash's bargain)
+
+A KO'd fighter is blacked out for **0.65 s** — a marker closes on the spot they
+are about to reappear — and then comes back **standing on a revival platform
+with control already theirs**. That is the whole point: the only part of a
+respawn you cannot play is that first two thirds of a second. Nothing waits for
+the platform to expire.
+
+The platform is protection you **spend**, not a wait you serve. It lasts up to
+**3 s** and you are invulnerable for every frame of it, but it ends the instant
+you do anything with the control you already have — attack, special, ultimate,
+jump, shield, press down, or simply walk off its edge. **0.5 s** of grace
+invulnerability follows you off it however you left, so stepping down is never
+the moment you get hit. It dims and then blinks as its time runs out.
 - **Hitlag** (freeze frames): both fighters freeze for `0.03 + damage × 0.0045`
   seconds on contact (25% longer on heavies) while the victim vibrates — this
   is the "crunch" that makes hits read. The world also gets brief **slow-mo**
@@ -110,11 +125,24 @@ Specials have individual cooldowns (0.8–7 s) instead of resource costs.
 
 ### Summons, and steering them
 
-Four specials put a persistent creature on the stage rather than a hitbox:
+Five moves put a persistent creature on the stage rather than a hitbox:
 Megumi's **Divine Dogs** (two chasers), Geto's **Rainbow Dragon** (chaser),
-Mahito's **Transfigured Human** (bomber — detonates on contact), and Toji's
-**Inventory Curse** (support — hovers at his shoulder and shoots). They are
-lifetime-limited, capped per caster, and die with their owner.
+Mahito's **Transfigured Human** (bomber — detonates on contact), Toji's
+**Inventory Curse** (support — hovers at his shoulder and shoots), and Megumi's
+ultimate **Mahoraga** (brawler — see below). They are lifetime-limited, capped
+per caster, and die with their owner.
+
+**Arriving and leaving is a whole beat of its own.** A summon does not blink
+into existence: it forms in the air over its landing point, fades up out of
+nothing, and drops in, and only the landing makes it real — until its feet are
+down it cannot hit anything and nothing can hit it. Leaving is the same in
+reverse. For the last **1.5 s** of its lifetime it **flashes**, slowly at first
+and then frantically, so "this is about to go" is something you read off the
+screen rather than count in your head; then it fades out and dissipates upward.
+
+The exception is a summon that was **killed**. That one bursts on the spot with
+no flash and no fade — the difference between a timer running out and an
+opponent taking your shikigami apart should be visible from across the stage.
 
 Each one **hunts on its own** the moment it lands, so casting one costs no
 attention. Push the **right stick** (keyboard: `TFGH` for P1, `8/4/5/6` for P2)
@@ -131,7 +159,7 @@ The vertical axis depends on what the summon is:
 
 | Summon | Up | Down |
 |---|---|---|
-| Divine Dogs, Rainbow Dragon, Transfigured Human (grounded) | **Jump** — one per push, lands on platforms like a fighter | Fast-fall |
+| Divine Dogs, Rainbow Dragon, Transfigured Human, Mahoraga (grounded) | **Jump** — one per push, lands on platforms like a fighter | Fast-fall |
 | Inventory Curse (flyer) | Fly up | Fly down |
 
 Holding up gives one jump, not a hover: the stick has to return to centre
@@ -140,6 +168,30 @@ judge when it is worth it. A summon released mid-air finishes its arc before
 resuming the hunt, and one that walks off the ledge it landed on falls.
 
 CPU fighters do not pilot; their summons always hunt.
+
+### Mahoraga — a summon that plays like a character
+
+Megumi's ultimate is the one summon that is not a creature reacting to contact.
+Mahoraga arrives as his own **actor**: he has the full sprite set a fighter has,
+and an AI that uses it. He walks in, jumps at people standing above him, and
+picks between three real moves with startup, an active window and recovery —
+
+| Move | Shape | Notes |
+|---|---|---|
+| Swipe | fast poke, 9% | the answer to standing next to him |
+| Smash | 0.40 s windup, 17% | slow and loud on purpose: shield it or leave |
+| Cleave | anti-air, 13% | nobody answers a shikigami from the platform above |
+
+He has **150 HP** and can be killed like any summon — but the wheel turns: after
+**8 hits taken** he **ADAPTS**, and everything after that lands on him for half.
+Kill him early or live with him for the full 10 s.
+
+Megumi keeps his own body and his own controls the whole time and fights beside
+him, with a damage-taken reduction while the shikigami is out — and the right
+stick drives Mahoraga exactly like any other summon if you would rather steer
+him yourself. (He used to be a *transformation* Megumi wore, which put the
+player in Mahoraga's body but took Megumi off the board. The transform machinery
+is still in `config_transform.js` for the next fighter who needs a second body.)
 
 ### Steering creature projectiles
 

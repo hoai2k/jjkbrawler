@@ -19,6 +19,7 @@ import { lightMove, heavyMove } from "../src/moves.js";
 import { fighterTransform } from "../src/motion.js";
 import { initTooltips } from "./tooltip.js";
 import { makeCharLoader, frameLoaded } from "./lazy_sprites.js";
+import { fitStageCanvas } from "./fit_stage.js";
 import { SHIELD_MAX, MAX_FALL } from "../src/constants.js";
 import { TUMBLE_SPIN_MAX, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "../src/config_tuning.js";
 
@@ -929,9 +930,11 @@ function markup() {
   view.className = "layout";
   view.innerHTML = `
     <section class="stage-col">
-      <div class="stage-wrap">
-        <canvas id="aStage" width="760" height="620"></canvas>
-        <div id="aFrameTag" class="frame-tag">pick an action →</div>
+      <div class="stage-fit">
+        <div class="stage-wrap">
+          <canvas id="aStage" width="760" height="620"></canvas>
+          <div id="aFrameTag" class="frame-tag">pick an action →</div>
+        </div>
       </div>
 
       <div class="transport">
@@ -1006,6 +1009,7 @@ async function boot() {
   markup();
   canvas = $("aStage");
   ctx = canvas.getContext("2d");
+  fitStageCanvas(canvas);
 
   const sel = $("aChar");
   for (const key of CHARACTER_KEYS) {

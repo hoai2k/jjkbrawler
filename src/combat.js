@@ -142,7 +142,9 @@ export function summonBox(s) {
 function enemySummons(attacker) {
   const out = [];
   for (const e of state.entities) {
-    if (e.kind !== "summon" || e.dead || !e.damage) continue;
+    // `intangible` covers a summon that has not finished arriving and one that
+    // is already dissipating: neither is on the board to be hit (summons.js).
+    if (e.kind !== "summon" || e.dead || e.intangible || !e.damage) continue;
     if (e.owner === attacker) continue;
     out.push(e);
   }
