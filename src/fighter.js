@@ -18,6 +18,7 @@ import {
   ULT_METER_COST, DOMAIN_METER_COST,
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
   RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE,
+  RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
 import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "./config_tuning.js";
 import { mainPlatform } from "./stages.js";
@@ -59,6 +60,9 @@ export function makeFighter(id, charKey, x, facing) {
     statuses: { burn: null, bleed: null, poison: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 },
     ledge: null, ledgeCooldown: 0, ledgeTimer: 0,
     respawnTimer: 0, dead: false,
+    // The revival platform this fighter is currently standing on, or null.
+    // {x, y, t} — see stepRespawnPlatform.
+    respawnPlat: null,
     cpuDamageMul: 0,
     animKey: "idle", animTime: 0,
     // presentation-only state, consumed by motion.js / render.js. Kept on the
@@ -293,11 +297,15 @@ function updateLedge(f, dt, input) {
 
 function resolvePlatforms(f, prevY) {
   f.grounded = false;
-  for (const plat of state.platforms) {
+  // A fighter's own revival platform is checked first and only for them, so
+  // they can stand on it, walk along it, and step off the end of it exactly the
+  // way they would a real one.
+  const plats = f.respawnPlat ? [respawnPlatShape(f), ...state.platforms] : state.platforms;
+  for (const plat of plats) {
     // phased-out platform (Active Boards: Bone Sanctum, Empty City)
     if (plat.ghost) continue;
     if (f.dropTimer > 0 && plat.kind !== "main") continue;
-    const margin = plat.kind === "main" ? 14 : 24;
+    const margin = plat.kind === "main" ? 14 : plat.kind === "respawn" ? 0 : 24;
     if (f.x < plat.x - margin || f.x > plat.x + plat.w + margin) continue;
     if (f.vy < 0) continue;
     if (prevY <= plat.y + 4 && f.y >= plat.y) {
@@ -362,30 +370,49 @@ export function ringOut(f) {
   f.installs = null; f.spriteChar = null; f.hitstun = 0; f.statuses = { burn: null, bleed: null, poison: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 };
   f.vx = 0; f.vy = 0; f.ledge = null; f.dizzy = 0; f.prone = 0; f.armorT = 0;
   f.spin = 0; f.spinAngle = 0; f.trail.length = 0;
+  // The revival platform goes with the stock it belonged to, whether or not
+  // there is another one coming.
+  f.respawnPlat = null;
 
   if (f.stocks <= 0) {
     f.dead = true;
     f.x = -9999;
     return;
   }
-  f.respawnTimer = 1.4;
+  f.respawnTimer = RESPAWN_WAIT;
 }
 
-function respawn(f) {
-  f.respawnTimer = 0;
-  playSfx("respawn");
+/** Where this fighter comes back, given how many are in the match. Exported so
+ *  the renderer can put the incoming marker in the right place during the
+ *  blackout, instead of guessing from the slot number. */
+export function respawnX(f) {
   const respawnSets = {
     2: { 1: 430, 2: 850 },
     3: { 1: 320, 2: 640, 3: 960 },
     4: RESPAWN_X,
   };
-  f.x = respawnSets[state.fighters.length]?.[f.id] || RESPAWN_X[f.id] || 640;
-  f.y = 230;
+  return respawnSets[state.fighters.length]?.[f.id] || RESPAWN_X[f.id] || 640;
+}
+
+function respawn(f) {
+  f.respawnTimer = 0;
+  playSfx("respawn");
+  f.x = respawnX(f);
+  // Standing ON the revival platform, in control from this frame. Smash's rule,
+  // and the reason respawning does not feel like a second punishment: the
+  // platform is protection you spend, not a wait you serve.
+  f.y = RESPAWN_PLATFORM_Y;
   f.vx = 0; f.vy = 0;
   f.damage = 0;
   f.shield = SHIELD_MAX;
-  f.invuln = 2.1;
-  f.grounded = false;
+  f.respawnPlat = { x: f.x, y: RESPAWN_PLATFORM_Y, t: RESPAWN_PLATFORM_TIME };
+  // Held for exactly as long as the platform can last, plus the grace that
+  // follows you off it. Leaving early cuts it down to the grace (leaveRespawnPlatform).
+  f.invuln = RESPAWN_PLATFORM_TIME + RESPAWN_GRACE;
+  f.grounded = true;
+  f.action = null; f.charging = null; f.bufferedAction = null;
+  f.hitstun = 0; f.landLag = 0; f.landTimer = 0;
+  setAnim(f, "idle");
   f.airJumpsLeft = stats(f).airJumps;
   f.facing = f.x < 640 ? 1 : -1;
   f.facingVis = f.facing;
@@ -395,6 +422,46 @@ function respawn(f) {
     popup(f.x, f.y - 40, "ADVANCE PAID", "#ffd35a", 16);
   }
   dust(f.x, f.y, 20);
+  ring(f.x, f.y - 40, f.char.theme, 120);
+}
+
+/**
+ * The revival platform, once you are standing on it.
+ *
+ * The player is already in control here — this only decides when the platform
+ * goes away, and it goes away the moment they DO anything with that control:
+ * Smash's bargain, where the invulnerability lasts exactly as long as you are
+ * willing to not play. Attacking, jumping, shielding, dropping through, or
+ * simply walking off the edge all end it, and so does the clock.
+ */
+function stepRespawnPlatform(f, dt, input) {
+  const plat = f.respawnPlat;
+  plat.t -= dt;
+  const acted = input.lightP || input.heavyP || input.specialP || input.ultP ||
+                input.jumpP || input.shieldHeld || input.down;
+  const walkedOff = Math.abs(f.x - plat.x) > RESPAWN_PLATFORM_HALF_W;
+  if (plat.t <= 0 || acted || walkedOff) leaveRespawnPlatform(f);
+}
+
+function leaveRespawnPlatform(f) {
+  const plat = f.respawnPlat;
+  if (!plat) return;
+  f.respawnPlat = null;
+  // Whatever was left of the platform's protection is spent; only the grace
+  // that carries you off it survives.
+  f.invuln = Math.min(f.invuln, RESPAWN_GRACE);
+  dust(plat.x, plat.y, 8);
+}
+
+/** The revival platform as a platform shape, so resolvePlatforms can stand the
+ *  fighter on it without it existing for anyone else — it is theirs alone, and
+ *  nobody else can land on it or be blocked by it. */
+function respawnPlatShape(f) {
+  const plat = f.respawnPlat;
+  return {
+    x: plat.x - RESPAWN_PLATFORM_HALF_W, y: plat.y,
+    w: RESPAWN_PLATFORM_HALF_W * 2, kind: "respawn",
+  };
 }
 
 // -------------------------------------------------------------- main update
@@ -479,12 +546,17 @@ export function updateFighter(f, dt, input) {
     if (f.healing.t <= 0) f.healing = null;
   }
 
-  // respawn platform
+  // The blackout after a KO — the ONLY part of a respawn with no control in it.
   if (f.respawnTimer > 0) {
     f.respawnTimer -= dt;
     if (f.respawnTimer <= 0) respawn(f);
     return;
   }
+
+  // Back on the revival platform, and already driving: this decides when the
+  // platform goes, and then the rest of this function runs as it always does —
+  // the input below is live from the first frame of the new stock.
+  if (f.respawnPlat) stepRespawnPlatform(f, dt, input);
 
   // shield-break dizzy
   if (f.dizzy > 0) {

@@ -1,14 +1,26 @@
 // Persistent ally minions: shikigami, curses, transfigured humans.
 //
 // A summon differs from a projectile in that it lives on the stage, picks its
-// own targets, and acts on a cadence — and from the bespoke Mahoraga ultimate
-// in that it is data-driven: characters describe a summon in their kit config
-// and this module supplies the behavior.
+// own targets, and acts on a cadence. It is data-driven: characters describe a
+// summon in their kit config and this module supplies the behavior.
 //
 // Behaviors:
 //   chaser  — grounded pursuer that lunge-bites what it catches
 //   bomber  — pursuer that detonates on contact and dies
 //   support — hovers behind its owner and fires projectiles at the target
+//   brawler — a whole CHARACTER on the board: walks, jumps, and swings a real
+//             move set chosen by its own AI (Megumi's Mahoraga)
+//
+// LIFECYCLE. A summon is not simply switched on and off. It ARRIVES: it forms
+// in the air over its landing point, fades up out of nothing, and drops into
+// the scene, and the landing is what makes it real — before it touches down it
+// cannot hit anything and nothing can hit it. It LEAVES the same way: the last
+// seconds of its lifetime it FLASHES, faster and faster, so the moment it is
+// about to go is something the player can read off the screen instead of
+// something they have to count; then it dissipates upward and is gone. Only a
+// summon that was KILLED skips all of that and bursts on the spot, because that
+// is the difference worth showing between the timer running out and the
+// opponent taking it apart.
 //
 // PILOTING. Every summon hunts on its own the moment it lands, so casting one
 // is never worse than it was. Push the RIGHT STICK and the owner takes the
@@ -34,9 +46,10 @@
 import { state } from "./state.js";
 import { clamp, sign, rand, rectsOverlap } from "./utils.js";
 import { applyHit, hurtbox, spawnProjectile, ownerStick } from "./combat.js";
-import { burst, dust, ring, popup } from "./particles.js";
+import { burst, dust, ring, popup, emit } from "./particles.js";
 import { playSfx } from "./audio.js";
 import { getImage } from "./assets.js";
+import { drawCharFrame, currentFrame } from "./sprites.js";
 import { MOTION } from "./config_tuning.js";
 import { METER_MAX } from "./constants.js";
 
@@ -55,7 +68,8 @@ const PILOT_CEILING = 90;
 
 // A grounded summon's jump, for reaching platforms and airborne enemies. Only
 // piloted summons jump — hunting ones have no way to decide it is worth it, and
-// a shikigami that hops on its own looks like a bug rather than a tactic.
+// a shikigami that hops on its own looks like a bug rather than a tactic. The
+// brawler is the exception: it decides like a fighter does.
 const PILOT_JUMP_VY = -900;
 const PILOT_GRAVITY = 2400;
 const PILOT_FASTFALL = 1.7;
@@ -64,11 +78,36 @@ const PILOT_FASTFALL = 1.7;
 // steering a flyer diagonally never launches a dog.
 const PILOT_JUMP_AXIS = 0.6;
 
+// ---------------------------------------------------------------- lifecycle
+
+// How long the arrival takes: the shape forms out of nothing, hangs for an
+// instant, and drops. Short enough that casting still feels immediate — the
+// summon is committed the frame you press the button — long enough that the
+// board reads "something is coming down HERE" before it lands.
+const APPEAR_TIME = 0.5;
+
+// How far above its landing point a summon forms. Roughly two body heights, so
+// the drop is a fall rather than a step.
+const APPEAR_DROP = 230;
+
+// The exit: fade out, drift up, come apart. Long enough to be seen, short
+// enough that a dismissed summon is out of the fight immediately (it stops
+// acting the moment this starts).
+const VANISH_TIME = 0.55;
+
+// How long before the timer expires a summon starts flashing. The blink starts
+// slow and ends frantic, the way a Smash item announces its own despawn: the
+// point is that "about to leave" is legible without a HUD element.
+const EXPIRE_FLASH = 1.5;
+const FLASH_HZ_MIN = 3.5;
+const FLASH_HZ_MAX = 15;
+
 // Hit points by behaviour, when a kit does not name its own. A bomber spends
 // itself on contact, so it is glass; a support summon sits behind its owner
 // where it is hard to reach, so it does not need much either. The chaser is the
 // one that walks into the fight, and the one worth the opponent's time to kill.
-const DEFAULT_HP = { chaser: 46, bomber: 22, support: 34 };
+// A brawler is an ultimate's whole payoff and is priced like one.
+const DEFAULT_HP = { chaser: 46, bomber: 22, support: 34, brawler: 150 };
 
 // Killing a summon is worth meter, on the same principle as popping a stage
 // hazard: it took real attacks to do, and it should not be a pure tempo loss
@@ -137,22 +176,75 @@ function summonImage(sprites) {
   return null;
 }
 
+// A summon still on its way in, or already on its way out, does not count
+// against the cap: dismissing something that is already dissipating would spend
+// the recast for nothing.
 function enforceCap(owner, id, maxActive) {
-  const mine = state.entities.filter((e) => e.kind === "summon" && e.owner === owner && e.id === id && !e.dead);
+  const mine = state.entities.filter((e) =>
+    e.kind === "summon" && e.owner === owner && e.id === id && !e.dead && e.vanishT <= 0);
   while (mine.length >= maxActive) {
     const oldest = mine.shift();
     oldest.dismiss();
   }
 }
 
+// ------------------------------------------------------------------ brawler
+//
+// The brawler's move set. A summon with this behavior is not a creature that
+// bites whatever it touches — it is a character: it closes distance, picks a
+// move for the situation, telegraphs it, and is committed to it once it starts.
+// Every attack is windup -> active -> recover, which is what gives an opponent
+// something to react to. Reach and height are measured from the summon's feet.
+const BRAWLER_MOVES = {
+  // The poke. Fast enough to punish someone standing next to it.
+  swipe: {
+    anim: "light", windup: 0.20, active: 0.14, recover: 0.24,
+    reach: 118, high: 156, dmg: 9, base: 300, growth: 5.2, angle: 0.36,
+    sfx: "slash",
+  },
+  // The commitment. Slow, loud, and worth respecting — the windup is long
+  // enough to shield or walk out of, and eating one is a real launch.
+  smash: {
+    anim: "sideHeavy", windup: 0.40, active: 0.16, recover: 0.44,
+    reach: 152, high: 190, dmg: 17, base: 480, growth: 7.4, angle: 0.5,
+    sfx: "slashHeavy", heavy: true, shake: 7,
+  },
+  // Anti-air. Nobody should be able to answer a shikigami by standing on the
+  // platform above it.
+  cleave: {
+    anim: "upHeavy", windup: 0.28, active: 0.16, recover: 0.34,
+    reach: 120, high: 280, up: true, dmg: 13, base: 430, growth: 6.6, angle: 1.05,
+    sfx: "slashHeavy", shake: 5,
+  },
+};
+
+/** The box a brawler's move covers, from the summon's own position. A forward
+ *  swing reaches out along its facing; an anti-air straddles it and goes up. */
+function moveRect(s, move) {
+  if (move.up) {
+    return { x: s.x - move.reach / 2, y: s.y - move.high, w: move.reach, h: move.high };
+  }
+  return {
+    x: s.dir > 0 ? s.x - 20 : s.x + 20 - move.reach,
+    y: s.y - move.high, w: move.reach, h: move.high,
+  };
+}
+
 export function spawnSummon(owner, cfg) {
   enforceCap(owner, cfg.id, cfg.maxActive || 1);
+
+  const behavior = cfg.behavior || "chaser";
+  const flies = behavior === "support";
+  const bodyH = cfg.h ?? 110;
 
   const s = {
     kind: "summon",
     id: cfg.id,
     owner,
-    behavior: cfg.behavior || "chaser",
+    behavior,
+    // The actor whose sprite set this summon animates through, for a brawler.
+    // Everything else draws a single still image (cfg.sprites).
+    actor: cfg.actor || null,
     x: clamp(owner.x - owner.facing * (cfg.backOff ?? 60) + (cfg.offsetX || 0), 90, 1190),
     y: groundY(),
     dir: owner.facing,
@@ -162,6 +254,16 @@ export function spawnSummon(owner, cfg) {
     attackCd: cfg.firstAttackDelay ?? 0.5,
     lungeT: 0,
     dead: false,
+
+    // --- lifecycle. `appearT` runs the arrival, `vanishT` the departure, and
+    // `intangible` is true through both: a summon that has not landed cannot
+    // hit or be hit, and neither can one that is already coming apart.
+    appearT: APPEAR_TIME,
+    vanishT: 0,
+    intangible: true,
+    blink: 0,
+    moteT: 0,
+
     // Piloting. `piloted` latches on the first deliberate push of the right
     // stick and stays on through momentary re-centring, which is what `idleT`
     // measures.
@@ -174,52 +276,166 @@ export function spawnSummon(owner, cfg) {
     airborne: false,
     jumpArmed: true,
 
+    // --- brawler only: the animation playhead and the move in progress.
+    animKey: "idle",
+    animTime: 0,
+    move: null,      // { name, def, t, hit:Set }
+    decideT: 0,
+
     // Hit points. Scaled off the summon's own reach in the kit config rather
     // than a flat number: a bomber that dies on contact anyway should not
     // soak the same punishment as a chaser meant to hold ground for six
     // seconds.
-    hp: cfg.hp ?? DEFAULT_HP[cfg.behavior || "chaser"] ?? 40,
-    maxHp: cfg.hp ?? DEFAULT_HP[cfg.behavior || "chaser"] ?? 40,
+    hp: cfg.hp ?? DEFAULT_HP[behavior] ?? 40,
+    maxHp: cfg.hp ?? DEFAULT_HP[behavior] ?? 40,
     hurtT: 0,          // white flash after taking a hit
+    // Mahoraga's wheel turns: past `adapt.hits` blows taken, everything after
+    // lands for less. Only a kit that asks for it gets it.
+    hitsTaken: 0,
+    adapted: false,
     // The box it occupies, published on the entity so combat.js can test
     // against it without reaching into this module's config.
     hitW: cfg.hitW ?? 70,
     hitH: cfg.hitH ?? 90,
 
+    /** Where the body is drawn this frame: the arrival still has it falling in,
+     *  and the departure lifts it as it comes apart. A flyer only settles the
+     *  last short distance — something that hovers does not FALL into a fight,
+     *  it forms where it means to be. */
+    drawY() {
+      if (this.appearT > 0) {
+        const p = 1 - this.appearT / APPEAR_TIME;
+        return this.y - (flies ? 54 : APPEAR_DROP) * (1 - p * p);
+      }
+      if (this.vanishT > 0) {
+        const p = 1 - this.vanishT / VANISH_TIME;
+        return this.y - 44 * p * p;
+      }
+      return this.y;
+    },
+
+    /** 0..1 opacity for the whole drawing, across arrival and departure. */
+    alpha() {
+      if (this.appearT > 0) return clamp((1 - this.appearT / APPEAR_TIME) / 0.45, 0, 1);
+      if (this.vanishT > 0) return clamp(this.vanishT / VANISH_TIME, 0, 1);
+      return 1;
+    },
+
+    /** How hard the body is blown out to white this frame: the expiry blink,
+     *  or the hit flash, whichever is brighter. */
+    flash() {
+      let f = this.hurtT > 0 ? Math.min(1, this.hurtT / 0.12) * 0.8 : 0;
+      const left = this.dur - this.t;
+      if (this.vanishT <= 0 && this.appearT <= 0 && left < EXPIRE_FLASH) {
+        const urgency = clamp(1 - left / EXPIRE_FLASH, 0, 1);
+        // Square wave, not a sine: a summon about to leave should snap between
+        // lit and unlit, the way a blinking item does. Half-lit reads as an
+        // aura and gets ignored.
+        if (Math.sin(this.blink * Math.PI * 2) > 0) {
+          f = Math.max(f, 0.35 + 0.5 * urgency);
+        }
+      }
+      return f;
+    },
+
+    /** Start the exit. Everything that ends a summon by CHOICE — its timer, a
+     *  recast past the cap, its owner going down — comes through here, so they
+     *  all read the same way. */
     dismiss() {
-      if (this.dead) return;
-      this.dead = true;
-      burst(this.x, this.y - (cfg.hitH || 90) / 2, cfg.color, 14, 0.8);
+      if (this.dead || this.vanishT > 0) return;
+      // Never landed: nothing to dissipate, just stop.
+      if (this.appearT > 0) { this.dead = true; return; }
+      this.vanishT = VANISH_TIME;
+      this.intangible = true;
+      this.move = null;
+      const cy = this.y - bodyH / 2;
+      burst(this.x, cy, cfg.color, 14, 0.55);
+      ring(this.x, cy, cfg.color, 70);
+      // Motes coming apart upward — the summon unravelling rather than popping.
+      for (let i = 0; i < 16; i++) {
+        const life = rand(0.35, 0.8);
+        emit({
+          x: this.x + rand(-this.hitW / 2, this.hitW / 2),
+          y: this.y - Math.random() * bodyH,
+          vx: rand(-30, 30), vy: rand(-150, -50),
+          life, maxLife: life, size: rand(3, 7), color: cfg.color, gravity: -40,
+        });
+      }
+      playSfx("summonAppear", 0.4, 0.7);
     },
 
     /** Take damage from an enemy attack. Returns true if this killed it. */
     damage(amount, source) {
-      if (this.dead) return false;
-      this.hp -= amount;
+      if (this.dead || this.intangible) return false;
+      // Adaptation: the wheel turns, and what has already hit it hits for less.
+      let dealt = amount;
+      if (cfg.adapt) {
+        this.hitsTaken += 1;
+        if (this.adapted) dealt *= cfg.adapt.dmgTakenMul ?? 0.55;
+        else if (this.hitsTaken >= (cfg.adapt.hits ?? 8)) {
+          this.adapted = true;
+          popup(this.x, this.y - bodyH - 26, "ADAPTED", cfg.color, 18);
+          ring(this.x, this.y - bodyH / 2, cfg.color, 120);
+          playSfx("summonAppear", 0.7, 0.85);
+        }
+      }
+      this.hp -= dealt;
       this.hurtT = 0.12;
-      burst(this.x, this.y - (cfg.hitH ?? 90) / 2, "#ffffff", 6, 0.5);
+      burst(this.x, this.y - bodyH / 2, "#ffffff", 6, 0.5);
       playSfx("hitLight", 0.5, 1.15);
       if (this.hp > 0) return false;
       // Destroyed rather than dismissed: bigger burst, a ring, and a shake, so
       // killing one reads as an achievement rather than as the timer running
-      // out.
+      // out — and it skips the dissipate entirely, because coming apart on your
+      // own schedule is exactly what did NOT happen here.
       this.dead = true;
-      burst(this.x, this.y - (cfg.hitH ?? 90) / 2, cfg.color, 26, 1.2);
-      ring(this.x, this.y - (cfg.hitH ?? 90) / 2, cfg.color, 90);
+      burst(this.x, this.y - bodyH / 2, cfg.color, 26, 1.2);
+      ring(this.x, this.y - bodyH / 2, cfg.color, 90);
       playSfx("summonAttack", 0.8, 0.8);
       state.camera.shake = Math.max(state.camera.shake, 4);
-      popup(this.x, this.y - (cfg.hitH ?? 90) - 20, "DESTROYED", cfg.color, 16);
+      popup(this.x, this.y - bodyH - 20, "DESTROYED", cfg.color, 16);
       if (source) grantMeterForKill(source);
       return true;
     },
 
     update(dt) {
-      this.t += dt;
       this.bob += dt * 5;
+
+      // Coming apart: nothing else runs. It is already out of the fight.
+      if (this.vanishT > 0) {
+        this.vanishT -= dt;
+        if (Math.random() < dt * 14) {
+          const life = rand(0.3, 0.6);
+          emit({
+            x: this.x + rand(-this.hitW / 2, this.hitW / 2), y: this.y - Math.random() * bodyH,
+            vx: rand(-20, 20), vy: rand(-120, -40),
+            life, maxLife: life, size: rand(2, 6), color: cfg.color, gravity: -30,
+          });
+        }
+        if (this.vanishT <= 0) this.dead = true;
+        return;
+      }
+
+      // Arriving: it forms in the air and falls in. It cannot act and cannot be
+      // acted on until its feet are down.
+      if (this.appearT > 0) {
+        this.stepAppear(dt);
+        return;
+      }
+
+      this.t += dt;
+      // Blink phase accumulates rather than being derived from `t`, so the rate
+      // can ramp without the wave jumping every time it changes.
+      const left = this.dur - this.t;
+      if (left < EXPIRE_FLASH) {
+        const urgency = clamp(1 - left / EXPIRE_FLASH, 0, 1);
+        this.blink += dt * (FLASH_HZ_MIN + urgency * (FLASH_HZ_MAX - FLASH_HZ_MIN));
+      }
       if (this.t >= this.dur || owner.dead) { this.dismiss(); return; }
       this.attackCd -= dt;
       this.lungeT = Math.max(0, this.lungeT - dt);
       this.hurtT = Math.max(0, this.hurtT - dt);
+      this.animTime += dt;
 
       const stick = ownerStick(owner);
       const pushed = stick.x !== 0 || stick.y !== 0;
@@ -229,7 +445,7 @@ export function spawnSummon(owner, cfg) {
         // hunting looks broken.
         if (!this.piloted) {
           this.piloted = true;
-          ring(this.x, this.y - (cfg.hitH ?? 90) / 2, cfg.color, 60);
+          ring(this.x, this.y - this.hitH / 2, cfg.color, 60);
           playSfx("summonAppear", 0.45);
         }
       } else if (this.piloted) {
@@ -240,22 +456,58 @@ export function spawnSummon(owner, cfg) {
       const target = nearestTarget(owner, this.x);
       if (this.piloted) this.updatePiloted(dt, stick, target);
       else if (this.behavior === "support") this.updateSupport(dt, target);
+      else if (this.behavior === "brawler") this.updateBrawler(dt, target);
       else this.updatePursuit(dt, target);
+    },
+
+    // The arrival. Cursed energy gathers at the landing point and the shape
+    // drops through it; `drawY` does the falling, this does the timing and the
+    // dust.
+    stepAppear(dt) {
+      this.appearT -= dt;
+      this.moteT -= dt;
+      const p = 1 - this.appearT / APPEAR_TIME;
+      if (this.moteT <= 0) {
+        this.moteT = 0.03;
+        // Motes rising off the landing point, converging on where it will be.
+        const life = rand(0.25, 0.5);
+        emit({
+          x: this.x + rand(-this.hitW * 0.6, this.hitW * 0.6), y: this.y - rand(0, 20),
+          vx: rand(-20, 20), vy: rand(-180, -90) * (0.4 + p),
+          life, maxLife: life, size: rand(2, 5), color: cfg.color, gravity: -60,
+        });
+      }
+      if (this.appearT > 0) return;
+
+      // Touchdown. This is the frame it becomes real.
+      this.appearT = 0;
+      this.intangible = false;
+      if (!flies) this.y = Math.min(this.y, groundY());
+      dust(this.x, this.y, flies ? 4 : 14);
+      ring(this.x, this.y - this.hitH / 2, cfg.color, this.hitH * 1.2);
+      burst(this.x, this.y - this.hitH / 2, cfg.color, flies ? 8 : 16, 0.9);
+      playSfx("summonAppear", 0.9, flies ? 1.15 : 0.9);
+      if (!flies) {
+        state.camera.shake = Math.max(state.camera.shake, this.behavior === "brawler" ? 8 : 3);
+        if (this.behavior === "brawler") playSfx("landing", 0.9, 0.7);
+      }
     },
 
     // Manual control. Movement comes from the stick; everything else — what it
     // does when it reaches someone — is the automatic behavior's job, so a
     // driven summon hits exactly as hard as one that found its own way there.
     updatePiloted(dt, stick, target) {
-      const speed = (cfg.speed ?? 420) * PILOT_SPEED_MUL;
-      const flies = this.behavior === "support";
+      // A brawler mid-swing is committed the way a fighter is: the stick steers
+      // it at a crawl rather than sliding it out of its own animation.
+      const committed = this.behavior === "brawler" && this.move;
+      const speed = (cfg.speed ?? 420) * PILOT_SPEED_MUL * (committed ? 0.25 : 1);
       if (stick.x) {
         this.x = clamp(this.x + stick.x * speed * dt, 90, 1190);
-        this.dir = sign(stick.x);
+        if (!committed) this.dir = sign(stick.x);
       } else if (target) {
         // Still face what it would bite, so a summon held steady over an enemy
         // does not sit there looking the wrong way.
-        this.dir = sign(target.x - this.x) || this.dir;
+        if (!committed) this.dir = sign(target.x - this.x) || this.dir;
       }
       if (flies) {
         // Held steady it keeps bobbing, so a parked flyer still reads as alive.
@@ -266,7 +518,7 @@ export function spawnSummon(owner, cfg) {
         // a different creature. Re-arms only once the stick comes back down,
         // so holding up gives one jump rather than a hover.
         if (stick.y <= -PILOT_JUMP_AXIS) {
-          if (this.jumpArmed && !this.airborne) {
+          if (this.jumpArmed && !this.airborne && !committed) {
             this.jumpArmed = false;
             this.airborne = true;
             this.vy = PILOT_JUMP_VY;
@@ -278,6 +530,12 @@ export function spawnSummon(owner, cfg) {
         }
         this.stepGravity(dt, stick.y > 0);
         if (stick.x && !this.airborne && Math.random() < dt * 6) dust(this.x - this.dir * 20, this.y, 3);
+      }
+      if (this.behavior === "brawler") {
+        this.stepMove(dt, target);
+        if (!this.move && target) this.considerMove(dt, target);
+        this.setBrawlerAnim(stick.x !== 0);
+        return;
       }
       if (!target) return;
       // Contact resolves through the same code paths as an automatic hunt.
@@ -299,6 +557,119 @@ export function spawnSummon(owner, cfg) {
       this.stepGravity(dt, false);
       if (!this.airborne && Math.random() < dt * 5) dust(this.x - this.dir * 20, this.y, 3);
       if (target) this.tryContact(target);
+    },
+
+    // ------------------------------------------------------------- brawler
+    //
+    // Driven like a character rather than steered like a pet: it closes to its
+    // own range, commits to a move, and lives with the recovery. The decisions
+    // are deliberately simple and readable — approach, swing, jump at what is
+    // above you — because a summon the player cannot predict is a summon the
+    // player cannot fight alongside.
+    updateBrawler(dt, target) {
+      const speed = cfg.speed ?? 300;
+      let walking = false;
+
+      if (this.move) {
+        // Committed. It does not walk out of its own swing.
+        this.stepMove(dt, target);
+      } else if (target) {
+        this.decideT -= dt;
+        const dx = target.x - this.x;
+        const adx = Math.abs(dx);
+        this.dir = sign(dx) || this.dir;
+        const reach = BRAWLER_MOVES.smash.reach * 0.78;
+        if (adx > reach) {
+          this.x = clamp(this.x + this.dir * speed * dt, 90, 1190);
+          walking = true;
+        }
+        // Chase upward the way a fighter does: if they are standing above it
+        // and roughly overhead, jump after them.
+        if (!this.airborne && target.y < this.y - 110 && adx < 210 && this.decideT <= 0) {
+          this.decideT = 0.6;
+          this.airborne = true;
+          this.vy = PILOT_JUMP_VY;
+          dust(this.x, this.y, 8);
+          playSfx("jump", 0.5, 0.8);
+        }
+        this.considerMove(dt, target);
+      }
+
+      this.stepGravity(dt, false);
+      if (walking && !this.airborne && Math.random() < dt * 8) dust(this.x - this.dir * 26, this.y, 3);
+      this.setBrawlerAnim(walking);
+    },
+
+    /** Pick a move if one fits the situation and the cooldown has run out. */
+    considerMove(dt, target) {
+      if (this.move || this.attackCd > 0 || !target) return;
+      const dx = target.x - this.x;
+      const adx = Math.abs(dx);
+      const above = target.y < this.y - 120;
+      let name = null;
+      if (above && adx < BRAWLER_MOVES.cleave.reach * 0.7) name = "cleave";
+      else if (adx < BRAWLER_MOVES.swipe.reach * 0.9) name = Math.random() < 0.32 ? "smash" : "swipe";
+      else if (adx < BRAWLER_MOVES.smash.reach * 0.95) name = "smash";
+      if (!name) return;
+      this.startMove(name);
+    },
+
+    startMove(name) {
+      const def = BRAWLER_MOVES[name];
+      this.move = { name, def, t: 0, hit: new Set() };
+      this.animKey = def.anim;
+      this.animTime = 0;
+      // The windup is the tell. A heavy one lights up so the opponent can see
+      // it coming and do something about it.
+      if (def.heavy) {
+        ring(this.x + this.dir * 40, this.y - def.high * 0.6, cfg.color, 70);
+        playSfx("hazardTelegraph", 0.35, 0.8);
+      }
+    },
+
+    /** Advance the move in progress: windup, active window, recovery. */
+    stepMove(dt, target) {
+      const m = this.move;
+      if (!m) return;
+      const def = m.def;
+      const wasActive = m.t >= def.windup && m.t < def.windup + def.active;
+      m.t += dt;
+      const active = m.t >= def.windup && m.t < def.windup + def.active;
+
+      if (active && !wasActive) {
+        // The swing itself.
+        playSfx(def.sfx, 0.85, 0.85);
+        if (def.shake) state.camera.shake = Math.max(state.camera.shake, def.shake);
+        burst(this.x + this.dir * def.reach * 0.5, this.y - def.high * 0.6, cfg.color, 8, 0.7);
+      }
+      if (active) {
+        const rect = moveRect(this, def);
+        for (const f of state.fighters) {
+          if (f === owner || f.dead || f.respawnTimer > 0 || m.hit.has(f)) continue;
+          if (!rectsOverlap(rect, hurtbox(f))) continue;
+          m.hit.add(f);
+          applyHit(owner, f, {
+            dmg: def.dmg, baseKb: def.base, growth: def.growth, angle: def.angle,
+            effect: cfg.attack?.effect || null, label: cfg.label,
+            sfx: def.sfx, heavy: !!def.heavy,
+          }, "script");
+          if (def.heavy) state.camera.shake = Math.max(state.camera.shake, 9);
+        }
+      }
+      if (m.t >= def.windup + def.active + def.recover) {
+        this.move = null;
+        this.attackCd = (cfg.attack?.cd ?? 0.45) + Math.random() * 0.35;
+      }
+    },
+
+    setBrawlerAnim(walking) {
+      if (this.behavior !== "brawler") return;
+      let key;
+      if (this.move) key = this.move.def.anim;
+      else if (this.airborne) key = this.vy < 0 ? "jump" : "fall";
+      else if (walking) key = "run";
+      else key = "idle";
+      if (key !== this.animKey) { this.animKey = key; this.animTime = 0; }
     },
 
     // Airtime for a grounded summon. Shared by piloted and automatic movement,
@@ -337,8 +708,8 @@ export function spawnSummon(owner, cfg) {
     // drive. Bombers spend themselves; chasers bite on a cooldown.
     tryContact(target) {
       const rect = {
-        x: this.x - (cfg.hitW ?? 70) / 2, y: this.y - (cfg.hitH ?? 90),
-        w: cfg.hitW ?? 70, h: cfg.hitH ?? 90,
+        x: this.x - this.hitW / 2, y: this.y - this.hitH,
+        w: this.hitW, h: this.hitH,
       };
       if (!rectsOverlap(rect, hurtbox(target))) return;
 
@@ -398,59 +769,30 @@ export function spawnSummon(owner, cfg) {
     },
 
     draw(ctx) {
-      const img = summonImage(cfg.sprites);
-      const fade = this.t < 0.25 ? this.t / 0.25 : Math.min(1, (this.dur - this.t) / 0.35);
+      const alpha = this.alpha();
+      if (alpha <= 0) return;
+      const flash = this.flash();
+      const y = this.drawY();
       const lunge = this.lungeT > 0 ? Math.sin((0.22 - this.lungeT) / 0.22 * Math.PI) * 16 : 0;
       const hoverBob = this.behavior === "support" ? 0 : Math.sin(this.bob) * (cfg.bobAmp || 0);
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, Math.min(1, fade));
-      ctx.translate(this.x + this.dir * lunge, this.y + hoverBob);
-      // Sway with the hover, and lean into a lunge. Summons are a single
-      // still image held for their whole lifetime, so this is the only thing
-      // separating a hovering curse from a decal pinned to the stage.
-      const sway = Math.sin(this.bob * 0.7) * MOTION.summonSway
-                 + (lunge / 16) * this.dir * MOTION.summonLunge;
-      ctx.rotate(sway);
-      // summon art faces left in source unless flagged; mirror to face dir
-      ctx.scale(this.dir > 0 ? (cfg.faceRight ? 1 : -1) : (cfg.faceRight ? -1 : 1), 1);
-      ctx.shadowColor = cfg.color;
-      // A driven summon glows harder than one running itself. With four
-      // fighters and several summons on screen, the player needs to see at a
-      // glance which one their stick is actually moving.
-      ctx.shadowBlur = this.piloted ? 26 : 14;
-      if (img) {
-        const h = cfg.h ?? 110;
-        const w = img.width * h / img.height;
-        ctx.drawImage(img, -w / 2, -h, w, h);
-      } else {
-        // no art at all: glowing orb silhouette
-        ctx.fillStyle = cfg.color;
-        ctx.globalAlpha *= 0.8;
-        ctx.beginPath();
-        ctx.arc(0, -(cfg.h ?? 110) / 2, (cfg.h ?? 110) / 3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      // A hit flashes the whole silhouette white, the same read a fighter's
-      // hitlag gives: something landed, and it landed on THIS one.
-      if (this.hurtT > 0 && img) {
-        const h = cfg.h ?? 110;
-        const w = img.width * h / img.height;
-        ctx.globalCompositeOperation = "source-atop";
-        ctx.globalAlpha = Math.min(1, this.hurtT / 0.12) * 0.75;
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(-w / 2, -h, w, h);
-      }
-      ctx.restore();
+
+      // The landing mark, under an arriving summon: a ring on the floor that
+      // tightens as the thing above it falls, so the drop has somewhere to
+      // land rather than simply arriving.
+      if (this.appearT > 0) this.drawArrivalMark(ctx, alpha);
+
+      if (this.actor) this.drawActor(ctx, y + hoverBob, alpha, flash);
+      else this.drawStill(ctx, y + hoverBob, alpha, flash, lunge);
 
       // Health, once it has taken any. Hidden at full so the stage is not
       // littered with bars for summons nobody has touched.
-      if (this.hp < this.maxHp) {
+      if (this.hp < this.maxHp && this.vanishT <= 0) {
         const frac = Math.max(0, this.hp / this.maxHp);
-        const w = 42;
+        const w = this.behavior === "brawler" ? 70 : 42;
         const bx = this.x - w / 2;
-        const by = this.y + hoverBob - (cfg.h ?? 110) - 8;
+        const by = y + hoverBob - (cfg.h ?? 110) - 8;
         ctx.save();
-        ctx.globalAlpha = Math.max(0, Math.min(1, fade));
+        ctx.globalAlpha = alpha;
         ctx.fillStyle = "rgba(6, 9, 18, 0.75)";
         ctx.fillRect(bx - 1, by - 1, w + 2, 5);
         ctx.fillStyle = frac > 0.35 ? cfg.color : "#ff6b6b";
@@ -461,12 +803,12 @@ export function spawnSummon(owner, cfg) {
       // The pilot marker rides above the summon, outside the mirrored and
       // rotated transform so it never flips or tilts with the art.
       if (this.piloted) {
-        const top = this.y + hoverBob - (cfg.h ?? 110) - 16;
+        const top = y + hoverBob - (cfg.h ?? 110) - 16;
         ctx.save();
         // Pulses, but never dims to the point of being missable. Drawn white
         // with a dark outline rather than in the summon's theme colour — the
         // dogs' navy would vanish against half the stages.
-        ctx.globalAlpha = Math.max(0, Math.min(1, fade)) * (0.78 + 0.22 * Math.sin(this.bob * 2));
+        ctx.globalAlpha = alpha * (0.78 + 0.22 * Math.sin(this.bob * 2));
         ctx.beginPath();
         ctx.moveTo(this.x, top + 12);
         ctx.lineTo(this.x - 9, top);
@@ -482,14 +824,89 @@ export function spawnSummon(owner, cfg) {
         ctx.restore();
       }
     },
+
+    // Cursed energy gathering where it is about to land.
+    drawArrivalMark(ctx, alpha) {
+      const p = 1 - this.appearT / APPEAR_TIME;
+      const r = this.hitW * (1.6 - 0.9 * p);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = 0.35 + 0.4 * p;
+      ctx.strokeStyle = cfg.color;
+      ctx.lineWidth = 2 + 3 * p;
+      ctx.beginPath();
+      ctx.ellipse(this.x, this.y, r, r * 0.26, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    },
+
+    // A summon with a full sprite set (the brawler) is drawn exactly the way a
+    // fighter is: its own pose for whatever it is doing this frame.
+    drawActor(ctx, y, alpha, flash) {
+      const frame = currentFrame(this.actor, this.animKey, this.animTime);
+      const opts = {
+        scale: cfg.scale ?? 0.95,
+        facing: this.dir,
+        alpha,
+        glow: cfg.color,
+        glowBlur: this.piloted ? 26 : 14,
+      };
+      drawCharFrame(ctx, this.actor, frame, this.x, y, opts);
+      if (flash > 0) {
+        // Brightened by re-drawing itself additively — the same silhouette,
+        // blown toward white. A filled rect would paint the background too.
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        drawCharFrame(ctx, this.actor, frame, this.x, y, { ...opts, alpha: alpha * flash, glow: null });
+        ctx.restore();
+      }
+    },
+
+    // Everything else: one still image (or a glowing orb where art is missing)
+    // that sways and leans so it does not read as a decal pinned to the stage.
+    drawStill(ctx, y, alpha, flash, lunge) {
+      const img = summonImage(cfg.sprites);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(this.x + this.dir * lunge, y);
+      const sway = Math.sin(this.bob * 0.7) * MOTION.summonSway
+                 + (lunge / 16) * this.dir * MOTION.summonLunge;
+      ctx.rotate(sway);
+      // summon art faces left in source unless flagged; mirror to face dir
+      ctx.scale(this.dir > 0 ? (cfg.faceRight ? 1 : -1) : (cfg.faceRight ? -1 : 1), 1);
+      ctx.shadowColor = cfg.color;
+      // A driven summon glows harder than one running itself. With four
+      // fighters and several summons on screen, the player needs to see at a
+      // glance which one their stick is actually moving.
+      ctx.shadowBlur = this.piloted ? 26 : 14;
+      const h = cfg.h ?? 110;
+      if (img) {
+        const w = img.width * h / img.height;
+        ctx.drawImage(img, -w / 2, -h, w, h);
+        if (flash > 0) {
+          ctx.globalCompositeOperation = "lighter";
+          ctx.globalAlpha = alpha * flash;
+          ctx.drawImage(img, -w / 2, -h, w, h);
+        }
+      } else {
+        // no art at all: glowing orb silhouette
+        ctx.fillStyle = cfg.color;
+        ctx.globalAlpha = alpha * (0.8 + flash * 0.2);
+        ctx.beginPath();
+        ctx.arc(0, -h / 2, h / 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    },
   };
 
-  if (s.behavior === "support") {
+  if (flies) {
     s.y = owner.y - (cfg.hover?.up ?? 150);
   }
   state.entities.push(s);
-  playSfx("summonAppear");
-  burst(s.x, s.y - (cfg.hitH || 90) / 2, cfg.color, 18, 1);
-  dust(s.x, groundY(), 8);
+  // The caster's end of it, kept light: the summon's own arrival is the loud
+  // part, and it announces itself when it lands (stepAppear).
+  playSfx("summonAppear", 0.55, 1.15);
+  burst(owner.x, owner.y - 80, cfg.color, 8, 0.7);
   return s;
 }

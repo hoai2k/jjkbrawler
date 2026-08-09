@@ -9,13 +9,14 @@ import { clamp, sign, rand } from "./utils.js";
 import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox, ownerStick } from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
 import { applyInstall } from "./specials.js";
-import { TRANSFORMS, TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "./config_transform.js";
+import { spawnSummon } from "./summons.js";
+import { TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "./config_transform.js";
 import { frameMeta } from "./assets.js";
 import { playSfx, playGrunt } from "./audio.js";
 import { critFinisherFx, dismantleLatticeFx, steelInstallFx } from "./fx.js";
 import { CHAR_FX } from "./config_fx.js";
 import { rumbleEvent } from "./rumble.js";
-import { circleRectOverlap, rectsOverlap } from "./utils.js";
+import { circleRectOverlap } from "./utils.js";
 import { ULT_METER_COST, METER_MAX } from "./constants.js";
 import { getImage } from "./assets.js";
 
@@ -37,15 +38,20 @@ function beginUltAction(f, dur, opts = {}) {
   f.invuln = Math.max(f.invuln, Math.min(dur + 0.1, 1.2));
 }
 
-// A transform only runs when it is switched on AND every pose it could be asked
-// to draw is in the manifest. A half-delivered set would leave the fighter
-// invisible mid-match, so anything missing falls back to the old behaviour
-// rather than to a hole.
-export function transformReady(cfg) {
-  if (!cfg?.enabled) return false;
-  const has = (pose) => !!frameMeta(cfg.actor, pose);
+/** Does this actor own every pose anything animating it could ask for? A
+ *  half-delivered set would pop holes mid-fight — a missing frame draws
+ *  NOTHING — so both callers below use this to fall back to something whole
+ *  rather than to a hole. */
+export function actorPosesReady(actorKey) {
+  const has = (pose) => !!frameMeta(actorKey, pose);
   return TRANSFORM_POSES.every((pose) =>
     has(pose) || (TRANSFORM_POSE_ALTERNATIVES[pose]?.every(has) ?? false));
+}
+
+// A transform only runs when it is switched on AND its actor's art is complete.
+export function transformReady(cfg) {
+  if (!cfg?.enabled) return false;
+  return actorPosesReady(cfg.actor);
 }
 
 export function performUltimate(f) {
@@ -104,108 +110,36 @@ const DIRECTORS = {
     });
   },
 
-  // Megumi — Mahoraga. Two shapes, one ultimate: once the sprite set is
-  // delivered Megumi BECOMES him (config_transform.js); until then he stalks
-  // the stage as a separate entity, which is what shipped.
+  // Megumi — Mahoraga. He is SUMMONED, not worn: the ritual finishes and the
+  // shikigami drops onto the stage as its own actor, walking, jumping and
+  // swinging a real move set that its own AI picks (behavior "brawler" in
+  // summons.js). Megumi keeps his own body and his own controls and fights
+  // beside it — and, like every other summon, the right stick takes the reins
+  // if the player would rather drive it than let it hunt.
+  //
+  // It used to be a transformation (config_transform.js), which put the player
+  // in Mahoraga's body but took Megumi off the board; a general who adapts to
+  // whatever is in front of him is a character, so he is played as one.
   summon(f, p) {
-    const transform = TRANSFORMS.mahoraga;
-    if (transformReady(transform)) {
-      beginUltAction(f, 0.9);
-      applyInstall(f, {
-        t: p.duration,
-        label: transform.label,
-        color: transform.color,
-        dmgTakenMul: p.selfDamageMul,
-        ...transform.install,
-        // Read by fighter.js when the install expires, and by render.js every
-        // frame while it runs.
-        spriteChar: transform.actor,
-      }, 2);
-      f.spriteChar = transform.actor;
-      state.camera.shake = Math.max(state.camera.shake, 10);
-      return;
-    }
     beginUltAction(f, 0.9);
-    applyInstall(f, { t: p.duration, label: "MAHORAGA", color: p.color, dmgTakenMul: p.selfDamageMul }, 2);
+    // The install is Megumi's half of the ritual: the shikigami's presence
+    // covering him while it is out. Only the label and the guard — the body
+    // stays his.
+    applyInstall(f, { t: p.duration, label: p.label, color: p.color, dmgTakenMul: p.selfDamageMul }, 2);
     const opp = opponentOf(f);
     const dir = opp ? sign(opp.x - f.x) || 1 : 1;
-    state.entities.push({
-      kind: "mahoraga",
-      owner: f,
-      x: clamp(f.x - dir * 120, 100, 1180), t: 0, dir, wheel: 0, dead: false,
-      hitCd: 0,
-      update(dt) {
-        this.t += dt;
-        this.wheel += dt * 2.4;
-        if (this.t >= p.duration) { this.dead = true; return; }
-        const target = opponentOf(f);
-        if (target && !target.dead) this.dir = sign(target.x - this.x) || this.dir;
-        this.x = clamp(this.x + this.dir * p.speed * dt, 90, 1190);
-        this.hitCd -= dt;
-        const groundY = state.platforms[0]?.y ?? 568;
-        const rect = { x: this.x - 60, y: groundY - 190, w: 120, h: 190 };
-        if (this.hitCd <= 0 && target && !target.dead && target.respawnTimer <= 0 &&
-            rectsOverlap(rect, hurtbox(target))) {
-          this.hitCd = 0.55;
-          applyHit(f, target, {
-            dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: 0.7,
-            label: "Mahoraga", sfx: "punch", heavy: true,
-          }, "script");
-          state.camera.shake = Math.max(state.camera.shake, 8);
-        }
-        if (Math.random() < dt * 6) dust(this.x + rand(-40, 40), groundY, 4);
-      },
-      draw(ctx) {
-        const groundY = state.platforms[0]?.y ?? 568;
-        const x = this.x, y = groundY;
-        const img = getImage("summon:mahoraga");
-        if (img) {
-          const h = 250;
-          const w = img.width * h / img.height;
-          ctx.save();
-          ctx.translate(x, y + 6);
-          ctx.scale(this.dir > 0 ? -1 : 1, 1);
-          ctx.shadowColor = "#e8ecf8";
-          ctx.shadowBlur = 16;
-          ctx.drawImage(img, -w / 2, -h, w, h);
-          ctx.restore();
-          return;
-        }
-        ctx.save();
-        // wheel halo
-        ctx.globalAlpha = 0.9;
-        ctx.strokeStyle = "#e8ecf8";
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.arc(x, y - 214, 26, 0, Math.PI * 2);
-        ctx.stroke();
-        for (let i = 0; i < 4; i++) {
-          const a = this.wheel + (i * Math.PI) / 2;
-          ctx.beginPath();
-          ctx.moveTo(x + Math.cos(a) * 8, y - 214 + Math.sin(a) * 8);
-          ctx.lineTo(x + Math.cos(a) * 26, y - 214 + Math.sin(a) * 26);
-          ctx.stroke();
-        }
-        // body silhouette
-        const grad = ctx.createLinearGradient(x, y - 190, x, y);
-        grad.addColorStop(0, "rgba(232,236,248,0.95)");
-        grad.addColorStop(1, "rgba(120,128,160,0.85)");
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.moveTo(x - 44, y);
-        ctx.quadraticCurveTo(x - 56, y - 120, x - 24, y - 168);
-        ctx.quadraticCurveTo(x, y - 196, x + 24, y - 168);
-        ctx.quadraticCurveTo(x + 56, y - 120, x + 44, y);
-        ctx.closePath();
-        ctx.fill();
-        // glowing eyes
-        ctx.fillStyle = "#62dcff";
-        ctx.beginPath();
-        ctx.arc(x + this.dir * 10, y - 168, 4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      },
+    spawnSummon(f, {
+      label: p.label,
+      ...p,
+      // Animated from the actor's own sprite set where that set is complete;
+      // where it is not, the summon falls back to the single still image in
+      // `p.sprites` rather than to a hole in the stage.
+      actor: p.actor && actorPosesReady(p.actor) ? p.actor : null,
+      // Between Megumi and whoever he is fighting, facing the fight.
+      offsetX: dir * 150,
+      backOff: 0,
     });
+    state.camera.shake = Math.max(state.camera.shake, 10);
   },
 
   // Jogo — Maximum: Meteor.

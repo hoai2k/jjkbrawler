@@ -55,15 +55,19 @@ export const TRANSFORMS = {
     // alongside that fighter's, because a transform into a sprite set nobody
     // downloaded draws nothing and the fighter disappears for the duration.
     fighter: "megumi",
-    // On since round 9G delivered all 31 poses. Megumi now BECOMES Mahoraga
-    // for the duration and the player drives him; the separate stalking entity
-    // in ultimates.js is the fallback for a set that fails transformReady().
+    // OFF. Megumi no longer becomes Mahoraga — the shikigami is SUMMONED and
+    // driven by its own AI as a character in its own right (the `brawler`
+    // behavior in summons.js, configured on Megumi's ultimate in
+    // characters.js). Wearing him took Megumi off the board and turned the
+    // ultimate into a costume change; summoning him puts two fighters on
+    // Megumi's side, which is what the Ten Shadows technique actually is.
     //
-    // The art is flagged for redraw in round 11 — it does not match the
-    // shikigami's canon design — but a transform in art that needs work still
-    // plays better than watching a summon walk around beside you, so this is
-    // not waiting on that.
-    enabled: true,
+    // The entry stays as the worked example of the transform machinery, which
+    // is still live (transformReady in ultimates.js) and is what the next
+    // fighter with a second body will use. Megumi's ultimate no longer reads
+    // it; the actor's art is fetched through the kit's `p.actor` instead
+    // (actorsFor in characters.js).
+    enabled: false,
     actor: "mahoraga",
     label: "MAHORAGA",
     color: "#e8ecf8",
