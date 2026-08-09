@@ -279,8 +279,11 @@ So an import over existing art leaves a marker on the pose:
 `lost` is what has to be redone — the keys of the `edited` map that was rolled
 back, plus the anchors when those went with the drawing. An empty `lost` is a
 touch-up that came back with its tuning intact: worth a look, not a re-tune. A
-brand-new pose gets no marker; it overwrote nothing, and it is already in its
-character's *no saved edits* list. `intake_variants.py` writes one too when it
+brand-new pose is marked too, as `how: "new"` with an empty `lost`, so it sorts
+below the poses with tuning to redo — it overwrote nothing, but it still has to
+be placed, and a round that adds fifteen poses to one fighter and seventeen to
+another scatters that work exactly the way an overwrite does.
+`intake_variants.py` writes one too when it
 selects a delivered alternate over the art a pose was pointing at, because the
 pose's numbers stop applying just the same.
 

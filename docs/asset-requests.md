@@ -4,14 +4,15 @@ Everything in this file is **outstanding**. Delivered rounds are recorded in
 [asset-requests-history.md](asset-requests-history.md) — including the round
 numbers, so a commit or code comment citing "round 5 art" still resolves.
 
-**Current status: rounds 1–11 delivered. Round 12 is the only open round.**
+**Current status: rounds 1–11 delivered, and 29 of round 12A's 33 workbench
+catches. Round 12 is the only open round.**
 
 The roster is complete and **every fighter now has one sprite per action** —
 round 11 finished the conversion that round 5 started, so the 4×5 sprite sheet
 is retired and no action anywhere plays a grid cell. Nothing outstanding blocks
 play.
 
-Round 12 has three parts: nineteen fix-up poses caught while placing the
+Round 12 has three parts: four fix-up poses caught while placing the
 delivered sets in the sprite workbench, the **four-frame run cycle** for the
 whole roster — the redesign that retires the two-frame run — and the
 knocked-flat **`prone` pose** the new knockdown mechanic simulates until it is
@@ -221,23 +222,29 @@ drawn against.
 
 Three parts; any can be delivered on its own.
 
-- **12A** — thirty-three workbench catches: poses that have to be drawn again (33 sprites)
+- **12A** — four workbench catches: poses that have to be drawn again (4 sprites)
 - **12B** — the four-frame run cycle, roster-wide (96 sprites)
 - **12C** — a `prone` pose, knocked flat on their back, roster-wide (24 sprites)
 
-**153 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
+**124 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
 is what makes the roster finally *run* instead of vibrating between two nearly
 identical poses. 12C is the one the engine is already simulating without art.
 
 ---
 
-## 12A. Workbench catches — 33 sprites
+## 12A. Workbench catches — 4 sprites
 
 Everything here came out of placing the delivered semantic sets in the sprite
 workbench: seen at their real size and standing on the real ground line,
 thirty-three poses turned out to be wrong. Round 11 is closed, so nothing here is
 covered by another round — every fighter listed has a finished set, and these
 are faults in it.
+
+**Twenty-nine of the thirty-three are delivered**, in two batches: Gojo's three,
+Mahito's crouch, Mahoraga's two, Maki's five, Nobara's three and Uro's four,
+then Gakuganji's four, Reggie's four and Toji's three. Megumi's two and Momo's
+two are what is left. The delivered briefs are in
+[asset-requests-history.md](asset-requests-history.md#round-12a--the-first-workbench-catches--18-sprites-across-6-fighters).
 
 **Everything in this section has to be drawn again.** That is what the section
 is: a fault that could be fixed by editing the file — a bad key, a bad crop,
@@ -254,66 +261,27 @@ different things from the redraw:
 - **`pose` — the drawing is fine, but it is not the action.** A crouch that is
   not crouched, a strike that does not travel the way the move travels. Keep
   the character, the costume and the finish; change the body.
-- **`character` — it is not the right person.** Twelve sprites in this round
-  came back as somebody else. See "The three that keep coming back wrong".
+- **`character` — it is not the right person.** Twelve sprites came back as
+  somebody else across two rounds — Uro's, Gakuganji's and Reggie's. All twelve
+  are now delivered on-model, and none of the four below is a `character`
+  fault; the account is in
+  [asset-requests-history.md](asset-requests-history.md#the-three-that-kept-coming-back-wrong).
 
 A third fault runs through several of them and is worth naming on its own,
 because it is not obvious from the drawing: **the art paints in something the
 game spawns for itself.** See "Do not draw the technique" below.
 
-**Seven of the eighteen are a crouch that is not crouched**, across six
-different fighters and three separate delivery rounds. Whatever the pose line
-says today, it is not reading as "get low": see the note under the table.
+**The crouches that were not crouched are all delivered** — seven of them, the
+bulk of the first 12A batch. One is left, `momo/crouch_attack_b`, plus
+`reggie/crouch_attack_b` carried over from 11D: see the note under the table,
+which is still the test to draw against.
 
 | Fighter | Key | Pose | Kind | Ask |
 |---|---|---|---|---|
-| Nobara Kugisaki | `nobara` | `dodge_air` | Quality | A second, grey Nobara is drawn into the plate |
-| Nobara Kugisaki | `nobara` | `special_neutral` | Pose | The nails are painted in, and the game draws its own |
-| Satoru Gojo | `gojo` | `special_down` | Pose | Reads as a palm strike, not as Infinity |
-| Satoru Gojo | `gojo` | `crouch_b` | Pose | Not crouched |
-| Satoru Gojo | `gojo` | `crouch_attack_b` | Pose | Not crouched, and the strike goes upward |
-| Mahito | `mahito` | `crouch_b` | Pose | Not crouched |
-| Mahoraga | `mahoraga` | `crouch_a` | Pose | Not crouched — a standing stride |
-| Mahoraga | `mahoraga` | `crouch_attack_b` | Pose | Not crouched; the follow-through happens standing |
-| Nobara Kugisaki | `nobara` | `special_down` | Pose | Hammers the ground; Resonance strikes a doll |
-| Maki Zen'in | `maki` | `attack_air_a` | Quality | Hands and weapon are malformed |
-| Maki Zen'in | `maki` | `attack_heavy_a` | Quality | The lead hand does not close on the shaft, which kinks where it crosses her body |
-| Maki Zen'in | `maki` | `ult_b` | Quality | Hands and weapon are malformed |
-| Maki Zen'in | `maki` | `crouch_b` | Pose | Not low enough — barely below `crouch_a` |
-| Maki Zen'in | `maki` | `crouch_attack_b` | Pose | The follow-through does not travel toward the attack |
-| Takako Uro | `uro` | `attack_air_a` `attack_air_b` `attack_heavy_a` `attack_heavy_b` | Character | Dark bob and a white bodysuit — not her |
-| Yoshinobu Gakuganji | `gakuganji` | `attack_air_a` `attack_air_b` `attack_heavy_a` `attack_heavy_b` | Character | The white haori and purple hakama are gone |
-| Reggie Star | `reggie` | `attack_air_a` `attack_air_b` `attack_heavy_a` `attack_heavy_b` | Character | A dark-haired man in a brocade waistcoat |
-| Toji Fushiguro | `toji` | `attack_air_b` | Quality | The grip on the blade does not read |
-| Toji Fushiguro | `toji` | `special_down` | Quality | The Inventory Curse is a flat ragged purple wash |
-| Toji Fushiguro | `toji` | `special_neutral` | Pose | The chain is painted in, and the engine fires its own |
 | Megumi Fushiguro | `megumi` | `special_neutral` | Pose | Nue is painted in; the engine already flies its own |
 | Megumi Fushiguro | `megumi` | `special_down` | Pose | The shadow pool is painted in; the engine draws that too |
 | Momo Nishimiya | `momo` | `attack_light_b` | Pose | The follow-up pulls the broom away from the target |
 | Momo Nishimiya | `momo` | `crouch_attack_b` | Pose | The follow-through stands up out of the crouch |
-
-### The three that keep coming back wrong
-
-Round 11C delivered wind-up/strike pairs for six fighters. Choso, Mei Mei and
-Yuji came back on-model. **Uro, Gakuganji and Reggie came back as different
-people** — all four of each fighter's pairs, twelve sprites.
-
-Those three are exactly the three round **9E** existed to fix, for exactly this
-reason. Whatever reference is being reached for when they are drawn is still the
-pre-9E one, and it has now cost two rounds.
-
-| Fighter | Canon says | The 11C pairs drew |
-|---|---|---|
-| Takako Uro | Lavender hair swept upward, pale-blue cloud garment, barefoot | A dark-green bob and a white-and-purple bodysuit with trainers |
-| Yoshinobu Gakuganji | White haori over black, purple hakama, red flying-V guitar | A plain black robe, no haori, no hakama, black guitar |
-| Reggie Star | Blond, white receipt tunic, bare arms and legs, barefoot | A dark-haired man in a black coat and gold brocade waistcoat |
-
-**Draw these three from `assets/reference/canon/<char>_idle.png` and from
-nothing else.** Not the character block, not an earlier sprite, not a wiki
-search — the `_idle.png` files are the delivered 9E art and carry the design,
-the figure scale, the line weight and the palette the rest of each set already
-has. If the drawing in front of you does not match that image, it is the wrong
-character no matter how good it looks.
 
 ### Do not draw the technique
 
@@ -323,15 +291,15 @@ spawned by the engine from that fighter's kit, composited at its own size and
 animated on its own clock. When the art paints it in as well, the player sees it
 twice, at two sizes, moving two different ways.
 
-It has now come up three times:
+It has now come up three times. Three of the five are answered —
+`nobara/special_neutral` draws the cast with the nails left to `effect:nail`,
+and Toji's two came back with the chain and the purple wash gone. They are the
+reference for Megumi's two, which are what is left:
 
 | Pose | Painted in | What the engine already spawns |
 |---|---|---|
-| `nobara/special_neutral` | cursed nails in flight | `effect:nail`, two per cast |
 | `megumi/special_neutral` | Nue, the shadow bird | `summon:nue` — steerable, 132 px tall, flown by the player |
 | `megumi/special_down` | the shadow pool he sinks into | a burst in his shadow colour, both ends of the teleport |
-| `toji/special_neutral` | the chain, thrown out ahead of him | `effect:chain` at 900 px/s, 82 px tall, piercing |
-| `toji/special_down` | a purple wash at his shoulder | `summon:inventory_curse` — a creature that hovers and supports for six seconds |
 
 Megumi's are the clearest case, because **Nue is a creature the player flies.**
 The neutral special launches him and the right stick steers him across the
@@ -362,15 +330,15 @@ which never move. Worth a look in the workbench before this round is drawn.
 
 `attack_light_a`/`_b` and `crouch_attack_a`/`_b` are **one motion drawn twice**,
 and the `_b` frame keeps going the way `_a` was heading. Four of this round's
-entries miss the same way — the second frame retreats, rises, or resets to a
+entries missed the same way — the second frame retreats, rises, or resets to a
 neutral stance, so the combo plays as a strike followed by an un-strike.
+`maki/crouch_attack_b` and `gojo/crouch_attack_b` are delivered; Momo's two are
+what is left.
 
 | Pose | `_a` does | `_b` should | `_b` does |
 |---|---|---|---|
 | `momo/attack_light_b` | thrusts the broom forward | carry through past the target, hips rotated in | lifts the broom up and back, away from what she just hit |
 | `momo/crouch_attack_b` | sweeps low out of a lunge | stay down, the sweep finishing across the floor | rises toward standing |
-| `maki/crouch_attack_b` | strikes low | follow the arc through | does not travel toward the attack |
-| `gojo/crouch_attack_b` | strikes low | follow through, still crouched | rises and strikes upward |
 
 The check: flip between `_a` and `_b`. Every part of the body that was moving
 should have moved **further in the same direction**. If the weapon or fist is
@@ -378,23 +346,28 @@ closer to where it started, the second frame is a wind-up, not a follow-through.
 
 ### Hands on a weapon
 
-Maki's three `replace` frames are all the same failure, and it is the one to
+Maki's three quality frames were all the same failure, and it is the one to
 watch for on every armed fighter: **the hand does not grip.** The fingers pass
 through the shaft, or close on empty air beside it, or the shaft bends through
-the fist as though it were rope. `attack_heavy_a` has both — the lead hand never
-closes, and the naginata kinks where it crosses her chest.
+the fist as though it were rope. `attack_heavy_a` had both — the lead hand never
+closed, and the naginata kinked where it crossed her chest.
 
-Her `attack_heavy_b` is the reference: two hands, both closed, the shaft dead
-straight through them. Draw the grip first and the pose around it.
+Her three are delivered, and so is `toji/attack_air_b`, the round's other
+instance. `attack_heavy_b` remains the reference: two hands, both closed, the
+shaft dead straight through them. Draw the grip first and the pose around it.
 
 ### The crouch keeps coming back standing
 
 `gojo/crouch_b`, `gojo/crouch_attack_b`, `mahito/crouch_b`,
-`mahoraga/crouch_a`, `mahoraga/crouch_attack_b` and `reggie/crouch_attack_b`
-(11D) are all the same miss, from three different rounds: a figure standing
+`mahoraga/crouch_a`, `mahoraga/crouch_attack_b`, `maki/crouch_b`,
+`maki/crouch_attack_b`, `momo/crouch_attack_b` and `reggie/crouch_attack_b`
+(11D) were all the same miss, from three different rounds: a figure standing
 upright with the knees slightly bent, which reads as `idle` rather than as a
 crouch. It survives review every time because in isolation it is a good drawing
 — it only fails beside the fighter's own `idle_a`, where nothing has moved.
+
+All but Momo's and Reggie's are delivered, and the delivered ones are the
+worked example: put one beside its `idle_a` and the head has visibly dropped.
 
 So the pose lines are not enough on their own. For any crouch pose in this round
 or later, the test is comparative and it is the one to draw against:
@@ -425,85 +398,6 @@ round's numbers are not mistaken for the whole outstanding list.
 
 If a redelivery is ever easier than a cut, the spec is the standard one with a
 single addition: **no drawn shadow of any kind** — the game casts its own.
-
-### The three crouches — 3 sprites
-
-`crouch_a` and `crouch_b` are the two frames of the crouch cycle, and `crouch_b`
-is meant to be **the same crouch a fraction lower, weight settled**. What was
-delivered for all three is a figure standing upright with the knees slightly
-bent — closer to `idle` than to `crouch_a`. On screen the character barely moves
-when the player holds down, and `crouch_attack_b` swings upward from standing
-rather than following through on a low attack.
-
-The `_a` frames are right; draw the `_b` frames against them.
-
-| Pose | What to draw |
-|---|---|
-| `gojo/crouch_b` | The same crouch as `gojo/crouch_a`, settled lower — hips down near heel height, thighs closer to horizontal, back angled forward, guard still up. This is a fighting crouch, not a rest. |
-| `mahito/crouch_b` | The same, against `mahito/crouch_a`. |
-| `gojo/crouch_attack_b` | The **follow-through of a low attack** — the arm or leg extended out at ankle-to-knee height, body still down in the crouch, weight carried through the sweep. Not a rising uppercut. |
-
-Match each fighter's own `crouch_a` for camera distance, figure scale, costume
-and line weight: these two frames play back to back at a few frames a second, so
-anything that differs between them reads as a flicker rather than a settle.
-
-### Gojo's Infinity — 1 sprite
-
-`gojo/special_down` is his **down special**, which is `Infinity` — a *counter*,
-not a strike (`src/characters.js`). What is drawn is Gojo standing square with a
-palm thrust forward, which is a good drawing of his heavy (`Lapse Palm`) and is
-close enough to it on screen that the two moves look like the same move.
-
-Draw the counter instead: **stopped**, not striking. Weight low and settled, both
-hands raised into a hold rather than one arm punched out, the body braced to
-receive something. The nullification field is the point — pale blue-white
-distortion gathering just off his palms, air bending around him — and the pose
-should read as *the attack does not arrive* rather than *he is hitting you*.
-
-### Nobara's air dodge — 1 sprite
-
-`nobara/dodge_air` has **two figures on it.** Behind the drawn Nobara there is a
-full grey ghost of her — a second body, a second head of hair, a second arm —
-and the hammer belongs to the ghost, not to her: her own hands are closed on
-nothing.
-
-Whatever it was meant to be as an illustration, the game composites its own
-motion trails behind a dodging fighter (`trailStrength`, `src/motion.js`), so a
-painted-in afterimage is a grey duplicate Nobara that trails the real one and
-never fades, with a hammer floating loose beside it.
-
-Redraw as **one** figure: Nobara tucked mid-air through an evasive roll, hammer
-held in her own hand, nothing behind her. No afterimage, no speed lines, no
-second body — the engine adds all of that.
-
-### Nobara's two techniques — 2 sprites
-
-Her kit (`src/characters.js`) is specific about what these are, and neither
-drawing matches:
-
-| Pose | Technique | What is drawn | What it should be |
-|---|---|---|---|
-| `special_neutral` | **Straw Doll: Nail Shot** — cursed nails fired downrange | Hammer raised, arm out, and a row of grey nails already flying off her hand | The moment of the shot, **without the nails.** The game spawns them itself (`effect:nail`, two per cast), so the painted ones fly alongside a second set at a different size and colour. Draw the cast: hammer driving forward, nails just leaving, energy at the hand — no projectiles in flight. |
-| `special_down` | **Resonance** — drives a nail into the **straw doll**, so marked souls take the hit wherever they stand | Crouched, hammering nails into the ground | The doll is the whole point of the move and is not in the picture. Draw her low with the straw doll held or braced in one hand, hammer driving a nail into *it*, cursed energy running out of the doll rather than into the floor. Hammering the ground is already what her down-heavy looks like. |
-
-`special_down` is the wish and `special_neutral` the blocking one, because the
-doubled nails are visible in every match.
-
-```
-assets/intake/gojo/special_down.png
-assets/intake/gojo/crouch_b.png
-assets/intake/gojo/crouch_attack_b.png
-assets/intake/mahito/crouch_b.png
-assets/intake/nobara/dodge_air.png
-assets/intake/nobara/special_neutral.png
-assets/intake/nobara/special_down.png
-```
-
-Standard delivery spec at the top of this file. Gojo and Mahito key on magenta
-`#FF00FF`; Nobara is a warm palette, so hers key on mid-grey `#808080`. Canon
-references: `assets/reference/canon/gojo_idle.png`,
-`assets/reference/canon/mahito_idle.png` and
-`assets/reference/canon/nobara_idle.png`.
 
 ---
 

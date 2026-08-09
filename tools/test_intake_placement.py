@@ -181,8 +181,16 @@ def main():
           "a touch-up says its tuning survived rather than staying silent",
           json.dumps(reframed.get("replaced")))
 
+    # A brand-new pose is marked too, as `how: "new"`. It overwrote nothing, so
+    # `lost` is empty and it sorts below the poses with tuning to redo — but it
+    # still has to be placed, and that work scatters across the roster exactly
+    # the way an overwrite does. See replaced_note() in intake_import.py.
     fresh, _, _ = import_meta(None, None, frame, meta)
-    check("replaced" not in fresh, "a brand-new pose overwrote nothing, so it is not marked")
+    note = fresh.get("replaced") or {}
+    check(note.get("how") == "new", "a brand-new pose is marked as new work",
+          json.dumps(fresh.get("replaced")))
+    check(note.get("lost") == [], "and has nothing to redo, having overwritten nothing",
+          json.dumps(note.get("lost")))
 
     print("\n" + (f"{fails} check(s) failed" if fails else "All checks pass"))
     return 1 if fails else 0
