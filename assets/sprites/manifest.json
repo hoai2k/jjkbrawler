@@ -409,17 +409,21 @@
     "h": 1016,
     "ox": -281.2,
     "oy": -693,
-    "bodyBottom": 310,
+    "bodyBottom": 295.5,
     "bodyH": 210.0,
     "centroidX": 179.6,
-    "renderScale": 0.2438,
+    "renderScale": 0.2401,
     "anchors": {
      "com": [
       426.3,
       370.5
      ]
     },
-    "bodyTop": 14
+    "bodyTop": 14,
+    "edited": {
+     "renderScale": 0.2438,
+     "bodyBottom": 310
+    }
    },
    "run_b": {
     "file": "gojo/run_b.png",
@@ -427,7 +431,7 @@
     "h": 1016,
     "ox": -348.3,
     "oy": -692,
-    "bodyBottom": 310,
+    "bodyBottom": 296,
     "bodyH": 210.0,
     "centroidX": 215.6,
     "renderScale": 0.2407,
@@ -437,7 +441,10 @@
       346.1
      ]
     },
-    "bodyTop": 15
+    "bodyTop": 15,
+    "edited": {
+     "bodyBottom": 310
+    }
    },
    "jump_rise": {
     "file": "gojo/jump_rise.png",
@@ -4360,20 +4367,17 @@
     "bodyBottom": 310.4,
     "bodyH": 265.4,
     "centroidX": 194.1,
-    "renderScale": 0.291,
+    "renderScale": 0.2983,
     "file": "momo/attack_air_b.png",
-    "replaced": {
-     "at": "2026-08-08T23:30:34+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       531.8,
       386.2
      ]
+    },
+    "edited": {
+     "renderScale": 0.291
     }
    },
    "attack_down": {
@@ -5395,7 +5399,7 @@
     "bodyBottom": 310.0,
     "bodyH": 238.8,
     "centroidX": 182.1,
-    "renderScale": 0.208,
+    "renderScale": 0.2122,
     "file": "mahito/run_b.png",
     "bodyTop": 0,
     "anchors": {
@@ -5403,6 +5407,9 @@
       599.4,
       415.5
      ]
+    },
+    "edited": {
+     "renderScale": 0.208
     }
    },
    "dodge_air": {
@@ -7169,14 +7176,17 @@
     "bodyBottom": 310,
     "bodyH": 242.0,
     "centroidX": 187.5,
-    "renderScale": 0.245,
+    "renderScale": 0.2609,
     "anchors": {
      "com": [
       405.9,
       374.0
      ]
     },
-    "bodyTop": 14
+    "bodyTop": 14,
+    "edited": {
+     "renderScale": 0.245
+    }
    },
    "run_b": {
     "file": "megumi/run_b.png",
@@ -19259,44 +19269,39 @@
     "bodyBottom": 310.4,
     "bodyH": 243.5,
     "centroidX": 188.7,
-    "renderScale": 0.206,
+    "renderScale": 0.2081,
     "file": "yuji/attack_air_a.png",
-    "replaced": {
-     "at": "2026-08-09T00:57:32+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       431.5,
       393.6
      ]
+    },
+    "edited": {
+     "renderScale": 0.206
     }
    },
    "attack_air_b": {
     "w": 972,
     "h": 901,
-    "ox": -329.2,
+    "ox": -179.2,
     "oy": -590,
     "bodyBottom": 310.4,
     "bodyH": 185.6,
     "centroidX": 98.2,
-    "renderScale": 0.206,
+    "renderScale": 0.2513,
     "file": "yuji/attack_air_b.png",
-    "replaced": {
-     "at": "2026-08-09T00:57:32+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      428.2,
-      311.3
+      330.4,
+      366.9
      ]
+    },
+    "edited": {
+     "renderScale": 0.206,
+     "ox": -329.2
     }
    },
    "attack_heavy_a": {
@@ -19304,47 +19309,44 @@
     "h": 1049,
     "ox": -275.2,
     "oy": -738,
-    "bodyBottom": 310.4,
+    "bodyBottom": 272.4,
     "bodyH": 216.1,
     "centroidX": 184.1,
-    "renderScale": 0.206,
+    "renderScale": 0.2225,
     "file": "yuji/attack_heavy_a.png",
-    "replaced": {
-     "at": "2026-08-09T00:57:32+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
       460.6,
       397.1
      ]
+    },
+    "edited": {
+     "renderScale": 0.206,
+     "bodyBottom": 310.4
     }
    },
    "attack_heavy_b": {
     "w": 960,
     "h": 1086,
-    "ox": -323.2,
+    "ox": -268.7,
     "oy": -775,
-    "bodyBottom": 310.4,
+    "bodyBottom": 252.4,
     "bodyH": 223.7,
     "centroidX": 161.0,
-    "renderScale": 0.206,
+    "renderScale": 0.2431,
     "file": "yuji/attack_heavy_b.png",
-    "replaced": {
-     "at": "2026-08-09T00:57:32+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      483.3,
-      410.6
+      423.6,
+      405.0
      ]
+    },
+    "edited": {
+     "renderScale": 0.206,
+     "ox": -323.2,
+     "bodyBottom": 310.4
     }
    }
   },
@@ -20660,7 +20662,7 @@
     "h": 1125,
     "ox": -338.2,
     "oy": -814,
-    "bodyBottom": 310.4,
+    "bodyBottom": 295.4,
     "bodyH": 232.0,
     "centroidX": 134.2,
     "renderScale": 0.206,
@@ -20671,6 +20673,9 @@
       473.7,
       447.6
      ]
+    },
+    "edited": {
+     "bodyBottom": 310.4
     }
    },
    "run_b": {
