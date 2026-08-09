@@ -140,7 +140,8 @@ Divergent Fist first hit already sparks through the normal hit path — the echo
 carrying the louder burst is the intended read. Three installs that had no
 aura art (Maki, Panda's Gorilla Mode, Yuji's Grit) now point at
 `aura_jade` / `aura_slate` / `aura_indigo`, shipped as procedural placeholders
-and requested properly as asset round **12D**.
+and requested properly — as round 12D at the time, carried over to **13E**
+when round 12 closed with its three sprite parts delivered.
 
 ### CP6 — sound
 

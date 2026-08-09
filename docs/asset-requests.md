@@ -4,18 +4,18 @@ Everything in this file is **outstanding**. Delivered rounds are recorded in
 [asset-requests-history.md](asset-requests-history.md) — including the round
 numbers, so a commit or code comment citing "round 5 art" still resolves.
 
-**Current status: rounds 1–11 delivered, all 33 of round 12A, and two thirds of
-12B/12C. Rounds 12, 13 and 14 are open.**
+**Current status: rounds 1–12 delivered. Rounds 13 and 14 are open.**
 
 The roster is complete and **every fighter now has one sprite per action** —
 round 11 finished the conversion that round 5 started, so the 4×5 sprite sheet
 is retired and no action anywhere plays a grid cell. Nothing outstanding blocks
 play.
 
-What is left of round 12 is the **four-frame run cycle** — the redesign that
-retires the two-frame run — and the knocked-flat **`prone` pose** the knockdown
-mechanic simulates until it is drawn, both for the nine fighters who have
-neither yet. Its workbench catches (12A) are all delivered.
+**Round 12 is closed.** Every fighter runs on a four-frame cycle, every fighter
+has a drawn knockdown, and its thirty-three workbench catches are all in. Its
+one unbuilt piece — three install auras, which is effect art rather than a pose
+— has moved to round 13 as **13E**, since keeping a whole round open for it
+would misreport what is outstanding.
 
 Round 13 is the **roster-wide sweep of the attack and crouch rows** that 12A
 only ever sampled. Every attack and crouch frame on every fighter was put on a
@@ -224,27 +224,7 @@ drawn against.
 
 ---
 
-# Round 12 — open
-
-Two parts left; either can be delivered on its own.
-
-- **12B** — the four-frame run cycle, for the **nine fighters still without it**
-  (36 sprites)
-- **12C** — a `prone` pose, knocked flat on their back, for the same nine
-  (9 sprites)
-- **12D** — three install auras the engine now points at (3 sprites)
-
-**48 sprites in total.** 12A is closed — all thirty-three delivered, in three
-batches — and 12B and 12C are two thirds in: fifteen fighters have the run cycle
-and the prone pose, and the same nine are missing both.
-
-**The nine:** `gakuganji`, `gojo`, `mahito`, `mahoraga`, `maki`, `nobara`,
-`reggie`, `toji`, `uro`. Delivering one fighter's five frames at a time is fine;
-they go in as they arrive.
-
----
-
-## Not in this round: the two alpha fixes
+## Repo work, not a request: the two alpha fixes
 
 `hakari/dodge_air` and `toji/dodge_air` both carry unkeyed grey behind the
 figure — a drawn shadow in almost exactly the mid-grey `#808080` of their key
@@ -255,213 +235,11 @@ them every time they air-dodge.
 **Neither is an asset request.** The drawings are good and their placement is
 correct; the file is what is wrong, and that is repo work. They are flagged
 `wantsImprovement: "alpha"` so the workbench shows them and
-`tools/list_replacements.py` tracks them, and they are listed here only so the
+`tools/list_replacements.py` tracks them, and they are listed here only so a
 round's numbers are not mistaken for the whole outstanding list.
 
 If a redelivery is ever easier than a cut, the spec is the standard one with a
 single addition: **no drawn shadow of any kind** — the game casts its own.
-
----
-
-## 12B. The four-frame run cycle — 36 sprites across the last 9 characters
-
-### Why the two-frame run is being retired
-
-Every fighter's run is two sprites, `run_a` and `run_b`, alternated at 10 fps.
-Set them side by side for any fighter and the problem is visible before the
-game even starts: **they are two drawings of the same half of a stride.** Both
-frames tend to show the same leg leading, differing only in arm angle or how
-far the legs are apart — so on screen the character does not stride, they
-vibrate between two near-identical poses while sliding along the ground. And
-because the two were generated independently, they rarely agree on lean or
-figure scale either, so the vibration comes with a lurch.
-
-The fix is not better versions of the same two frames. A run cycle has a
-structure, and two frames cannot hold it:
-
-- A stride has **two halves** — right leg leading, then left leg leading — and
-  a side-view character is asymmetric (Maki's naginata, Yuta's katana, Nanami's
-  cleaver, every jacket and hairstyle), so the second half cannot be faked by
-  mirroring the first. Both leg-leads must be drawn.
-- Between the two reaches the legs **cross under the body**. Without a crossing
-  frame the legs teleport from one split to the other, which is exactly the
-  "two poses swapping" read the current run has.
-
-Four key poses is the classic minimum that holds all of it — the **reach**
-(full stride) and the **pass** (legs crossing) for each leg-lead — and it is
-also about the ceiling of what our generator can keep consistent across
-independently drawn frames, so that is the shape of this round:
-
-| Order | Pose key | What it is |
-|---|---|---|
-| 1 | `run_reach_a` | full stride, one leg reaching forward |
-| 2 | `run_pass_a` | legs crossing under the body, rear leg swinging through |
-| 3 | `run_reach_b` | full stride, the **other** leg reaching forward |
-| 4 | `run_pass_b` | legs crossing again, the other leg swinging through |
-
-The loop plays 1→2→3→4 at 13 fps — a full cycle every ~0.31 s, about three
-strides a second, which reads as a sprint. The engine adds sway once per cycle
-and a bob on each footfall on top (`src/motion.js`).
-
-### Pose lines
-
-Combine each fighter's character block with these, one image per line. The four
-are **one continuous motion sampled four times** — same camera, same distance,
-same figure scale, same costume and weapon; only the body moves.
-
-| Pose | Pose line |
-|---|---|
-| `run_reach_a` | sprinting at full stride, torso leaning forward, RIGHT leg extended forward with the heel about to strike, left leg trailing fully behind, LEFT arm swung forward and right arm driven back, body at the lowest point of the stride |
-| `run_pass_a` | mid-stride, upright moment of the sprint, legs crossing directly beneath the hips with the left knee driving through to the front, arms passing at the sides, body at the highest point of the stride |
-| `run_reach_b` | sprinting at full stride, torso leaning forward, LEFT leg extended forward with the heel about to strike, right leg trailing fully behind, RIGHT arm swung forward and left arm driven back, body at the lowest point of the stride |
-| `run_pass_b` | mid-stride, upright moment of the sprint, legs crossing directly beneath the hips with the right knee driving through to the front, arms passing at the sides, body at the highest point of the stride |
-
-Things that make or break this specific set:
-
-- **The lean is constant.** A sprinter's torso holds a steady forward lean
-  through the whole cycle. If one frame stands tall and the next dives, the
-  loop rocks like a see-saw. Pick the lean from the fighter's `dash` pose,
-  dialled back a little, and keep it in all four.
-- **Reach low, pass high.** The body genuinely rises on the crossing frames and
-  sinks on the contact frames — that is where the bounce of a run comes from,
-  and the engine only *adds half* of its usual procedural bob when the cycle
-  art is present, expecting the art to carry the rest.
-- **Weapons ride, they do not flail.** A carried weapon (naginata, axe, broom,
-  sword, guitar) stays in the same hand at the same size in all four frames,
-  moving only as much as the arm swing moves it. The most common generator
-  failure on this pose is the prop teleporting between hands.
-- **Nothing airborne-looking.** Frames where both feet float with the body
-  rising read as a jump when looped. On the pass frames the toes of the
-  planted foot can leave the ground, but the pose must read as *between*
-  steps, not above them.
-- **No motion effects.** No speed lines, no dust, no afterimages — the engine
-  draws all of that (`trailStrength`, dash dust). Painted-in effects loop as a
-  flicker.
-
-### Who and what to deliver
-
-All 23 roster fighters plus **Mahoraga**, four poses each. He was held out of
-this list while round 11A was open, on the assumption his cycle would come with
-that redraw; 11A has since been delivered as the 33-pose set, which carries
-`run_a`/`run_b` and not the cycle. So he needs these four like everyone else —
-`assets/intake/mahoraga/run_reach_a.png` and the rest.
-
-```
-assets/intake/<character>/run_reach_a.png
-assets/intake/<character>/run_pass_a.png
-assets/intake/<character>/run_reach_b.png
-assets/intake/<character>/run_pass_b.png
-```
-
-Standard delivery spec at the top of this file: facing right, flat key screen —
-warm-palette fighters (Sukuna, Nobara, Momo, Hakari, Yuji, Choso, Uro,
-Gakuganji) on mid-grey `#808080`, everyone else on magenta `#FF00FF`. Each
-fighter's canonical reference is their `assets/reference/canon/<char>_idle.png`
-— every fighter has one now — and their `dash` sprite is the secondary
-reference for how *this* character carries themselves at speed.
-
-Deliver **all four frames of a fighter together.** A half-delivered cycle
-plays whatever subset exists, and two frames of the new art loop worse than
-the old pair they replace. Fighter by fighter is fine; frame by frame is not.
-
-### The old pair stays, as the fallback
-
-`run_a` and `run_b` are not deleted and not redrawn. The run animation names
-the four cycle frames with the old pair as its `fallback`
-(`src/characters.js`), so a fighter whose cycle has not landed keeps running
-exactly as today, at the old 10 fps — and picks the cycle up the moment their
-four frames are imported and registered. No code change per fighter; the round
-can land one fighter at a time.
-
-### Integrating
-
-1. Import with `tools/intake.py` as usual — the semantic pose keys register
-   like any other.
-2. Run `python3 tools/bake_anchors.py` so the new frames get their centre of
-   mass measured; the run lean rotates about it.
-3. Check the loop in the sprite workbench: the four frames play in order under
-   the Run state, and a scale mismatch between them shows up as pulsing there
-   before it ships.
-
----
-
-## 12C. A prone pose — knocked flat on their back, 9 sprites
-
-### Why
-
-The game now has a KNOCKDOWN: Reggie's runaway sedan (and anything else that
-sets `knockdown` on a hit) leaves its victim lying flat on the ground for about
-a second before they get up. Every fighter can be on the receiving end, so every
-fighter needs the pose.
-
-**Nothing is blocked.** Until a fighter's `prone` art lands, the game simulates
-it — their `hurt` pose swept 90 degrees onto its back (`fighter.js`,
-`prone` in the shared animation tables). That reads fine at speed; a drawn pose
-reads better. Deliveries can land one fighter at a time and each takes effect on
-import with no code change, the same fallback machinery as the wind-up/strike
-pairs.
-
-### What to deliver
-
-One pose per fighter:
-
-| Pose | Pose line |
-|---|---|
-| `prone` | flat on their back on the ground, arms out, legs dropped, head tilted — dazed but conscious, the beat after being run over. Drawn HORIZONTAL: the body lies along the ground plane, feet toward the right edge of the frame |
-
-Facing note: the standard spec says faces right — for this pose that means
-**feet to the right**, since the body is horizontal. The renderer mirrors it
-for a fighter facing left like any other frame.
-
-Match each fighter's canonical reference image for costume, proportions and line
-weight. Same delivery spec as everything else; body length on the plate around
-the usual ~290 px figure scale, lying down.
-
-Deliver to:
-
-```
-assets/intake/<character>/prone.png
-```
-
-All 23 fighters plus **Mahoraga** — the transform can be knocked down like
-anyone else (his armour eats the hit today, but a future knockdown that pierces
-armour would want the pose). Round 11A is closed, so his does not arrive with
-anything else.
-
----
-
-## 12D. Install auras — 3 sprites
-
-The install system draws a character-sized aura sprite behind a powered-up
-fighter (`drawInstallAura`, `src/render.js`) — Nanami's Overtime has
-`aura_gold.png`, Jogo's Furnace Shell `aura_orange.png`, and so on. Three
-installs ran on a procedural ellipse because no aura was ever drawn for
-them. The engine now names these files and ships **procedural placeholders**
-for all three (soft gradient plates, generated in code) — so the slots are
-live, and a delivered drawing replaces its placeholder through the normal
-intake with no code change.
-
-| File | Install | What to draw |
-|---|---|---|
-| `aura_jade.png` | Maki — Split Soul Stance / Awakening | **Not cursed energy** — she has none, and that is the point. A faint pale-jade `#b8ffe2` afterimage shell: thin vertical speed-line streaks and a barely-there rim, reading as air sheared by speed rather than as a glow. The most restrained aura in the set. |
-| `aura_slate.png` | Panda — Gorilla Mode | Heat-shimmer and steam rolling off the body: soft slate-grey `#8ea0b8` vapour with a faint warm orange-red rim at the shoulders, dense at the bottom, ragged at the top. Physical heat, not energy. |
-| `aura_indigo.png` | Yuji — Unbreakable Grit | A low, dense, dark blue-grey `#4a5578` aura hugging the silhouette, heaviest at the planted feet and forearms — endurance, weight, dug-in. No flames, no sparkle. |
-
-Match the existing aura set for format: **portrait plate, the aura alone on the
-key screen, no character in the image** — the engine composites it behind the
-fighter's own sprite at body size. Open `assets/sprites/effects/aura_gold.png`
-beside these before drawing; same canvas proportions, same soft-edged
-translucency (the delivery is opaque on the key screen; intake cuts the alpha).
-Key on magenta `#FF00FF` for jade and indigo; **grey `#808080` for
-`aura_slate`** (its warm rim would fight a magenta key).
-
-Deliver to:
-
-```
-assets/intake/effects/aura_jade.png
-assets/intake/effects/aura_slate.png
-assets/intake/effects/aura_indigo.png
-```
 
 ---
 
@@ -474,18 +252,21 @@ of **every attack and crouch frame on the roster at once**: all 288 of them —
 `bodyBottom` to a shared ground line, mirrored where the manifest sets
 `faceLeft`, and read against what the animation asks the pose to do.
 
-Fifty-three came back suspect. Twelve are accounted for — ten delivered in 12A's
-two batches, and `momo/attack_light_b` and `momo/crouch_attack_b` still open
-there. The remaining **forty-one** are this round.
+Fifty-three came back suspect. Twelve are accounted for — all delivered across
+12A's three batches. The remaining **forty-one** are this round, plus the three
+install auras carried over from round 12.
 
 - **13A** — crouches that are standing (22 sprites)
 - **13B** — `crouch_attack` frames that never get low (10 sprites)
 - **13C** — light-attack pairs that do not reach (7 sprites)
 - **13D** — one wrong direction, one wrong person (2 sprites)
+- **13E** — three install auras, carried over from round 12 (3 sprites)
 
-**41 sprites in total**, and all but one are `pose`: the drawings are good, they
-are the wrong body. Nothing here is blocking — every one of these frames renders
-and animates today, it just reads as a different move than the one it plays for.
+**44 sprites in total.** All but one of the forty-one poses are `pose`: the
+drawings are good, they are the wrong body. Nothing here is blocking — every one
+of these frames renders and animates today, it just reads as a different move
+than the one it plays for, and 13E's three installs run on procedural
+placeholders in the meantime.
 
 **Draw 13A first.** 12A's deliveries fixed one frame of four fighters' crouch
 pairs and left the other, so Gojo, Mahito, Maki and Mahoraga now alternate at
@@ -493,8 +274,9 @@ pairs and left the other, so Gojo, Mahito, Maki and Mahoraga now alternate at
 visible in play than either frame was wrong on its own, and this round is what
 closes it.
 
-Idle, run and jump rows were deliberately excluded; the run is already being
-redrawn as 12B.
+Idle, run and jump rows were deliberately excluded; the run was being redrawn
+as 12B at the time, and has since landed — every fighter now has the
+four-frame cycle.
 
 ## What the sweep found, before the tables
 
@@ -725,6 +507,46 @@ Two traps this sweep hit, for whoever runs it next:
 
 ---
 
+## 13E. Install auras — 3 sprites
+
+Carried over from round 12, where it was 12D. The three sprite parts of
+that round are delivered and it is closed; this is the only piece that
+never arrived, and it is effect art rather than a pose, so it moves here
+rather than keeping a round open on its own.
+
+The install system draws a character-sized aura sprite behind a powered-up
+fighter (`drawInstallAura`, `src/render.js`) — Nanami's Overtime has
+`aura_gold.png`, Jogo's Furnace Shell `aura_orange.png`, and so on. Three
+installs ran on a procedural ellipse because no aura was ever drawn for
+them. The engine now names these files and ships **procedural placeholders**
+for all three (soft gradient plates, generated in code) — so the slots are
+live, and a delivered drawing replaces its placeholder through the normal
+intake with no code change.
+
+| File | Install | What to draw |
+|---|---|---|
+| `aura_jade.png` | Maki — Split Soul Stance / Awakening | **Not cursed energy** — she has none, and that is the point. A faint pale-jade `#b8ffe2` afterimage shell: thin vertical speed-line streaks and a barely-there rim, reading as air sheared by speed rather than as a glow. The most restrained aura in the set. |
+| `aura_slate.png` | Panda — Gorilla Mode | Heat-shimmer and steam rolling off the body: soft slate-grey `#8ea0b8` vapour with a faint warm orange-red rim at the shoulders, dense at the bottom, ragged at the top. Physical heat, not energy. |
+| `aura_indigo.png` | Yuji — Unbreakable Grit | A low, dense, dark blue-grey `#4a5578` aura hugging the silhouette, heaviest at the planted feet and forearms — endurance, weight, dug-in. No flames, no sparkle. |
+
+Match the existing aura set for format: **portrait plate, the aura alone on the
+key screen, no character in the image** — the engine composites it behind the
+fighter's own sprite at body size. Open `assets/sprites/effects/aura_gold.png`
+beside these before drawing; same canvas proportions, same soft-edged
+translucency (the delivery is opaque on the key screen; intake cuts the alpha).
+Key on magenta `#FF00FF` for jade and indigo; **grey `#808080` for
+`aura_slate`** (its warm rim would fight a magenta key).
+
+Deliver to:
+
+```
+assets/intake/effects/aura_jade.png
+assets/intake/effects/aura_slate.png
+assets/intake/effects/aura_indigo.png
+```
+
+---
+
 # Round 14 — open
 
 **Reach is now gameplay.** Until this month a fighter's melee range was a
@@ -848,9 +670,9 @@ is under-represented and a slight one over-represented, because the data cannot
 be trusted on its own. **Consistent idle stances would let that number go up and
 make silhouette a real characteristic.**
 
-Note this is the one row round 13's sweep deliberately excluded, and 12B is
-already redrawing the run — so the idle is the remaining unaudited pose, and the
-one that now carries the most mechanical weight.
+Note this is the one row round 13's sweep deliberately excluded, and 12B has
+since redrawn the run — so the idle is the remaining unaudited pose, and the one
+that now carries the most mechanical weight.
 
 ### What to deliver
 
