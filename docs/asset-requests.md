@@ -13,7 +13,7 @@ Yuta each have one sprite per action — and **the thirteen it did not reach rol
 into round 11 rather than staying open behind it**, so a round's numbers are
 always the real remaining work. Round 11 is part-delivered: **11A (Mahoraga) is
 done**, and ten of 11B's thirteen fighters are done, leaving three there.
-Round 12 has three parts: fifteen fix-up poses caught while
+Round 12 has three parts: nineteen fix-up poses caught while
 placing the delivered sets in the sprite workbench, the **four-frame run
 cycle** for the whole roster — the redesign that retires the two-frame run —
 and the knocked-flat **`prone` pose** the new knockdown mechanic simulates
@@ -582,21 +582,21 @@ two together makes the blocking ones wait behind the wish list.
 
 Three parts; any can be delivered on its own.
 
-- **12A** — seventeen workbench catches: poses that are wrong on the art or wrong as the action (17 sprites)
+- **12A** — nineteen workbench catches: poses that are wrong on the art or wrong as the action (19 sprites)
 - **12B** — the four-frame run cycle, roster-wide (92 sprites)
 - **12C** — a `prone` pose, knocked flat on their back, roster-wide (23 sprites)
 
-**132 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
+**134 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
 is what makes the roster finally *run* instead of vibrating between two nearly
 identical poses. 12C is the one the engine is already simulating without art.
 
 ---
 
-## 12A. Workbench catches — 17 sprites
+## 12A. Workbench catches — 19 sprites
 
 Everything here came out of placing the delivered semantic sets in the sprite
 workbench: seen at their real size and standing on the real ground line,
-seventeen poses turned out to be wrong — some as drawings, some as the action they stand
+nineteen poses turned out to be wrong — some as drawings, some as the action they stand
 for. Nothing in this round is in round 11; every fighter listed here has a
 finished set, so 11B and 11C do not cover them.
 
@@ -635,6 +635,8 @@ is not reading as "get low": see the note under the table.
 | Maki Zen'in | `maki` | `crouch_attack_b` | Pose | The follow-through does not travel toward the attack |
 | Megumi Fushiguro | `megumi` | `special_neutral` | Pose | Nue is painted in; the engine already flies its own |
 | Megumi Fushiguro | `megumi` | `special_down` | Pose | The shadow pool is painted in; the engine draws that too |
+| Momo Nishimiya | `momo` | `attack_light_b` | Pose | The follow-up pulls the broom away from the target |
+| Momo Nishimiya | `momo` | `crouch_attack_b` | Pose | The follow-through stands up out of the crouch |
 
 ### Do not draw the technique
 
@@ -669,6 +671,24 @@ yet. Two black hounds are painted at his feet, and Divine Dogs spawns two real
 ones (`summon:divine_dog_black`, `summon:divine_dog_white`, `maxActive: 2`) that
 chase the opponent for six seconds — so a cast puts four dogs on screen, two of
 which never move. Worth a look in the workbench before this round is drawn.
+
+### The second frame has to finish the first
+
+`attack_light_a`/`_b` and `crouch_attack_a`/`_b` are **one motion drawn twice**,
+and the `_b` frame keeps going the way `_a` was heading. Four of this round's
+entries miss the same way — the second frame retreats, rises, or resets to a
+neutral stance, so the combo plays as a strike followed by an un-strike.
+
+| Pose | `_a` does | `_b` should | `_b` does |
+|---|---|---|---|
+| `momo/attack_light_b` | thrusts the broom forward | carry through past the target, hips rotated in | lifts the broom up and back, away from what she just hit |
+| `momo/crouch_attack_b` | sweeps low out of a lunge | stay down, the sweep finishing across the floor | rises toward standing |
+| `maki/crouch_attack_b` | strikes low | follow the arc through | does not travel toward the attack |
+| `gojo/crouch_attack_b` | strikes low | follow through, still crouched | rises and strikes upward |
+
+The check: flip between `_a` and `_b`. Every part of the body that was moving
+should have moved **further in the same direction**. If the weapon or fist is
+closer to where it started, the second frame is a wind-up, not a follow-through.
 
 ### Hands on a weapon
 
