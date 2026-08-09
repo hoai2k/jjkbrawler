@@ -966,9 +966,9 @@ already drawing against.
 - **17C** — two caught while placing round 13 (2 sprites)
 - **17D** — a simplified card for every fighter (27 images, **new art, nothing replaced**)
 - **17E** — Hanami's hero card, redrawn to canon (1 image)
-- **17F** — five caught while landing round 15A (5 sprites)
+- **17F** — twelve caught while landing round 15A (12 sprites)
 
-**46 sprites and 28 card images.** None of it is blocking — every pose named
+**53 sprites and 28 card images.** None of it is blocking — every pose named
 here has art in the game today, each is a redraw rather than a gap, and 17D
 lands in a directory the game does not read yet.
 
@@ -1327,7 +1327,7 @@ landing it first just moves the mismatch somewhere else.
 
 ---
 
-## 17F. Caught while landing round 15A — 5 sprites
+## 17F. Caught while landing round 15A — 12 sprites
 
 The three new fighters arrived with complete 36-pose sets drawn against
 [pose-brief.md](pose-brief.md), and the brief's headline criterion is the one
@@ -1340,12 +1340,34 @@ every one of them missed.
 | Dagon | `dagon` | `attack_heavy_b` | Pose | Extends **16%**. The claws should finish out past the wings. |
 | Mechamaru | `mechamaru` | `attack_heavy_b` | Pose | Extends **20%**. The forearm blade should be the furthest thing forward in the frame. |
 | Dagon | `dagon` | `crouch_b` | Pose | Drops **21%** of standing height where the brief asks for a quarter, and reads *taller* than `crouch_a` beside it. The pair is one held crouch a breath apart, not a descent. |
+| Dagon | `dagon` | `run_reach_a` | Pose | **Reaches with the arm instead of the leg.** The reach frame is the full stride — the leading heel is the thing out in front, arms only counterbalance it. |
+| Dagon | `dagon` | `run_reach_b` | Pose | The same, on the other lead. |
+| Dagon | `dagon` | `attack_light_a` | Pose | Not a wind-up. `_a` is the coil before the strike — weight on the back foot, striking hand drawn back — and this reads as a second strike. |
+| Dagon | `dagon` | `crouch_attack_b` | Pose | Flagged during the placement pass. |
+| Dagon | `dagon` | `ledge_hang` | Quality | **The ledge is drawn into the sprite.** Draw the hands closed on nothing: the stage provides the edge, and a painted ledge floats in front of whatever platform he is actually hanging from. |
+| Mechamaru | `mechamaru` | `ledge_hang` | Quality | **The same fault** — the ledge is drawn in. Hands only, closed as if holding an edge that is not there. |
+| Mechamaru | `mechamaru` | `crouch_attack_b` | Pose | The forearm blade never reaches full extension. `_b` is the strike; the blade should be the furthest thing forward, out past the knee. |
 
 The four numbers above are measured the way the engine measures reach: the
 forward edge of the art past the centre of the body's core columns
 (`bodyRight` against `coreLeft`/`coreRight`), as a fraction of the idle's own
 height. They are comparable within a fighter regardless of placement, because
 every pose of a set is drawn at one zoom.
+
+These came out of the first full placement passes on the round-15 sets, which is
+where the rest will come from too — a pose reads differently at real size
+against a real stage than it does on a review board. **Two fighters flagged the
+same `ledge_hang` fault independently**, which is what a missing rule looks like
+rather than a bad drawing: the brief never said not to draw the ledge, and it
+does now.
+
+**One thing asked for was repo work rather than a redraw and has been done:**
+his `ult_a` was delivered with **four arms**, and the extra one was cut out of
+the plate rather than re-requested. The arm was over background for most of its
+length and its own ink line gave the cut a natural boundary at the shoulder, so
+nothing had to be repainted. That is the whole difference between an
+`improvement` flag and a `replacement` flag — this one happened to be
+recoverable in the file, and Yuta's cut-off sword in 17C was not.
 
 **Three sets, three heavies short.** 15A stated the one-third rule in the
 request itself and it still came back missed on all three, which says the rule

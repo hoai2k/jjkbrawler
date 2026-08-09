@@ -30653,19 +30653,13 @@
    "attack_air_a": {
     "w": 1004,
     "h": 1072,
-    "ox": -345.2,
+    "ox": -364.7,
     "oy": -761,
     "bodyBottom": 253.8,
     "bodyH": 268.0,
     "centroidX": 156.5,
-    "renderScale": 0.25,
+    "renderScale": 0.3088,
     "file": "dagon/attack_air_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1004,
@@ -30673,8 +30667,8 @@
     "coreRight": 938.0,
     "anchors": {
      "com": [
-      502.8,
-      344.9
+      533.0,
+      365.1
      ]
     },
     "autoTuned": {
@@ -30682,6 +30676,10 @@
      "fields": {
       "bodyBottom": "foot=0.947 (roster)"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -345.2
     }
    },
    "attack_air_b": {
@@ -30692,14 +30690,8 @@
     "bodyBottom": 259.6,
     "bodyH": 240.8,
     "centroidX": 75.5,
-    "renderScale": 0.25,
+    "renderScale": 0.315,
     "file": "dagon/attack_air_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1289,
@@ -30707,8 +30699,8 @@
     "coreRight": 1192.3,
     "anchors": {
      "com": [
-      563.7,
-      296.6
+      580.5,
+      309.2
      ]
     },
     "autoTuned": {
@@ -30717,24 +30709,21 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "attack_down": {
     "w": 1125,
     "h": 962,
-    "ox": -473.7,
+    "ox": -543.2,
     "oy": -651,
     "bodyBottom": 259.7,
     "bodyH": 240.5,
     "centroidX": 224.7,
     "renderScale": 0.25,
     "file": "dagon/attack_down.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1125,
@@ -30742,8 +30731,8 @@
     "coreRight": 1012.5,
     "anchors": {
      "com": [
-      630.8,
-      394.3
+      694.1,
+      378.3
      ]
     },
     "autoTuned": {
@@ -30752,6 +30741,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "ox": -473.7
     }
    },
    "attack_heavy_a": {
@@ -30759,17 +30751,11 @@
     "h": 1003,
     "ox": -384.1,
     "oy": -692,
-    "bodyBottom": 257.5,
+    "bodyBottom": 210.5,
     "bodyH": 250.8,
     "centroidX": 65.1,
-    "renderScale": 0.25,
+    "renderScale": 0.3063,
     "file": "dagon/attack_heavy_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1265,
@@ -30787,6 +30773,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 257.5
     }
    },
    "attack_heavy_b": {
@@ -30831,17 +30821,11 @@
     "h": 969,
     "ox": -337.8,
     "oy": -658,
-    "bodyBottom": 259.3,
+    "bodyBottom": 227.3,
     "bodyH": 242.2,
     "centroidX": 30.3,
-    "renderScale": 0.25,
+    "renderScale": 0.3175,
     "file": "dagon/attack_light_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1242,
@@ -30859,24 +30843,24 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 259.3
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "should be wind-up for attack"
    },
    "attack_light_b": {
     "w": 1252,
     "h": 977,
     "ox": -340.9,
     "oy": -666,
-    "bodyBottom": 258.9,
+    "bodyBottom": 219.4,
     "bodyH": 244.2,
     "centroidX": 28.4,
-    "renderScale": 0.25,
+    "renderScale": 0.3175,
     "file": "dagon/attack_light_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1252,
@@ -30894,24 +30878,22 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 258.9
     }
    },
    "attack_up": {
     "w": 802,
     "h": 1414,
-    "ox": -289.0,
+    "ox": -331,
     "oy": -1103,
-    "bodyBottom": 235.5,
+    "bodyBottom": 199.5,
     "bodyH": 353.5,
     "centroidX": 201.5,
-    "renderScale": 0.25,
+    "renderScale": 0.32,
     "file": "dagon/attack_up.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 802,
@@ -30919,8 +30901,8 @@
     "coreRight": 760.0,
     "anchors": {
      "com": [
-      447.5,
-      635.9
+      492.3,
+      682.2
      ]
     },
     "autoTuned": {
@@ -30929,6 +30911,11 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -289.0,
+     "bodyBottom": 235.5
     }
    },
    "charge": {
@@ -30936,17 +30923,11 @@
     "h": 972,
     "ox": -493.2,
     "oy": -661,
-    "bodyBottom": 259.1,
+    "bodyBottom": 229.6,
     "bodyH": 243.0,
     "centroidX": 164.2,
-    "renderScale": 0.25,
+    "renderScale": 0.2913,
     "file": "dagon/charge.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1285,
@@ -30964,6 +30945,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 259.1
     }
    },
    "crouch_a": {
@@ -30974,14 +30959,8 @@
     "bodyBottom": 262.3,
     "bodyH": 228.0,
     "centroidX": 185.0,
-    "renderScale": 0.25,
+    "renderScale": 0.2338,
     "file": "dagon/crouch_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1065,
@@ -30999,24 +30978,21 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "crouch_attack_a": {
     "w": 1210,
     "h": 892,
-    "ox": -476.6,
+    "ox": -524.6,
     "oy": -581,
-    "bodyBottom": 263.4,
+    "bodyBottom": 192.9,
     "bodyH": 223.0,
     "centroidX": 185.1,
-    "renderScale": 0.25,
+    "renderScale": 0.2487,
     "file": "dagon/crouch_attack_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1210,
@@ -31024,8 +31000,8 @@
     "coreRight": 1126.8,
     "anchors": {
      "com": [
-      633.9,
-      387.9
+      673.2,
+      385.5
      ]
     },
     "autoTuned": {
@@ -31034,24 +31010,23 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -476.6,
+     "bodyBottom": 263.4
     }
    },
    "crouch_attack_b": {
     "w": 1197,
     "h": 787,
-    "ox": -455.6,
+    "ox": -509.1,
     "oy": -476,
-    "bodyBottom": 269.0,
+    "bodyBottom": 188,
     "bodyH": 196.8,
     "centroidX": 170.6,
-    "renderScale": 0.25,
+    "renderScale": 0.2813,
     "file": "dagon/crouch_attack_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1197,
@@ -31059,8 +31034,8 @@
     "coreRight": 1114.7,
     "anchors": {
      "com": [
-      612.8,
-      326.3
+      700.1,
+      320.0
      ]
     },
     "autoTuned": {
@@ -31069,7 +31044,13 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -455.6,
+     "bodyBottom": 269.0
+    },
+    "needsReplacement": "pose"
    },
    "crouch_b": {
     "w": 997,
@@ -31111,19 +31092,13 @@
    "dash": {
     "w": 1348,
     "h": 901,
-    "ox": -495.9,
+    "ox": -594.4,
     "oy": -590,
     "bodyBottom": 262.9,
     "bodyH": 225.2,
     "centroidX": 135.4,
-    "renderScale": 0.25,
+    "renderScale": 0.29,
     "file": "dagon/dash.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1348,
@@ -31131,8 +31106,8 @@
     "coreRight": 1246.9,
     "anchors": {
      "com": [
-      653.1,
-      321.9
+      759.8,
+      343.8
      ]
     },
     "autoTuned": {
@@ -31141,24 +31116,22 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -495.9
     }
    },
    "dizzy": {
     "w": 818,
     "h": 1297,
-    "ox": -287.4,
+    "ox": -312.9,
     "oy": -986,
-    "bodyBottom": 241.8,
+    "bodyBottom": 200.8,
     "bodyH": 324.2,
     "centroidX": 191.9,
-    "renderScale": 0.25,
+    "renderScale": 0.2612,
     "file": "dagon/dizzy.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 818,
@@ -31166,8 +31139,8 @@
     "coreRight": 762.0,
     "anchors": {
      "com": [
-      445.1,
-      503.1
+      500.0,
+      449.5
      ]
     },
     "autoTuned": {
@@ -31176,6 +31149,11 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -287.4,
+     "bodyBottom": 241.8
     }
    },
    "dodge_air": {
@@ -31186,14 +31164,8 @@
     "bodyBottom": 267.6,
     "bodyH": 203.5,
     "centroidX": 160.7,
-    "renderScale": 0.25,
+    "renderScale": 0.3675,
     "file": "dagon/dodge_air.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 801,
@@ -31201,8 +31173,8 @@
     "coreRight": 737.7,
     "anchors": {
      "com": [
-      404.0,
-      249.4
+      471.8,
+      263.9
      ]
     },
     "autoTuned": {
@@ -31211,6 +31183,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "dodge_roll": {
@@ -31218,17 +31193,11 @@
     "h": 665,
     "ox": -394.3,
     "oy": -354,
-    "bodyBottom": 275.5,
+    "bodyBottom": 554,
     "bodyH": 166.2,
     "centroidX": 151.3,
     "renderScale": 0.25,
     "file": "dagon/dodge_roll.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1113,
@@ -31236,8 +31205,8 @@
     "coreRight": 1029.5,
     "anchors": {
      "com": [
-      551.5,
-      301.1
+      551.6,
+      333.6
      ]
     },
     "autoTuned": {
@@ -31246,7 +31215,12 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "bodyBottom": 275.5,
+     "rotationDeg": null
+    },
+    "rotationDeg": 80
    },
    "fall": {
     "w": 767,
@@ -31256,14 +31230,8 @@
     "bodyBottom": 245.3,
     "bodyH": 307.5,
     "centroidX": 181.3,
-    "renderScale": 0.25,
+    "renderScale": 0.285,
     "file": "dagon/fall.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 767,
@@ -31281,24 +31249,21 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "guard": {
     "w": 1025,
     "h": 1011,
-    "ox": -405.1,
+    "ox": -489.6,
     "oy": -700,
     "bodyBottom": 257.0,
     "bodyH": 252.8,
     "centroidX": 206.1,
-    "renderScale": 0.25,
+    "renderScale": 0.305,
     "file": "dagon/guard.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1025,
@@ -31306,8 +31271,8 @@
     "coreRight": 960.9,
     "anchors": {
      "com": [
-      562.3,
-      409.9
+      666.6,
+      404.6
      ]
     },
     "autoTuned": {
@@ -31316,24 +31281,22 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -405.1
     }
    },
    "hurt": {
     "w": 1149,
     "h": 971,
-    "ox": -429.4,
+    "ox": -530.4,
     "oy": -660,
-    "bodyBottom": 259.2,
+    "bodyBottom": 235.7,
     "bodyH": 242.8,
     "centroidX": 168.4,
-    "renderScale": 0.25,
+    "renderScale": 0.305,
     "file": "dagon/hurt.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1149,
@@ -31341,8 +31304,8 @@
     "coreRight": 1026.9,
     "anchors": {
      "com": [
-      586.7,
-      394.4
+      699.1,
+      326.6
      ]
     },
     "autoTuned": {
@@ -31351,6 +31314,11 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -429.4,
+     "bodyBottom": 259.2
     }
    },
    "idle_a": {
@@ -31358,17 +31326,11 @@
     "h": 1359,
     "ox": -295.3,
     "oy": -1048,
-    "bodyBottom": 238.5,
+    "bodyBottom": 182,
     "bodyH": 339.8,
     "centroidX": 169.8,
-    "renderScale": 0.25,
+    "renderScale": 0.2612,
     "file": "dagon/idle_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 878,
@@ -31386,6 +31348,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 238.5
     }
    },
    "idle_b": {
@@ -31393,17 +31359,11 @@
     "h": 1359,
     "ox": -294.0,
     "oy": -1048,
-    "bodyBottom": 238.5,
+    "bodyBottom": 177,
     "bodyH": 339.8,
     "centroidX": 170.0,
-    "renderScale": 0.25,
+    "renderScale": 0.2612,
     "file": "dagon/idle_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 875,
@@ -31421,6 +31381,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 238.5
     }
    },
    "jump_rise": {
@@ -31431,14 +31395,8 @@
     "bodyBottom": 238.8,
     "bodyH": 338.0,
     "centroidX": 178.7,
-    "renderScale": 0.25,
+    "renderScale": 0.2963,
     "file": "dagon/jump_rise.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 683,
@@ -31446,8 +31404,8 @@
     "coreRight": 616.8,
     "anchors": {
      "com": [
-      364.6,
-      492.6
+      464.8,
+      433.6
      ]
     },
     "autoTuned": {
@@ -31456,6 +31414,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "land": {
@@ -31463,17 +31424,11 @@
     "h": 1359,
     "ox": -289.8,
     "oy": -1048,
-    "bodyBottom": 238.5,
+    "bodyBottom": 187,
     "bodyH": 339.8,
     "centroidX": 177.8,
-    "renderScale": 0.25,
+    "renderScale": 0.26,
     "file": "dagon/land.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 851,
@@ -31481,8 +31436,8 @@
     "coreRight": 781.4,
     "anchors": {
      "com": [
-      446.2,
-      548.8
+      540.9,
+      489.4
      ]
     },
     "autoTuned": {
@@ -31491,6 +31446,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 238.5
     }
    },
    "ledge_hang": {
@@ -31501,14 +31460,8 @@
     "bodyBottom": 245.1,
     "bodyH": 308.5,
     "centroidX": 180.9,
-    "renderScale": 0.25,
+    "renderScale": 0.38,
     "file": "dagon/ledge_hang.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 523,
@@ -31530,24 +31483,23 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25
+    },
+    "needsReplacement": "quality",
+    "replacementNote": "Don't draw the ledge, just draw hand(s) grabbing it"
    },
    "prone": {
     "w": 1435,
     "h": 471,
     "ox": -563.6,
     "oy": -160,
-    "bodyBottom": 310.4,
+    "bodyBottom": 222.9,
     "bodyH": 117.8,
     "centroidX": 159.6,
-    "renderScale": 0.25,
+    "renderScale": 0.2775,
     "file": "dagon/prone.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1435,
@@ -31564,6 +31516,10 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 310.4
     }
    },
    "run_pass_a": {
@@ -31571,17 +31527,11 @@
     "h": 1213,
     "ox": -248.0,
     "oy": -902,
-    "bodyBottom": 246.3,
+    "bodyBottom": 281.3,
     "bodyH": 303.2,
     "centroidX": 136.5,
-    "renderScale": 0.25,
+    "renderScale": 0.2712,
     "file": "dagon/run_pass_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 850,
@@ -31599,6 +31549,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 246.3
     }
    },
    "run_pass_b": {
@@ -31606,17 +31560,11 @@
     "h": 1362,
     "ox": -292.7,
     "oy": -1051,
-    "bodyBottom": 238.3,
+    "bodyBottom": 290.3,
     "bodyH": 340.5,
     "centroidX": 167.7,
-    "renderScale": 0.25,
+    "renderScale": 0.2425,
     "file": "dagon/run_pass_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 877,
@@ -31634,24 +31582,22 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 238.3
     }
    },
    "run_reach_a": {
     "w": 1061,
     "h": 1002,
-    "ox": -282.2,
+    "ox": -276.7,
     "oy": -691,
     "bodyBottom": 257.5,
     "bodyH": 250.5,
     "centroidX": 65.2,
-    "renderScale": 0.25,
+    "renderScale": 0.3337,
     "file": "dagon/run_reach_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1061,
@@ -31659,8 +31605,8 @@
     "coreRight": 1001.3,
     "anchors": {
      "com": [
-      439.6,
-      355.0
+      474.7,
+      352.1
      ]
     },
     "autoTuned": {
@@ -31669,7 +31615,13 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -282.2
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "Should reach with leg not with arm"
    },
    "run_reach_b": {
     "w": 960,
@@ -31679,14 +31631,8 @@
     "bodyBottom": 245.9,
     "bodyH": 305.0,
     "centroidX": 147.8,
-    "renderScale": 0.25,
+    "renderScale": 0.2787,
     "file": "dagon/run_reach_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 960,
@@ -31694,8 +31640,8 @@
     "coreRight": 876.9,
     "anchors": {
      "com": [
-      472.0,
-      504.3
+      502.4,
+      457.9
      ]
     },
     "autoTuned": {
@@ -31704,24 +31650,23 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "should reach with leg instead of arm"
    },
    "special_down": {
     "w": 920,
     "h": 901,
     "ox": -311.7,
     "oy": -590,
-    "bodyBottom": 262.9,
+    "bodyBottom": 248.4,
     "bodyH": 225.2,
     "centroidX": 165.2,
-    "renderScale": 0.25,
+    "renderScale": 0.3475,
     "file": "dagon/special_down.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 920,
@@ -31739,6 +31684,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 262.9
     }
    },
    "special_neutral": {
@@ -31746,17 +31695,11 @@
     "h": 896,
     "ox": -488.0,
     "oy": -585,
-    "bodyBottom": 263.2,
+    "bodyBottom": 162.2,
     "bodyH": 224.0,
     "centroidX": 164.5,
-    "renderScale": 0.25,
+    "renderScale": 0.3113,
     "file": "dagon/special_neutral.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1274,
@@ -31774,24 +31717,24 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 263.2,
+     "rotationDeg": null
+    },
+    "rotationDeg": 4.5
    },
    "special_side": {
     "w": 1252,
     "h": 1019,
     "ox": -551.5,
     "oy": -708,
-    "bodyBottom": 256.6,
+    "bodyBottom": 220.6,
     "bodyH": 254.8,
     "centroidX": 73.5,
-    "renderScale": 0.25,
+    "renderScale": 0.3225,
     "file": "dagon/special_side.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1252,
@@ -31808,33 +31751,33 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 256.6,
+     "faceLeft": null
+    },
+    "faceLeft": true
    },
    "ult_a": {
     "w": 1397,
     "h": 909,
-    "ox": -418.4,
+    "ox": -376.9,
     "oy": -598,
     "bodyBottom": 262.5,
     "bodyH": 227.2,
     "centroidX": 33.4,
-    "renderScale": 0.25,
+    "renderScale": 0.3825,
     "file": "dagon/ult_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
-    "bodyTop": 0,
+    "bodyTop": 8,
     "bodyLeft": 0,
-    "bodyRight": 1397,
-    "coreLeft": 104.8,
-    "coreRight": 1213.6,
+    "bodyRight": 1320,
+    "coreLeft": 96.0,
+    "coreRight": 1161.3,
     "anchors": {
      "com": [
-      575.8,
-      347.7
+      555.3,
+      361.9
      ]
     },
     "autoTuned": {
@@ -31843,24 +31786,22 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -418.4
     }
    },
    "ult_b": {
     "w": 1445,
     "h": 852,
-    "ox": -448.8,
+    "ox": -288.8,
     "oy": -541,
     "bodyBottom": 265.5,
     "bodyH": 213.0,
     "centroidX": 39.8,
-    "renderScale": 0.25,
+    "renderScale": 0.4325,
     "file": "dagon/ult_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1445,
@@ -31878,6 +31819,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -448.8
     }
    },
    "victory": {
@@ -31885,17 +31830,11 @@
     "h": 1111,
     "ox": -331.5,
     "oy": -800,
-    "bodyBottom": 251.7,
+    "bodyBottom": 216.7,
     "bodyH": 277.8,
     "centroidX": 115.0,
-    "renderScale": 0.25,
+    "renderScale": 0.3125,
     "file": "dagon/victory.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1060,
@@ -31913,6 +31852,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 251.7
     }
    }
   },
@@ -31920,19 +31863,13 @@
    "attack_air_a": {
     "w": 834,
     "h": 1442,
-    "ox": -287.8,
+    "ox": -258.3,
     "oy": -1131,
-    "bodyBottom": 234.0,
+    "bodyBottom": 56,
     "bodyH": 360.5,
     "centroidX": 184.3,
-    "renderScale": 0.25,
+    "renderScale": 0.2725,
     "file": "mechamaru/attack_air_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 834,
@@ -31940,8 +31877,8 @@
     "coreRight": 775.1,
     "anchors": {
      "com": [
-      447.2,
-      548.8
+      419.9,
+      502.4
      ]
     },
     "autoTuned": {
@@ -31950,24 +31887,23 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -287.8,
+     "bodyBottom": 234.0
     }
    },
    "attack_air_b": {
     "w": 954,
     "h": 1310,
-    "ox": -257.5,
+    "ox": -218,
     "oy": -999,
-    "bodyBottom": 241.1,
+    "bodyBottom": 34.6,
     "bodyH": 327.5,
     "centroidX": 94.0,
-    "renderScale": 0.25,
+    "renderScale": 0.3038,
     "file": "mechamaru/attack_air_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 954,
@@ -31975,8 +31911,8 @@
     "coreRight": 736.9,
     "anchors": {
      "com": [
-      416.5,
-      485.4
+      390.1,
+      414.2
      ]
     },
     "autoTuned": {
@@ -31985,24 +31921,23 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -257.5,
+     "bodyBottom": 241.1
     }
    },
    "attack_down": {
     "w": 940,
     "h": 1231,
-    "ox": -324.5,
+    "ox": -287.5,
     "oy": -920,
-    "bodyBottom": 234.9,
+    "bodyBottom": 54.9,
     "bodyH": 307.8,
     "centroidX": 168.0,
-    "renderScale": 0.25,
+    "renderScale": 0.26,
     "file": "mechamaru/attack_down.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 940,
@@ -32010,8 +31945,8 @@
     "coreRight": 823.2,
     "anchors": {
      "com": [
-      481.0,
-      529.7
+      448.7,
+      411.3
      ]
     },
     "autoTuned": {
@@ -32020,6 +31955,11 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -324.5,
+     "bodyBottom": 234.9
     }
    },
    "attack_heavy_a": {
@@ -32027,17 +31967,11 @@
     "h": 1391,
     "ox": -398.3,
     "oy": -1080,
-    "bodyBottom": 236.8,
+    "bodyBottom": 220.3,
     "bodyH": 347.8,
     "centroidX": 247.3,
-    "renderScale": 0.25,
+    "renderScale": 0.2612,
     "file": "mechamaru/attack_heavy_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 929,
@@ -32045,8 +31979,8 @@
     "coreRight": 869.4,
     "anchors": {
      "com": [
-      556.3,
-      639.0
+      609.6,
+      516.2
      ]
     },
     "autoTuned": {
@@ -32055,6 +31989,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 236.8
     }
    },
    "attack_heavy_b": {
@@ -32102,14 +32040,8 @@
     "bodyBottom": 241.3,
     "bodyH": 326.2,
     "centroidX": 138.9,
-    "renderScale": 0.25,
+    "renderScale": 0.2825,
     "file": "mechamaru/attack_light_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 901,
@@ -32117,8 +32049,8 @@
     "coreRight": 783.0,
     "anchors": {
      "com": [
-      431.4,
-      628.6
+      459.3,
+      461.8
      ]
     },
     "autoTuned": {
@@ -32127,24 +32059,21 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "attack_light_b": {
     "w": 1338,
     "h": 1079,
-    "ox": -313.8,
+    "ox": -286.3,
     "oy": -768,
     "bodyBottom": 253.4,
     "bodyH": 269.8,
     "centroidX": 354.2,
-    "renderScale": 0.25,
+    "renderScale": 0.315,
     "file": "mechamaru/attack_light_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1338,
@@ -32152,8 +32081,8 @@
     "coreRight": 970.1,
     "anchors": {
      "com": [
-      471.1,
-      482.4
+      444.5,
+      398.5
      ]
     },
     "autoTuned": {
@@ -32161,6 +32090,10 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -313.8
     }
    },
    "attack_up": {
@@ -32171,14 +32104,8 @@
     "bodyBottom": 228.1,
     "bodyH": 388.5,
     "centroidX": 124.2,
-    "renderScale": 0.25,
+    "renderScale": 0.3262,
     "file": "mechamaru/attack_up.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 705,
@@ -32195,24 +32122,21 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "charge": {
     "w": 752,
     "h": 1506,
-    "ox": -203.1,
+    "ox": -201.1,
     "oy": -1195,
-    "bodyBottom": 230.6,
+    "bodyBottom": 169.1,
     "bodyH": 376.5,
     "centroidX": 140.6,
-    "renderScale": 0.25,
+    "renderScale": 0.2562,
     "file": "mechamaru/charge.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 752,
@@ -32220,8 +32144,8 @@
     "coreRight": 668.3,
     "anchors": {
      "com": [
-      360.8,
-      686.0
+      389.0,
+      557.4
      ]
     },
     "autoTuned": {
@@ -32230,6 +32154,11 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -203.1,
+     "bodyBottom": 230.6
     }
    },
    "crouch_a": {
@@ -32240,14 +32169,8 @@
     "bodyBottom": 262.4,
     "bodyH": 227.5,
     "centroidX": 153.1,
-    "renderScale": 0.25,
+    "renderScale": 0.2263,
     "file": "mechamaru/crouch_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 784,
@@ -32265,6 +32188,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "crouch_attack_a": {
@@ -32275,14 +32201,8 @@
     "bodyBottom": 261.6,
     "bodyH": 231.2,
     "centroidX": 221.9,
-    "renderScale": 0.25,
+    "renderScale": 0.2112,
     "file": "mechamaru/crouch_attack_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1255,
@@ -32300,6 +32220,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "crouch_attack_b": {
@@ -32310,14 +32233,8 @@
     "bodyBottom": 264.5,
     "bodyH": 217.8,
     "centroidX": 195.7,
-    "renderScale": 0.25,
+    "renderScale": 0.2275,
     "file": "mechamaru/crouch_attack_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1239,
@@ -32335,24 +32252,23 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "Needs weapon (blade) stretched out to full extension"
    },
    "crouch_b": {
     "w": 894,
     "h": 1164,
     "ox": -264.2,
     "oy": -853,
-    "bodyBottom": 248.9,
+    "bodyBottom": 186.9,
     "bodyH": 291.0,
     "centroidX": 130.7,
-    "renderScale": 0.25,
+    "renderScale": 0.2275,
     "file": "mechamaru/crouch_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 894,
@@ -32370,7 +32286,13 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 248.9,
+     "rotationDeg": null
+    },
+    "rotationDeg": 6
    },
    "dash": {
     "w": 1075,
@@ -32380,14 +32302,8 @@
     "bodyBottom": 263.1,
     "bodyH": 224.5,
     "centroidX": 195.8,
-    "renderScale": 0.25,
+    "renderScale": 0.2687,
     "file": "mechamaru/dash.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1075,
@@ -32395,8 +32311,8 @@
     "coreRight": 994.4,
     "anchors": {
      "com": [
-      577.0,
-      361.2
+      629.2,
+      357.0
      ]
     },
     "autoTuned": {
@@ -32405,6 +32321,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "dizzy": {
@@ -32412,17 +32331,11 @@
     "h": 1460,
     "ox": -71.5,
     "oy": -1149,
-    "bodyBottom": 233.1,
+    "bodyBottom": 209.1,
     "bodyH": 365.0,
     "centroidX": 146.5,
-    "renderScale": 0.25,
+    "renderScale": 0.2512,
     "file": "mechamaru/dizzy.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 477,
@@ -32440,6 +32353,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 233.1
     }
    },
    "dodge_air": {
@@ -32447,17 +32364,11 @@
     "h": 1085,
     "ox": -213.0,
     "oy": -774,
-    "bodyBottom": 253.1,
+    "bodyBottom": 352.6,
     "bodyH": 271.2,
     "centroidX": 115.0,
-    "renderScale": 0.25,
+    "renderScale": 0.2562,
     "file": "mechamaru/dodge_air.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 823,
@@ -32465,8 +32376,8 @@
     "coreRight": 745.9,
     "anchors": {
      "com": [
-      369.2,
-      470.0
+      350.6,
+      452.2
      ]
     },
     "autoTuned": {
@@ -32475,6 +32386,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 253.1
     }
    },
    "dodge_roll": {
@@ -32482,17 +32397,11 @@
     "h": 672,
     "ox": -297.3,
     "oy": -361,
-    "bodyBottom": 275.1,
+    "bodyBottom": 635.1,
     "bodyH": 168.0,
     "centroidX": 81.3,
-    "renderScale": 0.25,
+    "renderScale": 0.2325,
     "file": "mechamaru/dodge_roll.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1059,
@@ -32500,8 +32409,8 @@
     "coreRight": 933.2,
     "anchors": {
      "com": [
-      454.5,
-      287.9
+      428.0,
+      354.4
      ]
     },
     "autoTuned": {
@@ -32510,24 +32419,24 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 275.1,
+     "rotationDeg": null
+    },
+    "rotationDeg": 90
    },
    "fall": {
     "w": 899,
     "h": 1340,
     "ox": -312.8,
     "oy": -1029,
-    "bodyBottom": 239.5,
+    "bodyBottom": 120,
     "bodyH": 335.0,
     "centroidX": 176.8,
-    "renderScale": 0.25,
+    "renderScale": 0.275,
     "file": "mechamaru/fall.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 899,
@@ -32535,8 +32444,8 @@
     "coreRight": 753.8,
     "anchors": {
      "com": [
-      468.6,
-      528.3
+      441.6,
+      497.3
      ]
     },
     "autoTuned": {
@@ -32545,6 +32454,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 239.5
     }
    },
    "guard": {
@@ -32555,14 +32468,8 @@
     "bodyBottom": 239.7,
     "bodyH": 334.0,
     "centroidX": 150.3,
-    "renderScale": 0.25,
+    "renderScale": 0.2787,
     "file": "mechamaru/guard.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 696,
@@ -32570,8 +32477,8 @@
     "coreRight": 617.9,
     "anchors": {
      "com": [
-      340.6,
-      632.1
+      356.1,
+      545.9
      ]
     },
     "autoTuned": {
@@ -32580,6 +32487,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "hurt": {
@@ -32590,14 +32500,8 @@
     "bodyBottom": 238.5,
     "bodyH": 339.8,
     "centroidX": 138.0,
-    "renderScale": 0.25,
+    "renderScale": 0.2612,
     "file": "mechamaru/hurt.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 759,
@@ -32605,8 +32509,8 @@
     "coreRight": 654.0,
     "anchors": {
      "com": [
-      396.1,
-      611.8
+      406.9,
+      525.5
      ]
     },
     "autoTuned": {
@@ -32614,6 +32518,9 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "idle_a": {
@@ -32621,17 +32528,11 @@
     "h": 1524,
     "ox": -60.7,
     "oy": -1213,
-    "bodyBottom": 229.7,
+    "bodyBottom": 209.2,
     "bodyH": 381.0,
     "centroidX": 142.2,
-    "renderScale": 0.25,
+    "renderScale": 0.255,
     "file": "mechamaru/idle_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 464,
@@ -32639,8 +32540,8 @@
     "coreRight": 409.6,
     "anchors": {
      "com": [
-      219.3,
-      698.7
+      260.7,
+      600.4
      ]
     },
     "autoTuned": {
@@ -32649,6 +32550,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 229.7
     }
    },
    "idle_b": {
@@ -32656,17 +32561,11 @@
     "h": 1523,
     "ox": -59.2,
     "oy": -1212,
-    "bodyBottom": 229.7,
+    "bodyBottom": 208.2,
     "bodyH": 380.8,
     "centroidX": 142.2,
-    "renderScale": 0.25,
+    "renderScale": 0.255,
     "file": "mechamaru/idle_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 461,
@@ -32684,6 +32583,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 229.7
     }
    },
    "jump_rise": {
@@ -32694,14 +32597,8 @@
     "bodyBottom": 244.2,
     "bodyH": 312.8,
     "centroidX": 184.0,
-    "renderScale": 0.25,
+    "renderScale": 0.2712,
     "file": "mechamaru/jump_rise.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 591,
@@ -32719,6 +32616,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "land": {
@@ -32729,14 +32629,8 @@
     "bodyBottom": 260.9,
     "bodyH": 234.8,
     "centroidX": 177.0,
-    "renderScale": 0.25,
+    "renderScale": 0.255,
     "file": "mechamaru/land.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 866,
@@ -32754,6 +32648,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "ledge_hang": {
@@ -32764,14 +32661,8 @@
     "bodyBottom": 237.3,
     "bodyH": 345.2,
     "centroidX": 155.6,
-    "renderScale": 0.25,
+    "renderScale": 0.41,
     "file": "mechamaru/ledge_hang.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 855,
@@ -32793,24 +32684,23 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25
+    },
+    "needsReplacement": "quality",
+    "replacementNote": "Should not draw the ledge, only the hands as they would be holding onto it."
    },
    "prone": {
     "w": 1532,
     "h": 336,
     "ox": -601.2,
     "oy": -25,
-    "bodyBottom": 310.4,
+    "bodyBottom": 181.9,
     "bodyH": 84.0,
     "centroidX": 148.7,
-    "renderScale": 0.25,
+    "renderScale": 0.2988,
     "file": "mechamaru/prone.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1532,
@@ -32827,6 +32717,10 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 310.4
     }
    },
    "run_pass_a": {
@@ -32837,14 +32731,8 @@
     "bodyBottom": 243.7,
     "bodyH": 315.0,
     "centroidX": 206.7,
-    "renderScale": 0.25,
+    "renderScale": 0.2813,
     "file": "mechamaru/run_pass_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 995,
@@ -32862,6 +32750,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "run_pass_b": {
@@ -32869,17 +32760,11 @@
     "h": 1505,
     "ox": -147.6,
     "oy": -1194,
-    "bodyBottom": 230.7,
+    "bodyBottom": 286.7,
     "bodyH": 376.2,
     "centroidX": 120.1,
-    "renderScale": 0.25,
+    "renderScale": 0.245,
     "file": "mechamaru/run_pass_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 682,
@@ -32887,8 +32772,8 @@
     "coreRight": 536.2,
     "anchors": {
      "com": [
-      306.9,
-      745.6
+      320.1,
+      634.5
      ]
     },
     "autoTuned": {
@@ -32897,6 +32782,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 230.7
     }
    },
    "run_reach_b": {
@@ -32904,17 +32793,11 @@
     "h": 1369,
     "ox": -302.1,
     "oy": -1058,
-    "bodyBottom": 237.9,
+    "bodyBottom": 314.4,
     "bodyH": 342.2,
     "centroidX": 150.1,
     "renderScale": 0.25,
     "file": "mechamaru/run_reach_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 931,
@@ -32922,8 +32805,8 @@
     "coreRight": 855.6,
     "anchors": {
      "com": [
-      460.2,
-      595.8
+      437.4,
+      515.2
      ]
     },
     "autoTuned": {
@@ -32932,24 +32815,21 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 237.9
     }
    },
    "special_down": {
     "w": 1069,
     "h": 1278,
-    "ox": -361.1,
+    "ox": -306.6,
     "oy": -967,
-    "bodyBottom": 242.8,
+    "bodyBottom": 206.3,
     "bodyH": 319.5,
     "centroidX": 140.1,
-    "renderScale": 0.25,
+    "renderScale": 0.2975,
     "file": "mechamaru/special_down.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1069,
@@ -32967,24 +32847,23 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -361.1,
+     "bodyBottom": 242.8
     }
    },
    "special_neutral": {
     "w": 767,
     "h": 1445,
-    "ox": -190.4,
+    "ox": -157.9,
     "oy": -1134,
     "bodyBottom": 233.9,
     "bodyH": 361.2,
     "centroidX": 120.4,
-    "renderScale": 0.25,
+    "renderScale": 0.2625,
     "file": "mechamaru/special_neutral.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 767,
@@ -33002,24 +32881,22 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -190.4
     }
    },
    "special_side": {
     "w": 1073,
     "h": 863,
-    "ox": -512.8,
+    "ox": -568.3,
     "oy": -552,
     "bodyBottom": 264.9,
     "bodyH": 215.8,
     "centroidX": 289.8,
-    "renderScale": 0.25,
+    "renderScale": 0.2963,
     "file": "mechamaru/special_side.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1073,
@@ -33037,6 +32914,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -512.8
     }
    },
    "ult_a": {
@@ -33047,14 +32928,8 @@
     "bodyBottom": 235.3,
     "bodyH": 354.8,
     "centroidX": 130.3,
-    "renderScale": 0.25,
+    "renderScale": 0.26,
     "file": "mechamaru/ult_a.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 990,
@@ -33072,6 +32947,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "ult_b": {
@@ -33079,17 +32957,11 @@
     "h": 1368,
     "ox": -302.9,
     "oy": -1057,
-    "bodyBottom": 238.0,
+    "bodyBottom": 210,
     "bodyH": 342.0,
     "centroidX": 126.9,
-    "renderScale": 0.25,
+    "renderScale": 0.265,
     "file": "mechamaru/ult_b.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 979,
@@ -33107,6 +32979,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 238.0
     }
    },
    "victory": {
@@ -33114,17 +32990,11 @@
     "h": 1450,
     "ox": -153.7,
     "oy": -1139,
-    "bodyBottom": 233.6,
+    "bodyBottom": 218.1,
     "bodyH": 362.5,
     "centroidX": 157.7,
-    "renderScale": 0.25,
+    "renderScale": 0.295,
     "file": "mechamaru/victory.png",
-    "replaced": {
-     "at": "2026-08-09T21:16:18+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 619,
@@ -33142,6 +33012,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 233.6
     }
    }
   },
@@ -51318,6 +51192,8 @@
   "todo": 298.98,
   "toji": 296.01,
   "yuta": 282.15,
-  "yuji": 270.88
+  "yuji": 270.88,
+  "dagon": 321.63,
+  "mechamaru": 360.68
  }
 }
