@@ -202,6 +202,13 @@ export const STRIKE_ARC = {
   glowAlpha: 0.22,
   alpha: 0.38,
   headAlpha: 0.55,
+  // The band is drawn additively, which means it adds nothing over ground that
+  // is already bright — an orange arc over sunlit foliage all but vanishes, and
+  // that is the one frame the player most needs to read. So a dark band goes
+  // down first, in normal compositing and a little wider than the band, giving
+  // the light something to sit on whatever is behind it.
+  shadeAlpha: 0.30,
+  shadeWidth: 1.35,
   // Width of that head, as a fraction of the arc's half-span.
   headWidth: 0.45,
 };

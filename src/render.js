@@ -238,10 +238,27 @@ function strikeArc(ctx, x, y, facing, a, k, color) {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(facing, 1);       // arcs are authored facing +x; mirror the frame
-  ctx.globalCompositeOperation = "lighter";
   ctx.lineCap = "round";
 
   const STEPS = 18;
+  // A dark band under the leading crescent, in normal compositing, before any
+  // of the additive light goes down. Additive alone adds nothing over bright
+  // ground, so on a sunlit stage the arc would fade out in exactly the frame it
+  // matters; this is what it sits on. Tapered like the band it backs, so it
+  // never shows past the tips.
+  ctx.strokeStyle = "rgba(8,10,20,1)";
+  for (let i = 0; i < STEPS; i++) {
+    const t0 = -1 + 2 * (i / STEPS);
+    const t1 = -1 + 2 * ((i + 1) / STEPS);
+    const taper = Math.cos(((t0 + t1) / 2) * Math.PI / 2) ** 0.8;
+    ctx.globalAlpha = fade * taper * A.shadeAlpha;
+    ctx.lineWidth = thick * (0.45 + 0.55 * taper) * A.shadeWidth;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, a.aim + a.span * t0, a.aim + a.span * t1);
+    ctx.stroke();
+  }
+
+  ctx.globalCompositeOperation = "lighter";
   // The leading crescent first, then its trail: each echo a step further in and
   // fainter, with its bright head lagging behind the one in front of it.
   for (let e = 0; e < A.echoes; e++) {
