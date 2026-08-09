@@ -76,6 +76,17 @@ def improvement_kinds():
     return kind_list("IMPROVEMENT_KINDS")
 
 
+def variant_banked():
+    """Fields a variant option carries, from VARIANT_PLACEMENT + VARIANT_REVIEW."""
+    src = open(SPRITES_JS).read()
+    out = []
+    for const in ("VARIANT_PLACEMENT", "VARIANT_REVIEW"):
+        block = src[src.index(f"export const {const}"):]
+        block = block[:block.index("];")]
+        out += re.findall(r'"(\w+)"', block)
+    return out
+
+
 def note_fields():
     """flag -> the key its free-text note is stored under, from NOTE_FIELDS."""
     src = open(SPRITES_JS).read()

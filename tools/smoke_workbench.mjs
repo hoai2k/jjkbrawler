@@ -379,8 +379,12 @@ const updated = await page.evaluate(() => ({
   frame: document.getElementById("frameTag").textContent,
 }));
 check(updated.locked, "it locks the per-character view filter, which does not apply");
-check(updated.poses > 0 || /overwritten/.test(updated.note),
-  "it lists the overwritten poses, or says there are none", JSON.stringify(updated.count));
+// Matched against the empty-state note's opening words rather than a word from
+// the middle of it: the list being genuinely empty is now the normal end state
+// of a round, so this branch runs often and must not depend on the wording of a
+// sentence that gets edited.
+check(updated.poses > 0 || /Nothing is waiting/.test(updated.note),
+  "it lists the updated poses, or says there are none", JSON.stringify(updated.count));
 check(updated.list === "updated", "the address bar remembers which list you are in");
 check(/\w+\/\w+/.test(updated.frame), "a pose is on the canvas either way", updated.frame);
 // Every pose on it names its own character: the list mixes them, so the pose

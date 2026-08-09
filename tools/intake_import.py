@@ -60,13 +60,16 @@ from PIL import Image
 
 import intake
 from extract_sprites import generated_frame_meta, ALPHA_THRESHOLD
-from list_replacements import placement_rule
+from list_replacements import placement_rule, variant_banked
 
 CELL_W = CELL_H = 313.5
 
 # kind -> what survives, parsed from src/sprites.js so there is one source of
 # truth for the rule rather than a copy here that can drift.
 PLACEMENT = placement_rule()
+# What a variant option carries, parsed from src/sprites.js so a held-back
+# replacement banks exactly what a chosen one does.
+VARIANT_BANKED = variant_banked()
 SPRITES = intake.SPRITES
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 
@@ -311,10 +314,57 @@ def reframe_placement(meta, old_meta, old_frame, new_frame):
     return out
 
 
+PENDING_DIR = "incoming"
+
+# Fields of the pose that describe the DRAWING in play, banked so the game can
+# go on reading them while a replacement waits. Same list the variant options
+# use, since it answers the same question: what belongs to an image.
+LIVE_FIELDS = VARIANT_BANKED + ["file", "oy"]
+
+
+def hold_for_approval(man, char, key, src, meta, stored, at):
+    """Land a replacement without letting it into the game yet.
+
+    Two pointers on one pose, and they mean different things:
+
+      the pose's own fields   the NEW drawing. This is what the sprite workbench
+                              edits, because placing it is the work the approval
+                              is waiting on.
+      `awaitingApproval.live` the drawing the GAME goes on showing until someone
+                              approves, with the whole placement it had.
+
+    Before this, an intake round changed what every player saw the moment it
+    ran, and the only way to find out whether a redraw was better was to ship it
+    and look. The roster is finished now, so the default has to be the other way
+    round: a delivery is a proposal until it has been stood beside the thing it
+    replaces. Approving is one button in the workbench, and it exports and
+    applies like every other change.
+
+    A brand-new pose never comes through here — there is nothing to compare it
+    against and nothing to break, so it goes straight in.
+    """
+    live = {f: stored[f] for f in LIVE_FIELDS if f in stored}
+    rel = f"{char}/{PENDING_DIR}/{key}.png"
+    os.makedirs(os.path.join(SPRITES, char, PENDING_DIR), exist_ok=True)
+    shutil.copy2(src, os.path.join(SPRITES, rel))
+
+    meta = dict(meta)
+    meta["file"] = rel
+    # Carried rather than re-derived: an approval that has already happened once
+    # must not be undone by a second delivery landing on the same pose.
+    meta["awaitingApproval"] = {"at": at, "live": live}
+    meta["replaced"] = {"at": at, "kept": "await", "how": "await",
+                        "lost": lost_work(stored, "discard")}
+    man["characters"].setdefault(char, {})[key] = meta
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--approve", required=True)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--replace-now", action="store_true",
+                    help="skip the approval step and overwrite the art in the "
+                         "game immediately, the way imports worked before it")
     args = ap.parse_args()
 
     approvals = json.load(open(args.approve))
@@ -368,6 +418,18 @@ def main():
             note = replaced_note(stored, keeps, at)
             if note:
                 meta["replaced"] = note
+
+            # A replacement lands BESIDE the art it replaces and waits to be
+            # approved; only a brand-new pose goes straight into the game. See
+            # hold_for_approval() for why.
+            holding = bool(stored) and not args.replace_now
+            if holding:
+                if not args.dry_run:
+                    hold_for_approval(man, char, key, src, meta, stored, at)
+                done.append(f"{char}/{key}: {meta['w']}x{meta['h']} "
+                            f"renderScale={meta['renderScale']}  [awaiting approval]"
+                            "  -> updated list, game still draws the old art")
+                continue
 
             if not args.dry_run:
                 os.makedirs(os.path.join(SPRITES, char), exist_ok=True)

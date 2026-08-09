@@ -473,8 +473,12 @@ export function anchorsForFrame(charKey, frameKey) {
 //             when the anchor has not been placed by hand, so a frame gets
 //             sensible behaviour before anyone has visited it in the workbench.
 export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
-  const meta = frameMeta(charKey, frameKey);
-  const img = frameImage(charKey, frameKey);
+  // `preview` draws the art being WORKED ON rather than the art in play. Only
+  // the workbench passes it, and only so a replacement can be placed before it
+  // is approved into the game — everywhere else the two are the same image.
+  const view = { preview: !!opts.preview };
+  const meta = frameMeta(charKey, frameKey, view);
+  const img = frameImage(charKey, frameKey, view);
   if (!meta || !img) return;
 
   // renderScale corrects frames whose art is drawn at a different zoom than
