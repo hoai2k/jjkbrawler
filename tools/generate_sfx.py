@@ -30,7 +30,7 @@ PEAK_TARGET = 10 ** (-3.0 / 20)      # -3 dBFS
 SILENCE_FLOOR = 10 ** (-50.0 / 20)   # -50 dBFS counts as silence
 
 # Sounds that must stay full length and un-faded: they loop in game.
-LOOPING = {"energy_charge.wav", "hazard_fire_patch.wav"}
+LOOPING = {"energy_charge.wav", "hazard_fire_patch.wav", "fire_burn_loop.wav"}
 
 
 def parse_doc():

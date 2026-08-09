@@ -6,7 +6,7 @@ import { PROJ_TRAIL, BLACK_FLASH, RUMBLE } from "./config_fx.js";
 import { rumbleFighter, rumbleEvent } from "./rumble.js";
 import { duckMusic } from "./audio.js";
 import { ELEMENT_HIT_SFX } from "./config_audio.js";
-import { playSfx } from "./audio.js";
+import { playSfx, noteFireBurning } from "./audio.js";
 import { domainKnockbackMul } from "./domains.js";
 import {
   SHIELD_DAMAGE_MULT, SHIELD_BREAK_STUN, PARRY_WINDOW, METER_MAX,
@@ -476,6 +476,7 @@ export function applyStatus(effect, owner, target, extra = {}) {
 export function updateStatuses(f, dt) {
   const s = f.statuses;
   if (s.burn) {
+    noteFireBurning(); // the fire bed runs while anything is alight, not per tick
     s.burn.t -= dt;
     s.burn.tick -= dt;
     if (s.burn.tick <= 0) {
@@ -678,7 +679,7 @@ export function applyHit(owner, target, hit, source) {
     // The ratio drawn onto the target: a precise gold seam, sparks along it.
     ratioSeamFx(target.x, target.y - 96, dir);
     playSfx("hitCrit");
-    playSfx("seamCrack", 0.9); // the seam snapping — silence until delivered
+    playSfx("seamCrack", 0.9); // the seam snapping onto the target
   } else if (zone === "sour") {
     dmg *= band.sourDmg ?? 1;
     baseKb *= band.sourKb ?? 1;
@@ -830,8 +831,9 @@ export function applyHit(owner, target, hit, source) {
   const hy = target.y - 96;
   const fxEl = elementOf(hit, owner);
   hitFx(fxEl, hx, hy, dir, dmg, owner.char.theme);
-  // The element's own sound, layered quietly under the hit sound. Unregistered
-  // names are silence, so each layer arrives with its file (audio-requests).
+  // The element's own sound, layered quietly under the hit sound, louder with
+  // the damage behind it. All seven elements have a file; an element with no
+  // registry entry would simply be silent here.
   if (ELEMENT_HIT_SFX[fxEl]) playSfx(ELEMENT_HIT_SFX[fxEl], Math.min(0.9, 0.45 + dmg / 34));
   popup(target.x, target.y - 132, `${dmg}%`, "#ffffff", 20 + Math.min(16, dmg));
   if (label) popup(target.x - dir * 26, target.y - 160, label, owner.char.theme, 17);

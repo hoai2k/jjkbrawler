@@ -248,7 +248,7 @@ const HANDLERS = {
     f.facing = sign(opp.x - f.x) || f.facing;
     popup(f.x, f.y - 170, "BOOGIE WOOGIE", p.color, 22);
     playSfx("blast", 0.8, 1.3);
-    playSfx("boogieClap", 1); // the dry, huge clap — silence until delivered
+    playSfx("boogieClap", 1); // the dry, huge clap: the technique IS this sound
     state.camera.shake = Math.max(state.camera.shake, 6);
     // followup window: quick strike as they reel
     spawnMelee(f, {

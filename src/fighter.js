@@ -7,7 +7,7 @@ import { performSpecial, updateSpecialState } from "./specials.js";
 import { performUltimate } from "./ultimates.js";
 import { performDomain, domainInput, canOpenDomain, activeDomain } from "./domains.js";
 import { burst, dust, popup, banner, ring } from "./particles.js";
-import { playSfx, playGrunt, playKoCry, startShieldLoop, stopShieldLoop } from "./audio.js";
+import { playSfx, playGrunt, playKoCry, startShieldLoop, stopShieldLoop, noteFireBurning } from "./audio.js";
 import { rumbleEvent } from "./rumble.js";
 import { counterShimmerFx, healMotesFx } from "./fx.js";
 import {
@@ -446,6 +446,8 @@ export function updateFighter(f, dt, input) {
 
   // installs
   if (f.installs) {
+    // Furnace Shell is worn heat, so it feeds the same fire bed a burn does.
+    if (f.installs.contactBurn) noteFireBurning();
     f.installs.t -= dt;
     if (f.installs.healPerSec) f.damage = Math.max(0, f.damage - f.installs.healPerSec * dt);
     // Flowing Red Scale (Choso): overclocked blood burns him while it's held

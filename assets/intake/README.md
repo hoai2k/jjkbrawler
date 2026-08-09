@@ -9,6 +9,12 @@ assets/intake/summons/<name>.png
 assets/intake/cards/<key>_card.jpg
 ```
 
+Delivered **sound** goes to `assets/intake/sfx/` and takes the short path: it
+needs no keying or measuring, so landing it is a move into `assets/sfx/`, a key
+in `src/config_audio.js`, and the request moved into
+[docs/audio-requests-history.md](../../docs/audio-requests-history.md) where
+`tools/generate_sfx.py` can re-roll it. Everything below is about art.
+
 Nothing in this directory is loaded by the game, which is the whole point:
 generated art arrives as an untrimmed plate on a magenta or grey field with no
 alpha channel, and dropping that straight into `assets/sprites/` makes the game

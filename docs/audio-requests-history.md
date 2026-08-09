@@ -1,11 +1,12 @@
 # Audio Requests — history
 
-Record of the sound-effect round that has been **delivered and integrated**.
+Record of the sound-effect rounds that have been **delivered and integrated**.
 Nothing in this file is outstanding; open requests, if there ever are any
 again, live in [audio-requests.md](audio-requests.md).
 
-**All 81 files delivered and wired in.** Filenames below say `.wav`; what ships
-is the same name as **`.mp3`** (mono, 128 kbps) — a browser has to download
+**All 96 files delivered and wired in** — 81 in the round-8 pass below, then the
+15-file element and signature round after it. Filenames below say `.wav`; what
+ships is the same name as **`.mp3`** (128 kbps) — a browser has to download
 these, and MP3 is about a fifth the size. Generated with the ElevenLabs
 sound-generation API from the prompts below, then trimmed, length-capped and
 peak-normalised to -3 dBFS automatically. The registry, mix and categories live
@@ -586,6 +587,108 @@ A small parasitic creature latching onto a body, a wet sticky slap followed by a
 
 ---
 
+## Round 9 — element hit layers and signature one-shots (15 files)
+
+Delivered and wired in. This round came out of the effects work in
+[effects-plan.md](effects-plan.md): hits carry an element visually, and seven
+characters had a technique whose whole identity is a sound nobody had made yet.
+Every call site already existed when the request went out, so each file switched
+on as it was registered.
+
+### Element hit layers (7 files)
+
+Played quietly UNDER the normal hit sound whenever a hit of that element
+connects — `ELEMENT_HIT_SFX` in `src/config_audio.js`, fired from `combat.js`
+at a gain that scales with damage. Seasoning, not the meal.
+
+**`hit_fire.wav`** · `hitFire` — flame catching on impact · 0.5 s
+```
+a short burst of fire igniting on impact, whoomph of flame with a crackle tail, no explosion boom, tight and dry
+```
+
+**`hit_blood.wav`** · `hitBlood` — a heavy wet splat · 0.4 s
+```
+a thick heavy wet splat, dense liquid impact with a short spatter tail, visceral but not gory squelch
+```
+
+**`hit_steel.wav`** · `hitSteel` — metal glancing off metal · 0.4 s
+```
+a sharp steel-on-steel glance, bright metallic ring cut short, sword clash without the swing
+```
+
+**`hit_wind.wav`** · `hitWind` — a blade of air slicing through · 0.4 s
+```
+a fast slicing gust, sharp air whip crack with a hollow whoosh tail, no voice
+```
+
+**`hit_sound.wav`** · `hitSound` — a resonant concussive tone · 0.6 s
+```
+a deep resonant concussive tone hitting like a struck gong crossed with a bass drop, brief, musical edge
+```
+
+**`hit_shadow.wav`** · `hitShadow` — dark matter whipping past · 0.5 s
+```
+a dark whooshing impact, low smoky rush with a faint reversed tail, ominous, no scream
+```
+
+**`hit_soul.wav`** · `hitSoul` — something touching the soul · 0.6 s
+```
+an eerie shimmering impact, cold glassy ripple with a detuned harmonic tail, unsettling, quiet
+```
+
+### Signature one-shots (8 files)
+
+Each is the sound of one technique, at a call site that was waiting for it.
+
+**`boogie_clap.wav`** · `boogieClap` — Todo's clap, the whole technique · 0.7 s
+```
+a single enormous dry hand clap in a large hall, sharp transient, big natural reverb tail, nothing else
+```
+
+**`power_chord.wav`** · `powerChord` — Gakuganji's Power Chord · 1.2 s
+```
+a single aggressive distorted electric guitar power chord, palm-muted strike then ringing out, raw amp tone
+```
+
+**`crow_caw.wav`** · `crowCaw` — Mei Mei's crow leaving her hand · 0.6 s
+```
+a single harsh crow caw with a flutter of wingbeats, close and dry
+```
+
+**`paper_flutter.wav`** · `paperRustle` — Reggie's receipts becoming things · 0.6 s
+```
+a fast flutter of many paper slips fanning and snapping taut, dry crisp rustle ending in a thump
+```
+
+**`soul_reshape.wav`** · `soulReshape` — Mahito's Idle Transfiguration · 0.8 s
+```
+a wet clay-like squelch morphing with a bone creak and a faint chime, unsettling body-horror texture, not gory
+```
+
+**`seam_crack.wav`** · `seamCrack` — Nanami's 7:3 seam snapping onto the target · 0.5 s
+```
+a precise glass crack snapping along a line, clean sharp fracture with a faint metallic ping, surgical
+```
+
+**`rct_chime.wav`** · `healChime` — Reverse Cursed Technique beginning · 0.9 s
+```
+a warm gentle chime swell with soft rising sparkle motes, healing shimmer, calm, no melody
+```
+
+**`fire_burn_loop.wav`** · `fireBurnLoop` — the bed under burn ticks and Furnace Shell, seamless · 2.0 s
+```
+a small steady fire burning, soft crackle loop, even level, seamless loop, no wind
+```
+
+This last one is the only file in the round that arrived without a call site.
+It has one now: `noteFireBurning()` (`src/audio.js`) is asked for the bed every
+frame by anything alight — a burn status in `combat.js`, a `contactBurn` install
+in `fighter.js` — and the loop stops on the first frame nobody asks. It is in
+`LOOPING` in `tools/generate_sfx.py`, so a re-roll keeps its full length and
+un-faded tail.
+
+---
+
 ## Suggested delivery order (as written at the time)
 
 Kept for the record. It was followed, and everything below shipped.
@@ -617,6 +720,7 @@ Totals: **68 files** for tiers 1–6, plus 13 optional. Tiers 1–3 alone
 | 4 — menu / UI | 7 | ☑ | ☑ |
 | 5 — energy / summons / domains | 11 (+7 stings) | ☑ | ☑ |
 | 6 — stage hazards | 10 | ☑ | ☑ |
+| 9 — element layers + signatures | 15 | ☑ | ☑ |
 
 All 26 sound calls in `src/stage_fx.js` now name a specific sound; no generic
 key is left in that file. Two hazards that were audible only when they
