@@ -40,6 +40,12 @@ twelve new creatures that are live in play today wearing borrowed art. It
 touches no existing file either, so it can be drawn alongside any of the
 others.
 
+Read **[pose-brief.md](pose-brief.md)** before drawing a fighter. It is the
+standing brief — what every pose has to be, the four criteria the engine
+measures, and the faults that have each cost the roster a re-request — and it is
+cumulative, so it is the reason a new set should arrive better than the last one.
+This file asks for particular art; that file says what the art has to be.
+
 Read **[the canonical reference image](#the-canonical-reference-image--one-per-fighter)**
 below before drawing anything: it names the one image each fighter is matched
 against, and it applies to every request in this file. (Summons have no
@@ -575,18 +581,18 @@ ult_a  ult_b
 hurt  dizzy  prone  victory
 ```
 
-The pose lines are the shared ones — the run cycle from round 12B, the crouch
-and crouch-attack lines in [13A](#13a-crouches-that-are-standing--22-sprites)
-and [13B](#13b-crouch_attack-frames-that-never-get-low--10-sprites), the light
-pair in [13C](#13c-light-attack-pairs-that-do-not-reach--7-sprites) and the
-heavy pair in [14A](#14a-heavy-strike-frames-that-do-not-extend--16-sprites).
-**Read those four before starting**: every one of them exists because a
-delivered set got that pose wrong, and this is the chance to get 144 frames
-right the first time rather than re-request them as round 17.
+**The pose lines are in [pose-brief.md](pose-brief.md), and that file is what
+these four should be drawn from.** It is the standing brief for a whole set —
+every pose line, the `_a`/`_b` flip test, the framing rule, and the list of
+faults that have each cost the roster a re-request. It exists because the pose
+lines used to live scattered across the rounds that happened to ask for them,
+which meant a new character was drawn from whatever the last round remembered.
+Reading it first is the difference between getting 144 frames right once and
+re-requesting them as round 18.
 
-Two of those matter more than the rest for these four, because reach is now
-measured off the art (`src/silhouette.js`) and a pose that does not extend is a
-fighter with short range:
+Four of its rules are worth repeating here, because they are measurable and
+because reach is now taken off the art (`src/silhouette.js`) — a pose that does
+not extend is a fighter with short range in play:
 
 - `attack_heavy_b` must put the weapon or fist **further forward than anything
   in that fighter's own `idle_a` by at least a third of their standing height**.
@@ -603,13 +609,9 @@ fighter with short range:
   [14B](#14b-a-consistent-idle-stance--20-sprites), open for twenty existing
   fighters, and these four are the chance not to join it.
 
-**Framing counts double on these four.** The [delivery
-spec](#delivery-spec) says nothing may touch the canvas edge, and an extended
-weapon is exactly what breaks that rule — round 13 delivered a Yuta
-`crouch_attack_b` whose blade ran off the right of the plate, which no amount of
-placement recovers and which is re-requested in
-[17C](#17c-caught-while-placing-round-13--2-sprites). A pose that extends needs
-the margin drawn for it, not the figure enlarged until the reach falls off.
+**Framing counts double on these four**, for the same reason: a pose that
+extends needs the margin drawn for it, rather than the figure enlarged until the
+reach falls off the plate. See [the reach margin](pose-brief.md#1-the-rules-that-hold-for-every-pose).
 
 ### What each fighter is holding, and what their poses are of
 
@@ -797,6 +799,11 @@ single still, so a creature that changes size or floats up between `idle_a` and
 `move_a` will visibly jitter. Draw the six as one sheet-in-spirit even though
 they are delivered as six files.
 
+The general rules in [pose-brief.md](pose-brief.md) hold for creatures too —
+one zoom, margin on all four sides, no painted-in motion, and `attack` extends
+past the creature's own `idle_a`. Only the pose *lines* differ, and those are in
+the table above.
+
 **Facing:** as with everything else, draw **facing RIGHT**. Three of the
 delivered summons are flagged `faceRight` in `config_summons.js` and the rest
 are mirrored on draw; keep each creature's six poses consistent with each
@@ -926,14 +933,14 @@ Round 17 is the round to add to: 14, 15 and 16 are all being worked on, so
 anything found from here lands here rather than growing a round somebody is
 already drawing against.
 
-- **17A** — a full Hanami set (39 sprites)
+- **17A** — a full Hanami set (36 sprites)
 - **17B** — Mahoraga's three light/crouch poses, redrawn (3 sprites)
 - **17C** — two caught while placing round 13 (2 sprites)
 
-**44 sprites in total.** Neither section is blocking — every pose named here has
+**41 sprites in total.** None of it is blocking — every pose named here has
 art in the game today, and each is a redraw rather than a gap.
 
-## 17A. A full Hanami set — 39 sprites
+## 17A. A full Hanami set — 36 sprites
 
 Hanami's set is the oldest on the roster: it came in at round 6 as a redesign,
 was re-pointed to the semantic pose table at round 11B, and has been patched a
@@ -946,20 +953,18 @@ set that is going to be redrawn whole buys a few weeks of slightly better art
 and then throws the work away. The art they would have replaced is still in the
 game and stays there until this set lands.
 
-Deliver **the full semantic pose table** for `hanami` — the same 39 keys every
-other fighter carries (any fighter delivered at round 11B or later carries
-exactly this list, and that directory is the model). The design is the character block
-above plus `assets/reference/canon/hanami_idle.png`; the idle is what his size
-is solved against, so expect a workbench pass on the whole set when it lands
+Deliver **the full semantic pose table** for `hanami` — the same 36 keys every
+other fighter carries (`SEMANTIC_ANIMS` in `src/characters.js`, and any fighter
+delivered at round 11B or later is the model). The design is the character block
+above plus `assets/reference/canon/hanami_idle.png`.
+
+**Draw it from [pose-brief.md](pose-brief.md)**, which is the standing brief for
+a whole set: the pose lines, the measurable criteria for the idle, the crouches
+and the two strike frames, and the faults that keep coming back. Redrawing whole
+rather than piecemeal is most of the reason to do it — every round-14 brief
+applies to this set at once, and his idle is what his size is solved against, so
+expect a workbench pass over the whole set when it lands
 (see [character-heights.md](character-heights.md)).
-
-The two round-14 briefs apply to this set as it is drawn, and doing it in one
-pass is most of the reason to redraw whole rather than piecemeal:
-
-- **14A** — the heavy strike frames have to extend. Nothing reaches forward in
-  the current pair.
-- **14B** — the idle has to be a consistent stance, because it is the pose the
-  hurtbox width is measured from.
 
 ## 17B. Mahoraga — three poses that never extended — 3 sprites
 

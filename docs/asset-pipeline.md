@@ -234,6 +234,15 @@ option itself, and puts the pose on the **All Recently Updated Poses** list with
 `how: "alternate"`. Both clear when the pose is adjusted or marked reviewed, the
 same lifecycle as every other marker here.
 
+#### A repeated flag is a missing rule
+
+A flag is one sentence about one drawing, but flags come in batches, and the
+same complaint on four fighters is not four mistakes — it is something nobody
+told the artist. That belongs in [pose-brief.md](pose-brief.md), the standing
+brief a new set is drawn from, which is cumulative where the request files are
+not. `python3 tools/list_replacements.py --markdown` groups the open flags by
+kind, which is the quickest way to see a repeat.
+
 #### A flagged pose is marked in the grid
 
 A `needsReplacement` flag other than `delete` means **somebody has been asked to
