@@ -319,8 +319,18 @@ function framesOf(charKey) {
 /** The intake marker on a pose, or null. */
 function updateNote(charKey, frameKey) {
   if (isOther(charKey)) return null;
-  return spriteManifest?.characters?.[charKey]?.[frameKey]?.replaced
-    || surfacedNote(charKey, frameKey);
+  const meta = spriteManifest?.characters?.[charKey]?.[frameKey];
+  // A pose still waiting to be approved belongs on the list whatever else has
+  // happened to it. The `replaced` marker clears the moment the pose is
+  // adjusted — which is right for a re-tune, and wrong here: placing the new
+  // art is exactly what you do BEFORE deciding, so tuning it dropped the pose
+  // off the queue while the game was still drawing the old drawing. The
+  // approval is the thing being tracked, so it outranks the marker.
+  if (meta?.awaitingApproval) {
+    return meta.replaced || { at: meta.awaitingApproval.at || "", kept: "await",
+                              how: "await", lost: [] };
+  }
+  return meta?.replaced || surfacedNote(charKey, frameKey);
 }
 
 // A second way onto the list, and the same job: poses that need a look now and
@@ -479,6 +489,11 @@ function updateSummary(note) {
   const when = note.at ? new Date(note.at) : null;
   const landed = when && !Number.isNaN(when.getTime())
     ? when.toLocaleString() : (note.at || "an earlier round");
+  if (note.how === "await") {
+    return "New art for this pose is in the repo and <b>the game is still drawing "
+      + "the old drawing</b>. Place it, compare the two, then approve or keep — "
+      + "the buttons are below the sliders.";
+  }
   if (note.how === "alternate") {
     const at = note.at ? new Date(note.at) : null;
     const when = at && !Number.isNaN(at.getTime()) ? at.toLocaleString() : (note.at || "an earlier round");

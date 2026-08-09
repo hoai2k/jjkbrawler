@@ -4,7 +4,11 @@ Everything in this file is **outstanding**. Delivered rounds are recorded in
 [asset-requests-history.md](asset-requests-history.md) — including the round
 numbers, so a commit or code comment citing "round 5 art" still resolves.
 
-**Current status: rounds 1–13 delivered. Rounds 14, 15 and 16 are open.**
+**Current status: rounds 1–13 delivered. Rounds 14, 15, 16 and 17 are open.**
+
+**Round 17 is the one to add to.** 14, 15 and 16 are all being drawn against, so
+anything found from here goes into 17 rather than growing a round somebody is
+already working from.
 
 Round 13's forty-one poses are **in the repo but not all in the game** — it was
 the first round to land through the
@@ -168,6 +172,7 @@ and a recipe for fetching more in that directory's README.
 | yuki | "Yuki Tsukumo from Jujutsu Kaisen, tall athletic young woman with very long straight blonde hair falling past her waist with two tufts framing her face and brown eyes, wearing a sleeveless dark indigo mandarin-collar top with gold frog clasps at the shoulder, a grey buttoned corset belt at the waist, high-waisted light blue jeans and brown ankle boots" |
 | dagon | "Dagon from Jujutsu Kaisen, a tall broad hunched humanoid cursed spirit with deep red outer limbs and a tan inner chest and belly, a black midsection, a smooth red octopus-like head with blank pale eyes and a beard of thick red tentacles hanging from the jaw, black bat-like wings folded at the lower back, four heavy clawed fingers per hand and broad two-toed feet" *(grey key)* |
 | kurourushi | "Kurourushi from Jujutsu Kaisen, a tall cockroach cursed spirit draped head to floor in a smooth glossy black shroud, a maroon insect face with eight red-and-orange eyes in uneven pairs and a wide grin of human teeth behind layered jaws, six very long thin purple antennae sweeping out from the head, dark chitinous insect legs splayed out at the base of the shroud, wielding a long dark cursed sword with six firing barrels along its spine" *(grey key)* |
+| mahoraga | "Mahoraga from Jujutsu Kaisen, the Divine General shikigami — a towering pale-white humanoid with grey sculpted musculature, a long segmented tail, and a fanned crest of white blade-like spines sweeping back from his head. **A brass eight-spoked karma wheel is mounted on the headdress behind his skull, with a ball at the end of each spoke** — it is part of his head and turns with it. Bandaged wrap and beads at the throat, a torn dark charcoal skirt over a pale sash, purple-grey wraps at wrists and ankles, barefoot, carrying a long pale bone-textured sword" |
 | gakuganji | "Yoshinobu Gakuganji from Jujutsu Kaisen, stern hunched elderly man, bald on top with long straight white hair falling past his shoulders at the sides, a long thin white beard and drooping moustache, deeply wrinkled face with hooded eyes and gold hoop earrings, wearing a cream-white kimono top under a black band T-shirt with the kimono sleeves hanging loose, wide dark-purple hakama trousers, white tabi socks and wooden geta sandals, a crimson-red Flying-V electric guitar slung across his chest on a strap" *(grey key)* |
 
 *(The 17 above are the launch roster; the six below shipped in round 7. The
@@ -260,6 +265,13 @@ a new character has no frame to inherit placement from (see
 ships. Round 11A redrew him from it, so his delivered set now agrees with it;
 the render stays the authority for his design because it is what the set was
 drawn against.
+
+He also has a character block now, which he did not until round 13 came back
+with **the karma wheel missing from three poses**. He was the only sprite set in
+the game without one, so his prompts carried no design text at all and the
+design lived entirely in a reference image — which works when somebody opens it
+and fails silently when they do not. A reference image is not a substitute for
+the block; it is what the block is checked against.
 
 ---
 
@@ -500,6 +512,11 @@ See [asset-pipeline.md](asset-pipeline.md#request-alternate).
 
 `uro/prone` is a costume note on a pose that is otherwise fine, so a redraw
 should keep the pose and the framing and only correct the outfit.
+
+Mahoraga's three round-13 poses were **rejected rather than flagged** — they
+arrived without the karma wheel, so they never entered the game and the art they
+would have replaced is still in play. Their asks are re-stated in
+[17B](#17b-mahoraga-three-poses-that-never-extended--3-sprites).
 
 ---
 
@@ -882,3 +899,68 @@ a half-delivered set is fine — a missing pose falls back to the still.
 The files go through the normal intake (`assets/intake/summons/` →
 `assets/sprites/summons/`); summon art is not in `manifest.json`, so there is
 nothing else to register.
+
+---
+
+# Round 17 — open
+
+Round 17 is the round to add to: 14, 15 and 16 are all being worked on, so
+anything found from here lands here rather than growing a round somebody is
+already drawing against.
+
+- **17A** — a full Hanami set (39 sprites)
+- **17B** — Mahoraga's three light/crouch poses, redrawn (3 sprites)
+
+**42 sprites in total.** Neither section is blocking — every pose named here has
+art in the game today, and each is a redraw rather than a gap.
+
+## 17A. A full Hanami set — 39 sprites
+
+Hanami's set is the oldest on the roster: it came in at round 6 as a redesign,
+was re-pointed to the semantic pose table at round 11B, and has been patched a
+pose at a time since. The result is a set drawn across three different rounds
+with three different briefs, which shows most in the crouches and the run.
+
+Round 13 delivered `crouch_b` and `crouch_attack_b` against that patchwork.
+**Both were rejected at approval** rather than let in: fixing two poses inside a
+set that is going to be redrawn whole buys a few weeks of slightly better art
+and then throws the work away. The art they would have replaced is still in the
+game and stays there until this set lands.
+
+Deliver **the full semantic pose table** for `hanami` — the same 39 keys every
+other fighter carries (any fighter delivered at round 11B or later carries
+exactly this list, and that directory is the model). The design is the character block
+above plus `assets/reference/canon/hanami_idle.png`; the idle is what his size
+is solved against, so expect a workbench pass on the whole set when it lands
+(see [character-heights.md](character-heights.md)).
+
+The two round-14 briefs apply to this set as it is drawn, and doing it in one
+pass is most of the reason to redraw whole rather than piecemeal:
+
+- **14A** — the heavy strike frames have to extend. Nothing reaches forward in
+  the current pair.
+- **14B** — the idle has to be a consistent stance, because it is the pose the
+  hurtbox width is measured from.
+
+## 17B. Mahoraga — three poses that never extended — 3 sprites
+
+| Fighter | Key | Pose | Kind | What is wrong |
+|---|---|---|---|---|
+| Mahoraga | `mahoraga` | `attack_light_a` | Pose | The sword never leaves the body line — the wind-up does not extend. |
+| Mahoraga | `mahoraga` | `attack_light_b` | Pose | The blade stays across the body, tip pointing down and back. Nothing reaches forward. **Neither frame of the pair extends.** |
+| Mahoraga | `mahoraga` | `crouch_b` | Pose | Upright rather than crouched, opposite the delivered `crouch_a`. 0.97 × idle. |
+
+These three were asked for in round 13 and **the delivery was rejected**: the
+drawings fixed the poses but arrived with **the karma wheel missing from the
+headdress**, which no request, no reference image and no code asked for.
+`assets/reference/canon/mahoraga_canon.png` shows the wheel, the shipped
+`idle_a`, `crouch_a` and `run_reach_a` all have it, and retiring the old
+`drawProp` compositing only deleted code the game had already stopped using for
+him. So the asks are unanswered and the old, wheel-bearing art is still in play.
+
+The cause was that Mahoraga was **the only fighter in the game with no character
+block** in this file, so his prompts carried no design text at all and the design
+lived entirely in a reference image — which works when somebody opens it and
+fails silently when they do not. Round 11A only worked because that round's own
+prose happened to spell the headdress out. He has a block now, at the top of
+this file, and it names the wheel in bold. **A redraw here must carry it.**

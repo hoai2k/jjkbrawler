@@ -2306,48 +2306,11 @@
     "h": 922,
     "ox": -457.3,
     "oy": -611,
-    "bodyBottom": 274.7,
+    "bodyBottom": 258.7,
     "bodyH": 308.7,
     "centroidX": 272.8,
-    "renderScale": 0.335,
+    "renderScale": 0.2111,
     "file": "nanami/incoming/crouch_attack_a.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 895,
-      "h": 1068,
-      "ox": -438.8,
-      "oy": -757,
-      "bodyBottom": 242.9,
-      "bodyH": 308.7,
-      "bodyTop": 0,
-      "centroidX": 262.1,
-      "renderScale": 0.2312,
-      "anchors": {
-       "com": [
-        600.9,
-        418.0
-       ]
-      },
-      "edited": {
-       "renderScale": 0.289,
-       "ox": -290.8,
-       "bodyBottom": 310.4
-      },
-      "file": "nanami/crouch_attack_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 996,
@@ -2365,6 +2328,10 @@
       "bodyBottom": "foot=0.961 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.335,
+     "bodyBottom": 274.7
     }
    },
    "crouch_attack_b": {
@@ -3683,15 +3650,15 @@
     "coreRight": 875.4
    },
    "crouch_attack_b": {
-    "w": 1318,
-    "h": 838,
-    "ox": -522.0,
-    "oy": -527,
-    "bodyBottom": 271.7,
+    "w": 972,
+    "h": 1391,
+    "ox": -291.2,
+    "oy": -1080,
+    "bodyBottom": 220.9,
     "bodyH": 407.6,
-    "centroidX": 176.5,
-    "renderScale": 0.486,
-    "file": "hanami/incoming/crouch_attack_b.png",
+    "centroidX": 141.7,
+    "renderScale": 0.2285,
+    "file": "hanami/crouch_attack_b.png",
     "replaced": {
      "at": "2026-08-09T16:00:44+00:00",
      "kept": "await",
@@ -3703,32 +3670,6 @@
       "anchors"
      ]
     },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 972,
-      "h": 1391,
-      "ox": -291.2,
-      "oy": -1080,
-      "bodyBottom": 220.9,
-      "bodyH": 407.6,
-      "bodyTop": 0,
-      "centroidX": 141.7,
-      "renderScale": 0.2285,
-      "anchors": {
-       "com": [
-        472.3,
-        697.7
-       ]
-      },
-      "edited": {
-       "renderScale": 0.293,
-       "ox": -329.2,
-       "bodyBottom": 310.4
-      },
-      "file": "hanami/crouch_attack_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1318,
@@ -3736,8 +3677,8 @@
     "coreRight": 1227.4,
     "anchors": {
      "com": [
-      679.3,
-      423.0
+      472.3,
+      697.7
      ]
     },
     "autoTuned": {
@@ -3746,18 +3687,23 @@
       "bodyBottom": "foot=0.953 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.293,
+     "ox": -329.2,
+     "bodyBottom": 310.4
     }
    },
    "crouch_b": {
-    "w": 872,
-    "h": 1239,
-    "ox": -295.6,
-    "oy": -928,
-    "bodyBottom": 252.9,
+    "w": 696,
+    "h": 1358,
+    "ox": -191.2,
+    "oy": -1047,
+    "bodyBottom": 229.4,
     "bodyH": 397.9,
-    "centroidX": 173.1,
-    "renderScale": 0.321,
-    "file": "hanami/incoming/crouch_b.png",
+    "centroidX": 173.8,
+    "renderScale": 0.2344,
+    "file": "hanami/crouch_b.png",
     "replaced": {
      "at": "2026-08-09T16:00:44+00:00",
      "kept": "await",
@@ -3768,31 +3714,6 @@
       "anchors"
      ]
     },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 696,
-      "h": 1358,
-      "ox": -191.2,
-      "oy": -1047,
-      "bodyBottom": 229.4,
-      "bodyH": 397.9,
-      "bodyTop": 0,
-      "centroidX": 173.8,
-      "renderScale": 0.2344,
-      "anchors": {
-       "com": [
-        421.0,
-        660.9
-       ]
-      },
-      "edited": {
-       "renderScale": 0.293,
-       "bodyBottom": 310.4
-      },
-      "file": "hanami/crouch_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 872,
@@ -3800,8 +3721,8 @@
     "coreRight": 805.4,
     "anchors": {
      "com": [
-      454.4,
-      595.7
+      421.0,
+      660.9
      ]
     },
     "autoTuned": {
@@ -3810,6 +3731,10 @@
       "bodyBottom": "foot=0.953 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.293,
+     "bodyBottom": 310.4
     }
    },
    "dash": {
@@ -6189,45 +6114,8 @@
     "bodyBottom": 273.2,
     "bodyH": 280.5,
     "centroidX": 143.2,
-    "renderScale": 0.326,
+    "renderScale": 0.2559,
     "file": "momo/incoming/crouch_a.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 936,
-      "h": 964,
-      "ox": -286.2,
-      "oy": -653,
-      "bodyBottom": 260.9,
-      "bodyH": 280.5,
-      "bodyTop": 0,
-      "centroidX": 134.8,
-      "renderScale": 0.2663,
-      "anchors": {
-       "com": [
-        445.7,
-        388.0
-       ]
-      },
-      "edited": {
-       "renderScale": 0.291,
-       "ox": -311.2,
-       "bodyBottom": 310.4
-      },
-      "file": "momo/crouch_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1054,
@@ -6245,6 +6133,9 @@
       "bodyBottom": "foot=0.956 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.326
     }
    },
    "crouch_attack_a": {
@@ -6311,48 +6202,11 @@
     "h": 965,
     "ox": -391.4,
     "oy": -654,
-    "bodyBottom": 268.7,
+    "bodyBottom": 253.2,
     "bodyH": 354.7,
     "centroidX": 204.4,
-    "renderScale": 0.368,
+    "renderScale": 0.2447,
     "file": "momo/incoming/crouch_b.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 603,
-      "h": 1219,
-      "ox": -186.3,
-      "oy": -908,
-      "bodyBottom": 247.9,
-      "bodyH": 354.7,
-      "bodyTop": 0,
-      "centroidX": 172.8,
-      "renderScale": 0.2692,
-      "anchors": {
-       "com": [
-        340.9,
-        505.2
-       ]
-      },
-      "edited": {
-       "renderScale": 0.291,
-       "ox": -144.8,
-       "bodyBottom": 310.4
-      },
-      "file": "momo/crouch_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1001,
@@ -6370,6 +6224,10 @@
       "bodyBottom": "foot=0.956 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.368,
+     "bodyBottom": 268.7
     }
    },
    "dash": {
@@ -10350,51 +10208,13 @@
    "crouch_a": {
     "w": 689,
     "h": 1068,
-    "ox": -170.4,
+    "ox": -152.9,
     "oy": -757,
-    "bodyBottom": 251.4,
+    "bodyBottom": 219.4,
     "bodyH": 346.3,
     "centroidX": 139.4,
-    "renderScale": 0.324,
+    "renderScale": 0.1944,
     "file": "megumi/incoming/crouch_a.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "rotationDeg",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 882,
-      "h": 1166,
-      "ox": -284.2,
-      "oy": -855,
-      "bodyBottom": 224.4,
-      "bodyH": 346.3,
-      "bodyTop": 0,
-      "centroidX": 138.0,
-      "renderScale": 0.2421,
-      "rotationDeg": 2,
-      "anchors": {
-       "com": [
-        378.5,
-        500.0
-       ]
-      },
-      "edited": {
-       "renderScale": 0.297,
-       "bodyBottom": 310.4,
-       "rotationDeg": null
-      },
-      "file": "megumi/crouch_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 689,
@@ -10412,53 +10232,23 @@
       "bodyBottom": "foot=0.944 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.324,
+     "ox": -170.4,
+     "bodyBottom": 251.4
     }
    },
    "crouch_attack_a": {
     "w": 809,
     "h": 1033,
-    "ox": -282.2,
+    "ox": -265.7,
     "oy": -722,
-    "bodyBottom": 253.4,
+    "bodyBottom": 290.4,
     "bodyH": 388.8,
     "centroidX": 191.2,
-    "renderScale": 0.376,
+    "renderScale": 0.1918,
     "file": "megumi/incoming/crouch_attack_a.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 738,
-      "h": 1309,
-      "ox": -250.7,
-      "oy": -998,
-      "bodyBottom": 310.4,
-      "bodyH": 388.8,
-      "bodyTop": 0,
-      "centroidX": 220.0,
-      "renderScale": 0.1945,
-      "anchors": {
-       "com": [
-        431.7,
-        499.3
-       ]
-      },
-      "edited": {
-       "renderScale": 0.297,
-       "ox": -212.2
-      },
-      "file": "megumi/crouch_attack_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 809,
@@ -10476,55 +10266,23 @@
       "bodyBottom": "foot=0.944 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.376,
+     "ox": -282.2,
+     "bodyBottom": 253.4
     }
    },
    "crouch_attack_b": {
     "w": 930,
     "h": 723,
-    "ox": -235.2,
+    "ox": -136.2,
     "oy": -412,
     "bodyBottom": 270.7,
     "bodyH": 399.5,
     "centroidX": 83.7,
-    "renderScale": 0.553,
+    "renderScale": 0.2599,
     "file": "megumi/incoming/crouch_attack_b.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 974,
-      "h": 1345,
-      "ox": -167.7,
-      "oy": -1034,
-      "bodyBottom": 270.9,
-      "bodyH": 399.5,
-      "bodyTop": 0,
-      "centroidX": 6.6,
-      "renderScale": 0.2302,
-      "anchors": {
-       "com": [
-        292.4,
-        490.3
-       ]
-      },
-      "edited": {
-       "renderScale": 0.297,
-       "ox": -330.2,
-       "bodyBottom": 310.4
-      },
-      "file": "megumi/crouch_attack_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 930,
@@ -10532,8 +10290,8 @@
     "coreRight": 860.2,
     "anchors": {
      "com": [
-      392.4,
-      342.3
+      292.0,
+      355.1
      ]
     },
     "autoTuned": {
@@ -10542,6 +10300,10 @@
       "bodyBottom": "foot=0.944 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.553,
+     "ox": -235.2
     }
    },
    "crouch_b": {
@@ -10549,46 +10311,11 @@
     "h": 1204,
     "ox": -239.2,
     "oy": -893,
-    "bodyBottom": 243.8,
+    "bodyBottom": 232.3,
     "bodyH": 423.2,
     "centroidX": 157.0,
-    "renderScale": 0.351,
+    "renderScale": 0.2036,
     "file": "megumi/incoming/crouch_b.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 616,
-      "h": 1425,
-      "ox": -151.2,
-      "oy": -1114,
-      "bodyBottom": 254.4,
-      "bodyH": 423.2,
-      "bodyTop": 0,
-      "centroidX": 137.0,
-      "renderScale": 0.2198,
-      "anchors": {
-       "com": [
-        308.7,
-        608.6
-       ]
-      },
-      "edited": {
-       "renderScale": 0.297,
-       "bodyBottom": 310.4
-      },
-      "file": "megumi/crouch_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 792,
@@ -10605,7 +10332,13 @@
      "fields": {
       "bodyBottom": "foot=0.944 (character)"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.351,
+     "bodyBottom": 243.8,
+     "rotationDeg": null
+    },
+    "rotationDeg": 3
    },
    "dash": {
     "w": 862,
@@ -16145,19 +15878,8 @@
     "bodyBottom": 256.3,
     "bodyH": 378.8,
     "centroidX": 159.2,
-    "renderScale": 0.385,
+    "renderScale": 0.1809,
     "file": "nobara/incoming/crouch_a.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "rotationDeg",
-      "anchors"
-     ]
-    },
     "awaitingApproval": {
      "at": "2026-08-09T16:00:44+00:00",
      "live": {
@@ -16202,6 +15924,9 @@
       "bodyBottom": "foot=0.944 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.385
     }
    },
    "crouch_attack_a": {
@@ -17529,51 +17254,13 @@
    "crouch_a": {
     "w": 877,
     "h": 1266,
-    "ox": -297.2,
+    "ox": -307.2,
     "oy": -955,
-    "bodyBottom": 233.9,
+    "bodyBottom": 68.9,
     "bodyH": 342.5,
     "centroidX": 172.2,
-    "renderScale": 0.271,
+    "renderScale": 0.1992,
     "file": "maki/incoming/crouch_a.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "rotationDeg",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 939,
-      "h": 1177,
-      "ox": -312.8,
-      "oy": -866,
-      "bodyBottom": 210.4,
-      "bodyH": 342.5,
-      "bodyTop": 0,
-      "centroidX": 189.8,
-      "renderScale": 0.2255,
-      "rotationDeg": 4,
-      "anchors": {
-       "com": [
-        504.4,
-        538.9
-       ]
-      },
-      "edited": {
-       "renderScale": 0.291,
-       "bodyBottom": 310.4,
-       "rotationDeg": null
-      },
-      "file": "maki/crouch_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 877,
@@ -17591,6 +17278,11 @@
       "bodyBottom": "foot=0.939 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.271,
+     "ox": -297.2,
+     "bodyBottom": 233.9
     }
    },
    "crouch_attack_a": {
@@ -24210,53 +23902,13 @@
    "attack_light_a": {
     "w": 860,
     "h": 1554,
-    "ox": -320.8,
+    "ox": -325.3,
     "oy": -1243,
-    "bodyBottom": 283.4,
+    "bodyBottom": 286.4,
     "bodyH": 266.4,
     "centroidX": 204.3,
-    "renderScale": 0.171,
+    "renderScale": 0.1881,
     "file": "meimei/incoming/attack_light_a.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "faceLeft",
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 988,
-      "h": 1287,
-      "ox": -457.2,
-      "oy": -976,
-      "bodyBottom": 294.4,
-      "bodyH": 266.4,
-      "bodyTop": 0,
-      "centroidX": 276.9,
-      "renderScale": 0.2277,
-      "anchors": {
-       "com": [
-        633.2,
-        447.4
-       ]
-      },
-      "faceLeft": true,
-      "edited": {
-       "renderScale": 0.207,
-       "ox": -337.2,
-       "bodyBottom": 310.4,
-       "faceLeft": null
-      },
-      "file": "meimei/attack_light_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 860,
@@ -24264,8 +23916,8 @@
     "coreRight": 796.4,
     "anchors": {
      "com": [
-      480.6,
-      622.7
+      522.3,
+      550.3
      ]
     },
     "autoTuned": {
@@ -24274,53 +23926,23 @@
       "bodyBottom": "foot=0.982 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.171,
+     "ox": -320.8,
+     "bodyBottom": 283.4
     }
    },
    "attack_light_b": {
     "w": 871,
     "h": 1338,
-    "ox": -406.3,
+    "ox": -455.3,
     "oy": -1027,
-    "bodyBottom": 287.2,
+    "bodyBottom": 250.2,
     "bodyH": 271.4,
     "centroidX": 284.3,
-    "renderScale": 0.203,
+    "renderScale": 0.2253,
     "file": "meimei/incoming/attack_light_b.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 1002,
-      "h": 1311,
-      "ox": -386.2,
-      "oy": -1000,
-      "bodyBottom": 310.4,
-      "bodyH": 271.4,
-      "bodyTop": 0,
-      "centroidX": 188.8,
-      "renderScale": 0.2215,
-      "anchors": {
-       "com": [
-        532.3,
-        540.4
-       ]
-      },
-      "edited": {
-       "renderScale": 0.207,
-       "ox": -344.2
-      },
-      "file": "meimei/attack_light_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 871,
@@ -24328,8 +23950,8 @@
     "coreRight": 819.5,
     "anchors": {
      "com": [
-      562.6,
-      504.2
+      602.5,
+      465.4
      ]
     },
     "autoTuned": {
@@ -24338,7 +23960,14 @@
       "bodyBottom": "foot=0.982 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.203,
+     "ox": -406.3,
+     "bodyBottom": 287.2,
+     "faceLeft": null
+    },
+    "faceLeft": true
    },
    "attack_up": {
     "w": 853,
@@ -29846,50 +29475,15 @@
     "coreRight": 835.3
    },
    "attack_light_a": {
-    "w": 1102,
-    "h": 1114,
-    "ox": -438.5,
-    "oy": -803,
-    "bodyBottom": 276.7,
+    "w": 1024,
+    "h": 1291,
+    "ox": -355.2,
+    "oy": -980,
+    "bodyBottom": 246.4,
     "bodyH": 402.8,
-    "centroidX": 201.0,
-    "renderScale": 0.362,
-    "file": "mahoraga/incoming/attack_light_a.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 1024,
-      "h": 1291,
-      "ox": -355.2,
-      "oy": -980,
-      "bodyBottom": 246.4,
-      "bodyH": 402.8,
-      "bodyTop": 0,
-      "centroidX": 96.3,
-      "renderScale": 0.3853,
-      "anchors": {
-       "com": [
-        452.3,
-        537.9
-       ]
-      },
-      "edited": {
-       "renderScale": 0.312,
-       "bodyBottom": 310.4
-      },
-      "file": "mahoraga/attack_light_a.png"
-     }
-    },
+    "centroidX": 96.3,
+    "renderScale": 0.3853,
+    "file": "mahoraga/attack_light_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1102,
@@ -29897,8 +29491,8 @@
     "coreRight": 1037.4,
     "anchors": {
      "com": [
-      594.6,
-      454.7
+      452.3,
+      537.9
      ]
     },
     "autoTuned": {
@@ -29907,58 +29501,24 @@
       "bodyBottom": "foot=0.969 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "The sword never leaves the body line \u2014 the wind-up does not extend. The redraw must also carry the karma wheel, which the round-13 delivery dropped.",
+    "edited": {
+     "renderScale": 0.312,
+     "bodyBottom": 310.4
     }
    },
    "attack_light_b": {
-    "w": 1147,
-    "h": 1034,
-    "ox": -558.7,
-    "oy": -723,
-    "bodyBottom": 279.1,
-    "bodyH": 404.2,
-    "centroidX": 298.7,
-    "renderScale": 0.391,
-    "file": "mahoraga/incoming/attack_light_b.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "faceLeft",
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 974,
-      "h": 1267,
-      "ox": -366.2,
-      "oy": -956,
-      "bodyBottom": 233.4,
-      "bodyH": 404.0,
-      "bodyTop": 0,
-      "centroidX": 218.8,
-      "renderScale": 0.4019,
-      "anchors": {
-       "com": [
-        549.6,
-        527.3
-       ]
-      },
-      "faceLeft": true,
-      "edited": {
-       "renderScale": 0.319,
-       "ox": -330.2,
-       "bodyBottom": 310.4,
-       "faceLeft": null
-      },
-      "file": "mahoraga/attack_light_b.png"
-     }
-    },
+    "w": 974,
+    "h": 1267,
+    "ox": -366.2,
+    "oy": -956,
+    "bodyBottom": 233.4,
+    "bodyH": 404.0,
+    "centroidX": 218.8,
+    "renderScale": 0.4019,
+    "file": "mahoraga/attack_light_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1147,
@@ -29966,8 +29526,8 @@
     "coreRight": 1089.7,
     "anchors": {
      "com": [
-      716.0,
-      417.5
+      549.6,
+      527.3
      ]
     },
     "autoTuned": {
@@ -29976,6 +29536,15 @@
       "bodyBottom": "foot=0.969 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "The blade stays across the body, tip down and back. Nothing reaches forward. The redraw must also carry the karma wheel.",
+    "faceLeft": true,
+    "edited": {
+     "renderScale": 0.319,
+     "ox": -330.2,
+     "bodyBottom": 310.4,
+     "faceLeft": null
     }
    },
    "attack_up": {
@@ -30127,50 +29696,15 @@
     }
    },
    "crouch_b": {
-    "w": 1066,
-    "h": 1029,
-    "ox": -444.1,
-    "oy": -718,
-    "bodyBottom": 279.3,
-    "bodyH": 388.4,
-    "centroidX": 224.6,
-    "renderScale": 0.377,
-    "file": "mahoraga/incoming/crouch_b.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 1002,
-      "h": 1184,
-      "ox": -344.2,
-      "oy": -873,
-      "bodyBottom": 294.4,
-      "bodyH": 388.5,
-      "bodyTop": 0,
-      "centroidX": 100.8,
-      "renderScale": 0.4166,
-      "anchors": {
-       "com": [
-        444.2,
-        506.5
-       ]
-      },
-      "edited": {
-       "renderScale": 0.328,
-       "bodyBottom": 310.4
-      },
-      "file": "mahoraga/crouch_b.png"
-     }
-    },
+    "w": 1002,
+    "h": 1184,
+    "ox": -344.2,
+    "oy": -873,
+    "bodyBottom": 294.4,
+    "bodyH": 388.5,
+    "centroidX": 100.8,
+    "renderScale": 0.4166,
+    "file": "mahoraga/crouch_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1066,
@@ -30178,8 +29712,8 @@
     "coreRight": 986.0,
     "anchors": {
      "com": [
-      601.4,
-      444.0
+      444.2,
+      506.5
      ]
     },
     "autoTuned": {
@@ -30188,6 +29722,12 @@
       "bodyBottom": "foot=0.969 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "Upright rather than crouched, opposite the delivered crouch_a. The redraw must also carry the karma wheel.",
+    "edited": {
+     "renderScale": 0.328,
+     "bodyBottom": 310.4
     }
    },
    "dash": {
@@ -37370,33 +36910,28 @@
    "crouch_a": {
     "options": [
      {
-      "file": "maki/crouch_a.png",
-      "label": "Delivered",
-      "w": 939,
-      "h": 1177,
-      "ox": -312.8,
-      "oy": -866,
-      "bodyBottom": 210.4,
+      "w": 877,
+      "h": 1266,
+      "ox": -307.2,
+      "oy": -955,
+      "bodyBottom": 68.9,
       "bodyH": 342.5,
       "bodyTop": 0,
-      "centroidX": 189.8,
-      "renderScale": 0.2255,
-      "rotationDeg": 4,
+      "centroidX": 172.2,
+      "renderScale": 0.1992,
       "anchors": {
        "com": [
-        504.4,
-        538.9
+        455.1,
+        583.1
        ]
       },
       "edited": {
-       "renderScale": 0.291,
-       "bodyBottom": 310.4,
-       "rotationDeg": null
+       "renderScale": 0.271,
+       "ox": -297.2,
+       "bodyBottom": 233.9
       },
-      "bodyLeft": 0,
-      "bodyRight": 939,
-      "coreLeft": 66.2,
-      "coreRight": 838.6
+      "file": "maki/incoming/crouch_a.png",
+      "label": "In game"
      },
      {
       "file": "maki/r4c0.png",
@@ -37433,6 +36968,32 @@
         90.9
        ]
       }
+     },
+     {
+      "w": 939,
+      "h": 1177,
+      "ox": -312.8,
+      "oy": -866,
+      "bodyBottom": 210.4,
+      "bodyH": 342.5,
+      "bodyTop": 0,
+      "centroidX": 189.8,
+      "renderScale": 0.2255,
+      "rotationDeg": 4,
+      "anchors": {
+       "com": [
+        504.4,
+        538.9
+       ]
+      },
+      "edited": {
+       "renderScale": 0.291,
+       "bodyBottom": 310.4,
+       "rotationDeg": null
+      },
+      "file": "maki/crouch_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T16:00:44+00:00"
      }
     ]
    },
@@ -38329,8 +37890,66 @@
    "crouch_a": {
     "options": [
      {
-      "file": "megumi/crouch_a.png",
-      "label": "Delivered",
+      "w": 689,
+      "h": 1068,
+      "ox": -152.9,
+      "oy": -757,
+      "bodyBottom": 219.4,
+      "bodyH": 346.3,
+      "bodyTop": 0,
+      "centroidX": 139.4,
+      "renderScale": 0.1944,
+      "anchors": {
+       "com": [
+        326.9,
+        484.9
+       ]
+      },
+      "edited": {
+       "renderScale": 0.324,
+       "ox": -170.4,
+       "bodyBottom": 251.4
+      },
+      "file": "megumi/incoming/crouch_a.png",
+      "label": "In game"
+     },
+     {
+      "file": "megumi/r4c0.png",
+      "label": "Sheet cell r4c0",
+      "w": 173,
+      "h": 192,
+      "ox": 70,
+      "oy": 118,
+      "bodyBottom": 310,
+      "bodyH": 192,
+      "bodyTop": 0,
+      "centroidX": 155.9,
+      "anchors": {
+       "com": [
+        86.3,
+        94.0
+       ]
+      }
+     },
+     {
+      "file": "megumi/r4c1.png",
+      "label": "Sheet cell r4c1",
+      "w": 156,
+      "h": 192,
+      "ox": 77,
+      "oy": 118,
+      "bodyBottom": 310,
+      "bodyH": 192,
+      "bodyTop": 0,
+      "centroidX": 152.0,
+      "anchors": {
+       "com": [
+        75.7,
+        91.5
+       ]
+      }
+     },
+     {
       "w": 882,
       "h": 1166,
       "ox": -284.2,
@@ -38352,10 +37971,38 @@
        "bodyBottom": 310.4,
        "rotationDeg": null
       },
-      "bodyLeft": 0,
-      "bodyRight": 882,
-      "coreLeft": 65.6,
-      "coreRight": 772.5
+      "file": "megumi/crouch_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T16:00:44+00:00"
+     }
+    ]
+   },
+   "crouch_b": {
+    "options": [
+     {
+      "w": 792,
+      "h": 1204,
+      "ox": -239.2,
+      "oy": -893,
+      "bodyBottom": 232.3,
+      "bodyH": 423.2,
+      "bodyTop": 0,
+      "centroidX": 157.0,
+      "renderScale": 0.2036,
+      "rotationDeg": 3,
+      "anchors": {
+       "com": [
+        395.8,
+        510.6
+       ]
+      },
+      "edited": {
+       "renderScale": 0.351,
+       "bodyBottom": 243.8,
+       "rotationDeg": null
+      },
+      "file": "megumi/incoming/crouch_b.png",
+      "label": "In game"
      },
      {
       "file": "megumi/r4c0.png",
@@ -38392,14 +38039,8 @@
         91.5
        ]
       }
-     }
-    ]
-   },
-   "crouch_b": {
-    "options": [
+     },
      {
-      "file": "megumi/crouch_b.png",
-      "label": "Delivered",
       "w": 616,
       "h": 1425,
       "ox": -151.2,
@@ -38419,77 +38060,37 @@
        "renderScale": 0.297,
        "bodyBottom": 310.4
       },
-      "bodyLeft": 0,
-      "bodyRight": 616,
-      "coreLeft": 53.4,
-      "coreRight": 525.5
-     },
-     {
-      "file": "megumi/r4c0.png",
-      "label": "Sheet cell r4c0",
-      "w": 173,
-      "h": 192,
-      "ox": 70,
-      "oy": 118,
-      "bodyBottom": 310,
-      "bodyH": 192,
-      "bodyTop": 0,
-      "centroidX": 155.9,
-      "anchors": {
-       "com": [
-        86.3,
-        94.0
-       ]
-      }
-     },
-     {
-      "file": "megumi/r4c1.png",
-      "label": "Sheet cell r4c1",
-      "w": 156,
-      "h": 192,
-      "ox": 77,
-      "oy": 118,
-      "bodyBottom": 310,
-      "bodyH": 192,
-      "bodyTop": 0,
-      "centroidX": 152.0,
-      "anchors": {
-       "com": [
-        75.7,
-        91.5
-       ]
-      }
+      "file": "megumi/crouch_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T16:00:44+00:00"
      }
     ]
    },
    "crouch_attack_a": {
     "options": [
      {
-      "file": "megumi/crouch_attack_a.png",
-      "label": "Delivered",
-      "w": 738,
-      "h": 1309,
-      "ox": -250.7,
-      "oy": -998,
-      "bodyBottom": 310.4,
+      "w": 809,
+      "h": 1033,
+      "ox": -265.7,
+      "oy": -722,
+      "bodyBottom": 290.4,
       "bodyH": 388.8,
       "bodyTop": 0,
-      "centroidX": 220.0,
-      "renderScale": 0.1945,
+      "centroidX": 191.2,
+      "renderScale": 0.1918,
       "anchors": {
        "com": [
-        431.7,
-        499.3
+        438.3,
+        533.9
        ]
       },
       "edited": {
-       "renderScale": 0.297,
-       "ox": -212.2
+       "renderScale": 0.376,
+       "ox": -282.2,
+       "bodyBottom": 253.4
       },
-      "bodyLeft": 0,
-      "bodyRight": 738,
-      "coreLeft": 73.6,
-      "coreRight": 654.5
+      "file": "megumi/incoming/crouch_attack_a.png",
+      "label": "In game"
      },
      {
       "file": "megumi/r4c2.png",
@@ -38527,14 +38128,96 @@
         84.4
        ]
       }
+     },
+     {
+      "w": 738,
+      "h": 1309,
+      "ox": -250.7,
+      "oy": -998,
+      "bodyBottom": 310.4,
+      "bodyH": 388.8,
+      "bodyTop": 0,
+      "centroidX": 220.0,
+      "renderScale": 0.1945,
+      "anchors": {
+       "com": [
+        431.7,
+        499.3
+       ]
+      },
+      "edited": {
+       "renderScale": 0.297,
+       "ox": -212.2
+      },
+      "file": "megumi/crouch_attack_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T16:00:44+00:00"
      }
     ]
    },
    "crouch_attack_b": {
     "options": [
      {
-      "file": "megumi/crouch_attack_b.png",
-      "label": "Delivered",
+      "w": 930,
+      "h": 723,
+      "ox": -136.2,
+      "oy": -412,
+      "bodyBottom": 270.7,
+      "bodyH": 399.5,
+      "bodyTop": 0,
+      "centroidX": 83.7,
+      "renderScale": 0.2599,
+      "anchors": {
+       "com": [
+        292.0,
+        355.1
+       ]
+      },
+      "edited": {
+       "renderScale": 0.553,
+       "ox": -235.2
+      },
+      "file": "megumi/incoming/crouch_attack_b.png",
+      "label": "In game"
+     },
+     {
+      "file": "megumi/r4c2.png",
+      "label": "Sheet cell r4c2",
+      "w": 206,
+      "h": 163,
+      "ox": 2,
+      "oy": 147,
+      "bodyBottom": 310,
+      "bodyH": 163,
+      "bodyTop": 0,
+      "centroidX": 101.3,
+      "renderScale": 1.1,
+      "anchors": {
+       "com": [
+        100.0,
+        78.9
+       ]
+      }
+     },
+     {
+      "file": "megumi/r4c3.png",
+      "label": "Sheet cell r4c3",
+      "w": 307,
+      "h": 191,
+      "ox": 2,
+      "oy": 119,
+      "bodyBottom": 310,
+      "bodyH": 191,
+      "bodyTop": 0,
+      "centroidX": 138.7,
+      "anchors": {
+       "com": [
+        137.1,
+        84.4
+       ]
+      }
+     },
+     {
       "w": 974,
       "h": 1345,
       "ox": -167.7,
@@ -38555,47 +38238,9 @@
        "ox": -330.2,
        "bodyBottom": 310.4
       },
-      "bodyLeft": 0,
-      "bodyRight": 974,
-      "coreLeft": 33.6,
-      "coreRight": 874.2
-     },
-     {
-      "file": "megumi/r4c2.png",
-      "label": "Sheet cell r4c2",
-      "w": 206,
-      "h": 163,
-      "ox": 2,
-      "oy": 147,
-      "bodyBottom": 310,
-      "bodyH": 163,
-      "bodyTop": 0,
-      "centroidX": 101.3,
-      "renderScale": 1.1,
-      "anchors": {
-       "com": [
-        100.0,
-        78.9
-       ]
-      }
-     },
-     {
-      "file": "megumi/r4c3.png",
-      "label": "Sheet cell r4c3",
-      "w": 307,
-      "h": 191,
-      "ox": 2,
-      "oy": 119,
-      "bodyBottom": 310,
-      "bodyH": 191,
-      "bodyTop": 0,
-      "centroidX": 138.7,
-      "anchors": {
-       "com": [
-        137.1,
-        84.4
-       ]
-      }
+      "file": "megumi/crouch_attack_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T16:00:44+00:00"
      }
     ]
    },
@@ -39384,32 +39029,27 @@
    "crouch_attack_a": {
     "options": [
      {
-      "file": "nanami/crouch_attack_a.png",
-      "label": "Delivered",
-      "w": 895,
-      "h": 1068,
-      "ox": -438.8,
-      "oy": -757,
-      "bodyBottom": 242.9,
+      "w": 996,
+      "h": 922,
+      "ox": -457.3,
+      "oy": -611,
+      "bodyBottom": 258.7,
       "bodyH": 308.7,
       "bodyTop": 0,
-      "centroidX": 262.1,
-      "renderScale": 0.2312,
+      "centroidX": 272.8,
+      "renderScale": 0.2111,
       "anchors": {
        "com": [
-        600.9,
-        418.0
+        614.5,
+        415.5
        ]
       },
       "edited": {
-       "renderScale": 0.289,
-       "ox": -290.8,
-       "bodyBottom": 310.4
+       "renderScale": 0.335,
+       "bodyBottom": 274.7
       },
-      "bodyLeft": 0,
-      "bodyRight": 895,
-      "coreLeft": 106.8,
-      "coreRight": 834.4
+      "file": "nanami/incoming/crouch_attack_a.png",
+      "label": "In game"
      },
      {
       "file": "nanami/r4c2.png",
@@ -39446,6 +39086,31 @@
         96.1
        ]
       }
+     },
+     {
+      "w": 895,
+      "h": 1068,
+      "ox": -438.8,
+      "oy": -757,
+      "bodyBottom": 242.9,
+      "bodyH": 308.7,
+      "bodyTop": 0,
+      "centroidX": 262.1,
+      "renderScale": 0.2312,
+      "anchors": {
+       "com": [
+        600.9,
+        418.0
+       ]
+      },
+      "edited": {
+       "renderScale": 0.289,
+       "ox": -290.8,
+       "bodyBottom": 310.4
+      },
+      "file": "nanami/crouch_attack_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T16:00:44+00:00"
      }
     ]
    },
@@ -44312,8 +43977,66 @@
    "crouch_a": {
     "options": [
      {
-      "file": "momo/crouch_a.png",
-      "label": "Delivered",
+      "w": 1054,
+      "h": 861,
+      "ox": -356.7,
+      "oy": -550,
+      "bodyBottom": 273.2,
+      "bodyH": 280.5,
+      "bodyTop": 0,
+      "centroidX": 143.2,
+      "renderScale": 0.2559,
+      "anchors": {
+       "com": [
+        513.8,
+        412.9
+       ]
+      },
+      "edited": {
+       "renderScale": 0.326
+      },
+      "file": "momo/incoming/crouch_a.png",
+      "label": "In game"
+     },
+     {
+      "file": "momo/r4c0.png",
+      "label": "Sheet cell r4c0",
+      "w": 1254,
+      "h": 1254,
+      "ox": -470.2,
+      "oy": -808,
+      "bodyBottom": 310,
+      "bodyH": 187,
+      "bodyTop": 102,
+      "centroidX": 129.6,
+      "renderScale": 0.184,
+      "anchors": {
+       "com": [
+        600.6,
+        584.0
+       ]
+      }
+     },
+     {
+      "file": "momo/r4c1.png",
+      "label": "Sheet cell r4c1",
+      "w": 1254,
+      "h": 1254,
+      "ox": -478.8,
+      "oy": -777,
+      "bodyBottom": 310,
+      "bodyH": 187,
+      "bodyTop": 201,
+      "centroidX": 101.0,
+      "renderScale": 0.211,
+      "anchors": {
+       "com": [
+        580.2,
+        676.7
+       ]
+      }
+     },
+     {
       "w": 936,
       "h": 964,
       "ox": -286.2,
@@ -44334,10 +44057,36 @@
        "ox": -311.2,
        "bodyBottom": 310.4
       },
-      "bodyLeft": 0,
-      "bodyRight": 936,
-      "coreLeft": 66.3,
-      "coreRight": 867.6
+      "file": "momo/crouch_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T16:00:44+00:00"
+     }
+    ]
+   },
+   "crouch_b": {
+    "options": [
+     {
+      "w": 1001,
+      "h": 965,
+      "ox": -391.4,
+      "oy": -654,
+      "bodyBottom": 253.2,
+      "bodyH": 354.7,
+      "bodyTop": 0,
+      "centroidX": 204.4,
+      "renderScale": 0.2447,
+      "anchors": {
+       "com": [
+        548.5,
+        421.7
+       ]
+      },
+      "edited": {
+       "renderScale": 0.368,
+       "bodyBottom": 268.7
+      },
+      "file": "momo/incoming/crouch_b.png",
+      "label": "In game"
      },
      {
       "file": "momo/r4c0.png",
@@ -44376,14 +44125,8 @@
         676.7
        ]
       }
-     }
-    ]
-   },
-   "crouch_b": {
-    "options": [
+     },
      {
-      "file": "momo/crouch_b.png",
-      "label": "Delivered",
       "w": 603,
       "h": 1219,
       "ox": -186.3,
@@ -44404,48 +44147,9 @@
        "ox": -144.8,
        "bodyBottom": 310.4
       },
-      "bodyLeft": 0,
-      "bodyRight": 603,
-      "coreLeft": 68.6,
-      "coreRight": 548.6
-     },
-     {
-      "file": "momo/r4c0.png",
-      "label": "Sheet cell r4c0",
-      "w": 1254,
-      "h": 1254,
-      "ox": -470.2,
-      "oy": -808,
-      "bodyBottom": 310,
-      "bodyH": 187,
-      "bodyTop": 102,
-      "centroidX": 129.6,
-      "renderScale": 0.184,
-      "anchors": {
-       "com": [
-        600.6,
-        584.0
-       ]
-      }
-     },
-     {
-      "file": "momo/r4c1.png",
-      "label": "Sheet cell r4c1",
-      "w": 1254,
-      "h": 1254,
-      "ox": -478.8,
-      "oy": -777,
-      "bodyBottom": 310,
-      "bodyH": 187,
-      "bodyTop": 201,
-      "centroidX": 101.0,
-      "renderScale": 0.211,
-      "anchors": {
-       "com": [
-        580.2,
-        676.7
-       ]
-      }
+      "file": "momo/crouch_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T16:00:44+00:00"
      }
     ]
    },
@@ -45157,6 +44861,117 @@
        "bodyBottom": 310.4
       },
       "file": "choso/attack_light_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T16:00:44+00:00"
+     }
+    ]
+   }
+  },
+  "meimei": {
+   "attack_light_a": {
+    "options": [
+     {
+      "w": 860,
+      "h": 1554,
+      "ox": -325.3,
+      "oy": -1243,
+      "bodyBottom": 286.4,
+      "bodyH": 266.4,
+      "bodyTop": 0,
+      "centroidX": 204.3,
+      "renderScale": 0.1881,
+      "anchors": {
+       "com": [
+        522.3,
+        550.3
+       ]
+      },
+      "edited": {
+       "renderScale": 0.171,
+       "ox": -320.8,
+       "bodyBottom": 283.4
+      },
+      "file": "meimei/incoming/attack_light_a.png",
+      "label": "In game"
+     },
+     {
+      "w": 988,
+      "h": 1287,
+      "ox": -457.2,
+      "oy": -976,
+      "bodyBottom": 294.4,
+      "bodyH": 266.4,
+      "bodyTop": 0,
+      "centroidX": 276.9,
+      "renderScale": 0.2277,
+      "anchors": {
+       "com": [
+        633.2,
+        447.4
+       ]
+      },
+      "faceLeft": true,
+      "edited": {
+       "renderScale": 0.207,
+       "ox": -337.2,
+       "bodyBottom": 310.4,
+       "faceLeft": null
+      },
+      "file": "meimei/attack_light_a.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T16:00:44+00:00"
+     }
+    ]
+   },
+   "attack_light_b": {
+    "options": [
+     {
+      "w": 871,
+      "h": 1338,
+      "ox": -455.3,
+      "oy": -1027,
+      "bodyBottom": 250.2,
+      "bodyH": 271.4,
+      "bodyTop": 0,
+      "centroidX": 284.3,
+      "renderScale": 0.2253,
+      "anchors": {
+       "com": [
+        602.5,
+        465.4
+       ]
+      },
+      "faceLeft": true,
+      "edited": {
+       "renderScale": 0.203,
+       "ox": -406.3,
+       "bodyBottom": 287.2,
+       "faceLeft": null
+      },
+      "file": "meimei/incoming/attack_light_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 1002,
+      "h": 1311,
+      "ox": -386.2,
+      "oy": -1000,
+      "bodyBottom": 310.4,
+      "bodyH": 271.4,
+      "bodyTop": 0,
+      "centroidX": 188.8,
+      "renderScale": 0.2215,
+      "anchors": {
+       "com": [
+        532.3,
+        540.4
+       ]
+      },
+      "edited": {
+       "renderScale": 0.207,
+       "ox": -344.2
+      },
+      "file": "meimei/attack_light_b.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T16:00:44+00:00"
      }
