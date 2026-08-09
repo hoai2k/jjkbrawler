@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { clamp, sign, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, sparkLine, ring, popup, banner } from "./particles.js";
-import { hitFx, elementOf, burnTickFx, bleedTickFx, projectileEmit, explodeFx, blackFlashFx } from "./fx.js";
+import { hitFx, elementOf, burnTickFx, bleedTickFx, projectileEmit, explodeFx, blackFlashFx, ratioSeamFx } from "./fx.js";
 import { PROJ_TRAIL, BLACK_FLASH, RUMBLE } from "./config_fx.js";
 import { rumbleFighter, rumbleEvent } from "./rumble.js";
 import { duckMusic } from "./audio.js";
@@ -583,6 +583,8 @@ export function applyHit(owner, target, hit, source) {
     dmg *= 1.36; baseKb *= 1.22; growth *= 1.15;
     label = "7:3 " + (label || "");
     popup(target.x, target.y - 175, "7:3!", "#ffd35a", 26);
+    // The ratio drawn onto the target: a precise gold seam, sparks along it.
+    ratioSeamFx(target.x, target.y - 96, dir);
     playSfx("hitCrit");
   }
 

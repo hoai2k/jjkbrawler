@@ -8,7 +8,7 @@
 // Every count, palette and speed in here reads from src/config_fx.js.
 
 import { emit, burst, dust, sparkLine, ring } from "./particles.js";
-import { FX_DENSITY, HIT_RECIPES, ELEMENT_PALETTES, DASH_FX, PROJ_EMIT, BLACK_FLASH } from "./config_fx.js";
+import { FX_DENSITY, HIT_RECIPES, ELEMENT_PALETTES, DASH_FX, PROJ_EMIT, BLACK_FLASH, CHAR_FX } from "./config_fx.js";
 import { rand, pick } from "./utils.js";
 import { state } from "./state.js";
 
@@ -178,6 +178,23 @@ export function hitFx(element, x, y, dir, dmg, theme) {
 /** Particles shed in flight, by the projectile's fxElement tag. Called every
  *  update tick; the per-element rates live in config_fx.js. */
 export function projectileEmit(p, dt) {
+  // Gravity-well shots (Gojo's Blue): debris streaks pulled INTO the core, so
+  // the attraction the hitbox exerts is visible before anything is caught.
+  if (p.pull && Math.random() < 24 * dt * FX_DENSITY) {
+    const a = rand(0, Math.PI * 2);
+    const r = rand(55, 115);
+    const sx = p.x + Math.cos(a) * r, sy = p.y + Math.sin(a) * r;
+    emit({
+      x: sx, y: sy, vx: (p.x - sx) * 4.5, vy: (p.y - sy) * 4.5,
+      size: 3 + rand(0, 2), shape: "streak",
+      life: 0.14 + rand(0, 0.1), maxLife: 0.24, color: "#bfe4ff",
+    });
+  }
+  // Shockwave shedders (Gojo's Red, Hollow Purple): rings peeled off in
+  // flight — everything blown OUTWARD. `fxRing` is rings per second.
+  if (p.fxRing && Math.random() < p.fxRing * dt * FX_DENSITY) {
+    ring(p.x, p.y, p.color, p.r * 1.6);
+  }
   const rate = PROJ_EMIT[p.fxElement] || 0;
   if (!rate || Math.random() > rate * dt * FX_DENSITY) return;
   const back = -Math.sign(p.vx) || 1;
@@ -220,12 +237,15 @@ export function explodeFx(p) {
 /** Launch dressing for the twelve dashStrike side-specials: a fan of streaks
  *  in the move's colour (steel-white for the no-cursed-energy trio) and a
  *  boosted afterimage trail for the lunge (read by trailStrength). */
-export function dashLaunchFx(f, color) {
-  const steel = f.char.fxElement === "steel";
+export function dashLaunchFx(f, color, element = f.char.fxElement) {
+  if (element === "feather") {
+    // Mei Mei: black feathers scatter off the lunge, her ambient signature.
+    flutter(f.x - f.facing * 20, f.y - 90, "#15161c", n(5, 1));
+  }
   glints(
     f.x - f.facing * 26, f.y - 80, -f.facing,
     n(DASH_FX.streaks, 1), 1,
-    steel ? ELEMENT_PALETTES.steel : [color, "#ffffff"],
+    element === "steel" ? ELEMENT_PALETTES.steel : [color, "#ffffff"],
   );
   f.fxTrailT = DASH_FX.trailTime;
 }
@@ -257,6 +277,105 @@ export function critFinisherFx(x, y, color) {
     life: BLACK_FLASH.vignetteTime,
     maxLife: BLACK_FLASH.vignetteTime,
   };
+}
+
+// ---------------------------------------------------- per-character one-offs
+
+/** Shimmer orbiting a held counter stance (Gojo's Infinity, Uro's Sky Fold):
+ *  short tangential streaks on a ring around the fighter. Called per frame
+ *  from the counter tick; rate-limited here. */
+export function counterShimmerFx(f, color, dt) {
+  if (Math.random() > CHAR_FX.counterShimmer * dt * FX_DENSITY) return;
+  const a = rand(0, Math.PI * 2);
+  const r = rand(62, 92);
+  emit({
+    x: f.x + Math.cos(a) * r, y: f.y - 90 + Math.sin(a) * r * 0.8,
+    vx: -Math.sin(a) * 130, vy: Math.cos(a) * 100,
+    size: 3 + rand(0, 3), shape: "streak", streakLen: 0.06,
+    life: 0.18 + rand(0, 0.16), maxLife: 0.34,
+    color,
+  });
+}
+
+/** Reverse Cursed Technique: warm gold motes drifting up off the body — the
+ *  anime's one "healing" colour. Called per frame while the channel holds. */
+export function healMotesFx(f, dt) {
+  if (Math.random() > CHAR_FX.healMotes * dt * FX_DENSITY) return;
+  emit({
+    x: f.x + rand(-26, 26), y: f.y - rand(30, 150),
+    vx: rand(-14, 14), vy: -rand(30, 90),
+    gravity: -50,
+    size: 3 + rand(0, 4),
+    life: 0.4 + rand(0, 0.4), maxLife: 0.8,
+    ramp: ["#ffe9a8", "#ffd35a", "#c8922a"],
+  });
+}
+
+/** Sukuna's Dismantle: thin, flat, near-white slash lines in a crossing
+ *  lattice — the world is cut a beat before it comes apart. */
+export function dismantleLatticeFx(x, y, count, span = CHAR_FX.dismantleSpan) {
+  for (let i = 0; i < Math.round(count * FX_DENSITY); i++) {
+    const a = rand(0, Math.PI);
+    const len = span * rand(0.6, 1.15);
+    const dx = Math.cos(a) * len / 2, dy = Math.sin(a) * len / 2;
+    emit({
+      x: x - dx + rand(-30, 30), y: y - dy + rand(-24, 24),
+      forkPts: [[dx * 2, dy * 2]], shape: "fork",
+      size: 4,
+      life: 0.1 + rand(0, 0.12), maxLife: 0.22,
+      color: Math.random() < 0.75 ? "#ffffff" : "#ff4c55",
+    });
+  }
+}
+
+/** Nanami's 7:3 — the ratio drawn onto the target: a precise gold-white seam
+ *  that snaps into place, sparks bursting along it. */
+export function ratioSeamFx(x, y, dir) {
+  const half = CHAR_FX.seamLength / 2;
+  emit({
+    x: x - half, y: y + rand(-3, 3),
+    forkPts: [[CHAR_FX.seamLength, rand(-5, 5)]], shape: "fork",
+    size: 5,
+    life: 0.2, maxLife: 0.2,
+    color: "#ffd35a",
+  });
+  for (let i = 0; i < 6; i++) {
+    emit({
+      x: x + rand(-half, half), y,
+      vx: rand(-60, 60), vy: -rand(60, 220),
+      gravity: 300,
+      size: 2 + rand(0, 3), shape: "streak",
+      life: 0.14 + rand(0, 0.14), maxLife: 0.28,
+      ramp: ["#ffffff", "#ffd35a"],
+    });
+  }
+}
+
+/** Element-aware muzzle for the projectile special — Choso's Piercing Blood
+ *  gets its white sonic-boom cone, fire ignites, everything else keeps the
+ *  colour pop it had. */
+export function muzzleFx(element, x, y, dir, color) {
+  switch (element) {
+    case "blood":
+      glints(x, y, dir, n(8, 1), 1.1, ["#ffffff", "#f2d5d5"]); // the boom cone
+      droplets(x, y, dir, n(4, 1), 0.7);
+      break;
+    case "fire":
+      flames(x, y, n(6, 1), 0.8);
+      embers(x, y, n(4, 1), 0.8);
+      break;
+    default:
+      burst(x, y, color, 16, 0.9);
+  }
+}
+
+/** Maki's Awakening (and any steel install): power as the ABSENCE of glow —
+ *  white speed-lines both ways, a dust shockwave, no coloured energy. */
+export function steelInstallFx(f) {
+  glints(f.x, f.y - 90, 1, n(10, 1), 1.3);
+  glints(f.x, f.y - 90, -1, n(10, 1), 1.3);
+  dust(f.x, f.y, 22);
+  f.fxTrailT = 1.0;
 }
 
 // ------------------------------------------------------------- status ticks
