@@ -220,7 +220,7 @@ export const CHARACTERS = {
       down: {
         name: "Reverse Cursed Technique", type: "heal", cooldown: 5.5,
         desc: "Channel refined cursed energy to knit wounds — interrupted if struck.",
-        p: { duration: 1.4, healPerSec: 9, color: "#a5ffd8" },
+        p: { duration: 1.4, healPerSec: 9, color: "#a5ffd8", castSfx: "healChime" },
       },
     },
     ultimate: {
@@ -787,7 +787,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Idle Transfiguration", type: "commandGrab", cooldown: 2.1,
         desc: "One touch on the soul and the body follows. Cannot be blocked — only avoided.",
-        p: { range: 120, dmg: 14, base: 420, growth: 7.0, angle: 0.7, effect: "soulMark", color: "#b56cff", label: "Idle Transfiguration", sprite: "effect:soul_touch", spriteH: 150 },
+        p: { range: 120, dmg: 14, base: 420, growth: 7.0, angle: 0.7, effect: "soulMark", color: "#b56cff", castSfx: "soulReshape", label: "Idle Transfiguration", sprite: "effect:soul_touch", spriteH: 150 },
       },
       side: {
         name: "Body Distortion Lunge", type: "dashStrike", cooldown: 1.3,
@@ -1033,7 +1033,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Crow Scout", type: "projectile", cooldown: 1.0,
         desc: "A shikigami crow dives on command, wheeling after the target.",
-        p: { speed: 470, vy: -30, r: 26, dur: 1.2, dmg: 9, base: 320, growth: 6.2, angle: 0.4, color: "#d8b95c", homing: 150, fxElement: "feather", label: "Crow", sprite: "effect:crow", spriteH: 84 },
+        p: { speed: 470, vy: -30, r: 26, dur: 1.2, dmg: 9, base: 320, growth: 6.2, angle: 0.4, color: "#d8b95c", homing: 150, fxElement: "feather", fireSfx: "crowCaw", label: "Crow", sprite: "effect:crow", spriteH: 84 },
       },
       side: {
         name: "Axe Rush", type: "dashStrike", cooldown: 1.35,
@@ -1150,7 +1150,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Receipt: Katana Umbrella", type: "projectile", cooldown: 1.0,
         desc: "Tears a receipt and the purchase appears mid-swing — a blade wave off the umbrella's edge.",
-        p: { speed: 580, vy: -4, r: 30, dur: 0.85, dmg: 11, base: 360, growth: 6.8, angle: 0.34, color: "#86d67c", label: "Umbrella Blade", sprite: "effect:receipt_blade", spriteH: 86 },
+        p: { speed: 580, vy: -4, r: 30, dur: 0.85, dmg: 11, base: 360, growth: 6.8, angle: 0.34, color: "#86d67c", fireSfx: "paperRustle", label: "Umbrella Blade", sprite: "effect:receipt_blade", spriteH: 86 },
       },
       side: {
         name: "Receipt: Insecticide", type: "cloudField", cooldown: 2.0,
@@ -1196,7 +1196,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Power Chord", type: "projectile", cooldown: 1.1,
         desc: "One downstroke — cursed energy rides the riff out as a crushing wall of sound.",
-        p: { speed: 500, vy: 0, r: 40, dur: 0.8, dmg: 11, base: 380, growth: 6.8, angle: 0.36, color: "#d89b3f", pierce: true, ampable: true, fxElement: "sound", label: "Power Chord", sprite: "effect:sound_wave", spriteH: 120 },
+        p: { speed: 500, vy: 0, r: 40, dur: 0.8, dmg: 11, base: 380, growth: 6.8, angle: 0.36, color: "#d89b3f", pierce: true, ampable: true, fxElement: "sound", fireSfx: "powerChord", label: "Power Chord", sprite: "effect:sound_wave", spriteH: 120 },
       },
       side: {
         name: "Feedback Wall", type: "trap", cooldown: 1.9,

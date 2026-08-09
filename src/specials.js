@@ -129,6 +129,9 @@ const HANDLERS = {
       }
     }
     muzzleFx(p.fxElement, f.x + f.facing * 70, f.y - 86, f.facing, p.color || f.char.theme);
+    // A signature firing sound (Gakuganji's chord, Mei Mei's caw). Silence
+    // until the file is delivered and registered.
+    if (p.fireSfx) playSfx(p.fireSfx, 0.9);
     grantSummonMeter(f, cfg);
   },
 
@@ -169,6 +172,7 @@ const HANDLERS = {
   commandGrab(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
     playGrunt(f.charKey);
+    if (p.castSfx) playSfx(p.castSfx, 0.9);
     spawnMelee(f, {
       delay: 0.12, dur: 0.14, ox: 24, oy: -104, w: p.range || 120, h: 110,
       dmg: p.dmg, base: p.base, growth: p.growth, angle: p.angle,
@@ -244,6 +248,7 @@ const HANDLERS = {
     f.facing = sign(opp.x - f.x) || f.facing;
     popup(f.x, f.y - 170, "BOOGIE WOOGIE", p.color, 22);
     playSfx("blast", 0.8, 1.3);
+    playSfx("boogieClap", 1); // the dry, huge clap — silence until delivered
     state.camera.shake = Math.max(state.camera.shake, 6);
     // followup window: quick strike as they reel
     spawnMelee(f, {
@@ -267,6 +272,7 @@ const HANDLERS = {
     f.healing = { t: p.duration || 1.4, rate: p.healPerSec || 8 };
     ring(f.x, f.y - 90, p.color || "#a5ffd8", 90);
     playSfx("shield", 0.5, 1.5);
+    if (p.castSfx) playSfx(p.castSfx, 0.8);
   },
 
   gamble(f, p, cfg) {
