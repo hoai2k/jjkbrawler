@@ -58,11 +58,34 @@ export const REPLACEMENT_KINDS = [
   ["quality", "Quality — the drawing is rough, malformed or off-model"],
   ["pose", "Pose — reads poorly, or is not the action it stands for"],
   ["character", "Character — likeness or costume is off"],
+  // The one kind that does not condemn the drawing. It goes out as a request
+  // like the others — the ask is still "draw this" — but the answer arrives
+  // BESIDE the current art instead of on top of it, as another option on the
+  // chevron. For a pose that works and might work better, where replacing it
+  // outright would throw away something you cannot get back if the new one
+  // loses. intake_variants.py routes it; see ALTERNATE_KIND below.
+  ["alternate", "Request alternate — deliver a second drawing beside this one"],
   // Only offered on a pose with more than one drawing (VARIANT_ONLY_KINDS
   // below): the ask is not "draw this again" but "we have something better,
   // throw this one away". Deleting the only drawing a pose has leaves a hole.
   ["delete", "Delete variant — discard this drawing at the next cleanup"],
 ];
+
+/** The kind whose delivery lands as a variant rather than a replacement.
+ *  Named rather than inlined, because the intake, the workbench and the request
+ *  collector all have to agree on which one it is. */
+export const ALTERNATE_KIND = "alternate";
+
+// Free text written beside either flag, saying what is actually wrong with THIS
+// drawing. The kind says which of six shapes the fault has; a request written
+// from the kind alone has to guess the rest, and the person who spotted it is
+// the only one who ever knew. Optional everywhere, and it belongs to the
+// drawing rather than the pose — a note about a naginata that bends is about
+// that naginata, so it banks and switches with the art like the flags do.
+export const NOTE_FIELDS = {
+  needsReplacement: "replacementNote",
+  wantsImprovement: "improvementNote",
+};
 
 // Fixes to the file itself. No redraw, no request, no waiting on a round.
 export const IMPROVEMENT_KINDS = [
@@ -94,6 +117,10 @@ export const KIND_PLACEMENT = {
   quality: "discard",
   pose: "discard",
   character: "discard",
+  // An alternate is delivered BESIDE the pose, so the pose's own placement is
+  // not in question — nothing about it is replaced. The incoming drawing is
+  // measured from scratch, as every variant is: placement belongs to the image.
+  alternate: "none",
   // A deletion has no incoming art, so there is no placement to decide. The
   // entry exists so the value is never silently treated as "discard".
   delete: "none",
@@ -200,7 +227,9 @@ export const VARIANT_PLACEMENT = [
  *  Kept separate from VARIANT_PLACEMENT because the two are cleared at
  *  different moments — intake drops the review fields when new art lands, and
  *  re-measures the placement ones. */
-export const VARIANT_REVIEW = ["needsReplacement", "wantsImprovement", "edited", "surfacedReviewed"];
+export const VARIANT_REVIEW = ["needsReplacement", "wantsImprovement",
+                               "replacementNote", "improvementNote",
+                               "edited", "surfacedReviewed"];
 
 /** Everything banked onto the option a pose is leaving, and restored from the
  *  one it arrives at. */
