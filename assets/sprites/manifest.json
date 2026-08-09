@@ -7012,17 +7012,21 @@
     "h": 1016,
     "ox": -120.8,
     "oy": -693,
-    "bodyBottom": 310,
+    "bodyBottom": 254.5,
     "bodyH": 287.0,
     "centroidX": 146.3,
-    "renderScale": 0.29,
+    "renderScale": 0.3132,
     "anchors": {
      "com": [
       266.4,
       451.0
      ]
     },
-    "bodyTop": 14
+    "bodyTop": 14,
+    "edited": {
+     "renderScale": 0.29,
+     "bodyBottom": 310
+    }
    },
    "idle_b": {
     "file": "sukuna/idle_b.png",
@@ -7030,17 +7034,21 @@
     "h": 1016,
     "ox": -142.2,
     "oy": -691,
-    "bodyBottom": 310,
+    "bodyBottom": 245.5,
     "bodyH": 287.0,
     "centroidX": 160.9,
-    "renderScale": 0.291,
+    "renderScale": 0.3157,
     "anchors": {
      "com": [
       302.5,
       453.9
      ]
     },
-    "bodyTop": 15
+    "bodyTop": 15,
+    "edited": {
+     "renderScale": 0.291,
+     "bodyBottom": 310
+    }
    },
    "jump_rise": {
     "file": "sukuna/jump_rise.png",
@@ -7051,14 +7059,17 @@
     "bodyBottom": 310,
     "bodyH": 259.0,
     "centroidX": 169.5,
-    "renderScale": 0.277,
+    "renderScale": 0.2895,
     "anchors": {
      "com": [
       412.0,
       430.0
      ]
     },
-    "bodyTop": 16
+    "bodyTop": 16,
+    "edited": {
+     "renderScale": 0.277
+    }
    },
    "fall": {
     "file": "sukuna/fall.png",
@@ -7084,17 +7095,21 @@
     "h": 1016,
     "ox": -151.8,
     "oy": -691,
-    "bodyBottom": 310,
+    "bodyBottom": 261,
     "bodyH": 230.9,
     "centroidX": 153.5,
-    "renderScale": 0.234,
+    "renderScale": 0.2785,
     "anchors": {
      "com": [
-      304.7,
-      421.7
+      330.1,
+      337.3
      ]
     },
-    "bodyTop": 14
+    "bodyTop": 14,
+    "edited": {
+     "renderScale": 0.234,
+     "bodyBottom": 310
+    }
    },
    "guard": {
     "file": "sukuna/guard.png",
@@ -7102,17 +7117,21 @@
     "h": 1016,
     "ox": -95.8,
     "oy": -692,
-    "bodyBottom": 310,
+    "bodyBottom": 267,
     "bodyH": 252.2,
     "centroidX": 178.0,
-    "renderScale": 0.255,
+    "renderScale": 0.2996,
     "anchors": {
      "com": [
       275.9,
       451.5
      ]
     },
-    "bodyTop": 14
+    "bodyTop": 14,
+    "edited": {
+     "renderScale": 0.255,
+     "bodyBottom": 310
+    }
    },
    "attack_up": {
     "file": "sukuna/attack_up.png",
@@ -7120,17 +7139,20 @@
     "h": 1016,
     "ox": -210.8,
     "oy": -691,
-    "bodyBottom": 310,
+    "bodyBottom": 262,
     "bodyH": 347.5,
     "centroidX": 179.4,
     "renderScale": 0.352,
     "anchors": {
      "com": [
-      392.6,
-      499.8
+      365.8,
+      485.6
      ]
     },
-    "bodyTop": 15
+    "bodyTop": 15,
+    "edited": {
+     "bodyBottom": 310
+    }
    },
    "attack_air": {
     "file": "sukuna/attack_air.png",
@@ -7156,17 +7178,21 @@
     "h": 1016,
     "ox": -129.2,
     "oy": -691,
-    "bodyBottom": 310,
+    "bodyBottom": 251.5,
     "bodyH": 252.2,
     "centroidX": 173.8,
-    "renderScale": 0.256,
+    "renderScale": 0.3187,
     "anchors": {
      "com": [
       304.0,
       452.9
      ]
     },
-    "bodyTop": 15
+    "bodyTop": 15,
+    "edited": {
+     "renderScale": 0.256,
+     "bodyBottom": 310
+    }
    },
    "dizzy": {
     "file": "sukuna/dizzy.png",
@@ -7174,17 +7200,21 @@
     "h": 1016,
     "ox": -19.2,
     "oy": -691,
-    "bodyBottom": 310,
+    "bodyBottom": 280.5,
     "bodyH": 280.3,
     "centroidX": 138.0,
-    "renderScale": 0.284,
+    "renderScale": 0.3337,
     "anchors": {
      "com": [
       157.0,
       489.2
      ]
     },
-    "bodyTop": 16
+    "bodyTop": 16,
+    "edited": {
+     "renderScale": 0.284,
+     "bodyBottom": 310
+    }
    },
    "victory": {
     "file": "sukuna/victory.png",
@@ -7192,17 +7222,21 @@
     "h": 1016,
     "ox": -46.8,
     "oy": -692,
-    "bodyBottom": 310,
+    "bodyBottom": 265.5,
     "bodyH": 287.0,
     "centroidX": 128.9,
-    "renderScale": 0.29,
+    "renderScale": 0.3291,
     "anchors": {
      "com": [
       175.4,
       445.9
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.29,
+     "bodyBottom": 310
+    }
    },
    "ledge_hang": {
     "file": "sukuna/ledge_hang.png",
@@ -7213,18 +7247,21 @@
     "bodyBottom": 310,
     "bodyH": 330.0,
     "centroidX": 151.5,
-    "renderScale": 0.333,
+    "renderScale": 0.4262,
     "anchors": {
      "com": [
-      97.3,
-      451.0
+      120.1,
+      454.9
      ],
      "ledge": [
-      86.7,
-      51.8
+      89.1,
+      41.5
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.333
+    }
    },
    "run_a": {
     "file": "sukuna/run_a.png",
@@ -7235,14 +7272,17 @@
     "bodyBottom": 310,
     "bodyH": 235.4,
     "centroidX": 170.4,
-    "renderScale": 0.239,
+    "renderScale": 0.2964,
     "anchors": {
      "com": [
       430.2,
       424.3
      ]
     },
-    "bodyTop": 16
+    "bodyTop": 16,
+    "edited": {
+     "renderScale": 0.239
+    }
    },
    "run_b": {
     "file": "sukuna/run_b.png",
@@ -7253,14 +7293,17 @@
     "bodyBottom": 310,
     "bodyH": 235.4,
     "centroidX": 193.2,
-    "renderScale": 0.239,
+    "renderScale": 0.2964,
     "anchors": {
      "com": [
       492.6,
       451.3
      ]
     },
-    "bodyTop": 15
+    "bodyTop": 15,
+    "edited": {
+     "renderScale": 0.239
+    }
    },
    "dodge_air": {
     "w": 555,
@@ -7270,7 +7313,7 @@
     "bodyBottom": 310.4,
     "bodyH": 235.2,
     "centroidX": 192.1,
-    "renderScale": 0.29,
+    "renderScale": 0.2842,
     "file": "sukuna/dodge_air.png",
     "anchors": {
      "com": [
@@ -7278,7 +7321,10 @@
       354.0
      ]
     },
-    "bodyTop": 0
+    "bodyTop": 0,
+    "edited": {
+     "renderScale": 0.29
+    }
    },
    "dodge_roll": {
     "w": 1016,
@@ -7288,7 +7334,7 @@
     "bodyBottom": 310.4,
     "bodyH": 244.5,
     "centroidX": 142.5,
-    "renderScale": 0.29,
+    "renderScale": 0.1943,
     "file": "sukuna/dodge_roll.png",
     "anchors": {
      "com": [
@@ -7296,7 +7342,10 @@
       397.0
      ]
     },
-    "bodyTop": 0
+    "bodyTop": 0,
+    "edited": {
+     "renderScale": 0.29
+    }
    },
    "attack_air_a": {
     "w": 893,
@@ -25441,6 +25490,7 @@
   "megumi": 294.33,
   "momo": 288.09,
   "nanami": 286.11,
-  "panda": 275.22
+  "panda": 275.22,
+  "sukuna": 286.81
  }
 }
