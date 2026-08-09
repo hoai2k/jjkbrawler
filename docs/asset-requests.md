@@ -4,7 +4,14 @@ Everything in this file is **outstanding**. Delivered rounds are recorded in
 [asset-requests-history.md](asset-requests-history.md) — including the round
 numbers, so a commit or code comment citing "round 5 art" still resolves.
 
-**Current status: rounds 1–12 delivered. Rounds 13, 14 and 15 are open.**
+**Current status: rounds 1–12 delivered. Round 14's art has landed and is
+waiting to be approved. Rounds 13 and 15 are open.**
+
+79 poses across rounds 13 and 14 are sitting in the **awaiting-approval**
+state: the new drawing is in the manifest and on the workbench canvas, the old
+one is still what a match draws, and nothing changes until somebody looks at
+the pair and picks. That is a reviewing job, not a drawing job, and it is the
+largest outstanding thing in this file.
 
 The roster is complete and **every fighter now has one sprite per action** —
 round 11 finished the conversion that round 5 started, so the 4×5 sprite sheet
@@ -32,8 +39,10 @@ Round 15 is the first round that is **not about anything being wrong**. Both
 parts make a good thing better and neither changes what a player sees until
 somebody chooses it: **15A** redraws Hanami to canon as *alternates* — his
 thirty-six sprites all draw a walking tree, and canon Hanami is a pale humanoid
-curse — and **15B** asks for a simplified card per fighter, drawn to read at
-roster-tile size, banked against a roster big enough to need them.
+curse — **15B** asks for a simplified card per fighter, drawn to read at
+roster-tile size and banked against a roster big enough to need them, and
+**15C** repaints Hanami's hero card so the last place still showing the old
+design goes with the rest.
 
 Read **[the canonical reference image](#the-canonical-reference-image--one-per-fighter)**
 below before drawing anything: it names the one image each fighter is matched
@@ -577,7 +586,23 @@ assets/intake/effects/aura_indigo.png
 
 ---
 
-# Round 14 — open
+# Round 14 — delivered, awaiting approval
+
+**All 38 sprites landed on 2026-08-09 and are in the game's manifest, but not
+yet in the game.** Every one came in as a held-back replacement: the pose points
+at the new drawing for the workbench to place, `awaitingApproval.live` still
+names the old one, and that is what a match draws. So the ask below is answered
+and what is left is the **approval pass** — open each pose in the
+[sprite workbench](../workbench/), stand it beside what is shipping, and say
+yes. Round 14 moves to the history file when that is done, not before.
+
+The raw plates are archived at `assets/reference/round14/`. The three workbench
+flags 14C carried (`gakuganji/attack_heavy_b`, `gakuganji/attack_air_a`,
+`uro/prone`) cleared themselves on import, which is the normal end of that loop.
+
+The delivery is disjoint from round 13's — 13 is crouches and light pairs, 14 is
+idles and heavy pairs, and no `(character, pose)` appears in both — so the two
+approval passes do not interact and can be done in either order.
 
 **Reach is now gameplay.** Until this month a fighter's melee range was a
 hand-typed number in `characters.js` with no relation to their sprites, and the
@@ -806,15 +831,22 @@ should.
 
 - **15A** — Hanami, redrawn to canon (36 sprites, all **alternates**)
 - **15B** — a simplified card for every fighter (23 images, **new art, nothing replaced**)
+- **15C** — Hanami's hero card, redrawn to canon (1 image)
 
-**59 images in total, and none of it is blocking.** 15A lands beside the art it
-improves and is adopted one pose at a time; 15B lands in a directory the game
-does not read yet. Both can sit undelivered indefinitely without anything
+**60 images in total, and almost none of it is blocking.** 15A lands beside the
+art it improves and is adopted one pose at a time; 15B lands in a directory the
+game does not read yet. Either can sit undelivered indefinitely without anything
 looking wrong.
+
+15C is the exception and the only thing in this round with an order to it: a
+hero card is one file with no variant mechanism behind it, so it changes what a
+player sees the moment it lands. It belongs after enough of 15A has been adopted
+that the card and the fighter on the stage agree.
 
 They are together because they are the same kind of ask — *this works, here is a
 better version, take it when you want it* — and because keeping them out of 13
-and 14 keeps the answer to "what is broken" honest.
+and 14 keeps the answer to "what is broken" honest. 15A and 15C are two halves of
+one job: every place the game draws Hanami, drawn from the right character.
 
 ---
 
@@ -998,9 +1030,11 @@ detail, `[STYLE SUFFIX]`.
 
 Character blocks are in [Character blocks](#character-blocks) above and are used
 verbatim, exactly as for sprites — **including Hanami's, which was rewritten for
-15A**. His simplified card should be the pale humanoid curse, not the tree; it is
-the one card in this set that will not match its hero card, and that is
-intentional. His hero card gets redrawn when 15A is adopted.
+15A**. His simplified card should be the pale humanoid curse, not the tree.
+[15C](#15c-hanamis-hero-card-redrawn-to-canon--1-image) replaces his hero card
+with the same design, so the pair still agrees; if 15C has not landed when this
+one does, his is the only tile in the set that will not match its hero card, and
+that is expected rather than a mistake.
 
 `[THEME COLOUR]` is the fighter's `theme` in `src/characters.js` — the colour the
 game already uses for their HUD accent and hit flashes, so a tile painted on it
@@ -1065,5 +1099,59 @@ while to work out why. A distinct suffix makes that impossible.
 
 Cards take the short path through the pipeline — no keying, no measuring, no
 manifest entry — so landing these is a move and nothing else.
+
+---
+## 15C. Hanami's hero card, redrawn to canon — 1 image
+
+### Why
+
+`assets/cards/hanami_card.jpg` is the tree. It is a good painting — a
+bark-and-vine giant lit through a forest canopy, a glowing lotus in one hand —
+and it is the same wrong design as every one of his sprites. [15A](#15a-hanami-redrawn-to-canon--36-sprites)
+replaces the sprites and [15B](#15b-a-simplified-card-for-every-fighter--23-images)
+draws his simplified tile from canon; without this the card is the last place in
+the game still showing the old character, and it is the **largest** place — the
+hero panel on the select screen and the portrait in the match HUD both draw it
+at full size.
+
+### What to deliver
+
+One image, to the **existing hero-card spec** — this is a straight like-for-like
+replacement, not a new format:
+
+| | |
+|---|---|
+| **Format** | JPEG, **640 × 820**, full-bleed. No text, no border, no logo |
+| **Subject** | Canon Hanami, full or three-quarter figure, from the rewritten block in [Character blocks](#character-blocks) and `assets/reference/canon/hanami_anime.png` |
+| **Scene** | Keep the setting. The forest-canopy light of the current card is right for him and matches the rest of the roster's painted backdrops — sunlight through leaves, deep greens, the `#9bb36b` theme reading through the whole frame |
+| **Key** | Match the roster's brightness. His current card is one of the ones that does *not* need a heavy `--card-lift`; keep it that way |
+
+The character changes; the painting's mood, palette and framing do not. Put the
+new card beside the current one before delivering — a viewer should read it as
+the same fighter's card repainted, not as a different card.
+
+**His cursed technique still belongs in it.** Canon Hanami is a plant curse; the
+blossom and the roots are his, they are simply not made of the same stuff he is.
+Wooden growth in the scene, on the hands, breaking the ground — yes. Wooden
+**body** — no.
+
+### Where it goes
+
+Deliver to:
+
+```
+assets/intake/cards/hanami_card.jpg
+```
+
+and it lands at `assets/cards/hanami_card.jpg`, replacing what is there. The
+current painting is worth keeping: copy it to
+`assets/reference/cards_previous/hanami_card.jpg` first, which is where round
+9A's originals already live and is the reason any of them can be put back.
+
+**Order matters slightly.** This is the one part of round 15 that *does* change
+what a player sees the moment it lands — a card is one file with no variant
+mechanism behind it. So it should go in once enough of 15A has been adopted that
+the roster tile and the fighter on the stage agree with it; landing it first
+just moves the mismatch somewhere else.
 
 ---
