@@ -125,7 +125,7 @@
         </div>
 
         <div class="group">
-          <label data-help="Marks this pose&apos;s &lt;em&gt;art&lt;/em&gt; as wrong, as opposed to its placement being wrong — the placement controls fix that.&lt;br&gt;&lt;br&gt;The dropdown says &lt;em&gt;what&lt;/em&gt; is wrong, because a wholesale redraw and a crop fix are very different asks: &lt;b&gt;Replace&lt;/b&gt; redraws the sprite, &lt;b&gt;Fix crop&lt;/b&gt; is wrong framing or bounds, &lt;b&gt;Fix alpha&lt;/b&gt; is bad transparency, &lt;b&gt;Fix bleed&lt;/b&gt; is colour past the silhouette.&lt;br&gt;&lt;br&gt;It exports with everything else; the flagged poses are then collected into the asset request list, and clearing happens automatically when the new art is imported.">Artwork <span class="sub" id="replaceVal"></span></label>
+          <label data-help="Marks this pose&apos;s &lt;em&gt;drawing&lt;/em&gt; as wrong — wrong enough that nothing can be edited into the right picture and it has to be drawn again. This is the ask that goes out as an asset request.&lt;br&gt;&lt;br&gt;The dropdown says &lt;em&gt;why&lt;/em&gt;, which is what the request is written from: &lt;b&gt;Quality&lt;/b&gt; is a rough, malformed or off-model drawing, &lt;b&gt;Pose&lt;/b&gt; is art that reads poorly or is not the action it stands for, &lt;b&gt;Character&lt;/b&gt; is a likeness or costume that is off, &lt;b&gt;Delete variant&lt;/b&gt; — offered only where a pose has more than one drawing — throws this one away rather than redrawing it.&lt;br&gt;&lt;br&gt;If the drawing is fine and only the FILE is wrong — a bad key, a bad crop — that is &lt;b&gt;Improvement&lt;/b&gt; below, and nobody has to redraw anything.&lt;br&gt;&lt;br&gt;It exports with everything else; flagged poses are collected into the asset request list, and clearing happens automatically when the new art is imported.">Artwork <span class="sub" id="replaceVal"></span></label>
           <div class="chips">
             <label class="chip"><input type="checkbox" id="replaceBox"> Sprite needs replacement</label>
           </div>
@@ -133,9 +133,9 @@
         </div>
 
         <div class="group">
-          <label data-help="A softer ask than a replacement: the art &lt;em&gt;works&lt;/em&gt;, it is just not as good as it should be. Collected at a lower priority, because nothing is blocked.&lt;br&gt;&lt;br&gt;&lt;b&gt;Quality&lt;/b&gt; is a rough or sloppily executed drawing, &lt;b&gt;Pose&lt;/b&gt; is art that reads poorly or is not the action it stands for, &lt;b&gt;Character&lt;/b&gt; is a likeness or costume that is off.&lt;br&gt;&lt;br&gt;Independent of the replacement flag — a pose can be flagged for both, though if it needs replacing outright there is little point asking for it to be improved as well.">Improvement <span class="sub" id="improveVal"></span></label>
+          <label data-help="The drawing is right and the &lt;em&gt;file&lt;/em&gt; is wrong. This is work on the existing sprite, done in-repo — no redraw, no request, no waiting on a round.&lt;br&gt;&lt;br&gt;&lt;b&gt;Fix alpha&lt;/b&gt; is bad transparency or hard edges, &lt;b&gt;Fix crop&lt;/b&gt; is wrong framing or bounds, &lt;b&gt;Fix bleed&lt;/b&gt; is colour past the silhouette — the usual leftover of a key screen that was not flat.&lt;br&gt;&lt;br&gt;Each kind also says what survives if art does land on the pose: a re-key keeps every measurement, a re-crop moves the bounds and shifts the anchors with them.&lt;br&gt;&lt;br&gt;Independent of the replacement flag, though a pose being redrawn has little use for a fix to the drawing it is replacing.">Improvement <span class="sub" id="improveVal"></span></label>
           <div class="chips">
-            <label class="chip"><input type="checkbox" id="improveBox"> Request improvement</label>
+            <label class="chip"><input type="checkbox" id="improveBox"> Fix this sprite’s file</label>
           </div>
           <select id="improveKind" hidden></select>
         </div>

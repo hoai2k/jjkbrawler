@@ -692,6 +692,17 @@ function remember(charKey, frameKey) {
   if (!rawMeta(charKey, frameKey)) return;
   state.originals[charKey] ??= {};
   state.originals[charKey][frameKey] ??= snapshot(charKey, frameKey);
+  // Enrolling a character in `state.originals` is what puts it in the export
+  // (editedChars), so its CHARACTER-level baselines have to be taken at the
+  // same moment. They used to be taken in openChar alone, which is fine while
+  // the only way to meet a character is to select it — but the updated list
+  // renders poses from the whole roster, and buildPoseEntry calls this for
+  // every one. Those characters entered the export with no span baseline
+  // recorded, so the comparison below read "manifest value vs undefined" as a
+  // change and an export that touched Choso alone carried eight other
+  // characters' spans, each identical to what was already committed.
+  rememberHead(charKey);
+  rememberSpan(charKey);
 }
 
 function isDirty(charKey, frameKey) {
@@ -1965,6 +1976,8 @@ function buildPoseEntry(charKey, key, { owner = false } = {}) {
     + (isUpdateReviewed(charKey, key) ? "reviewed" : "");
   const kind = doomed ? "delete" : replacementKind(rawMeta(charKey, key));
   if (kind) b.dataset.kind = kind;
+  const want = improvementKind(rawMeta(charKey, key));
+  if (want) b.dataset.want = want;
   b.onclick = () => selectPose(charKey, key);
 
   if (!host) return b;
@@ -2477,8 +2490,16 @@ function payloadFor(charKey) {
   if (Object.keys(actions).length) payload.animOverrides = actions;
   // The pinned reference travels with the edit that caused it, or the applied
   // manifest would re-derive the span from the new idle and resize the set.
+  // `charKey in`, not a `??` default: an unpinned character's baseline is
+  // legitimately `undefined`, and defaulting would swallow the first real pin.
+  // This says only "if no baseline was ever taken, do not guess" — which
+  // remember() now makes unreachable, and which fails by omitting rather than
+  // by inventing a change.
   const span = spriteManifest?.heightSpans?.[charKey];
-  if (Number.isFinite(span) && span !== state.originalSpans[charKey]) payload.heightSpan = span;
+  if (Number.isFinite(span) && (charKey in state.originalSpans)
+      && span !== state.originalSpans[charKey]) {
+    payload.heightSpan = span;
+  }
   return (payload.headHeight !== undefined || payload.adjustments || payload.animOverrides
           || payload.heightSpan !== undefined || payload.variantPlacement
           || payload.clearUpdated) ? payload : null;

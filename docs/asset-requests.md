@@ -221,61 +221,96 @@ drawn against.
 
 Three parts; any can be delivered on its own.
 
-- **12A** — nineteen workbench catches: poses that are wrong on the art or wrong as the action (19 sprites)
+- **12A** — thirty workbench catches: poses that have to be drawn again (30 sprites)
 - **12B** — the four-frame run cycle, roster-wide (96 sprites)
 - **12C** — a `prone` pose, knocked flat on their back, roster-wide (24 sprites)
 
-**139 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
+**150 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
 is what makes the roster finally *run* instead of vibrating between two nearly
 identical poses. 12C is the one the engine is already simulating without art.
 
 ---
 
-## 12A. Workbench catches — 19 sprites
+## 12A. Workbench catches — 30 sprites
 
 Everything here came out of placing the delivered semantic sets in the sprite
-workbench: seen at their real size and standing on the real ground line,
-nineteen poses turned out to be wrong — some as drawings, some as the action they stand
-for. Round 11 is closed, so nothing here is covered by another round — every
-fighter listed has a finished set, and these are faults in it.
+workbench: seen at their real size and standing on the real ground line, thirty
+poses turned out to be wrong. Round 11 is closed, so nothing here is
+covered by another round — every fighter listed has a finished set, and these
+are faults in it.
 
-Two kinds of fault, and they want different things from a redraw:
+**Everything in this section has to be drawn again.** That is what the section
+is: a fault that could be fixed by editing the file — a bad key, a bad crop,
+colour past the silhouette — is not a request at all, because it is repo work
+(`tools/dekey_fringe.py` and friends) and never waits on a round. Only the
+faults no edit can reach are here.
 
-- **The drawing is broken.** A hand that does not close on the weapon it is
-  holding, a shaft that bends where it crosses the body. These are `replace`.
-- **The drawing is fine, the pose is not the action.** A crouch that is not
-  crouched, a strike that does not travel the way the move travels. These are
-  `pose` — keep the character, the costume and the finish, change the body.
+Two reasons a drawing cannot be edited into the right picture, and they want
+different things from the redraw:
+
+- **`quality` — the drawing is broken.** A hand that does not close on the
+  weapon it is holding, a shaft that bends where it crosses the body, a second
+  figure ghosted into the plate.
+- **`pose` — the drawing is fine, but it is not the action.** A crouch that is
+  not crouched, a strike that does not travel the way the move travels. Keep
+  the character, the costume and the finish; change the body.
+- **`character` — it is not the right person.** Twelve sprites in this round
+  came back as somebody else. See "The three that keep coming back wrong".
 
 A third fault runs through several of them and is worth naming on its own,
 because it is not obvious from the drawing: **the art paints in something the
 game spawns for itself.** See "Do not draw the technique" below.
 
-**Six of the ten are a crouch that is not crouched**, across five different
-fighters and two separate delivery rounds. Whatever the pose line says today, it
-is not reading as "get low": see the note under the table.
+**Seven of the eighteen are a crouch that is not crouched**, across six
+different fighters and three separate delivery rounds. Whatever the pose line
+says today, it is not reading as "get low": see the note under the table.
 
 | Fighter | Key | Pose | Kind | Ask |
 |---|---|---|---|---|
-| Nobara Kugisaki | `nobara` | `dodge_air` | **Replace** | A second, grey Nobara is drawn into the plate |
-| Nobara Kugisaki | `nobara` | `special_neutral` | **Replace** | The nails are painted in, and the game draws its own |
-| Satoru Gojo | `gojo` | `special_down` | **Replace** | Reads as a palm strike, not as Infinity |
-| Kinji Hakari | `hakari` | `dodge_air` | **Alpha** | Unkeyed grey shadow left behind him |
+| Nobara Kugisaki | `nobara` | `dodge_air` | Quality | A second, grey Nobara is drawn into the plate |
+| Nobara Kugisaki | `nobara` | `special_neutral` | Pose | The nails are painted in, and the game draws its own |
+| Satoru Gojo | `gojo` | `special_down` | Pose | Reads as a palm strike, not as Infinity |
 | Satoru Gojo | `gojo` | `crouch_b` | Pose | Not crouched |
 | Satoru Gojo | `gojo` | `crouch_attack_b` | Pose | Not crouched, and the strike goes upward |
 | Mahito | `mahito` | `crouch_b` | Pose | Not crouched |
 | Mahoraga | `mahoraga` | `crouch_a` | Pose | Not crouched — a standing stride |
 | Mahoraga | `mahoraga` | `crouch_attack_b` | Pose | Not crouched; the follow-through happens standing |
 | Nobara Kugisaki | `nobara` | `special_down` | Pose | Hammers the ground; Resonance strikes a doll |
-| Maki Zen'in | `maki` | `attack_air_a` | **Replace** | Hands and weapon are malformed |
-| Maki Zen'in | `maki` | `attack_heavy_a` | **Replace** | The lead hand does not close on the shaft, which kinks where it crosses her body |
-| Maki Zen'in | `maki` | `ult_b` | **Replace** | Hands and weapon are malformed |
+| Maki Zen'in | `maki` | `attack_air_a` | Quality | Hands and weapon are malformed |
+| Maki Zen'in | `maki` | `attack_heavy_a` | Quality | The lead hand does not close on the shaft, which kinks where it crosses her body |
+| Maki Zen'in | `maki` | `ult_b` | Quality | Hands and weapon are malformed |
 | Maki Zen'in | `maki` | `crouch_b` | Pose | Not low enough — barely below `crouch_a` |
 | Maki Zen'in | `maki` | `crouch_attack_b` | Pose | The follow-through does not travel toward the attack |
+| Takako Uro | `uro` | `attack_air_a` `attack_air_b` `attack_heavy_a` `attack_heavy_b` | Character | Dark bob and a white bodysuit — not her |
+| Yoshinobu Gakuganji | `gakuganji` | `attack_air_a` `attack_air_b` `attack_heavy_a` `attack_heavy_b` | Character | The white haori and purple hakama are gone |
+| Reggie Star | `reggie` | `attack_air_a` `attack_air_b` `attack_heavy_a` `attack_heavy_b` | Character | A dark-haired man in a brocade waistcoat |
 | Megumi Fushiguro | `megumi` | `special_neutral` | Pose | Nue is painted in; the engine already flies its own |
 | Megumi Fushiguro | `megumi` | `special_down` | Pose | The shadow pool is painted in; the engine draws that too |
 | Momo Nishimiya | `momo` | `attack_light_b` | Pose | The follow-up pulls the broom away from the target |
 | Momo Nishimiya | `momo` | `crouch_attack_b` | Pose | The follow-through stands up out of the crouch |
+
+### The three that keep coming back wrong
+
+Round 11C delivered wind-up/strike pairs for six fighters. Choso, Mei Mei and
+Yuji came back on-model. **Uro, Gakuganji and Reggie came back as different
+people** — all four of each fighter's pairs, twelve sprites.
+
+Those three are exactly the three round **9E** existed to fix, for exactly this
+reason. Whatever reference is being reached for when they are drawn is still the
+pre-9E one, and it has now cost two rounds.
+
+| Fighter | Canon says | The 11C pairs drew |
+|---|---|---|
+| Takako Uro | Lavender hair swept upward, pale-blue cloud garment, barefoot | A dark-green bob and a white-and-purple bodysuit with trainers |
+| Yoshinobu Gakuganji | White haori over black, purple hakama, red flying-V guitar | A plain black robe, no haori, no hakama, black guitar |
+| Reggie Star | Blond, white receipt tunic, bare arms and legs, barefoot | A dark-haired man in a black coat and gold brocade waistcoat |
+
+**Draw these three from `assets/reference/canon/<char>_idle.png` and from
+nothing else.** Not the character block, not an earlier sprite, not a wiki
+search — the `_idle.png` files are the delivered 9E art and carry the design,
+the figure scale, the line weight and the palette the rest of each set already
+has. If the drawing in front of you does not match that image, it is the wrong
+character no matter how good it looks.
 
 ### Do not draw the technique
 
@@ -362,26 +397,22 @@ or later, the test is comparative and it is the one to draw against:
 it — the body stays down through the follow-through. A rising strike from
 standing is a different move and belongs to `attack_up`.
 
-## Hakari's air dodge — an alpha fix, not a redraw — 1 sprite
+## Not in this round: the two alpha fixes
 
-`hakari/dodge_air` carries a large grey smudge behind the figure — a drawn
-shadow in almost exactly the mid-grey `#808080` of his key screen. Intake cuts
-the key by flooding in from the border, and a *shaded* grey is not the flat key
-colour, so it survived the cut and now hangs in the air behind him every time he
-air-dodges.
+`hakari/dodge_air` and `toji/dodge_air` both carry unkeyed grey behind the
+figure — a drawn shadow in almost exactly the mid-grey `#808080` of their key
+screen. Intake cuts the key by flooding in from the border, and a *shaded* grey
+is not the flat key colour, so it survives the cut and hangs in the air behind
+them every time they air-dodge.
 
-This is the cheapest fix in the round: the drawing is good and the placement is
-correct, so it needs the same art with the shadow gone. Either re-export the
-plate without the ground shadow, or it can be cut in-repo against the existing
-file — the shadow is a connected region that touches nothing on the body.
+**Neither is an asset request.** The drawings are good and their placement is
+correct; the file is what is wrong, and that is repo work. They are flagged
+`wantsImprovement: "alpha"` so the workbench shows them and
+`tools/list_replacements.py` tracks them, and they are listed here only so the
+round's numbers are not mistaken for the whole outstanding list.
 
-Redelivery, if that is the easier route: `assets/intake/hakari/dodge_air.png`,
-same pose, same framing, flat mid-grey `#808080` and **no drawn shadow of any
-kind** — the game casts its own.
-
-Three are blocking and four are wishes, so they can ship separately — but they
-are all the same size of job, and three of them are the same mistake, so there is
-no reason to split them.
+If a redelivery is ever easier than a cut, the spec is the standard one with a
+single addition: **no drawn shadow of any kind** — the game casts its own.
 
 ### The three crouches — 3 sprites
 

@@ -89,21 +89,27 @@ DISPOSITIONS = {
     "offer": "added as a variant, selection unchanged",
 }
 
-# needsReplacement kinds that condemn the old art rather than ask for it to be
-# patched up. Kept in step with REPLACEMENT_KINDS in src/sprites.js.
-CONDEMNING = {"replace", "delete"}
-
-
 def disposition(man, char, pose):
-    """What should happen to an incoming plate for this pose, and why."""
+    """What should happen to an incoming plate for this pose, and why.
+
+    The two flags now split cleanly, so this reads them rather than keeping its
+    own list of which kinds condemn art:
+
+      needsReplacement  every kind of it is a redraw, so incoming art REPLACES
+                        the old drawing outright.
+      wantsImprovement  the drawing was never in question — only the file was —
+                        so a delivery answering one is a second opinion rather
+                        than a verdict. It goes in beside the original and is
+                        selected, with the old drawing kept to switch back to.
+    """
     meta = man["characters"].get(char, {}).get(pose)
     if not meta:
         return "new", "no art registered under this name"
 
     kind = meta.get("needsReplacement")
-    if kind is True:
-        kind = "replace"          # legacy flag, predates carrying a reason
-    if kind in CONDEMNING:
+    if kind is True or kind == "replace":
+        kind = "quality"          # legacy values, both meaning "redraw it"
+    if kind:
         return "replace", f"old art flagged '{kind}'"
 
     # A delete tag lives on the variant option, not the pose, so the pose's own
@@ -113,8 +119,6 @@ def disposition(man, char, pose):
                      for o in entry.get("options", [])):
         return "replace", "the selected drawing is tagged for deletion"
 
-    if kind:
-        return "promote", f"old art flagged '{kind}' — fixable, so it is kept"
     want = meta.get("wantsImprovement")
     if want:
         return "promote", f"old art flagged for improvement ('{want}')"

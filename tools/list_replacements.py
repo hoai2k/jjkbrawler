@@ -77,9 +77,14 @@ def improvement_kinds():
 
 
 def placement_rule():
-    """kind -> "keep" | "reframe" | "discard", from REPLACEMENT_PLACEMENT."""
+    """kind -> "keep" | "reframe" | "discard" | "none", from KIND_PLACEMENT.
+
+    Covers BOTH flags. A replacement always discards — every replacement kind is
+    a redraw — so the interesting entries are the improvements: a re-key keeps
+    every measurement, a re-crop moves the bounds and nothing else.
+    """
     src = open(SPRITES_JS).read()
-    block = src[src.index("export const REPLACEMENT_PLACEMENT"):]
+    block = src[src.index("export const KIND_PLACEMENT"):]
     block = block[:block.index("};")]
     return dict(re.findall(r'(\w+):\s*"(\w+)"', block))
 
@@ -88,6 +93,7 @@ PLACEMENT_NOTE = {
     "keep": "keep the existing placement and anchors as they are",
     "reframe": "re-measure, and shift the anchors by the change in framing",
     "discard": "re-measure from scratch; the old placement means nothing",
+    "none": "no incoming art — nothing to place",
 }
 
 # Reuse the audit tool's source scanning so "which states draw this frame" has

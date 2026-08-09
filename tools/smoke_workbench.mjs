@@ -62,7 +62,7 @@ await page.check("#replaceBox");
 await page.waitForTimeout(150);
 const kinds = await page.evaluate(() =>
   [...document.querySelectorAll("#replaceKind option")].map((o) => o.value).filter(Boolean));
-if (kinds.includes("crop")) await page.selectOption("#replaceKind", "crop");
+if (kinds.includes("pose")) await page.selectOption("#replaceKind", "pose");
 await page.waitForTimeout(250);
 
 const after = await page.evaluate((t) => {
@@ -165,10 +165,10 @@ check(new Set(walk).size > 1 && walk[walk.length - 1] === gridStart,
 check(await page.evaluate(() => parseFloat(document.getElementById("offsetRange").value)) === offBefore,
   "arrows no longer move the sprite");
 
-// ---- the improvement request, a separate lower-priority flag
+// ---- the improvement request: a fix to the FILE, filed apart from a redraw
 await page.check("#improveBox");
 await page.waitForTimeout(150);
-await page.selectOption("#improveKind", "pose");
+await page.selectOption("#improveKind", "crop");
 await page.waitForTimeout(250);
 check(await page.evaluate(() => {
   const el = document.querySelector("#poseList button.sel");
@@ -178,16 +178,15 @@ await page.click("#exportBtn");
 await page.waitForTimeout(300);
 let improved = null;
 try { improved = JSON.parse(await page.inputValue("#exportOut")); } catch { /* reported below */ }
-check(Object.values(improved?.adjustments ?? {}).some((v) => v.wantsImprovement === "pose"),
+check(Object.values(improved?.adjustments ?? {}).some((v) => v.wantsImprovement === "crop"),
   "it exports as wantsImprovement, separately from needsReplacement");
 
 // ---- a review flag belongs to the DRAWING, not to the pose
 //
-// A pose with variants can be pointed at a different drawing. "Fix alpha" is a
-// verdict on the file that has the bad transparency in it, so it has to stay
-// banked against that file: if it followed the pose instead, switching would
-// hand the flag to art nobody passed it on, and the drawing that earned it
-// would come back clean.
+// A pose with variants can be pointed at a different drawing. "This drawing is
+// malformed" is a verdict on one file, so it has to stay banked against that
+// file: if it followed the pose instead, switching would hand the flag to art
+// nobody passed it on, and the drawing that earned it would come back clean.
 await page.goto(`${BASE}/workbench/?char=hanami&frame=dodge_air`, { waitUntil: "domcontentloaded" });
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 await page.waitForTimeout(400);
@@ -201,7 +200,7 @@ await page.waitForTimeout(300);
 
 await page.check("#replaceBox");
 await page.waitForTimeout(150);
-await page.selectOption("#replaceKind", "alpha");
+await page.selectOption("#replaceKind", "quality");
 await page.waitForTimeout(250);
 
 await page.locator(`.pose-cell [data-frame="dodge_air"], .pose-cell button.sel ~ .pose-variant`)
@@ -224,7 +223,7 @@ const banked = Object.fromEntries(
   (forHanami?.variantPlacement?.dodge_air ?? []).map((o) => [o.file, o.needsReplacement ?? false]));
 check(forHanami?.variantChoice?.dodge_air === alt,
   "the pose switched to the other drawing", JSON.stringify(forHanami?.variantChoice));
-check(banked["hanami/dodge_air.png"] === "alpha",
+check(banked["hanami/dodge_air.png"] === "quality",
   "the flag stays with the drawing it was passed on", JSON.stringify(banked));
 // `false` rather than absent: the export always states a drawing's tag, so
 // clearing one travels as clearly as setting one.

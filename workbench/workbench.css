@@ -288,16 +288,19 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
    differently: the art is wrong, not the numbers. */
 .pose-list button.flagged { border-color: rgba(255, 120, 140, 0.5); }
 .pose-list button.flagged::before { content: "✂ "; color: #ff8898; }
-/* the mark says which kind, so a crop fix is not mistaken for a full redraw */
-.pose-list button.flagged[data-kind="crop"]::before { content: "⬚ "; }
-.pose-list button.flagged[data-kind="alpha"]::before { content: "◍ "; }
-.pose-list button.flagged[data-kind="bleed"]::before { content: "◐ "; }
+/* the mark says which kind, so "throw this drawing away" is not mistaken for
+   "the pose is wrong" */
+.pose-list button.flagged[data-kind="pose"]::before { content: "⤺ "; }
+.pose-list button.flagged[data-kind="character"]::before { content: "☺ "; }
 .pose-list button.flagged[data-kind="delete"]::before { content: "🗑 "; }
-/* A wish, not a fault: the art works. Marked distinctly from a replacement
-   request so the two never end up in the same queue by eye. */
+/* Not a fault in the drawing — a fault in the FILE, fixable in-repo without
+   anyone redrawing anything. Marked distinctly so the two never end up in the
+   same queue by eye. */
 .pose-list button.wanted { border-color: rgba(120, 170, 255, 0.45); }
-.pose-list button.wanted::before { content: "✦ "; color: #8fb8ff; }
-.pose-list button.flagged.wanted::before { content: "✂✦ "; color: #ff8898; }
+.pose-list button.wanted::before { content: "◍ "; color: #8fb8ff; }
+.pose-list button.wanted[data-want="crop"]::before { content: "⬚ "; color: #8fb8ff; }
+.pose-list button.wanted[data-want="bleed"]::before { content: "◐ "; color: #8fb8ff; }
+.pose-list button.flagged.wanted::before { content: "✂◍ "; color: #ff8898; }
 /* A pose already requested for redraw is dimmed: the replacement is measured
    from scratch when it lands, so placing this drawing now is work that gets
    thrown away. What is left bright is what is worth doing today.

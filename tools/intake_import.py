@@ -11,10 +11,11 @@ scaled so its body height matches what it replaces, so a swap does not
 silently resize the fighter — a replacement is a change of ART, never of size.
 
 How much of the replaced frame's own settings carries over depends on WHY it
-was flagged (REPLACEMENT_PLACEMENT in src/sprites.js). A redraw and a crop fix
+was flagged (KIND_PLACEMENT in src/sprites.js). A redraw and a crop fix
 are not the same event:
 
-  replace        -> discard. A different drawing; nothing about the old
+  quality, pose,
+  character      -> discard. A different drawing; nothing about the old
                     placement means anything, and the hand tuning existed to
                     compensate for the very art being replaced. Rebuilt from
                     scratch.
@@ -78,13 +79,21 @@ def body_metrics(frame):
 
 
 def survives(stored):
-    """"keep" | "reframe" | "discard" for the frame being replaced."""
+    """"keep" | "reframe" | "discard" for the frame being written over.
+
+    Reads BOTH flags. The improvement kinds — alpha, crop, bleed — are the ones
+    that say the drawing is fine and only the file is wrong, so they are exactly
+    the cases where the placement should be carried across; reading only
+    `needsReplacement` would have re-measured a re-keyed sprite from scratch and
+    thrown away tuning that was still correct.
+    """
     if not stored:
         return "discard"
-    flag = stored.get("needsReplacement")
+    flag = stored.get("needsReplacement") or stored.get("wantsImprovement")
     if not flag:
         return "discard"
-    kind = "replace" if flag is True else str(flag)
+    # The bare `true` and the retired "replace" kind both mean "redraw it".
+    kind = "quality" if flag is True or flag == "replace" else str(flag)
     return PLACEMENT.get(kind, "discard")
 
 
