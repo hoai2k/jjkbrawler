@@ -740,11 +740,16 @@ function comPivots(charKey, frameKey) {
 
 /** Current value in image-local px, resolved from the default when unset. */
 function anchorValue(charKey, frameKey, name) {
-  const v = anchorLocal(charKey, frameKey, name);
+  // rawMeta, not the game's view: setAnchor writes into the manifest entry, so
+  // the readout has to be reading that same entry. On a pose awaiting approval
+  // the two differ, and the panel reported the old art's anchor back at you
+  // however far you dragged the new one.
+  const meta = rawMeta(charKey, frameKey);
+  const v = anchorLocal(charKey, frameKey, name, meta);
   if (v) return v;
   // An extra anchor with nothing stored starts life at the centre of mass,
   // which is a far better first guess than the image's corner.
-  return anchorLocal(charKey, frameKey, "com") || [0, 0];
+  return anchorLocal(charKey, frameKey, "com", meta) || [0, 0];
 }
 
 function setAnchor(charKey, frameKey, name, x, y) {
@@ -952,12 +957,19 @@ function viewOpts(charKey, name) {
   return { scale: actorOf(charKey).scale * state.zoom, facing: 1, name };
 }
 
+// Both of these are for the pose being edited, which the canvas draws with
+// `preview` — the replacement waiting for approval, not the drawing the game
+// is still playing. The conversions have to agree with it, or the handle sits
+// where the OLD art's placement puts it and dragging writes into a space the
+// picture is not in: the anchor readout changed and the crosshair did not.
 function localToCanvas(charKey, frameKey, name) {
-  return anchorScreenPos(charKey, frameKey, canvas.width / 2, GROUND_Y, viewOpts(charKey, name));
+  return anchorScreenPos(charKey, frameKey, canvas.width / 2, GROUND_Y,
+                         { ...viewOpts(charKey, name), preview: true });
 }
 
 function canvasToLocal(charKey, frameKey, px, py) {
-  return screenPosToLocal(charKey, frameKey, px, py, canvas.width / 2, GROUND_Y, viewOpts(charKey));
+  return screenPosToLocal(charKey, frameKey, px, py, canvas.width / 2, GROUND_Y,
+                          { ...viewOpts(charKey), preview: true });
 }
 
 /** Pointer event -> canvas pixels. The canvas is laid out responsively, so its
