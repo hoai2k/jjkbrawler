@@ -23,7 +23,7 @@ the request has to say so or the intake cannot know what to keep:
   Replace                discard  a different drawing. Nothing about the old
                                   placement means anything.
 
-That mapping is REPLACEMENT_PLACEMENT in src/sprites.js and is parsed from
+That mapping is KIND_PLACEMENT in src/sprites.js and is parsed from
 there, so it cannot drift from what the code believes.
 
 **Request improvement** is the softer, lower-priority ask: the art works, it is
