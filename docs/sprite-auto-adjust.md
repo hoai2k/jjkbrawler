@@ -19,7 +19,7 @@ can be replaced. An imprecise one cannot be sharpened by guessing harder.
 |---|---|---|---|
 | `bodyBottom` | 513 | **100% the same way** | **Fix the rule.** The default is wrong by construction |
 | `renderScale` | 699 | split by state | **Fix 10 states, never the other 15** — and the split is self-detecting |
-| `ox` | 218 | 61% right, 39% left | Better default available; **do not auto-apply** |
+| `ox` | 218 | 61% right, 39% left | **Fix the derivation.** Better default, not a confident correction |
 | `rotationDeg` | 118 | all from nothing | Not automatable — no signal |
 | `faceLeft` | 44 | all off→on | Detectable in principle, unreliable in practice |
 
@@ -141,7 +141,7 @@ findings cannot be applied wholesale.
 
 ---
 
-## `ox` — a better default, but not a fix
+## `ox` — a better derivation, not a correction
 
 The pipeline centres the **content bounding box**:
 
@@ -163,13 +163,21 @@ extent — which is what a person reads as "the middle of the character".
 Better by 73%, and free: **`centroidX` is already computed and stored in the
 manifest** for every frame.
 
-But it is not a fix. The corrections go both ways (134 right, 84 left), so a
-wrong auto-adjustment moves the art the wrong direction — unlike `bodyBottom`,
-where being too timid still lands closer than doing nothing. At 26% within
-10 px, most frames would still need the hand pass, and the ones that got worse
-would be silent.
+It is the weakest of the three and it is worth being precise about why it is
+still applied. The corrections go both ways (134 right, 84 left), so unlike the
+foot line — where every correction points one way and being too timid still
+lands closer — a wrong move here goes the wrong direction. At 26% within 10 px,
+most frames will still want the hand pass.
 
-**Recommendation: change the default to the centroid; do not auto-adjust.**
+What settles it is that **there is no do-nothing option.** Every imported frame
+must be given some `ox`, and the choice is between two estimators of the same
+quantity, one of which is measurably four times worse. Declining to act does not
+leave the frame untouched; it leaves it on the bounding-box centre.
+
+So it runs, but as a *derivation* rather than a correction: it only ever
+replaces a number the pipeline itself produced, never one a person chose, and it
+is separately switchable (`--rules foot size`) if it ever stops earning its
+place.
 
 ---
 
@@ -189,23 +197,73 @@ the worst failure mode in this list because it looks deliberate.
 
 ---
 
-## What an auto-adjust step should be
+## The tuning phase — `tools/auto_tune.py`
 
-Two changes to what the pipeline *derives*, and one narrow auto-fix:
+All three are implemented, as step 5 of the intake flow:
 
-1. **`bodyBottom` default → 0.946 × body height** (or the character's own
-   median where they have ≥8 measured poses). Removes ~75% of the largest
-   correction. Zero detection required.
-2. **`ox` default → centroid rather than box centre.** Removes ~73% of that
-   correction. The number is already in the manifest.
-3. **`renderScale`, rule states only.** Auto-set the ten states whose ratio is
-   uniform across the reviewed roster, decided by measured spread rather than a
-   list. Leave the other fifteen alone.
+| Rule | What it sets | Learned from |
+|---|---|---|
+| `foot` | `bodyBottom`, so the foot line sits at 0.946 × body height — the character's own median where they have ≥8 measured poses | the 513 hand corrections |
+| `size` | `bodyH` and `renderScale` together, on poses whose every animation state is uniform across the reviewed roster | the roster's own ratios |
+| `centre` | `ox`, putting the alpha-weighted centroid on the cell's centre line rather than the bounding box | the 218 hand corrections |
 
-Together those address 1,430 of the 1,605 recorded corrections at their source.
+```bash
+python3 tools/auto_tune.py --report     # what the rules learned
+python3 tools/auto_tune.py --backtest   # scored against the hand values
+python3 tools/auto_tune.py --dry-run    # what it would do to the last import
+python3 tools/auto_tune.py --round 2026-08-09   # a round that came in batches
+```
+
+Together they address 1,430 of the 1,605 recorded corrections at their source.
 What is left — the per-drawing tail on the foot line, the fifteen judged size
 states, rotation and facing — is the part that is actually judgement, and it
-should stay in the workbench where somebody can see it.
+stays in the workbench where somebody can see it.
+
+### The three things it must not do
+
+The rules are ordinary statistics; the guarantees are what make them safe to
+run unattended, and `tools/test_auto_tune.py` holds each one down.
+
+**It never overwrites a human.** A field named in `edited` was chosen by
+somebody looking at the sprite, and no measurement here outranks that. Asked to
+tune a pose whose every field is spoken for, it does nothing.
+
+**Tuning is not an edit.** The workbench's *No saved edits (to do)* list, its
+character markers and the recently-updated list all read `meta.edited`, and
+nothing in the tuner writes there. Provenance goes to `autoTuned`, shown in the
+panel as "Auto-placed · not an edit" with the rule that produced each number. A
+tuned pose is still a pose nobody has looked at: a rule measured across the
+roster cannot say whether *this* drawing looks right, and a step that quietly
+took poses off the to-do list would be trading a placement problem for a
+tracking one.
+
+**It refuses rules that are not rules.** The uniform/judged split is measured
+at run time rather than listed, so a state that stops being uniform stops being
+tuned without anyone editing the tool. A pose serving both a uniform and a
+judged state is left alone, because there is no single right answer for it. And
+a foot line that would move more than 20% of body height is refused with a
+reason printed — that is not the rule being wrong, it is the frame not being
+what the rule assumes, usually a detached effect owning the largest component.
+
+It is also idempotent: run twice, the second run proposes nothing.
+
+### What it cost on the round it was built for
+
+Applied to the 29 poses of round 12A, it set `bodyBottom` and `ox` on all 29
+and `renderScale` on none — every one of those poses serves a judged state, so
+the size rule correctly declined all of them. Feet that were floating landed on
+the ground line; bodies holding a naginata or a guitar came back over the
+centre line.
+
+Scored against the 513 poses with known hand values, leave-one-character-out:
+
+| | Closer to the hand value | Unchanged | Further away |
+|---|---|---|---|
+| foot line | **91%** | 2% | 7% |
+
+When it lands further away it does so by a median 4.8 px on screen, against the
+15.8 px the pipeline was wrong by to begin with — so the downside is bounded
+and smaller than the problem.
 
 **None of this removes the tuning pass**, and a step that claimed to would be
 the wrong thing to build. It makes the starting point defensible instead of

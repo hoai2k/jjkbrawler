@@ -145,15 +145,25 @@ tiny figure in all 17 characters. A hanging pose extends the silhouette
 vertically, so its target must *exceed* the standing idle, not fall below it.
 Corrected to `idle_a x 1.15`.
 
-Automated correction is not available here. Head-size measurement — the obvious
-pose-invariant proxy — is unreliable on this art: on Toji's run frames the
-detector measures a "head" 478-606 px wide because it captures arms and torso.
-Two separate attempts at automatic size normalisation produced worse results
-than hand values.
+**Nothing here can be fixed by measuring the art.** Head-size measurement — the
+obvious pose-invariant proxy — is unreliable on this art: on Toji's run frames
+the detector measures a "head" 478-606 px wide because it captures arms and
+torso. Two separate attempts at automatic size normalisation produced worse
+results than hand values, and a third would too.
 
-**So sizing is a human-in-the-loop judgement.** `tools/size_review.py` renders
-every pose at true in-game scale on a shared ground line with the idle head
-height marked, and `workbench/` (see below) allows live adjustment.
+What *can* be automated is the opposite approach: never look at pixels, and
+compare one hand-set number against the others. Ten animation states turn out to
+carry a single height ratio across every size-reviewed fighter, and those are
+recoverable exactly — `tools/audit_frame_sizes.py` reports them and
+`tools/auto_tune.py` sets them on import. The other fifteen states vary 8-18%
+between characters, which is the size of the corrections themselves, so they are
+refused rather than guessed at. See
+[sprite-auto-adjust.md](sprite-auto-adjust.md).
+
+**So sizing is still a human-in-the-loop judgement** everywhere it is actually a
+judgement. `tools/size_review.py` renders every pose at true in-game scale on a
+shared ground line with the idle head height marked, and `workbench/` (see
+below) allows live adjustment.
 
 ### How big a character is overall
 
@@ -361,6 +371,8 @@ by the game. Three steps, each separable so a bad delivery stops at the door:
 4. `tools/bake_anchors.py` — measures the rotation pivot (and the ledge grip on
    a hang pose) for anything newly registered. Skips frames whose anchors were
    placed by hand, so it is safe to re-run over the whole roster.
+5. `tools/auto_tune.py` — applies the placement corrections that are mechanical.
+   See [the tuning phase](#the-tuning-phase) below.
 
 Placement is delegated to `extract_sprites.generated_frame_meta`. A replacement
 inherits the old frame's rendered height and foot line, so a swap changes art
@@ -369,6 +381,47 @@ and never size; a brand-new frame borrows the character's idle scale factor.
 Step 4 exists because the sprites rotate now — see `docs/sprite-motion.md`. A
 frame with no `anchors.com` still draws, falling back to a heuristic; it just
 pivots less convincingly than a measured one.
+
+### The tuning phase
+
+Steps 1-4 land the art. What they cannot do is decide where it stands, and for
+years that was entirely a hand pass in the workbench.
+
+Some of it turned out not to be a judgement at all. `edited` stores each
+hand-tuned field's *pre-edit* value, which makes every correction ever made a
+labelled example — the pipeline's answer beside a human's. Asked across 1,605 of
+them, three of the corrections are mechanical and the rest are not;
+[sprite-auto-adjust.md](sprite-auto-adjust.md) is that measurement and
+`tools/auto_tune.py` is the part of it that runs.
+
+```bash
+python3 tools/auto_tune.py --report     # what the rules learned from the roster
+python3 tools/auto_tune.py --backtest   # scored against the hand values
+python3 tools/auto_tune.py --dry-run    # what it would do to the last import
+python3 tools/auto_tune.py
+```
+
+The bar for a rule is not "usually right" but **wrong in a consistent
+direction**, because a correction that guesses can land further from the answer
+than doing nothing and does it silently. Three clear it: the ground contact
+(the derived foot line is the bottom of the alpha box, which it can only ever
+be — all 513 hand corrections raised it), the horizontal centring (the derived
+`ox` centres the bounding box, so a naginata drags the body off centre), and
+the size of the ten animation states every reviewed fighter sizes identically.
+Rotation and facing do not, and are left alone.
+
+**Tuning is not an edit.** The workbench's *No saved edits (to do)* list, its
+character markers and the recently-updated list all read `meta.edited`, and
+nothing here writes there — provenance goes to `autoTuned`, which the panel
+shows as "Auto-placed · not an edit". A tuned pose is still a pose nobody has
+looked at, because a rule measured across the roster cannot say whether *this*
+drawing looks right. The tuner also never touches a field that appears in
+`edited`: a value somebody chose while looking at the sprite outranks every
+measurement in it.
+
+`tools/test_auto_tune.py` holds those guarantees down — that a hand-edited field
+survives, that nothing is marked as edited, that a non-uniform state is refused,
+and that running it twice changes nothing the second time.
 
 ### Keying, and why it is layered
 

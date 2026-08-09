@@ -408,7 +408,9 @@ def main():
         return
     json.dump(man, open(MANIFEST, "w"), indent=1)
     print(f"\nimported {len(done)} frame(s); manifest updated")
-    print("run tools/bake_anchors.py to measure anchors and bodyTop for the new art")
+    print("next:")
+    print("  python3 tools/bake_anchors.py    # anchors and bodyTop for the new art")
+    print("  python3 tools/auto_tune.py       # the placement corrections that are mechanical")
 
     # Registering art is not the same as DRAWING it. A sheet-era fighter's anim
     # table names grid cells, so importing their semantic poses changes nothing

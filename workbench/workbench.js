@@ -444,6 +444,28 @@ function updateSummary(note) {
   return `${how} on ${landed}.<br>${what}`;
 }
 
+/** What tools/auto_tune.py did to this pose, if anything.
+ *
+ *  Deliberately NOT an edit. The tuner only ever replaces numbers the pipeline
+ *  derived, using rules measured from hand tuning (docs/sprite-auto-adjust.md),
+ *  so a tuned pose is still a pose nobody has looked at — it stays on the "no
+ *  saved edits" list and on the updated list, and `hasSavedEdits` never reads
+ *  this. It is shown so the numbers in the panel are not mistaken for either a
+ *  raw pipeline guess or somebody's decision. */
+function autoTuneSummary(charKey, frameKey) {
+  const note = rawMeta(charKey, frameKey)?.autoTuned;
+  const fields = note && note.fields;
+  if (!fields || !Object.keys(fields).length) return null;
+  const when = note.at ? new Date(note.at) : null;
+  const landed = when && !Number.isNaN(when.getTime())
+    ? when.toLocaleString() : (note.at || "an earlier round");
+  const rows = Object.entries(fields)
+    .map(([f, why]) => `<b>${f}</b> — ${why}`).join("<br>");
+  return `Placed automatically on ${landed} from rules measured across the `
+    + `roster:<br>${rows}<br>`
+    + "This is a starting point, not a decision — the pose still needs your eye.";
+}
+
 // ---------------------------------------------------------------- variants
 //
 // A pose can offer several drawings (src/sprites.js). Each option carries its
@@ -1693,6 +1715,7 @@ function refreshTag() {
 function refreshControls() {
   refreshHeadControl();
   refreshUpdatedControl();
+  refreshAutoTuneControl();
   const meta = rawMeta(state.char, state.frame);
   if (!meta) return;
   // syncAll snapshots the selected pose before calling this, so the original is
@@ -1886,6 +1909,16 @@ function refreshUpdatedControl() {
   btn.textContent = reviewed
     ? "↺ Put it back on the updated list"
     : "Mark reviewed — take it off the updated list";
+}
+
+/** The auto-tune marker, in its own group so it shows on poses that carry no
+ *  update marker at all — a brand-new character's set, for instance. */
+function refreshAutoTuneControl() {
+  const group = $("autoTunedGroup");
+  if (!group) return;
+  const summary = autoTuneSummary(state.char, state.frame);
+  group.hidden = !summary;
+  if (summary) $("autoTunedInfo").innerHTML = summary;
 }
 
 /** The dropdown entry carries its own count, so a round that overwrote work
