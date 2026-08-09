@@ -228,16 +228,37 @@ def grey_tint_mask(rgb, key, alpha, min_px=400):
     counts = np.bincount(lab.ravel())
     counts[0] = 0
     return np.isin(lab, np.nonzero(counts >= min_px)[0])
+# Directories the facing rule does not apply to. A fighter is drawn facing RIGHT
+# and mirrored by the engine when they turn, so art that arrives facing left is
+# flipped on the way in. An **effect** is the opposite case twice over: the
+# projectile renderer mirrors a travelling sprite when it flies right, so effects
+# are drawn pointing LEFT (see "Directional effects point LEFT" in
+# docs/asset-requests.md) — and the ones that are not travelling, like an aura or
+# an impact ring, have no facing at all. Running a right-facing detector over
+# either turns correct art backwards: round 15 delivered `egg_shot` pointing left
+# exactly as asked and the mirror flipped it, which is silent, because a mirrored
+# egg still looks like an egg.
+NO_MIRROR_DIRS = {"effects"}
+
 # Frames the facing detector called wrong, corrected by eye on the intake board.
 FACING_OVERRIDE = {
     "panda/r2c0": "right",     # delivered facing right; auto-mirror flipped it
     "toji/dodge_roll": "left",  # delivered facing left, needs the mirror
+    # Round 15A: five frames the detector called left with confidence and turned
+    # backwards. All five were delivered facing right, and the two light strikes
+    # are the reason this list exists — a mirrored punch reads as a perfectly
+    # good punch until you notice it lands behind the fighter.
+    "dagon/special_side": "right",
+    "mechamaru/attack_light_b": "right",
+    "mechamaru/attack_up": "right",
+    "mechamaru/hurt": "right",
+    "yuki/attack_light_b": "right",
 }
 
 
 # -------------------------------------------------------------- measuring
 
-def measure(frame, box, src_shape):
+def measure(frame, box, src_shape, key=None):
     """Everything worth failing a delivery over."""
     a = frame[:, :, 3]
     rgb = frame[:, :, :3].astype(int)
@@ -249,10 +270,17 @@ def measure(frame, box, src_shape):
     counts = np.bincount(lab.ravel()) if n else np.array([0])
     counts[0] = 0
 
-    inner = ndimage.binary_erosion(opaque, iterations=2)
-    rim = opaque & ~inner
-    g, r, b = rgb[:, :, 1], rgb[:, :, 0], rgb[:, :, 2]
-    fringe = int((rim & (g > r + 18) & (g > b + 18)).sum())
+    # Key colour surviving on the silhouette edge. The check only means anything
+    # when the plate was shot on a GREEN screen: on magenta or grey a green rim
+    # is just green art, and round 15's mint-green cannon beams tripped it on
+    # every pixel of their own outline. `key` is the screen colour that was keyed
+    # out, so the test is "is this the screen leaking", not "is this green".
+    fringe = 0
+    if key is not None and key[1] > 120 and key[1] > key[0] + 25 and key[1] > key[2] + 25:
+        inner = ndimage.binary_erosion(opaque, iterations=2)
+        rim = opaque & ~inner
+        g, r, b = rgb[:, :, 1], rgb[:, :, 0], rgb[:, :, 2]
+        fringe = int((rim & (g > r + 18) & (g > b + 18)).sum())
 
     # clipped only if content reached the DELIVERED canvas edge
     sh, sw = src_shape[:2]
@@ -317,12 +345,14 @@ def main():
             if ref in FACING_OVERRIDE:          # ruled on by eye, beats the detector
                 facing, conf = FACING_OVERRIDE[ref], 1.0
             mirrored = False
-            if facing == "left" and conf >= FACING_CONFIDENT:
+            if char in NO_MIRROR_DIRS:
+                facing, conf = "n/a", 1.0
+            elif facing == "left" and conf >= FACING_CONFIDENT:
                 frame = np.asarray(ImageOps.mirror(Image.fromarray(frame)))
                 mirrored = True
             unsure = conf < FACING_CONFIDENT
 
-            m = measure(frame, box, raw.shape)
+            m = measure(frame, box, raw.shape, key)
             m.update(char=char, key=key_name, mirrored=mirrored, facingUnsure=bool(unsure),
                      facingGuess=facing, facingConf=round(float(conf), 3),
                      states=key_to_states(anims, char, key_name))

@@ -25,6 +25,7 @@ why the numbering is not strictly chronological.
 | 12B/12C | The four-frame run cycle and the `prone` pose, roster-wide (120 sprites) | Delivered — all 24 fighters |
 | 12D | Three install auras | Never delivered; moved to round 13 as 13E |
 | 13 | Roster-wide sweep of the attack and crouch rows, plus the three install auras (44 sprites) | Delivered — the first round to land through the approval step |
+| 15A (part), 15B, 15D (part) | Three of the four new fighters — Mechamaru, Yuki Tsukumo and Dagon — with all nine technique effects and three hero cards (120 assets) | Delivered — Kurourushi's set, the summons and Dagon's domain backdrop stay open |
 
 ---
 
@@ -1568,3 +1569,89 @@ assets/intake/effects/aura_jade.png
 assets/intake/effects/aura_slate.png
 assets/intake/effects/aura_indigo.png
 ```
+
+---
+
+## Round 15A (part), 15B and 15D (part) — Mechamaru, Yuki and Dagon
+
+Three complete 36-pose sets, the nine technique effects, and three hero cards:
+**120 assets**, and the first delivery drawn against
+[pose-brief.md](pose-brief.md). The three fighters came out of
+`STAGED_CHARACTER_KEYS` and onto the select screen the same day — Mechamaru with
+the students, Yuki with the other sorcerers, Dagon with the curses. Their kits
+had been live and testable in code since before any art existed, so promoting
+them was two lines and nothing else.
+
+**Kurourushi's set was not delivered** and he stays staged, along with 15C's
+summons and 15E's domain backdrop. All three remain open in
+[asset-requests.md](asset-requests.md).
+
+### What the round taught the tools
+
+**The facing detector mirrored five frames that were already right.** It called
+them left-facing with confidence and flipped them — Mechamaru's `attack_light_b`,
+`attack_up` and `hurt`, Yuki's `attack_light_b`, Dagon's `special_side`. A
+mirrored punch is the worst kind of wrong, because it still looks like a
+perfectly good punch: Yuki's light strike measured **+3.6%** reach past her idle
+in that state and **+11.3%** once turned back. All five are named in
+`FACING_OVERRIDE` in `tools/intake.py`, which is the mechanism that exists for
+exactly this, and the review boards are where it was caught — which is the
+argument for rendering them before importing rather than after.
+
+**Effects must never be auto-mirrored at all.** The facing rule is a *character*
+rule: fighters are drawn facing right and mirrored by the engine when they turn.
+Travelling effects are the opposite — the projectile renderer mirrors them when
+they fly right, so they are drawn pointing LEFT — and the rest have no facing to
+speak of. Running the detector over `effects/` turned `egg_shot` around, which
+was delivered pointing left exactly as asked. `tools/intake.py` now carries
+`NO_MIRROR_DIRS`, and the whole directory is exempt.
+
+**The green-fringe check only means something on a green screen.** It counts
+key colour surviving on the silhouette edge, and it fired on every pixel of the
+outline of three mint-green cannon beams delivered on magenta. It now reads the
+screen colour that was actually keyed out before deciding whether green at the
+rim is contamination or art.
+
+**Flagging a pose is not placing it.** Flagging the four poses below took them
+off the workbench's updated list, because `apply_sprite_adjustments.py` treated
+any adjustment as the placement work the list is asking for. Saying "this has to
+be redrawn" and "this is sized and grounded" are different answers; only a
+placement field clears the marker now.
+
+### What the delivery got wrong
+
+Every set missed the same criterion — `attack_heavy_b` extending a third of
+standing height past the fighter's own idle. Yuki's reached 9%, Dagon's 16%,
+Mechamaru's 20%. Dagon's `crouch_b` drops 21% where a quarter is asked, and
+Mechamaru's `run_reach_a` arrived as a four-figure contact sheet and was not
+imported. All five are [17F](asset-requests.md#17f-caught-while-landing-round-15a--5-sprites).
+
+Everything else landed: the crouch pairs, the light pairs, the idles, the run
+cycles, the costumes and all nine effects.
+
+### 15B, as it was written
+
+Each of these is drawn on a key screen with **no character in the frame** — the
+engine composites them itself. Travelling effects must **point LEFT** (see
+[Directional effects point LEFT](#directional-effects-point-left)); the ones
+that do are marked.
+
+| File | Fighter | Used by | What to draw |
+|---|---|---|---|
+| `ultra_cannon.png` ◀ | Mechamaru | Ultra Cannon (neutral) | A compact bolt of pale mint-green `#63c7b0` cursed energy with a hard white core and a spiral of exhaust behind it — fired, not thrown. Reads as artillery |
+| `pigeon_orb.png` | Mechamaru | Pigeon Viola, in the ultimate | One small tracking orb: a white core in a mint-green shell with a short comet tail. Five of these fly at once, so keep it simple and readable at 64 px |
+| `ultimate_cannon.png` ◀ | Mechamaru | Ultimate Cannon, the ultimate's finisher | The three-barrel blast: three converging beams braided into one column, white-hot at the core, mint-green at the edges, wide enough to read as a screen-crosser |
+| `star_rage_impact.png` | Yuki | Bombaye (neutral) **and** the ultimate | The moment mass arrives: a hard white shock-ring with amber-gold `#ffb703` fracture lines radiating out, and the air behind it visibly displaced. No flame, no cursed-energy glow — this is weight, not fire |
+| `tide_wave.png` ◀ | Dagon | Disaster Tides (neutral) | A rolling wall of sea-blue `#2f8fd8` water, crest breaking forward, foam along the top edge. Wider than it is tall |
+| `shikigami_fish.png` ◀ | Dagon | Death Swarm (ultimate) and the summon fallback | One man-eating shikigami mid-lunge: eel-bodied, too many teeth, fins that read at small size. Drawn as a single creature, not a shoal |
+| `egg_shot.png` ◀ | Kurourushi | Egg Volley (neutral) | A small dark cursed egg in flight with a wet maroon sheen and a thin trail of already-hatching specks behind it. Tiny — 54 px tall in play |
+| `blinding_sacs.png` | Kurourushi | Earthen Insect Trance (down) | A drifting cluster of flying insect curses carrying translucent sacs of ochre `#7c6a3a` liquid, some burst and leaking. A cloud, wider than tall, with ragged edges |
+| `aura_chitin.png` | Kurourushi | Parthenogenesis (ultimate install) | An install aura: **the aura alone, no character**, portrait plate, matching `assets/sprites/effects/aura_gold.png` for format. A dense maroon `#8f3b4e` shell of crawling chitin and antennae silhouettes, thickest at the shoulders, ragged at the top |
+
+Deliver to `assets/intake/effects/<name>.png`.
+
+**Not requested, and deliberately:** Simple Domain (the circle) and Undertow
+(the spiral) are drawn procedurally in `src/render.js` and `src/specials.js` and
+look correct as they are. They need no art and none should be made for them.
+
+---

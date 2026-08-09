@@ -481,6 +481,22 @@ measurement in it.
 survives, that nothing is marked as edited, that a non-uniform state is refused,
 and that running it twice changes nothing the second time.
 
+**The foot rule declines where there is no foot.** `NO_STANDING_FOOT` names the
+states whose contact is not the sole of a standing foot: `prone`, which lies
+flat, and the five airborne states, which touch nothing at all. In the air the
+rule was solving for a contact that does not exist — it pinned every jump, fall,
+air dodge and aerial by whatever pixel hung lowest, a trailing toe or a tucked
+heel, to the ground line. What an airborne pose has to sit correctly inside is
+the **hurtbox**, which does not move when a fighter leaves the ground, and only
+an eye can place a tucked body in it. So the rule leaves them alone and the
+workbench's vertical-position control is live there.
+
+`tools/audit_air_placement.mjs` is where that gets checked. It measures every
+pose against the box `combat.js` actually tests for it and reports the ones
+sitting lower in their own hurtbox than the same pose does across the rest of
+the roster — per pose key, because a `dodge_roll` is legitimately floor-level
+and a flat threshold would report the whole column.
+
 ### Keying, and why it is layered
 
 Three passes, each narrower than the last, because a single rule cannot tell

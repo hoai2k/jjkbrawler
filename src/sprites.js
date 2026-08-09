@@ -426,6 +426,23 @@ export function isAirborneOnly(charKey, frameKey) {
   return states.length > 0 && states.every((s) => AIRBORNE_STATES.includes(s));
 }
 
+/** States drawn by hanging a named anchor on a world point rather than by
+ *  standing the frame's feet at one. `bodyBottom` has NO effect on these: the
+ *  offset `drawCharFrame` computes for `anchorTo` subtracts the same foot line
+ *  it later adds back, so it cancels exactly. See the `anchorTo` branch there.
+ *
+ *  Worth naming rather than leaving as a property of the arithmetic, because
+ *  the vertical-position control looks identical on these poses and does
+ *  nothing — which is indistinguishable from the control being broken. */
+const ANCHORED_STATES = ["ledge"];
+
+/** True when nothing about this frame's placement responds to `bodyBottom`,
+ *  because every state that draws it hangs it from an anchor instead. */
+export function isAnchorPlaced(charKey, frameKey) {
+  const states = statesUsingFrame(charKey, frameKey);
+  return states.length > 0 && states.every((s) => ANCHORED_STATES.includes(s));
+}
+
 /** Where an anchor lands on screen, given the same placement arguments
  *  `drawCharFrame` was called with. Shared so the workbench overlays sit
  *  exactly on the pivot the renderer uses — including for the frames the
