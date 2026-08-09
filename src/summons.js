@@ -50,6 +50,7 @@ import { burst, dust, ring, popup, emit } from "./particles.js";
 import { playSfx } from "./audio.js";
 import { getImage } from "./assets.js";
 import { drawCharFrame, currentFrame } from "./sprites.js";
+import { SUMMON_ANIMS } from "./config_summons.js";
 import { MOTION } from "./config_tuning.js";
 import { METER_MAX } from "./constants.js";
 
@@ -176,6 +177,41 @@ function summonImage(sprites) {
   return null;
 }
 
+// ---------------------------------------------------------------- animation
+//
+// A summon animates off the small pose set in config_summons.js — a breath, a
+// stride, a strike, a flinch — resolved POSE BY POSE against its still. So a
+// creature with no frames at all draws exactly as every summon drew before
+// they animated, one with only `move_a`/`move_b` runs and stands still on its
+// portrait, and nothing has to be delivered as a complete set to be worth
+// delivering.
+
+/** The `summon:<key>` this creature's poses hang off: its first preference,
+ *  which is the creature's own art. Later entries in `sprites` are borrowed
+ *  stand-ins (an `effect:*` orb) and never own poses. */
+function poseKeyOf(sprites) {
+  const first = sprites?.[0];
+  return first?.startsWith("summon:") ? first : null;
+}
+
+/** The drawing for one pose of one summon, or null if it was never delivered. */
+function poseImage(baseKey, pose) {
+  return baseKey ? getImage(`${baseKey}:${pose}`) : null;
+}
+
+/** The frame an animation is showing at `t`, skipping poses that do not exist
+ *  — a two-frame idle with only `idle_a` drawn holds `idle_a` rather than
+ *  blinking to nothing every other beat. */
+function animFrame(baseKey, animKey, t) {
+  const anim = SUMMON_ANIMS[animKey];
+  if (!anim) return null;
+  const drawn = anim.frames.filter((pose) => poseImage(baseKey, pose));
+  if (!drawn.length) return null;
+  const idx = Math.floor(t * anim.fps);
+  const i = anim.loop ? idx % drawn.length : Math.min(idx, drawn.length - 1);
+  return poseImage(baseKey, drawn[i]);
+}
+
 // A summon still on its way in, or already on its way out, does not count
 // against the cap: dismissing something that is already dissipating would spend
 // the recast for nothing.
@@ -242,6 +278,10 @@ export function spawnSummon(owner, cfg) {
     id: cfg.id,
     owner,
     behavior,
+    // Which creature this is, out of its special's pool. Carried on the entity
+    // (not just in the hit label) so anything looking at the stage can say what
+    // is standing on it.
+    creature: cfg.name || cfg.label || null,
     // The actor whose sprite set this summon animates through, for a brawler.
     // Everything else draws a single still image (cfg.sprites).
     actor: cfg.actor || null,
@@ -276,11 +316,27 @@ export function spawnSummon(owner, cfg) {
     airborne: false,
     jumpArmed: true,
 
-    // --- brawler only: the animation playhead and the move in progress.
+    // --- animation. `animKey` is the pose set being played (idle / move /
+    // attack / hurt for a creature; a fighter anim key for a brawler) and
+    // `animTime` is its playhead. `moving` and `attackT` are what the pose is
+    // chosen from — see poseFor().
     animKey: "idle",
     animTime: 0,
+    moving: false,
+    attackT: 0,
+    // brawler only: the move in progress and its decision clock.
     move: null,      // { name, def, t, hit:Set }
     decideT: 0,
+
+    // --- recoil. A hit does not launch a summon (that would make every summon
+    // a free KO setup for whoever hits it hardest) but it absolutely moves it:
+    // `knockT` is the stagger, `knockVx` the shove, and both are clamped to the
+    // stage so a shikigami can be pushed around and never off.
+    knockT: 0,
+    knockVx: 0,
+    // How much of a shove this creature actually takes. A Max Elephant barely
+    // rocks; a rabbit goes flying.
+    knockTake: cfg.knockTake ?? 1,
 
     // Hit points. Scaled off the summon's own reach in the kit config rather
     // than a flat number: a bomber that dies on contact anyway should not
@@ -383,7 +439,10 @@ export function spawnSummon(owner, cfg) {
       this.hurtT = 0.12;
       burst(this.x, this.y - bodyH / 2, "#ffffff", 6, 0.5);
       playSfx("hitLight", 0.5, 1.15);
-      if (this.hp > 0) return false;
+      if (this.hp > 0) {
+        this.recoil(dealt, source);
+        return false;
+      }
       // Destroyed rather than dismissed: bigger burst, a ring, and a shake, so
       // killing one reads as an achievement rather than as the timer running
       // out — and it skips the dissipate entirely, because coming apart on your
@@ -396,6 +455,56 @@ export function spawnSummon(owner, cfg) {
       popup(this.x, this.y - bodyH - 20, "DESTROYED", cfg.color, 16);
       if (source) grantMeterForKill(source);
       return true;
+    },
+
+    /**
+     * Knocked back, but never away.
+     *
+     * A summon that took a hit and kept walking looked like a summon that had
+     * not been hit. It now staggers: shoved along the line of the blow, thrown
+     * off its own behaviour for a beat, and — for a heavy enough hit — popped
+     * off the floor into the same fall a jump uses, so it lands and puffs dust
+     * like anything else with feet.
+     *
+     * It is deliberately NOT a fighter's knockback: the shove is clamped to
+     * the stage, there is no launch angle, no percent scaling and no hitstun to
+     * combo out of. Send a shikigami off the blast zone and every summon
+     * becomes a free stock for whoever hits hardest, which is precisely what
+     * giving them hit points was meant to avoid.
+     */
+    recoil(dealt, source) {
+      const away = source ? (sign(this.x - source.x) || this.dir * -1) : -this.dir;
+      const power = clamp(70 + dealt * 16, 90, 340) * this.knockTake;
+      // A shove already under way is added to rather than replaced, so a
+      // multi-hit string pushes a summon further than its first hit did.
+      this.knockVx = clamp(this.knockVx + away * power, -420, 420);
+      this.knockT = Math.min(0.36, Math.max(this.knockT, 0.14 + dealt * 0.007));
+      this.move = null;               // a brawler's swing is interrupted
+      this.animKey = "hurt";
+      this.animTime = 0;
+      // Anything that really connects lifts it off the floor. Flyers are not
+      // popped — they are already off it, and a support summon punted upward
+      // would simply fly back down looking untouched.
+      if (dealt >= 11 && !flies && !this.airborne && this.knockTake > 0.5) {
+        this.airborne = true;
+        this.vy = -180 - Math.min(160, dealt * 8) * this.knockTake;
+      }
+      dust(this.x, this.y, 4);
+    },
+
+    /** The stagger itself: the shove plays out, the creature's own behaviour
+     *  does not. Gravity still runs, so a summon popped into the air by a hit
+     *  falls back down and lands. */
+    stepStagger(dt) {
+      this.knockT -= dt;
+      this.x = clamp(this.x + this.knockVx * dt, 90, 1190);
+      this.knockVx *= Math.pow(0.86, dt * 60);
+      if (!flies) this.stepGravity(dt, false);
+      this.moving = false;
+      if (this.knockT <= 0) {
+        this.knockVx = 0;
+        this.animTime = 0;
+      }
     },
 
     update(dt) {
@@ -435,7 +544,17 @@ export function spawnSummon(owner, cfg) {
       this.attackCd -= dt;
       this.lungeT = Math.max(0, this.lungeT - dt);
       this.hurtT = Math.max(0, this.hurtT - dt);
+      this.attackT = Math.max(0, this.attackT - dt);
       this.animTime += dt;
+      this.moving = false;
+
+      // Staggered: the shove runs and the creature does not. It cannot steer,
+      // hunt, bite or be piloted until it has its feet back.
+      if (this.knockT > 0) {
+        this.stepStagger(dt);
+        this.setPose();
+        return;
+      }
 
       const stick = ownerStick(owner);
       const pushed = stick.x !== 0 || stick.y !== 0;
@@ -458,6 +577,19 @@ export function spawnSummon(owner, cfg) {
       else if (this.behavior === "support") this.updateSupport(dt, target);
       else if (this.behavior === "brawler") this.updateBrawler(dt, target);
       else this.updatePursuit(dt, target);
+      this.setPose();
+    },
+
+    /** Which of the four creature poses this frame is: flinching beats
+     *  striking beats moving beats standing. A brawler picks its own key from
+     *  its move set (setBrawlerAnim) and is left alone here. */
+    setPose() {
+      if (this.behavior === "brawler") return;
+      const key = this.knockT > 0 ? "hurt"
+                : this.attackT > 0 ? "attack"
+                : this.moving || this.airborne ? "move"
+                : "idle";
+      if (key !== this.animKey) { this.animKey = key; this.animTime = 0; }
     },
 
     // The arrival. Cursed energy gathers at the landing point and the shape
@@ -503,6 +635,7 @@ export function spawnSummon(owner, cfg) {
       const speed = (cfg.speed ?? 420) * PILOT_SPEED_MUL * (committed ? 0.25 : 1);
       if (stick.x) {
         this.x = clamp(this.x + stick.x * speed * dt, 90, 1190);
+        this.moving = true;
         if (!committed) this.dir = sign(stick.x);
       } else if (target) {
         // Still face what it would bite, so a summon held steady over an enemy
@@ -513,6 +646,7 @@ export function spawnSummon(owner, cfg) {
         // Held steady it keeps bobbing, so a parked flyer still reads as alive.
         const vy = stick.y ? stick.y * speed : Math.sin(this.bob) * 26;
         this.y = clamp(this.y + vy * dt, PILOT_CEILING, groundY());
+        if (stick.y) this.moving = true;
       } else {
         // Up on the stick is a jump, not flight — a dog that hovered would be
         // a different creature. Re-arms only once the stick comes back down,
@@ -550,7 +684,10 @@ export function spawnSummon(owner, cfg) {
         this.dir = sign(target.x - this.x) || this.dir;
         const gap = Math.abs(target.x - this.x);
         const desired = this.behavior === "bomber" ? 0 : (cfg.standOff ?? 30);
-        if (gap > desired) this.x = clamp(this.x + this.dir * speed * dt, 90, 1190);
+        if (gap > desired) {
+          this.x = clamp(this.x + this.dir * speed * dt, 90, 1190);
+          this.moving = true;
+        }
       }
       // Finishes any jump the player left it in before pinning back to the
       // ground; a hunting summon never starts one.
@@ -582,6 +719,7 @@ export function spawnSummon(owner, cfg) {
         if (adx > reach) {
           this.x = clamp(this.x + this.dir * speed * dt, 90, 1190);
           walking = true;
+          this.moving = true;
         }
         // Chase upward the way a fighter does: if they are standing above it
         // and roughly overhead, jump after them.
@@ -715,6 +853,7 @@ export function spawnSummon(owner, cfg) {
 
       if (this.behavior === "bomber") {
         this.dead = true;
+        this.attackT = 0.2;
         burst(this.x, this.y - 50, cfg.color, 30, 1.3);
         ring(this.x, this.y - 50, cfg.color, (cfg.attack.r || 90) * 1.3);
         playSfx("summonAttack", 0.9);
@@ -730,6 +869,7 @@ export function spawnSummon(owner, cfg) {
       if (this.attackCd > 0) return;
       this.attackCd = cfg.attack.cd ?? 0.8;
       this.lungeT = 0.22;
+      this.attackT = 0.26;
       applyHit(owner, target, {
         dmg: cfg.attack.dmg, baseKb: cfg.attack.base, growth: cfg.attack.growth,
         angle: cfg.attack.angle, effect: cfg.attack.effect || null,
@@ -754,6 +894,7 @@ export function spawnSummon(owner, cfg) {
     fireSupport(target) {
       if (this.attackCd > 0) return;
       this.attackCd = cfg.attack.cd ?? 1.2;
+      this.attackT = 0.3;
       const proj = spawnProjectile(owner, {
         ...cfg.attack.projectile,
         x: this.x + this.dir * 24,
@@ -862,15 +1003,25 @@ export function spawnSummon(owner, cfg) {
       }
     },
 
-    // Everything else: one still image (or a glowing orb where art is missing)
-    // that sways and leans so it does not read as a decal pinned to the stage.
+    // Everything else: the creature's own pose for what it is doing this
+    // frame, falling back to its single still (and, with no art at all, to a
+    // glowing orb). It also sways and leans, which is what kept a summon from
+    // reading as a decal back when the still was all there was — and still
+    // does the work on the frames a creature has not had drawn yet.
     drawStill(ctx, y, alpha, flash, lunge) {
-      const img = summonImage(cfg.sprites);
+      const img = animFrame(poseKeyOf(cfg.sprites), this.animKey, this.animTime)
+               ?? summonImage(cfg.sprites);
+      // A flinch is a lean away from the blow on top of whatever the art does,
+      // so a creature with no `hurt` drawing still visibly takes the hit.
+      const stagger = this.knockT > 0
+        ? Math.sin(Math.min(1, this.knockT / 0.36) * Math.PI) * sign(this.knockVx) * 0.22
+        : 0;
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.translate(this.x + this.dir * lunge, y);
       const sway = Math.sin(this.bob * 0.7) * MOTION.summonSway
-                 + (lunge / 16) * this.dir * MOTION.summonLunge;
+                 + (lunge / 16) * this.dir * MOTION.summonLunge
+                 + stagger;
       ctx.rotate(sway);
       // summon art faces left in source unless flagged; mirror to face dir
       ctx.scale(this.dir > 0 ? (cfg.faceRight ? 1 : -1) : (cfg.faceRight ? -1 : 1), 1);

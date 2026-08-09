@@ -2,6 +2,7 @@ import { CHARACTER_KEYS, actorsFor } from "./characters.js";
 import { applyAllHeightScales } from "./heights.js";
 import { STAGES } from "./stages.js";
 import { transformActorsFor } from "./config_transform.js";
+import { SUMMON_ART, SUMMON_POSES } from "./config_summons.js";
 
 export const images = new Map();
 export let spriteManifest = null;
@@ -364,16 +365,31 @@ function groupJobs(id) {
   // "shared" — art that belongs to no one fighter and could turn up in any
   // match. Every one of these has a procedural fallback in the renderer, which
   // is why the match gate does not wait on them.
+  // Summons whose art is not a creature standing on the stage: Mahoraga's is
+  // the fallback still for a set that fails its pose check (he animates
+  // through the actor sprite set), and Rika is drawn by Yuta's moves and his
+  // domain rather than by summons.js.
   add("summon:mahoraga", "assets/sprites/summons/mahoraga.png");
   add("summon:rika", "assets/sprites/summons/rika.png");
-  add("summon:divineDogWhite", "assets/sprites/summons/divine_dog_white.png");
-  add("summon:divineDogBlack", "assets/sprites/summons/divine_dog_black.png");
   add("summon:nue", "assets/sprites/summons/nue.png");
-  // Delivered in round 8, so these are required like any other summon — a
-  // broken path here should be reported, not swallowed.
-  add("summon:rainbow_dragon", "assets/sprites/summons/rainbow_dragon.png");
-  add("summon:transfigured_human", "assets/sprites/summons/transfigured_human.png");
-  add("summon:inventory_curse", "assets/sprites/summons/inventory_curse.png");
+
+  // Every creature summons.js can put on the stage (config_summons.js). Art is
+  // fetched only where the flags say it exists: `delivered` for the single
+  // still, `poses` for the animation set (round 15). Both default off, which
+  // is what integrating a delivery flips — the same shape as a staged fighter
+  // or a switched-off transform, and it keeps the loader from firing a hundred
+  // requests at files nobody has drawn yet.
+  //
+  // A creature with no art at all is not a hole: its kit config names a
+  // borrowed `effect:*` stand-in, and failing that it draws the procedural
+  // glow (summons.js).
+  for (const [key, art] of Object.entries(SUMMON_ART)) {
+    if (art.delivered) add(`summon:${key}`, `assets/sprites/summons/${art.file}.png`);
+    if (!art.poses) continue;
+    for (const pose of SUMMON_POSES) {
+      optional(`summon:${key}:${pose}`, `assets/sprites/summons/${art.file}_${pose}.png`);
+    }
+  }
 
   for (const key of EFFECT_KEYS) add(`effect:${key}`, `assets/sprites/effects/${key}.png`);
   // Round-7 effects load automatically the moment their fighter is promoted

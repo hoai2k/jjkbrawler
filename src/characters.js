@@ -27,6 +27,7 @@
 // frames are semantic pose keys instead; see SEMANTIC_ANIMS below.
 
 import { CHARACTER_GROUPS } from "./config_menus.js";
+import { SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL } from "./config_summons.js";
 
 // The roster itself is defined further down; CHARACTER_KEYS is derived from the
 // config groups once the kits exist (see the bottom of this file).
@@ -368,20 +369,15 @@ export const CHARACTERS = {
         p: { speed: 520, vy: -120, gravity: 260, r: 38, dur: 1.0, dmg: 11, base: 360, growth: 7.0, angle: 0.5, color: "#7c8cff", effect: "snare", label: "Nue", sprite: "summon:nue", spriteH: 132, steerable: true, steerRate: 6.0 },
       },
       side: {
-        name: "Divine Dogs", type: "summon", cooldown: 7.5,
-        desc: "Both wolves step out of his shadow and hunt at his side, tearing at whoever they corner.",
+        name: "Ten Shadows: Shikigami", type: "summon", cooldown: 7.5,
+        desc: "He calls whichever shikigami answers — the Divine Dogs, the Great Serpent, the Toad, Max Elephant or a scatter of rabbits — and it fights at his side.",
+        // One technique, ten shikigami: the pool rolls a different creature
+        // every cast (never the same one twice running — see specials.js), so
+        // the summon is the move and the shikigami is the draw. Each entry in
+        // SHIKIGAMI_POOL overrides only what makes that creature different.
         p: {
-          id: "divineDogs", behavior: "chaser", duration: 6, speed: 470, maxActive: 2,
-          // Both dogs' art is drawn facing RIGHT, against the renderer's
-          // face-left default. Set here on `p` rather than per-unit so the
-          // white and black dog cannot drift apart.
-          faceRight: true,
-          color: "#3a3f68", h: 118, hitW: 90, hitH: 96, standOff: 24,
-          attack: { dmg: 6.5, base: 240, growth: 4.6, angle: 0.34, cd: 0.9, effect: "snare", sfx: "slash" },
-          units: [
-            { sprites: ["summon:divineDogWhite"], backOff: 40 },
-            { sprites: ["summon:divineDogBlack"], backOff: 90, firstAttackDelay: 0.9 },
-          ],
+          id: "shikigami", color: "#3a3f68",
+          pool: SHIKIGAMI_POOL,
         },
       },
       down: {
@@ -408,6 +404,10 @@ export const CHARACTERS = {
         // Drawn at the actor's own scale, and big: the point of the shikigami
         // is that the thing on the stage is enormous.
         scale: 0.95, h: 250, hitW: 120, hitH: 214, hp: 150,
+        // He rocks; he does not get shoved around. A general who staggers
+        // across the stage every time somebody pokes him is not the payoff of
+        // a full meter bar.
+        knockTake: 0.28,
         attack: { cd: 0.5 },
         // The wheel turns. Once he has worn enough punishment, everything after
         // it lands for a fraction — killing him is possible, but you have to do
@@ -720,16 +720,13 @@ export const CHARACTERS = {
         p: { vel: 640, iframes: 0.16, delay: 0.05, dur: 0.2, ox: 84, oy: -90, w: 250, h: 96, dmg: 14, base: 470, growth: 7.2, angle: 0.24, effect: "silence", label: "Inverted Spear", sfx: "slashHeavy" },
       },
       down: {
-        name: "Inventory Curse", type: "summon", cooldown: 9,
-        desc: "The pact-bound curse uncoils at his shoulder and spits cursed tools from its gullet.",
+        name: "Open the Inventory", type: "summon", cooldown: 9,
+        desc: "Something pact-bound comes out of storage — the curse that spits cursed tools, the one he lets off the leash, or a husk with a blade still in it.",
+        // He has no cursed energy of his own, so every one of these is
+        // something he KEEPS rather than something he makes. INVENTORY_POOL.
         p: {
-          id: "inventoryCurse", behavior: "support", duration: 6, maxActive: 1,
-          color: "#9fb8a8", h: 96, hover: { back: 76, up: 158 },
-          sprites: ["summon:inventory_curse", "effect:cursed_spirit_orb"],
-          attack: {
-            cd: 1.15,
-            projectile: { speed: 760, r: 20, dur: 0.7, dmg: 7, base: 300, growth: 5.6, angle: 0.3, color: "#cfd6de", effect: "heavenly", sprite: "effect:cursed_tool", spriteH: 70 },
-          },
+          id: "inventoryCurse", color: "#9fb8a8",
+          pool: INVENTORY_POOL,
         },
       },
     },
@@ -822,13 +819,14 @@ export const CHARACTERS = {
         p: { vel: 560, iframes: 0.1, delay: 0.05, dur: 0.24, ox: 66, oy: -94, w: 204, h: 104, dmg: 13, base: 410, growth: 7.0, angle: 0.3, effect: "soulMark", label: "Distortion", sfx: "slash" },
       },
       down: {
-        name: "Transfigured Human", type: "summon", cooldown: 3.4,
-        desc: "Reshapes a stored soul into a shambling experiment that lurches after the enemy and bursts.",
+        name: "Idle Transfiguration", type: "summon", cooldown: 3.4,
+        desc: "Reshapes a stored soul into whatever amuses him — a lurching bomb, a bloated hulk, a pair of crawlers, or something that sits back and spits.",
+        // He is reshaping a soul on the spot; getting the same shape every time
+        // was the one thing his technique should never do. TRANSFIGURED_POOL
+        // rolls per cast.
         p: {
-          id: "transfigured", behavior: "bomber", duration: 4.5, speed: 330, maxActive: 2,
-          color: "#8f5cd8", h: 104, hitW: 64, hitH: 88,
-          sprites: ["summon:transfigured_human", "effect:soul_isomer"],
-          attack: { dmg: 12, base: 400, growth: 6.8, angle: 0.6, r: 90, effect: "soulMark" },
+          id: "transfigured", color: "#8f5cd8",
+          pool: TRANSFIGURED_POOL,
         },
       },
     },
@@ -878,17 +876,13 @@ export const CHARACTERS = {
         p: { speed: 420, vy: -10, r: 26, dur: 1.1, dmg: 8, base: 280, growth: 5.8, angle: 0.4, color: "#7d58d8", count: 3, spread: 170, homing: 130, effect: "curseDrain", fxElement: "shadow", label: "Spirit Volley", spritePool: ["effect:curse_a", "effect:curse_b", "effect:curse_c", "effect:curse_d"], spriteH: 96, steerable: true, steerRate: 4.6 },
       },
       side: {
-        name: "Rainbow Dragon", type: "summon", cooldown: 8,
-        desc: "His prized heavy-hitter is released onto the stage and hunts until the technique is spent.",
+        name: "Cursed Spirit Release", type: "summon", cooldown: 8,
+        desc: "He opens the collection: the Rainbow Dragon, a Smallpox Deity, a brace of curse hounds or a cursed womb — whatever his hand finds.",
+        // The whole of his technique is a collection, so it is the summon that
+        // most deserves to roll. CURSE_POOL, one per cast.
         p: {
-          id: "rainbowDragon", behavior: "chaser", duration: 5, speed: 380, maxActive: 1,
-          // Unlike the other summons, the round-8 dragon art is drawn facing
-          // RIGHT, so the renderer's default mirror pointed it away from its
-          // target the whole time it was chasing.
-          faceRight: true,
-          color: "#9d7dff", h: 170, hitW: 130, hitH: 130, standOff: 40,
-          sprites: ["summon:rainbow_dragon", "effect:curse_dragon"],
-          attack: { dmg: 11, base: 380, growth: 6.6, angle: 0.42, cd: 1.05, effect: "curseDrain", sfx: "slashHeavy" },
+          id: "storedCurse", color: "#9d7dff",
+          pool: CURSE_POOL,
         },
       },
       down: {

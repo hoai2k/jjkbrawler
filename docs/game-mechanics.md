@@ -33,6 +33,10 @@ and a meter-funded ultimate for every fighter.
 - **KOs** happen only at blast zones: past the sides (−300 / 1580), the top
   (−420, for vertical KOs), or the bottom (1000). Losing a stock resets percent
   and starts the respawn below.
+- **Hitlag** (freeze frames): both fighters freeze for `0.03 + damage × 0.0045`
+  seconds on contact (25% longer on heavies) while the victim vibrates — this
+  is the "crunch" that makes hits read. The world also gets brief **slow-mo**
+  and a camera **zoom kick** on knockouts and heavy launches.
 
 ### Respawning (Smash's bargain)
 
@@ -48,10 +52,6 @@ you do anything with the control you already have — attack, special, ultimate,
 jump, shield, press down, or simply walk off its edge. **0.5 s** of grace
 invulnerability follows you off it however you left, so stepping down is never
 the moment you get hit. It dims and then blinks as its time runs out.
-- **Hitlag** (freeze frames): both fighters freeze for `0.03 + damage × 0.0045`
-  seconds on contact (25% longer on heavies) while the victim vibrates — this
-  is the "crunch" that makes hits read. The world also gets brief **slow-mo**
-  and a camera **zoom kick** on knockouts and heavy launches.
 
 ## 2. Movement
 
@@ -125,12 +125,32 @@ Specials have individual cooldowns (0.8–7 s) instead of resource costs.
 
 ### Summons, and steering them
 
-Five moves put a persistent creature on the stage rather than a hitbox:
-Megumi's **Divine Dogs** (two chasers), Geto's **Rainbow Dragon** (chaser),
-Mahito's **Transfigured Human** (bomber — detonates on contact), Toji's
-**Inventory Curse** (support — hovers at his shoulder and shoots), and Megumi's
-ultimate **Mahoraga** (brawler — see below). They are lifetime-limited, capped
-per caster, and die with their owner.
+Five moves put a persistent creature on the stage rather than a hitbox — four
+specials (Megumi, Mahito, Geto, Toji) and Megumi's ultimate **Mahoraga**
+(brawler — see below). They are lifetime-limited, capped per caster, and die
+with their owner.
+
+**Which creature you get is a roll.** A summon special names a **pool** and
+draws one entry per cast, never the same one twice running, so the technique is
+the move and the creature is the draw. What comes out is named on screen as it
+arrives, because with five shikigami on one button the creature is the
+information.
+
+| Character | Special | Pool |
+|---|---|---|
+| Megumi | Ten Shadows: Shikigami | **Divine Dogs** (two chasers, snare bite) · **Great Serpent** (fast, enormous reach, fragile) · **Toad** (holds ground behind him, tongue lash) · **Max Elephant** (slow, huge, very hard to remove) · **Rabbit Escape** (three bombers, chip and clutter) |
+| Mahito | Idle Transfiguration | **Transfigured Human** (bomber) · **Bloated Hulk** (slow tanky chaser) · **Crawlers** (two fast bombers) · **Spitter** (support) |
+| Geto | Cursed Spirit Release | **Rainbow Dragon** (chaser) · **Smallpox Deity** (support, poison) · **Curse Hounds** (two fast chasers) · **Cursed Womb** (bomber) |
+| Toji | Open the Inventory | **Inventory Curse** (support, cursed tools) · **Coil Curse** (chaser) · **Husk Curse** (bomber, breaks weapons) |
+
+Entries are not balanced by being identical — each trades something for
+something (reach for staying power, weight for numbers), which is the point of
+rolling at all.
+
+**Summons animate**, off a small pose set of their own: a breath, a stride, a
+strike and a flinch. Anything not yet drawn falls back pose by pose to that
+creature's single still (docs/asset-requests.md, round 15), so art lands
+incrementally without a code change.
 
 **Arriving and leaving is a whole beat of its own.** A summon does not blink
 into existence: it forms in the air over its landing point, fades up out of
@@ -143,6 +163,18 @@ screen rather than count in your head; then it fades out and dissipates upward.
 The exception is a summon that was **killed**. That one bursts on the spot with
 no flash and no fade — the difference between a timer running out and an
 opponent taking your shikigami apart should be visible from across the stage.
+
+**Hitting one moves it.** A summon that took a hit and kept walking looked like
+a summon that had not been hit, so a blow now **staggers** it: shoved along the
+line of the attack, thrown off its own behaviour for a beat, popped off the
+floor if the hit was heavy, and landing with dust like anything else with feet.
+How far it goes is per-creature — a Max Elephant barely rocks, a rabbit sails.
+
+It is deliberately *not* a fighter's knockback: the shove is clamped to the
+stage, with no launch angle, no percent scaling and no hitstun to combo out of.
+A summon can be pushed around and never off — otherwise every summon would be a
+free stock for whoever hits hardest, which is exactly what giving them hit
+points was meant to avoid.
 
 Each one **hunts on its own** the moment it lands, so casting one costs no
 attention. Push the **right stick** (keyboard: `TFGH` for P1, `8/4/5/6` for P2)
