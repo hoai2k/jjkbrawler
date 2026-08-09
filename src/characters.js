@@ -393,7 +393,27 @@ export const CHARACTERS = {
     ultimate: {
       name: "Eight-Handled Sword Divergent Sila Divine General Mahoraga", type: "summon",
       desc: "The complete ritual. The wheel turns, and the general that adapts to everything walks the stage.",
-      p: { duration: 8, dmg: 11, base: 440, growth: 7.2, speed: 250, color: "#e8ecf8", selfDamageMul: 0.75, label: "MAHORAGA" },
+      // A summon with the `brawler` behavior (summons.js): Mahoraga arrives as
+      // his own actor and fights like a character — walking, jumping, choosing
+      // between a poke, a committed smash and an anti-air — rather than being a
+      // body Megumi wears. Push the right stick and Megumi drives him instead.
+      //
+      // `actor` names the sprite set he animates through; `sprites` is the
+      // still-image fallback for a set that has not been fully delivered.
+      p: {
+        id: "mahoraga", behavior: "brawler", actor: "mahoraga",
+        sprites: ["summon:mahoraga"],
+        duration: 10, maxActive: 1, speed: 280,
+        color: "#e8ecf8", selfDamageMul: 0.75, label: "MAHORAGA",
+        // Drawn at the actor's own scale, and big: the point of the shikigami
+        // is that the thing on the stage is enormous.
+        scale: 0.95, h: 250, hitW: 120, hitH: 214, hp: 150,
+        attack: { cd: 0.5 },
+        // The wheel turns. Once he has worn enough punishment, everything after
+        // it lands for a fraction — killing him is possible, but you have to do
+        // it before he works you out.
+        adapt: { hits: 8, dmgTakenMul: 0.5 },
+      },
     },
     // ---- Domain Expansion -------------------------------------------------
     domains: [{
@@ -1317,6 +1337,19 @@ export const SPRITE_ACTORS = {
 // drawn. Stamped rather than typed out 24 times, so it cannot disagree.
 for (const [key, actor] of Object.entries(CHARACTERS)) actor.key = key;
 for (const [key, actor] of Object.entries(SPRITE_ACTORS)) actor.key = key;
+
+/** Sprite-only actors a fighter's KIT can put on the stage — a summon that
+ *  animates through a whole sprite set rather than holding one still image
+ *  (Megumi's Mahoraga). Named on the move's `p.actor`, and gathered here so the
+ *  loader can fetch that art alongside the fighter's own: an actor summon whose
+ *  set was never downloaded would draw nothing at all. */
+export function actorsFor(fighterKey) {
+  const char = CHARACTERS[fighterKey];
+  if (!char) return [];
+  const moves = [char.ultimate, ...Object.values(char.specials || {}), ...(char.domains || [])];
+  const keys = moves.map((m) => m?.p?.actor).filter((k) => k && SPRITE_ACTORS[k]);
+  return [...new Set(keys)];
+}
 
 /** A fighter or a sprite-only actor, whichever owns this key. Anything that
  *  only needs to DRAW should look up through here rather than CHARACTERS, so

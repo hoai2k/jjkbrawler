@@ -127,9 +127,13 @@ have to.
   chase and bite for six seconds — his shikigami fight beside him.
 - **Shadow Sink** (down): melts into his own shadow, teleporting through
   danger (an invincible reposition).
-- **Ultimate — Mahoraga:** the full ritual. The general stalks the stage for
-  8 s, smashing whatever it reaches, while Megumi takes reduced damage behind
-  it. (He summoned it; you deal with it.)
+- **Ultimate — Mahoraga:** the full ritual. The general drops onto the stage as
+  his own actor and fights like a character for 10 s — walking in, jumping at
+  anyone above him, and choosing between a fast swipe, a committed smash and an
+  anti-air cleave — while Megumi keeps his own body and his own controls beside
+  him, taking reduced damage. He has 150 HP and can be killed, but **adapts**
+  after 8 hits taken and halves everything after that. (He summoned it; you deal
+  with it.)
 - *Passive — Ten Shadows:* summon specials refund extra ultimate meter.
 
 ## Nobara Kugisaki — "Straw Doll Sorceress"

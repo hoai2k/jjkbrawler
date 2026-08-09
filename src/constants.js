@@ -140,6 +140,33 @@ export const DOMAIN_METER_COST = METER_MAX;
 export const RESPAWN_X = { 1: 250, 2: 500, 3: 780, 4: 1030 };
 export const DEFAULT_STOCKS = 3;
 
+// ---------------------------------------------------------------- respawning
+//
+// Modelled on Smash: a KO'd player is out of the fight for a beat, then comes
+// back standing on a revival platform WITH CONTROL ALREADY THEIRS. Nothing
+// waits for the platform to expire — the platform is a shield you choose when
+// to give up, not a cutscene you sit through. It is what stops respawning from
+// feeling like a punishment on top of losing the stock.
+
+// The blackout between the KO and reappearing. Short: this is the only part of
+// a respawn the player genuinely cannot act in, so it is long enough to read
+// the KO and no longer.
+export const RESPAWN_WAIT = 0.65;
+
+// Where the revival platform hangs, and how wide it is.
+export const RESPAWN_PLATFORM_Y = 250;
+export const RESPAWN_PLATFORM_HALF_W = 62;
+
+// How long you may stand on it before it drops you. Invulnerable the whole
+// time — but every frame spent up there is a frame the other players spend
+// positioning, which is the cost that keeps it from being a free camp.
+export const RESPAWN_PLATFORM_TIME = 3.0;
+
+// Invulnerability that follows you off the platform, however you left it. Long
+// enough to not be hit in the act of stepping down, short enough that it is no
+// substitute for the platform you just gave up.
+export const RESPAWN_GRACE = 0.5;
+
 export const CELL_W = 313.5;
 export const CELL_H = 313.6;
 
