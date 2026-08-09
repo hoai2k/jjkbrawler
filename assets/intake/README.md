@@ -60,6 +60,7 @@ kind is which.
 |---|---|
 | nothing registered under this name | **imported as the pose itself** |
 | `needs replacement: quality / pose / character`, or the selected drawing is tagged `delete` | **replaces the old art outright.** It was condemned; keeping it would leave the chevron offering a drawing we already decided to throw away |
+| `needs replacement: alternate` | **imported beside the old art, selection unchanged, and marked new.** The request asked for a second opinion, so selecting it here would answer the question it was raised to ask. The pose goes on the workbench's updated list with a dot on its chevron, because nothing else about this delivery is visible |
 | `wants improvement: alpha / crop / bleed` | **imported as a variant AND selected.** The complaint was about the file, not the drawing, so the old one stays available in case the new one is worse |
 | no flag at all | **imported as a variant, selection unchanged.** Nobody asked for this pose to change, so the choice is made by eye later |
 

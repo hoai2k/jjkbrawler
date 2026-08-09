@@ -21,7 +21,8 @@ why the numbering is not strictly chronological.
 | 9 | Cards, technique frames, domains, stage props, three redrawn fighters, Mahito's re-key, Mahoraga (166 assets) | Delivered |
 | 10 | One sprite per action for the sheet-era fighters — Gojo, Mahito, Nobara, Yuta (72 sprites) | Delivered in part; the rest is round 11 |
 | 11 | Mahoraga redrawn from canon, the semantic sets finished for the last 13 fighters, wind-up/strike pairs for the round-7 six (280 sprites) | Delivered — **every fighter now has one sprite per action** |
-| 12A | Workbench catches: poses that failed once placed at real size (33 sprites) | Delivered in part — 29 in across two batches, 4 still open in [asset-requests.md](asset-requests.md) |
+| 12A | Workbench catches: poses that failed once placed at real size (33 sprites) | Delivered — all 33, in three batches |
+| 12B/12C | The four-frame run cycle and the `prone` pose, roster-wide (120 sprites) | Delivered in part — 75 in for 15 fighters; the other 9 are open in [asset-requests.md](asset-requests.md) |
 
 ---
 
@@ -804,3 +805,227 @@ drawing does not match that image, it is the wrong character no matter how good
 it looks.
 
 The raw plates are archived at `assets/reference/round12/`.
+
+---
+
+## Round 12A, third batch — 4 sprites, and 12A closed
+
+Megumi's two specials and Momo's two follow-throughs, the last of the
+thirty-three workbench catches.
+
+| Fighter | Poses | Kind | What was wrong |
+|---|---|---|---|
+| Megumi Fushiguro | `special_neutral` `special_down` | Pose | Nue and the shadow pool were painted in; the engine spawns both |
+| Momo Nishimiya | `attack_light_b` | Pose | The follow-up pulled the broom away from what she had just hit |
+| Momo Nishimiya | `crouch_attack_b` | Pose | The follow-through stood up out of the crouch |
+
+**12A is closed: 33 of 33.** It ran over three deliveries and settled three
+things worth keeping:
+
+- **"Do not draw the technique" is answered everywhere it was raised.** Five
+  poses painted in something the engine already spawns — Nobara's nails, Toji's
+  chain and Inventory Curse, Megumi's Nue and shadow pool. All five now draw the
+  body performing the move and leave the rest to the kit.
+- **The crouches that kept coming back standing are done.** Eight of them across
+  six fighters and three rounds. The comparative test the briefs were rewritten
+  around — head down by at least a quarter of the standing height, judged beside
+  that fighter's own `idle_a` — is what finally landed them.
+- **The three that kept coming back wrong are on-model.** Uro, Gakuganji and
+  Reggie, twelve sprites, drawn from `assets/reference/canon/<char>_idle.png`
+  and nothing else.
+
+The briefs, kept verbatim because they are the record of what was asked for:
+
+### The catches, as they were written
+
+Everything here came out of placing the delivered semantic sets in the sprite
+workbench: seen at their real size and standing on the real ground line,
+thirty-three poses turned out to be wrong. Round 11 is closed, so nothing here is
+covered by another round — every fighter listed has a finished set, and these
+are faults in it.
+
+**Twenty-nine of the thirty-three are delivered**, in two batches: Gojo's three,
+Mahito's crouch, Mahoraga's two, Maki's five, Nobara's three and Uro's four,
+then Gakuganji's four, Reggie's four and Toji's three. Megumi's two and Momo's
+two are what is left. The delivered briefs are in
+[asset-requests-history.md](asset-requests-history.md#round-12a--the-first-workbench-catches--18-sprites-across-6-fighters).
+
+**Everything in this section has to be drawn again.** That is what the section
+is: a fault that could be fixed by editing the file — a bad key, a bad crop,
+colour past the silhouette — is not a request at all, because it is repo work
+(`tools/dekey_fringe.py` and friends) and never waits on a round. Only the
+faults no edit can reach are here.
+
+Two reasons a drawing cannot be edited into the right picture, and they want
+different things from the redraw:
+
+- **`quality` — the drawing is broken.** A hand that does not close on the
+  weapon it is holding, a shaft that bends where it crosses the body, a second
+  figure ghosted into the plate.
+- **`pose` — the drawing is fine, but it is not the action.** A crouch that is
+  not crouched, a strike that does not travel the way the move travels. Keep
+  the character, the costume and the finish; change the body.
+- **`character` — it is not the right person.** Twelve sprites came back as
+  somebody else across two rounds — Uro's, Gakuganji's and Reggie's. All twelve
+  are now delivered on-model, and none of the four below is a `character`
+  fault; the account is in
+  [asset-requests-history.md](asset-requests-history.md#the-three-that-kept-coming-back-wrong).
+
+A third fault runs through several of them and is worth naming on its own,
+because it is not obvious from the drawing: **the art paints in something the
+game spawns for itself.** See "Do not draw the technique" below.
+
+**The crouches that were not crouched are all delivered** — seven of them, the
+bulk of the first 12A batch. One is left, `momo/crouch_attack_b`, plus
+`reggie/crouch_attack_b` carried over from 11D: see the note under the table,
+which is still the test to draw against.
+
+| Fighter | Key | Pose | Kind | Ask |
+|---|---|---|---|---|
+| Megumi Fushiguro | `megumi` | `special_neutral` | Pose | Nue is painted in; the engine already flies its own |
+| Megumi Fushiguro | `megumi` | `special_down` | Pose | The shadow pool is painted in; the engine draws that too |
+| Momo Nishimiya | `momo` | `attack_light_b` | Pose | The follow-up pulls the broom away from the target |
+| Momo Nishimiya | `momo` | `crouch_attack_b` | Pose | The follow-through stands up out of the crouch |
+
+### Do not draw the technique
+
+A fighter's sprite is the **body performing the move**. Everything the technique
+puts on screen — the projectile, the summon, the pool, the shockwave — is
+spawned by the engine from that fighter's kit, composited at its own size and
+animated on its own clock. When the art paints it in as well, the player sees it
+twice, at two sizes, moving two different ways.
+
+It has now come up three times. Three of the five are answered —
+`nobara/special_neutral` draws the cast with the nails left to `effect:nail`,
+and Toji's two came back with the chain and the purple wash gone. They are the
+reference for Megumi's two, which are what is left:
+
+| Pose | Painted in | What the engine already spawns |
+|---|---|---|
+| `megumi/special_neutral` | Nue, the shadow bird | `summon:nue` — steerable, 132 px tall, flown by the player |
+| `megumi/special_down` | the shadow pool he sinks into | a burst in his shadow colour, both ends of the teleport |
+
+Megumi's are the clearest case, because **Nue is a creature the player flies.**
+The neutral special launches him and the right stick steers him across the
+arena; a second Nue fixed to Megumi's hip goes nowhere and reads as a glitch the
+moment the real one leaves.
+
+So for any technique pose: draw the **cast** — the stance, the hands, the gather
+of cursed energy at the point it leaves the body — and stop there. Energy
+forming at the palm is the body; a bird in flight is not. Where a fighter's
+technique is *inseparable* from the pose (Maki's naginata, Momo's broom — the
+thing they are holding), that stays; the test is whether the game spawns its own
+copy.
+
+Toji's down special is the sharpest version of the fault yet: **Inventory Curse
+is a creature** — it uncoils at his shoulder, hovers behind him and spits cursed
+tools for six seconds — and what is drawn in its place is a flat ragged purple
+smear across his chest and thigh with a hard edge and no form. It is flagged
+`quality` as well as belonging here, because even as an aura it is not finished
+art.
+
+**`megumi/special_side` is very likely a third instance** and is not flagged
+yet. Two black hounds are painted at his feet, and Divine Dogs spawns two real
+ones (`summon:divine_dog_black`, `summon:divine_dog_white`, `maxActive: 2`) that
+chase the opponent for six seconds — so a cast puts four dogs on screen, two of
+which never move. Worth a look in the workbench before this round is drawn.
+
+### The second frame has to finish the first
+
+`attack_light_a`/`_b` and `crouch_attack_a`/`_b` are **one motion drawn twice**,
+and the `_b` frame keeps going the way `_a` was heading. Four of this round's
+entries missed the same way — the second frame retreats, rises, or resets to a
+neutral stance, so the combo plays as a strike followed by an un-strike.
+`maki/crouch_attack_b` and `gojo/crouch_attack_b` are delivered; Momo's two are
+what is left.
+
+| Pose | `_a` does | `_b` should | `_b` does |
+|---|---|---|---|
+| `momo/attack_light_b` | thrusts the broom forward | carry through past the target, hips rotated in | lifts the broom up and back, away from what she just hit |
+| `momo/crouch_attack_b` | sweeps low out of a lunge | stay down, the sweep finishing across the floor | rises toward standing |
+
+The check: flip between `_a` and `_b`. Every part of the body that was moving
+should have moved **further in the same direction**. If the weapon or fist is
+closer to where it started, the second frame is a wind-up, not a follow-through.
+
+### Hands on a weapon
+
+Maki's three quality frames were all the same failure, and it is the one to
+watch for on every armed fighter: **the hand does not grip.** The fingers pass
+through the shaft, or close on empty air beside it, or the shaft bends through
+the fist as though it were rope. `attack_heavy_a` had both — the lead hand never
+closed, and the naginata kinked where it crossed her chest.
+
+Her three are delivered, and so is `toji/attack_air_b`, the round's other
+instance. `attack_heavy_b` remains the reference: two hands, both closed, the
+shaft dead straight through them. Draw the grip first and the pose around it.
+
+### The crouch keeps coming back standing
+
+`gojo/crouch_b`, `gojo/crouch_attack_b`, `mahito/crouch_b`,
+`mahoraga/crouch_a`, `mahoraga/crouch_attack_b`, `maki/crouch_b`,
+`maki/crouch_attack_b`, `momo/crouch_attack_b` and `reggie/crouch_attack_b`
+(11D) were all the same miss, from three different rounds: a figure standing
+upright with the knees slightly bent, which reads as `idle` rather than as a
+crouch. It survives review every time because in isolation it is a good drawing
+— it only fails beside the fighter's own `idle_a`, where nothing has moved.
+
+All but Momo's and Reggie's are delivered, and the delivered ones are the
+worked example: put one beside its `idle_a` and the head has visibly dropped.
+
+So the pose lines are not enough on their own. For any crouch pose in this round
+or later, the test is comparative and it is the one to draw against:
+
+> Put the crouch beside that fighter's `idle_a`. **The head must drop by at
+> least a quarter of the figure's standing height.** Hips down toward heel
+> height, thighs closer to horizontal than vertical, back angled forward, and
+> the silhouette measurably shorter and wider than the idle. If the two images
+> have the same outline at the shoulders, it is not a crouch.
+
+`crouch_attack_a` / `_b` are that same low stance with the strike coming out of
+it — the body stays down through the follow-through. A rising strike from
+standing is a different move and belongs to `attack_up`.
+
+---
+
+## Round 12B and 12C, first delivery — 75 sprites across 15 fighters
+
+The four-frame run cycle (`run_pass_a/b`, `run_reach_a/b`) and the knocked-flat
+`prone` pose, for Choso, Geto, Hakari, Hanami, Inumaki, Jogo, Megumi, Mei Mei,
+Momo, Nanami, Panda, Sukuna, Todo, Yuji and Yuta. **Nine fighters are still
+without both** — Gakuganji, Gojo, Mahito, Mahoraga, Maki, Nobara, Reggie, Toji,
+Uro — and stay open in [asset-requests.md](asset-requests.md).
+
+Seventy-five poses that did not exist before, so nothing was overwritten and no
+tuning was rolled back. They land on the workbench's updated list as new work to
+be placed rather than re-tuned.
+
+### What the round taught the tools
+
+**The resolution check was measuring the wrong axis.** `prone` arrives about
+939×208 — a perfectly sharp figure, lying down — and all fifteen were flagged
+`LOW-RES` because the check read body *height*. Resolution is a property of how
+big the drawing is, not which way up it is, so `tools/intake.py` now measures
+the longest axis. For anything standing that is still the height, so the case it
+was written for is unchanged, and fifteen false positives went away.
+
+**The auto-tuner's foot rule assumed the character is standing.** It is not a
+question of how sprawling a pose is: the 0.946 fraction holds at the same median
+whether the art is drawn taller than wide (n=470) or wider than tall (n=39), so
+a running stride is fine. What breaks it is nobody being on their feet — `prone`
+lies flat and touches the floor along its whole side, so its contact really *is*
+the lowest pixel, and lifting it 5% hovers the body. The magnitude guard caught
+`momo/prone` on its own at 37% of body height, which is what a guard is for, but
+the other fourteen would have gone through quietly wrong. `prone` is now named
+in `NO_STANDING_FOOT` — a list rather than a measurement, because it is a fact
+about what the pose means and nothing in the alpha channel knows it.
+
+This was the first round where `tools/auto_tune.py` ran as an ordinary step. It
+placed the 78 poses it had rules for and left prone's ground contact to the eye.
+
+### Known and left alone
+
+`momo/run_reach_a` has a few pixels of broom bristle clipped at the canvas edge.
+The figure is intact and the rest of the delivery is clean, so it was imported;
+whether that is worth a redraw is a workbench decision, not one to make on the
+way in.

@@ -21,7 +21,7 @@ Listed in the order the runbook works through them:
 |---|---|---|---|---|
 | 1 | `needsReplacement` | `delete`, on a pose with more than one drawing | Artwork dropdown | **Deletes that image** and makes sure the pose's canonical file is the drawing that was kept |
 | 2 | `wantsImprovement` | `alpha`, `crop`, `bleed` | Improvement dropdown | **Attempts a fix in-place**, then shows you before/after to approve |
-| 3 | `needsReplacement` | `quality`, `pose`, `character` | Artwork dropdown | **Cannot be fixed by tooling** — folded into the open asset request round |
+| 3 | `needsReplacement` | `quality`, `pose`, `character`, `alternate` | Artwork dropdown | **Cannot be fixed by tooling** — folded into the open asset request round. `alternate` asks for a second drawing beside the current one rather than a replacement for it |
 
 Start by collecting them:
 
@@ -105,7 +105,9 @@ nothing in the file can be edited into the right picture, so it needs an artist.
 These become **asset requests**.
 
 1. `python3 tools/list_replacements.py --markdown` produces the tables in the
-   shape `docs/asset-requests.md` uses.
+   shape `docs/asset-requests.md` uses. Any description written beside a flag
+   comes with it, as a "What is wrong" column — that text is the part an artist
+   could not have worked out from the pose name, so keep it in the request.
 2. Add them to the **current open round**, not a new one — the whole point is
    that a delivery arrives as one batch. At the time of writing that is round 12.
 3. Lead with the kind, because it decides how much detail the request needs.
