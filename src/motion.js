@@ -15,6 +15,7 @@
 import { state } from "./state.js";
 import { clamp } from "./utils.js";
 import { cyclePhase } from "./sprites.js";
+import { DASH_FX } from "./config_fx.js";
 import { headHeightTarget } from "./heights.js";
 import { SHIELD_MAX, MAX_FALL } from "./constants.js";
 import {
@@ -195,5 +196,7 @@ export function trailStrength(f) {
   if (Math.abs(f.spin) > 1) return TRAIL_STRENGTH.tumble;
   if (f.action?.kind === "dodge") return TRAIL_STRENGTH.dodge;
   if (f.dashT > 0) return TRAIL_STRENGTH.dash;
+  // dashStrike specials boost the trail for their lunge (fx.js sets the timer)
+  if (f.fxTrailT > 0) return DASH_FX.trailStrength;
   return 0;
 }

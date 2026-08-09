@@ -1,6 +1,7 @@
 import { state } from "./state.js";
 import { clamp, sign, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, sparkLine, ring, popup, banner } from "./particles.js";
+import { hitFx, elementOf, burnTickFx, bleedTickFx } from "./fx.js";
 import { playSfx } from "./audio.js";
 import { domainKnockbackMul } from "./domains.js";
 import {
@@ -404,7 +405,7 @@ export function updateStatuses(f, dt) {
     if (s.burn.tick <= 0) {
       s.burn.tick = 0.45;
       f.damage += s.burn.dmg;
-      burst(f.x, f.y - 80, "#ff7a2f", 6, 0.5);
+      burnTickFx(f.x, f.y - 80);
     }
     if (s.burn.t <= 0) s.burn = null;
   }
@@ -414,7 +415,7 @@ export function updateStatuses(f, dt) {
     if (s.bleed.tick <= 0 && Math.abs(f.vx) > 130) {
       s.bleed.tick = 0.5;
       f.damage += s.bleed.dmg;
-      burst(f.x, f.y - 70, "#ff4c55", 5, 0.4);
+      bleedTickFx(f.x, f.y - 70, sign(f.vx) || 1);
     }
     if (s.bleed.t <= 0) s.bleed = null;
   }
@@ -666,11 +667,11 @@ export function applyHit(owner, target, hit, source) {
   target.hitPause = Math.max(target.hitPause, lag * 1.1);
   target.shakeMag = 3 + Math.min(6, dmg * 0.4);
 
-  // presentation
+  // presentation — element-aware: a magma hit burns, a blade hit glints, and
+  // a kit with no fxElement tags draws exactly the old theme burst.
   const hx = target.x + dir * -14;
   const hy = target.y - 96;
-  burst(hx, hy, owner.char.theme, Math.round(14 + dmg * 1.2), 1 + dmg / 24);
-  sparkLine(hx, hy, dir, "#ffffff", 8);
+  hitFx(elementOf(hit, owner), hx, hy, dir, dmg, owner.char.theme);
   popup(target.x, target.y - 132, `${dmg}%`, "#ffffff", 20 + Math.min(16, dmg));
   if (label) popup(target.x - dir * 26, target.y - 160, label, owner.char.theme, 17);
   state.camera.shake = Math.max(state.camera.shake, clamp(4 + dmg * 0.5, 4, 15));

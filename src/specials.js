@@ -12,6 +12,7 @@ import { METER_MAX } from "./constants.js";
 import { rectsOverlap, circleRectOverlap } from "./utils.js";
 import { getImage } from "./assets.js";
 import { spawnSummon } from "./summons.js";
+import { dashLaunchFx } from "./fx.js";
 
 // Installs have priorities: ultimate transformations (2) cannot be
 // overwritten by special-move buffs (1).
@@ -153,6 +154,7 @@ const HANDLERS = {
     if (p.armor) f.armorT = (p.delay || 0.06) + (p.dur || 0.2) + 0.15;
     spawnMelee(f, { ...p, base: p.base });
     dust(f.x - f.facing * 30, f.y, 10);
+    dashLaunchFx(f, p.color || f.char.theme);
   },
 
   burst(f, p, cfg) {

@@ -63,7 +63,7 @@ export function makeFighter(id, charKey, x, facing) {
     // fighter (and stepped at the fixed rate) so it stays deterministic and
     // freezes with the rest of the fighter during hitlag.
     spin: 0, spinAngle: 0, facingVis: facing,
-    landT: 0, takeoffT: 0, trail: [], trailTick: 0,
+    landT: 0, takeoffT: 0, trail: [], trailTick: 0, fxTrailT: 0,
     aiState: null,
     // The input this fighter last acted on, written by the sim loop. Summons
     // read it to find their owner's right stick (see summons.js).
@@ -784,6 +784,7 @@ export function updateFighter(f, dt, input) {
 function updatePresentation(f, dt) {
   f.landT = Math.max(0, f.landT - dt);
   f.takeoffT = Math.max(0, f.takeoffT - dt);
+  f.fxTrailT = Math.max(0, f.fxTrailT - dt);
 
   // Tumble: spin while reeling, then unwind to upright so a fighter always
   // lands on their feet rather than frozen at whatever angle hitstun ended on.

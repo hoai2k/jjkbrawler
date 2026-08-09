@@ -298,6 +298,7 @@ export const CHARACTERS = {
     epithet: "Heavenly Restricted",
     heightCm: 170,     // official
     theme: "#69d0a8",
+    fxElement: "steel",  // Heavenly Restriction: no cursed energy — steel glints, never a glow
     shadow: "rgba(105, 208, 168, 0.34)",
     scale: 0.60,
     stats: { speed: 452, airSpeed: 340, accel: 2860, jump: 775, airJumps: 1, weight: 1.0, friction: 0.86 },
@@ -341,6 +342,7 @@ export const CHARACTERS = {
     epithet: "Ten Shadows",
     heightCm: 175,     // official
     theme: "#7c8cff",
+    fxElement: "shadow",  // hits land in shadow-stuff
     shadow: "rgba(124, 140, 255, 0.36)",
     scale: 0.60,
     stats: { speed: 418, airSpeed: 330, accel: 2620, jump: 765, airJumps: 1, weight: 0.96, friction: 0.84 },
@@ -488,6 +490,7 @@ export const CHARACTERS = {
     epithet: "Not Just Any Panda",
     heightCm: 200,     // official
     theme: "#8ea0b8",
+    fxElement: "steel",  // a cursed corpse hits with mass, not energy — impact FX, no glow
     shadow: "rgba(142, 160, 184, 0.36)",
     scale: 0.57,
     stats: { speed: 356, airSpeed: 275, accel: 2220, jump: 730, airJumps: 1, weight: 1.28, friction: 0.78 },
@@ -665,6 +668,7 @@ export const CHARACTERS = {
     epithet: "The Sorcerer Killer",
     heightCm: 187,     // cited
     theme: "#a8aeb8",
+    fxElement: "steel",  // Heavenly Restriction: no cursed energy — steel glints, never a glow
     shadow: "rgba(168, 174, 184, 0.34)",
     scale: 0.60,
     stats: { speed: 465, airSpeed: 350, accel: 2980, jump: 780, airJumps: 1, weight: 1.04, friction: 0.87 },
@@ -769,6 +773,7 @@ export const CHARACTERS = {
     epithet: "Soul Shaper",
     heightCm: 179.1,   // cited
     theme: "#b56cff",
+    fxElement: "soul",  // hits touch the soul
     shadow: "rgba(177, 92, 255, 0.4)",
     scale: 0.60,
     stats: { speed: 422, airSpeed: 328, accel: 2600, jump: 760, airJumps: 1, weight: 0.98, friction: 0.82 },
@@ -881,6 +886,7 @@ export const CHARACTERS = {
     epithet: "Disaster of Flame",
     heightCm: 180,     // cited
     theme: "#ff7a2f",
+    fxElement: "fire",  // every hit burns
     shadow: "rgba(255, 122, 47, 0.42)",
     scale: 0.60,
     stats: { speed: 368, airSpeed: 288, accel: 2280, jump: 720, airJumps: 1, weight: 1.16, friction: 0.79 },
@@ -977,6 +983,7 @@ export const CHARACTERS = {
     epithet: "Eldest Brother",
     heightCm: 181,     // cited
     theme: "#c22e4a",
+    fxElement: "blood",  // every hit is blood
     shadow: "rgba(194, 46, 74, 0.4)",
     scale: 0.60,
     stats: { speed: 405, airSpeed: 315, accel: 2500, jump: 750, airJumps: 1, weight: 1.06, friction: 0.82 },
