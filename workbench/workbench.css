@@ -571,34 +571,9 @@ button.ghost:hover { border-color: var(--accent); }
 }
 .anchor-val { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
 
-/* One line: the two numbers and Reset. The anchor is placed by dragging its
-   handle on the canvas — these state where it landed, and take a value typed
-   or pasted from another pose. */
-.anchor-fields { display: flex; align-items: center; gap: 6px; }
-.anchor-field {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
-  font-size: 11px;
-  color: var(--dim);
-}
-.anchor-field .num {
-  flex: 1;
-  min-width: 0;
-  background: #121622;
-  color: var(--text);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 4px 6px;
-  font: inherit;
-  font-family: ui-monospace, Menlo, Consolas, monospace;
-  font-size: 11.5px;
-  text-align: right;
-}
-.anchor-field .num:focus { outline: none; border-color: var(--accent); }
-.anchor-fields .ghost { flex: none; }
+/* Name, value, and the one thing the canvas cannot do: put it back. */
+.anchor-title { font-size: 11.5px; font-weight: 700; }
+.anchor-head .ghost { flex: none; margin-left: auto; }
 
 /* A locked control stays legible — it is still a useful readout, it just
    cannot be edited for this pose. */

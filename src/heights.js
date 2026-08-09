@@ -34,6 +34,23 @@ function referenceCm() {
   return CHARACTERS[HEIGHT_REFERENCE]?.heightCm || 190;
 }
 
+/** A canon height as a person's height reads: 190 -> 6'3".
+ *
+ *  The number in characters.js stays metric — that is how the sources publish
+ *  it, and every calculation here is a ratio anyway — but a height only means
+ *  something to a reader in the units they picture a person in. Rounded to the
+ *  nearest inch, and 12 inches carries into the next foot rather than printing
+ *  5'12". Returns "" when nothing is published, so callers can say their own
+ *  thing about a fighter with no figure.
+ */
+export function heightLabel(cm) {
+  if (!Number.isFinite(cm) || cm <= 0) return "";
+  const totalInches = Math.round(cm / 2.54);
+  const feet = Math.floor(totalInches / 12);
+  const inches = totalInches % 12;
+  return `${feet}'${inches}"`;
+}
+
 /**
  * A fighter's size relative to the reference fighter, after compression and
  * clamping. 1.0 means "the same height as the reference".

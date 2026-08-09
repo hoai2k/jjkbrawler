@@ -26,6 +26,7 @@ import { CHARACTERS, CHARACTER_KEYS, SPRITE_ACTORS, getActor } from "../src/char
 import { TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "../src/config_transform.js";
 import {
   headHeightTarget, applyHeightScale, hasHeightOverride, heightRatio, measuredIdleSpan,
+  heightLabel,
 } from "../src/heights.js";
 import { initTooltips, setHelp } from "./tooltip.js";
 import { makeCharLoader, frameLoaded } from "./lazy_sprites.js";
@@ -830,7 +831,10 @@ function setAnchor(charKey, frameKey, name, x, y) {
 
 /** Anchors are visible unless explicitly switched off. */
 function isAnchorShown(name) {
-  return state.anchorShown[name] !== false;
+  // One switch, under the canvas, next to the other things drawn on it. The
+  // per-anchor checkboxes in the panel were a second place to look for the
+  // same answer, on a control whose real interface is the handle itself.
+  return $("showAnchors")?.checked !== false && state.anchorShown[name] !== false;
 }
 
 function anchorsDirty(charKey, frameKey) {
@@ -1125,36 +1129,51 @@ function drawGhost(charKey, frameKey, alpha, x = canvas.width / 2, as = null) {
  *  most recently delivered drawing is the one you have not decided about yet.
  *  Options are appended in arrival order, so the last is the newest.
  */
-function altCompare() {
-  const meta = rawMeta(state.char, state.frame);
-  if (!meta) return null;
+/** Which drawing the Alternate sprite view is standing beside this pose, when
+ *  the automatic choice has been overridden for it. Per pose, not global: the
+ *  answer to "which other one" is about this pose's drawings. */
+const altPicked = new Map();
+
+/** Every drawing this pose has OTHER than the one on the canvas — the ones the
+ *  comparison can stand beside it. */
+function altCandidates(charKey, frameKey) {
+  const meta = rawMeta(charKey, frameKey);
+  if (!meta) return [];
+  const out = [];
+  // The drawing in the game, while a replacement is waiting to take its place.
   if (meta.awaitingApproval?.live) {
-    return {
-      meta: frameMeta(state.char, state.frame),
-      img: frameImage(state.char, state.frame),
+    out.push({
+      meta: frameMeta(charKey, frameKey),
+      img: frameImage(charKey, frameKey),
       file: meta.awaitingApproval.live.file,
       caption: "in the game now",
-    };
+      primary: true,
+    });
   }
-  const others = poseVariants(state.char, state.frame).filter((o) => o.file !== meta.file);
-  if (!others.length) return null;
-  // The drawing this pose most recently displaced, if there is one. Approving
-  // must not change what the comparison shows: the question is still "what was
-  // here before", and after a yes the answer is the drawing that just lost.
-  // Only when nothing has been superseded does this fall back to the newest
-  // alternate on offer.
-  const superseded = others
-    .filter((o) => o.supersededAt)
-    .sort((a, b) => String(a.supersededAt).localeCompare(String(b.supersededAt)));
-  const pick = superseded[superseded.length - 1] || others[others.length - 1];
-  return {
-    meta: poseView(pick),
-    img: spriteFileImage(pick.file),
-    file: pick.file,
-    caption: pick.label === "Not approved" ? "the replacement, not approved"
-      : pick.supersededAt ? "the drawing this replaced"
-      : pick.label ? `alternate: ${pick.label}` : "alternate",
-  };
+  const others = poseVariants(charKey, frameKey).filter((o) => o.file !== meta.file);
+  // The drawing this pose most recently displaced leads the rest: approving
+  // must not change what the comparison shows, and after a yes the answer to
+  // "what was here before" is the drawing that just lost.
+  const rank = (o) => (o.supersededAt ? `1${o.supersededAt}` : "0");
+  for (const o of [...others].sort((a, b) => rank(b).localeCompare(rank(a)))) {
+    if (out.some((e) => e.file === o.file)) continue;
+    out.push({
+      meta: poseView(o),
+      img: spriteFileImage(o.file),
+      file: o.file,
+      caption: o.label === "Not approved" ? "the replacement, not approved"
+        : o.supersededAt ? "the drawing this replaced"
+        : o.label ? `alternate: ${o.label}` : "alternate",
+    });
+  }
+  return out;
+}
+
+function altCompare() {
+  const list = altCandidates(state.char, state.frame);
+  if (!list.length) return null;
+  const chosen = altPicked.get(`${state.char}/${state.frame}`);
+  return list.find((e) => e.file === chosen) || list[0];
 }
 
 /** What the comparison slot should answer, for the list being opened.
@@ -1186,6 +1205,11 @@ function refreshSelfIdleOptions() {
   if (!opt) return;
   const alt = altCompare();
   opt.hidden = !alt && sel.value !== "alternate";
+  // Offered only where there is a choice to make: one other drawing is not a
+  // decision, it is the answer.
+  const choices = altCandidates(state.char, state.frame);
+  const pick = $("altPick");
+  if (pick) pick.hidden = sel.value !== "alternate" || choices.length < 2;
   // Fetch it once it is asked for; the per-pose slot holds only the drawing
   // the pose points at.
   if (alt && !alt.img && alt.file) {
@@ -1211,18 +1235,17 @@ function selfIdleKey() {
   return rawMeta(state.char, "idle_a") ? "idle_a" : rawMeta(state.char, "r0c0") ? "r0c0" : null;
 }
 
-/** What stands in the comparison slot, in priority order:
+/** What stands in the comparison slot.
  *
- *   1. the SAVED sprite of the secondary action being previewed — the most
- *      specific question on screen, "what am I changing this from";
- *   2. this character's own idle, when the dropdown asks for it beside rather
- *      than under the pose;
- *   3. Gojo's idle, the roster size reference.
+ *  The dropdown names it, and the caption under the slot repeats that name, so
+ *  what is standing there is never a guess. One thing outranks the menu: while
+ *  a secondary action is being previewed the slot shows that action's SAVED
+ *  sprite, because "what am I changing this from" is the more specific
+ *  question and it is only on screen while the preview is.
  *
- *  Null when the comparison is switched off, or when what it would show is
- *  already the pose on the canvas. */
+ *  Null for None and for Overlay idle pose — the overlay draws under the pose
+ *  rather than beside it, so its slot is legitimately empty. */
 function comparisonTarget() {
-  if (!$("showComparison").checked) return null;
   const row = state.actionRow;
   if (row?.saved && row.saved !== state.frame) {
     const label = frameLabel(state.char, row.saved);
@@ -1231,7 +1254,10 @@ function comparisonTarget() {
       caption: `saved: ${label.sub || label.name}`, sub: stateLabel(row.name),
     };
   }
-  if ($("selfIdleMode").value === "alternate") {
+  const mode = $("selfIdleMode").value;
+  if (mode === "hide" || mode === "overlay") return null;
+
+  if (mode === "alternate") {
     const alt = altCompare();
     if (alt?.img) {
       return { charKey: state.char, frameKey: state.frame, caption: alt.caption, as: alt };
@@ -1241,22 +1267,24 @@ function comparisonTarget() {
     // that looks like one, and least of all Gojo.
     return { caption: "no alternate available", empty: true };
   }
-  if ($("selfIdleMode").value === "comparison") {
+
+  if (mode === "comparison") {
     const key = selfIdleKey();
+    // On the idle itself the slot shows the idle again. It is the same drawing
+    // twice on purpose: the pair is how every other pose is read, so dropping
+    // to something else here would change what the canvas means at exactly the
+    // pose the rest of the set is measured against.
     if (key) {
-      // On the idle itself the slot shows the idle again. It is the same
-      // drawing twice on purpose: the pair is how every other pose is read, so
-      // dropping to Gojo here would change what the canvas means at exactly
-      // the pose the rest of the set is measured against.
       return {
         charKey: state.char, frameKey: key,
-        caption: key === state.frame ? "same pose" : "this character's idle",
+        caption: key === state.frame ? "idle pose — same pose" : "idle pose",
       };
     }
+    return { caption: "no idle to compare against", empty: true };
   }
+
   const gojo = benchmarkKey();
-  if (state.char === "gojo" && gojo === state.frame) return null;
-  return { charKey: "gojo", frameKey: gojo, caption: "Gojo idle — size benchmark" };
+  return { charKey: "gojo", frameKey: gojo, caption: "Gojo — roster size reference" };
 }
 
 /** The comparison stands at the left end of the platform, drawn SOLID: it is a
@@ -1285,7 +1313,9 @@ function render() {
 
   // A real game platform, drawn by the game's own routine, so feet can be
   // aligned against the surface players actually stand on.
-  if ($("showPlatform").checked) {
+  // Always: the platform is the floor every grounded pose is placed against,
+  // and a viewer without it is a viewer with nothing to align to.
+  {
     ctx.save();
     ctx.translate(0, GROUND_Y);
     drawPlatformShape(ctx, { x: platformX(), y: 0, w: PLATFORM_W, h: 42, kind: "main" });
@@ -1850,12 +1880,23 @@ function buildActionRows() {
 /** Open the grid. `current` is the sprite in use, `onPick` what to do with the
  *  one chosen; both callers show the same tiles, they just mean different
  *  things by choosing one. */
-function openSpritePicker({ title, sub, current, onPick }) {
+function openSpritePicker({ title, sub, current, onPick, drawings = null }) {
   const modal = $("spritePicker");
   const grid = $("pickerGrid");
   $("pickerTitle").textContent = title;
   $("pickerSub").textContent = sub;
   grid.innerHTML = "";
+  // Two things can be chosen from this grid. `drawings` is one pose's own
+  // drawings, listed by file — the question "which of these do I want to see
+  // beside it". Without it the grid is the character's sprites by pose key,
+  // which is the question "which drawing should this pose use".
+  if (drawings) {
+    for (const d of drawings) grid.appendChild(buildDrawingTile(d, current, onPick));
+    modal.hidden = false;
+    closePickerPreview();
+    grid.querySelector(".picker-tile.current")?.scrollIntoView({ block: "center" });
+    return;
+  }
   // Every sprite the character has, nearest first. "Nearest" is the pose's own
   // family — the crouches when you are on a crouch, the attacks when you are
   // on an attack — because a pose is nearly always replaced by a neighbour of
@@ -1899,6 +1940,40 @@ function groupedSprites(charKey, current) {
 function closeSpritePicker() {
   $("spritePicker").hidden = true;
   closePickerPreview();
+}
+
+/** A tile for one DRAWING of the current pose, captioned with what it is
+ *  rather than which pose it belongs to — they all belong to this one. */
+function buildDrawingTile(d, current, onPick) {
+  const tile = document.createElement("button");
+  tile.className = "picker-tile" + (d.file === current ? " current" : "");
+  const cv = document.createElement("canvas");
+  cv.width = 132; cv.height = 132;
+  tile.appendChild(cv);
+  const cap = document.createElement("span");
+  cap.innerHTML = `${d.caption}<i>${d.file.split("/").pop()}</i>`;
+  tile.appendChild(cap);
+  tile.title = d.file;
+  const paint = () => {
+    const img = d.img || spriteFileImage(d.file);
+    const c = cv.getContext("2d");
+    c.clearRect(0, 0, cv.width, cv.height);
+    if (!img || !d.meta) {
+      c.fillStyle = "rgba(154, 164, 192, 0.5)";
+      c.font = "600 10px Inter, sans-serif";
+      c.textAlign = "center";
+      c.fillText("loading…", cv.width / 2, cv.height / 2);
+      loadSpriteFile(d.file).then((ok) => { if (ok) paint(); });
+      return;
+    }
+    const pad = 10;
+    const scale = Math.min((cv.width - pad * 2) / d.meta.w, (cv.height - pad * 2) / d.meta.h);
+    c.drawImage(img, cv.width / 2 - (d.meta.w * scale) / 2,
+                cv.height - pad - d.meta.h * scale, d.meta.w * scale, d.meta.h * scale);
+  };
+  paint();
+  tile.onclick = () => { onPick(d.file); closeSpritePicker(); };
+  return tile;
 }
 
 function buildPickerTile(key, current, onPick) {
@@ -2209,66 +2284,32 @@ function refreshAnchorControls() {
 
     const head = document.createElement("div");
     head.className = "anchor-head";
-    const toggle = document.createElement("label");
-    toggle.className = "chip";
-    const box = document.createElement("input");
-    box.type = "checkbox";
-    box.checked = isAnchorShown(name);
-    box.onchange = () => { state.anchorShown[name] = box.checked; render(); };
-    toggle.append(box, document.createTextNode(` Show ${meta.label ?? name}`));
+    const title = document.createElement("span");
+    title.className = "anchor-title";
+    title.textContent = meta.label ?? name;
     const val = document.createElement("span");
     val.className = "anchor-val";
-    val.textContent = changed ? "edited" : stored ? "" : "derived";
-    head.append(toggle, val);
+    val.textContent = `${x.toFixed(1)}, ${y.toFixed(1)}`
+      + (changed ? " · edited" : stored ? "" : " · derived");
 
-    // The handle on the canvas is how an anchor is placed; these are for the
-    // times a number is what you have — reading one off a pose that is right
-    // and typing it into the one beside it. Eight nudge buttons per anchor
-    // were a third of the panel spent stepping a value the field states
-    // outright.
-    const fields = document.createElement("div");
-    fields.className = "anchor-fields";
-    const mkField = (axis, value, at) => {
-      const label = document.createElement("label");
-      label.className = "anchor-field";
-      label.append(document.createTextNode(axis));
-      const input = document.createElement("input");
-      input.type = "number";
-      input.className = "num";
-      input.step = "0.5";
-      input.value = value.toFixed(1);
-      input.setAttribute("aria-label", `${meta.label ?? name} ${axis}`);
-      // Typing into a field marks that anchor as the active one, so its handle
-      // is the highlighted one on the canvas. Redrawn rather than rebuilt: a
-      // rebuild would take the focus out of the field being typed into.
-      input.onfocus = () => { state.anchor = name; render(); };
-      input.onchange = () => {
-        const next = Number(input.value);
-        if (!Number.isFinite(next)) return refreshAnchorControls();
-        const [cx, cy] = anchorValue(state.char, state.frame, name);
-        applyAnchor(name, at === 0 ? next : cx, at === 1 ? next : cy, true);
-      };
-      label.append(input);
-      return label;
-    };
-    fields.append(mkField("X", x, 0), mkField("Y", y, 1));
-
+    // Placing it is the handle on the canvas — the panel is the readout, and
+    // the one thing the canvas has no gesture for: putting it back.
     const reset = document.createElement("button");
     reset.className = "ghost sm";
     reset.textContent = "Reset";
     reset.disabled = !changed;
     reset.onclick = () => resetAnchor(name);
-    fields.append(reset);
+    head.append(title, val, reset);
 
-    row.append(head, fields);
+    row.append(head);
     wrap.appendChild(row);
   }
 
   // The anchors a pose carries vary, so its help is assembled rather than
   // written into the markup: the general rule, then a line per anchor.
   setHelp($("anchorLabel"), names.length
-    ? "Drag a handle on the sprite, or type the pixel it belongs at. Anchors "
-      + "are stored "
+    ? "Drag the handle on the sprite to place it — <b>Centre of mass</b> under "
+      + "the canvas shows and hides the handles. Anchors are stored "
       + "against the artwork, so later size, position and ground tweaks carry "
       + "them along.<br><br>"
       + names.map((n) => `<b>${ANCHOR_META[n]?.label ?? n}</b> — ${ANCHOR_META[n]?.hint ?? ""}`)
@@ -2512,7 +2553,7 @@ function refreshHeadControl() {
   $("headRange").value = hh.toFixed(1);
   const source = hasHeightOverride(state.char)
     ? (changed ? "hand-set, changed" : "hand-set")
-    : cm ? `from ${cm} cm` : "no published height — reference default";
+    : cm ? `from ${heightLabel(cm)}` : "no published height — reference default";
   $("headVal").textContent =
     `${hh.toFixed(1)} px · ${(heightRatio(state.char)).toFixed(3)}x · ${source}`;
   $("resetHead").disabled = !changed && !hasHeightOverride(state.char);
@@ -3403,9 +3444,6 @@ async function boot() {
   bindPair("ground", applyGround);
   bindPair("rotation", applyRotation);
   bindSlider("headRange", applyHead);
-  document.querySelectorAll("[data-head]").forEach((b) => {
-    b.onclick = () => applyHead(headHeight(state.char) + parseFloat(b.dataset.head), true);
-  });
   $("resetHead").onclick = () => {
     pushHeadHistory(state.char);
     restoreHeadHeight(state.char);
@@ -3575,8 +3613,28 @@ async function boot() {
     catch { $("exportOut").select(); }
     setTimeout(() => ($("copyBtn").textContent = "Copy to clipboard"), 1200);
   };
-  ["showComparison", "selfIdleMode", "showGuides", "showBox", "showPlatform", "showHurtbox"]
-    .forEach((id) => ($(id).onchange = render));
+  ["selfIdleMode", "showGuides", "showBox", "showHurtbox", "showAnchors"]
+    .forEach((id) => ($(id).onchange = () => { refreshSelfIdleOptions(); render(); }));
+
+  // Which of this pose's other drawings the comparison stands beside. The
+  // picker is the one already used for choosing art — same tiles, and here
+  // choosing changes nothing about the pose, only what it is shown against.
+  $("altPick").onclick = () => {
+    const choices = altCandidates(state.char, state.frame);
+    if (choices.length < 2) return;
+    openSpritePicker({
+      title: `${frameLabel(state.char, state.frame).name} — compare against`,
+      sub: `${actorOf(state.char).name} · ${choices.length} other drawings of this pose`,
+      current: altCompare()?.file,
+      drawings: choices,
+      onPick: (file) => {
+        altPicked.set(`${state.char}/${state.frame}`, file);
+        const chosen = choices.find((c) => c.file === file);
+        if (chosen && !chosen.img) loadSpriteFile(file).then((ok) => { if (ok) render(); });
+        render();
+      },
+    });
+  };
   $("anchorForce").onchange = () => {
     const id = `${state.char}/${state.frame}`;
     if ($("anchorForce").checked) state.anchorForced.add(id);
