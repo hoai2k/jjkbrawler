@@ -216,6 +216,14 @@ def main():
                 for field, value in opt.items():
                     if field == "file":
                         continue
+                    if field == "pending":
+                        # Approving or keeping is the absence of this flag, so
+                        # a false has to erase it rather than be skipped.
+                        if value:
+                            target["pending"] = True
+                        else:
+                            target.pop("pending", None)
+                        continue
                     if field == "needsReplacement":
                         # A delete tag on a DRAWING: "we have something better,
                         # discard this one at the next cleanup". False clears it,
@@ -331,6 +339,28 @@ def main():
         # Poses reviewed as they stand: the new art needed nothing, so the only
         # thing to record is that someone looked. An intake marker is removed; a
         # surfaced pose has none to remove, so the looking is what gets written.
+        # Verdicts on replacements the intake held back. "approve" lets the
+        # new drawing into the game — the pose already carries its placement,
+        # so all that is left is to drop the marker that was diverting the game
+        # to the old one. "keep" is the other answer: the workbench has already
+        # put the old drawing's fields back, so the marker is all that remains.
+        for key, verdict in (payload.get("approvals") or {}).items():
+            meta = frames.get(key)
+            if meta is None:
+                skipped.append(f"{char}/{key}: not in manifest")
+                continue
+            note = meta.pop("awaitingApproval", None)
+            if note is None:
+                skipped.append(f"{char}/{key}: no replacement was waiting")
+                continue
+            if verdict == "keep":
+                for field, value in (note.get("live") or {}).items():
+                    meta[field] = value
+            applied.append(
+                f"{char}/{key}: replacement kept out, old art restored"
+                if verdict == "keep"
+                else f"{char}/{key}: replacement approved -> {meta.get('file')}")
+
         for key in (payload.get("clearUpdated") or []):
             meta = frames.get(key)
             if meta is None:

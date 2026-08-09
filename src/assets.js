@@ -1,4 +1,4 @@
-import { CHARACTER_KEYS, SPRITE_ACTORS } from "./characters.js";
+import { CHARACTER_KEYS } from "./characters.js";
 import { applyAllHeightScales } from "./heights.js";
 import { STAGES } from "./stages.js";
 import { transformActorsFor } from "./config_transform.js";
@@ -256,19 +256,45 @@ function nativeLeftApplies(charKey, frameKey, meta) {
   return options[0].file === meta.file;
 }
 
-export function frameMeta(charKey, frameKey) {
+/** A replacement that has landed but has not been approved into the game.
+ *
+ *  The pose's own fields are the NEW drawing — that is what the workbench edits,
+ *  and placing it is the work the approval is waiting on. `awaitingApproval.live`
+ *  holds the drawing the game should go on showing until somebody says yes.
+ *
+ *  Two pointers, deliberately: before this, an intake round changed what every
+ *  player saw the moment it ran. The roster is finished now, so a delivery is a
+ *  proposal until it has been stood beside the thing it replaces. See
+ *  hold_for_approval() in tools/intake_import.py.
+ */
+export function awaitingApproval(charKey, frameKey) {
+  return spriteManifest?.characters?.[charKey]?.[frameKey]?.awaitingApproval || null;
+}
+
+/** The frame's metadata. `preview` asks for the drawing being WORKED ON; the
+ *  default is the drawing the game DRAWS, and on a pose awaiting approval those
+ *  are two different images. Only the workbench passes preview. */
+export function frameMeta(charKey, frameKey, { preview = false } = {}) {
   const alt = altMeta(charKey, frameKey);
   if (alt) return alt;
   const char = spriteManifest?.characters?.[charKey];
-  const meta = char ? char[frameKey] || null : null;
+  let meta = char ? char[frameKey] || null : null;
+  if (!preview && meta?.awaitingApproval?.live) {
+    // The live block carries the whole placement of the drawing it names, so
+    // the game reads it exactly as it read the pose before the delivery.
+    meta = { ...meta.awaitingApproval.live };
+  }
   if (!meta || meta.faceLeft !== undefined) return meta;
   return nativeLeftApplies(charKey, frameKey, meta) ? { ...meta, faceLeft: true } : meta;
 }
 
-export function frameImage(charKey, frameKey) {
+export function frameImage(charKey, frameKey, { preview = false } = {}) {
   if (altMeta(charKey, frameKey)) {
     const img = images.get(`alt:${charKey}:${frameKey}`);
     if (img) return img;
+  }
+  if (!preview && awaitingApproval(charKey, frameKey)) {
+    return images.get(`live:${charKey}:${frameKey}`) || null;
   }
   return images.get(`sprite:${charKey}:${frameKey}`) || null;
 }
@@ -316,6 +342,10 @@ function groupJobs(id) {
     const frames = spriteManifest.characters[charKey] || {};
     for (const [frameKey, meta] of Object.entries(frames)) {
       add(`sprite:${charKey}:${frameKey}`, `assets/sprites/${meta.file}`);
+      // A pose whose replacement has not been approved yet still has to draw
+      // in a MATCH, and what it draws is the older file the live block names.
+      const live = meta.awaitingApproval?.live?.file;
+      if (live) add(`live:${charKey}:${frameKey}`, `assets/sprites/${live}`);
     }
     // A fighter's alternate look travels with them: switching art sets in
     // Settings must never be the thing that triggers a download mid-match.
@@ -357,13 +387,6 @@ function groupJobs(id) {
   for (const [name, charKey] of Object.entries(DOMAIN_BACKGROUNDS)) {
     if (CHARACTER_KEYS.includes(charKey)) {
       optional(`domain:${name}`, `assets/backgrounds/domains/${name}.jpg`);
-    }
-  }
-  // Props: art a character wears rather than draws — see PROP in characters.js.
-  for (const actor of Object.values(SPRITE_ACTORS)) {
-    if (actor.prop?.sprite?.startsWith("effect:")) {
-      const key = actor.prop.sprite.slice("effect:".length);
-      optional(`effect:${key}`, `assets/sprites/effects/${key}.png`);
     }
   }
   for (const key of STAGE_FX_SPRITES) {
@@ -435,6 +458,14 @@ export async function loadFrame(charKey, frameKey, { reload = false } = {}) {
   const key = `sprite:${charKey}:${frameKey}`;
   if (reload) images.delete(key);
   await fetchImage(key, assetUrl(`assets/sprites/${meta.file}`));
+  // A pose awaiting approval needs BOTH: the incoming drawing for the workbench
+  // to place, and the one still in play for the game to draw.
+  const live = meta.awaitingApproval?.live?.file;
+  if (live) {
+    const liveKey = `live:${charKey}:${frameKey}`;
+    if (reload) images.delete(liveKey);
+    await fetchImage(liveKey, assetUrl(`assets/sprites/${live}`));
+  }
   return images.has(key);
 }
 
@@ -458,6 +489,22 @@ export function sharedSpriteKeys() {
 /** One `effect:*` / `summon:*` image on its own. The action workbench lists the
  *  effects a move spawns, and needs their thumbnails without downloading every
  *  effect in the game to show two of them. Resolves true if the key is usable. */
+/** Fetch one sprite file by path, for a caller that needs a drawing the pose is
+ *  not currently pointing at. Only the workbench does — comparing two drawings
+ *  of the same pose side by side means both have to be in memory at once, and
+ *  the per-pose slots hold exactly one. Keyed by file, so two poses sharing a
+ *  drawing share the fetch. */
+export async function loadSpriteFile(file) {
+  if (!file) return false;
+  const key = `file:${file}`;
+  await fetchImage(key, assetUrl(`assets/sprites/${file}`), true);
+  return images.has(key);
+}
+
+export function spriteFileImage(file) {
+  return (file && images.get(`file:${file}`)) || null;
+}
+
 export async function loadSharedImage(key) {
   if (!sharedJobs) sharedJobs = new Map(groupJobs("shared").map((j) => [j.key, j]));
   const job = sharedJobs.get(key);

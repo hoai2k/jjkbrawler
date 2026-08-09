@@ -563,8 +563,9 @@ fighter drawn broad is a broader target. The art is the balance data.
 
 - **14A** — heavy-attack strike frames that do not extend (16 sprites)
 - **14B** — a consistent idle stance, for the ten outliers (20 sprites)
+- **14C** — three caught while placing round 12's art (3 sprites)
 
-**36 sprites in total.** Neither is blocking: every fighter plays today, and
+**39 sprites in total.** None of it is blocking: every fighter plays today, and
 each delivery re-derives that character's numbers on import with no code change.
 
 Round 13 is the companion to this and should be drawn first where they overlap —
@@ -692,9 +693,12 @@ nothing.
 | Megumi | 0.29 | | | |
 
 Mahoraga at 0.80 is the extreme and is partly legitimate — he is a genuinely
-enormous shikigami — but four-fifths as wide as he is tall is a square, and his
-karma wheel is composited separately anyway (`drawProp`, `src/render.js`), so it
-should not be in his silhouette.
+enormous shikigami with a tail, and the karma wheel on his headdress is part of
+his sprite like everything else he wears. Four-fifths as wide as he is tall is
+still a square, though, and the width is carried by the tail sweeping out behind
+him rather than by his body. Worth checking against play before asking for a
+redraw: a hurtbox that wide is a real disadvantage, but so is a general who
+cannot fit his own tail.
 
 `node tools/audit_hitboxes.mjs` prints the live figures; re-run it after any
 delivery rather than trusting this table.
@@ -729,3 +733,28 @@ assets/intake/<character>/idle_b.png
 (`docs/character-heights.md`), so a redrawn idle rescales that fighter's entire
 sprite set. Deliver these one fighter at a time and expect a workbench pass on
 each — this is the one pose where that is unavoidable.
+
+---
+
+## 14C. Caught while placing round 12 — 3 sprites
+
+Three poses flagged in the sprite workbench during the placement pass over
+round 12's delivery, rather than by a sweep. They are here rather than in a
+round of their own because 14 is the open round for art faults and three poses
+do not justify a fourteenth.
+
+| Fighter | Key | Pose | Kind | What is wrong |
+|---|---|---|---|---|
+| Yoshinobu Gakuganji | `gakuganji` | `attack_heavy_b` | Pose | Reads poorly for the action it stands for. Note that 14A already asks for the heavy row to *extend* — this is the same row and should be drawn with that brief in hand. |
+| Yoshinobu Gakuganji | `gakuganji` | `attack_air_a` | **Alternate** | "AI hand drawing error" — the hands are malformed. Asked for as an **alternate**, not a replacement: the pose itself is right, so the delivery lands beside the current drawing and the better of the two is chosen by eye. |
+| Takako Uro | `uro` | `prone` | Character | "Costume doesn't match canonical exactly" — check against `assets/reference/canon/uro_idle.png`, which is the design the rest of her set was drawn from. |
+
+`attack_air_a` is the first use of **Request alternate**: it comes back as a
+second option on the pose rather than overwriting what is there, the chevron in
+the workbench gets a dot, and nothing on screen changes until somebody picks.
+See [asset-pipeline.md](asset-pipeline.md#request-alternate).
+
+`uro/prone` is a costume note on a pose that is otherwise fine, so a redraw
+should keep the pose and the framing and only correct the outfit.
+
+---

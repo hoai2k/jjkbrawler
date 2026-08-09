@@ -8,6 +8,7 @@
 
 import {
   loadCoreAssets, loadFrame, frameImage, spriteManifest, sharedSpriteKeys, loadSharedImage, getImage,
+  frameMeta, loadSpriteFile, spriteFileImage,
 } from "../src/assets.js";
 import {
   drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly, animsOf, resolvedAnim,
@@ -33,10 +34,18 @@ const $ = (id) => document.getElementById(id);
 const canvas = $("stage");
 const ctx = canvas.getContext("2d");
 
-const GROUND_Y = 470;
+// The floor line, in canvas pixels. Sits low in the frame on purpose: a pose
+// extends UPWARD far more than it extends down — an ultimate, a ledge hang, an
+// up-heavy all reach for the top of the canvas, while nothing but a weapon tip
+// goes below the feet — so the headroom is worth more than the footroom.
+const GROUND_Y = 516;
 // The platform the stage draws, and how far onto it the size benchmark stands.
 const PLATFORM_W = 680;
-const PLATFORM_X = 380 - PLATFORM_W / 2;
+// Centred on whatever the canvas is, rather than on the 760 it used to be, so
+// widening the viewer keeps the platform and the comparison slot under the
+// middle of it. `canvas` is not defined yet at module scope, so this is a
+// getter rather than a constant.
+const platformX = () => canvas.width / 2 - PLATFORM_W / 2;
 const BENCHMARK_INSET = 78;
 const CELL_W = 313.5;
 // Scalar fields the workbench can edit. `anchors` is edited too but is nested,
@@ -258,6 +267,23 @@ function isPending(charKey, frameKey) {
   return !isOther(charKey) && !spriteManifest?.characters?.[charKey]?.[frameKey];
 }
 
+/** A replacement that has landed but is NOT in the game yet.
+ *
+ *  Since the roster finished, an intake round no longer overwrites art on
+ *  arrival: it lands the new drawing beside the old one as a variant marked
+ *  `pending` and leaves the pose pointing where it was, so what players see is
+ *  unchanged until somebody stands the two side by side and picks. This is that
+ *  state — the confirm step, and the thing the dot in the character dropdown
+ *  now counts first. See hold_for_approval() in tools/intake_import.py.
+ */
+function approvalNote(charKey, frameKey) {
+  return rawMeta(charKey, frameKey)?.awaitingApproval || null;
+}
+
+function awaitingApproval(charKey, frameKey) {
+  return !!approvalNote(charKey, frameKey);
+}
+
 /** Poses the pose list offers, filtered by the current view. May be empty —
  *  "Edited only" on an untouched character legitimately matches nothing, and
  *  quietly widening the filter would be a lie about what you are looking at.
@@ -335,29 +361,41 @@ function charHasTuning(charKey) {
   return tunedChars.get(charKey);
 }
 
-// The dot beside a name in the character dropdown: this sprite set has been
-// worked on before. It answers the question you ask when picking who to do
-// next — the roster is long, and which fighters have already been through here
-// is otherwise something you have to remember or go and check one at a time.
+// The dot beside a name in the character dropdown: this sprite set has WORK
+// LEFT. It used to mean the opposite — "already worked on" — which was the
+// right signal while most of the roster was untouched, but every character has
+// been through a pass now, so a dot on all of them said nothing. Inverted, it
+// is a to-do list again, and it answers the question you actually ask when
+// picking who to do next.
 //
-// Committed state only, the same `charHasTuning` the updated list gates on, so
-// the two never disagree about who counts as done. That also means a set does
-// not sprout a dot the moment you nudge something in this session: it says
-// "before today", and this session's work is what the dirty markers are for.
-const EDITED_MARK = "● ";
-// A blank the width of the dot, so the names stay in one column rather than
-// stepping in and out as the marks come and go.
-const UNEDITED_PAD = "  ";
+// Committed state only, so a set does not sprout or lose its dot as you nudge
+// things this session; that is what the dirty markers are for.
+const TODO_MARK = "\u25cf ";
+const NO_TODO_PAD = "  ";
 
-/** Stamp the dropdown with who has been worked on. Runs once the manifest is
- *  loaded — before it there is nothing to read, and `charHasTuning` caches. */
+/** What is still waiting on this character, as a short reason or null.
+ *
+ *  Two things count, ordered by how much they block: art the game is NOT yet
+ *  drawing because nobody has approved it, then poses nobody has placed. Both
+ *  read committed state.
+ */
+function charTodo(charKey) {
+  const frames = allFramesOf(charKey);
+  const waiting = frames.filter((k) => awaitingApproval(charKey, k)).length;
+  if (waiting) return `${waiting} replacement${waiting === 1 ? "" : "s"} awaiting approval`;
+  const unplaced = frames.filter((k) => isUsed(charKey, k) && !hasSavedEdits(charKey, k)).length;
+  return unplaced ? `${unplaced} pose${unplaced === 1 ? "" : "s"} with no saved edits` : null;
+}
+
+/** Stamp the dropdown with who still has work waiting. Runs once the manifest
+ *  is loaded — before it there is nothing to read. */
 function markEditedChars() {
   for (const o of $("charSel")?.options || []) {
     const key = o.value;
     if (!o.dataset.name || isOther(key) || key === RECENT_KEY) continue;
-    const edited = charHasTuning(key);
-    o.textContent = (edited ? EDITED_MARK : UNEDITED_PAD) + o.dataset.name;
-    o.title = edited ? "Already worked on — this set has hand-tuned poses" : "";
+    const todo = charTodo(key);
+    o.textContent = (todo ? TODO_MARK : NO_TODO_PAD) + o.dataset.name;
+    o.title = todo || "Nothing waiting \u2014 every pose placed, every replacement approved";
   }
 }
 
@@ -781,7 +819,12 @@ function rememberSaved(charKey) {
     if (!meta) continue;
     // `edited` is written by apply_sprite_adjustments.py; a replacement request
     // counts too, since either way that pose has been decided about.
-    if (Object.keys(meta.edited || {}).length > 0 || meta.needsReplacement || meta.wantsImprovement) {
+    // `surfacedReviewed` counts too: "I looked at this and it needed nothing" is
+    // a decision about the pose, and the to-do list is a list of undecided ones.
+    // Without it the only way off the list was to change a number, which meant
+    // nudging a pose that was already right.
+    if (Object.keys(meta.edited || {}).length > 0 || meta.needsReplacement
+        || meta.wantsImprovement || meta.surfacedReviewed) {
       savedAtLoad.add(`${charKey}/${key}`);
     }
   }
@@ -959,11 +1002,64 @@ function drawAnchorHandle(name, active) {
   ctx.restore();
 }
 
-function drawGhost(charKey, frameKey, alpha, x = canvas.width / 2) {
-  if (!rawMeta(charKey, frameKey) || !frameImage(charKey, frameKey)) return;
+function drawGhost(charKey, frameKey, alpha, x = canvas.width / 2, as = null) {
+  if (!as && (!rawMeta(charKey, frameKey) || !frameImage(charKey, frameKey))) return;
+  if (as && (!as.meta || !as.img)) return;
   drawCharFrame(ctx, charKey, frameKey, x, GROUND_Y, {
     scale: actorOf(charKey).scale * state.zoom, facing: 1, alpha,
+    preview: !as, as,
   });
+}
+
+/** The OTHER drawing of this pose worth standing beside it, or null.
+ *
+ *  Two cases, and the first is the reason this exists. While a replacement is
+ *  waiting to be approved the canvas shows the new art, so the question you
+ *  actually have is "is it better than what we are shipping" — and the only way
+ *  to answer that is to see them together. There the other drawing is the one
+ *  still in the game, which `frameMeta`/`frameImage` already resolve without
+ *  `preview`.
+ *
+ *  Otherwise it is the newest alternate the pose has, on the reading that the
+ *  most recently delivered drawing is the one you have not decided about yet.
+ *  Options are appended in arrival order, so the last is the newest.
+ */
+function altCompare() {
+  const meta = rawMeta(state.char, state.frame);
+  if (!meta) return null;
+  if (meta.awaitingApproval?.live) {
+    return {
+      meta: frameMeta(state.char, state.frame),
+      img: frameImage(state.char, state.frame),
+      file: meta.awaitingApproval.live.file,
+      caption: "in the game now",
+    };
+  }
+  const others = poseVariants(state.char, state.frame).filter((o) => o.file !== meta.file);
+  const newest = others[others.length - 1];
+  if (!newest) return null;
+  return {
+    meta: poseView(newest),
+    img: spriteFileImage(newest.file),
+    file: newest.file,
+    caption: newest.label ? `alternate: ${newest.label}` : "alternate",
+  };
+}
+
+/** Hide the option on a pose that has nothing to compare against, so the menu
+ *  never offers a view that would silently show the same drawing twice. */
+function refreshSelfIdleOptions() {
+  const sel = $("selfIdleMode");
+  const opt = sel?.querySelector('option[value="alternate"]');
+  if (!opt) return;
+  const alt = altCompare();
+  opt.hidden = !alt;
+  if (!alt && sel.value === "alternate") sel.value = "comparison";
+  // Fetch it once it is asked for; the per-pose slot holds only the drawing
+  // the pose points at.
+  if (alt && !alt.img && alt.file) {
+    loadSpriteFile(alt.file).then((ok) => { if (ok) render(); });
+  }
 }
 
 /** The size benchmark stands at the left end of the platform rather than
@@ -1004,6 +1100,12 @@ function comparisonTarget() {
       caption: `saved: ${label.sub || label.name}`, sub: stateLabel(row.name),
     };
   }
+  if ($("selfIdleMode").value === "alternate") {
+    const alt = altCompare();
+    if (alt?.img) {
+      return { charKey: state.char, frameKey: state.frame, caption: alt.caption, as: alt };
+    }
+  }
   if ($("selfIdleMode").value === "comparison") {
     const key = selfIdleKey();
     if (key && key !== state.frame) {
@@ -1018,9 +1120,9 @@ function comparisonTarget() {
 /** The comparison stands at the left end of the platform, drawn SOLID: it is a
  *  second sprite to look at, not a tracing guide, and ghosting it made it read
  *  as an overlay that had slipped sideways. */
-function drawComparison({ charKey, frameKey, caption, sub }) {
-  const x = PLATFORM_X + BENCHMARK_INSET;
-  drawGhost(charKey, frameKey, 1, x);
+function drawComparison({ charKey, frameKey, caption, sub, as }) {
+  const x = platformX() + BENCHMARK_INSET;
+  drawGhost(charKey, frameKey, 1, x, as);
   ctx.save();
   ctx.fillStyle = "rgba(154, 164, 192, 0.9)";
   ctx.font = "600 11px Inter, sans-serif";
@@ -1044,7 +1146,7 @@ function render() {
   if ($("showPlatform").checked) {
     ctx.save();
     ctx.translate(0, GROUND_Y);
-    drawPlatformShape(ctx, { x: PLATFORM_X, y: 0, w: PLATFORM_W, h: 42, kind: "main" });
+    drawPlatformShape(ctx, { x: platformX(), y: 0, w: PLATFORM_W, h: 42, kind: "main" });
     ctx.restore();
   }
 
@@ -1095,6 +1197,9 @@ function render() {
   } else {
     drawCharFrame(ctx, state.char, state.frame, cx, GROUND_Y, {
       scale: actorOf(state.char).scale * state.zoom, facing: 1,
+      // The workbench edits the drawing that is WAITING, not the one in play —
+      // placing it is the work the approval is waiting on.
+      preview: true,
     });
   }
 
@@ -1109,7 +1214,11 @@ function render() {
     ctx.setLineDash([]);
   }
 
-  if (!isOther(state.char)) drawRangeTargets(cx);
+  // The toggle draws it on every pose; the range pass draws it too, because a
+  // reach target is meaningless without the body it reaches from. Guarded so a
+  // strike frame with the toggle on does not stroke it twice at double opacity.
+  const rangeDrewIt = !isOther(state.char) && drawRangeTargets(cx);
+  if ($("showHurtbox").checked && !rangeDrewIt) drawHurtbox(cx);
 
   // Every anchor the frame carries that has not been switched off. Drawn last
   // so handles are never buried under the art.
@@ -1161,9 +1270,49 @@ function rangeShape(m) {
   return { kind: "sweep", x0, x1, y0, y1 };
 }
 
+/** The box `combat.js` actually tests for hits, for ANY pose.
+ *
+ *  Range targets only appear on a strike frame, because only a strike has
+ *  reach — but every pose has a hurtbox, and it is the same box whether the
+ *  fighter is standing, jumping or being hit. That makes it the one fixed
+ *  reference a pose can be placed against, which is why the vertical-position
+ *  control stays live on airborne poses: line the body up inside this.
+ *
+ *  Sized from THIS character's own art, the same way the game sizes it, so the
+ *  box on screen is the box in play. Re-measured every frame rather than
+ *  cached: the workbench is where `ox`, `bodyBottom` and `renderScale` get
+ *  dragged around, and all three move what the silhouette measures. The game
+ *  never edits the manifest, so it keeps the cache; here, live numbers matter
+ *  more than the handful of reads.
+ */
+function drawHurtbox(cx) {
+  if (isOther(state.char) || !CHARACTERS[state.char]) return;
+  const z = state.zoom;
+  const wx = (v) => cx + v * z;
+  const wy = (v) => GROUND_Y + v * z;
+  refreshSilhouettes(state.char);
+  const body = bodyMetrics(state.char);
+  const crouched = statesUsing(state.char, state.frame)
+    .some((a) => a === "crouch" || a === "crouchAttack");
+  const hb = crouched
+    ? { w: Math.round(body.width * HURTBOX.crouchW), h: Math.round(body.height * HURTBOX.crouchH) }
+    : { w: Math.round(body.width), h: Math.round(body.height * HURTBOX.standH) };
+  ctx.save();
+  ctx.font = "600 10.5px Inter, sans-serif";
+  ctx.strokeStyle = "rgba(120, 200, 255, 0.45)";
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.strokeRect(wx(-hb.w / 2), wy(-hb.h), hb.w * z, hb.h * z);
+  ctx.setLineDash([]);
+  ctx.fillStyle = "rgba(120, 200, 255, 0.8)";
+  ctx.textAlign = "right";
+  ctx.fillText(`hurtbox ${hb.w}x${hb.h}`, wx(-hb.w / 2) - 5, wy(-hb.h) + 11);
+  ctx.restore();
+}
+
 function drawRangeTargets(cx) {
   const char = CHARACTERS[state.char];
-  if (!char?.light || !char?.heavy) return;   // sprite actors have no kit
+  if (!char?.light || !char?.heavy) return false;   // sprite actors have no kit
   const moves = [];
   for (const anim of statesUsing(state.char, state.frame)) {
     const make = RANGE_MOVES[anim];
@@ -1174,7 +1323,7 @@ function drawRangeTargets(cx) {
     if (frames.length > 1 && frames.indexOf(state.frame) < frames.length - 1) continue;
     for (const [label, m] of make(char)) moves.push([label, m]);
   }
-  if (!moves.length) return;
+  if (!moves.length) return false;
 
   const z = state.zoom;   // world px -> canvas px at this viewer zoom
   const wx = (v) => cx + v * z;
@@ -1194,30 +1343,10 @@ function drawRangeTargets(cx) {
     shapes.push({ label, box });
   }
 
-  // The body the game actually tests, drawn behind the markers (combat.js
-  // hurtbox). Without it a target reads as "this attack reaches miles past the
-  // fist", because the eye compares it to the DRAWING — and the drawing is not
-  // what gets hit. Sized from THIS character's own art now, the same way the
-  // game sizes it, so the box on screen here is the box in play.
-  // Re-measured every frame rather than cached: the workbench is where `ox`,
-  // `bodyBottom` and `renderScale` get dragged around, and all three move what
-  // the silhouette measures. The game never edits the manifest, so it keeps the
-  // cache; here, live numbers matter more than the handful of reads.
-  refreshSilhouettes(state.char);
-  const body = bodyMetrics(state.char);
-  const crouched = statesUsing(state.char, state.frame)
-    .some((a) => a === "crouch" || a === "crouchAttack");
-  const hb = crouched
-    ? { w: Math.round(body.width * HURTBOX.crouchW), h: Math.round(body.height * HURTBOX.crouchH) }
-    : { w: Math.round(body.width), h: Math.round(body.height * HURTBOX.standH) };
-  ctx.strokeStyle = "rgba(120, 200, 255, 0.45)";
-  ctx.lineWidth = 1;
-  ctx.setLineDash([4, 4]);
-  ctx.strokeRect(wx(-hb.w / 2), wy(-hb.h), hb.w * z, hb.h * z);
-  ctx.setLineDash([]);
-  ctx.fillStyle = "rgba(120, 200, 255, 0.8)";
-  ctx.textAlign = "right";
-  ctx.fillText(`hurtbox ${hb.w}x${hb.h}`, wx(-hb.w / 2) - 5, wy(-hb.h) + 11);
+  // The body the game actually tests, drawn behind the markers. Without it a
+  // target reads as "this attack reaches miles past the fist", because the eye
+  // compares it to the DRAWING — and the drawing is not what gets hit.
+  drawHurtbox(cx);
   ctx.textAlign = "left";
 
   // Where this character's art currently reaches, measured from their own
@@ -1325,6 +1454,7 @@ function drawRangeTargets(cx) {
     ctx.fillText(text, tx + (flip ? -12 : 12), clearOf(tx, ty));
   });
   ctx.restore();
+  return true;      // it drew, hurtbox included
 }
 
 /** A shared effect/summon sprite, drawn at the height the game draws it where
@@ -1741,6 +1871,8 @@ function refreshTag() {
 function refreshControls() {
   refreshHeadControl();
   refreshUpdatedControl();
+  refreshSelfIdleOptions();
+  refreshApprovalControl();
   refreshAutoTuneControl();
   const meta = rawMeta(state.char, state.frame);
   if (!meta) return;
@@ -1760,18 +1892,23 @@ function refreshControls() {
 
   // positive slider = sprite sits LOWER, which reads more naturally than the
   // underlying bodyBottom (where a bigger value lifts the art)
+  // Live on an airborne pose too. It used to lock, on the reading that a pose
+  // which never touches the floor has no floor contact to set — true, but it
+  // still has to sit correctly against the HURTBOX, which does not move when
+  // the fighter leaves the ground. Locking the control meant an air pose could
+  // only ever sit where the import put it.
   const airborne = isAirborneOnly(state.char, state.frame);
   const dg = (orig.bodyBottom ?? 0) - (meta.bodyBottom ?? 0);
   setPair("ground", dg);
-  $("groundVal").textContent = airborne ? "n/a — never touches the floor"
-                                        : `${dg > 0 ? "+" : ""}${dg.toFixed(1)} px`;
+  $("groundVal").textContent =
+    `${dg > 0 ? "+" : ""}${dg.toFixed(1)} px` + (airborne ? " · airborne" : "");
   const deg = rawMeta(state.char, state.frame).rotationDeg ?? 0;
   setPair("rotation", deg);
   $("rotationVal").textContent = deg ? `${deg > 0 ? "+" : ""}${deg.toFixed(1)}°` : "square";
 
-  $("groundGroup").classList.toggle("disabled", airborne);
-  $("groundRange").disabled = airborne;
-  $("groundNum").disabled = airborne;
+  $("groundGroup").classList.remove("disabled");
+  $("groundRange").disabled = false;
+  $("groundNum").disabled = false;
 
   // A delete tag lives on the drawing rather than the pose, so it is read from
   // the variant option — but it presents as just another kind of "this art is
@@ -1938,8 +2075,7 @@ function refreshUpdatedControl() {
   const note = updateNote(state.char, state.frame);
   group.hidden = !note;
   if (!note) {
-    const btnGroup = $("updatedClearGroup");
-    if (btnGroup) btnGroup.hidden = true;
+    refreshReviewButton();
     return;
   }
   const reviewed = isUpdateReviewed(state.char, state.frame);
@@ -1948,13 +2084,80 @@ function refreshUpdatedControl() {
     : note.how === "surfaced" ? "newly in the in-game list — never sized"
     : note.lost?.length ? "tuning rolled back" : "tuning carried over";
   $("updatedInfo").innerHTML = updateSummary(note);
-  // The button lives further down the panel now, so it needs its own group
-  // toggled — it is no longer carried by the explanation's `hidden`.
-  $("updatedClearGroup").hidden = !note;
-  const btn = $("updatedClear");
-  btn.textContent = reviewed
-    ? "↺ Put it back on the updated list"
-    : "Mark reviewed — take it off the updated list";
+  refreshReviewButton();
+}
+
+/** The one button that takes a pose off a to-do list without editing it.
+ *
+ *  Offered on ANY pose, not only one an intake round touched. A pose that is
+ *  simply right needs a way to say so: before this, leaving the "no saved
+ *  edits" list meant changing a number, so the only way to record "I looked at
+ *  this and it needed nothing" was to nudge something that did not need
+ *  nudging. Both lists ask the same question — has anyone decided about this
+ *  pose — so one button answers it. */
+function refreshReviewButton() {
+  const group = $("updatedClearGroup");
+  if (!group) return;
+  const other = isOther(state.char);
+  const note = updateNote(state.char, state.frame);
+  const done = hasSavedEdits(state.char, state.frame);
+  // Nothing to say on a pose that is already accounted for by its own tuning.
+  group.hidden = other || (!note && done);
+  if (group.hidden) return;
+  const reviewed = isUpdateReviewed(state.char, state.frame);
+  $("updatedClear").textContent = reviewed
+    ? "↺ Put it back on the to-do list"
+    : note
+      ? "Mark reviewed — take it off the updated list"
+      : "Mark as done — take it off the no-saved-edits list";
+}
+
+/** The approve/keep decision on a replacement the game is not drawing yet.
+ *
+ *  Deliberately two buttons rather than one: "approve" and "keep what we have"
+ *  are both real answers, and a single button would make rejecting the new art
+ *  the thing you do by NOT clicking — which is indistinguishable from not
+ *  having got to it. */
+/** Record that the waiting replacement has been decided about, either way.
+ *
+ *  `pending` comes off the option and the pose is marked reviewed, which is the
+ *  same door every other updated-list entry leaves by. Both halves export:
+ *  the option flag through `variantPlacement`, the review through
+ *  `clearUpdated`. */
+function settleApproval(charKey, frameKey, approve) {
+  const meta = rawMeta(charKey, frameKey);
+  const note = meta?.awaitingApproval;
+  if (!note) return;
+  pushHistory(charKey, frameKey);
+  if (!approve && note.live) {
+    // Keeping means the pose goes back to being the drawing in play, whole:
+    // its file and every number that belongs to that image.
+    for (const [field, value] of Object.entries(note.live)) meta[field] = value;
+  }
+  delete meta.awaitingApproval;
+  approvalSettled.set(`${charKey}/${frameKey}`, approve ? "approve" : "keep");
+  remember(charKey, frameKey);
+  if (!isUpdateReviewed(charKey, frameKey)) toggleUpdateReviewed(charKey, frameKey);
+  syncAll();
+}
+
+// Decisions made this session, exported as `approvals`. Kept apart from the
+// numbers because it is a different kind of change: not "this pose moved" but
+// "this drawing is the one the game should use from now on".
+const approvalSettled = new Map();
+
+function refreshApprovalControl() {
+  const group = $("approvalGroup");
+  if (!group) return;
+  const note = approvalNote(state.char, state.frame);
+  group.hidden = !note;
+  if (!note) return;
+  $("approvalInfo").innerHTML =
+    "<b>The canvas is showing the new art; the game is still drawing the old "
+    + `one</b> (<code>${note.live?.file || "—"}</code>).<br>`
+    + "Place it, then decide. <b>Approve</b> lets it into the game with the "
+    + "placement you have given it; <b>keep</b> puts the old drawing back and "
+    + "throws this one away. Either answer takes the pose off the updated list.";
 }
 
 /** The auto-tune marker, in its own group so it shows on poses that carry no
@@ -2173,6 +2376,19 @@ function openVariantMenu(anchor, frameKey, options, charKey = state.char) {
 // up/down by a row. The column count is read off the laid-out list rather than
 // hard-coded, so changing `.pose-list`'s CSS cannot make the keys disagree with
 // what is on screen.
+/** The next or previous pose in the grid, wrapping at either end.
+ *
+ *  Wrapping rather than stopping: the point is to walk a whole set without
+ *  looking at the keyboard, and a step that silently does nothing at the last
+ *  cell reads as the key having failed. */
+function stepPose(delta) {
+  const list = poseEntries();
+  if (list.length < 2) return;
+  const at = list.findIndex((e) => e.char === state.char && e.frame === state.frame);
+  const next = list[((at < 0 ? 0 : at + delta) + list.length) % list.length];
+  if (next) selectPose(next.char, next.frame);
+}
+
 const ARROW_STEP = {
   ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1],
 };
@@ -2597,6 +2813,9 @@ function payloadFor(charKey) {
           ...takeBanked(o),
           // Always present, so clearing a tag exports as clearly as setting one.
           needsReplacement: o.needsReplacement || false,
+          // Same reason: approving a held-back replacement is the ABSENCE of
+          // this flag, so it has to be stated rather than omitted.
+          pending: !!o.pending,
         })) : []];
       }),
     );
@@ -2611,6 +2830,15 @@ function payloadFor(charKey) {
   // have to be named here.
   const reviewed = clearedUpdates(charKey).filter((pose) => !out[pose]);
   if (reviewed.length) payload.clearUpdated = reviewed;
+  // Which held-back replacements were let into the game, and which were sent
+  // back. Separate from the numbers: not "this pose moved" but "this drawing is
+  // the one the game uses from now on".
+  const approvals = {};
+  for (const [id, verdict] of approvalSettled) {
+    const [who, pose] = id.split("/");
+    if (who === charKey) approvals[pose] = verdict;
+  }
+  if (Object.keys(approvals).length) payload.approvals = approvals;
   const actions = dirtyActions(charKey);
   if (Object.keys(actions).length) payload.animOverrides = actions;
   // The pinned reference travels with the edit that caused it, or the applied
@@ -2947,6 +3175,12 @@ async function boot() {
     };
   }
 
+  // Both answers clear `pending` and mark the pose reviewed, which is what
+  // takes it off the updated list; they differ only in whether the art swaps.
+  // The clearing is local until exported, like every other change here.
+  $("approveBtn").onclick = () => settleApproval(state.char, state.frame, true);
+  $("keepBtn").onclick = () => settleApproval(state.char, state.frame, false);
+
   $("undoBtn").onclick = undo;
   $("redoBtn").onclick = redo;
 
@@ -2974,7 +3208,7 @@ async function boot() {
     catch { $("exportOut").select(); }
     setTimeout(() => ($("copyBtn").textContent = "Copy to clipboard"), 1200);
   };
-  ["showComparison", "selfIdleMode", "showGuides", "showBox", "showPlatform"]
+  ["showComparison", "selfIdleMode", "showGuides", "showBox", "showPlatform", "showHurtbox"]
     .forEach((id) => ($(id).onchange = render));
   $("anchorForce").onchange = () => {
     const id = `${state.char}/${state.frame}`;
@@ -3003,6 +3237,18 @@ async function boot() {
     // couple of things on each is the workflow this tool exists for, so it gets
     // the keys; the anchors keep their own nudge buttons and stay draggable, and
     // placement now has a typeable number beside every slider.
+    // Tab walks the grid in READING order — the next pose, wrapping at the end
+    // — where the arrows walk it geometrically. Stepping straight through a
+    // character's set one pose at a time is the commonest pass there is, and it
+    // is the one movement the arrows cannot do in a single key: the last cell of
+    // a row needs Down-then-Home. Nothing on this page needs focus tabbing; the
+    // controls are all reachable by mouse and by their own shortcuts.
+    if (e.key === "Tab") {
+      e.preventDefault();
+      stepPose(e.shiftKey ? -1 : 1);
+      return;
+    }
+
     const dir = ARROW_STEP[e.key];
     if (!dir) return;
     e.preventDefault();
