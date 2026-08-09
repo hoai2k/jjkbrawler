@@ -7297,6 +7297,438 @@
      ]
     },
     "bodyTop": 0
+   },
+   "attack_air_a": {
+    "w": 893,
+    "h": 1104,
+    "ox": -289.8,
+    "oy": -793,
+    "bodyBottom": 310.4,
+    "bodyH": 320.2,
+    "centroidX": 122.1,
+    "renderScale": 0.29,
+    "file": "sukuna/attack_air_a.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      411.1,
+      452.3
+     ]
+    }
+   },
+   "attack_air_b": {
+    "w": 990,
+    "h": 1255,
+    "ox": -338.2,
+    "oy": -944,
+    "bodyBottom": 310.4,
+    "bodyH": 363.9,
+    "centroidX": 48.2,
+    "renderScale": 0.29,
+    "file": "sukuna/attack_air_b.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      386.0,
+      439.0
+     ]
+    }
+   },
+   "attack_down": {
+    "w": 907,
+    "h": 1395,
+    "ox": -296.8,
+    "oy": -1084,
+    "bodyBottom": 310.4,
+    "bodyH": 404.5,
+    "centroidX": 119.9,
+    "renderScale": 0.29,
+    "file": "sukuna/attack_down.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      416.9,
+      750.9
+     ]
+    }
+   },
+   "attack_heavy_a": {
+    "w": 917,
+    "h": 1237,
+    "ox": -301.8,
+    "oy": -926,
+    "bodyBottom": 310.4,
+    "bodyH": 358.7,
+    "centroidX": 203.2,
+    "renderScale": 0.29,
+    "file": "sukuna/attack_heavy_a.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      507.1,
+      542.4
+     ]
+    }
+   },
+   "attack_heavy_b": {
+    "w": 1000,
+    "h": 1343,
+    "ox": -343.2,
+    "oy": -1032,
+    "bodyBottom": 310.4,
+    "bodyH": 389.5,
+    "centroidX": 140.5,
+    "renderScale": 0.29,
+    "file": "sukuna/attack_heavy_b.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      483.6,
+      510.3
+     ]
+    }
+   },
+   "attack_light_a": {
+    "w": 959,
+    "h": 1284,
+    "ox": -322.8,
+    "oy": -973,
+    "bodyBottom": 310.4,
+    "bodyH": 372.4,
+    "centroidX": 88.9,
+    "renderScale": 0.29,
+    "file": "sukuna/attack_light_a.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      413.9,
+      546.6
+     ]
+    }
+   },
+   "attack_light_b": {
+    "w": 948,
+    "h": 1323,
+    "ox": -317.2,
+    "oy": -1012,
+    "bodyBottom": 310.4,
+    "bodyH": 383.7,
+    "centroidX": 127.4,
+    "renderScale": 0.29,
+    "file": "sukuna/attack_light_b.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      446.5,
+      567.8
+     ]
+    }
+   },
+   "crouch_a": {
+    "w": 907,
+    "h": 1151,
+    "ox": -296.8,
+    "oy": -840,
+    "bodyBottom": 310.4,
+    "bodyH": 333.8,
+    "centroidX": 184.3,
+    "renderScale": 0.29,
+    "file": "sukuna/crouch_a.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      481.3,
+      489.3
+     ]
+    }
+   },
+   "crouch_attack_a": {
+    "w": 972,
+    "h": 982,
+    "ox": -329.2,
+    "oy": -671,
+    "bodyBottom": 310.4,
+    "bodyH": 284.8,
+    "centroidX": 126.3,
+    "renderScale": 0.29,
+    "file": "sukuna/crouch_attack_a.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      455.0,
+      426.1
+     ]
+    }
+   },
+   "crouch_attack_b": {
+    "w": 1003,
+    "h": 782,
+    "ox": -344.8,
+    "oy": -471,
+    "bodyBottom": 310.4,
+    "bodyH": 226.8,
+    "centroidX": 127.1,
+    "renderScale": 0.29,
+    "file": "sukuna/crouch_attack_b.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      472.3,
+      337.0
+     ]
+    }
+   },
+   "crouch_b": {
+    "w": 888,
+    "h": 1077,
+    "ox": -287.2,
+    "oy": -766,
+    "bodyBottom": 310.4,
+    "bodyH": 312.3,
+    "centroidX": 133.8,
+    "renderScale": 0.29,
+    "file": "sukuna/crouch_b.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      421.7,
+      440.5
+     ]
+    }
+   },
+   "dash": {
+    "w": 954,
+    "h": 882,
+    "ox": -320.2,
+    "oy": -571,
+    "bodyBottom": 310.4,
+    "bodyH": 255.8,
+    "centroidX": 206.3,
+    "renderScale": 0.29,
+    "file": "sukuna/dash.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      527.2,
+      339.1
+     ]
+    }
+   },
+   "land": {
+    "w": 931,
+    "h": 1071,
+    "ox": -308.8,
+    "oy": -760,
+    "bodyBottom": 310.4,
+    "bodyH": 310.6,
+    "centroidX": 222.8,
+    "renderScale": 0.29,
+    "file": "sukuna/land.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      531.8,
+      505.3
+     ]
+    }
+   },
+   "special_down": {
+    "w": 966,
+    "h": 1271,
+    "ox": -326.2,
+    "oy": -960,
+    "bodyBottom": 310.4,
+    "bodyH": 368.6,
+    "centroidX": 121.8,
+    "renderScale": 0.29,
+    "file": "sukuna/special_down.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      450.2,
+      508.8
+     ]
+    }
+   },
+   "special_neutral": {
+    "w": 916,
+    "h": 1380,
+    "ox": -301.2,
+    "oy": -1069,
+    "bodyBottom": 310.4,
+    "bodyH": 400.2,
+    "centroidX": 93.8,
+    "renderScale": 0.29,
+    "file": "sukuna/special_neutral.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      394.7,
+      599.9
+     ]
+    }
+   },
+   "special_side": {
+    "w": 1009,
+    "h": 985,
+    "ox": -347.8,
+    "oy": -674,
+    "bodyBottom": 310.4,
+    "bodyH": 285.6,
+    "centroidX": 180.1,
+    "renderScale": 0.29,
+    "file": "sukuna/special_side.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      528.3,
+      387.0
+     ]
+    }
+   },
+   "ult_a": {
+    "w": 957,
+    "h": 1481,
+    "ox": -321.8,
+    "oy": -1170,
+    "bodyBottom": 310.4,
+    "bodyH": 429.5,
+    "centroidX": 146.9,
+    "renderScale": 0.29,
+    "file": "sukuna/ult_a.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      467.4,
+      662.2
+     ]
+    }
+   },
+   "ult_b": {
+    "w": 954,
+    "h": 1470,
+    "ox": -320.2,
+    "oy": -1159,
+    "bodyBottom": 310.4,
+    "bodyH": 426.3,
+    "centroidX": 145.2,
+    "renderScale": 0.29,
+    "file": "sukuna/ult_b.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      466.6,
+      586.4
+     ]
+    }
    }
   },
   "megumi": {
@@ -16750,6 +17182,438 @@
      ]
     },
     "bodyTop": 0
+   },
+   "attack_air_a": {
+    "w": 918,
+    "h": 1190,
+    "ox": -302.2,
+    "oy": -879,
+    "bodyBottom": 310.4,
+    "bodyH": 359.4,
+    "centroidX": 85.5,
+    "renderScale": 0.302,
+    "file": "todo/attack_air_a.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      386.9,
+      478.9
+     ]
+    }
+   },
+   "attack_air_b": {
+    "w": 962,
+    "h": 1243,
+    "ox": -324.2,
+    "oy": -932,
+    "bodyBottom": 310.4,
+    "bodyH": 375.4,
+    "centroidX": 27.4,
+    "renderScale": 0.302,
+    "file": "todo/attack_air_b.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      352.7,
+      412.2
+     ]
+    }
+   },
+   "attack_down": {
+    "w": 908,
+    "h": 1036,
+    "ox": -297.2,
+    "oy": -725,
+    "bodyBottom": 310.4,
+    "bodyH": 312.9,
+    "centroidX": 186.2,
+    "renderScale": 0.302,
+    "file": "todo/attack_down.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      483.2,
+      441.7
+     ]
+    }
+   },
+   "attack_heavy_a": {
+    "w": 892,
+    "h": 1502,
+    "ox": -289.2,
+    "oy": -1191,
+    "bodyBottom": 310.4,
+    "bodyH": 453.6,
+    "centroidX": 192.1,
+    "renderScale": 0.302,
+    "file": "todo/attack_heavy_a.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      481.7,
+      668.7
+     ]
+    }
+   },
+   "attack_heavy_b": {
+    "w": 995,
+    "h": 1354,
+    "ox": -340.8,
+    "oy": -1043,
+    "bodyBottom": 310.4,
+    "bodyH": 408.9,
+    "centroidX": 180.9,
+    "renderScale": 0.302,
+    "file": "todo/attack_heavy_b.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      524.0,
+      635.7
+     ]
+    }
+   },
+   "attack_light_a": {
+    "w": 957,
+    "h": 1331,
+    "ox": -321.8,
+    "oy": -1020,
+    "bodyBottom": 310.4,
+    "bodyH": 402.0,
+    "centroidX": 256.6,
+    "renderScale": 0.302,
+    "file": "todo/attack_light_a.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      578.6,
+      542.6
+     ]
+    }
+   },
+   "attack_light_b": {
+    "w": 927,
+    "h": 1405,
+    "ox": -306.8,
+    "oy": -1094,
+    "bodyBottom": 310.4,
+    "bodyH": 424.3,
+    "centroidX": 174.3,
+    "renderScale": 0.302,
+    "file": "todo/attack_light_b.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      483.5,
+      617.4
+     ]
+    }
+   },
+   "crouch_a": {
+    "w": 847,
+    "h": 1155,
+    "ox": -266.8,
+    "oy": -844,
+    "bodyBottom": 310.4,
+    "bodyH": 348.8,
+    "centroidX": 191.1,
+    "renderScale": 0.302,
+    "file": "todo/crouch_a.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      457.0,
+      489.7
+     ]
+    }
+   },
+   "crouch_attack_a": {
+    "w": 1002,
+    "h": 961,
+    "ox": -344.2,
+    "oy": -650,
+    "bodyBottom": 310.4,
+    "bodyH": 290.2,
+    "centroidX": 120.3,
+    "renderScale": 0.302,
+    "file": "todo/crouch_attack_a.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      465.0,
+      420.3
+     ]
+    }
+   },
+   "crouch_attack_b": {
+    "w": 1017,
+    "h": 868,
+    "ox": -351.8,
+    "oy": -557,
+    "bodyBottom": 310.4,
+    "bodyH": 262.1,
+    "centroidX": 117.6,
+    "renderScale": 0.302,
+    "file": "todo/crouch_attack_b.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      469.9,
+      375.6
+     ]
+    }
+   },
+   "crouch_b": {
+    "w": 959,
+    "h": 1247,
+    "ox": -322.8,
+    "oy": -936,
+    "bodyBottom": 310.4,
+    "bodyH": 376.6,
+    "centroidX": 175.2,
+    "renderScale": 0.302,
+    "file": "todo/crouch_b.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      498.3,
+      525.5
+     ]
+    }
+   },
+   "dash": {
+    "w": 931,
+    "h": 1207,
+    "ox": -308.8,
+    "oy": -896,
+    "bodyBottom": 310.4,
+    "bodyH": 364.5,
+    "centroidX": 191.8,
+    "renderScale": 0.302,
+    "file": "todo/dash.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      499.4,
+      417.5
+     ]
+    }
+   },
+   "land": {
+    "w": 942,
+    "h": 1121,
+    "ox": -314.2,
+    "oy": -810,
+    "bodyBottom": 310.4,
+    "bodyH": 338.5,
+    "centroidX": 214.3,
+    "renderScale": 0.302,
+    "file": "todo/land.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      527.3,
+      541.2
+     ]
+    }
+   },
+   "special_down": {
+    "w": 965,
+    "h": 1301,
+    "ox": -325.8,
+    "oy": -990,
+    "bodyBottom": 310.4,
+    "bodyH": 392.9,
+    "centroidX": 165.6,
+    "renderScale": 0.302,
+    "file": "todo/special_down.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      493.1,
+      671.5
+     ]
+    }
+   },
+   "special_neutral": {
+    "w": 727,
+    "h": 1444,
+    "ox": -206.8,
+    "oy": -1133,
+    "bodyBottom": 310.4,
+    "bodyH": 436.1,
+    "centroidX": 118.6,
+    "renderScale": 0.302,
+    "file": "todo/special_neutral.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      327.6,
+      628.9
+     ]
+    }
+   },
+   "special_side": {
+    "w": 1013,
+    "h": 1128,
+    "ox": -349.8,
+    "oy": -817,
+    "bodyBottom": 310.4,
+    "bodyH": 340.7,
+    "centroidX": 63.3,
+    "renderScale": 0.302,
+    "file": "todo/special_side.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      414.7,
+      447.4
+     ]
+    }
+   },
+   "ult_a": {
+    "w": 842,
+    "h": 1455,
+    "ox": -264.2,
+    "oy": -1144,
+    "bodyBottom": 310.4,
+    "bodyH": 439.4,
+    "centroidX": 158.4,
+    "renderScale": 0.302,
+    "file": "todo/ult_a.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      425.1,
+      635.8
+     ]
+    }
+   },
+   "ult_b": {
+    "w": 1015,
+    "h": 1421,
+    "ox": -350.8,
+    "oy": -1110,
+    "bodyBottom": 310.4,
+    "bodyH": 429.1,
+    "centroidX": 134.2,
+    "renderScale": 0.302,
+    "file": "todo/ult_b.png",
+    "replaced": {
+     "at": "2026-08-09T00:30:19+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      484.2,
+      614.8
+     ]
+    }
    }
   },
   "toji": {
@@ -23963,8 +24827,8 @@
       "renderScale": 0.297,
       "anchors": {
        "com": [
-        441.0,
-        339.6
+        379.2,
+        376.5
        ]
       }
      },
@@ -24077,8 +24941,8 @@
       "renderScale": 0.289,
       "anchors": {
        "com": [
-        722.2,
-        248.0
+        773.8,
+        236.9
        ]
       }
      },

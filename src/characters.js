@@ -535,13 +535,10 @@ export const CHARACTERS = {
     shadow: "rgba(182, 108, 255, 0.38)",
     scale: 0.59,
     stats: { speed: 392, airSpeed: 295, accel: 2400, jump: 750, airJumps: 1, weight: 1.18, friction: 0.8 },
-    anims: {
-      light: { frames: ["r0c2", "r2c0"], fps: 12, loop: false },
-      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
-      specialNeutral: { frames: ["r3c1", "r2c3"], fps: 9, loop: false },
-      specialSide: { frames: ["r3c3"], fps: 8, loop: false },
-      specialDown: { frames: ["r0c3"], fps: 4, loop: false },
-      ult: { frames: ["r3c1", "r3c2"], fps: 7, loop: true },
+    // Round 11B delivered his last eighteen poses. Inherits the semantic table;
+    // the slow down-special is his own timing, kept.
+    anims: { ...SEMANTIC_ANIMS,
+      specialDown: { frames: ["special_down"], fps: 4, loop: false },
     },
     light: { dmg: 9, reach: 176, speed: 0.98, angle: 0.3, effect: null, label: "Brotherly Fist", sfx: "punch" },
     heavy: { dmg: 17, reach: 190, speed: 0.94, angle: 0.44, effect: null, label: "Vigorous Chop", sfx: "punch", shieldMul: 1.7 },
@@ -723,15 +720,11 @@ export const CHARACTERS = {
     shadow: "rgba(255, 67, 75, 0.4)",
     scale: 0.60,
     stats: { speed: 435, airSpeed: 322, accel: 2700, jump: 755, airJumps: 1, weight: 1.06, friction: 0.83 },
-    anims: {
-      light: { frames: ["r0c2", "r3c0"], fps: 12, loop: false },
-      sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c1"], fps: 6, loop: false },
-      crouchAttack: { frames: ["r4c1", "r4c2", "r4c3"], fps: 11, loop: false },
-      specialNeutral: { frames: ["r3c0"], fps: 8, loop: false },
-      specialSide: { frames: ["r3c3"], fps: 8, loop: false },
-      specialDown: { frames: ["r3c2"], fps: 8, loop: false },
-      ult: { frames: ["r0c3", "r3c1"], fps: 7, loop: true },
-    },
+    // Round 11B delivered his last eighteen poses, so every action has its own
+    // drawing and every override here was saying what the shared table says.
+    // His crouch attack loses its third frame with them: the sheet happened to
+    // hold three cells worth borrowing, the semantic set is a pair everywhere.
+    anims: SEMANTIC_ANIMS,
     light: { dmg: 9, reach: 182, speed: 1.05, angle: 0.27, effect: "bleed", label: "Dismantle", sfx: "slash" },
     heavy: { dmg: 16.5, reach: 198, speed: 1.0, angle: 0.42, effect: "bleed", label: "Cleave", sfx: "slashHeavy", shieldMul: 1.7 },
     specials: {

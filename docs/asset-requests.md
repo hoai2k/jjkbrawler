@@ -12,7 +12,7 @@ closed with four of its seventeen fighters finished — Gojo, Mahito, Nobara and
 Yuta each have one sprite per action — and **the thirteen it did not reach rolled
 into round 11 rather than staying open behind it**, so a round's numbers are
 always the real remaining work. Round 11 is part-delivered: **11A (Mahoraga) is
-done**, and ten of 11B's thirteen fighters are done, leaving three there.
+done**, and twelve of 11B's thirteen fighters are done, leaving only Toji.
 Round 12 has three parts: nineteen fix-up poses caught while
 placing the delivered sets in the sprite workbench, the **four-frame run
 cycle** for the whole roster — the redesign that retires the two-frame run —
@@ -222,17 +222,16 @@ the game already ships, not the set on disk.
 Three parts; any can be delivered on its own.
 
 - ~~**11A** — redraw Mahoraga from the shikigami's canon design~~ **delivered** (33 sprites)
-- **11B** — finish the semantic sets for the 3 fighters still on sheet cells (54 sprites)
+- **11B** — finish the semantic sets for Toji, the last fighter on sheet cells (18 sprites)
 - **11C** — wind-up/strike pairs for the 6 round-7 fighters (24 sprites)
 - **11D** — one improvement request: Reggie's crouch attack does not read as the action (1 sprite)
 
-**79 sprites left.** 11B is the bulk of it and the one that changes how the
-roster reads: three fighters still play a sprint frame for a punch. 11C is the
+**43 sprites left.** 11B is nearly done — **Toji is the last fighter still
+playing a sprint frame for a punch.** 11C is the
 smallest and finishes a transition already made everywhere else.
 
 **11A is done** — Mahoraga arrived as the canon shikigami, all 33 poses, and is
-integrated. **Ten of the thirteen are done in 11B** — Geto, Hakari, Hanami,
-Inumaki, Jogo, Maki, Megumi, Momo, Nanami and Panda. Their sections below are struck through rather
+integrated. **Twelve of the thirteen are done in 11B**; only Toji is left. Their sections below are struck through rather
 than deleted, so a delivery citing "11A" still resolves; the full record moves to
 the history file when the round closes.
 
@@ -350,14 +349,14 @@ skirt, so **key on magenta `#FF00FF`** — a grey screen would fight the body.
 
 ---
 
-## 11B. Finish the semantic sets — 54 sprites across 3 fighters
+## 11B. Finish the semantic sets — 18 sprites, Toji only
 
 This is round 10A, carried forward with every fighter it has finished removed
 from it. Gojo, Mahito, Nobara and Yuta got there in round 10, and **Geto (15
 poses), Hakari (17), Hanami (16), Inumaki (18), Jogo (17), Maki (17), Megumi
-(17), Momo (18), Nanami (18) and Panda (18) have since been delivered and
-integrated** — all ten are re-pointed and off this list. The remaining three
-still run on **4×5 sprite sheet cells** named `r{row}c{col}`, where one
+(17), Momo (18), Nanami (18), Panda (18), Sukuna (18) and Todo (18) have since
+been delivered and integrated** — all twelve are re-pointed and off this list.
+**Toji alone** still runs on **4×5 sprite sheet cells** named `r{row}c{col}`, where one
 cell has to serve several actions at once.
 
 The problem was never the naming. It is that a sprint pose is what plays when
@@ -382,8 +381,8 @@ Counts differ because round 9B already delivered some of the technique frames.
 | ~~Momo Nishimiya~~ | `momo` | ~~18~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
 | ~~Kento Nanami~~ | `nanami` | ~~18~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
 | ~~Panda~~ | `panda` | ~~18~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
-| Ryomen Sukuna | `sukuna` | 18 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_neutral` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
-| Aoi Todo | `todo` | 18 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_neutral` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
+| ~~Ryomen Sukuna~~ | `sukuna` | ~~18~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
+| ~~Aoi Todo~~ | `todo` | ~~18~~ | **Delivered and integrated** — re-pointed to the semantic table, sheet cells retired |
 | Toji Fushiguro | `toji` | 18 | `attack_light_a` `attack_light_b` `attack_heavy_a` `attack_heavy_b` `attack_down` `attack_air_a` `attack_air_b` `special_neutral` `special_side` `special_down` `ult_a` `ult_b` `crouch_a` `crouch_b` `crouch_attack_a` `crouch_attack_b` `dash` `land` |
 
 Deliver to:
