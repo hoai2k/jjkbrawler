@@ -467,7 +467,8 @@
     "bodyLeft": 13,
     "bodyRight": 298,
     "coreLeft": 38.1,
-    "coreRight": 260.3
+    "coreRight": 260.3,
+    "surfacedReviewed": true
    },
    "idle_b": {
     "file": "gojo/idle_b.png",
@@ -489,7 +490,8 @@
     "bodyLeft": 14,
     "bodyRight": 270,
     "coreLeft": 31.8,
-    "coreRight": 234.9
+    "coreRight": 234.9,
+    "surfacedReviewed": true
    },
    "run_a": {
     "file": "gojo/run_a.png",
@@ -562,7 +564,8 @@
     "bodyLeft": 14,
     "bodyRight": 772,
     "coreLeft": 50.8,
-    "coreRight": 736.6
+    "coreRight": 736.6,
+    "surfacedReviewed": true
    },
    "fall": {
     "file": "gojo/fall.png",
@@ -584,7 +587,8 @@
     "bodyLeft": 15,
     "bodyRight": 630,
     "coreLeft": 82.5,
-    "coreRight": 558.8
+    "coreRight": 558.8,
+    "surfacedReviewed": true
    },
    "hurt": {
     "file": "gojo/hurt.png",
@@ -598,8 +602,8 @@
     "renderScale": 0.2278,
     "anchors": {
      "com": [
-      385.6,
-      331.4
+      360.9,
+      329.3
      ]
     },
     "bodyTop": 15,
@@ -612,7 +616,7 @@
     "file": "gojo/guard.png",
     "w": 577,
     "h": 1016,
-    "ox": -131.2,
+    "ox": -115.7,
     "oy": -692,
     "bodyBottom": 241,
     "bodyH": 225.0,
@@ -628,7 +632,10 @@
     "bodyLeft": 13,
     "bodyRight": 562,
     "coreLeft": 50.8,
-    "coreRight": 508.0
+    "coreRight": 508.0,
+    "edited": {
+     "ox": -131.2
+    }
    },
    "attack_up": {
     "file": "gojo/attack_up.png",
@@ -703,7 +710,8 @@
     "bodyLeft": 14,
     "bodyRight": 730,
     "coreLeft": 63.5,
-    "coreRight": 641.3
+    "coreRight": 641.3,
+    "surfacedReviewed": true
    },
    "dizzy": {
     "file": "gojo/dizzy.png",
@@ -725,7 +733,8 @@
     "bodyLeft": 14,
     "bodyRight": 388,
     "coreLeft": 57.1,
-    "coreRight": 349.2
+    "coreRight": 349.2,
+    "surfacedReviewed": true
    },
    "victory": {
     "file": "gojo/victory.png",
@@ -736,7 +745,7 @@
     "bodyBottom": 265,
     "bodyH": 256.0,
     "centroidX": 138.5,
-    "renderScale": 0.2761,
+    "renderScale": 0.2816,
     "anchors": {
      "com": [
       181.4,
@@ -747,7 +756,10 @@
     "bodyLeft": 13,
     "bodyRight": 328,
     "coreLeft": 38.1,
-    "coreRight": 292.1
+    "coreRight": 292.1,
+    "edited": {
+     "renderScale": 0.2761
+    }
    },
    "ledge_hang": {
     "file": "gojo/ledge_hang.png",
@@ -773,7 +785,8 @@
     "bodyLeft": 14,
     "bodyRight": 216,
     "coreLeft": 38.1,
-    "coreRight": 203.2
+    "coreRight": 203.2,
+    "surfacedReviewed": true
    },
    "dodge_air": {
     "w": 516,
@@ -7964,7 +7977,7 @@
    "special_side": {
     "w": 998,
     "h": 1231,
-    "ox": -342.2,
+    "ox": -317.2,
     "oy": -920,
     "bodyBottom": 310.4,
     "bodyH": 278.0,
@@ -7981,7 +7994,10 @@
     "bodyLeft": 0,
     "bodyRight": 998,
     "coreLeft": 53.9,
-    "coreRight": 846.3
+    "coreRight": 846.3,
+    "edited": {
+     "ox": -342.2
+    }
    },
    "ult_a": {
     "w": 932,
@@ -9912,10 +9928,10 @@
     "h": 1016,
     "ox": -19.2,
     "oy": -693,
-    "bodyBottom": 310,
+    "bodyBottom": 254,
     "bodyH": 295.0,
     "centroidX": 138.6,
-    "renderScale": 0.298,
+    "renderScale": 0.3278,
     "anchors": {
      "com": [
       157.2,
@@ -9926,7 +9942,11 @@
     "bodyLeft": 13,
     "bodyRight": 339,
     "coreLeft": 38.1,
-    "coreRight": 298.4
+    "coreRight": 298.4,
+    "edited": {
+     "renderScale": 0.298,
+     "bodyBottom": 310
+    }
    },
    "ledge_hang": {
     "file": "megumi/ledge_hang.png",
@@ -13861,7 +13881,8 @@
     "bodyLeft": 14,
     "bodyRight": 680,
     "coreLeft": 120.6,
-    "coreRight": 596.9
+    "coreRight": 596.9,
+    "surfacedReviewed": true
    },
    "hurt": {
     "file": "yuta/hurt.png",
@@ -15333,7 +15354,8 @@
      "fields": {
       "bodyBottom": "foot=0.944 (character)"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "idle_b": {
     "w": 513,
@@ -15362,7 +15384,8 @@
       "bodyBottom": "foot=0.944 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "jump_rise": {
     "file": "nobara/jump_rise.png",
@@ -16664,7 +16687,7 @@
     "file": "maki/jump_rise.png",
     "w": 866,
     "h": 1016,
-    "ox": -276.2,
+    "ox": -299.7,
     "oy": -691,
     "bodyBottom": 310,
     "bodyH": 259.9,
@@ -16672,15 +16695,18 @@
     "renderScale": 0.264,
     "anchors": {
      "com": [
-      441.4,
-      380.4
+      482.7,
+      403.8
      ]
     },
     "bodyTop": 15,
     "bodyLeft": 15,
     "bodyRight": 851,
     "coreLeft": 69.8,
-    "coreRight": 781.0
+    "coreRight": 781.0,
+    "edited": {
+     "ox": -276.2
+    }
    },
    "fall": {
     "file": "maki/fall.png",
@@ -17083,7 +17109,7 @@
    "attack_air_b": {
     "w": 971,
     "h": 897,
-    "ox": -328.8,
+    "ox": -263.8,
     "oy": -586,
     "bodyBottom": 310.4,
     "bodyH": 261.0,
@@ -17100,7 +17126,10 @@
     "bodyLeft": 0,
     "bodyRight": 971,
     "coreLeft": 145.6,
-    "coreRight": 825.3
+    "coreRight": 825.3,
+    "edited": {
+     "ox": -328.8
+    }
    },
    "attack_down": {
     "w": 769,
@@ -21899,7 +21928,8 @@
     "bodyLeft": 13,
     "bodyRight": 476,
     "coreLeft": 38.1,
-    "coreRight": 438.1
+    "coreRight": 438.1,
+    "surfacedReviewed": true
    },
    "victory": {
     "file": "toji/victory.png",
@@ -23105,7 +23135,7 @@
     "h": 1396,
     "ox": -88.2,
     "oy": -1085,
-    "bodyBottom": 310.4,
+    "bodyBottom": 243.4,
     "bodyH": 298.7,
     "centroidX": 162.5,
     "renderScale": 0.214,
@@ -23120,7 +23150,10 @@
     "bodyLeft": 0,
     "bodyRight": 490,
     "coreLeft": 78.5,
-    "coreRight": 436.2
+    "coreRight": 436.2,
+    "edited": {
+     "bodyBottom": 310.4
+    }
    },
    "dodge_air": {
     "w": 668,
@@ -23180,7 +23213,7 @@
     "bodyBottom": 310.4,
     "bodyH": 274.6,
     "centroidX": 159.6,
-    "renderScale": 0.214,
+    "renderScale": 0.2172,
     "file": "choso/fall.png",
     "anchors": {
      "com": [
@@ -23192,7 +23225,10 @@
     "bodyLeft": 0,
     "bodyRight": 826,
     "coreLeft": 80.2,
-    "coreRight": 673.6
+    "coreRight": 673.6,
+    "edited": {
+     "renderScale": 0.214
+    }
    },
    "guard": {
     "w": 748,
@@ -23868,7 +23904,8 @@
     "bodyLeft": 0,
     "bodyRight": 709,
     "coreLeft": 96.9,
-    "coreRight": 660.5
+    "coreRight": 660.5,
+    "surfacedReviewed": true
    },
    "attack_air": {
     "w": 1099,
@@ -24090,7 +24127,8 @@
     "bodyLeft": 0,
     "bodyRight": 1112,
     "coreLeft": 97.3,
-    "coreRight": 1056.4
+    "coreRight": 1056.4,
+    "surfacedReviewed": true
    },
    "crouch_attack_a": {
     "w": 1280,
@@ -24246,24 +24284,30 @@
    "dodge_roll": {
     "w": 926,
     "h": 1093,
-    "ox": -306.2,
+    "ox": -350.2,
     "oy": -782,
-    "bodyBottom": 310.4,
+    "bodyBottom": 422.4,
     "bodyH": 226.3,
     "centroidX": 152.5,
     "renderScale": 0.207,
     "file": "meimei/dodge_roll.png",
     "anchors": {
      "com": [
-      512.3,
-      566.9
+      479.7,
+      570.7
      ]
     },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 926,
     "coreLeft": 75.1,
-    "coreRight": 874.4
+    "coreRight": 874.4,
+    "edited": {
+     "ox": -306.2,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": -18.5
    },
    "fall": {
     "w": 933,
@@ -24348,7 +24392,7 @@
     "h": 1417,
     "ox": -199.2,
     "oy": -1106,
-    "bodyBottom": 310.4,
+    "bodyBottom": 307.9,
     "bodyH": 293.3,
     "centroidX": 146.4,
     "renderScale": 0.207,
@@ -24363,7 +24407,10 @@
     "bodyLeft": 0,
     "bodyRight": 712,
     "coreLeft": 97.4,
-    "coreRight": 655.4
+    "coreRight": 655.4,
+    "edited": {
+     "bodyBottom": 310.4
+    }
    },
    "jump_rise": {
     "w": 949,
@@ -24516,7 +24563,8 @@
     "bodyLeft": 0,
     "bodyRight": 694,
     "coreLeft": 105.7,
-    "coreRight": 634.1
+    "coreRight": 634.1,
+    "needsReplacement": "pose"
    },
    "special_neutral": {
     "w": 803,
@@ -24641,7 +24689,8 @@
     "bodyLeft": 0,
     "bodyRight": 782,
     "coreLeft": 123.4,
-    "coreRight": 713.8
+    "coreRight": 713.8,
+    "surfacedReviewed": true
    },
    "attack_air_a": {
     "w": 843,
@@ -27563,7 +27612,8 @@
     "bodyLeft": 0,
     "bodyRight": 721,
     "coreLeft": 59.5,
-    "coreRight": 662.5
+    "coreRight": 662.5,
+    "surfacedReviewed": true
    },
    "dodge_roll": {
     "w": 951,
@@ -29164,7 +29214,8 @@
     "bodyLeft": 0,
     "bodyRight": 904,
     "coreLeft": 62.5,
-    "coreRight": 743.8
+    "coreRight": 743.8,
+    "surfacedReviewed": true
    },
    "attack_heavy_a": {
     "w": 915,

@@ -42,17 +42,56 @@ async function until(fn, arg, timeout = 60000) {
   }
 }
 
-await page.goto(`${BASE}/workbench/?char=maki`, { waitUntil: "domcontentloaded" });
-await until(() => document.querySelector("#charSel")?.value === "maki");
+// Which character and which view, chosen from the data rather than written
+// down once. This used to be a hard-coded `maki` on the "no saved edits" view,
+// and it went red the day her last two poses were placed. The roster has since
+// been placed ENTIRELY — every pose the game draws now carries saved edits — so
+// "find an untuned pose" is a precondition the project has outgrown, and a test
+// that fails because the work it stands on got finished will keep failing.
+//
+// What is actually under test is that flagging a pose keeps it in the list,
+// marks it, and exports. That holds in any view. So: prefer the unedited view
+// while anyone is still outstanding, because that is where the original bug
+// lived, and fall back to the full list once nobody is.
+await page.goto(`${BASE}/workbench/`, { waitUntil: "domcontentloaded" });
+await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
+const PICK = await page.evaluate(async () => {
+  const { spriteManifest } = await import("/src/assets.js");
+  const { statesUsingFrame } = await import("/src/sprites.js");
+  // Both conditions the view applies: the pose has to be one the game DRAWS,
+  // and untouched. A standby fallback nothing reaches is untouched forever and
+  // is filtered out of every "used" view, so counting it would pick a
+  // character whose work list is empty.
+  const drawn = (c, k) => statesUsingFrame(c, k).length > 0;
+  const untouched = (m) => !Object.keys(m.edited || {}).length && !m.surfacedReviewed;
+  let anyUsed = null;
+  for (const [char, frames] of Object.entries(spriteManifest.characters)) {
+    const used = Object.entries(frames).filter(([k]) => drawn(char, k));
+    if (used.length >= 2 && !anyUsed) anyUsed = { char, view: "all" };
+    if (used.filter(([, m]) => untouched(m)).length >= 2) return { char, view: "unedited" };
+  }
+  return anyUsed;
+});
+check(!!PICK, "found a character to stand this test on", PICK ? PICK.char : "none");
+
+await page.goto(`${BASE}/workbench/?char=${PICK.char}`, { waitUntil: "domcontentloaded" });
+await until((c) => document.querySelector("#charSel")?.value === c, PICK.char);
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 
-// The working view, and a pose in it.
-await page.selectOption("#viewSel", "unedited");
+await page.selectOption("#viewSel", PICK.view);
 await page.waitForTimeout(250);
-const before = await page.evaluate(() =>
-  [...document.querySelectorAll("#poseList button")].map((b) => b.textContent));
-check(before.length > 1, "the work list has poses to work on", `${before.length} shown`);
-const target = before[1];
+// Only poses the game draws: the "all" fallback includes retired grid cells,
+// and a cell nothing animates behaves differently from a live pose.
+const before = await page.evaluate(async (char) => {
+  const { statesUsingFrame } = await import("/src/sprites.js");
+  return [...document.querySelectorAll("#poseList button")]
+    .map((b) => b.textContent)
+    .filter((t) => statesUsingFrame(char, (t.match(/[a-z0-9_]+$/) || [t])[0]).length > 0);
+}, PICK.char);
+check(before.length > 1,
+  `the work list has poses to work on (${PICK.char}, "${PICK.view}" view)`,
+  `${before.length} shown`);
+const target = before[before.length - 1];
 await page.evaluate((t) => [...document.querySelectorAll("#poseList button")]
   .find((b) => b.textContent === t).click(), target);
 await page.waitForTimeout(200);
@@ -125,7 +164,10 @@ const reset = await page.evaluate(() => document.getElementById("dirtyCount").te
 check(/none/i.test(reset), "Reset character clears edits the view was hiding", JSON.stringify(reset));
 
 // ---- the placement controls: a slider paired with a typeable number, no nudges
-await page.selectOption("#viewSel", "unedited");
+// PICK.view, not a hard-coded "unedited": the arrow-key walk below needs more
+// than one pose in the list to have anywhere to walk to, and on a character
+// whose set is fully placed that view holds at most one.
+await page.selectOption("#viewSel", PICK.view);
 await page.waitForTimeout(250);
 await page.evaluate(() => document.querySelectorAll("#poseList button")[0].click());
 await page.waitForTimeout(200);

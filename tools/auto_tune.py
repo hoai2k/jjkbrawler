@@ -123,7 +123,16 @@ MAX_FOOT_SHIFT = 0.20
 # stopped momo/prone, whose art is flat enough that 0.946 wanted to move the
 # contact 37% of its height — but a pose that is quietly 5% wrong would sail
 # through, so the states are named.
-NO_STANDING_FOOT = {"prone"}
+#
+# The airborne states are here for a different reason: a fighter in the air is
+# not making contact with anything, so there is no foot line to solve. What the
+# rule produced instead was every jump, fall, air dodge and aerial pinned by its
+# lowest drawn pixel to the floor — a trailing toe, a tucked heel, a hanging
+# hand — which is a placement nobody chose and which was then locked in, because
+# the workbench's vertical control refused to move an airborne pose. The pose
+# that matters to them is the HURTBOX, and only an eye can say where a tucked
+# body should sit inside it, so the rule now declines rather than guessing.
+NO_STANDING_FOOT = {"prone", "jump", "fall", "ledge", "dodge_air", "airLight"}
 
 
 def now_stamp():

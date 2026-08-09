@@ -11,7 +11,7 @@ import {
   frameMeta, loadSpriteFile, spriteFileImage,
 } from "../src/assets.js";
 import {
-  drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly, animsOf, resolvedAnim,
+  drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly, isAnchorPlaced, animsOf, resolvedAnim,
   drawnByFallbackOnly,
   anchorScreenPos, screenPosToLocal, warmAnchors, EXTRA_ANCHORS,
   REPLACEMENT_KINDS, replacementKind, IMPROVEMENT_KINDS, improvementKind,
@@ -1412,13 +1412,19 @@ function rangeShape(m) {
   return { kind: "sweep", x0, x1, y0, y1 };
 }
 
-/** The box `combat.js` actually tests for hits, for ANY pose.
+/** The box `combat.js` actually tests for hits, for THIS pose.
  *
  *  Range targets only appear on a strike frame, because only a strike has
- *  reach — but every pose has a hurtbox, and it is the same box whether the
- *  fighter is standing, jumping or being hit. That makes it the one fixed
- *  reference a pose can be placed against, which is why the vertical-position
- *  control stays live on airborne poses: line the body up inside this.
+ *  reach — but every pose has a hurtbox, which makes it the one fixed reference
+ *  a pose can be placed against. That is why the vertical-position control
+ *  stays live on airborne poses: line the body up inside this.
+ *
+ *  Which box, though, depends on the pose. `hurtbox()` has five shapes — ledge,
+ *  prone, crouch, hitstun and standing — and this used to draw the standing one
+ *  on all of them. On a `prone` pose that is a box more than three times too
+ *  tall, and on a `ledge_hang` it is the wrong box in the wrong place. Inviting
+ *  someone to line a body up inside a box the game does not test for that pose
+ *  is worse than showing no box, so the branches are mirrored from combat.js.
  *
  *  Sized from THIS character's own art, the same way the game sizes it, so the
  *  box on screen is the box in play. Re-measured every frame rather than
@@ -1434,21 +1440,36 @@ function drawHurtbox(cx) {
   const wy = (v) => GROUND_Y + v * z;
   refreshSilhouettes(state.char);
   const body = bodyMetrics(state.char);
-  const crouched = statesUsing(state.char, state.frame)
-    .some((a) => a === "crouch" || a === "crouchAttack");
-  const hb = crouched
-    ? { w: Math.round(body.width * HURTBOX.crouchW), h: Math.round(body.height * HURTBOX.crouchH) }
-    : { w: Math.round(body.width), h: Math.round(body.height * HURTBOX.standH) };
+  const H = body.height, W = body.width;
+  const states = statesUsing(state.char, state.frame);
+  const has = (...names) => states.some((a) => names.includes(a));
+  // `top` is how far the box rises above the foot line, `h` how tall it is.
+  // They differ only on the ledge box, which the game floats clear of the feet.
+  let hb;
+  if (has("ledge")) {
+    hb = { w: W * HURTBOX.ledgeW, top: H * HURTBOX.ledgeTop, h: H * HURTBOX.ledgeH, label: "ledge" };
+  } else if (has("prone")) {
+    hb = { w: H * HURTBOX.proneW, top: H * HURTBOX.proneH, h: H * HURTBOX.proneH, label: "prone" };
+  } else if (has("crouch", "crouchAttack")) {
+    hb = { w: W * HURTBOX.crouchW, top: H * body.crouch, h: H * body.crouch, label: "crouch" };
+  } else if (has("hurt")) {
+    // Hitstun only. A shield-break `dizzy` is not hitstun, so combat.js falls
+    // through to the standing box there and so does this.
+    hb = { w: W * HURTBOX.hurtW, top: H * HURTBOX.hurtH, h: H * HURTBOX.hurtH, label: "hitstun" };
+  } else {
+    hb = { w: W, top: H * HURTBOX.standH, h: H * HURTBOX.standH, label: "hurtbox" };
+  }
   ctx.save();
   ctx.font = "600 10.5px Inter, sans-serif";
   ctx.strokeStyle = "rgba(120, 200, 255, 0.45)";
   ctx.lineWidth = 1;
   ctx.setLineDash([4, 4]);
-  ctx.strokeRect(wx(-hb.w / 2), wy(-hb.h), hb.w * z, hb.h * z);
+  ctx.strokeRect(wx(-hb.w / 2), wy(-hb.top), hb.w * z, hb.h * z);
   ctx.setLineDash([]);
   ctx.fillStyle = "rgba(120, 200, 255, 0.8)";
   ctx.textAlign = "right";
-  ctx.fillText(`hurtbox ${hb.w}x${hb.h}`, wx(-hb.w / 2) - 5, wy(-hb.h) + 11);
+  ctx.fillText(`${hb.label} ${Math.round(hb.w)}x${Math.round(hb.h)}`,
+               wx(-hb.w / 2) - 5, wy(-hb.top) + 11);
   ctx.restore();
 }
 
@@ -2090,18 +2111,26 @@ function refreshControls() {
   // still has to sit correctly against the HURTBOX, which does not move when
   // the fighter leaves the ground. Locking the control meant an air pose could
   // only ever sit where the import put it.
+  //
+  // The one pose it is still locked on is a ledge hang, and for the opposite
+  // reason: there it does nothing at all. A ledge pose is hung from its grip
+  // anchor onto the platform corner, and that arithmetic cancels `bodyBottom`
+  // out entirely — so the slider would move, the number would change, and the
+  // sprite would not. The grip anchor is what places it.
   const airborne = isAirborneOnly(state.char, state.frame);
+  const anchored = isAnchorPlaced(state.char, state.frame);
   const dg = (orig.bodyBottom ?? 0) - (meta.bodyBottom ?? 0);
   setPair("ground", dg);
-  $("groundVal").textContent =
-    `${dg > 0 ? "+" : ""}${dg.toFixed(1)} px` + (airborne ? " · airborne" : "");
+  $("groundVal").textContent = anchored
+    ? "set by the grip anchor"
+    : `${dg > 0 ? "+" : ""}${dg.toFixed(1)} px` + (airborne ? " · airborne" : "");
   const deg = rawMeta(state.char, state.frame).rotationDeg ?? 0;
   setPair("rotation", deg);
   $("rotationVal").textContent = deg ? `${deg > 0 ? "+" : ""}${deg.toFixed(1)}°` : "square";
 
-  $("groundGroup").classList.remove("disabled");
-  $("groundRange").disabled = false;
-  $("groundNum").disabled = false;
+  $("groundGroup").classList.toggle("disabled", anchored);
+  $("groundRange").disabled = anchored;
+  $("groundNum").disabled = anchored;
 
   // A delete tag lives on the drawing rather than the pose, so it is read from
   // the variant option — but it presents as just another kind of "this art is
@@ -2941,9 +2970,14 @@ function applyRotation(deg, commit) {
 }
 
 function applyGround(dy, commit) {
-  // A frame only ever drawn in the air has no floor contact to set; the floor
-  // stays visible in the viewer purely as a size reference against the idle.
-  if (isAirborneOnly(state.char, state.frame)) return;
+  if (isAnchorPlaced(state.char, state.frame)) return;   // see refreshControls
+  // Airborne poses are NOT excluded. They have no floor contact, but they do
+  // have a hurtbox — the same standing box, which does not move when a fighter
+  // leaves the ground — and the body has to sit inside it. This used to return
+  // early on `isAirborneOnly`, while refreshControls() and the help text had
+  // already been changed to say the control was live: the slider moved, the
+  // readout changed, and nothing happened to the sprite. Only `ledge` is
+  // genuinely inert, and it is locked in refreshControls() with a reason.
   const orig = state.originals[state.char][state.frame];
   if (commit) pushHistory(state.char, state.frame);
   // slider reads as "how far down the sprite sits", so invert onto bodyBottom
