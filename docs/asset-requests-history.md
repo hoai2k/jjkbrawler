@@ -21,6 +21,7 @@ why the numbering is not strictly chronological.
 | 9 | Cards, technique frames, domains, stage props, three redrawn fighters, Mahito's re-key, Mahoraga (166 assets) | Delivered |
 | 10 | One sprite per action for the sheet-era fighters — Gojo, Mahito, Nobara, Yuta (72 sprites) | Delivered in part; the rest is round 11 |
 | 11 | Mahoraga redrawn from canon, the semantic sets finished for the last 13 fighters, wind-up/strike pairs for the round-7 six (280 sprites) | Delivered — **every fighter now has one sprite per action** |
+| 12A | Workbench catches: poses that failed once placed at real size (33 sprites) | Delivered in part — 18 in, 15 still open in [asset-requests.md](asset-requests.md) |
 
 ---
 
@@ -629,3 +630,135 @@ The round also produced the checks that make the next one land safely:
 `tools/check_pointing.mjs` (art registered but not drawn), the "recently
 updated" list covering brand-new poses as well as overwritten ones, and
 `tools/swap_poses.py` for a pair delivered under reversed names.
+
+---
+
+## Round 12A — the first workbench catches — 18 sprites across 6 fighters
+
+12A was thirty-three poses that only failed once they were placed in the sprite
+workbench, at their real size and standing on the real ground line. Eighteen
+came back in the first delivery; the remaining fifteen — Gakuganji, Reggie,
+Toji, Megumi and Momo — are still open in
+[asset-requests.md](asset-requests.md).
+
+| Fighter | Poses | Kind | What was wrong |
+|---|---|---|---|
+| Satoru Gojo | `crouch_b` `crouch_attack_b` `special_down` | Pose | Not crouched; the low strike rose; Infinity read as a palm strike |
+| Mahito | `crouch_b` | Pose | Not crouched |
+| Mahoraga | `crouch_a` `crouch_attack_b` | Pose | A standing stride; the follow-through happened standing |
+| Maki Zen'in | `attack_air_a` `attack_heavy_a` `ult_b` | Quality | Hands did not close on the naginata, which kinked where it crossed her body |
+| Maki Zen'in | `crouch_b` `crouch_attack_b` | Pose | Barely below `crouch_a`; the follow-through did not travel toward the attack |
+| Nobara Kugisaki | `dodge_air` | Quality | A second, grey Nobara ghosted into the plate, holding the hammer |
+| Nobara Kugisaki | `special_neutral` `special_down` | Pose | The nails were painted in; Resonance hammered the ground instead of the doll |
+| Takako Uro | `attack_air_a` `attack_air_b` `attack_heavy_a` `attack_heavy_b` | Character | A dark bob and a white bodysuit — not her |
+
+All eighteen were flagged `needsReplacement`, so each replaced its drawing
+outright and rolled back the hand tuning that had been compensating for it —
+`intake_import.py`'s `discard` path. They land on the workbench's **All Recently
+Updated Poses** list for re-placement.
+
+### What this delivery settled
+
+**Uro is on-model.** Her four were the last of the three characters round 9E
+existed to fix, and they came back with the lavender upswept hair, the
+pale-cyan cloud garment and the bare feet — drawn against
+`assets/reference/canon/uro_idle.png` and nothing else, which is what the
+instruction had been asking for across two rounds. Gakuganji and Reggie are
+still outstanding on the same fault.
+
+**Seven of the eight crouches that kept coming back standing are answered.**
+The comparative test — head down by at least a quarter of the standing height,
+beside that fighter's own `idle_a` — is what the briefs were rewritten around,
+and it worked. `momo/crouch_attack_b` and `reggie/crouch_attack_b` are what
+remain.
+
+**`nobara/special_neutral` is the worked example for "do not draw the
+technique".** The delivered art draws the cast — hammer driving forward, energy
+at the hand — and leaves the nails to `effect:nail`. The four still open
+(Megumi's two, Toji's two) are the same ask.
+
+### The briefs, as written
+
+Kept verbatim, because they are the record of what was asked for and the
+reference for the poses still outstanding.
+
+### The three crouches — 3 sprites
+
+`crouch_a` and `crouch_b` are the two frames of the crouch cycle, and `crouch_b`
+is meant to be **the same crouch a fraction lower, weight settled**. What was
+delivered for all three is a figure standing upright with the knees slightly
+bent — closer to `idle` than to `crouch_a`. On screen the character barely moves
+when the player holds down, and `crouch_attack_b` swings upward from standing
+rather than following through on a low attack.
+
+The `_a` frames are right; draw the `_b` frames against them.
+
+| Pose | What to draw |
+|---|---|
+| `gojo/crouch_b` | The same crouch as `gojo/crouch_a`, settled lower — hips down near heel height, thighs closer to horizontal, back angled forward, guard still up. This is a fighting crouch, not a rest. |
+| `mahito/crouch_b` | The same, against `mahito/crouch_a`. |
+| `gojo/crouch_attack_b` | The **follow-through of a low attack** — the arm or leg extended out at ankle-to-knee height, body still down in the crouch, weight carried through the sweep. Not a rising uppercut. |
+
+Match each fighter's own `crouch_a` for camera distance, figure scale, costume
+and line weight: these two frames play back to back at a few frames a second, so
+anything that differs between them reads as a flicker rather than a settle.
+
+### Gojo's Infinity — 1 sprite
+
+`gojo/special_down` is his **down special**, which is `Infinity` — a *counter*,
+not a strike (`src/characters.js`). What is drawn is Gojo standing square with a
+palm thrust forward, which is a good drawing of his heavy (`Lapse Palm`) and is
+close enough to it on screen that the two moves look like the same move.
+
+Draw the counter instead: **stopped**, not striking. Weight low and settled, both
+hands raised into a hold rather than one arm punched out, the body braced to
+receive something. The nullification field is the point — pale blue-white
+distortion gathering just off his palms, air bending around him — and the pose
+should read as *the attack does not arrive* rather than *he is hitting you*.
+
+### Nobara's air dodge — 1 sprite
+
+`nobara/dodge_air` has **two figures on it.** Behind the drawn Nobara there is a
+full grey ghost of her — a second body, a second head of hair, a second arm —
+and the hammer belongs to the ghost, not to her: her own hands are closed on
+nothing.
+
+Whatever it was meant to be as an illustration, the game composites its own
+motion trails behind a dodging fighter (`trailStrength`, `src/motion.js`), so a
+painted-in afterimage is a grey duplicate Nobara that trails the real one and
+never fades, with a hammer floating loose beside it.
+
+Redraw as **one** figure: Nobara tucked mid-air through an evasive roll, hammer
+held in her own hand, nothing behind her. No afterimage, no speed lines, no
+second body — the engine adds all of that.
+
+### Nobara's two techniques — 2 sprites
+
+Her kit (`src/characters.js`) is specific about what these are, and neither
+drawing matches:
+
+| Pose | Technique | What is drawn | What it should be |
+|---|---|---|---|
+| `special_neutral` | **Straw Doll: Nail Shot** — cursed nails fired downrange | Hammer raised, arm out, and a row of grey nails already flying off her hand | The moment of the shot, **without the nails.** The game spawns them itself (`effect:nail`, two per cast), so the painted ones fly alongside a second set at a different size and colour. Draw the cast: hammer driving forward, nails just leaving, energy at the hand — no projectiles in flight. |
+| `special_down` | **Resonance** — drives a nail into the **straw doll**, so marked souls take the hit wherever they stand | Crouched, hammering nails into the ground | The doll is the whole point of the move and is not in the picture. Draw her low with the straw doll held or braced in one hand, hammer driving a nail into *it*, cursed energy running out of the doll rather than into the floor. Hammering the ground is already what her down-heavy looks like. |
+
+`special_down` is the wish and `special_neutral` the blocking one, because the
+doubled nails are visible in every match.
+
+```
+assets/intake/gojo/special_down.png
+assets/intake/gojo/crouch_b.png
+assets/intake/gojo/crouch_attack_b.png
+assets/intake/mahito/crouch_b.png
+assets/intake/nobara/dodge_air.png
+assets/intake/nobara/special_neutral.png
+assets/intake/nobara/special_down.png
+```
+
+Delivered against the standard spec in
+[asset-requests.md](asset-requests.md#delivery-spec). Gojo and Mahito keyed on
+magenta `#FF00FF`; Nobara is a warm palette, so hers keyed on mid-grey
+`#808080`. Canon references: `assets/reference/canon/gojo_idle.png`,
+`assets/reference/canon/mahito_idle.png` and
+`assets/reference/canon/nobara_idle.png`. The raw plates for all eighteen are
+archived at `assets/reference/round12/`.

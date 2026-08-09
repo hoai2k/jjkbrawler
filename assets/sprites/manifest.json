@@ -891,49 +891,59 @@
     "rotationDeg": 2.5
    },
    "crouch_attack_b": {
-    "w": 483,
-    "h": 1499,
-    "ox": -84.8,
-    "oy": -1188,
+    "w": 965,
+    "h": 934,
+    "ox": -325.8,
+    "oy": -623,
     "bodyBottom": 310.4,
     "bodyH": 421.2,
-    "centroidX": 145.7,
-    "renderScale": 0.1995,
+    "centroidX": 200.1,
+    "renderScale": 0.451,
     "file": "gojo/crouch_attack_b.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "renderScale",
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      260.5,
-      683.6
+      526.3,
+      391.4
      ]
-    },
-    "edited": {
-     "renderScale": 0.281
-    },
-    "needsReplacement": "pose"
+    }
    },
    "crouch_b": {
-    "w": 639,
-    "h": 1437,
-    "ox": -162.8,
-    "oy": -1126,
-    "bodyBottom": 222.4,
+    "w": 813,
+    "h": 1002,
+    "ox": -249.8,
+    "oy": -691,
+    "bodyBottom": 310.4,
     "bodyH": 403.8,
-    "centroidX": 172.4,
-    "renderScale": 0.1841,
+    "centroidX": 144.1,
+    "renderScale": 0.403,
     "file": "gojo/crouch_b.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "bodyBottom",
+      "renderScale",
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      335.0,
-      592.7
+      394.9,
+      457.5
      ]
-    },
-    "edited": {
-     "renderScale": 0.281,
-     "bodyBottom": 310.4
-    },
-    "needsReplacement": "pose"
+    }
    },
    "dash": {
     "w": 918,
@@ -981,29 +991,33 @@
     "faceLeft": true
    },
    "special_down": {
-    "w": 865,
-    "h": 1416,
-    "ox": -275.8,
-    "oy": -1105,
-    "bodyBottom": 219.4,
+    "w": 939,
+    "h": 1434,
+    "ox": -312.8,
+    "oy": -1123,
+    "bodyBottom": 310.4,
     "bodyH": 397.9,
-    "centroidX": 100.2,
-    "renderScale": 0.1911,
+    "centroidX": 114.3,
+    "renderScale": 0.277,
     "file": "gojo/special_down.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "bodyBottom",
+      "renderScale",
+      "rotationDeg",
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      377.5,
-      582.5
+      428.5,
+      563.2
      ]
-    },
-    "edited": {
-     "renderScale": 0.281,
-     "bodyBottom": 310.4,
-     "rotationDeg": null
-    },
-    "rotationDeg": 5,
-    "needsReplacement": "pose"
+    }
    },
    "special_neutral": {
     "w": 959,
@@ -5692,29 +5706,33 @@
     "rotationDeg": 6
    },
    "crouch_b": {
-    "w": 689,
-    "h": 1419,
-    "ox": -187.8,
-    "oy": -1108,
-    "bodyBottom": 217.4,
-    "bodyH": 320.4,
-    "centroidX": 151.0,
-    "renderScale": 0.2057,
+    "w": 797,
+    "h": 1017,
+    "ox": -241.8,
+    "oy": -706,
+    "bodyBottom": 310.4,
+    "bodyH": 320.7,
+    "centroidX": 160.5,
+    "renderScale": 0.315,
     "file": "mahito/crouch_b.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "bodyBottom",
+      "renderScale",
+      "rotationDeg",
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      340.5,
-      575.5
+      401.5,
+      404.6
      ]
-    },
-    "edited": {
-     "renderScale": 0.226,
-     "bodyBottom": 310.4,
-     "rotationDeg": null
-    },
-    "rotationDeg": 7,
-    "needsReplacement": "pose"
+    }
    },
    "dash": {
     "w": 918,
@@ -11313,23 +11331,30 @@
     }
    },
    "dodge_air": {
-    "w": 711,
-    "h": 852,
-    "ox": -198.8,
-    "oy": -541,
+    "w": 718,
+    "h": 909,
+    "ox": -202.2,
+    "oy": -598,
     "bodyBottom": 310.4,
     "bodyH": 251.3,
-    "centroidX": 196.4,
-    "renderScale": 0.295,
+    "centroidX": 202.6,
+    "renderScale": 0.276,
     "file": "nobara/dodge_air.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      397.1,
-      343.8
+      404.1,
+      366.6
      ]
-    },
-    "needsReplacement": "quality"
+    }
    },
    "dodge_roll": {
     "w": 1257,
@@ -11654,51 +11679,60 @@
     }
    },
    "special_down": {
-    "w": 941,
-    "h": 1177,
-    "ox": -313.8,
-    "oy": -866,
-    "bodyBottom": 174.4,
+    "w": 938,
+    "h": 1373,
+    "ox": -312.2,
+    "oy": -1062,
+    "bodyBottom": 310.4,
     "bodyH": 347.2,
-    "centroidX": 180.3,
-    "renderScale": 0.1932,
+    "centroidX": 128.1,
+    "renderScale": 0.253,
     "file": "nobara/special_down.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "bodyBottom",
+      "renderScale",
+      "rotationDeg",
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      494.9,
-      489.7
+      439.6,
+      544.8
      ]
-    },
-    "edited": {
-     "renderScale": 0.295,
-     "bodyBottom": 310.4,
-     "rotationDeg": null
-    },
-    "rotationDeg": 12.5,
-    "needsReplacement": "pose"
+    }
    },
    "special_neutral": {
-    "w": 806,
-    "h": 1136,
-    "ox": -246.2,
-    "oy": -825,
+    "w": 948,
+    "h": 1289,
+    "ox": -317.2,
+    "oy": -978,
     "bodyBottom": 310.4,
     "bodyH": 335.1,
-    "centroidX": 90.9,
-    "renderScale": 0.2242,
+    "centroidX": 93.5,
+    "renderScale": 0.26,
     "file": "nobara/special_neutral.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "renderScale",
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      339.2,
-      405.9
+      412.3,
+      483.5
      ]
-    },
-    "edited": {
-     "renderScale": 0.295
-    },
-    "needsReplacement": "pose"
+    }
    },
    "special_side": {
     "w": 968,
@@ -12298,23 +12332,30 @@
     "rotationDeg": -5
    },
    "attack_air_a": {
-    "w": 862,
-    "h": 1265,
-    "ox": -274.2,
-    "oy": -954,
+    "w": 975,
+    "h": 944,
+    "ox": -330.8,
+    "oy": -633,
     "bodyBottom": 310.4,
     "bodyH": 368.1,
-    "centroidX": 178.2,
-    "renderScale": 0.291,
+    "centroidX": 54.4,
+    "renderScale": 0.39,
     "file": "maki/attack_air_a.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      452.9,
-      592.1
+      385.6,
+      367.1
      ]
-    },
-    "needsReplacement": "quality"
+    }
    },
    "attack_air_b": {
     "w": 971,
@@ -12357,26 +12398,31 @@
     }
    },
    "attack_heavy_a": {
-    "w": 979,
-    "h": 1291,
-    "ox": -332.8,
-    "oy": -980,
-    "bodyBottom": 166.4,
+    "w": 954,
+    "h": 1005,
+    "ox": -320.2,
+    "oy": -694,
+    "bodyBottom": 310.4,
     "bodyH": 375.7,
-    "centroidX": 88.0,
-    "renderScale": 0.291,
+    "centroidX": 126.6,
+    "renderScale": 0.374,
     "file": "maki/attack_heavy_a.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "bodyBottom",
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      420.3,
-      480.9
+      447.5,
+      384.3
      ]
-    },
-    "edited": {
-     "bodyBottom": 310.4
-    },
-    "needsReplacement": "quality"
+    }
    },
    "attack_heavy_b": {
     "w": 1007,
@@ -12498,50 +12544,60 @@
     "rotationDeg": -8.5
    },
    "crouch_attack_b": {
-    "w": 999,
-    "h": 1009,
-    "ox": -342.8,
-    "oy": -698,
-    "bodyBottom": 268.9,
+    "w": 933,
+    "h": 869,
+    "ox": -309.8,
+    "oy": -558,
+    "bodyBottom": 310.4,
     "bodyH": 293.6,
-    "centroidX": 107.8,
-    "renderScale": 0.2532,
+    "centroidX": 9.9,
+    "renderScale": 0.338,
     "file": "maki/crouch_attack_b.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "bodyBottom",
+      "renderScale",
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      449.9,
-      435.0
+      320.2,
+      371.4
      ]
-    },
-    "edited": {
-     "renderScale": 0.291,
-     "bodyBottom": 310.4
-    },
-    "needsReplacement": "pose"
+    }
    },
    "crouch_b": {
-    "w": 705,
-    "h": 1444,
-    "ox": -195.8,
-    "oy": -1133,
-    "bodyBottom": 232.4,
+    "w": 827,
+    "h": 1018,
+    "ox": -256.8,
+    "oy": -707,
+    "bodyBottom": 310.4,
     "bodyH": 420.2,
-    "centroidX": 167.8,
-    "renderScale": 0.2255,
+    "centroidX": 62.7,
+    "renderScale": 0.413,
     "file": "maki/crouch_b.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "bodyBottom",
+      "renderScale",
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      407.5,
-      676.1
+      320.0,
+      461.3
      ]
-    },
-    "edited": {
-     "renderScale": 0.291,
-     "bodyBottom": 310.4
-    },
-    "needsReplacement": "pose"
+    }
    },
    "dash": {
     "w": 837,
@@ -12656,26 +12712,31 @@
     }
    },
    "ult_b": {
-    "w": 970,
-    "h": 912,
-    "ox": -328.2,
-    "oy": -601,
-    "bodyBottom": 262.4,
+    "w": 1002,
+    "h": 985,
+    "ox": -344.2,
+    "oy": -674,
+    "bodyBottom": 310.4,
     "bodyH": 265.4,
-    "centroidX": 123.6,
-    "renderScale": 0.291,
+    "centroidX": 102.7,
+    "renderScale": 0.269,
     "file": "maki/ult_b.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "bodyBottom",
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      452.3,
-      375.8
+      447.4,
+      403.8
      ]
-    },
-    "edited": {
-     "bodyBottom": 310.4
-    },
-    "needsReplacement": "quality"
+    }
    }
   },
   "inumaki": {
@@ -18511,80 +18572,108 @@
     }
    },
    "attack_air_a": {
-    "w": 855,
-    "h": 997,
-    "ox": -270.8,
-    "oy": -686,
+    "w": 927,
+    "h": 1118,
+    "ox": -306.8,
+    "oy": -807,
     "bodyBottom": 310.4,
-    "bodyH": 248.6,
-    "centroidX": 170.1,
-    "renderScale": 0.249,
+    "bodyH": 248.3,
+    "centroidX": 87.6,
+    "renderScale": 0.222,
     "file": "uro/attack_air_a.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      440.6,
-      423.1
+      395.9,
+      520.8
      ]
-    },
-    "needsReplacement": "character"
+    }
    },
    "attack_air_b": {
-    "w": 895,
-    "h": 814,
-    "ox": -290.8,
-    "oy": -503,
+    "w": 973,
+    "h": 1297,
+    "ox": -329.8,
+    "oy": -986,
     "bodyBottom": 310.4,
-    "bodyH": 202.9,
-    "centroidX": 90.0,
-    "renderScale": 0.249,
+    "bodyH": 202.7,
+    "centroidX": 86.9,
+    "renderScale": 0.156,
     "file": "uro/attack_air_b.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      381.3,
-      374.6
+      417.0,
+      501.4
      ]
-    },
-    "needsReplacement": "character"
+    }
    },
    "attack_heavy_a": {
-    "w": 790,
-    "h": 1202,
-    "ox": -238.2,
-    "oy": -891,
+    "w": 860,
+    "h": 1461,
+    "ox": -273.2,
+    "oy": -1150,
     "bodyBottom": 310.4,
-    "bodyH": 299.7,
-    "centroidX": 119.8,
-    "renderScale": 0.249,
+    "bodyH": 299.3,
+    "centroidX": 132.4,
+    "renderScale": 0.205,
     "file": "uro/attack_heavy_a.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      357.8,
-      406.2
+      405.4,
+      554.4
      ]
-    },
-    "needsReplacement": "character"
+    }
    },
    "attack_heavy_b": {
-    "w": 967,
-    "h": 1394,
-    "ox": -326.8,
-    "oy": -1083,
+    "w": 884,
+    "h": 1440,
+    "ox": -285.2,
+    "oy": -1129,
     "bodyBottom": 310.4,
-    "bodyH": 347.5,
-    "centroidX": 181.9,
-    "renderScale": 0.249,
+    "bodyH": 347.1,
+    "centroidX": 120.4,
+    "renderScale": 0.241,
     "file": "uro/attack_heavy_b.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      509.2,
-      613.7
+      405.4,
+      563.2
      ]
-    },
-    "needsReplacement": "character"
+    }
    }
   },
   "yuji": {
@@ -21031,27 +21120,32 @@
     "rotationDeg": -5
    },
    "crouch_a": {
-    "w": 989,
-    "h": 1234,
-    "ox": -337.8,
-    "oy": -923,
-    "bodyBottom": 200.4,
-    "bodyH": 347.0,
-    "centroidX": 108.1,
-    "renderScale": 0.4313,
+    "w": 770,
+    "h": 992,
+    "ox": -228.2,
+    "oy": -681,
+    "bodyBottom": 310.4,
+    "bodyH": 346.8,
+    "centroidX": 139.2,
+    "renderScale": 0.35,
     "file": "mahoraga/crouch_a.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "bodyBottom",
+      "renderScale",
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      445.5,
-      539.4
+      367.4,
+      439.7
      ]
-    },
-    "edited": {
-     "renderScale": 0.281,
-     "bodyBottom": 310.4
-    },
-    "needsReplacement": "pose"
+    }
    },
    "crouch_attack_a": {
     "w": 848,
@@ -21076,27 +21170,32 @@
     }
    },
    "crouch_attack_b": {
-    "w": 878,
-    "h": 1256,
-    "ox": -282.2,
-    "oy": -945,
-    "bodyBottom": 264.9,
-    "bodyH": 401.0,
-    "centroidX": 150.4,
-    "renderScale": 0.4003,
+    "w": 824,
+    "h": 1043,
+    "ox": -255.2,
+    "oy": -732,
+    "bodyBottom": 310.4,
+    "bodyH": 400.7,
+    "centroidX": 185.5,
+    "renderScale": 0.384,
     "file": "mahoraga/crouch_attack_b.png",
+    "replaced": {
+     "at": "2026-08-09T10:30:46+00:00",
+     "kept": "discard",
+     "how": "import",
+     "lost": [
+      "bodyBottom",
+      "renderScale",
+      "anchors"
+     ]
+    },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      433.7,
-      568.6
+      439.8,
+      447.9
      ]
-    },
-    "edited": {
-     "renderScale": 0.319,
-     "bodyBottom": 310.4
-    },
-    "needsReplacement": "pose"
+    }
    },
    "crouch_b": {
     "w": 1002,
@@ -27381,8 +27480,8 @@
       "renderScale": 0.2255,
       "anchors": {
        "com": [
-        407.5,
-        676.1
+        320.0,
+        461.3
        ]
       },
       "needsReplacement": "pose",
@@ -27511,8 +27610,8 @@
       "renderScale": 0.2532,
       "anchors": {
        "com": [
-        449.9,
-        435.0
+        320.2,
+        371.4
        ]
       },
       "needsReplacement": "pose",
@@ -27924,8 +28023,8 @@
       "renderScale": 0.291,
       "anchors": {
        "com": [
-        452.3,
-        375.8
+        447.4,
+        403.8
        ]
       },
       "needsReplacement": "quality",
@@ -29803,8 +29902,8 @@
       "renderScale": 0.295,
       "anchors": {
        "com": [
-        397.1,
-        343.8
+        404.1,
+        366.6
        ]
       }
      },
@@ -29838,8 +29937,8 @@
       "renderScale": 0.2242,
       "anchors": {
        "com": [
-        339.2,
-        405.9
+        412.3,
+        483.5
        ]
       },
       "needsReplacement": "pose",
@@ -29921,8 +30020,8 @@
       "renderScale": 0.299,
       "anchors": {
        "com": [
-        566.1,
-        270.0
+        525.5,
+        249.3
        ]
       }
      },
@@ -30482,8 +30581,8 @@
       "renderScale": 0.299,
       "anchors": {
        "com": [
-        334.0,
-        586.7
+        323.8,
+        474.6
        ]
       }
      },
@@ -30541,8 +30640,8 @@
       "renderScale": 0.299,
       "anchors": {
        "com": [
-        413.1,
-        587.9
+        371.0,
+        517.5
        ]
       }
      },
@@ -32322,8 +32421,8 @@
       "renderScale": 0.302,
       "anchors": {
        "com": [
-        469.9,
-        375.6
+        406.8,
+        322.7
        ]
       }
      },
@@ -32496,8 +32595,8 @@
       "renderScale": 0.302,
       "anchors": {
        "com": [
-        483.5,
-        617.4
+        474.8,
+        562.7
        ]
       }
      },
