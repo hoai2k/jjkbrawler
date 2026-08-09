@@ -192,6 +192,9 @@ function sharedUsage() {
 
 const HANDLE_R = 7;
 
+/** The "not a request" entry in the replacement menu — see its onchange. */
+const BORROW_OPTION = "__chooseSprite";
+
 const BACKGROUNDS = [
   ["#12151f", "dark"], ["#5c6478", "grey"], ["#f2f4f8", "white"],
   ["#0f7a3d", "green"], ["#ff00ff", "magenta"], ["#7a3d0f", "brown"],
@@ -586,6 +589,47 @@ async function pointPoseAt(charKey, frameKey, file) {
   // pulls the file each pose pointed at when the character loaded.
   await loadFrame(charKey, frameKey, { reload: true });
   syncAll();
+}
+
+/** Draw this pose with another of the character's sprites.
+ *
+ *  The point is a pose the set has no drawing for: a prone body made out of a
+ *  standing one, a lean made out of an idle. The borrowed image arrives as an
+ *  OPTION on this pose, carrying its own copy of the source's placement, and
+ *  every number the panel then edits belongs to that option — so tipping the
+ *  borrowed sprite onto its back does not tip the pose it was borrowed from.
+ *  Two poses drawing one file is already how the sheet works; what is new is
+ *  that they no longer have to agree about how it sits.
+ *
+ *  Not a replacement request: nothing has to be drawn. The pose the art came
+ *  from is untouched, and the flag that opened the picker travels away with
+ *  the drawing it was about, because review flags are banked per option.
+ */
+async function borrowSprite(charKey, frameKey, sourceKey) {
+  const meta = rawMeta(charKey, frameKey);
+  // What the picker drew: the drawing in the game, not a replacement of it
+  // still waiting to be approved. What you clicked is what arrives.
+  const source = frameMeta(charKey, sourceKey);
+  if (!meta || !source?.file || meta.file === source.file) return;
+  pushHistory(charKey, frameKey);
+  remember(charKey, frameKey);
+
+  const entry = ((spriteManifest.variants ??= {})[charKey] ??= {})[frameKey]
+    ??= { options: [] };
+  // The drawing being left has to be an option too, or the pose could not get
+  // back to the art it started with.
+  if (!entry.options.some((o) => o.file === meta.file)) {
+    entry.options.unshift({ ...takeBanked(meta), file: meta.file, label: "Delivered" });
+  }
+  if (!entry.options.some((o) => o.file === source.file)) {
+    entry.options.push({
+      ...takeBanked(source),
+      file: source.file,
+      label: `From ${sourceKey}`,
+      borrowedFrom: sourceKey,
+    });
+  }
+  await chooseVariant(charKey, frameKey, source.file);
 }
 
 async function chooseVariant(charKey, frameKey, file) {
@@ -1719,7 +1763,15 @@ function buildActionRows() {
     const label = frameLabel(state.char, row.frame);
     pick.innerHTML = `${label.name}${label.sub ? `<i>${label.sub}</i>` : ""}`;
     pick.title = "Choose a different sprite for this action";
-    pick.onclick = () => openSpritePicker(row);
+    pick.onclick = () => openSpritePicker({
+      title: `${stateLabel(row.name)} — choose a sprite`,
+      sub: `${actorOf(state.char).name} · currently ${row.frame}`,
+      current: row.frame,
+      onPick: (key) => {
+        setActionFrame(state.char, row.name, row.index, key);
+        previewAction({ ...row, frame: key });
+      },
+    });
 
     el.append(name, pick);
     if (row.overridden) {
@@ -1742,17 +1794,26 @@ function buildActionRows() {
 // one. Right-click enlarges a tile in place, for the cases where a thumbnail is
 // too small to judge.
 
-let pickerRow = null;
-
-function openSpritePicker(row) {
-  pickerRow = row;
+/** Open the grid. `current` is the sprite in use, `onPick` what to do with the
+ *  one chosen; both callers show the same tiles, they just mean different
+ *  things by choosing one. */
+function openSpritePicker({ title, sub, current, onPick }) {
   const modal = $("spritePicker");
   const grid = $("pickerGrid");
-  $("pickerTitle").textContent = `${stateLabel(row.name)} — choose a sprite`;
-  $("pickerSub").textContent = `${actorOf(state.char).name} · currently ${row.frame}`;
+  $("pickerTitle").textContent = title;
+  $("pickerSub").textContent = sub;
   grid.innerHTML = "";
-  for (const key of allFramesOf(state.char)) {
-    grid.appendChild(buildPickerTile(key, row));
+  // Every sprite the character has, nearest first. "Nearest" is the pose's own
+  // family — the crouches when you are on a crouch, the attacks when you are
+  // on an attack — because a pose is nearly always replaced by a neighbour of
+  // itself, and a flat alphabetical grid buries them among forty others.
+  for (const group of groupedSprites(state.char, current)) {
+    if (!group.keys.length) continue;
+    const head = document.createElement("h4");
+    head.className = "picker-head";
+    head.textContent = group.label;
+    grid.appendChild(head);
+    for (const key of group.keys) grid.appendChild(buildPickerTile(key, current, onPick));
   }
   modal.hidden = false;
   closePickerPreview();
@@ -1760,15 +1821,36 @@ function openSpritePicker(row) {
   grid.querySelector(".picker-tile.current")?.scrollIntoView({ block: "center" });
 }
 
+/** The family a sprite key belongs to: everything up to the variant suffix, so
+ *  `attack_light_b` and `attack_light_a` are the same family and `crouch_a` and
+ *  `crouch_attack_b` are neighbours under `crouch`. */
+function spriteFamily(key) {
+  return String(key).split("_")[0];
+}
+
+function groupedSprites(charKey, current) {
+  const family = spriteFamily(current);
+  const near = [], drawn = [], spare = [];
+  for (const key of allFramesOf(charKey)) {
+    if (spriteFamily(key) === family) near.push(key);
+    else if (statesUsing(charKey, key).length) drawn.push(key);
+    else spare.push(key);
+  }
+  return [
+    { label: family ? `Closest — the ${family} sprites` : "Closest", keys: near },
+    { label: "Everything else the game draws", keys: drawn },
+    { label: "Sheet cells nothing draws", keys: spare },
+  ];
+}
+
 function closeSpritePicker() {
-  pickerRow = null;
   $("spritePicker").hidden = true;
   closePickerPreview();
 }
 
-function buildPickerTile(key, row) {
+function buildPickerTile(key, current, onPick) {
   const tile = document.createElement("button");
-  tile.className = "picker-tile" + (key === row.frame ? " current" : "");
+  tile.className = "picker-tile" + (key === current ? " current" : "");
   const label = frameLabel(state.char, key);
   const states = statesUsing(state.char, key);
 
@@ -1786,8 +1868,7 @@ function buildPickerTile(key, row) {
 
   drawTileSprite(cv, key);
   tile.onclick = () => {
-    setActionFrame(state.char, row.name, row.index, key);
-    previewAction({ ...row, frame: key });
+    onPick(key);
     closeSpritePicker();
   };
   tile.oncontextmenu = (e) => { e.preventDefault(); openPickerPreview(key, e.clientX, e.clientY); };
@@ -1798,7 +1879,10 @@ function buildPickerTile(key, row) {
 function drawTileSprite(cv, key) {
   const c = cv.getContext("2d");
   c.clearRect(0, 0, cv.width, cv.height);
-  const meta = rawMeta(state.char, key);
+  // The drawing the GAME uses, numbers and image both. On a pose with a
+  // replacement waiting the two come from different places, and a tile that
+  // measured one against the other cropped the art it was drawing.
+  const meta = frameMeta(state.char, key);
   const img = frameImage(state.char, key);
   if (!meta || !img) {
     c.fillStyle = "rgba(154, 164, 192, 0.5)";
@@ -2970,9 +3054,19 @@ function payloadFor(charKey) {
     payload.variantPlacement = Object.fromEntries(
       [...poses].map((pose) => {
         const entry = variantEntry(charKey, pose);
+        // The drawing on screen has its numbers on the POSE, not on its option
+        // — they are banked when the pose switches away, which has not
+        // happened if you are still looking at it. Bank them here too, or the
+        // export would ship an option that forgets the tuning it was given.
+        const showing = rawMeta(charKey, pose)?.file;
         return [pose, entry ? entry.options.map((o) => ({
           file: o.file,
+          // Provenance, for an option this session created: which pose the
+          // drawing was borrowed from, and the name the chevron shows.
+          ...(o.label ? { label: o.label } : {}),
+          ...(o.borrowedFrom ? { borrowedFrom: o.borrowedFrom } : {}),
           ...takeBanked(o),
+          ...(o.file === showing ? takeBanked(rawMeta(charKey, pose)) : {}),
           // Always present, so clearing a tag exports as clearly as setting one.
           needsReplacement: o.needsReplacement || false,
           // Same reason: approving a held-back replacement is the ABSENCE of
@@ -3290,11 +3384,31 @@ async function boot() {
     o.value = key; o.textContent = label;
     kindSel.appendChild(o);
   }
+  // Not a kind of request — the opposite of one. Every other entry says "draw
+  // this again"; this one says "there is already a drawing for it", and points
+  // the pose at a sprite the character has. It sits in this menu because this
+  // is where you are when you have decided the drawing is wrong.
+  const borrow = document.createElement("option");
+  borrow.value = BORROW_OPTION;
+  borrow.textContent = "Choose new sprite — draw this pose with another of this character's";
+  kindSel.appendChild(borrow);
   // ticking the box asks for the kind currently shown, which defaults to a
   // wholesale replace — the safest ask when nothing more specific is chosen
   $("replaceBox").onchange = (e) =>
     applyNeedsReplacement(e.target.checked ? kindSel.value : null);
-  kindSel.onchange = () => applyNeedsReplacement(kindSel.value);
+  kindSel.onchange = () => {
+    if (kindSel.value !== BORROW_OPTION) return applyNeedsReplacement(kindSel.value);
+    // A menu entry that opens a picker, not a value: put the menu back to what
+    // the pose actually says before anything is chosen, so cancelling leaves
+    // no trace.
+    refreshControls();
+    openSpritePicker({
+      title: `${frameLabel(state.char, state.frame).name} — choose a sprite to draw it with`,
+      sub: `${actorOf(state.char).name} · this pose keeps its own size and placement`,
+      current: state.frame,
+      onPick: (key) => borrowSprite(state.char, state.frame, key),
+    });
+  };
 
   const wantSel = $("improveKind");
   for (const [key, label] of IMPROVEMENT_KINDS) {

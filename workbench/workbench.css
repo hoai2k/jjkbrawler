@@ -996,6 +996,19 @@ button.ghost:disabled { opacity: 0.35; cursor: default; border-color: var(--line
 }
 .picker-panel header .sub { display: block; }
 
+/* A heading spans the grid: the sprites nearest the pose first, then the rest,
+   so the useful ones are on screen without the others being hidden. */
+.picker-head {
+  grid-column: 1 / -1;
+  margin: 6px 0 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--dim);
+  font-weight: 800;
+}
+.picker-head:first-child { margin-top: 0; }
+
 .picker-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));

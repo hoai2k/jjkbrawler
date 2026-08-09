@@ -274,16 +274,28 @@ def main():
         #   variantChoice     mirrors the chosen option onto the pose, which is
         #                     the only thing the game reads.
         for pose, options in (payload.get("variantPlacement") or {}).items():
-            entry = man.setdefault("variants", {}).setdefault(char, {}).get(pose)
-            if entry is None:
-                skipped.append(f"{char}/{pose}: no variants entry to update")
-                continue
+            # Created rather than demanded: a pose earns a variants entry the
+            # moment the workbench points it at another of the character's
+            # sprites, and that is exactly the export that has to be able to
+            # arrive at a pose which never had options before.
+            entry = man.setdefault("variants", {}).setdefault(char, {}).setdefault(
+                pose, {"options": []})
             by_file = {o["file"]: o for o in entry["options"]}
             for opt in options:
                 target = by_file.get(opt["file"])
                 if target is None:
-                    skipped.append(f"{char}/{pose}: {opt['file']} is not an option")
-                    continue
+                    # A drawing borrowed from another pose. It carries its own
+                    # copy of the placement — the whole point of borrowing is
+                    # that this pose sits it differently — so it is added, not
+                    # skipped as an unknown file.
+                    target = {"file": opt["file"]}
+                    if opt.get("label"):
+                        target["label"] = opt["label"]
+                    if opt.get("borrowedFrom"):
+                        target["borrowedFrom"] = opt["borrowedFrom"]
+                    entry["options"].append(target)
+                    by_file[opt["file"]] = target
+                    applied.append(f"{char}/{pose}: {opt['file']} added as an option")
                 for field, value in opt.items():
                     if field == "file":
                         continue
