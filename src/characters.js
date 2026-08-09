@@ -466,7 +466,7 @@ export const CHARACTERS = {
       side: {
         name: "“Don't Move”", type: "projectile", cooldown: 1.5, strain: 1,
         desc: "The word lands and the body obeys — the target locks in place.",
-        p: { speed: 560, vy: -4, r: 36, dur: 0.85, dmg: 6, base: 120, growth: 2.0, angle: 0.3, color: "#b8bdf0", effect: "cursedSpeech", stunBonus: 0.9, label: "DON'T MOVE", sprite: "effect:speech_word", spriteH: 92 },
+        p: { speed: 560, vy: -4, r: 36, dur: 0.85, dmg: 6, base: 120, growth: 2.0, angle: 0.3, color: "#b8bdf0", effect: "cursedSpeech", stunBonus: 0.9, fxElement: "sound", label: "DON'T MOVE", sprite: "effect:speech_word", spriteH: 92 },
       },
       down: {
         name: "“Get Crushed”", type: "crush", cooldown: 2.2, strain: 2,
@@ -595,7 +595,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Wind Scythe", type: "projectile", cooldown: 0.9,
         desc: "A vacuum blade whipped off the broom bristles, sharpened with grit and gravel.",
-        p: { speed: 580, vy: -6, r: 30, dur: 0.85, dmg: 10, base: 330, growth: 6.6, angle: 0.34, color: "#b7b8ff", effect: "gust", count: 2, spread: 120, label: "Wind Scythe", sprite: "effect:wind_scythe", spriteH: 84 },
+        p: { speed: 580, vy: -6, r: 30, dur: 0.85, dmg: 10, base: 330, growth: 6.6, angle: 0.34, color: "#b7b8ff", effect: "gust", count: 2, spread: 120, fxElement: "wind", label: "Wind Scythe", sprite: "effect:wind_scythe", spriteH: 84 },
       },
       side: {
         name: "Broom Charge", type: "dashStrike", cooldown: 1.2,
@@ -746,7 +746,7 @@ export const CHARACTERS = {
       down: {
         name: "Divine Flame: Fuga", type: "projectile", cooldown: 2.3,
         desc: "“Open.” An arrow of divine fire that detonates on arrival.",
-        p: { speed: 520, vy: -30, gravity: 120, r: 40, dur: 1.1, dmg: 16, base: 520, growth: 8.6, angle: 0.5, color: "#ff8c3f", effect: "burn", explode: 90, label: "Fuga", sprite: "effect:fuga", spriteH: 94 },
+        p: { speed: 520, vy: -30, gravity: 120, r: 40, dur: 1.1, dmg: 16, base: 520, growth: 8.6, angle: 0.5, color: "#ff8c3f", effect: "burn", explode: 90, fxElement: "fire", label: "Fuga", sprite: "effect:fuga", spriteH: 94 },
       },
     },
     ultimate: {
@@ -848,7 +848,7 @@ export const CHARACTERS = {
         // Aimed as a fan: the three curses keep their spread perpendicular to
         // whatever direction the stick picks. Steering overrides their homing —
         // if you are flying them, you have decided where they are going.
-        p: { speed: 420, vy: -10, r: 26, dur: 1.1, dmg: 8, base: 280, growth: 5.8, angle: 0.4, color: "#7d58d8", count: 3, spread: 170, homing: 130, effect: "curseDrain", label: "Spirit Volley", spritePool: ["effect:curse_a", "effect:curse_b", "effect:curse_c", "effect:curse_d"], spriteH: 96, steerable: true, steerRate: 4.6 },
+        p: { speed: 420, vy: -10, r: 26, dur: 1.1, dmg: 8, base: 280, growth: 5.8, angle: 0.4, color: "#7d58d8", count: 3, spread: 170, homing: 130, effect: "curseDrain", fxElement: "shadow", label: "Spirit Volley", spritePool: ["effect:curse_a", "effect:curse_b", "effect:curse_c", "effect:curse_d"], spriteH: 96, steerable: true, steerRate: 4.6 },
       },
       side: {
         name: "Rainbow Dragon", type: "summon", cooldown: 8,
@@ -902,7 +902,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Ember Insects", type: "projectile", cooldown: 1.05,
         desc: "A swarm of blazing embers lobbed in an arc, igniting whatever they land on.",
-        p: { speed: 460, vy: -140, gravity: 320, r: 30, dur: 1.15, dmg: 10, base: 360, growth: 6.8, angle: 0.5, color: "#ff7a2f", effect: "burn", count: 2, spread: 130, label: "Embers", sprite: "effect:ember", spriteH: 86 },
+        p: { speed: 460, vy: -140, gravity: 320, r: 30, dur: 1.15, dmg: 10, base: 360, growth: 6.8, angle: 0.5, color: "#ff7a2f", effect: "burn", count: 2, spread: 130, fxElement: "fire", label: "Embers", sprite: "effect:ember", spriteH: 86 },
       },
       side: {
         name: "Lava Geyser", type: "trap", cooldown: 1.9,
@@ -994,12 +994,12 @@ export const CHARACTERS = {
       neutral: {
         name: "Piercing Blood", type: "projectile", cooldown: 1.15,
         desc: "Blood pressurized past the speed of sound — a needle-thin lance across the whole lane. It costs him a little of himself.",
-        p: { speed: 940, vy: 0, r: 18, dur: 0.6, dmg: 12, base: 380, growth: 7.0, angle: 0.28, color: "#c22e4a", pierce: true, bloodCost: 1.5, label: "Piercing Blood", sprite: "effect:piercing_blood", spriteH: 70 },
+        p: { speed: 940, vy: 0, r: 18, dur: 0.6, dmg: 12, base: 380, growth: 7.0, angle: 0.28, color: "#c22e4a", pierce: true, bloodCost: 1.5, fxElement: "blood", label: "Piercing Blood", sprite: "effect:piercing_blood", spriteH: 70 },
       },
       side: {
         name: "Convergence: Blood Meteorite", type: "projectile", cooldown: 1.6,
         desc: "Hardened blood compressed into a dense sphere that detonates on arrival.",
-        p: { speed: 520, vy: -20, gravity: 80, r: 34, dur: 1.0, dmg: 15, base: 470, growth: 7.8, angle: 0.5, color: "#a01f38", explode: 85, bloodCost: 2, label: "Blood Meteorite", sprite: "effect:blood_orb", spriteH: 88 },
+        p: { speed: 520, vy: -20, gravity: 80, r: 34, dur: 1.0, dmg: 15, base: 470, growth: 7.8, angle: 0.5, color: "#a01f38", explode: 85, bloodCost: 2, fxElement: "blood", label: "Blood Meteorite", sprite: "effect:blood_orb", spriteH: 88 },
       },
       down: {
         name: "Flowing Red Scale", type: "install", cooldown: 6.5,
@@ -1033,7 +1033,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Crow Scout", type: "projectile", cooldown: 1.0,
         desc: "A shikigami crow dives on command, wheeling after the target.",
-        p: { speed: 470, vy: -30, r: 26, dur: 1.2, dmg: 9, base: 320, growth: 6.2, angle: 0.4, color: "#d8b95c", homing: 150, label: "Crow", sprite: "effect:crow", spriteH: 84 },
+        p: { speed: 470, vy: -30, r: 26, dur: 1.2, dmg: 9, base: 320, growth: 6.2, angle: 0.4, color: "#d8b95c", homing: 150, fxElement: "feather", label: "Crow", sprite: "effect:crow", spriteH: 84 },
       },
       side: {
         name: "Axe Rush", type: "dashStrike", cooldown: 1.35,
@@ -1196,7 +1196,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Power Chord", type: "projectile", cooldown: 1.1,
         desc: "One downstroke — cursed energy rides the riff out as a crushing wall of sound.",
-        p: { speed: 500, vy: 0, r: 40, dur: 0.8, dmg: 11, base: 380, growth: 6.8, angle: 0.36, color: "#d89b3f", pierce: true, ampable: true, label: "Power Chord", sprite: "effect:sound_wave", spriteH: 120 },
+        p: { speed: 500, vy: 0, r: 40, dur: 0.8, dmg: 11, base: 380, growth: 6.8, angle: 0.36, color: "#d89b3f", pierce: true, ampable: true, fxElement: "sound", label: "Power Chord", sprite: "effect:sound_wave", spriteH: 120 },
       },
       side: {
         name: "Feedback Wall", type: "trap", cooldown: 1.9,

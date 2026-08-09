@@ -46,6 +46,25 @@ export const ELEMENT_PALETTES = {
   smoke:  ["rgba(120,126,140,0.55)", "rgba(84,88,100,0.45)", "rgba(50,52,62,0.3)"],
 };
 
+// --------------------------------------------------------- projectile trails
+//
+// Every projectile drags a fading comet tail of its own colour, sampled from
+// where it has actually been (so an arcing or steered shot's tail bends with
+// it), and an element-tagged one sheds matching particles in flight.
+export const PROJ_TRAIL = {
+  enabled: true,
+  step: 0.02,   // seconds between tail samples
+  len: 7,       // samples kept — tail length is roughly step * len of travel
+  alpha: 0.34,  // opacity at the head of the tail (fades to 0 at the tip)
+  width: 0.6,   // head width as a fraction of the projectile's radius
+};
+
+// Particles per second shed in flight, per fxElement tag. Anything not listed
+// (or 0) sheds nothing — the trail alone carries it.
+export const PROJ_EMIT = {
+  fire: 30, blood: 22, feather: 10, wind: 16, sound: 5, shadow: 16, soul: 12,
+};
+
 // --------------------------------------------------------------- dash strike
 //
 // The twelve side-specials that share `dashStrike` used to spawn ten dust
