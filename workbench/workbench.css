@@ -62,32 +62,119 @@ body {
   gap: 16px;
   padding: 16px;
   align-items: start;
+  /* One row, exactly the height of the layout: the viewer column stretches into
+     it and fits its canvas to what is left, while the panel stays content-tall
+     (align-items: start) and scrolls only when it outgrows the row. */
+  grid-template-rows: 100%;
   flex: 1;
   min-height: 0;      /* lets the columns, not the page, own the overflow */
   overflow: hidden;
 }
 
-.stage-col,
 .panel {
   max-height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;   /* a column at its end doesn't scroll the page */
 }
 
+/* The viewer column never scrolls. Its controls are a fixed amount of chrome,
+   so the canvas is what gives: it takes whatever height the rows below leave
+   and shrinks to fit, rather than pushing them out of the column and handing
+   the whole thing a scrollbar. */
+.stage-col {
+  height: 100%;
+  min-height: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
 /* ---------------- stage ---------------- */
 
-.stage-wrap { position: relative; }
+/* Two boxes, because the canvas has to be centred *and* the frame tag has to
+   sit on its corner: .stage-fit takes the height the controls leave, and
+   .stage-wrap shrink-wraps the canvas inside it so the tag's corner is the
+   canvas's corner. The wrapper is positioned out of flow so that the canvas
+   contributes nothing to the height of the box that sizes it — the scaling
+   itself is arithmetic, in fit_stage.js. */
+.stage-fit {
+  flex: 0 0 auto;          /* its height is measured and written by fit_stage.js */
+  min-height: 0;
+  position: relative;
+}
+.stage-wrap {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
 
 #stage {
-  /* No max-width: the viewer takes the whole column up to the panel. The
-     left-hand comparison slot is what benefits — it used to be squeezed against
-     the edge of a 760px box while the column beside it sat empty. */
-  width: 100%;
+  /* No fixed width: the viewer takes the column up to the panel. The left-hand
+     comparison slot is what benefits — it used to be squeezed against the edge
+     of a 760px box while the column beside it sat empty. The CSS size is
+     written by fitStageCanvas(). */
   border: 1px solid var(--line);
   border-radius: 12px;
   display: block;
   image-rendering: auto;
 }
+
+/* ---------------- scrollbars ---------------- */
+
+/* The panel is the one column that still scrolls, so its scrollbar is part of
+   the UI rather than an accident of it: an inset, rounded thumb on a track the
+   same colour as the panel, and no arrow buttons. */
+.panel,
+.pose-list,
+.actions-panel,
+.picker-grid,
+.drawer,
+textarea {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(130, 150, 205, 0.34) transparent;
+}
+.panel::-webkit-scrollbar,
+.pose-list::-webkit-scrollbar,
+.actions-panel::-webkit-scrollbar,
+.picker-grid::-webkit-scrollbar,
+.drawer::-webkit-scrollbar,
+textarea::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.panel::-webkit-scrollbar-track,
+.pose-list::-webkit-scrollbar-track,
+.actions-panel::-webkit-scrollbar-track,
+.picker-grid::-webkit-scrollbar-track,
+.drawer::-webkit-scrollbar-track,
+textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+.panel::-webkit-scrollbar-thumb,
+.pose-list::-webkit-scrollbar-thumb,
+.actions-panel::-webkit-scrollbar-thumb,
+.picker-grid::-webkit-scrollbar-thumb,
+.drawer::-webkit-scrollbar-thumb,
+textarea::-webkit-scrollbar-thumb {
+  background: rgba(130, 150, 205, 0.34);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+.panel::-webkit-scrollbar-thumb:hover,
+.pose-list::-webkit-scrollbar-thumb:hover,
+.actions-panel::-webkit-scrollbar-thumb:hover,
+.picker-grid::-webkit-scrollbar-thumb:hover,
+.drawer::-webkit-scrollbar-thumb:hover,
+textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(160, 190, 245, 0.55);
+  background-clip: content-box;
+}
+.panel::-webkit-scrollbar-corner,
+.picker-grid::-webkit-scrollbar-corner { background: transparent; }
 
 .frame-tag {
   position: absolute;
@@ -105,6 +192,8 @@ body {
 .frame-tag .flag { color: var(--warn); font-weight: 700; }
 
 .row { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 12px; }
+/* the column spaces its own children with `gap` */
+.stage-col > .row { margin-top: 0; }
 
 .swatches { display: flex; gap: 6px; }
 .swatches button {
@@ -498,6 +587,13 @@ button.ghost:hover { border-color: var(--accent); }
   body { height: auto; overflow: visible; }
   .layout { grid-template-columns: 1fr; overflow: visible; }
   .stage-col, .panel { max-height: none; overflow-y: visible; }
+  .stage-col { overflow: visible; }
+  /* Stacked, the canvas has the page's height to grow into, so it goes back to
+     filling the width rather than fitting into a column that no longer bounds it. */
+  .stage-fit { position: static; }
+  .stage-wrap { position: relative; left: auto; transform: none; }
+  #stage, #aStage { width: 100% !important; height: auto !important; }
+  .layout { grid-auto-rows: auto; }
 }
 
 .history { display: flex; gap: 6px; margin-left: 18px; }
@@ -521,8 +617,7 @@ button.ghost:hover { border-color: var(--accent); }
 /* ---------------- action workbench ---------------- */
 
 #aStage {
-  width: 100%;
-  max-width: 760px;
+  /* sized by fitStageCanvas(), like the sprite viewer */
   border: 1px solid var(--line);
   border-radius: 12px;
   display: block;
@@ -532,6 +627,7 @@ button.ghost:hover { border-color: var(--accent); }
 .dim { color: var(--dim); }
 
 .transport { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.stage-col > .transport { margin-top: 0; }
 .transport .timeline { flex: 1; }
 
 .timeline {
