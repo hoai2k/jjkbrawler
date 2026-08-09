@@ -322,6 +322,48 @@ PENDING_DIR = "incoming"
 LIVE_FIELDS = VARIANT_BANKED + ["file", "oy"]
 
 
+def pose_files(man, char, key):
+    """Every file this pose already points at: its own, the drawing the game is
+    showing if one is held back, and every drawing banked on its variants."""
+    used = set()
+    meta = man.get("characters", {}).get(char, {}).get(key) or {}
+    if meta.get("file"):
+        used.add(meta["file"])
+    live = (meta.get("awaitingApproval") or {}).get("live") or {}
+    if live.get("file"):
+        used.add(live["file"])
+    entry = man.get("variants", {}).get(char, {}).get(key) or {}
+    for opt in entry.get("options", []):
+        if opt.get("file"):
+            used.add(opt["file"])
+    return used
+
+
+def free_pending_path(man, char, key):
+    """A pending path for this pose that collides with nothing it already has.
+
+    `incoming/<key>.png` was a fixed name, on the assumption that a pose has at
+    most one replacement waiting. It does — but the file OUTLIVES the wait: an
+    approved drawing keeps living at the path it was delivered to, because
+    approving is a change of pointer, not a move. So the second delivery for a
+    pose whose first was approved copied straight over the drawing that was in
+    the game, leaving `awaitingApproval.live` naming a path that no longer held
+    the live art, and both sides of the comparison showing the same picture.
+    Rejecting would then have "restored" the new drawing.
+
+    So the name is chosen against what the pose actually references, not against
+    what is on disk: an orphaned file left by an earlier round is fine to reuse,
+    a file some option still names is not.
+    """
+    used = pose_files(man, char, key)
+    for n in range(1, 100):
+        rel = f"{char}/{PENDING_DIR}/{key}.png" if n == 1 \
+            else f"{char}/{PENDING_DIR}/{key}-{n}.png"
+        if rel not in used:
+            return rel
+    raise RuntimeError(f"{char}/{key}: 99 pending drawings, something is wrong")
+
+
 def hold_for_approval(man, char, key, src, meta, stored, at):
     """Land a replacement without letting it into the game yet.
 
@@ -344,7 +386,7 @@ def hold_for_approval(man, char, key, src, meta, stored, at):
     against and nothing to break, so it goes straight in.
     """
     live = {f: stored[f] for f in LIVE_FIELDS if f in stored}
-    rel = f"{char}/{PENDING_DIR}/{key}.png"
+    rel = free_pending_path(man, char, key)
     os.makedirs(os.path.join(SPRITES, char, PENDING_DIR), exist_ok=True)
     shutil.copy2(src, os.path.join(SPRITES, rel))
 
