@@ -186,9 +186,18 @@ now, or open the domain instead. Nobody gets both off one bar.
 | Silence | Toji | Specials sealed for 3 s |
 | Gust | Momo | Extra pushback and lift |
 | Armor | Panda, installs | No hitstun/knockback from hits (damage still counts) |
+| Drench | Dagon *(staged)* | Soaked: movement down to 84%, and Dagon's own hits land 15% harder on a soaked target |
+| Infest | Kurourushi *(staged)* | Cursed eggs hatch in the wound: % ticks that stack up to three generations, and every tick heals Kurourushi |
+| Blind | Kurourushi *(staged)* | Eyes fouled: −12% damage dealt, and dodge invincibility halved |
 
 Maki's Heavenly Restriction makes her **immune** to burn, snare, soul marks,
-and cursed speech — a body with no cursed energy to curse.
+and cursed speech — a body with no cursed energy to curse. Choso is immune to
+bleed and poison; Dagon cannot be soaked and Kurourushi cannot be infested or
+blinded, which only ever comes up in a mirror match.
+
+The three marked *(staged)* belong to fighters who are built but not on the
+select screen yet (see [characters.md](characters.md#staged--built-not-shipped)),
+so nothing in a match today applies them.
 
 ## 6. Stages & camera
 

@@ -45,6 +45,13 @@ const GRUNT_GROUPS = {
   panda: "gruntAnimal", mahito: "gruntAnimal",
   hakari: "gruntBig", todo: "gruntBig", sukuna: "gruntBig",
   choso: "gruntBig", gakuganji: "gruntBig",
+  // Staged (round 15). Assigned now, from the groups that already exist, so a
+  // promoted fighter is not mute for a round — an unlisted key is silence, and
+  // silence is the one bug here nobody notices until somebody says "why does
+  // Dagon not make a sound". Kokichi is a seventeen-year-old speaking through
+  // a puppet, so he takes the young-male group like the other students.
+  mechamaru: "gruntYoungMale", yuki: "gruntFemale",
+  dagon: "gruntMonster", kurourushi: "gruntMonster",
 };
 
 // The KO cry that matches each voice group.

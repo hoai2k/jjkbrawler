@@ -9,6 +9,7 @@ import { clamp, sign, rand } from "./utils.js";
 import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox, ownerStick } from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
 import { applyInstall } from "./specials.js";
+import { spawnSummon } from "./summons.js";
 import { TRANSFORMS, TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "./config_transform.js";
 import { frameMeta } from "./assets.js";
 import { playSfx, playGrunt } from "./audio.js";
@@ -1237,5 +1238,224 @@ const DIRECTORS = {
         ctx.restore();
       },
     });
+  },
+
+  // Mechamaru — Mode: Absolute. Seventeen years, five months and six days of
+  // banked cursed energy spent in one sequence: the tracking volley (Pigeon
+  // Viola) to take away the ground, then the three-barrel Ultimate Cannon.
+  //
+  // The charge is deliberately long and deliberately visible. Everything he
+  // saved is going into it, and the opponent gets to see it coming — which is
+  // exactly how the fight with Mahito went.
+  cannonade(f, p) {
+    const charge = p.charge ?? 0.7;
+    beginUltAction(f, charge + 0.9);
+    state.entities.push({
+      owner: f, t: 0, dead: false, volleyed: false, fired: false,
+      update(dt) {
+        this.t += dt;
+        if (!this.volleyed && this.t >= charge) {
+          this.volleyed = true;
+          // Pigeon Viola: five orbs that follow until they meet something.
+          for (let i = 0; i < p.orbs; i++) {
+            spawnProjectile(f, {
+              speed: 460, ox: 54, oy: -150 + i * 34, r: 22, dur: 1.9,
+              dmg: p.orbDmg, base: p.orbBase, growth: p.orbGrowth, angle: 0.4,
+              color: p.color, homing: 190, fxElement: "machine",
+              label: "Pigeon Viola", sprite: p.orbSprite, spriteH: p.orbSpriteH || 64,
+            });
+          }
+          playSfx("blast", 0.7, 1.3);
+        }
+        if (!this.fired && this.t >= charge + 0.45) {
+          this.fired = true;
+          spawnProjectile(f, {
+            speed: 940, ox: 96, oy: -100, r: (p.width || 170) / 2, dur: p.duration || 1.2,
+            dmg: p.dmg, base: p.base, growth: p.growth, angle: 0.36,
+            color: p.color, pierce: true, unblockable: true, clearsProjectiles: true,
+            fxElement: "machine", fxRing: 8,
+            label: "ULTIMATE CANNON", sprite: p.sprite, spriteH: p.spriteH,
+          });
+          playSfx("blast", 1, 0.55);
+          state.camera.shake = Math.max(state.camera.shake, 16);
+          state.slowMo = Math.max(state.slowMo, 0.22);
+          state.screenFlash = { color: p.color, life: 0.26, maxLife: 0.26 };
+        }
+        if (this.t > charge + 0.9) this.dead = true;
+      },
+      draw(ctx) {
+        if (this.t >= charge + 0.45) return;
+        // the barrels spooling up: three cores converging on the muzzle line
+        const g = Math.min(1, this.t / (charge + 0.45));
+        const cx = f.x + f.facing * 92;
+        const cy = f.y - 100;
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        for (let i = 0; i < 3; i++) {
+          const a = (i / 3) * Math.PI * 2 + this.t * 7;
+          const rr = (1 - g) * 70;
+          const x = cx + Math.cos(a) * rr;
+          const y = cy + Math.sin(a) * rr * 0.6;
+          const grad = ctx.createRadialGradient(x, y, 2, x, y, 16 + g * 22);
+          grad.addColorStop(0, "#ffffff");
+          grad.addColorStop(0.5, p.color);
+          grad.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(x, y, 16 + g * 22, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      },
+    });
+  },
+
+  // Yuki — Star Rage: Maximum Mass. One blow, with as much virtual mass behind
+  // it as she can hold. The wind-up is the whole move: land it and the fight is
+  // over, whiff it and everybody watched her wind up for nothing.
+  massDrive(f, p) {
+    const charge = p.charge ?? 0.65;
+    beginUltAction(f, charge + 0.7);
+    state.entities.push({
+      owner: f, t: 0, dead: false, struck: false,
+      update(dt) {
+        this.t += dt;
+        if (this.struck) { if (this.t > charge + 0.7) this.dead = true; return; }
+        if (this.t < charge) return;
+        this.struck = true;
+        const ix = f.x + f.facing * 150;
+        const iy = f.y - 100;
+        playSfx("blast", 1, 0.5);
+        state.camera.shake = Math.max(state.camera.shake, 20);
+        state.slowMo = Math.max(state.slowMo, 0.28);
+        state.screenFlash = { color: p.color, life: 0.3, maxLife: 0.3 };
+        burst(ix, iy, p.color, 60, 2.2);
+        ring(ix, iy, "#ffffff", p.radius);
+        for (const t of state.fighters) {
+          if (t === f || t.dead || t.respawnTimer > 0) continue;
+          const inCore = circleRectOverlap(ix, iy, p.radius, hurtbox(t));
+          const inWave = circleRectOverlap(f.x, f.y - 90, p.shockwave, hurtbox(t));
+          if (!inCore && !inWave) continue;
+          // The core is the fist. The shockwave is the mass arriving after it,
+          // and it is deliberately survivable — being near her is not the same
+          // as being hit by her.
+          applyHit(f, t, {
+            dmg: inCore ? p.dmg : p.dmg * 0.35,
+            baseKb: inCore ? p.base : p.base * 0.4,
+            growth: inCore ? p.growth : p.growth * 0.5,
+            angle: 0.45, label: p.label || "BOMBAYE", sfx: "blast",
+            unblockable: inCore, heavy: true,
+          }, "script");
+        }
+      },
+      draw(ctx) {
+        const img = p.sprite ? getImage(p.sprite) : null;
+        if (this.struck) {
+          if (!img) return;
+          const fade = Math.max(0, 1 - (this.t - charge) / 0.5);
+          const h = (p.spriteH || 280) * (1 + (1 - fade) * 0.5);
+          const w = img.width * h / img.height;
+          ctx.save();
+          ctx.globalAlpha = fade;
+          ctx.translate(f.x + f.facing * 150, f.y - 100);
+          ctx.scale(f.facing > 0 ? -1 : 1, 1);
+          ctx.drawImage(img, -w / 2, -h / 2, w, h);
+          ctx.restore();
+          return;
+        }
+        // mass gathering at the fist: a dense core that gets heavier, not bigger
+        const g = this.t / charge;
+        const cx = f.x + f.facing * 70;
+        const cy = f.y - 110;
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        const grad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 30 + g * 26);
+        grad.addColorStop(0, "#ffffff");
+        grad.addColorStop(0.35, p.color);
+        grad.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 30 + g * 26, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      },
+    });
+  },
+
+  // Dagon — Death Swarm. Shikigami without end, thrown at one target until
+  // there is nothing left to throw them at. Outside his domain they have to
+  // travel, so they home rather than simply arriving — the sure-hit version is
+  // what the domain buys him (domains.js).
+  deathSwarm(f, p) {
+    beginUltAction(f, 0.8);
+    state.entities.push({
+      owner: f, t: 0, fired: 0, dead: false, gap: 0,
+      update(dt) {
+        this.t += dt;
+        this.gap -= dt;
+        if (this.gap > 0) return;
+        this.gap = p.gap;
+        const last = this.fired >= p.volleys;
+        spawnProjectile(f, {
+          speed: last ? 620 : 520,
+          ox: 60, oy: -140 + (this.fired % 4) * 40,
+          r: last ? 46 : 26, dur: 2.0,
+          dmg: last ? p.finalDmg : p.dmg,
+          base: last ? p.finalBase : p.base,
+          growth: p.growth, angle: 0.42,
+          color: p.color, homing: p.homing, fxElement: "water",
+          effect: "drench", unblockable: last, heavy: last,
+          label: last ? "DEATH SWARM" : "Shikigami",
+          sprite: p.sprite, spriteH: last ? (p.spriteH || 90) * 1.8 : p.spriteH,
+        });
+        playSfx("whoosh", last ? 1 : 0.4, last ? 0.6 : 1.4);
+        if (last) {
+          state.camera.shake = Math.max(state.camera.shake, 12);
+          this.dead = true;
+        }
+        this.fired += 1;
+      },
+      draw(ctx) {
+        // the water he is drawing them out of, boiling at his feet
+        const g = state.platforms[0]?.y ?? 568;
+        ctx.save();
+        ctx.globalAlpha = 0.45;
+        ctx.fillStyle = p.color;
+        for (let i = 0; i < 5; i++) {
+          const x = f.x + Math.sin(this.t * 6 + i * 1.3) * 60;
+          const h = 16 + 20 * Math.abs(Math.sin(this.t * 8 + i));
+          ctx.beginPath();
+          ctx.ellipse(x, g - h * 0.4, 22, h, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      },
+    });
+  },
+
+  // Kurourushi — Parthenogenesis. It does not power up: it REPRODUCES. The
+  // offspring fight beside it, and while the brood is out the appetite runs
+  // hot (installs.lifesteal, read by feedHunger in combat.js), so every bite
+  // anywhere on the stage puts the parent back together.
+  parthenogenesis(f, p, ult) {
+    beginUltAction(f, 0.9);
+    const ok = applyInstall(f, {
+      t: p.duration, label: p.label || ult.name, color: p.color,
+      lifesteal: p.lifesteal, dmgMul: p.dmgMul, aura: p.aura,
+    }, 2);
+    if (!ok) return;
+    banner(p.label || ult.name, p.color, { y: 250, size: 40, life: 1.2 });
+    for (let i = 0; i < (p.brood || 2); i++) {
+      spawnSummon(f, {
+        ...p.offspring,
+        label: ult.name,
+        duration: p.duration,
+        backOff: 70 + i * 60,
+        firstAttackDelay: 0.4 + i * 0.35,
+      });
+    }
+    ring(f.x, f.y - 90, p.color, 200);
+    burst(f.x, f.y - 90, p.color, 40, 1.5);
+    playSfx("blast", 0.9, 0.8);
   },
 };

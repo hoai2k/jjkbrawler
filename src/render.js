@@ -454,7 +454,9 @@ function drawFighters(ctx) {
     if (f.shielding) drawShieldBubble(ctx, f);
     if (f.dizzy > 0) drawDizzyStars(ctx, f);
     if (f.counter) drawCounterAura(ctx, f);
+    if (f.simpleDomain) drawSimpleDomain(ctx, f);
     if (f.statuses.nailMarks > 0) drawNailMarks(ctx, f);
+    if (f.statuses.blind > 0) drawBlindSplatter(ctx, f);
     drawShieldMeter(ctx, f);
   }
 }
@@ -589,6 +591,57 @@ function drawCounterAura(ctx, f) {
   ctx.beginPath();
   ctx.arc(f.x, f.y - 70, 62, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.restore();
+}
+
+// New Shadow Style: Simple Domain. Drawn as what it is: a circle on the floor
+// with a hard rim, not an aura — the technique is a boundary, and the player
+// needs to read where it ends. Wider and steadier than the counter shimmer it
+// sits under, so the two do not read as one effect.
+function drawSimpleDomain(ctx, f) {
+  const { radius, color } = f.simpleDomain;
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.ellipse(f.x, f.y - 6, radius, radius * 0.3, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  // the standing wall, faint, so the circle reads as a volume
+  ctx.globalAlpha = 0.22;
+  ctx.beginPath();
+  ctx.ellipse(f.x, f.y - 110, radius, radius * 1.1, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  // ticks around the rim, turning slowly — the technique is holding, not idling
+  ctx.globalAlpha = 0.5;
+  ctx.lineWidth = 3;
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + state.matchTime * 0.9;
+    const x = f.x + Math.cos(a) * radius;
+    const y = f.y - 6 + Math.sin(a) * radius * 0.3;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, y - 14);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// Earthen Insect Trance: the sacs burst over the eyes. Drawn on the VICTIM
+// rather than over the screen — four players share one screen, so a full-screen
+// blind would blind everybody, and this has to read as "they cannot see" to the
+// other player too.
+function drawBlindSplatter(ctx, f) {
+  ctx.save();
+  ctx.globalAlpha = 0.6 * Math.min(1, f.statuses.blind);
+  ctx.fillStyle = "#4a2b1c";
+  for (let i = 0; i < 5; i++) {
+    const a = i * 1.7 + Math.floor(state.matchTime * 3) * 0.6;
+    ctx.beginPath();
+    ctx.ellipse(f.x - 22 + i * 11, f.y - 150 + Math.sin(a) * 4,
+                7 + (i % 3) * 3, 5 + (i % 2) * 3, a, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.restore();
 }
 

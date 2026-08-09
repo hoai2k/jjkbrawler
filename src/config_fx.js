@@ -30,6 +30,18 @@ export const HIT_RECIPES = {
   sound:  { rings: 2, streaks: 7 },
   shadow: { smoke: 7, burst: 10 },
   soul:   { ripple: 1, smoke: 6 },
+  // Round 15 — the four staged fighters.
+  // Dagon generates water out of nothing, so a hit throws spray and a ring of
+  // surge rather than a glow.
+  water:  { droplets: 14, spray: 8, rings: 1 },
+  // Mechamaru is a cursed corpse with cannons in it: metal glints and sparks
+  // like `steel`, plus the vented steam a machine working past its rating puts
+  // out. Not the same element as steel — he DOES have cursed energy, and the
+  // cannon shots keep their colour.
+  machine: { glints: 8, sparks: 6, smoke: 4 },
+  // Kurourushi's hits are always partly the roaches: specks that scatter and
+  // crawl, over a dark chitinous burst.
+  swarm:  { specks: 14, smoke: 4, burst: 8 },
 };
 
 // Colour ramps per element. A particle with a ramp walks it over its life —
@@ -44,6 +56,9 @@ export const ELEMENT_PALETTES = {
   shadow: ["#3a3f68", "#20244a", "#101228"],
   soul:   ["#d9d2f2", "#a99ede", "#7f74b8"],
   smoke:  ["rgba(120,126,140,0.55)", "rgba(84,88,100,0.45)", "rgba(50,52,62,0.3)"],
+  water:  ["#eaf7ff", "#7fc9ec", "#2f8fd8", "#17537f"],
+  steam:  ["rgba(214,224,232,0.5)", "rgba(160,174,188,0.38)", "rgba(96,108,120,0.22)"],
+  swarm:  ["#5a2f38", "#3b1d26", "#1a0e12"],
 };
 
 // --------------------------------------------------------- projectile trails
@@ -63,6 +78,7 @@ export const PROJ_TRAIL = {
 // (or 0) sheds nothing — the trail alone carries it.
 export const PROJ_EMIT = {
   fire: 30, blood: 22, feather: 10, wind: 16, sound: 5, shadow: 16, soul: 12,
+  water: 26, machine: 14, swarm: 20,
 };
 
 // ------------------------------------------------------ per-character extras

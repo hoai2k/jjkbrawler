@@ -51,12 +51,16 @@ export function makeFighter(id, charKey, x, facing) {
     airT: 0, shieldDownSince: -10,
     action: null, charging: null, jabStep: 0, jabResetT: 0,
     counter: null, reflect: null, healing: null, installs: null, armorT: 0,
+    // New Shadow Style: Simple Domain — the anti-domain circle Mechamaru and
+    // Yuki both carry. Null unless one is held; domains.js asks about it before
+    // a sure-hit effect lands (see simpleDomainActive).
+    simpleDomain: null,
     // Set while an ultimate has this fighter wearing another actor's sprite set
     // (config_transform.js); null means "draw my own body".
     spriteChar: null,
     cooldowns: { neutral: 0, side: 0, down: 0 },
     throatStrain: 0, throatLock: 0,
-    statuses: { burn: null, bleed: null, poison: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 },
+    statuses: freshStatuses(),
     ledge: null, ledgeCooldown: 0, ledgeTimer: 0,
     respawnTimer: 0, dead: false,
     cpuDamageMul: 0,
@@ -74,14 +78,30 @@ export function makeFighter(id, charKey, x, facing) {
   };
 }
 
+/** A clean status block. Needed in two places — at spawn and on respawn — so
+ *  the shape lives here rather than in two literals that have to be kept
+ *  identical by hand every time a status is added. */
+function freshStatuses() {
+  return {
+    burn: null, bleed: null, poison: null, infest: null,
+    snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0,
+    drench: 0, blind: 0,
+  };
+}
+
 function stats(f) {
   return f.char.stats;
 }
 
 function speedMul(f) {
   let m = 1;
-  if (f.statuses.snare > 0) m *= 0.6;
-  if (f.statuses.poison) m *= 0.85;
+  // Star Rage adds mass without weight, so nothing that drags at a body drags
+  // at Yuki: she carries a hundred tonnes and a snare at the same speed.
+  const unslowable = f.char.passive.id === "virtualMass";
+  if (f.statuses.snare > 0 && !unslowable) m *= 0.6;
+  if (f.statuses.poison && !unslowable) m *= 0.85;
+  // Waterlogged: Dagon's soaking is a movement tax, not damage.
+  if (f.statuses.drench > 0 && !unslowable) m *= 0.84;
   if (f.installs && f.installs.speedMul) m *= f.installs.speedMul;
   return m;
 }
@@ -189,7 +209,10 @@ function beginDodge(f, type, dir = 0) {
   f.lastDodgeAt = now;
 
   const staleMul = 1 - f.dodgeStale * 0.25;
-  const iframeMul = (f.char.passive.id === "heavenlyVoid" ? 1.25 : 1) * staleMul;
+  // Blinded (Earthen Insect Trance): the dodge still happens, it is just timed
+  // against a shape rather than a fighter — half the invincibility.
+  const blindMul = f.statuses.blind > 0 ? 0.5 : 1;
+  const iframeMul = (f.char.passive.id === "heavenlyVoid" ? 1.25 : 1) * staleMul * blindMul;
 
   if (type === "roll") {
     beginAction(f, "dodge", ROLL_TIME, dodgeAnim(f, "dodge_roll"), { lockMovement: true, keepMomentum: true });
@@ -359,7 +382,8 @@ export function ringOut(f) {
   if (state.domain && state.domain.owner === f) state.domain = null;
 
   f.action = null; f.charging = null; f.counter = null; f.reflect = null; f.healing = null;
-  f.installs = null; f.spriteChar = null; f.hitstun = 0; f.statuses = { burn: null, bleed: null, poison: null, snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0 };
+  f.simpleDomain = null;
+  f.installs = null; f.spriteChar = null; f.hitstun = 0; f.statuses = freshStatuses();
   f.vx = 0; f.vy = 0; f.ledge = null; f.dizzy = 0; f.prone = 0; f.armorT = 0;
   f.spin = 0; f.spinAngle = 0; f.trail.length = 0;
 
@@ -469,6 +493,10 @@ export function updateFighter(f, dt, input) {
   if (f.reflect) {
     f.reflect.t -= dt;
     if (f.reflect.t <= 0) f.reflect = null;
+  }
+  if (f.simpleDomain) {
+    f.simpleDomain.t -= dt;
+    if (f.simpleDomain.t <= 0) f.simpleDomain = null;
   }
   if (f.healing) {
     f.healing.t -= dt;
