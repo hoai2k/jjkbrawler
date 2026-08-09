@@ -4,7 +4,7 @@ Everything in this file is **outstanding**. Delivered rounds are recorded in
 [asset-requests-history.md](asset-requests-history.md) — including the round
 numbers, so a commit or code comment citing "round 5 art" still resolves.
 
-**Current status: rounds 1–11 delivered, and 18 of round 12A's 33 workbench
+**Current status: rounds 1–11 delivered, and 29 of round 12A's 33 workbench
 catches. Round 12 is the only open round.**
 
 The roster is complete and **every fighter now has one sprite per action** —
@@ -12,7 +12,7 @@ round 11 finished the conversion that round 5 started, so the 4×5 sprite sheet
 is retired and no action anywhere plays a grid cell. Nothing outstanding blocks
 play.
 
-Round 12 has three parts: fifteen fix-up poses caught while placing the
+Round 12 has three parts: four fix-up poses caught while placing the
 delivered sets in the sprite workbench, the **four-frame run cycle** for the
 whole roster — the redesign that retires the two-frame run — and the
 knocked-flat **`prone` pose** the new knockdown mechanic simulates until it is
@@ -222,17 +222,17 @@ drawn against.
 
 Three parts; any can be delivered on its own.
 
-- **12A** — fifteen workbench catches: poses that have to be drawn again (15 sprites)
+- **12A** — four workbench catches: poses that have to be drawn again (4 sprites)
 - **12B** — the four-frame run cycle, roster-wide (96 sprites)
 - **12C** — a `prone` pose, knocked flat on their back, roster-wide (24 sprites)
 
-**135 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
+**124 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
 is what makes the roster finally *run* instead of vibrating between two nearly
 identical poses. 12C is the one the engine is already simulating without art.
 
 ---
 
-## 12A. Workbench catches — 15 sprites
+## 12A. Workbench catches — 4 sprites
 
 Everything here came out of placing the delivered semantic sets in the sprite
 workbench: seen at their real size and standing on the real ground line,
@@ -240,10 +240,10 @@ thirty-three poses turned out to be wrong. Round 11 is closed, so nothing here i
 covered by another round — every fighter listed has a finished set, and these
 are faults in it.
 
-**Eighteen of the thirty-three are delivered** — Gojo's three, Mahito's crouch,
-Mahoraga's two, Maki's five, Nobara's three and Uro's four came back in the
-first 12A delivery and are integrated. The fifteen below are what is left. The
-delivered briefs are in
+**Twenty-nine of the thirty-three are delivered**, in two batches: Gojo's three,
+Mahito's crouch, Mahoraga's two, Maki's five, Nobara's three and Uro's four,
+then Gakuganji's four, Reggie's four and Toji's three. Megumi's two and Momo's
+two are what is left. The delivered briefs are in
 [asset-requests-history.md](asset-requests-history.md#round-12a--the-first-workbench-catches--18-sprites-across-6-fighters).
 
 **Everything in this section has to be drawn again.** That is what the section
@@ -261,56 +261,27 @@ different things from the redraw:
 - **`pose` — the drawing is fine, but it is not the action.** A crouch that is
   not crouched, a strike that does not travel the way the move travels. Keep
   the character, the costume and the finish; change the body.
-- **`character` — it is not the right person.** Eight sprites still outstanding
-  came back as somebody else. See "The two that keep coming back wrong".
+- **`character` — it is not the right person.** Twelve sprites came back as
+  somebody else across two rounds — Uro's, Gakuganji's and Reggie's. All twelve
+  are now delivered on-model, and none of the four below is a `character`
+  fault; the account is in
+  [asset-requests-history.md](asset-requests-history.md#the-three-that-kept-coming-back-wrong).
 
 A third fault runs through several of them and is worth naming on its own,
 because it is not obvious from the drawing: **the art paints in something the
 game spawns for itself.** See "Do not draw the technique" below.
 
-**The seven crouches that were not crouched are all delivered** — they were the
+**The crouches that were not crouched are all delivered** — seven of them, the
 bulk of the first 12A batch. One is left, `momo/crouch_attack_b`, plus
 `reggie/crouch_attack_b` carried over from 11D: see the note under the table,
 which is still the test to draw against.
 
 | Fighter | Key | Pose | Kind | Ask |
 |---|---|---|---|---|
-| Yoshinobu Gakuganji | `gakuganji` | `attack_air_a` `attack_air_b` `attack_heavy_a` `attack_heavy_b` | Character | The white haori and purple hakama are gone |
-| Reggie Star | `reggie` | `attack_air_a` `attack_air_b` `attack_heavy_a` `attack_heavy_b` | Character | A dark-haired man in a brocade waistcoat |
-| Toji Fushiguro | `toji` | `attack_air_b` | Quality | The grip on the blade does not read |
-| Toji Fushiguro | `toji` | `special_down` | Quality | The Inventory Curse is a flat ragged purple wash |
-| Toji Fushiguro | `toji` | `special_neutral` | Pose | The chain is painted in, and the engine fires its own |
 | Megumi Fushiguro | `megumi` | `special_neutral` | Pose | Nue is painted in; the engine already flies its own |
 | Megumi Fushiguro | `megumi` | `special_down` | Pose | The shadow pool is painted in; the engine draws that too |
 | Momo Nishimiya | `momo` | `attack_light_b` | Pose | The follow-up pulls the broom away from the target |
 | Momo Nishimiya | `momo` | `crouch_attack_b` | Pose | The follow-through stands up out of the crouch |
-
-### The two that keep coming back wrong
-
-Round 11C delivered wind-up/strike pairs for six fighters. Choso, Mei Mei and
-Yuji came back on-model. **Uro, Gakuganji and Reggie came back as different
-people** — all four of each fighter's pairs, twelve sprites.
-
-Those three are exactly the three round **9E** existed to fix, for exactly this
-reason. Whatever reference is being reached for when they are drawn is still the
-pre-9E one, and it has now cost two rounds.
-
-**Uro is fixed.** Her four came back on-model in the first 12A delivery —
-lavender hair, cloud garment, barefoot — drawn against `uro_idle.png` and
-nothing else, which is the whole of the instruction below. Gakuganji and Reggie
-are the eight still outstanding.
-
-| Fighter | Canon says | The 11C pairs drew |
-|---|---|---|
-| Yoshinobu Gakuganji | White haori over black, purple hakama, red flying-V guitar | A plain black robe, no haori, no hakama, black guitar |
-| Reggie Star | Blond, white receipt tunic, bare arms and legs, barefoot | A dark-haired man in a black coat and gold brocade waistcoat |
-
-**Draw these two from `assets/reference/canon/<char>_idle.png` and from
-nothing else.** Not the character block, not an earlier sprite, not a wiki
-search — the `_idle.png` files are the delivered 9E art and carry the design,
-the figure scale, the line weight and the palette the rest of each set already
-has. If the drawing in front of you does not match that image, it is the wrong
-character no matter how good it looks.
 
 ### Do not draw the technique
 
@@ -320,16 +291,15 @@ spawned by the engine from that fighter's kit, composited at its own size and
 animated on its own clock. When the art paints it in as well, the player sees it
 twice, at two sizes, moving two different ways.
 
-It has now come up three times. `nobara/special_neutral` is the one that has
-been answered — the delivered art draws the cast with the nails left to the
-engine, and it is the reference for the four below:
+It has now come up three times. Three of the five are answered —
+`nobara/special_neutral` draws the cast with the nails left to `effect:nail`,
+and Toji's two came back with the chain and the purple wash gone. They are the
+reference for Megumi's two, which are what is left:
 
 | Pose | Painted in | What the engine already spawns |
 |---|---|---|
 | `megumi/special_neutral` | Nue, the shadow bird | `summon:nue` — steerable, 132 px tall, flown by the player |
 | `megumi/special_down` | the shadow pool he sinks into | a burst in his shadow colour, both ends of the teleport |
-| `toji/special_neutral` | the chain, thrown out ahead of him | `effect:chain` at 900 px/s, 82 px tall, piercing |
-| `toji/special_down` | a purple wash at his shoulder | `summon:inventory_curse` — a creature that hovers and supports for six seconds |
 
 Megumi's are the clearest case, because **Nue is a creature the player flies.**
 The neutral special launches him and the right stick steers him across the
@@ -382,9 +352,9 @@ through the shaft, or close on empty air beside it, or the shaft bends through
 the fist as though it were rope. `attack_heavy_a` had both — the lead hand never
 closed, and the naginata kinked where it crossed her chest.
 
-Her three are delivered. `attack_heavy_b` remains the reference: two hands, both
-closed, the shaft dead straight through them. Draw the grip first and the pose
-around it — `toji/attack_air_b` is this round's remaining instance.
+Her three are delivered, and so is `toji/attack_air_b`, the round's other
+instance. `attack_heavy_b` remains the reference: two hands, both closed, the
+shaft dead straight through them. Draw the grip first and the pose around it.
 
 ### The crouch keeps coming back standing
 

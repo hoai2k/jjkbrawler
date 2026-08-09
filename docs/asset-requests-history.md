@@ -21,7 +21,7 @@ why the numbering is not strictly chronological.
 | 9 | Cards, technique frames, domains, stage props, three redrawn fighters, Mahito's re-key, Mahoraga (166 assets) | Delivered |
 | 10 | One sprite per action for the sheet-era fighters — Gojo, Mahito, Nobara, Yuta (72 sprites) | Delivered in part; the rest is round 11 |
 | 11 | Mahoraga redrawn from canon, the semantic sets finished for the last 13 fighters, wind-up/strike pairs for the round-7 six (280 sprites) | Delivered — **every fighter now has one sprite per action** |
-| 12A | Workbench catches: poses that failed once placed at real size (33 sprites) | Delivered in part — 18 in, 15 still open in [asset-requests.md](asset-requests.md) |
+| 12A | Workbench catches: poses that failed once placed at real size (33 sprites) | Delivered in part — 29 in across two batches, 4 still open in [asset-requests.md](asset-requests.md) |
 
 ---
 
@@ -762,3 +762,45 @@ magenta `#FF00FF`; Nobara is a warm palette, so hers keyed on mid-grey
 `assets/reference/canon/mahito_idle.png` and
 `assets/reference/canon/nobara_idle.png`. The raw plates for all eighteen are
 archived at `assets/reference/round12/`.
+
+---
+
+## Round 12A, second batch — 11 sprites across 3 fighters
+
+The eleven that followed the first eighteen: Gakuganji's four, Reggie's four and
+Toji's three. That leaves four of 12A open — Megumi's two and Momo's two — in
+[asset-requests.md](asset-requests.md).
+
+| Fighter | Poses | Kind | What was wrong |
+|---|---|---|---|
+| Yoshinobu Gakuganji | `attack_air_a` `attack_air_b` `attack_heavy_a` `attack_heavy_b` | Character | A plain black robe — the white haori and purple hakama were gone, the flying-V black instead of red |
+| Reggie Star | `attack_air_a` `attack_air_b` `attack_heavy_a` `attack_heavy_b` | Character | A dark-haired man in a black coat and gold brocade waistcoat |
+| Toji Fushiguro | `attack_air_b` | Quality | The grip on the blade did not read |
+| Toji Fushiguro | `special_down` | Quality | The Inventory Curse was a flat ragged purple wash |
+| Toji Fushiguro | `special_neutral` | Pose | The chain was painted in, and the engine fires its own |
+
+All eleven replaced their drawing outright and rolled back the hand tuning that
+had compensated for it, the same `discard` path the first batch took.
+
+### The three that kept coming back wrong
+
+Rounds **9E** and **11C** both existed partly to fix the same three characters,
+and 11C came back with all three wrong again — Uro, Gakuganji and Reggie, all
+four wind-up/strike pairs each, twelve sprites. **12A closed it.** Uro landed in
+the first batch, Gakuganji and Reggie in the second, all twelve on-model:
+
+| Fighter | Canon says | What 11C had drawn |
+|---|---|---|
+| Takako Uro | Lavender hair swept upward, pale-blue cloud garment, barefoot | A dark-green bob and a white-and-purple bodysuit with trainers |
+| Yoshinobu Gakuganji | White haori over black, purple hakama, red flying-V guitar | A plain black robe, no haori, no hakama, black guitar |
+| Reggie Star | Blond, white receipt tunic, bare arms and legs, barefoot | A dark-haired man in a black coat and gold brocade waistcoat |
+
+What finally worked is worth keeping, because it is the instruction that had
+been failing: **draw them from `assets/reference/canon/<char>_idle.png` and from
+nothing else** — not the character block, not an earlier sprite, not a wiki
+search. Those files are the delivered 9E art and carry the design, the figure
+scale, the line weight and the palette the rest of each set already has. If the
+drawing does not match that image, it is the wrong character no matter how good
+it looks.
+
+The raw plates are archived at `assets/reference/round12/`.
