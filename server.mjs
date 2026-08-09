@@ -19,6 +19,7 @@ const TYPES = {
   ".mp3": "audio/mpeg",
   ".wav": "audio/wav",
   ".ico": "image/x-icon",
+  ".webmanifest": "application/manifest+json",
 };
 
 createServer(async (req, res) => {
