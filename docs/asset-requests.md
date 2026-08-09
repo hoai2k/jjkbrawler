@@ -11,13 +11,12 @@ is waiting to be approved. Rounds 15, 16 and 17 are open.**
 anything found from here goes into 17 rather than growing a round somebody is
 already working from.
 
-Round 13's forty-one poses and **38 of round 14's 41** are in the repo but not
-all in the game — both landed through the
-[approval step](../assets/intake/README.md#the-confirm-step), so each pose is a
-decision waiting in the sprite workbench. Delivery and approval are separate
-things now, and this file tracks the first. **48 poses are sitting in that
-queue**, which makes the approval pass the largest outstanding item here, and it
-is reviewing work rather than drawing work.
+Round 13's forty-one poses and **38 of round 14's 41** landed through the
+[approval step](../assets/intake/README.md#the-confirm-step), so a delivery is
+in the repo before it is in the game and each pose is a decision waiting in the
+sprite workbench. Most of round 13 has been settled; **41 poses are still in
+that queue**, 38 of them round 14's. That makes the approval pass the largest
+outstanding item here, and it is reviewing work rather than drawing work.
 
 **Hanami is drawn as the wrong character**, in all 39 of his sprites and on his
 hero card — the same fault 9E fixed for Gakuganji, Reggie and Uro. That was
@@ -636,8 +635,26 @@ fighter with short range:
 
 - `attack_heavy_b` must put the weapon or fist **further forward than anything
   in that fighter's own `idle_a` by at least a third of their standing height**.
+- `attack_light_b` is the same rule at a shorter reach: it must extend past
+  `idle_a`, because a light attack that stays inside the idle silhouette has no
+  range at all. This is 13C in one line, and it is the single most
+  re-requested fault on the roster.
 - `crouch_a`/`crouch_b` must drop the head **by at least a quarter** of standing
   height. Not a fighting stance — a crouch.
+- `idle_a` must be a **plain, square-on standing stance** — arms in, weapon
+  held close, nothing spread. Hurtbox *width* is measured off the idle, so a
+  cape thrown wide or a three-quarter turn is not a style choice here: it makes
+  that fighter easier or harder to hit than the numbers intend. That is
+  [14B](#14b-a-consistent-idle-stance--20-sprites), open for twenty existing
+  fighters, and these four are the chance not to join it.
+
+**Framing counts double on these four.** The [delivery
+spec](#delivery-spec) says nothing may touch the canvas edge, and an extended
+weapon is exactly what breaks that rule — round 13 delivered a Yuta
+`crouch_attack_b` whose blade ran off the right of the plate, which no amount of
+placement recovers and which is re-requested in
+[17C](#17c-caught-while-placing-round-13--2-sprites). A pose that extends needs
+the margin drawn for it, not the figure enlarged until the reach falls off.
 
 ### What each fighter is holding, and what their poses are of
 
@@ -956,20 +973,21 @@ already drawing against.
 
 - **17A** — a full Hanami set (39 sprites)
 - **17B** — Mahoraga's three light/crouch poses, redrawn (3 sprites)
-- **17C** — a simplified card for every fighter (27 images, **new art, nothing replaced**)
-- **17D** — Hanami's hero card, redrawn to canon (1 image)
+- **17C** — two caught while placing round 13 (2 sprites)
+- **17D** — a simplified card for every fighter (27 images, **new art, nothing replaced**)
+- **17E** — Hanami's hero card, redrawn to canon (1 image)
 
-**42 sprites and 28 card images.** None of it is blocking — every pose named
-here has art in the game today, each is a redraw rather than a gap, and 17C
+**44 sprites and 28 card images.** None of it is blocking — every pose named
+here has art in the game today, each is a redraw rather than a gap, and 17D
 lands in a directory the game does not read yet.
 
-**17A and 17D are two halves of one job**, and it is bigger than this round was
+**17A and 17E are two halves of one job**, and it is bigger than this round was
 first written for. Hanami is not a patchwork set that needs tidying: he is drawn
 as the **wrong character** in every sprite and on his card, the same fault 9E
 fixed for Gakuganji, Reggie and Uro. Read 17A's ⚠ before drawing any of it —
-including his tile in 17C — because the design authority for him changed.
+including his tile in 17D — because the design authority for him changed.
 
-17D is the only thing in this round with an order to it: a hero card is one file
+17E is the only thing in this round with an order to it: a hero card is one file
 with no variant mechanism and no approval step, so it changes what a player sees
 the moment it lands.
 
@@ -1084,9 +1102,28 @@ fails silently when they do not. Round 11A only worked because that round's own
 prose happened to spell the headdress out. He has a block now, at the top of
 this file, and it names the wheel in bold. **A redraw here must carry it.**
 
+## 17C. Caught while placing round 13 — 2 sprites
+
+| Fighter | Key | Pose | Kind | What is wrong |
+|---|---|---|---|---|
+| Yuta Okkotsu | `yuta` | `crouch_attack_b` | Quality | **The blade runs off the right edge of the plate**, so the sword ends in mid-air. Re-draw with the reach inside the frame. |
+| Takako Uro | `uro` | `crouch_b` | Character | "Costume doesn't match canon" — check against `assets/reference/canon/uro_idle.png`, the design the rest of her set was drawn from. Her `prone` carries the same note in [14C](#14c-caught-while-placing-rounds-12-and-13--5-sprites). |
+
+Yuta's was first filed as a **crop** — a file fault, fixable in the repo without
+anybody redrawing anything — and it is worth saying why it is not. The delivered
+plate `assets/reference/round13/yuta/crouch_attack_b.png` is cut the same way as
+the keyed sprite: the blade leaves the canvas in the original, so there is
+nothing for a re-key to recover. That is the difference the two flags exist to
+draw, and the only way to tell them apart is to open the plate.
+
+It is also a straight breach of the [delivery spec](#delivery-spec) — *full body
+inside the frame with margin on all four sides, nothing may touch the canvas
+edge* — and the failure mode is specific to poses that extend: the figure is
+drawn to fill the canvas and the reach is what falls off. Round 15A now says so
+where the four new sets are asked for.
 ---
 
-## 17C. A simplified card for every fighter — 27 images
+## 17D. A simplified card for every fighter — 27 images
 
 ### Why
 
@@ -1246,7 +1283,7 @@ manifest entry — so landing these is a move and nothing else.
 
 ---
 
-## 17D. Hanami's hero card, redrawn to canon — 1 image
+## 17E. Hanami's hero card, redrawn to canon — 1 image
 
 ### Why
 
@@ -1254,7 +1291,7 @@ manifest entry — so landing these is a move and nothing else.
 bark-and-vine giant lit through a forest canopy, a glowing lotus in one hand —
 and it is the same wrong design as every one of his sprites.
 [17A](#17a-a-full-hanami-set--39-sprites) replaces the sprites and
-[17C](#17c-a-simplified-card-for-every-fighter--27-images) draws his tile from
+[17D](#17d-a-simplified-card-for-every-fighter--27-images) draws his tile from
 canon; without this the card is the last place in the game still showing the old
 character, and it is the **largest** place — the hero panel on the select screen
 and the portrait in the match HUD both draw it at full size.
