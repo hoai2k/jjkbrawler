@@ -582,21 +582,21 @@ two together makes the blocking ones wait behind the wish list.
 
 Three parts; any can be delivered on its own.
 
-- **12A** — fifteen workbench catches: poses that are wrong on the art or wrong as the action (15 sprites)
+- **12A** — seventeen workbench catches: poses that are wrong on the art or wrong as the action (17 sprites)
 - **12B** — the four-frame run cycle, roster-wide (92 sprites)
 - **12C** — a `prone` pose, knocked flat on their back, roster-wide (23 sprites)
 
-**130 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
+**132 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
 is what makes the roster finally *run* instead of vibrating between two nearly
 identical poses. 12C is the one the engine is already simulating without art.
 
 ---
 
-## 12A. Workbench catches — 15 sprites
+## 12A. Workbench catches — 17 sprites
 
 Everything here came out of placing the delivered semantic sets in the sprite
-workbench: seen at their real size and standing on the real ground line, fifteen
-poses turned out to be wrong — some as drawings, some as the action they stand
+workbench: seen at their real size and standing on the real ground line,
+seventeen poses turned out to be wrong — some as drawings, some as the action they stand
 for. Nothing in this round is in round 11; every fighter listed here has a
 finished set, so 11B and 11C do not cover them.
 
@@ -607,6 +607,10 @@ Two kinds of fault, and they want different things from a redraw:
 - **The drawing is fine, the pose is not the action.** A crouch that is not
   crouched, a strike that does not travel the way the move travels. These are
   `pose` — keep the character, the costume and the finish, change the body.
+
+A third fault runs through several of them and is worth naming on its own,
+because it is not obvious from the drawing: **the art paints in something the
+game spawns for itself.** See "Do not draw the technique" below.
 
 **Six of the ten are a crouch that is not crouched**, across five different
 fighters and two separate delivery rounds. Whatever the pose line says today, it
@@ -629,6 +633,42 @@ is not reading as "get low": see the note under the table.
 | Maki Zen'in | `maki` | `ult_b` | **Replace** | Hands and weapon are malformed |
 | Maki Zen'in | `maki` | `crouch_b` | Pose | Not low enough — barely below `crouch_a` |
 | Maki Zen'in | `maki` | `crouch_attack_b` | Pose | The follow-through does not travel toward the attack |
+| Megumi Fushiguro | `megumi` | `special_neutral` | Pose | Nue is painted in; the engine already flies its own |
+| Megumi Fushiguro | `megumi` | `special_down` | Pose | The shadow pool is painted in; the engine draws that too |
+
+### Do not draw the technique
+
+A fighter's sprite is the **body performing the move**. Everything the technique
+puts on screen — the projectile, the summon, the pool, the shockwave — is
+spawned by the engine from that fighter's kit, composited at its own size and
+animated on its own clock. When the art paints it in as well, the player sees it
+twice, at two sizes, moving two different ways.
+
+It has now come up three times:
+
+| Pose | Painted in | What the engine already spawns |
+|---|---|---|
+| `nobara/special_neutral` | cursed nails in flight | `effect:nail`, two per cast |
+| `megumi/special_neutral` | Nue, the shadow bird | `summon:nue` — steerable, 132 px tall, flown by the player |
+| `megumi/special_down` | the shadow pool he sinks into | a burst in his shadow colour, both ends of the teleport |
+
+Megumi's are the clearest case, because **Nue is a creature the player flies.**
+The neutral special launches him and the right stick steers him across the
+arena; a second Nue fixed to Megumi's hip goes nowhere and reads as a glitch the
+moment the real one leaves.
+
+So for any technique pose: draw the **cast** — the stance, the hands, the gather
+of cursed energy at the point it leaves the body — and stop there. Energy
+forming at the palm is the body; a bird in flight is not. Where a fighter's
+technique is *inseparable* from the pose (Maki's naginata, Momo's broom — the
+thing they are holding), that stays; the test is whether the game spawns its own
+copy.
+
+**`megumi/special_side` is very likely a third instance** and is not flagged
+yet. Two black hounds are painted at his feet, and Divine Dogs spawns two real
+ones (`summon:divine_dog_black`, `summon:divine_dog_white`, `maxActive: 2`) that
+chase the opponent for six seconds — so a cast puts four dogs on screen, two of
+which never move. Worth a look in the workbench before this round is drawn.
 
 ### Hands on a weapon
 
