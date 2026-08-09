@@ -73,6 +73,47 @@ for (let i = 0; i < SECONDS * 10; i++) {
   samples.push(s);
   await page.waitForTimeout(100);
 }
+
+/** Plant a fighter on the floor and hit them, once weakly and once hard. */
+async function probe() {
+  return page.evaluate(async () => {
+    const { state } = await import("/src/state.js");
+    const { applyHit } = await import("/src/combat.js");
+    const [a, b] = state.fighters;
+    // BOTH fighters get reset, not just the victim. applyHit refuses outright
+    // if the attacker is dead or respawning, and after fifty seconds of match
+    // one of them usually is — which returns "ignored", leaves the victim
+    // untouched, and reads exactly like a victim who correctly stayed on the
+    // floor. The returned verdict is asserted below for the same reason.
+    const plant = () => {
+      for (const f of [a, b]) {
+        f.dead = false; f.respawnTimer = 0; f.invuln = 0; f.hitstun = 0;
+        f.grounded = true; f.vx = 0; f.vy = 0; f.shielding = false;
+        f.prone = 0; f.counter = null; f.armorT = 0; f.installs = null;
+        f.input = null; f.recentMoves = [];   // no staling: hits at face value
+      }
+      b.damage = 0;
+      a.x = b.x - 80;
+    };
+    plant();
+    // A down-tilt-shaped poke: low angle, low knockback. Must not lift them.
+    const weak = applyHit(a, b,
+      { dmg: 4, baseKb: 120, growth: 3, angle: 0.14, sfx: "punch" }, "melee");
+    const weakStayedDown = weak === "hit" && b.grounded === true && b.vx !== 0;
+    const weakVx = b.vx;
+    plant();
+    // And a smash-shaped one, which must.
+    const strong = applyHit(a, b,
+      { dmg: 18, baseKb: 460, growth: 8, angle: 0.5, sfx: "punch" }, "melee");
+    return {
+      weak, strong, weakStayedDown, weakVx,
+      strongLaunched: strong === "hit" && b.grounded === false && b.vy < 0,
+      strongVy: b.vy,
+    };
+  });
+}
+
+const layeredResult = await probe();
 await browser.close();
 
 // ------------------------------------------------------------------ checks
@@ -128,16 +169,22 @@ check("hurtboxes come off each fighter's own art", offenders.length === 0,
 check("the 64x108 roster-wide box is retired", !samples.some((s) =>
   s.fighters.some((f) => Math.round(f.box.w) === 64 && Math.round(f.box.h) === 108)));
 
-// The grounded layer: with the flat launch pop gone, weak hits have to leave
-// the victim on the floor. If every hit still launched, this would never fire.
-const groundedHitstun = samples.some((s) =>
-  s.fighters.some((f) => f.hitstun > 0 && f.grounded));
-check("weak hits keep the victim grounded", groundedHitstun,
-  groundedHitstun ? "" : "every hit launched — GROUND_RELEASE is not biting");
-
-// And strong ones still launch.
-const launched = samples.some((s) => s.fighters.some((f) => f.hitstun > 0 && !f.grounded));
-check("strong hits still launch", launched);
+// The grounded layer, driven rather than observed.
+//
+// A weak grounded hit leaves the victim sliding for a fraction of a second, and
+// waiting for a CPU match to happen to produce one and happen to be sampled
+// mid-slide is a coin toss — it passed four runs and failed the fifth against
+// identical code. So the probe below hits a planted fighter directly, twice,
+// and reads the result: once with a low-angle poke too weak to lift anyone, and
+// once with a launcher.
+const layered = layeredResult;
+check("weak hits keep the victim grounded", layered.weakStayedDown,
+  layered.weakStayedDown ? `slid at ${Math.round(layered.weakVx)} px/s`
+    : `applyHit returned "${layered.weak}", vx ${Math.round(layered.weakVx)}, `
+      + "so either the hit was refused or GROUND_RELEASE is not biting");
+check("strong hits still launch", layered.strongLaunched,
+  layered.strongLaunched ? `launched at ${Math.round(-layered.strongVy)} px/s`
+    : `applyHit returned "${layered.strong}", vy ${Math.round(layered.strongVy)}`);
 
 console.log(`\n${samples.length} samples over ${samples.at(-1).t.toFixed(1)}s of match time`);
 console.log(failed ? `${failed} check(s) failed` : "all checks passed");
