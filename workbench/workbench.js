@@ -1049,13 +1049,22 @@ function altCompare() {
     };
   }
   const others = poseVariants(state.char, state.frame).filter((o) => o.file !== meta.file);
-  const newest = others[others.length - 1];
-  if (!newest) return null;
+  if (!others.length) return null;
+  // The drawing this pose most recently displaced, if there is one. Approving
+  // must not change what the comparison shows: the question is still "what was
+  // here before", and after a yes the answer is the drawing that just lost.
+  // Only when nothing has been superseded does this fall back to the newest
+  // alternate on offer.
+  const superseded = others
+    .filter((o) => o.supersededAt)
+    .sort((a, b) => String(a.supersededAt).localeCompare(String(b.supersededAt)));
+  const pick = superseded[superseded.length - 1] || others[others.length - 1];
   return {
-    meta: poseView(newest),
-    img: spriteFileImage(newest.file),
-    file: newest.file,
-    caption: newest.label ? `alternate: ${newest.label}` : "alternate",
+    meta: poseView(pick),
+    img: spriteFileImage(pick.file),
+    file: pick.file,
+    caption: pick.supersededAt ? "the drawing this replaced"
+      : pick.label ? `alternate: ${pick.label}` : "alternate",
   };
 }
 
