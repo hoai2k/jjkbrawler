@@ -9856,17 +9856,21 @@
     "h": 1016,
     "ox": -38.8,
     "oy": -693,
-    "bodyBottom": 310,
+    "bodyBottom": 249.5,
     "bodyH": 282.0,
     "centroidX": 145.5,
-    "renderScale": 0.285,
+    "renderScale": 0.3092,
     "anchors": {
      "com": [
-      185.9,
-      440.8
+      209.5,
+      387.9
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.285,
+     "bodyBottom": 310
+    }
    },
    "idle_b": {
     "file": "yuta/idle_b.png",
@@ -9874,17 +9878,21 @@
     "h": 1016,
     "ox": -57.8,
     "oy": -693,
-    "bodyBottom": 310,
+    "bodyBottom": 263.5,
     "bodyH": 282.0,
     "centroidX": 149.1,
-    "renderScale": 0.285,
+    "renderScale": 0.3035,
     "anchors": {
      "com": [
       208.7,
       440.6
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.285,
+     "bodyBottom": 310
+    }
    },
    "jump_rise": {
     "file": "yuta/jump_rise.png",
@@ -9895,14 +9903,17 @@
     "bodyBottom": 310,
     "bodyH": 254.5,
     "centroidX": 120.2,
-    "renderScale": 0.258,
+    "renderScale": 0.2206,
     "anchors": {
      "com": [
       326.0,
       401.3
      ]
     },
-    "bodyTop": 14
+    "bodyTop": 14,
+    "edited": {
+     "renderScale": 0.258
+    }
    },
    "fall": {
     "file": "yuta/fall.png",
@@ -9928,17 +9939,21 @@
     "h": 1016,
     "ox": -136.2,
     "oy": -693,
-    "bodyBottom": 310,
+    "bodyBottom": 263.5,
     "bodyH": 226.9,
     "centroidX": 147.6,
-    "renderScale": 0.229,
+    "renderScale": 0.2633,
     "anchors": {
      "com": [
       283.4,
       417.1
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.229,
+     "bodyBottom": 310
+    }
    },
    "guard": {
     "file": "yuta/guard.png",
@@ -9946,17 +9961,21 @@
     "h": 1016,
     "ox": -125.8,
     "oy": -694,
-    "bodyBottom": 310,
+    "bodyBottom": 260,
     "bodyH": 247.9,
     "centroidX": 185.7,
-    "renderScale": 0.25,
+    "renderScale": 0.275,
     "anchors": {
      "com": [
       312.1,
       437.2
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 310
+    }
    },
    "attack_up": {
     "file": "yuta/attack_up.png",
@@ -9964,17 +9983,21 @@
     "h": 1016,
     "ox": -165.2,
     "oy": -693,
-    "bodyBottom": 310,
+    "bodyBottom": 290.5,
     "bodyH": 341.5,
     "centroidX": 173.9,
-    "renderScale": 0.345,
+    "renderScale": 0.3812,
     "anchors": {
      "com": [
       338.1,
       550.2
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.345,
+     "bodyBottom": 310
+    }
    },
    "attack_air": {
     "file": "yuta/attack_air.png",
@@ -9998,19 +10021,24 @@
     "file": "yuta/charge.png",
     "w": 840,
     "h": 1016,
-    "ox": -263.2,
+    "ox": -236.7,
     "oy": -691,
-    "bodyBottom": 310,
+    "bodyBottom": 249.5,
     "bodyH": 247.9,
     "centroidX": 100.3,
-    "renderScale": 0.251,
+    "renderScale": 0.2485,
     "anchors": {
      "com": [
       363.4,
       414.1
      ]
     },
-    "bodyTop": 15
+    "bodyTop": 15,
+    "edited": {
+     "renderScale": 0.251,
+     "ox": -263.2,
+     "bodyBottom": 310
+    }
    },
    "dizzy": {
     "file": "yuta/dizzy.png",
@@ -10018,7 +10046,7 @@
     "h": 1016,
     "ox": -111.8,
     "oy": -693,
-    "bodyBottom": 310,
+    "bodyBottom": 283.5,
     "bodyH": 275.4,
     "centroidX": 135.3,
     "renderScale": 0.278,
@@ -10028,7 +10056,10 @@
       436.8
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "bodyBottom": 310
+    }
    },
    "victory": {
     "file": "yuta/victory.png",
@@ -10036,17 +10067,21 @@
     "h": 1016,
     "ox": -105.2,
     "oy": -694,
-    "bodyBottom": 310,
+    "bodyBottom": 259.5,
     "bodyH": 282.0,
     "centroidX": 147.3,
-    "renderScale": 0.284,
+    "renderScale": 0.3053,
     "anchors": {
      "com": [
       254.5,
       399.0
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.284,
+     "bodyBottom": 310
+    }
    },
    "ledge_hang": {
     "file": "yuta/ledge_hang.png",
@@ -10057,7 +10092,7 @@
     "bodyBottom": 310,
     "bodyH": 324.3,
     "centroidX": 118.6,
-    "renderScale": 0.327,
+    "renderScale": 0.4006,
     "anchors": {
      "com": [
       102.0,
@@ -10068,7 +10103,10 @@
       50.3
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.327
+    }
    },
    "run_a": {
     "file": "yuta/run_a.png",
@@ -10079,14 +10117,17 @@
     "bodyBottom": 310,
     "bodyH": 231.3,
     "centroidX": 205.6,
-    "renderScale": 0.234,
+    "renderScale": 0.2375,
     "anchors": {
      "com": [
       474.9,
       375.6
      ]
     },
-    "bodyTop": 15
+    "bodyTop": 15,
+    "edited": {
+     "renderScale": 0.234
+    }
    },
    "run_b": {
     "file": "yuta/run_b.png",
@@ -10097,14 +10138,17 @@
     "bodyBottom": 310,
     "bodyH": 231.3,
     "centroidX": 244.0,
-    "renderScale": 0.235,
+    "renderScale": 0.2373,
     "anchors": {
      "com": [
       576.9,
       391.8
      ]
     },
-    "bodyTop": 16
+    "bodyTop": 16,
+    "edited": {
+     "renderScale": 0.235
+    }
    },
    "dodge_air": {
     "w": 757,
@@ -10114,7 +10158,7 @@
     "bodyBottom": 310.4,
     "bodyH": 233.7,
     "centroidX": 283.0,
-    "renderScale": 0.285,
+    "renderScale": 0.2351,
     "file": "yuta/dodge_air.png",
     "anchors": {
      "com": [
@@ -10122,7 +10166,10 @@
       340.7
      ]
     },
-    "bodyTop": 0
+    "bodyTop": 0,
+    "edited": {
+     "renderScale": 0.285
+    }
    },
    "dodge_roll": {
     "w": 1212,
@@ -10132,7 +10179,7 @@
     "bodyBottom": 310.4,
     "bodyH": 204.9,
     "centroidX": 251.7,
-    "renderScale": 0.285,
+    "renderScale": 0.181,
     "file": "yuta/dodge_roll.png",
     "anchors": {
      "com": [
@@ -10140,42 +10187,53 @@
       278.9
      ]
     },
-    "bodyTop": 0
+    "bodyTop": 0,
+    "edited": {
+     "renderScale": 0.285
+    }
    },
    "attack_air_a": {
     "w": 857,
     "h": 1318,
-    "ox": -271.8,
+    "ox": -291.3,
     "oy": -1007,
     "bodyBottom": 310.4,
     "bodyH": 375.6,
     "centroidX": 151.2,
-    "renderScale": 0.285,
+    "renderScale": 0.1867,
     "file": "yuta/attack_air_a.png",
     "bodyTop": 0,
     "anchors": {
      "com": [
-      423.4,
-      460.6
+      464.6,
+      492.4
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "ox": -271.8
     }
    },
    "attack_air_b": {
     "w": 999,
     "h": 1121,
-    "ox": -342.8,
+    "ox": -172.8,
     "oy": -810,
     "bodyBottom": 310.4,
     "bodyH": 319.5,
     "centroidX": -8.8,
-    "renderScale": 0.285,
+    "renderScale": 0.2494,
     "file": "yuta/attack_air_b.png",
     "bodyTop": 0,
     "anchors": {
      "com": [
-      335.3,
-      406.0
+      312.3,
+      391.4
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "ox": -342.8
     }
    },
    "attack_down": {
@@ -10183,10 +10241,10 @@
     "h": 1273,
     "ox": -313.2,
     "oy": -962,
-    "bodyBottom": 310.4,
+    "bodyBottom": 101.4,
     "bodyH": 362.8,
     "centroidX": 189.0,
-    "renderScale": 0.285,
+    "renderScale": 0.2095,
     "file": "yuta/attack_down.png",
     "bodyTop": 0,
     "anchors": {
@@ -10194,6 +10252,10 @@
       502.2,
       538.5
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "bodyBottom": 310.4
     }
    },
    "attack_heavy_a": {
@@ -10201,10 +10263,10 @@
     "h": 1390,
     "ox": -280.8,
     "oy": -1079,
-    "bodyBottom": 310.4,
+    "bodyBottom": 190.9,
     "bodyH": 396.1,
     "centroidX": 146.9,
-    "renderScale": 0.285,
+    "renderScale": 0.2123,
     "file": "yuta/attack_heavy_a.png",
     "bodyTop": 0,
     "anchors": {
@@ -10212,42 +10274,56 @@
       429.3,
       547.6
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "bodyBottom": 310.4
     }
    },
    "attack_heavy_b": {
     "w": 1011,
     "h": 1089,
-    "ox": -348.8,
+    "ox": -176.8,
     "oy": -778,
-    "bodyBottom": 310.4,
+    "bodyBottom": 266.4,
     "bodyH": 310.4,
     "centroidX": 97.4,
-    "renderScale": 0.285,
+    "renderScale": 0.2821,
     "file": "yuta/attack_heavy_b.png",
     "bodyTop": 0,
     "anchors": {
      "com": [
-      447.9,
-      463.8
+      317.4,
+      459.9
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "ox": -348.8,
+     "bodyBottom": 310.4
     }
    },
    "attack_light_a": {
     "w": 971,
     "h": 1275,
-    "ox": -328.8,
+    "ox": -228.3,
     "oy": -964,
-    "bodyBottom": 310.4,
+    "bodyBottom": 246.9,
     "bodyH": 363.4,
     "centroidX": 75.2,
-    "renderScale": 0.285,
+    "renderScale": 0.2308,
     "file": "yuta/attack_light_a.png",
     "bodyTop": 0,
     "anchors": {
      "com": [
-      404.7,
-      535.3
+      375.0,
+      489.2
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "ox": -328.8,
+     "bodyBottom": 310.4
     }
    },
    "attack_light_b": {
@@ -10255,10 +10331,10 @@
     "h": 1267,
     "ox": -332.8,
     "oy": -956,
-    "bodyBottom": 310.4,
+    "bodyBottom": 210.9,
     "bodyH": 361.1,
     "centroidX": 191.5,
-    "renderScale": 0.285,
+    "renderScale": 0.2323,
     "file": "yuta/attack_light_b.png",
     "bodyTop": 0,
     "anchors": {
@@ -10266,6 +10342,10 @@
       526.4,
       504.7
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "bodyBottom": 310.4
     }
    },
    "crouch_a": {
@@ -10273,10 +10353,10 @@
     "h": 1264,
     "ox": -293.8,
     "oy": -953,
-    "bodyBottom": 310.4,
+    "bodyBottom": 212.4,
     "bodyH": 360.2,
     "centroidX": 111.2,
-    "renderScale": 0.285,
+    "renderScale": 0.1981,
     "file": "yuta/crouch_a.png",
     "bodyTop": 0,
     "anchors": {
@@ -10284,17 +10364,23 @@
       405.3,
       521.8
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "bodyBottom": 310.4,
+     "rotationDeg": null
+    },
+    "rotationDeg": -7.5
    },
    "crouch_attack_a": {
     "w": 882,
     "h": 1073,
     "ox": -284.2,
     "oy": -762,
-    "bodyBottom": 310.4,
+    "bodyBottom": 174.9,
     "bodyH": 305.8,
     "centroidX": 224.0,
-    "renderScale": 0.285,
+    "renderScale": 0.2109,
     "file": "yuta/crouch_attack_a.png",
     "bodyTop": 0,
     "anchors": {
@@ -10302,6 +10388,10 @@
       510.6,
       447.5
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "bodyBottom": 310.4
     }
    },
    "crouch_attack_b": {
@@ -10309,10 +10399,10 @@
     "h": 1310,
     "ox": -328.8,
     "oy": -999,
-    "bodyBottom": 310.4,
+    "bodyBottom": 243.4,
     "bodyH": 373.3,
     "centroidX": 36.9,
-    "renderScale": 0.285,
+    "renderScale": 0.2137,
     "file": "yuta/crouch_attack_b.png",
     "bodyTop": 0,
     "anchors": {
@@ -10320,6 +10410,10 @@
       367.4,
       570.5
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "bodyBottom": 310.4
     }
    },
    "crouch_b": {
@@ -10327,10 +10421,10 @@
     "h": 1366,
     "ox": -291.8,
     "oy": -1055,
-    "bodyBottom": 310.4,
+    "bodyBottom": 238.4,
     "bodyH": 389.3,
     "centroidX": 133.4,
-    "renderScale": 0.285,
+    "renderScale": 0.2009,
     "file": "yuta/crouch_b.png",
     "bodyTop": 0,
     "anchors": {
@@ -10338,6 +10432,10 @@
       425.3,
       578.5
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "bodyBottom": 310.4
     }
    },
    "dash": {
@@ -10348,7 +10446,7 @@
     "bodyBottom": 310.4,
     "bodyH": 330.6,
     "centroidX": 183.6,
-    "renderScale": 0.285,
+    "renderScale": 0.2109,
     "file": "yuta/dash.png",
     "bodyTop": 0,
     "anchors": {
@@ -10356,6 +10454,9 @@
       509.5,
       433.7
      ]
+    },
+    "edited": {
+     "renderScale": 0.285
     }
    },
    "land": {
@@ -10363,10 +10464,10 @@
     "h": 1029,
     "ox": -255.8,
     "oy": -718,
-    "bodyBottom": 310.4,
+    "bodyBottom": 236.4,
     "bodyH": 293.3,
     "centroidX": 247.2,
-    "renderScale": 0.285,
+    "renderScale": 0.1852,
     "file": "yuta/land.png",
     "bodyTop": 0,
     "anchors": {
@@ -10374,6 +10475,10 @@
       502.4,
       434.0
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "bodyBottom": 310.4
     }
    },
    "special_down": {
@@ -10381,10 +10486,10 @@
     "h": 1412,
     "ox": -234.8,
     "oy": -1101,
-    "bodyBottom": 310.4,
+    "bodyBottom": 231.9,
     "bodyH": 402.4,
     "centroidX": 165.1,
-    "renderScale": 0.285,
+    "renderScale": 0.2095,
     "file": "yuta/special_down.png",
     "bodyTop": 0,
     "anchors": {
@@ -10392,6 +10497,10 @@
       401.6,
       581.2
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "bodyBottom": 310.4
     }
    },
    "special_neutral": {
@@ -10399,10 +10508,10 @@
     "h": 1204,
     "ox": -337.2,
     "oy": -893,
-    "bodyBottom": 310.4,
+    "bodyBottom": 250.9,
     "bodyH": 343.1,
     "centroidX": 156.6,
-    "renderScale": 0.285,
+    "renderScale": 0.2351,
     "file": "yuta/special_neutral.png",
     "bodyTop": 0,
     "anchors": {
@@ -10410,17 +10519,21 @@
       493.3,
       503.3
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "bodyBottom": 310.4
     }
    },
    "special_side": {
     "w": 981,
     "h": 1282,
-    "ox": -333.8,
+    "ox": -172.8,
     "oy": -971,
-    "bodyBottom": 310.4,
+    "bodyBottom": 253.9,
     "bodyH": 365.4,
     "centroidX": 94.7,
-    "renderScale": 0.285,
+    "renderScale": 0.2408,
     "file": "yuta/special_side.png",
     "bodyTop": 0,
     "anchors": {
@@ -10428,6 +10541,11 @@
       427.3,
       435.0
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "ox": -333.8,
+     "bodyBottom": 310.4
     }
    },
    "ult_a": {
@@ -10435,10 +10553,10 @@
     "h": 1490,
     "ox": -330.2,
     "oy": -1179,
-    "bodyBottom": 310.4,
+    "bodyBottom": 193.9,
     "bodyH": 424.6,
     "centroidX": 139.0,
-    "renderScale": 0.285,
+    "renderScale": 0.2337,
     "file": "yuta/ult_a.png",
     "bodyTop": 0,
     "anchors": {
@@ -10446,17 +10564,25 @@
       471.7,
       550.1
      ]
-    }
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "bodyBottom": 310.4,
+     "rotationDeg": null,
+     "faceLeft": null
+    },
+    "rotationDeg": 6.5,
+    "faceLeft": true
    },
    "ult_b": {
     "w": 990,
     "h": 1302,
-    "ox": -338.2,
+    "ox": -151.2,
     "oy": -991,
-    "bodyBottom": 310.4,
+    "bodyBottom": 283.9,
     "bodyH": 371.1,
     "centroidX": 52.4,
-    "renderScale": 0.285,
+    "renderScale": 0.2707,
     "file": "yuta/ult_b.png",
     "bodyTop": 0,
     "anchors": {
@@ -10464,6 +10590,11 @@
       392.3,
       480.8
      ]
+    },
+    "edited": {
+     "renderScale": 0.285,
+     "ox": -338.2,
+     "bodyBottom": 310.4
     }
    }
   },
@@ -34415,6 +34546,7 @@
   "panda": 275.22,
   "sukuna": 286.81,
   "todo": 298.98,
-  "toji": 296.01
+  "toji": 296.01,
+  "yuta": 282.15
  }
 }
