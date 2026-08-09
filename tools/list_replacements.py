@@ -76,6 +76,17 @@ def improvement_kinds():
     return kind_list("IMPROVEMENT_KINDS")
 
 
+def note_fields():
+    """flag -> the key its free-text note is stored under, from NOTE_FIELDS."""
+    src = open(SPRITES_JS).read()
+    block = src[src.index("export const NOTE_FIELDS"):]
+    block = block[:block.index("};")]
+    return dict(re.findall(r"(\w+):\s*\"(\w+)\"", block))
+
+
+NOTE_FIELDS = None      # filled on first use; the file is read once
+
+
 def placement_rule():
     """kind -> "keep" | "reframe" | "discard" | "none", from KIND_PLACEMENT.
 
@@ -96,6 +107,15 @@ PLACEMENT_NOTE = {
     "none": "no incoming art — nothing to place",
 }
 
+# `none` covers two different situations and they read nothing alike, so the
+# kind gets the last word: a deletion has no art coming, while an alternate has
+# art coming that lands beside the pose instead of on it.
+KIND_DELIVERY_NOTE = {
+    "alternate": "imported as a second drawing on the pose, with the selection "
+                 "left alone — placement measured from scratch, as every "
+                 "variant is",
+}
+
 # Reuse the audit tool's source scanning so "which states draw this frame" has
 # one implementation rather than two that can disagree.
 from audit_frame_sizes import anims_by_frame  # noqa: E402
@@ -113,6 +133,8 @@ def main():
     anims = anims_by_frame(src, list(chars))
     names = dict(re.findall(r'\n  ([a-z]+): \{\n(?:.*\n)*?    fullName: "(.+?)",', src))
 
+    global NOTE_FIELDS
+    NOTE_FIELDS = note_fields()
     kinds = dict(replacement_kinds())
     order = [k for k, _ in replacement_kinds()]
     want_kinds = dict(improvement_kinds())
@@ -140,6 +162,11 @@ def main():
                     "kind": kind,
                     "kindLabel": table[kind],
                     "placement": placement.get(kind, "discard") if field == "needsReplacement" else None,
+                    # Whatever the person who flagged it wrote. The kind says
+                    # which of six shapes the fault has; this says what it
+                    # actually is, and it is the only part an artist could not
+                    # have worked out from the pose name.
+                    "note": (meta.get(NOTE_FIELDS.get(field)) or "").strip(),
                     "states": states,
                     "used": bool(states),
                 })
@@ -190,11 +217,20 @@ def main():
         return
 
     def md_table(group):
-        print("| Character | Pose | Drives | File |")
-        print("|---|---|---|---|")
+        # The note column only appears when something in the group has one, so a
+        # round nobody wrote notes for reads exactly as it always has.
+        noted = any(r.get("note") for r in group)
+        head = "| Character | Pose | Drives | What is wrong | File |" if noted \
+            else "| Character | Pose | Drives | File |"
+        print(head)
+        print("|---|---|---|---|---|" if noted else "|---|---|---|---|")
         for r in group:
             drives = ", ".join(r["states"]) or "_unused_"
-            print(f"| {r['name']} | `{r['frame']}` | {drives} | `{r['file']}` |")
+            cells = [r["name"], f"`{r['frame']}`", drives]
+            if noted:
+                cells.append(r.get("note") or "—")
+            cells.append(f"`{r['file']}`")
+            print("| " + " | ".join(cells) + " |")
         print()
 
     if args.markdown:
@@ -205,7 +241,9 @@ def main():
                 if not group:
                     continue
                 print(f"### {kinds[kind]}\n")
-                print(f"On delivery: **{PLACEMENT_NOTE[placement.get(kind, 'discard')]}.**\n")
+                delivery = KIND_DELIVERY_NOTE.get(
+                    kind, PLACEMENT_NOTE[placement.get(kind, "discard")])
+                print(f"On delivery: **{delivery}.**\n")
                 md_table(group)
         if deletes:
             print(f"## Variants tagged for deletion — {len(deletes)} drawing(s)\n")
@@ -239,7 +277,9 @@ def main():
             group = [r for r in group_rows if r["kind"] == kind]
             if not group:
                 continue
-            note = f"   [{PLACEMENT_NOTE[placement.get(kind, 'discard')]}]" if show_placement else ""
+            delivery = KIND_DELIVERY_NOTE.get(
+                kind, PLACEMENT_NOTE[placement.get(kind, "discard")])
+            note = f"   [{delivery}]" if show_placement else ""
             print(f"\n{table[kind]}  ({len(group)}){note}")
             current = None
             for r in group:
@@ -248,6 +288,8 @@ def main():
                     print(f"  {r['name']} ({current})")
                 drives = ", ".join(r["states"]) or "not drawn by any animation"
                 print(f"    {r['frame']:22} {drives}")
+                if r.get("note"):
+                    print(f"      \u201c{r['note']}\u201d")
         print()
 
     if deletes:

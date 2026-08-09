@@ -14,7 +14,7 @@ import {
   drawnByFallbackOnly,
   anchorScreenPos, screenPosToLocal, warmAnchors, EXTRA_ANCHORS,
   REPLACEMENT_KINDS, replacementKind, IMPROVEMENT_KINDS, improvementKind,
-  variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS,
+  variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS, NOTE_FIELDS, ALTERNATE_KIND,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
 import { lightMove, heavyMove, VISIBLE_ART_REACH } from "../src/moves.js";
@@ -40,13 +40,17 @@ const CELL_W = 313.5;
 // Scalar fields the workbench can edit. `anchors` is edited too but is nested,
 // so snapshot/restore/compare handle it separately.
 const EDITABLE = ["renderScale", "ox", "bodyBottom", "rotationDeg", "faceLeft",
-                  "needsReplacement", "wantsImprovement"];
+                  "needsReplacement", "wantsImprovement",
+                  "replacementNote", "improvementNote"];
 // Fields whose VALUE is a kind string rather than a number, so a change of kind
 // is a change and `false` means "cleared" rather than "unset".
 const KIND_FIELDS = { needsReplacement: replacementKind, wantsImprovement: improvementKind };
 // Fields that are true/false rather than a number, so comparison and export
 // treat them differently (and `false` is a meaningful value, not "unset").
 const BOOLEAN_FIELDS = new Set(["faceLeft"]);
+// Free text written beside a flag. Compared as strings and exported verbatim;
+// the empty string is meaningful, clearing a note rather than leaving it.
+const TEXT_FIELDS = new Set(Object.values(NOTE_FIELDS));
 
 // What the pose list shows. These filter on what is SAVED in the codebase, not
 // on what you have done since the page loaded — "unedited" means "no adjustment
@@ -434,6 +438,15 @@ function updateSummary(note) {
   const when = note.at ? new Date(note.at) : null;
   const landed = when && !Number.isNaN(when.getTime())
     ? when.toLocaleString() : (note.at || "an earlier round");
+  if (note.how === "alternate") {
+    const at = note.at ? new Date(note.at) : null;
+    const when = at && !Number.isNaN(at.getTime()) ? at.toLocaleString() : (note.at || "an earlier round");
+    return `An alternate you asked for arrived on ${when}, beside the drawing `
+      + "this pose already had.<br>"
+      + "<b>Nothing changed on screen</b> — the game still draws the original. "
+      + "Open the chevron to compare them and pick, or mark it reviewed to keep "
+      + "what is there.";
+  }
   const how = note.how === "variant"
     ? "a delivered alternate was selected over it"
     : "new art was imported over it";
@@ -735,6 +748,7 @@ function isDirty(charKey, frameKey) {
     const kindOf = KIND_FIELDS[f];
     if (kindOf) return kindOf(meta) !== kindOf(orig);
     if (BOOLEAN_FIELDS.has(f)) return !!meta[f] !== !!orig[f];
+    if (TEXT_FIELDS.has(f)) return (meta[f] || "") !== (orig[f] || "");
     return Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4;
   }) || anchorsDirty(charKey, frameKey);
 }
@@ -1756,6 +1770,16 @@ function refreshControls() {
   $("replaceKind").hidden = !kind;
   $("replaceKind").value = kind || REPLACEMENT_KINDS[0][0];
   $("replaceVal").textContent = kind ? kindLabel(kind).split(" — ")[0].toLowerCase() : "";
+  // The note is refilled from the pose on every selection, so walking a list of
+  // flagged poses shows each one's own description rather than carrying the
+  // last one along. "delete" is a verdict on a file, not a brief for an artist,
+  // so it is the one kind with nothing to describe.
+  const noteBox = $("replaceNote");
+  noteBox.hidden = !kind || kind === "delete";
+  noteBox.value = meta[NOTE_FIELDS.needsReplacement] || "";
+  noteBox.placeholder = kind === ALTERNATE_KIND
+    ? "What should the alternate try instead? (optional)"
+    : "What is wrong with it? (optional)";
   // Deleting the only drawing a pose has would leave a hole where a sprite
   // should be, so the option is not offered until there is something to fall
   // back to.
@@ -1769,6 +1793,9 @@ function refreshControls() {
   $("improveKind").hidden = !want;
   $("improveKind").value = want || IMPROVEMENT_KINDS[0][0];
   $("improveVal").textContent = want ? kindLabel(want, IMPROVEMENT_KINDS).split(" — ")[0].toLowerCase() : "";
+  const wantNote = $("improveNote");
+  wantNote.hidden = !want;
+  wantNote.value = meta[NOTE_FIELDS.wantsImprovement] || "";
 
   const mirrored = !!meta.faceLeft;
   $("mirrorBox").checked = mirrored;
@@ -1898,13 +1925,20 @@ function refreshUpdatedControl() {
   if (!group) return;
   const note = updateNote(state.char, state.frame);
   group.hidden = !note;
-  if (!note) return;
+  if (!note) {
+    const btnGroup = $("updatedClearGroup");
+    if (btnGroup) btnGroup.hidden = true;
+    return;
+  }
   const reviewed = isUpdateReviewed(state.char, state.frame);
   $("updatedVal").textContent = reviewed ? "reviewed — clears on export"
     : note.how === "new" ? "new art — never placed"
     : note.how === "surfaced" ? "newly in the in-game list — never sized"
     : note.lost?.length ? "tuning rolled back" : "tuning carried over";
   $("updatedInfo").innerHTML = updateSummary(note);
+  // The button lives further down the panel now, so it needs its own group
+  // toggled — it is no longer carried by the explanation's `hidden`.
+  $("updatedClearGroup").hidden = !note;
   const btn = $("updatedClear");
   btn.textContent = reviewed
     ? "↺ Put it back on the updated list"
@@ -2015,7 +2049,7 @@ function buildPoseEntry(charKey, key, { owner = false } = {}) {
 
   if (!host) return b;
   host.appendChild(b);
-  host.appendChild(buildVariantChevron(key, options));
+  host.appendChild(buildVariantChevron(key, options, charKey));
   return host;
 }
 
@@ -2048,18 +2082,36 @@ function buildRecentPoseList(list) {
   }
 }
 
+/** Drawings a delivery has just put on this pose that nobody has looked at.
+ *
+ *  An alternate arrives without changing what the game draws — that is the
+ *  point of asking for one — so nothing about the pose looks different and it
+ *  would sit unopened forever. The dot is the only thing saying there is a
+ *  choice waiting. Cleared by `intake_variants.py`'s marker lifecycle: adjust
+ *  the pose or mark it reviewed and both the dot and the updated-list entry go.
+ */
+function freshOptions(charKey, frameKey) {
+  return poseVariants(charKey, frameKey).filter((o) => o.fresh);
+}
+
 /** The far-right chevron on a pose that has more than one drawing. Opens a menu
  *  of them; picking one swaps which art the pose uses, bringing that image's own
  *  placement with it. */
-function buildVariantChevron(frameKey, options) {
+function buildVariantChevron(frameKey, options, charKey = state.char) {
   const chev = document.createElement("button");
   chev.className = "pose-variant";
   chev.textContent = "⌄";
-  chev.title = `${options.length} drawings for ${frameKey}`;
+  const fresh = freshOptions(charKey, frameKey).length;
+  if (fresh) {
+    chev.classList.add("has-fresh");
+    chev.setAttribute("data-fresh", fresh);
+  }
+  chev.title = `${options.length} drawings for ${frameKey}`
+    + (fresh ? ` — ${fresh} new, not looked at yet` : "");
   chev.setAttribute("aria-label", `Choose the drawing for ${frameKey}`);
   chev.onclick = (e) => {
     e.stopPropagation();     // the cell behind it selects the pose; this does not
-    openVariantMenu(chev, frameKey, options);
+    openVariantMenu(chev, frameKey, options, charKey);
   };
   return chev;
 }
@@ -2073,7 +2125,7 @@ function onVariantOutside(e) {
   if (!e.target.closest(".variant-menu, .pose-variant")) closeVariantMenu();
 }
 
-function openVariantMenu(anchor, frameKey, options) {
+function openVariantMenu(anchor, frameKey, options, charKey = state.char) {
   const existing = document.querySelector(".variant-menu");
   closeVariantMenu();
   if (existing?.dataset.frame === frameKey) return;   // second click closes it
@@ -2084,6 +2136,7 @@ function openVariantMenu(anchor, frameKey, options) {
   for (const opt of options) {
     const row = document.createElement("button");
     row.className = (opt.current ? "current " : "")
+      + (opt.fresh ? "fresh " : "")
       + (opt.needsReplacement === "delete" ? "doomed" : "");
     // The file is the identity of a drawing, so it is shown rather than hidden
     // behind a label — two options can reasonably share a label.
@@ -2092,7 +2145,8 @@ function openVariantMenu(anchor, frameKey, options) {
     row.onclick = (e) => {
       e.stopPropagation();
       closeVariantMenu();
-      chooseVariant(state.char, frameKey, opt.file);
+      if (charKey !== state.char) selectPose(charKey, frameKey);
+      chooseVariant(charKey, frameKey, opt.file);
     };
     menu.appendChild(row);
   }
@@ -2358,8 +2412,27 @@ function applyNeedsReplacement(kind) {
   if (kind === "delete") delete meta.needsReplacement;
   else if (kind) meta.needsReplacement = kind;
   else delete meta.needsReplacement;
+  if (!kind || kind === "delete") delete meta[NOTE_FIELDS.needsReplacement];
 
   refreshControls(); buildPoseList(); refreshTag(); render();
+}
+
+/** The free text beside a flag: what is actually wrong with this drawing.
+ *
+ *  Stored on the pose next to the flag it explains, and banked with the drawing
+ *  (VARIANT_REVIEW) because it describes one image — switching to the other
+ *  drawing must not leave a note about the naginata attached to a redraw that
+ *  fixed it. Clearing the flag clears the note with it: a description of a
+ *  fault nobody is claiming any more is just stale text nobody will re-read. */
+function applyNote(field, text, charKey, frameKey) {
+  const meta = rawMeta(charKey, frameKey);
+  if (!meta) return;
+  const trimmed = (text || "").trim();
+  if ((meta[field] || "") === trimmed) return;
+  pushHistory(charKey, frameKey);
+  if (trimmed) meta[field] = trimmed;
+  else delete meta[field];
+  buildPoseList(); refreshTag();
 }
 
 /** "This art works, but it could be better." A lower-priority ask than a
@@ -2370,6 +2443,7 @@ function applyWantsImprovement(kind) {
   const meta = rawMeta(state.char, state.frame);
   if (kind) meta.wantsImprovement = kind;
   else delete meta.wantsImprovement;
+  if (!kind) delete meta[NOTE_FIELDS.wantsImprovement];
   refreshControls(); buildPoseList(); refreshTag(); render();
 }
 
@@ -2466,6 +2540,12 @@ function payloadFor(charKey) {
         // `false` is meaningful, not "unset": it turns OFF a mirror that
         // `nativeLeft` would otherwise re-apply
         if (!!value !== !!orig[f]) entry[f] = !!value;
+        continue;
+      }
+      if (TEXT_FIELDS.has(f)) {
+        // "" is meaningful too — it clears a note rather than leaving the old
+        // one standing, which matters when the flag it explains has changed.
+        if ((value || "") !== (orig[f] || "")) entry[f] = value || "";
         continue;
       }
       if (!Number.isFinite(value)) continue;
@@ -2823,6 +2903,37 @@ async function boot() {
   $("improveBox").onchange = (e) =>
     applyWantsImprovement(e.target.checked ? wantSel.value : null);
   wantSel.onchange = () => applyWantsImprovement(wantSel.value);
+
+  // Committed on blur rather than per keystroke: every edit pushes an undo entry,
+  // and one per character would make Cmd-Z walk back through a sentence.
+  //
+  // The pose is captured on FOCUS, not read at commit time. Clicking straight
+  // from the box onto another pose fires the change event *after* the selection
+  // has already moved, so reading `state.frame` then filed the note against
+  // whichever pose you had just clicked — the one thing a per-sprite note must
+  // never do.
+  for (const [id, field] of [["replaceNote", NOTE_FIELDS.needsReplacement],
+                             ["improveNote", NOTE_FIELDS.wantsImprovement]]) {
+    const box = $(id);
+    let owner = null;
+    box.onfocus = () => { owner = { char: state.char, frame: state.frame }; };
+    box.onchange = () => {
+      const who = owner || { char: state.char, frame: state.frame };
+      applyNote(field, box.value, who.char, who.frame);
+      owner = null;
+    };
+    // Enter commits and leaves; Escape puts back what was there.
+    box.onkeydown = (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); box.blur(); }
+      if (e.key === "Escape") {
+        const who = owner || { char: state.char, frame: state.frame };
+        box.value = rawMeta(who.char, who.frame)?.[field] || "";
+        owner = null;
+        box.blur();
+      }
+      e.stopPropagation();      // the pose grid listens for arrows and letters
+    };
+  }
 
   $("undoBtn").onclick = undo;
   $("redoBtn").onclick = redo;

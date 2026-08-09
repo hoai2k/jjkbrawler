@@ -74,8 +74,19 @@ OTHER_KEY = "__other"
 # it should be. Its value is "quality", "pose" or "character"
 # (IMPROVEMENT_KINDS in src/sprites.js). Collected at a lower priority, since
 # nothing is blocked by one.
+#
+# replacementNote / improvementNote are the free text written beside either
+# flag: what is actually wrong with THIS drawing, in the words of whoever spotted
+# it. The kind says which of six shapes the fault has, and a request written from
+# the kind alone has to guess the rest. Optional; "" clears one. They ride with
+# the drawing (VARIANT_REVIEW), not the pose, and the workbench drops a note when
+# the flag it explains is cleared.
 ALLOWED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "anchors", "faceLeft",
-           "needsReplacement", "wantsImprovement"}
+           "needsReplacement", "wantsImprovement",
+           "replacementNote", "improvementNote"}
+# Free text. "" is meaningful — it clears the note rather than leaving the old
+# one attached to a flag that has since changed.
+TEXT = {"replacementNote", "improvementNote"}
 # Flags whose VALUE is a kind string. `false` clears; a legacy `true` means the
 # first kind in the list.
 KIND_FIELDS = {"needsReplacement": "replace", "wantsImprovement": "quality"}
@@ -99,12 +110,32 @@ VARIANT_PLACEMENT = [
     "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
     "centroidX", "renderScale", "rotationDeg", "anchors", "faceLeft",
 ]
-VARIANT_REVIEW = ["needsReplacement", "wantsImprovement", "edited", "surfacedReviewed"]
+VARIANT_REVIEW = ["needsReplacement", "wantsImprovement",
+                  "replacementNote", "improvementNote",
+                  "edited", "surfacedReviewed"]
 VARIANT_BANKED = VARIANT_PLACEMENT + VARIANT_REVIEW
 
 # Kinds that only mean something about an option, never about the pose.
 # Mirrors VARIANT_ONLY_KINDS in src/sprites.js.
 VARIANT_ONLY_KINDS = {"delete"}
+
+
+def clear_fresh(man, char, key):
+    """Drop the "new, not looked at" mark from this pose's variant options.
+
+    The mark exists so an alternate — which changes nothing on screen — is
+    visible at all. Once the pose has been adjusted or reviewed, it has been
+    looked at, so the dot has done its job. Same lifecycle as the `replaced`
+    marker beside it, and cleared in the same two places.
+    """
+    entry = ((man.get("variants") or {}).get(char) or {}).get(key)
+    if not entry:
+        return False
+    hit = False
+    for opt in entry.get("options", []):
+        if opt.pop("fresh", None):
+            hit = True
+    return hit
 
 
 def load_payloads(sources):
@@ -267,6 +298,16 @@ def main():
                     meta[field] = bool(value)
                     applied.append(f"{char}/{key}.{field}: {before} -> {bool(value)}")
                     continue
+                if field in TEXT:
+                    before = meta.get(field)
+                    text = str(value or "").strip()
+                    if text:
+                        meta[field] = text
+                    else:
+                        meta.pop(field, None)
+                    applied.append(f"{char}/{key}.{field}: "
+                                   + ("cleared" if not text else f"{len(text)} chars"))
+                    continue
                 if field == "anchors":
                     # merge, so exporting one anchor never drops the others
                     anchors = meta.setdefault("anchors", {})
@@ -284,6 +325,8 @@ def main():
             # tuned, which is what put it on the list for lacking.
             if meta.pop("replaced", None) or meta.pop("surfacedReviewed", None):
                 applied.append(f"{char}/{key}: off the updated list (adjusted)")
+            if clear_fresh(man, char, key):
+                applied.append(f"{char}/{key}: alternate no longer marked new")
 
         # Poses reviewed as they stand: the new art needed nothing, so the only
         # thing to record is that someone looked. An intake marker is removed; a
@@ -293,6 +336,8 @@ def main():
             if meta is None:
                 skipped.append(f"{char}/{key}: not in manifest")
                 continue
+            if clear_fresh(man, char, key):
+                applied.append(f"{char}/{key}: alternate no longer marked new")
             if meta.pop("replaced", None):
                 applied.append(f"{char}/{key}: off the updated list (reviewed)")
             elif not meta.get("surfacedReviewed"):
