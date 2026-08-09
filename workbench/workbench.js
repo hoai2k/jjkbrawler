@@ -18,7 +18,7 @@ import {
   variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS, NOTE_FIELDS, ALTERNATE_KIND,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
-import { lightMove, heavyMove, visibleArtReach } from "../src/moves.js";
+import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../src/moves.js";
 import { bodyMetrics, refreshSilhouettes } from "../src/silhouette.js";
 import { PIVOTED_STATES } from "../src/motion.js";
 import { HURTBOX } from "../src/constants.js";
@@ -1060,14 +1060,20 @@ function altCompare() {
 }
 
 /** Hide the option on a pose that has nothing to compare against, so the menu
- *  never offers a view that would silently show the same drawing twice. */
+ *  never offers a view that would silently show the same drawing twice.
+ *
+ *  What it does NOT do is change the selection. Stepping through a set with
+ *  this view on used to reset it to Comparison at the first pose with a single
+ *  drawing, so the setting had to be picked again every few poses; the slot
+ *  says "no alternate available" on those instead, and the view survives to
+ *  the next pose that has one. The option stays in the menu while it is the
+ *  one selected, so the closed select still reads what it is showing. */
 function refreshSelfIdleOptions() {
   const sel = $("selfIdleMode");
   const opt = sel?.querySelector('option[value="alternate"]');
   if (!opt) return;
   const alt = altCompare();
-  opt.hidden = !alt;
-  if (!alt && sel.value === "alternate") sel.value = "comparison";
+  opt.hidden = !alt && sel.value !== "alternate";
   // Fetch it once it is asked for; the per-pose slot holds only the drawing
   // the pose points at.
   if (alt && !alt.img && alt.file) {
@@ -1118,6 +1124,10 @@ function comparisonTarget() {
     if (alt?.img) {
       return { charKey: state.char, frameKey: state.frame, caption: alt.caption, as: alt };
     }
+    // Asked for, and this pose has not got one. Say so in the slot rather than
+    // falling through to Gojo: the answer to "show me the alternate" is not a
+    // different sprite that looks like one.
+    if (!alt) return { caption: "no alternate available", empty: true };
   }
   if ($("selfIdleMode").value === "comparison") {
     const key = selfIdleKey();
@@ -1133,11 +1143,11 @@ function comparisonTarget() {
 /** The comparison stands at the left end of the platform, drawn SOLID: it is a
  *  second sprite to look at, not a tracing guide, and ghosting it made it read
  *  as an overlay that had slipped sideways. */
-function drawComparison({ charKey, frameKey, caption, sub, as }) {
+function drawComparison({ charKey, frameKey, caption, sub, as, empty }) {
   const x = platformX() + BENCHMARK_INSET;
-  drawGhost(charKey, frameKey, 1, x, as);
+  if (!empty) drawGhost(charKey, frameKey, 1, x, as);
   ctx.save();
-  ctx.fillStyle = "rgba(154, 164, 192, 0.9)";
+  ctx.fillStyle = empty ? "rgba(154, 164, 192, 0.55)" : "rgba(154, 164, 192, 0.9)";
   ctx.font = "600 11px Inter, sans-serif";
   ctx.textAlign = "center";
   ctx.fillText(caption, x, GROUND_Y + 60);
@@ -1353,7 +1363,7 @@ function drawRangeTargets(cx) {
                  Math.round(box.y0), Math.round(box.y1)].join(",");
     if (seen.has(key)) continue;              // two moves, same box: one marker
     seen.add(key);
-    shapes.push({ label, box });
+    shapes.push({ label, box, move: m });
   }
 
   // The body the game actually tests, drawn behind the markers. Without it a
@@ -1390,7 +1400,7 @@ function drawRangeTargets(cx) {
     placed.push({ x, y: out });
     return out;
   };
-  shapes.forEach(({ label, box }) => {
+  shapes.forEach(({ label, box, move }) => {
     const { kind, x0, x1, y0, y1 } = box;
     // The box the game actually tests, faint behind the marker. Reading the
     // real rectangle is the whole point — a single crosshair cannot say
@@ -1445,9 +1455,20 @@ function drawRangeTargets(cx) {
       tx = wx(x1); ty = mid;
       text = `${label} · ±${Math.round((x1 - x0) / 2)}px`;
     } else {
-      // Forward: the crosshair sits on the far edge at the box's mid height,
-      // which is the last point this attack connects at.
-      const x = wx(x1), cy = wy((y0 + y1) / 2);
+      // Forward: the crosshair sits on the far edge — the last point this
+      // attack connects at — at the height the swing is DRAWN at, which is not
+      // the box's mid height.
+      //
+      // Hitboxes are deliberately generous downward: a jab's box runs from
+      // chest to floor so it catches a crouching opponent (moves.js). Marking
+      // its middle put the target at hip level on a punch thrown at chest
+      // level, and the pair read as a diagonal aimed at the floor. render.js
+      // has the same problem with the strike arc and solves it by asking
+      // strikeArcs() where the swing hangs; the marker asks the same function,
+      // so it lands where the crescent does in a match.
+      const arc = strikeArcs(move, headHeight(state.char) || 175)
+        .find((a) => a.aim === 0);
+      const x = wx(x1), cy = wy(arc ? arc.pivotY : (y0 + y1) / 2);
       ctx.beginPath(); ctx.arc(x, cy, 9, 0, Math.PI * 2); ctx.stroke();
       ctx.beginPath(); ctx.arc(x, cy, 2, 0, Math.PI * 2); ctx.stroke();
       ctx.beginPath();

@@ -7895,51 +7895,13 @@
    "crouch_a": {
     "w": 948,
     "h": 1066,
-    "ox": -270.5,
+    "ox": -236.5,
     "oy": -755,
-    "bodyBottom": 253.7,
+    "bodyBottom": 229.7,
     "bodyH": 299.4,
     "centroidX": 110.0,
-    "renderScale": 0.281,
+    "renderScale": 0.1742,
     "file": "mahito/incoming/crouch_a.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "rotationDeg",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 797,
-      "h": 1325,
-      "ox": -241.8,
-      "oy": -1014,
-      "bodyBottom": 246.4,
-      "bodyH": 299.2,
-      "bodyTop": 0,
-      "centroidX": 157.2,
-      "renderScale": 0.1955,
-      "rotationDeg": 4.5,
-      "anchors": {
-       "com": [
-        398.4,
-        534.2
-       ]
-      },
-      "edited": {
-       "renderScale": 0.226,
-       "bodyBottom": 310.4,
-       "rotationDeg": null
-      },
-      "file": "mahito/crouch_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 948,
@@ -7947,8 +7909,8 @@
     "coreRight": 832.8,
     "anchors": {
      "com": [
-      426.9,
-      453.6
+      415.6,
+      461.7
      ]
     },
     "autoTuned": {
@@ -7957,6 +7919,11 @@
       "bodyBottom": "foot=0.946 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.281,
+     "ox": -270.5,
+     "bodyBottom": 253.7
     }
    },
    "crouch_attack_a": {
@@ -11977,51 +11944,11 @@
     "h": 992,
     "ox": -277.0,
     "oy": -681,
-    "bodyBottom": 262.2,
+    "bodyBottom": 228.2,
     "bodyH": 363.0,
     "centroidX": 177.0,
-    "renderScale": 0.366,
+    "renderScale": 0.2123,
     "file": "jogo/incoming/crouch_a.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "faceLeft",
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 913,
-      "h": 1375,
-      "ox": -297.8,
-      "oy": -1064,
-      "bodyBottom": 247.9,
-      "bodyH": 363.0,
-      "bodyTop": 0,
-      "centroidX": 166.0,
-      "renderScale": 0.2059,
-      "anchors": {
-       "com": [
-        465.3,
-        583.3
-       ]
-      },
-      "faceLeft": true,
-      "edited": {
-       "renderScale": 0.264,
-       "ox": -299.8,
-       "bodyBottom": 310.4,
-       "faceLeft": null
-      },
-      "file": "jogo/crouch_a.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 827,
@@ -12029,8 +11956,8 @@
     "coreRight": 775.0,
     "anchors": {
      "com": [
-      433.0,
-      411.1
+      455.1,
+      423.6
      ]
     },
     "autoTuned": {
@@ -12039,7 +11966,13 @@
       "bodyBottom": "foot=0.951 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.366,
+     "bodyBottom": 262.2,
+     "faceLeft": null
+    },
+    "faceLeft": true
    },
    "crouch_attack_a": {
     "w": 996,
@@ -12072,51 +12005,13 @@
    "crouch_attack_b": {
     "w": 1077,
     "h": 992,
-    "ox": -367.6,
+    "ox": -336.6,
     "oy": -681,
-    "bodyBottom": 262.2,
+    "bodyBottom": 220.2,
     "bodyH": 346.9,
     "centroidX": 142.6,
-    "renderScale": 0.35,
+    "renderScale": 0.2275,
     "file": "jogo/incoming/crouch_attack_b.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "faceLeft",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 953,
-      "h": 1314,
-      "ox": -319.8,
-      "oy": -1003,
-      "bodyBottom": 250.9,
-      "bodyH": 346.9,
-      "bodyTop": 0,
-      "centroidX": 166.0,
-      "renderScale": 0.2086,
-      "anchors": {
-       "com": [
-        486.0,
-        551.9
-       ]
-      },
-      "faceLeft": true,
-      "edited": {
-       "renderScale": 0.264,
-       "bodyBottom": 310.4,
-       "faceLeft": null
-      },
-      "file": "jogo/crouch_attack_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1077,
@@ -12124,8 +12019,8 @@
     "coreRight": 908.7,
     "anchors": {
      "com": [
-      524.9,
-      399.4
+      509.8,
+      399.8
      ]
     },
     "autoTuned": {
@@ -12134,56 +12029,23 @@
       "bodyBottom": "foot=0.951 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.35,
+     "ox": -367.6,
+     "bodyBottom": 262.2
     }
    },
    "crouch_b": {
     "w": 948,
     "h": 1176,
-    "ox": -319.6,
+    "ox": -344.6,
     "oy": -865,
-    "bodyBottom": 253.2,
+    "bodyBottom": 237.2,
     "bodyH": 308.1,
     "centroidX": 159.1,
-    "renderScale": 0.262,
+    "renderScale": 0.2096,
     "file": "jogo/incoming/crouch_b.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "faceLeft",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 776,
-      "h": 1167,
-      "ox": -231.2,
-      "oy": -856,
-      "bodyBottom": 260.9,
-      "bodyH": 308.1,
-      "bodyTop": 0,
-      "centroidX": 176.1,
-      "renderScale": 0.235,
-      "anchors": {
-       "com": [
-        406.4,
-        483.5
-       ]
-      },
-      "faceLeft": true,
-      "edited": {
-       "renderScale": 0.264,
-       "bodyBottom": 310.4,
-       "faceLeft": null
-      },
-      "file": "jogo/crouch_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 948,
@@ -12201,7 +12063,14 @@
       "bodyBottom": "foot=0.951 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.262,
+     "ox": -319.6,
+     "bodyBottom": 253.2,
+     "faceLeft": null
+    },
+    "faceLeft": true
    },
    "dash": {
     "w": 904,

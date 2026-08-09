@@ -59,15 +59,17 @@
                 <option value="hide">Hide</option>
                 <option value="overlay">Overlay</option>
                 <option value="comparison" selected>Comparison</option>
-                <!-- Only offered when this pose has another drawing to show;
-                     refreshSelfIdleOptions() hides it otherwise. -->
+                <!-- Only offered when this pose has another drawing to show —
+                     but once chosen it stays chosen, and a pose without one
+                     says so in the comparison slot. See
+                     refreshSelfIdleOptions(). -->
                 <option value="alternate" hidden>Alternate sprite</option>
               </select>
             </label>
             <label class="chip"><input type="checkbox" id="showPlatform" checked> Game platform</label>
             <label class="chip"><input type="checkbox" id="showGuides" checked> Guides</label>
             <label class="chip"><input type="checkbox" id="showBox"> Sprite bounds</label>
-            <label class="chip"><input type="checkbox" id="showHurtbox"> Hurtbox</label>
+            <label class="chip"><input type="checkbox" id="showHurtbox" checked> Hurtbox</label>
             <label class="chip"><input type="checkbox" id="spinPreview"> Spin preview</label>
           </div>
         </div>
