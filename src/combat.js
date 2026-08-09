@@ -1,10 +1,11 @@
 import { state } from "./state.js";
 import { clamp, sign, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, sparkLine, ring, popup, banner } from "./particles.js";
-import { hitFx, elementOf, burnTickFx, bleedTickFx, projectileEmit, explodeFx, blackFlashFx } from "./fx.js";
+import { hitFx, elementOf, burnTickFx, bleedTickFx, projectileEmit, explodeFx, blackFlashFx, ratioSeamFx } from "./fx.js";
 import { PROJ_TRAIL, BLACK_FLASH, RUMBLE } from "./config_fx.js";
 import { rumbleFighter, rumbleEvent } from "./rumble.js";
 import { duckMusic } from "./audio.js";
+import { ELEMENT_HIT_SFX } from "./config_audio.js";
 import { playSfx } from "./audio.js";
 import { domainKnockbackMul } from "./domains.js";
 import {
@@ -583,7 +584,10 @@ export function applyHit(owner, target, hit, source) {
     dmg *= 1.36; baseKb *= 1.22; growth *= 1.15;
     label = "7:3 " + (label || "");
     popup(target.x, target.y - 175, "7:3!", "#ffd35a", 26);
+    // The ratio drawn onto the target: a precise gold seam, sparks along it.
+    ratioSeamFx(target.x, target.y - 96, dir);
     playSfx("hitCrit");
+    playSfx("seamCrack", 0.9); // the seam snapping — silence until delivered
   }
 
   // Black Flash (Yuji): cursed energy lands within a millionth of a second of
@@ -699,7 +703,11 @@ export function applyHit(owner, target, hit, source) {
   // a kit with no fxElement tags draws exactly the old theme burst.
   const hx = target.x + dir * -14;
   const hy = target.y - 96;
-  hitFx(elementOf(hit, owner), hx, hy, dir, dmg, owner.char.theme);
+  const fxEl = elementOf(hit, owner);
+  hitFx(fxEl, hx, hy, dir, dmg, owner.char.theme);
+  // The element's own sound, layered quietly under the hit sound. Unregistered
+  // names are silence, so each layer arrives with its file (audio-requests).
+  if (ELEMENT_HIT_SFX[fxEl]) playSfx(ELEMENT_HIT_SFX[fxEl], Math.min(0.9, 0.45 + dmg / 34));
   popup(target.x, target.y - 132, `${dmg}%`, "#ffffff", 20 + Math.min(16, dmg));
   if (label) popup(target.x - dir * 26, target.y - 160, label, owner.char.theme, 17);
   state.camera.shake = Math.max(state.camera.shake, clamp(4 + dmg * 0.5, 4, 15));

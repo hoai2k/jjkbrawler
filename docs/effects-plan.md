@@ -20,8 +20,8 @@ nothing load-bearing, the worst a bad value does is look wrong.
 | **CP2** | **done** | New particle primitives (`flame`, `crackle`, `droplet`, `flutter`, `smoke`, `streak`); `src/fx.js` element recipes; element-aware hit sparks incl. the no-cursed-energy rule for Maki/Toji/Panda; `dashStrike` launch FX + afterimage boost; `src/config_fx.js` |
 | **CP3** | **done** | Projectile trails (faded position history) + per-element in-flight emitters (embers off Fuga, droplets off Piercing Blood, feathers off crows…) |
 | **CP4** | **done** | Black Flash full treatment (red/black crackle forks, contact flash, red vignette, music duck) + controller rumble (`src/rumble.js`) |
-| **CP5** | open | Per-character one-offs: Maki's ult, Sukuna's Dismantle lattice, Nanami's 7:3 seam, Todo's swap silhouettes, Gojo's Blue pull / Red disc / Infinity shimmer, Yuta's heal motes, Nobara's glowing marks, Inumaki's neutral arcs, Mahito's soul ripple, Choso's boom cone, Mei Mei's feathers, Yuji's first-hit thud, Gakuganji's clipped aura |
-| **CP6** | open | Channel-loop SFX wiring; element/signature SFX request round in `docs/audio-requests.md` |
+| **CP5** | **done** | Per-character one-offs: Maki's ult, Sukuna's Dismantle lattice, Nanami's 7:3 seam, Todo's swap silhouettes, Gojo's Blue pull / Red disc / Infinity shimmer, Yuta's heal motes, Nobara's glowing marks, Inumaki's neutral arcs, Mahito's soul ripple, Choso's boom cone, Mei Mei's feathers, Yuji's first-hit thud, Gakuganji's clipped aura |
+| **CP6** | **done** | Channel-loop SFX wiring; element/signature SFX request round in `docs/audio-requests.md` |
 
 Each checkpoint merges to `main` on its own, so the game is playable at every
 row of that table.
@@ -133,6 +133,14 @@ The table from the audit: each is a small, local change in `specials.js`,
 `config_fx.js` where there is anything worth tuning. The no-CE rule shapes
 Maki's ultimate: speed-lines, dust shockwave and doubled afterimages — power as
 absence of glow.
+
+Two audit items resolved themselves in CP2 and are not separate changes here:
+Mahito's soul ripple is his `fxElement: "soul"` hit recipe, and Yuji's
+Divergent Fist first hit already sparks through the normal hit path — the echo
+carrying the louder burst is the intended read. Three installs that had no
+aura art (Maki, Panda's Gorilla Mode, Yuji's Grit) now point at
+`aura_jade` / `aura_slate` / `aura_indigo`, shipped as procedural placeholders
+and requested properly as asset round **12D**.
 
 ### CP6 — sound
 

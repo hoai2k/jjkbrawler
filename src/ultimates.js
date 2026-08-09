@@ -12,7 +12,8 @@ import { applyInstall } from "./specials.js";
 import { TRANSFORMS, TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "./config_transform.js";
 import { frameMeta } from "./assets.js";
 import { playSfx, playGrunt } from "./audio.js";
-import { critFinisherFx } from "./fx.js";
+import { critFinisherFx, dismantleLatticeFx, steelInstallFx } from "./fx.js";
+import { CHAR_FX } from "./config_fx.js";
 import { rumbleEvent } from "./rumble.js";
 import { circleRectOverlap, rectsOverlap } from "./utils.js";
 import { ULT_METER_COST, METER_MAX } from "./constants.js";
@@ -72,6 +73,7 @@ const DIRECTORS = {
             dmg: p.dmg, base: p.base, growth: p.growth, angle: 0.4,
             color: p.color, pierce: true, unblockable: true,
             clearsProjectiles: true, label: "Hollow Purple",
+            fxRing: 10, // erasure shedding rings as it crosses the stage
             sprite: p.sprite, spriteH: p.spriteH,
           });
           playSfx("blast", 1, 0.7);
@@ -468,7 +470,9 @@ const DIRECTORS = {
       unblockable: p.unblockable, healPerSec: p.healPerSec,
       echoDamage: p.echoDamage, dmgTakenMul: p.dmgTakenMul, aura: p.aura,
     }, 2);
-    burst(f.x, f.y - 90, p.color, 40, 1.6);
+    // Maki's Awakening: power as the absence of glow — speed-lines and dust.
+    if (f.char.fxElement === "steel") steelInstallFx(f);
+    else burst(f.x, f.y - 90, p.color, 40, 1.6);
     if (p.sprite) {
       state.entities.push({
         owner: f, dead: false,
@@ -527,6 +531,9 @@ const DIRECTORS = {
           t.damage = Math.min(999, t.damage + p.dmg);
           t.shakeMag = 5;
           burst(t.x, t.y - 90, ult.p.color, 12, 1);
+          // Sukuna's barrage: the world is CUT — thin white slash lines
+          // flash across the target with every volley.
+          if (p.lattice) dismantleLatticeFx(t.x, t.y - 90, CHAR_FX.dismantleLines);
           popup(t.x + rand(-30, 30), t.y - 120 - rand(0, 40), `${p.dmg}%`, "#ffffff", 16);
           playSfx(Math.random() < 0.5 ? "punch" : "slash", 0.85);
           state.camera.shake = Math.max(state.camera.shake, 5);
@@ -539,6 +546,8 @@ const DIRECTORS = {
       fn: (self) => {
         const t = opponentOf(self);
         if (!t || t.dead || t.respawnTimer > 0) return;
+        // the full lattice appears as the finisher lands
+        if (p.lattice) dismantleLatticeFx(t.x, t.y - 90, CHAR_FX.dismantleFinisher);
         applyHit(self, t, {
           dmg: p.finisherDmg, baseKb: p.finisherBase, growth: p.growth, angle: 0.55,
           label: ult.p.label, sfx: "blast", unblockable: true, heavy: true,

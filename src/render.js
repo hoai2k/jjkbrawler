@@ -455,6 +455,25 @@ function drawInstallAura(ctx, f) {
   ctx.beginPath();
   ctx.ellipse(f.x, f.y - 60, 56, 96, 0, 0, Math.PI * 2);
   ctx.fill();
+  // Distortion Solo: the aura's edge clips like an overdriven signal — a
+  // square-wave ring stepping between two radii, not a smooth ellipse.
+  if (f.installs.ampUp) {
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = f.installs.color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    const steps = 22;
+    const spin = state.matchTime * 1.7;
+    for (let i = 0; i <= steps; i++) {
+      const a = spin + (i / steps) * Math.PI * 2;
+      const r = i % 2 === 0 ? 66 : 84;
+      const px = f.x + Math.cos(a) * r;
+      const py = f.y - 60 + Math.sin(a) * r * 1.45;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -508,12 +527,24 @@ function drawCounterAura(ctx, f) {
   ctx.restore();
 }
 
+// Straw-doll nails: in the anime a planted nail KEEPS glowing — the payoff
+// Hairpin cashes in should be visible as live cursed energy, not inert dots.
 function drawNailMarks(ctx, f) {
   ctx.save();
-  ctx.fillStyle = "#d86a4a";
+  ctx.globalCompositeOperation = "lighter";
+  const pulse = 0.7 + 0.3 * Math.sin(state.matchTime * 9);
   for (let i = 0; i < f.statuses.nailMarks; i++) {
+    const x = f.x - 24 + i * 10;
+    const y = f.y - 156;
+    ctx.globalAlpha = 0.55 * pulse;
+    ctx.fillStyle = "#ff9a6a";
     ctx.beginPath();
-    ctx.arc(f.x - 24 + i * 10, f.y - 156, 3.4, 0, Math.PI * 2);
+    ctx.arc(x, y, 6.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = "#ffd7b8";
+    ctx.beginPath();
+    ctx.arc(x, y, 2.8, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();

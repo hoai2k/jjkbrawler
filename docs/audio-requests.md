@@ -1,8 +1,100 @@
 # Audio Requests — open requests
 
-**Nothing is outstanding.** The sound-effect round is delivered and wired in;
-the audit, the prompts and the delivery record are in
-[audio-requests-history.md](audio-requests-history.md).
+**One round outstanding: the element and signature layer, 15 files.** The
+previous sound-effect round is delivered and wired in; its audit, prompts and
+delivery record are in [audio-requests-history.md](audio-requests-history.md).
+
+## Open — element hit layers and signature one-shots (15 files)
+
+Comes out of the effects work in [effects-plan.md](effects-plan.md): hits now
+carry an element (fire, blood, steel…) visually, and every call site for these
+sounds is **already wired** — `playSfx` treats an unregistered name as silence,
+so each file switches on the moment it is generated and registered in
+`src/config_audio.js` with the key noted below. Generate through the normal
+flow (step 1–3 under "Adding a sound"); keep each under ~1 s unless noted.
+
+### Element hit layers
+
+Played quietly UNDER the normal hit sound whenever a hit of that element
+connects (`ELEMENT_HIT_SFX`, `src/config_audio.js` → `combat.js`). They are
+seasoning, not the meal: short, mid-quiet, no music, no voice.
+
+- **`hit_fire.mp3`** (`hitFire`) · flame catching on impact · ~0.5 s
+  ```
+  a short burst of fire igniting on impact, whoomph of flame with a crackle tail, no explosion boom, tight and dry
+  ```
+- **`hit_blood.mp3`** (`hitBlood`) · a heavy wet splat · ~0.4 s
+  ```
+  a thick heavy wet splat, dense liquid impact with a short spatter tail, visceral but not gory squelch
+  ```
+- **`hit_steel.mp3`** (`hitSteel`) · metal glancing off metal · ~0.4 s
+  ```
+  a sharp steel-on-steel glance, bright metallic ring cut short, sword clash without the swing
+  ```
+- **`hit_wind.mp3`** (`hitWind`) · a blade of air slicing through · ~0.4 s
+  ```
+  a fast slicing gust, sharp air whip crack with a hollow whoosh tail, no voice
+  ```
+- **`hit_sound.mp3`** (`hitSound`) · a resonant concussive tone · ~0.6 s
+  ```
+  a deep resonant concussive tone hitting like a struck gong crossed with a bass drop, brief, musical edge
+  ```
+- **`hit_shadow.mp3`** (`hitShadow`) · dark matter whipping past · ~0.5 s
+  ```
+  a dark whooshing impact, low smoky rush with a faint reversed tail, ominous, no scream
+  ```
+- **`hit_soul.mp3`** (`hitSoul`) · something touching the soul · ~0.6 s
+  ```
+  an eerie shimmering impact, cold glassy ripple with a detuned harmonic tail, unsettling, quiet
+  ```
+
+### Signature one-shots
+
+Each already has its call site; the key is what to register.
+
+- **`boogie_clap.mp3`** (`boogieClap`) · Todo's clap — the whole technique is
+  this sound · ~0.7 s
+  ```
+  a single enormous dry hand clap in a large hall, sharp transient, big natural reverb tail, nothing else
+  ```
+- **`power_chord.mp3`** (`powerChord`) · Gakuganji's Power Chord actually
+  sounding like one · ~1.2 s
+  ```
+  a single aggressive distorted electric guitar power chord, palm-muted strike then ringing out, raw amp tone
+  ```
+- **`crow_caw.mp3`** (`crowCaw`) · Mei Mei's crow leaving her hand · ~0.6 s
+  ```
+  a single harsh crow caw with a flutter of wingbeats, close and dry
+  ```
+- **`paper_flutter.mp3`** (`paperRustle`) · Reggie's receipts becoming things ·
+  ~0.6 s
+  ```
+  a fast flutter of many paper slips fanning and snapping taut, dry crisp rustle ending in a thump
+  ```
+- **`soul_reshape.mp3`** (`soulReshape`) · Mahito's Idle Transfiguration · ~0.8 s
+  ```
+  a wet clay-like squelch morphing with a bone creak and a faint chime, unsettling body-horror texture, not gory
+  ```
+- **`seam_crack.mp3`** (`seamCrack`) · Nanami's 7:3 seam snapping onto the
+  target · ~0.5 s
+  ```
+  a precise glass crack snapping along a line, clean sharp fracture with a faint metallic ping, surgical
+  ```
+- **`rct_chime.mp3`** (`healChime`) · Reverse Cursed Technique beginning · ~0.9 s
+  ```
+  a warm gentle chime swell with soft rising sparkle motes, healing shimmer, calm, no melody
+  ```
+- **`fire_burn_loop.mp3`** (`fireBurnLoop`) · optional bed under Jogo's burn
+  ticks and Furnace Shell · ~2 s, seamless loop · **the one file here with no
+  call site yet** — wire it like the shield loop (`startShieldLoop`,
+  `src/audio.js`) when it lands
+  ```
+  a small steady fire burning, soft crackle loop, even level, seamless loop, no wind
+  ```
+
+**Voice is already covered** — all 23 fighters have grunt trios and KO cries.
+If per-character technique call-outs are ever wanted, that is a separate,
+much larger round (23 fighters × lines) and should be scoped on its own.
 
 This file exists so there is somewhere obvious for the next request to go, and
 so "is any audio still owed?" has a one-line answer rather than a 600-line

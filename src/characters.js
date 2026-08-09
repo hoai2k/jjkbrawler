@@ -165,7 +165,7 @@ export const CHARACTERS = {
       side: {
         name: "Cursed Technique Reversal: Red", type: "projectile", cooldown: 1.15,
         desc: "A repulsive blast with brutal knockback. Destroys other projectiles.",
-        p: { speed: 660, vy: -8, r: 44, dur: 0.9, dmg: 14, base: 500, growth: 8.6, angle: 0.3, color: "#ff4d5d", pierce: true, clearsProjectiles: true, label: "Red", sprite: "effect:red", spriteH: 138 },
+        p: { speed: 660, vy: -8, r: 44, dur: 0.9, dmg: 14, base: 500, growth: 8.6, angle: 0.3, color: "#ff4d5d", pierce: true, clearsProjectiles: true, fxRing: 7, label: "Red", sprite: "effect:red", spriteH: 138 },
       },
       down: {
         name: "Infinity", type: "counter", cooldown: 2.6,
@@ -220,7 +220,7 @@ export const CHARACTERS = {
       down: {
         name: "Reverse Cursed Technique", type: "heal", cooldown: 5.5,
         desc: "Channel refined cursed energy to knit wounds — interrupted if struck.",
-        p: { duration: 1.4, healPerSec: 9, color: "#a5ffd8" },
+        p: { duration: 1.4, healPerSec: 9, color: "#a5ffd8", castSfx: "healChime" },
       },
     },
     ultimate: {
@@ -323,13 +323,13 @@ export const CHARACTERS = {
       down: {
         name: "Split Soul Stance", type: "install", cooldown: 6.5,
         desc: "Draws the katana that cuts the soul itself — for a moment, guards mean nothing.",
-        p: { duration: 3.2, unblockable: true, color: "#b8ffe2", label: "SOUL CUT" },
+        p: { duration: 3.2, unblockable: true, color: "#b8ffe2", label: "SOUL CUT", aura: "effect:aura_jade" },
       },
     },
     ultimate: {
       name: "Heavenly Restriction: Awakening", type: "install",
       desc: "Everything cursed stripped away, everything physical unleashed — the night the Zen'in clan ended.",
-      p: { duration: 8, speedMul: 1.35, dmgMul: 1.3, armor: false, color: "#69d0a8", label: "AWAKENED" },
+      p: { duration: 8, speedMul: 1.35, dmgMul: 1.3, armor: false, color: "#69d0a8", label: "AWAKENED", aura: "effect:aura_jade" },
     },
     passive: { id: "heavenlyBody", name: "Heavenly Restriction", desc: "A body beyond curses: immune to burns, snares, and soul marks." },
     ai: { style: "rush", range: 200 },
@@ -516,7 +516,7 @@ export const CHARACTERS = {
       down: {
         name: "Gorilla Mode", type: "modeToggle", cooldown: 1.2,
         desc: "Switches to his brother's core: slower, but every hit lands like a drum of thunder.",
-        p: { duration: 6, dmgMul: 1.3, speedMul: 0.88, armor: true, color: "#c9b6ff", label: "GORILLA MODE" },
+        p: { duration: 6, dmgMul: 1.3, speedMul: 0.88, armor: true, color: "#c9b6ff", label: "GORILLA MODE", aura: "effect:aura_slate" },
       },
     },
     ultimate: {
@@ -752,7 +752,7 @@ export const CHARACTERS = {
     ultimate: {
       name: "Dismantle: Merciless Barrage", type: "flurry",
       desc: "A carving rush too fast to read — Dismantle after Dismantle, closed with a Cleave that finds the exact toughness of whatever it meets.",
-      p: { hits: 6, dmg: 6, base: 210, finisherDmg: 21, finisherBase: 860, growth: 9.2, color: "#ff4c55", label: "CLEAVE" },
+      p: { hits: 6, dmg: 6, base: 210, finisherDmg: 21, finisherBase: 860, growth: 9.2, lattice: true, color: "#ff4c55", label: "CLEAVE" },
     },
     // ---- Domain Expansion -------------------------------------------------
     domains: [{
@@ -787,7 +787,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Idle Transfiguration", type: "commandGrab", cooldown: 2.1,
         desc: "One touch on the soul and the body follows. Cannot be blocked — only avoided.",
-        p: { range: 120, dmg: 14, base: 420, growth: 7.0, angle: 0.7, effect: "soulMark", color: "#b56cff", label: "Idle Transfiguration", sprite: "effect:soul_touch", spriteH: 150 },
+        p: { range: 120, dmg: 14, base: 420, growth: 7.0, angle: 0.7, effect: "soulMark", color: "#b56cff", castSfx: "soulReshape", label: "Idle Transfiguration", sprite: "effect:soul_touch", spriteH: 150 },
       },
       side: {
         name: "Body Distortion Lunge", type: "dashStrike", cooldown: 1.3,
@@ -1033,12 +1033,12 @@ export const CHARACTERS = {
       neutral: {
         name: "Crow Scout", type: "projectile", cooldown: 1.0,
         desc: "A shikigami crow dives on command, wheeling after the target.",
-        p: { speed: 470, vy: -30, r: 26, dur: 1.2, dmg: 9, base: 320, growth: 6.2, angle: 0.4, color: "#d8b95c", homing: 150, fxElement: "feather", label: "Crow", sprite: "effect:crow", spriteH: 84 },
+        p: { speed: 470, vy: -30, r: 26, dur: 1.2, dmg: 9, base: 320, growth: 6.2, angle: 0.4, color: "#d8b95c", homing: 150, fxElement: "feather", fireSfx: "crowCaw", label: "Crow", sprite: "effect:crow", spriteH: 84 },
       },
       side: {
         name: "Axe Rush", type: "dashStrike", cooldown: 1.35,
         desc: "She closes the distance herself — an overhead axe arc delivered with professional efficiency.",
-        p: { vel: 540, iframes: 0.1, delay: 0.06, dur: 0.22, ox: 66, oy: -96, w: 210, h: 108, dmg: 14, base: 450, growth: 7.2, angle: 0.4, shieldMul: 2.2, label: "Axe Rush", sfx: "slashHeavy" },
+        p: { vel: 540, iframes: 0.1, delay: 0.06, dur: 0.22, ox: 66, oy: -96, w: 210, h: 108, dmg: 14, base: 450, growth: 7.2, angle: 0.4, shieldMul: 2.2, fxElement: "feather", label: "Axe Rush", sfx: "slashHeavy" },
       },
       down: {
         name: "Advance Payment", type: "payToWin", cooldown: 3.0,
@@ -1121,7 +1121,7 @@ export const CHARACTERS = {
       down: {
         name: "Unbreakable Grit", type: "install", cooldown: 6.0,
         desc: "Plants his feet and refuses to fall — for a moment, nothing staggers him.",
-        p: { duration: 2.8, armor: true, dmgTakenMul: 0.88, color: "#ffb37a", label: "GRIT" },
+        p: { duration: 2.8, armor: true, dmgTakenMul: 0.88, color: "#ffb37a", label: "GRIT", aura: "effect:aura_indigo" },
       },
     },
     ultimate: {
@@ -1150,7 +1150,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Receipt: Katana Umbrella", type: "projectile", cooldown: 1.0,
         desc: "Tears a receipt and the purchase appears mid-swing — a blade wave off the umbrella's edge.",
-        p: { speed: 580, vy: -4, r: 30, dur: 0.85, dmg: 11, base: 360, growth: 6.8, angle: 0.34, color: "#86d67c", label: "Umbrella Blade", sprite: "effect:receipt_blade", spriteH: 86 },
+        p: { speed: 580, vy: -4, r: 30, dur: 0.85, dmg: 11, base: 360, growth: 6.8, angle: 0.34, color: "#86d67c", fireSfx: "paperRustle", label: "Umbrella Blade", sprite: "effect:receipt_blade", spriteH: 86 },
       },
       side: {
         name: "Receipt: Insecticide", type: "cloudField", cooldown: 2.0,
@@ -1196,7 +1196,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Power Chord", type: "projectile", cooldown: 1.1,
         desc: "One downstroke — cursed energy rides the riff out as a crushing wall of sound.",
-        p: { speed: 500, vy: 0, r: 40, dur: 0.8, dmg: 11, base: 380, growth: 6.8, angle: 0.36, color: "#d89b3f", pierce: true, ampable: true, fxElement: "sound", label: "Power Chord", sprite: "effect:sound_wave", spriteH: 120 },
+        p: { speed: 500, vy: 0, r: 40, dur: 0.8, dmg: 11, base: 380, growth: 6.8, angle: 0.36, color: "#d89b3f", pierce: true, ampable: true, fxElement: "sound", fireSfx: "powerChord", label: "Power Chord", sprite: "effect:sound_wave", spriteH: 120 },
       },
       side: {
         name: "Feedback Wall", type: "trap", cooldown: 1.9,

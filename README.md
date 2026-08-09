@@ -38,6 +38,8 @@ Press `Esc` to pause. The in-game `i` button lists the full move set.
 - [Game mechanics](docs/game-mechanics.md)
 - [Characters](docs/characters.md)
 - [Asset pipeline](docs/asset-pipeline.md)
+- [Automating the placement pass](docs/sprite-auto-adjust.md) — what the hand
+  tuning data says is mechanical, and what is judgement
 - [Full sprite cleanup](docs/sprite-cleanup.md) — the runbook for answering every
   flag set in the sprite workbench
 - [Asset requests](docs/asset-requests.md) — open art rounds
