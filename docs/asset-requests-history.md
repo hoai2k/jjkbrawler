@@ -22,7 +22,8 @@ why the numbering is not strictly chronological.
 | 10 | One sprite per action for the sheet-era fighters — Gojo, Mahito, Nobara, Yuta (72 sprites) | Delivered in part; the rest is round 11 |
 | 11 | Mahoraga redrawn from canon, the semantic sets finished for the last 13 fighters, wind-up/strike pairs for the round-7 six (280 sprites) | Delivered — **every fighter now has one sprite per action** |
 | 12A | Workbench catches: poses that failed once placed at real size (33 sprites) | Delivered — all 33, in three batches |
-| 12B/12C | The four-frame run cycle and the `prone` pose, roster-wide (120 sprites) | Delivered in part — 75 in for 15 fighters; the other 9 are open in [asset-requests.md](asset-requests.md) |
+| 12B/12C | The four-frame run cycle and the `prone` pose, roster-wide (120 sprites) | Delivered — all 24 fighters |
+| 12D | Three install auras | Never delivered; moved to round 13 as 13E |
 
 ---
 
@@ -1029,3 +1030,215 @@ placed the 78 poses it had rules for and left prone's ground contact to the eye.
 The figure is intact and the rest of the delivery is clean, so it was imported;
 whether that is worth a redraw is a workbench decision, not one to make on the
 way in.
+
+---
+
+## Round 12B and 12C, completed — 45 sprites across the last 9 fighters
+
+The four-frame run cycle and the `prone` pose for Gakuganji, Gojo, Mahito,
+Mahoraga, Maki, Nobara, Reggie, Toji and Uro, finishing both parts.
+
+**All 24 fighters now run on four frames and have a drawn knockdown.** The
+two-frame run is retired everywhere, and the engine no longer simulates prone by
+sweeping a `hurt` frame 90 degrees.
+
+The delivery arrived as 74 plates, 29 of which were byte-for-byte re-uploads of
+12A art already delivered and archived. Those were dropped rather than
+reimported — comparing the incoming plate against `assets/reference/round<N>/`
+by hash is the cheap way to tell a redelivery from a repeat, and worth doing
+whenever a round arrives in more than one upload.
+
+### What round 12 finished
+
+| Part | Scope | Sprites |
+|---|---|---|
+| 12A | Workbench catches, in three batches | 33 |
+| 12B | The four-frame run cycle, roster-wide | 96 |
+| 12C | A `prone` pose, roster-wide | 24 |
+
+**12D — three install auras — was never delivered and has moved to round 13 as
+13E.** It is effect art rather than a pose, the three installs run on procedural
+placeholders in code, and keeping a round open for it would have misreported
+what is outstanding.
+
+### One thing left for the eye
+
+**Five of the twenty-four prone poses lie the other way round.** Geto, Mei Mei
+and Todo came that way in the first batch; Mahoraga and Nobara in the second.
+The other nineteen lie with the head trailing, which is the direction a
+knocked-back fighter falls, and the engine mirrors `prone` by facing like every
+other frame — so two fighters knocked down beside each other lie head to head.
+
+No redraw is needed: it is one tick of **Mirror this pose** in the workbench per
+pose. It is recorded here rather than fixed on the way in because which way a
+body falls is a decision about the game, not a fault in the file.
+
+### The briefs, kept verbatim
+
+The pose lines are the reference for anything that has to match this art
+later — a redraw of one run frame has to agree with the other three.
+
+### 12B, as it was written
+
+### Why the two-frame run is being retired
+
+Every fighter's run is two sprites, `run_a` and `run_b`, alternated at 10 fps.
+Set them side by side for any fighter and the problem is visible before the
+game even starts: **they are two drawings of the same half of a stride.** Both
+frames tend to show the same leg leading, differing only in arm angle or how
+far the legs are apart — so on screen the character does not stride, they
+vibrate between two near-identical poses while sliding along the ground. And
+because the two were generated independently, they rarely agree on lean or
+figure scale either, so the vibration comes with a lurch.
+
+The fix is not better versions of the same two frames. A run cycle has a
+structure, and two frames cannot hold it:
+
+- A stride has **two halves** — right leg leading, then left leg leading — and
+  a side-view character is asymmetric (Maki's naginata, Yuta's katana, Nanami's
+  cleaver, every jacket and hairstyle), so the second half cannot be faked by
+  mirroring the first. Both leg-leads must be drawn.
+- Between the two reaches the legs **cross under the body**. Without a crossing
+  frame the legs teleport from one split to the other, which is exactly the
+  "two poses swapping" read the current run has.
+
+Four key poses is the classic minimum that holds all of it — the **reach**
+(full stride) and the **pass** (legs crossing) for each leg-lead — and it is
+also about the ceiling of what our generator can keep consistent across
+independently drawn frames, so that is the shape of this round:
+
+| Order | Pose key | What it is |
+|---|---|---|
+| 1 | `run_reach_a` | full stride, one leg reaching forward |
+| 2 | `run_pass_a` | legs crossing under the body, rear leg swinging through |
+| 3 | `run_reach_b` | full stride, the **other** leg reaching forward |
+| 4 | `run_pass_b` | legs crossing again, the other leg swinging through |
+
+The loop plays 1→2→3→4 at 13 fps — a full cycle every ~0.31 s, about three
+strides a second, which reads as a sprint. The engine adds sway once per cycle
+and a bob on each footfall on top (`src/motion.js`).
+
+### Pose lines
+
+Combine each fighter's character block with these, one image per line. The four
+are **one continuous motion sampled four times** — same camera, same distance,
+same figure scale, same costume and weapon; only the body moves.
+
+| Pose | Pose line |
+|---|---|
+| `run_reach_a` | sprinting at full stride, torso leaning forward, RIGHT leg extended forward with the heel about to strike, left leg trailing fully behind, LEFT arm swung forward and right arm driven back, body at the lowest point of the stride |
+| `run_pass_a` | mid-stride, upright moment of the sprint, legs crossing directly beneath the hips with the left knee driving through to the front, arms passing at the sides, body at the highest point of the stride |
+| `run_reach_b` | sprinting at full stride, torso leaning forward, LEFT leg extended forward with the heel about to strike, right leg trailing fully behind, RIGHT arm swung forward and left arm driven back, body at the lowest point of the stride |
+| `run_pass_b` | mid-stride, upright moment of the sprint, legs crossing directly beneath the hips with the right knee driving through to the front, arms passing at the sides, body at the highest point of the stride |
+
+Things that make or break this specific set:
+
+- **The lean is constant.** A sprinter's torso holds a steady forward lean
+  through the whole cycle. If one frame stands tall and the next dives, the
+  loop rocks like a see-saw. Pick the lean from the fighter's `dash` pose,
+  dialled back a little, and keep it in all four.
+- **Reach low, pass high.** The body genuinely rises on the crossing frames and
+  sinks on the contact frames — that is where the bounce of a run comes from,
+  and the engine only *adds half* of its usual procedural bob when the cycle
+  art is present, expecting the art to carry the rest.
+- **Weapons ride, they do not flail.** A carried weapon (naginata, axe, broom,
+  sword, guitar) stays in the same hand at the same size in all four frames,
+  moving only as much as the arm swing moves it. The most common generator
+  failure on this pose is the prop teleporting between hands.
+- **Nothing airborne-looking.** Frames where both feet float with the body
+  rising read as a jump when looped. On the pass frames the toes of the
+  planted foot can leave the ground, but the pose must read as *between*
+  steps, not above them.
+- **No motion effects.** No speed lines, no dust, no afterimages — the engine
+  draws all of that (`trailStrength`, dash dust). Painted-in effects loop as a
+  flicker.
+
+### Who and what to deliver
+
+All 23 roster fighters plus **Mahoraga**, four poses each. He was held out of
+this list while round 11A was open, on the assumption his cycle would come with
+that redraw; 11A has since been delivered as the 33-pose set, which carries
+`run_a`/`run_b` and not the cycle. So he needs these four like everyone else —
+`assets/intake/mahoraga/run_reach_a.png` and the rest.
+
+```
+assets/intake/<character>/run_reach_a.png
+assets/intake/<character>/run_pass_a.png
+assets/intake/<character>/run_reach_b.png
+assets/intake/<character>/run_pass_b.png
+```
+
+Standard delivery spec at the top of this file: facing right, flat key screen —
+warm-palette fighters (Sukuna, Nobara, Momo, Hakari, Yuji, Choso, Uro,
+Gakuganji) on mid-grey `#808080`, everyone else on magenta `#FF00FF`. Each
+fighter's canonical reference is their `assets/reference/canon/<char>_idle.png`
+— every fighter has one now — and their `dash` sprite is the secondary
+reference for how *this* character carries themselves at speed.
+
+Deliver **all four frames of a fighter together.** A half-delivered cycle
+plays whatever subset exists, and two frames of the new art loop worse than
+the old pair they replace. Fighter by fighter is fine; frame by frame is not.
+
+### The old pair stays, as the fallback
+
+`run_a` and `run_b` are not deleted and not redrawn. The run animation names
+the four cycle frames with the old pair as its `fallback`
+(`src/characters.js`), so a fighter whose cycle has not landed keeps running
+exactly as today, at the old 10 fps — and picks the cycle up the moment their
+four frames are imported and registered. No code change per fighter; the round
+can land one fighter at a time.
+
+### Integrating
+
+1. Import with `tools/intake.py` as usual — the semantic pose keys register
+   like any other.
+2. Run `python3 tools/bake_anchors.py` so the new frames get their centre of
+   mass measured; the run lean rotates about it.
+3. Check the loop in the sprite workbench: the four frames play in order under
+   the Run state, and a scale mismatch between them shows up as pulsing there
+   before it ships.
+
+---
+
+### 12C, as it was written
+
+### Why
+
+The game now has a KNOCKDOWN: Reggie's runaway sedan (and anything else that
+sets `knockdown` on a hit) leaves its victim lying flat on the ground for about
+a second before they get up. Every fighter can be on the receiving end, so every
+fighter needs the pose.
+
+**Nothing is blocked.** Until a fighter's `prone` art lands, the game simulates
+it — their `hurt` pose swept 90 degrees onto its back (`fighter.js`,
+`prone` in the shared animation tables). That reads fine at speed; a drawn pose
+reads better. Deliveries can land one fighter at a time and each takes effect on
+import with no code change, the same fallback machinery as the wind-up/strike
+pairs.
+
+### What to deliver
+
+One pose per fighter:
+
+| Pose | Pose line |
+|---|---|
+| `prone` | flat on their back on the ground, arms out, legs dropped, head tilted — dazed but conscious, the beat after being run over. Drawn HORIZONTAL: the body lies along the ground plane, feet toward the right edge of the frame |
+
+Facing note: the standard spec says faces right — for this pose that means
+**feet to the right**, since the body is horizontal. The renderer mirrors it
+for a fighter facing left like any other frame.
+
+Match each fighter's canonical reference image for costume, proportions and line
+weight. Same delivery spec as everything else; body length on the plate around
+the usual ~290 px figure scale, lying down.
+
+Deliver to:
+
+```
+assets/intake/<character>/prone.png
+```
+
+All 23 fighters plus **Mahoraga** — the transform can be knocked down like
+anyone else (his armour eats the hit today, but a future knockdown that pierces
+armour would want the pose). Round 11A is closed, so his does not arrive with
+anything else.
