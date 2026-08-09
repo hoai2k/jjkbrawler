@@ -893,9 +893,9 @@
    "crouch_attack_b": {
     "w": 965,
     "h": 934,
-    "ox": -325.8,
+    "ox": -369.1,
     "oy": -623,
-    "bodyBottom": 310.4,
+    "bodyBottom": 266.5,
     "bodyH": 421.2,
     "centroidX": 200.1,
     "renderScale": 0.451,
@@ -915,14 +915,21 @@
       526.3,
       391.4
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.952 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "crouch_b": {
     "w": 813,
     "h": 1002,
-    "ox": -249.8,
+    "ox": -237.1,
     "oy": -691,
-    "bodyBottom": 310.4,
+    "bodyBottom": 263.3,
     "bodyH": 403.8,
     "centroidX": 144.1,
     "renderScale": 0.403,
@@ -943,6 +950,13 @@
       394.9,
       457.5
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.952 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "dash": {
@@ -993,9 +1007,9 @@
    "special_down": {
     "w": 939,
     "h": 1434,
-    "ox": -312.8,
+    "ox": -270.3,
     "oy": -1123,
-    "bodyBottom": 310.4,
+    "bodyBottom": 242.7,
     "bodyH": 397.9,
     "centroidX": 114.3,
     "renderScale": 0.277,
@@ -1017,6 +1031,13 @@
       428.5,
       563.2
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.952 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "special_neutral": {
@@ -5708,9 +5729,9 @@
    "crouch_b": {
     "w": 797,
     "h": 1017,
-    "ox": -241.8,
+    "ox": -245.5,
     "oy": -706,
-    "bodyBottom": 310.4,
+    "bodyBottom": 253.4,
     "bodyH": 320.7,
     "centroidX": 160.5,
     "renderScale": 0.315,
@@ -5732,6 +5753,13 @@
       401.5,
       404.6
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.943 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "dash": {
@@ -11333,9 +11361,9 @@
    "dodge_air": {
     "w": 718,
     "h": 909,
-    "ox": -202.2,
+    "ox": -248.1,
     "oy": -598,
-    "bodyBottom": 310.4,
+    "bodyBottom": 258.4,
     "bodyH": 251.3,
     "centroidX": 202.6,
     "renderScale": 0.276,
@@ -11354,6 +11382,13 @@
       404.1,
       366.6
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.942 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "dodge_roll": {
@@ -11681,9 +11716,9 @@
    "special_down": {
     "w": 938,
     "h": 1373,
-    "ox": -312.2,
+    "ox": -283.6,
     "oy": -1062,
-    "bodyBottom": 310.4,
+    "bodyBottom": 231.5,
     "bodyH": 347.2,
     "centroidX": 128.1,
     "renderScale": 0.253,
@@ -11705,14 +11740,21 @@
       439.6,
       544.8
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.942 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "special_neutral": {
     "w": 948,
     "h": 1289,
-    "ox": -317.2,
+    "ox": -254.0,
     "oy": -978,
-    "bodyBottom": 310.4,
+    "bodyBottom": 236.4,
     "bodyH": 335.1,
     "centroidX": 93.5,
     "renderScale": 0.26,
@@ -11732,6 +11774,13 @@
       412.3,
       483.5
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.942 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "special_side": {
@@ -12334,9 +12383,9 @@
    "attack_air_a": {
     "w": 975,
     "h": 944,
-    "ox": -330.8,
+    "ox": -228.4,
     "oy": -633,
-    "bodyBottom": 310.4,
+    "bodyBottom": 252.3,
     "bodyH": 368.1,
     "centroidX": 54.4,
     "renderScale": 0.39,
@@ -12355,6 +12404,13 @@
       385.6,
       367.1
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.938 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "attack_air_b": {
@@ -12400,9 +12456,9 @@
    "attack_heavy_a": {
     "w": 954,
     "h": 1005,
-    "ox": -320.2,
+    "ox": -290.1,
     "oy": -694,
-    "bodyBottom": 310.4,
+    "bodyBottom": 248.5,
     "bodyH": 375.7,
     "centroidX": 126.6,
     "renderScale": 0.374,
@@ -12422,6 +12478,13 @@
       447.5,
       384.3
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.938 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "attack_heavy_b": {
@@ -12546,9 +12609,9 @@
    "crouch_attack_b": {
     "w": 933,
     "h": 869,
-    "ox": -309.8,
+    "ox": -162.9,
     "oy": -558,
-    "bodyBottom": 310.4,
+    "bodyBottom": 257.0,
     "bodyH": 293.6,
     "centroidX": 9.9,
     "renderScale": 0.338,
@@ -12569,14 +12632,21 @@
       320.2,
       371.4
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.938 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "crouch_b": {
     "w": 827,
     "h": 1018,
-    "ox": -256.8,
+    "ox": -162.7,
     "oy": -707,
-    "bodyBottom": 310.4,
+    "bodyBottom": 247.7,
     "bodyH": 420.2,
     "centroidX": 62.7,
     "renderScale": 0.413,
@@ -12597,6 +12667,13 @@
       320.0,
       461.3
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.938 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "dash": {
@@ -12714,9 +12791,9 @@
    "ult_b": {
     "w": 1002,
     "h": 985,
-    "ox": -344.2,
+    "ox": -290.2,
     "oy": -674,
-    "bodyBottom": 310.4,
+    "bodyBottom": 249.8,
     "bodyH": 265.4,
     "centroidX": 102.7,
     "renderScale": 0.269,
@@ -12736,6 +12813,13 @@
       447.4,
       403.8
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.938 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    }
   },
@@ -15976,9 +16060,9 @@
    "attack_air_b": {
     "w": 963,
     "h": 1145,
-    "ox": -324.8,
+    "ox": -229.3,
     "oy": -834,
-    "bodyBottom": 310.4,
+    "bodyBottom": 228.1,
     "bodyH": 358.2,
     "centroidX": 61.3,
     "renderScale": 0.313,
@@ -15999,6 +16083,13 @@
       387.8,
       431.2
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.928 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "attack_down": {
@@ -16255,9 +16346,9 @@
    "special_down": {
     "w": 846,
     "h": 1188,
-    "ox": -266.2,
+    "ox": -230.2,
     "oy": -877,
-    "bodyBottom": 310.4,
+    "bodyBottom": 225.0,
     "bodyH": 255.6,
     "centroidX": 120.7,
     "renderScale": 0.215,
@@ -16276,14 +16367,21 @@
       387.6,
       531.4
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.928 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "special_neutral": {
     "w": 895,
     "h": 1288,
-    "ox": -290.8,
+    "ox": -243.9,
     "oy": -977,
-    "bodyBottom": 310.4,
+    "bodyBottom": 217.7,
     "bodyH": 337.9,
     "centroidX": 109.9,
     "renderScale": 0.262,
@@ -16303,6 +16401,13 @@
       400.4,
       545.8
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.928 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "special_side": {
@@ -18591,9 +18696,9 @@
    "attack_air_a": {
     "w": 927,
     "h": 1118,
-    "ox": -306.8,
+    "ox": -237.6,
     "oy": -807,
-    "bodyBottom": 310.4,
+    "bodyBottom": 245.9,
     "bodyH": 248.3,
     "centroidX": 87.6,
     "renderScale": 0.222,
@@ -18612,14 +18717,21 @@
       395.9,
       520.8
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.942 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "attack_air_b": {
     "w": 973,
     "h": 1297,
-    "ox": -329.8,
+    "ox": -259.9,
     "oy": -986,
-    "bodyBottom": 310.4,
+    "bodyBottom": 235.5,
     "bodyH": 202.7,
     "centroidX": 86.9,
     "renderScale": 0.156,
@@ -18638,14 +18750,21 @@
       417.0,
       501.4
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.942 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "attack_heavy_a": {
     "w": 860,
     "h": 1461,
-    "ox": -273.2,
+    "ox": -248.9,
     "oy": -1150,
-    "bodyBottom": 310.4,
+    "bodyBottom": 226.0,
     "bodyH": 299.3,
     "centroidX": 132.4,
     "renderScale": 0.205,
@@ -18664,14 +18783,21 @@
       405.4,
       554.4
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.942 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "attack_heavy_b": {
     "w": 884,
     "h": 1440,
-    "ox": -285.2,
+    "ox": -248.9,
     "oy": -1129,
-    "bodyBottom": 310.4,
+    "bodyBottom": 227.2,
     "bodyH": 347.1,
     "centroidX": 120.4,
     "renderScale": 0.241,
@@ -18690,6 +18816,13 @@
       405.4,
       563.2
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.942 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    }
   },
@@ -20177,9 +20310,9 @@
    "attack_air_a": {
     "w": 903,
     "h": 1048,
-    "ox": -294.8,
+    "ox": -253.1,
     "oy": -737,
-    "bodyBottom": 310.4,
+    "bodyBottom": 250.9,
     "bodyH": 216.3,
     "centroidX": 115.1,
     "renderScale": 0.206,
@@ -20198,14 +20331,21 @@
       410.8,
       383.1
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.943 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "attack_air_b": {
     "w": 934,
     "h": 1089,
-    "ox": -310.2,
+    "ox": -193.4,
     "oy": -778,
-    "bodyBottom": 310.4,
+    "bodyBottom": 248.6,
     "bodyH": 232.6,
     "centroidX": 39.9,
     "renderScale": 0.214,
@@ -20224,14 +20364,21 @@
       350.0,
       323.3
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.943 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "attack_heavy_a": {
     "w": 763,
     "h": 1219,
-    "ox": -224.8,
+    "ox": -260.4,
     "oy": -908,
-    "bodyBottom": 310.4,
+    "bodyBottom": 241.1,
     "bodyH": 298.4,
     "centroidX": 192.4,
     "renderScale": 0.245,
@@ -20250,14 +20397,21 @@
       417.0,
       457.6
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.943 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "attack_heavy_b": {
     "w": 906,
     "h": 1346,
-    "ox": -296.2,
+    "ox": -248.0,
     "oy": -1035,
-    "bodyBottom": 310.4,
+    "bodyBottom": 233.9,
     "bodyH": 271.7,
     "centroidX": 108.5,
     "renderScale": 0.202,
@@ -20276,6 +20430,13 @@
       406.4,
       498.7
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.943 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    }
   },
@@ -20974,9 +21135,9 @@
    "attack_air_a": {
     "w": 877,
     "h": 1394,
-    "ox": -281.8,
+    "ox": -268.6,
     "oy": -1083,
-    "bodyBottom": 310.4,
+    "bodyBottom": 244.9,
     "bodyH": 276.7,
     "centroidX": 143.6,
     "renderScale": 0.198,
@@ -20995,14 +21156,21 @@
       427.3,
       632.7
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.953 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "attack_air_b": {
     "w": 904,
     "h": 1000,
-    "ox": -295.2,
+    "ox": -252.5,
     "oy": -689,
-    "bodyBottom": 310.4,
+    "bodyBottom": 263.6,
     "bodyH": 251.2,
     "centroidX": 114.0,
     "renderScale": 0.251,
@@ -21021,14 +21189,21 @@
       410.8,
       387.9
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.953 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "attack_heavy_a": {
     "w": 871,
     "h": 1365,
-    "ox": -278.8,
+    "ox": -310.3,
     "oy": -1054,
-    "bodyBottom": 310.4,
+    "bodyBottom": 246.3,
     "bodyH": 303.1,
     "centroidX": 188.3,
     "renderScale": 0.222,
@@ -21047,14 +21222,21 @@
       467.2,
       646.8
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.953 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "attack_heavy_b": {
     "w": 861,
     "h": 1245,
-    "ox": -273.8,
+    "ox": -306.6,
     "oy": -934,
-    "bodyBottom": 310.4,
+    "bodyBottom": 251.9,
     "bodyH": 262.7,
     "centroidX": 189.6,
     "renderScale": 0.211,
@@ -21073,6 +21255,13 @@
       465.3,
       562.0
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.953 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    }
   },
@@ -21195,9 +21384,9 @@
    "crouch_a": {
     "w": 770,
     "h": 992,
-    "ox": -228.2,
+    "ox": -210.7,
     "oy": -681,
-    "bodyBottom": 310.4,
+    "bodyBottom": 272.0,
     "bodyH": 346.8,
     "centroidX": 139.2,
     "renderScale": 0.35,
@@ -21218,6 +21407,13 @@
       367.4,
       439.7
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.961 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "crouch_attack_a": {
@@ -21245,9 +21441,9 @@
    "crouch_attack_b": {
     "w": 824,
     "h": 1043,
-    "ox": -255.2,
+    "ox": -284.0,
     "oy": -732,
-    "bodyBottom": 310.4,
+    "bodyBottom": 270.0,
     "bodyH": 400.7,
     "centroidX": 185.5,
     "renderScale": 0.384,
@@ -21268,6 +21464,13 @@
       439.8,
       447.9
      ]
+    },
+    "autoTuned": {
+     "at": "2026-08-09T11:40:55+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.961 (character)",
+      "ox": "centre of mass, not of the box"
+     }
     }
    },
    "crouch_b": {

@@ -23,7 +23,13 @@ that way, so this is the normal case, not a mistake.
 3. `tools/intake_import.py --approve` copies approved frames into
    `assets/sprites/<char>/` and registers them in `manifest.json`.
 4. `tools/bake_anchors.py` measures each new frame's centre of mass.
-5. The untouched originals are moved to `assets/reference/round<N>/<char>/` so a
+5. `tools/auto_tune.py` applies the placement corrections that are mechanical —
+   the ground contact, the centring, and the size of the states the whole roster
+   sizes alike. It never touches a field you have edited, and it does **not**
+   count as an edit: the poses stay on the workbench's to-do lists, because a
+   rule cannot say whether this drawing looks right. See
+   [docs/sprite-auto-adjust.md](../../docs/sprite-auto-adjust.md).
+6. The untouched originals are moved to `assets/reference/round<N>/<char>/` so a
    frame can be reprocessed later without regenerating it.
 
 After that this directory is empty again, apart from this README.
@@ -75,7 +81,7 @@ implementation of either.
 
 ## Art that is different rather than better
 
-Steps 3–5 above answer "this art replaces what shipped". Art that is a genuine
+Steps 3–6 above answer "this art replaces what shipped". Art that is a genuine
 alternative — a redraw that may not beat the incumbent, a second costume, a
 wind-up that reads as a strike — takes the other path:
 

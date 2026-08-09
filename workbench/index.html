@@ -82,6 +82,14 @@
           <button id="updatedClear" class="ghost">Mark reviewed — take it off the updated list</button>
         </div>
 
+        <!-- Shown on a pose tools/auto_tune.py placed. It is NOT an edit: the
+             tuner only replaces numbers the pipeline derived, so the pose is
+             still one nobody has looked at and stays on every to-do list. -->
+        <div class="group" id="autoTunedGroup" hidden>
+          <label data-help="&lt;b&gt;tools/auto_tune.py&lt;/b&gt; applies the placement corrections that are mechanical — the ones measured to be wrong in a consistent direction across every hand tuning ever committed (docs/sprite-auto-adjust.md). Today that is the ground contact, the horizontal centring, and the size of the ten animation states the whole roster sizes identically.&lt;br&gt;&lt;br&gt;It never touches a field you have edited, and it does &lt;em&gt;not&lt;/em&gt; count as an edit: a tuned pose stays on &lt;b&gt;No saved edits&lt;/b&gt; and on the updated list, because a rule cannot tell you whether this particular drawing looks right.">Auto-placed <span class="sub">not an edit</span></label>
+          <div id="autoTunedInfo" class="note"></div>
+        </div>
+
         <div class="group">
           <label data-help="These filter on what is &lt;b&gt;saved in the codebase&lt;/b&gt;, not on what you have done since the page loaded.&lt;br&gt;&lt;br&gt;&lt;b&gt;No saved edits&lt;/b&gt; is the working view: poses the game draws that nobody has committed an adjustment for yet — a to-do list. Editing one does &lt;em&gt;not&lt;/em&gt; remove it from this list; it moves only once your export has been applied and the page reloaded.&lt;br&gt;&lt;br&gt;&lt;b&gt;Has saved edits&lt;/b&gt; is the other half, &lt;b&gt;Used in game&lt;/b&gt; drops the filter entirely, and &lt;b&gt;All&lt;/b&gt; adds the sheet cells the game never draws.&lt;br&gt;&lt;br&gt;The yellow dot is the separate question: what you have changed this session and not exported yet. A flagged pose is marked separately again.">Pose <span class="sub" id="poseCount"></span></label>
           <select id="viewSel"></select>
