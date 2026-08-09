@@ -1,10 +1,18 @@
 # Hitbox, range and sprite-size audit
 
-Measured against the code as of this branch, and read against how *Super Smash
-Bros.* (mostly Ultimate) solves the same three problems.
+Measured against the code, and read against how *Super Smash Bros.* (mostly
+Ultimate) solves the same three problems.
 
-Everything below is a measurement or a proposal. Nothing here has been changed
-yet — this is the survey, not the patch.
+> **Status: implemented.** Everything in the worklist at the end of this
+> document has shipped except items 10 and 12 (hurtbox extension on
+> non-disjointed attacks; clank/rebound on grounded trades), which are still
+> proposals. **§5 at the bottom records what the numbers are now** and how to
+> re-measure them.
+>
+> The survey below is kept in its original form, in the past tense where the
+> code has moved on, because the measurements are the argument. Run
+> `node tools/audit_hitboxes.mjs` for the live figures — it is the same audit
+> against the running code, and it fails loudly if any of it regresses.
 
 **How the numbers were taken.** Hitbox extents come from `moves.js`
 (`REACH_SCALE = 0.62`, plus each move's `ox`/`w`). Art extents come from the
@@ -576,3 +584,111 @@ Ordered by value-per-diff, and dependency-correct:
 Items 1–3 are each under ~20 lines and change how the game feels immediately.
 Items 4–6 are the structural fix and should go in as one arc, because 6 without
 5 will make the art/box mismatch *more* visible, not less.
+
+---
+
+## 5. What shipped, and what the numbers are now
+
+Everything above except items 10 and 12. Run `node tools/audit_hitboxes.mjs` for
+the live figures; `node tools/smoke_combat.mjs` plays a real CPU match and checks
+the result. Both fail loudly rather than printing a wrong number quietly.
+
+### The new chain
+
+```
+sprite art
+  -> tools/bake_anchors.py     bodyLeft/bodyRight  how far a frame REACHES
+                               coreLeft/coreRight  how wide the BODY is
+  -> src/silhouette.js         reach / width / height / crouch, per character
+  -> src/moves.js              hitboxes  = art reach + MELEE_GRACE
+     src/combat.js             hurtboxes = measured body × HURTBOX fractions
+```
+
+`REACH_SCALE` and the per-character `reach` numbers in `characters.js` are gone.
+`VISIBLE_ART_REACH` is now `visibleArtReach(char)` — a measurement, not a
+constant.
+
+### Resilience, because the art is in flux
+
+The point of the rework is that art drives gameplay, and the risk of it is that
+art *churn* drives gameplay. Five things stop that (`src/silhouette.js`):
+
+1. **Aggregates, never one frame.** Reach is the second-furthest of a
+   character's swing poses — the furthest is discarded, because the furthest
+   frame is exactly the one most likely to be an outlier. Width is a median.
+2. **Placed art only.** A frame is skipped unless the manifest's `edited` map
+   shows it has been through the workbench's placement pass. A freshly delivered
+   sprite sits at the intake pipeline's *guess* at its scale, and measuring off
+   that would hand a character a range that changes the moment somebody opens
+   the workbench. A fighter with no placed art at all is measured off the raw
+   delivery and flagged `placed: false`.
+3. **Banding.** Results round to 6 px (reach) and 4 px (width). Art has to move
+   meaningfully before the simulation notices at all.
+4. **Guards.** Everything is clamped to a fraction of the character's own
+   height, so a broken export cannot produce a fighter who reaches across the
+   stage.
+5. **Fallbacks.** No measurable art falls back to the roster median, scaled to
+   that fighter's height. A new character plays correctly before anyone has
+   touched their sprites.
+
+Width additionally trusts the art only `BODY.widthTrust` (0.45) of the way.
+Heights can be read straight off the art because they were solved against a
+common target; widths never were, and measured across the roster they span
+0.21–0.50 of height — which is drawing style, not character. Round 14B is the
+art that would let that number go up.
+
+### The numbers
+
+| | Before | Now |
+|---|---|---|
+| Grace margin (hitbox past the art) | 62–113 px, varying per character | **34 px, identical for everyone** |
+| Heavy tip | 166–187 px (1.13× spread) | 100–142 px (**1.42×**) |
+| reach ↔ startup correlation | −0.08 | **+0.89** |
+| Hurtbox | 64×108 for the whole roster | 48–72 × 127–172, per character |
+| Hurtbox vertical coverage | 58–70% of the drawn figure | **86%**, everywhere |
+| Drawn height spread | 1.25× (compressed 0.6) | 1.36× (compression 1.0, clamps do the work) |
+| Effective low-angle launch | ~29° minimum, always airborne | authored angle, grounded hits stay grounded |
+
+Melee is about 30% tighter than it was. That is the correction, not a side
+effect: the old boxes reached roughly twice as far as the art, and a punch now
+connects at about two body-widths rather than three.
+
+### New behaviour worth knowing about
+
+- **Travelling hitboxes.** A forward box's far edge extends across the opening
+  of its active window (`swingExtent`, `moves.js`) instead of existing at full
+  length from frame one. The strike arc calls the same function, so the crescent
+  is not an impression of the swing — it is where the swing has got to.
+- **Sweetspots.** Nanami's `critBand` is now the general mechanism, and a
+  character drawn reaching >1.12× the roster median earns a tip band
+  automatically: strong at the very end of the arc, weak inside it. Currently
+  Panda, Yuta and Hanami, plus Nanami's authored 7:3.
+- **The Sakurai angle** (`SAKURAI` in `constants.js`) on the jab chain and down
+  tilt — near-horizontal on a grounded target at low knockback, ~44° once the
+  hit is strong enough to lift them.
+- **Angled side smashes.** Hold the right stick off horizontal on release
+  (`SMASH_TILT`); the box swings about the fighter and the launch angle follows.
+- **The strike arc reads three things**: distance (radius, as before), strength
+  (thickness, brightness and trail length, from damage and charge), and angle (a
+  short arrow at the leading edge along the launch vector). Plus a bright ring
+  at the sweetspot where a move has one.
+- **The crouch box is measured**, not assumed. Most of the roster's crouch art
+  does not currently duck, so most of the roster does not currently duck. Round
+  13A/13B is the art that changes that, and it changes the mechanic with it.
+- **The CPU's melee spacing is derived** (`meleeRange` in `ai.js`). The authored
+  `profile.range` numbers were calibrated against the old fixed hitboxes; a CPU
+  still using them for melee would stand exactly out of its own range.
+
+### Still open
+
+- **Item 10** — hurtbox extension on non-disjointed attacks. Every attack is
+  still a free disjoint: there is no such thing as being hit out of a punch by a
+  longer punch. This is the largest remaining gap and the one that would make
+  reach a genuine risk rather than only a reward.
+- **Item 12** — clank / rebound on grounded trades.
+- **Item 13** — platform tier heights. The audit tool now reports which gaps
+  each fighter can contest (41 by everyone, 17 by the tall ones only, 9 by
+  nobody), so the mix is at least visible. It is not yet a decision.
+- **Art.** Round 14 in [asset-requests.md](asset-requests.md) is what the
+  measurements ask for: the reach numbers are now gameplay, and several
+  fighters' committed swings do not extend.

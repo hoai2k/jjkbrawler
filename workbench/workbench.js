@@ -17,8 +17,10 @@ import {
   variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
-import { lightMove, heavyMove, VISIBLE_ART_REACH } from "../src/moves.js";
+import { lightMove, heavyMove, visibleArtReach } from "../src/moves.js";
+import { bodyMetrics, refreshSilhouettes } from "../src/silhouette.js";
 import { PIVOTED_STATES } from "../src/motion.js";
+import { HURTBOX } from "../src/constants.js";
 import { CHARACTERS, CHARACTER_KEYS, SPRITE_ACTORS, getActor } from "../src/characters.js";
 import { TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "../src/config_transform.js";
 import {
@@ -1180,13 +1182,20 @@ function drawRangeTargets(cx) {
 
   // The body the game actually tests, drawn behind the markers (combat.js
   // hurtbox). Without it a target reads as "this attack reaches miles past the
-  // fist", because the eye compares it to the DRAWING. The drawing is not what
-  // gets hit: hurtboxes are one size for the whole roster — 64x108 standing,
-  // against art drawn around 175 tall — so a fighter's reach has to clear their
-  // own box and then meet an opponent's, which starts 32px inside their art.
+  // fist", because the eye compares it to the DRAWING — and the drawing is not
+  // what gets hit. Sized from THIS character's own art now, the same way the
+  // game sizes it, so the box on screen here is the box in play.
+  // Re-measured every frame rather than cached: the workbench is where `ox`,
+  // `bodyBottom` and `renderScale` get dragged around, and all three move what
+  // the silhouette measures. The game never edits the manifest, so it keeps the
+  // cache; here, live numbers matter more than the handful of reads.
+  refreshSilhouettes(state.char);
+  const body = bodyMetrics(state.char);
   const crouched = statesUsing(state.char, state.frame)
     .some((a) => a === "crouch" || a === "crouchAttack");
-  const hb = crouched ? { w: 72, h: 68 } : { w: 64, h: 108 };
+  const hb = crouched
+    ? { w: Math.round(body.width * HURTBOX.crouchW), h: Math.round(body.height * HURTBOX.crouchH) }
+    : { w: Math.round(body.width), h: Math.round(body.height * HURTBOX.standH) };
   ctx.strokeStyle = "rgba(120, 200, 255, 0.45)";
   ctx.lineWidth = 1;
   ctx.setLineDash([4, 4]);
@@ -1197,12 +1206,15 @@ function drawRangeTargets(cx) {
   ctx.fillText(`hurtbox ${hb.w}x${hb.h}`, wx(-hb.w / 2) - 5, wy(-hb.h) + 11);
   ctx.textAlign = "left";
 
-  // Where the art stops being trusted: past this the game marks the reach with
-  // the swing's strike arc (drawStrikeArcs in render.js), so art short of a far
-  // target is fine — the gap is filled in play. Only meaningful against a
-  // horizontal reach, so it is drawn only when one is on screen.
+  // Where this character's art currently reaches, measured from their own
+  // attack frames (src/silhouette.js) rather than assumed from a single global
+  // constant. It is the number the game builds their hitboxes from, so the gap
+  // between this line and a range target IS that move's grace margin — and it
+  // should look about the same on every fighter. Past it the reach is carried
+  // by the swing's strike arc (drawStrikeArcs in render.js), so art stopping
+  // short of a far target is fine.
   if (shapes.some((s) => s.box.kind === "forward" || s.box.kind === "sweep")) {
-    const capX = wx(VISIBLE_ART_REACH);
+    const capX = wx(visibleArtReach(char));
     ctx.strokeStyle = "rgba(150, 160, 190, 0.5)";
     ctx.setLineDash([3, 5]);
     ctx.beginPath(); ctx.moveTo(capX, GROUND_Y - 190 * z); ctx.lineTo(capX, GROUND_Y); ctx.stroke();

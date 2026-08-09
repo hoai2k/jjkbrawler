@@ -32,6 +32,17 @@ on the head-height target (src/heights.js) instead of on an approximation of
 it, and it is why changing the idle's ground contact can keep the head where
 it was.
 
+And two horizontal spans in the same image pixels: `bodyLeft`/`bodyRight`, the
+outer bounds of the drawing, and `coreLeft`/`coreRight`, the columns holding the
+middle of its ink once a held weapon or an outflung sleeve has been trimmed off
+(see CORE_TRIM). The first says how far a frame REACHES; the second says how
+wide the fighter IS. Those are what src/silhouette.js turns into how far a
+character actually reaches and how wide they actually are, which is where
+hitboxes and hurtboxes now come from — so a swing connects at the distance the
+art shows it connecting, and a broad fighter is broad to hit. One frame is
+never trusted on its own: silhouette.js takes a robust aggregate over the whole
+set of poses and bands the result, so a single re-export cannot move a matchup.
+
 Usage:
   python3 bake_anchors.py                 # every character, skip hand-edited
   python3 bake_anchors.py --only gojo maki
@@ -96,6 +107,74 @@ def body_top(path):
     """Topmost opaque row, in the image's own pixels. None if fully clear."""
     small, scale, bbox = _mask(path)
     return None if bbox is None else round(bbox[1], 1)
+
+
+def body_span(path):
+    """Leftmost and rightmost opaque columns, in the image's own pixels.
+
+    Measured on the same thresholded mask `bodyTop` uses, so the soft glow a
+    lot of the attack art blooms with does not read as reach. None if the frame
+    is fully clear."""
+    small, scale, bbox = _mask(path)
+    return None if bbox is None else (round(bbox[0], 1), round(bbox[2], 1))
+
+
+# How much of the silhouette's ink to trim off each side when measuring the
+# BODY rather than the drawing.
+#
+# The outer bounds say how far a frame's art extends, which is the right
+# question for reach and the wrong one for width: a naginata held across the
+# chest, a guitar, a broom or an outflung sleeve is a thin sliver of pixels far
+# from the torso, and counting it makes a fighter a wider target for carrying
+# something they cannot be hit on. Trimming by column MASS rather than by
+# distance removes exactly that — a sliver is a little ink over many columns,
+# while a torso is a lot of ink over few — and leaves the body itself alone.
+#
+# Calibrated against the roster rather than guessed. At 7% a side this ate the
+# torso as well — a human silhouette carries real mass in the arms and legs, so
+# a large trim shrinks everybody instead of only the ones holding something. At
+# 2.5% Gakuganji's guitar comes off (his idle measures 96 px wide by its outer
+# bounds and 67 by this) while a fighter holding nothing barely moves.
+#
+# Re-tuning this means re-measuring: `--spans-only` does that pass alone, which
+# is a couple of minutes rather than the twenty a full --force bake takes.
+CORE_TRIM = 0.025
+
+
+def core_span(path):
+    """The columns holding the middle of the frame's ink, in image pixels.
+
+    This is what a fighter is WIDE, as opposed to how far their drawing
+    reaches. None if the frame is fully clear."""
+    small, scale, bbox = _mask(path)
+    if bbox is None:
+        return None
+    w, h = small.size
+    cols = [0.0] * w
+    for i, weight in enumerate(small.getdata()):
+        if weight:
+            cols[i % w] += weight
+    total = sum(cols)
+    if total <= 0:
+        return None
+    cut = total * CORE_TRIM
+    run = 0.0
+    left = 0
+    for x, mass in enumerate(cols):
+        run += mass
+        if run >= cut:
+            left = x
+            break
+    run = 0.0
+    right = w - 1
+    for x in range(w - 1, -1, -1):
+        run += cols[x]
+        if run >= cut:
+            right = x
+            break
+    if right <= left:
+        return (round(bbox[0], 1), round(bbox[2], 1))
+    return (round(left * scale, 1), round((right + 1) * scale, 1))
 
 
 def band_centroid(path, top_frac):
@@ -192,7 +271,7 @@ def centroid(path):
 
 # What a measurement writes, and therefore what has to travel with the image.
 # A subset of VARIANT_PLACEMENT in src/sprites.js — the fields this tool sets.
-MEASURED = ["anchors", "bodyTop"]
+MEASURED = ["anchors", "bodyTop", "bodyLeft", "bodyRight", "coreLeft", "coreRight"]
 
 
 def bank_onto_selected(man, targets):
@@ -218,6 +297,8 @@ def main():
     ap.add_argument("--only", nargs="*", help="limit to these character keys")
     ap.add_argument("--force", action="store_true",
                     help="overwrite anchors that were placed by hand")
+    ap.add_argument("--spans-only", action="store_true",
+                    help="re-measure bodyLeft/Right and coreLeft/Right only")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -233,13 +314,17 @@ def main():
             continue
         for key, meta in sorted(frames.items()):
             anchors = meta.get("anchors") or {}
-            wanted = {"com": None}
-            wanted.update(EXTRA.get(key, {}))
+            wanted = {} if args.spans_only else {"com": None}
+            if not args.spans_only:
+                wanted.update(EXTRA.get(key, {}))
 
             path = os.path.join(SPRITES, meta["file"])
             todo = [n for n in wanted if n not in anchors or args.force]
-            need_top = "bodyTop" not in meta or args.force
-            if not todo and not need_top:
+            need_top = not args.spans_only and ("bodyTop" not in meta or args.force)
+            need_span = (args.spans_only or args.force
+                         or "bodyLeft" not in meta or "bodyRight" not in meta
+                         or "coreLeft" not in meta or "coreRight" not in meta)
+            if not todo and not need_top and not need_span:
                 kept += len(wanted)
                 continue
             if not os.path.exists(path):
@@ -255,6 +340,18 @@ def main():
                     meta["bodyTop"] = top
                     wrote += 1
                     print(f"  {char}/{key}.bodyTop: {before} -> {top}")
+
+            if need_span:
+                span = body_span(path)
+                if span is None:
+                    missing.append(f"{char}/{key}.bodySpan: nothing opaque to measure")
+                else:
+                    before = (meta.get("bodyLeft"), meta.get("bodyRight"))
+                    meta["bodyLeft"], meta["bodyRight"] = span
+                    core = core_span(path) or span
+                    meta["coreLeft"], meta["coreRight"] = core
+                    wrote += 1
+                    print(f"  {char}/{key}.bodySpan: {before} -> {span} core {core}")
 
             kept += len(wanted) - len(todo)
             for name in todo:

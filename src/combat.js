@@ -10,8 +10,12 @@ import { playSfx } from "./audio.js";
 import { domainKnockbackMul } from "./domains.js";
 import {
   SHIELD_DAMAGE_MULT, SHIELD_BREAK_STUN, PARRY_WINDOW, METER_MAX,
-  METER_ON_DEAL, METER_ON_TAKE,
+  METER_ON_DEAL, METER_ON_TAKE, HURTBOX,
+  GROUND_RELEASE, GROUND_SLIDE_BOOST, GROUND_SPIKE_BOUNCE,
+  SAKURAI, SAKURAI_AIR, SAKURAI_LOW, SAKURAI_POP, SAKURAI_KB,
 } from "./constants.js";
+import { bodyMetrics } from "./silhouette.js";
+import { swingExtent } from "./moves.js";
 import {
   TUMBLE_KB_MIN, TUMBLE_SPIN_PER_KB, TUMBLE_SPIN_MAX,
   DI_MAX_TURN, DI_SPEED, STALE_QUEUE, STALE_DMG_STEP, STALE_KB_STEP,
@@ -29,13 +33,49 @@ export function ownerStick(f) {
   return { x: input.aimX || 0, y: input.aimY || 0 };
 }
 
+/**
+ * The body a fighter can be hit on.
+ *
+ * Sized from their own art. This used to be one 64x108 box for the entire
+ * roster — the same target for a 153 px Momo, a 192 px Hanami and the 222 px
+ * Mahoraga an install draws — which left the top third of every character
+ * unhittable and made a broad fighter no bigger a target than a slight one.
+ * `bodyMetrics` (src/silhouette.js) supplies the height and width, measured
+ * across the character's own poses and banded so the art can move without a
+ * matchup moving; HURTBOX (constants.js) says what fraction of that each state
+ * exposes.
+ *
+ * `standH` stops short of the full drawn height on purpose: the top of an anime
+ * silhouette is hair, and hair is not a target.
+ */
 export function hurtbox(f) {
-  if (f.ledge) return { x: f.x - 30, y: f.y - 82, w: 60, h: 84 };
+  const b = bodyMetrics(f.spriteChar || f.charKey);
+  const H = b.height, W = b.width;
+  if (f.ledge) {
+    return { x: f.x - W * HURTBOX.ledgeW / 2, y: f.y - H * HURTBOX.ledgeTop,
+             w: W * HURTBOX.ledgeW, h: H * HURTBOX.ledgeH };
+  }
   // Lying flat: long and low, matching what is drawn. High pokes whiff over a
   // downed fighter, which is most of what makes a knockdown mean anything.
-  if (f.prone > 0 && f.hitstun <= 0 && f.grounded) return { x: f.x - 54, y: f.y - 44, w: 108, h: 44 };
-  if (f.crouching) return { x: f.x - 36, y: f.y - 68, w: 72, h: 68 };
-  return { x: f.x - 32, y: f.y - 108, w: 64, h: 108 };
+  if (f.prone > 0 && f.hitstun <= 0 && f.grounded) {
+    return { x: f.x - H * HURTBOX.proneW / 2, y: f.y - H * HURTBOX.proneH,
+             w: H * HURTBOX.proneW, h: H * HURTBOX.proneH };
+  }
+  if (f.crouching) {
+    // `b.crouch` is measured from this fighter's own crouch pose, not assumed:
+    // most of the roster's crouch art does not actually duck yet, and a box
+    // that ducked anyway would have them dodging attacks while standing up.
+    const ch = H * b.crouch;
+    return { x: f.x - W * HURTBOX.crouchW / 2, y: f.y - ch,
+             w: W * HURTBOX.crouchW, h: ch };
+  }
+  // Doubled over by a hit: lower and wider than standing, which is what the
+  // hurt pose is actually drawn as.
+  if (f.hitstun > 0) {
+    return { x: f.x - W * HURTBOX.hurtW / 2, y: f.y - H * HURTBOX.hurtH,
+             w: W * HURTBOX.hurtW, h: H * HURTBOX.hurtH };
+  }
+  return { x: f.x - W / 2, y: f.y - H * HURTBOX.standH, w: W, h: H * HURTBOX.standH };
 }
 
 export function opponentOf(f) {
@@ -67,6 +107,9 @@ export function spawnMelee(owner, cfg) {
     heavy: !!cfg.heavy,
     spike: !!cfg.spike,
     critBand: cfg.critBand || null,
+    // Carried purely so the strike arc can show how hard this swing is
+    // (drawStrikeArcs in render.js). Nothing in the simulation reads it.
+    charge: cfg.charge || 0,
     critChance: cfg.critChance || 0,
     stunBonus: cfg.stunBonus || 0,
     maxHits: cfg.hits || 1,
@@ -106,11 +149,27 @@ function enemySummons(attacker) {
   return out;
 }
 
+/**
+ * Where a hitbox is, right now.
+ *
+ * A forward box TRAVELS: its far edge extends across the opening of the active
+ * window instead of the whole box existing at full length from the first frame
+ * (`swingExtent`, shared with the crescent that draws it). A fist that has not
+ * got there yet should not be hitting anything, and it is what makes the tip of
+ * a long weapon a question of timing as well as distance.
+ *
+ * A straddling box — an up smash, a quake, a meteor — does not, because it is
+ * not a swing reaching outward from a shoulder; it comes out both sides at once
+ * and growing it from the middle would be a different move.
+ */
 export function hitboxRect(hb) {
   const o = hb.owner;
   const facing = hb.facing ?? o.facing;
-  const x = facing === 1 ? o.x + hb.ox : o.x - hb.ox - hb.w;
-  return { x, y: o.y + hb.oy, w: hb.w, h: hb.h };
+  const w = hb.ox >= 0
+    ? hb.w * swingExtent(hb.age / Math.max(hb.dur, 0.001))
+    : hb.w;
+  const x = facing === 1 ? o.x + hb.ox : o.x - hb.ox - w;
+  return { x, y: o.y + hb.oy, w, h: hb.h };
 }
 
 export function updateHitboxes(dt) {
@@ -472,6 +531,23 @@ function diStick(target) {
   return { x: x / m, y: y / m };
 }
 
+/**
+ * The angle a hit actually launches at.
+ *
+ * Almost every move names a fixed one. `SAKURAI` is the exception, and it is
+ * Smash's angle 361: on an airborne target it is a clean 44 degrees, and on a
+ * grounded one it runs nearly along the floor until the hit is strong enough to
+ * lift them, at which point it snaps up. That single behaviour is what lets one
+ * jab combo at low percent and push out at high percent instead of being two
+ * different moves, and it is why jabs and tilts in Smash feel the way they do.
+ */
+function resolveAngle(hit, target, kb) {
+  const a = hit.angle ?? 0.35;
+  if (a !== SAKURAI) return a;
+  if (!target.grounded) return SAKURAI_AIR;
+  return kb < SAKURAI_KB ? SAKURAI_LOW : SAKURAI_POP;
+}
+
 /** Launch vector for an attack angle, in screen space (y grows downward). */
 function launchVector(angle, dir) {
   return angle < 0
@@ -575,19 +651,38 @@ export function applyHit(owner, target, hit, source) {
   // armor: damage but no launch
   const armored = (target.installs && target.installs.armor) || target.armorT > 0;
 
-  // crit band (Nanami)
+  // Sweetspot / sourspot. A `critBand` is a distance band: land inside it and
+  // the hit is stronger, land outside it and — if the band says so — weaker.
+  //
+  // This began as Nanami's 7:3 and is now how range is paid for generally. A
+  // swing drawn reaching well past the roster gets a band at the end of its arc
+  // (tipBand in moves.js), so a long disjoint hits hardest at the very tip and
+  // feebly up close. That is Marth's tipper, and it makes reach something a
+  // player spaces for rather than a number they were handed. Nanami's authored
+  // band still wins wherever he has one, with his own multipliers and caption.
   const dx = Math.abs(target.x - owner.x);
-  let crit = false;
-  if (hit.critBand && Math.abs(dx - hit.critBand.center) <= hit.critBand.tolerance) crit = true;
-  if (hit.critChance && Math.random() < hit.critChance) crit = true;
-  if (crit) {
-    dmg *= 1.36; baseKb *= 1.22; growth *= 1.15;
-    label = "7:3 " + (label || "");
-    popup(target.x, target.y - 175, "7:3!", "#ffd35a", 26);
+  const band = hit.critBand;
+  let zone = null;
+  if (band) {
+    zone = Math.abs(dx - band.center) <= band.tolerance ? "sweet"
+      : band.sourDmg || band.sourKb ? "sour" : null;
+  }
+  if (hit.critChance && Math.random() < hit.critChance) zone = "sweet";
+  if (zone === "sweet") {
+    dmg *= band?.dmg ?? 1.36;
+    baseKb *= band?.kb ?? 1.22;
+    growth *= band?.growth ?? 1.15;
+    const caption = band?.label || "7:3!";
+    label = caption.replace("!", "") + " " + (label || "");
+    popup(target.x, target.y - 175, caption, "#ffd35a", 26);
     // The ratio drawn onto the target: a precise gold seam, sparks along it.
     ratioSeamFx(target.x, target.y - 96, dir);
     playSfx("hitCrit");
     playSfx("seamCrack", 0.9); // the seam snapping — silence until delivered
+  } else if (zone === "sour") {
+    dmg *= band.sourDmg ?? 1;
+    baseKb *= band.sourKb ?? 1;
+    growth *= band.sourKb ?? 1;
   }
 
   // Black Flash (Yuji): cursed energy lands within a millionth of a second of
@@ -647,8 +742,9 @@ export function applyHit(owner, target, hit, source) {
   // Perpendicular DI: only stick input ACROSS the launch vector turns it,
   // which is what makes the classic "DI away to live, DI in to escape" read
   // work. Held toward/away instead trades a little launch speed.
-  const angle = diAngle(target, hit.angle ?? 0.35, dir);
-  kb *= diSpeedScale(target, hit.angle ?? 0.35, dir);
+  const authored = resolveAngle(hit, target, kb);
+  const angle = diAngle(target, authored, dir);
+  kb *= diSpeedScale(target, authored, dir);
 
   if (armored) {
     popup(target.x, target.y - 150, "ARMOR", "#c9b6ff", 20);
@@ -660,17 +756,41 @@ export function applyHit(owner, target, hit, source) {
       target.ledgeCooldown = 0.5;
     }
     target.vx = dir * Math.cos(Math.abs(angle)) * kb;
-    if (angle < 0 && !target.grounded) {
-      target.vy = Math.sin(-angle) * kb; // spike: downward
-      label = label || "METEOR";
+    let slammed = false;
+    // Where the hit sends them. Three cases, and which one applies is the
+    // difference between a game that has a grounded layer and one that does
+    // not — every hit used to add a flat 120 px/s of lift and clear `grounded`,
+    // so nothing could ever travel along the floor and no angle under about 30
+    // degrees survived contact with the code (docs/hitbox-audit.md 3.3).
+    const lift = Math.sin(Math.abs(angle)) * kb;
+    if (angle < 0) {
+      if (target.grounded) {
+        // A meteor cannot drive someone through a floor they are standing on.
+        // It bounces them off it instead, and leaves them down.
+        target.vy = -lift * GROUND_SPIKE_BOUNCE;
+        target.grounded = false;
+        slammed = true;
+        label = label || "SLAM";
+      } else {
+        target.vy = lift;     // spike: downward
+        target.grounded = false;
+        label = label || "METEOR";
+      }
+    } else if (target.grounded && lift < GROUND_RELEASE) {
+      // Not enough to lift them. The energy goes along the ground instead of
+      // being quietly converted into a pop, which is what makes a down tilt a
+      // down tilt and what a jab needs to combo out of at low percent.
+      target.vy = 0;
+      target.vx *= GROUND_SLIDE_BOOST;
     } else {
-      target.vy = -Math.sin(Math.abs(angle)) * kb - 120;
+      target.vy = -lift;
+      target.grounded = false;
     }
-    target.grounded = false;
     // Tumble. Past a threshold the victim rotates through the launch rather
     // than sliding through it rigidly — the single biggest readability win on
-    // a hit, since `hurt` is one still frame for every character.
-    if (kb > TUMBLE_KB_MIN) {
+    // a hit, since `hurt` is one still frame for every character. A fighter
+    // still on their feet slides; only a launched one spins.
+    if (kb > TUMBLE_KB_MIN && !target.grounded) {
       const rate = Math.min((kb - TUMBLE_KB_MIN) * TUMBLE_SPIN_PER_KB, TUMBLE_SPIN_MAX);
       target.spin = dir * rate;
     }
@@ -681,7 +801,12 @@ export function applyHit(owner, target, hit, source) {
     // hit, not lying down. Moves that WANT the victim flat (`knockdown: true`,
     // e.g. Reggie's sedan) arm the prone timer instead — it starts counting
     // once they are down and the hitstun has run out (see fighter.js).
-    target.prone = hit.knockdown ? Math.max(target.prone, hit.proneTime ?? 1.1) : 0;
+    // A meteor that met the floor also leaves them down, without the move
+    // having to ask for it: being spiked into the ground you are standing on is
+    // a knockdown by definition.
+    target.prone = hit.knockdown || slammed
+      ? Math.max(target.prone, hit.proneTime ?? (slammed ? 0.6 : 1.1))
+      : 0;
     interruptActions(target);
   }
 

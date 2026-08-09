@@ -5,7 +5,7 @@ Everything in this file is **outstanding**. Delivered rounds are recorded in
 numbers, so a commit or code comment citing "round 5 art" still resolves.
 
 **Current status: rounds 1–11 delivered, and 29 of round 12A's 33 workbench
-catches. Rounds 12 and 13 are open.**
+catches. Rounds 12, 13 and 14 are open.**
 
 The roster is complete and **every fighter now has one sprite per action** —
 round 11 finished the conversion that round 5 started, so the 4×5 sprite sheet
@@ -868,3 +868,188 @@ Two traps this sweep hit, for whoever runs it next:
   invisible frame by frame — both drawings are good — and only shows up when the
   two are flipped between in the same spot, which is what the workbench's
   up/down pose stepping is for.
+
+---
+
+# Round 14 — open
+
+**Reach is now gameplay.** Until this month a fighter's melee range was a
+hand-typed number in `characters.js` with no relation to their sprites, and the
+hitboxes it produced reached about 2.1× as far as the art. That is gone: a
+move's hitbox is now the distance the character's own committed swing is
+*painted* to reach, plus a fixed 34 px of forgiveness that is the same for
+everybody (`src/silhouette.js`, `MELEE_GRACE`). The full measurement and
+rationale is in [hitbox-audit.md](hitbox-audit.md).
+
+Which means the drawings below are no longer only a readability problem. **A
+fighter whose strike pose does not extend now has short range in play**, and a
+fighter drawn broad is a broader target. The art is the balance data.
+
+- **14A** — heavy-attack strike frames that do not extend (16 sprites)
+- **14B** — a consistent idle stance, for the ten outliers (20 sprites)
+
+**36 sprites in total.** Neither is blocking: every fighter plays today, and
+each delivery re-derives that character's numbers on import with no code change.
+
+Round 13 is the companion to this and should be drawn first where they overlap —
+13C already asks for seven **light**-attack strike frames that do not reach, and
+13A/13B ask for the crouches. 14A is the same defect in the **heavy** row, which
+13's sweep did not separate out.
+
+---
+
+## 14A. Heavy strike frames that do not extend — 16 sprites
+
+### Why
+
+`attack_heavy_a`/`_b` is a wind-up and a strike, and `_b` is what is on screen
+while the smash is active. Measured across the roster — from placed art only,
+and in the world pixels the game draws at — the furthest a fighter's committed
+swing reaches in front of themselves runs from **66 px to 108 px**. That is a
+1.6× spread, and it does not line up with what these characters are holding:
+
+| Fighter | Art reach | Holding |
+|---|---|---|
+| Panda | 108 px | bare paws |
+| Yuta, Hanami | 96 px | katana / root-arms |
+| Yuji, Todo, Jogo, Choso, Geto, Mei Mei | 90 px | fists, mostly |
+| Megumi, Momo, **Nanami** | 84 px | **cleaver blade** |
+| **Maki**, **Toji**, Sukuna, Mahito, Hakari, Inumaki | 78 px | **naginata**, **spear** |
+| **Uro**, **Reggie** | 72 px | polearm / blade |
+| **Gakuganji**, Gojo, Nobara | 66 px | **guitar** |
+
+Gakuganji swings a full-size electric guitar and reaches less far than Panda's
+paw. Maki's naginata and Toji's spear reach less far than Yuji's fist. That is
+not a balance decision anybody made — it is the poses not extending, and it is
+now the thing that decides their range.
+
+**Four of these are a placement job, not a drawing job.** Maki's
+`attack_heavy_a` and both heavy frames for Gakuganji, Uro and Reggie have never
+been through the sprite workbench's placement pass, so they sit at the intake
+pipeline's guess at their scale. The game deliberately ignores unplaced frames
+when measuring (it would otherwise hand out ranges that change the moment
+somebody opens the workbench), so those four fighters are currently being judged
+on half their heavy row. **Place them first** — `node tools/audit_hitboxes.mjs`
+lists them, and their numbers may well move on their own.
+
+### What to deliver
+
+Eight fighters, both frames of the heavy pair, drawn to the pose lines below.
+
+| Fighter | Key | Poses | Ask |
+|---|---|---|---|
+| Gakuganji | `gakuganji` | `attack_heavy_a`, `attack_heavy_b` | The guitar is held across the chest through the whole swing. It should come round and finish out in front, headstock leading, well clear of the body |
+| Maki | `maki` | `attack_heavy_a`, `attack_heavy_b` | The naginata stays inside her silhouette. A polearm smash ends with the blade at the far end of a two-handed thrust or sweep — the longest weapon on the roster should read as the longest |
+| Toji | `toji` | `attack_heavy_a`, `attack_heavy_b` | Same: the Inverted Spear finishes tucked. He is the roster's weapons specialist and currently out-ranged by a fist |
+| Nanami | `nanami` | `attack_heavy_a`, `attack_heavy_b` | The blunt cleaver ends roughly level with his own shoulder. His whole kit is about hitting at a measured distance (the 7:3 band) and the art has to show that distance |
+| Uro | `uro` | `attack_heavy_a`, `attack_heavy_b` | Place first (see above), then extend if it still reads short |
+| Reggie | `reggie` | `attack_heavy_a`, `attack_heavy_b` | Place first, then extend |
+| Sukuna | `sukuna` | `attack_heavy_a`, `attack_heavy_b` | The King of Curses' heavy is a compact chest-height slash. It should be his full span — this is the character who cleaves buildings |
+| Gojo | `gojo` | `attack_heavy_a`, `attack_heavy_b` | Lapse Palm ends with the palm barely past his own chest. A thrown palm strike ends with the arm locked out |
+
+### Pose lines
+
+| Pose | Pose line |
+|---|---|
+| `attack_heavy_a` | the wind-up of a committed, heavy swing: weapon or striking arm drawn fully back and low behind the body, shoulders coiled hard away from the target, weight entirely on the back foot, front foot light. Bigger and slower than the light wind-up — this is a move that takes a moment |
+| `attack_heavy_b` | the follow-through at full extension: weapon or arm at maximum reach, arm locked out or the polearm at the end of its sweep, shoulders rotated fully through past square, hips turned, weight driven onto the front foot. **The furthest-forward thing in the frame is the weapon or the fist, and it is clear of the body silhouette by at least half a torso width** |
+
+The comparative test, and the thing to check before delivering: **lay
+`attack_heavy_b` over `idle_a` at the same scale. The weapon or striking hand
+must sit further forward than anything in the idle by at least a third of the
+figure's standing height.** For an armed fighter it should be more. If the two
+silhouettes have roughly the same front edge, the pose is a stance, not a strike.
+
+Match each fighter's canonical reference image for costume, proportions and line
+weight. Same delivery spec as everything else.
+
+Deliver to:
+
+```
+assets/intake/<character>/attack_heavy_a.png
+assets/intake/<character>/attack_heavy_b.png
+```
+
+---
+
+## 14B. A consistent idle stance — 20 sprites
+
+### Why
+
+Hurtboxes are now measured from each fighter's own art rather than being one
+64×108 box for the whole roster. Height works well: heights were solved against
+a common target years ago, so a taller fighter is a taller target and the
+numbers are trustworthy.
+
+**Width is not.** Measured across the roster's idles, body width runs from
+**0.21 to 0.50 of the fighter's own height** — and that spread is drawing style,
+not character. Yuji's idle is a slim three-quarter turn; Jogo's is square-on
+with his cape spread. Neither fact should decide how easy they are to hit, and
+at the moment they would.
+
+The game currently trusts that measurement only 45% of the way
+(`BODY.widthTrust`), compressing everyone toward a typical body. That is a
+compromise standing in for consistent art — it means a genuinely broad fighter
+is under-represented and a slight one over-represented, because the data cannot
+be trusted on its own. **Consistent idle stances would let that number go up and
+make silhouette a real characteristic.**
+
+Note this is the one row round 13's sweep deliberately excluded, and 12B is
+already redrawing the run — so the idle is the remaining unaudited pose, and the
+one that now carries the most mechanical weight.
+
+### What to deliver
+
+`idle_a` and `idle_b` for the ten fighters whose measured width falls outside
+**0.30–0.45 of their own drawn height** — ten of the twenty-two with placed idle
+art, so **20 frames**. The other twelve are already inside the band and need
+nothing.
+
+| Too narrow — drawn edge-on | ratio | | Too broad — costume, not body | ratio |
+|---|---|---|---|---|
+| Yuji | 0.21 | | Sukuna | 0.49 |
+| Inumaki | 0.25 | | Jogo | 0.50 |
+| Choso | 0.25 | | Mahoraga | 0.80 |
+| Mahito | 0.27 | | | |
+| Yuta | 0.27 | | | |
+| Nobara | 0.29 | | | |
+| Megumi | 0.29 | | | |
+
+Mahoraga at 0.80 is the extreme and is partly legitimate — he is a genuinely
+enormous shikigami — but four-fifths as wide as he is tall is a square, and his
+karma wheel is composited separately anyway (`drawProp`, `src/render.js`), so it
+should not be in his silhouette.
+
+`node tools/audit_hitboxes.mjs` prints the live figures; re-run it after any
+delivery rather than trusting this table.
+
+The ask is not a redesign. It is one framing rule applied to all of them:
+
+| Pose | Pose line |
+|---|---|
+| `idle_a` | standing ready, **square to the camera in a three-quarter turn of no more than about 20 degrees**, feet about shoulder-width apart, arms relaxed at the sides or lightly raised, nothing held out away from the body. Weapons carried close — at the side, on the shoulder, or across the back — not extended, not spread |
+| `idle_b` | the same stance one breath later: chest a little higher, shoulders a little back, same footprint. **The silhouette's outer edges must not move between the two frames** |
+
+Three specific things to avoid, because they are what the measurements caught:
+
+- **A deep three-quarter or profile turn.** Yuji, Inumaki, Choso and Nobara are
+  drawn nearly edge-on, which makes them measure as narrow as a post.
+- **Capes, coats and hair spread wide.** Jogo, Sukuna and Gakuganji measure
+  broad because of what is *around* them rather than what they are. Costume
+  should hang, not fan.
+- **Weapons held out.** A held weapon is deliberately excluded from the width
+  measurement (`coreLeft`/`coreRight` in `tools/bake_anchors.py` trims it), but
+  the trim works best when the weapon is a clear sliver beside the body rather
+  than crossing it.
+
+Deliver to:
+
+```
+assets/intake/<character>/idle_a.png
+assets/intake/<character>/idle_b.png
+```
+
+**Important:** the idle is also what every fighter's *size* is solved against
+(`docs/character-heights.md`), so a redrawn idle rescales that fighter's entire
+sprite set. Deliver these one fighter at a time and expect a workbench pass on
+each — this is the one pose where that is unavoidable.

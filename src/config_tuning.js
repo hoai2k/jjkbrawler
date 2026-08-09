@@ -31,16 +31,20 @@
 // Whose height counts as 1.0. Every other fighter is measured against this one.
 export const HEIGHT_REFERENCE = "gojo";
 
-// How much of the real height difference to keep. 1 would render the roster at
-// true relative scale, which is too wide a spread: hurtboxes are one size for
-// everyone (combat.js), so a fighter drawn much larger or smaller than their
-// hurtbox reads as hitting or being hit through thin air. 0 makes everyone
-// identical. In between keeps the ordering — the tallest is still visibly the
-// tallest — while holding the extremes close enough to stay fair.
-export const HEIGHT_COMPRESSION = 0.6;
+// How much of the real height difference to keep. 0 makes everyone identical,
+// 1 renders the roster at true relative scale.
+//
+// This used to be 0.6, compressing the roster toward a single 64x108 hurtbox
+// that was the same for a 150 cm Momo and a 220 cm Hanami. Hurtboxes are now
+// measured from each fighter's own art (src/silhouette.js), so there is nothing
+// left to protect: a taller fighter is a bigger target, which is what being
+// taller should mean. The clamps below became the real spread control.
+export const HEIGHT_COMPRESSION = 1.0;
 
-// Hard limits after compression, as a guard against a future outlier rather
-// than something the current roster reaches.
+// Hard limits, and now the thing that actually sets how far apart the roster's
+// extremes are drawn. True scale spans 1.47x across the roster, which is more
+// than the stage's platform gaps and jump arcs are built for; these hold it to
+// about 1.36x, with the ordering intact.
 export const HEIGHT_MIN_RATIO = 0.84;
 export const HEIGHT_MAX_RATIO = 1.14;
 
@@ -52,6 +56,59 @@ export const HEIGHT_BASE_PX = 175.3;
 // A fighter with no published height and nothing to infer from. 1.0 means "as
 // tall as the reference", which is a neutral default rather than a claim.
 export const HEIGHT_UNKNOWN_RATIO = 1.0;
+
+// ------------------------------------------------------------ body measuring
+//
+// How src/silhouette.js turns a character's artwork into the three numbers
+// hitboxes and hurtboxes are built from. These are the resilience dials: the
+// bands decide how far the art has to move before the simulation notices, and
+// the guards decide how wrong a broken export is allowed to make a fighter.
+//
+// The min/max pairs are fractions of the character's OWN drawn height, so they
+// stay meaningful if the game is ever globally resized.
+
+export const BODY = {
+  // Rounding step for each measurement, in world px. Art that moves less than
+  // this is invisible to gameplay — which is the point, because the art moves
+  // constantly and matchups should not.
+  reachBand: 6,
+  widthBand: 4,
+
+  // Guard range for how far a swing may be painted in front of a fighter.
+  reachMin: 0.30,
+  reachMax: 0.75,
+  // How wide a typical fighter is, as a fraction of their own height, and how
+  // much of the measured difference from that to keep.
+  //
+  // Height can be read straight off the art because heights were solved
+  // deliberately against a common target. Width cannot: measured across the
+  // roster's idles it spans 0.21 to 0.50 of height, and that spread is DRAWING
+  // STYLE, not character — Yuji's idle is a slim three-quarter turn and Jogo's
+  // is front-on with a cape, and neither fact should decide how easy they are
+  // to hit. So the measurement is treated as directional evidence rather than
+  // ground truth: a fighter drawn broad is broader than one drawn slight, by
+  // less than the drawings differ. Round 14A asks for the consistent idle
+  // stances that would let `widthTrust` go up.
+  widthTypical: 0.38,
+  widthTrust: 0.45,
+
+  // Guards, in the same fractions of height. They should rarely bind now that
+  // the measurement is compressed; they are here for a broken export.
+  widthMin: 0.26,
+  widthMax: 0.62,
+
+  // From this many measurable swing frames on, the single furthest is thrown
+  // away before the maximum is taken — one over-extended drawing should not be
+  // able to set a character's range. Below it there is nothing to spare.
+  reachDropTopFrom: 4,
+
+  // What a character with no measurable art is treated as. Height matches
+  // HEIGHT_BASE_PX; reach and width are the roster medians as measured in
+  // docs/hitbox-audit.md, and are only ever used before any art has landed.
+  fallbackHeight: 175.3,
+  fallbackReach: 80,
+  fallbackWidth: 74,
+};
 
 // FALLBACK ONLY. Characters whose idle carries a measured `bodyTop` are scaled
 // so the top of the art lands exactly on the target (see idleSpan in
@@ -204,6 +261,105 @@ export const STRIKE_ARC = {
   headAlpha: 0.55,
   // Width of that head, as a fraction of the arc's half-span.
   headWidth: 0.45,
+
+  // ---- what the arc SAYS, beyond where the swing reaches
+  //
+  // The crescent already showed distance, because its radius is the hitbox's
+  // own. These make it show the other two things a player has to read off an
+  // attack before committing to it: how hard it hits, and which way it will
+  // send them.
+
+  // Strength. Damage at which a swing draws at full weight — everything is
+  // scaled against this, so a jab is a thin quick line and a charged smash is
+  // a heavy bright one. `chargeBoost` is how much a full charge adds on top.
+  powerRef: 15,
+  powerMin: 0.35,
+  powerMax: 1.6,
+  chargeBoost: 0.4,
+  // How much of that carries into the band's thickness, its opacity, and how
+  // many echoes trail behind it.
+  powerThickness: 0.55,
+  powerAlpha: 0.4,
+  echoesMin: 1,
+  echoesMax: 4,
+
+  // Launch angle. A short arrow at the leading edge of the swing, pointing the
+  // way the hit will throw whoever it lands on — the one thing about an attack
+  // that was previously invisible until after it connected.
+  angleTick: 26,        // px at full power
+  angleTickAlpha: 0.85,
+  angleTickWidth: 3,
+
+  // Sweetspot. A brighter ring sitting at the distance where the move is
+  // strongest (moves.js tipBand / an authored critBand), so spacing for the tip
+  // is something a player can see rather than something they memorise.
+  sweetAlpha: 0.5,
+  sweetWidth: 2.2,
+};
+
+// ------------------------------------------------------------ melee range
+//
+// How far past the painted art each kind of attack is allowed to connect, in
+// world px at reference height. This is the *whole* invisible part of a swing:
+// a move's far edge is the character's measured art reach (src/silhouette.js)
+// plus the margin below.
+//
+// It replaces `REACH_SCALE`, a single global multiplier on hand-typed reach
+// numbers that produced hitboxes 1.55x-2.89x past the art depending on who you
+// picked. The point of expressing forgiveness as an absolute margin rather than
+// a multiplier is that everyone now gets the SAME forgiveness — a long-armed
+// fighter's advantage comes from their arms, not from a bigger lie.
+//
+// `scale` is the one number to reach for if melee feels too generous or too
+// mean across the board. `near` is where a forward box starts, as a fraction of
+// the fighter's own body width, so a broad fighter's swing clears their body.
+
+export const MELEE_GRACE = {
+  scale: 1,
+  near: 0.5,
+
+  jabEarly: 12,     // the opening jabs of a chain: no reward for mashing
+  jab: 18,          // the finisher
+  side: 24,
+  up: 22,
+  down: 18,
+  air: 22,
+  sideHeavy: 34,    // heavies commit, and are forgiven more for it
+  upHeavy: 30,
+  downHeavy: 26,
+  airHeavy: 28,
+};
+
+// What reach costs. `amount` is how much of a fighter's relative reach carries
+// into their startup and recovery — at 0.55, the longest arms on the roster are
+// about 24% slower than the median and the shortest about 13% quicker.
+// `clamp` bounds how far from the median a fighter can be judged, so a future
+// outlier pays a capped price instead of becoming unplayable.
+export const REACH_PRICE = {
+  amount: 0.55,
+  clamp: 0.5,
+};
+
+// Tip sweetspots. A swing that reaches meaningfully past the roster earns a
+// band at the end of its arc where it hits hard, and is weak everywhere inside
+// it — Marth's tipper. It is what turns range from a stat into something a
+// player has to space for.
+//
+// `minReachRatio` is how far past the roster's median art reach a character has
+// to be drawn before their side attacks get one. Authored bands (Nanami's 7:3)
+// always win over this.
+export const SWEETSPOT = {
+  // At 1.12 this is the genuinely long-armed handful rather than half the
+  // roster — a tipper is a characteristic, and everyone having one is nobody
+  // having one.
+  minReachRatio: 1.12,
+  // How far outside the hitbox's tip the band sits, standing in for the
+  // half-width of whoever is being hit (the band is a centre-to-centre
+  // distance). Roughly a median half-body.
+  inset: 30,
+  tolerance: 26,      // px of centre-to-centre distance either side of the band
+  dmg: 1.32, kb: 1.24, growth: 1.12,
+  sourDmg: 0.74, sourKb: 0.7,
 };
 
 // ------------------------------------------------------------------ turns

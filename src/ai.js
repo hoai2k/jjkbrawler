@@ -6,6 +6,8 @@ import { blankInput } from "./input.js";
 import { chance, clamp, sign } from "./utils.js";
 import { mainPlatform } from "./stages.js";
 import { METER_MAX } from "./constants.js";
+import { heavyMove } from "./moves.js";
+import { bodyMetrics } from "./silhouette.js";
 
 const LEVELS = [
   { name: "Easy", planMin: 0.5, planMax: 0.9, attack: 0.3, special: 0.18, defend: 0.1, ult: 0.4, dmgMul: 0.62 },
@@ -74,12 +76,31 @@ export function aiInput(f) {
   return finishPlan(f, out, opp);
 }
 
+/**
+ * How far apart these two can stand and still be reached by a side heavy,
+ * centre to centre.
+ *
+ * Derived rather than authored, because melee reach is now a property of the
+ * attacker's artwork (src/silhouette.js) and their opponent's body is a
+ * property of theirs. The hand-tuned `profile.range` numbers were quietly
+ * calibrated against the old fixed hitboxes, so a CPU that kept using them for
+ * melee would stand exactly out of its own range and swing at nothing.
+ *
+ * `profile.range` is still what a zoner wants — that is about projectiles and
+ * is a real authored decision. This is only the melee half.
+ */
+function meleeRange(f, opp) {
+  const m = heavyMove(f.char, "side");
+  return m.ox + m.w + bodyMetrics(opp.spriteChar || opp.charKey).width * 0.5;
+}
+
 function makePlan(f, opp, lvl) {
   const input = blankInput();
   const profile = f.char.ai;
   const dx = opp.x - f.x;
   const adx = Math.abs(dx);
   const range = profile.range;
+  const melee = meleeRange(f, opp);
 
   // spacing
   if (adx > range + 60) {
@@ -88,7 +109,7 @@ function makePlan(f, opp, lvl) {
   } else if (adx < range - 90 && profile.style === "zoner") {
     input.left = dx > 0;
     input.right = dx < 0;
-  } else if (adx > 120) {
+  } else if (adx > melee * 0.85) {
     if (chance(0.7)) {
       input.left = dx < 0;
       input.right = dx > 0;
@@ -114,8 +135,8 @@ function makePlan(f, opp, lvl) {
   }
 
   // offense
-  const close = adx < 190;
-  const mid = adx >= 150 && adx < 460;
+  const close = adx < melee * 1.05;
+  const mid = adx >= melee * 0.8 && adx < 460;
   if (close && chance(lvl.attack)) {
     if (chance(0.3)) {
       input.heavyP = true;

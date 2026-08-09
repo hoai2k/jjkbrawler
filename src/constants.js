@@ -51,6 +51,78 @@ export const LEDGE_GRAB_Y_BELOW = 60;
 export const LEDGE_HANG_X = 28;
 export const LEDGE_HANG_Y = 58;
 
+// ------------------------------------------------------------------ bodies
+//
+// A hurtbox as a proportion of the fighter it belongs to. src/silhouette.js
+// supplies the height and width from the character's own art; these say what
+// fraction of that is hittable in each state.
+//
+// `standH` is 0.86 rather than 1.0 because the top of an anime silhouette is
+// hair, and hair is not a target. Everything else is measured off the poses:
+// a crouch is a little over half height and noticeably wider, a fighter lying
+// flat is long and low, and a ledge hang is a body dangling from one hand.
+export const HURTBOX = {
+  standH: 0.86,
+  // Fallback only: how low a crouch is assumed to get when the character has
+  // no crouch art to measure. The live value comes from the pose itself
+  // (`crouch` in src/silhouette.js), so a fighter drawn ducking ducks and one
+  // drawn standing does not — most of the roster is currently the latter, and
+  // round 14C is the art that fixes it.
+  crouchH: 0.62,
+  // Guards on the measured value. The ceiling is under 1.0 deliberately: even
+  // a crouch pose that barely bends should be a slightly smaller target, or the
+  // input does nothing at all.
+  crouchMin: 0.50,
+  crouchMax: 0.92,
+  crouchW: 1.12,
+  proneH: 0.25,
+  proneW: 0.62,     // of HEIGHT, not width — a body on its side is body-length
+  ledgeH: 0.78,
+  ledgeW: 0.94,
+  ledgeTop: 0.76,
+  // A fighter doubled over by a hit is lower and wider than one standing.
+  hurtH: 0.80,
+  hurtW: 1.10,
+};
+
+// ------------------------------------------------------------------ launch
+//
+// Upward launch speed a hit has to produce before the victim leaves the floor.
+// Below it they stay grounded and slide.
+//
+// There used to be a flat `-120` added to every launch instead, which meant no
+// attack in the game could send anyone along the ground: a down tilt authored
+// at 8 degrees actually launched at 29, and `grounded` was cleared on every
+// hit. That erased the whole grounded layer — jab locks, tech chases, low
+// percent strings — and made the per-move `angle` the least effective dial in
+// the game. See docs/hitbox-audit.md 3.3.
+export const GROUND_RELEASE = 140;
+// What a grounded hit's horizontal speed is multiplied by instead of lifting
+// them. The energy has to go somewhere, and along the floor is where.
+export const GROUND_SLIDE_BOOST = 1.15;
+// A meteor that connects with someone already standing on the floor bounces
+// them off it rather than driving them through it.
+export const GROUND_SPIKE_BOUNCE = 0.45;
+
+// The Sakurai angle. Smash's angle 361: nearly horizontal on a grounded
+// target at low knockback, ~44 degrees once the hit is strong enough to lift
+// them, and always 44 in the air. It is what lets one jab combo at low percent
+// and push out at high percent without being two different moves.
+//
+// Used as a sentinel `angle` value, so it has to be something no real angle
+// could be.
+export const SAKURAI = -99;
+export const SAKURAI_AIR = 0.77;      // ~44 degrees
+export const SAKURAI_LOW = 0.04;      // grounded and weak: along the floor
+export const SAKURAI_POP = 0.44;      // grounded and strong: off their feet
+export const SAKURAI_KB = 620;        // where one becomes the other
+
+// How far the right stick can angle a charged side smash, in radians, and how
+// much of that carries into the launch angle. Smash's angled forward smash:
+// three attacks out of one, and the main vertical mixup in the grounded game.
+export const SMASH_TILT = 0.42;
+export const SMASH_TILT_ANGLE = 0.6;
+
 // meter / ultimate
 export const METER_MAX = 100;
 export const METER_PASSIVE = 1.1;
