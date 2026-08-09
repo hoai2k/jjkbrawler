@@ -10,6 +10,7 @@ import { hitboxRect, hurtbox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
 import { WORLD, SHIELD_MAX, PARRY_WINDOW } from "./constants.js";
 import { clamp, colorAlpha } from "./utils.js";
+import { PROJ_TRAIL } from "./config_fx.js";
 import { headHeightTarget } from "./heights.js";
 import { VISIBLE_ART_REACH } from "./moves.js";
 
@@ -118,8 +119,31 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+// The comet tail sampled in updateProjectiles: segments thin and fade toward
+// the oldest point, in the projectile's own colour.
+function drawProjectileTrail(ctx, p) {
+  const pts = p.trailPts;
+  if (!PROJ_TRAIL.enabled || !pts || pts.length < 4) return;
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.strokeStyle = p.color;
+  ctx.lineCap = "round";
+  const segs = pts.length / 2 - 1;
+  for (let i = 0; i < segs; i++) {
+    const t = (i + 1) / (segs + 1); // 0 at the tail tip, ~1 at the head
+    ctx.globalAlpha = PROJ_TRAIL.alpha * t;
+    ctx.lineWidth = Math.max(1, p.r * PROJ_TRAIL.width * t);
+    ctx.beginPath();
+    ctx.moveTo(pts[i * 2], pts[i * 2 + 1]);
+    ctx.lineTo(pts[i * 2 + 2], pts[i * 2 + 3]);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function drawProjectiles(ctx) {
   for (const p of state.projectiles) {
+    drawProjectileTrail(ctx, p);
     const sprite = p.sprite ? getImage(p.sprite) : null;
     if (sprite) {
       const h = p.spriteH || p.r * 3;

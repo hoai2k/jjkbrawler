@@ -1,7 +1,8 @@
 import { state } from "./state.js";
 import { clamp, sign, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, sparkLine, ring, popup, banner } from "./particles.js";
-import { hitFx, elementOf, burnTickFx, bleedTickFx } from "./fx.js";
+import { hitFx, elementOf, burnTickFx, bleedTickFx, projectileEmit, explodeFx } from "./fx.js";
+import { PROJ_TRAIL } from "./config_fx.js";
 import { playSfx } from "./audio.js";
 import { domainKnockbackMul } from "./domains.js";
 import {
@@ -183,6 +184,11 @@ export function spawnProjectile(owner, cfg) {
     wave: !!cfg.wave,
     sprite: cfg.sprite || null,
     spriteH: cfg.spriteH || 0,
+    // Element tag (config_fx.js): drives the in-flight emitter, the detonation
+    // recipe, and — because the projectile object IS the hit descriptor — the
+    // element of the hit sparks when it connects.
+    fxElement: cfg.fxElement || null,
+    trailPts: [], trailTick: 0,
     clearsProjectiles: !!cfg.clearsProjectiles,
     stunBonus: cfg.stunBonus || 0,
     unblockable: !!cfg.unblockable,
@@ -199,8 +205,7 @@ export function spawnProjectile(owner, cfg) {
 }
 
 function explodeProjectile(p) {
-  burst(p.x, p.y, p.color, 26, 1.3);
-  ring(p.x, p.y, p.color, p.explode * 1.4);
+  explodeFx(p);
   playSfx("projectileHit", 0.9);
   for (const target of state.fighters) {
     if (target === p.owner || target.dead || target.respawnTimer > 0) continue;
@@ -216,6 +221,15 @@ export function updateProjectiles(dt) {
     const p = state.projectiles[i];
     p.age += dt;
     p.dur -= dt;
+    // Comet tail: sample where the shot has actually been, so an arcing or
+    // steered path's tail bends with it. Drawn in render.js.
+    p.trailTick += dt;
+    if (p.trailTick >= PROJ_TRAIL.step) {
+      p.trailTick = 0;
+      p.trailPts.push(p.x, p.y);
+      if (p.trailPts.length > PROJ_TRAIL.len * 2) p.trailPts.splice(0, 2);
+    }
+    projectileEmit(p, dt);
     const target = state.fighters.find((f) => f !== p.owner && !f.dead);
 
     // Flying it by hand. The path turns toward the stick at a limited rate

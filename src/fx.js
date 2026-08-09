@@ -8,7 +8,7 @@
 // Every count, palette and speed in here reads from src/config_fx.js.
 
 import { emit, burst, dust, sparkLine, ring } from "./particles.js";
-import { FX_DENSITY, HIT_RECIPES, ELEMENT_PALETTES, DASH_FX } from "./config_fx.js";
+import { FX_DENSITY, HIT_RECIPES, ELEMENT_PALETTES, DASH_FX, PROJ_EMIT } from "./config_fx.js";
 import { rand, pick } from "./utils.js";
 
 export function elementOf(hit, owner) {
@@ -169,6 +169,48 @@ export function hitFx(element, x, y, dir, dmg, theme) {
       // The pre-FX look, exactly: theme burst + white spark line.
       burst(x, y, theme, Math.round(n(r.burst, 1) + dmg * 1.2), power);
       sparkLine(x, y, dir, "#ffffff", n(r.sparks, 1));
+  }
+}
+
+// ---------------------------------------------------------------- projectiles
+
+/** Particles shed in flight, by the projectile's fxElement tag. Called every
+ *  update tick; the per-element rates live in config_fx.js. */
+export function projectileEmit(p, dt) {
+  const rate = PROJ_EMIT[p.fxElement] || 0;
+  if (!rate || Math.random() > rate * dt * FX_DENSITY) return;
+  const back = -Math.sign(p.vx) || 1;
+  switch (p.fxElement) {
+    case "fire":
+      flames(p.x, p.y, 1, 0.45);
+      if (Math.random() < 0.5) embers(p.x, p.y, 1, 0.5);
+      break;
+    case "blood": droplets(p.x, p.y, back, 1, 0.5); break;
+    case "feather": flutter(p.x, p.y, "#15161c", 1); break;
+    case "wind": glints(p.x, p.y, back, 1, 0.55, ELEMENT_PALETTES.wind); break;
+    case "sound": ring(p.x, p.y, pick(ELEMENT_PALETTES.sound), 30); break;
+    case "shadow": smoke(p.x, p.y, 1, ELEMENT_PALETTES.shadow); break;
+    case "soul": smoke(p.x, p.y, 1, ELEMENT_PALETTES.soul); break;
+  }
+}
+
+/** An exploding projectile's detonation, element-aware. The default is the
+ *  pre-FX look exactly: a colour burst and a ring at the blast radius. */
+export function explodeFx(p) {
+  ring(p.x, p.y, p.color, p.explode * 1.4);
+  switch (p.fxElement) {
+    case "fire":
+      flames(p.x, p.y, n(16, 1), 1.4);
+      embers(p.x, p.y, n(12, 1), 1.4);
+      smoke(p.x, p.y - 12, n(5, 1));
+      break;
+    case "blood":
+      droplets(p.x, p.y, 1, n(9, 1), 1.2);
+      droplets(p.x, p.y, -1, n(9, 1), 1.2);
+      burst(p.x, p.y, "#8f0f20", n(10, 1), 1);
+      break;
+    default:
+      burst(p.x, p.y, p.color, n(26, 1), 1.3);
   }
 }
 

@@ -18,7 +18,7 @@ nothing load-bearing, the worst a bad value does is look wrong.
 |---|---|---|
 | **CP1** | **done** | This plan; three bug fixes (Todo's missing BLACK FLASH label, projectile glow fading to hardcoded blue, dead `rainbow_dragon` effect load) |
 | **CP2** | **done** | New particle primitives (`flame`, `crackle`, `droplet`, `flutter`, `smoke`, `streak`); `src/fx.js` element recipes; element-aware hit sparks incl. the no-cursed-energy rule for Maki/Toji/Panda; `dashStrike` launch FX + afterimage boost; `src/config_fx.js` |
-| **CP3** | open | Projectile trails (faded position history) + per-element in-flight emitters (embers off Fuga, droplets off Piercing Blood, feathers off crows…) |
+| **CP3** | **done** | Projectile trails (faded position history) + per-element in-flight emitters (embers off Fuga, droplets off Piercing Blood, feathers off crows…) |
 | **CP4** | open | Black Flash full treatment (red/black crackle forks, contact flash, red vignette, music duck) + controller rumble (`src/rumble.js`) |
 | **CP5** | open | Per-character one-offs: Maki's ult, Sukuna's Dismantle lattice, Nanami's 7:3 seam, Todo's swap silhouettes, Gojo's Blue pull / Red disc / Infinity shimmer, Yuta's heal motes, Nobara's glowing marks, Inumaki's neutral arcs, Mahito's soul ripple, Choso's boom cone, Mei Mei's feathers, Yuji's first-hit thud, Gakuganji's clipped aura |
 | **CP6** | open | Channel-loop SFX wiring; element/signature SFX request round in `docs/audio-requests.md` |
