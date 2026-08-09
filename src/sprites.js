@@ -36,31 +36,48 @@ export const EXTRA_ANCHORS = {
   },
 };
 
-// What is wrong with a sprite's ART, as opposed to its placement. The sprite
-// workbench writes one of these keys as `needsReplacement`; the flag is a
+// The two art requests differ by what they ASK FOR, not by how badly the art is
+// wrong. `needsReplacement` asks for the sprite to be drawn again; its value
+// says why the drawing itself cannot be saved. `wantsImprovement` asks for work
+// on the drawing that exists; its value says which pass it needs. Sorting them
+// any other way puts "redraw this" and "trim the transparency" in one queue,
+// where the person answering has to re-read every line to tell them apart.
+//
+// The workbench writes one of these keys as `needsReplacement`; the flag is a
 // request, and clearing it happens when new art is imported. A legacy `true`
-// means "replace", which is what the flag meant before it carried a reason.
+// predates the flag carrying a reason at all, so it normalises to the first
+// kind rather than inventing one.
 //
 // tools/list_replacements.py parses this list, so it is the single source of
 // truth for the set — add a kind here and the tooling follows.
 export const REPLACEMENT_KINDS = [
-  ["replace", "Replace — redraw the sprite from scratch"],
-  ["crop", "Fix crop — the framing or bounds are wrong"],
-  ["alpha", "Fix alpha — transparency is wrong or has hard edges"],
-  ["bleed", "Fix bleed — colour bleeds past the silhouette"],
+  ["quality", "Quality — the drawing is rough or off-model in execution"],
+  ["pose", "Pose — reads poorly, or is not the action it stands for"],
+  ["character", "Character — likeness or costume is off"],
   // Only offered on a pose with more than one drawing (VARIANT_ONLY_KINDS
-  // below): the ask is not "fix this art" but "we have something better, throw
-  // this one away". Deleting the only drawing a pose has would leave a hole.
+  // below): the ask is not "draw this again" but "we have something better,
+  // throw this one away". Deleting the only drawing a pose has leaves a hole.
   ["delete", "Delete variant — discard this drawing at the next cleanup"],
 ];
 
 /** Kinds that only make sense when a pose has an alternative to fall back on. */
 export const VARIANT_ONLY_KINDS = new Set(["delete"]);
 
-// How much of the existing placement survives a redraw, which decides what the
-// intake has to do when the new art lands. Read by tools/list_replacements.py
-// and by the asset-request write-up, so the rule lives here rather than in
-// prose someone has to remember:
+// The other half of the split: the drawing stands, it just needs a pass over
+// it. These are collected at a LOWER priority than `needsReplacement` — the art
+// is usable meanwhile, so nothing is blocked. Stored as `wantsImprovement`.
+export const IMPROVEMENT_KINDS = [
+  ["crop", "Fix crop — the framing or bounds are wrong"],
+  ["alpha", "Fix alpha — transparency is wrong or has hard edges"],
+  ["bleed", "Fix bleed — colour bleeds past the silhouette"],
+];
+
+// How much of the existing placement survives the answer to a request, which
+// decides what the intake has to do when the art lands. Keyed by kind across
+// both lists, since it is the kind — not which flag carried it — that says what
+// comes back. Read by tools/list_replacements.py and by the asset-request
+// write-up, so the rule lives here rather than in prose someone has to
+// remember:
 //
 //   keep    the frame comes back at the same size and framing, so every
 //           measurement and anchor is still valid — reuse them as they are.
@@ -69,8 +86,11 @@ export const VARIANT_ONLY_KINDS = new Set(["delete"]);
 //           change in framing (tools/intake_import.py --carry-placement).
 //   discard a different drawing entirely; nothing about the old placement
 //           means anything, so it is re-measured from scratch.
-export const REPLACEMENT_PLACEMENT = {
-  replace: "discard",
+export const REQUEST_PLACEMENT = {
+  // Every replacement kind is a new drawing, whatever prompted the ask.
+  quality: "discard",
+  pose: "discard",
+  character: "discard",
   crop: "reframe",
   bleed: "reframe",
   alpha: "keep",
@@ -79,35 +99,30 @@ export const REPLACEMENT_PLACEMENT = {
   delete: "none",
 };
 
-// A softer ask than a replacement: the art works, but it could be better. These
-// are collected at a LOWER priority than `needsReplacement` — nothing is broken,
-// so nothing is blocked. Stored as `wantsImprovement`.
-export const IMPROVEMENT_KINDS = [
-  ["quality", "Quality — the drawing is rough or off-model in execution"],
-  ["pose", "Pose — reads poorly, or is not the action it stands for"],
-  ["character", "Character — likeness or costume is off"],
-];
-
 /** The kind a frame is flagged with, or null. Normalises the legacy boolean. */
 export function replacementKind(meta) {
   const flag = meta?.needsReplacement;
   if (!flag) return null;
-  if (flag === true) return "replace";
-  return REPLACEMENT_KINDS.some(([k]) => k === flag) ? flag : "replace";
-}
-
-/** What survives a replacement of this kind: "keep", "reframe" or "discard". */
-export function replacementPlacement(meta) {
-  const kind = replacementKind(meta);
-  return kind ? REPLACEMENT_PLACEMENT[kind] ?? "discard" : null;
+  const fallback = REPLACEMENT_KINDS[0][0];
+  if (flag === true) return fallback;
+  return REPLACEMENT_KINDS.some(([k]) => k === flag) ? flag : fallback;
 }
 
 /** The improvement a frame asks for, or null. Same shape as replacementKind. */
 export function improvementKind(meta) {
   const flag = meta?.wantsImprovement;
   if (!flag) return null;
-  if (flag === true) return "quality";
-  return IMPROVEMENT_KINDS.some(([k]) => k === flag) ? flag : "quality";
+  const fallback = IMPROVEMENT_KINDS[0][0];
+  if (flag === true) return fallback;
+  return IMPROVEMENT_KINDS.some(([k]) => k === flag) ? flag : fallback;
+}
+
+/** What survives answering this frame's request: "keep", "reframe", "discard"
+ *  or "none". A replacement answers first — a pose flagged for both is getting
+ *  a new drawing, and the improvement rides along with it. */
+export function requestPlacement(meta) {
+  const kind = replacementKind(meta) || improvementKind(meta);
+  return kind ? REQUEST_PLACEMENT[kind] ?? "discard" : null;
 }
 
 /** States a frame can appear in that never touch the floor. Frames used ONLY

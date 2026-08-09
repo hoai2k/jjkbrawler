@@ -242,7 +242,7 @@ fighter listed has a finished set, and these are faults in it.
 Two kinds of fault, and they want different things from a redraw:
 
 - **The drawing is broken.** A hand that does not close on the weapon it is
-  holding, a shaft that bends where it crosses the body. These are `replace`.
+  holding, a shaft that bends where it crosses the body. These are `quality`.
 - **The drawing is fine, the pose is not the action.** A crouch that is not
   crouched, a strike that does not travel the way the move travels. These are
   `pose` — keep the character, the costume and the finish, change the body.
@@ -331,7 +331,7 @@ closer to where it started, the second frame is a wind-up, not a follow-through.
 
 ### Hands on a weapon
 
-Maki's three `replace` frames are all the same failure, and it is the one to
+Maki's three `quality` frames are all the same failure, and it is the one to
 watch for on every armed fighter: **the hand does not grip.** The fingers pass
 through the shaft, or close on empty air beside it, or the shaft bends through
 the fist as though it were rope. `attack_heavy_a` has both — the lead hand never

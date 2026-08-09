@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Prove that a touched-up sprite keeps its placement through re-import.
 
-The three replacement kinds are not the same event (REPLACEMENT_PLACEMENT in
-src/sprites.js). A wholesale redraw is a different drawing, so its predecessor's
+The request kinds are not the same event (REQUEST_PLACEMENT in
+src/sprites.js). A replacement is a different drawing, so its predecessor's
 placement means nothing. A crop or bleed fix is the SAME drawing with different
 bounds, and an alpha fix is the same drawing at the same bounds — in both of
 those, throwing the tuning away would make every touch-up cost a full re-tune.
@@ -97,7 +97,7 @@ def main():
                        ("crop", (40, 25, 40, 15)),
                        ("bleed", (-6, -4, -6, -3))):
         stored = dict(meta)
-        stored["needsReplacement"] = kind
+        stored["wantsImprovement"] = kind
         # An alpha fix comes back at the SAME bounds — the file differs only in
         # its transparency — so the frame is handed over untouched.
         new_frame = frame if pads is None else recrop(frame, *pads)[0]
@@ -145,16 +145,23 @@ def main():
                   f"{kind}: the art is the same height on screen",
                   f"{before['art_h']:.1f} -> {after['art_h']:.1f}")
 
-    # A wholesale replace must NOT inherit any of it.
+    # A replacement must NOT inherit any of it.
     stored = dict(meta)
-    stored["needsReplacement"] = "replace"
-    check(survives(stored) == "discard", "replace: classified as discard")
+    stored["needsReplacement"] = "quality"
+    check(survives(stored) == "discard", "replacement: classified as discard")
     redrawn, _, carried = import_meta(stored, frame, frame)
-    check(not carried, "replace: nothing is carried over", ", ".join(carried) or "(nothing)")
-    check("anchors" not in redrawn, "replace: the old anchors are dropped")
+    check(not carried, "replacement: nothing is carried over", ", ".join(carried) or "(nothing)")
+    check("anchors" not in redrawn, "replacement: the old anchors are dropped")
+
+    # A replacement outranks an improvement on the same pose: what lands is a
+    # new drawing, so there is nothing for the improvement's rule to keep.
+    both = dict(stored)
+    both["wantsImprovement"] = "alpha"
+    check(survives(both) == "discard", "a replacement outranks an improvement")
 
     unflagged = dict(meta)
     unflagged.pop("needsReplacement", None)
+    unflagged.pop("wantsImprovement", None)
     check(survives(unflagged) == "discard", "an unflagged frame defaults to discard")
 
     # ---- the marker the workbench's updated list is built from
@@ -164,7 +171,7 @@ def main():
     # manifest says the art moved. What has to be REDONE is the part that
     # matters, so `lost` names the hand-tuned fields that were rolled back.
     tuned = dict(meta)
-    tuned["needsReplacement"] = "replace"
+    tuned["needsReplacement"] = "quality"
     tuned["edited"] = {"renderScale": 0.25, "bodyBottom": 300.0}
     redrawn, _, _ = import_meta(tuned, frame, frame)
     note = redrawn.get("replaced") or {}
@@ -175,7 +182,8 @@ def main():
     check(bool(note.get("at")), "with the round it landed in", str(note.get("at")))
 
     touched = dict(tuned)
-    touched["needsReplacement"] = "crop"
+    touched.pop("needsReplacement", None)
+    touched["wantsImprovement"] = "crop"
     reframed, _, _ = import_meta(touched, frame, recrop(frame, 20, 10, 20, 10)[0])
     check((reframed.get("replaced") or {}).get("lost") == [],
           "a touch-up says its tuning survived rather than staying silent",

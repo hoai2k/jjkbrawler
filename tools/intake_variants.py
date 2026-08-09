@@ -72,14 +72,15 @@ ALT_DIR = "alt"
 # than ask again.
 #
 #   new       nothing registered under this name -> import it as the pose itself
-#   replace   the old art was condemned ("redraw from scratch", or the drawing
-#             was tagged for deletion) -> the new art REPLACES it outright. There
-#             is no reason to keep a drawing we already decided to throw away,
-#             and keeping it would leave the chevron offering it forever.
-#   promote   the old art was flagged as fixable or improvable (crop / alpha /
-#             bleed / any wantsImprovement) -> import as a variant AND select it.
-#             The complaint was about degree, not existence, so the old drawing
-#             stays available in case the new one is worse.
+#   replace   the old art was condemned (needsReplacement — draw it again — or
+#             the drawing was tagged for deletion) -> the new art REPLACES it
+#             outright. There is no reason to keep a drawing we already decided
+#             to throw away, and keeping it would leave the chevron offering it
+#             forever.
+#   promote   the old art was flagged as fixable (wantsImprovement: crop / alpha
+#             / bleed) -> import as a variant AND select it. The complaint was
+#             about degree, not existence, so the old drawing stays available in
+#             case the new one is worse.
 #   offer     no flag at all -> import as a variant and change nothing. Nobody
 #             asked for this pose to change, so the choice is made by eye later.
 DISPOSITIONS = {
@@ -89,9 +90,13 @@ DISPOSITIONS = {
     "offer": "added as a variant, selection unchanged",
 }
 
-# needsReplacement kinds that condemn the old art rather than ask for it to be
-# patched up. Kept in step with REPLACEMENT_KINDS in src/sprites.js.
-CONDEMNING = {"replace", "delete"}
+# needsReplacement now means "draw it again" whatever its reason, so every kind
+# it carries condemns the old art. Named the other way round — the kinds that
+# ask for a PASS over the existing drawing — because those are the fixed set
+# (IMPROVEMENT_KINDS in src/sprites.js) and because an export written before the
+# two lists were split can still put one of them under `needsReplacement`, where
+# it means what it always meant: keep the drawing, fix this about it.
+FIXABLE = {"crop", "alpha", "bleed"}
 
 
 def disposition(man, char, pose):
@@ -102,8 +107,8 @@ def disposition(man, char, pose):
 
     kind = meta.get("needsReplacement")
     if kind is True:
-        kind = "replace"          # legacy flag, predates carrying a reason
-    if kind in CONDEMNING:
+        kind = "quality"          # legacy flag, predates carrying a reason
+    if kind and kind not in FIXABLE:
         return "replace", f"old art flagged '{kind}'"
 
     # A delete tag lives on the variant option, not the pose, so the pose's own

@@ -903,7 +903,7 @@
     "edited": {
      "renderScale": 0.281
     },
-    "wantsImprovement": "pose"
+    "needsReplacement": "pose"
    },
    "crouch_b": {
     "w": 639,
@@ -926,7 +926,7 @@
      "renderScale": 0.281,
      "bodyBottom": 310.4
     },
-    "wantsImprovement": "pose"
+    "needsReplacement": "pose"
    },
    "dash": {
     "w": 918,
@@ -996,7 +996,7 @@
      "rotationDeg": null
     },
     "rotationDeg": 5,
-    "needsReplacement": "replace"
+    "needsReplacement": "quality"
    },
    "special_neutral": {
     "w": 959,
@@ -5262,7 +5262,7 @@
      "renderScale": 0.291,
      "bodyBottom": 310.4
     },
-    "wantsImprovement": "pose"
+    "needsReplacement": "pose"
    },
    "crouch_a": {
     "w": 936,
@@ -5331,7 +5331,7 @@
      "ox": -331.2,
      "bodyBottom": 310.4
     },
-    "wantsImprovement": "pose"
+    "needsReplacement": "pose"
    },
    "crouch_b": {
     "w": 603,
@@ -6481,7 +6481,7 @@
      "rotationDeg": null
     },
     "rotationDeg": 7,
-    "wantsImprovement": "pose"
+    "needsReplacement": "pose"
    },
    "dash": {
     "w": 918,
@@ -8486,7 +8486,7 @@
      "ox": -325.8,
      "bodyBottom": 310.4
     },
-    "wantsImprovement": "pose"
+    "needsReplacement": "pose"
    },
    "attack_air_a": {
     "w": 966,
@@ -8811,7 +8811,7 @@
      "renderScale": 0.297,
      "bodyBottom": 310.4
     },
-    "wantsImprovement": "pose"
+    "needsReplacement": "pose"
    },
    "special_side": {
     "w": 972,
@@ -10715,7 +10715,7 @@
     "edited": {
      "renderScale": 0.295
     },
-    "needsReplacement": "alpha"
+    "wantsImprovement": "alpha"
    },
    "dodge_roll": {
     "w": 937,
@@ -12840,7 +12840,7 @@
       343.8
      ]
     },
-    "needsReplacement": "replace"
+    "needsReplacement": "quality"
    },
    "dodge_roll": {
     "w": 1257,
@@ -13187,7 +13187,7 @@
      "rotationDeg": null
     },
     "rotationDeg": 12.5,
-    "wantsImprovement": "pose"
+    "needsReplacement": "pose"
    },
    "special_neutral": {
     "w": 806,
@@ -13209,7 +13209,7 @@
     "edited": {
      "renderScale": 0.295
     },
-    "needsReplacement": "replace"
+    "needsReplacement": "quality"
    },
    "special_side": {
     "w": 968,
@@ -14015,7 +14015,7 @@
       592.1
      ]
     },
-    "needsReplacement": "replace"
+    "needsReplacement": "quality"
    },
    "attack_air_b": {
     "w": 971,
@@ -14077,7 +14077,7 @@
     "edited": {
      "bodyBottom": 310.4
     },
-    "needsReplacement": "replace"
+    "needsReplacement": "quality"
    },
    "attack_heavy_b": {
     "w": 1007,
@@ -14219,7 +14219,7 @@
      "renderScale": 0.291,
      "bodyBottom": 310.4
     },
-    "wantsImprovement": "pose"
+    "needsReplacement": "pose"
    },
    "crouch_b": {
     "w": 705,
@@ -14242,7 +14242,7 @@
      "renderScale": 0.291,
      "bodyBottom": 310.4
     },
-    "wantsImprovement": "pose"
+    "needsReplacement": "pose"
    },
    "dash": {
     "w": 837,
@@ -14376,7 +14376,7 @@
     "edited": {
      "bodyBottom": 310.4
     },
-    "needsReplacement": "replace"
+    "needsReplacement": "quality"
    }
   },
   "inumaki": {
@@ -23657,7 +23657,7 @@
      "renderScale": 0.281,
      "bodyBottom": 310.4
     },
-    "wantsImprovement": "pose"
+    "needsReplacement": "pose"
    },
    "crouch_attack_a": {
     "w": 848,
@@ -23702,7 +23702,7 @@
      "renderScale": 0.319,
      "bodyBottom": 310.4
     },
-    "wantsImprovement": "pose"
+    "needsReplacement": "pose"
    },
    "crouch_b": {
     "w": 1002,
@@ -26185,7 +26185,7 @@
         405.9
        ]
       },
-      "needsReplacement": "replace",
+      "needsReplacement": "quality",
       "edited": {
        "renderScale": 0.295
       }
@@ -26554,13 +26554,13 @@
        ]
       },
       "faceLeft": true,
-      "wantsImprovement": "pose",
       "edited": {
        "renderScale": 0.13,
        "ox": -328.2,
        "bodyBottom": 310.4,
        "faceLeft": null
-      }
+      },
+      "needsReplacement": "pose"
      },
      {
       "file": "reggie/alt/crouch_attack_b.png",

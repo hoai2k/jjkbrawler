@@ -9,14 +9,13 @@ Everything here is driven by flags set by hand in the
 [sprite workbench](../workbench/). Nobody has to remember what was wrong with a
 sprite — the flag on it says so, and this is the procedure that answers them all.
 
-## The four flags, and what each one means here
+## The flags, and what each one means here
 
 | Flag | Set where | What the cleanup does |
 |---|---|---|
 | `delete` | Artwork dropdown, on a pose with more than one drawing | **Deletes that image** and makes sure the pose's canonical file is the drawing that was kept |
-| `alpha`, `crop`, `bleed` | Artwork dropdown | **Attempts a fix in-place**, then shows you before/after to approve |
-| `replace` | Artwork dropdown | **Cannot be fixed by tooling** — folded into the open asset request round |
-| `wantsImprovement` (`quality`, `pose`, `character`) | Improvement dropdown | Same — folded into the request round, at lower priority |
+| `wantsImprovement` (`alpha`, `crop`, `bleed`) | Improvement dropdown | **Attempts a fix in-place**, then shows you before/after to approve |
+| `needsReplacement` (`quality`, `pose`, `character`) | Artwork dropdown | **Cannot be fixed by tooling** — folded into the open asset request round |
 
 Start by collecting them:
 
@@ -58,10 +57,10 @@ first place: the right art at the canonical path, no leftovers, no chevron.
 
 ## 2. Alpha, crop and bleed — fix in place, then show the work
 
-These three say the drawing is right and its *pixels* are wrong, so they are
-fixable without new art. `tools/intake.py` already contains the keying,
-trimming and fringe-removal that would have caught them at import; the fix is to
-run the affected frames back through it.
+These three — the improvement kinds — say the drawing is right and its *pixels*
+are wrong, so they are fixable without new art. `tools/intake.py` already
+contains the keying, trimming and fringe-removal that would have caught them at
+import; the fix is to run the affected frames back through it.
 
 | Kind | What is wrong | What survives the fix |
 |---|---|---|
@@ -69,7 +68,7 @@ run the affected frames back through it.
 | `crop` | the framing or bounds are wrong | **reframe** — same drawing, different bounds; re-measure and shift anchors by how far the framing moved |
 | `bleed` | colour bleeds past the silhouette | **reframe**, as above |
 
-That mapping is `REPLACEMENT_PLACEMENT` in `src/sprites.js` and it is not
+That mapping is `REQUEST_PLACEMENT` in `src/sprites.js` and it is not
 optional: applying the wrong one silently resizes or displaces the sprite.
 
 **Deliverable: a before/after contact sheet, plus a deep link per frame.** A
@@ -87,24 +86,24 @@ cleanup produces:
   ```
 
 Nothing is cleared until you have approved the sheet. If a fix did not work, the
-flag stays on, and that frame moves to step 3 as a `replace`.
+flag stays on, and that frame moves to step 3 as a replacement request.
 
 ---
 
-## 3. Replace and improvement requests — fold into the open round
+## 3. Replacements and unfixable improvements — fold into the open round
 
-`replace` means a different drawing is needed, and `wantsImprovement` means the
-drawing works but should be better. Neither is fixable by tooling, so both become
-**asset requests**.
+`needsReplacement` means a different drawing is needed, and an improvement the
+in-place fix could not deliver still needs an artist. Neither is fixable by
+tooling from here, so both become **asset requests**.
 
 1. `python3 tools/list_replacements.py --markdown` produces the tables in the
    shape `docs/asset-requests.md` uses.
 2. Add them to the **current open round**, not a new one — the whole point is
    that a delivery arrives as one batch. At the time of writing that is round 9
    (accuracy and polish) and round 10 (one sprite per action).
-3. Keep the two priorities separate in the request. A `replace` is blocking:
-   something on screen is wrong. A `wantsImprovement` is not, and burying them
-   together means the blocking ones wait behind the wish list.
+3. Keep the two priorities separate in the request. A `needsReplacement` is
+   blocking: something on screen is wrong. A `wantsImprovement` is not, and
+   burying them together means the blocking ones wait behind the wish list.
 4. Every request line carries its pose line and the fighter's canonical reference
    (`idle_a` — see 10B in the requests doc), because a redraw that does not match
    the rest of the set just becomes the next cleanup's problem.
@@ -136,9 +135,8 @@ what should happen when new art arrives for that pose. `intake_variants.py
 
 | Flag | Incoming art |
 |---|---|
-| `replace`, or the drawing tagged `delete` | replaces it outright; nothing kept |
-| `crop`, `alpha`, `bleed` | added as a variant **and selected**, old kept |
-| `wantsImprovement` | added as a variant **and selected**, old kept |
+| `needsReplacement` (any kind), or the drawing tagged `delete` | replaces it outright; nothing kept |
+| `wantsImprovement` (any kind) | added as a variant **and selected**, old kept |
 | unflagged | added as a variant, selection unchanged |
 
 So flagging a sprite is worth doing even when no cleanup is imminent: it decides,

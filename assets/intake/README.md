@@ -44,9 +44,8 @@ has to decide twice:
 | Flag on the existing pose | What the new art does |
 |---|---|
 | nothing registered under this name | **imported as the pose itself** |
-| `needs replacement: redraw from scratch`, or the drawing is tagged `delete` | **replaces the old art outright.** It was condemned; keeping it would leave the chevron offering a drawing we already decided to throw away |
-| `needs replacement: crop / alpha / bleed` | **imported as a variant AND selected.** The complaint was about degree, not existence, so the old drawing stays available in case the new one is worse |
-| `request improvement` (any kind) | same — **variant, and selected** |
+| `sprite needs replacement` (any kind), or the drawing is tagged `delete` | **replaces the old art outright.** It was condemned; keeping it would leave the chevron offering a drawing we already decided to throw away |
+| `request improvement` (crop / alpha / bleed) | **imported as a variant AND selected.** The complaint was about degree, not existence, so the old drawing stays available in case the new one is worse |
 | no flag at all | **imported as a variant, selection unchanged.** Nobody asked for this pose to change, so the choice is made by eye later |
 
 ```bash

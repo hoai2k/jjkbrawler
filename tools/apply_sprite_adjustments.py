@@ -58,10 +58,10 @@ OTHER_KEY = "__other"
 # and wins over it, which is why writing `false` matters rather than deleting
 # the key — see loadAssets in src/assets.js.
 #
-# needsReplacement flags a frame whose ART is wrong. Its VALUE says what is
-# wrong — "replace", "crop", "alpha", "bleed" (REPLACEMENT_KINDS in
-# src/sprites.js) — because a wholesale redraw and a crop fix are very different
-# asks. `false` clears the flag; a legacy `true` means "replace".
+# needsReplacement asks for the sprite to be DRAWN AGAIN. Its VALUE says why the
+# drawing cannot be saved — "quality", "pose", "character" (REPLACEMENT_KINDS in
+# src/sprites.js). `false` clears the flag; a legacy `true` predates the flag
+# carrying a reason and reads as the first kind.
 # tools/list_replacements.py collects them for the asset request list, and
 # intake clears the flag when new art lands.
 #
@@ -70,15 +70,15 @@ OTHER_KEY = "__other"
 # rotation on top. Absolute rather than a delta — a drawing has no inherent tilt
 # to be relative to, so 0 is square and the key is dropped at 0.
 #
-# wantsImprovement is the softer ask: the art works, it is just not as good as
-# it should be. Its value is "quality", "pose" or "character"
-# (IMPROVEMENT_KINDS in src/sprites.js). Collected at a lower priority, since
-# nothing is blocked by one.
+# wantsImprovement is the softer ask: keep this drawing, do a pass over it. Its
+# value is "crop", "alpha" or "bleed" (IMPROVEMENT_KINDS in src/sprites.js).
+# Collected at a lower priority, since the art is usable meanwhile and nothing
+# is blocked by one.
 ALLOWED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "anchors", "faceLeft",
            "needsReplacement", "wantsImprovement"}
 # Flags whose VALUE is a kind string. `false` clears; a legacy `true` means the
 # first kind in the list.
-KIND_FIELDS = {"needsReplacement": "replace", "wantsImprovement": "quality"}
+KIND_FIELDS = {"needsReplacement": "quality", "wantsImprovement": "crop"}
 NUMERIC = {"renderScale", "ox", "bodyBottom", "rotationDeg"}
 BOOLEAN = {"faceLeft"}
 

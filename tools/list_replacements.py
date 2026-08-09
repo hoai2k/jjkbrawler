@@ -2,43 +2,47 @@
 """List the sprites flagged as needing art work.
 
 The sprite workbench's **Sprite needs replacement** checkbox writes
-`needsReplacement` onto a frame, meaning "the ART here is wrong" — as distinct
-from its placement being wrong, which the other controls fix. Its value says
-WHAT is wrong: a wholesale redraw and a crop fix are very different asks, and a
-request that does not distinguish them is a request someone has to come back and
-clarify. This collects the flags, grouped by that kind, so they can be turned
-into asset requests.
+`needsReplacement` onto a frame, meaning "draw this one again" — the drawing
+itself cannot be saved. Its value says why: "quality" (rough or off-model),
+"pose" (reads poorly, or is not the action it stands for) or "character"
+(likeness or costume is off). This collects the flags, grouped by that kind, so
+they can be turned into asset requests.
 
-The kinds are defined in src/sprites.js and parsed from there, so the set has
-one source of truth rather than a copy here that can drift.
+**Request improvement** is the other ask, and the lower priority one: keep this
+drawing, do a pass over it (`wantsImprovement`, one of "crop", "alpha",
+"bleed"). Listed separately, because the art is usable meanwhile and nothing is
+blocked by one.
 
-How much of the existing placement survives the redraw depends on the kind, and
-the request has to say so or the intake cannot know what to keep:
+The split is by what is being ASKED FOR rather than by how bad the art is, so a
+request never has to be re-read to tell "redraw it" from "trim the
+transparency". The kinds are defined in src/sprites.js and parsed from there, so
+the set has one source of truth rather than a copy here that can drift.
+
+How much of the existing placement survives depends on the kind, and the request
+has to say so or the intake cannot know what to keep:
 
   Fix alpha              keep     same drawing, same bounds. Every measurement
                                   and anchor is still valid; reuse them.
   Fix crop / Fix bleed   reframe  same drawing, different bounds. Re-measure,
                                   and shift the anchors by how far the framing
                                   moved.
-  Replace                discard  a different drawing. Nothing about the old
+  Quality / Pose /
+  Character              discard  a different drawing. Nothing about the old
                                   placement means anything.
 
-That mapping is REPLACEMENT_PLACEMENT in src/sprites.js and is parsed from
-there, so it cannot drift from what the code believes.
-
-**Request improvement** is the softer, lower-priority ask: the art works, it is
-just not as good as it should be (`wantsImprovement`, one of "quality", "pose",
-"character"). Listed separately, because nothing is blocked by one.
+That mapping is REQUEST_PLACEMENT in src/sprites.js and is parsed from there, so
+it cannot drift from what the code believes.
 
 The flags are cleared automatically: `intake_import.py` rebuilds a frame's entry
 when new art lands, which drops them along with the rest of the old settings.
 Flagging and importing are the two ends of one pipeline, so this list is always
 "still outstanding", never a historical record.
 
-**Delete variant** is a fifth kind and behaves differently: it is tagged on one
-DRAWING of a pose that has several (`manifest.variants`), not on the pose, and it
-means "we have something better, discard this one". It clears only by being acted
-on — nothing gets imported to clear it. Listed separately for that reason.
+**Delete variant** is a fourth replacement kind and behaves differently: it is
+tagged on one DRAWING of a pose that has several (`manifest.variants`), not on
+the pose, and it means "we have something better, discard this one". It clears
+only by being acted on — nothing gets imported to clear it. Listed separately
+for that reason.
 
 Answering all of these at once is the "full sprite cleanup" procedure in
 docs/sprite-cleanup.md.
@@ -77,9 +81,11 @@ def improvement_kinds():
 
 
 def placement_rule():
-    """kind -> "keep" | "reframe" | "discard", from REPLACEMENT_PLACEMENT."""
+    """kind -> "keep" | "reframe" | "discard", from REQUEST_PLACEMENT. Covers
+    both lists: it is the kind, not the flag carrying it, that says how much of
+    the old placement comes back."""
     src = open(SPRITES_JS).read()
-    block = src[src.index("export const REPLACEMENT_PLACEMENT"):]
+    block = src[src.index("export const REQUEST_PLACEMENT"):]
     block = block[:block.index("};")]
     return dict(re.findall(r'(\w+):\s*"(\w+)"', block))
 
@@ -133,7 +139,7 @@ def main():
                     "file": meta.get("file", ""),
                     "kind": kind,
                     "kindLabel": table[kind],
-                    "placement": placement.get(kind, "discard") if field == "needsReplacement" else None,
+                    "placement": placement.get(kind, "discard"),
                     "states": states,
                     "used": bool(states),
                 })
@@ -168,10 +174,10 @@ def main():
                     })
         return out
 
-    rows = collect("needsReplacement", kinds, "replace")
+    rows = collect("needsReplacement", kinds, order[0])
     deletes = collect_variant_deletes()
     rows.sort(key=lambda r: (order.index(r["kind"]), r["character"], r["frame"]))
-    wants = collect("wantsImprovement", want_kinds, "quality")
+    wants = collect("wantsImprovement", want_kinds, want_order[0])
     wants.sort(key=lambda r: (want_order.index(r["kind"]), r["character"], r["frame"]))
 
     if args.json:
@@ -215,17 +221,18 @@ def main():
             print()
         if wants:
             print(f"## Improvement requests — {len(wants)} sprite(s)\n")
-            print("Lower priority: the art works, it is just not as good as it "
-                  "should be. Nothing is blocked by these.\n")
+            print("Lower priority: keep the drawing, do a pass over it. The art "
+                  "is usable meanwhile, so nothing is blocked by these.\n")
             for kind in want_order:
                 group = [r for r in wants if r["kind"] == kind]
                 if not group:
                     continue
                 print(f"### {want_kinds[kind]}\n")
+                print(f"On delivery: **{PLACEMENT_NOTE[placement.get(kind, 'discard')]}.**\n")
                 md_table(group)
         return
 
-    def listing(title, group_rows, table, group_order, show_placement):
+    def listing(title, group_rows, table, group_order):
         if not group_rows:
             return
         print(f"{len(group_rows)} sprite(s) {title}")
@@ -233,7 +240,7 @@ def main():
             group = [r for r in group_rows if r["kind"] == kind]
             if not group:
                 continue
-            note = f"   [{PLACEMENT_NOTE[placement.get(kind, 'discard')]}]" if show_placement else ""
+            note = f"   [{PLACEMENT_NOTE[placement.get(kind, 'discard')]}]"
             print(f"\n{table[kind]}  ({len(group)}){note}")
             current = None
             for r in group:
@@ -251,8 +258,8 @@ def main():
             print(f"  {r['name']} {r['frame']:20} delete {r['file']}{warn}")
         print()
 
-    listing("flagged for replacement", rows, kinds, order, True)
-    listing("with an improvement request", wants, want_kinds, want_order, False)
+    listing("flagged for replacement", rows, kinds, order)
+    listing("with an improvement request", wants, want_kinds, want_order)
 
 
 if __name__ == "__main__":

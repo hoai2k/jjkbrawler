@@ -1965,6 +1965,8 @@ function buildPoseEntry(charKey, key, { owner = false } = {}) {
     + (isUpdateReviewed(charKey, key) ? "reviewed" : "");
   const kind = doomed ? "delete" : replacementKind(rawMeta(charKey, key));
   if (kind) b.dataset.kind = kind;
+  const want = improvementKind(rawMeta(charKey, key));
+  if (want) b.dataset.want = want;
   b.onclick = () => selectPose(charKey, key);
 
   if (!host) return b;

@@ -166,18 +166,22 @@ height** control edits that one number and rescales the whole sprite set.
 ### Replacing a sprite whose art is wrong
 
 Placement problems are fixed in the workbench. Art problems are not — the file
-itself has to change. The **Sprite needs replacement** checkbox marks that, and
-its dropdown says *what* is wrong, because a wholesale redraw and a crop fix are
-very different asks and a request that does not distinguish them is one someone
-has to come back and clarify:
+itself has to change. There are two asks, split by *what is being asked for*
+rather than by how bad the art is, so a request never has to be re-read to tell
+"draw this again" from "trim the transparency".
+
+**Sprite needs replacement** says the drawing cannot be saved; its dropdown says
+why:
 
 | Kind | Means |
 |---|---|
-| `replace` | redraw the sprite from scratch |
-| `crop` | the framing or bounds are wrong |
-| `alpha` | transparency is wrong or has hard edges |
-| `bleed` | colour bleeds past the silhouette |
+| `quality` | the drawing is rough or off-model in execution |
+| `pose` | it reads poorly, or is not the action it stands for |
+| `character` | likeness or costume is off |
 | `delete` | this DRAWING is surplus — discard it and keep the other variant. Only offered on a pose that has more than one drawing, so a deletion can never leave a pose with no art. Stored on the variant option rather than the pose, because it names one image out of several. |
+
+**Request improvement** ([below](#improvement-requests)) is the other ask: keep
+this drawing, do a pass over it — `crop`, `alpha` or `bleed`.
 
 **A flag is also an instruction to the next import.** When new art arrives for a
 flagged pose, what happens to the old drawing is decided by what the flag said —
@@ -185,15 +189,14 @@ flagged pose, what happens to the old drawing is decided by what the flag said �
 
 | Flag on the pose | Incoming art |
 |---|---|
-| `replace`, or the drawing tagged `delete` | **replaces it outright** — the old art was condemned, so nothing is kept |
-| `crop`, `alpha`, `bleed` | **added as a variant and selected**, old drawing kept as a fallback |
-| `wantsImprovement` (any kind) | same — **variant, and selected** |
+| `needsReplacement` (any kind), or the drawing tagged `delete` | **replaces it outright** — the old art was condemned, so nothing is kept |
+| `wantsImprovement` (any kind) | **added as a variant and selected**, old drawing kept as a fallback |
 | unflagged | **added as a variant, selection unchanged** |
 
 The split is between a complaint about *existence* and a complaint about
-*degree*. "Redraw this from scratch" says the drawing should not survive;
-"the alpha is wrong" or "this could be better" says it should, until something
-demonstrably better is in hand. See [assets/intake/README.md](../assets/intake/README.md).
+*degree*. "Draw this again" says the drawing should not survive; "the alpha is
+wrong" says it should, until something demonstrably better is in hand. See
+[assets/intake/README.md](../assets/intake/README.md).
 
 **Answering these flags is a procedure, not a judgement call each time.** Ask for
 a "full sprite cleanup" and [docs/sprite-cleanup.md](sprite-cleanup.md) is what
@@ -202,9 +205,10 @@ contact sheet and workbench deep links to approve, and everything needing new ar
 folded into the open asset-request round.
 
 The kind is the flag's *value*, so there is one field rather than a boolean and a
-reason that could disagree. `REPLACEMENT_KINDS` in `src/sprites.js` is the single
-source of truth — `list_replacements.py` parses it from there — so adding a kind
-is one line. A legacy `true` reads as `replace`.
+reason that could disagree. `REPLACEMENT_KINDS` and `IMPROVEMENT_KINDS` in
+`src/sprites.js` are the single source of truth — `list_replacements.py` parses
+them from there — so adding a kind is one line. A legacy `true` predates the flag
+carrying a reason and reads as the first kind in its list.
 
 The flag rides through the same export and apply path as everything else:
 
@@ -216,15 +220,16 @@ python3 tools/list_replacements.py --markdown     # grouped by kind, for a reque
 #### What survives the redraw
 
 A wholesale redraw and a crop fix are not the same event, so they do not get the
-same treatment on the way back in. `REPLACEMENT_PLACEMENT` in `src/sprites.js`
+same treatment on the way back in. `REQUEST_PLACEMENT` in `src/sprites.js`
 maps each kind to how much of the existing placement is still meaningful, and
-`intake_import.py` follows it:
+`intake_import.py` follows it. It is keyed by kind across both flags, since it is
+the kind — not which flag carried it — that says what comes back:
 
 | Kind | Survives | Because |
 |---|---|---|
 | `alpha` | **keep** | same drawing, same bounds — every measurement and anchor is still exactly right |
 | `crop`, `bleed` | **reframe** | same drawing, moved bounds — the tuning still applies, but the numbers have to be re-pointed at the new framing |
-| `replace` | **discard** | a different drawing; nothing about the old placement means anything |
+| `quality`, `pose`, `character` | **discard** | a replacement request, so a different drawing lands; nothing about the old placement means anything |
 
 An unflagged frame is treated as a wholesale replacement, which is the safe
 reading: nothing said the art was merely being touched up.
@@ -299,13 +304,16 @@ applied, so a pose stays on the list, ticked or dotted, while it is worked on.
 
 ### Improvement requests
 
-`wantsImprovement` is the softer ask: the art *works*, it is just not as good as
-it should be. One of `quality` (rough or sloppily executed), `pose` (reads
-poorly, or is not the action it stands for) or `character` (likeness or costume
-is off) — `IMPROVEMENT_KINDS` in `src/sprites.js`.
+`wantsImprovement` is the softer ask: *keep* this drawing, do a pass over it. One
+of `crop` (the framing or bounds are wrong), `alpha` (transparency is wrong or
+has hard edges) or `bleed` (colour bleeds past the silhouette) —
+`IMPROVEMENT_KINDS` in `src/sprites.js`.
 
 It travels the same export/apply path and is listed by the same tool, but
-separately and after the replacements, because nothing is blocked by one.
+separately and after the replacements, because the art is usable meanwhile and
+nothing is blocked by one. These are the kinds whose answer keeps some of the
+existing tuning ([above](#what-survives-the-redraw)) — the drawing that comes
+back is the same one.
 
 ### Catching poses that are sized wrong
 

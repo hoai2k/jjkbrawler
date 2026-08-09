@@ -11,14 +11,16 @@ scaled so its body height matches what it replaces, so a swap does not
 silently resize the fighter — a replacement is a change of ART, never of size.
 
 How much of the replaced frame's own settings carries over depends on WHY it
-was flagged (REPLACEMENT_PLACEMENT in src/sprites.js). A redraw and a crop fix
+was flagged (REQUEST_PLACEMENT in src/sprites.js). A redraw and a crop fix
 are not the same event:
 
-  replace        -> discard. A different drawing; nothing about the old
-                    placement means anything, and the hand tuning existed to
-                    compensate for the very art being replaced. Rebuilt from
-                    scratch.
-  crop, bleed    -> reframe. The same drawing with different bounds. The body
+  quality, pose,
+  character      -> discard. A replacement request, so what lands is a
+                    different drawing; nothing about the old placement means
+                    anything, and the hand tuning existed to compensate for the
+                    very art being replaced. Rebuilt from scratch.
+  crop, bleed    -> reframe. An improvement request, answered with the same
+                    drawing at different bounds. The body
                     keeps its tuned rendered size and foot line, and the anchors
                     are carried across by the change in framing — an anchor is
                     stored in image-local pixels, and this maps it through the
@@ -26,6 +28,10 @@ are not the same event:
                     defines, so a point on the navel stays on the navel.
   alpha          -> keep. The same drawing at the same bounds, so every
                     measurement and anchor is still valid and survives intact.
+
+The kind is read off whichever flag carries one — `needsReplacement` first,
+then `wantsImprovement` — since it is the kind, not the flag, that says what
+comes back.
 
 An unflagged frame is treated as a wholesale replacement, which is the safe
 reading: nothing said the art was merely being touched up.
@@ -78,14 +84,21 @@ def body_metrics(frame):
 
 
 def survives(stored):
-    """"keep" | "reframe" | "discard" for the frame being replaced."""
+    """"keep" | "reframe" | "discard" for the frame the new art lands on.
+
+    Either flag can be the request being answered: a replacement asks for a new
+    drawing, an improvement asks for a pass over this one, and it is the KIND
+    that says how much of the placement comes back. A replacement wins when a
+    pose carries both — what lands is a new drawing regardless.
+    """
     if not stored:
         return "discard"
-    flag = stored.get("needsReplacement")
+    flag = stored.get("needsReplacement") or stored.get("wantsImprovement")
     if not flag:
         return "discard"
-    kind = "replace" if flag is True else str(flag)
-    return PLACEMENT.get(kind, "discard")
+    if flag is True:
+        return "discard"
+    return PLACEMENT.get(str(flag), "discard")
 
 
 def now_stamp():

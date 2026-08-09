@@ -62,7 +62,7 @@ await page.check("#replaceBox");
 await page.waitForTimeout(150);
 const kinds = await page.evaluate(() =>
   [...document.querySelectorAll("#replaceKind option")].map((o) => o.value).filter(Boolean));
-if (kinds.includes("crop")) await page.selectOption("#replaceKind", "crop");
+if (kinds.includes("pose")) await page.selectOption("#replaceKind", "pose");
 await page.waitForTimeout(250);
 
 const after = await page.evaluate((t) => {
@@ -168,7 +168,7 @@ check(await page.evaluate(() => parseFloat(document.getElementById("offsetRange"
 // ---- the improvement request, a separate lower-priority flag
 await page.check("#improveBox");
 await page.waitForTimeout(150);
-await page.selectOption("#improveKind", "pose");
+await page.selectOption("#improveKind", "crop");
 await page.waitForTimeout(250);
 check(await page.evaluate(() => {
   const el = document.querySelector("#poseList button.sel");
@@ -178,7 +178,7 @@ await page.click("#exportBtn");
 await page.waitForTimeout(300);
 let improved = null;
 try { improved = JSON.parse(await page.inputValue("#exportOut")); } catch { /* reported below */ }
-check(Object.values(improved?.adjustments ?? {}).some((v) => v.wantsImprovement === "pose"),
+check(Object.values(improved?.adjustments ?? {}).some((v) => v.wantsImprovement === "crop"),
   "it exports as wantsImprovement, separately from needsReplacement");
 
 // ---- a review flag belongs to the DRAWING, not to the pose
@@ -199,9 +199,9 @@ await page.waitForTimeout(400);
 await page.selectOption("#viewSel", "all");
 await page.waitForTimeout(300);
 
-await page.check("#replaceBox");
+await page.check("#improveBox");
 await page.waitForTimeout(150);
-await page.selectOption("#replaceKind", "alpha");
+await page.selectOption("#improveKind", "alpha");
 await page.waitForTimeout(250);
 
 await page.locator(`.pose-cell [data-frame="dodge_air"], .pose-cell button.sel ~ .pose-variant`)
@@ -221,7 +221,7 @@ try { swapped = JSON.parse(await page.inputValue("#exportOut")); } catch { /* re
 const forHanami = (Array.isArray(swapped) ? swapped : [swapped])
   .find((p) => p?.character === "hanami");
 const banked = Object.fromEntries(
-  (forHanami?.variantPlacement?.dodge_air ?? []).map((o) => [o.file, o.needsReplacement ?? false]));
+  (forHanami?.variantPlacement?.dodge_air ?? []).map((o) => [o.file, o.wantsImprovement ?? false]));
 check(forHanami?.variantChoice?.dodge_air === alt,
   "the pose switched to the other drawing", JSON.stringify(forHanami?.variantChoice));
 check(banked["hanami/dodge_air.png"] === "alpha",
@@ -229,7 +229,7 @@ check(banked["hanami/dodge_air.png"] === "alpha",
 // `false` rather than absent: the export always states a drawing's tag, so
 // clearing one travels as clearly as setting one.
 check(!banked[alt], "the drawing switched to does not inherit it", JSON.stringify(banked[alt]));
-check(forHanami?.adjustments?.dodge_air?.needsReplacement === undefined,
+check(forHanami?.adjustments?.dodge_air?.wantsImprovement === undefined,
   "and it is not left behind on the pose");
 
 // ---- the Mirror box tells the truth about the drawing that is on screen
