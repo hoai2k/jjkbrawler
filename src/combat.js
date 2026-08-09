@@ -1,8 +1,10 @@
 import { state } from "./state.js";
 import { clamp, sign, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, sparkLine, ring, popup, banner } from "./particles.js";
-import { hitFx, elementOf, burnTickFx, bleedTickFx, projectileEmit, explodeFx } from "./fx.js";
-import { PROJ_TRAIL } from "./config_fx.js";
+import { hitFx, elementOf, burnTickFx, bleedTickFx, projectileEmit, explodeFx, blackFlashFx } from "./fx.js";
+import { PROJ_TRAIL, BLACK_FLASH, RUMBLE } from "./config_fx.js";
+import { rumbleFighter, rumbleEvent } from "./rumble.js";
+import { duckMusic } from "./audio.js";
 import { playSfx } from "./audio.js";
 import { domainKnockbackMul } from "./domains.js";
 import {
@@ -548,6 +550,7 @@ export function applyHit(owner, target, hit, source) {
       // perfect shield
       popup(target.x, target.y - 160, "PARRY!", "#ffffff", 30);
       ring(target.x, target.y - 90, target.char.theme, 90);
+      rumbleEvent(target, "parry");
       playSfx("guardHit", 1, 1.3);
       owner.hitPause = Math.max(owner.hitPause, 0.34);
       target.hitPause = Math.max(target.hitPause, 0.1);
@@ -590,7 +593,13 @@ export function applyHit(owner, target, hit, source) {
     owner.meter = clamp(owner.meter + 10, 0, METER_MAX);
     popup(target.x, target.y - 178, "BLACK FLASH!", "#ff3b30", 26);
     playSfx("blackFlash");
-    sparkLine(target.x, target.y - 96, dir, "#ff3b30", 12);
+    // The full canon treatment: white core, red-and-black lightning
+    // fractures, the world dropping dark and quiet for a beat, and a
+    // tick-then-slam rumble on both pads (config_fx.js BLACK_FLASH/RUMBLE).
+    blackFlashFx(target.x, target.y - 96);
+    duckMusic(BLACK_FLASH.duckTo, BLACK_FLASH.duckTime);
+    rumbleEvent(owner, "blackFlash");
+    rumbleEvent(target, "blackFlash");
     state.camera.shake = Math.max(state.camera.shake, 8);
     state.slowMo = Math.max(state.slowMo, 0.12);
   }
@@ -680,6 +689,11 @@ export function applyHit(owner, target, hit, source) {
   owner.hitPause = Math.max(owner.hitPause, lag);
   target.hitPause = Math.max(target.hitPause, lag * 1.1);
   target.shakeMag = 3 + Math.min(6, dmg * 0.4);
+  // Rumble scales off the same magnitudes hitlag does: the victim's pad
+  // thumps with the damage, the attacker's carries a weaker echo of it.
+  const rStrong = Math.min(1, dmg * RUMBLE.hitScale);
+  rumbleFighter(target, rStrong, rStrong * 0.5, RUMBLE.hitTime + lag);
+  rumbleFighter(owner, rStrong * RUMBLE.attackerEcho, rStrong * 0.4, RUMBLE.hitTime);
 
   // presentation — element-aware: a magma hit burns, a blade hit glints, and
   // a kit with no fxElement tags draws exactly the old theme burst.
@@ -690,6 +704,7 @@ export function applyHit(owner, target, hit, source) {
   if (label) popup(target.x - dir * 26, target.y - 160, label, owner.char.theme, 17);
   state.camera.shake = Math.max(state.camera.shake, clamp(4 + dmg * 0.5, 4, 15));
   if (kb > 880) {
+    rumbleEvent(target, "launch");
     state.slowMo = Math.max(state.slowMo, 0.1);
     state.camera.kick = 0.14;
   }
@@ -734,6 +749,7 @@ export function shieldBreak(target) {
   playSfx("guardBreak", 0.9);
   burst(target.x, target.y - 90, "#cfe4ff", 40, 1.4);
   state.camera.shake = Math.max(state.camera.shake, 12);
+  rumbleEvent(target, "shieldBreak");
 }
 
 export function triggerCounter(target, attacker) {

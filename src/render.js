@@ -37,6 +37,7 @@ export function draw(ctx) {
 
   drawDomainOverlay(ctx);
   drawBannersScreen(ctx);
+  drawVignette(ctx);
   drawScreenFlash(ctx);
 }
 
@@ -552,6 +553,24 @@ function drawScreenFlash(ctx) {
   ctx.save();
   ctx.globalAlpha = clamp(fl.life / fl.maxLife, 0, 1) * 0.5;
   ctx.fillStyle = fl.color;
+  ctx.fillRect(0, 0, WORLD.w, WORLD.h);
+  ctx.restore();
+}
+
+// Black Flash's beat: the edges of the world drop into dark red while the
+// centre — where the hit is — stays clear. Set by fx.js, stepped in main.js.
+function drawVignette(ctx) {
+  const v = state.vignette;
+  if (!v) return;
+  ctx.save();
+  ctx.globalAlpha = clamp(v.life / v.maxLife, 0, 1) * v.alpha;
+  const g = ctx.createRadialGradient(
+    WORLD.w / 2, WORLD.h / 2, WORLD.h * 0.32,
+    WORLD.w / 2, WORLD.h / 2, WORLD.w * 0.62,
+  );
+  g.addColorStop(0, colorAlpha(v.color, 0));
+  g.addColorStop(1, v.color);
+  ctx.fillStyle = g;
   ctx.fillRect(0, 0, WORLD.w, WORLD.h);
   ctx.restore();
 }

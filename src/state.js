@@ -46,6 +46,7 @@ export const state = {
   camera: { x: 640, y: 360, zoom: 1, shake: 0, kick: 0 },
   slowMo: 0,
   screenFlash: null, // {color, life, maxLife}
+  vignette: null,    // {color, alpha, life, maxLife} — Black Flash's dark beat
   domainOverlay: null, // {color, life, maxLife, ownerId, label}
   domain: null,        // the live Domain Expansion entity, or null (domains.js)
 

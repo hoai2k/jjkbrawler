@@ -8,6 +8,7 @@ import { performUltimate } from "./ultimates.js";
 import { performDomain, domainInput, canOpenDomain, activeDomain } from "./domains.js";
 import { burst, dust, popup, banner, ring } from "./particles.js";
 import { playSfx, playGrunt, playKoCry, startShieldLoop, stopShieldLoop } from "./audio.js";
+import { rumbleEvent } from "./rumble.js";
 import {
   GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME,
   SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
@@ -313,6 +314,7 @@ export function ringOut(f) {
   f.stocks -= 1;
   playSfx("launch", 1);
   playKoCry(f.charKey);
+  rumbleEvent(f, "ko");
   state.camera.shake = Math.max(state.camera.shake, 16);
   state.slowMo = Math.max(state.slowMo, 0.35);
   state.screenFlash = { color: opp ? opp.char.theme : "#ffffff", life: 0.28, maxLife: 0.28 };

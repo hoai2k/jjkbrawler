@@ -8,8 +8,9 @@
 // Every count, palette and speed in here reads from src/config_fx.js.
 
 import { emit, burst, dust, sparkLine, ring } from "./particles.js";
-import { FX_DENSITY, HIT_RECIPES, ELEMENT_PALETTES, DASH_FX, PROJ_EMIT } from "./config_fx.js";
+import { FX_DENSITY, HIT_RECIPES, ELEMENT_PALETTES, DASH_FX, PROJ_EMIT, BLACK_FLASH } from "./config_fx.js";
 import { rand, pick } from "./utils.js";
+import { state } from "./state.js";
 
 export function elementOf(hit, owner) {
   return hit.fxElement || owner.char.fxElement || "energy";
@@ -227,6 +228,35 @@ export function dashLaunchFx(f, color) {
     steel ? ELEMENT_PALETTES.steel : [color, "#ffffff"],
   );
   f.fxTrailT = DASH_FX.trailTime;
+}
+
+// --------------------------------------------------------------- Black Flash
+
+/** The full canon treatment at the point of contact: a one-frame white core,
+ *  red-and-BLACK lightning fractures, and a dark red edge vignette while the
+ *  world "drops out" for a beat. The music duck and rumble live at the call
+ *  site (combat.js) — this is only what it looks like. */
+export function blackFlashFx(x, y) {
+  emit({ x, y, size: BLACK_FLASH.flashSize, life: 0.06, maxLife: 0.06, color: "#ffffff" });
+  crackle(x, y, BLACK_FLASH.colors, n(BLACK_FLASH.forks, 1), BLACK_FLASH.reach);
+  state.vignette = {
+    color: BLACK_FLASH.vignetteColor,
+    alpha: BLACK_FLASH.vignetteAlpha,
+    life: BLACK_FLASH.vignetteTime,
+    maxLife: BLACK_FLASH.vignetteTime,
+  };
+}
+
+/** The crit-finisher ultimates (Nanami's 7:3, Yuji's and Todo's Black Flash)
+ *  reuse the treatment at reduced strength, in the finisher's own colour. */
+export function critFinisherFx(x, y, color) {
+  crackle(x, y, [color, "#000000"], n(BLACK_FLASH.forks * 0.7, 1), BLACK_FLASH.reach * 0.8);
+  state.vignette = {
+    color: BLACK_FLASH.vignetteColor,
+    alpha: BLACK_FLASH.vignetteAlpha * BLACK_FLASH.critVignetteScale,
+    life: BLACK_FLASH.vignetteTime,
+    maxLife: BLACK_FLASH.vignetteTime,
+  };
 }
 
 // ------------------------------------------------------------- status ticks
