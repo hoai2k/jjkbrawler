@@ -8,6 +8,7 @@
 
 import {
   loadCoreAssets, loadFrame, frameImage, spriteManifest, sharedSpriteKeys, loadSharedImage, getImage,
+  frameMeta, loadSpriteFile, spriteFileImage,
 } from "../src/assets.js";
 import {
   drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly, animsOf, resolvedAnim,
@@ -818,7 +819,12 @@ function rememberSaved(charKey) {
     if (!meta) continue;
     // `edited` is written by apply_sprite_adjustments.py; a replacement request
     // counts too, since either way that pose has been decided about.
-    if (Object.keys(meta.edited || {}).length > 0 || meta.needsReplacement || meta.wantsImprovement) {
+    // `surfacedReviewed` counts too: "I looked at this and it needed nothing" is
+    // a decision about the pose, and the to-do list is a list of undecided ones.
+    // Without it the only way off the list was to change a number, which meant
+    // nudging a pose that was already right.
+    if (Object.keys(meta.edited || {}).length > 0 || meta.needsReplacement
+        || meta.wantsImprovement || meta.surfacedReviewed) {
       savedAtLoad.add(`${charKey}/${key}`);
     }
   }
@@ -996,11 +1002,64 @@ function drawAnchorHandle(name, active) {
   ctx.restore();
 }
 
-function drawGhost(charKey, frameKey, alpha, x = canvas.width / 2) {
-  if (!rawMeta(charKey, frameKey) || !frameImage(charKey, frameKey)) return;
+function drawGhost(charKey, frameKey, alpha, x = canvas.width / 2, as = null) {
+  if (!as && (!rawMeta(charKey, frameKey) || !frameImage(charKey, frameKey))) return;
+  if (as && (!as.meta || !as.img)) return;
   drawCharFrame(ctx, charKey, frameKey, x, GROUND_Y, {
     scale: actorOf(charKey).scale * state.zoom, facing: 1, alpha,
+    preview: !as, as,
   });
+}
+
+/** The OTHER drawing of this pose worth standing beside it, or null.
+ *
+ *  Two cases, and the first is the reason this exists. While a replacement is
+ *  waiting to be approved the canvas shows the new art, so the question you
+ *  actually have is "is it better than what we are shipping" — and the only way
+ *  to answer that is to see them together. There the other drawing is the one
+ *  still in the game, which `frameMeta`/`frameImage` already resolve without
+ *  `preview`.
+ *
+ *  Otherwise it is the newest alternate the pose has, on the reading that the
+ *  most recently delivered drawing is the one you have not decided about yet.
+ *  Options are appended in arrival order, so the last is the newest.
+ */
+function altCompare() {
+  const meta = rawMeta(state.char, state.frame);
+  if (!meta) return null;
+  if (meta.awaitingApproval?.live) {
+    return {
+      meta: frameMeta(state.char, state.frame),
+      img: frameImage(state.char, state.frame),
+      file: meta.awaitingApproval.live.file,
+      caption: "in the game now",
+    };
+  }
+  const others = poseVariants(state.char, state.frame).filter((o) => o.file !== meta.file);
+  const newest = others[others.length - 1];
+  if (!newest) return null;
+  return {
+    meta: poseView(newest),
+    img: spriteFileImage(newest.file),
+    file: newest.file,
+    caption: newest.label ? `alternate: ${newest.label}` : "alternate",
+  };
+}
+
+/** Hide the option on a pose that has nothing to compare against, so the menu
+ *  never offers a view that would silently show the same drawing twice. */
+function refreshSelfIdleOptions() {
+  const sel = $("selfIdleMode");
+  const opt = sel?.querySelector('option[value="alternate"]');
+  if (!opt) return;
+  const alt = altCompare();
+  opt.hidden = !alt;
+  if (!alt && sel.value === "alternate") sel.value = "comparison";
+  // Fetch it once it is asked for; the per-pose slot holds only the drawing
+  // the pose points at.
+  if (alt && !alt.img && alt.file) {
+    loadSpriteFile(alt.file).then((ok) => { if (ok) render(); });
+  }
 }
 
 /** The size benchmark stands at the left end of the platform rather than
@@ -1041,6 +1100,12 @@ function comparisonTarget() {
       caption: `saved: ${label.sub || label.name}`, sub: stateLabel(row.name),
     };
   }
+  if ($("selfIdleMode").value === "alternate") {
+    const alt = altCompare();
+    if (alt?.img) {
+      return { charKey: state.char, frameKey: state.frame, caption: alt.caption, as: alt };
+    }
+  }
   if ($("selfIdleMode").value === "comparison") {
     const key = selfIdleKey();
     if (key && key !== state.frame) {
@@ -1055,9 +1120,9 @@ function comparisonTarget() {
 /** The comparison stands at the left end of the platform, drawn SOLID: it is a
  *  second sprite to look at, not a tracing guide, and ghosting it made it read
  *  as an overlay that had slipped sideways. */
-function drawComparison({ charKey, frameKey, caption, sub }) {
+function drawComparison({ charKey, frameKey, caption, sub, as }) {
   const x = platformX() + BENCHMARK_INSET;
-  drawGhost(charKey, frameKey, 1, x);
+  drawGhost(charKey, frameKey, 1, x, as);
   ctx.save();
   ctx.fillStyle = "rgba(154, 164, 192, 0.9)";
   ctx.font = "600 11px Inter, sans-serif";
@@ -1806,6 +1871,7 @@ function refreshTag() {
 function refreshControls() {
   refreshHeadControl();
   refreshUpdatedControl();
+  refreshSelfIdleOptions();
   refreshApprovalControl();
   refreshAutoTuneControl();
   const meta = rawMeta(state.char, state.frame);
@@ -2009,8 +2075,7 @@ function refreshUpdatedControl() {
   const note = updateNote(state.char, state.frame);
   group.hidden = !note;
   if (!note) {
-    const btnGroup = $("updatedClearGroup");
-    if (btnGroup) btnGroup.hidden = true;
+    refreshReviewButton();
     return;
   }
   const reviewed = isUpdateReviewed(state.char, state.frame);
@@ -2019,13 +2084,32 @@ function refreshUpdatedControl() {
     : note.how === "surfaced" ? "newly in the in-game list — never sized"
     : note.lost?.length ? "tuning rolled back" : "tuning carried over";
   $("updatedInfo").innerHTML = updateSummary(note);
-  // The button lives further down the panel now, so it needs its own group
-  // toggled — it is no longer carried by the explanation's `hidden`.
-  $("updatedClearGroup").hidden = !note;
-  const btn = $("updatedClear");
-  btn.textContent = reviewed
-    ? "↺ Put it back on the updated list"
-    : "Mark reviewed — take it off the updated list";
+  refreshReviewButton();
+}
+
+/** The one button that takes a pose off a to-do list without editing it.
+ *
+ *  Offered on ANY pose, not only one an intake round touched. A pose that is
+ *  simply right needs a way to say so: before this, leaving the "no saved
+ *  edits" list meant changing a number, so the only way to record "I looked at
+ *  this and it needed nothing" was to nudge something that did not need
+ *  nudging. Both lists ask the same question — has anyone decided about this
+ *  pose — so one button answers it. */
+function refreshReviewButton() {
+  const group = $("updatedClearGroup");
+  if (!group) return;
+  const other = isOther(state.char);
+  const note = updateNote(state.char, state.frame);
+  const done = hasSavedEdits(state.char, state.frame);
+  // Nothing to say on a pose that is already accounted for by its own tuning.
+  group.hidden = other || (!note && done);
+  if (group.hidden) return;
+  const reviewed = isUpdateReviewed(state.char, state.frame);
+  $("updatedClear").textContent = reviewed
+    ? "↺ Put it back on the to-do list"
+    : note
+      ? "Mark reviewed — take it off the updated list"
+      : "Mark as done — take it off the no-saved-edits list";
 }
 
 /** The approve/keep decision on a replacement the game is not drawing yet.

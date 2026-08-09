@@ -57,6 +57,9 @@
                 <option value="hide">Hide</option>
                 <option value="overlay">Overlay</option>
                 <option value="comparison" selected>Comparison</option>
+                <!-- Only offered when this pose has another drawing to show;
+                     refreshSelfIdleOptions() hides it otherwise. -->
+                <option value="alternate" hidden>Alternate sprite</option>
               </select>
             </label>
             <label class="chip"><input type="checkbox" id="showPlatform" checked> Game platform</label>

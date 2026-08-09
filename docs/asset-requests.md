@@ -693,9 +693,12 @@ nothing.
 | Megumi | 0.29 | | | |
 
 Mahoraga at 0.80 is the extreme and is partly legitimate — he is a genuinely
-enormous shikigami — but four-fifths as wide as he is tall is a square, and his
-karma wheel is composited separately anyway (`drawProp`, `src/render.js`), so it
-should not be in his silhouette.
+enormous shikigami with a tail, and the karma wheel on his headdress is part of
+his sprite like everything else he wears. Four-fifths as wide as he is tall is
+still a square, though, and the width is carried by the tail sweeping out behind
+him rather than by his body. Worth checking against play before asking for a
+redraw: a hurtbox that wide is a real disadvantage, but so is a general who
+cannot fit his own tail.
 
 `node tools/audit_hitboxes.mjs` prints the live figures; re-run it after any
 delivery rather than trusting this table.

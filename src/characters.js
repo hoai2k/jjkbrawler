@@ -1301,21 +1301,13 @@ export const SPRITE_ACTORS = {
     theme: "#e8ecf8",
     shadow: "rgba(232, 236, 248, 0.4)",
     anims: SEMANTIC_ANIMS,
-    // No `prop` block, deliberately. The round-9 art drew the karma wheel as a
-    // large black halo floating detached above his head, so it had to be cut
-    // out and composited separately — otherwise a dodge roll sent it tumbling
-    // with the body when the whole point is that it hangs level.
-    //
-    // Round 11A redraws him from the shikigami's canon design, where the wheel
-    // is brass, small, and mounted ON the headdress. A wheel that is part of
-    // the head SHOULD turn with the head, so it is drawn into all 33 poses and
-    // there is nothing to lift. The prop would simply put a second wheel in the
-    // air above the first.
-    //
-    // `effect:mahoraga_wheel` and the extraction tool (tools/split_mahoraga_wheel.py)
-    // are kept rather than deleted: nothing loads the sprite while no actor
-    // declares a prop, and the machinery is what any future hovering attachment
-    // would be built from.
+    // Mahoraga's karma wheel is part of his sprite, like everything else he
+    // wears. The round-9 art drew it as a large black halo floating detached
+    // above his head, which had to be cut out and composited separately or a
+    // dodge roll sent it tumbling with the body; round 11A redrew him from the
+    // shikigami's canon design, where the wheel is brass, small and mounted ON
+    // the headdress. A wheel that is part of the head turns with the head, so
+    // it is simply drawn into all 33 poses.
   },
 };
 

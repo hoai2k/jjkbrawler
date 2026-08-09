@@ -88,6 +88,11 @@ single button would make rejecting the art the thing you do by not clicking:
 - **Keep the current art** — the live drawing's fields go back onto the pose and
   the newcomer is discarded.
 
+To see them together, set **This character's idle → Alternate sprite**: the
+comparison slot fills with the drawing still in play, captioned *in the game
+now*, so the question the approval is asking is answered side by side. The
+option only appears when the pose has another drawing to show.
+
 Either answer exports as `approvals` and is applied by
 `apply_sprite_adjustments.py`, like every other change. Characters with a
 replacement still waiting carry a dot in the workbench's character dropdown.
@@ -116,7 +121,7 @@ kind is which.
 | `needs replacement: quality / pose / character`, or the selected drawing is tagged `delete` | **replaces the old art outright.** It was condemned; keeping it would leave the chevron offering a drawing we already decided to throw away |
 | `needs replacement: alternate` | **imported beside the old art, selection unchanged, and marked new.** The request asked for a second opinion, so selecting it here would answer the question it was raised to ask. The pose goes on the workbench's updated list with a dot on its chevron, because nothing else about this delivery is visible |
 | `wants improvement: alpha / crop / bleed` | **imported as a variant AND selected.** The complaint was about the file, not the drawing, so the old one stays available in case the new one is worse |
-| no flag at all | **imported as a variant, selection unchanged.** Nobody asked for this pose to change, so the choice is made by eye later |
+| no flag at all | **held for approval, same as a flagged replacement.** "Nobody asked for this" and "somebody asked for this" reach the same place now — new art beside the old, the game unchanged, the pose on the updated list. It used to be added quietly as a variant, which was the honest answer only while a flagged import overwrote on arrival |
 
 The kinds were the other way round until [19efd99]: `replace` sat beside `fix
 alpha` under `needsReplacement`, and pose and quality complaints — the ones only

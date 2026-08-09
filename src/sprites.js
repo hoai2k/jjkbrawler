@@ -477,8 +477,11 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
   // the workbench passes it, and only so a replacement can be placed before it
   // is approved into the game — everywhere else the two are the same image.
   const view = { preview: !!opts.preview };
-  const meta = frameMeta(charKey, frameKey, view);
-  const img = frameImage(charKey, frameKey, view);
+  // `as` draws a NAMED drawing of this pose rather than whichever one is
+  // selected — the workbench uses it to stand two alternates side by side.
+  // Nothing in the game passes it.
+  const meta = opts.as?.meta || frameMeta(charKey, frameKey, view);
+  const img = opts.as?.img || frameImage(charKey, frameKey, view);
   if (!meta || !img) return;
 
   // renderScale corrects frames whose art is drawn at a different zoom than

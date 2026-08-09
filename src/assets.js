@@ -1,4 +1,4 @@
-import { CHARACTER_KEYS, SPRITE_ACTORS } from "./characters.js";
+import { CHARACTER_KEYS } from "./characters.js";
 import { applyAllHeightScales } from "./heights.js";
 import { STAGES } from "./stages.js";
 import { transformActorsFor } from "./config_transform.js";
@@ -389,13 +389,6 @@ function groupJobs(id) {
       optional(`domain:${name}`, `assets/backgrounds/domains/${name}.jpg`);
     }
   }
-  // Props: art a character wears rather than draws — see PROP in characters.js.
-  for (const actor of Object.values(SPRITE_ACTORS)) {
-    if (actor.prop?.sprite?.startsWith("effect:")) {
-      const key = actor.prop.sprite.slice("effect:".length);
-      optional(`effect:${key}`, `assets/sprites/effects/${key}.png`);
-    }
-  }
   for (const key of STAGE_FX_SPRITES) {
     optional(`stagefx:${key}`, `assets/sprites/effects/${key}.png`);
   }
@@ -496,6 +489,22 @@ export function sharedSpriteKeys() {
 /** One `effect:*` / `summon:*` image on its own. The action workbench lists the
  *  effects a move spawns, and needs their thumbnails without downloading every
  *  effect in the game to show two of them. Resolves true if the key is usable. */
+/** Fetch one sprite file by path, for a caller that needs a drawing the pose is
+ *  not currently pointing at. Only the workbench does — comparing two drawings
+ *  of the same pose side by side means both have to be in memory at once, and
+ *  the per-pose slots hold exactly one. Keyed by file, so two poses sharing a
+ *  drawing share the fetch. */
+export async function loadSpriteFile(file) {
+  if (!file) return false;
+  const key = `file:${file}`;
+  await fetchImage(key, assetUrl(`assets/sprites/${file}`), true);
+  return images.has(key);
+}
+
+export function spriteFileImage(file) {
+  return (file && images.get(`file:${file}`)) || null;
+}
+
 export async function loadSharedImage(key) {
   if (!sharedJobs) sharedJobs = new Map(groupJobs("shared").map((j) => [j.key, j]));
   const job = sharedJobs.get(key);

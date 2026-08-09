@@ -87,7 +87,7 @@ DISPOSITIONS = {
     "replace": "replaces the condemned art outright",
     "promote": "added as a variant AND selected",
     "alternate": "added as the requested alternate, selection unchanged",
-    "offer": "added as a variant, selection unchanged",
+    "offer": "held for approval — the game keeps the old art until you choose",
 }
 
 # The replacement kind whose delivery becomes a variant. Mirrors ALTERNATE_KIND
@@ -283,7 +283,15 @@ def run_plan(man, rows, label, dry_run, log):
     changed = 0
     at = intake_import.now_stamp()   # one stamp per round, as intake_import does
     for char, pose, how, _ in rows:
-        if how in ("new", "replace"):
+        # `offer` joins them. It used to mean "add it as a variant and change
+        # nothing", which was the honest answer while an import otherwise
+        # overwrote on arrival: unrequested art had to be hidden or it would
+        # silently become the game. Now that EVERY replacement waits for
+        # approval, "nobody asked for this" and "somebody asked for this" reach
+        # the same place — new art beside the old, the game unchanged, the pose
+        # on the updated list — and the hold is the better of the two, because a
+        # variant added quietly behind a chevron is one nobody ever looks at.
+        if how in ("new", "replace", "offer"):
             approvals.setdefault(char, []).append(pose)
             continue
         if not import_one(man, char, pose, label, dry_run, log, fresh=how == "alternate"):
