@@ -3131,7 +3131,7 @@
     "coreLeft": 82.5,
     "coreRight": 393.7,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "idle_b": {
     "file": "hanami/idle_b.png",
@@ -3159,7 +3159,7 @@
     "coreLeft": 88.9,
     "coreRight": 361.9,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "jump_rise": {
     "file": "hanami/jump_rise.png",
@@ -3186,7 +3186,7 @@
     "coreLeft": 57.1,
     "coreRight": 495.3,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "fall": {
     "file": "hanami/fall.png",
@@ -3213,7 +3213,7 @@
     "coreLeft": 44.4,
     "coreRight": 361.9,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "hurt": {
     "file": "hanami/hurt.png",
@@ -3241,7 +3241,7 @@
     "coreLeft": 57.1,
     "coreRight": 438.1,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "guard": {
     "file": "hanami/guard.png",
@@ -3269,7 +3269,7 @@
     "coreLeft": 69.8,
     "coreRight": 406.4,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "attack_up": {
     "file": "hanami/attack_up.png",
@@ -3297,7 +3297,7 @@
     "coreLeft": 88.9,
     "coreRight": 482.6,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "attack_air": {
     "file": "hanami/attack_air.png",
@@ -3347,7 +3347,7 @@
     "coreLeft": 82.5,
     "coreRight": 349.2,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "dizzy": {
     "file": "hanami/dizzy.png",
@@ -3375,7 +3375,7 @@
     "coreLeft": 88.9,
     "coreRight": 336.5,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "victory": {
     "file": "hanami/victory.png",
@@ -3403,7 +3403,7 @@
     "coreLeft": 82.5,
     "coreRight": 450.8,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "ledge_hang": {
     "file": "hanami/ledge_hang.png",
@@ -3434,7 +3434,7 @@
     "coreLeft": 50.8,
     "coreRight": 184.1,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "run_a": {
     "file": "hanami/run_a.png",
@@ -3513,7 +3513,7 @@
     "coreLeft": 218.4,
     "coreRight": 750.0,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "dodge_roll": {
     "w": 1035,
@@ -3540,7 +3540,7 @@
     "coreLeft": 122.9,
     "coreRight": 976.8,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "special_neutral": {
     "w": 995,
@@ -3568,7 +3568,7 @@
     "coreLeft": 94.8,
     "coreRight": 758.5,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "special_side": {
     "w": 1005,
@@ -3596,7 +3596,7 @@
     "coreLeft": 117.2,
     "coreRight": 851.6,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "attack_air_a": {
     "w": 933,
@@ -3624,7 +3624,7 @@
     "coreLeft": 80.0,
     "coreRight": 853.8,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "attack_air_b": {
     "w": 977,
@@ -3652,7 +3652,7 @@
     "coreLeft": 63.7,
     "coreRight": 874.2,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "attack_down": {
     "w": 974,
@@ -3680,7 +3680,7 @@
     "coreLeft": 124.2,
     "coreRight": 852.0,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "attack_heavy_a": {
     "w": 939,
@@ -3708,7 +3708,7 @@
     "coreLeft": 100.9,
     "coreRight": 843.5,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "attack_heavy_b": {
     "w": 998,
@@ -3737,7 +3737,7 @@
     "coreLeft": 55.8,
     "coreRight": 924.4,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "attack_light_a": {
     "w": 972,
@@ -3766,7 +3766,7 @@
     "coreLeft": 103.5,
     "coreRight": 818.9,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "attack_light_b": {
     "w": 948,
@@ -3794,7 +3794,7 @@
     "coreLeft": 146.9,
     "coreRight": 844.7,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "crouch_a": {
     "w": 893,
@@ -3823,7 +3823,7 @@
     "coreLeft": 126.6,
     "coreRight": 807.1,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "crouch_attack_a": {
     "w": 962,
@@ -3851,7 +3851,7 @@
     "coreLeft": 117.7,
     "coreRight": 875.4,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "crouch_attack_b": {
     "w": 972,
@@ -3863,17 +3863,6 @@
     "centroidX": 141.7,
     "renderScale": 0.2285,
     "file": "hanami/crouch_attack_b.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "ox",
-      "renderScale",
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1318,
@@ -3893,7 +3882,7 @@
      }
     },
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
     "edited": {
      "renderScale": 0.293,
      "ox": -329.2,
@@ -3910,16 +3899,6 @@
     "centroidX": 173.8,
     "renderScale": 0.2344,
     "file": "hanami/crouch_b.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 872,
@@ -3939,7 +3918,7 @@
      }
     },
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png.",
     "edited": {
      "renderScale": 0.293,
      "bodyBottom": 310.4
@@ -3971,7 +3950,7 @@
     "coreLeft": 71.5,
     "coreRight": 886.6,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "land": {
     "w": 930,
@@ -3999,7 +3978,7 @@
     "coreLeft": 100.1,
     "coreRight": 808.5,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "special_down": {
     "w": 950,
@@ -4027,7 +4006,7 @@
     "coreLeft": 103.1,
     "coreRight": 825.0,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "ult_a": {
     "w": 928,
@@ -4055,7 +4034,7 @@
     "coreLeft": 64.7,
     "coreRight": 831.4,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "ult_b": {
     "w": 1000,
@@ -4084,7 +4063,7 @@
     "coreLeft": 109.1,
     "coreRight": 900.3,
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "prone": {
     "w": 957,
@@ -4118,7 +4097,7 @@
      "bodyBottom": 310
     },
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "run_pass_a": {
     "w": 834,
@@ -4153,7 +4132,7 @@
      "bodyBottom": 247.9
     },
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "run_pass_b": {
     "w": 905,
@@ -4188,7 +4167,7 @@
      "bodyBottom": 245.8
     },
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "run_reach_a": {
     "w": 963,
@@ -4223,7 +4202,7 @@
      "bodyBottom": 257.5
     },
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    },
    "run_reach_b": {
     "w": 975,
@@ -4257,7 +4236,7 @@
      "renderScale": 0.33
     },
     "needsReplacement": "character",
-    "replacementNote": "Whole-set redraw to canon (17A) — every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
+    "replacementNote": "Whole-set redraw to canon (17A) \u2014 every pose is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png. Do NOT match hanami_idle.png."
    }
   },
   "geto": {
@@ -7967,70 +7946,39 @@
     }
    },
    "crouch_attack_a": {
-    "w": 846,
-    "h": 889,
-    "ox": -328.2,
-    "oy": -578,
-    "bodyBottom": 263.2,
-    "bodyH": 286.1,
-    "centroidX": 218.7,
-    "renderScale": 0.322,
-    "file": "mahito/incoming/crouch_attack_a.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "rotationDeg",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 874,
-      "h": 1266,
-      "ox": -280.2,
-      "oy": -955,
-      "bodyBottom": 227.4,
-      "bodyH": 285.9,
-      "bodyTop": 0,
-      "centroidX": 161.4,
-      "renderScale": 0.1819,
-      "rotationDeg": -6.5,
-      "anchors": {
-       "com": [
-        440.3,
-        525.0
-       ]
-      },
-      "edited": {
-       "renderScale": 0.226,
-       "bodyBottom": 310.4,
-       "rotationDeg": null
-      },
-      "file": "mahito/crouch_attack_a.png"
-     }
-    },
-    "bodyTop": 0,
+    "file": "mahito/crouch_attack_a.png",
     "bodyLeft": 0,
     "bodyRight": 846,
     "coreLeft": 127.8,
     "coreRight": 783.4,
-    "anchors": {
-     "com": [
-      484.6,
-      392.3
-     ]
-    },
     "autoTuned": {
      "at": "2026-08-09T16:01:37+00:00",
      "fields": {
       "bodyBottom": "foot=0.946 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "w": 874,
+    "h": 1266,
+    "ox": -280.2,
+    "oy": -955,
+    "bodyBottom": 227.4,
+    "bodyH": 285.9,
+    "bodyTop": 0,
+    "centroidX": 161.4,
+    "renderScale": 0.1819,
+    "rotationDeg": -6.5,
+    "anchors": {
+     "com": [
+      440.3,
+      525.0
+     ]
+    },
+    "edited": {
+     "renderScale": 0.226,
+     "bodyBottom": 310.4,
+     "rotationDeg": null,
+     "ox": -280.2
     }
    },
    "crouch_attack_b": {
@@ -16647,33 +16595,6 @@
     "centroidX": 223.1,
     "renderScale": 0.2152,
     "file": "nobara/incoming/crouch_b.png",
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 618,
-      "h": 1188,
-      "ox": -152.2,
-      "oy": -877,
-      "bodyBottom": 225.9,
-      "bodyH": 350.5,
-      "bodyTop": 0,
-      "centroidX": 199.2,
-      "renderScale": 0.2124,
-      "rotationDeg": 5,
-      "anchors": {
-       "com": [
-        351.1,
-        472.6
-       ]
-      },
-      "edited": {
-       "renderScale": 0.295,
-       "bodyBottom": 310.4,
-       "rotationDeg": null
-      },
-      "file": "nobara/crouch_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 774,
@@ -16694,7 +16615,8 @@
     },
     "edited": {
      "renderScale": 0.406
-    }
+    },
+    "surfacedReviewed": true
    },
    "dash": {
     "w": 933,
@@ -26127,36 +26049,11 @@
     "h": 1397,
     "ox": -292.6,
     "oy": -1086,
-    "bodyBottom": 267.7,
+    "bodyBottom": 252.7,
     "bodyH": 222.4,
     "centroidX": 151.6,
     "renderScale": 0.1964,
     "file": "uro/incoming/crouch_b.png",
-    "awaitingApproval": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "live": {
-      "w": 709,
-      "h": 1222,
-      "ox": -197.8,
-      "oy": -911,
-      "bodyBottom": 254.9,
-      "bodyH": 222.6,
-      "bodyTop": 0,
-      "centroidX": 167.7,
-      "renderScale": 0.2639,
-      "anchors": {
-       "com": [
-        388.7,
-        717.8
-       ]
-      },
-      "edited": {
-       "renderScale": 0.182,
-       "bodyBottom": 310.4
-      },
-      "file": "uro/crouch_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 882,
@@ -30672,7 +30569,7 @@
      }
     },
     "needsReplacement": "pose",
-    "replacementNote": "The sword never leaves the body line — the wind-up does not extend. The redraw must also carry the karma wheel, which the round-13 delivery dropped.",
+    "replacementNote": "The sword never leaves the body line \u2014 the wind-up does not extend. The redraw must also carry the karma wheel, which the round-13 delivery dropped.",
     "edited": {
      "renderScale": 0.312,
      "bodyBottom": 310.4
@@ -41080,6 +40977,58 @@
       "supersededAt": "2026-08-09T16:00:44+00:00"
      }
     ]
+   },
+   "crouch_b": {
+    "options": [
+     {
+      "w": 774,
+      "h": 863,
+      "ox": -296.6,
+      "oy": -552,
+      "bodyBottom": 263.1,
+      "bodyH": 350.5,
+      "bodyTop": 0,
+      "centroidX": 223.1,
+      "renderScale": 0.2152,
+      "anchors": {
+       "com": [
+        452.3,
+        404.7
+       ]
+      },
+      "edited": {
+       "renderScale": 0.406
+      },
+      "file": "nobara/incoming/crouch_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 618,
+      "h": 1188,
+      "ox": -152.2,
+      "oy": -877,
+      "bodyBottom": 225.9,
+      "bodyH": 350.5,
+      "bodyTop": 0,
+      "centroidX": 199.2,
+      "renderScale": 0.2124,
+      "rotationDeg": 5,
+      "anchors": {
+       "com": [
+        351.1,
+        472.6
+       ]
+      },
+      "edited": {
+       "renderScale": 0.295,
+       "bodyBottom": 310.4,
+       "rotationDeg": null
+      },
+      "file": "nobara/crouch_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T16:00:44+00:00"
+     }
+    ]
    }
   },
   "toji": {
@@ -46510,6 +46459,112 @@
       },
       "file": "uro/crouch_attack_b.png",
       "label": "Superseded",
+      "supersededAt": "2026-08-09T16:00:44+00:00"
+     }
+    ]
+   },
+   "crouch_b": {
+    "options": [
+     {
+      "w": 882,
+      "h": 1397,
+      "ox": -292.6,
+      "oy": -1086,
+      "bodyBottom": 267.7,
+      "bodyH": 222.4,
+      "bodyTop": 0,
+      "centroidX": 151.6,
+      "renderScale": 0.1964,
+      "anchors": {
+       "com": [
+        444.5,
+        984.5
+       ]
+      },
+      "needsReplacement": "character",
+      "replacementNote": "Costume doesn't match canon",
+      "edited": {
+       "renderScale": 0.159,
+       "ox": -279.1,
+       "bodyBottom": 229.7
+      },
+      "file": "uro/incoming/crouch_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 709,
+      "h": 1222,
+      "ox": -197.8,
+      "oy": -911,
+      "bodyBottom": 254.9,
+      "bodyH": 222.6,
+      "bodyTop": 0,
+      "centroidX": 167.7,
+      "renderScale": 0.2639,
+      "anchors": {
+       "com": [
+        388.7,
+        717.8
+       ]
+      },
+      "edited": {
+       "renderScale": 0.182,
+       "bodyBottom": 310.4
+      },
+      "file": "uro/crouch_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-09T16:00:44+00:00"
+     }
+    ]
+   }
+  },
+  "mahito": {
+   "crouch_attack_a": {
+    "options": [
+     {
+      "w": 874,
+      "h": 1266,
+      "ox": -280.2,
+      "oy": -955,
+      "bodyBottom": 227.4,
+      "bodyH": 285.9,
+      "bodyTop": 0,
+      "centroidX": 161.4,
+      "renderScale": 0.1819,
+      "rotationDeg": -6.5,
+      "anchors": {
+       "com": [
+        440.3,
+        525.0
+       ]
+      },
+      "edited": {
+       "renderScale": 0.226,
+       "bodyBottom": 310.4,
+       "rotationDeg": null,
+       "ox": -280.2
+      },
+      "file": "mahito/crouch_attack_a.png",
+      "label": "In game"
+     },
+     {
+      "file": "mahito/incoming/crouch_attack_a.png",
+      "w": 846,
+      "h": 889,
+      "ox": -328.2,
+      "oy": -578,
+      "bodyBottom": 263.2,
+      "bodyH": 286.1,
+      "bodyTop": 0,
+      "centroidX": 218.7,
+      "renderScale": 0.322,
+      "anchors": {
+       "com": [
+        484.6,
+        392.3
+       ]
+      },
+      "label": "Not approved",
       "supersededAt": "2026-08-09T16:00:44+00:00"
      }
     ]

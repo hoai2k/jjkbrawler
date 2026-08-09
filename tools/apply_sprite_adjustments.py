@@ -362,6 +362,41 @@ def main():
             heads[char] = payload["headHeight"]
             applied.append(f"{char}.headHeight: {before} -> {payload['headHeight']}")
 
+        # Verdicts first, then the numbers. A "keep" puts the whole of the old
+        # drawing back, so an adjustment made AFTER that decision has to land on
+        # top of the restored fields rather than under them — which is the order
+        # the workbench does it in too: decide, then tune.
+        # Verdicts on replacements the intake held back. "approve" lets the
+        # new drawing into the game — the pose already carries its placement,
+        # so all that is left is to drop the marker that was diverting the game
+        # to the old one. "keep" is the other answer: the whole of the old
+        # drawing goes back, and the export's adjustments land on top of it.
+        for key, verdict in (payload.get("approvals") or {}).items():
+            meta = frames.get(key)
+            if meta is None:
+                skipped.append(f"{char}/{key}: not in manifest")
+                continue
+            note = meta.pop("awaitingApproval", None)
+            if note is None:
+                skipped.append(f"{char}/{key}: no replacement was waiting")
+                continue
+            if verdict == "keep":
+                # The whole drawing goes back, not a field-by-field merge over
+                # the one being turned down: every field that belongs to an
+                # image is cleared first, or the rejected drawing's numbers
+                # (and anchors, and mirror) would be left wearing the old art.
+                bank_rejected(man, char, key, note, delivered_before.get(key, {}))
+                for field in VARIANT_BANKED:
+                    meta.pop(field, None)
+                for field, value in (note.get("live") or {}).items():
+                    meta[field] = value
+            else:
+                bank_superseded(man, char, key, note, meta)
+            applied.append(
+                f"{char}/{key}: replacement kept out, old art restored"
+                if verdict == "keep"
+                else f"{char}/{key}: replacement approved -> {meta.get('file')}")
+
         for key, changes in (payload.get("adjustments") or {}).items():
             meta = frames.get(key)
             if meta is None:
@@ -422,37 +457,6 @@ def main():
         # Poses reviewed as they stand: the new art needed nothing, so the only
         # thing to record is that someone looked. An intake marker is removed; a
         # surfaced pose has none to remove, so the looking is what gets written.
-        # Verdicts on replacements the intake held back. "approve" lets the
-        # new drawing into the game — the pose already carries its placement,
-        # so all that is left is to drop the marker that was diverting the game
-        # to the old one. "keep" is the other answer: the workbench has already
-        # put the old drawing's fields back, so the marker is all that remains.
-        for key, verdict in (payload.get("approvals") or {}).items():
-            meta = frames.get(key)
-            if meta is None:
-                skipped.append(f"{char}/{key}: not in manifest")
-                continue
-            note = meta.pop("awaitingApproval", None)
-            if note is None:
-                skipped.append(f"{char}/{key}: no replacement was waiting")
-                continue
-            if verdict == "keep":
-                # The whole drawing goes back, not a field-by-field merge over
-                # the one being turned down: every field that belongs to an
-                # image is cleared first, or the rejected drawing's numbers
-                # (and anchors, and mirror) would be left wearing the old art.
-                bank_rejected(man, char, key, note, delivered_before.get(key, {}))
-                for field in VARIANT_BANKED:
-                    meta.pop(field, None)
-                for field, value in (note.get("live") or {}).items():
-                    meta[field] = value
-            else:
-                bank_superseded(man, char, key, note, meta)
-            applied.append(
-                f"{char}/{key}: replacement kept out, old art restored"
-                if verdict == "keep"
-                else f"{char}/{key}: replacement approved -> {meta.get('file')}")
-
         for key in (payload.get("clearUpdated") or []):
             meta = frames.get(key)
             if meta is None:

@@ -1157,6 +1157,20 @@ function altCompare() {
   };
 }
 
+/** What the comparison slot should answer, for the list being opened.
+ *
+ *  Picking a character is a pass through one sprite set, where the question is
+ *  "is this pose the right size for this character" — their idle beside it.
+ *  The updated list is a different job: every pose on it has just had art
+ *  land, and the question is "is the new drawing better than the old one",
+ *  which only the other drawing answers. Set on the selection rather than
+ *  fixed, so each list opens on the view it is for; changing it by hand still
+ *  sticks until the next list is chosen. */
+function defaultSelfIdleMode(mode) {
+  const sel = $("selfIdleMode");
+  if (sel) sel.value = mode;
+}
+
 /** Hide the option on a pose that has nothing to compare against, so the menu
  *  never offers a view that would silently show the same drawing twice.
  *
@@ -1222,15 +1236,22 @@ function comparisonTarget() {
     if (alt?.img) {
       return { charKey: state.char, frameKey: state.frame, caption: alt.caption, as: alt };
     }
-    // Asked for, and this pose has not got one. Say so in the slot rather than
-    // falling through to Gojo: the answer to "show me the alternate" is not a
-    // different sprite that looks like one.
-    if (!alt) return { caption: "no alternate available", empty: true };
+    // Asked for, and this pose has not got one. The slot stays empty and says
+    // why: the answer to "show me the alternate" is never a different sprite
+    // that looks like one, and least of all Gojo.
+    return { caption: "no alternate available", empty: true };
   }
   if ($("selfIdleMode").value === "comparison") {
     const key = selfIdleKey();
-    if (key && key !== state.frame) {
-      return { charKey: state.char, frameKey: key, caption: "this character's idle" };
+    if (key) {
+      // On the idle itself the slot shows the idle again. It is the same
+      // drawing twice on purpose: the pair is how every other pose is read, so
+      // dropping to Gojo here would change what the canvas means at exactly
+      // the pose the rest of the set is measured against.
+      return {
+        charKey: state.char, frameKey: key,
+        caption: key === state.frame ? "same pose" : "this character's idle",
+      };
     }
   }
   const gojo = benchmarkKey();
@@ -2339,6 +2360,24 @@ async function settleApproval(charKey, frameKey, approve) {
   else syncAll();
 }
 
+/** Answer, then move on. Deciding is a pass down a list — a replacement is
+ *  waiting on dozens of poses after a round — so the two buttons carry the
+ *  step to the next pose with them rather than leaving it to be clicked. */
+async function decideAndStep(charKey, frameKey, approve) {
+  const at = poseEntries().findIndex((e) => e.char === charKey && e.frame === frameKey);
+  await settleApproval(charKey, frameKey, approve);
+  const list = poseEntries();
+  if (!list.length) return;
+  // The pose just answered may have left the list it was in — the updated list
+  // is precisely the list a decision takes a pose off. When it has, the pose
+  // that moved up into its place is the next one, not the one after that.
+  const still = list.findIndex((e) => e.char === state.char && e.frame === state.frame);
+  const next = still >= 0
+    ? list[(still + 1) % list.length]
+    : list[Math.min(Math.max(at, 0), list.length - 1)];
+  if (next) selectPose(next.char, next.frame);
+}
+
 /** Swap the pose's answer after the fact, as many times as it takes. */
 async function switchApproval(charKey, frameKey, approve) {
   const pair = approvalPairs.get(`${charKey}/${frameKey}`);
@@ -2775,6 +2814,7 @@ function syncCharSelect() {
 /** Pick a real character. */
 function setChar(charKey, wantFrame = null) {
   state.group = null;
+  defaultSelfIdleMode("comparison");
   openChar(charKey, wantFrame);
 }
 
@@ -2784,6 +2824,7 @@ function setChar(charKey, wantFrame = null) {
  *  would be worse than the note in the list. */
 function setRecent(wantChar = null, wantFrame = null) {
   state.group = RECENT_KEY;
+  defaultSelfIdleMode("alternate");
   const entries = recentUpdates();
   const target = entries.find((e) => e.char === wantChar && e.frame === wantFrame) || entries[0];
   if (target) { openChar(target.char, target.frame); return; }
@@ -3501,11 +3542,11 @@ async function boot() {
   // Both answers clear `pending` and mark the pose reviewed, which is what
   // takes it off the updated list; they differ only in whether the art swaps.
   // The clearing is local until exported, like every other change here.
-  $("approveBtn").onclick = () => settleApproval(state.char, state.frame, true);
+  $("approveBtn").onclick = () => decideAndStep(state.char, state.frame, true);
   $("approvalSwitch").onclick = () =>
     switchApproval(state.char, state.frame,
                    approvalSettled.get(`${state.char}/${state.frame}`) !== "approve");
-  $("keepBtn").onclick = () => settleApproval(state.char, state.frame, false);
+  $("keepBtn").onclick = () => decideAndStep(state.char, state.frame, false);
 
   $("undoBtn").onclick = undo;
   $("redoBtn").onclick = redo;
