@@ -39,8 +39,7 @@ export const CHARACTER_GROUPS = [
   {
     key: "students",
     label: "Students",
-    members: ["yuji", "nobara", "megumi", "yuta", "maki", "inumaki", "panda", "todo", "momo",
-              "mechamaru"],
+    members: ["yuji", "nobara", "megumi", "yuta", "maki", "inumaki", "panda", "mechamaru", "todo", "momo"],
   },
   {
     key: "faculty",
@@ -50,12 +49,12 @@ export const CHARACTER_GROUPS = [
   {
     key: "sorcerers",
     label: "Other Sorcerers",
-    members: ["hakari", "toji", "uro", "reggie", "yuki"],
+    members: ["toji", "yuki", "hakari", "uro", "reggie"],
   },
   {
     key: "curses",
     label: "Curses and Curse Users",
-    members: ["mahito", "jogo", "hanami", "geto", "choso", "sukuna", "dagon"],
+    members: ["mahito", "jogo", "hanami", "dagon", "geto", "choso", "sukuna"],
   },
 ];
 

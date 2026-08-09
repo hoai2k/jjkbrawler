@@ -150,7 +150,7 @@ distance, same figure scale, only the body moves.
 | `jump_rise` | pushing up off the ground, legs still extending, arms rising, body stretched upward |
 | `fall` | descending, legs gathered under the body, arms out for balance, head up |
 | `land` | absorbing a landing, knees deeply bent, one hand near the floor — distinct from a crouch, which holds |
-| `ledge_hang` | hanging from a ledge by both hands at the top of the frame, body straight below, feet dangling |
+| `ledge_hang` | hanging by both hands raised overhead, fingers closed on **nothing** — the body straight below, feet dangling. **Do not draw the ledge.** The stage supplies the edge he is hanging from, so a painted ledge floats in front of the real platform (round 15A, `dagon/ledge_hang`) |
 | `dodge_roll` | tucked into a tight roll, knees to chest, arms in, body compact and round — **drawn upright, head up.** The engine spins the sprite through the roll itself, so a pre-rotated drawing rotates twice |
 | `dodge_air` | twisting aside in mid-air, body turned out of the line of the blow, limbs pulled in |
 
@@ -170,6 +170,10 @@ distance, same figure scale, only the body moves.
 - **Nothing airborne-looking.** Both feet floating with the body rising reads as
   a jump when looped. Toes may leave the ground on the pass frames; the pose has
   to read as *between* steps, not above them.
+- **The reach frame reaches with the LEG.** The leading heel is the furthest
+  thing forward; the arms only counterbalance it. Dagon's pair came back with
+  the arm out in front and the legs under the body, which reads as lunging
+  rather than running (round 15A).
 
 ### Attacks
 
@@ -251,6 +255,8 @@ often.
 | **The technique is drawn into the pose** | `special_*`, `ult_*` | 12A |
 | **A design element is silently dropped** | Mahoraga's karma wheel | 13 |
 | **A whole cycle arrives as one contact-sheet plate** | `run_*` | 15A |
+| **Scenery drawn into the pose** — a ledge, a floor, a wall | `ledge_hang` | 15A |
+| **The reach frame reaches with the arm** | `run_reach_*` | 15A |
 
 Two of these are worth stating as numbers rather than as complaints, because
 that is the difference between a rule somebody reads and a rule somebody checks:
