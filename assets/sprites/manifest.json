@@ -16969,17 +16969,21 @@
     "h": 1016,
     "ox": -63.2,
     "oy": -693,
-    "bodyBottom": 310,
+    "bodyBottom": 254.5,
     "bodyH": 299.0,
     "centroidX": 145.8,
-    "renderScale": 0.302,
+    "renderScale": 0.3246,
     "anchors": {
      "com": [
       208.7,
       445.2
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.302,
+     "bodyBottom": 310
+    }
    },
    "idle_b": {
     "file": "todo/idle_b.png",
@@ -16987,17 +16991,21 @@
     "h": 1016,
     "ox": -42.8,
     "oy": -693,
-    "bodyBottom": 310,
+    "bodyBottom": 256,
     "bodyH": 299.0,
     "centroidX": 143.6,
-    "renderScale": 0.302,
+    "renderScale": 0.3262,
     "anchors": {
      "com": [
       187.6,
       439.3
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.302,
+     "bodyBottom": 310
+    }
    },
    "jump_rise": {
     "file": "todo/jump_rise.png",
@@ -17008,14 +17016,17 @@
     "bodyBottom": 310,
     "bodyH": 269.8,
     "centroidX": 131.0,
-    "renderScale": 0.273,
+    "renderScale": 0.3126,
     "anchors": {
      "com": [
       324.1,
       402.5
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.273
+    }
    },
    "fall": {
     "file": "todo/fall.png",
@@ -17026,14 +17037,17 @@
     "bodyBottom": 310,
     "bodyH": 281.5,
     "centroidX": 185.5,
-    "renderScale": 0.284,
+    "renderScale": 0.3294,
     "anchors": {
      "com": [
       324.4,
       337.9
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.284
+    }
    },
    "hurt": {
     "file": "todo/hurt.png",
@@ -17041,17 +17055,21 @@
     "h": 1016,
     "ox": -150.2,
     "oy": -693,
-    "bodyBottom": 310,
+    "bodyBottom": 257,
     "bodyH": 240.6,
     "centroidX": 154.5,
-    "renderScale": 0.243,
+    "renderScale": 0.3001,
     "anchors": {
      "com": [
-      305.8,
-      384.8
+      347.5,
+      309.6
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.243,
+     "bodyBottom": 310
+    }
    },
    "guard": {
     "file": "todo/guard.png",
@@ -17059,17 +17077,23 @@
     "h": 1016,
     "ox": -189.2,
     "oy": -693,
-    "bodyBottom": 310,
+    "bodyBottom": 239.5,
     "bodyH": 262.8,
     "centroidX": 124.7,
-    "renderScale": 0.265,
+    "renderScale": 0.3087,
     "anchors": {
      "com": [
       314.6,
       424.8
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.265,
+     "bodyBottom": 310,
+     "rotationDeg": null
+    },
+    "rotationDeg": 8
    },
    "attack_up": {
     "file": "todo/attack_up.png",
@@ -17080,14 +17104,17 @@
     "bodyBottom": 310,
     "bodyH": 362.1,
     "centroidX": 166.4,
-    "renderScale": 0.365,
+    "renderScale": 0.3705,
     "anchors": {
      "com": [
       254.7,
       460.8
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.365
+    }
    },
    "attack_air": {
     "file": "todo/attack_air.png",
@@ -17113,17 +17140,21 @@
     "h": 1016,
     "ox": -220.2,
     "oy": -692,
-    "bodyBottom": 310,
+    "bodyBottom": 232.5,
     "bodyH": 262.8,
     "centroidX": 135.9,
-    "renderScale": 0.266,
+    "renderScale": 0.278,
     "anchors": {
      "com": [
       357.6,
       430.8
      ]
     },
-    "bodyTop": 14
+    "bodyTop": 14,
+    "edited": {
+     "renderScale": 0.266,
+     "bodyBottom": 310
+    }
    },
    "dizzy": {
     "file": "todo/dizzy.png",
@@ -17131,7 +17162,7 @@
     "h": 1016,
     "ox": -115.8,
     "oy": -693,
-    "bodyBottom": 310,
+    "bodyBottom": 226.5,
     "bodyH": 292.0,
     "centroidX": 173.2,
     "renderScale": 0.295,
@@ -17142,7 +17173,10 @@
       428.2
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "bodyBottom": 310
+    }
    },
    "victory": {
     "file": "todo/victory.png",
@@ -17150,17 +17184,21 @@
     "h": 1016,
     "ox": -108.2,
     "oy": -693,
-    "bodyBottom": 310,
+    "bodyBottom": 254,
     "bodyH": 299.0,
     "centroidX": 141.0,
-    "renderScale": 0.302,
+    "renderScale": 0.3503,
     "anchors": {
      "com": [
       248.5,
       448.1
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.302,
+     "bodyBottom": 310
+    }
    },
    "ledge_hang": {
     "file": "todo/ledge_hang.png",
@@ -17171,18 +17209,21 @@
     "bodyBottom": 310,
     "bodyH": 343.8,
     "centroidX": 96.1,
-    "renderScale": 0.346,
+    "renderScale": 0.4965,
     "anchors": {
      "com": [
       139.7,
       462.4
      ],
      "ledge": [
-      119.4,
-      54.5
+      120.8,
+      44.1
      ]
     },
-    "bodyTop": 13
+    "bodyTop": 13,
+    "edited": {
+     "renderScale": 0.346
+    }
    },
    "run_a": {
     "file": "todo/run_a.png",
@@ -17193,14 +17234,17 @@
     "bodyBottom": 310,
     "bodyH": 245.3,
     "centroidX": 150.5,
-    "renderScale": 0.248,
+    "renderScale": 0.284,
     "anchors": {
      "com": [
       378.4,
       374.1
      ]
     },
-    "bodyTop": 14
+    "bodyTop": 14,
+    "edited": {
+     "renderScale": 0.248
+    }
    },
    "run_b": {
     "file": "todo/run_b.png",
@@ -17211,14 +17255,17 @@
     "bodyBottom": 310,
     "bodyH": 245.3,
     "centroidX": 176.9,
-    "renderScale": 0.248,
+    "renderScale": 0.2951,
     "anchors": {
      "com": [
       442.8,
       376.4
      ]
     },
-    "bodyTop": 14
+    "bodyTop": 14,
+    "edited": {
+     "renderScale": 0.248
+    }
    },
    "dodge_air": {
     "w": 539,
@@ -17228,7 +17275,7 @@
     "bodyBottom": 310.4,
     "bodyH": 235.9,
     "centroidX": 165.6,
-    "renderScale": 0.302,
+    "renderScale": 0.2793,
     "file": "todo/dodge_air.png",
     "anchors": {
      "com": [
@@ -17236,7 +17283,10 @@
       318.6
      ]
     },
-    "bodyTop": 0
+    "bodyTop": 0,
+    "edited": {
+     "renderScale": 0.302
+    }
    },
    "dodge_roll": {
     "w": 1194,
@@ -17246,7 +17296,7 @@
     "bodyBottom": 310.4,
     "bodyH": 209.6,
     "centroidX": 252.4,
-    "renderScale": 0.302,
+    "renderScale": 0.2099,
     "file": "todo/dodge_roll.png",
     "anchors": {
      "com": [
@@ -17254,7 +17304,10 @@
       287.1
      ]
     },
-    "bodyTop": 0
+    "bodyTop": 0,
+    "edited": {
+     "renderScale": 0.302
+    }
    },
    "attack_air_a": {
     "w": 918,
@@ -25491,6 +25544,7 @@
   "momo": 288.09,
   "nanami": 286.11,
   "panda": 275.22,
-  "sukuna": 286.81
+  "sukuna": 286.81,
+  "todo": 298.98
  }
 }
