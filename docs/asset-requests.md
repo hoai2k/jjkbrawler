@@ -221,21 +221,21 @@ drawn against.
 
 Three parts; any can be delivered on its own.
 
-- **12A** — thirty workbench catches: poses that have to be drawn again (30 sprites)
+- **12A** — thirty-three workbench catches: poses that have to be drawn again (33 sprites)
 - **12B** — the four-frame run cycle, roster-wide (96 sprites)
 - **12C** — a `prone` pose, knocked flat on their back, roster-wide (24 sprites)
 
-**150 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
+**153 sprites in total.** 12A is small and blocking-ish; 12B is the big one and
 is what makes the roster finally *run* instead of vibrating between two nearly
 identical poses. 12C is the one the engine is already simulating without art.
 
 ---
 
-## 12A. Workbench catches — 30 sprites
+## 12A. Workbench catches — 33 sprites
 
 Everything here came out of placing the delivered semantic sets in the sprite
-workbench: seen at their real size and standing on the real ground line, thirty
-poses turned out to be wrong. Round 11 is closed, so nothing here is
+workbench: seen at their real size and standing on the real ground line,
+thirty-three poses turned out to be wrong. Round 11 is closed, so nothing here is
 covered by another round — every fighter listed has a finished set, and these
 are faults in it.
 
@@ -284,6 +284,9 @@ says today, it is not reading as "get low": see the note under the table.
 | Takako Uro | `uro` | `attack_air_a` `attack_air_b` `attack_heavy_a` `attack_heavy_b` | Character | Dark bob and a white bodysuit — not her |
 | Yoshinobu Gakuganji | `gakuganji` | `attack_air_a` `attack_air_b` `attack_heavy_a` `attack_heavy_b` | Character | The white haori and purple hakama are gone |
 | Reggie Star | `reggie` | `attack_air_a` `attack_air_b` `attack_heavy_a` `attack_heavy_b` | Character | A dark-haired man in a brocade waistcoat |
+| Toji Fushiguro | `toji` | `attack_air_b` | Quality | The grip on the blade does not read |
+| Toji Fushiguro | `toji` | `special_down` | Quality | The Inventory Curse is a flat ragged purple wash |
+| Toji Fushiguro | `toji` | `special_neutral` | Pose | The chain is painted in, and the engine fires its own |
 | Megumi Fushiguro | `megumi` | `special_neutral` | Pose | Nue is painted in; the engine already flies its own |
 | Megumi Fushiguro | `megumi` | `special_down` | Pose | The shadow pool is painted in; the engine draws that too |
 | Momo Nishimiya | `momo` | `attack_light_b` | Pose | The follow-up pulls the broom away from the target |
@@ -327,6 +330,8 @@ It has now come up three times:
 | `nobara/special_neutral` | cursed nails in flight | `effect:nail`, two per cast |
 | `megumi/special_neutral` | Nue, the shadow bird | `summon:nue` — steerable, 132 px tall, flown by the player |
 | `megumi/special_down` | the shadow pool he sinks into | a burst in his shadow colour, both ends of the teleport |
+| `toji/special_neutral` | the chain, thrown out ahead of him | `effect:chain` at 900 px/s, 82 px tall, piercing |
+| `toji/special_down` | a purple wash at his shoulder | `summon:inventory_curse` — a creature that hovers and supports for six seconds |
 
 Megumi's are the clearest case, because **Nue is a creature the player flies.**
 The neutral special launches him and the right stick steers him across the
@@ -339,6 +344,13 @@ forming at the palm is the body; a bird in flight is not. Where a fighter's
 technique is *inseparable* from the pose (Maki's naginata, Momo's broom — the
 thing they are holding), that stays; the test is whether the game spawns its own
 copy.
+
+Toji's down special is the sharpest version of the fault yet: **Inventory Curse
+is a creature** — it uncoils at his shoulder, hovers behind him and spits cursed
+tools for six seconds — and what is drawn in its place is a flat ragged purple
+smear across his chest and thigh with a hard edge and no form. It is flagged
+`quality` as well as belonging here, because even as an aura it is not finished
+art.
 
 **`megumi/special_side` is very likely a third instance** and is not flagged
 yet. Two black hounds are painted at his feet, and Divine Dogs spawns two real
