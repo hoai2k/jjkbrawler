@@ -15,7 +15,7 @@ import { state } from "./state.js";
 import { clamp, sign, rand, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
 import { playSfx, playGrunt } from "./audio.js";
-import { applyHit, opponentOf, hurtbox, spawnMelee } from "./combat.js";
+import { applyHit, opponentOf, hurtbox, spawnMelee, applyStatus } from "./combat.js";
 import { applyInstall } from "./specials.js";
 import { getImage } from "./assets.js";
 import { DOMAIN_METER_COST } from "./constants.js";
@@ -34,6 +34,7 @@ const DOMAIN_STING = {
   "domain:iron_mountain": "domainIronMountain",
   "domain:idle_death_gamble": "domainIdleDeathGamble",
   "domain:mutual_love": "domainMutualLove",
+  "domain:captivating_skandha": "domainCaptivatingSkandha",
 };
 
 export function activeDomain(f) {
@@ -153,6 +154,21 @@ function foesOf(f) {
   return state.fighters.filter((t) => t !== f && !t.dead && t.respawnTimer <= 0);
 }
 
+/** True while this fighter is holding New Shadow Style: Simple Domain
+ *  (specials.js). The circle's whole purpose is that a domain's guaranteed hit
+ *  stops being guaranteed, so it is asked about here rather than in the kits. */
+export function simpleDomainActive(f) {
+  return !!(f.simpleDomain && f.simpleDomain.t > 0);
+}
+
+/** Foes a domain's AUTOMATIC effect may touch — the sure-hit half: Unlimited
+ *  Void's paralysis, the Shrine's rain, the Iron Mountain's floor, Skandha's
+ *  fish. A Simple Domain neutralises exactly this and nothing else: the domain
+ *  stays open, and anything its owner aims by hand still connects. */
+function sureHitFoesOf(f) {
+  return foesOf(f).filter((t) => !simpleDomainActive(t));
+}
+
 function tick(dom, key, period, fn) {
   dom.s[key] = (dom.s[key] ?? 0) - 1 / 60;
   if (dom.s[key] > 0) return;
@@ -169,7 +185,7 @@ const HANDLERS = {
   unlimitedVoid: {
     init: () => ({ orbs: 0, lastDamage: new Map() }),
     update(dom, f) {
-      for (const t of foesOf(f)) {
+      for (const t of sureHitFoesOf(f)) {
         // total information paralysis — held, not damaged
         t.hitstun = Math.max(t.hitstun, 0.25);
         t.vx *= 0.82;
@@ -225,7 +241,7 @@ const HANDLERS = {
     init: (f, p) => ({ blades: p.blades, held: false, rain: 0 }),
     update(dom, f) {
       tick(dom, "rain", dom.p.rainTick, () => {
-        for (const t of foesOf(f)) {
+        for (const t of sureHitFoesOf(f)) {
           if (t.invuln > 0) continue;
           t.damage = Math.min(999, t.damage + dom.p.rainDmg);
           t.hitstun = Math.max(t.hitstun, 0.12);
@@ -370,7 +386,7 @@ const HANDLERS = {
   selfEmbodiment: {
     init: () => ({ stacks: 0, last: new Map() }),
     update(dom, f) {
-      for (const t of foesOf(f)) {
+      for (const t of sureHitFoesOf(f)) {
         const prev = dom.s.last.get(t) ?? t.damage;
         if (t.damage > prev + 0.01) {
           dom.s.stacks += 1;
@@ -422,7 +438,7 @@ const HANDLERS = {
     update(dom, f) {
       tick(dom, "floor", dom.p.floorTick, () => {
         const g = GROUND();
-        for (const t of foesOf(f)) {
+        for (const t of sureHitFoesOf(f)) {
           if (t.invuln > 0 || !t.grounded) continue;
           t.damage = Math.min(999, t.damage + dom.p.floorDmg);
           burst(t.x, g - 10, "#ff7a2f", 5, 0.5);
@@ -520,6 +536,87 @@ const HANDLERS = {
       }
       ctx.restore();
       hint(ctx, dom.s.resolved ? "REELS SETTLED" : "SPECIAL — STOP A REEL", dom.color);
+    },
+  },
+
+  // DAGON — Horizon of the Captivating Skandha. A sunny tropical shore with an
+  // ocean that does not end, and inside it his shikigami do not travel to their
+  // target: they are simply already there. That is the domain's sure-hit, and it
+  // is the whole reason the fight against him was unwinnable from the inside.
+  //
+  // Automatic: fish bite on a timer, no aiming, no dodging — they soak the
+  // victim as they go, which is what the rest of his kit is built around.
+  // SPECIAL: Death Swarm, the endless surge he used to blind Naobito's defence.
+  captivatingSkandha: {
+    init: () => ({ bite: 0, cd: 0 }),
+    update(dom, f, dt) {
+      dom.s.cd = Math.max(0, dom.s.cd - dt);
+      tick(dom, "bite", dom.p.biteTick, () => {
+        for (const t of sureHitFoesOf(f)) {
+          if (t.invuln > 0) continue;
+          t.damage = Math.min(999, t.damage + dom.p.biteDmg);
+          t.hitstun = Math.max(t.hitstun, 0.1);
+          applyStatus("drench", f, t);
+          burst(t.x + rand(-50, 50), t.y - rand(30, 130), dom.color, 7, 0.8);
+          popup(t.x, t.y - 150, `${dom.p.biteDmg}%`, dom.color, 13);
+        }
+        playSfx("slash", 0.28, 1.7);
+      });
+    },
+    input(dom, f, input) {
+      if (!input.specialP || dom.s.cd > 0) return false;
+      const opp = opponentOf(f);
+      if (!opp) return false;
+      dom.s.cd = dom.p.surgeCd;
+      popup(f.x, f.y - 186, "DEATH SWARM", dom.color, 22);
+      playSfx("blast", 0.9, 0.7);
+      state.camera.shake = Math.max(state.camera.shake, 10);
+      burst(opp.x, opp.y - 100, dom.color, 40, 1.6);
+      ring(opp.x, opp.y - 100, dom.color, 200);
+      applyHit(f, opp, {
+        dmg: dom.p.surgeDmg, baseKb: dom.p.surgeBase, growth: dom.p.surgeGrowth,
+        angle: 0.5, label: "DEATH SWARM", sfx: "blast",
+        effect: "drench", unblockable: true, heavy: true,
+      }, "script");
+      return true;
+    },
+    draw(dom, f, ctx) {
+      const g = GROUND();
+      // the shoreline: a shallow sea lying over the stage floor
+      ctx.save();
+      ctx.globalAlpha = 0.42;
+      ctx.fillStyle = "#17537f";
+      ctx.fillRect(0, g - 8, 1280, 210);
+      ctx.globalAlpha = 0.35;
+      ctx.strokeStyle = "#7fc9ec";
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 4; i++) {
+        const y = g + 2 + i * 16;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(340, y - 10 * Math.sin(dom.t * 2.2 + i), 940, y + 10 * Math.cos(dom.t * 1.9 + i), 1280, y);
+        ctx.stroke();
+      }
+      // fish circling the victim — the domain's threat, made visible
+      ctx.globalAlpha = 0.7;
+      ctx.fillStyle = dom.color;
+      for (const t of foesOf(f)) {
+        for (let i = 0; i < 5; i++) {
+          const a = (i / 5) * Math.PI * 2 + dom.t * 2.1;
+          const x = t.x + Math.cos(a) * 120;
+          const y = t.y - 90 + Math.sin(a) * 60;
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(a + Math.PI / 2);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 6, 16, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+      ctx.restore();
+      hint(ctx, dom.s.cd > 0 ? "THE SHOAL IS REGATHERING"
+                             : "SPECIAL — DEATH SWARM (THEY CANNOT BE MISSED)", dom.color);
     },
   },
 

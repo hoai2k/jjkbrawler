@@ -4,12 +4,18 @@ Everything in this file is **outstanding**. Delivered rounds are recorded in
 [asset-requests-history.md](asset-requests-history.md) — including the round
 numbers, so a commit or code comment citing "round 5 art" still resolves.
 
-**Current status: rounds 1–12 delivered. Rounds 13 and 14 are open.**
+**Current status: rounds 1–12 delivered. Rounds 13, 14 and 15 are open.**
 
 The roster is complete and **every fighter now has one sprite per action** —
 round 11 finished the conversion that round 5 started, so the 4×5 sprite sheet
 is retired and no action anywhere plays a grid cell. Nothing outstanding blocks
 play.
+
+**Rounds 13 and 14 are corrections to art that exists. Round 15 is not:** it is
+four new fighters — Mechamaru, Yuki Tsukumo, Dagon and Kurourushi — whose kits
+are already built, balanced and tested in code and who cannot be played until
+their art lands. It is the same shape as round 7 and can be drawn in any order
+against 13 and 14, since it touches no existing file.
 
 **Round 12 is closed.** Every fighter runs on a four-frame cycle, every fighter
 has a drawn knockdown, and its thirty-three workbench catches are all in. Its
@@ -151,11 +157,20 @@ and a recipe for fetching more in that directory's README.
 | meimei | "Mei Mei from Jujutsu Kaisen, tall elegant woman with very long silver-lavender hair worn in thick loose braids, calm confident expression, wearing a fitted black high-collared long-sleeved dress with gold buttons and dark tights, carrying a large single-headed battle axe" |
 | uro | "Takako Uro from Jujutsu Kaisen, lean athletic woman with a fierce confident grin, pale violet-pink hair sweeping upward and outward in wild flame-like curling points, sharp violet eyes with heavy dark eyeliner, large gold cylindrical drop earrings, a black choker and a black band on each wrist, her only covering a wrap of pale-cyan cloud vapour clinging across her chest and hips with soft drifting edges, bare arms and legs, barefoot with violet-painted nails" *(grey key)* |
 | reggie | "Reggie Star from Jujutsu Kaisen, tall lean man with straight shoulder-length blond hair parted at the side, heavy-lidded tired eyes and a narrow pointed chin beard, wearing a shaggy knee-length tunic and matching shoulder cape built from layered rows of torn white paper receipts with small pale mint-green printed tabs, bare arms and bare lower legs, barefoot" |
+| mechamaru | "Ultimate Mechamaru from Jujutsu Kaisen, a tall humanoid cursed-corpse puppet with a smooth clay-brown carved head, two round glowing green lens eyes and a small third lens on the forehead, a fixed grin of bared square teeth, a thick white puffy scarf around the neck, wearing a dark navy high-collared jujutsu uniform tunic with a white sash and very wide baggy navy trousers, bare carved wooden hands and bare wooden feet" |
+| yuki | "Yuki Tsukumo from Jujutsu Kaisen, tall athletic young woman with very long straight blonde hair falling past her waist with two tufts framing her face and brown eyes, wearing a sleeveless dark indigo mandarin-collar top with gold frog clasps at the shoulder, a grey buttoned corset belt at the waist, high-waisted light blue jeans and brown ankle boots" |
+| dagon | "Dagon from Jujutsu Kaisen, a tall broad hunched humanoid cursed spirit with deep red outer limbs and a tan inner chest and belly, a black midsection, a smooth red octopus-like head with blank pale eyes and a beard of thick red tentacles hanging from the jaw, black bat-like wings folded at the lower back, four heavy clawed fingers per hand and broad two-toed feet" *(grey key)* |
+| kurourushi | "Kurourushi from Jujutsu Kaisen, a tall cockroach cursed spirit draped head to floor in a smooth glossy black shroud, a maroon insect face with eight red-and-orange eyes in uneven pairs and a wide grin of human teeth behind layered jaws, six very long thin purple antennae sweeping out from the head, dark chitinous insect legs splayed out at the base of the shroud, wielding a long dark cursed sword with six firing barrels along its spine" *(grey key)* |
 | gakuganji | "Yoshinobu Gakuganji from Jujutsu Kaisen, stern hunched elderly man, bald on top with long straight white hair falling past his shoulders at the sides, a long thin white beard and drooping moustache, deeply wrinkled face with hooded eyes and gold hoop earrings, wearing a cream-white kimono top under a black band T-shirt with the kimono sleeves hanging loose, wide dark-purple hakama trousers, white tabi socks and wooden geta sandals, a crimson-red Flying-V electric guitar slung across his chest on a strap" *(grey key)* |
 
 *(The 17 above are the launch roster; the six below shipped in round 7. The
 `uro`, `reggie` and `gakuganji` rows were rewritten from the anime reference in
-round 9 — see **9E**; art made against their old wording is being replaced.)*
+round 9 — see **9E**; art made against their old wording is being replaced. The
+four `mechamaru` / `yuki` / `dagon` / `kurourushi` rows are round 15 and were
+written from the wiki's **(Anime)** renders, archived in
+[`assets/reference/canon/`](../assets/reference/canon/) — they are the only
+blocks with no delivered art behind them, so the render IS the authority for
+them.)*
 
 
 ---
@@ -215,6 +230,23 @@ is canonical like everyone else's — the table above includes them. The
 directory for design questions, but **prefer the `<char>_idle.png` files when
 they exist**: they carry the figure scale, line weight and shading the
 delivered set actually has.
+
+**The four round-15 fighters have no `idle_a` at all**, which is the one case
+this rule cannot cover: there is nothing to match yet. Their canon is the wiki's
+**(Anime)** full-body render, checked in beside everyone else's:
+
+| Fighter | Key | Canonical image |
+|---|---|---|
+| Dagon | `dagon` | `assets/reference/canon/dagon_anime.png` |
+| Kurourushi | `kurourushi` | `assets/reference/canon/kurourushi_anime.png` |
+| Mechamaru | `mechamaru` | `assets/reference/canon/mechamaru_anime.png` (plus `mechamaru_absolute_anime.png` for Mode: Absolute) |
+| Yuki Tsukumo | `yuki` | `assets/reference/canon/yuki_anime.png` |
+
+**Draw each one's `idle_a` first and place it before drawing anything else for
+them** — every other pose of that fighter is then matched against their own
+idle, exactly like the rest of the roster, and round 7's hardest lesson was that
+a new character has no frame to inherit placement from (see
+[asset-requests-history.md](asset-requests-history.md#round-7--six-new-fighters)).
 
 **Mahoraga's canon is the shikigami render, not his `idle_a`** —
 `assets/reference/canon/mahoraga_canon.png`, the full-body art the game already
@@ -758,3 +790,212 @@ See [asset-pipeline.md](asset-pipeline.md#request-alternate).
 should keep the pose and the framing and only correct the outfit.
 
 ---
+
+# Round 15 — open
+
+**Four new fighters: Mechamaru, Yuki Tsukumo, Dagon and Kurourushi.**
+
+Their kits are already finished. Stats, three specials each, an ultimate each,
+Dagon's Domain Expansion, four new passives, three new statuses (`drench`,
+`infest`, `blind`) and one new shared technique (Simple Domain) are all written,
+balanced against the roster and tested — `node tools/smoke_staged.mjs` plays
+every one of their moves in a real match and `node tools/check_kits.mjs` proves
+every type they name has a handler. The design rationale for each is in
+[characters.md](characters.md#staged--built-not-shipped).
+
+What they do not have is a single pixel. They are held out of character select
+by `STAGED_CHARACTER_KEYS` in `src/characters.js`, which is exactly how the six
+round-7 fighters waited for their art. **This round is the only thing standing
+between them and being playable.**
+
+- **15A** — four full sprite sets (144 sprites)
+- **15B** — nine technique effects
+- **15C** — four summon minions
+- **15D** — four hero cards
+- **15E** — one domain background
+
+**162 images in total.** Nothing here is blocking: the game plays exactly as it
+does today until the art lands, and nothing existing changes when it does.
+
+**Deliver one fighter at a time, `idle_a` first.** A new character has no frame
+to inherit placement from, so their idle is placed by hand and everything else
+inherits from it — round 7 learned that the expensive way and Choso shipped 17%
+oversized for a round. Anchor `idle_a` to the roster's idle `bodyH` band
+(282–299) before importing the rest.
+
+---
+
+## 15A. Four sprite sets — 144 sprites
+
+**36 poses per fighter.** The same semantic set every fighter on the roster now
+has (`SEMANTIC_ANIMS`, `src/characters.js`) — no sprite sheet, no grid cells,
+one drawing per action:
+
+```
+idle_a  idle_b
+run_reach_a  run_pass_a  run_reach_b  run_pass_b
+dash  jump_rise  fall  land
+crouch_a  crouch_b  crouch_attack_a  crouch_attack_b
+guard  ledge_hang  dodge_roll  dodge_air
+attack_light_a  attack_light_b
+attack_heavy_a  attack_heavy_b
+attack_air_a  attack_air_b
+attack_up  attack_down  charge
+special_neutral  special_side  special_down
+ult_a  ult_b
+hurt  dizzy  prone  victory
+```
+
+The pose lines are the shared ones — the run cycle from round 12B, the crouch
+and crouch-attack lines in [13A](#13a-crouches-that-are-standing--22-sprites)
+and [13B](#13b-crouch_attack-frames-that-never-get-low--10-sprites), the light
+pair in [13C](#13c-light-attack-pairs-that-do-not-reach--7-sprites) and the
+heavy pair in [14A](#14a-heavy-strike-frames-that-do-not-extend--16-sprites).
+**Read those four before starting**: every one of them exists because a
+delivered set got that pose wrong, and this is the chance to get 144 frames
+right the first time rather than re-request them as round 17.
+
+Two of those matter more than the rest for these four, because reach is now
+measured off the art (`src/silhouette.js`) and a pose that does not extend is a
+fighter with short range:
+
+- `attack_heavy_b` must put the weapon or fist **further forward than anything
+  in that fighter's own `idle_a` by at least a third of their standing height**.
+- `crouch_a`/`crouch_b` must drop the head **by at least a quarter** of standing
+  height. Not a fighting stance — a crouch.
+
+### What each fighter is holding, and what their poses are of
+
+| Fighter | Key | Weapon / signature | Notes for the action poses |
+|---|---|---|---|
+| Mechamaru | `mechamaru` | Blades that extend from the right forearm (Sword Option); cannon ports in both palms | A puppet, not a person: joints are visible seams, the face never changes expression, and the grin is fixed in every pose including `hurt` and `dizzy`. `special_neutral` is a palm thrust forward with the port open (Ultra Cannon); `special_side` is a forward lunge with cursed energy venting from both elbows (Boost On); `special_down` is a braced two-handed guard stance inside a circle (Simple Domain). `ult_a`/`ult_b` are the Mode: Absolute firing stance — feet planted wide, both palms forward, head tilted back |
+| Yuki Tsukumo | `yuki` | Bare fists | Everything she does is taijutsu, so her attack poses are boxing: `attack_light_*` a jab, `attack_heavy_*` a full hook with the hips through it, `special_neutral` a committed straight with the whole body behind it (Bombaye). `special_side` is a summoning gesture with Garuda's coils behind her; `special_down` is the same braced Simple Domain stance as Mechamaru's, hers unarmed. `ult_a`/`ult_b` are the wind-up and the release of one enormous punch |
+| Dagon | `dagon` | No weapon — water and his own bulk | Heavy and hunched; the wings at his lower back let him hover, so `jump_rise`, `fall` and `dodge_air` should read as **levitation**, not a jump. `special_neutral` is a sweeping arm across the floor sending water out; `special_side` is shikigami tearing out of his own chest; `special_down` is both arms drawing inward, water spiralling in (Undertow). `ult_a`/`ult_b`: arms spread, fish streaming out of him |
+| Kurourushi | `kurourushi` | The **Festering Life Sword** — a long dark blade with six firing barrels along its spine | The shroud reaches the floor, so its legs are only visible in motion: for `run_*`, `dash` and `dodge_roll` show the insect legs beneath a shroud that lifts. It can produce up to four arms — use two normally, four for `ult_a`/`ult_b` and `attack_heavy_*`. `special_neutral` is the sword levelled, barrels toward the target; `special_side` a sweeping arm trailing roaches; `special_down` a hand thrown up releasing flying sacs |
+
+Deliver to:
+
+```
+assets/intake/<character>/<pose_key>.png
+```
+
+Keys: `mechamaru`, `yuki`, `dagon`, `kurourushi` — spelled exactly like that,
+matching `src/characters.js`. (Round 7 lost time to art arriving in
+`gakuganjii/`.) The curse is **Kurourushi**; "Kuroroshi" and "Kuro-Urushi" are
+the same character and neither is the key.
+
+**Key screen:** magenta `#FF00FF` for **Mechamaru** and **Yuki**; mid-grey
+`#808080` for **Dagon** (he is almost entirely red) and **Kurourushi** (maroon
+face, red-orange eyes).
+
+---
+
+## 15B. Technique effects — 9 sprites
+
+Each of these is drawn on a key screen with **no character in the frame** — the
+engine composites them itself. Travelling effects must **point LEFT** (see
+[Directional effects point LEFT](#directional-effects-point-left)); the ones
+that do are marked.
+
+| File | Fighter | Used by | What to draw |
+|---|---|---|---|
+| `ultra_cannon.png` ◀ | Mechamaru | Ultra Cannon (neutral) | A compact bolt of pale mint-green `#63c7b0` cursed energy with a hard white core and a spiral of exhaust behind it — fired, not thrown. Reads as artillery |
+| `pigeon_orb.png` | Mechamaru | Pigeon Viola, in the ultimate | One small tracking orb: a white core in a mint-green shell with a short comet tail. Five of these fly at once, so keep it simple and readable at 64 px |
+| `ultimate_cannon.png` ◀ | Mechamaru | Ultimate Cannon, the ultimate's finisher | The three-barrel blast: three converging beams braided into one column, white-hot at the core, mint-green at the edges, wide enough to read as a screen-crosser |
+| `star_rage_impact.png` | Yuki | Bombaye (neutral) **and** the ultimate | The moment mass arrives: a hard white shock-ring with amber-gold `#ffb703` fracture lines radiating out, and the air behind it visibly displaced. No flame, no cursed-energy glow — this is weight, not fire |
+| `tide_wave.png` ◀ | Dagon | Disaster Tides (neutral) | A rolling wall of sea-blue `#2f8fd8` water, crest breaking forward, foam along the top edge. Wider than it is tall |
+| `shikigami_fish.png` ◀ | Dagon | Death Swarm (ultimate) and the summon fallback | One man-eating shikigami mid-lunge: eel-bodied, too many teeth, fins that read at small size. Drawn as a single creature, not a shoal |
+| `egg_shot.png` ◀ | Kurourushi | Egg Volley (neutral) | A small dark cursed egg in flight with a wet maroon sheen and a thin trail of already-hatching specks behind it. Tiny — 54 px tall in play |
+| `blinding_sacs.png` | Kurourushi | Earthen Insect Trance (down) | A drifting cluster of flying insect curses carrying translucent sacs of ochre `#7c6a3a` liquid, some burst and leaking. A cloud, wider than tall, with ragged edges |
+| `aura_chitin.png` | Kurourushi | Parthenogenesis (ultimate install) | An install aura: **the aura alone, no character**, portrait plate, matching `assets/sprites/effects/aura_gold.png` for format. A dense maroon `#8f3b4e` shell of crawling chitin and antennae silhouettes, thickest at the shoulders, ragged at the top |
+
+Deliver to `assets/intake/effects/<name>.png`.
+
+**Not requested, and deliberately:** Simple Domain (the circle) and Undertow
+(the spiral) are drawn procedurally in `src/render.js` and `src/specials.js` and
+look correct as they are. They need no art and none should be made for them.
+
+---
+
+## 15C. Summon minions — 4 sprites
+
+Persistent creatures that walk the stage on their own. Format follows round 8:
+one creature per file, full body, facing **RIGHT** (the summon renderer mirrors
+toward its target, and the kits that ship with right-facing art set `faceRight`).
+
+| File | Fighter | What to draw |
+|---|---|---|
+| `garuda.png` | Yuki | Her shikigami: a large serpentine creature with pale bone-like plating along its length, a blunt armoured head, and a pair of floating wings held clear of the body that carry it. Gold-white `#ffcf5c` accents |
+| `dagon_shikigami.png` | Dagon | The heavy end of his menagerie: a thick armoured crustacean-eel, deep sea-blue, plated shell, too many legs, mouth open. Bulkier than `shikigami_fish.png`, which is the fast one |
+| `cockroach_swarm.png` | Kurourushi | Not one roach — a **swarm shaped like a body**: a dense knot of cursed cockroaches moving as one mass, roughly waist-high, individual insects readable at the edges |
+| `kurourushi_child.png` | Kurourushi | Its offspring: an identical but smaller Kurourushi, same black shroud and maroon eight-eyed face, shorter antennae, no sword |
+
+Deliver to `assets/intake/summons/<name>.png`.
+
+> **Do not drop these into `assets/sprites/summons/` directly.** Files that land
+> there skip `tools/intake.py` and keep their key screen, which draws as a solid
+> magenta rectangle on stage — round 8's one real mistake, recorded in
+> [asset-requests-history.md](asset-requests-history.md#round-8--summon-minions).
+
+---
+
+## 15D. Hero cards — 4 images
+
+Same spec as round 9A: **JPEG, portrait, full-bleed background** — a card, not a
+keyed sprite. Character three-quarter or facing, dramatic lighting, a background
+that reads at tile size, no text of any kind.
+
+```
+assets/intake/cards/mechamaru_card.jpg
+assets/intake/cards/yuki_card.jpg
+assets/intake/cards/dagon_card.jpg
+assets/intake/cards/kurourushi_card.jpg
+```
+
+Match the existing set in `assets/cards/` for crop and energy. Suggested
+backdrops, from where each of them actually fights: Mechamaru — a mountain
+hangar with the cockpit lit; Yuki — open sky at dusk with Garuda coiled behind
+her; Dagon — a flooded Shibuya platform, water to the knee; Kurourushi — a
+Sendai side street under a hanging swarm.
+
+---
+
+## 15E. Domain background — 1 image
+
+`captivating_skandha.jpg` — the backdrop for Dagon's **Horizon of the
+Captivating Skandha**, drawn to the same spec as the seven domain backgrounds
+requested in round 9C.
+
+```
+assets/intake/backgrounds/captivating_skandha.jpg
+```
+
+Landscape, full-bleed, no characters, no text. A bright tropical shore: palms
+along one side, an ocean stretching to a horizon that is too far away and too
+flat, white sand, a beach umbrella and two lounge chairs sitting incongruously
+in the middle distance (they are canon — Mahito and Kenjaku used them). The
+whole point of the domain is that it is **pleasant**: a holiday postcard that
+happens to be the inside of a curse. Keep the mid-tones open — the game dims and
+colour-grades the plate behind the fight, and the renderer draws its own water
+line and shoal over the bottom of the screen.
+
+---
+
+## When it lands
+
+Per fighter, in this order:
+
+1. `python3 tools/intake.py` over their sprite folder, `idle_a` first, then
+   place it in the sprite workbench (`/workbench/`) against the roster's idle
+   `bodyH` band before importing the other 35.
+2. Card into `assets/cards/`, effects through `tools/prep_effects.py`, summons
+   through `assets/intake/summons/`.
+3. Move their key out of `STAGED_CHARACTER_KEYS` in `src/characters.js` and
+   into a `CHARACTER_GROUPS` bucket in `src/config_menus.js` — Mechamaru and
+   Yuki are sorcerers, Dagon and Kurourushi are curses.
+4. `node tools/check_kits.mjs`, `node tools/audit_hitboxes.mjs` (their reach is
+   now derived from the art that just landed), then `node tools/smoke_combat.mjs`.
+
+No other code change is needed at any point. The loader already knows their
+effect, summon and domain-background paths and starts fetching them the moment
+the key moves (`STAGED_EFFECT_KEYS` / `STAGED_SUMMON_KEYS` in `src/assets.js`).

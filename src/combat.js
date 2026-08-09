@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { clamp, sign, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, sparkLine, ring, popup, banner } from "./particles.js";
-import { hitFx, elementOf, burnTickFx, bleedTickFx, projectileEmit, explodeFx, blackFlashFx, ratioSeamFx } from "./fx.js";
+import { hitFx, elementOf, burnTickFx, bleedTickFx, projectileEmit, explodeFx, blackFlashFx, ratioSeamFx, specks, spray } from "./fx.js";
 import { PROJ_TRAIL, BLACK_FLASH, RUMBLE } from "./config_fx.js";
 import { rumbleFighter, rumbleEvent } from "./rumble.js";
 import { duckMusic } from "./audio.js";
@@ -416,7 +416,12 @@ export function applyStatus(effect, owner, target, extra = {}) {
   const immune = (target.char.passive.id === "heavenlyBody" &&
     ["burn", "snare", "soulMark", "rootSnare", "cursedSpeech"].includes(effect)) ||
     // Choso is made of the stuff — bleeding and poisoning blood is pointless
-    (target.char.passive.id === "deathPainting" && ["bleed", "poison"].includes(effect));
+    (target.char.passive.id === "deathPainting" && ["bleed", "poison"].includes(effect)) ||
+    // A curse born from the fear of drowning does not drown, and the cockroach
+    // curse is not troubled by its own roaches. Only ever reachable in a mirror
+    // match, but a fighter losing to their own signature status reads as a bug.
+    (target.char.passive.id === "tideBorn" && effect === "drench") ||
+    (target.char.passive.id === "infiniteHunger" && ["infest", "blind"].includes(effect));
   if (immune) {
     popup(target.x, target.y - 150, "IMMUNE", "#b8ffe2", 20);
     return;
@@ -468,6 +473,26 @@ export function applyStatus(effect, owner, target, extra = {}) {
       s.silence = Math.max(s.silence || 0, 3.0);
       popup(target.x, target.y - 150, "TECHNIQUE SEALED", "#a8aeb8", 18);
       break;
+    // Dagon — soaked to the bone. No damage of its own: waterlogged clothes and
+    // a foot of standing water are a movement tax, and Dagon hits a soaked
+    // target harder (his `tideBorn` passive).
+    case "drench":
+      s.drench = Math.max(s.drench || 0, 3.2);
+      break;
+    // Kurourushi — the Festering Life Sword's eggs hatch inside the wound.
+    // Stacks: each new cut adds a generation, up to three, and the whole colony
+    // ticks together. Unlike bleed it does not care whether the victim moves.
+    case "infest": {
+      const stacks = Math.min(3, (s.infest?.stacks || 0) + 1);
+      s.infest = { t: 4.0, tick: 0.55, dmg: 0.9 + stacks * 0.5, stacks, from: owner };
+      break;
+    }
+    // Kurourushi — Earthen Insect Trance. The sacs burst across the eyes: they
+    // fight at a discount and their evasion is a guess (see fighter.js).
+    case "blind":
+      s.blind = Math.max(s.blind || 0, 2.4);
+      popup(target.x, target.y - 150, "BLINDED", "#8f3b4e", 18);
+      break;
     case "weaponBreak":
       break; // handled at shield contact
     default:
@@ -508,13 +533,45 @@ export function updateStatuses(f, dt) {
     }
     if (s.poison.t <= 0) s.poison = null;
   }
+  if (s.infest) {
+    s.infest.t -= dt;
+    s.infest.tick -= dt;
+    if (s.infest.tick <= 0) {
+      s.infest.tick = 0.55;
+      f.damage += s.infest.dmg;
+      specks(f.x, f.y - 80, 5, 0.6);
+      // The colony eats for its parent: Kurourushi's hunger is fed by the
+      // infestation as well as by its own blows.
+      feedHunger(s.infest.from, s.infest.dmg);
+    }
+    if (s.infest.t <= 0) s.infest = null;
+  }
   if (s.snare > 0) s.snare -= dt;
+  if (s.drench > 0) {
+    s.drench -= dt;
+    // still dripping — a soaked fighter reads as soaked between hits
+    if (Math.random() < 3 * dt) spray(f.x + (Math.random() - 0.5) * 48, f.y - 30, 0, 1, 0.3);
+  }
+  if (s.blind > 0) s.blind -= dt;
   if (s.soulMark > 0) s.soulMark -= dt;
   if (s.silence > 0) s.silence -= dt;
   if (s.nailT > 0) {
     s.nailT -= dt;
     if (s.nailT <= 0) s.nailMarks = 0;
   }
+}
+
+/** Kurourushi's bottomless appetite: it recovers a fraction of everything it
+ *  does to somebody. Called from every landed hit and from every infest tick,
+ *  which is why it lives here rather than inside applyHit — the colony keeps
+ *  eating long after the blow that planted it.
+ *
+ *  `Parthenogenesis` (its ultimate) raises the share through `installs.lifesteal`
+ *  rather than adding a second path, so there is one rule for the appetite. */
+export function feedHunger(owner, dmg) {
+  if (!owner?.char || owner.char.passive.id !== "infiniteHunger" || !(dmg > 0)) return;
+  const share = 0.12 + (owner.installs?.lifesteal || 0);
+  owner.damage = Math.max(0, owner.damage - dmg * share);
 }
 
 // ------------------------------------------------------------------- hits
@@ -708,6 +765,14 @@ export function applyHit(owner, target, hit, source) {
 
   // status & passive multipliers
   if (target.statuses.soulMark > 0) { dmg *= 1.18; growth *= 1.1; }
+  // Kurourushi's blinding liquid: they are swinging at a shape, not a fighter.
+  if (owner.statuses.blind > 0) dmg *= 0.88;
+  // Dagon hits a soaked target harder — water conducts what he is.
+  if (owner.char.passive.id === "tideBorn" && target.statuses.drench > 0) dmg *= 1.15;
+  // Mechamaru's Heavenly Restriction is output, not muscle: it pays out on
+  // everything that is NOT his own fists, and the puppet frame pays for it.
+  if (owner.char.passive.id === "heavenlyOutput" && source !== "melee") dmg *= 1.15;
+  if (target.char.passive.id === "heavenlyOutput") dmg *= 1.08;
   if (target.char.passive.id === "openSky" && !target.grounded) dmg *= 0.88;
   if (owner.char.passive.id === "kingsContempt" && target.damage >= 80) dmg *= 1.1;
   if (owner.char.passive.id === "rikaBond" && owner.damage >= 100) dmg *= 1.12;
@@ -718,6 +783,7 @@ export function applyHit(owner, target, hit, source) {
 
   dmg = Math.round(dmg * 10) / 10;
   target.damage = Math.min(999, target.damage + dmg);
+  feedHunger(owner, dmg);  // Kurourushi eats what it hurts
   pushStale(owner, mid);   // only landed hits stale; whiffs cost nothing
 
   // meter economy
@@ -731,6 +797,9 @@ export function applyHit(owner, target, hit, source) {
 
   // knockback
   let kb = (baseKb + target.damage * growth) / target.char.stats.weight;
+  // Star Rage (Yuki): the mass is virtual, so it never weighs HER down — it is
+  // only ever spent on whatever she hits.
+  if (owner.char.passive.id === "virtualMass") kb *= 1.2;
   if (target.char.passive.id === "cursedCorpse") kb *= 0.9;
   if (target.char.passive.id === "openSky" && !target.grounded) kb *= 0.88;
   // Chimera Shadow Garden cushions its owner — the shadow takes the impact.

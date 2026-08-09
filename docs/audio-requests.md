@@ -1,9 +1,14 @@
 # Audio Requests — open requests
 
-**Nothing is outstanding.** The element and signature round — the last one open
-— is delivered, wired in and recorded in
+**Nothing is outstanding for the 23 fighters who can be played.** The element
+and signature round — the last one open — is delivered, wired in and recorded in
 [audio-requests-history.md](audio-requests-history.md) as Round 9, along with
 every earlier round's audit, prompts and delivery record.
+
+**Four sounds come due when round 15's art lands**, and not before — see
+[Owed by the staged fighters](#owed-by-the-staged-fighters) at the bottom. They
+are listed rather than requested because nothing plays them today: the four
+fighters they belong to are not on the select screen.
 
 This file exists so there is somewhere obvious for the next request to go, and
 so "is any audio still owed?" has a one-line answer rather than an 800-line
@@ -82,3 +87,36 @@ move it across once it lands — the same relationship
 [asset-requests.md](asset-requests.md) has with its history file. Delivered
 files are uploaded to `assets/intake/sfx/` and moved into `assets/sfx/` as part
 of that landing, the way art arrives through `assets/intake/`.
+
+---
+
+## Owed by the staged fighters
+
+Round 15 of [asset-requests.md](asset-requests.md) adds four fighters —
+Mechamaru, Yuki Tsukumo, Dagon and Kurourushi — whose kits are already built but
+who are held off the select screen until their art exists. Their audio is wired
+as far as it can be without new files: all four are in `GRUNT_GROUPS`
+(`src/audio.js`) and so already have a grunt trio and a KO cry from the existing
+six voice groups.
+
+Four sounds are genuinely new, and **none of them can be heard today** — nothing
+in a match reaches a staged fighter. They are recorded here so the tallies above
+do not quietly become wrong, and so this is a delivery rather than a discovery
+on the day those four ship.
+
+| Key | Where it belongs | What it is |
+|---|---|---|
+| `hitWater` | `ELEMENT_HIT_SFX.water` | The eighth element hit layer, for Dagon. A heavy wet slap and displacement — a body hit by a mass of water, not a splash in a puddle |
+| `hitMachine` | `ELEMENT_HIT_SFX.machine` | The ninth, for Mechamaru. Steel on steel with a servo whine under it and a short vent of pressure after |
+| `hitSwarm` | `ELEMENT_HIT_SFX.swarm` | The tenth, for Kurourushi. A dry chitinous crunch and a scatter of skittering — insects, close and many |
+| `domainCaptivatingSkandha` | `DOMAIN_STING` (`src/domains.js`) | The eighth domain sting, for Horizon of the Captivating Skandha. Surf and gulls opening into something enormous moving underwater — the domain's whole trick is that it sounds like a holiday |
+
+The three element layers are the same brief as Round 9's seven (see the history
+file for those prompts and their mix levels): **seasoning under the impact, not
+the impact** — short, dry, and gain-trimmed to about 0.5.
+
+`DOMAIN_STING` already names the Skandha key, and `ELEMENT_HIT_SFX` deliberately
+does **not** name the three hit layers yet: an entry pointing at a file that is
+not there logs a failed fetch on every hit, which reads as an error and trips
+the smoke tests. Adding the three lines is part of landing the files, not part
+of staging the fighters.

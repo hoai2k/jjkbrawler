@@ -480,6 +480,78 @@ const HANDLERS = {
     playSfx("shield", 0.7, 1.2);
   },
 
+  // Mechamaru and Yuki — New Shadow Style: Simple Domain.
+  //
+  // Not a Domain Expansion: it is the anti-domain counter-measure both of them
+  // canonically carry (Kokichi loaded it into Mode: Absolute as cartridges,
+  // Yuki taught it to Todo). Two jobs, and they are the same idea twice: inside
+  // the circle, nothing arrives unopposed.
+  //
+  //   * anything that reaches the circle is turned — the same counter stance
+  //     Infinity uses, so one attack is answered and eaten;
+  //   * while it holds, an enemy Domain Expansion's sure-hit effect does not
+  //     land on the holder (domains.js asks via simpleDomainActive).
+  //
+  // It is a stance, not a parry window: it holds for its whole duration, which
+  // is what makes it a real answer to a domain rather than a guess at one.
+  simpleDomain(f, p, cfg) {
+    const dur = p.duration || 1.6;
+    beginSpecialAction(f, currentSlot(cfg, f), dur, { lockMovement: true });
+    const color = p.color || f.char.theme;
+    f.counter = {
+      t: dur, holdStill: true,
+      dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: p.angle,
+      label: cfg.name, name: "SIMPLE DOMAIN", color,
+    };
+    f.simpleDomain = { t: dur, radius: p.radius || 132, color };
+    ring(f.x, f.y - 90, color, (p.radius || 132) * 1.4);
+    playSfx("shield", 0.8, 0.9);
+  },
+
+  // Dagon — Undertow. He pulls the water back in, and everything swimming in
+  // it comes with it. No launch of its own: it drags them into his reach and
+  // leaves them soaked, which is where the rest of his kit wants them.
+  undertow(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.5);
+    playGrunt(f.charKey);
+    const color = p.color || f.char.theme;
+    playSfx("whoosh", 0.9, 0.7);
+    for (const t of state.fighters) {
+      if (t === f || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
+      const dx = f.x - t.x;
+      if (Math.abs(dx) > (p.range || 520)) continue;
+      const pull = (p.pull || 520) * (1 - Math.abs(dx) / ((p.range || 520) * 1.6));
+      t.vx += sign(dx) * pull;
+      t.vy -= 90;
+      t.grounded = false;
+      t.damage = Math.min(999, t.damage + (p.dmg || 6));
+      t.hitstun = Math.max(t.hitstun, 0.2);
+      applyStatus(p.effect || "drench", f, t);
+      popup(t.x, t.y - 140, "UNDERTOW", color, 16);
+      burst(t.x, t.y - 60, color, 16, 0.9);
+    }
+    // the water itself, spiralling in around him
+    state.entities.push({
+      owner: f, t: 0, dead: false,
+      update(dt) { this.t += dt; if (this.t > 0.6) this.dead = true; },
+      draw(ctx) {
+        const g = groundYAt();
+        const prog = this.t / 0.6;
+        ctx.save();
+        ctx.globalAlpha = 0.5 * (1 - prog);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 4; i++) {
+          const rr = (p.range || 520) * (1 - prog) * (0.35 + i * 0.2);
+          ctx.beginPath();
+          ctx.ellipse(f.x, g - 18, rr, rr * 0.22, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      },
+    });
+  },
+
   // Uro — Sky Warp Palm: a telegraphed strike that falls out of the air on
   // the spot the target held when she cast it. Dodge by not standing there.
   warpStrike(f, p, cfg) {

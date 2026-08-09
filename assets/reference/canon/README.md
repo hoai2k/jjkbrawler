@@ -54,6 +54,19 @@ rather than editing these in place.
 | `reggie_intro_anime.png` | [Reggie Star introduction (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/2/27/Reggie_Star_introduction_%28Anime%29.png/revision/latest?cb=20260226172413) |
 | `uro_anime.png` | [Takako Uro (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/8/84/Takako_Uro_%28Anime%29.png/revision/latest?cb=20260324045602) |
 | `uro_face_anime.png` | [Takako Uro angry (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/f/f2/Takako_Uro_angry_%28Anime%29.png/revision/latest?cb=20260327143156) |
+| `mechamaru_anime.png` | [Mechamaru Ultimate (Anime 2).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/5/5a/Mechamaru_Ultimate_%28Anime_2%29.png/revision/latest?cb=20201226235054) |
+| `mechamaru_absolute_anime.png` | [Ultimate Mechamaru - Mode Absolute (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/c/c2/Ultimate_Mechamaru_-_Mode_Absolute_%28Anime%29.png/revision/latest?cb=20230831200417) |
+| `yuki_anime.png` | [Yuki Tsukumo (Anime 3).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/2/22/Yuki_Tsukumo_%28Anime_3%29.png/revision/latest?cb=20251230190559) |
+| `dagon_anime.png` | [Dagon (Anime 2).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/5/5b/Dagon_%28Anime_2%29.png/revision/latest?cb=20231026164038) |
+| `kurourushi_anime.png` | [Kurourushi (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/4/48/Kurourushi_%28Anime%29.png/revision/latest?cb=20260322133008) |
+
+**The last five are round 15's four staged fighters** (Mechamaru, Yuki Tsukumo,
+Dagon, Kurourushi), and they are the one case where the `<char>_anime.png` file
+is not the second-best answer: those four have no delivered art at all, so there
+is no `<char>_idle.png` to prefer over it. The render IS their canon until their
+`idle_a` lands, at which point they join the table above like everyone else.
+`mechamaru_anime.png` is the puppet — Ultimate Mechamaru, which is what the game
+draws — and `mechamaru_absolute_anime.png` is Mode: Absolute, for his ultimate.
 
 Finding a character's file, if you need one that is not here yet: the wiki's
 character page lists its images, and the full-body render is almost always

@@ -37,16 +37,35 @@ const EFFECT_KEYS = [
 // projectile/install renderers fall back to their procedural look, so a
 // fighter can ship ahead of their effects (Choso did, for one round).
 //
-// Empty right now — every effect the roster references is delivered and lives
-// in EFFECT_KEYS above, where a broken path IS reported. Populate this again
-// when the next fighter is staged.
-// Install auras the engine now points at but whose art has not been delivered
-// (asset-requests round 12D). Optional loads: until the file lands the install
-// draws its procedural ellipse aura exactly as before.
+// Two kinds live here. The first three are install auras the engine points at
+// but whose art has never been delivered (asset-requests round 13E) — until
+// the file lands the install draws its procedural ellipse aura exactly as
+// before. The last four are the round-15 staged fighters: nothing under their
+// keys is fetched at all today, because they are not in CHARACTER_KEYS, and
+// promoting one starts loading its effects with no change here.
 const STAGED_EFFECT_KEYS = {
   maki: ["aura_jade"],
   panda: ["aura_slate"],
   yuji: ["aura_indigo"],
+  mechamaru: ["ultra_cannon", "pigeon_orb", "ultimate_cannon"],
+  yuki: ["star_rage_impact"],
+  dagon: ["tide_wave", "shikigami_fish"],
+  kurourushi: ["egg_shot", "blinding_sacs", "aura_chitin"],
+};
+
+// Summon minions belonging to a staged fighter. The delivered summons in the
+// "shared" group below are REQUIRED loads — a broken path there should be
+// reported — but a staged fighter's minion has no file yet by definition, so
+// these are optional and gated on the fighter actually being on the roster.
+// summons.js falls back through `sprites` to a procedural body, so a promoted
+// fighter whose summon art is still in flight plays correctly regardless.
+const STAGED_SUMMON_KEYS = {
+  yuki: [["summon:garuda", "summons/garuda.png"]],
+  dagon: [["summon:dagon_shikigami", "summons/dagon_shikigami.png"]],
+  kurourushi: [
+    ["summon:cockroach_swarm", "summons/cockroach_swarm.png"],
+    ["summon:kurourushi_child", "summons/kurourushi_child.png"],
+  ],
 };
 
 // Stage-hazard polish art (Active Boards — src/stage_fx.js), requested as
@@ -68,6 +87,9 @@ const DOMAIN_BACKGROUNDS = {
   iron_mountain: "jogo",
   idle_death_gamble: "hakari",
   mutual_love: "yuta",
+  // Staged with Dagon (round 15). Gated on CHARACTER_KEYS like the rest, so it
+  // is not fetched until he is on the roster.
+  captivating_skandha: "dagon",
 };
 
 function loadImage(src) {
@@ -382,6 +404,9 @@ function groupJobs(id) {
   for (const charKey of CHARACTER_KEYS) {
     for (const key of STAGED_EFFECT_KEYS[charKey] || []) {
       optional(`effect:${key}`, `assets/sprites/effects/${key}.png`);
+    }
+    for (const [key, file] of STAGED_SUMMON_KEYS[charKey] || []) {
+      optional(key, `assets/sprites/${file}`);
     }
   }
   for (const [name, charKey] of Object.entries(DOMAIN_BACKGROUNDS)) {

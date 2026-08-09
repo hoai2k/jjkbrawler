@@ -15,6 +15,16 @@ different reach/speed/damage/effects), three specials (neutral, side, down),
 one ultimate, and one always-on passive. Seven of them also have a **Domain
 Expansion** — see the section at the end.
 
+**Four kits are staged, not shipped.** Mechamaru, Yuki Tsukumo, Dagon and
+Kurourushi are written up at the end of this file and built in full in
+`src/characters.js`, but their keys are in `STAGED_CHARACTER_KEYS`: they are not
+on the select screen and `randomCharacterKey()` cannot draw them, because their
+art has not been made yet (round 15 in
+[asset-requests.md](asset-requests.md)). Everything else about them is live —
+specials, ultimates, Dagon's domain, four new passives, three new statuses —
+and `node tools/smoke_staged.mjs` plays every one of their moves in a real
+match, which is the only thing that reaches them until they ship.
+
 **Cursed Energy has two tiers.** An ultimate costs **half** a bar, so a match
 has several. A Domain Expansion costs the **whole** bar and only the seven
 fighters who canonically have one can open it. That is what makes the second
@@ -521,6 +531,141 @@ Weakest legs on the roster, but a stage that is always ringing.
 
 ---
 
+# Staged — built, not shipped
+
+The four below are wired into the game and balanced against the roster, but
+their art does not exist yet, so they are held out of character select by
+`STAGED_CHARACTER_KEYS` (see the note at the top of this file). They are written
+up here in the same shape as everyone else because the kit is the thing being
+reviewed — the art is a delivery, not a design.
+
+They introduce **three statuses** and **one shared technique** that nobody on
+the roster has:
+
+| New thing | Owner | What it does |
+|---|---|---|
+| **drench** | Dagon | Soaked: −16% movement speed, and Dagon's own hits land 15% harder on a soaked target. No damage of its own. |
+| **infest** | Kurourushi | Cursed eggs hatch in the wound: ticking damage that **stacks up to three generations**, and every tick feeds Kurourushi. |
+| **blind** | Kurourushi | Eyes fouled: the victim deals 12% less damage and their dodge invincibility is **halved**. |
+| **Simple Domain** | Mechamaru, Yuki | Not a Domain Expansion — the anti-domain circle. Turns one attack that reaches it, and while it holds, an enemy domain's **sure-hit stops being sure** (see the Domain section). |
+
+## Kokichi Muta — "Ultimate Mechamaru"
+**Canon:** A Kyoto second-year who has never once attended in person. Born with
+a Heavenly Restriction that left him without a right arm, without usable legs
+and unable to bear daylight, he was paid for it in cursed energy: output past
+any human limit and **Puppet Manipulation** with a range covering all of Japan.
+He attends school as a cursed corpse — Ultimate Mechamaru — and fights through
+it: Sword Option, Ultra Spin, Boost On, Ultra Cannon. At the end he spent his
+entire life's savings of cursed energy, seventeen years five months six days of
+it, piloting **Mode: Absolute** against Mahito, and very nearly won.
+Personality: withdrawn, bitter about a life spent indoors, and a genuinely
+excellent tactician who plans several moves past his opponent.
+
+**Design mapping:** The artillery piece. Slow, heavy, armoured, and the only
+fighter whose damage comes disproportionately from things that are not his
+fists — which is exactly what his restriction traded for.
+- *Stats:* 372 / 1.22 — second-slowest, third-heaviest.
+- **Ultra Cannon** (neutral): a piercing bolt down the lane. His bread and
+  butter, and the thing his passive is really about.
+- **Boost On** (side): elbow thrusters, armoured. Half a ton of puppet arrives
+  and trades on purpose.
+- **New Shadow Style: Simple Domain** (down): the technique he could not cast,
+  so he built it into cartridges. A held circle that turns what reaches it —
+  and switches off a domain's guaranteed hit while it lasts.
+- **Ultimate — Mode: Absolute:** the whole savings account at once. A tracking
+  volley (**Pigeon Viola**) to take the ground away, then the three-barrel
+  **Ultimate Cannon**. The charge is long and visible on purpose; so was his.
+- *Passive — Heavenly Restriction (Output):* techniques and cannons deal 15%
+  more, and the puppet frame takes 8% more. The trade, stated as a number.
+
+## Yuki Tsukumo — "Star Rage"
+**Canon:** One of only four special-grade sorcerers, and the one who refuses
+missions — she is trying to end curses at the source rather than sweep them up.
+Her innate technique, **Star Rage** (*Bombaye*), adds **virtual mass** to
+herself and to her shikigami **Garuda**: imaginary weight that lends her blows
+the force of the real thing without weighing her down. She also carries
+Reverse Cursed Technique and taught Todo his Simple Domain, and his catchphrase.
+Personality: loud, blunt, unbothered, and the person Gojo goes to when he wants
+to be talked to like a colleague.
+
+**Design mapping:** The heavyweight puncher with a lightweight's frame. Nothing
+in her kit is a projectile: she wins by arriving, and everything she lands
+travels further than it should.
+- *Stats:* 430 / 1.04 — fast for how hard she hits.
+- **Star Rage: Bombaye** (neutral): a short-range straight with mass poured
+  into it. Huge launch for the damage.
+- **Garuda** (side): her shikigami, out for six seconds, hunting on its own.
+  The only part of her game that is not her.
+- **New Shadow Style: Simple Domain** (down): the same circle Mechamaru runs on
+  cartridges — she just knows it.
+- **Ultimate — Star Rage: Maximum Mass:** as much imaginary mass as she can
+  hold behind one blow. A core that is unblockable and a survivable shockwave
+  around it, after a wind-up everybody in the building can read.
+- *Passive — Star Rage:* her hits launch 20% further, and nothing that drags at
+  a body — snare, poison, standing water — slows her. Mass with no weight.
+
+## Dagon — "Disaster of Tides"
+**Canon:** A special-grade curse born of humanity's fear of water disaster. He
+spent most of the series as a cursed womb — timid, silent, minding the group's
+hideout — and evolved mid-Shibuya out of pure rage at Hanami's death. In his
+full form he generates oceans out of nothing, conjures man-eating shikigami
+straight from his body (eels, piranha, sharks, crustaceans) and opens
+**Horizon of the Captivating Skandha**, a tropical shore where his shikigami
+cannot miss. Naobito, Nanami and Maki together could not put him down inside
+it; Toji did, from the outside.
+Personality: an infant that grew up angry. Insists, at volume, that he and his
+friends have names.
+
+**Design mapping:** The fortress zoner, and the roster's second Domain user
+among the curses. Everything he does soaks you, and everything he does is worse
+against someone soaked.
+- *Stats:* 350 / 1.26 — slowest and heaviest of the four; wings give him
+  better air movement than a body that size deserves.
+- **Disaster Tides** (neutral): two rolling waves down the floor. Piercing,
+  slow, and they leave the lane wet.
+- **Man-Eating Shikigami** (side): fish conjured out of his body that swim at
+  whoever is closest and burst on them.
+- **Undertow** (down): pulls the water back in and everything in it with it.
+  No launch — it just relocates them into his reach, soaked.
+- **Ultimate — Death Swarm:** shikigami without end at one target, homing,
+  finished by one that is unblockable. Outside the domain they still have to
+  travel; inside, they don't.
+- **Domain — Horizon of the Captivating Skandha:** see the Domain section.
+- *Passive — Disaster of Water:* soaked opponents take 15% more from him, and
+  nothing he makes can soak him.
+
+## Kurourushi — "Bottomless Appetite"
+**Canon:** A special-grade **cockroach** cursed spirit, born from humanity's
+collective disgust for them, released by Kenjaku into the Culling Game. It
+commands endless swarms of real roaches reinforced with cursed energy, blinds
+with **Earthen Insect Trance**, and carries the **Festering Life Sword** — six
+barrels along the blade that fire eggs which hatch the instant the blade opens
+a wound. It reproduces by **parthenogenesis**, and made a child specifically so
+that its cursed energy would survive its own exorcism. It nearly ate Yuta.
+Personality: barely one. It wants to eat, it resents interruption, and asked
+why it kills it said it loves the taste of iron.
+
+**Design mapping:** The attrition rushdown. It does not out-damage anyone in a
+single exchange — it puts something in you that keeps working and takes its
+share of everything.
+- *Stats:* 412 / 1.08, and **three jumps** — it has wings and rides a twister
+  of its own roaches.
+- Its lights and heavies plant **infest**, so its pressure keeps paying after
+  the fighters separate.
+- **Festering Life Sword: Egg Volley** (neutral): three eggs downrange. The
+  applicator.
+- **Cursed Cockroaches** (side): three swarms out at once, fast, weak, and
+  they all carry the infestation.
+- **Earthen Insect Trance** (down): a cloud of bursting sacs that **blinds** —
+  the setup it used to open Yuta up.
+- **Ultimate — Parthenogenesis:** it does not power up, it reproduces. Two
+  offspring fight beside it and its appetite runs hot for the duration, so
+  every bite anywhere on the stage puts the parent back together.
+- *Passive — Bottomless Appetite:* it recovers 12% of all damage it deals, and
+  the eggs go on feeding it long after the cut.
+
+---
+
 ## Roster balance at a glance
 
 | Fighter | Archetype | Speed | Weight | Wins by |
@@ -552,6 +697,15 @@ Weakest legs on the roster, but a stage that is always ringing.
 All 23 fighters are live. The six round-7 additions (Choso, Mei Mei, Uro, Yuji,
 Reggie, Gakuganji) were built and balanced in code before their art existed;
 that history is in [asset-requests-history.md](asset-requests-history.md).
+
+The four staged fighters, at the same glance — not selectable yet:
+
+| Fighter | Archetype | Speed | Weight | Wins by |
+|---|---|---|---|---|
+| Mechamaru | Artillery zoner | ★★ | Heavy | Cannons, armour, out-ranging you |
+| Yuki | Mass brawler | ★★★★ | Mid | One blow landing further than it should |
+| Dagon | Tide fortress | ★★ | Very heavy | Soaking you, then a sure-hit domain |
+| Kurourushi | Attrition rushdown | ★★★★ | Mid | Infestation, swarms, eating what it hurts |
 
 ---
 
@@ -586,10 +740,32 @@ fighters* switches back to the single paging view.
 | Jogo | **Coffin of the Iron Mountain** | Sealed inside a volcano — the whole floor burns anything standing on it. | SPECIAL erupts a geyser directly under the enemy, free and instant, as often as you like. |
 | Hakari | **Idle Death Gamble** | The pachinko parlour with the door shut. | Three reels spin overhead; SPECIAL stops the next one. Three matching symbols is the JACKPOT — full heal, hyper-armour and +35% damage. A pair still pays something. |
 | Yuta | **Authentic Mutual Love** | Rika manifests completely and heals him continuously. | SPECIAL sends her at the enemy for a huge unblockable bite, on a short cooldown. |
+| Dagon *(staged)* | **Horizon of the Captivating Skandha** | A tropical shore with an endless ocean; fish bite automatically, cannot be blocked or dodged, and leave the enemy soaked. | SPECIAL fires **Death Swarm**: an unblockable surge on the enemy, short cooldown. |
 
 **Not implemented yet.** The wiki also lists Hanami, Uro and Yuji as domain
 users. Their domains are unnamed in canon or arrive very late in the series, so
-they have no kit here — a deliberate omission rather than an oversight.
+they have no kit here — a deliberate omission rather than an oversight. **Yuki
+is the same case**: she has an innate domain and discusses expanding it with
+Tengen, but it is never shown, so she has an ultimate and no domain.
+
+## Simple Domain — the counter to a domain
+
+`New Shadow Style: Simple Domain` is **not** a Domain Expansion and does not
+cost the bar: it is a down special, held for 1.6 s, and Mechamaru and Yuki both
+carry it because both canonically do — Kokichi built it into cartridges because
+his body could not cast it, and Yuki taught it to Todo.
+
+It does two things, which are the same idea twice. Anything that reaches the
+circle is turned, exactly like Infinity. And while it holds, an open domain's
+**sure-hit half does not land on the holder** — Unlimited Void's paralysis, the
+Shrine's rain, the Iron Mountain's burning floor, Skandha's fish. What it does
+*not* stop is the half the domain's owner aims by hand: Sukuna's thrown Cleave,
+Megumi's resurfacing strike, Dagon's Death Swarm. That split is the canon one,
+and mechanically it is the point — a domain is still worth opening against
+someone holding a circle, they just have to be hit with it rather than by it.
+
+In code it is `simpleDomainActive()` in `src/domains.js`, consulted by
+`sureHitFoesOf()`, which every automatic domain effect now runs through.
 
 **Three kits were renamed** to make room, because a domain and an ultimate
 should not be the same technique: Sukuna's ultimate became *Dismantle:
@@ -603,3 +779,14 @@ became *Furnace Shell*.
 - [Jujutsu Kaisen Wiki — Gorilla Mode](https://jujutsu-kaisen.fandom.com/wiki/Gorilla_Mode) / [Gamerant — Panda's Cursed Corpse Cores](https://gamerant.com/jujutsu-kaisen-panda-cursed-corpse-cores/) (three sibling cores; Triceratops sister)
 - [Jujutsu Kaisen Wiki — Tool Manipulation](https://jujutsu-kaisen.fandom.com/wiki/Tool_Manipulation) / [Wind Scythe](https://jujutsu-kaisen.fandom.com/wiki/Wind_Scythe)
 - [Jujutsu Kaisen Wiki — Cursed Speech](https://jujutsu-kaisen.fandom.com/wiki/Cursed_Speech) / [CBR — The Power and Drawbacks of Inumaki's Cursed Speech](https://www.cbr.com/jujutsu-kaisen-the-power-and-drawbacks-of-inumakis-cursed-speech-explained/)
+
+Round 15 (the four staged fighters):
+
+- [Jujutsu Kaisen Wiki — Kokichi Muta](https://jujutsu-kaisen.fandom.com/wiki/Kokichi_Muta) (Heavenly Restriction, Puppet Manipulation, Sword Option / Ultra Spin / Ultra Shield / Boost On / Ultra Cannon, the Simple Domain cartridges) / [Mode: Absolute](https://jujutsu-kaisen.fandom.com/wiki/Mode:_Absolute) (Ultra Cannon, Miracle Cannon, Pigeon Viola, and the 17 years 5 months 6 days of banked cursed energy)
+- [Jujutsu Kaisen Wiki — Yuki Tsukumo](https://jujutsu-kaisen.fandom.com/wiki/Yuki_Tsukumo) / [Star Rage](https://jujutsu-kaisen.fandom.com/wiki/Star_Rage) (virtual mass, "Bombaye") / [Garuda](https://jujutsu-kaisen.fandom.com/wiki/Garuda) (shikigami and cursed tool in one; fights independently)
+- [Jujutsu Kaisen Wiki — Dagon](https://jujutsu-kaisen.fandom.com/wiki/Dagon) (Disaster Tides, the shikigami menagerie, evolution from cursed womb) / [Horizon of the Captivating Skandha](https://jujutsu-kaisen.fandom.com/wiki/Horizon_of_the_Captivating_Skandha) / [Death Swarm](https://jujutsu-kaisen.fandom.com/wiki/Death_Swarm)
+- [Jujutsu Kaisen Wiki — Kurourushi](https://jujutsu-kaisen.fandom.com/wiki/Kurourushi) (cursed cockroaches, parthenogenesis, Earthen Insect Trance) / [Festering Life Sword](https://jujutsu-kaisen.fandom.com/wiki/Festering_Life_Sword) (six barrels, eggs that hatch in the wound)
+
+**On the spelling:** the curse is written **Kurourushi** (黒沐死) on the wiki and
+in the subtitles, and that is the key used in code (`kurourushi`). "Kuroroshi"
+and "Kuro-Urushi" are both in circulation; they are the same character.
