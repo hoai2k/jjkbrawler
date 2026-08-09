@@ -107,6 +107,9 @@ validateMusicConfig();
 
 let unlocked = false;
 let musicEl = null;
+let musicBaseVol = null; // what syncMusic last set, so the duck can restore it
+let duckT = 0;
+let duckFactor = 1;
 let battleSrc = null;   // resolved once per match so it cannot re-roll mid-fight
 let battleStageKey = null;
 let currentSrc = null;
@@ -202,7 +205,8 @@ export function syncMusic(phase) {
     musicEl.pause();
     return;
   }
-  musicEl.volume = Math.min(1, volume);
+  musicBaseVol = Math.min(1, volume);
+  musicEl.volume = musicBaseVol;
   if (currentSrc !== src) {
     currentSrc = src;
     musicEl.src = src;
@@ -215,6 +219,27 @@ export function syncMusic(phase) {
 // follows: gating playSfx alone would leave a long cue (a domain, a KO cry)
 // ringing on after the button was pressed, which reads as the button not
 // working. Returns the new state so the caller can repaint its icon.
+/** Drop the music to a fraction of its volume for a beat — Black Flash's
+ *  near-silence — then restore. Frame-driven via stepAudio(). */
+export function duckMusic(to = 0.2, seconds = 0.4) {
+  duckT = Math.max(duckT, seconds);
+  duckFactor = Math.min(duckFactor, to);
+}
+
+/** Called once per frame from the main loop; only touches the music element
+ *  while a duck is live or just ended. */
+export function stepAudio(dt) {
+  if (!musicEl || musicBaseVol == null) return;
+  if (duckT > 0) {
+    duckT -= dt;
+    musicEl.volume = Math.min(1, musicBaseVol * duckFactor);
+    if (duckT <= 0) {
+      duckFactor = 1;
+      musicEl.volume = musicBaseVol;
+    }
+  }
+}
+
 export function applyMute() {
   const muted = audioSettings.muted;
   if (musicEl) musicEl.muted = muted;

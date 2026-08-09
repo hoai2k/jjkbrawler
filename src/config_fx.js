@@ -65,6 +65,49 @@ export const PROJ_EMIT = {
   fire: 30, blood: 22, feather: 10, wind: 16, sound: 5, shadow: 16, soul: 12,
 };
 
+// --------------------------------------------------------------- Black Flash
+//
+// The show's flashiest single effect: a crimson core, jagged BLACK lightning
+// fractures, and the world dropping dark for a beat. Shared by Yuji's passive
+// proc and the two crit-finisher ultimates.
+export const BLACK_FLASH = {
+  forks: 12,                       // crackle branch count
+  reach: 90,                       // how far the forks reach, px
+  colors: ["#e01b1b", "#7a0000", "#000000", "#000000"],  // black twice: half the forks are black
+  flashSize: 52,                   // the one-frame white core, px
+  vignetteAlpha: 0.42,             // peak darkness of the red edge vignette
+  vignetteTime: 0.28,              // seconds it takes to fade
+  vignetteColor: "#2a0000",
+  duckTo: 0.2,                     // music drops to this fraction…
+  duckTime: 0.4,                   // …for this long (the near-silence beat)
+  critVignetteScale: 0.6,          // the crit finishers reuse the vignette, softer
+};
+
+// -------------------------------------------------------------------- rumble
+//
+// Controller vibration (Gamepad vibrationActuator; feature-detected, silently
+// absent where unsupported). Only the affected player's pad rumbles; big
+// screen shakes reach every human pad as a low ambient. s = strong motor
+// (low-frequency thump), w = weak motor (high-frequency buzz), t = seconds.
+export const RUMBLE = {
+  enabled: true,
+  hitScale: 0.045,     // strong magnitude per % of damage taken
+  hitTime: 0.1,        // seconds per hit pulse
+  attackerEcho: 0.35,  // fraction of the victim's rumble the attacker feels
+  shakeFloor: 6,       // camera shake below this rumbles nobody
+  shakeScale: 0.04,    // ambient weak magnitude per shake unit above the floor
+  shakeMax: 0.55,
+  events: {
+    parry:       { s: 0.15, w: 0.9, t: 0.07 },
+    shieldBreak: { s: 1.0, w: 0.5, t: 0.55 },
+    launch:      { s: 0.75, w: 0.3, t: 0.28 },
+    ko:          { s: 1.0, w: 1.0, t: 0.8 },
+    ult:         { s: 0.45, w: 0.7, t: 0.45 },
+    // tick … beat … slam, matching the visual
+    blackFlash:  [{ s: 0.25, w: 0.7, t: 0.05 }, { delay: 0.12, s: 1.0, w: 0.4, t: 0.22 }],
+  },
+};
+
 // --------------------------------------------------------------- dash strike
 //
 // The twelve side-specials that share `dashStrike` used to spawn ten dust

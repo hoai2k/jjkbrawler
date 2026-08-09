@@ -1,7 +1,8 @@
 import { state } from "./state.js";
 import { loadCoreAssets, startBackgroundLoad, ensureMatchAssets, matchAssetsPending } from "./assets.js";
 import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, joinedPlayerCount, blankInput } from "./input.js";
-import { initAudio, playSfx, setBattleStage, syncMusic } from "./audio.js";
+import { initAudio, playSfx, setBattleStage, syncMusic, stepAudio } from "./audio.js";
+import { updateRumble } from "./rumble.js";
 import { makeFighter, updateFighter } from "./fighter.js";
 import { updateHitboxes, updateProjectiles } from "./combat.js";
 import { updateParticles, banner } from "./particles.js";
@@ -186,6 +187,10 @@ function updateSimulation(dt, held) {
     state.screenFlash.life -= dt;
     if (state.screenFlash.life <= 0) state.screenFlash = null;
   }
+  if (state.vignette) {
+    state.vignette.life -= dt;
+    if (state.vignette.life <= 0) state.vignette = null;
+  }
   if (state.domainOverlay) {
     state.domainOverlay.life -= dt;
     if (state.domainOverlay.life <= 0) state.domainOverlay = null;
@@ -256,6 +261,8 @@ function loop(time) {
   previousTime = Math.max(previousTime, time);
 
   readGamepads();
+  updateRumble(dt);
+  stepAudio(dt);
 
   if (anyPadPausePressed()) {
     if (["playing", "paused"].includes(state.phase)) togglePause();

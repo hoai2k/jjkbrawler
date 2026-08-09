@@ -12,6 +12,8 @@ import { applyInstall } from "./specials.js";
 import { TRANSFORMS, TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "./config_transform.js";
 import { frameMeta } from "./assets.js";
 import { playSfx, playGrunt } from "./audio.js";
+import { critFinisherFx } from "./fx.js";
+import { rumbleEvent } from "./rumble.js";
 import { circleRectOverlap, rectsOverlap } from "./utils.js";
 import { ULT_METER_COST, METER_MAX } from "./constants.js";
 import { getImage } from "./assets.js";
@@ -24,6 +26,7 @@ function cinematic(f, name, color) {
   playGrunt(f.charKey);
   state.camera.shake = Math.max(state.camera.shake, 9);
   ring(f.x, f.y - 90, color, 190);
+  rumbleEvent(f, "ult"); // a low swell under the slow-mo
 }
 
 function beginUltAction(f, dur, opts = {}) {
@@ -541,7 +544,11 @@ const DIRECTORS = {
           label: ult.p.label, sfx: "blast", unblockable: true, heavy: true,
           effect: p.silence ? "silence" : null,
         }, "script");
-        if (p.crit) popup(t.x, t.y - 180, p.critLabel ? p.critLabel + "!!" : "7:3!!", p.critColor || "#ffd35a", 30);
+        if (p.crit) {
+          popup(t.x, t.y - 180, p.critLabel ? p.critLabel + "!!" : "7:3!!", p.critColor || "#ffd35a", 30);
+          // the Black Flash treatment at reduced strength, in the crit's colour
+          critFinisherFx(t.x, t.y - 96, p.critColor || "#ffd35a");
+        }
         state.slowMo = Math.max(state.slowMo, 0.3);
       },
     });
