@@ -1624,7 +1624,7 @@ Every set missed the same criterion — `attack_heavy_b` extending a third of
 standing height past the fighter's own idle. Yuki's reached 9%, Dagon's 16%,
 Mechamaru's 20%. Dagon's `crouch_b` drops 21% where a quarter is asked, and
 Mechamaru's `run_reach_a` arrived as a four-figure contact sheet and was not
-imported. All five are [17F](asset-requests.md#17f-caught-while-landing-round-15a--5-sprites).
+imported. They are [18A](asset-requests.md#18a-caught-while-placing-the-round-15-sets--13-sprites), with the rest of what the placement passes found.
 
 Everything else landed: the crouch pairs, the light pairs, the idles, the run
 cycles, the costumes and all nine effects.

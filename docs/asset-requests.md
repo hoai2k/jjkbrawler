@@ -4,11 +4,12 @@ Everything in this file is **outstanding**. Delivered rounds are recorded in
 [asset-requests-history.md](asset-requests-history.md) — including the round
 numbers, so a commit or code comment citing "round 5 art" still resolves.
 
-**Current status: rounds 1–13 delivered. Round 14's art has mostly landed and
-is waiting to be approved. Rounds 15, 16 and 17 are open.**
+**Current status: rounds 1–13 delivered, and most of 15. Round 14's art has
+mostly landed and is waiting to be approved. Rounds 15, 16, 17 and 18 are
+open.**
 
-**Round 17 is the one to add to.** 14, 15 and 16 are all being drawn against, so
-anything found from here goes into 17 rather than growing a round somebody is
+**Round 18 is the one to add to.** Everything before it is being drawn against,
+so anything found from here goes into 18 rather than growing a round somebody is
 already working from.
 
 Round 13's forty-one poses and **38 of round 14's 41** landed through the
@@ -957,18 +958,17 @@ nothing else to register.
 
 # Round 17 — open
 
-Round 17 is the round to add to: 14, 15 and 16 are all being worked on, so
-anything found from here lands here rather than growing a round somebody is
-already drawing against.
+Round 17 is **being drawn** — the Hanami set and the cards are underway — so it
+is closed to additions. Anything found from here goes into
+[round 18](#round-18--open).
 
 - **17A** — a full Hanami set (36 sprites)
 - **17B** — Mahoraga's three light/crouch poses, redrawn (3 sprites)
 - **17C** — two caught while placing round 13 (2 sprites)
 - **17D** — a simplified card for every fighter (27 images, **new art, nothing replaced**)
 - **17E** — Hanami's hero card, redrawn to canon (1 image)
-- **17F** — twelve caught while landing round 15A (12 sprites)
 
-**53 sprites and 28 card images.** None of it is blocking — every pose named
+**41 sprites and 28 card images.** None of it is blocking — every pose named
 here has art in the game today, each is a redraw rather than a gap, and 17D
 lands in a directory the game does not read yet.
 
@@ -1327,51 +1327,69 @@ landing it first just moves the mismatch somewhere else.
 
 ---
 
-## 17F. Caught while landing round 15A — 12 sprites
+---
+
+# Round 18 — open
+
+**Round 18 is the round to add to.** 14, 15, 16 and 17 are all being drawn
+against, so anything caught from here lands here.
+
+- **18A** — thirteen caught while placing the round-15 sets (13 sprites)
+
+**13 sprites, none of it blocking** — every pose named here is in the game today
+and playable; each is a redraw of art that works but does not do its job.
+
+## 18A. Caught while placing the round-15 sets — 13 sprites
 
 The three new fighters arrived with complete 36-pose sets drawn against
-[pose-brief.md](pose-brief.md), and the brief's headline criterion is the one
-every one of them missed.
+[pose-brief.md](pose-brief.md). These are what the placement passes found — a
+pose reads differently at real size against a real stage than it does on a
+review board — plus the brief's headline criterion, which all three missed.
 
 | Fighter | Key | Pose | Kind | What is wrong |
 |---|---|---|---|---|
-| Mechamaru | `mechamaru` | `run_reach_a` | Quality | **Delivered as a contact sheet** — four small figures of the run cycle on one canvas, rather than one pose. Nothing in it is separable at full resolution and none of the four clears the 600 px body minimum alone, so it was not imported: he runs on the other three cycle frames until this lands. |
-| Yuki Tsukumo | `yuki` | `attack_heavy_b` | Pose | The hook extends **9%** of standing height past her idle where the brief asks for a third. She is a boxer with no weapon, so the whole body has to be behind it — hips through, shoulder past the lead foot. |
+| Yuki Tsukumo | `yuki` | `attack_heavy_b` | Pose | The hook extends **9%** of standing height past her idle where the brief asks for a third — the shortest heavy on the roster. She is a boxer with no weapon, so the whole body has to be behind it: hips through, shoulder past the lead foot. **Her `ult_b` is standing in** meanwhile, so she has a heavy that reaches while this is redrawn. |
 | Dagon | `dagon` | `attack_heavy_b` | Pose | Extends **16%**. The claws should finish out past the wings. |
 | Mechamaru | `mechamaru` | `attack_heavy_b` | Pose | Extends **20%**. The forearm blade should be the furthest thing forward in the frame. |
-| Dagon | `dagon` | `crouch_b` | Pose | Drops **21%** of standing height where the brief asks for a quarter, and reads *taller* than `crouch_a` beside it. The pair is one held crouch a breath apart, not a descent. |
+| Mechamaru | `mechamaru` | `run_reach_a` | Quality | **Delivered as a contact sheet** — four small figures of the run cycle on one canvas rather than one pose. Nothing in it is separable at full resolution and none of the four clears the 600 px body minimum alone, so it was never imported: he runs on the other three cycle frames until this lands. |
 | Dagon | `dagon` | `run_reach_a` | Pose | **Reaches with the arm instead of the leg.** The reach frame is the full stride — the leading heel is the thing out in front, arms only counterbalance it. |
 | Dagon | `dagon` | `run_reach_b` | Pose | The same, on the other lead. |
+| Yuki Tsukumo | `yuki` | `run_reach_a` | Pose | The same fault again — reaching with the arm. |
+| Yuki Tsukumo | `yuki` | `run_reach_b` | Pose | The same, on the other lead. |
+| Dagon | `dagon` | `crouch_b` | Pose | Drops **21%** of standing height where the brief asks for a quarter, and reads *taller* than `crouch_a` beside it. The pair is one held crouch a breath apart, not a descent. |
 | Dagon | `dagon` | `attack_light_a` | Pose | Not a wind-up. `_a` is the coil before the strike — weight on the back foot, striking hand drawn back — and this reads as a second strike. |
-| Dagon | `dagon` | `crouch_attack_b` | Pose | Flagged during the placement pass. |
-| Dagon | `dagon` | `ledge_hang` | Quality | **The ledge is drawn into the sprite.** Draw the hands closed on nothing: the stage provides the edge, and a painted ledge floats in front of whatever platform he is actually hanging from. |
-| Mechamaru | `mechamaru` | `ledge_hang` | Quality | **The same fault** — the ledge is drawn in. Hands only, closed as if holding an edge that is not there. |
 | Mechamaru | `mechamaru` | `crouch_attack_b` | Pose | The forearm blade never reaches full extension. `_b` is the strike; the blade should be the furthest thing forward, out past the knee. |
+| Dagon | `dagon` | `crouch_attack_b` | Pose | Flagged during the placement pass. |
+| Yuki Tsukumo | `yuki` | `crouch_attack_b` | Pose | Flagged during the placement pass. |
 
-The four numbers above are measured the way the engine measures reach: the
-forward edge of the art past the centre of the body's core columns
-(`bodyRight` against `coreLeft`/`coreRight`), as a fraction of the idle's own
-height. They are comparable within a fighter regardless of placement, because
-every pose of a set is drawn at one zoom.
+The reach numbers are measured the way the engine measures reach: the forward
+edge of the art past the centre of the body's core columns (`bodyRight` against
+`coreLeft`/`coreRight`), as a fraction of the idle's own height. They are
+comparable within a fighter regardless of placement, because every pose of a set
+is drawn at one zoom.
 
-These came out of the first full placement passes on the round-15 sets, which is
-where the rest will come from too — a pose reads differently at real size
-against a real stage than it does on a review board. **Two fighters flagged the
-same `ledge_hang` fault independently**, which is what a missing rule looks like
-rather than a bad drawing: the brief never said not to draw the ledge, and it
-does now.
+**Three faults repeated across fighters, which is what a missing rule looks
+like** rather than three bad drawings: the heavy that does not extend (all
+three), the reach frame that reaches with the arm (two), and the `ledge_hang`
+with the ledge drawn into it (two). All three are now stated in the pose brief,
+so Kurourushi's set will not be asked for without them.
 
-**One thing asked for was repo work rather than a redraw and has been done:**
-his `ult_a` was delivered with **four arms**, and the extra one was cut out of
-the plate rather than re-requested. The arm was over background for most of its
-length and its own ink line gave the cut a natural boundary at the shoulder, so
-nothing had to be repainted. That is the whole difference between an
-`improvement` flag and a `replacement` flag — this one happened to be
+### Fixed in the repo instead of requested
+
+Three of the faults found in this pass were **file** faults rather than drawing
+faults, and were fixed here rather than sent back:
+
+- **Dagon's `ult_a` had four arms.** The extra one lay over background for most
+  of its length and its own ink line gave the cut a natural boundary at the
+  shoulder, so it came out with nothing repainted.
+- **`dagon/ledge_hang` and `mechamaru/ledge_hang` had the ledge drawn in.** The
+  bar was a flat grey slab across the top of the plate with the hands gripping
+  over it, so removing it leaves the hands closed on nothing — which is the
+  pose as asked for. The stage supplies the edge.
+
+Each frame was re-measured afterwards (`bodyTop`, the body and core spans, the
+centre of mass) so reach and width read off the art that is actually there. The
+untouched originals are in `assets/reference/round15/`. That is the whole
+difference between an `improvement` flag and a `replacement` flag: these were
 recoverable in the file, and Yuta's cut-off sword in 17C was not.
 
-**Three sets, three heavies short.** 15A stated the one-third rule in the
-request itself and it still came back missed on all three, which says the rule
-needs to arrive as a number to check against rather than a sentence to read —
-it is now the first thing 15A says, and §3 of the pose brief is where it lives.
-Nothing else in the three sets missed a stated criterion: the crouches, the
-light pairs and the idles all landed.

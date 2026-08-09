@@ -63,7 +63,13 @@ const PICK = await page.evaluate(async () => {
   // is filtered out of every "used" view, so counting it would pick a
   // character whose work list is empty.
   const drawn = (c, k) => statesUsingFrame(c, k).length > 0;
-  const untouched = (m) => !Object.keys(m.edited || {}).length && !m.surfacedReviewed;
+  // The same rule the "No saved edits (to do)" view applies (rememberSaved in
+  // workbench.js): a pose leaves the to-do list when somebody has DECIDED about
+  // it, and flagging it for a redraw is a decision. Testing a looser rule here
+  // picks a character whose list the workbench then renders empty — which is
+  // what happened once every round-15 pose was either placed or flagged.
+  const untouched = (m) => !Object.keys(m.edited || {}).length && !m.surfacedReviewed
+    && !m.needsReplacement && !m.wantsImprovement;
   let anyUsed = null;
   for (const [char, frames] of Object.entries(spriteManifest.characters)) {
     const used = Object.entries(frames).filter(([k]) => drawn(char, k));
