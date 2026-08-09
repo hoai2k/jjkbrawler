@@ -27,7 +27,11 @@ that way, so this is the normal case, not a mistake.
    height / clipping / fringe / holes → `assets/intake/_processed/` (gitignored).
 2. `tools/intake_sheets.py` renders before/after boards for approval.
 3. `tools/intake_import.py --approve` copies approved frames into
-   `assets/sprites/<char>/` and registers them in `manifest.json`.
+   `assets/sprites/<char>/` and registers them in `manifest.json`. **A frame
+   that replaces existing art does not enter the game here** — it lands beside
+   the drawing it replaces and waits to be approved in the workbench. A
+   brand-new pose has nothing to compare against and goes straight in. See
+   [the confirm step](#the-confirm-step) below.
 4. `tools/bake_anchors.py` measures each new frame's centre of mass.
 5. `tools/auto_tune.py` applies the placement corrections that are mechanical —
    the ground contact, the centring, and the size of the states the whole roster
@@ -46,6 +50,50 @@ the sprite workbench's **All Recently Updated Poses** list — a round's worth o
 re-tuning, gathered across every character it touched, instead of a hunt through
 the roster for the ones you remember having tuned. See
 [docs/asset-pipeline.md](../../docs/asset-pipeline.md#finding-what-the-round-overwrote).
+
+## The confirm step
+
+Until the roster was finished, an intake round changed what every player saw the
+moment it ran, and the only way to find out whether a redraw was actually better
+was to ship it and look. That is the wrong default for a finished game, so a
+**replacement is now a proposal** until somebody says yes.
+
+`intake_import.py` writes the new drawing to
+`assets/sprites/<char>/incoming/<pose>.png` and puts two pointers on the pose:
+
+```json
+"crouch_b": {
+  "file": "maki/incoming/crouch_b.png",   ← the workbench edits THIS
+  "renderScale": 0.26, "bodyBottom": 148,
+  "awaitingApproval": {
+    "at": "2026-08-09T15:00:00+00:00",
+    "live": { "file": "maki/crouch_b.png", … }   ← the game draws THIS
+  }
+}
+```
+
+The pose's own fields are the **new** drawing, because placing it is the work
+the approval is waiting on — open the pose in the workbench and you are sizing
+and grounding the art that has just arrived. `awaitingApproval.live` carries the
+whole placement of the drawing still in play, and `frameMeta`/`frameImage` in
+`src/assets.js` hand that to the game. The workbench asks for the other one by
+passing `preview: true`.
+
+The pose sits on **All Recently Updated Poses** with a **Replacement waiting**
+panel offering two answers, because "keep what we have" is a real outcome and a
+single button would make rejecting the art the thing you do by not clicking:
+
+- **Approve** — the marker is dropped and the new drawing, with the placement
+  you just gave it, becomes what the game draws.
+- **Keep the current art** — the live drawing's fields go back onto the pose and
+  the newcomer is discarded.
+
+Either answer exports as `approvals` and is applied by
+`apply_sprite_adjustments.py`, like every other change. Characters with a
+replacement still waiting carry a dot in the workbench's character dropdown.
+
+`--replace-now` skips all of this and overwrites immediately, the way imports
+worked before.
 
 ## What happens to a plate is decided by the flag already on the pose
 
