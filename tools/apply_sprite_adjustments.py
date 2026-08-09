@@ -224,10 +224,15 @@ def main():
     for payload in load_payloads(args.sources):
         char = payload.get("character")
         if char == OTHER_KEY:
-            # The workbench's "Other Sprites" entry: shared effect/summon art,
-            # which has no per-frame placement data. Only the review flags apply,
-            # and they live in their own manifest section keyed by sprite key
-            # ("effect:blue", "summon:nue") rather than under a character.
+            # The workbench's "Other Sprites" entry: shared effect/summon art.
+            # It has no pose to place — the code that spawns it decides where it
+            # goes — so most of the placement fields do not apply. Two do, and
+            # both are properties of the DRAWING rather than of a pose:
+            # `faceLeft` for art delivered pointing the wrong way, and
+            # `renderScale` for art delivered at the wrong size next to the
+            # fighter who throws it. Stored in their own manifest section keyed
+            # by sprite key ("effect:blue", "summon:nue"), and read back by
+            # src/shared_sprites.js.
             frames = man.setdefault("otherSprites", {})
             for key in (payload.get("adjustments") or {}):
                 frames.setdefault(key, {})

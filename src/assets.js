@@ -1,5 +1,6 @@
 import { CHARACTER_KEYS, actorsFor } from "./characters.js";
 import { applyAllHeightScales } from "./heights.js";
+import { applySharedSpriteScales } from "./shared_sprites.js";
 import { STAGES } from "./stages.js";
 import { transformActorsFor } from "./config_transform.js";
 import { SUMMON_ART, SUMMON_POSES } from "./config_summons.js";
@@ -119,7 +120,45 @@ async function loadOptionalImage(src) {
 }
 
 export function getImage(key) {
-  return images.get(key) || null;
+  const img = images.get(key) || null;
+  // A shared sprite the workbench has mirrored comes back already flipped.
+  // Done here rather than at the twenty-odd places an effect or a summon is
+  // drawn: which way a drawing FACES is a property of the drawing, and every
+  // one of those sites is asking for the drawing. See mirroredShared().
+  return img && sharedMirror(key) ? mirroredShared(key, img) : img;
+}
+
+/** Whether this shared sprite is marked as drawn facing left.
+ *
+ *  Effects and summons are drawn pointing right, the same as the fighters —
+ *  the game mirrors them with whoever threw them. Art that arrives facing the
+ *  other way needs flipping once, at the source, or every spawn site would
+ *  have to know about that one file. */
+function sharedMirror(key) {
+  return !!spriteManifest?.otherSprites?.[key]?.faceLeft;
+}
+
+const mirrored = new Map();
+
+function mirroredShared(key, img) {
+  const hit = mirrored.get(key);
+  if (hit && hit.from === img) return hit.canvas;
+  if (!img.width || !img.height) return img;
+  const cv = document.createElement("canvas");
+  cv.width = img.width;
+  cv.height = img.height;
+  const c = cv.getContext("2d");
+  c.translate(img.width, 0);
+  c.scale(-1, 1);
+  c.drawImage(img, 0, 0);
+  mirrored.set(key, { from: img, canvas: cv });
+  return cv;
+}
+
+/** Drop a mirrored copy so the next read rebuilds it — the workbench toggles
+ *  the flag live and has to see the change on the very next frame. */
+export function forgetSharedMirror(key) {
+  mirrored.delete(key);
 }
 
 // Sprite art is ~450 MB across 23 fighters, and a match uses at most four of
@@ -350,6 +389,10 @@ export async function loadCoreAssets() {
   // drawn. Doing it here rather than at each call site means the game and both
   // workbenches cannot disagree about how tall a fighter is.
   applyAllHeightScales();
+  // Same reasoning, for the art that belongs to no fighter: the sizes the kits
+  // declare for effects and summons are folded with whatever the workbench has
+  // tuned, once, before anything spawns.
+  applySharedSpriteScales();
 }
 
 // ------------------------------------------------------------- group catalogue

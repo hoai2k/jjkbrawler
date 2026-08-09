@@ -8,6 +8,7 @@
 
 import {
   loadCoreAssets, loadFrame, frameImage, spriteManifest, sharedSpriteKeys, loadSharedImage, getImage,
+  forgetSharedMirror,
   frameMeta, loadSpriteFile, spriteFileImage,
 } from "../src/assets.js";
 import {
@@ -18,6 +19,7 @@ import {
   variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS, NOTE_FIELDS, ALTERNATE_KIND,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
+import { applySharedSpriteScales } from "../src/shared_sprites.js";
 import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../src/moves.js";
 import { bodyMetrics, refreshSilhouettes } from "../src/silhouette.js";
 import { PIVOTED_STATES } from "../src/motion.js";
@@ -160,6 +162,13 @@ const inRecent = () => state.group === RECENT_KEY;
 function actorOf(charKey) {
   if (isOther(charKey)) return { name: OTHER_LABEL, scale: 1 };
   return getActor(charKey) || { name: charKey, scale: 1 };
+}
+
+/** The character whose kit spawns this shared sprite, if one does. The usage
+ *  index records the name for reading; this wants the key, to draw them. */
+function sharedOwner(key) {
+  const who = (sharedUsage().get(key) || [])[0]?.who;
+  return CHARACTER_KEYS.find((k) => CHARACTERS[k]?.name === who) || null;
 }
 
 /** Where a shared sprite is drawn from, and how tall the game draws it. Built
@@ -1246,6 +1255,20 @@ function selfIdleKey() {
  *  Null for None and for Overlay idle pose — the overlay draws under the pose
  *  rather than beside it, so its slot is legitimately empty. */
 function comparisonTarget() {
+  // A shared sprite is drawn beside the fighter who throws it, because the
+  // only useful question about an effect's size is "next to whom". Falls back
+  // to Gojo when nothing in a kit claims it — a stage hazard, a domain.
+  if (isOther(state.char)) {
+    const mode = $("selfIdleMode").value;
+    if (mode === "hide") return null;
+    const owner = sharedOwner(state.frame);
+    const charKey = mode === "gojo" || !owner ? "gojo" : owner;
+    const key = rawMeta(charKey, "idle_a") ? "idle_a" : "r0c0";
+    return {
+      charKey, frameKey: key,
+      caption: charKey === owner ? `${actorOf(charKey).name} — throws this` : "Gojo — roster size reference",
+    };
+  }
   const row = state.actionRow;
   if (row?.saved && row.saved !== state.frame) {
     const label = frameLabel(state.char, row.saved);
@@ -1290,8 +1313,20 @@ function comparisonTarget() {
 /** The comparison stands at the left end of the platform, drawn SOLID: it is a
  *  second sprite to look at, not a tracing guide, and ghosting it made it read
  *  as an overlay that had slipped sideways. */
+const comparisonAsked = new Set();
+
 function drawComparison({ charKey, frameKey, caption, sub, as, empty }) {
   const x = platformX() + BENCHMARK_INSET;
+  // The slot can name a character whose set has never been streamed — the
+  // fighter who throws an effect, most of all, since Other Sprites downloads
+  // no fighter at all. Asked for once, then drawn when it lands.
+  if (!empty && !as && charKey && frameKey && !frameImage(charKey, frameKey)) {
+    const id = `${charKey}/${frameKey}`;
+    if (!comparisonAsked.has(id)) {
+      comparisonAsked.add(id);
+      loadFrame(charKey, frameKey).then((ok) => { if (ok) render(); });
+    }
+  }
   if (!empty) drawGhost(charKey, frameKey, 1, x, as);
   ctx.save();
   ctx.fillStyle = empty ? "rgba(154, 164, 192, 0.55)" : "rgba(154, 164, 192, 0.9)";
@@ -1660,12 +1695,16 @@ function drawSharedSprite(cx) {
     ctx.textAlign = "left";
     return;
   }
-  let h = (gameHeightOf(state.frame) || img.height) * state.zoom;
+  const meta = rawMeta(state.char, state.frame);
+  const scale = Number.isFinite(meta?.renderScale) && meta.renderScale > 0 ? meta.renderScale : 1;
+  let h = (gameHeightOf(state.frame) || img.height) * scale * state.zoom;
   // Domain backdrops are full-screen images rather than sprites; shown whole
   // instead of overflowing the canvas by a factor of ten.
   const maxH = GROUND_Y - 20;
   if (h > maxH) h = maxH;
   const w = img.width * h / img.height;
+  // getImage() has already flipped a mirrored drawing, so this is the picture
+  // the game draws, at the size the game draws it.
   ctx.drawImage(img, cx - w / 2, GROUND_Y - h, w, h);
   if ($("showBox").checked) {
     ctx.strokeStyle = "rgba(255, 120, 160, 0.8)";
@@ -2080,11 +2119,14 @@ function dirtyActions(charKey) {
 
 // -------------------------------------------------------------- ui wiring
 
-// Which half of the panel applies. Shared sprites carry no placement data, so
-// showing sliders that write into nothing would be a lie about what they do.
-const PLACEMENT_GROUPS = ["scaleGroup", "offsetGroup", "groundGroup", "rotationGroup",
-                          "anchorGroup", "heightGroup", "mirrorGroup", "referenceGroup",
-                          "resetGroup"];
+// Which half of the panel applies. A shared sprite has no pose to place — the
+// code that spawns it decides where it goes — so the placement sliders would
+// be writing into nothing. Two of them are not about placement though: which
+// way the drawing FACES and how big it is relative to the fighter who throws
+// it are properties of the picture, and both now reach the game (see
+// src/shared_sprites.js), so they stay.
+const PLACEMENT_GROUPS = ["offsetGroup", "groundGroup", "rotationGroup",
+                          "anchorGroup", "heightGroup", "resetGroup"];
 
 function applyPanelMode() {
   const other = isOther(state.char);
@@ -2949,6 +2991,14 @@ function refreshLoadState() {
 function applyScale(relative, commit) {
   const orig = state.originals[state.char][state.frame];
   if (commit) pushHistory(state.char, state.frame);
+  // A shared sprite has no head-height reference to pin — nothing is solved
+  // from it — and its scale multiplies the height its kit declares.
+  if (isOther(state.char)) {
+    rawMeta(state.char, state.frame).renderScale = Math.max(0.02, (orig.renderScale ?? 1) * relative);
+    applySharedSpriteScales();
+    refreshControls(); buildPoseList(); render();
+    return;
+  }
   // Sheet cells carry no `renderScale` at all — the renderer treats a missing
   // one as 1. Reading it raw yields undefined, and `undefined * relative` is
   // NaN, which sticks: once written it poisons the slider and every later edit.
@@ -3064,6 +3114,10 @@ function applyWantsImprovement(kind) {
 function applyMirror(on) {
   pushHistory(state.char, state.frame);
   rawMeta(state.char, state.frame).faceLeft = on;
+  // A shared drawing is flipped once, where it is read, and the flipped copy
+  // is cached — so an edit here has to drop that copy or the canvas would go
+  // on showing the old direction.
+  if (isOther(state.char)) forgetSharedMirror(state.frame);
   refreshControls(); buildPoseList(); refreshTag(); render();
 }
 
