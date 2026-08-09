@@ -24,9 +24,16 @@ no round has asked for yet came back wrong. Four of them are the untouched half
 of a crouch pair 12A has just fixed, so those four fighters visibly pulse
 between a squat and a standing guard while the player holds down.
 
+Round 14 is the reach-and-stance round — the art is now the balance data, so a
+strike drawn short *is* short — plus **14D**, a whole-set redraw of Hanami. His
+thirty-six sprites all draw a walking tree; canon Hanami is a pale humanoid
+curse. Nothing about that is urgent, so 14D is requested as **alternates**: the
+new art lands beside the old and is adopted one pose at a time.
+
 Read **[the canonical reference image](#the-canonical-reference-image--one-per-fighter)**
 below before drawing anything: it names the one image each fighter is matched
-against, and it applies to every request in this file.
+against, and it applies to every request in this file. **Hanami is the one
+exception right now** and it is marked ⚠ there.
 
 ---
 
@@ -145,7 +152,7 @@ and a recipe for fetching more in that directory's README.
 | mahito | "Mahito from Jujutsu Kaisen, slim young man with pale blue-grey patchwork skin covered in stitched seams, long grey-blue hair in a loose bun, dark sleeveless vest and dark trousers" |
 | geto | "Suguru Geto from Jujutsu Kaisen, tall man with long black hair in a topknot, wearing a black traditional robe with gold trim over dark clothing" |
 | jogo | "Jogo from Jujutsu Kaisen, a volcano-headed cursed spirit with a single large eye, cracked earthen skin, wearing a yellow-and-black spotted fur mantle over dark trousers" |
-| hanami | "Hanami from Jujutsu Kaisen, tall upright cursed spirit with a dark grey-brown bark body, branch spurs on the shoulders, a flower growing from its head and glowing eyes in a cracked wooden face" |
+| hanami | "Hanami from Jujutsu Kaisen, tall powerfully built cursed spirit with a lean muscular pale bone-cream body marked by thick black brushstroke stripes down the face, arms, chest and abdomen, a rigid mask-like face with hollow black eye sockets, pale slit pupils and a wide fixed grin of large square teeth, a crown of thick tan antler horns curving up and back over the scalp, the entire right shoulder and arm wrapped in heavy white cloth bound close to the body with stitched seams where it meets the chest, a white cloth sash knotted at the waist with the ends hanging, wide baggy black hakama trousers gathered at the ankles, barefoot with broad clawed feet and long dark claws on both hands" *(grey key)* |
 | yuji | "Yuji Itadori from Jujutsu Kaisen, athletic teenage boy with short spiky salmon-pink hair and brown eyes, wearing a dark navy high-collared jujutsu school uniform jacket over a red hoodie, matching dark trousers and white sneakers" *(grey key)* |
 | choso | "Choso from Jujutsu Kaisen, pale serious young man with long black hair tied into two high loose buns with strands framing his face, a dark horizontal marking across the bridge of his nose, wearing a loose black robe-like tunic with pale trim, wide sleeves, dark trousers and simple shoes" *(grey key)* |
 | meimei | "Mei Mei from Jujutsu Kaisen, tall elegant woman with very long silver-lavender hair worn in thick loose braids, calm confident expression, wearing a fitted black high-collared long-sleeved dress with gold buttons and dark tights, carrying a large single-headed battle axe" |
@@ -155,7 +162,10 @@ and a recipe for fetching more in that directory's README.
 
 *(The 17 above are the launch roster; the six below shipped in round 7. The
 `uro`, `reggie` and `gakuganji` rows were rewritten from the anime reference in
-round 9 — see **9E**; art made against their old wording is being replaced.)*
+round 9 — see **9E**; art made against their old wording is being replaced.
+`hanami` was rewritten the same way for **14D**: the old row described a walking
+tree, which is not the character. Every Hanami sprite in the game was drawn from
+it.)*
 
 
 ---
@@ -186,7 +196,7 @@ keep resolving after a sprite is replaced.
 | Geto | `geto` | `assets/reference/canon/geto_idle.png` |
 | Gojo | `gojo` | `assets/reference/canon/gojo_idle.png` |
 | Hakari | `hakari` | `assets/reference/canon/hakari_idle.png` |
-| Hanami | `hanami` | `assets/reference/canon/hanami_idle.png` |
+| Hanami ⚠ | `hanami` | `assets/reference/canon/hanami_anime.png` — **not** his `idle_a`, see below |
 | Inumaki | `inumaki` | `assets/reference/canon/inumaki_idle.png` |
 | Jogo | `jogo` | `assets/reference/canon/jogo_idle.png` |
 | Mahito | `mahito` | `assets/reference/canon/mahito_idle.png` |
@@ -221,6 +231,15 @@ delivered set actually has.
 ships. Round 11A redrew him from it, so his delivered set now agrees with it;
 the render stays the authority for his design because it is what the set was
 drawn against.
+
+**⚠ Hanami's canon is now the anime render, not his `idle_a`** —
+`assets/reference/canon/hanami_anime.png`. His whole delivered set draws him as
+a **bark-and-foliage tree body**; canon Hanami is a **lean pale humanoid curse**.
+They are not the same character, so `hanami_idle.png` is exactly what must *not*
+be matched, the way Gakuganji's, Reggie's and Uro's idles were before 9E. Round
+14D is the whole-set redraw. When its new idle is picked, re-run
+`tools/build_canon_reference.py` and `hanami_idle.png` becomes the authority
+again like everyone else's.
 
 ---
 
@@ -564,9 +583,13 @@ fighter drawn broad is a broader target. The art is the balance data.
 - **14A** — heavy-attack strike frames that do not extend (16 sprites)
 - **14B** — a consistent idle stance, for the ten outliers (20 sprites)
 - **14C** — three caught while placing round 12's art (3 sprites)
+- **14D** — Hanami, redrawn to canon (36 sprites, all **alternates**)
 
-**39 sprites in total.** None of it is blocking: every fighter plays today, and
+**75 sprites in total.** None of it is blocking: every fighter plays today, and
 each delivery re-derives that character's numbers on import with no code change.
+14D is the least blocking of all — every one of its poses is requested as an
+**alternate**, so its art lands beside what is there and changes nothing on
+screen until somebody picks it.
 
 Round 13 is the companion to this and should be drawn first where they overlap —
 13C already asks for seven **light**-attack strike frames that do not reach, and
@@ -756,5 +779,106 @@ See [asset-pipeline.md](asset-pipeline.md#request-alternate).
 
 `uro/prone` is a costume note on a pose that is otherwise fine, so a redraw
 should keep the pose and the framing and only correct the outfit.
+
+---
+
+## 14D. Hanami, redrawn to canon — 36 sprites
+
+### Why
+
+**The game's Hanami is not Hanami.** Every one of his sprites draws a
+**bark-and-foliage tree body** — grey-brown wood grain, branch spurs off the
+shoulders, leaves, a flower growing out of a cracked wooden face. Canon Hanami
+is a **lean pale humanoid curse**: bone-cream skin under heavy black stripe
+markings, a rigid grinning mask-face crowned with tan antler horns, one arm and
+shoulder bound in white cloth, black hakama, bare clawed feet.
+
+It is the same fault 9E fixed for Gakuganji, Reggie and Uro — a character block
+written from imagination rather than from the show, then thirty-six sprites
+drawn faithfully from it. The whole set is on-model *for the wrong design*, so
+there is nothing here to fix pose by pose. The reference is
+[`assets/reference/canon/hanami_anime.png`](../assets/reference/canon/hanami_anime.png)
+and the rewritten block is in [Character blocks](#character-blocks) above.
+
+**His `hanami_idle.png` is not canon and must not be matched** — see the ⚠ note
+under [The canonical reference image](#the-canonical-reference-image--one-per-fighter).
+It stays checked in only so the two designs can be put side by side.
+
+### This is an improvement round, not a repair round
+
+**Every pose is flagged `alternate`, not `character`**, and that is deliberate.
+The set on screen today is good work and it animates well; nothing about it is
+broken in play. So the delivery lands **beside** each pose as a second drawing —
+the chevron in the sprite workbench gets a dot, the selection does not move, and
+nothing a player sees changes until somebody opens the pose and picks the new
+one. See [asset-pipeline.md](asset-pipeline.md#request-alternate).
+
+Which means this round can be **delivered and adopted one sprite at a time**.
+There is no batch to wait for and no half-swapped state to avoid: an idle drawn
+to canon can be picked the day it lands while the run cycle is still the tree.
+The mixed look during the changeover is the accepted cost of not gambling a
+finished character on a redraw arriving better.
+
+`python3 tools/list_replacements.py` lists all 36 with the flag on them, so the
+worklist survives without this document.
+
+### Two things that are not changing
+
+- **His kit.** Cursed Buds, Root Eruption, Flower Field and Domain of the
+  Flowering Forest all stay exactly as they are, and so do their effect
+  sprites. Canon Hanami is still a plant curse — the roots and blossoms come out
+  of the ground and off his hands. What changes is that his *body* stops being
+  made of the same material.
+- **His size.** 220 cm, `scale: 0.58`, and the head-height solve behind it are
+  measured numbers and are not in question. He is the second-tallest fighter on
+  the roster and the new art has to fill the same space — check against
+  `roster_idle.png`, not against the old Hanami alone.
+
+### What to deliver
+
+All 36 drawn poses. The **pose lines already in this document apply verbatim** —
+these are the same thirty-six actions every other fighter has, and the only
+thing being restated is the body doing them:
+
+| Row | Poses | Pose lines |
+|---|---|---|
+| Idle | `idle_a` `idle_b` | [14B](#14b-a-consistent-idle-stance--20-sprites) |
+| Run cycle | `run_reach_a` `run_pass_a` `run_reach_b` `run_pass_b` | round 12B, in [asset-requests-history.md](asset-requests-history.md) |
+| Crouch | `crouch_a` `crouch_b` | [13A](#13a-crouches-that-are-standing--22-sprites) — **the head must drop by at least a quarter of the standing height**; today's `crouch_b` is one of the frames that does not |
+| Crouch attack | `crouch_attack_a` `crouch_attack_b` | [13B](#13b-crouch_attack-frames-that-never-get-low--10-sprites) |
+| Light pair | `attack_light_a` `attack_light_b` | [13C](#13c-light-attack-pairs-that-do-not-reach--7-sprites) |
+| Heavy pair | `attack_heavy_a` `attack_heavy_b` | [14A](#14a-heavy-strike-frames-that-do-not-extend--16-sprites) |
+| Air pair | `attack_air_a` `attack_air_b` | 13C's wind-up/strike reading, thrown in the air |
+| Directional | `attack_up` `attack_down` | round 13D's `attack_down` line; both are correct on him today and only need redrawing for the body |
+| Movement | `dash` `jump_rise` `fall` `land` `ledge_hang` | round 5, in [asset-requests-history.md](asset-requests-history.md) |
+| Defence | `guard` `dodge_roll` `dodge_air` | round 5 |
+| Reaction | `hurt` `prone` `dizzy` | `prone` is round 12C's drawn knockdown — flat on his back, not a swept `hurt` |
+| Other | `charge` `victory` `special_neutral` `special_side` `special_down` `ult_a` `ult_b` | round 5 and round 11B |
+
+**Grey key, not magenta.** His existing set is keyed off magenta, which was
+right for a brown tree. The new design is bone-cream and pale tan against
+black, and magenta leaves a fringe on warm pale edges — so this delivery joins
+the grey-`#808080` list with Sukuna, Nobara, Momo, Hakari, Yuji, Choso, Uro and
+Gakuganji.
+
+Two details the reference makes obvious and a prompt tends to drop, both worth
+checking on every frame before delivering:
+
+- **The white wrap is on one side only.** It covers the right shoulder and the
+  whole right arm and it is bulky — it changes his silhouette, and a frame that
+  wraps both arms or neither is not the same character.
+- **The stripes are markings, not shading.** They are hard-edged black
+  brushstrokes that run in fixed places — down the centre of the face, along the
+  outsides of the arms, down the ribs and the abdomen. They must land in the
+  same places from pose to pose or the set will read as flickering.
+
+Deliver to:
+
+```
+assets/intake/hanami/<pose>.png
+```
+
+The intake routes them as alternates on its own — `intake_variants.py --plan`
+reads the flag, so nothing has to be said at import time.
 
 ---

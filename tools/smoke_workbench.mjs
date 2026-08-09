@@ -228,8 +228,15 @@ check(banked["hanami/dodge_air.png"] === "quality",
 // `false` rather than absent: the export always states a drawing's tag, so
 // clearing one travels as clearly as setting one.
 check(!banked[alt], "the drawing switched to does not inherit it", JSON.stringify(banked[alt]));
-check(forHanami?.adjustments?.dodge_air?.needsReplacement === undefined,
-  "and it is not left behind on the pose");
+// Either shape means "no request on the pose": omitted when the pose had no
+// committed flag to begin with, and an explicit `false` when it had one and the
+// drawing switched to does not carry it — the export states a clearing rather
+// than leaving the old flag standing. Asserting `undefined` would be asserting
+// that Hanami's dodge_air happens to start unflagged, which is a fact about the
+// manifest on the day the test was written, not about the behaviour.
+check(!forHanami?.adjustments?.dodge_air?.needsReplacement,
+  "and it is not left behind on the pose",
+  JSON.stringify(forHanami?.adjustments?.dodge_air?.needsReplacement));
 
 // ---- the Mirror box tells the truth about the drawing that is on screen
 //

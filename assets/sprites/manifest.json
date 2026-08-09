@@ -3039,7 +3039,9 @@
     "bodyLeft": 14,
     "bodyRight": 461,
     "coreLeft": 82.5,
-    "coreRight": 393.7
+    "coreRight": 393.7,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "idle_b": {
     "file": "hanami/idle_b.png",
@@ -3065,7 +3067,9 @@
     "bodyLeft": 14,
     "bodyRight": 422,
     "coreLeft": 88.9,
-    "coreRight": 361.9
+    "coreRight": 361.9,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "jump_rise": {
     "file": "hanami/jump_rise.png",
@@ -3090,7 +3094,9 @@
     "bodyLeft": 13,
     "bodyRight": 548,
     "coreLeft": 57.1,
-    "coreRight": 495.3
+    "coreRight": 495.3,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "fall": {
     "file": "hanami/fall.png",
@@ -3115,7 +3121,9 @@
     "bodyLeft": 14,
     "bodyRight": 420,
     "coreLeft": 44.4,
-    "coreRight": 361.9
+    "coreRight": 361.9,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "hurt": {
     "file": "hanami/hurt.png",
@@ -3141,7 +3149,9 @@
     "bodyLeft": 13,
     "bodyRight": 507,
     "coreLeft": 57.1,
-    "coreRight": 438.1
+    "coreRight": 438.1,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "guard": {
     "file": "hanami/guard.png",
@@ -3167,7 +3177,9 @@
     "bodyLeft": 13,
     "bodyRight": 453,
     "coreLeft": 69.8,
-    "coreRight": 406.4
+    "coreRight": 406.4,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "attack_up": {
     "file": "hanami/attack_up.png",
@@ -3193,7 +3205,9 @@
     "bodyLeft": 14,
     "bodyRight": 550,
     "coreLeft": 88.9,
-    "coreRight": 482.6
+    "coreRight": 482.6,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "attack_air": {
     "file": "hanami/attack_air.png",
@@ -3241,7 +3255,9 @@
     "bodyLeft": 13,
     "bodyRight": 399,
     "coreLeft": 82.5,
-    "coreRight": 349.2
+    "coreRight": 349.2,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "dizzy": {
     "file": "hanami/dizzy.png",
@@ -3267,7 +3283,9 @@
     "bodyLeft": 14,
     "bodyRight": 386,
     "coreLeft": 88.9,
-    "coreRight": 336.5
+    "coreRight": 336.5,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "victory": {
     "file": "hanami/victory.png",
@@ -3293,7 +3311,9 @@
     "bodyLeft": 13,
     "bodyRight": 491,
     "coreLeft": 82.5,
-    "coreRight": 450.8
+    "coreRight": 450.8,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "ledge_hang": {
     "file": "hanami/ledge_hang.png",
@@ -3322,7 +3342,9 @@
     "bodyLeft": 13,
     "bodyRight": 194,
     "coreLeft": 50.8,
-    "coreRight": 184.1
+    "coreRight": 184.1,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "run_a": {
     "file": "hanami/run_a.png",
@@ -3399,7 +3421,9 @@
     "bodyLeft": 0,
     "bodyRight": 798,
     "coreLeft": 218.4,
-    "coreRight": 750.0
+    "coreRight": 750.0,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "dodge_roll": {
     "w": 1035,
@@ -3424,7 +3448,9 @@
     "bodyLeft": 0,
     "bodyRight": 1035,
     "coreLeft": 122.9,
-    "coreRight": 976.8
+    "coreRight": 976.8,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "special_neutral": {
     "w": 995,
@@ -3450,7 +3476,9 @@
     "bodyLeft": 0,
     "bodyRight": 995,
     "coreLeft": 94.8,
-    "coreRight": 758.5
+    "coreRight": 758.5,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "special_side": {
     "w": 1005,
@@ -3476,7 +3504,9 @@
     "bodyLeft": 0,
     "bodyRight": 1005,
     "coreLeft": 117.2,
-    "coreRight": 851.6
+    "coreRight": 851.6,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "attack_air_a": {
     "w": 933,
@@ -3502,7 +3532,9 @@
     "bodyLeft": 0,
     "bodyRight": 933,
     "coreLeft": 80.0,
-    "coreRight": 853.8
+    "coreRight": 853.8,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "attack_air_b": {
     "w": 977,
@@ -3528,7 +3560,9 @@
     "bodyLeft": 0,
     "bodyRight": 977,
     "coreLeft": 63.7,
-    "coreRight": 874.2
+    "coreRight": 874.2,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "attack_down": {
     "w": 974,
@@ -3554,7 +3588,9 @@
     "bodyLeft": 0,
     "bodyRight": 974,
     "coreLeft": 124.2,
-    "coreRight": 852.0
+    "coreRight": 852.0,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "attack_heavy_a": {
     "w": 939,
@@ -3580,7 +3616,9 @@
     "bodyLeft": 0,
     "bodyRight": 939,
     "coreLeft": 100.9,
-    "coreRight": 843.5
+    "coreRight": 843.5,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "attack_heavy_b": {
     "w": 998,
@@ -3607,7 +3645,9 @@
     "bodyLeft": 0,
     "bodyRight": 998,
     "coreLeft": 55.8,
-    "coreRight": 924.4
+    "coreRight": 924.4,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "attack_light_a": {
     "w": 972,
@@ -3634,7 +3674,9 @@
     "bodyLeft": 0,
     "bodyRight": 972,
     "coreLeft": 103.5,
-    "coreRight": 818.9
+    "coreRight": 818.9,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "attack_light_b": {
     "w": 948,
@@ -3660,7 +3702,9 @@
     "bodyLeft": 0,
     "bodyRight": 948,
     "coreLeft": 146.9,
-    "coreRight": 844.7
+    "coreRight": 844.7,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "crouch_a": {
     "w": 893,
@@ -3687,7 +3731,9 @@
     "bodyLeft": 0,
     "bodyRight": 893,
     "coreLeft": 126.6,
-    "coreRight": 807.1
+    "coreRight": 807.1,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "crouch_attack_a": {
     "w": 962,
@@ -3713,7 +3759,9 @@
     "bodyLeft": 0,
     "bodyRight": 962,
     "coreLeft": 117.7,
-    "coreRight": 875.4
+    "coreRight": 875.4,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "crouch_attack_b": {
     "w": 1318,
@@ -3779,7 +3827,9 @@
       "bodyBottom": "foot=0.953 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "crouch_b": {
     "w": 872,
@@ -3843,7 +3893,9 @@
       "bodyBottom": "foot=0.953 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "dash": {
     "w": 946,
@@ -3869,7 +3921,9 @@
     "bodyLeft": 0,
     "bodyRight": 946,
     "coreLeft": 71.5,
-    "coreRight": 886.6
+    "coreRight": 886.6,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "land": {
     "w": 930,
@@ -3895,7 +3949,9 @@
     "bodyLeft": 0,
     "bodyRight": 930,
     "coreLeft": 100.1,
-    "coreRight": 808.5
+    "coreRight": 808.5,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "special_down": {
     "w": 950,
@@ -3921,7 +3977,9 @@
     "bodyLeft": 0,
     "bodyRight": 950,
     "coreLeft": 103.1,
-    "coreRight": 825.0
+    "coreRight": 825.0,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "ult_a": {
     "w": 928,
@@ -3947,7 +4005,9 @@
     "bodyLeft": 0,
     "bodyRight": 928,
     "coreLeft": 64.7,
-    "coreRight": 831.4
+    "coreRight": 831.4,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "ult_b": {
     "w": 1000,
@@ -3974,7 +4034,9 @@
     "bodyLeft": 0,
     "bodyRight": 1000,
     "coreLeft": 109.1,
-    "coreRight": 900.3
+    "coreRight": 900.3,
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "prone": {
     "w": 957,
@@ -4006,7 +4068,9 @@
     "edited": {
      "renderScale": 0.329,
      "bodyBottom": 310
-    }
+    },
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "run_pass_a": {
     "w": 834,
@@ -4039,7 +4103,9 @@
     "edited": {
      "renderScale": 0.33,
      "bodyBottom": 247.9
-    }
+    },
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "run_pass_b": {
     "w": 905,
@@ -4072,7 +4138,9 @@
     "edited": {
      "renderScale": 0.33,
      "bodyBottom": 245.8
-    }
+    },
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "run_reach_a": {
     "w": 963,
@@ -4105,7 +4173,9 @@
     "edited": {
      "renderScale": 0.33,
      "bodyBottom": 257.5
-    }
+    },
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    },
    "run_reach_b": {
     "w": 975,
@@ -4137,7 +4207,9 @@
     "coreRight": 912.1,
     "edited": {
      "renderScale": 0.33
-    }
+    },
+    "needsReplacement": "alternate",
+    "replacementNote": "Whole-set redraw to canon (14D) — the set is a bark-and-foliage tree body; canon Hanami is the pale humanoid curse in assets/reference/canon/hanami_anime.png"
    }
   },
   "geto": {
@@ -28367,28 +28439,29 @@
     "awaitingApproval": {
      "at": "2026-08-09T16:00:44+00:00",
      "live": {
-      "w": 920,
-      "h": 603,
-      "ox": -303.2,
-      "oy": -292,
-      "bodyBottom": 310.4,
-      "bodyH": 131.0,
+      "w": 970,
+      "h": 1232,
+      "ox": -538.2,
+      "oy": -921,
+      "bodyBottom": 278.4,
+      "bodyH": 159.7,
       "bodyTop": 0,
-      "centroidX": 140.5,
-      "renderScale": 0.217,
+      "centroidX": 297.5,
+      "renderScale": 0.2269,
       "anchors": {
        "com": [
-        444.2,
-        275.7
+        700.8,
+        404.9
        ]
       },
+      "faceLeft": true,
       "edited": {
        "renderScale": 0.13,
        "ox": -328.2,
        "bodyBottom": 310.4,
        "faceLeft": null
       },
-      "file": "reggie/alt/crouch_attack_b.png"
+      "file": "reggie/crouch_attack_b.png"
      }
     },
     "bodyTop": 0,
@@ -41593,62 +41666,6 @@
       "bodyH": 296.4,
       "centroidX": 159.1,
       "renderScale": 0.285
-     }
-    ]
-   }
-  },
-  "reggie": {
-   "crouch_attack_b": {
-    "options": [
-     {
-      "file": "reggie/crouch_attack_b.png",
-      "label": "Delivered",
-      "w": 970,
-      "h": 1232,
-      "ox": -538.2,
-      "oy": -921,
-      "bodyBottom": 278.4,
-      "bodyH": 159.7,
-      "bodyTop": 0,
-      "centroidX": 297.5,
-      "renderScale": 0.2269,
-      "anchors": {
-       "com": [
-        700.8,
-        404.9
-       ]
-      },
-      "faceLeft": true,
-      "edited": {
-       "renderScale": 0.13,
-       "ox": -328.2,
-       "bodyBottom": 310.4,
-       "faceLeft": null
-      },
-      "needsReplacement": "pose"
-     },
-     {
-      "file": "reggie/alt/crouch_attack_b.png",
-      "label": "Alternate",
-      "w": 920,
-      "h": 603,
-      "ox": -303.2,
-      "oy": -292,
-      "bodyBottom": 310.4,
-      "bodyH": 131.0,
-      "centroidX": 140.5,
-      "renderScale": 0.217,
-      "anchors": {
-       "com": [
-        444.2,
-        275.7
-       ]
-      },
-      "bodyTop": 0,
-      "bodyLeft": 0,
-      "bodyRight": 920,
-      "coreLeft": 46.0,
-      "coreRight": 776.2
      }
     ]
    }
