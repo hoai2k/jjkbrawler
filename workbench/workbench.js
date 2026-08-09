@@ -29,6 +29,7 @@ import {
 } from "../src/heights.js";
 import { initTooltips, setHelp } from "./tooltip.js";
 import { makeCharLoader, frameLoaded } from "./lazy_sprites.js";
+import { fitStageCanvas } from "./fit_stage.js";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("stage");
@@ -3256,6 +3257,7 @@ async function boot() {
   });
 
   initTooltips();
+  fitStageCanvas(canvas);
 
   // The manifest alone — every number the panels show, and everything
   // warmAnchors needs. Sprite art follows per character, so opening the
