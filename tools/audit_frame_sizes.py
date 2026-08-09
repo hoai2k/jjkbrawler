@@ -54,11 +54,44 @@ DEFAULT_TOLERANCE = 0.08
 MIN_SAMPLES = 6
 
 
-def parse_anims(text):
-    """`state: { frames: ["a", "b"], ... }` pairs out of a block of source."""
+def named_anims(src):
+    """`export const NAME = { frames: [...] }` at module scope, by name.
+
+    An animation defined once and shared — `RUN_ANIM`, which every fighter's
+    `run` state points at — is written as a reference rather than inline, and a
+    reader that only understands inline literals cannot see through it. That
+    made all four frames of the four-frame run cycle look undrawn on all 24
+    fighters, so the request tables listed the busiest sprites in the game as
+    "not drawn by any state".
+    """
+    # Frame lists are shared too — `RUN_ANIM` names `RUN_CYCLE_FRAMES` rather
+    # than repeating it, since the cycle order is referenced elsewhere — so the
+    # array consts are resolved first and an anim may point at one.
+    lists = {}
+    for name, frames in re.findall(r'const (\w+) = \[([^\]]*)\]', src):
+        lists[name] = [f.strip().strip('"') for f in frames.split(",") if f.strip()]
+
+    out = {}
+    for name, frames in re.findall(r'const (\w+) = \{ frames: (\[[^\]]*\]|\w+)', src):
+        out[name] = (lists.get(frames, []) if not frames.startswith("[")
+                     else [f.strip().strip('"')
+                           for f in frames[1:-1].split(",") if f.strip()])
+    return out
+
+
+def parse_anims(text, named=None):
+    """`state: { frames: ["a", "b"], ... }` pairs out of a block of source.
+
+    Also resolves the two ways a state can name a shared animation instead of
+    spelling its frames out: `run: RUN_ANIM,` and `run: { ...RUN_ANIM, fps: 12 }`
+    — the second being an inherit-and-retime, which keeps the frames.
+    """
     out = {}
     for state, frames in re.findall(r'(\w+): \{ frames: \[(.*?)\]', text):
         out[state] = [f.strip().strip('"') for f in frames.split(",") if f.strip()]
+    for state, ref in re.findall(r'(\w+): (?:\{ \.\.\.)?([A-Z_][A-Z0-9_]*)\b', text):
+        if state not in out and (named or {}).get(ref):
+            out[state] = list(named[ref])
     return out
 
 
@@ -89,9 +122,10 @@ def anims_by_frame(src, char_keys):
     list_replacements.py reported eight characters' poses as "not drawn by any
     animation" while the game was drawing them perfectly well.
     """
+    shared = named_anims(src)
     tables = {
-        "DEFAULT_ANIMS": parse_anims(slice_block(src, "export const DEFAULT_ANIMS = {")),
-        "SEMANTIC_ANIMS": parse_anims(slice_block(src, "export const SEMANTIC_ANIMS = {")),
+        "DEFAULT_ANIMS": parse_anims(slice_block(src, "export const DEFAULT_ANIMS = {"), shared),
+        "SEMANTIC_ANIMS": parse_anims(slice_block(src, "export const SEMANTIC_ANIMS = {"), shared),
     }
     per_char = {}
     for key in char_keys:
@@ -103,7 +137,7 @@ def anims_by_frame(src, char_keys):
         merged = dict(tables.get(named.group(1) if named else "", tables["DEFAULT_ANIMS"]))
         # An inline `anims: { ... }` block is this character's own overrides on
         # top of whichever table they named.
-        merged.update(parse_anims(slice_block(block, "    anims: {")))
+        merged.update(parse_anims(slice_block(block, "    anims: {"), shared))
         per_char[key] = merged
     return per_char
 

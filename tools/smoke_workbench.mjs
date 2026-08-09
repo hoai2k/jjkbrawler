@@ -72,6 +72,8 @@ const after = await page.evaluate((t) => {
     present: !!el,
     dirty: !!el?.classList.contains("dirty"),
     flagged: !!el?.classList.contains("flagged"),
+    warned: !!el?.querySelector(".pose-warn"),
+    name: el?.textContent,
     count: btns.length,
     dirtyCount: document.getElementById("dirtyCount").textContent,
   };
@@ -81,6 +83,10 @@ check(after.present, `flagging "${target}" leaves it in the work list`,
   `list went ${before.length} -> ${after.count}`);
 check(after.dirty, "the yellow dot appears on it");
 check(after.flagged, "it is also marked as flagged for redraw");
+check(after.warned, "and carries the caution mark saying new art is on order");
+check(after.name === target,
+  "which is a mark, not a rename — the cell still answers to its pose name",
+  JSON.stringify(after.name));
 check(!/none/i.test(after.dirtyCount), "the change count sees it", JSON.stringify(after.dirtyCount));
 
 // Export must emit it — the original symptom was "no changes yet".
@@ -228,8 +234,15 @@ check(banked["hanami/dodge_air.png"] === "quality",
 // `false` rather than absent: the export always states a drawing's tag, so
 // clearing one travels as clearly as setting one.
 check(!banked[alt], "the drawing switched to does not inherit it", JSON.stringify(banked[alt]));
-check(forHanami?.adjustments?.dodge_air?.needsReplacement === undefined,
-  "and it is not left behind on the pose");
+// Either shape means "no request on the pose": omitted when the pose had no
+// committed flag to begin with, and an explicit `false` when it had one and the
+// drawing switched to does not carry it — the export states a clearing rather
+// than leaving the old flag standing. Asserting `undefined` would be asserting
+// that Hanami's dodge_air happens to start unflagged, which is a fact about the
+// manifest on the day the test was written, not about the behaviour.
+check(!forHanami?.adjustments?.dodge_air?.needsReplacement,
+  "and it is not left behind on the pose",
+  JSON.stringify(forHanami?.adjustments?.dodge_air?.needsReplacement));
 
 // ---- the Mirror box tells the truth about the drawing that is on screen
 //

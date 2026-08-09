@@ -26,6 +26,14 @@ canon design, so his `idle_a` is what must *not* be matched — his canon is
 were in the same position until round 9E replaced their idles; their
 `<char>_idle.png` files are here now and canonical like everyone else's.
 
+**Hanami is now the same case, and his `hanami_idle.png` is retired as an
+authority.** The delivered set draws him as a bark-and-foliage tree body; canon
+Hanami is a lean pale humanoid curse. So his `idle_a` is what must *not* be
+matched, and `hanami_anime.png` is the reference for round 15A's whole-set
+redraw. `hanami_idle.png` stays only so the request docs keep resolving and so
+the two designs can be put side by side — it becomes canon again, regenerated
+by `build_canon_reference.py`, once the new idle is picked.
+
 ## `<char>_anime.png` — what the show says they look like
 
 These seeded the initial designs, and they stay — a design question ("what does
@@ -50,6 +58,7 @@ rather than editing these in place.
 |---|---|
 | `gakuganji_anime.png` | [Yoshinobu Gakuganji (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/3/3c/Yoshinobu_Gakuganji_%28Anime%29.png/revision/latest?cb=20201025154546) |
 | `gakuganji_guitar_anime.png` | [Gakuganji's cursed technique (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/8/86/Gakuganji%27s_cursed_technique_%28Anime%29.png/revision/latest?cb=20210316092547) |
+| `hanami_anime.png` | [Hanami (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/7/76/Hanami_%28Anime%29.png/revision/latest?cb=20210318193331) |
 | `reggie_anime.png` | [Reggie Star (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/0/01/Reggie_Star_%28Anime%29.png/revision/latest?cb=20260403035700) |
 | `reggie_intro_anime.png` | [Reggie Star introduction (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/2/27/Reggie_Star_introduction_%28Anime%29.png/revision/latest?cb=20260226172413) |
 | `uro_anime.png` | [Takako Uro (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/8/84/Takako_Uro_%28Anime%29.png/revision/latest?cb=20260324045602) |

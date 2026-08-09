@@ -406,6 +406,19 @@ export function ringOut(f) {
   f.respawnTimer = RESPAWN_WAIT;
 }
 
+// Every path that moves a fighter has to run this. A branch that integrates
+// position and then returns early without checking — the prone and dizzy
+// states used to do exactly that — lets a body sail past the blast zone and
+// keep falling forever: no KO, no stock lost, and the round never ends.
+// Returns true when the fighter was rung out and the caller must stop.
+function checkBlastZones(f) {
+  if (f.y > BLAST.bottom || f.x < BLAST.left || f.x > BLAST.right || f.y < BLAST.top) {
+    ringOut(f);
+    return true;
+  }
+  return false;
+}
+
 /** Where this fighter comes back, given how many are in the match. Exported so
  *  the renderer can put the incoming marker in the right place during the
  *  blackout, instead of guessing from the slot number. */
@@ -600,6 +613,7 @@ export function updateFighter(f, dt, input) {
     f.x += f.vx * dt;
     f.y += f.vy * dt;
     resolvePlatforms(f, prevY);
+    checkBlastZones(f);
     return;
   }
 
@@ -625,6 +639,7 @@ export function updateFighter(f, dt, input) {
     f.x += f.vx * dt;
     f.y += f.vy * dt;
     resolvePlatforms(f, prevY);
+    checkBlastZones(f);
     return;
   }
 
@@ -902,10 +917,7 @@ export function updateFighter(f, dt, input) {
   if (!f.grounded && f.vy > -70) tryGrabLedge(f);
 
   // ---- blast zones
-  if (f.y > BLAST.bottom || f.x < BLAST.left || f.x > BLAST.right || f.y < BLAST.top) {
-    ringOut(f);
-    return;
-  }
+  if (checkBlastZones(f)) return;
 
   // ---- animation selection
   pickAnim(f, input);

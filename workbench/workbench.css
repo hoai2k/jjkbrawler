@@ -266,6 +266,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   padding-right: 4px;
 }
 .pose-list button {
+  position: relative;      /* the caution mark hangs off the top-right corner */
   text-align: left;
   padding: 5px 8px;
   font-size: 11.5px;
@@ -277,6 +278,8 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   cursor: pointer;
 }
 .pose-list button:hover { border-color: var(--line); }
+/* room for the caution mark, so a long pose name does not run under it */
+.pose-list button.warned { padding-right: 16px; }
 
 /* A pose with more than one drawing: the cell still fills the grid slot, with
    the chevron sitting inside its right edge rather than taking a slot of its
@@ -405,6 +408,22 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 .pose-list button.wanted[data-want="crop"]::before { content: "⬚ "; color: #8fb8ff; }
 .pose-list button.wanted[data-want="bleed"]::before { content: "◐ "; color: #8fb8ff; }
 .pose-list button.flagged.wanted::before { content: "✂◍ "; color: #ff8898; }
+/* New art is on order for this pose. The kind glyph in front of the label says
+   what was wrong with the drawing; this says the consequence — somebody is
+   drawing it again, so anything you place today is measured off art that is on
+   its way out. It sits in the corner rather than in the label so it does not
+   compete with the pose name, and it is the one red thing in the grid. */
+.pose-list button .pose-warn::before { content: "\26a0"; }
+.pose-list button .pose-warn {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 1;
+  color: #ff5a6e;
+  pointer-events: none;    /* the cell behind it still selects the pose */
+}
 /* A pose already requested for redraw is dimmed: the replacement is measured
    from scratch when it lands, so placing this drawing now is work that gets
    thrown away. What is left bright is what is worth doing today.

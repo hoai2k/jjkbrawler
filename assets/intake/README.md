@@ -7,7 +7,13 @@ assets/intake/<character>/<pose_key>.png     e.g. assets/intake/yuji/idle_a.png
 assets/intake/effects/<name>.png             e.g. assets/intake/effects/sedan.png
 assets/intake/summons/<name>.png
 assets/intake/cards/<key>_card.jpg
+assets/intake/cards/simple/<key>_tile.jpg
 ```
+
+**Cards take the short path.** Neither kind is keyed, trimmed, measured or
+registered in the manifest, so landing one is a move into `assets/cards/` (hero
+cards) or `assets/cards/simple/` (the simplified roster tiles asked for in round
+15B) and nothing else. Everything below is about sprites.
 
 Delivered **sound** goes to `assets/intake/sfx/` and takes the short path: it
 needs no keying or measuring, so landing it is a move into `assets/sfx/`, a key
@@ -53,6 +59,14 @@ that way, so this is the normal case, not a mistake.
    anything it turned up gets flagged in the workbench and folded into the
    current round. `python3 tools/list_replacements.py --markdown` writes the
    tables in the shape that file uses.
+
+   **And update the standing brief.** When the round's flags show the *same*
+   fault on several fighters, that is a rule missing from
+   [docs/pose-brief.md](../../docs/pose-brief.md) rather than a run of bad luck:
+   write it in, and into that file's measurable criteria if it can be measured.
+   The request docs describe one delivery and then move to history; the brief is
+   what carries a lesson forward into the next character. Skipping it is how the
+   same fault gets re-requested three rounds running.
 
    Delivered is not the same as approved. A replacement is in the repo from
    step 3 and in the *game* only when somebody approves it, so the request doc

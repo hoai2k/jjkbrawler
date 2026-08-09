@@ -322,8 +322,18 @@ function framesOf(charKey) {
 /** The intake marker on a pose, or null. */
 function updateNote(charKey, frameKey) {
   if (isOther(charKey)) return null;
-  return spriteManifest?.characters?.[charKey]?.[frameKey]?.replaced
-    || surfacedNote(charKey, frameKey);
+  const meta = spriteManifest?.characters?.[charKey]?.[frameKey];
+  // A pose still waiting to be approved belongs on the list whatever else has
+  // happened to it. The `replaced` marker clears the moment the pose is
+  // adjusted — which is right for a re-tune, and wrong here: placing the new
+  // art is exactly what you do BEFORE deciding, so tuning it dropped the pose
+  // off the queue while the game was still drawing the old drawing. The
+  // approval is the thing being tracked, so it outranks the marker.
+  if (meta?.awaitingApproval) {
+    return meta.replaced || { at: meta.awaitingApproval.at || "", kept: "await",
+                              how: "await", lost: [] };
+  }
+  return meta?.replaced || surfacedNote(charKey, frameKey);
 }
 
 // A second way onto the list, and the same job: poses that need a look now and
@@ -482,6 +492,11 @@ function updateSummary(note) {
   const when = note.at ? new Date(note.at) : null;
   const landed = when && !Number.isNaN(when.getTime())
     ? when.toLocaleString() : (note.at || "an earlier round");
+  if (note.how === "await") {
+    return "New art for this pose is in the repo and <b>the game is still drawing "
+      + "the old drawing</b>. Place it, compare the two, then approve or keep — "
+      + "the buttons are below the sliders.";
+  }
   if (note.how === "alternate") {
     const at = note.at ? new Date(note.at) : null;
     const when = at && !Number.isNaN(at.getTime()) ? at.toLocaleString() : (note.at || "an earlier round");
@@ -924,6 +939,23 @@ function needsReplacement(charKey, frameKey) {
 
 function kindLabel(kind, kinds = REPLACEMENT_KINDS) {
   return kinds.find(([k]) => k === kind)?.[1] ?? kind;
+}
+
+/** Is a *drawing* already on order for this pose?
+ *
+ *  Every replacement kind except `delete` means somebody has been asked to draw
+ *  this pose again, so any placement done today is measured off art that is on
+ *  its way out — the replacement is measured from scratch when it lands.
+ *  `delete` is the exception: it throws a drawing away and asks for nothing, so
+ *  no new art is coming and the pose is not warned about.
+ *
+ *  This is what the caution mark in the grid means. It is deliberately narrower
+ *  than `flagged`, which also covers the improvement flags — those are repo work
+ *  on the file we already have, and nothing arrives to overwrite the numbers.
+ */
+function redrawPending(charKey, frameKey) {
+  const kind = replacementKind(rawMeta(charKey, frameKey));
+  return !!kind && kind !== "delete";
 }
 
 function wantsImprovement(charKey, frameKey) {
@@ -2498,22 +2530,37 @@ function buildPoseEntry(charKey, key, { owner = false } = {}) {
   const states = statesUsing(charKey, key);
   const doomed = hasDeleteTag(charKey, key);
   // The dimmed cells need to say WHY they are dim, or they read as disabled.
-  const requested = needsReplacement(charKey, key) && !doomed;
+  const requested = redrawPending(charKey, key) && !doomed;
   b.title = (owner ? `${charKey}/${key}` : key)
     + (states.length ? ` — ${states.map(stateLabel).join(", ")}` : " — not drawn by any state")
-    + (requested ? " — already requested for redraw; placing it now is optional,"
-                 + " the replacement is measured from scratch" : "");
+    + (requested ? " — ⚠ new art is on order for this pose; placing it now is"
+                 + " optional, the replacement is measured from scratch" : "");
   const selected = charKey === state.char && key === state.frame;
   b.className = (selected ? "sel " : "")
     + (isDirty(charKey, key) || variantFlagEdits.has(`${charKey}/${key}`) ? "dirty " : "")
     + (needsReplacement(charKey, key) || doomed ? "flagged " : "")
     + (wantsImprovement(charKey, key) ? "wanted " : "")
+    + (requested ? "warned " : "")
     + (isUpdateReviewed(charKey, key) ? "reviewed" : "");
   const kind = doomed ? "delete" : replacementKind(rawMeta(charKey, key));
   if (kind) b.dataset.kind = kind;
   const want = improvementKind(rawMeta(charKey, key));
   if (want) b.dataset.want = want;
   b.onclick = () => selectPose(charKey, key);
+  // The caution mark, in the corner rather than in the label: the pose is still
+  // perfectly editable — a request can sit unanswered for rounds — and this is
+  // a heads-up, not a barrier. The dimming says the same thing quietly; this
+  // says it at a glance, which is what you want before starting work on a pose.
+  if (requested) {
+    const warn = document.createElement("i");
+    warn.className = "pose-warn";
+    // The glyph is drawn by CSS rather than set here, so it stays out of the
+    // cell's textContent — the pose name is how a cell is found, in the arrow
+    // and Tab walks and in the smoke test alike, and a mark that joined the
+    // text would rename every pose it lands on.
+    warn.setAttribute("aria-label", "new art on order");
+    b.appendChild(warn);
+  }
 
   if (!host) return b;
   host.appendChild(b);

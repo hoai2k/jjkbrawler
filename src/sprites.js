@@ -193,7 +193,13 @@ export const AIRBORNE_STATES = ["jump", "fall", "ledge", "dodge_air", "airLight"
 /** Every drawing available for a pose, selected one first-class. Always at
  *  least one entry (the pose's own art) so callers need no special case. */
 export function variantsOf(charKey, frameKey) {
-  const meta = frameMeta(charKey, frameKey);
+  // `preview`, because the only caller is the workbench and the workbench is
+  // looking at the drawing being WORKED ON. On a pose awaiting approval the
+  // plain resolution hands back the older drawing the game is still showing,
+  // which put the "current" tick on a file that was not the one on the canvas
+  // — and disagreed with `currentOption()` next door, which reads the raw
+  // manifest entry. Two answers to "which drawing is selected" is one too many.
+  const meta = frameMeta(charKey, frameKey, { preview: true });
   if (!meta) return [];
   const listed = spriteManifest?.variants?.[charKey]?.[frameKey]?.options;
   if (!listed?.length) return [{ ...meta, label: "Delivered", current: true }];
