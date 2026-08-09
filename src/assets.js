@@ -13,8 +13,10 @@ const ASSET_BASE = new URL("../", import.meta.url);
 const assetUrl = (path) => new URL(path, ASSET_BASE).href;
 
 const EFFECT_KEYS = [
+  // (rainbow_dragon is NOT here: Geto's dragon is summon:rainbow_dragon, and
+  // the effects/ copy was a required fetch nothing ever drew.)
   "blue", "red", "purple", "dismantle", "fuga", "sword_beam", "wind_scythe", "nail",
-  "rainbow_dragon", "cursed_spirit_orb", "ember", "cursed_bud", "chain", "shutter",
+  "cursed_spirit_orb", "ember", "cursed_bud", "chain", "shutter",
   "lava_geyser", "root_spikes", "scissors_curse", "shrine", "triceratops",
   "uzumaki", "meteor", "tempest", "nail_storm", "scream_wave",
   "cursed_tool", "ratio_wave", "soul_isomer", "speech_word", "drum_burst", "soul_touch",

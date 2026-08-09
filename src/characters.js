@@ -562,7 +562,9 @@ export const CHARACTERS = {
     ultimate: {
       name: "Boogie Woogie: Zero-Distance Finale", type: "flurry",
       desc: "Clap. Behind you. Clap. Above you. A teleporting beatdown only brothers understand, capped with a Black Flash.",
-      p: { hits: 6, dmg: 6, base: 220, finisherDmg: 20, finisherBase: 860, growth: 9, teleport: true, color: "#b66cff", label: "BLACK FLASH" },
+      // `crit` is presentation-only in the flurry director: it prints the
+      // finisher label. Without it Todo's advertised Black Flash never showed.
+      p: { hits: 6, dmg: 6, base: 220, finisherDmg: 20, finisherBase: 860, growth: 9, teleport: true, crit: true, critLabel: "BLACK FLASH", critColor: "#ff3b30", color: "#b66cff", label: "BLACK FLASH" },
     },
     passive: { id: "bestFriend", name: "Ride the Wave", desc: "Landing heavy attacks pumps him up — +8 bonus ultimate meter per heavy hit." },
     ai: { style: "rush", range: 200 },

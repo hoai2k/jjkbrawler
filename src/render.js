@@ -9,7 +9,7 @@ import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.j
 import { hitboxRect, hurtbox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
 import { WORLD, SHIELD_MAX, PARRY_WINDOW } from "./constants.js";
-import { clamp } from "./utils.js";
+import { clamp, colorAlpha } from "./utils.js";
 import { headHeightTarget } from "./heights.js";
 import { VISIBLE_ART_REACH } from "./moves.js";
 
@@ -145,7 +145,9 @@ function drawProjectiles(ctx) {
     const grad = ctx.createRadialGradient(p.x, p.y, 2, p.x, p.y, p.r);
     grad.addColorStop(0, "#ffffff");
     grad.addColorStop(0.45, p.color);
-    grad.addColorStop(1, "rgba(80, 120, 255, 0)");
+    // Fade to a transparent version of the projectile's OWN colour — a fixed
+    // blue outer stop made every fallback fire/blood orb glow blue at the rim.
+    grad.addColorStop(1, colorAlpha(p.color, 0));
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);

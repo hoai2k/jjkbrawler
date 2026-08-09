@@ -20,6 +20,19 @@ export function dist(x1, y1, x2, y2) {
   return Math.hypot(x2 - x1, y2 - y1);
 }
 
+/** A hex colour (#rgb or #rrggbb) as rgba() at the given alpha. Non-hex input
+ *  (already an rgba() string, a named colour) is returned unchanged rather than
+ *  mangled, so callers can pass whatever colour they were themselves given. */
+export function colorAlpha(color, alpha) {
+  if (typeof color !== "string" || color[0] !== "#") return color;
+  let hex = color.slice(1);
+  if (hex.length === 3) hex = hex.replace(/./g, (c) => c + c);
+  if (hex.length !== 6) return color;
+  const n = parseInt(hex, 16);
+  if (Number.isNaN(n)) return color;
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
 export function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
