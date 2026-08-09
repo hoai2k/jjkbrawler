@@ -195,6 +195,7 @@ has to come back and clarify:
 | `needsReplacement` | `quality` | the drawing is rough, malformed or off-model |
 | `needsReplacement` | `pose` | reads poorly, or is not the action it stands for |
 | `needsReplacement` | `character` | likeness or costume is off |
+| `needsReplacement` | `alternate` | the drawing is not condemned — deliver a **second** one beside it. See below. |
 | `needsReplacement` | `delete` | this DRAWING is surplus — discard it and keep the other variant. Only offered on a pose that has more than one drawing, so a deletion can never leave a pose with no art. Stored on the variant option rather than the pose, because it names one image out of several. |
 | `wantsImprovement` | `alpha` | transparency is wrong or has hard edges |
 | `wantsImprovement` | `crop` | the framing or bounds are wrong |
@@ -206,13 +207,41 @@ wish, so the blocking list was full of things nobody needed to draw. [19efd99]
 split them by who does the work. Anything written before that uses the old
 names; a legacy `true` or `"replace"` still reads as `quality`.
 
+Either flag can carry a **description** — free text saying what is actually
+wrong with this drawing, written in the workbench beside the dropdown. The kind
+says which of six shapes the fault has; it cannot say that the naginata bends
+where it crosses her chest, and the person who spotted that is otherwise the
+only one who ever knew. It is optional, it travels through the same export and
+apply path, and `list_replacements.py` prints it under the pose and as a column
+in the markdown a request is written from. Notes belong to the *drawing*
+(`VARIANT_REVIEW`), so switching drawings does not leave a description of the
+old one attached to its replacement, and clearing a flag clears its note.
+
+#### Request alternate
+
+`alternate` is the one replacement kind that does not condemn the drawing. The
+ask is still "draw this" and it goes out in the request like the others, but the
+delivery lands **beside** the current art rather than on top of it: a second
+option on the pose's chevron, with the selection untouched. It is for a pose
+that works and might work better, where replacing it outright throws away
+something you cannot get back if the new one loses.
+
+It is the one delivery that leaves no trace of itself — the art on screen is
+unchanged, the numbers are unchanged, and the only new thing is an option behind
+a chevron nobody has a reason to open. So `intake_variants.py` marks the new
+option `fresh`, which the workbench draws as a dot on the chevron and on the
+option itself, and puts the pose on the **All Recently Updated Poses** list with
+`how: "alternate"`. Both clear when the pose is adjusted or marked reviewed, the
+same lifecycle as every other marker here.
+
 **A flag is also an instruction to the next import.** When new art arrives for a
 flagged pose, what happens to the old drawing is decided by what the flag said —
 `intake_variants.py --plan` reads it and reports the disposition:
 
 | Flag on the pose | Incoming art |
 |---|---|
-| any `needsReplacement`, or the selected drawing tagged `delete` | **replaces it outright** — the old art was condemned, so nothing is kept |
+| `needsReplacement`: `quality`, `pose`, `character`, or the selected drawing tagged `delete` | **replaces it outright** — the old art was condemned, so nothing is kept |
+| `needsReplacement`: `alternate` | **added as a variant, selection unchanged, and marked new** — the request asked for a second opinion, and selecting it here would answer the question it was raised to ask |
 | any `wantsImprovement` | **added as a variant and selected**, old drawing kept as a fallback |
 | unflagged | **added as a variant, selection unchanged** |
 
