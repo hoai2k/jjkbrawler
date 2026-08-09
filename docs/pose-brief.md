@@ -54,6 +54,13 @@ The canonical reference image is the authority, and it is checked pose by pose.
 **A pose is not a scene.** One subject per file, no props the character is not
 holding, no ground, no background.
 
+**One pose per plate — not a strip of them.** A generator asked for a run frame
+will sometimes return the whole cycle as a contact sheet of small figures. It is
+unusable twice over: the figures overlap, so no single one crops out cleanly,
+and each is a fraction of the canvas, so none of them clears the 600 px body
+minimum. Round 15A lost `mechamaru/run_reach_a` this way. Four poses means four
+files.
+
 ---
 
 ## 2. Every `_a`/`_b` pair, and the flip test
@@ -91,6 +98,14 @@ A `_b` that is *taller* than its `_a` is a rising attack, and rising attacks are
 Three poses now feed numbers the engine uses in play, so they are not only a
 readability question — **the art is balance data**. These are the acceptance
 criteria, and they can be checked with a ruler:
+
+**Measure them, do not eyeball them.** Round 15A stated the heavy-strike rule in
+the request itself and all three delivered sets still missed it — 9%, 16% and
+20% against a third. A criterion that is read is not a criterion that is
+checked. The measurement is mechanical: the forward edge of the art past the
+centre of the body's core columns, as a fraction of the idle's own height, and
+it is comparable across a set without any placement because every pose of a
+fighter is drawn at one zoom.
 
 | Pose | Criterion | Why |
 |---|---|---|
@@ -235,8 +250,16 @@ often.
 | **Figure scale drifts between poses** | worst between `idle_a` and `idle_b` | 9, 12B |
 | **The technique is drawn into the pose** | `special_*`, `ult_*` | 12A |
 | **A design element is silently dropped** | Mahoraga's karma wheel | 13 |
+| **A whole cycle arrives as one contact-sheet plate** | `run_*` | 15A |
 
-That last one has a cause worth naming: **Mahoraga was the only fighter with no
+Two of these are worth stating as numbers rather than as complaints, because
+that is the difference between a rule somebody reads and a rule somebody checks:
+the heavy strike missed its third-of-height reach in **all three** sets round
+15A delivered, and it was the *only* stated criterion any of them missed. The
+crouches, the light pairs and the idles all landed. Whatever is written as a
+measurement gets met; whatever is written as a sentence gets interpreted.
+
+The Mahoraga entry has a cause worth naming: **Mahoraga was the only fighter with no
 character block**, so his prompts carried no design text at all and the design
 lived entirely in a reference image. That works when somebody opens the image and
 fails silently when they do not. Every fighter has a block now, and a new
@@ -257,3 +280,10 @@ better than the last one, and it takes about five minutes at the end of a round.
 Round intake already ends with "update the request docs"
 ([assets/intake/README.md](../assets/intake/README.md), step 7). Updating this
 file is part of that step.
+
+**Look at the review boards before importing, not after.** `tools/intake_sheets.py`
+renders every delivered plate beside what it replaces, and it is the only step
+that catches the faults no measurement will: round 15A's contact-sheet run frame
+and its five backwards-mirrored poses were both found there, and both would have
+been invisible in the numbers. A mirrored strike in particular still looks like
+a perfectly good strike — it just lands behind the fighter.
