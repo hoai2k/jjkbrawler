@@ -234,6 +234,21 @@ option itself, and puts the pose on the **All Recently Updated Poses** list with
 `how: "alternate"`. Both clear when the pose is adjusted or marked reviewed, the
 same lifecycle as every other marker here.
 
+#### A flagged pose is marked in the grid
+
+A `needsReplacement` flag other than `delete` means **somebody has been asked to
+draw this pose again**, so the cell carries a red **⚠** in its corner and the
+cell itself is dimmed. Both say the same thing: any placement done on this
+drawing today is measured off art that is on its way out, because the
+replacement is measured from scratch when it lands.
+
+Neither is a barrier — the pose still selects, still edits and still exports,
+because a request can sit unanswered for rounds and the art has to stay usable
+in the meantime. The point is only that you find out *before* starting rather
+than after. `delete` is excluded: it throws a drawing away and asks for nothing,
+so no art is coming. The improvement flags are excluded too — they are repo work
+on the file we already have, and nothing arrives to overwrite the numbers.
+
 **A flag is also an instruction to the next import.** When new art arrives for a
 flagged pose, what happens to the old drawing is decided by what the flag said —
 `intake_variants.py --plan` reads it and reports the disposition:
@@ -402,6 +417,11 @@ by the game. Three steps, each separable so a bad delivery stops at the door:
    placed by hand, so it is safe to re-run over the whole roster.
 5. `tools/auto_tune.py` — applies the placement corrections that are mechanical.
    See [the tuning phase](#the-tuning-phase) below.
+6. **Move the answered requests into history.**
+   [asset-requests.md](asset-requests.md) is defined as "everything in here is
+   outstanding", so a delivered section has to leave it or the file misreports
+   what is still needed. See step 7 in
+   [assets/intake/README.md](../assets/intake/README.md#what-happens-to-it).
 
 Placement is delegated to `extract_sprites.generated_frame_meta`. A replacement
 inherits the old frame's rendered height and foot line, so a swap changes art

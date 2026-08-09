@@ -89,6 +89,38 @@ export function glints(x, y, dirX, count, force = 1, ramp = ELEMENT_PALETTES.ste
   }
 }
 
+/** Water thrown off an impact: lighter and wetter than blood — it arcs further,
+ *  falls slower, and walks the water ramp from foam-white to deep sea. */
+export function spray(x, y, dirX, count, force = 1) {
+  for (let i = 0; i < count; i++) {
+    emit({
+      x, y: y + rand(-14, 14),
+      vx: (dirX * rand(50, 260) + rand(-120, 120)) * force,
+      vy: -rand(60, 300) * force,
+      gravity: 620,
+      size: 3 + rand(0, 5), shape: "streak", streakLen: 0.03,
+      life: 0.32 + rand(0, 0.4), maxLife: 0.72,
+      ramp: ELEMENT_PALETTES.water,
+    });
+  }
+}
+
+/** Kurourushi's roaches: small dark flecks that scatter fast, then crawl —
+ *  erratic wobble rather than a clean arc, and they land rather than fade. */
+export function specks(x, y, count, force = 1) {
+  for (let i = 0; i < count; i++) {
+    emit({
+      x: x + rand(-16, 16), y: y + rand(-16, 10),
+      vx: rand(-220, 220) * force, vy: -rand(30, 190) * force,
+      gravity: 520,
+      size: 2 + rand(0, 3),
+      wobbleAmp: rand(40, 110), wobbleFreq: rand(7, 13), wobblePhase: rand(0, 6.28),
+      life: 0.4 + rand(0, 0.5), maxLife: 0.9,
+      ramp: ELEMENT_PALETTES.swarm, additive: false,
+    });
+  }
+}
+
 export function flutter(x, y, color, count) {
   for (let i = 0; i < count; i++) {
     emit({
@@ -166,6 +198,23 @@ export function hitFx(element, x, y, dir, dmg, theme) {
       ring(x, y, "#a99ede", 60 + dmg * 2.4);
       smoke(x, y, n(r.smoke, power), ELEMENT_PALETTES.soul);
       break;
+    case "water":
+      spray(x, y, dir, n(r.spray, power));
+      droplets(x, y, dir, n(r.droplets, power), 0.7);
+      for (let i = 0; i < r.rings; i++) ring(x, y, "#7fc9ec", 50 + dmg * 2.2);
+      break;
+    case "machine":
+      // Steel's glints, but the cursed energy is real: sparks in the move's own
+      // colour, and steam off the frame.
+      glints(x, y, dir, n(r.glints, power));
+      sparkLine(x, y, dir, theme, n(r.sparks, power));
+      smoke(x, y - 8, n(r.smoke, 1), ELEMENT_PALETTES.steam);
+      break;
+    case "swarm":
+      specks(x, y, n(r.specks, power));
+      smoke(x, y, n(r.smoke, power), ELEMENT_PALETTES.swarm);
+      burst(x, y, "#5a2f38", n(r.burst, power), 0.7 * power);
+      break;
     default:
       // The pre-FX look, exactly: theme burst + white spark line.
       burst(x, y, theme, Math.round(n(r.burst, 1) + dmg * 1.2), power);
@@ -209,6 +258,9 @@ export function projectileEmit(p, dt) {
     case "sound": ring(p.x, p.y, pick(ELEMENT_PALETTES.sound), 30); break;
     case "shadow": smoke(p.x, p.y, 1, ELEMENT_PALETTES.shadow); break;
     case "soul": smoke(p.x, p.y, 1, ELEMENT_PALETTES.soul); break;
+    case "water": spray(p.x, p.y, back, 1, 0.45); break;
+    case "machine": smoke(p.x, p.y, 1, ELEMENT_PALETTES.steam); break;
+    case "swarm": specks(p.x, p.y, 1, 0.5); break;
   }
 }
 
@@ -226,6 +278,13 @@ export function explodeFx(p) {
       droplets(p.x, p.y, 1, n(9, 1), 1.2);
       droplets(p.x, p.y, -1, n(9, 1), 1.2);
       burst(p.x, p.y, "#8f0f20", n(10, 1), 1);
+      break;
+    case "water":
+      spray(p.x, p.y, 1, n(11, 1), 1.3);
+      spray(p.x, p.y, -1, n(11, 1), 1.3);
+      break;
+    case "swarm":
+      specks(p.x, p.y, n(20, 1), 1.2);
       break;
     default:
       burst(p.x, p.y, p.color, n(26, 1), 1.3);

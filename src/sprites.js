@@ -431,7 +431,11 @@ export function isAirborneOnly(charKey, frameKey) {
  *  exactly on the pivot the renderer uses — including for the frames the
  *  manifest marks `faceLeft`, whose mirroring flips the horizontal offset. */
 export function anchorScreenPos(charKey, frameKey, x, y, opts = {}) {
-  const meta = frameMeta(charKey, frameKey);
+  // `preview` has to match the drawing on screen. A replacement waiting for
+  // approval is drawn from its own placement while the game still reads the
+  // old one, so an anchor measured against the live meta would be drawn — and
+  // dragged — in a space the picture is not in.
+  const meta = frameMeta(charKey, frameKey, { preview: !!opts.preview });
   if (!meta) return null;
   const a = anchorPoint(charKey, frameKey, opts.name || "com", meta);
   if (!a) return null;
@@ -445,7 +449,7 @@ export function anchorScreenPos(charKey, frameKey, x, y, opts = {}) {
 
 /** The inverse: a screen point back to image-local pixels, for dragging. */
 export function screenPosToLocal(charKey, frameKey, px, py, x, y, opts = {}) {
-  const meta = frameMeta(charKey, frameKey);
+  const meta = frameMeta(charKey, frameKey, { preview: !!opts.preview });
   if (!meta) return null;
   const scale = (opts.scale ?? 0.6) * (meta.renderScale || 1);
   const facing = (opts.facing ?? 1) * (meta.faceLeft ? -1 : 1);

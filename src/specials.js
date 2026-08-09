@@ -76,17 +76,53 @@ export function performSpecial(f, slot) {
   }
 }
 
+// The last creature each fighter rolled out of each summon pool, so the next
+// cast can avoid repeating it. A WeakMap because fighters are rebuilt every
+// match and nothing should outlive them.
+const lastRoll = new WeakMap();
+
+/**
+ * Which creature this cast puts on the stage.
+ *
+ * A summon special names a POOL (config_summons.js) and one entry is rolled
+ * per cast, so Megumi's shikigami and Mahito's transfigurations are a draw
+ * rather than a fixture. Never the same entry twice running: a technique that
+ * happens to repeat reads as a technique that only has one creature, which is
+ * the exact impression the pools exist to kill. With one entry left there is
+ * nothing to avoid, so a single-entry pool just returns it.
+ */
+function rollSummon(f, cfg, p) {
+  if (!p.pool?.length) return null;
+  if (p.pool.length === 1) return p.pool[0];
+  const seen = lastRoll.get(f) || {};
+  const previous = seen[cfg.name];
+  const options = p.pool.filter((o) => o !== previous);
+  const choice = options[Math.floor(Math.random() * options.length)];
+  seen[cfg.name] = choice;
+  lastRoll.set(f, seen);
+  return choice;
+}
+
 const HANDLERS = {
-  // Persistent minions (see summons.js). `p` is the summon config; `p.units`
-  // optionally spawns several minions per cast with per-unit overrides
-  // (Megumi's two Divine Dogs).
+  // Persistent minions (see summons.js). `p` is the summon config; `p.pool`
+  // rolls which creature it is this time, and `units` spawns several minions
+  // per cast with per-unit overrides (Megumi's two Divine Dogs).
   summon(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
     playGrunt(f.charKey);
-    for (const unit of p.units || [{}]) {
-      spawnSummon(f, { label: cfg.name, ...p, ...unit });
+    const rolled = rollSummon(f, cfg, p);
+    // The roll wins over the special's shared defaults, and `pool` itself is
+    // dropped so it never travels into a summon's own config.
+    const { pool, ...base } = p;
+    const spec = { ...base, ...rolled };
+    for (const unit of spec.units || [{}]) {
+      spawnSummon(f, { label: cfg.name, ...spec, ...unit });
     }
-    ring(f.x, f.y - 80, p.color || f.char.theme, 110);
+    // Name what answered. With five shikigami on one button, the player has to
+    // be told which one they got — the creature is the information, not the
+    // technique, and its own art may not be drawn yet.
+    if (rolled?.name) popup(f.x, f.y - 176, rolled.name.toUpperCase(), spec.color || f.char.theme, 18);
+    ring(f.x, f.y - 80, spec.color || f.char.theme, 110);
     playSfx("blast", 0.6, 1.2);
     grantSummonMeter(f, cfg);
   },
@@ -478,6 +514,78 @@ const HANDLERS = {
     f.reflect = { t: p.window || 0.55, color: p.color || f.char.theme };
     ring(f.x, f.y - 90, p.color || f.char.theme, 110);
     playSfx("shield", 0.7, 1.2);
+  },
+
+  // Mechamaru and Yuki — New Shadow Style: Simple Domain.
+  //
+  // Not a Domain Expansion: it is the anti-domain counter-measure both of them
+  // canonically carry (Kokichi loaded it into Mode: Absolute as cartridges,
+  // Yuki taught it to Todo). Two jobs, and they are the same idea twice: inside
+  // the circle, nothing arrives unopposed.
+  //
+  //   * anything that reaches the circle is turned — the same counter stance
+  //     Infinity uses, so one attack is answered and eaten;
+  //   * while it holds, an enemy Domain Expansion's sure-hit effect does not
+  //     land on the holder (domains.js asks via simpleDomainActive).
+  //
+  // It is a stance, not a parry window: it holds for its whole duration, which
+  // is what makes it a real answer to a domain rather than a guess at one.
+  simpleDomain(f, p, cfg) {
+    const dur = p.duration || 1.6;
+    beginSpecialAction(f, currentSlot(cfg, f), dur, { lockMovement: true });
+    const color = p.color || f.char.theme;
+    f.counter = {
+      t: dur, holdStill: true,
+      dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: p.angle,
+      label: cfg.name, name: "SIMPLE DOMAIN", color,
+    };
+    f.simpleDomain = { t: dur, radius: p.radius || 132, color };
+    ring(f.x, f.y - 90, color, (p.radius || 132) * 1.4);
+    playSfx("shield", 0.8, 0.9);
+  },
+
+  // Dagon — Undertow. He pulls the water back in, and everything swimming in
+  // it comes with it. No launch of its own: it drags them into his reach and
+  // leaves them soaked, which is where the rest of his kit wants them.
+  undertow(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.5);
+    playGrunt(f.charKey);
+    const color = p.color || f.char.theme;
+    playSfx("whoosh", 0.9, 0.7);
+    for (const t of state.fighters) {
+      if (t === f || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
+      const dx = f.x - t.x;
+      if (Math.abs(dx) > (p.range || 520)) continue;
+      const pull = (p.pull || 520) * (1 - Math.abs(dx) / ((p.range || 520) * 1.6));
+      t.vx += sign(dx) * pull;
+      t.vy -= 90;
+      t.grounded = false;
+      t.damage = Math.min(999, t.damage + (p.dmg || 6));
+      t.hitstun = Math.max(t.hitstun, 0.2);
+      applyStatus(p.effect || "drench", f, t);
+      popup(t.x, t.y - 140, "UNDERTOW", color, 16);
+      burst(t.x, t.y - 60, color, 16, 0.9);
+    }
+    // the water itself, spiralling in around him
+    state.entities.push({
+      owner: f, t: 0, dead: false,
+      update(dt) { this.t += dt; if (this.t > 0.6) this.dead = true; },
+      draw(ctx) {
+        const g = groundYAt();
+        const prog = this.t / 0.6;
+        ctx.save();
+        ctx.globalAlpha = 0.5 * (1 - prog);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 4; i++) {
+          const rr = (p.range || 520) * (1 - prog) * (0.35 + i * 0.2);
+          ctx.beginPath();
+          ctx.ellipse(f.x, g - 18, rr, rr * 0.22, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      },
+    });
   },
 
   // Uro — Sky Warp Palm: a telegraphed strike that falls out of the air on

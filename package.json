@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "check": "node tools/check_imports.mjs && node tools/check_pointing.mjs && node tools/audit_stage_reach.mjs && node tools/audit_hitboxes.mjs"
+    "check": "node tools/check_imports.mjs && node tools/check_kits.mjs && node tools/check_pointing.mjs && node tools/audit_stage_reach.mjs && node tools/audit_hitboxes.mjs"
   },
   "dependencies": {
     "playwright": "^1.62.1"

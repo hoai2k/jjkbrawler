@@ -59,15 +59,17 @@
                 <option value="hide">Hide</option>
                 <option value="overlay">Overlay</option>
                 <option value="comparison" selected>Comparison</option>
-                <!-- Only offered when this pose has another drawing to show;
-                     refreshSelfIdleOptions() hides it otherwise. -->
+                <!-- Only offered when this pose has another drawing to show —
+                     but once chosen it stays chosen, and a pose without one
+                     says so in the comparison slot. See
+                     refreshSelfIdleOptions(). -->
                 <option value="alternate" hidden>Alternate sprite</option>
               </select>
             </label>
             <label class="chip"><input type="checkbox" id="showPlatform" checked> Game platform</label>
             <label class="chip"><input type="checkbox" id="showGuides" checked> Guides</label>
             <label class="chip"><input type="checkbox" id="showBox"> Sprite bounds</label>
-            <label class="chip"><input type="checkbox" id="showHurtbox"> Hurtbox</label>
+            <label class="chip"><input type="checkbox" id="showHurtbox" checked> Hurtbox</label>
             <label class="chip"><input type="checkbox" id="spinPreview"> Spin preview</label>
           </div>
         </div>
@@ -78,6 +80,16 @@
         <div class="group">
           <label for="charSel" data-help="A character, or one of the three entries that are not characters: an &lt;b&gt;actor&lt;/b&gt; owns a full sprite set but has no kit (Mahoraga), &lt;b&gt;Other Sprites&lt;/b&gt; is the shared effect and summon art, and &lt;b&gt;All Recently Updated Poses&lt;/b&gt; is a cross-character work list.&lt;br&gt;&lt;br&gt;That last one collects the poses a delivery landed on top of previous work — a redraw rolls the hand tuning back, so those poses have to be done again, and after a round they are scattered across the roster. Selecting one switches to its character underneath, so everything in this panel goes on editing the real thing.">Character</label>
           <select id="charSel"></select>
+        </div>
+
+        <!-- Character, then the pose grid, then everything about the pose that
+             grid selects. The three notices below used to sit above the grid,
+             which put a wall of explanation between picking a character and
+             picking a pose — and described a sprite you had not chosen yet. -->
+        <div class="group">
+          <label data-help="These filter on what is &lt;b&gt;saved in the codebase&lt;/b&gt;, not on what you have done since the page loaded.&lt;br&gt;&lt;br&gt;&lt;b&gt;No saved edits&lt;/b&gt; is the working view: poses the game draws that nobody has committed an adjustment for yet — a to-do list. Editing one does &lt;em&gt;not&lt;/em&gt; remove it from this list; it moves only once your export has been applied and the page reloaded.&lt;br&gt;&lt;br&gt;&lt;b&gt;Has saved edits&lt;/b&gt; is the other half, &lt;b&gt;Used in game&lt;/b&gt; drops the filter entirely, and &lt;b&gt;All&lt;/b&gt; adds the sheet cells the game never draws.&lt;br&gt;&lt;br&gt;The yellow dot is the separate question: what you have changed this session and not exported yet. A flagged pose is marked separately again, and a red &lt;b&gt;&#9888;&lt;/b&gt; in the corner of a cell means &lt;b&gt;new art is already on order for that pose&lt;/b&gt; — it is still editable, but the replacement is measured from scratch when it lands, so placing it today is optional.">Pose <span class="sub" id="poseCount"></span></label>
+          <select id="viewSel"></select>
+          <div id="poseList" class="pose-list"></div>
         </div>
 
         <!-- Only shown on a pose whose art was replaced under previous work. It
@@ -95,11 +107,23 @@
              the game. This is the confirm step: until one of these buttons is
              pressed the pose goes on drawing the art it already had. -->
         <div class="group approval" id="approvalGroup" hidden>
-          <label data-help="Since the roster finished, an intake round no longer overwrites art the moment it runs. A replacement lands beside the drawing it replaces and the pose keeps pointing at the old one, so nothing players see changes until somebody stands the two side by side and picks.&lt;br&gt;&lt;br&gt;&lt;b&gt;Approve&lt;/b&gt; swaps the art over, bringing that image's own placement with it. &lt;b&gt;Keep the current art&lt;/b&gt; leaves the pose exactly as it is. Either answer takes it off the updated list; both travel with the export like any other change.&lt;br&gt;&lt;br&gt;A brand-new pose never waits here — there is nothing to compare it against.">Replacement waiting <span class="sub">not in the game yet</span></label>
-          <div id="approvalInfo" class="note"></div>
-          <div class="chips">
-            <button id="approveBtn" class="primary sm">Approve — use the new art</button>
-            <button id="keepBtn" class="ghost sm">Keep the current art</button>
+          <label data-help="Since the roster finished, an intake round no longer overwrites art the moment it runs. A replacement lands beside the drawing it replaces and the pose keeps pointing at the old one, so nothing players see changes until somebody stands the two side by side and picks.&lt;br&gt;&lt;br&gt;&lt;b&gt;Approve&lt;/b&gt; swaps the art over, bringing that image's own placement with it. &lt;b&gt;Keep the current art&lt;/b&gt; leaves the pose exactly as it is. Either answer takes it off the updated list; both travel with the export like any other change.&lt;br&gt;&lt;br&gt;A brand-new pose never waits here — there is nothing to compare it against."><span id="approvalLabel">Replacement waiting</span> <span class="sub" id="approvalState">not in the game yet</span></label>
+          <!-- The question, while there is one. -->
+          <div id="approvalAsk">
+            <div id="approvalInfo" class="note"></div>
+            <div class="chips">
+              <button id="approveBtn" class="primary sm">Approve — use the new art</button>
+              <button id="keepBtn" class="ghost sm">Keep the current art</button>
+            </div>
+          </div>
+          <!-- And what was answered, with the other answer still on offer:
+               both drawings stay banked on the pose, so the decision is one
+               you can go back and forth on. -->
+          <div id="approvalDone" hidden>
+            <div id="approvalDoneInfo" class="note"></div>
+            <div class="chips">
+              <button id="approvalSwitch" class="ghost sm">Change the decision</button>
+            </div>
           </div>
         </div>
 
@@ -107,12 +131,6 @@
           <summary data-help="&lt;b&gt;tools/auto_tune.py&lt;/b&gt; applies the placement corrections that are mechanical — the ones measured to be wrong in a consistent direction across every hand tuning ever committed (docs/sprite-auto-adjust.md). Today that is the ground contact, the horizontal centring, and the size of the ten animation states the whole roster sizes identically.&lt;br&gt;&lt;br&gt;It never touches a field you have edited, and it does &lt;em&gt;not&lt;/em&gt; count as an edit: a tuned pose stays on &lt;b&gt;No saved edits&lt;/b&gt; and on the updated list, because a rule cannot tell you whether this particular drawing looks right.">Auto-placed <span class="sub">not an edit</span></summary>
           <div id="autoTunedInfo" class="note"></div>
         </details>
-
-        <div class="group">
-          <label data-help="These filter on what is &lt;b&gt;saved in the codebase&lt;/b&gt;, not on what you have done since the page loaded.&lt;br&gt;&lt;br&gt;&lt;b&gt;No saved edits&lt;/b&gt; is the working view: poses the game draws that nobody has committed an adjustment for yet — a to-do list. Editing one does &lt;em&gt;not&lt;/em&gt; remove it from this list; it moves only once your export has been applied and the page reloaded.&lt;br&gt;&lt;br&gt;&lt;b&gt;Has saved edits&lt;/b&gt; is the other half, &lt;b&gt;Used in game&lt;/b&gt; drops the filter entirely, and &lt;b&gt;All&lt;/b&gt; adds the sheet cells the game never draws.&lt;br&gt;&lt;br&gt;The yellow dot is the separate question: what you have changed this session and not exported yet. A flagged pose is marked separately again.">Pose <span class="sub" id="poseCount"></span></label>
-          <select id="viewSel"></select>
-          <div id="poseList" class="pose-list"></div>
-        </div>
 
         <div class="group" id="scaleGroup">
           <label data-help="This pose&apos;s own size, as a percentage of the art as delivered. It affects &lt;em&gt;this pose only&lt;/em&gt; — including the idle, which is a pose like any other here.&lt;br&gt;&lt;br&gt;To resize the whole character, use &lt;b&gt;Character height&lt;/b&gt; further down: that is the one control the whole sprite set is solved from.">Size <span class="sub" id="scaleVal"></span></label>

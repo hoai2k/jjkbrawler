@@ -47,6 +47,22 @@ that way, so this is the normal case, not a mistake.
    [docs/sprite-auto-adjust.md](../../docs/sprite-auto-adjust.md).
 6. The untouched originals are moved to `assets/reference/round<N>/<char>/` so a
    frame can be reprocessed later without regenerating it.
+7. **Update the request docs.** A delivery answers a request, and the request
+   file is defined as "everything in here is outstanding" — so art that has
+   landed has to leave it the same day, or the file starts lying about what is
+   still needed. Move the delivered section out of
+   [docs/asset-requests.md](../../docs/asset-requests.md) into
+   [asset-requests-history.md](../../docs/asset-requests-history.md), keeping
+   its pose lines verbatim (a later redraw of one frame has to agree with the
+   others), add a row to the history table, and correct the status line at the
+   top of the open file. Anything the round did NOT answer stays open, and
+   anything it turned up gets flagged in the workbench and folded into the
+   current round. `python3 tools/list_replacements.py --markdown` writes the
+   tables in the shape that file uses.
+
+   Delivered is not the same as approved. A replacement is in the repo from
+   step 3 and in the *game* only when somebody approves it, so the request doc
+   records the delivery and the workbench tracks the decision.
 
 After that this directory is empty again, apart from this README.
 
@@ -98,6 +114,19 @@ To see them together, set **This character's idle → Alternate sprite**: the
 comparison slot fills with the drawing still in play, captioned *in the game
 now*, so the question the approval is asking is answered side by side. The
 option only appears when the pose has another drawing to show.
+
+Approving does not end that comparison. The displaced drawing is banked as a
+`Superseded` option on the pose rather than dropped, so the view goes on showing
+*the drawing this replaced* after a yes — the question is still "what was here
+before", and dropping the answer the moment you said yes would make the view
+silently start showing something else. The file stays on disk too: it is the
+only copy of a drawing that shipped for a while, and reverting is otherwise a
+trip through git.
+
+Approving and requesting a redraw are **separate answers**, and both can be
+right at once. A delivery that beats what it replaced but is still not what you
+want gets approved *and* flagged — the game improves now, and the pose joins the
+open round. Round 13's `choso/attack_light_b` and `geto/attack_down` are both.
 
 Either answer exports as `approvals` and is applied by
 `apply_sprite_adjustments.py`, like every other change. Characters with a

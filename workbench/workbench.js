@@ -18,7 +18,7 @@ import {
   variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS, NOTE_FIELDS, ALTERNATE_KIND,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../src/render.js";
-import { lightMove, heavyMove, visibleArtReach } from "../src/moves.js";
+import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../src/moves.js";
 import { bodyMetrics, refreshSilhouettes } from "../src/silhouette.js";
 import { PIVOTED_STATES } from "../src/motion.js";
 import { HURTBOX } from "../src/constants.js";
@@ -319,8 +319,18 @@ function framesOf(charKey) {
 /** The intake marker on a pose, or null. */
 function updateNote(charKey, frameKey) {
   if (isOther(charKey)) return null;
-  return spriteManifest?.characters?.[charKey]?.[frameKey]?.replaced
-    || surfacedNote(charKey, frameKey);
+  const meta = spriteManifest?.characters?.[charKey]?.[frameKey];
+  // A pose still waiting to be approved belongs on the list whatever else has
+  // happened to it. The `replaced` marker clears the moment the pose is
+  // adjusted — which is right for a re-tune, and wrong here: placing the new
+  // art is exactly what you do BEFORE deciding, so tuning it dropped the pose
+  // off the queue while the game was still drawing the old drawing. The
+  // approval is the thing being tracked, so it outranks the marker.
+  if (meta?.awaitingApproval) {
+    return meta.replaced || { at: meta.awaitingApproval.at || "", kept: "await",
+                              how: "await", lost: [] };
+  }
+  return meta?.replaced || surfacedNote(charKey, frameKey);
 }
 
 // A second way onto the list, and the same job: poses that need a look now and
@@ -479,6 +489,11 @@ function updateSummary(note) {
   const when = note.at ? new Date(note.at) : null;
   const landed = when && !Number.isNaN(when.getTime())
     ? when.toLocaleString() : (note.at || "an earlier round");
+  if (note.how === "await") {
+    return "New art for this pose is in the repo and <b>the game is still drawing "
+      + "the old drawing</b>. Place it, compare the two, then approve or keep — "
+      + "the buttons are below the sliders.";
+  }
   if (note.how === "alternate") {
     const at = note.at ? new Date(note.at) : null;
     const when = at && !Number.isNaN(at.getTime()) ? at.toLocaleString() : (note.at || "an earlier round");
@@ -560,8 +575,14 @@ function poseView(option) {
   return out;
 }
 
-/** Point a pose at one of its other drawings. */
-async function chooseVariant(charKey, frameKey, file) {
+/** Point a pose at one of its other drawings.
+ *
+ *  The whole swap, in one place: bank what is leaving, clear every field that
+ *  belongs to a drawing, take the arriving one's, and re-fetch the image so
+ *  the frame's slot holds the picture whose numbers are now in play. Anything
+ *  that changes which drawing a pose uses goes through here — including an
+ *  approval, which is the same swap wearing a different question. */
+async function pointPoseAt(charKey, frameKey, file) {
   const entry = variantEntry(charKey, frameKey);
   const meta = rawMeta(charKey, frameKey);
   if (!entry || !meta || meta.file === file) return;
@@ -575,12 +596,18 @@ async function chooseVariant(charKey, frameKey, file) {
 
   for (const field of VARIANT_BANKED) delete meta[field];
   Object.assign(meta, poseView(incoming), { file });
-  variantPicks.set(`${charKey}/${frameKey}`, file);
 
   // The new art has almost certainly never been fetched — the streamer only
   // pulls the file each pose pointed at when the character loaded.
   await loadFrame(charKey, frameKey, { reload: true });
   syncAll();
+}
+
+async function chooseVariant(charKey, frameKey, file) {
+  const meta = rawMeta(charKey, frameKey);
+  if (!meta || meta.file === file) return;
+  variantPicks.set(`${charKey}/${frameKey}`, file);
+  await pointPoseAt(charKey, frameKey, file);
 }
 
 // Frames whose drawing was switched this session, so the export can say so.
@@ -740,11 +767,16 @@ function comPivots(charKey, frameKey) {
 
 /** Current value in image-local px, resolved from the default when unset. */
 function anchorValue(charKey, frameKey, name) {
-  const v = anchorLocal(charKey, frameKey, name);
+  // rawMeta, not the game's view: setAnchor writes into the manifest entry, so
+  // the readout has to be reading that same entry. On a pose awaiting approval
+  // the two differ, and the panel reported the old art's anchor back at you
+  // however far you dragged the new one.
+  const meta = rawMeta(charKey, frameKey);
+  const v = anchorLocal(charKey, frameKey, name, meta);
   if (v) return v;
   // An extra anchor with nothing stored starts life at the centre of mass,
   // which is a far better first guess than the image's corner.
-  return anchorLocal(charKey, frameKey, "com") || [0, 0];
+  return anchorLocal(charKey, frameKey, "com", meta) || [0, 0];
 }
 
 function setAnchor(charKey, frameKey, name, x, y) {
@@ -865,6 +897,23 @@ function kindLabel(kind, kinds = REPLACEMENT_KINDS) {
   return kinds.find(([k]) => k === kind)?.[1] ?? kind;
 }
 
+/** Is a *drawing* already on order for this pose?
+ *
+ *  Every replacement kind except `delete` means somebody has been asked to draw
+ *  this pose again, so any placement done today is measured off art that is on
+ *  its way out — the replacement is measured from scratch when it lands.
+ *  `delete` is the exception: it throws a drawing away and asks for nothing, so
+ *  no new art is coming and the pose is not warned about.
+ *
+ *  This is what the caution mark in the grid means. It is deliberately narrower
+ *  than `flagged`, which also covers the improvement flags — those are repo work
+ *  on the file we already have, and nothing arrives to overwrite the numbers.
+ */
+function redrawPending(charKey, frameKey) {
+  const kind = replacementKind(rawMeta(charKey, frameKey));
+  return !!kind && kind !== "delete";
+}
+
 function wantsImprovement(charKey, frameKey) {
   return !!improvementKind(rawMeta(charKey, frameKey));
 }
@@ -952,12 +1001,19 @@ function viewOpts(charKey, name) {
   return { scale: actorOf(charKey).scale * state.zoom, facing: 1, name };
 }
 
+// Both of these are for the pose being edited, which the canvas draws with
+// `preview` — the replacement waiting for approval, not the drawing the game
+// is still playing. The conversions have to agree with it, or the handle sits
+// where the OLD art's placement puts it and dragging writes into a space the
+// picture is not in: the anchor readout changed and the crosshair did not.
 function localToCanvas(charKey, frameKey, name) {
-  return anchorScreenPos(charKey, frameKey, canvas.width / 2, GROUND_Y, viewOpts(charKey, name));
+  return anchorScreenPos(charKey, frameKey, canvas.width / 2, GROUND_Y,
+                         { ...viewOpts(charKey, name), preview: true });
 }
 
 function canvasToLocal(charKey, frameKey, px, py) {
-  return screenPosToLocal(charKey, frameKey, px, py, canvas.width / 2, GROUND_Y, viewOpts(charKey));
+  return screenPosToLocal(charKey, frameKey, px, py, canvas.width / 2, GROUND_Y,
+                          { ...viewOpts(charKey), preview: true });
 }
 
 /** Pointer event -> canvas pixels. The canvas is laid out responsively, so its
@@ -1037,25 +1093,41 @@ function altCompare() {
     };
   }
   const others = poseVariants(state.char, state.frame).filter((o) => o.file !== meta.file);
-  const newest = others[others.length - 1];
-  if (!newest) return null;
+  if (!others.length) return null;
+  // The drawing this pose most recently displaced, if there is one. Approving
+  // must not change what the comparison shows: the question is still "what was
+  // here before", and after a yes the answer is the drawing that just lost.
+  // Only when nothing has been superseded does this fall back to the newest
+  // alternate on offer.
+  const superseded = others
+    .filter((o) => o.supersededAt)
+    .sort((a, b) => String(a.supersededAt).localeCompare(String(b.supersededAt)));
+  const pick = superseded[superseded.length - 1] || others[others.length - 1];
   return {
-    meta: poseView(newest),
-    img: spriteFileImage(newest.file),
-    file: newest.file,
-    caption: newest.label ? `alternate: ${newest.label}` : "alternate",
+    meta: poseView(pick),
+    img: spriteFileImage(pick.file),
+    file: pick.file,
+    caption: pick.label === "Not approved" ? "the replacement, not approved"
+      : pick.supersededAt ? "the drawing this replaced"
+      : pick.label ? `alternate: ${pick.label}` : "alternate",
   };
 }
 
 /** Hide the option on a pose that has nothing to compare against, so the menu
- *  never offers a view that would silently show the same drawing twice. */
+ *  never offers a view that would silently show the same drawing twice.
+ *
+ *  What it does NOT do is change the selection. Stepping through a set with
+ *  this view on used to reset it to Comparison at the first pose with a single
+ *  drawing, so the setting had to be picked again every few poses; the slot
+ *  says "no alternate available" on those instead, and the view survives to
+ *  the next pose that has one. The option stays in the menu while it is the
+ *  one selected, so the closed select still reads what it is showing. */
 function refreshSelfIdleOptions() {
   const sel = $("selfIdleMode");
   const opt = sel?.querySelector('option[value="alternate"]');
   if (!opt) return;
   const alt = altCompare();
-  opt.hidden = !alt;
-  if (!alt && sel.value === "alternate") sel.value = "comparison";
+  opt.hidden = !alt && sel.value !== "alternate";
   // Fetch it once it is asked for; the per-pose slot holds only the drawing
   // the pose points at.
   if (alt && !alt.img && alt.file) {
@@ -1106,6 +1178,10 @@ function comparisonTarget() {
     if (alt?.img) {
       return { charKey: state.char, frameKey: state.frame, caption: alt.caption, as: alt };
     }
+    // Asked for, and this pose has not got one. Say so in the slot rather than
+    // falling through to Gojo: the answer to "show me the alternate" is not a
+    // different sprite that looks like one.
+    if (!alt) return { caption: "no alternate available", empty: true };
   }
   if ($("selfIdleMode").value === "comparison") {
     const key = selfIdleKey();
@@ -1121,11 +1197,11 @@ function comparisonTarget() {
 /** The comparison stands at the left end of the platform, drawn SOLID: it is a
  *  second sprite to look at, not a tracing guide, and ghosting it made it read
  *  as an overlay that had slipped sideways. */
-function drawComparison({ charKey, frameKey, caption, sub, as }) {
+function drawComparison({ charKey, frameKey, caption, sub, as, empty }) {
   const x = platformX() + BENCHMARK_INSET;
-  drawGhost(charKey, frameKey, 1, x, as);
+  if (!empty) drawGhost(charKey, frameKey, 1, x, as);
   ctx.save();
-  ctx.fillStyle = "rgba(154, 164, 192, 0.9)";
+  ctx.fillStyle = empty ? "rgba(154, 164, 192, 0.55)" : "rgba(154, 164, 192, 0.9)";
   ctx.font = "600 11px Inter, sans-serif";
   ctx.textAlign = "center";
   ctx.fillText(caption, x, GROUND_Y + 60);
@@ -1341,7 +1417,7 @@ function drawRangeTargets(cx) {
                  Math.round(box.y0), Math.round(box.y1)].join(",");
     if (seen.has(key)) continue;              // two moves, same box: one marker
     seen.add(key);
-    shapes.push({ label, box });
+    shapes.push({ label, box, move: m });
   }
 
   // The body the game actually tests, drawn behind the markers. Without it a
@@ -1378,7 +1454,7 @@ function drawRangeTargets(cx) {
     placed.push({ x, y: out });
     return out;
   };
-  shapes.forEach(({ label, box }) => {
+  shapes.forEach(({ label, box, move }) => {
     const { kind, x0, x1, y0, y1 } = box;
     // The box the game actually tests, faint behind the marker. Reading the
     // real rectangle is the whole point — a single crosshair cannot say
@@ -1433,9 +1509,20 @@ function drawRangeTargets(cx) {
       tx = wx(x1); ty = mid;
       text = `${label} · ±${Math.round((x1 - x0) / 2)}px`;
     } else {
-      // Forward: the crosshair sits on the far edge at the box's mid height,
-      // which is the last point this attack connects at.
-      const x = wx(x1), cy = wy((y0 + y1) / 2);
+      // Forward: the crosshair sits on the far edge — the last point this
+      // attack connects at — at the height the swing is DRAWN at, which is not
+      // the box's mid height.
+      //
+      // Hitboxes are deliberately generous downward: a jab's box runs from
+      // chest to floor so it catches a crouching opponent (moves.js). Marking
+      // its middle put the target at hip level on a punch thrown at chest
+      // level, and the pair read as a diagonal aimed at the floor. render.js
+      // has the same problem with the strike arc and solves it by asking
+      // strikeArcs() where the swing hangs; the marker asks the same function,
+      // so it lands where the crescent does in a match.
+      const arc = strikeArcs(move, headHeight(state.char) || 175)
+        .find((a) => a.aim === 0);
+      const x = wx(x1), cy = wy(arc ? arc.pivotY : (y0 + y1) / 2);
       ctx.beginPath(); ctx.arc(x, cy, 9, 0, Math.PI * 2); ctx.stroke();
       ctx.beginPath(); ctx.arc(x, cy, 2, 0, Math.PI * 2); ctx.stroke();
       ctx.beginPath();
@@ -2125,21 +2212,88 @@ function refreshReviewButton() {
  *  same door every other updated-list entry leaves by. Both halves export:
  *  the option flag through `variantPlacement`, the review through
  *  `clearUpdated`. */
-function settleApproval(charKey, frameKey, approve) {
+async function settleApproval(charKey, frameKey, approve) {
   const meta = rawMeta(charKey, frameKey);
   const note = meta?.awaitingApproval;
   if (!note) return;
   pushHistory(charKey, frameKey);
-  if (!approve && note.live) {
-    // Keeping means the pose goes back to being the drawing in play, whole:
-    // its file and every number that belongs to that image.
-    for (const [field, value] of Object.entries(note.live)) meta[field] = value;
-  }
+
+  // Both drawings become options on the pose before either wins. That is what
+  // makes the decision reversible: the loser is a banked variant like any
+  // other, with its own file and its own numbers, so switching back is the
+  // same operation as switching between two alternates — and the answer can be
+  // changed as often as you like without the pose losing either drawing.
+  const pair = bankApprovalPair(charKey, frameKey, note, approve);
   delete meta.awaitingApproval;
   approvalSettled.set(`${charKey}/${frameKey}`, approve ? "approve" : "keep");
   remember(charKey, frameKey);
   if (!isUpdateReviewed(charKey, frameKey)) toggleUpdateReviewed(charKey, frameKey);
-  syncAll();
+  // Keeping means the pose IS the drawing in play again — its file and every
+  // number that belongs to that image. Field-by-field assignment left the
+  // rejected drawing's own fields behind (and, worse, left its image in the
+  // frame's slot), which is what drew the old art's numbers onto the new
+  // picture and stretched it.
+  if (!approve && pair?.live) await pointPoseAt(charKey, frameKey, pair.live);
+  else syncAll();
+}
+
+/** Swap the pose's answer after the fact, as many times as it takes. */
+async function switchApproval(charKey, frameKey, approve) {
+  const pair = approvalPairs.get(`${charKey}/${frameKey}`);
+  if (!pair) return;
+  pushHistory(charKey, frameKey);
+  approvalSettled.set(`${charKey}/${frameKey}`, approve ? "approve" : "keep");
+  labelApprovalPair(charKey, frameKey, approve);
+  await pointPoseAt(charKey, frameKey, approve ? pair.delivered : pair.live);
+}
+
+/** The two drawings an approval decides between, by file, for every pose
+ *  settled this session. */
+const approvalPairs = new Map();
+
+/** Bank the delivered drawing and the one in the game as options on the pose.
+ *
+ *  `tools/apply_sprite_adjustments.py` does the same thing when the export is
+ *  applied, so what the session shows and what the file ends up holding are
+ *  the same shape. Labels say which is which; `supersededAt` is what the
+ *  Alternate sprite view sorts on. */
+function bankApprovalPair(charKey, frameKey, note, approve) {
+  const meta = rawMeta(charKey, frameKey);
+  const live = note.live ? { ...note.live } : null;
+  if (!meta?.file) return null;
+  const entry = ((spriteManifest.variants ??= {})[charKey] ??= {})[frameKey]
+    ??= { options: [] };
+  const put = (option) => {
+    const at = entry.options.findIndex((o) => o.file === option.file);
+    if (at >= 0) entry.options[at] = { ...entry.options[at], ...option };
+    else entry.options.push(option);
+  };
+  put({ ...takeBanked(meta), file: meta.file });
+  if (live) put({ ...live });
+  const pair = { delivered: meta.file, live: live?.file || null };
+  approvalPairs.set(`${charKey}/${frameKey}`, pair);
+  labelApprovalPair(charKey, frameKey, approve, note.at);
+  return pair;
+}
+
+/** Which of the two drawings lost, in the words the apply script uses, so the
+ *  session and the applied manifest describe the pose the same way. The loser
+ *  carries the moment it lost, which is what the Alternate sprite view sorts
+ *  on — so the comparison keeps answering "what is the other one". */
+function labelApprovalPair(charKey, frameKey, approve, at) {
+  const pair = approvalPairs.get(`${charKey}/${frameKey}`);
+  const options = variantEntry(charKey, frameKey)?.options;
+  if (!pair || !options) return;
+  const stamp = at || new Date().toISOString();
+  const mark = (file, lost, label) => {
+    const option = options.find((o) => o.file === file);
+    if (!option) return;
+    option.label = label;
+    if (lost) option.supersededAt = stamp;
+    else delete option.supersededAt;
+  };
+  mark(pair.delivered, !approve, approve ? "Delivered" : "Not approved");
+  mark(pair.live, approve, approve ? "Superseded" : "In game");
 }
 
 // Decisions made this session, exported as `approvals`. Kept apart from the
@@ -2150,15 +2304,43 @@ const approvalSettled = new Map();
 function refreshApprovalControl() {
   const group = $("approvalGroup");
   if (!group) return;
+  const id = `${state.char}/${state.frame}`;
   const note = approvalNote(state.char, state.frame);
-  group.hidden = !note;
-  if (!note) return;
-  $("approvalInfo").innerHTML =
-    "<b>The canvas is showing the new art; the game is still drawing the old "
-    + `one</b> (<code>${note.live?.file || "—"}</code>).<br>`
-    + "Place it, then decide. <b>Approve</b> lets it into the game with the "
-    + "placement you have given it; <b>keep</b> puts the old drawing back and "
-    + "throws this one away. Either answer takes the pose off the updated list.";
+  const settled = approvalSettled.get(id);
+  group.hidden = !note && !settled;
+  if (group.hidden) return;
+
+  // Two states, one group. Before an answer: the question and both answers.
+  // After one: what was decided, and the other answer — a decision made by
+  // looking at two drawings is one you change by looking again, and both
+  // drawings are still on the pose either way.
+  $("approvalAsk").hidden = !note;
+  $("approvalDone").hidden = !!note;
+  if (note) {
+    $("approvalInfo").innerHTML =
+      "<b>The canvas is showing the new art; the game is still drawing the old "
+      + `one</b> (<code>${note.live?.file || "—"}</code>).<br>`
+      + "Place it, then decide. <b>Approve</b> lets it into the game with the "
+      + "placement you have given it; <b>keep</b> leaves the old drawing in "
+      + "play. Either answer takes the pose off the updated list, and either "
+      + "can be changed afterwards — both drawings stay on the pose.";
+    $("approvalLabel").textContent = "Replacement waiting";
+    $("approvalState").textContent = "not in the game yet";
+    return;
+  }
+  const approved = settled === "approve";
+  const pair = approvalPairs.get(id);
+  $("approvalLabel").textContent = "Replacement decided";
+  $("approvalState").textContent = approved ? "the new art is in" : "the old art stays";
+  $("approvalDoneInfo").innerHTML = approved
+    ? `<b>Approved</b> — the pose draws <code>${state.frame && rawMeta(state.char, state.frame)?.file || "—"}</code>, `
+      + `and <code>${pair?.live || "the drawing it replaced"}</code> is banked as an alternate.`
+    : `<b>Kept</b> — the pose still draws <code>${pair?.live || "the old art"}</code>, `
+      + `and <code>${pair?.delivered || "the replacement"}</code> is banked as an alternate.`;
+  $("approvalSwitch").textContent = approved
+    ? "Change to: keep the old art"
+    : "Change to: approve the new art";
+  $("approvalSwitch").disabled = !pair;
 }
 
 /** The auto-tune marker, in its own group so it shows on poses that carry no
@@ -2246,22 +2428,37 @@ function buildPoseEntry(charKey, key, { owner = false } = {}) {
   const states = statesUsing(charKey, key);
   const doomed = hasDeleteTag(charKey, key);
   // The dimmed cells need to say WHY they are dim, or they read as disabled.
-  const requested = needsReplacement(charKey, key) && !doomed;
+  const requested = redrawPending(charKey, key) && !doomed;
   b.title = (owner ? `${charKey}/${key}` : key)
     + (states.length ? ` — ${states.map(stateLabel).join(", ")}` : " — not drawn by any state")
-    + (requested ? " — already requested for redraw; placing it now is optional,"
-                 + " the replacement is measured from scratch" : "");
+    + (requested ? " — ⚠ new art is on order for this pose; placing it now is"
+                 + " optional, the replacement is measured from scratch" : "");
   const selected = charKey === state.char && key === state.frame;
   b.className = (selected ? "sel " : "")
     + (isDirty(charKey, key) || variantFlagEdits.has(`${charKey}/${key}`) ? "dirty " : "")
     + (needsReplacement(charKey, key) || doomed ? "flagged " : "")
     + (wantsImprovement(charKey, key) ? "wanted " : "")
+    + (requested ? "warned " : "")
     + (isUpdateReviewed(charKey, key) ? "reviewed" : "");
   const kind = doomed ? "delete" : replacementKind(rawMeta(charKey, key));
   if (kind) b.dataset.kind = kind;
   const want = improvementKind(rawMeta(charKey, key));
   if (want) b.dataset.want = want;
   b.onclick = () => selectPose(charKey, key);
+  // The caution mark, in the corner rather than in the label: the pose is still
+  // perfectly editable — a request can sit unanswered for rounds — and this is
+  // a heads-up, not a barrier. The dimming says the same thing quietly; this
+  // says it at a glance, which is what you want before starting work on a pose.
+  if (requested) {
+    const warn = document.createElement("i");
+    warn.className = "pose-warn";
+    // The glyph is drawn by CSS rather than set here, so it stays out of the
+    // cell's textContent — the pose name is how a cell is found, in the arrow
+    // and Tab walks and in the smoke test alike, and a mark that joined the
+    // text would rename every pose it lands on.
+    warn.setAttribute("aria-label", "new art on order");
+    b.appendChild(warn);
+  }
 
   if (!host) return b;
   host.appendChild(b);
@@ -3180,6 +3377,9 @@ async function boot() {
   // takes it off the updated list; they differ only in whether the art swaps.
   // The clearing is local until exported, like every other change here.
   $("approveBtn").onclick = () => settleApproval(state.char, state.frame, true);
+  $("approvalSwitch").onclick = () =>
+    switchApproval(state.char, state.frame,
+                   approvalSettled.get(`${state.char}/${state.frame}`) !== "approve");
   $("keepBtn").onclick = () => settleApproval(state.char, state.frame, false);
 
   $("undoBtn").onclick = undo;

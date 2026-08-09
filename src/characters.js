@@ -1,5 +1,7 @@
-// All 23 fighters: stats, sprite-frame mappings, attack profiles, specials,
-// ultimates, passives. Design rationale for every kit lives in docs/characters/.
+// All 23 fighters — plus four staged ones at the bottom of the table who are
+// not on the roster yet: stats, sprite-frame mappings, attack profiles,
+// specials, ultimates, passives. Design rationale for every kit lives in
+// docs/characters.md.
 //
 // `name` is the short form the roster tiles and in-match HUD use, where space
 // is tight; `fullName` is the character's full name, shown on the hero card.
@@ -27,18 +29,27 @@
 // frames are semantic pose keys instead; see SEMANTIC_ANIMS below.
 
 import { CHARACTER_GROUPS } from "./config_menus.js";
+import { SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL } from "./config_summons.js";
 
 // The roster itself is defined further down; CHARACTER_KEYS is derived from the
 // config groups once the kits exist (see the bottom of this file).
 
 // Fighters whose kits are wired but whose art has not been delivered, so they
-// must not reach character select or randomCharacterKey(). Empty right now:
-// the whole roster has shipped. To stage a new fighter, add its kit to
-// CHARACTERS and list its key here; to ship it, register its sprites in the
-// manifest, drop its card in assets/cards/, then move the key out of here and
-// into a CHARACTER_GROUPS bucket in src/config.js. Nothing else is needed —
-// all six round-7 fighters shipped exactly that way.
-export const STAGED_CHARACTER_KEYS = [];
+// must not reach character select or randomCharacterKey(). To stage a new
+// fighter, add its kit to CHARACTERS and list its key here; to ship it,
+// register its sprites in the manifest, drop its card in assets/cards/, then
+// move the key out of here and into a CHARACTER_GROUPS bucket in
+// src/config_menus.js. Nothing else is needed — all six round-7 fighters
+// shipped exactly that way.
+//
+// The four below are round 15: Mechamaru, Yuki Tsukumo, Dagon and Kurourushi.
+// Their kits, statuses, specials, ultimates, Dagon's domain and all four
+// passives are live in code and testable; only the art is outstanding
+// (docs/asset-requests.md, round 15). They are deliberately NOT in any
+// CHARACTER_GROUPS bucket, which is the other half of keeping them off the
+// select screen — this list keeps them out of randomCharacterKey() and out of
+// the "unreachable fighter" warning at the bottom of this file.
+export const STAGED_CHARACTER_KEYS = ["mechamaru", "yuki", "dagon", "kurourushi"];
 
 // Sentinel selection meaning "draw a fresh fighter at the start of every match"
 // rather than naming one. Never a key in CHARACTERS — resolve it through
@@ -368,20 +379,15 @@ export const CHARACTERS = {
         p: { speed: 520, vy: -120, gravity: 260, r: 38, dur: 1.0, dmg: 11, base: 360, growth: 7.0, angle: 0.5, color: "#7c8cff", effect: "snare", label: "Nue", sprite: "summon:nue", spriteH: 132, steerable: true, steerRate: 6.0 },
       },
       side: {
-        name: "Divine Dogs", type: "summon", cooldown: 7.5,
-        desc: "Both wolves step out of his shadow and hunt at his side, tearing at whoever they corner.",
+        name: "Ten Shadows: Shikigami", type: "summon", cooldown: 7.5,
+        desc: "He calls whichever shikigami answers — the Divine Dogs, the Great Serpent, the Toad, Max Elephant or a scatter of rabbits — and it fights at his side.",
+        // One technique, ten shikigami: the pool rolls a different creature
+        // every cast (never the same one twice running — see specials.js), so
+        // the summon is the move and the shikigami is the draw. Each entry in
+        // SHIKIGAMI_POOL overrides only what makes that creature different.
         p: {
-          id: "divineDogs", behavior: "chaser", duration: 6, speed: 470, maxActive: 2,
-          // Both dogs' art is drawn facing RIGHT, against the renderer's
-          // face-left default. Set here on `p` rather than per-unit so the
-          // white and black dog cannot drift apart.
-          faceRight: true,
-          color: "#3a3f68", h: 118, hitW: 90, hitH: 96, standOff: 24,
-          attack: { dmg: 6.5, base: 240, growth: 4.6, angle: 0.34, cd: 0.9, effect: "snare", sfx: "slash" },
-          units: [
-            { sprites: ["summon:divineDogWhite"], backOff: 40 },
-            { sprites: ["summon:divineDogBlack"], backOff: 90, firstAttackDelay: 0.9 },
-          ],
+          id: "shikigami", color: "#3a3f68",
+          pool: SHIKIGAMI_POOL,
         },
       },
       down: {
@@ -408,6 +414,10 @@ export const CHARACTERS = {
         // Drawn at the actor's own scale, and big: the point of the shikigami
         // is that the thing on the stage is enormous.
         scale: 0.95, h: 250, hitW: 120, hitH: 214, hp: 150,
+        // He rocks; he does not get shoved around. A general who staggers
+        // across the stage every time somebody pokes him is not the payoff of
+        // a full meter bar.
+        knockTake: 0.28,
         attack: { cd: 0.5 },
         // The wheel turns. Once he has worn enough punishment, everything after
         // it lands for a fraction — killing him is possible, but you have to do
@@ -720,16 +730,13 @@ export const CHARACTERS = {
         p: { vel: 640, iframes: 0.16, delay: 0.05, dur: 0.2, ox: 84, oy: -90, w: 250, h: 96, dmg: 14, base: 470, growth: 7.2, angle: 0.24, effect: "silence", label: "Inverted Spear", sfx: "slashHeavy" },
       },
       down: {
-        name: "Inventory Curse", type: "summon", cooldown: 9,
-        desc: "The pact-bound curse uncoils at his shoulder and spits cursed tools from its gullet.",
+        name: "Open the Inventory", type: "summon", cooldown: 9,
+        desc: "Something pact-bound comes out of storage — the curse that spits cursed tools, the one he lets off the leash, or a husk with a blade still in it.",
+        // He has no cursed energy of his own, so every one of these is
+        // something he KEEPS rather than something he makes. INVENTORY_POOL.
         p: {
-          id: "inventoryCurse", behavior: "support", duration: 6, maxActive: 1,
-          color: "#9fb8a8", h: 96, hover: { back: 76, up: 158 },
-          sprites: ["summon:inventory_curse", "effect:cursed_spirit_orb"],
-          attack: {
-            cd: 1.15,
-            projectile: { speed: 760, r: 20, dur: 0.7, dmg: 7, base: 300, growth: 5.6, angle: 0.3, color: "#cfd6de", effect: "heavenly", sprite: "effect:cursed_tool", spriteH: 70 },
-          },
+          id: "inventoryCurse", color: "#9fb8a8",
+          pool: INVENTORY_POOL,
         },
       },
     },
@@ -822,13 +829,14 @@ export const CHARACTERS = {
         p: { vel: 560, iframes: 0.1, delay: 0.05, dur: 0.24, ox: 66, oy: -94, w: 204, h: 104, dmg: 13, base: 410, growth: 7.0, angle: 0.3, effect: "soulMark", label: "Distortion", sfx: "slash" },
       },
       down: {
-        name: "Transfigured Human", type: "summon", cooldown: 3.4,
-        desc: "Reshapes a stored soul into a shambling experiment that lurches after the enemy and bursts.",
+        name: "Idle Transfiguration", type: "summon", cooldown: 3.4,
+        desc: "Reshapes a stored soul into whatever amuses him — a lurching bomb, a bloated hulk, a pair of crawlers, or something that sits back and spits.",
+        // He is reshaping a soul on the spot; getting the same shape every time
+        // was the one thing his technique should never do. TRANSFIGURED_POOL
+        // rolls per cast.
         p: {
-          id: "transfigured", behavior: "bomber", duration: 4.5, speed: 330, maxActive: 2,
-          color: "#8f5cd8", h: 104, hitW: 64, hitH: 88,
-          sprites: ["summon:transfigured_human", "effect:soul_isomer"],
-          attack: { dmg: 12, base: 400, growth: 6.8, angle: 0.6, r: 90, effect: "soulMark" },
+          id: "transfigured", color: "#8f5cd8",
+          pool: TRANSFIGURED_POOL,
         },
       },
     },
@@ -878,17 +886,13 @@ export const CHARACTERS = {
         p: { speed: 420, vy: -10, r: 26, dur: 1.1, dmg: 8, base: 280, growth: 5.8, angle: 0.4, color: "#7d58d8", count: 3, spread: 170, homing: 130, effect: "curseDrain", fxElement: "shadow", label: "Spirit Volley", spritePool: ["effect:curse_a", "effect:curse_b", "effect:curse_c", "effect:curse_d"], spriteH: 96, steerable: true, steerRate: 4.6 },
       },
       side: {
-        name: "Rainbow Dragon", type: "summon", cooldown: 8,
-        desc: "His prized heavy-hitter is released onto the stage and hunts until the technique is spent.",
+        name: "Cursed Spirit Release", type: "summon", cooldown: 8,
+        desc: "He opens the collection: the Rainbow Dragon, a Smallpox Deity, a brace of curse hounds or a cursed womb — whatever his hand finds.",
+        // The whole of his technique is a collection, so it is the summon that
+        // most deserves to roll. CURSE_POOL, one per cast.
         p: {
-          id: "rainbowDragon", behavior: "chaser", duration: 5, speed: 380, maxActive: 1,
-          // Unlike the other summons, the round-8 dragon art is drawn facing
-          // RIGHT, so the renderer's default mirror pointed it away from its
-          // target the whole time it was chasing.
-          faceRight: true,
-          color: "#9d7dff", h: 170, hitW: 130, hitH: 130, standOff: 40,
-          sprites: ["summon:rainbow_dragon", "effect:curse_dragon"],
-          attack: { dmg: 11, base: 380, growth: 6.6, angle: 0.42, cd: 1.05, effect: "curseDrain", sfx: "slashHeavy" },
+          id: "storedCurse", color: "#9d7dff",
+          pool: CURSE_POOL,
         },
       },
       down: {
@@ -1243,6 +1247,223 @@ export const CHARACTERS = {
     },
     passive: { id: "oldGuard", name: "Unshakeable Tradition", desc: "Decades on every kind of stage: takes 25% less hitstun — the old man barely flinches." },
     ai: { style: "zoner", range: 380 },
+  },
+
+  // =========================================================================
+  // ROUND 15 — STAGED. Mechamaru, Yuki, Dagon and Kurourushi are built and
+  // balanced here but are NOT on the roster: their keys are in
+  // STAGED_CHARACTER_KEYS at the top of this file, which keeps them out of
+  // character select and out of randomCharacterKey(), and they are in no
+  // CHARACTER_GROUPS bucket in config_menus.js.
+  //
+  // Everything else about them is live — statuses, specials, ultimates,
+  // Dagon's domain, the four new passives, their FX elements. Shipping one is
+  // the same three steps the round-7 six shipped by: import their sprites,
+  // drop their card in assets/cards/, then move the key out of
+  // STAGED_CHARACTER_KEYS and into a group. Their art is round 15 in
+  // docs/asset-requests.md; the kit rationale is in docs/characters.md.
+  // =========================================================================
+
+  // ------------------------------------------------------------- MECHAMARU
+  mechamaru: {
+    name: "Mechamaru",
+    fullName: "Kokichi Muta",
+    epithet: "Ultimate Mechamaru",
+    // The fighter on screen is the PUPPET, not the boy in the bathtub — no
+    // height is published for either, so this is the cursed corpse read off its
+    // anime scale beside the Kyoto students.
+    heightCm: 205,     // estimated (the puppet)
+    theme: "#63c7b0",
+    fxElement: "machine",  // a cursed corpse full of cannons: glints, sparks, steam
+    shadow: "rgba(99, 199, 176, 0.36)",
+    scale: 0.60,
+    stats: { speed: 372, airSpeed: 286, accel: 2280, jump: 720, airJumps: 1, weight: 1.22, friction: 0.79 },
+    anims: SEMANTIC_ANIMS,
+    light: { dmg: 8.5, speed: 1.0, angle: 0.3, effect: null, label: "Sword Option", sfx: "slash" },
+    heavy: { dmg: 17, speed: 0.9, angle: 0.42, effect: null, label: "Ultra Spin", sfx: "slashHeavy", shieldMul: 2.1 },
+    specials: {
+      neutral: {
+        name: "Ultra Cannon", type: "projectile", cooldown: 1.15,
+        desc: "The palm opens and a bolt of purification fire goes down the lane.",
+        p: { speed: 700, vy: 0, r: 30, dur: 0.8, dmg: 12, base: 400, growth: 7.0, angle: 0.3, color: "#63c7b0", pierce: true, fxElement: "machine", label: "Ultra Cannon", sprite: "effect:ultra_cannon", spriteH: 96 },
+      },
+      side: {
+        name: "Boost On", type: "dashStrike", cooldown: 1.35,
+        desc: "Cursed energy vented from the elbows — half a ton of puppet arrives before the sound does.",
+        p: { vel: 620, armor: true, delay: 0.06, dur: 0.24, ox: 72, oy: -96, w: 214, h: 108, dmg: 14, base: 450, growth: 7.2, angle: 0.34, fxElement: "machine", label: "Boost On", sfx: "punch" },
+      },
+      down: {
+        name: "New Shadow Style: Simple Domain", type: "simpleDomain", cooldown: 4.5,
+        desc: "The technique he built into cartridges because he could not cast it himself. Inside the circle nothing arrives unopposed — and no domain is sure of its hit.",
+        p: { duration: 1.6, dmg: 11, base: 400, growth: 6.8, angle: 0.45, radius: 138, color: "#b8f0e4" },
+      },
+    },
+    ultimate: {
+      name: "Ultimate Mechamaru — Mode: Absolute", type: "cannonade",
+      desc: "Seventeen years, five months and six days of banked cursed energy, spent at once: a tracking volley to take the ground away, then the three-barrel cannon.",
+      p: { charge: 0.7, orbs: 5, orbDmg: 6, orbBase: 260, orbGrowth: 5.4, orbSprite: "effect:pigeon_orb", orbSpriteH: 64, dmg: 30, base: 880, growth: 10.5, width: 170, duration: 1.2, color: "#63c7b0", label: "MODE: ABSOLUTE", sprite: "effect:ultimate_cannon", spriteH: 220 },
+    },
+    passive: { id: "heavenlyOutput", name: "Heavenly Restriction (Output)", desc: "A body traded for range and output: his cannons and techniques hit 15% harder — but the frame is a puppet, and it takes 8% more." },
+    ai: { style: "zoner", range: 400 },
+  },
+
+  // ------------------------------------------------------------------ YUKI
+  yuki: {
+    name: "Yuki",
+    fullName: "Yuki Tsukumo",
+    epithet: "Star Rage",
+    heightCm: 180,     // estimated ("a very tall young woman"; no figure published)
+    theme: "#ffb703",
+    shadow: "rgba(255, 183, 3, 0.36)",
+    scale: 0.60,
+    stats: { speed: 430, airSpeed: 330, accel: 2700, jump: 770, airJumps: 1, weight: 1.04, friction: 0.85 },
+    anims: SEMANTIC_ANIMS,
+    light: { dmg: 8.5, speed: 1.08, angle: 0.28, effect: null, label: "Bombaye Jab", sfx: "punch" },
+    heavy: { dmg: 17.5, speed: 0.95, angle: 0.46, effect: null, label: "Star Rage Hook", sfx: "punch", shieldMul: 1.8 },
+    specials: {
+      neutral: {
+        name: "Star Rage: Bombaye", type: "burst", cooldown: 1.5,
+        desc: "Virtual mass poured into one straight punch. It does not weigh her down — it only lands on whoever is in front of her.",
+        p: { delay: 0.14, dur: 0.16, ox: 62, oy: -100, w: 190, h: 126, dmg: 15, base: 520, growth: 8.2, angle: 0.4, label: "BOMBAYE", color: "#ffb703", sfx: "punch", sprite: "effect:star_rage_impact", spriteH: 180 },
+      },
+      side: {
+        name: "Garuda", type: "summon", cooldown: 8,
+        desc: "Her shikigami — a winged serpent she loads with the same virtual mass she loads herself with. It fights on its own.",
+        p: {
+          id: "garuda", behavior: "chaser", duration: 6, speed: 430, maxActive: 1,
+          color: "#ffcf5c", h: 150, hitW: 120, hitH: 110, standOff: 34,
+          sprites: ["summon:garuda"],
+          attack: { dmg: 10, base: 400, growth: 6.8, angle: 0.4, cd: 1.0, sfx: "slashHeavy" },
+        },
+      },
+      down: {
+        name: "New Shadow Style: Simple Domain", type: "simpleDomain", cooldown: 4.5,
+        desc: "The circle she taught Todo. It turns what reaches it, and a domain's guaranteed hit stops being guaranteed.",
+        p: { duration: 1.6, dmg: 12, base: 420, growth: 7.0, angle: 0.45, radius: 138, color: "#ffe1a0" },
+      },
+    },
+    ultimate: {
+      name: "Star Rage: Maximum Mass", type: "massDrive",
+      desc: "As much imaginary mass as she can hold, behind one blow. The wind-up is the whole move — everyone watching knows what is coming, including her.",
+      p: { charge: 0.65, dmg: 34, base: 940, growth: 11, radius: 150, shockwave: 330, color: "#ffb703", label: "BOMBAYE", sprite: "effect:star_rage_impact", spriteH: 280 },
+    },
+    // No Domain Expansion. She has an innate domain in canon and discussed
+    // expanding it with Tengen, but it is never shown — the same reason Hanami,
+    // Uro and Yuji have none here (docs/characters.md).
+    passive: { id: "virtualMass", name: "Star Rage", desc: "Mass without weight: her hits launch 20% further, and nothing that drags at a body — snare, poison, deep water — slows her down." },
+    ai: { style: "rush", range: 230 },
+  },
+
+  // ----------------------------------------------------------------- DAGON
+  dagon: {
+    name: "Dagon",
+    fullName: "Dagon",
+    epithet: "Disaster of Tides",
+    heightCm: 215,     // estimated (evolved form, drawn near Hanami's height)
+    theme: "#2f8fd8",
+    fxElement: "water",  // he generates the sea out of cursed energy
+    shadow: "rgba(47, 143, 216, 0.4)",
+    scale: 0.58,
+    stats: { speed: 350, airSpeed: 300, accel: 2200, jump: 740, airJumps: 1, weight: 1.26, friction: 0.78 },
+    anims: SEMANTIC_ANIMS,
+    light: { dmg: 9.5, speed: 0.92, angle: 0.32, effect: "drench", label: "Tide Lash", sfx: "punch" },
+    heavy: { dmg: 17.5, speed: 0.88, angle: 0.44, effect: "drench", label: "Deluge Sweep", sfx: "slashHeavy", shieldMul: 1.7 },
+    specials: {
+      neutral: {
+        name: "Disaster Tides", type: "wave", cooldown: 1.3,
+        desc: "Water from nothing: a wall of it rolls out along the floor and takes everything with it.",
+        p: { speed: 420, r: 46, dur: 1.1, dmg: 12, base: 400, growth: 6.8, angle: 0.36, color: "#2f8fd8", pierce: true, effect: "drench", count: 2, fxElement: "water", label: "Tides", sprite: "effect:tide_wave", spriteH: 130 },
+      },
+      side: {
+        name: "Man-Eating Shikigami", type: "summon", cooldown: 4.0,
+        desc: "Eels, piranha and small sharks conjured straight out of his body — they swim at whoever is closest and burst on them.",
+        p: {
+          id: "dagonShikigami", behavior: "bomber", duration: 5, speed: 360, maxActive: 2,
+          color: "#2f8fd8", h: 96, hitW: 78, hitH: 74,
+          sprites: ["summon:dagon_shikigami", "effect:shikigami_fish"],
+          attack: { dmg: 11, base: 380, growth: 6.6, angle: 0.5, r: 84, effect: "drench" },
+        },
+      },
+      down: {
+        name: "Undertow", type: "undertow", cooldown: 2.4,
+        desc: "He draws the water back in, and everything swimming in it comes with it. No launch — it just puts them where he wants them, soaked.",
+        p: { range: 520, pull: 520, dmg: 6, effect: "drench", color: "#2f8fd8", label: "Undertow" },
+      },
+    },
+    ultimate: {
+      name: "Death Swarm", type: "deathSwarm",
+      desc: "Shikigami without end, thrown at one target until there is nothing left to throw them at.",
+      p: { volleys: 8, gap: 0.16, dmg: 5, base: 200, growth: 4.6, finalDmg: 16, finalBase: 780, homing: 260, color: "#2f8fd8", label: "DEATH SWARM", sprite: "effect:shikigami_fish", spriteH: 90 },
+    },
+    // ---- Domain Expansion -------------------------------------------------
+    domains: [{
+      name: "Horizon of the Captivating Skandha",
+      type: "captivatingSkandha",
+      desc: "A sunny shore, palms on one side and an ocean that does not end on the other. Inside it his shikigami do not travel to you — they are already there.",
+      howTo: "Fish bite automatically and cannot be dodged or blocked, and every bite leaves the enemy soaked. Press SPECIAL for Death Swarm: an unblockable surge on the enemy, on a short cooldown. Note a Simple Domain shuts the automatic bites off.",
+      p: { duration: 7, color: "#2f8fd8", bg: "domain:captivating_skandha", biteTick: 0.55, biteDmg: 3.2, surgeDmg: 14, surgeBase: 520, surgeGrowth: 8, surgeCd: 1.2 },
+    }],
+    passive: { id: "tideBorn", name: "Disaster of Water", desc: "Born from the fear of drowning: soaked opponents take 15% more damage from him, and nothing he makes can soak him." },
+    ai: { style: "zoner", range: 380 },
+  },
+
+  // ------------------------------------------------------------ KUROURUSHI
+  kurourushi: {
+    name: "Kurourushi",
+    fullName: "Kurourushi",
+    epithet: "Bottomless Appetite",
+    heightCm: null,    // unknown ("stands fairly tall")
+    theme: "#8f3b4e",
+    fxElement: "swarm",  // every hit is partly the roaches
+    shadow: "rgba(143, 59, 78, 0.4)",
+    scale: 0.60,
+    stats: { speed: 412, airSpeed: 340, accel: 2520, jump: 760, airJumps: 2, weight: 1.08, friction: 0.82 },
+    anims: SEMANTIC_ANIMS,
+    light: { dmg: 8.5, speed: 1.05, angle: 0.3, effect: "infest", label: "Festering Slash", sfx: "slash" },
+    heavy: { dmg: 16, speed: 0.98, angle: 0.44, effect: "infest", label: "Ranshoto Cleave", sfx: "slashHeavy", shieldMul: 1.7 },
+    specials: {
+      neutral: {
+        name: "Festering Life Sword: Egg Volley", type: "projectile", cooldown: 1.0,
+        desc: "Six barrels along the blade's spine. The eggs hatch the instant they find a wound.",
+        p: { speed: 620, vy: -2, r: 16, dur: 0.7, dmg: 6, base: 200, growth: 4.8, angle: 0.28, color: "#8f3b4e", effect: "infest", count: 3, spread: 80, fxElement: "swarm", label: "Eggs", sprite: "effect:egg_shot", spriteH: 54 },
+      },
+      side: {
+        name: "Cursed Cockroaches", type: "summon", cooldown: 6.5,
+        desc: "Real roaches, reinforced with cursed energy. One is nothing. The swarm strips a body in seconds.",
+        p: {
+          id: "cockroachSwarm", behavior: "chaser", duration: 6, speed: 500, maxActive: 3,
+          color: "#5a2f38", h: 70, hitW: 78, hitH: 58, standOff: 16,
+          sprites: ["summon:cockroach_swarm"],
+          attack: { dmg: 4.5, base: 180, growth: 3.8, angle: 0.3, cd: 0.7, effect: "infest", sfx: "slash" },
+          units: [
+            { backOff: 40 },
+            { backOff: 80, firstAttackDelay: 0.8 },
+            { backOff: 120, firstAttackDelay: 1.2 },
+          ],
+        },
+      },
+      down: {
+        name: "Earthen Insect Trance", type: "cloudField", cooldown: 2.4,
+        desc: "Flying curses carrying sacs of liquid. They burst across the eyes, and after that the fight is a guess.",
+        p: { dist: 200, w: 230, h: 170, duration: 2.4, tickRate: 0.5, tickDmg: 1.6, effect: "blind", color: "#7c6a3a", label: "Trance", sprite: "effect:blinding_sacs", spriteH: 180 },
+      },
+    },
+    ultimate: {
+      name: "Parthenogenesis", type: "parthenogenesis",
+      desc: "It does not power up. It reproduces — and while the brood is on the stage, everything any of them eats puts the parent back together.",
+      p: {
+        duration: 8, brood: 2, lifesteal: 0.28, dmgMul: 1.1, color: "#8f3b4e",
+        label: "PARTHENOGENESIS", aura: "effect:aura_chitin",
+        offspring: {
+          id: "kurourushiChild", behavior: "chaser", speed: 430, maxActive: 2,
+          color: "#8f3b4e", h: 130, hitW: 96, hitH: 104, standOff: 26,
+          sprites: ["summon:kurourushi_child"],
+          attack: { dmg: 7, base: 300, growth: 5.4, angle: 0.36, cd: 0.9, effect: "infest", sfx: "slash" },
+        },
+      },
+    },
+    passive: { id: "infiniteHunger", name: "Bottomless Appetite", desc: "It eats what it hurts: it recovers 12% of all damage it deals, and the eggs it plants keep feeding it after the cut." },
+    ai: { style: "rush", range: 260 },
   },
 };
 
