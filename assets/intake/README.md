@@ -31,7 +31,17 @@ that way, so this is the normal case, not a mistake.
 
 1. `tools/intake.py` keys the background, straightens facing, and measures body
    height / clipping / fringe / holes → `assets/intake/_processed/` (gitignored).
-2. `tools/intake_sheets.py` renders before/after boards for approval.
+   Straightening facing is a **character** rule: fighters are drawn facing right,
+   so art delivered facing left is flipped. `assets/intake/effects/` is exempt
+   (`NO_MIRROR_DIRS`) — travelling effects are drawn pointing LEFT because the
+   projectile renderer mirrors them when they fly right, and the rest have no
+   facing at all.
+2. `tools/intake_sheets.py` renders before/after boards for approval. **Look at
+   them before importing.** They are the only step that catches what no
+   measurement will: round 15A's four-figures-on-one-plate run frame and its
+   five backwards-mirrored poses were both found here, and a mirrored strike
+   reads as a perfectly good strike until you notice it lands behind the
+   fighter.
 3. `tools/intake_import.py --approve` copies approved frames into
    `assets/sprites/<char>/` and registers them in `manifest.json`. **A frame
    that replaces existing art does not enter the game here** — it lands beside

@@ -101,6 +101,11 @@ BOOLEAN = {"faceLeft"}
 # must not be inherited by the art that fixes it.
 TRACKED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "faceLeft"}
 
+# The fields that mean somebody PLACED this pose, as opposed to judging the
+# drawing on it. Only these take a pose off the recently-updated list — see the
+# note at the point of use.
+PLACEMENT_WORK = TRACKED | {"anchors"}
+
 # Cleared off a pose before the chosen drawing's own values are written in, so a
 # variant that does not set a field cannot inherit the previous drawing's. That
 # covers the review flags as well as the numbers: "fix alpha" is a verdict on a
@@ -449,7 +454,16 @@ def main():
             # updated list asks for, so the marker comes off with the work. A
             # surfaced pose leaves by the same door: `edited` now records it as
             # tuned, which is what put it on the list for lacking.
-            if meta.pop("replaced", None) or meta.pop("surfacedReviewed", None):
+            #
+            # Flagging is NOT that work. Saying "this drawing has to be redrawn"
+            # answers a different question from "this drawing is placed", and a
+            # flag-only export used to take the pose off the list while nobody
+            # had sized or grounded anything — the art still needs placing, and
+            # a request can sit open for rounds. So the marker comes off only
+            # when a placement field moved; `clearUpdated` remains the way to
+            # say "looked at, nothing to do".
+            placed = any(f in PLACEMENT_WORK for f in changes)
+            if placed and (meta.pop("replaced", None) or meta.pop("surfacedReviewed", None)):
                 applied.append(f"{char}/{key}: off the updated list (adjusted)")
             if clear_fresh(man, char, key):
                 applied.append(f"{char}/{key}: alternate no longer marked new")

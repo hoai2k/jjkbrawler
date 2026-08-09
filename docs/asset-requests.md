@@ -575,41 +575,31 @@ would have replaced is still in play. Their asks are re-stated in
 
 **Four new fighters: Mechamaru, Yuki Tsukumo, Dagon and Kurourushi.**
 
-Their kits are already finished. Stats, three specials each, an ultimate each,
-Dagon's Domain Expansion, four new passives, three new statuses (`drench`,
-`infest`, `blind`) and one new shared technique (Simple Domain) are all written,
-balanced against the roster and tested — `node tools/smoke_staged.mjs` plays
-every one of their moves in a real match and `node tools/check_kits.mjs` proves
-every type they name has a handler. The design rationale for each is in
-[characters.md](characters.md#staged--built-not-shipped).
+**Three of the four have landed.** Mechamaru, Yuki and Dagon delivered their
+full 36-pose sets, all nine technique effects and three of the four hero cards;
+they are out of `STAGED_CHARACTER_KEYS` and on the select screen. What that
+delivery answered is recorded in
+[asset-requests-history.md](asset-requests-history.md#round-15a-part-15b-and-15d-part--mechamaru-yuki-and-dagon).
 
-What they do not have is a single pixel. They are held out of character select
-by `STAGED_CHARACTER_KEYS` in `src/characters.js`, which is exactly how the six
-round-7 fighters waited for their art. **This round is the only thing standing
-between them and being playable.**
+What is still open in this round:
 
-- **15A** — four full sprite sets (144 sprites)
-- **15B** — nine technique effects
-- **15C** — four summon minions
-- **15D** — four hero cards
-- **15E** — one domain background
+- **15A** — **Kurourushi's** set (36 sprites)
+- **15C** — summon minions (4 sprites)
+- **15D** — Kurourushi's hero card (1 image)
+- **15E** — Dagon's domain background (1 image)
 
-**162 images in total.** Nothing here is blocking: the game plays exactly as it
-does today until the art lands, and nothing existing changes when it does.
+**42 assets in total, none of it blocking.** Kurourushi stays staged until his
+set lands — his kit is live in code and testable, and nothing else waits on him.
+The three delivered fighters play today; their summons and Dagon's domain
+backdrop fall back to procedural art until 15C and 15E arrive.
 
-**Deliver one fighter at a time, `idle_a` first.** A new character has no frame
-to inherit placement from, so their idle is placed by hand and everything else
-inherits from it — round 7 learned that the expensive way and Choso shipped 17%
-oversized for a round. Anchor `idle_a` to the roster's idle `bodyH` band
-(282–299) before importing the rest.
+## 15A. Kurourushi's sprite set — 36 sprites
 
----
-
-## 15A. Four sprite sets — 144 sprites
-
-**36 poses per fighter.** The same semantic set every fighter on the roster now
-has (`SEMANTIC_ANIMS`, `src/characters.js`) — no sprite sheet, no grid cells,
-one drawing per action:
+**36 poses.** The same semantic set every fighter on the roster now has
+(`SEMANTIC_ANIMS`, `src/characters.js`) — no sprite sheet, no grid cells, one
+drawing per action. Mechamaru's, Yuki's and Dagon's sets have been delivered
+against this brief; **only Kurourushi's is outstanding**, and the three that
+landed are the reference for what a set that arrives whole looks like:
 
 ```
 idle_a  idle_b
@@ -632,12 +622,16 @@ every pose line, the `_a`/`_b` flip test, the framing rule, and the list of
 faults that have each cost the roster a re-request. It exists because the pose
 lines used to live scattered across the rounds that happened to ask for them,
 which meant a new character was drawn from whatever the last round remembered.
-Reading it first is the difference between getting 144 frames right once and
-re-requesting them as round 18.
+Reading it first is the difference between getting a set right once and
+re-requesting it. It did not fully work on the first three: every one of them
+came back with a heavy strike that does not extend far enough, which is the
+brief's own headline criterion and is now round 17.
 
 Four of its rules are worth repeating here, because they are measurable and
 because reach is now taken off the art (`src/silhouette.js`) — a pose that does
-not extend is a fighter with short range in play:
+not extend is a fighter with short range in play. **All three delivered sets
+missed the first one**, so it is the one to check with a ruler before sending
+anything:
 
 - `attack_heavy_b` must put the weapon or fist **further forward than anything
   in that fighter's own `idle_a` by at least a third of their standing height**.
@@ -654,7 +648,7 @@ not extend is a fighter with short range in play:
   [14B](#14b-a-consistent-idle-stance--20-sprites), open for twenty existing
   fighters, and these four are the chance not to join it.
 
-**Framing counts double on these four**, for the same reason: a pose that
+**Framing counts double**, for the same reason: a pose that
 extends needs the margin drawn for it, rather than the figure enlarged until the
 reach falls off the plate. See [the reach margin](pose-brief.md#1-the-rules-that-hold-for-every-pose).
 
@@ -673,41 +667,19 @@ Deliver to:
 assets/intake/<character>/<pose_key>.png
 ```
 
-Keys: `mechamaru`, `yuki`, `dagon`, `kurourushi` — spelled exactly like that,
-matching `src/characters.js`. (Round 7 lost time to art arriving in
-`gakuganjii/`.) The curse is **Kurourushi**; "Kuroroshi" and "Kuro-Urushi" are
-the same character and neither is the key.
+Key: `kurourushi`, spelled exactly like that, matching `src/characters.js`.
+(Round 7 lost time to art arriving in `gakuganjii/`.) The curse is
+**Kurourushi**; "Kuroroshi" and "Kuro-Urushi" are the same character and neither
+is the key.
 
-**Key screen:** magenta `#FF00FF` for **Mechamaru** and **Yuki**; mid-grey
-`#808080` for **Dagon** (he is almost entirely red) and **Kurourushi** (maroon
-face, red-orange eyes).
+**Key screen:** mid-grey `#808080` — his face is maroon with red-orange eyes,
+which a magenta screen eats.
 
----
-
-## 15B. Technique effects — 9 sprites
-
-Each of these is drawn on a key screen with **no character in the frame** — the
-engine composites them itself. Travelling effects must **point LEFT** (see
-[Directional effects point LEFT](#directional-effects-point-left)); the ones
-that do are marked.
-
-| File | Fighter | Used by | What to draw |
-|---|---|---|---|
-| `ultra_cannon.png` ◀ | Mechamaru | Ultra Cannon (neutral) | A compact bolt of pale mint-green `#63c7b0` cursed energy with a hard white core and a spiral of exhaust behind it — fired, not thrown. Reads as artillery |
-| `pigeon_orb.png` | Mechamaru | Pigeon Viola, in the ultimate | One small tracking orb: a white core in a mint-green shell with a short comet tail. Five of these fly at once, so keep it simple and readable at 64 px |
-| `ultimate_cannon.png` ◀ | Mechamaru | Ultimate Cannon, the ultimate's finisher | The three-barrel blast: three converging beams braided into one column, white-hot at the core, mint-green at the edges, wide enough to read as a screen-crosser |
-| `star_rage_impact.png` | Yuki | Bombaye (neutral) **and** the ultimate | The moment mass arrives: a hard white shock-ring with amber-gold `#ffb703` fracture lines radiating out, and the air behind it visibly displaced. No flame, no cursed-energy glow — this is weight, not fire |
-| `tide_wave.png` ◀ | Dagon | Disaster Tides (neutral) | A rolling wall of sea-blue `#2f8fd8` water, crest breaking forward, foam along the top edge. Wider than it is tall |
-| `shikigami_fish.png` ◀ | Dagon | Death Swarm (ultimate) and the summon fallback | One man-eating shikigami mid-lunge: eel-bodied, too many teeth, fins that read at small size. Drawn as a single creature, not a shoal |
-| `egg_shot.png` ◀ | Kurourushi | Egg Volley (neutral) | A small dark cursed egg in flight with a wet maroon sheen and a thin trail of already-hatching specks behind it. Tiny — 54 px tall in play |
-| `blinding_sacs.png` | Kurourushi | Earthen Insect Trance (down) | A drifting cluster of flying insect curses carrying translucent sacs of ochre `#7c6a3a` liquid, some burst and leaking. A cloud, wider than tall, with ragged edges |
-| `aura_chitin.png` | Kurourushi | Parthenogenesis (ultimate install) | An install aura: **the aura alone, no character**, portrait plate, matching `assets/sprites/effects/aura_gold.png` for format. A dense maroon `#8f3b4e` shell of crawling chitin and antennae silhouettes, thickest at the shoulders, ragged at the top |
-
-Deliver to `assets/intake/effects/<name>.png`.
-
-**Not requested, and deliberately:** Simple Domain (the circle) and Undertow
-(the spiral) are drawn procedurally in `src/render.js` and `src/specials.js` and
-look correct as they are. They need no art and none should be made for them.
+**One plate per pose.** Round 15A delivered `mechamaru/run_reach_a` as a strip
+of four small figures on one canvas, which is a contact sheet rather than a
+sprite: nothing in it is separable at full resolution and none of the four
+clears the 600 px body minimum on its own. It was not imported, and it is round
+17.
 
 ---
 
@@ -733,24 +705,20 @@ Deliver to `assets/intake/summons/<name>.png`.
 
 ---
 
-## 15D. Hero cards — 4 images
+## 15D. Kurourushi's hero card — 1 image
 
 Same spec as round 9A: **JPEG, portrait, full-bleed background** — a card, not a
 keyed sprite. Character three-quarter or facing, dramatic lighting, a background
 that reads at tile size, no text of any kind.
 
 ```
-assets/intake/cards/mechamaru_card.jpg
-assets/intake/cards/yuki_card.jpg
-assets/intake/cards/dagon_card.jpg
 assets/intake/cards/kurourushi_card.jpg
 ```
 
-Match the existing set in `assets/cards/` for crop and energy. Suggested
-backdrops, from where each of them actually fights: Mechamaru — a mountain
-hangar with the cockpit lit; Yuki — open sky at dusk with Garuda coiled behind
-her; Dagon — a flooded Shibuya platform, water to the knee; Kurourushi — a
-Sendai side street under a hanging swarm.
+Match the existing set in `assets/cards/` for crop and energy — the three
+delivered with this round (`mechamaru_card.jpg`, `yuki_card.jpg`,
+`dagon_card.jpg`) are the closest reference. Suggested backdrop, from where he
+actually fights: a Sendai side street under a hanging swarm.
 
 ---
 
@@ -777,22 +745,37 @@ line and shoal over the bottom of the screen.
 
 ## When it lands
 
-Per fighter, in this order:
+The order the three delivered fighters went through, which worked and is what
+Kurourushi should follow:
 
-1. `python3 tools/intake.py` over their sprite folder, `idle_a` first, then
-   place it in the sprite workbench (`/workbench/`) against the roster's idle
-   `bodyH` band before importing the other 35.
-2. Card into `assets/cards/`, effects through `tools/prep_effects.py`, summons
-   through `assets/intake/summons/`.
-3. Move their key out of `STAGED_CHARACTER_KEYS` in `src/characters.js` and
-   into a `CHARACTER_GROUPS` bucket in `src/config_menus.js` — Mechamaru and
-   Yuki are sorcerers, Dagon and Kurourushi are curses.
-4. `node tools/check_kits.mjs`, `node tools/audit_hitboxes.mjs` (their reach is
-   now derived from the art that just landed), then `node tools/smoke_combat.mjs`.
+1. `python3 tools/intake.py` over their sprite folder, then the review boards
+   (`tools/intake_sheets.py`) **before importing anything** — that is where the
+   contact-sheet `run_reach_a` and five backwards-mirrored frames were caught.
+2. `intake_variants.py --auto` → `intake_import.py --approve` →
+   `bake_anchors.py` → `auto_tune.py`. A brand-new pose has nothing to replace,
+   so none of it waits for approval; the whole set lands on the workbench's
+   updated list as new work to place.
+3. Card into `assets/cards/`, effects copied to `assets/sprites/effects/` and
+   run through `tools/prep_effects.py`, summons through `assets/intake/summons/`.
+4. Move their key out of `STAGED_CHARACTER_KEYS` in `src/characters.js` and into
+   a `CHARACTER_GROUPS` bucket in `src/config_menus.js`. Kurourushi is a curse.
+5. `node tools/check_kits.mjs`, `node tools/audit_hitboxes.mjs` (their reach is
+   derived from the art that just landed — it reports the new set as
+   *provisional* until the placement pass), then `node tools/smoke_combat.mjs`
+   and `node tools/smoke_staged.mjs`.
 
 No other code change is needed at any point. The loader already knows their
 effect, summon and domain-background paths and starts fetching them the moment
 the key moves (`STAGED_EFFECT_KEYS` / `STAGED_SUMMON_KEYS` in `src/assets.js`).
+Expect two optional 404s per promoted fighter until 15C and 15E land — the
+summon and domain art the loader now asks for and nothing has drawn yet.
+
+**Absolute `renderScale` does not need solving by hand.** A fighter's drawn size
+comes from `heightCm` through `heights.js`, which solves the character's scale
+against their own idle span, so a set imported at the pipeline's flat 0.25 comes
+out at the right height on stage. What the placement pass is for is the
+*relative* work: ground contact, centring, and the poses whose size the roster
+holds uniform.
 
 ---
 
@@ -983,8 +966,9 @@ already drawing against.
 - **17C** — two caught while placing round 13 (2 sprites)
 - **17D** — a simplified card for every fighter (27 images, **new art, nothing replaced**)
 - **17E** — Hanami's hero card, redrawn to canon (1 image)
+- **17F** — five caught while landing round 15A (5 sprites)
 
-**41 sprites and 28 card images.** None of it is blocking — every pose named
+**46 sprites and 28 card images.** None of it is blocking — every pose named
 here has art in the game today, each is a redraw rather than a gap, and 17D
 lands in a directory the game does not read yet.
 
@@ -1340,3 +1324,32 @@ what a player sees the moment it lands — a card is one file with no variant
 mechanism and no approval step behind it. So it should go in once enough of 17A
 has been approved that the tile and the fighter on the stage agree with it;
 landing it first just moves the mismatch somewhere else.
+
+---
+
+## 17F. Caught while landing round 15A — 5 sprites
+
+The three new fighters arrived with complete 36-pose sets drawn against
+[pose-brief.md](pose-brief.md), and the brief's headline criterion is the one
+every one of them missed.
+
+| Fighter | Key | Pose | Kind | What is wrong |
+|---|---|---|---|---|
+| Mechamaru | `mechamaru` | `run_reach_a` | Quality | **Delivered as a contact sheet** — four small figures of the run cycle on one canvas, rather than one pose. Nothing in it is separable at full resolution and none of the four clears the 600 px body minimum alone, so it was not imported: he runs on the other three cycle frames until this lands. |
+| Yuki Tsukumo | `yuki` | `attack_heavy_b` | Pose | The hook extends **9%** of standing height past her idle where the brief asks for a third. She is a boxer with no weapon, so the whole body has to be behind it — hips through, shoulder past the lead foot. |
+| Dagon | `dagon` | `attack_heavy_b` | Pose | Extends **16%**. The claws should finish out past the wings. |
+| Mechamaru | `mechamaru` | `attack_heavy_b` | Pose | Extends **20%**. The forearm blade should be the furthest thing forward in the frame. |
+| Dagon | `dagon` | `crouch_b` | Pose | Drops **21%** of standing height where the brief asks for a quarter, and reads *taller* than `crouch_a` beside it. The pair is one held crouch a breath apart, not a descent. |
+
+The four numbers above are measured the way the engine measures reach: the
+forward edge of the art past the centre of the body's core columns
+(`bodyRight` against `coreLeft`/`coreRight`), as a fraction of the idle's own
+height. They are comparable within a fighter regardless of placement, because
+every pose of a set is drawn at one zoom.
+
+**Three sets, three heavies short.** 15A stated the one-third rule in the
+request itself and it still came back missed on all three, which says the rule
+needs to arrive as a number to check against rather than a sentence to read —
+it is now the first thing 15A says, and §3 of the pose brief is where it lives.
+Nothing else in the three sets missed a stated criterion: the crouches, the
+light pairs and the idles all landed.

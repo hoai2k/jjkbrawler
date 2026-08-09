@@ -42,14 +42,15 @@ import { SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL } from ".
 // src/config_menus.js. Nothing else is needed — all six round-7 fighters
 // shipped exactly that way.
 //
-// The four below are round 15: Mechamaru, Yuki Tsukumo, Dagon and Kurourushi.
-// Their kits, statuses, specials, ultimates, Dagon's domain and all four
-// passives are live in code and testable; only the art is outstanding
-// (docs/asset-requests.md, round 15). They are deliberately NOT in any
+// Round 15 staged four — Mechamaru, Yuki Tsukumo, Dagon and Kurourushi — whose
+// kits, statuses, specials, ultimates, Dagon's domain and all four passives
+// were live in code before any art existed. Three of them landed their 36-pose
+// sets in round 15A and are now on the select screen; **Kurourushi's set has
+// not been drawn**, so he stays here. They are deliberately NOT in any
 // CHARACTER_GROUPS bucket, which is the other half of keeping them off the
 // select screen — this list keeps them out of randomCharacterKey() and out of
 // the "unreachable fighter" warning at the bottom of this file.
-export const STAGED_CHARACTER_KEYS = ["mechamaru", "yuki", "dagon", "kurourushi"];
+export const STAGED_CHARACTER_KEYS = ["kurourushi"];
 
 // Sentinel selection meaning "draw a fresh fighter at the start of every match"
 // rather than naming one. Never a key in CHARACTERS — resolve it through
