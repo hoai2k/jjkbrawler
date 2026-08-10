@@ -14,11 +14,10 @@ image-to-3D, face sheets, shade palettes — in
 [render3d/docs/image-requests.md](../render3d/docs/image-requests.md),
 numbered DI1, DI2… — so the tracks never collide.)
 
-**Current status: rounds 1–16 delivered. Round 17 is delivered except its card
-set. Round 18 is open.**
+**Current status: rounds 1–17 delivered. Round 18 is open.**
 
-**Round 18 is the one to add to** — 17D is being drawn against, so anything found
-from here goes into 18.
+**Round 18 is the one to add to** — nothing else is outstanding, so anything
+found from here goes into 18.
 
 **The approval queue is empty.** Rounds 14, 16 and 17 all landed through the
 [approval step](../assets/intake/README.md#the-confirm-step) — a delivery is in
@@ -312,17 +311,17 @@ single addition: **no drawn shadow of any kind** — the game casts its own.
 
 ---
 
-# Round 17 — 40 of 41 sprites and 1 of 28 cards delivered
+# Round 17 — delivered
 
-**Everything except 17D has landed**, and its art is in the repo awaiting
-approval. What is left in this round is the simplified card set.
+**All of it has landed**, including the simplified card set. 17D's 27 tiles are
+in `assets/cards/simple/`, one per roster fighter, and the round is closed.
 
 | Part | Scope | State |
 |---|---|---|
 | 17A | A full Hanami set — 36 sprites | **Delivered.** Redrawn to canon; awaiting approval pose by pose |
 | 17B | Mahoraga's three light/crouch poses — 3 sprites | **Delivered**, awaiting approval — the karma wheel is present this time |
 | 17C | Two caught while placing round 13 — 2 sprites | **Delivered**, awaiting approval |
-| 17D | A simplified card for every fighter — 27 images | **Open**, below |
+| 17D | A simplified card for every fighter — 27 images | **Delivered.** All 27 in `assets/cards/simple/`. The game draws them only when `USE_SIMPLE_CARDS` is `true` in `src/config_menus.js`, and it is currently `false` — a display decision, not a missing asset |
 | 17E | Hanami's hero card, redrawn to canon — 1 image | **Delivered and in the game.** A card has no approval step |
 
 The three keys outside 17A's 36 — `attack_air`, `run_a` and `run_b` — were not
@@ -336,6 +335,13 @@ tile is the pale humanoid curse, not the tree — the hero card the tile has to
 agree with is already in the game.
 
 ## 17D. A simplified card for every fighter — 27 images
+
+> **Delivered.** All 27 tiles are in `assets/cards/simple/`, one per roster
+> fighter. They are **not on screen**: `USE_SIMPLE_CARDS` in
+> `src/config_menus.js` is `false`, so the roster grid still draws the hero
+> cards. Flipping it to `true` is the whole of switching them on. The brief
+> below is kept because it is what a re-draw of any single tile is measured
+> against.
 
 ### Why
 
@@ -497,13 +503,14 @@ manifest entry — so landing these is a move and nothing else.
 
 # Round 18 — open
 
-**Round 18 is the round to add to.** 14, 15, 16 and 17 are all being drawn
-against, so anything caught from here lands here.
+**Round 18 is the round to add to.** Everything before it has been delivered, so
+anything caught from here lands here.
 
 - **18A** — thirteen caught while placing the round-15 sets (13 sprites)
-- **18B** — four caught while placing Kurourushi (4 sprites, 1 alpha fix)
+- **18B** — four caught while placing Kurourushi (4 sprites)
+- **18C** — three that fell through the round renumbering (3 sprites)
 
-**17 sprites, none of it blocking** — every pose named here is in the game today
+**20 sprites, none of it blocking** — every pose named here is in the game today
 and playable; each is a redraw of art that works but does not do its job.
 
 ## 18A. Caught while placing the round-15 sets — 13 sprites
@@ -587,7 +594,7 @@ short strike, but the frame on screen is the same problem: the heavy does not
 read as the biggest thing the fighter does. The rule is in
 [pose-brief.md](pose-brief.md); this is the evidence it needs to stay there.
 
-### Repo work, not a request: `kurourushi/ledge_hang`
+### Repo work, not a request: `kurourushi/ledge_hang` — done
 
 The ledge is drawn into the plate — a slab under the hands, the same fault
 `dagon/ledge_hang` and `mechamaru/ledge_hang` had in round 15 and the reason the
@@ -596,3 +603,49 @@ note "Remove the ledge", so the workbench shows it and
 `tools/list_replacements.py` tracks it. As with the other two, the hands are
 closed on the bar and cutting it leaves them closed on nothing, which is the
 pose as asked for — **the stage supplies the edge.** No redelivery needed.
+
+**This has now been done**, along with `hanami/ledge_hang`, which had been
+flagged as a redraw rather than repo work and did not need to be: his was the
+same flat slab with the hands over it. Four of the roster's ledge grips have now
+been cut this way (Dagon, Mechamaru, Kurourushi, Hanami) and the rule is in the
+pose brief, so a future set should not need it.
+
+---
+
+## 18C. Three that fell through the round renumbering — 3 sprites
+
+Flagged in the workbench, but named in no request section — they were written
+into rounds that were later split, renumbered or moved to history, and the flags
+outlived the sections. An audit of the manifest against this file found them:
+the workbench knew about all three the whole time, and nobody drawing from this
+file could have.
+
+| Fighter | Key | Pose | Kind | What is wrong |
+|---|---|---|---|---|
+| Suguru Geto | `geto` | `attack_down` | Pose | "Should be straight down instead of down and right." `downHeavy` is a committed smash at the floor in front — the arc ends under him, not off to the side. Asked for once as 14C and again after the round-13 redraw was approved-and-reflagged. |
+| Mei Mei | `meimei` | `special_down` | Pose | Flagged during a placement pass with no note. Her down special is the crow swarm gathering low; the drawing does not read as a technique starting. |
+| Takako Uro | `uro` | `prone` | Character | **The costume is a full pale-blue bodysuit** — covered arms, covered legs — where every other pose in her set draws the canon cloud wrap over bare limbs. See the note below: this is the generator's doing rather than the brief's, and it may not be fixable by asking again. |
+
+### `uro/prone` is worth understanding before re-requesting it
+
+Her other **seven** poses are on-model: `idle_a`, `run_reach_a`, `crouch_a`,
+`dodge_roll`, `hurt`, `attack_light_b` and `victory` all draw the pale-cyan
+cloud vapour across chest and hips with bare arms and legs, exactly as her
+character block asks. Only `prone` comes back dressed, and it comes back dressed
+in something that is not in the block at all — a full-length bodysuit.
+
+So this is **not** a prompt fault we can see: the block is explicit ("her only
+covering a wrap of pale-cyan cloud vapour clinging across her chest and hips,
+bare arms and legs"), the canonical reference shows it, and the pose line for
+`prone` says nothing about clothing. What is different about `prone` is that it
+is the one pose where the figure is **lying down, horizontal, full-length** —
+and a generator handed a reclining, minimally-dressed figure tends to add
+clothing on its own. `dodge_roll` is on the ground too and comes back correct,
+which suggests it is the reclining read rather than the ground.
+
+That makes it worth **one** re-request with the costume restated inside the pose
+line rather than left to the block — and worth knowing it may come back dressed
+again. If it does, the honest options are to keep the drawing (a knockdown is on
+screen for well under a second) or to draw the pose from a different angle that
+is less likely to trip it, e.g. seen more from the feet. It is a limitation of
+the generator, not of the request.
