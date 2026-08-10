@@ -133,6 +133,20 @@ collapse to almost nothing. Four fighters at ≤30k tris with toon materials
 and a hull outline is comfortably real-time on integrated GPUs; the
 supersample is the only real fill-rate cost and has a half-res fallback.
 
+**Measured, not assumed** (the D0 smokes, four-fighter CPU match, same
+machine): this backend renders **144 poses to the billboard path's 101** over
+a comparable run — 557/144 cache hits against 563/101. It steps its clock
+coarser (13 Hz vs the billboard path's 30 Hz quantisation) and still renders
+MORE, because its cache key is wider: aim, look-at, flinch, turnaround,
+parallax bucket and stage-light key are all dimensions the billboard key does
+not carry. Micro-parallax is the biggest single contributor — quantised to 2°
+across a ±7° range, a fighter crossing the stage cycles through ~8 buckets of
+otherwise identical poses. That is the honest trade, and each term is a dial:
+`parallaxQuantDeg` is the first knob to turn if the render count ever needs
+to come down, at the cost of parallax stepping visibly. In absolute terms
+both are far inside budget — the smoke asserts renders/sec against
+`sampleHz × fighters` and the measured window sits at about a fifth of it.
+
 ## 4. The anime look
 
 The Guilty Gear Xrd recipe, sized to this game. Each item is a module in

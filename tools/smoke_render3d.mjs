@@ -55,10 +55,25 @@ async function bootAndFight(page, url) {
   await page.click("#startButton");
   await page.waitForSelector(".stage-card", { timeout: 5000 });
   await page.locator(".stage-card").nth(0).click();
-  await page.waitForFunction(async () => {
-    const { state } = await import("/src/state.js");
-    return state.phase === "playing" && state.fighters.length > 0 && state.matchTime > 3;
-  }, { timeout: 180000 });
+  // Wait for a SETTLED match — the same trap smoke_billboard.mjs documents.
+  // The phase blips through `playing` with a stale fighter list during round
+  // setup, so a single-shot condition catches that blip and then samples
+  // during the asset load that follows, which reads as "the 3D pipeline
+  // rendered nothing" when in truth the match had not begun. Requiring the
+  // condition to hold across consecutive polls, with the clock genuinely
+  // advancing, is what makes every number sampled after this mean something.
+  let stable = 0;
+  let last = -1;
+  for (let waited = 0; stable < 3; waited += 500) {
+    if (waited > 180000) throw new Error("match never settled");
+    await page.waitForTimeout(500);
+    const s = await page.evaluate(async () => {
+      const { state } = await import("/src/state.js");
+      return { phase: state.phase, n: state.fighters.length, t: state.matchTime || 0 };
+    });
+    stable = (s.phase === "playing" && s.n > 0 && s.t > 3 && s.t > last) ? stable + 1 : 0;
+    last = s.t;
+  }
 }
 
 // ------------------------------------------------- 1. mannequin match
@@ -142,11 +157,16 @@ async function bootAndFight(page, url) {
       backend.drawCharFrame(ctx, "gojo", token, 150, 280, { scale: 0.6, facing: -1 });
       return c.toDataURL();
     };
+    // Both draws must be MODEL renders. Comparing two sprite fallbacks would
+    // also come out identical — a determinism check that cannot tell which
+    // path it measured proves nothing about the renderer it is named for.
+    const before = window.__render3d.stats.renders;
     const a = draw();
     scene.clearCache();
     const b = draw();
-    return { same: a === b, len: a.length };
+    return { same: a === b, len: a.length, renders: window.__render3d.stats.renders - before };
   });
+  check(r.renders >= 2, "both determinism draws went through the model path", `${r.renders} renders`);
   check(r.same, "same pose token renders byte-identical pixels across a cache clear", `${r.len}b`);
   check(errors.length === 0, "no page errors in the determinism probe", errors.slice(0, 2).join(" | "));
   await page.close();
@@ -179,13 +199,19 @@ try {
     c.width = 300; c.height = 300;
     const ctx = c.getContext("2d");
     const token = backend.currentFrame(charKey, "idle", 0.5);
+    // Count renders across the draw. Pixels alone cannot tell a MODEL from the
+    // sprite fallback — drawCharFrame legitimately falls through to sprites
+    // and still returns true with a canvas full of pixels, so a check that
+    // only counted pixels would pass just as happily with the 3D path dead.
+    const before = window.__render3d.stats.renders;
     const drew = backend.drawCharFrame(ctx, charKey, token, 150, 280, { scale: 0.6, facing: 1 });
+    const rendered = window.__render3d.stats.renders > before;
     let px = 0;
     const d = ctx.getImageData(0, 0, 300, 300).data;
     for (let i = 3; i < d.length; i += 4) if (d[i] > 60) px++;
     return {
       registered: backend.hasModel(charKey), ownSrc: own?.source, ultSrc: inherited?.source,
-      token, drew, px,
+      token, drew, px, rendered,
     };
   }, TEST_CHAR);
 
@@ -194,6 +220,7 @@ try {
   check(r.ownSrc === "own", "a state the rig covers resolves to its own clip", r.ownSrc);
   check(r.ultSrc === "default", "a state it lacks resolves to the default pose set", r.ultSrc);
   check(r.drew === true && r.px > 100, "the delivered rig draws through drawCharFrame", `${r.px} px`);
+  check(r.rendered, "and draws as a MODEL, not via the sprite fallback");
   check(errors.length === 0, "no page errors on the delivered-rig path", errors.slice(0, 2).join(" | "));
   await page.close();
 } finally {
