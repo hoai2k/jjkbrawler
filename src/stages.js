@@ -22,7 +22,7 @@ export const STAGES = [
   { key: "floodedGate", name: "Flooded Gate", bgFile: "flooded_gate.jpg", tint: "rgba(107, 174, 214, 0.13)", platforms: [
     { x: 220, y: 570, w: 840, h: 42, kind: "main" }, { x: 190, y: 446, w: 180, h: 22, kind: "side" }, { x: 910, y: 446, w: 180, h: 22, kind: "side" }, { x: 552, y: 336, w: 176, h: 20, kind: "top" }
   ] },
-  { key: "shibuyaNight", name: "Shibuya Night", bgFile: "shibuya_night.webp", tint: "rgba(88, 116, 220, 0.16)", platforms: [
+  { key: "shibuyaNight", name: "Shibuya Night", bgFile: "shibuya_night.jpg", tint: "rgba(88, 116, 220, 0.16)", platforms: [
     { x: 250, y: 566, w: 780, h: 42, kind: "main" }, { x: 200, y: 452, w: 220, h: 22, kind: "side" }, { x: 860, y: 452, w: 220, h: 22, kind: "side" }, { x: 360, y: 342, w: 190, h: 22, kind: "side" }, { x: 730, y: 342, w: 190, h: 22, kind: "side" }, { x: 505, y: 240, w: 270, h: 20, kind: "top" }
   ] },
   { key: "curseMaw", name: "Curse Maw", bgFile: "curse_maw.jpg", tint: "rgba(60, 215, 218, 0.13)", platforms: [

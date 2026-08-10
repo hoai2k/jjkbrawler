@@ -112,7 +112,11 @@ mode shows it at a slight downscale. The rule that falls out is a neat one:
 paint 3200×1800 and make the **centre 1600×900** a finished picture on its
 own, because that centre box is what the 3D camera crops to while flat mode
 shows the whole frame. `flooded_gate.jpg` (800×437), `shibuya_night.webp`
-(1200×675) and `curse_maw.jpg` (wrong aspect) go first.
+(1200×675) and `curse_maw.jpg` (wrong aspect) went first.
+
+**Delivered.** All twenty landed at 3200×1800; the previous paintings are kept
+at `assets/reference/backgrounds_previous/`. Shibuya Night came as `.jpg` and
+`src/stages.js` changed with it. The rest of round 18 is still open.
 
 **18F** is the more interesting half and is optional: fourteen keyed near-field
 cards for the garnish layer. Splitting a *backdrop* into parallax layers buys

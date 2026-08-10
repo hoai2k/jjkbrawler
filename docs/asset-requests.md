@@ -330,16 +330,18 @@ anything caught from here lands here.
 - **18B** — four caught while placing Kurourushi (4 sprites)
 - **18C** — three that fell through the round renumbering (3 sprites)
 - **18D** — two Uro alternates: the right pose in the wrong costume (2 sprites)
-- **18E** — twenty backgrounds repainted for the 3D camera (20 images)
 - **18F** — near-field cards for the 3D camera's garnish layer (14 images,
   optional)
 - **18G** — seven a pose is drawing somebody else's art (7 sprites)
 
-**28 sprites and 34 images, none of it blocking** — every pose named here is in
-the game today and playable, and every background named here already exists and
-works. The sprites are redraws of art that does not do its job; 18E and 18F are
-art the `?camera=3d` mode can use and the flat game cannot, so both are pure
-upside and a partial delivery of either is useful on its own.
+**28 sprites and 14 images, none of it blocking** — every pose named here is in
+the game today and playable. The sprites are redraws of art that does not do its
+job; 18F is art the `?camera=3d` mode can use and the flat game cannot, so it is
+pure upside and a partial delivery of it is useful on its own.
+
+**18E has landed.** All twenty backgrounds were repainted at 3200×1800 and are
+in the game — see
+[the history entry](asset-requests-history.md#18e--twenty-backgrounds-repainted-for-the-3d-camera).
 
 ## 18A. Caught while placing the round-15 sets — 12 sprites
 
@@ -513,139 +515,9 @@ notice rather than showing up on the review board.
 
 ---
 
-## 18E. Twenty backgrounds, repainted for the 3D camera — 20 images
-
-The `?camera=3d` mode (see [2.5d-camera-plan.md](2.5d-camera-plan.md)) puts the
-stage painting on a plane in a real 3D scene. It works today with the existing
-art, and this is not a bug report — the plates are fine. But the mode changes
-what a backdrop has to *be*, in one measurable way and three compositional ones,
-and repainting to that spec is the single largest visible win available to the
-camera. §10 of the plan has the full measurement; the short version:
-
-**The 3D camera only ever shows the middle of the picture.** The backdrop plane
-deliberately over-fills the frustum (×1.5 height, ×1.35 width) so that no dolly,
-yaw or roll can swing past its edge. The cost is that **only 49.4% of the
-image's linear extent is on screen** — a 1600×900 plate puts about **790 source
-pixels across 1280 CSS pixels, a 1.62× upscale (3.24× at DPR 2)**, where flat
-mode shows the whole plate at a slight *down*scale. That softness is currently
-the most visible art deficit in 3d mode.
-
-### The one rule that is new
-
-> **Paint at 3200×1800. The 3D camera crops to the centre 1600×900 — the size
-> the current backgrounds already are — so that centre box has to be a finished
-> picture on its own, and the outer ring is what flat mode adds around it.**
-
-Both crops ship. Flat mode (the default) shows the whole 3200×1800 frame; 3d
-mode shows the centre half. Neither is a "safe area" to be padded with filler —
-they are two framings of one painting, and both are seen by players. The crop is
-centred to within 2.4% of image height, so treating it as exactly centred is
-correct.
-
-### Three things the 3D scene changes about composition
-
-- **Paint mid-ground and far ground only. No foreground.** Anything painted at
-  the very front of frame lands on the same flat plane as the horizon, 14 world
-  units back, and then contradicts the real near-field cards the camera draws
-  *between* the lens and the fight (traffic, lanterns, leaves — §7c of the
-  plan). Foreground is the garnish layer's job now; a plate that paints its own
-  fights it. Overhanging branches, near pillars, near railings: leave them out.
-- **Keep a calm value band across the middle.** The fight happens there, and in
-  3d the platforms are extruded boxes with lit top faces sitting in front of it.
-  The band from roughly 45% to 85% down the *centre box* should be the quietest
-  part of the painting — low contrast, no hard edges, no bright speculars. Put
-  the detail and the drama above and to the sides of it.
-- **Avoid a strong one-point perspective aimed at the centre of frame.** A
-  painted vanishing point is rigid; a real camera is not. In normal play this
-  camera moves so little (±0.88° of yaw — the sim clamps it) that a baked VP is
-  harmless, but the drama shots swing to ±4° and a dead-centre VP is where that
-  reads worst. An off-centre or open composition is safer and crops better.
-
-### What has not changed
-
-Same filenames, same folder, same JPEG format, so **nineteen of the twenty need
-no code change at all** — the loader reads `stage.bgFile` and picks them up
-as-is. The exception is Shibuya Night, which is registered as `.webp`: deliver
-it as `shibuya_night.jpg` and one string in `src/stages.js` changes with it, or
-keep the `.webp` extension and nothing does.
-
-Landscape, full-bleed, no characters, no text, no border, no UI. Keep the
-mid-tones open: the renderer lays a 30% black wash and the stage's own colour
-tint over the plate before anything else draws, so a plate that arrives already
-dark and already saturated has nowhere to go.
-
-```
-assets/intake/backgrounds/<name>.jpg      3200×1800, JPEG, full-bleed
-```
-
-### Prompt formula
-
-`[BOARD LINE]`, `[COMPOSITION SUFFIX]`, `[STYLE SUFFIX]`
-
-**Composition suffix** — append to every board line:
-
-> wide establishing shot, mid-ground and distance only with no foreground
-> elements, empty stage floor across the lower middle of the frame, quiet
-> low-contrast band through the middle third, detail and interest in the upper
-> half and toward the edges, open mid-tones, no characters, no text
-
-**Style suffix** — the same one the rest of the game uses:
-
-> clean Japanese anime key-art style matching the Jujutsu Kaisen TV anime,
-> painted background art, crisp rendering, cel shading with soft gradient
-> accents, atmospheric depth, high detail, no text
-
-### The twenty boards
-
-Each line is the setting to paint. The **tint** column is the colour the engine
-already washes over the plate — paint *toward* it rather than against it, or the
-grade fights the art. The **gimmick** column is what the board does during a
-match ([stage_fx.js](../src/stage_fx.js)); the painting should look like a place
-where that could happen, and must leave room for it.
-
-| # | File | Board | Tint | The setting to paint | Gimmick it has to host |
-|---|---|---|---|---|---|
-| 1 | `training_bridge.jpg` | Training Bridge | green | A long arched wooden bridge over a green ravine at a temple school, late afternoon, heavy summer canopy on both banks, tiled roofs beyond. The calmest board in the game and the one the camera is tuned on — it should read as *ordinary*. | Leaves fall constantly; the camera adds more near the lens |
-| 2 | `quiet_hall.jpg` | Quiet Hall | warm amber | A long empty tatami hall, shoji screens down one side throwing hard warm rectangles across the floor, a heavy bronze bell hanging in the far dark. Stillness is the subject. | Every ~25 s the bell seals techniques for 4 s; camera pushes in |
-| 3 | `flooded_gate.jpg` | Flooded Gate | cool blue | A great stone torii gate standing in knee-deep floodwater, submerged steps, rain-heavy sky, the waterline the dominant horizontal. **Currently 800×437 — the lowest-resolution plate in the game and the most urgent of the twenty.** | A surge wave sweeps the length of the floor |
-| 4 | `shibuya_night.webp` | Shibuya Night | indigo | The Shibuya scramble at night from street level, neon towers stacked deep, wet asphalt throwing colour back up. The busiest board — but the busy has to sit *above* the fight band. **Deliver as JPEG at 3200×1800; currently 1200×675 webp.** | An 8 s "curtain" seals the arena and floods everyone's meter |
-| 5 | `curse_maw.jpg` | Curse Maw | cyan | The inside of an enormous curse: a ribbed organic cavern, wet cyan bioluminescence in the recesses, a throat receding into dark. **Currently 1920×1640 at a 1.17 aspect — it is cropped hard before 3d crops it again; reframe to true 16:9.** | Fangs snap up at both outer thirds of the floor |
-| 6 | `garden_steps.jpg` | Garden Steps | bright green | A terraced temple garden climbing left to right, moss, stone risers, a still pond below, blossom. The one board whose *layout* the 3D camera flatters most — the terracing should read in the painting too. | A flower blooms on a random platform and heals whoever reaches it |
-| 7 | `lantern_corridor.jpg` | Lantern Corridor | warm orange | A covered wooden veranda running into the distance, paper lanterns strung the length of it, warm pools of light on dark boards, night garden past the posts. Keep the lanterns *mid-distance and beyond* — the camera hangs its own into the top of frame. | A lantern shakes loose, falls and burns a patch of floor |
-| 8 | `sunken_crossing.jpg` | Sunken Crossing | pale blue | A flooded city crossing at dusk, a few centimetres of standing water turning the whole street into a mirror, drowned kerbs, signage doubled in the reflection. The slickness is a mechanic here, so sell the wet. | The floor is genuinely slippery; the camera glides and overshoots |
-| 9 | `neon_split.jpg` | Neon Split | magenta | A narrow back alley between two neon-clad blocks, signage crowding in from both sides, a dark gap straight up the centre. Leave the centre line clear — something stands in it. | An energy wall strikes down the centre line and holds |
-| 10 | `bone_sanctum.jpg` | Bone Sanctum | pale teal | A cathedral built from bone: ribbed vaults, vertebral columns, cold teal light from high openings, ossuary dark below. | Drop-through platforms rattle, phase out for 3 s, re-knit |
-| 11 | `bridge_duel.jpg` | Bridge Duel | sea green | A high suspension span in sea mist, cables climbing out of frame, water far below, distant headland. Emptiness on all sides — the floor here moves, and the surroundings are what make that legible. | The whole main platform drifts side to side under the fight |
-| 12 | `academy_hall.jpg` | Academy Hall | brown | A grand school hall — dark timber, a gallery, tall windows down one side, dust in the light. Institutional and a little too big. | On a bell, the platforms glide into a whole new arrangement |
-| 13 | `mist_pier.jpg` | Mist Pier | pale ice | A wooden pier running out into flat water under heavy fog, pilings fading by depth, a sun disc barely through. Depth by *fade*, not by detail — this is the board where atmospheric perspective does all the work. | Fog rolls in for 6 s; the camera pushes in rather than out |
-| 14 | `crosswalk_rush.jpg` | Crosswalk Rush | blue | A wide city intersection at blue hour, zebra bars running away, signals and streetlights, towers behind. Traffic is drawn by the game, not painted — leave the near lane **empty**. | Cars run the floor; the 3D camera adds more between lens and fight |
-| 15 | `cursed_teeth.jpg` | Cursed Teeth | cyan-teal | A gullet: concentric rings of teeth receding into a throat, wet violet-cyan glow deep inside, something breathing. | Fangs drop from above; every 25 s the stage inhales |
-| 16 | `river_gate.jpg` | River Gate | jade | A river shrine gate at dawn, mist off the water, reeds bending consistently one way, petals in the air. The wind is a mechanic — paint the world already leaning. | A crosswind alternates direction; the camera rolls with it |
-| 17 | `school_wing.jpg` | School Wing | tan | A school corridor after hours — lockers, a run of windows, late sun down the length of it, nothing where there should be somebody. Quiet and slightly wrong. | A weak curse wanders out; pop it for meter |
-| 18 | `empty_city.jpg` | Empty City | grey-blue | A derelict city block under an overcast sky, empty windows, weeds through the tarmac, no people and no traffic. Flat grey light. | Two rooftops crumble under weight and re-form |
-| 19 | `billboard_roof.jpg` | Billboard Roof | hot pink | A rooftop above a neon city in a storm — plant housings, aerials, hoardings stepping back into rain haze, cloud lit from within. The camera adds its own hoardings behind the stage, so keep the skyline readable and not too crowded. | Lightning takes the top platform; the strongest shake in the game |
-| 20 | `domain_core.jpg` | Domain Core | aqua | The inside of a Domain Expansion: a non-place. Geometry that does not resolve, aqua light with no source, fragments hanging at rest. Gravity is low here — nothing should look like it is sitting on anything. | Side platforms orbit slowly; everyone floats |
-
-### Deliver in this order
-
-Not one batch — the first three change what a player sees most.
-
-1. **`flooded_gate`, `shibuya_night`, `curse_maw`** — the three that are below
-   the current norm *before* the 3D crop is applied. Flooded Gate at 800×437 is
-   soft even in flat mode.
-2. **`crosswalk_rush`, `lantern_corridor`, `training_bridge`** — the three
-   boards that already have near-field garnish, so they are where the depth
-   the repaint supports is most visible.
-3. The remaining fourteen, any order.
-
-Flat mode is the default and is unaffected either way, so nothing here is
-blocking and a partial delivery is genuinely useful.
-
----
-
 ## 18F. Near-field cards for the garnish layer — 14 images, optional
 
-**Lower priority than 18E, and genuinely optional** — every one of these has a
+**Lower priority than 18E was, and genuinely optional** — every one of these has a
 procedural stand-in drawing in the game right now, so nothing is missing. But
 this is where depth actually comes from, and it is worth saying why, because it
 is the opposite of the intuitive answer.
@@ -656,7 +528,7 @@ play, because this camera barely translates — the sim clamps it to ±0.88° of
 yaw. A card at `z = +2`, between the lens and the fight, separates from the
 backdrop by **14 px** at that same yaw and **64 px** in a drama shot. Proximity
 to the lens is the whole term. So the depth budget is better spent here than on
-layering the paintings, and 18E asks for *bigger* backgrounds rather than
+layering the paintings, and 18E asked for *bigger* backgrounds rather than
 *split* ones for exactly this reason.
 
 These are the elements the camera already flies past the lens

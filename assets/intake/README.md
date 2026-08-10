@@ -19,7 +19,18 @@ Delivered **sound** goes to `assets/intake/sfx/` and takes the short path: it
 needs no keying or measuring, so landing it is a move into `assets/sfx/`, a key
 in `src/config_audio.js`, and the request moved into
 [docs/audio-requests-history.md](../../docs/audio-requests-history.md) where
-`tools/generate_sfx.py` can re-roll it. Everything below is about art.
+`tools/generate_sfx.py` can re-roll it.
+
+A **background** takes the short path too — no keying, no measuring, no manifest
+entry — so landing one is a copy into `assets/backgrounds/` and nothing else.
+**Copy the paintings it replaces into `assets/reference/backgrounds_previous/`
+first.** They are the only copies of art the game wore for months, several were
+never the size the roster settled on, and putting a board back is then one file
+copy rather than a trip through git. Watch the extension: a board is registered
+in `src/stages.js` by filename, so a `.webp` replaced by a `.jpg` needs that one
+string changed with it (round 18E, Shibuya Night).
+
+Everything below is about sprites.
 
 Nothing in this directory is loaded by the game, which is the whole point:
 generated art arrives as an untrimmed plate on a magenta or grey field with no
