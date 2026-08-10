@@ -7,10 +7,11 @@ everything here is **outstanding**, delivered rounds move to a history file
 when the first one lands, and round numbers (B1, B2…) are permanent so commits
 citing them keep resolving.
 
-**Current status: nothing delivered — but the pipeline is built and waiting**
-(phase B0: intake, validation, workbench review, inheritance and the default
-pose set all run today against the mannequin — see [plan.md](plan.md)).
-**B1 is the round to draw against.** B2–B4
+**Current status: B1 is DELIVERED — Yuji plays as a model on both backends.**
+His rig was generated, conformed to spec and given all 26 clips
+(`tools/blender_author_clips.py`), and he holds his own in a real match beside
+26 sprite fighters. What B1 proved, and what it cost, is written up in
+[b1-yuji.md](b1-yuji.md). **B2 is the round to draw against.** B3–B4
 are written now so the total shape and budget of the project is a decision made
 once, up front — not discovered one fighter at a time.
 
@@ -222,7 +223,7 @@ billboard workbench verifies against his sprites.
 
 ---
 
-## Round B1 — the pilot: Yuji, complete *(open — draw against this)*
+## Round B1 — the pilot: Yuji, complete *(DELIVERED)*
 
 One rig and all 26 clips, end to end, before anything else is commissioned.
 Yuji is the cheapest full pass: average build, no weapon, nothing bespoke about

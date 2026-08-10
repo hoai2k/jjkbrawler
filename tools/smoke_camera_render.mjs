@@ -16,6 +16,14 @@
 //   ?render=billboard   posed-model cards   posedCards > 0
 //   ?render=3d          real rig geometry   models > 0
 //
+// The model modes ask for `&mannequin=all`. They used to get it for free,
+// because mannequins were the default while no rig existed; with Yuji
+// delivered (round B1) the default is real-rigs-only, and this test needs
+// EVERY fighter in the match to have a body so the count is deterministic
+// whoever the CPU picks. The mannequin is the proof body built for exactly
+// that, so asking for it explicitly is the honest fix rather than pinning the
+// roster to the one delivered character.
+//
 // Counting matters more than pixels here: every one of these paths ends in a
 // fighter-shaped thing on screen, so a pixel probe cannot tell which mechanism
 // produced it — and "it fell back to sprites" is exactly the failure this is
@@ -79,10 +87,10 @@ const CASES = [
   { query: "?camera=3d", label: "sprite + camera",
     want: (s) => s.quads > 0 && s.models === 0 && s.posedCards === 0,
     describe: "sprite cards" },
-  { query: "?render=billboard&camera=3d", label: "billboard + camera",
+  { query: "?render=billboard&camera=3d&mannequin=all", label: "billboard + camera",
     want: (s) => s.posedCards > 0 && s.models === 0,
     describe: "posed-model cards" },
-  { query: "?render=3d&camera=3d", label: "3d + camera",
+  { query: "?render=3d&camera=3d&mannequin=all", label: "3d + camera",
     want: (s) => s.models > 0,
     describe: "real rig geometry in the scene" },
 ];

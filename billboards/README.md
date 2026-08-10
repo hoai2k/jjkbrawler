@@ -1,16 +1,15 @@
 # `billboards/` — the 2.5D character rendering path
 
 3D models, posed and rendered to a texture, blitted into the same 2D world the
-sprite path draws into. **Phase B0 is built**: the full pipeline — vendored
-engine, rig registry, pose cache, offscreen renderer, blit, workbench, intake —
-runs today, proven by a code-built mannequin and a generated test delivery.
-What it waits on now is art: no real rig has been delivered, so every fighter
-draws sprites until one lands (round B1 in
-[docs/asset-requests.md](docs/asset-requests.md)).
+sprite path draws into. **Yuji plays as a model today** — round B1 is delivered:
+his rig is conformed to spec and carries all 26 clips, and he fights beside
+twenty-six sprite fighters in a real match. Everyone else draws their sprites
+until their rig lands, per character, per draw. What the pilot cost and what it
+found is [docs/b1-yuji.md](docs/b1-yuji.md).
 
     node server.mjs
     open 'http://127.0.0.1:5174/?render=billboard'               # the real thing
-    open 'http://127.0.0.1:5174/?render=billboard&mannequin=none' # sprites where no rig exists
+    open 'http://127.0.0.1:5174/?render=billboard&mannequin=all'  # grey proof bodies for the un-rigged
     open 'http://127.0.0.1:5174/billboards/workbench/'           # the review tool
 
 `?render=billboards` and `?render=sprites` work too — the plural spellings are

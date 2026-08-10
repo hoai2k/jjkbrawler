@@ -37,6 +37,12 @@ const FRAME_MUL = 1.45;
  *  sprites it replaces. */
 export const QUANT = 1 / 30;
 
+/** Camera yaw in degrees — see the note in frameCamera. Exposed so the
+ *  workbench (and the framing sweep that chose this value) can turn it
+ *  without editing the constant. */
+export let CAMERA_YAW_DEG = -135;
+export function setCameraYaw(deg) { CAMERA_YAW_DEG = deg; }
+
 const CACHE_MAX = 128; // ~19 MB at 384² RGBA; floor set by the trail window
 
 let THREE = null;
@@ -153,7 +159,14 @@ function frameCamera(height) {
   camera.top = half;
   camera.bottom = -half;
   const cy = frameH * (0.5 - FOOT_FRAC);
-  const yaw = (30 * Math.PI) / 180;
+  // Yaw: the camera sits so the rig's own +Z — the forward the delivery spec
+  // requires — projects to SCREEN-RIGHT in three-quarter. At the +30° this
+  // started at, +Z pointed into the lens instead, so every fighter faced the
+  // viewer: strides and punches went into the screen and foreshortened away,
+  // and the mannequin looked front-on for the whole of B0. -60° puts forward
+  // along the camera's right axis (dot ≈ 0.87) with enough turn left to keep
+  // the face readable — the same read the sprite art is drawn at.
+  const yaw = (CAMERA_YAW_DEG * Math.PI) / 180;
   const dist = 10;
   camera.position.set(Math.sin(yaw) * dist, cy, Math.cos(yaw) * dist);
   camera.lookAt(0, cy, 0);

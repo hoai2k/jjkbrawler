@@ -140,7 +140,14 @@ function frameCamera(height, parallaxRad = 0) {
   const frameH = height * FRAME_MUL;
   const cy = frameH * (0.5 - FOOT_FRAC);
   const dist = (frameH / 2) / Math.tan((FOV_DEG / 2) * Math.PI / 180);
-  const yaw = (30 * Math.PI) / 180 + parallaxRad;
+  // Yaw: the camera sits so the rig's own +Z — the forward the delivery spec
+  // requires — projects to SCREEN-RIGHT in three-quarter. At the +30° this
+  // started at, +Z pointed into the lens instead, so every fighter faced the
+  // viewer: strides and punches went into the screen and foreshortened away,
+  // and the mannequin looked front-on for the whole of B0. -60° puts forward
+  // along the camera's right axis (dot ≈ 0.87) with enough turn left to keep
+  // the face readable — the same read the sprite art is drawn at.
+  const yaw = (-135 * Math.PI) / 180 + parallaxRad;
   camera.position.set(Math.sin(yaw) * dist, cy, Math.cos(yaw) * dist);
   camera.lookAt(0, cy, 0);
   camera.updateProjectionMatrix();
