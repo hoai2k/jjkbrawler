@@ -26,6 +26,23 @@ const S = C.simScale;
 // bulk; side/top platforms are thinner slabs.
 const DEPTH = { main: 1.4, side: 0.9, top: 0.9 };
 
+// Where the stage's visible surface sits, relative to the gameplay plane at
+// z = 0. BEHIND it, deliberately, by about six sim pixels.
+//
+// Characters live on z = 0 — that is what the plane means — and the sprites
+// are drawn to stand on a platform with their feet overlapping its front edge.
+// The platform surface used to sit a hair IN FRONT of them (+0.002), which is
+// geometrically backwards: it put the stage between the camera and the feet,
+// so anything with real depth standing on a platform had its feet eaten by it.
+// Sprites do not notice (their quads paint over the stage by draw order — see
+// billboards.js), but `?render=3d` puts an actual rig in this scene, and a rig
+// has volume: with the surface in front, its feet vanished into the slab.
+//
+// Six pixels of z is invisible — it shifts the platform's apparent size by
+// 0.45% — and it makes the arrangement honest: the floor is behind the things
+// standing on it.
+const SURFACE_Z = -0.06;
+
 // Where the flat layers sit. The bg plane must over-fill the frustum at max
 // dolly-out (intro is 1.25×D ≈ 16.8 units from a plane 14 behind the origin).
 const BG_Z = -14;
@@ -97,7 +114,7 @@ function makePlatformMesh(p) {
     new BoxGeometry(p.w * S, p.h * S, depth),
     [end, end, top, bottom, top, bottom],
   );
-  box.position.z = -depth / 2 + 0.001; // extrude away; front face at z ≈ 0
+  box.position.z = SURFACE_Z - depth / 2;
   group.add(box);
   // The face is a decal on the front of the box, and must NOT write depth.
   // Its texture is padded by `pad` on every side to make room for the drop
@@ -112,7 +129,7 @@ function makePlatformMesh(p) {
       map: faceTexture(p), transparent: true, side: DoubleSide, depthWrite: false,
     }),
   );
-  face.position.z = 0.002;
+  face.position.z = SURFACE_Z + 0.001; // just proud of the box, to not z-fight it
   group.add(face);
   box.renderOrder = face.renderOrder = ORDER.platform;
   group.userData.key = null;
