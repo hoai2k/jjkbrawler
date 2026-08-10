@@ -14,8 +14,8 @@ sprite path with 27 fighters; everything below either extends it (the 3D
 tracks) or fills a gap that currently degrades to silence or to a fallback.
 
 **All three render modes are covered here.** The sprite path is fed by the 2D
-art rounds (row 4); the billboard and render3d paths are fed by **one shared
-commission** (rows 5–11) because both read the same rigs and clips. Neither
+art rounds (row 1); the billboard and render3d paths are fed by **one shared
+commission** (rows 2–8) because both read the same rigs and clips. Neither
 model path is blocked on code — both run today against the mannequin, which
 is what `?render=billboard` and `?render=3d` now show by default for any
 fighter without a delivered rig.
@@ -26,22 +26,19 @@ fighter without a delivered rig.
 
 | # | Request | Type | Status | Blocked by |
 |---|---|---|---|---|
-| 1 | [Audio — Round 10A: domain call-outs](audio-requests.md#10a--ryōiki-tenkai-per-domain-owner-voice--8-files) | 🎙️ **Voice** (Japanese) | open | — |
-| 2 | [Audio — Round 10B: barrier & room](audio-requests.md#10b--the-barrier-and-the-room-sound-effects--4-files) | 🔊 **Sound effects** | open | — |
-| 3 | [Audio — the shipped fighters' element layers](audio-requests.md#owed-by-the-staged-fighters) | 🔊 **Sound effects** | open, live gap | — |
-| 4 | [2D art — Round 18](asset-requests.md) | 🖼️ **Images** (sprites) | open | — |
-| 4b | [2D art — 18E: twenty backdrops repainted for the 3D camera](asset-requests.md#18e-twenty-backgrounds-repainted-for-the-3d-camera--20-images) | 🖼️ **Images** (backdrops) | open | — |
-| 4c | [2D art — 18F: near-field cards for the garnish layer](asset-requests.md#18f-near-field-cards-for-the-garnish-layer--14-images-optional) | 🖼️ **Images** (keyed cards) | open, optional | — |
-| 5 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) | 🖼️ **Images** (reference) | open | — |
-| 6 | [3D images — DI2/DI3: face sheets, shade palettes](../render3d/docs/image-requests.md#round-di2--face-sheets-the-face-first-gates-reference) | 🖼️ **Images** (reference) | open | DI1 (same fighter) |
-| 7 | [3D models — B1/D1: the Yuji pilot](../render3d/docs/asset-requests.md#round-d1--the-pilot-yuji-complete-open--draw-against-this) | 🧊 **3D model + clips** | open | DI1–DI3 for Yuji |
-| 8 | [3D models — D2: library + archetypes](../render3d/docs/asset-requests.md#round-d2--the-shared-library-and-the-archetype-sets) | 🧊 **Animation clips** | open | D1 review |
-| 9 | [3D models — D3: the standard roster](../render3d/docs/asset-requests.md#round-d3--the-standard-humanoid-rigs) | 🧊 **3D models + clips** | open | D2 |
-| 10 | [3D models — D4: bespoke bodies](../render3d/docs/asset-requests.md#round-d4--the-bespoke-bodies) | 🧊 **3D models + clips** | open | D3 |
-| 11 | [3D models — D5: spectacle](../render3d/docs/asset-requests.md#round-d5--spectacle-opens-after-d3s-first-batch) | 🧊 **Animation clips** | open | D3 first batch |
+| 1 | [2D art — Round 18](asset-requests.md) | 🖼️ **Images** (sprites) | open | — |
+| 1b | [2D art — 18E: twenty backdrops repainted for the 3D camera](asset-requests.md#18e-twenty-backgrounds-repainted-for-the-3d-camera--20-images) | 🖼️ **Images** (backdrops) | open | — |
+| 1c | [2D art — 18F: near-field cards for the garnish layer](asset-requests.md#18f-near-field-cards-for-the-garnish-layer--14-images-optional) | 🖼️ **Images** (keyed cards) | open, optional | — |
+| 2 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) | 🖼️ **Images** (reference) | open | — |
+| 3 | [3D images — DI2/DI3: face sheets, shade palettes](../render3d/docs/image-requests.md#round-di2--face-sheets-the-face-first-gates-reference) | 🖼️ **Images** (reference) | open | DI1 (same fighter) |
+| 4 | [3D models — B1/D1: the Yuji pilot](../render3d/docs/asset-requests.md#round-d1--the-pilot-yuji-complete-open--draw-against-this) | 🧊 **3D model + clips** | open | DI1–DI3 for Yuji |
+| 5 | [3D models — D2: library + archetypes](../render3d/docs/asset-requests.md#round-d2--the-shared-library-and-the-archetype-sets) | 🧊 **Animation clips** | open | D1 review |
+| 6 | [3D models — D3: the standard roster](../render3d/docs/asset-requests.md#round-d3--the-standard-humanoid-rigs) | 🧊 **3D models + clips** | open | D2 |
+| 7 | [3D models — D4: bespoke bodies](../render3d/docs/asset-requests.md#round-d4--the-bespoke-bodies) | 🧊 **3D models + clips** | open | D3 |
+| 8 | [3D models — D5: spectacle](../render3d/docs/asset-requests.md#round-d5--spectacle-opens-after-d3s-first-batch) | 🧊 **Animation clips** | open | D3 first batch |
 | — | [3D images — DI4: shared face textures](../render3d/docs/image-requests.md#round-di4--shared-face-textures-one-time-roster-wide) | 🖼️ **Images** (texture) | open, optional | — |
 | — | [Music](music-requests.md) | 🎵 **Music** | **all 20 delivered** | — |
-| — | [Audio Rounds 1–9](audio-requests-history.md) | 🔊 Sound effects | **delivered** | — |
+| — | [Audio Rounds 1–10](audio-requests-history.md) | 🔊 Sound effects + 🎙️ voice | **all delivered** | — |
 | — | [2D art Rounds 1–17](asset-requests-history.md) | 🖼️ Images | **delivered** | — |
 
 ---
@@ -54,7 +51,7 @@ so that "what is half-built?" is answerable from the same page.
 
 | Plan | State | What is left |
 |---|---|---|
-| [2.5D camera (`?camera=3d`)](2.5d-camera-plan.md) | feature-complete, polish open | Garnish cards for 15 of 20 boards; a Settings toggle. Its art asks are commissioned as 18E/18F (rows 4b–4c); composing with the render backends is **built** (§11 of that plan) |
+| [2.5D camera (`?camera=3d`)](2.5d-camera-plan.md) | feature-complete, polish open | Garnish cards for 15 of 20 boards; a Settings toggle. Its art asks are commissioned as 18E/18F (rows 1b–1c); composing with the render backends is **built** (§11 of that plan) |
 | [render3d (`?render=3d`)](../render3d/docs/plan.md) | D0–D2 built, D3+ need art | Engine side is done and dialled. D3–D5 are asset rounds (7–11 above), not code |
 | [billboards (`?render=billboard`)](../billboards/docs/plan.md) | B0 built, B1+ need art | Same shape: the pipeline runs on the mannequin; everything further is the shared commission |
 | [Effects plan](effects-plan.md) | reference doc | Element-aware attack feedback; check `src/config_fx.js` against it before treating anything here as open |
@@ -83,29 +80,28 @@ for.
 
 ## The order, and why
 
-### First: the audio gaps (1–3) — small, unblocked, and currently silent
+### The audio column is closed
 
-Independent of everything else and the cheapest wins in the list. Rounds 10A
-and 10B are already wired: every key is registered and called, and an
-undelivered sound is dropped silently, so delivery is "drop the mp3s in
-`assets/sfx/`" with no code change.
+It used to head this list. Round 10 delivered the domain moment — the barrier,
+the room tone, the refusal cue, Dagon's missing sting and **the eight domain
+owners' spoken call-outs**, the first voice lines in the game — along with the
+three element hit layers the staged fighters had been owed. Nothing in
+[audio-requests.md](audio-requests.md) is outstanding.
 
-**10A is the only 🎙️ voice request in the repo** and the only one that cannot
-be produced by `tools/generate_sfx.py` — that tool drives a sound-*effects*
-endpoint and does not speak. It needs a Japanese-speaking VA or a hand-driven
-TTS pass. Everything else in the audio column goes through the generator.
+**Voice is no longer a request the repo cannot fill itself.** 10A was the only
+🎙️ entry here and was written on the assumption it needed a Japanese-speaking
+VA or a hand-driven TTS pass, because `tools/generate_sfx.py` drives a
+sound-*effects* endpoint and does not speak. It now has a sibling,
+`tools/generate_voice.py`, which reads the same docs in the same format and
+drives text-to-speech instead — so a future voice round is commissioned exactly
+like a sound round, with one extra field naming the cast voice.
 
-Item 3 is the tail of a round that shipped: four sounds written down while
-their fighters were staged, all four now on the select screen, all four still
-missing. Dagon's domain sting is folded into 10B; the three element layers
-still need prompts written.
-
-### Then: 2D art Round 18 (4) — the sprite path's own queue
+### First: 2D art Round 18 (1) — the sprite path's own queue
 
 Unrelated to the 3D tracks and on its own clock. Listed here for completeness:
 it is the only open request that touches what most players currently see.
 
-**Rows 4b and 4c now have a home.** §10 of the camera plan measured which art
+**Rows 1b and 1c now have a home.** §10 of the camera plan measured which art
 changes the 2.5D camera would actually reward, and that finding is now written
 as two request blocks in the 2D art file.
 
@@ -126,7 +122,7 @@ whole term — which is why 18E asks for bigger paintings rather than split ones
 and why the measurement **withdrew** the parallax-layer idea entirely. All
 fourteen have procedural stand-ins today, so any subset lands usefully.
 
-### Then: the 3D tracks (5–11) — strictly ordered, and image-first
+### Then: the 3D tracks (2–8) — strictly ordered, and image-first
 
 The dependency that is easy to miss: **the image rounds feed the model
 rounds.** A modeller — human or image-to-3D — cannot work from the sprite set,
@@ -161,7 +157,7 @@ edited normals, per-material shade tints. If you are commissioning fresh,
 **ask for the D-spec in the same round** — it is far cheaper than a second
 pass later. The D-round tables carry the full delta.
 
-So the practical reading of rows 7–11: they are one commission that satisfies
+So the practical reading of rows 4–8: they are one commission that satisfies
 both 3D backends, and the B-numbers exist because the billboard path was
 specified first.
 
@@ -175,7 +171,7 @@ specified first.
 | 🖼️ Images — 3D reference boards, face sheets, palettes | `assets/intake/render3d/` | by hand (briefs, not runtime art) | — |
 | 🧊 3D models + clips (`.glb`) | `billboards/intake/` or `render3d/intake/` | `tools/billboard_intake.mjs [--backend 3d]`, `tools/blender_conform.py` | `/billboards/workbench/`, `/render3d/workbench/` |
 | 🔊 Sound effects | `assets/intake/sfx/` → `assets/sfx/` | `tools/generate_sfx.py` | in play |
-| 🎙️ Voice | `assets/intake/sfx/` → `assets/sfx/` | **not** `generate_sfx.py` — VA or TTS | in play |
+| 🎙️ Voice | `assets/intake/sfx/` → `assets/sfx/` | `tools/generate_voice.py` (**not** `generate_sfx.py` — that endpoint does not speak) | in play |
 | 🎵 Music | `assets/music/boards/` | — | in play |
 
 Two rules hold across every type: **deliveries land in an intake directory,
