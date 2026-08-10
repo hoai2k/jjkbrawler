@@ -46,6 +46,7 @@
 import { state } from "./state.js";
 import { clamp, sign, rand, rectsOverlap } from "./utils.js";
 import { applyHit, hurtbox, spawnProjectile, ownerStick } from "./combat.js";
+import { isFoe } from "./teams.js";
 import { burst, dust, ring, popup, emit } from "./particles.js";
 import { playSfx } from "./audio.js";
 import { getImage } from "./assets.js";
@@ -160,7 +161,7 @@ function nearestTarget(owner, x) {
   let best = null;
   let bestD = Infinity;
   for (const f of state.fighters) {
-    if (f === owner || f.dead || f.respawnTimer > 0) continue;
+    if (!isFoe(owner, f) || f.dead || f.respawnTimer > 0) continue;
     const d = Math.abs(f.x - x);
     if (d < bestD) { bestD = d; best = f; }
   }
@@ -783,7 +784,7 @@ export function spawnSummon(owner, cfg) {
       if (active) {
         const rect = moveRect(this, def);
         for (const f of state.fighters) {
-          if (f === owner || f.dead || f.respawnTimer > 0 || m.hit.has(f)) continue;
+          if (!isFoe(owner, f) || f.dead || f.respawnTimer > 0 || m.hit.has(f)) continue;
           if (!rectsOverlap(rect, hurtbox(f))) continue;
           m.hit.add(f);
           applyHit(owner, f, {

@@ -185,9 +185,41 @@ export const TEXT = {
     quit: "Main Menu",
   },
 
+  // Match modes, chosen from the VS badge in the middle of the select screen.
+  // `blurb` is the one line under each option in the picker; `note` is what the
+  // select screen says once a mode other than the default is chosen — it never
+  // names the CPU fighters, because they are drawn at the start of the match.
+  modes: {
+    title: "Match mode",
+    hint: "Click the VS badge to change the match mode.",
+    versus: {
+      label: "Vs Battle",
+      blurb: "Everyone for themselves.",
+      note: () => "",
+    },
+    playersVsCpus: {
+      label: "Players vs CPUs",
+      blurb: "Teams: every player against an equal number of CPUs.",
+      note: (n) => `Your team fights ${n} random CPU ${n === 1 ? "fighter" : "fighters"}. Teammates cannot hurt each other.`,
+    },
+    royal1: {
+      label: "Battle Royal +1",
+      blurb: "One extra CPU joins the brawl.",
+      note: () => "1 random CPU fighter joins when the match starts.",
+    },
+    royal2: {
+      label: "Battle Royal +2",
+      blurb: "Two extra CPUs join the brawl.",
+      note: () => "2 random CPU fighters join when the match starts.",
+    },
+  },
+
   roundOver: {
     kicker: "Match complete",
     winner: (name) => `${name} wins!`,
+    teamWinner: (side) => `${side} win!`,
+    players: "Players",
+    cpus: "CPUs",
     draw: "Draw",
     rematch: "Rematch",
     fighterSelect: "Fighter Select",
@@ -224,6 +256,9 @@ export const TEXT = {
     // A full bar buys either one, so a fighter with a domain is being offered a
     // choice and the HUD has to say so.
     superChoiceReady: "ULTIMATE / DOMAIN",
+    // Only in a team match: which side a fighter's panel belongs to.
+    playerSide: "TEAM",
+    cpuSide: "CPU",
   },
 
   controllers: {

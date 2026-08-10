@@ -12,6 +12,7 @@
 // input path and the moves screen already handle it.
 
 import { state } from "./state.js";
+import { foesOf } from "./teams.js";
 import { clamp, sign, rand, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
 import { playSfx, playGrunt } from "./audio.js";
@@ -149,10 +150,6 @@ export function domainKnockbackMul(f) {
 }
 
 // ---------------------------------------------------------------- helpers
-
-function foesOf(f) {
-  return state.fighters.filter((t) => t !== f && !t.dead && t.respawnTimer <= 0);
-}
 
 /** True while this fighter is holding New Shadow Style: Simple Domain
  *  (specials.js). The circle's whole purpose is that a domain's guaranteed hit

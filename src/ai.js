@@ -2,6 +2,7 @@
 // Three difficulty levels tune reaction speed, aggression, and defense.
 
 import { state } from "./state.js";
+import { foesOf } from "./teams.js";
 import { blankInput } from "./input.js";
 import { chance, clamp, sign } from "./utils.js";
 import { mainPlatform } from "./stages.js";
@@ -30,7 +31,7 @@ export function makeAiState() {
 export function aiInput(f) {
   const ai = f.aiState;
   const lvl = LEVELS[state.cpuLevel];
-  const opponents = state.fighters.filter((o) => o !== f && !o.dead && o.respawnTimer <= 0);
+  const opponents = foesOf(f);
   const opp = opponents.reduce((best, o) =>
     !best || Math.abs(o.x - f.x) < Math.abs(best.x - f.x) ? o : best
   , null);

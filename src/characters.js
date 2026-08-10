@@ -57,8 +57,14 @@ export const STAGED_CHARACTER_KEYS = ["kurourushi"];
 // randomCharacterKey() before building a fighter.
 export const RANDOM_KEY = "__random";
 
-export function randomCharacterKey() {
-  return CHARACTER_KEYS[Math.floor(Math.random() * CHARACTER_KEYS.length)];
+/** A fighter at random. `avoid` is a soft preference, not a rule: the CPUs a
+ *  match mode brings along pass the fighters already in the match so a Battle
+ *  Royal does not field the same curse three times, and a roster smaller than
+ *  the match simply falls back to drawing from everyone. */
+export function randomCharacterKey(avoid = []) {
+  const pool = avoid.length ? CHARACTER_KEYS.filter((k) => !avoid.includes(k)) : CHARACTER_KEYS;
+  const from = pool.length ? pool : CHARACTER_KEYS;
+  return from[Math.floor(Math.random() * from.length)];
 }
 
 // The four-frame run cycle (round 12): reach (full stride, one leg planted

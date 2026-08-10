@@ -8,7 +8,10 @@ import { updateHitboxes, updateProjectiles } from "./combat.js";
 import { updateParticles, banner } from "./particles.js";
 import { updateCamera } from "./camera.js";
 import { draw } from "./render.js";
-import { getStage } from "./stages.js";
+import { getStage, spawnXs } from "./stages.js";
+import { matchPlan, HUMAN_TEAM } from "./modes.js";
+import { oneSideLeft } from "./teams.js";
+import { TEXT } from "./config_menus.js";
 import { initStageFx } from "./stage_fx.js";
 import { RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { makeAiState, aiInput, cpuDamageMul } from "./ai.js";
@@ -37,7 +40,9 @@ function startMatch(stageKey) {
 }
 
 // Slot 1/2 have keyboard maps; slot 3/4 need a connected gamepad to be human.
-function isHumanSlot(id) {
+// A slot the mode added (`plan.cpuFrom` and up) is a CPU whatever is plugged in.
+function isHumanSlot(id, plan) {
+  if (id >= plan.cpuFrom) return false;
   if (state.playerCount === 1) return id === 1;
   if (id <= 2) return id <= state.playerCount;
   return id <= state.playerCount && connectedPadCount() >= id;
@@ -47,17 +52,24 @@ function isHumanSlot(id) {
 // slots draw fresh every time, so a player on Random gets a new fighter each
 // round. The CPU honours the roll already shown on the select screen, then
 // clears it so the next round re-draws.
-function resolveRoster(entrantCount) {
-  for (let id = 1; id <= entrantCount; id++) {
-    const picked = state.selection[id];
+function resolveRoster(plan) {
+  const taken = [];
+  for (let id = 1; id <= plan.count; id++) {
+    // Slots a match MODE added — the Battle Royal extras, the CPU team — were
+    // never picked by anyone and are never shown, so they always draw fresh.
+    const picked = id >= plan.cpuFrom ? null : state.selection[id];
     // An unpicked slot (P1 before anyone chooses) draws like Random rather than
     // building a fighter from nothing; readying normally guarantees a pick.
     if (picked && picked !== RANDOM_KEY) {
       state.roster[id] = picked;
+      taken.push(picked);
       continue;
     }
-    const shown = id === 2 && state.playerCount === 1 ? state.cpuRoll : null;
-    state.roster[id] = shown || randomCharacterKey();
+    const shown = id === 2 && plan.cpuFrom > 2 && state.playerCount === 1 ? state.cpuRoll : null;
+    // A mode's own CPUs steer clear of fighters already in the match, so a
+    // Battle Royal is a brawl between four faces rather than four of one.
+    state.roster[id] = shown || randomCharacterKey(id >= plan.cpuFrom ? taken : []);
+    taken.push(state.roster[id]);
   }
   state.cpuRoll = null;
 }
@@ -69,11 +81,14 @@ let matchToken = 0;
 
 async function resetMatch() {
   const token = ++matchToken;
-  const entrantCount = state.playerCount === 1 ? 2 : state.playerCount;
+  // How many fighters, which slots are mode-added CPUs, and who is on whose
+  // side — all of it from the match mode chosen on the select screen.
+  const plan = matchPlan();
+  const entrantCount = plan.count;
   // Resolved BEFORE the assets are gathered, because a Random slot only becomes
   // a concrete fighter here — and it re-rolls every rematch, so this is the
   // first point at which the match knows what art it needs.
-  resolveRoster(entrantCount);
+  resolveRoster(plan);
   const entrants = Array.from({ length: entrantCount }, (_, i) => state.roster[i + 1]);
 
   if (matchAssetsPending(entrants, state.stageKey)) {
@@ -88,18 +103,16 @@ async function resetMatch() {
   state.platforms = stage.platforms.map((p) => ({ ...p }));
   const groundY = state.platforms[0].y;
 
-  const spawnSets = {
-    2: [430, 850],
-    3: [320, 640, 960],
-    4: [250, 500, 780, 1030],
-  };
-  const spawns = spawnSets[entrantCount];
+  const spawns = spawnXs(entrantCount);
   state.fighters = Array.from({ length: entrantCount }, (_, i) => {
     const id = i + 1;
     const x = spawns[i];
     const fighter = makeFighter(id, state.roster[id], x, x < WORLD.w / 2 ? 1 : -1);
     fighter.y = groundY;
     fighter.grounded = true;
+    // Free-for-all gives every fighter a side of their own, so "teammate" only
+    // means something in the modes that actually have teams.
+    fighter.team = plan.teamOf(id);
     return fighter;
   });
   // Any entrant without a human control source is driven by the CPU.
@@ -107,7 +120,7 @@ async function resetMatch() {
   // they fall back to AI unless a pad is connected for them. This keeps 3/4
   // player modes playable (and testable) instead of seating motionless dummies.
   for (const fighter of state.fighters) {
-    if (isHumanSlot(fighter.id)) continue;
+    if (isHumanSlot(fighter.id, plan)) continue;
     fighter.aiState = makeAiState();
     fighter.cpuDamageMul = cpuDamageMul(state.cpuLevel);
   }
@@ -202,12 +215,17 @@ function updateSimulation(dt, held) {
     if (endT <= 0) {
       const winner = state.fighters.find((f) => !f.dead);
       const loser = state.fighters.find((f) => f.dead);
-      showRoundOver(winner, loser);
+      // A team match is won by a side, not by whoever happened to survive, so
+      // the result screen is told which side that was.
+      const side = !winner || !matchPlan().teams ? null
+        : winner.team === HUMAN_TEAM ? TEXT.roundOver.players
+        : TEXT.roundOver.cpus;
+      showRoundOver(winner, loser, side);
     }
     return;
   }
   const alive = state.fighters.filter((f) => !f.dead);
-  if (alive.length <= 1) {
+  if (oneSideLeft(alive)) {
     endT = 1.4;
     banner("GAME!", "#ffffff", { y: 280, size: 80, life: 1.3 });
     playSfx("matchEnd");

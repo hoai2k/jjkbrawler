@@ -19,6 +19,7 @@ import { rumbleEvent } from "./rumble.js";
 import { circleRectOverlap } from "./utils.js";
 import { ULT_METER_COST, METER_MAX } from "./constants.js";
 import { getImage } from "./assets.js";
+import { isFoe } from "./teams.js";
 
 function cinematic(f, name, color) {
   state.slowMo = Math.max(state.slowMo, 0.45);
@@ -161,7 +162,7 @@ const DIRECTORS = {
           burst(tx, groundY - 40, "#ff7a2f", 70, 2.2);
           ring(tx, groundY - 40, "#ffd35a", 260);
           for (const t of state.fighters) {
-            if (t === f || t.dead || t.respawnTimer > 0) continue;
+            if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
             if (circleRectOverlap(tx, groundY - 40, p.r, hurtbox(t))) {
               applyHit(f, t, {
                 dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: 0.9,
@@ -177,7 +178,7 @@ const DIRECTORS = {
             this.burnT = 0;
             const groundY = state.platforms[0]?.y ?? 568;
             for (const t of state.fighters) {
-              if (t === f || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
+              if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
               if (Math.abs(t.x - tx) < p.r && Math.abs(t.y - groundY) < 60) {
                 t.damage = Math.min(999, t.damage + 1.6);
                 burst(t.x, t.y - 60, "#ff7a2f", 6, 0.5);
@@ -257,7 +258,7 @@ const DIRECTORS = {
         if (this.t >= p.dur || this.x < -100 || this.x > 1380) {
           this.dead = true;
           for (const t of state.fighters) {
-            if (t === f || t.dead || t.respawnTimer > 0) continue;
+            if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
             if (circleRectOverlap(this.x, this.y, p.r * 1.3, hurtbox(t))) {
               applyHit(f, t, {
                 dmg: 16, baseKb: p.finalBase, growth: p.growth * 2, angle: 0.7,
@@ -270,7 +271,7 @@ const DIRECTORS = {
           return;
         }
         for (const t of state.fighters) {
-          if (t === f || t.dead || t.respawnTimer > 0 || t.hitstun > 0.5) continue;
+          if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || t.hitstun > 0.5) continue;
           const d = Math.hypot(t.x - this.x, (t.y - 90) - this.y);
           if (d < p.pull) {
             t.vx += sign(this.x - t.x) * 780 * dt;
@@ -281,7 +282,7 @@ const DIRECTORS = {
         if (this.tick <= 0) {
           this.tick = p.tickRate;
           for (const t of state.fighters) {
-            if (t === f || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
+            if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
             if (circleRectOverlap(this.x, this.y, p.r, hurtbox(t))) {
               t.damage = Math.min(999, t.damage + p.dmgTick);
               t.hitstun = Math.max(t.hitstun, 0.18);
@@ -516,7 +517,7 @@ const DIRECTORS = {
             burst(px, groundY - 60, p.color, 18, 1.1);
             dust(px, groundY, 12);
             for (const t of state.fighters) {
-              if (t === f || t.dead || t.respawnTimer > 0) continue;
+              if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
               if (Math.abs(t.x - px) < 90 && Math.abs(t.y - groundY) < 140) {
                 applyHit(f, t, {
                   dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: 1.1,
@@ -723,7 +724,7 @@ const DIRECTORS = {
           state.camera.shake = Math.max(state.camera.shake, 6);
         }
         for (const t of state.fighters) {
-          if (t === f || t.dead || t.respawnTimer > 0) continue;
+          if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
           const cd = this.hitCd.get(t) || 0;
           if (cd > state.matchTime) continue;
           if (Math.abs(t.x - f.x) < 110 && Math.abs(t.y - f.y) < 130) {
@@ -989,7 +990,7 @@ const DIRECTORS = {
           burst(tx, groundY - 50, p.color, 60, 2.0);
           ring(tx, groundY - 50, p.color, 240);
           for (const t of state.fighters) {
-            if (t === f || t.dead || t.respawnTimer > 0) continue;
+            if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
             if (circleRectOverlap(tx, groundY - 50, p.r, hurtbox(t))) {
               this.hit.add(t);
               applyHit(f, t, {
@@ -1021,7 +1022,7 @@ const DIRECTORS = {
         if (this.phase === "driving") {
           this.x += this.dir * p.slideSpeed * dt;
           for (const t of state.fighters) {
-            if (t === f || t.dead || t.respawnTimer > 0 || this.hit.has(t)) continue;
+            if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || this.hit.has(t)) continue;
             if (Math.abs(t.x - this.x) < 90 && Math.abs(t.y - groundY) < 130) {
               this.hit.add(t);
               applyHit(f, t, {
@@ -1114,7 +1115,7 @@ const DIRECTORS = {
           playSfx("blast", 1, 0.6);
           state.camera.shake = Math.max(state.camera.shake, 14);
           for (const t of state.fighters) {
-            if (t === f || t.dead || t.respawnTimer > 0) continue;
+            if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
             if (Math.abs(t.x - f.x) < p.radius * 1.2) {
               applyHit(f, t, {
                 dmg: p.finalDmg, baseKb: p.finalBase, growth: p.finalGrowth, angle: 0.55,
@@ -1130,7 +1131,7 @@ const DIRECTORS = {
           playSfx("blast", 0.4, 1.4);
           ring(f.x, f.y - 90, p.color, 140 + rand(0, 80));
           for (const t of state.fighters) {
-            if (t === f || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
+            if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
             if (Math.abs(t.x - f.x) < p.radius) {
               t.damage = Math.min(999, t.damage + p.dmgTick);
               t.hitstun = Math.max(t.hitstun, 0.15);
@@ -1265,7 +1266,7 @@ const DIRECTORS = {
         burst(ix, iy, p.color, 60, 2.2);
         ring(ix, iy, "#ffffff", p.radius);
         for (const t of state.fighters) {
-          if (t === f || t.dead || t.respawnTimer > 0) continue;
+          if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
           const inCore = circleRectOverlap(ix, iy, p.radius, hurtbox(t));
           const inWave = circleRectOverlap(f.x, f.y - 90, p.shockwave, hurtbox(t));
           if (!inCore && !inWave) continue;

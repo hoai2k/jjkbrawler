@@ -8,6 +8,7 @@ import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
 import { setSpriteSet, previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
 import { RANDOM_GROUP, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
+import { MATCH_MODES, MAX_FIGHTERS, matchPlan, modeLabel, HUMAN_TEAM } from "./modes.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -24,11 +25,18 @@ let settingsReturnPhase = "menu";
 
 const STOCK_OPTIONS = [1, 2, 3, 5];
 const PLAYER_IDS = [1, 2, 3, 4];
+// Every seat a match can have, human or CPU. Only the first four are ever
+// picked by hand; the rest are fighters a match mode brought along.
+const FIGHTER_IDS = Array.from({ length: MAX_FIGHTERS }, (_, i) => i + 1);
 const pickerCursor = { 1: null, 2: null, 3: null, 4: null };
 const pickerRepeat = PLAYER_IDS.map(() => ({ dir: null, t: 0 }));
 
 export function initUi(cb) {
   callbacks = cb;
+  // The in-match panels exist before anything looks them up: they are built
+  // from MAX_FIGHTERS rather than written out per slot, because a match can
+  // seat anywhere from two to eight fighters.
+  buildHud();
   for (const id of [
     "hud", "utilityActions", "menuOverlay", "stageOverlay", "movesOverlay", "roundOverlay", "pauseOverlay",
     "settingsOverlay", "loadOverlay", "loadStatus", "loadBar", "loadBarFill", "characterGrid", "stageGrid",
@@ -41,13 +49,11 @@ export function initUi(cb) {
     "p1PickReady", "p2PickReady", "p3PickReady", "p4PickReady",
     "p1PickRandomArt", "p2PickRandomArt", "p3PickRandomArt", "p4PickRandomArt",
     "startButton", "movesButton", "settingsButton", "fullscreenButton", "muteButton", "controllerStatus", "menuHint", "loadHint",
-    "p1Panel", "p2Panel", "p3Panel", "p4Panel",
-    "p1Name", "p2Name", "p3Name", "p4Name",
-    "p1Damage", "p2Damage", "p3Damage", "p4Damage",
-    "p1Stocks", "p2Stocks", "p3Stocks", "p4Stocks",
-    "p1Meter", "p2Meter", "p3Meter", "p4Meter",
-    "p1MeterLabel", "p2MeterLabel", "p3MeterLabel", "p4MeterLabel",
-    "p1Portrait", "p2Portrait", "p3Portrait", "p4Portrait", "arenaSign", "arenaSignName",
+    ...FIGHTER_IDS.flatMap((id) => [
+      `p${id}Panel`, `p${id}Name`, `p${id}Damage`, `p${id}Stocks`,
+      `p${id}Meter`, `p${id}MeterLabel`, `p${id}Portrait`, `p${id}Team`,
+    ]),
+    "arenaSign", "arenaSignName", "vsModeButton", "vsModeLabel", "modeMenu", "modeNote",
     "movesPanel", "movesTitle", "movesKicker", "movesPrevButton", "movesNextButton", "movesBackButton",
     "movesModeButton",
     "randomStageButton", "stageBackButton", "roundKicker", "winnerText", "rematchButton", "menuButton",
@@ -62,6 +68,7 @@ export function initUi(cb) {
   syncVolumeControls();
   buildCharacterGrid();
   buildStageGrid();
+  buildModeMenu();
   bindMenuButtons();
   bindMenuKeyboardNav();
   updateSelectionUi();
@@ -177,7 +184,9 @@ export function resetReady() {
 // select screen can show who they are about to face. Backing out of a lock
 // discards the draw, so re-readying faces a fresh opponent.
 function syncCpuRoll() {
-  const auto = state.playerCount === 1 && state.selection[2] === RANDOM_KEY;
+  // Only for the CPU opponent a player picked on the select screen. A mode's
+  // own CPUs are never shown, so there is nothing to draw early for.
+  const auto = state.playerCount === 1 && state.selection[2] === RANDOM_KEY && matchPlan().cpuFrom > 2;
   if (!auto || !allReady()) state.cpuRoll = null;
   else if (!state.cpuRoll) {
     state.cpuRoll = randomCharacterKey();
@@ -473,6 +482,117 @@ async function runStageRoulette() {
   callbacks.startMatch(cards[target].dataset.stage);
 }
 
+// ------------------------------------------------------------------ hud
+//
+// One panel per seat, built once. Odd slots read left to right and take their
+// accent on the left edge; even slots are mirrored, which is what makes a 1v1
+// read as two fighters facing each other rather than a list. The accent colour
+// itself is published per panel as --panel-theme when the match starts, so a
+// panel needs no per-slot CSS.
+function buildHud() {
+  const hud = $("hud");
+  const center = hud.querySelector(".round-actions");
+  for (const id of FIGHTER_IDS) {
+    const mirror = id % 2 === 0;
+    const panel = document.createElement("div");
+    panel.id = `p${id}Panel`;
+    panel.className = `fighter-status hidden${mirror ? " fighter-status--mirror" : ""}`;
+    const portrait = `<img id="p${id}Portrait" class="hud-portrait" alt="">`;
+    const info = `
+      <div class="hud-info">
+        <div class="hud-row">${mirror
+          ? `<strong id="p${id}Damage" class="damage">0%</strong><i id="p${id}Team" class="team-tag hidden"></i><span id="p${id}Name" class="fighter-name"></span>`
+          : `<span id="p${id}Name" class="fighter-name"></span><i id="p${id}Team" class="team-tag hidden"></i><strong id="p${id}Damage" class="damage">0%</strong>`}
+        </div>
+        <div id="p${id}Stocks" class="stocks${mirror ? " stocks--right" : ""}"></div>
+        <div class="meter"><div id="p${id}Meter" class="meter-fill"></div><span id="p${id}MeterLabel" class="meter-label"></span></div>
+      </div>`;
+    panel.innerHTML = mirror ? info + portrait : portrait + info;
+    // Slot order left to right, with the arena sign left where it is.
+    hud.insertBefore(panel, null);
+  }
+  hud.insertBefore(center, hud.firstChild);
+}
+
+// ------------------------------------------------------------- match mode
+//
+// The VS badge is a button: it opens this list. Everything the modes actually
+// DO lives in modes.js — here they are four labels and a blurb.
+let modeMenuOpen = false;
+
+function buildModeMenu() {
+  els.modeMenu.innerHTML = "";
+  const title = document.createElement("i");
+  title.className = "mode-menu-title";
+  title.textContent = TEXT.modes.title;
+  els.modeMenu.appendChild(title);
+  for (const key of MATCH_MODES) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "mode-option";
+    btn.dataset.mode = key;
+    btn.innerHTML = `<b>${TEXT.modes[key].label}</b><em>${TEXT.modes[key].blurb}</em>`;
+    btn.addEventListener("click", () => chooseMode(key));
+    els.modeMenu.appendChild(btn);
+  }
+}
+
+function chooseMode(key) {
+  state.matchMode = key;
+  // Players vs CPUs takes the CPU's hero card off the screen. If that card was
+  // the one being picked for, the cursor goes back to Player 1 rather than
+  // steering a slot nobody can see.
+  if (!pickedSlots().includes(state.activePicker)) state.activePicker = 1;
+  closeModeMenu();
+  playSfx("uiSelect");
+  updateSelectionUi();
+}
+
+function openModeMenu() {
+  modeMenuOpen = true;
+  els.modeMenu.classList.remove("hidden");
+  els.vsModeButton.setAttribute("aria-expanded", "true");
+  syncModeMenu();
+  // Opens on the mode already chosen, so a pad player can see where they are
+  // before moving.
+  const current = els.modeMenu.querySelector(`[data-mode="${state.matchMode}"]`);
+  setFocus(current || els.modeMenu.querySelector(".mode-option"), { quiet: true });
+}
+
+function closeModeMenu() {
+  if (!modeMenuOpen) return;
+  modeMenuOpen = false;
+  els.modeMenu.classList.add("hidden");
+  els.vsModeButton.setAttribute("aria-expanded", "false");
+  // Hand the cursor back where it came from: the LB/RB corner cycle for a pad,
+  // plain focus for mouse and keyboard.
+  if (padsMenuStates().length) {
+    utilityIdx = UTILITY_IDS.indexOf("vsModeButton");
+    syncMenuHighlight();
+  } else {
+    setFocus(els.vsModeButton, { quiet: true });
+  }
+}
+
+// What the select screen says about the mode: its name under the VS badge, and
+// — for anything but a plain Vs Battle — a line saying how many CPUs are about
+// to join. Never WHICH CPUs: they are drawn when the match starts.
+function syncModeUi() {
+  const plan = matchPlan();
+  els.vsModeLabel.textContent = modeLabel(state.matchMode);
+  els.vsModeButton.classList.toggle("is-alternate", state.matchMode !== "versus");
+  const note = TEXT.modes[state.matchMode].note(plan.added);
+  els.modeNote.textContent = note;
+  els.modeNote.classList.toggle("hidden", !note);
+  syncModeMenu();
+}
+
+function syncModeMenu() {
+  for (const btn of els.modeMenu.querySelectorAll(".mode-option")) {
+    btn.classList.toggle("is-current", btn.dataset.mode === state.matchMode);
+  }
+}
+
 function setActivePicker(n) {
   state.activePicker = n;
   updateSelectionUi();
@@ -480,6 +600,17 @@ function setActivePicker(n) {
 
 function bindMenuButtons() {
   for (const id of PLAYER_IDS) els[`p${id}PickCard`].addEventListener("click", () => setActivePicker(id));
+  els.vsModeButton.addEventListener("click", () => {
+    playSfx("uiSelect");
+    if (modeMenuOpen) closeModeMenu();
+    else openModeMenu();
+  });
+  // A click anywhere else is a dismissal — the picker is a menu, not a screen.
+  window.addEventListener("mousedown", (e) => {
+    if (!modeMenuOpen) return;
+    if (els.modeMenu.contains(e.target) || els.vsModeButton.contains(e.target)) return;
+    closeModeMenu();
+  });
   els.startButton.addEventListener("click", () => setPhase("stageSelect"));
   els.stageBackButton.addEventListener("click", () => setPhase("menu"));
   els.randomStageButton.addEventListener("click", () => { runStageRoulette(); });
@@ -641,6 +772,15 @@ function heroInfoHtml(char) {
   `;
 }
 
+// The slots that get a hero card: the ones a person actually picks. A mode's
+// CPUs (`plan.cpuFrom` and up) are drawn at the start of the match and never
+// shown — there is nothing to look at yet, and nothing to choose.
+function pickedSlots() {
+  const cpuFrom = matchPlan().cpuFrom;
+  const seats = state.playerCount === 1 ? [1, 2] : PLAYER_IDS.slice(0, state.playerCount);
+  return seats.filter((id) => id < cpuFrom);
+}
+
 // A human slot that has not locked in is "browsing": its card shows whatever
 // the cursor is over (or its last pick) greyed out, because nothing is settled
 // yet. The CPU slot never browses — it is committed to whatever it holds.
@@ -666,9 +806,9 @@ function shownKey(id) {
 
 export function updateSelectionUi() {
   syncCpuRoll();
+  const visiblePlayers = pickedSlots();
   for (const btn of els.characterGrid.querySelectorAll(".char-card")) {
     const key = btn.dataset.character;
-    const visiblePlayers = state.playerCount === 1 ? [1, 2] : PLAYER_IDS.slice(0, state.playerCount);
     for (const id of PLAYER_IDS) btn.classList.toggle(`is-p${id}`, visiblePlayers.includes(id) && key === shownKey(id));
     btn.querySelectorAll(".pick-tag").forEach((el) => el.remove());
     for (const id of visiblePlayers) {
@@ -706,7 +846,7 @@ export function updateSelectionUi() {
     badge.textContent = drawn ? TEXT.slot.randomBadge : TEXT.slot.readyBadge;
     badge.classList.toggle("hero-ready--random", !!drawn);
     badge.classList.toggle("hidden", !state.ready[id] && !drawn);
-    els[`p${id}PickCard`].classList.toggle("hidden", id > 2 && id > state.playerCount);
+    els[`p${id}PickCard`].classList.toggle("hidden", !visiblePlayers.includes(id));
     els[`p${id}PickCard`].classList.toggle("is-active", state.activePicker === id);
     els[`p${id}PickCard`].classList.toggle("is-ready", state.ready[id]);
   }
@@ -717,6 +857,7 @@ export function updateSelectionUi() {
     [1, 2, 3, 4].filter((id) => !els[`p${id}PickCard`].classList.contains("hidden")).length
   );
   els.p2PickLabel.textContent = state.mode === "cpu" ? TEXT.slot.cpu : TEXT.slot.player(2);
+  syncModeUi();
   const go = allReady();
   els.startButton.disabled = !go;
   els.startButton.textContent = go ? TEXT.menu.startReady : TEXT.menu.startWaiting;
@@ -932,11 +1073,23 @@ function damageColor(d) {
 
 export function updateHud() {
   els.hud.classList.toggle("hud--multiplayer", state.fighters.length > 2);
-  for (const id of PLAYER_IDS) {
+  // Five or more panels no longer fit at multiplayer size: portraits go and the
+  // type shrinks so a Battle Royal still reads at a glance.
+  els.hud.classList.toggle("hud--crowd", state.fighters.length > 4);
+  const teamMatch = matchPlan().teams;
+  for (const id of FIGHTER_IDS) {
     const f = state.fighters[id - 1];
     els[`p${id}Panel`].classList.toggle("hidden", !f);
     if (!f) continue;
-    document.documentElement.style.setProperty(`--p${id}-theme`, f.char.theme);
+    // Slots 1-4 also colour the select screen; every panel colours itself.
+    if (id <= 4) document.documentElement.style.setProperty(`--p${id}-theme`, f.char.theme);
+    els[`p${id}Panel`].style.setProperty("--panel-theme", f.char.theme);
+    // In a team match the panels have to say which side each fighter is on;
+    // eight names in a row are otherwise eight strangers.
+    const side = teamMatch ? (f.team === HUMAN_TEAM ? TEXT.hud.playerSide : TEXT.hud.cpuSide) : "";
+    els[`p${id}Team`].textContent = side;
+    els[`p${id}Team`].classList.toggle("hidden", !side);
+    els[`p${id}Panel`].classList.toggle("fighter-status--cpu-side", teamMatch && f.team !== HUMAN_TEAM);
     els[`p${id}Name`].textContent = f.char.name;
     els[`p${id}Portrait`].src = heroCardSrc(f.charKey);
     els[`p${id}Damage`].textContent = `${Math.round(f.damage)}%`;
@@ -975,9 +1128,13 @@ function renderMeter(fillEl, labelEl, f) {
     : TEXT.hud.ultimateReady;
 }
 
-export function showRoundOver(winner, loser) {
+/** `side` is set only in a team match, where the result belongs to a side
+ *  rather than to whichever fighter happened to be left standing. */
+export function showRoundOver(winner, loser, side = null) {
   els.roundKicker.textContent = TEXT.roundOver.kicker;
-  els.winnerText.textContent = winner ? TEXT.roundOver.winner(winner.char.name) : TEXT.roundOver.draw;
+  els.winnerText.textContent = !winner ? TEXT.roundOver.draw
+    : side ? TEXT.roundOver.teamWinner(side)
+    : TEXT.roundOver.winner(winner.char.name);
   setPhase("roundOver");
 }
 
@@ -1011,6 +1168,10 @@ const BACK_TARGET = {
 };
 
 function menuFocusables() {
+  // The mode picker is modal: while it is open it is the only thing the cursor
+  // can reach, so arrows walk its options instead of wandering the roster
+  // behind it.
+  if (modeMenuOpen) return [...els.modeMenu.querySelectorAll("button")];
   const overlayId = OVERLAY_FOR_PHASE[state.phase];
   if (!overlayId) return [];
   const overlay = els[overlayId];
@@ -1027,6 +1188,9 @@ function menuFocusables() {
 function defaultFocus() {
   const items = menuFocusables();
   if (!items.length) return null;
+  if (modeMenuOpen) {
+    return els.modeMenu.querySelector(`[data-mode="${state.matchMode}"]`) || items[0];
+  }
   // A locked-in player starts on the start button, not on the roster: their pick
   // is made, so the only thing left to point at is the match. menuFocusables()
   // has already dropped the cards in that case, hence the membership test.
@@ -1124,7 +1288,9 @@ function movePickerCursor(playerId, dx, dy) {
 // LB/RB on the menu cycle a highlight through the utility buttons in the top
 // right corner, then wrap back to the fighter grid (or the start button once
 // everyone is locked in). A activates the highlighted button.
-const UTILITY_IDS = ["movesButton", "muteButton", "settingsButton", "fullscreenButton"];
+// The VS badge rides along with the corner menus so LB/RB reaches the mode
+// picker too — a pad player never touches the mouse.
+const UTILITY_IDS = ["movesButton", "muteButton", "settingsButton", "fullscreenButton", "vsModeButton"];
 let utilityIdx = -1;
 let menuHighlightEl = null;
 
@@ -1286,6 +1452,7 @@ function activateFocus() {
 }
 
 function menuBack() {
+  if (modeMenuOpen) { closeModeMenu(); playSfx("uiBack"); return; }
   const target = BACK_TARGET[state.phase]?.();
   if (target) target.click();
 }
@@ -1293,7 +1460,10 @@ function menuBack() {
 // Called every frame by the main loop while a menu phase is active.
 export function updateMenuNav(dt) {
   if (rouletteRunning) return; // the draw owns the arena screen until it lands
-  if (state.phase === "menu" && padsMenuStates().length) {
+  // An open mode picker takes the pad off the roster: directions walk its
+  // options, A chooses one, B closes it. Without this the picker path below
+  // would keep steering fighter cursors behind the menu.
+  if (state.phase === "menu" && padsMenuStates().length && !modeMenuOpen) {
     updateCharacterPickerPads(dt);
     return;
   }
@@ -1359,8 +1529,14 @@ function bindMenuKeyboardNav() {
       activateFocus();
     } else if (code === "Backspace") {
       e.preventDefault();
-      if (state.phase === "menu") unready(state.activePicker);
+      if (modeMenuOpen) closeModeMenu();
+      else if (state.phase === "menu") unready(state.activePicker);
       else menuBack();
+    } else if (code === "Escape" && modeMenuOpen) {
+      // Escape is the pause key in a match; on the select screen the only thing
+      // it can dismiss is the mode picker.
+      e.preventDefault();
+      closeModeMenu();
     }
   });
   // real mouse use hides the pad cursor until the pad speaks again
