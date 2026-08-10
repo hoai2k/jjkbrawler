@@ -364,7 +364,18 @@ export function frameImage(charKey, frameKey, { preview = false } = {}) {
 /** The manifest, and only the manifest. Everything the menu draws is HTML, so
  *  this is the whole of the blocking load. */
 export async function loadCoreAssets() {
-  const manifestRes = await fetch(assetUrl("assets/sprites/manifest.json"));
+  // `no-cache` = revalidate every load, not "do not cache": the browser keeps
+  // its copy and a 304 costs nothing, but it can never serve a stale one.
+  //
+  // The manifest is the INDEX — it names the file each pose draws from, and
+  // those names change. Hanami's canon redraw renamed all 36 of his, so a
+  // browser holding the previous manifest asked for 36 files that no longer
+  // existed, got 36 404s, and drew a fighter with no art at all: invisible,
+  // silently, and only him. Every other character was fine because only his
+  // paths had moved. An index that can go stale independently of what it
+  // indexes is the whole bug; the images themselves are content-addressed by
+  // name and can cache normally.
+  const manifestRes = await fetch(assetUrl("assets/sprites/manifest.json"), { cache: "no-cache" });
   spriteManifest = await manifestRes.json();
   // Sheet art is drawn facing RIGHT by default (verified against every
   // character's run row). `nativeLeft` lists the exceptions that are drawn
