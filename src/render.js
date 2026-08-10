@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { getImage } from "./assets.js";
 import { getStage } from "./stages.js";
-import { drawCharFrame, currentFrame } from "./sprites.js";
+import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
 import { TRAIL_ALPHA, STRIKE_ARC } from "./config_tuning.js";

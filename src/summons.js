@@ -50,7 +50,7 @@ import { isFoe } from "./teams.js";
 import { burst, dust, ring, popup, emit } from "./particles.js";
 import { playSfx } from "./audio.js";
 import { getImage } from "./assets.js";
-import { drawCharFrame, currentFrame } from "./sprites.js";
+import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { SUMMON_ANIMS } from "./config_summons.js";
 import { MOTION } from "./config_tuning.js";
 import { METER_MAX } from "./constants.js";

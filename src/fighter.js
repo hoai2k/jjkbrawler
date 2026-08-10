@@ -23,7 +23,7 @@ import {
 import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "./config_tuning.js";
 import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
-import { currentFrame } from "./sprites.js";
+import { currentFrame } from "./render_backend.js";
 import { trailStrength } from "./motion.js";
 
 /** `dodge_roll` / `dodge_air` where the character has that art, else the old

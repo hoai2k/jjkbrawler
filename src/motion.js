@@ -14,7 +14,7 @@
 
 import { state } from "./state.js";
 import { clamp } from "./utils.js";
-import { cyclePhase } from "./sprites.js";
+import { cyclePhase } from "./render_backend.js";
 import { DASH_FX } from "./config_fx.js";
 import { headHeightTarget } from "./heights.js";
 import { SHIELD_MAX, MAX_FALL } from "./constants.js";

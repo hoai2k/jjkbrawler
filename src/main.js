@@ -8,6 +8,7 @@ import { updateHitboxes, updateProjectiles } from "./combat.js";
 import { updateParticles, banner } from "./particles.js";
 import { updateCamera } from "./camera.js";
 import { draw } from "./render.js";
+import { selectRenderBackend, renderBackendLabel } from "./render_backend.js";
 import { getStage, spawnXs } from "./stages.js";
 import { matchPlan, HUMAN_TEAM } from "./modes.js";
 import { oneSideLeft } from "./teams.js";
@@ -333,6 +334,12 @@ function loop(time) {
 }
 
 async function init() {
+  // Which renderer draws the characters, before anything asks for a pose.
+  // `?render=<name>` picks one; an unknown name warns and falls back, so a
+  // typo starts the game rather than blanking it.
+  const chosen = selectRenderBackend(new URLSearchParams(location.search).get("render"));
+  if (chosen !== "sprite") console.log(`render backend: ${chosen} (${renderBackendLabel()})`);
+
   resizeCanvas();
   window.addEventListener("resize", resizeCanvas);
   initInput();
