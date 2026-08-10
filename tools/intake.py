@@ -239,7 +239,7 @@ def grey_tint_mask(rgb, key, alpha, min_px=400):
 # either turns correct art backwards: round 15 delivered `egg_shot` pointing left
 # exactly as asked and the mirror flipped it, which is silent, because a mirrored
 # egg still looks like an egg.
-NO_MIRROR_DIRS = {"effects"}
+NO_MIRROR_DIRS = {"effects", "garnish"}
 
 # Frames the facing detector called wrong, corrected by eye on the intake board.
 FACING_OVERRIDE = {
@@ -254,6 +254,11 @@ FACING_OVERRIDE = {
     "mechamaru/attack_up": "right",
     "mechamaru/hurt": "right",
     "yuki/attack_light_b": "right",
+    # Round 18: the same frame, the same fighter, the same mistake. Her heavy
+    # came back facing right and the detector flipped it, which puts the punch
+    # behind her — and a mirrored punch reads as a punch until you notice where
+    # it lands. Two of her four strike frames have now needed this entry.
+    "yuki/attack_heavy_b": "right",
 }
 
 
