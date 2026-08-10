@@ -129,12 +129,42 @@ function validate(char) {
   }
 
   // Height from the position accessors' declared bounds — min/max are
-  // mandatory for POSITION accessors, so no geometry decoding is needed.
+  // mandatory for POSITION accessors, so no geometry decoding is needed —
+  // but read THROUGH the node hierarchy. A mesh is authored at whatever size
+  // suited the generator and placed by its node's scale, so raw accessor
+  // bounds measure the artist's working size, not the delivered figure. A rig
+  // exported with scale left on the node measured 2.72 m for a 1.73 m fighter
+  // that way: an error the tool reported against a file that was correct.
+  //
+  // Vertical extent only (scale.y, translate.y), which is all the check needs
+  // and keeps this to a tree walk rather than a matrix library.
   let heightM = 0;
-  for (const acc of gltf.accessors || []) {
-    if (acc.type === "VEC3" && acc.min && acc.max) {
-      heightM = Math.max(heightM, acc.max[1] - Math.min(acc.min[1], 0));
+  const visit = (nodeIndex, scaleY, offsetY) => {
+    const node = gltf.nodes?.[nodeIndex];
+    if (!node) return;
+    let s = scaleY;
+    let o = offsetY;
+    if (node.matrix) {
+      // Column-major 4x4: [5] is the y scale, [13] the y translation.
+      s *= node.matrix[5];
+      o += node.matrix[13] * scaleY;
+    } else {
+      if (node.scale) s *= node.scale[1];
+      if (node.translation) o += node.translation[1] * scaleY;
     }
+    if (node.mesh !== undefined) {
+      for (const prim of gltf.meshes?.[node.mesh]?.primitives || []) {
+        const acc = gltf.accessors?.[prim.attributes?.POSITION];
+        if (!acc?.min || !acc?.max) continue;
+        const top = acc.max[1] * s + o;
+        const bottom = acc.min[1] * s + o;
+        heightM = Math.max(heightM, top - Math.min(bottom, 0));
+      }
+    }
+    for (const child of node.children || []) visit(child, s, o);
+  };
+  for (const scene of gltf.scenes || []) {
+    for (const n of scene.nodes || []) visit(n, 1, 0);
   }
   if (heightM < 0.5 || heightM > 4) {
     errors.push(`mesh spans ${heightM.toFixed(2)}m of height — deliveries are real-world metres (a ${heightM < 0.5 ? "centimetre" : "scene"}-scaled file is the usual cause)`);

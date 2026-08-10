@@ -20,6 +20,27 @@ The delivery spec — units, orientation, skeleton naming, prop bones
 [../docs/asset-requests.md](../docs/asset-requests.md). Read it before
 generating anything; every check the tool runs comes from there.
 
+## Conforming a generated rig first
+
+A generator's output rarely matches the spec on arrival: Tripo and Mixamo each
+have their own bone naming, their own scale, and clip timings that owe nothing
+to our combat tuning. That gap is mechanical, so it is a script — run headless,
+no GUI:
+
+```
+blender --background --python tools/blender_conform.py -- \
+    --in  billboards/intake/yuji/_raw.glb \
+    --out billboards/intake/yuji/yuji.glb \
+    --char yuji
+```
+
+It renames bones onto the standard skeleton (stripping `mixamorig:` and
+mapping common spellings), scales to the fighter's canon height in metres with
+feet on the floor and transforms applied, renames and retimes each action to
+its state's duration from `../src/states.js`, and adds any prop/chain hook
+bones the roster expects. It never invents animation: a clip whose *content* is
+wrong is a workbench review finding, not something a script can fix.
+
 ## The flow
 
 ```

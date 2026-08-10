@@ -109,10 +109,10 @@ const gltf = {
   meshes: [{ primitives: [{ attributes: { POSITION: 0 }, indices: 1 }] }],
   accessors: [
     { bufferView: 0, componentType: 5126, count: positions.length / 3, type: "VEC3",
-      // Declared span puts the body at human height so validation's
-      // metre check is honestly fed: feet-relative, the box rides at hip
-      // height 0.53*H, so world span is [hips+minY, hips+maxY].
-      min: [-w, 0.53 * H + minY, -d], max: [w, 0.53 * H + maxY, d] },
+      // LOCAL bounds, as glTF requires — the box's own space. The validator
+      // walks the node hierarchy and adds the Hips translation itself, so
+      // pre-baking that offset here would count it twice.
+      min: [-w, minY, -d], max: [w, maxY, d] },
     { bufferView: 1, componentType: 5123, count: indices.length, type: "SCALAR" },
     { bufferView: 2, componentType: 5126, count: times.length, type: "SCALAR", min: [0], max: [0.9] },
     { bufferView: 3, componentType: 5126, count: quats.length / 4, type: "VEC4" },
