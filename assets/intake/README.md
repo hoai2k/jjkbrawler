@@ -57,7 +57,16 @@ that way, so this is the normal case, not a mistake.
    [docs/sprite-auto-adjust.md](../../docs/sprite-auto-adjust.md).
 6. The untouched originals are moved to `assets/reference/round<N>/<char>/` so a
    frame can be reprocessed later without regenerating it.
-7. **Update the request docs.** A delivery answers a request, and the request
+7. **Once the round's verdicts are applied, put the names back on the
+   drawings.** `python3 tools/canonicalise_sprites.py` moves whatever each pose
+   ended up drawing to `assets/sprites/<char>/<pose>.png`, and whatever used to
+   hold that name into `<char>/archive/<pose>_2.png`. Approving is a change of
+   pointer, not a move, so without this the art in the game goes on living at a
+   staging path and `<char>/<pose>.png` is a drawing nothing draws. Nothing is
+   deleted — a superseded drawing is the only copy of art that shipped for a
+   while, and the workbench still offers it — and every reference in the
+   manifest is rewritten, checked for dangling paths before it writes.
+8. **Update the request docs.** A delivery answers a request, and the request
    file is defined as "everything in here is outstanding" — so art that has
    landed has to leave it the same day, or the file starts lying about what is
    still needed. Move the delivered section out of

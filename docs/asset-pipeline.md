@@ -426,10 +426,16 @@ by the game. Three steps, each separable so a bad delivery stops at the door:
    placed by hand, so it is safe to re-run over the whole roster.
 5. `tools/auto_tune.py` — applies the placement corrections that are mechanical.
    See [the tuning phase](#the-tuning-phase) below.
-6. **Move the answered requests into history.**
+6. `tools/canonicalise_sprites.py` — after the round's approve/keep verdicts are
+   applied, gives each pose's drawing the pose's own name and archives the one
+   it displaced. Deliveries land in `<char>/incoming/` and approving them is a
+   change of pointer, so this is what keeps the tree describing the game rather
+   than the order things arrived in. Re-runnable; a no-op when everything is
+   already where it belongs.
+7. **Move the answered requests into history.**
    [asset-requests.md](asset-requests.md) is defined as "everything in here is
    outstanding", so a delivered section has to leave it or the file misreports
-   what is still needed. See step 7 in
+   what is still needed. See step 8 in
    [assets/intake/README.md](../assets/intake/README.md#what-happens-to-it).
 
 Placement is delegated to `extract_sprites.generated_frame_meta`. A replacement
