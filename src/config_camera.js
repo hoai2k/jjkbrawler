@@ -76,6 +76,23 @@ export const DRAMA = {
   endDolly: 0.7,
 };
 
+// Garnish cards — the flat quads OFF the gameplay plane (leaves, lanterns,
+// traffic, rubble, hoardings; src/render3d/garnish.js).
+//
+// `enabled: false` turns every card off everywhere and leaves the rest of the
+// 2.5D camera exactly as it is: the scene, the rig, the drama shots and the
+// per-board cues all keep running. Worth its own switch because garnish is the
+// only part of this mode that deliberately puts things BETWEEN the lens and
+// the fight — so it is the first thing to reach for if a board ever reads as
+// too busy, and the one part a player might simply not want.
+export const GARNISH = {
+  enabled: true,
+  // Scales the gap between ambient spawns (leaves, lanterns). Above 1 is
+  // sparser, below 1 denser. Cue-driven cards — traffic, rubble — are tied to
+  // their hazard's own timing and ignore this.
+  interval: 1,
+};
+
 // Per-board camera personality. Any field omitted falls back to the global
 // rig above. `yawMax`/`heightBias`/`fovNudge`/`dampingMul` are the dials the
 // plan names; boards not listed get the global feel.

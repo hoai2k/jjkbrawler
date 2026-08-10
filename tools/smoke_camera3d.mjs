@@ -158,9 +158,41 @@ for (const [key, index, simSeconds, wantsGarnish] of BOARDS) {
   await page.waitForTimeout(300);
 }
 
+// GARNISH.enabled is the switch a player (or a busy board) can turn off. It
+// has to clear the sky that is already up, not merely stop spawning into it —
+// and putting it back has to bring the cards back without a fresh match.
+current = "garnish-toggle";
+await page.click('[data-character="gojo"]');
+await page.waitForTimeout(250);
+await page.click("#startButton");
+await page.waitForSelector(".stage-card", { timeout: 8000 });
+await page.locator(".stage-card").nth(0).click(); // Training Bridge: ambient leaves
+await waitForMatch();
+await runUntil(4);
+const garnishCycle = await page.evaluate(async () => {
+  const { GARNISH } = await import("/src/config_camera.js");
+  const { debugStats } = await import("/src/render3d/index.js");
+  const frame = () => new Promise((r) => requestAnimationFrame(() => r()));
+  const settle = async () => { for (let i = 0; i < 6; i++) await frame(); };
+  await settle();
+  const on = debugStats().garnish;
+  GARNISH.enabled = false;
+  await settle();
+  const off = debugStats().garnish;
+  GARNISH.enabled = true;
+  return { on, off };
+});
+check(garnishCycle.on > 0, "garnish is on by default", `${garnishCycle.on} cards`);
+check(garnishCycle.off === 0, "GARNISH.enabled = false clears the cards already up",
+  `${garnishCycle.off} cards left`);
+
 // Garnish must not survive a change of board: a new match starts with a clean
 // sky, or Crosswalk Rush's traffic ends up driving through Domain Core.
 current = "reset";
+await page.keyboard.press("Escape");
+await page.waitForTimeout(200);
+await page.click("#pauseMenuButton");
+await page.waitForTimeout(300);
 await page.click('[data-character="gojo"]');
 await page.waitForTimeout(250);
 await page.click("#startButton");

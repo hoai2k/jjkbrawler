@@ -29,6 +29,7 @@ import {
 } from "../../vendor/three.module.js";
 import { makeQuadPool, rectMatrix, ORDER } from "./quads.js";
 import { addCameraCueListener } from "../camera_mode.js";
+import { GARNISH } from "../config_camera.js";
 import { mainPlatform } from "../stages.js";
 
 // ----------------------------------------------------------------- textures
@@ -414,6 +415,7 @@ export function makeGarnish() {
   const cards = [];
   let stageKey = null;
   let spawnT = 0;
+  let setupDone = false;
 
   const ctx = {
     cards,
@@ -432,6 +434,7 @@ export function makeGarnish() {
   };
 
   addCameraCueListener((name, strength) => {
+    if (!GARNISH.enabled) return;
     const sys = SYSTEMS[stageKey];
     if (sys?.cue) sys.cue(name, strength, ctx);
   });
@@ -441,25 +444,41 @@ export function makeGarnish() {
     cards.length = 0;
     stageKey = null;
     spawnT = 0;
+    setupDone = false;
   }
 
   function update(st, dt) {
     const sys = SYSTEMS[st.stageKey];
     ctx.plat = st.platforms.length ? mainPlatform(st.platforms) : null;
+    // Two independent reasons for a board to have no cards, and both have to
+    // clear an existing sky rather than just stop spawning into it: GARNISH
+    // can be switched off mid-match from the config, and Active Boards off
+    // returns every stage to its static v1 self — these cards are that
+    // stage's character, so they go quiet with it.
+    const wanted = GARNISH.enabled && st.activeBoards;
 
     if (st.stageKey !== stageKey) {
       cards.length = 0;
       stageKey = st.stageKey;
       spawnT = 0;
-      // Active Boards off returns every stage to its static v1 self, and
-      // these cards are that stage's character — so they go quiet with it.
-      if (sys?.setup && st.activeBoards) sys.setup(ctx);
+      setupDone = false;
+    }
+    if (!wanted) {
+      if (cards.length) cards.length = 0;
+      setupDone = false;
+    } else if (sys?.setup && !setupDone) {
+      // Standing scenery (Billboard Roof's hoardings) is placed once. Keyed on
+      // a flag rather than on the stage change so switching GARNISH back on
+      // mid-match puts it back, instead of leaving that board bare until the
+      // next round.
+      setupDone = true;
+      sys.setup(ctx);
     }
 
-    if (sys?.ambient && sys.every > 0 && st.activeBoards) {
+    if (wanted && sys?.ambient && sys.every > 0) {
       spawnT -= dt;
       if (spawnT <= 0) {
-        spawnT = sys.every;
+        spawnT = sys.every * (GARNISH.interval || 1);
         sys.ambient(ctx);
       }
     }
