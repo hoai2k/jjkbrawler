@@ -26,6 +26,10 @@ why the numbering is not strictly chronological.
 | 12D | Three install auras | Never delivered; moved to round 13 as 13E |
 | 13 | Roster-wide sweep of the attack and crouch rows, plus the three install auras (44 sprites) | Delivered — the first round to land through the approval step |
 | 15A (part), 15B, 15D (part) | Three of the four new fighters — Mechamaru, Yuki Tsukumo and Dagon — with all nine technique effects and three hero cards (120 assets) | Delivered — Kurourushi's set, the summons and Dagon's domain backdrop stay open |
+| 14 | Heavy strike frames that extend, a consistent idle stance, and five workbench catches (41 sprites) | Delivered in two batches — the first was approved pose by pose and the rejections answered by the second |
+| 15 | Four new fighters, nine technique effects, four summon minions, four hero cards and a domain backdrop (129 assets) | Delivered — Kurourushi's set closes it |
+| 16 | Six-pose animation sets for seventeen summoned creatures (102 sprites) | Delivered — every creature in the pools now animates |
+| 17 | Hanami redrawn to canon, Mahoraga's three poses, two round-13 catches, and Hanami's hero card (41 sprites, 1 card) | Delivered — **17D, the simplified card set, stays open** |
 
 ---
 
@@ -1633,7 +1637,7 @@ cycles, the costumes and all nine effects.
 
 Each of these is drawn on a key screen with **no character in the frame** — the
 engine composites them itself. Travelling effects must **point LEFT** (see
-[Directional effects point LEFT](#directional-effects-point-left)); the ones
+[Directional effects point LEFT](asset-requests.md#directional-effects-point-left)); the ones
 that do are marked.
 
 | File | Fighter | Used by | What to draw |
@@ -1653,5 +1657,842 @@ Deliver to `assets/intake/effects/<name>.png`.
 **Not requested, and deliberately:** Simple Domain (the circle) and Undertow
 (the spiral) are drawn procedurally in `src/render.js` and `src/specials.js` and
 look correct as they are. They need no art and none should be made for them.
+
+---
+
+# Round 14 — reach and stance, delivered in two batches
+
+**14A and 14B are complete and 14C is three-fifths in.** 38 sprites landed on
+2026-08-09 and are in the manifest, but not in the game: every one came in as a
+held-back replacement, so the pose points at the new drawing for the workbench
+to place while `awaitingApproval.live` still names the old one, and that is what
+a match draws. What is left on those 38 is the **approval pass** — open each
+pose in the [sprite workbench](../workbench/), stand it beside what is shipping,
+and say yes or keep.
+
+Still outstanding: **`choso/attack_light_b` and `geto/attack_down`**, the two
+14C poses that are already in the game and were asked to be improved further.
+
+`gakuganji/attack_air_a` arrived in that batch too. It was asked for below as an
+**alternate** and it came through the ordinary import instead, so it is waiting
+as a held-back replacement rather than as a chevron variant. The outcome is the
+same either way — approve and keep both bank the drawing they turn down — but it
+is worth knowing which door it came in by when the approval pass reaches it.
+
+The raw plates are archived at `assets/reference/round14/`. The delivery is
+disjoint from what round 13 left waiting: no `(character, pose)` appears in
+both, so the two approval passes do not interact.
+
+**Reach is now gameplay.** Until this month a fighter's melee range was a
+hand-typed number in `characters.js` with no relation to their sprites, and the
+hitboxes it produced reached about 2.1× as far as the art. That is gone: a
+move's hitbox is now the distance the character's own committed swing is
+*painted* to reach, plus a fixed 34 px of forgiveness that is the same for
+everybody (`src/silhouette.js`, `MELEE_GRACE`). The full measurement and
+rationale is in [hitbox-audit.md](hitbox-audit.md).
+
+Which means the drawings below are no longer only a readability problem. **A
+fighter whose strike pose does not extend now has short range in play**, and a
+fighter drawn broad is a broader target. The art is the balance data.
+
+- **14A** — heavy-attack strike frames that do not extend (16 sprites)
+- **14B** — a consistent idle stance, for the ten outliers (20 sprites)
+- **14C** — five caught while placing rounds 12 and 13 (5 sprites) — *3 delivered*
+
+**41 sprites in total, 38 of them delivered.** None of it is blocking: every
+fighter plays today, and each delivery re-derives that character's numbers on
+import with no code change.
+
+Round 13 was the companion to this and has landed: its 13C asked for seven
+**light**-attack strike frames that did not reach, and 13A/13B for the crouches.
+14A is the same defect in the **heavy** row, which 13's sweep did not separate
+out — so those deliveries are the reference for what "extends" means here.
+
+---
+
+## 14A. Heavy strike frames that do not extend — 16 sprites
+
+### Why
+
+`attack_heavy_a`/`_b` is a wind-up and a strike, and `_b` is what is on screen
+while the smash is active. Measured across the roster — from placed art only,
+and in the world pixels the game draws at — the furthest a fighter's committed
+swing reaches in front of themselves runs from **66 px to 108 px**. That is a
+1.6× spread, and it does not line up with what these characters are holding:
+
+| Fighter | Art reach | Holding |
+|---|---|---|
+| Panda | 108 px | bare paws |
+| Yuta, Hanami | 96 px | katana / root-arms |
+| Yuji, Todo, Jogo, Choso, Geto, Mei Mei | 90 px | fists, mostly |
+| Megumi, Momo, **Nanami** | 84 px | **cleaver blade** |
+| **Maki**, **Toji**, Sukuna, Mahito, Hakari, Inumaki | 78 px | **naginata**, **spear** |
+| **Uro**, **Reggie** | 72 px | polearm / blade |
+| **Gakuganji**, Gojo, Nobara | 66 px | **guitar** |
+
+Gakuganji swings a full-size electric guitar and reaches less far than Panda's
+paw. Maki's naginata and Toji's spear reach less far than Yuji's fist. That is
+not a balance decision anybody made — it is the poses not extending, and it is
+now the thing that decides their range.
+
+**Four of these are a placement job, not a drawing job.** Maki's
+`attack_heavy_a` and both heavy frames for Gakuganji, Uro and Reggie have never
+been through the sprite workbench's placement pass, so they sit at the intake
+pipeline's guess at their scale. The game deliberately ignores unplaced frames
+when measuring (it would otherwise hand out ranges that change the moment
+somebody opens the workbench), so those four fighters are currently being judged
+on half their heavy row. **Place them first** — `node tools/audit_hitboxes.mjs`
+lists them, and their numbers may well move on their own.
+
+### What to deliver
+
+Eight fighters, both frames of the heavy pair, drawn to the pose lines below.
+
+| Fighter | Key | Poses | Ask |
+|---|---|---|---|
+| Gakuganji | `gakuganji` | `attack_heavy_a`, `attack_heavy_b` | The guitar is held across the chest through the whole swing. It should come round and finish out in front, headstock leading, well clear of the body |
+| Maki | `maki` | `attack_heavy_a`, `attack_heavy_b` | The naginata stays inside her silhouette. A polearm smash ends with the blade at the far end of a two-handed thrust or sweep — the longest weapon on the roster should read as the longest |
+| Toji | `toji` | `attack_heavy_a`, `attack_heavy_b` | Same: the Inverted Spear finishes tucked. He is the roster's weapons specialist and currently out-ranged by a fist |
+| Nanami | `nanami` | `attack_heavy_a`, `attack_heavy_b` | The blunt cleaver ends roughly level with his own shoulder. His whole kit is about hitting at a measured distance (the 7:3 band) and the art has to show that distance |
+| Uro | `uro` | `attack_heavy_a`, `attack_heavy_b` | Place first (see above), then extend if it still reads short |
+| Reggie | `reggie` | `attack_heavy_a`, `attack_heavy_b` | Place first, then extend |
+| Sukuna | `sukuna` | `attack_heavy_a`, `attack_heavy_b` | The King of Curses' heavy is a compact chest-height slash. It should be his full span — this is the character who cleaves buildings |
+| Gojo | `gojo` | `attack_heavy_a`, `attack_heavy_b` | Lapse Palm ends with the palm barely past his own chest. A thrown palm strike ends with the arm locked out |
+
+### Pose lines
+
+| Pose | Pose line |
+|---|---|
+| `attack_heavy_a` | the wind-up of a committed, heavy swing: weapon or striking arm drawn fully back and low behind the body, shoulders coiled hard away from the target, weight entirely on the back foot, front foot light. Bigger and slower than the light wind-up — this is a move that takes a moment |
+| `attack_heavy_b` | the follow-through at full extension: weapon or arm at maximum reach, arm locked out or the polearm at the end of its sweep, shoulders rotated fully through past square, hips turned, weight driven onto the front foot. **The furthest-forward thing in the frame is the weapon or the fist, and it is clear of the body silhouette by at least half a torso width** |
+
+The comparative test, and the thing to check before delivering: **lay
+`attack_heavy_b` over `idle_a` at the same scale. The weapon or striking hand
+must sit further forward than anything in the idle by at least a third of the
+figure's standing height.** For an armed fighter it should be more. If the two
+silhouettes have roughly the same front edge, the pose is a stance, not a strike.
+
+Match each fighter's canonical reference image for costume, proportions and line
+weight. Same delivery spec as everything else.
+
+Deliver to:
+
+```
+assets/intake/<character>/attack_heavy_a.png
+assets/intake/<character>/attack_heavy_b.png
+```
+
+---
+
+## 14B. A consistent idle stance — 20 sprites
+
+### Why
+
+Hurtboxes are now measured from each fighter's own art rather than being one
+64×108 box for the whole roster. Height works well: heights were solved against
+a common target years ago, so a taller fighter is a taller target and the
+numbers are trustworthy.
+
+**Width is not.** Measured across the roster's idles, body width runs from
+**0.21 to 0.50 of the fighter's own height** — and that spread is drawing style,
+not character. Yuji's idle is a slim three-quarter turn; Jogo's is square-on
+with his cape spread. Neither fact should decide how easy they are to hit, and
+at the moment they would.
+
+The game currently trusts that measurement only 45% of the way
+(`BODY.widthTrust`), compressing everyone toward a typical body. That is a
+compromise standing in for consistent art — it means a genuinely broad fighter
+is under-represented and a slight one over-represented, because the data cannot
+be trusted on its own. **Consistent idle stances would let that number go up and
+make silhouette a real characteristic.**
+
+Note this is the one row round 13's sweep deliberately excluded, and 12B has
+since redrawn the run — so the idle is the remaining unaudited pose, and the one
+that now carries the most mechanical weight.
+
+### What to deliver
+
+`idle_a` and `idle_b` for the ten fighters whose measured width falls outside
+**0.30–0.45 of their own drawn height** — ten of the twenty-two with placed idle
+art, so **20 frames**. The other twelve are already inside the band and need
+nothing.
+
+| Too narrow — drawn edge-on | ratio | | Too broad — costume, not body | ratio |
+|---|---|---|---|---|
+| Yuji | 0.21 | | Sukuna | 0.49 |
+| Inumaki | 0.25 | | Jogo | 0.50 |
+| Choso | 0.25 | | Mahoraga | 0.80 |
+| Mahito | 0.27 | | | |
+| Yuta | 0.27 | | | |
+| Nobara | 0.29 | | | |
+| Megumi | 0.29 | | | |
+
+Mahoraga at 0.80 is the extreme and is partly legitimate — he is a genuinely
+enormous shikigami with a tail, and the karma wheel on his headdress is part of
+his sprite like everything else he wears. Four-fifths as wide as he is tall is
+still a square, though, and the width is carried by the tail sweeping out behind
+him rather than by his body. Worth checking against play before asking for a
+redraw: a hurtbox that wide is a real disadvantage, but so is a general who
+cannot fit his own tail.
+
+`node tools/audit_hitboxes.mjs` prints the live figures; re-run it after any
+delivery rather than trusting this table.
+
+The ask is not a redesign. It is one framing rule applied to all of them:
+
+| Pose | Pose line |
+|---|---|
+| `idle_a` | standing ready, **square to the camera in a three-quarter turn of no more than about 20 degrees**, feet about shoulder-width apart, arms relaxed at the sides or lightly raised, nothing held out away from the body. Weapons carried close — at the side, on the shoulder, or across the back — not extended, not spread |
+| `idle_b` | the same stance one breath later: chest a little higher, shoulders a little back, same footprint. **The silhouette's outer edges must not move between the two frames** |
+
+Three specific things to avoid, because they are what the measurements caught:
+
+- **A deep three-quarter or profile turn.** Yuji, Inumaki, Choso and Nobara are
+  drawn nearly edge-on, which makes them measure as narrow as a post.
+- **Capes, coats and hair spread wide.** Jogo, Sukuna and Gakuganji measure
+  broad because of what is *around* them rather than what they are. Costume
+  should hang, not fan.
+- **Weapons held out.** A held weapon is deliberately excluded from the width
+  measurement (`coreLeft`/`coreRight` in `tools/bake_anchors.py` trims it), but
+  the trim works best when the weapon is a clear sliver beside the body rather
+  than crossing it.
+
+Deliver to:
+
+```
+assets/intake/<character>/idle_a.png
+assets/intake/<character>/idle_b.png
+```
+
+**Important:** the idle is also what every fighter's *size* is solved against
+(`docs/character-heights.md`), so a redrawn idle rescales that fighter's entire
+sprite set. Deliver these one fighter at a time and expect a workbench pass on
+each — this is the one pose where that is unavoidable.
+
+---
+
+## 14C. Caught while placing rounds 12 and 13 — 5 sprites
+
+Poses flagged in the sprite workbench during the placement passes over rounds
+12 and 13, rather than by a sweep. They are here rather than in a round of their
+own because 14 is the open round for art faults and five poses do not justify a
+fifteenth.
+
+**Two of these are already in the game.** Choso's light follow-up and Geto's
+down-smash were approved during round 13's pass because they are better than
+what they replaced — the ask is to improve them further, not to undo them. That
+is the normal case for a `pose` or `alternate` flag on art that has already been
+let in: approving and requesting are separate answers, and a drawing can be
+worth shipping and worth redrawing at the same time.
+
+| Fighter | Key | Pose | Kind | What is wrong |
+|---|---|---|---|---|
+| ~~Yoshinobu Gakuganji~~ | `gakuganji` | `attack_heavy_b` | Pose | **Delivered, awaiting approval.** Reads poorly for the action it stands for. Note that 14A already asks for the heavy row to *extend* — this is the same row and should be drawn with that brief in hand. |
+| ~~Yoshinobu Gakuganji~~ | `gakuganji` | `attack_air_a` | **Alternate** | **Delivered, awaiting approval** — as a held-back replacement rather than a chevron variant, see the round note above. "AI hand drawing error" — the hands are malformed. Asked for as an **alternate**, not a replacement: the pose itself is right, so the delivery lands beside the current drawing and the better of the two is chosen by eye. |
+| ~~Takako Uro~~ | `uro` | `prone` | Character | **Delivered, awaiting approval.** "Costume doesn't match canonical exactly" — check against `assets/reference/canon/uro_idle.png`, which is the design the rest of her set was drawn from. |
+| Choso | `choso` | `attack_light_b` | **Alternate** | "AI hand drawing error" — the hands are malformed. **In the game already**, and better than what it replaced; the alternate is to fix the hands without losing the pose. |
+| Suguru Geto | `geto` | `attack_down` | Pose | "Should be a more powerful downward smash" — **in the game already**, and an improvement on what it replaced, but it reads as a drop rather than a smash. `downHeavy` is a committed strike; the body should be behind it. |
+
+`attack_air_a` is the first use of **Request alternate**: it comes back as a
+second option on the pose rather than overwriting what is there, the chevron in
+the workbench gets a dot, and nothing on screen changes until somebody picks.
+See [asset-pipeline.md](asset-pipeline.md#request-alternate).
+
+`uro/prone` is a costume note on a pose that is otherwise fine, so a redraw
+should keep the pose and the framing and only correct the outfit.
+
+Mahoraga's three round-13 poses were **rejected rather than flagged** — they
+arrived without the karma wheel, so they never entered the game and the art they
+would have replaced is still in play. Their asks are re-stated in
+[17B](#17b-mahoraga--three-poses-that-never-extended--3-sprites).
+
+---
+
+# Round 15 — four new fighters, delivered
+
+**Four new fighters: Mechamaru, Yuki Tsukumo, Dagon and Kurourushi.**
+
+**Three of the four have landed.** Mechamaru, Yuki and Dagon delivered their
+full 36-pose sets, all nine technique effects and three of the four hero cards;
+they are out of `STAGED_CHARACTER_KEYS` and on the select screen. What that
+delivery answered is recorded in
+[asset-requests-history.md](asset-requests-history.md#round-15a-part-15b-and-15d-part--mechamaru-yuki-and-dagon).
+
+What is still open in this round:
+
+- **15A** — **Kurourushi's** set (36 sprites)
+- **15C** — summon minions (4 sprites)
+- **15D** — Kurourushi's hero card (1 image)
+- **15E** — Dagon's domain background (1 image)
+
+**42 assets in total, none of it blocking.** Kurourushi stays staged until his
+set lands — his kit is live in code and testable, and nothing else waits on him.
+The three delivered fighters play today; their summons and Dagon's domain
+backdrop fall back to procedural art until 15C and 15E arrive.
+
+## 15A. Kurourushi's sprite set — 36 sprites
+
+**36 poses.** The same semantic set every fighter on the roster now has
+(`SEMANTIC_ANIMS`, `src/characters.js`) — no sprite sheet, no grid cells, one
+drawing per action. Mechamaru's, Yuki's and Dagon's sets have been delivered
+against this brief; **only Kurourushi's is outstanding**, and the three that
+landed are the reference for what a set that arrives whole looks like:
+
+```
+idle_a  idle_b
+run_reach_a  run_pass_a  run_reach_b  run_pass_b
+dash  jump_rise  fall  land
+crouch_a  crouch_b  crouch_attack_a  crouch_attack_b
+guard  ledge_hang  dodge_roll  dodge_air
+attack_light_a  attack_light_b
+attack_heavy_a  attack_heavy_b
+attack_air_a  attack_air_b
+attack_up  attack_down  charge
+special_neutral  special_side  special_down
+ult_a  ult_b
+hurt  dizzy  prone  victory
+```
+
+**The pose lines are in [pose-brief.md](pose-brief.md), and that file is what
+these four should be drawn from.** It is the standing brief for a whole set —
+every pose line, the `_a`/`_b` flip test, the framing rule, and the list of
+faults that have each cost the roster a re-request. It exists because the pose
+lines used to live scattered across the rounds that happened to ask for them,
+which meant a new character was drawn from whatever the last round remembered.
+Reading it first is the difference between getting a set right once and
+re-requesting it. It did not fully work on the first three: every one of them
+came back with a heavy strike that does not extend far enough, which is the
+brief's own headline criterion and is now round 17.
+
+Four of its rules are worth repeating here, because they are measurable and
+because reach is now taken off the art (`src/silhouette.js`) — a pose that does
+not extend is a fighter with short range in play. **All three delivered sets
+missed the first one**, so it is the one to check with a ruler before sending
+anything:
+
+- `attack_heavy_b` must put the weapon or fist **further forward than anything
+  in that fighter's own `idle_a` by at least a third of their standing height**.
+- `attack_light_b` is the same rule at a shorter reach: it must extend past
+  `idle_a`, because a light attack that stays inside the idle silhouette has no
+  range at all. This is 13C in one line, and it is the single most
+  re-requested fault on the roster.
+- `crouch_a`/`crouch_b` must drop the head **by at least a quarter** of standing
+  height. Not a fighting stance — a crouch.
+- `idle_a` must be a **plain, square-on standing stance** — arms in, weapon
+  held close, nothing spread. Hurtbox *width* is measured off the idle, so a
+  cape thrown wide or a three-quarter turn is not a style choice here: it makes
+  that fighter easier or harder to hit than the numbers intend. That is
+  [14B](#14b-a-consistent-idle-stance--20-sprites), open for twenty existing
+  fighters, and these four are the chance not to join it.
+
+**Framing counts double**, for the same reason: a pose that
+extends needs the margin drawn for it, rather than the figure enlarged until the
+reach falls off the plate. See [the reach margin](pose-brief.md#1-the-rules-that-hold-for-every-pose).
+
+### What each fighter is holding, and what their poses are of
+
+| Fighter | Key | Weapon / signature | Notes for the action poses |
+|---|---|---|---|
+| Mechamaru | `mechamaru` | Blades that extend from the right forearm (Sword Option); cannon ports in both palms | A puppet, not a person: joints are visible seams, the face never changes expression, and the grin is fixed in every pose including `hurt` and `dizzy`. `special_neutral` is a palm thrust forward with the port open (Ultra Cannon); `special_side` is a forward lunge with cursed energy venting from both elbows (Boost On); `special_down` is a braced two-handed guard stance inside a circle (Simple Domain). `ult_a`/`ult_b` are the Mode: Absolute firing stance — feet planted wide, both palms forward, head tilted back |
+| Yuki Tsukumo | `yuki` | Bare fists | Everything she does is taijutsu, so her attack poses are boxing: `attack_light_*` a jab, `attack_heavy_*` a full hook with the hips through it, `special_neutral` a committed straight with the whole body behind it (Bombaye). `special_side` is a summoning gesture with Garuda's coils behind her; `special_down` is the same braced Simple Domain stance as Mechamaru's, hers unarmed. `ult_a`/`ult_b` are the wind-up and the release of one enormous punch |
+| Dagon | `dagon` | No weapon — water and his own bulk | Heavy and hunched; the wings at his lower back let him hover, so `jump_rise`, `fall` and `dodge_air` should read as **levitation**, not a jump. `special_neutral` is a sweeping arm across the floor sending water out; `special_side` is shikigami tearing out of his own chest; `special_down` is both arms drawing inward, water spiralling in (Undertow). `ult_a`/`ult_b`: arms spread, fish streaming out of him |
+| Kurourushi | `kurourushi` | The **Festering Life Sword** — a long dark blade with six firing barrels along its spine | The shroud reaches the floor, so its legs are only visible in motion: for `run_*`, `dash` and `dodge_roll` show the insect legs beneath a shroud that lifts. It can produce up to four arms — use two normally, four for `ult_a`/`ult_b` and `attack_heavy_*`. `special_neutral` is the sword levelled, barrels toward the target; `special_side` a sweeping arm trailing roaches; `special_down` a hand thrown up releasing flying sacs |
+
+Deliver to:
+
+```
+assets/intake/<character>/<pose_key>.png
+```
+
+Key: `kurourushi`, spelled exactly like that, matching `src/characters.js`.
+(Round 7 lost time to art arriving in `gakuganjii/`.) The curse is
+**Kurourushi**; "Kuroroshi" and "Kuro-Urushi" are the same character and neither
+is the key.
+
+**Key screen:** mid-grey `#808080` — his face is maroon with red-orange eyes,
+which a magenta screen eats.
+
+**One plate per pose.** Round 15A delivered `mechamaru/run_reach_a` as a strip
+of four small figures on one canvas, which is a contact sheet rather than a
+sprite: nothing in it is separable at full resolution and none of the four
+clears the 600 px body minimum on its own. It was not imported, and it is round
+17.
+
+---
+
+## 15C. Summon minions — 4 sprites
+
+Persistent creatures that walk the stage on their own. Format follows round 8:
+one creature per file, full body, facing **RIGHT** (the summon renderer mirrors
+toward its target, and the kits that ship with right-facing art set `faceRight`).
+
+| File | Fighter | What to draw |
+|---|---|---|
+| `garuda.png` | Yuki | Her shikigami: a large serpentine creature with pale bone-like plating along its length, a blunt armoured head, and a pair of floating wings held clear of the body that carry it. Gold-white `#ffcf5c` accents |
+| `dagon_shikigami.png` | Dagon | The heavy end of his menagerie: a thick armoured crustacean-eel, deep sea-blue, plated shell, too many legs, mouth open. Bulkier than `shikigami_fish.png`, which is the fast one |
+| `cockroach_swarm.png` | Kurourushi | Not one roach — a **swarm shaped like a body**: a dense knot of cursed cockroaches moving as one mass, roughly waist-high, individual insects readable at the edges |
+| `kurourushi_child.png` | Kurourushi | Its offspring: an identical but smaller Kurourushi, same black shroud and maroon eight-eyed face, shorter antennae, no sword |
+
+Deliver to `assets/intake/summons/<name>.png`.
+
+> **Do not drop these into `assets/sprites/summons/` directly.** Files that land
+> there skip `tools/intake.py` and keep their key screen, which draws as a solid
+> magenta rectangle on stage — round 8's one real mistake, recorded in
+> [asset-requests-history.md](asset-requests-history.md#round-8--summon-minions).
+
+---
+
+## 15D. Kurourushi's hero card — 1 image
+
+Same spec as round 9A: **JPEG, portrait, full-bleed background** — a card, not a
+keyed sprite. Character three-quarter or facing, dramatic lighting, a background
+that reads at tile size, no text of any kind.
+
+```
+assets/intake/cards/kurourushi_card.jpg
+```
+
+Match the existing set in `assets/cards/` for crop and energy — the three
+delivered with this round (`mechamaru_card.jpg`, `yuki_card.jpg`,
+`dagon_card.jpg`) are the closest reference. Suggested backdrop, from where he
+actually fights: a Sendai side street under a hanging swarm.
+
+---
+
+## 15E. Domain background — 1 image
+
+`captivating_skandha.jpg` — the backdrop for Dagon's **Horizon of the
+Captivating Skandha**, drawn to the same spec as the seven domain backgrounds
+requested in round 9C.
+
+```
+assets/intake/backgrounds/captivating_skandha.jpg
+```
+
+Landscape, full-bleed, no characters, no text. A bright tropical shore: palms
+along one side, an ocean stretching to a horizon that is too far away and too
+flat, white sand, a beach umbrella and two lounge chairs sitting incongruously
+in the middle distance (they are canon — Mahito and Kenjaku used them). The
+whole point of the domain is that it is **pleasant**: a holiday postcard that
+happens to be the inside of a curse. Keep the mid-tones open — the game dims and
+colour-grades the plate behind the fight, and the renderer draws its own water
+line and shoal over the bottom of the screen.
+
+---
+
+## When it lands
+
+The order the three delivered fighters went through, which worked and is what
+Kurourushi should follow:
+
+1. `python3 tools/intake.py` over their sprite folder, then the review boards
+   (`tools/intake_sheets.py`) **before importing anything** — that is where the
+   contact-sheet `run_reach_a` and five backwards-mirrored frames were caught.
+2. `intake_variants.py --auto` → `intake_import.py --approve` →
+   `bake_anchors.py` → `auto_tune.py`. A brand-new pose has nothing to replace,
+   so none of it waits for approval; the whole set lands on the workbench's
+   updated list as new work to place.
+3. Card into `assets/cards/`, effects copied to `assets/sprites/effects/` and
+   run through `tools/prep_effects.py`, summons through `assets/intake/summons/`.
+4. Move their key out of `STAGED_CHARACTER_KEYS` in `src/characters.js` and into
+   a `CHARACTER_GROUPS` bucket in `src/config_menus.js`. Kurourushi is a curse.
+5. `node tools/check_kits.mjs`, `node tools/audit_hitboxes.mjs` (their reach is
+   derived from the art that just landed — it reports the new set as
+   *provisional* until the placement pass), then `node tools/smoke_combat.mjs`
+   and `node tools/smoke_staged.mjs`.
+
+No other code change is needed at any point. The loader already knows their
+effect, summon and domain-background paths and starts fetching them the moment
+the key moves (`STAGED_EFFECT_KEYS` / `STAGED_SUMMON_KEYS` in `src/assets.js`).
+Expect two optional 404s per promoted fighter until 15C and 15E land — the
+summon and domain art the loader now asks for and nothing has drawn yet.
+
+**Absolute `renderScale` does not need solving by hand.** A fighter's drawn size
+comes from `heightCm` through `heights.js`, which solves the character's scale
+against their own idle span, so a set imported at the pipeline's flat 0.25 comes
+out at the right height on stage. What the placement pass is for is the
+*relative* work: ground contact, centring, and the poses whose size the roster
+holds uniform.
+
+---
+
+# Round 16 — the summons animate, delivered
+
+**Summons became creatures.** Two engine changes opened this round, and both
+of them are asking for art that did not exist as a concept before:
+
+1. **Summons animate.** A summon used to be *one still image* held for its
+   entire lifetime — which is why the renderer swayed and leaned them, because
+   a single drawing pinned to the stage reads as a decal. They now play a small
+   pose set (`src/config_summons.js`), the same way a fighter plays theirs.
+2. **Summon specials roll a creature.** Megumi's side special was the Divine
+   Dogs, every cast, forever; Mahito's was one transfigured human. Each summon
+   special now names a **pool** and draws one entry per cast, never the same
+   one twice running. Twelve creatures were written into those pools and none
+   of them have been drawn.
+
+- **16A** — the six-pose animation set for the five summons already delivered
+  (30 sprites)
+- **16B** — twelve new creatures, six poses each (72 sprites)
+
+**102 sprites in total, and none of it is blocking.** Every pose falls back to
+that creature's still, every creature without a still falls back to a borrowed
+`effect:*` stand-in named in its kit config, and failing that to a procedural
+glow. So the game plays today with placeholders, one delivered pose improves
+one state, and nothing has to arrive as a complete set to be worth arriving.
+
+**Deliver per creature, not per pose row.** Six poses of one creature is a
+finished creature; sixty scattered poses is nothing playable.
+
+---
+
+## The pose set — the same six for every creature
+
+| Pose key | What it is |
+|---|---|
+| `idle_a` | Standing, weight settled. The creature's portrait pose — this is also what everything else falls back to. |
+| `idle_b` | The same stance a breath later: head/body raised or lowered, one limb shifted. Alternates with `idle_a` at 2.4 fps, so the difference should be small and organic, not a second pose. |
+| `move_a` | Mid-stride / mid-wingbeat, one extreme of the cycle. |
+| `move_b` | The other extreme. `move_a`/`move_b` alternate at 8 fps and are what plays whenever the creature is travelling. |
+| `attack` | The strike itself, at full extension — the bite, the lash, the spit, the detonation lunge. Held for ~0.25 s, so it must read at a glance. |
+| `hurt` | Flinch: recoiling **away from the viewer's right**, body compressed, head turned in. Played when the creature is hit — see "why `hurt` matters" below. |
+
+**Every pose of a creature must be the same subject at the same scale, drawn
+on the same canvas with the feet (or the hover centre) at the same height.**
+The engine anchors these by the bottom of the image, exactly as it does the
+single still, so a creature that changes size or floats up between `idle_a` and
+`move_a` will visibly jitter. Draw the six as one sheet-in-spirit even though
+they are delivered as six files.
+
+The general rules in [pose-brief.md](pose-brief.md) hold for creatures too —
+one zoom, margin on all four sides, no painted-in motion, and `attack` extends
+past the creature's own `idle_a`. Only the pose *lines* differ, and those are in
+the table above.
+
+**Facing:** as with everything else, draw **facing RIGHT**. Three of the
+delivered summons are flagged `faceRight` in `config_summons.js` and the rest
+are mirrored on draw; keep each creature's six poses consistent with each
+other and the flag sorts out the rest.
+
+### Why `hurt` matters now
+
+Summons take damage and can be destroyed, and as of this round a hit also
+**staggers** one: it is shoved along the line of the blow, thrown off its own
+behaviour for a beat, and popped off the floor if the hit was heavy enough.
+Until `hurt` is drawn the engine sells that with a lean and a white flash on
+whatever pose was showing, which works but reads as the same creature sliding.
+A drawn flinch is the difference between "that summon was hit" and "that summon
+is being beaten".
+
+---
+
+## 16A. Animation frames for the five delivered summons — 30 sprites
+
+These five already have their single still in `assets/sprites/summons/`, and
+that still stays exactly where it is — it is the fallback and the portrait.
+**Open it before drawing and match it**: same creature, same colours, same
+proportions, same canvas size. This request is the other five poses, plus an
+`idle_a` that supersedes the still as the resting pose.
+
+| Creature | Existing still | Character | Notes for the set |
+|---|---|---|---|
+| Divine Dog (White) | `divine_dog_white.png` | Megumi | Pale wolf-shikigami. `move_*` is a four-legged run; `attack` is the lunging bite the kit is named for. |
+| Divine Dog (Black) | `divine_dog_black.png` | Megumi | Its twin in dark fur — draw the pair as one animal in two colourways, same poses, so they read as a matched set on screen (they are summoned together). |
+| Rainbow Dragon | `rainbow_dragon.png` | Geto | Serpentine, iridescent. `move_*` is undulation, not legs; `attack` is the head-strike. |
+| Transfigured Human | `transfigured_human.png` | Mahito | Shambling patchwork body. `move_*` is a lurch; `attack` is the moment before it bursts — arms out, body swelling. |
+| Inventory Curse | `inventory_curse.png` | Toji | Hovering pact-bound curse. `move_*` is a hover cycle (it never touches the ground); `attack` is the gullet open, cursed tool emerging. |
+
+Deliver to `assets/intake/summons/<file>_<pose>.png`, e.g.
+
+```
+assets/intake/summons/divine_dog_white_idle_a.png
+assets/intake/summons/divine_dog_white_move_b.png
+```
+
+---
+
+## 16B. Twelve new creatures — 72 sprites
+
+Each of these is **live in the game right now**, rolling out of its character's
+summon pool and fighting with real stats — wearing a borrowed effect sprite or
+a coloured glow. The stats in `config_summons.js` are the brief: a creature
+described as slow and enormous is slow and enormous in play, so draw the thing
+the numbers describe.
+
+The single still is optional for these: `idle_a` **is** the still, and the
+loader falls back to it. Draw the six poses and nothing else.
+
+### Megumi — the other shikigami (`SHIKIGAMI_POOL`)
+
+Shadow-summoned beasts. All four share Megumi's palette: near-black bodies with
+cool blue-violet `#7c8cff` cursed-energy edge light, as if cut out of shadow.
+
+| Creature | File stem | What to draw |
+|---|---|---|
+| Great Serpent | `great_serpent` | An enormous shadow snake, body low and very long (it is drawn wide, not tall — 158 px of reach against 78 px of height). Head raised, jaw open. `attack` is the full-length strike. |
+| Toad | `toad` | A squat toad-shikigami the size of a car, sitting rather than walking — it holds ground behind Megumi and lashes with its tongue. `move_*` is a settle/shuffle, not a hop. `attack` is the tongue out at full stretch. |
+| Max Elephant | `max_elephant` | Vast four-legged shadow elephant, tallest thing in the pool (190 px) and unbothered by being hit. `attack` is the trunk sweep with a burst of water. `hurt` should barely rock — it is drawn heavy on purpose. |
+| Rabbit Escape | `rabbit_escape` | ONE small shadow rabbit, drawn alone — the engine spawns three of them. Fast, light, comic, and completely expendable; `attack` is the flying leap that ends it. |
+
+### Mahito — the other transfigurations (`TRANSFIGURED_POOL`)
+
+Reshaped souls: stitched seams, mismatched limbs, patchwork blue-grey flesh
+with violet `#b56cff` at the seams. They should look *made*, and made
+carelessly.
+
+| Creature | File stem | What to draw |
+|---|---|---|
+| Bloated Hulk | `transfigured_hulk` | A transfigured human reshaped for mass — huge torso, small head, arms that reach the floor. It walks over and keeps hitting; `attack` is a two-handed downward slam. |
+| Crawler | `transfigured_crawler` | Reshaped for speed and drawn LOW to the ground: a body running on too many limbs, face turned up. Draw one; the engine spawns two. |
+| Spitter | `transfigured_spitter` | Reshaped for range — a hovering torso with a distended mouth, trailing loose flesh. It never closes distance. `attack` is the mouth open mid-spit. |
+
+### Geto — the rest of the collection (`CURSE_POOL`)
+
+Stored cursed spirits. Unlike Mahito's, these are *whole* creatures with their
+own designs — the variety across the four is the point. Violet `#7d58d8` energy.
+
+| Creature | File stem | What to draw |
+|---|---|---|
+| Smallpox Deity | `smallpox_deity` | The canon curse: a squat pale figure covered in pox marks, arms folded, floating upright. Sickly green-white `#9fd07a` in the plague it coughs. Hovers; never lands. |
+| Curse Hound | `curse_hound` | A cheap disposable curse in the shape of a lean four-legged hound, all mouth. Draw one; the engine spawns two. |
+| Cursed Womb | `cursed_womb` | A bloated sack-bodied curse that lurches across the stage and detonates. Heavy, wet, unstable — `attack` is the moment it splits open. |
+
+### Toji — the rest of the inventory (`INVENTORY_POOL`)
+
+Curses he *keeps* rather than makes. Muted, tool-like, no cursed-energy glow of
+his own — pale grey-green `#9fb8a8`.
+
+| Creature | File stem | What to draw |
+|---|---|---|
+| Coil Curse | `coil_curse` | The one he lets off the leash: a coiled, chain-wrapped curse that uncoils to run. `attack` is the lunge, chain snapping taut. |
+| Husk Curse | `husk_curse` | A hollow humanoid husk with a cursed blade still buried in its chest. It carries the weapon over and lets go — `attack` is the husk splitting and the blade coming free. |
+
+---
+
+## Integrating a round-16 delivery
+
+Two flags in `src/config_summons.js`, and nothing else:
+
+```js
+divineDogWhite: { file: "divine_dog_white", delivered: true, poses: true, faceRight: true },
+greatSerpent:   { file: "great_serpent", poses: true },
+```
+
+- `delivered` — the single still exists and should be fetched.
+- `poses` — the six pose files exist and should be fetched.
+
+Both default **off**, and both are off for everything undelivered, so the
+loader never asks for a file nobody has drawn. Turn `poses` on for a creature
+once *any* of its poses land: the fetch of each individual pose is optional, so
+a half-delivered set is fine — a missing pose falls back to the still.
+
+The files go through the normal intake (`assets/intake/summons/` →
+`assets/sprites/summons/`); summon art is not in `manifest.json`, so there is
+nothing else to register.
+
+---
+
+# Round 17 — Hanami to canon, Mahoraga, and the last two round-13 catches
+
+Delivered except **17D**, the simplified card set, which is still open in
+[asset-requests.md](asset-requests.md).
+
+**17A is the fourth time a fighter has been drawn as the wrong character** — after
+Gakuganji, Reggie and Uro in 9E — and the first time it was caught in the request
+rather than in the delivery. The section as first written named
+`hanami_idle.png` as the design authority, which is the tree; it was rewritten
+to point at the anime render before anything was drawn, and the set came back
+on-model. His hero card (17E) was repainted to match and is in the game; the
+tree card is archived at `assets/reference/cards_previous/tree_hanami/`.
+
+**36 keys, not 39.** `attack_air`, `run_a` and `run_b` are standby fallbacks the
+whole roster carries and nothing draws, so they were not flagged and were not
+drawn. Hanami's three are still the tree. They only matter if the pair or the
+four-frame cycle that superseded them ever goes missing.
+
+## 17A. A full Hanami set — 36 sprites
+
+Hanami's set is the oldest on the roster: it came in at round 6 as a redesign,
+was re-pointed to the semantic pose table at round 11B, and has been patched a
+pose at a time since. The result is a set drawn across three different rounds
+with three different briefs, which shows most in the crouches and the run.
+
+Round 13 delivered `crouch_b` and `crouch_attack_b` against that patchwork.
+**Both were rejected at approval** rather than let in: fixing two poses inside a
+set that is going to be redrawn whole buys a few weeks of slightly better art
+and then throws the work away. The art they would have replaced is still in the
+game and stays there until this set lands.
+
+### ⚠ It is the wrong character, not a patchwork
+
+**This section was written as a consistency redraw and it is not one.** Every
+sprite Hanami has draws a **bark-and-foliage tree body** — grey-brown wood
+grain, branch spurs off the shoulders, leaves, a flower growing out of a cracked
+wooden face. Canon Hanami is a **lean pale humanoid curse**: bone-cream skin
+under heavy black stripe markings, a rigid grinning mask-face crowned with tan
+antler horns, one arm and shoulder bound in white cloth, black hakama, bare
+clawed feet.
+
+So this is the same fault 9E fixed for Gakuganji, Reggie and Uro, and 11A for
+Mahoraga: a character block written from imagination rather than from the show,
+then a full set drawn faithfully from it. The block above has been rewritten
+from the render and the old wording is dead.
+
+**Do not match `hanami_idle.png`.** As this section was first written it named
+that file as the design authority, which would have produced a fourth tree — the
+exact way 13's Mahoraga delivery lost the karma wheel, one step earlier in the
+pipeline. His canon is
+[`assets/reference/canon/hanami_anime.png`](../assets/reference/canon/hanami_anime.png),
+marked ⚠ in
+[The canonical reference image](asset-requests.md#the-canonical-reference-image--one-per-fighter).
+The idle is still what his **size** is solved against — 220 cm, `scale: 0.58`,
+second-tallest on the roster. Match its scale, not its design; check against
+`roster_idle.png`, not against the old Hanami alone.
+
+### What to deliver
+
+Deliver **the full semantic pose table** for `hanami` — the same 36 keys every
+other fighter carries (`SEMANTIC_ANIMS` in `src/characters.js`, and any fighter
+delivered at round 11B or later is the model). The design is the rewritten
+character block above plus `assets/reference/canon/hanami_anime.png`.
+
+**Draw it from [pose-brief.md](pose-brief.md)**, which is the standing brief for
+a whole set: the pose lines, the measurable criteria for the idle, the crouches
+and the two strike frames, and the faults that keep coming back. Redrawing whole
+rather than piecemeal is most of the reason to do it — every round-14 brief
+applies to this set at once, and his idle is what his size is solved against, so
+expect a workbench pass over the whole set when it lands
+(see [character-heights.md](character-heights.md)).
+
+All 36 are flagged `character` in the manifest, so
+`python3 tools/list_replacements.py` carries this worklist without the document.
+Three keys sit outside it: `attack_air`, `run_a` and `run_b` are standby
+fallbacks the whole roster still carries, superseded by the pairs and the
+four-frame cycle, so nothing draws them and a flag on them would read as stale.
+**Redraw them anyway if the set is being done whole** — leaving three
+tree-bodied frames in the directory behind a fallback path is exactly how a
+retired design comes back.
+
+**Grey key, not magenta.** His existing set is keyed off magenta, which was
+right for a brown tree. The new design is bone-cream and pale tan against black,
+and magenta leaves a fringe on warm pale edges — so this delivery joins the
+grey-`#808080` list with Sukuna, Nobara, Momo, Hakari, Yuji, Choso, Uro and
+Gakuganji.
+
+**His kit does not change.** Cursed Buds, Root Eruption, Flower Field and Domain
+of the Flowering Forest stay as they are, and so do their effect sprites. Canon
+Hanami is still a plant curse — the roots and blossoms come out of the ground
+and off his hands. What changes is that his *body* stops being made of the same
+material.
+
+Two details the render makes obvious and a prompt tends to drop, both worth
+checking on every frame before delivering:
+
+- **The white wrap is on one side only.** It covers the right shoulder and the
+  whole right arm and it is bulky — it changes his silhouette, and a frame that
+  wraps both arms or neither is not the same character.
+- **The stripes are markings, not shading.** Hard-edged black brushstrokes in
+  fixed places — down the centre of the face, along the outsides of the arms,
+  down the ribs and the abdomen. They must land in the same places from pose to
+  pose or the set will read as flickering.
+
+## 17B. Mahoraga — three poses that never extended — 3 sprites
+
+| Fighter | Key | Pose | Kind | What is wrong |
+|---|---|---|---|---|
+| Mahoraga | `mahoraga` | `attack_light_a` | Pose | The sword never leaves the body line — the wind-up does not extend. |
+| Mahoraga | `mahoraga` | `attack_light_b` | Pose | The blade stays across the body, tip pointing down and back. Nothing reaches forward. **Neither frame of the pair extends.** |
+| Mahoraga | `mahoraga` | `crouch_b` | Pose | Upright rather than crouched, opposite the delivered `crouch_a`. 0.97 × idle. |
+
+These three were asked for in round 13 and **the delivery was rejected**: the
+drawings fixed the poses but arrived with **the karma wheel missing from the
+headdress**, which no request, no reference image and no code asked for.
+`assets/reference/canon/mahoraga_canon.png` shows the wheel, the shipped
+`idle_a`, `crouch_a` and `run_reach_a` all have it, and retiring the old
+`drawProp` compositing only deleted code the game had already stopped using for
+him. So the asks are unanswered and the old, wheel-bearing art is still in play.
+
+The cause was that Mahoraga was **the only fighter in the game with no character
+block** in this file, so his prompts carried no design text at all and the design
+lived entirely in a reference image — which works when somebody opens it and
+fails silently when they do not. Round 11A only worked because that round's own
+prose happened to spell the headdress out. He has a block now, at the top of
+this file, and it names the wheel in bold. **A redraw here must carry it.**
+
+## 17C. Caught while placing round 13 — 2 sprites
+
+| Fighter | Key | Pose | Kind | What is wrong |
+|---|---|---|---|---|
+| Yuta Okkotsu | `yuta` | `crouch_attack_b` | Quality | **The blade runs off the right edge of the plate**, so the sword ends in mid-air. Re-draw with the reach inside the frame. |
+| Takako Uro | `uro` | `crouch_b` | Character | "Costume doesn't match canon" — check against `assets/reference/canon/uro_idle.png`, the design the rest of her set was drawn from. Her `prone` carries the same note in [14C](#14c-caught-while-placing-rounds-12-and-13--5-sprites). |
+
+Yuta's was first filed as a **crop** — a file fault, fixable in the repo without
+anybody redrawing anything — and it is worth saying why it is not. The delivered
+plate `assets/reference/round13/yuta/crouch_attack_b.png` is cut the same way as
+the keyed sprite: the blade leaves the canvas in the original, so there is
+nothing for a re-key to recover. That is the difference the two flags exist to
+draw, and the only way to tell them apart is to open the plate.
+
+It is also a straight breach of the [delivery spec](asset-requests.md#delivery-spec) — *full body
+inside the frame with margin on all four sides, nothing may touch the canvas
+edge* — and the failure mode is specific to poses that extend: the figure is
+drawn to fill the canvas and the reach is what falls off. Round 15A now says so
+where the four new sets are asked for.
+---
+
+## 17E. Hanami's hero card, redrawn to canon — 1 image
+
+### Why
+
+`assets/cards/hanami_card.jpg` is the tree. It is a good painting — a
+bark-and-vine giant lit through a forest canopy, a glowing lotus in one hand —
+and it is the same wrong design as every one of his sprites.
+[17A](#17a-a-full-hanami-set--36-sprites) replaces the sprites and
+[17D](asset-requests.md#17d-a-simplified-card-for-every-fighter--27-images) draws his tile from
+canon; without this the card is the last place in the game still showing the old
+character, and it is the **largest** place — the hero panel on the select screen
+and the portrait in the match HUD both draw it at full size.
+
+### What to deliver
+
+One image, to the **existing hero-card spec** — a straight like-for-like
+replacement, not a new format:
+
+| | |
+|---|---|
+| **Format** | JPEG, **640 × 820**, full-bleed. No text, no border, no logo |
+| **Subject** | Canon Hanami, full or three-quarter figure, from the rewritten block in [Character blocks](asset-requests.md#character-blocks) and `assets/reference/canon/hanami_anime.png` |
+| **Scene** | Keep the setting. The forest-canopy light of the current card is right for him and matches the rest of the roster's painted backdrops — sunlight through leaves, deep greens, the `#9bb36b` theme reading through the whole frame |
+| **Key** | Match the roster's brightness. His current card is one of the ones that does *not* need a heavy `--card-lift`; keep it that way |
+
+The character changes; the painting's mood, palette and framing do not. Put the
+new card beside the current one before delivering — a viewer should read it as
+the same fighter's card repainted, not as a different card.
+
+**His cursed technique still belongs in it.** Canon Hanami is a plant curse; the
+blossom and the roots are his, they are simply not made of the same stuff he is.
+Wooden growth in the scene, on the hands, breaking the ground — yes. Wooden
+**body** — no.
+
+### Where it goes
+
+Deliver to:
+
+```
+assets/intake/cards/hanami_card.jpg
+```
+
+and it lands at `assets/cards/hanami_card.jpg`, replacing what is there. The
+current painting is worth keeping: copy it to
+`assets/reference/cards_previous/hanami_card.jpg` first, which is where round
+9A's originals already live and is the reason any of them can be put back.
+
+**Order matters slightly.** This is the one part of round 17 that *does* change
+what a player sees the moment it lands — a card is one file with no variant
+mechanism and no approval step behind it. So it should go in once enough of 17A
+has been approved that the tile and the fighter on the stage agree with it;
+landing it first just moves the mismatch somewhere else.
+
+---
 
 ---

@@ -241,7 +241,29 @@ check(Object.values(improved?.adjustments ?? {}).some((v) => v.wantsImprovement 
 // malformed" is a verdict on one file, so it has to stay banked against that
 // file: if it followed the pose instead, switching would hand the flag to art
 // nobody passed it on, and the drawing that earned it would come back clean.
-await page.goto(`${BASE}/workbench/?char=hanami&frame=dodge_air`, { waitUntil: "domcontentloaded" });
+//
+// The pose is chosen from the manifest, not written down. It used to be
+// `hanami/dodge_air`, picked because Hanami is the only character with a
+// second art set — and it went red the day his whole set was redrawn, because
+// a pose with a replacement waiting has its own drawing selected and the
+// option this asserted against was no longer the current one. What the test
+// needs is any pose with two settled drawings.
+const VAR = await page.evaluate(async () => {
+  const { spriteManifest } = await import("/src/assets.js");
+  for (const [char, poses] of Object.entries(spriteManifest.variants || {})) {
+    for (const [frame, entry] of Object.entries(poses)) {
+      const meta = spriteManifest.characters?.[char]?.[frame];
+      if (!meta || meta.awaitingApproval) continue;         // mid-delivery
+      const others = (entry.options || []).filter((o) => o.file !== meta.file);
+      if (others.length) return { char, frame, own: meta.file, other: others[0].file };
+    }
+  }
+  return null;
+});
+check(!!VAR, "found a pose with two settled drawings to test the flag against",
+  VAR ? `${VAR.char}/${VAR.frame}` : "none — every pose with variants is mid-delivery");
+
+await page.goto(`${BASE}/workbench/?char=${VAR.char}&frame=${VAR.frame}`, { waitUntil: "domcontentloaded" });
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 await page.waitForTimeout(400);
 
@@ -257,11 +279,11 @@ await page.waitForTimeout(150);
 await page.selectOption("#replaceKind", "quality");
 await page.waitForTimeout(250);
 
-await page.locator(`.pose-cell [data-frame="dodge_air"], .pose-cell button.sel ~ .pose-variant`)
+await page.locator(`.pose-cell [data-frame="${VAR.frame}"], .pose-cell button.sel ~ .pose-variant`)
   .first().click({ force: true })
   .catch(async () => { await page.locator(".pose-variant").first().click({ force: true }); });
 await page.waitForTimeout(250);
-const alt = "hanami_alt/dodge_air.png";
+const alt = VAR.other;
 const offered = await page.locator(".variant-menu button", { hasText: alt }).count();
 check(offered > 0, "the pose offers its other drawing", `${offered} match(es)`);
 await page.locator(".variant-menu button", { hasText: alt }).first().click();
@@ -272,12 +294,12 @@ await page.waitForTimeout(300);
 let swapped = null;
 try { swapped = JSON.parse(await page.inputValue("#exportOut")); } catch { /* reported below */ }
 const forHanami = (Array.isArray(swapped) ? swapped : [swapped])
-  .find((p) => p?.character === "hanami");
+  .find((p) => p?.character === VAR.char);
 const banked = Object.fromEntries(
-  (forHanami?.variantPlacement?.dodge_air ?? []).map((o) => [o.file, o.needsReplacement ?? false]));
-check(forHanami?.variantChoice?.dodge_air === alt,
+  (forHanami?.variantPlacement?.[VAR.frame] ?? []).map((o) => [o.file, o.needsReplacement ?? false]));
+check(forHanami?.variantChoice?.[VAR.frame] === alt,
   "the pose switched to the other drawing", JSON.stringify(forHanami?.variantChoice));
-check(banked["hanami/dodge_air.png"] === "quality",
+check(banked[VAR.own] === "quality",
   "the flag stays with the drawing it was passed on", JSON.stringify(banked));
 // `false` rather than absent: the export always states a drawing's tag, so
 // clearing one travels as clearly as setting one.
@@ -288,9 +310,9 @@ check(!banked[alt], "the drawing switched to does not inherit it", JSON.stringif
 // than leaving the old flag standing. Asserting `undefined` would be asserting
 // that Hanami's dodge_air happens to start unflagged, which is a fact about the
 // manifest on the day the test was written, not about the behaviour.
-check(!forHanami?.adjustments?.dodge_air?.needsReplacement,
+check(!forHanami?.adjustments?.[VAR.frame]?.needsReplacement,
   "and it is not left behind on the pose",
-  JSON.stringify(forHanami?.adjustments?.dodge_air?.needsReplacement));
+  JSON.stringify(forHanami?.adjustments?.[VAR.frame]?.needsReplacement));
 
 // ---- the Mirror box tells the truth about the drawing that is on screen
 //
