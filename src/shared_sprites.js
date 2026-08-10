@@ -64,8 +64,33 @@ const SPRITE_FIELDS = [
   ["domainSprite", []],
 ];
 
+/** Fields holding a LIST of interchangeable drawings that share one declared
+ *  height, and the field that declares it.
+ *
+ *  `sprites` is a preference list — the first drawing that has loaded is the
+ *  one used, the rest are stand-ins. `spritePool` is a random pick: Geto's
+ *  volley throws one of four curses per shot, all painted at the same
+ *  `spriteH`. Both are one height for several keys, so a size set on any
+ *  member is a statement about all of them — which is honest, because the move
+ *  declares one number and there is nowhere to put a second.
+ *
+ *  `spritePool` was missing here, and it is the whole reason the four curses
+ *  could be sized in the workbench with nothing happening on stage and be
+ *  reported as belonging to a summon they are only the stand-in for. It is the
+ *  same hole this file's header describes Reggie's drops falling into. */
+const SPRITE_LIST_FIELDS = [
+  ["sprites", "spriteH"],
+  ["spritePool", "spriteH"],
+];
+
+/** The list fields' names, for the checker that polices this contract. */
+export const SPRITE_LIST_KEY_FIELDS = SPRITE_LIST_FIELDS.map(([f]) => f);
+
 /** Field names that hold a shared-sprite key, for callers that only need those. */
-export const SPRITE_KEY_FIELDS = SPRITE_FIELDS.map(([f]) => f);
+export const SPRITE_KEY_FIELDS = [
+  ...SPRITE_FIELDS.map(([f]) => f),
+  ...SPRITE_LIST_FIELDS.map(([f]) => f),
+];
 
 const isSharedKey = (v) => typeof v === "string"
   && (v.startsWith("effect:") || v.startsWith("summon:") || v.startsWith("stagefx:"));
@@ -152,11 +177,15 @@ export function applySharedSpriteScales() {
       const scale = scaleOf(node[field]);
       node[heightField] = scale ? node[base] * scale : node[base];
     }
-    // `sprites: []` — a summon naming several drawings, the first preferred.
-    if (Array.isArray(node.sprites) && Number.isFinite(node.spriteH)) {
-      if (!Number.isFinite(node.spriteHBase)) node.spriteHBase = node.spriteH;
-      const scale = node.sprites.filter(isSharedKey).map(scaleOf).find((s) => s !== null);
-      node.spriteH = scale ? node.spriteHBase * scale : node.spriteHBase;
+    // A list of drawings under one declared height (SPRITE_LIST_FIELDS): the
+    // first member with a scale set decides it, because there is a single
+    // number to fold it into.
+    for (const [field, heightField] of SPRITE_LIST_FIELDS) {
+      if (!Array.isArray(node[field]) || !Number.isFinite(node[heightField])) continue;
+      const base = `${heightField}Base`;
+      if (!Number.isFinite(node[base])) node[base] = node[heightField];
+      const scale = node[field].filter(isSharedKey).map(scaleOf).find((s) => s !== null);
+      node[heightField] = scale ? node[base] * scale : node[base];
     }
     for (const value of Object.values(node)) {
       if (value && typeof value === "object") visit(value);
@@ -233,6 +262,21 @@ function buildRegistry() {
     if (!isSharedKey(key) || out.has(key)) return;
     out.set(key, info);
   };
+  // A creature's SECOND and later drawings are stand-ins: summons.js draws the
+  // first of them that has loaded, so once the creature's own art is delivered
+  // the rest are never reached. They are still worth an entry — a drawing with
+  // no entry reads as unused — but they must not outrank a usage that really
+  // draws, which is what happened while the pools were walked first and first
+  // put won. `effect:curse_c` is Geto's volley, and was being described as a
+  // Smallpox Deity it has not been drawn as since the Deity got her own set.
+  const standIns = [];
+  // The pools are reached twice: once here, with the creature's height, hit box
+  // and name, and again by the generic kit walk below, which finds the same
+  // `sprites` arrays hanging off `p.pool` and knows none of that. Pass 1 wins by
+  // having the walk skip the ARRAYS it has already described — not the entries
+  // themselves, because a pool entry can also name art the walk is the only
+  // route to (the Inventory Curse's cursed tool, nested in its projectile).
+  const poolLists = new Set();
 
   // 1. Creatures: `h` in config_summons.js, standing on the point.
   for (const pool of POOLS) {
@@ -241,17 +285,17 @@ function buildRegistry() {
       const hitOf = (e) => (Number.isFinite(e.hitW) && Number.isFinite(e.hitH)
         ? { shape: "rect", w: e.hitW, h: e.hitH, from: "hitW/hitH", what: "what it can be hit on, and hits with" }
         : null);
-      for (const key of entry.sprites || []) {
-        put(key, { h, anchor: "feet", owner: entry.name || entry.id || "a summon",
-                   hit: hitOf(entry),
-                   what: "the creature's height on stage (config_summons.js)" });
-      }
+      const owner = entry.name || entry.id || "a summon";
+      const creature = (keys, height, hit) => (poolLists.add(keys), keys).forEach((key, i) => {
+        const info = { h: height, anchor: "feet", owner, hit,
+                       what: i === 0
+                         ? "the creature's height on stage (config_summons.js)"
+                         : `a STAND-IN for ${owner} — only drawn if that creature's own art is missing (config_summons.js)` };
+        if (i === 0) put(key, info); else standIns.push([key, info]);
+      });
+      creature(entry.sprites || [], h, hitOf(entry));
       for (const member of entry.units || entry.members || []) {
-        for (const key of member.sprites || []) {
-          put(key, { h: member.h ?? h, anchor: "feet", owner: entry.name || entry.id || "a summon",
-                     hit: hitOf(member) || hitOf(entry),
-                     what: "the creature's height on stage (config_summons.js)" });
-        }
+        creature(member.sprites || [], member.h ?? h, hitOf(member) || hitOf(entry));
       }
     }
   }
@@ -289,9 +333,10 @@ function buildRegistry() {
                          what: h ? "the height its move declares (the kit's own number)"
                                  : "sized by the code that spawns it" });
     }
-    if (Array.isArray(node.sprites)) {
-      const h = node.spriteHBase ?? node.spriteH ?? null;
-      for (const key of node.sprites) {
+    for (const [field, heightField] of SPRITE_LIST_FIELDS) {
+      if (!Array.isArray(node[field]) || poolLists.has(node[field])) continue;
+      const h = node[`${heightField}Base`] ?? node[heightField] ?? null;
+      for (const key of node[field]) {
         put(key, { h, anchor: drawnBy, owner: who, hit,
                    what: h ? "the height its move declares (the kit's own number)"
                            : "sized by the code that spawns it" });
@@ -306,6 +351,9 @@ function buildRegistry() {
     visit(c?.specials, c?.name || key);
     visit(c?.ultimate, c?.name || key);
   }
+  // Stand-ins last: anything a real usage claimed keeps that usage.
+  for (const [key, info] of standIns) put(key, info);
+
   return out;
 }
 

@@ -177,7 +177,7 @@ specified first.
 |---|---|---|---|
 | 🖼️ Images — sprites, cards, effects, backdrops | `assets/intake/` | `tools/intake.py` | `/sprites/workbench/` |
 | 🖼️ Images — 3D reference boards, face sheets, palettes | `assets/intake/render3d/` | by hand (briefs, not runtime art) | — |
-| 🧊 3D models + clips (`.glb`) | `billboards/intake/` or `render3d/intake/` | `tools/billboard_intake.mjs [--backend 3d]`, `tools/blender_conform.py` | `/billboards/workbench/`, `/render3d/workbench/` |
+| 🧊 3D models + clips (`.glb`) | `billboards/intake/` or `render3d/intake/` | `tools/billboard_intake.mjs [--backend 3d]`, `tools/blender_conform.py` (which runs `blender_clean_weights.py` + `blender_grade_texture.py`) | `/billboards/workbench/`, `/render3d/workbench/` |
 | 🔊 Sound effects | `assets/intake/sfx/` → `assets/sfx/` | `tools/generate_sfx.py` | in play |
 | 🎙️ Voice | `assets/intake/sfx/` → `assets/sfx/` | `tools/generate_voice.py` (**not** `generate_sfx.py` — that endpoint does not speak) | in play |
 | 🎵 Music | `assets/music/boards/` | — | in play |

@@ -19,7 +19,7 @@ import {
   variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS, NOTE_FIELDS, ALTERNATE_KIND,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../../src/render.js";
-import { applySharedSpriteScales, sharedSpriteInfo } from "../../src/shared_sprites.js";
+import { applySharedSpriteScales, sharedSpriteInfo, SPRITE_LIST_KEY_FIELDS } from "../../src/shared_sprites.js";
 import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../../src/moves.js";
 import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
 import { PIVOTED_STATES } from "../../src/motion.js";
@@ -206,7 +206,14 @@ function sharedUsage() {
   const walk = (node, who, label) => {
     if (!node || typeof node !== "object") return;
     if (typeof node.sprite === "string") note(node.sprite, who, label, node.spriteH);
-    if (Array.isArray(node.sprites)) for (const k of node.sprites) note(k, who, label, node.spriteH);
+    // Every list-valued field shared_sprites.js walks, read from that file so
+    // the two cannot drift. They did: this knew `sprites` and not `spritePool`,
+    // so Geto's four volley curses had no height here, the header called them
+    // "sized by the code that spawns it" and the Size control went away — on
+    // the four drawings whose size the workbench is the only way to set.
+    for (const field of SPRITE_LIST_KEY_FIELDS) {
+      if (Array.isArray(node[field])) for (const k of node[field]) note(k, who, label, node.spriteH);
+    }
     if (typeof node.aura === "string") note(node.aura, who, `${label} (aura)`, node.spriteH);
     if (typeof node.domainSprite === "string") note(node.domainSprite, who, `${label} (domain)`, node.spriteH);
     // The two kit shapes that name a drawing under their own field names.
@@ -1945,7 +1952,12 @@ function drawPendingNotice(cx) {
 /** The height the game draws a shared sprite at, from the kit that spawns it. */
 function gameHeightOf(key) {
   const uses = sharedUsage().get(key) || [];
-  return uses.find((u) => Number.isFinite(u.h))?.h ?? null;
+  // A kit's own declared height first; failing that the registry's, which is
+  // where a CREATURE's height lives — a summon is sized by `h` in
+  // config_summons.js rather than by a `spriteH` on the move, so reading only
+  // the kits called every shikigami "sized by the code that spawns it" while
+  // its Size control was live and working.
+  return uses.find((u) => Number.isFinite(u.h))?.h ?? sharedSpriteInfo(key)?.h ?? null;
 }
 
 /** Drawn where the sprite will be, so the wait reads as "this pose is coming"

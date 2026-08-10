@@ -18,7 +18,7 @@
 // asks, against the real kits. A move that names its drawing under a new field
 // fails here rather than in a workbench nobody is looking at.
 import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
-import { SPRITE_KEY_FIELDS } from "../src/shared_sprites.js";
+import { SPRITE_KEY_FIELDS, SPRITE_LIST_KEY_FIELDS } from "../src/shared_sprites.js";
 import { SUMMON_ART } from "../src/config_summons.js";
 
 let failed = 0;
@@ -41,17 +41,28 @@ const HEIGHT_HINTS = ["spriteH", "orbSpriteH", "h"];
 // The partner height field for each way of naming a drawing. `null` means the
 // renderer decides the size, so there is no kit number to check.
 const PARTNER = { sprite: ["spriteH", "h"], orbSprite: ["orbSpriteH"], key: ["h"],
-                  aura: [], domainSprite: [] };
+                  aura: [], domainSprite: [],
+                  sprites: ["spriteH"], spritePool: ["spriteH"] };
 
-const walk = (node) => {
+const walk = (node, parentField = null) => {
   if (!node || typeof node !== "object" || seen.has(node)) return;
   seen.add(node);
-  // An array is a list of drawings (`sprites: [...]`) or of pool entries, and
-  // its indices are not field names — recurse without reading them as such.
+  // An array is a list of drawings (`sprites: [...]`, `spritePool: [...]`) or a
+  // list of pool entries, and its indices are not field names — recurse without
+  // reading them as such.
+  //
+  // The FIELD it hangs off still matters, and this is where the hole was: any
+  // array of shared keys used to be waved through as "sprites", so
+  // `spritePool` — Geto's four volley curses — looked accounted for while
+  // shared_sprites.js walked no such field. Its scale control did nothing and
+  // its usage was reported as a summon it is only the stand-in for. An array
+  // now has to hang off a field that file actually walks.
   if (Array.isArray(node)) {
     for (const v of node) {
-      if (isShared(v)) named.add(`sprites → ${v}`);
-      else if (v && typeof v === "object") walk(v);
+      if (isShared(v)) {
+        if (SPRITE_LIST_KEY_FIELDS.includes(parentField)) named.add(`${parentField} → ${v}`);
+        else stray.add(`${parentField ?? "an array"} → ${v}`);
+      } else if (v && typeof v === "object") walk(v);
     }
     return;
   }
@@ -70,7 +81,7 @@ const walk = (node) => {
         }
       }
     }
-    if (value && typeof value === "object") walk(value);
+    if (value && typeof value === "object") walk(value, field);
   }
 };
 for (const key of CHARACTER_KEYS) {

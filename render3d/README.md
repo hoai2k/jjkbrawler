@@ -55,3 +55,8 @@ render3d/
 Smoke: `node server.mjs` then `node tools/smoke_render3d.mjs` — mannequin
 match, on-twos render budget, pixel probe, determinism (same token ->
 identical pixels), and the delivered-.glb intake path end to end.
+
+Also `node tools/smoke_facing.mjs` — which way the fighter faces and that the
+live layers nod rather than twist, on BOTH model backends. Both were wrong on
+the first delivery and neither was visible at 384 px, so they are measured as
+dot products and degrees instead of looked at.
