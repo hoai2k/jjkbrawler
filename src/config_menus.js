@@ -27,7 +27,7 @@
  *  using the hero card either way. OFF, the grid uses hero cards too, which is
  *  how the screen worked before the tiles existed.
  */
-export const USE_SIMPLE_CARDS = true;
+export const USE_SIMPLE_CARDS = false;
 
 // Fighter-select categories, in the order they appear on screen. Each group's
 // `members` are character keys from CHARACTERS in characters.js, shown left to
