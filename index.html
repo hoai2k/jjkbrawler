@@ -14,6 +14,10 @@
   <body>
     <main class="game-shell">
       <section class="arena-wrap" aria-label="JJK Brawler game">
+        <!-- The 3D scene, under the game canvas. Only drawn to in `?camera=3d`
+             mode (src/render3d/); in flat mode it stays a blank layer the
+             opaque backdrop above completely covers. -->
+        <canvas id="glCanvas" width="1280" height="720"></canvas>
         <canvas id="gameCanvas" width="1280" height="720"></canvas>
 
         <nav id="utilityActions" class="utility-actions hidden" aria-label="Game options">
