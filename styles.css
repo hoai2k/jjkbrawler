@@ -68,7 +68,8 @@ html, body {
   background: #05070f;
 }
 
-#gameCanvas {
+#gameCanvas,
+#glCanvas {
   position: absolute;
   inset: 0;
   width: 100%;

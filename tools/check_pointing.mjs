@@ -1,7 +1,7 @@
 // Does every action draw the art that exists for it?
 //
 // A delivery of semantic poses does NOT reach the screen on its own. The art
-// lands in `assets/sprites/<char>/<pose>.png` and gets registered, but which
+// lands in `sprites/assets/<char>/<pose>.png` and gets registered, but which
 // sprite an action plays is decided by the anim table in `src/characters.js` —
 // and a sheet-era fighter's table names grid cells. Import fifteen new poses for
 // Geto and the game keeps drawing the sprint cell for his jab until someone
@@ -41,11 +41,11 @@ globalThis.fetch = async (url) => {
 };
 
 const { CHARACTER_KEYS, SPRITE_ACTORS, SEMANTIC_ANIMS } = await import("../src/characters.js");
-const { resolvedAnim, animsOf, replacementKind } = await import("../src/sprites.js");
+const { resolvedAnim, animsOf, replacementKind } = await import("../sprites/src/sprites.js");
 const { loadCoreAssets } = await import("../src/assets.js");
 await loadCoreAssets();
 
-const man = JSON.parse(await readFile(new URL("assets/sprites/manifest.json", ROOT), "utf8"));
+const man = JSON.parse(await readFile(new URL("sprites/assets/manifest.json", ROOT), "utf8"));
 const isCell = (k) => /^r\d+c\d+$/.test(k);
 // States the RUNTIME already redirects, so what the table says is not what
 // plays. `dodge` is the pre-round-6 shared dodge frame; fighter.js picks

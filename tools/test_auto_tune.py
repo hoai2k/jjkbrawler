@@ -2,7 +2,7 @@
 """Prove the auto-tuner's safety rules, which are the whole reason to trust it.
 
 The tuner writes placement numbers nobody reviewed, so what matters is not that
-it is usually right — the backtest in docs/sprite-auto-adjust.md covers that —
+it is usually right — the backtest in sprites/docs/sprite-auto-adjust.md covers that —
 but that it cannot do the three things that would make it worse than useless:
 
   1. overwrite a decision a human made,

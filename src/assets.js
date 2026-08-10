@@ -9,10 +9,56 @@ export const images = new Map();
 export let spriteManifest = null;
 
 // Asset URLs are resolved against THIS MODULE rather than the document, so a
-// page served from a subdirectory (e.g. /workbench/) loads the same files the
-// game does instead of looking for them beside itself.
+// page served from a subdirectory (e.g. /sprites/workbench/) loads the same
+// files the game does instead of looking for them beside itself.
 const ASSET_BASE = new URL("../", import.meta.url);
-const assetUrl = (path) => new URL(path, ASSET_BASE).href;
+
+// Bumped whenever asset URLs move, to force a refetch past the browser cache.
+//
+// The manifest is revalidated on every load (see loadCoreAssets) so the INDEX
+// is never stale, but the files it names are cached hard and by name — which is
+// exactly right until a name moves. Relocating every character's sprites from
+// `assets/sprites/<char>/` to `sprites/assets/<char>/` moved 1900 of them at
+// once, and a returning player holding warm cache entries under the old paths
+// would ask for the new ones cold anyway; what this really protects is the
+// reverse case, a proxy or service worker that answers a moved path from a
+// stale index. Stamping the query makes every URL in this loader new, once.
+//
+// It is a version, not a timestamp: a fresh value on every load would defeat
+// caching permanently rather than break it once.
+const ASSET_VERSION = "2";
+
+/** Where each fighter's own sprite sheets live. Split out from the shared art
+ *  (effects, summons, backgrounds) which stays under assets/ — see
+ *  sprites/README.md for the line between the two. */
+export const CHAR_SPRITE_DIR = "sprites/assets/";
+
+/** And where the shared art stayed. */
+const SHARED_SPRITE_DIR = "assets/sprites/";
+
+/** Manifest subtrees that are NOT character art despite being in the manifest.
+ *
+ *  The manifest indexes fighters, with one exception: a pseudo-character
+ *  `effects` carries the shared install auras, so the workbench can measure and
+ *  place them through the same editor as a pose. Those entries name
+ *  `effects/<name>.png`, which lives in the shared tree, not the character one.
+ *  Resolving them against the character root is a silent 404 — and a silent
+ *  404 in this loader is an aura that never draws. */
+const SHARED_PREFIXES = ["effects/", "summons/"];
+
+const assetUrl = (path) => {
+  const url = new URL(path, ASSET_BASE);
+  url.searchParams.set("v", ASSET_VERSION);
+  return url.href;
+};
+
+/** A manifest `file` turned into a URL, sent to whichever root actually holds
+ *  it. Every manifest lookup goes through here rather than concatenating a
+ *  root, because getting it wrong fails quietly. */
+const spriteUrl = (file) =>
+  assetUrl(SHARED_PREFIXES.some((p) => file.startsWith(p))
+    ? `${SHARED_SPRITE_DIR}${file}`
+    : `${CHAR_SPRITE_DIR}${file}`);
 
 const EFFECT_KEYS = [
   // (rainbow_dragon is NOT here: Geto's dragon is summon:rainbow_dragon, and
@@ -375,7 +421,7 @@ export async function loadCoreAssets() {
   // paths had moved. An index that can go stale independently of what it
   // indexes is the whole bug; the images themselves are content-addressed by
   // name and can cache normally.
-  const manifestRes = await fetch(assetUrl("assets/sprites/manifest.json"), { cache: "no-cache" });
+  const manifestRes = await fetch(assetUrl(`${CHAR_SPRITE_DIR}manifest.json`), { cache: "no-cache" });
   spriteManifest = await manifestRes.json();
   // Sheet art is drawn facing RIGHT by default (verified against every
   // character's run row). `nativeLeft` lists the exceptions that are drawn
@@ -413,21 +459,23 @@ function groupJobs(id) {
   const jobs = [];
   const add = (key, src) => jobs.push({ key, src: assetUrl(src) });
   const optional = (key, src) => jobs.push({ key, src: assetUrl(src), optional: true });
+  // Manifest-named art: the root depends on the path (see spriteUrl).
+  const addFrame = (key, file) => jobs.push({ key, src: spriteUrl(file) });
 
   if (id.startsWith("char:")) {
     const charKey = id.slice(5);
     const frames = spriteManifest.characters[charKey] || {};
     for (const [frameKey, meta] of Object.entries(frames)) {
-      add(`sprite:${charKey}:${frameKey}`, `assets/sprites/${meta.file}`);
+      addFrame(`sprite:${charKey}:${frameKey}`, meta.file);
       // A pose whose replacement has not been approved yet still has to draw
       // in a MATCH, and what it draws is the older file the live block names.
       const live = meta.awaitingApproval?.live?.file;
-      if (live) add(`live:${charKey}:${frameKey}`, `assets/sprites/${live}`);
+      if (live) addFrame(`live:${charKey}:${frameKey}`, live);
     }
     // A fighter's alternate look travels with them: switching art sets in
     // Settings must never be the thing that triggers a download mid-match.
     for (const [frameKey, meta] of Object.entries(spriteManifest.alternates?.[charKey] || {})) {
-      add(`alt:${charKey}:${frameKey}`, `assets/sprites/${meta.file}`);
+      addFrame(`alt:${charKey}:${frameKey}`, meta.file);
     }
     return jobs;
   }
@@ -476,6 +524,8 @@ function groupJobs(id) {
       optional(`effect:${key}`, `assets/sprites/effects/${key}.png`);
     }
     for (const [key, file] of STAGED_SUMMON_KEYS[charKey] || []) {
+      // `file` here is a SHARED path ("summons/<name>.png"), not a manifest
+      // entry — a staged fighter's minion is creature art, not character art.
       optional(key, `assets/sprites/${file}`);
     }
   }
@@ -552,14 +602,14 @@ export async function loadFrame(charKey, frameKey, { reload = false } = {}) {
   if (!meta) return false;
   const key = `sprite:${charKey}:${frameKey}`;
   if (reload) images.delete(key);
-  await fetchImage(key, assetUrl(`assets/sprites/${meta.file}`));
+  await fetchImage(key, spriteUrl(meta.file));
   // A pose awaiting approval needs BOTH: the incoming drawing for the workbench
   // to place, and the one still in play for the game to draw.
   const live = meta.awaitingApproval?.live?.file;
   if (live) {
     const liveKey = `live:${charKey}:${frameKey}`;
     if (reload) images.delete(liveKey);
-    await fetchImage(liveKey, assetUrl(`assets/sprites/${live}`));
+    await fetchImage(liveKey, spriteUrl(live));
   }
   return images.has(key);
 }
@@ -592,7 +642,7 @@ export function sharedSpriteKeys() {
 export async function loadSpriteFile(file) {
   if (!file) return false;
   const key = `file:${file}`;
-  await fetchImage(key, assetUrl(`assets/sprites/${file}`), true);
+  await fetchImage(key, spriteUrl(file), true);
   return images.has(key);
 }
 

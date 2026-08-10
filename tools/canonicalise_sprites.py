@@ -41,6 +41,7 @@ Run after applying a round's adjustments:
     python3 tools/canonicalise_sprites.py --dry-run
     python3 tools/canonicalise_sprites.py
 """
+import sprite_paths
 
 import argparse
 import collections
@@ -52,7 +53,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
-SPRITES = os.path.join(ROOT, "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 
 ARCHIVE_DIR = "archive"

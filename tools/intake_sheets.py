@@ -7,7 +7,7 @@ sprite" is unanswerable without knowing what action it has to read as. A
 gorgeous roaring pose is the wrong answer for `guard`.
 
 Reads `assets/intake/_processed/` (see `intake.py`); nothing here writes to
-`assets/sprites/`.
+`sprites/assets/`.
 
 Usage:
   python3 intake_sheets.py

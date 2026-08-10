@@ -16,6 +16,7 @@ matters is that the *character* looks the same size, not the bounding box.
 
 Usage: python3 size_review.py [--chars gojo,maki] [--out debug/sizing]
 """
+import sprite_paths
 
 import argparse
 import json
@@ -25,7 +26,7 @@ import re
 from PIL import Image, ImageDraw, ImageOps
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 CHAR_JS = os.path.join(HERE, "..", "src", "characters.js")
 
 POSES = ["idle_a", "idle_b", "run_a", "run_b", "jump_rise", "fall", "hurt",

@@ -50,7 +50,8 @@ import { isFoe } from "./teams.js";
 import { burst, dust, ring, popup, emit } from "./particles.js";
 import { playSfx } from "./audio.js";
 import { getImage } from "./assets.js";
-import { drawCharFrame, currentFrame } from "./sprites.js";
+import { sharedAdjust } from "./shared_sprites.js";
+import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { SUMMON_ANIMS } from "./config_summons.js";
 import { MOTION } from "./config_tuning.js";
 import { METER_MAX } from "./constants.js";
@@ -1031,14 +1032,21 @@ export function spawnSummon(owner, cfg) {
       // fighters and several summons on screen, the player needs to see at a
       // glance which one their stick is actually moving.
       ctx.shadowBlur = this.piloted ? 26 : 14;
-      const h = cfg.h ?? 110;
+      // A creature's height comes from `h` in config_summons.js, not from a
+      // kit's `spriteH`, so the workbench's size never reached it until this
+      // read was added: the number was stored, shown, and inert. The nudge
+      // moves the drawing only — the creature's hitbox and its footing on the
+      // stage are `hitW`/`hitH` and this.y, and they do not move.
+      const adj = sharedAdjust(poseKeyOf(cfg.sprites) || cfg.sprites?.[0]);
+      const h = (cfg.h ?? 110) * adj.scale;
       if (img) {
         const w = img.width * h / img.height;
-        ctx.drawImage(img, -w / 2, -h, w, h);
+        if (adj.rot) ctx.rotate(adj.rot);
+        ctx.drawImage(img, -w / 2 + adj.dx, -h + adj.dy, w, h);
         if (flash > 0) {
           ctx.globalCompositeOperation = "lighter";
           ctx.globalAlpha = alpha * flash;
-          ctx.drawImage(img, -w / 2, -h, w, h);
+          ctx.drawImage(img, -w / 2 + adj.dx, -h + adj.dy, w, h);
         }
       } else {
         // no art at all: glowing orb silhouette

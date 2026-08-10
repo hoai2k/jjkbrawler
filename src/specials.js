@@ -37,7 +37,7 @@ function slotAnim(slot) {
   return slot === "neutral" ? "specialNeutral" : slot === "side" ? "specialSide" : "specialDown";
 }
 
-// The direction a fighter is aiming with the right stick, as a unit vector, or
+// The direction a fighter is aiming with the d-pad, as a unit vector, or
 // null when the stick is centred. Null means "fire it the usual way" — aiming
 // is opt-in per press, so nothing changes for a player who never touches it.
 function aimVector(f) {
@@ -139,7 +139,7 @@ const HANDLERS = {
     // Distortion Solo (Gakuganji): amped Power Chords fire an extra wave
     let count = p.count || 1;
     if (p.ampable && f.installs && f.installs.ampUp) count += 1;
-    // A steerable shot fired while the right stick is held launches along the
+    // A steerable shot fired while the d-pad is held launches along the
     // stick instead of straight ahead. The spread is kept as an offset
     // PERPENDICULAR to that heading, so an aimed volley fans exactly the way a
     // forward one does, just rotated.

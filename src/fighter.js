@@ -5,7 +5,7 @@ import { lightMove, heavyMove } from "./moves.js";
 import { spawnMelee, opponentOf, updateStatuses } from "./combat.js";
 import { performSpecial, updateSpecialState } from "./specials.js";
 import { performUltimate } from "./ultimates.js";
-import { performDomain, domainInput, canOpenDomain, activeDomain, domainSlotFor } from "./domains.js";
+import { performDomain, domainInput, canOpenDomain, activeDomain, domainSlotFor, domainSpecialSlot } from "./domains.js";
 import { burst, dust, popup, banner, ring } from "./particles.js";
 import { playSfx, playGrunt, playKoCry, startShieldLoop, stopShieldLoop, noteFireBurning } from "./audio.js";
 import { rumbleEvent } from "./rumble.js";
@@ -23,7 +23,7 @@ import {
 import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "./config_tuning.js";
 import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
-import { currentFrame } from "./sprites.js";
+import { currentFrame } from "./render_backend.js";
 import { trailStrength } from "./motion.js";
 
 /** `dodge_roll` / `dodge_air` where the character has that art, else the old
@@ -76,7 +76,7 @@ export function makeFighter(id, charKey, x, facing) {
     landT: 0, takeoffT: 0, trail: [], trailTick: 0, fxTrailT: 0,
     aiState: null,
     // The input this fighter last acted on, written by the sim loop. Summons
-    // read it to find their owner's right stick (see summons.js).
+    // read it to find their owner's aim pad (see summons.js).
     lastInput: null,
     winner: false,
   };
@@ -158,6 +158,30 @@ function beginLight(f, input) {
   executeMove(f, lightMove(f.char, variant));
 }
 
+/**
+ * A tilt thrown with the right stick.
+ *
+ * The tilt stick's whole point is that it does not need the left stick's help:
+ * a side tilt off a light press only comes out at a run (otherwise the jab
+ * chain wins), and up/down tilts need a direction held. Flicked, each one is a
+ * single deliberate attack — and in the air, the aerial for that direction,
+ * which is the same grammar one level up.
+ */
+function beginTilt(f, dir) {
+  if (!dir) return;
+  if (!f.grounded) {
+    executeMove(f, lightMove(f.char, dir === "up" ? "upAir" : dir === "down" ? "downAir" : "air"));
+    return;
+  }
+  if (dir === "left" || dir === "right") {
+    // Turn into the flick: a tilt aimed behind you is a tilt behind you.
+    f.facing = dir === "left" ? -1 : 1;
+    executeMove(f, lightMove(f.char, "side"));
+    return;
+  }
+  executeMove(f, lightMove(f.char, dir === "up" ? "up" : "down"));
+}
+
 function beginHeavy(f, input) {
   if (!f.grounded) {
     executeMove(f, heavyMove(f.char, "air"));
@@ -176,7 +200,8 @@ function beginHeavy(f, input) {
  * of the vertical mixup in the grounded game. The right stick is used rather
  * than the left because the left one already chose which smash this is: holding
  * up or down at the start picks the up or down variant, so it has nothing left
- * to say about aim.
+ * to say about aim. Holding it is safe: the same stick FLICKED throws a tilt,
+ * but a fighter mid-charge cannot act, so an aim never becomes an attack.
  *
  * The hitbox is swung about the fighter rather than simply nudged, so an angled
  * smash reaches the same distance along its new line — and because the strike
@@ -189,7 +214,7 @@ function releaseHeavy(f, input) {
   f.charging = null;
   const charge = clamp(c.t / 0.8, 0, 1);
   const move = heavyMove(f.char, c.variant, charge);
-  const aim = clamp(input?.aimY || 0, -1, 1);
+  const aim = clamp(input?.tiltY || 0, -1, 1);
   if (c.variant === "side" && Math.abs(aim) > 0.25) {
     const tilt = aim * SMASH_TILT;                 // + is downward, as y is
     const radius = move.ox + move.w * 0.5;
@@ -488,6 +513,7 @@ function stepRespawnPlatform(f, dt, input) {
   const plat = f.respawnPlat;
   plat.t -= dt;
   const acted = input.lightP || input.heavyP || input.specialP || input.ultP ||
+                input.domainP || !!input.tiltDir ||
                 input.jumpP || input.shieldHeld || input.down;
   const walkedOff = Math.abs(f.x - plat.x) > RESPAWN_PLATFORM_HALF_W;
   if (plat.t <= 0 || acted || walkedOff) leaveRespawnPlatform(f);
@@ -674,9 +700,14 @@ export function updateFighter(f, dt, input) {
   // A Domain Expansion costs the entire bar, so silently eating the press
   // because the fighter was two frames into a jab is the worst possible
   // outcome. It buffers like everything else, ahead of the smaller actions.
-  const pressedDomainSlot = domainSlotFor(input.domainDir, f.char.domains?.length || 0);
-  if (pressedDomainSlot >= 0 && f.char.domains?.[pressedDomainSlot]) {
-    f.bufferedAction = { kind: "domain", slot: pressedDomainSlot, t: ACTION_BUFFER };
+  const domainSlot = input.domainP ? domainSlotFor(f, input) : -1;
+  // Buffered whether it opens an Expansion or casts a Simple Domain (slot -1):
+  // both are the domain button, and eating either because the fighter was two
+  // frames into a jab is the outcome the buffer exists to prevent.
+  if (input.domainP && (domainSlot >= 0 || domainSpecialSlot(f))) {
+    f.bufferedAction = { kind: "domain", slot: domainSlot, t: ACTION_BUFFER };
+  } else if (input.tiltDir) {
+    f.bufferedAction = { kind: "tilt", dir: input.tiltDir, t: ACTION_BUFFER };
   } else if (input.lightP) f.bufferedAction = { kind: "light", t: ACTION_BUFFER };
   else if (input.heavyP) f.bufferedAction = { kind: "heavy", t: ACTION_BUFFER };
   else if (input.specialP) f.bufferedAction = { kind: "special", t: ACTION_BUFFER };
@@ -765,17 +796,26 @@ export function updateFighter(f, dt, input) {
     // checked before the normal action routing and swallows the press.
     const domainAte = activeDomain(f) ? domainInput(f, input) : false;
 
-    // Domain Expansion: d-pad up / left / right, one slot each. A fresh press
-    // wins; otherwise a buffered one fires as soon as control returns.
-    const domainSlot = pressedDomainSlot >= 0 ? pressedDomainSlot
+    // Domain Expansion: LB, or U / ; on a keyboard. A fresh press wins;
+    // otherwise a buffered one fires as soon as control returns.
+    const openSlot = domainSlot >= 0 ? domainSlot
       : f.bufferedAction?.kind === "domain" ? f.bufferedAction.slot : -1;
+    // A fighter with no Domain Expansion may still have a domain — the Simple
+    // Domain the New Shadow Style teaches, which lives in their special list.
+    // The domain button casts it, at its own cooldown rather than a full bar,
+    // so "the domain button opens my domain" is true for everyone who has one.
+    const domainSpecial = (input.domainP || f.bufferedAction?.kind === "domain")
+      && openSlot < 0 ? domainSpecialSlot(f) : null;
     if (domainAte) {
       // consumed by the open domain
-    } else if (domainSlot >= 0 && f.char.domains?.[domainSlot]) {
+    } else if (openSlot >= 0 && f.char.domains?.[openSlot]) {
       f.bufferedAction = null;
-      if (canOpenDomain(f, domainSlot)) performDomain(f, domainSlot);
+      if (canOpenDomain(f, openSlot)) performDomain(f, openSlot);
       else if (f.meter < DOMAIN_METER_COST) popup(f.x, f.y - 160, "NEEDS A FULL BAR", "#9aa4c0", 15);
-    } else if (pressedDomainSlot >= 0) {
+    } else if (domainSpecial) {
+      f.bufferedAction = null;
+      performSpecial(f, domainSpecial);
+    } else if (input.domainP) {
       popup(f.x, f.y - 160, "NO DOMAIN", "#9aa4c0", 15);
     } else if (input.ultP && f.meter >= ULT_METER_COST) {
       performUltimate(f);
@@ -788,8 +828,11 @@ export function updateFighter(f, dt, input) {
       const act = input.specialP ? "special"
         : input.heavyP ? "heavy"
         : input.lightP ? "light"
+        : input.tiltDir ? "tilt"
         : f.bufferedAction?.kind;
-      if (act === "special") {
+      if (act === "tilt") {
+        beginTilt(f, input.tiltDir || f.bufferedAction?.dir);
+      } else if (act === "special") {
         const slot = input.down || f.crouching ? "down" : (input.dirX !== 0 ? "side" : "neutral");
         performSpecial(f, slot);
       } else if (act === "heavy") {

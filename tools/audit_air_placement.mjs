@@ -21,7 +21,7 @@
 // pose that was placed by the old rule and never looked at.
 //
 // The eye decides; this says where to point it. Open one with
-//   http://localhost:5174/workbench/?char=<char>&frame=<pose>
+//   http://localhost:5174/sprites/workbench/?char=<char>&frame=<pose>
 // turn on the Hurtbox overlay, and use Vertical position.
 //
 // Needs `playwright` and a Chromium binary. Start the server first
@@ -46,7 +46,7 @@ const page = await browser.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 
-await page.goto(`${BASE}/workbench/`, { waitUntil: "domcontentloaded" });
+await page.goto(`${BASE}/sprites/workbench/`, { waitUntil: "domcontentloaded" });
 await page.waitForFunction(
   () => /loaded/.test(document.getElementById("loadState")?.textContent || ""),
   null, { timeout: 120000 },
@@ -54,7 +54,7 @@ await page.waitForFunction(
 
 const rows = await page.evaluate(async () => {
   const { spriteManifest, frameMeta } = await import("/src/assets.js");
-  const { frameFootY, statesUsingFrame, isAirborneOnly, isAnchorPlaced } = await import("/src/sprites.js");
+  const { frameFootY, statesUsingFrame, isAirborneOnly, isAnchorPlaced } = await import("/sprites/src/sprites.js");
   const { bodyMetrics } = await import("/src/silhouette.js");
   const { CHARACTERS, SPRITE_ACTORS } = await import("/src/characters.js");
   const { HURTBOX } = await import("/src/constants.js");

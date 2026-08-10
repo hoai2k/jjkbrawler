@@ -29,6 +29,7 @@ Usage:
   python3 tools/build_variants.py --adopt meimei attack_heavy_a meimei/attack_heavy.png
   python3 tools/build_variants.py --dry-run
 """
+import sprite_paths
 
 import argparse
 import json
@@ -36,11 +37,11 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 
 # Mirrored onto the pose when an option is selected. Kept in step with
-# VARIANT_BANKED in src/sprites.js — that list is what the workbench moves, this
+# VARIANT_BANKED in sprites/src/sprites.js — that list is what the workbench moves, this
 # one is what gets written.
 PLACEMENT = [
     "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",

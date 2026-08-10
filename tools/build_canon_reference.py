@@ -32,6 +32,7 @@ Usage:
   python3 tools/build_canon_reference.py
   python3 tools/build_canon_reference.py --dry-run
 """
+import sprite_paths
 
 import argparse
 import json
@@ -41,7 +42,7 @@ import sys
 from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 CANON = os.path.join(HERE, "..", "assets", "reference", "canon")
 CHARACTERS_JS = os.path.join(HERE, "..", "src", "characters.js")

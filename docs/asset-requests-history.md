@@ -125,8 +125,8 @@ semantic pose key via `SEMANTIC_ANIMS` in `src/characters.js`.
 
 - **Art arrives raw.** Every delivery came as untrimmed RGB plates on a grey or
   magenta field with no alpha channel. That is expected; it just has to go
-  through `tools/intake.py` before reaching `assets/sprites/`. Uploading raw
-  plates directly into `assets/sprites/<char>/` makes the game try to draw a
+  through `tools/intake.py` before reaching `sprites/assets/`. Uploading raw
+  plates directly into `sprites/assets/<char>/` makes the game try to draw a
   1024×1536 background as a sprite. This is why deliveries now go to
   `assets/intake/` — see that directory's README.
 - **A brand-new character has no frame to inherit placement from.**
@@ -147,7 +147,7 @@ semantic pose key via `SEMANTIC_ANIMS` in `src/characters.js`.
 - **Effects need keying too**, with the same routine as character art, then
   `tools/prep_effects.py` to trim and downscale.
 - **Watch the spelling of directory names.** Gakuganji's art arrived in
-  `assets/sprites/gakuganjii/` (double "i"); the character key, his card and
+  `sprites/assets/gakuganjii/` (double "i"); the character key, his card and
   the wiki are all `gakuganji`. Renamed on import.
 
 ## Round 8 — summon minions
@@ -408,7 +408,7 @@ of re-pointing fixes it, because there is no fourth sprite to point at.
 
 Counts differ because round 9B already delivered some of the technique frames.
 **On-disk filenames are the resume authority** — anything already in
-`assets/sprites/<char>/` is done, whatever a total elsewhere says.
+`sprites/assets/<char>/` is done, whatever a total elsewhere says.
 
 | Fighter | Key | Missing | Poses |
 |---|---|---|---|

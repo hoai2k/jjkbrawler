@@ -2,7 +2,7 @@
 """Prove that a touched-up sprite keeps its placement through re-import.
 
 A redraw and a touch-up are not the same event (KIND_PLACEMENT in
-src/sprites.js). A wholesale redraw — any `needsReplacement` kind — is a
+sprites/src/sprites.js). A wholesale redraw — any `needsReplacement` kind — is a
 different drawing, so its predecessor's placement means nothing. The
 `wantsImprovement` kinds are the opposite: a crop or bleed fix is the SAME
 drawing with different bounds, and an alpha fix is the same drawing at the same
@@ -22,6 +22,7 @@ absorbed the move.
 
   python3 tools/test_intake_placement.py
 """
+import sprite_paths
 
 import json
 import os
@@ -35,7 +36,7 @@ sys.path.insert(0, HERE)
 
 from intake_import import import_meta, survives, content_box  # noqa: E402
 
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 
 fails = 0

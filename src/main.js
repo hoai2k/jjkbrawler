@@ -1,13 +1,15 @@
 import { state } from "./state.js";
 import { loadCoreAssets, startBackgroundLoad, ensureMatchAssets, matchAssetsPending } from "./assets.js";
 import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, joinedPlayerCount, blankInput } from "./input.js";
-import { initAudio, playSfx, setBattleStage, syncMusic, stepAudio } from "./audio.js";
+import { initAudio, playSfx, setBattleStage, syncMusic, stepAudio, stopDomainLoop } from "./audio.js";
 import { updateRumble } from "./rumble.js";
 import { makeFighter, updateFighter } from "./fighter.js";
 import { updateHitboxes, updateProjectiles } from "./combat.js";
 import { updateParticles, banner } from "./particles.js";
 import { updateCamera } from "./camera.js";
 import { draw } from "./render.js";
+import { selectRenderBackend, renderBackendLabel } from "./render_backend.js";
+import { enable3dCamera, camera3d } from "./camera_mode.js";
 import { getStage, spawnXs } from "./stages.js";
 import { matchPlan, HUMAN_TEAM } from "./modes.js";
 import { oneSideLeft } from "./teams.js";
@@ -133,10 +135,16 @@ async function resetMatch() {
   state.banners.length = 0;
   state.domainOverlay = null;
   state.domain = null;
+  // A domain open when the match ended never runs its own close path — the
+  // entity is dropped here, not expired — so its held sound is stopped by the
+  // reset that dropped it. Without this a rematch starts inside the last
+  // match's domain ambience, forever.
+  stopDomainLoop();
   state.screenFlash = null;
   state.slowMo = 0;
   state.matchTime = 0;
   state.camera.x = 640; state.camera.y = 360; state.camera.zoom = 1; state.camera.shake = 0; state.camera.kick = 0;
+  camera3d?.resetRig();
 
   // Stage identity (Active Boards): field modifiers + the gimmick entity.
   // After the arrays are cleared, so the fx entity survives the reset.
@@ -163,6 +171,11 @@ function togglePause() {
 
 function updateSimulation(dt, held) {
   state.matchTime += dt;
+  // Mirrored onto state for consumers outside this module — the 2.5D camera
+  // rig keys its intro pull-out and final-blow shot off these. Nothing in the
+  // simulation reads them back.
+  state.introT = introT;
+  state.endT = endT;
 
   if (introT > 0) {
     const before = introT;
@@ -333,6 +346,30 @@ function loop(time) {
 }
 
 async function init() {
+  // Which renderer draws the characters, before anything asks for a pose.
+  // `?render=<name>` picks one; an unknown name warns and falls back, so a
+  // typo starts the game rather than blanking it.
+  const chosen = selectRenderBackend(new URLSearchParams(location.search).get("render"));
+  if (chosen !== "sprite") console.log(`render backend: ${chosen} (${renderBackendLabel()})`);
+
+  // `?camera=3d` — the 2.5D perspective camera (docs/2.5d-camera-plan.md).
+  // Lazy-imported so flat mode (the default) pays zero bytes for it, and
+  // guarded twice: a failed fetch or a machine without WebGL both land on the
+  // flat renderer with a console note, never a broken screen.
+  if (new URLSearchParams(location.search).get("camera") === "3d") {
+    try {
+      const mod = await import("./camera3d/index.js");
+      if (mod.initRender3d()) {
+        enable3dCamera(mod);
+        console.log("camera: 3d (perspective rig on WebGL)");
+      } else {
+        console.warn("camera=3d requested but WebGL is unavailable — running flat.");
+      }
+    } catch (err) {
+      console.warn(`camera=3d failed to load (${err.message}) — running flat.`);
+    }
+  }
+
   resizeCanvas();
   window.addEventListener("resize", resizeCanvas);
   initInput();

@@ -29,6 +29,7 @@ Output: assets/sprites/effects/curse_<a..d>.png, curse_dragon.png
 
 Usage: python3 extract_curses.py [--preview]
 """
+import sprite_paths
 
 import argparse
 import os
@@ -39,7 +40,7 @@ from scipy import ndimage
 
 import intake
 
-OUT = os.path.join(intake.SPRITES, "effects")
+OUT = sprite_paths.EFFECTS
 
 # (source frame, name, crop box) in delivered-art pixels
 REGIONS = [

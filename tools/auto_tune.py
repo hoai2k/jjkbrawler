@@ -2,7 +2,7 @@
 """Apply the placement corrections that are mechanical, so the hand pass is not.
 
 An intake round lands art at numbers `intake_import.place()` derives, and then
-somebody opens the workbench and moves them. `docs/sprite-auto-adjust.md` is the
+somebody opens the workbench and moves them. `sprites/docs/sprite-auto-adjust.md` is the
 measurement of which of those moves are mechanical: it reads the `edited` map
 (which stores each hand-tuned field's PRE-edit value) and asks, for every
 correction ever made, whether the derived value was wrong in a predictable way.
@@ -56,6 +56,7 @@ by somebody looking at the sprite, and no measurement here outranks that.
   python3 tools/auto_tune.py --char maki uro
   python3 tools/auto_tune.py --backtest        # score the rules against hand values
 """
+import sprite_paths
 
 import argparse
 import collections
@@ -75,7 +76,7 @@ sys.path.insert(0, HERE)
 from audit_frame_sizes import anims_by_frame, DEFAULT_REVIEWED  # noqa: E402
 from extract_sprites import ALPHA_THRESHOLD, SHEET_W, COLS  # noqa: E402
 
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 CHARACTERS_JS = os.path.join(HERE, "..", "src", "characters.js")
 
@@ -144,7 +145,7 @@ def measure(path):
     """The three things the rules need from a drawing.
 
     `body_bottom` is the bottom of the LARGEST connected component, which is
-    what docs/asset-pipeline.md means by the foot line — a detached energy burst
+    what sprites/docs/asset-pipeline.md means by the foot line — a detached energy burst
     below the feet is not the floor. `centroid_x` is alpha-weighted, so it is
     the middle of the character's mass rather than of its bounding box.
     """

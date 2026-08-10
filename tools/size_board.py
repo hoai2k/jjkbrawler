@@ -18,6 +18,7 @@ obviously drawn at a different zoom.
 
 Usage: python3 size_board.py [--chars gojo,maki] [--out debug]
 """
+import sprite_paths
 
 import argparse
 import json
@@ -27,7 +28,7 @@ import re
 from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 CHAR_JS = os.path.join(HERE, "..", "src", "characters.js")
 
 manifest = json.load(open(os.path.join(SPRITES, "manifest.json")))

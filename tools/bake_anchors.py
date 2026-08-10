@@ -3,7 +3,7 @@
 
 Rotation needs a pivot. Without one the renderer falls back to a heuristic —
 the detected horizontal centroid at a fixed fraction of body height (see
-`defaultCom` in src/sprites.js) — which is close enough on an upright idle and
+`defaultCom` in sprites/src/sprites.js) — which is close enough on an upright idle and
 poor on anything sprawled, crouched or mid-swing, exactly the poses that rotate
 most. The honest answer is the opaque pixels' own centroid, which for uniform
 density IS the centre of mass.
@@ -17,7 +17,7 @@ does no pixel work by design (docs/audit-guide.md). This writes
 
     "anchors": { "com": [x, y] }
 
-into every frame of assets/sprites/manifest.json, in the SOURCE IMAGE's own
+into every frame of sprites/assets/manifest.json, in the SOURCE IMAGE's own
 pixels measured from its top-left corner — the same space the workbench edits,
 so a baked value can be dragged afterwards and a hand-placed one is never
 silently overwritten.
@@ -49,6 +49,7 @@ Usage:
   python3 bake_anchors.py --force         # re-measure even hand-placed anchors
   python3 bake_anchors.py --dry-run
 """
+import sprite_paths
 
 import argparse
 import json
@@ -61,7 +62,7 @@ except ImportError:
     sys.exit("Pillow is required: pip install Pillow")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 
 # Ignore near-transparent pixels: soft glow and antialiased edges extend well
@@ -101,6 +102,23 @@ def _mask(path):
         else:
             scale = 1.0
     return mask, scale, bbox
+
+
+def stale_size(path, meta):
+    """True when the file on disk is not the size the manifest recorded.
+
+    Cheap — PIL reads the header only — and it is the one signal that says
+    "this pose is pointing at a different drawing than it was measured from".
+    """
+    if not os.path.exists(path):
+        return False
+    if meta.get("w") is None or meta.get("h") is None:
+        return False
+    try:
+        with Image.open(path) as im:
+            return im.size != (meta["w"], meta["h"])
+    except Exception:
+        return False
 
 
 def body_top(path):
@@ -270,7 +288,7 @@ def centroid(path):
 
 
 # What a measurement writes, and therefore what has to travel with the image.
-# A subset of VARIANT_PLACEMENT in src/sprites.js — the fields this tool sets.
+# A subset of VARIANT_PLACEMENT in sprites/src/sprites.js — the fields this tool sets.
 MEASURED = ["anchors", "bodyTop", "bodyLeft", "bodyRight", "coreLeft", "coreRight"]
 
 
@@ -319,9 +337,21 @@ def main():
                 wanted.update(EXTRA.get(key, {}))
 
             path = os.path.join(SPRITES, meta["file"])
-            todo = [n for n in wanted if n not in anchors or args.force]
-            need_top = not args.spans_only and ("bodyTop" not in meta or args.force)
-            need_span = (args.spans_only or args.force
+            # Art replaced under the same pose key is the case this whole file
+            # exists to survive, and it used to slip through: every measured
+            # field was already present, so nothing was re-measured and the new
+            # drawing wore the old drawing's geometry. Eighteen frames were
+            # found carrying spans from a previous art round that way, and
+            # `uro/prone` claimed 1834 px of width inside a 976 px image —
+            # numbers `src/silhouette.js` reads as reach and hurtbox width.
+            #
+            # The image's own size is the tell: `w`/`h` are written from the
+            # file at import, so a disagreement means the file changed and the
+            # manifest did not. That forces a full re-measure of the frame.
+            replaced = stale_size(path, meta)
+            todo = [n for n in wanted if n not in anchors or args.force or replaced]
+            need_top = not args.spans_only and ("bodyTop" not in meta or args.force or replaced)
+            need_span = (args.spans_only or args.force or replaced
                          or "bodyLeft" not in meta or "bodyRight" not in meta
                          or "coreLeft" not in meta or "coreRight" not in meta)
             if not todo and not need_top and not need_span:

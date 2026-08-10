@@ -2,11 +2,11 @@
 """Find poses that render at the wrong size, and optionally correct them.
 
 `bodyH` is the rendered-height target for a frame and `renderScale` is derived
-from it as `bodyH / artBBoxHeight` (docs/asset-pipeline.md). A pose whose
+from it as `bodyH / artBBoxHeight` (sprites/docs/asset-pipeline.md). A pose whose
 `bodyH` is wrong therefore renders at the wrong size — a fighter who shrinks by
 half the moment they dash.
 
-docs/asset-pipeline.md warns that automatic size normalisation measured from
+sprites/docs/asset-pipeline.md warns that automatic size normalisation measured from
 the ART produced worse results than hand values, twice. This does something
 different and much narrower: it never looks at pixels. Each animation state has
 a characteristic height relative to the character's idle — a crouch is short, a
@@ -23,6 +23,7 @@ Usage:
   python3 audit_frame_sizes.py --fix --tolerance 0.3
   python3 audit_frame_sizes.py --reviewed gojo maki ...
 """
+import sprite_paths
 
 import argparse
 import json
@@ -32,7 +33,7 @@ import statistics
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-MANIFEST = os.path.join(HERE, "..", "assets", "sprites", "manifest.json")
+MANIFEST = sprite_paths.MANIFEST
 CHARACTERS_JS = os.path.join(HERE, "..", "src", "characters.js")
 
 # The roster that shipped before round 7 and has been through size review.

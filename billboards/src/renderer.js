@@ -1,0 +1,192 @@
+// The offscreen renderer: (character, state, time) -> a texture of the posed
+// figure, cached.
+//
+// One WebGL canvas serves every fighter. A render happens only when a pose the
+// cache has never seen is asked for; the cache key is the quantised pose token,
+// so the economics rest on the fact that most states are holds — an idle
+// fighter costs about two renders a second and a match spends most frames at
+// 100% cache hits. Stats are exported (and mirrored onto window.__billboards)
+// so the smoke tests can assert that instead of taking it on faith.
+//
+// FRAMING. The camera is orthographic and fixed for everyone: yawed 30° to the
+// ¾-right view the sprite art is drawn in, pitched down a touch. The frustum
+// is sized per rig from its real height so that:
+//
+//   * the figure fills a predictable fraction of the texture, and
+//   * the FOOT LINE (world y=0) lands at a known row — FOOT_FRAC up from the
+//     bottom — which is what lets blit.js anchor feet to (x, y) with no
+//     per-pose measuring. Margin above and to the sides absorbs raised arms
+//     and lunges; a pose that escapes the frame clips, visibly, which is a
+//     workbench-visible authoring fault rather than a silent one.
+//
+// The texture rows-per-metre that framing implies is reported alongside the
+// canvas, so the blit can convert game-pixel height to texture scale exactly.
+
+import { STATES, clipNameFor, clipTime, aimable } from "./states.js";
+import { getRig } from "./rig.js";
+import { swayChains } from "./props.js";
+
+export const TEX_SIZE = 384;
+/** Fraction of the frame height under the foot line (world y = 0). */
+export const FOOT_FRAC = 0.10;
+/** Frustum height as a multiple of rig height: headroom for raised arms. */
+const FRAME_MUL = 1.45;
+/** Pose time quantisation, seconds. 30 Hz: coarse enough to cache, finer than
+ *  any sprite anim's frame rate, so nothing animates more coarsely than the
+ *  sprites it replaces. */
+export const QUANT = 1 / 30;
+
+const CACHE_MAX = 128; // ~19 MB at 384² RGBA; floor set by the trail window
+
+let THREE = null;
+let renderer = null;
+let scene = null;
+let camera = null;
+let lights = null;
+
+const cache = new Map(); // token -> { canvas, rowsPerMetre }
+export const stats = { renders: 0, hits: 0, misses: 0, evictions: 0 };
+
+export function initRenderer(three) {
+  THREE = three;
+  _aimQ = new THREE.Quaternion();
+  _aimX = new THREE.Vector3(1, 0, 0);
+  const canvas = document.createElement("canvas");
+  canvas.width = TEX_SIZE;
+  canvas.height = TEX_SIZE;
+  renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setClearColor(0x000000, 0);
+  scene = new THREE.Scene();
+  // Flat, directionless-enough light: shape without drama. Real look-dev is
+  // phase B4; this just has to keep a grey mannequin readable.
+  lights = new THREE.Group();
+  lights.add(new THREE.HemisphereLight(0xf4f6ff, 0x3a4152, 2.4));
+  const key = new THREE.DirectionalLight(0xffffff, 1.6);
+  key.position.set(1.5, 2.5, 2.0);
+  lights.add(key);
+  scene.add(lights);
+  camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 50);
+  // Instrumentation for the smoke tests and for /workbench debugging.
+  if (typeof window !== "undefined") {
+    window.__billboards = window.__billboards || {};
+    window.__billboards.stats = stats;
+  }
+}
+
+/** The cache key for a pose. Quantised so consecutive frames of a held pose
+ *  hash equal; facing is NOT in the key — mirroring happens at blit time —
+ *  but AIM is: two strikes pitched at different targets are different poses.
+ *  (aimPitch in states.js already quantised the angle to 6° steps, so the
+ *  aim dimension stays small.) */
+export function poseToken(charKey, animKey, animTime, aimRad = 0) {
+  const t = clipTime(animKey, animTime);
+  const aim = aimable(animKey) && aimRad ? `~a${Math.round((aimRad * 180) / Math.PI)}` : "";
+  return `${charKey}/${clipNameFor(animKey)}@${Math.round(t / QUANT)}${aim}`;
+}
+
+/** Aim: pitch the strike toward the target. Applied AFTER the clip poses the
+ *  body, split across the spine so the whole upper body leans into the shot
+ *  rather than the torso snapping alone. Clips are authored aim-neutral
+ *  (docs/asset-requests.md); this is the only place aim touches a pose. */
+const AIM_BONES = [["Spine1", 0.35], ["Spine2", 0.45], ["Neck", -0.3]];
+function applyAim(root, pitchRad) {
+  if (!pitchRad) return;
+  for (const [name, share] of AIM_BONES) {
+    const bone = root.getObjectByName(name);
+    if (!bone) continue;
+    // Screen-up aim = lean back = negative local-X rotation. The Neck takes a
+    // counter-share so the head keeps facing the target rather than the sky.
+    _aimQ.setFromAxisAngle(_aimX, -pitchRad * share);
+    bone.quaternion.multiply(_aimQ);
+  }
+}
+let _aimQ = null;
+let _aimX = null;
+
+function frameCamera(height) {
+  // Ortho extents are CAMERA-relative, not world heights: the view axis maps
+  // to the frame's centre row. So the foot-line guarantee is arranged by
+  // aiming the camera horizontally at the frustum's world-space centre — the
+  // axis sits at cy, the frame spans cy ± frameH/2, and world y=0 lands
+  // exactly FOOT_FRAC up from the bottom. (A pitched camera would smear that
+  // row across depth, which is why the ¾ view is yaw-only.)
+  const frameH = height * FRAME_MUL;
+  const half = frameH / 2;
+  camera.left = -half;
+  camera.right = half;
+  camera.top = half;
+  camera.bottom = -half;
+  const cy = frameH * (0.5 - FOOT_FRAC);
+  const yaw = (30 * Math.PI) / 180;
+  const dist = 10;
+  camera.position.set(Math.sin(yaw) * dist, cy, Math.cos(yaw) * dist);
+  camera.lookAt(0, cy, 0);
+  camera.updateProjectionMatrix();
+}
+
+function pose(rig, animKey, animTime, clip) {
+  const name = clipNameFor(animKey);
+  let action = rig.actions.get(name);
+  if (!action || action.getClip() !== clip) {
+    rig.mixer.stopAllAction();
+    // Cached actions bind clip tracks to bones once; a state whose resolved
+    // clip changed (workbench edited inheritance) rebinds here.
+    action = rig.mixer.clipAction(clip);
+    rig.actions.set(name, action);
+  }
+  if (!action.isRunning()) {
+    rig.mixer.stopAllAction();
+    action.reset().play();
+  }
+  rig.mixer.setTime(clipTime(animKey, animTime));
+}
+
+/** The posed character as a canvas, plus the metres->rows mapping the blit
+ *  needs. Returns null when the character has no rig or no resolvable clip —
+ *  the caller falls back to sprites. */
+export function renderPose(charKey, animKey, animTime, resolveClip, aimRad = 0) {
+  const token = poseToken(charKey, animKey, animTime, aimRad);
+  const hit = cache.get(token);
+  if (hit) {
+    stats.hits++;
+    // Refresh LRU position.
+    cache.delete(token);
+    cache.set(token, hit);
+    return hit;
+  }
+  stats.misses++;
+
+  const rig = getRig(charKey);
+  if (!rig || !renderer) return null;
+  const resolved = resolveClip(charKey, animKey);
+  if (!resolved) return null;
+
+  pose(rig, animKey, animTime, resolved.clip);
+  if (aimable(animKey)) applyAim(rig.root, aimRad);
+  // Secondary motion — braids, tendrils — driven by the same quantised clock
+  // as the pose, so the cache stays honest (props.js explains the trade).
+  swayChains(rig.root, clipTime(animKey, animTime), charKey);
+  frameCamera(rig.height);
+  scene.add(rig.root);
+  renderer.render(scene, camera);
+  scene.remove(rig.root);
+  stats.renders++;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = TEX_SIZE;
+  canvas.height = TEX_SIZE;
+  canvas.getContext("2d").drawImage(renderer.domElement, 0, 0);
+
+  const entry = {
+    canvas,
+    heightM: rig.height,
+    rowsPerMetre: TEX_SIZE / (rig.height * FRAME_MUL),
+    source: resolved.source,
+  };
+  cache.set(token, entry);
+  if (cache.size > CACHE_MAX) {
+    cache.delete(cache.keys().next().value);
+    stats.evictions++;
+  }
+  return entry;
+}

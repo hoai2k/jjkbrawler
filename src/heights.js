@@ -21,7 +21,7 @@
 import { getActor, CHARACTERS } from "./characters.js";
 import { spriteManifest } from "./assets.js";
 import { clamp } from "./utils.js";
-import { frameFootY } from "./sprites.js";
+import { frameFootY } from "../sprites/src/sprites.js";
 import {
   HEIGHT_REFERENCE, HEIGHT_COMPRESSION, HEIGHT_MIN_RATIO, HEIGHT_MAX_RATIO,
   HEIGHT_BASE_PX, HEIGHT_UNKNOWN_RATIO, HEAD_ABOVE_BODY,

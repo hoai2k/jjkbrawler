@@ -10,6 +10,7 @@ ones.
 
 Usage: python3 facing_review.py [--chars gojo,maki] [--out debug/review]
 """
+import sprite_paths
 
 import argparse
 import json
@@ -18,7 +19,7 @@ import os
 from PIL import Image, ImageDraw, ImageOps
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 
 CELL_W, CELL_H = 208, 232
 COLS = 5

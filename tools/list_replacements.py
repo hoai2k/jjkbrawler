@@ -9,7 +9,7 @@ request that does not distinguish them is a request someone has to come back and
 clarify. This collects the flags, grouped by that kind, so they can be turned
 into asset requests.
 
-The kinds are defined in src/sprites.js and parsed from there, so the set has
+The kinds are defined in sprites/src/sprites.js and parsed from there, so the set has
 one source of truth rather than a copy here that can drift.
 
 How much of the existing placement survives the redraw depends on the kind, and
@@ -23,7 +23,7 @@ the request has to say so or the intake cannot know what to keep:
   Replace                discard  a different drawing. Nothing about the old
                                   placement means anything.
 
-That mapping is KIND_PLACEMENT in src/sprites.js and is parsed from
+That mapping is KIND_PLACEMENT in sprites/src/sprites.js and is parsed from
 there, so it cannot drift from what the code believes.
 
 **Request improvement** is the softer, lower-priority ask: the art works, it is
@@ -41,13 +41,14 @@ means "we have something better, discard this one". It clears only by being acte
 on — nothing gets imported to clear it. Listed separately for that reason.
 
 Answering all of these at once is the "full sprite cleanup" procedure in
-docs/sprite-cleanup.md.
+sprites/docs/sprite-cleanup.md.
 
 Usage:
   python3 list_replacements.py              # grouped by character
   python3 list_replacements.py --markdown   # a table to paste into a request doc
   python3 list_replacements.py --json
 """
+import sprite_paths
 
 import argparse
 import json
@@ -55,9 +56,9 @@ import os
 import re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-MANIFEST = os.path.join(HERE, "..", "assets", "sprites", "manifest.json")
+MANIFEST = sprite_paths.MANIFEST
 CHARACTERS_JS = os.path.join(HERE, "..", "src", "characters.js")
-SPRITES_JS = os.path.join(HERE, "..", "src", "sprites.js")
+SPRITES_JS = os.path.join(sprite_paths.ROOT, "sprites", "src", "sprites.js")
 
 
 def kind_list(const):
