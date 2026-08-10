@@ -58,9 +58,18 @@ height stay sprite-derived however a fighter is drawn.
 Shared art the renderer spawns — effects, summon creatures, backgrounds — stays
 under [`assets/`](assets/sprites/README.md) and is untouched by that choice.
 
+`?camera=3d` is a separate, orthogonal choice: `?render=` decides how a
+CHARACTER is drawn, `?camera=` decides the stage and lens they exist in, and
+the two compose. It runs the whole game inside a Smash-style perspective
+camera — the current sprites billboarded into a real 3D scene, with depth,
+parallax and a living camera ([plan & status](docs/2.5d-camera-plan.md)).
+Off by default; the flat renderer is byte-for-byte untouched without the param.
+
 ## Docs
 
 - [Game mechanics](docs/game-mechanics.md)
+- [2.5D camera](docs/2.5d-camera-plan.md) — the `?camera=3d` mode: plan,
+  implementation status, per-board camera treatments
 - [Move list](docs/move-list.md) — every fighter's specials, ultimate and domain
   in one table (generated from the kits)
 - [Characters](docs/characters.md) — why each kit is the way it is

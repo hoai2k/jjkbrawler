@@ -33,8 +33,9 @@ billboards/
                physics chains)
   workbench/   /billboards/workbench/ — model vs sprite ghost, aim target,
                per-state clip inheritance editor, approval
-  vendor/      three.js r185, vendored (VENDOR.md) — only src/ may import it,
-               only via dynamic import(), so sprite players never load it
+               (three.js is shared with the 2.5D camera and lives at the repo
+               root: ../vendor/, see its VENDOR.md. src/ reaches it only via
+               dynamic import(), so sprite players never load it)
   assets/      approved runtime rigs + manifest.json (the index)
   intake/      where deliveries land first
 ```

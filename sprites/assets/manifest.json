@@ -610,7 +610,8 @@
     "bodyLeft": 14,
     "bodyRight": 656,
     "coreLeft": 50.8,
-    "coreRight": 609.6
+    "coreRight": 609.6,
+    "surfacedReviewed": true
    },
    "guard": {
     "file": "gojo/guard.png",
@@ -25461,7 +25462,9 @@
     },
     "edited": {
      "renderScale": 0.165
-    }
+    },
+    "needsReplacement": "alternate",
+    "replacementNote": "Pose is right \u2014 keep it. The cloud has become a one-piece dress from chest to thigh. Canon is two separate bands, bare midriff, bare legs. Alternate, so the pose we have is not lost."
    },
    "dash": {
     "w": 885,
@@ -26089,7 +26092,9 @@
      "renderScale": 0.348,
      "ox": -357.0,
      "bodyBottom": 171.3
-    }
+    },
+    "needsReplacement": "alternate",
+    "replacementNote": "Pose is right \u2014 keep it. The costume reads as one strapless dress: the cloud across the chest and the cloud at the hips have merged. Canon is TWO separate bands with a bare midriff between them (assets/reference/canon/uro_idle.png). Alternate, so the pose we have is not lost."
    },
    "prone": {
     "file": "uro/prone.png",
@@ -30700,14 +30705,14 @@
   },
   "effects": {
    "aura_indigo": {
-    "w": 819,
-    "h": 1350,
-    "ox": -262.5,
-    "oy": -1039,
-    "bodyBottom": 237.4,
+    "w": 426,
+    "h": 700,
+    "ox": -136.5,
+    "oy": -540.4,
+    "bodyBottom": 123.5,
     "bodyH": 337.5,
-    "centroidX": 166.5,
-    "renderScale": 0.25,
+    "centroidX": 86.6,
+    "renderScale": 0.4806,
     "file": "effects/aura_indigo.png",
     "replaced": {
      "at": "2026-08-09T16:00:44+00:00",
@@ -30717,13 +30722,13 @@
     },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 819,
-    "coreLeft": 92.8,
-    "coreRight": 750.9,
+    "bodyRight": 426,
+    "coreLeft": 48.1,
+    "coreRight": 389.4,
     "anchors": {
      "com": [
-      419.5,
-      707.7
+      217.3,
+      369.2
      ]
     },
     "autoTuned": {
@@ -30735,14 +30740,14 @@
     }
    },
    "aura_jade": {
-    "w": 779,
-    "h": 1426,
-    "ox": -234.4,
-    "oy": -1115,
-    "bodyBottom": 236.3,
+    "w": 382,
+    "h": 700,
+    "ox": -114.9,
+    "oy": -546.8,
+    "bodyBottom": 115.9,
     "bodyH": 356.5,
-    "centroidX": 158.4,
-    "renderScale": 0.25,
+    "centroidX": 77.7,
+    "renderScale": 0.5098,
     "file": "effects/aura_jade.png",
     "replaced": {
      "at": "2026-08-09T16:00:44+00:00",
@@ -30752,13 +30757,13 @@
     },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 779,
-    "coreLeft": 62.4,
-    "coreRight": 721.9,
+    "bodyRight": 382,
+    "coreLeft": 30.6,
+    "coreRight": 358.8,
     "anchors": {
      "com": [
-      389.3,
-      761.8
+      191.5,
+      372.3
      ]
     },
     "autoTuned": {
@@ -30770,14 +30775,14 @@
     }
    },
    "aura_slate": {
-    "w": 877,
-    "h": 1417,
-    "ox": -268.8,
-    "oy": -1106,
-    "bodyBottom": 236.8,
+    "w": 425,
+    "h": 700,
+    "ox": -130.3,
+    "oy": -536.0,
+    "bodyBottom": 114.8,
     "bodyH": 354.2,
-    "centroidX": 143.8,
-    "renderScale": 0.25,
+    "centroidX": 69.7,
+    "renderScale": 0.5159,
     "file": "effects/aura_slate.png",
     "replaced": {
      "at": "2026-08-09T16:00:44+00:00",
@@ -30787,13 +30792,13 @@
     },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 877,
-    "coreLeft": 70.8,
-    "coreRight": 788.2,
+    "bodyRight": 425,
+    "coreLeft": 35.0,
+    "coreRight": 389.4,
     "anchors": {
      "com": [
-      426.1,
-      787.9
+      211.0,
+      389.5
      ]
     },
     "autoTuned": {
@@ -33452,7 +33457,8 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "crouch_a": {
     "w": 855,
@@ -33846,7 +33852,8 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "idle_b": {
     "w": 641,
@@ -33875,7 +33882,8 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "jump_rise": {
     "w": 727,
@@ -34566,6 +34574,13 @@
      "renderScale": 0.37625,
      "ox": -349.7,
      "bodyBottom": 310.4
+    },
+    "bodyTop": 0,
+    "anchors": {
+     "com": [
+      517.9,
+      431.3
+     ]
     }
    },
    "attack_up": {
@@ -34732,7 +34747,8 @@
      "renderScale": 0.27375,
      "ox": -521.8,
      "bodyBottom": 255.60000000000002
-    }
+    },
+    "bodyTop": 0
    },
    "crouch_b": {
     "w": 1184,
@@ -34798,7 +34814,8 @@
      "renderScale": 0.29,
      "ox": -527.2,
      "bodyBottom": 559.9
-    }
+    },
+    "bodyTop": 0
    },
    "dizzy": {
     "w": 769,
@@ -55268,7 +55285,14 @@
       "bodyLeft": 0,
       "bodyRight": 1373,
       "coreLeft": 94.4,
-      "coreRight": 1184.2
+      "coreRight": 1184.2,
+      "anchors": {
+       "com": [
+        517.9,
+        431.3
+       ]
+      },
+      "bodyTop": 0
      },
      {
       "w": 1353,
@@ -55328,7 +55352,8 @@
       "bodyLeft": 0,
       "bodyRight": 1474,
       "coreLeft": 129.0,
-      "coreRight": 1252.9
+      "coreRight": 1252.9,
+      "bodyTop": 0
      },
      {
       "w": 1430,
@@ -55409,7 +55434,8 @@
       "bodyLeft": 0,
       "bodyRight": 1368,
       "coreLeft": 145.4,
-      "coreRight": 1137.2
+      "coreRight": 1137.2,
+      "bodyTop": 0
      },
      {
       "w": 1474,
@@ -56737,5 +56763,250 @@
   "dagon": 321.63,
   "mechamaru": 360.68,
   "kurourushi": 348.9
+ },
+ "otherSprites": {
+  "effect:aura_chitin": {
+   "wantsImprovement": "alpha"
+  },
+  "effect:blinding_sacs": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:chain": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:crow": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:crow_flock": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:cursed_bud": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:cursed_spirit_orb": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:cursed_tool": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:drum_burst": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:egg_shot": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:ember": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:fuga": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:meteor": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:nail": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:nail_storm": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:ratio_wave": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:scissors_curse": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:scream_wave": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:shikigami_fish": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:shutter": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:soul_touch": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:speech_word": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:sword_beam": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:tide_wave": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:triceratops": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:ultimate_cannon": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:ultra_cannon": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:coilCurse:attack": {
+   "edited": {
+    "renderScale": null
+   },
+   "renderScale": 1
+  },
+  "summon:coilCurse:idle_a": {
+   "edited": {
+    "renderScale": null
+   },
+   "renderScale": 1
+  },
+  "summon:nue": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:rika": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:smallpoxDeity:attack": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:smallpoxDeity:idle_a": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:smallpoxDeity:idle_b": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:smallpoxDeity:move_a": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:smallpoxDeity:move_b": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:transfiguredHuman:attack": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:transfiguredHuman:hurt": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:transfiguredHuman:idle_a": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:transfiguredHuman:idle_b": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "stagefx:stage_weak_curse": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  }
  }
 }
