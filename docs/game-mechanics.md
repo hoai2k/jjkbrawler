@@ -338,16 +338,30 @@ hazard can never KO by itself. The CPU steps out of telegraphed zones.
 
 | Action | P1 | P2 | Gamepad |
 |---|---|---|---|
-| Move | A / D | ◀ / ▶ | Stick / D-pad |
+| Move | A / D | ◀ / ▶ | Left stick |
 | Jump | W | ▲ | A |
 | Crouch / fast-fall | S | ▼ | Down |
 | Light attack | J | , | X |
 | Heavy attack (hold = charge) | K | . | Y |
-| Special | L | / | B |
+| Special | L | / | **RT** |
+| Dash | Q, or double-tap a direction | \\, or double-tap | **B**, or double-tap |
 | Ultimate | I | ' | LB / RB |
-| Shield / dodges | Left Shift | Right Shift | Triggers |
+| Domain Expansion | U / Y / O | ; / [ / ] | **D-pad, any direction** |
+| Shield / dodges | Left Shift | Right Shift | LT |
 | Steer summons / aim creature shots | T / F / G / H | 8 / 4 / 5 / 6 | Right stick |
 | Pause | Space / Esc | — | Start |
+
+**The D-pad is the domain pad, and every direction opens one.** Movement is the
+left stick. A fighter with a single Domain Expansion — which is all of them
+today — opens it from any of the four; only a fighter with more than one splits
+the pad, up/left for the first and down/right for the second
+(`domainSlotFor` in `src/domains.js`, which the controls screen reads so the two
+cannot disagree).
+
+**Special is the right trigger and B dashes.** Special used to be B while LT and
+RT were both shield, which spent a face button and a trigger on two things that
+never needed both. Double-tap still dashes, on pad and keyboard alike — the
+button is a second way in, not a replacement.
 
 ## 9. Hitboxes vs. visuals
 

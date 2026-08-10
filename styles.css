@@ -80,10 +80,18 @@ html, body {
 
 /* ---------- Persistent utility controls ---------- */
 
+/* Bottom right, not top right. The top of every screen is where the content
+   starts — the select screen's title and hero cards, the stage grid's heading,
+   the match HUD's damage readouts — so a row of chrome up there competes with
+   the thing the player is actually looking at. Down here it is out of the way
+   and still in the corner the hand goes to.
+
+   `bottom`/`right` rather than a transform, so it stays clear of the safe area
+   on a notched phone. */
 .utility-actions {
   position: absolute;
-  top: 14px;
-  right: 16px;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  right: calc(16px + env(safe-area-inset-right, 0px));
   z-index: 30;
   display: flex;
   gap: 7px;

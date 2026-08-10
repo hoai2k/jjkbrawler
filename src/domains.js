@@ -135,6 +135,35 @@ function makeDomain(owner, def, p, color) {
 
 /** Routed from fighter.js: the domain owner pressed a button while it is open.
  *  Returns true when the domain consumed the press. */
+/** Which Domain Expansion a d-pad direction opens, or -1 for none pressed.
+ *
+ *  Every direction opens a domain — a fighter with one opens it from any of
+ *  the four, which is the case for the whole roster today. Only a fighter with
+ *  more than one splits the pad, and then it splits in halves you can find
+ *  without looking: **up and left are the first, down and right the second.**
+ *
+ *  The arithmetic is that rule written once so it degrades rather than
+ *  needing a new branch per count. `ORDER` is up, left, right, down, and the
+ *  index is scaled into the number of domains available: at one they all land
+ *  on 0, at two the first pair lands on 0 and the second on 1, at four each
+ *  direction gets its own.
+ */
+export const DOMAIN_DPAD_ORDER = ["up", "left", "right", "down"];
+
+export function domainSlotFor(dir, count) {
+  if (!dir || count <= 0) return -1;
+  const i = DOMAIN_DPAD_ORDER.indexOf(dir);
+  if (i < 0) return -1;
+  return Math.min(Math.floor((i * count) / DOMAIN_DPAD_ORDER.length), count - 1);
+}
+
+/** Which d-pad directions open domain `slot`, for the controls screen. Derived
+ *  from the same function the game reads, so the screen cannot describe a
+ *  mapping the sim does not have. */
+export function domainDirsFor(slot, count) {
+  return DOMAIN_DPAD_ORDER.filter((dir) => domainSlotFor(dir, count) === slot);
+}
+
 export function domainInput(f, input) {
   const dom = activeDomain(f);
   if (!dom) return false;

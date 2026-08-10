@@ -8,6 +8,7 @@ import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
 import { setSpriteSet, previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
 import { RANDOM_GROUP, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
+import { domainDirsFor } from "./domains.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -854,14 +855,21 @@ function characterBody(c) {
   `;
 }
 
-/** Domain Expansion rows for the moves screen. A fighter can have more than
- *  one, each on its own d-pad direction; most have none at all, and saying so
- *  explicitly is better than an empty section the player has to interpret. */
+/** Domain Expansion rows for the moves screen. Most fighters have none at all,
+ *  and saying so explicitly is better than an empty section the player has to
+ *  interpret.
+ *
+ *  Which arrows open which domain is asked of `domainDirsFor` rather than
+ *  written here, because the answer depends on how many the fighter has: with
+ *  one, every direction opens it; with two, the pad splits up/left and
+ *  down/right. A screen that stated a fixed mapping would be wrong for one of
+ *  those cases and there would be nothing to make it notice. */
 function domainRows(c) {
   const list = c.domains || [];
   if (!list.length) return `<p class="moves-blurb moves-blurb--muted">${TEXT.moves.domainNone}</p>`;
   return `<dl class="moves-table">` + list.map((d, i) => `
-      <dt>${TEXT.moves.domainInputAlt(i)}</dt>
+      <dt>${TEXT.moves.domainInputAlt(
+        domainDirsFor(i, list.length).map((d) => TEXT.moves.domainArrows[d]))}</dt>
       <dd>
         <strong>${d.name}</strong> — ${d.desc} <em>${TEXT.moves.domainNote}</em>
         <span class="domain-howto"><strong>${TEXT.moves.domainHowTo}</strong> ${d.howTo}</span>

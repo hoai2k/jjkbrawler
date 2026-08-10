@@ -731,8 +731,10 @@ The four staged fighters, at the same glance — not selectable yet:
 
 The pinnacle of jujutsu: a barrier that manifests the sorcerer's innate domain
 and, inside it, bends the fight to their technique. In game it is the **second,
-larger super** — **D-pad ▲** on a controller, **U** (P1) / **;** (P2) on
-keyboard, costing a **full** Cursed Energy bar where an ultimate costs half.
+larger super** — **any D-pad direction** on a controller, **U** (P1) / **;**
+(P2) on keyboard, costing a **full** Cursed Energy bar where an ultimate costs
+half. (A fighter with two would split the pad, up/left and down/right; none
+has two yet.)
 
 Seven fighters have one. The design rule for all of them: **a domain you watch
 is a cutscene, a domain you operate is a move.** Every one binds a live

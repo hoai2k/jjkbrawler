@@ -7,9 +7,11 @@ const P1_KEYS = {
   left: ["KeyA"], right: ["KeyD"], up: ["KeyW"], down: ["KeyS"],
   light: ["KeyJ"], heavy: ["KeyK"], special: ["KeyL"], ult: ["KeyI"],
   shield: ["ShiftLeft"],
-  // Domain Expansion. Three slots so a fighter with more than one domain can
-  // bind them separately; only slot 0 is used by the current roster.
-  domain: ["KeyU"], domain2: ["KeyY"], domain3: ["KeyO"],
+  dash: ["KeyQ"],
+  // Domain Expansion. The keyboard's stand-in for the d-pad, so these are
+  // DIRECTIONS rather than domain slots — which domain a direction opens
+  // depends on how many the fighter has (see domainSlotFor in fighter.js).
+  domainUp: ["KeyU"], domainLeft: ["KeyY"], domainRight: ["KeyO"],
   // Summon steering — the keyboard's stand-in for the right stick. A cluster
   // left of the attack keys, so it is reachable without leaving the WASD hand's
   // neighbours; see summons.js for what it drives.
@@ -20,7 +22,8 @@ const P2_KEYS = {
   left: ["ArrowLeft"], right: ["ArrowRight"], up: ["ArrowUp"], down: ["ArrowDown"],
   light: ["Comma", "Numpad1"], heavy: ["Period", "Numpad2"], special: ["Slash", "Numpad3"], ult: ["Quote", "Numpad0"],
   shield: ["ShiftRight", "NumpadEnter"],
-  domain: ["Semicolon", "Numpad5"], domain2: ["BracketLeft", "Numpad4"], domain3: ["BracketRight", "Numpad6"],
+  dash: ["Backslash"],
+  domainUp: ["Semicolon", "Numpad5"], domainLeft: ["BracketLeft", "Numpad4"], domainRight: ["BracketRight", "Numpad6"],
   // The numpad is fully spoken for by P2's buttons, so their steering cluster
   // is the number row in the same 8/4/5/6 shape.
   steerUp: ["Digit8"], steerLeft: ["Digit4"], steerDown: ["Digit5"], steerRight: ["Digit6"],
@@ -143,15 +146,21 @@ function padButtonPressed(pad, i) {
   return !!now[i] && !prev[i];
 }
 
-// Standard mapping: 0 A jump, 1 B special, 2 X light, 3 Y heavy,
-// 4 LB ultimate, 5 RB ultimate, 6/7 LT/RT shield.
+// Standard mapping: 0 A jump, 1 B dash, 2 X light, 3 Y heavy,
+// 4 LB ultimate, 5 RB ultimate, 6 LT shield, 7 RT special.
 //
-// The D-pad (12-15) is the DOMAIN pad, not a second movement stick: up opens a
-// fighter's primary Domain Expansion, left/right open alternates where they
-// have them. Movement is the left analog stick. The d-pad used to duplicate
-// the stick, so nothing that was reachable before became unreachable — but a
-// player who moved on the d-pad has to use the stick now, which is why the
-// controls screen calls it out.
+// Special sits under the RIGHT TRIGGER and dash under B. Special used to be B
+// and RT was a second shield alongside LT, which spent a face button and a
+// trigger on two things that never needed both: a trigger is the natural home
+// for the move you hold a direction with, and shield only ever needed one.
+// Dash was double-tap-only before this and still is as well — the button is a
+// second way in, not a replacement, so nothing anybody had learned stopped
+// working.
+//
+// The D-pad (12-15) is the DOMAIN pad, not a second movement stick, and ALL
+// FOUR directions open one: a fighter with a single domain opens it from any
+// of them, and only a fighter with more than one splits them (see
+// domainSlotFor in fighter.js). Movement is the left analog stick.
 //
 // The RIGHT stick (axes 2/3) steers this player's active summons — nothing
 // else reads it, so a player with no summon out loses nothing by resting a
@@ -169,17 +178,19 @@ function padSnapshot(pad) {
     left, right, up, down,
     aimX: Math.abs(rx) > AIM_DEADZONE ? rx : 0,
     aimY: Math.abs(ry) > AIM_DEADZONE ? ry : 0,
-    domainP: padButtonPressed(pad, 12),
-    domain2P: padButtonPressed(pad, 14),
-    domain3P: padButtonPressed(pad, 15),
+    domainDir: padButtonPressed(pad, 12) ? "up"
+             : padButtonPressed(pad, 14) ? "left"
+             : padButtonPressed(pad, 15) ? "right"
+             : padButtonPressed(pad, 13) ? "down" : null,
     jumpP: padButtonPressed(pad, 0),
     jumpHeld: padButton(pad, 0),
     lightP: padButtonPressed(pad, 2),
     heavyP: padButtonPressed(pad, 3),
     heavyHeld: padButton(pad, 3),
-    specialP: padButtonPressed(pad, 1),
+    specialP: padButtonPressed(pad, 7),
+    dashP: padButtonPressed(pad, 1),
     ultP: padButtonPressed(pad, 4) || padButtonPressed(pad, 5),
-    shieldHeld: padButton(pad, 6) || padButton(pad, 7),
+    shieldHeld: padButton(pad, 6),
     pauseP: padButtonPressed(pad, 9),
   };
 }
@@ -203,9 +214,10 @@ function keysSnapshot(map) {
     specialP: anyPressed(map.special),
     ultP: anyPressed(map.ult),
     shieldHeld: anyHeld(map.shield),
-    domainP: anyPressed(map.domain || []),
-    domain2P: anyPressed(map.domain2 || []),
-    domain3P: anyPressed(map.domain3 || []),
+    dashP: anyPressed(map.dash || []),
+    domainDir: anyPressed(map.domainUp || []) ? "up"
+             : anyPressed(map.domainLeft || []) ? "left"
+             : anyPressed(map.domainRight || []) ? "right" : null,
     pauseP: false,
   };
 }
@@ -215,8 +227,10 @@ export function blankInput() {
     left: false, right: false, up: false, down: false,
     jumpP: false, jumpHeld: false, lightP: false,
     heavyP: false, heavyHeld: false, specialP: false, ultP: false,
-    shieldHeld: false, pauseP: false, dirX: 0,
-    domainP: false, domain2P: false, domain3P: false,
+    shieldHeld: false, pauseP: false, dirX: 0, dashP: false,
+    // Which d-pad direction was pressed this frame, or null. A direction
+    // rather than a slot number: the domain it opens depends on the fighter.
+    domainDir: null,
     // Right-stick summon steering, -1..1 each. Analog on a pad, ±1 on keys.
     aimX: 0, aimY: 0,
   };
@@ -226,6 +240,10 @@ export function blankInput() {
 // furthest, so a pad and a keyboard on the same player cannot cancel out or
 // collapse a stick to a boolean.
 const AXIS_KEYS = new Set(["dirX", "aimX", "aimY"]);
+// Fields that carry a VALUE rather than a flag. Whichever source has one wins,
+// pad first. ORing these would turn "left" into `true`, which reads as a press
+// of no direction at all — and would have made every domain open slot 0.
+const VALUE_KEYS = new Set(["domainDir"]);
 
 function mergeInputs(a, b) {
   const out = blankInput();
@@ -234,6 +252,8 @@ function mergeInputs(a, b) {
       const av = a[key] || 0;
       const bv = b[key] || 0;
       out[key] = Math.abs(av) >= Math.abs(bv) ? av : bv;
+    } else if (VALUE_KEYS.has(key)) {
+      out[key] = a[key] ?? b[key] ?? null;
     } else {
       out[key] = !!(a[key] || b[key]);
     }

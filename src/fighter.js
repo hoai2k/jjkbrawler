@@ -5,7 +5,7 @@ import { lightMove, heavyMove } from "./moves.js";
 import { spawnMelee, opponentOf, updateStatuses } from "./combat.js";
 import { performSpecial, updateSpecialState } from "./specials.js";
 import { performUltimate } from "./ultimates.js";
-import { performDomain, domainInput, canOpenDomain, activeDomain } from "./domains.js";
+import { performDomain, domainInput, canOpenDomain, activeDomain, domainSlotFor } from "./domains.js";
 import { burst, dust, popup, banner, ring } from "./particles.js";
 import { playSfx, playGrunt, playKoCry, startShieldLoop, stopShieldLoop, noteFireBurning } from "./audio.js";
 import { rumbleEvent } from "./rumble.js";
@@ -364,6 +364,15 @@ function resolvePlatforms(f, prevY) {
   }
 }
 
+/** Begin a ground dash in `dir`. Shared by the double tap and the dash button
+ *  so the two cannot drift apart — same duration, same dust, same sound. */
+function startDash(f, dir) {
+  f.dashT = DASH_TIME;
+  f.dashDir = dir;
+  dust(f.x - dir * 20, f.y, 8);
+  playSfx("whoosh", 0.5);
+}
+
 // ------------------------------------------------------------------- KO
 
 export function ringOut(f) {
@@ -661,7 +670,7 @@ export function updateFighter(f, dt, input) {
   // A Domain Expansion costs the entire bar, so silently eating the press
   // because the fighter was two frames into a jab is the worst possible
   // outcome. It buffers like everything else, ahead of the smaller actions.
-  const pressedDomainSlot = input.domainP ? 0 : input.domain2P ? 1 : input.domain3P ? 2 : -1;
+  const pressedDomainSlot = domainSlotFor(input.domainDir, f.char.domains?.length || 0);
   if (pressedDomainSlot >= 0 && f.char.domains?.[pressedDomainSlot]) {
     f.bufferedAction = { kind: "domain", slot: pressedDomainSlot, t: ACTION_BUFFER };
   } else if (input.lightP) f.bufferedAction = { kind: "light", t: ACTION_BUFFER };
@@ -801,6 +810,15 @@ export function updateFighter(f, dt, input) {
   const frPow = state.stageMods.frictionPow || 1;
   const friction = frPow === 1 ? st.friction : Math.pow(st.friction, frPow);
 
+  // The dash BUTTON. Same dash the double tap starts, reachable without
+  // spending a direction on it — which matters most for the thing double tap
+  // is worst at: dashing the way you are already walking, where the second tap
+  // has to come after a release the player did not want to make. Neutral
+  // dashes the way the fighter faces, so it is never a no-op.
+  if (!locked && !f.crouching && f.grounded && input.dashP) {
+    startDash(f, input.dirX || f.facing);
+  }
+
   if (!locked && !f.crouching) {
     const dir = input.dirX;
     if (dir !== 0) {
@@ -808,10 +826,7 @@ export function updateFighter(f, dt, input) {
       const tapped = (dir === 1 && input.right && !f.prevRight) || (dir === -1 && input.left && !f.prevLeft);
       if (tapped && f.grounded) {
         if (f.lastTap.dir === dir && state.matchTime - f.lastTap.t < DASH_TAP_WINDOW) {
-          f.dashT = DASH_TIME;
-          f.dashDir = dir;
-          dust(f.x - dir * 20, f.y, 8);
-          playSfx("whoosh", 0.5);
+          startDash(f, dir);
         }
         f.lastTap = { dir, t: state.matchTime };
       }

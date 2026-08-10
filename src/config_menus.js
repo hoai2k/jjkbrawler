@@ -138,14 +138,19 @@ export const TEXT = {
     next: "Next ▶",
     back: "Back",
     sectionTitle: "Signature techniques",
-    specialNeutral: "B · Special",
-    specialSide: "Side + B",
-    specialDown: "Down + B",
+    specialNeutral: "RT · Special",
+    specialSide: "Side + RT",
+    specialDown: "Down + RT",
     ultimate: "LB / RB",
     ultimateNote: "Costs a FULL Cursed Energy bar.",
     domainSectionTitle: "Domain Expansion",
-    domainInput: "D-pad ▲",
-    domainInputAlt: (n) => ["D-pad ▲", "D-pad ◀", "D-pad ▶"][n] || "D-pad ▲",
+    domainInput: "D-pad",
+    // The d-pad arrows that open one of a fighter's domains. Handed the
+    // directions rather than working them out, because which arrow opens what
+    // depends on how many domains the fighter has — domains.js owns that rule
+    // and ui.js asks it (domainDirsFor).
+    domainArrows: { up: "▲", left: "◀", right: "▶", down: "▼" },
+    domainInputAlt: (dirs) => `D-pad ${dirs.join(" / ")}`,
     domainNote: "Costs a FULL Cursed Energy bar.",
     domainHowTo: "How it plays:",
     domainNone: "This fighter has no Domain Expansion. Only sorcerers who have mastered one can open a domain — for everyone else a full bar means one thing: the ultimate.",
@@ -158,8 +163,8 @@ export const TEXT = {
     backToPlayers: "Your fighters",
     yourKeys: (id) => `Keyboard P${id}:`,
     keyLines: {
-      1: "WASD move · J light · K heavy · L special · I ultimate · U domain · Left Shift shield · TFGH steer summons",
-      2: "Arrows move · , light · . heavy · / special · ' ultimate · ; domain · Right Shift shield · 8456 steer summons",
+      1: "WASD move · J light · K heavy · L special · I ultimate · Q dash · U domain · Left Shift shield · TFGH steer summons",
+      2: "Arrows move · , light · . heavy · / special · ' ultimate · \\ dash · ; domain · Right Shift shield · 8456 steer summons",
       3: "Gamepad only",
       4: "Gamepad only",
     },
@@ -168,13 +173,14 @@ export const TEXT = {
       ["Down in air", "Fast-fall"],
       ["Shield + direction", "Dodge"],
       ["Tap shield on impact", "Parry"],
-      ["D-pad ▲", "Domain Expansion"],
+      ["D-pad (any)", "Domain Expansion"],
+      ["B", "Dash"],
       ["Right stick", "Steer your summons"],
       ["Right stick ▲", "Summon jumps (flyers climb)"],
-      ["Right stick + B", "Aim and fly Nue / cursed spirits"],
+      ["Right stick + RT", "Aim and fly Nue / cursed spirits"],
     ],
     keyboardHint:
-      "Keyboard: P1 uses WASD + J/K/L/I + Left Shift, U for Domain, TFGH to steer summons. P2 uses arrows + ,/./&#47;/&#39; + Right Shift, ; for Domain, 8/4/5/6 to steer summons. The D-pad is the domain pad on a controller — move with the left stick, and the right stick takes over any summon you have on the stage.",
+      "Keyboard: P1 uses WASD + J/K/L/I + Left Shift, Q to dash, U for Domain, TFGH to steer summons. P2 uses arrows + ,/./&#47;/&#39; + Right Shift, \\ to dash, ; for Domain, 8/4/5/6 to steer summons. On a controller special is the RIGHT TRIGGER and B dashes; the whole D-pad is the domain pad, so move with the left stick, and the right stick takes over any summon you have on the stage.",
   },
 
   pause: {
