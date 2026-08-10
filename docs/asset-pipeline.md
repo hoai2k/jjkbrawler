@@ -113,6 +113,30 @@ against comparison boards (see `tools/debug/`):
 Remaining quirks are content issues in the painted sheets, not extraction
 bugs — fixing them means repainting those cells.
 
+## A renamed file makes a fighter invisible
+
+The manifest is the **index**: it names the file each pose draws from, and those
+names move. Hanami's canon redraw renamed all 36 of his — `hanami/incoming/idle_a-2.png`
+became `hanami/idle_a.png` — and a browser holding the previous manifest asked
+for 36 files that no longer existed, got 36 404s, and drew a fighter with no art
+at all. Invisible, silently, and only him: everyone else's paths had not moved.
+
+Two things follow, and both are now in the code:
+
+- **The manifest is fetched `cache: "no-cache"`** (`loadCoreAssets`,
+  `src/assets.js`) — revalidated on every load, so the index can never be older
+  than what it indexes. The images themselves still cache normally; they are
+  addressed by a name that only changes when the drawing does.
+- **A pose that cannot be drawn says so.** `drawCharFrame` returns `false`
+  instead of returning quietly, warns once per pose, and the renderer paints an
+  **ART MISSING** box at the fighter's hurtbox. A fighter who is not on screen
+  points at everything except the art that failed to arrive, which is why this
+  took a bug report to find.
+
+Renaming a delivered file is still fine — that is what `tools/apply_sprite_adjustments.py`
+and the intake tools do — but it is worth knowing that the old path dies with
+the rename, and anybody mid-session is one reload away from it.
+
 ## Preparing delivered effect art
 
 `tools/prep_effects.py` runs over `assets/sprites/effects/` and

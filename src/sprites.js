@@ -499,6 +499,21 @@ export function anchorsForFrame(charKey, frameKey) {
 //             of standing the frame's feet at (x, y). Uses the derived position
 //             when the anchor has not been placed by hand, so a frame gets
 //             sensible behaviour before anyone has visited it in the workbench.
+/** Poses already reported as undrawable, so a 60 fps loop warns once each. */
+const missingReported = new Set();
+
+/** A pose the game asked to draw and could not. Named out loud, because the
+ *  visible symptom — a fighter who simply is not on screen — points at
+ *  everything except the art that failed to arrive. */
+function missingArt(charKey, frameKey, noMeta) {
+  const id = `${charKey}/${frameKey}`;
+  if (missingReported.has(id)) return;
+  missingReported.add(id);
+  console.warn(`sprite missing: ${id} — ${noMeta ? "not in the manifest"
+    : "the manifest names a file that did not load"}. Nothing will be drawn for `
+    + "this pose; a hard reload fixes a stale manifest.");
+}
+
 export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
   // `preview` draws the art being WORKED ON rather than the art in play. Only
   // the workbench passes it, and only so a replacement can be placed before it
@@ -509,7 +524,15 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
   // Nothing in the game passes it.
   const meta = opts.as?.meta || frameMeta(charKey, frameKey, view);
   const img = opts.as?.img || frameImage(charKey, frameKey, view);
-  if (!meta || !img) return;
+  // Nothing to draw. Say so rather than returning quietly: a fighter whose art
+  // fails to load is otherwise INVISIBLE — no error, no gap, just a character
+  // who is not there — which is how a stale manifest full of renamed paths went
+  // unnoticed until somebody tried to play Hanami. The caller decides what to
+  // put in the hole; this only reports that there is one.
+  if (!meta || !img) {
+    missingArt(charKey, frameKey, !meta);
+    return false;
+  }
 
   // renderScale corrects frames whose art is drawn at a different zoom than
   // the character's standing sprites (see tools/extract_sprites.py)
@@ -583,6 +606,7 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
     meta.h * scale
   );
   ctx.restore();
+  return true;
 }
 
 export function currentFrame(charKey, animKey, animTime) {

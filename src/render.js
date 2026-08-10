@@ -442,7 +442,7 @@ function drawFighters(ctx) {
     } else {
       drawTrail(ctx, f);
       const m = fighterTransform(f);
-      drawCharFrame(ctx, spriteKey, frameKey, f.x + shakeX, f.y, {
+      const drew = drawCharFrame(ctx, spriteKey, frameKey, f.x + shakeX, f.y, {
         scale: spriteActor.scale,
         facing: f.facingVis,
         alpha: flicker ? 0.6 : 1,
@@ -459,6 +459,11 @@ function drawFighters(ctx) {
         glow: glowing ? (f.installs ? f.installs.color : f.char.shadow) : f.char.shadow,
         glowBlur: glowing ? 26 : 12,
       });
+      // Art that did not load leaves a fighter who is simply not on screen —
+      // still fighting, still taking damage, invisible. Draw the space they
+      // occupy instead, so a missing sprite reads as a missing sprite rather
+      // than as a bug in the game.
+      if (!drew) drawMissingArt(ctx, f, flicker);
     }
 
     if (f.shielding) drawShieldBubble(ctx, f);
@@ -551,6 +556,29 @@ function drawInstallAura(ctx, f) {
     ctx.closePath();
     ctx.stroke();
   }
+  ctx.restore();
+}
+
+/** Stand-in for a fighter whose art failed to load. Their hurtbox is the honest
+ *  size to draw, being what the game is actually hitting, and the character's
+ *  own shadow colour keeps two of them apart. Deliberately ugly: this is a
+ *  fault, and it should look like one rather than like a style. */
+function drawMissingArt(ctx, f, flicker) {
+  const box = hurtbox(f);
+  ctx.save();
+  ctx.globalAlpha = flicker ? 0.35 : 0.65;
+  ctx.fillStyle = f.char.shadow || "#ff5a6e";
+  ctx.fillRect(box.x, box.y, box.w, box.h);
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = "#ff5a6e";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.strokeRect(box.x, box.y, box.w, box.h);
+  ctx.setLineDash([]);
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 11px system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("ART MISSING", box.x + box.w / 2, box.y - 6);
   ctx.restore();
 }
 
