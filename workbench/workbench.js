@@ -1960,6 +1960,9 @@ function openSpritePicker({ title, sub, current, currentPose = null, onPick,
   grid.innerHTML = "";
   closePickerMenu();
   pickerPage = null;
+  // Scrolling takes the tile out from under the pointer, so whatever it was
+  // showing goes with it.
+  grid.onscroll = () => { cancelDwell(); closePickerPreview(); };
 
   if (drawings) {
     for (const d of drawings) grid.appendChild(buildDrawingTile(d, current, onPick));
@@ -2086,6 +2089,7 @@ function spriteCatalogue(charKey, current, primaryOnly = false) {
 
 function closeSpritePicker() {
   $("spritePicker").hidden = true;
+  cancelDwell();
   pickerWatcher?.disconnect();
   pickerWatcher = null;
   pickerPage = null;
@@ -2134,9 +2138,40 @@ function buildDrawingTile(d, current, onPick) {
   tile.onclick = choose;
   tile.oncontextmenu = (e) => {
     e.preventDefault();
+    cancelDwell();
+    closePickerPreview();
     openPickerMenu(e, d, tile, choose, paint);
   };
+
+  // Dwell to enlarge. A thumbnail is enough to tell an idle from a crouch and
+  // not enough to judge a hand, so the bigger look is what you get for staying
+  // still — no click to spend, and none to spend getting out of it either.
+  // Delayed, or sweeping the grid on the way to one tile would flash the
+  // preview over every tile in the path.
+  tile.onmouseenter = (e) => {
+    let x = e.clientX, y = e.clientY;
+    tile.onmousemove = (m) => { x = m.clientX; y = m.clientY; };
+    startDwell(() => openPickerPreview(d, x, y));
+  };
+  tile.onmouseleave = () => {
+    tile.onmousemove = null;
+    cancelDwell();
+    closePickerPreview();
+  };
   return tile;
+}
+
+const DWELL_MS = 320;
+let dwellTimer = 0;
+
+function startDwell(fn) {
+  cancelDwell();
+  dwellTimer = setTimeout(fn, DWELL_MS);
+}
+
+function cancelDwell() {
+  clearTimeout(dwellTimer);
+  dwellTimer = 0;
 }
 
 // -------------------------------------------------- the tile context menu
@@ -2163,7 +2198,6 @@ function openPickerMenu(e, d, tile, choose, repaint) {
     ? [["Restore this sprite", () => setDrawingDoomed(d, false, tile, repaint)]]
     : [
       ["Choose this sprite", choose],
-      ["See it larger", () => openPickerPreview(d, e.clientX, e.clientY)],
       ["Delete this sprite", spare && d.option ? () => setDrawingDoomed(d, true, tile, repaint) : null,
        "the only drawing this pose has — deleting it would leave a hole"],
     ];
