@@ -229,6 +229,68 @@ try {
   rmSync(join(ROOT, "render3d", "intake", TEST_CHAR), { recursive: true, force: true });
 }
 
+// ---------------------------------------------------------------- IK reach
+//
+// Same claim as the billboard backend, measured the same way — but with one
+// case that only exists here: facing left is a real 180° YAW, not a mirror, so
+// "forward" genuinely changes direction in the world. A reach target built
+// before that yaw is applied sends every left-facing fighter swinging the way
+// they are not facing, and nothing else in the suite would notice.
+{
+  const page = await browser.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e)));
+  await page.goto(`${BASE}/index.html?render=3d`);
+  await page.waitForFunction(async () =>
+    (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
+
+  const r = await page.evaluate(async () => {
+    const THREE = await import("/vendor/three/three.module.js");
+    const rigs = await import("/render3d/src/loader.js");
+    const pose = await import("/render3d/src/pose.js");
+    const charKey = "gojo";
+    const rig = rigs.getRig(charKey);
+    const resolved = rigs.resolveClip(charKey, "light");
+    if (!rig || !resolved) return { skipped: true };
+    const targetPx = 175.3;
+    const out = { worst: 0, cases: [], handYs: [], forwardSigns: [] };
+    for (const [label, dx, dy, facing] of [
+      ["high", 260, 300, 1], ["level", 320, 95, 1],
+      ["low", 260, -30, 1], ["left-facing", 260, 200, -1],
+    ]) {
+      pose.poseRig(rig, "light", 0.083, resolved.clip, {
+        aimRad: 0, reach: { dx, dy, targetPx }, turnYawRad: facing < 0 ? Math.PI : 0,
+      });
+      const sh = new THREE.Vector3(), hand = new THREE.Vector3();
+      rig.root.getObjectByName("RightArm").getWorldPosition(sh);
+      rig.root.getObjectByName("RightHand").getWorldPosition(hand);
+      const want = new THREE.Vector3(0, dy * (rig.height / targetPx), dx * (rig.height / targetPx));
+      rig.root.localToWorld(want);
+      const deg = (Math.acos(Math.min(1, Math.max(-1,
+        want.sub(sh).normalize().dot(hand.clone().sub(sh).normalize())))) * 180) / Math.PI;
+      out.worst = Math.max(out.worst, deg);
+      out.cases.push(`${label}:${deg.toFixed(1)}°`);
+      if (facing > 0) out.handYs.push(hand.y);
+      out.forwardSigns.push(Math.sign(+hand.z.toFixed(2)));
+      rig.root.rotation.y = 0;
+    }
+    out.spread = Math.max(...out.handYs) - Math.min(...out.handYs);
+    return out;
+  });
+
+  if (r.skipped) {
+    check(true, "IK reach skipped — no rig registered for the probe character");
+  } else {
+    check(r.worst < 1, "the striking hand points at the target, every case", `worst ${r.worst.toFixed(2)}° — ${r.cases.join(" ")}`);
+    check(r.spread > 0.2, "and aim height genuinely moves the hand", `${r.spread.toFixed(2)}m of travel`);
+    // Right-facing reaches +Z, left-facing reaches -Z: the turnaround is real.
+    check(r.forwardSigns[0] > 0 && r.forwardSigns[3] < 0,
+      "reach follows the 180° turnaround rather than fighting it", `z signs ${r.forwardSigns.join(",")}`);
+  }
+  check(errors.length === 0, "no page errors solving IK", errors.slice(0, 2).join(" | "));
+  await page.close();
+}
+
 await browser.close();
 console.log(failures ? `\n${failures} check(s) failed` : "\nall checks passed");
 process.exit(failures ? 1 : 0);

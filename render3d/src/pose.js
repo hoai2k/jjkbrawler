@@ -30,6 +30,7 @@
 // not bake it; the delivery rule carries over verbatim.
 
 import { STATES, clipNameFor, clipTime, aimable } from "../../billboards/src/states.js";
+import { applyReach, reaches, makeScratch } from "../../billboards/src/ik.js";
 
 /** The engine-side dials, each independently workbench-editable. */
 export const DIALS = {
@@ -37,6 +38,7 @@ export const DIALS = {
   sampleHz: 13,               // 12–15 per the plan; 13 splits the difference
   onOnesStates: new Set(),    // states that step at full rate (see above)
   aim: true,                  // strikes pitch toward the target
+  reach: true,                // ...and the striking limb solves onto it (ik.js)
   lookAt: true,               // head tracks the opponent in LOOK_STATES
   lookShare: 0.6,             // how much of the aim pitch the head takes
   flinch: true,               // hurt states lean away from the last attacker
@@ -101,9 +103,12 @@ export function flinchSide(animKey, x, aim, facing) {
 
 let THREE = null;
 let _q1, _q2, _q3, _v1, _v2, _v3, _v4;
+let _ik = null, _reachTarget = null;
 
 export function initPose(three) {
   THREE = three;
+  _ik = makeScratch(three);
+  _reachTarget = new three.Vector3();
   _q1 = new THREE.Quaternion();
   _q2 = new THREE.Quaternion();
   _q3 = new THREE.Quaternion();
@@ -212,11 +217,42 @@ function plantFeet(root, animKey) {
  * quantised by the caller (they are part of the cache key).
  */
 export function poseRig(rig, animKey, sampled, clip, layers = {}) {
+  // The turnaround goes on FIRST, before anything reads a world matrix.
+  // Facing here is a real 180° yaw rather than a mirror, so it changes which
+  // way "forward" points in the world — and the reach solve below builds its
+  // target in the rig's own frame and converts through that matrix. Setting
+  // the yaw last (as this did) would have every left-facing fighter reach in
+  // the direction they are NOT facing.
+  rig.root.rotation.y = layers.turnYawRad || 0;
+  rig.root.updateMatrixWorld(true);
+
   playClip(rig, animKey, sampled, clip);
   if (DIALS.aim && layers.aimRad && aimable(animKey)) applyAim(rig.root, layers.aimRad);
+  applyMachineReach(rig, animKey, sampled, layers);
   if (DIALS.lookAt && layers.lookRad) applyLook(rig.root, layers.lookRad);
   applyFlinch(rig.root, layers.flinch || 0);
   applyBreath(rig.root, animKey, sampled);
   plantFeet(rig.root, animKey);
-  rig.root.rotation.y = layers.turnYawRad || 0;
+}
+
+/** Solve the striking limb onto the aim point (billboards/src/ik.js).
+ *
+ *  The offsets arrive in GAME PIXELS along the fighter's facing and up from
+ *  their feet — quantised by aimSolve, because they are part of the cache key.
+ *  Converting is one ratio: the rig is authored in metres and occupies
+ *  `targetPx` pixels on screen. The target is then built in the RIG's own
+ *  frame (+Z is forward, the same axis applyAim pitches about) and pushed
+ *  through localToWorld, which folds in the turnaround, the world placement
+ *  and the instance scale in one step — so this works identically for the flat
+ *  blit, where the rig sits at the origin, and for the in-scene camera path,
+ *  where it stands at the fighter's position scaled to game size. */
+function applyMachineReach(rig, animKey, sampled, layers) {
+  const reach = layers.reach;
+  if (!DIALS.reach || !reach || !reaches(animKey)) return;
+  const targetPx = reach.targetPx || 0;
+  if (targetPx <= 0 || !rig.height) return;
+  const mPerPx = rig.height / targetPx;
+  _reachTarget.set(0, (reach.dy || 0) * mPerPx, (reach.dx || 0) * mPerPx);
+  rig.root.localToWorld(_reachTarget);
+  applyReach(THREE, rig.root, animKey, clipTime(animKey, sampled), _reachTarget, _ik);
 }

@@ -158,8 +158,13 @@ export function poseToken(charKey, animKey, animTime, layers) {
   const look = layers.lookRad ? `~l${Math.round((layers.lookRad * 180) / Math.PI)}` : "";
   const fl = layers.flinch ? `~f${layers.flinch}` : "";
   const turn = layers.turnYawRad ? "~y180" : "";
+  // Reach joins the key: two strikes solved onto different targets are two
+  // different poses, and a cache that ignored that would serve the first one
+  // for every angle after it.
+  const rch = layers.reach && aimable(animKey)
+    ? `~r${layers.reach.dx},${layers.reach.dy}` : "";
   const par = layers.parallaxDeg ? `~p${layers.parallaxDeg}` : "";
-  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${par}~L${lightKey()}`;
+  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${rch}${par}~L${lightKey()}`;
 }
 
 /** For the determinism smoke: drop every cached render. */

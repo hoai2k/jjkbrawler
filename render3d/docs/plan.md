@@ -78,7 +78,7 @@ render3d/
     loader.js      .glb fetch/parse, manifest, clip resolution, all-or-nothing
                    registration; every body converted to toon + outline on load
     pose.js        animKey + animTime -> posed skeleton; on-twos quantisation;
-                   the live layers: aim pitch, look-at, flinch, turnaround,
+                   the live layers: aim pitch, IK reach, look-at, flinch, turnaround,
                    foot IK, breath — each behind a dial in DIALS
     toon.js        the anime materials: ramp, shade-bias, shade tint, rim
     outline.js     inverted-hull ink pass, per-vertex width channel

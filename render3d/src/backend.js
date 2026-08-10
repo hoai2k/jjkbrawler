@@ -30,7 +30,7 @@ import {
   currentFrame as spriteFrame,
   cyclePhase as spriteCycle,
 } from "../../sprites/src/sprites.js";
-import { cycleInfo, aimPitch, aimable, clipNameFor } from "../../billboards/src/states.js";
+import { cycleInfo, aimPitch, aimSolve, aimable, clipNameFor } from "../../billboards/src/states.js";
 import { headHeightTarget } from "../../src/heights.js";
 import { state } from "../../src/state.js";
 import { WORLD } from "../../src/constants.js";
@@ -132,10 +132,17 @@ function liveLayers(charKey, animKey, x, y, opts) {
   const D = pose.DIALS;
   const facing = opts.facing ?? 1;
   const aim = opts.aim || null;
-  const chestY = y - headHeightTarget(charKey) * 0.55;
+  const targetPx = headHeightTarget(charKey);
+  const chestY = y - targetPx * 0.55;
   const pitch = aim ? aimPitch(x, chestY, aim, facing) : 0;
+  // The reach half of the aim solution: where the strike has to land, in game
+  // pixels from the fighter's own origin. Quantised by aimSolve so it can join
+  // the cache key (poseToken) without making every frame of an approach a
+  // unique pose.
+  const solved = aim ? aimSolve(x, y, chestY, aim, facing) : null;
   return {
     aimRad: D.aim && aimable(animKey) ? pitch : 0,
+    reach: solved ? { dx: solved.dx, dy: solved.dy, targetPx } : null,
     lookRad: D.lookAt && pose.LOOK_STATES.has(clipNameFor(animKey)) ? pitch : 0,
     flinch: pose.flinchSide(animKey, x, aim, facing),
     turnYawRad: D.turnaround && facing < 0 ? Math.PI : 0,
@@ -176,11 +183,18 @@ export const scene3d = {
     const facing = opts.facing ?? 1;
     const aim = opts.aim || null;
     const chestY = (opts.chestY ?? 0);
-    const pitch = aim ? aimPitch(opts.x ?? 0, chestY, aim, facing) : 0;
+    const targetPx = headHeightTarget(charKey);
+    // The camera hands over the chest line; the reach offsets are measured
+    // from the FOOT line, so derive it when it is not passed.
+    const footY = opts.y ?? chestY + targetPx * 0.55;
+    const x = opts.x ?? 0;
+    const pitch = aim ? aimPitch(x, chestY, aim, facing) : 0;
+    const solved = aim ? aimSolve(x, footY, chestY, aim, facing) : null;
     const resolved = rigs.resolveClip(charKey, animKey);
     if (!resolved) return false;
     pose.poseRig(inst, animKey, pose.sampleTime(animKey, animTime), resolved.clip, {
       aimRad: D.aim && aimable(animKey) ? pitch : 0,
+      reach: solved ? { dx: solved.dx, dy: solved.dy, targetPx } : null,
       lookRad: D.lookAt && pose.LOOK_STATES.has(clipNameFor(animKey)) ? pitch : 0,
       flinch: pose.flinchSide(animKey, opts.x ?? 0, aim, facing),
       // In a real 3D scene facing is ALWAYS the turnaround — there is no

@@ -22,6 +22,13 @@ the mannequin and a generated test delivery. What it waits on now is art
 
 - **[docs/plan.md](docs/plan.md)** — the implementation plan: the anime
   look, the live layers, the cost model, phases, risks.
+
+Strikes **aim and reach**: attack states pitch toward the target and the
+striking limb is solved onto it by the shared two-bone IK
+(`billboards/src/ik.js` — the same solver, the same clip contract). Facing here
+is a real 180° yaw rather than a mirror, so the reach target is built in the
+rig's own frame and pushed through `localToWorld`; that is what keeps a
+left-facing fighter reaching the way they are actually facing.
 - **[docs/asset-requests.md](docs/asset-requests.md)** — the D-rounds: every
   rig and clip, the D-spec additions over the billboard delivery spec
   (shade-bias map, outline vertex colors, edited normals, shade palettes).
