@@ -29,7 +29,7 @@ why the numbering is not strictly chronological.
 | 14 | Heavy strike frames that extend, a consistent idle stance, and five workbench catches (41 sprites) | Delivered in two batches — the first was approved pose by pose and the rejections answered by the second |
 | 15 | Four new fighters, nine technique effects, four summon minions, four hero cards and a domain backdrop (129 assets) | Delivered — Kurourushi's set closes it |
 | 16 | Six-pose animation sets for seventeen summoned creatures (102 sprites) | Delivered — every creature in the pools now animates |
-| 17 | Hanami redrawn to canon, Mahoraga's three poses, two round-13 catches, and Hanami's hero card (41 sprites, 1 card) | Delivered — **17D, the simplified card set, stays open** |
+| 17 | Hanami redrawn to canon, Mahoraga's three poses, two round-13 catches, Hanami's hero card and a simplified roster tile for all 27 fighters (41 sprites, 28 images) | Delivered |
 
 ---
 
@@ -1628,7 +1628,7 @@ Every set missed the same criterion — `attack_heavy_b` extending a third of
 standing height past the fighter's own idle. Yuki's reached 9%, Dagon's 16%,
 Mechamaru's 20%. Dagon's `crouch_b` drops 21% where a quarter is asked, and
 Mechamaru's `run_reach_a` arrived as a four-figure contact sheet and was not
-imported. They are [18A](asset-requests.md#18a-caught-while-placing-the-round-15-sets--13-sprites), with the rest of what the placement passes found.
+imported. They are [18A](asset-requests.md#18a-caught-while-placing-the-round-15-sets--12-sprites), with the rest of what the placement passes found.
 
 Everything else landed: the crouch pairs, the light pairs, the idles, the run
 cycles, the costumes and all nine effects.
@@ -2292,10 +2292,10 @@ nothing else to register.
 
 ---
 
-# Round 17 — Hanami to canon, Mahoraga, and the last two round-13 catches
+# Round 17 — Hanami to canon, Mahoraga, the last two round-13 catches, and the roster tiles
 
-Delivered except **17D**, the simplified card set, which is still open in
-[asset-requests.md](asset-requests.md).
+**Delivered in full.** 17A–17C and 17E landed first; **17D**, the simplified
+card set, followed and is recorded below — all 27 tiles are in the repo.
 
 **17A is the fourth time a fighter has been drawn as the wrong character** — after
 Gakuganji, Reggie and Uro in 9E — and the first time it was caught in the request
@@ -2440,6 +2440,173 @@ drawn to fill the canvas and the reach is what falls off. Round 15A now says so
 where the four new sets are asked for.
 ---
 
+## 17D. A simplified card for every fighter — 27 images
+
+### Why
+
+**The hero cards do not survive being made small.** Each one is a full-bleed
+640×820 illustration with a painted scene behind the fighter — Gojo on a neon
+skyline, Panda outside a shrine at dusk, Nanami against tower blocks at golden
+hour. At hero size, on the right of the select screen, that is exactly right and
+it should stay.
+
+The same file is also the **roster tile**, and there it is doing a different
+job: the player is scanning two dozen thumbnails for the one they want, and the
+scene is noise. It is already costing something. `styles.css` carries a
+per-card brightness table — `--card-lift`, defaulting to 1.18, with a heavier
+tier for Nanami, Toji, Geto, Reggie, Mei Mei and Gakuganji and a saturation-only
+case for Panda — that exists solely because the art was not all painted at the
+same key and the tiles read murky next to each other. That table is a patch on
+using scene illustrations as icons.
+
+**And it gets worse with every fighter added.** `layoutCharacterGrid()` fits the
+roster by walking depths and then *cropping*: `ROSTER_ASPECTS` runs
+`3/4 → 1/1 → 5/4 → 3/2 → 2/1`, and the tile is `object-fit: cover` anchored to
+the **top**. A bigger roster reaches the wide end of that list sooner, so the
+tile becomes a **letterbox strip off the top of a portrait** — and `object-position: top`
+means it keeps the head and throws the body away. `MIN_CARD_WIDTH` is 96 px, so
+at the far end each fighter is a 96 px-wide band of a painting.
+
+Round 15 takes the roster from 23 to 27, which is the point of asking now rather
+than later. This request is the art that is drawn for that job from the start.
+
+### What this is not
+
+- **Not a replacement.** Every existing `assets/cards/<key>_card.jpg` stays
+  exactly where it is and keeps being the hero card. Nothing is flagged, nothing
+  is deleted, and `assets/reference/cards_previous/` is untouched.
+- **Not wired up.** The game does not read the new directory and this section
+  does not ask for the code that would. It is art banked ahead of a roster big
+  enough to need it — the switch is a one-line change in `buildCharacterCard()`
+  when that day comes, and it can be made per-surface (tiles simplified, hero
+  card and in-match portrait still the painting).
+- **Not a redesign.** Same character, same costume, same palette family as their
+  hero card, so the two read as the same fighter seen at two distances.
+
+### The brief
+
+**A portrait icon, not a scene.** One fighter, chest-up, filling the frame, on a
+plain background. Think a roster icon in a fighting game's character select, or
+an app icon of a person: legible at a glance, legible at a glance *small*, and
+distinguishable from twenty-six others at the same size.
+
+| | |
+|---|---|
+| **Crop** | Head and shoulders to mid-chest. The head is large in the frame — roughly the top half of the image — and centred horizontally |
+| **Background** | Flat or a single soft vertical gradient in the fighter's theme colour (the `theme` field in `src/characters.js`). No scenery, no buildings, no sky, no props behind the figure, no logo, no text |
+| **Lighting** | Even and front-lit. Bright enough to need **no** `--card-lift` correction: the whole point is that all 27 come back at the same key and the brightness table can be deleted |
+| **Detail** | Fewer, larger shapes than the hero card. Simplify folds, hair strands and pattern; keep the two or three things that identify the fighter and drop the rest |
+| **Silhouette** | Readable as a shape. Squint at it: Gojo's blindfold, Nanami's glasses, Maki's ponytail and glasses, Todo's topknot, Momo's hat, Jogo's volcano head should still be the thing you see |
+| **Format** | JPEG, **640 × 820** (3:4), same as the hero cards, so the two are interchangeable in every slot |
+
+**Two crops must both work, because the fitter chooses between them at runtime.**
+Before delivering, check each image twice:
+
+1. **Full 3:4** — the shallow-roster case.
+2. **The top half only, at 2:1** — the crowded-roster case, which is what
+   `object-fit: cover` with `object-position: top` produces at the wide end of
+   `ROSTER_ASPECTS`. The fighter must still be recognisable, which in practice
+   means **the whole head sits inside the top 45% of the image** and nothing that
+   identifies them lives below the shoulders.
+
+**Keep the bottom sixth quiet.** The name plate is drawn over it — white caps on
+a dark gradient — so anything with detail down there is covered up.
+
+### Prompt formula
+
+`[CHARACTER BLOCK]`, head-and-shoulders portrait icon facing the viewer, chest-up
+crop, head filling the upper half of the frame, flat `[THEME COLOUR]` background
+with no scenery or props, even front lighting, simplified shapes and reduced
+detail, `[STYLE SUFFIX]`.
+
+Character blocks are in [Character blocks](#character-blocks) above and are used
+verbatim, exactly as for sprites — **including Hanami's, which was rewritten for
+[17A](asset-requests-history.md#17a-a-full-hanami-set--36-sprites)**. His tile is the pale humanoid curse,
+not the tree.
+
+`[THEME COLOUR]` is the fighter's `theme` in `src/characters.js` — the colour the
+game already uses for their HUD accent and hit flashes, so a tile painted on it
+matches what happens when they land a hit.
+
+| Group | Fighter | Key | Theme |
+|---|---|---|---|
+| Students | Yuji | `yuji` | `#ff8264` |
+| | Nobara | `nobara` | `#d86a4a` |
+| | Megumi | `megumi` | `#7c8cff` |
+| | Yuta | `yuta` | `#9fc7ff` |
+| | Maki | `maki` | `#69d0a8` |
+| | Inumaki | `inumaki` | `#d7d9e7` |
+| | Panda | `panda` | `#8ea0b8` |
+| | Todo | `todo` | `#b66cff` |
+| | Momo | `momo` | `#b7b8ff` |
+| Faculty | Gojo | `gojo` | `#62dcff` |
+| | Nanami | `nanami` | `#ffd35a` |
+| | Mei Mei | `meimei` | `#d8b95c` |
+| | Gakuganji | `gakuganji` | `#d89b3f` |
+| Other Sorcerers | Hakari | `hakari` | `#ff62cf` |
+| | Toji | `toji` | `#a8aeb8` |
+| | Uro | `uro` | `#8fd7e8` |
+| | Reggie Star | `reggie` | `#86d67c` |
+| Curses and Curse Users | Mahito | `mahito` | `#b56cff` |
+| | Jogo | `jogo` | `#ff7a2f` |
+| | Hanami ⚠ | `hanami` | `#9bb36b` |
+| | Geto | `geto` | `#7d58d8` |
+| | Choso | `choso` | `#c22e4a` |
+| | Sukuna | `sukuna` | `#ff4c55` |
+| **Staged (round 15)** | Mechamaru | `mechamaru` | `#63c7b0` |
+| | Yuki Tsukumo | `yuki` | `#ffb703` |
+| | Dagon | `dagon` | `#2f8fd8` |
+| | Kurourushi | `kurourushi` | `#8f3b4e` |
+
+**The last four depend on round 15.** They have no delivered art at all, so
+their tile is drawn from the same wiki render as their hero card in
+[15D](asset-requests-history.md#15d-kurourushis-hero-card--1-image) — and it is worth drawing the two together,
+since the questions are the same and the answer to one settles the other. If
+15A's sprite sets have landed by then, prefer the delivered `idle_a` as every
+other fighter's tile does.
+
+Four themes are close enough to a neighbour's to be worth checking side by side
+before delivering — Todo `#b66cff` against Mahito `#b56cff` are all but
+identical, and Mei Mei `#d8b95c` against Gakuganji `#d89b3f` are near. The
+background is a supporting cue, not the identifier; if two tiles come back
+reading as the same card, it is the *figure* that has to carry the difference.
+
+**Mahoraga is deliberately not in it** — he is a `SPRITE_ACTOR`, nobody selects
+him, and he has no hero card either.
+
+### Where it goes
+
+Deliver to:
+
+```
+assets/intake/cards/simple/<key>_tile.jpg
+```
+
+and it lands at:
+
+```
+assets/cards/simple/<key>_tile.jpg
+```
+
+**`_tile`, not `_card`, and the reason is not cosmetic.** The per-card
+brightness rules in `styles.css` are written as filename suffix matches
+(`img[src$="nanami_card.jpg"]`), which would match `simple/nanami_card.jpg` just
+as happily as the hero card. A simplified card that silently inherited a 1.34×
+lift meant for a murky painting would arrive blown out, and it would take a
+while to work out why. A distinct suffix makes that impossible.
+
+Cards take the short path through the pipeline — no keying, no measuring, no
+manifest entry — so landing these is a move and nothing else.
+
+### Delivered
+
+All 27 tiles are in `assets/cards/simple/<key>_tile.jpg`. They are **banked, not
+wired up**, exactly as the request asked: `buildCharacterCard()` still draws the
+hero painting in every slot, and switching the roster grid to the tiles is the
+one-line change described above whenever the roster is big enough to want it.
+
+---
+
 ## 17E. Hanami's hero card, redrawn to canon — 1 image
 
 ### Why
@@ -2448,7 +2615,7 @@ where the four new sets are asked for.
 bark-and-vine giant lit through a forest canopy, a glowing lotus in one hand —
 and it is the same wrong design as every one of his sprites.
 [17A](#17a-a-full-hanami-set--36-sprites) replaces the sprites and
-[17D](asset-requests.md#17d-a-simplified-card-for-every-fighter--27-images) draws his tile from
+[17D](#17d-a-simplified-card-for-every-fighter--27-images) draws his tile from
 canon; without this the card is the last place in the game still showing the old
 character, and it is the **largest** place — the hero panel on the select screen
 and the portrait in the match HUD both draw it at full size.
