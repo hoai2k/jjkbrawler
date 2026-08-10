@@ -98,21 +98,34 @@ export function lightKey() {
   return `${state.stageKey || "-"}${state.domain ? "+dom" : ""}`;
 }
 
+/** The stage's light, as numbers — key colour and rim colour derived from the
+ *  stage `tint`. Exported because the 2.5D camera builds its OWN light rig
+ *  (it puts the actual rig in its own scene rather than taking a texture from
+ *  this one) and both must agree, or the same fighter is lit two ways
+ *  depending on a URL flag. Returns null for a stage with no tint. */
+export function stageLightTint() {
+  const tint = parseTint(getStage?.(state.stageKey)?.tint);
+  if (!tint) return null;
+  const boost = 0.55;
+  return {
+    // Key colour leans toward the stage tint...
+    key: [1 - (1 - tint[0]) * 0.35, 1 - (1 - tint[1]) * 0.35, 1 - (1 - tint[2]) * 0.35],
+    // ...and the rim takes it brightened — the thin stage-coloured line that
+    // seats a figure against a painted room.
+    rim: [tint[0] + (1 - tint[0]) * boost,
+          tint[1] + (1 - tint[1]) * boost,
+          tint[2] + (1 - tint[2]) * boost],
+  };
+}
+
 function syncStageLight() {
   const key = lightKey();
   if (key === rimStage) return;
   rimStage = key;
-  const tint = parseTint(getStage?.(state.stageKey)?.tint);
-  if (!tint) return;
-  // Key color leans toward the stage tint; rim takes the tint brightened —
-  // the thin stage-colored line that seats a figure against a painted room.
-  keyLight.color.setRGB(1 - (1 - tint[0]) * 0.35, 1 - (1 - tint[1]) * 0.35, 1 - (1 - tint[2]) * 0.35);
-  const boost = 0.55;
-  setRimColor(
-    tint[0] + (1 - tint[0]) * boost,
-    tint[1] + (1 - tint[1]) * boost,
-    tint[2] + (1 - tint[2]) * boost,
-  );
+  const t = stageLightTint();
+  if (!t) return;
+  keyLight.color.setRGB(...t.key);
+  setRimColor(...t.rim);
 }
 
 // ------------------------------------------------------------ framing

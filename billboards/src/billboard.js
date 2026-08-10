@@ -115,6 +115,34 @@ export function cyclePhase(charKey, animKey, animTime) {
   return spriteCycle(charKey, animKey, animTime);
 }
 
+// ------------------------------------------------- the 2.5D camera adapter
+//
+// Under `?camera=3d` this backend's native form is exactly what its name says:
+// a CARD. Its whole identity is "pose a rig, render it once, cache the
+// texture, draw it flat" — the quantised pose cache is the economics, and the
+// fixed ¾ camera is the look. So in the camera's scene it stays a textured
+// quad; it just gets the POSED-MODEL texture instead of a sprite sheet frame.
+//
+// (The render3d backend answers this question differently — it hands over the
+// rig itself, because there the model really is live geometry. Same seam, two
+// honest answers.)
+export const scene3d = {
+  kind: "texture",
+  ready: () => ready,
+  /** { canvas, heightM, rowsPerMetre } for the pose, or null to fall back. */
+  poseTexture(charKey, animKey, animTime, opts = {}) {
+    if (!hasModel(charKey)) return null;
+    try {
+      const pitch = opts.aim
+        ? aimPitch(opts.x ?? 0, opts.chestY ?? 0, opts.aim, opts.facing ?? 1) : 0;
+      return renderer.renderPose(charKey, animKey, animTime, rigs.resolveClip, pitch);
+    } catch (err) {
+      warnOnce(`scene:${charKey}`, `billboards: posing ${charKey}/${animKey} for the 2.5D camera failed (${err.message}) — drawing their sprites instead.`);
+      return null;
+    }
+  },
+};
+
 export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
   const m = typeof frameKey === "string" ? TOKEN.exec(frameKey) : null;
   if (!m || !hasModel(charKey)) {

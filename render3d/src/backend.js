@@ -37,10 +37,11 @@ import { WORLD } from "../../src/constants.js";
 
 let ready = false;
 let initFailed = false;
-let rigs = null;   // ./loader.js
-let scene = null;  // ./scene.js
-let pose = null;   // ./pose.js
-let blit = null;   // ./blit.js
+let rigs = null;    // ./loader.js
+let scene = null;   // ./scene.js
+let pose = null;    // ./pose.js
+let blit = null;    // ./blit.js
+let outline = null; // ./outline.js — only the 2.5D-camera adapter needs it
 
 const TOKEN = /^r3d:([^@]+)@(-?[\d.]+)$/;
 const warned = new Set();
@@ -56,18 +57,20 @@ function warnOnce(key, msg) {
 export async function init() {
   if (ready || initFailed) return;
   try {
-    const [three, loaderMod, rigMod, poseMod, sceneMod, blitMod] = await Promise.all([
+    const [three, loaderMod, rigMod, poseMod, sceneMod, blitMod, outlineMod] = await Promise.all([
       import("../../vendor/three/three.module.js"),
       import("../../vendor/three/loaders/GLTFLoader.js"),
       import("./loader.js"),
       import("./pose.js"),
       import("./scene.js"),
       import("./blit.js"),
+      import("./outline.js"),
     ]);
     rigs = rigMod;
     pose = poseMod;
     scene = sceneMod;
     blit = blitMod;
+    outline = outlineMod;
     pose.initPose(three);
     scene.initScene(three);
 
@@ -139,6 +142,63 @@ function liveLayers(charKey, animKey, x, y, opts) {
     parallaxDeg: pose.parallaxDeg(x, state.camera?.x ?? WORLD.w / 2, WORLD.w / 2),
   };
 }
+
+// ------------------------------------------------- the 2.5D camera adapter
+//
+// `?camera=3d` runs the whole game inside a real perspective camera. For THIS
+// backend the native answer there is not a texture: the fighter already IS a
+// rigged model in a three.js scene, so it goes into the camera's scene as
+// geometry and gets rendered by the game's own camera — real perspective,
+// real depth against the extruded platforms, real foreshortening on a strike
+// toward the lens, and occlusion that comes out of the depth buffer instead
+// of a painter's-algorithm sort.
+//
+// That also RETIRES two compensations this backend needs when it is blitting
+// flat: the per-character camera (the real one frames everyone) and the
+// micro-parallax yaw, which exists only to fake what a moving camera does for
+// free. `poseInstance` therefore drops the parallax layer and keeps the ones
+// that are art direction rather than compensation — on-twos sampling, aim,
+// look-at, flinch, the turnaround, foot IK, breath.
+export const scene3d = {
+  kind: "object",
+  ready: () => ready,
+  /** A private posable copy of this character's rig for one fighter. */
+  instance(charKey, instanceId) {
+    return ready && rigs.hasRig(charKey) ? rigs.acquireInstance(charKey, instanceId) : null;
+  },
+  releaseExcept(live) {
+    if (ready) rigs.releaseInstancesExcept(live);
+  },
+  /** Pose an instance for this frame. `opts` carries facing and the aim
+   *  point, exactly as drawCharFrame receives them. */
+  poseInstance(inst, charKey, animKey, animTime, opts = {}) {
+    const D = pose.DIALS;
+    const facing = opts.facing ?? 1;
+    const aim = opts.aim || null;
+    const chestY = (opts.chestY ?? 0);
+    const pitch = aim ? aimPitch(opts.x ?? 0, chestY, aim, facing) : 0;
+    const resolved = rigs.resolveClip(charKey, animKey);
+    if (!resolved) return false;
+    pose.poseRig(inst, animKey, pose.sampleTime(animKey, animTime), resolved.clip, {
+      aimRad: D.aim && aimable(animKey) ? pitch : 0,
+      lookRad: D.lookAt && pose.LOOK_STATES.has(clipNameFor(animKey)) ? pitch : 0,
+      flinch: pose.flinchSide(animKey, opts.x ?? 0, aim, facing),
+      // In a real 3D scene facing is ALWAYS the turnaround — there is no
+      // mirror to fall back on, and a negative scale would invert the winding.
+      turnYawRad: facing < 0 ? Math.PI : 0,
+    });
+    return true;
+  },
+  /** The stage-derived key/rim colours, so the camera's own light rig agrees
+   *  with the one the flat path renders under. */
+  lightTint: () => scene.stageLightTint(),
+  /** Outline width is authored in blitted pixels; in-scene it has to become a
+   *  LOCAL displacement, since the instance is uniformly scaled to game size.
+   *  local = px * heightM / onScreenHeightPx, applied by outline.js. */
+  setOutlineScale(root, heightM, onScreenPx) {
+    outline.setWorldWidth(root, onScreenPx > 0 ? heightM / onScreenPx : 0);
+  },
+};
 
 export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
   const m = typeof frameKey === "string" ? TOKEN.exec(frameKey) : null;
