@@ -1,66 +1,95 @@
 # `billboards/` — the 2.5D character rendering path
 
 3D models, posed and rendered to a texture, blitted into the same 2D world the
-sprite path draws into. **A stub today**: the backend is registered and
-playable, but no models are loaded, so every character falls through to sprites.
+sprite path draws into. **Phase B0 is built**: the full pipeline — vendored
+engine, rig registry, pose cache, offscreen renderer, blit, workbench, intake —
+runs today, proven by a code-built mannequin and a generated test delivery.
+What it waits on now is art: no real rig has been delivered, so every fighter
+draws sprites until one lands (round B1 in
+[docs/asset-requests.md](docs/asset-requests.md)).
 
     node server.mjs
-    open 'http://127.0.0.1:5174/?render=billboard'
+    open 'http://127.0.0.1:5174/?render=billboard'               # the real thing
+    open 'http://127.0.0.1:5174/?render=billboard&mannequin=all' # the proof body
+    open 'http://127.0.0.1:5174/billboards/workbench/'           # the review tool
 
-It plays exactly like `?render=sprite` right now, and will keep doing so for any
-character without a model — the fallthrough is per character, not per build, so
-one rigged fighter can stand in a match against 27 sprite ones.
+`?render=billboards` and `?render=sprites` work too — the plural spellings are
+aliases (src/render_backend.js), not typos.
 
 - **[docs/plan.md](docs/plan.md)** — the implementation plan: decisions,
-  architecture, phases B0–B4, risks.
+  architecture, phases, risks.
 - **[docs/asset-requests.md](docs/asset-requests.md)** — every rig and clip the
-  roster needs, with the delivery spec and per-state timing contract. Round B1
-  (the Yuji pilot) is the one to draw against.
+  roster needs: delivery spec, clip timing contract, prop and chain bone
+  naming, the aim contract. Round B1 (the Yuji pilot) is open.
+- **[intake/README.md](intake/README.md)** — where deliveries land and how they
+  get into the game. Separate from the sprite intake on purpose.
 
 ```
 billboards/
-  src/         billboard.js — the backend (stubbed)
-  assets/      approved runtime models, as billboards/assets/<char>/
-  intake/      where deliveries land first — see docs/asset-requests.md
-  docs/        the plan and the asset requests
+  src/         the pipeline: billboard.js (backend entry), rig.js (registry +
+               clip inheritance), renderer.js (offscreen WebGL + pose cache),
+               blit.js, states.js (the 26-state contract), mannequin.js (the
+               proof body + THE DEFAULT POSE SET), props.js (weapons, props,
+               physics chains)
+  workbench/   /billboards/workbench/ — model vs sprite ghost, aim target,
+               per-state clip inheritance editor, approval
+  vendor/      three.js r185, vendored (VENDOR.md) — only src/ may import it,
+               only via dynamic import(), so sprite players never load it
+  assets/      approved runtime rigs + manifest.json (the index)
+  intake/      where deliveries land first
 ```
 
-## The design in one paragraph
+## How it works, in one paragraph
 
-Keep the game 2D. `render.js` asks for a character at `(x, y)` with a facing and
-a scale and gets back a rectangle of pixels; whether those pixels came from a
-PNG or from a WebGL render of a posed model is not its business. That preserves
-`camera.js`, the y-sorted draw order, shadows, strike arcs, `stage_fx.js`,
-`domains.js`, `ultimates.js` and every layering decision in `draw()`. Moving the
-whole scene into a 3D engine would throw all of that away — that is a rewrite,
-not 2.5D.
+Keep the game 2D. `render.js` asks for a character at `(x, y)` with a facing
+and a scale and gets back a rectangle of pixels; whether those came from a PNG
+or a WebGL render of a posed model is not its business. One offscreen renderer
+poses a rig per unique `(character, state, quantised time, aim)` and caches the
+texture — most states are holds, so a fighter costs a couple of renders a
+second, not sixty. The blit anchors the foot line to `(x, y)` and applies the
+same mirror/squash/rotate arithmetic as sprites.js, so every piece of game feel
+in motion.js reads identically on both backends. Characters without a rig fall
+through to sprites per character, per draw — one delivered fighter plays in a
+roster of 27 sprite ones, and every failure (bad load, missing clip, render
+error) degrades to sprites loudly rather than to an invisible fighter.
 
-## What has to be built
+## The default pose set and clip inheritance
 
-1. **Model loading** into `billboards/assets/<char>/` — glTF plus one clip per
-   animation state, named for the keys of `SEMANTIC_ANIMS` in
-   `src/characters.js`. A model missing one has a hole in its move set. **This,
-   not the code, is the project** — though rigged clips retarget where sprite
-   drawings never could, so the shared-library plan in
-   [docs/asset-requests.md](docs/asset-requests.md) buys the roster for ~250
-   clips rather than 26 × 28.
-2. **A pose cache.** `currentFrame` runs every frame for every fighter, so the
-   token it returns should identify a pose — letting identical poses reuse one
-   rendered texture.
-3. **The offscreen renderer and the blit**, reusing the placement arithmetic
-   `sprites/src/sprites.js` already does: foot line at `(x, y)`, mirrored by
-   facing, rotated about the centre of mass.
-4. **Gameplay measurements — resolved, differently than first sketched.**
-   `bodyWidth` (`src/silhouette.js`) and `headHeightTarget` (`src/heights.js`)
-   size hurtboxes and reach off the sprite silhouettes, and they **keep doing
-   so on every backend**: a model changes how a fighter looks, never how they
-   play, so both render modes stay one game. The burden moves to delivery — a
-   model must match its fighter's sprite silhouette (the billboard workbench
-   overlays the two). Full reasoning in [docs/plan.md](docs/plan.md).
+The mannequin's programmatic clips are **the default pose set**: any state a
+rig does not cover, and nothing else answers, plays the default clip on that
+rig — so a fighter delivered with only their six identity clips is playable on
+day one. Between "own" and "default" sits inheritance, edited in the workbench
+and stored in `assets/manifest.json`: a per-state override ("draw `sideHeavy`
+with Todo's clip"), or a whole-set fallback (`inheritClips`). Clips bind by
+bone name and every rig honours the standard skeleton, which is what makes a
+clip portable between rigs. Resolution order — hand-set override, own clip,
+inherited set, default — is `resolveClip` in `src/rig.js`.
+
+## Weapons, props, physics, aim
+
+- **Props are rig bones** (`Prop_Main`, `Prop_Off`, `Prop_Float`), never
+  separate files. The mannequin hangs crude placeholders for every fighter the
+  roster table arms (props.js) so clips are authored against the silhouette
+  that will actually swing.
+- **Physics chains** (`Chain_<name>_<i>` — Mei Mei's braid, Dagon's tendrils)
+  sway deterministically off the pose clock, which keeps the pose cache honest;
+  true integration is a per-rig opt-in later, at per-frame render cost.
+- **Strikes aim.** Aimable states pitch toward a target — the controller's
+  point when input sets `fighter.aimPoint`, else the nearest opponent
+  (render.js) — applied at pose time across the spine, quantised into the
+  cache key. Clips are authored aim-neutral; the workbench's draggable
+  crosshair is the same math the game runs.
+
+## Gameplay parity
+
+`bodyWidth` and `headHeightTarget` stay sprite-derived on **every** backend: a
+model changes how a fighter looks, never how they play. The delivery bears the
+burden instead — a rig must match its fighter's sprite silhouette, checked by
+overlay in the workbench. Full reasoning in [docs/plan.md](docs/plan.md).
 
 ## Contract
 
-Anything here must honour what `src/render_backend.js` documents, in particular:
-`drawCharFrame` returns **false** when it cannot draw (so `render.js` paints its
-placeholder instead of leaving an invisible fighter), and leaves the canvas
-context exactly as it found it.
+Everything here honours what `src/render_backend.js` documents: `drawCharFrame`
+returns **false** only when nothing could draw (render.js then paints its
+placeholder), and leaves the canvas context exactly as it found it. Verified by
+`tools/smoke_billboard.mjs`, which is phase B0's exit criteria as a script.

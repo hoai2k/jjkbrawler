@@ -18,6 +18,7 @@ import { headHeightTarget } from "./heights.js";
 import { strikeArcs, visibleArtReach, swingExtent } from "./moves.js";
 import { bodyWidth } from "./silhouette.js";
 import { respawnX } from "./fighter.js";
+import { isFoe } from "./teams.js";
 
 export function draw(ctx) {
   ctx.clearRect(0, 0, WORLD.w, WORLD.h);
@@ -445,6 +446,11 @@ function drawFighters(ctx) {
       const drew = drawCharFrame(ctx, spriteKey, frameKey, f.x + shakeX, f.y, {
         scale: spriteActor.scale,
         facing: f.facingVis,
+        // Strike aiming, for backends that pose per draw (billboards): an
+        // explicit controller point when input has set one on the fighter,
+        // otherwise the nearest live opponent. The sprite backend ignores it —
+        // a drawing cannot re-aim.
+        aim: f.aimPoint || nearestOpponentPoint(f),
         alpha: flicker ? 0.6 : 1,
         rotation: m.rotation,
         scaleX: m.scaleX,
@@ -474,6 +480,23 @@ function drawFighters(ctx) {
     if (f.statuses.blind > 0) drawBlindSplatter(ctx, f);
     drawShieldMeter(ctx, f);
   }
+}
+
+// Auto-aim target: the nearest live opponent's chest, or null alone on stage.
+// Only consumed by pose-per-draw backends; computed here because "who is the
+// nearest opponent" is game state the renderer should not go digging for.
+function nearestOpponentPoint(f) {
+  let best = null;
+  let bestD = Infinity;
+  for (const o of state.fighters) {
+    if (o.dead || o.respawnTimer > 0 || !isFoe(f, o)) continue;
+    const d = Math.abs(o.x - f.x) + Math.abs(o.y - f.y);
+    if (d < bestD) {
+      bestD = d;
+      best = o;
+    }
+  }
+  return best ? { x: best.x, y: best.y - 80 } : null;
 }
 
 // Afterimages behind a dash, roll, air dodge or tumble. The cheapest possible

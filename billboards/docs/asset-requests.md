@@ -7,7 +7,10 @@ everything here is **outstanding**, delivered rounds move to a history file
 when the first one lands, and round numbers (B1, B2…) are permanent so commits
 citing them keep resolving.
 
-**Current status: nothing delivered. B1 is the round to draw against.** B2–B4
+**Current status: nothing delivered — but the pipeline is built and waiting**
+(phase B0: intake, validation, workbench review, inheritance and the default
+pose set all run today against the mannequin — see [plan.md](plan.md)).
+**B1 is the round to draw against.** B2–B4
 are written now so the total shape and budget of the project is a decision made
 once, up front — not discovered one fighter at a time.
 
@@ -36,7 +39,9 @@ the sprite request history. Model the fighter that image shows.
 
 ## Where to deliver
 
-**Upload to `billboards/intake/`, never to `billboards/assets/`.**
+**Upload to `billboards/intake/`, never to `billboards/assets/`.** The flow —
+validate, import, workbench review, apply — is [../intake/README.md](../intake/README.md);
+it is deliberately separate from the sprite intake.
 
 ```
 billboards/intake/<char>/<char>.glb        the fighter: rig, mesh, materials,
@@ -70,7 +75,22 @@ glTF 2.0 **binary** (`.glb`), one fighter per file.
   top, never renames.
 - **Props are part of the rig.** Nobara's hammer, Maki's polearm, Momo's broom,
   Gakuganji's guitar: own bone(s), parented to the hand or back as the sprites
-  show them. A separate prop file is a prop that drifts.
+  show them. A separate prop file is a prop that drifts. Naming is fixed so
+  clips and tools can find them: `Prop_Main` (the weapon hand), `Prop_Off`
+  (off-hand), `Prop_Float` (rides near the body in nobody's hand — Mahoraga's
+  wheel). The mannequin carries crude placeholders on the same bones
+  (src/props.js), so archetype clips are authored against the weapon
+  silhouette from day one.
+- **Physics chains** — braids, tendrils, anything that should trail the body —
+  are bone chains named `Chain_<name>_<i>` (i = 0 at the root: Mei Mei's braid
+  is `Chain_braid_0…3` hanging from `Head`). The engine drives them with a
+  deterministic sway; do NOT bake secondary motion into clips. Expected chains
+  per fighter are in CHARACTER_CHAINS (src/props.js) and the roster table.
+- **Strikes are aimed by the engine.** Attack states pitch toward a target —
+  the nearest opponent, or the controller's aim point — applied across the
+  spine at pose time. Author every attack clip AIM-NEUTRAL: a straight, level
+  strike. A clip that bakes its own up-or-down angle fights the aim system,
+  and the workbench's target crosshair will show it double-pitching.
 - **Mesh budget:** ≤30k triangles standard build, ≤60k for the bulk bodies.
   Skinning ≤4 influences per vertex.
 - **Materials:** baseColor texture only, ≤2048px, no baked lighting, no

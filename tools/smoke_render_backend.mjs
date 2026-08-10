@@ -21,6 +21,10 @@ const BASE = process.argv[2] || "http://127.0.0.1:5174";
 const CASES = [
   ["", "sprite", false],
   ["?render=sprite", "sprite", false],
+  // Plural spellings are aliases, not typos — both nouns read naturally as
+  // plurals, so neither may cost a fallback warning.
+  ["?render=sprites", "sprite", false],
+  ["?render=billboards", "billboard", false],
   // The 2.5D path. Registered and playable while stubbed: with no models
   // loaded every character falls through to sprites, so this must select
   // `billboard` AND still boot a working game rather than a blank stage.

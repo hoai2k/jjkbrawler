@@ -68,15 +68,26 @@ const BACKENDS = {
     cyclePhase: spriteCycle,
   },
   // 2.5D: posed 3D models rendered to a texture and blitted into the same 2D
-  // world. A stub today — every character falls through to sprites until a
-  // model is loaded for them, per character rather than per build. See
-  // billboards/src/billboard.js for what is left to build.
+  // world. Characters with a rig draw as models; everyone else falls through
+  // to sprites, per character rather than per build. `init` loads the 3D
+  // engine and the rigs lazily — only a selection pays that cost.
   billboard: {
-    label: "2.5D billboarded models (stub)",
+    label: "2.5D billboarded models",
     drawCharFrame: billboard.drawCharFrame,
     currentFrame: billboard.currentFrame,
     cyclePhase: billboard.cyclePhase,
+    init: billboard.init,
   },
+};
+
+// Spellings people will actually type. Both nouns read naturally as plurals
+// (`?render=sprites`, `?render=billboards`), so both resolve — a URL that is
+// obviously naming a backend should never cost a fallback warning.
+const ALIASES = {
+  sprites: "sprite",
+  billboards: "billboard",
+  "2d": "sprite",
+  "2.5d": "billboard",
 };
 
 const DEFAULT_BACKEND = "sprite";
@@ -92,8 +103,9 @@ let active = BACKENDS[DEFAULT_BACKEND];
  *  the game and say so, not leave a blank page. Returns the name actually in
  *  force so the caller can report it. */
 export function selectRenderBackend(name) {
-  if (name && BACKENDS[name]) {
-    activeName = name;
+  const resolved = ALIASES[name?.toLowerCase?.()] || name;
+  if (resolved && BACKENDS[resolved]) {
+    activeName = resolved;
   } else {
     if (name) {
       console.warn(`render backend "${name}" is not registered — using `
@@ -102,6 +114,10 @@ export function selectRenderBackend(name) {
     activeName = DEFAULT_BACKEND;
   }
   active = BACKENDS[activeName];
+  // A backend with startup work (the billboard path loads its engine and rigs)
+  // starts it now, async; drawing before it resolves falls through to sprites,
+  // which is the fallthrough behaving as designed rather than a race.
+  active.init?.();
   return activeName;
 }
 

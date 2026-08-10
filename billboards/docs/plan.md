@@ -126,7 +126,7 @@ as its floor.
 Named to match the asset rounds (B1, B2…) in asset-requests.md, but the first
 phase needs no art at all — that is the point of it.
 
-### Phase B0 — prove the pipe with a mannequin *(no deliveries)*
+### Phase B0 — prove the pipe with a mannequin *(no deliveries)* — **DONE**
 
 Vendor three.js. Build loader/pose/renderer/blit. Then, instead of waiting for
 art, construct a **procedural mannequin** — a code-built skinned capsule figure

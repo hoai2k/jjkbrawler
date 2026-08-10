@@ -1,109 +1,135 @@
-// The billboard backend — 2.5D characters, STUBBED.
+// The billboard backend — 2.5D characters: posed 3D models rendered to a
+// texture and blitted into the same 2D world the sprites draw in.
 //
-// Nothing here draws a model yet. This is the shape the real one will have,
-// wired far enough into the game that `?render=billboard` is a thing you can
-// load and watch fail honestly, rather than a plan in a document.
+// Selected with `?render=billboard` (or `billboards` — see the aliases in
+// src/render_backend.js). Everything heavy — the vendored three.js, the rigs,
+// the offscreen renderer — loads through dynamic import() from init(), which
+// render_backend calls only when this backend is chosen: a player on the
+// sprite path never downloads a 3D engine.
 //
-// ---------------------------------------------------------------------------
-// THE IDEA
+// PER-CHARACTER FALLTHROUGH. A character with no rig draws their sprites,
+// inside the same match as one with a rig. That is the rollout model, not a
+// stopgap: models land one fighter at a time (billboards/docs/asset-requests.md)
+// and every unanswered character keeps playing exactly as before. It is also
+// the failure model — a rig that fails to load, or a pose that fails to
+// render, warns once and falls through, because a fighter drawn as their
+// sprite is strictly better than a fighter drawn as nothing.
 //
-// Render each fighter's posed 3D model to an offscreen canvas, then blit that
-// canvas into the 2D world exactly where the sprite would have gone. The game
-// stays 2D. Everything that makes the scene work — the camera, the y-sorted
-// draw order, shadows, strike arcs, stage effects, domain overlays, hitboxes —
-// is untouched, because from render.js's point of view a character is still a
-// rectangle of pixels drawn at (x, y) with a facing and a scale.
+// THE MANNEQUIN. `?render=billboard&mannequin=all` (or `&mannequin=gojo,yuji`)
+// registers the grey proof figure for those characters — the B0 harness that
+// exercises the whole pipeline with no delivered art. It never displaces a
+// delivered rig.
 //
-// The alternative, moving the whole scene into a 3D engine, throws away
-// stage_fx.js, domains.js, ultimates.js and every hand-tuned layering decision
-// in draw(). That is not 2.5D, it is a rewrite. This backend exists so it never
-// has to be one.
+// TOKENS. currentFrame returns `bb:<animKey>@<animTime>` for rigged
+// characters. The game treats frame tokens as opaque (it stores them on the
+// afterimage trail and hands them back), so the token carries everything
+// drawCharFrame needs to re-pose the model — including for trail ghosts drawn
+// a dozen sim-ticks after the fighter moved on. A token that is NOT ours
+// (recorded before a rig registered, or belonging to a sprite fighter) falls
+// through to the sprite renderer, which knows what to do with it.
 //
-// A consequence worth stating: the choice is PER CHARACTER, not per build. A
-// fighter with no model can fall through to the sprite backend and stand in the
-// same match as one with a model. See `hasModel` below — that fallthrough is
-// why this file imports the sprite backend rather than replacing it.
-//
-// ---------------------------------------------------------------------------
-// WHAT IS LEFT TO BUILD
-//
-//   1. Model loading. `billboards/assets/<char>/` — glTF plus a clip per
-//      animation state. The state names are not ours to choose: they are the
-//      keys of DEFAULT_ANIMS in src/characters.js (idle, run, dash, jump, fall,
-//      land, hurt, crouch, crouchAttack, shield, ledge, dodge_roll, dodge_air,
-//      light, airLight, sideHeavy, upHeavy, downHeavy, charge, specialNeutral,
-//      specialSide, specialDown, ult, dizzy — about 25). A model that does not
-//      answer all of them is a model with holes in its move set.
-//
-//   2. A pose cache. `currentFrame` is called every frame for every fighter and
-//      must stay cheap. Sampling a clip at a time and rendering it is not; the
-//      token this returns should identify a POSE, so identical poses across
-//      frames and across fighters hit the same rendered texture.
-//
-//   3. The WebGL context and the blit. One offscreen renderer shared by every
-//      fighter, drawn into the 2D context by the same transform arithmetic
-//      sprites.js already does — foot line at (x, y), mirrored by facing,
-//      rotated about the centre of mass.
-//
-//   4. Nothing, for `bodyWidth` (src/silhouette.js) and `headHeightTarget`
-//      (src/heights.js) — decided in docs/plan.md. Those gameplay numbers stay
-//      measured off the sprite silhouettes on EVERY backend, so a matchup plays
-//      identically whichever way it is drawn; instead, a delivered model must
-//      match its fighter's sprite silhouette, and the billboard workbench
-//      overlays the two to check. (Still outside the render backend contract —
-//      see the note in src/render_backend.js.)
-//
-// Until 1-3 exist, every character reports no model and draws as a sprite, so
-// `?render=billboard` plays exactly like `?render=sprite`. That is the intended
-// stub behaviour: a backend that is registered and honest, not one that paints
-// an empty screen.
+// GAMEPLAY is untouched here by design: hurtboxes, reach and height stay
+// sprite-derived on every backend (decided in ../docs/plan.md), so a matchup
+// plays identically however it is drawn.
 
 import {
   drawCharFrame as spriteDraw,
   currentFrame as spriteFrame,
   cyclePhase as spriteCycle,
 } from "../../sprites/src/sprites.js";
+import { cycleInfo, aimPitch } from "./states.js";
+import { headHeightTarget } from "../../src/heights.js";
 
-/** Characters with a usable 3D model. Empty while the pipeline is a stub, and
- *  consulted per draw — which is what lets one rigged fighter share a match
- *  with a roster of sprites instead of waiting for all 28. */
-const MODELS = new Map();
+let ready = false;
+let initFailed = false;
+let rigs = null;      // ./rig.js module
+let renderer = null;  // ./renderer.js module
+let blit = null;      // ./blit.js module
 
-/** True once `charKey` has a model loaded and posable. */
+const TOKEN = /^bb:([^@]+)@(-?[\d.]+)$/;
+const warned = new Set();
+function warnOnce(key, msg) {
+  if (warned.has(key)) return;
+  warned.add(key);
+  console.warn(msg);
+}
+
+/** Called by render_backend when this backend is selected. Loads the engine,
+ *  the manifest and the approved rigs; failure downgrades every character to
+ *  sprites (loudly) rather than blanking the game. */
+export async function init() {
+  if (ready || initFailed) return;
+  try {
+    const [three, loaderMod, rigMod, rendererMod, blitMod] = await Promise.all([
+      import("../vendor/three.module.js"),
+      import("../vendor/loaders/GLTFLoader.js"),
+      import("./rig.js"),
+      import("./renderer.js"),
+      import("./blit.js"),
+    ]);
+    rigs = rigMod;
+    renderer = rendererMod;
+    blit = blitMod;
+    renderer.initRenderer(three);
+
+    const params = new URLSearchParams(typeof location !== "undefined" ? location.search : "");
+    const mannequin = (params.get("mannequin") || "").split(",").map((s) => s.trim()).filter(Boolean);
+    const { CHARACTER_KEYS } = await import("../../src/characters.js");
+    await rigs.initRigs(three, loaderMod.GLTFLoader, mannequin, CHARACTER_KEYS);
+
+    ready = true;
+    if (typeof window !== "undefined") {
+      window.__billboards = window.__billboards || {};
+      window.__billboards.ready = true;
+      window.__billboards.rigged = rigs.rigCount();
+    }
+    console.log(`billboards: ready — ${rigs.rigCount()} rigged character(s), the rest draw sprites.`);
+  } catch (err) {
+    initFailed = true;
+    console.warn(`billboards: init failed (${err.message}) — every character will draw sprites.`);
+  }
+}
+
 export function hasModel(charKey) {
-  return MODELS.has(charKey);
+  return ready && rigs.hasRig(charKey);
 }
 
-/** How many characters this backend can actually draw. Reported at boot so
- *  "billboard mode looks identical" is explained rather than mysterious. */
 export function modelCount() {
-  return MODELS.size;
+  return ready ? rigs.rigCount() : 0;
 }
-
-// Every entry point below falls through to the sprite backend for a character
-// with no model. That fallthrough is not temporary scaffolding to be deleted
-// when the models land — it is how a partially-modelled roster works, and it is
-// the reason the stub is playable at all.
 
 export function currentFrame(charKey, animKey, animTime) {
-  // A model backend would return a pose token here — a clip name plus a
-  // quantised time, say. The game treats this as opaque and hands it straight
-  // back to drawCharFrame, so the two only have to agree with each other.
+  if (hasModel(charKey)) return `bb:${animKey}@${animTime.toFixed(4)}`;
   return spriteFrame(charKey, animKey, animTime);
 }
 
 export function cyclePhase(charKey, animKey, animTime) {
-  // Run sway and footfall bob are driven off this (src/motion.js). A model's
-  // own run clip carries that motion, so this is likely to report the clip's
-  // phase rather than a frame count once the models are real.
+  if (hasModel(charKey)) return cycleInfo(animKey, animTime);
   return spriteCycle(charKey, animKey, animTime);
 }
 
-export function drawCharFrame(ctx, charKey, frameKey, x, y, opts) {
-  if (!hasModel(charKey)) return spriteDraw(ctx, charKey, frameKey, x, y, opts);
-  // Unreachable while MODELS is empty. When it is not: pose the model, render
-  // it to the offscreen target, and blit here — returning false if that fails,
-  // so render.js draws its missing-art placeholder instead of leaving an
-  // invisible fighter on the stage.
-  return spriteDraw(ctx, charKey, frameKey, x, y, opts);
+export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
+  const m = typeof frameKey === "string" ? TOKEN.exec(frameKey) : null;
+  if (!m || !hasModel(charKey)) {
+    // Not our token (sprite fighter, or a trail ghost recorded before the rig
+    // existed) — the sprite renderer owns it.
+    return spriteDraw(ctx, charKey, frameKey, x, y, opts);
+  }
+  const [, animKey, t] = m;
+  const animTime = parseFloat(t);
+  try {
+    // Strike aiming: render.js passes `opts.aim` — the controller's explicit
+    // point when the fighter has one, else the nearest opponent — and the
+    // pose pitches toward it (states.js aimPitch; only aimable states react).
+    const chestY = y - headHeightTarget(charKey) * 0.55;
+    const pitch = opts.aim ? aimPitch(x, chestY, opts.aim, opts.facing ?? 1) : 0;
+    const entry = renderer.renderPose(charKey, animKey, animTime, rigs.resolveClip, pitch);
+    if (entry) return blit.blitPose(ctx, entry, charKey, x, y, opts);
+  } catch (err) {
+    warnOnce(`render:${charKey}`, `billboards: rendering ${charKey}/${animKey} failed (${err.message}) — drawing their sprites instead.`);
+  }
+  // Model path came up empty: re-derive the sprite frame from the token and
+  // draw that. Only if the SPRITE also fails does this report false and let
+  // render.js paint the missing-art placeholder.
+  return spriteDraw(ctx, charKey, spriteFrame(charKey, animKey, animTime), x, y, opts);
 }
