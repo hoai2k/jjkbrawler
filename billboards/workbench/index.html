@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Billboard Workbench — JJK Brawler II</title>
+    <link rel="icon" href="../../favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+    <link rel="stylesheet" href="workbench.css">
+  </head>
+  <body>
+    <header class="bar">
+      <strong>Billboard Workbench</strong>
+      <span class="hint">The model posed by the game's own pipeline, over the sprite it replaces. What you see is what <code>?render=billboard</code> draws.</span>
+      <a class="ghost sm" href="../../sprites/workbench/">Sprite Workbench →</a>
+    </header>
+
+    <main>
+      <aside class="panel">
+        <label>Character
+          <select id="charSelect"></select>
+        </label>
+        <label>State
+          <select id="stateSelect"></select>
+        </label>
+        <div class="row">
+          <button id="playBtn" class="ghost sm">▶ Play</button>
+          <input id="scrub" type="range" min="0" max="1" step="0.001" value="0">
+          <span id="timeLabel" class="mono">0.00s</span>
+        </div>
+        <div class="row">
+          <label class="check"><input id="ghostToggle" type="checkbox" checked> Sprite ghost</label>
+          <label class="check"><input id="beatToggle" type="checkbox" checked> Snap to beat</label>
+          <label class="check"><input id="aimToggle" type="checkbox" checked> Aim target</label>
+        </div>
+        <p class="hint">Drag the crosshair to move the target point — aimable
+        states (attacks) pitch toward it, exactly as they pitch toward an
+        opponent in-game. Locomotion never re-aims.</p>
+
+        <h3>Props &amp; chains</h3>
+        <div id="propsLine" class="mono src" style="white-space: pre-line"></div>
+
+        <h3>This state's clip</h3>
+        <div id="sourceLine" class="mono src"></div>
+        <label>Inherit this pose from
+          <select id="poseFrom"></select>
+        </label>
+
+        <h3>Whole set</h3>
+        <div id="rigLine" class="mono src"></div>
+        <label>Unanswered states fall back to
+          <select id="inheritSelect"></select>
+        </label>
+        <label class="check"><input id="approveToggle" type="checkbox"> Approved for play</label>
+
+        <h3>All states</h3>
+        <div id="stateTable" class="states"></div>
+
+        <button id="exportBtn">Export payload</button>
+        <p class="hint">Apply with <code>node tools/billboard_intake.mjs apply &lt;payload.json&gt;</code> — the workbench edits in-memory only; nothing changes on disk until the payload is applied.</p>
+      </aside>
+
+      <section class="stage">
+        <canvas id="stage" width="1040" height="660"></canvas>
+        <div id="status" class="mono"></div>
+      </section>
+    </main>
+
+    <script type="module" src="workbench.js"></script>
+  </body>
+</html>

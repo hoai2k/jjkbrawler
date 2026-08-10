@@ -36,13 +36,16 @@ Press `Esc` to pause. The in-game `i` button lists the full move set.
 ## Rendering
 
 Characters are drawn through a named render backend (`src/render_backend.js`),
-picked at boot with `?render=`:
+picked at boot with `?render=` — `sprite`/`sprites` and
+`billboard`/`billboards` both resolve (the plurals are aliases):
 
 - [`sprites/`](sprites/README.md) — the 2D sprite path: art, the renderer, the
   sprite workbench (`/sprites/workbench/`) and its documentation. The default.
-- [`billboards/`](billboards/README.md) — the 2.5D path: 3D models posed and
-  blitted into the same 2D world. A stub; `?render=billboard` runs and falls
-  through to sprites for every character until models land.
+- [`billboards/`](billboards/README.md) — the 2.5D path: 3D models posed,
+  rendered offscreen and blitted into the same 2D world. The pipeline is built
+  (try `?render=billboard&mannequin=all`, review in `/billboards/workbench/`);
+  fighters draw as models per character as rigs are delivered, and as their
+  sprites otherwise. Gameplay is identical on both backends by design.
 
 Shared art the renderer spawns — effects, summon creatures, backgrounds — stays
 under [`assets/`](assets/sprites/README.md) and is untouched by that choice.

@@ -1,0 +1,4 @@
+{
+  "comment": "Index of delivered billboard rigs. Written by tools/billboard_intake.mjs and the billboard workbench's exported payloads — not by hand. Schema: characters.<key> = { model: path relative to billboards/assets/, heightM: real-world height in metres (measured from the glb at import), approved: bool — only approved rigs register in the game, inheritClips: character key or 'default' — where unanswered states fall back before the default pose set, clips: { <state>: { from: <charKey>|'default' } } — per-state overrides, hand-set in the workbench, which win over the rig's own clip. Resolution order per state: clips[state].from, then the rig's own clip, then inheritClips, then the default pose set.",
+  "characters": {}
+}
