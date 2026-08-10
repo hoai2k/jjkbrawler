@@ -183,6 +183,27 @@ creature's footing, a hazard's reach: all unchanged. That is the point — art
 arrives off-centre in its plate and the fix is to move the picture onto the point
 the game is using, not to move the point.
 
+### The region of interest, and what follows what
+
+With **Hurtbox** ticked, a shared drawing is shown with the region its move
+actually acts on: a projectile's `r` as a circle, a beam's `width` as a band
+across the screen, a creature's `hitW`/`hitH` or a drop's `w`/`h` as a box. All
+of them are numbers the kit already declares — nothing is invented here and
+nothing changes play. They are drawn because they are the one thing the art has
+to agree with and cannot be measured from the art: a bolt drawn twice the width
+of its `r` looks like it should clip somebody it passes straight through.
+
+**They are marked `fixed`, and that word is the point.** A shared drawing's hit
+region does not follow Size and does not follow the spawn point — it is a kit
+number. So moving the size slider moves the picture against a stationary target,
+and you can see the moment they agree. A fighter's hurtbox is the opposite case
+and is labelled the other way, *follows the art*: it is measured off the sprite
+(`src/silhouette.js`), so resizing the pose resizes the box with it.
+
+That distinction decides which way round to work. Against a fixed box you size
+the art to fit the box; against a box measured from the art you size the art to
+look right and the box follows.
+
 **A drawing that nothing spawns gets no controls**, and the panel says why. That
 same answer drives the **Used in game** filter for Other Sprites.
 `node tools/check_shared_sprites.mjs` walks the real kits and fails if a move

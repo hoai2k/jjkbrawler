@@ -1565,7 +1565,11 @@ function drawHurtbox(cx) {
   ctx.setLineDash([]);
   ctx.fillStyle = "rgba(120, 200, 255, 0.8)";
   ctx.textAlign = "right";
-  ctx.fillText(`${hb.label} ${Math.round(hb.w)}x${Math.round(hb.h)}`,
+  // "follows" is the other half of the shared sprites' "fixed": a fighter's box
+  // is MEASURED from their art (src/silhouette.js), so resizing the pose
+  // resizes the box with it — which is exactly the thing you need to know
+  // before deciding whether to match the art to the box or the box to the art.
+  ctx.fillText(`${hb.label} ${Math.round(hb.w)}x${Math.round(hb.h)} · follows the art`,
                wx(-hb.w / 2) - 5, wy(-hb.top) + 11);
   ctx.restore();
 }
@@ -1791,7 +1795,70 @@ function drawSharedSprite(cx) {
   }
   ctx.restore();
 
+  // The region the move actually acts on, at the same scale as the drawing —
+  // the one thing art has to agree with that cannot be seen in the art. Under
+  // the same toggle as a fighter's hurtbox, because it is the same question.
+  if ($("showHurtbox")?.checked && can?.info?.hit) drawSharedHit(px, py, can.info.hit, anchor);
   if (can?.offset) drawSpawnPoint(px, py, anchor);
+}
+
+/** The move's own collision shape, drawn about the spawn point.
+ *
+ *  A bolt drawn twice the width of its `r` looks like it should clip somebody
+ *  it passes straight through; a creature drawn half its `hitW` looks like it
+ *  should be walked past. Neither is visible in the picture, and both are
+ *  numbers the kit already declares — so the workbench can show them and the
+ *  art can be matched to them instead of guessed at. Nothing here changes play:
+ *  this is the game's shape, drawn, not a shape the workbench sets.
+ *
+ *  **It does not follow Size, and it does not follow the spawn nudge**, and
+ *  that is the useful part: this shape is a kit number, so moving the slider
+ *  moves the picture against a fixed target and you can see when they agree.
+ *  Marked `fixed` on the label, because a shape that held still could otherwise
+ *  be mistaken for one that had not been re-drawn yet. Contrast a FIGHTER's
+ *  hurtbox, which is measured off the art and therefore does follow it.
+ */
+function drawSharedHit(px, py, hit, anchor) {
+  const z = state.zoom;
+  ctx.save();
+  ctx.strokeStyle = "rgba(255, 210, 90, 0.9)";
+  ctx.fillStyle = "rgba(255, 210, 90, 0.10)";
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([5, 4]);
+  let label = "";
+  if (hit.shape === "circle") {
+    const r = hit.r * z;
+    ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+    label = `hit radius ${hit.r}px · fixed`;
+  } else if (hit.shape === "beam") {
+    // A beam hits along its whole length; the number is how thick that band is.
+    const half = (hit.w * z) / 2;
+    ctx.fillRect(0, py - half, canvas.width, half * 2);
+    ctx.beginPath();
+    ctx.moveTo(0, py - half); ctx.lineTo(canvas.width, py - half);
+    ctx.moveTo(0, py + half); ctx.lineTo(canvas.width, py + half);
+    ctx.stroke();
+    label = `beam ${hit.w}px wide · fixed`;
+  } else {
+    const w = hit.w * z, h = hit.h * z;
+    const top = anchor === "feet" ? py - h : py - h / 2;
+    ctx.fillRect(px - w / 2, top, w, h);
+    ctx.strokeRect(px - w / 2, top, w, h);
+    label = `${hit.from === "hitW/hitH" ? "hitbox" : "hit box"} ${hit.w}×${hit.h}px · fixed`;
+  }
+  ctx.setLineDash([]);
+  // Above the shape, and above the spawn-point caption, so the two readouts do
+  // not sit on top of each other.
+  const topOf = hit.shape === "circle" ? py - hit.r * z
+    : hit.shape === "beam" ? py - (hit.w * z) / 2
+    : anchor === "feet" ? py - hit.h * z : py - (hit.h * z) / 2;
+  ctx.globalAlpha = 0.95;
+  ctx.fillStyle = "rgba(255, 226, 150, 0.95)";
+  ctx.font = "600 11px Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(label, px, Math.max(12, topOf - 6));
+  ctx.restore();
 }
 
 /** The y the spawn point sits at on the canvas, for each anchor. The drawing is
@@ -2557,6 +2624,15 @@ function refreshUsageInfo() {
     const meta = rawMeta(state.char, state.frame);
     const dx = meta?.dx ?? 0, dy = meta?.dy ?? 0, deg = meta?.rotationDeg ?? 0;
     if (can.size) lines.push(`<b>Size</b> multiplies ${can.what}.`);
+    if (can.info?.hit) {
+      const h = can.info.hit;
+      const shape = h.shape === "circle" ? `a ${h.r}px radius`
+        : h.shape === "beam" ? `a ${h.w}px band`
+        : `${h.w}×${h.h}px`;
+      lines.push(`<b>Hit region:</b> ${shape} — ${h.what} (the kit's <code>${h.from}</code>). `
+        + "<b>It does not follow Size or the spawn point</b>, so the art is what moves to meet it. "
+        + "Turn on Hurtbox to see it.");
+    }
     if (can.offset) {
       lines.push(`<b>Spawn point:</b> ${ANCHOR_WORDS[can.anchor] || ""}. `
         + "Drag the crosshair on the canvas to move the drawing under it.");

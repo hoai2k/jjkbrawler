@@ -6,10 +6,15 @@
 // SPECIAL (and, for Sukuna, to LIGHT/HEAVY afterwards). That is the whole design
 // brief — a domain you watch is a cutscene, a domain you operate is a move.
 //
-// Only the ten sorcerers who canonically have a domain get one; seven of those
+// Only the ten sorcerers who canonically have a domain get one; eight of those
 // are on the roster. `char.domains` is an array so a fighter with more than one
-// can bind them to different d-pad directions; nobody has two yet, but the
-// input path and the moves screen already handle it.
+// could split them across the left stick; nobody has two, so the domain button
+// alone opens the one they have.
+//
+// A fighter with no Domain Expansion may still carry the New Shadow Style's
+// SIMPLE DOMAIN (Mechamaru, Yuki). That is a special, not an Expansion — its
+// own cooldown, no meter — but it is a domain, so the domain button casts it:
+// see domainSpecialSlot below and the routing in fighter.js.
 
 import { state } from "./state.js";
 import { foesOf } from "./teams.js";
@@ -167,33 +172,60 @@ function makeDomain(owner, def, p, color) {
 
 /** Routed from fighter.js: the domain owner pressed a button while it is open.
  *  Returns true when the domain consumed the press. */
-/** Which Domain Expansion a d-pad direction opens, or -1 for none pressed.
+/** Which Domain Expansion the domain button opens, or -1 for none.
  *
- *  Every direction opens a domain — a fighter with one opens it from any of
- *  the four, which is the case for the whole roster today. Only a fighter with
- *  more than one splits the pad, and then it splits in halves you can find
- *  without looking: **up and left are the first, down and right the second.**
- *
- *  The arithmetic is that rule written once so it degrades rather than
- *  needing a new branch per count. `ORDER` is up, left, right, down, and the
- *  index is scaled into the number of domains available: at one they all land
- *  on 0, at two the first pair lands on 0 and the second on 1, at four each
- *  direction gets its own.
+ *  One button, because nobody has two domains: LB (U / ; on a keyboard) opens
+ *  the one this fighter has. The rule still degrades rather than needing a new
+ *  branch if a second one is ever written — hold the left stick up for the
+ *  first and down for the second, and with more than two the stick is read as
+ *  a dial from up to down. That is also what the moves screen prints, via
+ *  `domainStickFor` below, so the screen cannot describe a mapping the sim
+ *  does not have.
  */
-export const DOMAIN_DPAD_ORDER = ["up", "left", "right", "down"];
+export const DOMAIN_STICK_ORDER = ["up", "neutral", "down"];
 
-export function domainSlotFor(dir, count) {
-  if (!dir || count <= 0) return -1;
-  const i = DOMAIN_DPAD_ORDER.indexOf(dir);
-  if (i < 0) return -1;
-  return Math.min(Math.floor((i * count) / DOMAIN_DPAD_ORDER.length), count - 1);
+function stickSlot(input) {
+  if (input?.up) return 0;
+  if (input?.down) return 2;
+  return 1;
 }
 
-/** Which d-pad directions open domain `slot`, for the controls screen. Derived
- *  from the same function the game reads, so the screen cannot describe a
- *  mapping the sim does not have. */
-export function domainDirsFor(slot, count) {
-  return DOMAIN_DPAD_ORDER.filter((dir) => domainSlotFor(dir, count) === slot);
+export function domainSlotFor(f, input) {
+  const count = f.char.domains?.length || 0;
+  if (count <= 0) return -1;
+  if (count === 1) return 0;
+  const i = stickSlot(input);
+  return Math.min(Math.floor((i * count) / DOMAIN_STICK_ORDER.length), count - 1);
+}
+
+/** How the controls screen describes reaching domain `slot`: null when the
+ *  button alone does it, else the left-stick direction to hold with it. */
+export function domainStickFor(slot, count) {
+  if (count <= 1) return null;
+  const dirs = DOMAIN_STICK_ORDER.filter((_, i) =>
+    Math.min(Math.floor((i * count) / DOMAIN_STICK_ORDER.length), count - 1) === slot);
+  return dirs.length ? dirs : null;
+}
+
+/** The special that IS this fighter's domain, for a fighter who has no Domain
+ *  Expansion — the New Shadow Style's Simple Domain, flagged `domainButton` in
+ *  characters.js. Returns the special slot ("down"), or null.
+ *
+ *  It keeps its own cooldown and costs no meter: this is a binding, not a
+ *  rebalance. It just means the domain button opens a domain for everyone who
+ *  has one to open, rather than only for the eight with an Expansion. */
+export function domainSpecialSlot(f) {
+  return charDomainSpecialSlot(f.char);
+}
+
+/** The same question asked of a CHARACTER rather than a live fighter, for the
+ *  moves screen, which describes fighters nobody is playing yet. */
+export function charDomainSpecialSlot(char) {
+  const specials = char?.specials || {};
+  for (const slot of ["neutral", "side", "down"]) {
+    if (specials[slot]?.domainButton) return slot;
+  }
+  return null;
 }
 
 export function domainInput(f, input) {
