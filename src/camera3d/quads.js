@@ -112,7 +112,11 @@ export function imageTexture(img) {
 
 const _m4 = new Matrix4();
 
-export function makeQuadPool() {
+/** `depthTest: false` makes a pool paint purely in `renderOrder`, ignoring what
+ *  the depth buffer says is in front. That is not a hack around z-fighting —
+ *  it is how the flat renderer works, and the fighters need it (see the note
+ *  in billboards.js). */
+export function makeQuadPool({ depthTest = true } = {}) {
   const group = new Group();
   const pool = [];
   let used = 0;
@@ -128,7 +132,7 @@ export function makeQuadPool() {
       let mesh = pool[used];
       if (!mesh) {
         mesh = new Mesh(QUAD, new MeshBasicMaterial({
-          transparent: true, side: DoubleSide, depthWrite: false,
+          transparent: true, side: DoubleSide, depthWrite: false, depthTest,
         }));
         mesh.matrixAutoUpdate = false;
         pool.push(mesh);

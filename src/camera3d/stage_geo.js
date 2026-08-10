@@ -99,9 +99,18 @@ function makePlatformMesh(p) {
   );
   box.position.z = -depth / 2 + 0.001; // extrude away; front face at z ≈ 0
   group.add(box);
+  // The face is a decal on the front of the box, and must NOT write depth.
+  // Its texture is padded by `pad` on every side to make room for the drop
+  // shadow drawPlatformShape paints, and a transparent fragment still writes
+  // depth — so with depthWrite on, that invisible halo (and the shadow inside
+  // it) occluded whatever was behind the platform, which is a hole in the
+  // scene the shape of a rectangle nobody can see. The opaque box underneath
+  // owns the depth, and it is the platform's true rect.
   const face = new Mesh(
     new PlaneGeometry((p.w + pad * 2) * S, (p.h + pad * 2) * S),
-    new MeshBasicMaterial({ map: faceTexture(p), transparent: true, side: DoubleSide }),
+    new MeshBasicMaterial({
+      map: faceTexture(p), transparent: true, side: DoubleSide, depthWrite: false,
+    }),
   );
   face.position.z = 0.002;
   group.add(face);

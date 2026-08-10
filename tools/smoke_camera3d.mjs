@@ -152,6 +152,20 @@ for (const [key, index, simSeconds, wantsGarnish] of BOARDS) {
   check(errors.length === before, `${key}: no page errors`,
     errors.slice(before).map((e) => e.err).slice(0, 2).join(" | "));
 
+  // The stage must never cut a hole in a fighter. Both flags below were once
+  // the other way round, and the result was a platform slicing a body in half
+  // wherever the two crossed — worst on the boards whose platforms move, where
+  // the cut line slides across the sprite. Asserted on the live materials
+  // because it is one word in each file that brings it back.
+  const layer = await page.evaluate(async () =>
+    (await import("/src/camera3d/index.js")).debugStats().layering);
+  check(layer.billboardDepthTest === false,
+    `${key}: fighters paint over the stage instead of depth-testing against it`,
+    `depthTest=${layer.billboardDepthTest}`);
+  check(layer.platformFaceDepthWrite === false,
+    `${key}: the platform face's padded halo writes no depth`,
+    `depthWrite=${layer.platformFaceDepthWrite}`);
+
   await page.keyboard.press("Escape");
   await page.waitForTimeout(200);
   await page.click("#pauseMenuButton");

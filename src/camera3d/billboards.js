@@ -86,7 +86,22 @@ function shadowTexture() {
 }
 
 export function makeBillboards() {
-  const pool = makeQuadPool(); // its group is added to the sim group by index.js
+  // `depthTest: false` — fighters are never occluded by the stage.
+  //
+  // This is parity, not a workaround. The flat renderer paints platforms and
+  // THEN fighters (render.js draw()), so a fighter is always on top of the
+  // stage: the sprites are drawn with their feet overlapping the platform in
+  // front of it, and a landing has to put them back in front. Letting the
+  // depth buffer decide instead put the platform in front — the quads sit on
+  // the gameplay plane at z = 0 and the platform's front face is a hair nearer
+  // at z = 0.002 — which sliced a fighter in half wherever the two crossed,
+  // and did it most visibly on the boards whose platforms MOVE, because there
+  // the cut line slides across the body.
+  //
+  // Paint order alone decides, exactly as it does flat: ORDER.billboard is
+  // above ORDER.platform, so fighters land on top; ORDER.garnishFront is above
+  // fighters, so traffic still passes in front of them.
+  const pool = makeQuadPool({ depthTest: false });
 
   /** The drawCharFrame transform chain as a matrix, quad space -> sim space.
    *  Mirrors sprites.js drawCharFrame line for line. */
