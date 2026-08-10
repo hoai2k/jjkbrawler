@@ -16,11 +16,27 @@ rewrite, update the version here.
 
 Vendored because the repo has no build step and no runtime npm: plain ES
 modules are the only way to ship a dependency. This copy lives at
-`/vendor/three/` and is SHARED by the two model-drawing backends — **only
-`billboards/src/`, `render3d/src/` and their workbenches may import from
-here**, and the game-facing modules only via dynamic `import()` — the game's
-entry path must not load ~2 MB of 3D engine for players who never pick
-`?render=billboard` or `?render=3d`. One copy, one version: the moment the two
-backends need different three.js versions, something has gone wrong upstream.
+`/vendor/three/` and is SHARED by every feature that needs an engine —
+**only `billboards/src/`, `render3d/src/`, `src/camera3d/` and their
+workbenches may import from here**:
+
+    billboards/src/   ?render=billboard  models posed at quantised holds
+    render3d/src/     ?render=3d         the same rigs animated live
+    src/camera3d/     ?camera=3d         the 2.5D perspective camera
+
+The rule is about the ENTRY PATH, not about any one import statement: a
+player who picks none of them must never download ~2 MB of 3D engine, so
+**nothing statically reachable from `src/main.js` may name this directory**.
+Either way of honouring that is fine — the two backends reach it through a
+dynamic `import()` inside otherwise-static modules, while `src/camera3d/*`
+imports it statically and is itself only `import()`ed once main.js has seen
+`?camera=3d`. What is NOT fine is a static import chain from main.js.
+
+One copy, one version: the moment two of these need different three.js
+versions, something has gone wrong upstream. Two copies would not merely
+waste the bytes — the modes compose, so both could be live at once, and two
+engines have mutually unrecognisable classes (a `Mesh` from one is not a
+`Mesh` to the other). That fails as objects silently not rendering rather
+than as an error.
 `tools/check_imports.mjs` does not scan this directory; it is third-party
 code, not ours to lint.

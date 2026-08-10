@@ -55,6 +55,11 @@ export const state = {
 
   matchTime: 0,
   debugHitboxes: false,
+  // Mirrors of main.js's round countdown / round end timers, written each sim
+  // step. Read-only for everyone else; the 2.5D camera rig keys its intro
+  // pull-out and final-blow framing off them.
+  introT: 0,
+  endT: 0,
 
   // Stage-wide physics modifiers, set per match by initStageFx (stage_fx.js).
   // gravityMul scales GRAVITY; frictionPow < 1 makes ground slick (the
