@@ -30,6 +30,7 @@ fighter without a delivered rig.
 | 2 | [Audio — Round 10B: barrier & room](audio-requests.md#10b--the-barrier-and-the-room-sound-effects--4-files) | 🔊 **Sound effects** | open | — |
 | 3 | [Audio — the shipped fighters' element layers](audio-requests.md#owed-by-the-staged-fighters) | 🔊 **Sound effects** | open, live gap | — |
 | 4 | [2D art — Round 18](asset-requests.md) | 🖼️ **Images** (sprites) | open | — |
+| 4b | [Higher-resolution stage backdrops](2.5d-camera-plan.md#10-would-different-background-art-help-measured) | 🖼️ **Images** (backdrops) | open, **no round number yet** | — |
 | 5 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) | 🖼️ **Images** (reference) | open | — |
 | 6 | [3D images — DI2/DI3: face sheets, shade palettes](../render3d/docs/image-requests.md#round-di2--face-sheets-the-face-first-gates-reference) | 🖼️ **Images** (reference) | open | DI1 (same fighter) |
 | 7 | [3D models — B1/D1: the Yuji pilot](../render3d/docs/asset-requests.md#round-d1--the-pilot-yuji-complete-open--draw-against-this) | 🧊 **3D model + clips** | open | DI1–DI3 for Yuji |
@@ -52,7 +53,7 @@ so that "what is half-built?" is answerable from the same page.
 
 | Plan | State | What is left |
 |---|---|---|
-| [2.5D camera (`?camera=3d`)](2.5d-camera-plan.md) | feature-complete, polish open | Garnish cards for 15 of 20 boards; the second parallax backdrop layer; a Settings toggle; **model-textured billboards** (see below) |
+| [2.5D camera (`?camera=3d`)](2.5d-camera-plan.md) | feature-complete, polish open | Garnish cards for 15 of 20 boards; higher-resolution backdrops (the one measured art win — §10 of that plan); a Settings toggle; **model-textured billboards** (see below) |
 | [render3d (`?render=3d`)](../render3d/docs/plan.md) | D0–D2 built, D3+ need art | Engine side is done and dialled. D3–D5 are asset rounds (7–11 above), not code |
 | [billboards (`?render=billboard`)](../billboards/docs/plan.md) | B0 built, B1+ need art | Same shape: the pipeline runs on the mannequin; everything further is the shared commission |
 | [Effects plan](effects-plan.md) | reference doc | Element-aware attack feedback; check `src/config_fx.js` against it before treating anything here as open |
@@ -105,6 +106,21 @@ still need prompts written.
 
 Unrelated to the 3D tracks and on its own clock. Listed here for completeness:
 it is the only open request that touches what most players currently see.
+
+**Row 4b is a request with no home yet.** §10 of the camera plan measured
+which art changes the 2.5D camera would actually reward, and concluded: ask
+for *bigger* paintings, not layered ones. The backdrop plane over-fills the
+frustum, so only ~49% of a painting's linear extent is ever on screen — a
+1600×900 board upscales 1.62× (3.24× at DPR 2) where flat mode shows it at a
+slight downscale. Parity wants **≈3200×1800**, and `flooded_gate.jpg`
+(800×437), `shibuya_night.webp` (1200×675) and `curse_maw.jpg` (wrong aspect)
+are named as the three that would benefit first.
+
+That analysis is a finding inside an implementation plan, not an open art
+round — nothing in [asset-requests.md](asset-requests.md) asks for it. It is
+listed here so the decision is visible; commissioning it means giving it a
+round number in the 2D art file. The measurement also **withdrew** the
+parallax-layer idea, so this is the whole of what that plan wants from art.
 
 ### Then: the 3D tracks (5–11) — strictly ordered, and image-first
 
