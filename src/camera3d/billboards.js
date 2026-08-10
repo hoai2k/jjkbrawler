@@ -14,7 +14,7 @@
 
 import {
   CanvasTexture, SRGBColorSpace, AdditiveBlending, NormalBlending,
-} from "../../vendor/three.module.js";
+} from "../../vendor/three/three.module.js";
 import {
   makeQuadPool, imageTexture, rectMatrix, ORDER,
   matIdentity, matTranslate, matScale, matRotate,

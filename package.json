@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "check": "node tools/check_imports.mjs && node tools/check_kits.mjs && node tools/build_move_list.mjs --check && node tools/check_pointing.mjs && node tools/audit_stage_reach.mjs && node tools/audit_hitboxes.mjs && node tools/billboard_intake.mjs check && node tools/smoke_camera.mjs"
+    "check": "node tools/check_imports.mjs && node tools/check_kits.mjs && node tools/build_move_list.mjs --check && node tools/check_pointing.mjs && node tools/audit_stage_reach.mjs && node tools/audit_hitboxes.mjs && node tools/billboard_intake.mjs check && node tools/billboard_intake.mjs check --backend 3d && node tools/smoke_camera.mjs"
   },
   "dependencies": {
     "playwright": "^1.62.1"

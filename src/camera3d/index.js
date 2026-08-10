@@ -10,7 +10,7 @@
 //   ...then render.js draws everything else on the transparent top canvas,
 //   positioned by the rig's overlay projection.
 
-import { Scene, WebGLRenderer, SRGBColorSpace } from "../../vendor/three.module.js";
+import { Scene, WebGLRenderer, SRGBColorSpace } from "../../vendor/three/three.module.js";
 import {
   camera, updateRig, overlayTransform, worldToScreen,
   resetRig as resetRigState,

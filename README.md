@@ -36,21 +36,31 @@ Press `Esc` to pause. The in-game `i` button lists the full move set.
 ## Rendering
 
 Characters are drawn through a named render backend (`src/render_backend.js`),
-picked at boot with `?render=` — `sprite`/`sprites` and
-`billboard`/`billboards` both resolve (the plurals are aliases):
+picked at boot with `?render=` — `sprite`/`sprites`, `billboard`/`billboards`
+and `3d`/`render3d`/`anime` all resolve (the extra spellings are aliases):
 
 - [`sprites/`](sprites/README.md) — the 2D sprite path: art, the renderer, the
   sprite workbench (`/sprites/workbench/`) and its documentation. The default.
-- [`billboards/`](billboards/README.md) — the 2.5D path: 3D models posed,
-  rendered offscreen and blitted into the same 2D world. The pipeline is built
-  (try `?render=billboard&mannequin=all`, review in `/billboards/workbench/`);
-  fighters draw as models per character as rigs are delivered, and as their
-  sprites otherwise. Gameplay is identical on both backends by design.
+- [`billboards/`](billboards/README.md) — the 2.5D path: 3D models posed at
+  quantised holds, rendered offscreen and blitted into the same 2D world. The
+  pipeline is built (try `?render=billboard&mannequin=all`, review in
+  `/billboards/workbench/`); fighters draw as models per character as rigs
+  are delivered, and as their sprites otherwise.
+- [`render3d/`](render3d/README.md) — the live-3D anime path: the same
+  rigs animated at full frame rate, toon-ramped, ink-outlined and stepped on
+  twos, with real turnarounds, aimed strikes, head tracking and stage-derived
+  lighting (try `?render=3d&mannequin=all`, review in `/render3d/workbench/`).
+  Same per-character fallthrough to sprites.
+
+Gameplay is identical on every backend by design — hurtboxes, reach and
+height stay sprite-derived however a fighter is drawn.
 
 Shared art the renderer spawns — effects, summon creatures, backgrounds — stays
 under [`assets/`](assets/sprites/README.md) and is untouched by that choice.
 
-Separately, `?camera=3d` runs the whole game inside a Smash-style perspective
+`?camera=3d` is a separate, orthogonal choice: `?render=` decides how a
+CHARACTER is drawn, `?camera=` decides the stage and lens they exist in, and
+the two compose. It runs the whole game inside a Smash-style perspective
 camera — the current sprites billboarded into a real 3D scene, with depth,
 parallax and a living camera ([plan & status](docs/2.5d-camera-plan.md)).
 Off by default; the flat renderer is byte-for-byte untouched without the param.

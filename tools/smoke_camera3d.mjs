@@ -122,7 +122,7 @@ for (const [key, index, simSeconds, wantsGarnish] of BOARDS) {
     for (;;) {
       const s = await page.evaluate(async () => {
         const { state } = await import("/src/state.js");
-        const { debugStats } = await import("/src/render3d/index.js");
+        const { debugStats } = await import("/src/camera3d/index.js");
         const d = debugStats();
         return { t: state.matchTime, ...d };
       });
@@ -171,7 +171,7 @@ await waitForMatch();
 await runUntil(4);
 const garnishCycle = await page.evaluate(async () => {
   const { GARNISH } = await import("/src/config_camera.js");
-  const { debugStats } = await import("/src/render3d/index.js");
+  const { debugStats } = await import("/src/camera3d/index.js");
   const frame = () => new Promise((r) => requestAnimationFrame(() => r()));
   const settle = async () => { for (let i = 0; i < 6; i++) await frame(); };
   await settle();
@@ -201,7 +201,7 @@ await page.locator(".stage-card").nth(19).click(); // Domain Core: no cards of i
 await waitForMatch();
 await runUntil(1.5);
 const leftovers = await page.evaluate(async () =>
-  (await import("/src/render3d/index.js")).debugStats().garnish);
+  (await import("/src/camera3d/index.js")).debugStats().garnish);
 check(leftovers === 0, "garnish is cleared when the board changes", `${leftovers} cards left over`);
 
 await browser.close();

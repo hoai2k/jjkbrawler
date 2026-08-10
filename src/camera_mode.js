@@ -15,14 +15,14 @@
  *  context or a failed import must leave the game exactly as it ships. */
 export let cameraMode = "flat";
 
-/** The loaded src/render3d/index.js module, once `enable3dCamera` has run. */
-export let render3d = null;
+/** The loaded src/camera3d/index.js module, once `enable3dCamera` has run. */
+export let camera3d = null;
 
 /** Called by main.js after the lazy import of the 3D module succeeds AND the
  *  module got a WebGL context. From the next frame on, render.js routes the
- *  scene through `render3d` instead of drawing it itself. */
+ *  scene through `camera3d` instead of drawing it itself. */
 export function enable3dCamera(module) {
-  render3d = module;
+  camera3d = module;
   cameraMode = "3d";
 }
 

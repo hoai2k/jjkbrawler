@@ -16,7 +16,7 @@
 import {
   Group, Mesh, BufferGeometry, BufferAttribute, MeshBasicMaterial,
   Texture, SRGBColorSpace, DoubleSide, NormalBlending, Matrix4,
-} from "../../vendor/three.module.js";
+} from "../../vendor/three/three.module.js";
 
 // ------------------------------------------------------------------- layers
 //

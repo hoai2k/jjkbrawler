@@ -921,9 +921,9 @@
    "attack_heavy_a": {
     "file": "gojo/attack_heavy_a.png",
     "bodyLeft": 0,
-    "bodyRight": 877,
-    "coreLeft": 50.2,
-    "coreRight": 778.9,
+    "bodyRight": 893,
+    "coreLeft": 76.4,
+    "coreRight": 798.4,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -957,9 +957,9 @@
    "attack_heavy_b": {
     "file": "gojo/attack_heavy_b.png",
     "bodyLeft": 0,
-    "bodyRight": 873,
-    "coreLeft": 69.0,
-    "coreRight": 776.2,
+    "bodyRight": 942,
+    "coreLeft": 66.5,
+    "coreRight": 847.2,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -2200,9 +2200,9 @@
    "attack_heavy_a": {
     "file": "nanami/attack_heavy_a.png",
     "bodyLeft": 0,
-    "bodyRight": 926,
-    "coreLeft": 95.3,
-    "coreRight": 865.1,
+    "bodyRight": 722,
+    "coreLeft": 62.4,
+    "coreRight": 641.7,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -2234,9 +2234,9 @@
    "attack_heavy_b": {
     "file": "nanami/attack_heavy_b.png",
     "bodyLeft": 0,
-    "bodyRight": 1186,
-    "coreLeft": 96.4,
-    "coreRight": 1082.2,
+    "bodyRight": 1011,
+    "coreLeft": 73.1,
+    "coreRight": 914.1,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -3359,15 +3359,15 @@
     "centroidX": 161.3,
     "renderScale": 0.3045,
     "file": "hanami/ledge_hang.png",
-    "bodyTop": 0,
-    "bodyLeft": 0,
+    "bodyTop": 1,
+    "bodyLeft": 10,
     "bodyRight": 323,
     "coreLeft": 33.3,
     "coreRight": 299.5,
     "anchors": {
      "com": [
-      167.3,
-      562.0
+      168.2,
+      592.8
      ],
      "ledge": [
       150.3,
@@ -3382,9 +3382,7 @@
     },
     "edited": {
      "renderScale": 0.257
-    },
-    "needsReplacement": "pose",
-    "replacementNote": "Should be redrawn without ledge in the image"
+    }
    },
    "run_a": {
     "file": "hanami/run_a.png",
@@ -3737,9 +3735,9 @@
    "attack_light_a": {
     "file": "hanami/run_reach_b.png",
     "bodyLeft": 0,
-    "bodyRight": 699,
-    "coreLeft": 73.2,
-    "coreRight": 634.2,
+    "bodyRight": 790,
+    "coreLeft": 69.3,
+    "coreRight": 710.8,
     "autoTuned": {
      "at": "2026-08-09T23:24:31+00:00",
      "fields": {
@@ -3772,9 +3770,9 @@
    "attack_light_b": {
     "file": "hanami/special_neutral.png",
     "bodyLeft": 0,
-    "bodyRight": 835,
-    "coreLeft": 80.6,
-    "coreRight": 781.5,
+    "bodyRight": 826,
+    "coreLeft": 83.1,
+    "coreRight": 722.6,
     "autoTuned": {
      "at": "2026-08-09T23:24:31+00:00",
      "fields": {
@@ -3908,9 +3906,9 @@
    "crouch_b": {
     "file": "hanami/crouch_attack_b.png",
     "bodyLeft": 0,
-    "bodyRight": 826,
-    "coreLeft": 69.7,
-    "coreRight": 774.4,
+    "bodyRight": 1219,
+    "coreLeft": 144.8,
+    "coreRight": 1097.1,
     "autoTuned": {
      "at": "2026-08-09T23:24:31+00:00",
      "fields": {
@@ -7209,7 +7207,7 @@
    },
    "r4c2": {
     "file": "mahito/r4c2.png",
-    "w": 225,
+    "w": 283,
     "h": 184,
     "ox": 14,
     "oy": 125,
@@ -7252,9 +7250,9 @@
    "idle_a": {
     "file": "mahito/idle_a.png",
     "bodyLeft": 0,
-    "bodyRight": 501,
-    "coreLeft": 80.9,
-    "coreRight": 440.4,
+    "bodyRight": 526,
+    "coreLeft": 97.6,
+    "coreRight": 452.6,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -7286,9 +7284,9 @@
    "idle_b": {
     "file": "mahito/idle_b.png",
     "bodyLeft": 0,
-    "bodyRight": 512,
-    "coreLeft": 83.1,
-    "coreRight": 443.1,
+    "bodyRight": 525,
+    "coreLeft": 98.7,
+    "coreRight": 448.8,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -7914,9 +7912,9 @@
    "crouch_attack_a": {
     "file": "mahito/crouch_attack_a.png",
     "bodyLeft": 0,
-    "bodyRight": 846,
-    "coreLeft": 127.8,
-    "coreRight": 783.4,
+    "bodyRight": 874,
+    "coreLeft": 71.2,
+    "coreRight": 791.2,
     "autoTuned": {
      "at": "2026-08-09T16:01:37+00:00",
      "fields": {
@@ -8543,9 +8541,9 @@
    "idle_a": {
     "file": "sukuna/idle_a.png",
     "bodyLeft": 0,
-    "bodyRight": 652,
-    "coreLeft": 49.3,
-    "coreRight": 581.5,
+    "bodyRight": 536,
+    "coreLeft": 35.3,
+    "coreRight": 476.5,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -8577,9 +8575,9 @@
    "idle_b": {
     "file": "sukuna/idle_b.png",
     "bodyLeft": 0,
-    "bodyRight": 651,
-    "coreLeft": 49.3,
-    "coreRight": 571.7,
+    "bodyRight": 537,
+    "coreLeft": 35.2,
+    "coreRight": 475.9,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -9044,9 +9042,9 @@
    "attack_heavy_a": {
     "file": "sukuna/attack_heavy_a.png",
     "bodyLeft": 0,
-    "bodyRight": 820,
-    "coreLeft": 54.6,
-    "coreRight": 710.3,
+    "bodyRight": 917,
+    "coreLeft": 92.8,
+    "coreRight": 850.4,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -9797,9 +9795,9 @@
    "idle_a": {
     "file": "megumi/idle_a.png",
     "bodyLeft": 0,
-    "bodyRight": 496,
-    "coreLeft": 31.2,
-    "coreRight": 426.4,
+    "bodyRight": 575,
+    "coreLeft": 28.2,
+    "coreRight": 479.7,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -9831,9 +9829,9 @@
    "idle_b": {
     "file": "megumi/idle_b.png",
     "bodyLeft": 0,
-    "bodyRight": 497,
-    "coreLeft": 31.3,
-    "coreRight": 428.4,
+    "bodyRight": 577,
+    "coreLeft": 28.3,
+    "coreRight": 481.3,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -13917,9 +13915,9 @@
    "idle_a": {
     "file": "yuta/idle_a.png",
     "bodyLeft": 0,
-    "bodyRight": 511,
-    "coreLeft": 77.8,
-    "coreRight": 406.3,
+    "bodyRight": 611,
+    "coreLeft": 83.4,
+    "coreRight": 490.0,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -13951,9 +13949,9 @@
    "idle_b": {
     "file": "yuta/idle_b.png",
     "bodyLeft": 0,
-    "bodyRight": 508,
-    "coreLeft": 77.8,
-    "coreRight": 406.3,
+    "bodyRight": 610,
+    "coreLeft": 84.4,
+    "coreRight": 495.9,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -15475,9 +15473,9 @@
    "idle_a": {
     "file": "nobara/idle_a.png",
     "bodyLeft": 0,
-    "bodyRight": 467,
-    "coreLeft": 41.7,
-    "coreRight": 408.5,
+    "bodyRight": 511,
+    "coreLeft": 56.7,
+    "coreRight": 453.3,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -15510,9 +15508,9 @@
    "idle_b": {
     "file": "nobara/idle_b.png",
     "bodyLeft": 0,
-    "bodyRight": 461,
-    "coreLeft": 41.6,
-    "coreRight": 399.3,
+    "bodyRight": 513,
+    "coreLeft": 56.7,
+    "coreRight": 453.6,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -18089,9 +18087,9 @@
    "idle_a": {
     "file": "inumaki/idle_a.png",
     "bodyLeft": 0,
-    "bodyRight": 517,
-    "coreLeft": 52.1,
-    "coreRight": 434.1,
+    "bodyRight": 522,
+    "coreLeft": 45.8,
+    "coreRight": 430.1,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -18123,9 +18121,9 @@
    "idle_b": {
     "file": "inumaki/idle_b.png",
     "bodyLeft": 0,
-    "bodyRight": 516,
-    "coreLeft": 52.3,
-    "coreRight": 426.9,
+    "bodyRight": 530,
+    "coreLeft": 46.9,
+    "coreRight": 450.0,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -22336,9 +22334,9 @@
    "attack_heavy_a": {
     "file": "toji/attack_heavy_a.png",
     "bodyLeft": 0,
-    "bodyRight": 933,
-    "coreLeft": 167.1,
-    "coreRight": 883.1,
+    "bodyRight": 867,
+    "coreLeft": 43.3,
+    "coreRight": 788.3,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -22370,9 +22368,9 @@
    "attack_heavy_b": {
     "file": "toji/attack_heavy_b.png",
     "bodyLeft": 0,
-    "bodyRight": 1458,
-    "coreLeft": 72.9,
-    "coreRight": 1266.6,
+    "bodyRight": 992,
+    "coreLeft": 65.6,
+    "coreRight": 872.8,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -22931,9 +22929,9 @@
    "idle_a": {
     "file": "choso/idle_a.png",
     "bodyLeft": 0,
-    "bodyRight": 541,
-    "coreLeft": 53.7,
-    "coreRight": 461.7,
+    "bodyRight": 519,
+    "coreLeft": 50.2,
+    "coreRight": 451.7,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -23044,9 +23042,9 @@
    "attack_light_a": {
     "file": "choso/attack_light_a.png",
     "bodyLeft": 0,
-    "bodyRight": 883,
-    "coreLeft": 63.3,
-    "coreRight": 746.0,
+    "bodyRight": 908,
+    "coreLeft": 69.6,
+    "coreRight": 786.8,
     "borrowedFrom": "attack_light_b",
     "w": 908,
     "h": 1114,
@@ -23072,9 +23070,9 @@
    "attack_light_b": {
     "file": "choso/attack_light_b.png",
     "bodyLeft": 0,
-    "bodyRight": 914,
-    "coreLeft": 84.7,
-    "coreRight": 788.8,
+    "bodyRight": 883,
+    "coreLeft": 63.3,
+    "coreRight": 746.0,
     "autoTuned": {
      "at": "2026-08-09T23:24:31+00:00",
      "fields": {
@@ -26028,9 +26026,9 @@
    "attack_heavy_a": {
     "file": "uro/attack_heavy_a.png",
     "bodyLeft": 0,
-    "bodyRight": 867,
-    "coreLeft": 63.0,
-    "coreRight": 765.5,
+    "bodyRight": 860,
+    "coreLeft": 54.8,
+    "coreRight": 739.6,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -26096,9 +26094,9 @@
    "prone": {
     "file": "uro/prone.png",
     "bodyLeft": 0,
-    "bodyRight": 1834,
-    "coreLeft": 126.1,
-    "coreRight": 1753.8,
+    "bodyRight": 976,
+    "coreLeft": 67.1,
+    "coreRight": 933.3,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -26266,9 +26264,9 @@
    "idle_a": {
     "file": "yuji/idle_a.png",
     "bodyLeft": 0,
-    "bodyRight": 487,
-    "coreLeft": 43.3,
-    "coreRight": 407.4,
+    "bodyRight": 423,
+    "coreLeft": 18.7,
+    "coreRight": 346.2,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -26759,9 +26757,9 @@
    "idle_b": {
     "file": "yuji/idle_b.png",
     "bodyLeft": 0,
-    "bodyRight": 486,
-    "coreLeft": 43.4,
-    "coreRight": 408.0,
+    "bodyRight": 425,
+    "coreLeft": 18.8,
+    "coreRight": 347.3,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -27491,9 +27489,9 @@
    "attack_light_b": {
     "file": "reggie/attack_light_b.png",
     "bodyLeft": 0,
-    "bodyRight": 860,
-    "coreLeft": 67.8,
-    "coreRight": 716.4,
+    "bodyRight": 942,
+    "coreLeft": 161.0,
+    "coreRight": 869.4,
     "autoTuned": {
      "at": "2026-08-09T16:01:37+00:00",
      "fields": {
@@ -28270,9 +28268,9 @@
    "attack_heavy_a": {
     "file": "reggie/attack_heavy_a.png",
     "bodyLeft": 0,
-    "bodyRight": 936,
-    "coreLeft": 73.6,
-    "coreRight": 818.8,
+    "bodyRight": 873,
+    "coreLeft": 170.6,
+    "coreRight": 784.9,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -28304,9 +28302,9 @@
    "attack_heavy_b": {
     "file": "reggie/attack_heavy_b.png",
     "bodyLeft": 0,
-    "bodyRight": 1229,
-    "coreLeft": 99.9,
-    "coreRight": 1044.7,
+    "bodyRight": 897,
+    "coreLeft": 55.0,
+    "coreRight": 852.5,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -29318,9 +29316,9 @@
    "attack_air_a": {
     "file": "gakuganji/attack_air.png",
     "bodyLeft": 0,
-    "bodyRight": 990,
-    "coreLeft": 87.9,
-    "coreRight": 869.4,
+    "bodyRight": 978,
+    "coreLeft": 65.0,
+    "coreRight": 837.4,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -29414,9 +29412,9 @@
    "attack_heavy_b": {
     "file": "gakuganji/attack_heavy_b.png",
     "bodyLeft": 0,
-    "bodyRight": 929,
-    "coreLeft": 49.6,
-    "coreRight": 729.4,
+    "bodyRight": 928,
+    "coreLeft": 44.1,
+    "coreRight": 668.3,
     "autoTuned": {
      "at": "2026-08-09T23:00:27+00:00",
      "fields": {
@@ -29665,9 +29663,7 @@
     },
     "edited": {
      "renderScale": 0.361
-    },
-    "wantsImprovement": "bleed",
-    "improvementNote": "magenta bleed around head/wheel"
+    }
    },
    "attack_light_b": {
     "w": 1235,
@@ -29700,9 +29696,7 @@
     "edited": {
      "renderScale": 0.462,
      "bodyBottom": 284.0
-    },
-    "wantsImprovement": "bleed",
-    "improvementNote": "Magenta bleed around head/wheel"
+    }
    },
    "attack_up": {
     "w": 759,
@@ -30100,9 +30094,7 @@
      "ox": -147.6,
      "faceLeft": null
     },
-    "faceLeft": true,
-    "wantsImprovement": "bleed",
-    "improvementNote": "magenta bleed near head/wheel"
+    "faceLeft": true
    },
    "idle_b": {
     "w": 726,
@@ -30139,9 +30131,7 @@
      "ox": -148.0,
      "faceLeft": null
     },
-    "faceLeft": true,
-    "wantsImprovement": "bleed",
-    "improvementNote": "magenta bleed near head/wheel"
+    "faceLeft": true
    },
    "jump_rise": {
     "w": 947,
@@ -33307,9 +33297,9 @@
    "attack_heavy_b": {
     "file": "yuki/ult_b.png",
     "bodyLeft": 0,
-    "bodyRight": 894,
-    "coreLeft": 64.8,
-    "coreRight": 778.2,
+    "bodyRight": 1172,
+    "coreLeft": 65.9,
+    "coreRight": 1018.2,
     "autoTuned": {
      "at": "2026-08-09T21:17:56+00:00",
      "fields": {
@@ -34485,9 +34475,9 @@
    "attack_heavy_b": {
     "file": "kurourushi/attack_light_b.png",
     "bodyLeft": 0,
-    "bodyRight": 844,
-    "coreLeft": 116.3,
-    "coreRight": 733.4,
+    "bodyRight": 1353,
+    "coreLeft": 143.8,
+    "coreRight": 1116.2,
     "autoTuned": {
      "at": "2026-08-09T23:24:31+00:00",
      "fields": {
@@ -34553,9 +34543,9 @@
    "attack_light_b": {
     "file": "kurourushi/archive/attack_air_b_2.png",
     "bodyLeft": 0,
-    "bodyRight": 1353,
-    "coreLeft": 143.8,
-    "coreRight": 1116.2,
+    "bodyRight": 1373,
+    "coreLeft": 94.4,
+    "coreRight": 1184.2,
     "autoTuned": {
      "at": "2026-08-09T23:24:31+00:00",
      "fields": {
@@ -34713,9 +34703,9 @@
    "crouch_attack_b": {
     "file": "kurourushi/archive/dash_2.png",
     "bodyLeft": 0,
-    "bodyRight": 1430,
-    "coreLeft": 143.0,
-    "coreRight": 1215.5,
+    "bodyRight": 1474,
+    "coreLeft": 129.0,
+    "coreRight": 1252.9,
     "autoTuned": {
      "at": "2026-08-09T23:24:31+00:00",
      "fields": {
@@ -34779,9 +34769,9 @@
    "dash": {
     "file": "kurourushi/archive/dodge_roll_2.png",
     "bodyLeft": 0,
-    "bodyRight": 1474,
-    "coreLeft": 129.0,
-    "coreRight": 1252.9,
+    "bodyRight": 1368,
+    "coreLeft": 145.4,
+    "coreRight": 1137.2,
     "autoTuned": {
      "at": "2026-08-09T23:24:31+00:00",
      "fields": {
@@ -35148,14 +35138,14 @@
     "renderScale": 0.345,
     "file": "kurourushi/ledge_hang.png",
     "bodyTop": 0,
-    "bodyLeft": 0,
+    "bodyLeft": 81,
     "bodyRight": 1004,
-    "coreLeft": 114.9,
-    "coreRight": 837.0,
+    "coreLeft": 287.2,
+    "coreRight": 845.2,
     "anchors": {
      "com": [
-      525.8,
-      582.9
+      550.5,
+      625.4
      ],
      "ledge": [
       303.8,
@@ -35171,9 +35161,7 @@
     "edited": {
      "renderScale": 0.25,
      "ox": -370.1
-    },
-    "wantsImprovement": "alpha",
-    "improvementNote": "Remove the ledge"
+    }
    },
    "prone": {
     "w": 1461,
@@ -35722,7 +35710,11 @@
        ]
       },
       "file": "hanami/dodge_air.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 731,
+      "coreLeft": 106.1,
+      "coreRight": 677.5
      },
      {
       "file": "hanami_alt/dodge_air.png",
@@ -35782,7 +35774,11 @@
        ]
       },
       "file": "hanami/dodge_roll.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1057,
+      "coreLeft": 112.3,
+      "coreRight": 1017.4
      },
      {
       "file": "hanami_alt/dodge_roll.png",
@@ -36004,7 +36000,11 @@
        ]
       },
       "file": "hanami/dash.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1181,
+      "coreLeft": 96.0,
+      "coreRight": 1107.2
      },
      {
       "file": "hanami/r1c2.png",
@@ -36071,7 +36071,11 @@
        ]
       },
       "file": "hanami/land.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1042,
+      "coreLeft": 117.2,
+      "coreRight": 898.7
      },
      {
       "file": "hanami/r4c0.png",
@@ -36146,7 +36150,11 @@
        ]
       },
       "file": "hanami/crouch_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 869,
+      "coreLeft": 48.9,
+      "coreRight": 749.5
      },
      {
       "file": "hanami/r4c0.png",
@@ -36322,7 +36330,11 @@
         638.9,
         378.3
        ]
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 1219,
+      "coreLeft": 144.8,
+      "coreRight": 1097.1
      },
      {
       "w": 696,
@@ -36371,7 +36383,11 @@
        ]
       },
       "file": "hanami/crouch_attack_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 903,
+      "coreLeft": 146.7,
+      "coreRight": 869.1
      },
      {
       "file": "hanami/r4c2.png",
@@ -36472,7 +36488,11 @@
        ]
       },
       "file": "hanami/crouch_attack_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1219,
+      "coreLeft": 144.8,
+      "coreRight": 1097.1
      },
      {
       "file": "hanami/r4c2.png",
@@ -36613,7 +36633,11 @@
         410.8,
         635.8
        ]
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 790,
+      "coreLeft": 69.3,
+      "coreRight": 710.8
      },
      {
       "w": 972,
@@ -36704,7 +36728,11 @@
         365.8,
         541.7
        ]
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 826,
+      "coreLeft": 83.1,
+      "coreRight": 722.6
      },
      {
       "w": 948,
@@ -36753,7 +36781,11 @@
        ]
       },
       "file": "hanami/attack_down.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 981,
+      "coreLeft": 127.9,
+      "coreRight": 875.1
      },
      {
       "file": "hanami/r2c2.png",
@@ -36826,7 +36858,11 @@
        ]
       },
       "file": "hanami/special_down.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 890,
+      "coreLeft": 68.7,
+      "coreRight": 780.9
      },
      {
       "file": "hanami/r3c0.png",
@@ -36893,7 +36929,11 @@
        ]
       },
       "file": "hanami/ult_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1025,
+      "coreLeft": 93.8,
+      "coreRight": 945.3
      },
      {
       "file": "hanami/r3c3.png",
@@ -36979,7 +37019,11 @@
        ]
       },
       "file": "hanami/ult_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1043,
+      "coreLeft": 131.7,
+      "coreRight": 979.5
      },
      {
       "file": "hanami/r3c3.png",
@@ -37066,7 +37110,11 @@
         309.4,
         626.6
        ]
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 609,
+      "coreLeft": 61.5,
+      "coreRight": 544.4
      },
      {
       "w": 475,
@@ -37115,7 +37163,11 @@
        ]
       },
       "file": "hanami/idle_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 606,
+      "coreLeft": 43.2,
+      "coreRight": 519.0
      },
      {
       "w": 436,
@@ -37164,7 +37216,11 @@
        ]
       },
       "file": "hanami/attack_air_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 837,
+      "coreLeft": 113.4,
+      "coreRight": 778.9
      },
      {
       "w": 933,
@@ -37213,7 +37269,11 @@
        ]
       },
       "file": "hanami/attack_air_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1140,
+      "coreLeft": 106.9,
+      "coreRight": 1026.0
      },
      {
       "w": 977,
@@ -37262,7 +37322,11 @@
        ]
       },
       "file": "hanami/attack_heavy_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 721,
+      "coreLeft": 49.2,
+      "coreRight": 631.4
      },
      {
       "w": 939,
@@ -37311,7 +37375,11 @@
        ]
       },
       "file": "hanami/attack_heavy_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1041,
+      "coreLeft": 52.4,
+      "coreRight": 890.8
      },
      {
       "w": 998,
@@ -37361,7 +37429,11 @@
        ]
       },
       "file": "hanami/attack_up.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 658,
+      "coreLeft": 64.1,
+      "coreRight": 586.4
      },
      {
       "w": 564,
@@ -37410,7 +37482,11 @@
        ]
       },
       "file": "hanami/charge.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 943,
+      "coreLeft": 88.8,
+      "coreRight": 784.4
      },
      {
       "w": 412,
@@ -37459,7 +37535,11 @@
        ]
       },
       "file": "hanami/dizzy.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 681,
+      "coreLeft": 87.9,
+      "coreRight": 623.5
      },
      {
       "w": 400,
@@ -37508,7 +37588,11 @@
        ]
       },
       "file": "hanami/fall.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 720,
+      "coreLeft": 55.3,
+      "coreRight": 639.4
      },
      {
       "w": 433,
@@ -37556,7 +37640,11 @@
        ]
       },
       "file": "hanami/guard.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 706,
+      "coreLeft": 49.7,
+      "coreRight": 604.1
      },
      {
       "w": 466,
@@ -37605,7 +37693,11 @@
        ]
       },
       "file": "hanami/hurt.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 663,
+      "coreLeft": 98.6,
+      "coreRight": 624.6
      },
      {
       "w": 520,
@@ -37654,7 +37746,11 @@
        ]
       },
       "file": "hanami/jump_rise.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 655,
+      "coreLeft": 52.0,
+      "coreRight": 589.5
      },
      {
       "w": 561,
@@ -37692,13 +37788,13 @@
       "oy": -1021,
       "bodyBottom": 310.0,
       "bodyH": 342.1,
-      "bodyTop": 0,
+      "bodyTop": 1,
       "centroidX": 161.3,
       "renderScale": 0.257,
       "anchors": {
        "com": [
-        167.3,
-        562.0
+        168.2,
+        592.8
        ],
        "ledge": [
         150.3,
@@ -37706,7 +37802,11 @@
        ]
       },
       "file": "hanami/ledge_hang.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 10,
+      "bodyRight": 323,
+      "coreLeft": 33.3,
+      "coreRight": 299.5
      },
      {
       "w": 207,
@@ -37758,7 +37858,11 @@
        ]
       },
       "file": "hanami/prone.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1495,
+      "coreLeft": 112.1,
+      "coreRight": 1382.9
      },
      {
       "w": 957,
@@ -37807,7 +37911,11 @@
        ]
       },
       "file": "hanami/run_pass_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 799,
+      "coreLeft": 93.9,
+      "coreRight": 743.4
      },
      {
       "w": 834,
@@ -37856,7 +37964,11 @@
        ]
       },
       "file": "hanami/run_pass_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 726,
+      "coreLeft": 76.7,
+      "coreRight": 647.4
      },
      {
       "w": 905,
@@ -37905,7 +38017,11 @@
        ]
       },
       "file": "hanami/run_reach_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1143,
+      "coreLeft": 100.0,
+      "coreRight": 1035.8
      },
      {
       "w": 963,
@@ -37954,7 +38070,11 @@
        ]
       },
       "file": "hanami/run_reach_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 790,
+      "coreLeft": 69.3,
+      "coreRight": 710.8
      },
      {
       "w": 975,
@@ -38002,7 +38122,11 @@
        ]
       },
       "file": "hanami/special_neutral.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 826,
+      "coreLeft": 83.1,
+      "coreRight": 722.6
      },
      {
       "w": 995,
@@ -38051,7 +38175,11 @@
        ]
       },
       "file": "hanami/special_side.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 839,
+      "coreLeft": 48.2,
+      "coreRight": 750.1
      },
      {
       "w": 1005,
@@ -38100,7 +38228,11 @@
        ]
       },
       "file": "hanami/victory.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 856,
+      "coreLeft": 125.0,
+      "coreRight": 808.1
      },
      {
       "w": 504,
@@ -38317,7 +38449,11 @@
        ]
       },
       "file": "geto/attack_down.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1220,
+      "coreLeft": 99.1,
+      "coreRight": 1075.1
      },
      {
       "file": "geto/downHeavy.png",
@@ -39717,9 +39853,9 @@
       "file": "gojo/attack_heavy_a.png",
       "label": "In game",
       "bodyLeft": 0,
-      "bodyRight": 796,
-      "coreLeft": 94.3,
-      "coreRight": 720.3
+      "bodyRight": 893,
+      "coreLeft": 76.4,
+      "coreRight": 798.4
      },
      {
       "file": "gojo/archive/attack_heavy_a_3.png",
@@ -43200,7 +43336,11 @@
        ]
       },
       "file": "jogo/idle_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 770,
+      "coreLeft": 122.7,
+      "coreRight": 713.2
      },
      {
       "w": 680,
@@ -43272,7 +43412,11 @@
        ]
       },
       "file": "jogo/idle_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 770,
+      "coreLeft": 53.6,
+      "coreRight": 643.6
      },
      {
       "w": 577,
@@ -44467,7 +44611,11 @@
        ]
       },
       "file": "maki/attack_heavy_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1054,
+      "coreLeft": 197.6,
+      "coreRight": 928.8
      },
      {
       "w": 954,
@@ -44540,7 +44688,11 @@
        ]
       },
       "file": "maki/attack_heavy_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1412,
+      "coreLeft": 52.9,
+      "coreRight": 1253.1
      },
      {
       "w": 1007,
@@ -46797,9 +46949,9 @@
       "file": "nanami/attack_heavy_a.png",
       "label": "In game",
       "bodyLeft": 0,
-      "bodyRight": 874,
-      "coreLeft": 74.5,
-      "coreRight": 791.6
+      "bodyRight": 722,
+      "coreLeft": 62.4,
+      "coreRight": 641.7
      },
      {
       "file": "nanami/archive/attack_heavy_a_3.png",
@@ -46869,9 +47021,9 @@
       "file": "nanami/attack_heavy_b.png",
       "label": "In game",
       "bodyLeft": 0,
-      "bodyRight": 1000,
-      "coreLeft": 88.2,
-      "coreRight": 940.8
+      "bodyRight": 1011,
+      "coreLeft": 73.1,
+      "coreRight": 914.1
      },
      {
       "file": "nanami/archive/attack_heavy_b_3.png",
@@ -48426,9 +48578,9 @@
       "file": "toji/attack_heavy_b.png",
       "label": "In game",
       "bodyLeft": 0,
-      "bodyRight": 1003,
-      "coreLeft": 176.4,
-      "coreRight": 932.4
+      "bodyRight": 992,
+      "coreLeft": 65.6,
+      "coreRight": 872.8
      },
      {
       "file": "toji/archive/attack_heavy_b_3.png",
@@ -48498,9 +48650,9 @@
       "file": "toji/attack_heavy_a.png",
       "label": "In game",
       "bodyLeft": 0,
-      "bodyRight": 998,
-      "coreLeft": 121.7,
-      "coreRight": 932.9
+      "bodyRight": 867,
+      "coreLeft": 43.3,
+      "coreRight": 788.3
      },
      {
       "file": "toji/archive/attack_heavy_a_3.png",
@@ -48683,7 +48835,11 @@
        ]
       },
       "file": "yuta/crouch_attack_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1440,
+      "coreLeft": 63.0,
+      "coreRight": 1161.0
      },
      {
       "w": 971,
@@ -49027,9 +49183,9 @@
       "file": "reggie/attack_light_b.png",
       "label": "In game",
       "bodyLeft": 0,
-      "bodyRight": 860,
-      "coreLeft": 67.8,
-      "coreRight": 716.4
+      "bodyRight": 942,
+      "coreLeft": 161.0,
+      "coreRight": 869.4
      },
      {
       "file": "reggie/archive/attack_light_b_2.png",
@@ -50242,7 +50398,11 @@
        ]
       },
       "file": "sukuna/attack_heavy_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1048,
+      "coreLeft": 61.1,
+      "coreRight": 924.9
      },
      {
       "w": 1000,
@@ -50323,9 +50483,9 @@
       "file": "sukuna/attack_heavy_a.png",
       "label": "In game",
       "bodyLeft": 0,
-      "bodyRight": 922,
-      "coreLeft": 67.2,
-      "coreRight": 814.8
+      "bodyRight": 917,
+      "coreLeft": 92.8,
+      "coreRight": 850.4
      },
      {
       "file": "sukuna/archive/attack_heavy_a_3.png",
@@ -53339,7 +53499,11 @@
        "renderScale": 0.214,
        "ox": -284.8,
        "bodyBottom": 310.4
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 883,
+      "coreLeft": 63.3,
+      "coreRight": 746.0
      },
      {
       "w": 980,
@@ -53460,7 +53624,11 @@
        ]
       },
       "file": "choso/idle_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 522,
+      "coreLeft": 52.4,
+      "coreRight": 451.0
      },
      {
       "w": 395,
@@ -53562,7 +53730,11 @@
        "renderScale": 0.214,
        "ox": -297.2,
        "bodyBottom": 310.4
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 908,
+      "coreLeft": 69.6,
+      "coreRight": 786.8
      }
     ]
    }
@@ -53764,7 +53936,11 @@
        ]
       },
       "file": "uro/crouch_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 823,
+      "coreLeft": 67.3,
+      "coreRight": 749.3
      },
      {
       "w": 709,
@@ -53845,9 +54021,9 @@
       "file": "uro/attack_heavy_a.png",
       "label": "In game",
       "bodyLeft": 0,
-      "bodyRight": 840,
-      "coreLeft": 72.8,
-      "coreRight": 782.1
+      "bodyRight": 860,
+      "coreLeft": 54.8,
+      "coreRight": 739.6
      },
      {
       "file": "uro/archive/attack_heavy_a_3.png",
@@ -53910,7 +54086,11 @@
        ]
       },
       "file": "uro/attack_heavy_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1342,
+      "coreLeft": 92.3,
+      "coreRight": 1258.1
      },
      {
       "file": "uro/archive/attack_heavy_b_3.png",
@@ -53989,9 +54169,9 @@
       "file": "uro/prone.png",
       "label": "In game",
       "bodyLeft": 0,
-      "bodyRight": 1766,
-      "coreLeft": 121.4,
-      "coreRight": 1688.7
+      "bodyRight": 976,
+      "coreLeft": 67.1,
+      "coreRight": 933.3
      },
      {
       "file": "uro/archive/prone_3.png",
@@ -54065,9 +54245,9 @@
       "file": "mahito/crouch_attack_a.png",
       "label": "In game",
       "bodyLeft": 0,
-      "bodyRight": 846,
-      "coreLeft": 127.8,
-      "coreRight": 783.4
+      "bodyRight": 874,
+      "coreLeft": 71.2,
+      "coreRight": 791.2
      },
      {
       "file": "mahito/archive/crouch_attack_a_2.png",
@@ -54255,7 +54435,11 @@
        ]
       },
       "file": "gakuganji/attack_heavy_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 835,
+      "coreLeft": 62.2,
+      "coreRight": 764.3
      },
      {
       "w": 871,
@@ -54439,7 +54623,11 @@
        "renderScale": 0.211,
        "ox": -332.2,
        "bodyBottom": 310.4
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 978,
+      "coreLeft": 65.0,
+      "coreRight": 837.4
      },
      {
       "w": 877,
@@ -54491,7 +54679,11 @@
        ]
       },
       "file": "mahoraga/idle_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 729,
+      "coreLeft": 54.4,
+      "coreRight": 622.0
      },
      {
       "w": 949,
@@ -54563,7 +54755,11 @@
        ]
       },
       "file": "mahoraga/idle_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 726,
+      "coreLeft": 54.6,
+      "coreRight": 615.7
      },
      {
       "w": 978,
@@ -54635,7 +54831,11 @@
        ]
       },
       "file": "mahoraga/attack_light_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1042,
+      "coreLeft": 188.2,
+      "coreRight": 926.8
      },
      {
       "w": 1024,
@@ -54684,7 +54884,11 @@
        ]
       },
       "file": "mahoraga/attack_light_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1235,
+      "coreLeft": 61.8,
+      "coreRight": 995.7
      },
      {
       "w": 974,
@@ -54736,7 +54940,11 @@
        ]
       },
       "file": "mahoraga/crouch_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1124,
+      "coreLeft": 182.7,
+      "coreRight": 1046.7
      },
      {
       "w": 1002,
@@ -54954,9 +55162,9 @@
        ]
       },
       "bodyLeft": 0,
-      "bodyRight": 894,
-      "coreLeft": 64.8,
-      "coreRight": 778.2
+      "bodyRight": 1172,
+      "coreLeft": 65.9,
+      "coreRight": 1018.2
      }
     ]
    }
@@ -55002,7 +55210,11 @@
         531.9,
         449.4
        ]
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 1353,
+      "coreLeft": 143.8,
+      "coreRight": 1116.2
      },
      {
       "w": 844,
@@ -55052,7 +55264,11 @@
       "bodyBottom": 310.4,
       "bodyH": 254.8,
       "centroidX": -12.5,
-      "renderScale": 0.37625
+      "renderScale": 0.37625,
+      "bodyLeft": 0,
+      "bodyRight": 1373,
+      "coreLeft": 94.4,
+      "coreRight": 1184.2
      },
      {
       "w": 1353,
@@ -55108,7 +55324,11 @@
         704.5,
         453.7
        ]
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 1474,
+      "coreLeft": 129.0,
+      "coreRight": 1252.9
      },
      {
       "w": 1430,
@@ -55185,7 +55405,11 @@
         678.0,
         429.2
        ]
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 1368,
+      "coreLeft": 145.4,
+      "coreRight": 1137.2
      },
      {
       "w": 1474,
@@ -55221,7 +55445,11 @@
        ]
       },
       "file": "kurourushi/idle_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 725,
+      "coreLeft": 147.5,
+      "coreRight": 608.4
      },
      {
       "w": 725,
@@ -55257,7 +55485,11 @@
        ]
       },
       "file": "kurourushi/idle_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 717,
+      "coreLeft": 145.9,
+      "coreRight": 601.8
      },
      {
       "w": 717,
@@ -55293,7 +55525,11 @@
        ]
       },
       "file": "kurourushi/attack_air_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 860,
+      "coreLeft": 107.2,
+      "coreRight": 660.0
      },
      {
       "w": 860,
@@ -55329,7 +55565,11 @@
        ]
       },
       "file": "kurourushi/attack_air_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1373,
+      "coreLeft": 94.4,
+      "coreRight": 1184.2
      },
      {
       "w": 1373,
@@ -55365,7 +55605,11 @@
        ]
       },
       "file": "kurourushi/attack_down.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 930,
+      "coreLeft": 96.3,
+      "coreRight": 746.3
      },
      {
       "w": 930,
@@ -55401,7 +55645,11 @@
        ]
       },
       "file": "kurourushi/attack_heavy_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 766,
+      "coreLeft": 102.6,
+      "coreRight": 684.0
      },
      {
       "w": 766,
@@ -55437,7 +55685,11 @@
        ]
       },
       "file": "kurourushi/attack_light_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 826,
+      "coreLeft": 116.4,
+      "coreRight": 698.6
      },
      {
       "w": 826,
@@ -55473,7 +55725,11 @@
        ]
       },
       "file": "kurourushi/attack_up.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 838,
+      "coreLeft": 141.3,
+      "coreRight": 741.8
      },
      {
       "w": 838,
@@ -55509,7 +55765,11 @@
        ]
       },
       "file": "kurourushi/charge.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1013,
+      "coreLeft": 75.5,
+      "coreRight": 875.8
      },
      {
       "w": 1013,
@@ -55545,7 +55805,11 @@
        ]
       },
       "file": "kurourushi/crouch_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1317,
+      "coreLeft": 181.1,
+      "coreRight": 979.5
      },
      {
       "w": 1317,
@@ -55581,7 +55845,11 @@
        ]
       },
       "file": "kurourushi/crouch_attack_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1411,
+      "coreLeft": 158.7,
+      "coreRight": 1199.3
      },
      {
       "w": 1411,
@@ -55617,7 +55885,11 @@
        ]
       },
       "file": "kurourushi/crouch_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1184,
+      "coreLeft": 170.2,
+      "coreRight": 932.4
      },
      {
       "w": 1184,
@@ -55653,7 +55925,11 @@
        ]
       },
       "file": "kurourushi/dizzy.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 769,
+      "coreLeft": 144.7,
+      "coreRight": 629.9
      },
      {
       "w": 769,
@@ -55689,7 +55965,11 @@
        ]
       },
       "file": "kurourushi/dodge_air.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 959,
+      "coreLeft": 86.8,
+      "coreRight": 846.1
      },
      {
       "w": 959,
@@ -55725,7 +56005,11 @@
        ]
       },
       "file": "kurourushi/dodge_roll.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1368,
+      "coreLeft": 145.4,
+      "coreRight": 1137.2
      },
      {
       "w": 1368,
@@ -55761,7 +56045,11 @@
        ]
       },
       "file": "kurourushi/fall.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 947,
+      "coreLeft": 154.7,
+      "coreRight": 800.8
      },
      {
       "w": 947,
@@ -55797,7 +56085,11 @@
        ]
       },
       "file": "kurourushi/guard.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 882,
+      "coreLeft": 128.0,
+      "coreRight": 742.2
      },
      {
       "w": 882,
@@ -55833,7 +56125,11 @@
        ]
       },
       "file": "kurourushi/hurt.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 853,
+      "coreLeft": 207.5,
+      "coreRight": 742.3
      },
      {
       "w": 853,
@@ -55869,7 +56165,11 @@
        ]
       },
       "file": "kurourushi/jump_rise.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 877,
+      "coreLeft": 102.6,
+      "coreRight": 735.3
      },
      {
       "w": 877,
@@ -55905,7 +56205,11 @@
        ]
       },
       "file": "kurourushi/land.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 733,
+      "coreLeft": 129.5,
+      "coreRight": 582.8
      },
      {
       "w": 733,
@@ -55936,8 +56240,8 @@
       "renderScale": 0.25,
       "anchors": {
        "com": [
-        525.8,
-        582.9
+        550.5,
+        625.4
        ],
        "ledge": [
         303.8,
@@ -55945,7 +56249,11 @@
        ]
       },
       "file": "kurourushi/ledge_hang.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 81,
+      "bodyRight": 1004,
+      "coreLeft": 287.2,
+      "coreRight": 845.2
      },
      {
       "w": 1004,
@@ -55981,7 +56289,11 @@
        ]
       },
       "file": "kurourushi/prone.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1461,
+      "coreLeft": 164.4,
+      "coreRight": 1296.6
      },
      {
       "w": 1461,
@@ -56017,7 +56329,11 @@
        ]
       },
       "file": "kurourushi/run_pass_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1245,
+      "coreLeft": 171.2,
+      "coreRight": 1104.9
      },
      {
       "w": 1245,
@@ -56053,7 +56369,11 @@
        ]
       },
       "file": "kurourushi/run_pass_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 781,
+      "coreLeft": 147.7,
+      "coreRight": 640.1
      },
      {
       "w": 781,
@@ -56089,7 +56409,11 @@
        ]
       },
       "file": "kurourushi/run_reach_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1121,
+      "coreLeft": 98.1,
+      "coreRight": 966.9
      },
      {
       "w": 1121,
@@ -56125,7 +56449,11 @@
        ]
       },
       "file": "kurourushi/run_reach_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 948,
+      "coreLeft": 94.9,
+      "coreRight": 902.0
      },
      {
       "w": 948,
@@ -56161,7 +56489,11 @@
        ]
       },
       "file": "kurourushi/special_down.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 955,
+      "coreLeft": 144.7,
+      "coreRight": 823.0
      },
      {
       "w": 955,
@@ -56197,7 +56529,11 @@
        ]
       },
       "file": "kurourushi/special_neutral.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1043,
+      "coreLeft": 166.5,
+      "coreRight": 865.8
      },
      {
       "w": 1043,
@@ -56233,7 +56569,11 @@
        ]
       },
       "file": "kurourushi/special_side.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1405,
+      "coreLeft": 114.2,
+      "coreRight": 1159.1
      },
      {
       "w": 1405,
@@ -56269,7 +56609,11 @@
        ]
       },
       "file": "kurourushi/ult_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 994,
+      "coreLeft": 141.2,
+      "coreRight": 847.2
      },
      {
       "w": 994,
@@ -56305,7 +56649,11 @@
        ]
       },
       "file": "kurourushi/ult_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1082,
+      "coreLeft": 106.3,
+      "coreRight": 915.6
      },
      {
       "w": 1082,
@@ -56341,7 +56689,11 @@
        ]
       },
       "file": "kurourushi/victory.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 867,
+      "coreLeft": 156.3,
+      "coreRight": 735.5
      },
      {
       "w": 867,

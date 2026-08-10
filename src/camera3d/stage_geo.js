@@ -11,7 +11,7 @@
 import {
   Group, Mesh, BoxGeometry, PlaneGeometry, MeshBasicMaterial,
   CanvasTexture, Texture, SRGBColorSpace, DoubleSide,
-} from "../../vendor/three.module.js";
+} from "../../vendor/three/three.module.js";
 import { ORDER } from "./quads.js";
 import { CAMERA as C } from "../config_camera.js";
 import { getImage } from "../assets.js";

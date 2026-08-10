@@ -58,6 +58,7 @@
 
 import { drawCharFrame as spriteDraw, currentFrame as spriteFrame, cyclePhase as spriteCycle } from "../sprites/src/sprites.js";
 import * as billboard from "../billboards/src/billboard.js";
+import * as render3d from "../render3d/src/backend.js";
 
 /** The registered ways to draw a character. Keyed by the name `?render=` takes. */
 const BACKENDS = {
@@ -78,6 +79,18 @@ const BACKENDS = {
     cyclePhase: billboard.cyclePhase,
     init: billboard.init,
   },
+  // Live 3D: rigged models animated at full frame rate, rendered in a
+  // hand-drawn anime style (toon ramp, ink outlines, on-twos stepping) and
+  // blitted into the same 2D world. The billboard backend's heir — same clip
+  // contract, same per-character fallthrough to sprites. Code lives under
+  // /render3d (named for the leading-digit rule; the URL stays `?render=3d`).
+  "3d": {
+    label: "3D anime-rendered models",
+    drawCharFrame: render3d.drawCharFrame,
+    currentFrame: render3d.currentFrame,
+    cyclePhase: render3d.cyclePhase,
+    init: render3d.init,
+  },
 };
 
 // Spellings people will actually type. Both nouns read naturally as plurals
@@ -88,6 +101,10 @@ const ALIASES = {
   billboards: "billboard",
   "2d": "sprite",
   "2.5d": "billboard",
+  render3d: "3d",
+  model: "3d",
+  models: "3d",
+  anime: "3d",
 };
 
 const DEFAULT_BACKEND = "sprite";

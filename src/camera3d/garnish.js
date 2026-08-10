@@ -26,7 +26,7 @@
 
 import {
   AdditiveBlending, NormalBlending, CanvasTexture, SRGBColorSpace,
-} from "../../vendor/three.module.js";
+} from "../../vendor/three/three.module.js";
 import { makeQuadPool, rectMatrix, ORDER } from "./quads.js";
 import { addCameraCueListener } from "../camera_mode.js";
 import { GARNISH } from "../config_camera.js";

@@ -1,4 +1,4 @@
-// Headless smoke for the 2.5D camera rig (src/render3d/rig.js): runs the REAL
+// Headless smoke for the 2.5D camera rig (src/camera3d/rig.js): runs the REAL
 // updateCamera() and the rig against scripted fighter paths — no browser, no
 // WebGL, three.js used only for its math — and asserts framing invariants:
 //
@@ -10,7 +10,7 @@
 // Run: node tools/smoke_camera.mjs
 import { state } from "../src/state.js";
 import { updateCamera } from "../src/camera.js";
-import { updateRig, resetRig, worldToScreen, overlayTransform, dollyFor, camera } from "../src/render3d/rig.js";
+import { updateRig, resetRig, worldToScreen, overlayTransform, dollyFor, camera } from "../src/camera3d/rig.js";
 import { cameraCue } from "../src/camera_mode.js";
 import { CAMERA, BOARD_CAMERA, CUES } from "../src/config_camera.js";
 import { WORLD } from "../src/constants.js";

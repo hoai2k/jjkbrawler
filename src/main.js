@@ -9,7 +9,7 @@ import { updateParticles, banner } from "./particles.js";
 import { updateCamera } from "./camera.js";
 import { draw } from "./render.js";
 import { selectRenderBackend, renderBackendLabel } from "./render_backend.js";
-import { enable3dCamera, render3d } from "./camera_mode.js";
+import { enable3dCamera, camera3d } from "./camera_mode.js";
 import { getStage, spawnXs } from "./stages.js";
 import { matchPlan, HUMAN_TEAM } from "./modes.js";
 import { oneSideLeft } from "./teams.js";
@@ -139,7 +139,7 @@ async function resetMatch() {
   state.slowMo = 0;
   state.matchTime = 0;
   state.camera.x = 640; state.camera.y = 360; state.camera.zoom = 1; state.camera.shake = 0; state.camera.kick = 0;
-  render3d?.resetRig();
+  camera3d?.resetRig();
 
   // Stage identity (Active Boards): field modifiers + the gimmick entity.
   // After the arrays are cleared, so the fx entity survives the reset.
@@ -353,7 +353,7 @@ async function init() {
   // flat renderer with a console note, never a broken screen.
   if (new URLSearchParams(location.search).get("camera") === "3d") {
     try {
-      const mod = await import("./render3d/index.js");
+      const mod = await import("./camera3d/index.js");
       if (mod.initRender3d()) {
         enable3dCamera(mod);
         console.log("camera: 3d (perspective rig on WebGL)");

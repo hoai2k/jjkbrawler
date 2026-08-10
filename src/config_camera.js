@@ -1,10 +1,10 @@
 // Every dial of the 2.5D camera (docs/2.5d-camera-plan.md), in one place, in
 // the same comment-every-dial style as config_tuning.js. Nothing here affects
 // flat mode or the simulation — these numbers only exist once `?camera=3d` has
-// loaded src/render3d/.
+// loaded src/camera3d/.
 
 export const CAMERA = {
-  // 100 sim pixels = 1 world unit. Every mapping in render3d goes through this.
+  // 100 sim pixels = 1 world unit. Every mapping in camera3d goes through this.
   simScale: 1 / 100,
   // Stage centre (sim x = 640) sits at world origin; sim y = 568 — the typical
   // main-platform top — is world y = 0. Chosen so "the floor" is the origin
@@ -77,7 +77,7 @@ export const DRAMA = {
 };
 
 // Garnish cards — the flat quads OFF the gameplay plane (leaves, lanterns,
-// traffic, rubble, hoardings; src/render3d/garnish.js).
+// traffic, rubble, hoardings; src/camera3d/garnish.js).
 //
 // `enabled: false` turns every card off everywhere and leaves the rest of the
 // 2.5D camera exactly as it is: the scene, the rig, the drama shots and the

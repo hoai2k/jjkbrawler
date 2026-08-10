@@ -7,7 +7,7 @@
 // Everything tunable lives in config_camera.js. The rig itself is pure math —
 // no DOM, no WebGL context — so tools/smoke_camera.mjs can drive it headless.
 
-import { PerspectiveCamera, Vector3 } from "../../vendor/three.module.js";
+import { PerspectiveCamera, Vector3 } from "../../vendor/three/three.module.js";
 import { CAMERA as C, DRAMA, BOARD_CAMERA, CUES } from "../config_camera.js";
 import { addCameraCueListener } from "../camera_mode.js";
 import { getStage, mainPlatform } from "../stages.js";

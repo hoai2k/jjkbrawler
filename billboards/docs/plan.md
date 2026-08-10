@@ -44,11 +44,13 @@ measuring, no `headHeights` workbench override needed.
 
 Skinned glTF loading, an animation mixer, and retargeting are months of work to
 hand-roll and one import to vendor. The repo has no build step and no runtime
-npm, so `three.module.js` + `GLTFLoader` go into `billboards/vendor/` as plain
-ES modules (MIT license, noted in a VENDOR.md beside them). Nothing outside
-`billboards/` may import them: the game's only door into this system is
-`src/render_backend.js`, and three.js must never load at all unless the
-billboard backend is selected — dynamic `import()` inside `billboards/src/`,
+npm, so `three.module.js` + `GLTFLoader` go into `/vendor/three/` as plain
+ES modules (MIT license, noted in a VENDOR.md beside them — the copy was
+hoisted out of `billboards/vendor/` when the `render3d/` backend arrived, so
+both model backends share one version). Nothing outside the model backends may
+import them: the game's only door into this system is
+`src/render_backend.js`, and three.js must never load at all unless a model
+backend is selected — dynamic `import()` inside `billboards/src/`,
 paid only by players who opted in.
 
 ### 3. Billboard-per-fighter, not a 3D scene

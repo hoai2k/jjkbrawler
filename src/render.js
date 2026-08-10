@@ -8,7 +8,7 @@ import { TRAIL_ALPHA, STRIKE_ARC } from "./config_tuning.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
 import { hitboxRect, hurtbox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
-import { cameraMode, render3d } from "./camera_mode.js";
+import { cameraMode, camera3d } from "./camera_mode.js";
 import {
   WORLD, SHIELD_MAX, PARRY_WINDOW, SAKURAI, SAKURAI_POP,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME,
@@ -22,7 +22,7 @@ import { respawnX } from "./fighter.js";
 import { isFoe } from "./teams.js";
 
 export function draw(ctx) {
-  if (cameraMode === "3d" && render3d) {
+  if (cameraMode === "3d" && camera3d) {
     draw3d(ctx);
     return;
   }
@@ -64,10 +64,10 @@ export function draw(ctx) {
 // rig's yaw/pitch are clamped tiny, one affine transform lands them all on the
 // fighters with zero per-effect changes.
 function draw3d(ctx) {
-  render3d.draw(state);
+  camera3d.draw(state);
 
   ctx.clearRect(0, 0, WORLD.w, WORLD.h);
-  const t = render3d.overlayTransform();
+  const t = camera3d.overlayTransform();
   ctx.save();
   ctx.transform(t.a, t.b, t.c, t.d, t.e, t.f);
 
