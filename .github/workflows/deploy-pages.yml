@@ -12,7 +12,17 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # QUEUE, do not cancel. `true` is the usual advice and it is wrong for a repo
+  # this busy: several sessions push to main within minutes of each other, and
+  # every push cancelled the deploy that was still running. On 2026-08-10 that
+  # starved the site for four commits in a row — the last SUCCESSFUL publish was
+  # 40 minutes and five pushes behind main, so a change that had been merged,
+  # checked and pushed was simply not on the site, and no amount of reloading
+  # was going to find it.
+  #
+  # Queued runs cost a little runner time and publish in order, last one wins.
+  # A deploy that is slower is still a deploy; a deploy that is cancelled is not.
+  cancel-in-progress: false
 
 jobs:
   deploy:
