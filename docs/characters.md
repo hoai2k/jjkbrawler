@@ -15,21 +15,19 @@ different reach/speed/damage/effects), three specials (neutral, side, down),
 one ultimate, and one always-on passive. Seven of them also have a **Domain
 Expansion** — see the section at the end.
 
-**Four kits are staged, not shipped.** Mechamaru, Yuki Tsukumo, Dagon and
-Kurourushi are written up at the end of this file and built in full in
-`src/characters.js`, but their keys are in `STAGED_CHARACTER_KEYS`: they are not
-on the select screen and `randomCharacterKey()` cannot draw them, because their
-art has not been made yet (round 15 in
-[asset-requests.md](asset-requests.md)). Everything else about them is live —
-specials, ultimates, Dagon's domain, four new passives, three new statuses —
-and `node tools/smoke_staged.mjs` plays every one of their moves in a real
-match, which is the only thing in the *game* that reaches them until they ship.
+**Nothing is staged.** Round 15's four late additions — Mechamaru, Yuki
+Tsukumo, Dagon and Kurourushi — were built in full in `src/characters.js` before
+any of their art existed, held off the select screen by `STAGED_CHARACTER_KEYS`
+while it was drawn. All four have now shipped; Kurourushi was the last, joining
+the Curses group once his 36-pose set was placed and approved. The roster is 27
+fighters and `STAGED_CHARACTER_KEYS` is empty.
 
-Their **art** is reachable, though: the sprite workbench lists staged fighters
-alongside the roster, labelled *(not on the roster yet)*, so a delivered set can
-be placed and approved before the fighter is promoted. Three of the four have
-been — Mechamaru, Yuki and Dagon shipped in round 15A — and Kurourushi's set is
-being placed the same way.
+The staging machinery stays, because it is how the next fighter gets built:
+`node tools/smoke_staged.mjs` plays every staged kit's moves in a real match
+(with nothing staged it still checks the round-15 mechanics no other fighter
+exercises), and the sprite workbench lists staged fighters alongside the roster,
+labelled *(not on the roster yet)*, so a delivered set can be placed and
+approved before the fighter is promoted. All four of round 15's went that way.
 
 **Cursed Energy has two tiers.** An ultimate costs **half** a bar, so a match
 has several. A Domain Expansion costs the **whole** bar and only the seven
@@ -549,13 +547,14 @@ Weakest legs on the roster, but a stage that is always ringing.
 
 ---
 
-# Staged — built, not shipped
+# Round 15 — the four late additions
 
-The four below are wired into the game and balanced against the roster, but
-their art does not exist yet, so they are held out of character select by
-`STAGED_CHARACTER_KEYS` (see the note at the top of this file). They are written
-up here in the same shape as everyone else because the kit is the thing being
-reviewed — the art is a delivery, not a design.
+The four below were wired into the game and balanced against the roster before
+any of their art existed, held out of character select by
+`STAGED_CHARACTER_KEYS` until it landed (see the note at the top of this file).
+All four are selectable now. They keep their own section because it is how they
+were designed — kit first, art as a delivery against it — and because the three
+statuses and the shared technique below arrived with them.
 
 They introduce **three statuses** and **one shared technique** that nobody on
 the roster has:
@@ -712,11 +711,12 @@ share of everything.
 | Reggie | Wildcard zoner | ★★★☆ | Mid | Area denial, falling appliances |
 | Gakuganji | Sound fortress | ★☆ | Heavy | Walls of sound, unflinching trades |
 
-All 23 fighters are live. The six round-7 additions (Choso, Mei Mei, Uro, Yuji,
-Reggie, Gakuganji) were built and balanced in code before their art existed;
-that history is in [asset-requests-history.md](asset-requests-history.md).
+All 27 fighters are live. The six round-7 additions (Choso, Mei Mei, Uro, Yuji,
+Reggie, Gakuganji) were built and balanced in code before their art existed, and
+round 15's four did the same; that history is in
+[asset-requests-history.md](asset-requests-history.md).
 
-The four staged fighters, at the same glance — not selectable yet:
+Round 15's four, at the same glance:
 
 | Fighter | Archetype | Speed | Weight | Wins by |
 |---|---|---|---|---|
@@ -760,7 +760,7 @@ fighters* switches back to the single paging view.
 | Jogo | **Coffin of the Iron Mountain** | Sealed inside a volcano — the whole floor burns anything standing on it. | SPECIAL erupts a geyser directly under the enemy, free and instant, as often as you like. |
 | Hakari | **Idle Death Gamble** | The pachinko parlour with the door shut. | Three reels spin overhead; SPECIAL stops the next one. Three matching symbols is the JACKPOT — full heal, hyper-armour and +35% damage. A pair still pays something. |
 | Yuta | **Authentic Mutual Love** | Rika manifests completely and heals him continuously. | SPECIAL sends her at the enemy for a huge unblockable bite, on a short cooldown. |
-| Dagon *(staged)* | **Horizon of the Captivating Skandha** | A tropical shore with an endless ocean; fish bite automatically, cannot be blocked or dodged, and leave the enemy soaked. | SPECIAL fires **Death Swarm**: an unblockable surge on the enemy, short cooldown. |
+| Dagon | **Horizon of the Captivating Skandha** | A tropical shore with an endless ocean; fish bite automatically, cannot be blocked or dodged, and leave the enemy soaked. | SPECIAL fires **Death Swarm**: an unblockable surge on the enemy, short cooldown. |
 
 **Not implemented yet.** The wiki also lists Hanami, Uro and Yuji as domain
 users. Their domains are unnamed in canon or arrive very late in the series, so
@@ -800,7 +800,7 @@ became *Furnace Shell*.
 - [Jujutsu Kaisen Wiki — Tool Manipulation](https://jujutsu-kaisen.fandom.com/wiki/Tool_Manipulation) / [Wind Scythe](https://jujutsu-kaisen.fandom.com/wiki/Wind_Scythe)
 - [Jujutsu Kaisen Wiki — Cursed Speech](https://jujutsu-kaisen.fandom.com/wiki/Cursed_Speech) / [CBR — The Power and Drawbacks of Inumaki's Cursed Speech](https://www.cbr.com/jujutsu-kaisen-the-power-and-drawbacks-of-inumakis-cursed-speech-explained/)
 
-Round 15 (the four staged fighters):
+Round 15 (the four late additions):
 
 - [Jujutsu Kaisen Wiki — Kokichi Muta](https://jujutsu-kaisen.fandom.com/wiki/Kokichi_Muta) (Heavenly Restriction, Puppet Manipulation, Sword Option / Ultra Spin / Ultra Shield / Boost On / Ultra Cannon, the Simple Domain cartridges) / [Mode: Absolute](https://jujutsu-kaisen.fandom.com/wiki/Mode:_Absolute) (Ultra Cannon, Miracle Cannon, Pigeon Viola, and the 17 years 5 months 6 days of banked cursed energy)
 - [Jujutsu Kaisen Wiki — Yuki Tsukumo](https://jujutsu-kaisen.fandom.com/wiki/Yuki_Tsukumo) / [Star Rage](https://jujutsu-kaisen.fandom.com/wiki/Star_Rage) (virtual mass, "Bombaye") / [Garuda](https://jujutsu-kaisen.fandom.com/wiki/Garuda) (shikigami and cursed tool in one; fights independently)

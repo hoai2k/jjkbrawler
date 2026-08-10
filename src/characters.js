@@ -44,13 +44,13 @@ import { SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL } from ".
 //
 // Round 15 staged four — Mechamaru, Yuki Tsukumo, Dagon and Kurourushi — whose
 // kits, statuses, specials, ultimates, Dagon's domain and all four passives
-// were live in code before any art existed. Three of them landed their 36-pose
-// sets in round 15A and are now on the select screen; **Kurourushi's set has
-// not been drawn**, so he stays here. They are deliberately NOT in any
-// CHARACTER_GROUPS bucket, which is the other half of keeping them off the
-// select screen — this list keeps them out of randomCharacterKey() and out of
+// were live in code before any art existed. All four have since landed their
+// 36-pose sets and are on the select screen, so the list is empty; it stays
+// because it is how the next fighter gets staged. A staged key is deliberately
+// NOT in any CHARACTER_GROUPS bucket, which is the other half of keeping it off
+// the select screen — this list keeps it out of randomCharacterKey() and out of
 // the "unreachable fighter" warning at the bottom of this file.
-export const STAGED_CHARACTER_KEYS = ["kurourushi"];
+export const STAGED_CHARACTER_KEYS = [];
 
 // Sentinel selection meaning "draw a fresh fighter at the start of every match"
 // rather than naming one. Never a key in CHARACTERS — resolve it through
@@ -1251,18 +1251,14 @@ export const CHARACTERS = {
   },
 
   // =========================================================================
-  // ROUND 15 — STAGED. Mechamaru, Yuki, Dagon and Kurourushi are built and
-  // balanced here but are NOT on the roster: their keys are in
-  // STAGED_CHARACTER_KEYS at the top of this file, which keeps them out of
-  // character select and out of randomCharacterKey(), and they are in no
-  // CHARACTER_GROUPS bucket in config_menus.js.
+  // ROUND 15 — Mechamaru, Yuki, Dagon and Kurourushi. All four were built and
+  // balanced here before any art existed, staged behind STAGED_CHARACTER_KEYS,
+  // and all four have now shipped: sprites imported, cards drawn, keys moved
+  // into CHARACTER_GROUPS in config_menus.js. Kurourushi was the last, joining
+  // the Curses group once his 36-pose set was approved.
   //
-  // Everything else about them is live — statuses, specials, ultimates,
-  // Dagon's domain, the four new passives, their FX elements. Shipping one is
-  // the same three steps the round-7 six shipped by: import their sprites,
-  // drop their card in assets/cards/, then move the key out of
-  // STAGED_CHARACTER_KEYS and into a group. Their art is round 15 in
-  // docs/asset-requests.md; the kit rationale is in docs/characters.md.
+  // The kit rationale is in docs/characters.md; the art requests are round 15
+  // in docs/asset-requests-history.md.
   // =========================================================================
 
   // ------------------------------------------------------------- MECHAMARU

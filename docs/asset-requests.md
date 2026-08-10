@@ -10,20 +10,18 @@ set. Round 18 is open.**
 **Round 18 is the one to add to** — 17D is being drawn against, so anything found
 from here goes into 18.
 
-**117 poses are waiting to be approved**, which is now the largest outstanding
-item in the project and is reviewing work rather than drawing work. Rounds 14, 16
-and 17 all landed through the
-[approval step](../assets/intake/README.md#the-confirm-step): a delivery is in
+**The approval queue is empty.** Rounds 14, 16 and 17 all landed through the
+[approval step](../assets/intake/README.md#the-confirm-step) — a delivery is in
 the repo before it is in the game, and each pose is a decision waiting in the
-sprite workbench. Hanami's whole 36-pose set is in that queue, so **the tree is
-still what a player sees** until it is worked through.
+sprite workbench — and every one of those decisions has now been made. What a
+player sees is what was approved, Hanami's canon set included.
 
-**Kurourushi is staged, not shipped.** His 36-pose set, his hero card and both
-his summons landed with round 15, and his kit has been built and balanced in
-code for weeks — but the set has only had the mechanical placement pass, so he
-is held out of character select until somebody has placed him. Promoting him is
-one line: move his key out of `STAGED_CHARACTER_KEYS` in `src/characters.js`
-into a `CHARACTER_GROUPS` bucket in `src/config_menus.js`.
+**Kurourushi is shipped.** His 36-pose set, his hero card, his simplified tile
+and both his summons landed with round 15; the set was placed and approved pose
+by pose, and his key now sits in the Curses group in `src/config_menus.js`, so
+`STAGED_CHARACTER_KEYS` in `src/characters.js` is empty for the first time since
+round 15. The roster is 27 fighters. What his placement pass found is **18B**
+below.
 
 The roster is complete and **every fighter now has one sprite per action** —
 round 11 finished the conversion that round 5 started, so the 4×5 sprite sheet
@@ -493,8 +491,9 @@ manifest entry — so landing these is a move and nothing else.
 against, so anything caught from here lands here.
 
 - **18A** — thirteen caught while placing the round-15 sets (13 sprites)
+- **18B** — four caught while placing Kurourushi (4 sprites, 1 alpha fix)
 
-**13 sprites, none of it blocking** — every pose named here is in the game today
+**17 sprites, none of it blocking** — every pose named here is in the game today
 and playable; each is a redraw of art that works but does not do its job.
 
 ## 18A. Caught while placing the round-15 sets — 13 sprites
@@ -551,3 +550,39 @@ untouched originals are in `assets/reference/round15/`. That is the whole
 difference between an `improvement` flag and a `replacement` flag: these were
 recoverable in the file, and Yuta's cut-off sword in 17C was not.
 
+
+---
+
+## 18B. Caught while placing Kurourushi — 4 sprites
+
+Kurourushi's set was the last of the round-15 four to be placed, and it went
+through with all 36 poses approved. Four of the delivered drawings were flagged
+`quality` in the same pass, and this is the part that makes them non-blocking:
+**each of the four poses is drawn today by another frame of his own set**,
+chosen in the workbench rather than left broken. He plays complete. What is
+missing is that four poses share art with four others, so a fight shows the same
+silhouette in two places.
+
+| Key | Pose | Kind | What is wrong | Standing in |
+|---|---|---|---|---|
+| `attack_heavy_b` | `sideHeavy` | Quality | **The blade is drawn back over the shoulder** — this is the wind-up, not the strike. `_b` is the contact frame, and nothing in it extends forward past the robe. | `attack_light_b` — the only frame in the set with the blade fully out |
+| `attack_light_b` | `light` | Quality | Rejected in the same pass, and then promoted into the heavy slot above because it was the better of the two. The light now needs its own drawing. | the archived round-15 `attack_air_b` |
+| `crouch_attack_b` | `crouchAttack` | Quality | A low sprawl with the blade along the ground, which is very close to what `dash` shows. `_b` is the strike out of the crouch — the blade forward and clear of the body. | the archived round-15 `dash` |
+| `dash` | `dash` | Quality | Flagged during the placement pass. | the archived round-15 `dodge_roll` |
+
+**The heavy fault is the fourth one this round.** Yuki, Dagon and Mechamaru all
+delivered an `attack_heavy_b` that does not extend (18A), and Kurourushi's does
+not extend either — his for a different reason, being a wind-up rather than a
+short strike, but the frame on screen is the same problem: the heavy does not
+read as the biggest thing the fighter does. The rule is in
+[pose-brief.md](pose-brief.md); this is the evidence it needs to stay there.
+
+### Repo work, not a request: `kurourushi/ledge_hang`
+
+The ledge is drawn into the plate — a slab under the hands, the same fault
+`dagon/ledge_hang` and `mechamaru/ledge_hang` had in round 15 and the reason the
+rule went into the brief. It is flagged `wantsImprovement: "alpha"` with the
+note "Remove the ledge", so the workbench shows it and
+`tools/list_replacements.py` tracks it. As with the other two, the hands are
+closed on the bar and cutting it leaves them closed on nothing, which is the
+pose as asked for — **the stage supplies the edge.** No redelivery needed.

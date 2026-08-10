@@ -73,7 +73,7 @@ export const CHARACTER_GROUPS = [
   {
     key: "curses",
     label: "Curses and Curse Users",
-    members: ["mahito", "jogo", "hanami", "dagon", "geto", "choso", "sukuna"],
+    members: ["mahito", "jogo", "hanami", "dagon", "kurourushi", "geto", "choso", "sukuna"],
   },
 ];
 
