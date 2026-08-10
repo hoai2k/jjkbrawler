@@ -20,8 +20,8 @@
 // the only thing that touches billboards/assets/manifest.json — the same
 // arms-length flow the sprite workbench uses for its adjustments.
 
-import * as THREE from "../vendor/three.module.js";
-import { GLTFLoader } from "../vendor/loaders/GLTFLoader.js";
+import * as THREE from "../../vendor/three/three.module.js";
+import { GLTFLoader } from "../../vendor/three/loaders/GLTFLoader.js";
 import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimPitch, AIM_MAX_DEG } from "../src/states.js";
 import { propsOf, chainsOf, CHARACTER_PROPS, CHARACTER_CHAINS } from "../src/props.js";
 import * as rig from "../src/rig.js";
@@ -213,7 +213,7 @@ async function draw() {
   // Beat marker: attacks must be at full extension here.
   const st = STATES[clipNameFor(state.state)];
   if (st.beat !== undefined) {
-    ctx.fillStyle = clipTime(state.state, state.t) >= st.beat ? "#9fd39f" : "#5a6residents486";
+    ctx.fillStyle = clipTime(state.state, state.t) >= st.beat ? "#9fd39f" : "#5a6486";
     ctx.fillText(`beat ${st.beat}s`, 16, 24);
   }
 

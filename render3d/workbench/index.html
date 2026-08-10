@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>3D Workbench — JJK Brawler II</title>
+    <link rel="icon" href="../../favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+    <link rel="stylesheet" href="workbench.css">
+  </head>
+  <body>
+    <header class="bar">
+      <strong>3D Workbench</strong>
+      <span class="hint">Live clips through the game's own anime pipeline, over the sprite they replace. What you see is what <code>?render=3d</code> draws.</span>
+      <a class="ghost sm" href="../../billboards/workbench/">Billboard Workbench →</a>
+      <a class="ghost sm" href="../../sprites/workbench/">Sprite Workbench →</a>
+    </header>
+
+    <main>
+      <aside class="panel">
+        <label>Character
+          <select id="charSelect"></select>
+        </label>
+        <label>State
+          <select id="stateSelect"></select>
+        </label>
+        <div class="row">
+          <button id="playBtn" class="ghost sm">▶ Play</button>
+          <input id="scrub" type="range" min="0" max="1" step="0.001" value="0">
+          <span id="timeLabel" class="mono">0.00s</span>
+        </div>
+        <div class="row">
+          <label class="check"><input id="ghostToggle" type="checkbox" checked> Sprite ghost</label>
+          <label class="check"><input id="beatToggle" type="checkbox" checked> Snap to beat</label>
+          <label class="check"><input id="aimToggle" type="checkbox" checked> Aim target</label>
+        </div>
+        <div class="row">
+          <label class="check"><input id="turnToggle" type="checkbox"> Face left (turnaround)</label>
+          <label class="check"><input id="twosToggle" type="checkbox" checked> On twos</label>
+        </div>
+        <p class="hint">Drag the crosshair to move the aim target. Face left
+        shows the real turnaround — the rig yawed, not mirrored, so
+        asymmetric costumes stay correct.</p>
+
+        <h3>Look-dev</h3>
+        <label>Shade threshold <span class="mono" id="thrVal"></span>
+          <input id="thr" type="range" min="0.2" max="0.9" step="0.01">
+        </label>
+        <label>Shade tint (cool → warm) <span class="mono" id="tintVal"></span>
+          <input id="tint" type="range" min="0" max="1" step="0.01">
+        </label>
+        <label>Rim strength <span class="mono" id="rimVal"></span>
+          <input id="rim" type="range" min="0" max="1" step="0.01">
+        </label>
+        <label>Outline width (px) <span class="mono" id="outVal"></span>
+          <input id="outline" type="range" min="0" max="4" step="0.1">
+        </label>
+        <label>Sample rate (Hz) <span class="mono" id="hzVal"></span>
+          <input id="hz" type="range" min="6" max="30" step="1">
+        </label>
+        <div class="row">
+          <label class="check"><input id="sweepToggle" type="checkbox"> Sweeping light</label>
+          <label class="check"><input id="ikToggle" type="checkbox" checked> Foot IK</label>
+        </div>
+        <p class="hint">Sweeping light is the edited-normals review gate: watch
+        the terminator cross the face — one clean arc passes, triangle noise
+        fails the delivery.</p>
+        <label>Stage light preset
+          <select id="stageSelect"></select>
+        </label>
+        <label>Parallax yaw <span class="mono" id="parVal"></span>
+          <input id="par" type="range" min="-8" max="8" step="1" value="0">
+        </label>
+
+        <h3>This state's clip</h3>
+        <div id="sourceLine" class="mono src"></div>
+        <label>Inherit this pose from
+          <select id="poseFrom"></select>
+        </label>
+
+        <h3>Whole set</h3>
+        <div id="rigLine" class="mono src"></div>
+        <label>Unanswered states fall back to
+          <select id="inheritSelect"></select>
+        </label>
+        <label class="check"><input id="approveToggle" type="checkbox"> Approved for play</label>
+
+        <h3>All states</h3>
+        <div id="stateTable" class="states"></div>
+
+        <button id="exportBtn">Export payload</button>
+        <p class="hint">Apply with <code>node tools/billboard_intake.mjs apply &lt;payload.json&gt; --backend 3d</code> — the workbench edits in-memory only; nothing changes on disk until the payload is applied.</p>
+      </aside>
+
+      <section class="stage">
+        <canvas id="stage" width="1040" height="660"></canvas>
+        <div id="status" class="mono"></div>
+      </section>
+    </main>
+
+    <script type="module" src="workbench.js"></script>
+  </body>
+</html>

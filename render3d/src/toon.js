@@ -1,0 +1,166 @@
+// The anime materials — the render3d backend's answer to "why does a 3D model
+// read as a drawn character instead of a figurine".
+//
+// The recipe (render3d/docs/plan.md §4, the Guilty Gear Xrd approach sized to
+// this game):
+//
+//   * TWO-BAND RAMP.  Lit and shade, one hard terminator, no gradient. The
+//     shade band is not "darker" — it is a PAINTED SHADOW COLOR, cool-shifted
+//     the way the sprite art's own shading is, delivered per material as a
+//     shade tint (glTF extras) with the global cool shift as the fallback.
+//   * SHADE-BIAS (ILM) MAP.  A grayscale channel that biases the terminator
+//     per texel — the underside of a jaw drops into shade early, the face
+//     plane holds the light late. Delivered packed in the baseColor alpha
+//     (extras: `"shadeBias": "baseColorAlpha"`); rigs without one get the
+//     neutral 0.5 everywhere, i.e. no bias.
+//   * RIM LIGHT.  A thin stage-colored rim, driven by the stage the fight is
+//     in (scene.js derives it from the stage tint and calls setRimColor).
+//     A material term here, never ctx.shadow* at blit time.
+//
+// HOW IT IS WIRED.  Materials are three.js MeshToonMaterial with the ramp
+// replaced: onBeforeCompile swaps the stock `getGradientIrradiance` for the
+// two-band function above, so the whole lighting pipeline (skinning, shadows,
+// multiple lights) stays stock three.js and only the band math is ours.
+//
+// EVERY KNOB DEFAULTS FROM `TOON` BELOW and is overridable per material via
+// the .glb's extras (`extras.toon = { shadeTint, shadeThreshold, ... }`) or
+// per character via the manifest entry's `toon` block — art-directed in the
+// workbench, never hard-coded per fighter in engine code. The workbench edits
+// these live through setToonDefaults / setRimColor.
+
+/** The look, in one place. Colors are [r, g, b] 0..1. */
+export const TOON = {
+  // ramp coordinate (dotNL * 0.5 + 0.5) below which a texel falls into shade
+  shadeThreshold: 0.62,
+  // half-width of the terminator; near-zero = the hard drawn line
+  shadeSoftness: 0.02,
+  // the painted shadow palette: shade texels show baseColor * this. Cool and
+  // a touch dark, per the sprite art's own shading.
+  shadeTint: [0.52, 0.56, 0.74],
+  // how far a shade-bias texel (0..1, 0.5 neutral) can push the terminator
+  biasScale: 0.5,
+  // rim: stage-colored (scene.js overrides the color per stage), shaded side
+  rimColor: [0.72, 0.80, 1.0],
+  rimStrength: 0.28,
+  rimPower: 3.0,
+};
+
+// Uniform sets of every live toon material, so the workbench dials update
+// materials that already compiled.
+const LIVE = new Set();
+
+const RAMP_CHUNK = /* glsl */ `
+uniform vec3 uShadeColor;
+uniform float uShadeThreshold;
+uniform float uShadeSoftness;
+uniform float uBiasScale;
+uniform vec3 uRimColor;
+uniform float uRimStrength;
+uniform float uRimPower;
+vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
+  float dotNL = dot( normal, lightDirection );
+  float coord = dotNL * 0.5 + 0.5;
+  float thr = uShadeThreshold;
+  #if defined( TOON_ALPHA_BIAS ) && defined( USE_MAP )
+    // shade-bias (ILM) map packed as baseColor alpha: 0.5 is neutral, low
+    // forces shade early, high holds the lit side late.
+    thr += ( 0.5 - texture2D( map, vMapUv ).a ) * uBiasScale;
+  #endif
+  float lit = smoothstep( thr - uShadeSoftness, thr + uShadeSoftness, coord );
+  return mix( uShadeColor, vec3( 1.0 ), lit );
+}
+`;
+
+// Injected just before the lit color becomes gl_FragColor, so the rim is a
+// lighting term (pre-tonemap), not a screen-space glow.
+const RIM_CHUNK = /* glsl */ `
+{
+  vec3 rimV = normalize( vViewPosition );
+  float rimK = pow( 1.0 - saturate( dot( normalize( normal ), rimV ) ), uRimPower );
+  outgoingLight += uRimColor * uRimStrength * rimK;
+}
+#include <opaque_fragment>`;
+
+/** One toon material from whatever the .glb (or the mannequin) carried.
+ *  `overrides` come from the manifest's per-character `toon` block; the
+ *  material's own glTF extras win over both. */
+export function makeToonMaterial(THREE, src, overrides = {}) {
+  const extras = src?.userData?.toon || {};
+  const p = { ...TOON, ...overrides, ...extras };
+  const mat = new THREE.MeshToonMaterial({
+    color: src?.color ? src.color.clone() : new THREE.Color(0xffffff),
+    map: src?.map || null,
+    transparent: !!src?.transparent,
+    opacity: src?.opacity ?? 1,
+    side: src?.side ?? THREE.FrontSide,
+  });
+  const u = {
+    uShadeColor: { value: new THREE.Color(
+      p.shadeTint[0], p.shadeTint[1], p.shadeTint[2]) },
+    uShadeThreshold: { value: p.shadeThreshold },
+    uShadeSoftness: { value: p.shadeSoftness },
+    uBiasScale: { value: p.biasScale },
+    uRimColor: { value: new THREE.Color(p.rimColor[0], p.rimColor[1], p.rimColor[2]) },
+    uRimStrength: { value: p.rimStrength },
+    uRimPower: { value: p.rimPower },
+  };
+  const alphaBias = src?.userData?.shadeBias === "baseColorAlpha" && !!src?.map;
+  mat.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, u);
+    if (alphaBias) shader.defines = { ...shader.defines, TOON_ALPHA_BIAS: "" };
+    shader.fragmentShader = shader.fragmentShader
+      .replace("#include <gradientmap_pars_fragment>", RAMP_CHUNK)
+      .replace("#include <opaque_fragment>", RIM_CHUNK);
+  };
+  mat.customProgramCacheKey = () => `r3d-toon${alphaBias ? "+bias" : ""}`;
+  mat.userData.toonified = true;
+  // Remember which knobs this material pinned for itself, so global dial
+  // sweeps in the workbench respect per-material art direction.
+  mat.userData.pinned = new Set([...Object.keys(overrides), ...Object.keys(extras)]);
+  mat.userData.uniforms = u;
+  LIVE.add(mat);
+  return mat;
+}
+
+/** Convert every material under `root` to the toon pass. Idempotent; shared
+ *  source materials convert once and stay shared. Outline shells (added by
+ *  outline.js, marked isOutline) are left alone. */
+export function applyToonMaterials(THREE, root, overrides = {}) {
+  const converted = new Map();
+  root.traverse((o) => {
+    if (!o.isMesh || o.userData.isOutline) return;
+    const src = o.material;
+    if (!src || src.userData?.toonified) return;
+    if (!converted.has(src)) converted.set(src, makeToonMaterial(THREE, src, overrides));
+    o.material = converted.get(src);
+  });
+}
+
+/** Workbench dial: merge new defaults and push them onto every live material
+ *  that did not pin the knob for itself. */
+export function setToonDefaults(partial) {
+  Object.assign(TOON, partial);
+  for (const mat of LIVE) {
+    const u = mat.userData.uniforms;
+    const pinned = mat.userData.pinned;
+    if (partial.shadeTint && !pinned.has("shadeTint")) {
+      u.uShadeColor.value.setRGB(...partial.shadeTint);
+    }
+    if (partial.shadeThreshold !== undefined && !pinned.has("shadeThreshold")) u.uShadeThreshold.value = partial.shadeThreshold;
+    if (partial.shadeSoftness !== undefined && !pinned.has("shadeSoftness")) u.uShadeSoftness.value = partial.shadeSoftness;
+    if (partial.biasScale !== undefined && !pinned.has("biasScale")) u.uBiasScale.value = partial.biasScale;
+    if (partial.rimStrength !== undefined && !pinned.has("rimStrength")) u.uRimStrength.value = partial.rimStrength;
+    if (partial.rimPower !== undefined && !pinned.has("rimPower")) u.uRimPower.value = partial.rimPower;
+    if (partial.rimColor && !pinned.has("rimColor")) u.uRimColor.value.setRGB(...partial.rimColor);
+  }
+}
+
+/** The stage speaks: scene.js derives a rim color from the stage's tint and
+ *  sets it here, on every material at once (per-material pins still win —
+ *  a material that art-directed its rim keeps it). */
+export function setRimColor(r, g, b) {
+  TOON.rimColor = [r, g, b];
+  for (const mat of LIVE) {
+    if (!mat.userData.pinned.has("rimColor")) mat.userData.uniforms.uRimColor.value.setRGB(r, g, b);
+  }
+}
