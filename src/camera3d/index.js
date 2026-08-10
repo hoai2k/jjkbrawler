@@ -27,6 +27,10 @@ export { worldToScreen, overlayTransform };
  *  that renders nothing throws no errors, so "no page errors" alone is not
  *  evidence the mode works — these counts are. */
 export function debugStats() {
+  // Read off LIVE materials, not off the constants that set them, so the
+  // smoke test fails if the flags are changed rather than if a comment is.
+  const quad = billboards?.group.children[0];
+  const plat = scene?.userData.platMeshes?.[0];
   return {
     quads: billboards ? billboards.count() : 0,
     models: models ? models.count() : 0,
@@ -35,6 +39,11 @@ export function debugStats() {
     garnish: garnish ? garnish.count() : 0,
     camera: camera.position.toArray(),
     fov: camera.fov,
+    // The two flags that keep the stage from cutting holes in the fighters.
+    layering: {
+      billboardDepthTest: quad ? quad.material.depthTest : null,
+      platformFaceDepthWrite: plat ? plat.children[1]?.material.depthWrite : null,
+    },
   };
 }
 
