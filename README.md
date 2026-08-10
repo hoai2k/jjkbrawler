@@ -43,13 +43,13 @@ and `3d`/`render3d`/`anime` all resolve (the extra spellings are aliases):
   sprite workbench (`/sprites/workbench/`) and its documentation. The default.
 - [`billboards/`](billboards/README.md) — the 2.5D path: 3D models posed at
   quantised holds, rendered offscreen and blitted into the same 2D world. The
-  pipeline is built (try `?render=billboard&mannequin=all`, review in
+  pipeline is built (try `?render=billboard`, review in
   `/billboards/workbench/`); fighters draw as models per character as rigs
   are delivered, and as their sprites otherwise.
 - [`render3d/`](render3d/README.md) — the live-3D anime path: the same
   rigs animated at full frame rate, toon-ramped, ink-outlined and stepped on
   twos, with real turnarounds, aimed strikes, head tracking and stage-derived
-  lighting (try `?render=3d&mannequin=all`, review in `/render3d/workbench/`).
+  lighting (try `?render=3d`, review in `/render3d/workbench/`).
   Same per-character fallthrough to sprites.
 
 Gameplay is identical on every backend by design — hurtboxes, reach and

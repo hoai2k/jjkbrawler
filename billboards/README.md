@@ -10,7 +10,7 @@ draws sprites until one lands (round B1 in
 
     node server.mjs
     open 'http://127.0.0.1:5174/?render=billboard'               # the real thing
-    open 'http://127.0.0.1:5174/?render=billboard&mannequin=all' # the proof body
+    open 'http://127.0.0.1:5174/?render=billboard&mannequin=none' # sprites where no rig exists
     open 'http://127.0.0.1:5174/billboards/workbench/'           # the review tool
 
 `?render=billboards` and `?render=sprites` work too — the plural spellings are

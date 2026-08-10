@@ -13,6 +13,13 @@ Nothing outstanding blocks play. The game is complete and playable on the
 sprite path with 27 fighters; everything below either extends it (the 3D
 tracks) or fills a gap that currently degrades to silence or to a fallback.
 
+**All three render modes are covered here.** The sprite path is fed by the 2D
+art rounds (row 4); the billboard and render3d paths are fed by **one shared
+commission** (rows 5–11) because both read the same rigs and clips. Neither
+model path is blocked on code — both run today against the mannequin, which
+is what `?render=billboard` and `?render=3d` now show by default for any
+fighter without a delivered rig.
+
 ---
 
 ## The whole picture
@@ -34,6 +41,44 @@ tracks) or fills a gap that currently degrades to silence or to a fallback.
 | — | [Music](music-requests.md) | 🎵 **Music** | **all 20 delivered** | — |
 | — | [Audio Rounds 1–9](audio-requests-history.md) | 🔊 Sound effects | **delivered** | — |
 | — | [2D art Rounds 1–17](asset-requests-history.md) | 🖼️ Images | **delivered** | — |
+
+---
+
+## Unfinished engineering — plans you may or may not want continued
+
+Not asset requests: these are **implementation** plans with work still in
+them. They need no delivery to progress, only a decision to carry on. Listed
+so that "what is half-built?" is answerable from the same page.
+
+| Plan | State | What is left |
+|---|---|---|
+| [2.5D camera (`?camera=3d`)](2.5d-camera-plan.md) | feature-complete, polish open | Garnish cards for 15 of 20 boards; the second parallax backdrop layer; a Settings toggle; **model-textured billboards** (see below) |
+| [render3d (`?render=3d`)](../render3d/docs/plan.md) | D0–D2 built, D3+ need art | Engine side is done and dialled. D3–D5 are asset rounds (7–11 above), not code |
+| [billboards (`?render=billboard`)](../billboards/docs/plan.md) | B0 built, B1+ need art | Same shape: the pipeline runs on the mannequin; everything further is the shared commission |
+| [Effects plan](effects-plan.md) | reference doc | Element-aware attack feedback; check `src/config_fx.js` against it before treating anything here as open |
+| [Stage variety](stage-variety-plan.md) | **complete** (15/15 checked) | Nothing — kept for the decisions record and [its ideas doc](stage-variety-ideas.md) |
+
+### The one cross-cutting gap: the render modes and the camera do not fully compose
+
+`?render=` (how a character is drawn) and `?camera=` (the lens they exist in)
+are orthogonal flags and can both be set. But **`?camera=3d` always draws
+sprites**, whichever render backend is chosen: it textures quads out of
+`frameImage()`, and the model backends hand out opaque pose tokens only their
+own `drawCharFrame` can rasterise.
+
+Until recently that combination drew **no fighter at all** — the token reached
+`frameImage`, resolved nothing, and the quad was skipped. That is fixed (the
+camera resolves poses through the sprite path, so the composition always draws
+something), but the interesting version — the anime-shaded model standing
+inside the perspective camera — is still unbuilt and is the last item in the
+camera plan's "still open" list. It needs no art.
+
+**What each combination shows today:**
+
+| | `?render=sprite` | `?render=billboard` | `?render=3d` |
+|---|---|---|---|
+| *(no camera flag)* | sprites | posed models / mannequins | live anime models / mannequins |
+| `?camera=3d` | sprites in 3D space | sprites in 3D space | sprites in 3D space |
 
 ---
 
