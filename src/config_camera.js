@@ -90,6 +90,9 @@ export const BOARD_CAMERA = {
   sunkenCrossing: { dampingMul: 0.5 },
   // Low gravity: floatier fights get a floatier frame.
   domainCore: { heightBias: 0.7, dampingMul: 0.7 },
+  // The drifting main platform is the anchor: blend 40% of its drift into the
+  // tracked x, so the world visibly slides under the fight.
+  bridgeDuel: { driftFollow: 0.4 },
   // The busiest skyline gets the busiest lens.
   shibuyaNight: { fovNudge: 1, lookaheadMul: 1.5 },
 };
@@ -101,7 +104,8 @@ export const BOARD_CAMERA = {
 // 0.93×D); yaw/roll/fov are degrees; shake is sim-px camera noise.
 export const CUES = {
   // Quiet Hall's silence seal: a held breath — slow push in, yaw to zero.
-  hush:      { dolly: -0.07, attack: 4.0, hold: 4.0, release: 1.2, yawTo0: true },
+  // The hush lasts 4 s; the push arrives with it held and lets go as it lifts.
+  hush:      { dolly: -0.07, attack: 2.0, hold: 2.0, release: 1.2, yawTo0: true },
   // Flooded Gate's surge: the camera leads the wave, like footage from a boat.
   // Signed by strength: cue with strength ±1 for direction.
   surge:     { pan: 0.6, roll: 1.5, attack: 0.3, hold: 1.2, release: 0.8 },
@@ -125,8 +129,9 @@ export const CUES = {
   fog:       { dolly: -0.1, attack: 2.0, hold: 6.0, release: 2.0 },
   // Cursed Teeth's inhale: the camera is being inhaled too.
   inhale:    { dolly: -0.05, attack: 1.5, hold: 1.5, release: 0.2, kickOnRelease: 0.1 },
-  // River Gate's crosswind: wind made visible with zero particles. Signed.
-  wind:      { roll: 1.3, attack: 1.0, hold: 6.0, release: 1.0 },
+  // River Gate's crosswind: wind made visible with zero particles. Signed;
+  // re-cued on every 15 s flip, so the hold spans a whole leg of the cycle.
+  wind:      { roll: 1.3, attack: 1.0, hold: 13.0, release: 1.0 },
   // Billboard Roof's lightning: the strongest shake in the game.
   lightning: { shake: 14, fov: -2, attack: 0.02, hold: 0.08, release: 0.5 },
   // Bridge Duel: not a cue — see rig.js driftFollow, blended every frame.

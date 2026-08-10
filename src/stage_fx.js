@@ -21,6 +21,10 @@ import { burst, dust, popup, banner, ring, sparkLine } from "./particles.js";
 import { hitboxRect, shieldBreak } from "./combat.js";
 import { clamp, sign } from "./utils.js";
 import { METER_MAX } from "./constants.js";
+// Camera cues: each gimmick pokes the 2.5D rig at its big moment. A no-op in
+// flat mode (camera_mode.js swallows the call when no rig is listening), so
+// nothing here needs to know which renderer is running.
+import { cameraCue } from "./camera_mode.js";
 
 // ------------------------------------------------------------------ set-up
 
@@ -196,6 +200,7 @@ const STAGE_FX = {
           if (!this.hushBanner || this.hushBanner !== Math.floor(state.matchTime / PERIOD) + 1) {
             this.hushBanner = Math.floor(state.matchTime / PERIOD) + 1;
             banner("THE HALL FALLS SILENT", "#c9cede", { y: 240, size: 34, life: 1.4 });
+            cameraCue("hush"); // a held breath: slow push-in, yaw to zero
           }
         }
       },
@@ -241,6 +246,7 @@ const STAGE_FX = {
           spawned = n;
           wave = { x: dir > 0 ? plat.x - 60 : plat.x + plat.w + 60, dir, hit: new Set() };
           playSfx("hazardWaterSurge", 0.7);
+          cameraCue("surge", dir); // the camera leads the wave, boat-footage roll
         }
         if (wave) {
           wave.x += wave.dir * 430 * dt;
@@ -302,6 +308,7 @@ const STAGE_FX = {
             announced = n;
             banner("A CURTAIN FALLS", "#b06cff", { y: 240, size: 36, life: 1.5 });
             playSfx("hazardBell", 0.5, 0.7);
+            cameraCue("frenzy"); // the busiest skyline gets the busiest lens
           }
           for (const f of fighters()) f.meter = clamp(f.meter + 2.4 * dt, 0, METER_MAX);
           if (Math.random() < dt * 10) {
@@ -354,6 +361,8 @@ const STAGE_FX = {
           if (snapped !== n) {
             snapped = n;
             playSfx("hazardFangSnap", 0.85);
+            // punch-in biased toward whichever edge the camera is already near
+            cameraCue("fangSnap", sign(state.camera.x - 640) || 1);
           }
           for (const z of zones) {
             for (const f of fighters()) {
@@ -428,6 +437,7 @@ const STAGE_FX = {
           // The flower opening is worth hearing on its own — it is an
           // invitation to walk over, not just a pickup that pays out later.
           playSfx("hazardBloom", 0.45, 0.9);
+          cameraCue("bloom"); // a gentle drift toward the flower
         }
         if (!bloom) return;
         const age = state.matchTime - bloom.born;
@@ -517,6 +527,7 @@ const STAGE_FX = {
             lantern.t = 0;
             burst(lantern.x, lantern.landY - 10, "#ffb45a", 22, 1.2);
             playSfx("hazardFirePatch", 0.75);
+            cameraCue("punch"); // micro-shake on the lantern's impact
           }
         } else if (lantern.phase === "patch") {
           if (lantern.t >= PATCH) { lantern = null; return; }
@@ -619,11 +630,15 @@ const STAGE_FX = {
           if (struck !== n) {
             struck = n;
             playSfx("hazardElectricArc", 0.9);
+            // ease the yaw around the wall so its face catches the light
+            cameraCue("wallYaw", sign(state.camera.x - 640) || 1);
           }
           for (const f of fighters()) {
             if (Math.abs(f.x - 640) < 22 && f.y > 170 && f.y < plat.y + 40) {
               const away = sign(f.x - 640) || f.facing * -1 || 1;
-              stageHit(f, { dmg: 6, vx: away * 270, vy: -250, color: "#e052c0", label: "ZAPPED", iframes: 0.9 });
+              if (stageHit(f, { dmg: 6, vx: away * 270, vy: -250, color: "#e052c0", label: "ZAPPED", iframes: 0.9 })) {
+                cameraCue("punch"); // crossing the arc earns an FOV punch
+              }
             }
           }
         }
@@ -668,7 +683,11 @@ const STAGE_FX = {
           const t = (state.matchTime + i * (PERIOD / plats.length)) % PERIOD;
           const rattleStart = PERIOD - GHOST - RATTLE;
           const ghostStart = PERIOD - GHOST;
+          const wasRattling = p.shakeMag > 0;
           p.shakeMag = t >= rattleStart && t < ghostStart ? 2.5 : 0;
+          // 1:1 micro-shake synced to the rattle, so the camera trembles with
+          // the bone that is about to give way.
+          if (p.shakeMag > 0 && !wasRattling) cameraCue("rattle", 0.5);
           const wasGhost = p.ghost;
           p.ghost = t >= ghostStart;
           if (p.ghost && !wasGhost) playSfx("hazardElectricArc", 0.3, 1.5);
@@ -720,6 +739,7 @@ const STAGE_FX = {
           glide = { from: plats.map((p) => ({ x: p.x, y: p.y })), to: LAYOUTS[layout], t: 0 };
           playSfx("hazardBell", 0.6, 1.25);
           banner("CLASS CHANGE", "#d8b06a", { y: 230, size: 30, life: 1.2 });
+          cameraCue("layout"); // pull back so the whole reshuffle is seen
         }
         if (glide) {
           glide.t += dt;
@@ -740,8 +760,16 @@ const STAGE_FX = {
   // silhouettes — spacing goes by memory and muzzle flash. Purely visual.
   mistPier() {
     const PERIOD = 30, FOG = 6;
+    let cued = -1;
     return {
-      update() {},
+      update() {
+        const n = Math.floor(state.matchTime / PERIOD);
+        const t = state.matchTime % PERIOD;
+        if (t >= PERIOD - FOG && cued !== n) {
+          cued = n;
+          cameraCue("fog"); // dolly IN while visibility is low — claustrophobia
+        }
+      },
       drawTop(ctx) {
         const t = state.matchTime % PERIOD;
         const start = PERIOD - FOG;
@@ -798,6 +826,7 @@ const STAGE_FX = {
         if (t >= runStart && !cars) {
           cars = { dir, list: [0, 0.35, 0.7].map((d) => ({ delay: d, x: dir > 0 ? plat.x - 160 : plat.x + plat.w + 160 })) };
           playSfx("hazardTrafficPass", 0.85);
+          cameraCue("surge", dir * 0.6); // a light lateral drift with the traffic
         }
         if (cars) {
           let allGone = true;
@@ -894,6 +923,7 @@ const STAGE_FX = {
               burst(fang.x, fang.landY - 16, "#e6dcff", 20, 1.1);
               playSfx("hazardFangSnap", 0.8);
               state.camera.shake = Math.max(state.camera.shake, 3);
+              cameraCue("punch", 0.7);
               fang = null;
             }
           }
@@ -906,6 +936,7 @@ const STAGE_FX = {
             inhaled = inum;
             playSfx("hazardTelegraph", 0.4, 0.5);
             popup(640, 300, "IT INHALES…", "#b06cff", 20);
+            cameraCue("inhale"); // the camera is being inhaled too
           }
           for (const f of fighters()) {
             const dir = sign(640 - f.x);
@@ -976,9 +1007,14 @@ const STAGE_FX = {
     const FLIP = 15, WIND = 42;
     const petals = [];
     const windDir = () => (Math.floor(state.matchTime / FLIP) % 2 === 0 ? 1 : -1);
+    let cuedDir = 0;
     return {
       update(dt) {
         const dir = windDir();
+        if (dir !== cuedDir) {
+          cuedDir = dir;
+          cameraCue("wind", dir); // sustained roll with the wind, flips when it flips
+        }
         for (const f of fighters()) {
           if (!f.grounded && !f.ledge) f.x += dir * WIND * dt;
         }
@@ -1062,6 +1098,7 @@ const STAGE_FX = {
           popup(bx, by - 90, "+8 CE", "#b06cff", 22);
           burst(bx, by - 30, "#b06cff", 22, 1.1);
           playSfx("hazardCurseLatch", 0.6, 1.2);
+          cameraCue("punch", 0.5); // blob pop: a 40 ms micro-punch
           blob = null;
           return;
         }
@@ -1131,6 +1168,7 @@ const STAGE_FX = {
               roof.ghost = false;
               s.crumbleT = 0;
               dust(roof.x + roof.w / 2, roof.y, 12);
+              cameraCue("punch", 0.4); // a soft focus pull as the roof re-knits
             }
             return;
           }
@@ -1144,6 +1182,7 @@ const STAGE_FX = {
               s.reformT = 5;
               burst(roof.x + roof.w / 2, roof.y + 6, "#9fbdd6", 24, 1.2);
               playSfx("explosionSmall", 0.5, 0.8);
+              cameraCue("rattle"); // the crumble carries into the lens
             }
           } else {
             s.crumbleT = Math.max(0, s.crumbleT - dt * 2);
@@ -1176,6 +1215,7 @@ const STAGE_FX = {
           boltT = 0.25;
           playSfx("hazardElectricArc", 0.95);
           state.camera.shake = Math.max(state.camera.shake, 8);
+          cameraCue("lightning"); // the strongest shake in the game
           for (const f of fighters()) {
             const onTop = (f.grounded && f.currentPlatform === top) ||
               (f.x > top.x - 14 && f.x < top.x + top.w + 14 && f.y > top.y - 70 && f.y < top.y + 24);

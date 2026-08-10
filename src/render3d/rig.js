@@ -74,6 +74,11 @@ const smooth = {
 let kickT = Infinity;   // time since the last cam.kick rising edge
 let prevKick = 0;
 let domainT = -1;       // time since the current domain cast began, or -1
+// Where the ACTION is, in sim pixels — the point overlayTransform pins its
+// linearisation to. The mean alive-fighter position, not the camera centre:
+// the affine is exact where it is fitted, and the pixels that must land
+// exactly are the ones on the fighters (hitbox debug is the acceptance test).
+let lastSimX = 640, lastSimY = 460;
 
 /** Reset between matches — main.js resets state.camera the same way. */
 export function resetRig() {
@@ -239,6 +244,14 @@ export function updateRig(st, dt) {
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
 
+  if (alive.length) {
+    lastSimX = alive.reduce((s, f) => s + f.x, 0) / alive.length;
+    lastSimY = alive.reduce((s, f) => s + f.y, 0) / alive.length - 70;
+  } else {
+    lastSimX = cam.x;
+    lastSimY = cam.y;
+  }
+
   // Handed back for the smoke test's invariants; the game ignores it.
   return { D, fov, yaw: smooth.yaw, roll: smooth.roll, dollyMul: smooth.dollyMul };
 }
@@ -265,15 +278,26 @@ export function worldToScreen(x, y) {
 }
 
 /** The affine {a,b,c,d,e,f} for ctx.transform() that maps sim coordinates to
- *  their projected position. Fitted over a 100 px baseline for stability. */
+ *  their projected position. Fitted about the camera's tracked point — the
+ *  linearisation is exact there and the small perspective error lands out at
+ *  the frame edges, not on the fighters the shot is centred on. */
 export function overlayTransform() {
-  const B = 100;
-  const o = worldToScreen(0, 0);
-  const px = worldToScreen(B, 0);
-  const py = worldToScreen(0, B);
+  // Pinned exactly at the action point (the translation comes from `o`), with
+  // central-difference slopes over a wide baseline: the plane's projection is
+  // a hair non-affine (the tilt from pitch and heightBias), and the wide
+  // secant halves how fast that error grows away from the fighters.
+  const B = 200;
+  const cx = lastSimX, cy = lastSimY;
+  const o = worldToScreen(cx, cy);
+  const pxm = worldToScreen(cx - B, cy);
+  const pxp = worldToScreen(cx + B, cy);
+  const pym = worldToScreen(cx, cy - B);
+  const pyp = worldToScreen(cx, cy + B);
+  const a = (pxp.x - pxm.x) / (2 * B), b = (pxp.y - pxm.y) / (2 * B);
+  const c = (pyp.x - pym.x) / (2 * B), d = (pyp.y - pym.y) / (2 * B);
   return {
-    a: (px.x - o.x) / B, b: (px.y - o.y) / B,
-    c: (py.x - o.x) / B, d: (py.y - o.y) / B,
-    e: o.x, f: o.y,
+    a, b, c, d,
+    e: o.x - a * cx - c * cy,
+    f: o.y - b * cx - d * cy,
   };
 }
