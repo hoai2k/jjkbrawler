@@ -17,6 +17,7 @@ import {
 } from "./rig.js";
 import { makeSimGroup, updatePlatforms, makeBackdrop, updateBackdrop } from "./stage_geo.js";
 import { makeBillboards } from "./billboards.js";
+import { makeModels } from "./models.js";
 import { makeGarnish } from "./garnish.js";
 import { WORLD } from "../constants.js";
 
@@ -32,6 +33,9 @@ export function debugStats() {
   const plat = scene?.userData.platMeshes?.[0];
   return {
     quads: billboards ? billboards.count() : 0,
+    models: models ? models.count() : 0,
+    posedCards: billboards ? billboards.posedCount() : 0,
+    cardBail: billboards ? billboards.lastBail() : null,
     garnish: garnish ? garnish.count() : 0,
     camera: camera.position.toArray(),
     fov: camera.fov,
@@ -48,6 +52,7 @@ let scene = null;
 let simGroup = null;
 let backdrop = null;
 let billboards = null;
+let models = null;
 let garnish = null;
 
 /** Between matches: the rig's smoothed framing and every garnish card go back
@@ -77,6 +82,11 @@ export function initRender3d() {
   scene.add(simGroup);
   billboards = makeBillboards();
   simGroup.add(billboards.group);
+  // Real rigs (?render=3d) go in WORLD space, not the sim group: that group
+  // scales by (S, -S, 1) and a negative Y mirrors a model and inverts its
+  // winding. Cards do not care; geometry does. models.js maps sim coords itself.
+  models = makeModels();
+  scene.add(models.group);
   // In the sim group with the billboards: cards position in sim pixels like
   // everything else, and the group's z scale is 1, so a card's depth is
   // written in world units directly.
@@ -113,7 +123,11 @@ export function draw(st) {
   updateRig(st, dt);
   updatePlatforms(scene, st.platforms);
   updateBackdrop(backdrop, st, camera.position.z, camera.fov);
-  billboards.update(st);
+  // Models first: it reports which fighters it drew as real geometry, and the
+  // card layer skips exactly those. Every other fighter still gets a card, so
+  // a roster part-way through delivery mixes rigs and sprites in one shot.
+  const asModels = models.update(st);
+  billboards.update(st, asModels);
   garnish.update(st, dt);
   renderer.render(scene, camera);
 }

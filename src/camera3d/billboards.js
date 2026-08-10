@@ -8,9 +8,15 @@
 // renderer draws at (x, y), the billboard shows at the same point of z = 0.
 //
 // Reads the same data the flat path reads: frameMeta/frameImage placement,
-// currentFrame for the pose, fighterTransform for lean/squash/tumble. Glow
+// the sprite pose resolver, fighterTransform for lean/squash/tumble. Glow
 // halos (canvas shadowBlur) have no cheap GL equivalent and are skipped; the
 // overlay still draws every particle and arc on top.
+//
+// Not every fighter here is a sprite: under `?render=billboard` a body is a
+// card wearing the posed-model texture, and under `?render=3d` the body is
+// not a card at all — models.js puts the real rig in the scene and this
+// module draws only that fighter's shadow and trail. Per character, so a
+// half-delivered roster mixes models and sprites in one shot.
 
 import {
   CanvasTexture, SRGBColorSpace, AdditiveBlending, NormalBlending,
@@ -22,20 +28,26 @@ import {
 import { frameMeta, frameImage, getImage } from "../assets.js";
 // The SPRITE pose resolver, deliberately not the render-backend dispatcher.
 //
-// This module draws textured QUADS: every pose it shows has to come out of
-// frameImage(), which understands sprite frame keys and nothing else. The
-// model backends hand out opaque tokens instead (`r3d:idle@0.5`, `bb:idle@0.5`)
-// that only their own drawCharFrame can interpret — so asking the dispatcher
-// for a pose here returned a token frameImage could not resolve, drawChar bailed,
-// and every fighter drew as NOTHING under `?render=3d&camera=3d` (or billboard
-// + camera). Two features each correct alone, silently empty together.
+// The sprite CARD path below has to come out of frameImage(), which
+// understands sprite frame keys and nothing else, while the model backends
+// hand out opaque tokens (`r3d:idle@0.5`, `bb:idle@0.5`) only their own
+// drawCharFrame can interpret. Asking the dispatcher for a pose here once
+// returned a token frameImage could not resolve, so every fighter drew as
+// NOTHING under `?render=3d&camera=3d` — two features each correct alone,
+// silently empty together. This resolver is the sprite fallback, and it is
+// reached only when a fighter has no model to show.
 //
-// So the camera mode is explicitly a sprite billboarder: it composes with every
-// render backend by drawing that fighter's sprites, whatever `?render=` says.
-// Showing an actual model in here means rendering it to a texture and using
-// THAT as the quad texture — real work, listed under "Still open" in
-// docs/2.5d-camera-plan.md rather than faked here.
+// What each backend actually gets in this mode is decided by its scene
+// adapter (src/render_backend.js sceneAdapter):
+//
+//   ?render=sprite      a sprite card — drawChar, below
+//   ?render=billboard   a card wearing the POSED-MODEL texture — drawPosedCard
+//   ?render=3d          real rig geometry in the scene — src/camera3d/models.js
 import { currentFrame as spriteFrame } from "../../sprites/src/sprites.js";
+import { sceneAdapter } from "../render_backend.js";
+import { headHeightTarget } from "../heights.js";
+import { FOOT_FRAC } from "../../billboards/src/renderer.js";
+import { state as gameState } from "../state.js";
 import { anchorPoint, frameFootY } from "../../sprites/src/sprites.js";
 import { getActor } from "../characters.js";
 import { fighterTransform, trailStrength } from "../motion.js";
@@ -43,6 +55,23 @@ import { TRAIL_ALPHA } from "../config_tuning.js";
 import { CELL_W } from "../constants.js";
 
 const DEG = Math.PI / 180;
+const EMPTY = new Set();
+let posedCards = 0;
+let bail = null;
+
+/** The auto-aim target the pose-per-draw backends take: the nearest live
+ *  opponent's chest, or null. */
+function nearestFoe(f) {
+  let best = null;
+  let bestD = Infinity;
+  for (const o of gameState.fighters) {
+    if (o === f || o.dead || o.respawnTimer > 0) continue;
+    if (o.team != null && f.team != null && o.team === f.team) continue;
+    const d = Math.abs(o.x - f.x) + Math.abs(o.y - f.y);
+    if (d < bestD) { bestD = d; best = o; }
+  }
+  return best ? { x: best.x, y: best.y - 80 } : null;
+}
 
 // Soft radial orb for projectiles that have no sprite — the GL stand-in for
 // the flat renderer's radial-gradient ball, one texture per colour.
@@ -144,6 +173,41 @@ export function makeBillboards() {
     return true;
   }
 
+  /** `?render=billboard`: the fighter as a card wearing the posed-model
+   *  texture. Geometry comes from the same two constants the flat blit uses —
+   *  the model origin sits at the texture's horizontal centre and the foot
+   *  line FOOT_FRAC up from its bottom — so the card lands where the sprite
+   *  card would, at the size the sprite card would be. Returns false when the
+   *  active backend has no texture adapter or no rig for this fighter, and
+   *  the caller draws the sprite card instead. */
+  function drawPosedCard(f, charKey, order) {
+    const adapter = sceneAdapter();
+    if (!adapter || adapter.kind !== "texture" || !adapter.ready?.()) { bail = "no-adapter"; return false; }
+    const targetPx = headHeightTarget(charKey);
+    const entry = adapter.poseTexture(charKey, f.animKey, f.animTime, {
+      facing: f.facingVis, x: f.x, chestY: f.y - targetPx * 0.55,
+      aim: nearestFoe(f),
+    });
+    if (!entry) { bail = "no-entry"; return false; }
+
+    const m = fighterTransform(f);
+    const texPx = entry.canvas.height;
+    // Game px per texture px: the rows the body spans must land at targetPx.
+    const sc = targetPx / (entry.rowsPerMetre * entry.heightM);
+    const w = texPx * sc;
+    const h = texPx * sc;
+    // The texture's foot row, as a distance above the card's centre.
+    const footFromTop = texPx * (1 - FOOT_FRAC) * sc;
+    const cx = f.x + (m.offsetX || 0);
+    const cy = f.y + (m.offsetY || 0) - footFromTop + h / 2;
+    drawRect(imageTexture(entry.canvas), cx, cy, w, h, {
+      rotation: m.rotation, flipX: f.facingVis < 0,
+      alpha: f.invuln > 0.1 && Math.floor(f.invuln * 16) % 2 === 0 ? 0.6 : 1,
+    }, 0, order);
+    posedCards++;
+    return true;
+  }
+
   /** An axis-aligned image rect (used by transformed fighters, shadows,
    *  projectile art) with optional rotation about its centre. */
   function drawRect(tex, cx, cy, w, h, { rotation = 0, flipX = false, alpha = 1, additive = false, color = 0xffffff } = {}, z, order) {
@@ -163,8 +227,10 @@ export function makeBillboards() {
 
   /** Rebuild the frame's billboards from state. Order mirrors the flat
    *  renderer: shadows, trails, bodies back-to-front by y, then projectiles. */
-  function update(st) {
+  function update(st, asModels = EMPTY) {
     pool.begin();
+    posedCards = 0;
+    bail = null;
     let order = ORDER.billboard;
 
     const sorted = [...st.fighters].sort((a, b) => a.y - b.y);
@@ -203,6 +269,17 @@ export function makeBillboards() {
         }
       }
 
+      // Drawn as real geometry by models.js this frame (?render=3d): it owns
+      // the body, we keep the shadow and the trail. Checked AFTER those so a
+      // modelled fighter still lands on the floor and still leaves afterimages.
+      if (asModels.has(f.id)) continue;
+
+      // ?render=billboard: a card wearing the POSED MODEL instead of a sprite
+      // sheet frame — the native form for a backend whose whole identity is
+      // "pose a rig, cache the texture, draw it flat". Falls through to the
+      // sprite card when the backend has no rig for this fighter.
+      if (drawPosedCard(f, spriteKey, order)) { order++; continue; }
+
       const m = fighterTransform(f);
       drawChar(spriteKey, frameKey, f.x + shakeX, f.y, {
         scale: spriteActor.scale,
@@ -238,5 +315,9 @@ export function makeBillboards() {
     pool.end();
   }
 
-  return { group: pool.group, update, count: pool.count };
+  // Posed-model cards drawn last frame, and why the last attempt declined.
+  // Same reasoning as the quad count: a card layer that silently drew sprites
+  // instead of models looks identical from outside to one that worked.
+  return { group: pool.group, update, count: pool.count,
+           posedCount: () => posedCards, lastBail: () => bail };
 }

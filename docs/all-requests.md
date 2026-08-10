@@ -54,33 +54,30 @@ so that "what is half-built?" is answerable from the same page.
 
 | Plan | State | What is left |
 |---|---|---|
-| [2.5D camera (`?camera=3d`)](2.5d-camera-plan.md) | feature-complete, polish open | Garnish cards for 15 of 20 boards; a Settings toggle; **model-textured billboards** (see below). Its art asks are commissioned as 18E/18F (rows 4b–4c) |
+| [2.5D camera (`?camera=3d`)](2.5d-camera-plan.md) | feature-complete, polish open | Garnish cards for 15 of 20 boards; a Settings toggle. Its art asks are commissioned as 18E/18F (rows 4b–4c); composing with the render backends is **built** (§11 of that plan) |
 | [render3d (`?render=3d`)](../render3d/docs/plan.md) | D0–D2 built, D3+ need art | Engine side is done and dialled. D3–D5 are asset rounds (7–11 above), not code |
 | [billboards (`?render=billboard`)](../billboards/docs/plan.md) | B0 built, B1+ need art | Same shape: the pipeline runs on the mannequin; everything further is the shared commission |
 | [Effects plan](effects-plan.md) | reference doc | Element-aware attack feedback; check `src/config_fx.js` against it before treating anything here as open |
 | [Stage variety](stage-variety-plan.md) | **complete** (15/15 checked) | Nothing — kept for the decisions record and [its ideas doc](stage-variety-ideas.md) |
 
-### The one cross-cutting gap: the render modes and the camera do not fully compose
+### The render modes and the camera compose
 
 `?render=` (how a character is drawn) and `?camera=` (the lens they exist in)
-are orthogonal flags and can both be set. But **`?camera=3d` always draws
-sprites**, whichever render backend is chosen: it textures quads out of
-`frameImage()`, and the model backends hand out opaque pose tokens only their
-own `drawCharFrame` can rasterise.
-
-Until recently that combination drew **no fighter at all** — the token reached
-`frameImage`, resolved nothing, and the quad was skipped. That is fixed (the
-camera resolves poses through the sprite path, so the composition always draws
-something), but the interesting version — the anime-shaded model standing
-inside the perspective camera — is still unbuilt and is the last item in the
-camera plan's "still open" list. It needs no art.
-
-**What each combination shows today:**
+are orthogonal flags, and every combination now draws bodies by the mechanism
+native to that backend — see [§11 of the camera plan](2.5d-camera-plan.md).
 
 | | `?render=sprite` | `?render=billboard` | `?render=3d` |
 |---|---|---|---|
-| *(no camera flag)* | sprites | posed models / mannequins | live anime models / mannequins |
-| `?camera=3d` | sprites in 3D space | sprites in 3D space | sprites in 3D space |
+| *(no camera flag)* | sprites | posed models / mannequins, blitted flat | live anime models / mannequins, blitted flat |
+| `?camera=3d` | sprite cards in 3D space | cards wearing the posed-model texture | **the real rig in the scene**, lit and rendered by the game camera |
+
+The bottom-right cell is the one that took design rather than plumbing: the
+model goes into the camera's own scene as geometry, so it gets real
+perspective, real depth against the extruded platforms, and the
+micro-parallax dial retires. `tools/smoke_camera_render.mjs` asserts each
+cell by its own mechanism, because every path ends in a fighter-shaped thing
+on screen and "it quietly fell back to sprites" is the failure worth testing
+for.
 
 ---
 

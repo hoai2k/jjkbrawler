@@ -23,6 +23,7 @@
 
 import { clipNameFor } from "../../billboards/src/states.js";
 import { buildMannequin, buildDefaultClips, MANNEQUIN_HEIGHT_M } from "../../billboards/src/mannequin.js";
+import { clone as cloneSkinned } from "../../vendor/three/utils/SkeletonUtils.js";
 import { applyToonMaterials } from "./toon.js";
 import { addOutlines } from "./outline.js";
 
@@ -79,6 +80,52 @@ export function resolveClip(charKey, state) {
 
   const fallback = DEFAULT_CLIPS?.get(name);
   return fallback ? { clip: fallback, source: "default" } : null;
+}
+
+// ---------------------------------------------------------------- instances
+//
+// The registry holds ONE rig object per character, which is all the flat path
+// needs: it poses that object, renders it to a texture, and moves on, so two
+// Gojos on screen simply take turns. A caller that puts rigs in a LIVE scene
+// (the 2.5D camera) cannot do that — the same Object3D cannot stand in two
+// places at once, and posing it for one fighter would visibly re-pose the
+// other.
+//
+// So that caller asks for an INSTANCE: a skeleton-aware clone with its own
+// mixer, cached per instance id (the fighter's id). Clips are shared — they
+// are read-only keyframe data and bind by bone name — so an instance costs a
+// cloned scene graph and nothing else.
+
+/** instanceId -> { charKey, root, height, clips, mixer, actions } */
+const INSTANCES = new Map();
+
+/** A private posable copy of `charKey`'s rig for `instanceId`. Returns null
+ *  when the character has no rig. Repeat calls return the same instance. */
+export function acquireInstance(charKey, instanceId) {
+  const key = `${charKey}#${instanceId}`;
+  const held = INSTANCES.get(key);
+  if (held) return held;
+  const base = RIGS.get(charKey);
+  if (!base) return null;
+  // cloneSkinned rebinds SkinnedMesh skeletons onto the cloned bones; a plain
+  // Object3D.clone() would leave every copy driven by the original's skeleton.
+  const root = cloneSkinned(base.root);
+  const inst = {
+    charKey, root, height: base.height, clips: base.clips,
+    mixer: new THREE.AnimationMixer(root), actions: new Map(),
+  };
+  INSTANCES.set(key, inst);
+  return inst;
+}
+
+/** Drop instances whose id is not in `live` — fighters that left the match. */
+export function releaseInstancesExcept(live) {
+  for (const [key, inst] of INSTANCES) {
+    if (live.has(key)) continue;
+    inst.mixer.stopAllAction();
+    inst.root.removeFromParent();
+    INSTANCES.delete(key);
+  }
 }
 
 // -------------------------------------------------------------------- setup
