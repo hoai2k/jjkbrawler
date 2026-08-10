@@ -47,9 +47,16 @@ picked at boot with `?render=`:
 Shared art the renderer spawns — effects, summon creatures, backgrounds — stays
 under [`assets/`](assets/sprites/README.md) and is untouched by that choice.
 
+Separately, `?camera=3d` runs the whole game inside a Smash-style perspective
+camera — the current sprites billboarded into a real 3D scene, with depth,
+parallax and a living camera ([plan & status](docs/2.5d-camera-plan.md)).
+Off by default; the flat renderer is byte-for-byte untouched without the param.
+
 ## Docs
 
 - [Game mechanics](docs/game-mechanics.md)
+- [2.5D camera](docs/2.5d-camera-plan.md) — the `?camera=3d` mode: plan,
+  implementation status, per-board camera treatments
 - [Move list](docs/move-list.md) — every fighter's specials, ultimate and domain
   in one table (generated from the kits)
 - [Characters](docs/characters.md) — why each kit is the way it is
