@@ -1,0 +1,44 @@
+/* Billboard workbench — same dark-tool look as the sprite workbench, kept
+ * independent so the two tools can drift without breaking each other. */
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: #0b0e17; color: #dbe2f0;
+  font: 14px/1.45 system-ui, sans-serif;
+}
+.bar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 16px; background: #121728; border-bottom: 1px solid #232c44;
+}
+.bar .hint { color: #8b96b3; font-size: 12.5px; flex: 1; }
+main { display: flex; gap: 14px; padding: 14px; align-items: flex-start; }
+.panel {
+  width: 340px; flex: none; background: #121728; border: 1px solid #232c44;
+  border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px;
+}
+.panel h3 { margin: 8px 0 0; font-size: 12px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #8b96b3; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #aab4cc; }
+select, input[type="range"] { width: 100%; }
+select, button {
+  background: #1a2136; color: #dbe2f0; border: 1px solid #2c3654; border-radius: 6px;
+  padding: 6px 8px; font: inherit;
+}
+.row { display: flex; align-items: center; gap: 8px; }
+.row .check { flex-direction: row; align-items: center; gap: 6px; }
+.mono { font-family: ui-monospace, monospace; font-size: 12px; }
+.src { color: #9fd39f; }
+.stage { flex: 1; }
+canvas { width: 100%; max-width: 1040px; background: #101522; border: 1px solid #232c44; border-radius: 10px; }
+#status { margin-top: 8px; color: #8b96b3; min-height: 1.4em; }
+button { cursor: pointer; }
+button:hover { border-color: #46557f; }
+.ghost { background: transparent; }
+.sm { font-size: 12px; padding: 4px 8px; }
+a.ghost { text-decoration: none; border: 1px solid #2c3654; border-radius: 6px; padding: 4px 8px; color: #aab4cc; }
+.states { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px;
+  max-height: 220px; overflow-y: auto; font-size: 12px; }
+.states .own { color: #9fd39f; }
+.states .inh { color: #d3c69f; }
+.states .def { color: #8b96b3; }
+.states .sel { outline: 1px solid #46557f; border-radius: 3px; }
+.states div { padding: 1px 4px; cursor: pointer; }
