@@ -188,6 +188,14 @@ function stopLoop(name) {
 export function startShieldLoop() { startLoop("shield"); }
 export function stopShieldLoop() { stopLoop("shield"); }
 
+// The bed inside an open domain. Owned by the domain entity (domains.js):
+// started when the barrier goes up, stopped when it comes down — including
+// the paths where it comes down early (the owner died or was knocked out of
+// the stage), which is why this is stop-on-close rather than refcounted like
+// the fire loop.
+export function startDomainLoop() { startLoop("domainInterior"); }
+export function stopDomainLoop() { stopLoop("domainInterior"); }
+
 // The fire bed under burn ticks and Furnace Shell. Nothing owns it: whatever is
 // currently alight asks for it each frame, and it stops on the first frame
 // nobody asks — so fighters catching fire and burning out need no bookkeeping,

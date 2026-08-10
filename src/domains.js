@@ -15,7 +15,7 @@ import { state } from "./state.js";
 import { foesOf } from "./teams.js";
 import { clamp, sign, rand, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
-import { playSfx, playGrunt } from "./audio.js";
+import { playSfx, playGrunt, startDomainLoop, stopDomainLoop } from "./audio.js";
 import { applyHit, opponentOf, hurtbox, spawnMelee, applyStatus } from "./combat.js";
 import { applyInstall } from "./specials.js";
 import { getImage } from "./assets.js";
@@ -38,6 +38,22 @@ const DOMAIN_STING = {
   "domain:captivating_skandha": "domainCaptivatingSkandha",
 };
 
+// The call-out — "Ryōiki Tenkai", and the domain's name — in the owner's own
+// voice. Keyed by CHARACTER, unlike DOMAIN_STING (keyed by backdrop, because a
+// domain is a place): the line is a person speaking, and these eight are the
+// only fighters who ever speak it. An unlisted key is silence, so a fighter
+// who gains a domain later is mute rather than borrowing someone else's voice.
+export const DOMAIN_CALL = {
+  gojo: "domainCallGojo",
+  sukuna: "domainCallSukuna",
+  megumi: "domainCallMegumi",
+  mahito: "domainCallMahito",
+  jogo: "domainCallJogo",
+  dagon: "domainCallDagon",
+  hakari: "domainCallHakari",
+  yuta: "domainCallYuta",
+};
+
 export function activeDomain(f) {
   const d = state.domain;
   return d && d.owner === f && !d.dead ? d : null;
@@ -58,6 +74,7 @@ export function performDomain(f, slot = 0) {
   const def = f.char.domains?.[slot];
   if (!def) return;
   if (domainOpen()) {
+    playSfx("domainRejected", 1);
     popup(f.x, f.y - 170, "A DOMAIN IS ALREADY OPEN", "#9aa4c0", 15);
     return;
   }
@@ -81,7 +98,14 @@ export function performDomain(f, slot = 0) {
   // Signature layer under the shared sting, keyed off the domain's backdrop
   // sprite — the one stable identifier a domain definition carries.
   playSfx(DOMAIN_STING[p.bg], 1);
-  playGrunt(f.charKey);
+  // The barrier closing, and the owner naming what they just built. The
+  // call-out replaces the generic effort grunt for the eight fighters who
+  // have a line; everyone else keeps the grunt, so a domain is never silent.
+  playSfx("domainBarrier", 1);
+  const call = DOMAIN_CALL[f.charKey];
+  if (call) playSfx(call, 1);
+  else playGrunt(f.charKey);
+  startDomainLoop();
   ring(f.x, f.y - 90, color, 260);
   burst(f.x, f.y - 90, color, 60, 2.2);
 
@@ -122,6 +146,13 @@ function makeDomain(owner, def, p, color) {
         if (state.domainOverlay && state.domainOverlay.ownerId === owner.id) {
           state.domainOverlay = null;
         }
+        // domain_collapse.mp3 has been in assets/sfx/ and in the registry
+        // since the round-8 sound pass, and nothing ever played it: the
+        // barrier came down on a popup and silence. Every exit runs through
+        // here — expiry, the owner dying, the owner blasted off stage — so
+        // this is the one place both the sting and the loop stop belong.
+        stopDomainLoop();
+        playSfx("domainCollapse", 1);
         popup(owner.x, owner.y - 176, "DOMAIN CLOSED", "#9aa4c0", 16);
         return;
       }

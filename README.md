@@ -69,6 +69,9 @@ under [`assets/`](assets/sprites/README.md) and is untouched by that choice.
   tuning data says is mechanical, and what is judgement
 - [Full sprite cleanup](sprites/docs/sprite-cleanup.md) — the runbook for answering every
   flag set in the sprite workbench
+- [**All requests**](docs/all-requests.md) — every open request in one index:
+  what is outstanding, what order to commission it in, what depends on what,
+  and whether each one is images, 3D models, sound effects, voice or music
 - [Asset requests](docs/asset-requests.md) — open art rounds
   ([history](docs/asset-requests-history.md))
 - [Audio requests](docs/audio-requests.md) — nothing outstanding; the sound round
