@@ -610,7 +610,8 @@
     "bodyLeft": 14,
     "bodyRight": 656,
     "coreLeft": 50.8,
-    "coreRight": 609.6
+    "coreRight": 609.6,
+    "surfacedReviewed": true
    },
    "guard": {
     "file": "gojo/guard.png",
@@ -33456,7 +33457,8 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "crouch_a": {
     "w": 855,
@@ -33850,7 +33852,8 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "idle_b": {
     "w": 641,
@@ -33879,7 +33882,8 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "jump_rise": {
     "w": 727,
@@ -56759,5 +56763,250 @@
   "dagon": 321.63,
   "mechamaru": 360.68,
   "kurourushi": 348.9
+ },
+ "otherSprites": {
+  "effect:aura_chitin": {
+   "wantsImprovement": "alpha"
+  },
+  "effect:blinding_sacs": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:chain": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:crow": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:crow_flock": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:cursed_bud": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:cursed_spirit_orb": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:cursed_tool": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:drum_burst": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:egg_shot": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:ember": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:fuga": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:meteor": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:nail": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:nail_storm": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:ratio_wave": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:scissors_curse": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:scream_wave": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:shikigami_fish": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:shutter": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:soul_touch": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:speech_word": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:sword_beam": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:tide_wave": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:triceratops": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:ultimate_cannon": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "effect:ultra_cannon": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:coilCurse:attack": {
+   "edited": {
+    "renderScale": null
+   },
+   "renderScale": 1
+  },
+  "summon:coilCurse:idle_a": {
+   "edited": {
+    "renderScale": null
+   },
+   "renderScale": 1
+  },
+  "summon:nue": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:rika": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:smallpoxDeity:attack": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:smallpoxDeity:idle_a": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:smallpoxDeity:idle_b": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:smallpoxDeity:move_a": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:smallpoxDeity:move_b": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:transfiguredHuman:attack": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:transfiguredHuman:hurt": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:transfiguredHuman:idle_a": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "summon:transfiguredHuman:idle_b": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  },
+  "stagefx:stage_weak_curse": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true
+  }
  }
 }

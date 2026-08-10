@@ -1,5 +1,6 @@
 import { state } from "./state.js";
 import { getImage } from "./assets.js";
+import { sharedAdjust } from "./shared_sprites.js";
 import { getStage } from "./stages.js";
 import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { getActor } from "./characters.js";
@@ -196,6 +197,11 @@ function drawProjectiles(ctx) {
     drawProjectileTrail(ctx, p);
     const sprite = p.sprite ? getImage(p.sprite) : null;
     if (sprite) {
+      // The drawing's own adjustment (src/shared_sprites.js). `spriteH` has the
+      // scale folded in already — it is a kit number — so only the nudge is
+      // read here, and it moves the PICTURE, never `p.x`/`p.y`, which are what
+      // the projectile collides on.
+      const adj = sharedAdjust(p.sprite);
       const h = p.spriteH || p.r * 3;
       const w = sprite.width * h / sprite.height;
       ctx.save();
@@ -210,7 +216,9 @@ function drawProjectiles(ctx) {
       ctx.scale(flip, 1);
       ctx.shadowColor = p.color;
       ctx.shadowBlur = 12;
-      ctx.drawImage(sprite, -w / 2, -h / 2, w, h);
+      // Inside the mirrored frame, so a nudge follows the drawing rather than
+      // reversing when the shot travels the other way.
+      ctx.drawImage(sprite, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
       ctx.restore();
       continue;
     }
@@ -589,12 +597,16 @@ function drawInstallAura(ctx, f) {
   ctx.globalCompositeOperation = "lighter";
   const pulse = 0.88 + 0.06 * Math.sin(state.matchTime * 8);
   if (art) {
-    const h = 220 * pulse;
+    // An aura's height is a constant here rather than a kit number, so the
+    // drawing's own scale has to be read at the draw — the kit-side folding in
+    // shared_sprites.js never reaches it.
+    const adj = sharedAdjust(f.installs.aura);
+    const h = 220 * pulse * adj.scale;
     const w = art.width * h / art.height;
     ctx.globalAlpha = 0.72;
     ctx.shadowColor = f.installs.color;
     ctx.shadowBlur = 18;
-    ctx.drawImage(art, f.x - w / 2, f.y + 10 - h, w, h);
+    ctx.drawImage(art, f.x - w / 2 + adj.dx, f.y + 10 - h + adj.dy, w, h);
     ctx.restore();
     return;
   }

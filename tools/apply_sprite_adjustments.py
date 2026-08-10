@@ -84,6 +84,10 @@ OTHER_KEY = "__other"
 # the drawing (VARIANT_REVIEW), not the pose, and the workbench drops a note when
 # the flag it explains is cleared.
 ALLOWED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "anchors", "faceLeft",
+           # Shared drawings (`otherSprites`) only: a nudge in GAME pixels from
+           # the point the spawn site paints them on. They have no cell to be
+           # placed in, so `ox`/`bodyBottom` mean nothing there.
+           "dx", "dy",
            "needsReplacement", "wantsImprovement",
            "replacementNote", "improvementNote"}
 # Free text. "" is meaningful — it clears the note rather than leaving the old
@@ -92,7 +96,7 @@ TEXT = {"replacementNote", "improvementNote"}
 # Flags whose VALUE is a kind string. `false` clears; a legacy `true` means the
 # first kind in the list.
 KIND_FIELDS = {"needsReplacement": "replace", "wantsImprovement": "quality"}
-NUMERIC = {"renderScale", "ox", "bodyBottom", "rotationDeg"}
+NUMERIC = {"renderScale", "ox", "bodyBottom", "rotationDeg", "dx", "dy"}
 BOOLEAN = {"faceLeft"}
 
 # Fields whose pre-edit value is worth remembering. `edited` maps each to what
@@ -100,7 +104,7 @@ BOOLEAN = {"faceLeft"}
 # hand-tuned (the workbench's view filter reads it), and it lets intake roll the
 # tuning back when the art is replaced — nudges made to compensate for bad art
 # must not be inherited by the art that fixes it.
-TRACKED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "faceLeft"}
+TRACKED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "faceLeft", "dx", "dy"}
 
 # The fields that mean somebody PLACED this pose, as opposed to judging the
 # drawing on it. Only these take a pose off the recently-updated list — see the

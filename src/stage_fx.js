@@ -16,6 +16,7 @@
 import { state } from "./state.js";
 import { getStage, mainPlatform } from "./stages.js";
 import { getImage } from "./assets.js";
+import { sharedAdjust } from "./shared_sprites.js";
 import { playSfx } from "./audio.js";
 import { burst, dust, popup, banner, ring, sparkLine } from "./particles.js";
 import { hitboxRect, shieldBreak } from "./combat.js";
@@ -50,6 +51,11 @@ function fighters() {
 }
 
 const fxImage = (name) => getImage(`stagefx:${name}`);
+// The per-drawing adjustment for a hazard's art (src/shared_sprites.js). Each
+// hazard's size is a constant at its own draw site, so the workbench's Size
+// reaches these only by being read here; `dx`/`dy` move the picture and never
+// the hazard, whose position is what it hits you with.
+const fxAdjust = (name) => sharedAdjust(`stagefx:${name}`);
 
 // A hazard landing on a fighter. Deliberately simpler than combat.applyHit:
 // no attacker exists, so there is no meter economy, staling or passives —
@@ -390,12 +396,13 @@ const STAGE_FX = {
             const count = Math.max(3, Math.round(z.w / 46));
             for (let i = 0; i < count; i++) {
               const fx = z.x + (i + 0.5) * (z.w / count);
-              const h = (34 + (i % 3) * 14) * rise;
+              const fa = fxAdjust("stage_fang");
+              const h = (34 + (i % 3) * 14) * rise * fa.scale;
               if (img) {
                 const w = img.width * (h * 2) / img.height;
                 ctx.save();
                 ctx.translate(fx, plat.y + 6);
-                ctx.drawImage(img, -w / 2, -h * 2, w, h * 2);
+                ctx.drawImage(img, -w / 2 + fa.dx, -h * 2 + fa.dy, w, h * 2);
                 ctx.restore();
               } else {
                 ctx.save();
@@ -464,9 +471,10 @@ const STAGE_FX = {
         const img = fxImage("stage_flower");
         ctx.save();
         if (img && grow >= 1) {
-          const h = 46;
+          const fa = fxAdjust("stage_flower");
+          const h = 46 * fa.scale;
           const w = img.width * h / img.height;
-          ctx.drawImage(img, bloom.x - w / 2, y - h, w, h);
+          ctx.drawImage(img, bloom.x - w / 2 + fa.dx, y - h + fa.dy, w, h);
         } else {
           // stem
           ctx.strokeStyle = "#5aa86a";
@@ -560,9 +568,10 @@ const STAGE_FX = {
             ctx.stroke();
           }
           if (img) {
-            const h = 44;
+            const fa = fxAdjust("stage_lantern");
+            const h = 44 * fa.scale;
             const w = img.width * h / img.height;
-            ctx.drawImage(img, x - w / 2, lantern.y - 16, w, h);
+            ctx.drawImage(img, x - w / 2 + fa.dx, lantern.y - 16 + fa.dy, w, h);
           } else {
             ctx.fillStyle = "#c8452e";
             ctx.strokeStyle = "#5a2618";
@@ -958,11 +967,12 @@ const STAGE_FX = {
             const img = fxImage("stage_fang");
             ctx.globalAlpha = 1;
             if (img) {
-              const h = 72;
+              const fa = fxAdjust("stage_fang");
+              const h = 72 * fa.scale;
               const w = img.width * h / img.height;
               ctx.translate(fang.x, fang.y);
               ctx.rotate(Math.PI); // art points up; this one dives
-              ctx.drawImage(img, -w / 2, -h / 2, w, h);
+              ctx.drawImage(img, -w / 2 + fa.dx, -h / 2 + fa.dy, w, h);
             } else {
               ctx.fillStyle = "#efe6ff";
               ctx.strokeStyle = "#b06cff";
@@ -1126,11 +1136,12 @@ const STAGE_FX = {
         const img = fxImage("stage_weak_curse");
         ctx.save();
         if (img) {
-          const h = 60;
+          const fa = fxAdjust("stage_weak_curse");
+          const h = 60 * fa.scale;
           const w = img.width * h / img.height;
           ctx.translate(bx, by);
           ctx.scale(blob.vx > 0 ? -1 : 1, 1);
-          ctx.drawImage(img, -w / 2, -h, w, h);
+          ctx.drawImage(img, -w / 2 + fa.dx, -h + fa.dy, w, h);
         } else {
           ctx.fillStyle = "#4b2d73";
           ctx.strokeStyle = "#b06cff";
