@@ -13,7 +13,7 @@ the mannequin and a generated test delivery. What it waits on now is art
 
     node server.mjs
     open 'http://127.0.0.1:5174/?render=3d'               # the real thing
-    open 'http://127.0.0.1:5174/?render=3d&mannequin=all' # the proof body
+    open 'http://127.0.0.1:5174/?render=3d&mannequin=none' # sprites where no rig exists
     open 'http://127.0.0.1:5174/render3d/workbench/'      # look-dev + review
 
 `?render=render3d`, `?render=model(s)` and `?render=anime` are aliases

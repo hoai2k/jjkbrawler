@@ -380,7 +380,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Great Serpent... no — Nue!", type: "projectile", cooldown: 1.15,
         desc: "The shadow bird dives across the arena, crackling with paralytic charge.",
-        // Nue is a creature, not a bullet: the right stick aims the launch and
+        // Nue is a creature, not a bullet: the d-pad aims the launch and
         // flies it. Steering suspends the arc, so a hand-flown Nue holds its
         // line instead of dropping.
         p: { speed: 520, vy: -120, gravity: 260, r: 38, dur: 1.0, dmg: 11, base: 360, growth: 7.0, angle: 0.5, color: "#7c8cff", effect: "snare", label: "Nue", sprite: "summon:nue", spriteH: 132, steerable: true, steerRate: 6.0 },
@@ -409,7 +409,7 @@ export const CHARACTERS = {
       // A summon with the `brawler` behavior (summons.js): Mahoraga arrives as
       // his own actor and fights like a character — walking, jumping, choosing
       // between a poke, a committed smash and an anti-air — rather than being a
-      // body Megumi wears. Push the right stick and Megumi drives him instead.
+      // body Megumi wears. Push the d-pad and Megumi drives him instead.
       //
       // `actor` names the sprite set he animates through; `sprites` is the
       // still-image fallback for a set that has not been fully delivered.
@@ -1300,6 +1300,10 @@ export const CHARACTERS = {
       },
       down: {
         name: "New Shadow Style: Simple Domain", type: "simpleDomain", cooldown: 4.5,
+        // A domain, so the DOMAIN button casts it as well as Down+Special.
+        // Costs nothing but its own cooldown — see domainSpecialSlot in
+        // domains.js. Only meaningful on a fighter with no Expansion.
+        domainButton: true,
         desc: "The technique he built into cartridges because he could not cast it himself. Inside the circle nothing arrives unopposed — and no domain is sure of its hit.",
         p: { duration: 1.6, dmg: 11, base: 400, growth: 6.8, angle: 0.45, radius: 138, color: "#b8f0e4" },
       },
@@ -1344,6 +1348,10 @@ export const CHARACTERS = {
       },
       down: {
         name: "New Shadow Style: Simple Domain", type: "simpleDomain", cooldown: 4.5,
+        // A domain, so the DOMAIN button casts it as well as Down+Special.
+        // Costs nothing but its own cooldown — see domainSpecialSlot in
+        // domains.js. Only meaningful on a fighter with no Expansion.
+        domainButton: true,
         desc: "The circle she taught Todo. It turns what reaches it, and a domain's guaranteed hit stops being guaranteed.",
         p: { duration: 1.6, dmg: 12, base: 420, growth: 7.0, angle: 0.45, radius: 138, color: "#ffe1a0" },
       },

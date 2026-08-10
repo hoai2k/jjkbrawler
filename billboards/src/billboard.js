@@ -72,8 +72,15 @@ export async function init() {
     blit = blitMod;
     renderer.initRenderer(three);
 
+    // MANNEQUIN BY DEFAULT — same reasoning as the render3d backend: choosing
+    // this backend is a request to see it work, and with nothing delivered a
+    // silent sprite fallthrough just shows the sprite renderer. `?mannequin=none`
+    // restores the old behaviour; a named list narrows it to those characters.
+    // Sprite fallthrough stays the FAILURE path.
     const params = new URLSearchParams(typeof location !== "undefined" ? location.search : "");
-    const mannequin = (params.get("mannequin") || "").split(",").map((s) => s.trim()).filter(Boolean);
+    const raw = (params.get("mannequin") ?? "all").trim();
+    const mannequin = ["none", "off", "0", ""].includes(raw.toLowerCase())
+      ? [] : raw.split(",").map((s) => s.trim()).filter(Boolean);
     const { CHARACTER_KEYS } = await import("../../src/characters.js");
     await rigs.initRigs(three, loaderMod.GLTFLoader, mannequin, CHARACTER_KEYS);
 

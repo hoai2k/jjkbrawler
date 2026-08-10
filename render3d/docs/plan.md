@@ -8,7 +8,8 @@ toon-ramped, ink-outlined, sampled on twos — and composited into the unchanged
 digit). The game, the sim, the sprites and the billboard path are untouched.
 
 > **Status: D0 and the D1/D2 engine side are BUILT.** The pipe runs against
-> the mannequin (`?render=3d&mannequin=all`), the toon/outline/on-twos pass
+> the mannequin (`?render=3d`, which stands one in for every fighter without
+> a delivered rig), the toon/outline/on-twos pass
 > is live, and the 2.5D layers (turnaround, parallax, aim, look-at, flinch,
 > stage light rig, foot IK) each sit behind a dial in `render3d/src/pose.js`.
 > What remains is art: the D-rounds in
@@ -335,7 +336,7 @@ Named D-rounds, mirroring the B-rounds' discipline. D0 needs no art.
 
 - **D0 — the pipe, proven on the mannequin.** Backend entry + registry,
   shared vendor hoist, scene/pose/blit against the billboard mannequin and
-  its default pose set (`?render=3d&mannequin=all`). Live playback, on-twos
+  its default pose set (`?render=3d`). Live playback, on-twos
   stepping, foot IK, supersampled blit, per-character fallthrough. Exit:
   full-match smoke green with a live grey mannequin fighting sprite
   fighters; pixel-probe and context-state smokes ported from B0; render

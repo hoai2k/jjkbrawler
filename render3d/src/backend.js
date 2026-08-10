@@ -71,8 +71,23 @@ export async function init() {
     pose.initPose(three);
     scene.initScene(three);
 
+    // MANNEQUIN BY DEFAULT. Picking `?render=3d` is a request to see this
+    // backend work; falling every un-delivered fighter through to sprites
+    // would show the sprite renderer, which `?render=sprite` already shows
+    // better. So with no rigs delivered the whole roster stands in as the
+    // proof body — live-animated, toon-shaded, outlined — and a delivered rig
+    // simply displaces its mannequin when it lands.
+    //
+    //   ?render=3d                   mannequins everywhere a rig is missing
+    //   ?render=3d&mannequin=gojo    only Gojo stands in; everyone else sprites
+    //   ?render=3d&mannequin=none    no stand-ins — the old sprite fallthrough
+    //
+    // Sprite fallthrough remains the FAILURE path (a rig that will not load, a
+    // pose that throws), which is a different thing from an empty roster.
     const params = new URLSearchParams(typeof location !== "undefined" ? location.search : "");
-    const mannequin = (params.get("mannequin") || "").split(",").map((s) => s.trim()).filter(Boolean);
+    const raw = (params.get("mannequin") ?? "all").trim();
+    const mannequin = ["none", "off", "0", ""].includes(raw.toLowerCase())
+      ? [] : raw.split(",").map((s) => s.trim()).filter(Boolean);
     const { CHARACTER_KEYS } = await import("../../src/characters.js");
     await rigs.initRigs(three, loaderMod.GLTFLoader, mannequin, CHARACTER_KEYS);
 

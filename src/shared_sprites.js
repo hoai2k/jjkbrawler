@@ -203,15 +203,34 @@ const POOLS = [SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL];
 
 let registry = null;
 
+/** The region of the world this drawing's move actually acts on, if the kit
+ *  declares one.
+ *
+ *  This is the thing art has to agree with and cannot be measured from the
+ *  picture: a bolt drawn twice the width of its `r` looks like it should clip
+ *  somebody it passes straight through. Every shape here is a number a move
+ *  already declares — nothing new is invented, and nothing here changes play.
+ */
+function hitOfNode(node) {
+  if (Number.isFinite(node.r)) {
+    return { shape: "circle", r: node.r, from: "r",
+             what: "the radius it collides on" };
+  }
+  if (Number.isFinite(node.width) && Number.isFinite(node.duration)) {
+    return { shape: "beam", w: node.width, from: "width",
+             what: "how wide the beam hits" };
+  }
+  if (Number.isFinite(node.w) && Number.isFinite(node.h)) {
+    return { shape: "rect", w: node.w, h: node.h, from: "w/h",
+             what: "the box it lands in" };
+  }
+  return null;
+}
+
 function buildRegistry() {
   const out = new Map();
   const put = (key, info) => {
     if (!isSharedKey(key) || out.has(key)) return;
-    // A creature is a creature wherever its numbers came from. Megumi declares
-    // Nue's height inside the special rather than in a pool, and Yuta declares
-    // Rika's as a plain `h` — but both are put on the stage by summons.js,
-    // which stands them ON the point rather than around it.
-    if (String(key).startsWith("summon:")) info = { ...info, anchor: "feet" };
     out.set(key, info);
   };
 
@@ -219,13 +238,18 @@ function buildRegistry() {
   for (const pool of POOLS) {
     for (const entry of pool || []) {
       const h = entry.h ?? 110;
+      const hitOf = (e) => (Number.isFinite(e.hitW) && Number.isFinite(e.hitH)
+        ? { shape: "rect", w: e.hitW, h: e.hitH, from: "hitW/hitH", what: "what it can be hit on, and hits with" }
+        : null);
       for (const key of entry.sprites || []) {
         put(key, { h, anchor: "feet", owner: entry.name || entry.id || "a summon",
+                   hit: hitOf(entry),
                    what: "the creature's height on stage (config_summons.js)" });
       }
-      for (const member of entry.members || []) {
+      for (const member of entry.units || entry.members || []) {
         for (const key of member.sprites || []) {
           put(key, { h: member.h ?? h, anchor: "feet", owner: entry.name || entry.id || "a summon",
+                     hit: hitOf(member) || hitOf(entry),
                      what: "the creature's height on stage (config_summons.js)" });
         }
       }
@@ -240,31 +264,41 @@ function buildRegistry() {
 
   // 3. Everything a kit names, walked exactly as the scale fold walks it.
   const seen = new Set();
-  const visit = (node, who) => {
+  // WHO draws it decides where it is painted, and that is the special's `type`
+  // rather than anything about the key. `summon:nue` is a projectile — Megumi
+  // throws the bird — while Yuta's Rika, under the same prefix, is a summon
+  // that stands on the stage. Reading the prefix instead got Nue exactly
+  // backwards.
+  const ANCHOR_BY_TYPE = { summon: "feet", projectile: "centre" };
+  const visit = (node, who, drawnBy = "centre") => {
     if (!node || typeof node !== "object" || seen.has(node)) return;
     seen.add(node);
+    if (typeof node.type === "string" && ANCHOR_BY_TYPE[node.type]) {
+      drawnBy = ANCHOR_BY_TYPE[node.type];
+    }
     if (isSharedKey(node.aura)) {
       put(node.aura, { h: AURA_H, anchor: "feet", owner: who,
                        what: "the install aura's height around the fighter (render.js)" });
     }
+    const hit = hitOfNode(node);
     for (const [field, heightFields] of SPRITE_FIELDS) {
       if (field === "aura" || !isSharedKey(node[field])) continue;
       const hf = heightFields.find((h) => Number.isFinite(node[`${h}Base`]) || Number.isFinite(node[h]));
       const h = hf ? (node[`${hf}Base`] ?? node[hf]) : null;
-      put(node[field], { h, anchor: "centre", owner: who,
+      put(node[field], { h, anchor: drawnBy, owner: who, hit,
                          what: h ? "the height its move declares (the kit's own number)"
                                  : "sized by the code that spawns it" });
     }
     if (Array.isArray(node.sprites)) {
       const h = node.spriteHBase ?? node.spriteH ?? null;
       for (const key of node.sprites) {
-        put(key, { h, anchor: "centre", owner: who,
+        put(key, { h, anchor: drawnBy, owner: who, hit,
                    what: h ? "the height its move declares (the kit's own number)"
                            : "sized by the code that spawns it" });
       }
     }
     for (const value of Object.values(node)) {
-      if (value && typeof value === "object") visit(value, who);
+      if (value && typeof value === "object") visit(value, who, drawnBy);
     }
   };
   for (const key of CHARACTER_KEYS) {

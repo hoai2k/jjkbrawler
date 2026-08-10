@@ -20,7 +20,22 @@ import {
   matIdentity, matTranslate, matScale, matRotate,
 } from "./quads.js";
 import { frameMeta, frameImage, getImage } from "../assets.js";
-import { currentFrame } from "../render_backend.js";
+// The SPRITE pose resolver, deliberately not the render-backend dispatcher.
+//
+// This module draws textured QUADS: every pose it shows has to come out of
+// frameImage(), which understands sprite frame keys and nothing else. The
+// model backends hand out opaque tokens instead (`r3d:idle@0.5`, `bb:idle@0.5`)
+// that only their own drawCharFrame can interpret — so asking the dispatcher
+// for a pose here returned a token frameImage could not resolve, drawChar bailed,
+// and every fighter drew as NOTHING under `?render=3d&camera=3d` (or billboard
+// + camera). Two features each correct alone, silently empty together.
+//
+// So the camera mode is explicitly a sprite billboarder: it composes with every
+// render backend by drawing that fighter's sprites, whatever `?render=` says.
+// Showing an actual model in here means rendering it to a texture and using
+// THAT as the quad texture — real work, listed under "Still open" in
+// docs/2.5d-camera-plan.md rather than faked here.
+import { currentFrame as spriteFrame } from "../../sprites/src/sprites.js";
 import { anchorPoint, frameFootY } from "../../sprites/src/sprites.js";
 import { getActor } from "../characters.js";
 import { fighterTransform, trailStrength } from "../motion.js";
@@ -148,7 +163,7 @@ export function makeBillboards() {
 
       const spriteKey = f.spriteChar || f.charKey;
       const spriteActor = getActor(spriteKey) || f.char;
-      const frameKey = currentFrame(spriteKey, f.animKey, f.animTime);
+      const frameKey = spriteFrame(spriteKey, f.animKey, f.animTime);
       const flicker = f.invuln > 0.1 && Math.floor(f.invuln * 16) % 2 === 0;
       const shakeX = f.shakeMag > 0 ? (Math.random() - 0.5) * f.shakeMag : 0;
 
