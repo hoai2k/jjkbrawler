@@ -79,6 +79,24 @@ shoulder skin, which is meant to move. The pass is now step 6 of
 `tools/blender_conform.py`, so no future delivery carries it, and
 `tools/blender_probe_bleed.py` is the measurement.
 
+**The uniform read as black.** It is navy. The cause was not the light rig or
+the toon ramp: the baked texture is hue 226° — correct navy — at **9%
+brightness**, which is near-black under any lighting. A generator matches a
+reference image's hue well and its value badly, because it infers albedo from
+pictures that already have shading in them, and navy cloth in shadow
+photographs as almost black.
+
+`billboards/assets/canon-palette.json` now declares, per fighter, the costume
+regions that have a canon colour and where they belong;
+`tools/blender_grade_texture.py` moves them there. It REMAPS rather than
+repaints — the region's median value lands on target and every other pixel
+scales with it through a soft shoulder — so folds, creases and contact shadow
+survive and the garment still reads as cloth. Yuji's uniform went 0.09 → 0.28
+at hue 226°, saturation 0.45; the black leggings are excluded by the
+saturation floor and the red hood by the hue window. The pass is step 7 of
+`blender_conform.py`, is a no-op for a fighter with no palette entry, and is
+idempotent, so it is safe inside the pipeline.
+
 ## Still owed
 
 - **Validator checks for the two nonconformances.** Bind pose and facing are
@@ -88,6 +106,10 @@ shoulder skin, which is meant to move. The pass is now step 6 of
   workbench ghost is the place to close it.
 - **`fall` reads close to arms-up.** Distinct from `jump` now, but not the
   braced shape it wants.
+- **His shoes are white; canon is red.** The reference sheet has red hi-tops
+  and the delivery baked cream ones. It is one more palette region and no new
+  code, but it is a bigger move than a value lift (white has no hue to keep)
+  and worth eyeballing before committing to it.
 - **Every strike is the rear hand.** At the ¾ camera the viewer sees the
   fighter's left flank, so the right arm is the far one and every punch reads
   as a cross. Correct for the heavies; `light` wants to be the lead (left)
