@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { loadCoreAssets, startBackgroundLoad, ensureMatchAssets, matchAssetsPending } from "./assets.js";
 import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, joinedPlayerCount, blankInput } from "./input.js";
-import { initAudio, playSfx, setBattleStage, syncMusic, stepAudio } from "./audio.js";
+import { initAudio, playSfx, setBattleStage, syncMusic, stepAudio, stopDomainLoop } from "./audio.js";
 import { updateRumble } from "./rumble.js";
 import { makeFighter, updateFighter } from "./fighter.js";
 import { updateHitboxes, updateProjectiles } from "./combat.js";
@@ -135,6 +135,11 @@ async function resetMatch() {
   state.banners.length = 0;
   state.domainOverlay = null;
   state.domain = null;
+  // A domain open when the match ended never runs its own close path — the
+  // entity is dropped here, not expired — so its held sound is stopped by the
+  // reset that dropped it. Without this a rematch starts inside the last
+  // match's domain ambience, forever.
+  stopDomainLoop();
   state.screenFlash = null;
   state.slowMo = 0;
   state.matchTime = 0;

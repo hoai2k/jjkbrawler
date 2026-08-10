@@ -10,7 +10,8 @@ rounds move to a history file when the first one lands, and round numbers
 **Current status: nothing delivered — the pipeline is built and waiting**
 (phase D0: live playback, on-twos sampling, toon ramp, ink outlines, foot IK,
 turnaround, stage lighting, intake, workbench review and inheritance all run
-today against the mannequin — `?render=3d&mannequin=all`; see
+today against the mannequin, which `?render=3d` stands in for every
+fighter without a delivered rig; see
 [plan.md](plan.md)). **D1 is the round to draw against.**
 
 The 2D image inputs this track needs (Tripo seeding boards, face sheets,
