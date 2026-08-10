@@ -836,7 +836,10 @@ export const CHARACTERS = {
         p: { vel: 560, iframes: 0.1, delay: 0.05, dur: 0.24, ox: 66, oy: -94, w: 204, h: 104, dmg: 13, base: 410, growth: 7.0, angle: 0.3, effect: "soulMark", label: "Distortion", sfx: "slash" },
       },
       down: {
-        name: "Idle Transfiguration", type: "summon", cooldown: 3.4,
+        // Named apart from his NEUTRAL, which is the canon "Idle
+        // Transfiguration" soul-touch. Both are the same technique; only this
+        // one leaves something walking around afterwards.
+        name: "Transfigured Souls", type: "summon", cooldown: 3.4,
         desc: "Reshapes a stored soul into whatever amuses him — a lurching bomb, a bloated hulk, a pair of crawlers, or something that sits back and spits.",
         // He is reshaping a soul on the spot; getting the same shape every time
         // was the one thing his technique should never do. TRANSFIGURED_POOL

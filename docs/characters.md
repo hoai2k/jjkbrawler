@@ -331,7 +331,7 @@ of Distorted Killing. Personality: a child-philosopher sadist; souls are toys.
 - **Idle Transfiguration** (neutral): short-range **unblockable grab**. Shield
   Mahito at your peril.
 - **Body Distortion Lunge** (side): arm-blade dash.
-- **Idle Transfiguration** (down): reshapes a stored soul into whatever amuses
+- **Transfigured Souls** (down): reshapes a stored soul into whatever amuses
   him this time — the shambling **Transfigured Human** that bursts on contact,
   a **Bloated Hulk** that walks over and keeps hitting, two low fast
   **Crawlers**, or a **Spitter** that hangs back and shoots. Getting the same

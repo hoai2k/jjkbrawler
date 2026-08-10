@@ -36,7 +36,9 @@ Press `Esc` to pause. The in-game `i` button lists the full move set.
 ## Docs
 
 - [Game mechanics](docs/game-mechanics.md)
-- [Characters](docs/characters.md)
+- [Move list](docs/move-list.md) — every fighter's specials, ultimate and domain
+  in one table (generated from the kits)
+- [Characters](docs/characters.md) — why each kit is the way it is
 - [Asset pipeline](docs/asset-pipeline.md)
 - [Automating the placement pass](docs/sprite-auto-adjust.md) — what the hand
   tuning data says is mechanical, and what is judgement
