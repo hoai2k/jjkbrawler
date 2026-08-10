@@ -23,7 +23,13 @@ art has not been made yet (round 15 in
 [asset-requests.md](asset-requests.md)). Everything else about them is live —
 specials, ultimates, Dagon's domain, four new passives, three new statuses —
 and `node tools/smoke_staged.mjs` plays every one of their moves in a real
-match, which is the only thing that reaches them until they ship.
+match, which is the only thing in the *game* that reaches them until they ship.
+
+Their **art** is reachable, though: the sprite workbench lists staged fighters
+alongside the roster, labelled *(not on the roster yet)*, so a delivered set can
+be placed and approved before the fighter is promoted. Three of the four have
+been — Mechamaru, Yuki and Dagon shipped in round 15A — and Kurourushi's set is
+being placed the same way.
 
 **Cursed Energy has two tiers.** An ultimate costs **half** a bar, so a match
 has several. A Domain Expansion costs the **whole** bar and only the seven

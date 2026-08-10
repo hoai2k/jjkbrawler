@@ -80,6 +80,19 @@ const PICK = await page.evaluate(async () => {
 });
 check(!!PICK, "found a character to stand this test on", PICK ? PICK.char : "none");
 
+// Staged fighters are editable here. They are off the select screen precisely
+// because their art is unfinished, which makes them the set this tool exists
+// for — a delivery has to be approvable before the fighter ships, not after.
+const staged = await page.evaluate(async () => {
+  const { STAGED_CHARACTER_KEYS } = await import("/src/characters.js");
+  const opts = [...document.querySelectorAll("#charSel option")].map((o) => o.value);
+  return { keys: STAGED_CHARACTER_KEYS, missing: STAGED_CHARACTER_KEYS.filter((k) => !opts.includes(k)) };
+});
+check(!staged.keys.length || !staged.missing.length,
+  "every staged fighter is in the character dropdown",
+  staged.keys.length ? `${staged.keys.join(", ")}${staged.missing.length ? " — missing " + staged.missing.join(", ") : ""}`
+                     : "none staged");
+
 await page.goto(`${BASE}/workbench/?char=${PICK.char}`, { waitUntil: "domcontentloaded" });
 await until((c) => document.querySelector("#charSel")?.value === c, PICK.char);
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
