@@ -78,11 +78,14 @@ knowing before reading it as an open request.
 
 ## Adding a sound
 
-1. Write the request into
-   [audio-requests-history.md](audio-requests-history.md), in the shape the
-   entries there already use — **`filename.wav`** · what it is · length, then a
-   fenced prompt. That file is not only a record: `tools/generate_sfx.py`
-   parses it, so a prompt written anywhere else cannot be generated or re-rolled.
+1. Write the request **into this file**, in the shape the entries in
+   [audio-requests-history.md](audio-requests-history.md) already use —
+   **`filename.wav`** · what it is · length, then a fenced prompt — and move it
+   across once it lands. `tools/generate_sfx.py` parses **both** files, which is
+   the point of it reading two: a round that has not landed yet cannot have its
+   prompts in a file called "history" without the status line lying, and a round
+   nobody can generate is not a request, it is a wish. A prompt written anywhere
+   but these two files cannot be generated or re-rolled.
 2. Generate it:
    ```sh
    ELEVENLABS_API_KEY=... python3 tools/generate_sfx.py
@@ -128,8 +131,8 @@ show up. Three things the round-10 lines settled, worth not rediscovering:
   lands mid-word. A line that overruns its brief is reported, not trimmed; it
   is a take to re-roll.
 
-If a whole new round is ever commissioned, write it here as an open request and
-move it across once it lands — the same relationship
-[asset-requests.md](asset-requests.md) has with its history file. Delivered
-files are uploaded to `assets/intake/sfx/` and moved into `assets/sfx/` as part
-of that landing, the way art arrives through `assets/intake/`.
+Both routes above put a new round **here** first and move it across once it
+lands — the same relationship [asset-requests.md](asset-requests.md) has with
+its history file. Delivered files are uploaded to `assets/intake/sfx/` and moved
+into `assets/sfx/` as part of that landing, the way art arrives through
+`assets/intake/`.

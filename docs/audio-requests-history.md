@@ -693,6 +693,16 @@ un-faded tail.
 
 ## Round 10 — the domain moment (12 files)
 
+Delivered and wired in. **The request below is kept as written**, in the present
+tense it was written in — it describes the game *before* the round landed, the
+way the round-8 audit above does, and it is the rationale for what was made
+rather than a description of anything still true. What actually arrived, and
+where it differed from the brief, is in the
+[delivery record](#round-10--delivery-record) below it. Every prompt and every
+spoken line here is still live input: `tools/generate_sfx.py` and
+`tools/generate_voice.py` both parse this file, and these entries are how any of
+these 15 files gets re-rolled.
+
 A Domain Expansion is the biggest thing in this game: it costs a full meter,
 it stops the world for half a second, it swaps the entire backdrop, and it is
 the move every one of these characters is known for. It currently sounds like
