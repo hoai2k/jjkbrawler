@@ -37,6 +37,7 @@ export function debugStats() {
     posedCards: billboards ? billboards.posedCount() : 0,
     cardBail: billboards ? billboards.lastBail() : null,
     garnish: garnish ? garnish.count() : 0,
+    standing: garnish ? garnish.standing() : 0,
     camera: camera.position.toArray(),
     fov: camera.fov,
     // The two flags that keep the stage from cutting holes in the fighters.

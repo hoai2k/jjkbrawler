@@ -122,6 +122,17 @@ const STAGED_SUMMON_KEYS = {
 // except polish.
 const STAGE_FX_SPRITES = ["stage_lantern", "stage_fang", "stage_flower", "stage_weak_curse"];
 
+// Near-field cards for the 3D camera's garnish layer (round 18F). Optional in
+// the strongest sense: every one of them has a procedural drawing in
+// src/camera3d/garnish.js, and a card with no file keeps that drawing — so the
+// set can land one at a time and the flat game never asks for any of them.
+const GARNISH_SPRITES = [
+  "leaf_green", "leaf_gold", "lantern_paper", "lantern_iron",
+  "car_sedan", "car_van", "car_bike", "signal_gantry",
+  "rubble_a", "rubble_b", "rubble_c",
+  "hoarding_a", "hoarding_b", "hoarding_c",
+];
+
 // Domain Expansion backgrounds — a full-screen environment that replaces the
 // stage while a domain is open (src/domains.js, drawn by state.domainOverlay).
 // Optional: until the art lands the renderer just dims the stage and grades it
@@ -261,6 +272,15 @@ export function loadProgress() {
 
 export function isCharacterReady(charKey) {
   return loadedGroups.has(`char:${charKey}`);
+}
+
+/** True once the shared group — effects, creature art, stage fx, garnish — has
+ *  finished arriving. Drawing code that PREFERS a delivered image over a
+ *  procedural fallback needs this: art that is still in flight is not the same
+ *  as art that will never come, and a one-shot placement (the 3D camera's
+ *  standing garnish) has to know which it is looking at. */
+export function sharedArtSettled() {
+  return loadedGroups.has("shared");
 }
 
 const imageLoads = new Map(); // key -> in-flight promise
@@ -536,6 +556,9 @@ function groupJobs(id) {
   }
   for (const key of STAGE_FX_SPRITES) {
     optional(`stagefx:${key}`, `assets/sprites/effects/${key}.png`);
+  }
+  for (const key of GARNISH_SPRITES) {
+    optional(`garnish:${key}`, `assets/sprites/garnish/${key}.png`);
   }
   return jobs;
 }

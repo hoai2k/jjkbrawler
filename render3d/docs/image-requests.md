@@ -9,6 +9,24 @@ outstanding, and the rounds are lettered **DI1, DI2…** so they never collide
 with the sprite rounds (numbers), the billboard rounds (B) or the model
 rounds (D).
 
+## Delivered
+
+**Yuji's DI1–DI3 and the shared DI4 texture have all arrived** (with the 2D
+round-18 batch) and are in the repo, so the sentence above is no longer true of
+everything here:
+
+| Round | File | Landed at |
+|---|---|---|
+| DI1 | `yuji_turnaround.png` | `render3d/docs/reference/yuji_turnaround.png` — four views (front, ¾-front, side, back) on white, consistent eye-line, arms clear of the body: the seed an image-to-3D pass wants |
+| DI2 | `yuji_face.png` | `render3d/docs/reference/yuji_face.png` |
+| DI3 | `yuji_shade.png` | `render3d/docs/reference/yuji_shade.png` |
+| DI4 | `eye_highlight.png` | `render3d/assets/textures/eye_highlight.png` — 128×128, the roster-wide catchlight |
+| DI4 | `yuji_mouth_sheet.png` | `render3d/assets/textures/yuji_mouth_sheet.png` — 1024×256, the optional four-cell strip |
+
+**D1 is unblocked**: the pilot model round has every 2D input it named. The
+rounds below stay open for each further fighter a D-round names — the briefs
+are per fighter, and only Yuji has been drawn.
+
 Deliver to the standard 2D intake unless a row says otherwise:
 
 ```

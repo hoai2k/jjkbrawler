@@ -92,9 +92,19 @@ CELL_MID = SHEET_W / COLS / 2
 # human tunes it, which is what happens today anyway.
 
 # A state's height ratio counts as uniform when its spread across the reviewed
-# roster is under this. The measured populations are <=0.1% and >=8%, so
-# anything in between is a state that has changed character and should be
-# looked at rather than tuned. Nothing currently lands there.
+# roster is under this. The populations used to be <=0.1% and >=8%, with nothing
+# in between; today ten states (`hurt`, `fall`, `jump`, `shield`, `ledge`,
+# `win`, `upHeavy`, `charge`, `dizzy`, `land`) sit together at 1.3%, so `idle`
+# is the only state left the size rule will apply.
+#
+# The 1.3% is one cause, not ten: jogo, nobara and inumaki size EVERY one of
+# those states ~3% low against their own idle, uniformly, so their idle_a
+# `bodyH` is what differs rather than the poses. The threshold is deliberately
+# NOT loosened to swallow it — the failure mode of declining is that a human
+# tunes the pose, which is the status quo, and the failure mode of accepting is
+# a wrong size written into the manifest by a script. `tools/test_auto_tune.py`
+# fails on this and should keep failing until those three idles are re-measured
+# or the difference is confirmed to be real.
 UNIFORM_CV = 0.01
 # Reviewed characters a state needs before its ratio is trusted at all.
 MIN_STATE_SAMPLES = 6

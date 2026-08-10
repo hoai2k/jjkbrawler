@@ -34,6 +34,10 @@ const BOARDS = [
   ["domainCore", 19, 6, false],      // orbiting platforms, no cards
 ];
 
+// Boards whose cards include scenery that is placed once and then stands for
+// the whole match, and how many of those cards there should be.
+const STANDING = { crosswalkRush: 1, billboardRoof: 5 };
+
 const browser = await chromium.launch({
   executablePath: process.env.CHROMIUM_PATH || "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
   // Software GL: CI has no GPU, and the point here is correctness not speed.
@@ -147,6 +151,25 @@ for (const [key, index, simSeconds, wantsGarnish] of BOARDS) {
     `${peak.quads} quads / ${alive} alive`);
   if (wantsGarnish) {
     check(peak.garnish > 0, `${key}: garnish cards were spawned`, `${peak.garnish} cards`);
+  }
+  // Standing scenery is placed ONCE per match, so it is the one thing here
+  // that can lose a race with the loader and stay lost: the shared art group
+  // is a long queue, and Crosswalk Rush's signal gantry has no procedural
+  // fallback to cover for it. It was missing from every match for exactly
+  // that reason. Counted on its own rather than through the card total, so a
+  // passing car cannot stand in for a gantry that never arrived.
+  if (STANDING[key]) {
+    const standing = await page.evaluate(async (n) => {
+      const { debugStats } = await import("/src/camera3d/index.js");
+      const deadline = Date.now() + 20000;
+      for (;;) {
+        if (debugStats().standing >= n) return debugStats().standing;
+        if (Date.now() > deadline) return debugStats().standing;
+        await new Promise((r) => setTimeout(r, 200));
+      }
+    }, STANDING[key]);
+    check(standing >= STANDING[key], `${key}: standing scenery is placed`,
+      `${standing} card(s), wanted ${STANDING[key]}`);
   }
   check(target >= simSeconds, `${key}: reached ${simSeconds}s of match time`, `got ${target.toFixed(1)}s`);
   check(errors.length === before, `${key}: no page errors`,
