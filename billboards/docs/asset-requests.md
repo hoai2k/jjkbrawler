@@ -87,10 +87,17 @@ glTF 2.0 **binary** (`.glb`), one fighter per file.
   deterministic sway; do NOT bake secondary motion into clips. Expected chains
   per fighter are in CHARACTER_CHAINS (src/props.js) and the roster table.
 - **Strikes are aimed by the engine.** Attack states pitch toward a target —
-  the nearest opponent, or the controller's aim point — applied across the
-  spine at pose time. Author every attack clip AIM-NEUTRAL: a straight, level
-  strike. A clip that bakes its own up-or-down angle fights the aim system,
-  and the workbench's target crosshair will show it double-pitching.
+  the nearest opponent, or the controller's aim point — across the spine, and
+  two-bone IK then solves the striking limb onto it. Author every attack clip
+  AIM-NEUTRAL: a straight, level strike. A clip that bakes its own up-or-down
+  angle fights the system, and the workbench's crosshair will show it
+  double-pitching.
+- **A clip's EXTENSION is its own and is preserved.** The solver re-aims the
+  limb without lengthening it: how far a strike reaches comes from the clip,
+  only the direction tracks the target. So author the reach you want — a short
+  jab and a full lunge stay distinct at every angle — and note that the elbow
+  carriage is preserved too, since the solver keeps the bend plane the clip
+  established. A hook and a straight punch remain different moves.
 - **Mesh budget:** ≤30k triangles standard build, ≤60k for the bulk bodies.
   Skinning ≤4 influences per vertex.
 - **Materials:** baseColor texture only, ≤2048px, no baked lighting, no

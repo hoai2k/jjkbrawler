@@ -37,7 +37,7 @@ import {
   currentFrame as spriteFrame,
   cyclePhase as spriteCycle,
 } from "../../sprites/src/sprites.js";
-import { cycleInfo, aimPitch } from "./states.js";
+import { cycleInfo, aimSolve } from "./states.js";
 import { headHeightTarget } from "../../src/heights.js";
 
 let ready = false;
@@ -119,11 +119,15 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
   const animTime = parseFloat(t);
   try {
     // Strike aiming: render.js passes `opts.aim` — the controller's explicit
-    // point when the fighter has one, else the nearest opponent — and the
-    // pose pitches toward it (states.js aimPitch; only aimable states react).
-    const chestY = y - headHeightTarget(charKey) * 0.55;
-    const pitch = opts.aim ? aimPitch(x, chestY, opts.aim, opts.facing ?? 1) : 0;
-    const entry = renderer.renderPose(charKey, animKey, animTime, rigs.resolveClip, pitch);
+    // point when the fighter has one, else the nearest opponent. The solution
+    // carries both halves: the spine pitch that leans the body into the blow,
+    // and the offsets the IK uses to put the hand ON the target (ik.js). Only
+    // aimable states react, and (x, y) is the foot line, which is what the
+    // offsets are measured from.
+    const targetPx = headHeightTarget(charKey);
+    const chestY = y - targetPx * 0.55;
+    const aim = opts.aim ? aimSolve(x, y, chestY, opts.aim, opts.facing ?? 1) : null;
+    const entry = renderer.renderPose(charKey, animKey, animTime, rigs.resolveClip, aim, targetPx);
     if (entry) return blit.blitPose(ctx, entry, charKey, x, y, opts);
   } catch (err) {
     warnOnce(`render:${charKey}`, `billboards: rendering ${charKey}/${animKey} failed (${err.message}) — drawing their sprites instead.`);

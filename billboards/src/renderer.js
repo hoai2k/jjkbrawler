@@ -22,9 +22,10 @@
 // The texture rows-per-metre that framing implies is reported alongside the
 // canvas, so the blit can convert game-pixel height to texture scale exactly.
 
-import { STATES, clipNameFor, clipTime, aimable } from "./states.js";
+import { STATES, clipNameFor, clipTime, aimable, aimKey } from "./states.js";
 import { getRig } from "./rig.js";
 import { swayChains } from "./props.js";
+import { applyReach, reaches, makeScratch } from "./ik.js";
 
 export const TEX_SIZE = 384;
 /** Fraction of the frame height under the foot line (world y = 0). */
@@ -51,6 +52,9 @@ export function initRenderer(three) {
   THREE = three;
   _aimQ = new THREE.Quaternion();
   _aimX = new THREE.Vector3(1, 0, 0);
+  _ik = makeScratch(THREE);
+  _camRight = new THREE.Vector3();
+  _target = new THREE.Vector3();
   const canvas = document.createElement("canvas");
   canvas.width = TEX_SIZE;
   canvas.height = TEX_SIZE;
@@ -78,17 +82,24 @@ export function initRenderer(three) {
  *  but AIM is: two strikes pitched at different targets are different poses.
  *  (aimPitch in states.js already quantised the angle to 6° steps, so the
  *  aim dimension stays small.) */
-export function poseToken(charKey, animKey, animTime, aimRad = 0) {
+/** The camera, for tools that need its basis (the IK accuracy probe). */
+export function __cam() { return camera; }
+
+export function poseToken(charKey, animKey, animTime, aim = null) {
   const t = clipTime(animKey, animTime);
-  const aim = aimable(animKey) && aimRad ? `~a${Math.round((aimRad * 180) / Math.PI)}` : "";
-  return `${charKey}/${clipNameFor(animKey)}@${Math.round(t / QUANT)}${aim}`;
+  const a = aimable(animKey) && aim ? aimKey(aim) : "";
+  return `${charKey}/${clipNameFor(animKey)}@${Math.round(t / QUANT)}${a}`;
 }
 
 /** Aim: pitch the strike toward the target. Applied AFTER the clip poses the
  *  body, split across the spine so the whole upper body leans into the shot
  *  rather than the torso snapping alone. Clips are authored aim-neutral
  *  (docs/asset-requests.md); this is the only place aim touches a pose. */
-const AIM_BONES = [["Spine1", 0.35], ["Spine2", 0.45], ["Neck", -0.3]];
+// Shares were set when the spine was the ONLY thing that aimed — it had to
+// carry the whole read, so it leaned hard. Now the IK places the limb and the
+// spine only has to supply body English, so these are softer: a big lean on
+// top of a correctly-aimed arm reads as a fighter falling over backwards.
+const AIM_BONES = [["Spine1", 0.20], ["Spine2", 0.26], ["Neck", -0.18]];
 function applyAim(root, pitchRad) {
   if (!pitchRad) return;
   for (const [name, share] of AIM_BONES) {
@@ -102,6 +113,31 @@ function applyAim(root, pitchRad) {
 }
 let _aimQ = null;
 let _aimX = null;
+let _ik = null;
+let _camRight = null;
+let _target = null;
+
+/** The aim target, in the MODEL's own space.
+ *
+ *  The offsets arrive in game pixels along the fighter's facing and up from
+ *  their feet (states.js aimSolve). Two conversions land them in the scene:
+ *  metres per pixel comes from the rig's real height against the pixels it
+ *  occupies on screen, and "along the facing" becomes the camera's own right
+ *  axis — the camera is yaw-only, so screen-up is world Y exactly and screen
+ *  right is the camera's X column. Working in the camera's basis rather than
+ *  the model's means the hand lands where it LOOKS like it should, which is
+ *  the only thing a billboarded fighter can be judged on.
+ *
+ *  Mirroring is not applied here: the blit mirrors the finished texture, and
+ *  the offsets were already measured along the facing, so one rendered pose
+ *  serves both directions and the cache stays half the size. */
+function targetInModelSpace(aim, rigHeightM, targetPx) {
+  const mPerPx = rigHeightM / Math.max(1, targetPx);
+  _camRight.setFromMatrixColumn(camera.matrixWorld, 0);
+  return _target
+    .set(0, aim.dy * mPerPx, 0)
+    .addScaledVector(_camRight, aim.dx * mPerPx);
+}
 
 function frameCamera(height) {
   // Ortho extents are CAMERA-relative, not world heights: the view axis maps
@@ -122,6 +158,12 @@ function frameCamera(height) {
   camera.position.set(Math.sin(yaw) * dist, cy, Math.cos(yaw) * dist);
   camera.lookAt(0, cy, 0);
   camera.updateProjectionMatrix();
+  // lookAt sets the quaternion but leaves matrixWorld stale until something
+  // renders. The IK reads its screen-right axis out of that matrix, so without
+  // this the FIRST aimed strike after any reframe solves against the previous
+  // camera and reaches in the wrong direction — and only that one, which is
+  // exactly the kind of fault that survives a casual look.
+  camera.updateMatrixWorld(true);
 }
 
 function pose(rig, animKey, animTime, clip) {
@@ -144,8 +186,8 @@ function pose(rig, animKey, animTime, clip) {
 /** The posed character as a canvas, plus the metres->rows mapping the blit
  *  needs. Returns null when the character has no rig or no resolvable clip —
  *  the caller falls back to sprites. */
-export function renderPose(charKey, animKey, animTime, resolveClip, aimRad = 0) {
-  const token = poseToken(charKey, animKey, animTime, aimRad);
+export function renderPose(charKey, animKey, animTime, resolveClip, aim = null, targetPx = 0) {
+  const token = poseToken(charKey, animKey, animTime, aim);
   const hit = cache.get(token);
   if (hit) {
     stats.hits++;
@@ -162,7 +204,17 @@ export function renderPose(charKey, animKey, animTime, resolveClip, aimRad = 0) 
   if (!resolved) return null;
 
   pose(rig, animKey, animTime, resolved.clip);
-  if (aimable(animKey)) applyAim(rig.root, aimRad);
+  if (aimable(animKey) && aim) {
+    // Lean into it, then REACH for it. Order matters: the spine pitch moves
+    // the shoulder, so solving the arm first would aim it from a position the
+    // body is about to leave.
+    applyAim(rig.root, aim.pitch);
+    frameCamera(rig.height);
+    if (reaches(animKey) && targetPx > 0) {
+      applyReach(THREE, rig.root, animKey, clipTime(animKey, animTime),
+        targetInModelSpace(aim, rig.height, targetPx), _ik);
+    }
+  }
   // Secondary motion — braids, tendrils — driven by the same quantised clock
   // as the pose, so the cache stays honest (props.js explains the trade).
   swayChains(rig.root, clipTime(animKey, animTime), charKey);

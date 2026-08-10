@@ -22,7 +22,8 @@
 
 import * as THREE from "../vendor/three.module.js";
 import { GLTFLoader } from "../vendor/loaders/GLTFLoader.js";
-import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimPitch, AIM_MAX_DEG } from "../src/states.js";
+import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimSolve, AIM_MAX_DEG } from "../src/states.js";
+import { reaches, reachWeight } from "../src/ik.js";
 import { propsOf, chainsOf, CHARACTER_PROPS, CHARACTER_CHAINS } from "../src/props.js";
 import * as rig from "../src/rig.js";
 import * as renderer from "../src/renderer.js";
@@ -49,6 +50,7 @@ const state = {
   // The aim target: where strikes point. Draggable on the canvas; aimable
   // states pitch toward it exactly as they would toward an opponent in-game.
   aimOn: true,
+  ik: true,
   target: { x: CX + 300, y: GROUND_Y - 220 },
   dragging: false,
   dirty: new Set(), // charKeys whose manifest entries were edited
@@ -226,10 +228,10 @@ async function draw() {
 
   const target = headHeightTarget(state.char);
   const chestY = GROUND_Y - target * 0.55;
-  const pitch = state.aimOn && aimable(state.state)
-    ? aimPitch(CX, chestY, state.target, 1) : 0;
-
-  const entry = renderer.renderPose(state.char, state.state, state.t, rig.resolveClip, pitch);
+  const aim = state.aimOn && aimable(state.state)
+    ? aimSolve(CX, GROUND_Y, chestY, state.target, 1) : null;
+  const entry = renderer.renderPose(
+    state.char, state.state, state.t, rig.resolveClip, aim, state.ik ? target : 0);
   if (entry) {
     blitPose(ctx, entry, state.char, CX, GROUND_Y, { scale: getActor(state.char)?.scale, alpha: 0.9 });
   } else {
@@ -266,7 +268,14 @@ async function draw() {
       ctx.setLineDash([]);
       ctx.globalAlpha = 1;
       ctx.fillStyle = "#9fd39f";
-      ctx.fillText(`aim ${(pitch * 180 / Math.PI).toFixed(0)}° (max ±${AIM_MAX_DEG}°)`, tx + 24, ty + 4);
+      const w = reaches(state.state) ? reachWeight(state.state, clipTime(state.state, state.t)) : 0;
+      const lines = [
+        `aim ${(aim.pitch * 180 / Math.PI).toFixed(0)}° (max ±${AIM_MAX_DEG}°)`,
+        reaches(state.state)
+          ? (state.ik ? `IK reach ${(w * 100).toFixed(0)}%` : "IK off — spine lean only")
+          : "this state does not reach",
+      ];
+      lines.forEach((line, i) => ctx.fillText(line, tx + 24, ty + 4 + i * 15));
     }
     ctx.restore();
   }
@@ -302,6 +311,7 @@ $("scrub").oninput = () => {
 };
 $("ghostToggle").onchange = () => { state.ghost = $("ghostToggle").checked; };
 $("aimToggle").onchange = () => { state.aimOn = $("aimToggle").checked; };
+$("ikToggle").onchange = () => { state.ik = $("ikToggle").checked; };
 function canvasPoint(ev) {
   const r = canvas.getBoundingClientRect();
   return { x: ((ev.clientX - r.left) / r.width) * canvas.width,

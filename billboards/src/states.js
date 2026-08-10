@@ -100,9 +100,22 @@ export function cycleInfo(state, animTime) {
 export const AIM_MAX_DEG = 50;
 export const AIM_STEP_DEG = 6;
 
+// Reach quantisation, in game pixels. Coarser than the pitch step because it
+// multiplies with it in the pose-cache key: every (pitch, dx, dy) triple is a
+// distinct rendered pose, so fine buckets here trade a smooth aim for a cache
+// that thrashes mid-flurry. 24 px is well under a fighter's body width, so the
+// stepping is invisible at the size these are drawn.
+export const AIM_REACH_STEP = 24;
+const REACH_X = [-120, 460];
+const REACH_Y = [-320, 340];
+
 export function aimable(state) {
   return !!STATES[clipNameFor(state)]?.aim;
 }
+
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const bucket = (v, lo, hi) =>
+  Math.round(clamp(v, lo, hi) / AIM_REACH_STEP) * AIM_REACH_STEP;
 
 /** World target -> quantised pitch in radians, from the fighter's chest at
  *  (x, chestY) toward (aim.x, aim.y). Screen y grows downward, so a target
@@ -113,6 +126,33 @@ export function aimPitch(x, chestY, aim, facing = 1) {
   const dx = Math.max(40, (aim.x - x) * (facing < 0 ? -1 : 1));
   const up = chestY - aim.y;
   const deg = (Math.atan2(up, dx) * 180) / Math.PI;
-  const clamped = Math.max(-AIM_MAX_DEG, Math.min(AIM_MAX_DEG, deg));
+  const clamped = clamp(deg, -AIM_MAX_DEG, AIM_MAX_DEG);
   return (Math.round(clamped / AIM_STEP_DEG) * AIM_STEP_DEG * Math.PI) / 180;
+}
+
+/** The full aim solution: the spine's pitch, plus WHERE the strike has to
+ *  reach — offsets in game pixels from the fighter's own origin, measured
+ *  along their facing and upward from their feet.
+ *
+ *  Pitch alone leans the body at an angle; the offsets are what let the IK put
+ *  the hand on the target (ik.js). Both are quantised, because both are part
+ *  of the pose-cache key: an unquantised target would make every frame of
+ *  every approach a unique pose and defeat the cache entirely.
+ *
+ *  Returns null with no target, which is the "just play the clip" path. */
+export function aimSolve(x, footY, chestY, aim, facing = 1) {
+  if (!aim) return null;
+  const sign = facing < 0 ? -1 : 1;
+  return {
+    pitch: aimPitch(x, chestY, aim, facing),
+    dx: bucket((aim.x - x) * sign, REACH_X[0], REACH_X[1]),
+    dy: bucket(footY - aim.y, REACH_Y[0], REACH_Y[1]),
+  };
+}
+
+/** The cache-key fragment for an aim solution. */
+export function aimKey(solution) {
+  if (!solution) return "";
+  const deg = Math.round((solution.pitch * 180) / Math.PI);
+  return `~a${deg}x${solution.dx}y${solution.dy}`;
 }

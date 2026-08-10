@@ -30,7 +30,7 @@ billboards/
                clip inheritance), renderer.js (offscreen WebGL + pose cache),
                blit.js, states.js (the 26-state contract), mannequin.js (the
                proof body + THE DEFAULT POSE SET), props.js (weapons, props,
-               physics chains)
+               physics chains), ik.js (two-bone reach solver)
   workbench/   /billboards/workbench/ — model vs sprite ghost, aim target,
                per-state clip inheritance editor, approval
   vendor/      three.js r185, vendored (VENDOR.md) — only src/ may import it,
@@ -74,11 +74,14 @@ inherited set, default — is `resolveClip` in `src/rig.js`.
 - **Physics chains** (`Chain_<name>_<i>` — Mei Mei's braid, Dagon's tendrils)
   sway deterministically off the pose clock, which keeps the pose cache honest;
   true integration is a per-rig opt-in later, at per-frame render cost.
-- **Strikes aim.** Aimable states pitch toward a target — the controller's
-  point when input sets `fighter.aimPoint`, else the nearest opponent
-  (render.js) — applied at pose time across the spine, quantised into the
-  cache key. Clips are authored aim-neutral; the workbench's draggable
-  crosshair is the same math the game runs.
+- **Strikes aim, and reach.** Aimable states pitch the spine toward a target —
+  the controller's point when input sets `fighter.aimPoint`, else the nearest
+  opponent (render.js) — and **two-bone IK** (`src/ik.js`) then solves the
+  striking limb so the hand points at it exactly. The solve re-aims without
+  re-lengthening: the clip's own extension is preserved and only the direction
+  tracks, so a jab stays a jab while landing at any angle. IK ramps in over the
+  wind-up so the clip keeps its anticipation. Clips are authored aim-neutral;
+  the workbench's draggable crosshair runs the same math the game does.
 
 ## Gameplay parity
 
