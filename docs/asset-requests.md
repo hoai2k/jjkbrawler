@@ -19,6 +19,15 @@ numbered DI1, DI2… — so the tracks never collide.)
 **Round 18 is the one to add to** — nothing else is outstanding, so anything
 found from here goes into 18.
 
+**How the sprite count is derived.** A pose is outstanding if it carries a
+workbench flag *or* is drawing a file that is not its own. The second half is
+the one that goes missing: a pose rejected at approval is pointed at another
+frame of the same set so the game keeps drawing something, and that raises no
+flag for `tools/list_replacements.py` to report. Both halves are checked against
+the manifest, not against this file — [18C](#18c-three-that-fell-through-the-round-renumbering--3-sprites)
+is what the first found and [18G](#18g-seven-a-pose-is-drawing-somebody-elses-art--7-sprites)
+is what the second did.
+
 **The approval queue is empty.** Rounds 14, 16 and 17 all landed through the
 [approval step](../assets/intake/README.md#the-confirm-step) — a delivery is in
 the repo before it is in the game, and each pose is a decision waiting in the
@@ -312,216 +321,27 @@ single addition: **no drawn shadow of any kind** — the game casts its own.
 
 ---
 
-# Round 17 — delivered
-
-**All of it has landed**, including the simplified card set. 17D's 27 tiles are
-in `assets/cards/simple/`, one per roster fighter, and the round is closed.
-
-| Part | Scope | State |
-|---|---|---|
-| 17A | A full Hanami set — 36 sprites | **Delivered.** Redrawn to canon; awaiting approval pose by pose |
-| 17B | Mahoraga's three light/crouch poses — 3 sprites | **Delivered**, awaiting approval — the karma wheel is present this time |
-| 17C | Two caught while placing round 13 — 2 sprites | **Delivered**, awaiting approval |
-| 17D | A simplified card for every fighter — 27 images | **Delivered.** All 27 in `assets/cards/simple/`. The game draws them only when `USE_SIMPLE_CARDS` is `true` in `src/config_menus.js`, and it is currently `false` — a display decision, not a missing asset |
-| 17E | Hanami's hero card, redrawn to canon — 1 image | **Delivered and in the game.** A card has no approval step |
-
-The three keys outside 17A's 36 — `attack_air`, `run_a` and `run_b` — were not
-drawn. They are standby fallbacks nothing reaches, so Hanami's set is answered;
-they are noted in
-[the history entry](asset-requests-history.md#round-17--hanami-to-canon-mahoraga-and-the-last-two-round-13-catches)
-in case the set is ever redrawn whole again.
-
-**17D is drawn against the new Hanami.** His block was rewritten for 17A and his
-tile is the pale humanoid curse, not the tree — the hero card the tile has to
-agree with is already in the game.
-
-## 17D. A simplified card for every fighter — 27 images
-
-> **Delivered.** All 27 tiles are in `assets/cards/simple/`, one per roster
-> fighter. They are **not on screen**: `USE_SIMPLE_CARDS` in
-> `src/config_menus.js` is `false`, so the roster grid still draws the hero
-> cards. Flipping it to `true` is the whole of switching them on. The brief
-> below is kept because it is what a re-draw of any single tile is measured
-> against.
-
-### Why
-
-**The hero cards do not survive being made small.** Each one is a full-bleed
-640×820 illustration with a painted scene behind the fighter — Gojo on a neon
-skyline, Panda outside a shrine at dusk, Nanami against tower blocks at golden
-hour. At hero size, on the right of the select screen, that is exactly right and
-it should stay.
-
-The same file is also the **roster tile**, and there it is doing a different
-job: the player is scanning two dozen thumbnails for the one they want, and the
-scene is noise. It is already costing something. `styles.css` carries a
-per-card brightness table — `--card-lift`, defaulting to 1.18, with a heavier
-tier for Nanami, Toji, Geto, Reggie, Mei Mei and Gakuganji and a saturation-only
-case for Panda — that exists solely because the art was not all painted at the
-same key and the tiles read murky next to each other. That table is a patch on
-using scene illustrations as icons.
-
-**And it gets worse with every fighter added.** `layoutCharacterGrid()` fits the
-roster by walking depths and then *cropping*: `ROSTER_ASPECTS` runs
-`3/4 → 1/1 → 5/4 → 3/2 → 2/1`, and the tile is `object-fit: cover` anchored to
-the **top**. A bigger roster reaches the wide end of that list sooner, so the
-tile becomes a **letterbox strip off the top of a portrait** — and `object-position: top`
-means it keeps the head and throws the body away. `MIN_CARD_WIDTH` is 96 px, so
-at the far end each fighter is a 96 px-wide band of a painting.
-
-Round 15 takes the roster from 23 to 27, which is the point of asking now rather
-than later. This request is the art that is drawn for that job from the start.
-
-### What this is not
-
-- **Not a replacement.** Every existing `assets/cards/<key>_card.jpg` stays
-  exactly where it is and keeps being the hero card. Nothing is flagged, nothing
-  is deleted, and `assets/reference/cards_previous/` is untouched.
-- **Not wired up.** The game does not read the new directory and this section
-  does not ask for the code that would. It is art banked ahead of a roster big
-  enough to need it — the switch is a one-line change in `buildCharacterCard()`
-  when that day comes, and it can be made per-surface (tiles simplified, hero
-  card and in-match portrait still the painting).
-- **Not a redesign.** Same character, same costume, same palette family as their
-  hero card, so the two read as the same fighter seen at two distances.
-
-### The brief
-
-**A portrait icon, not a scene.** One fighter, chest-up, filling the frame, on a
-plain background. Think a roster icon in a fighting game's character select, or
-an app icon of a person: legible at a glance, legible at a glance *small*, and
-distinguishable from twenty-six others at the same size.
-
-| | |
-|---|---|
-| **Crop** | Head and shoulders to mid-chest. The head is large in the frame — roughly the top half of the image — and centred horizontally |
-| **Background** | Flat or a single soft vertical gradient in the fighter's theme colour (the `theme` field in `src/characters.js`). No scenery, no buildings, no sky, no props behind the figure, no logo, no text |
-| **Lighting** | Even and front-lit. Bright enough to need **no** `--card-lift` correction: the whole point is that all 27 come back at the same key and the brightness table can be deleted |
-| **Detail** | Fewer, larger shapes than the hero card. Simplify folds, hair strands and pattern; keep the two or three things that identify the fighter and drop the rest |
-| **Silhouette** | Readable as a shape. Squint at it: Gojo's blindfold, Nanami's glasses, Maki's ponytail and glasses, Todo's topknot, Momo's hat, Jogo's volcano head should still be the thing you see |
-| **Format** | JPEG, **640 × 820** (3:4), same as the hero cards, so the two are interchangeable in every slot |
-
-**Two crops must both work, because the fitter chooses between them at runtime.**
-Before delivering, check each image twice:
-
-1. **Full 3:4** — the shallow-roster case.
-2. **The top half only, at 2:1** — the crowded-roster case, which is what
-   `object-fit: cover` with `object-position: top` produces at the wide end of
-   `ROSTER_ASPECTS`. The fighter must still be recognisable, which in practice
-   means **the whole head sits inside the top 45% of the image** and nothing that
-   identifies them lives below the shoulders.
-
-**Keep the bottom sixth quiet.** The name plate is drawn over it — white caps on
-a dark gradient — so anything with detail down there is covered up.
-
-### Prompt formula
-
-`[CHARACTER BLOCK]`, head-and-shoulders portrait icon facing the viewer, chest-up
-crop, head filling the upper half of the frame, flat `[THEME COLOUR]` background
-with no scenery or props, even front lighting, simplified shapes and reduced
-detail, `[STYLE SUFFIX]`.
-
-Character blocks are in [Character blocks](#character-blocks) above and are used
-verbatim, exactly as for sprites — **including Hanami's, which was rewritten for
-[17A](asset-requests-history.md#17a-a-full-hanami-set--36-sprites)**. His tile is the pale humanoid curse,
-not the tree.
-
-`[THEME COLOUR]` is the fighter's `theme` in `src/characters.js` — the colour the
-game already uses for their HUD accent and hit flashes, so a tile painted on it
-matches what happens when they land a hit.
-
-| Group | Fighter | Key | Theme |
-|---|---|---|---|
-| Students | Yuji | `yuji` | `#ff8264` |
-| | Nobara | `nobara` | `#d86a4a` |
-| | Megumi | `megumi` | `#7c8cff` |
-| | Yuta | `yuta` | `#9fc7ff` |
-| | Maki | `maki` | `#69d0a8` |
-| | Inumaki | `inumaki` | `#d7d9e7` |
-| | Panda | `panda` | `#8ea0b8` |
-| | Todo | `todo` | `#b66cff` |
-| | Momo | `momo` | `#b7b8ff` |
-| Faculty | Gojo | `gojo` | `#62dcff` |
-| | Nanami | `nanami` | `#ffd35a` |
-| | Mei Mei | `meimei` | `#d8b95c` |
-| | Gakuganji | `gakuganji` | `#d89b3f` |
-| Other Sorcerers | Hakari | `hakari` | `#ff62cf` |
-| | Toji | `toji` | `#a8aeb8` |
-| | Uro | `uro` | `#8fd7e8` |
-| | Reggie Star | `reggie` | `#86d67c` |
-| Curses and Curse Users | Mahito | `mahito` | `#b56cff` |
-| | Jogo | `jogo` | `#ff7a2f` |
-| | Hanami ⚠ | `hanami` | `#9bb36b` |
-| | Geto | `geto` | `#7d58d8` |
-| | Choso | `choso` | `#c22e4a` |
-| | Sukuna | `sukuna` | `#ff4c55` |
-| **Staged (round 15)** | Mechamaru | `mechamaru` | `#63c7b0` |
-| | Yuki Tsukumo | `yuki` | `#ffb703` |
-| | Dagon | `dagon` | `#2f8fd8` |
-| | Kurourushi | `kurourushi` | `#8f3b4e` |
-
-**The last four depend on round 15.** They have no delivered art at all, so
-their tile is drawn from the same wiki render as their hero card in
-[15D](asset-requests-history.md#15d-kurourushis-hero-card--1-image) — and it is worth drawing the two together,
-since the questions are the same and the answer to one settles the other. If
-15A's sprite sets have landed by then, prefer the delivered `idle_a` as every
-other fighter's tile does.
-
-Four themes are close enough to a neighbour's to be worth checking side by side
-before delivering — Todo `#b66cff` against Mahito `#b56cff` are all but
-identical, and Mei Mei `#d8b95c` against Gakuganji `#d89b3f` are near. The
-background is a supporting cue, not the identifier; if two tiles come back
-reading as the same card, it is the *figure* that has to carry the difference.
-
-**Mahoraga is deliberately not in it** — he is a `SPRITE_ACTOR`, nobody selects
-him, and he has no hero card either.
-
-### Where it goes
-
-Deliver to:
-
-```
-assets/intake/cards/simple/<key>_tile.jpg
-```
-
-and it lands at:
-
-```
-assets/cards/simple/<key>_tile.jpg
-```
-
-**`_tile`, not `_card`, and the reason is not cosmetic.** The per-card
-brightness rules in `styles.css` are written as filename suffix matches
-(`img[src$="nanami_card.jpg"]`), which would match `simple/nanami_card.jpg` just
-as happily as the hero card. A simplified card that silently inherited a 1.34×
-lift meant for a murky painting would arrive blown out, and it would take a
-while to work out why. A distinct suffix makes that impossible.
-
-Cards take the short path through the pipeline — no keying, no measuring, no
-manifest entry — so landing these is a move and nothing else.
-
----
-
 # Round 18 — open
 
 **Round 18 is the round to add to.** Everything before it has been delivered, so
 anything caught from here lands here.
 
-- **18A** — thirteen caught while placing the round-15 sets (13 sprites)
+- **18A** — twelve caught while placing the round-15 sets (12 sprites)
 - **18B** — four caught while placing Kurourushi (4 sprites)
 - **18C** — three that fell through the round renumbering (3 sprites)
 - **18D** — two Uro alternates: the right pose in the wrong costume (2 sprites)
 - **18E** — twenty backgrounds repainted for the 3D camera (20 images)
 - **18F** — near-field cards for the 3D camera's garnish layer (14 images,
   optional)
+- **18G** — seven a pose is drawing somebody else's art (7 sprites)
 
-**22 sprites and 34 images, none of it blocking** — every pose named here is in
+**28 sprites and 34 images, none of it blocking** — every pose named here is in
 the game today and playable, and every background named here already exists and
 works. The sprites are redraws of art that does not do its job; 18E and 18F are
 art the `?camera=3d` mode can use and the flat game cannot, so both are pure
 upside and a partial delivery of either is useful on its own.
 
-## 18A. Caught while placing the round-15 sets — 13 sprites
+## 18A. Caught while placing the round-15 sets — 12 sprites
 
 The three new fighters arrived with complete 36-pose sets drawn against
 [pose-brief.md](pose-brief.md). These are what the placement passes found — a
@@ -531,7 +351,6 @@ review board — plus the brief's headline criterion, which all three missed.
 | Fighter | Key | Pose | Kind | What is wrong |
 |---|---|---|---|---|
 | Yuki Tsukumo | `yuki` | `attack_heavy_b` | Pose | The hook extends **9%** of standing height past her idle where the brief asks for a third — the shortest heavy on the roster. She is a boxer with no weapon, so the whole body has to be behind it: hips through, shoulder past the lead foot. **Her `ult_b` is standing in** meanwhile, so she has a heavy that reaches while this is redrawn. |
-| Dagon | `dagon` | `attack_heavy_b` | Pose | Extends **16%**. The claws should finish out past the wings. |
 | Mechamaru | `mechamaru` | `attack_heavy_b` | Pose | Extends **20%**. The forearm blade should be the furthest thing forward in the frame. |
 | Mechamaru | `mechamaru` | `run_reach_a` | Quality | **Delivered as a contact sheet** — four small figures of the run cycle on one canvas rather than one pose. Nothing in it is separable at full resolution and none of the four clears the 600 px body minimum alone, so it was never imported: he runs on the other three cycle frames until this lands. |
 | Dagon | `dagon` | `run_reach_a` | Pose | **Reaches with the arm instead of the leg.** The reach frame is the full stride — the leading heel is the thing out in front, arms only counterbalance it. |
@@ -875,3 +694,39 @@ the projectile rule — the renderer mirrors for the other direction.
 
 Fourteen files. Any subset is useful — each one replaces its procedural
 stand-in independently, and a board with no delivery keeps the drawing it has.
+
+---
+
+## 18G. Seven a pose is drawing somebody else's art — 7 sprites
+
+[18C](#18c-three-that-fell-through-the-round-renumbering--3-sprites) audited the
+**flags** against this file. This is the other half of that audit: the poses that
+are outstanding *without* a flag, because the fault was answered by pointing the
+pose at a different drawing instead of marking the drawing bad.
+
+That happens at approval. A delivered pose that is rejected leaves a hole, and a
+hole draws nothing at all, so the workbench picks another frame of the same
+fighter's set to stand in — the game keeps working and the pose keeps being
+outstanding. Nothing reports it: `tools/list_replacements.py` reads flags, and a
+stand-in raises none. The only way to see them is to ask which poses are drawing
+a file that is not their own, which is now how the count at the top of this file
+is derived.
+
+Five of the seven below are that. Two are ordinary flags that no round had
+picked up.
+
+| Fighter | Key | Pose | Kind | What is wrong |
+|---|---|---|---|---|
+| Hanami | `hanami` | `crouch_attack_b` | Pose | Flagged at approval, and it is the frame two of the three below are borrowing — so it is the one to draw first. `_b` is the strike out of the crouch: blade of the arm forward at ankle-to-knee height, hips through, head no higher than in `_a`. |
+| Hanami | `hanami` | `attack_light_a` | **Standing in** on `run_reach_b` | The delivered wind-up was rejected. His jab now winds up on a sprinting frame, so a light attack shows him mid-stride. |
+| Hanami | `hanami` | `attack_light_b` | **Standing in** on `special_neutral` | Rejected in the same pass. The strike frame is his neutral-special pose — a different action, a different arm, and one that does not extend past the body the way a light has to. |
+| Hanami | `hanami` | `crouch_b` | **Standing in** on `crouch_attack_b` | Rejected. The held crouch is drawn by the crouch *attack*, so holding down reads as a repeated swing. `crouch_b` is `crouch_a` a breath later — weight settled a touch further forward, head a touch lower, nothing else. |
+| Gakuganji | `gakuganji` | `attack_air_a` | **Standing in** on `attack_air` | Round 14C asked for this as an alternate because the delivered hands were malformed; neither drawing was taken, so the pose still draws the legacy single that the `_a`/`_b` pair was meant to supersede. His aerial has a wind-up frame that is not a wind-up. |
+| Toji Fushiguro | `toji` | `attack_heavy_b` | Quality | *"Should show full sword extended to the right in attack. (alt has a spear which is wrong)"* — both drawings on this pose are wrong in different ways, so it needs a third. Same criterion as every other heavy: a third of standing height past his own idle, sword tip leading. |
+| Choso | `choso` | `attack_light_b` | Quality | Flagged in the workbench. `_b` is the contact frame of the jab — the blood-arm out past the body, shoulders rotated through, weight on the front foot. |
+
+**Hanami's four are one delivery.** They are all from the round-17 set, all
+rejected in the same approval pass, and three of them are borrowing from each
+other — `crouch_b` borrows `crouch_attack_b`, which is itself flagged. Drawn
+together they settle each other; drawn one at a time the borrowing moves around.
+
