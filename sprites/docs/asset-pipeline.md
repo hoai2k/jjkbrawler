@@ -141,38 +141,53 @@ the rename, and anybody mid-session is one reload away from it.
 
 `effect:*`, `summon:*` and `stagefx:*` art belongs to no fighter, so it has no
 manifest entry and no placement — the code that spawns each one decides how big
-it is and where it goes. Three knobs reach it anyway, stored in `otherSprites`
-and read by [src/shared_sprites.js](../../src/shared_sprites.js):
+it is and where it goes. **That knowledge is now written down**, in the registry
+at the bottom of [src/shared_sprites.js](../../src/shared_sprites.js): for every
+shared drawing, the height the game paints it at and the point on the picture
+that lands on its spawn point. It is derived from the kits, the summon pools and
+the draw sites rather than restated, so it cannot drift from them.
 
-| Control | What it means | Where it is read |
+The workbench reads that registry to decide which controls to show, and the game
+reads the same file to apply them:
+
+| Control | What it does | Shown when |
 |---|---|---|
-| **Mirror** | the drawing points the wrong way | `assets.js`, at the one place a drawing is loaded |
-| **Size** | a multiplier on whatever height this drawing is painted at | four owners, below |
-| **Horizontal / Vertical** | `dx`/`dy`, a nudge in game pixels from the point the spawn site paints it on | the same four |
+| **Mirror** | the drawing points the wrong way | always |
+| **Size** | multiplies the height the game paints it at | something declares a height |
+| **Spawn point** (on the canvas) | drag it; the drawing moves under it, storing `dx`/`dy` in game pixels | the drawing is painted somewhere |
+| **Rotation** | a standing tilt about the same point | the drawing is painted somewhere |
 
-**The size has four owners**, which is why it used to look broken: only the
-first was ever read, so a number typed against a summon or an aura was stored,
-displayed, and inert.
+**The size has four owners**, which is why it used to look broken: a kit's
+`spriteH` (or `orbSpriteH`, or a drop entry's `h`), a creature's `h` in
+`config_summons.js`, the install aura's constant in `render.js`, a hazard's in
+`stage_fx.js`. Only the first was read, so a number typed against a summon was
+stored, displayed, and inert.
 
-- a move's `spriteH` (or `orbSpriteH`, or a drop entry's `h`) — folded into the
-  kit once, on load
-- a creature's `h` in `config_summons.js` — read at the draw
-- the install aura's own constant in `render.js` — read at the draw
-- a hazard's constant in `stage_fx.js` — read at the draw
+**It looked broken a second way even after that was fixed**, and this one was
+the viewer's fault: the canvas drew every shared sprite at its *delivered* pixel
+height and then clamped it to fit. Nearly every plate is taller than the viewer,
+so nearly every one sat pinned at the clamp and the slider changed nothing you
+could see. The viewer now draws at the height the game uses, times the zoom —
+which is also what makes a creature comparable to the fighter standing beside it.
 
-**The nudge moves the picture and nothing else.** What a projectile collides
-with, where a creature stands, what a hazard hits you with: none of it moves.
-That is the point — art arrives off-centre in its plate (an egg at one end of a
-long trail) and the fix is to move the drawing onto the point the game is using,
-not to move the point.
+**The spawn point replaced two sliders.** Position used to be a horizontal and a
+vertical nudge, which asks you to hold in your head which way positive runs and
+what the number is measured from. It is one crosshair on the canvas now, drawn
+where the game paints the drawing, captioned with what the game expects of it —
+*painted around the point*, *standing on it*, *hung from it* — and dragging it
+moves the drawing beneath. The numbers are still `dx`/`dy` underneath and still
+export the same way.
 
-**A drawing that nothing spawns gets no controls at all**, and the panel says so
-instead of offering sliders that write into nothing. That same answer drives the
-**Used in game** filter for Other Sprites, so the working views stop showing art
-the game never draws. `node tools/check_shared_sprites.mjs` guards the whole
-arrangement: it walks the real kits and fails if a move names its drawing under
-a field the scale is not folded into — which is how Yuta's Rika (`sprite` beside
-a plain `h`) and Mechamaru's pigeon orbs were found.
+**None of it moves what the drawing collides with.** A projectile's centre, a
+creature's footing, a hazard's reach: all unchanged. That is the point — art
+arrives off-centre in its plate and the fix is to move the picture onto the point
+the game is using, not to move the point.
+
+**A drawing that nothing spawns gets no controls**, and the panel says why. That
+same answer drives the **Used in game** filter for Other Sprites.
+`node tools/check_shared_sprites.mjs` walks the real kits and fails if a move
+names its art under a field the registry does not know — which is how Yuta's
+Rika (`sprite` beside a plain `h`) and Mechamaru's pigeon orbs were found.
 
 ## Preparing delivered effect art
 

@@ -1,6 +1,6 @@
 import { state } from "./state.js";
 import { getImage } from "./assets.js";
-import { sharedAdjust } from "./shared_sprites.js";
+import { sharedAdjust, AURA_H } from "./shared_sprites.js";
 import { getStage } from "./stages.js";
 import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { getActor } from "./characters.js";
@@ -214,6 +214,7 @@ function drawProjectiles(ctx) {
       const flip = p.vx > 0 ? -1 : 1;
       if (p.vy) ctx.rotate(Math.atan2(-flip * p.vy, -flip * p.vx));
       ctx.scale(flip, 1);
+      if (adj.rot) ctx.rotate(adj.rot);
       ctx.shadowColor = p.color;
       ctx.shadowBlur = 12;
       // Inside the mirrored frame, so a nudge follows the drawing rather than
@@ -601,11 +602,18 @@ function drawInstallAura(ctx, f) {
     // drawing's own scale has to be read at the draw — the kit-side folding in
     // shared_sprites.js never reaches it.
     const adj = sharedAdjust(f.installs.aura);
-    const h = 220 * pulse * adj.scale;
+    const h = AURA_H * pulse * adj.scale;
     const w = art.width * h / art.height;
     ctx.globalAlpha = 0.72;
     ctx.shadowColor = f.installs.color;
     ctx.shadowBlur = 18;
+    if (adj.rot) {
+      // About the point it is painted on — the fighter's feet — so a tilt
+      // leans the aura rather than sliding it.
+      ctx.translate(f.x, f.y + 10);
+      ctx.rotate(adj.rot);
+      ctx.translate(-f.x, -(f.y + 10));
+    }
     ctx.drawImage(art, f.x - w / 2 + adj.dx, f.y + 10 - h + adj.dy, w, h);
     ctx.restore();
     return;

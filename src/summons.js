@@ -1041,6 +1041,7 @@ export function spawnSummon(owner, cfg) {
       const h = (cfg.h ?? 110) * adj.scale;
       if (img) {
         const w = img.width * h / img.height;
+        if (adj.rot) ctx.rotate(adj.rot);
         ctx.drawImage(img, -w / 2 + adj.dx, -h + adj.dy, w, h);
         if (flash > 0) {
           ctx.globalCompositeOperation = "lighter";
