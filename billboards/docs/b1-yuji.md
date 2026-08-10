@@ -31,8 +31,17 @@ the same thing on any body.
 spec demands — pointed into the lens, so fighters faced the viewer: strides and
 punches went into the screen and foreshortened to nothing. It had never been
 noticed because the only body available was a featureless grey mannequin, which
-looks much the same from any angle. Now −135°, which puts forward across the
-screen in three-quarter, and it fixed the mannequin too.
+looks much the same from any angle.
+
+It then got fixed wrong: −135° put forward across the screen but turned his
+BACK to the camera, which is what "he walks backwards and faces away" was. Two
+conditions have to hold at once, and eyeballing a 384-pixel figure got one of
+them wrong every time, so they are now stated as dot products —
+`forward·cameraRight > 0` (faces screen-right) and `forward·(−cameraFwd) > 0`
+(front to the lens) — which are `−sin(yaw)` and `cos(yaw)` for a +Z-forward rig,
+both positive only between −90° and 0°. **−60°** measures 0.70 across and 0.72
+toward: the three-quarter the sprite art is drawn at. `tools/smoke_facing.mjs`
+asserts it now, on both backends.
 
 ## What made the clips work
 
@@ -43,6 +52,33 @@ A direction ("upper arm forward and a little down, forearm straight forward" is
 a punch) lands correctly on a T-pose rig, an A-pose rig and the mannequin
 alike, and it is what let one pose vocabulary serve all 26 states.
 
+**The live layers twisted instead of nodding.** Aim pitch, head look-at, flinch
+and breath all rotated their bone about its LOCAL X, which is the nodding axis
+only if the rig happens to be built that way. Yuji's neck is not: a 0.4 rad
+look-at produced 14.8° of pure ROLL and 0.0° of pitch — the head lolling
+sideways, which is what "his head rotates in a funny way" was. They now rotate
+about the CHARACTER's lateral axis, derived from the rig's own facing and
+converted into whatever local frame each bone has
+(`characterLateral` / `rotateBoneAboutWorldAxis` in `billboards/src/ik.js`).
+Same input now measures 14.8° of pitch, 0° yaw, 0° roll.
+
+**The auto-rigger bound trousers to the hand.** Rotating `RightArm` alone moved
+230 vertices whose own dominant bone is `RightUpLeg` — the thigh — by up to
+29 cm: "when he lifts his arms he brings part of his pants with him". Worst
+single influence was a trouser vertex 50% weighted to `RightHand`.
+
+Proximity cannot catch this, which is presumably why the binder did it: the
+delivery binds in an A-pose, so the hands hang beside the hips and the hand
+bone is *closer* to those trouser vertices than the spine legitimately is. The
+skeleton can. `tools/blender_clean_weights.py` counts joints between a vertex's
+dominant bone and each of its other influences and drops anything past four —
+hand to thigh is eight, through the whole arm, the whole spine and the pelvis.
+It removed 3376 influences on 2604 vertices; the worst arm-driven displacement
+below the hips fell from **29 cm to 9.5 cm**, and what remains is chest and
+shoulder skin, which is meant to move. The pass is now step 6 of
+`tools/blender_conform.py`, so no future delivery carries it, and
+`tools/blender_probe_bleed.py` is the measurement.
+
 ## Still owed
 
 - **Validator checks for the two nonconformances.** Bind pose and facing are
@@ -52,6 +88,10 @@ alike, and it is what let one pose vocabulary serve all 26 states.
   workbench ghost is the place to close it.
 - **`fall` reads close to arms-up.** Distinct from `jump` now, but not the
   braced shape it wants.
+- **Every strike is the rear hand.** At the ¾ camera the viewer sees the
+  fighter's left flank, so the right arm is the far one and every punch reads
+  as a cross. Correct for the heavies; `light` wants to be the lead (left)
+  hand, which is a clip change and a `REACH` entry, not a bug.
 - **The clips are stand-ins, not performances.** They are correctly timed,
   correctly aimed and on-model in silhouette; they are not animation. B2's
   shared library is where craft replaces correctness.

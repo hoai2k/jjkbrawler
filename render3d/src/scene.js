@@ -140,14 +140,20 @@ function frameCamera(height, parallaxRad = 0) {
   const frameH = height * FRAME_MUL;
   const cy = frameH * (0.5 - FOOT_FRAC);
   const dist = (frameH / 2) / Math.tan((FOV_DEG / 2) * Math.PI / 180);
-  // Yaw: the camera sits so the rig's own +Z — the forward the delivery spec
-  // requires — projects to SCREEN-RIGHT in three-quarter. At the +30° this
-  // started at, +Z pointed into the lens instead, so every fighter faced the
-  // viewer: strides and punches went into the screen and foreshortened away,
-  // and the mannequin looked front-on for the whole of B0. -60° puts forward
-  // along the camera's right axis (dot ≈ 0.87) with enough turn left to keep
-  // the face readable — the same read the sprite art is drawn at.
-  const yaw = (-135 * Math.PI) / 180 + parallaxRad;
+  // Yaw. Two things must hold at once, and eyeballing a 384px render gets one
+  // of them wrong every time — so they are stated as dot products and measured
+  // (tools/smoke_facing.mjs):
+  //
+  //   forward · cameraRight  > 0   the fighter faces SCREEN-RIGHT
+  //   forward · (-cameraFwd) > 0   and his FRONT is toward the lens
+  //
+  // With the rig's forward at +Z (the delivery spec), those are -sin(yaw) and
+  // cos(yaw) — both positive only for -90° < yaw < 0°. -60° puts forward
+  // mostly across the screen (0.87) with the chest still turned toward the
+  // viewer (0.5): the three-quarter the sprite art is drawn at. The original
+  // +30° satisfied neither, which is why every fighter strode into the screen
+  // and showed their back.
+  const yaw = (-60 * Math.PI) / 180 + parallaxRad;
   camera.position.set(Math.sin(yaw) * dist, cy, Math.cos(yaw) * dist);
   camera.lookAt(0, cy, 0);
   camera.updateProjectionMatrix();
@@ -184,6 +190,9 @@ export function clearCache() {
  * mapping the blit needs. Returns null when the character has no rig or no
  * resolvable clip — the caller falls back to sprites.
  */
+/** The camera, for the facing/framing probes. */
+export function __cam() { return camera; }
+
 export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {}) {
   const token = poseToken(charKey, animKey, animTime, layers);
   const hit = cache.get(token);
