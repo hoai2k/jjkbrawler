@@ -630,12 +630,14 @@ async function pointPoseAt(charKey, frameKey, file) {
  *  from is untouched, and the flag that opened the picker travels away with
  *  the drawing it was about, because review flags are banked per option.
  */
-async function borrowSprite(charKey, frameKey, sourceKey) {
+async function borrowDrawing(charKey, frameKey, drawing) {
   const meta = rawMeta(charKey, frameKey);
-  // What the picker drew: the drawing in the game, not a replacement of it
-  // still waiting to be approved. What you clicked is what arrives.
-  const source = frameMeta(charKey, sourceKey);
-  if (!meta || !source?.file || meta.file === source.file) return;
+  // Whatever the tile was showing — the drawing in the game, or one of the
+  // alternates banked beside it. Choosing art is a question about images, so
+  // an alternate is as valid an answer as the pose's own.
+  const source = drawing?.meta;
+  const file = drawing?.file;
+  if (!meta || !file || meta.file === file) return;
   pushHistory(charKey, frameKey);
   remember(charKey, frameKey);
 
@@ -646,15 +648,15 @@ async function borrowSprite(charKey, frameKey, sourceKey) {
   if (!entry.options.some((o) => o.file === meta.file)) {
     entry.options.unshift({ ...takeBanked(meta), file: meta.file, label: "Delivered" });
   }
-  if (!entry.options.some((o) => o.file === source.file)) {
+  if (!entry.options.some((o) => o.file === file)) {
     entry.options.push({
-      ...takeBanked(source),
-      file: source.file,
-      label: `From ${sourceKey}`,
-      borrowedFrom: sourceKey,
+      ...takeBanked(source || {}),
+      file,
+      label: drawing.pose === frameKey ? drawing.label || "Alternate" : `From ${drawing.pose}`,
+      ...(drawing.pose && drawing.pose !== frameKey ? { borrowedFrom: drawing.pose } : {}),
     });
   }
-  await chooseVariant(charKey, frameKey, source.file);
+  await chooseVariant(charKey, frameKey, file);
 }
 
 async function chooseVariant(charKey, frameKey, file) {
@@ -1909,10 +1911,14 @@ function buildActionRows() {
     pick.onclick = () => openSpritePicker({
       title: `${stateLabel(row.name)} — choose a sprite`,
       sub: `${actorOf(state.char).name} · currently ${row.frame}`,
-      current: row.frame,
-      onPick: (key) => {
-        setActionFrame(state.char, row.name, row.index, key);
-        previewAction({ ...row, frame: key });
+      current: frameMeta(state.char, row.frame)?.file,
+      currentPose: row.frame,
+      // An action names a POSE, not a file — the pose is what animsOf resolves
+      // — so the alternates are not answers to this question.
+      primaryOnly: true,
+      onPick: (file, d) => {
+        setActionFrame(state.char, row.name, row.index, d.pose);
+        previewAction({ ...row, frame: d.pose });
       },
     });
 
@@ -1937,19 +1943,24 @@ function buildActionRows() {
 // one. Right-click enlarges a tile in place, for the cases where a thumbnail is
 // too small to judge.
 
-/** Open the grid. `current` is the sprite in use, `onPick` what to do with the
- *  one chosen; both callers show the same tiles, they just mean different
- *  things by choosing one. */
-function openSpritePicker({ title, sub, current, onPick, drawings = null }) {
+/** Open the grid.
+ *
+ *  `drawings` is an explicit list of one pose's own drawings — "which of these
+ *  do I want to see beside it". Without it the grid is the CHARACTER'S WHOLE
+ *  CATALOGUE, every drawing they have: what each pose points at, plus every
+ *  other drawing banked on it. Choosing art is a question about images, not
+ *  about poses, so an alternate nobody currently draws is as valid an answer
+ *  as the one in play. */
+function openSpritePicker({ title, sub, current, currentPose = null, onPick,
+                           drawings = null, primaryOnly = false }) {
   const modal = $("spritePicker");
   const grid = $("pickerGrid");
   $("pickerTitle").textContent = title;
   $("pickerSub").textContent = sub;
   grid.innerHTML = "";
-  // Two things can be chosen from this grid. `drawings` is one pose's own
-  // drawings, listed by file — the question "which of these do I want to see
-  // beside it". Without it the grid is the character's sprites by pose key,
-  // which is the question "which drawing should this pose use".
+  closePickerMenu();
+  pickerPage = null;
+
   if (drawings) {
     for (const d of drawings) grid.appendChild(buildDrawingTile(d, current, onPick));
     modal.hidden = false;
@@ -1957,22 +1968,60 @@ function openSpritePicker({ title, sub, current, onPick, drawings = null }) {
     grid.querySelector(".picker-tile.current")?.scrollIntoView({ block: "center" });
     return;
   }
-  // Every sprite the character has, nearest first. "Nearest" is the pose's own
-  // family — the crouches when you are on a crouch, the attacks when you are
-  // on an attack — because a pose is nearly always replaced by a neighbour of
-  // itself, and a flat alphabetical grid buries them among forty others.
-  for (const group of groupedSprites(state.char, current)) {
-    if (!group.keys.length) continue;
-    const head = document.createElement("h4");
-    head.className = "picker-head";
-    head.textContent = group.label;
-    grid.appendChild(head);
-    for (const key of group.keys) grid.appendChild(buildPickerTile(key, current, onPick));
-  }
+
+  // A roster character has 50-odd poses and as many banked alternates again,
+  // and every tile costs an image fetch. So the catalogue is laid down a page
+  // at a time and the rest follows the scroll — the sprites worth looking at
+  // are at the top by construction, and most choices never reach the bottom.
+  pickerPage = {
+    items: spriteCatalogue(state.char, currentPose ?? current, primaryOnly),
+    at: 0, current, onPick,
+  };
+  appendPickerPage();
   modal.hidden = false;
   closePickerPreview();
-  // Focus the current choice so the keyboard lands somewhere sensible.
   grid.querySelector(".picker-tile.current")?.scrollIntoView({ block: "center" });
+}
+
+const PICKER_PAGE = 48;
+let pickerPage = null;
+let pickerWatcher = null;
+
+function appendPickerPage() {
+  if (!pickerPage) return;
+  const grid = $("pickerGrid");
+  const { items, at, current, onPick } = pickerPage;
+  const end = Math.min(items.length, at + PICKER_PAGE);
+  for (let i = at; i < end; i++) {
+    const item = items[i];
+    if (item.head) {
+      const head = document.createElement("h4");
+      head.className = "picker-head";
+      head.textContent = item.head;
+      grid.appendChild(head);
+      continue;
+    }
+    grid.appendChild(buildDrawingTile(item, current, onPick));
+  }
+  pickerPage.at = end;
+
+  // The sentinel rides at the end of the grid: when it comes into view there
+  // is more catalogue below the fold, so the next page is laid down.
+  pickerWatcher?.disconnect();
+  pickerWatcher = null;
+  grid.querySelector(".picker-more")?.remove();
+  if (end >= items.length) return;
+  const more = document.createElement("div");
+  more.className = "picker-more";
+  more.textContent = `${items.length - end} more…`;
+  grid.appendChild(more);
+  if (typeof IntersectionObserver !== "function") return;
+  pickerWatcher = new IntersectionObserver((entries) => {
+    if (entries.some((e) => e.isIntersecting)) appendPickerPage();
+    // The grid is the scroller, so it is also the root the sentinel is
+    // measured against.
+  }, { root: grid, rootMargin: "400px" });
+  pickerWatcher.observe(more);
 }
 
 /** The family a sprite key belongs to: everything up to the variant suffix, so
@@ -1982,40 +2031,88 @@ function spriteFamily(key) {
   return String(key).split("_")[0];
 }
 
-function groupedSprites(charKey, current) {
+/** Every drawing this character has, nearest first.
+ *
+ *  Nearest is the pose's own family — the crouches when you are on a crouch —
+ *  because a pose is nearly always redrawn by a neighbour of itself. Within
+ *  that, what the game actually draws leads what is only banked beside it: an
+ *  alternate is a real answer, but the drawing in play is the likelier one.
+ */
+function spriteCatalogue(charKey, current, primaryOnly = false) {
   const family = spriteFamily(current);
-  const near = [], drawn = [], spare = [];
+  const buckets = [[], [], [], [], []];
+  const seen = new Set();
   for (const key of allFramesOf(charKey)) {
-    if (spriteFamily(key) === family) near.push(key);
-    else if (statesUsing(charKey, key).length) drawn.push(key);
-    else spare.push(key);
+    const live = frameMeta(charKey, key);
+    const used = statesUsing(charKey, key).length > 0;
+    const near = spriteFamily(key) === family;
+    const drawings = [];
+    if (live?.file) drawings.push({ file: live.file, meta: live, primary: true, label: null });
+    // The LIVE option objects, not variantsOf()'s copies: right-clicking a
+    // tile writes a deletion tag onto the drawing, and a tag written to a copy
+    // is a tag written to nothing.
+    for (const o of primaryOnly ? [] : (variantEntry(charKey, key)?.options || [])) {
+      if (!o.file || o.file === live?.file) continue;
+      drawings.push({ file: o.file, meta: poseView(o), primary: false, label: o.label, option: o });
+    }
+    for (const d of drawings) {
+      if (seen.has(d.file)) continue;
+      seen.add(d.file);
+      const item = { ...d, pose: key, used, caption: frameLabel(charKey, key).name };
+      // In play and in the family first, then the drawings banked beside them,
+      // then the same pair for everything outside the family, and the cells
+      // nothing draws last with their own alternates.
+      const bucket = !used ? 4
+        : near ? (d.primary ? 0 : 1)
+        : (d.primary ? 2 : 3);
+      buckets[bucket].push(item);
+    }
   }
-  return [
-    { label: family ? `Closest — the ${family} sprites` : "Closest", keys: near },
-    { label: "Everything else the game draws", keys: drawn },
-    { label: "Sheet cells nothing draws", keys: spare },
+  const titles = [
+    family ? `The ${family} sprites the game draws` : "What the game draws",
+    family ? `Other ${family} drawings` : "Other drawings",
+    "Everything else the game draws",
+    "Other drawings of those",
+    "Sheet cells nothing draws",
   ];
+  const out = [];
+  buckets.forEach((list, i) => {
+    if (!list.length) return;
+    out.push({ head: titles[i] });
+    out.push(...list);
+  });
+  return out;
 }
 
 function closeSpritePicker() {
   $("spritePicker").hidden = true;
+  pickerWatcher?.disconnect();
+  pickerWatcher = null;
+  pickerPage = null;
+  closePickerMenu();
   closePickerPreview();
 }
 
-/** A tile for one DRAWING of the current pose, captioned with what it is
- *  rather than which pose it belongs to — they all belong to this one. */
+/** A tile for one DRAWING. Captioned with the pose it belongs to and, for a
+ *  drawing the pose is not currently using, what that drawing is. */
 function buildDrawingTile(d, current, onPick) {
   const tile = document.createElement("button");
-  tile.className = "picker-tile" + (d.file === current ? " current" : "");
+  const doomed = () => d.option?.needsReplacement === "delete";
+  tile.className = "picker-tile"
+    + (d.file === current ? " current" : "")
+    + (doomed() ? " doomed" : "");
   const cv = document.createElement("canvas");
   cv.width = 132; cv.height = 132;
   tile.appendChild(cv);
   const cap = document.createElement("span");
-  cap.innerHTML = `${d.caption}<i>${d.file.split("/").pop()}</i>`;
+  const sub = d.label || (d.primary ? (d.used ? "in the game" : "unused") : "alternate");
+  cap.innerHTML = `${d.caption ?? d.pose ?? ""}<i>${sub}</i>`;
   tile.appendChild(cap);
-  tile.title = d.file;
+  tile.title = `${d.pose ? `${d.pose} — ` : ""}${d.file}`;
+
   const paint = () => {
-    const img = d.img || spriteFileImage(d.file);
+    const img = d.img || spriteFileImage(d.file)
+      || (d.primary && d.pose ? frameImage(state.char, d.pose) : null);
     const c = cv.getContext("2d");
     c.clearRect(0, 0, cv.width, cv.height);
     if (!img || !d.meta) {
@@ -2032,35 +2129,86 @@ function buildDrawingTile(d, current, onPick) {
                 cv.height - pad - d.meta.h * scale, d.meta.w * scale, d.meta.h * scale);
   };
   paint();
-  tile.onclick = () => { onPick(d.file); closeSpritePicker(); };
+
+  const choose = () => { onPick(d.file, d); closeSpritePicker(); };
+  tile.onclick = choose;
+  tile.oncontextmenu = (e) => {
+    e.preventDefault();
+    openPickerMenu(e, d, tile, choose, paint);
+  };
   return tile;
 }
 
-function buildPickerTile(key, current, onPick) {
-  const tile = document.createElement("button");
-  tile.className = "picker-tile" + (key === current ? " current" : "");
-  const label = frameLabel(state.char, key);
-  const states = statesUsing(state.char, key);
+// -------------------------------------------------- the tile context menu
+//
+// Right-click asks about the DRAWING under the cursor rather than the pose in
+// the panel, which is the only place that question can be asked of art the
+// pose is not using — a bad alternate is invisible everywhere else.
 
-  const cv = document.createElement("canvas");
-  cv.width = 132; cv.height = 132;
-  tile.appendChild(cv);
+function closePickerMenu() {
+  document.getElementById("pickerMenu")?.remove();
+}
 
-  const cap = document.createElement("span");
-  cap.innerHTML = `${label.name}${label.sub ? `<i>${label.sub}</i>` : ""}`;
-  tile.appendChild(cap);
+function openPickerMenu(e, d, tile, choose, repaint) {
+  closePickerMenu();
+  const menu = document.createElement("div");
+  menu.id = "pickerMenu";
+  menu.className = "picker-menu";
+  const doomed = d.option?.needsReplacement === "delete";
+  // Deleting the only drawing a pose has would leave a hole where a sprite
+  // should be, so it is offered on a drawing that has somewhere to fall back
+  // to — the same rule the panel's own delete tag follows.
+  const spare = d.pose ? poseVariants(state.char, d.pose).length > 1 : false;
+  const items = doomed
+    ? [["Restore this sprite", () => setDrawingDoomed(d, false, tile, repaint)]]
+    : [
+      ["Choose this sprite", choose],
+      ["See it larger", () => openPickerPreview(d, e.clientX, e.clientY)],
+      ["Delete this sprite", spare && d.option ? () => setDrawingDoomed(d, true, tile, repaint) : null,
+       "the only drawing this pose has — deleting it would leave a hole"],
+    ];
+  for (const [label, action, why] of items) {
+    const b = document.createElement("button");
+    b.textContent = label;
+    b.disabled = !action;
+    if (!action && why) b.title = why;
+    b.onclick = () => { closePickerMenu(); action?.(); };
+    menu.appendChild(b);
+  }
+  document.body.appendChild(menu);
+  const w = menu.offsetWidth, h = menu.offsetHeight;
+  menu.style.left = `${Math.min(e.clientX, window.innerWidth - w - 8)}px`;
+  menu.style.top = `${Math.min(e.clientY, window.innerHeight - h - 8)}px`;
+  setTimeout(() => document.addEventListener("mousedown", onMenuOutside, true), 0);
+}
 
-  tile.title = states.length
-    ? `${key} — also drawn by ${states.map(stateLabel).join(", ")}`
-    : `${key} — unused, nothing draws it`;
+function onMenuOutside(e) {
+  if (document.getElementById("pickerMenu")?.contains(e.target)) return;
+  document.removeEventListener("mousedown", onMenuOutside, true);
+  closePickerMenu();
+}
 
-  drawTileSprite(cv, key);
-  tile.onclick = () => {
-    onPick(key);
-    closeSpritePicker();
-  };
-  tile.oncontextmenu = (e) => { e.preventDefault(); openPickerPreview(key, e.clientX, e.clientY); };
-  return tile;
+/** Mark one drawing for deletion, or take the mark off.
+ *
+ *  The same tag the panel's "Delete variant" writes — a statement about an
+ *  IMAGE, banked on its variant option, collected by the request tooling and
+ *  exported through `variantPlacement`. Here it can be put on a drawing the
+ *  pose is not using, which is where a bad alternate actually lives. */
+function setDrawingDoomed(d, doomed, tile, repaint) {
+  if (!d.pose || !d.file) return;
+  // Resolved from the manifest at the moment of writing, so the tag lands on
+  // the drawing rather than on whatever object built the tile.
+  const option = variantEntry(state.char, d.pose)?.options.find((o) => o.file === d.file);
+  if (!option) return;
+  d.option = option;
+  if (doomed) option.needsReplacement = "delete";
+  else delete option.needsReplacement;
+  variantFlagEdits.add(`${state.char}/${d.pose}`);
+  remember(state.char, d.pose);
+  tile.classList.toggle("doomed", doomed);
+  repaint();
+  buildPoseList();
+  refreshControls();
 }
 
 /** One tile's art, fetched if this character's set has not streamed in yet. */
@@ -2089,16 +2237,19 @@ function drawTileSprite(cv, key) {
 }
 
 /** Right-click preview: the same sprite, big enough to judge. */
-function openPickerPreview(key, clientX, clientY) {
+function openPickerPreview(d, clientX, clientY) {
   const box = $("pickerPreview");
   const cv = $("pickerPreviewCanvas");
-  const meta = rawMeta(state.char, key);
-  const img = frameImage(state.char, key);
+  const meta = d.meta;
+  const img = spriteFileImage(d.file)
+    || (d.primary && d.pose ? frameImage(state.char, d.pose) : null);
   if (!meta) return;
   // A tile can be right-clicked before its art has streamed in; fetch it and
   // come back rather than doing nothing.
   if (!img) {
-    loadFrame(state.char, key).then((ok) => { if (ok && !$("spritePicker").hidden) openPickerPreview(key, clientX, clientY); });
+    loadSpriteFile(d.file).then((ok) => {
+      if (ok && !$("spritePicker").hidden) openPickerPreview(d, clientX, clientY);
+    });
     return;
   }
   const c = cv.getContext("2d");
@@ -2107,9 +2258,8 @@ function openPickerPreview(key, clientX, clientY) {
   const scale = Math.min((cv.width - pad * 2) / meta.w, (cv.height - pad * 2) / meta.h);
   c.drawImage(img, cv.width / 2 - (meta.w * scale) / 2, cv.height - pad - meta.h * scale,
               meta.w * scale, meta.h * scale);
-  const label = frameLabel(state.char, key);
   $("pickerPreviewLabel").innerHTML =
-    `${label.name}${label.sub ? ` <i>${label.sub}</i>` : ""} · ${meta.w}×${meta.h}`;
+    `${d.caption ?? d.pose ?? ""}${d.label ? ` <i>${d.label}</i>` : ""} · ${meta.w}×${meta.h}`;
   box.hidden = false;
   // Kept on screen whichever corner it was opened from.
   const r = box.getBoundingClientRect();
@@ -3619,8 +3769,9 @@ async function boot() {
     openSpritePicker({
       title: `${frameLabel(state.char, state.frame).name} — choose a sprite to draw it with`,
       sub: `${actorOf(state.char).name} · this pose keeps its own size and placement`,
-      current: state.frame,
-      onPick: (key) => borrowSprite(state.char, state.frame, key),
+      current: rawMeta(state.char, state.frame)?.file,
+      currentPose: state.frame,
+      onPick: (file, d) => borrowDrawing(state.char, state.frame, d),
     });
   };
 

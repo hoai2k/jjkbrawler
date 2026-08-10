@@ -1003,6 +1003,59 @@ button.ghost:disabled { opacity: 0.35; cursor: default; border-color: var(--line
 }
 .picker-head:first-child { margin-top: 0; }
 
+/* The end of the laid-down catalogue. Scrolling it into view lays down the
+   next page — a character has a hundred-odd drawings and each tile costs a
+   fetch, so the ones nobody scrolls to are never asked for. */
+.picker-more {
+  grid-column: 1 / -1;
+  padding: 10px 0;
+  text-align: center;
+  color: var(--dim);
+  font-size: 11px;
+}
+
+/* A drawing marked for deletion. Still choosable — the mark is a request to
+   the next cleanup, not a lock — but it should not be mistaken for one of the
+   candidates. */
+.picker-tile.doomed { opacity: 0.45; border-color: rgba(255, 120, 160, 0.55); }
+.picker-tile.doomed::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  background:
+    linear-gradient(to top right, transparent calc(50% - 1px), rgba(255, 120, 160, 0.75) 50%, transparent calc(50% + 1px)),
+    linear-gradient(to bottom right, transparent calc(50% - 1px), rgba(255, 120, 160, 0.75) 50%, transparent calc(50% + 1px));
+  pointer-events: none;
+}
+
+/* Right-click on a tile: what can be done to THAT drawing. */
+.picker-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 178px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #10131e;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
+}
+.picker-menu button {
+  text-align: left;
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 12.5px;
+  background: none;
+  color: var(--text);
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.picker-menu button:hover:not(:disabled) { background: #1d3550; }
+.picker-menu button:disabled { color: var(--dim); cursor: not-allowed; }
+
 .picker-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -1012,6 +1065,7 @@ button.ghost:disabled { opacity: 0.35; cursor: default; border-color: var(--line
 }
 
 .picker-tile {
+  position: relative;      /* the deletion cross is drawn over the tile */
   display: flex;
   flex-direction: column;
   align-items: center;
