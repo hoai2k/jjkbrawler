@@ -169,7 +169,7 @@ and a recipe for fetching more in that directory's README.
 | yuji | "Yuji Itadori from Jujutsu Kaisen, athletic teenage boy with short spiky salmon-pink hair and brown eyes, wearing a dark navy high-collared jujutsu school uniform jacket over a red hoodie, matching dark trousers and white sneakers" *(grey key)* |
 | choso | "Choso from Jujutsu Kaisen, pale serious young man with long black hair tied into two high loose buns with strands framing his face, a dark horizontal marking across the bridge of his nose, wearing a loose black robe-like tunic with pale trim, wide sleeves, dark trousers and simple shoes" *(grey key)* |
 | meimei | "Mei Mei from Jujutsu Kaisen, tall elegant woman with very long silver-lavender hair worn in thick loose braids, calm confident expression, wearing a fitted black high-collared long-sleeved dress with gold buttons and dark tights, carrying a large single-headed battle axe" |
-| uro | "Takako Uro from Jujutsu Kaisen, lean athletic woman with a fierce confident grin, pale violet-pink hair sweeping upward and outward in wild flame-like curling points, sharp violet eyes with heavy dark eyeliner, large gold cylindrical drop earrings, a black choker and a black band on each wrist, her only covering a wrap of pale-cyan cloud vapour clinging across her chest and hips with soft drifting edges, bare arms and legs, barefoot with violet-painted nails" *(grey key)* |
+| uro | "Takako Uro from Jujutsu Kaisen, lean athletic woman with a fierce confident grin, pale violet-pink hair sweeping upward and outward in wild flame-like curling points, sharp violet eyes with heavy dark eyeliner, large gold cylindrical drop earrings, a black choker and a black band on each wrist, her only covering **two separate bands of pale-cyan cloud vapour with soft drifting edges — one wrapped across the chest, one at the hips — with the midriff BARE between them and never a single garment joining the two**, bare arms and legs, barefoot with violet-painted nails" *(grey key)* |
 | reggie | "Reggie Star from Jujutsu Kaisen, tall lean man with straight shoulder-length blond hair parted at the side, heavy-lidded tired eyes and a narrow pointed chin beard, wearing a shaggy knee-length tunic and matching shoulder cape built from layered rows of torn white paper receipts with small pale mint-green printed tabs, bare arms and bare lower legs, barefoot" |
 | mechamaru | "Ultimate Mechamaru from Jujutsu Kaisen, a tall humanoid cursed-corpse puppet with a smooth clay-brown carved head, two round glowing green lens eyes and a small third lens on the forehead, a fixed grin of bared square teeth, a thick white puffy scarf around the neck, wearing a dark navy high-collared jujutsu uniform tunic with a white sash and very wide baggy navy trousers, bare carved wooden hands and bare wooden feet" |
 | yuki | "Yuki Tsukumo from Jujutsu Kaisen, tall athletic young woman with very long straight blonde hair falling past her waist with two tufts framing her face and brown eyes, wearing a sleeveless dark indigo mandarin-collar top with gold frog clasps at the shoulder, a grey buttoned corset belt at the waist, high-waisted light blue jeans and brown ankle boots" |
@@ -509,8 +509,9 @@ anything caught from here lands here.
 - **18A** — thirteen caught while placing the round-15 sets (13 sprites)
 - **18B** — four caught while placing Kurourushi (4 sprites)
 - **18C** — three that fell through the round renumbering (3 sprites)
+- **18D** — two Uro alternates: the right pose in the wrong costume (2 sprites)
 
-**20 sprites, none of it blocking** — every pose named here is in the game today
+**22 sprites, none of it blocking** — every pose named here is in the game today
 and playable; each is a redraw of art that works but does not do its job.
 
 ## 18A. Caught while placing the round-15 sets — 13 sprites
@@ -649,3 +650,37 @@ again. If it does, the honest options are to keep the drawing (a knockdown is on
 screen for well under a second) or to draw the pose from a different angle that
 is less likely to trip it, e.g. seen more from the feet. It is a limitation of
 the generator, not of the request.
+
+---
+
+## 18D. Uro, the right pose in the wrong costume — 2 sprites
+
+**Asked for as alternates, not replacements.** Both poses are good and are
+staying in the game; what is wrong is the costume, so the delivery lands *beside*
+the current drawing and the better of the two is picked by eye in the workbench.
+Nothing changes on screen until somebody chooses.
+
+| Fighter | Key | Pose | Kind | What is wrong |
+|---|---|---|---|---|
+| Takako Uro | `uro` | `attack_heavy_b` | **Alternate** | The cloud reads as one strapless dress — the chest band and the hip band have merged. Keep the pose exactly: braced wide, the cursed-energy cloud thrown forward off the lead hand. |
+| Takako Uro | `uro` | `crouch_b` | **Alternate** | The cloud has become a one-piece dress from chest to thigh. Keep the pose exactly: down on one knee, weight on the trailing hand, head low. |
+
+### The block was ambiguous, and that is the actual fault
+
+Her block used to read *"a wrap of pale-cyan cloud vapour clinging across her
+chest and hips"* — which describes **one** garment reaching from chest to hips
+at least as naturally as it describes two bands. The canon is two: a band across
+the chest, a band at the hips, and a **bare midriff between them**
+(`assets/reference/canon/uro_idle.png`).
+
+Read that way, the deliveries were not wrong so much as obedient. Both of these
+drew the sentence, and `uro/prone` in [18C](#18c-three-that-fell-through-the-round-renumbering--3-sprites)
+went further and put her in a full bodysuit. Her block now says two separate
+bands, with the midriff bare, and that a single joined garment is wrong — so
+these two are the first test of whether the wording was the whole problem. If
+they come back right and `prone` still comes back dressed, the reclining pose is
+its own separate limitation.
+
+**Four of her poses were already correct under the old wording** — `idle_a`,
+`run_reach_a`, `hurt`, `victory` — which is why this took a workbench pass to
+notice rather than showing up on the review board.
