@@ -11,6 +11,24 @@
 // physics and match rules.
 // ---------------------------------------------------------------------------
 
+/** Which art the character-select GRID uses.
+ *
+ *  Two different jobs were being done by one file. A hero card is a full-bleed
+ *  painted scene — Gojo on a neon skyline, Panda outside a shrine at dusk —
+ *  and at hero size, in the picker at the top of the screen, that is exactly
+ *  right. Down in the grid the player is scanning two dozen thumbnails for the
+ *  one they want, and the scene is noise; worse, `layoutCharacterGrid()` crops
+ *  the tile from the top as the roster grows, so a big roster reduces each
+ *  fighter to a letterbox strip of a painting.
+ *
+ *  So round 17D drew a second set for that job: chest-up portraits on a flat
+ *  field in the fighter's theme colour, `assets/cards/simple/<key>_tile.jpg`.
+ *  ON, this is what the grid draws — the picker and the in-match portrait go on
+ *  using the hero card either way. OFF, the grid uses hero cards too, which is
+ *  how the screen worked before the tiles existed.
+ */
+export const USE_SIMPLE_CARDS = true;
+
 // Fighter-select categories, in the order they appear on screen. Each group's
 // `members` are character keys from CHARACTERS in characters.js, shown left to
 // right.
@@ -35,6 +53,7 @@
 // fighter left in two categories keeps its first placement, a category with
 // nothing usable in it is hidden, and a playable fighter in no category at all
 // is reported as unreachable. See RESOLVED_GROUPS in characters.js.
+
 export const CHARACTER_GROUPS = [
   {
     key: "students",
