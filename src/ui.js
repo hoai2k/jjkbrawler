@@ -7,7 +7,7 @@ import { METER_MAX } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
 import { setSpriteSet, previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
-import { RANDOM_GROUP, TEXT } from "./config_menus.js";
+import { RANDOM_GROUP, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -274,6 +274,20 @@ function buildGroupLabel(key, label, size) {
   return heading;
 }
 
+/** The painted hero card: the picker at the top of the select screen, and the
+ *  portrait beside each fighter's damage in a match. Always this art — the
+ *  simplified set is a roster-tile format and would read as a mugshot here. */
+function heroCardSrc(key) {
+  return `assets/cards/${key}_card.jpg`;
+}
+
+/** The art the roster GRID draws, which is a different question: at tile size,
+ *  cropped from the top, twenty-odd at once. `USE_SIMPLE_CARDS` picks between
+ *  the two sets; see the note on it in config_menus.js. */
+function rosterTileSrc(key) {
+  return USE_SIMPLE_CARDS ? `assets/cards/simple/${key}_tile.jpg` : heroCardSrc(key);
+}
+
 function buildCharacterCard(key) {
   const random = key === RANDOM_KEY;
   const name = random ? TEXT.slot.randomName : CHARACTERS[key].name;
@@ -282,7 +296,7 @@ function buildCharacterCard(key) {
   btn.dataset.character = key;
   btn.innerHTML = random
     ? `<b class="random-glyph">${TEXT.slot.randomGlyph}</b><span>${name}</span>`
-    : `<img src="assets/cards/${key}_card.jpg" alt="${name}"><span>${name}</span>`;
+    : `<img src="${rosterTileSrc(key)}" alt="${name}"><span>${name}</span>`;
   btn.addEventListener("click", () => selectFighter(state.activePicker, key));
   // Hovering previews the fighter in the active picker's hero card, the same
   // way the pad cursor does, without committing anything.
@@ -633,7 +647,7 @@ export function updateSelectionUi() {
     els[`p${id}PickCard`].classList.toggle("is-empty", !key);
     els[`p${id}PickImage`].classList.toggle("hidden", !char);
     els[`p${id}PickRandomArt`].classList.toggle("hidden", !random);
-    if (char) els[`p${id}PickImage`].src = `assets/cards/${key}_card.jpg`;
+    if (char) els[`p${id}PickImage`].src = heroCardSrc(key);
     else els[`p${id}PickImage`].removeAttribute("src");
     // The hero card is the one place with room for the character's full name;
     // roster tiles and the in-match HUD stay on the short form.
@@ -872,7 +886,7 @@ export function updateHud() {
     if (!f) continue;
     document.documentElement.style.setProperty(`--p${id}-theme`, f.char.theme);
     els[`p${id}Name`].textContent = f.char.name;
-    els[`p${id}Portrait`].src = `assets/cards/${f.charKey}_card.jpg`;
+    els[`p${id}Portrait`].src = heroCardSrc(f.charKey);
     els[`p${id}Damage`].textContent = `${Math.round(f.damage)}%`;
     els[`p${id}Damage`].style.color = damageColor(f.damage);
     renderStocks(els[`p${id}Stocks`], f);

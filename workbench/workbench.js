@@ -24,7 +24,8 @@ import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../src/moves.
 import { bodyMetrics, refreshSilhouettes } from "../src/silhouette.js";
 import { PIVOTED_STATES } from "../src/motion.js";
 import { HURTBOX } from "../src/constants.js";
-import { CHARACTERS, CHARACTER_KEYS, SPRITE_ACTORS, getActor } from "../src/characters.js";
+import { CHARACTERS, CHARACTER_KEYS, STAGED_CHARACTER_KEYS, SPRITE_ACTORS, getActor }
+  from "../src/characters.js";
 import { TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "../src/config_transform.js";
 import {
   headHeightTarget, applyHeightScale, hasHeightOverride, heightRatio, measuredIdleSpan,
@@ -149,6 +150,19 @@ const OTHER_KEY = "__other";
 const OTHER_LABEL = "Other Sprites";
 const ACTOR_KEYS = Object.keys(SPRITE_ACTORS);
 
+// Fighters the workbench edits: the roster, plus the ones still staged.
+//
+// A staged fighter is off the select screen because their art is not finished
+// (STAGED_CHARACTER_KEYS, src/characters.js) — which makes them exactly the set
+// somebody needs this tool for. Their sprites arrive through the same intake,
+// land on the same updated list, and wait for the same approval; leaving them
+// out meant a delivery could not be looked at until the fighter was already
+// live, which is backwards. They are labelled in the dropdown rather than
+// hidden, because "not in the game yet" changes what an approval means: it
+// settles what the art WILL be, not what a player sees today.
+const WB_FIGHTERS = [...CHARACTER_KEYS, ...STAGED_CHARACTER_KEYS];
+const isStaged = (key) => STAGED_CHARACTER_KEYS.includes(key);
+
 // The entry that is not a sprite set at all: a cross-character work list of
 // poses an intake round wrote over work already done. See recentUpdates().
 const RECENT_KEY = "__recent";
@@ -168,7 +182,7 @@ function actorOf(charKey) {
  *  index records the name for reading; this wants the key, to draw them. */
 function sharedOwner(key) {
   const who = (sharedUsage().get(key) || [])[0]?.who;
-  return CHARACTER_KEYS.find((k) => CHARACTERS[k]?.name === who) || null;
+  return WB_FIGHTERS.find((k) => CHARACTERS[k]?.name === who) || null;
 }
 
 /** Where a shared sprite is drawn from, and how tall the game draws it. Built
@@ -192,7 +206,7 @@ function sharedUsage() {
     if (typeof node.domainSprite === "string") note(node.domainSprite, who, `${label} (domain)`, node.spriteH);
     for (const v of Object.values(node)) if (v && typeof v === "object") walk(v, who, label);
   };
-  for (const key of CHARACTER_KEYS) {
+  for (const key of WB_FIGHTERS) {
     const c = CHARACTERS[key];
     for (const [slot, def] of Object.entries(c.specials || {})) walk(def, c.name, def.name || slot);
     if (c.ultimate) walk(c.ultimate, c.name, c.ultimate.name || "Ultimate");
@@ -456,7 +470,7 @@ function toggleUpdateReviewed(charKey, frameKey) {
  *  list holds still while it is worked through. */
 function recentUpdates() {
   const out = [];
-  for (const charKey of [...CHARACTER_KEYS, ...ACTOR_KEYS]) {
+  for (const charKey of [...WB_FIGHTERS, ...ACTOR_KEYS]) {
     for (const frameKey of Object.keys(spriteManifest?.characters?.[charKey] || {})) {
       const note = updateNote(charKey, frameKey);
       if (!note) continue;
@@ -2754,15 +2768,24 @@ function refreshApprovalControl() {
   $("approvalAsk").hidden = !note;
   $("approvalDone").hidden = !!note;
   if (note) {
+    // A staged fighter is not on the select screen, so "the game is drawing the
+    // old one" is not true of them — nobody is drawing either. The decision is
+    // still real: it settles which drawing the set carries when they ship.
+    const staged = isStaged(state.char);
     $("approvalInfo").innerHTML =
-      "<b>The canvas is showing the new art; the game is still drawing the old "
-      + `one</b> (<code>${note.live?.file || "—"}</code>).<br>`
+      (staged
+        ? "<b>The canvas is showing the new art</b> (the old one is <code>"
+          + `${note.live?.file || "—"}</code>). This fighter is not on the `
+          + "roster yet, so nothing is drawing either drawing today — "
+          + "approving settles which one the set carries when they ship.<br>"
+        : "<b>The canvas is showing the new art; the game is still drawing the old "
+          + `one</b> (<code>${note.live?.file || "—"}</code>).<br>`)
       + "Place it, then decide. <b>Approve</b> lets it into the game with the "
       + "placement you have given it; <b>keep</b> leaves the old drawing in "
       + "play. Either answer takes the pose off the updated list, and either "
       + "can be changed afterwards — both drawings stay on the pose.";
     $("approvalLabel").textContent = "Replacement waiting";
-    $("approvalState").textContent = "not in the game yet";
+    $("approvalState").textContent = staged ? "not on the roster yet" : "not in the game yet";
     return;
   }
   const approved = settled === "approve";
@@ -3646,12 +3669,15 @@ async function boot() {
   // rule, and under it the entries that are not fighters: an actor with its own
   // sprite set (Mahoraga), the shared effect and summon art, and the
   // cross-character work list, which is not a sprite set at all.
-  const fighters = [...CHARACTER_KEYS]
+  const fighters = [...WB_FIGHTERS]
     .sort((a, b) => CHARACTERS[a].name.localeCompare(CHARACTERS[b].name));
   for (const key of fighters) {
     const o = document.createElement("option");
     o.value = key;
-    o.dataset.name = CHARACTERS[key].name;
+    // A staged fighter says so. Their poses edit and approve like anyone's, but
+    // an approval here decides what the art will be rather than what a player
+    // sees, and the label is the only place that difference is visible.
+    o.dataset.name = CHARACTERS[key].name + (isStaged(key) ? " (not on the roster yet)" : "");
     o.textContent = o.dataset.name;
     charSel.appendChild(o);
   }
@@ -3963,7 +3989,7 @@ async function boot() {
   // Actors own a full sprite set and are edited here like anyone else, so their
   // shipped centres of mass have to be resolved before any of these controls
   // can move the numbers those defaults are derived from.
-  warmAnchors([...CHARACTER_KEYS, ...ACTOR_KEYS]);
+  warmAnchors([...WB_FIGHTERS, ...ACTOR_KEYS]);
   $("loadState").textContent = "manifest loaded";
   markEditedChars();
   refreshRecentOption();
@@ -3974,7 +4000,7 @@ async function boot() {
   // made Mahoraga selectable but not linkable, which is backwards: a
   // non-fighter is exactly what someone needs a link to, having no card or
   // roster tile to find it by.
-  const selectable = [...CHARACTER_KEYS, ...ACTOR_KEYS, OTHER_KEY];
+  const selectable = [...WB_FIGHTERS, ...ACTOR_KEYS, OTHER_KEY];
   const startChar = selectable.includes(wanted) ? wanted : "gojo";
 
   // `?frame=` lets the action workbench hand off a specific pose to edit. It is

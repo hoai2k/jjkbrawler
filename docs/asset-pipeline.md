@@ -368,6 +368,21 @@ another scatters that work exactly the way an overwrite does.
 selects a delivered alternate over the art a pose was pointing at, because the
 pose's numbers stop applying just the same.
 
+### Staged fighters are edited here too
+
+The dropdown lists every fighter in `CHARACTER_KEYS` **plus every one in
+`STAGED_CHARACTER_KEYS`** — the ones whose art is unfinished and who are
+therefore off the select screen. That is not a special case bolted on; it is the
+set the tool exists for. A staged fighter's sprites arrive through the same
+intake, land on the same updated list and wait for the same approval, so
+hiding them meant a delivery could not be looked at until the fighter was
+already live, which is backwards.
+
+They are labelled *(not on the roster yet)* rather than hidden, because it
+changes what an approval means: nothing is drawing either drawing today, so the
+decision settles which one the set carries when the fighter ships. The
+**Replacement waiting** panel says so on a staged fighter.
+
 The sprite workbench's character dropdown ends with **All Recently Updated
 Poses**, which is those markers listed across the whole roster, newest round
 first and the poses that lost tuning at the top. It is not a character: selecting

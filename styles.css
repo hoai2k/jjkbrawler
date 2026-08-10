@@ -455,8 +455,13 @@ html, body {
    without touching the files. The art was not all painted at the same key, so
    the lift is per card: 1.18 is the house default, the tiers below carry the
    cards that need more, and Panda — already bright, but flat — takes the
-   saturation only. Keyed off the file name so the roster tile, the hero card
-   and any other use of the same art agree. */
+   saturation only. Keyed off the file name, so every use of the same painting
+   agrees with itself.
+
+   With USE_SIMPLE_CARDS on — the default — this table is the picker and the
+   matchup panel only: the grid draws the simplified tiles, which are exempt
+   below. It still has to be right, because those are the two places the
+   paintings are shown at size. */
 .char-card img,
 .matchup-side img {
   filter: brightness(var(--card-lift, 1.18)) saturate(1.04);
@@ -482,6 +487,18 @@ html, body {
 /* Panda is already bright enough; only the saturation applies. */
 :is(.char-card, .matchup-side) img[src$="panda_card.jpg"] {
   --card-lift: 1;
+}
+
+/* The simplified roster tiles take no correction at all. The whole table above
+   exists because the hero cards are painted scenes at two dozen different keys;
+   the tiles were drawn for this job, evenly front-lit, at one key across the
+   set (17D). Lifting them would only blow them out — and none of the per-card
+   rules would have caught them anyway, since every one of those matches a
+   `_card.jpg` suffix and a tile is a `_tile.jpg`. Stated rather than left to
+   that coincidence, because the coincidence is the reason the tiles are named
+   differently and a reader should not have to work that out. */
+.char-card img[src*="/cards/simple/"] {
+  filter: none;
 }
 
 /* Uro and Hakari are bright enough as drawn — no filter at all. */
