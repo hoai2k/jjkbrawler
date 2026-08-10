@@ -19,7 +19,7 @@ import {
   variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS, NOTE_FIELDS, ALTERNATE_KIND,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../../src/render.js";
-import { applySharedSpriteScales } from "../../src/shared_sprites.js";
+import { applySharedSpriteScales, sharedSpriteInfo } from "../../src/shared_sprites.js";
 import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../../src/moves.js";
 import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
 import { PIVOTED_STATES } from "../../src/motion.js";
@@ -1749,35 +1749,113 @@ function drawSharedSprite(cx) {
     return;
   }
   const meta = rawMeta(state.char, state.frame);
+  const can = sharedControls(state.frame);
   const scale = Number.isFinite(meta?.renderScale) && meta.renderScale > 0 ? meta.renderScale : 1;
-  let h = (gameHeightOf(state.frame) || img.height) * scale * state.zoom;
-  // Domain backdrops are full-screen images rather than sprites; shown whole
-  // instead of overflowing the canvas by a factor of ten.
+
+  // The size the GAME paints it at, times the workbench's own zoom. This used
+  // to fall back to the delivered pixel height and then clamp to the canvas,
+  // which is why the size slider looked dead: nearly every shared plate is
+  // taller than the viewer, so every one of them was already pinned at the
+  // clamp and multiplying by the scale changed nothing on screen.
+  const gameH = can?.info?.h ?? gameHeightOf(state.frame);
   const maxH = GROUND_Y - 20;
-  if (h > maxH) h = maxH;
+  let h;
+  if (Number.isFinite(gameH)) {
+    h = gameH * scale * state.zoom;
+    if (h > maxH) h = maxH;              // only a very large zoom reaches this
+  } else {
+    // Nothing declares a height — a domain backdrop, or art whose spawn site
+    // sizes it per instance. Fit it, and still let the scale move it, so the
+    // control is honest about being relative rather than absolute.
+    h = Math.min(img.height * state.zoom, maxH) * scale;
+  }
   const w = img.width * h / img.height;
-  // The nudge, at the canvas's own zoom so it reads as the game will draw it.
+
+  // Where the spawn point sits on the drawing, and therefore where the drawing
+  // sits around the spawn point. The point itself is the fixed thing.
+  const anchor = can?.anchor || "feet";
+  const px = cx, py = anchorScreenY(anchor, h);
   const nx = (meta?.dx ?? 0) * state.zoom;
   const ny = (meta?.dy ?? 0) * state.zoom;
-  // getImage() has already flipped a mirrored drawing, so this is the picture
-  // the game draws, at the size the game draws it.
-  ctx.drawImage(img, cx - w / 2 + nx, GROUND_Y - h + ny, w, h);
-  if (nx || ny) {
-    // The point the game actually spawns it on, so the nudge is visibly a nudge
-    // away from something rather than the sprite drifting.
-    ctx.save();
-    ctx.strokeStyle = "rgba(120, 220, 255, 0.85)";
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(cx - 9, GROUND_Y); ctx.lineTo(cx + 9, GROUND_Y);
-    ctx.moveTo(cx, GROUND_Y - 9); ctx.lineTo(cx, GROUND_Y + 9); ctx.stroke();
-    ctx.restore();
-  }
+  const deg = meta?.rotationDeg ?? 0;
+
+  ctx.save();
+  if (deg) { ctx.translate(px, py); ctx.rotate(deg * Math.PI / 180); ctx.translate(-px, -py); }
+  const top = anchor === "centre" ? py - h / 2 : anchor === "top" ? py : py - h;
+  ctx.drawImage(img, px - w / 2 + nx, top + ny, w, h);
   if ($("showBox").checked) {
     ctx.strokeStyle = "rgba(255, 120, 160, 0.8)";
     ctx.setLineDash([4, 4]);
-    ctx.strokeRect(cx - w / 2 + nx, GROUND_Y - h + ny, w, h);
+    ctx.strokeRect(px - w / 2 + nx, top + ny, w, h);
     ctx.setLineDash([]);
   }
+  ctx.restore();
+
+  if (can?.offset) drawSpawnPoint(px, py, anchor);
+}
+
+/** The y the spawn point sits at on the canvas, for each anchor. The drawing is
+ *  hung off it; the point does not move when the art is resized. */
+/** The canvas x every sprite is drawn about. */
+const canvasCentreX = () => canvas.width / 2;
+
+/** The spawn point's place on the canvas — one definition, used by the marker
+ *  and by the hit test, so they cannot drift apart. */
+function spawnHome() {
+  const img = getImage(state.frame);
+  const can = sharedControls(state.frame);
+  const meta = rawMeta(state.char, state.frame);
+  const scale = Number.isFinite(meta?.renderScale) && meta.renderScale > 0 ? meta.renderScale : 1;
+  const gameH = can?.info?.h ?? gameHeightOf(state.frame);
+  const maxH = GROUND_Y - 20;
+  let h = Number.isFinite(gameH) ? Math.min(gameH * scale * state.zoom, maxH)
+                                 : Math.min((img?.height || 200) * state.zoom, maxH) * scale;
+  return { x: canvasCentreX(), y: anchorScreenY(can?.anchor || "feet", h) };
+}
+
+function anchorScreenY(anchor, h) {
+  if (anchor === "centre") return GROUND_Y - Math.max(h, 120) / 2 - 40;
+  if (anchor === "top") return GROUND_Y - 300;
+  return GROUND_Y;
+}
+
+/** The point the game paints this drawing on — the thing the nudge is measured
+ *  from. Draggable: moving it moves the DRAWING under it, which is the edit
+ *  somebody actually wants to make, and it is one gesture instead of two
+ *  sliders and a guess about which way is positive. */
+function drawSpawnPoint(px, py, anchor) {
+  const held = state.dragSpawn;
+  ctx.save();
+  ctx.strokeStyle = held ? "rgba(120, 255, 200, 0.95)" : "rgba(120, 220, 255, 0.9)";
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(px - 14, py); ctx.lineTo(px + 14, py);
+  ctx.moveTo(px, py - 14); ctx.lineTo(px, py + 14);
+  ctx.stroke();
+  ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI * 2); ctx.stroke();
+  // On a backing plate: the label sits over whatever the drawing happens to be,
+  // and a caption that cannot be read is not a caption.
+  const label = "spawn point";
+  const sub = ANCHOR_WORDS[anchor] || "";
+  ctx.font = "500 10px Inter, sans-serif";
+  const wSub = ctx.measureText(sub).width;
+  ctx.font = "600 11px Inter, sans-serif";
+  const wLab = ctx.measureText(label).width;
+  const boxW = Math.max(wLab, wSub) + 12;
+  const flip = px + 18 + boxW > canvas.width - 8;   // hug the other side at the edge
+  const bx = flip ? px - 18 - boxW : px + 18;
+  ctx.globalAlpha = 0.82;
+  ctx.fillStyle = "rgba(8, 12, 20, 0.86)";
+  ctx.fillRect(bx, py - 17, boxW, 30);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = held ? "rgba(150, 255, 220, 0.95)" : "rgba(150, 230, 255, 0.95)";
+  ctx.textAlign = "left";
+  ctx.fillText(label, bx + 6, py - 5);
+  ctx.globalAlpha = 0.72;
+  ctx.font = "500 10px Inter, sans-serif";
+  ctx.fillText(sub, bx + 6, py + 8);
+  ctx.restore();
 }
 
 /** An actor pose nobody has delivered yet. Says so plainly rather than showing
@@ -2373,24 +2451,25 @@ function dirtyActions(charKey) {
 // way the drawing FACES and how big it is relative to the fighter who throws
 // it are properties of the picture, and both now reach the game (see
 // src/shared_sprites.js), so they stay.
-const PLACEMENT_GROUPS = ["rotationGroup", "anchorGroup", "heightGroup", "resetGroup"];
-// Placement controls that DO apply to a shared drawing, in their shared-sprite
-// meaning: where the picture sits relative to the point the game spawns it on.
-const SHARED_PLACEMENT = ["offsetGroup", "groundGroup"];
+const PLACEMENT_GROUPS = ["anchorGroup", "heightGroup", "resetGroup"];
+// The two nudge sliders. A shared drawing does not use them: its position is
+// one gesture on the canvas — drag the spawn point — rather than two sliders
+// and a guess about which way is positive.
+const NUDGE_GROUPS = ["offsetGroup", "groundGroup"];
 
 function applyPanelMode() {
   const other = isOther(state.char);
   for (const id of PLACEMENT_GROUPS) $(id)?.toggleAttribute("hidden", other);
+  for (const id of NUDGE_GROUPS) $(id)?.toggleAttribute("hidden", other);
   $("secondaryGroup")?.toggleAttribute("hidden", other);
   $("usageGroup")?.toggleAttribute("hidden", !other);
-  // A shared drawing gets Size and the two nudges only where something in the
-  // game reads them; art nothing spawns gets neither, and the usage panel says
-  // why rather than leaving a dead slider on screen.
+  // What a shared drawing offers is a property of the drawing (the registry in
+  // src/shared_sprites.js): a size only where something declares a height, a
+  // tilt wherever it is painted at all, and nothing at all for a backdrop the
+  // renderer fits to the screen. The usage panel says which, and why.
   const can = other ? sharedControls(state.frame) : null;
-  for (const id of SHARED_PLACEMENT) {
-    if (other) $(id)?.toggleAttribute("hidden", !can?.offset);
-  }
   $("scaleGroup")?.toggleAttribute("hidden", other && !can?.size);
+  $("rotationGroup")?.toggleAttribute("hidden", other && !can?.rotate);
   if (other) refreshUsageInfo();
 
   // A pose with no art yet has nothing to place: the controls stay visible so
@@ -2429,42 +2508,35 @@ const CODE_DRAWN = {
 
 function sharedControls(key) {
   if (!key) return null;
-  const uses = sharedUsage().get(key) || [];
-  if (CODE_DRAWN[key]) {
-    return { used: true, size: false, offset: false,
-             what: `${CODE_DRAWN[key]} — sized by that code, not from here` };
+  const info = sharedSpriteInfo(key);
+  if (!info) {
+    return { used: false, size: false, offset: false, rotate: false,
+             what: "nothing in the game draws this, so there is no size or position to set" };
   }
-  if (String(key).startsWith("domain:")) {
-    // A domain backdrop is painted to fill the screen behind the fight, so it
-    // has no size of its own to set and nowhere to be nudged to. It is very
-    // much IN the game, though — which is why `used` is a separate answer from
-    // `size` and `offset`.
-    return { used: true, size: false, offset: false,
-             what: "a full-screen backdrop — the renderer fits it to the stage, so there is nothing to size or move" };
+  if (info.anchor === "screen") {
+    return { used: true, size: false, offset: false, rotate: false, info,
+             what: info.what };
   }
-  if (String(key).startsWith("summon:")) {
-    return { used: true, size: true, offset: true,
-             what: "the creature's height on stage (config_summons.js)",
-             note: "One size for the whole creature: its six poses are one drawing at one zoom, "
-                 + "so a size set on any pose applies to all of them." };
-  }
-  if (String(key).startsWith("stagefx:")) {
-    return { used: true, size: true, offset: true,
-             what: "the hazard's height on stage (stage_fx.js)" };
-  }
-  if (uses.some((u) => /\(aura\)$/.test(u.label || ""))) {
-    return { used: true, size: true, offset: true,
-             what: "the install aura's height around the fighter" };
-  }
-  if (uses.length) {
-    return { used: true, size: true, offset: true,
-             what: "the height its move declares (`spriteH` in the kit)",
-             note: "The nudge moves the PICTURE only. What it collides with does not move — "
-                 + "which is the point when the art sits off-centre in its plate." };
-  }
-  return { used: false, size: false, offset: false,
-           what: "nothing in the game draws this, so there is no size or position to set" };
+  return {
+    used: true,
+    // A drawing whose height the spawn site decides per instance has no single
+    // size to set; everything else does.
+    size: Number.isFinite(info.h),
+    offset: true,
+    rotate: true,
+    info,
+    what: info.what,
+    anchor: info.anchor,
+    owner: info.owner,
+  };
 }
+
+/** Where on the drawing the game's spawn point lands, in words. */
+const ANCHOR_WORDS = {
+  centre: "painted AROUND the point — the middle of the drawing lands on it",
+  feet: "painted STANDING ON the point — the bottom centre of the drawing lands on it",
+  top: "hung FROM the point — the top centre of the drawing lands on it",
+};
 
 function refreshUsageInfo() {
   const box = $("usageInfo");
@@ -2481,10 +2553,19 @@ function refreshUsageInfo() {
     ? uses.map((u) => `${u.who} — ${u.label}`).join("<br>")
     : "No kit references this sprite — it is spawned from code (a stage hazard, a domain, or a shikigami).");
   const can = sharedControls(state.frame);
-  if (can) {
-    lines.push(can.size
-      ? `<b>Size</b> multiplies ${can.what}.` + (can.note ? ` ${can.note}` : "")
-      : `<b>No size or position controls:</b> ${can.what}.`);
+  if (can?.used && (can.size || can.offset)) {
+    const meta = rawMeta(state.char, state.frame);
+    const dx = meta?.dx ?? 0, dy = meta?.dy ?? 0, deg = meta?.rotationDeg ?? 0;
+    if (can.size) lines.push(`<b>Size</b> multiplies ${can.what}.`);
+    if (can.offset) {
+      lines.push(`<b>Spawn point:</b> ${ANCHOR_WORDS[can.anchor] || ""}. `
+        + "Drag the crosshair on the canvas to move the drawing under it.");
+      lines.push(`Drawing sits ${dx || dy ? `${dx > 0 ? "+" : ""}${dx}, ${dy > 0 ? "+" : ""}${dy} px from it`
+                                          : "on the point, unmoved"}`
+        + (deg ? ` · tilted ${deg > 0 ? "+" : ""}${deg}°` : ""));
+    }
+  } else if (can) {
+    lines.push(`<b>No size or position controls:</b> ${can.what}.`);
   }
   box.innerHTML = lines.join("<br>");
 }
@@ -3886,6 +3967,19 @@ async function boot() {
   canvas.addEventListener("pointerdown", (e) => {
     if (!state.frame) return;
     const p = eventToCanvas(e);
+    // Shared drawings have one handle and it is the spawn point. Dragging it
+    // moves the DRAWING under the point rather than moving the point, because
+    // the point is the game's and not ours — see drawSpawnPoint().
+    if (isOther(state.char) && sharedControls(state.frame)?.offset) {
+      const home = spawnHome();
+      if (Math.hypot(home.x - p.x, home.y - p.y) <= HANDLE_R * 3) {
+        state.dragSpawn = { grabX: p.x, grabY: p.y, meta: rawMeta(state.char, state.frame) };
+        pushHistory(state.char, state.frame);
+        canvas.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      }
+      return;
+    }
     let name = null, bestD = Infinity;
     for (const n of anchorNames(state.char, state.frame)) {
       if (!isAnchorShown(n)) continue;
@@ -3904,12 +3998,31 @@ async function boot() {
     e.preventDefault();
   });
   canvas.addEventListener("pointermove", (e) => {
+    if (state.dragSpawn) {
+      const p = eventToCanvas(e);
+      const d = state.dragSpawn;
+      // The handle stays where the game puts it; what moves is the art beneath
+      // it, so dragging the handle right pushes the drawing LEFT relative to
+      // the point. Divided by the zoom, because dx/dy are game pixels.
+      const meta = d.meta;
+      meta.dx = round1((meta.dx ?? 0) - (p.x - d.grabX) / state.zoom);
+      meta.dy = round1((meta.dy ?? 0) - (p.y - d.grabY) / state.zoom);
+      d.grabX = p.x; d.grabY = p.y;
+      refreshControls(); buildPoseList(); render();
+      return;
+    }
     if (!state.dragging || !state.anchor) return;
     const p = eventToCanvas(e);
     const [lx, ly] = canvasToLocal(state.char, state.frame, p.x, p.y);
     applyAnchor(state.anchor, lx, ly, false);
   });
   const endDrag = (e) => {
+    if (state.dragSpawn) {
+      state.dragSpawn = null;
+      try { canvas.releasePointerCapture(e.pointerId); } catch { /* already gone */ }
+      render();
+      return;
+    }
     if (!state.dragging) return;
     state.dragging = false;
     try { canvas.releasePointerCapture(e.pointerId); } catch { /* already gone */ }
