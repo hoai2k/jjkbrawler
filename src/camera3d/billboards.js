@@ -185,7 +185,7 @@ export function makeBillboards() {
     if (!adapter || adapter.kind !== "texture" || !adapter.ready?.()) { bail = "no-adapter"; return false; }
     const targetPx = headHeightTarget(charKey);
     const entry = adapter.poseTexture(charKey, f.animKey, f.animTime, {
-      facing: f.facingVis, x: f.x, chestY: f.y - targetPx * 0.55,
+      facing: f.facingVis, x: f.x, y: f.y, chestY: f.y - targetPx * 0.55,
       aim: nearestFoe(f),
     });
     if (!entry) { bail = "no-entry"; return false; }

@@ -131,14 +131,14 @@ export const SFX = {
   domainIronMountain: { file: "domain_iron_mountain.mp3", category: "domain", gain: 0.8 },
   domainIdleDeathGamble: { file: "domain_idle_death_gamble.mp3", category: "domain", gain: 0.8 },
   domainMutualLove: { file: "domain_mutual_love.mp3", category: "domain", gain: 0.8 },
-  // The eighth, for Dagon. Owed since round 15 staged him and live since he
-  // reached the select screen — DOMAIN_STING has always named this key.
+  // The eighth, for Dagon. Owed since round 15 staged him, delivered with
+  // round 10 — DOMAIN_STING has always named this key.
   domainCaptivatingSkandha: { file: "domain_captivating_skandha.mp3", category: "domain", gain: 0.8 },
 
-  // ---- The domain moment, round 10 (docs/audio-requests.md). Every key here
-  // is registered ahead of its file: an undelivered sound is dropped silently
-  // (audio.js), so the sequence plays exactly as it does today until the mp3s
-  // land, and needs no code change on the day they do.
+  // ---- The domain moment, round 10 (docs/audio-requests-history.md). Every
+  // key here was registered ahead of its file — an undelivered sound is dropped
+  // silently (audio.js) — so the sequence played exactly as it had until the
+  // mp3s landed, and needed no code change on the day they did.
   //
   // The call-out: "領域展開" and the domain's name, in the owner's own voice.
   // Per CHARACTER rather than per voice group — eight fighters have a domain
@@ -181,6 +181,11 @@ export const SFX = {
   hitSound: { file: "hit_sound.mp3", category: "combat", gain: 0.5 },
   hitShadow: { file: "hit_shadow.mp3", category: "combat", gain: 0.5 },
   hitSoul: { file: "hit_soul.mp3", category: "combat", gain: 0.5 },
+  // The three owed since round 15 staged Dagon, Mechamaru and Kurourushi. They
+  // were the only fighters on the roster whose element hit nothing at all.
+  hitWater: { file: "hit_water.mp3", category: "combat", gain: 0.5 },
+  hitMachine: { file: "hit_machine.mp3", category: "combat", gain: 0.5 },
+  hitSwarm: { file: "hit_swarm.mp3", category: "combat", gain: 0.5 },
 
   // ---- Tier 7b: signature one-shots. Each is the sound of one technique, so
   // they sit with the layer they belong to rather than in a group of their own.
@@ -200,10 +205,15 @@ export const SFX = {
 };
 
 // Element hit layers — played UNDER the normal hit sound when a hit's
-// fxElement (config_fx.js / characters.js) matches, at reduced gain. All seven
+// fxElement (config_fx.js / characters.js) matches, at reduced gain. All ten
 // are delivered and registered in SFX above; playSfx treats an unregistered
 // name as silence, so an element listed here with no entry up there is simply
 // silent. Remove a row to silence that element.
+//
+// `feather` — Mei Mei's crow and Axe Rush — is the one fxElement in the game
+// with no row here, and is deliberately absent rather than forgotten: no layer
+// has been requested for it. Her crow already has crowCaw as a fire sound, so
+// she is the one case where the element is not silent for want of this table.
 export const ELEMENT_HIT_SFX = {
   fire: "hitFire",
   blood: "hitBlood",
@@ -212,6 +222,9 @@ export const ELEMENT_HIT_SFX = {
   sound: "hitSound",
   shadow: "hitShadow",
   soul: "hitSoul",
+  water: "hitWater",
+  machine: "hitMachine",
+  swarm: "hitSwarm",
 };
 
 // Legacy keys from before the round-8 sound pass. Call sites and move configs

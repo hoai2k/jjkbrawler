@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Generate every sound in docs/audio-requests-history.md via the ElevenLabs API.
+"""Generate every sound in the audio request docs via the ElevenLabs API.
+
+Spoken lines are its sibling tools/generate_voice.py's job; see parse_doc.
 
 Parses the doc (filename + prompt + target length), requests raw PCM, then
 applies the same post-processing the doc asks a human supplier for: trim
@@ -43,6 +45,18 @@ LOOPING = {"energy_charge.wav", "hazard_fire_patch.wav", "fire_burn_loop.wav",
            "domain_interior.wav"}
 
 
+ENTRY = re.compile(
+    r"\*\*`([a-z_0-9]+\.wav)`\*\*([^\n]*?·\s*([0-9.]+)\s*s[^\n]*)\n```\n(.*?)\n```",
+    re.S)
+
+# A `· voice `id` ·` field marks an entry as speech, not sound: the same shape
+# in the same doc, but a different endpoint and a cast performer. Those belong
+# to tools/generate_voice.py, and skipping them here is what stops a domain
+# call-out being rendered as a sound effect — which is the one mistake round 10
+# was written to avoid.
+VOICE_FIELD = re.compile(r"·\s*voice\s+`")
+
+
 def parse_doc():
     """-> [(filename, seconds, prompt)] in document order, open requests first.
 
@@ -50,18 +64,16 @@ def parse_doc():
     re-roll case (a delivered sound being re-requested with a new prompt), and
     the open wording is the newer intent.
     """
-    pat = re.compile(
-        r"\*\*`([a-z_0-9]+\.wav)`\*\*[^\n]*?·\s*([0-9.]+)\s*s[^\n]*\n```\n(.*?)\n```",
-        re.S)
     out, seen = [], set()
     for doc in DOCS:
         if not os.path.exists(doc):
             continue
-        for m in pat.finditer(open(doc).read()):
-            if m.group(1) in seen:
+        for m in ENTRY.finditer(open(doc).read()):
+            name, header = m.group(1), m.group(2)
+            if name in seen or VOICE_FIELD.search(header):
                 continue
-            seen.add(m.group(1))
-            out.append((m.group(1), float(m.group(2)), m.group(3).strip()))
+            seen.add(name)
+            out.append((name, float(m.group(3)), m.group(4).strip()))
     return out
 
 
@@ -83,7 +95,11 @@ def request_pcm(prompt, seconds, key):
         return r.read()
 
 
-def post_process(raw, target, looping):
+def post_process(raw, target, cap=True):
+    """`cap` trims a runaway result back towards `target` with a short fade.
+    Two kinds of sound must not be cut that way and pass cap=False: a loop,
+    which needs its full period, and a spoken line, whose length is the
+    performance's to decide — a cap there lands mid-word."""
     x = np.frombuffer(raw, dtype="<i2").astype(np.float32) / 32768.0
     if x.size == 0:
         return None
@@ -101,7 +117,7 @@ def post_process(raw, target, looping):
         end = min(x.size, idx[-1] + int(0.01 * SR))
         x = x[start:end]
 
-    if not looping:
+    if cap:
         # Cap runaway length so combos don't turn to mush, with a short fade
         # so the cut never clicks.
         cap = int(target * 1.35 * SR)
@@ -154,7 +170,7 @@ def one(entry, key, force):
     for attempt in range(4):
         try:
             raw = request_pcm(prompt, seconds, key)
-            x = post_process(raw, seconds, name in LOOPING)
+            x = post_process(raw, seconds, cap=name not in LOOPING)
             if x is None:
                 return name, "EMPTY", 0
             write_mp3(dest, x)

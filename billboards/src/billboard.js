@@ -37,7 +37,7 @@ import {
   currentFrame as spriteFrame,
   cyclePhase as spriteCycle,
 } from "../../sprites/src/sprites.js";
-import { cycleInfo, aimPitch } from "./states.js";
+import { cycleInfo, aimSolve } from "./states.js";
 import { headHeightTarget } from "../../src/heights.js";
 
 let ready = false;
@@ -133,9 +133,17 @@ export const scene3d = {
   poseTexture(charKey, animKey, animTime, opts = {}) {
     if (!hasModel(charKey)) return null;
     try {
-      const pitch = opts.aim
-        ? aimPitch(opts.x ?? 0, opts.chestY ?? 0, opts.aim, opts.facing ?? 1) : 0;
-      return renderer.renderPose(charKey, animKey, animTime, rigs.resolveClip, pitch);
+      // Same aim solution the flat blit uses, so a strike reaches its target
+      // identically whether the scene is drawn flat or through the 2.5D
+      // camera. The camera hands us the chest line; the foot line is what the
+      // reach offsets are measured from, so derive it when not given.
+      const targetPx = headHeightTarget(charKey);
+      const x = opts.x ?? 0;
+      const chestY = opts.chestY ?? 0;
+      const footY = opts.y ?? chestY + targetPx * 0.55;
+      const aim = opts.aim
+        ? aimSolve(x, footY, chestY, opts.aim, opts.facing ?? 1) : null;
+      return renderer.renderPose(charKey, animKey, animTime, rigs.resolveClip, aim, targetPx);
     } catch (err) {
       warnOnce(`scene:${charKey}`, `billboards: posing ${charKey}/${animKey} for the 2.5D camera failed (${err.message}) — drawing their sprites instead.`);
       return null;
@@ -154,11 +162,15 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
   const animTime = parseFloat(t);
   try {
     // Strike aiming: render.js passes `opts.aim` — the controller's explicit
-    // point when the fighter has one, else the nearest opponent — and the
-    // pose pitches toward it (states.js aimPitch; only aimable states react).
-    const chestY = y - headHeightTarget(charKey) * 0.55;
-    const pitch = opts.aim ? aimPitch(x, chestY, opts.aim, opts.facing ?? 1) : 0;
-    const entry = renderer.renderPose(charKey, animKey, animTime, rigs.resolveClip, pitch);
+    // point when the fighter has one, else the nearest opponent. The solution
+    // carries both halves: the spine pitch that leans the body into the blow,
+    // and the offsets the IK uses to put the hand ON the target (ik.js). Only
+    // aimable states react, and (x, y) is the foot line, which is what the
+    // offsets are measured from.
+    const targetPx = headHeightTarget(charKey);
+    const chestY = y - targetPx * 0.55;
+    const aim = opts.aim ? aimSolve(x, y, chestY, opts.aim, opts.facing ?? 1) : null;
+    const entry = renderer.renderPose(charKey, animKey, animTime, rigs.resolveClip, aim, targetPx);
     if (entry) return blit.blitPose(ctx, entry, charKey, x, y, opts);
   } catch (err) {
     warnOnce(`render:${charKey}`, `billboards: rendering ${charKey}/${animKey} failed (${err.message}) — drawing their sprites instead.`);

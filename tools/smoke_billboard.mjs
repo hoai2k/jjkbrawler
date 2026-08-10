@@ -1,6 +1,6 @@
 // Smoke-test the billboard pipeline — phase B0's exit criteria, as a script.
 //
-// Two passes:
+// Three passes:
 //
 //   1. MANNEQUIN MATCH.  `?render=billboard&mannequin=all` boots into a real
 //      CPU-vs-CPU match. Asserts: the backend engaged, rigs registered, poses
@@ -14,6 +14,11 @@
 //      the manifest, its own clips resolve as "own", missing states resolve
 //      to the default pose set, and the fighter draws. Cleans up after
 //      itself: the manifest and assets tree are restored no matter what.
+//
+//   3. IK REACH.  Solves the same strike at four targets and measures the
+//      angle between where the hand ended up and where it was aimed. Exact,
+//      not approximate — a loose tolerance would have hidden the stale-camera
+//      bug that made only the first solve after a reframe wrong.
 //
 // Needs `playwright` and Chromium (CHROMIUM_PATH to override), and the game
 // served first:  node server.mjs   then:  node tools/smoke_billboard.mjs [baseUrl]
@@ -172,6 +177,61 @@ try {
   writeFileSync(MANIFEST, manifestBefore);
   rmSync(join(ROOT, "billboards", "assets", TEST_CHAR), { recursive: true, force: true });
   rmSync(join(ROOT, "billboards", "intake", TEST_CHAR), { recursive: true, force: true });
+}
+
+// ------------------------------------------------------------- 3. IK reach
+//
+// The claim is "attacks at any angle". Measured, not eyeballed: solve the same
+// strike at four targets and check the striking hand ends up pointing at each
+// one. Angular error, because at fighting range the target is metres away and
+// an arm reaches half a metre — the limb holds the clip's own extension and
+// only the DIRECTION tracks (see applyReach in billboards/src/ik.js).
+{
+  const page = await browser.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e)));
+  await page.goto(`${BASE}/index.html`);
+
+  const r = await page.evaluate(async () => {
+    const THREE = await import("/vendor/three/three.module.js");
+    const rig = await import("/billboards/src/rig.js");
+    const renderer = await import("/billboards/src/renderer.js");
+    const { aimSolve } = await import("/billboards/src/states.js");
+    renderer.initRenderer(THREE);
+    await rig.initRigs(THREE, null, ["mann"], ["mann"]);
+
+    const targetPx = 175.3;
+    const out = { worst: 0, spread: 0, cases: [] };
+    const handYs = [];
+    for (const [label, dx, dy] of [["high", 260, 300], ["level", 320, 95], ["low", 260, -30], ["far", 460, 120]]) {
+      const aim = aimSolve(0, 0, -targetPx * 0.55, { x: dx, y: -dy }, 1);
+      renderer.renderPose("mann", "light", 0.083, rig.resolveClip, aim, targetPx);
+      const r0 = rig.getRig("mann");
+      const shoulder = new THREE.Vector3();
+      const hand = new THREE.Vector3();
+      r0.root.getObjectByName("RightArm").getWorldPosition(shoulder);
+      r0.root.getObjectByName("RightHand").getWorldPosition(hand);
+      const camRight = new THREE.Vector3().setFromMatrixColumn(renderer.__cam().matrixWorld, 0);
+      const want = new THREE.Vector3(0, aim.dy * (r0.height / targetPx), 0)
+        .addScaledVector(camRight, aim.dx * (r0.height / targetPx))
+        .sub(shoulder).normalize();
+      const got = hand.clone().sub(shoulder).normalize();
+      const deg = (Math.acos(Math.min(1, Math.max(-1, want.dot(got)))) * 180) / Math.PI;
+      out.worst = Math.max(out.worst, deg);
+      out.cases.push(`${label}:${deg.toFixed(1)}°`);
+      handYs.push(hand.y);
+    }
+    out.spread = Math.max(...handYs) - Math.min(...handYs);
+    return out;
+  });
+
+  // Exact, in one pass: a stale camera matrix once made only the FIRST solve
+  // after a reframe wrong, so a loose tolerance here would hide that class of
+  // bug entirely.
+  check(r.worst < 1, "the striking hand points at the target, every case", `worst ${r.worst.toFixed(2)}° — ${r.cases.join(" ")}`);
+  check(r.spread > 0.3, "and aim height genuinely moves the hand", `${r.spread.toFixed(2)}m of travel`);
+  check(errors.length === 0, "no page errors solving IK", errors.slice(0, 2).join(" | "));
+  await page.close();
 }
 
 await browser.close();

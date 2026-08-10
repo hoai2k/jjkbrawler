@@ -95,5 +95,6 @@ Off by default; the flat renderer is byte-for-byte untouched without the param.
   and whether each one is images, 3D models, sound effects, voice or music
 - [Asset requests](docs/asset-requests.md) — open art rounds
   ([history](docs/asset-requests-history.md))
-- [Audio requests](docs/audio-requests.md) — nothing outstanding; the sound round
-  and its prompts are in [history](docs/audio-requests-history.md)
+- [Audio requests](docs/audio-requests.md) — nothing outstanding; the sound and
+  voice rounds and their prompts are in
+  [history](docs/audio-requests-history.md)
