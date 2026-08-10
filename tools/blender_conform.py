@@ -32,7 +32,16 @@ WHAT IT DOES, in order:
   5. Add any missing prop / chain bones the roster expects for this character
      (billboards/src/props.js), empty, so a rigger has the hook to hang art on
      and the validator stops warning about a missing weapon.
-  6. Export .glb.
+  6. Prune skin weights the skeleton says are impossible — an auto-binder
+     routinely gives trouser vertices to a hand bone, which is how round B1's
+     fighter came to carry his trousers up with his arm
+     (tools/blender_clean_weights.py).
+  7. Grade the texture onto the fighter's canon costume colours where the
+     roster declares them — a generator gets the hue right and the value
+     badly, which is how round B1's fighter arrived in a navy so dark it read
+     as black (tools/blender_grade_texture.py). No-op for a fighter with no
+     palette entry, and safe to re-run.
+  8. Export .glb.
 
 It never invents animation. Retiming stretches what is there; a clip whose
 CONTENT is wrong (a strike that peaks in the wrong place) is a review finding
@@ -46,6 +55,10 @@ import sys
 
 import bpy
 from mathutils import Vector
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from blender_clean_weights import clean_all  # noqa: E402
+from blender_grade_texture import grade_char  # noqa: E402
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATES_JS = os.path.join(REPO, "billboards", "src", "states.js")
@@ -374,6 +387,8 @@ def main():
     conform_scale_and_orientation(arm, target_h, report)
     add_missing_hooks(arm, props, chains, report)
     retime_actions(states, report)
+    clean_all(arm, report)
+    grade_char(args.char, report)
 
     os.makedirs(os.path.dirname(os.path.abspath(args.dst)), exist_ok=True)
     # Export the fighter only. `use_selection` with the armature hierarchy

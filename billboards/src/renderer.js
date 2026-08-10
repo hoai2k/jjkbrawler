@@ -25,7 +25,10 @@
 import { STATES, clipNameFor, clipTime, aimable, aimKey } from "./states.js";
 import { getRig } from "./rig.js";
 import { swayChains } from "./props.js";
-import { applyReach, reaches, makeScratch } from "./ik.js";
+import {
+  applyReach, reaches, makeScratch,
+  characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
+} from "./ik.js";
 
 export const TEX_SIZE = 384;
 /** Fraction of the frame height under the foot line (world y = 0). */
@@ -40,7 +43,7 @@ export const QUANT = 1 / 30;
 /** Camera yaw in degrees — see the note in frameCamera. Exposed so the
  *  workbench (and the framing sweep that chose this value) can turn it
  *  without editing the constant. */
-export let CAMERA_YAW_DEG = -135;
+export let CAMERA_YAW_DEG = -60;
 export function setCameraYaw(deg) { CAMERA_YAW_DEG = deg; }
 
 const CACHE_MAX = 128; // ~19 MB at 384² RGBA; floor set by the trail window
@@ -56,9 +59,9 @@ export const stats = { renders: 0, hits: 0, misses: 0, evictions: 0 };
 
 export function initRenderer(three) {
   THREE = three;
-  _aimQ = new THREE.Quaternion();
-  _aimX = new THREE.Vector3(1, 0, 0);
+  _lateral = new THREE.Vector3();
   _ik = makeScratch(THREE);
+  initLayerAxes(THREE);
   _camRight = new THREE.Vector3();
   _target = new THREE.Vector3();
   const canvas = document.createElement("canvas");
@@ -108,17 +111,20 @@ export function poseToken(charKey, animKey, animTime, aim = null) {
 const AIM_BONES = [["Spine1", 0.20], ["Spine2", 0.26], ["Neck", -0.18]];
 function applyAim(root, pitchRad) {
   if (!pitchRad) return;
+  // The nod axis is the CHARACTER's lateral direction, not the bone's local X.
+  // Local X is the nodding axis only on a rig built that way; on a generated
+  // one whose neck carries its own roll, aiming about it yaws and rolls the
+  // head instead of pitching it (ik.js). Screen-up aim = lean back = negative.
+  characterLateral(THREE, root, _lateral);
   for (const [name, share] of AIM_BONES) {
     const bone = root.getObjectByName(name);
     if (!bone) continue;
-    // Screen-up aim = lean back = negative local-X rotation. The Neck takes a
-    // counter-share so the head keeps facing the target rather than the sky.
-    _aimQ.setFromAxisAngle(_aimX, -pitchRad * share);
-    bone.quaternion.multiply(_aimQ);
+    // The Neck takes a counter-share so the head keeps facing the target
+    // rather than the sky.
+    rotateBoneAboutWorldAxis(THREE, bone, _lateral, -pitchRad * share, _ik);
   }
 }
-let _aimQ = null;
-let _aimX = null;
+let _lateral = null;
 let _ik = null;
 let _camRight = null;
 let _target = null;
@@ -159,13 +165,19 @@ function frameCamera(height) {
   camera.top = half;
   camera.bottom = -half;
   const cy = frameH * (0.5 - FOOT_FRAC);
-  // Yaw: the camera sits so the rig's own +Z — the forward the delivery spec
-  // requires — projects to SCREEN-RIGHT in three-quarter. At the +30° this
-  // started at, +Z pointed into the lens instead, so every fighter faced the
-  // viewer: strides and punches went into the screen and foreshortened away,
-  // and the mannequin looked front-on for the whole of B0. -60° puts forward
-  // along the camera's right axis (dot ≈ 0.87) with enough turn left to keep
-  // the face readable — the same read the sprite art is drawn at.
+  // Yaw. Two things must hold at once, and eyeballing a 384px render gets one
+  // of them wrong every time — so they are stated as dot products and measured
+  // (tools/smoke_facing.mjs):
+  //
+  //   forward · cameraRight  > 0   the fighter faces SCREEN-RIGHT
+  //   forward · (-cameraFwd) > 0   and his FRONT is toward the lens
+  //
+  // With the rig's forward at +Z (the delivery spec), those are -sin(yaw) and
+  // cos(yaw) — both positive only for -90° < yaw < 0°. -60° puts forward
+  // mostly across the screen (0.87) with the chest still turned toward the
+  // viewer (0.5): the three-quarter the sprite art is drawn at. The original
+  // +30° satisfied neither, which is why every fighter strode into the screen
+  // and showed their back.
   const yaw = (CAMERA_YAW_DEG * Math.PI) / 180;
   const dist = 10;
   camera.position.set(Math.sin(yaw) * dist, cy, Math.cos(yaw) * dist);

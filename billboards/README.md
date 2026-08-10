@@ -95,4 +95,7 @@ overlay in the workbench. Full reasoning in [docs/plan.md](docs/plan.md).
 Everything here honours what `src/render_backend.js` documents: `drawCharFrame`
 returns **false** only when nothing could draw (render.js then paints its
 placeholder), and leaves the canvas context exactly as it found it. Verified by
-`tools/smoke_billboard.mjs`, which is phase B0's exit criteria as a script.
+`tools/smoke_billboard.mjs`, which is phase B0's exit criteria as a script,
+and by `tools/smoke_facing.mjs` for camera facing and the nod axis of the live
+layers — both shared with the render3d backend, both wrong on the first
+delivery, and neither visible in a 384-pixel render.

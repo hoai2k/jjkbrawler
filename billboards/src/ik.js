@@ -211,3 +211,41 @@ export function applyReach(THREE, root3d, state, clipT, targetWorld, tmp) {
   }
   return true;
 }
+
+// ---------------------------------------------------------------- layer axes
+//
+// The live layers (aim pitch, head look-at, flinch) all need to NOD a bone —
+// rotate it in the vertical plane the character faces along. They were written
+// as a rotation about the bone's LOCAL X, which is only the nodding axis if the
+// rig happens to be built that way. On a generated rig whose neck carries its
+// own roll it is not, and the head yaws and rolls instead of nodding: the
+// "funny head rotation" on the first delivered fighter.
+//
+// The honest axis is the character's own LATERAL direction — perpendicular to
+// both world up and the way they face — computed from the rig and converted
+// into whatever local frame the bone happens to have.
+
+/** The character's lateral (right-hand-side) axis in world space, from the
+ *  rig's forward (+Z by the delivery spec) and world up. */
+export function characterLateral(THREE, root, out) {
+  const fwd = out.set(0, 0, 1).applyQuaternion(root.getWorldQuaternion(_lq));
+  fwd.y = 0;
+  if (fwd.lengthSq() < 1e-8) return out.set(1, 0, 0);
+  fwd.normalize();
+  // right = forward x up
+  return out.set(fwd.z, 0, -fwd.x);
+}
+let _lq = null;
+
+/** Turn `bone` by `rad` about a WORLD axis, composing with whatever the clip
+ *  and earlier layers already did. */
+export function rotateBoneAboutWorldAxis(THREE, bone, axisWorld, rad, tmp) {
+  if (!bone || !rad) return;
+  const parentWorld = bone.parent ? bone.parent.getWorldQuaternion(tmp.q2) : tmp.q2.identity();
+  const localAxis = tmp.v1.copy(axisWorld).applyQuaternion(parentWorld.invert()).normalize();
+  bone.quaternion.premultiply(tmp.q1.setFromAxisAngle(localAxis, rad));
+}
+
+export function initLayerAxes(THREE) {
+  _lq = new THREE.Quaternion();
+}

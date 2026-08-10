@@ -30,7 +30,10 @@
 // not bake it; the delivery rule carries over verbatim.
 
 import { STATES, clipNameFor, clipTime, aimable } from "../../billboards/src/states.js";
-import { applyReach, reaches, makeScratch } from "../../billboards/src/ik.js";
+import {
+  applyReach, reaches, makeScratch,
+  characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
+} from "../../billboards/src/ik.js";
 
 /** The engine-side dials, each independently workbench-editable. */
 export const DIALS = {
@@ -103,12 +106,14 @@ export function flinchSide(animKey, x, aim, facing) {
 
 let THREE = null;
 let _q1, _q2, _q3, _v1, _v2, _v3, _v4;
-let _ik = null, _reachTarget = null;
+let _ik = null, _reachTarget = null, _lateral = null;
 
 export function initPose(three) {
   THREE = three;
   _ik = makeScratch(three);
+  initLayerAxes(three);
   _reachTarget = new three.Vector3();
+  _lateral = new three.Vector3();
   _q1 = new THREE.Quaternion();
   _q2 = new THREE.Quaternion();
   _q3 = new THREE.Quaternion();
@@ -136,11 +141,23 @@ export function playClip(rig, animKey, sampled, clip) {
   rig.mixer.setTime(sampled);
 }
 
-function rotateBoneX(root, name, rad) {
+/** NOD `name` by `rad` — a rotation in the vertical plane the character faces
+ *  along, positive = chin/chest up.
+ *
+ *  This was a rotation about the bone's LOCAL X, which is the nodding axis only
+ *  if the rig happens to be built that way. On a generated rig whose neck
+ *  carries its own roll it is not, and the head yaws and rolls instead of
+ *  nodding — the "funny head rotation" on the first delivered fighter. The
+ *  honest axis is the CHARACTER's lateral direction, taken from the rig's own
+ *  facing and converted into whatever local frame the bone happens to have
+ *  (ik.js). For a clean rig that is the same rotation; for a rolled one it is
+ *  the one that was meant. */
+function rotateBoneNod(root, name, rad) {
+  if (!rad) return;
   const bone = root.getObjectByName(name);
   if (!bone) return;
-  _q1.setFromAxisAngle(_v1.set(1, 0, 0), rad);
-  bone.quaternion.multiply(_q1);
+  characterLateral(THREE, root, _lateral);
+  rotateBoneAboutWorldAxis(THREE, bone, _lateral, rad, _ik);
 }
 
 /** Aim: pitch the strike toward the target, split across the spine so the
@@ -149,23 +166,23 @@ function rotateBoneX(root, name, rad) {
 const AIM_BONES = [["Spine1", 0.35], ["Spine2", 0.45], ["Neck", -0.3]];
 function applyAim(root, pitchRad) {
   if (!pitchRad) return;
-  for (const [name, share] of AIM_BONES) rotateBoneX(root, name, -pitchRad * share);
+  for (const [name, share] of AIM_BONES) rotateBoneNod(root, name, -pitchRad * share);
 }
 
 /** Head look-at: neck and head take a share of the pitch toward the
  *  opponent, in the states that allow it. */
 function applyLook(root, pitchRad) {
   if (!pitchRad) return;
-  rotateBoneX(root, "Neck", -pitchRad * DIALS.lookShare * 0.5);
-  rotateBoneX(root, "Head", -pitchRad * DIALS.lookShare * 0.5);
+  rotateBoneNod(root, "Neck", -pitchRad * DIALS.lookShare * 0.5);
+  rotateBoneNod(root, "Head", -pitchRad * DIALS.lookShare * 0.5);
 }
 
 /** Hit-direction flinch: lean the spine a few degrees away from the
  *  attacker, so knockback reads in the body, not just the trajectory. */
 function applyFlinch(root, side) {
   if (!side) return;
-  rotateBoneX(root, "Spine", -side * DIALS.flinchDeg * DEG);
-  rotateBoneX(root, "Spine1", -side * DIALS.flinchDeg * 0.5 * DEG);
+  rotateBoneNod(root, "Spine", -side * DIALS.flinchDeg * DEG);
+  rotateBoneNod(root, "Spine1", -side * DIALS.flinchDeg * 0.5 * DEG);
 }
 
 /** Additive breath: shoulders only, tied to the SAMPLED clock so the cache
@@ -174,7 +191,7 @@ function applyBreath(root, animKey, sampled) {
   if (!DIALS.breath || !BREATH_STATES.has(clipNameFor(animKey))) return;
   const s = STATES[clipNameFor(animKey)];
   const k = Math.sin((sampled / s.duration) * Math.PI * 2);
-  rotateBoneX(root, "Spine2", -k * DIALS.breathDeg * DEG);
+  rotateBoneNod(root, "Spine2", -k * DIALS.breathDeg * DEG);
 }
 
 /** Foot IK: clamp feet that sink below the ground line back onto it, with a
