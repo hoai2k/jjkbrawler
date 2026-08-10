@@ -137,6 +137,79 @@ Renaming a delivered file is still fine — that is what `tools/apply_sprite_adj
 and the intake tools do — but it is worth knowing that the old path dies with
 the rename, and anybody mid-session is one reload away from it.
 
+## Other Sprites: what the workbench can actually change
+
+`effect:*`, `summon:*` and `stagefx:*` art belongs to no fighter, so it has no
+manifest entry and no placement — the code that spawns each one decides how big
+it is and where it goes. **That knowledge is now written down**, in the registry
+at the bottom of [src/shared_sprites.js](../../src/shared_sprites.js): for every
+shared drawing, the height the game paints it at and the point on the picture
+that lands on its spawn point. It is derived from the kits, the summon pools and
+the draw sites rather than restated, so it cannot drift from them.
+
+The workbench reads that registry to decide which controls to show, and the game
+reads the same file to apply them:
+
+| Control | What it does | Shown when |
+|---|---|---|
+| **Mirror** | the drawing points the wrong way | always |
+| **Size** | multiplies the height the game paints it at | something declares a height |
+| **Spawn point** (on the canvas) | drag it; the drawing moves under it, storing `dx`/`dy` in game pixels | the drawing is painted somewhere |
+| **Rotation** | a standing tilt about the same point | the drawing is painted somewhere |
+
+**The size has four owners**, which is why it used to look broken: a kit's
+`spriteH` (or `orbSpriteH`, or a drop entry's `h`), a creature's `h` in
+`config_summons.js`, the install aura's constant in `render.js`, a hazard's in
+`stage_fx.js`. Only the first was read, so a number typed against a summon was
+stored, displayed, and inert.
+
+**It looked broken a second way even after that was fixed**, and this one was
+the viewer's fault: the canvas drew every shared sprite at its *delivered* pixel
+height and then clamped it to fit. Nearly every plate is taller than the viewer,
+so nearly every one sat pinned at the clamp and the slider changed nothing you
+could see. The viewer now draws at the height the game uses, times the zoom —
+which is also what makes a creature comparable to the fighter standing beside it.
+
+**The spawn point replaced two sliders.** Position used to be a horizontal and a
+vertical nudge, which asks you to hold in your head which way positive runs and
+what the number is measured from. It is one crosshair on the canvas now, drawn
+where the game paints the drawing, captioned with what the game expects of it —
+*painted around the point*, *standing on it*, *hung from it* — and dragging it
+moves the drawing beneath. The numbers are still `dx`/`dy` underneath and still
+export the same way.
+
+**None of it moves what the drawing collides with.** A projectile's centre, a
+creature's footing, a hazard's reach: all unchanged. That is the point — art
+arrives off-centre in its plate and the fix is to move the picture onto the point
+the game is using, not to move the point.
+
+### The region of interest, and what follows what
+
+With **Hurtbox** ticked, a shared drawing is shown with the region its move
+actually acts on: a projectile's `r` as a circle, a beam's `width` as a band
+across the screen, a creature's `hitW`/`hitH` or a drop's `w`/`h` as a box. All
+of them are numbers the kit already declares — nothing is invented here and
+nothing changes play. They are drawn because they are the one thing the art has
+to agree with and cannot be measured from the art: a bolt drawn twice the width
+of its `r` looks like it should clip somebody it passes straight through.
+
+**They are marked `fixed`, and that word is the point.** A shared drawing's hit
+region does not follow Size and does not follow the spawn point — it is a kit
+number. So moving the size slider moves the picture against a stationary target,
+and you can see the moment they agree. A fighter's hurtbox is the opposite case
+and is labelled the other way, *follows the art*: it is measured off the sprite
+(`src/silhouette.js`), so resizing the pose resizes the box with it.
+
+That distinction decides which way round to work. Against a fixed box you size
+the art to fit the box; against a box measured from the art you size the art to
+look right and the box follows.
+
+**A drawing that nothing spawns gets no controls**, and the panel says why. That
+same answer drives the **Used in game** filter for Other Sprites.
+`node tools/check_shared_sprites.mjs` walks the real kits and fails if a move
+names its art under a field the registry does not know — which is how Yuta's
+Rika (`sprite` beside a plain `h`) and Mechamaru's pigeon orbs were found.
+
 ## Preparing delivered effect art
 
 `tools/prep_effects.py` runs over `assets/sprites/effects/` and

@@ -10,7 +10,7 @@ draws sprites until one lands (round B1 in
 
     node server.mjs
     open 'http://127.0.0.1:5174/?render=billboard'               # the real thing
-    open 'http://127.0.0.1:5174/?render=billboard&mannequin=all' # the proof body
+    open 'http://127.0.0.1:5174/?render=billboard&mannequin=none' # sprites where no rig exists
     open 'http://127.0.0.1:5174/billboards/workbench/'           # the review tool
 
 `?render=billboards` and `?render=sprites` work too — the plural spellings are
@@ -33,8 +33,9 @@ billboards/
                physics chains), ik.js (two-bone reach solver)
   workbench/   /billboards/workbench/ — model vs sprite ghost, aim target,
                per-state clip inheritance editor, approval
-  vendor/      three.js r185, vendored (VENDOR.md) — only src/ may import it,
-               only via dynamic import(), so sprite players never load it
+               (three.js is shared with the 2.5D camera and lives at the repo
+               root: ../vendor/, see its VENDOR.md. src/ reaches it only via
+               dynamic import(), so sprite players never load it)
   assets/      approved runtime rigs + manifest.json (the index)
   intake/      where deliveries land first
 ```

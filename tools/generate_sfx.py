@@ -20,27 +20,49 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
-# The prompts live in the HISTORY doc: that round is delivered, but a prompt is
-# how a file gets regenerated or re-rolled, so they stay this tool's input
-# rather than becoming a record nobody reads.
-DOC = os.path.join(ROOT, "docs", "audio-requests-history.md")
+# Delivered prompts live in the HISTORY doc: that round is delivered, but a
+# prompt is how a file gets regenerated or re-rolled, so they stay this tool's
+# input rather than becoming a record nobody reads.
+#
+# The OPEN requests doc is read too, and that is the whole point of reading two:
+# a round that has not landed yet cannot have its prompts in a file named
+# "history" without the status line lying, and a round nobody can generate is
+# not a request, it is a wish. Both files use the same entry format; open
+# prompts move across to the history file when the round lands.
+DOCS = [
+    os.path.join(ROOT, "docs", "audio-requests.md"),
+    os.path.join(ROOT, "docs", "audio-requests-history.md"),
+]
 OUT = os.path.join(ROOT, "assets", "sfx")
 SR = 44100
 PEAK_TARGET = 10 ** (-3.0 / 20)      # -3 dBFS
 SILENCE_FLOOR = 10 ** (-50.0 / 20)   # -50 dBFS counts as silence
 
 # Sounds that must stay full length and un-faded: they loop in game.
-LOOPING = {"energy_charge.wav", "hazard_fire_patch.wav", "fire_burn_loop.wav"}
+LOOPING = {"energy_charge.wav", "hazard_fire_patch.wav", "fire_burn_loop.wav",
+           "domain_interior.wav"}
 
 
 def parse_doc():
-    """-> [(filename, seconds, prompt)] in document order."""
-    text = open(DOC).read()
+    """-> [(filename, seconds, prompt)] in document order, open requests first.
+
+    A filename appearing in both docs is taken from the OPEN one: that is the
+    re-roll case (a delivered sound being re-requested with a new prompt), and
+    the open wording is the newer intent.
+    """
     pat = re.compile(
         r"\*\*`([a-z_0-9]+\.wav)`\*\*[^\n]*?·\s*([0-9.]+)\s*s[^\n]*\n```\n(.*?)\n```",
         re.S)
-    return [(m.group(1), float(m.group(2)), m.group(3).strip())
-            for m in pat.finditer(text)]
+    out, seen = [], set()
+    for doc in DOCS:
+        if not os.path.exists(doc):
+            continue
+        for m in pat.finditer(open(doc).read()):
+            if m.group(1) in seen:
+                continue
+            seen.add(m.group(1))
+            out.append((m.group(1), float(m.group(2)), m.group(3).strip()))
+    return out
 
 
 def request_pcm(prompt, seconds, key):

@@ -58,6 +58,7 @@
 
 import { drawCharFrame as spriteDraw, currentFrame as spriteFrame, cyclePhase as spriteCycle } from "../sprites/src/sprites.js";
 import * as billboard from "../billboards/src/billboard.js";
+import * as render3d from "../render3d/src/backend.js";
 
 /** The registered ways to draw a character. Keyed by the name `?render=` takes. */
 const BACKENDS = {
@@ -77,6 +78,20 @@ const BACKENDS = {
     currentFrame: billboard.currentFrame,
     cyclePhase: billboard.cyclePhase,
     init: billboard.init,
+    scene3d: billboard.scene3d,
+  },
+  // Live 3D: rigged models animated at full frame rate, rendered in a
+  // hand-drawn anime style (toon ramp, ink outlines, on-twos stepping) and
+  // blitted into the same 2D world. The billboard backend's heir — same clip
+  // contract, same per-character fallthrough to sprites. Code lives under
+  // /render3d (named for the leading-digit rule; the URL stays `?render=3d`).
+  "3d": {
+    label: "3D anime-rendered models",
+    drawCharFrame: render3d.drawCharFrame,
+    currentFrame: render3d.currentFrame,
+    cyclePhase: render3d.cyclePhase,
+    init: render3d.init,
+    scene3d: render3d.scene3d,
   },
 };
 
@@ -88,6 +103,10 @@ const ALIASES = {
   billboards: "billboard",
   "2d": "sprite",
   "2.5d": "billboard",
+  render3d: "3d",
+  model: "3d",
+  models: "3d",
+  anime: "3d",
 };
 
 const DEFAULT_BACKEND = "sprite";
@@ -153,4 +172,25 @@ export function cyclePhase(charKey, animKey, animTime) {
  *  hole. Options are documented on the sprite implementation in sprites.js. */
 export function drawCharFrame(ctx, charKey, frameKey, x, y, opts) {
   return active.drawCharFrame(ctx, charKey, frameKey, x, y, opts);
+}
+
+/** How this backend wants to appear inside a real 3D scene — `?camera=3d`.
+ *
+ *  The three questions above are about a 2D CONTEXT, which is the only thing
+ *  the flat renderer has. The 2.5D camera has a scene instead, and asking it
+ *  to accept a flat drawing would throw away exactly what each backend is for.
+ *  So a backend may ALSO declare how it presents as geometry:
+ *
+ *    kind: "object"    hand over the rig; the camera adds it to its scene and
+ *                      its own perspective camera renders it (render3d)
+ *    kind: "texture"   hand over a posed texture for a camera-facing card,
+ *                      which is what a billboard natively is (billboards)
+ *    null              no opinion — the camera draws that fighter's sprites,
+ *                      which is the honest answer for the sprite backend
+ *
+ *  Optional by design: a backend that never answers still works everywhere,
+ *  and the camera falls back to sprites per character exactly as the flat
+ *  path falls back per character. */
+export function sceneAdapter() {
+  return active.scene3d || null;
 }

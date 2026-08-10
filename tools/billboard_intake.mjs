@@ -1,22 +1,29 @@
 #!/usr/bin/env node
-// Intake for billboard rigs — the .glb pipeline, deliberately SEPARATE from
+// Intake for MODEL rigs — the .glb pipeline, deliberately SEPARATE from
 // the sprite intake (tools/intake.py). Different formats, different checks,
 // different failure modes: a sprite intake cuts alpha off a key screen; this
 // one reads a glTF container and holds it against the delivery spec in
 // billboards/docs/asset-requests.md.
 //
+// ONE VALIDATOR, TWO BACKENDS. The billboard and render3d backends share one
+// asset truth (same skeleton, same clip names, same spec), so this is one
+// tool extended rather than forked: `--backend 3d` anywhere on the command
+// line points every subcommand at render3d/intake|assets|manifest instead,
+// and adds the D-spec advisory checks (outline vertex colors, shade-bias
+// extras — see render3d/docs/asset-requests.md). Default is billboards.
+//
 // The flow mirrors the sprite one in shape only:
 //
-//   billboards/intake/<char>/<char>.glb        where deliveries land
+//   <backend>/intake/<char>/<char>.glb         where deliveries land
 //     -> validate     hold it against the spec (pure read, run it freely)
-//     -> import       copy into billboards/assets/<char>/, register in the
+//     -> import       copy into <backend>/assets/<char>/, register in the
 //                     manifest with approved: false
-//     -> (billboard workbench: review each clip, export a payload)
+//     -> (that backend's workbench: review each clip, export a payload)
 //     -> apply        merge the workbench payload (inheritance, approvals)
 //     -> approve      shortcut: flip a character's approved flag directly
 //
-//   node tools/billboard_intake.mjs validate <char>
-//   node tools/billboard_intake.mjs import <char>
+//   node tools/billboard_intake.mjs validate <char> [--backend 3d]
+//   node tools/billboard_intake.mjs import <char>   [--backend 3d]
 //   node tools/billboard_intake.mjs approve <char> | revoke <char>
 //   node tools/billboard_intake.mjs apply <payload.json>
 //   node tools/billboard_intake.mjs list
@@ -32,10 +39,24 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const INTAKE = join(ROOT, "billboards", "intake");
-const ASSETS = join(ROOT, "billboards", "assets");
+
+// --backend selection: strip the flag from argv before subcommand parsing.
+const rawArgs = process.argv.slice(2);
+const beIdx = rawArgs.indexOf("--backend");
+const BACKEND = beIdx >= 0 ? (rawArgs.splice(beIdx, 2)[1] || "") : "billboard";
+const IS_3D = ["3d", "render3d"].includes(BACKEND);
+if (!IS_3D && !["billboard", "billboards"].includes(BACKEND)) {
+  console.log(`unknown --backend "${BACKEND}" — use billboard (default) or 3d`);
+  process.exit(2);
+}
+const DIR = IS_3D ? "render3d" : "billboards";
+const PAYLOAD_KIND = IS_3D ? "render3d-workbench" : "billboard-workbench";
+const WORKBENCH_URL = IS_3D ? "/render3d/workbench/" : "/billboards/workbench/";
+
+const INTAKE = join(ROOT, DIR, "intake");
+const ASSETS = join(ROOT, DIR, "assets");
 const MANIFEST = join(ASSETS, "manifest.json");
-const STATES_JS = join(ROOT, "billboards", "src", "states.js");
+const STATES_JS = join(ROOT, "billboards", "src", "states.js"); // ONE state list, both backends
 const PROPS_JS = join(ROOT, "billboards", "src", "props.js");
 
 // ------------------------------------------------------------- shared bits
@@ -101,7 +122,7 @@ function validate(char) {
   const errors = [];
   const warnings = [];
   if (!existsSync(path)) {
-    return { errors: [`no delivery at billboards/intake/${char}/${char}.glb`], warnings: [], info: {} };
+    return { errors: [`no delivery at ${DIR}/intake/${char}/${char}.glb`], warnings: [], info: {} };
   }
   let gltf;
   try {
@@ -183,6 +204,19 @@ function validate(char) {
     .reduce((n, p) => n + (p.indices !== undefined ? (gltf.accessors?.[p.indices]?.count || 0) / 3 : 0), 0);
   if (tris > 60000) warnings.push(`${Math.round(tris)} triangles — the budget is 30k standard / 60k bulk`);
 
+  // D-spec advisories (render3d/docs/asset-requests.md): both are legal to
+  // omit, but the anime pass reads noticeably better with them — say so at
+  // intake, not at review.
+  if (IS_3D) {
+    const prims = (gltf.meshes || []).flatMap((m) => m.primitives || []);
+    if (!prims.some((p) => p.attributes?.COLOR_0 !== undefined)) {
+      warnings.push("no COLOR_0 vertex channel — outline width will be uniform everywhere (D-spec addition 2)");
+    }
+    if (!(gltf.materials || []).some((mt) => mt.extras?.shadeBias)) {
+      warnings.push("no material declares a shade-bias map (extras.shadeBias) — the toon terminator runs unbiased (D-spec addition 1)");
+    }
+  }
+
   return {
     errors, warnings,
     info: { heightM: Math.round(heightM * 100) / 100, clips: covered.length, states: states.length, tris: Math.round(tris) },
@@ -222,7 +256,7 @@ function cmdImport(char) {
   };
   writeManifest(man);
   console.log(`imported ${char} (${info.heightM}m, ${info.clips}/${info.states} states) — NOT approved yet.`);
-  console.log(`review in /billboards/workbench/?char=${char}, export the payload, then: apply <payload.json>`);
+  console.log(`review in ${WORKBENCH_URL}?char=${char}, export the payload, then: apply <payload.json>${IS_3D ? " --backend 3d" : ""}`);
   return 0;
 }
 
@@ -240,8 +274,8 @@ function setApproved(char, value) {
 
 function cmdApply(payloadPath) {
   const payload = JSON.parse(readFileSync(payloadPath, "utf8"));
-  if (payload.kind !== "billboard-workbench") {
-    console.log("ERROR  not a billboard workbench payload (kind mismatch).");
+  if (payload.kind !== PAYLOAD_KIND) {
+    console.log(`ERROR  not a ${DIR} workbench payload (kind "${payload.kind}", expected "${PAYLOAD_KIND}" — did you mean a different --backend?).`);
     return 1;
   }
   const man = readManifest();
@@ -304,13 +338,13 @@ function cmdCheck() {
     if (!states.includes(k) && k !== "dodge") problems.push(`SEMANTIC_ANIMS has "${k}" but billboards/src/states.js does not`);
   }
   for (const p of problems) console.log(`ERROR  ${p}`);
-  if (!problems.length) console.log(`billboard manifest ok: ${Object.keys(man.characters || {}).length} character(s), ${states.length} states cover the game's animation keys`);
+  if (!problems.length) console.log(`${DIR} manifest ok: ${Object.keys(man.characters || {}).length} character(s), ${states.length} states cover the game's animation keys`);
   return problems.length ? 1 : 0;
 }
 
 // -------------------------------------------------------------------- main
 
-const [cmd, arg] = process.argv.slice(2);
+const [cmd, arg] = rawArgs;
 const run = {
   validate: () => cmdValidate(arg),
   import: () => cmdImport(arg),
@@ -321,7 +355,7 @@ const run = {
   check: cmdCheck,
 }[cmd];
 if (!run || ((cmd !== "list" && cmd !== "check") && !arg)) {
-  console.log("usage: billboard_intake.mjs validate|import|approve|revoke <char> | apply <payload.json> | list | check");
+  console.log("usage: billboard_intake.mjs validate|import|approve|revoke <char> | apply <payload.json> | list | check   [--backend 3d]");
   process.exit(2);
 }
 process.exit(run());

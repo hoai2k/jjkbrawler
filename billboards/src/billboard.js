@@ -61,8 +61,8 @@ export async function init() {
   if (ready || initFailed) return;
   try {
     const [three, loaderMod, rigMod, rendererMod, blitMod] = await Promise.all([
-      import("../vendor/three.module.js"),
-      import("../vendor/loaders/GLTFLoader.js"),
+      import("../../vendor/three/three.module.js"),
+      import("../../vendor/three/loaders/GLTFLoader.js"),
       import("./rig.js"),
       import("./renderer.js"),
       import("./blit.js"),
@@ -72,8 +72,15 @@ export async function init() {
     blit = blitMod;
     renderer.initRenderer(three);
 
+    // MANNEQUIN BY DEFAULT — same reasoning as the render3d backend: choosing
+    // this backend is a request to see it work, and with nothing delivered a
+    // silent sprite fallthrough just shows the sprite renderer. `?mannequin=none`
+    // restores the old behaviour; a named list narrows it to those characters.
+    // Sprite fallthrough stays the FAILURE path.
     const params = new URLSearchParams(typeof location !== "undefined" ? location.search : "");
-    const mannequin = (params.get("mannequin") || "").split(",").map((s) => s.trim()).filter(Boolean);
+    const raw = (params.get("mannequin") ?? "all").trim();
+    const mannequin = ["none", "off", "0", ""].includes(raw.toLowerCase())
+      ? [] : raw.split(",").map((s) => s.trim()).filter(Boolean);
     const { CHARACTER_KEYS } = await import("../../src/characters.js");
     await rigs.initRigs(three, loaderMod.GLTFLoader, mannequin, CHARACTER_KEYS);
 
@@ -107,6 +114,42 @@ export function cyclePhase(charKey, animKey, animTime) {
   if (hasModel(charKey)) return cycleInfo(animKey, animTime);
   return spriteCycle(charKey, animKey, animTime);
 }
+
+// ------------------------------------------------- the 2.5D camera adapter
+//
+// Under `?camera=3d` this backend's native form is exactly what its name says:
+// a CARD. Its whole identity is "pose a rig, render it once, cache the
+// texture, draw it flat" — the quantised pose cache is the economics, and the
+// fixed ¾ camera is the look. So in the camera's scene it stays a textured
+// quad; it just gets the POSED-MODEL texture instead of a sprite sheet frame.
+//
+// (The render3d backend answers this question differently — it hands over the
+// rig itself, because there the model really is live geometry. Same seam, two
+// honest answers.)
+export const scene3d = {
+  kind: "texture",
+  ready: () => ready,
+  /** { canvas, heightM, rowsPerMetre } for the pose, or null to fall back. */
+  poseTexture(charKey, animKey, animTime, opts = {}) {
+    if (!hasModel(charKey)) return null;
+    try {
+      // Same aim solution the flat blit uses, so a strike reaches its target
+      // identically whether the scene is drawn flat or through the 2.5D
+      // camera. The camera hands us the chest line; the foot line is what the
+      // reach offsets are measured from, so derive it when not given.
+      const targetPx = headHeightTarget(charKey);
+      const x = opts.x ?? 0;
+      const chestY = opts.chestY ?? 0;
+      const footY = opts.y ?? chestY + targetPx * 0.55;
+      const aim = opts.aim
+        ? aimSolve(x, footY, chestY, opts.aim, opts.facing ?? 1) : null;
+      return renderer.renderPose(charKey, animKey, animTime, rigs.resolveClip, aim, targetPx);
+    } catch (err) {
+      warnOnce(`scene:${charKey}`, `billboards: posing ${charKey}/${animKey} for the 2.5D camera failed (${err.message}) — drawing their sprites instead.`);
+      return null;
+    }
+  },
+};
 
 export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
   const m = typeof frameKey === "string" ? TOKEN.exec(frameKey) : null;

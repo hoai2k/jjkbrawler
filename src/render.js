@@ -1,5 +1,6 @@
 import { state } from "./state.js";
 import { getImage } from "./assets.js";
+import { sharedAdjust, AURA_H } from "./shared_sprites.js";
 import { getStage } from "./stages.js";
 import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { getActor } from "./characters.js";
@@ -8,6 +9,7 @@ import { TRAIL_ALPHA, STRIKE_ARC } from "./config_tuning.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
 import { hitboxRect, hurtbox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
+import { cameraMode, camera3d } from "./camera_mode.js";
 import {
   WORLD, SHIELD_MAX, PARRY_WINDOW, SAKURAI, SAKURAI_POP,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME,
@@ -21,6 +23,10 @@ import { respawnX } from "./fighter.js";
 import { isFoe } from "./teams.js";
 
 export function draw(ctx) {
+  if (cameraMode === "3d" && camera3d) {
+    draw3d(ctx);
+    return;
+  }
   ctx.clearRect(0, 0, WORLD.w, WORLD.h);
   applyCamera(ctx);
 
@@ -41,6 +47,40 @@ export function draw(ctx) {
   drawPopupsWorld(ctx);
   // Stage effects that must cover the fighters (Mist Pier's fog, Quiet Hall's
   // hush) draw here, above the scene but still in world space.
+  for (const e of state.entities) if (e.drawTop) e.drawTop(ctx);
+
+  releaseCamera(ctx);
+
+  drawDomainOverlay(ctx);
+  drawBannersScreen(ctx);
+  drawVignette(ctx);
+  drawScreenFlash(ctx);
+}
+
+// The 2.5D frame (docs/2.5d-camera-plan.md §6). The WebGL canvas underneath
+// takes the scene — backdrop, domain planes, platforms, fighter and projectile
+// billboards — posed by the camera rig; this canvas keeps everything else,
+// exactly as the flat path draws it, positioned by the rig's projection of the
+// gameplay plane. Because every world-space overlay draw sits on z = 0 and the
+// rig's yaw/pitch are clamped tiny, one affine transform lands them all on the
+// fighters with zero per-effect changes.
+function draw3d(ctx) {
+  camera3d.draw(state);
+
+  ctx.clearRect(0, 0, WORLD.w, WORLD.h);
+  const t = camera3d.overlayTransform();
+  ctx.save();
+  ctx.transform(t.a, t.b, t.c, t.d, t.e, t.f);
+
+  for (const e of state.entities) if (e.draw) e.draw(ctx);
+  // Projectile bodies are billboards in the scene; their comet trails are
+  // additive strokes and stay here, over the scene like every other glow.
+  for (const p of state.projectiles) drawProjectileTrail(ctx, p);
+  drawFighters(ctx, { bodies: false });
+  drawStrikeArcs(ctx);
+  if (state.debugHitboxes) drawDebug(ctx);
+  drawParticles(ctx);
+  drawPopupsWorld(ctx);
   for (const e of state.entities) if (e.drawTop) e.drawTop(ctx);
 
   releaseCamera(ctx);
@@ -157,6 +197,11 @@ function drawProjectiles(ctx) {
     drawProjectileTrail(ctx, p);
     const sprite = p.sprite ? getImage(p.sprite) : null;
     if (sprite) {
+      // The drawing's own adjustment (src/shared_sprites.js). `spriteH` has the
+      // scale folded in already — it is a kit number — so only the nudge is
+      // read here, and it moves the PICTURE, never `p.x`/`p.y`, which are what
+      // the projectile collides on.
+      const adj = sharedAdjust(p.sprite);
       const h = p.spriteH || p.r * 3;
       const w = sprite.width * h / sprite.height;
       ctx.save();
@@ -169,9 +214,12 @@ function drawProjectiles(ctx) {
       const flip = p.vx > 0 ? -1 : 1;
       if (p.vy) ctx.rotate(Math.atan2(-flip * p.vy, -flip * p.vx));
       ctx.scale(flip, 1);
+      if (adj.rot) ctx.rotate(adj.rot);
       ctx.shadowColor = p.color;
       ctx.shadowBlur = 12;
-      ctx.drawImage(sprite, -w / 2, -h / 2, w, h);
+      // Inside the mirrored frame, so a nudge follows the drawing rather than
+      // reversing when the shot travels the other way.
+      ctx.drawImage(sprite, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
       ctx.restore();
       continue;
     }
@@ -402,7 +450,11 @@ function drawAngleTick(ctx, hx, hy, hb, fade, power, color) {
   }
 }
 
-function drawFighters(ctx) {
+// `bodies: false` is the 2.5D overlay pass: the body art, its shadow and its
+// afterimages are billboards in the WebGL scene, so this canvas draws only the
+// adornments around them — markers, revival platforms, auras, bubbles, meters,
+// status effects. Everything positions in the same sim coordinates either way.
+function drawFighters(ctx, { bodies = true } = {}) {
   const sorted = [...state.fighters].sort((a, b) => a.y - b.y);
   for (const f of sorted) {
     if (f.dead) continue;
@@ -415,7 +467,7 @@ function drawFighters(ctx) {
     // Back, standing on their revival platform — and drawn normally, because
     // they are playing. The platform goes UNDER them.
     if (f.respawnPlat) drawRevivalPlatform(ctx, f);
-    drawShadow(ctx, f);
+    if (bodies) drawShadow(ctx, f);
     drawInstallAura(ctx, f);
 
     // A transformed fighter (Megumi as Mahoraga) draws from another actor's
@@ -428,7 +480,7 @@ function drawFighters(ctx) {
     const shakeX = f.shakeMag > 0 ? (Math.random() - 0.5) * f.shakeMag : 0;
     const glowing = ["specialNeutral", "specialSide", "specialDown", "ult", "charge"].includes(f.animKey) || f.installs;
 
-    const transformed = f.installs?.sprite ? getImage(f.installs.sprite) : null;
+    const transformed = bodies && f.installs?.sprite ? getImage(f.installs.sprite) : null;
     if (transformed) {
       const h = 210;
       const w = transformed.width * h / transformed.height;
@@ -440,7 +492,7 @@ function drawFighters(ctx) {
       ctx.shadowBlur = 24;
       ctx.drawImage(transformed, -w / 2, -h, w, h);
       ctx.restore();
-    } else {
+    } else if (bodies) {
       drawTrail(ctx, f);
       const m = fighterTransform(f);
       const drew = drawCharFrame(ctx, spriteKey, frameKey, f.x + shakeX, f.y, {
@@ -546,12 +598,23 @@ function drawInstallAura(ctx, f) {
   ctx.globalCompositeOperation = "lighter";
   const pulse = 0.88 + 0.06 * Math.sin(state.matchTime * 8);
   if (art) {
-    const h = 220 * pulse;
+    // An aura's height is a constant here rather than a kit number, so the
+    // drawing's own scale has to be read at the draw — the kit-side folding in
+    // shared_sprites.js never reaches it.
+    const adj = sharedAdjust(f.installs.aura);
+    const h = AURA_H * pulse * adj.scale;
     const w = art.width * h / art.height;
     ctx.globalAlpha = 0.72;
     ctx.shadowColor = f.installs.color;
     ctx.shadowBlur = 18;
-    ctx.drawImage(art, f.x - w / 2, f.y + 10 - h, w, h);
+    if (adj.rot) {
+      // About the point it is painted on — the fighter's feet — so a tilt
+      // leans the aura rather than sliding it.
+      ctx.translate(f.x, f.y + 10);
+      ctx.rotate(adj.rot);
+      ctx.translate(-f.x, -(f.y + 10));
+    }
+    ctx.drawImage(art, f.x - w / 2 + adj.dx, f.y + 10 - h + adj.dy, w, h);
     ctx.restore();
     return;
   }

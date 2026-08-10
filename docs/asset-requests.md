@@ -7,13 +7,17 @@ numbers, so a commit or code comment citing "round 5 art" still resolves.
 (This file is 2D art — sprites, cards, effects, backdrops. Requests for the
 2.5D path's rigged 3D models live in
 [billboards/docs/asset-requests.md](../billboards/docs/asset-requests.md),
-numbered B1, B2… so the two tracks never collide.)
+numbered B1, B2…; the live-3D anime path's model requests live in
+[render3d/docs/asset-requests.md](../render3d/docs/asset-requests.md),
+numbered D1, D2…, and its 2D image inputs — turnaround boards for
+image-to-3D, face sheets, shade palettes — in
+[render3d/docs/image-requests.md](../render3d/docs/image-requests.md),
+numbered DI1, DI2… — so the tracks never collide.)
 
-**Current status: rounds 1–16 delivered. Round 17 is delivered except its card
-set. Round 18 is open.**
+**Current status: rounds 1–17 delivered. Round 18 is open.**
 
-**Round 18 is the one to add to** — 17D is being drawn against, so anything found
-from here goes into 18.
+**Round 18 is the one to add to** — nothing else is outstanding, so anything
+found from here goes into 18.
 
 **The approval queue is empty.** Rounds 14, 16 and 17 all landed through the
 [approval step](../assets/intake/README.md#the-confirm-step) — a delivery is in
@@ -56,6 +60,7 @@ assets/intake/effects/<name>.png            technique effects
 assets/intake/summons/<name>.png            summon minions
 assets/intake/cards/<key>_card.jpg          hero cards
 assets/intake/backgrounds/<name>.jpg        stage / domain backgrounds
+assets/intake/garnish/<name>.png            near-field cards for ?camera=3d (18F)
 ```
 
 `sprites/assets/` holds **finished runtime art only** — keyed, trimmed, alpha,
@@ -165,7 +170,7 @@ and a recipe for fetching more in that directory's README.
 | yuji | "Yuji Itadori from Jujutsu Kaisen, athletic teenage boy with short spiky salmon-pink hair and brown eyes, wearing a dark navy high-collared jujutsu school uniform jacket over a red hoodie, matching dark trousers and white sneakers" *(grey key)* |
 | choso | "Choso from Jujutsu Kaisen, pale serious young man with long black hair tied into two high loose buns with strands framing his face, a dark horizontal marking across the bridge of his nose, wearing a loose black robe-like tunic with pale trim, wide sleeves, dark trousers and simple shoes" *(grey key)* |
 | meimei | "Mei Mei from Jujutsu Kaisen, tall elegant woman with very long silver-lavender hair worn in thick loose braids, calm confident expression, wearing a fitted black high-collared long-sleeved dress with gold buttons and dark tights, carrying a large single-headed battle axe" |
-| uro | "Takako Uro from Jujutsu Kaisen, lean athletic woman with a fierce confident grin, pale violet-pink hair sweeping upward and outward in wild flame-like curling points, sharp violet eyes with heavy dark eyeliner, large gold cylindrical drop earrings, a black choker and a black band on each wrist, her only covering a wrap of pale-cyan cloud vapour clinging across her chest and hips with soft drifting edges, bare arms and legs, barefoot with violet-painted nails" *(grey key)* |
+| uro | "Takako Uro from Jujutsu Kaisen, lean athletic woman with a fierce confident grin, pale violet-pink hair sweeping upward and outward in wild flame-like curling points, sharp violet eyes with heavy dark eyeliner, large gold cylindrical drop earrings, a black choker and a black band on each wrist, her only covering **two separate bands of pale-cyan cloud vapour with soft drifting edges — one wrapped across the chest, one at the hips — with the midriff BARE between them and never a single garment joining the two**, bare arms and legs, barefoot with violet-painted nails" *(grey key)* |
 | reggie | "Reggie Star from Jujutsu Kaisen, tall lean man with straight shoulder-length blond hair parted at the side, heavy-lidded tired eyes and a narrow pointed chin beard, wearing a shaggy knee-length tunic and matching shoulder cape built from layered rows of torn white paper receipts with small pale mint-green printed tabs, bare arms and bare lower legs, barefoot" |
 | mechamaru | "Ultimate Mechamaru from Jujutsu Kaisen, a tall humanoid cursed-corpse puppet with a smooth clay-brown carved head, two round glowing green lens eyes and a small third lens on the forehead, a fixed grin of bared square teeth, a thick white puffy scarf around the neck, wearing a dark navy high-collared jujutsu uniform tunic with a white sash and very wide baggy navy trousers, bare carved wooden hands and bare wooden feet" |
 | yuki | "Yuki Tsukumo from Jujutsu Kaisen, tall athletic young woman with very long straight blonde hair falling past her waist with two tufts framing her face and brown eyes, wearing a sleeveless dark indigo mandarin-collar top with gold frog clasps at the shoulder, a grey buttoned corset belt at the waist, high-waisted light blue jeans and brown ankle boots" |
@@ -307,17 +312,17 @@ single addition: **no drawn shadow of any kind** — the game casts its own.
 
 ---
 
-# Round 17 — 40 of 41 sprites and 1 of 28 cards delivered
+# Round 17 — delivered
 
-**Everything except 17D has landed**, and its art is in the repo awaiting
-approval. What is left in this round is the simplified card set.
+**All of it has landed**, including the simplified card set. 17D's 27 tiles are
+in `assets/cards/simple/`, one per roster fighter, and the round is closed.
 
 | Part | Scope | State |
 |---|---|---|
 | 17A | A full Hanami set — 36 sprites | **Delivered.** Redrawn to canon; awaiting approval pose by pose |
 | 17B | Mahoraga's three light/crouch poses — 3 sprites | **Delivered**, awaiting approval — the karma wheel is present this time |
 | 17C | Two caught while placing round 13 — 2 sprites | **Delivered**, awaiting approval |
-| 17D | A simplified card for every fighter — 27 images | **Open**, below |
+| 17D | A simplified card for every fighter — 27 images | **Delivered.** All 27 in `assets/cards/simple/`. The game draws them only when `USE_SIMPLE_CARDS` is `true` in `src/config_menus.js`, and it is currently `false` — a display decision, not a missing asset |
 | 17E | Hanami's hero card, redrawn to canon — 1 image | **Delivered and in the game.** A card has no approval step |
 
 The three keys outside 17A's 36 — `attack_air`, `run_a` and `run_b` — were not
@@ -331,6 +336,13 @@ tile is the pale humanoid curse, not the tree — the hero card the tile has to
 agree with is already in the game.
 
 ## 17D. A simplified card for every fighter — 27 images
+
+> **Delivered.** All 27 tiles are in `assets/cards/simple/`, one per roster
+> fighter. They are **not on screen**: `USE_SIMPLE_CARDS` in
+> `src/config_menus.js` is `false`, so the roster grid still draws the hero
+> cards. Flipping it to `true` is the whole of switching them on. The brief
+> below is kept because it is what a re-draw of any single tile is measured
+> against.
 
 ### Why
 
@@ -492,14 +504,22 @@ manifest entry — so landing these is a move and nothing else.
 
 # Round 18 — open
 
-**Round 18 is the round to add to.** 14, 15, 16 and 17 are all being drawn
-against, so anything caught from here lands here.
+**Round 18 is the round to add to.** Everything before it has been delivered, so
+anything caught from here lands here.
 
 - **18A** — thirteen caught while placing the round-15 sets (13 sprites)
-- **18B** — four caught while placing Kurourushi (4 sprites, 1 alpha fix)
+- **18B** — four caught while placing Kurourushi (4 sprites)
+- **18C** — three that fell through the round renumbering (3 sprites)
+- **18D** — two Uro alternates: the right pose in the wrong costume (2 sprites)
+- **18E** — twenty backgrounds repainted for the 3D camera (20 images)
+- **18F** — near-field cards for the 3D camera's garnish layer (14 images,
+  optional)
 
-**17 sprites, none of it blocking** — every pose named here is in the game today
-and playable; each is a redraw of art that works but does not do its job.
+**22 sprites and 34 images, none of it blocking** — every pose named here is in
+the game today and playable, and every background named here already exists and
+works. The sprites are redraws of art that does not do its job; 18E and 18F are
+art the `?camera=3d` mode can use and the flat game cannot, so both are pure
+upside and a partial delivery of either is useful on its own.
 
 ## 18A. Caught while placing the round-15 sets — 13 sprites
 
@@ -582,7 +602,7 @@ short strike, but the frame on screen is the same problem: the heavy does not
 read as the biggest thing the fighter does. The rule is in
 [pose-brief.md](pose-brief.md); this is the evidence it needs to stay there.
 
-### Repo work, not a request: `kurourushi/ledge_hang`
+### Repo work, not a request: `kurourushi/ledge_hang` — done
 
 The ledge is drawn into the plate — a slab under the hands, the same fault
 `dagon/ledge_hang` and `mechamaru/ledge_hang` had in round 15 and the reason the
@@ -591,3 +611,267 @@ note "Remove the ledge", so the workbench shows it and
 `tools/list_replacements.py` tracks it. As with the other two, the hands are
 closed on the bar and cutting it leaves them closed on nothing, which is the
 pose as asked for — **the stage supplies the edge.** No redelivery needed.
+
+**This has now been done**, along with `hanami/ledge_hang`, which had been
+flagged as a redraw rather than repo work and did not need to be: his was the
+same flat slab with the hands over it. Four of the roster's ledge grips have now
+been cut this way (Dagon, Mechamaru, Kurourushi, Hanami) and the rule is in the
+pose brief, so a future set should not need it.
+
+---
+
+## 18C. Three that fell through the round renumbering — 3 sprites
+
+Flagged in the workbench, but named in no request section — they were written
+into rounds that were later split, renumbered or moved to history, and the flags
+outlived the sections. An audit of the manifest against this file found them:
+the workbench knew about all three the whole time, and nobody drawing from this
+file could have.
+
+| Fighter | Key | Pose | Kind | What is wrong |
+|---|---|---|---|---|
+| Suguru Geto | `geto` | `attack_down` | Pose | "Should be straight down instead of down and right." `downHeavy` is a committed smash at the floor in front — the arc ends under him, not off to the side. Asked for once as 14C and again after the round-13 redraw was approved-and-reflagged. |
+| Mei Mei | `meimei` | `special_down` | Pose | Flagged during a placement pass with no note. Her down special is the crow swarm gathering low; the drawing does not read as a technique starting. |
+| Takako Uro | `uro` | `prone` | Character | **The costume is a full pale-blue bodysuit** — covered arms, covered legs — where every other pose in her set draws the canon cloud wrap over bare limbs. See the note below: this is the generator's doing rather than the brief's, and it may not be fixable by asking again. |
+
+### `uro/prone` is worth understanding before re-requesting it
+
+Her other **seven** poses are on-model: `idle_a`, `run_reach_a`, `crouch_a`,
+`dodge_roll`, `hurt`, `attack_light_b` and `victory` all draw the pale-cyan
+cloud vapour across chest and hips with bare arms and legs, exactly as her
+character block asks. Only `prone` comes back dressed, and it comes back dressed
+in something that is not in the block at all — a full-length bodysuit.
+
+So this is **not** a prompt fault we can see: the block is explicit ("her only
+covering a wrap of pale-cyan cloud vapour clinging across her chest and hips,
+bare arms and legs"), the canonical reference shows it, and the pose line for
+`prone` says nothing about clothing. What is different about `prone` is that it
+is the one pose where the figure is **lying down, horizontal, full-length** —
+and a generator handed a reclining, minimally-dressed figure tends to add
+clothing on its own. `dodge_roll` is on the ground too and comes back correct,
+which suggests it is the reclining read rather than the ground.
+
+That makes it worth **one** re-request with the costume restated inside the pose
+line rather than left to the block — and worth knowing it may come back dressed
+again. If it does, the honest options are to keep the drawing (a knockdown is on
+screen for well under a second) or to draw the pose from a different angle that
+is less likely to trip it, e.g. seen more from the feet. It is a limitation of
+the generator, not of the request.
+
+---
+
+## 18D. Uro, the right pose in the wrong costume — 2 sprites
+
+**Asked for as alternates, not replacements.** Both poses are good and are
+staying in the game; what is wrong is the costume, so the delivery lands *beside*
+the current drawing and the better of the two is picked by eye in the workbench.
+Nothing changes on screen until somebody chooses.
+
+| Fighter | Key | Pose | Kind | What is wrong |
+|---|---|---|---|---|
+| Takako Uro | `uro` | `attack_heavy_b` | **Alternate** | The cloud reads as one strapless dress — the chest band and the hip band have merged. Keep the pose exactly: braced wide, the cursed-energy cloud thrown forward off the lead hand. |
+| Takako Uro | `uro` | `crouch_b` | **Alternate** | The cloud has become a one-piece dress from chest to thigh. Keep the pose exactly: down on one knee, weight on the trailing hand, head low. |
+
+### The block was ambiguous, and that is the actual fault
+
+Her block used to read *"a wrap of pale-cyan cloud vapour clinging across her
+chest and hips"* — which describes **one** garment reaching from chest to hips
+at least as naturally as it describes two bands. The canon is two: a band across
+the chest, a band at the hips, and a **bare midriff between them**
+(`assets/reference/canon/uro_idle.png`).
+
+Read that way, the deliveries were not wrong so much as obedient. Both of these
+drew the sentence, and `uro/prone` in [18C](#18c-three-that-fell-through-the-round-renumbering--3-sprites)
+went further and put her in a full bodysuit. Her block now says two separate
+bands, with the midriff bare, and that a single joined garment is wrong — so
+these two are the first test of whether the wording was the whole problem. If
+they come back right and `prone` still comes back dressed, the reclining pose is
+its own separate limitation.
+
+**Four of her poses were already correct under the old wording** — `idle_a`,
+`run_reach_a`, `hurt`, `victory` — which is why this took a workbench pass to
+notice rather than showing up on the review board.
+
+---
+
+## 18E. Twenty backgrounds, repainted for the 3D camera — 20 images
+
+The `?camera=3d` mode (see [2.5d-camera-plan.md](2.5d-camera-plan.md)) puts the
+stage painting on a plane in a real 3D scene. It works today with the existing
+art, and this is not a bug report — the plates are fine. But the mode changes
+what a backdrop has to *be*, in one measurable way and three compositional ones,
+and repainting to that spec is the single largest visible win available to the
+camera. §10 of the plan has the full measurement; the short version:
+
+**The 3D camera only ever shows the middle of the picture.** The backdrop plane
+deliberately over-fills the frustum (×1.5 height, ×1.35 width) so that no dolly,
+yaw or roll can swing past its edge. The cost is that **only 49.4% of the
+image's linear extent is on screen** — a 1600×900 plate puts about **790 source
+pixels across 1280 CSS pixels, a 1.62× upscale (3.24× at DPR 2)**, where flat
+mode shows the whole plate at a slight *down*scale. That softness is currently
+the most visible art deficit in 3d mode.
+
+### The one rule that is new
+
+> **Paint at 3200×1800. The 3D camera crops to the centre 1600×900 — the size
+> the current backgrounds already are — so that centre box has to be a finished
+> picture on its own, and the outer ring is what flat mode adds around it.**
+
+Both crops ship. Flat mode (the default) shows the whole 3200×1800 frame; 3d
+mode shows the centre half. Neither is a "safe area" to be padded with filler —
+they are two framings of one painting, and both are seen by players. The crop is
+centred to within 2.4% of image height, so treating it as exactly centred is
+correct.
+
+### Three things the 3D scene changes about composition
+
+- **Paint mid-ground and far ground only. No foreground.** Anything painted at
+  the very front of frame lands on the same flat plane as the horizon, 14 world
+  units back, and then contradicts the real near-field cards the camera draws
+  *between* the lens and the fight (traffic, lanterns, leaves — §7c of the
+  plan). Foreground is the garnish layer's job now; a plate that paints its own
+  fights it. Overhanging branches, near pillars, near railings: leave them out.
+- **Keep a calm value band across the middle.** The fight happens there, and in
+  3d the platforms are extruded boxes with lit top faces sitting in front of it.
+  The band from roughly 45% to 85% down the *centre box* should be the quietest
+  part of the painting — low contrast, no hard edges, no bright speculars. Put
+  the detail and the drama above and to the sides of it.
+- **Avoid a strong one-point perspective aimed at the centre of frame.** A
+  painted vanishing point is rigid; a real camera is not. In normal play this
+  camera moves so little (±0.88° of yaw — the sim clamps it) that a baked VP is
+  harmless, but the drama shots swing to ±4° and a dead-centre VP is where that
+  reads worst. An off-centre or open composition is safer and crops better.
+
+### What has not changed
+
+Same filenames, same folder, same JPEG format, so **nineteen of the twenty need
+no code change at all** — the loader reads `stage.bgFile` and picks them up
+as-is. The exception is Shibuya Night, which is registered as `.webp`: deliver
+it as `shibuya_night.jpg` and one string in `src/stages.js` changes with it, or
+keep the `.webp` extension and nothing does.
+
+Landscape, full-bleed, no characters, no text, no border, no UI. Keep the
+mid-tones open: the renderer lays a 30% black wash and the stage's own colour
+tint over the plate before anything else draws, so a plate that arrives already
+dark and already saturated has nowhere to go.
+
+```
+assets/intake/backgrounds/<name>.jpg      3200×1800, JPEG, full-bleed
+```
+
+### Prompt formula
+
+`[BOARD LINE]`, `[COMPOSITION SUFFIX]`, `[STYLE SUFFIX]`
+
+**Composition suffix** — append to every board line:
+
+> wide establishing shot, mid-ground and distance only with no foreground
+> elements, empty stage floor across the lower middle of the frame, quiet
+> low-contrast band through the middle third, detail and interest in the upper
+> half and toward the edges, open mid-tones, no characters, no text
+
+**Style suffix** — the same one the rest of the game uses:
+
+> clean Japanese anime key-art style matching the Jujutsu Kaisen TV anime,
+> painted background art, crisp rendering, cel shading with soft gradient
+> accents, atmospheric depth, high detail, no text
+
+### The twenty boards
+
+Each line is the setting to paint. The **tint** column is the colour the engine
+already washes over the plate — paint *toward* it rather than against it, or the
+grade fights the art. The **gimmick** column is what the board does during a
+match ([stage_fx.js](../src/stage_fx.js)); the painting should look like a place
+where that could happen, and must leave room for it.
+
+| # | File | Board | Tint | The setting to paint | Gimmick it has to host |
+|---|---|---|---|---|---|
+| 1 | `training_bridge.jpg` | Training Bridge | green | A long arched wooden bridge over a green ravine at a temple school, late afternoon, heavy summer canopy on both banks, tiled roofs beyond. The calmest board in the game and the one the camera is tuned on — it should read as *ordinary*. | Leaves fall constantly; the camera adds more near the lens |
+| 2 | `quiet_hall.jpg` | Quiet Hall | warm amber | A long empty tatami hall, shoji screens down one side throwing hard warm rectangles across the floor, a heavy bronze bell hanging in the far dark. Stillness is the subject. | Every ~25 s the bell seals techniques for 4 s; camera pushes in |
+| 3 | `flooded_gate.jpg` | Flooded Gate | cool blue | A great stone torii gate standing in knee-deep floodwater, submerged steps, rain-heavy sky, the waterline the dominant horizontal. **Currently 800×437 — the lowest-resolution plate in the game and the most urgent of the twenty.** | A surge wave sweeps the length of the floor |
+| 4 | `shibuya_night.webp` | Shibuya Night | indigo | The Shibuya scramble at night from street level, neon towers stacked deep, wet asphalt throwing colour back up. The busiest board — but the busy has to sit *above* the fight band. **Deliver as JPEG at 3200×1800; currently 1200×675 webp.** | An 8 s "curtain" seals the arena and floods everyone's meter |
+| 5 | `curse_maw.jpg` | Curse Maw | cyan | The inside of an enormous curse: a ribbed organic cavern, wet cyan bioluminescence in the recesses, a throat receding into dark. **Currently 1920×1640 at a 1.17 aspect — it is cropped hard before 3d crops it again; reframe to true 16:9.** | Fangs snap up at both outer thirds of the floor |
+| 6 | `garden_steps.jpg` | Garden Steps | bright green | A terraced temple garden climbing left to right, moss, stone risers, a still pond below, blossom. The one board whose *layout* the 3D camera flatters most — the terracing should read in the painting too. | A flower blooms on a random platform and heals whoever reaches it |
+| 7 | `lantern_corridor.jpg` | Lantern Corridor | warm orange | A covered wooden veranda running into the distance, paper lanterns strung the length of it, warm pools of light on dark boards, night garden past the posts. Keep the lanterns *mid-distance and beyond* — the camera hangs its own into the top of frame. | A lantern shakes loose, falls and burns a patch of floor |
+| 8 | `sunken_crossing.jpg` | Sunken Crossing | pale blue | A flooded city crossing at dusk, a few centimetres of standing water turning the whole street into a mirror, drowned kerbs, signage doubled in the reflection. The slickness is a mechanic here, so sell the wet. | The floor is genuinely slippery; the camera glides and overshoots |
+| 9 | `neon_split.jpg` | Neon Split | magenta | A narrow back alley between two neon-clad blocks, signage crowding in from both sides, a dark gap straight up the centre. Leave the centre line clear — something stands in it. | An energy wall strikes down the centre line and holds |
+| 10 | `bone_sanctum.jpg` | Bone Sanctum | pale teal | A cathedral built from bone: ribbed vaults, vertebral columns, cold teal light from high openings, ossuary dark below. | Drop-through platforms rattle, phase out for 3 s, re-knit |
+| 11 | `bridge_duel.jpg` | Bridge Duel | sea green | A high suspension span in sea mist, cables climbing out of frame, water far below, distant headland. Emptiness on all sides — the floor here moves, and the surroundings are what make that legible. | The whole main platform drifts side to side under the fight |
+| 12 | `academy_hall.jpg` | Academy Hall | brown | A grand school hall — dark timber, a gallery, tall windows down one side, dust in the light. Institutional and a little too big. | On a bell, the platforms glide into a whole new arrangement |
+| 13 | `mist_pier.jpg` | Mist Pier | pale ice | A wooden pier running out into flat water under heavy fog, pilings fading by depth, a sun disc barely through. Depth by *fade*, not by detail — this is the board where atmospheric perspective does all the work. | Fog rolls in for 6 s; the camera pushes in rather than out |
+| 14 | `crosswalk_rush.jpg` | Crosswalk Rush | blue | A wide city intersection at blue hour, zebra bars running away, signals and streetlights, towers behind. Traffic is drawn by the game, not painted — leave the near lane **empty**. | Cars run the floor; the 3D camera adds more between lens and fight |
+| 15 | `cursed_teeth.jpg` | Cursed Teeth | cyan-teal | A gullet: concentric rings of teeth receding into a throat, wet violet-cyan glow deep inside, something breathing. | Fangs drop from above; every 25 s the stage inhales |
+| 16 | `river_gate.jpg` | River Gate | jade | A river shrine gate at dawn, mist off the water, reeds bending consistently one way, petals in the air. The wind is a mechanic — paint the world already leaning. | A crosswind alternates direction; the camera rolls with it |
+| 17 | `school_wing.jpg` | School Wing | tan | A school corridor after hours — lockers, a run of windows, late sun down the length of it, nothing where there should be somebody. Quiet and slightly wrong. | A weak curse wanders out; pop it for meter |
+| 18 | `empty_city.jpg` | Empty City | grey-blue | A derelict city block under an overcast sky, empty windows, weeds through the tarmac, no people and no traffic. Flat grey light. | Two rooftops crumble under weight and re-form |
+| 19 | `billboard_roof.jpg` | Billboard Roof | hot pink | A rooftop above a neon city in a storm — plant housings, aerials, hoardings stepping back into rain haze, cloud lit from within. The camera adds its own hoardings behind the stage, so keep the skyline readable and not too crowded. | Lightning takes the top platform; the strongest shake in the game |
+| 20 | `domain_core.jpg` | Domain Core | aqua | The inside of a Domain Expansion: a non-place. Geometry that does not resolve, aqua light with no source, fragments hanging at rest. Gravity is low here — nothing should look like it is sitting on anything. | Side platforms orbit slowly; everyone floats |
+
+### Deliver in this order
+
+Not one batch — the first three change what a player sees most.
+
+1. **`flooded_gate`, `shibuya_night`, `curse_maw`** — the three that are below
+   the current norm *before* the 3D crop is applied. Flooded Gate at 800×437 is
+   soft even in flat mode.
+2. **`crosswalk_rush`, `lantern_corridor`, `training_bridge`** — the three
+   boards that already have near-field garnish, so they are where the depth
+   the repaint supports is most visible.
+3. The remaining fourteen, any order.
+
+Flat mode is the default and is unaffected either way, so nothing here is
+blocking and a partial delivery is genuinely useful.
+
+---
+
+## 18F. Near-field cards for the garnish layer — 14 images, optional
+
+**Lower priority than 18E, and genuinely optional** — every one of these has a
+procedural stand-in drawing in the game right now, so nothing is missing. But
+this is where depth actually comes from, and it is worth saying why, because it
+is the opposite of the intuitive answer.
+
+Measured (§10 of [2.5d-camera-plan.md](2.5d-camera-plan.md)): splitting a
+*backdrop* into parallax layers buys **2.3 px** of differential shift in normal
+play, because this camera barely translates — the sim clamps it to ±0.88° of
+yaw. A card at `z = +2`, between the lens and the fight, separates from the
+backdrop by **14 px** at that same yaw and **64 px** in a drama shot. Proximity
+to the lens is the whole term. So the depth budget is better spent here than on
+layering the paintings, and 18E asks for *bigger* backgrounds rather than
+*split* ones for exactly this reason.
+
+These are the elements the camera already flies past the lens
+([garnish.js](../src/camera3d/garnish.js)), currently drawn with canvas
+primitives. Real art would replace the procedural texture and nothing else —
+the motion, depth, spawning and per-board wiring already exist.
+
+### Delivery — keyed plates, like sprites, not full-bleed like backgrounds
+
+```
+assets/intake/garnish/<name>.png
+```
+
+PNG, one subject per file, on a **flat magenta `#FF00FF` key screen** (grey
+`#808080` for the warm ones — marked below), same rules as the sprite spec
+above: perfectly flat unlit screen, no colour bounce onto edges, margin on all
+four sides, nothing touching the canvas edge. **At least 1000 px on the long
+edge.** These are seen close to the lens and get magnified.
+
+Anything travelling sideways should be drawn **facing/pointing LEFT**, same as
+the projectile rule — the renderer mirrors for the other direction.
+
+| File | Board | What it is | Screen |
+|---|---|---|---|
+| `leaf_green.png` | Training Bridge | One broad summer leaf, seen flat-on, slight curl. Simple silhouette — it is 30 px on screen half the time. | magenta |
+| `leaf_gold.png` | Training Bridge | The same leaf turning: yellow-gold, edge curling, one side catching light. | grey |
+| `lantern_paper.png` | Lantern Corridor | A paper lantern hanging on its cord, lit from within but seen against brighter light — mostly silhouette with a warm rim. Cord running off the top of the frame. | grey |
+| `lantern_iron.png` | Lantern Corridor | An iron temple lantern on a bracket, heavier, colder, unlit. Variety against the paper one. | magenta |
+| `car_sedan.png` | Crosswalk Rush | A car in near-total silhouette, side-on, pointing **left**, headlights blown out, faint lit windows. It passes in front of the whole fight for well under a second — read at a glance, no detail. | magenta |
+| `car_van.png` | Crosswalk Rush | A tall delivery van, same treatment, taller and blockier so two passes never look identical. | magenta |
+| `car_bike.png` | Crosswalk Rush | A motorcycle and rider, low and fast, single headlight, hard lean. | magenta |
+| `rubble_a.png` … `rubble_c.png` | Empty City | Three chunks of broken concrete and rebar, angular, unlit, no two alike. Small and dark — these tumble toward the lens. (3 files) | magenta |
+| `hoarding_a.png` … `hoarding_c.png` | Billboard Roof | Three lit advertising hoardings on steel gantries, seen from below and slightly to one side, legs and bracing visible. Abstract light and colour, **no legible text or logos**. These sit *behind* the stage, so they are the one entry here that is far rather than near. (3 files) | magenta |
+| `signal_gantry.png` | Crosswalk Rush | A traffic signal on its arm, dark against the sky, lamps lit. Hangs into the top of frame. | magenta |
+
+Fourteen files. Any subset is useful — each one replaces its procedural
+stand-in independently, and a board with no delivery keeps the drawing it has.

@@ -131,6 +131,32 @@ export const SFX = {
   domainIronMountain: { file: "domain_iron_mountain.mp3", category: "domain", gain: 0.8 },
   domainIdleDeathGamble: { file: "domain_idle_death_gamble.mp3", category: "domain", gain: 0.8 },
   domainMutualLove: { file: "domain_mutual_love.mp3", category: "domain", gain: 0.8 },
+  // The eighth, for Dagon. Owed since round 15 staged him and live since he
+  // reached the select screen — DOMAIN_STING has always named this key.
+  domainCaptivatingSkandha: { file: "domain_captivating_skandha.mp3", category: "domain", gain: 0.8 },
+
+  // ---- The domain moment, round 10 (docs/audio-requests.md). Every key here
+  // is registered ahead of its file: an undelivered sound is dropped silently
+  // (audio.js), so the sequence plays exactly as it does today until the mp3s
+  // land, and needs no code change on the day they do.
+  //
+  // The call-out: "領域展開" and the domain's name, in the owner's own voice.
+  // Per CHARACTER rather than per voice group — eight fighters have a domain
+  // and this is the one line each of them is known for, so the grunt-group
+  // sharing that covers 27 fighters' effort noises is the wrong economy here.
+  domainCallGojo: { file: "domain_call_gojo.mp3", category: "voice", gain: 1.1 },
+  domainCallSukuna: { file: "domain_call_sukuna.mp3", category: "voice", gain: 1.1 },
+  domainCallMegumi: { file: "domain_call_megumi.mp3", category: "voice", gain: 1.1 },
+  domainCallMahito: { file: "domain_call_mahito.mp3", category: "voice", gain: 1.1 },
+  domainCallJogo: { file: "domain_call_jogo.mp3", category: "voice", gain: 1.1 },
+  domainCallDagon: { file: "domain_call_dagon.mp3", category: "voice", gain: 1.1 },
+  domainCallHakari: { file: "domain_call_hakari.mp3", category: "voice", gain: 1.1 },
+  domainCallYuta: { file: "domain_call_yuta.mp3", category: "voice", gain: 1.1 },
+  // The barrier itself, and the room it encloses.
+  domainBarrier: { file: "domain_barrier.mp3", category: "domain", gain: 0.9 },
+  domainInterior: { file: "domain_interior.mp3", category: "domain", loop: true, gain: 0.45 },
+  // A second domain refused while one is open — the popup has never had a sound.
+  domainRejected: { file: "domain_rejected.mp3", category: "ui", gain: 0.9 },
 
   // ---- Tier 6: stage hazards (Active Boards)
   hazardTelegraph: { file: "hazard_telegraph.mp3", category: "hazard" },

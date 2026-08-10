@@ -29,6 +29,11 @@ const CASES = [
   // loaded every character falls through to sprites, so this must select
   // `billboard` AND still boot a working game rather than a blank stage.
   ["?render=billboard", "billboard", false],
+  // The live-3D anime path. Same rule as the billboard entry: registered and
+  // playable with zero delivered rigs — everyone falls through to sprites.
+  ["?render=3d", "3d", false],
+  ["?render=render3d", "3d", false],
+  ["?render=anime", "3d", false],
   ["?render=nonsense", "sprite", true],
 ];
 

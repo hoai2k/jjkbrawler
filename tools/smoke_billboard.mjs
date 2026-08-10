@@ -193,7 +193,7 @@ try {
   await page.goto(`${BASE}/index.html`);
 
   const r = await page.evaluate(async () => {
-    const THREE = await import("/billboards/vendor/three.module.js");
+    const THREE = await import("/vendor/three/three.module.js");
     const rig = await import("/billboards/src/rig.js");
     const renderer = await import("/billboards/src/renderer.js");
     const { aimSolve } = await import("/billboards/src/states.js");

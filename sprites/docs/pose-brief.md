@@ -229,6 +229,22 @@ two of them on screen.
 | `prone` | flat on their back on the ground, arms out, legs dropped, head tilted — dazed but conscious, the beat after being run over. Drawn HORIZONTAL: the body lies along the ground plane, **feet toward the right edge of the frame** |
 | `victory` | celebrating, weapon raised or arms up, weight tall and open |
 
+**Say what a costume is NOT, when it could be read two ways.** Uro's block said
+her covering was "a wrap of pale-cyan cloud vapour clinging across her chest and
+hips" — one sentence that describes a single chest-to-hip garment as readily as
+the two separate bands her canon actually shows. Three of her poses came back
+with the bands merged into a dress, and they were obeying the words. A costume
+with a gap in it needs the gap stated: *two separate bands, midriff bare, never
+joined*.
+
+**A minimal costume is at risk in `prone` specifically.** Uro's set draws her
+canon cloud wrap over bare limbs correctly in every pose but this one, where she
+comes back in a full-length bodysuit that appears in no brief. The figure lying
+down full-length is what triggers it — `dodge_roll` is on the ground too and is
+fine — so restate the costume **inside the pose line** for any fighter whose
+covering is minimal, rather than leaving it to the character block. It may still
+come back dressed; that is the generator, not the request.
+
 `prone` is the one pose the placement tools cannot reason about: it lies along
 the floor, so its ground contact really is the lowest pixel and the usual foot
 rule would hover it. It is named in `NO_STANDING_FOOT` for exactly that reason
@@ -255,7 +271,9 @@ often.
 | **The technique is drawn into the pose** | `special_*`, `ult_*` | 12A |
 | **A design element is silently dropped** | Mahoraga's karma wheel | 13 |
 | **A whole cycle arrives as one contact-sheet plate** | `run_*` | 15A |
-| **Scenery drawn into the pose** — a ledge, a floor, a wall | `ledge_hang` | 15A |
+| **Scenery drawn into the pose** — a ledge, a floor, a wall | `ledge_hang` | 15A, 15A(K), 17A |
+| **A minimal costume gets covered up when the figure lies down** | `prone` | 13 |
+| **An ambiguous costume sentence gets drawn the covered way** | any | 13, 18D |
 | **The reach frame reaches with the arm** | `run_reach_*` | 15A |
 
 Two of these are worth stating as numbers rather than as complaints, because
