@@ -45,13 +45,13 @@
 //      sprites.js already does — foot line at (x, y), mirrored by facing,
 //      rotated about the centre of mass.
 //
-//   4. Answers for `bodyWidth` (src/silhouette.js) and `headHeightTarget`
-//      (src/heights.js). Those are gameplay numbers measured off the artwork,
-//      and today they are measured off sprite silhouettes baked into the
-//      manifest. A model has to answer them from its own bounds or every
-//      hitbox on a 2.5D fighter is quietly wrong. This is the seam the render
-//      backend deliberately does NOT cover — see the note in
-//      src/render_backend.js.
+//   4. Nothing, for `bodyWidth` (src/silhouette.js) and `headHeightTarget`
+//      (src/heights.js) — decided in docs/plan.md. Those gameplay numbers stay
+//      measured off the sprite silhouettes on EVERY backend, so a matchup plays
+//      identically whichever way it is drawn; instead, a delivered model must
+//      match its fighter's sprite silhouette, and the billboard workbench
+//      overlays the two to check. (Still outside the render backend contract —
+//      see the note in src/render_backend.js.)
 //
 // Until 1-3 exist, every character reports no model and draws as a sprite, so
 // `?render=billboard` plays exactly like `?render=sprite`. That is the intended

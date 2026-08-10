@@ -4,6 +4,11 @@ Everything in this file is **outstanding**. Delivered rounds are recorded in
 [asset-requests-history.md](asset-requests-history.md) — including the round
 numbers, so a commit or code comment citing "round 5 art" still resolves.
 
+(This file is 2D art — sprites, cards, effects, backdrops. Requests for the
+2.5D path's rigged 3D models live in
+[billboards/docs/asset-requests.md](../billboards/docs/asset-requests.md),
+numbered B1, B2… so the two tracks never collide.)
+
 **Current status: rounds 1–16 delivered. Round 17 is delivered except its card
 set. Round 18 is open.**
 
