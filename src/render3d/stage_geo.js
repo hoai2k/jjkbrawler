@@ -12,6 +12,7 @@ import {
   Group, Mesh, BoxGeometry, PlaneGeometry, MeshBasicMaterial,
   CanvasTexture, Texture, SRGBColorSpace, DoubleSide,
 } from "../../vendor/three.module.js";
+import { ORDER } from "./quads.js";
 import { CAMERA as C } from "../config_camera.js";
 import { getImage } from "../assets.js";
 import { getStage } from "../stages.js";
@@ -104,6 +105,7 @@ function makePlatformMesh(p) {
   );
   face.position.z = 0.002;
   group.add(face);
+  box.renderOrder = face.renderOrder = ORDER.platform;
   group.userData.key = null;
   return group;
 }
@@ -173,9 +175,14 @@ function cssColor(str) {
  *  checks are cheap and it makes stage switching stateless. */
 export function makeBackdrop() {
   const g = new Group();
+  // Every backdrop layer draws before the stage and the fighters. They are
+  // ordered among themselves by their z, which is why each `mk` below is
+  // listed far-to-near.
+  let seq = 0;
   const mk = (z, mat) => {
     const m = new Mesh(new PlaneGeometry(1, 1), mat);
     m.position.z = z;
+    m.renderOrder = ORDER.backdrop + seq++;
     g.add(m);
     return m;
   };

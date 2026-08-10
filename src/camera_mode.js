@@ -28,21 +28,29 @@ export function enable3dCamera(module) {
 
 // ---------------------------------------------------------------- camera cues
 //
-// Stage gimmicks (stage_fx.js) can nudge the camera when their hazard fires —
-// Curse Maw's fang snap, Billboard Roof's lightning. They call `cameraCue`
-// unconditionally; in flat mode (or before the rig exists) nobody is
-// listening and the call is a no-op, which is the feature detection the plan
-// asks for: stage_fx.js needs no knowledge of which mode is running.
+// Stage gimmicks (stage_fx.js) announce their big moments here — Curse Maw's
+// fang snap, Billboard Roof's lightning, Crosswalk Rush's traffic. They call
+// `cameraCue` unconditionally; in flat mode (or before the 3D scene exists)
+// nobody is listening and the call is a no-op, which is the feature detection
+// the plan asks for: stage_fx.js needs no knowledge of which mode is running.
+//
+// A LIST of listeners rather than one handler, because a cue is an event about
+// the STAGE, not a message to the camera: the rig moves the lens on it, and
+// the garnish layer spawns cards on it. Both want the same "the traffic is
+// running now, going left" and neither should have to learn about the other.
 
-let cueHandler = null;
+const cueListeners = [];
 
-/** The rig registers itself here. */
-export function setCameraCueHandler(fn) {
-  cueHandler = fn;
+/** Subscribe to stage cues. Both the rig and the garnish layer register here
+ *  when the 3D scene is built. */
+export function addCameraCueListener(fn) {
+  cueListeners.push(fn);
 }
 
-/** Nudge the 3D camera, if there is one. `name` is a treatment the rig knows
- *  (see CUES in config_camera.js); `strength` scales it, default 1. */
+/** Announce a stage moment, if anything is listening. `name` is a treatment
+ *  the listeners know (see CUES in config_camera.js); `strength` scales it and
+ *  carries a sign where direction matters (which way the wave is sweeping).
+ *  Default 1. */
 export function cameraCue(name, strength = 1) {
-  if (cueHandler) cueHandler(name, strength);
+  for (const fn of cueListeners) fn(name, strength);
 }

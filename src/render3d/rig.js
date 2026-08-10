@@ -9,7 +9,7 @@
 
 import { PerspectiveCamera, Vector3 } from "../../vendor/three.module.js";
 import { CAMERA as C, DRAMA, BOARD_CAMERA, CUES } from "../config_camera.js";
-import { setCameraCueHandler } from "../camera_mode.js";
+import { addCameraCueListener } from "../camera_mode.js";
 import { getStage, mainPlatform } from "../stages.js";
 import { WORLD } from "../constants.js";
 import { clamp, lerp } from "../utils.js";
@@ -46,7 +46,7 @@ function cue(name, strength = 1) {
   activeCues.push({ name, def, strength, t: 0 });
 }
 
-setCameraCueHandler(cue);
+addCameraCueListener(cue);
 
 /** 0→1→0 over attack/hold/release, smooth at both ends. */
 function envelope(c) {

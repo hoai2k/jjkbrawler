@@ -13,10 +13,12 @@
 // overlay still draws every particle and arc on top.
 
 import {
-  Group, Mesh, BufferGeometry, BufferAttribute, MeshBasicMaterial,
-  Texture, CanvasTexture, SRGBColorSpace, DoubleSide,
-  AdditiveBlending, NormalBlending, Matrix4,
+  CanvasTexture, SRGBColorSpace, AdditiveBlending, NormalBlending,
 } from "../../vendor/three.module.js";
+import {
+  makeQuadPool, imageTexture, rectMatrix, ORDER,
+  matIdentity, matTranslate, matScale, matRotate,
+} from "./quads.js";
 import { frameMeta, frameImage, getImage } from "../assets.js";
 import { currentFrame } from "../render_backend.js";
 import { anchorPoint, frameFootY } from "../../sprites/src/sprites.js";
@@ -26,60 +28,6 @@ import { TRAIL_ALPHA } from "../config_tuning.js";
 import { CELL_W } from "../constants.js";
 
 const DEG = Math.PI / 180;
-
-// ------------------------------------------------------------------ 2D affine
-//
-// Canvas-semantics matrix ops (post-multiply), so the composition below reads
-// exactly like the ctx calls in drawCharFrame.
-
-function matIdentity() { return { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }; }
-function matTranslate(m, x, y) {
-  m.e += m.a * x + m.c * y;
-  m.f += m.b * x + m.d * y;
-}
-function matScale(m, x, y) {
-  m.a *= x; m.b *= x; m.c *= y; m.d *= y;
-}
-function matRotate(m, t) {
-  const cos = Math.cos(t), sin = Math.sin(t);
-  const { a, b, c, d } = m;
-  m.a = a * cos + c * sin; m.b = b * cos + d * sin;
-  m.c = c * cos - a * sin; m.d = d * cos - b * sin;
-}
-
-// ------------------------------------------------------------------ geometry
-//
-// One shared unit quad: (0,0) is the image's top-left, (1,1) its bottom-right,
-// in the y-down space the matrices above work in. UVs account for three.js's
-// default flipY texture upload.
-
-function unitQuad() {
-  const geo = new BufferGeometry();
-  geo.setAttribute("position", new BufferAttribute(new Float32Array([
-    0, 0, 0,  1, 0, 0,  0, 1, 0,  1, 1, 0,
-  ]), 3));
-  geo.setAttribute("uv", new BufferAttribute(new Float32Array([
-    0, 1,  1, 1,  0, 0,  1, 0,
-  ]), 2));
-  geo.setIndex([0, 2, 1, 2, 3, 1]);
-  return geo;
-}
-
-const QUAD = unitQuad();
-
-// ------------------------------------------------------------------ textures
-
-const texCache = new Map(); // HTMLImageElement -> Texture
-
-function imageTexture(img) {
-  let tex = texCache.get(img);
-  if (tex) return tex;
-  tex = new Texture(img);
-  tex.colorSpace = SRGBColorSpace;
-  tex.needsUpdate = true;
-  texCache.set(img, tex);
-  return tex;
-}
 
 // Soft radial orb for projectiles that have no sprite — the GL stand-in for
 // the flat renderer's radial-gradient ball, one texture per colour.
@@ -122,45 +70,8 @@ function shadowTexture() {
   return shadowTex;
 }
 
-// ---------------------------------------------------------------- quad pool
-//
-// A fixed pool of meshes reused every frame — set matrix/texture/alpha, show;
-// hide the rest. No allocation in the draw loop once the pool has grown.
-
-const _m4 = new Matrix4();
-
 export function makeBillboards() {
-  const group = new Group(); // added to the sim group by index.js
-  const pool = [];
-  let used = 0;
-
-  function quad() {
-    let mesh = pool[used];
-    if (!mesh) {
-      mesh = new Mesh(QUAD, new MeshBasicMaterial({
-        transparent: true, side: DoubleSide, depthWrite: false,
-      }));
-      mesh.matrixAutoUpdate = false;
-      pool.push(mesh);
-      group.add(mesh);
-    }
-    used++;
-    mesh.visible = true;
-    return mesh;
-  }
-
-  /** Place `mesh` by a 2D sim-space affine, at depth `z` (world units) and
-   *  draw order `order` (later = on top, mirroring canvas paint order). */
-  function place(mesh, m, z, order) {
-    _m4.set(
-      m.a, m.c, 0, m.e,
-      m.b, m.d, 0, m.f,
-      0, 0, 1, z,
-      0, 0, 0, 1,
-    );
-    mesh.matrix.copy(_m4);
-    mesh.renderOrder = order;
-  }
+  const pool = makeQuadPool(); // its group is added to the sim group by index.js
 
   /** The drawCharFrame transform chain as a matrix, quad space -> sim space.
    *  Mirrors sprites.js drawCharFrame line for line. */
@@ -199,32 +110,17 @@ export function makeBillboards() {
     const img = frameImage(charKey, frameKey);
     const m = charFrameMatrix(charKey, frameKey, x, y, opts);
     if (!img || !m) return false;
-    const mesh = quad();
-    mesh.material.map = imageTexture(img);
-    mesh.material.opacity = opts.alpha ?? 1;
-    mesh.material.blending = NormalBlending;
-    mesh.material.color.set(0xffffff);
-    mesh.material.needsUpdate = true;
-    place(mesh, m, z, order);
+    pool.draw(imageTexture(img), m, { z, order, alpha: opts.alpha ?? 1 });
     return true;
   }
 
   /** An axis-aligned image rect (used by transformed fighters, shadows,
    *  projectile art) with optional rotation about its centre. */
   function drawRect(tex, cx, cy, w, h, { rotation = 0, flipX = false, alpha = 1, additive = false, color = 0xffffff } = {}, z, order) {
-    const mesh = quad();
-    const m = matIdentity();
-    matTranslate(m, cx, cy);
-    if (rotation) matRotate(m, rotation);
-    if (flipX) matScale(m, -1, 1);
-    matTranslate(m, -w / 2, -h / 2);
-    matScale(m, w, h);
-    mesh.material.map = tex;
-    mesh.material.opacity = alpha;
-    mesh.material.blending = additive ? AdditiveBlending : NormalBlending;
-    mesh.material.color.set(color);
-    mesh.material.needsUpdate = true;
-    place(mesh, m, z, order);
+    pool.draw(tex, rectMatrix(cx, cy, w, h, { rotation, flipX }), {
+      z, order, alpha, color,
+      blending: additive ? AdditiveBlending : NormalBlending,
+    });
   }
 
   function groundBelow(f, platforms) {
@@ -238,8 +134,8 @@ export function makeBillboards() {
   /** Rebuild the frame's billboards from state. Order mirrors the flat
    *  renderer: shadows, trails, bodies back-to-front by y, then projectiles. */
   function update(st) {
-    used = 0;
-    let order = 0;
+    pool.begin();
+    let order = ORDER.billboard;
 
     const sorted = [...st.fighters].sort((a, b) => a.y - b.y);
     for (const f of sorted) {
@@ -309,8 +205,8 @@ export function makeBillboards() {
       }
     }
 
-    for (let i = used; i < pool.length; i++) pool[i].visible = false;
+    pool.end();
   }
 
-  return { group, update };
+  return { group: pool.group, update, count: pool.count };
 }

@@ -11,18 +11,42 @@
 //   positioned by the rig's overlay projection.
 
 import { Scene, WebGLRenderer, SRGBColorSpace } from "../../vendor/three.module.js";
-import { camera, updateRig, overlayTransform, worldToScreen, resetRig } from "./rig.js";
+import {
+  camera, updateRig, overlayTransform, worldToScreen,
+  resetRig as resetRigState,
+} from "./rig.js";
 import { makeSimGroup, updatePlatforms, makeBackdrop, updateBackdrop } from "./stage_geo.js";
 import { makeBillboards } from "./billboards.js";
+import { makeGarnish } from "./garnish.js";
 import { WORLD } from "../constants.js";
 
-export { worldToScreen, overlayTransform, resetRig };
+export { worldToScreen, overlayTransform };
+
+/** What the last frame actually drew, for tools/smoke_camera3d.mjs. A scene
+ *  that renders nothing throws no errors, so "no page errors" alone is not
+ *  evidence the mode works — these counts are. */
+export function debugStats() {
+  return {
+    quads: billboards ? billboards.count() : 0,
+    garnish: garnish ? garnish.count() : 0,
+    camera: camera.position.toArray(),
+    fov: camera.fov,
+  };
+}
 
 let renderer = null;
 let scene = null;
 let simGroup = null;
 let backdrop = null;
 let billboards = null;
+let garnish = null;
+
+/** Between matches: the rig's smoothed framing and every garnish card go back
+ *  to nothing, so a new board does not inherit the last one's sky. */
+export function resetRig() {
+  resetRigState();
+  garnish?.reset();
+}
 
 /** Create the WebGL context and the scene skeleton. Returns false when WebGL
  *  is unavailable — the caller runs flat, never a broken screen. */
@@ -44,6 +68,11 @@ export function initRender3d() {
   scene.add(simGroup);
   billboards = makeBillboards();
   simGroup.add(billboards.group);
+  // In the sim group with the billboards: cards position in sim pixels like
+  // everything else, and the group's z scale is 1, so a card's depth is
+  // written in world units directly.
+  garnish = makeGarnish();
+  simGroup.add(garnish.group);
 
   resize();
   window.addEventListener("resize", resize);
@@ -76,5 +105,6 @@ export function draw(st) {
   updatePlatforms(scene, st.platforms);
   updateBackdrop(backdrop, st, camera.position.z, camera.fov);
   billboards.update(st);
+  garnish.update(st, dt);
   renderer.render(scene, camera);
 }
