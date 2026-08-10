@@ -61,8 +61,8 @@ export async function init() {
   if (ready || initFailed) return;
   try {
     const [three, loaderMod, rigMod, rendererMod, blitMod] = await Promise.all([
-      import("../vendor/three.module.js"),
-      import("../vendor/loaders/GLTFLoader.js"),
+      import("../../vendor/three.module.js"),
+      import("../../vendor/loaders/GLTFLoader.js"),
       import("./rig.js"),
       import("./renderer.js"),
       import("./blit.js"),

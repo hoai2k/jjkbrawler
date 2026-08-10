@@ -14,7 +14,8 @@
 
 import {
   Group, Mesh, BufferGeometry, BufferAttribute, MeshBasicMaterial,
-  Texture, CanvasTexture, SRGBColorSpace, DoubleSide, AdditiveBlending, Matrix4,
+  Texture, CanvasTexture, SRGBColorSpace, DoubleSide,
+  AdditiveBlending, NormalBlending, Matrix4,
 } from "../../vendor/three.module.js";
 import { frameMeta, frameImage, getImage } from "../assets.js";
 import { currentFrame } from "../render_backend.js";
@@ -201,7 +202,7 @@ export function makeBillboards() {
     const mesh = quad();
     mesh.material.map = imageTexture(img);
     mesh.material.opacity = opts.alpha ?? 1;
-    mesh.material.blending = 1; // NormalBlending
+    mesh.material.blending = NormalBlending;
     mesh.material.color.set(0xffffff);
     mesh.material.needsUpdate = true;
     place(mesh, m, z, order);
@@ -220,7 +221,7 @@ export function makeBillboards() {
     matScale(m, w, h);
     mesh.material.map = tex;
     mesh.material.opacity = alpha;
-    mesh.material.blending = additive ? AdditiveBlending : 1;
+    mesh.material.blending = additive ? AdditiveBlending : NormalBlending;
     mesh.material.color.set(color);
     mesh.material.needsUpdate = true;
     place(mesh, m, z, order);
