@@ -98,7 +98,7 @@ new Promise(r => setTimeout(r, 3000))
 
 - `javascript_tool` has **no top-level `await`** — use `.then()` chains.
 - The match has a ~1.6 s "READY…" intro during which fighters are frozen.
-- To inspect a frame without the CPU interfering: click `pauseButton` (the sim
+- To inspect a frame without the CPU interfering: press Escape (the sim
   stops, but `draw()` still runs), then
   `document.getElementById("pauseOverlay").style.display="none"` for a clean
   screenshot. Restore it afterward.

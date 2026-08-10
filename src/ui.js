@@ -1,6 +1,6 @@
 import { state } from "./state.js";
 import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, RESOLVED_GROUPS, randomCharacterKey } from "./characters.js";
-import { STAGES } from "./stages.js";
+import { STAGES, getStage } from "./stages.js";
 import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx, toggleMute } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
 import { METER_MAX } from "./constants.js";
@@ -47,7 +47,7 @@ export function initUi(cb) {
     "p1Stocks", "p2Stocks", "p3Stocks", "p4Stocks",
     "p1Meter", "p2Meter", "p3Meter", "p4Meter",
     "p1MeterLabel", "p2MeterLabel", "p3MeterLabel", "p4MeterLabel",
-    "p1Portrait", "p2Portrait", "p3Portrait", "p4Portrait", "pauseButton",
+    "p1Portrait", "p2Portrait", "p3Portrait", "p4Portrait", "arenaSign", "arenaSignName",
     "movesPanel", "movesTitle", "movesKicker", "movesPrevButton", "movesNextButton", "movesBackButton",
     "movesModeButton",
     "randomStageButton", "stageBackButton", "roundKicker", "winnerText", "rematchButton", "menuButton",
@@ -100,7 +100,6 @@ function updateLoadHint() {
 // the render functions below.
 function applyStaticText() {
   const set = (el, text) => { if (el) el.textContent = text; };
-  set(els.pauseButton, TEXT.pause.pauseButton);
   set(els.startButton, TEXT.menu.startWaiting);
   set(els.loadStatus, TEXT.loading.title);
   set(els.randomStageButton, TEXT.stages.random);
@@ -416,9 +415,62 @@ function buildStageGrid() {
     const btn = document.createElement("button");
     btn.className = "stage-card";
     btn.innerHTML = `<img src="assets/backgrounds/${stage.bgFile}" alt="${stage.name}" loading="lazy"><span>${stage.name}</span>`;
-    btn.addEventListener("click", () => callbacks.startMatch(stage.key));
+    btn.dataset.stage = stage.key;
+    btn.addEventListener("click", () => { if (!rouletteRunning) callbacks.startMatch(stage.key); });
     els.stageGrid.appendChild(btn);
   }
+}
+
+// ------------------------------------------------- the Random Stage draw
+//
+// Choosing Random is a draw, so it looks like one: the selector sprints once
+// over every arena, then comes round a second time slowing to a stop on the
+// stage that was actually rolled, and only then does the match load. While it
+// runs, nothing else on the screen answers — see updateMenuNav and the click
+// handlers above, which both bail on `rouletteRunning`.
+let rouletteRunning = false;
+const SWEEP_STEP = 0.055; // seconds per card on the fast first lap
+const SETTLE_STEP = 0.26; // …and on the very last hop of the second
+const LANDED_HOLD = 0.55; // beat on the winning card before the match loads
+
+const wait = (seconds) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+
+async function runStageRoulette() {
+  const cards = [...els.stageGrid.querySelectorAll(".stage-card")];
+  if (rouletteRunning || !cards.length) return;
+  rouletteRunning = true;
+  // The pad/keyboard cursor steps aside: two highlights racing each other on
+  // the same grid would read as a bug.
+  clearMenuFocus();
+
+  const n = cards.length;
+  const target = Math.floor(Math.random() * n);
+  // One full lap at a flat sprint (i < n), then a second lap that eases out
+  // over the remaining hops and stops on `target`.
+  const last = n + target;
+  let landed = null;
+  for (let i = 0; i <= last; i++) {
+    // Backing out of the screen (or anything else that changes phase) ends the
+    // draw where it stands; the match must not start behind the player's back.
+    if (state.phase !== "stageSelect") { rouletteRunning = false; cards.forEach((c) => c.classList.remove("stage-card--rolling", "stage-card--drawn")); return; }
+    if (landed) landed.classList.remove("stage-card--rolling");
+    landed = cards[i % n];
+    landed.classList.add("stage-card--rolling");
+    landed.scrollIntoView({ block: "nearest", inline: "nearest" });
+    // Every card ticks on the slow lap; on the sprint only every third does,
+    // otherwise twenty blips in a second turn into noise.
+    if (i >= n || i % 3 === 0) playSfx("uiMove");
+    const settle = i < n ? 0 : (target ? (i - n + 1) / target : 1);
+    await wait(SWEEP_STEP + (SETTLE_STEP - SWEEP_STEP) * settle * settle);
+  }
+
+  landed.classList.add("stage-card--drawn");
+  playSfx("uiSelect");
+  await wait(LANDED_HOLD);
+  landed.classList.remove("stage-card--rolling", "stage-card--drawn");
+  rouletteRunning = false;
+  if (state.phase !== "stageSelect") return;
+  callbacks.startMatch(cards[target].dataset.stage);
 }
 
 function setActivePicker(n) {
@@ -430,10 +482,7 @@ function bindMenuButtons() {
   for (const id of PLAYER_IDS) els[`p${id}PickCard`].addEventListener("click", () => setActivePicker(id));
   els.startButton.addEventListener("click", () => setPhase("stageSelect"));
   els.stageBackButton.addEventListener("click", () => setPhase("menu"));
-  els.randomStageButton.addEventListener("click", () => {
-    const stage = STAGES[Math.floor(Math.random() * STAGES.length)];
-    callbacks.startMatch(stage.key);
-  });
+  els.randomStageButton.addEventListener("click", () => { runStageRoulette(); });
 
   els.settingsCpuButton.addEventListener("click", () => {
     state.cpuLevel = (state.cpuLevel + 1) % 3;
@@ -524,7 +573,6 @@ function bindMenuButtons() {
     playSfx("uiSelect", 0.8);
   });
 
-  els.pauseButton.addEventListener("click", () => callbacks.togglePause());
   els.resumeButton.addEventListener("click", () => callbacks.togglePause());
   els.pauseResetButton.addEventListener("click", () => callbacks.resetMatch());
   els.pauseMenuButton.addEventListener("click", () => callbacks.quitToMenu());
@@ -717,6 +765,10 @@ export function setPhase(phase) {
   if (phase === "menu") layoutCharacterGrid();
   if (phase === "moves") renderMoveList();
   clearMenuFocus();
+  // Arriving on the arena screen, the cursor is already parked on Random: a
+  // player who just presses A gets a stage without ever steering the grid.
+  if (phase === "stageSelect") setFocus(els.randomStageButton, { quiet: true });
+  if (phase === "playing") els.arenaSignName.textContent = getStage(state.stageKey)?.name || "";
   syncMusic(phase);
 }
 
@@ -985,14 +1037,15 @@ function defaultFocus() {
       : els.characterGrid.querySelector(".char-card");
     if (current && items.includes(current)) return current;
   }
-  if (state.phase === "stageSelect") {
-    const first = els.stageGrid.querySelector(".stage-card");
-    if (first) return first;
-  }
+  // Random is the arena screen's resting position: it needs no browsing and it
+  // always has an answer, so it is what a blind press of A should get.
+  if (state.phase === "stageSelect" && items.includes(els.randomStageButton)) return els.randomStageButton;
   return items.find((el) => el.classList.contains("primary-action")) || items[0];
 }
 
-function setFocus(el) {
+// `quiet` places the cursor without the move blip — used when a screen opens
+// with something already selected, which is a starting position, not a move.
+function setFocus(el, { quiet = false } = {}) {
   if (focusEl === el) return;
   if (focusEl) focusEl.classList.remove("pad-focus");
   focusEl = el;
@@ -1239,6 +1292,7 @@ function menuBack() {
 
 // Called every frame by the main loop while a menu phase is active.
 export function updateMenuNav(dt) {
+  if (rouletteRunning) return; // the draw owns the arena screen until it lands
   if (state.phase === "menu" && padsMenuStates().length) {
     updateCharacterPickerPads(dt);
     return;
@@ -1292,7 +1346,7 @@ function bindMenuKeyboardNav() {
   });
 
   window.addEventListener("keydown", (e) => {
-    if (state.phase === "playing" || state.phase === "loading") return;
+    if (state.phase === "playing" || state.phase === "loading" || rouletteRunning) return;
     const map = {
       ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1],
     };

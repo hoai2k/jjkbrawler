@@ -183,7 +183,6 @@ export const TEXT = {
     resume: "Resume",
     reset: "Reset",
     quit: "Main Menu",
-    pauseButton: "Pause",
   },
 
   roundOver: {
