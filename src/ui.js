@@ -8,7 +8,8 @@ import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
 import { setSpriteSet, previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
 import { RANDOM_GROUP, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
-import { domainDirsFor } from "./domains.js";
+import { CONTROL_ROWS } from "./config_controls.js";
+import { domainStickFor, charDomainSpecialSlot } from "./domains.js";
 import { MATCH_MODES, MAX_FIGHTERS, matchPlan, modeLabel, HUMAN_TEAM } from "./modes.js";
 
 const $ = (id) => document.getElementById(id);
@@ -1000,28 +1001,51 @@ function renderMovesSingle() {
   `;
 }
 
-/** The button map, identical for every fighter and every player. */
+/** The button map, identical for every fighter and every player.
+ *
+ *  Every label on the pad is looked up in the control map (config_controls.js),
+ *  which is the same file input.js binds from — so a rebinding redraws this
+ *  diagram instead of leaving it describing the game as it used to be. This
+ *  drawing is why that matters: it is the first thing a player reads, and it
+ *  was still promising RT was a second shield two mappings later. */
+function padFor(id) {
+  return CONTROL_ROWS.find((row) => row.id === id);
+}
+
+/** "LB · DOMAIN EXPANSION" — the button and what it does, in the diagram's
+ *  shouting case. `short` when the full action name is too long for the art. */
+function padCallout(id, short) {
+  const row = padFor(id);
+  if (!row) return "";
+  // The pad column can carry a qualifier ("B, or double-tap"); the diagram has
+  // room for the button alone.
+  const button = row.pad.split(",")[0];
+  return `${button} · ${short || row.action}`.toUpperCase();
+}
+
 function controllerGuide() {
   return `
     <div class="controller-guide">
       <svg class="xbox-controller" viewBox="0 0 660 300" role="img" aria-label="Xbox controller button map">
         <path class="controller-shell" d="M180 55C128 60 94 99 80 155L53 246c-8 28 25 43 43 21l69-81h330l69 81c18 22 51 7 43-21l-27-91c-14-56-48-95-100-100-48-5-66 14-110 14S228 50 180 55Z"/>
         <rect class="controller-bumper" x="145" y="38" width="100" height="26" rx="10"/><rect class="controller-bumper" x="415" y="38" width="100" height="26" rx="10"/>
-        <text x="195" y="56">LB · ULTIMATE</text><text x="465" y="56">RB · ULTIMATE</text>
+        <text x="195" y="56">${padCallout("domain", "Domain")}</text><text x="465" y="56">${padCallout("ult")}</text>
         <circle class="controller-stick" cx="205" cy="126" r="35"/><circle class="controller-stick-cap" cx="205" cy="126" r="21"/>
-        <text class="controller-callout" x="205" y="184">MOVE · CROUCH · AIM</text>
+        <text class="controller-callout" x="205" y="184">MOVE · CROUCH</text>
         <g class="controller-dpad controller-dpad--domain"><rect x="270" y="168" width="62" height="22" rx="5"/><rect x="290" y="148" width="22" height="62" rx="5"/></g>
-        <text class="controller-callout" x="301" y="228">D-PAD · DOMAIN</text>
+        <text class="controller-callout" x="301" y="228">${padCallout("steer", "Steer / aim")}</text>
         <circle class="controller-menu" cx="305" cy="104" r="10"/><circle class="controller-menu" cx="355" cy="104" r="10"/>
+        <circle class="controller-stick" cx="548" cy="212" r="30"/><circle class="controller-stick-cap" cx="548" cy="212" r="18"/>
+        <text class="controller-callout" x="548" y="262">${padCallout("tilt", "Tilts")}</text>
         <g class="controller-face">
-          <circle class="button-y" cx="468" cy="102" r="20"/><text x="468" y="108">Y</text>
-          <circle class="button-x" cx="428" cy="141" r="20"/><text x="428" y="147">X</text>
-          <circle class="button-b" cx="508" cy="141" r="20"/><text x="508" y="147">B</text>
-          <circle class="button-a" cx="468" cy="180" r="20"/><text x="468" y="186">A</text>
+          <circle class="button-y" cx="468" cy="102" r="20"/><text x="468" y="108">${padFor("heavy").pad}</text>
+          <circle class="button-x" cx="428" cy="141" r="20"/><text x="428" y="147">${padFor("light").pad}</text>
+          <circle class="button-b" cx="508" cy="141" r="20"/><text x="508" y="147">${padFor("dash").pad.split(",")[0]}</text>
+          <circle class="button-a" cx="468" cy="180" r="20"/><text x="468" y="186">${padFor("jump").pad}</text>
         </g>
         <text class="face-label" x="552" y="106">HEAVY</text><text class="face-label" x="368" y="146" text-anchor="end">LIGHT</text>
-        <text class="face-label" x="552" y="146">SPECIAL</text><text class="face-label" x="552" y="186">JUMP</text>
-        <text class="controller-trigger" x="113" y="27">LT · SHIELD / DODGE</text><text class="controller-trigger" x="547" y="27" text-anchor="end">RT · SHIELD / DODGE</text>
+        <text class="face-label" x="552" y="146">DASH</text><text class="face-label" x="552" y="186">JUMP</text>
+        <text class="controller-trigger" x="113" y="27">${padCallout("shield", "Shield / dodge")}</text><text class="controller-trigger" x="547" y="27" text-anchor="end">${padCallout("special")}</text>
       </svg>
       <div class="controller-tips">
         ${TEXT.moves.tips.map(([input, action]) => `<span><strong>${input}</strong> ${action}</span>`).join("")}
@@ -1050,23 +1074,37 @@ function characterBody(c) {
 
 /** Domain Expansion rows for the moves screen. Most fighters have none at all,
  *  and saying so explicitly is better than an empty section the player has to
- *  interpret.
+ *  interpret — but a fighter with a SIMPLE Domain has one this screen must
+ *  name, because the domain button casts it.
  *
- *  Which arrows open which domain is asked of `domainDirsFor` rather than
- *  written here, because the answer depends on how many the fighter has: with
- *  one, every direction opens it; with two, the pad splits up/left and
- *  down/right. A screen that stated a fixed mapping would be wrong for one of
- *  those cases and there would be nothing to make it notice. */
+ *  How a domain is reached is asked of domains.js rather than written here: the
+ *  button alone opens the one domain a fighter has, and only a fighter with
+ *  more than one splits them across the left stick. A screen that stated a
+ *  fixed mapping would be wrong for one of those cases with nothing to make it
+ *  notice. */
 function domainRows(c) {
   const list = c.domains || [];
-  if (!list.length) return `<p class="moves-blurb moves-blurb--muted">${TEXT.moves.domainNone}</p>`;
-  return `<dl class="moves-table">` + list.map((d, i) => `
-      <dt>${TEXT.moves.domainInputAlt(
-        domainDirsFor(i, list.length).map((d) => TEXT.moves.domainArrows[d]))}</dt>
+  const input = TEXT.moves.domainInput;
+  if (!list.length) {
+    const slot = charDomainSpecialSlot(c);
+    if (!slot) return `<p class="moves-blurb moves-blurb--muted">${TEXT.moves.domainNone}</p>`;
+    const move = c.specials[slot];
+    return `<dl class="moves-table">
+      <dt>${input}</dt>
+      <dd>
+        <strong>${move.name}</strong> — ${move.desc}
+        <em>${TEXT.moves.simpleDomainNote(TEXT.moves[`special${slot[0].toUpperCase()}${slot.slice(1)}`])}</em>
+      </dd></dl>`;
+  }
+  return `<dl class="moves-table">` + list.map((d, i) => {
+    const stick = domainStickFor(i, list.length);
+    return `
+      <dt>${stick ? TEXT.moves.domainInputAlt(input, stick.map((k) => TEXT.moves.domainSticks[k])) : input}</dt>
       <dd>
         <strong>${d.name}</strong> — ${d.desc} <em>${TEXT.moves.domainNote}</em>
         <span class="domain-howto"><strong>${TEXT.moves.domainHowTo}</strong> ${d.howTo}</span>
-      </dd>`).join("") + `</dl>`;
+      </dd>`;
+  }).join("") + `</dl>`;
 }
 
 // -------------------------------------------------------------------- HUD

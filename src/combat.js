@@ -22,7 +22,7 @@ import {
   DI_MAX_TURN, DI_SPEED, STALE_QUEUE, STALE_DMG_STEP, STALE_KB_STEP,
 } from "./config_tuning.js";
 
-// The right stick belonging to a fighter, or a centred stick when they have no
+// The aim pad (the d-pad) belonging to a fighter, or a centred one when they have no
 // live input this step. CPU fighters always read as centred: aiming and steering
 // are player affordances, and their kits behave exactly as they did before.
 //
@@ -260,7 +260,7 @@ export function spawnProjectile(owner, cfg) {
     unblockable: !!cfg.unblockable,
     shieldMul: cfg.shieldMul || 1,
     // Creature projectiles (Nue, Geto's cursed spirits) can be flown with the
-    // right stick. `steerRate` is how fast the flight path can be turned, in
+    // d-pad. `steerRate` is how fast the flight path can be turned, in
     // radians per second.
     steerable: !!cfg.steerable,
     steerRate: cfg.steerRate ?? 5.2,
