@@ -81,6 +81,25 @@ export function getStage(key) {
   return STAGES.find((s) => s.key === key) || STAGES[0];
 }
 
+// Where a match of `count` fighters lines up. Two, three and four are placed by
+// hand — those are the spacings the stages were laid out around. A crowd (the
+// Players vs CPUs and Battle Royal modes) is spread evenly across the middle of
+// the stage instead, tightening as it grows so eight fighters still start on
+// solid ground on the narrowest board.
+const SPAWN_SETS = {
+  2: [430, 850],
+  3: [320, 640, 960],
+  4: [250, 500, 780, 1030],
+};
+const CROWD_SPAN = { left: 320, right: 960 };
+
+export function spawnXs(count) {
+  if (SPAWN_SETS[count]) return SPAWN_SETS[count];
+  const { left, right } = CROWD_SPAN;
+  const step = (right - left) / Math.max(1, count - 1);
+  return Array.from({ length: count }, (_, i) => Math.round(left + step * i));
+}
+
 export function mainPlatform(platforms) {
   return platforms.find((p) => p.kind === "main") || platforms[0];
 }

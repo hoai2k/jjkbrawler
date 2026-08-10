@@ -333,6 +333,32 @@ hazard can never KO by itself. The CPU steps out of telegraphed zones.
   (first pad = P1, second = P2).
 - Pause (Space/Esc/Start), Move List in the pause menu, hitbox debug on `` ` ``.
 
+### Match modes
+
+Chosen from the **VS badge** in the middle of the fighter select screen
+(`src/modes.js` decides what each one builds; the picker itself is in `ui.js`).
+Whatever is chosen is named under the badge, and anything but the default also
+prints a line under the roster saying how many CPUs are joining. It never says
+*which* CPUs — they are drawn when the match starts, avoiding fighters already
+in the match so a crowd is a crowd of different faces.
+
+| Mode | What it builds |
+|---|---|
+| **Vs Battle** (default) | Everyone for themselves — the original match. |
+| **Players vs CPUs** | Teams: every human player, against an equal number of random CPUs. |
+| **Battle Royal +1 / +2** | One or two extra random CPUs join the free-for-all. |
+
+Teams are one field on the fighter (`f.team`) and one predicate
+(`isFoe` in `src/teams.js`), which every damage path funnels through — melee,
+projectiles, summons, domains — so teammates simply pass through each other.
+A free-for-all gives every fighter a team of their own, which makes "different
+team" and "different fighter" the same test, and the match ends when one side
+is left standing rather than one fighter.
+
+A match seats up to eight fighters (four players and four CPUs). Five or more
+switches the HUD to its compact row, and in a team match each panel is tagged
+with the side it fights for.
+
 ## 8. Controls
 
 | Action | P1 | P2 | Gamepad |

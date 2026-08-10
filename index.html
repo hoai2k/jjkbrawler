@@ -30,51 +30,12 @@
           </button>
         </nav>
 
+        <!-- Fighter panels are built in ui.js (buildHud): a match can seat
+             anywhere from two to eight fighters, so the row is generated from
+             the roster rather than hand-written per slot. -->
         <div class="hud hidden" id="hud" aria-live="polite">
-          <div class="fighter-status fighter-status--left" id="p1Panel">
-            <img id="p1Portrait" class="hud-portrait" alt="">
-            <div class="hud-info">
-              <div class="hud-row">
-                <span id="p1Name" class="fighter-name">Gojo</span>
-                <strong id="p1Damage" class="damage">0%</strong>
-              </div>
-              <div id="p1Stocks" class="stocks"></div>
-              <div class="meter"><div id="p1Meter" class="meter-fill"></div><span id="p1MeterLabel" class="meter-label"></span></div>
-            </div>
-          </div>
-
           <div class="round-actions">
-            <button id="pauseButton" type="button" aria-label="Pause game">Pause</button>
-          </div>
-
-          <div class="fighter-status fighter-status--right" id="p2Panel">
-            <div class="hud-info">
-              <div class="hud-row">
-                <strong id="p2Damage" class="damage">0%</strong>
-                <span id="p2Name" class="fighter-name">Sukuna</span>
-              </div>
-              <div id="p2Stocks" class="stocks stocks--right"></div>
-              <div class="meter"><div id="p2Meter" class="meter-fill"></div><span id="p2MeterLabel" class="meter-label"></span></div>
-            </div>
-            <img id="p2Portrait" class="hud-portrait" alt="">
-          </div>
-
-          <div class="fighter-status fighter-status--p3 hidden" id="p3Panel">
-            <img id="p3Portrait" class="hud-portrait" alt="">
-            <div class="hud-info">
-              <div class="hud-row"><span id="p3Name" class="fighter-name">Megumi</span><strong id="p3Damage" class="damage">0%</strong></div>
-              <div id="p3Stocks" class="stocks"></div>
-              <div class="meter"><div id="p3Meter" class="meter-fill"></div><span id="p3MeterLabel" class="meter-label"></span></div>
-            </div>
-          </div>
-
-          <div class="fighter-status fighter-status--p4 hidden" id="p4Panel">
-            <div class="hud-info">
-              <div class="hud-row"><strong id="p4Damage" class="damage">0%</strong><span id="p4Name" class="fighter-name">Nobara</span></div>
-              <div id="p4Stocks" class="stocks stocks--right"></div>
-              <div class="meter"><div id="p4Meter" class="meter-fill"></div><span id="p4MeterLabel" class="meter-label"></span></div>
-            </div>
-            <img id="p4Portrait" class="hud-portrait" alt="">
+            <div id="arenaSign" class="arena-sign"><span id="arenaSignName">Training Bridge</span></div>
           </div>
         </div>
 
@@ -102,7 +63,11 @@
               <i id="p3PickReady" class="hero-ready hidden">Ready</i>
             </button>
             <div class="matchup-center">
-              <img class="vs-badge" src="assets/ui/vs_badge.png" alt="Versus">
+              <button id="vsModeButton" class="vs-mode" type="button" aria-haspopup="true" aria-expanded="false" title="Change match mode">
+                <img class="vs-badge" src="assets/ui/vs_badge.png" alt="Versus">
+                <span id="vsModeLabel" class="vs-mode-label">Vs Battle</span>
+              </button>
+              <div id="modeMenu" class="mode-menu hidden" role="menu" aria-label="Match mode"></div>
               <button id="startButton" class="primary-action" type="button">Choose Stage</button>
             </div>
             <button id="p4PickCard" class="matchup-side hidden" type="button">
@@ -125,6 +90,7 @@
 
           <div id="characterGrid" class="character-grid" aria-label="Fighter select"></div>
 
+          <p id="modeNote" class="controller-status mode-note hidden"></p>
           <p id="menuHint" class="controller-status">Pick a fighter to lock in — confirm again to start. B / Backspace un-readies.</p>
           <p id="controllerStatus" class="controller-status hidden"></p>
           <p id="loadHint" class="controller-status load-hint hidden"></p>

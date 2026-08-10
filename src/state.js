@@ -5,6 +5,9 @@ export const state = {
   mode: "cpu",      // cpu | local
   playerCount: 1,   // human players; 1 means P1 versus CPU
   cpuLevel: 1,      // 0 easy, 1 normal, 2 hard
+  // Chosen from the VS badge on the select screen (src/modes.js):
+  // versus (free-for-all) | playersVsCpus (teams) | royal1 | royal2 (extra CPUs).
+  matchMode: "versus",
   stocks: 3,
   // "Sound Effects" (Settings): the whole SFX bus. Off silences every one-shot
   // and the shield loop; music is a separate setting.

@@ -21,7 +21,7 @@ import {
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
 import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "./config_tuning.js";
-import { mainPlatform } from "./stages.js";
+import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
 import { currentFrame } from "./sprites.js";
 import { trailStrength } from "./motion.js";
@@ -437,7 +437,11 @@ export function respawnX(f) {
     3: { 1: 320, 2: 640, 3: 960 },
     4: RESPAWN_X,
   };
-  return respawnSets[state.fighters.length]?.[f.id] || RESPAWN_X[f.id] || 640;
+  const set = respawnSets[state.fighters.length];
+  if (set) return set[f.id] || RESPAWN_X[f.id] || 640;
+  // Five or more (the Players vs CPUs and Battle Royal modes): come back where
+  // this fighter started, which is already spread across the stage.
+  return spawnXs(state.fighters.length)[f.id - 1] ?? RESPAWN_X[f.id] ?? 640;
 }
 
 function respawn(f) {

@@ -8,6 +8,7 @@ import { duckMusic } from "./audio.js";
 import { ELEMENT_HIT_SFX } from "./config_audio.js";
 import { playSfx, noteFireBurning } from "./audio.js";
 import { domainKnockbackMul } from "./domains.js";
+import { isFoe } from "./teams.js";
 import {
   SHIELD_DAMAGE_MULT, SHIELD_BREAK_STUN, PARRY_WINDOW, METER_MAX,
   METER_ON_DEAL, METER_ON_TAKE, HURTBOX,
@@ -79,8 +80,8 @@ export function hurtbox(f) {
 }
 
 export function opponentOf(f) {
-  const candidates = state.fighters.filter((o) => o !== f && !o.dead && o.respawnTimer <= 0);
-  if (!candidates.length) return state.fighters.find((o) => o !== f && !o.dead) || null;
+  const candidates = state.fighters.filter((o) => isFoe(f, o) && !o.dead && o.respawnTimer <= 0);
+  if (!candidates.length) return state.fighters.find((o) => isFoe(f, o) && !o.dead) || null;
   return candidates.reduce((best, o) =>
     Math.abs(o.x - f.x) < Math.abs(best.x - f.x) ? o : best
   );
@@ -145,7 +146,8 @@ function enemySummons(attacker) {
     // `intangible` covers a summon that has not finished arriving and one that
     // is already dissipating: neither is on the board to be hit (summons.js).
     if (e.kind !== "summon" || e.dead || e.intangible || !e.damage) continue;
-    if (e.owner === attacker) continue;
+    // A summon is its owner's: an attack that cannot hit them cannot hit it.
+    if (!isFoe(attacker, e.owner)) continue;
     out.push(e);
   }
   return out;
@@ -191,7 +193,7 @@ export function updateHitboxes(dt) {
     }
     const rect = hitboxRect(hb);
     for (const target of state.fighters) {
-      if (target === o || target.dead || target.respawnTimer > 0) continue;
+      if (!isFoe(o, target) || target.dead || target.respawnTimer > 0) continue;
       let rec = hb.hits.get(target);
       if (rec && (rec.count >= hb.maxHits || hb.age < rec.nextAt)) continue;
       if (!rectsOverlap(rect, hurtbox(target))) continue;
@@ -272,7 +274,7 @@ function explodeProjectile(p) {
   explodeFx(p);
   playSfx("projectileHit", 0.9);
   for (const target of state.fighters) {
-    if (target === p.owner || target.dead || target.respawnTimer > 0) continue;
+    if (!isFoe(p.owner, target) || target.dead || target.respawnTimer > 0) continue;
     if (circleRectOverlap(p.x, p.y, p.explode, hurtbox(target))) {
       applyHit(p.owner, target, { ...p, dmg: p.dmg, sfx: "blast" }, "projectile");
     }
@@ -294,7 +296,7 @@ export function updateProjectiles(dt) {
       if (p.trailPts.length > PROJ_TRAIL.len * 2) p.trailPts.splice(0, 2);
     }
     projectileEmit(p, dt);
-    const target = state.fighters.find((f) => f !== p.owner && !f.dead);
+    const target = state.fighters.find((f) => isFoe(p.owner, f) && !f.dead);
 
     // Flying it by hand. The path turns toward the stick at a limited rate
     // rather than snapping, so a steered curse arcs instead of teleporting its
@@ -652,6 +654,9 @@ function pushStale(owner, id) {
 }
 
 export function applyHit(owner, target, hit, source) {
+  // The one gate every damage path funnels through, so friendly fire is off in
+  // a team match no matter which kit spawned the hit (teams.js).
+  if (!isFoe(owner, target)) return "ignored";
   if (target.invuln > 0 || target.dead || target.respawnTimer > 0) return "ignored";
   if (owner.dead || owner.respawnTimer > 0) return "ignored";
 

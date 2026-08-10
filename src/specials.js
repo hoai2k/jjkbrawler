@@ -14,6 +14,7 @@ import { getImage } from "./assets.js";
 import { spawnSummon } from "./summons.js";
 import { dashLaunchFx, muzzleFx, glints, steelInstallFx } from "./fx.js";
 import { CHAR_FX } from "./config_fx.js";
+import { isFoe } from "./teams.js";
 
 // Installs have priorities: ultimate transformations (2) cannot be
 // overwritten by special-move buffs (1).
@@ -553,7 +554,7 @@ const HANDLERS = {
     const color = p.color || f.char.theme;
     playSfx("whoosh", 0.9, 0.7);
     for (const t of state.fighters) {
-      if (t === f || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
+      if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
       const dx = f.x - t.x;
       if (Math.abs(dx) > (p.range || 520)) continue;
       const pull = (p.pull || 520) * (1 - Math.abs(dx) / ((p.range || 520) * 1.6));
@@ -607,7 +608,7 @@ const HANDLERS = {
         ring(tx, ty, p.color, 90);
         playSfx("blast", 0.85, 1.15);
         for (const t of state.fighters) {
-          if (t === f || t.dead || t.respawnTimer > 0) continue;
+          if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
           if (circleRectOverlap(tx, ty, p.r || 95, hurtbox(t))) {
             applyHit(f, t, {
               dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: p.angle,
@@ -654,7 +655,7 @@ const HANDLERS = {
         this.tick = p.tickRate;
         const rect = { x: this.x - p.w / 2, y: this.y - p.h, w: p.w, h: p.h };
         for (const t of state.fighters) {
-          if (t === f || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
+          if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
           if (rectsOverlap(rect, hurtbox(t))) {
             t.damage = Math.min(999, t.damage + p.tickDmg);
             applyStatus(p.effect, f, t);
@@ -711,7 +712,7 @@ const HANDLERS = {
           popup(tx, groundY - drop.h - 30, drop.name.toUpperCase(), p.color, 16);
           const rect = { x: tx - drop.w / 2, y: groundY - drop.h, w: drop.w, h: drop.h };
           for (const t of state.fighters) {
-            if (t === f || t.dead || t.respawnTimer > 0) continue;
+            if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
             if (rectsOverlap(rect, hurtbox(t))) {
               applyHit(f, t, {
                 dmg: drop.dmg, baseKb: drop.base, growth: drop.growth, angle: 0.9,
@@ -815,7 +816,7 @@ function makeTrap(owner, x, groundY, p, name) {
       }
       const rect = { x: this.x - this.w / 2, y: this.y - this.h, w: this.w, h: this.h };
       for (const t of state.fighters) {
-        if (t === owner || t.dead || t.respawnTimer > 0 || this.hit.has(t)) continue;
+        if (!isFoe(owner, t) || t.dead || t.respawnTimer > 0 || this.hit.has(t)) continue;
         if (rectsOverlap(rect, hurtbox(t))) {
           this.hit.add(t);
           applyHit(owner, t, {
@@ -883,7 +884,7 @@ function makeWindColumn(owner, x, p) {
       const groundY = groundYAt();
       const rect = { x: this.x - p.w / 2, y: groundY - p.h, w: p.w, h: p.h };
       for (const t of state.fighters) {
-        if (t === owner || t.dead || t.respawnTimer > 0 || this.hit.has(t)) continue;
+        if (!isFoe(owner, t) || t.dead || t.respawnTimer > 0 || this.hit.has(t)) continue;
         if (rectsOverlap(rect, hurtbox(t))) {
           this.hit.add(t);
           const res = applyHit(owner, t, {
