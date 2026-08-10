@@ -28,9 +28,9 @@ src/specials.js     special-move handlers (type -> behavior) + shared primitives
 src/ultimates.js    the 17 cinematic ultimates (type -> director)
 src/ai.js           CPU opponent, 3 difficulty levels
 src/render.js       all drawing; sprites.js, camera.js, particles.js support it
-src/motion.js       procedural sprite motion (tumble, lean, swing) — docs/sprite-motion.md
+src/motion.js       procedural sprite motion (tumble, lean, swing) — sprites/docs/sprite-motion.md
 src/ui.js           menus, HUD, move list, gamepad/keyboard menu navigation
-tools/              offline asset pipeline (see docs/asset-pipeline.md)
+tools/              offline asset pipeline (see sprites/docs/asset-pipeline.md)
                     plus check_imports.mjs — run it after moving any export
 docs/               mechanics, character research, asset pipeline, asset requests
 ```
@@ -45,10 +45,10 @@ docs/               mechanics, character research, asset pipeline, asset request
 - Anything spawned into `state.entities` **must carry `owner`**, or it will
   outlive its owner's death and keep dealing damage (this was a real bug).
 - Sprite frames are pre-processed offline. The renderer does no per-frame pixel
-  work. Frame placement comes from `assets/sprites/manifest.json`.
+  work. Frame placement comes from `sprites/assets/manifest.json`.
 - Most animation states are ONE still frame. The life in them is procedural,
   from `motion.js`, and it is draw-time only — it can never change what a hit
-  connects with. See `docs/sprite-motion.md`.
+  connects with. See `sprites/docs/sprite-motion.md`.
 - The main loop has a `setInterval` watchdog because `requestAnimationFrame` is
   throttled in some embedded browsers. A thrown exception therefore does *not*
   permanently kill the game — it retries every frame and spams the console.
@@ -367,7 +367,7 @@ must point the same way the fighter faces.
 `python3 tools/size_review.py` draws every pose at true in-game scale on a
 shared ground line. **Do not try to normalise size automatically** — bbox
 height is not pose-invariant, and head-size detection fails on this art (see
-`docs/asset-pipeline.md`). Two attempts at algorithmic normalisation both made
+`sprites/docs/asset-pipeline.md`). Two attempts at algorithmic normalisation both made
 things worse; the working method is the review sheet plus `workbench/`.
 
 ### The sprite workbench

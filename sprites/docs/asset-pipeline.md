@@ -34,8 +34,8 @@ them at runtime:
    mandala arc under Inumaki's landing frame).
 4. **Per-frame trimmed PNGs** — every frame is composited from exactly its own
    components (foreign pixels inside the bounding box are excluded), trimmed
-   tight, and written to `assets/sprites/<char>/r<row>c<col>.png`.
-5. **Manifest** — `assets/sprites/manifest.json` records each frame's size,
+   tight, and written to `sprites/assets/<char>/r<row>c<col>.png`.
+5. **Manifest** — `sprites/assets/manifest.json` records each frame's size,
    its offset relative to the logical cell (so frames can legitimately
    overhang their cell), and two derived anchors:
    - `bodyBottom`: the bottom of the frame's *largest* component — the foot
@@ -50,7 +50,7 @@ PNGs at their final paths and rebuilds sheet-compatible anchors and render
 scales from their alpha bounds, so a historical sheet re-extraction cannot
 restore the broken art.
 
-The engine (`src/sprites.js`) draws a frame by translating to the fighter's
+The engine (`sprites/src/sprites.js`) draws a frame by translating to the fighter's
 feet, flipping by facing, and blitting the trimmed PNG at
 `(ox − cellW/2, oy − bodyBottom) × scale`. No per-frame canvas processing
 happens at runtime, which also means the game no longer cares about
@@ -60,7 +60,7 @@ app.
 ## Regenerating
 
 The extractor reads the v1 sheets, so it only matters if you want to re-run
-history — the extracted PNGs in `assets/sprites/` are committed and
+history — the extracted PNGs in `sprites/assets/` are committed and
 self-sufficient:
 
 ```sh
@@ -300,14 +300,14 @@ replacement — kept beside the original until something is demonstrably better.
 See [assets/intake/README.md](../assets/intake/README.md).
 
 **Answering these flags is a procedure, not a judgement call each time.** Ask for
-a "full sprite cleanup" and [docs/sprite-cleanup.md](sprite-cleanup.md) is what
+a "full sprite cleanup" and [sprites/docs/sprite-cleanup.md](sprite-cleanup.md) is what
 runs: deletions applied, alpha/crop/bleed fixed in place with a before/after
 contact sheet and workbench deep links to approve, and everything needing new art
 folded into the open asset-request round.
 
 The kind is the flag's *value*, so there is one field rather than a boolean and a
 reason that could disagree. `REPLACEMENT_KINDS` and `IMPROVEMENT_KINDS` in
-`src/sprites.js` are the single source of truth — `list_replacements.py` parses
+`sprites/src/sprites.js` are the single source of truth — `list_replacements.py` parses
 both from there — so adding a kind is one line.
 
 The flag rides through the same export and apply path as everything else:
@@ -320,7 +320,7 @@ python3 tools/list_replacements.py --markdown     # grouped by kind, for a reque
 #### What survives the redraw
 
 A wholesale redraw and a crop fix are not the same event, so they do not get the
-same treatment on the way back in. `KIND_PLACEMENT` in `src/sprites.js` maps
+same treatment on the way back in. `KIND_PLACEMENT` in `sprites/src/sprites.js` maps
 each kind to how much of the existing placement is still meaningful, and
 `intake_import.py` follows it:
 
@@ -425,7 +425,7 @@ applied, so a pose stays on the list, ticked or dotted, while it is worked on.
 `wantsImprovement` is the softer ask: the art *works*, it is just not as good as
 it should be. One of `quality` (rough or sloppily executed), `pose` (reads
 poorly, or is not the action it stands for) or `character` (likeness or costume
-is off) — `IMPROVEMENT_KINDS` in `src/sprites.js`.
+is off) — `IMPROVEMENT_KINDS` in `sprites/src/sprites.js`.
 
 It travels the same export/apply path and is listed by the same tool, but
 separately and after the replacements, because nothing is blocked by one.
@@ -459,7 +459,7 @@ by the game. Three steps, each separable so a bad delivery stops at the door:
 2. `tools/intake_sheets.py` — before/after boards labelled with the animation
    state each frame drives, for human approval.
 3. `tools/intake_import.py --approve FILE` — copies approved frames into
-   `assets/sprites/` and registers them.
+   `sprites/assets/` and registers them.
 4. `tools/bake_anchors.py` — measures the rotation pivot (and the ledge grip on
    a hang pose) for anything newly registered. Skips frames whose anchors were
    placed by hand, so it is safe to re-run over the whole roster.
@@ -481,7 +481,7 @@ Placement is delegated to `extract_sprites.generated_frame_meta`. A replacement
 inherits the old frame's rendered height and foot line, so a swap changes art
 and never size; a brand-new frame borrows the character's idle scale factor.
 
-Step 4 exists because the sprites rotate now — see `docs/sprite-motion.md`. A
+Step 4 exists because the sprites rotate now — see `sprites/docs/sprite-motion.md`. A
 frame with no `anchors.com` still draws, falling back to a heuristic; it just
 pivots less convincingly than a measured one.
 

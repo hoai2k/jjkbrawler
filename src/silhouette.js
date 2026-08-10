@@ -40,7 +40,7 @@
 // PNG.
 
 import { spriteManifest, frameMeta } from "./assets.js";
-import { resolvedAnim, frameFootY } from "./sprites.js";
+import { resolvedAnim, frameFootY } from "../sprites/src/sprites.js";
 import { headHeightTarget, referenceSpan } from "./heights.js";
 import { CELL_W, HURTBOX } from "./constants.js";
 import { BODY } from "./config_tuning.js";
@@ -182,7 +182,7 @@ const PLACEMENT_FIELDS = ["renderScale", "ox", "bodyBottom"];
  * It matters because a freshly delivered sprite lands at numbers the intake
  * pipeline derived, and those are routinely wrong — `renderScale` in
  * particular, which is measured to be corrected on most poses
- * (docs/sprite-auto-adjust.md). Measuring reach off an unplaced frame reads the
+ * (sprites/docs/sprite-auto-adjust.md). Measuring reach off an unplaced frame reads the
  * pipeline's guess at the art's size, not the art, and would hand a character a
  * range that changes the moment somebody opens the workbench.
  *

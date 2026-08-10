@@ -11,7 +11,7 @@
 // in the image cache, so switching back is instant, but no bandwidth is spent
 // finishing a set nobody is looking at.
 
-import { loadFrame, frameKeys, getImage } from "../src/assets.js";
+import { loadFrame, frameKeys, getImage } from "../../src/assets.js";
 
 // Fewer than the game's six, so a pose clicked mid-stream still has connections
 // available to jump the queue with.

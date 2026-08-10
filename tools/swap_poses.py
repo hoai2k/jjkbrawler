@@ -40,13 +40,14 @@ path are what get swapped.
   python3 tools/swap_poses.py nanami attack_light_a attack_light_b
   python3 tools/swap_poses.py nanami attack_light_a attack_light_b --dry-run
 """
+import sprite_paths
 
 import argparse
 import json
 import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 
 # The pose's own identity, which does NOT travel with the drawing. Everything

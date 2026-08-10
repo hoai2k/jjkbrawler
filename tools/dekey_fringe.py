@@ -59,9 +59,9 @@ semi-transparent is skipped and reported. Character sheets sit at 0.000 to
 0.001; the effects run to 0.875.
 
 Usage:
-  python3 dekey_fringe.py assets/sprites/reggie            # a directory
+  python3 dekey_fringe.py sprites/assets/reggie            # a directory
   python3 dekey_fringe.py assets/sprites/effects/stage_flower.png
-  python3 dekey_fringe.py assets/sprites/reggie --key grey # grey-keyed art
+  python3 dekey_fringe.py sprites/assets/reggie --key grey # grey-keyed art
   python3 dekey_fringe.py <path> --dry-run                 # measure only
 """
 

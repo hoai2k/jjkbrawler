@@ -6,7 +6,7 @@ The workbench shows one pose at a time, which is right for tuning but slow for
 This draws them all at once, sharing one ground line and one head-height bar,
 so an oversized or floating pose is obvious at a glance.
 
-Geometry is copied from `drawCharFrame` in `src/sprites.js` and must stay in
+Geometry is copied from `drawCharFrame` in `sprites/src/sprites.js` and must stay in
 step with it, or the sheet stops predicting what the game shows:
 
     scale   = charScale * (renderScale or 1)
@@ -23,6 +23,7 @@ Usage:
   python3 size_sheets.py --chars gojo,maki
   python3 size_sheets.py --summary          # worst-offender table only
 """
+import sprite_paths
 
 import argparse
 import json
@@ -32,7 +33,7 @@ import re
 from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 CHAR_JS = os.path.join(HERE, "..", "src", "characters.js")
 
 CELL_W = CELL_H = 313.5

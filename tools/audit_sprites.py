@@ -10,6 +10,7 @@ C) Body size drift: pixel area + height of the body component per frame vs the
    character's median — art drawn at inconsistent zoom makes the fighter
    grow/shrink between animations.
 """
+import sprite_paths
 
 import json
 import os
@@ -19,7 +20,7 @@ import numpy as np
 from PIL import Image
 from scipy import ndimage
 
-ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "sprites")
+ROOT = sprite_paths.CHAR
 
 with open(os.path.join(ROOT, "manifest.json")) as f:
     manifest = json.load(f)

@@ -56,7 +56,8 @@
 // authoring SPRITES, so being bound to that backend is correct rather than a
 // leak.
 
-import { drawCharFrame as spriteDraw, currentFrame as spriteFrame, cyclePhase as spriteCycle } from "./sprites.js";
+import { drawCharFrame as spriteDraw, currentFrame as spriteFrame, cyclePhase as spriteCycle } from "../sprites/src/sprites.js";
+import * as billboard from "../billboards/src/billboard.js";
 
 /** The registered ways to draw a character. Keyed by the name `?render=` takes. */
 const BACKENDS = {
@@ -65,6 +66,16 @@ const BACKENDS = {
     drawCharFrame: spriteDraw,
     currentFrame: spriteFrame,
     cyclePhase: spriteCycle,
+  },
+  // 2.5D: posed 3D models rendered to a texture and blitted into the same 2D
+  // world. A stub today — every character falls through to sprites until a
+  // model is loaded for them, per character rather than per build. See
+  // billboards/src/billboard.js for what is left to build.
+  billboard: {
+    label: "2.5D billboarded models (stub)",
+    drawCharFrame: billboard.drawCharFrame,
+    currentFrame: billboard.currentFrame,
+    cyclePhase: billboard.cyclePhase,
   },
 };
 

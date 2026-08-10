@@ -43,7 +43,7 @@ canonical reference: 16A matches the existing still, and 16B is new design.)
 
 ## Where to deliver
 
-**Upload art to `assets/intake/`, never to `assets/sprites/`.**
+**Upload art to `assets/intake/`, never to `sprites/assets/`.**
 
 ```
 assets/intake/<character>/<pose_key>.png    sprites
@@ -53,7 +53,7 @@ assets/intake/cards/<key>_card.jpg          hero cards
 assets/intake/backgrounds/<name>.jpg        stage / domain backgrounds
 ```
 
-`assets/sprites/` holds **finished runtime art only** — keyed, trimmed, alpha,
+`sprites/assets/` holds **finished runtime art only** — keyed, trimmed, alpha,
 registered in `manifest.json`. Generated art arrives as an untrimmed plate on a
 flat colour field with no alpha, so a raw file landing there makes the game try
 to draw a 1024×1536 background as a sprite. Every round so far has arrived that
@@ -81,7 +81,7 @@ the [asset-requests-history.md](asset-requests-history.md).)
   Our generator **cannot output a true alpha channel** — every delivery is an
   opaque plate on a flat colour field, which is why the repo talks about green,
   magenta and grey screens rather than transparency. So the key screen is not a
-  fallback, it is the format, and the transparency in `assets/sprites/` is
+  fallback, it is the format, and the transparency in `sprites/assets/` is
   something `tools/intake.py` cuts on import. That makes the *quality of the
   screen* the thing that decides whether a sprite comes out clean: pick a
   screen colour that appears nowhere in the character, keep it perfectly flat

@@ -22,7 +22,7 @@
 // and redrawing a pose retunes the move. The forgiveness margins are in
 // MELEE_GRACE (src/config_tuning.js). See docs/hitbox-audit.md.
 //
-// Frame keys are sheet cells "r{row}c{col}" resolved via assets/sprites/manifest.json.
+// Frame keys are sheet cells "r{row}c{col}" resolved via sprites/assets/manifest.json.
 // Sheet rows: 0 idle/poses, 1 run, 2 air, 3 technique effects, 4 crouch.
 // The 17 launch fighters come from those sheets. The six round-7 fighters
 // (Choso, Mei Mei, Uro, Yuji, Reggie, Gakuganji) have no sheet at all — their
@@ -118,7 +118,7 @@ export const DEFAULT_ANIMS = {
 // Staged characters have no legacy sheet, so every animation state maps to a
 // semantic pose key (round-5 naming) rather than an r{row}c{col} cell. This is
 // the complete pose list the round-7 asset request asks for — when the art
-// lands at assets/sprites/<char>/<pose_key>.png and is registered in the
+// lands at sprites/assets/<char>/<pose_key>.png and is registered in the
 // manifest, these animations resolve with no further code changes.
 export const SEMANTIC_ANIMS = {
   idle: { frames: ["idle_a", "idle_b"], fps: 2.2, loop: true },

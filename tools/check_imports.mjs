@@ -16,7 +16,7 @@ import { dirname, join, normalize, relative } from "path";
 import { fileURLToPath } from "url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const DIRS = ["src", "workbench"];
+const DIRS = ["src", "sprites/src", "sprites/workbench", "billboards/src"];
 
 const files = DIRS.flatMap((dir) =>
   readdirSync(join(ROOT, dir))

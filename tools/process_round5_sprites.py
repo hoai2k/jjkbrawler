@@ -2,9 +2,10 @@
 """Turn archived Round 5 chroma renders into cropped transparent sprites.
 
 The ImageGen originals under assets/reference/round5 are immutable inputs.
-This script derives the game-facing copies under assets/sprites and can be
+This script derives the game-facing copies under sprites/assets and can be
 rerun whenever the keying thresholds need adjustment.
 """
+import sprite_paths
 
 from pathlib import Path
 
@@ -15,7 +16,7 @@ from scipy import ndimage
 
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE = ROOT / "assets" / "reference" / "round5"
-SPRITES = ROOT / "assets" / "sprites"
+SPRITES = sprite_paths.CHAR
 POSES = (
     "idle_a", "idle_b", "run_a", "run_b", "jump_rise", "fall", "hurt",
     "guard", "attack_up", "attack_air", "charge", "dizzy", "victory",

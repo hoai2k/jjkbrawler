@@ -18,6 +18,7 @@ the engine to keep ground animations from bobbing.
 
 Usage:  python3 extract_sprites.py [--chars gojo,maki] [--src DIR] [--out DIR]
 """
+import sprite_paths
 
 import argparse
 import json
@@ -581,7 +582,7 @@ def make_contact_sheet(char, sheet_img, manifest, debug_dir, scale=0.32):
         row = int(key[1])
         col = int(key[3])
         x0, y0, x1, y1 = cell_rect(col, row)
-        frame = Image.open(os.path.join(os.path.dirname(debug_dir), "..", "assets", "sprites", m["file"]))
+        frame = Image.open(os.path.join(sprite_paths.CHAR, m["file"]))
         fw = max(1, round(m["w"] * scale))
         fh = max(1, round(m["h"] * scale))
         frame = frame.resize((fw, fh), Image.LANCZOS)
@@ -615,7 +616,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--chars", default=",".join(CHARACTERS))
     parser.add_argument("--src", default=os.path.join(os.path.dirname(__file__), "..", "..", "assets"))
-    parser.add_argument("--out", default=os.path.join(os.path.dirname(__file__), "..", "assets", "sprites"))
+    parser.add_argument("--out", default=sprite_paths.CHAR)
     args = parser.parse_args()
 
     debug_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "debug")

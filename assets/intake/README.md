@@ -1,6 +1,6 @@
 # assets/intake — where delivered art is dropped
 
-**Upload new art here, not into `assets/sprites/`.**
+**Upload new art here, not into `sprites/assets/`.**
 
 ```
 assets/intake/<character>/<pose_key>.png     e.g. assets/intake/yuji/idle_a.png
@@ -23,7 +23,7 @@ in `src/config_audio.js`, and the request moved into
 
 Nothing in this directory is loaded by the game, which is the whole point:
 generated art arrives as an untrimmed plate on a magenta or grey field with no
-alpha channel, and dropping that straight into `assets/sprites/` makes the game
+alpha channel, and dropping that straight into `sprites/assets/` makes the game
 try to draw a 1024×1536 background as a sprite. Every round so far has arrived
 that way, so this is the normal case, not a mistake.
 
@@ -43,7 +43,7 @@ that way, so this is the normal case, not a mistake.
    reads as a perfectly good strike until you notice it lands behind the
    fighter.
 3. `tools/intake_import.py --approve` copies approved frames into
-   `assets/sprites/<char>/` and registers them in `manifest.json`. **A frame
+   `sprites/assets/<char>/` and registers them in `manifest.json`. **A frame
    that replaces existing art does not enter the game here** — it lands beside
    the drawing it replaces and waits to be approved in the workbench. A
    brand-new pose has nothing to compare against and goes straight in. See
@@ -54,12 +54,12 @@ that way, so this is the normal case, not a mistake.
    sizes alike. It never touches a field you have edited, and it does **not**
    count as an edit: the poses stay on the workbench's to-do lists, because a
    rule cannot say whether this drawing looks right. See
-   [docs/sprite-auto-adjust.md](../../docs/sprite-auto-adjust.md).
+   [sprites/docs/sprite-auto-adjust.md](../../sprites/docs/sprite-auto-adjust.md).
 6. The untouched originals are moved to `assets/reference/round<N>/<char>/` so a
    frame can be reprocessed later without regenerating it.
 7. **Once the round's verdicts are applied, put the names back on the
    drawings.** `python3 tools/canonicalise_sprites.py` moves whatever each pose
-   ended up drawing to `assets/sprites/<char>/<pose>.png`, and whatever used to
+   ended up drawing to `sprites/assets/<char>/<pose>.png`, and whatever used to
    hold that name into `<char>/archive/<pose>_2.png`. Approving is a change of
    pointer, not a move, so without this the art in the game goes on living at a
    staging path and `<char>/<pose>.png` is a drawing nothing draws. Nothing is
@@ -81,7 +81,7 @@ that way, so this is the normal case, not a mistake.
 
    **And update the standing brief.** When the round's flags show the *same*
    fault on several fighters, that is a rule missing from
-   [docs/pose-brief.md](../../docs/pose-brief.md) rather than a run of bad luck:
+   [sprites/docs/pose-brief.md](../../sprites/docs/pose-brief.md) rather than a run of bad luck:
    write it in, and into that file's measurable criteria if it can be measured.
    The request docs describe one delivery and then move to history; the brief is
    what carries a lesson forward into the next character. Skipping it is how the
@@ -98,7 +98,7 @@ rolls the hand tuning back and that work has to be done again. Those poses are
 the sprite workbench's **All Recently Updated Poses** list — a round's worth of
 re-tuning, gathered across every character it touched, instead of a hunt through
 the roster for the ones you remember having tuned. See
-[docs/asset-pipeline.md](../../docs/asset-pipeline.md#finding-what-the-round-overwrote).
+[sprites/docs/asset-pipeline.md](../../sprites/docs/asset-pipeline.md#finding-what-the-round-overwrote).
 
 ## The confirm step
 
@@ -108,7 +108,7 @@ was to ship it and look. That is the wrong default for a finished game, so a
 **replacement is now a proposal** until somebody says yes.
 
 `intake_import.py` writes the new drawing to
-`assets/sprites/<char>/incoming/<pose>.png` and puts two pointers on the pose:
+`sprites/assets/<char>/incoming/<pose>.png` and puts two pointers on the pose:
 
 ```json
 "crouch_b": {
@@ -174,7 +174,7 @@ answers it, so art delivered against one is the verdict. `wantsImprovement`
 means the drawing is fine and the *file* is wrong — a bad key, a bad crop,
 colour past the silhouette — which is repo work; art delivered against one is a
 second opinion, and the original stays to switch back to. `REPLACEMENT_KINDS`
-and `IMPROVEMENT_KINDS` in `src/sprites.js` are the source of truth for which
+and `IMPROVEMENT_KINDS` in `sprites/src/sprites.js` are the source of truth for which
 kind is which.
 
 | Flag on the existing pose | What the new art does |
@@ -213,7 +213,7 @@ python3 tools/intake.py                         # key it, as always
 python3 tools/intake_variants.py --import-all --label "Round 7 unused"
 ```
 
-That lands the drawing at `assets/sprites/<char>/alt/<pose>.png` and adds it to
+That lands the drawing at `sprites/assets/<char>/alt/<pose>.png` and adds it to
 `manifest["variants"]` as another option for that pose, **without changing what
 the game draws**. Its placement is measured from scratch, because it is a
 different drawing — placement belongs to the image, not the pose. Choosing which

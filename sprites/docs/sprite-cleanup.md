@@ -13,7 +13,7 @@ sprite — the flag on it says so, and this is the procedure that answers them a
 
 The two flags split by **who does the work**: `needsReplacement` needs an
 artist, `wantsImprovement` needs this runbook. `REPLACEMENT_KINDS` and
-`IMPROVEMENT_KINDS` in `src/sprites.js` are the source of truth.
+`IMPROVEMENT_KINDS` in `sprites/src/sprites.js` are the source of truth.
 
 Listed in the order the runbook works through them:
 
@@ -47,8 +47,8 @@ For each tagged drawing:
    loudly (`<- CURRENTLY SELECTED`). If the pose is still pointing at the drawing
    being deleted, stop and ask which drawing should be kept — do not guess.
 2. **Promote the keeper into the canonical location.** The pose's canonical file
-   is `assets/sprites/<char>/<pose>.png`. If the selected drawing lives somewhere
-   else — typically `assets/sprites/<char>/alt/<pose>.png`, where
+   is `sprites/assets/<char>/<pose>.png`. If the selected drawing lives somewhere
+   else — typically `sprites/assets/<char>/alt/<pose>.png`, where
    `intake_variants.py` puts imported alternates — move it to the canonical path
    and update its `file` in both the pose's meta and its variant option.
 3. **Delete the tagged image from disk** and remove its option from the variants
@@ -74,7 +74,7 @@ run the affected frames back through it.
 | `crop` | the framing or bounds are wrong | **reframe** — same drawing, different bounds; re-measure and shift anchors by how far the framing moved |
 | `bleed` | colour bleeds past the silhouette | **reframe**, as above |
 
-That mapping is `KIND_PLACEMENT` in `src/sprites.js` and it is not
+That mapping is `KIND_PLACEMENT` in `sprites/src/sprites.js` and it is not
 optional: applying the wrong one silently resizes or displaces the sprite.
 
 **Deliverable: a before/after contact sheet, plus a deep link per frame.** A

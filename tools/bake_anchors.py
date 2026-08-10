@@ -3,7 +3,7 @@
 
 Rotation needs a pivot. Without one the renderer falls back to a heuristic —
 the detected horizontal centroid at a fixed fraction of body height (see
-`defaultCom` in src/sprites.js) — which is close enough on an upright idle and
+`defaultCom` in sprites/src/sprites.js) — which is close enough on an upright idle and
 poor on anything sprawled, crouched or mid-swing, exactly the poses that rotate
 most. The honest answer is the opaque pixels' own centroid, which for uniform
 density IS the centre of mass.
@@ -17,7 +17,7 @@ does no pixel work by design (docs/audit-guide.md). This writes
 
     "anchors": { "com": [x, y] }
 
-into every frame of assets/sprites/manifest.json, in the SOURCE IMAGE's own
+into every frame of sprites/assets/manifest.json, in the SOURCE IMAGE's own
 pixels measured from its top-left corner — the same space the workbench edits,
 so a baked value can be dragged afterwards and a hand-placed one is never
 silently overwritten.
@@ -49,6 +49,7 @@ Usage:
   python3 bake_anchors.py --force         # re-measure even hand-placed anchors
   python3 bake_anchors.py --dry-run
 """
+import sprite_paths
 
 import argparse
 import json
@@ -61,7 +62,7 @@ except ImportError:
     sys.exit("Pillow is required: pip install Pillow")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 
 # Ignore near-transparent pixels: soft glow and antialiased edges extend well
@@ -270,7 +271,7 @@ def centroid(path):
 
 
 # What a measurement writes, and therefore what has to travel with the image.
-# A subset of VARIANT_PLACEMENT in src/sprites.js — the fields this tool sets.
+# A subset of VARIANT_PLACEMENT in sprites/src/sprites.js — the fields this tool sets.
 MEASURED = ["anchors", "bodyTop", "bodyLeft", "bodyRight", "coreLeft", "coreRight"]
 
 

@@ -10,7 +10,7 @@ import {
   loadCoreAssets, loadFrame, frameImage, spriteManifest, sharedSpriteKeys, loadSharedImage, getImage,
   forgetSharedMirror,
   frameMeta, loadSpriteFile, spriteFileImage,
-} from "../src/assets.js";
+} from "../../src/assets.js";
 import {
   drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly, isAnchorPlaced, animsOf, resolvedAnim,
   drawnByFallbackOnly,
@@ -18,19 +18,19 @@ import {
   REPLACEMENT_KINDS, replacementKind, IMPROVEMENT_KINDS, improvementKind,
   variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS, NOTE_FIELDS, ALTERNATE_KIND,
 } from "../src/sprites.js";
-import { drawPlatformShape } from "../src/render.js";
-import { applySharedSpriteScales } from "../src/shared_sprites.js";
-import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../src/moves.js";
-import { bodyMetrics, refreshSilhouettes } from "../src/silhouette.js";
-import { PIVOTED_STATES } from "../src/motion.js";
-import { HURTBOX } from "../src/constants.js";
+import { drawPlatformShape } from "../../src/render.js";
+import { applySharedSpriteScales } from "../../src/shared_sprites.js";
+import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../../src/moves.js";
+import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
+import { PIVOTED_STATES } from "../../src/motion.js";
+import { HURTBOX } from "../../src/constants.js";
 import { CHARACTERS, CHARACTER_KEYS, STAGED_CHARACTER_KEYS, SPRITE_ACTORS, getActor }
-  from "../src/characters.js";
-import { TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "../src/config_transform.js";
+  from "../../src/characters.js";
+import { TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "../../src/config_transform.js";
 import {
   headHeightTarget, applyHeightScale, hasHeightOverride, heightRatio, measuredIdleSpan,
   heightLabel,
-} from "../src/heights.js";
+} from "../../src/heights.js";
 import { initTooltips, setHelp } from "./tooltip.js";
 import { makeCharLoader, frameLoaded } from "./lazy_sprites.js";
 import { fitStageCanvas } from "./fit_stage.js";
@@ -366,7 +366,7 @@ function updateNote(charKey, frameKey) {
 // `statesUsingFrame` used to answer against the frames a state DECLARES rather
 // than the ones it resolves to, so a pose the game only reaches through its
 // state's `fallback` was reported unused — filtered out of the in-game views,
-// and so never opened to be sized. Fixing that (src/sprites.js) hands the
+// and so never opened to be sized. Fixing that (sprites/src/sprites.js) hands the
 // workbench a set of poses that have always been in the game and have never
 // been looked at. They are scattered across the roster exactly the way an
 // intake round's are, which is what this list is for.
@@ -543,7 +543,7 @@ function updateSummary(note) {
 /** What tools/auto_tune.py did to this pose, if anything.
  *
  *  Deliberately NOT an edit. The tuner only ever replaces numbers the pipeline
- *  derived, using rules measured from hand tuning (docs/sprite-auto-adjust.md),
+ *  derived, using rules measured from hand tuning (sprites/docs/sprite-auto-adjust.md),
  *  so a tuned pose is still a pose nobody has looked at — it stays on the "no
  *  saved edits" list and on the updated list, and `hasSavedEdits` never reads
  *  this. It is shown so the numbers in the panel are not mistaken for either a
@@ -564,7 +564,7 @@ function autoTuneSummary(charKey, frameKey) {
 
 // ---------------------------------------------------------------- variants
 //
-// A pose can offer several drawings (src/sprites.js). Each option carries its
+// A pose can offer several drawings (sprites/src/sprites.js). Each option carries its
 // OWN placement, so choosing one is not just a file swap: it restores that
 // image's size, centring, ground contact and anchors, and banks the outgoing
 // image's current numbers first. Otherwise tuning drawing A and then looking at
@@ -798,7 +798,7 @@ function restore(charKey, frameKey, snap) {
 // Anchors are stored in the SOURCE IMAGE's own pixels, so they ride along with
 // every later size / horizontal / ground-contact tweak: a point put on a
 // character's navel stays on the navel however the frame is nudged afterwards.
-// See src/sprites.js for the full contract.
+// See sprites/src/sprites.js for the full contract.
 
 const ANCHOR_META = {
   com: {
@@ -951,7 +951,7 @@ function isUsed(charKey, frameKey) {
   if (isOther(charKey)) return true;
   // An ACTOR is asked the same question as a fighter. It used to be exempt,
   // from when `animsOf` could not resolve a SPRITE_ACTOR's table at all and the
-  // honest answer was unavailable; that is fixed (src/sprites.js), so exempting
+  // honest answer was unavailable; that is fixed (sprites/src/sprites.js), so exempting
   // them now just smuggles retired art into a filtered view. It is how
   // Mahoraga's superseded `attack_air`/`attack_heavy` — the last of a design
   // the game no longer draws — kept appearing under "used in game".

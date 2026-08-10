@@ -9,19 +9,19 @@
 
 import {
   loadCoreAssets, loadSharedImage, loadFrame, frameImage, frameMeta, getImage, spriteManifest,
-} from "../src/assets.js";
+} from "../../src/assets.js";
 import {
   drawCharFrame, currentFrame, warmAnchors, anchorScreenPos, resolvedAnim, animsOf,
 } from "../src/sprites.js";
-import { drawPlatformShape } from "../src/render.js";
-import { CHARACTERS, CHARACTER_KEYS, animFor } from "../src/characters.js";
-import { lightMove, heavyMove } from "../src/moves.js";
-import { fighterTransform } from "../src/motion.js";
+import { drawPlatformShape } from "../../src/render.js";
+import { CHARACTERS, CHARACTER_KEYS, animFor } from "../../src/characters.js";
+import { lightMove, heavyMove } from "../../src/moves.js";
+import { fighterTransform } from "../../src/motion.js";
 import { initTooltips } from "./tooltip.js";
 import { makeCharLoader, frameLoaded } from "./lazy_sprites.js";
 import { fitStageCanvas } from "./fit_stage.js";
-import { SHIELD_MAX, MAX_FALL } from "../src/constants.js";
-import { TUMBLE_SPIN_MAX, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "../src/config_tuning.js";
+import { SHIELD_MAX, MAX_FALL } from "../../src/constants.js";
+import { TUMBLE_SPIN_MAX, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "../../src/config_tuning.js";
 
 const $ = (id) => document.getElementById(id);
 const view = $("actionsView");

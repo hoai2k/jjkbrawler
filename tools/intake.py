@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Process delivered art in `assets/intake/` — key, straighten, measure, report.
 
-Nothing here touches `assets/sprites/` or the manifest. Intake exists so a
+Nothing here touches `sprites/assets/` or the manifest. Intake exists so a
 delivery can be judged BEFORE it reaches the game, because past rounds fixed
 one problem while introducing another: a corrected costume at half the
 resolution, a corrected pose facing the wrong way, art keyed off green that
@@ -19,6 +19,7 @@ Usage:
   python3 intake.py --report
   python3 intake.py --chars panda,sukuna
 """
+import sprite_paths
 
 import argparse
 import json
@@ -37,7 +38,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
 INTAKE = os.path.join(ROOT, "assets", "intake")
 PROCESSED = os.path.join(INTAKE, "_processed")
-SPRITES = os.path.join(ROOT, "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 
 SHEET_CELL = re.compile(r"^r\d+c\d+$")
 # Body size below which the art is softer than what it replaces. The sheet

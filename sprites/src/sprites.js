@@ -1,8 +1,8 @@
-import { frameMeta, frameImage, spriteManifest } from "./assets.js";
-import { animFor, getActor, DEFAULT_ANIMS } from "./characters.js";
-import { CELL_W, CELL_H, CELL_FOOT_Y } from "./constants.js";
-import { COM_BODY_FRAC, LEDGE_GRIP_Y_FRAC } from "./config_tuning.js";
-import { clamp } from "./utils.js";
+import { frameMeta, frameImage, spriteManifest } from "../../src/assets.js";
+import { animFor, getActor, DEFAULT_ANIMS } from "../../src/characters.js";
+import { CELL_W, CELL_H, CELL_FOOT_Y } from "../../src/constants.js";
+import { COM_BODY_FRAC, LEDGE_GRIP_Y_FRAC } from "../../src/config_tuning.js";
+import { clamp } from "../../src/utils.js";
 
 const DEG = Math.PI / 180;
 

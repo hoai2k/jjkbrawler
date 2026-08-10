@@ -8,8 +8,8 @@ shipped, a second costume, or a wind-up that turned out to read as a strike.
 
 The imported file lands beside the existing one rather than on top of it:
 
-    assets/sprites/<char>/<pose>.png            unchanged, still selected
-    assets/sprites/<char>/alt/<pose>.png        the new drawing
+    sprites/assets/<char>/<pose>.png            unchanged, still selected
+    sprites/assets/<char>/alt/<pose>.png        the new drawing
     manifest["variants"][char][pose].options    both, each with its own placement
 
 Placement is measured for the new drawing from scratch, because it IS a
@@ -41,6 +41,7 @@ Usage:
   python3 tools/intake_variants.py --auto --label "Round 9 upload" --dry-run
   python3 tools/intake_variants.py --import meimei attack_heavy --label "Raised axe"
 """
+import sprite_paths
 
 import argparse
 import json
@@ -56,7 +57,7 @@ import intake_import
 import build_variants
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 INTAKE = os.path.join(HERE, "..", "assets", "intake")
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 
@@ -91,7 +92,7 @@ DISPOSITIONS = {
 }
 
 # The replacement kind whose delivery becomes a variant. Mirrors ALTERNATE_KIND
-# in src/sprites.js.
+# in sprites/src/sprites.js.
 ALTERNATE_KIND = "alternate"
 
 def disposition(man, char, pose):
@@ -249,7 +250,7 @@ def select(man, char, pose, file, log, at=None):
     # pose. A promote is exactly the case that exposes it — the delivery answers
     # an improvement request, selects the new art, and the pose goes on asking
     # for the redraw it just received. The workbench's own variant switch has
-    # always cleared both (VARIANT_BANKED in src/sprites.js); this is the same
+    # always cleared both (VARIANT_BANKED in sprites/src/sprites.js); this is the same
     # rule, arrived at from the import side.
     for field in build_variants.BANKED:
         meta.pop(field, None)

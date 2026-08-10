@@ -19,6 +19,7 @@ Usage:
   python3 clean_frames.py --white --bleed maki/r2c2 nobara/r4c1
   python3 clean_frames.py --white --bleed --chars maki,megumi,nobara
 """
+import sprite_paths
 
 import argparse
 import json
@@ -36,7 +37,7 @@ from extract_sprites import (
 )
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 
 

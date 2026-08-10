@@ -189,7 +189,7 @@ there is no error to detect — the tilt is a judgement about how a pose reads i
 motion. Nothing in the file predicts it.
 
 **`faceLeft`**: all 44 edits turn it on, never off. Facing detection exists
-(`detect_facing`) and `docs/asset-pipeline.md` records why it is not trusted:
+(`detect_facing`) and `sprites/docs/asset-pipeline.md` records why it is not trusted:
 near-zero confidence on two thirds of round 6. Round 12 agreed — confidences of
 0.001 to 0.27 on plates whose facing was obvious to look at. The need is real
 and the signal is absent; guessing here silently mirrors a character, which is

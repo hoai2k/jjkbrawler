@@ -31,7 +31,7 @@ load-bearing; edit it freely without reading the code that consumes it.
 |---|---|
 | `src/config_tuning.js` | **every hand-tweakable value.** Start here |
 | `src/motion.js` | `fighterTransform(f)` → `{rotation, scaleX, scaleY, offsetX, offsetY}` |
-| `src/sprites.js` | anchors, and `drawCharFrame`'s transform support |
+| `sprites/src/sprites.js` | anchors, and `drawCharFrame`'s transform support |
 | `src/fighter.js` | `updatePresentation()` — steps spin, facing sweep, timers, trail |
 | `src/combat.js` | sets `target.spin` on a launch past `TUMBLE_KB_MIN` |
 | `src/render.js` | afterimages, the ledge hang, projectile aiming |
@@ -83,7 +83,7 @@ An anchor that has never been placed still works: it reports a derived position
 (for `com`, the fallback below; for `ledge`, `LEDGE_GRIP_Y_FRAC` down the art),
 and the renderer uses it. Placing one by hand only refines it.
 
-Adding another is an entry in `EXTRA_ANCHORS` (`src/sprites.js`) naming the
+Adding another is an entry in `EXTRA_ANCHORS` (`sprites/src/sprites.js`) naming the
 states that need it, plus the renderer call that reads it. The workbench builds
 its editor from that table, so no UI work is required.
 
@@ -208,7 +208,7 @@ export, or leave some behind on a reset.
 `fall`, `ledge`, `dodge_air` or `airLight` never touches the floor, so the
 control is locked — it keeps the detected value. The ground line, platform and
 idle ghost stay on screen as a size reference. `AIRBORNE_STATES` in
-`src/sprites.js` is the list.
+`sprites/src/sprites.js` is the list.
 
 ## Tuning
 

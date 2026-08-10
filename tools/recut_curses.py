@@ -29,6 +29,7 @@ Usage:
   python3 tools/recut_curses.py --preview      # before/after sheets, writes nothing
   python3 tools/recut_curses.py                # writes assets/sprites/effects/
 """
+import sprite_paths
 
 import argparse
 import os
@@ -41,8 +42,8 @@ from scipy import ndimage
 import dekey_fringe
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
-OUT = os.path.join(SPRITES, "effects")
+SPRITES = sprite_paths.CHAR
+OUT = sprite_paths.EFFECTS
 PREVIEW = os.path.join(HERE, "..", "assets", "reference", "curse_recut")
 
 # Hue window (degrees) and minimum saturation for the cursed-energy trails. The

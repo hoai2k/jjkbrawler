@@ -20,6 +20,7 @@ footprint, which resampling preserves.
 
 Usage:  python3 prep_effects.py [--dirs effects,summons] [--max 700] [--dry-run]
 """
+import sprite_paths
 
 import argparse
 import os
@@ -28,7 +29,7 @@ import numpy as np
 from PIL import Image
 from scipy import ndimage
 
-ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "sprites")
+ROOT = sprite_paths.SHARED
 
 ALPHA_FLOOR = 8       # below this is treated as fully transparent
 MIN_SPECK_PX = 40     # isolated blobs smaller than this are keying noise,
