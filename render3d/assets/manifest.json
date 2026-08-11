@@ -1,336 +1,341 @@
 {
- "comment": "Index of delivered render3d rigs. Written by tools/billboard_intake.mjs --backend 3d and the render3d workbench's exported payloads \u2014 not by hand. Same schema as billboards/assets/manifest.json (model, heightM, approved, inheritClips, clips.<state>.from), plus: toon \u2014 per-character overrides of the TOON defaults in render3d/src/toon.js ({ shadeTint: [r,g,b], shadeThreshold, shadeSoftness, biasScale, rimColor, rimStrength, rimPower }); a material's own glTF extras win over this block. Resolution order per state: clips[state].from, then the rig's own clip, then inheritClips, then the default pose set.",
- "characters": {
-  "yuji": {
-   "model": "yuji/yuji.glb",
-   "heightM": 1.73,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.7821,
-     0.7699,
-     0.7742
-    ]
-   }
-  },
-  "maki": {
-   "model": "maki/maki.glb",
-   "heightM": 1.7,
-   "approved": true,
-   "yawOffsetDeg": 60,
-   "toon": {
-    "shadeTint": [
-     0.6795,
-     0.6846,
-     0.6899
-    ]
-   }
-  },
-  "jogo": {
-   "model": "jogo/jogo.glb",
-   "heightM": 1.8,
-   "approved": true,
-   "yawOffsetDeg": 60,
-   "toon": {
-    "shadeTint": [
-     0.7271,
-     0.71,
-     0.6787
-    ]
-   }
-  },
-  "megumi": {
-   "model": "megumi/megumi.glb",
-   "heightM": 1.75,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.6616,
-     0.6575,
-     0.6629
-    ]
-   }
-  },
-  "hanami": {
-   "model": "hanami/hanami.glb",
-   "heightM": 2.2,
-   "approved": true,
-   "yawOffsetDeg": 60,
-   "toon": {
-    "shadeTint": [
-     0.8067,
-     0.7991,
-     0.7835
-    ]
-   }
-  },
-  "uro": {
-   "model": "uro/uro.glb",
-   "heightM": 1.9,
-   "approved": true,
-   "yawOffsetDeg": 60,
-   "toon": {
-    "shadeThreshold": 0.2,
-    "outlinePx": 0.2,
-    "brightness": 1.25,
-    "shadeTint": [
-     0.7719,
-     0.8099,
-     0.8647
-    ]
-   }
-  },
-  "geto": {
-   "model": "geto/geto.glb",
-   "heightM": 1.91,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.8573,
-     0.829,
-     0.7799
-    ]
-   }
-  },
-  "mahito": {
-   "model": "mahito/mahito.glb",
-   "heightM": 1.79,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.6717,
-     0.6974,
-     0.7336
-    ]
-   }
-  },
-  "gojo": {
-   "model": "gojo/gojo.glb",
-   "heightM": 1.9,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.8426,
-     0.8204,
-     0.8485
-    ]
-   }
-  },
-  "sukuna": {
-   "model": "sukuna/sukuna.glb",
-   "heightM": 1.73,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.8451,
-     0.7722,
-     0.7675
-    ]
-   }
-  },
-  "nobara": {
-   "model": "nobara/nobara.glb",
-   "heightM": 1.6,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.7118,
-     0.6886,
-     0.6861
-    ]
-   }
-  },
-  "choso": {
-   "model": "choso/choso.glb",
-   "heightM": 1.81,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.8358,
-     0.8116,
-     0.7923
-    ]
-   }
-  },
-  "gakuganji": {
-   "model": "gakuganji/gakuganji.glb",
-   "heightM": 1.9,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.7683,
-     0.7523,
-     0.7286
-    ]
-   }
-  },
-  "hakari": {
-   "model": "hakari/hakari.glb",
-   "heightM": 1.85,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.7469,
-     0.7366,
-     0.7212
-    ]
-   }
-  },
-  "mechamaru": {
-   "model": "mechamaru/mechamaru.glb",
-   "heightM": 2.05,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.7881,
-     0.7901,
-     0.7959
-    ]
-   }
-  },
-  "meimei": {
-   "model": "meimei/meimei.glb",
-   "heightM": 1.9,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.7481,
-     0.7358,
-     0.7457
-    ]
-   }
-  },
-  "panda": {
-   "model": "panda/panda.glb",
-   "heightM": 2,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.8064,
-     0.8613,
-     0.8597
-    ]
-   }
-  },
-  "yuta": {
-   "model": "yuta/yuta.glb",
-   "heightM": 1.75,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.873,
-     0.8669,
-     0.9179
-    ]
-   }
-  },
-  "inumaki": {
-   "model": "inumaki/inumaki.glb",
-   "heightM": 1.64,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.8061,
-     0.8058,
-     0.7988
-    ]
-   }
-  },
-  "kurourushi": {
-   "model": "kurourushi/kurourushi.glb",
-   "heightM": 1.9,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.7856,
-     0.7566,
-     0.7969
-    ]
-   }
-  },
-  "momo": {
-   "model": "momo/momo.glb",
-   "heightM": 1.5,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.7486,
-     0.7393,
-     0.73
-    ]
-   }
-  },
-  "nanami": {
-   "model": "nanami/nanami.glb",
-   "heightM": 1.84,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.7674,
-     0.7586,
-     0.7271
-    ]
-   }
-  },
-  "todo": {
-   "model": "todo/todo.glb",
-   "heightM": 1.9,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.8348,
-     0.8303,
-     0.8395
-    ]
-   }
-  },
-  "dagon": {
-   "model": "dagon/dagon.glb",
-   "heightM": 2.15,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.7288,
-     0.6901,
-     0.7054
-    ]
-   }
-  },
-  "toji": {
-   "model": "toji/toji.glb",
-   "heightM": 1.87,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.6772,
-     0.6688,
-     0.6291
-    ]
-   }
-  },
-  "reggie": {
-   "model": "reggie/reggie.glb",
-   "heightM": 1.9,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.8568,
-     0.855,
-     0.8276
-    ]
-   }
-  },
-  "yuki": {
-   "model": "yuki/yuki.glb",
-   "heightM": 1.8,
-   "approved": true,
-   "toon": {
-    "shadeTint": [
-     0.8448,
-     0.8385,
-     0.8313
-    ]
-   }
+  "comment": "Index of delivered render3d rigs. Written by tools/billboard_intake.mjs --backend 3d and the render3d workbench's exported payloads \u2014 not by hand. Same schema as billboards/assets/manifest.json (model, heightM, approved, inheritClips, clips.<state>.from), plus: toon \u2014 per-character overrides of the TOON defaults in render3d/src/toon.js ({ shadeTint: [r,g,b], shadeThreshold, shadeSoftness, biasScale, rimColor, rimStrength, rimPower }); a material's own glTF extras win over this block. Resolution order per state: clips[state].from, then the rig's own clip, then inheritClips, then the default pose set.",
+  "characters": {
+    "yuji": {
+      "model": "yuji/yuji.glb",
+      "heightM": 1.73,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.7821,
+          0.7699,
+          0.7742
+        ]
+      }
+    },
+    "maki": {
+      "model": "maki/maki.glb",
+      "heightM": 1.7,
+      "approved": true,
+      "yawOffsetDeg": 60,
+      "toon": {
+        "shadeTint": [
+          0.6795,
+          0.6846,
+          0.6899
+        ]
+      }
+    },
+    "jogo": {
+      "model": "jogo/jogo.glb",
+      "heightM": 1.8,
+      "approved": true,
+      "yawOffsetDeg": 60,
+      "toon": {
+        "shadeTint": [
+          0.7271,
+          0.71,
+          0.6787
+        ]
+      }
+    },
+    "megumi": {
+      "model": "megumi/megumi.glb",
+      "heightM": 1.75,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.6616,
+          0.6575,
+          0.6629
+        ]
+      }
+    },
+    "hanami": {
+      "model": "hanami/hanami.glb",
+      "heightM": 2.2,
+      "approved": true,
+      "yawOffsetDeg": 60,
+      "toon": {
+        "shadeTint": [
+          0.8067,
+          0.7991,
+          0.7835
+        ]
+      }
+    },
+    "uro": {
+      "model": "uro/uro.glb",
+      "heightM": 1.9,
+      "approved": true,
+      "yawOffsetDeg": 60,
+      "toon": {
+        "shadeThreshold": 0.2,
+        "outlinePx": 0.2,
+        "brightness": 1.25,
+        "shadeTint": [
+          0.7719,
+          0.8099,
+          0.8647
+        ]
+      }
+    },
+    "geto": {
+      "model": "geto/geto.glb",
+      "heightM": 1.91,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.8573,
+          0.829,
+          0.7799
+        ]
+      }
+    },
+    "mahito": {
+      "model": "mahito/mahito.glb",
+      "heightM": 1.79,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.6717,
+          0.6974,
+          0.7336
+        ]
+      }
+    },
+    "gojo": {
+      "model": "gojo/gojo.glb",
+      "heightM": 1.9,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.8426,
+          0.8204,
+          0.8485
+        ]
+      },
+      "yawOffsetDeg": 45
+    },
+    "sukuna": {
+      "model": "sukuna/sukuna.glb",
+      "heightM": 1.73,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.8451,
+          0.7722,
+          0.7675
+        ]
+      }
+    },
+    "nobara": {
+      "model": "nobara/nobara.glb",
+      "heightM": 1.6,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.7118,
+          0.6886,
+          0.6861
+        ]
+      }
+    },
+    "choso": {
+      "model": "choso/choso.glb",
+      "heightM": 1.81,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.8358,
+          0.8116,
+          0.7923
+        ]
+      }
+    },
+    "gakuganji": {
+      "model": "gakuganji/gakuganji.glb",
+      "heightM": 1.9,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.7683,
+          0.7523,
+          0.7286
+        ]
+      },
+      "yawOffsetDeg": 60
+    },
+    "hakari": {
+      "model": "hakari/hakari.glb",
+      "heightM": 1.85,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.7469,
+          0.7366,
+          0.7212
+        ]
+      },
+      "yawOffsetDeg": 45
+    },
+    "mechamaru": {
+      "model": "mechamaru/mechamaru.glb",
+      "heightM": 2.05,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.7881,
+          0.7901,
+          0.7959
+        ]
+      }
+    },
+    "meimei": {
+      "model": "meimei/meimei.glb",
+      "heightM": 1.9,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.7481,
+          0.7358,
+          0.7457
+        ]
+      }
+    },
+    "panda": {
+      "model": "panda/panda.glb",
+      "heightM": 2,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.8064,
+          0.8613,
+          0.8597
+        ]
+      },
+      "yawOffsetDeg": 60
+    },
+    "yuta": {
+      "model": "yuta/yuta.glb",
+      "heightM": 1.75,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.873,
+          0.8669,
+          0.9179
+        ]
+      }
+    },
+    "inumaki": {
+      "model": "inumaki/inumaki.glb",
+      "heightM": 1.64,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.8061,
+          0.8058,
+          0.7988
+        ]
+      }
+    },
+    "kurourushi": {
+      "model": "kurourushi/kurourushi.glb",
+      "heightM": 1.9,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.7856,
+          0.7566,
+          0.7969
+        ]
+      }
+    },
+    "momo": {
+      "model": "momo/momo.glb",
+      "heightM": 1.5,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.7486,
+          0.7393,
+          0.73
+        ]
+      }
+    },
+    "nanami": {
+      "model": "nanami/nanami.glb",
+      "heightM": 1.84,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.7674,
+          0.7586,
+          0.7271
+        ]
+      }
+    },
+    "todo": {
+      "model": "todo/todo.glb",
+      "heightM": 1.9,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.8348,
+          0.8303,
+          0.8395
+        ]
+      }
+    },
+    "dagon": {
+      "model": "dagon/dagon.glb",
+      "heightM": 2.15,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.7288,
+          0.6901,
+          0.7054
+        ]
+      },
+      "yawOffsetDeg": 80
+    },
+    "toji": {
+      "model": "toji/toji.glb",
+      "heightM": 1.87,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.6772,
+          0.6688,
+          0.6291
+        ]
+      }
+    },
+    "reggie": {
+      "model": "reggie/reggie.glb",
+      "heightM": 1.9,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.8568,
+          0.855,
+          0.8276
+        ]
+      }
+    },
+    "yuki": {
+      "model": "yuki/yuki.glb",
+      "heightM": 1.8,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.8448,
+          0.8385,
+          0.8313
+        ]
+      }
+    }
   }
- }
 }
