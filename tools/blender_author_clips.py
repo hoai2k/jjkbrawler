@@ -384,6 +384,183 @@ POSES = {
     },
 }
 
+# ------------------------------------------------- per-character identity
+#
+# The vocabulary above is every fighter's baseline. What sells a CHARACTER is
+# the handful of poses only they would strike — Megumi's domain hand sign,
+# Uro's hand-on-hip disdain, Geto's arms-wide Uzumaki. Those live here, keyed
+# by roster key, layered over the shared set:
+#
+#   CHARACTER_POSES[char]       adds/overrides named poses for that fighter;
+#   CHARACTER_STATE_KEYS[char]  re-keys whole states — (duration, beat, K) ->
+#                               the same [(time, pose_name)] list state_keys
+#                               builds, so an override rewrites a state's
+#                               choreography without forking the builder.
+#
+# A character absent here gets the shared set unchanged, which is the point:
+# identity is opt-in per pose, never a copy of the whole vocabulary.
+#
+# NOTE `ult` doubles as the DOMAIN EXPANSION hold (src/domains.js sets
+# animKey = "ult" for the cutscene) and it is a short LOOP — so a domain
+# override must be a held signature pose with a subtle pulse, not a wind-up
+# that would visibly restart four times a second.
+
+CHARACTER_POSES = {
+    "megumi": {
+        # Chimera Shadow Garden — the interlaced hand sign, held at the
+        # sternum: elbows lifted out, both forearms crossing inward so the
+        # hands meet at centre chest, chin dropped to the hands. Symmetric,
+        # planted, inward — the opposite of every strike in the shared set.
+        "domain_sign": {
+            "Spine": V(0, 0.10, 0.99), "Spine1": V(0, 0.06, 1), "Spine2": V(0, 0.03, 1),
+            "Head": V(0, 0.26, 0.96),
+            "LeftUpLeg": V(-0.15, 0.04, -0.99), "RightUpLeg": V(0.15, 0.04, -0.99),
+            "LeftLeg": V(0, -0.08, -1), "RightLeg": V(0, -0.08, -1),
+            "RightArm": V(0.38, 0.34, -0.86), "RightForeArm": V(-0.72, 0.48, 0.32),
+            "LeftArm": V(-0.38, 0.34, -0.86), "LeftForeArm": V(0.72, 0.48, 0.32),
+            "RightHand": V(-0.62, 0.60, 0.24), "LeftHand": V(0.62, 0.60, 0.24),
+        },
+        # ...and the pulse: the sign pressed a little tighter, head a shade
+        # lower. The loop breathes between the two instead of restarting.
+        "domain_sign_b": {
+            "Spine": V(0, 0.13, 0.99), "Spine1": V(0, 0.08, 1), "Spine2": V(0, 0.04, 1),
+            "Head": V(0, 0.30, 0.95),
+            "LeftUpLeg": V(-0.15, 0.05, -0.99), "RightUpLeg": V(0.15, 0.05, -0.99),
+            "LeftLeg": V(0, -0.09, -1), "RightLeg": V(0, -0.09, -1),
+            "RightArm": V(0.34, 0.36, -0.87), "RightForeArm": V(-0.74, 0.46, 0.30),
+            "LeftArm": V(-0.34, 0.36, -0.87), "LeftForeArm": V(0.74, 0.46, 0.30),
+            "RightHand": V(-0.64, 0.58, 0.22), "LeftHand": V(0.64, 0.58, 0.22),
+        },
+    },
+    "hanami": {
+        # A tree that walks: heavier idle — shoulders hunched forward, the
+        # long arms hanging wide of the trunk, feet rooted apart.
+        "idle_a": {
+            "Spine": V(0, 0.20, 0.98), "Spine1": V(0, 0.14, 0.99), "Spine2": V(0, 0.08, 1),
+            "Head": V(0, 0.18, 0.98),
+            "LeftArm": V(-0.32, 0.06, -0.95), "RightArm": V(0.32, 0.06, -0.95),
+            "LeftForeArm": V(-0.24, 0.12, -0.96), "RightForeArm": V(0.24, 0.12, -0.96),
+            "LeftUpLeg": V(-0.14, 0, -0.99), "RightUpLeg": V(0.14, 0, -0.99),
+        },
+        "idle_b": {
+            "Spine": V(0, 0.24, 0.97), "Spine1": V(0, 0.16, 0.99), "Spine2": V(0, 0.10, 0.99),
+            "Head": V(0, 0.22, 0.97),
+            "LeftArm": V(-0.34, 0.08, -0.94), "RightArm": V(0.34, 0.08, -0.94),
+            "LeftForeArm": V(-0.26, 0.14, -0.96), "RightForeArm": V(0.26, 0.14, -0.96),
+            "LeftUpLeg": V(-0.14, 0, -0.99), "RightUpLeg": V(0.14, 0, -0.99),
+        },
+    },
+    "uro": {
+        # Disdain as a stance: weight dropped onto the right hip, right hand
+        # resting ON that hip (elbow flared), chin up, head tilted — she is
+        # not squaring up to anyone she rates this low.
+        "idle_a": {
+            "Spine": V(0.07, 0.03, 1), "Spine1": V(0.05, 0.02, 1), "Spine2": V(0.03, 0.01, 1),
+            "Head": V(0.12, -0.08, 0.99),
+            "RightArm": V(0.56, 0.10, -0.82), "RightForeArm": V(-0.60, 0.28, -0.75),
+            "RightHand": V(-0.70, 0.30, -0.65),
+            "LeftArm": V(-0.20, 0.02, -0.98), "LeftForeArm": V(-0.12, 0.14, -0.98),
+            "RightUpLeg": V(0.08, 0.02, -1), "LeftUpLeg": V(-0.20, 0.08, -0.98),
+            "LeftLeg": V(0, -0.12, -0.99),
+            "_twist": {"Hips": 10, "Spine1": 6},
+        },
+        "idle_b": {
+            "Spine": V(0.08, 0.05, 1), "Spine1": V(0.06, 0.03, 1), "Spine2": V(0.04, 0.02, 1),
+            "Head": V(0.14, -0.06, 0.99),
+            "RightArm": V(0.57, 0.11, -0.81), "RightForeArm": V(-0.59, 0.29, -0.75),
+            "RightHand": V(-0.70, 0.31, -0.64),
+            "LeftArm": V(-0.21, 0.03, -0.98), "LeftForeArm": V(-0.13, 0.16, -0.98),
+            "RightUpLeg": V(0.08, 0.02, -1), "LeftUpLeg": V(-0.20, 0.08, -0.98),
+            "LeftLeg": V(0, -0.13, -0.99),
+            "_twist": {"Hips": 10, "Spine1": 6},
+        },
+        # Thin Ice Breaker held: one open palm pushed at the sky, the other
+        # still on her hip — the sky is HER weapon and one hand is enough.
+        "uro_sky": {
+            "Spine": V(0, -0.06, 1), "Spine1": V(0, -0.04, 1),
+            "Head": V(0.06, -0.20, 0.98),
+            "RightArm": V(0.34, 0.30, 0.89), "RightForeArm": V(0.10, 0.36, 0.93),
+            "RightHand": V(0.02, 0.55, 0.83),
+            "LeftArm": V(-0.54, 0.10, -0.83), "LeftForeArm": V(0.58, 0.28, -0.76),
+            "LeftHand": V(0.68, 0.30, -0.66),
+            "RightUpLeg": V(0.10, 0.04, -0.99), "LeftUpLeg": V(-0.18, 0.06, -0.98),
+            "_twist": {"Hips": -8, "Spine1": -6},
+        },
+        "uro_sky_b": {
+            "Spine": V(0, -0.08, 1), "Spine1": V(0, -0.05, 1),
+            "Head": V(0.07, -0.22, 0.97),
+            "RightArm": V(0.32, 0.32, 0.89), "RightForeArm": V(0.08, 0.38, 0.92),
+            "RightHand": V(0.00, 0.57, 0.82),
+            "LeftArm": V(-0.55, 0.11, -0.83), "LeftForeArm": V(0.59, 0.29, -0.75),
+            "LeftHand": V(0.68, 0.31, -0.66),
+            "RightUpLeg": V(0.10, 0.04, -0.99), "LeftUpLeg": V(-0.18, 0.06, -0.98),
+            "_twist": {"Hips": -8, "Spine1": -6},
+        },
+        # The win is a dismissal, not a celebration: a flicked wave past her
+        # own shoulder, face already turned away from the loser.
+        "win": {
+            "Spine": V(-0.05, -0.04, 1), "Head": V(-0.16, -0.10, 0.98),
+            "RightArm": V(0.62, 0.16, 0.77), "RightForeArm": V(0.44, 0.10, 0.89),
+            "RightHand": V(0.50, -0.10, 0.86),
+            "LeftArm": V(-0.54, 0.10, -0.83), "LeftForeArm": V(0.58, 0.28, -0.76),
+            "LeftUpLeg": V(-0.08, 0.02, -1), "RightUpLeg": V(0.16, 0.06, -0.99),
+            "_twist": {"Hips": -12, "Spine1": -8},
+        },
+    },
+    "geto": {
+        # Maximum: Uzumaki — arms thrown wide and low-palmed, chest open,
+        # head back: the curse dump is above him and he is presenting it.
+        "uzumaki_a": {
+            "Spine": V(0, -0.12, 0.99), "Spine1": V(0, -0.08, 1), "Spine2": V(0, -0.05, 1),
+            "Head": V(0, -0.30, 0.95),
+            "RightArm": V(0.90, 0.14, 0.42), "RightForeArm": V(0.94, 0.18, 0.30),
+            "LeftArm": V(-0.90, 0.14, 0.42), "LeftForeArm": V(-0.94, 0.18, 0.30),
+            "LeftUpLeg": V(-0.16, 0.02, -0.99), "RightUpLeg": V(0.16, 0.02, -0.99),
+        },
+        "uzumaki_b": {
+            "Spine": V(0, -0.14, 0.99), "Spine1": V(0, -0.09, 1), "Spine2": V(0, -0.06, 1),
+            "Head": V(0, -0.33, 0.94),
+            "RightArm": V(0.91, 0.15, 0.39), "RightForeArm": V(0.95, 0.19, 0.27),
+            "LeftArm": V(-0.91, 0.15, 0.39), "LeftForeArm": V(-0.95, 0.19, 0.27),
+            "LeftUpLeg": V(-0.16, 0.02, -0.99), "RightUpLeg": V(0.16, 0.02, -0.99),
+        },
+        # He does not scramble; even the idle is composed — upright, heels
+        # nearly together under the robes, hands low and still.
+        "idle_a": {
+            "Spine": V(0, 0.02, 1), "Spine1": V(0, 0.01, 1), "Spine2": V(0, 0, 1),
+            "Head": V(0, -0.06, 1),
+            "LeftArm": V(-0.14, 0.04, -0.99), "RightArm": V(0.14, 0.04, -0.99),
+            "LeftForeArm": V(-0.08, 0.12, -0.99), "RightForeArm": V(0.08, 0.12, -0.99),
+            "LeftUpLeg": V(-0.05, 0, -1), "RightUpLeg": V(0.05, 0, -1),
+        },
+        "idle_b": {
+            "Spine": V(0, 0.04, 1), "Spine1": V(0, 0.02, 1), "Spine2": V(0, 0.01, 1),
+            "Head": V(0, -0.04, 1),
+            "LeftArm": V(-0.15, 0.05, -0.99), "RightArm": V(0.15, 0.05, -0.99),
+            "LeftForeArm": V(-0.09, 0.14, -0.99), "RightForeArm": V(0.09, 0.14, -0.99),
+            "LeftUpLeg": V(-0.05, 0, -1), "RightUpLeg": V(0.05, 0, -1),
+        },
+    },
+}
+
+CHARACTER_STATE_KEYS = {
+    "megumi": {
+        # The domain hold: the sign, breathed. Loops seamlessly because the
+        # first pose repeats at the end.
+        "ult": lambda d, beat, K: K((0, "domain_sign"), (d / 2, "domain_sign_b"), (d, "domain_sign")),
+    },
+    "uro": {
+        "ult": lambda d, beat, K: K((0, "uro_sky"), (d / 2, "uro_sky_b"), (d, "uro_sky")),
+    },
+    "geto": {
+        "ult": lambda d, beat, K: K((0, "uzumaki_a"), (d / 2, "uzumaki_b"), (d, "uzumaki_a")),
+    },
+}
+
+# The fighter currently being authored — set by main() from --char, read by
+# state_keys() and build_action() for the identity lookups above.
+CHAR = None
+
 # Hip drop per state, as a fraction of rig height. Applied as a LOCATION delta
 # on the hip bone — relative, so it means the same thing on any rig. (The B0
 # default set wrote absolute mannequin-space positions here, which is precisely
@@ -399,6 +576,9 @@ def state_keys(name, spec):
     d = spec["duration"]
     beat = spec["beat"]
     K = lambda *pairs: list(pairs)
+    override = CHARACTER_STATE_KEYS.get(CHAR, {}).get(name)
+    if override:
+        return override(d, beat, K)
     if name == "idle":   return K((0, "idle_a"), (d / 2, "idle_b"), (d, "idle_a"))
     if name == "run":    return K((0, "run_reach"), (d / 4, "run_pass"), (d / 2, "run_reach2"), (3 * d / 4, "run_pass"), (d, "run_reach"))
     if name == "dash":   return K((0, "dash"), (d, "dash"))
@@ -448,10 +628,27 @@ def state_keys(name, spec):
 BASIS = {"right": Vector((1, 0, 0)), "fwd": Vector((0, 1, 0)), "up": Vector((0, 0, 1))}
 
 
-def derive_basis(arm_obj):
-    """Forward comes from the feet: toes point where the fighter faces."""
-    up = Vector((0, 0, 1))
-    fwd = None
+def rig_forward(arm_obj):
+    """The fighter's facing, from the HIPS bone's rest orientation.
+
+    Toes were the first heuristic — toes point where the fighter faces — and
+    it held right up to the first non-human delivery: Hanami's tree-root feet
+    curl diagonally BACKWARD, so her whole pose set authored 140 degrees off
+    and she fought showing the camera her back. The auto-rigger, though, is
+    one program with one convention: on every delivery measured (five for
+    five, human and not), the SPINE bone's local +X axis is the body's
+    forward in world space. Bone orientation comes from the rigger, not the
+    mesh, so it cannot be fooled by what the feet look like. (Not the hips:
+    the conform pass rebuilds that bone with a normalized identity-ish rest,
+    erasing the signal. Spine comes through untouched.)"""
+    spine = arm_obj.data.bones.get("Spine") or arm_obj.data.bones.get("mixamorig:Spine")
+    if spine:
+        m = (arm_obj.matrix_world @ spine.matrix_local).to_3x3()
+        fwd = Vector((m[0][0], m[1][0], m[2][0]))  # +X column, world
+        fwd.z = 0
+        if fwd.length > 1e-4:
+            return fwd.normalized()
+    # No spine (never seen) — fall back to the toe heuristic.
     for name in ("LeftToeBase", "RightToeBase", "LeftFoot", "RightFoot"):
         b = arm_obj.data.bones.get(name)
         if not b:
@@ -459,10 +656,13 @@ def derive_basis(arm_obj):
         d = (arm_obj.matrix_world @ b.tail_local) - (arm_obj.matrix_world @ b.head_local)
         d.z = 0
         if d.length > 1e-4:
-            fwd = d.normalized()
-            break
-    if fwd is None:
-        fwd = Vector((0, 1, 0))
+            return d.normalized()
+    return Vector((0, 1, 0))
+
+
+def derive_basis(arm_obj):
+    up = Vector((0, 0, 1))
+    fwd = rig_forward(arm_obj)
     BASIS["fwd"] = fwd
     BASIS["up"] = up
     BASIS["right"] = fwd.cross(up).normalized()
@@ -614,7 +814,7 @@ def build_action(arm_obj, name, spec, height):
     hb = hip_bone(arm_obj)
     touched = set()
     for t, pose_name in keys:
-        pose = POSES[pose_name]
+        pose = CHARACTER_POSES.get(CHAR, {}).get(pose_name) or POSES[pose_name]
         touched |= {k for k in pose.keys() if not k.startswith("_")}
         apply_pose(arm_obj, pose, drop)
         frame = 1 + t * FPS
@@ -638,6 +838,9 @@ def main():
     ap.add_argument("--face-fix", action="store_true",
                     help="turn the rig 180 degrees so it faces +Z in glTF, per the delivery spec")
     args = ap.parse_args(argv)
+
+    global CHAR
+    CHAR = args.char
 
     states = load_states()
     bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -688,7 +891,11 @@ def main():
     arm.data.pose_position = was
     height = manifest_height(args.char) or measured
 
-    if args.face_fix:
+    # Which way does the rig face NOW? Measured from the hips rest matrix
+    # (rig_forward — the toe heuristic lied on tree feet), and the fix is
+    # conditional on it, so --face-fix is safe to pass always: an
+    # already-correct rig is left alone instead of being turned backwards.
+    if args.face_fix and rig_forward(arm).y > 0:
         # The spec is +Z forward in glTF. Blender exports +Y as -Z, so a rig
         # whose toes point +Y here arrives facing backwards — which is exactly
         # how the first delivery came in, and why it rendered from behind.
@@ -717,11 +924,8 @@ def main():
             c.matrix_world = turn @ c.matrix_world
         bpy.context.view_layer.update()
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
-        toe = arm.data.bones.get("LeftToeBase") or arm.data.bones.get("LeftFoot")
-        if toe:
-            d = (arm.matrix_world @ toe.tail_local) - (arm.matrix_world @ toe.head_local)
-            if d.y > 0:
-                sys.exit("face-fix did not take: toes still point +Y (would export facing -Z)")
+        if rig_forward(arm).y > 0:
+            sys.exit("face-fix did not take: the rig still faces +Y (would export facing -Z)")
 
     derive_basis(arm)
 

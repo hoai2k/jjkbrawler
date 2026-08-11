@@ -15,6 +15,31 @@
       "model": "jogo/jogo.glb",
       "heightM": 1.8,
       "approved": true
+    },
+    "megumi": {
+      "model": "megumi/megumi.glb",
+      "heightM": 1.75,
+      "approved": true
+    },
+    "hanami": {
+      "model": "hanami/hanami.glb",
+      "heightM": 2.2,
+      "approved": true
+    },
+    "uro": {
+      "model": "uro/uro.glb",
+      "heightM": 1.9,
+      "approved": true
+    },
+    "geto": {
+      "model": "geto/geto.glb",
+      "heightM": 1.91,
+      "approved": true
+    },
+    "mahito": {
+      "model": "mahito/mahito.glb",
+      "heightM": 1.79,
+      "approved": true
     }
   }
 }

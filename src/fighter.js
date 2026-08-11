@@ -144,7 +144,12 @@ function beginAction(f, kind, dur, anim, opts = {}) {
 
 function executeMove(f, move, opts = {}) {
   const total = move.delay + move.dur + move.recover;
-  beginAction(f, "attack", total, move.anim, { move });
+  // `keepMomentum` travels from the move onto the action because it is the
+  // MOVE that knows whether it slides: a grounded attack otherwise bleeds its
+  // speed off the moment it locks movement, which is right for a tilt thrown on
+  // the spot and wrong for a dash attack, whose whole idea is the run carrying
+  // through the swing.
+  beginAction(f, "attack", total, move.anim, { move, keepMomentum: move.keepMomentum });
   if (move.lungeVx && f.grounded) f.vx += f.facing * move.lungeVx * 3;
   spawnMelee(f, {
     ...move,
@@ -161,8 +166,11 @@ function beginLight(f, input) {
     variant = "down";
   } else if (input.up) {
     variant = "up";
-  } else if (f.dashT > 0 || Math.abs(f.vx) > stats(f).speed * 0.7) {
-    variant = "side";
+  } else if (isRunning(f)) {
+    // A light press at a run is the DASH ATTACK, not a side tilt. The tilt is
+    // still one flick of the right stick away (beginTilt), which is the whole
+    // reason the run can afford to have its own attack: nothing was lost.
+    variant = "dash";
   } else {
     // jab chain
     if (f.jabResetT <= 0) f.jabStep = 0;
@@ -199,9 +207,26 @@ function beginTilt(f, dir) {
   executeMove(f, lightMove(f.char, dir === "up" ? "up" : "down"));
 }
 
+/** Moving fast enough on the ground to have a run's attacks rather than a
+ *  standing fighter's — the initial dash, or a sprint that has kept its speed
+ *  after it. One definition, so the light and heavy dash attacks can never
+ *  disagree about when a fighter is running. */
+function isRunning(f) {
+  return f.grounded && (f.dashT > 0 || Math.abs(f.vx) > stats(f).speed * 0.7);
+}
+
 function beginHeavy(f, input) {
   if (!f.grounded) {
     executeMove(f, heavyMove(f.char, "air"));
+    return;
+  }
+  // Out of a run the heavy button throws its dash attack instead of planting
+  // for a charge: a smash is a fighter standing still deciding to, and stopping
+  // a sprint dead to start one is not a decision anybody was making on purpose.
+  // Holding a direction does not change it — up and down smashes are standing
+  // moves, and at a run the input already means "keep going that way".
+  if (isRunning(f) && !f.crouching) {
+    executeMove(f, heavyMove(f.char, "dash"), { grunt: true });
     return;
   }
   const variant = input.down || f.crouching ? "down" : input.up ? "up" : "side";
@@ -934,6 +959,18 @@ export function updateFighter(f, dt, input) {
   // Neutral dashes the way the fighter faces, so it is never a no-op.
   if (!locked && !f.crouching && f.grounded && input.dashP) {
     startDash(f, input.dirX || f.facing);
+  }
+
+  // The stick shove (input.js, DASH_FLICK): the pad's dash, and the one a
+  // player coming from Smash will try first. Facing is set HERE rather than
+  // left to the movement block below, because that block will not turn a
+  // fighter who is already dashing — and on a flick fast enough to cross the
+  // walk threshold and the dash threshold in one sample, the dash is already
+  // running by the time it would have. A dash attack that lunged the way the
+  // fighter happened to be looking is the bug that costs.
+  if (!locked && !f.crouching && f.grounded && input.dashFlick) {
+    if (!inHitstun) f.facing = input.dashFlick;
+    startDash(f, input.dashFlick);
   }
 
   if (!locked && !f.crouching) {
