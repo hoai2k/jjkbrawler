@@ -61,6 +61,7 @@ docs/               mechanics, character research, asset pipeline, asset request
 
       node tools/check_imports.mjs      # module graph, no browser needed
       node tools/check_music.mjs        # stage/track wiring, no browser needed
+      python3 tools/check_doc_links.py  # every relative doc link and anchor
       node tools/audit_stage_reach.mjs  # platform layouts, no browser needed
       node tools/audit_hitboxes.mjs     # reach/hurtbox/angle numbers, no browser
       node tools/smoke_stages.mjs       # every stage's Active Boards gimmick

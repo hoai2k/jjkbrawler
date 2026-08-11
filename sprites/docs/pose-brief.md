@@ -13,7 +13,7 @@ that is not written here yet, write it here — that is the step that makes the
 next set better, and it is the one that gets skipped.
 
 - The delivery format — key screen, resolution, file naming — is
-  [asset-requests.md § Delivery spec](asset-requests.md#delivery-spec).
+  [asset-requests.md § Delivery spec](../../docs/asset-requests.md#delivery-spec).
 - The design of a particular fighter is their **character block** in that same
   file, plus their canonical reference image.
 - **This file is the pose half.** Prompt formula:
@@ -321,7 +321,7 @@ be measured, into §3. That is the whole mechanism by which the next set arrives
 better than the last one, and it takes about five minutes at the end of a round.
 
 Round intake already ends with "update the request docs"
-([assets/intake/README.md](../assets/intake/README.md), step 7). Updating this
+([assets/intake/README.md](../../assets/intake/README.md), step 7). Updating this
 file is part of that step.
 
 **Look at the review boards before importing, not after.** `tools/intake_sheets.py`

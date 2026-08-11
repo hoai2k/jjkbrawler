@@ -41,7 +41,7 @@ Seventeen 1254×1568 character sheets on a 4×5 grid (cell ≈ 313.5×313.6 px;
 rows: idle / run / air / techniques / crouch). `tools/extract_sprites.py`
 rebuilt these into per-frame trimmed PNGs with connected-component labelling,
 majority-cell assignment and per-frame anchors. The full rationale is in
-[asset-pipeline.md](asset-pipeline.md) and is still the authority on how the
+[asset-pipeline.md](../sprites/docs/asset-pipeline.md) and is still the authority on how the
 sheet era works.
 
 ## Round 2 — character-wide design splits
@@ -1630,7 +1630,7 @@ Every set missed the same criterion — `attack_heavy_b` extending a third of
 standing height past the fighter's own idle. Yuki's reached 9%, Dagon's 16%,
 Mechamaru's 20%. Dagon's `crouch_b` drops 21% where a quarter is asked, and
 Mechamaru's `run_reach_a` arrived as a four-figure contact sheet and was not
-imported. They are [18A](asset-requests.md#18a-caught-while-placing-the-round-15-sets--12-sprites), with the rest of what the placement passes found.
+imported. They are [18A](#18a-caught-while-placing-the-round-15-sets--12-sprites), with the rest of what the placement passes found.
 
 Everything else landed: the crouch pairs, the light pairs, the idles, the run
 cycles, the costumes and all nine effects.
@@ -1669,7 +1669,7 @@ look correct as they are. They need no art and none should be made for them.
 held-back replacement, so the pose points at the new drawing for the workbench
 to place while `awaitingApproval.live` still names the old one, and that is what
 a match draws. What is left on those 38 is the **approval pass** — open each
-pose in the [sprite workbench](../workbench/), stand it beside what is shipping,
+pose in the [sprite workbench](../sprites/workbench/), stand it beside what is shipping,
 and say yes or keep.
 
 Still outstanding: **`choso/attack_light_b` and `geto/attack_down`**, the two
@@ -1898,7 +1898,7 @@ worth shipping and worth redrawing at the same time.
 `attack_air_a` is the first use of **Request alternate**: it comes back as a
 second option on the pose rather than overwriting what is there, the chevron in
 the workbench gets a dot, and nothing on screen changes until somebody picks.
-See [asset-pipeline.md](asset-pipeline.md#request-alternate).
+See [asset-pipeline.md](../sprites/docs/asset-pipeline.md#request-alternate).
 
 `uro/prone` is a costume note on a pose that is otherwise fine, so a redraw
 should keep the pose and the framing and only correct the outfit.
@@ -2521,7 +2521,7 @@ crop, head filling the upper half of the frame, flat `[THEME COLOUR]` background
 with no scenery or props, even front lighting, simplified shapes and reduced
 detail, `[STYLE SUFFIX]`.
 
-Character blocks are in [Character blocks](#character-blocks) above and are used
+Character blocks are in [Character blocks](asset-requests.md#character-blocks) and are used
 verbatim, exactly as for sprites — **including Hanami's, which was rewritten for
 [17A](asset-requests-history.md#17a-a-full-hanami-set--36-sprites)**. His tile is the pale humanoid curse,
 not the tree.
