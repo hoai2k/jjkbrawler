@@ -49,6 +49,101 @@
       "model": "mahito/mahito.glb",
       "heightM": 1.79,
       "approved": true
+    },
+    "gojo": {
+      "model": "gojo/gojo.glb",
+      "heightM": 1.9,
+      "approved": true
+    },
+    "sukuna": {
+      "model": "sukuna/sukuna.glb",
+      "heightM": 1.73,
+      "approved": true
+    },
+    "nobara": {
+      "model": "nobara/nobara.glb",
+      "heightM": 1.6,
+      "approved": true
+    },
+    "choso": {
+      "model": "choso/choso.glb",
+      "heightM": 1.81,
+      "approved": true
+    },
+    "gakuganji": {
+      "model": "gakuganji/gakuganji.glb",
+      "heightM": 1.9,
+      "approved": true
+    },
+    "hakari": {
+      "model": "hakari/hakari.glb",
+      "heightM": 1.85,
+      "approved": true
+    },
+    "mechamaru": {
+      "model": "mechamaru/mechamaru.glb",
+      "heightM": 2.05,
+      "approved": true
+    },
+    "meimei": {
+      "model": "meimei/meimei.glb",
+      "heightM": 1.9,
+      "approved": true
+    },
+    "panda": {
+      "model": "panda/panda.glb",
+      "heightM": 2,
+      "approved": true
+    },
+    "yuta": {
+      "model": "yuta/yuta.glb",
+      "heightM": 1.75,
+      "approved": true
+    },
+    "inumaki": {
+      "model": "inumaki/inumaki.glb",
+      "heightM": 1.64,
+      "approved": true
+    },
+    "kurourushi": {
+      "model": "kurourushi/kurourushi.glb",
+      "heightM": 1.9,
+      "approved": true
+    },
+    "momo": {
+      "model": "momo/momo.glb",
+      "heightM": 1.5,
+      "approved": true
+    },
+    "nanami": {
+      "model": "nanami/nanami.glb",
+      "heightM": 1.84,
+      "approved": true
+    },
+    "todo": {
+      "model": "todo/todo.glb",
+      "heightM": 1.9,
+      "approved": true
+    },
+    "dagon": {
+      "model": "dagon/dagon.glb",
+      "heightM": 2.15,
+      "approved": true
+    },
+    "toji": {
+      "model": "toji/toji.glb",
+      "heightM": 1.87,
+      "approved": true
+    },
+    "reggie": {
+      "model": "reggie/reggie.glb",
+      "heightM": 1.9,
+      "approved": true
+    },
+    "yuki": {
+      "model": "yuki/yuki.glb",
+      "heightM": 1.8,
+      "approved": true
     }
   }
 }

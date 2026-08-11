@@ -226,16 +226,37 @@ def grade_image(img, regions, report):
     return moved
 
 
+def resolve_regions(chars, char, seen=None):
+    """This fighter's regions, following `like` up the chain.
+
+    Half the roster wears the SAME Jujutsu High uniform and arrives with the
+    same failure (right hue, near-black value), so their entries would be the
+    same four numbers copied a dozen times — and a copy is a place for the
+    twelfth one to drift. `like` names the fighter whose regions to inherit;
+    `regions` on the inheriting entry is appended, so a fighter can take the
+    uniform and still declare their own hair or shoes."""
+    seen = seen or set()
+    entry = chars.get(char)
+    if not entry or char in seen:
+        return []
+    seen.add(char)
+    base = resolve_regions(chars, entry["like"], seen) if entry.get("like") else []
+    return base + entry.get("regions", [])
+
+
 def grade_char(char, report):
     """Grade every loaded image onto `char`'s canon colours. Returns the number
     of pixels moved — 0 both for a fighter with no palette entry and for one
     already at canon, which are both fine and both reported."""
-    entry = json.load(open(PALETTE, encoding="utf8"))["characters"].get(char)
-    if not entry:
+    chars = json.load(open(PALETTE, encoding="utf8"))["characters"]
+    regions = resolve_regions(chars, char)
+    if not regions:
         report.append(f"canon palette: no entry for '{char}' — the delivery's own colours stand")
         return 0
-    report.append(f"grading {char} onto canon colours:")
-    return sum(grade_image(img, entry["regions"], report)
+    via = chars[char].get("like")
+    report.append(f"grading {char} onto canon colours"
+                  + (f" (inheriting {via}'s)" if via else "") + ":")
+    return sum(grade_image(img, regions, report)
                for img in bpy.data.images if img.size[0])
 
 

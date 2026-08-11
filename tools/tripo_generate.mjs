@@ -69,22 +69,88 @@ if (!char) {
   process.exit(2);
 }
 
+/** Fighters whose `<char>_idle.png` is NOT their design authority.
+ *
+ *  assets/reference/canon/README.md carries this in prose, and prose is not
+ *  something a generator can read: this script defaulted to `<char>_idle.png`
+ *  for everyone, so Hanami — whose idle draws him as a bark-and-foliage tree
+ *  and is EXPLICITLY retired as an authority ("his idle_a is what must not be
+ *  matched") — was generated as the tree. A 3D model is the most expensive
+ *  thing in the pipeline to redo, so the exception list lives here, in code,
+ *  next to the default it overrides.
+ *
+ *  Two kinds of entry:
+ *    * a retired idle (hanami, mahoraga) — the anime render is the authority;
+ *    * a fighter with no delivered idle at all (round 15's four staged
+ *      fighters) — the anime render IS their canon until an idle lands.
+ *  Keep this in step with that README when a redraw lands. */
+const CANON_OVERRIDE = {
+  hanami: "hanami_anime.png",      // idle is the tree; canon is the pale humanoid curse
+  mahoraga: "mahoraga_canon.png",  // set being redrawn from scratch (11A)
+  mechamaru: "mechamaru_anime.png",
+  yuki: "yuki_anime.png",
+  dagon: "dagon_anime.png",
+  kurourushi: "kurourushi_anime.png",
+};
+
 /** The fighter's canonical appearance reference — the same image every 2D
  *  round is matched against, and the best single seed we have: full body,
  *  relaxed, clean alpha. */
-const defaultImage = join(ROOT, "assets/reference/canon", `${char}_idle.png`);
+const canonName = CANON_OVERRIDE[char] || `${char}_idle.png`;
+const defaultImage = join(ROOT, "assets/reference/canon", canonName);
 const imagePath = imageArg ? join(ROOT, imageArg) : defaultImage;
+if (!imageArg && CANON_OVERRIDE[char]) {
+  console.log(`canon: ${char}'s idle is retired as an authority — seeding from ${canonName}`);
+}
 
 const auth = { Authorization: `Bearer ${KEY}` };
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Code 2000 is "you have too many tasks in flight" — a QUEUEING signal, not a
+// failure, and the account's real limit is smaller than a roster. Running a
+// dozen fighters at once therefore burns most of them instantly: the ones over
+// the line die at submit, having done nothing and cost nothing, and the batch
+// script counts them as built. Waiting is the correct response to being told
+// to wait, so this waits — honouring Retry-After when the server sends one.
+const RATE_LIMITED = 2000;
+const MAX_WAIT_MIN = 30;
+
 async function api(url, opts = {}) {
-  const res = await fetch(url, { ...opts, headers: { ...auth, ...(opts.headers || {}) } });
-  const body = await res.json();
-  if (body.code !== 0) {
+  let waited = 0;
+  let transient = 0;
+  for (;;) {
+    const res = await fetch(url, { ...opts, headers: { ...auth, ...(opts.headers || {}) } });
+    // Not every reply is JSON. A gateway hiccup mid-generation answers with an
+    // HTML error page, and parsing that threw `Unexpected token '<'` — which
+    // killed a fighter twelve minutes into a run that was about to succeed.
+    // The task itself is still queued server-side, so retrying the POLL is
+    // both cheap and correct.
+    const text = await res.text();
+    let body;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      if (++transient <= 10) {
+        process.stdout.write(`  non-JSON reply (HTTP ${res.status}) — retrying in 15s\n`);
+        await sleep(15000);
+        continue;
+      }
+      throw new Error(`${url.replace(/https:\/\/[^/]+/, "")} -> HTTP ${res.status}, `
+        + `not JSON: ${text.slice(0, 120)}`);
+    }
+    if (body.code === 0) return body.data;
+    if (body.code === RATE_LIMITED && waited < MAX_WAIT_MIN * 60) {
+      const after = Number(res.headers.get("retry-after"));
+      const delay = Number.isFinite(after) && after > 0 ? Math.min(after, 120) : 30;
+      waited += delay;
+      process.stdout.write(`  queue full — waiting ${delay}s (${waited}s so far)\n`);
+      await sleep(delay * 1000);
+      continue;
+    }
     throw new Error(`${url.replace(/https:\/\/[^/]+/, "")} -> ${body.code} ${body.message || ""}`
       + (body.suggestion ? ` (${body.suggestion})` : ""));
   }
-  return body.data;
 }
 
 /** Poll until a task leaves the running states. `v3` selects which task
