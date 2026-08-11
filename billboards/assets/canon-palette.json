@@ -2,7 +2,7 @@
   "comment": "Canon costume colours, per fighter, for grading a GENERATED texture back onto model (tools/blender_grade_texture.py). Shared by both model backends, like billboards/src/states.js — render3d reads this file, it does not keep a copy. A generator matches a reference image's hue well and its VALUE badly: Yuji's uniform arrived at hue 226 degrees (correct navy) and 15% brightness (near-black), so he read as wearing black. Each region declares how to FIND its pixels and where to move them; grading preserves the shading inside a region rather than flattening it, so folds and creases survive. Schema: characters.<key>.regions[] = { name, match: { hue: [lo, hi] in degrees or null for any, sat: [lo, hi], val: [lo, hi] }, target: { hue: degrees or null to keep, sat: 0-1 or null, val: 0-1 — the region's MEDIAN lands here, everything else scales with it } }. Ranges are on sRGB HSV. A region that matches nothing is reported, not silently skipped.",
   "characters": {
     "yuji": {
-      "note": "Jujutsu High uniform: navy, not black. Reference: the anime character sheet — mid-dark desaturated navy against a black outline, with the red hood and cuffs already correct in the delivery. The leggings ARE black and are excluded by the saturation floor.",
+      "note": "Jujutsu High uniform: navy, not black. Red hi-top trainers, not white. Reference: the anime character sheet. The red hood and cuffs already arrived correct; the black leggings are neutral and are excluded from the uniform region by its saturation floor.",
       "regions": [
         {
           "name": "uniform",
@@ -24,6 +24,28 @@
             "hue": 226,
             "sat": 0.45,
             "val": 0.28
+          }
+        },
+        {
+          "name": "trainers",
+          "note": "The delivery baked cream/grey trainers. Matched as NEUTRAL and BRIGHT — nothing else on him is both — and set rather than scaled, since white has no hue or chroma to preserve. `minBlockFill` is what keeps it off the WHITES OF HIS EYES, which are the same colour and which duly turned red without it: a costume covers a contiguous patch of atlas, a highlight is a speck. The gum sole is warm enough to sit above the saturation ceiling and stays, which is what the reference shows anyway.",
+          "match": {
+            "hue": null,
+            "sat": [
+              0.0,
+              0.22
+            ],
+            "val": [
+              0.55,
+              1.0
+            ],
+            "minBlockFill": 0.5
+          },
+          "target": {
+            "hue": 355,
+            "sat": 0.72,
+            "val": 0.4,
+            "satMode": "set"
           }
         }
       ]

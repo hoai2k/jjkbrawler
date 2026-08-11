@@ -196,19 +196,23 @@ try {
     const THREE = await import("/vendor/three/three.module.js");
     const rig = await import("/billboards/src/rig.js");
     const renderer = await import("/billboards/src/renderer.js");
-    const { aimSolve } = await import("/billboards/src/states.js");
+    const { aimSolve, STATES } = await import("/billboards/src/states.js");
     renderer.initRenderer(THREE);
     await rig.initRigs(THREE, null, ["mann"], ["mann"]);
 
     const targetPx = 175.3;
-    const out = { worst: 0, spread: 0, cases: [] };
-    const handYs = [];
-    for (const [label, dx, dy] of [["high", 260, 300], ["level", 320, 95], ["low", 260, -30], ["far", 460, 120]]) {
-      const aim = aimSolve(0, 0, -targetPx * 0.55, { x: dx, y: -dy }, 1);
-      renderer.renderPose("mann", "light", 0.083, rig.resolveClip, aim, targetPx);
+    const chestY = -targetPx * 0.55;
+    const out = { worst: 0, byState: [], invariant: [], elevations: {} };
+
+    // 1. The hand lands on the solved target, exactly, in every state.
+    for (const [state, label] of [["light", "level"], ["upHeavy", "up"], ["crouchAttack", "low"]]) {
+      const aim = aimSolve(0, 0, chestY, { x: 300, y: -100 }, 1, state, 96);
+      // Sample at the state's OWN contact beat: the IK ramps in over the
+      // wind-up, so probing every state at one fixed time measures the clip
+      // on the slow ones and the solve on the quick ones.
+      renderer.renderPose("mann", state, STATES[state].beat, rig.resolveClip, aim, targetPx);
       const r0 = rig.getRig("mann");
-      const shoulder = new THREE.Vector3();
-      const hand = new THREE.Vector3();
+      const shoulder = new THREE.Vector3(), hand = new THREE.Vector3();
       r0.root.getObjectByName("RightArm").getWorldPosition(shoulder);
       r0.root.getObjectByName("RightHand").getWorldPosition(hand);
       const camRight = new THREE.Vector3().setFromMatrixColumn(renderer.__cam().matrixWorld, 0);
@@ -218,18 +222,29 @@ try {
       const got = hand.clone().sub(shoulder).normalize();
       const deg = (Math.acos(Math.min(1, Math.max(-1, want.dot(got)))) * 180) / Math.PI;
       out.worst = Math.max(out.worst, deg);
-      out.cases.push(`${label}:${deg.toFixed(1)}°`);
-      handYs.push(hand.y);
+      out.byState.push(`${label}:${deg.toFixed(1)}°`);
+      out.elevations[label] = Math.round(Math.atan2(aim.dy - (-chestY), aim.dx) * 180 / Math.PI);
     }
-    out.spread = Math.max(...handYs) - Math.min(...handYs);
+
+    // 2. A grounded arm strike is thrown LEVEL wherever the opponent stands.
+    //    Continuous aim is what pointed a standing jab at the floor.
+    for (const [dx, dy] of [[300, 300], [300, 95], [300, -140], [700, 20]]) {
+      const a = aimSolve(0, 0, chestY, { x: dx, y: -dy }, 1, "light", 96);
+      out.invariant.push(`${a.dx},${a.dy}`);
+    }
     return out;
   });
 
-  // Exact, in one pass: a stale camera matrix once made only the FIRST solve
-  // after a reframe wrong, so a loose tolerance here would hide that class of
-  // bug entirely.
-  check(r.worst < 1, "the striking hand points at the target, every case", `worst ${r.worst.toFixed(2)}° — ${r.cases.join(" ")}`);
-  check(r.spread > 0.3, "and aim height genuinely moves the hand", `${r.spread.toFixed(2)}m of travel`);
+  check(r.worst < 1, "the striking hand lands on the solved target, every state",
+    `worst ${r.worst.toFixed(2)}° — ${r.byState.join(" ")}`);
+  check(new Set(r.invariant).size === 1,
+    "a grounded arm strike is thrown level wherever the opponent stands",
+    `solutions: ${[...new Set(r.invariant)].join(" | ")}`);
+  // The move IS the aim: an up attack goes up, a crouch poke goes low, and a
+  // standing jab goes neither.
+  check(r.elevations.up > 30 && r.elevations.level === 0 && r.elevations.low < -10,
+    "each attack keeps its own elevation",
+    `up ${r.elevations.up}°, level ${r.elevations.level}°, low ${r.elevations.low}°`);
   check(errors.length === 0, "no page errors solving IK", errors.slice(0, 2).join(" | "));
   await page.close();
 }

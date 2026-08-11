@@ -97,6 +97,48 @@ saturation floor and the red hood by the hue window. The pass is step 7 of
 `blender_conform.py`, is a no-op for a fighter with no palette entry, and is
 idempotent, so it is safe inside the pipeline.
 
+**The generator fused his hands to his trousers.** Not a weighting fault — a
+TOPOLOGY one. The delivery binds in an A-pose with the hands hanging against
+the thighs, and the mesh is one continuous surface across the gap: 282 faces
+join hand to leg. Raise the arm and the weld comes with it, a 7 cm strip of
+geometry drawn out into a **1.15 metre tube**. That is the "long stick where
+his arm should be" on every raised-arm pose, and it is also most of "no arm
+reaches out" — the arm was reaching, dragging a tube of trouser behind it.
+
+The rule that caught the weights catches this too, applied to faces instead of
+influences: real skin does not connect parts of the body eight joints apart.
+`unweld_limbs` deletes those faces. Worst edge stretch on `upHeavy` fell from
+**115 cm to 6 cm**. It leaves a small opening where the hand met the trouser,
+invisible at game size, and it is a symptom of the T-pose the spec asks for and
+this delivery did not supply — a T-pose delivery would not fuse at all.
+
+**Re-authoring silently did nothing.** Authoring clips onto an already-authored
+.glb leaves BOTH sets in the file — 52 actions for a 26-state contract — and
+the importer suffixes the duplicates, so the game resolved the OLD clip and
+every edit appeared to have no effect. `blender_author_clips.py` now clears
+existing actions first. The most expensive shape a bug can take is the one
+that looks like a no-op.
+
+**The strikes were arms moving in front of a statue.** Each attack keyed the
+spine and the striking arm — five bones — and nothing else: no legs, no hips,
+no weight shift, and the strike arm aimed 29° DOWNWARD, so the fist finished
+near his own hip. They now key fourteen bones, drive off the rear leg with the
+heel coming up on contact, and run anticipation -> contact -> hold -> recover
+instead of freezing on the impact frame. A torso TWIST layer was added because
+aiming a bone can say which way it points but never how it is rolled, and a
+punch is mostly roll.
+
+**Aim was continuous when the game's aim is discrete.** A fighting game has an
+up attack, a side attack and a down attack; choosing between them IS the
+aiming. Letting the solver point a limb anywhere on a 100° arc gave a standing
+jab angled at the floor because the opponent happened to be lower. `states.js`
+now declares the elevations each attack may be thrown at and snaps to the
+nearest, so a grounded arm strike is level and down-diagonal belongs to the
+moves that are about going low and to anything thrown in the air. With no aim
+at all the target is dead ahead at chest height, at the fighter's own
+sprite-measured reach (`artReach`) — so the model's fist lands where the
+sprite's does, which is where the hitbox already is.
+
 ## Still owed
 
 - **Validator checks for the two nonconformances.** Bind pose and facing are
@@ -106,14 +148,15 @@ idempotent, so it is safe inside the pipeline.
   workbench ghost is the place to close it.
 - **`fall` reads close to arms-up.** Distinct from `jump` now, but not the
   braced shape it wants.
-- **His shoes are white; canon is red.** The reference sheet has red hi-tops
-  and the delivery baked cream ones. It is one more palette region and no new
-  code, but it is a bigger move than a value lift (white has no hue to keep)
-  and worth eyeballing before committing to it.
-- **Every strike is the rear hand.** At the ¾ camera the viewer sees the
-  fighter's left flank, so the right arm is the far one and every punch reads
-  as a cross. Correct for the heavies; `light` wants to be the lead (left)
-  hand, which is a clip change and a `REACH` entry, not a bug.
+- **A T-pose re-generation would retire two of these findings.** The A-pose is
+  what fused the geometry and what confused the binder. The validator should
+  reject a non-T-pose delivery outright rather than repair it downstream.
+- **Per-state strike heights could come from the sprites.** Reach already
+  does (`artReach`). The contact HEIGHT of each attack is equally measurable
+  from the sprite's painted extremity and is currently a hand-written
+  elevation per state.
+- **`sideHeavy` may still be over-cranked.** Softened once from 40° of hip
+  rotation to 26° after it read as falling over; worth another look in motion.
 - **The clips are stand-ins, not performances.** They are correctly timed,
   correctly aimed and on-model in silhouette; they are not animation. B2's
   shared library is where craft replaces correctness.

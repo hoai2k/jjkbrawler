@@ -208,69 +208,137 @@ POSES = {
         "LeftArm": V(-0.24, 0.10, -0.96), "LeftForeArm": V(-0.14, 0.34, -0.93),
     },
     # ---- strikes -------------------------------------------------------
+    #
+    # Every strike keys the WHOLE BODY: both legs, both feet, the spine chain,
+    # both arms, and a hip/chest twist. The first pass keyed the spine and the
+    # striking arm only, which is why the fighter read as a statue with a
+    # moving arm — and why the punches did not appear to reach: the upper arm
+    # was aimed 29 degrees DOWNWARD, so the fist finished near his own hip
+    # instead of out at the opponent's chin.
+    #
+    # STANCE. He leads with his RIGHT side. The three-quarter camera sits on
+    # his right (tools/smoke_facing.mjs measures it), so the striking arm is
+    # the NEAR arm and never disappears behind his own torso — the single
+    # biggest thing separating a punch that reads from one that does not.
+    # Every strike therefore drives off the rear (left) leg, whose heel comes
+    # up on contact, and lands on a planted, straightened lead leg.
+    "guard": {
+        "Spine": V(0, 0.12, 0.99), "Spine1": V(0, 0.06, 1), "Spine2": V(0, 0.03, 1),
+        "Head": V(0, 0.10, 0.99),
+        "RightUpLeg": V(0.12, 0.34, -0.93), "RightLeg": V(0, -0.18, -0.98), "RightFoot": V(0, 0.94, -0.34),
+        "LeftUpLeg": V(-0.16, -0.30, -0.94), "LeftLeg": V(0, -0.34, -0.94), "LeftFoot": V(0, 0.84, -0.54),
+        "RightArm": V(0.26, 0.22, -0.94), "RightForeArm": V(0.06, 0.74, -0.67),
+        "LeftArm": V(-0.28, 0.06, -0.96), "LeftForeArm": V(-0.02, 0.78, -0.63),
+        "_twist": {"Hips": 16, "Spine1": 8, "Spine2": 6},
+    },
     "jab_wind": {
-        "Spine2": V(-0.16, -0.06, 0.98),
-        "RightArm": V(0.30, -0.30, -0.90), "RightForeArm": V(0.20, 0.30, -0.93),
-        "LeftArm": V(-0.24, 0.20, -0.95), "LeftForeArm": V(-0.10, 0.60, -0.79),
+        "Spine": V(0, 0.04, 1), "Spine1": V(0, 0.02, 1), "Spine2": V(0, 0, 1),
+        "Head": V(0, 0.14, 0.99),
+        "RightUpLeg": V(0.12, 0.30, -0.95), "RightLeg": V(0, -0.22, -0.98), "RightFoot": V(0, 0.92, -0.39),
+        "LeftUpLeg": V(-0.16, -0.34, -0.93), "LeftLeg": V(0, -0.40, -0.92), "LeftFoot": V(0, 0.80, -0.60),
+        "RightArm": V(0.30, -0.10, -0.95), "RightForeArm": V(0.10, 0.62, -0.78),
+        "LeftArm": V(-0.28, 0.02, -0.96), "LeftForeArm": V(-0.04, 0.76, -0.65),
+        "_twist": {"Hips": 6, "Spine1": -6, "Spine2": -10},
     },
     "jab": {
-        "Spine2": V(0.14, 0.10, 0.98),
-        "RightArm": V(0.14, 0.86, -0.49), "RightForeArm": V(0.04, 0.99, -0.10),
-        "LeftArm": V(-0.26, 0.10, -0.96), "LeftForeArm": V(-0.12, 0.66, -0.74),
+        # Arm level at shoulder height and straight down the facing: this is
+        # the pose the whole reach complaint was about.
+        "Spine": V(0, 0.14, 0.99), "Spine1": V(0, 0.08, 1), "Spine2": V(0, 0.06, 1),
+        "Head": V(0, 0.20, 0.98),
+        "RightUpLeg": V(0.10, 0.44, -0.89), "RightLeg": V(0, -0.06, -1), "RightFoot": V(0, 0.96, -0.28),
+        "LeftUpLeg": V(-0.14, -0.46, -0.88), "LeftLeg": V(0, -0.20, -0.98), "LeftFoot": V(0, 0.66, -0.75),
+        "RightArm": V(0.10, 0.96, -0.26), "RightForeArm": V(0.02, 1, -0.02),
+        "LeftArm": V(-0.26, -0.16, -0.95), "LeftForeArm": V(-0.06, 0.62, -0.78),
+        "_twist": {"Hips": 30, "Spine1": 22, "Spine2": 18},
     },
     "hook_wind": {
-        "Spine1": V(-0.18, -0.10, 0.98), "Spine2": V(-0.26, -0.14, 0.95),
-        "RightArm": V(0.52, -0.62, -0.59), "RightForeArm": V(0.30, -0.30, -0.90),
-        "LeftArm": V(-0.20, 0.24, -0.95),
+        "Spine": V(0, -0.06, 1), "Spine1": V(0, -0.04, 1), "Spine2": V(0, -0.02, 1),
+        "Head": V(0.06, 0.16, 0.98),
+        "RightUpLeg": V(0.14, 0.24, -0.96), "RightLeg": V(0, -0.16, -0.99), "RightFoot": V(0, 0.90, -0.44),
+        "LeftUpLeg": V(-0.18, -0.40, -0.90), "LeftLeg": V(0, -0.50, -0.87), "LeftFoot": V(0, 0.74, -0.67),
+        "RightArm": V(0.52, -0.40, -0.76), "RightForeArm": V(0.44, -0.16, -0.88),
+        "LeftArm": V(-0.26, 0.12, -0.96), "LeftForeArm": V(-0.02, 0.80, -0.60),
+        "_twist": {"Hips": -14, "Spine1": -18, "Spine2": -22},
     },
     "hook": {
-        "Spine1": V(0.16, 0.12, 0.98), "Spine2": V(0.26, 0.18, 0.95),
-        "RightArm": V(0.20, 0.90, -0.38), "RightForeArm": V(0.02, 0.99, -0.06),
-        "LeftArm": V(-0.30, -0.10, -0.95), "LeftForeArm": V(-0.16, 0.30, -0.94),
+        # The whole body turns over: 60 degrees of hip rotation between the
+        # coil and the contact is where a heavy gets its weight.
+        "Spine": V(0, 0.18, 0.98), "Spine1": V(0, 0.10, 0.99), "Spine2": V(0, 0.06, 1),
+        "Head": V(0, 0.24, 0.97),
+        "RightUpLeg": V(0.08, 0.40, -0.91), "RightLeg": V(0, -0.06, -1), "RightFoot": V(0, 0.96, -0.28),
+        "LeftUpLeg": V(-0.14, -0.34, -0.93), "LeftLeg": V(0, -0.20, -0.98), "LeftFoot": V(0, 0.70, -0.71),
+        "RightArm": V(0.06, 0.94, -0.34), "RightForeArm": V(-0.24, 0.96, -0.06),
+        "LeftArm": V(-0.24, -0.30, -0.92), "LeftForeArm": V(-0.10, 0.40, -0.91),
+        "_twist": {"Hips": 26, "Spine1": 20, "Spine2": 16},
+    },
+    "upper_wind": {
+        "Spine": V(0, 0.26, 0.96), "Spine1": V(0, 0.16, 0.99), "Head": V(0, 0.10, 0.99),
+        "RightUpLeg": V(0.14, 0.40, -0.90), "RightLeg": V(0, -0.44, -0.90), "RightFoot": V(0, 0.92, -0.40),
+        "LeftUpLeg": V(-0.18, -0.20, -0.96), "LeftLeg": V(0, -0.44, -0.90), "LeftFoot": V(0, 0.80, -0.60),
+        "RightArm": V(0.34, -0.20, -0.92), "RightForeArm": V(0.16, 0.34, -0.93),
+        "LeftArm": V(-0.26, 0.10, -0.96), "LeftForeArm": V(-0.04, 0.76, -0.65),
+        "_twist": {"Hips": 0, "Spine1": -12, "Spine2": -16},
     },
     "uppercut": {
-        "Spine1": V(0, -0.10, 0.99), "Spine2": V(0.10, -0.14, 0.98),
-        "RightArm": V(0.16, 0.36, 0.92), "RightForeArm": V(0.06, 0.18, 0.98),
-        "LeftArm": V(-0.26, 0.10, -0.96), "LeftForeArm": V(-0.14, 0.50, -0.85),
+        "Spine": V(0, -0.08, 1), "Spine1": V(0, -0.04, 1), "Head": V(0, 0.18, 0.98),
+        "RightUpLeg": V(0.10, 0.40, -0.91), "RightLeg": V(0, 0.02, -1), "RightFoot": V(0, 0.98, -0.18),
+        "LeftUpLeg": V(-0.14, -0.44, -0.89), "LeftLeg": V(0, -0.10, -0.99), "LeftFoot": V(0, 0.60, -0.80),
+        "RightArm": V(0.14, 0.62, 0.77), "RightForeArm": V(0.04, 0.34, 0.94),
+        "LeftArm": V(-0.28, -0.20, -0.94), "LeftForeArm": V(-0.08, 0.56, -0.82),
+        "_twist": {"Hips": 30, "Spine1": 26, "Spine2": 22},
     },
     "chop_wind": {
-        "Spine1": V(0, -0.16, 0.99),
-        "RightArm": V(0.24, -0.20, 0.95), "RightForeArm": V(0.12, -0.10, 0.99),
-        "LeftArm": V(-0.24, -0.16, 0.96),
+        "Spine": V(0, -0.10, 0.99), "Spine1": V(0, -0.06, 1), "Head": V(0, 0.10, 0.99),
+        "RightUpLeg": V(0.14, 0.26, -0.95), "RightLeg": V(0, -0.20, -0.98), "RightFoot": V(0, 0.90, -0.44),
+        "LeftUpLeg": V(-0.18, -0.34, -0.92), "LeftLeg": V(0, -0.44, -0.90), "LeftFoot": V(0, 0.76, -0.65),
+        "RightArm": V(0.26, -0.30, 0.92), "RightForeArm": V(0.16, -0.50, 0.85),
+        "LeftArm": V(-0.28, 0.06, -0.96), "LeftForeArm": V(-0.02, 0.78, -0.62),
+        "_twist": {"Hips": -10, "Spine1": -16, "Spine2": -20},
     },
     "chop": {
-        "Spine": V(0, 0.44, 0.90), "Spine1": V(0, 0.30, 0.95), "Head": V(0, 0.20, 0.98),
-        "RightArm": V(0.16, 0.70, -0.70), "RightForeArm": V(0.06, 0.62, -0.78),
-        "LeftArm": V(-0.20, 0.30, -0.93),
+        "Spine": V(0, 0.40, 0.92), "Spine1": V(0, 0.28, 0.96), "Head": V(0, 0.30, 0.95),
+        "RightUpLeg": V(0.10, 0.46, -0.88), "RightLeg": V(0, -0.24, -0.97), "RightFoot": V(0, 0.96, -0.28),
+        "LeftUpLeg": V(-0.14, -0.44, -0.89), "LeftLeg": V(0, -0.26, -0.96), "LeftFoot": V(0, 0.62, -0.78),
+        "RightArm": V(0.12, 0.86, -0.50), "RightForeArm": V(0.02, 0.80, -0.60),
+        "LeftArm": V(-0.24, -0.26, -0.93), "LeftForeArm": V(-0.08, 0.44, -0.89),
+        "_twist": {"Hips": 26, "Spine1": 22, "Spine2": 18},
     },
     "kick_air": {
         "Spine": V(0, -0.24, 0.97), "Head": V(0, 0.16, 0.99),
-        "LeftUpLeg": V(-0.08, 0.90, -0.43), "LeftLeg": V(0, 0.98, -0.20), "LeftFoot": V(0, 0.99, -0.10),
-        "RightUpLeg": V(0.10, -0.30, -0.95), "RightLeg": V(0, -0.40, -0.92),
-        "LeftArm": V(-0.42, -0.20, -0.88), "RightArm": V(0.50, 0.10, -0.86),
+        "LeftUpLeg": V(-0.08, 0.86, -0.50), "LeftLeg": V(0, 0.98, -0.16), "LeftFoot": V(0, 0.98, -0.20),
+        "RightUpLeg": V(0.10, -0.34, -0.94), "RightLeg": V(0, -0.46, -0.89), "RightFoot": V(0, 0.70, -0.71),
+        "LeftArm": V(-0.44, -0.24, -0.86), "LeftForeArm": V(-0.20, -0.40, -0.89),
+        "RightArm": V(0.50, 0.14, -0.85), "RightForeArm": V(0.24, 0.56, -0.79),
+        "_twist": {"Hips": 14, "Spine1": 10, "Spine2": 8},
     },
     "low_jab": {
-        "Spine": V(0, 0.44, 0.90), "Spine1": V(0, 0.26, 0.97), "Head": V(0, -0.26, 0.96),
-        "LeftUpLeg": V(-0.22, 0.62, -0.75), "LeftLeg": V(0, -0.62, -0.79),
-        "RightUpLeg": V(0.22, 0.62, -0.75), "RightLeg": V(0, -0.62, -0.79),
-        "RightArm": V(0.16, 0.88, -0.44), "RightForeArm": V(0.04, 0.99, -0.14),
-        "LeftArm": V(-0.28, 0.20, -0.94),
+        "Spine": V(0, 0.46, 0.89), "Spine1": V(0, 0.30, 0.95), "Head": V(0, 0.16, 0.99),
+        "LeftUpLeg": V(-0.22, 0.56, -0.80), "LeftLeg": V(0, -0.66, -0.75), "LeftFoot": V(0, 0.94, -0.34),
+        "RightUpLeg": V(0.24, 0.70, -0.67), "RightLeg": V(0, -0.56, -0.83), "RightFoot": V(0, 0.96, -0.28),
+        "RightArm": V(0.10, 0.97, -0.22), "RightForeArm": V(0.02, 1, -0.06),
+        "LeftArm": V(-0.26, -0.20, -0.94), "LeftForeArm": V(-0.06, 0.56, -0.83),
+        "_twist": {"Hips": 22, "Spine1": 18, "Spine2": 14},
     },
     # ---- identity: Yuji's kit -------------------------------------------
     # Divergent Fist — one punch, the cursed energy a beat behind it. Both
     # fists commit; the front one lands and the back one is already loaded.
     "divergent": {
-        "Spine1": V(0.10, 0.14, 0.98), "Spine2": V(0.16, 0.16, 0.97),
-        "RightArm": V(0.12, 0.92, -0.37), "RightForeArm": V(0.02, 1, -0.04),
-        "LeftArm": V(-0.30, -0.24, -0.92), "LeftForeArm": V(-0.14, 0.20, -0.97),
+        "Spine": V(0, 0.20, 0.98), "Spine1": V(0, 0.12, 0.99), "Spine2": V(0, 0.08, 1),
+        "Head": V(0, 0.22, 0.97),
+        "RightUpLeg": V(0.10, 0.50, -0.86), "RightLeg": V(0, 0, -1), "RightFoot": V(0, 0.98, -0.20),
+        "LeftUpLeg": V(-0.14, -0.52, -0.84), "LeftLeg": V(0, -0.16, -0.99), "LeftFoot": V(0, 0.58, -0.81),
+        "RightArm": V(0.08, 0.98, -0.18), "RightForeArm": V(0.02, 1, 0.02),
+        "LeftArm": V(-0.24, -0.36, -0.90), "LeftForeArm": V(-0.06, 0.30, -0.95),
+        "_twist": {"Hips": 34, "Spine1": 30, "Spine2": 26},
     },
     # Manji Kick — the sliding low sweep.
     "manji": {
         "Spine": V(0, 0.30, 0.95), "Spine1": V(0, 0.20, 0.98), "Head": V(0, -0.20, 0.98),
         "LeftUpLeg": V(-0.10, 0.94, -0.32), "LeftLeg": V(0, 0.99, -0.10), "LeftFoot": V(0, 0.98, -0.20),
-        "RightUpLeg": V(0.22, 0.30, -0.93), "RightLeg": V(0, -0.66, -0.75),
-        "LeftArm": V(-0.50, -0.30, -0.81), "RightArm": V(0.44, 0.24, -0.87),
-        "RightForeArm": V(0.20, 0.62, -0.76),
+        "RightUpLeg": V(0.22, 0.30, -0.93), "RightLeg": V(0, -0.66, -0.75), "RightFoot": V(0, 0.86, -0.50),
+        "LeftArm": V(-0.50, -0.30, -0.81), "LeftForeArm": V(-0.30, -0.10, -0.95),
+        "RightArm": V(0.44, 0.24, -0.87), "RightForeArm": V(0.20, 0.62, -0.76),
+        "_twist": {"Hips": 20, "Spine1": 14, "Spine2": 10},
     },
     # Unbreakable Grit — plants and refuses to fall.
     "grit": {
@@ -282,19 +350,23 @@ POSES = {
     },
     # Black Flash — the wind-up, coiled to the back foot.
     "flash_wind": {
-        "Spine": V(0, -0.20, 0.98), "Spine1": V(-0.24, -0.16, 0.96), "Spine2": V(-0.34, -0.20, 0.92),
-        "Head": V(0.20, 0.10, 0.97),
-        "RightArm": V(0.56, -0.66, -0.50), "RightForeArm": V(0.40, -0.44, -0.80),
-        "LeftArm": V(-0.30, 0.34, -0.89), "LeftForeArm": V(-0.10, 0.72, -0.69),
-        "LeftUpLeg": V(-0.16, 0.34, -0.93), "RightUpLeg": V(0.24, -0.24, -0.94),
+        "Spine": V(0, -0.20, 0.98), "Spine1": V(0, -0.14, 0.99), "Spine2": V(0, -0.10, 0.99),
+        "Head": V(0.14, 0.14, 0.98),
+        "RightUpLeg": V(0.14, 0.20, -0.97), "RightLeg": V(0, -0.14, -0.99), "RightFoot": V(0, 0.88, -0.48),
+        "LeftUpLeg": V(-0.20, -0.44, -0.87), "LeftLeg": V(0, -0.54, -0.84), "LeftFoot": V(0, 0.72, -0.69),
+        "RightArm": V(0.56, -0.52, -0.65), "RightForeArm": V(0.40, -0.30, -0.87),
+        "LeftArm": V(-0.30, 0.20, -0.93), "LeftForeArm": V(-0.04, 0.80, -0.60),
+        "_twist": {"Hips": -18, "Spine1": -22, "Spine2": -26},
     },
     # ...and the strike, everything behind it.
     "flash": {
-        "Spine": V(0, 0.24, 0.97), "Spine1": V(0.24, 0.22, 0.95), "Spine2": V(0.34, 0.26, 0.90),
-        "Head": V(0, 0.10, 0.99),
-        "RightArm": V(0.14, 0.94, -0.30), "RightForeArm": V(0.02, 1, 0),
-        "LeftArm": V(-0.34, -0.30, -0.89), "LeftForeArm": V(-0.16, 0.10, -0.98),
-        "LeftUpLeg": V(-0.10, 0.50, -0.86), "RightUpLeg": V(0.20, -0.34, -0.92),
+        "Spine": V(0, 0.24, 0.97), "Spine1": V(0, 0.14, 0.99), "Spine2": V(0, 0.10, 0.99),
+        "Head": V(0, 0.24, 0.97),
+        "RightUpLeg": V(0.08, 0.44, -0.89), "RightLeg": V(0, -0.04, -1), "RightFoot": V(0, 0.96, -0.26),
+        "LeftUpLeg": V(-0.12, -0.40, -0.91), "LeftLeg": V(0, -0.18, -0.98), "LeftFoot": V(0, 0.68, -0.73),
+        "RightArm": V(0.08, 0.99, -0.12), "RightForeArm": V(0.02, 1, 0.04),
+        "LeftArm": V(-0.24, -0.40, -0.88), "LeftForeArm": V(-0.06, 0.24, -0.97),
+        "_twist": {"Hips": 30, "Spine1": 24, "Spine2": 20},
     },
     "charge_a": {
         "Spine": V(0, 0.26, 0.96), "Spine1": V(0, 0.16, 0.99), "Head": V(0, -0.16, 0.99),
@@ -341,16 +413,27 @@ def state_keys(name, spec):
     if name == "dizzy":  return K((0, "dizzy_a"), (d / 2, "dizzy_b"), (d, "dizzy_a"))
     if name == "prone":  return K((0, "prone"), (d, "prone"))
     if name == "win":    return K((0, "win"), (d, "win"))
-    if name == "light":         return K((0, "jab_wind"), (beat, "jab"), (d, "jab"))
-    if name == "airLight":      return K((0, "idle_a"), (beat, "kick_air"), (d, "kick_air"))
-    if name == "sideHeavy":     return K((0, "hook_wind"), (beat, "hook"), (d, "hook"))
-    if name == "upHeavy":       return K((0, "jab_wind"), (beat, "uppercut"), (d, "uppercut"))
-    if name == "downHeavy":     return K((0, "chop_wind"), (beat, "chop"), (d, "chop"))
-    if name == "crouchAttack":  return K((0, "crouch_a"), (beat, "low_jab"), (d, "low_jab"))
+    # STRIKES get four beats, not two. The first pass keyed only a wind-up and
+    # the contact, then held the contact to the end of the clip — so every
+    # attack froze on its own impact frame with no follow-through, which reads
+    # as a pose being switched on rather than a blow being thrown. Now:
+    # anticipation -> contact (on the state's declared beat, always) -> a short
+    # hold so the hit is legible -> back to guard.
+    def strike(wind, hit, hold=0.4):
+        return K((0, wind), (beat, hit), (beat + (d - beat) * hold, hit), (d, "guard"))
+
+    if name == "light":         return strike("jab_wind", "jab", 0.42)
+    if name == "sideHeavy":     return strike("hook_wind", "hook", 0.40)
+    if name == "upHeavy":       return strike("upper_wind", "uppercut", 0.35)
+    if name == "downHeavy":     return strike("chop_wind", "chop", 0.35)
+    if name == "specialNeutral": return strike("jab_wind", "divergent", 0.50)
+    if name == "airLight":      return K((0, "jump"), (beat, "kick_air"), (d, "kick_air"))
+    if name == "crouchAttack":  return K((0, "crouch_a"), (beat, "low_jab"),
+                                         (beat + (d - beat) * 0.5, "low_jab"), (d, "crouch_a"))
+    if name == "specialSide":    return K((0, "crouch_a"), (beat, "manji"),
+                                          (beat + (d - beat) * 0.55, "manji"), (d, "guard"))
     if name == "charge":        return K((0, "charge_a"), (d / 2, "charge_b"), (d, "charge_a"))
-    if name == "specialNeutral": return K((0, "jab_wind"), (beat, "divergent"), (d, "divergent"))
-    if name == "specialSide":    return K((0, "crouch_a"), (beat, "manji"), (d, "manji"))
-    if name == "specialDown":    return K((0, "idle_a"), (beat, "grit"), (d, "grit"))
+    if name == "specialDown":    return K((0, "guard"), (beat, "grit"), (d, "grit"))
     if name == "ult":            return K((0, "flash_wind"), (d / 2, "flash"), (d, "flash_wind"))
     return K((0, "idle_a"), (d, "idle_a"))
 
@@ -431,8 +514,34 @@ def aim_bone(arm_obj, pbone, want_world):
     bpy.context.view_layer.update()
 
 
-# Parents before children, so a chain solves top-down.
+def twist_bone(arm_obj, pbone, rad):
+    """Rotate `pbone` about the character's UP axis, on top of wherever it is
+    aimed.
+
+    Aiming a bone can say which way it POINTS but never how it is ROLLED about
+    its own length — and a punch is mostly roll: the hips open, the chest turns
+    over, the shoulder is carried forward by the torso rather than reaching on
+    its own. Without this the strikes were arms moving in front of a statue,
+    which is precisely what they looked like."""
+    if not rad:
+        return
+    delta = Quaternion(BASIS["up"], rad)
+    mw = arm_obj.matrix_world.to_quaternion()
+    parent_w = mw @ (pbone.parent.matrix.to_quaternion() if pbone.parent else Quaternion())
+    rest = pbone.bone.matrix_local.to_quaternion()
+    if pbone.parent:
+        rest = pbone.parent.bone.matrix_local.to_quaternion().inverted() @ rest
+    target_w = delta @ (mw @ pbone.matrix.to_quaternion())
+    pbone.rotation_mode = "QUATERNION"
+    pbone.rotation_quaternion = rest.inverted() @ (parent_w.inverted() @ target_w)
+    bpy.context.view_layer.update()
+
+
+# Parents before children, so a chain solves top-down. Hips leads: it is never
+# aimed (its direction is not a pose) but it IS twisted, and everything below
+# has to solve against a turned pelvis.
 ORDER = [
+    "Hips",
     "Spine", "Spine1", "Spine2", "Neck", "Head",
     "LeftShoulder", "LeftArm", "LeftForeArm", "LeftHand",
     "RightShoulder", "RightArm", "RightForeArm", "RightHand",
@@ -479,13 +588,20 @@ def apply_pose(arm_obj, pose, hip_drop_m):
         world_down = Vector((0, 0, -hip_drop_m))
         local = (mw @ hb.bone.matrix_local.to_quaternion()).inverted() @ world_down
         hb.location = local
+    twists = {} if os.environ.get("NO_TWIST") else (pose.get("_twist") or {})
     for name in ORDER:
-        want = pose.get(name)
-        if not want:
-            continue
         pb = arm_obj.pose.bones.get(name)
-        if pb:
+        if not pb:
+            continue
+        want = pose.get(name)
+        if want:
             aim_bone(arm_obj, pb, to_world(want))
+        # Twist AFTER this bone is aimed and BEFORE its children are, so the
+        # chain below solves against a turned parent. Children are aimed to
+        # absolute directions, so a parent twist moves the body, not the limbs
+        # — which is exactly the division of labour wanted.
+        if name in twists:
+            twist_bone(arm_obj, pb, math.radians(twists[name]))
     bpy.context.view_layer.update()
 
 
@@ -499,7 +615,7 @@ def build_action(arm_obj, name, spec, height):
     touched = set()
     for t, pose_name in keys:
         pose = POSES[pose_name]
-        touched |= set(pose.keys())
+        touched |= {k for k in pose.keys() if not k.startswith("_")}
         apply_pose(arm_obj, pose, drop)
         frame = 1 + t * FPS
         for bone_name in ORDER:
@@ -529,6 +645,23 @@ def main():
     arm = next((o for o in bpy.context.scene.objects if o.type == "ARMATURE"), None)
     if not arm:
         sys.exit("no armature in the input")
+
+    # RE-AUTHORING. Clear whatever clips came in with the file first.
+    #
+    # This is not tidiness. Authoring onto an already-authored delivery leaves
+    # BOTH sets in the .glb — 52 actions for a 26-state contract — and the
+    # importer suffixes duplicate names, so the game silently resolves the OLD
+    # clip and every edit appears to do nothing. That cost a full round of
+    # "the new poses look identical to the old ones", which is the most
+    # expensive shape a bug can take: one that looks like a no-op.
+    stale = list(bpy.data.actions)
+    if stale:
+        print(f"clearing {len(stale)} action(s) already in the file before authoring")
+        if arm.animation_data:
+            arm.animation_data.action = None
+        for act in stale:
+            act.use_fake_user = False
+            bpy.data.actions.remove(act)
 
     # Height for the hip-drop scaling. The manifest's figure is the one the
     # game sizes against (it is what intake measured and what headHeightTarget

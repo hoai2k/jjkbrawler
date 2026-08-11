@@ -11,6 +11,11 @@ animator authored it. The auto-rigger bound trouser vertices to hand and
 forearm bones, and every one of the twenty-eight fighters will arrive with some
 version of it, because they all come off the same automatic binder.
 
+It runs in two stages, one rule: influences the skeleton says are impossible
+are pruned, and FACES the skeleton says are impossible are deleted. The second
+stage exists because the same A-pose that confuses the binder also fuses the
+geometry — see `unweld_limbs`.
+
 WHY PROXIMITY DOES NOT CATCH IT. The obvious rule — drop influences from bones
 that are far away — fails on exactly this case, which is why the rig has it in
 the first place. The delivery binds in an A-pose, so the hands hang beside the
@@ -121,6 +126,64 @@ def clean_object(obj, arm, hops, report):
     return touched, drops
 
 
+def unweld_limbs(obj, arm, hops, report):
+    """Delete faces that bridge two body parts the skeleton says are far apart.
+
+    The delivery arrived in an A-POSE, arms hanging against the thighs — and
+    the generator did not merely bind them together, it MODELLED them together:
+    the hand and the trouser are one continuous surface. Raise the arm and the
+    weld comes with it, a 7 cm strip of geometry drawn out into a 1.15 metre
+    tube. That is the "long stick where his arm should be" on every raised-arm
+    pose, and no weighting fixes it because the triangles genuinely span from
+    hand to leg.
+
+    Same rule as the weights, applied to topology: real skin does not connect
+    parts of the body that are eight joints apart. Those faces are removed. It
+    leaves a small opening where the hand met the trouser — invisible at game
+    size and vastly preferable to the tube — and it is a symptom of the
+    T-pose the spec asks for and this delivery did not supply.
+    """
+    import bmesh
+    names = {g.index: g.name for g in obj.vertex_groups}
+    own = []
+    for vert in obj.data.vertices:
+        top = max(vert.groups, key=lambda g: g.weight, default=None)
+        own.append(names.get(top.group) if top else None)
+
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bm.faces.ensure_lookup_table()
+    doomed = []
+    worst = None
+    for face in bm.faces:
+        owners = [own[v.index] for v in face.verts]
+        span = 0
+        pair = None
+        for i in range(len(owners)):
+            for j in range(i + 1, len(owners)):
+                a, b = owners[i], owners[j]
+                if a is None or b is None:
+                    continue
+                d = hops.get(a, {}).get(b)
+                if d is not None and d > span:
+                    span, pair = d, (a, b)
+        if span > MAX_HOPS:
+            doomed.append(face)
+            if worst is None or span > worst[0]:
+                worst = (span, pair)
+    if doomed:
+        bmesh.ops.delete(bm, geom=doomed, context="FACES")
+        bm.to_mesh(obj.data)
+        obj.data.update()
+        report.append(f"  {obj.name}: removed {len(doomed)} face(s) welding parts of the body together")
+        if worst:
+            report.append(f"    worst: '{worst[1][0]}' fused to '{worst[1][1]}', {worst[0]} joints apart")
+    else:
+        report.append(f"  {obj.name}: no fused geometry")
+    bm.free()
+    return len(doomed)
+
+
 def clean_all(arm, report):
     """Run the pass over every mesh skinned to `arm`. Returns total drops."""
     meshes = [o for o in bpy.context.scene.objects
@@ -134,6 +197,7 @@ def clean_all(arm, report):
     total = 0
     for obj in meshes:
         total += clean_object(obj, arm, hops, report)[1]
+        total += unweld_limbs(obj, arm, hops, report)
     return total
 
 
