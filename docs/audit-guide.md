@@ -61,6 +61,7 @@ docs/               mechanics, character research, asset pipeline, asset request
 
       node tools/check_imports.mjs      # module graph, no browser needed
       node tools/check_music.mjs        # stage/track wiring, no browser needed
+      node tools/smoke_controllers.mjs  # two pads: seats, join, split cursors
       python3 tools/check_doc_links.py  # every relative doc link and anchor
       node tools/audit_stage_reach.mjs  # platform layouts, no browser needed
       node tools/audit_hitboxes.mjs     # reach/hurtbox/angle numbers, no browser
@@ -447,6 +448,15 @@ game. Don't change it back to document-relative paths.
   have keyboard maps, slots 3–4 are human only when a gamepad is connected for
   them, and every other entrant gets `aiState`. This is what makes 3/4-player
   modes testable without controllers.
+- **A pad's seat is its own, and is taken on sight.** `input.js` keys seats on
+  `pad.index` the first time each pad is seen, so a second controller becomes
+  player 2 — and the second slot stops being a CPU — the moment the browser
+  reveals it, with no button press needed and nothing required of player 1.
+  Seats never move afterwards, which is the part that matters: the browser's
+  gamepad list is SPARSE (a pad is invisible until its owner touches it), so
+  reading a seat off a position in that list handed player 2's pad to player 1
+  whenever player 1 had not touched theirs yet. `tools/smoke_controllers.mjs`
+  drives fake pads through both orderings.
 - Several crouch rows show the wrong outfit for their character (Toji, Todo,
   Inumaki, Sukuna are the clear ones) — see `docs/asset-requests.md` round 4.
 - Row-3 technique art still bleeds *sideways* in a few frames; only the

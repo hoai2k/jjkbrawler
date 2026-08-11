@@ -16,13 +16,20 @@ const GAME_CODES = new Set([...Object.values(P1_KEYS).flat(), ...Object.values(P
 
 const padPrev = new Map(); // pad index -> button pressed array
 const padNow = new Map();
-const padDeflected = new Map(); // pad index -> was any axis pushed last frame
 let joinedPlayers = 1;
 
-// How far a stick must be pushed to read as a deliberate join. Well past the
-// movement deadzone, because a controller resting with a drifting stick must
-// not walk itself into the match.
-const JOIN_AXIS = 0.55;
+// Which seat each physical pad drives, assigned the first time we see it and
+// never reassigned: pad index -> player id.
+//
+// This has to be its own record rather than a position in the browser's list,
+// because that list is SPARSE and its holes move. A gamepad is invisible to
+// the page until it is touched, so two pads plugged in with only the second
+// one used report as `[null, pad]` — and compacting that put player 2's pad
+// in player 1's seat. Their stick drove player 1's cursor, their own cursor
+// never appeared, and the seat only corrected itself once player 1 touched
+// their pad and pushed the list back into shape. That is the whole of "the
+// second controller does nothing until the first one moves".
+const padSeats = new Map();
 
 // Right-stick deadzone. Wider than the movement stick's, because this stick is
 // normally at rest: a smash that angles itself off controller drift is worse
@@ -71,29 +78,26 @@ export function keyHeld(code) {
 
 export function readGamepads() {
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-  const connected = [];
-  for (const pad of pads) if (pad && pad.connected) connected.push(pad);
-  for (let slot = 0; slot < connected.length; slot++) {
-    const pad = connected[slot];
-    const prev = padNow.get(pad.index) || [];
-    const now = pad.buttons.map((b) => b.pressed);
-    padPrev.set(pad.index, prev);
-    padNow.set(pad.index, now);
-    // Player 1 always owns the first controller. Additional controller slots
-    // join only once their player does something deliberate, so a passive USB
-    // or Bluetooth connection cannot replace the CPU on its own.
-    //
-    // Any input counts, not just buttons: picking a pad up and pushing the
-    // stick is how people expect to say "I'm in", and a player who did that and
-    // saw nothing happen had no way to know a button was the magic word.
-    const deflected = pad.axes.some((a) => Math.abs(a) > JOIN_AXIS);
-    const wasDeflected = padDeflected.get(pad.index) || false;
-    padDeflected.set(pad.index, deflected);
-    const acted = now.some((down, i) => down && !prev[i]) || (deflected && !wasDeflected);
-    if (slot > 0 && acted) {
-      joinedPlayers = Math.max(joinedPlayers, Math.min(4, slot + 1));
+  for (const pad of pads) {
+    if (!pad || !pad.connected) continue;
+    // A pad we have not seen before takes the next free seat and keeps it for
+    // the session. Seating on sight — rather than on a deliberate button press
+    // — is what lets a second player start browsing the roster the moment they
+    // pick their controller up, without player 1 having to touch anything
+    // first. The browser only reveals a pad once its owner has touched it, so
+    // "detected" already means "somebody is holding this".
+    if (!padSeats.has(pad.index) && padSeats.size < 4) {
+      padSeats.set(pad.index, padSeats.size + 1);
     }
+    const prev = padNow.get(pad.index) || [];
+    padPrev.set(pad.index, prev);
+    padNow.set(pad.index, pad.buttons.map((b) => b.pressed));
   }
+  // Never falls: a seat, once taken, is that player's for the session. A pad
+  // that drops out mid-menu (a flat battery, a kicked cable) must not silently
+  // hand their fighter back to a CPU, and the same pad reconnecting keeps the
+  // seat it had because seats are keyed on the pad's own index.
+  joinedPlayers = Math.max(joinedPlayers, Math.min(4, padSeats.size));
 }
 
 export function joinedPlayerCount() {
@@ -108,16 +112,17 @@ export function connectedPadCount() {
 }
 
 /** The physical pad driving a player slot, for rumble (rumble.js). Same
- *  mapping the input snapshots use: Nth connected pad for player N. */
+ *  mapping the input snapshots use: the pad seated in that slot. */
 export function padForPlayer(playerId) {
   return padFor(playerId);
 }
 
 function padFor(playerId) {
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-  const list = [];
-  for (const pad of pads) if (pad && pad.connected) list.push(pad);
-  return list[playerId - 1] || null;
+  for (const pad of pads) {
+    if (pad && pad.connected && padSeats.get(pad.index) === playerId) return pad;
+  }
+  return null;
 }
 
 function padButton(pad, i) {
@@ -298,17 +303,29 @@ export function padsMenuState() {
   return out;
 }
 
-// One menu snapshot per connected pad, in the same stable order used by
-// playerInput(). Character select consumes these separately so each player has
-// an independent cursor instead of all pads steering one shared DOM focus.
+const blankMenuState = () => ({
+  up: false, down: false, left: false, right: false,
+  confirmP: false, backP: false, altP: false,
+  pagePrevP: false, pageNextP: false,
+});
+
+// One menu snapshot per SEAT: index 0 is player 1's pad, index 1 is player 2's,
+// and a seat whose pad is not currently connected reads as a blank snapshot
+// rather than shifting everyone behind it up a place. Character select consumes
+// these by seat so each player has an independent cursor instead of all pads
+// steering one shared DOM focus — which means an index that means something
+// other than the seat silently gives one player another's cursor.
 export function padsMenuStates() {
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   const out = [];
   for (const pad of pads) {
     if (!pad || !pad.connected) continue;
+    const seat = padSeats.get(pad.index);
+    if (!seat) continue; // seated on the next readGamepads(); nothing to report yet
     const ax = pad.axes[0] || 0;
     const ay = pad.axes[1] || 0;
-    out.push({
+    while (out.length < seat) out.push(blankMenuState());
+    out[seat - 1] = {
       up: ay < -0.5 || padButton(pad, PAD_BUTTONS.dpadUp),
       down: ay > 0.5 || padButton(pad, PAD_BUTTONS.dpadDown),
       left: ax < -0.5 || padButton(pad, PAD_BUTTONS.dpadLeft),
@@ -318,7 +335,7 @@ export function padsMenuStates() {
       altP: padButtonPressed(pad, PAD_BUTTONS.light),
       pagePrevP: padButtonPressed(pad, PAD_BUTTONS.domain),
       pageNextP: padButtonPressed(pad, PAD_BUTTONS.ult),
-    });
+    };
   }
   return out;
 }
