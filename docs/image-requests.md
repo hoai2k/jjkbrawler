@@ -1,54 +1,52 @@
-# Open Image Requests — everything still to draw
+# Image Requests — every image still to draw
 
-**This file is generated** by `node tools/build_image_requests.mjs`. Re-run it
-after every delivery. It reads five sources — the open round in
-[asset-requests.md](asset-requests.md), the sprite manifest's flags, the
-sprite manifest's stand-ins, the render3d rig manifest, and the files
-actually on disk — so it cannot drift from them the way a hand-kept list
-does. Do not edit it; fix the source and re-run.
+**This is the one image-request document.** Every render mode's requests are
+here, in their own section, whatever pipeline they feed. If you are drawing
+or generating anything 2D for this project, this file is the list, and the
+per-mode documents point here rather than keeping their own.
 
-**273 images outstanding**: 172 for the game itself — the open sprite round,
-which includes poses the roster has never had — and 101 that are 2D inputs to
-the 3D track, which change nothing a sprite player sees.
+**It is generated** by `node tools/build_image_requests.mjs` from the
+documents that author each round, plus the manifests and the files on disk.
+Do not edit it; edit the source round and re-run. `--check` fails when it is
+stale, and also when a source has an open round the tool did not recognise —
+that second one is the guard, because a round written in an unexpected shape
+is exactly how 172 images once went missing from this list.
 
-Sibling documents, each of which owns its own rounds: the sprite rounds in
-[asset-requests.md](asset-requests.md), the model rounds in
-[render3d](../render3d/docs/asset-requests.md) and
-[billboards](../billboards/docs/asset-requests.md), the full DI round text in
-[render3d/docs/image-requests.md](../render3d/docs/image-requests.md), and the
-one-screen index of all of it in [all-requests.md](all-requests.md).
+**273 images outstanding.**
 
----
+- **The sprite game** — 172 images, round 20
+- **The live-3D anime path** — 101 images
 
-## Rules that hold for every image here
+## Rules that hold everywhere here
 
 - **The canon reference is the subject.** A fighter's own `<char>_idle.png`
   under `assets/reference/canon/` carries their costume, proportions, palette,
-  line weight and shading; the drawing is that character, not an
+  line weight and shading. The drawing is that character, not an
   interpretation of them.
-- **The character block goes in the prompt verbatim.** All of them are
-  reproduced at the bottom of this file.
+- **The character block goes in the prompt verbatim.** All of them are at the
+  bottom of this file.
 - **Any subset is useful.** Everything here lands per fighter or per file, and
   anything undelivered keeps whatever the engine does today. Nothing in this
   file blocks play.
 
-**The two halves want opposite deliveries, and it is the one thing worth not
-getting wrong.** The sprite round is keyed plates — flat magenta `#FF00FF` or
+**The modes want opposite deliveries, and it is the one thing worth not
+getting wrong.** Sprite rounds are keyed plates — flat magenta `#FF00FF` or
 grey `#808080` screen, one subject, margin on all four sides, trimmed at
-intake — exactly as its own delivery spec says. The 3D inputs are the
-reverse: a turnaround wants clean white or transparency, a swatch sheet wants
-labels, and nothing about them is keyed or trimmed. Applying either set of
-rules to the other family produces a file the pipeline cannot use.
+intake. The 3D inputs are the reverse: a turnaround wants clean white or
+transparency, a swatch sheet wants labels, and nothing about them is keyed or
+trimmed. Applying either mode's rules to the other produces a file its
+pipeline cannot use. Each section states its own.
 
 ---
 
-## Round 20 — the open 2D round
+# The sprite game
 
-**172 images across 4 sections.** These are sprites and backgrounds for
-the game itself, so unlike everything below them they change what a player
-sees. Reproduced whole from [asset-requests.md](asset-requests.md), which
-owns them — including their prompts, so nothing here needs a second file
-open to draw from.
+Art for the game as a player sees it: `?render=sprite`, the default, and
+the path all 27 fighters actually ship on. Keyed plates, delivered to
+`assets/intake/`, trimmed and measured on import.
+
+**172 images, round 20.** Authored in
+[docs/asset-requests.md](asset-requests.md) and reproduced whole below.
 
 - **20A** — Summon plates that are contact sheets (44 sprites)
 - **20B** — Twenty backgrounds, re-extended from the paintings they replaced (20 images)
@@ -426,29 +424,47 @@ not a hole in the roster today, and no rig is missing anything because of it.
 
 ---
 
-# The 3D track's 2D inputs
+# The live-3D anime path
 
-Everything below feeds `?render=3d` and `?render=billboard`. None of it
-changes what the sprite game looks like.
+2D images the `?render=3d` pipeline consumes: inputs that models are
+GENERATED from, and textures the anime pass reads at runtime. They serve
+`?render=billboard` too, which reads the same rigs. These are NOT keyed
+plates — each round states its own delivery.
 
-## DI1 — Turnaround boards — the model-generation inputs
+**101 images.** Authored in
+[render3d/docs/image-requests.md](../render3d/docs/image-requests.md) and reproduced whole below.
 
-**20 images.** A sprite set only ever shows one ¾ view and mirrors the rest, which is precisely what a 3D model cannot be built from.
+- **DI1** — model-generation turnaround boards (the Tripo inputs) (20 images)
+- **DI2** — face sheets (the face-first gate's reference) (27 images)
+- **DI3** — shade palette swatches (27 images)
+- **DI4** — shared face textures (27 images)
 
-What each one is:
+## Round DI1 — model-generation turnaround boards (the Tripo inputs)
 
-- One PNG per fighter, **2048×1024 or larger, clean white or transparent background**.
-- The fighter in a neutral standing pose seen **front, ¾-front, side and back**, at one consistent scale and eye-line.
-- Flat colours from the canon palette. **No dramatic lighting, no perspective, no overlapping limbs** — arms held slightly away from the body (near-A-pose reconstructs best).
-- The face on-model in the front view. The back view has to answer everything the sprites never showed: hair from behind, the back of the uniform, where any prop is stowed.
+One board per fighter being modelled in the current D-round, sized for
+image-to-3D seeding: **a single 2048×1024+ PNG, clean white or transparent
+background**, containing the fighter in a neutral standing pose from
+**front, 3/4-front, side, and back** at consistent scale and eye-line, flat
+colors from the canon palette, **no dramatic lighting, no perspective, no
+overlapping limbs** (arms slightly away from the body — near-A-pose reads
+best for reconstruction). Face visible and on-model in the front view; the
+back view must answer every question the sprites never had to (hair back,
+uniform back, prop stowage).
 
-Deliver to:
+A first-draft board can be composited from existing art:
+`python tools/build_model_reference.py <char>` assembles the canon reference
+plus the fighter's key sprites into a labelled board at
+`render3d/docs/reference/<char>_board.png`. That composite is a brief for a
+human or a seed for generation — **the request here is for the drawn
+turnaround**, because sprites only ever show the one ¾ view and mirror the
+rest, which is exactly what a 3D model cannot be built from.
 
-```
-assets/intake/render3d/<char>_turnaround.png
-```
+**Deliverable: 1 board per fighter, gated to the fighters the open D-round
+names** (D1: `yuji_turnaround.png` only).
 
-Full round text: [DI1](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs).
+### DI1: who is still owed one — 20 of 28
+
+A fighter whose rig has already been delivered is NOT listed: a turnaround board's only job is to be the thing a model is generated from, and theirs exists.
 
 | Fighter | Key | Model at | Archetype | Canon reference | Notes |
 |---|---|---|---|---|---|
@@ -473,71 +489,20 @@ Full round text: [DI1](../render3d/docs/image-requests.md#round-di1--model-gener
 | Kurourushi | `kurourushi` | 190 cm* | bulk | `assets/reference/canon/kurourushi_idle.png` | The one nonstandard skeleton; bulk clips as reference only |
 | Mahoraga | `mahoraga` | match in-game | bulk | `assets/reference/canon/mahoraga_canon.png` | Megumi's install actor (config_transform.js) |
 
-## DI2 — Face sheets — what the face-first review gate reads against
+## Round DI2 — face sheets (the face-first gate's reference)
 
-**27 images.** AI-generated meshes fail at faces first, and the workbench's sweeping-light check needs something to judge AGAINST. Needed for a fighter whose rig has already arrived just as much as for one whose has not.
+AI-generated meshes fail at faces first (plan §9), and the workbench's
+sweeping-light check needs something to judge AGAINST. Per fighter: one
+sheet, front + ¾ + profile of the **head only**, at least 512px per view,
+canon palette, neutral expression — the drawn truth of the jawline, the eye
+shapes, the hair clumping and parting side. Hair clump direction matters:
+the modeller combs the normals along it (D-spec addition 3).
 
-What each one is:
+**Deliverable: 1 sheet per fighter, same gating as DI1.**
 
-- One sheet per fighter: **front, ¾ and profile of the head only**, at least 512 px per view.
-- Canon palette, neutral expression.
-- The drawn truth of the jawline, the eye shapes, and — this one matters to the modeller — **the hair clumping and which side it parts**, because the normals are combed along it.
+### DI2: who is still owed one — 27 of 28
 
-Deliver to:
-
-```
-assets/intake/render3d/<char>_face.png
-```
-
-Full round text: [DI2](../render3d/docs/image-requests.md#round-di2--face-sheets-the-face-first-gates-reference).
-
-| Fighter | Key | Model at | Archetype | Canon reference | Notes |
-|---|---|---|---|---|---|
-| Aoi Todo | `todo` | 190 cm | unarmed | `assets/reference/canon/todo_idle.png` | Grappler bulk in the shoulders |
-| Yuki Tsukumo | `yuki` | 180 cm | unarmed | `assets/reference/canon/yuki_idle.png` | — |
-| Takako Uro | `uro` | 190 cm* | unarmed | `assets/reference/canon/uro_idle.png` | Sky-palm effects are engine-side |
-| Mahito | `mahito` | 179 cm | unarmed | `assets/reference/canon/mahito_idle.png` | Patchwork skin in the texture |
-| Ryomen Sukuna | `sukuna` | 173 cm | unarmed | `assets/reference/canon/sukuna_idle.png` | Facial/body markings; no shawl (round 2 ruling) |
-| Choso | `choso` | 181 cm | unarmed | `assets/reference/canon/choso_idle.png` | Blood effects are engine-side |
-| Kinji Hakari | `hakari` | 185 cm | unarmed | `assets/reference/canon/hakari_idle.png` | Shutters are engine-side |
-| Yuta Okkotsu | `yuta` | 175 cm | blade | `assets/reference/canon/yuta_idle.png` | Katana, sheathed at idle |
-| Kento Nanami | `nanami` | 184 cm | blade | `assets/reference/canon/nanami_idle.png` | Wrapped blunt blade |
-| Toji Fushiguro | `toji` | 187 cm | blade | `assets/reference/canon/toji_idle.png` | Spear + chain; inventory worm not modeled |
-| Reggie Star | `reggie` | 190 cm* | blade | `assets/reference/canon/reggie_idle.png` | Katana-umbrella |
-| Nobara Kugisaki | `nobara` | 160 cm | heavy | `assets/reference/canon/nobara_idle.png` | Hammer + nails in hand |
-| Mei Mei | `meimei` | 190 cm* | heavy | `assets/reference/canon/meimei_idle.png` | Braided axe; braid needs bones |
-| Maki Zen'in | `maki` | 170 cm | polearm | `assets/reference/canon/maki_idle.png` | Playful Cloud |
-| Momo Nishimiya | `momo` | 150 cm | polearm | `assets/reference/canon/momo_idle.png` | Broom — also ridden; see her kit |
-| Satoru Gojo | `gojo` | 190 cm | caster | `assets/reference/canon/gojo_idle.png` | Blindfold, not glasses (canon ref) |
-| Megumi Fushiguro | `megumi` | 175 cm | caster | `assets/reference/canon/megumi_idle.png` | Shadow/shikigami are engine + summons |
-| Toge Inumaki | `inumaki` | 164 cm | caster | `assets/reference/canon/inumaki_idle.png` | High collar; seal marks on tongue unseen |
-| Kokichi Muta | `mechamaru` | 205 cm | caster | `assets/reference/canon/mechamaru_idle.png` | Puppet body; arm cannon |
-| Yoshinobu Gakuganji | `gakuganji` | 190 cm* | caster | `assets/reference/canon/gakuganji_idle.png` | Guitar, slung and played |
-| Suguru Geto | `geto` | 191 cm | caster | `assets/reference/canon/geto_idle.png` | Curse summons are engine-side |
-| Jogo | `jogo` | 180 cm | caster | `assets/reference/canon/jogo_idle.png` | Volcano head is mesh, not particle |
-| Panda | `panda` | 200 cm | bulk | `assets/reference/canon/panda_idle.png` | Core marking per round 2 ruling |
-| Hanami | `hanami` | 220 cm | bulk | `assets/reference/canon/hanami_idle.png` | Canon Hanami: lean pale body, black brushstroke stripes, antler horns, one shoulder wrapped in white cloth (round 17A). The tree design is retired — no `hanami_alt` variant |
-| Dagon | `dagon` | 215 cm | bulk | `assets/reference/canon/dagon_idle.png` | Extra bones for the tendrils |
-| Kurourushi | `kurourushi` | 190 cm* | bulk | `assets/reference/canon/kurourushi_idle.png` | The one nonstandard skeleton; bulk clips as reference only |
-| Mahoraga | `mahoraga` | match in-game | bulk | `assets/reference/canon/mahoraga_canon.png` | Megumi's install actor (config_transform.js) |
-
-## DI3 — Shade palette swatches — the two-band ramp's colours
-
-**27 images.** The toon pass paints shadows from a palette rather than from darkness, and those numbers land in the rig's material extras (or the manifest's `toon` block) at intake. Not one delivered rig carries a `toon` block today, so every one of them is running on the engine defaults.
-
-What each one is:
-
-- One labelled swatch sheet per fighter. Format is free; a PNG grid is fine.
-- Each major material region — skin, hair, uniform top, uniform bottom, props — paired with **its lit fill and its painted shadow colour**.
-- Taken from, or consistent with, that fighter's own sprite shading.
-
-Deliver to:
-
-```
-assets/intake/render3d/<char>_shade.png
-```
-
-Full round text: [DI3](../render3d/docs/image-requests.md#round-di3--shade-palette-swatches).
+Listed for delivered rigs too — this is what the face-first review gate reads AGAINST, so it is wanted whether or not the model exists.
 
 | Fighter | Key | Model at | Archetype | Canon reference | Notes |
 |---|---|---|---|---|---|
@@ -569,22 +534,77 @@ Full round text: [DI3](../render3d/docs/image-requests.md#round-di3--shade-palet
 | Kurourushi | `kurourushi` | 190 cm* | bulk | `assets/reference/canon/kurourushi_idle.png` | The one nonstandard skeleton; bulk clips as reference only |
 | Mahoraga | `mahoraga` | match in-game | bulk | `assets/reference/canon/mahoraga_canon.png` | Megumi's install actor (config_transform.js) |
 
-## DI4 — Mouth sheets — optional, per fighter
+## Round DI3 — shade palette swatches
 
-**27 images, optional.** Nothing ships blocked on this: the neutral modelled mouth is the default, and a fighter with no sheet simply keeps it. The shared eye-highlight half of DI4 is delivered.
+The two-band ramp paints shadows from a palette, not from darkness
+(render3d/src/toon.js `shadeTint`, overridable per material). Per fighter:
+one small swatch sheet pairing each major material region (skin, hair,
+uniform top, uniform bottom, props) with its **lit fill and its painted
+shadow color**, taken from or consistent with the fighter's own sprite
+shading. This is a color decision, not a texture: the numbers land in the
+.glb's material extras (or the manifest's `toon` block) at intake, and the
+sheet is what review holds them against.
 
-What each one is:
+**Deliverable: 1 swatch sheet per fighter, same gating as DI1. Format free —
+a labelled PNG grid is fine.**
 
-- A **4-cell strip — idle / hurt / ult-shout / win-grin** — matching that fighter's face-sheet style, 256×256 per cell.
-- For the mouth texture-swap regions the D-spec lists in a rig's extras.
+### DI3: who is still owed one — 27 of 28
 
-Deliver to:
+Listed for delivered rigs too: these numbers land in the rig's material extras at intake, and not one delivered rig carries a `toon` block today — all of them are running on engine defaults.
 
-```
-assets/intake/render3d/<char>_mouth_sheet.png
-```
+| Fighter | Key | Model at | Archetype | Canon reference | Notes |
+|---|---|---|---|---|---|
+| Aoi Todo | `todo` | 190 cm | unarmed | `assets/reference/canon/todo_idle.png` | Grappler bulk in the shoulders |
+| Yuki Tsukumo | `yuki` | 180 cm | unarmed | `assets/reference/canon/yuki_idle.png` | — |
+| Takako Uro | `uro` | 190 cm* | unarmed | `assets/reference/canon/uro_idle.png` | Sky-palm effects are engine-side |
+| Mahito | `mahito` | 179 cm | unarmed | `assets/reference/canon/mahito_idle.png` | Patchwork skin in the texture |
+| Ryomen Sukuna | `sukuna` | 173 cm | unarmed | `assets/reference/canon/sukuna_idle.png` | Facial/body markings; no shawl (round 2 ruling) |
+| Choso | `choso` | 181 cm | unarmed | `assets/reference/canon/choso_idle.png` | Blood effects are engine-side |
+| Kinji Hakari | `hakari` | 185 cm | unarmed | `assets/reference/canon/hakari_idle.png` | Shutters are engine-side |
+| Yuta Okkotsu | `yuta` | 175 cm | blade | `assets/reference/canon/yuta_idle.png` | Katana, sheathed at idle |
+| Kento Nanami | `nanami` | 184 cm | blade | `assets/reference/canon/nanami_idle.png` | Wrapped blunt blade |
+| Toji Fushiguro | `toji` | 187 cm | blade | `assets/reference/canon/toji_idle.png` | Spear + chain; inventory worm not modeled |
+| Reggie Star | `reggie` | 190 cm* | blade | `assets/reference/canon/reggie_idle.png` | Katana-umbrella |
+| Nobara Kugisaki | `nobara` | 160 cm | heavy | `assets/reference/canon/nobara_idle.png` | Hammer + nails in hand |
+| Mei Mei | `meimei` | 190 cm* | heavy | `assets/reference/canon/meimei_idle.png` | Braided axe; braid needs bones |
+| Maki Zen'in | `maki` | 170 cm | polearm | `assets/reference/canon/maki_idle.png` | Playful Cloud |
+| Momo Nishimiya | `momo` | 150 cm | polearm | `assets/reference/canon/momo_idle.png` | Broom — also ridden; see her kit |
+| Satoru Gojo | `gojo` | 190 cm | caster | `assets/reference/canon/gojo_idle.png` | Blindfold, not glasses (canon ref) |
+| Megumi Fushiguro | `megumi` | 175 cm | caster | `assets/reference/canon/megumi_idle.png` | Shadow/shikigami are engine + summons |
+| Toge Inumaki | `inumaki` | 164 cm | caster | `assets/reference/canon/inumaki_idle.png` | High collar; seal marks on tongue unseen |
+| Kokichi Muta | `mechamaru` | 205 cm | caster | `assets/reference/canon/mechamaru_idle.png` | Puppet body; arm cannon |
+| Yoshinobu Gakuganji | `gakuganji` | 190 cm* | caster | `assets/reference/canon/gakuganji_idle.png` | Guitar, slung and played |
+| Suguru Geto | `geto` | 191 cm | caster | `assets/reference/canon/geto_idle.png` | Curse summons are engine-side |
+| Jogo | `jogo` | 180 cm | caster | `assets/reference/canon/jogo_idle.png` | Volcano head is mesh, not particle |
+| Panda | `panda` | 200 cm | bulk | `assets/reference/canon/panda_idle.png` | Core marking per round 2 ruling |
+| Hanami | `hanami` | 220 cm | bulk | `assets/reference/canon/hanami_idle.png` | Canon Hanami: lean pale body, black brushstroke stripes, antler horns, one shoulder wrapped in white cloth (round 17A). The tree design is retired — no `hanami_alt` variant |
+| Dagon | `dagon` | 215 cm | bulk | `assets/reference/canon/dagon_idle.png` | Extra bones for the tendrils |
+| Kurourushi | `kurourushi` | 190 cm* | bulk | `assets/reference/canon/kurourushi_idle.png` | The one nonstandard skeleton; bulk clips as reference only |
+| Mahoraga | `mahoraga` | match in-game | bulk | `assets/reference/canon/mahoraga_canon.png` | Megumi's install actor (config_transform.js) |
 
-Full round text: [DI4](../render3d/docs/image-requests.md#round-di4--shared-face-textures-one-time-roster-wide).
+## Round DI4 — shared face textures *(one-time, roster-wide)*
+
+The eyes-and-face rules (plan §4) run on small shared textures rather than
+per-fighter art:
+
+- `eye_highlight.png` — the camera-facing catchlight sprite: soft-edged
+  white/near-white shapes on transparency, 128×128, one primary highlight +
+  one small secondary. One texture serves the roster; per-fighter tinting is
+  engine-side.
+- `<char>_mouth_sheet.png` *(optional, per fighter, unblocking)* — a 4-cell
+  strip (idle / hurt / ult-shout / win-grin) matching the fighter's face
+  sheet style, 256×256 per cell, for the mouth texture-swap regions the
+  D-spec lists in extras. No fighter ships blocked on this; the neutral
+  modelled mouth is the default.
+
+**Deliverable: 1 shared highlight texture now; mouth sheets ride whichever
+D-round their fighter ships in.**
+
+---
+
+### DI4: who is still owed one — 27 of 28
+
+The shared eye-highlight texture is delivered; these are the optional per-fighter mouth sheets. Nothing ships blocked on one.
 
 | Fighter | Key | Model at | Archetype | Canon reference | Notes |
 |---|---|---|---|---|---|
@@ -618,22 +638,21 @@ Full round text: [DI4](../render3d/docs/image-requests.md#round-di4--shared-face
 
 ---
 
-## The character blocks
+# The character blocks
 
-Used **verbatim** as `[CHARACTER BLOCK]` in the prompts above, exactly as the
-2D rounds use them — this is how a fighter stays the same character across
-their sprites, their card and their turnaround. Reproduced here from
-[docs/asset-requests.md](asset-requests.md#character-blocks), which owns them.
+Used **verbatim** as `[CHARACTER BLOCK]` in every prompt above — this is how
+a fighter stays the same character across their sprites, their card and
+their turnaround. Reproduced from
+[asset-requests.md](asset-requests.md#character-blocks), which owns them.
 
 **Where the block and the canon reference disagree, the reference wins.**
-Every fighter now has a `<char>_idle.png` — regenerated from their approved
-idle — and it carries the figure scale, palette and shading the delivered set
-actually has, which the block text cannot. The wiki's (Anime) render answers
-design questions the reference leaves open (what does Gakuganji's guitar look
-like), and is where the blocks came from: three were rewritten in round 9E
-because they described characters who looked nothing like their anime designs,
-and Uro's again in round 18 after an ambiguous sentence was drawn the wrong
-way twice. See [`assets/reference/canon/`](../assets/reference/canon/).
+Every fighter now has a `<char>_idle.png`, regenerated from their approved
+idle, and it carries the figure scale, palette and shading the delivered set
+actually has — which block text cannot. The wiki's (Anime) render answers
+design questions the reference leaves open, and is where the blocks came
+from: three were rewritten in round 9E because they described characters who
+looked nothing like their anime designs, and Uro's again in round 18 after an
+ambiguous sentence was drawn the wrong way twice.
 
 | Key | Block |
 |---|---|
@@ -668,14 +687,18 @@ way twice. See [`assets/reference/canon/`](../assets/reference/canon/).
 
 ---
 
-## 2D sprites — the other half of the question
+# Outstanding by manifest, not by request
+
+The other half of the question, and a narrower one: poses whose art EXISTS
+and is wrong. A workbench flag says so directly; a pose drawing a file that
+is not its own says so silently, which is how seven of them stayed invisible
+until round 18G. Neither can see a pose that was never drawn — that is what
+the rounds above are for.
 
 **Nothing outstanding.** No pose carries a replacement flag, and no pose is
-drawing a file that is not its own — the two halves that between them
-define an outstanding sprite. Improvement requests are listed below and are
-repo work rather than art anybody owes us.
+drawing a file that is not its own.
 
-Separately, **2 improvement requests** — the art works and is
-just not as good as it should be. Nothing is blocked by one, and the two
-standing ones (`hakari/dodge_air`, `toji/dodge_air`) are alpha fixes to
-delivered files, which is repo work and not a request.
+Separately, **2 improvement requests** — the art works and is just
+not as good as it should be. Nothing is blocked by one, and the standing
+ones are alpha fixes to delivered files, which is repo work rather than a
+request.

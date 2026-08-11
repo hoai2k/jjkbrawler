@@ -1,5 +1,10 @@
 # assets/intake — where delivered art is dropped
 
+**What to draw is [docs/image-requests.md](../../docs/image-requests.md)** —
+the single image-request document for every render mode, generated from the
+rounds and from what is on disk. This file is about what happens to a delivery
+once it lands here.
+
 **Upload new art here, not into `sprites/assets/`.**
 
 ```

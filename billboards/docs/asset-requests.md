@@ -1,5 +1,10 @@
 # Billboard Asset Requests — open requests
 
+**This file asks for MODELS and CLIPS. Every 2D image any render mode needs —
+including the reference boards these rounds are generated from — is in
+[docs/image-requests.md](../../docs/image-requests.md), the single
+image-request document.**
+
 Everything the 2.5D path needs generated: rigged 3D models and animation clips
 for the whole roster. This file is the billboard sibling of
 [docs/asset-requests.md](../../docs/asset-requests.md) and follows its rules:

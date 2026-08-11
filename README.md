@@ -49,6 +49,10 @@ these instructions together (`node tools/check_controls.mjs --fix`).
 
 The in-game `i` button lists the full move set.
 
+Drawing or generating art for the project? **[docs/image-requests.md](docs/image-requests.md)**
+is the single list of every image still wanted, for every render mode, with the
+prompts and references to make each one.
+
 Controllers seat themselves: plug in a second pad and the second slot stops
 being a CPU immediately, with either player free to start browsing the roster
 first. Each pad keeps its own seat and its own cursor for the session.

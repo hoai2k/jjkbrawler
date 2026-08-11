@@ -1,5 +1,10 @@
 # 3D Asset Requests — open requests (the D-rounds)
 
+**This file asks for MODELS and CLIPS. Every 2D image any render mode needs —
+including the reference boards these rounds are generated from — is in
+[docs/image-requests.md](../../docs/image-requests.md), the single
+image-request document.**
+
 Everything the `?render=3d` backend needs generated: **rigged, toon-ready 3D
 models and animation clips**. This file is the render3d sibling of
 [billboards/docs/asset-requests.md](../../billboards/docs/asset-requests.md)

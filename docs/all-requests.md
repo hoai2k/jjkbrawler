@@ -13,12 +13,16 @@ Nothing outstanding blocks play. The game is complete and playable on the
 sprite path with 27 fighters; everything below either extends it (the 3D
 tracks) or fills a gap that currently degrades to silence or to a fallback.
 
-**[open-image-requests.md](open-image-requests.md) is the generated list of every
-image still to draw** — 273 of them, with every prompt, canon reference, height
+**[image-requests.md](image-requests.md) is THE image-request document** — every
+render mode's requests, in one file — 273 of them, with every prompt, canon reference, height
 and character block needed to draw them. Re-run
 `node tools/build_image_requests.mjs` after any delivery; it reads the open
 round, the manifests and the files on disk, so it cannot go stale the way this
 page can.
+
+**Rows 1–3 and DI4 below are where those rounds are AUTHORED**, and stay the
+place to edit or add one. Nobody needs to read them to draw: everything in them
+is reproduced in the generated file, resolved against what is actually on disk.
 
 That splits **172 for the game itself** (round 20: summon plates, re-extended
 backgrounds, the grab poses and the dash attack — the last two are poses the
@@ -42,10 +46,10 @@ fighter without a delivered rig.
 
 | # | Request | Type | Status | Blocked by |
 |---|---|---|---|---|
-| 0 | [**Every open image request, generated**](open-image-requests.md) | 🖼️ **Images** | 273 outstanding — the rows below, resolved against the open round and what is on disk | — |
-| 1 | [2D art — round 20](asset-requests.md) | 🖼️ **Images** (sprites, backdrops) | 172 open across 20A–20D; round 18 delivered complete | — |
-| 2 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) | 🖼️ **Images** (reference) | 20 open — every fighter with no rig yet | — |
-| 3 | [3D images — DI2/DI3: face sheets, shade palettes](../render3d/docs/image-requests.md#round-di2--face-sheets-the-face-first-gates-reference) | 🖼️ **Images** (reference) | 27 + 27 open — everyone but Yuji, delivered rigs included | — |
+| 0 | [**image-requests.md — every open image request**](image-requests.md) | 🖼️ **Images** | **273 outstanding.** Generated; supersedes rows 1–3 and DI4 below, which are where those rounds are AUTHORED | — |
+| 1 | [2D art — round 20](asset-requests.md) *(authoring source)* | 🖼️ **Images** (sprites, backdrops) | 172 open across 20A–20D; round 18 delivered complete | — |
+| 2 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) *(authoring source)* | 🖼️ **Images** (reference) | 20 open — every fighter with no rig yet | — |
+| 3 | [3D images — DI2/DI3: face sheets, shade palettes](../render3d/docs/image-requests.md#round-di2--face-sheets-the-face-first-gates-reference) *(authoring source)* | 🖼️ **Images** (reference) | 27 + 27 open — everyone but Yuji, delivered rigs included | — |
 | 4 | [3D models — B1/D1: the Yuji pilot](../render3d/docs/asset-requests.md#round-d1--the-pilot-yuji-complete-open--draw-against-this) | 🧊 **3D model + clips** | open | DI1–DI3 for Yuji |
 | 5 | [3D models — D2: library + archetypes](../render3d/docs/asset-requests.md#round-d2--the-shared-library-and-the-archetype-sets) | 🧊 **Animation clips** | open | D1 review |
 | 6 | [3D models — D3: the standard roster](../render3d/docs/asset-requests.md#round-d3--the-standard-humanoid-rigs) | 🧊 **3D models + clips** | open | D2 |

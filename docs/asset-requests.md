@@ -1,5 +1,11 @@
 # Asset Requests — open requests
 
+**To DRAW from, use [image-requests.md](image-requests.md), not this file.**
+That is the single image-request document for every render mode — this round is
+reproduced in it whole, alongside the 3D track's, resolved against what is
+actually on disk. This file stays where the sprite rounds are AUTHORED: edit a
+round here and re-run `node tools/build_image_requests.mjs`.
+
 Everything in this file is **outstanding**. Delivered rounds are recorded in
 [asset-requests-history.md](asset-requests-history.md) — including the round
 numbers, so a commit or code comment citing "round 5 art" still resolves.
@@ -12,7 +18,9 @@ numbered B1, B2…; the live-3D anime path's model requests live in
 numbered D1, D2…, and its 2D image inputs — turnaround boards for
 image-to-3D, face sheets, shade palettes — in
 [render3d/docs/image-requests.md](../render3d/docs/image-requests.md),
-numbered DI1, DI2… — so the tracks never collide.)
+numbered DI1, DI2… — so the tracks never collide. All of them are gathered into
+[image-requests.md](image-requests.md), which is what to read to draw any of
+them; these files are where each is written.)
 
 **Current status: rounds 1–18 delivered. Round 20 is open — 44 summon plates
 ([20A](#20a-summon-plates-that-are-contact-sheets--44-sprites)), 20 stage
