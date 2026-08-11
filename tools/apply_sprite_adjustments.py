@@ -88,6 +88,11 @@ ALLOWED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "anchors", "faceLef
            # the point the spawn site paints them on. They have no cell to be
            # placed in, so `ox`/`bodyBottom` mean nothing there.
            "dx", "dy",
+           # Shared CREATURES only: the box a summon hits with, as four
+           # fractions of its own drawing (x, y, w, h — see sharedAttack in
+           # src/shared_sprites.js). Its hurt box is the whole drawing and is
+           # measured, so there is nothing to store for that one.
+           "attackBox",
            "needsReplacement", "wantsImprovement",
            "replacementNote", "improvementNote"}
 # Free text. "" is meaningful — it clears the note rather than leaving the old
@@ -97,6 +102,8 @@ TEXT = {"replacementNote", "improvementNote"}
 # first kind in the list.
 KIND_FIELDS = {"needsReplacement": "replace", "wantsImprovement": "quality"}
 NUMERIC = {"renderScale", "ox", "bodyBottom", "rotationDeg", "dx", "dy"}
+# Fields whose value is an object, taken whole rather than compared as a number.
+OBJECT = {"attackBox", "anchors"}
 BOOLEAN = {"faceLeft"}
 
 # Fields whose pre-edit value is worth remembering. `edited` maps each to what
@@ -448,6 +455,29 @@ def main():
                         meta.pop(field, None)
                     applied.append(f"{char}/{key}.{field}: "
                                    + ("cleared" if not text else f"{len(text)} chars"))
+                    continue
+                if field == "attackBox":
+                    # Four fractions of the drawing, taken whole: they only mean
+                    # anything together, and a partial one would place a box
+                    # nobody chose. Clamped to the same bounds the workbench
+                    # drags within, so a hand-edited export cannot put a
+                    # creature's bite off its own body.
+                    if not isinstance(value, dict):
+                        skipped.append(f"{char}/{key}.attackBox: not an object")
+                        continue
+                    bounds = {"x": (-1, 1), "y": (0, 1.5), "w": (0.05, 2), "h": (0.05, 2)}
+                    before = meta.get("attackBox")
+                    box = {}
+                    for name, (lo, hi) in bounds.items():
+                        if name not in value:
+                            skipped.append(f"{char}/{key}.attackBox: missing '{name}'")
+                            box = None
+                            break
+                        box[name] = round(min(hi, max(lo, float(value[name]))), 3)
+                    if box is None:
+                        continue
+                    meta["attackBox"] = box
+                    applied.append(f"{char}/{key}.attackBox: {before} -> {box}")
                     continue
                 if field == "anchors":
                     # merge, so exporting one anchor never drops the others

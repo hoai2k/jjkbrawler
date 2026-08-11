@@ -156,6 +156,7 @@ reads the same file to apply them:
 | **Size** | multiplies the height the game paints it at | something declares a height |
 | **Spawn point** (on the canvas) | drag it; the drawing moves under it, storing `dx`/`dy` in game pixels | the drawing is painted somewhere |
 | **Rotation** | a standing tilt about the same point | the drawing is painted somewhere |
+| **Attack box** (on the canvas) | drag it to place what the creature hits WITH, corner to size it | the drawing is a creature (a measured hurt box, standing on its feet) |
 
 **The size has four owners**, which is why it used to look broken: a kit's
 `spriteH` (or `orbSpriteH`, or a drop entry's `h`), a creature's `h` in
@@ -169,6 +170,18 @@ height and then clamped it to fit. Nearly every plate is taller than the viewer,
 so nearly every one sat pinned at the clamp and the slider changed nothing you
 could see. The viewer now draws at the height the game uses, times the zoom —
 which is also what makes a creature comparable to the fighter standing beside it.
+
+**A creature has two boxes, and only one of them is placed here.** What it can
+be *hit on* is the whole drawing — measured at 85% of the drawn rectangle, so it
+follows the art and there is nothing to set. What it hits *with* is a different
+shape and always was: a dog bites with its head, and a tail that deals 6.5% is a
+bug you can only find by playing. That one is a rectangle you drag onto the
+drawing, stored as four fractions of it (`attackBox` in `otherSprites`, read by
+`sharedAttack`), so it travels with the art — rescale the creature or redraw it
+bigger and the bite stays on the mouth. Unplaced, it defaults to the leading 44%
+of the creature's length, which is the right end of every quadruped in the
+pools; a bomber's is its whole body, because the thing that touches you is
+whichever part got there first.
 
 **The spawn point replaced two sliders.** Position used to be a horizontal and a
 vertical nudge, which asks you to hold in your head which way positive runs and

@@ -164,13 +164,21 @@ The exception is a summon that was **killed**. That one bursts on the spot with
 no flash and no fade — the difference between a timer running out and an
 opponent taking your shikigami apart should be visible from across the stage.
 
-**A summon is hit on the shape it is drawn as.** Its box — which is both what
-it can be hit on and what it hits with — is measured off its own resting
-drawing (85% of the drawn rectangle) rather than authored per creature, so a
-dog drawn 205 px long is a 205 px dog to hit and to be bitten by. The same rule
-a fighter's hurtbox follows. A kit can still state a box, and seven creatures do
-— the ones whose art arrived as a sheet of six figures, where measuring the
-drawing would give a box six creatures wide (asset-requests round 20A).
+**A summon has two boxes, the way a fighter does.** What it can be **hit on** is
+the whole drawing — measured off its own resting pose at 85% of the drawn
+rectangle rather than authored per creature, so a dog drawn 205 px long is a
+205 px dog to hit. A kit can still state that box, and seven creatures do: the
+ones whose art arrived as a sheet of six figures, where measuring the drawing
+would give a box six creatures wide (asset-requests round 20A).
+
+What it hits **with** is separate, because a dog bites with its head — being
+brushed by a passing shikigami's tail should not cost 6.5%. That box is a
+rectangle placed on the drawing in the sprite workbench and stored as fractions
+of it, so it travels with the art. Unplaced it is the leading 44% of the
+creature's length, which is the right end of every quadruped, serpent and hulk
+in the pools; a bomber's is its whole body, since it detonates on contact and
+what touches you is whichever part arrived first. Turn on debug hitboxes to see
+both: white is what it is hit on, red is what it hits with.
 
 **Hitting one moves it.** A summon that took a hit and kept walking looked like
 a summon that had not been hit, so a blow now **staggers** it: shoved along the

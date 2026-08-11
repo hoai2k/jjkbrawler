@@ -7,7 +7,7 @@ import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
 import { TRAIL_ALPHA, STRIKE_ARC } from "./config_tuning.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
-import { hitboxRect, hurtbox } from "./combat.js";
+import { hitboxRect, hurtbox, summonBox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
 import { cameraMode, camera3d } from "./camera_mode.js";
 import {
@@ -867,6 +867,25 @@ function drawDebug(ctx) {
         ctx.lineTo(x, r.y + r.h);
         ctx.stroke();
       }
+    }
+  }
+  // Summons carry the same two shapes a fighter does, and for the same reason:
+  // white is what it can be hit ON (the whole drawing), red is what it hits
+  // WITH (summons.js — the front of the creature by default, or wherever the
+  // sprite workbench put it). They used to be one box, which is how a dog's
+  // tail came to bite.
+  for (const e of state.entities) {
+    if (e.kind !== "summon" || e.dead || e.intangible) continue;
+    const b = summonBox(e);
+    ctx.strokeStyle = "rgba(255,255,255,0.55)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(b.x, b.y, b.w, b.h);
+    const a = e.attackRect?.();
+    if (a) {
+      ctx.fillStyle = "rgba(255, 80, 80, 0.22)";
+      ctx.fillRect(a.x, a.y, a.w, a.h);
+      ctx.strokeStyle = "rgba(255, 120, 120, 0.85)";
+      ctx.strokeRect(a.x, a.y, a.w, a.h);
     }
   }
   for (const f of state.fighters) {

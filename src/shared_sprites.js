@@ -86,6 +86,33 @@ const SPRITE_LIST_FIELDS = [
 /** The list fields' names, for the checker that polices this contract. */
 export const SPRITE_LIST_KEY_FIELDS = SPRITE_LIST_FIELDS.map(([f]) => f);
 
+/**
+ * The box a CREATURE hits with, as fractions of its own drawing.
+ *
+ * Its hurt box is the whole sprite — a dog drawn 205 px long is hit anywhere
+ * along those 205 px, which is what a hurt box should be. Its ATTACK box is not
+ * the same shape and never was: a dog bites with its head, and being brushed by
+ * the tail of a passing shikigami should not take 6.5%. Fighters have had the
+ * two separate since the beginning; this gives creatures the same split.
+ *
+ *   x  centre of the box, FORWARD from the middle of the drawing, in fractions
+ *      of its width. Positive is the way the creature faces, so it mirrors.
+ *   y  centre of the box above the feet, in fractions of the drawing's height.
+ *   w  width, as a fraction of the drawing's width.
+ *   h  height, as a fraction of the drawing's height.
+ *
+ * Fractions rather than pixels, so the box travels with the art: rescale the
+ * creature in the workbench, or redraw it bigger, and the bite stays on the
+ * mouth. Stored per creature in `otherSprites`, beside the size and the nudge,
+ * and edited on the canvas.
+ */
+export function sharedAttack(key) {
+  const box = entryOf(key)?.attackBox;
+  if (!box) return null;
+  const n = (v, d) => (Number.isFinite(v) ? v : d);
+  return { x: n(box.x, 0.25), y: n(box.y, 0.5), w: n(box.w, 0.5), h: n(box.h, 0.8) };
+}
+
 /** Field names that hold a shared-sprite key, for callers that only need those. */
 export const SPRITE_KEY_FIELDS = [
   ...SPRITE_FIELDS.map(([f]) => f),

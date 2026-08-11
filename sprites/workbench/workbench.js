@@ -256,6 +256,7 @@ const state = {
   // that pose. Session-only: it changes what the panel offers, not the art.
   anchorForced: new Set(),
   dragging: false,
+  dragAttack: null,
   // RECENT_KEY while the cross-character updated list is open. `char` stays a
   // real character throughout — every control below edits the pose that is
   // selected, and which list it was picked from changes nothing about that.
@@ -1806,7 +1807,99 @@ function drawSharedSprite(cx) {
   // the one thing art has to agree with that cannot be seen in the art. Under
   // the same toggle as a fighter's hurtbox, because it is the same question.
   if ($("showHurtbox")?.checked && can?.info?.hit) drawSharedHit(px, py, can.info.hit, anchor);
+  // A creature has no fixed hit region to draw — its hurt box is the drawing —
+  // so the same toggle shows the one shape that IS placed by hand.
+  if ($("showHurtbox")?.checked && canPlaceAttack(state.frame)) drawAttackBox(state.frame);
   if (can?.offset) drawSpawnPoint(px, py, anchor);
+}
+
+// ---------------------------------------------------------------- attack box
+//
+// A creature's HURT box is the whole drawing and is measured, so there is
+// nothing to place. What it hits WITH is a different shape and always was: a
+// dog bites with its head, and a tail that deals 6.5% is a bug you can only see
+// by playing. Fighters have had the two separate from the start; this is where
+// a creature's gets placed.
+//
+// Stored as fractions of the drawing (`attackBox` in `otherSprites`, read by
+// sharedAttack in src/shared_sprites.js) so it travels with the art: rescale
+// the creature here or redraw it bigger and the bite stays on the mouth.
+
+/** The default the game uses when nobody has placed one — kept in step with
+ *  DEFAULT_ATTACK in src/summons.js. Shown as a starting point rather than as
+ *  an empty canvas, so placing one is an edit rather than an invention. */
+const DEFAULT_ATTACK_BOX = { x: 0.28, y: 0.52, w: 0.44, h: 0.76 };
+
+/** Whether this drawing is a creature whose attack box can be placed: a
+ *  creature stands on its feet and has a measured hurt box. A projectile's
+ *  collision is its move's `r` and is not a shape anybody draws here. */
+function canPlaceAttack(key) {
+  const can = sharedControls(key);
+  return !!(can?.used && can.measuredBox && can.anchor === "feet");
+}
+
+/** The stored box, or the default, for the drawing on screen. */
+function attackBoxOf(key) {
+  const stored = rawMeta(OTHER_KEY, key)?.attackBox;
+  return { ...DEFAULT_ATTACK_BOX, ...(stored || {}) };
+}
+
+/** The drawn rectangle on the CANVAS, which the fractions are measured against:
+ *  the same rectangle the game paints, at the workbench's zoom. */
+function drawnRectOnCanvas(key) {
+  const img = getImage(key);
+  const h = gameHeightOf(key);
+  if (!img || !h) return null;
+  const z = state.zoom;
+  const dh = h * z;
+  const dw = img.width * (dh / img.height);
+  return { x: canvasCentreX() - dw / 2, y: GROUND_Y - dh, w: dw, h: dh };
+}
+
+/** The attack box on the canvas, from the fractions. The art is drawn facing
+ *  right here, which is the direction `x` is positive in. */
+function attackBoxOnCanvas(key) {
+  const rect = drawnRectOnCanvas(key);
+  if (!rect) return null;
+  const box = attackBoxOf(key);
+  const cx = canvasCentreX() + box.x * rect.w;
+  const cy = GROUND_Y - box.y * rect.h;
+  return { x: cx - (box.w * rect.w) / 2, y: cy - (box.h * rect.h) / 2,
+           w: box.w * rect.w, h: box.h * rect.h, rect };
+}
+
+function drawAttackBox(key) {
+  const b = attackBoxOnCanvas(key);
+  if (!b) return;
+  const held = state.dragAttack;
+  ctx.save();
+  ctx.fillStyle = held ? "rgba(255, 120, 120, 0.22)" : "rgba(255, 90, 90, 0.14)";
+  ctx.fillRect(b.x, b.y, b.w, b.h);
+  ctx.strokeStyle = held ? "rgba(255, 170, 170, 0.95)" : "rgba(255, 110, 110, 0.9)";
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([5, 4]);
+  ctx.strokeRect(b.x, b.y, b.w, b.h);
+  ctx.setLineDash([]);
+  // The corner that resizes it, bottom-right in canvas terms — the forward,
+  // lower corner of the box, which is the one you reach for on a head.
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.fillRect(b.x + b.w - HANDLE_R, b.y + b.h - HANDLE_R, HANDLE_R * 2, HANDLE_R * 2);
+  ctx.globalAlpha = 0.95;
+  ctx.font = "600 11px Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("attack box — drag to place, corner to size", b.x + b.w / 2, Math.max(12, b.y - 6));
+  ctx.restore();
+}
+
+/** Write a changed attack box back onto the drawing's manifest entry. */
+function setAttackBox(key, box, start) {
+  if (start) pushHistory(OTHER_KEY, key);
+  const meta = rawMeta(OTHER_KEY, key);
+  if (!meta) return;
+  const r3 = (v) => Number(v.toFixed(3));
+  meta.attackBox = { x: r3(box.x), y: r3(box.y), w: r3(box.w), h: r3(box.h) };
+  refreshControls();
+  render();
 }
 
 /** The move's own collision shape, drawn about the spawn point.
@@ -2650,9 +2743,18 @@ function refreshUsageInfo() {
     // there is no target to match and nothing worth drawing: the box is the
     // picture, at 85% of it, and it follows Size because it is derived from it.
     if (can.measuredBox) {
-      lines.push("<b>Hit box:</b> measured from this drawing — 85% of the drawn "
+      lines.push("<b>Hurt box:</b> measured from this drawing — 85% of the drawn "
         + "rectangle, so it follows Size and there is nothing to match it against. "
-        + "Size the creature and the box comes with it.");
+        + "Size the creature and it comes with it.");
+      if (canPlaceAttack(state.frame)) {
+        const b = attackBoxOf(state.frame);
+        const placed = !!rawMeta(OTHER_KEY, state.frame)?.attackBox;
+        const pct = (v) => `${Math.round(v * 100)}%`;
+        lines.push(`<b>Attack box:</b> what it hits WITH — ${placed ? "placed here" : "the default, not yet placed"}. `
+          + `${pct(b.w)}×${pct(b.h)} of the drawing, centred ${pct(b.x)} forward and ${pct(b.y)} up. `
+          + "Drag it on the canvas to place it (a dog bites with its head, not its tail); "
+          + "drag the corner to size it. Shown under the Hurtbox toggle.");
+      }
     }
     if (can.offset) {
       lines.push(`<b>Spawn point:</b> ${ANCHOR_WORDS[can.anchor] || ""}. `
@@ -3763,6 +3865,12 @@ function payloadFor(charKey) {
       }
     }
     if (anchorsDirty(charKey, key) && meta.anchors) entry.anchors = meta.anchors;
+    // The creature's attack box, when this session placed or moved one. An
+    // object rather than a number, so it travels whole — four fractions that
+    // only mean anything together.
+    if (meta.attackBox && JSON.stringify(meta.attackBox) !== JSON.stringify(orig.attackBox)) {
+      entry.attackBox = meta.attackBox;
+    }
     if (Object.keys(entry).length) out[key] = entry;
   }
   // Which drawing each pose should use, when that was changed this session.
@@ -4067,6 +4175,18 @@ async function boot() {
     // Shared drawings have one handle and it is the spawn point. Dragging it
     // moves the DRAWING under the point rather than moving the point, because
     // the point is the game's and not ours — see drawSpawnPoint().
+    if (isOther(state.char) && canPlaceAttack(state.frame) && $("showHurtbox")?.checked) {
+      const b = attackBoxOnCanvas(state.frame);
+      const corner = b && Math.hypot(p.x - (b.x + b.w), p.y - (b.y + b.h)) <= HANDLE_R * 2.2;
+      const inside = b && p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h;
+      if (corner || inside) {
+        state.dragAttack = { mode: corner ? "size" : "move", grabX: p.x, grabY: p.y,
+                             box: attackBoxOf(state.frame), rect: b.rect, started: false };
+        canvas.setPointerCapture(e.pointerId);
+        e.preventDefault();
+        return;
+      }
+    }
     if (isOther(state.char) && sharedControls(state.frame)?.offset) {
       const home = spawnHome();
       if (Math.hypot(home.x - p.x, home.y - p.y) <= HANDLE_R * 3) {
@@ -4095,6 +4215,25 @@ async function boot() {
     e.preventDefault();
   });
   canvas.addEventListener("pointermove", (e) => {
+    if (state.dragAttack) {
+      const p = eventToCanvas(e);
+      const d = state.dragAttack;
+      const dx = (p.x - d.grabX) / d.rect.w;
+      const dy = (p.y - d.grabY) / d.rect.h;
+      const box = { ...d.box };
+      if (d.mode === "move") {
+        box.x = clampNum(d.box.x + dx, -1, 1);
+        box.y = clampNum(d.box.y - dy, 0, 1.5);
+      } else {
+        // The corner drags the far edge, so the box grows away from its centre
+        // in both axes at once — two numbers from one gesture.
+        box.w = clampNum(d.box.w + dx * 2, 0.05, 2);
+        box.h = clampNum(d.box.h + dy * 2, 0.05, 2);
+      }
+      setAttackBox(state.frame, box, !d.started);
+      d.started = true;
+      return;
+    }
     if (state.dragSpawn) {
       const p = eventToCanvas(e);
       const d = state.dragSpawn;
@@ -4114,6 +4253,12 @@ async function boot() {
     applyAnchor(state.anchor, lx, ly, false);
   });
   const endDrag = (e) => {
+    if (state.dragAttack) {
+      state.dragAttack = null;
+      try { canvas.releasePointerCapture(e.pointerId); } catch { /* already gone */ }
+      render();
+      return;
+    }
     if (state.dragSpawn) {
       state.dragSpawn = null;
       try { canvas.releasePointerCapture(e.pointerId); } catch { /* already gone */ }

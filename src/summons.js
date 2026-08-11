@@ -50,7 +50,7 @@ import { isFoe } from "./teams.js";
 import { burst, dust, ring, popup, emit } from "./particles.js";
 import { playSfx } from "./audio.js";
 import { getImage } from "./assets.js";
-import { sharedAdjust } from "./shared_sprites.js";
+import { sharedAdjust, sharedAttack } from "./shared_sprites.js";
 import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { SUMMON_ANIMS } from "./config_summons.js";
 import { MOTION } from "./config_tuning.js";
@@ -240,6 +240,33 @@ function derivedBox(cfg, drawnH) {
   };
 }
 
+/**
+ * What a creature hits with, when nobody has placed its box by hand.
+ *
+ * Its hurt box is the whole drawing (derivedBox above) and its attack box is
+ * not: a dog bites with its head. The default is the FRONT of the creature —
+ * the leading 44% of its length, most of its height — which is the right end
+ * of every quadruped, serpent and hulk in the pools, because the art is drawn
+ * facing right and the renderer mirrors it.
+ *
+ * A bomber is the exception and gets its whole body: it detonates on contact,
+ * and the thing that touches you is whichever part of it got there first.
+ */
+const DEFAULT_ATTACK = { x: 0.28, y: 0.52, w: 0.44, h: 0.76 };
+const BOMBER_ATTACK = { x: 0, y: 0.5, w: 1, h: 1 };
+
+/** The creature's attack box in world pixels, mirrored to its facing. */
+function attackRect(s, cfg) {
+  const box = sharedAttack(poseKeyOf(cfg.sprites) || cfg.sprites?.[0])
+    ?? cfg.attackBox
+    ?? (s.behavior === "bomber" ? BOMBER_ATTACK : DEFAULT_ATTACK);
+  const w = s.drawW || s.hitW;
+  const h = s.drawH || s.hitH;
+  const cx = s.x + s.dir * box.x * w;
+  const cy = s.y - box.y * h;
+  return { x: cx - (box.w * w) / 2, y: cy - (box.h * h) / 2, w: box.w * w, h: box.h * h };
+}
+
 /** The frame an animation is showing at `t`, skipping poses that do not exist
  *  — a two-frame idle with only `idle_a` drawn holds `idle_a` rather than
  *  blinking to nothing every other beat. */
@@ -401,6 +428,10 @@ export function spawnSummon(owner, cfg) {
     hitW: cfg.hitW ?? 70,
     hitH: cfg.hitH ?? 90,
     boxFromArt: false,
+    // The drawn rectangle, for the attack box to be a fraction of. Falls back
+    // to the hurt box for an authored creature or an actor summon.
+    drawW: 0,
+    drawH: 0,
 
     /** Take the box from the drawing, once the drawing is there. A kit that
      *  states `hitW`/`hitH` keeps them: that is a deliberate override, and the
@@ -410,10 +441,16 @@ export function spawnSummon(owner, cfg) {
       // Actor summons (Mahoraga) are drawn from a fighter's sprite set through
       // drawCharFrame, not from one image, so their box stays with the kit.
       if (this.actor) { this.boxFromArt = true; return; }
-      const box = derivedBox(cfg, (cfg.h ?? 110) * sharedAdjust(poseKeyOf(cfg.sprites) || cfg.sprites?.[0]).scale);
+      const drawnH = (cfg.h ?? 110) * sharedAdjust(poseKeyOf(cfg.sprites) || cfg.sprites?.[0]).scale;
+      const box = derivedBox(cfg, drawnH);
       if (!box) return;                       // art still loading — try again next step
       this.hitW = box.w;
       this.hitH = box.h;
+      // The drawn rectangle itself, which the ATTACK box is a fraction of. Kept
+      // separate from the hurt box because that one is inset (BOX_INSET) and an
+      // attack box placed on the mouth should be placed against the drawing.
+      this.drawW = Math.round(box.w / BOX_INSET);
+      this.drawH = Math.round(drawnH);
       this.boxFromArt = true;
     },
 
@@ -908,12 +945,15 @@ export function spawnSummon(owner, cfg) {
 
     // What touching an enemy means, for both the automatic hunt and a piloted
     // drive. Bombers spend themselves; chasers bite on a cooldown.
+    /** The box it hits with, for the debug overlay and anything else that wants
+     *  to draw what the contact test actually uses. */
+    attackRect() { return attackRect(this, cfg); },
+
     tryContact(target) {
-      const rect = {
-        x: this.x - this.hitW / 2, y: this.y - this.hitH,
-        w: this.hitW, h: this.hitH,
-      };
-      if (!rectsOverlap(rect, hurtbox(target))) return;
+      // What it HITS with, not what it can be hit on: the front of the creature
+      // by default, and wherever the workbench put it when somebody has placed
+      // one. Its hurt box is still the whole drawing (combat.js summonBox).
+      if (!rectsOverlap(attackRect(this, cfg), hurtbox(target))) return;
 
       if (this.behavior === "bomber") {
         this.dead = true;
