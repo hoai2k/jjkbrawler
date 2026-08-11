@@ -876,11 +876,12 @@ export function updateFighter(f, dt, input) {
   const frPow = state.stageMods.frictionPow || 1;
   const friction = frPow === 1 ? st.friction : Math.pow(st.friction, frPow);
 
-  // The dash BUTTON. Same dash the double tap starts, reachable without
-  // spending a direction on it — which matters most for the thing double tap
-  // is worst at: dashing the way you are already walking, where the second tap
-  // has to come after a release the player did not want to make. Neutral
-  // dashes the way the fighter faces, so it is never a no-op.
+  // The dash BUTTON — keyboard only. No pad button is bound to dash any more
+  // (`PAD_BUTTONS` in config_controls.js): B went back to special, and dash
+  // has the double tap below, which is how it has always mostly been played.
+  // The branch stays because the keyboard keeps its key and because a pad
+  // binding is one line away if the double tap ever proves not to be enough.
+  // Neutral dashes the way the fighter faces, so it is never a no-op.
   if (!locked && !f.crouching && f.grounded && input.dashP) {
     startDash(f, input.dirX || f.facing);
   }

@@ -155,20 +155,33 @@ function padFor(playerId) {
   return null;
 }
 
-function padButton(pad, i) {
-  return !!pad.buttons[i]?.pressed;
+// A binding in PAD_BUTTONS is an index, a LIST of indices, or an empty list —
+// so every read goes through the same widening. Several buttons merge by OR
+// (a second jump button is a second way to jump, not a chord), and an empty
+// binding is simply never pressed, which is how dash lives on double-tap alone
+// without a special case at every call site.
+const indices = (spec) => (Array.isArray(spec) ? spec : [spec]);
+
+function padButton(pad, spec) {
+  return indices(spec).some((i) => !!pad.buttons[i]?.pressed);
 }
 
-function padButtonPressed(pad, i) {
+function padButtonPressed(pad, spec) {
   const now = padNow.get(pad.index) || [];
   const prev = padPrev.get(pad.index) || [];
-  return !!now[i] && !prev[i];
+  // Per button, so holding A and then tapping RT still reads as a fresh press.
+  return indices(spec).some((i) => !!now[i] && !prev[i]);
 }
 
 // Buttons and axes come from PAD_BUTTONS / PAD_AXES in config_controls.js.
 // The layout they describe, and why:
 //
-//   A jump · B dash · X light · Y heavy · LT shield · RT special
+//   A jump · B special · X light · Y heavy · LT shield · RT jump again
+//   Dash has no button: double-tap a direction. It briefly had B, which is the
+//     button special wants — special is pressed constantly and dash has a
+//     motion that has always worked.
+//   RT is a SECOND jump rather than a new action. Jump is the one input a
+//     player wants while the thumb is already on an attack button.
 //   LB Domain Expansion · RB ultimate — the two supers, one shoulder each, so
 //     neither can be pressed by accident while reaching for the other. Domain
 //     used to be the whole d-pad, which was four buttons spent on a move only
@@ -333,6 +346,10 @@ export function padsMenuState() {
   return out;
 }
 
+// The two menu buttons, by index rather than by gameplay action: A and B.
+const MENU_CONFIRM = 0;
+const MENU_BACK = 1;
+
 const blankMenuState = () => ({
   up: false, down: false, left: false, right: false,
   confirmP: false, backP: false, altP: false,
@@ -360,8 +377,12 @@ export function padsMenuStates() {
       down: ay > 0.5 || padButton(pad, PAD_BUTTONS.dpadDown),
       left: ax < -0.5 || padButton(pad, PAD_BUTTONS.dpadLeft),
       right: ax > 0.5 || padButton(pad, PAD_BUTTONS.dpadRight),
-      confirmP: padButtonPressed(pad, PAD_BUTTONS.jump),
-      backP: padButtonPressed(pad, PAD_BUTTONS.dash),
+      // Menus are A confirms / B goes back, which every console player already
+      // knows. They are named by BUTTON here rather than borrowed from a
+      // gameplay action: back used to read the dash binding because dash was
+      // on B, and when dash lost its button the menus would have lost theirs.
+      confirmP: padButtonPressed(pad, MENU_CONFIRM),
+      backP: padButtonPressed(pad, MENU_BACK),
       altP: padButtonPressed(pad, PAD_BUTTONS.light),
       pagePrevP: padButtonPressed(pad, PAD_BUTTONS.domain),
       pageNextP: padButtonPressed(pad, PAD_BUTTONS.ult),

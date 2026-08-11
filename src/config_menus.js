@@ -174,7 +174,8 @@ export const TEXT = {
     browseAll: "Browse all fighters",
     backToPlayers: "Your fighters",
     tips: [
-      ["Left stick twice", "Dash"],
+      // Dash is not listed here: it has no button, so padTips() carries it as
+      // its own double-tap row rather than it being said twice.
       ["Down in air", "Fast-fall"],
       ["Shield + direction", "Dodge"],
       ["Tap shield on impact", "Parry"],
@@ -184,7 +185,8 @@ export const TEXT = {
     ],
     // The game is played on controllers: one pad per player, up to four.
     stickHint:
-      `The left stick moves, ${padName("special")} is special and ${padName("dash")} dashes; `
+      `The left stick moves, ${padName("jump")} jumps and ${padName("special")} is special; `
+      + "double-tapping a direction dashes. "
       + `${padName("domain")} opens a Domain Expansion and ${padName("ult")} fires the ultimate. `
       + "The RIGHT STICK throws tilt attacks — flick it for the tilt or aerial in that direction, or hold it "
       + "while a smash charges to angle the swing. The D-pad steers any summon you have on the stage.",

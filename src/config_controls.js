@@ -42,19 +42,40 @@ export const KEY_BINDS = {
   },
 };
 
-/** Standard-mapping gamepad button indices. */
+/** Standard-mapping gamepad button indices. A binding may name SEVERAL buttons
+ *  (they merge by OR, and the first is the one the diagram calls that action's
+ *  home) or NONE, which is a real state: dash has no button and is double-tap
+ *  only, the way it was before dash was ever given one. */
 export const PAD_BUTTONS = {
-  jump: 0,
-  dash: 1,
+  // A, plus RT as a second jump. A pad has one thumb for the face cluster, and
+  // jumping while attacking asks that thumb for two buttons at once; the right
+  // index finger is doing nothing at that moment.
+  jump: [0, 7],
+  dash: [],    // double-tap a direction
   light: 2,
   heavy: 3,
   domain: 4,   // LB
   ult: 5,      // RB
   shield: 6,   // LT
-  special: 7,  // RT
+  special: 1,  // B
   pause: 9,
   dpadUp: 12, dpadDown: 13, dpadLeft: 14, dpadRight: 15,
 };
+
+/** What each index is called on the pad, for everything that has to SAY a
+ *  button rather than read one. Only the buttons the game binds are here. */
+const PAD_LABELS = {
+  0: "A", 1: "B", 2: "X", 3: "Y",
+  4: "LB", 5: "RB", 6: "LT", 7: "RT",
+  9: "Start",
+};
+
+/** Every label an action is bound to: `padLabelsFor("jump")` → ["A", "RT"]. */
+export function padLabelsFor(id) {
+  const spec = PAD_BUTTONS[id];
+  if (spec == null) return [];
+  return (Array.isArray(spec) ? spec : [spec]).map((i) => PAD_LABELS[i] || `Button ${i}`);
+}
 
 /** Analog axes. The left stick moves; the right stick attacks. */
 export const PAD_AXES = { moveX: 0, moveY: 1, tiltX: 2, tiltY: 3 };
@@ -77,9 +98,16 @@ export function keyLabel(code) {
   return code;
 }
 
-// The control scheme as rows, in the order the tables print them. `pad` is
-// hand-written against PAD_BUTTONS above, which is what the game reads — a pad
-// button has no code to derive a name from.
+// The control scheme as rows, in the order the tables print them.
+//
+// A row that names a `bind` gets its `pad` column GENERATED from PAD_BUTTONS
+// above — the map the game actually reads — so moving special from RT to B is
+// one edit and the table, the tips, the pad diagram and the markdown all follow.
+// Only the rows with no button at all (sticks, d-pad, double-tap dash) write
+// their own `pad` text, because there is no index to derive it from.
+//
+// `short` is the compact name the pad diagram draws when the full action does
+// not fit the art.
 //
 // There is no keyboard column. The game is played on controllers, one pad per
 // player: that is what the roster, the four-way select screen and the in-game
@@ -87,21 +115,34 @@ export function keyLabel(code) {
 // KEY_BINDS above still drives slots 1 and 2 so the game can be played and
 // tested at a desk with no pad plugged in, but it is deliberately undocumented
 // rather than offered as a supported way to play.
-export const CONTROL_ROWS = [
+const ROWS = [
   { id: "move", action: "Move", pad: "Left stick" },
-  { id: "jump", action: "Jump", pad: "A" },
+  { id: "jump", action: "Jump", bind: "jump" },
   { id: "crouch", action: "Crouch / fast-fall", pad: "Left stick ▼" },
-  { id: "light", action: "Light attack", pad: "X" },
-  { id: "heavy", action: "Heavy attack (hold = charge)", pad: "Y" },
-  { id: "special", action: "Special", pad: "RT" },
-  { id: "dash", action: "Dash", pad: "B, or double-tap" },
-  { id: "ult", action: "Ultimate", pad: "RB" },
-  { id: "domain", action: "Domain Expansion", pad: "LB" },
-  { id: "shield", action: "Shield / dodges", pad: "LT" },
-  { id: "tilt", action: "Tilt attacks (no run-up)", pad: "Right stick" },
-  { id: "steer", action: "Steer summons / aim creature shots", pad: "D-pad" },
-  { id: "pause", action: "Pause", pad: "Start" },
+  { id: "light", action: "Light attack", bind: "light", short: "Light" },
+  { id: "heavy", action: "Heavy attack (hold = charge)", bind: "heavy", short: "Heavy" },
+  { id: "special", action: "Special", bind: "special" },
+  { id: "dash", action: "Dash", pad: "Double-tap a direction" },
+  { id: "ult", action: "Ultimate", bind: "ult" },
+  { id: "domain", action: "Domain Expansion", bind: "domain", short: "Domain" },
+  { id: "shield", action: "Shield / dodges", bind: "shield", short: "Shield / dodge" },
+  { id: "tilt", action: "Tilt attacks (no run-up)", pad: "Right stick", short: "Tilts" },
+  { id: "steer", action: "Steer summons / aim creature shots", pad: "D-pad", short: "Steer / aim" },
+  { id: "pause", action: "Pause", bind: "pause" },
 ];
+
+export const CONTROL_ROWS = ROWS.map((row) => ({
+  ...row,
+  pad: row.pad || padLabelsFor(row.bind).join(" or "),
+}));
+
+/** The row a PHYSICAL button carries, by label — `rowAtPad("B")`. The pad
+ *  diagram draws buttons where the plastic puts them and asks what each one
+ *  does, rather than assuming an action's position on the pad: that assumption
+ *  is what left the drawing promising RT was a second shield two mappings on. */
+export function rowAtPad(label) {
+  return CONTROL_ROWS.find((row) => row.bind && padLabelsFor(row.bind).includes(label)) || null;
+}
 
 /** The pad column as "button — action" pairs, for the controller tips block. */
 export function padTips() {
