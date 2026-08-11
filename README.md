@@ -29,7 +29,8 @@ Or double-click `play-mac.command` (macOS) / `play-windows.bat` (Windows).
 | Light attack | X |
 | Heavy attack (hold = charge) | Y |
 | Special | B |
-| Dash | Double-tap a direction |
+| Dash | Shove the stick, or double-tap |
+| Dash attack | Light or heavy, while running |
 | Ultimate | RB |
 | Domain Expansion | LB |
 | Shield / dodges | LT |

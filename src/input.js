@@ -196,6 +196,43 @@ function padButtonPressed(pad, spec) {
 // smash on release; a charge cannot act, so aiming one never fires a tilt.
 const TILT_DEADZONE = 0.62;
 
+// The DASH FLICK, on the left stick — Smash's smash input. Shove the stick from
+// near neutral out past `fire` inside `window` seconds and the fighter dashes;
+// roll it out there at any gentler pace and they walk. Speed of the input, not
+// its distance, is what separates the two, which is why this needs the clock
+// and a tap threshold cannot do it.
+//
+// ANALOG ONLY. A key crosses every threshold in the same frame it is pressed,
+// so on a keyboard a shove and a walk are the same event and cannot be told
+// apart; keys keep the double tap, which is a timing the player performs rather
+// than one the hardware has to report.
+//
+// `rest` is generous (0.36) because the stick has to be seen returning through
+// it: a dash-turn is a player yanking the stick across centre, and if the
+// window only counted a true zero the sample between the two extremes would
+// often miss it.
+const DASH_FLICK = { rest: 0.36, fire: 0.78, window: 0.14 };
+const dashFlickState = new Map(); // pad index -> { restAt: seconds, fired: bool }
+
+/** -1, 1 or 0 — the direction of a fresh dash flick, for ONE frame. */
+function dashFlick(pad, x) {
+  const now = performance.now() / 1000;
+  const st = dashFlickState.get(pad.index) || { restAt: now, fired: false };
+  const mag = Math.abs(x);
+  let dir = 0;
+  if (mag < DASH_FLICK.rest) {
+    // Home again: the clock for the next flick starts here, and the last one is
+    // spent — one dash per shove, however long the stick is then held.
+    st.restAt = now;
+    st.fired = false;
+  } else if (!st.fired && mag >= DASH_FLICK.fire && now - st.restAt <= DASH_FLICK.window) {
+    st.fired = true;
+    dir = x < 0 ? -1 : 1;
+  }
+  dashFlickState.set(pad.index, st);
+  return dir;
+}
+
 function padSnapshot(pad) {
   const axX = Math.abs(pad.axes[PAD_AXES.moveX] || 0) > 0.28 ? pad.axes[PAD_AXES.moveX] : 0;
   const axY = Math.abs(pad.axes[PAD_AXES.moveY] || 0) > 0.42 ? pad.axes[PAD_AXES.moveY] : 0;
@@ -216,6 +253,7 @@ function padSnapshot(pad) {
     tiltX: Math.abs(tx) > AIM_DEADZONE ? tx : 0,
     tiltY: Math.abs(ty) > AIM_DEADZONE ? ty : 0,
     tiltDir: tiltFlick(pad, tx, ty),
+    dashFlick: dashFlick(pad, pad.axes[PAD_AXES.moveX] || 0),
     jumpP: padButtonPressed(pad, PAD_BUTTONS.jump),
     jumpHeld: padButton(pad, PAD_BUTTONS.jump),
     lightP: padButtonPressed(pad, PAD_BUTTONS.light),
@@ -267,6 +305,9 @@ function keysSnapshot(map) {
     // No keyboard tilt stick: on keys a tilt is what a light press already
     // gives you with a direction held, so there is nothing extra to bind.
     tiltX: 0, tiltY: 0, tiltDir: null,
+    // No keyboard dash flick either — see DASH_FLICK above. Keys dash on the
+    // double tap and on their own dash key.
+    dashFlick: 0,
     pauseP: false,
   };
 }
@@ -286,13 +327,16 @@ export function blankInput() {
     // angles a charged smash; `tiltDir` is set for ONE frame on a fresh flick
     // and is what throws a tilt attack.
     tiltX: 0, tiltY: 0, tiltDir: null,
+    // The left stick shoved from neutral: -1 or 1 for ONE frame, and what
+    // starts a dash on a pad (DASH_FLICK above).
+    dashFlick: 0,
   };
 }
 
 // Buttons merge by OR; the analog axes merge by whichever source is pushed
 // furthest, so a pad and a keyboard on the same player cannot cancel out or
 // collapse a stick to a boolean.
-const AXIS_KEYS = new Set(["dirX", "aimX", "aimY", "tiltX", "tiltY"]);
+const AXIS_KEYS = new Set(["dirX", "aimX", "aimY", "tiltX", "tiltY", "dashFlick"]);
 // Fields that carry a VALUE rather than a flag. Whichever source has one wins,
 // pad first. ORing these would turn "up" into `true`, which reads as a flick in
 // no direction at all.
