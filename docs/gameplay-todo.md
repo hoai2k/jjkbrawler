@@ -1,12 +1,20 @@
 # Gameplay TODO — the defensive triangle, and four fairness gaps
 
-Two pieces of work that came out of the round-18 polish review and were
-deliberately **not** taken then. The first is a design change with real balance
-consequences and wants to be its own round; the second is four small
-correctness patches that were held back only so they could land together with
-it and be felt as one change.
+Two pieces of work that came out of the round-18 polish review. Status, as of
+round 19:
 
-Nothing here is started. This file is the brief.
+- **The grab (§1) is BUILT** — `src/grab.js`, behind `?throw=true`
+  (`src/flags.js`). It matches this brief: shield-ignoring reach with whiff
+  recovery, four throws routed through `applyHit`, damage-scaled mash escape,
+  break-out punish window, a no-regrab beat, `isFoe` teams routing — plus a
+  pummel and the shield-grab input this brief didn't ask for. What remains is
+  the flag graduation and the two shield tweaks below (§1a), which belong to
+  the same balance pass.
+- **The fairness patches 2a–2c are DONE**: projectiles and owned entities
+  freeze through their owner's hitlag, particles and the camera run on the
+  slow-motion clock, and the ledge is one-per-customer with a Smash-style
+  trump. 2d (a regrab limit) is still open, and deliberately so — see its
+  section.
 
 ---
 
@@ -67,66 +75,48 @@ A grab on every fighter:
 - **Teams.** Route the target test through `isFoe` (`src/teams.js`) like every
   other damage path, so a grab cannot pick up a teammate.
 
-### Also in this pass
+### §1a Still open in this area
 
-- **Shield regen delay** — a short beat (~0.4 s) after the shield drops before
-  it starts refilling, so tapping shield costs something.
-- **Shield-drop lag** — a few frames of recovery on release, so a read on the
-  shield drop is punishable.
+The grab itself shipped (see the status note at the top). Two shield tweaks
+from this brief did not ship with it and should land when the flag graduates,
+as one balance pass:
 
-### Why it was deferred
+- **Shield regen delay** — regen still starts the instant the shield drops
+  (`src/fighter.js`, the shield block). A short beat (~0.4 s) before refilling
+  makes tapping in and out of shield cost something.
+- **Shield-drop lag** — dropping shield is still free; a few frames of
+  recovery on release makes a read on the shield drop punishable.
 
-This changes the balance of every matchup in the game. It wants its own round:
-build it, then re-tune shield numbers against it, then play it. Bolting it onto
-a polish pass would have shipped an untested triangle, which is worse than a
-missing one.
+And the graduation itself: `?throw=true` → default, the flag removed, and the
+controls table regenerated to name RT as grab.
 
 ---
 
 ## 2. Four fairness and consistency patches
 
-Small, independent, and each one a case where the code does something
-inconsistent with what it does everywhere else.
+2a–2c shipped in round 19; their write-ups are kept for the record. 2d is
+open.
 
-### 2a. Projectiles and summons do not freeze during hitlag
+### 2a. ~~Projectiles and summons do not freeze during hitlag~~ (done)
 
-`updateHitboxes` checks the owner's `hitPause` and freezes with them
-(`src/combat.js`). `updateProjectiles` does not, and neither does the entity
-loop in `src/main.js` — they tick unconditionally.
+`updateProjectiles` and the entity loop now carry the same `owner.hitPause`
+guard `updateHitboxes` always had; ownerless entities (stage gimmicks) keep
+ticking.
 
-So the frame a projectile connects, everything freezes for the impact **except
-the projectile that caused it**, which visibly slides onward through its own
-freeze frames. Same for summons.
+### 2b. ~~Particles and the camera ignore slow motion~~ (done)
 
-**Fix:** the same `owner.hitPause` guard `updateHitboxes` already uses, applied
-to `updateProjectiles` and to the entity update. Watch for entities with no
-owner (stage gimmicks) — those must keep ticking.
+`updateParticles` and `updateCamera` take the slow-motion-scaled dt, so a KO's
+beat plays at one speed. The camera's dt-correct smoothing means the follow
+and shake decay slow with it — kept deliberately: that drift is what a
+slow-motion shot wants.
 
-### 2b. Particles and the camera ignore slow motion
+### 2c. ~~No ledge occupancy~~ (done — as a trump)
 
-`state.slowMo` scales the simulation step in `src/main.js`, but
-`updateParticles(dt)` and `updateCamera(dt)` are called with the raw frame dt.
+One fighter per ledge point, resolved Smash's way: grabbing an occupied ledge
+**trumps** — the newcomer takes it, the occupant is popped off outward with a
+brief protection window. Hogging a ledge is now an interaction, not a wall.
 
-The result is that a KO's slow-motion beat plays at half speed on the *bodies*
-and full speed on the *sparks* — the most dramatic moment in the game is the
-one place its presentation layers disagree with each other.
-
-**Fix:** pass the same scaled dt the simulation gets. Check the camera
-carefully: its smoothing uses `1 - pow(k, dt)`, which is dt-correct, so slowing
-its dt slows the follow too — which is probably wanted for the KO shot, but it
-should be a decision rather than a side effect.
-
-### 2c. No ledge occupancy
-
-`tryGrabLedge` (`src/fighter.js`) never checks whether somebody is already
-hanging on that edge, so two fighters can occupy the same ledge point — they
-draw on top of each other and both get the hang timer.
-
-**Fix:** one fighter per ledge. The conventional extra is a **ledge trump** —
-grabbing an occupied ledge knocks the current occupant off it — which turns a
-bug into a mechanic and is worth doing at the same time.
-
-### 2d. Ledge regrabs are effectively unlimited
+### 2d. Ledge regrabs are effectively unlimited (open — on purpose, for now)
 
 The anti-abuse rule is `airT < 0.18`: you must genuinely have left the stage to
 grab again. A hit-then-fall cycle satisfies that trivially, so a fighter being
@@ -136,9 +126,15 @@ juggled near the ledge can regrab indefinitely.
 reset on landing (and on being hit hard enough to tumble), with the grab
 refused past it. Two or three is the usual number.
 
+**Why it is still open:** there is a live request to make the ledge EASIER to
+grab (closer to Smash's magnet hands), and a regrab limit pulls the other way.
+Tune the grab-friendliness first, then decide whether the limit is still
+needed against the tuned ledge — the trump (2c) already removed the worst
+regrab abuse case, since a camped ledge can now simply be taken.
+
 ---
 
 ## Order
 
-2a–2d are independent of each other and of the grab work, and each is small.
-1 is the round.
+What's left: the shield tweaks + flag graduation (§1a), the ledge
+grab-friendliness tuning, and then a decision on 2d against the result.
