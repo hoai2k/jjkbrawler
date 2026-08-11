@@ -31,7 +31,7 @@
 
 import { STATES, clipNameFor, clipTime, aimable } from "../../billboards/src/states.js";
 import {
-  applyReach, reaches, makeScratch, applyTwoHandGrip,
+  applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
 } from "../../billboards/src/ik.js";
 
@@ -244,6 +244,9 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   rig.root.updateMatrixWorld(true);
 
   playClip(rig, animKey, sampled, clip);
+  // Body morphs (Mahito's transfiguration arms) precede aim/reach so every
+  // solve sees the morphed limb.
+  if (layers.charKey) applyMorphs(rig.root, layers.charKey, animKey, clipTime(animKey, sampled));
   if (DIALS.aim && layers.aimRad && aimable(animKey)) applyAim(rig.root, layers.aimRad);
   applyMachineReach(rig, animKey, sampled, layers);
   // The off hand joins a two-handed weapon AFTER aim and reach have moved
