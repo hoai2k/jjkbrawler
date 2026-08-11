@@ -105,7 +105,7 @@ export function flinchSide(animKey, x, aim, facing) {
 // ------------------------------------------------------------ posing proper
 
 let THREE = null;
-let _q1, _q2, _q3, _v1, _v2, _v3, _v4;
+let _q1, _q2, _q3, _v1, _v2, _v3, _v4, _e1;
 let _ik = null, _reachTarget = null, _lateral = null;
 
 export function initPose(three) {
@@ -114,6 +114,7 @@ export function initPose(three) {
   initLayerAxes(three);
   _reachTarget = new three.Vector3();
   _lateral = new three.Vector3();
+  _e1 = new three.Euler();
   _q1 = new THREE.Quaternion();
   _q2 = new THREE.Quaternion();
   _q3 = new THREE.Quaternion();
@@ -121,6 +122,67 @@ export function initPose(three) {
   _v2 = new THREE.Vector3();
   _v3 = new THREE.Vector3();
   _v4 = new THREE.Vector3();
+}
+
+/**
+ * THE CLEAN POSE — what makes a pose a function of its inputs.
+ *
+ * Every live layer below (aim, reach, flinch, breath, foot IK, workbench pose
+ * edits) MULTIPLIES onto a bone's current rotation. Nothing put those bones
+ * back afterwards, and the mixer cannot be relied on to: it writes a bone only
+ * when the clip's value for it CHANGED, so a held frame — or any bone the clip
+ * has no track for — kept the last pass's correction and took the next one on
+ * top. Pose the same frame twice and it drifted. That weakened the cache's
+ * promise (same token -> same pixels, which the afterimage trail replays), and
+ * in the workbench, where the pose editor previews every frame rather than
+ * SAMPLE_HZ times a second, it visibly walked a rig away from itself: a joint
+ * dragged 20° swung 200°.
+ *
+ * So each rig carries a CLEAN POSE — the skeleton as the clip alone leaves it,
+ * re-snapshotted every pose right after the mixer runs and restored before the
+ * next one. Bones start each pose exactly where the mixer believes it left
+ * them, so its skip-if-unchanged stays correct, and the layers compose once.
+ * The buffer is allocated at registration (loader.js), holding the bind pose
+ * for the first pose to build on.
+ */
+const CLEAN_POSE = new WeakMap();
+
+/** Start `root`'s clean-pose buffer at its bind pose. `fromRoot`, when given,
+ *  is the rig this one was cloned from: an instance is cloned from a base that
+ *  may already be posed, so it inherits the BASE's remembered bind values by
+ *  bone name rather than whatever pose it was cloned mid-way through. */
+export function captureCleanPose(root, fromRoot = null) {
+  const source = fromRoot ? CLEAN_POSE.get(fromRoot) : null;
+  const byName = source ? new Map(source.map(([b, q, p]) => [b.name, [q, p]])) : null;
+  const clean = [];
+  root.traverse((o) => {
+    if (!o.isBone) return;
+    const held = byName?.get(o.name);
+    clean.push([o, held ? held[0].clone() : o.quaternion.clone(),
+                   held ? held[1].clone() : o.position.clone()]);
+  });
+  CLEAN_POSE.set(root, clean);
+}
+
+/** Put the skeleton back where the CLIP left it last time, undoing the layers
+ *  that were applied on top. It cannot be the bind pose instead: the mixer
+ *  skips writing a property whose value it believes it already wrote, so a
+ *  bone reset behind its back would stay at bind — which is exactly how the
+ *  second render of an unchanged frame came out T-posed. */
+function restoreClean(root) {
+  const held = CLEAN_POSE.get(root);
+  if (!held) return; // never registered (a hand-built probe rig) — nothing to restore
+  for (const [bone, q, p] of held) { bone.quaternion.copy(q); bone.position.copy(p); }
+}
+
+/** Remember where the clip left the skeleton, before any layer touches it. */
+function keepClean(root) {
+  const held = CLEAN_POSE.get(root);
+  if (!held) return;
+  for (const entry of held) {
+    entry[1].copy(entry[0].quaternion);
+    entry[2].copy(entry[0].position);
+  }
 }
 
 /** Drive the mixer to the sampled clip time. Same action caching as the
@@ -194,6 +256,36 @@ function applyBreath(root, animKey, sampled) {
   rotateBoneNod(root, "Spine2", -k * DIALS.breathDeg * DEG);
 }
 
+/**
+ * WORKBENCH POSE EDITS: hand-authored rotation offsets laid on top of the clip.
+ *
+ * `edits` is [[boneName, rx, ry, rz], ...] in radians, each a rotation in the
+ * bone's PARENT frame — which is the frame the clip's own keyframes live in, so
+ * an offset composes with the animation instead of fighting it, and the same
+ * numbers can be typed straight into a pose table (mannequin.js POSES) once
+ * they read right.
+ *
+ * They go on immediately after the clip and before every live layer, so aim,
+ * reach, look-at, flinch and foot IK all solve against the EDITED body: drop a
+ * shoulder here and the strike still lands on the target.
+ *
+ * The game never passes edits — this is the workbench's authoring surface, and
+ * it reaches the render only because `layers.editKey` joins the pose-cache
+ * token (scene.js).
+ */
+function applyPoseEdits(root, edits) {
+  if (!edits || !edits.length) return;
+  for (const [name, rx, ry, rz] of edits) {
+    if (!rx && !ry && !rz) continue;
+    const bone = root.getObjectByName(name);
+    if (!bone) continue;
+    _e1.set(rx, ry, rz, "XYZ");
+    _q1.setFromEuler(_e1);
+    bone.quaternion.premultiply(_q1);
+  }
+  root.updateMatrixWorld(true);
+}
+
 /** Foot IK: clamp feet that sink below the ground line back onto it, with a
  *  short CCD pass over knee and hip. Only grounded states, only downward
  *  penetration — a raised foot is the clip's business. */
@@ -243,10 +335,13 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   rig.root.rotation.y = layers.turnYawRad || 0;
   rig.root.updateMatrixWorld(true);
 
+  restoreClean(rig.root);
   playClip(rig, animKey, sampled, clip);
+  keepClean(rig.root);
   // Body morphs (Mahito's transfiguration arms) precede aim/reach so every
   // solve sees the morphed limb.
   if (layers.charKey) applyMorphs(rig.root, layers.charKey, animKey, clipTime(animKey, sampled));
+  applyPoseEdits(rig.root, layers.edits);
   if (DIALS.aim && layers.aimRad && aimable(animKey)) applyAim(rig.root, layers.aimRad);
   applyMachineReach(rig, animKey, sampled, layers);
   // The off hand joins a two-handed weapon AFTER aim and reach have moved

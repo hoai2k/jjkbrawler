@@ -1,35 +1,64 @@
 /* 3D workbench — same dark-tool look as the sprite and billboard workbenches,
- * kept independent so the tools can drift without breaking each other. */
+ * kept independent so the tools can drift without breaking each other.
+ *
+ * LAYOUT: the sprite workbench's shell — the page itself never scrolls, the
+ * viewer column and the control panel each own their own overflow, and the
+ * panel sits on the RIGHT. A panel taller than the window can no longer push
+ * the canvas off screen, which is what made pose editing unusable. */
 * { box-sizing: border-box; }
+html, body { height: 100%; }
 body {
   margin: 0; background: #0b0e17; color: #dbe2f0;
   font: 14px/1.45 system-ui, sans-serif;
+  display: flex; flex-direction: column; overflow: hidden;
 }
 .bar {
-  display: flex; align-items: center; gap: 14px;
+  display: flex; align-items: center; gap: 14px; flex: none;
   padding: 10px 16px; background: #121728; border-bottom: 1px solid #232c44;
 }
 .bar .hint { color: #8b96b3; font-size: 12.5px; flex: 1; }
-main { display: flex; gap: 14px; padding: 14px; align-items: flex-start; }
+
+main.layout {
+  flex: 1; min-height: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 14px; padding: 14px;
+}
+.stage-col {
+  min-width: 0; min-height: 0; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px;
+}
 .panel {
-  width: 340px; flex: none; background: #121728; border: 1px solid #232c44;
+  min-height: 0; overflow-y: auto;
+  background: #121728; border: 1px solid #232c44;
   border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px;
 }
+/* The two scrolling columns get a thin thumb rather than the platform bar,
+   which at 360px wide would eat a control's worth of room. */
+.panel::-webkit-scrollbar, .stage-col::-webkit-scrollbar { width: 10px; }
+.panel::-webkit-scrollbar-track, .stage-col::-webkit-scrollbar-track { background: transparent; }
+.panel::-webkit-scrollbar-thumb, .stage-col::-webkit-scrollbar-thumb {
+  background: #2c3654; border-radius: 6px; border: 3px solid transparent; background-clip: content-box;
+}
+.panel { scrollbar-width: thin; scrollbar-color: #2c3654 transparent; }
+
 .panel h3 { margin: 8px 0 0; font-size: 12px; text-transform: uppercase;
   letter-spacing: 0.08em; color: #8b96b3; }
 label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #aab4cc; }
 select, input[type="range"] { width: 100%; }
-select, button {
+select, button, input[type="number"] {
   background: #1a2136; color: #dbe2f0; border: 1px solid #2c3654; border-radius: 6px;
   padding: 6px 8px; font: inherit;
 }
-.row { display: flex; align-items: center; gap: 8px; }
-.row .check { flex-direction: row; align-items: center; gap: 6px; }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+/* A checkbox reads as one line whether or not it sits in a .row — this used to
+   be scoped to .row, which stacked the stray ones over their own caption. */
+.check { flex-direction: row; align-items: center; gap: 6px; }
 .mono { font-family: ui-monospace, monospace; font-size: 12px; }
 .src { color: #9fd39f; }
-.stage { flex: 1; }
-canvas { width: 100%; max-width: 1040px; background: #101522; border: 1px solid #232c44; border-radius: 10px; }
-#status { margin-top: 8px; color: #8b96b3; min-height: 1.4em; }
+.hint { color: #8b96b3; font-size: 12px; margin: 2px 0; }
+canvas { width: 100%; max-width: 1040px; background: #101522; border: 1px solid #232c44;
+  border-radius: 10px; touch-action: none; }
+#status { color: #8b96b3; min-height: 1.4em; }
 button { cursor: pointer; }
 button:hover { border-color: #46557f; }
 .ghost { background: transparent; }
@@ -42,3 +71,40 @@ a.ghost { text-decoration: none; border: 1px solid #2c3654; border-radius: 6px; 
 .states .def { color: #8b96b3; }
 .states .sel { outline: 1px solid #46557f; border-radius: 3px; }
 .states div { padding: 1px 4px; cursor: pointer; }
+
+/* Viewer tools: the zoom row under the canvas. */
+.viewer-tools { gap: 6px; }
+.viewer-tools input[type="range"] { flex: 1; min-width: 120px; width: auto; }
+.viewer-tools .hint { flex-basis: 100%; margin: 0; }
+
+/* Collapsible groups — Look-dev folds away so the pose controls above it are
+   what the panel opens on. */
+details.group {
+  border: 1px solid #232c44; border-radius: 8px; padding: 8px 10px; background: #0f1424;
+}
+details.group > summary {
+  cursor: pointer; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: #8b96b3; list-style: none;
+}
+details.group > summary::-webkit-details-marker { display: none; }
+details.group > summary::before { content: "▸ "; }
+details.group[open] > summary::before { content: "▾ "; }
+details.group > *:not(summary) { margin-top: 8px; }
+details.group > label { display: flex; }
+
+/* Pose editor */
+.pose-box { border: 1px solid #232c44; border-radius: 8px; padding: 8px 10px; background: #0f1424;
+  display: flex; flex-direction: column; gap: 8px; }
+.pose-box.editing { border-color: #6f8fd0; }
+button.on { background: #24406b; border-color: #6f8fd0; }
+.axis { display: grid; grid-template-columns: 14px 1fr 56px; align-items: center; gap: 6px; }
+.axis span { color: #8b96b3; font-size: 12px; }
+.axis input[type="number"] { padding: 2px 4px; font-size: 12px; width: 100%; }
+.edited { color: #d3c69f; }
+
+@media (max-width: 980px) {
+  /* Narrow: let the page scroll normally so the panel is reachable below. */
+  body { overflow: auto; height: auto; }
+  main.layout { grid-template-columns: 1fr; }
+  .stage-col, .panel { overflow: visible; min-height: 0; }
+}
