@@ -201,6 +201,45 @@ function poseImage(baseKey, pose) {
   return baseKey ? getImage(`${baseKey}:${pose}`) : null;
 }
 
+/** The drawing a creature's BOX is measured from: its resting pose, or its
+ *  single still where no pose art has landed. One pose, not whichever frame is
+ *  showing — a box that grew on the attack frame and shrank on the idle would
+ *  make the same creature hittable at different sizes a fifth of a second
+ *  apart. */
+function canonicalImage(cfg) {
+  return poseImage(poseKeyOf(cfg.sprites), "idle_a") ?? summonImage(cfg.sprites);
+}
+
+/**
+ * A creature's box, measured off the drawing.
+ *
+ * The numbers used to be authored per creature in config_summons.js, which
+ * meant they were guesses: most were written before any of this art existed,
+ * and once it arrived they disagreed with it badly — a Divine Dog drawn 205 px
+ * long was hit on 90, and a Husk Curse drawn 35 px wide was hit on 70. A
+ * fighter has not had that problem since their hurtbox started coming off
+ * their own art (src/silhouette.js); this is the same rule for creatures.
+ *
+ * It follows everything the drawing follows, including the workbench's size
+ * control, because it is derived from the drawn rectangle rather than stored
+ * beside it.
+ *
+ * `BOX_INSET` trims the fringe: fur, wisps, cursed-energy glow and the soft
+ * edge of the key cut are part of the picture and should not be part of the
+ * target. It is the creature equivalent of HURTBOX.standH stopping short of a
+ * fighter's hair.
+ */
+const BOX_INSET = 0.85;
+
+function derivedBox(cfg, drawnH) {
+  const img = canonicalImage(cfg);
+  if (!img || !img.height) return null;
+  return {
+    w: Math.round(img.width * (drawnH / img.height) * BOX_INSET),
+    h: Math.round(drawnH * BOX_INSET),
+  };
+}
+
 /** The frame an animation is showing at `t`, skipping poses that do not exist
  *  — a two-frame idle with only `idle_a` drawn holds `idle_a` rather than
  *  blinking to nothing every other beat. */
@@ -353,8 +392,30 @@ export function spawnSummon(owner, cfg) {
     adapted: false,
     // The box it occupies, published on the entity so combat.js can test
     // against it without reaching into this module's config.
+    //
+    // Measured off the drawing (derivedBox) unless the kit states one. A kit
+    // that states one is saying the art cannot be trusted for it — today that
+    // is the creatures whose plates arrived as sheets of six figures, where the
+    // drawn rectangle is six creatures wide. Art loads asynchronously, so this
+    // is re-measured until it lands.
     hitW: cfg.hitW ?? 70,
     hitH: cfg.hitH ?? 90,
+    boxFromArt: false,
+
+    /** Take the box from the drawing, once the drawing is there. A kit that
+     *  states `hitW`/`hitH` keeps them: that is a deliberate override, and the
+     *  measurement is not attempted. */
+    measureBox() {
+      if (cfg.hitW !== undefined && cfg.hitH !== undefined) { this.boxFromArt = true; return; }
+      // Actor summons (Mahoraga) are drawn from a fighter's sprite set through
+      // drawCharFrame, not from one image, so their box stays with the kit.
+      if (this.actor) { this.boxFromArt = true; return; }
+      const box = derivedBox(cfg, (cfg.h ?? 110) * sharedAdjust(poseKeyOf(cfg.sprites) || cfg.sprites?.[0]).scale);
+      if (!box) return;                       // art still loading — try again next step
+      this.hitW = box.w;
+      this.hitH = box.h;
+      this.boxFromArt = true;
+    },
 
     /** Where the body is drawn this frame: the arrival still has it falling in,
      *  and the departure lifts it as it comes apart. A flyer only settles the
@@ -511,6 +572,7 @@ export function spawnSummon(owner, cfg) {
 
     update(dt) {
       this.bob += dt * 5;
+      if (!this.boxFromArt) this.measureBox();
 
       // Coming apart: nothing else runs. It is already out of the fight.
       if (this.vanishT > 0) {
@@ -1063,6 +1125,9 @@ export function spawnSummon(owner, cfg) {
   if (flies) {
     s.y = owner.y - (cfg.hover?.up ?? 150);
   }
+  // Measured before it is on the board, so the first frame is already the right
+  // size. If the art has not loaded yet this is a no-op and update() retries.
+  s.measureBox();
   state.entities.push(s);
   // The caster's end of it, kept light: the summon's own arrival is the loud
   // part, and it announces itself when it lands (stepAppear).

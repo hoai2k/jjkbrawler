@@ -2607,6 +2607,7 @@ function sharedControls(key) {
     what: info.what,
     anchor: info.anchor,
     owner: info.owner,
+    measuredBox: !!info.measuredBox,
   };
 }
 
@@ -2644,6 +2645,14 @@ function refreshUsageInfo() {
       lines.push(`<b>Hit region:</b> ${shape} — ${h.what} (the kit's <code>${h.from}</code>). `
         + "<b>It does not follow Size or the spawn point</b>, so the art is what moves to meet it. "
         + "Turn on Hurtbox to see it.");
+    }
+    // A creature with no authored pair measures its box off this drawing, so
+    // there is no target to match and nothing worth drawing: the box is the
+    // picture, at 85% of it, and it follows Size because it is derived from it.
+    if (can.measuredBox) {
+      lines.push("<b>Hit box:</b> measured from this drawing — 85% of the drawn "
+        + "rectangle, so it follows Size and there is nothing to match it against. "
+        + "Size the creature and the box comes with it.");
     }
     if (can.offset) {
       lines.push(`<b>Spawn point:</b> ${ANCHOR_WORDS[can.anchor] || ""}. `

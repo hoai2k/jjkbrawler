@@ -282,12 +282,17 @@ function buildRegistry() {
   for (const pool of POOLS) {
     for (const entry of pool || []) {
       const h = entry.h ?? 110;
+      // No authored pair means the box is measured off the drawing at spawn
+      // (derivedBox, summons.js). There is nothing fixed to draw against then —
+      // the box IS the picture — so the workbench says so instead of showing a
+      // shape that would only ever trace the art it is already looking at.
       const hitOf = (e) => (Number.isFinite(e.hitW) && Number.isFinite(e.hitH)
         ? { shape: "rect", w: e.hitW, h: e.hitH, from: "hitW/hitH", what: "what it can be hit on, and hits with" }
         : null);
+      const measured = !(Number.isFinite(entry.hitW) && Number.isFinite(entry.hitH));
       const owner = entry.name || entry.id || "a summon";
       const creature = (keys, height, hit) => (poolLists.add(keys), keys).forEach((key, i) => {
-        const info = { h: height, anchor: "feet", owner, hit,
+        const info = { h: height, anchor: "feet", owner, hit, measuredBox: measured,
                        what: i === 0
                          ? "the creature's height on stage (config_summons.js)"
                          : `a STAND-IN for ${owner} — only drawn if that creature's own art is missing (config_summons.js)` };

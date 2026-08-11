@@ -333,11 +333,17 @@ anything caught from here lands here.
 - **18F** — near-field cards for the 3D camera's garnish layer (14 images,
   optional)
 - **18G** — seven a pose is drawing somebody else's art (7 sprites)
+- **18H** — forty-four summon plates that are contact sheets (44 sprites)
 
-**28 sprites and 14 images, none of it blocking** — every pose named here is in
-the game today and playable. The sprites are redraws of art that does not do its
-job; 18F is art the `?camera=3d` mode can use and the flat game cannot, so it is
-pure upside and a partial delivery of it is useful on its own.
+**72 sprites and 14 images.** 18A–18G is non-blocking — every pose named there
+is in the game today and playable, and each is a redraw of art that does not do
+its job; 18F is art the `?camera=3d` mode can use and the flat game cannot, so
+it is pure upside and a partial delivery of it is useful on its own.
+
+**18H is the exception, and it is the one to draw first.** Forty-four summon
+plates hold six figures instead of one, and the game draws the whole file as a
+single summon — so ten creatures are on the stage right now as a strip of six
+of themselves. That is a visible fault in play, not a polish item.
 
 **18E has landed.** All twenty backgrounds were repainted at 3200×1800 and are
 in the game — see
@@ -601,4 +607,53 @@ picked up.
 rejected in the same approval pass, and three of them are borrowing from each
 other — `crouch_b` borrows `crouch_attack_b`, which is itself flagged. Drawn
 together they settle each other; drawn one at a time the borrowing moves around.
+
+---
+
+## 18H. Summon plates that are contact sheets — 44 sprites
+
+**Forty-four of the hundred and fourteen summon plates hold six creatures
+instead of one**, and the game draws the whole file as one summon. A six-across
+strip of dogs is painted at the dog's height, so what walks the stage is six
+dogs in a row, each a sixth of the size — and it changes mid-animation, because
+one pose of a creature is a sheet and the next is not.
+
+It shipped because a sheet is invisible at review size: a strip of six dogs in a
+thumbnail looks like a dog. `python3 tools/check_summon_plates.py` finds them by
+counting the separate figures in each plate's alpha, and it is how this table
+was built. Run it on any summon delivery before importing.
+
+| Creature | Sheets | Poses |
+|---|---|---|
+| `divine_dog_white` | 2 | `move_a`, `hurt` |
+| `great_serpent` | 4 | `idle_a`, `idle_b`, `move_a`, `move_b` |
+| `inventory_curse` | 4 | `idle_b`, `move_a`, `attack`, `hurt` |
+| `max_elephant` | 4 | `idle_a`, `move_a`, `move_b`, `hurt` |
+| `rabbit_escape` | 5 | `idle_a`, `idle_b`, `move_a`, `move_b`, `hurt` |
+| `rainbow_dragon` | 3 | `move_b`, `attack`, `hurt` |
+| `toad` | 4 | `idle_a`, `move_a`, `move_b`, `hurt` |
+| `transfigured_crawler` | 6 | all six |
+| `transfigured_hulk` | 6 | all six |
+| `transfigured_human` | 6 | all six |
+
+**What to deliver: the same pose, as one figure.** Not a redesign and not a new
+pose — every one of these sheets contains the right drawing several times over,
+so the brief is the pose line it was drawn against
+([16A/16B in the history file](asset-requests-history.md#round-16--the-summons-animate-delivered)),
+with **one creature on the canvas**. If a sheet has an obviously best figure in
+it, that figure at full resolution is a complete answer.
+
+Same delivery rules as the round-16 summon art: one subject per file, flat key
+screen, at least 600 px of creature, one zoom across all six poses of a
+creature, to `assets/intake/summons/<file>_<pose>.png`.
+
+### This is also what is holding up the hit boxes
+
+A creature's hit box is now **measured off its own `idle_a`** rather than
+authored in `src/config_summons.js` — the same rule a fighter's hurtbox has
+followed since it started coming off their art. Ten creatures measure theirs
+today. The seven whose `idle_a` is on this list cannot: measuring a sheet would
+give a box six creatures wide, so they keep an authored pair with a comment
+naming this round. **Each of those pairs comes out when the plate lands**, and
+the creature starts being hit on the shape it is drawn as.
 
