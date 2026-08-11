@@ -59,6 +59,32 @@ export const CHARACTER_CHAINS = {
            { name: "tendrilR", from: "Head", segments: 3, length: 0.3, sway: 10 }],
 };
 
+// ------------------------------------------------------- two-handed weapons
+//
+// A polearm is not swung one-handed, and nothing in the clip vocabulary knows
+// that: the poses drive the striking arm, and the engine's aim/reach solve
+// re-targets it, which moves the weapon — so an authored "left hand on the
+// shaft" pose would detach the moment a strike aimed anywhere. The off hand
+// has to be SOLVED onto the shaft after everything else has moved it
+// (applyTwoHandGrip in ik.js), which makes two-handedness a property of the
+// PROP, declared here, not a property of any clip.
+//
+// `spacing` is how far down-shaft the off hand grips from the main hand,
+// metres — a naginata grip is roughly two forearms apart.
+
+export const TWO_HANDED_KINDS = {
+  spear2h: { spacing: 0.5 },
+};
+
+/** The two-handed prop a fighter carries, or null. `{ bone, spacing }`. */
+export function twoHandGrip(charKey) {
+  for (const p of CHARACTER_PROPS[charKey] || []) {
+    const th = TWO_HANDED_KINDS[p.kind];
+    if (th) return { bone: p.bone, spacing: th.spacing };
+  }
+  return null;
+}
+
 // ------------------------------------------------------- placeholder shapes
 //
 // Crude on purpose, like the mannequin itself: enough silhouette to author

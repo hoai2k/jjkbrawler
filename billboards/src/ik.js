@@ -32,6 +32,7 @@
 // wind-up in the game into the same straight-line poke.
 
 import { STATES, clipNameFor } from "./states.js";
+import { twoHandGrip } from "./props.js";
 
 /** Which limb reaches, per state: [root, mid, end] bone names.
  *
@@ -154,6 +155,10 @@ export function makeScratch(THREE) {
     // needs a slot it cannot clobber mid-solve.
     eff: new THREE.Vector3(),
     saved: [new THREE.Quaternion(), new THREE.Quaternion(), new THREE.Quaternion()],
+    // The two-hand solve moves BOTH arms — a second effective target and a
+    // second set of saved quaternions so the main arm blends independently.
+    eff2: new THREE.Vector3(),
+    saved2: [new THREE.Quaternion(), new THREE.Quaternion(), new THREE.Quaternion()],
   };
 }
 
@@ -208,6 +213,219 @@ export function applyReach(THREE, root3d, state, clipT, targetWorld, tmp) {
       bones[i].quaternion.copy(tmp.saved[i]).slerp(solved, weight);
     }
     bones[0].updateMatrixWorld(true);
+  }
+  return true;
+}
+
+// ------------------------------------------------------------ two-hand grip
+//
+// A two-handed weapon (props.js TWO_HANDED_KINDS) keeps the OFF hand on the
+// shaft. This cannot be authored: the aim pitch and the reach solve move the
+// striking arm — and the weapon with it — at pose time, so any clip-space
+// left hand placement detaches the moment a strike aims anywhere. It has to
+// be one more solve, run AFTER aim and reach, against wherever the shaft
+// actually ended up.
+//
+// The shaft itself is measured, not assumed. A delivered rig carries the
+// weapon as geometry skinned to the prop bone (the conform pass's prop rescue
+// guarantees exactly that), so the verts the prop bone dominates are the
+// weapon, and their principal axis in the bone's own frame IS the shaft —
+// pose-independent, computed once per rig and cached on the bone. Which way
+// along it is "toward the butt" comes from the bind pose: a generated polearm
+// arrives standing upright, so at bind the butt end points down.
+
+/** States in which the off hand grips the shaft. The strike family plus the
+ *  holds that read as "braced": locomotion stays one-handed (the canon carry),
+ *  and states that need the off hand elsewhere — ledge, dodges, hurt — are
+ *  simply absent. */
+const TWO_HAND_STATES = new Set([
+  "light", "sideHeavy", "upHeavy", "downHeavy", "crouchAttack",
+  "specialNeutral", "specialSide", "specialDown", "charge", "ult",
+]);
+
+/** Fit the weapon's shaft in the prop bone's local frame.
+ *
+ *  Returns { dir, extent } — `dir` a unit Vector3 in bone-local space
+ *  pointing from the grip toward the BUTT, `extent` how many metres of shaft
+ *  lie that way — or null when the rig carries no measurable prop geometry.
+ *
+ *  Works from bind-space data only (geometry positions, bindMatrix, the
+ *  skeleton's boneInverses), so it does not matter what pose the rig is in
+ *  when first asked. Verts rigid to a bone have constant bone-local
+ *  coordinates: local = boneInverse × bindMatrix × v. */
+export function fitPropShaft(THREE, root3d, propBoneName) {
+  const locals = [];
+  let restWorldRot = null;
+  root3d.traverse((obj) => {
+    if (!obj.isSkinnedMesh || !obj.skeleton) return;
+    const joint = obj.skeleton.bones.findIndex((b) => b.name === propBoneName);
+    if (joint < 0) return;
+    const toLocal = new THREE.Matrix4()
+      .multiplyMatrices(obj.skeleton.boneInverses[joint], obj.bindMatrix);
+    restWorldRot = new THREE.Matrix4()
+      .copy(obj.skeleton.boneInverses[joint]).invert();
+    const pos = obj.geometry.attributes.position;
+    const idx = obj.geometry.attributes.skinIndex;
+    const wgt = obj.geometry.attributes.skinWeight;
+    if (!pos || !idx || !wgt) return;
+    const v = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++) {
+      let best = 0, bestW = 0;
+      for (let k = 0; k < 4; k++) {
+        const w = wgt.getComponent(i, k);
+        if (w > bestW) { bestW = w; best = idx.getComponent(i, k); }
+      }
+      if (best !== joint || bestW < 0.5) continue;
+      v.fromBufferAttribute(pos, i).applyMatrix4(toLocal);
+      locals.push(v.clone());
+    }
+  });
+  if (locals.length < 16) return null;
+
+  // Principal axis by power iteration on the covariance — the shaft dominates
+  // every other dimension of a polearm, so this converges in a few steps.
+  const mean = locals.reduce((a, b) => a.add(b), new THREE.Vector3())
+    .multiplyScalar(1 / locals.length);
+  let xx = 0, xy = 0, xz = 0, yy = 0, yz = 0, zz = 0;
+  for (const p of locals) {
+    const dx = p.x - mean.x, dy = p.y - mean.y, dz = p.z - mean.z;
+    xx += dx * dx; xy += dx * dy; xz += dx * dz;
+    yy += dy * dy; yz += dy * dz; zz += dz * dz;
+  }
+  const dir = new THREE.Vector3(1, 1, 1).normalize();
+  for (let it = 0; it < 24; it++) {
+    dir.set(
+      xx * dir.x + xy * dir.y + xz * dir.z,
+      xy * dir.x + yy * dir.y + yz * dir.z,
+      xz * dir.x + yz * dir.y + zz * dir.z,
+    );
+    if (dir.lengthSq() < 1e-20) return null;
+    dir.normalize();
+  }
+
+  // Butt-ward: at bind the polearm stands upright, so the end of the shaft
+  // that points DOWN in bind-world is the butt.
+  const worldDir = dir.clone().transformDirection(restWorldRot);
+  if (worldDir.y > 0) dir.negate();
+  let extent = 0;
+  for (const p of locals) extent = Math.max(extent, p.dot(dir));
+  return { dir, extent };
+}
+
+/**
+ * Put the off hand on the shaft, for fighters whose prop is two-handed and
+ * states where a two-handed grip reads. Call AFTER applyAim/applyReach — the
+ * shaft rides the striking hand, so this must see its final position.
+ */
+export function applyTwoHandGrip(THREE, root3d, charKey, state, clipT, tmp) {
+  const grip = twoHandGrip(charKey);
+  if (!grip || !TWO_HAND_STATES.has(clipNameFor(state))) return false;
+  const bone = root3d.getObjectByName(grip.bone);
+  if (!bone) return false;
+
+  if (bone.userData.__shaft === undefined) {
+    bone.userData.__shaft = fitPropShaft(THREE, root3d, grip.bone);
+  }
+  const shaft = bone.userData.__shaft;
+  if (!shaft) return false;
+
+  // Which hand already grips: the prop bone hangs off it (conform reparents
+  // the hook onto whichever hand the weights name). The OTHER arm reaches.
+  let gripHand = null;
+  for (let p = bone.parent; p; p = p.parent) {
+    if (p.name === "LeftHand" || p.name === "RightHand") { gripHand = p.name; break; }
+  }
+  if (!gripHand) return false;
+  const off = gripHand === "RightHand" ? "Left" : "Right";
+  const chain = [`${off}Arm`, `${off}ForeArm`, `${off}Hand`]
+    .map((n) => root3d.getObjectByName(n));
+  if (chain.some((b) => !b)) return false;
+
+  const mainChain = [`${gripHand === "RightHand" ? "Right" : "Left"}Arm`,
+    `${gripHand === "RightHand" ? "Right" : "Left"}ForeArm`, gripHand]
+    .map((n) => root3d.getObjectByName(n));
+
+  const weight = reachWeight(state, clipT);
+  if (weight <= 0) return false;
+
+  // The grasp point: the spot on the shaft a real off hand would take — the
+  // point NEAREST its own shoulder, clamped down-shaft of the main grip so
+  // the hands never stack (`spacing` is the minimum separation). Nearest-
+  // point gripping is just what hands do — under the main hand on a vertical
+  // hold, mid-shaft on a horizontal one. Recomputed from the live matrices on
+  // every call because the pull-in loop below moves the shaft between solves.
+  const graspTarget = () => {
+    bone.updateWorldMatrix(true, false);
+    const gripPos = tmp.p1.setFromMatrixPosition(bone.matrixWorld);
+    const buttPos = tmp.p2.copy(shaft.dir).multiplyScalar(shaft.extent)
+      .applyMatrix4(bone.matrixWorld);
+    const shaftDir = tmp.v1.subVectors(buttPos, gripPos);
+    const shaftLen = shaftDir.length();
+    if (shaftLen < 1e-6) return null;
+    shaftDir.multiplyScalar(1 / shaftLen);
+    chain[0].updateWorldMatrix(true, false);
+    const shoulder = tmp.p3.setFromMatrixPosition(chain[0].matrixWorld);
+    const s = clamp(
+      tmp.v2.subVectors(shoulder, gripPos).dot(shaftDir),
+      Math.min(grip.spacing * 0.6, shaftLen * 0.5),
+      shaftLen * 0.95,
+    );
+    tmp.eff.copy(gripPos).addScaledVector(shaftDir, s);
+    return shoulder; // tmp.p3 — target itself is in tmp.eff
+  };
+
+  // THE COUPLED HALF. The authored strikes are one-handed: they fling the
+  // weapon a full stride from the body, physically outside the off arm's
+  // reach — measured, not hypothetical: Maki's sideHeavy puts the nearest
+  // shaft point 0.72 m from a 0.43 m arm. No amount of off-hand IK closes
+  // that. What closes it is what a real two-handed strike does: the MAIN
+  // hand stays near the body and the weapon's tip does the extending. So
+  // when the grasp point is out of reach, pull the main hand toward the off
+  // shoulder until it isn't. The shaft rides the main hand, so each pull
+  // translates the grasp point almost 1:1 — two or three rounds converge.
+  const a = tmp.p4.setFromMatrixPosition(chain[0].matrixWorld);
+  const b = tmp.p5.setFromMatrixPosition(chain[1].matrixWorld);
+  const c = tmp.p6.setFromMatrixPosition(chain[2].matrixWorld);
+  const offLen = a.distanceTo(b) + b.distanceTo(c);
+  const canPull = mainChain.every((bn) => !!bn);
+  if (canPull) for (let i = 0; i < 3; i++) tmp.saved2[i].copy(mainChain[i].quaternion);
+  if (canPull) {
+    for (let iter = 0; iter < 3; iter++) {
+      const shoulder = graspTarget();
+      if (!shoulder) break;
+      const dist = shoulder.distanceTo(tmp.eff);
+      if (dist <= offLen * 0.95) break;
+      // Move the main hand by the overshoot, aimed at the off shoulder, with
+      // a little slack so the off elbow keeps a bend instead of locking out.
+      const pull = tmp.v3.subVectors(shoulder, tmp.eff)
+        .multiplyScalar((dist - offLen * 0.85) / dist);
+      mainChain[2].updateWorldMatrix(true, false);
+      tmp.eff2.setFromMatrixPosition(mainChain[2].matrixWorld).add(pull);
+      if (!solveTwoBone(THREE, mainChain[0], mainChain[1], mainChain[2], tmp.eff2, tmp)) break;
+    }
+    if (weight < 1) {
+      for (let i = 0; i < 3; i++) {
+        const solved = tmp.q1.copy(mainChain[i].quaternion);
+        mainChain[i].quaternion.copy(tmp.saved2[i]).slerp(solved, weight);
+      }
+      mainChain[0].updateMatrixWorld(true);
+    }
+  }
+
+  // With the shaft wherever the (blended) main arm finally holds it, land the
+  // off hand on it.
+  if (!graspTarget()) return false;
+  for (let i = 0; i < 3; i++) tmp.saved[i].copy(chain[i].quaternion);
+  if (!solveTwoBone(THREE, chain[0], chain[1], chain[2], tmp.eff, tmp)) {
+    for (let i = 0; i < 3; i++) chain[i].quaternion.copy(tmp.saved[i]);
+    return false;
+  }
+  if (weight < 1) {
+    for (let i = 0; i < 3; i++) {
+      const solved = tmp.q1.copy(chain[i].quaternion);
+      chain[i].quaternion.copy(tmp.saved[i]).slerp(solved, weight);
+    }
+    chain[0].updateMatrixWorld(true);
   }
   return true;
 }

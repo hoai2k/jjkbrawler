@@ -26,7 +26,7 @@ import { STATES, clipNameFor, clipTime, aimable, aimKey } from "./states.js";
 import { getRig } from "./rig.js";
 import { swayChains } from "./props.js";
 import {
-  applyReach, reaches, makeScratch,
+  applyReach, reaches, makeScratch, applyTwoHandGrip,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
 } from "./ik.js";
 
@@ -240,6 +240,11 @@ export function renderPose(charKey, animKey, animTime, resolveClip, aim = null, 
         targetInModelSpace(aim, rig.height, targetPx), _ik);
     }
   }
+  // The off hand joins a two-handed weapon LAST among the arm layers: the
+  // shaft rides the striking hand, so this has to see where aim and reach
+  // finally put it (ik.js applyTwoHandGrip; a no-op for one-handed fighters).
+  applyTwoHandGrip(THREE, rig.root, charKey, animKey,
+    clipTime(animKey, animTime), _ik);
   // Secondary motion — braids, tendrils — driven by the same quantised clock
   // as the pose, so the cache stays honest (props.js explains the trade).
   swayChains(rig.root, clipTime(animKey, animTime), charKey);
