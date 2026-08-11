@@ -2,15 +2,24 @@
 // waiting on, in one generation-ready file.
 //
 // Why generated rather than written. "What images are outstanding?" is a
-// question with FOUR different sources of truth today: the sprite manifest's
-// flags, the sprite manifest's stand-ins, the render3d rig manifest (which
-// fighters already have a model, and so no longer need a turnaround to build
-// one from), and the files actually on disk under render3d/. A hand-written
-// answer is stale the moment any one of them moves, and this repo has already
-// paid for that once — round 18C existed entirely because flags outlived the
-// request sections that named them.
+// question with FIVE different sources of truth today: the open round written
+// in docs/asset-requests.md, the sprite manifest's flags, the sprite
+// manifest's stand-ins, the render3d rig manifest (which fighters already have
+// a model, and so no longer need a turnaround to build one from), and the
+// files actually on disk under render3d/. A hand-written answer is stale the
+// moment any one of them moves, and this repo has already paid for that once —
+// round 18C existed entirely because flags outlived the request sections that
+// named them.
 //
-// So this reads all four and emits the union. Every round it is re-run; if it
+// The first source was missing from the first version of this tool, and the
+// hole it left is the reason the list is worth distrusting until it is proved:
+// deriving only from the manifests, it reported the 2D rounds closed while
+// round 20 sat open asking for 172 images. A pose nobody has ever drawn is in
+// no manifest — it carries no flag and stands in for nothing — so the request
+// doc is the ONLY place it exists. Manifest-derived truth finds art that is
+// wrong; only the request doc knows about art that is absent.
+//
+// So this reads all five and emits the union. Every round it is re-run; if it
 // prints nothing, nothing is outstanding.
 //
 //   node tools/build_image_requests.mjs           # write the doc
@@ -68,6 +77,40 @@ function riggedFighters() {
   return new Map(Object.entries(man.characters || {}));
 }
 
+/** The open 2D round, lifted from docs/asset-requests.md.
+ *
+ *  This is a THIRD kind of outstanding, and missing it was a real hole in this
+ *  tool: a pose that has never been drawn AT ALL appears in no manifest, so it
+ *  carries no flag and stands in for nothing. Deriving from the manifests alone
+ *  reported "the 2D rounds are closed" while round 20 sat open in the request
+ *  doc asking for 172 images — the grab poses and the dash attack among them,
+ *  neither of which the roster has ever had.
+ *
+ *  So the request doc's open round is a source like the manifests are, and its
+ *  sections are copied through VERBATIM rather than summarised: the whole point
+ *  of this file is that it can be generated from without opening another one,
+ *  and a summary of a prompt is not a prompt. */
+function openSpriteRound() {
+  const text = read("docs/asset-requests.md");
+  const m = text.match(/^# Round (\S+) — open$/m);
+  if (!m) return null;
+  const body = text.slice(m.index + m[0].length);
+  const sections = [];
+  // `## 20A. Title — 44 sprites` — the count lives in the heading, which is
+  // also what the round's own summary counts, so there is one number not two.
+  const re = /^## (\d+[A-Z])\. ([^\n]*?) — (\d+) (sprites?|images?)$/gm;
+  const hits = [...body.matchAll(re)];
+  for (let i = 0; i < hits.length; i++) {
+    const start = hits[i].index;
+    const end = i + 1 < hits.length ? hits[i + 1].index : body.length;
+    sections.push({
+      id: hits[i][1], title: hits[i][2], count: Number(hits[i][3]), unit: hits[i][4],
+      text: body.slice(start, end).trim(),
+    });
+  }
+  return { round: m[1], sections };
+}
+
 /** Sprite poses still outstanding: a workbench flag, or a pose drawing a file
  *  that is not its own. Both halves, because the second raises no flag — which
  *  is exactly how seven of them stayed invisible until round 18G. */
@@ -104,6 +147,7 @@ function spriteWork() {
 const blocks = characterBlocks();
 const roster = rosterTable();
 const rigs = riggedFighters();
+const open2d = openSpriteRound();
 
 const KEYS = [...roster.keys()];
 const has = (p) => exists(p);
@@ -214,6 +258,36 @@ function roundSection(round) {
   return out.join("\n");
 }
 
+/** The open 2D round, verbatim.
+ *
+ *  Its bare `#anchor` links point at headings that live in asset-requests.md —
+ *  the delivery spec, the character-block table, its own sibling sections — and
+ *  most of those headings are not in THIS file. Repointing them at the source
+ *  file keeps every one of them resolving; leaving them would produce a page of
+ *  links that quietly go nowhere, which is the exact failure check_doc_links.py
+ *  exists to catch.
+ */
+function spriteRoundSection() {
+  if (!open2d?.sections.length) {
+    return ["## 2D sprites — the open round", "",
+      "**Nothing outstanding.** No round is open in",
+      "[asset-requests.md](asset-requests.md).", ""].join("\n");
+  }
+  const total = open2d.sections.reduce((n, s) => n + s.count, 0);
+  const out = [`## Round ${open2d.round} — the open 2D round`, "",
+    `**${total} images across ${open2d.sections.length} sections.** These are sprites and backgrounds for`,
+    "the game itself, so unlike everything below them they change what a player",
+    "sees. Reproduced whole from [asset-requests.md](asset-requests.md), which",
+    "owns them — including their prompts, so nothing here needs a second file",
+    "open to draw from.", ""];
+  for (const s of open2d.sections) out.push(`- **${s.id}** — ${s.title} (${s.count} ${s.unit})`);
+  out.push("");
+  for (const sec of open2d.sections) {
+    out.push(sec.text.replace(/\]\(#/g, "](asset-requests.md#"), "");
+  }
+  return out.join("\n");
+}
+
 function blocksSection(keys) {
   const out = ["## The character blocks", "",
     "Used **verbatim** as `[CHARACTER BLOCK]` in the prompts above, exactly as the",
@@ -280,23 +354,30 @@ function spriteSection() {
 // ---------------------------------------------------------------------- output
 
 const pendingByRound = ROUNDS.map((r) => [r, r.pending()]);
-const total = pendingByRound.reduce((n, [, p]) => n + p.length, 0);
-const needBlocks = [...new Set(pendingByRound.flatMap(([, p]) => p))]
+const diTotal = pendingByRound.reduce((n, [, p]) => n + p.length, 0);
+const spriteTotal = (open2d?.sections || []).reduce((n, s) => n + s.count, 0);
+const total = diTotal + spriteTotal;
+const needBlocks = [...new Set([
+  // An open sprite round is roster-wide (20C is three poses × 27 fighters), so
+  // every block is in play, not just the ones the DI rounds still want.
+  ...(spriteTotal ? KEYS : []),
+  ...pendingByRound.flatMap(([, p]) => p),
+])]
   .sort((a, b) => KEYS.indexOf(a) - KEYS.indexOf(b));
 
 const doc = [
   "# Open Image Requests — everything still to draw",
   "",
   "**This file is generated** by `node tools/build_image_requests.mjs`. Re-run it",
-  "after every delivery; it reads the sprite manifest's flags, the sprite",
-  "manifest's stand-ins, the render3d rig manifest and the files actually on",
-  "disk, so it cannot drift from them the way a hand-kept list does. Do not edit",
-  "it — fix the source and re-run.",
+  "after every delivery. It reads five sources — the open round in",
+  "[asset-requests.md](asset-requests.md), the sprite manifest's flags, the",
+  "sprite manifest's stand-ins, the render3d rig manifest, and the files",
+  "actually on disk — so it cannot drift from them the way a hand-kept list",
+  "does. Do not edit it; fix the source and re-run.",
   "",
-  `**${total} image${total === 1 ? "" : "s"} outstanding**, all of them 2D inputs to the 3D track. The 2D`,
-  "sprite rounds are closed (see below), so nothing here changes what the sprite",
-  "game looks like — these are what the `?render=3d` and `?render=billboard`",
-  "paths are built from.",
+  `**${total} images outstanding**: ${spriteTotal} for the game itself — the open sprite round,`,
+  `which includes poses the roster has never had — and ${diTotal} that are 2D inputs to`,
+  "the 3D track, which change nothing a sprite player sees.",
   "",
   "Sibling documents, each of which owns its own rounds: the sprite rounds in",
   "[asset-requests.md](asset-requests.md), the model rounds in",
@@ -309,18 +390,33 @@ const doc = [
   "",
   "## Rules that hold for every image here",
   "",
-  "- **The canon reference is the subject.** Each row names the fighter's own",
-  "  reference under `assets/reference/canon/`; the drawing is that character,",
-  "  not an interpretation of them.",
-  "- **The character block goes in the prompt verbatim.** They are reproduced at",
-  "  the bottom of this file.",
-  "- **These are not sprites.** No magenta or grey key screen, no trimming — a",
-  "  turnaround wants clean white or transparency, a swatch sheet wants labels.",
-  "  The keyed-plate rules in the 2D delivery spec do not apply to anything here.",
-  "- **Any subset is useful.** Every round below lands per fighter, and a fighter",
-  "  with nothing delivered keeps whatever the engine does today.",
+  "- **The canon reference is the subject.** A fighter's own `<char>_idle.png`",
+  "  under `assets/reference/canon/` carries their costume, proportions, palette,",
+  "  line weight and shading; the drawing is that character, not an",
+  "  interpretation of them.",
+  "- **The character block goes in the prompt verbatim.** All of them are",
+  "  reproduced at the bottom of this file.",
+  "- **Any subset is useful.** Everything here lands per fighter or per file, and",
+  "  anything undelivered keeps whatever the engine does today. Nothing in this",
+  "  file blocks play.",
+  "",
+  "**The two halves want opposite deliveries, and it is the one thing worth not",
+  "getting wrong.** The sprite round is keyed plates — flat magenta `#FF00FF` or",
+  "grey `#808080` screen, one subject, margin on all four sides, trimmed at",
+  "intake — exactly as its own delivery spec says. The 3D inputs are the",
+  "reverse: a turnaround wants clean white or transparency, a swatch sheet wants",
+  "labels, and nothing about them is keyed or trimmed. Applying either set of",
+  "rules to the other family produces a file the pipeline cannot use.",
   "",
   "---",
+  "",
+  spriteRoundSection(),
+  "---",
+  "",
+  "# The 3D track's 2D inputs",
+  "",
+  "Everything below feeds `?render=3d` and `?render=billboard`. None of it",
+  "changes what the sprite game looks like.",
   "",
   ...ROUNDS.map(roundSection),
   "---",
@@ -343,6 +439,9 @@ if (process.argv.includes("--check")) {
 
 fs.writeFileSync(OUT, doc);
 console.log(`wrote docs/open-image-requests.md — ${total} image(s) outstanding`);
+for (const sec of open2d?.sections || []) {
+  console.log(`  ${sec.id.padEnd(4)} ${String(sec.count).padStart(3)}  ${sec.title}`);
+}
 for (const [round, pending] of pendingByRound) {
   console.log(`  ${round.id.padEnd(4)} ${String(pending.length).padStart(3)}  ${round.title}`);
 }

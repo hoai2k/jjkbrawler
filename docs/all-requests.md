@@ -14,16 +14,20 @@ sprite path with 27 fighters; everything below either extends it (the 3D
 tracks) or fills a gap that currently degrades to silence or to a fallback.
 
 **[open-image-requests.md](open-image-requests.md) is the generated list of every
-image still to draw** — 101 of them, all 2D inputs to the 3D track, with the
-canon reference, the height, the archetype and the character block for each.
-Re-run `node tools/build_image_requests.mjs` after any delivery; it reads the
-manifests and the files on disk, so it cannot go stale the way this page can.
+image still to draw** — 273 of them, with every prompt, canon reference, height
+and character block needed to draw them. Re-run
+`node tools/build_image_requests.mjs` after any delivery; it reads the open
+round, the manifests and the files on disk, so it cannot go stale the way this
+page can.
 
-**The 2D sprite track has nothing open.** Round 18 was delivered complete and
-is [in the history](asset-requests-history.md#round-18--delivered); what remains
-is repo work — 25 poses waiting on approval in the sprite workbench. Round 20 is
-the next 2D round to open (19 was the intake number, not a request number).
-Everything still outstanding on this page is a **3D** ask.
+That splits **172 for the game itself** (round 20: summon plates, re-extended
+backgrounds, the grab poses and the dash attack — the last two are poses the
+roster has never had) and **101 2D inputs to the 3D track**, which change
+nothing a sprite player sees.
+
+Round 18 was delivered complete and is
+[in the history](asset-requests-history.md#round-18--delivered). Also
+outstanding but not art: 25 poses waiting on approval in the sprite workbench.
 
 **All three render modes are covered here.** The sprite path is fed by the 2D
 art rounds (row 1); the billboard and render3d paths are fed by **one shared
@@ -38,8 +42,8 @@ fighter without a delivered rig.
 
 | # | Request | Type | Status | Blocked by |
 |---|---|---|---|---|
-| 0 | [**Every open image request, generated**](open-image-requests.md) | 🖼️ **Images** | 101 outstanding — the rows below, resolved against what is actually on disk | — |
-| 1 | [2D art — sprites](asset-requests.md) | 🖼️ **Images** (sprites) | **nothing open**; round 18 delivered complete, 25 poses in the approval queue | — |
+| 0 | [**Every open image request, generated**](open-image-requests.md) | 🖼️ **Images** | 273 outstanding — the rows below, resolved against the open round and what is on disk | — |
+| 1 | [2D art — round 20](asset-requests.md) | 🖼️ **Images** (sprites, backdrops) | 172 open across 20A–20D; round 18 delivered complete | — |
 | 2 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) | 🖼️ **Images** (reference) | 20 open — every fighter with no rig yet | — |
 | 3 | [3D images — DI2/DI3: face sheets, shade palettes](../render3d/docs/image-requests.md#round-di2--face-sheets-the-face-first-gates-reference) | 🖼️ **Images** (reference) | 27 + 27 open — everyone but Yuji, delivered rigs included | — |
 | 4 | [3D models — B1/D1: the Yuji pilot](../render3d/docs/asset-requests.md#round-d1--the-pilot-yuji-complete-open--draw-against-this) | 🧊 **3D model + clips** | open | DI1–DI3 for Yuji |
