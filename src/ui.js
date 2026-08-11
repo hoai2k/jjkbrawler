@@ -3,7 +3,7 @@ import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, RESOLVED_GROUPS, randomCharacte
 import { STAGES, getStage } from "./stages.js";
 import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx, toggleMute } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
-import { METER_MAX } from "./constants.js";
+import { METER_MAX, TIME_OPTIONS } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
 import { setSpriteSet, previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
@@ -53,14 +53,15 @@ export function initUi(cb) {
     "startButton", "movesButton", "settingsButton", "fullscreenButton", "muteButton", "controllerStatus", "menuHint", "loadHint",
     ...FIGHTER_IDS.flatMap((id) => [
       `p${id}Panel`, `p${id}Name`, `p${id}Damage`, `p${id}Stocks`,
-      `p${id}Meter`, `p${id}MeterLabel`, `p${id}Portrait`, `p${id}Team`,
+      `p${id}Meter`, `p${id}MeterLabel`, `p${id}Portrait`, `p${id}Team`, `p${id}Combo`,
     ]),
-    "arenaSign", "arenaSignName", "vsModeButton", "vsModeLabel", "modeMenu", "modeNote",
+    "arenaSign", "arenaSignName", "matchClock", "errorToast", "pauseNotice", "matchStats", "stageAgainButton",
+    "vsModeButton", "vsModeLabel", "modeMenu", "modeNote",
     "movesPanel", "movesTitle", "movesKicker", "movesPrevButton", "movesNextButton", "movesBackButton",
     "movesModeButton",
     "randomStageButton", "stageBackButton", "roundKicker", "winnerText", "rematchButton", "menuButton",
     "resumeButton", "pauseResetButton", "pauseMenuButton",
-    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsSpritesButton", "settingsBoardsButton", "musicVolumeRange", "musicVolumeLabel",
+    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsTimeButton", "settingsSpritesButton", "settingsBoardsButton", "musicVolumeRange", "musicVolumeLabel",
     "sfxVolumeRange", "sfxVolumeLabel", "settingsBackButton",
   ]) {
     els[id] = $(id);
@@ -117,6 +118,7 @@ function applyStaticText() {
   set(els.movesNextButton, TEXT.moves.next);
   set(els.movesBackButton, TEXT.moves.back);
   set(els.rematchButton, TEXT.roundOver.rematch);
+  set(els.stageAgainButton, TEXT.roundOver.stageSelect);
   set(els.menuButton, TEXT.roundOver.fighterSelect);
   set(els.resumeButton, TEXT.pause.resume);
   set(els.pauseResetButton, TEXT.pause.reset);
@@ -247,7 +249,9 @@ function unready(id) {
 }
 
 function tryStart() {
-  if (!allReady()) return;
+  // Confirming before everyone has locked in does nothing, and doing nothing
+  // silently reads as a dropped input rather than as a refusal.
+  if (!allReady()) { playSfx("uiDenied"); return; }
   els.startButton.click();
 }
 
@@ -516,6 +520,7 @@ function buildHud() {
         </div>
         <div id="p${id}Stocks" class="stocks${mirror ? " stocks--right" : ""}"></div>
         <div class="meter"><div id="p${id}Meter" class="meter-fill"></div><span id="p${id}MeterLabel" class="meter-label"></span></div>
+        <b id="p${id}Combo" class="combo-count hidden"></b>
       </div>`;
     panel.innerHTML = mirror ? info + portrait : portrait + info;
     // Slot order left to right, with the arena sign left where it is.
@@ -554,7 +559,6 @@ function chooseMode(key) {
   // steering a slot nobody can see.
   if (!pickedSlots().includes(state.activePicker)) state.activePicker = 1;
   closeModeMenu();
-  playSfx("uiSelect");
   updateSelectionUi();
 }
 
@@ -611,7 +615,6 @@ function setActivePicker(n) {
 function bindMenuButtons() {
   for (const id of PLAYER_IDS) els[`p${id}PickCard`].addEventListener("click", () => setActivePicker(id));
   els.vsModeButton.addEventListener("click", () => {
-    playSfx("uiSelect");
     if (modeMenuOpen) closeModeMenu();
     else openModeMenu();
   });
@@ -634,6 +637,14 @@ function bindMenuButtons() {
     state.stocks = STOCK_OPTIONS[(i + 1) % STOCK_OPTIONS.length];
     updateMenuButtons();
   });
+  // Takes effect on the next match start, like the other match rules — a clock
+  // that changed length under a running match would be a strange thing to do
+  // to the two people playing it.
+  els.settingsTimeButton.addEventListener("click", () => {
+    const i = TIME_OPTIONS.indexOf(state.timeLimit);
+    state.timeLimit = TIME_OPTIONS[(i + 1) % TIME_OPTIONS.length];
+    updateMenuButtons();
+  });
   els.settingsSpritesButton.addEventListener("click", () => {
     state.spriteSet = state.spriteSet === "alternate" ? "default" : "alternate";
     setSpriteSet(state.spriteSet);
@@ -644,8 +655,6 @@ function bindMenuButtons() {
   els.settingsSfxButton.addEventListener("click", () => {
     state.sfxEnabled = !state.sfxEnabled;
     updateMenuButtons();
-    // Confirm audibly when switching back on; silence is its own confirmation.
-    if (state.sfxEnabled) playSfx("uiSelect");
   });
   els.settingsBoardsButton.addEventListener("click", () => {
     state.activeBoards = !state.activeBoards;
@@ -691,10 +700,9 @@ function bindMenuButtons() {
   els.muteButton.addEventListener("click", () => {
     // Silence first, repaint second: if anything ever threw while updating the
     // icon, the audio must already be muted rather than left running.
-    const muted = toggleMute();
+    toggleMute();
     syncMusic(state.phase);
     updateMuteButton();
-    if (!muted) playSfx("uiSelect"); // audible confirmation that sound is back
   });
 
   els.settingsButton.addEventListener("click", () => {
@@ -718,7 +726,31 @@ function bindMenuButtons() {
   els.pauseResetButton.addEventListener("click", () => callbacks.resetMatch());
   els.pauseMenuButton.addEventListener("click", () => callbacks.quitToMenu());
   els.rematchButton.addEventListener("click", () => callbacks.resetMatch());
+  // Same fighters, different arena — the one thing the result screen could not
+  // do before, which sent the player back through fighter select to reach a
+  // screen they were only passing through.
+  els.stageAgainButton.addEventListener("click", () => setPhase("stageSelect"));
   els.menuButton.addEventListener("click", () => callbacks.quitToMenu());
+  bindMenuClickAudio();
+}
+
+/** Every menu button clicks audibly, however it was pressed.
+ *
+ *  One delegated listener rather than a playSfx at each call site: the pad and
+ *  keyboard paths go through activateFocus, which used to be the ONLY thing
+ *  that made a sound, so a mouse player got silence from the stage grid, the
+ *  whole settings screen and the start button. Because activateFocus reaches
+ *  its target with .click(), routing everything through the resulting event
+ *  covers both without either double-blipping. */
+function bindMenuClickAudio() {
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn || btn.disabled) return;
+    if (!btn.closest(".overlay, .utility-actions, .mode-menu")) return;
+    // The roster has its own, louder confirmation (selectFighter).
+    if (btn.classList.contains("char-card")) return;
+    playSfx("uiSelect");
+  });
 }
 
 // Speaker on / speaker off, plus the wording and pressed state that go with it.
@@ -735,11 +767,22 @@ function updateMuteButton() {
   btn.querySelector(".icon-sound-off")?.classList.toggle("hidden", !muted);
 }
 
+/** Seconds as m:ss. Rounds UP while counting down, so a clock reading 1:00 has
+ *  a full minute left rather than having just lost one — a timer that shows
+ *  0:00 for a whole second before the match ends looks broken. */
+export function formatClock(seconds) {
+  const total = Math.max(0, Math.ceil(seconds));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+}
+
 export function updateMenuButtons() {
   const label = MUSIC_MODES[audioSettings.musicMode].label;
   els.settingsMusicButton.textContent = TEXT.settings.music(label);
   els.settingsCpuButton.textContent = TEXT.settings.cpu(cpuLevelName(state.cpuLevel));
   els.settingsStocksButton.textContent = TEXT.settings.stocks(state.stocks);
+  els.settingsTimeButton.textContent = TEXT.settings.timeLimit(
+    state.timeLimit ? formatClock(state.timeLimit) : TEXT.settings.timeOff
+  );
   els.settingsSpritesButton.textContent = TEXT.settings.sprites(
     state.spriteSet === "alternate" ? TEXT.settings.spriteAlternate : TEXT.settings.spriteDefault
   );
@@ -905,10 +948,22 @@ const OVERLAY_FOR_PHASE = {
 };
 
 export function setPhase(phase) {
+  const changed = state.phase !== phase;
   state.prevPhase = state.phase;
   state.phase = phase;
   for (const [ph, id] of Object.entries(OVERLAY_FOR_PHASE)) {
     if (id) els[id].classList.toggle("hidden", ph !== phase);
+  }
+  // Screens arrive rather than appearing. `.hidden` is display:none, so a CSS
+  // transition has nothing to run against — the overlay that just became
+  // visible is given its entrance animation instead, restarted by hand so
+  // returning to a screen you were just on still plays it. The whole effect is
+  // ~180ms and CSS turns it off under prefers-reduced-motion.
+  const arriving = OVERLAY_FOR_PHASE[phase] && els[OVERLAY_FOR_PHASE[phase]];
+  if (changed && arriving) {
+    arriving.classList.remove("is-entering");
+    void arriving.offsetWidth;
+    arriving.classList.add("is-entering");
   }
   els.utilityActions.classList.toggle("hidden", phase === "loading");
   els.hud.classList.toggle("hidden", !["playing", "paused", "roundOver"].includes(phase));
@@ -921,6 +976,31 @@ export function setPhase(phase) {
   if (phase === "stageSelect") setFocus(els.randomStageButton, { quiet: true });
   if (phase === "playing") els.arenaSignName.textContent = getStage(state.stageKey)?.name || "";
   syncMusic(phase);
+}
+
+/** The line on the pause screen explaining WHY the match stopped, when it was
+ *  not the player who stopped it. `seats` is the player numbers whose pads
+ *  went missing, or null to clear. */
+export function setPauseNotice(seats) {
+  if (!els.pauseNotice) return;
+  const list = seats && seats.length ? seats : null;
+  els.pauseNotice.classList.toggle("hidden", !list);
+  if (list) els.pauseNotice.textContent = TEXT.pause.disconnected(TEXT.pause.playerList(list));
+}
+
+/** Something threw. The player is told, in the game, rather than being left
+ *  looking at a screen that has quietly stopped updating with the explanation
+ *  sitting in a console they will never open. Always logs as well, because the
+ *  console is where the stack trace is. */
+export function reportError(what, err) {
+  console.error(what, err);
+  const el = els.errorToast;
+  if (!el) return;
+  const detail = err && err.message ? err.message : String(err ?? "");
+  el.textContent = detail ? `${what}: ${detail}` : what;
+  el.classList.remove("hidden");
+  clearTimeout(reportError.timer);
+  reportError.timer = setTimeout(() => el.classList.add("hidden"), 8000);
 }
 
 export function setLoadProgress(done, total) {
@@ -990,7 +1070,6 @@ function renderMovesSplit() {
             <span class="moves-player-epithet">${c.epithet}</span>
           </header>
           ${characterBody(c)}
-          <p class="moves-player-keys"><strong>${TEXT.moves.yourKeys(p.id)}</strong> ${TEXT.moves.keyLines[p.id] || ""}</p>
         </section>`;
       }).join("")}
     </div>
@@ -1005,7 +1084,7 @@ function renderMovesSingle() {
   els.movesPanel.innerHTML = `
     ${controllerGuide()}
     ${characterBody(c)}
-    <p class="keyboard-hint">${TEXT.moves.keyboardHint}</p>
+    <p class="keyboard-hint">${TEXT.moves.stickHint}</p>
   `;
 }
 
@@ -1125,32 +1204,83 @@ function damageColor(d) {
   return `rgb(${r},${g},${b})`;
 }
 
+// This runs 60 times a second for up to eight panels, and almost nothing on it
+// changes between one frame and the next: a name never changes at all, a
+// portrait changes once per match, damage changes only when somebody is hit.
+// Writing them anyway made every frame pay for a style recalculation — worst
+// with `--pN-theme`, which is set on the document root and so invalidates the
+// whole page. So each write is guarded by what it wrote last.
+const hudCache = new Map();
+
+function hudSet(key, value, write) {
+  if (hudCache.get(key) === value) return;
+  hudCache.set(key, value);
+  write(value);
+}
+
+/** Dropped when a match starts, so the first frame of a new match writes
+ *  everything rather than trusting values left by the last one. */
+export function resetHudCache() {
+  hudCache.clear();
+}
+
 export function updateHud() {
   els.hud.classList.toggle("hud--multiplayer", state.fighters.length > 2);
   // Five or more panels no longer fit at multiplayer size: portraits go and the
   // type shrinks so a Battle Royal still reads at a glance.
   els.hud.classList.toggle("hud--crowd", state.fighters.length > 4);
+  updateMatchClock();
   const teamMatch = matchPlan().teams;
   for (const id of FIGHTER_IDS) {
     const f = state.fighters[id - 1];
     els[`p${id}Panel`].classList.toggle("hidden", !f);
     if (!f) continue;
+    const panel = els[`p${id}Panel`];
     // Slots 1-4 also colour the select screen; every panel colours itself.
-    if (id <= 4) document.documentElement.style.setProperty(`--p${id}-theme`, f.char.theme);
-    els[`p${id}Panel`].style.setProperty("--panel-theme", f.char.theme);
+    hudSet(`${id}:theme`, f.char.theme, (theme) => {
+      if (id <= 4) document.documentElement.style.setProperty(`--p${id}-theme`, theme);
+      panel.style.setProperty("--panel-theme", theme);
+    });
     // In a team match the panels have to say which side each fighter is on;
     // eight names in a row are otherwise eight strangers.
     const side = teamMatch ? (f.team === HUMAN_TEAM ? TEXT.hud.playerSide : TEXT.hud.cpuSide) : "";
-    els[`p${id}Team`].textContent = side;
-    els[`p${id}Team`].classList.toggle("hidden", !side);
-    els[`p${id}Panel`].classList.toggle("fighter-status--cpu-side", teamMatch && f.team !== HUMAN_TEAM);
-    els[`p${id}Name`].textContent = f.char.name;
-    els[`p${id}Portrait`].src = heroCardSrc(f.charKey);
-    els[`p${id}Damage`].textContent = `${Math.round(f.damage)}%`;
-    els[`p${id}Damage`].style.color = damageColor(f.damage);
+    hudSet(`${id}:side`, side, (text) => {
+      els[`p${id}Team`].textContent = text;
+      els[`p${id}Team`].classList.toggle("hidden", !text);
+    });
+    hudSet(`${id}:cpuSide`, teamMatch && f.team !== HUMAN_TEAM, (on) =>
+      panel.classList.toggle("fighter-status--cpu-side", on));
+    hudSet(`${id}:name`, f.char.name, (name) => { els[`p${id}Name`].textContent = name; });
+    hudSet(`${id}:portrait`, f.charKey, (key) => { els[`p${id}Portrait`].src = heroCardSrc(key); });
+    hudSet(`${id}:damage`, Math.round(f.damage), (dmg) => {
+      els[`p${id}Damage`].textContent = `${dmg}%`;
+      els[`p${id}Damage`].style.color = damageColor(dmg);
+    });
+    // Two hits is the smallest thing worth calling a combo; one is a hit.
+    hudSet(`${id}:combo`, f.comboT > 0 && f.combo > 1 ? f.combo : 0, (n) => {
+      const el = els[`p${id}Combo`];
+      el.classList.toggle("hidden", !n);
+      if (!n) return;
+      el.textContent = TEXT.hud.combo(n);
+      // Restarted per hit, so a running combo pulses on every one of them
+      // rather than animating once and sitting still while it grows.
+      el.classList.remove("is-hit");
+      void el.offsetWidth;
+      el.classList.add("is-hit");
+    });
     renderStocks(els[`p${id}Stocks`], f);
     renderMeter(els[`p${id}Meter`], els[`p${id}MeterLabel`], f);
   }
+}
+
+function updateMatchClock() {
+  const on = state.timeLimit > 0 && !state.suddenDeath;
+  els.matchClock.classList.toggle("hidden", !on);
+  if (!on) return;
+  hudSet("clock", formatClock(state.timeLeft), (text) => { els.matchClock.textContent = text; });
+  // The last ten seconds read differently, because by then the clock is the
+  // thing deciding the match rather than a limit sitting in the corner.
+  els.matchClock.classList.toggle("match-clock--urgent", state.timeLeft <= 10);
 }
 
 function renderStocks(el, f) {
@@ -1182,14 +1312,47 @@ function renderMeter(fillEl, labelEl, f) {
     : TEXT.hud.ultimateReady;
 }
 
-/** `side` is set only in a team match, where the result belongs to a side
- *  rather than to whichever fighter happened to be left standing. */
-export function showRoundOver(winner, loser, side = null) {
-  els.roundKicker.textContent = TEXT.roundOver.kicker;
+/** The result screen. `side` is set only in a team match, where the result
+ *  belongs to a side rather than to whichever fighter happened to be left
+ *  standing, and `reason` is how the match ended — a player who was watching
+ *  the fight saw the KO, but a match decided on the clock needs saying. */
+export function showRoundOver({ winner, side = null, reason = "ko" } = {}) {
+  els.roundKicker.textContent = TEXT.roundOver.kickerFor[reason] || TEXT.roundOver.kicker;
   els.winnerText.textContent = !winner ? TEXT.roundOver.draw
     : side ? TEXT.roundOver.teamWinner(side)
     : TEXT.roundOver.winner(winner.char.name);
+  renderMatchStats(winner);
   setPhase("roundOver");
+}
+
+/** Who did what, in finishing order.
+ *
+ *  The order is the one the match itself used to decide the winner: stocks
+ *  left, then least damage taken. That makes the table a placement list in a
+ *  Battle Royal, which is the screen's other job — with eight fighters, "Gojo
+ *  wins" leaves seven players with no idea how they did. */
+function renderMatchStats(winner) {
+  const ranked = [...state.fighters].sort((a, b) =>
+    (b.stocks - a.stocks) || (a.damage - b.damage) || (b.tally.dealt - a.tally.dealt));
+  const s = TEXT.roundOver.stats;
+  const cell = (v) => `<span>${v}</span>`;
+  const rows = ranked.map((f, i) => `
+    <div class="stat-row${f === winner ? " stat-row--winner" : ""}" style="--row-theme:${f.char.theme}">
+      ${cell(i + 1)}
+      <span class="stat-name">${f.char.name}</span>
+      ${cell(`${Math.round(f.tally.dealt)}%`)}
+      ${cell(`${Math.round(f.tally.taken)}%`)}
+      ${cell(f.tally.kos)}
+      ${cell(f.tally.falls)}
+      ${cell(s.comboValue(f.tally.bestCombo))}
+    </div>`).join("");
+  els.matchStats.innerHTML = `
+    <div class="stat-row stat-row--head">
+      ${cell(s.place)}<span class="stat-name">${s.fighter}</span>
+      ${cell(s.dealt)}${cell(s.taken)}${cell(s.kos)}${cell(s.falls)}${cell(s.combo)}
+    </div>
+    ${rows}
+    <p class="stat-footer">${s.duration(formatClock(state.matchTime))}</p>`;
 }
 
 export function updateControllerStatus(count) {
@@ -1382,7 +1545,6 @@ function updateCharacterPickerPads(dt) {
       const el = els[UTILITY_IDS[utilityIdx]];
       utilityIdx = -1;
       setMenuHighlight(null);
-      playSfx("uiSelect");
       el.click();
       return;
     }
@@ -1504,7 +1666,6 @@ function activateFocus() {
     tryStart();
     return;
   }
-  playSfx("uiSelect");
   focusEl.click();
 }
 

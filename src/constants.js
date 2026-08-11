@@ -167,6 +167,29 @@ export const RESPAWN_PLATFORM_TIME = 3.0;
 // substitute for the platform you just gave up.
 export const RESPAWN_GRACE = 0.5;
 
+// ------------------------------------------------------------- match clock
+//
+// A stock match with no clock cannot be made to end: two players who both
+// refuse to approach, or a CPU that has decided to keep its distance, run
+// forever. The limit is the backstop for that, not the normal way a match
+// finishes — every option here is longer than a fight that is actually being
+// fought.
+//
+// Seconds. 0 is "no limit", and it stays available because a friendly match
+// between two people who want to keep going is a real thing.
+export const TIME_OPTIONS = [0, 120, 180, 300, 480];
+export const DEFAULT_TIME_LIMIT = 300;
+
+// When the clock runs out on a tie, the tied fighters play it off: one stock
+// each at this much damage, so the next clean hit ends it.
+export const SUDDEN_DEATH_DAMAGE = 150;
+
+// How long after a hit the attacker's combo counter stays open. Measured on
+// top of the victim's own hitstun, so a true combo — the next hit landing
+// while they still cannot act — always counts, and a re-engagement a moment
+// after they recover does not.
+export const COMBO_GRACE = 0.35;
+
 export const CELL_W = 313.5;
 export const CELL_H = 313.6;
 

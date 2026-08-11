@@ -49,7 +49,7 @@ page.on("response", (r) => {
   }
 });
 
-await page.goto(BASE, { waitUntil: "load" });
+await page.goto(`${BASE}/index.html?camera=flat`, { waitUntil: "load" });
 
 // Through the menus the way a player would — the match entry is not exported,
 // and going round it would smoke-test something the game does not do.

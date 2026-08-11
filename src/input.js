@@ -5,6 +5,7 @@
 // are generated from. Nothing in this module hard-codes a button.
 
 import { KEY_BINDS, PAD_BUTTONS, PAD_AXES } from "./config_controls.js";
+import { noteGamepadGesture } from "./audio.js";
 
 const held = new Set();
 const pressed = new Set();
@@ -61,7 +62,14 @@ export function initInput() {
     held.add(code);
   });
   window.addEventListener("keyup", (e) => held.delete(codeOf(e)));
-  window.addEventListener("blur", () => held.clear());
+  window.addEventListener("blur", clearHeldKeys);
+}
+
+/** Drop every held key. Called when the window loses focus and when the tab is
+ *  hidden, so a fighter does not keep running in a direction the player let go
+ *  of in a window that is no longer listening. */
+export function clearHeldKeys() {
+  held.clear();
 }
 
 export function keyPressed(code) {
@@ -90,8 +98,14 @@ export function readGamepads() {
       padSeats.set(pad.index, padSeats.size + 1);
     }
     const prev = padNow.get(pad.index) || [];
+    const now = pad.buttons.map((b) => b.pressed);
     padPrev.set(pad.index, prev);
-    padNow.set(pad.index, pad.buttons.map((b) => b.pressed));
+    padNow.set(pad.index, now);
+    // A pad button going down is a user gesture, and it is the ONLY one a
+    // controller-only player ever makes: the browser fires no pointer or key
+    // event for it, so without this the autoplay lock never opens and the whole
+    // session is silent. Cheap to test — this only looks until the first press.
+    if (now.some((down, i) => down && !prev[i])) noteGamepadGesture();
   }
   // Never falls: a seat, once taken, is that player's for the session. A pad
   // that drops out mid-menu (a flat battery, a kicked cable) must not silently
@@ -102,6 +116,22 @@ export function readGamepads() {
 
 export function joinedPlayerCount() {
   return joinedPlayers;
+}
+
+/** Seats that were taken by a pad at some point this session but whose pad is
+ *  not answering right now — a flat battery, a kicked cable, a sleeping pad.
+ *
+ *  Seats are sticky (see readGamepads), so this is the only way to tell the
+ *  difference between "player 3 never joined" and "player 3's controller just
+ *  died". A match needs that difference: the second case leaves a fighter with
+ *  no input source at all, which reads as a frozen dummy standing in the
+ *  stage until something kills it. */
+export function disconnectedSeats(upToSeat = 4) {
+  const out = [];
+  for (const seat of padSeats.values()) {
+    if (seat <= upToSeat && !padFor(seat)) out.push(seat);
+  }
+  return out.sort((a, b) => a - b);
 }
 
 export function connectedPadCount() {

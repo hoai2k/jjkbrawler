@@ -81,6 +81,21 @@ const BOARD_TRACK_SET = new Set(BOARD_TRACKS);
 // pause stay silent (pause holds the match track rather than switching away).
 const MENU_PHASES = new Set(["menu", "stageSelect", "moves", "settings", "roundOver"]);
 
+// Screens that can be opened FROM a live match without leaving it. Reached that
+// way they behave like pause — the element stops where it is and the battle
+// track is left loaded — rather than swapping in the menu track, which would
+// restart the fight's music from 0:00 the moment the player closed the screen
+// again. Reached from the menu they are ordinary menu screens, hence the
+// `matchLive` test rather than a phase name alone.
+const MATCH_HOLD_PHASES = new Set(["paused", "settings", "moves"]);
+let matchLive = false;
+
+/** Told by the match lifecycle (main.js) whether a fight is currently on the
+ *  stage, so the screens above know which of their two meanings applies. */
+export function setMatchLive(live) {
+  matchLive = live;
+}
+
 // Default: the stage's own track. Random: anything in the library, board tracks
 // and originals alike, drawn fresh per match. Off: silence everywhere.
 export const MUSIC_MODES = MUSIC_MODE_CONFIG;
@@ -126,17 +141,60 @@ const active = new Set();
 export function initAudio() {
   musicEl = document.getElementById("musicTrack");
   applyMute();
-  const unlock = () => {
-    unlocked = true;
-    window.removeEventListener("pointerdown", unlock);
-    window.removeEventListener("keydown", unlock);
-  };
-  window.addEventListener("pointerdown", unlock);
-  window.addEventListener("keydown", unlock);
+}
+
+// Autoplay policy: nothing may sound until the page has had a genuine user
+// gesture. `unlocked` gates every path below, and the moment it flips the
+// current phase's music is asked for again — the menu track is requested during
+// boot, long before any gesture exists, so without that re-ask the title screen
+// stays silent until some later phase change happens to call syncMusic.
+function unlock() {
+  if (unlocked) return;
+  unlocked = true;
+  window.removeEventListener("pointerdown", unlock);
+  window.removeEventListener("keydown", unlock);
+  syncMusic(state.phase);
+}
+
+window.addEventListener("pointerdown", unlock);
+window.addEventListener("keydown", unlock);
+
+/** A gamepad button press is a user gesture the browser does not report as one:
+ *  it fires no pointer and no key event, so a player who only ever touches a
+ *  controller never satisfies the listeners above and the game stays silent for
+ *  the whole session. The input layer calls this the first time any pad button
+ *  goes down, which is the gesture in every sense that matters. */
+export function noteGamepadGesture() {
+  unlock();
+}
+
+// ------------------------------------------------------------ tab visibility
+//
+// A hidden tab makes no sound. Everything already playing is stopped rather
+// than left running quietly, because the one-shots outlive the frame that
+// started them and a domain or a KO cry would otherwise ring on into whatever
+// the player switched to.
+let suspended = false;
+
+export function setAudioSuspended(on) {
+  if (suspended === on) return;
+  suspended = on;
+  if (on) {
+    musicEl?.pause();
+    for (const name of [...loops.keys()]) stopLoop(name);
+    for (const el of active) el.pause();
+    active.clear();
+  } else {
+    syncMusic(state.phase);
+  }
+}
+
+export function audioSuspended() {
+  return suspended;
 }
 
 export function playSfx(name, intensity = 1, rate = 0) {
-  if (!unlocked || audioSettings.muted || !state.sfxEnabled || audioSettings.sfxVolume <= 0) return;
+  if (!unlocked || suspended || audioSettings.muted || !state.sfxEnabled || audioSettings.sfxVolume <= 0) return;
   const entry = entryFor(name);
   if (!entry) return; // an undelivered sound is silence, not an error
   if (active.size > MAX_VOICES) return; // safety valve
@@ -167,7 +225,7 @@ export function playKoCry(charKey) {
 // per key, started when the thing it voices begins and stopped when it ends.
 function startLoop(name) {
   if (loops.has(name)) return;
-  if (!unlocked || audioSettings.muted || !state.sfxEnabled || audioSettings.sfxVolume <= 0) return;
+  if (!unlocked || suspended || audioSettings.muted || !state.sfxEnabled || audioSettings.sfxVolume <= 0) return;
   const entry = entryFor(name);
   if (!entry) return; // an undelivered loop is silence, same as a one-shot
   const el = new Audio(srcFor(entry));
@@ -226,8 +284,15 @@ export function setBattleStage(stageKey) {
 
 export function syncMusic(phase) {
   if (!musicEl) return;
-  const menu = MENU_PHASES.has(phase);
-  const src = phase === "playing" ? battleSrc : menu ? MENU_SRC : null;
+  // A hidden tab is silent whatever the phase says; the phase is re-applied
+  // when the page comes back (setAudioSuspended below).
+  if (suspended) { musicEl.pause(); return; }
+  // Paused, or on a screen opened from inside a live match: hold the battle
+  // track exactly where it is. `src` stays what is already loaded so the
+  // element is only paused, never re-sourced.
+  const hold = MATCH_HOLD_PHASES.has(phase) && matchLive;
+  const menu = !hold && MENU_PHASES.has(phase);
+  const src = hold ? null : phase === "playing" ? battleSrc : menu ? MENU_SRC : null;
   const off = (MUSIC_MODES[audioSettings.musicMode] || MUSIC_MODES[0]).key === "off";
   const volume = audioSettings.musicVolume * (menu ? MENU_TRACK.volumeScale : 1);
 

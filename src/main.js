@@ -1,10 +1,10 @@
 import { state } from "./state.js";
 import { loadCoreAssets, startBackgroundLoad, ensureMatchAssets, matchAssetsPending } from "./assets.js";
-import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, joinedPlayerCount, blankInput } from "./input.js";
-import { initAudio, playSfx, setBattleStage, syncMusic, stepAudio, stopDomainLoop } from "./audio.js";
+import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, joinedPlayerCount, blankInput, clearHeldKeys, disconnectedSeats } from "./input.js";
+import { initAudio, playSfx, setBattleStage, syncMusic, stepAudio, stopDomainLoop, stopShieldLoop, setAudioSuspended, setMatchLive } from "./audio.js";
 import { updateRumble } from "./rumble.js";
 import { makeFighter, updateFighter } from "./fighter.js";
-import { updateHitboxes, updateProjectiles } from "./combat.js";
+import { updateHitboxes, updateProjectiles, stepHitCredit } from "./combat.js";
 import { updateParticles, banner } from "./particles.js";
 import { updateCamera } from "./camera.js";
 import { draw } from "./render.js";
@@ -17,8 +17,8 @@ import { TEXT } from "./config_menus.js";
 import { initStageFx } from "./stage_fx.js";
 import { RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { makeAiState, aiInput, cpuDamageMul } from "./ai.js";
-import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady } from "./ui.js";
-import { FIXED_DT, MAX_FIXED_STEPS, WORLD } from "./constants.js";
+import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady, setPauseNotice, reportError, resetHudCache } from "./ui.js";
+import { FIXED_DT, MAX_FIXED_STEPS, WORLD, SUDDEN_DEATH_DAMAGE } from "./constants.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -39,6 +39,15 @@ function resizeCanvas() {
 function startMatch(stageKey) {
   state.stageKey = stageKey;
   return resetMatch();
+}
+
+/** resetMatch is async — it may have to wait on art — and every caller is a
+ *  button that cannot do anything useful with the promise. Without this a
+ *  throw anywhere inside it became a silent unhandled rejection that left the
+ *  game sitting on the loading overlay forever. */
+function beginMatch(stageKey) {
+  const started = stageKey === undefined ? resetMatch() : startMatch(stageKey);
+  return started.catch((err) => reportError("Could not start the match", err));
 }
 
 // Slot 1/2 have keyboard maps; slot 3/4 need a connected gamepad to be human.
@@ -143,6 +152,12 @@ async function resetMatch() {
   state.screenFlash = null;
   state.slowMo = 0;
   state.matchTime = 0;
+  state.timeLeft = state.timeLimit;
+  state.suddenDeath = false;
+  state.endReason = "ko";
+  pendingResult = null;
+  setPauseNotice(null);
+  resetHudCache();
   state.camera.x = 640; state.camera.y = 360; state.camera.zoom = 1; state.camera.shake = 0; state.camera.kick = 0;
   camera3d?.resetRig();
 
@@ -152,12 +167,19 @@ async function resetMatch() {
 
   introT = 1.6;
   endT = 0;
+  // Music, and the screens that can be opened from inside a fight, both key off
+  // this: while it is set, Settings and the move list hold the battle track
+  // where it is instead of cutting to the menu one (audio.js).
+  setMatchLive(true);
   banner("READY…", "#e8ecf8", { y: 300, size: 60, life: 1.0 });
+  playSfx("uiStart");
   playSfx("countdownReady");
   setPhase("playing");
 }
 
 function quitToMenu() {
+  setMatchLive(false);
+  setPauseNotice(null);
   resetReady();
   setPhase("menu");
   updateSelectionUi();
@@ -165,8 +187,128 @@ function quitToMenu() {
 }
 
 function togglePause() {
-  if (state.phase === "playing") setPhase("paused");
-  else if (state.phase === "paused") setPhase("playing");
+  if (state.phase === "playing") {
+    // A held shield voices a loop that is only ever stopped by the fighter
+    // update — which stops running the moment the phase leaves "playing", so
+    // pausing mid-block left it humming under the overlay forever.
+    stopShieldLoop();
+    playSfx("uiPause");
+    setPhase("paused");
+  } else if (state.phase === "paused") {
+    handOffDeadSeats();
+    playSfx("uiPause");
+    setPhase("playing");
+  }
+}
+
+// ------------------------------------------------- controllers going missing
+//
+// Seats are sticky, so a pad that stops answering does not hand its fighter
+// back to anybody: slots 1 and 2 fall through to the keyboard, but slots 3 and
+// 4 have no other input source and simply stop moving. A motionless fighter
+// standing in the middle of a live match reads as the game having broken, so
+// the match stops and says what happened instead.
+
+/** Human seats whose pad is currently missing. A seat above `playerCount` was
+ *  never in this match, and a fighter already driven by the CPU has nothing to
+ *  lose. */
+function missingSeats() {
+  return disconnectedSeats(state.playerCount).filter((seat) => {
+    const f = state.fighters[seat - 1];
+    return f && !f.aiState && !f.dead;
+  });
+}
+
+function checkControllers() {
+  const missing = missingSeats();
+  if (!missing.length) return;
+  stopShieldLoop();
+  setPauseNotice(missing);
+  setPhase("paused");
+}
+
+/** Resuming with a pad still missing gives that fighter to the CPU rather than
+ *  leaving a dummy on the stage. Reconnecting first keeps the seat, because
+ *  this only ever looks at who is still missing at the moment of resuming. */
+function handOffDeadSeats() {
+  for (const seat of missingSeats()) {
+    const f = state.fighters[seat - 1];
+    f.aiState = makeAiState();
+    f.cpuDamageMul = cpuDamageMul(state.cpuLevel);
+  }
+  setPauseNotice(null);
+}
+
+// ------------------------------------------------------------- match result
+//
+// How the match ended, resolved once rather than re-derived on the result
+// screen. A KO ending has a last fighter standing to point at; a time-out has
+// a leader on the clock, who may still be sharing the stage with the fighter
+// they beat, so the winner has to be carried rather than looked up.
+let pendingResult = null;
+
+/** Alive fighters grouped into sides, best first: most stocks, then least
+ *  damage. A free-for-all has one fighter per side, so the same comparison
+ *  decides both shapes. */
+function standings() {
+  const sides = new Map();
+  for (const f of state.fighters) {
+    if (f.dead) continue;
+    const key = f.team ?? `solo:${f.id}`;
+    const side = sides.get(key) || { key, stocks: 0, damage: 0, members: [] };
+    side.stocks += f.stocks;
+    side.damage += f.damage;
+    side.members.push(f);
+    sides.set(key, side);
+  }
+  return [...sides.values()].sort((a, b) => b.stocks - a.stocks || a.damage - b.damage);
+}
+
+function endMatch(reason, winner = null) {
+  state.endReason = reason;
+  pendingResult = { winner };
+  endT = 1.4;
+  banner(reason === "time" ? "TIME!" : "GAME!", "#ffffff", { y: 280, size: 80, life: 1.3 });
+  playSfx("matchEnd");
+  state.slowMo = Math.max(state.slowMo, 0.6);
+}
+
+function finishMatch() {
+  const winner = pendingResult?.winner ?? state.fighters.find((f) => !f.dead);
+  // A team match is won by a side, not by whoever happened to survive, so
+  // the result screen is told which side that was.
+  const side = !winner || !matchPlan().teams ? null
+    : winner.team === HUMAN_TEAM ? TEXT.roundOver.players
+    : TEXT.roundOver.cpus;
+  pendingResult = null;
+  setMatchLive(false);
+  showRoundOver({ winner, side, reason: state.endReason });
+}
+
+/** The clock ran out. The side ahead on stocks — then on damage — takes it;
+ *  a dead heat plays it off instead of being called a draw. */
+function resolveTimeUp() {
+  const sides = standings();
+  if (!sides.length) { endMatch("time"); return; }
+  const best = sides[0];
+  const tied = sides.filter((s) => s.stocks === best.stocks && s.damage === best.damage);
+  if (tied.length <= 1) { endMatch("time", best.members[0]); return; }
+  startSuddenDeath(tied);
+}
+
+/** One stock each at heavy damage, no clock: the next clean hit ends it. */
+function startSuddenDeath(tiedSides) {
+  const survivors = new Set(tiedSides.flatMap((s) => s.members));
+  for (const f of state.fighters) {
+    if (!survivors.has(f)) { f.stocks = 0; f.dead = true; continue; }
+    f.stocks = 1;
+    f.damage = SUDDEN_DEATH_DAMAGE;
+  }
+  state.suddenDeath = true;
+  state.endReason = "suddenDeath";
+  state.timeLeft = 0;
+  banner("SUDDEN DEATH", "#ff8a8a", { y: 260, size: 64, life: 1.6 });
+  playSfx("matchEnd");
 }
 
 function updateSimulation(dt, held) {
@@ -200,6 +342,12 @@ function updateSimulation(dt, held) {
     }
   }
 
+  // Combo windows and KO credit. Stepped out here rather than inside
+  // updateFighter, which returns early during hitlag — a combo window that
+  // froze with its owner would stay open through every freeze frame the combo
+  // itself caused.
+  for (const f of state.fighters) stepHitCredit(f, dt);
+
   updateHitboxes(dt);
   updateProjectiles(dt);
 
@@ -225,24 +373,23 @@ function updateSimulation(dt, held) {
   // round end
   if (endT > 0) {
     endT -= dt;
-    if (endT <= 0) {
-      const winner = state.fighters.find((f) => !f.dead);
-      const loser = state.fighters.find((f) => f.dead);
-      // A team match is won by a side, not by whoever happened to survive, so
-      // the result screen is told which side that was.
-      const side = !winner || !matchPlan().teams ? null
-        : winner.team === HUMAN_TEAM ? TEXT.roundOver.players
-        : TEXT.roundOver.cpus;
-      showRoundOver(winner, loser, side);
-    }
+    if (endT <= 0) finishMatch();
     return;
   }
   const alive = state.fighters.filter((f) => !f.dead);
   if (oneSideLeft(alive)) {
-    endT = 1.4;
-    banner("GAME!", "#ffffff", { y: 280, size: 80, life: 1.3 });
-    playSfx("matchEnd");
-    state.slowMo = Math.max(state.slowMo, 0.6);
+    endMatch(state.suddenDeath ? "suddenDeath" : "ko");
+    return;
+  }
+
+  // The clock. Only runs once the countdown is over and only while the match
+  // can still be decided by it — sudden death has already stopped it.
+  if (state.timeLimit > 0 && !state.suddenDeath && introT <= 0) {
+    const before = state.timeLeft;
+    state.timeLeft = Math.max(0, state.timeLeft - dt);
+    // The last ten seconds get counted out loud, once each.
+    if (before > 10 && state.timeLeft <= 10) playSfx("countdownReady");
+    if (state.timeLeft <= 0) resolveTimeUp();
   }
 }
 
@@ -320,6 +467,10 @@ function loop(time) {
   }
 
   if (state.phase === "playing") {
+    checkControllers();
+  }
+
+  if (state.phase === "playing") {
     latchInputs();
     const simDt = state.slowMo > 0 ? dt * 0.45 : dt;
     state.slowMo = Math.max(0, state.slowMo - dt);
@@ -345,6 +496,55 @@ function loop(time) {
   }
 }
 
+// --------------------------------------------------------- page-level guards
+//
+// Everything about being a tab rather than an application: losing focus,
+// leaving mid-fight, and failing in a way nobody would otherwise see.
+function initPageGuards() {
+  // A hidden tab stops entirely. Both halves matter: pausing keeps the match
+  // where the player left it, and suspending the audio stops the game being
+  // the tab making noise in the background.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      clearHeldKeys();
+      if (state.phase === "playing") {
+        stopShieldLoop();
+        setPhase("paused");
+      }
+      setAudioSuspended(true);
+    } else {
+      setAudioSuspended(false);
+      // The frame clock has to be re-based: `previousTime` is from before the
+      // tab went away, and the gap would otherwise arrive as one enormous dt.
+      previousTime = performance.now();
+      lastFrameAt = previousTime;
+      accumulator = 0;
+    }
+  });
+
+  // Closing the tab mid-match throws the match away, and there is nowhere to
+  // save it to. The browser decides whether to show this at all.
+  window.addEventListener("beforeunload", (e) => {
+    if (!["playing", "paused"].includes(state.phase)) return;
+    e.preventDefault();
+    e.returnValue = "";
+  });
+
+  // Anything that throws outside a tool call would otherwise be invisible:
+  // the canvas simply stops updating and the player is looking at a frozen
+  // frame with no idea whether the game or their machine gave up.
+  window.addEventListener("error", (e) => reportError("Something went wrong", e.error || e.message));
+  window.addEventListener("unhandledrejection", (e) => reportError("Something went wrong", e.reason));
+
+  // The canvas is a game, not a document: a right-click during a fight should
+  // not raise the browser's menu over it. The roster keeps its own handler,
+  // where right-click is a real binding.
+  document.querySelector(".arena-wrap")?.addEventListener("contextmenu", (e) => {
+    if (e.target.closest(".char-card")) return;
+    e.preventDefault();
+  });
+}
+
 async function init() {
   // Which renderer draws the characters, before anything asks for a pose.
   // `?render=<name>` picks one; an unknown name warns and falls back, so a
@@ -352,21 +552,24 @@ async function init() {
   const chosen = selectRenderBackend(new URLSearchParams(location.search).get("render"));
   if (chosen !== "sprite") console.log(`render backend: ${chosen} (${renderBackendLabel()})`);
 
-  // `?camera=3d` — the 2.5D perspective camera (docs/2.5d-camera-plan.md).
-  // Lazy-imported so flat mode (the default) pays zero bytes for it, and
-  // guarded twice: a failed fetch or a machine without WebGL both land on the
-  // flat renderer with a console note, never a broken screen.
-  if (new URLSearchParams(location.search).get("camera") === "3d") {
+  // The 2.5D perspective camera (docs/2.5d-camera-plan.md) is what the game
+  // ships with: it carries the intro pull-out, the ultimate dolly and the
+  // final-blow shot, and those are the game's presentation rather than an
+  // option. `?camera=flat` opts back into the original flat framing.
+  //
+  // Still lazy-imported and still guarded twice, because the flat renderer is
+  // now the FALLBACK rather than the default: a failed fetch or a machine with
+  // no WebGL lands there with a console note, never on a broken screen.
+  if (new URLSearchParams(location.search).get("camera") !== "flat") {
     try {
       const mod = await import("./camera3d/index.js");
       if (mod.initRender3d()) {
         enable3dCamera(mod);
-        console.log("camera: 3d (perspective rig on WebGL)");
       } else {
-        console.warn("camera=3d requested but WebGL is unavailable — running flat.");
+        console.warn("WebGL is unavailable — running the flat camera.");
       }
     } catch (err) {
-      console.warn(`camera=3d failed to load (${err.message}) — running flat.`);
+      console.warn(`the 2.5D camera failed to load (${err.message}) — running flat.`);
     }
   }
 
@@ -374,12 +577,13 @@ async function init() {
   window.addEventListener("resize", resizeCanvas);
   initInput();
   initAudio();
-  initUi({ startMatch, resetMatch, quitToMenu, togglePause });
+  initUi({ startMatch: beginMatch, resetMatch: beginMatch, quitToMenu, togglePause });
+  initPageGuards();
   setPhase("loading");
   try {
     await loadCoreAssets();
   } catch (err) {
-    document.getElementById("loadStatus").textContent = `Asset load failed: ${err.message}`;
+    document.getElementById("loadStatus").textContent = TEXT.loading.failed(err.message);
     return;
   }
   setPhase("menu");
@@ -392,9 +596,17 @@ async function init() {
   lastFrameAt = previousTime;
   rafPending = true;
   requestAnimationFrame(rafLoop);
-  // rAF can be throttled or suspended (background tabs, embedded webviews);
-  // a watchdog keeps the simulation running whenever frames stop arriving.
+  // rAF can be throttled or suspended (embedded webviews, a window dragged
+  // between displays); a watchdog keeps the simulation running whenever frames
+  // stop arriving while the page is actually being looked at.
+  //
+  // Explicitly NOT while the tab is hidden. rAF stopping is the browser saying
+  // "nobody is watching", and driving the loop through it anyway ran the match
+  // on in ~30x slow motion behind the player's back — they came back to a
+  // stock they never saw lost. A hidden tab is handled by pausing instead
+  // (see the visibilitychange listener above).
   setInterval(() => {
+    if (document.hidden) return;
     if (performance.now() - lastFrameAt > 28) loop(performance.now());
   }, 12);
 }

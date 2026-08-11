@@ -441,7 +441,15 @@ export async function loadCoreAssets() {
   // paths had moved. An index that can go stale independently of what it
   // indexes is the whole bug; the images themselves are content-addressed by
   // name and can cache normally.
-  const manifestRes = await fetch(assetUrl(`${CHAR_SPRITE_DIR}manifest.json`), { cache: "no-cache" });
+  const manifestUrl = assetUrl(`${CHAR_SPRITE_DIR}manifest.json`);
+  const manifestRes = await fetch(manifestUrl, { cache: "no-cache" });
+  // Checked before parsing. A 404 here is served as an HTML error page, so
+  // going straight to .json() reported the problem as `Unexpected token '<'` —
+  // a JSON syntax error on the one screen a player sees when everything is
+  // broken, describing nothing that is actually wrong.
+  if (!manifestRes.ok) {
+    throw new Error(`sprite manifest ${manifestRes.status} at ${manifestUrl}`);
+  }
   spriteManifest = await manifestRes.json();
   // Sheet art is drawn facing RIGHT by default (verified against every
   // character's run row). `nativeLeft` lists the exceptions that are drawn
