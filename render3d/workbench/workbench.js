@@ -29,7 +29,8 @@
 
 import * as THREE from "../../vendor/three/three.module.js";
 import { GLTFLoader } from "../../vendor/three/loaders/GLTFLoader.js";
-import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimPitch, AIM_MAX_DEG } from "../../billboards/src/states.js";
+import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimPitch, aimSolve, AIM_MAX_DEG } from "../../billboards/src/states.js";
+import { artReach } from "../../src/silhouette.js";
 import * as rig from "../src/loader.js";
 import * as scene from "../src/scene.js";
 import { DIALS, initPose, LOOK_STATES, flinchSide } from "../src/pose.js";
@@ -369,11 +370,20 @@ async function draw() {
   const target = headHeightTarget(wb.char);
   const chestY = GROUND_Y - target * 0.55;
   const pitch = wb.aimOn ? aimPitch(CX, chestY, wb.target, facing) : 0;
+  // The reach half of the aim solution — the same call the game makes
+  // (backend.js liveLayers). Without it the workbench leaned an attack toward
+  // the crosshair but never solved the limb ONTO it, so a state that reaches
+  // in play looked in the tool like a body bending at nothing.
+  const solved = wb.aimOn ? aimSolve(CX, GROUND_Y, chestY, wb.target, facing, wb.state, artReach(wb.char)) : null;
   const layers = {
     aimRad: DIALS.aim && aimable(wb.state) ? pitch : 0,
+    reach: solved ? { dx: solved.dx, dy: solved.dy, targetPx: target } : null,
     lookRad: DIALS.lookAt && LOOK_STATES.has(clipNameFor(wb.state)) && wb.aimOn ? pitch : 0,
     flinch: wb.aimOn ? flinchSide(wb.state, CX, wb.target, facing) : 0,
-    turnYawRad: DIALS.turnaround && facing < 0 ? Math.PI : 0,
+    // Derived from the camera, not a flat 180° — a half-turn under the ¾
+    // camera shows the fighter's back, which is not what the game draws
+    // (scene.turnaroundYaw, and backend.js does the same).
+    turnYawRad: DIALS.turnaround && facing < 0 ? scene.turnaroundYaw() : 0,
     parallaxDeg: wb.parallax,
     // The hand-authored offsets, and the key that keeps the cache honest
     // about them (pose.js / scene.js).
