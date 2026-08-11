@@ -24,13 +24,26 @@ one delivery of 101 images, imported by
 | DI4 | **complete** — the shared 128×128 catchlight, plus a 1024×256 four-cell mouth strip for every fighter | `render3d/assets/textures/` |
 
 **D1 is unblocked** and D3/D4 have their face and palette references for every
-fighter they will name. DI3 in particular is now actionable rather than
-aspirational: every fighter has lit/shadow pairs for skin, hair, top, bottom
-and props, and **not one delivered rig carries a `toon` block yet** — grading
-the eight existing rigs from these sheets is repo work waiting to be done, not
-a request.
+fighter they will name.
 
-### DI1: twelve boards were refused, and why
+**DI3 has been spent.** `tools/derive_toon_from_shade.py` reads each sheet's
+lit/shadow swatch pairs and writes the ratio into that fighter's `shadeTint` in
+`render3d/assets/manifest.json` — the toon pass multiplies, so `shadow / lit` is
+exactly the number it wants. All 27 rigs are graded from their own art where
+they used to share one roster default that was cooler and darker than most of
+the roster paints.
+
+![before and after](reference/shade_grading_comparison.png)
+
+`?shade=roster` puts every fighter back on the default, which is how that
+picture was taken and the reason the switch exists. One caveat worth knowing:
+each rig is a SINGLE material, so there is one tint per character even though
+the sheets carry five regions. The extractor weights the regions by how bright
+their lit fill is — skin and hair decide what shading reads as, and a black coat
+shades black whatever the tint says. Per-region tints need per-region materials,
+which no delivered rig has.
+
+### DI1: twelve boards were refused, and the round closed anyway
 
 Twelve of the twenty arrived with **the top of the head running off the canvas**
 — in Mei Mei's case the cut falls below the eyes. A turnaround is the seed a
@@ -44,6 +57,14 @@ those twelve visible as outstanding. The delivered plates are kept at
 
 Refused: `dagon`, `gakuganji`, `gojo`, `hakari`, `mechamaru`, `meimei`, `momo`,
 `nanami`, `nobara`, `reggie`, `yuki`, `yuta`.
+
+**Those twelve are no longer owed.** Rigs for the whole roster landed while this
+was being sorted out, and a turnaround board's only job is to be the thing a
+model is generated FROM — once the model exists, the board has no work left to
+do. So DI1 reads as closed rather than as twelve outstanding, which is the right
+answer for a slightly uncomfortable reason: the round was overtaken, not
+completed. If a rig is ever rebuilt from scratch, this is the round to reopen,
+and the refused plates are kept for exactly that.
 
 Accepted: `choso`, `inumaki`, `kurourushi`, `mahoraga`, `panda`, `sukuna`,
 `todo`, `toji`. (Todo's topknot and Toji's spear tip grazed the edge; the check

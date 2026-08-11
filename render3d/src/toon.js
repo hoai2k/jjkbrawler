@@ -28,6 +28,35 @@
 // workbench, never hard-coded per fighter in engine code. The workbench edits
 // these live through setToonDefaults / setRimColor.
 
+/** Per-character shading, and the switch that turns it off.
+ *
+ *  A DI3 shade sheet says what a fighter's own art shades LIKE — the painted
+ *  shadow beside the lit fill, per region — and `tools/derive_toon_from_shade.py`
+ *  turns that into the `shadeTint` in their manifest entry. Before those sheets
+ *  existed every rig used the roster default below, which is cooler and darker
+ *  than most of the roster actually paints.
+ *
+ *  `?shade=roster` puts every fighter back on that default, which is the
+ *  comparison this is worth having: one flag, whole roster, no rebuild. Other
+ *  per-character art direction (thresholds, rim, brightness, outline width) is
+ *  NOT affected — the switch is specifically about the graded tint, because
+ *  that is the part derived from art rather than chosen by eye.
+ */
+export const PER_CHARACTER_SHADE = (() => {
+  const p = new URLSearchParams(typeof location !== "undefined" ? location.search : "");
+  const v = (p.get("shade") ?? "").trim().toLowerCase();
+  return !["roster", "default", "off", "0", "none"].includes(v);
+})();
+
+/** The overrides a character's manifest entry contributes, with the graded
+ *  tint dropped when the switch is off. */
+export function characterToon(entry) {
+  const toon = entry?.toon || {};
+  if (PER_CHARACTER_SHADE) return toon;
+  const { shadeTint, ...rest } = toon;
+  return rest;
+}
+
 /** The look, in one place. Colors are [r, g, b] 0..1. */
 export const TOON = {
   // ramp coordinate (dotNL * 0.5 + 0.5) below which a texel falls into shade

@@ -24,7 +24,7 @@
 import { clipNameFor } from "../../billboards/src/states.js";
 import { buildMannequin, buildDefaultClips, MANNEQUIN_HEIGHT_M } from "../../billboards/src/mannequin.js";
 import { clone as cloneSkinned } from "../../vendor/three/utils/SkeletonUtils.js";
-import { applyToonMaterials } from "./toon.js";
+import { applyToonMaterials, characterToon } from "./toon.js";
 import { addOutlines, setOutlineFor } from "./outline.js";
 import { captureCleanPose, poseRig } from "./pose.js";
 
@@ -269,7 +269,7 @@ async function loadGlbRig(charKey, entry, GLTFLoader) {
   // The anime pass: every delivered material becomes a toon material (with
   // the manifest's per-character `toon` overrides and the .glb's own extras
   // applied), and every mesh grows its ink shell.
-  applyToonMaterials(THREE, gltf.scene, entry.toon || {});
+  applyToonMaterials(THREE, gltf.scene, characterToon(entry));
   addOutlines(THREE, gltf.scene);
   const clips = new Map(gltf.animations.map((c) => [c.name, c]));
   registerRig(charKey, {
