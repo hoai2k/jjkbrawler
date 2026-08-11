@@ -61,7 +61,17 @@ export const CHARACTER_PROPS = {
 // as 7500 vertices of Head, so it could only ever do exactly what her head
 // did. Declared here because it is a fact about the FIGHTER, like a weapon.
 export const CHARACTER_CHAINS = {
-  meimei: [{ name: "braid", from: "Head", segments: 4, length: 0.55, sway: 14 }],
+  // The braid is the whole point of her silhouette, so it is extracted from
+  // the head's skin like Uro's mane — four segments, because a plaited rope
+  // that long reads wrong as three: it needs a curve, not a bend.
+  // Sway eased off the placeholder's 14: a thin rope shows every degree where
+  // a mane absorbs it. Note what this layer CANNOT do — the braids swing out
+  // wide on a body-twisting heavy, and they do it in lockstep with the twist
+  // rather than trailing it, because the sway is a function of the pose clock
+  // and not of the fighter's motion (the caching trade this file opens with).
+  // Inertia needs `simulate: true` and per-frame renders.
+  meimei: [{ name: "braid", from: "Head", segments: 4, length: 0.55, sway: 10,
+             fromSkin: true }],
   dagon:  [{ name: "tendrilL", from: "Head", segments: 3, length: 0.3, sway: 10 },
            { name: "tendrilR", from: "Head", segments: 3, length: 0.3, sway: 10 }],
   // A mane that reads as its own mass — big, slow and trailing, so it lags
@@ -85,6 +95,13 @@ export const CHARACTER_CHAINS = {
 
 export const TWO_HANDED_KINDS = {
   spear2h: { spacing: 0.5 },
+  // A guitar is two-handed for a different reason than a polearm, and the
+  // same solve covers both. Gakuganji's prop hangs off his LEFT hand — the
+  // fretting hand, up the neck — so the body and bridge lie DOWN-shaft from
+  // it, which is exactly where the strumming hand belongs. Wider spacing
+  // than a naginata grip: fretting hand to strumming hand is most of the
+  // instrument.
+  guitar: { spacing: 0.45 },
 };
 
 /** The two-handed prop a fighter carries, or null. `{ bone, spacing }`. */

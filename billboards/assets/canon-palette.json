@@ -1,8 +1,8 @@
 {
-  "comment": "Canon costume colours, per fighter, for grading a GENERATED texture back onto model (tools/blender_grade_texture.py). Shared by both model backends, like billboards/src/states.js — render3d reads this file, it does not keep a copy. A generator matches a reference image's hue well and its VALUE badly: Yuji's uniform arrived at hue 226 degrees (correct navy) and 15% brightness (near-black), so he read as wearing black. Each region declares how to FIND its pixels and where to move them; grading preserves the shading inside a region rather than flattening it, so folds and creases survive. Schema: characters.<key>.regions[] = { name, match: { hue: [lo, hi] in degrees or null for any, sat: [lo, hi], val: [lo, hi] }, target: { hue: degrees or null to keep, sat: 0-1 or null, val: 0-1 — the region's MEDIAN lands here, everything else scales with it } }. Ranges are on sRGB HSV. A region that matches nothing is reported, not silently skipped.",
+  "comment": "Canon costume colours, per fighter, for grading a GENERATED texture back onto model (tools/blender_grade_texture.py). Shared by both model backends, like billboards/src/states.js \u2014 render3d reads this file, it does not keep a copy. A generator matches a reference image's hue well and its VALUE badly: Yuji's uniform arrived at hue 226 degrees (correct navy) and 15% brightness (near-black), so he read as wearing black. Each region declares how to FIND its pixels and where to move them; grading preserves the shading inside a region rather than flattening it, so folds and creases survive. An entry may say `like: \"<other key>\"` to inherit that fighter's regions (its own `regions`, if any, are appended) \u2014 half the roster wears one uniform and would otherwise carry one copy of it each. Schema: characters.<key>.regions[] = { name, match: { hue: [lo, hi] in degrees or null for any, sat: [lo, hi], val: [lo, hi] }, target: { hue: degrees or null to keep, sat: 0-1 or null, val: 0-1 \u2014 the region's MEDIAN lands here, everything else scales with it } }. Ranges are on sRGB HSV. A region that matches nothing is reported, not silently skipped.",
   "characters": {
     "megumi": {
-      "note": "Same Jujutsu High navy as Yuji, same failure: correct hue, baked near-black. One region — his boots arrived brown and stay, and the black under-layer is neutral so the saturation floor excludes it.",
+      "note": "The Jujutsu High uniform, and the reference entry for it: navy, not black. A generator matches the hue and misses the value, so every fighter in this uniform arrives reading black. Fighters who wear it say `like: \"megumi\"` rather than copying these four numbers \u2014 see resolve_regions in tools/blender_grade_texture.py. His boots arrived brown and stay; the black under-layer is neutral, so the saturation floor excludes it.",
       "regions": [
         {
           "name": "uniform",
@@ -29,33 +29,12 @@
       ]
     },
     "yuji": {
-      "note": "Jujutsu High uniform: navy, not black. Red hi-top trainers, not white. Reference: the anime character sheet. The red hood and cuffs already arrived correct; the black leggings are neutral and are excluded from the uniform region by its saturation floor.",
+      "note": "Same uniform as everyone else (inherited); what is his alone is the footwear. The delivery baked cream/grey trainers and canon is red hi-tops.",
+      "like": "megumi",
       "regions": [
         {
-          "name": "uniform",
-          "match": {
-            "hue": [
-              195,
-              265
-            ],
-            "sat": [
-              0.25,
-              1.0
-            ],
-            "val": [
-              0.02,
-              0.34
-            ]
-          },
-          "target": {
-            "hue": 226,
-            "sat": 0.45,
-            "val": 0.28
-          }
-        },
-        {
           "name": "trainers",
-          "note": "The delivery baked cream/grey trainers. Matched as NEUTRAL and BRIGHT — nothing else on him is both — and set rather than scaled, since white has no hue or chroma to preserve. `minBlockFill` is what keeps it off the WHITES OF HIS EYES, which are the same colour and which duly turned red without it: a costume covers a contiguous patch of atlas, a highlight is a speck. The gum sole is warm enough to sit above the saturation ceiling and stays, which is what the reference shows anyway.",
+          "note": "The delivery baked cream/grey trainers. Matched as NEUTRAL and BRIGHT \u2014 nothing else on him is both \u2014 and set rather than scaled, since white has no hue or chroma to preserve. `minBlockFill` is what keeps it off the WHITES OF HIS EYES, which are the same colour and which duly turned red without it: a costume covers a contiguous patch of atlas, a highlight is a speck. The gum sole is warm enough to sit above the saturation ceiling and stays, which is what the reference shows anyway.",
           "match": {
             "hue": null,
             "sat": [
@@ -76,6 +55,34 @@
           }
         }
       ]
+    },
+    "gojo": {
+      "note": "Same uniform, worn with the jacket zipped and the blindfold over it.",
+      "like": "megumi"
+    },
+    "nobara": {
+      "note": "Same uniform; her hair is orange and well clear of the hue window.",
+      "like": "megumi"
+    },
+    "yuta": {
+      "note": "Same uniform.",
+      "like": "megumi"
+    },
+    "inumaki": {
+      "note": "Same uniform, high collar up over the mouth.",
+      "like": "megumi"
+    },
+    "maki": {
+      "note": "Same uniform, worn with the sleeves out.",
+      "like": "megumi"
+    },
+    "todo": {
+      "note": "Kyoto's uniform rather than Tokyo's, but the same dark navy and the same failure.",
+      "like": "megumi"
+    },
+    "momo": {
+      "note": "Kyoto's uniform.",
+      "like": "megumi"
     }
   }
 }

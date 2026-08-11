@@ -59,6 +59,7 @@ for the billboard workbench, not something a script can fix.
 """
 
 import argparse
+import collections
 import os
 import re
 import sys
@@ -351,13 +352,24 @@ def rescue_rigid_props(arm_obj, props, report):
     ride the same transform either way.
 
     Assumes the weapon stands roughly vertical in the bind pose, which is how
-    a full-height polearm has to arrive in a full-body seed image. Gated on
-    the roster expecting a prop, so an unarmed fighter cannot lose a scarf to
-    it; skips loudly when nothing pokes above the head."""
+    a full-height polearm has to arrive in a full-body seed image.
+
+    TWO GATES, and the second one was learned the hard way. The roster
+    expecting a prop is not enough: a generator often does not produce the
+    declared weapon at all (Gakuganji's guitar, Mei Mei's axe), and with only
+    the narrow-top test this pass then found a narrow column under a bald
+    head, saw leg-bound vertices in it — inner hakama — and bound 1430 of
+    them to the weapon hand. So a pole must also RISE ABOVE THE SKULL: the
+    tallest geometry has to clear the head bone by a fifth of the fighter's
+    height, which a carried polearm does by a wide margin and a scalp never
+    does. Both gates skip loudly, because "your weapon did not generate" is
+    something the operator has to be told, not something to pass over."""
     if not props:
         return
     hook = props[0]  # Prop_Main; nobody two-weapon-generates yet
     hands = ("LeftHand", "RightHand")
+    head_bone = arm_obj.data.bones.get("Head")
+    head_z = (arm_obj.matrix_world @ head_bone.head_local).z if head_bone else None
     for mesh_obj in [c for c in arm_obj.children if c.type == "MESH"]:
         me = mesh_obj.data
         wm = mesh_obj.matrix_world
@@ -366,6 +378,13 @@ def rescue_rigid_props(arm_obj, props, report):
             continue
         ztop = max(c.z for c in co)
         height = ztop - min(c.z for c in co)
+        if head_z is not None and ztop < head_z + 0.20 * height:
+            report.append(
+                f"  prop rescue: nothing rises above the head "
+                f"(top {ztop - head_z:.2f} m over the head bone, want "
+                f"{0.20 * height:.2f}) — the declared weapon did not generate, "
+                f"{hook} stays an empty hook")
+            continue
         # The staff tip: the topmost 3% slab. If its footprint is wide, the
         # tallest thing is the head or hair and there is no pole to rescue.
         slab = [c for c in co if c.z > ztop - 0.03 * height]
@@ -478,10 +497,11 @@ def extract_skin_chain(arm_obj, chains, report):
         radius = SKULL_R * height
 
         for mesh_obj in meshes:
+            me = mesh_obj.data
             gname = {g.index: g.name for g in mesh_obj.vertex_groups}
             wm = mesh_obj.matrix_world
             far = []
-            for v in mesh_obj.data.vertices:
+            for v in me.vertices:
                 if not v.groups:
                     continue
                 dom = max(v.groups, key=lambda g: g.weight)
@@ -495,6 +515,54 @@ def extract_skin_chain(arm_obj, chains, report):
                 report.append(f"  hair chain '{name}': only {len(far)} vert(s) "
                               f"reach past {radius:.2f} m — nothing to extract")
                 continue
+
+            # FOLLOW THE BRAID. Dominance alone finds only the part of the
+            # hair the binder gave to Head, and a binder works by proximity:
+            # Mei Mei's braids hang down her chest, so their lower halves were
+            # bound to Spine and stayed behind — leaving the top 10 cm on the
+            # chain and the rest welded to her ribs, which does not sway, it
+            # TEARS. So the seed set grows along mesh edges: a braid is
+            # connected geometry, and walking it reaches the tip whatever bone
+            # owns it. Growth only ever moves further out than the skull, and
+            # it refuses to leak: if the hair turns out welded to the body
+            # shell the set explodes, so a hard cap aborts the growth and
+            # keeps the seed, loudly.
+            seed = {i for _, i, _ in far}
+            grown = set(seed)
+            cap = max(len(seed) * 4, 400)
+            edges = collections.defaultdict(list)
+            for e in me.edges:
+                a, b = e.vertices
+                edges[a].append(b)
+                edges[b].append(a)
+            frontier, leaked = list(seed), False
+            while frontier and not leaked:
+                nxt = []
+                for vi in frontier:
+                    for vj in edges[vi]:
+                        if vj in grown:
+                            continue
+                        if (wm @ me.vertices[vj].co - joint).length <= radius:
+                            continue
+                        grown.add(vj)
+                        nxt.append(vj)
+                        if len(grown) > cap:
+                            leaked = True
+                            break
+                    if leaked:
+                        break
+                frontier = nxt
+            if leaked:
+                report.append(f"  hair chain '{name}': growth ran past {cap} "
+                              f"vert(s) — the hair is welded to the body shell, "
+                              f"keeping the {len(seed)} dominance-picked vert(s)")
+            else:
+                added = len(grown) - len(seed)
+                if added:
+                    report.append(f"  hair chain '{name}': followed {added} more "
+                                  f"vert(s) along the strand that other bones owned")
+                far = [((wm @ me.vertices[i].co - joint).length, i,
+                        wm @ me.vertices[i].co) for i in grown]
             far.sort(key=lambda t: t[0])
 
             # Equal-count bands: each bone drives a similar amount of the

@@ -105,14 +105,52 @@ if (!imageArg && CANON_OVERRIDE[char]) {
 
 const auth = { Authorization: `Bearer ${KEY}` };
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Code 2000 is "you have too many tasks in flight" — a QUEUEING signal, not a
+// failure, and the account's real limit is smaller than a roster. Running a
+// dozen fighters at once therefore burns most of them instantly: the ones over
+// the line die at submit, having done nothing and cost nothing, and the batch
+// script counts them as built. Waiting is the correct response to being told
+// to wait, so this waits — honouring Retry-After when the server sends one.
+const RATE_LIMITED = 2000;
+const MAX_WAIT_MIN = 30;
+
 async function api(url, opts = {}) {
-  const res = await fetch(url, { ...opts, headers: { ...auth, ...(opts.headers || {}) } });
-  const body = await res.json();
-  if (body.code !== 0) {
+  let waited = 0;
+  let transient = 0;
+  for (;;) {
+    const res = await fetch(url, { ...opts, headers: { ...auth, ...(opts.headers || {}) } });
+    // Not every reply is JSON. A gateway hiccup mid-generation answers with an
+    // HTML error page, and parsing that threw `Unexpected token '<'` — which
+    // killed a fighter twelve minutes into a run that was about to succeed.
+    // The task itself is still queued server-side, so retrying the POLL is
+    // both cheap and correct.
+    const text = await res.text();
+    let body;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      if (++transient <= 10) {
+        process.stdout.write(`  non-JSON reply (HTTP ${res.status}) — retrying in 15s\n`);
+        await sleep(15000);
+        continue;
+      }
+      throw new Error(`${url.replace(/https:\/\/[^/]+/, "")} -> HTTP ${res.status}, `
+        + `not JSON: ${text.slice(0, 120)}`);
+    }
+    if (body.code === 0) return body.data;
+    if (body.code === RATE_LIMITED && waited < MAX_WAIT_MIN * 60) {
+      const after = Number(res.headers.get("retry-after"));
+      const delay = Number.isFinite(after) && after > 0 ? Math.min(after, 120) : 30;
+      waited += delay;
+      process.stdout.write(`  queue full — waiting ${delay}s (${waited}s so far)\n`);
+      await sleep(delay * 1000);
+      continue;
+    }
     throw new Error(`${url.replace(/https:\/\/[^/]+/, "")} -> ${body.code} ${body.message || ""}`
       + (body.suggestion ? ` (${body.suggestion})` : ""));
   }
-  return body.data;
 }
 
 /** Poll until a task leaves the running states. `v3` selects which task

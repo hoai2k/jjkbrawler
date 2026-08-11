@@ -32,7 +32,21 @@ import { fileURLToPath } from "url";
 const BASE = process.argv[2] || "http://127.0.0.1:5174";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const MANIFEST = join(ROOT, "billboards", "assets", "manifest.json");
-const TEST_CHAR = "todo";
+
+// The fighter this test fabricates a delivery for, imports, approves, and then
+// DELETES from disk on the way out.
+//
+// It used to be `todo`, chosen when no fighter had a real model and any roster
+// key was a safe stand-in. The moment Todo got one, this test started eating
+// it: a full build would finish, the suite would run, and the model plus its
+// intake would be gone — leaving a manifest pointing at a file that no longer
+// existed, which `billboard_intake.mjs check` duly failed on. It cost a
+// regeneration to notice, because the deletion looks nothing like its cause.
+//
+// So the test rig gets a key that CANNOT be a fighter. Nothing under this name
+// is ever shipped, and picking a real one again is now a visible mistake
+// rather than a silent one.
+const TEST_CHAR = "__smoketest";
 
 let failures = 0;
 const check = (ok, label, detail = "") => {
@@ -100,10 +114,15 @@ async function bootAndFight(page, url) {
     if (f) {
       const sx = c.width / 1280, sy = c.height / 720;
       const d = ctx.getImageData((f.x - 70) * sx, (f.y - 210) * sy, 140 * sx, 220 * sy).data;
-      for (let i = 0; i < d.length; i += 4) {
-        const [red, g, b, a] = [d[i], d[i + 1], d[i + 2], d[i + 3]];
-        if (a > 100 && b > red && b > g && red > 80 && red < 210 && b > 120 && b < 235) hit++;
-      }
+      // Opaque pixels anywhere in the fighter's box. This used to sniff for
+      // the mannequin's specific grey-blue, which stopped meaning anything
+      // once the roster was fully delivered: a mannequin never displaces a
+      // real rig (rig.js initRigs), so `mannequin=all` now yields no
+      // mannequins at all and the colour probe could only ever fail. What the
+      // check was always FOR is "a body got drawn where a fighter stands",
+      // and the render counter below is what proves the 3D pipeline drew it
+      // rather than the sprite fallback — the colour never carried that.
+      for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 100) hit++;
     }
     return {
       backend: renderBackendName(), rigged: window.__billboards.rigged,
@@ -116,7 +135,7 @@ async function bootAndFight(page, url) {
   check(r.rigged >= 27, "a mannequin rig registered for the whole roster", `${r.rigged} rigs`);
   check(r.renders > 0, "poses were rendered through the 3D pipeline", `${r.renders} renders`);
   check(r.hits > r.misses, "the pose cache carries most frames", `${r.hits} hits / ${r.misses} misses`);
-  check(r.sampled && r.pixels > 200, "mannequin pixels drawn where a fighter stands", `${r.pixels} px`);
+  check(r.sampled && r.pixels > 200, "a body is drawn where a fighter stands", `${r.pixels} px`);
   check(errors.length === 0, "no page errors in a billboard match", errors.slice(0, 2).join(" | "));
   await page.close();
 }

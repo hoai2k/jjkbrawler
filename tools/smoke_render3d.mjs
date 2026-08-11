@@ -32,7 +32,12 @@ import { fileURLToPath } from "url";
 const BASE = process.argv[2] || "http://127.0.0.1:5174";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const MANIFEST = join(ROOT, "render3d", "assets", "manifest.json");
-const TEST_CHAR = "todo";
+
+// A key that can never be a fighter — this test fabricates a delivery under
+// it, approves it, and deletes it from disk on the way out. It was `todo`
+// while no fighter had a real model; once Todo got one, running the suite
+// silently deleted him. See the same note in tools/smoke_billboard.mjs.
+const TEST_CHAR = "__smoketest";
 
 let failures = 0;
 const check = (ok, label, detail = "") => {
