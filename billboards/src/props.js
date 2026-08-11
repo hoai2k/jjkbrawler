@@ -85,6 +85,55 @@ export function twoHandGrip(charKey) {
   return null;
 }
 
+// ------------------------------------------------------- body morphs
+//
+// Mahito's Idle Transfiguration: his own body is the weapon, and its SHAPE
+// changes per attack — a club arm on the heavies, a drawn-out blade arm on
+// the special. No clip can author that (clips carry rotations, not shape),
+// and no delivery can bake it (one rig, one bind). So it is an engine layer:
+// per-state BONE SCALES, declared here, applied after the clip poses the rig
+// (applyMorphs in ik.js). A scaled bone scales everything it carries — skin
+// and children — which is exactly what a swelling limb wants; and because
+// the scale is a pure function of (state, time) it joins the pose cache
+// without poisoning it.
+//
+// Gameplay parity holds: hurtboxes and reach stay sprite-derived on every
+// backend, so the club arm LOOKS enormous and hits exactly like the sprite.
+//
+// Schema: CHARACTER_MORPHS[char][clipName] = [{ bone, scale }] where scale
+// is a scalar (uniform swell) or [x, y, z] in the bone's local frame
+// (y runs down the bone on these rigs — the stretch axis for a blade).
+
+export const CHARACTER_MORPHS = {
+  mahito: {
+    // The heavies land with a club arm: the whole striking arm swollen from
+    // the shoulder, hand included.
+    sideHeavy:  [{ bone: "RightArm", scale: 1.55 }],
+    upHeavy:    [{ bone: "RightArm", scale: 1.55 }],
+    downHeavy:  [{ bone: "RightArm", scale: 1.6 }],
+    // The special draws the forearm out into a blade: long and thin past the
+    // elbow, the hand flattened into the tip.
+    specialNeutral: [
+      { bone: "RightForeArm", scale: [0.7, 1.9, 0.7] },
+      { bone: "RightHand", scale: [0.8, 1.3, 0.5] },
+    ],
+    // The charge gathers mass in BOTH arms — visibly mid-transfiguration.
+    charge: [
+      { bone: "RightArm", scale: 1.3 },
+      { bone: "LeftArm", scale: 1.3 },
+    ],
+  },
+};
+
+/** Every bone this fighter's morphs ever touch — the reset set. */
+export function morphBones(charKey) {
+  const states = CHARACTER_MORPHS[charKey];
+  if (!states) return null;
+  const bones = new Set();
+  for (const list of Object.values(states)) for (const m of list) bones.add(m.bone);
+  return bones;
+}
+
 // ------------------------------------------------------- placeholder shapes
 //
 // Crude on purpose, like the mannequin itself: enough silhouette to author

@@ -32,7 +32,7 @@
 // wind-up in the game into the same straight-line poke.
 
 import { STATES, clipNameFor } from "./states.js";
-import { twoHandGrip } from "./props.js";
+import { twoHandGrip, CHARACTER_MORPHS, morphBones } from "./props.js";
 
 /** Which limb reaches, per state: [root, mid, end] bone names.
  *
@@ -428,6 +428,40 @@ export function applyTwoHandGrip(THREE, root3d, charKey, state, clipT, tmp) {
     chain[0].updateMatrixWorld(true);
   }
   return true;
+}
+
+// ------------------------------------------------------------- body morphs
+//
+// Per-state bone scaling (props.js CHARACTER_MORPHS) — Mahito's
+// transfiguration arms. Runs right after the mixer poses the rig and BEFORE
+// aim/reach/two-hand, so every solve sees the morphed limb. The morph ramps
+// in on the state's reach curve: the arm swells through the wind-up and is
+// fully transformed by the contact beat, which reads as transfiguration
+// rather than a costume swap.
+//
+// Bones the char's morphs ever touch are reset to scale 1 on every call —
+// the mixer does not write scale tracks, so a stale swell would otherwise
+// survive into the next state.
+
+/** Apply `charKey`'s per-state morphs for `state` at `clipT` seconds in.
+ *  No-op (false) for fighters that declare none. */
+export function applyMorphs(root3d, charKey, state, clipT) {
+  const bones = morphBones(charKey);
+  if (!bones) return false;
+  const spec = CHARACTER_MORPHS[charKey][clipNameFor(state)] || null;
+  const w = spec ? reachWeight(state, clipT) : 0;
+  for (const name of bones) {
+    const bone = root3d.getObjectByName(name);
+    if (!bone) continue;
+    const m = spec?.find((s) => s.bone === name);
+    if (m && w > 0) {
+      const [sx, sy, sz] = Array.isArray(m.scale) ? m.scale : [m.scale, m.scale, m.scale];
+      bone.scale.set(1 + (sx - 1) * w, 1 + (sy - 1) * w, 1 + (sz - 1) * w);
+    } else {
+      bone.scale.set(1, 1, 1);
+    }
+  }
+  return !!spec && w > 0;
 }
 
 // ---------------------------------------------------------------- layer axes

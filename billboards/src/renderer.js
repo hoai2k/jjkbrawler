@@ -26,7 +26,7 @@ import { STATES, clipNameFor, clipTime, aimable, aimKey } from "./states.js";
 import { getRig } from "./rig.js";
 import { swayChains } from "./props.js";
 import {
-  applyReach, reaches, makeScratch, applyTwoHandGrip,
+  applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
 } from "./ik.js";
 
@@ -229,6 +229,9 @@ export function renderPose(charKey, animKey, animTime, resolveClip, aim = null, 
   if (!resolved) return null;
 
   pose(rig, animKey, animTime, resolved.clip);
+  // Body morphs (Mahito's transfiguration arms) come FIRST among the layers:
+  // aim and reach must solve against the limb's morphed length.
+  applyMorphs(rig.root, charKey, animKey, clipTime(animKey, animTime));
   if (aimable(animKey) && aim) {
     // Lean into it, then REACH for it. Order matters: the spine pitch moves
     // the shoulder, so solving the arm first would aim it from a position the
