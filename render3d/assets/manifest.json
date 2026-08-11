@@ -15,7 +15,8 @@
     "jogo": {
       "model": "jogo/jogo.glb",
       "heightM": 1.8,
-      "approved": true
+      "approved": true,
+      "yawOffsetDeg": 60
     },
     "megumi": {
       "model": "megumi/megumi.glb",
@@ -25,7 +26,8 @@
     "hanami": {
       "model": "hanami/hanami.glb",
       "heightM": 2.2,
-      "approved": true
+      "approved": true,
+      "yawOffsetDeg": 60
     },
     "uro": {
       "model": "uro/uro.glb",
