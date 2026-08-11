@@ -110,24 +110,32 @@ async function bootAndFight(page, url) {
     const c = document.getElementById("gameCanvas");
     const ctx = c.getContext("2d");
     const f = state.fighters.find((x) => !x.dead && x.respawnTimer <= 0);
-    let hit = 0;
+    // A LIVE fighter's own token, redrawn onto a scratch canvas.
+    //
+    // This used to read the game canvas in a box at (f.x, f.y) — but those are
+    // WORLD coordinates and the canvas shows a CAMERA view, so the box only
+    // landed on the fighter while the camera happened to sit near the origin.
+    // It also sniffed for the mannequin's grey-blue, which stopped meaning
+    // anything once the roster was fully delivered (a mannequin never
+    // displaces a real rig — rig.js initRigs — so `mannequin=all` now yields
+    // none). Redrawing the fighter's current token through the backend's own
+    // entry point tests the same claim — a body comes out of this pipeline for
+    // someone actually in a match — without depending on where the camera is.
+    let hit = 0, drew = false;
     if (f) {
-      const sx = c.width / 1280, sy = c.height / 720;
-      const d = ctx.getImageData((f.x - 70) * sx, (f.y - 210) * sy, 140 * sx, 220 * sy).data;
-      // Opaque pixels anywhere in the fighter's box. This used to sniff for
-      // the mannequin's specific grey-blue, which stopped meaning anything
-      // once the roster was fully delivered: a mannequin never displaces a
-      // real rig (rig.js initRigs), so `mannequin=all` now yields no
-      // mannequins at all and the colour probe could only ever fail. What the
-      // check was always FOR is "a body got drawn where a fighter stands",
-      // and the render counter below is what proves the 3D pipeline drew it
-      // rather than the sprite fallback — the colour never carried that.
-      for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 100) hit++;
+      const bb = await import("/billboards/src/billboard.js");
+      const s = document.createElement("canvas");
+      s.width = 300; s.height = 300;
+      const sctx = s.getContext("2d");
+      const token = bb.currentFrame(f.charKey, f.animKey || "idle", f.animTime || 0);
+      drew = bb.drawCharFrame(sctx, f.charKey, token, 150, 280, { scale: 0.6, facing: 1 });
+      const d = sctx.getImageData(0, 0, 300, 300).data;
+      for (let i = 3; i < d.length; i += 4) if (d[i] > 100) hit++;
     }
     return {
       backend: renderBackendName(), rigged: window.__billboards.rigged,
       renders: stats.renders, hits: stats.hits, misses: stats.misses,
-      pixels: hit, sampled: !!f,
+      pixels: hit, sampled: !!f, drew,
     };
   });
 
@@ -135,7 +143,8 @@ async function bootAndFight(page, url) {
   check(r.rigged >= 27, "a mannequin rig registered for the whole roster", `${r.rigged} rigs`);
   check(r.renders > 0, "poses were rendered through the 3D pipeline", `${r.renders} renders`);
   check(r.hits > r.misses, "the pose cache carries most frames", `${r.hits} hits / ${r.misses} misses`);
-  check(r.sampled && r.pixels > 200, "a body is drawn where a fighter stands", `${r.pixels} px`);
+  check(r.sampled && r.drew && r.pixels > 200,
+    "a live fighter's own token draws a body", `${r.pixels} px`);
   check(errors.length === 0, "no page errors in a billboard match", errors.slice(0, 2).join(" | "));
   await page.close();
 }
