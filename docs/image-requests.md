@@ -12,10 +12,10 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**273 images outstanding.**
+**184 images outstanding.**
 
 - **The sprite game** — 172 images, round 20
-- **The live-3D anime path** — 101 images
+- **The live-3D anime path** — 12 images
 
 ## Rules that hold everywhere here
 
@@ -431,13 +431,13 @@ GENERATED from, and textures the anime pass reads at runtime. They serve
 `?render=billboard` too, which reads the same rigs. These are NOT keyed
 plates — each round states its own delivery.
 
-**101 images.** Authored in
+**12 images.** Authored in
 [render3d/docs/image-requests.md](../render3d/docs/image-requests.md) and reproduced whole below.
 
-- **DI1** — model-generation turnaround boards (the Tripo inputs) (20 images)
-- **DI2** — face sheets (the face-first gate's reference) (27 images)
-- **DI3** — shade palette swatches (27 images)
-- **DI4** — shared face textures (27 images)
+- **DI1** — model-generation turnaround boards (the Tripo inputs) (12 images)
+- **DI2** — face sheets (the face-first gate's reference) (0 images)
+- **DI3** — shade palette swatches (0 images)
+- **DI4** — shared face textures (0 images)
 
 ## Round DI1 — model-generation turnaround boards (the Tripo inputs)
 
@@ -459,35 +459,38 @@ human or a seed for generation — **the request here is for the drawn
 turnaround**, because sprites only ever show the one ¾ view and mirror the
 rest, which is exactly what a 3D model cannot be built from.
 
-**Deliverable: 1 board per fighter, gated to the fighters the open D-round
-names** (D1: `yuji_turnaround.png` only).
+**THE WHOLE FIGURE MUST FIT, WITH MARGIN.** Every view complete inside the
+canvas — the crown of the head, any horns, hair or headgear, and the feet — with
+clear white on all four sides. Twelve of the first twenty boards were refused
+for exactly this: the figures were scaled to fill the frame and the tops of
+their heads went off it, which on a model-generation seed is the one thing that
+cannot be worked around. A smaller figure with air around it beats a large one
+that is cut. `tools/import_render3d_images.py` measures this at import and
+refuses a board whose head runs off the edge.
 
-### DI1: who is still owed one — 20 of 28
+**Deliverable: 1 board per fighter.** Twelve are outstanding — the list is in
+the refusal note above, and in
+[docs/image-requests.md](../docs/image-requests.md), which resolves it
+against what is on disk.
+
+### DI1: who is still owed one — 12 of 28
 
 A fighter whose rig has already been delivered is NOT listed: a turnaround board's only job is to be the thing a model is generated from, and theirs exists.
 
 | Fighter | Key | Model at | Archetype | Canon reference | Notes |
 |---|---|---|---|---|---|
-| Aoi Todo | `todo` | 190 cm | unarmed | `assets/reference/canon/todo_idle.png` | Grappler bulk in the shoulders |
 | Yuki Tsukumo | `yuki` | 180 cm | unarmed | `assets/reference/canon/yuki_idle.png` | — |
-| Ryomen Sukuna | `sukuna` | 173 cm | unarmed | `assets/reference/canon/sukuna_idle.png` | Facial/body markings; no shawl (round 2 ruling) |
-| Choso | `choso` | 181 cm | unarmed | `assets/reference/canon/choso_idle.png` | Blood effects are engine-side |
 | Kinji Hakari | `hakari` | 185 cm | unarmed | `assets/reference/canon/hakari_idle.png` | Shutters are engine-side |
 | Yuta Okkotsu | `yuta` | 175 cm | blade | `assets/reference/canon/yuta_idle.png` | Katana, sheathed at idle |
 | Kento Nanami | `nanami` | 184 cm | blade | `assets/reference/canon/nanami_idle.png` | Wrapped blunt blade |
-| Toji Fushiguro | `toji` | 187 cm | blade | `assets/reference/canon/toji_idle.png` | Spear + chain; inventory worm not modeled |
 | Reggie Star | `reggie` | 190 cm* | blade | `assets/reference/canon/reggie_idle.png` | Katana-umbrella |
 | Nobara Kugisaki | `nobara` | 160 cm | heavy | `assets/reference/canon/nobara_idle.png` | Hammer + nails in hand |
 | Mei Mei | `meimei` | 190 cm* | heavy | `assets/reference/canon/meimei_idle.png` | Braided axe; braid needs bones |
 | Momo Nishimiya | `momo` | 150 cm | polearm | `assets/reference/canon/momo_idle.png` | Broom — also ridden; see her kit |
 | Satoru Gojo | `gojo` | 190 cm | caster | `assets/reference/canon/gojo_idle.png` | Blindfold, not glasses (canon ref) |
-| Toge Inumaki | `inumaki` | 164 cm | caster | `assets/reference/canon/inumaki_idle.png` | High collar; seal marks on tongue unseen |
 | Kokichi Muta | `mechamaru` | 205 cm | caster | `assets/reference/canon/mechamaru_idle.png` | Puppet body; arm cannon |
 | Yoshinobu Gakuganji | `gakuganji` | 190 cm* | caster | `assets/reference/canon/gakuganji_idle.png` | Guitar, slung and played |
-| Panda | `panda` | 200 cm | bulk | `assets/reference/canon/panda_idle.png` | Core marking per round 2 ruling |
 | Dagon | `dagon` | 215 cm | bulk | `assets/reference/canon/dagon_idle.png` | Extra bones for the tendrils |
-| Kurourushi | `kurourushi` | 190 cm* | bulk | `assets/reference/canon/kurourushi_idle.png` | The one nonstandard skeleton; bulk clips as reference only |
-| Mahoraga | `mahoraga` | match in-game | bulk | `assets/reference/canon/mahoraga_canon.png` | Megumi's install actor (config_transform.js) |
 
 ## Round DI2 — face sheets (the face-first gate's reference)
 
@@ -500,39 +503,11 @@ the modeller combs the normals along it (D-spec addition 3).
 
 **Deliverable: 1 sheet per fighter, same gating as DI1.**
 
-### DI2: who is still owed one — 27 of 28
+### DI2: who is still owed one — 0 of 28
 
 Listed for delivered rigs too — this is what the face-first review gate reads AGAINST, so it is wanted whether or not the model exists.
 
-| Fighter | Key | Model at | Archetype | Canon reference | Notes |
-|---|---|---|---|---|---|
-| Aoi Todo | `todo` | 190 cm | unarmed | `assets/reference/canon/todo_idle.png` | Grappler bulk in the shoulders |
-| Yuki Tsukumo | `yuki` | 180 cm | unarmed | `assets/reference/canon/yuki_idle.png` | — |
-| Takako Uro | `uro` | 190 cm* | unarmed | `assets/reference/canon/uro_idle.png` | Sky-palm effects are engine-side |
-| Mahito | `mahito` | 179 cm | unarmed | `assets/reference/canon/mahito_idle.png` | Patchwork skin in the texture |
-| Ryomen Sukuna | `sukuna` | 173 cm | unarmed | `assets/reference/canon/sukuna_idle.png` | Facial/body markings; no shawl (round 2 ruling) |
-| Choso | `choso` | 181 cm | unarmed | `assets/reference/canon/choso_idle.png` | Blood effects are engine-side |
-| Kinji Hakari | `hakari` | 185 cm | unarmed | `assets/reference/canon/hakari_idle.png` | Shutters are engine-side |
-| Yuta Okkotsu | `yuta` | 175 cm | blade | `assets/reference/canon/yuta_idle.png` | Katana, sheathed at idle |
-| Kento Nanami | `nanami` | 184 cm | blade | `assets/reference/canon/nanami_idle.png` | Wrapped blunt blade |
-| Toji Fushiguro | `toji` | 187 cm | blade | `assets/reference/canon/toji_idle.png` | Spear + chain; inventory worm not modeled |
-| Reggie Star | `reggie` | 190 cm* | blade | `assets/reference/canon/reggie_idle.png` | Katana-umbrella |
-| Nobara Kugisaki | `nobara` | 160 cm | heavy | `assets/reference/canon/nobara_idle.png` | Hammer + nails in hand |
-| Mei Mei | `meimei` | 190 cm* | heavy | `assets/reference/canon/meimei_idle.png` | Braided axe; braid needs bones |
-| Maki Zen'in | `maki` | 170 cm | polearm | `assets/reference/canon/maki_idle.png` | Playful Cloud |
-| Momo Nishimiya | `momo` | 150 cm | polearm | `assets/reference/canon/momo_idle.png` | Broom — also ridden; see her kit |
-| Satoru Gojo | `gojo` | 190 cm | caster | `assets/reference/canon/gojo_idle.png` | Blindfold, not glasses (canon ref) |
-| Megumi Fushiguro | `megumi` | 175 cm | caster | `assets/reference/canon/megumi_idle.png` | Shadow/shikigami are engine + summons |
-| Toge Inumaki | `inumaki` | 164 cm | caster | `assets/reference/canon/inumaki_idle.png` | High collar; seal marks on tongue unseen |
-| Kokichi Muta | `mechamaru` | 205 cm | caster | `assets/reference/canon/mechamaru_idle.png` | Puppet body; arm cannon |
-| Yoshinobu Gakuganji | `gakuganji` | 190 cm* | caster | `assets/reference/canon/gakuganji_idle.png` | Guitar, slung and played |
-| Suguru Geto | `geto` | 191 cm | caster | `assets/reference/canon/geto_idle.png` | Curse summons are engine-side |
-| Jogo | `jogo` | 180 cm | caster | `assets/reference/canon/jogo_idle.png` | Volcano head is mesh, not particle |
-| Panda | `panda` | 200 cm | bulk | `assets/reference/canon/panda_idle.png` | Core marking per round 2 ruling |
-| Hanami | `hanami` | 220 cm | bulk | `assets/reference/canon/hanami_idle.png` | Canon Hanami: lean pale body, black brushstroke stripes, antler horns, one shoulder wrapped in white cloth (round 17A). The tree design is retired — no `hanami_alt` variant |
-| Dagon | `dagon` | 215 cm | bulk | `assets/reference/canon/dagon_idle.png` | Extra bones for the tendrils |
-| Kurourushi | `kurourushi` | 190 cm* | bulk | `assets/reference/canon/kurourushi_idle.png` | The one nonstandard skeleton; bulk clips as reference only |
-| Mahoraga | `mahoraga` | match in-game | bulk | `assets/reference/canon/mahoraga_canon.png` | Megumi's install actor (config_transform.js) |
+**Nothing outstanding.** Every fighter has one.
 
 ## Round DI3 — shade palette swatches
 
@@ -548,39 +523,11 @@ sheet is what review holds them against.
 **Deliverable: 1 swatch sheet per fighter, same gating as DI1. Format free —
 a labelled PNG grid is fine.**
 
-### DI3: who is still owed one — 27 of 28
+### DI3: who is still owed one — 0 of 28
 
 Listed for delivered rigs too: these numbers land in the rig's material extras at intake, and not one delivered rig carries a `toon` block today — all of them are running on engine defaults.
 
-| Fighter | Key | Model at | Archetype | Canon reference | Notes |
-|---|---|---|---|---|---|
-| Aoi Todo | `todo` | 190 cm | unarmed | `assets/reference/canon/todo_idle.png` | Grappler bulk in the shoulders |
-| Yuki Tsukumo | `yuki` | 180 cm | unarmed | `assets/reference/canon/yuki_idle.png` | — |
-| Takako Uro | `uro` | 190 cm* | unarmed | `assets/reference/canon/uro_idle.png` | Sky-palm effects are engine-side |
-| Mahito | `mahito` | 179 cm | unarmed | `assets/reference/canon/mahito_idle.png` | Patchwork skin in the texture |
-| Ryomen Sukuna | `sukuna` | 173 cm | unarmed | `assets/reference/canon/sukuna_idle.png` | Facial/body markings; no shawl (round 2 ruling) |
-| Choso | `choso` | 181 cm | unarmed | `assets/reference/canon/choso_idle.png` | Blood effects are engine-side |
-| Kinji Hakari | `hakari` | 185 cm | unarmed | `assets/reference/canon/hakari_idle.png` | Shutters are engine-side |
-| Yuta Okkotsu | `yuta` | 175 cm | blade | `assets/reference/canon/yuta_idle.png` | Katana, sheathed at idle |
-| Kento Nanami | `nanami` | 184 cm | blade | `assets/reference/canon/nanami_idle.png` | Wrapped blunt blade |
-| Toji Fushiguro | `toji` | 187 cm | blade | `assets/reference/canon/toji_idle.png` | Spear + chain; inventory worm not modeled |
-| Reggie Star | `reggie` | 190 cm* | blade | `assets/reference/canon/reggie_idle.png` | Katana-umbrella |
-| Nobara Kugisaki | `nobara` | 160 cm | heavy | `assets/reference/canon/nobara_idle.png` | Hammer + nails in hand |
-| Mei Mei | `meimei` | 190 cm* | heavy | `assets/reference/canon/meimei_idle.png` | Braided axe; braid needs bones |
-| Maki Zen'in | `maki` | 170 cm | polearm | `assets/reference/canon/maki_idle.png` | Playful Cloud |
-| Momo Nishimiya | `momo` | 150 cm | polearm | `assets/reference/canon/momo_idle.png` | Broom — also ridden; see her kit |
-| Satoru Gojo | `gojo` | 190 cm | caster | `assets/reference/canon/gojo_idle.png` | Blindfold, not glasses (canon ref) |
-| Megumi Fushiguro | `megumi` | 175 cm | caster | `assets/reference/canon/megumi_idle.png` | Shadow/shikigami are engine + summons |
-| Toge Inumaki | `inumaki` | 164 cm | caster | `assets/reference/canon/inumaki_idle.png` | High collar; seal marks on tongue unseen |
-| Kokichi Muta | `mechamaru` | 205 cm | caster | `assets/reference/canon/mechamaru_idle.png` | Puppet body; arm cannon |
-| Yoshinobu Gakuganji | `gakuganji` | 190 cm* | caster | `assets/reference/canon/gakuganji_idle.png` | Guitar, slung and played |
-| Suguru Geto | `geto` | 191 cm | caster | `assets/reference/canon/geto_idle.png` | Curse summons are engine-side |
-| Jogo | `jogo` | 180 cm | caster | `assets/reference/canon/jogo_idle.png` | Volcano head is mesh, not particle |
-| Panda | `panda` | 200 cm | bulk | `assets/reference/canon/panda_idle.png` | Core marking per round 2 ruling |
-| Hanami | `hanami` | 220 cm | bulk | `assets/reference/canon/hanami_idle.png` | Canon Hanami: lean pale body, black brushstroke stripes, antler horns, one shoulder wrapped in white cloth (round 17A). The tree design is retired — no `hanami_alt` variant |
-| Dagon | `dagon` | 215 cm | bulk | `assets/reference/canon/dagon_idle.png` | Extra bones for the tendrils |
-| Kurourushi | `kurourushi` | 190 cm* | bulk | `assets/reference/canon/kurourushi_idle.png` | The one nonstandard skeleton; bulk clips as reference only |
-| Mahoraga | `mahoraga` | match in-game | bulk | `assets/reference/canon/mahoraga_canon.png` | Megumi's install actor (config_transform.js) |
+**Nothing outstanding.** Every fighter has one.
 
 ## Round DI4 — shared face textures *(one-time, roster-wide)*
 
@@ -602,39 +549,11 @@ D-round their fighter ships in.**
 
 ---
 
-### DI4: who is still owed one — 27 of 28
+### DI4: who is still owed one — 0 of 28
 
 The shared eye-highlight texture is delivered; these are the optional per-fighter mouth sheets. Nothing ships blocked on one.
 
-| Fighter | Key | Model at | Archetype | Canon reference | Notes |
-|---|---|---|---|---|---|
-| Aoi Todo | `todo` | 190 cm | unarmed | `assets/reference/canon/todo_idle.png` | Grappler bulk in the shoulders |
-| Yuki Tsukumo | `yuki` | 180 cm | unarmed | `assets/reference/canon/yuki_idle.png` | — |
-| Takako Uro | `uro` | 190 cm* | unarmed | `assets/reference/canon/uro_idle.png` | Sky-palm effects are engine-side |
-| Mahito | `mahito` | 179 cm | unarmed | `assets/reference/canon/mahito_idle.png` | Patchwork skin in the texture |
-| Ryomen Sukuna | `sukuna` | 173 cm | unarmed | `assets/reference/canon/sukuna_idle.png` | Facial/body markings; no shawl (round 2 ruling) |
-| Choso | `choso` | 181 cm | unarmed | `assets/reference/canon/choso_idle.png` | Blood effects are engine-side |
-| Kinji Hakari | `hakari` | 185 cm | unarmed | `assets/reference/canon/hakari_idle.png` | Shutters are engine-side |
-| Yuta Okkotsu | `yuta` | 175 cm | blade | `assets/reference/canon/yuta_idle.png` | Katana, sheathed at idle |
-| Kento Nanami | `nanami` | 184 cm | blade | `assets/reference/canon/nanami_idle.png` | Wrapped blunt blade |
-| Toji Fushiguro | `toji` | 187 cm | blade | `assets/reference/canon/toji_idle.png` | Spear + chain; inventory worm not modeled |
-| Reggie Star | `reggie` | 190 cm* | blade | `assets/reference/canon/reggie_idle.png` | Katana-umbrella |
-| Nobara Kugisaki | `nobara` | 160 cm | heavy | `assets/reference/canon/nobara_idle.png` | Hammer + nails in hand |
-| Mei Mei | `meimei` | 190 cm* | heavy | `assets/reference/canon/meimei_idle.png` | Braided axe; braid needs bones |
-| Maki Zen'in | `maki` | 170 cm | polearm | `assets/reference/canon/maki_idle.png` | Playful Cloud |
-| Momo Nishimiya | `momo` | 150 cm | polearm | `assets/reference/canon/momo_idle.png` | Broom — also ridden; see her kit |
-| Satoru Gojo | `gojo` | 190 cm | caster | `assets/reference/canon/gojo_idle.png` | Blindfold, not glasses (canon ref) |
-| Megumi Fushiguro | `megumi` | 175 cm | caster | `assets/reference/canon/megumi_idle.png` | Shadow/shikigami are engine + summons |
-| Toge Inumaki | `inumaki` | 164 cm | caster | `assets/reference/canon/inumaki_idle.png` | High collar; seal marks on tongue unseen |
-| Kokichi Muta | `mechamaru` | 205 cm | caster | `assets/reference/canon/mechamaru_idle.png` | Puppet body; arm cannon |
-| Yoshinobu Gakuganji | `gakuganji` | 190 cm* | caster | `assets/reference/canon/gakuganji_idle.png` | Guitar, slung and played |
-| Suguru Geto | `geto` | 191 cm | caster | `assets/reference/canon/geto_idle.png` | Curse summons are engine-side |
-| Jogo | `jogo` | 180 cm | caster | `assets/reference/canon/jogo_idle.png` | Volcano head is mesh, not particle |
-| Panda | `panda` | 200 cm | bulk | `assets/reference/canon/panda_idle.png` | Core marking per round 2 ruling |
-| Hanami | `hanami` | 220 cm | bulk | `assets/reference/canon/hanami_idle.png` | Canon Hanami: lean pale body, black brushstroke stripes, antler horns, one shoulder wrapped in white cloth (round 17A). The tree design is retired — no `hanami_alt` variant |
-| Dagon | `dagon` | 215 cm | bulk | `assets/reference/canon/dagon_idle.png` | Extra bones for the tendrils |
-| Kurourushi | `kurourushi` | 190 cm* | bulk | `assets/reference/canon/kurourushi_idle.png` | The one nonstandard skeleton; bulk clips as reference only |
-| Mahoraga | `mahoraga` | match in-game | bulk | `assets/reference/canon/mahoraga_canon.png` | Megumi's install actor (config_transform.js) |
+**Nothing outstanding.** Every fighter has one.
 
 ---
 

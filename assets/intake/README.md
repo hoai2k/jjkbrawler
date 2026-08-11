@@ -5,7 +5,15 @@ the single image-request document for every render mode, generated from the
 rounds and from what is on disk. This file is about what happens to a delivery
 once it lands here.
 
-**Upload new art here, not into `sprites/assets/`.**
+**Upload new art here, not into `sprites/assets/`.** Sub-folders are fine and
+are searched at any depth, so a delivery that arrives wrapped in its own batch
+directory needs no flattening by hand.
+
+**The 3D track's reference images (DI rounds) have their own importer**, because
+they are not sprites — nothing keys, trims or measures them:
+`python3 tools/import_render3d_images.py` (dry run) then `--apply`. It knows
+where each round lands and refuses a turnaround board whose head runs off the
+canvas, which twelve of the first twenty did.
 
 ```
 assets/intake/<character>/<pose_key>.png     e.g. assets/intake/yuji/idle_a.png

@@ -11,21 +11,48 @@ rounds (D).
 
 ## Delivered
 
-**Yuji's DI1–DI3 and the shared DI4 texture have all arrived** (with the 2D
-round-18 batch) and are in the repo, so the sentence above is no longer true of
-everything here:
+**DI2, DI3 and DI4 are complete for the whole roster**, and DI1 is 8 of 20
+short. Yuji's set arrived first, with the 2D round-18 batch; the rest came in
+one delivery of 101 images, imported by
+`python3 tools/import_render3d_images.py`.
 
-| Round | File | Landed at |
+| Round | State | Landed at |
 |---|---|---|
-| DI1 | `yuji_turnaround.png` | `render3d/docs/reference/yuji_turnaround.png` — four views (front, ¾-front, side, back) on white, consistent eye-line, arms clear of the body: the seed an image-to-3D pass wants |
-| DI2 | `yuji_face.png` | `render3d/docs/reference/yuji_face.png` |
-| DI3 | `yuji_shade.png` | `render3d/docs/reference/yuji_shade.png` |
-| DI4 | `eye_highlight.png` | `render3d/assets/textures/eye_highlight.png` — 128×128, the roster-wide catchlight |
-| DI4 | `yuji_mouth_sheet.png` | `render3d/assets/textures/yuji_mouth_sheet.png` — 1024×256, the optional four-cell strip |
+| DI1 | **12 outstanding** — see below | `render3d/docs/reference/<char>_turnaround.png` |
+| DI2 | **complete, 28 of 28** | `render3d/docs/reference/<char>_face.png` |
+| DI3 | **complete, 28 of 28** | `render3d/docs/reference/<char>_shade.png` |
+| DI4 | **complete** — the shared 128×128 catchlight, plus a 1024×256 four-cell mouth strip for every fighter | `render3d/assets/textures/` |
 
-**D1 is unblocked**: the pilot model round has every 2D input it named. The
-rounds below stay open for each further fighter a D-round names — the briefs
-are per fighter, and only Yuji has been drawn.
+**D1 is unblocked** and D3/D4 have their face and palette references for every
+fighter they will name. DI3 in particular is now actionable rather than
+aspirational: every fighter has lit/shadow pairs for skin, hair, top, bottom
+and props, and **not one delivered rig carries a `toon` block yet** — grading
+the eight existing rigs from these sheets is repo work waiting to be done, not
+a request.
+
+### DI1: twelve boards were refused, and why
+
+Twelve of the twenty arrived with **the top of the head running off the canvas**
+— in Mei Mei's case the cut falls below the eyes. A turnaround is the seed a
+model is generated FROM, so a board with no crown generates a mesh with no
+crown, on the one feature [plan §9](plan.md) says fails first.
+
+They were not landed. The request list is derived from which files EXIST, so a
+bad board that is present reads as a round complete — the refusal is what keeps
+those twelve visible as outstanding. The delivered plates are kept at
+`assets/reference/round21/di1_cropped/` for comparison against the redraws.
+
+Refused: `dagon`, `gakuganji`, `gojo`, `hakari`, `mechamaru`, `meimei`, `momo`,
+`nanami`, `nobara`, `reggie`, `yuki`, `yuta`.
+
+Accepted: `choso`, `inumaki`, `kurourushi`, `mahoraga`, `panda`, `sukuna`,
+`todo`, `toji`. (Todo's topknot and Toji's spear tip grazed the edge; the check
+measures how WIDE the ink on the top edge is, because a head is wide and a
+blade tip is not, and a face nobody lost is not a failure.)
+
+**The framing rule this cost is now stated in DI1's brief below**, where it
+should have been from the start: the whole figure inside the canvas, with
+margin, in every view.
 
 **To DRAW from, use [docs/image-requests.md](../../docs/image-requests.md), not
 this file.** That is the single image-request document for every render mode,
@@ -79,8 +106,19 @@ human or a seed for generation — **the request here is for the drawn
 turnaround**, because sprites only ever show the one ¾ view and mirror the
 rest, which is exactly what a 3D model cannot be built from.
 
-**Deliverable: 1 board per fighter, gated to the fighters the open D-round
-names** (D1: `yuji_turnaround.png` only).
+**THE WHOLE FIGURE MUST FIT, WITH MARGIN.** Every view complete inside the
+canvas — the crown of the head, any horns, hair or headgear, and the feet — with
+clear white on all four sides. Twelve of the first twenty boards were refused
+for exactly this: the figures were scaled to fill the frame and the tops of
+their heads went off it, which on a model-generation seed is the one thing that
+cannot be worked around. A smaller figure with air around it beats a large one
+that is cut. `tools/import_render3d_images.py` measures this at import and
+refuses a board whose head runs off the edge.
+
+**Deliverable: 1 board per fighter.** Twelve are outstanding — the list is in
+the refusal note above, and in
+[docs/image-requests.md](../../docs/image-requests.md), which resolves it
+against what is on disk.
 
 ## Round DI2 — face sheets (the face-first gate's reference)
 

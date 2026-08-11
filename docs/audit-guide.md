@@ -64,6 +64,7 @@ docs/               mechanics, character research, asset pipeline, asset request
       node tools/smoke_controllers.mjs  # two pads: seats, join, split cursors
       python3 tools/check_doc_links.py  # every relative doc link and anchor
       node tools/build_image_requests.mjs --check   # docs/image-requests.md is current
+      python3 tools/import_render3d_images.py       # dry-run the DI intake
       node tools/audit_stage_reach.mjs  # platform layouts, no browser needed
       node tools/audit_hitboxes.mjs     # reach/hurtbox/angle numbers, no browser
       node tools/smoke_stages.mjs       # every stage's Active Boards gimmick
