@@ -32,16 +32,21 @@ WHAT IT DOES, in order:
   5. Add any missing prop / chain bones the roster expects for this character
      (billboards/src/props.js), empty, so a rigger has the hook to hang art on
      and the validator stops warning about a missing weapon.
-  6. Prune skin weights the skeleton says are impossible — an auto-binder
+  6. Rescue a held weapon from the skin passes. A generated polearm arrives
+     bound by proximity — foot influences at the bottom of the shaft — and
+     step 7's skeleton-distance logic would then saw it in two at the boot
+     (it did: Maki's staff). Weapon vertices in the shaft column are rebound
+     wholly to the prop hook, which is reparented onto the gripping hand.
+  7. Prune skin weights the skeleton says are impossible — an auto-binder
      routinely gives trouser vertices to a hand bone, which is how round B1's
      fighter came to carry his trousers up with his arm
      (tools/blender_clean_weights.py).
-  7. Grade the texture onto the fighter's canon costume colours where the
+  8. Grade the texture onto the fighter's canon costume colours where the
      roster declares them — a generator gets the hue right and the value
      badly, which is how round B1's fighter arrived in a navy so dark it read
      as black (tools/blender_grade_texture.py). No-op for a fighter with no
      palette entry, and safe to re-run.
-  8. Export .glb.
+  9. Export .glb.
 
 It never invents animation. Retiming stretches what is there; a clip whose
 CONTENT is wrong (a strike that peaks in the wrong place) is a review finding
@@ -302,6 +307,105 @@ def add_missing_hooks(arm_obj, props, chains, report):
     bpy.ops.object.mode_set(mode="OBJECT")
 
 
+# -------------------------------------------------------------- prop rescue
+
+LEG_FAMILY = re.compile(r"^(Left|Right)(UpLeg|Leg|Foot|ToeBase)$")
+
+
+def rescue_rigid_props(arm_obj, props, report):
+    """A held weapon arrives as SKIN, and must stop being skin before the
+    weight passes run.
+
+    The generator binds by proximity, so a polearm standing the fighter's full
+    height picks up foot and toe influences at the bottom of its shaft. The
+    skeleton-distance passes that follow then do exactly the wrong thing, for
+    exactly the right reasons: the unwelder — seeing faces whose dominant
+    bones are eleven joints apart — saws the weapon in two at the boot. Not a
+    hypothetical: Maki's staff arrived in one piece and left conform as a
+    hand-held blade plus a stub of shaft riding her ankle.
+
+    Finding the weapon by mesh topology does not work — these meshes are
+    patchwork, 197 disconnected shells on Maki alone. GEOMETRY works: a
+    carried pole is the one thing that stands taller than the fighter, so the
+    topmost slab of vertices fixes its axis, and measurement shows a clean
+    empty ring around the shaft (staff out to 7% of mesh height, then air,
+    then the body from 12%). Every vertex inside that cylinder whose dominant
+    bone is a LEG bone is weapon-not-skin by construction, and is rebound
+    wholly to the roster's prop hook, which is reparented onto whichever hand
+    actually grips the shaft. Verts already owned by the hand stay put — they
+    ride the same transform either way.
+
+    Assumes the weapon stands roughly vertical in the bind pose, which is how
+    a full-height polearm has to arrive in a full-body seed image. Gated on
+    the roster expecting a prop, so an unarmed fighter cannot lose a scarf to
+    it; skips loudly when nothing pokes above the head."""
+    if not props:
+        return
+    hook = props[0]  # Prop_Main; nobody two-weapon-generates yet
+    hands = ("LeftHand", "RightHand")
+    for mesh_obj in [c for c in arm_obj.children if c.type == "MESH"]:
+        me = mesh_obj.data
+        wm = mesh_obj.matrix_world
+        co = [wm @ v.co for v in me.vertices]
+        if not co:
+            continue
+        ztop = max(c.z for c in co)
+        height = ztop - min(c.z for c in co)
+        # The staff tip: the topmost 3% slab. If its footprint is wide, the
+        # tallest thing is the head or hair and there is no pole to rescue.
+        slab = [c for c in co if c.z > ztop - 0.03 * height]
+        span = max(max(c.x for c in slab) - min(c.x for c in slab),
+                   max(c.y for c in slab) - min(c.y for c in slab))
+        if span > 0.25 * height:
+            report.append(f"  prop rescue: nothing pole-like above the head "
+                          f"(top slab spans {span:.2f} m) — skipped")
+            continue
+        ax = sum(slab, Vector()) / len(slab)
+        radius = 0.09 * height
+        group_name = {g.index: g.name for g in mesh_obj.vertex_groups}
+
+        rebind = []
+        grip_weight = {h: 0.0 for h in hands}
+        for i, v in enumerate(me.vertices):
+            dx = co[i].x - ax.x
+            dy = co[i].y - ax.y
+            if dx * dx + dy * dy > radius * radius:
+                continue
+            for g in v.groups:
+                name = group_name.get(g.group)
+                if name in grip_weight:
+                    grip_weight[name] += g.weight
+            dom = max(v.groups, key=lambda g: g.weight) if v.groups else None
+            if dom and LEG_FAMILY.match(group_name.get(dom.group, "")):
+                rebind.append(i)
+        if not rebind:
+            report.append("  prop rescue: shaft column carries no leg "
+                          "weights — nothing to fix")
+            continue
+        grip = max(hands, key=lambda h: grip_weight[h])
+
+        bpy.context.view_layer.objects.active = arm_obj
+        bpy.ops.object.mode_set(mode="EDIT")
+        eb = arm_obj.data.edit_bones.get(hook)
+        gb = arm_obj.data.edit_bones.get(grip)
+        if eb and gb and eb.parent is not gb:
+            eb.parent = gb
+            eb.head = gb.tail
+            eb.tail = gb.tail + Vector((0, 0, -0.12))
+        bpy.ops.object.mode_set(mode="OBJECT")
+
+        vg = (mesh_obj.vertex_groups.get(hook)
+              or mesh_obj.vertex_groups.new(name=hook))
+        for other in list(mesh_obj.vertex_groups):
+            if other.name != hook:
+                other.remove(rebind)
+        vg.add(rebind, 1.0, "REPLACE")
+        report.append(
+            f"  prop rescue: {len(rebind)} shaft vert(s) inside the "
+            f"{radius:.2f} m column were leg-bound skin — rebound to {hook} "
+            f"on {grip}")
+
+
 # ------------------------------------------------------------------- timing
 
 def canonical_action_name(name, states):
@@ -386,6 +490,9 @@ def main():
         report.append(f"  STILL MISSING after renaming: {', '.join(missing)}")
     conform_scale_and_orientation(arm, target_h, report)
     add_missing_hooks(arm, props, chains, report)
+    # Before clean_all, or the weight passes mistake the weapon for badly
+    # bound skin and saw it apart — see the function's own comment.
+    rescue_rigid_props(arm, props, report)
     retime_actions(states, report)
     clean_all(arm, report)
     grade_char(args.char, report)

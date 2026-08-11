@@ -5,6 +5,16 @@
       "model": "yuji/yuji.glb",
       "heightM": 1.73,
       "approved": true
+    },
+    "maki": {
+      "model": "maki/maki.glb",
+      "heightM": 1.7,
+      "approved": true
+    },
+    "jogo": {
+      "model": "jogo/jogo.glb",
+      "heightM": 1.8,
+      "approved": true
     }
   }
 }
