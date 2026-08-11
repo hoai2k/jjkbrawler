@@ -120,7 +120,7 @@ Full round text: [DI2](../render3d/docs/image-requests.md#round-di2--face-sheets
 | Suguru Geto | `geto` | 191 cm | caster | `assets/reference/canon/geto_idle.png` | Curse summons are engine-side |
 | Jogo | `jogo` | 180 cm | caster | `assets/reference/canon/jogo_idle.png` | Volcano head is mesh, not particle |
 | Panda | `panda` | 200 cm | bulk | `assets/reference/canon/panda_idle.png` | Core marking per round 2 ruling |
-| Hanami | `hanami` | 220 cm | bulk | `assets/reference/canon/hanami_idle.png` | Canon Hanami: lean pale body, black brushstroke stripes, antler horns (round 17A). **+ `hanami_alt` material variant** — the earlier bark-and-foliage design |
+| Hanami | `hanami` | 220 cm | bulk | `assets/reference/canon/hanami_idle.png` | Canon Hanami: lean pale body, black brushstroke stripes, antler horns, one shoulder wrapped in white cloth (round 17A). The tree design is retired — no `hanami_alt` variant |
 | Dagon | `dagon` | 215 cm | bulk | `assets/reference/canon/dagon_idle.png` | Extra bones for the tendrils |
 | Kurourushi | `kurourushi` | 190 cm* | bulk | `assets/reference/canon/kurourushi_idle.png` | The one nonstandard skeleton; bulk clips as reference only |
 | Mahoraga | `mahoraga` | match in-game | bulk | `assets/reference/canon/mahoraga_canon.png` | Megumi's install actor (config_transform.js) |
@@ -168,7 +168,7 @@ Full round text: [DI3](../render3d/docs/image-requests.md#round-di3--shade-palet
 | Suguru Geto | `geto` | 191 cm | caster | `assets/reference/canon/geto_idle.png` | Curse summons are engine-side |
 | Jogo | `jogo` | 180 cm | caster | `assets/reference/canon/jogo_idle.png` | Volcano head is mesh, not particle |
 | Panda | `panda` | 200 cm | bulk | `assets/reference/canon/panda_idle.png` | Core marking per round 2 ruling |
-| Hanami | `hanami` | 220 cm | bulk | `assets/reference/canon/hanami_idle.png` | Canon Hanami: lean pale body, black brushstroke stripes, antler horns (round 17A). **+ `hanami_alt` material variant** — the earlier bark-and-foliage design |
+| Hanami | `hanami` | 220 cm | bulk | `assets/reference/canon/hanami_idle.png` | Canon Hanami: lean pale body, black brushstroke stripes, antler horns, one shoulder wrapped in white cloth (round 17A). The tree design is retired — no `hanami_alt` variant |
 | Dagon | `dagon` | 215 cm | bulk | `assets/reference/canon/dagon_idle.png` | Extra bones for the tendrils |
 | Kurourushi | `kurourushi` | 190 cm* | bulk | `assets/reference/canon/kurourushi_idle.png` | The one nonstandard skeleton; bulk clips as reference only |
 | Mahoraga | `mahoraga` | match in-game | bulk | `assets/reference/canon/mahoraga_canon.png` | Megumi's install actor (config_transform.js) |
@@ -215,7 +215,7 @@ Full round text: [DI4](../render3d/docs/image-requests.md#round-di4--shared-face
 | Suguru Geto | `geto` | 191 cm | caster | `assets/reference/canon/geto_idle.png` | Curse summons are engine-side |
 | Jogo | `jogo` | 180 cm | caster | `assets/reference/canon/jogo_idle.png` | Volcano head is mesh, not particle |
 | Panda | `panda` | 200 cm | bulk | `assets/reference/canon/panda_idle.png` | Core marking per round 2 ruling |
-| Hanami | `hanami` | 220 cm | bulk | `assets/reference/canon/hanami_idle.png` | Canon Hanami: lean pale body, black brushstroke stripes, antler horns (round 17A). **+ `hanami_alt` material variant** — the earlier bark-and-foliage design |
+| Hanami | `hanami` | 220 cm | bulk | `assets/reference/canon/hanami_idle.png` | Canon Hanami: lean pale body, black brushstroke stripes, antler horns, one shoulder wrapped in white cloth (round 17A). The tree design is retired — no `hanami_alt` variant |
 | Dagon | `dagon` | 215 cm | bulk | `assets/reference/canon/dagon_idle.png` | Extra bones for the tendrils |
 | Kurourushi | `kurourushi` | 190 cm* | bulk | `assets/reference/canon/kurourushi_idle.png` | The one nonstandard skeleton; bulk clips as reference only |
 | Mahoraga | `mahoraga` | match in-game | bulk | `assets/reference/canon/mahoraga_canon.png` | Megumi's install actor (config_transform.js) |

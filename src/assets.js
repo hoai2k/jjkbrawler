@@ -344,24 +344,6 @@ function statsFor(ids) {
   return { done, total };
 }
 
-// Alternate art sets. A character can ship a second look (Hanami's round-6
-// redesign) that the player opts into in Settings; unlisted frames fall through
-// to the default set, so an alternate only needs the frames that differ.
-export let spriteSet = "default";
-
-export function setSpriteSet(name) {
-  spriteSet = name === "alternate" ? "alternate" : "default";
-}
-
-export function hasAlternate(charKey) {
-  return !!spriteManifest?.alternates?.[charKey];
-}
-
-function altMeta(charKey, frameKey) {
-  if (spriteSet !== "alternate") return null;
-  return spriteManifest?.alternates?.[charKey]?.[frameKey] || null;
-}
-
 /** Whether the `nativeLeft` guess may speak for the drawing a pose is showing.
  *
  *  `nativeLeft` lists frames whose art was DRAWN facing left. It was measured
@@ -404,8 +386,6 @@ export function awaitingApproval(charKey, frameKey) {
  *  default is the drawing the game DRAWS, and on a pose awaiting approval those
  *  are two different images. Only the workbench passes preview. */
 export function frameMeta(charKey, frameKey, { preview = false } = {}) {
-  const alt = altMeta(charKey, frameKey);
-  if (alt) return alt;
   const char = spriteManifest?.characters?.[charKey];
   let meta = char ? char[frameKey] || null : null;
   if (!preview && meta?.awaitingApproval?.live) {
@@ -418,10 +398,6 @@ export function frameMeta(charKey, frameKey, { preview = false } = {}) {
 }
 
 export function frameImage(charKey, frameKey, { preview = false } = {}) {
-  if (altMeta(charKey, frameKey)) {
-    const img = images.get(`alt:${charKey}:${frameKey}`);
-    if (img) return img;
-  }
   if (!preview && awaitingApproval(charKey, frameKey)) {
     return images.get(`live:${charKey}:${frameKey}`) || null;
   }
@@ -500,11 +476,6 @@ function groupJobs(id) {
       // in a MATCH, and what it draws is the older file the live block names.
       const live = meta.awaitingApproval?.live?.file;
       if (live) addFrame(`live:${charKey}:${frameKey}`, live);
-    }
-    // A fighter's alternate look travels with them: switching art sets in
-    // Settings must never be the thing that triggers a download mid-match.
-    for (const [frameKey, meta] of Object.entries(spriteManifest.alternates?.[charKey] || {})) {
-      addFrame(`alt:${charKey}:${frameKey}`, meta.file);
     }
     return jobs;
   }

@@ -20,9 +20,6 @@ export const state = {
   // surface/gravity modifiers (src/stage_fx.js). Off = every stage reverts to
   // its static v1 layout.
   activeBoards: true,
-  // "default" | "alternate" — opts into a character's second art set where one
-  // exists (currently Hanami's round-6 redesign). See assets.js.
-  spriteSet: "default",
   // What each slot picked on the select screen. May be RANDOM_KEY, which
   // resolves to a different fighter every match. The CPU defaults to random.
   // P1 starts empty on purpose: the player picks their own fighter rather than

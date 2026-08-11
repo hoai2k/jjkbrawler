@@ -153,7 +153,7 @@ roster on sprites throughout.
 
 ### Round D4 — the bespoke bodies
 
-Panda, Hanami (+ the `hanami_alt` material variant), Dagon, Kurourushi,
+Panda, Hanami (his tree design is retired — no `hanami_alt` variant), Dagon, Kurourushi,
 Mahoraga — same order and same override allowance as billboard round B4.
 
 **Deliverable: 5 rigs, 1 material variant, 30 identity clips, ~20 bulk-normal

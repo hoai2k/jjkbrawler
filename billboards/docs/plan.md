@@ -201,8 +201,11 @@ fallthrough makes partial rollout the normal state, not a degraded one.
 Mahoraga is on the list because he is animated as a character
 (`config_transform.js`); his model gates Megumi's install looking right in
 billboard mode, but until it lands the install falls through to Mahoraga's
-sprites like everyone else. `hanami_alt` is a material variant on Hanami's rig,
-not a second rig — the model equivalent of the manifest's `alternates` block.
+sprites like everyone else. `hanami_alt` WAS to be a material variant on Hanami's rig
+rather than a second rig — the model equivalent of the manifest's `alternates`
+block — but both are gone: his tree design was retired when round 17A redrew
+him to canon, and the sprite-side `alternates` block went with it. The variant
+mechanism stands; it has no subject.
 
 ### Phase B4 — look development
 

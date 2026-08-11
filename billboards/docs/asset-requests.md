@@ -105,12 +105,15 @@ glTF 2.0 **binary** (`.glb`), one fighter per file.
   emissive tricks — the engine applies its own toon pass so the model sits
   beside painted 2D art, and anything pre-lit fights it. Match the palette of
   the canonical reference, not of the anime screenshots.
-- **`hanami_alt`** is a second material/texture set on Hanami's rig, delivered
-  in his `.glb` as a glTF material variant — not a second model. The default
-  is canon Hanami, the pale humanoid curse his round-17A set redrew him as;
-  the variant is the earlier bark-and-foliage tree design, which survives as
-  an alternate sprite set (`sprites/assets/hanami_alt/`) and so wants a
-  matching look on the rig.
+- **`hanami_alt` is withdrawn, and is not to be delivered.** It was a second
+  material set on Hanami's rig carrying his earlier bark-and-foliage tree
+  design. That design is retired: round 17A redrew him to canon as the pale
+  humanoid curse, the alternate sprite set it mirrored has been removed from
+  the game, and the frames are archived at
+  [`assets/reference/hanami_alt/`](../../assets/reference/hanami_alt/). Model
+  the canon Hanami and nothing else. The variant MECHANISM is still the right
+  one for a genuine second look — see the plan's costume/state variants — it
+  just has no subject today.
 
 ## Delivery spec — clips
 
@@ -218,7 +221,7 @@ billboard workbench verifies against his sprites.
 | `geto` | Suguru Geto | 191 cm | standard | caster | Curse summons are engine-side |
 | `jogo` | Jogo | 180 cm | standard | caster | Volcano head is mesh, not particle |
 | `panda` | Panda | 200 cm | standard, heavy build | bulk | Core marking per round 2 ruling |
-| `hanami` | Hanami | 220 cm | standard + growths | bulk | Canon Hanami: lean pale body, black brushstroke stripes, antler horns (round 17A). **+ `hanami_alt` material variant** — the earlier bark-and-foliage design |
+| `hanami` | Hanami | 220 cm | standard + growths | bulk | Canon Hanami: lean pale body, black brushstroke stripes, antler horns, one shoulder wrapped in white cloth (round 17A). The tree design is retired — no `hanami_alt` variant |
 | `dagon` | Dagon | 215 cm | standard + head tentacles | bulk | Extra bones for the tendrils |
 | `kurourushi` | Kurourushi | 190 cm* | **bespoke** (insectoid) | bulk | The one nonstandard skeleton; bulk clips as reference only |
 | `mahoraga` | Mahoraga | match in-game | standard + wheel | bulk | Megumi's install actor (config_transform.js) |
@@ -266,13 +269,14 @@ the per-character fallthrough.
 ## Round B4 — the bespoke bodies
 
 The five whose bodies the standard skeleton cannot carry unmodified: Panda,
-Hanami (+ the `hanami_alt` variant), Dagon, Kurourushi, Mahoraga. Expect the
+Hanami, Dagon, Kurourushi, Mahoraga. Expect the
 bulk archetype normals to need per-fighter overrides here — that is budgeted,
 not an overrun. Kurourushi is the only fully bespoke skeleton on the roster
 and lands last, with his clips authored directly rather than retargeted.
 
-**Deliverable: 5 rigs, 1 material variant, 30 identity clips, override
-allowance for bulk normals (~20 clips).**
+**Deliverable: 5 rigs, 30 identity clips, override allowance for bulk normals
+(~20 clips).** (It was 5 rigs *and a material variant* until the `hanami_alt`
+tree design was retired.)
 
 ## Round B5 — reserved: workbench catches
 

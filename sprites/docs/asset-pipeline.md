@@ -647,12 +647,24 @@ reviewer, never swept.
 two thirds of round 6. Only confident calls are acted on; the rest are marked on
 the board and corrected via `FACING_OVERRIDE`.
 
-## Alternate sprite sets
+## Alternate sprite sets *(removed)*
 
-`manifest.alternates.<char>.<frame>` holds a second art set, opted into with
-**Settings → Sprites: Default / Alternate**. Unlisted frames fall through to the
-default set, so an alternate only ships the frames that differ. Hanami's
-round-6 redesign is the first (8 frames).
+`manifest.alternates.<char>.<frame>` used to hold a whole second art set for a
+character, opted into with **Settings → Sprites: Default / Alternate**; unlisted
+frames fell through to the default set, so an alternate only shipped the frames
+that differed. Hanami's round-6 tree design was the first and the only one.
+
+It is gone. Round 17A redrew him to canon, that set was approved, and one
+toggle serving one retired design is not a feature worth carrying — so the
+manifest key, the loader path and the Settings button all came out together.
+The eight frames and their measurements are archived at
+[`assets/reference/hanami_alt/`](../../assets/reference/hanami_alt/), whose
+README says what would be involved in bringing it back.
+
+Not to be confused with a pose's **variants**, which are alive and are a
+different thing: several drawings of ONE pose, chosen between in the workbench
+(`manifest.variants`). Those are how a replacement is stood beside what it
+replaces. An alternate set was a second look for a whole character.
 
 ## Summoned-curse sprites
 

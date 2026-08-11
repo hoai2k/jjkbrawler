@@ -324,11 +324,13 @@ so billboards/sprites are never asked to answer for it:
   leaning in. Allowed only where combat reads nothing (charge, ult startup
   frozen frames, win) and flagged per clip in extras, so spectacle never
   blurs a hitbox.
-- **Cheap costume/state variants.** `hanami_alt` as a glTF material variant
-  was the billboard rule; live materials extend it — Yuji's Sukuna markings
-  during ult, Yuta glowing at full meter — as material swaps keyed to state
-  the sim already exposes. Variants ride the existing manifest `alternates`
-  shape.
+- **Cheap costume/state variants.** A glTF material variant was the billboard
+  rule, written when `hanami_alt` was its example; that example is gone (his
+  tree design retired with round 17A) but the mechanism is what live materials
+  extend — Yuji's Sukuna markings during ult, Yuta glowing at full meter — as
+  material swaps keyed to state the sim already exposes. Note the sprite
+  manifest's `alternates` block these were once shaped after no longer exists:
+  a variant is per-material now, with no 2D counterpart.
 
 ## 8. Phases
 

@@ -7,7 +7,7 @@ import { METER_MAX, TIME_OPTIONS } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
 import { cameraMode } from "./camera_mode.js";
-import { setSpriteSet, previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
+import { previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
 import { RANDOM_GROUP, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
 import { CONTROL_ROWS, rowAtPad } from "./config_controls.js";
 import { domainStickFor, charDomainSpecialSlot } from "./domains.js";
@@ -62,7 +62,7 @@ export function initUi(cb) {
     "movesModeButton",
     "randomStageButton", "stageBackButton", "roundKicker", "winnerText", "rematchButton", "menuButton",
     "resumeButton", "pauseResetButton", "pauseMenuButton",
-    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsTimeButton", "settingsSpritesButton", "settingsBoardsButton", "musicVolumeRange", "musicVolumeLabel",
+    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsTimeButton", "settingsBoardsButton", "musicVolumeRange", "musicVolumeLabel",
     "sfxVolumeRange", "sfxVolumeLabel", "settingsBackButton",
   ]) {
     els[id] = $(id);
@@ -649,11 +649,6 @@ function bindMenuButtons() {
     state.timeLimit = TIME_OPTIONS[(i + 1) % TIME_OPTIONS.length];
     updateMenuButtons();
   });
-  els.settingsSpritesButton.addEventListener("click", () => {
-    state.spriteSet = state.spriteSet === "alternate" ? "default" : "alternate";
-    setSpriteSet(state.spriteSet);
-    updateMenuButtons();
-  });
   // Takes effect on the next match start; an in-progress match keeps the
   // gimmick it began with (initStageFx reads this in resetMatch).
   els.settingsSfxButton.addEventListener("click", () => {
@@ -786,9 +781,6 @@ export function updateMenuButtons() {
   els.settingsStocksButton.textContent = TEXT.settings.stocks(state.stocks);
   els.settingsTimeButton.textContent = TEXT.settings.timeLimit(
     state.timeLimit ? formatClock(state.timeLimit) : TEXT.settings.timeOff
-  );
-  els.settingsSpritesButton.textContent = TEXT.settings.sprites(
-    state.spriteSet === "alternate" ? TEXT.settings.spriteAlternate : TEXT.settings.spriteDefault
   );
   els.settingsBoardsButton.textContent = TEXT.settings.activeBoards(state.activeBoards);
   els.settingsSfxButton.textContent = TEXT.settings.sfxEnabled(state.sfxEnabled);

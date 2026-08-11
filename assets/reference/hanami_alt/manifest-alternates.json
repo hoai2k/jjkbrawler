@@ -1,0 +1,92 @@
+{
+ "hanami": {
+  "dodge_air": {
+   "w": 798,
+   "h": 1165,
+   "ox": -242.2,
+   "oy": -854,
+   "bodyBottom": 310.4,
+   "bodyH": 341.3,
+   "centroidX": 253.7,
+   "renderScale": 0.293,
+   "file": "hanami_alt/dodge_air.png"
+  },
+  "dodge_roll": {
+   "w": 1035,
+   "h": 876,
+   "ox": -360.8,
+   "oy": -565,
+   "bodyBottom": 310.4,
+   "bodyH": 256.7,
+   "centroidX": 213.4,
+   "renderScale": 0.293,
+   "file": "hanami_alt/dodge_roll.png"
+  },
+  "r4c0": {
+   "w": 840,
+   "h": 1144,
+   "ox": -263.2,
+   "oy": -835,
+   "bodyBottom": 309.0,
+   "bodyH": 175.5,
+   "centroidX": 197.5,
+   "renderScale": 0.153,
+   "file": "hanami_alt/r4c0.png"
+  },
+  "r4c1": {
+   "w": 836,
+   "h": 1216,
+   "ox": -261.2,
+   "oy": -907,
+   "bodyBottom": 309.0,
+   "bodyH": 180.0,
+   "centroidX": 161.9,
+   "renderScale": 0.148,
+   "file": "hanami_alt/r4c1.png"
+  },
+  "r4c2": {
+   "w": 966,
+   "h": 1176,
+   "ox": -326.2,
+   "oy": -867,
+   "bodyBottom": 309.0,
+   "bodyH": 174.6,
+   "centroidX": 232.8,
+   "renderScale": 0.148,
+   "file": "hanami_alt/r4c2.png"
+  },
+  "r4c3": {
+   "w": 1377,
+   "h": 1030,
+   "ox": -531.8,
+   "oy": -721,
+   "bodyBottom": 309.0,
+   "bodyH": 184.8,
+   "centroidX": 193.8,
+   "renderScale": 0.179,
+   "file": "hanami_alt/r4c3.png"
+  },
+  "specialNeutral": {
+   "w": 1370,
+   "h": 979,
+   "ox": -528.2,
+   "oy": -668,
+   "bodyBottom": 310.4,
+   "bodyH": 286.8,
+   "centroidX": -74.0,
+   "renderScale": 0.293,
+   "file": "hanami_alt/specialNeutral.png"
+  },
+  "specialSide": {
+   "w": 1460,
+   "h": 949,
+   "ox": -573.2,
+   "oy": -638,
+   "bodyBottom": 310.4,
+   "bodyH": 278.1,
+   "centroidX": -164.1,
+   "renderScale": 0.293,
+   "file": "hanami_alt/specialSide.png"
+  }
+ }
+}

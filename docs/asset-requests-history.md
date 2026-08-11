@@ -104,8 +104,10 @@ This round also introduced:
 
 - the **intake pipeline** (`tools/intake.py` → `intake_sheets.py` →
   `intake_import.py`), so a delivery is checked before it reaches the game;
-- **alternate sprite sets** (`manifest.alternates`), first used for Hanami's
-  redesign — 8 frames, opted into via Settings → Sprites;
+- **alternate sprite sets** (`manifest.alternates`), first and only used for
+  Hanami's redesign — 8 frames, opted into via Settings → Sprites. Removed
+  after round 17A redrew him to canon; the frames are archived at
+  [`assets/reference/hanami_alt/`](../assets/reference/hanami_alt/);
 - `dodge_roll` / `dodge_air` art, initially for 8 of 17 characters and later
   completed for all 17.
 
