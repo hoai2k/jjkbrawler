@@ -16,7 +16,22 @@
       <a class="ghost sm" href="../../sprites/workbench/">Sprite Workbench →</a>
     </header>
 
-    <main>
+    <main class="layout">
+      <section class="stage-col">
+        <canvas id="stage" width="1040" height="660"></canvas>
+
+        <div class="row viewer-tools">
+          <button id="zoomOut" class="ghost sm" title="Zoom out">−</button>
+          <input id="zoom" type="range" min="0.4" max="4" step="0.05" value="1">
+          <button id="zoomIn" class="ghost sm" title="Zoom in">+</button>
+          <button id="zoomReset" class="ghost sm">Reset view</button>
+          <span id="zoomVal" class="mono">1.00×</span>
+          <span class="hint">Scroll over the viewer to zoom; drag the background to pan.</span>
+        </div>
+
+        <div id="status" class="mono"></div>
+      </section>
+
       <aside class="panel">
         <label>Character
           <select id="charSelect"></select>
@@ -29,8 +44,14 @@
           <input id="scrub" type="range" min="0" max="1" step="0.001" value="0">
           <span id="timeLabel" class="mono">0.00s</span>
         </div>
+        <label>Comparison sprite
+          <select id="compareMode">
+            <option value="overlay" selected>Overlay — ghosted behind the model</option>
+            <option value="left">Beside — drawn to the left</option>
+            <option value="off">None</option>
+          </select>
+        </label>
         <div class="row">
-          <label class="check"><input id="ghostToggle" type="checkbox" checked> Sprite ghost</label>
           <label class="check"><input id="beatToggle" type="checkbox" checked> Snap to beat</label>
           <label class="check"><input id="aimToggle" type="checkbox" checked> Aim target</label>
         </div>
@@ -42,35 +63,61 @@
         shows the real turnaround — the rig yawed, not mirrored, so
         asymmetric costumes stay correct.</p>
 
-        <h3>Look-dev</h3>
-        <label>Shade threshold <span class="mono" id="thrVal"></span>
-          <input id="thr" type="range" min="0.2" max="0.9" step="0.01">
-        </label>
-        <label>Shade tint (cool → warm) <span class="mono" id="tintVal"></span>
-          <input id="tint" type="range" min="0" max="1" step="0.01">
-        </label>
-        <label>Rim strength <span class="mono" id="rimVal"></span>
-          <input id="rim" type="range" min="0" max="1" step="0.01">
-        </label>
-        <label>Outline width (px) <span class="mono" id="outVal"></span>
-          <input id="outline" type="range" min="0" max="4" step="0.1">
-        </label>
-        <label>Sample rate (Hz) <span class="mono" id="hzVal"></span>
-          <input id="hz" type="range" min="6" max="30" step="1">
-        </label>
-        <div class="row">
-          <label class="check"><input id="sweepToggle" type="checkbox"> Sweeping light</label>
-          <label class="check"><input id="ikToggle" type="checkbox" checked> Foot IK</label>
+        <h3>3D pose</h3>
+        <div class="pose-box" id="poseBox">
+          <div class="row">
+            <button id="editPoseBtn" class="ghost sm">✥ Edit pose</button>
+            <button id="poseExportBtn" class="ghost sm">⭳ Output changes</button>
+          </div>
+          <label>Selected joint
+            <select id="jointSelect"></select>
+          </label>
+          <div id="axisRows"></div>
+          <div class="row">
+            <button id="resetJointBtn" class="ghost sm">Reset joint</button>
+            <button id="resetStateBtn" class="ghost sm">Reset state</button>
+            <button id="resetAllBtn" class="ghost sm">Reset all</button>
+          </div>
+          <div id="poseLine" class="mono hint">no pose edits</div>
+          <p class="hint">Edit pose puts a handle on every joint: drag one and
+          its PARENT bone rotates toward the pointer, so the limb points where
+          you point. Handles are hard to hit at times — pick the joint here
+          instead and use the sliders. An offset applies for the whole state's
+          clip, not one frame. <b>Output changes</b> downloads the JSON to hand
+          back for the clip tables.</p>
         </div>
-        <p class="hint">Sweeping light is the edited-normals review gate: watch
-        the terminator cross the face — one clean arc passes, triangle noise
-        fails the delivery.</p>
-        <label>Stage light preset
-          <select id="stageSelect"></select>
-        </label>
-        <label>Parallax yaw <span class="mono" id="parVal"></span>
-          <input id="par" type="range" min="-8" max="8" step="1" value="0">
-        </label>
+
+        <details class="group" id="lookdev">
+          <summary>Look-dev</summary>
+          <label>Shade threshold <span class="mono" id="thrVal"></span>
+            <input id="thr" type="range" min="0.2" max="0.9" step="0.01">
+          </label>
+          <label>Shade tint (cool → warm) <span class="mono" id="tintVal"></span>
+            <input id="tint" type="range" min="0" max="1" step="0.01">
+          </label>
+          <label>Rim strength <span class="mono" id="rimVal"></span>
+            <input id="rim" type="range" min="0" max="1" step="0.01">
+          </label>
+          <label>Outline width (px) <span class="mono" id="outVal"></span>
+            <input id="outline" type="range" min="0" max="4" step="0.1">
+          </label>
+          <label>Sample rate (Hz) <span class="mono" id="hzVal"></span>
+            <input id="hz" type="range" min="6" max="30" step="1">
+          </label>
+          <div class="row">
+            <label class="check"><input id="sweepToggle" type="checkbox"> Sweeping light</label>
+            <label class="check"><input id="ikToggle" type="checkbox" checked> Foot IK</label>
+          </div>
+          <p class="hint">Sweeping light is the edited-normals review gate: watch
+          the terminator cross the face — one clean arc passes, triangle noise
+          fails the delivery.</p>
+          <label>Stage light preset
+            <select id="stageSelect"></select>
+          </label>
+          <label>Parallax yaw <span class="mono" id="parVal"></span>
+            <input id="par" type="range" min="-8" max="8" step="1" value="0">
+          </label>
+        </details>
 
         <h3>This state's clip</h3>
         <div id="sourceLine" class="mono src"></div>
@@ -91,11 +138,6 @@
         <button id="exportBtn">Export payload</button>
         <p class="hint">Apply with <code>node tools/billboard_intake.mjs apply &lt;payload.json&gt; --backend 3d</code> — the workbench edits in-memory only; nothing changes on disk until the payload is applied.</p>
       </aside>
-
-      <section class="stage">
-        <canvas id="stage" width="1040" height="660"></canvas>
-        <div id="status" class="mono"></div>
-      </section>
     </main>
 
     <script type="module" src="workbench.js"></script>

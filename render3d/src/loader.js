@@ -26,6 +26,7 @@ import { buildMannequin, buildDefaultClips, MANNEQUIN_HEIGHT_M } from "../../bil
 import { clone as cloneSkinned } from "../../vendor/three/utils/SkeletonUtils.js";
 import { applyToonMaterials } from "./toon.js";
 import { addOutlines } from "./outline.js";
+import { captureCleanPose } from "./pose.js";
 
 /** charKey -> { root, height, clips: Map, mixer, actions: Map, entry } */
 const RIGS = new Map();
@@ -110,6 +111,9 @@ export function acquireInstance(charKey, instanceId) {
   // cloneSkinned rebinds SkinnedMesh skeletons onto the cloned bones; a plain
   // Object3D.clone() would leave every copy driven by the original's skeleton.
   const root = cloneSkinned(base.root);
+  // The clone copies the base's CURRENT transforms, which may be mid-pose, so
+  // it takes the base's remembered bind pose rather than its own.
+  captureCleanPose(root, base.root);
   const inst = {
     charKey, root, height: base.height, clips: base.clips,
     mixer: new THREE.AnimationMixer(root), actions: new Map(),
@@ -132,6 +136,9 @@ export function releaseInstancesExcept(live) {
 
 function registerRig(charKey, { root, height, clips }, entry = null) {
   const mixer = new THREE.AnimationMixer(root);
+  // The bind pose, taken here because here is the last moment it is certainly
+  // the bind pose — every pose from now on starts by restoring it (pose.js).
+  captureCleanPose(root);
   RIGS.set(charKey, { root, height, clips, mixer, actions: new Map(), entry });
 }
 

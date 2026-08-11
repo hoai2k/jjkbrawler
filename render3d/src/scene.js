@@ -67,6 +67,7 @@ export function initScene(three) {
   keyLight.position.set(1.5, 2.5, 2.0);
   scene.add(hemiLight, keyLight);
   camera = new THREE.PerspectiveCamera(FOV_DEG, 1, 0.05, 80);
+  _proj = new THREE.Vector3();
   if (typeof window !== "undefined") {
     window.__render3d = window.__render3d || {};
     window.__render3d.stats = stats;
@@ -207,7 +208,11 @@ export function poseToken(charKey, animKey, animTime, layers) {
   const rch = layers.reach && aimable(animKey)
     ? `~r${layers.reach.dx},${layers.reach.dy}` : "";
   const par = layers.parallaxDeg ? `~p${layers.parallaxDeg}` : "";
-  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${rch}${par}~L${lightKey()}`;
+  // Workbench pose edits: never set in game, but when they are set they change
+  // pixels, so they have to change the token or the cache serves the un-edited
+  // body forever.
+  const ed = layers.editKey ? `~e${layers.editKey}` : "";
+  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${rch}${par}${ed}~L${lightKey()}`;
 }
 
 /** For the determinism smoke: drop every cached render. */
@@ -222,6 +227,39 @@ export function clearCache() {
  */
 /** The camera, for the facing/framing probes. */
 export function __cam() { return camera; }
+
+// ------------------------------------------------- workbench: bone gizmos
+//
+// The pose editor draws a handle on every joint and drags them, which needs
+// two things the render path does not expose: world matrices that MATCH the
+// pixels on screen, and the projection that put them there. A cache hit never
+// poses the rig, so the handles would drift onto a pose that is no longer
+// drawn — hence a preview pass that poses and frames without rendering.
+
+/** Pose `rig` and frame the camera exactly as `renderPose` would, but draw
+ *  nothing. Returns false when there is nothing to pose. */
+export function posePreview(charKey, animKey, animTime, rig, resolved, layers = {}) {
+  if (!rig || !resolved) return false;
+  const sampled = sampleTime(animKey, animTime);
+  poseRig(rig, animKey, sampled, resolved.clip, { ...layers, charKey });
+  swayChains(rig.root, sampled, charKey);
+  frameCamera(rig.height, (layers.parallaxDeg || 0) * Math.PI / 180);
+  rig.root.updateMatrixWorld(true);
+  return true;
+}
+
+/** A world point -> pixel coordinates in the cached TEX_SIZE texture, under
+ *  the camera framing left by the last render or preview. The workbench turns
+ *  those into canvas pixels with blit.js's placement arithmetic. */
+export function projectToTexture(worldVec, out = {}) {
+  if (!camera) return null;
+  const v = _proj.copy(worldVec).project(camera);
+  out.u = (v.x * 0.5 + 0.5) * TEX_SIZE;
+  out.v = (0.5 - v.y * 0.5) * TEX_SIZE;
+  out.z = v.z; // NDC depth: >1 is behind the camera, and must not draw
+  return out;
+}
+let _proj = null;
 
 export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {}) {
   const token = poseToken(charKey, animKey, animTime, layers);
