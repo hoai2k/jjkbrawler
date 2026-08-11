@@ -13,6 +13,12 @@ Nothing outstanding blocks play. The game is complete and playable on the
 sprite path with 27 fighters; everything below either extends it (the 3D
 tracks) or fills a gap that currently degrades to silence or to a fallback.
 
+**The 2D sprite track has nothing open.** Round 18 was delivered complete and
+is [in the history](asset-requests-history.md#round-18--delivered); what remains
+is repo work — 25 poses waiting on approval in the sprite workbench. Round 20 is
+the next 2D round to open (19 was the intake number, not a request number).
+Everything still outstanding on this page is a **3D** ask.
+
 **All three render modes are covered here.** The sprite path is fed by the 2D
 art rounds (row 1); the billboard and render3d paths are fed by **one shared
 commission** (rows 2–8) because both read the same rigs and clips. Neither
@@ -26,20 +32,18 @@ fighter without a delivered rig.
 
 | # | Request | Type | Status | Blocked by |
 |---|---|---|---|---|
-| 1 | [2D art — Round 18](asset-requests.md) | 🖼️ **Images** (sprites) | open | — |
-| 1b | [2D art — 18E: twenty backdrops repainted for the 3D camera](asset-requests.md#18e-twenty-backgrounds-repainted-for-the-3d-camera--20-images) | 🖼️ **Images** (backdrops) | open | — |
-| 1c | [2D art — 18F: near-field cards for the garnish layer](asset-requests.md#18f-near-field-cards-for-the-garnish-layer--14-images-optional) | 🖼️ **Images** (keyed cards) | open, optional | — |
-| 2 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) | 🖼️ **Images** (reference) | open | — |
-| 3 | [3D images — DI2/DI3: face sheets, shade palettes](../render3d/docs/image-requests.md#round-di2--face-sheets-the-face-first-gates-reference) | 🖼️ **Images** (reference) | open | DI1 (same fighter) |
+| 1 | [2D art — sprites](asset-requests.md) | 🖼️ **Images** (sprites) | **nothing open**; round 18 delivered complete, 25 poses in the approval queue | — |
+| 2 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) | 🖼️ **Images** (reference) | **Yuji delivered**; open for any further fighter a D-round names | — |
+| 3 | [3D images — DI2/DI3: face sheets, shade palettes](../render3d/docs/image-requests.md#round-di2--face-sheets-the-face-first-gates-reference) | 🖼️ **Images** (reference) | **Yuji delivered**; open per fighter | DI1 (same fighter) |
 | 4 | [3D models — B1/D1: the Yuji pilot](../render3d/docs/asset-requests.md#round-d1--the-pilot-yuji-complete-open--draw-against-this) | 🧊 **3D model + clips** | open | DI1–DI3 for Yuji |
 | 5 | [3D models — D2: library + archetypes](../render3d/docs/asset-requests.md#round-d2--the-shared-library-and-the-archetype-sets) | 🧊 **Animation clips** | open | D1 review |
 | 6 | [3D models — D3: the standard roster](../render3d/docs/asset-requests.md#round-d3--the-standard-humanoid-rigs) | 🧊 **3D models + clips** | open | D2 |
 | 7 | [3D models — D4: bespoke bodies](../render3d/docs/asset-requests.md#round-d4--the-bespoke-bodies) | 🧊 **3D models + clips** | open | D3 |
 | 8 | [3D models — D5: spectacle](../render3d/docs/asset-requests.md#round-d5--spectacle-opens-after-d3s-first-batch) | 🧊 **Animation clips** | open | D3 first batch |
-| — | [3D images — DI4: shared face textures](../render3d/docs/image-requests.md#round-di4--shared-face-textures-one-time-roster-wide) | 🖼️ **Images** (texture) | open, optional | — |
+| — | [3D images — DI4: shared face textures](../render3d/docs/image-requests.md#round-di4--shared-face-textures-one-time-roster-wide) | 🖼️ **Images** (texture) | **delivered** — the shared eye highlight and Yuji's mouth sheet | — |
 | — | [Music](music-requests.md) | 🎵 **Music** | **all 20 delivered** | — |
 | — | [Audio Rounds 1–10](audio-requests-history.md) | 🔊 Sound effects + 🎙️ voice | **all delivered** | — |
-| — | [2D art Rounds 1–17](asset-requests-history.md) | 🖼️ Images | **delivered** | — |
+| — | [2D art Rounds 1–18](asset-requests-history.md) | 🖼️ Images | **delivered** | — |
 
 ---
 
@@ -51,7 +55,7 @@ so that "what is half-built?" is answerable from the same page.
 
 | Plan | State | What is left |
 |---|---|---|
-| [2.5D camera (`?camera=3d`)](2.5d-camera-plan.md) | feature-complete, polish open | Garnish cards for 15 of 20 boards; a Settings toggle. Its art asks are commissioned as 18E/18F (rows 1b–1c); composing with the render backends is **built** (§11 of that plan) |
+| [2.5D camera (`?camera=3d`)](2.5d-camera-plan.md) | feature-complete, polish open | Garnish cards for 15 of 20 boards; a Settings toggle. Its art asks (18E backdrops, 18F cards) are **all delivered and in use**; composing with the render backends is **built** (§11 of that plan) |
 | [render3d (`?render=3d`)](../render3d/docs/plan.md) | D0–D2 built, D3+ need art | Engine side is done and dialled. D3–D5 are asset rounds (7–11 above), not code |
 | [billboards (`?render=billboard`)](../billboards/docs/plan.md) | B0 built, B1+ need art | Same shape: the pipeline runs on the mannequin; everything further is the shared commission |
 | [Effects plan](effects-plan.md) | reference doc | Element-aware attack feedback; check `src/config_fx.js` against it before treating anything here as open |

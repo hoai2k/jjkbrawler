@@ -170,7 +170,7 @@ drawing (85% of the drawn rectangle) rather than authored per creature, so a
 dog drawn 205 px long is a 205 px dog to hit and to be bitten by. The same rule
 a fighter's hurtbox follows. A kit can still state a box, and seven creatures do
 — the ones whose art arrived as a sheet of six figures, where measuring the
-drawing would give a box six creatures wide (asset-requests round 18H).
+drawing would give a box six creatures wide (asset-requests round 20A).
 
 **Hitting one moves it.** A summon that took a hit and kept walking looked like
 a summon that had not been hit, so a blow now **staggers** it: shoved along the

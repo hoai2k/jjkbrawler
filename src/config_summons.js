@@ -128,7 +128,7 @@ export const SHIKIGAMI_POOL = [
     // Reach and speed, no snare and not much staying power: it is a knife.
     name: "Great Serpent", label: "Great Serpent",
     behavior: "chaser", duration: 6, speed: 540, maxActive: 1, hp: 38,
-    // Box authored, not measured: this plate is a sheet of six (round 18H).
+    // Box authored, not measured: this plate is a sheet of six (round 20A).
     faceRight: true, h: 104, hitW: 158, hitH: 78, standOff: 34, bobAmp: 5,
     sprites: ["summon:greatSerpent", "effect:curse_dragon"],
     attack: { dmg: 12, base: 320, growth: 5.6, angle: 0.3, cd: 1.1, sfx: "slash" },
@@ -138,7 +138,7 @@ export const SHIKIGAMI_POOL = [
     // and lashes, which is cover rather than pressure.
     name: "Toad", label: "Toad",
     behavior: "support", duration: 7, maxActive: 1, hp: 40,
-    // Box authored, not measured: this plate is a sheet of six (round 18H).
+    // Box authored, not measured: this plate is a sheet of six (round 20A).
     h: 92, hitW: 78, hitH: 70, hover: { back: 64, up: 96 },
     sprites: ["summon:toad", "effect:cursed_spirit_orb"],
     attack: {
@@ -151,7 +151,7 @@ export const SHIKIGAMI_POOL = [
     // there.
     name: "Max Elephant", label: "Max Elephant",
     behavior: "chaser", duration: 7, speed: 250, maxActive: 1, hp: 96,
-    // Box authored, not measured: this plate is a sheet of six (round 18H).
+    // Box authored, not measured: this plate is a sheet of six (round 20A).
     h: 190, hitW: 156, hitH: 156, standOff: 46, knockTake: 0.45,
     sprites: ["summon:maxElephant", "effect:triceratops"],
     attack: { dmg: 14, base: 440, growth: 6.4, angle: 0.44, cd: 1.4, sfx: "slashHeavy" },
@@ -161,7 +161,7 @@ export const SHIKIGAMI_POOL = [
     // all of them in the way.
     name: "Rabbit Escape", label: "Rabbits",
     behavior: "bomber", duration: 5, speed: 560, maxActive: 3, hp: 12,
-    // Box authored, not measured: this plate is a sheet of six (round 18H).
+    // Box authored, not measured: this plate is a sheet of six (round 20A).
     h: 62, hitW: 48, hitH: 54, knockTake: 1.7,
     sprites: ["summon:rabbitEscape", "effect:curse_a"],
     attack: { dmg: 5, base: 200, growth: 3.6, angle: 0.5, r: 64 },
@@ -178,7 +178,7 @@ export const TRANSFIGURED_POOL = [
   {
     name: "Transfigured Human", label: "Transfigured Human",
     behavior: "bomber", duration: 4.5, speed: 330, maxActive: 2,
-    // Box authored, not measured: this plate is a sheet of six (round 18H).
+    // Box authored, not measured: this plate is a sheet of six (round 20A).
     h: 104, hitW: 64, hitH: 88,
     sprites: ["summon:transfiguredHuman", "effect:soul_isomer"],
     attack: { dmg: 12, base: 400, growth: 6.8, angle: 0.6, r: 90, effect: "soulMark" },
@@ -187,7 +187,7 @@ export const TRANSFIGURED_POOL = [
     // Reshaped for mass. It does not burst — it walks over and keeps hitting.
     name: "Bloated Hulk", label: "Bloated Hulk",
     behavior: "chaser", duration: 6, speed: 265, maxActive: 1, hp: 74,
-    // Box authored, not measured: this plate is a sheet of six (round 18H).
+    // Box authored, not measured: this plate is a sheet of six (round 20A).
     h: 152, hitW: 96, hitH: 132, standOff: 32, knockTake: 0.5,
     sprites: ["summon:transfiguredHulk", "effect:soul_isomer"],
     attack: { dmg: 11, base: 400, growth: 6.4, angle: 0.42, cd: 1.2, effect: "soulMark", sfx: "slashHeavy" },
@@ -196,7 +196,7 @@ export const TRANSFIGURED_POOL = [
     // Reshaped for speed: two of them, low to the ground, cheap to lose.
     name: "Crawlers", label: "Crawler",
     behavior: "bomber", duration: 4.5, speed: 480, maxActive: 2, hp: 12,
-    // Box authored, not measured: this plate is a sheet of six (round 18H).
+    // Box authored, not measured: this plate is a sheet of six (round 20A).
     h: 70, hitW: 62, hitH: 56, knockTake: 1.6,
     sprites: ["summon:transfiguredCrawler", "effect:curse_b"],
     attack: { dmg: 7, base: 280, growth: 5.0, angle: 0.5, r: 72, effect: "soulMark" },

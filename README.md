@@ -45,6 +45,10 @@ updates the game, the in-game move list and these instructions together
 
 The in-game `i` button lists the full move set.
 
+Controllers seat themselves: plug in a second pad and the second slot stops
+being a CPU immediately, with either player free to start browsing the roster
+first. Each pad keeps its own seat and its own cursor for the session.
+
 ## Rendering
 
 Characters are drawn through a named render backend (`src/render_backend.js`),

@@ -440,9 +440,17 @@ function buildStageGrid() {
 // runs, nothing else on the screen answers — see updateMenuNav and the click
 // handlers above, which both bail on `rouletteRunning`.
 let rouletteRunning = false;
-const SWEEP_STEP = 0.055; // seconds per card on the fast first lap
-const SETTLE_STEP = 0.26; // …and on the very last hop of the second
-const LANDED_HOLD = 0.55; // beat on the winning card before the match loads
+// Halved from the original 0.055/0.26. The draw reads the same — a sprint, an
+// ease-out, a landing — because what carries it is the SHAPE of the
+// deceleration, not its duration. The beat on the winning card is deliberately
+// not halved: it is what makes the result register, and a landing with no beat
+// after it reads as a cut rather than as an arrival. Measured end to end that
+// puts the whole draw at a bit over half its old length (~2.9s against ~4.0s,
+// varying with how far round the wheel the target sits); halve LANDED_HOLD too
+// if the landing should be as quick as the spin.
+const SWEEP_STEP = 0.0275; // seconds per card on the fast first lap
+const SETTLE_STEP = 0.13;  // …and on the very last hop of the second
+const LANDED_HOLD = 0.55;  // beat on the winning card before the match loads
 
 const wait = (seconds) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
@@ -1187,12 +1195,12 @@ export function showRoundOver(winner, loser, side = null) {
 export function updateControllerStatus(count) {
   els.controllerStatus.classList.toggle("hidden", count === 0);
   if (count > 0) {
+    // Every connected pad is already seated by the time this runs (input.js
+    // seats on sight), so there is no longer a "waiting to join" state to
+    // report — a pad that exists is a player.
     const joined = state.playerCount;
-    const waiting = Math.max(0, Math.min(4, count) - joined);
     const who = joined === 1 ? TEXT.controllers.vsCpu : TEXT.controllers.joined(joined);
-    els.controllerStatus.textContent = waiting
-      ? TEXT.controllers.waiting(who)
-      : TEXT.controllers.allJoined(who);
+    els.controllerStatus.textContent = TEXT.controllers.allJoined(who);
   }
 }
 
@@ -1384,6 +1392,9 @@ function updateCharacterPickerPads(dt) {
     return;
   }
 
+  // `pads` is indexed by SEAT (input.js), so `pads[i]` is player i+1's own pad
+  // and a seat with no pad connected right now is a blank snapshot rather than
+  // a gap that shifts everyone along.
   for (let i = 0; i < Math.min(4, pads.length, state.playerCount); i++) {
     const playerId = i + 1;
     const pad = pads[i];
