@@ -49,6 +49,14 @@ export const STATES = {
   specialSide:    { loop: false, duration: 0.5,   beat: 0.125, aim: true,  tier: "identity" },
   specialDown:    { loop: false, duration: 0.5,   beat: 0.125, tier: "identity" },
   ult:            { loop: true,  duration: 0.286, tier: "identity" },
+  // The two dash attacks (moves.js, variant "dash"). Listed so an animKey the
+  // game plays is never an unknown state, and ALIASED below rather than
+  // authored: a dash attack is the archetype's own strike thrown out of a run,
+  // and the sprite side stands it in the same way until its pose is drawn
+  // (round 20D). A dedicated pair of clips is a billboard round when somebody
+  // wants one, not a hole in the roster today.
+  dashAttack:     { loop: false, duration: 0.167, beat: 0.083, aim: true,  tier: "archetype" },
+  dashAttackHeavy:{ loop: false, duration: 0.333, beat: 0.167, aim: true,  tier: "archetype" },
   dizzy:          { loop: true,  duration: 1.0,   tier: "library" },
   prone:          { loop: true,  duration: 1.0,   tier: "library" },
   win:            { loop: true,  duration: 1.2,   tier: "identity" },
@@ -69,11 +77,14 @@ export const STATES = {
 
 // States that play ANOTHER state's clip. `dodge` is the legacy alias for
 // fighters whose sprite set predates dodge_roll/dodge_air; the grab/throw
-// states borrow the nearest existing clip until bespoke ones are authored
-// (the same interim reuse the sprite side does in DEFAULT_ANIMS). A rig never
-// delivers an aliased state's own clip, so none of them appear in CLIP_STATES.
+// states and both dash attacks borrow the nearest existing clip until bespoke
+// ones are authored (the same interim reuse the sprite side does in
+// DEFAULT_ANIMS). A rig never delivers an aliased state's own clip, so none of
+// them appear in CLIP_STATES.
 const STATE_ALIASES = {
   dodge: "dodge_roll",
+  dashAttack: "light",
+  dashAttackHeavy: "sideHeavy",
   grabReach: "light",
   grabHold: "charge",
   grabbed: "hurt",

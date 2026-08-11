@@ -71,7 +71,7 @@ export const PIVOTED_STATES = new Set([
   "dodge", "dodge_roll", "dodge_air",   // the roll actually rolls
   "charge",                      // charge shake
   // every `kind: "attack"` move — swingRotation carries all of them
-  "light", "airLight", "sideHeavy", "upHeavy", "downHeavy", "crouchAttack",
+  "light", "dashAttack", "dashAttackHeavy", "airLight", "sideHeavy", "upHeavy", "downHeavy", "crouchAttack",
 ]);
 
 /** A swing arc for attacks that are one held pose: wind back through startup,

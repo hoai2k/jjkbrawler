@@ -370,7 +370,12 @@ export function clearAnimFrameCache() {
 }
 
 function presentFrames(charKey, anim) {
-  const id = `${charKey}|${anim.frames.join(",")}`;
+  // Keyed by the fallback as well as the frames, because two states may declare
+  // the SAME art and stand in differently while it is undrawn: both dash
+  // attacks draw `attack_dash` when it lands, and until then the light one
+  // borrows the light strike and the heavy one the heavy strike. Keyed on the
+  // frames alone, whichever resolved first answered for both.
+  const id = `${charKey}|${anim.frames.join(",")}|${(anim.fallback || []).join(",")}`;
   const hit = presentCache.get(id);
   if (hit) return hit;
   const has = (key) => !!frameMeta(charKey, key);

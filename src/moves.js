@@ -191,6 +191,7 @@ export function lightMove(char, variant, jabStep = 0) {
       const tip = tipOf(g, "side");
       return {
         ...base,
+        anim: "dashAttack",
         delay: 0.08 / s, dur: 0.13, recover: 0.34 * priceOf(g),
         ...forward(g, tip, -94, 104),
         dmg: round1(p.dmg * 1.1), baseKb: 330, growth: 6.2, angle: p.angle,
@@ -291,7 +292,7 @@ export function heavyMove(char, variant, charge = 0) {
       const tip = tipOf(g, "sideHeavy");
       return {
         ...base,
-        anim: "sideHeavy",
+        anim: "dashAttackHeavy",
         delay: 0.13 / s, dur: 0.15, recover: 0.42 * price,
         ...forward(g, tip, -96, 112),
         dmg: round1(p.dmg * 0.95), baseKb: 420, growth: 8.0, angle: p.angle,
