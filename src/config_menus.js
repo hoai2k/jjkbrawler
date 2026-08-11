@@ -186,7 +186,9 @@ export const TEXT = {
     // The game is played on controllers: one pad per player, up to four.
     stickHint:
       `The left stick moves, ${padName("jump")} jumps and ${padName("special")} is special; `
-      + "double-tapping a direction dashes. "
+      + "SHOVE the stick from centre to dash — roll it out gently and you walk — or double-tap a "
+      + `direction. Attacking out of a run throws that fighter's dash attack: ${padName("light")} `
+      + `for the lunge, ${padName("heavy")} for the charge, both of them committal. `
       + `${padName("domain")} opens a Domain Expansion and ${padName("ult")} fires the ultimate. `
       + "The RIGHT STICK throws tilt attacks — flick it for the tilt or aerial in that direction, or hold it "
       + "while a smash charges to angle the swing. The D-pad steers any summon you have on the stage.",

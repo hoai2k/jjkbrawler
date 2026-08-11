@@ -58,7 +58,8 @@ the moment you get hit. It dims and then blinks as its time runs out.
 | Mechanic | Detail |
 |---|---|
 | Run | Per-character top speed (356–468 px/s) and acceleration |
-| **Dash** | Double-tap a direction within 0.24 s → 1.45× burst for 0.22 s |
+| **Dash** | **Shove the left stick** out from centre (past 0.78 within 0.14 s of leaving the 0.36 rest zone), or double-tap a direction within 0.24 s → 1.45× burst for 0.22 s |
+| **Dash attack** | Light or heavy while running: the run's own committal attack (§4) |
 | Turn lock | Reversing at speed costs 0.08 s of traction — spacing has commitment |
 | Jump | Per-character impulse; **short hop** by releasing jump within ~0.09 s |
 | Double jump | One air jump at 92% power (Momo gets two — broom flight) |
@@ -66,6 +67,16 @@ the moment you get hit. It dims and then blinks as its time runs out.
 | **Fast fall** | Press down while airborne: fall cap rises 1.62× |
 | Crouch | Shrinks the hurtbox; ducks under high projectiles |
 | Platform drop | Down + jump drops through side/top platforms (not the main stage) |
+
+**The dash is a stick input, not a button.** How *fast* the stick leaves centre
+is what separates a dash from a walk — shove it and you dash, roll it out and
+you walk — which is Smash's smash input and the thing a player coming from that
+game tries first. One dash per shove: the stick has to be seen back inside the
+rest zone before another can fire, so holding a direction never machine-guns
+dashes, and yanking the stick across centre is a dash-turn. It is **analog
+only**: a key crosses every threshold in the frame it is pressed, so a keyboard
+cannot tell a shove from a walk and keeps the double tap (`DASH_FLICK` in
+`src/input.js`).
 
 ### Ledges
 Only the main platform has grabbable ledges. Falling near an edge (after real airtime —
@@ -105,11 +116,35 @@ per-character (from their `light`/`heavy` profiles in `src/characters.js`).
 ### Light attacks (fast, low commitment)
 - **Jab combo** — neutral light on the ground: two quick hits into a knockback
   finisher.
-- **Side tilt** — light while moving/dashing: the character's spacing poke.
+- **Side tilt** — the character's spacing poke. On the ground it is a flick of
+  the right stick (the tilt stick), because a light press at a run now has its
+  own attack.
 - **Up tilt** — light + up: anti-air arc.
 - **Down tilt** — light while crouching: low poke, slight launch.
 - **Aerials** — neutral / up / **down air** in midair; down airs are
   **spikes** that launch downward — the edge-guard finisher.
+
+### Dash attacks (the run's own attacks)
+
+Attacking out of a dash or a sprint — either attack button — throws a **dash
+attack** rather than the standing move. Both carry the run through the swing
+(`keepMomentum`, so the slide does not decay the moment the action locks) and
+both are deliberately committal: the trade for reaching with your momentum
+behind you is that you are standing in the recovery afterwards.
+
+| | Light, running | Heavy, running |
+|---|---|---|
+| Damage | 1.1× the side tilt | 0.95× a smash, uncharged |
+| Launch | 330 base / 6.2 growth | 420 base / 8.0 growth |
+| Recovery | ~1.7× the side tilt's | ~1.4× the side smash's |
+| Lunge | 150 | 210 — the running shoulder-charge |
+
+A smash cannot be charged at a run: a charge is a fighter standing still
+deciding to, so the heavy button out of a dash commits to one uncharged swing
+instead of stopping the sprint dead. Nothing was lost from the standing game —
+the side tilt is still one flick of the right stick away. `tools/audit_hitboxes.mjs`
+checks the trade holds for every fighter: a dash attack that recovered faster or
+hit softer than the move it replaces would simply retire the standing game.
 
 ### Heavy attacks (slow, chargeable, shield-hungry)
 - Hold heavy to **charge** up to 0.8 s → up to +55% damage and +25% launch.
@@ -417,7 +452,8 @@ with the side it fights for.
 | Light attack | X |
 | Heavy attack (hold = charge) | Y |
 | Special | B |
-| Dash | Double-tap a direction |
+| Dash | Shove the stick, or double-tap |
+| Dash attack | Light or heavy, while running |
 | Ultimate | RB |
 | Domain Expansion | LB |
 | Shield / dodges | LT |

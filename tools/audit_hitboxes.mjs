@@ -142,6 +142,39 @@ if (rStart < 0.3) {
     + `arms are free`);
 }
 
+// ------------------------------------------------------- 2b: dash attacks
+
+// The two attacks a run has (moves.js, variant "dash"). They are the same
+// forward geometry as the standing pair, so they inherit the grace margin
+// checked above — what needs watching is the TRADE, since a dash attack that
+// reached further AND recovered faster than the tilt it replaces would simply
+// retire the standing game.
+console.log("\n=== dash attacks vs the standing move they replace ===");
+console.log("char         lightTip  dashTip   lightEnd  dashEnd   heavyTip  dashHvyTip");
+for (const key of CHARACTER_KEYS) {
+  const char = CHARACTERS[key];
+  const side = lightMove(char, "side");
+  const dash = lightMove(char, "dash");
+  const heavy = heavyMove(char, "side");
+  const dashHeavy = heavyMove(char, "dash");
+  const tip = (m) => m.ox + m.w;
+  if (dash.recover <= side.recover) {
+    fail(`${key}: the dash attack recovers in ${n0(dash.recover * 1000)}ms against the side `
+      + `tilt's ${n0(side.recover * 1000)}ms — a run has to cost something`);
+  }
+  if (dashHeavy.recover <= heavy.recover) {
+    fail(`${key}: the heavy dash attack recovers faster than the side smash it skips the `
+      + `charge for`);
+  }
+  if (dash.dmg <= side.dmg) {
+    fail(`${key}: the dash attack hits for ${dash.dmg} against the side tilt's ${side.dmg} — `
+      + `it commits harder, so it has to pay better`);
+  }
+  console.log(key.padEnd(12), pad(n0(tip(side)), 9), pad(n0(tip(dash)), 8),
+    pad(n0(side.recover * 1000) + "ms", 9), pad(n0(dash.recover * 1000) + "ms", 8),
+    pad(n0(tip(heavy)), 9), pad(n0(tip(dashHeavy)), 11));
+}
+
 // ----------------------------------------------------------------------- 3
 
 console.log("\n=== bodies ===");

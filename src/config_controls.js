@@ -122,7 +122,12 @@ const ROWS = [
   { id: "light", action: "Light attack", bind: "light", short: "Light" },
   { id: "heavy", action: "Heavy attack (hold = charge)", bind: "heavy", short: "Heavy" },
   { id: "special", action: "Special", bind: "special" },
-  { id: "dash", action: "Dash", pad: "Double-tap a direction" },
+  // Two ways in, and the first is the one a Smash player reaches for: shove the
+  // left stick out from centre and the fighter dashes, roll it out gently and
+  // they walk (`DASH_FLICK` in input.js). The double tap stays because it is
+  // what a keyboard has — a key cannot be shoved.
+  { id: "dash", action: "Dash", pad: "Shove the stick, or double-tap" },
+  { id: "dashAttack", action: "Dash attack", pad: "Light or heavy, while running" },
   { id: "ult", action: "Ultimate", bind: "ult" },
   { id: "domain", action: "Domain Expansion", bind: "domain", short: "Domain" },
   { id: "shield", action: "Shield / dodges", bind: "shield", short: "Shield / dodge" },
