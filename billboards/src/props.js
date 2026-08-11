@@ -46,7 +46,13 @@ export const CHARACTER_PROPS = {
   reggie:    [{ bone: "Prop_Main", kind: "umbrella", hand: "RightHand" }],
   nobara:    [{ bone: "Prop_Main", kind: "hammer", hand: "RightHand" },
               { bone: "Prop_Off", kind: "nail", hand: "LeftHand" }],
-  meimei:    [{ bone: "Prop_Main", kind: "axe", hand: "RightHand" }],
+  // `rescue: "offBone"` — see blender_conform.py rescue_offbone_prop. Her axe
+  // hangs at hip height, so the default strategy (find the thing taller than
+  // the fighter) cannot see it; what does see it is that the generator bound
+  // it to her thigh and hands, leaving it further from those bones than skin
+  // ever is. OPT-IN because loose clothing looks identical to that test.
+  meimei:    [{ bone: "Prop_Main", kind: "axe", hand: "RightHand",
+                rescue: "offBone" }],
   maki:      [{ bone: "Prop_Main", kind: "spear2h", hand: "RightHand" }],
   momo:      [{ bone: "Prop_Main", kind: "broom", hand: "RightHand" }],
   gakuganji: [{ bone: "Prop_Main", kind: "guitar", hand: "LeftHand" }],
@@ -70,8 +76,14 @@ export const CHARACTER_CHAINS = {
   // rather than trailing it, because the sway is a function of the pose clock
   // and not of the fighter's motion (the caching trade this file opens with).
   // Inertia needs `simulate: true` and per-frame renders.
-  meimei: [{ name: "braid", from: "Head", segments: 4, length: 0.55, sway: 10,
-             fromSkin: true }],
+  // SIMULATED. The pendulum could not do what her braids are for: it is a
+  // function of the pose clock, so the braids swung out on a body-twisting
+  // heavy in lockstep with the twist instead of trailing it. `simulate: true`
+  // hands them to the integrator (simulateChains below) — they lag a turn,
+  // overshoot, and settle. It costs her the pose cache; see that function.
+  meimei: [{ name: "braid", from: "Head", segments: 4, length: 0.55,
+             fromSkin: true, simulate: true,
+             stiffness: 0.14, damping: 0.76, gravity: 5.5 }],
   dagon:  [{ name: "tendrilL", from: "Head", segments: 3, length: 0.3, sway: 10 },
            { name: "tendrilR", from: "Head", segments: 3, length: 0.3, sway: 10 }],
   // A mane that reads as its own mass — big, slow and trailing, so it lags
@@ -316,17 +328,168 @@ export function propsOf(root) {
 /** Deterministic secondary motion: pendulum sway on every chain, driven by
  *  the pose clock so the cache stays honest (same key -> same pixels). Runs
  *  after the mixer poses the body; the chain hangs off whatever the head or
- *  hips are doing, which is what sells it as attached. */
+ *  hips are doing, which is what sells it as attached.
+ *
+ *  Chains declaring `simulate: true` are skipped here — simulateChains owns
+ *  them, and running both would fight over the same rotations. */
 export function swayChains(root, time, charKey) {
   const spec = CHARACTER_CHAINS[charKey];
   root.traverse((o) => {
     const m = /^Chain_(.+)_(\d+)$/.exec(o.name || "");
     if (!m) return;
     const conf = spec?.find((c) => c.name === m[1]);
+    if (conf?.simulate) return;
     const amp = (conf?.sway ?? 10) * DEG;
     const i = Number(m[2]);
     // Later segments lag and swing wider — a whip, not a rod.
     o.rotation.x = Math.sin(time * 2.1 + i * 0.9) * amp * (0.4 + i * 0.35);
     o.rotation.z = Math.cos(time * 1.7 + i * 0.7) * amp * 0.3 * (0.4 + i * 0.35);
   });
+}
+
+// ------------------------------------------------------ simulated chains
+//
+// The escape hatch this file's header promises, taken. The pendulum above is
+// a function of the pose clock, which buys a sound pose cache and costs the
+// one thing secondary motion is FOR: it cannot lag. Mei Mei's braids swing
+// out on a body-twisting heavy in perfect lockstep with the twist, because
+// nothing in that formula knows the twist happened — the braid is not
+// reacting to her, it is running its own loop next to her.
+//
+// A chain with `simulate: true` gets a real integrator instead: particles
+// with velocity, pulled toward where the skeleton says they should be and
+// dragged behind by their own inertia. Turn quickly and the braid arrives
+// late; stop and it settles. That is the whole difference.
+//
+// WHAT IT COSTS, stated plainly, because the header is right that this is a
+// caching decision: an integrator carries state, so identical pose keys no
+// longer draw identical pixels, so a simulated rig CANNOT use the pose cache
+// and re-renders every frame (renderer.js / scene.js check `simulates`).
+// That is affordable for one or two fighters and would not be for a roster.
+//
+// The state lives per ROOT object — which is per rig on the flat path and
+// per instance in a 3D scene, so two Mei Meis on screen swing independently.
+
+const chainState = new WeakMap();
+
+/** Does this fighter carry any simulated chain? The renderers ask before
+ *  taking the cache path. */
+export function simulates(charKey) {
+  return (CHARACTER_CHAINS[charKey] || []).some((c) => c.simulate);
+}
+
+/**
+ * Advance every simulated chain on `root` by `dt` seconds.
+ *
+ * Verlet particles, one per chain joint, in WORLD space:
+ *   * particle 0 is kinematic — it is wherever the skeleton put the chain's
+ *     first joint, so the braid stays attached to the skull, always;
+ *   * the rest carry velocity, get pulled toward the pose the bones would
+ *     hold if they were rigid (`stiffness`), fall under gravity, lose energy
+ *     to `damping`, and are finally snapped back to their true bone lengths
+ *     so the braid can never stretch;
+ *   * each bone is then aimed from its own joint at the next particle.
+ *
+ * `dt` is clamped: a tab restored after a minute must not integrate a minute
+ * of gravity in one step and fling the hair off the model.
+ */
+export function simulateChains(THREE, root, dt, charKey) {
+  const spec = (CHARACTER_CHAINS[charKey] || []).filter((c) => c.simulate);
+  if (!spec.length) return false;
+  const step = Math.min(Math.max(dt, 1 / 240), 1 / 20);
+
+  let state = chainState.get(root);
+  if (!state) chainState.set(root, (state = new Map()));
+
+  for (const conf of spec) {
+    const bones = [];
+    for (let i = 0; i < conf.segments; i++) {
+      const b = root.getObjectByName(`Chain_${conf.name}_${i}`);
+      if (!b) break;
+      bones.push(b);
+    }
+    if (!bones.length) continue;
+
+    // Rest pose first: clear the chain's own rotations so the world matrices
+    // below describe where the skeleton ALONE would put it. That is the
+    // target the springs pull toward, and reading it off a chain still
+    // holding last frame's simulated bend would make the whole thing
+    // self-referential — it would drift wherever it was already going.
+    for (const b of bones) b.quaternion.identity();
+    bones[0].parent?.updateWorldMatrix(true, false);
+    for (const b of bones) b.updateWorldMatrix(false, false);
+
+    const rest = [];
+    for (const b of bones) rest.push(new THREE.Vector3().setFromMatrixPosition(b.matrixWorld));
+    // The tip: the last bone's end, one segment on from its own joint.
+    const last = bones[bones.length - 1];
+    const tipLocal = new THREE.Vector3(0, conf.length / conf.segments, 0);
+    rest.push(tipLocal.applyMatrix4(last.matrixWorld));
+
+    let sim = state.get(conf.name);
+    if (!sim || sim.p.length !== rest.length) {
+      // First frame — start settled, at rest, with no velocity. Starting at
+      // the origin instead would fling the braid across the stage on frame
+      // one and it would be visibly wrong until it damped out.
+      sim = {
+        p: rest.map((v) => v.clone()),
+        prev: rest.map((v) => v.clone()),
+        len: rest.slice(1).map((v, i) => v.distanceTo(rest[i])),
+      };
+      state.set(conf.name, sim);
+    }
+
+    const stiffness = conf.stiffness ?? 0.16;
+    const damping = conf.damping ?? 0.72;
+    const gravity = conf.gravity ?? 5.0;
+
+    sim.p[0].copy(rest[0]);
+    sim.prev[0].copy(rest[0]);
+    const v = new THREE.Vector3();
+    for (let i = 1; i < sim.p.length; i++) {
+      const p = sim.p[i];
+      v.subVectors(p, sim.prev[i]).multiplyScalar(damping);
+      sim.prev[i].copy(p);
+      p.add(v);                                        // inertia
+      p.z -= gravity * step * step;                    // hang
+      p.lerp(rest[i], stiffness);                      // and follow the skull
+    }
+    // Length constraints, root outward: the joint above is already correct,
+    // so one pass down the chain is enough to keep every segment honest.
+    for (let i = 1; i < sim.p.length; i++) {
+      const d = v.subVectors(sim.p[i], sim.p[i - 1]);
+      const L = d.length();
+      if (L > 1e-6) sim.p[i].copy(sim.p[i - 1]).addScaledVector(d, sim.len[i - 1] / L);
+    }
+
+    // Particles back to bone rotations: aim each bone from its own joint at
+    // the next particle, converting through the parent so it composes with
+    // whatever the body is doing.
+    const origin = new THREE.Vector3();
+    const curDir = new THREE.Vector3();
+    const wantDir = new THREE.Vector3();
+    const delta = new THREE.Quaternion();
+    const world = new THREE.Quaternion();
+    const parentWorld = new THREE.Quaternion();
+    for (let i = 0; i < bones.length; i++) {
+      const b = bones[i];
+      b.updateWorldMatrix(false, false);
+      origin.setFromMatrixPosition(b.matrixWorld);
+      wantDir.subVectors(sim.p[i + 1], origin);
+      if (wantDir.lengthSq() < 1e-10) continue;
+      wantDir.normalize();
+      // Where the bone points now, in world space. Blender exports these
+      // chain bones along their own +Y, so that axis carried into world
+      // space is the current direction.
+      b.getWorldQuaternion(world);
+      curDir.set(0, 1, 0).applyQuaternion(world).normalize();
+      delta.setFromUnitVectors(curDir, wantDir);
+      // local = parentWorld⁻¹ · (delta · boneWorld) — the same conversion
+      // ik.js aimBoneAt uses, so it composes with a moving body.
+      b.parent.getWorldQuaternion(parentWorld);
+      b.quaternion.copy(parentWorld.invert().multiply(delta).multiply(world));
+      b.updateWorldMatrix(false, false);
+    }
+  }
+  return true;
 }

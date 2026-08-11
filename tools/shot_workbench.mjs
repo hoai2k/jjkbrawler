@@ -59,8 +59,22 @@ for (const state of states) {
     }
   }, state).catch(() => {});
   await page.waitForTimeout(600);
+  // Crop RELATIVE TO THE STAGE CANVAS, not to fixed page pixels. The
+  // workbench's side panels grow — a pose editor landed in one and pushed the
+  // figure a couple of hundred pixels left, so every shot came out framing an
+  // empty corner of the layout. Asking the canvas where it is costs one
+  // evaluate and cannot go stale.
+  const box = await page.locator("#stage").boundingBox();
+  const clip = box
+    ? {
+      x: box.x + box.width * 0.28,
+      y: box.y + box.height * 0.36,
+      width: Math.min(box.width * 0.42, 440),
+      height: Math.min(box.height * 0.52, 320),
+    }
+    : { x: 700, y: 360, width: 440, height: 300 };
   const path = join(dir, `${backend}_${char}_${state}.png`);
-  await page.screenshot({ path, clip: { x: 700, y: 360, width: 440, height: 300 } });
+  await page.screenshot({ path, clip });
   console.log(path);
 }
 

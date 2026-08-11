@@ -115,8 +115,20 @@ def load_expectations(char):
     props = []
     entry = re.search(r"^  %s:\s*\[(.*?)\],?$" % re.escape(char), block("CHARACTER_PROPS"), re.S | re.M)
     if entry:
-        for p in re.finditer(r"bone:\s*\"(\w+)\"", entry.group(1)):
-            props.append(p.group(1))
+        # Per {...}, so `hand` and `rescue` are read off the SAME entry as the
+        # bone they qualify — the same trap the chain parse below documents.
+        for p in re.finditer(r"\{([^}]*)\}", entry.group(1)):
+            f = p.group(1)
+            bone = re.search(r"bone:\s*\"(\w+)\"", f)
+            if not bone:
+                continue
+            hand = re.search(r"hand:\s*\"(\w+)\"", f)
+            resc = re.search(r"rescue:\s*\"(\w+)\"", f)
+            props.append({
+                "bone": bone.group(1),
+                "hand": hand.group(1) if hand else None,
+                "rescue": resc.group(1) if resc else "pole",
+            })
 
     chains = []
     entry = re.search(r"^  %s:\s*\[(.*?)\],?$" % re.escape(char), block("CHARACTER_CHAINS"), re.S | re.M)
@@ -298,8 +310,9 @@ def add_missing_hooks(arm_obj, props, chains, report):
     existing = {b.name for b in arm_obj.data.bones}
     wanted = []
     for p in props:
-        if p not in existing:
-            wanted.append((p, "RightHand" if p != "Prop_Float" else "Head", 0.12))
+        name = p["bone"]
+        if name not in existing:
+            wanted.append((name, p["hand"] or ("Head" if name == "Prop_Float" else "RightHand"), 0.12))
     for name, parent, segments, _from_skin in chains:
         for i in range(segments):
             bone = f"Chain_{name}_{i}"
@@ -366,7 +379,9 @@ def rescue_rigid_props(arm_obj, props, report):
     something the operator has to be told, not something to pass over."""
     if not props:
         return
-    hook = props[0]  # Prop_Main; nobody two-weapon-generates yet
+    if props[0].get("rescue") == "offBone":
+        return rescue_offbone_prop(arm_obj, props[0], report)
+    hook = props[0]["bone"]  # Prop_Main; nobody two-weapon-generates yet
     hands = ("LeftHand", "RightHand")
     head_bone = arm_obj.data.bones.get("Head")
     head_z = (arm_obj.matrix_world @ head_bone.head_local).z if head_bone else None
@@ -438,6 +453,113 @@ def rescue_rigid_props(arm_obj, props, report):
             f"  prop rescue: {len(rebind)} shaft vert(s) inside the "
             f"{radius:.2f} m column were leg-bound skin — rebound to {hook} "
             f"on {grip}")
+
+
+OFFBONE_MIN = 0.11  # of rig height
+
+
+def rescue_offbone_prop(arm_obj, prop, report):
+    """Rescue a held prop that does NOT stand above the head.
+
+    The pole strategy finds a weapon by its silhouette — the one thing taller
+    than the fighter. Mei Mei's axe hangs at her hip and is invisible to that,
+    and topology cannot help either: these meshes are patchwork, 292
+    disconnected shells on her alone, and the axe is shattered across them.
+
+    What DOES separate it: skin sits close to the bone that owns it. A sleeve
+    is a few centimetres from its forearm; a thigh wraps its femur. A prop
+    bound by proximity does not — the generator gave Mei Mei's axe to her
+    thigh and her hands, and those vertices sit up to 0.36 of her height away
+    from the bones they were given to, where real skin tops out around 0.10.
+    Cutting everything past 0.11 of rig height from its own bone removed the
+    axe and nothing else: body, braid, coat and boots all intact.
+
+    THIS IS OPT-IN, and must stay so. The same threshold on Gakuganji flags
+    4168 vertices, because a hanging sleeve and a wide hakama are *genuinely*
+    far from the bones they belong to. Loose clothing and a held weapon look
+    identical to this test, so the roster declares which fighters it is true
+    for (`rescue: "offBone"` in props.js) rather than the script guessing.
+
+    Head-dominated vertices are always excluded: hair is far from the head
+    bone by nature, it is somebody else's job (extract_skin_chain), and no
+    weapon is ever bound to a skull."""
+    hook = prop["bone"]
+    hands = ("LeftHand", "RightHand")
+    mw = arm_obj.matrix_world
+    seg = {b.name: (mw @ b.head_local, mw @ b.tail_local) for b in arm_obj.data.bones}
+
+    def dist_to_bone(p, ab):
+        a, b = ab
+        v = b - a
+        L = v.length_squared
+        if L < 1e-12:
+            return (p - a).length
+        t = max(0.0, min(1.0, (p - a).dot(v) / L))
+        return (p - (a + v * t)).length
+
+    for mesh_obj in [c for c in arm_obj.children if c.type == "MESH"]:
+        me = mesh_obj.data
+        wm = mesh_obj.matrix_world
+        gname = {g.index: g.name for g in mesh_obj.vertex_groups}
+        zs = [(wm @ v.co).z for v in me.vertices]
+        if not zs:
+            continue
+        height = max(zs) - min(zs)
+        rebind = []
+        grip_weight = {h: 0.0 for h in hands}
+        for v in me.vertices:
+            if not v.groups:
+                continue
+            dom = max(v.groups, key=lambda g: g.weight)
+            name = gname.get(dom.group)
+            if name == "Head" or name is None or name.startswith("Prop_") or name not in seg:
+                continue
+            if dist_to_bone(wm @ v.co, seg[name]) / height <= OFFBONE_MIN:
+                continue
+            rebind.append(v.index)
+            for g in v.groups:
+                n = gname.get(g.group)
+                if n in grip_weight:
+                    grip_weight[n] += g.weight
+        if not rebind:
+            report.append(f"  prop rescue (offBone): nothing sits further than "
+                          f"{OFFBONE_MIN:.2f} of height from its own bone — "
+                          f"{hook} stays an empty hook")
+            continue
+
+        # Which hand holds it: the WEIGHTS decide, not the roster.
+        #
+        # The roster says which hand the fighter is designed to hold it in;
+        # the weights say which hand the delivered geometry is actually next
+        # to. Those are different questions, and only the second one matters
+        # here. Rebinding preserves each vertex where it sits, so hanging the
+        # axe off the hand it is NOT near means the first time that hand moves
+        # the weapon leaves the other one behind. Mei Mei's model holds hers
+        # in the left; the roster says right. Follow the model, say so.
+        grip = max(hands, key=lambda h: grip_weight[h])
+        if prop.get("hand") and grip != prop["hand"]:
+            report.append(f"  prop rescue (offBone): roster designs this for "
+                          f"{prop['hand']}, the delivery holds it in {grip} — "
+                          f"binding where the geometry is")
+
+        bpy.context.view_layer.objects.active = arm_obj
+        bpy.ops.object.mode_set(mode="EDIT")
+        eb = arm_obj.data.edit_bones.get(hook)
+        gb = arm_obj.data.edit_bones.get(grip)
+        if eb and gb and eb.parent is not gb:
+            eb.parent = gb
+            eb.head = gb.tail
+            eb.tail = gb.tail + Vector((0, 0, -0.12))
+        bpy.ops.object.mode_set(mode="OBJECT")
+
+        vg = mesh_obj.vertex_groups.get(hook) or mesh_obj.vertex_groups.new(name=hook)
+        for other in list(mesh_obj.vertex_groups):
+            if other.name != hook:
+                other.remove(rebind)
+        vg.add(rebind, 1.0, "REPLACE")
+        report.append(f"  prop rescue (offBone): {len(rebind)} vert(s) further than "
+                      f"{OFFBONE_MIN:.2f} of height from their own bone were prop, "
+                      f"not skin — rebound to {hook} on {grip}")
 
 
 # --------------------------------------------------------- hair extraction

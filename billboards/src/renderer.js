@@ -24,7 +24,7 @@
 
 import { STATES, clipNameFor, clipTime, aimable, aimKey } from "./states.js";
 import { getRig } from "./rig.js";
-import { swayChains } from "./props.js";
+import { swayChains, simulateChains, simulates } from "./props.js";
 import {
   applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
@@ -208,12 +208,34 @@ function pose(rig, animKey, animTime, clip) {
   rig.mixer.setTime(clipTime(animKey, animTime));
 }
 
+/** Real seconds since the last simulated frame.
+ *
+ *  Simulated chains need WALL-CLOCK time, not clip time: clip time restarts
+ *  every state change and runs backwards on a loop, and an integrator fed
+ *  that would kick the hair on every transition. Clamped by the simulator
+ *  itself, so a backgrounded tab resuming does not integrate a minute of
+ *  gravity in one step. */
+let _lastSimT = 0;
+function frameDelta() {
+  const now = (typeof performance !== "undefined" ? performance.now() : Date.now()) / 1000;
+  const dt = _lastSimT ? now - _lastSimT : 1 / 60;
+  _lastSimT = now;
+  return dt;
+}
+
 /** The posed character as a canvas, plus the metres->rows mapping the blit
  *  needs. Returns null when the character has no rig or no resolvable clip —
  *  the caller falls back to sprites. */
 export function renderPose(charKey, animKey, animTime, resolveClip, aim = null, targetPx = 0) {
   const token = poseToken(charKey, animKey, animTime, aim);
-  const hit = cache.get(token);
+  // A fighter with a SIMULATED chain cannot use the cache, and must not be
+  // allowed to poison it either. The integrator carries state, so the same
+  // token legitimately draws different pixels one frame to the next — that is
+  // the entire point of it (props.js simulateChains states the trade). Serving
+  // such a fighter a cache hit would freeze their hair mid-swing; storing one
+  // would hand a stale swing to the afterimage trail.
+  const live = simulates(charKey);
+  const hit = live ? null : cache.get(token);
   if (hit) {
     stats.hits++;
     // Refresh LRU position.
@@ -251,6 +273,9 @@ export function renderPose(charKey, animKey, animTime, resolveClip, aim = null, 
   // Secondary motion — braids, tendrils — driven by the same quantised clock
   // as the pose, so the cache stays honest (props.js explains the trade).
   swayChains(rig.root, clipTime(animKey, animTime), charKey);
+  // ...except where a chain asked to be simulated, which is driven by REAL
+  // elapsed time instead, so it can lag the body rather than move with it.
+  if (live) simulateChains(THREE, rig.root, frameDelta(), charKey);
   frameCamera(rig.height);
   scene.add(rig.root);
   renderer.render(scene, camera);
@@ -268,6 +293,7 @@ export function renderPose(charKey, animKey, animTime, resolveClip, aim = null, 
     rowsPerMetre: TEX_SIZE / (rig.height * FRAME_MUL),
     source: resolved.source,
   };
+  if (live) return entry;   // never stored: see the note at the cache read
   cache.set(token, entry);
   if (cache.size > CACHE_MAX) {
     cache.delete(cache.keys().next().value);

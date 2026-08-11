@@ -25,7 +25,7 @@
 // — the determinism smoke asserts it, because the trail replays tokens.
 
 import { clipNameFor, aimable } from "../../billboards/src/states.js";
-import { swayChains } from "../../billboards/src/props.js";
+import { swayChains, simulateChains, simulates } from "../../billboards/src/props.js";
 import { state } from "../../src/state.js";
 import { getStage } from "../../src/stages.js";
 import { DIALS, sampleTime, poseRig } from "./pose.js";
@@ -261,9 +261,25 @@ export function projectToTexture(worldVec, out = {}) {
 }
 let _proj = null;
 
+/** Real seconds since the last simulated frame — see the same helper in
+ *  billboards/src/renderer.js for why simulated chains need wall-clock time
+ *  rather than clip time. */
+let _lastSimT = 0;
+function frameDelta() {
+  const now = (typeof performance !== "undefined" ? performance.now() : Date.now()) / 1000;
+  const dt = _lastSimT ? now - _lastSimT : 1 / 60;
+  _lastSimT = now;
+  return dt;
+}
+
 export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {}) {
   const token = poseToken(charKey, animKey, animTime, layers);
-  const hit = cache.get(token);
+  // Simulated chains carry state, so the same token draws different pixels by
+  // design — such a fighter neither reads nor writes the cache. props.js
+  // simulateChains states the trade; the note in billboards/src/renderer.js
+  // spells out what a stale hit would look like.
+  const live = simulates(charKey);
+  const hit = live ? null : cache.get(token);
   if (hit) {
     stats.hits++;
     cache.delete(token);
@@ -278,6 +294,8 @@ export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {
   poseRig(rig, animKey, sampled, resolved.clip, { ...layers, charKey });
   // Secondary motion on the same quantised clock as the pose — cache-honest.
   swayChains(rig.root, sampled, charKey);
+  // ...except chains that asked to be simulated, driven by real elapsed time.
+  if (live) simulateChains(THREE, rig.root, frameDelta(), charKey);
   frameCamera(rig.height, (layers.parallaxDeg || 0) * Math.PI / 180);
 
   // Outline width: OUTLINE.px is in blitted pixels; the texture holds
@@ -311,6 +329,7 @@ export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {
     yawed: DIALS.turnaround,
     source: resolved.source,
   };
+  if (live) return entry;   // never stored: see the note at the cache read
   cache.set(token, entry);
   if (cache.size > CACHE_MAX) {
     cache.delete(cache.keys().next().value);
