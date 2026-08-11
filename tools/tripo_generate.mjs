@@ -69,11 +69,39 @@ if (!char) {
   process.exit(2);
 }
 
+/** Fighters whose `<char>_idle.png` is NOT their design authority.
+ *
+ *  assets/reference/canon/README.md carries this in prose, and prose is not
+ *  something a generator can read: this script defaulted to `<char>_idle.png`
+ *  for everyone, so Hanami — whose idle draws him as a bark-and-foliage tree
+ *  and is EXPLICITLY retired as an authority ("his idle_a is what must not be
+ *  matched") — was generated as the tree. A 3D model is the most expensive
+ *  thing in the pipeline to redo, so the exception list lives here, in code,
+ *  next to the default it overrides.
+ *
+ *  Two kinds of entry:
+ *    * a retired idle (hanami, mahoraga) — the anime render is the authority;
+ *    * a fighter with no delivered idle at all (round 15's four staged
+ *      fighters) — the anime render IS their canon until an idle lands.
+ *  Keep this in step with that README when a redraw lands. */
+const CANON_OVERRIDE = {
+  hanami: "hanami_anime.png",      // idle is the tree; canon is the pale humanoid curse
+  mahoraga: "mahoraga_canon.png",  // set being redrawn from scratch (11A)
+  mechamaru: "mechamaru_anime.png",
+  yuki: "yuki_anime.png",
+  dagon: "dagon_anime.png",
+  kurourushi: "kurourushi_anime.png",
+};
+
 /** The fighter's canonical appearance reference — the same image every 2D
  *  round is matched against, and the best single seed we have: full body,
  *  relaxed, clean alpha. */
-const defaultImage = join(ROOT, "assets/reference/canon", `${char}_idle.png`);
+const canonName = CANON_OVERRIDE[char] || `${char}_idle.png`;
+const defaultImage = join(ROOT, "assets/reference/canon", canonName);
 const imagePath = imageArg ? join(ROOT, imageArg) : defaultImage;
+if (!imageArg && CANON_OVERRIDE[char]) {
+  console.log(`canon: ${char}'s idle is retired as an authority — seeding from ${canonName}`);
+}
 
 const auth = { Authorization: `Bearer ${KEY}` };
 

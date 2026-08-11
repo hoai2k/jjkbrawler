@@ -53,10 +53,21 @@ export const CHARACTER_PROPS = {
   mahoraga:  [{ bone: "Prop_Float", kind: "wheel", hand: null }],
 };
 
+// `fromSkin: true` means the chain is not a hook for a rigger to hang art on
+// — the art is ALREADY there, welded to the `from` bone by the generator's
+// binder, and the conform pass carves it back out onto these bones
+// (blender_conform.py extract_skin_chain). That is the difference between
+// hair that is part of the skull and hair that can move: Uro's mane arrived
+// as 7500 vertices of Head, so it could only ever do exactly what her head
+// did. Declared here because it is a fact about the FIGHTER, like a weapon.
 export const CHARACTER_CHAINS = {
   meimei: [{ name: "braid", from: "Head", segments: 4, length: 0.55, sway: 14 }],
   dagon:  [{ name: "tendrilL", from: "Head", segments: 3, length: 0.3, sway: 10 },
            { name: "tendrilR", from: "Head", segments: 3, length: 0.3, sway: 10 }],
+  // A mane that reads as its own mass — big, slow and trailing, so it lags
+  // the head rather than shadowing it.
+  uro:    [{ name: "hair", from: "Head", segments: 3, length: 0.6, sway: 16,
+             fromSkin: true }],
 };
 
 // ------------------------------------------------------- two-handed weapons

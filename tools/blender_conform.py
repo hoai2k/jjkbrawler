@@ -37,16 +37,21 @@ WHAT IT DOES, in order:
      step 7's skeleton-distance logic would then saw it in two at the boot
      (it did: Maki's staff). Weapon vertices in the shaft column are rebound
      wholly to the prop hook, which is reparented onto the gripping hand.
-  7. Prune skin weights the skeleton says are impossible — an auto-binder
+  7. Extract a declared hair chain out of the head's skin. A generator binds
+     long hair rigidly to Head, so it can only ever move exactly as the skull
+     does; a chain declared `fromSkin` in props.js is carved back out of that
+     skin onto its own bones, which is what lets the sway layer move it
+     separately (Uro's mane).
+  8. Prune skin weights the skeleton says are impossible — an auto-binder
      routinely gives trouser vertices to a hand bone, which is how round B1's
      fighter came to carry his trousers up with his arm
      (tools/blender_clean_weights.py).
-  8. Grade the texture onto the fighter's canon costume colours where the
+  9. Grade the texture onto the fighter's canon costume colours where the
      roster declares them — a generator gets the hue right and the value
      badly, which is how round B1's fighter arrived in a navy so dark it read
      as black (tools/blender_grade_texture.py). No-op for a fighter with no
      palette entry, and safe to re-run.
-  9. Export .glb.
+ 10. Export .glb.
 
 It never invents animation. Retiming stretches what is there; a clip whose
 CONTENT is wrong (a strike that peaks in the wrong place) is a review finding
@@ -115,8 +120,18 @@ def load_expectations(char):
     chains = []
     entry = re.search(r"^  %s:\s*\[(.*?)\],?$" % re.escape(char), block("CHARACTER_CHAINS"), re.S | re.M)
     if entry:
-        for c in re.finditer(r"name:\s*\"(\w+)\".*?from:\s*\"(\w+)\".*?segments:\s*(\d+)", entry.group(1), re.S):
-            chains.append((c.group(1), c.group(2), int(c.group(3))))
+        # One chain per {...} so `fromSkin` is read off the SAME entry as its
+        # name — scanning the whole block for the flag would arm every chain
+        # a fighter has the moment one of them declared it.
+        for c in re.finditer(r"\{([^}]*)\}", entry.group(1)):
+            f = c.group(1)
+            name = re.search(r"name:\s*\"(\w+)\"", f)
+            frm = re.search(r"from:\s*\"(\w+)\"", f)
+            seg = re.search(r"segments:\s*(\d+)", f)
+            if not (name and frm and seg):
+                continue
+            chains.append((name.group(1), frm.group(1), int(seg.group(1)),
+                           "fromSkin: true" in f))
     return props, chains
 
 
@@ -284,7 +299,7 @@ def add_missing_hooks(arm_obj, props, chains, report):
     for p in props:
         if p not in existing:
             wanted.append((p, "RightHand" if p != "Prop_Float" else "Head", 0.12))
-    for name, parent, segments in chains:
+    for name, parent, segments, _from_skin in chains:
         for i in range(segments):
             bone = f"Chain_{name}_{i}"
             if bone not in existing:
@@ -406,6 +421,136 @@ def rescue_rigid_props(arm_obj, props, report):
             f"on {grip}")
 
 
+# --------------------------------------------------------- hair extraction
+
+
+def extract_skin_chain(arm_obj, chains, report):
+    """Carve a declared chain back out of the skin it arrived welded to.
+
+    A generator binds long hair to the Head bone and stops there, so the hair
+    can only ever move exactly as the skull does — no lag, no swing, no
+    settle. That is not something the sway layer can fix from outside: there
+    is nothing for it to rotate. The geometry has to become its own bones
+    first, and the only place that can happen is here, on the way in.
+
+    HOW HAIR IS TOLD FROM HEAD. Not by material or by island — these meshes
+    are patchwork, and a generated head shares its material with the hair
+    covering it. By REACH: a skull is compact around the head joint, and hair
+    is the part of the head's skin that keeps going. Measured on Uro, whose
+    mane is the reason this exists: Head owns 7529 verts, and their distance
+    from the head joint runs 0.01 m to 0.74 m — the skull accounts for the
+    first tenth of that spread and hair for the rest. So the cut is a sphere
+    of `SKULL_R` of the fighter's height (0.085 — a human head is about a
+    seventh of a body tall, and that is its radius plus room for a face),
+    and everything outside it is hair.
+
+    The chain is then BUILT ALONG THE HAIR rather than hung from a default
+    pose: verts are sorted by reach and split into equal-count bands, each
+    band's centroid becomes a bone tail, and each bone's head is the previous
+    centroid. Hair that streams up and back therefore gets bones that stream
+    up and back, and the pendulum sway swings along the hair's own line
+    instead of through it.
+
+    Weights blend across each band boundary rather than switching, so the
+    mane bends instead of hinging into rigid slabs.
+
+    Gated on the roster declaring `fromSkin: true`, so no fighter loses their
+    head to this by accident; skips loudly whenever the geometry does not
+    look like the thing described above."""
+    skin_chains = [c for c in chains if c[3]]
+    if not skin_chains:
+        return
+    SKULL_R = 0.085  # of rig height
+
+    for name, parent, segments, _ in skin_chains:
+        pbone = arm_obj.data.bones.get(parent)
+        if not pbone:
+            report.append(f"  hair chain '{name}': no '{parent}' bone — skipped")
+            continue
+        was = arm_obj.data.pose_position
+        arm_obj.data.pose_position = "REST"
+        bpy.context.view_layer.update()
+        joint = arm_obj.matrix_world @ pbone.head_local
+
+        meshes = [c for c in arm_obj.children if c.type == "MESH"]
+        allz = [(m.matrix_world @ v.co).z for m in meshes for v in m.data.vertices]
+        height = (max(allz) - min(allz)) if allz else 1.75
+        radius = SKULL_R * height
+
+        for mesh_obj in meshes:
+            gname = {g.index: g.name for g in mesh_obj.vertex_groups}
+            wm = mesh_obj.matrix_world
+            far = []
+            for v in mesh_obj.data.vertices:
+                if not v.groups:
+                    continue
+                dom = max(v.groups, key=lambda g: g.weight)
+                if gname.get(dom.group) != parent or dom.weight < 0.5:
+                    continue
+                p = wm @ v.co
+                d = (p - joint).length
+                if d > radius:
+                    far.append((d, v.index, p))
+            if len(far) < 50:
+                report.append(f"  hair chain '{name}': only {len(far)} vert(s) "
+                              f"reach past {radius:.2f} m — nothing to extract")
+                continue
+            far.sort(key=lambda t: t[0])
+
+            # Equal-count bands: each bone drives a similar amount of the
+            # mane, and no band can come out empty (which an equal-DISTANCE
+            # split does the moment hair bunches near the crown).
+            per = len(far) / segments
+            bands = [far[int(i * per):int((i + 1) * per)] for i in range(segments)]
+            centroids = []
+            for b in bands:
+                c = Vector((0, 0, 0))
+                for _, _, p in b:
+                    c += p
+                centroids.append(c / len(b))
+
+            bpy.context.view_layer.objects.active = arm_obj
+            bpy.ops.object.mode_set(mode="EDIT")
+            head_pt = joint + (centroids[0] - joint).normalized() * radius
+            for i in range(segments):
+                eb = arm_obj.data.edit_bones.get(f"Chain_{name}_{i}")
+                if not eb:
+                    continue
+                eb.head = head_pt
+                eb.tail = centroids[i]
+                if (eb.tail - eb.head).length < 1e-3:
+                    eb.tail = eb.head + Vector((0, 0, 0.02))
+                eb.parent = (arm_obj.data.edit_bones.get(parent) if i == 0
+                             else arm_obj.data.edit_bones.get(f"Chain_{name}_{i-1}"))
+                head_pt = centroids[i]
+            bpy.ops.object.mode_set(mode="OBJECT")
+
+            groups = []
+            for i in range(segments):
+                bone = f"Chain_{name}_{i}"
+                groups.append(mesh_obj.vertex_groups.get(bone)
+                              or mesh_obj.vertex_groups.new(name=bone))
+            idx = [t[1] for t in far]
+            for other in list(mesh_obj.vertex_groups):
+                if not other.name.startswith(f"Chain_{name}_"):
+                    other.remove(idx)
+            # Blend across each boundary: a vert sitting a fraction t of the
+            # way through its band leans that far toward the next bone.
+            for bi, band in enumerate(bands):
+                n = max(len(band), 1)
+                for k, (_, vi, _) in enumerate(band):
+                    t = (k / n) if bi + 1 < segments else 0.0
+                    groups[bi].add([vi], 1.0 - t, "REPLACE")
+                    if t > 0:
+                        groups[bi + 1].add([vi], t, "REPLACE")
+            report.append(
+                f"  hair chain '{name}': {len(far)} vert(s) past {radius:.2f} m "
+                f"lifted off {parent} onto {segments} bone(s), "
+                f"reach {far[0][0]:.2f}-{far[-1][0]:.2f} m")
+        arm_obj.data.pose_position = was
+        bpy.context.view_layer.update()
+
+
 # ------------------------------------------------------------------- timing
 
 def canonical_action_name(name, states):
@@ -493,6 +638,11 @@ def main():
     # Before clean_all, or the weight passes mistake the weapon for badly
     # bound skin and saw it apart — see the function's own comment.
     rescue_rigid_props(arm, props, report)
+    # Also before clean_all: the new chain bones are children of Head, so the
+    # weight passes accept them — but only once the verts actually belong to
+    # them. Run the other way round and the hair is still Head's skin when
+    # the pruner looks at it.
+    extract_skin_chain(arm, chains, report)
     retime_actions(states, report)
     clean_all(arm, report)
     grade_char(args.char, report)
