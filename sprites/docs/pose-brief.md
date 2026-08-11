@@ -13,7 +13,7 @@ that is not written here yet, write it here — that is the step that makes the
 next set better, and it is the one that gets skipped.
 
 - The delivery format — key screen, resolution, file naming — is
-  [asset-requests.md § Delivery spec](asset-requests.md#delivery-spec).
+  [asset-requests.md § Delivery spec](../../docs/asset-requests.md#delivery-spec).
 - The design of a particular fighter is their **character block** in that same
   file, plus their canonical reference image.
 - **This file is the pose half.** Prompt formula:
@@ -274,6 +274,7 @@ often.
 | **Scenery drawn into the pose** — a ledge, a floor, a wall | `ledge_hang` | 15A, 15A(K), 17A |
 | **A minimal costume gets covered up when the figure lies down** | `prone` | 13 |
 | **An ambiguous costume sentence gets drawn the covered way** | any | 13, 18D |
+| **Rewording an ambiguous costume line does not fix it** | Uro's cloud wrap | 18D |
 | **The reach frame reaches with the arm** | `run_reach_*` | 15A |
 
 Two of these are worth stating as numbers rather than as complaints, because
@@ -282,6 +283,24 @@ the heavy strike missed its third-of-height reach in **all three** sets round
 15A delivered, and it was the *only* stated criterion any of them missed. The
 crouches, the light pairs and the idles all landed. Whatever is written as a
 measurement gets met; whatever is written as a sentence gets interpreted.
+
+**Round 18 answered every fault in this table that was open**, and its 25
+sprites are in the approval queue — whether the rules held is a judgement each
+of those decisions makes, pose by pose, not something the delivery itself
+settles. What the round *has* already settled is one negative result, and it is
+worth as much as a positive one:
+
+**Rewording an ambiguous costume line is not reliably enough.** Uro's block was
+rewritten before 18D went out — from *"a wrap of pale-cyan cloud vapour clinging
+across her chest and hips"*, which describes a dress as naturally as it does two
+bands, to two separate bands with the midriff bare and a single joined garment
+called out as wrong. The redraws came back in a costume that was *differently*
+wrong rather than closer to canon, and were discarded. So when a costume has
+already been drawn wrong twice, tightening the sentence is worth one attempt and
+no more; after that the honest move is to keep the drawing that works or change
+the pose's framing, and to say so in the request rather than spend a third round
+on it. **A costume that a generator is fighting is a limitation to plan around,
+not a brief to keep sharpening.**
 
 The Mahoraga entry has a cause worth naming: **Mahoraga was the only fighter with no
 character block**, so his prompts carried no design text at all and the design
@@ -302,7 +321,7 @@ be measured, into §3. That is the whole mechanism by which the next set arrives
 better than the last one, and it takes about five minutes at the end of a round.
 
 Round intake already ends with "update the request docs"
-([assets/intake/README.md](../assets/intake/README.md), step 7). Updating this
+([assets/intake/README.md](../../assets/intake/README.md), step 7). Updating this
 file is part of that step.
 
 **Look at the review boards before importing, not after.** `tools/intake_sheets.py`

@@ -265,7 +265,7 @@ below) allows live adjustment.
 ### How big a character is overall
 
 Per-*pose* size is `bodyH`, above. How big the *character* is comes from their
-canon height — see [character-heights.md](character-heights.md). Briefly:
+canon height — see [character-heights.md](../../docs/character-heights.md). Briefly:
 `heightCm` in characters.js becomes a head-height target, and `heights.js`
 solves each character's draw scale from it. The sprite workbench's **Character
 height** control edits that one number and rescales the whole sprite set.
@@ -370,7 +370,7 @@ The split is between a verdict on the *drawing* and a complaint about the
 *file*. "Redraw this" says the drawing should not survive; "the alpha is wrong"
 says it should, and a delivery answering one is a second opinion rather than a
 replacement — kept beside the original until something is demonstrably better.
-See [assets/intake/README.md](../assets/intake/README.md).
+See [assets/intake/README.md](../../assets/intake/README.md).
 
 **Answering these flags is a procedure, not a judgement call each time.** Ask for
 a "full sprite cleanup" and [sprites/docs/sprite-cleanup.md](sprite-cleanup.md) is what
@@ -545,10 +545,10 @@ by the game. Three steps, each separable so a bad delivery stops at the door:
    than the order things arrived in. Re-runnable; a no-op when everything is
    already where it belongs.
 7. **Move the answered requests into history.**
-   [asset-requests.md](asset-requests.md) is defined as "everything in here is
+   [asset-requests.md](../../docs/asset-requests.md) is defined as "everything in here is
    outstanding", so a delivered section has to leave it or the file misreports
    what is still needed. See step 8 in
-   [assets/intake/README.md](../assets/intake/README.md#what-happens-to-it).
+   [assets/intake/README.md](../../assets/intake/README.md#what-happens-to-it).
 
 Placement is delegated to `extract_sprites.generated_frame_meta`. A replacement
 inherits the old frame's rendered height and foot line, so a swap changes art

@@ -14,39 +14,40 @@ image-to-3D, face sheets, shade palettes — in
 [render3d/docs/image-requests.md](../render3d/docs/image-requests.md),
 numbered DI1, DI2… — so the tracks never collide.)
 
-**Current status: rounds 1–17 delivered. Round 18 is open.**
+**Current status: rounds 1–18 delivered. Nothing is outstanding.**
 
-**Round 18 is the one to add to** — nothing else is outstanding, so anything
-found from here goes into 18.
+**Round 20 is the next one to open** — 19 was used for the intake of round 18
+and is not a request number. Anything found from here goes into 20.
 
 **How the sprite count is derived.** A pose is outstanding if it carries a
 workbench flag *or* is drawing a file that is not its own. The second half is
 the one that goes missing: a pose rejected at approval is pointed at another
 frame of the same set so the game keeps drawing something, and that raises no
 flag for `tools/list_replacements.py` to report. Both halves are checked against
-the manifest, not against this file — [18C](#18c-three-that-fell-through-the-round-renumbering--3-sprites)
-is what the first found and [18G](#18g-seven-a-pose-is-drawing-somebody-elses-art--7-sprites)
+the manifest, not against this file — [18C](asset-requests-history.md#18c-three-that-fell-through-the-round-renumbering--3-sprites)
+is what the first found and [18G](asset-requests-history.md#18g-seven-a-pose-is-drawing-somebody-elses-art--7-sprites)
 is what the second did.
 
-**The approval queue is empty.** Rounds 14, 16 and 17 all landed through the
-[approval step](../assets/intake/README.md#the-confirm-step) — a delivery is in
+**The approval queue holds round 18's 25 sprites.** Rounds 14, 16 and 17 all
+landed through the [approval step](../assets/intake/README.md#the-confirm-step) — a delivery is in
 the repo before it is in the game, and each pose is a decision waiting in the
-sprite workbench — and every one of those decisions has now been made. What a
-player sees is what was approved, Hanami's canon set included.
+sprite workbench — and every one of those decisions has been made. What a
+player sees is what was approved, Hanami's canon set included — round 18's own
+decisions are the queue that is open now.
 
 **Kurourushi is shipped.** His 36-pose set, his hero card, his simplified tile
 and both his summons landed with round 15; the set was placed and approved pose
 by pose, and his key now sits in the Curses group in `src/config_menus.js`, so
 `STAGED_CHARACTER_KEYS` in `src/characters.js` is empty for the first time since
-round 15. The roster is 27 fighters. What his placement pass found is **18B**
-below.
+round 15. The roster is 27 fighters. What his placement pass found became
+**18B**, now delivered.
 
 The roster is complete and **every fighter now has one sprite per action** —
 round 11 finished the conversion that round 5 started, so the 4×5 sprite sheet
 is retired and no action anywhere plays a grid cell. Nothing outstanding blocks
 play.
 
-Read **[pose-brief.md](pose-brief.md)** before drawing a fighter. It is the
+Read **[pose-brief.md](../sprites/docs/pose-brief.md)** before drawing a fighter. It is the
 standing brief — what every pose has to be, the four criteria the engine
 measures, and the faults that have each cost the roster a re-request — and it is
 cumulative, so it is the reason a new set should arrive better than the last one.
@@ -321,284 +322,99 @@ single addition: **no drawn shadow of any kind** — the game casts its own.
 
 ---
 
-# Round 18 — open
+# Round 20 — open
 
-**Round 18 is the round to add to.** Everything before it has been delivered, so
-anything caught from here lands here.
+**One request, and it is a delivery fault rather than a drawing anybody owes
+us: 44 of the 114 summon plates hold six creatures instead of one.** See
+[20A](#20a-summon-plates-that-are-contact-sheets--44-sprites) below. Round 18 is
+closed and everything in it landed.
 
-- **18A** — twelve caught while placing the round-15 sets (12 sprites)
-- **18B** — four caught while placing Kurourushi (4 sprites)
-- **18C** — three that fell through the round renumbering (3 sprites)
-- **18D** — two Uro alternates: the right pose in the wrong costume (2 sprites)
-- **18F** — near-field cards for the 3D camera's garnish layer (14 images,
-  optional)
-- **18G** — seven a pose is drawing somebody else's art (7 sprites)
+**Round 18 was delivered complete** — 28 sprites and 14 near-field cards, every
+section of it, plus the five render3d image inputs (DI1–DI4). Its record, and
+the reasoning behind each request in it, is now in
+[the history](asset-requests-history.md#round-18--delivered).
 
-**28 sprites and 14 images, none of it blocking** — every pose named here is in
-the game today and playable. The sprites are redraws of art that does not do its
-job; 18F is art the `?camera=3d` mode can use and the flat game cannot, so it is
-pure upside and a partial delivery of it is useful on its own.
+**Round 20 is the open round.** (19 is skipped as a request number: it was used
+for the *intake* of round 18, so `assets/reference/round19/` holds the delivered
+plates and no request ever carried that number. Reusing it would make "round 19"
+mean two different things.) Anything found from here — a placement pass, an
+approval rejection, a manifest audit — lands in 20 beside 20A.
 
-**18E has landed.** All twenty backgrounds were repainted at 3200×1800 and are
-in the game — see
-[the history entry](asset-requests-history.md#18e--twenty-backgrounds-repainted-for-the-3d-camera).
+## Also outstanding, but work here rather than art
 
-## 18A. Caught while placing the round-15 sets — 12 sprites
+Three things, and none of them is a drawing anybody owes us:
 
-The three new fighters arrived with complete 36-pose sets drawn against
-[pose-brief.md](pose-brief.md). These are what the placement passes found — a
-pose reads differently at real size against a real stage than it does on a
-review board — plus the brief's headline criterion, which all three missed.
-
-| Fighter | Key | Pose | Kind | What is wrong |
-|---|---|---|---|---|
-| Yuki Tsukumo | `yuki` | `attack_heavy_b` | Pose | The hook extends **9%** of standing height past her idle where the brief asks for a third — the shortest heavy on the roster. She is a boxer with no weapon, so the whole body has to be behind it: hips through, shoulder past the lead foot. **Her `ult_b` is standing in** meanwhile, so she has a heavy that reaches while this is redrawn. |
-| Mechamaru | `mechamaru` | `attack_heavy_b` | Pose | Extends **20%**. The forearm blade should be the furthest thing forward in the frame. |
-| Mechamaru | `mechamaru` | `run_reach_a` | Quality | **Delivered as a contact sheet** — four small figures of the run cycle on one canvas rather than one pose. Nothing in it is separable at full resolution and none of the four clears the 600 px body minimum alone, so it was never imported: he runs on the other three cycle frames until this lands. |
-| Dagon | `dagon` | `run_reach_a` | Pose | **Reaches with the arm instead of the leg.** The reach frame is the full stride — the leading heel is the thing out in front, arms only counterbalance it. |
-| Dagon | `dagon` | `run_reach_b` | Pose | The same, on the other lead. |
-| Yuki Tsukumo | `yuki` | `run_reach_a` | Pose | The same fault again — reaching with the arm. |
-| Yuki Tsukumo | `yuki` | `run_reach_b` | Pose | The same, on the other lead. |
-| Dagon | `dagon` | `crouch_b` | Pose | Drops **21%** of standing height where the brief asks for a quarter, and reads *taller* than `crouch_a` beside it. The pair is one held crouch a breath apart, not a descent. |
-| Dagon | `dagon` | `attack_light_a` | Pose | Not a wind-up. `_a` is the coil before the strike — weight on the back foot, striking hand drawn back — and this reads as a second strike. |
-| Mechamaru | `mechamaru` | `crouch_attack_b` | Pose | The forearm blade never reaches full extension. `_b` is the strike; the blade should be the furthest thing forward, out past the knee. |
-| Dagon | `dagon` | `crouch_attack_b` | Pose | Flagged during the placement pass. |
-| Yuki Tsukumo | `yuki` | `crouch_attack_b` | Pose | Flagged during the placement pass. |
-
-The reach numbers are measured the way the engine measures reach: the forward
-edge of the art past the centre of the body's core columns (`bodyRight` against
-`coreLeft`/`coreRight`), as a fraction of the idle's own height. They are
-comparable within a fighter regardless of placement, because every pose of a set
-is drawn at one zoom.
-
-**Three faults repeated across fighters, which is what a missing rule looks
-like** rather than three bad drawings: the heavy that does not extend (all
-three), the reach frame that reaches with the arm (two), and the `ledge_hang`
-with the ledge drawn into it (two). All three are now stated in the pose brief,
-so Kurourushi's set will not be asked for without them.
-
-### Fixed in the repo instead of requested
-
-Three of the faults found in this pass were **file** faults rather than drawing
-faults, and were fixed here rather than sent back:
-
-- **Dagon's `ult_a` had four arms.** The extra one lay over background for most
-  of its length and its own ink line gave the cut a natural boundary at the
-  shoulder, so it came out with nothing repainted.
-- **`dagon/ledge_hang` and `mechamaru/ledge_hang` had the ledge drawn in.** The
-  bar was a flat grey slab across the top of the plate with the hands gripping
-  over it, so removing it leaves the hands closed on nothing — which is the
-  pose as asked for. The stage supplies the edge.
-
-Each frame was re-measured afterwards (`bodyTop`, the body and core spans, the
-centre of mass) so reach and width read off the art that is actually there. The
-untouched originals are in `assets/reference/round15/`. That is the whole
-difference between an `improvement` flag and a `replacement` flag: these were
-recoverable in the file, and Yuta's cut-off sword in 17C was not.
-
+- **25 poses are waiting in the approval queue.** Round 18's sprites are in the
+  repo but not in the game: each is a decision in the sprite workbench, and
+  until it is made the pose keeps drawing what it drew before. This is the
+  [approval step](../assets/intake/README.md#the-confirm-step) working as
+  intended, not a backlog. `mechamaru/run_reach_a` is the one exception — it
+  filled an empty pose rather than replacing a drawn one, so it went straight
+  in and completed his run cycle.
+- **The two alpha fixes** above — `hakari/dodge_air` and `toji/dodge_air` — are
+  repo work on delivered files, not art anybody owes us.
+- **Rejections from the approval pass** will become round 20. A pose rejected
+  at approval is pointed at another frame so the game keeps drawing something,
+  which raises no flag; [18G](asset-requests-history.md#18g-seven-a-pose-is-drawing-somebody-elses-art--7-sprites)
+  is what that costs when nobody checks, and the manifest audit that found it is
+  how the count at the top of this file is now derived.
 
 ---
 
-## 18B. Caught while placing Kurourushi — 4 sprites
-
-Kurourushi's set was the last of the round-15 four to be placed, and it went
-through with all 36 poses approved. Four of the delivered drawings were flagged
-`quality` in the same pass, and this is the part that makes them non-blocking:
-**each of the four poses is drawn today by another frame of his own set**,
-chosen in the workbench rather than left broken. He plays complete. What is
-missing is that four poses share art with four others, so a fight shows the same
-silhouette in two places.
-
-| Key | Pose | Kind | What is wrong | Standing in |
-|---|---|---|---|---|
-| `attack_heavy_b` | `sideHeavy` | Quality | **The blade is drawn back over the shoulder** — this is the wind-up, not the strike. `_b` is the contact frame, and nothing in it extends forward past the robe. | `attack_light_b` — the only frame in the set with the blade fully out |
-| `attack_light_b` | `light` | Quality | Rejected in the same pass, and then promoted into the heavy slot above because it was the better of the two. The light now needs its own drawing. | the archived round-15 `attack_air_b` |
-| `crouch_attack_b` | `crouchAttack` | Quality | A low sprawl with the blade along the ground, which is very close to what `dash` shows. `_b` is the strike out of the crouch — the blade forward and clear of the body. | the archived round-15 `dash` |
-| `dash` | `dash` | Quality | Flagged during the placement pass. | the archived round-15 `dodge_roll` |
-
-**The heavy fault is the fourth one this round.** Yuki, Dagon and Mechamaru all
-delivered an `attack_heavy_b` that does not extend (18A), and Kurourushi's does
-not extend either — his for a different reason, being a wind-up rather than a
-short strike, but the frame on screen is the same problem: the heavy does not
-read as the biggest thing the fighter does. The rule is in
-[pose-brief.md](pose-brief.md); this is the evidence it needs to stay there.
-
-### Repo work, not a request: `kurourushi/ledge_hang` — done
-
-The ledge is drawn into the plate — a slab under the hands, the same fault
-`dagon/ledge_hang` and `mechamaru/ledge_hang` had in round 15 and the reason the
-rule went into the brief. It is flagged `wantsImprovement: "alpha"` with the
-note "Remove the ledge", so the workbench shows it and
-`tools/list_replacements.py` tracks it. As with the other two, the hands are
-closed on the bar and cutting it leaves them closed on nothing, which is the
-pose as asked for — **the stage supplies the edge.** No redelivery needed.
-
-**This has now been done**, along with `hanami/ledge_hang`, which had been
-flagged as a redraw rather than repo work and did not need to be: his was the
-same flat slab with the hands over it. Four of the roster's ledge grips have now
-been cut this way (Dagon, Mechamaru, Kurourushi, Hanami) and the rule is in the
-pose brief, so a future set should not need it.
-
 ---
 
-## 18C. Three that fell through the round renumbering — 3 sprites
+## 20A. Summon plates that are contact sheets — 44 sprites
 
-Flagged in the workbench, but named in no request section — they were written
-into rounds that were later split, renumbered or moved to history, and the flags
-outlived the sections. An audit of the manifest against this file found them:
-the workbench knew about all three the whole time, and nobody drawing from this
-file could have.
+**Forty-four of the hundred and fourteen summon plates hold six creatures
+instead of one**, and the game draws the whole file as one summon. A six-across
+strip of dogs is painted at the dog's height, so what walks the stage is six
+dogs in a row at a sixth of the size each — and it changes mid-animation,
+because one pose of a creature is a sheet and the next is not.
 
-| Fighter | Key | Pose | Kind | What is wrong |
-|---|---|---|---|---|
-| Suguru Geto | `geto` | `attack_down` | Pose | "Should be straight down instead of down and right." `downHeavy` is a committed smash at the floor in front — the arc ends under him, not off to the side. Asked for once as 14C and again after the round-13 redraw was approved-and-reflagged. |
-| Mei Mei | `meimei` | `special_down` | Pose | Flagged during a placement pass with no note. Her down special is the crow swarm gathering low; the drawing does not read as a technique starting. |
-| Takako Uro | `uro` | `prone` | Character | **The costume is a full pale-blue bodysuit** — covered arms, covered legs — where every other pose in her set draws the canon cloud wrap over bare limbs. See the note below: this is the generator's doing rather than the brief's, and it may not be fixable by asking again. |
+It shipped because a sheet is invisible at review size: a strip of six dogs in a
+thumbnail looks like a dog. It is the same fault as `mechamaru/run_reach_a` in
+round 15, which was caught only because the importer refused it, and summon art
+has no importer to refuse it — it is a file drop.
 
-### `uro/prone` is worth understanding before re-requesting it
+So it is a tool now rather than an eye. **`python3 tools/check_summon_plates.py`**
+counts the separate figures in each plate's alpha and fails on three or more of
+comparable size; detached art (a floating wheel, a thrown chain) reads as one
+big blob and some small ones and passes. Run it on any summon delivery before
+importing. This table is its output.
 
-Her other **seven** poses are on-model: `idle_a`, `run_reach_a`, `crouch_a`,
-`dodge_roll`, `hurt`, `attack_light_b` and `victory` all draw the pale-cyan
-cloud vapour across chest and hips with bare arms and legs, exactly as her
-character block asks. Only `prone` comes back dressed, and it comes back dressed
-in something that is not in the block at all — a full-length bodysuit.
+| Creature | Sheets | Poses |
+|---|---|---|
+| `divine_dog_white` | 2 | `move_a`, `hurt` |
+| `great_serpent` | 4 | `idle_a`, `idle_b`, `move_a`, `move_b` |
+| `inventory_curse` | 4 | `idle_b`, `move_a`, `attack`, `hurt` |
+| `max_elephant` | 4 | `idle_a`, `move_a`, `move_b`, `hurt` |
+| `rabbit_escape` | 5 | `idle_a`, `idle_b`, `move_a`, `move_b`, `hurt` |
+| `rainbow_dragon` | 3 | `move_b`, `attack`, `hurt` |
+| `toad` | 4 | `idle_a`, `move_a`, `move_b`, `hurt` |
+| `transfigured_crawler` | 6 | all six |
+| `transfigured_hulk` | 6 | all six |
+| `transfigured_human` | 6 | all six |
 
-So this is **not** a prompt fault we can see: the block is explicit ("her only
-covering a wrap of pale-cyan cloud vapour clinging across her chest and hips,
-bare arms and legs"), the canonical reference shows it, and the pose line for
-`prone` says nothing about clothing. What is different about `prone` is that it
-is the one pose where the figure is **lying down, horizontal, full-length** —
-and a generator handed a reclining, minimally-dressed figure tends to add
-clothing on its own. `dodge_roll` is on the ground too and comes back correct,
-which suggests it is the reclining read rather than the ground.
+**What to deliver: the same pose, as one figure.** Not a redesign, not a new
+pose — every one of these sheets contains the right drawing several times over,
+so the brief is the pose line it was drawn against
+([round 16 in the history](asset-requests-history.md#round-16--the-summons-animate-delivered)),
+with **one creature on the canvas**. Where a sheet has an obviously best figure
+in it, that figure at full resolution is a complete answer.
 
-That makes it worth **one** re-request with the costume restated inside the pose
-line rather than left to the block — and worth knowing it may come back dressed
-again. If it does, the honest options are to keep the drawing (a knockdown is on
-screen for well under a second) or to draw the pose from a different angle that
-is less likely to trip it, e.g. seen more from the feet. It is a limitation of
-the generator, not of the request.
+Same rules as the round-16 summon art: one subject per file, flat key screen, at
+least 600 px of creature, one zoom across all six poses of a creature, delivered
+to `assets/intake/summons/<file>_<pose>.png`.
 
----
+### It is also what is holding up seven hit boxes
 
-## 18D. Uro, the right pose in the wrong costume — 2 sprites
+A creature's hit box is **measured off its own `idle_a`** now — 85% of the drawn
+rectangle — rather than authored in `src/config_summons.js`, which is the rule a
+fighter's hurtbox has followed since it started coming off their art. Ten
+creatures measure theirs today.
 
-**Asked for as alternates, not replacements.** Both poses are good and are
-staying in the game; what is wrong is the costume, so the delivery lands *beside*
-the current drawing and the better of the two is picked by eye in the workbench.
-Nothing changes on screen until somebody chooses.
-
-| Fighter | Key | Pose | Kind | What is wrong |
-|---|---|---|---|---|
-| Takako Uro | `uro` | `attack_heavy_b` | **Alternate** | The cloud reads as one strapless dress — the chest band and the hip band have merged. Keep the pose exactly: braced wide, the cursed-energy cloud thrown forward off the lead hand. |
-| Takako Uro | `uro` | `crouch_b` | **Alternate** | The cloud has become a one-piece dress from chest to thigh. Keep the pose exactly: down on one knee, weight on the trailing hand, head low. |
-
-### The block was ambiguous, and that is the actual fault
-
-Her block used to read *"a wrap of pale-cyan cloud vapour clinging across her
-chest and hips"* — which describes **one** garment reaching from chest to hips
-at least as naturally as it describes two bands. The canon is two: a band across
-the chest, a band at the hips, and a **bare midriff between them**
-(`assets/reference/canon/uro_idle.png`).
-
-Read that way, the deliveries were not wrong so much as obedient. Both of these
-drew the sentence, and `uro/prone` in [18C](#18c-three-that-fell-through-the-round-renumbering--3-sprites)
-went further and put her in a full bodysuit. Her block now says two separate
-bands, with the midriff bare, and that a single joined garment is wrong — so
-these two are the first test of whether the wording was the whole problem. If
-they come back right and `prone` still comes back dressed, the reclining pose is
-its own separate limitation.
-
-**Four of her poses were already correct under the old wording** — `idle_a`,
-`run_reach_a`, `hurt`, `victory` — which is why this took a workbench pass to
-notice rather than showing up on the review board.
-
----
-
-## 18F. Near-field cards for the garnish layer — 14 images, optional
-
-**Lower priority than 18E was, and genuinely optional** — every one of these has a
-procedural stand-in drawing in the game right now, so nothing is missing. But
-this is where depth actually comes from, and it is worth saying why, because it
-is the opposite of the intuitive answer.
-
-Measured (§10 of [2.5d-camera-plan.md](2.5d-camera-plan.md)): splitting a
-*backdrop* into parallax layers buys **2.3 px** of differential shift in normal
-play, because this camera barely translates — the sim clamps it to ±0.88° of
-yaw. A card at `z = +2`, between the lens and the fight, separates from the
-backdrop by **14 px** at that same yaw and **64 px** in a drama shot. Proximity
-to the lens is the whole term. So the depth budget is better spent here than on
-layering the paintings, and 18E asked for *bigger* backgrounds rather than
-*split* ones for exactly this reason.
-
-These are the elements the camera already flies past the lens
-([garnish.js](../src/camera3d/garnish.js)), currently drawn with canvas
-primitives. Real art would replace the procedural texture and nothing else —
-the motion, depth, spawning and per-board wiring already exist.
-
-### Delivery — keyed plates, like sprites, not full-bleed like backgrounds
-
-```
-assets/intake/garnish/<name>.png
-```
-
-PNG, one subject per file, on a **flat magenta `#FF00FF` key screen** (grey
-`#808080` for the warm ones — marked below), same rules as the sprite spec
-above: perfectly flat unlit screen, no colour bounce onto edges, margin on all
-four sides, nothing touching the canvas edge. **At least 1000 px on the long
-edge.** These are seen close to the lens and get magnified.
-
-Anything travelling sideways should be drawn **facing/pointing LEFT**, same as
-the projectile rule — the renderer mirrors for the other direction.
-
-| File | Board | What it is | Screen |
-|---|---|---|---|
-| `leaf_green.png` | Training Bridge | One broad summer leaf, seen flat-on, slight curl. Simple silhouette — it is 30 px on screen half the time. | magenta |
-| `leaf_gold.png` | Training Bridge | The same leaf turning: yellow-gold, edge curling, one side catching light. | grey |
-| `lantern_paper.png` | Lantern Corridor | A paper lantern hanging on its cord, lit from within but seen against brighter light — mostly silhouette with a warm rim. Cord running off the top of the frame. | grey |
-| `lantern_iron.png` | Lantern Corridor | An iron temple lantern on a bracket, heavier, colder, unlit. Variety against the paper one. | magenta |
-| `car_sedan.png` | Crosswalk Rush | A car in near-total silhouette, side-on, pointing **left**, headlights blown out, faint lit windows. It passes in front of the whole fight for well under a second — read at a glance, no detail. | magenta |
-| `car_van.png` | Crosswalk Rush | A tall delivery van, same treatment, taller and blockier so two passes never look identical. | magenta |
-| `car_bike.png` | Crosswalk Rush | A motorcycle and rider, low and fast, single headlight, hard lean. | magenta |
-| `rubble_a.png` … `rubble_c.png` | Empty City | Three chunks of broken concrete and rebar, angular, unlit, no two alike. Small and dark — these tumble toward the lens. (3 files) | magenta |
-| `hoarding_a.png` … `hoarding_c.png` | Billboard Roof | Three lit advertising hoardings on steel gantries, seen from below and slightly to one side, legs and bracing visible. Abstract light and colour, **no legible text or logos**. These sit *behind* the stage, so they are the one entry here that is far rather than near. (3 files) | magenta |
-| `signal_gantry.png` | Crosswalk Rush | A traffic signal on its arm, dark against the sky, lamps lit. Hangs into the top of frame. | magenta |
-
-Fourteen files. Any subset is useful — each one replaces its procedural
-stand-in independently, and a board with no delivery keeps the drawing it has.
-
----
-
-## 18G. Seven a pose is drawing somebody else's art — 7 sprites
-
-[18C](#18c-three-that-fell-through-the-round-renumbering--3-sprites) audited the
-**flags** against this file. This is the other half of that audit: the poses that
-are outstanding *without* a flag, because the fault was answered by pointing the
-pose at a different drawing instead of marking the drawing bad.
-
-That happens at approval. A delivered pose that is rejected leaves a hole, and a
-hole draws nothing at all, so the workbench picks another frame of the same
-fighter's set to stand in — the game keeps working and the pose keeps being
-outstanding. Nothing reports it: `tools/list_replacements.py` reads flags, and a
-stand-in raises none. The only way to see them is to ask which poses are drawing
-a file that is not their own, which is now how the count at the top of this file
-is derived.
-
-Five of the seven below are that. Two are ordinary flags that no round had
-picked up.
-
-| Fighter | Key | Pose | Kind | What is wrong |
-|---|---|---|---|---|
-| Hanami | `hanami` | `crouch_attack_b` | Pose | Flagged at approval, and it is the frame two of the three below are borrowing — so it is the one to draw first. `_b` is the strike out of the crouch: blade of the arm forward at ankle-to-knee height, hips through, head no higher than in `_a`. |
-| Hanami | `hanami` | `attack_light_a` | **Standing in** on `run_reach_b` | The delivered wind-up was rejected. His jab now winds up on a sprinting frame, so a light attack shows him mid-stride. |
-| Hanami | `hanami` | `attack_light_b` | **Standing in** on `special_neutral` | Rejected in the same pass. The strike frame is his neutral-special pose — a different action, a different arm, and one that does not extend past the body the way a light has to. |
-| Hanami | `hanami` | `crouch_b` | **Standing in** on `crouch_attack_b` | Rejected. The held crouch is drawn by the crouch *attack*, so holding down reads as a repeated swing. `crouch_b` is `crouch_a` a breath later — weight settled a touch further forward, head a touch lower, nothing else. |
-| Gakuganji | `gakuganji` | `attack_air_a` | **Standing in** on `attack_air` | Round 14C asked for this as an alternate because the delivered hands were malformed; neither drawing was taken, so the pose still draws the legacy single that the `_a`/`_b` pair was meant to supersede. His aerial has a wind-up frame that is not a wind-up. |
-| Toji Fushiguro | `toji` | `attack_heavy_b` | Quality | *"Should show full sword extended to the right in attack. (alt has a spear which is wrong)"* — both drawings on this pose are wrong in different ways, so it needs a third. Same criterion as every other heavy: a third of standing height past his own idle, sword tip leading. |
-| Choso | `choso` | `attack_light_b` | Quality | Flagged in the workbench. `_b` is the contact frame of the jab — the blood-arm out past the body, shoulders rotated through, weight on the front foot. |
-
-**Hanami's four are one delivery.** They are all from the round-17 set, all
-rejected in the same approval pass, and three of them are borrowing from each
-other — `crouch_b` borrows `crouch_attack_b`, which is itself flagged. Drawn
-together they settle each other; drawn one at a time the borrowing moves around.
-
+The seven whose `idle_a` is on this list cannot: measuring a sheet would give a
+box six creatures wide. They keep an authored pair with a comment naming this
+round, and **each pair comes out when the plate lands** — at which point the
+creature starts being hit on the shape it is drawn as, with no further code
+change.

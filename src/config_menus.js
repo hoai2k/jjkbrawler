@@ -286,7 +286,6 @@ export const TEXT = {
   controllers: {
     vsCpu: "VS CPU",
     joined: (n) => `${n} players joined`,
-    waiting: (who) => `${who} — move a stick or press a button on another controller to join`,
     allJoined: (who) => `${who} — A locks your fighter, A again starts · B backs out · LB/RB corner menus`,
   },
 };

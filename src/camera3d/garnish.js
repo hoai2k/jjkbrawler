@@ -31,6 +31,7 @@ import { makeQuadPool, rectMatrix, ORDER } from "./quads.js";
 import { addCameraCueListener } from "../camera_mode.js";
 import { GARNISH } from "../config_camera.js";
 import { mainPlatform } from "../stages.js";
+import { getImage, sharedArtSettled } from "../assets.js";
 
 // ----------------------------------------------------------------- textures
 //
@@ -53,8 +54,37 @@ function texture(key, w, h, paint) {
   return tex;
 }
 
+/** The delivered card for this element, or null if nobody has drawn it.
+ *
+ *  Round 18F is optional by construction: every card below has a procedural
+ *  drawing, and the art replaces the TEXTURE and nothing else — the motion,
+ *  the depth, the spawning and the per-board wiring are unchanged. So each of
+ *  these calls falls back on its own, and a half-delivered set is a set where
+ *  half the cards are paintings and half are canvas primitives, which is fine.
+ *
+ *  Cached in the same map as the procedural textures, under a distinct key, so
+ *  a card that arrives mid-session is picked up on its next spawn rather than
+ *  after a reload.
+ */
+function artTexture(name) {
+  const key = `art:${name}`;
+  const hit = texCache.get(key);
+  if (hit) return hit;
+  const img = getImage(`garnish:${name}`);
+  if (!img) return null;
+  const tex = new CanvasTexture(img);
+  tex.colorSpace = SRGBColorSpace;
+  tex.needsUpdate = true;
+  texCache.set(key, tex);
+  return tex;
+}
+
 /** A leaf: a soft lozenge with a centre vein, in the board's foliage colours. */
 function leafTexture(color) {
+  // The delivered pair is a summer leaf and a turning one; the procedural
+  // version had only the colour to tell them apart.
+  const art = artTexture(color === "#8fce7a" ? "leaf_green" : "leaf_gold");
+  if (art) return art;
   return texture(`leaf:${color}`, 64, 32, (ctx, w, h) => {
     ctx.fillStyle = color;
     ctx.beginPath();
@@ -72,7 +102,16 @@ function leafTexture(color) {
 /** A paper lantern hanging close to the lens: an opaque silhouette with the
  *  corridor's light leaking around one edge, so it reads as a solid thing
  *  BETWEEN the viewer and the scene rather than as a tinted window onto it. */
-const lanternTexture = () => texture("lantern", 96, 160, (ctx, w, h) => {
+const lanternTexture = () => {
+  // Two were delivered — a lit paper lantern and a cold iron one — and picking
+  // between them per spawn is the variety the request asked them for. One
+  // delivered on its own still works; the other side falls through.
+  const art = artTexture(Math.random() < 0.5 ? "lantern_paper" : "lantern_iron")
+           || artTexture("lantern_paper") || artTexture("lantern_iron");
+  return art || lanternDrawn();
+};
+
+const lanternDrawn = () => texture("lantern", 96, 160, (ctx, w, h) => {
   const bodyTop = h * 0.18;
   const bodyH = h * 0.68;
   const cx = w / 2;
@@ -134,7 +173,16 @@ const lanternTexture = () => texture("lantern", 96, 160, (ctx, w, h) => {
  *  (render.js, strikeArc). What sells "this passed between you and the fight"
  *  is OCCLUSION: a solid shape that briefly covers what is behind it. The
  *  lights are the part that glows; the body is the part that hides. */
-const vehicleTexture = () => texture("vehicle", 512, 128, (ctx, w, h) => {
+const VEHICLES = ["car_sedan", "car_van", "car_bike"];
+
+const vehicleTexture = () => {
+  // Three shapes so two passes never look identical — the procedural card was
+  // one silhouette, which read as the same car going round the block.
+  const drawn = VEHICLES.map(artTexture).filter(Boolean);
+  return drawn.length ? drawn[Math.floor(Math.random() * drawn.length)] : vehicleDrawn();
+};
+
+const vehicleDrawn = () => texture("vehicle", 512, 128, (ctx, w, h) => {
   const roof = h * 0.30;
   const belt = h * 0.56;   // where the cabin meets the body
   const sill = h * 0.82;   // where the body meets the wheels
@@ -203,7 +251,9 @@ const vehicleTexture = () => texture("vehicle", 512, 128, (ctx, w, h) => {
 });
 
 /** A chunk of masonry, angular and unlit. */
-const rubbleTexture = (i) => texture(`rubble:${i}`, 48, 48, (ctx, w, h) => {
+const rubbleTexture = (i) => artTexture(`rubble_${"abc"[i % 3]}`) || rubbleDrawn(i);
+
+const rubbleDrawn = (i) => texture(`rubble:${i}`, 48, 48, (ctx, w, h) => {
   const pts = 5 + (i % 3);
   ctx.fillStyle = i % 2 ? "#6c7d8c" : "#4d5a68";
   ctx.strokeStyle = "rgba(12, 16, 22, 0.8)";
@@ -225,7 +275,9 @@ const rubbleTexture = (i) => texture(`rubble:${i}`, 48, 48, (ctx, w, h) => {
  *  holding it up. Kept dim and desaturated — this board's backdrop painting is
  *  already a wall of neon, so these are here to add DEPTH to it, not to
  *  compete with it. The lightning cue is what makes them briefly loud. */
-const billboardTexture = (i) => texture(`billboard:${i}`, 160, 128, (ctx, w, h) => {
+const billboardTexture = (i) => artTexture(`hoarding_${"abc"[i % 3]}`) || billboardDrawn(i);
+
+const billboardDrawn = (i) => texture(`billboard:${i}`, 160, 128, (ctx, w, h) => {
   const panelH = h * 0.62;
   // Legs first, so the frame caps them.
   ctx.strokeStyle = "rgba(10, 13, 22, 0.9)";
@@ -327,6 +379,28 @@ const SYSTEMS = {
   // traffic — the ones that can hit you pass at ground level behind, and these
   // pass in front of the whole fight.
   crosswalkRush: {
+    // The signal gantry is the one card in 18F with no procedural ancestor: it
+    // was asked for as a new element rather than a replacement, so it appears
+    // only once its art exists. Static and near the lens, hanging into the top
+    // of frame the way a real signal arm does — the traffic passes under it.
+    setup(ctx, settled) {
+      const tex = artTexture("signal_gantry");
+      // Not yet decoded — say so, so the caller tries again rather than
+      // leaving the board permanently bare. This card has no procedural
+      // ancestor, so once the loader has settled there is nothing to place.
+      if (!tex) return settled ? undefined : false;
+      ctx.spawn({
+        x: rand(240, 460), y: rand(-40, 40),
+        z: rand(2.2, 3.0),
+        w: rand(300, 380), h: 0,
+        tex,
+        alpha: 0.92,
+        vx: 0, vy: 0, rot: 0, spin: 0,
+        // A signal on an arm sways barely at all; enough to not read as a decal.
+        sway: 6, swayRate: 0.5, swayAxis: "x",
+        life: Infinity,
+      });
+    },
     cue(name, strength, ctx) {
       if (name !== "surge" || !ctx.plat) return;
       const dir = Math.sign(strength) || 1;
@@ -384,7 +458,11 @@ const SYSTEMS = {
   // the lightning cue flashes them.
   billboardRoof: {
     every: 0,
-    setup(ctx) {
+    setup(ctx, settled) {
+      // Placed once and standing for the match, so it is worth waiting for the
+      // drawn hoardings rather than freezing the procedural ones in front of
+      // the player for the whole round.
+      if (!settled && !artTexture("hoarding_a")) return false;
       for (let i = 0; i < 5; i++) {
         ctx.spawn({
           // Spread across the middle band, clear of the corners the HUD
@@ -470,9 +548,18 @@ export function makeGarnish() {
       // Standing scenery (Billboard Roof's hoardings) is placed once. Keyed on
       // a flag rather than on the stage change so switching GARNISH back on
       // mid-match puts it back, instead of leaving that board bare until the
-      // next round.
-      setupDone = true;
-      sys.setup(ctx);
+      // next round. A setup that returns false could not place its scenery
+      // yet — delivered art decodes some way after the match starts, and the
+      // shared group is a long queue — so the flag stays down and the next
+      // frame tries again. Latching it unconditionally is what left Crosswalk
+      // Rush's signal gantry missing for a whole match, every match.
+      //
+      // The deferral is bounded by the loader rather than by a timer: once the
+      // shared group has settled, whatever is missing is missing for good, so
+      // the board places its procedural fallbacks and stops asking.
+      const settled = sharedArtSettled();
+      const placed = sys.setup(ctx, settled);
+      setupDone = placed !== false || settled;
     }
 
     if (wanted && sys?.ambient && sys.every > 0) {
@@ -529,5 +616,14 @@ export function makeGarnish() {
     pool.end();
   }
 
-  return { group: pool.group, update, reset, count: () => cards.length };
+  return {
+    group: pool.group,
+    update,
+    reset,
+    count: () => cards.length,
+    // Cards that were placed once and stand for the match — the part of the
+    // layer that cannot recover from a missed placement, and so the part worth
+    // counting on its own.
+    standing: () => cards.filter((c) => c.life === Infinity).length,
+  };
 }
