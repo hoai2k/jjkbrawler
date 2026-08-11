@@ -6,8 +6,14 @@
 // the same rule the sprite workbench lives by. The sprite ghost behind the
 // model is the fighter's real sprite for the same state at the same animTime,
 // drawn through sprites.js at matched scale: the sprite set is the storyboard
-// (docs/asset-requests.md), and the overlay is how "matches the sprite" gets
-// checked rather than asserted.
+// (docs/asset-requests.md), and the comparison is how "matches the sprite"
+// gets checked rather than asserted — ghosted underneath, or stood BESIDE the
+// model, which is the fairer read for silhouette and proportion.
+//
+// The panel sits on the right and scrolls independently of the viewer (the
+// sprite workbench's shell), and the viewer zooms and pans, so a long panel
+// can never push the canvas off screen and a 384 px render can be looked at
+// closely.
 //
 // Every character is loaded with a MANNEQUIN standing in wherever no rig is
 // delivered, so the tool is usable from day zero: pick any fighter, see the
@@ -32,6 +38,7 @@ import { CHARACTER_KEYS, CHARACTERS, getActor } from "../../src/characters.js";
 import { loadCoreAssets, loadFrame } from "../../src/assets.js";
 import { drawCharFrame, currentFrame } from "../../sprites/src/sprites.js";
 import { headHeightTarget } from "../../src/heights.js";
+import { makeViewport } from "./viewport.js";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("stage");
@@ -39,13 +46,20 @@ const ctx = canvas.getContext("2d");
 
 const GROUND_Y = 560;
 const CX = canvas.width / 2;
+/** Where the comparison sprite stands when it is drawn BESIDE the model
+ *  rather than under it — far enough left that the two silhouettes never
+ *  touch at the roster's widest, close enough to read as one picture. */
+const COMPARE_DX = 300;
 
 const state = {
   char: new URLSearchParams(location.search).get("char") || CHARACTER_KEYS[0],
   state: new URLSearchParams(location.search).get("state") || "idle",
   t: 0,
   playing: true,
-  ghost: true,
+  // How the sprite this state replaces is shown: "overlay" (ghosted under the
+  // model, the original), "left" (drawn beside it, unghosted — the honest
+  // side-by-side) or "off".
+  compare: "overlay",
   snapBeat: true,
   // The aim target: where strikes point. Draggable on the canvas; aimable
   // states pitch toward it exactly as they would toward an opponent in-game.
@@ -55,6 +69,11 @@ const state = {
   dragging: false,
   dirty: new Set(), // charKeys whose manifest entries were edited
 };
+
+// Zoom/pan lives in one transform around the fighter's feet; everything below
+// keeps drawing in game pixels (see viewport.js).
+const view = makeViewport(canvas, { x: CX, y: GROUND_Y },
+  { range: "zoom", out: "zoomOut", in: "zoomIn", reset: "zoomReset", value: "zoomVal" });
 
 // ------------------------------------------------------------------- boot
 
@@ -204,26 +223,28 @@ async function draw() {
   }
   $("timeLabel").textContent = `${clipTime(state.state, state.t).toFixed(2)}s`;
 
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  view.begin(ctx);
   // Floor line, so foot planting is judged against something.
   ctx.strokeStyle = "#2c3654";
   ctx.beginPath();
-  ctx.moveTo(0, GROUND_Y);
-  ctx.lineTo(canvas.width, GROUND_Y);
+  // Wide enough that panning never runs off the end of the floor.
+  ctx.moveTo(-2000, GROUND_Y);
+  ctx.lineTo(canvas.width + 2000, GROUND_Y);
   ctx.stroke();
 
-  // Beat marker: attacks must be at full extension here.
-  const st = STATES[clipNameFor(state.state)];
-  if (st.beat !== undefined) {
-    ctx.fillStyle = clipTime(state.state, state.t) >= st.beat ? "#9fd39f" : "#5a6486";
-    ctx.fillText(`beat ${st.beat}s`, 16, 24);
-  }
-
-  if (state.ghost) {
+  if (state.compare !== "off") {
     const frame = await ensureGhostFrame();
-    drawCharFrame(ctx, state.char, frame, CX, GROUND_Y, {
-      scale: getActor(state.char)?.scale, alpha: 0.35,
+    const beside = state.compare === "left";
+    drawCharFrame(ctx, state.char, frame, beside ? CX - COMPARE_DX : CX, GROUND_Y, {
+      scale: getActor(state.char)?.scale, alpha: beside ? 1 : 0.35,
     });
+    if (beside) {
+      ctx.fillStyle = "#8b96b3";
+      ctx.fillText("sprite", CX - COMPARE_DX - 20, GROUND_Y + 18);
+      ctx.fillText("model", CX - 20, GROUND_Y + 18);
+    }
   }
 
   const target = headHeightTarget(state.char);
@@ -280,6 +301,16 @@ async function draw() {
     ctx.restore();
   }
 
+  view.end(ctx);
+
+  // Screen-fixed HUD, drawn outside the zoom transform: the beat marker is a
+  // readout, not part of the scene, and it should not grow with the figure.
+  const st = STATES[clipNameFor(state.state)];
+  if (st.beat !== undefined) {
+    ctx.fillStyle = clipTime(state.state, state.t) >= st.beat ? "#9fd39f" : "#5a6486";
+    ctx.fillText(`beat ${st.beat}s`, 16, 24);
+  }
+
   requestAnimationFrame(draw);
 }
 
@@ -309,25 +340,30 @@ $("scrub").oninput = () => {
   $("playBtn").textContent = "▶ Play";
   state.t = parseFloat($("scrub").value) * STATES[clipNameFor(state.state)].duration;
 };
-$("ghostToggle").onchange = () => { state.ghost = $("ghostToggle").checked; };
+$("compareMode").onchange = () => {
+  state.compare = $("compareMode").value;
+  // Zoom grows around what is being looked at: the model alone, or the middle
+  // of the pair when the sprite stands beside it.
+  view.pivot.x = state.compare === "left" ? CX - COMPARE_DX / 2 : CX;
+};
 $("aimToggle").onchange = () => { state.aimOn = $("aimToggle").checked; };
 $("ikToggle").onchange = () => { state.ik = $("ikToggle").checked; };
-function canvasPoint(ev) {
-  const r = canvas.getBoundingClientRect();
-  return { x: ((ev.clientX - r.left) / r.width) * canvas.width,
-           y: ((ev.clientY - r.top) / r.height) * canvas.height };
-}
 canvas.addEventListener("pointerdown", (ev) => {
-  const pt = canvasPoint(ev);
-  if (Math.hypot(pt.x - state.target.x, pt.y - state.target.y) < 40) {
+  const pt = view.pointer(ev);
+  canvas.setPointerCapture(ev.pointerId);
+  // The crosshair first; the background pans only when nothing claimed it.
+  if (Math.hypot(pt.x - state.target.x, pt.y - state.target.y) < 40 / view.z) {
     state.dragging = true;
-    canvas.setPointerCapture(ev.pointerId);
+  } else {
+    view.startPan(ev);
   }
 });
 canvas.addEventListener("pointermove", (ev) => {
-  if (state.dragging) state.target = canvasPoint(ev);
+  if (state.dragging) state.target = view.pointer(ev);
+  else view.movePan(ev);
 });
-canvas.addEventListener("pointerup", () => { state.dragging = false; });
+canvas.addEventListener("pointerup", () => { state.dragging = false; view.endPan(); });
+canvas.addEventListener("pointercancel", () => { state.dragging = false; view.endPan(); });
 $("beatToggle").onchange = () => { state.snapBeat = $("beatToggle").checked; };
 
 syncPanel();
