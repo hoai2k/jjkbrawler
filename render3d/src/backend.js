@@ -190,6 +190,7 @@ export const scene3d = {
     const resolved = rigs.resolveClip(charKey, animKey);
     if (!resolved) return false;
     pose.poseRig(inst, animKey, pose.sampleTime(animKey, animTime), resolved.clip, {
+      charKey,
       aimRad: D.aim && aimable(animKey) ? pitch : 0,
       reach: solved ? { dx: solved.dx, dy: solved.dy, targetPx } : null,
       lookRad: D.lookAt && pose.LOOK_STATES.has(clipNameFor(animKey)) ? pitch : 0,

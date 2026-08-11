@@ -237,7 +237,7 @@ export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {
 
   syncStageLight();
   const sampled = sampleTime(animKey, animTime);
-  poseRig(rig, animKey, sampled, resolved.clip, layers);
+  poseRig(rig, animKey, sampled, resolved.clip, { ...layers, charKey });
   // Secondary motion on the same quantised clock as the pose — cache-honest.
   swayChains(rig.root, sampled, charKey);
   frameCamera(rig.height, (layers.parallaxDeg || 0) * Math.PI / 180);

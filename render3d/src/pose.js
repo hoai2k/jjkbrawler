@@ -31,7 +31,7 @@
 
 import { STATES, clipNameFor, clipTime, aimable } from "../../billboards/src/states.js";
 import {
-  applyReach, reaches, makeScratch,
+  applyReach, reaches, makeScratch, applyTwoHandGrip,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
 } from "../../billboards/src/ik.js";
 
@@ -246,6 +246,13 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   playClip(rig, animKey, sampled, clip);
   if (DIALS.aim && layers.aimRad && aimable(animKey)) applyAim(rig.root, layers.aimRad);
   applyMachineReach(rig, animKey, sampled, layers);
+  // The off hand joins a two-handed weapon AFTER aim and reach have moved
+  // the striking hand — the shaft rides it (ik.js applyTwoHandGrip; a no-op
+  // without layers.charKey or for one-handed fighters).
+  if (layers.charKey) {
+    applyTwoHandGrip(THREE, rig.root, layers.charKey, animKey,
+      clipTime(animKey, sampled), _ik);
+  }
   if (DIALS.lookAt && layers.lookRad) applyLook(rig.root, layers.lookRad);
   applyFlinch(rig.root, layers.flinch || 0);
   applyBreath(rig.root, animKey, sampled);

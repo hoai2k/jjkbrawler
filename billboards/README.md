@@ -82,6 +82,15 @@ inherited set, default — is `resolveClip` in `src/rig.js`.
   tracks, so a jab stays a jab while landing at any angle. IK ramps in over the
   wind-up so the clip keeps its anticipation. Clips are authored aim-neutral;
   the workbench's draggable crosshair runs the same math the game does.
+- **Two-handed weapons are a coupled solve** (`props.js TWO_HANDED_KINDS`,
+  `ik.js applyTwoHandGrip`). During attacks and braced holds the off hand
+  grips the weapon's shaft — measured from the rig's own geometry, never
+  assumed — at the point nearest its shoulder. When the clip flings the
+  weapon out of the off arm's reach (every authored strike does), the MAIN
+  arm is pulled in until the shaft is graspable, which is exactly what a real
+  two-handed strike looks like: hands near the body, the weapon tip doing the
+  extending. Locomotion keeps the one-handed canon carry. Verified by
+  `tools/smoke_twohand.mjs` against the delivered rig.
 
 ## Gameplay parity
 
