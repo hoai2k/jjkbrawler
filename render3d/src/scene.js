@@ -153,10 +153,40 @@ function frameCamera(height, parallaxRad = 0) {
   // viewer (0.5): the three-quarter the sprite art is drawn at. The original
   // +30° satisfied neither, which is why every fighter strode into the screen
   // and showed their back.
-  const yaw = (-60 * Math.PI) / 180 + parallaxRad;
+  const yaw = CAMERA_YAW_RAD + parallaxRad;
   camera.position.set(Math.sin(yaw) * dist, cy, Math.cos(yaw) * dist);
   camera.lookAt(0, cy, 0);
   camera.updateProjectionMatrix();
+}
+
+export const CAMERA_YAW_DEG = -60;
+const CAMERA_YAW_RAD = (CAMERA_YAW_DEG * Math.PI) / 180;
+
+/**
+ * The rig yaw that makes a fighter face SCREEN-LEFT with his front still
+ * toward the lens — this backend's answer to facing, since it turns the model
+ * rather than mirroring the picture.
+ *
+ * It is NOT 180°. Turning a fighter around in place only reads as a
+ * turnaround when the camera is side-on; under a three-quarter camera it
+ * hands the viewer his BACK, which is exactly what it did — Yuji faced away
+ * whenever he moved left, while the billboard backend (which mirrors the
+ * texture) looked right.
+ *
+ * The yaw wanted is the one that REFLECTS his forward across the camera's
+ * view plane, because that is what mirroring the picture does geometrically.
+ * Reflecting (0,0,1) in the plane whose normal is the camera's right axis
+ * (cos θ, 0, −sin θ) gives (sin 2θ, 0, cos 2θ) — a rig yaw of exactly 2θ. At
+ * θ = −60° that is −120°, not 180°, and the two coincide only at θ = ±90°:
+ * a side-on camera, which is the case the 180° was silently assuming.
+ *
+ * Rotating rather than mirroring is still the point: the model is never
+ * flipped, so an asymmetric costume, a scar or a one-shouldered cloak stays
+ * on the side it belongs on. The viewer simply sees his other flank, which is
+ * what really happens when someone turns to face the other way.
+ */
+export function turnaroundYaw() {
+  return 2 * CAMERA_YAW_RAD;
 }
 
 // ------------------------------------------------------------- the render

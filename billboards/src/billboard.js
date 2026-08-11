@@ -39,6 +39,7 @@ import {
 } from "../../sprites/src/sprites.js";
 import { cycleInfo, aimSolve } from "./states.js";
 import { headHeightTarget } from "../../src/heights.js";
+import { artReach } from "../../src/silhouette.js";
 
 let ready = false;
 let initFailed = false;
@@ -143,8 +144,10 @@ export const scene3d = {
       const x = opts.x ?? 0;
       const chestY = opts.chestY ?? 0;
       const footY = opts.y ?? chestY + targetPx * 0.55;
-      const aim = opts.aim
-        ? aimSolve(x, footY, chestY, opts.aim, opts.facing ?? 1) : null;
+      // No aim is not "no solve" any more: an unaimed strike still has to go
+      // somewhere, and that somewhere is straight ahead at chest height.
+      const aim = aimSolve(x, footY, chestY, opts.aim || null, opts.facing ?? 1,
+        animKey, artReach(charKey));
       return renderer.renderPose(charKey, animKey, animTime, rigs.resolveClip, aim, targetPx);
     } catch (err) {
       warnOnce(`scene:${charKey}`, `billboards: posing ${charKey}/${animKey} for the 2.5D camera failed (${err.message}) — drawing their sprites instead.`);
@@ -171,7 +174,8 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
     // offsets are measured from.
     const targetPx = headHeightTarget(charKey);
     const chestY = y - targetPx * 0.55;
-    const aim = opts.aim ? aimSolve(x, y, chestY, opts.aim, opts.facing ?? 1) : null;
+    const aim = aimSolve(x, y, chestY, opts.aim || null, opts.facing ?? 1,
+      animKey, artReach(charKey));
     const entry = renderer.renderPose(charKey, animKey, animTime, rigs.resolveClip, aim, targetPx);
     if (entry) return blit.blitPose(ctx, entry, charKey, x, y, opts);
   } catch (err) {

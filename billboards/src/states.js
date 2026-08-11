@@ -113,6 +113,39 @@ export function aimable(state) {
   return !!STATES[clipNameFor(state)]?.aim;
 }
 
+/**
+ * The elevations, in degrees above level, that each attack is allowed to be
+ * thrown at. The aim SNAPS to the nearest one.
+ *
+ * A fighting game does not have a continuously-aimable punch; it has an up
+ * attack, a side attack and a down attack, and choosing between them IS the
+ * aiming. Letting the solver point a limb anywhere on a 100° arc produced the
+ * thing that looked most wrong on the first delivered fighter: a standing jab
+ * angled down at the floor, because the opponent happened to be a little
+ * lower. A grounded arm strike is level. Down-diagonal belongs to the moves
+ * that are *about* going low — the crouch poke, the overhead that finishes
+ * downward — and to anything thrown in the air, where the whole point is
+ * hitting what is beneath you.
+ *
+ * A state absent here keeps the free continuous aim, clamped to AIM_MAX_DEG.
+ */
+export const AIM_ELEVATIONS = {
+  light:          [0],
+  sideHeavy:      [0],
+  specialNeutral: [0],
+  upHeavy:        [55],
+  downHeavy:      [-25],
+  crouchAttack:   [-30],
+  specialSide:    [-15],
+  airLight:       [-45, 0],
+};
+
+function nearestElevation(list, deg) {
+  let best = list[0];
+  for (const e of list) if (Math.abs(e - deg) < Math.abs(best - deg)) best = e;
+  return best;
+}
+
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const bucket = (v, lo, hi) =>
   Math.round(clamp(v, lo, hi) / AIM_REACH_STEP) * AIM_REACH_STEP;
@@ -140,13 +173,30 @@ export function aimPitch(x, chestY, aim, facing = 1) {
  *  every approach a unique pose and defeat the cache entirely.
  *
  *  Returns null with no target, which is the "just play the clip" path. */
-export function aimSolve(x, footY, chestY, aim, facing = 1) {
-  if (!aim) return null;
+export function aimSolve(x, footY, chestY, aim, facing = 1, state = null, reachPx = 0) {
+  const name = state ? clipNameFor(state) : null;
+  const elevs = name ? AIM_ELEVATIONS[name] : null;
+  if (!aim && !elevs) return null;
   const sign = facing < 0 ? -1 : 1;
+  const reach = reachPx > 0 ? reachPx : 96;
+
+  let deg = 0;
+  if (aim) {
+    const fwd = Math.max(40, (aim.x - x) * sign);
+    deg = (Math.atan2(chestY - aim.y, fwd) * 180) / Math.PI;
+  }
+  deg = elevs ? nearestElevation(elevs, deg) : clamp(deg, -AIM_MAX_DEG, AIM_MAX_DEG);
+  const rad = (deg * Math.PI) / 180;
+
+  // The target is built from the STRIKE, not from the opponent's position: out
+  // along the facing at this fighter's own reach, at the elevation the move is
+  // allowed. With no aim at all that is dead ahead at chest height, which is
+  // where a punch goes.
+  const chestUp = footY - chestY;
   return {
-    pitch: aimPitch(x, chestY, aim, facing),
-    dx: bucket((aim.x - x) * sign, REACH_X[0], REACH_X[1]),
-    dy: bucket(footY - aim.y, REACH_Y[0], REACH_Y[1]),
+    pitch: (Math.round(deg / AIM_STEP_DEG) * AIM_STEP_DEG * Math.PI) / 180,
+    dx: bucket(Math.cos(rad) * reach, REACH_X[0], REACH_X[1]),
+    dy: bucket(chestUp + Math.sin(rad) * reach, REACH_Y[0], REACH_Y[1]),
   };
 }
 

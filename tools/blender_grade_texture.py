@@ -107,7 +107,31 @@ def soft_clip(v, knee=0.75):
 
 # ------------------------------------------------------------------- the pass
 
-def grade_region(h, s, v, region, report):
+BLOCK = 32
+
+
+def _solid_only(sel, shape, fill):
+    """Drop matched pixels that are not part of a broad matched area."""
+    hgt, wid = shape
+    flat = sel.reshape(hgt, wid)
+    ph = (-hgt) % BLOCK
+    pw = (-wid) % BLOCK
+    pad = np.pad(flat, ((0, ph), (0, pw)), constant_values=False)
+    bh, bw = pad.shape[0] // BLOCK, pad.shape[1] // BLOCK
+    dens = pad.reshape(bh, BLOCK, bw, BLOCK).mean(axis=(1, 3))
+    keep = dens >= fill
+    # Grow by one block so the region's own boundary blocks, which are only
+    # part-covered by construction, are not left as an un-graded rim.
+    grown = keep.copy()
+    grown[1:, :] |= keep[:-1, :]
+    grown[:-1, :] |= keep[1:, :]
+    grown[:, 1:] |= keep[:, :-1]
+    grown[:, :-1] |= keep[:, 1:]
+    mask = np.repeat(np.repeat(grown, BLOCK, axis=0), BLOCK, axis=1)[:hgt, :wid]
+    return (flat & mask).reshape(-1)
+
+
+def grade_region(h, s, v, region, report, shape=None):
     """Move one declared region onto its canon colour, in place. Returns the
     number of pixels moved."""
     m = region["match"]
@@ -119,6 +143,17 @@ def grade_region(h, s, v, region, report):
         sel &= (s >= m["sat"][0]) & (s <= m["sat"][1])
     if m.get("val"):
         sel &= (v >= m["val"][0]) & (v <= m["val"][1])
+
+    # SOLID REGIONS ONLY. A colour window alone cannot tell a garment from a
+    # coincidence: "neutral and bright" is the trainers, and it is also the
+    # WHITES OF HIS EYES, which duly turned red the first time this ran. What
+    # separates them is not colour, it is area — a costume covers a contiguous
+    # patch of the atlas, a highlight is a speck. So a matched pixel is kept
+    # only if its neighbourhood is mostly matched too, with the surviving
+    # blocks grown by one so the region's own edges are not left un-graded.
+    fill = m.get("minBlockFill")
+    if fill and shape:
+        sel = _solid_only(sel, shape, fill)
 
     n = int(sel.sum())
     if n == 0:
@@ -147,7 +182,15 @@ def grade_region(h, s, v, region, report):
         v[sel] = soft_clip(v[sel] * (t["val"] / before))
     if t.get("sat") is not None:
         before_s = float(np.median(s[sel]))
-        if before_s > 1e-6:
+        if t.get("satMode") == "set" or before_s <= 1e-6:
+            # Recolouring something NEUTRAL — white trainers to red ones. There
+            # is no saturation to scale (a ratio against ~0.05 explodes every
+            # off-white pixel to full chroma), and no hue worth keeping either,
+            # so saturation is set outright and only a little of the original
+            # variation is carried through to keep the material from reading
+            # flat. Value still carries the shading, which is what sells it.
+            s[sel] = np.clip(t["sat"] + (s[sel] - before_s) * 0.5, 0.0, 1.0)
+        else:
             s[sel] = np.clip(s[sel] * (t["sat"] / before_s), 0.0, 1.0)
     if t.get("hue") is not None:
         h[sel] = t["hue"]
@@ -173,7 +216,8 @@ def grade_image(img, regions, report):
     decode = needs_decode(img)
     rgb = to_srgb(px[:, :3]) if decode else px[:, :3]
     h, s, v = rgb_to_hsv(rgb)
-    moved = sum(grade_region(h, s, v, r, report) for r in regions)
+    shape = (img.size[1], img.size[0])
+    moved = sum(grade_region(h, s, v, r, report, shape) for r in regions)
     if moved:
         out = hsv_to_rgb(h, s, v)
         px[:, :3] = to_linear(out) if decode else out

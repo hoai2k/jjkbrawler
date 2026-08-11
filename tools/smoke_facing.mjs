@@ -108,6 +108,44 @@ try {
     check(m.screenRight > 0.35 && m.towardLens > 0.35, `${backend}: the view is three-quarter`,
       `${m.screenRight} across / ${m.towardLens} toward`);
   }
+  // FACING LEFT. render3d turns the model instead of mirroring the picture,
+  // and the yaw that takes has to come from the camera: a flat 180° reads as
+  // a turnaround only under a side-on camera, and under this ¾ one it handed
+  // the viewer his back. Both conditions must survive the turn.
+  const left = await page.evaluate(async (char) => {
+    const THREE = await import("/vendor/three/three.module.js");
+    const rigs = await import("/render3d/src/loader.js");
+    const scene = await import("/render3d/src/scene.js");
+    const pose = await import("/render3d/src/pose.js");
+    const rig = rigs.getRig(char);
+    if (!rig) return null;
+    // Pose directly: renderPose would cache-hit and leave the rig standing in
+    // whatever the previous check posed it as — which is how this check first
+    // reported a pass it had not earned.
+    scene.renderPose(char, "idle", 0.1, rig, rigs.resolveClip(char, "idle"), { turnYawRad: 0 });
+    pose.poseRig(rig, "idle", 0.1, rigs.resolveClip(char, "idle").clip,
+      { turnYawRad: scene.turnaroundYaw() });
+    rig.root.updateMatrixWorld(true);
+    const cam = scene.__cam();
+    const heel = rig.root.getObjectByName("LeftFoot");
+    const toe = rig.root.getObjectByName("LeftToeBase") || heel;
+    const a = new THREE.Vector3(), b = new THREE.Vector3();
+    heel.getWorldPosition(a); toe.getWorldPosition(b);
+    const fwd = b.sub(a); fwd.y = 0; fwd.normalize();
+    const camFwd = new THREE.Vector3(); cam.getWorldDirection(camFwd);
+    camFwd.y = 0; camFwd.normalize();
+    const camRight = new THREE.Vector3(1, 0, 0)
+      .applyQuaternion(cam.getWorldQuaternion(new THREE.Quaternion()));
+    camRight.y = 0; camRight.normalize();
+    return { screenRight: +fwd.dot(camRight).toFixed(3), towardLens: +(-fwd.dot(camFwd)).toFixed(3) };
+  }, CHAR);
+  if (left) {
+    check(left.screenRight < 0, `render3d: turned around, ${CHAR} faces screen-LEFT`,
+      `forward·cameraRight = ${left.screenRight}`);
+    check(left.towardLens > 0, "...with his front still toward the lens",
+      `forward·(-cameraFwd) = ${left.towardLens} (a flat 180° gives a negative here — his back)`);
+  }
+
   // The live layers must NOD, not twist. Same class of fault as the camera
   // yaw and equally invisible at 384 px: before this was fixed the look-at
   // layer produced 14.8 degrees of pure ROLL and no pitch at all — the head

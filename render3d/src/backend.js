@@ -32,6 +32,7 @@ import {
 } from "../../sprites/src/sprites.js";
 import { cycleInfo, aimPitch, aimSolve, aimable, clipNameFor } from "../../billboards/src/states.js";
 import { headHeightTarget } from "../../src/heights.js";
+import { artReach } from "../../src/silhouette.js";
 import { state } from "../../src/state.js";
 import { WORLD } from "../../src/constants.js";
 
@@ -133,13 +134,15 @@ function liveLayers(charKey, animKey, x, y, opts) {
   // pixels from the fighter's own origin. Quantised by aimSolve so it can join
   // the cache key (poseToken) without making every frame of an approach a
   // unique pose.
-  const solved = aim ? aimSolve(x, y, chestY, aim, facing) : null;
+  const solved = aimSolve(x, y, chestY, aim, facing, animKey, artReach(charKey));
   return {
     aimRad: D.aim && aimable(animKey) ? pitch : 0,
     reach: solved ? { dx: solved.dx, dy: solved.dy, targetPx } : null,
     lookRad: D.lookAt && pose.LOOK_STATES.has(clipNameFor(animKey)) ? pitch : 0,
     flinch: pose.flinchSide(animKey, x, aim, facing),
-    turnYawRad: D.turnaround && facing < 0 ? Math.PI : 0,
+    // Derived from the camera, not 180° — see scene.turnaroundYaw. A flat
+    // half-turn under a ¾ camera shows the fighter's back.
+    turnYawRad: D.turnaround && facing < 0 ? scene.turnaroundYaw() : 0,
     parallaxDeg: pose.parallaxDeg(x, state.camera?.x ?? WORLD.w / 2, WORLD.w / 2),
   };
 }
@@ -183,7 +186,7 @@ export const scene3d = {
     const footY = opts.y ?? chestY + targetPx * 0.55;
     const x = opts.x ?? 0;
     const pitch = aim ? aimPitch(x, chestY, aim, facing) : 0;
-    const solved = aim ? aimSolve(x, footY, chestY, aim, facing) : null;
+    const solved = aimSolve(x, footY, chestY, aim, facing, animKey, artReach(charKey));
     const resolved = rigs.resolveClip(charKey, animKey);
     if (!resolved) return false;
     pose.poseRig(inst, animKey, pose.sampleTime(animKey, animTime), resolved.clip, {
@@ -193,6 +196,9 @@ export const scene3d = {
       flinch: pose.flinchSide(animKey, opts.x ?? 0, aim, facing),
       // In a real 3D scene facing is ALWAYS the turnaround — there is no
       // mirror to fall back on, and a negative scale would invert the winding.
+      // Here 180° IS right: the game's own camera looks down the stage
+      // head-on, so a half-turn keeps the fighter's front to the lens. It is
+      // the FLAT path's fixed ¾ camera that needs scene.turnaroundYaw().
       turnYawRad: facing < 0 ? Math.PI : 0,
     });
     return true;
