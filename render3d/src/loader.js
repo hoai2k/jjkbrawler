@@ -26,7 +26,7 @@ import { buildMannequin, buildDefaultClips, MANNEQUIN_HEIGHT_M } from "../../bil
 import { clone as cloneSkinned } from "../../vendor/three/utils/SkeletonUtils.js";
 import { applyToonMaterials } from "./toon.js";
 import { addOutlines } from "./outline.js";
-import { captureCleanPose } from "./pose.js";
+import { captureCleanPose, poseRig } from "./pose.js";
 
 /** charKey -> { root, height, clips: Map, mixer, actions: Map, entry } */
 const RIGS = new Map();
@@ -116,6 +116,7 @@ export function acquireInstance(charKey, instanceId) {
   captureCleanPose(root, base.root);
   const inst = {
     charKey, root, height: base.height, clips: base.clips,
+    renderScale: base.renderScale ?? 1, yawOffset: base.yawOffset ?? 0,
     mixer: new THREE.AnimationMixer(root), actions: new Map(),
   };
   INSTANCES.set(key, inst);
@@ -132,6 +133,116 @@ export function releaseInstancesExcept(live) {
   }
 }
 
+// ---------------------------------------------------- size and orientation
+//
+// Two per-character facts about a DELIVERY that no clip and no engine layer
+// can be responsible for, both edited in the workbench and both stored in the
+// manifest:
+//
+//   renderScale  How big to draw this rig, as a multiplier on the character's
+//                head-height target. It exists because "how tall the character
+//                is" and "how tall the model measures" are different numbers:
+//                a model in its idle pose is shorter than the person (nobody
+//                idles at full stretch, and a stance with the legs apart drops
+//                the hips), while the top of the art is hair, not skull. The
+//                dial is deliberately a HAND setting rather than a measurement
+//                — the measurement is offered below as a reading, because
+//                which of those effects should be corrected for is a judgement
+//                about how the fighter should read next to their sprite, not
+//                an arithmetic fact.
+//
+//   yawOffsetDeg Which way the rig faces. The delivery spec says forward is
+//                +Z; a model that arrives built the other way round faces
+//                backwards in every state, and there is nothing to fix in the
+//                clips — the whole rig is turned. 180 is the common case.
+//
+// Both default to "as delivered" (1 and 0), so a rig that honours the spec
+// needs neither.
+
+/** Read the manifest's size/orientation settings onto a rig entry. */
+function applyEntrySettings(rig, entry) {
+  const scale = Number(entry?.renderScale);
+  rig.renderScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
+  const yaw = Number(entry?.yawOffsetDeg);
+  rig.yawOffsetDeg = Number.isFinite(yaw) ? yaw : 0;
+  rig.yawOffset = (rig.yawOffsetDeg * Math.PI) / 180;
+}
+
+/** Set them live, from the workbench. */
+export function setRigSettings(charKey, { renderScale, yawOffsetDeg } = {}) {
+  const rig = RIGS.get(charKey);
+  if (!rig) return null;
+  if (renderScale !== undefined && Number.isFinite(renderScale) && renderScale > 0) {
+    rig.renderScale = renderScale;
+  }
+  if (yawOffsetDeg !== undefined && Number.isFinite(yawOffsetDeg)) {
+    rig.yawOffsetDeg = yawOffsetDeg;
+    rig.yawOffset = (yawOffsetDeg * Math.PI) / 180;
+  }
+  // Instances already handed out share the character's settings.
+  for (const inst of INSTANCES.values()) {
+    if (inst.charKey !== charKey) continue;
+    inst.renderScale = rig.renderScale;
+    inst.yawOffset = rig.yawOffset;
+  }
+  return rig;
+}
+
+/** Meshes that count as the body. A raised spear, a swinging braid and the
+ *  ink outline shells are all excluded: none of them is how tall someone is. */
+function bodyMeshes(root) {
+  const out = [];
+  root.traverse((o) => {
+    if (!o.isMesh || o.userData.isOutline) return;
+    for (let p = o; p; p = p.parent) {
+      if (/^(Prop_|Chain_)/.test(p.name || "")) return;
+    }
+    out.push(o);
+  });
+  return out;
+}
+
+/**
+ * Measure `rigEntry` posed at the start of its idle, foot line to top of head,
+ * in metres. `clip` overrides the resolved idle clip, which is how the
+ * workbench re-measures while an idle pose is being edited.
+ *
+ * Returns null when there is nothing measurable, and the caller keeps the
+ * declared height.
+ */
+export function measureIdleHeight(charKey, rigEntry = null, clip = null) {
+  const rig = rigEntry || RIGS.get(charKey);
+  if (!rig) return null;
+  const idle = clip || resolveClip(charKey, "idle")?.clip;
+  if (!idle) return null;
+  poseRig(rig, "idle", 0, idle, {});
+  rig.root.updateMatrixWorld(true);
+  const box = new THREE.Box3();
+  let any = false;
+  for (const mesh of bodyMeshes(rig.root)) {
+    // `precise` runs the vertices through their bone transforms, so this is
+    // the POSED silhouette and not the bind pose's bounding box.
+    box.expandByObject(mesh, true);
+    any = true;
+  }
+  if (!any || !Number.isFinite(box.min.y) || !Number.isFinite(box.max.y)) return null;
+  const h = box.max.y - box.min.y;
+  return h > 0.2 ? h : null;
+}
+
+/** What the scale dial would have to be for the model to stand exactly its
+ *  head-height target — offered to the workbench as a READING next to the dial,
+ *  never applied on its own. `clip` lets the workbench measure an idle it is
+ *  in the middle of editing. */
+export function suggestedScale(charKey, clip = null) {
+  const rig = RIGS.get(charKey);
+  if (!rig) return null;
+  const measured = measureIdleHeight(charKey, rig, clip);
+  if (!measured) return null;
+  return { measured, declared: rig.declaredHeight ?? rig.height,
+           scale: (rig.declaredHeight ?? rig.height) / measured };
+}
+
 // -------------------------------------------------------------------- setup
 
 function registerRig(charKey, { root, height, clips }, entry = null) {
@@ -139,7 +250,13 @@ function registerRig(charKey, { root, height, clips }, entry = null) {
   // The bind pose, taken here because here is the last moment it is certainly
   // the bind pose — every pose from now on starts by restoring it (pose.js).
   captureCleanPose(root);
-  RIGS.set(charKey, { root, height, clips, mixer, actions: new Map(), entry });
+  // `declaredHeight` is what the manifest says the character is; `height` is
+  // what the model measures in its idle pose, filled in by calibrateHeight
+  // once every rig is registered (the measurement needs the clip set).
+  const rig = { root, height, declaredHeight: height, clips, mixer,
+                actions: new Map(), entry };
+  applyEntrySettings(rig, entry);
+  RIGS.set(charKey, rig);
 }
 
 async function loadGlbRig(charKey, entry, GLTFLoader) {
@@ -195,4 +312,5 @@ export async function initRigs(three, GLTFLoader, mannequinFor = [], allCharKeys
     registerRig(charKey, { root: m.root, height: m.height, clips: new Map() },
       MANIFEST.characters?.[charKey] || null);
   }
+
 }

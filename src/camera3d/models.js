@@ -95,7 +95,7 @@ export function makeModels() {
 
     // metres -> sim px -> world units. The rig's origin is on the floor
     // between the feet (delivery spec), so this positions the feet.
-    const s = (onScreenPx / inst.height) * S;
+    const s = (onScreenPx / inst.height) * S * (inst.renderScale ?? 1);
     root.scale.set(s * (m.scaleX ?? 1), s * (m.scaleY ?? 1), s);
     root.position.set(
       worldX(f.x + (m.offsetX || 0)),

@@ -193,7 +193,7 @@ export function makeBillboards() {
     const m = fighterTransform(f);
     const texPx = entry.canvas.height;
     // Game px per texture px: the rows the body spans must land at targetPx.
-    const sc = targetPx / (entry.rowsPerMetre * entry.heightM);
+    const sc = (targetPx * (entry.renderScale ?? 1)) / (entry.rowsPerMetre * entry.heightM);
     const w = texPx * sc;
     const h = texPx * sc;
     // The texture's foot row, as a distance above the card's centre.

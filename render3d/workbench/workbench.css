@@ -102,6 +102,26 @@ button.on { background: #24406b; border-color: #6f8fd0; }
 .axis input[type="number"] { padding: 2px 4px; font-size: 12px; width: 100%; }
 .edited { color: #d3c69f; }
 
+/* The keyframe strip: one chip per extreme, the contact beat marked. */
+.keyrow { flex-wrap: nowrap; gap: 4px; }
+.keystrip { display: flex; gap: 4px; overflow-x: auto; flex: 1; padding-bottom: 2px; }
+.keychip {
+  flex: none; font-size: 11px; padding: 3px 6px; background: #1a2136;
+  border: 1px solid #2c3654; border-radius: 5px; color: #aab4cc;
+  font-family: ui-monospace, monospace;
+}
+.keychip.sel { background: #24406b; border-color: #6f8fd0; color: #dbe2f0; }
+.keychip.beat { border-color: #9fd39f; }
+.keychip.beat::after { content: " ★"; color: #9fd39f; }
+
+/* Which space an edit lands in — stated, not implied. */
+.badge {
+  font-size: 11px; padding: 2px 7px; border-radius: 10px; letter-spacing: 0.02em;
+  border: 1px solid;
+}
+.badge.character { color: #9fb4e0; border-color: #46557f; background: #182034; }
+.badge.target { color: #cba0d2; border-color: #7d5a92; background: #241b2c; }
+
 @media (max-width: 980px) {
   /* Narrow: let the page scroll normally so the panel is reachable below. */
   body { overflow: auto; height: auto; }

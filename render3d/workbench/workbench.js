@@ -33,7 +33,7 @@ import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimPitch, aimSolve
 import { artReach } from "../../src/silhouette.js";
 import * as rig from "../src/loader.js";
 import * as scene from "../src/scene.js";
-import { DIALS, initPose, LOOK_STATES, flinchSide } from "../src/pose.js";
+import { DIALS, initPose, LOOK_STATES, flinchSide, boneOwners } from "../src/pose.js";
 import { TOON, setToonDefaults } from "../src/toon.js";
 import { OUTLINE, setOutline } from "../src/outline.js";
 import { blitPose } from "../src/blit.js";
@@ -92,13 +92,41 @@ initPose(THREE);
 scene.initScene(THREE);
 await rig.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS);
 
-const charSel = $("charSelect");
-for (const key of CHARACTER_KEYS) {
-  const o = document.createElement("option");
-  o.value = key;
-  o.textContent = CHARACTERS[key]?.name || key;
-  charSel.append(o);
+
+/**
+ * The character list, ordered so the work is where the hand goes first:
+ * everyone with a delivered rig, alphabetically, then a divider, then the rest
+ * (who are standing in on the mannequin). The roster is 27 fighters and only a
+ * handful have models — hunting for them in roster order was the tax on every
+ * single visit.
+ */
+function fillCharSelect(sel, hasModel) {
+  const label = (k) => CHARACTERS[k]?.name || k;
+  const byName = (a, b) => label(a).localeCompare(label(b));
+  const delivered = CHARACTER_KEYS.filter(hasModel).sort(byName);
+  const rest = CHARACTER_KEYS.filter((k) => !hasModel(k)).sort(byName);
+  sel.innerHTML = "";
+  const add = (key) => {
+    const o = document.createElement("option");
+    o.value = key;
+    o.textContent = label(key);
+    sel.append(o);
+  };
+  for (const key of delivered) add(key);
+  if (delivered.length && rest.length) {
+    const div = document.createElement("option");
+    div.disabled = true;
+    div.textContent = "──────── no model yet (mannequin) ────────";
+    sel.append(div);
+  }
+  for (const key of rest) add(key);
 }
+
+const charSel = $("charSelect");
+fillCharSelect(charSel, (k) => {
+  const e = rig.rigManifest().characters?.[k];
+  return !!(e?.model && e?.approved);
+});
 charSel.value = wb.char;
 
 const stateSel = $("stateSelect");
@@ -285,24 +313,90 @@ function project(worldVec) {
   return c ? { ...c, behind: p.z > 1 } : null;
 }
 
+/** The clip this state plays, with the pose editor's keyframe edits folded in.
+ *  Everything that draws or measures goes through here, so the viewer shows
+ *  the edited animation and never the one on disk. */
+function resolvedClip(char = wb.char, st = wb.state) {
+  const base = rig.resolveClip(char, st);
+  const edited = editor?.editedClip?.(char, clipNameFor(st));
+  return edited ? { clip: edited, source: `${base?.source || "?"} (edited)` } : base;
+}
+
 /** Pose the rig for the frame on screen without rendering — the handles read
  *  world matrices, and a cache hit never poses. */
 function posePreviewNow() {
-  const r = rig.getRig(wb.char);
-  const resolved = rig.resolveClip(wb.char, wb.state);
-  return scene.posePreview(wb.char, wb.state, wb.t, r, resolved, lastLayers);
+  return scene.posePreview(wb.char, wb.state, wb.t, rig.getRig(wb.char), resolvedClip(), lastLayers);
 }
 
-const editor = makePoseEditor({
+/** The size dial, the facing, and the measurement offered beside them. */
+let suggested = null;
+function syncSizePanel() {
+  const r = rig.getRig(wb.char);
+  if (!r) return;
+  $("scaleRange").value = String(r.renderScale);
+  $("scaleNum").value = String(r.renderScale);
+  $("scaleVal").textContent = `${r.renderScale.toFixed(2)}×`;
+  $("yawSelect").value = String(((r.yawOffsetDeg % 360) + 360) % 360);
+  suggested = rig.suggestedScale(wb.char, editor?.editedClip?.(wb.char, "idle") || null);
+  const target = headHeightTarget(wb.char);
+  $("scaleLine").textContent = suggested
+    ? `idle measures ${suggested.measured.toFixed(3)} m against ${suggested.declared.toFixed(3)} m declared`
+      + ` → ${suggested.scale.toFixed(3)}× would stand exactly ${target.toFixed(0)} px`
+    : `declared ${r.declaredHeight.toFixed(3)} m → drawn ${target.toFixed(0)} px at 1.00×`;
+  $("scaleSuggest").disabled = !suggested;
+}
+
+function setScale(v) {
+  const clamped = Math.max(0.4, Math.min(2.5, v));
+  rig.setRigSettings(wb.char, { renderScale: clamped });
+  entryFor(wb.char).renderScale = +clamped.toFixed(4);
+  wb.dirty.add(wb.char);
+  scene.clearCache();
+  syncSizePanel();
+}
+$("scaleRange").oninput = () => setScale(parseFloat($("scaleRange").value));
+$("scaleNum").onchange = () => setScale(parseFloat($("scaleNum").value) || 1);
+$("scaleReset").onclick = () => setScale(1);
+$("scaleSuggest").onclick = () => { if (suggested) setScale(suggested.scale); };
+$("yawSelect").onchange = () => {
+  const deg = parseFloat($("yawSelect").value) || 0;
+  rig.setRigSettings(wb.char, { yawOffsetDeg: deg });
+  entryFor(wb.char).yawOffsetDeg = deg;
+  wb.dirty.add(wb.char);
+  scene.clearCache();
+  syncSizePanel();
+};
+
+// Declared first: resolvedClip() below is called during the editor's own
+// construction, and a const in its temporal dead zone throws even behind `?.`.
+let editor = null;
+editor = makePoseEditor({
   THREE, canvas,
   camera: () => scene.__cam(),
   getRig: () => rig.getRig(wb.char),
   charKey: () => wb.char,
   stateKey: () => clipNameFor(wb.state),
+  stateSpec: (st) => STATES[clipNameFor(st)],
+  resolveClip: (char, st) => rig.resolveClip(char, st),
+  boneOwners,
   clipTime: () => clipTime(wb.state, wb.t),
+  setTime: (t) => {
+    // Selecting a keyframe parks the playhead on it: an edit made between
+    // extremes is an edit you cannot see land.
+    wb.playing = false;
+    $("playBtn").textContent = "▶ Play";
+    wb.t = t;
+    $("scrub").value = String(t / STATES[clipNameFor(wb.state)].duration);
+  },
   project, mirror: mirrorSign,
   posePreview: posePreviewNow,
   onChange: () => { scene.clearCache(); },
+  onHeightChange: () => {
+    // Editing the idle changes what the model MEASURES, which changes what
+    // scale would make it stand its target — a reading, not an action: the
+    // dial stays the artist's (see syncSizePanel).
+    syncSizePanel();
+  },
   onEditModeChange: (on) => {
     // Editing a moving target is not editing. Turning the mode on stops the
     // clock; turning it off leaves it stopped, so the scrub stays where the
@@ -387,12 +481,14 @@ async function draw() {
     parallaxDeg: wb.parallax,
     // The hand-authored offsets, and the key that keeps the cache honest
     // about them (pose.js / scene.js).
-    edits: editor.layerEdits(),
+    // Keyframe edits ride in the clip itself; these are the ones a solver
+    // would have overwritten, applied after it (pose.js).
+    postEdits: editor.postEdits(clipTime(wb.state, wb.t)),
     editKey: editor.editKey(),
   };
   lastLayers = layers;
   const r = rig.getRig(wb.char);
-  const resolved = rig.resolveClip(wb.char, wb.state);
+  const resolved = resolvedClip();
   const entry = scene.renderPose(wb.char, wb.state, wb.t, r, resolved, layers);
   lastEntry = entry;
   if (entry) {
@@ -467,6 +563,7 @@ charSel.onchange = () => {
   // A different rig is a different skeleton: the joint list is rebuilt from
   // whatever bones this body actually has.
   editor.fillJoints();
+  syncSizePanel();
   syncPanel();
 };
 stateSel.onchange = () => {
@@ -522,6 +619,7 @@ canvas.addEventListener("pointercancel", () => {
 });
 
 scene.setKeyLightAngle(0.55);
+syncSizePanel();
 syncPanel();
 $("playBtn").textContent = "⏸ Pause";
 draw();

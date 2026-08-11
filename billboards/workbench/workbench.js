@@ -82,13 +82,41 @@ renderer.initRenderer(THREE);
 // Mannequins for everyone: delivered rigs win, the rest get the proof body.
 await rig.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS);
 
-const charSel = $("charSelect");
-for (const key of CHARACTER_KEYS) {
-  const o = document.createElement("option");
-  o.value = key;
-  o.textContent = CHARACTERS[key]?.name || key;
-  charSel.append(o);
+
+/**
+ * The character list, ordered so the work is where the hand goes first:
+ * everyone with a delivered rig, alphabetically, then a divider, then the rest
+ * (who are standing in on the mannequin). The roster is 27 fighters and only a
+ * handful have models — hunting for them in roster order was the tax on every
+ * single visit.
+ */
+function fillCharSelect(sel, hasModel) {
+  const label = (k) => CHARACTERS[k]?.name || k;
+  const byName = (a, b) => label(a).localeCompare(label(b));
+  const delivered = CHARACTER_KEYS.filter(hasModel).sort(byName);
+  const rest = CHARACTER_KEYS.filter((k) => !hasModel(k)).sort(byName);
+  sel.innerHTML = "";
+  const add = (key) => {
+    const o = document.createElement("option");
+    o.value = key;
+    o.textContent = label(key);
+    sel.append(o);
+  };
+  for (const key of delivered) add(key);
+  if (delivered.length && rest.length) {
+    const div = document.createElement("option");
+    div.disabled = true;
+    div.textContent = "──────── no model yet (mannequin) ────────";
+    sel.append(div);
+  }
+  for (const key of rest) add(key);
 }
+
+const charSel = $("charSelect");
+fillCharSelect(charSel, (k) => {
+  const e = rig.rigManifest().characters?.[k];
+  return !!(e?.model && e?.approved);
+});
 charSel.value = state.char;
 
 const stateSel = $("stateSelect");

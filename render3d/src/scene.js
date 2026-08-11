@@ -301,6 +301,10 @@ export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {
   const entry = {
     canvas,
     heightM: rig.height,
+    // The hand scale dial (loader.js). Kept beside the height rather than
+    // folded into it, so `heightM` stays the honest measurement and every
+    // consumer applies the artist's intent explicitly.
+    renderScale: rig.renderScale ?? 1,
     rowsPerMetre: TEX_SIZE / frameH,
     // With the turnaround on, facing lives in the render (yaw 0 or 180°) and
     // the blit must NOT mirror; with it off, blit-time mirroring owns facing.

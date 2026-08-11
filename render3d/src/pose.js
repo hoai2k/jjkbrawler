@@ -33,6 +33,7 @@ import { STATES, clipNameFor, clipTime, aimable } from "../../billboards/src/sta
 import {
   applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
+  reachChain, gripBones,
 } from "../../billboards/src/ik.js";
 
 /** The engine-side dials, each independently workbench-editable. */
@@ -269,7 +270,24 @@ function applyBreath(root, animKey, sampled) {
  * reach, look-at, flinch and foot IK all solve against the EDITED body: drop a
  * shoulder here and the strike still lands on the target.
  *
- * The game never passes edits — this is the workbench's authoring surface, and
+ * `postEdits` is the same shape and runs at the very END instead — after every
+ * solver. That distinction is not a detail, it is which QUESTION the edit is
+ * answering, and the workbench decides it per bone:
+ *
+ *   A bone the clip owns (a hip, the off arm in a punch) is edited in CLIP
+ *   SPACE. The number means "this pose is wrong", it belongs in the keyframe,
+ *   and every solver downstream is entitled to move it afterwards.
+ *
+ *   A bone a solver OWNS in this state — the striking limb, which ik.js aims
+ *   at the target; the spine, which pitches toward it; the feet, which the
+ *   ground clamps — cannot be edited in clip space at all: the solve would
+ *   overwrite it, and the tool would silently do nothing. Its edit has to land
+ *   after the solve, which also makes it mean something different and truer:
+ *   an offset RELATIVE TO THE TARGET the solver aimed at. "Twenty degrees more
+ *   elbow than the solve gives" survives every angle the strike is thrown at,
+ *   where a clip-space number would only have been right for one of them.
+ *
+ * The game never passes either — this is the workbench's authoring surface, and
  * it reaches the render only because `layers.editKey` joins the pose-cache
  * token (scene.js).
  */
@@ -332,7 +350,10 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   // target in the rig's own frame and converts through that matrix. Setting
   // the yaw last (as this did) would have every left-facing fighter reach in
   // the direction they are NOT facing.
-  rig.root.rotation.y = layers.turnYawRad || 0;
+  // The delivery's own facing joins the turnaround: a rig built facing -Z
+  // (loader.js yawOffsetDeg) is turned once, here, and every layer below sees
+  // a fighter whose forward is where the spec says it is.
+  rig.root.rotation.y = (layers.turnYawRad || 0) + (rig.yawOffset || 0);
   rig.root.updateMatrixWorld(true);
 
   restoreClean(rig.root);
@@ -355,6 +376,43 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   applyFlinch(rig.root, layers.flinch || 0);
   applyBreath(rig.root, animKey, sampled);
   plantFeet(rig.root, animKey);
+  // Target-space edits, last: an offset on top of whatever the solvers made
+  // of this bone (see applyPoseEdits).
+  applyPoseEdits(rig.root, layers.postEdits);
+}
+
+/** Which layer OWNS each bone in `animKey` — what the workbench has to know to
+ *  put an edit in the right space, and to say so in its UI.
+ *
+ *  Returns a Map of boneName -> "target" | "ground" | "prop", listing only the
+ *  bones something other than the clip drives. Everything absent is the clip's,
+ *  which is the common case and the editable one. */
+export function boneOwners(animKey, charKey = null) {
+  const name = clipNameFor(animKey);
+  const owners = new Map();
+  if (DIALS.aim && aimable(animKey)) {
+    for (const [bone] of AIM_BONES) owners.set(bone, "target");
+  }
+  if (DIALS.lookAt && LOOK_STATES.has(name)) {
+    owners.set("Neck", "target");
+    owners.set("Head", "target");
+  }
+  if (DIALS.reach) {
+    for (const bone of reachChain(name) || []) owners.set(bone, "target");
+  }
+  if (DIALS.flinch && FLINCH_STATES.has(name)) {
+    owners.set("Spine", "target");
+    owners.set("Spine1", "target");
+  }
+  if (DIALS.footIK && PLANT_STATES.has(name)) {
+    for (const side of ["Left", "Right"]) {
+      for (const b of [`${side}UpLeg`, `${side}Leg`, `${side}Foot`]) owners.set(b, "ground");
+    }
+  }
+  if (charKey) {
+    for (const bone of gripBones(charKey, animKey)) owners.set(bone, "prop");
+  }
+  return owners;
 }
 
 /** Solve the striking limb onto the aim point (billboards/src/ik.js).

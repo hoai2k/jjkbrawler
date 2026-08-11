@@ -80,7 +80,7 @@ export const TWO_HANDED_KINDS = {
 export function twoHandGrip(charKey) {
   for (const p of CHARACTER_PROPS[charKey] || []) {
     const th = TWO_HANDED_KINDS[p.kind];
-    if (th) return { bone: p.bone, spacing: th.spacing };
+    if (th) return { bone: p.bone, spacing: th.spacing, hand: p.hand };
   }
   return null;
 }
