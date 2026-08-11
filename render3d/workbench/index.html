@@ -74,16 +74,19 @@
             <button id="scaleSuggest" class="ghost sm" title="Set the scale that makes this model stand exactly its head-height target in the idle pose">Use measured</button>
           </div>
           <div id="scaleLine" class="mono hint"></div>
-          <label>Rig faces
-            <select id="yawSelect">
-              <option value="0">+Z — forward, as the delivery spec says</option>
-              <option value="180">−Z — backwards (flip left–right)</option>
-              <option value="90">+X — quarter turn</option>
-              <option value="270">−X — quarter turn the other way</option>
-            </select>
+          <label>Facing yaw (°) <span class="mono" id="yawVal">0°</span>
+            <input id="yawRange" type="range" min="-180" max="180" step="5" value="0">
           </label>
-          <p class="hint">A rig built facing the wrong way faces the wrong way
-          in every state, and no clip can fix it — the whole model is turned.
+          <div class="row">
+            <input id="yawNum" type="number" min="-180" max="180" step="5" value="0">
+            <button id="yawReset" class="ghost sm">0°</button>
+            <button id="yawFlip" class="ghost sm" title="Add a half turn">+180°</button>
+          </div>
+          <p class="hint">Turns the whole rig, before every pose layer — for a
+          delivery authored facing some way other than the spec's +Z. Turn it
+          until the model carries itself like the others do (a delivered rig
+          that honours the spec sits at 0°). A free dial, not quarter steps:
+          the wrong-facing rigs that actually arrived were off by 60°, not 90.
           Both settings ride along in <b>Export payload</b> as
           <code>renderScale</code> and <code>yawOffsetDeg</code>.</p>
         </div>
@@ -134,18 +137,31 @@
           keyframe tables.</p>
         </div>
 
-        <details class="group" id="lookdev">
-          <summary>Look-dev</summary>
-          <label>Shade threshold <span class="mono" id="thrVal"></span>
-            <input id="thr" type="range" min="0.2" max="0.9" step="0.01">
+        <details class="group" id="lookdev" open>
+          <summary>Look-dev — <span id="lookdevWho">this character</span></summary>
+          <p class="hint">These four are saved <b>per character</b> in the
+          manifest entry's <code>toon</code> block and ride out in
+          <b>Export payload</b>. A <span class="dot"></span> marks one this
+          character overrides; click <b>×</b> to drop back to the roster's look.
+          Sample rate stays global — it is an engine dial, not art direction.</p>
+          <label class="dial" data-key="brightness">Brightness <span class="mono" id="brightVal"></span>
+            <span class="dot"></span><button class="clear" data-key="brightness" title="Use the roster's value">×</button>
+            <input id="bright" type="range" min="0.5" max="2" step="0.01">
           </label>
-          <label>Shade tint (cool → warm) <span class="mono" id="tintVal"></span>
+          <label class="dial" data-key="shadeThreshold">Shade threshold <span class="mono" id="thrVal"></span>
+            <span class="dot"></span><button class="clear" data-key="shadeThreshold" title="Use the roster's value">×</button>
+            <input id="thr" type="range" min="0.1" max="0.9" step="0.01">
+          </label>
+          <label class="dial" data-key="shadeTint">Shade tint (cool → warm) <span class="mono" id="tintVal"></span>
+            <span class="dot"></span><button class="clear" data-key="shadeTint" title="Use the roster's value">×</button>
             <input id="tint" type="range" min="0" max="1" step="0.01">
           </label>
-          <label>Rim strength <span class="mono" id="rimVal"></span>
+          <label class="dial" data-key="rimStrength">Rim strength <span class="mono" id="rimVal"></span>
+            <span class="dot"></span><button class="clear" data-key="rimStrength" title="Use the roster's value">×</button>
             <input id="rim" type="range" min="0" max="1" step="0.01">
           </label>
-          <label>Outline width (px) <span class="mono" id="outVal"></span>
+          <label class="dial" data-key="outlinePx">Outline width (px) <span class="mono" id="outVal"></span>
+            <span class="dot"></span><button class="clear" data-key="outlinePx" title="Use the roster's value">×</button>
             <input id="outline" type="range" min="0" max="4" step="0.1">
           </label>
           <label>Sample rate (Hz) <span class="mono" id="hzVal"></span>

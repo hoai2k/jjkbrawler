@@ -94,9 +94,20 @@ export function addOutlines(THREE, root) {
 /** Convert the pixel width into world units for this render — scene.js calls
  *  it with (world units per blitted pixel) just before drawing. */
 export function setWorldWidth(root, worldPerPx) {
+  // A character may carry its own line weight (manifest `toon.outlinePx`,
+  // dialled in the workbench): a delivery whose costume is already near-black
+  // drowns in the global width, and one with fine detail loses it. Falls back
+  // to the global dial, which is still the art direction for the roster.
+  const px = root.userData.outlinePx ?? OUTLINE.px;
   root.traverse((o) => {
-    if (o.userData.isOutline) o.material.uniforms.uWidth.value = OUTLINE.px * worldPerPx;
+    if (o.userData.isOutline) o.material.uniforms.uWidth.value = px * worldPerPx;
   });
+}
+
+/** The workbench's per-character line weight. `px` of null clears it. */
+export function setOutlineFor(root, px) {
+  if (px === null || px === undefined) delete root.userData.outlinePx;
+  else root.userData.outlinePx = px;
 }
 
 /** Workbench dials: width in px, ink color, opacity. */

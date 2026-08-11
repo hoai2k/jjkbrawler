@@ -25,7 +25,7 @@ import { clipNameFor } from "../../billboards/src/states.js";
 import { buildMannequin, buildDefaultClips, MANNEQUIN_HEIGHT_M } from "../../billboards/src/mannequin.js";
 import { clone as cloneSkinned } from "../../vendor/three/utils/SkeletonUtils.js";
 import { applyToonMaterials } from "./toon.js";
-import { addOutlines } from "./outline.js";
+import { addOutlines, setOutlineFor } from "./outline.js";
 import { captureCleanPose, poseRig } from "./pose.js";
 
 /** charKey -> { root, height, clips: Map, mixer, actions: Map, entry } */
@@ -159,8 +159,12 @@ export function releaseInstancesExcept(live) {
 // Both default to "as delivered" (1 and 0), so a rig that honours the spec
 // needs neither.
 
-/** Read the manifest's size/orientation settings onto a rig entry. */
+/** Read the manifest's size/orientation/look settings onto a rig entry. */
 function applyEntrySettings(rig, entry) {
+  // Line weight is per character where the manifest says so (the toon block's
+  // one non-material knob); the ramp knobs in that block were already applied
+  // when the materials were built.
+  setOutlineFor(rig.root, entry?.toon?.outlinePx ?? null);
   const scale = Number(entry?.renderScale);
   rig.renderScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
   const yaw = Number(entry?.yawOffsetDeg);

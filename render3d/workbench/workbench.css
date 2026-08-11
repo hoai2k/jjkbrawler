@@ -114,6 +114,27 @@ button.on { background: #24406b; border-color: #6f8fd0; }
 .keychip.beat { border-color: #9fd39f; }
 .keychip.beat::after { content: " ★"; color: #9fd39f; }
 
+/* A dial that this character overrides carries a dot and a clear button, so
+   "did that stick, and is it saved against this fighter?" is answered where
+   the dial is rather than in the export. */
+label.dial { position: relative; padding-right: 40px; }
+label.dial .dot {
+  position: absolute; right: 24px; top: 3px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #4d8ff0; box-shadow: 0 0 6px rgba(77, 143, 240, 0.6);
+  display: none;
+}
+label.dial.overridden .dot { display: block; }
+label.dial .clear {
+  position: absolute; right: 0; top: -2px; display: none;
+  padding: 0 5px; font-size: 12px; line-height: 1.4; background: transparent;
+}
+label.dial.overridden .clear { display: block; }
+p.hint .dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: #4d8ff0; vertical-align: middle;
+}
+
 /* Which space an edit lands in — stated, not implied. */
 .badge {
   font-size: 11px; padding: 2px 7px; border-radius: 10px; letter-spacing: 0.02em;

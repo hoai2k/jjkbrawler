@@ -34,8 +34,8 @@ import { artReach } from "../../src/silhouette.js";
 import * as rig from "../src/loader.js";
 import * as scene from "../src/scene.js";
 import { DIALS, initPose, LOOK_STATES, flinchSide, boneOwners } from "../src/pose.js";
-import { TOON, setToonDefaults } from "../src/toon.js";
-import { OUTLINE, setOutline } from "../src/outline.js";
+import { TOON, setToonFor, clearToonFor } from "../src/toon.js";
+import { OUTLINE, setOutlineFor } from "../src/outline.js";
 import { blitPose } from "../src/blit.js";
 import { makeViewport } from "../../billboards/workbench/viewport.js";
 import { makePoseEditor } from "./pose_edit.js";
@@ -174,22 +174,141 @@ function coolWarm(k) {
   // one dial from the default cool shade (k=0) to a warm dusk shade (k=1)
   return [0.52 + k * 0.32, 0.56 + k * 0.12, 0.74 - k * 0.3];
 }
-const dials = [
-  ["thr", "thrVal", () => TOON.shadeThreshold, (v) => setToonDefaults({ shadeThreshold: v })],
-  ["tint", "tintVal", () => 0, (v) => setToonDefaults({ shadeTint: coolWarm(v) })],
-  ["rim", "rimVal", () => TOON.rimStrength, (v) => setToonDefaults({ rimStrength: v })],
-  ["outline", "outVal", () => OUTLINE.px, (v) => setOutline({ px: v })],
+/** The inverse, so a character whose manifest pins a tint shows the right
+ *  slider position rather than snapping to zero the moment it is touched. */
+function coolWarmK(tint) {
+  return tint ? Math.max(0, Math.min(1, (tint[0] - 0.52) / 0.32)) : 0;
+}
+
+// ---------------------------------------------------------------- look-dev
+//
+// These dials are PER CHARACTER. The global TOON/OUTLINE defaults are the
+// roster's look and stay a code decision (toon.js), but what one delivery needs
+// — a model that arrives dark, a costume that eats its own outline — is a fact
+// about that model, so the dials write the manifest entry's `toon` block, apply
+// to that character's materials only, and leave in the payload.
+//
+// Each carries a dot when this character overrides it and a × to drop back,
+// because a dial that silently edits either the roster or one fighter depending
+// on a rule you cannot see is a dial nobody can trust.
+
+/** key -> [inputId, valueId, how to read the global default, how to show it,
+ *          how to push a value at one character's rig] */
+const LOOK = {
+  brightness: {
+    id: "bright", val: "brightVal",
+    base: () => TOON.brightness,
+    show: (v) => `${(+v).toFixed(2)}×`,
+    push: (root, v) => setToonFor(root, { brightness: v }),
+  },
+  shadeThreshold: {
+    id: "thr", val: "thrVal",
+    base: () => TOON.shadeThreshold,
+    show: (v) => (+v).toFixed(2),
+    push: (root, v) => setToonFor(root, { shadeThreshold: v }),
+  },
+  shadeTint: {
+    id: "tint", val: "tintVal",
+    // Stored as an rgb triple, dialled as one cool->warm number.
+    base: () => coolWarmK(TOON.shadeTint),
+    toStore: (k) => coolWarm(k),
+    fromStore: (rgb) => coolWarmK(rgb),
+    show: (v) => (+v).toFixed(2),
+    push: (root, k) => setToonFor(root, { shadeTint: coolWarm(k) }),
+  },
+  rimStrength: {
+    id: "rim", val: "rimVal",
+    base: () => TOON.rimStrength,
+    show: (v) => (+v).toFixed(2),
+    push: (root, v) => setToonFor(root, { rimStrength: v }),
+  },
+  outlinePx: {
+    id: "outline", val: "outVal",
+    base: () => OUTLINE.px,
+    show: (v) => `${(+v).toFixed(1)} px`,
+    push: (root, v) => setOutlineFor(root, v),
+  },
+};
+
+/** What this character overrides, live, from the manifest entry. */
+function lookOverride(key) {
+  const stored = rig.rigManifest().characters?.[wb.char]?.toon?.[key];
+  if (stored === undefined) return undefined;
+  const spec = LOOK[key];
+  return spec.fromStore ? spec.fromStore(stored) : stored;
+}
+
+function syncLookPanel() {
+  $("lookdevWho").textContent = CHARACTERS[wb.char]?.name || wb.char;
+  for (const [key, spec] of Object.entries(LOOK)) {
+    const over = lookOverride(key);
+    const value = over ?? spec.base();
+    $(spec.id).value = String(value);
+    $(spec.val).textContent = spec.show(value);
+    document.querySelector(`label.dial[data-key="${key}"]`)
+      ?.classList.toggle("overridden", over !== undefined);
+  }
+}
+
+/** Apply this character's look to their rig — on load, on a character change,
+ *  and after every dial move. */
+function applyLook() {
+  const r = rig.getRig(wb.char);
+  if (!r) return;
+  for (const [key, spec] of Object.entries(LOOK)) {
+    const over = lookOverride(key);
+    if (over === undefined) continue;
+    spec.push(r.root, over);
+  }
+  scene.clearCache();
+}
+
+for (const [key, spec] of Object.entries(LOOK)) {
+  $(spec.id).oninput = () => {
+    const v = parseFloat($(spec.id).value);
+    const entry = entryFor(wb.char);
+    entry.toon = entry.toon || {};
+    entry.toon[key] = spec.toStore ? spec.toStore(v) : v;
+    wb.dirty.add(wb.char);
+    const r = rig.getRig(wb.char);
+    if (r) spec.push(r.root, v);
+    scene.clearCache(); // dials change pixels without changing tokens
+    syncLookPanel();
+    syncPanel();
+  };
+}
+for (const btn of document.querySelectorAll("label.dial .clear")) {
+  btn.onclick = (ev) => {
+    ev.preventDefault();
+    const key = btn.dataset.key;
+    const entry = entryFor(wb.char);
+    if (entry.toon) delete entry.toon[key];
+    if (entry.toon && !Object.keys(entry.toon).length) delete entry.toon;
+    wb.dirty.add(wb.char);
+    const r = rig.getRig(wb.char);
+    if (r) {
+      if (key === "outlinePx") setOutlineFor(r.root, null);
+      else clearToonFor(r.root, [key]);
+    }
+    scene.clearCache();
+    syncLookPanel();
+    syncPanel();
+  };
+}
+
+// The two that stay global: an engine sample rate and a camera trim, neither
+// of which is a fact about a model.
+for (const [id, valId, get, set] of [
   ["hz", "hzVal", () => DIALS.sampleHz, (v) => { DIALS.sampleHz = v; }],
   ["par", "parVal", () => wb.parallax, (v) => { wb.parallax = v; }],
-];
-for (const [id, valId, get, set] of dials) {
+]) {
   $(id).value = String(get());
   $(valId).textContent = String(get());
   $(id).oninput = () => {
     const v = parseFloat($(id).value);
     $(valId).textContent = String(v);
     set(v);
-    scene.clearCache(); // dials change pixels without changing tokens
+    scene.clearCache();
   };
 }
 $("sweepToggle").onchange = () => { wb.sweep = $("sweepToggle").checked; if (!wb.sweep) { scene.setKeyLightAngle(0.55); scene.clearCache(); } };
@@ -260,12 +379,12 @@ $("exportBtn").onclick = () => {
   const payload = {
     kind: "render3d-workbench",
     exported: new Date().toISOString(),
-    // The current look-dev dials ride along as a note; applying them to
-    // TOON's defaults is a hand edit of render3d/src/toon.js, on purpose —
-    // the global look is a code decision, per-character looks go in `toon`
-    // blocks on the entries below.
-    toonDials: { shadeThreshold: TOON.shadeThreshold, shadeTint: TOON.shadeTint,
-      rimStrength: TOON.rimStrength, outlinePx: OUTLINE.px, sampleHz: DIALS.sampleHz },
+    // The roster's look, for reference only: the look-dev dials edit the
+    // per-character `toon` blocks on the entries below, and changing the
+    // global default is still a hand edit of render3d/src/toon.js.
+    rosterLook: { shadeThreshold: TOON.shadeThreshold, shadeTint: TOON.shadeTint,
+      rimStrength: TOON.rimStrength, brightness: TOON.brightness,
+      outlinePx: OUTLINE.px, sampleHz: DIALS.sampleHz },
     characters: Object.fromEntries([...wb.dirty].map((k) => [k, man.characters[k]])),
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -336,7 +455,10 @@ function syncSizePanel() {
   $("scaleRange").value = String(r.renderScale);
   $("scaleNum").value = String(r.renderScale);
   $("scaleVal").textContent = `${r.renderScale.toFixed(2)}×`;
-  $("yawSelect").value = String(((r.yawOffsetDeg % 360) + 360) % 360);
+  const yaw = ((r.yawOffsetDeg + 180) % 360 + 360) % 360 - 180; // [-180, 180)
+  $("yawRange").value = String(yaw);
+  $("yawNum").value = String(yaw);
+  $("yawVal").textContent = `${yaw}°`;
   suggested = rig.suggestedScale(wb.char, editor?.editedClip?.(wb.char, "idle") || null);
   const target = headHeightTarget(wb.char);
   $("scaleLine").textContent = suggested
@@ -358,13 +480,19 @@ $("scaleRange").oninput = () => setScale(parseFloat($("scaleRange").value));
 $("scaleNum").onchange = () => setScale(parseFloat($("scaleNum").value) || 1);
 $("scaleReset").onclick = () => setScale(1);
 $("scaleSuggest").onclick = () => { if (suggested) setScale(suggested.scale); };
-$("yawSelect").onchange = () => {
-  const deg = parseFloat($("yawSelect").value) || 0;
+function setYaw(deg) {
   rig.setRigSettings(wb.char, { yawOffsetDeg: deg });
   entryFor(wb.char).yawOffsetDeg = deg;
   wb.dirty.add(wb.char);
   scene.clearCache();
   syncSizePanel();
+}
+$("yawRange").oninput = () => setYaw(parseFloat($("yawRange").value) || 0);
+$("yawNum").onchange = () => setYaw(parseFloat($("yawNum").value) || 0);
+$("yawReset").onclick = () => setYaw(0);
+$("yawFlip").onclick = () => {
+  const cur = rig.getRig(wb.char)?.yawOffsetDeg || 0;
+  setYaw(((cur + 180 + 180) % 360 + 360) % 360 - 180);
 };
 
 // Declared first: resolvedClip() below is called during the editor's own
@@ -564,6 +692,8 @@ charSel.onchange = () => {
   // whatever bones this body actually has.
   editor.fillJoints();
   syncSizePanel();
+  syncLookPanel();
+  applyLook();
   syncPanel();
 };
 stateSel.onchange = () => {
@@ -620,6 +750,8 @@ canvas.addEventListener("pointercancel", () => {
 
 scene.setKeyLightAngle(0.55);
 syncSizePanel();
+syncLookPanel();
+applyLook();
 syncPanel();
 $("playBtn").textContent = "⏸ Pause";
 draw();

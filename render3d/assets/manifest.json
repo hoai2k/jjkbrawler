@@ -10,7 +10,7 @@
       "model": "maki/maki.glb",
       "heightM": 1.7,
       "approved": true,
-      "yawOffsetDeg": 180
+      "yawOffsetDeg": 60
     },
     "jogo": {
       "model": "jogo/jogo.glb",
@@ -31,7 +31,12 @@
       "model": "uro/uro.glb",
       "heightM": 1.9,
       "approved": true,
-      "yawOffsetDeg": 180
+      "yawOffsetDeg": 60,
+      "toon": {
+        "shadeThreshold": 0.2,
+        "outlinePx": 0.2,
+        "brightness": 1.25
+      }
     },
     "geto": {
       "model": "geto/geto.glb",

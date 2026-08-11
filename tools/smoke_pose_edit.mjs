@@ -245,13 +245,48 @@ const yawed = await page.evaluate(async () => {
   const read = () => { pose.poseRig(rig, "idle", 0, clip, {}); return rig.root.rotation.y; };
   rigs.setRigSettings("gojo", { yawOffsetDeg: 0 });
   const a = read();
-  rigs.setRigSettings("gojo", { yawOffsetDeg: 180 });
+  rigs.setRigSettings("gojo", { yawOffsetDeg: 60 });
   const b = read();
   rigs.setRigSettings("gojo", { yawOffsetDeg: 0 });
   return { a, b };
 });
-check(Math.abs(yawed.b - yawed.a - Math.PI) < 1e-6,
-  "the facing dial turns the whole rig", `${(yawed.a * 180 / Math.PI).toFixed(0)}° -> ${(yawed.b * 180 / Math.PI).toFixed(0)}°`);
+check(Math.abs(yawed.b - yawed.a - Math.PI / 3) < 1e-6,
+  "the facing dial turns the whole rig, at any angle",
+  `${(yawed.a * 180 / Math.PI).toFixed(0)}° -> ${(yawed.b * 180 / Math.PI).toFixed(0)}°`);
+
+// ---- per-character look-dev -------------------------------------------------
+// The dials write the manifest entry's toon block and mark themselves.
+await page.evaluate(() => {
+  const r = document.getElementById("bright");
+  r.value = "1.4"; r.dispatchEvent(new Event("input", { bubbles: true }));
+});
+await page.waitForTimeout(300);
+const look = await page.evaluate(async () => {
+  const rigs = await import("/render3d/src/loader.js");
+  const stored = rigs.rigManifest().characters.gojo?.toon?.brightness;
+  const dot = document.querySelector('label.dial[data-key="brightness"]')
+    .className.includes("overridden");
+  let uniform = null;
+  rigs.getRig("gojo").root.traverse((o) => {
+    const u = o.material?.userData?.uniforms;
+    if (u && uniform === null) uniform = u.uBrightness.value;
+  });
+  return { stored, dot, uniform };
+});
+check(look.stored === 1.4 && look.uniform === 1.4,
+  "a look-dev dial writes this character's toon block and their materials",
+  JSON.stringify(look));
+check(look.dot, "...and the dial shows the modified dot");
+await page.evaluate(() =>
+  document.querySelector('label.dial[data-key="brightness"] .clear').click());
+await page.waitForTimeout(300);
+const cleared = await page.evaluate(async () => {
+  const rigs = await import("/render3d/src/loader.js");
+  return { stored: rigs.rigManifest().characters.gojo?.toon?.brightness,
+    dot: document.querySelector('label.dial[data-key="brightness"]').className.includes("overridden") };
+});
+check(cleared.stored === undefined && !cleared.dot,
+  "× drops the override and the dot together");
 
 check(errors.length === 0, "no page errors", errors.join(" | "));
 await browser.close();
