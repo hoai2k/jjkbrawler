@@ -214,6 +214,75 @@ export function clipToKeys(THREE, clip, maxKeys = 24) {
   return keys;
 }
 
+// ------------------------------------------------------------------ mirroring
+//
+// Flipping a pose LEFT-RIGHT without losing what it reads as. The engine's
+// facing is a 180° yaw (render3d) or a blit-time mirror (sprites/billboards),
+// and neither touches the pose data — but sometimes the POSE itself has to
+// change hands: a model delivered mirrored, a left-handed variant of a shared
+// clip, the run cycle's second half. The honest transform is a reflection
+// across the character's own sagittal plane (x -> -x in the rig frame):
+//
+//   * every `Left*` bone trades rotations with its `Right*` twin, because the
+//     reflected left arm IS the right arm;
+//   * the sagittal component of a rotation (X: a nod, a limb swing fore/aft)
+//     carries over unchanged — that is the part of the pose that faces;
+//   * yaw (Y) and roll (Z) negate, because they are the parts that lean OUT
+//     of the sagittal plane.
+//
+// The result keeps the pose facing +Z — a right-hand punch becomes the same
+// punch thrown with the left hand, extending exactly as far forward — which is
+// what makes it safe to flip a model's direction and keep the pose's read.
+// Mirroring twice is the identity, and hip height is untouched (a crouch is no
+// shallower left-handed).
+
+const SIDE_SWAP = { Left: "Right", Right: "Left" };
+
+/** `LeftForeArm` -> `RightForeArm`; a bone with no side keeps its name. */
+export function mirrorBoneName(name) {
+  const side = name.startsWith("Left") ? "Left" : name.startsWith("Right") ? "Right" : null;
+  return side ? SIDE_SWAP[side] + name.slice(side.length) : name;
+}
+
+/** One pose `{Bone: [rx, ry, rz]}` reflected across the sagittal plane. */
+export function mirrorPose(pose) {
+  const out = {};
+  for (const [bone, deg] of Object.entries(pose || {})) {
+    const [rx = 0, ry = 0, rz = 0] = deg;
+    out[mirrorBoneName(bone)] = [rx, -ry, -rz];
+  }
+  return out;
+}
+
+/** A whole pose table mirrored: timing, eases and hip heights survive, only
+ *  the poses change hands. `mirrorKeys(mirrorKeys(k))` gives back `k`. */
+export function mirrorKeys(keys) {
+  return (keys || []).map((k) => ({ ...k, pose: mirrorPose(k.pose) }));
+}
+
+/** An AnimationClip mirrored left-right, read back through `clipToKeys` and
+ *  rebuilt — so it works on a table-built clip (whose extremes ride along in
+ *  userData) and on a delivered .glb's baked clip alike. Timing, the contact
+ *  beat and the loop flag carry over verbatim: the mirrored strike still goes
+ *  live at the same instant. */
+export function mirrorClip(THREE, clip) {
+  if (!clip) return null;
+  const keys = mirrorKeys(clipToKeys(THREE, clip, Infinity));
+  // A baked clip's hip height lives in a position track rather than in the
+  // keys (clipToKeys reads rotations only) — sample it back in, or a mirrored
+  // crouch would stand up.
+  const hips = clip.tracks.find((t) => t.name === "Hips.position");
+  if (hips && !keys.some((k) => k.hipsY !== undefined)) {
+    const interpolant = hips.createInterpolant();
+    for (const k of keys) k.hipsY = interpolant.evaluate(k.t)[1];
+  }
+  return buildClipFromKeys(THREE, `${clip.name}~mirror`, keys, {
+    duration: clip.duration,
+    beat: clip.userData?.beat,
+    loop: !!clip.userData?.loop,
+  });
+}
+
 /** The value of a per-key delta track at `t`, eased the same way the clip is.
  *  Used for edits that cannot live in the clip because a solver overwrites the
  *  bone (see the target-space edits in render3d/src/pose.js). */

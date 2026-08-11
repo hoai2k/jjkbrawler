@@ -144,22 +144,29 @@ POSES = {
         "LeftForeArm": V(-0.62, -0.10, 0.78), "RightForeArm": V(0.62, -0.10, 0.78),
     },
     "land": {
-        "Spine": V(0, 0.26, 0.97),
+        # Per the roster's sprite `land`: an ASYMMETRIC absorb — one hand
+        # dropped toward the floor, the other back for balance. The symmetric
+        # arms-forward version read as a second crouch.
+        "Spine": V(0, 0.30, 0.95),
         "LeftUpLeg": V(-0.10, 0.30, -0.95), "LeftLeg": V(0, -0.42, -0.91),
-        "RightUpLeg": V(0.10, 0.30, -0.95), "RightLeg": V(0, -0.42, -0.91),
-        "LeftArm": V(-0.34, 0.22, -0.91), "RightArm": V(0.34, 0.22, -0.91),
-        "LeftForeArm": V(-0.20, 0.45, -0.87), "RightForeArm": V(0.20, 0.45, -0.87),
+        "RightUpLeg": V(0.10, 0.34, -0.94), "RightLeg": V(0, -0.44, -0.90),
+        "LeftArm": V(-0.36, -0.20, -0.91), "LeftForeArm": V(-0.24, 0.10, -0.96),
+        "RightArm": V(0.20, 0.50, -0.84), "RightForeArm": V(0.10, 0.58, -0.81),
     },
     "hurt": {
+        # Arms THROWN OUT wide (sprite read), not tucked down-back.
         "Spine": V(0, -0.34, 0.94), "Spine1": V(0, -0.22, 0.98), "Head": V(0, -0.45, 0.89),
-        "LeftArm": V(-0.42, -0.42, -0.80), "RightArm": V(0.42, -0.42, -0.80),
-        "LeftForeArm": V(-0.30, -0.55, -0.78), "RightForeArm": V(0.30, -0.55, -0.78),
+        "LeftArm": V(-0.66, -0.28, -0.52), "RightArm": V(0.66, -0.28, -0.52),
+        "LeftForeArm": V(-0.55, -0.42, -0.55), "RightForeArm": V(0.55, -0.42, -0.55),
         "LeftUpLeg": V(-0.08, -0.18, -0.98), "RightUpLeg": V(0.08, 0.10, -0.99),
     },
     "crouch_a": {
-        "Spine": V(0, 0.40, 0.92), "Spine1": V(0, 0.24, 0.97), "Head": V(0, -0.24, 0.97),
-        "LeftUpLeg": V(-0.22, 0.62, -0.75), "LeftLeg": V(0, -0.62, -0.79), "LeftFoot": V(0, 0.95, -0.3),
-        "RightUpLeg": V(0.22, 0.62, -0.75), "RightLeg": V(0, -0.62, -0.79), "RightFoot": V(0, 0.95, -0.3),
+        # As deep as the sprites draw it (pose brief §3: hips at heel height,
+        # thighs closer to horizontal than vertical) — thighs driven forward
+        # near level, shins near vertical, matched by the larger HIP_DROP.
+        "Spine": V(0, 0.44, 0.90), "Spine1": V(0, 0.26, 0.97), "Head": V(0, -0.26, 0.96),
+        "LeftUpLeg": V(-0.22, 0.86, -0.46), "LeftLeg": V(0, -0.30, -0.95), "LeftFoot": V(0, 0.95, -0.3),
+        "RightUpLeg": V(0.22, 0.86, -0.46), "RightLeg": V(0, -0.30, -0.95), "RightFoot": V(0, 0.95, -0.3),
         "LeftArm": V(-0.30, 0.26, -0.92), "RightArm": V(0.30, 0.26, -0.92),
         "LeftForeArm": V(-0.16, 0.62, -0.77), "RightForeArm": V(0.16, 0.62, -0.77),
     },
@@ -184,15 +191,32 @@ POSES = {
         "LeftArm": V(-0.34, 0.55, -0.76), "LeftForeArm": V(-0.10, 0.86, -0.50),
         "RightArm": V(0.34, 0.55, -0.76), "RightForeArm": V(0.10, 0.86, -0.50),
     },
+    # The air dodge per the sprite read: a TWIST out of the line of the blow —
+    # body turned, knees drawn to one side, limbs pulled in. It shared the
+    # roll's ball, and only the roll spins (motion.js), so the two evades were
+    # indistinguishable mid-air.
+    "air_twist": {
+        "Spine": V(0, 0.30, 0.95), "Spine1": V(0, 0.18, 0.98), "Head": V(0, -0.10, 0.99),
+        "LeftUpLeg": V(-0.20, 0.74, -0.64), "LeftLeg": V(0, -0.46, -0.89),
+        "RightUpLeg": V(0.14, 0.48, -0.87), "RightLeg": V(0, -0.60, -0.80),
+        "LeftArm": V(-0.28, 0.36, -0.89), "LeftForeArm": V(-0.10, 0.74, -0.66),
+        "RightArm": V(0.28, 0.36, -0.89), "RightForeArm": V(0.10, 0.74, -0.66),
+        "_twist": {"Hips": 30, "Spine1": 14, "Spine2": 10},
+    },
+    # Dizzy per the sprite read: a forward SLUMP — guard gone, arms dangling
+    # loose in front, head hanging — swaying side to side. The old upright
+    # side-tilt kept the arms at rest and read as an idle with a head-shake.
     "dizzy_a": {
-        "Spine": V(0.10, -0.10, 0.99), "Head": V(0.28, -0.16, 0.94),
-        "LeftArm": V(-0.30, -0.10, -0.95), "RightArm": V(0.30, -0.10, -0.95),
-        "LeftForeArm": V(-0.24, 0.14, -0.96), "RightForeArm": V(0.24, 0.14, -0.96),
+        "Spine": V(0.08, 0.28, 0.96), "Spine1": V(0.04, 0.16, 0.99),
+        "Head": V(0.18, 0.30, 0.94),
+        "LeftArm": V(-0.18, 0.20, -0.96), "RightArm": V(0.18, 0.22, -0.96),
+        "LeftForeArm": V(-0.12, 0.28, -0.95), "RightForeArm": V(0.12, 0.30, -0.95),
     },
     "dizzy_b": {
-        "Spine": V(-0.10, -0.10, 0.99), "Head": V(-0.28, -0.16, 0.94),
-        "LeftArm": V(-0.24, -0.06, -0.97), "RightArm": V(0.24, -0.06, -0.97),
-        "LeftForeArm": V(-0.30, 0.10, -0.95), "RightForeArm": V(0.30, 0.10, -0.95),
+        "Spine": V(-0.08, 0.24, 0.97), "Spine1": V(-0.04, 0.14, 0.99),
+        "Head": V(-0.18, 0.34, 0.92),
+        "LeftArm": V(-0.18, 0.22, -0.96), "RightArm": V(0.18, 0.20, -0.96),
+        "LeftForeArm": V(-0.12, 0.30, -0.95), "RightForeArm": V(0.12, 0.28, -0.95),
     },
     "prone": {
         # Flat on the back: the whole body lies along the ground plane.
@@ -566,8 +590,8 @@ CHAR = None
 # default set wrote absolute mannequin-space positions here, which is precisely
 # why its crouch exploded on a delivered rig.)
 HIP_DROP = {
-    "crouch": 0.16, "crouchAttack": 0.16, "charge": 0.07,
-    "dodge_roll": 0.24, "dodge_air": 0.20, "prone": 0.44,
+    "crouch": 0.22, "crouchAttack": 0.22, "charge": 0.07,
+    "dodge_roll": 0.24, "dodge_air": 0.12, "prone": 0.44,
     "specialSide": 0.16, "land": 0.05,
 }
 
@@ -589,7 +613,8 @@ def state_keys(name, spec):
     if name == "crouch": return K((0, "crouch_a"), (d, "crouch_a"))
     if name == "shield": return K((0, "shield"), (d, "shield"))
     if name == "ledge":  return K((0, "ledge"), (d, "ledge"))
-    if name in ("dodge_roll", "dodge_air"): return K((0, "tuck"), (d, "tuck"))
+    if name == "dodge_roll": return K((0, "tuck"), (d, "tuck"))
+    if name == "dodge_air":  return K((0, "air_twist"), (d, "air_twist"))
     if name == "dizzy":  return K((0, "dizzy_a"), (d / 2, "dizzy_b"), (d, "dizzy_a"))
     if name == "prone":  return K((0, "prone"), (d, "prone"))
     if name == "win":    return K((0, "win"), (d, "win"))

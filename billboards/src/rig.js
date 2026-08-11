@@ -25,12 +25,16 @@
 //      characters pointing at each other cannot loop).
 //   4. the default pose set.
 //
+// Whatever answers may then be MIRRORED left-right (clips[S].mirror /
+// mirrorClips — see the mirrored-clips note above finishClip below).
+//
 // Cross-character inheritance works because clips bind by BONE NAME and every
 // rig honours the standard skeleton naming (delivery spec) — a clip is not
 // tied to the rig it arrived in. This is the manifest mirror of how a sprite
 // fighter's `anims` block overrides SEMANTIC_ANIMS.
 
 import { clipNameFor } from "./states.js";
+import { mirrorClip } from "./clips.js";
 import { buildMannequin, buildDefaultClips, MANNEQUIN_HEIGHT_M } from "./mannequin.js";
 
 /** charKey -> { root, height, clips: Map, mixer, actions: Map, entry } */
@@ -69,27 +73,63 @@ export function resolveClip(charKey, state) {
   const name = clipNameFor(state);
   const entry = MANIFEST.characters?.[charKey];
   const own = RIGS.get(charKey);
+  const answer = (clip, source) => finishClip(clip, source, charKey, name, entry);
 
   const override = entry?.clips?.[name]?.from;
   if (override) {
     const clip = override === "default"
       ? DEFAULT_CLIPS?.get(name)
       : RIGS.get(override)?.clips?.get(name);
-    if (clip) return { clip, source: override === "default" ? "default" : `from:${override}` };
+    if (clip) return answer(clip, override === "default" ? "default" : `from:${override}`);
     // A hand-set override naming a clip that is not loaded falls through
     // rather than failing: the next answer is still a drawable pose.
   }
 
-  if (own?.clips?.has(name)) return { clip: own.clips.get(name), source: "own" };
+  if (own?.clips?.has(name)) return answer(own.clips.get(name), "own");
 
   const inherit = entry?.inheritClips;
   if (inherit && inherit !== "default") {
     const clip = RIGS.get(inherit)?.clips?.get(name);
-    if (clip) return { clip, source: `inherit:${inherit}` };
+    if (clip) return answer(clip, `inherit:${inherit}`);
   }
 
   const fallback = DEFAULT_CLIPS?.get(name);
-  return fallback ? { clip: fallback, source: "default" } : null;
+  return fallback ? answer(fallback, "default") : null;
+}
+
+// ------------------------------------------------------------ mirrored clips
+//
+// A left-right FLIP of the pose data, on top of whatever clip resolution
+// answered. Facing is not what this is for — facing is the engine's (a 180°
+// turnaround or a blit-time mirror) and never touches the clip. This is for
+// the pose itself needing to change hands while keeping its read: a model
+// delivered mirrored against the spec, or a fighter whose identity is
+// left-handed playing the shared right-handed library. The reflection
+// (clips.js mirrorClip) preserves the forward read — a mirrored punch extends
+// exactly as far, with the other fist — so flipping a model's direction never
+// changes what a state reads as.
+//
+//   characters[C].clips[S].mirror: true   flip one state's resolved clip
+//   characters[C].mirrorClips: true       flip every state (whole-rig flip);
+//                                         a per-state `mirror` then flips it
+//                                         BACK, so one asymmetric clip can be
+//                                         exempted.
+//
+// Mirrored clips are built once and cached per source clip; the cache is
+// keyed by the clip object itself, so a workbench edit that rebuilds a clip
+// naturally re-mirrors.
+
+const MIRRORED = new WeakMap();
+
+function finishClip(clip, source, charKey, name, entry) {
+  const flip = !!entry?.mirrorClips !== !!entry?.clips?.[name]?.mirror;
+  if (!flip || !THREE) return { clip, source };
+  let m = MIRRORED.get(clip);
+  if (!m) {
+    m = mirrorClip(THREE, clip);
+    MIRRORED.set(clip, m);
+  }
+  return { clip: m, source: `${source}+mirror` };
 }
 
 // -------------------------------------------------------------------- setup

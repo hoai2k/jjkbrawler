@@ -26,7 +26,7 @@
 
 import { STATES, CLIP_STATES } from "./states.js";
 import { attachPlaceholders } from "./props.js";
-import { buildClipFromKeys } from "./clips.js";
+import { buildClipFromKeys, mirrorPose } from "./clips.js";
 
 /** The mannequin's real-world height. Matches HEIGHT_UNKNOWN_RATIO's working
  *  height in spirit: an unremarkable figure the height chain treats neutrally. */
@@ -169,42 +169,53 @@ const POSES = {
               RightUpLeg: [-12, 0, 0], RightLeg: [18, 0, 0] }),
 
   // ------------------------------------------------------- jump / fall / land
-  // The jump's own arc: the launch leaves the legs trailing and the arms up
-  // from the swing, then the knees come up under the body. Falling reaches
-  // for the ground; landing absorbs and stands.
+  // The jump's own arc, per the sprite `jump_rise` read (pose brief: "pushing
+  // up off the ground, legs still extending, arms rising, body stretched
+  // upward"): the launch leaves the legs trailing and the arms up from the
+  // swing, then one knee drives up while the body STAYS stretched — the old
+  // tight tuck at the apex read as the dodge ball, which is a different move.
+  // Falling gathers the legs under the body with the arms out for balance;
+  // landing absorbs with a hand toward the floor.
   jump_launch: p({ Spine: [-6, 0, 0], Head: [-8, 0, 0],
                    LeftUpLeg: [-18, 0, 0], LeftLeg: [26, 0, 0], LeftFoot: [16, 0, 0],
                    RightUpLeg: [-8, 0, 0], RightLeg: [14, 0, 0], RightFoot: [14, 0, 0],
                    LeftArm: [-30, 0, -34], RightArm: [-30, 0, 34] }),
-  jump_tuck: p({ Spine: [4, 0, 0], Head: [-4, 0, 0],
-                 LeftUpLeg: [-52, 0, 0], LeftLeg: [62, 0, 0], LeftFoot: [-8, 0, 0],
-                 RightUpLeg: [-30, 0, 0], RightLeg: [40, 0, 0], RightFoot: [-4, 0, 0],
-                 LeftArm: [-10, 0, -30], LeftForeArm: [0, 0, -40],
-                 RightArm: [-10, 0, 30], RightForeArm: [0, 0, 40] }),
-  fall_a: p({ Spine: [-10, 0, 0], Head: [-6, 0, 0],
-              LeftArm: [-46, 0, -26], LeftForeArm: [0, 0, -30],
-              RightArm: [-46, 0, 26], RightForeArm: [0, 0, 30],
-              LeftUpLeg: [16, 0, 0], LeftLeg: [18, 0, 0],
-              RightUpLeg: [-14, 0, 0], RightLeg: [26, 0, 0] }),
-  fall_b: p({ Spine: [-7, 0, 0], Head: [-4, 0, 0],
-              LeftArm: [-38, 0, -30], LeftForeArm: [0, 0, -26],
-              RightArm: [-52, 0, 22], RightForeArm: [0, 0, 34],
-              LeftUpLeg: [10, 0, 0], LeftLeg: [24, 0, 0],
-              RightUpLeg: [-8, 0, 0], RightLeg: [20, 0, 0] }),
-  land_deep: p({ Spine: [26, 0, 0], Head: [10, 0, 0],
+  jump_peak: p({ Spine: [-2, 0, 0], Head: [-6, 0, 0],
+                 LeftUpLeg: [-56, 0, 0], LeftLeg: [68, 0, 0], LeftFoot: [10, 0, 0],
+                 RightUpLeg: [-12, 0, 0], RightLeg: [28, 0, 0], RightFoot: [18, 0, 0],
+                 LeftArm: [-24, 0, -36], LeftForeArm: [0, 0, -42],
+                 RightArm: [-24, 0, 36], RightForeArm: [0, 0, 42] }),
+  // Sprite `fall` read: legs gathered under the body (both knees bent, feet
+  // beneath), arms out low for balance, head up watching the landing.
+  fall_a: p({ Spine: [-8, 0, 0], Head: [-8, 0, 0],
+              LeftArm: [-34, 0, -28], LeftForeArm: [0, 0, -24],
+              RightArm: [-34, 0, 28], RightForeArm: [0, 0, 24],
+              LeftUpLeg: [-18, 0, 0], LeftLeg: [36, 0, 0], LeftFoot: [10, 0, 0],
+              RightUpLeg: [-6, 0, 0], RightLeg: [26, 0, 0], RightFoot: [8, 0, 0] }),
+  fall_b: p({ Spine: [-6, 0, 0], Head: [-6, 0, 0],
+              LeftArm: [-28, 0, -32], LeftForeArm: [0, 0, -20],
+              RightArm: [-40, 0, 24], RightForeArm: [0, 0, 28],
+              LeftUpLeg: [-12, 0, 0], LeftLeg: [30, 0, 0], LeftFoot: [8, 0, 0],
+              RightUpLeg: [-10, 0, 0], RightLeg: [30, 0, 0], RightFoot: [10, 0, 0] }),
+  // Sprite `land` read across the roster: a deep asymmetric absorb with one
+  // hand dropped toward the floor and the other back for balance — not the
+  // symmetric squat this used to be, which read as a second crouch.
+  land_deep: p({ Spine: [30, 0, 0], Head: [8, 0, 0],
                  LeftUpLeg: [-58, 0, 0], LeftLeg: [72, 0, 0], LeftFoot: [-16, 0, 0],
-                 RightUpLeg: [-58, 0, 0], RightLeg: [72, 0, 0], RightFoot: [-16, 0, 0],
-                 LeftArm: [30, 0, -40], LeftForeArm: [0, 0, -50],
-                 RightArm: [30, 0, 40], RightForeArm: [0, 0, 50] }),
+                 RightUpLeg: [-62, 0, 0], RightLeg: [76, 0, 0], RightFoot: [-16, 0, 0],
+                 LeftArm: [24, 0, -42], LeftForeArm: [0, 0, -36],
+                 RightArm: [-42, 0, 62], RightForeArm: [0, 0, 12] }),
   land_rise: p({ Spine: [8, 0, 0], Head: [0, 0, 0],
                  LeftUpLeg: [-16, 0, 0], LeftLeg: [22, 0, 0],
                  RightUpLeg: [-16, 0, 0], RightLeg: [22, 0, 0],
                  LeftArm: [8, 0, -52], RightArm: [8, 0, 52] }),
 
   // ------------------------------------------------------------- reactions
+  // Sprite `hurt` read: head snapped back, body arched, arms THROWN OUT —
+  // nearer horizontal than the guarded half-drop this had.
   hurt_impact: p({ Spine: [-24, 0, 0], Head: [-20, 0, 0],
-                   LeftArm: [-38, 0, -46], LeftForeArm: [0, 0, -40],
-                   RightArm: [-38, 0, 46], RightForeArm: [0, 0, 40],
+                   LeftArm: [-32, 0, -26], LeftForeArm: [0, 0, -34],
+                   RightArm: [-32, 0, 26], RightForeArm: [0, 0, 34],
                    LeftUpLeg: [14, 0, 0], RightUpLeg: [6, 0, 0] }),
   hurt_settle: p({ Spine: [-12, 0, 0], Head: [-10, 0, 0],
                    LeftArm: [-18, 0, -52], LeftForeArm: [0, 0, -30],
@@ -212,19 +223,24 @@ const POSES = {
                    LeftUpLeg: [8, 0, 0], RightUpLeg: [2, 0, 0] }),
 
   // ------------------------------------------------------------- crouch
+  // The sprite crouch is a REAL squat (pose brief §3: hips at heel height,
+  // thighs closer to horizontal than vertical, head down a quarter of standing
+  // height) — the roster draws it that deep and the old half-bend read as a
+  // fighting stance. Thighs near horizontal, shins near vertical; the matching
+  // hip drop is in HIP_DROP.
   crouch: p({
-    Spine: [28, 0, 0], Head: [-10, 0, 0],
-    LeftUpLeg: [-70, 0, 0], LeftLeg: [85, 0, 0], LeftFoot: [-20, 0, 0],
-    RightUpLeg: [-70, 0, 0], RightLeg: [85, 0, 0], RightFoot: [-20, 0, 0],
-    LeftArm: [20, 0, -48], LeftForeArm: [0, 0, -60],
-    RightArm: [20, 0, 48], RightForeArm: [0, 0, 60],
+    Spine: [32, 0, 0], Head: [-12, 0, 0],
+    LeftUpLeg: [-88, 0, 0], LeftLeg: [96, 0, 0], LeftFoot: [-8, 0, 0],
+    RightUpLeg: [-88, 0, 0], RightLeg: [96, 0, 0], RightFoot: [-8, 0, 0],
+    LeftArm: [20, 0, -48], LeftForeArm: [0, 0, -62],
+    RightArm: [20, 0, 48], RightForeArm: [0, 0, 62],
   }),
   crouch_b: p({
-    Spine: [31, 0, 0], Head: [-12, 0, 0],
-    LeftUpLeg: [-73, 0, 0], LeftLeg: [88, 0, 0], LeftFoot: [-20, 0, 0],
-    RightUpLeg: [-73, 0, 0], RightLeg: [88, 0, 0], RightFoot: [-20, 0, 0],
-    LeftArm: [22, 0, -46], LeftForeArm: [0, 0, -62],
-    RightArm: [22, 0, 46], RightForeArm: [0, 0, 62],
+    Spine: [35, 0, 0], Head: [-14, 0, 0],
+    LeftUpLeg: [-88, 0, 0], LeftLeg: [96, 0, 0], LeftFoot: [-8, 0, 0],
+    RightUpLeg: [-88, 0, 0], RightLeg: [96, 0, 0], RightFoot: [-8, 0, 0],
+    LeftArm: [24, 0, -46], LeftForeArm: [0, 0, -66],
+    RightArm: [24, 0, 46], RightForeArm: [0, 0, 66],
   }),
   crouch_punch: null, // filled below off `crouch`
 
@@ -233,12 +249,19 @@ const POSES = {
   shield_b: p({ LeftArm: [58, 30, -28], LeftForeArm: [0, 0, -98],
                 RightArm: [58, -30, 28], RightForeArm: [0, 0, 98], Spine: [8, 0, 0],
                 Head: [4, 0, 0] }),
-  ledge: { LeftArm: [0, 0, 80], LeftForeArm: [0, 0, 5],
-           RightArm: [0, 0, -50], RightForeArm: [0, 0, 20],
-           Spine: [-6, 0, 0], LeftUpLeg: [10, 0, 0], RightUpLeg: [16, 0, 0] },
-  ledge_b: { LeftArm: [0, 0, 78], LeftForeArm: [0, 0, 8],
-             RightArm: [0, 0, -46], RightForeArm: [0, 0, 24],
-             Spine: [-4, 0, 0], LeftUpLeg: [16, 0, 0], RightUpLeg: [10, 0, 0] },
+  // Sprite `ledge_hang` read (pose brief): BOTH hands raised overhead on the
+  // grip, body straight below, feet dangling — the old one-arm-high hang read
+  // as a wave. Toes pointed, knees just off straight: dangling, not standing.
+  ledge: { LeftArm: [0, 0, 84], LeftForeArm: [0, 0, 6],
+           RightArm: [0, 0, -78], RightForeArm: [0, 0, -8],
+           Spine: [-4, 0, 0], Head: [-8, 0, 0],
+           LeftUpLeg: [4, 0, 0], LeftLeg: [10, 0, 0], LeftFoot: [16, 0, 0],
+           RightUpLeg: [8, 0, 0], RightLeg: [14, 0, 0], RightFoot: [18, 0, 0] },
+  ledge_b: { LeftArm: [0, 0, 82], LeftForeArm: [0, 0, 9],
+             RightArm: [0, 0, -80], RightForeArm: [0, 0, -5],
+             Spine: [-2, 0, 0], Head: [-6, 0, 0],
+             LeftUpLeg: [8, 0, 0], LeftLeg: [14, 0, 0], LeftFoot: [18, 0, 0],
+             RightUpLeg: [4, 0, 0], RightLeg: [10, 0, 0], RightFoot: [16, 0, 0] },
   tuck: p({
     Spine: [40, 0, 0], Head: [20, 0, 0],
     LeftUpLeg: [-95, 0, 0], LeftLeg: [110, 0, 0],
@@ -252,6 +275,24 @@ const POSES = {
     RightUpLeg: [-108, 0, 0], RightLeg: [124, 0, 0],
     LeftArm: [58, 0, -24], LeftForeArm: [0, 0, -112],
     RightArm: [58, 0, 24], RightForeArm: [0, 0, 112],
+  }),
+  // The air dodge, per the sprite read: a TWIST out of the line of the blow —
+  // body turned, knees drawn up to one side, limbs pulled in. It shared the
+  // roll's ball before, and the two states were indistinguishable at game
+  // size when only one of them spins (motion.js owns the roll spin).
+  air_twist_a: p({
+    Spine: [16, 34, 6], Head: [-6, -18, 0],
+    LeftUpLeg: [-64, 0, -8], LeftLeg: [76, 0, 0], LeftFoot: [-8, 0, 0],
+    RightUpLeg: [-40, 0, 8], RightLeg: [56, 0, 0], RightFoot: [-4, 0, 0],
+    LeftArm: [32, 0, -34], LeftForeArm: [0, 0, -86],
+    RightArm: [32, 0, 34], RightForeArm: [0, 0, 86],
+  }),
+  air_twist_b: p({
+    Spine: [20, 48, 8], Head: [-8, -24, 0],
+    LeftUpLeg: [-72, 0, -8], LeftLeg: [84, 0, 0], LeftFoot: [-8, 0, 0],
+    RightUpLeg: [-50, 0, 8], RightLeg: [64, 0, 0], RightFoot: [-4, 0, 0],
+    LeftArm: [38, 0, -30], LeftForeArm: [0, 0, -92],
+    RightArm: [38, 0, 30], RightForeArm: [0, 0, 92],
   }),
 
   // ------------------------------------------------------------- strikes
@@ -327,10 +368,14 @@ const POSES = {
                     RightUpLeg: [-46, 0, 0], RightLeg: [58, 0, 0] }),
   arms_wide: p({ LeftArm: [0, 0, 12], RightArm: [0, -0, -12], Spine: [-10, 0, 0],
                  Head: [-8, 0, 0], LeftForeArm: [0, 0, -6], RightForeArm: [0, 0, 6] }),
-  dizzy_a: p({ Spine: [-6, 0, 8], Head: [0, 0, 18],
-               LeftArm: [10, 0, -54], RightArm: [6, 0, 62] }),
-  dizzy_b: p({ Spine: [-6, 0, -8], Head: [0, 0, -18],
-               LeftArm: [6, 0, -62], RightArm: [10, 0, 54] }),
+  // Sprite `dizzy` read: a forward SLUMP — guard gone, arms dangling loose,
+  // head lolling — not the upright metronome sway this was.
+  dizzy_a: p({ Spine: [14, 0, 6], Spine2: [8, 0, -2], Head: [10, 0, 16],
+               LeftArm: [-10, 0, -72], LeftForeArm: [0, 0, -6],
+               RightArm: [-6, 0, 76], RightForeArm: [0, 0, 4] }),
+  dizzy_b: p({ Spine: [12, 0, -6], Spine2: [7, 0, 2], Head: [8, 0, -16],
+               LeftArm: [-6, 0, -76], LeftForeArm: [0, 0, -4],
+               RightArm: [-10, 0, 72], RightForeArm: [0, 0, 6] }),
   prone: { Hips: [-88, 0, 0], LeftArm: [0, 0, -35], RightArm: [0, 0, 35],
            LeftLeg: [8, 0, 0], RightLeg: [8, 0, 0] },
   prone_b: { Hips: [-88, 0, 0], LeftArm: [-4, 0, -30], RightArm: [-4, 0, 30],
@@ -340,19 +385,21 @@ const POSES = {
   win_b: p({ RightArm: [-8, 0, 168], RightForeArm: [0, 0, 4], Head: [-12, 0, 0],
              LeftArm: [0, 0, -34], Spine: [-4, 0, 0] }),
 };
-POSES.crouch_punch = { ...POSES.crouch, Spine: [22, 20, 0],
+POSES.crouch_punch = { ...POSES.crouch, Spine: [26, 20, 0],
   RightArm: [0, -75, 10], RightForeArm: [0, 0, 5] };
-POSES.crouch_antic = { ...POSES.crouch, Spine: [26, -12, 0],
+POSES.crouch_antic = { ...POSES.crouch, Spine: [30, -12, 0],
   RightArm: [-20, 0, 52], RightForeArm: [0, 0, 46] };
-POSES.crouch_settle = { ...POSES.crouch, Spine: [24, 10, 0],
+POSES.crouch_settle = { ...POSES.crouch, Spine: [28, 10, 0],
   RightArm: [0, -52, 22], RightForeArm: [0, 0, 20] };
 
 // How far the hips drop, per state, in metres off the bind height. Poses that
 // take the whole body down do it here rather than by scaling — squash belongs
 // to the engine.
 const HIP_BASE = BONES.Hips.pos[1];
-const HIP_DROP = { crouch: 0.16 * H, crouchAttack: 0.16 * H, charge: 0.06 * H,
-                   dodge_roll: 0.22 * H, dodge_air: 0.22 * H, prone: 0.40 * H,
+// The crouch drop matches its leg fold (thigh ~horizontal, shin ~vertical) so
+// the feet land on the ground line rather than floating or spearing it.
+const HIP_DROP = { crouch: 0.23 * H, crouchAttack: 0.23 * H, charge: 0.06 * H,
+                   dodge_roll: 0.22 * H, dodge_air: 0.14 * H, prone: 0.40 * H,
                    land: 0.20 * H };
 
 /**
@@ -386,7 +433,7 @@ function stateKeys(name) {
         [d, "run_contact_l", "out"],
       ];
     case "dash":   return [[0, "dash_a", "ease"], [h, "dash_b", "ease"], [d, "dash_a", "ease"]];
-    case "jump":   return [[0, "jump_launch", "out"], [h, "jump_tuck", "ease"], [d, "jump_launch", "ease"]];
+    case "jump":   return [[0, "jump_launch", "out"], [h, "jump_peak", "ease"], [d, "jump_launch", "ease"]];
     case "fall":   return [[0, "fall_a", "ease"], [h, "fall_b", "ease"], [d, "fall_a", "ease"]];
     case "land":   return [[0, "land_deep", "out"], [d, "land_rise", "out"]];
     case "hurt":   return [[0, "hurt_impact", "out"], [h, "hurt_settle", "ease"], [d, "hurt_impact", "ease"]];
@@ -395,8 +442,10 @@ function stateKeys(name) {
       return [[0, "crouch_antic", "in"], [beat, "crouch_punch", "out"], [d, "crouch_settle", "out"]];
     case "shield": return [[0, "shield", "ease"], [h, "shield_b", "ease"], [d, "shield", "ease"]];
     case "ledge":  return [[0, "ledge", "ease"], [h, "ledge_b", "ease"], [d, "ledge", "ease"]];
-    case "dodge_roll": case "dodge_air":
+    case "dodge_roll":
       return [[0, "tuck", "ease"], [h, "tuck_tight", "ease"], [d, "tuck", "ease"]];
+    case "dodge_air":
+      return [[0, "air_twist_a", "ease"], [h, "air_twist_b", "ease"], [d, "air_twist_a", "ease"]];
     case "light":
       return [[0, "anticip_r", "in"], [beat * 0.45, "windup", "snap"],
               [beat, "punch", "out"], [d, "punch_settle", "out"]];
@@ -435,23 +484,13 @@ function stateKeys(name) {
   }
 }
 
-// The run's right-leading half is the left-leading one with the legs and arms
-// swapped — written once, mirrored here, so tuning a contact pose tunes both
-// halves instead of drifting out of step with itself.
-const SWAP = { Left: "Right", Right: "Left" };
-function mirrorLegsArms(pose) {
-  const out = {};
-  for (const [bone, deg] of Object.entries(pose)) {
-    const side = bone.startsWith("Left") ? "Left" : bone.startsWith("Right") ? "Right" : null;
-    // Mirrored across the body: the sagittal rotation (nod/swing) carries
-    // over unchanged, the yaw and roll flip. A sided bone also changes sides;
-    // the spine and head keep their name and just twist the other way.
-    out[side ? SWAP[side] + bone.slice(side.length) : bone] = [deg[0], -deg[1], -deg[2]];
-  }
-  return out;
-}
+// The run's right-leading half is the left-leading one reflected across the
+// sagittal plane (clips.js mirrorPose) — written once, mirrored here, so
+// tuning a contact pose tunes both halves instead of drifting out of step
+// with itself. The same transform is what a whole-rig left-right flip uses,
+// which is the guarantee these poses stay valid under one.
 for (const k of ["contact", "down", "pass", "up"]) {
-  POSES[`run_${k}_r`] = mirrorLegsArms(POSES[`run_${k}_l`]);
+  POSES[`run_${k}_r`] = mirrorPose(POSES[`run_${k}_l`]);
 }
 
 // ------------------------------------------------------------------ builders

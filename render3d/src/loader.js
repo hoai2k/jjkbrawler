@@ -16,12 +16,15 @@
 //   2. C's own rig clip named S
 //   3. manifest characters[C].inheritClips    (whole-set fallback, no chains)
 //   4. the default pose set (the mannequin's clips)
+// ...then characters[C].clips[S].mirror / characters[C].mirrorClips may flip
+// the answer left-right (see finishClip below).
 //
 // ALL-OR-NOTHING per fighter: only `approved: true` manifest entries
 // register, exactly like billboards — art is in the repo before it is in the
 // game, and what players see is what was reviewed.
 
 import { clipNameFor } from "../../billboards/src/states.js";
+import { mirrorClip } from "../../billboards/src/clips.js";
 import { buildMannequin, buildDefaultClips, MANNEQUIN_HEIGHT_M } from "../../billboards/src/mannequin.js";
 import { clone as cloneSkinned } from "../../vendor/three/utils/SkeletonUtils.js";
 import { applyToonMaterials, characterToon } from "./toon.js";
@@ -62,25 +65,46 @@ export function resolveClip(charKey, state) {
   const name = clipNameFor(state);
   const entry = MANIFEST.characters?.[charKey];
   const own = RIGS.get(charKey);
+  const answer = (clip, source) => finishClip(clip, source, name, entry);
 
   const override = entry?.clips?.[name]?.from;
   if (override) {
     const clip = override === "default"
       ? DEFAULT_CLIPS?.get(name)
       : RIGS.get(override)?.clips?.get(name);
-    if (clip) return { clip, source: override === "default" ? "default" : `from:${override}` };
+    if (clip) return answer(clip, override === "default" ? "default" : `from:${override}`);
   }
 
-  if (own?.clips?.has(name)) return { clip: own.clips.get(name), source: "own" };
+  if (own?.clips?.has(name)) return answer(own.clips.get(name), "own");
 
   const inherit = entry?.inheritClips;
   if (inherit && inherit !== "default") {
     const clip = RIGS.get(inherit)?.clips?.get(name);
-    if (clip) return { clip, source: `inherit:${inherit}` };
+    if (clip) return answer(clip, `inherit:${inherit}`);
   }
 
   const fallback = DEFAULT_CLIPS?.get(name);
-  return fallback ? { clip: fallback, source: "default" } : null;
+  return fallback ? answer(fallback, "default") : null;
+}
+
+// Mirrored clips — identical to billboards/src/rig.js, same manifest keys:
+// `characters[C].clips[S].mirror` flips one state's resolved clip left-right,
+// `characters[C].mirrorClips` flips the whole set (a per-state `mirror` then
+// exempts a clip). This is POSE data changing hands, not facing: the
+// turnaround still yaws the rig, and a mirrored punch extends exactly as far
+// forward with the other fist (clips.js mirrorClip), so a flipped model keeps
+// every state's read. Built lazily, cached per source clip.
+const MIRRORED = new WeakMap();
+
+function finishClip(clip, source, name, entry) {
+  const flip = !!entry?.mirrorClips !== !!entry?.clips?.[name]?.mirror;
+  if (!flip || !THREE) return { clip, source };
+  let m = MIRRORED.get(clip);
+  if (!m) {
+    m = mirrorClip(THREE, clip);
+    MIRRORED.set(clip, m);
+  }
+  return { clip: m, source: `${source}+mirror` };
 }
 
 // ---------------------------------------------------------------- instances
