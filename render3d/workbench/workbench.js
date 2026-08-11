@@ -34,7 +34,7 @@ import { artReach } from "../../src/silhouette.js";
 import * as rig from "../src/loader.js";
 import * as scene from "../src/scene.js";
 import { DIALS, initPose, LOOK_STATES, flinchSide, boneOwners } from "../src/pose.js";
-import { TOON, setToonFor, clearToonFor } from "../src/toon.js";
+import { TOON, setToonFor, clearToonFor, PER_CHARACTER_SHADE } from "../src/toon.js";
 import { OUTLINE, setOutlineFor } from "../src/outline.js";
 import { blitPose } from "../src/blit.js";
 import { makeViewport } from "../../billboards/workbench/viewport.js";
@@ -216,6 +216,26 @@ const LOOK = {
     fromStore: (rgb) => coolWarmK(rgb),
     show: (v) => (+v).toFixed(2),
     push: (root, k) => setToonFor(root, { shadeTint: coolWarm(k) }),
+    // Applying a STORED tint must not go through the dial. `push` takes the
+    // slider's scalar and expands it back onto the cool->warm line, so putting a
+    // measured triple in and reading the slider out replaced it with its
+    // projection: Yuki's [0.84, 0.84, 0.83] came out of the workbench as
+    // [0.84, 0.68, 0.44] — the tint the LINE has at that slider position, and a
+    // different colour. The manifest's own value is applied verbatim.
+    pushRaw: (root, rgb) => setToonFor(root, { shadeTint: rgb }),
+    // A tint MEASURED off a DI3 sheet (tools/derive_toon_from_shade.py) is a
+    // free rgb triple, and most of them do not sit on this dial's single
+    // cool->warm line — Yuki's [0.84, 0.84, 0.83] projects to k=1, whose line
+    // colour is [0.84, 0.68, 0.44], a different colour entirely. The slider can
+    // only ever show the nearest point on its line, so where the stored value
+    // is off it, SAY SO: a dial reading "1.00" beside a colour that is not what
+    // 1.00 means is worse than no reading, and touching it would silently
+    // replace a measurement with a guess.
+    offLine: (rgb) => {
+      if (!Array.isArray(rgb)) return false;
+      const on = coolWarm(coolWarmK(rgb));
+      return rgb.some((c, i) => Math.abs(c - on[i]) > 0.04);
+    },
   },
   rimStrength: {
     id: "rim", val: "rimVal",
@@ -235,6 +255,12 @@ const LOOK = {
 function lookOverride(key) {
   const stored = rig.rigManifest().characters?.[wb.char]?.toon?.[key];
   if (stored === undefined) return undefined;
+  // `?shade=roster` is the A/B for the shade tints measured off the DI3 sheets
+  // (tools/derive_toon_from_shade.py), and it has to reach the workbench or the
+  // one place built for looking closely at a model is the one place that cannot
+  // show the comparison. Only the measured tint is suppressed; every dial
+  // somebody set by hand still applies.
+  if (key === "shadeTint" && !PER_CHARACTER_SHADE) return undefined;
   const spec = LOOK[key];
   return spec.fromStore ? spec.fromStore(stored) : stored;
 }
@@ -245,7 +271,10 @@ function syncLookPanel() {
     const over = lookOverride(key);
     const value = over ?? spec.base();
     $(spec.id).value = String(value);
-    $(spec.val).textContent = spec.show(value);
+    const raw = rig.rigManifest().characters?.[wb.char]?.toon?.[key];
+    $(spec.val).textContent = (over !== undefined && spec.offLine?.(raw))
+      ? `measured ${raw.map((n) => n.toFixed(2)).join(", ")}`
+      : spec.show(value);
     document.querySelector(`label.dial[data-key="${key}"]`)
       ?.classList.toggle("overridden", over !== undefined);
   }
@@ -259,7 +288,9 @@ function applyLook() {
   for (const [key, spec] of Object.entries(LOOK)) {
     const over = lookOverride(key);
     if (over === undefined) continue;
-    spec.push(r.root, over);
+    const raw = rig.rigManifest().characters?.[wb.char]?.toon?.[key];
+    if (spec.pushRaw && raw !== undefined) spec.pushRaw(r.root, raw);
+    else spec.push(r.root, over);
   }
   scene.clearCache();
 }

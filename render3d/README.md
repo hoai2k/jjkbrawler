@@ -15,10 +15,20 @@ the mannequin and a generated test delivery. What it waits on now is art
     open 'http://127.0.0.1:5174/?render=3d'               # the real thing
     open 'http://127.0.0.1:5174/?render=3d&mannequin=none' # sprites where no rig exists
     open 'http://127.0.0.1:5174/render3d/workbench/'      # look-dev + review
+    open 'http://127.0.0.1:5174/?render=3d&shade=roster'  # every fighter on the OLD shared shade tint
 
 `?render=render3d`, `?render=model(s)` and `?render=anime` are aliases
 (src/render_backend.js). The backend NAME is `3d`; the directory is
 `render3d/` only to avoid a leading digit.
+
+**`?shade=roster`** turns per-character shade grading off. Every fighter's
+shadow colour is measured from their own DI3 palette sheet
+(`tools/derive_toon_from_shade.py` → the `shadeTint` in
+`render3d/assets/manifest.json`); this flag puts the whole roster back on the
+one shared default it used before, so the change is one URL apart to judge.
+It affects only the MEASURED tint — art direction somebody dialled by hand in
+the workbench still applies — and it reaches the workbench too, which is where
+you would actually be looking closely.
 
 - **[docs/plan.md](docs/plan.md)** — the implementation plan: the anime
   look, the live layers, the cost model, phases, risks.
