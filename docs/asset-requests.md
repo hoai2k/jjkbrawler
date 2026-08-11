@@ -199,9 +199,9 @@ and a recipe for fetching more in that directory's README.
 round 9 — see **9E**; art made against their old wording is being replaced. The
 four `mechamaru` / `yuki` / `dagon` / `kurourushi` rows are round 15 and were
 written from the wiki's **(Anime)** renders, archived in
-[`assets/reference/canon/`](../assets/reference/canon/) — they are the only
-blocks with no delivered art behind them, so the render IS the authority for
-them.)*
+[`assets/reference/canon/`](../assets/reference/canon/). They were the only
+blocks with no delivered art behind them; all four have shipped since, so they
+now have a `<char>_idle.png` and are matched against it like everyone else.)*
 
 
 ---

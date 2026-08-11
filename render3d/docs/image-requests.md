@@ -27,6 +27,15 @@ everything here:
 rounds below stay open for each further fighter a D-round names — the briefs
 are per fighter, and only Yuji has been drawn.
 
+**Who is still owed what is generated, not tracked by hand**:
+[docs/open-image-requests.md](../../docs/open-image-requests.md), written by
+`node tools/build_image_requests.mjs`. It resolves these rounds against the rig
+manifest and the files on disk, so it knows that a fighter whose model has
+already arrived no longer needs a turnaround board (DI1's whole job is to be
+the thing a model is generated from) but does still need the face sheet review
+reads against and the shade palette their materials are graded from — not one
+delivered rig carries a `toon` block today.
+
 Deliver to the standard 2D intake unless a row says otherwise:
 
 ```

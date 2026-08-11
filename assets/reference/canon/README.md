@@ -10,7 +10,7 @@ proportions, age, palette, line weight and shading** (10B in
 whoever you are drawing before you draw anything else for them; where `idle_a`
 and an older sheet cell disagree, `idle_a` wins.
 
-`roster_idle.png` is all twenty-three side by side at **matched figure scale** on a
+`roster_idle.png` is the whole roster side by side at **matched figure scale** on a
 common floor line — the check that catches a fighter drawn a head too tall, which
 no single-character reference can show you.
 
@@ -26,13 +26,19 @@ canon design, so his `idle_a` is what must *not* be matched — his canon is
 were in the same position until round 9E replaced their idles; their
 `<char>_idle.png` files are here now and canonical like everyone else's.
 
-**Hanami is now the same case, and his `hanami_idle.png` is retired as an
-authority.** The delivered set draws him as a bark-and-foliage tree body; canon
-Hanami is a lean pale humanoid curse. So his `idle_a` is what must *not* be
-matched, and `hanami_anime.png` is the reference for round 15A's whole-set
-redraw. `hanami_idle.png` stays only so the request docs keep resolving and so
-the two designs can be put side by side — it becomes canon again, regenerated
-by `build_canon_reference.py`, once the new idle is picked.
+**Hanami was the same case and no longer is.** His delivered set used to draw
+him as a bark-and-foliage tree body where canon Hanami is a lean pale humanoid
+curse, so `hanami_idle.png` was retired as an authority and `hanami_anime.png`
+stood in for it. Round 17A redrew his whole set to canon, the new idle was
+approved, and `hanami_idle.png` is regenerated from it — so it is canonical
+again like everyone else's, and the anime render is back to answering design
+questions rather than being the reference.
+
+**Mechamaru, Yuki, Dagon and Kurourushi have idles now too.** They shipped in
+round 15 with the wiki's **(Anime)** render as their only authority, because
+there was no delivered art to key off. There is now, so `<char>_idle.png` is
+theirs as well and the note in the request docs about their renders being the
+authority no longer holds.
 
 ## `<char>_anime.png` — what the show says they look like
 
@@ -69,12 +75,12 @@ rather than editing these in place.
 | `dagon_anime.png` | [Dagon (Anime 2).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/5/5b/Dagon_%28Anime_2%29.png/revision/latest?cb=20231026164038) |
 | `kurourushi_anime.png` | [Kurourushi (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/4/48/Kurourushi_%28Anime%29.png/revision/latest?cb=20260322133008) |
 
-**The last five are round 15's four staged fighters** (Mechamaru, Yuki Tsukumo,
-Dagon, Kurourushi), and they are the one case where the `<char>_anime.png` file
-is not the second-best answer: those four have no delivered art at all, so there
-is no `<char>_idle.png` to prefer over it. The render IS their canon until their
-`idle_a` lands, at which point they join the table above like everyone else.
-`mechamaru_anime.png` is the puppet — Ultimate Mechamaru, which is what the game
+**The last five are round 15's four fighters** (Mechamaru, Yuki Tsukumo, Dagon,
+Kurourushi). They were the one case where `<char>_anime.png` was not the
+second-best answer but the only one, because none of the four had delivered art
+to key off. All four have shipped since, so their `<char>_idle.png` files exist
+and are the canon to draw against; these renders are back to answering design
+questions like everyone else's. `mechamaru_anime.png` is the puppet — Ultimate Mechamaru, which is what the game
 draws — and `mechamaru_absolute_anime.png` is Mode: Absolute, for his ultimate.
 
 Finding a character's file, if you need one that is not here yet: the wiki's

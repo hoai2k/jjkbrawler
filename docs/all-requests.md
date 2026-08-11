@@ -13,6 +13,12 @@ Nothing outstanding blocks play. The game is complete and playable on the
 sprite path with 27 fighters; everything below either extends it (the 3D
 tracks) or fills a gap that currently degrades to silence or to a fallback.
 
+**[open-image-requests.md](open-image-requests.md) is the generated list of every
+image still to draw** — 101 of them, all 2D inputs to the 3D track, with the
+canon reference, the height, the archetype and the character block for each.
+Re-run `node tools/build_image_requests.mjs` after any delivery; it reads the
+manifests and the files on disk, so it cannot go stale the way this page can.
+
 **The 2D sprite track has nothing open.** Round 18 was delivered complete and
 is [in the history](asset-requests-history.md#round-18--delivered); what remains
 is repo work — 25 poses waiting on approval in the sprite workbench. Round 20 is
@@ -32,15 +38,16 @@ fighter without a delivered rig.
 
 | # | Request | Type | Status | Blocked by |
 |---|---|---|---|---|
+| 0 | [**Every open image request, generated**](open-image-requests.md) | 🖼️ **Images** | 101 outstanding — the rows below, resolved against what is actually on disk | — |
 | 1 | [2D art — sprites](asset-requests.md) | 🖼️ **Images** (sprites) | **nothing open**; round 18 delivered complete, 25 poses in the approval queue | — |
-| 2 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) | 🖼️ **Images** (reference) | **Yuji delivered**; open for any further fighter a D-round names | — |
-| 3 | [3D images — DI2/DI3: face sheets, shade palettes](../render3d/docs/image-requests.md#round-di2--face-sheets-the-face-first-gates-reference) | 🖼️ **Images** (reference) | **Yuji delivered**; open per fighter | DI1 (same fighter) |
+| 2 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) | 🖼️ **Images** (reference) | 20 open — every fighter with no rig yet | — |
+| 3 | [3D images — DI2/DI3: face sheets, shade palettes](../render3d/docs/image-requests.md#round-di2--face-sheets-the-face-first-gates-reference) | 🖼️ **Images** (reference) | 27 + 27 open — everyone but Yuji, delivered rigs included | — |
 | 4 | [3D models — B1/D1: the Yuji pilot](../render3d/docs/asset-requests.md#round-d1--the-pilot-yuji-complete-open--draw-against-this) | 🧊 **3D model + clips** | open | DI1–DI3 for Yuji |
 | 5 | [3D models — D2: library + archetypes](../render3d/docs/asset-requests.md#round-d2--the-shared-library-and-the-archetype-sets) | 🧊 **Animation clips** | open | D1 review |
 | 6 | [3D models — D3: the standard roster](../render3d/docs/asset-requests.md#round-d3--the-standard-humanoid-rigs) | 🧊 **3D models + clips** | open | D2 |
 | 7 | [3D models — D4: bespoke bodies](../render3d/docs/asset-requests.md#round-d4--the-bespoke-bodies) | 🧊 **3D models + clips** | open | D3 |
 | 8 | [3D models — D5: spectacle](../render3d/docs/asset-requests.md#round-d5--spectacle-opens-after-d3s-first-batch) | 🧊 **Animation clips** | open | D3 first batch |
-| — | [3D images — DI4: shared face textures](../render3d/docs/image-requests.md#round-di4--shared-face-textures-one-time-roster-wide) | 🖼️ **Images** (texture) | **delivered** — the shared eye highlight and Yuji's mouth sheet | — |
+| — | [3D images — DI4: shared face textures](../render3d/docs/image-requests.md#round-di4--shared-face-textures-one-time-roster-wide) | 🖼️ **Images** (texture) | shared highlight **delivered**; 27 optional mouth sheets open | — |
 | — | [Music](music-requests.md) | 🎵 **Music** | **all 20 delivered** | — |
 | — | [Audio Rounds 1–11](audio-requests-history.md) | 🔊 Sound effects + 🎙️ voice | **all delivered** | — |
 | — | [2D art Rounds 1–18](asset-requests-history.md) | 🖼️ Images | **delivered** | — |
