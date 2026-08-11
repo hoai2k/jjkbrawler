@@ -287,6 +287,11 @@ export function updateProjectiles(dt) {
   const groundY = state.platforms.length ? state.platforms[0].y : 568;
   for (let i = state.projectiles.length - 1; i >= 0; i--) {
     const p = state.projectiles[i];
+    // Hitboxes freeze with their owner through hitlag (updateHitboxes above);
+    // projectiles did not, so the frame a shot connected, everything froze for
+    // the impact EXCEPT the shot that caused it, which slid visibly onward
+    // through its own freeze frames.
+    if (p.owner && p.owner.hitPause > 0) continue;
     p.age += dt;
     p.dur -= dt;
     // Comet tail: sample where the shot has actually been, so an arcing or

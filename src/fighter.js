@@ -315,6 +315,24 @@ function tryGrabLedge(f) {
     const edgeX = side === -1 ? plat.x : plat.x + plat.w;
     const outside = side === -1 ? f.x <= edgeX : f.x >= edgeX;
     if (outside && Math.abs(f.x - edgeX) <= LEDGE_GRAB_X) {
+      // One hand per ledge. Two fighters could hold the same point, drawn on
+      // top of each other with both hang timers running. Instead the newcomer
+      // TRUMPS: they take the ledge and the occupant is popped off it —
+      // outward and slightly up, briefly protected so the trump itself is a
+      // positional win rather than a free hit. (Smash's rule, and the reason
+      // hogging a ledge is an interaction instead of a wall.)
+      const occupant = state.fighters.find(
+        (o) => o !== f && !o.dead && o.ledge && o.ledge.edgeX === edgeX
+      );
+      if (occupant) {
+        occupant.ledge = null;
+        occupant.ledgeCooldown = 0.6;
+        occupant.vx = side * 170;
+        occupant.vy = -240;
+        occupant.invuln = Math.max(occupant.invuln, 0.3);
+        dust(occupant.x, occupant.y - 40, 6);
+        playSfx("whoosh", 0.6);
+      }
       f.ledge = { side, edgeX, plat };
       f.x = edgeX + (side === -1 ? -LEDGE_HANG_X : LEDGE_HANG_X);
       f.y = plat.y + LEDGE_HANG_Y;

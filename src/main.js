@@ -353,6 +353,11 @@ function updateSimulation(dt, held) {
 
   for (let i = state.entities.length - 1; i >= 0; i--) {
     const e = state.entities[i];
+    // An owned entity — a summon, a trap, a domain — freezes through its
+    // owner's hitlag, the same way hitboxes and projectiles do: the freeze
+    // frames a summon's hit buys must not be frames it keeps moving through.
+    // Stage gimmicks have no owner and never stop.
+    if (e.owner && e.owner.hitPause > 0) continue;
     e.update(dt);
     if (e.dead) state.entities.splice(i, 1);
   }
@@ -480,8 +485,15 @@ function loop(time) {
       clearLatchedEdges();
       accumulator -= FIXED_DT;
     }
-    updateParticles(dt);
-    updateCamera(dt);
+    // The presentation layer lives in the same time as the fight it presents:
+    // during a KO's slow-motion beat the sparks, damage numbers and camera all
+    // slow with the bodies. They used to take the raw frame dt, which played
+    // the game's most dramatic moment at two speeds at once — half speed on the
+    // fighters, full speed on everything around them. The camera's smoothing is
+    // dt-correct (1 - pow(k, dt)), so the slowed dt slows the follow and the
+    // shake decay too, which is exactly the drift a slow-motion shot wants.
+    updateParticles(simDt);
+    updateCamera(simDt);
     updateHud();
   }
 
