@@ -134,7 +134,7 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
 
-  await page.goto(`${BASE}/index.html?render=billboard`);
+  await page.goto(`${BASE}/index.html?render=billboard&camera=flat`);
   await page.waitForFunction(async () =>
     (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
   await page.waitForFunction(() => window.__billboards?.ready === true, { timeout: 30000 });
@@ -190,7 +190,7 @@ try {
   const page = await browser.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
-  await page.goto(`${BASE}/index.html`);
+  await page.goto(`${BASE}/index.html?camera=flat`);
 
   const r = await page.evaluate(async () => {
     const THREE = await import("/vendor/three/three.module.js");

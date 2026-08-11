@@ -38,7 +38,7 @@ const page = await browser.newPage();
 page.on("pageerror", (e) => console.log(`  page error: ${String(e).slice(0, 200)}`));
 
 try {
-  await page.goto(`${BASE}/index.html?render=3d&mannequin=none`);
+  await page.goto(`${BASE}/index.html?render=3d&mannequin=none&camera=flat`);
   await page.waitForFunction(
     async () => (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
   await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 60000 });

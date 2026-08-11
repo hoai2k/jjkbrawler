@@ -86,7 +86,7 @@ async function bootAndFight(page, url) {
     if (m.type() === "error" && !/404|Failed to load resource/.test(m.text())) errors.push(m.text());
   });
 
-  await bootAndFight(page, `${BASE}/index.html?render=3d&mannequin=all`);
+  await bootAndFight(page, `${BASE}/index.html?render=3d&mannequin=all&camera=flat`);
   const before = await page.evaluate(() => ({
     renders: window.__render3d.stats.renders, t: performance.now(),
   }));
@@ -141,7 +141,7 @@ async function bootAndFight(page, url) {
   const page = await browser.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
-  await page.goto(`${BASE}/index.html?render=3d&mannequin=all`);
+  await page.goto(`${BASE}/index.html?render=3d&mannequin=all&camera=flat`);
   await page.waitForFunction(async () =>
     (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
   await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 30000 });
@@ -185,7 +185,7 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
 
-  await page.goto(`${BASE}/index.html?render=3d`);
+  await page.goto(`${BASE}/index.html?render=3d&camera=flat`);
   await page.waitForFunction(async () =>
     (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
   await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 30000 });
@@ -240,7 +240,7 @@ try {
   const page = await browser.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
-  await page.goto(`${BASE}/index.html?render=3d`);
+  await page.goto(`${BASE}/index.html?render=3d&camera=flat`);
   await page.waitForFunction(async () =>
     (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
 

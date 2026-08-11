@@ -39,7 +39,7 @@ page.on("response", (r) => {
 });
 let current = "boot";
 
-await page.goto(BASE, { waitUntil: "load" });
+await page.goto(`${BASE}/index.html?camera=flat`, { waitUntil: "load" });
 // wait for asset load -> menu phase
 await page.waitForSelector('[data-character="gojo"]', { timeout: 60000 });
 await page.click('[data-character="gojo"]');

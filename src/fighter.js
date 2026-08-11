@@ -79,6 +79,18 @@ export function makeFighter(id, charKey, x, facing) {
     // read it to find their owner's aim pad (see summons.js).
     lastInput: null,
     winner: false,
+    // What this fighter did with the match, for the result screen. Built here
+    // rather than in a side table so it is cleared by the same reset that
+    // builds the fighter — a rematch starts from zero without anyone
+    // remembering to empty anything.
+    tally: { dealt: 0, taken: 0, kos: 0, falls: 0, biggestHit: 0, bestCombo: 0 },
+    // The combo this fighter is currently BUILDING, as the attacker: how many
+    // hits, who they are on, and how long the chain stays open (combat.js).
+    combo: 0, comboT: 0, comboTarget: null,
+    // Who last hit this fighter and how long that credit stands. A ring-out is
+    // scored to whoever put them off the stage, which is not necessarily
+    // whoever is nearest when they cross the blast line.
+    lastHitBy: null, lastHitT: 0,
   };
 }
 
@@ -403,6 +415,13 @@ function startDash(f, dir) {
 export function ringOut(f) {
   const opp = opponentOf(f);
   f.stocks -= 1;
+  // Result-screen bookkeeping. The KO is credited to whoever last hit them
+  // while that credit still stands (combat.js) — a fighter who walked off the
+  // edge on their own scores nobody a KO, which is the honest reading of a
+  // self-destruct.
+  f.tally.falls += 1;
+  const killer = f.lastHitT > 0 ? f.lastHitBy : null;
+  if (killer && killer !== f) killer.tally.kos += 1;
   playSfx("launch", 1);
   playKoCry(f.charKey);
   rumbleEvent(f, "ko");

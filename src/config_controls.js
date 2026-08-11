@@ -77,59 +77,31 @@ export function keyLabel(code) {
   return code;
 }
 
-/** Every code bound to `action` for a player, written out: "J", "/ or Numpad 3". */
-export function keysFor(playerId, action, join = " or ") {
-  const codes = KEY_BINDS[playerId]?.[action];
-  if (!codes || !codes.length) return "—";
-  return codes.map(keyLabel).join(join);
-}
-
-/** Just the first code bound to an action. The in-game line lists ten actions
- *  across one row, so it names the primary key and lets the tables carry the
- *  alternates. */
-function keyFor(playerId, action) {
-  const codes = KEY_BINDS[playerId]?.[action];
-  return codes?.length ? keyLabel(codes[0]) : "—";
-}
-
-function pair(playerId, a, b) {
-  return `${keysFor(playerId, a)} / ${keysFor(playerId, b)}`;
-}
-
-function steerKeys(playerId) {
-  return ["steerUp", "steerLeft", "steerDown", "steerRight"]
-    .map((a) => keysFor(playerId, a)).join(" / ");
-}
-
-// The control scheme as rows, in the order the tables print them. `pad` is the
-// only hand-written column — a pad button has no code to derive a name from —
-// and it is written against PAD_BUTTONS above, which is what the game reads.
+// The control scheme as rows, in the order the tables print them. `pad` is
+// hand-written against PAD_BUTTONS above, which is what the game reads — a pad
+// button has no code to derive a name from.
 //
-// `short` is the compact wording the in-game keyboard line uses; a row with no
-// `short` is left off that line (it has no keyboard binding worth listing).
+// There is no keyboard column. The game is played on controllers, one pad per
+// player: that is what the roster, the four-way select screen and the in-game
+// diagram are all built around, and it is what the instructions describe.
+// KEY_BINDS above still drives slots 1 and 2 so the game can be played and
+// tested at a desk with no pad plugged in, but it is deliberately undocumented
+// rather than offered as a supported way to play.
 export const CONTROL_ROWS = [
-  { id: "move", action: "Move", short: "move", keys: (p) => pair(p, "left", "right"), keysShort: (p) => (p === 1 ? "WASD" : "Arrows"), pad: "Left stick" },
-  { id: "jump", action: "Jump", keys: (p) => keysFor(p, "up"), pad: "A" },
-  { id: "crouch", action: "Crouch / fast-fall", keys: (p) => keysFor(p, "down"), pad: "Left stick ▼" },
-  { id: "light", action: "Light attack", short: "light", keys: (p) => keysFor(p, "light"), keysShort: (p) => keyFor(p, "light"), pad: "X" },
-  { id: "heavy", action: "Heavy attack (hold = charge)", short: "heavy", keys: (p) => keysFor(p, "heavy"), keysShort: (p) => keyFor(p, "heavy"), pad: "Y" },
-  { id: "special", action: "Special", short: "special", keys: (p) => keysFor(p, "special"), keysShort: (p) => keyFor(p, "special"), pad: "RT" },
-  { id: "dash", action: "Dash", short: "dash", keys: (p) => `${keysFor(p, "dash")}, or double-tap a direction`, keysShort: (p) => keysFor(p, "dash"), pad: "B, or double-tap" },
-  { id: "ult", action: "Ultimate", short: "ultimate", keys: (p) => keysFor(p, "ult"), keysShort: (p) => keyFor(p, "ult"), pad: "RB" },
-  { id: "domain", action: "Domain Expansion", short: "domain", keys: (p) => keysFor(p, "domain"), keysShort: (p) => keyFor(p, "domain"), pad: "LB" },
-  { id: "shield", action: "Shield / dodges", short: "shield", keys: (p) => keysFor(p, "shield"), keysShort: (p) => keyFor(p, "shield"), pad: "LT" },
-  { id: "tilt", action: "Tilt attacks (no run-up)", keys: () => "—", pad: "Right stick" },
-  { id: "steer", action: "Steer summons / aim creature shots", short: "steer summons", keys: steerKeys, keysShort: steerKeys, pad: "D-pad" },
-  { id: "pause", action: "Pause", keys: (p) => (p === 1 ? "Space / Esc" : "—"), pad: "Start" },
+  { id: "move", action: "Move", pad: "Left stick" },
+  { id: "jump", action: "Jump", pad: "A" },
+  { id: "crouch", action: "Crouch / fast-fall", pad: "Left stick ▼" },
+  { id: "light", action: "Light attack", pad: "X" },
+  { id: "heavy", action: "Heavy attack (hold = charge)", pad: "Y" },
+  { id: "special", action: "Special", pad: "RT" },
+  { id: "dash", action: "Dash", pad: "B, or double-tap" },
+  { id: "ult", action: "Ultimate", pad: "RB" },
+  { id: "domain", action: "Domain Expansion", pad: "LB" },
+  { id: "shield", action: "Shield / dodges", pad: "LT" },
+  { id: "tilt", action: "Tilt attacks (no run-up)", pad: "Right stick" },
+  { id: "steer", action: "Steer summons / aim creature shots", pad: "D-pad" },
+  { id: "pause", action: "Pause", pad: "Start" },
 ];
-
-/** One line of keyboard instructions for a player, for the move screen. */
-export function keyboardLine(playerId) {
-  return CONTROL_ROWS
-    .filter((row) => row.short && KEY_BINDS[playerId])
-    .map((row) => `${(row.keysShort || row.keys)(playerId)} ${row.short}`)
-    .join(" · ");
-}
 
 /** The pad column as "button — action" pairs, for the controller tips block. */
 export function padTips() {
@@ -141,9 +113,9 @@ export function padTips() {
  *  by tools/check_controls.mjs, which is also what verifies it. */
 export function controlsTable() {
   const lines = [
-    "| Action | P1 | P2 | Gamepad |",
-    "|---|---|---|---|",
-    ...CONTROL_ROWS.map((row) => `| ${row.action} | ${row.keys(1)} | ${row.keys(2)} | ${row.pad} |`),
+    "| Action | Gamepad |",
+    "|---|---|",
+    ...CONTROL_ROWS.map((row) => `| ${row.action} | ${row.pad} |`),
   ];
   return lines.join("\n");
 }

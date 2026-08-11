@@ -14,6 +14,7 @@ import {
   METER_ON_DEAL, METER_ON_TAKE, HURTBOX,
   GROUND_RELEASE, GROUND_SLIDE_BOOST, GROUND_SPIKE_BOUNCE,
   SAKURAI, SAKURAI_AIR, SAKURAI_LOW, SAKURAI_POP, SAKURAI_KB,
+  COMBO_GRACE,
 } from "./constants.js";
 import { bodyMetrics } from "./silhouette.js";
 import { swingExtent } from "./moves.js";
@@ -937,7 +938,61 @@ export function applyHit(owner, target, hit, source) {
     burst(owner.x, owner.y - 80, "#ff7a2f", 10, 0.7);
   }
 
+  recordHit(owner, target, dmg, armored);
   return "hit";
+}
+
+// How long a hit stands as KO credit. A fighter launched off the top of the
+// stage is often nowhere near whoever hit them by the time they cross the blast
+// line, so the credit has to outlive the contact — but not so far that a stray
+// poke thirty seconds ago claims a self-destruct.
+const KO_CREDIT_TIME = 4;
+
+/** The bookkeeping every landed hit does for the SCREEN rather than for the
+ *  simulation: the result-screen tally, the combo chain, and who to credit if
+ *  this hit turns out to have been the one that ended a stock.
+ *
+ *  Deliberately at the very end of applyHit, where a hit is known to have
+ *  actually landed and `dmg` is final — every multiplier, the shield and armor
+ *  branches, and Rika's echo have all had their say by here. Nothing in this
+ *  function is read back by the simulation, so it cannot desync anything. */
+function recordHit(owner, target, dmg, armored) {
+  owner.tally.dealt += dmg;
+  target.tally.taken += dmg;
+  owner.tally.biggestHit = Math.max(owner.tally.biggestHit, dmg);
+  target.lastHitBy = owner;
+  target.lastHitT = KO_CREDIT_TIME;
+
+  // A combo is counted against ONE victim: hits spread across a Battle Royal
+  // are not a combo, they are a busy afternoon. The chain continues only while
+  // the previous hit's window is still open on the same target.
+  const continuing = owner.comboT > 0 && owner.comboTarget === target;
+  owner.combo = continuing ? owner.combo + 1 : 1;
+  owner.comboTarget = target;
+  // Open for as long as the victim cannot act, plus a little. An armored hit
+  // grants no hitstun, so it gets the grace alone.
+  owner.comboT = (armored ? 0 : target.hitstun) + COMBO_GRACE;
+  owner.tally.bestCombo = Math.max(owner.tally.bestCombo, owner.combo);
+
+  // Taking a hit ends whatever you were building. Otherwise two fighters
+  // trading blows both read as being on a ten-hit run.
+  target.combo = 0;
+  target.comboT = 0;
+  target.comboTarget = null;
+}
+
+/** Steps the two timers recordHit sets. Called once per sim step per fighter
+ *  from the main loop — outside updateFighter, which returns early during
+ *  hitlag and would freeze the combo window along with the fighter. */
+export function stepHitCredit(f, dt) {
+  if (f.comboT > 0) {
+    f.comboT -= dt;
+    if (f.comboT <= 0) { f.combo = 0; f.comboTarget = null; }
+  }
+  if (f.lastHitT > 0) {
+    f.lastHitT -= dt;
+    if (f.lastHitT <= 0) f.lastHitBy = null;
+  }
 }
 
 function interruptActions(target) {

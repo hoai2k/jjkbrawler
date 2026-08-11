@@ -57,7 +57,7 @@ for (const [query, expected, expectWarning] of CASES) {
     if (m.type() === "warning") warnings.push(m.text());
   });
 
-  await page.goto(`${BASE}/index.html${query}`);
+  await page.goto(`${BASE}/index.html${query}${query ? "&" : "?"}camera=flat`);
   // Reaching the menu means init() ran to completion, selection included.
   await page.waitForFunction(async () =>
     (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });

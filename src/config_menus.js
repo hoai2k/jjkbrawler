@@ -11,7 +11,7 @@
 // physics and match rules.
 // ---------------------------------------------------------------------------
 
-import { CONTROL_ROWS, keyboardLine, padTips } from "./config_controls.js";
+import { CONTROL_ROWS, padTips } from "./config_controls.js";
 
 /** The pad button bound to an action, by name — "RT", "LB". Read from the
  *  control map so a string can never name a button the game does not use. */
@@ -173,15 +173,6 @@ export const TEXT = {
     playerBadge: (id) => `P${id}`,
     browseAll: "Browse all fighters",
     backToPlayers: "Your fighters",
-    yourKeys: (id) => `Keyboard P${id}:`,
-    // Both of these are GENERATED from the control map. Rebinding a key or a
-    // pad button rewrites them; there is no second copy to forget.
-    keyLines: {
-      1: keyboardLine(1),
-      2: keyboardLine(2),
-      3: "Gamepad only",
-      4: "Gamepad only",
-    },
     tips: [
       ["Left stick twice", "Dash"],
       ["Down in air", "Fast-fall"],
@@ -191,9 +182,9 @@ export const TEXT = {
       ["Right stick, while a smash charges", "Angle the swing high or low"],
       [`D-pad + ${padName("special")}`, "Aim and fly Nue / cursed spirits"],
     ],
-    keyboardHint:
-      `Keyboard: P1 uses ${keyboardLine(1)}. P2 uses ${keyboardLine(2)}. `
-      + `On a controller the left stick moves, ${padName("special")} is special and ${padName("dash")} dashes; `
+    // The game is played on controllers: one pad per player, up to four.
+    stickHint:
+      `The left stick moves, ${padName("special")} is special and ${padName("dash")} dashes; `
       + `${padName("domain")} opens a Domain Expansion and ${padName("ult")} fires the ultimate. `
       + "The RIGHT STICK throws tilt attacks — flick it for the tilt or aerial in that direction, or hold it "
       + "while a smash charges to angle the swing. The D-pad steers any summon you have on the stage.",
@@ -205,6 +196,12 @@ export const TEXT = {
     resume: "Resume",
     reset: "Reset",
     quit: "Main Menu",
+    // A seated controller stopped answering, so the match stopped too. Says
+    // what will happen on resume, because resuming without the pad hands that
+    // fighter to the CPU rather than leaving it standing still.
+    disconnected: (players) =>
+      `${players} controller disconnected. Reconnect it to carry on — resuming without it hands that fighter to the CPU.`,
+    playerList: (ids) => ids.map((id) => `Player ${id}'s`).join(" and "),
   },
 
   // Match modes, chosen from the VS badge in the middle of the select screen.
@@ -238,13 +235,34 @@ export const TEXT = {
 
   roundOver: {
     kicker: "Match complete",
+    // How the match ended, over the winner's name. A KO needs no explanation;
+    // the other two do, because the player did not necessarily see the moment
+    // it was decided.
+    kickerFor: {
+      ko: "Match complete",
+      time: "Time up — decided on stocks",
+      suddenDeath: "Sudden death",
+    },
     winner: (name) => `${name} wins!`,
     teamWinner: (side) => `${side} win!`,
     players: "Players",
     cpus: "CPUs",
     draw: "Draw",
     rematch: "Rematch",
+    stageSelect: "Change Stage",
     fighterSelect: "Fighter Select",
+    // The scoreboard. Column order here is the order it renders in.
+    stats: {
+      place: "#",
+      fighter: "Fighter",
+      dealt: "Dealt",
+      taken: "Taken",
+      kos: "KOs",
+      falls: "Falls",
+      combo: "Best combo",
+      duration: (clock) => `Match length ${clock}`,
+      comboValue: (n) => (n > 1 ? `${n} hits` : "—"),
+    },
   },
 
   settings: {
@@ -255,6 +273,8 @@ export const TEXT = {
     sfxVolume: (pct) => `Sound FX Volume: ${pct}%`,
     cpu: (level) => `CPU Difficulty: ${level}`,
     stocks: (n) => `Lives per fighter: ${n}`,
+    timeLimit: (label) => `Time limit: ${label}`,
+    timeOff: "None",
     sprites: (set) => `Sprites: ${set}`,
     spriteDefault: "Default",
     spriteAlternate: "Alternate",
@@ -273,6 +293,9 @@ export const TEXT = {
   },
 
   hud: {
+    // The live combo readout on a fighter's panel. Only ever shown from two
+    // hits up: "1 hit" is just a hit.
+    combo: (n) => `${n} HITS`,
     ultimateReady: "ULTIMATE READY",
     domainReady: "DOMAIN READY",
     // A full bar buys either one, so a fighter with a domain is being offered a
