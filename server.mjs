@@ -39,6 +39,14 @@ const TYPES = {
 };
 
 const MEDIA = /\.(png|jpg|jpeg|webp|gif|mp3|wav|ogg|glb)$/i;
+// Source and data: never cached, not even revalidated. `no-cache` plus a
+// Last-Modified validator is the polite answer and it was the answer here, but
+// it leaves a browser free to serve a stale ES module out of its memory cache
+// for the life of a tab — which turns "I edited a file and reloaded" into "the
+// tool did not change", and no amount of reloading fixes what a hard-refresh
+// has to be remembered for. These files are kilobytes; the media above, which
+// is where the gigabytes are, still caches for an hour.
+const SOURCE = /\.(html|js|mjs|css|json|map|md|webmanifest)$/i;
 
 /** `Range: bytes=a-b` against a known file size, or null for anything this
  *  server does not intend to honour (multi-range, garbage, out of bounds).
@@ -74,14 +82,19 @@ const server = createServer(async (req, res) => {
 
     const headers = {
       "Content-Type": TYPES[extname(path).toLowerCase()] || "application/octet-stream",
-      "Cache-Control": MEDIA.test(path) ? "max-age=3600" : "no-cache",
-      // Cheap revalidation: with "no-cache" the browser asks every time, and
-      // without a validator every one of those asks re-sends the whole file.
+      "Cache-Control": MEDIA.test(path) ? "max-age=3600"
+        : SOURCE.test(path) ? "no-store, must-revalidate" : "no-cache",
+      // Cheap revalidation for everything else: with "no-cache" the browser
+      // asks every time, and without a validator every one of those asks
+      // re-sends the whole file.
       "Last-Modified": info.mtime.toUTCString(),
       "Accept-Ranges": "bytes",
     };
 
-    if (req.headers["if-modified-since"]) {
+    // A conditional request for a no-store file is a copy that should not
+    // exist; answering it 304 would hand back exactly the stale source the
+    // header is there to prevent.
+    if (req.headers["if-modified-since"] && !SOURCE.test(path)) {
       const since = Date.parse(req.headers["if-modified-since"]);
       // Second granularity: the header carries no milliseconds, so a file
       // written mid-second must not read as newer than its own response.
