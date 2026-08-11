@@ -42,19 +42,40 @@ export const KEY_BINDS = {
   },
 };
 
-/** Standard-mapping gamepad button indices. */
+/** Standard-mapping gamepad button indices. A binding may name SEVERAL buttons
+ *  (they merge by OR, and the first is the one the diagram calls that action's
+ *  home) or NONE, which is a real state: dash has no button and is double-tap
+ *  only, the way it was before dash was ever given one. */
 export const PAD_BUTTONS = {
-  jump: 0,
-  dash: 1,
+  // A, plus RT as a second jump. A pad has one thumb for the face cluster, and
+  // jumping while attacking asks that thumb for two buttons at once; the right
+  // index finger is doing nothing at that moment.
+  jump: [0, 7],
+  dash: [],    // double-tap a direction
   light: 2,
   heavy: 3,
   domain: 4,   // LB
   ult: 5,      // RB
   shield: 6,   // LT
-  special: 7,  // RT
+  special: 1,  // B
   pause: 9,
   dpadUp: 12, dpadDown: 13, dpadLeft: 14, dpadRight: 15,
 };
+
+/** What each index is called on the pad, for everything that has to SAY a
+ *  button rather than read one. Only the buttons the game binds are here. */
+const PAD_LABELS = {
+  0: "A", 1: "B", 2: "X", 3: "Y",
+  4: "LB", 5: "RB", 6: "LT", 7: "RT",
+  9: "Start",
+};
+
+/** Every label an action is bound to: `padLabelsFor("jump")` → ["A", "RT"]. */
+export function padLabelsFor(id) {
+  const spec = PAD_BUTTONS[id];
+  if (spec == null) return [];
+  return (Array.isArray(spec) ? spec : [spec]).map((i) => PAD_LABELS[i] || `Button ${i}`);
+}
 
 /** Analog axes. The left stick moves; the right stick attacks. */
 export const PAD_AXES = { moveX: 0, moveY: 1, tiltX: 2, tiltY: 3 };
@@ -77,58 +98,55 @@ export function keyLabel(code) {
   return code;
 }
 
-/** Every code bound to `action` for a player, written out: "J", "/ or Numpad 3". */
-export function keysFor(playerId, action, join = " or ") {
-  const codes = KEY_BINDS[playerId]?.[action];
-  if (!codes || !codes.length) return "—";
-  return codes.map(keyLabel).join(join);
-}
-
-/** Just the first code bound to an action. The in-game line lists ten actions
- *  across one row, so it names the primary key and lets the tables carry the
- *  alternates. */
-function keyFor(playerId, action) {
-  const codes = KEY_BINDS[playerId]?.[action];
-  return codes?.length ? keyLabel(codes[0]) : "—";
-}
-
-function pair(playerId, a, b) {
-  return `${keysFor(playerId, a)} / ${keysFor(playerId, b)}`;
-}
-
-function steerKeys(playerId) {
-  return ["steerUp", "steerLeft", "steerDown", "steerRight"]
-    .map((a) => keysFor(playerId, a)).join(" / ");
-}
-
-// The control scheme as rows, in the order the tables print them. `pad` is the
-// only hand-written column — a pad button has no code to derive a name from —
-// and it is written against PAD_BUTTONS above, which is what the game reads.
+// The control scheme as rows, in the order the tables print them.
 //
-// `short` is the compact wording the in-game keyboard line uses; a row with no
-// `short` is left off that line (it has no keyboard binding worth listing).
-export const CONTROL_ROWS = [
-  { id: "move", action: "Move", short: "move", keys: (p) => pair(p, "left", "right"), keysShort: (p) => (p === 1 ? "WASD" : "Arrows"), pad: "Left stick" },
-  { id: "jump", action: "Jump", keys: (p) => keysFor(p, "up"), pad: "A" },
-  { id: "crouch", action: "Crouch / fast-fall", keys: (p) => keysFor(p, "down"), pad: "Left stick ▼" },
-  { id: "light", action: "Light attack", short: "light", keys: (p) => keysFor(p, "light"), keysShort: (p) => keyFor(p, "light"), pad: "X" },
-  { id: "heavy", action: "Heavy attack (hold = charge)", short: "heavy", keys: (p) => keysFor(p, "heavy"), keysShort: (p) => keyFor(p, "heavy"), pad: "Y" },
-  { id: "special", action: "Special", short: "special", keys: (p) => keysFor(p, "special"), keysShort: (p) => keyFor(p, "special"), pad: "RT" },
-  { id: "dash", action: "Dash", short: "dash", keys: (p) => `${keysFor(p, "dash")}, or double-tap a direction`, keysShort: (p) => keysFor(p, "dash"), pad: "B, or double-tap" },
-  { id: "ult", action: "Ultimate", short: "ultimate", keys: (p) => keysFor(p, "ult"), keysShort: (p) => keyFor(p, "ult"), pad: "RB" },
-  { id: "domain", action: "Domain Expansion", short: "domain", keys: (p) => keysFor(p, "domain"), keysShort: (p) => keyFor(p, "domain"), pad: "LB" },
-  { id: "shield", action: "Shield / dodges", short: "shield", keys: (p) => keysFor(p, "shield"), keysShort: (p) => keyFor(p, "shield"), pad: "LT" },
-  { id: "tilt", action: "Tilt attacks (no run-up)", keys: () => "—", pad: "Right stick" },
-  { id: "steer", action: "Steer summons / aim creature shots", short: "steer summons", keys: steerKeys, keysShort: steerKeys, pad: "D-pad" },
-  { id: "pause", action: "Pause", keys: (p) => (p === 1 ? "Space / Esc" : "—"), pad: "Start" },
+// A row that names a `bind` gets its `pad` column GENERATED from PAD_BUTTONS
+// above — the map the game actually reads — so moving special from RT to B is
+// one edit and the table, the tips, the pad diagram and the markdown all follow.
+// Only the rows with no button at all (sticks, d-pad, double-tap dash) write
+// their own `pad` text, because there is no index to derive it from.
+//
+// `short` is the compact name the pad diagram draws when the full action does
+// not fit the art.
+//
+// There is no keyboard column. The game is played on controllers, one pad per
+// player: that is what the roster, the four-way select screen and the in-game
+// diagram are all built around, and it is what the instructions describe.
+// KEY_BINDS above still drives slots 1 and 2 so the game can be played and
+// tested at a desk with no pad plugged in, but it is deliberately undocumented
+// rather than offered as a supported way to play.
+const ROWS = [
+  { id: "move", action: "Move", pad: "Left stick" },
+  { id: "jump", action: "Jump", bind: "jump" },
+  { id: "crouch", action: "Crouch / fast-fall", pad: "Left stick ▼" },
+  { id: "light", action: "Light attack", bind: "light", short: "Light" },
+  { id: "heavy", action: "Heavy attack (hold = charge)", bind: "heavy", short: "Heavy" },
+  { id: "special", action: "Special", bind: "special" },
+  // Two ways in, and the first is the one a Smash player reaches for: shove the
+  // left stick out from centre and the fighter dashes, roll it out gently and
+  // they walk (`DASH_FLICK` in input.js). The double tap stays because it is
+  // what a keyboard has — a key cannot be shoved.
+  { id: "dash", action: "Dash", pad: "Shove the stick, or double-tap" },
+  { id: "dashAttack", action: "Dash attack", pad: "Light or heavy, while running" },
+  { id: "ult", action: "Ultimate", bind: "ult" },
+  { id: "domain", action: "Domain Expansion", bind: "domain", short: "Domain" },
+  { id: "shield", action: "Shield / dodges", bind: "shield", short: "Shield / dodge" },
+  { id: "tilt", action: "Tilt attacks (no run-up)", pad: "Right stick", short: "Tilts" },
+  { id: "steer", action: "Steer summons / aim creature shots", pad: "D-pad", short: "Steer / aim" },
+  { id: "pause", action: "Pause", bind: "pause" },
 ];
 
-/** One line of keyboard instructions for a player, for the move screen. */
-export function keyboardLine(playerId) {
-  return CONTROL_ROWS
-    .filter((row) => row.short && KEY_BINDS[playerId])
-    .map((row) => `${(row.keysShort || row.keys)(playerId)} ${row.short}`)
-    .join(" · ");
+export const CONTROL_ROWS = ROWS.map((row) => ({
+  ...row,
+  pad: row.pad || padLabelsFor(row.bind).join(" or "),
+}));
+
+/** The row a PHYSICAL button carries, by label — `rowAtPad("B")`. The pad
+ *  diagram draws buttons where the plastic puts them and asks what each one
+ *  does, rather than assuming an action's position on the pad: that assumption
+ *  is what left the drawing promising RT was a second shield two mappings on. */
+export function rowAtPad(label) {
+  return CONTROL_ROWS.find((row) => row.bind && padLabelsFor(row.bind).includes(label)) || null;
 }
 
 /** The pad column as "button — action" pairs, for the controller tips block. */
@@ -141,9 +159,9 @@ export function padTips() {
  *  by tools/check_controls.mjs, which is also what verifies it. */
 export function controlsTable() {
   const lines = [
-    "| Action | P1 | P2 | Gamepad |",
-    "|---|---|---|---|",
-    ...CONTROL_ROWS.map((row) => `| ${row.action} | ${row.keys(1)} | ${row.keys(2)} | ${row.pad} |`),
+    "| Action | Gamepad |",
+    "|---|---|",
+    ...CONTROL_ROWS.map((row) => `| ${row.action} | ${row.pad} |`),
   ];
   return lines.join("\n");
 }

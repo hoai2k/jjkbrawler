@@ -58,7 +58,7 @@ page.on("response", (r) => {
 });
 
 // Through the menus the way a player would, exactly as smoke_combat.mjs does.
-await page.goto(BASE, { waitUntil: "load" });
+await page.goto(`${BASE}/index.html?camera=flat`, { waitUntil: "load" });
 await page.waitForSelector('[data-character="gojo"]', { timeout: 60000 });
 await page.click('[data-character="gojo"]');
 await page.waitForTimeout(400);

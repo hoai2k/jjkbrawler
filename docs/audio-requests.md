@@ -4,7 +4,14 @@
 [audio-requests-history.md](audio-requests-history.md), along with every
 round's audit, prompts and delivery record.
 
-Round 10 was the last of them: the domain moment — a barrier, a room tone, a
+Round 11 was the last of them: **Inumaki's cursed speech** — his three commands
+and his ultimate, spoken in Japanese in a voice cast for him alone, replacing
+the wordless grunt he had been sharing with four other students. It also built
+the general mechanism the domain call-outs had only hinted at: `MOVE_CALL` maps
+any fighter's move to a spoken line, so the next character to get one needs no
+new code.
+
+Round 10 was the one before it: the domain moment — a barrier, a room tone, a
 refusal cue, Dagon's missing sting, and **the eight domain owners saying
 領域展開 and the name of the domain in their own voices**, which are the first
 spoken lines in the game. It landed together with the four sounds Mechamaru,
@@ -16,26 +23,28 @@ This file exists so there is somewhere obvious for the next request to go, and
 so "is any audio still owed?" has a one-line answer rather than an 800-line
 document to read.
 
-**Voice is where the next request would go.** Every fighter has a grunt trio
-and a KO cry, and the eight domain owners now have their call-out; nobody has
+**Voice is where the next requests go.** Every fighter has a grunt trio and a
+KO cry, and the eight domain owners have their call-out; nobody has
 per-character technique call-outs beyond that. A full pass is 27 fighters ×
-lines and should be scoped on its own — round 10A is the first, smallest slice
-of it, and `tools/generate_voice.py` is the route it proved.
+lines and should be scoped on its own — round 10A was the first slice of it and
+round 11 the second. `tools/generate_voice.py` is the route both used, and
+`MOVE_CALL` (`src/config_audio.js`) is now the wiring any further slice needs:
+a row per move, no new code.
 
 ## Where the game actually is
 
 | | |
 |---|---|
-| Sound files | **111** referenced, in `assets/sfx/` |
-| Registry keys | **99** in `SFX` (`src/config_audio.js`) |
-| With a generation prompt on file | **110 of 111** — `sound_shield.mp3` predates the rounds and has none |
+| Sound files | **115** referenced, in `assets/sfx/` |
+| Registry keys | **103** in `SFX` (`src/config_audio.js`) |
+| With a generation prompt on file | **114 of 115** — `sound_shield.mp3` predates the rounds and has none |
 | Fighters with a voice | **27 of 27** — six voice groups, three grunt variants each, plus a matching KO cry |
-| Fighters with a spoken line | **8 of 8** who have a Domain Expansion |
+| Fighters with a spoken line | **9** — the 8 domain owners, plus Inumaki on all four of his commands |
 | Domain Expansions with their own sting | **8 of 8** |
 | Element hit layers | **10 of 10** — fire, blood, steel, wind, sound, shadow, soul, water, machine, swarm |
 | Generic sounds left in `stage_fx.js` | **none** — all 26 calls name a specific hazard sound |
 
-Categories and their mix levels: `combat` (25), `voice` (20), `energy` (14),
+Categories and their mix levels: `combat` (25), `voice` (24), `energy` (14),
 `domain` (13), `hazard` (10), `ui` (8), `stinger` (5), `movement` (4).
 
 The things the original audit was written to fix are all fixed: one explosion no

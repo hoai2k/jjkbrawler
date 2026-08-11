@@ -58,7 +58,8 @@ the moment you get hit. It dims and then blinks as its time runs out.
 | Mechanic | Detail |
 |---|---|
 | Run | Per-character top speed (356–468 px/s) and acceleration |
-| **Dash** | Double-tap a direction within 0.24 s → 1.45× burst for 0.22 s |
+| **Dash** | **Shove the left stick** out from centre (past 0.78 within 0.14 s of leaving the 0.36 rest zone), or double-tap a direction within 0.24 s → 1.45× burst for 0.22 s |
+| **Dash attack** | Light or heavy while running: the run's own committal attack (§4) |
 | Turn lock | Reversing at speed costs 0.08 s of traction — spacing has commitment |
 | Jump | Per-character impulse; **short hop** by releasing jump within ~0.09 s |
 | Double jump | One air jump at 92% power (Momo gets two — broom flight) |
@@ -66,6 +67,16 @@ the moment you get hit. It dims and then blinks as its time runs out.
 | **Fast fall** | Press down while airborne: fall cap rises 1.62× |
 | Crouch | Shrinks the hurtbox; ducks under high projectiles |
 | Platform drop | Down + jump drops through side/top platforms (not the main stage) |
+
+**The dash is a stick input, not a button.** How *fast* the stick leaves centre
+is what separates a dash from a walk — shove it and you dash, roll it out and
+you walk — which is Smash's smash input and the thing a player coming from that
+game tries first. One dash per shove: the stick has to be seen back inside the
+rest zone before another can fire, so holding a direction never machine-guns
+dashes, and yanking the stick across centre is a dash-turn. It is **analog
+only**: a key crosses every threshold in the frame it is pressed, so a keyboard
+cannot tell a shove from a walk and keeps the double tap (`DASH_FLICK` in
+`src/input.js`).
 
 ### Ledges
 Only the main platform has grabbable ledges. Falling near an edge (after real airtime —
@@ -105,11 +116,35 @@ per-character (from their `light`/`heavy` profiles in `src/characters.js`).
 ### Light attacks (fast, low commitment)
 - **Jab combo** — neutral light on the ground: two quick hits into a knockback
   finisher.
-- **Side tilt** — light while moving/dashing: the character's spacing poke.
+- **Side tilt** — the character's spacing poke. On the ground it is a flick of
+  the right stick (the tilt stick), because a light press at a run now has its
+  own attack.
 - **Up tilt** — light + up: anti-air arc.
 - **Down tilt** — light while crouching: low poke, slight launch.
 - **Aerials** — neutral / up / **down air** in midair; down airs are
   **spikes** that launch downward — the edge-guard finisher.
+
+### Dash attacks (the run's own attacks)
+
+Attacking out of a dash or a sprint — either attack button — throws a **dash
+attack** rather than the standing move. Both carry the run through the swing
+(`keepMomentum`, so the slide does not decay the moment the action locks) and
+both are deliberately committal: the trade for reaching with your momentum
+behind you is that you are standing in the recovery afterwards.
+
+| | Light, running | Heavy, running |
+|---|---|---|
+| Damage | 1.1× the side tilt | 0.95× a smash, uncharged |
+| Launch | 330 base / 6.2 growth | 420 base / 8.0 growth |
+| Recovery | ~1.7× the side tilt's | ~1.4× the side smash's |
+| Lunge | 150 | 210 — the running shoulder-charge |
+
+A smash cannot be charged at a run: a charge is a fighter standing still
+deciding to, so the heavy button out of a dash commits to one uncharged swing
+instead of stopping the sprint dead. Nothing was lost from the standing game —
+the side tilt is still one flick of the right stick away. `tools/audit_hitboxes.mjs`
+checks the trade holds for every fighter: a dash attack that recovered faster or
+hit softer than the move it replaces would simply retire the standing game.
 
 ### Heavy attacks (slow, chargeable, shield-hungry)
 - Hold heavy to **charge** up to 0.8 s → up to +55% damage and +25% launch.
@@ -193,8 +228,7 @@ free stock for whoever hits hardest, which is exactly what giving them hit
 points was meant to avoid.
 
 Each one **hunts on its own** the moment it lands, so casting one costs no
-attention. Push the **D-pad** (keyboard: `TFGH` for P1, `8/4/5/6` for P2)
-and you take it over instead — it goes where you point until the stick has been
+attention. Push the **D-pad** and you take it over instead — it goes where you point until the stick has been
 centred for 1.2 s, then resumes hunting. A driven summon is marked with a white
 chevron and moves 15% faster than a hunting one.
 
@@ -344,10 +378,42 @@ hazard can never KO by itself. The CPU steps out of telegraphed zones.
 ## 7. Match structure & options
 
 - Stock battle: 1 / 2 / 3 / 5 stocks (default 3).
+- Match clock: none / 2:00 / 3:00 / 5:00 / 8:00 (default 5:00).
 - **VS CPU** (Easy / Normal / Hard — reaction time, aggression, defense, and a
-  damage handicap all scale) or **2 players local**. Gamepads supported
-  (first pad = P1, second = P2).
-- Pause (Space/Esc/Start), Move List in the pause menu, hitbox debug on `` ` ``.
+  damage handicap all scale) or **local multiplayer** — one gamepad per player,
+  seated on sight, up to four.
+- Pause (Start), Move List in the pause menu, hitbox debug on `` ` ``.
+
+### The clock, and sudden death
+
+A stock match with no clock cannot be made to end: two players who refuse to
+approach each other, or a CPU that has decided to keep its distance, run
+forever. The limit is a backstop for that rather than the normal way a match
+finishes — every option is longer than a fight that is actually being fought,
+and "none" stays available for a friendly match that wants to keep going.
+
+When it runs out the side ahead on **stocks** takes it, and on level stocks the
+side that has taken **less damage**. A dead heat on both is played off instead
+of being called a draw: the tied fighters get one stock each at 150%, the clock
+stops, and the next clean hit ends it.
+
+Both readings are per SIDE rather than per fighter, so a team match is decided
+the same way it is won — `standings()` in `src/main.js` groups by `f.team`, and
+a free-for-all gives everyone a side of their own so the same comparison
+handles both shapes.
+
+### The result screen
+
+Every fighter's match is tallied on the fighter itself (`f.tally`, built in
+`makeFighter` so a rematch clears it) and shown in finishing order: damage
+dealt and taken, KOs, falls and best combo, ordered by the same stocks-then-
+damage comparison the clock uses. In a Battle Royal that ordering is the
+placement list — with eight fighters, "Gojo wins" otherwise leaves seven
+players with no idea how they did.
+
+A KO is credited to whoever last landed a hit within the previous four seconds.
+Walking off the edge on your own therefore scores nobody a KO, which is the
+honest reading of a self-destruct.
 
 ### Match modes
 
@@ -378,26 +444,27 @@ with the side it fights for.
 ## 8. Controls
 
 <!-- controls-table:start (generated by tools/check_controls.mjs — do not edit) -->
-| Action | P1 | P2 | Gamepad |
-|---|---|---|---|
-| Move | A / D | ◀ / ▶ | Left stick |
-| Jump | W | ▲ | A |
-| Crouch / fast-fall | S | ▼ | Left stick ▼ |
-| Light attack | J | , or Numpad 1 | X |
-| Heavy attack (hold = charge) | K | . or Numpad 2 | Y |
-| Special | L | / or Numpad 3 | RT |
-| Dash | Q, or double-tap a direction | \, or double-tap a direction | B, or double-tap |
-| Ultimate | I | ' or Numpad 0 | RB |
-| Domain Expansion | U | ; or Numpad 5 | LB |
-| Shield / dodges | Left Shift | Right Shift or Numpad Enter | LT |
-| Tilt attacks (no run-up) | — | — | Right stick |
-| Steer summons / aim creature shots | T / F / G / H | 8 / 4 / 5 / 6 | D-pad |
-| Pause | Space / Esc | — | Start |
+| Action | Gamepad |
+|---|---|
+| Move | Left stick |
+| Jump | A or RT |
+| Crouch / fast-fall | Left stick ▼ |
+| Light attack | X |
+| Heavy attack (hold = charge) | Y |
+| Special | B |
+| Dash | Shove the stick, or double-tap |
+| Dash attack | Light or heavy, while running |
+| Ultimate | RB |
+| Domain Expansion | LB |
+| Shield / dodges | LT |
+| Tilt attacks (no run-up) | Right stick |
+| Steer summons / aim creature shots | D-pad |
+| Pause | Start |
 <!-- controls-table:end -->
 
 **This table is generated.** `src/config_controls.js` is the single control map:
-`input.js` builds its snapshots from it, the in-game move list builds its
-keyboard lines and pad tips from it, and `tools/check_controls.mjs` (part of
+`input.js` builds its snapshots from it, the in-game move list builds its pad
+diagram and tips from it, and `tools/check_controls.mjs` (part of
 `npm run check`) regenerates this table and README's from it and fails if either
 has drifted. Change a binding there and everything that describes it follows —
 `node tools/check_controls.mjs --fix` writes the tables.
@@ -422,10 +489,17 @@ aerial for that direction. Held rather than flicked it still angles a charging
 side smash on release; a charging fighter cannot act, so aiming never becomes an
 attack. Summon steering moved to the D-pad when the stick took this job.
 
-**Special is the right trigger and B dashes.** Special used to be B while LT and
-RT were both shield, which spent a face button and a trigger on two things that
-never needed both. Double-tap still dashes, on pad and keyboard alike — the
-button is a second way in, not a replacement.
+**Special is B, and dash is a double-tap again.** Special spent one mapping on
+the right trigger with dash on B, and it is back where it started: special is
+pressed constantly and wants a face button under the thumb, while dash has a
+motion — double-tap a direction — that has always worked and never needed a
+button of its own.
+
+**The right trigger is a second jump.** Not a new action: jump is the one input
+a player wants while the thumb is already on an attack button, and the right
+index finger is free at exactly that moment. A binding may name several buttons
+(`PAD_BUTTONS` in `src/config_controls.js`); they merge by OR, and the first is
+the one the pad diagram calls that action's home.
 
 ## 9. Hitboxes vs. visuals
 

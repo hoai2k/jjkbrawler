@@ -1,4 +1,6 @@
 // Central mutable game state shared by every module.
+import { DEFAULT_TIME_LIMIT } from "./constants.js";
+
 export const state = {
   phase: "loading", // loading | menu | stageSelect | moves | playing | paused | roundOver | settings
   prevPhase: "menu",
@@ -9,6 +11,8 @@ export const state = {
   // versus (free-for-all) | playersVsCpus (teams) | royal1 | royal2 (extra CPUs).
   matchMode: "versus",
   stocks: 3,
+  // "Time limit" (Settings), in seconds; 0 is no limit. See TIME_OPTIONS.
+  timeLimit: DEFAULT_TIME_LIMIT,
   // "Sound Effects" (Settings): the whole SFX bus. Off silences every one-shot
   // and the shield loop; music is a separate setting.
   sfxEnabled: true,
@@ -54,6 +58,14 @@ export const state = {
   domain: null,        // the live Domain Expansion entity, or null (domains.js)
 
   matchTime: 0,
+  // Seconds left on the match clock, counted down while the fight is live.
+  // Meaningless when `timeLimit` is 0 — nothing reads it in that case.
+  timeLeft: 0,
+  // Set once the clock has run out on a tie and the play-off is running: the
+  // clock stops, and the result screen says how the match was decided.
+  suddenDeath: false,
+  // How the match ended, for the result screen: "ko" | "time" | "suddenDeath".
+  endReason: "ko",
   debugHitboxes: false,
   // Mirrors of main.js's round countdown / round end timers, written each sim
   // step. Read-only for everyone else; the 2.5D camera rig keys its intro

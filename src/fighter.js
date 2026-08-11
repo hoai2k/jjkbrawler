@@ -79,6 +79,18 @@ export function makeFighter(id, charKey, x, facing) {
     // read it to find their owner's aim pad (see summons.js).
     lastInput: null,
     winner: false,
+    // What this fighter did with the match, for the result screen. Built here
+    // rather than in a side table so it is cleared by the same reset that
+    // builds the fighter — a rematch starts from zero without anyone
+    // remembering to empty anything.
+    tally: { dealt: 0, taken: 0, kos: 0, falls: 0, biggestHit: 0, bestCombo: 0 },
+    // The combo this fighter is currently BUILDING, as the attacker: how many
+    // hits, who they are on, and how long the chain stays open (combat.js).
+    combo: 0, comboT: 0, comboTarget: null,
+    // Who last hit this fighter and how long that credit stands. A ring-out is
+    // scored to whoever put them off the stage, which is not necessarily
+    // whoever is nearest when they cross the blast line.
+    lastHitBy: null, lastHitT: 0,
   };
 }
 
@@ -127,7 +139,12 @@ function beginAction(f, kind, dur, anim, opts = {}) {
 
 function executeMove(f, move, opts = {}) {
   const total = move.delay + move.dur + move.recover;
-  beginAction(f, "attack", total, move.anim, { move });
+  // `keepMomentum` travels from the move onto the action because it is the
+  // MOVE that knows whether it slides: a grounded attack otherwise bleeds its
+  // speed off the moment it locks movement, which is right for a tilt thrown on
+  // the spot and wrong for a dash attack, whose whole idea is the run carrying
+  // through the swing.
+  beginAction(f, "attack", total, move.anim, { move, keepMomentum: move.keepMomentum });
   if (move.lungeVx && f.grounded) f.vx += f.facing * move.lungeVx * 3;
   spawnMelee(f, {
     ...move,
@@ -144,8 +161,11 @@ function beginLight(f, input) {
     variant = "down";
   } else if (input.up) {
     variant = "up";
-  } else if (f.dashT > 0 || Math.abs(f.vx) > stats(f).speed * 0.7) {
-    variant = "side";
+  } else if (isRunning(f)) {
+    // A light press at a run is the DASH ATTACK, not a side tilt. The tilt is
+    // still one flick of the right stick away (beginTilt), which is the whole
+    // reason the run can afford to have its own attack: nothing was lost.
+    variant = "dash";
   } else {
     // jab chain
     if (f.jabResetT <= 0) f.jabStep = 0;
@@ -182,9 +202,26 @@ function beginTilt(f, dir) {
   executeMove(f, lightMove(f.char, dir === "up" ? "up" : "down"));
 }
 
+/** Moving fast enough on the ground to have a run's attacks rather than a
+ *  standing fighter's — the initial dash, or a sprint that has kept its speed
+ *  after it. One definition, so the light and heavy dash attacks can never
+ *  disagree about when a fighter is running. */
+function isRunning(f) {
+  return f.grounded && (f.dashT > 0 || Math.abs(f.vx) > stats(f).speed * 0.7);
+}
+
 function beginHeavy(f, input) {
   if (!f.grounded) {
     executeMove(f, heavyMove(f.char, "air"));
+    return;
+  }
+  // Out of a run the heavy button throws its dash attack instead of planting
+  // for a charge: a smash is a fighter standing still deciding to, and stopping
+  // a sprint dead to start one is not a decision anybody was making on purpose.
+  // Holding a direction does not change it — up and down smashes are standing
+  // moves, and at a run the input already means "keep going that way".
+  if (isRunning(f) && !f.crouching) {
+    executeMove(f, heavyMove(f.char, "dash"), { grunt: true });
     return;
   }
   const variant = input.down || f.crouching ? "down" : input.up ? "up" : "side";
@@ -403,6 +440,13 @@ function startDash(f, dir) {
 export function ringOut(f) {
   const opp = opponentOf(f);
   f.stocks -= 1;
+  // Result-screen bookkeeping. The KO is credited to whoever last hit them
+  // while that credit still stands (combat.js) — a fighter who walked off the
+  // edge on their own scores nobody a KO, which is the honest reading of a
+  // self-destruct.
+  f.tally.falls += 1;
+  const killer = f.lastHitT > 0 ? f.lastHitBy : null;
+  if (killer && killer !== f) killer.tally.kos += 1;
   playSfx("launch", 1);
   playKoCry(f.charKey);
   rumbleEvent(f, "ko");
@@ -857,13 +901,26 @@ export function updateFighter(f, dt, input) {
   const frPow = state.stageMods.frictionPow || 1;
   const friction = frPow === 1 ? st.friction : Math.pow(st.friction, frPow);
 
-  // The dash BUTTON. Same dash the double tap starts, reachable without
-  // spending a direction on it — which matters most for the thing double tap
-  // is worst at: dashing the way you are already walking, where the second tap
-  // has to come after a release the player did not want to make. Neutral
-  // dashes the way the fighter faces, so it is never a no-op.
+  // The dash BUTTON — keyboard only. No pad button is bound to dash any more
+  // (`PAD_BUTTONS` in config_controls.js): B went back to special, and dash
+  // has the double tap below, which is how it has always mostly been played.
+  // The branch stays because the keyboard keeps its key and because a pad
+  // binding is one line away if the double tap ever proves not to be enough.
+  // Neutral dashes the way the fighter faces, so it is never a no-op.
   if (!locked && !f.crouching && f.grounded && input.dashP) {
     startDash(f, input.dirX || f.facing);
+  }
+
+  // The stick shove (input.js, DASH_FLICK): the pad's dash, and the one a
+  // player coming from Smash will try first. Facing is set HERE rather than
+  // left to the movement block below, because that block will not turn a
+  // fighter who is already dashing — and on a flick fast enough to cross the
+  // walk threshold and the dash threshold in one sample, the dash is already
+  // running by the time it would have. A dash attack that lunged the way the
+  // fighter happened to be looking is the bug that costs.
+  if (!locked && !f.crouching && f.grounded && input.dashFlick) {
+    if (!inHitstun) f.facing = input.dashFlick;
+    startDash(f, input.dashFlick);
   }
 
   if (!locked && !f.crouching) {

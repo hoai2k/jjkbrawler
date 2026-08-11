@@ -1,18 +1,20 @@
 # Audio Requests — history
 
-Record of the sound-effect rounds that have been **delivered and integrated**.
-Nothing in this file is outstanding; open requests, if there ever are any
-again, live in [audio-requests.md](audio-requests.md).
+Record of the sound and voice rounds that have been **delivered and
+integrated**. Nothing in this file is outstanding; open requests, if there ever
+are any again, live in [audio-requests.md](audio-requests.md).
 
-**All 111 files delivered and wired in** — 81 in the round-8 pass below, the
-15-file element and signature round after it, and then the 15 of round 10 (the
+**All 115 files delivered and wired in** — 81 in the round-8 pass below, the
+15-file element and signature round after it, then the 15 of round 10 (the
 domain moment, including this project's first spoken lines) together with the
-four sounds the staged fighters were owed. Filenames below say `.wav`; what
-ships is the same name as **`.mp3`** (128 kbps) — a browser has to download
-these, and MP3 is about a fifth the size. Generated with the ElevenLabs
-sound-generation API from the prompts below, then trimmed, length-capped and
-peak-normalised to -3 dBFS automatically. The registry, mix and categories live
-in `src/config_audio.js`.
+four sounds the staged fighters were owed, and finally round 11's four:
+Inumaki's cursed speech. Filenames below say `.wav`; what ships is the same
+name as **`.mp3`** (128 kbps) — a browser has to download these, and MP3 is
+about a fifth the size. Generated with the ElevenLabs API from the entries
+below — the sound-generation endpoint for effects, text-to-speech for the
+spoken lines — then trimmed, peak-normalised to -3 dBFS and length-capped
+automatically, except for loops and spoken lines, which are never cut to
+length. The registry, mix and categories live in `src/config_audio.js`.
 
 ## This file is still live input, not just a record
 
@@ -931,6 +933,126 @@ so adding those three rows was part of landing the files, and is done.
 
 ---
 
+## Round 11 — Inumaki's cursed speech *(open)*
+
+**Inumaki is the one fighter whose entire kit is his voice**, and he is
+currently the loudest argument for this round: every one of his four commands
+fires a wordless young-male grunt shared with four other students. A character
+whose technique *is* speech should not be the one who never speaks.
+
+Four lines. Each is the command itself, in Japanese, spoken by him — the same
+shape as the domain call-outs, one file per move.
+
+**The on-screen text stays English.** The banner still reads `BLAST AWAY`, the
+move list still reads "Blast Away". This round changes what he *sounds* like,
+not what the game says — the same split the show uses, where the subtitle is
+English and the command is not.
+
+| Key | File | Move | Command | Kana | The read |
+|---|---|---|---|---|---|
+| `callInumakiBlastAway` | `call_inumaki_blast_away.mp3` | neutral special | ぶっとべ *Buttobe* | ぶっとべ | Hard and percussive, all in one push. The concussive one |
+| `callInumakiDontMove` | `call_inumaki_dont_move.mp3` | side special | 動くな *Ugokuna* | うごくな | Flat, clipped, absolutely certain. Not shouted — a command does not need volume to be obeyed |
+| `callInumakiGetCrushed` | `call_inumaki_get_crushed.mp3` | down special | 潰れろ *Tsuburero* | つぶれろ | Low and forced out, heavier than the other two. This one costs him two strain |
+| `callInumakiUltimate` | `call_inumaki_ultimate.mp3` | ultimate | 捻れろ、ぶっとべ *Nejirero, Buttobe* | ねじれろ、ぶっとべ | Torn out of a throat that is about to give. The ult is a stage-buckling scream and this is the last thing that throat does |
+
+**The Japanese is the canon command list**, checked against
+[Cursed Speech on the fandom wiki](https://jujutsu-kaisen.fandom.com/wiki/Cursed_Speech)
+the same way round 10's domain names were. All four map to attested commands
+rather than translated English:
+
+- 爆ぜろ *Hazero* (Explode), 捻れろ *Nejirero* (Get Twisted), 潰れろ *Tsuburero*
+  (Get Crushed), 堕ちろ *Ochiro* (Crumble Away), 動くな *Ugokuna* (Don't Move),
+  眠れ *Nemure* (Sleep), 戻れ *Modore* (Return), 逃げろ *Nigero* (Run Away),
+  止まれ *Tomare* (Stop), ぶっとべ *Buttobe* (Blast Away), 死ね *Shine* (Die).
+- **The ultimate is the only constructed line**, and it is constructed out of
+  two attested commands rather than invented grammar: the move is called "GET
+  TWISTED AND BLAST AWAY", so it is 捻れろ then ぶっとべ, spoken as two
+  commands in sequence.
+- **One deliberate departure from the wiki.** Its kana field for Blast Away
+  reads ぶ**つ**とべ, which a synthesiser pronounces *butsutobe*. Its own romaji
+  on the same row says *Buttobe*, and the small tsu is what makes that sound,
+  so these entries use ぶ**っ**とべ. The wiki is the authority on *which* command
+  it is; it is not the authority on a typo in its own furigana.
+
+**Cast to a voice nobody else uses.** Eight voices are already spoken for by
+the domain owners; reusing one would put Inumaki's mouth on Yuta's or Megumi's
+line the first time both appear in a match.
+
+**`call_inumaki_blast_away.wav`** · Inumaki — "Blast Away" · voice `EbuvaInXUGWtpYRUnKLQ` *(Sawaro — young Japanese voice actor)* · 1.2 s
+```
+[shouting] ぶっとべ！
+```
+
+**`call_inumaki_dont_move.wav`** · Inumaki — "Don't Move" · voice `EbuvaInXUGWtpYRUnKLQ` *(Sawaro)* · 1.2 s
+```
+[firmly] うごくな。
+```
+
+**`call_inumaki_get_crushed.wav`** · Inumaki — "Get Crushed" · voice `EbuvaInXUGWtpYRUnKLQ` *(Sawaro)* · 1.5 s
+```
+[low and forceful] つぶれろ！
+```
+
+**`call_inumaki_ultimate.wav`** · Inumaki — "Get Twisted and Blast Away" · voice `EbuvaInXUGWtpYRUnKLQ` *(Sawaro)* · 2.0 s
+```
+[screaming] ねじれろ！ ぶっとべ！！
+```
+
+### What this needs in code
+
+Unlike round 10, **this round is not already wired** — there is no per-move
+call-out mechanism yet, only the per-character domain one. What it needs is
+small and is the general form of the thing `DOMAIN_CALL` does for domains:
+
+- A `MOVE_CALL` map in `src/config_audio.js`, keyed by character and then by
+  the move's own `name`, so it reads like the character sheet and survives a
+  slot being reshuffled.
+- `playGrunt(charKey, callKey)` takes an optional call, and plays it *instead*
+  of the grunt when one is registered — the same "a line replaces the wordless
+  shout" rule the domain call-outs established, so a delivered line never
+  doubles up with a grunt.
+- The 22 `playGrunt` sites in `src/specials.js` pass the move's call, and
+  `cinematic()` in `src/ultimates.js` does the same for the ultimate. The
+  grunt stays exactly where it is in each handler rather than being hoisted:
+  four of those handlers only reach it after an early return, so a move that
+  bails still makes no sound.
+
+Any fighter who ever gets a line uses the same map; nothing here is
+Inumaki-shaped except the rows in it.
+
+---
+
+### Delivery record
+
+Delivered and wired in. All four peak-normalised to about -3 dBFS and encoded
+to mono MP3, like every file before them.
+
+| File | Brief | Delivered |
+|---|---|---|
+| `call_inumaki_blast_away.mp3` | 1.2 s | 1.14 s |
+| `call_inumaki_dont_move.mp3` | 1.2 s | 0.73 s |
+| `call_inumaki_get_crushed.mp3` | 1.5 s | 0.97 s |
+| `call_inumaki_ultimate.mp3` | 2.0 s | 2.10 s |
+
+**Two of his four moves turned out never to have made a sound at all.** The
+request assumed all four fired the shared grunt; in fact only "Don't Move"
+(a `projectile`) and the ultimate (via `cinematic()`) reached `playGrunt`.
+`shout` and `crush` — his neutral and down specials, and the two loudest things
+he does — were the only handlers in `specials.js` that never called it. Both
+types are his alone, so adding the call there changed nothing for anyone else.
+
+**`MOVE_CALL` is the reusable half of this round.** It keys a spoken line by
+character and then by the move's own `name`, and `playGrunt(charKey, moveName)`
+plays it *instead* of the grunt. The 20 `playGrunt` sites in `specials.js` pass
+the move they already have; the grunt stayed where it was in each handler
+rather than being hoisted into `performSpecial`, because four of them only
+reach it after an early return and a move that bails should still be silent.
+A row naming a move that does not exist is checked at load and warned about
+(`validateMoveCalls` in `audio.js`), because the symptom otherwise is a line
+that was recorded, registered and silent.
+
+---
+
 ## Round 10 — delivery record
 
 Delivered and wired in, in one pass with the four sounds the staged fighters
@@ -1028,6 +1150,7 @@ Totals: **68 files** for tiers 1–6, plus 13 optional. Tiers 1–3 alone
 | 9 — element layers + signatures | 15 | ☑ | ☑ |
 | 10 — the domain moment (8 voice + 4 sfx) | 12 | ☑ | ☑ |
 | 15 leftovers — owed element layers + Dagon's sting | 3 (+1 in round 10) | ☑ | ☑ |
+| 11 — Inumaki's cursed speech | 4 | ☑ | ☑ |
 
 All 26 sound calls in `src/stage_fx.js` now name a specific sound; no generic
 key is left in that file. Two hazards that were audible only when they

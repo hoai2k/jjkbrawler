@@ -100,10 +100,12 @@ function drawBackdrop(ctx) {
     const h = img.height * scale;
     ctx.drawImage(img, (WORLD.w - w) / 2, (WORLD.h - h) / 2, w, h);
   } else {
-    const grad = ctx.createLinearGradient(0, 0, 0, WORLD.h);
-    grad.addColorStop(0, "#141b33");
-    grad.addColorStop(1, "#05070f");
-    ctx.fillStyle = grad;
+    ctx.fillStyle = cachedGradient("backdrop", () => {
+      const grad = ctx.createLinearGradient(0, 0, 0, WORLD.h);
+      grad.addColorStop(0, "#141b33");
+      grad.addColorStop(1, "#05070f");
+      return grad;
+    });
     ctx.fillRect(0, 0, WORLD.w, WORLD.h);
   }
   ctx.fillStyle = "rgba(3, 5, 12, 0.30)";
@@ -120,6 +122,49 @@ function drawPlatforms(ctx) {
 // against, rather than an approximation that could drift from the game.
 // Active Boards may tag a platform: `ghost` (phased out — skeletal outline,
 // no collision), `shakeMag` (crumble tremor), `accent` (edge-light override).
+// Canvas gradients are objects the context builds on demand, and several of the
+// ones below were being rebuilt every frame out of values that never change: a
+// stage with forty platforms allocated forty gradients a frame for six fixed
+// colours, and the two full-screen vignettes rebuilt theirs on every frame they
+// were visible. They are memoised here instead, keyed by everything that shapes
+// them.
+//
+// Gradient coordinates are resolved against the transform in force when the
+// gradient is USED, not when it is built — which is what lets a platform's
+// gradient be built once in its own 0..w space and then be moved to wherever
+// that platform currently is (see below). That is the whole trick, and it is
+// why moving platforms do not defeat this.
+const gradientCache = new Map();
+
+function cachedGradient(key, build) {
+  let grad = gradientCache.get(key);
+  if (!grad) {
+    // Nothing here has an unbounded key space — platform widths, character
+    // themes — but a cache that can only grow is a leak waiting for a stage
+    // that does something unexpected, so it resets rather than climbing.
+    if (gradientCache.size > 200) gradientCache.clear();
+    grad = build();
+    gradientCache.set(key, grad);
+  }
+  return grad;
+}
+
+function platformGradient(ctx, kind, w) {
+  return cachedGradient(`plat:${kind}:${Math.round(w)}`, () => {
+    const grad = ctx.createLinearGradient(0, 0, w, 0);
+    if (kind === "main") {
+      grad.addColorStop(0, "#263044");
+      grad.addColorStop(0.5, "#111827");
+      grad.addColorStop(1, "#4d3a19");
+    } else {
+      grad.addColorStop(0, "#1d2739");
+      grad.addColorStop(0.5, "#111827");
+      grad.addColorStop(1, "#2a2f3f");
+    }
+    return grad;
+  });
+}
+
 export function drawPlatformShape(ctx, p) {
   ctx.save();
   if (p.shakeMag) ctx.translate((Math.random() - 0.5) * p.shakeMag, (Math.random() - 0.5) * p.shakeMag * 0.5);
@@ -137,19 +182,14 @@ export function drawPlatformShape(ctx, p) {
   roundRect(ctx, p.x + 8, p.y + 12, p.w, p.h, 8);
   ctx.fill();
 
-  const grad = ctx.createLinearGradient(p.x, p.y, p.x + p.w, p.y);
-  if (p.kind === "main") {
-    grad.addColorStop(0, "#263044");
-    grad.addColorStop(0.5, "#111827");
-    grad.addColorStop(1, "#4d3a19");
-  } else {
-    grad.addColorStop(0, "#1d2739");
-    grad.addColorStop(0.5, "#111827");
-    grad.addColorStop(1, "#2a2f3f");
-  }
-  ctx.fillStyle = grad;
-  roundRect(ctx, p.x, p.y, p.w, p.h, 8);
+  // Moved to the platform rather than rebuilt at it: the cached gradient spans
+  // 0..w in local space and the translate places it.
+  ctx.save();
+  ctx.translate(p.x, 0);
+  ctx.fillStyle = platformGradient(ctx, p.kind, p.w);
+  roundRect(ctx, 0, p.y, p.w, p.h, 8);
   ctx.fill();
+  ctx.restore();
 
   ctx.strokeStyle = p.accent || (p.kind === "main" ? "rgba(255, 211, 92, 0.55)" : "rgba(97, 216, 255, 0.45)");
   ctx.lineWidth = 2;
@@ -947,10 +987,12 @@ function drawDomainOverlay(ctx) {
   const a = clamp(d.life / d.maxLife, 0, 1);
   ctx.save();
   ctx.globalAlpha = Math.min(0.26, a * 0.3);
-  const grad = ctx.createRadialGradient(640, 360, 420, 640, 360, 900);
-  grad.addColorStop(0, "rgba(0,0,0,0)");
-  grad.addColorStop(1, d.color);
-  ctx.fillStyle = grad;
+  ctx.fillStyle = cachedGradient(`domain:${d.color}`, () => {
+    const grad = ctx.createRadialGradient(640, 360, 420, 640, 360, 900);
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(1, d.color);
+    return grad;
+  });
   ctx.fillRect(0, 0, WORLD.w, WORLD.h);
   ctx.restore();
 }
@@ -972,13 +1014,15 @@ function drawVignette(ctx) {
   if (!v) return;
   ctx.save();
   ctx.globalAlpha = clamp(v.life / v.maxLife, 0, 1) * v.alpha;
-  const g = ctx.createRadialGradient(
-    WORLD.w / 2, WORLD.h / 2, WORLD.h * 0.32,
-    WORLD.w / 2, WORLD.h / 2, WORLD.w * 0.62,
-  );
-  g.addColorStop(0, colorAlpha(v.color, 0));
-  g.addColorStop(1, v.color);
-  ctx.fillStyle = g;
+  ctx.fillStyle = cachedGradient(`vignette:${v.color}`, () => {
+    const g = ctx.createRadialGradient(
+      WORLD.w / 2, WORLD.h / 2, WORLD.h * 0.32,
+      WORLD.w / 2, WORLD.h / 2, WORLD.w * 0.62,
+    );
+    g.addColorStop(0, colorAlpha(v.color, 0));
+    g.addColorStop(1, v.color);
+    return g;
+  });
   ctx.fillRect(0, 0, WORLD.w, WORLD.h);
   ctx.restore();
 }

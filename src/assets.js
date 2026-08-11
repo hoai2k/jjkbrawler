@@ -1,7 +1,8 @@
 import { CHARACTER_KEYS, actorsFor } from "./characters.js";
 import { applyAllHeightScales } from "./heights.js";
 import { applySharedSpriteScales } from "./shared_sprites.js";
-import { STAGES } from "./stages.js";
+import { STAGES, backgroundFile } from "./stages.js";
+import { cameraMode } from "./camera_mode.js";
 import { transformActorsFor } from "./config_transform.js";
 import { SUMMON_ART, SUMMON_POSES } from "./config_summons.js";
 
@@ -441,7 +442,15 @@ export async function loadCoreAssets() {
   // paths had moved. An index that can go stale independently of what it
   // indexes is the whole bug; the images themselves are content-addressed by
   // name and can cache normally.
-  const manifestRes = await fetch(assetUrl(`${CHAR_SPRITE_DIR}manifest.json`), { cache: "no-cache" });
+  const manifestUrl = assetUrl(`${CHAR_SPRITE_DIR}manifest.json`);
+  const manifestRes = await fetch(manifestUrl, { cache: "no-cache" });
+  // Checked before parsing. A 404 here is served as an HTML error page, so
+  // going straight to .json() reported the problem as `Unexpected token '<'` —
+  // a JSON syntax error on the one screen a player sees when everything is
+  // broken, describing nothing that is actually wrong.
+  if (!manifestRes.ok) {
+    throw new Error(`sprite manifest ${manifestRes.status} at ${manifestUrl}`);
+  }
   spriteManifest = await manifestRes.json();
   // Sheet art is drawn facing RIGHT by default (verified against every
   // character's run row). `nativeLeft` lists the exceptions that are drawn
@@ -502,7 +511,14 @@ function groupJobs(id) {
 
   if (id.startsWith("stage:")) {
     const stage = STAGES.find((s) => s.key === id.slice(6));
-    if (stage) add(`bg:${stage.key}`, `assets/backgrounds/${stage.bgFile}`);
+    // One plate per board, not two: which of the stage's two paintings is the
+    // backdrop is a property of the camera, not of the frame being drawn, so it
+    // is decided here and both renderers keep asking for `bg:<key>`. The mode
+    // is settled in init() before any group is requested — the 3D module is
+    // imported and its WebGL context proved before the loader starts — so this
+    // reads the camera the match will actually run, never a default that is
+    // about to change under it.
+    if (stage) add(`bg:${stage.key}`, backgroundFile(stage, cameraMode !== "3d"));
     return jobs;
   }
 

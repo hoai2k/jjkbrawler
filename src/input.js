@@ -5,6 +5,7 @@
 // are generated from. Nothing in this module hard-codes a button.
 
 import { KEY_BINDS, PAD_BUTTONS, PAD_AXES } from "./config_controls.js";
+import { noteGamepadGesture } from "./audio.js";
 
 const held = new Set();
 const pressed = new Set();
@@ -61,7 +62,14 @@ export function initInput() {
     held.add(code);
   });
   window.addEventListener("keyup", (e) => held.delete(codeOf(e)));
-  window.addEventListener("blur", () => held.clear());
+  window.addEventListener("blur", clearHeldKeys);
+}
+
+/** Drop every held key. Called when the window loses focus and when the tab is
+ *  hidden, so a fighter does not keep running in a direction the player let go
+ *  of in a window that is no longer listening. */
+export function clearHeldKeys() {
+  held.clear();
 }
 
 export function keyPressed(code) {
@@ -90,8 +98,14 @@ export function readGamepads() {
       padSeats.set(pad.index, padSeats.size + 1);
     }
     const prev = padNow.get(pad.index) || [];
+    const now = pad.buttons.map((b) => b.pressed);
     padPrev.set(pad.index, prev);
-    padNow.set(pad.index, pad.buttons.map((b) => b.pressed));
+    padNow.set(pad.index, now);
+    // A pad button going down is a user gesture, and it is the ONLY one a
+    // controller-only player ever makes: the browser fires no pointer or key
+    // event for it, so without this the autoplay lock never opens and the whole
+    // session is silent. Cheap to test — this only looks until the first press.
+    if (now.some((down, i) => down && !prev[i])) noteGamepadGesture();
   }
   // Never falls: a seat, once taken, is that player's for the session. A pad
   // that drops out mid-menu (a flat battery, a kicked cable) must not silently
@@ -102,6 +116,22 @@ export function readGamepads() {
 
 export function joinedPlayerCount() {
   return joinedPlayers;
+}
+
+/** Seats that were taken by a pad at some point this session but whose pad is
+ *  not answering right now — a flat battery, a kicked cable, a sleeping pad.
+ *
+ *  Seats are sticky (see readGamepads), so this is the only way to tell the
+ *  difference between "player 3 never joined" and "player 3's controller just
+ *  died". A match needs that difference: the second case leaves a fighter with
+ *  no input source at all, which reads as a frozen dummy standing in the
+ *  stage until something kills it. */
+export function disconnectedSeats(upToSeat = 4) {
+  const out = [];
+  for (const seat of padSeats.values()) {
+    if (seat <= upToSeat && !padFor(seat)) out.push(seat);
+  }
+  return out.sort((a, b) => a - b);
 }
 
 export function connectedPadCount() {
@@ -125,20 +155,33 @@ function padFor(playerId) {
   return null;
 }
 
-function padButton(pad, i) {
-  return !!pad.buttons[i]?.pressed;
+// A binding in PAD_BUTTONS is an index, a LIST of indices, or an empty list —
+// so every read goes through the same widening. Several buttons merge by OR
+// (a second jump button is a second way to jump, not a chord), and an empty
+// binding is simply never pressed, which is how dash lives on double-tap alone
+// without a special case at every call site.
+const indices = (spec) => (Array.isArray(spec) ? spec : [spec]);
+
+function padButton(pad, spec) {
+  return indices(spec).some((i) => !!pad.buttons[i]?.pressed);
 }
 
-function padButtonPressed(pad, i) {
+function padButtonPressed(pad, spec) {
   const now = padNow.get(pad.index) || [];
   const prev = padPrev.get(pad.index) || [];
-  return !!now[i] && !prev[i];
+  // Per button, so holding A and then tapping RT still reads as a fresh press.
+  return indices(spec).some((i) => !!now[i] && !prev[i]);
 }
 
 // Buttons and axes come from PAD_BUTTONS / PAD_AXES in config_controls.js.
 // The layout they describe, and why:
 //
-//   A jump · B dash · X light · Y heavy · LT shield · RT special
+//   A jump · B special · X light · Y heavy · LT shield · RT jump again
+//   Dash has no button: double-tap a direction. It briefly had B, which is the
+//     button special wants — special is pressed constantly and dash has a
+//     motion that has always worked.
+//   RT is a SECOND jump rather than a new action. Jump is the one input a
+//     player wants while the thumb is already on an attack button.
 //   LB Domain Expansion · RB ultimate — the two supers, one shoulder each, so
 //     neither can be pressed by accident while reaching for the other. Domain
 //     used to be the whole d-pad, which was four buttons spent on a move only
@@ -152,6 +195,43 @@ function padButtonPressed(pad, i) {
 // for that direction. Held rather than flicked, it still angles a charged side
 // smash on release; a charge cannot act, so aiming one never fires a tilt.
 const TILT_DEADZONE = 0.62;
+
+// The DASH FLICK, on the left stick — Smash's smash input. Shove the stick from
+// near neutral out past `fire` inside `window` seconds and the fighter dashes;
+// roll it out there at any gentler pace and they walk. Speed of the input, not
+// its distance, is what separates the two, which is why this needs the clock
+// and a tap threshold cannot do it.
+//
+// ANALOG ONLY. A key crosses every threshold in the same frame it is pressed,
+// so on a keyboard a shove and a walk are the same event and cannot be told
+// apart; keys keep the double tap, which is a timing the player performs rather
+// than one the hardware has to report.
+//
+// `rest` is generous (0.36) because the stick has to be seen returning through
+// it: a dash-turn is a player yanking the stick across centre, and if the
+// window only counted a true zero the sample between the two extremes would
+// often miss it.
+const DASH_FLICK = { rest: 0.36, fire: 0.78, window: 0.14 };
+const dashFlickState = new Map(); // pad index -> { restAt: seconds, fired: bool }
+
+/** -1, 1 or 0 — the direction of a fresh dash flick, for ONE frame. */
+function dashFlick(pad, x) {
+  const now = performance.now() / 1000;
+  const st = dashFlickState.get(pad.index) || { restAt: now, fired: false };
+  const mag = Math.abs(x);
+  let dir = 0;
+  if (mag < DASH_FLICK.rest) {
+    // Home again: the clock for the next flick starts here, and the last one is
+    // spent — one dash per shove, however long the stick is then held.
+    st.restAt = now;
+    st.fired = false;
+  } else if (!st.fired && mag >= DASH_FLICK.fire && now - st.restAt <= DASH_FLICK.window) {
+    st.fired = true;
+    dir = x < 0 ? -1 : 1;
+  }
+  dashFlickState.set(pad.index, st);
+  return dir;
+}
 
 function padSnapshot(pad) {
   const axX = Math.abs(pad.axes[PAD_AXES.moveX] || 0) > 0.28 ? pad.axes[PAD_AXES.moveX] : 0;
@@ -173,6 +253,7 @@ function padSnapshot(pad) {
     tiltX: Math.abs(tx) > AIM_DEADZONE ? tx : 0,
     tiltY: Math.abs(ty) > AIM_DEADZONE ? ty : 0,
     tiltDir: tiltFlick(pad, tx, ty),
+    dashFlick: dashFlick(pad, pad.axes[PAD_AXES.moveX] || 0),
     jumpP: padButtonPressed(pad, PAD_BUTTONS.jump),
     jumpHeld: padButton(pad, PAD_BUTTONS.jump),
     lightP: padButtonPressed(pad, PAD_BUTTONS.light),
@@ -224,6 +305,9 @@ function keysSnapshot(map) {
     // No keyboard tilt stick: on keys a tilt is what a light press already
     // gives you with a direction held, so there is nothing extra to bind.
     tiltX: 0, tiltY: 0, tiltDir: null,
+    // No keyboard dash flick either — see DASH_FLICK above. Keys dash on the
+    // double tap and on their own dash key.
+    dashFlick: 0,
     pauseP: false,
   };
 }
@@ -243,13 +327,16 @@ export function blankInput() {
     // angles a charged smash; `tiltDir` is set for ONE frame on a fresh flick
     // and is what throws a tilt attack.
     tiltX: 0, tiltY: 0, tiltDir: null,
+    // The left stick shoved from neutral: -1 or 1 for ONE frame, and what
+    // starts a dash on a pad (DASH_FLICK above).
+    dashFlick: 0,
   };
 }
 
 // Buttons merge by OR; the analog axes merge by whichever source is pushed
 // furthest, so a pad and a keyboard on the same player cannot cancel out or
 // collapse a stick to a boolean.
-const AXIS_KEYS = new Set(["dirX", "aimX", "aimY", "tiltX", "tiltY"]);
+const AXIS_KEYS = new Set(["dirX", "aimX", "aimY", "tiltX", "tiltY", "dashFlick"]);
 // Fields that carry a VALUE rather than a flag. Whichever source has one wins,
 // pad first. ORing these would turn "up" into `true`, which reads as a flick in
 // no direction at all.
@@ -303,6 +390,10 @@ export function padsMenuState() {
   return out;
 }
 
+// The two menu buttons, by index rather than by gameplay action: A and B.
+const MENU_CONFIRM = 0;
+const MENU_BACK = 1;
+
 const blankMenuState = () => ({
   up: false, down: false, left: false, right: false,
   confirmP: false, backP: false, altP: false,
@@ -330,8 +421,12 @@ export function padsMenuStates() {
       down: ay > 0.5 || padButton(pad, PAD_BUTTONS.dpadDown),
       left: ax < -0.5 || padButton(pad, PAD_BUTTONS.dpadLeft),
       right: ax > 0.5 || padButton(pad, PAD_BUTTONS.dpadRight),
-      confirmP: padButtonPressed(pad, PAD_BUTTONS.jump),
-      backP: padButtonPressed(pad, PAD_BUTTONS.dash),
+      // Menus are A confirms / B goes back, which every console player already
+      // knows. They are named by BUTTON here rather than borrowed from a
+      // gameplay action: back used to read the dash binding because dash was
+      // on B, and when dash lost its button the menus would have lost theirs.
+      confirmP: padButtonPressed(pad, MENU_CONFIRM),
+      backP: padButtonPressed(pad, MENU_BACK),
       altP: padButtonPressed(pad, PAD_BUTTONS.light),
       pagePrevP: padButtonPressed(pad, PAD_BUTTONS.domain),
       pageNextP: padButtonPressed(pad, PAD_BUTTONS.ult),
