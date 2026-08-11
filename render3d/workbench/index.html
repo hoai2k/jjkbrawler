@@ -63,28 +63,75 @@
         shows the real turnaround — the rig yawed, not mirrored, so
         asymmetric costumes stay correct.</p>
 
+        <h3>Model size &amp; facing</h3>
+        <div class="pose-box">
+          <label>Scale <span class="mono" id="scaleVal">1.00×</span>
+            <input id="scaleRange" type="range" min="0.6" max="1.6" step="0.005" value="1">
+          </label>
+          <div class="row">
+            <input id="scaleNum" type="number" min="0.4" max="2.5" step="0.01" value="1">
+            <button id="scaleReset" class="ghost sm">Reset to 1.00</button>
+            <button id="scaleSuggest" class="ghost sm" title="Set the scale that makes this model stand exactly its head-height target in the idle pose">Use measured</button>
+          </div>
+          <div id="scaleLine" class="mono hint"></div>
+          <label>Rig faces
+            <select id="yawSelect">
+              <option value="0">+Z — forward, as the delivery spec says</option>
+              <option value="180">−Z — backwards (flip left–right)</option>
+              <option value="90">+X — quarter turn</option>
+              <option value="270">−X — quarter turn the other way</option>
+            </select>
+          </label>
+          <p class="hint">A rig built facing the wrong way faces the wrong way
+          in every state, and no clip can fix it — the whole model is turned.
+          Both settings ride along in <b>Export payload</b> as
+          <code>renderScale</code> and <code>yawOffsetDeg</code>.</p>
+        </div>
+
         <h3>3D pose</h3>
         <div class="pose-box" id="poseBox">
           <div class="row">
             <button id="editPoseBtn" class="ghost sm">✥ Edit pose</button>
             <button id="poseExportBtn" class="ghost sm">⭳ Output changes</button>
           </div>
+
+          <label>Keyframe (the extremes — everything else is the curve)</label>
+          <div class="row keyrow">
+            <button id="keyPrev" class="ghost sm" title="Previous keyframe">◀</button>
+            <div id="keyStrip" class="keystrip"></div>
+            <button id="keyNext" class="ghost sm" title="Next keyframe">▶</button>
+          </div>
+          <div class="row">
+            <button id="keyAdd" class="ghost sm" title="Add a keyframe at the playhead">＋ key here</button>
+            <button id="keyBeat" class="ghost sm" title="Add a keyframe at the contact beat">＋ at beat</button>
+            <button id="keyDel" class="ghost sm" title="Delete the selected keyframe">− key</button>
+          </div>
+          <label>Travels out of this key by
+            <select id="easeSelect"></select>
+          </label>
+
           <label>Selected joint
             <select id="jointSelect"></select>
           </label>
+          <div class="row">
+            <span id="spaceBadge" class="badge character">character-oriented</span>
+          </div>
+          <div id="spaceHelp" class="hint"></div>
           <div id="axisRows"></div>
           <div class="row">
             <button id="resetJointBtn" class="ghost sm">Reset joint</button>
             <button id="resetStateBtn" class="ghost sm">Reset state</button>
             <button id="resetAllBtn" class="ghost sm">Reset all</button>
           </div>
-          <div id="poseLine" class="mono hint">no pose edits</div>
-          <p class="hint">Edit pose puts a handle on every joint: drag one and
-          its PARENT bone rotates toward the pointer, so the limb points where
-          you point. Handles are hard to hit at times — pick the joint here
-          instead and use the sliders. An offset applies for the whole state's
-          clip, not one frame. <b>Output changes</b> downloads the JSON to hand
-          back for the clip tables.</p>
+          <div id="poseLine" class="mono hint"></div>
+          <div id="poseCount" class="mono hint"></div>
+          <p class="hint">Drag a joint and its PARENT bone rotates toward the
+          pointer. Edits land on the SELECTED keyframe, and the playhead snaps
+          there so what you drag is what you change; the in-betweens rebuild
+          from the curve. Round handles are the clip's to pose; diamond ones
+          <b>⌖</b> are aimed at the target by a solver, and their edits are
+          saved as offsets from that solve. <b>Output changes</b> downloads the
+          keyframe tables.</p>
         </div>
 
         <details class="group" id="lookdev">

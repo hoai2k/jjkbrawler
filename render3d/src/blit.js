@@ -28,7 +28,9 @@ export function blitPose(ctx, entry, charKey, x, y, opts = {}) {
   const scaleRatio = opts.scale && actorScale ? opts.scale / actorScale : 1;
 
   const rowsForBody = entry.rowsPerMetre * entry.heightM;
-  const s = (targetPx * scaleRatio) / rowsForBody;
+  // renderScale is the per-character size dial: how big this rig is drawn
+  // against the head-height target the roster gives the character.
+  const s = (targetPx * scaleRatio * (entry.renderScale ?? 1)) / rowsForBody;
 
   const drawW = TEX_SIZE * s;
   const drawH = TEX_SIZE * s;

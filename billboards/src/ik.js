@@ -57,6 +57,26 @@ export function reaches(state) {
   return !!REACH[clipNameFor(state)];
 }
 
+/** The limb this state solves onto the target, or null. Exported so a tool can
+ *  say WHICH bones it is not allowed to author in clip space — a keyframe on a
+ *  bone the solver owns is a keyframe the solver silently discards. */
+export function reachChain(state) {
+  return REACH[clipNameFor(state)] || null;
+}
+
+/** The off-hand chain the two-handed grip solves onto the shaft in this state,
+ *  or []. Same purpose as reachChain: these bones answer to the weapon, not to
+ *  the clip. Named from the roster table rather than the rig, so it is
+ *  answerable before a model is loaded. */
+export function gripBones(charKey, state) {
+  const grip = twoHandGrip(charKey);
+  if (!grip || !TWO_HAND_STATES.has(clipNameFor(state))) return [];
+  // The prop hangs off the character's weapon hand; the OTHER arm grips the
+  // shaft. props.js records which hand the weapon is on.
+  const off = grip.hand === "LeftHand" ? "Right" : "Left";
+  return [`${off}Arm`, `${off}ForeArm`, `${off}Hand`];
+}
+
 /** How much of the solve is blended in at `t` seconds into the clip: nothing
  *  through the first part of the wind-up, smoothly to full by the contact
  *  beat, held after so the follow-through stays on target. */
