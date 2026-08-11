@@ -10,11 +10,13 @@ round 19:
   pummel and the shield-grab input this brief didn't ask for. What remains is
   the flag graduation and the two shield tweaks below (§1a), which belong to
   the same balance pass.
-- **The fairness patches 2a–2c are DONE**: projectiles and owned entities
+- **The fairness patches (§2) are DONE**: projectiles and owned entities
   freeze through their owner's hitlag, particles and the camera run on the
   slow-motion clock, and the ledge is one-per-customer with a Smash-style
-  trump. 2d (a regrab limit) is still open, and deliberately so — see its
-  section.
+  trump. A fourth candidate — a ledge-regrab limit per airtime — was
+  considered and dropped: the ledge was retuned toward Smash's generous snap
+  in the same round, the trump already removes the camped-ledge abuse case,
+  and a regrab limit pulls against both.
 
 ---
 
@@ -92,10 +94,9 @@ controls table regenerated to name RT as grab.
 
 ---
 
-## 2. Four fairness and consistency patches
+## 2. Three fairness and consistency patches
 
-2a–2c shipped in round 19; their write-ups are kept for the record. 2d is
-open.
+All shipped in round 19; the write-ups are kept for the record.
 
 ### 2a. ~~Projectiles and summons do not freeze during hitlag~~ (done)
 
@@ -116,25 +117,9 @@ One fighter per ledge point, resolved Smash's way: grabbing an occupied ledge
 **trumps** — the newcomer takes it, the occupant is popped off outward with a
 brief protection window. Hogging a ledge is now an interaction, not a wall.
 
-### 2d. Ledge regrabs are effectively unlimited (open — on purpose, for now)
-
-The anti-abuse rule is `airT < 0.18`: you must genuinely have left the stage to
-grab again. A hit-then-fall cycle satisfies that trivially, so a fighter being
-juggled near the ledge can regrab indefinitely.
-
-**Fix:** the standard answer is a **ledge-grab limit per airtime** — a counter
-reset on landing (and on being hit hard enough to tumble), with the grab
-refused past it. Two or three is the usual number.
-
-**Why it is still open:** there is a live request to make the ledge EASIER to
-grab (closer to Smash's magnet hands), and a regrab limit pulls the other way.
-Tune the grab-friendliness first, then decide whether the limit is still
-needed against the tuned ledge — the trump (2c) already removed the worst
-regrab abuse case, since a camped ledge can now simply be taken.
-
 ---
 
 ## Order
 
-What's left: the shield tweaks + flag graduation (§1a), the ledge
-grab-friendliness tuning, and then a decision on 2d against the result.
+What's left: the shield tweaks and the `?throw=true` flag graduation (§1a),
+as one balance pass.

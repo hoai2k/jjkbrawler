@@ -45,9 +45,16 @@ export const AIR_DODGE_TIME = 0.34;
 export const DODGE_STALE_WINDOW = 1.4;
 
 // ledges
-export const LEDGE_GRAB_X = 44;
+//
+// The snap box, sized for Smash-style magnet hands rather than precision
+// landings. Horizontal: air speeds run 300-380 px/s, so 72 px is about a fifth
+// of a second of drift — catchable on reaction. Below: 150 px is roughly a
+// body height (fighters stand 147-200 px), matching the proportions of Smash's
+// grab boxes; at 60 px the window lasted ~3 frames of ordinary falling and
+// recovering from below meant threading it.
+export const LEDGE_GRAB_X = 72;
 export const LEDGE_GRAB_Y_ABOVE = 112;
-export const LEDGE_GRAB_Y_BELOW = 60;
+export const LEDGE_GRAB_Y_BELOW = 150;
 export const LEDGE_HANG_X = 28;
 export const LEDGE_HANG_Y = 58;
 

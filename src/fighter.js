@@ -306,9 +306,16 @@ function beginDodge(f, type, dir = 0) {
 
 function tryGrabLedge(f) {
   if (f.grounded || f.ledge || f.ledgeCooldown > 0 || f.respawnTimer > 0) return;
-  // must have genuinely left the stage (no walk-off regrab loops) and not be
-  // reeling — the ledge is a recovery tool, not a combo breaker
-  if (f.vy < -70 || f.hitstun > 0.05 || f.airT < 0.18) return;
+  // Must have genuinely left the stage (no walk-off regrab loops) and not be
+  // reeling — the ledge is a recovery tool, not a combo breaker.
+  //
+  // Rising grabs are allowed: a double jump that carries you past the ledge
+  // catches it on the way up, which is most of what Smash's "magnet hands"
+  // feel is. The old `vy < -70` gate made the whole rise ineligible — jumps
+  // launch at 745-800 px/s, so you had to float over the snap window and come
+  // back DOWN into it. The walk-off loop it guarded against is already covered
+  // by airT and the getup cooldowns.
+  if (f.hitstun > 0.05 || f.airT < 0.18) return;
   const plat = mainPlatform(state.platforms);
   if (f.y < plat.y - LEDGE_GRAB_Y_ABOVE || f.y > plat.y + LEDGE_GRAB_Y_BELOW) return;
   for (const side of [-1, 1]) {
@@ -1101,7 +1108,7 @@ export function updateFighter(f, dt, input) {
   if (f.vy >= 0 || f.grounded) resolvePlatforms(f, prevY);
   else f.grounded = false;
 
-  if (!f.grounded && f.vy > -70) tryGrabLedge(f);
+  if (!f.grounded) tryGrabLedge(f);
 
   // ---- blast zones
   if (checkBlastZones(f)) return;
