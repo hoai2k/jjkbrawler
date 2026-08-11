@@ -9,7 +9,8 @@ import {
   BOARD_MUSIC_DIR, BOARD_TRACKS, FALLBACK_TRACKS, MENU_TRACK, MUSIC_DIR, MUSIC_EXT,
   MUSIC_MODES as MUSIC_MODE_CONFIG, UNUSED_BOARD_TRACKS,
 } from "./config_music.js";
-import { AUDIO_MIX, MAX_VOICES, SFX, SFX_ALIASES, SFX_DIR } from "./config_audio.js";
+import { AUDIO_MIX, MAX_VOICES, MOVE_CALL, SFX, SFX_ALIASES, SFX_DIR } from "./config_audio.js";
+import { CHARACTERS } from "./characters.js";
 import { state } from "./state.js";
 
 // Resolve a name through the alias table, so pre-round-8 call sites keep
@@ -127,6 +128,38 @@ function validateMusicConfig() {
 }
 validateMusicConfig();
 
+// A MOVE_CALL row is matched against a move's `name` by string. A name with a
+// typo — or a straight quote where the kit uses a curly one — would simply
+// never match, and the symptom is a line that was recorded, registered and
+// silent. Same reasoning as the music check above: say so at load.
+function validateMoveCalls() {
+  for (const [charKey, moves] of Object.entries(MOVE_CALL)) {
+    const char = CHARACTERS[charKey];
+    if (!char) {
+      console.warn(`config_audio.js MOVE_CALL names no such fighter: ${charKey}`);
+      continue;
+    }
+    const known = new Set([
+      ...Object.values(char.specials || {}).map((s) => s.name),
+      char.ultimate?.name,
+      ...(char.domains || []).map((d) => d.name),
+    ]);
+    const unmatched = Object.keys(moves).filter((name) => !known.has(name));
+    if (unmatched.length) {
+      console.warn(
+        `config_audio.js MOVE_CALL.${charKey} names no such move (typo?): ${unmatched.join(", ")}`
+      );
+    }
+    const unregistered = Object.values(moves).filter((key) => !SFX[key]);
+    if (unregistered.length) {
+      console.warn(
+        `config_audio.js MOVE_CALL.${charKey} names unregistered sounds: ${unregistered.join(", ")}`
+      );
+    }
+  }
+}
+validateMoveCalls();
+
 let unlocked = false;
 let musicEl = null;
 let musicBaseVol = null; // what syncMusic last set, so the duck can restore it
@@ -210,7 +243,20 @@ export function playSfx(name, intensity = 1, rate = 0) {
   el.play().catch(drop);
 }
 
-export function playGrunt(charKey) {
+// The effort noise a fighter makes using a move — unless that move is one they
+// have a LINE for, in which case they say it instead. `moveName` is the move's
+// own `name` from characters.js; callers pass the one they already have and
+// nothing else changes for the 26 fighters with no lines.
+//
+// Instead of, never as well as: a delivered line doubling with a wordless
+// shout is the failure this replaces rather than layers on, the same rule the
+// domain call-outs set.
+export function playGrunt(charKey, moveName) {
+  const call = moveName && MOVE_CALL[charKey]?.[moveName];
+  if (call) {
+    playSfx(call, 1);
+    return;
+  }
   const group = GRUNT_GROUPS[charKey];
   if (group) playSfx(group, 0.9);
 }

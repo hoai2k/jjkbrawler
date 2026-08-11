@@ -42,7 +42,7 @@ fighter without a delivered rig.
 | 8 | [3D models — D5: spectacle](../render3d/docs/asset-requests.md#round-d5--spectacle-opens-after-d3s-first-batch) | 🧊 **Animation clips** | open | D3 first batch |
 | — | [3D images — DI4: shared face textures](../render3d/docs/image-requests.md#round-di4--shared-face-textures-one-time-roster-wide) | 🖼️ **Images** (texture) | **delivered** — the shared eye highlight and Yuji's mouth sheet | — |
 | — | [Music](music-requests.md) | 🎵 **Music** | **all 20 delivered** | — |
-| — | [Audio Rounds 1–10](audio-requests-history.md) | 🔊 Sound effects + 🎙️ voice | **all delivered** | — |
+| — | [Audio Rounds 1–11](audio-requests-history.md) | 🔊 Sound effects + 🎙️ voice | **all delivered** | — |
 | — | [2D art Rounds 1–18](asset-requests-history.md) | 🖼️ Images | **delivered** | — |
 
 ---
@@ -92,13 +92,19 @@ owners' spoken call-outs**, the first voice lines in the game — along with the
 three element hit layers the staged fighters had been owed. Nothing in
 [audio-requests.md](audio-requests.md) is outstanding.
 
+Round 11 followed it and is also delivered: **Inumaki's cursed speech**, his
+three commands and his ultimate in Japanese, in a voice cast for him alone.
+
 **Voice is no longer a request the repo cannot fill itself.** 10A was the only
 🎙️ entry here and was written on the assumption it needed a Japanese-speaking
 VA or a hand-driven TTS pass, because `tools/generate_sfx.py` drives a
 sound-*effects* endpoint and does not speak. It now has a sibling,
 `tools/generate_voice.py`, which reads the same docs in the same format and
 drives text-to-speech instead — so a future voice round is commissioned exactly
-like a sound round, with one extra field naming the cast voice.
+like a sound round, with one extra field naming the cast voice. Round 11 added
+the other half: `MOVE_CALL` in `src/config_audio.js` maps any fighter's move to
+a spoken line, so **a further slice of the technique call-out pass is now rows
+in a table rather than new code**.
 
 ### First: 2D art Round 18 (1) — the sprite path's own queue
 
