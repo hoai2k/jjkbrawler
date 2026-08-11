@@ -15,8 +15,9 @@ image-to-3D, face sheets, shade palettes — in
 numbered DI1, DI2… — so the tracks never collide.)
 
 **Current status: rounds 1–18 delivered. Round 20 is open — 44 summon plates
-([20A](#20a-summon-plates-that-are-contact-sheets--44-sprites)) and 20 stage
-backgrounds ([20B](#20b-twenty-backgrounds-re-extended-from-the-paintings-they-replaced--20-images)).**
+([20A](#20a-summon-plates-that-are-contact-sheets--44-sprites)), 20 stage
+backgrounds ([20B](#20b-twenty-backgrounds-re-extended-from-the-paintings-they-replaced--20-images))
+and 27 dash-attack poses ([20C](#20c-the-dash-attack-pose--27-sprites)).**
 
 **Round 20 is the next one to open** — 19 was used for the intake of round 18
 and is not a request number. Anything found from here goes into 20.
@@ -326,7 +327,7 @@ single addition: **no drawn shadow of any kind** — the game casts its own.
 
 # Round 20 — open
 
-**Two requests. Neither is a drawing that was never made.**
+**Three requests. Only the last one is a drawing nobody has made yet.**
 
 - **44 of the 114 summon plates hold six creatures instead of one** — a delivery
   fault rather than art anybody owes us. See
@@ -339,6 +340,13 @@ single addition: **no drawn shadow of any kind** — the game casts its own.
   extend the old paintings outward by 30% a side rather than to repaint them.
   The flat camera already has its half of this: it draws the previous paintings
   again, from `assets/backgrounds/flat/`.
+
+- **27 dash-attack poses** — [20C](#20c-the-dash-attack-pose--27-sprites). A
+  pose the roster has never had, for two attacks it did not have until now:
+  attacking out of a run throws a dash attack, and both of them currently draw
+  the fighter's standing strike. Nothing waits on it — the states already name
+  `attack_dash` and fall back to what they draw today, so the round can land one
+  fighter at a time.
 
 Round 18 is closed and everything in it landed.
 
@@ -581,3 +589,119 @@ Checked on delivery, per plate:
    brightness and palette;
 3. the centre 49.4% stands as a finished picture, which follows from (2);
 4. no text, border, watermark or signature anywhere, ring included.
+
+---
+
+## 20C. The dash attack pose — 27 sprites
+
+**A pose the roster has never had, for two attacks it did not have until now.**
+Attacking out of a dash or a sprint throws a **dash attack** — light for the
+lunge, heavy for the running shoulder-charge (see §4 of
+[game-mechanics.md](game-mechanics.md)). Both are in the game and both are
+correct in every way except what they look like: they draw the fighter's
+standing strike, because that is the only attack art there is. A committed
+forward lunge drawn as a jab thrown on the spot reads as a fighter sliding
+along the floor while punching the air in front of them.
+
+**Nothing is waiting on this.** `dashAttack` and `dashAttackHeavy` already name
+`attack_dash` in `src/characters.js`, with the strike each move draws today as
+their `fallback`. So a fighter with no dash pose keeps exactly the drawing they
+have now, a fighter who gets one starts using it the moment the manifest knows
+about it, and **the delivery can land one fighter at a time** with no code
+change at any point.
+
+### The two attacks, so the pose can be drawn to fit both
+
+One drawing serves both dash attacks. That is deliberate — it is the same
+motion at two weights, and asking for two poses would double a round to buy a
+distinction a player reads from the hit, not the frame.
+
+| | Light, running | Heavy, running |
+|---|---|---|
+| Reads as | a lunging strike carried by the run | the same lunge, thrown with everything |
+| Active | 0.13 s | 0.15 s |
+| Recovery | ~1.7× the side tilt's | ~1.4× the side smash's |
+
+So the drawing wants to be the **committed** end of that range: it stands in
+for a smash-weight blow as well as a quick one, and a pose that reads as a
+light poke will look weak on the heavy version. When in doubt, draw the heavy.
+
+### What the pose has to show
+
+Read [pose-brief.md](../sprites/docs/pose-brief.md) first — it is the standing
+brief for every sprite, and this pose is measured by the same four criteria.
+On top of it, this one specifically:
+
+- **Weight ahead of the lead foot.** The whole point is momentum: the body is
+  travelling and the strike is going with it. A dash attack drawn balanced over
+  the hips is a tilt.
+- **No wind-up.** The run WAS the wind-up. This is a single held pose, not the
+  `_a`/`_b` wind-up-then-strike pair the light and heavy attacks use — draw the
+  moment of the blow, arm or weapon already extended along the line of travel.
+- **Low and driving**, not upright: shoulder or hip leading, back leg extended
+  behind, the trailing arm counterweighting. A shoulder-charge silhouette reads
+  at game size where a punch does not.
+- **The character's own weapon.** Whoever fights with something leads with it
+  — Maki's naginata levelled along the run, Nanami's cleaver driving forward,
+  Mei Mei's axe carried low, Gakuganji's guitar swung through. A weapon
+  character drawn throwing a shoulder is a different fighter.
+- **Facing RIGHT**, one zoom per character (this pose at the same figure scale
+  as the rest of their set — it is the criterion that costs the most to fix
+  later), flat key screen per the [delivery spec](#delivery-spec) above, at
+  least 600 px of body.
+
+Prompt formula, as always: `[CHARACTER BLOCK]` (the table above — use it
+verbatim), the pose line, facing right, `[STYLE SUFFIX]`.
+
+> **Pose line:** "sprinting forward and striking at the same moment, body low
+> and driving, weight thrown ahead of the leading foot, back leg extended
+> behind, striking arm or weapon fully extended forward along the direction of
+> the run, trailing arm swept back, at the instant of impact"
+
+### The canonical reference is their own `idle_a`
+
+Same rule as every other request in this file (see
+[above](#the-canonical-reference-image--one-per-fighter)): open the fighter's
+`idle_a` and match its costume, proportions, palette, line weight and shading.
+Hanami and Mahoraga are the two exceptions the table there records, and they
+are exceptions here too.
+
+### Delivery, and how the old drawing is kept
+
+`assets/intake/<character>/attack_dash.png` — one file per fighter, 27 in all
+(`CHARACTER_KEYS`). Standard intake: `tools/intake.py` keys and measures it,
+`tools/intake_sheets.py` boards it for approval, `tools/intake_import.py
+--approve` registers it in `manifest.json`, then it is placed in the sprite
+workbench like any other pose.
+
+**The current art stays, in both of the ways this repo keeps art:**
+
+1. **In code, as the fallback.** `attack_dash` is a NEW pose key, so nothing is
+   replaced and nothing is overwritten. The light and heavy strikes stay
+   exactly where they are, still drawn by their own attacks, and still standing
+   in for the dash attacks of every fighter whose pose has not landed or has
+   been rejected. Delete a delivered `attack_dash` and the game is back to
+   today's look with no other edit.
+2. **In the manifest, as a banked variant.** A second drawing of the pose banks
+   beside the first rather than replacing it — the workbench's **`alternate`**
+   kind (`ALTERNATE_KIND` in `sprites/src/sprites.js`, routed by
+   `tools/intake_variants.py`), the same mechanism that lets a pose keep an
+   older drawing selectable after a redraw. So if a delivered dash pose turns
+   out worse than the strike it replaced for some fighter, that is a click in
+   the workbench, not a re-request.
+
+### Checked on delivery
+
+Per sprite: it is the same character at the same figure scale as their
+`idle_a`; the body is travelling rather than planted; nothing is clipped at
+the canvas edge; the key screen is flat and has not bounced colour into hair or
+cloth. `python3 tools/check_summon_plates.py` does not apply here — that is
+creature art — but the same fault is worth a glance: one figure per file.
+
+### Not part of this round: the 3D clips
+
+The 2.5D billboard path and the live-3D path both know these two states now,
+and both **alias** them to the strike clips they already have (`ALIASES` in
+`billboards/src/states.js`) exactly as the sprites fall back. A bespoke pair of
+dash-attack clips is a billboard round (B-numbers) if anyone wants one; it is
+not a hole in the roster today, and no rig is missing anything because of it.

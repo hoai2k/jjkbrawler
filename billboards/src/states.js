@@ -49,6 +49,14 @@ export const STATES = {
   specialSide:    { loop: false, duration: 0.5,   beat: 0.125, aim: true,  tier: "identity" },
   specialDown:    { loop: false, duration: 0.5,   beat: 0.125, tier: "identity" },
   ult:            { loop: true,  duration: 0.286, tier: "identity" },
+  // The two dash attacks (moves.js, variant "dash"). Listed so an animKey the
+  // game plays is never an unknown state, and ALIASED below rather than
+  // authored: a dash attack is the archetype's own strike thrown out of a run,
+  // and the sprite side stands it in the same way until its pose is drawn
+  // (round 20C). A dedicated pair of clips is a billboard round when somebody
+  // wants one, not a hole in the roster today.
+  dashAttack:     { loop: false, duration: 0.167, beat: 0.083, aim: true,  tier: "archetype" },
+  dashAttackHeavy:{ loop: false, duration: 0.333, beat: 0.167, aim: true,  tier: "archetype" },
   dizzy:          { loop: true,  duration: 1.0,   tier: "library" },
   prone:          { loop: true,  duration: 1.0,   tier: "library" },
   win:            { loop: true,  duration: 1.2,   tier: "identity" },
@@ -59,11 +67,20 @@ export const STATES = {
 // it — resolution maps it to dodge_roll. Listed in STATES so an animKey the
 // game actually uses is never an unknown state, excluded here so nobody is
 // asked to author it.
-export const CLIP_STATES = Object.keys(STATES).filter((s) => s !== "dodge");
+// States nobody authors a clip for: each one is played by another state's clip
+// (ALIASES below), so it is a state the game can ask for and never a delivery
+// anybody owes.
+const ALIASES = {
+  dodge: "dodge_roll",
+  dashAttack: "light",
+  dashAttackHeavy: "sideHeavy",
+};
 
-/** The clip a state plays. Only `dodge` remaps today. */
+export const CLIP_STATES = Object.keys(STATES).filter((s) => !(s in ALIASES));
+
+/** The clip a state plays. */
 export function clipNameFor(state) {
-  return state === "dodge" ? "dodge_roll" : state;
+  return ALIASES[state] || state;
 }
 
 /** Where the clip playhead sits for a state at animTime, honouring the game

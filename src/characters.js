@@ -97,6 +97,11 @@ export const DEFAULT_ANIMS = {
   dodge_roll: { frames: ["dodge_roll"], fps: 1, loop: true },
   dodge_air: { frames: ["dodge_air"], fps: 1, loop: true },
   light: { frames: ["r3c0", "r3c1"], fps: 12, loop: false },
+  // The dash attack (moves.js, variant "dash"). Round 20C art; until it lands
+  // the state falls back to the light strike, which is what the move drew when
+  // it shipped — so this line is the whole integration and nothing waits on it.
+  dashAttack: { frames: ["attack_dash"], fallback: ["r3c0"], fps: 8, loop: false },
+  dashAttackHeavy: { frames: ["attack_dash"], fallback: ["r3c0"], fps: 8, loop: false },
   // Wind-up then strike (see SEMANTIC_ANIMS below for the timing note). The
   // `fallback` is what a fighter without the round-9 pair keeps drawing.
   airLight: { frames: ["attack_air_a", "attack_air_b"], fallback: ["attack_air"], fps: 8, loop: false },
@@ -136,6 +141,15 @@ export const SEMANTIC_ANIMS = {
   dodge_roll: { frames: ["dodge_roll"], fps: 1, loop: true },
   dodge_air: { frames: ["dodge_air"], fps: 1, loop: true },
   light: { frames: ["attack_light_a", "attack_light_b"], fps: 12, loop: false },
+  // The dash attack — round 20C. One pose rather than a wind-up pair: a dash
+  // attack has no wind-up to draw, the run already was it. The fallback is the
+  // light strike frame it draws today, so the pose can land one fighter at a
+  // time and everybody else keeps the drawing they have.
+  dashAttack: { frames: ["attack_dash"], fallback: ["attack_light_a", "attack_light_b"], fps: 8, loop: false },
+  // Same delivered pose, different fallback: one drawing covers both dash
+  // attacks, but while it is undrawn the heavy one keeps standing in with the
+  // heavy strike it plays today rather than switching to a light punch.
+  dashAttackHeavy: { frames: ["attack_dash"], fallback: ["attack_heavy_a", "attack_heavy_b", "attack_heavy"], fps: 6, loop: false },
   // Wind-up then strike, the same shape the light attack has always had. The
   // `_a`/`_b` art is a round-9 delivery; until it lands for a character, the
   // single delivered frame is all that survives the missing-frame filter in

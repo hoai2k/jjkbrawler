@@ -49,7 +49,10 @@ import { clamp } from "./utils.js";
 // The animation states whose frames show a committed swing. Named by state
 // rather than by frame key so a character who re-points `light` at different
 // art is measured from whatever they now actually draw.
-const SWING_STATES = ["light", "sideHeavy", "upHeavy", "downHeavy", "airLight", "crouchAttack"];
+// `dashAttack` is listed for when its pose lands (round 20C): until then it
+// resolves to the light strike frame already in the list, and measuring the
+// same frame twice changes nothing.
+const SWING_STATES = ["light", "dashAttack", "dashAttackHeavy", "sideHeavy", "upHeavy", "downHeavy", "airLight", "crouchAttack"];
 
 // And the states that show the body at rest, which is what "how wide is this
 // fighter" means. Deliberately excludes anything mid-swing — an outstretched
