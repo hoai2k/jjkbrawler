@@ -1,11 +1,12 @@
 import { state } from "./state.js";
 import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, RESOLVED_GROUPS, randomCharacterKey } from "./characters.js";
-import { STAGES, getStage } from "./stages.js";
+import { STAGES, getStage, backgroundFile } from "./stages.js";
 import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx, toggleMute } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
 import { METER_MAX, TIME_OPTIONS } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
+import { cameraMode } from "./camera_mode.js";
 import { setSpriteSet, previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
 import { RANDOM_GROUP, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
 import { CONTROL_ROWS } from "./config_controls.js";
@@ -429,7 +430,10 @@ function buildStageGrid() {
   for (const stage of STAGES) {
     const btn = document.createElement("button");
     btn.className = "stage-card";
-    btn.innerHTML = `<img src="assets/backgrounds/${stage.bgFile}" alt="${stage.name}" loading="lazy"><span>${stage.name}</span>`;
+    // The same plate the match will draw, so the card is a preview rather than
+    // a different painting of the same place (src/stages.js, backgroundFile).
+    const src = backgroundFile(stage, cameraMode !== "3d");
+    btn.innerHTML = `<img src="${src}" alt="${stage.name}" loading="lazy"><span>${stage.name}</span>`;
     btn.dataset.stage = stage.key;
     btn.addEventListener("click", () => { if (!rouletteRunning) callbacks.startMatch(stage.key); });
     els.stageGrid.appendChild(btn);

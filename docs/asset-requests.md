@@ -14,7 +14,9 @@ image-to-3D, face sheets, shade palettes — in
 [render3d/docs/image-requests.md](../render3d/docs/image-requests.md),
 numbered DI1, DI2… — so the tracks never collide.)
 
-**Current status: rounds 1–18 delivered. Nothing is outstanding.**
+**Current status: rounds 1–18 delivered. Round 20 is open — 44 summon plates
+([20A](#20a-summon-plates-that-are-contact-sheets--44-sprites)) and 20 stage
+backgrounds ([20B](#20b-twenty-backgrounds-re-extended-from-the-paintings-they-replaced--20-images)).**
 
 **Round 20 is the next one to open** — 19 was used for the intake of round 18
 and is not a request number. Anything found from here goes into 20.
@@ -324,10 +326,21 @@ single addition: **no drawn shadow of any kind** — the game casts its own.
 
 # Round 20 — open
 
-**One request, and it is a delivery fault rather than a drawing anybody owes
-us: 44 of the 114 summon plates hold six creatures instead of one.** See
-[20A](#20a-summon-plates-that-are-contact-sheets--44-sprites) below. Round 18 is
-closed and everything in it landed.
+**Two requests. Neither is a drawing that was never made.**
+
+- **44 of the 114 summon plates hold six creatures instead of one** — a delivery
+  fault rather than art anybody owes us. See
+  [20A](#20a-summon-plates-that-are-contact-sheets--44-sprites) below.
+- **Twenty backgrounds, re-extended from the paintings 18E replaced** —
+  [20B](#20b-twenty-backgrounds-re-extended-from-the-paintings-they-replaced--20-images).
+  18E's resolution win is real and is kept; what it also did, unasked, was
+  re-invent twenty scenes, and against the 3D camera's centre crop the new
+  boards read sparser and darker than the ones players knew. The fix is to
+  extend the old paintings outward by 30% a side rather than to repaint them.
+  The flat camera already has its half of this: it draws the previous paintings
+  again, from `assets/backgrounds/flat/`.
+
+Round 18 is closed and everything in it landed.
 
 **Round 18 was delivered complete** — 28 sprites and 14 near-field cards, every
 section of it, plus the five render3d image inputs (DI1–DI4). Its record, and
@@ -418,3 +431,153 @@ box six creatures wide. They keep an authored pair with a comment naming this
 round, and **each pair comes out when the plate lands** — at which point the
 creature starts being hit on the shape it is drawn as, with no further code
 change.
+
+---
+
+## 20B. Twenty backgrounds, re-extended from the paintings they replaced — 20 images
+
+**This is a re-request of 18E against a different input: the old painting
+itself.** 18E asked for twenty boards repainted at 3200×1800 and got exactly
+that — the resolution problem it was written to fix is fixed, and nothing here
+is a complaint about sharpness. What it did not ask for, and so did not get, is
+*the same picture*. Each plate was drawn fresh from the board's brief, so twenty
+scenes were re-invented at the same time as they were enlarged, and the result
+against the 3D camera's crop reads **sparser and darker than the paintings it
+replaced** — more empty middle distance, less of the lit, busy, close detail the
+old boards put right behind the fighters.
+
+So: keep the resolution win, take the composition back. **Extend each previous
+painting outward instead of replacing it.**
+
+### The previous paintings are the input
+
+They are in the repo, at **`assets/backgrounds/flat/`** — moved there from
+`assets/reference/backgrounds_previous/` when this request was written, because
+they are runtime art again: the flat camera now draws them (`backgroundFile()`
+in `src/stages.js`), which is the half of this that needed no art at all. Flat
+mode shows a whole plate, so pointing it back at the paintings composed for a
+whole plate fixed flat mode the same afternoon. 3d mode is what this request is
+for.
+
+**The input image is the brief.** There is no scene description below and there
+should not be one — the board being asked for is the board that is already
+there, and any wording paraphrasing it is a chance to drift. Open the file.
+
+### The one rule
+
+> **Keep the source painting as the picture. Extend the scene outward by 30% on
+> each of the four sides — same place, same moment, more of it — and deliver the
+> whole thing at 3200×1800 or larger, exactly 16:9.**
+
+30% on each side is **1.6× linear**, so the source painting ends up as the
+**centre 62.5%** of the delivered plate, in both dimensions:
+
+| delivered plate | the source painting occupies | new ring |
+|---|---|---|
+| 3200×1800 (minimum) | centre **2000×1125** | 600 px left/right, 337 px top/bottom |
+| 4096×2304 (preferred) | centre **2560×1440** | 768 px left/right, 432 px top/bottom |
+
+**Why 30% and not more.** The 3D camera over-fills its frustum on purpose
+(×1.5 height, ×1.35 width — `src/camera3d/stage_geo.js`), so only the centre
+**49.4%** of a plate's width is ever on screen. Against a 1.6× extension that
+visible crop is **79% of the source painting**, centred — so what a player sees
+in 3d becomes the old board, very slightly cropped, instead of a different
+painting. The ring is not scenery anybody is meant to look at: it exists so no
+dolly, yaw or roll can swing past the edge. Extending further would push the old
+composition back out of frame, which is the fault being fixed.
+
+The 3D crop of a 3200×1800 delivery is 1581 source pixels across 1280 CSS
+pixels — still a downscale, so 18E's sharpness holds. 4096×2304 gives 2023 and
+is comfortable at DPR 2, which is why it is preferred.
+
+### What the ring may contain
+
+- **More of the same scene, continued.** Same architecture, materials, weather,
+  time of day, light direction and colour temperature; the same painterly style
+  and line weight. A wall keeps going, a street keeps receding, a canopy of
+  branches keeps spreading.
+- **Nothing that reads as a second picture.** No new focal subject, no character,
+  no creature, no large new light source, no text, watermark, border or vignette.
+  If the ring is interesting enough to look at on its own, it is wrong.
+- **Nothing painted at foreground depth in the centre 49.4%.** That is 18E's
+  standing rule and it still holds: the near field belongs to the garnish layer
+  (`src/camera3d/garnish.js`), which draws cards in front of the backdrop and
+  will overlap anything painted there. Where a source painting already has a
+  foreground element in its centre, **leave it** — it is the board players know,
+  and the garnish placement is checked per board after delivery.
+
+### Do not re-light the middle
+
+The other half of what feels wrong is exposure. Match the source plate's
+**brightness, contrast and palette exactly** where the ring meets it, and do not
+take the opportunity to grade the centre — no darkening, no desaturating, no
+"cinematic" cool cast. Note that the renderer already lays a 30% black wash and
+the stage's tint over the plate before a player sees it
+(`drawBackdrop()` in `src/render.js`), so a plate that looks a little bright and
+a little saturated on its own is the one that lands correctly in the game.
+
+Resampling the centre is unavoidable — a 1600×900 source becomes 2000×1125 at
+the minimum delivery size — so upscale it cleanly and keep its detail. **Do not
+repaint it.**
+
+### The twenty, and what to open
+
+Filenames are the ones `src/stages.js` registers, so nineteen boards need no
+code change and Shibuya Night needs none either as long as it is delivered as
+`.jpg` (the source is the older `.webp`; the live plate is already `.jpg`).
+
+| Board | Stage key | Source file (under `assets/backgrounds/flat/`) | Source size | Region to extend |
+|---|---|---|---|---|
+| Training Bridge | `trainingBridge` | `training_bridge.jpg` | 1920×1080 | whole image |
+| Quiet Hall | `quietHall` | `quiet_hall.jpg` | 1920×1080 | whole image |
+| Flooded Gate | `floodedGate` | `flooded_gate.jpg` | 800×437 | centre **777×437** ⚠ |
+| Shibuya Night | `shibuyaNight` | `shibuya_night.webp` | 1200×675 | whole image |
+| Curse Maw | `curseMaw` | `curse_maw.jpg` | 1920×1640 | centre **1920×1080** ⚠ |
+| Garden Steps | `gardenSteps` | `garden_steps.jpg` | 1600×900 | whole image |
+| Lantern Corridor | `lanternCorridor` | `lantern_corridor.jpg` | 1600×900 | whole image |
+| Sunken Crossing | `sunkenCrossing` | `sunken_crossing.jpg` | 1600×900 | whole image |
+| Neon Split | `neonSplit` | `neon_split.jpg` | 1600×900 | whole image |
+| Bone Sanctum | `boneSanctum` | `bone_sanctum.jpg` | 1600×900 | whole image |
+| Bridge Duel | `bridgeDuel` | `bridge_duel.jpg` | 1600×900 | whole image |
+| Academy Hall | `academyHall` | `academy_hall.jpg` | 1600×900 | whole image |
+| Mist Pier | `mistPier` | `mist_pier.jpg` | 1600×900 | whole image |
+| Crosswalk Rush | `crosswalkRush` | `crosswalk_rush.jpg` | 1600×900 | whole image |
+| Cursed Teeth | `cursedTeeth` | `cursed_teeth.jpg` | 1600×900 | whole image |
+| River Gate | `riverGate` | `river_gate.jpg` | 1600×900 | whole image |
+| School Wing | `schoolWing` | `school_wing.jpg` | 1600×900 | whole image |
+| Empty City | `emptyCity` | `empty_city.jpg` | 1600×900 | whole image |
+| Billboard Roof | `billboardRoof` | `billboard_roof.jpg` | 1600×900 | whole image |
+| Domain Core | `domainCore` | `domain_core.jpg` | 1600×900 | whole image |
+
+**The two ⚠ rows are the boards whose source is not 16:9.** Take the centred
+16:9 region first — that is what the game has always shown of them, since
+`drawBackdrop()` cover-fits — and extend *that*, so the delivery is 16:9
+throughout and nothing the player knows is cropped by the change.
+
+**Flooded Gate is the hard one.** Its source is 800×437, so the centre of a
+3200×1800 delivery is a 2.6× upscale of a small, soft image and clean
+resampling will not carry it. This is the one board where **re-detailing inside
+the kept composition is expected**: same gate, same water, same framing, same
+palette and light, painted at the delivered resolution. It is also the board
+where a 4096×2304 delivery buys the least, so 3200×1800 is fine for it.
+
+### Delivery
+
+`assets/intake/backgrounds/<file>.jpg` — JPEG, high quality, the filenames in
+the table above (Shibuya Night as `shibuya_night.jpg`). No alpha, no key screen:
+a background is a finished picture, not a subject on a field, and it takes the
+short path through intake — no keying, no measuring, no manifest entry (see
+[assets/intake/README.md](../assets/intake/README.md)).
+
+**On landing, archive the plate being replaced** into
+`assets/reference/backgrounds_18e/`, the same way 18E archived what it replaced.
+`assets/backgrounds/flat/` is **not** an archive and must not be touched: the
+flat camera draws those twenty files every match.
+
+Checked on delivery, per plate:
+
+1. exactly 16:9, at least 3200×1800;
+2. the centre 62.5% is the source painting — not a redraw of it — at matching
+   brightness and palette;
+3. the centre 49.4% stands as a finished picture, which follows from (2);
+4. no text, border, watermark or signature anywhere, ring included.

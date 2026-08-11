@@ -23,12 +23,20 @@ in `src/config_audio.js`, and the request moved into
 
 A **background** takes the short path too — no keying, no measuring, no manifest
 entry — so landing one is a copy into `assets/backgrounds/` and nothing else.
-**Copy the paintings it replaces into `assets/reference/backgrounds_previous/`
-first.** They are the only copies of art the game wore for months, several were
-never the size the roster settled on, and putting a board back is then one file
-copy rather than a trip through git. Watch the extension: a board is registered
-in `src/stages.js` by filename, so a `.webp` replaced by a `.jpg` needs that one
-string changed with it (round 18E, Shibuya Night).
+**Copy the painting it replaces into `assets/reference/backgrounds_<round>/`
+first** (18E's went to `backgrounds_previous/`, 20B's go to `backgrounds_18e/`).
+Putting a board back is then one file copy rather than a trip through git.
+Watch the extension: a board is registered in `src/stages.js` by filename, so a
+`.webp` replaced by a `.jpg` needs that one string changed with it (round 18E,
+Shibuya Night).
+
+**`assets/backgrounds/flat/` is not an archive — do not overwrite it.** A board
+ships two paintings of the same scene, one per camera: the wide plate in
+`assets/backgrounds/` for the 3D camera, which sees only its centre ~49%, and
+the pre-18E painting in `flat/` for the flat camera, which sees the whole thing.
+`backgroundFile()` in `src/stages.js` picks between them and `src/assets.js`
+fetches the one the running camera wants, so a delivery landing in the wrong
+directory changes which camera it breaks rather than whether it works.
 
 Everything below is about sprites.
 

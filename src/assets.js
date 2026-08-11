@@ -1,7 +1,8 @@
 import { CHARACTER_KEYS, actorsFor } from "./characters.js";
 import { applyAllHeightScales } from "./heights.js";
 import { applySharedSpriteScales } from "./shared_sprites.js";
-import { STAGES } from "./stages.js";
+import { STAGES, backgroundFile } from "./stages.js";
+import { cameraMode } from "./camera_mode.js";
 import { transformActorsFor } from "./config_transform.js";
 import { SUMMON_ART, SUMMON_POSES } from "./config_summons.js";
 
@@ -510,7 +511,14 @@ function groupJobs(id) {
 
   if (id.startsWith("stage:")) {
     const stage = STAGES.find((s) => s.key === id.slice(6));
-    if (stage) add(`bg:${stage.key}`, `assets/backgrounds/${stage.bgFile}`);
+    // One plate per board, not two: which of the stage's two paintings is the
+    // backdrop is a property of the camera, not of the frame being drawn, so it
+    // is decided here and both renderers keep asking for `bg:<key>`. The mode
+    // is settled in init() before any group is requested — the 3D module is
+    // imported and its WebGL context proved before the loader starts — so this
+    // reads the camera the match will actually run, never a default that is
+    // about to change under it.
+    if (stage) add(`bg:${stage.key}`, backgroundFile(stage, cameraMode !== "3d"));
     return jobs;
   }
 
