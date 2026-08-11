@@ -123,6 +123,55 @@ export const SAKURAI_KB = 620;        // where one becomes the other
 export const SMASH_TILT = 0.42;
 export const SMASH_TILT_ANGLE = 0.6;
 
+// ------------------------------------------------------------------- grabs
+//
+// Smash-style grabbing and throwing (?throw=true — src/flags.js, src/grab.js).
+//
+// The triangle it exists to complete: attacks lose to shield, shield loses to
+// grab, grab loses to attacks — a whiffed grab is the most punishable thing a
+// fighter can do, which is why `whiffRecover` is longer than any jab's endlag.
+export const GRAB = {
+  startup: 0.07,        // hand closes this long after the press
+  active: 0.11,         // window in which it can connect
+  whiffRecover: 0.34,   // arms out, hit me: the price of guessing wrong
+  grace: 26,            // px past the measured art reach a closing hand gets
+
+  // How long a hold lasts before the victim slips free on their own. Scales
+  // with their damage — Smash's rule, and what makes a late-game grab a real
+  // threat while an opening grab is only ever a throw's worth of trouble.
+  holdBase: 1.15, holdPerDmg: 0.006, holdMax: 2.4,
+  // Every fresh press or stick flick the VICTIM makes shaves this much off the
+  // hold. Mashing out of an early grab is genuinely possible; at high damage
+  // the arithmetic stops working, which is the point.
+  mashReduce: 0.09,
+
+  releaseImmune: 0.7,   // no-regrab window after ANY release: no chain grabs
+  escapeLag: 0.34,      // grabber's stumble when mashed out of — their punish window
+  breakoutPush: 300,    // the hop a victim breaks away with (px/s, plus a small rise)
+
+  pummelDmg: 2.2,       // per hit; deliberately worse than throwing immediately
+  pummelRate: 0.34,     // minimum gap between pummels
+  pummelFirst: 0.22,    // the hold has to settle before the first one
+
+  throwDur: 0.3,        // the grabber's own throw animation / commitment
+};
+
+// The four throws. Fixed data rather than per-character kit numbers, exactly
+// like Smash's early games: a throw is positional currency, not a damage race.
+// Every one of these is routed through applyHit, so DI, staling, tallies and
+// KO credit all apply. Balance intent, against a charged side smash (baseKb
+// 430–537, growth 8.4): throws never KO earlier than a smash at centre stage —
+// back throw only edges it out at the ledge, which is the classic reason to
+// take somebody's back.
+export const THROWS = {
+  fwd:  { dmg: 8,   baseKb: 430, growth: 6.6, angle: 0.55, label: "Throw",       sfx: "punch" },
+  back: { dmg: 9.5, baseKb: 470, growth: 7.1, angle: 0.62, label: "Back Throw",  sfx: "punch" },
+  up:   { dmg: 7,   baseKb: 400, growth: 7.7, angle: 1.42, label: "Up Throw",    sfx: "whoosh" },
+  // Low knockback on purpose: the down throw is the combo starter — it buys a
+  // juggle at low damage and stops being worth it once they fly too far.
+  down: { dmg: 6,   baseKb: 270, growth: 4.0, angle: 1.12, label: "Down Throw",  sfx: "punch" },
+};
+
 // meter / ultimate
 export const METER_MAX = 100;
 export const METER_PASSIVE = 1.1;

@@ -25,6 +25,8 @@ import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
 import { currentFrame } from "./render_backend.js";
 import { trailStrength } from "./motion.js";
+import { THROW_ENABLED } from "./flags.js";
+import { beginGrab, updateGrabReach, updateGrabHold, updateGrabbedFighter, clearGrabLinks } from "./grab.js";
 
 /** `dodge_roll` / `dodge_air` where the character has that art, else the old
  *  shared `dodge`. Round 6 delivered the new frames for only some of the
@@ -51,6 +53,9 @@ export function makeFighter(id, charKey, x, facing) {
     dizzy: 0, prone: 0, dodgeStale: 0, lastDodgeAt: -10,
     airT: 0, shieldDownSince: -10,
     action: null, charging: null, jabStep: 0, jabResetT: 0,
+    // Grabbing (?throw=true — src/grab.js). `grab` on the holder, `grabbedBy`
+    // on the held, `grabImmune` on anyone recently released.
+    grab: null, grabbedBy: null, grabImmune: 0,
     counter: null, reflect: null, healing: null, installs: null, armorT: 0,
     // New Shadow Style: Simple Domain — the anti-domain circle Mechamaru and
     // Yuki both carry. Null unless one is held; domains.js asks about it before
@@ -444,6 +449,7 @@ export function ringOut(f) {
 
   f.action = null; f.charging = null; f.counter = null; f.reflect = null; f.healing = null;
   f.simpleDomain = null;
+  clearGrabLinks(f);
   f.installs = null; f.spriteChar = null; f.hitstun = 0; f.statuses = freshStatuses();
   f.vx = 0; f.vy = 0; f.ledge = null; f.dizzy = 0; f.prone = 0; f.armorT = 0;
   f.spin = 0; f.spinAngle = 0; f.trail.length = 0;
@@ -532,7 +538,7 @@ function stepRespawnPlatform(f, dt, input) {
   const plat = f.respawnPlat;
   plat.t -= dt;
   const acted = input.lightP || input.heavyP || input.specialP || input.ultP ||
-                input.domainP || !!input.tiltDir ||
+                input.domainP || !!input.tiltDir || input.grabP ||
                 input.jumpP || input.shieldHeld || input.down;
   const walkedOff = Math.abs(f.x - plat.x) > RESPAWN_PLATFORM_HALF_W;
   if (plat.t <= 0 || acted || walkedOff) leaveRespawnPlatform(f);
@@ -593,6 +599,7 @@ export function updateFighter(f, dt, input) {
   f.throatLock = Math.max(0, f.throatLock - dt);
   f.throatStrain = Math.max(0, f.throatStrain - dt * 0.5);
   f.armorT = Math.max(0, f.armorT - dt);
+  f.grabImmune = Math.max(0, f.grabImmune - dt);
   f.airT = f.grounded ? 0 : f.airT + dt;
   // Paper Trail (Reggie): the fine print always favors him — cooldowns run fast
   const cdRate = f.char.passive.id === "contractor" ? 1.18 : 1;
@@ -649,6 +656,23 @@ export function updateFighter(f, dt, input) {
   if (f.respawnTimer > 0) {
     f.respawnTimer -= dt;
     if (f.respawnTimer <= 0) respawn(f);
+    return;
+  }
+
+  // Held in someone's grip (?throw=true): position and fate belong to the
+  // grabber's update — the victim's own turn is the struggle, nothing else.
+  // Timers and statuses above have already ticked, so a burn keeps burning
+  // through a hold.
+  if (f.grabbedBy) {
+    updateGrabbedFighter(f, dt, input);
+    return;
+  }
+
+  // Holding someone (?throw=true): the hold is the whole turn — pin, pummel,
+  // throw or lose them. Movement, jumping and attacks are all forfeit, which
+  // is what a grab costs the grabber.
+  if (f.grab) {
+    updateGrabHold(f, dt, input);
     return;
   }
 
@@ -727,6 +751,8 @@ export function updateFighter(f, dt, input) {
     f.bufferedAction = { kind: "domain", slot: domainSlot, t: ACTION_BUFFER };
   } else if (input.tiltDir) {
     f.bufferedAction = { kind: "tilt", dir: input.tiltDir, t: ACTION_BUFFER };
+  } else if (THROW_ENABLED && input.grabP) {
+    f.bufferedAction = { kind: "grab", t: ACTION_BUFFER };
   } else if (input.lightP) f.bufferedAction = { kind: "light", t: ACTION_BUFFER };
   else if (input.heavyP) f.bufferedAction = { kind: "heavy", t: ACTION_BUFFER };
   else if (input.specialP) f.bufferedAction = { kind: "special", t: ACTION_BUFFER };
@@ -749,7 +775,10 @@ export function updateFighter(f, dt, input) {
   // ---- action progress
   if (f.action) {
     f.action.t += dt;
-    if (f.action.t >= f.action.dur) {
+    // A grab reach checks for a body in its hands every step of its live
+    // window; connecting consumes the action (grab.js).
+    if (f.action.kind === "grabReach") updateGrabReach(f);
+    if (f.action && f.action.t >= f.action.dur) {
       f.action = null;
     }
   }
@@ -808,8 +837,21 @@ export function updateFighter(f, dt, input) {
   // ---- crouch
   f.crouching = f.grounded && canAct && input.down && !f.shielding;
 
+  // ---- shield grab (?throw=true)
+  // Light or the grab button while the shield is up drops the shield into a
+  // grab — Smash's answer to "they are just standing on my bubble", and the
+  // reason holding shield against a grappler is the wrong plan.
+  if (THROW_ENABLED && canAct && f.shielding && f.grounded &&
+      (input.grabP || input.lightP)) {
+    f.shielding = false;
+    f.shieldDownSince = state.matchTime;
+    stopShieldLoop();
+    f.bufferedAction = null;
+    beginGrab(f);
+  }
+
   // ---- attacks & specials
-  if (canAct && !f.shielding) {
+  if (canAct && !f.shielding && !f.action) {
     // A domain that is open owns SPECIAL (and, for Sukuna, LIGHT/HEAVY after a
     // blade is taken) — that is the interaction the domain exists for, so it is
     // checked before the normal action routing and swallows the press.
@@ -844,12 +886,18 @@ export function updateFighter(f, dt, input) {
     } else {
       // A fresh press wins over a buffered one; the buffer only covers inputs
       // that arrived while the fighter was busy.
-      const act = input.specialP ? "special"
+      const act = THROW_ENABLED && input.grabP ? "grab"
+        : input.specialP ? "special"
         : input.heavyP ? "heavy"
         : input.lightP ? "light"
         : input.tiltDir ? "tilt"
         : f.bufferedAction?.kind;
-      if (act === "tilt") {
+      if (act === "grab") {
+        // Grounded only, like Smash: the air already belongs to aerials, and
+        // an air grab would be a fifth aerial nobody asked for. A press in the
+        // air stays buffered and fires on landing.
+        if (f.grounded) beginGrab(f);
+      } else if (act === "tilt") {
         beginTilt(f, input.tiltDir || f.bufferedAction?.dir);
       } else if (act === "special") {
         const slot = input.down || f.crouching ? "down" : (input.dirX !== 0 ? "side" : "neutral");
@@ -859,7 +907,9 @@ export function updateFighter(f, dt, input) {
       } else if (act === "light") {
         beginLight(f, input);
       }
-      if (act) f.bufferedAction = null;
+      // A grab "used" in the air was not actually spent — it stays buffered
+      // for the landing instead.
+      if (act && (act !== "grab" || f.grounded)) f.bufferedAction = null;
     }
   }
 

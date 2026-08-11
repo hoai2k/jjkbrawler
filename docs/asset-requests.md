@@ -15,8 +15,10 @@ image-to-3D, face sheets, shade palettes — in
 numbered DI1, DI2… — so the tracks never collide.)
 
 **Current status: rounds 1–18 delivered. Round 20 is open — 44 summon plates
-([20A](#20a-summon-plates-that-are-contact-sheets--44-sprites)) and 20 stage
-backgrounds ([20B](#20b-twenty-backgrounds-re-extended-from-the-paintings-they-replaced--20-images)).**
+([20A](#20a-summon-plates-that-are-contact-sheets--44-sprites)), 20 stage
+backgrounds ([20B](#20b-twenty-backgrounds-re-extended-from-the-paintings-they-replaced--20-images))
+and the 81 grab poses for `?throw=true`
+([20C](#20c-the-grab-poses--81-sprites)).**
 
 **Round 20 is the next one to open** — 19 was used for the intake of round 18
 and is not a request number. Anything found from here goes into 20.
@@ -326,13 +328,17 @@ single addition: **no drawn shadow of any kind** — the game casts its own.
 
 # Round 20 — open
 
-**Two requests. Neither is a drawing that was never made.**
+**Three requests. The first two are not drawings that were never made.**
 
 - **44 of the 114 summon plates hold six creatures instead of one** — a delivery
   fault rather than art anybody owes us. See
   [20A](#20a-summon-plates-that-are-contact-sheets--44-sprites) below.
 - **Twenty backgrounds, re-extended from the paintings 18E replaced** —
   [20B](#20b-twenty-backgrounds-re-extended-from-the-paintings-they-replaced--20-images).
+- **The grab poses — three new poses across the whole roster** for the
+  experimental grab/throw mechanic (`?throw=true`) —
+  [20C](#20c-the-grab-poses--81-sprites). The mechanic plays today on reused
+  poses; this is the art that makes it read.
   18E's resolution win is real and is kept; what it also did, unasked, was
   re-invent twenty scenes, and against the 3D camera's centre crop the new
   boards read sparser and darker than the ones players knew. The fix is to
@@ -581,3 +587,49 @@ Checked on delivery, per plate:
    brightness and palette;
 3. the centre 49.4% stands as a finished picture, which follows from (2);
 4. no text, border, watermark or signature anywhere, ring included.
+
+---
+
+## 20C. The grab poses — 81 sprites
+
+**Three new poses per fighter, all 27 fighters**, for the Smash-style grab and
+throw mechanic that shipped behind `?throw=true` (`src/grab.js`,
+[game-mechanics.md §8](game-mechanics.md#grabs--throws--experimental-behind-throwtrue)).
+The mechanic is fully playable now on **reused art** — the table below is what
+each state draws in the meantime — so nothing is blocked; this request is what
+makes a grab look like a grab instead of a frozen light attack.
+
+| Pose key | What it must read as | Drawing in the meantime |
+|---|---|---|
+| `grab_reach` | A committed forward lunge with one open, grasping hand leading — reaching to seize, not to strike. The other arm guards. | first light-attack frame |
+| `grab_hold` | Gripping an (unseen) opponent at arm's length by the collar — front hand closed in a fist at chest height, weight planted, coiled to heave. The opponent is NOT in the drawing: the game places the victim's own body in the grip. | `charge` |
+| `grabbed` | Seized and struggling: body arched back from the collar, feet scrabbling, both hands prying at an (unseen) grip at their own chest. Also unlocks: this doubles as the pose for any future "held/dragged" effects. | `hurt` |
+
+The four throw states (`throw_fwd`, `throw_back`, `throw_up`, `throw_down`)
+are **registered but not requested**: each currently plays the heavy attack
+swung that way, which reads correctly because a throw IS a heave in that
+direction. If a fighter's grab set ever gets a bespoke throw pose, deliver it
+under those keys and it is picked up with no code change — but 20C is complete
+without them.
+
+**The critical constraint is the grip point.** `grab_hold`'s closed fist and
+`grabbed`'s prying hands must both sit at **chest height on the leading edge of
+the body**, because the game overlaps the two drawings at a fixed gap
+(`holdGap` in `src/grab.js`) — a fist drawn high on one fighter and low on
+another makes every pairing look like they are holding different arguments.
+Chest height, front edge, both poses, whole roster.
+
+Same spec as every sprite round: one subject per file, flat key screen (grey
+for the warm-palette fighters — see the list at the top), facing right, one
+zoom per character matched to their own `idle_a`, at least 600 px of body,
+delivered to `assets/intake/<character>/<pose_key>.png`. Read
+[pose-brief.md](../sprites/docs/pose-brief.md) first, and the
+[canonical reference](#the-canonical-reference-image--one-per-fighter) rule
+applies as always.
+
+**The 2.5D/3D side of the same mechanic is aliased, not owed:** the rig states
+`grabReach`, `grabHold`, `grabbed` and the four throws currently play the
+`light` / `charge` / `hurt` / heavy clips (`STATE_ALIASES` in
+`billboards/src/states.js`). Bespoke grab clips would be a B-/D-round request
+if the mechanic graduates from its flag; nothing is asked of the model tracks
+yet.

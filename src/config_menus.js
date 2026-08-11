@@ -12,6 +12,7 @@
 // ---------------------------------------------------------------------------
 
 import { CONTROL_ROWS, padTips } from "./config_controls.js";
+import { THROW_ENABLED } from "./flags.js";
 
 /** The pad button bound to an action, by name — "RT", "LB". Read from the
  *  control map so a string can never name a button the game does not use. */
@@ -180,6 +181,12 @@ export const TEXT = {
       ["Shield + direction", "Dodge"],
       ["Tap shield on impact", "Parry"],
       ...padTips(),
+      // Grab detail rows only exist while the mechanic does (?throw=true) —
+      // the grab row itself arrives via padTips() from the control map.
+      ...(THROW_ENABLED ? [
+        ["While holding a grab", "Direction throws · Light pummels"],
+        ["When grabbed", "Mash buttons to break free"],
+      ] : []),
       ["Right stick, while a smash charges", "Angle the swing high or low"],
       [`D-pad + ${padName("special")}`, "Aim and fly Nue / cursed spirits"],
     ],
@@ -189,7 +196,11 @@ export const TEXT = {
       + "double-tapping a direction dashes. "
       + `${padName("domain")} opens a Domain Expansion and ${padName("ult")} fires the ultimate. `
       + "The RIGHT STICK throws tilt attacks — flick it for the tilt or aerial in that direction, or hold it "
-      + "while a smash charges to angle the swing. The D-pad steers any summon you have on the stage.",
+      + "while a smash charges to angle the swing. The D-pad steers any summon you have on the stage."
+      + (THROW_ENABLED
+        ? ` ${padName("grab")} GRABS: it beats shields, a direction throws them, Light pummels,`
+          + " and a grabbed fighter mashes buttons to break free."
+        : ""),
   },
 
   pause: {

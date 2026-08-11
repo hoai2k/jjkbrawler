@@ -18,6 +18,7 @@ import {
 } from "./constants.js";
 import { bodyMetrics } from "./silhouette.js";
 import { swingExtent } from "./moves.js";
+import { breakGrabsOn } from "./grab.js";
 import {
   TUMBLE_KB_MIN, TUMBLE_SPIN_PER_KB, TUMBLE_SPIN_MAX,
   DI_MAX_TURN, DI_SPEED, STALE_QUEUE, STALE_DMG_STEP, STALE_KB_STEP,
@@ -668,6 +669,11 @@ export function applyHit(owner, target, hit, source) {
     triggerCounter(target, owner);
     return "countered";
   }
+
+  // A landed hit shakes any grab apart (?throw=true): striking the grabber
+  // frees their victim, and a third party striking the victim knocks them out
+  // of the hands holding them. The holder's own pummel is exempt (grab.js).
+  breakGrabsOn(target, owner);
 
   let dmg = hit.dmg;
   let baseKb = hit.baseKb;

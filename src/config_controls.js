@@ -16,6 +16,8 @@
 // instructions move together. Nothing else hard-codes a button.
 // ---------------------------------------------------------------------------
 
+import { THROW_ENABLED } from "./flags.js";
+
 /** Keyboard codes per player slot. Slots 3 and 4 are gamepad-only. */
 export const KEY_BINDS = {
   1: {
@@ -29,6 +31,10 @@ export const KEY_BINDS = {
     // of the attack keys, reachable without leaving the WASD hand's
     // neighbours; see summons.js for what it drives.
     steerUp: ["KeyT"], steerLeft: ["KeyF"], steerDown: ["KeyG"], steerRight: ["KeyH"],
+    // Grab (?throw=true only — src/flags.js). Next to the attack cluster, and
+    // dead weight without the flag: input.js reads it either way, grab.js only
+    // acts on it when the mechanic is on.
+    grab: ["KeyO"],
   },
   2: {
     left: ["ArrowLeft"], right: ["ArrowRight"], up: ["ArrowUp"], down: ["ArrowDown"],
@@ -39,6 +45,7 @@ export const KEY_BINDS = {
     // The numpad is fully spoken for by P2's buttons, so their steering cluster
     // is the number row in the same 8/4/5/6 shape.
     steerUp: ["Digit8"], steerLeft: ["Digit4"], steerDown: ["Digit5"], steerRight: ["Digit6"],
+    grab: ["KeyM", "Numpad4"],
   },
 };
 
@@ -50,7 +57,13 @@ export const PAD_BUTTONS = {
   // A, plus RT as a second jump. A pad has one thumb for the face cluster, and
   // jumping while attacking asks that thumb for two buttons at once; the right
   // index finger is doing nothing at that moment.
-  jump: [0, 7],
+  //
+  // Unless the experimental grab mechanic is on (?throw=true — src/flags.js):
+  // grab wants exactly the button a Smash player's index finger expects, so RT
+  // is conditionally taken back from jump for the sessions that opt in. A jumps
+  // alone there; everywhere else this stays the shipped layout.
+  jump: THROW_ENABLED ? [0] : [0, 7],
+  grab: THROW_ENABLED ? 7 : [],   // RT behind the flag; bound to nothing otherwise
   dash: [],    // double-tap a direction
   light: 2,
   heavy: 3,
@@ -126,6 +139,11 @@ const ROWS = [
   { id: "ult", action: "Ultimate", bind: "ult" },
   { id: "domain", action: "Domain Expansion", bind: "domain", short: "Domain" },
   { id: "shield", action: "Shield / dodges", bind: "shield", short: "Shield / dodge" },
+  // Only listed while the mechanic exists (?throw=true): a control row the
+  // game does not read would be a lie in every generated table and tip.
+  ...(THROW_ENABLED
+    ? [{ id: "grab", action: "Grab (direction throws · Light pummels)", bind: "grab", short: "Grab" }]
+    : []),
   { id: "tilt", action: "Tilt attacks (no run-up)", pad: "Right stick", short: "Tilts" },
   { id: "steer", action: "Steer summons / aim creature shots", pad: "D-pad", short: "Steer / aim" },
   { id: "pause", action: "Pause", bind: "pause" },

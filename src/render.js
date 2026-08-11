@@ -570,6 +570,7 @@ function drawFighters(ctx, { bodies = true } = {}) {
     if (f.simpleDomain) drawSimpleDomain(ctx, f);
     if (f.statuses.nailMarks > 0) drawNailMarks(ctx, f);
     if (f.statuses.blind > 0) drawBlindSplatter(ctx, f);
+    if (f.grabbedBy) drawGrabStruggle(ctx, f);
     drawShieldMeter(ctx, f);
   }
 }
@@ -731,6 +732,40 @@ function drawShieldMeter(ctx, f) {
   ctx.fillRect(f.x - 35, f.y - 148, 70, 7);
   ctx.fillStyle = pct > 0.35 ? f.char.theme : "#ff5a5a";
   ctx.fillRect(f.x - 34, f.y - 147, 68 * pct, 5);
+  ctx.restore();
+}
+
+// A fighter in someone's grip (?throw=true — src/grab.js): the shrinking bar
+// is the hold itself, drawn over the VICTIM because escaping is their job —
+// it drains on its own and every mash visibly bites a piece out of it. The
+// grip ring pulses at the pair's join so a hold reads as a hold from across
+// the stage, in every camera mode (this pass draws over the scene in 2.5D/3D
+// exactly as it does flat).
+function drawGrabStruggle(ctx, f) {
+  const g = f.grabbedBy?.grab;
+  if (!g) return;
+  const pct = clamp(g.holdT / g.holdMax, 0, 1);
+  ctx.save();
+  // grip ring between the two bodies
+  const gx = (f.x + f.grabbedBy.x) / 2;
+  ctx.globalCompositeOperation = "lighter";
+  ctx.globalAlpha = 0.45 + 0.25 * Math.sin(state.matchTime * 18);
+  ctx.strokeStyle = f.grabbedBy.char.theme;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(gx, f.y - 78, 30 + 4 * Math.sin(state.matchTime * 12), 0, Math.PI * 2);
+  ctx.stroke();
+  // the escape bar: amber draining to red, over the victim's head
+  ctx.globalCompositeOperation = "source-over";
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "rgba(6, 10, 20, 0.7)";
+  ctx.fillRect(f.x - 35, f.y - 168, 70, 8);
+  ctx.fillStyle = pct > 0.4 ? "#ffd35a" : "#ff5a5a";
+  ctx.fillRect(f.x - 34, f.y - 167, 68 * pct, 6);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 10px system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("MASH!", f.x, f.y - 173);
   ctx.restore();
 }
 

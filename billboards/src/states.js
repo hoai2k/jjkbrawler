@@ -52,18 +52,42 @@ export const STATES = {
   dizzy:          { loop: true,  duration: 1.0,   tier: "library" },
   prone:          { loop: true,  duration: 1.0,   tier: "library" },
   win:            { loop: true,  duration: 1.2,   tier: "identity" },
+  // Grab/throw states (?throw=true — src/grab.js). ALIASED for now: each one
+  // plays an existing clip via STATE_ALIASES below, so the mechanic works on
+  // every rig today with no new clips owed. The entries exist so these are
+  // never unknown states; their timing is taken from the clip they alias to
+  // (clipTime resolves through clipNameFor). When bespoke grab clips are
+  // authored, drop the alias and the state starts playing its own clip.
+  grabReach:      { loop: false, duration: 0.2,   beat: 0.08, aim: true, tier: "library" },
+  grabHold:       { loop: true,  duration: 0.5,   tier: "library" },
+  grabbed:        { loop: true,  duration: 0.5,   tier: "library" },
+  throwFwd:       { loop: false, duration: 0.3,   beat: 0.1,  tier: "library" },
+  throwBack:      { loop: false, duration: 0.3,   beat: 0.1,  tier: "library" },
+  throwUp:        { loop: false, duration: 0.3,   beat: 0.1,  tier: "library" },
+  throwDown:      { loop: false, duration: 0.3,   beat: 0.1,  tier: "library" },
 };
 
-// `dodge` is the legacy alias the engine still plays for fighters whose sprite
-// set predates dodge_roll/dodge_air (see DEFAULT_ANIMS); a rig never delivers
-// it — resolution maps it to dodge_roll. Listed in STATES so an animKey the
-// game actually uses is never an unknown state, excluded here so nobody is
-// asked to author it.
-export const CLIP_STATES = Object.keys(STATES).filter((s) => s !== "dodge");
+// States that play ANOTHER state's clip. `dodge` is the legacy alias for
+// fighters whose sprite set predates dodge_roll/dodge_air; the grab/throw
+// states borrow the nearest existing clip until bespoke ones are authored
+// (the same interim reuse the sprite side does in DEFAULT_ANIMS). A rig never
+// delivers an aliased state's own clip, so none of them appear in CLIP_STATES.
+const STATE_ALIASES = {
+  dodge: "dodge_roll",
+  grabReach: "light",
+  grabHold: "charge",
+  grabbed: "hurt",
+  throwFwd: "sideHeavy",
+  throwBack: "sideHeavy",
+  throwUp: "upHeavy",
+  throwDown: "downHeavy",
+};
 
-/** The clip a state plays. Only `dodge` remaps today. */
+export const CLIP_STATES = Object.keys(STATES).filter((s) => !STATE_ALIASES[s]);
+
+/** The clip a state plays — itself, unless it is an alias. */
 export function clipNameFor(state) {
-  return state === "dodge" ? "dodge_roll" : state;
+  return STATE_ALIASES[state] || state;
 }
 
 /** Where the clip playhead sits for a state at animTime, honouring the game

@@ -1,8 +1,29 @@
 # Audio Requests — open requests
 
-**Nothing is outstanding.** Every round is delivered, wired in and recorded in
+**One small round is open: round 12, the grab pack — three sounds.** Everything
+before it is delivered, wired in and recorded in
 [audio-requests-history.md](audio-requests-history.md), along with every
 round's audit, prompts and delivery record.
+
+## Round 12 — the grab pack (open) — 3 sounds
+
+The Smash-style grab/throw mechanic shipped behind `?throw=true`
+(`src/grab.js`, [game-mechanics.md §8](game-mechanics.md#grabs--throws--experimental-behind-throwtrue)).
+It is fully voiced today off existing files — the table below is the interim
+wiring — so nothing is silent; these three are what give the mechanic its own
+sonic identity instead of a borrowed one. If the mechanic graduates from its
+flag, this round should land with it.
+
+| Key | Moment | What it should be | Playing in the meantime |
+|---|---|---|---|
+| `grabConnect` | the hand closes on a body | a short cloth-and-impact clutch — a seize, not a punch; no ring-out tail | `punch` |
+| `grabBreak` | the victim mashes free | a strained burst-apart — effort released, slightly triumphant, distinct from a parry | `guardHit` (pitched up) |
+| `throwHeave` | any of the four throws leaves the hands | one big body-weight heave with a whoosh tail; the landing hit already has its own sound | `whoosh` |
+
+Delivery and registration follow the standing flow in
+[Adding a sound](#adding-a-sound); wire the keys into `SFX`
+(`src/config_audio.js`) and swap the three call sites in `src/grab.js` from the
+interim keys.
 
 Round 11 was the last of them: **Inumaki's cursed speech** — his three commands
 and his ultimate, spoken in Japanese in a voice cast for him alone, replacing

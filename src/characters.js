@@ -113,6 +113,16 @@ export const DEFAULT_ANIMS = {
   // renderer simulates it: `hurt` swept 90 degrees onto the back (fighter.js).
   prone: { frames: ["prone"], fallback: ["hurt"], fps: 1, loop: true },
   win: { frames: ["victory"], fps: 1, loop: true },
+  // Grabs and throws (?throw=true — src/grab.js). Sheet-era fallbacks; the
+  // semantic table below carries the full reasoning and the 20C request that
+  // replaces these stand-ins.
+  grabReach: { frames: ["grab_reach"], fallback: ["attack_light_a", "r3c0"], fps: 10, loop: false },
+  grabHold: { frames: ["grab_hold"], fallback: ["charge"], fps: 2, loop: true },
+  grabbed: { frames: ["grabbed"], fallback: ["hurt"], fps: 1, loop: true },
+  throwFwd: { frames: ["throw_fwd"], fallback: ["attack_heavy_a", "r3c0"], fps: 8, loop: false },
+  throwBack: { frames: ["throw_back"], fallback: ["attack_heavy_b", "attack_heavy_a", "r3c0"], fps: 8, loop: false },
+  throwUp: { frames: ["throw_up"], fallback: ["attack_up"], fps: 8, loop: false },
+  throwDown: { frames: ["throw_down"], fallback: ["attack_down", "r2c2"], fps: 8, loop: false },
 };
 
 // Staged characters have no legacy sheet, so every animation state maps to a
@@ -162,6 +172,21 @@ export const SEMANTIC_ANIMS = {
   // renderer simulates it: `hurt` swept 90 degrees onto the back (fighter.js).
   prone: { frames: ["prone"], fallback: ["hurt"], fps: 1, loop: true },
   win: { frames: ["victory"], fps: 1, loop: true },
+  // Grabs and throws (?throw=true — src/grab.js; round-20C art request in
+  // docs/asset-requests.md). Every state names its own pose and falls back to
+  // the nearest delivered art, so the mechanic animates on the whole roster
+  // today and upgrades pose by pose as 20C lands:
+  //   grabReach  the lunge with an open hand — a light strike reads closest
+  //   grabHold   gripping a body at arm's length — the charge stance holds
+  //   grabbed    seized and struggling — the hurt pose is the honest stand-in
+  //   throw*     the four heaves — each borrows the attack thrown that way
+  grabReach: { frames: ["grab_reach"], fallback: ["attack_light_a", "attack_light"], fps: 10, loop: false },
+  grabHold: { frames: ["grab_hold"], fallback: ["charge"], fps: 2, loop: true },
+  grabbed: { frames: ["grabbed"], fallback: ["hurt"], fps: 1, loop: true },
+  throwFwd: { frames: ["throw_fwd"], fallback: ["attack_heavy_a", "attack_heavy"], fps: 8, loop: false },
+  throwBack: { frames: ["throw_back"], fallback: ["attack_heavy_b", "attack_heavy_a", "attack_heavy"], fps: 8, loop: false },
+  throwUp: { frames: ["throw_up"], fallback: ["attack_up"], fps: 8, loop: false },
+  throwDown: { frames: ["throw_down"], fallback: ["attack_down"], fps: 8, loop: false },
 };
 
 export const CHARACTERS = {

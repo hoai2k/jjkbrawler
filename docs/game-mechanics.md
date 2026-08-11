@@ -465,6 +465,45 @@ index finger is free at exactly that moment. A binding may name several buttons
 (`PAD_BUTTONS` in `src/config_controls.js`); they merge by OR, and the first is
 the one the pad diagram calls that action's home.
 
+### Grabs & throws — experimental, behind `?throw=true`
+
+Add `?throw=true` to the URL and the game grows Smash's fourth option
+(`src/flags.js`, `src/grab.js`). **RT becomes grab** for that session — the flag
+conditionally takes the trigger back from the second jump, because grab wants
+exactly the button a Smash player's index finger expects — and every generated
+control surface (this table, the in-game pad diagram, the tips) follows the
+flag: with it off, nothing anywhere mentions grabbing. The table above is
+generated with the flag off, which is the shipped game.
+
+What the flag turns on:
+
+- **Grab — RT, or Light while shielding (the shield grab).** Grounded only,
+  a short reach with real startup and long whiff recovery. It completes the
+  triangle: attacks lose to shield, **shield loses to grab**, and a whiffed
+  grab is the most punishable move in the game.
+- **Holding.** The victim is carried in front of the grabber. The hold's length
+  scales with their damage (`GRAB` in `src/constants.js`) and drains faster for
+  every button the victim mashes — at low damage they *will* break out of a
+  lazy hold, shoving free with brief invulnerability while the grabber
+  stumbles. Nobody can be re-grabbed for a beat after any release: there are
+  deliberately no chain grabs.
+- **Pummel — Light while holding.** Small damage on a cooldown; strictly worse
+  than throwing unless you can afford the mash race.
+- **Throws — a direction while holding.** Forward and back (tossed behind you)
+  are the kill throws, up starts juggles, down is the low-knockback combo
+  starter. All four route through `applyHit`, so DI, move staling, KO credit
+  and the result-screen tally treat a throw exactly like any other hit — and
+  none of them KOs earlier than a charged smash except back throw at the ledge,
+  which is the classic reason to take somebody's back.
+- **A landed hit breaks any grab** — striking the grabber frees their victim,
+  and a third party hitting the victim knocks them loose (their pummel is the
+  one exception).
+
+The CPU plays along: it grabs shields, mashes out at its difficulty's rate, and
+spends its own holds on throws. Interim animations reuse the nearest delivered
+poses roster-wide; the bespoke grab art is asset request **20C** in
+[asset-requests.md](asset-requests.md).
+
 ## 9. Hitboxes vs. visuals
 
 Universal attack hitboxes are derived from each character's `reach` profile and

@@ -181,7 +181,8 @@ function padButtonPressed(pad, spec) {
 //     button special wants — special is pressed constantly and dash has a
 //     motion that has always worked.
 //   RT is a SECOND jump rather than a new action. Jump is the one input a
-//     player wants while the thumb is already on an attack button.
+//     player wants while the thumb is already on an attack button. (Behind
+//     ?throw=true, RT is grab instead — see src/flags.js and src/grab.js.)
 //   LB Domain Expansion · RB ultimate — the two supers, one shoulder each, so
 //     neither can be pressed by accident while reaching for the other. Domain
 //     used to be the whole d-pad, which was four buttons spent on a move only
@@ -222,6 +223,7 @@ function padSnapshot(pad) {
     heavyP: padButtonPressed(pad, PAD_BUTTONS.heavy),
     heavyHeld: padButton(pad, PAD_BUTTONS.heavy),
     specialP: padButtonPressed(pad, PAD_BUTTONS.special),
+    grabP: padButtonPressed(pad, PAD_BUTTONS.grab),
     dashP: padButtonPressed(pad, PAD_BUTTONS.dash),
     domainP: padButtonPressed(pad, PAD_BUTTONS.domain),
     ultP: padButtonPressed(pad, PAD_BUTTONS.ult),
@@ -263,6 +265,7 @@ function keysSnapshot(map) {
     ultP: anyPressed(map.ult),
     shieldHeld: anyHeld(map.shield),
     dashP: anyPressed(map.dash || []),
+    grabP: anyPressed(map.grab || []),
     domainP: anyPressed(map.domain || []),
     // No keyboard tilt stick: on keys a tilt is what a light press already
     // gives you with a direction held, so there is nothing extra to bind.
@@ -277,6 +280,9 @@ export function blankInput() {
     jumpP: false, jumpHeld: false, lightP: false,
     heavyP: false, heavyHeld: false, specialP: false, ultP: false,
     shieldHeld: false, pauseP: false, dirX: 0, dashP: false,
+    // Grab (?throw=true). Bound to nothing when the flag is off, so it simply
+    // never reads true there.
+    grabP: false,
     // Domain Expansion (LB / U). One button: nobody has two domains, and a
     // fighter who does picks between them with the left stick (domains.js).
     domainP: false,
