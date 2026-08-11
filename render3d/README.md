@@ -118,6 +118,15 @@ The comparison sprite can stand BESIDE the model instead of ghosting under it
 zooms — slider, ± buttons, scroll wheel — and pans by dragging the background,
 which is what makes a 384 px render's hands editable at all.
 
+**On a phone** the same page turns modal: the viewer owns the screen, a bottom
+toolbar names the four jobs (Scene / Pose / Look / Clips), and each opens the
+matching section of the same panel as a bottom sheet — same controls, same
+wiring, nothing forks (`workbench/mobile.js` + the media query in
+`workbench.css`). Two-finger pinch zooms the viewer, one finger drags bones
+(with a fatter hit ring for fingertips), tapping the viewer drops the sheet,
+and opening Pose enters edit mode. Compare-beside plus Output changes — the
+review-and-adjust loop — works end to end on a phone.
+
 Smoke: `node tools/smoke_pose_edit.mjs` — handles land on joints under zoom and
 pan, the drag leaves the limb pointing at the pointer to within a degree, an
 edit lands on the selected extreme and the rebuilt clip eases through it, the

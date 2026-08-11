@@ -32,7 +32,8 @@
         <div id="status" class="mono"></div>
       </section>
 
-      <aside class="panel">
+      <aside class="panel" id="panel">
+        <div class="ptab" data-tab="scene">
         <label>Character
           <select id="charSelect"></select>
         </label>
@@ -62,35 +63,9 @@
         <p class="hint">Drag the crosshair to move the aim target. Face left
         shows the real turnaround — the rig yawed, not mirrored, so
         asymmetric costumes stay correct.</p>
-
-        <h3>Model size &amp; facing</h3>
-        <div class="pose-box">
-          <label>Scale <span class="mono" id="scaleVal">1.00×</span>
-            <input id="scaleRange" type="range" min="0.6" max="1.6" step="0.005" value="1">
-          </label>
-          <div class="row">
-            <input id="scaleNum" type="number" min="0.4" max="2.5" step="0.01" value="1">
-            <button id="scaleReset" class="ghost sm">Reset to 1.00</button>
-            <button id="scaleSuggest" class="ghost sm" title="Set the scale that makes this model stand exactly its head-height target in the idle pose">Use measured</button>
-          </div>
-          <div id="scaleLine" class="mono hint"></div>
-          <label>Facing yaw (°) <span class="mono" id="yawVal">0°</span>
-            <input id="yawRange" type="range" min="-180" max="180" step="5" value="0">
-          </label>
-          <div class="row">
-            <input id="yawNum" type="number" min="-180" max="180" step="5" value="0">
-            <button id="yawReset" class="ghost sm">0°</button>
-            <button id="yawFlip" class="ghost sm" title="Add a half turn">+180°</button>
-          </div>
-          <p class="hint">Turns the whole rig, before every pose layer — for a
-          delivery authored facing some way other than the spec's +Z. Turn it
-          until the model carries itself like the others do (a delivered rig
-          that honours the spec sits at 0°). A free dial, not quarter steps:
-          the wrong-facing rigs that actually arrived were off by 60°, not 90.
-          Both settings ride along in <b>Export payload</b> as
-          <code>renderScale</code> and <code>yawOffsetDeg</code>.</p>
         </div>
 
+        <div class="ptab" data-tab="pose">
         <h3>3D pose</h3>
         <div class="pose-box" id="poseBox">
           <div class="row">
@@ -136,6 +111,38 @@
           saved as offsets from that solve. <b>Output changes</b> downloads the
           keyframe tables.</p>
         </div>
+        </div>
+
+        <div class="ptab" data-tab="look">
+        <h3>Model size &amp; facing</h3>
+        <div class="pose-box">
+          <label>Scale <span class="mono" id="scaleVal">1.00×</span>
+            <input id="scaleRange" type="range" min="0.6" max="1.6" step="0.005" value="1">
+          </label>
+          <div class="row">
+            <input id="scaleNum" type="number" min="0.4" max="2.5" step="0.01" value="1">
+            <button id="scaleReset" class="ghost sm">Reset to 1.00</button>
+            <button id="scaleSuggest" class="ghost sm" title="Set the scale that makes this model stand exactly its head-height target in the idle pose">Use measured</button>
+          </div>
+          <div id="scaleLine" class="mono hint"></div>
+          <label>Facing yaw (°) <span class="mono" id="yawVal">0°</span>
+            <input id="yawRange" type="range" min="-180" max="180" step="5" value="0">
+          </label>
+          <div class="row">
+            <input id="yawNum" type="number" min="-180" max="180" step="5" value="0">
+            <button id="yawReset" class="ghost sm">0°</button>
+            <button id="yawFlip" class="ghost sm" title="Add a half turn">+180°</button>
+          </div>
+          <p class="hint">Turns the whole rig, before every pose layer — for a
+          delivery authored facing some way other than the spec's +Z. Turn it
+          until the model carries itself like the others do (a delivered rig
+          that honours the spec sits at 0°). A free dial, not quarter steps:
+          the wrong-facing rigs that actually arrived were off by 60°, not 90.
+          Both settings ride along in <b>Export payload</b> as
+          <code>renderScale</code> and <code>yawOffsetDeg</code>.</p>
+        </div>
+
+
 
         <details class="group" id="lookdev" open>
           <summary>Look-dev — <span id="lookdevWho">this character</span></summary>
@@ -182,6 +189,9 @@
           </label>
         </details>
 
+        </div>
+
+        <div class="ptab" data-tab="clips">
         <h3>This state's clip</h3>
         <div id="sourceLine" class="mono src"></div>
         <label>Inherit this pose from
@@ -200,7 +210,18 @@
 
         <button id="exportBtn">Export payload</button>
         <p class="hint">Apply with <code>node tools/billboard_intake.mjs apply &lt;payload.json&gt; --backend 3d</code> — the workbench edits in-memory only; nothing changes on disk until the payload is applied.</p>
+        </div>
       </aside>
+
+      <!-- The phone chrome: a toolbar that opens one panel section at a time
+           as a bottom sheet. display:none on desktop; workbench.js wires it. -->
+      <nav id="mobileBar" hidden>
+        <button data-open="scene">🎬<span>Scene</span></button>
+        <button data-open="pose">✥<span>Pose</span></button>
+        <button data-open="look">🎨<span>Look</span></button>
+        <button data-open="clips">🎞<span>Clips</span></button>
+        <button id="mobilePlay">⏸<span>Pause</span></button>
+      </nav>
     </main>
 
     <script type="module" src="workbench.js"></script>

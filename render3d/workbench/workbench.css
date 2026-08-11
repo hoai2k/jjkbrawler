@@ -143,9 +143,59 @@ p.hint .dot {
 .badge.character { color: #9fb4e0; border-color: #46557f; background: #182034; }
 .badge.target { color: #cba0d2; border-color: #7d5a92; background: #241b2c; }
 
-@media (max-width: 980px) {
-  /* Narrow: let the page scroll normally so the panel is reachable below. */
-  body { overflow: auto; height: auto; }
-  main.layout { grid-template-columns: 1fr; }
-  .stage-col, .panel { overflow: visible; min-height: 0; }
+/* The panel's tab sections are invisible wrappers on desktop — the panel
+   reads as one column, exactly as before they existed. */
+.ptab { display: contents; }
+#mobileBar { display: none; }
+
+/* ------------------------------------------------------------ the phone
+ *
+ * Small screens get a MODAL workbench: the viewer owns the whole screen, a
+ * bottom toolbar names the four jobs (Scene / Pose / Look / Clips), and
+ * tapping one opens that section of the SAME panel as a bottom sheet over the
+ * viewer — same controls, same ids, same wiring; nothing forks. The two jobs
+ * the phone is actually for — compare against the sprite, drag bones and
+ * export — sit one tap deep.
+ */
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  body { overflow: hidden; height: 100%; }
+  .bar { flex-wrap: wrap; gap: 6px; padding: 8px 10px; }
+  .bar .hint { display: none; }
+
+  main.layout { display: block; padding: 0; }
+  .stage-col { overflow: visible; height: 100%; padding: 8px 8px 96px; }
+  canvas { max-width: none; }
+  .viewer-tools .hint { display: none; }
+  #status { font-size: 11px; }
+
+  /* The panel becomes the sheet. Closed by default; .open slides it up. */
+  .panel {
+    position: fixed; left: 0; right: 0; bottom: 56px; z-index: 30;
+    max-height: 62vh; border-radius: 14px 14px 0 0;
+    border-bottom: none; box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+    transform: translateY(110%); transition: transform 0.2s ease;
+    padding-bottom: 18px;
+  }
+  .panel.open { transform: none; }
+  /* One section at a time: the toolbar picks which. */
+  .ptab { display: none; }
+  .ptab.active { display: flex; flex-direction: column; gap: 10px; }
+
+  #mobileBar {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 31;
+    height: 56px; background: #121728; border-top: 1px solid #232c44;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  #mobileBar button {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 1px; font-size: 17px; background: none;
+    border: none; border-radius: 0; color: #8b96b3; padding: 4px 0;
+  }
+  #mobileBar button span { font-size: 10px; letter-spacing: 0.04em; }
+  #mobileBar button.active { color: #dbe2f0; background: #1a2136; }
+
+  /* Touch targets: the whole panel breathes a little wider. */
+  select, button, input[type="number"] { padding: 8px 10px; }
+  .keychip { padding: 6px 9px; }
+  .axis { grid-template-columns: 14px 1fr 64px; }
 }

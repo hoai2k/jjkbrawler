@@ -39,6 +39,7 @@ import { OUTLINE, setOutlineFor } from "../src/outline.js";
 import { blitPose } from "../src/blit.js";
 import { makeViewport } from "../../billboards/workbench/viewport.js";
 import { makePoseEditor } from "./pose_edit.js";
+import { initMobile } from "./mobile.js";
 import { CHARACTER_KEYS, CHARACTERS, getActor } from "../../src/characters.js";
 import { STAGES } from "../../src/stages.js";
 import { state as gameState } from "../../src/state.js";
@@ -708,6 +709,7 @@ stateSel.onchange = () => {
 $("playBtn").onclick = () => {
   wb.playing = !wb.playing;
   $("playBtn").textContent = wb.playing ? "⏸ Pause" : "▶ Play";
+  mobile?.syncPlay?.();
 };
 $("scrub").oninput = () => {
   wb.playing = false;
@@ -725,13 +727,17 @@ $("beatToggle").onchange = () => { wb.snapBeat = $("beatToggle").checked; };
 // Press order: a bone handle (when editing), then the aim crosshair, then the
 // background — so a joint drag never moves the target and never pans the view.
 canvas.addEventListener("pointerdown", (ev) => {
+  if (view.pinching) { editor.pointerUp(); wb.dragging = false; return; }
   const pt = view.pointer(ev);
   canvas.setPointerCapture(ev.pointerId);
-  if (editor.on && posePreviewNow() && editor.pointerDown(pt, view.z)) return;
-  if (Math.hypot(pt.x - wb.target.x, pt.y - wb.target.y) < 40 / view.z) wb.dragging = true;
+  // Coarse pointers get a fatter hit ring — a fingertip is not a cursor.
+  const slop = ev.pointerType === "touch" ? 2 : 1;
+  if (editor.on && posePreviewNow() && editor.pointerDown(pt, view.z / slop)) return;
+  if (Math.hypot(pt.x - wb.target.x, pt.y - wb.target.y) < (40 * slop) / view.z) wb.dragging = true;
   else view.startPan(ev);
 });
 canvas.addEventListener("pointermove", (ev) => {
+  if (view.pinching) { editor.pointerUp(); wb.dragging = false; view.endPan(); return; }
   const pt = view.pointer(ev);
   if (editor.pointerMove(pt)) return;
   if (wb.dragging) wb.target = pt;
@@ -753,5 +759,12 @@ syncSizePanel();
 syncLookPanel();
 applyLook();
 syncPanel();
+
+// The phone chrome (mobile.js): a toolbar and a sheet over the same panel.
+const mobile = initMobile({
+  onOpenPose: () => { if (!editor.on) editor.setEditMode(true); },
+  isPlaying: () => wb.playing,
+  togglePlay: () => $("playBtn").onclick(),
+});
 $("playBtn").textContent = "⏸ Pause";
 draw();
