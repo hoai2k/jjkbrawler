@@ -43,6 +43,11 @@ export const TOON = {
   rimColor: [0.72, 0.80, 1.0],
   rimStrength: 0.28,
   rimPower: 3.0,
+  // Overall gain on the lit result, before the rim is added. A delivery that
+  // arrives dark — baked-in ambient occlusion, a texture graded for a brighter
+  // room, a costume that is simply black — cannot be fixed by moving the
+  // terminator: the whole figure needs lifting. 1 is as delivered.
+  brightness: 1.0,
 };
 
 // Uniform sets of every live toon material, so the workbench dials update
@@ -57,6 +62,7 @@ uniform float uBiasScale;
 uniform vec3 uRimColor;
 uniform float uRimStrength;
 uniform float uRimPower;
+uniform float uBrightness;
 vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
   float dotNL = dot( normal, lightDirection );
   float coord = dotNL * 0.5 + 0.5;
@@ -75,6 +81,10 @@ vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
 // lighting term (pre-tonemap), not a screen-space glow.
 const RIM_CHUNK = /* glsl */ `
 {
+  // Gain first, rim second: the rim is a stage-coloured line of a chosen
+  // strength, and scaling it with the body's exposure would make brightening a
+  // fighter quietly re-art-direct the room's light on them too.
+  outgoingLight *= uBrightness;
   vec3 rimV = normalize( vViewPosition );
   float rimK = pow( 1.0 - saturate( dot( normalize( normal ), rimV ) ), uRimPower );
   outgoingLight += uRimColor * uRimStrength * rimK;
@@ -103,6 +113,7 @@ export function makeToonMaterial(THREE, src, overrides = {}) {
     uRimColor: { value: new THREE.Color(p.rimColor[0], p.rimColor[1], p.rimColor[2]) },
     uRimStrength: { value: p.rimStrength },
     uRimPower: { value: p.rimPower },
+    uBrightness: { value: p.brightness ?? 1 },
   };
   const alphaBias = src?.userData?.shadeBias === "baseColorAlpha" && !!src?.map;
   mat.onBeforeCompile = (shader) => {
@@ -152,7 +163,60 @@ export function setToonDefaults(partial) {
     if (partial.rimStrength !== undefined && !pinned.has("rimStrength")) u.uRimStrength.value = partial.rimStrength;
     if (partial.rimPower !== undefined && !pinned.has("rimPower")) u.uRimPower.value = partial.rimPower;
     if (partial.rimColor && !pinned.has("rimColor")) u.uRimColor.value.setRGB(...partial.rimColor);
+    if (partial.brightness !== undefined && !pinned.has("brightness")) u.uBrightness.value = partial.brightness;
   }
+}
+
+// ------------------------------------------------------- per-character look
+//
+// The dials above are the GLOBAL look, which is a code decision. What a single
+// delivery needs is usually not: one fighter arrives dark, another's costume
+// eats its own outline, and those are facts about that model rather than about
+// the game's art direction. Those live in the manifest entry's `toon` block,
+// are applied at load (makeToonMaterial's `overrides`), and are edited live
+// here by the workbench — which is what makes them tunable by eye instead of
+// by guessing numbers into a JSON file.
+
+/** Which knobs a material carries as uniforms, and how to write each one. */
+const WRITERS = {
+  shadeThreshold: (u, v) => { u.uShadeThreshold.value = v; },
+  shadeSoftness: (u, v) => { u.uShadeSoftness.value = v; },
+  biasScale: (u, v) => { u.uBiasScale.value = v; },
+  rimStrength: (u, v) => { u.uRimStrength.value = v; },
+  rimPower: (u, v) => { u.uRimPower.value = v; },
+  brightness: (u, v) => { u.uBrightness.value = v; },
+  shadeTint: (u, v) => { u.uShadeColor.value.setRGB(v[0], v[1], v[2]); },
+  rimColor: (u, v) => { u.uRimColor.value.setRGB(v[0], v[1], v[2]); },
+};
+
+/** Set `partial` on every toon material under `root` only, pinning each knob so
+ *  a later global sweep leaves this character's art direction alone. */
+export function setToonFor(root, partial) {
+  root.traverse((o) => {
+    const mat = o.material;
+    if (!mat?.userData?.toonified || !mat.userData.uniforms) return;
+    for (const [key, value] of Object.entries(partial)) {
+      if (value === undefined || !WRITERS[key]) continue;
+      WRITERS[key](mat.userData.uniforms, value);
+      mat.userData.pinned.add(key);
+    }
+  });
+}
+
+/** Drop this character's override of `keys` and fall back to the global look. */
+export function clearToonFor(root, keys) {
+  root.traverse((o) => {
+    const mat = o.material;
+    if (!mat?.userData?.toonified || !mat.userData.uniforms) return;
+    for (const key of keys) {
+      if (!WRITERS[key]) continue;
+      // A knob the MATERIAL pinned for itself (glTF extras) is the delivery's
+      // own art direction and is not the manifest's to clear, but the workbench
+      // only ever asks about knobs it set, so falling back to TOON is right.
+      mat.userData.pinned.delete(key);
+      WRITERS[key](mat.userData.uniforms, TOON[key]);
+    }
+  });
 }
 
 /** The stage speaks: scene.js derives a rim color from the stage's tint and

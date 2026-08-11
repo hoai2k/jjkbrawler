@@ -38,6 +38,7 @@ export function makeViewport(canvas, pivot, ids = {}) {
     z: 1, panX: 0, panY: 0, pivot,
     minZ: 0.4, maxZ: 4,
     panning: false, _last: null,
+    pinching: false, // two touch pointers down: single-finger handlers yield
   };
 
   const clamp = (z) => Math.max(vp.minZ, Math.min(vp.maxZ, z));
@@ -108,6 +109,41 @@ export function makeViewport(canvas, pivot, ids = {}) {
     ev.preventDefault();
     vp.setZoom(vp.z * (ev.deltaY < 0 ? 1.1 : 1 / 1.1), canvasPoint(canvas, ev));
   }, { passive: false });
+
+  // Touch: two fingers pinch to zoom about their midpoint and pan with it.
+  // Tracked from raw pointer events so the workbench's own one-finger handlers
+  // (bone drags, the crosshair, background panning) stay untouched; while two
+  // pointers are down, `vp.pinching` tells them to stand down.
+  const touches = new Map();
+  let pinchStart = null;
+  canvas.addEventListener("pointerdown", (ev) => {
+    if (ev.pointerType !== "touch") return;
+    touches.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    if (touches.size === 2) {
+      const [a, b] = [...touches.values()];
+      pinchStart = { dist: Math.hypot(a.x - b.x, a.y - b.y), z: vp.z };
+      vp.pinching = true;
+      vp.endPan();
+    }
+  });
+  canvas.addEventListener("pointermove", (ev) => {
+    if (!touches.has(ev.pointerId)) return;
+    touches.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    if (touches.size === 2 && pinchStart) {
+      const [a, b] = [...touches.values()];
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      if (dist > 8) {
+        const mid = canvasPoint(canvas, { clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2 });
+        vp.setZoom(pinchStart.z * (dist / pinchStart.dist), mid);
+      }
+    }
+  });
+  const endTouch = (ev) => {
+    touches.delete(ev.pointerId);
+    if (touches.size < 2) { pinchStart = null; vp.pinching = false; }
+  };
+  canvas.addEventListener("pointerup", endTouch);
+  canvas.addEventListener("pointercancel", endTouch);
 
   sync();
   // A probe for the smoke tests, which have to turn a game-pixel position into

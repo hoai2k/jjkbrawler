@@ -32,7 +32,8 @@
         <div id="status" class="mono"></div>
       </section>
 
-      <aside class="panel">
+      <aside class="panel" id="panel">
+        <div class="ptab" data-tab="scene">
         <label>Character
           <select id="charSelect"></select>
         </label>
@@ -62,32 +63,9 @@
         <p class="hint">Drag the crosshair to move the aim target. Face left
         shows the real turnaround — the rig yawed, not mirrored, so
         asymmetric costumes stay correct.</p>
-
-        <h3>Model size &amp; facing</h3>
-        <div class="pose-box">
-          <label>Scale <span class="mono" id="scaleVal">1.00×</span>
-            <input id="scaleRange" type="range" min="0.6" max="1.6" step="0.005" value="1">
-          </label>
-          <div class="row">
-            <input id="scaleNum" type="number" min="0.4" max="2.5" step="0.01" value="1">
-            <button id="scaleReset" class="ghost sm">Reset to 1.00</button>
-            <button id="scaleSuggest" class="ghost sm" title="Set the scale that makes this model stand exactly its head-height target in the idle pose">Use measured</button>
-          </div>
-          <div id="scaleLine" class="mono hint"></div>
-          <label>Rig faces
-            <select id="yawSelect">
-              <option value="0">+Z — forward, as the delivery spec says</option>
-              <option value="180">−Z — backwards (flip left–right)</option>
-              <option value="90">+X — quarter turn</option>
-              <option value="270">−X — quarter turn the other way</option>
-            </select>
-          </label>
-          <p class="hint">A rig built facing the wrong way faces the wrong way
-          in every state, and no clip can fix it — the whole model is turned.
-          Both settings ride along in <b>Export payload</b> as
-          <code>renderScale</code> and <code>yawOffsetDeg</code>.</p>
         </div>
 
+        <div class="ptab" data-tab="pose">
         <h3>3D pose</h3>
         <div class="pose-box" id="poseBox">
           <div class="row">
@@ -133,19 +111,64 @@
           saved as offsets from that solve. <b>Output changes</b> downloads the
           keyframe tables.</p>
         </div>
+        </div>
 
-        <details class="group" id="lookdev">
-          <summary>Look-dev</summary>
-          <label>Shade threshold <span class="mono" id="thrVal"></span>
-            <input id="thr" type="range" min="0.2" max="0.9" step="0.01">
+        <div class="ptab" data-tab="look">
+        <h3>Model size &amp; facing</h3>
+        <div class="pose-box">
+          <label>Scale <span class="mono" id="scaleVal">1.00×</span>
+            <input id="scaleRange" type="range" min="0.6" max="1.6" step="0.005" value="1">
           </label>
-          <label>Shade tint (cool → warm) <span class="mono" id="tintVal"></span>
+          <div class="row">
+            <input id="scaleNum" type="number" min="0.4" max="2.5" step="0.01" value="1">
+            <button id="scaleReset" class="ghost sm">Reset to 1.00</button>
+            <button id="scaleSuggest" class="ghost sm" title="Set the scale that makes this model stand exactly its head-height target in the idle pose">Use measured</button>
+          </div>
+          <div id="scaleLine" class="mono hint"></div>
+          <label>Facing yaw (°) <span class="mono" id="yawVal">0°</span>
+            <input id="yawRange" type="range" min="-180" max="180" step="5" value="0">
+          </label>
+          <div class="row">
+            <input id="yawNum" type="number" min="-180" max="180" step="5" value="0">
+            <button id="yawReset" class="ghost sm">0°</button>
+            <button id="yawFlip" class="ghost sm" title="Add a half turn">+180°</button>
+          </div>
+          <p class="hint">Turns the whole rig, before every pose layer — for a
+          delivery authored facing some way other than the spec's +Z. Turn it
+          until the model carries itself like the others do (a delivered rig
+          that honours the spec sits at 0°). A free dial, not quarter steps:
+          the wrong-facing rigs that actually arrived were off by 60°, not 90.
+          Both settings ride along in <b>Export payload</b> as
+          <code>renderScale</code> and <code>yawOffsetDeg</code>.</p>
+        </div>
+
+
+
+        <details class="group" id="lookdev" open>
+          <summary>Look-dev — <span id="lookdevWho">this character</span></summary>
+          <p class="hint">These four are saved <b>per character</b> in the
+          manifest entry's <code>toon</code> block and ride out in
+          <b>Export payload</b>. A <span class="dot"></span> marks one this
+          character overrides; click <b>×</b> to drop back to the roster's look.
+          Sample rate stays global — it is an engine dial, not art direction.</p>
+          <label class="dial" data-key="brightness">Brightness <span class="mono" id="brightVal"></span>
+            <span class="dot"></span><button class="clear" data-key="brightness" title="Use the roster's value">×</button>
+            <input id="bright" type="range" min="0.5" max="2" step="0.01">
+          </label>
+          <label class="dial" data-key="shadeThreshold">Shade threshold <span class="mono" id="thrVal"></span>
+            <span class="dot"></span><button class="clear" data-key="shadeThreshold" title="Use the roster's value">×</button>
+            <input id="thr" type="range" min="0.1" max="0.9" step="0.01">
+          </label>
+          <label class="dial" data-key="shadeTint">Shade tint (cool → warm) <span class="mono" id="tintVal"></span>
+            <span class="dot"></span><button class="clear" data-key="shadeTint" title="Use the roster's value">×</button>
             <input id="tint" type="range" min="0" max="1" step="0.01">
           </label>
-          <label>Rim strength <span class="mono" id="rimVal"></span>
+          <label class="dial" data-key="rimStrength">Rim strength <span class="mono" id="rimVal"></span>
+            <span class="dot"></span><button class="clear" data-key="rimStrength" title="Use the roster's value">×</button>
             <input id="rim" type="range" min="0" max="1" step="0.01">
           </label>
-          <label>Outline width (px) <span class="mono" id="outVal"></span>
+          <label class="dial" data-key="outlinePx">Outline width (px) <span class="mono" id="outVal"></span>
+            <span class="dot"></span><button class="clear" data-key="outlinePx" title="Use the roster's value">×</button>
             <input id="outline" type="range" min="0" max="4" step="0.1">
           </label>
           <label>Sample rate (Hz) <span class="mono" id="hzVal"></span>
@@ -166,6 +189,9 @@
           </label>
         </details>
 
+        </div>
+
+        <div class="ptab" data-tab="clips">
         <h3>This state's clip</h3>
         <div id="sourceLine" class="mono src"></div>
         <label>Inherit this pose from
@@ -184,7 +210,18 @@
 
         <button id="exportBtn">Export payload</button>
         <p class="hint">Apply with <code>node tools/billboard_intake.mjs apply &lt;payload.json&gt; --backend 3d</code> — the workbench edits in-memory only; nothing changes on disk until the payload is applied.</p>
+        </div>
       </aside>
+
+      <!-- The phone chrome: a toolbar that opens one panel section at a time
+           as a bottom sheet. display:none on desktop; workbench.js wires it. -->
+      <nav id="mobileBar" hidden>
+        <button data-open="scene">🎬<span>Scene</span></button>
+        <button data-open="pose">✥<span>Pose</span></button>
+        <button data-open="look">🎨<span>Look</span></button>
+        <button data-open="clips">🎞<span>Clips</span></button>
+        <button id="mobilePlay">⏸<span>Pause</span></button>
+      </nav>
     </main>
 
     <script type="module" src="workbench.js"></script>
