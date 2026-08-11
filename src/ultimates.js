@@ -26,7 +26,9 @@ function cinematic(f, name, color) {
   state.screenFlash = { color, life: 0.32, maxLife: 0.32 };
   banner(name, color, { y: 210, size: 46, life: 1.5 });
   playSfx("ult", 1);
-  playGrunt(f.charKey);
+  // `name` is the ultimate's own name, which is also how MOVE_CALL keys a
+  // spoken line — so a fighter with one says it here instead of grunting.
+  playGrunt(f.charKey, name);
   state.camera.shake = Math.max(state.camera.shake, 9);
   ring(f.x, f.y - 90, color, 190);
   rumbleEvent(f, "ult"); // a low swell under the slow-mo

@@ -152,6 +152,15 @@ export const SFX = {
   domainCallDagon: { file: "domain_call_dagon.mp3", category: "voice", gain: 1.1 },
   domainCallHakari: { file: "domain_call_hakari.mp3", category: "voice", gain: 1.1 },
   domainCallYuta: { file: "domain_call_yuta.mp3", category: "voice", gain: 1.1 },
+  // ---- Inumaki's cursed speech, round 11. The command itself, in Japanese,
+  // in his voice — see MOVE_CALL below for how these reach a move. He is the
+  // one fighter whose entire technique is his voice, and until these landed he
+  // fired the wordless young-male grunt he shares with four other students.
+  callInumakiBlastAway: { file: "call_inumaki_blast_away.mp3", category: "voice", gain: 1.1 },
+  callInumakiDontMove: { file: "call_inumaki_dont_move.mp3", category: "voice", gain: 1.1 },
+  callInumakiGetCrushed: { file: "call_inumaki_get_crushed.mp3", category: "voice", gain: 1.1 },
+  callInumakiUltimate: { file: "call_inumaki_ultimate.mp3", category: "voice", gain: 1.1 },
+
   // The barrier itself, and the room it encloses.
   domainBarrier: { file: "domain_barrier.mp3", category: "domain", gain: 0.9 },
   domainInterior: { file: "domain_interior.mp3", category: "domain", loop: true, gain: 0.45 },
@@ -225,6 +234,29 @@ export const ELEMENT_HIT_SFX = {
   water: "hitWater",
   machine: "hitMachine",
   swarm: "hitSwarm",
+};
+
+// The line a fighter speaks when they use a particular move, played INSTEAD of
+// their wordless effort grunt (`playGrunt`, audio.js). Keyed by character and
+// then by the move's own `name` from characters.js, so a row reads like the
+// character sheet and survives a move being moved between slots.
+//
+// This is the general form of what `DOMAIN_CALL` (domains.js) does for the
+// eight Domain Expansions: a fighter with a line for this move says it, and
+// everyone else keeps the grunt, so a move is never silent. Nothing here is
+// Inumaki-shaped except the rows — any fighter who is ever given a technique
+// call-out goes in the same map.
+//
+// The names carry curly quotes because the kit does (“Blast Away”, not "Blast
+// Away"). A row whose name matches no move would silently never play, so
+// audio.js checks them against the roster at load and says so.
+export const MOVE_CALL = {
+  inumaki: {
+    "“Blast Away”": "callInumakiBlastAway",
+    "“Don't Move”": "callInumakiDontMove",
+    "“Get Crushed”": "callInumakiGetCrushed",
+    "“GET TWISTED AND BLAST AWAY”": "callInumakiUltimate",
+  },
 };
 
 // Legacy keys from before the round-8 sound pass. Call sites and move configs

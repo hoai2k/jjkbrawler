@@ -110,7 +110,7 @@ const HANDLERS = {
   // per cast with per-unit overrides (Megumi's two Divine Dogs).
   summon(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     const rolled = rollSummon(f, cfg, p);
     // The roll wins over the special's shared defaults, and `pool` itself is
     // dropped so it never travels into a summon's own config.
@@ -130,7 +130,7 @@ const HANDLERS = {
 
   projectile(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.42);
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     // Blood Manipulation (Choso): blood techniques are paid for in blood
     if (p.bloodCost) {
       f.damage = Math.min(999, f.damage + p.bloodCost);
@@ -174,7 +174,7 @@ const HANDLERS = {
 
   wave(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.46);
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     const count = p.count || 1;
     for (let i = 0; i < count; i++) {
       // Only override the sprite when a per-shot list is supplied. Passing
@@ -189,7 +189,7 @@ const HANDLERS = {
 
   dashStrike(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), (p.delay || 0.06) + (p.dur || 0.2) + 0.22, { lockMovement: true, keepMomentum: true });
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     f.vx = f.facing * (p.vel || 520);
     if (p.iframes) f.invuln = Math.max(f.invuln, p.iframes);
     if (p.armor) f.armorT = (p.delay || 0.06) + (p.dur || 0.2) + 0.15;
@@ -200,7 +200,7 @@ const HANDLERS = {
 
   burst(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), (p.delay || 0.1) + (p.dur || 0.16) + 0.26);
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     spawnMelee(f, { ...p });
     if (p.sprite) spawnSummonFlash(f, p.sprite, 0.52, p.spriteH || 220, p.spriteForward || 105);
     if (p.unblockable) ring(f.x + f.facing * 70, f.y - 90, p.color || f.char.theme, 80);
@@ -208,7 +208,7 @@ const HANDLERS = {
 
   commandGrab(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     if (p.castSfx) playSfx(p.castSfx, 0.9);
     spawnMelee(f, {
       delay: 0.12, dur: 0.14, ox: 24, oy: -104, w: p.range || 120, h: 110,
@@ -232,7 +232,7 @@ const HANDLERS = {
 
   install(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     const ok = applyInstall(f, {
       t: p.duration, label: p.label || cfg.name, color: p.color || f.char.theme,
       speedMul: p.speedMul, dmgMul: p.dmgMul, armor: p.armor,
@@ -251,7 +251,7 @@ const HANDLERS = {
 
   trap(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.48);
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     const opp = opponentOf(f);
     const tx = p.atOpponent && opp ? opp.x : f.x + f.facing * (p.dist || 220);
     const ground = groundYAt();
@@ -267,7 +267,7 @@ const HANDLERS = {
       playSfx("miss", 0.8);
       return;
     }
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     if (opp.ledge) { opp.ledge = null; opp.ledgeCooldown = 0.5; }
     if (f.ledge) { f.ledge = null; f.ledgeCooldown = 0.5; }
     const fx = f.x, fy = f.y, ox = opp.x, oy = opp.y;
@@ -314,7 +314,7 @@ const HANDLERS = {
 
   gamble(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     if (p.takada) {
       f.meter = clamp(f.meter + 8, 0, METER_MAX);
       f.damage = Math.max(0, f.damage - 2);
@@ -347,7 +347,7 @@ const HANDLERS = {
       popup(f.x, f.y - 170, "PANDA CORE", "#8ea0b8", 20);
       return;
     }
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     const ok = applyInstall(f, {
       id: "gorilla", t: p.duration, label: p.label, color: p.color,
       dmgMul: p.dmgMul, speedMul: p.speedMul, armor: p.armor, aura: p.aura,
@@ -360,6 +360,11 @@ const HANDLERS = {
 
   shout(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
+    // The command itself, where every other handler puts its effort grunt.
+    // This one and `crush` below are Inumaki's alone and were the two that
+    // never called playGrunt at all — his loudest moves, made by the one
+    // fighter whose technique is his voice, and silent of him.
+    playGrunt(f.charKey, cfg.name);
     spawnMelee(f, {
       delay: 0.1, dur: 0.12, ox: p.ox ?? 40, oy: p.oy ?? -120, w: p.w, h: p.h,
       dmg: p.dmg, base: p.base, growth: p.growth, angle: p.angle,
@@ -381,6 +386,9 @@ const HANDLERS = {
       popup(f.x, f.y - 160, "…too far", "#9aa4c0", 15);
       return;
     }
+    // After the range check, like every other handler that guards first: a
+    // command with nobody in reach is not spoken, it is not even attempted.
+    playGrunt(f.charKey, cfg.name);
     ring(opp.x, opp.y - 90, p.color, 100);
     const res = applyHit(f, opp, {
       dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: 0.1,
@@ -401,7 +409,7 @@ const HANDLERS = {
       popup(f.x, f.y - 160, "no nails set…", "#9aa4c0", 15);
       return;
     }
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     burst(opp.x, opp.y - 90, "#ff9a6a", 16 + marks * 8, 1 + marks * 0.2);
     ring(opp.x, opp.y - 90, "#ff9a6a", 70 + marks * 25);
     applyHit(f, opp, {
@@ -426,7 +434,7 @@ const HANDLERS = {
       popup(f.x, f.y - 160, "…no resonance", "#9aa4c0", 15);
       return;
     }
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     const dmg = Math.round(p.dmgPerMark * marks * 10) / 10;
     opp.damage = Math.min(999, opp.damage + dmg);
     opp.hitstun = Math.max(opp.hitstun, p.hitstun);
@@ -441,7 +449,7 @@ const HANDLERS = {
 
   updraft(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.42);
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     const x = f.x + f.facing * 90;
     state.entities.push(makeWindColumn(f, x, p));
     f.vy = Math.min(f.vy, -(p.liftSelf ? 650 : 0));
@@ -468,7 +476,7 @@ const HANDLERS = {
   echoStrike(f, p, cfg) {
     const dur = (p.delay || 0.08) + (p.echoDelay || 0.34) + 0.28;
     beginSpecialAction(f, currentSlot(cfg, f), dur, { events: [] });
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     spawnMelee(f, { ...p, label: p.label || cfg.name });
     f.action.events.push({
       at: (p.delay || 0.08) + (p.echoDelay || 0.34),
@@ -495,7 +503,7 @@ const HANDLERS = {
       return;
     }
     beginSpecialAction(f, currentSlot(cfg, f), 0.45);
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     f.meter = clamp(f.meter - p.cost, 0, METER_MAX);
     if (!applyInstall(f, { t: p.duration, label: p.label || cfg.name, color: p.color, dmgMul: p.dmgMul })) return;
     banner(p.label || cfg.name, p.color, { y: 240, size: 34, life: 0.9 });
@@ -550,7 +558,7 @@ const HANDLERS = {
   // leaves them soaked, which is where the rest of his kit wants them.
   undertow(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     const color = p.color || f.char.theme;
     playSfx("whoosh", 0.9, 0.7);
     for (const t of state.fighters) {
@@ -593,7 +601,7 @@ const HANDLERS = {
   // the spot the target held when she cast it. Dodge by not standing there.
   warpStrike(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.4);
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     const opp = opponentOf(f);
     const tx = opp && !opp.dead ? opp.x : f.x + f.facing * 240;
     const ty = opp && !opp.dead ? opp.y - 70 : f.y - 70;
@@ -642,7 +650,7 @@ const HANDLERS = {
   // shields; it does gentle ticks with no launch, an attrition zone.
   cloudField(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.46);
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     const x = clamp(f.x + f.facing * (p.dist || 210), 80, 1200);
     const groundY = groundYAt();
     state.entities.push({
@@ -693,7 +701,7 @@ const HANDLERS = {
   // What, exactly, depends on the receipt he tears.
   randomDrop(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
-    playGrunt(f.charKey);
+    playGrunt(f.charKey, cfg.name);
     const opp = opponentOf(f);
     const tx = clamp(opp && !opp.dead ? opp.x : f.x + f.facing * 260, 100, 1180);
     const drop = p.drops[Math.floor(Math.random() * p.drops.length)];
