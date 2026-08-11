@@ -24,12 +24,12 @@ Or double-click `play-mac.command` (macOS) / `play-windows.bat` (Windows).
 | Action | Gamepad |
 |---|---|
 | Move | Left stick |
-| Jump | A |
+| Jump | A or RT |
 | Crouch / fast-fall | Left stick ▼ |
 | Light attack | X |
 | Heavy attack (hold = charge) | Y |
-| Special | RT |
-| Dash | B, or double-tap |
+| Special | B |
+| Dash | Double-tap a direction |
 | Ultimate | RB |
 | Domain Expansion | LB |
 | Shield / dodges | LT |

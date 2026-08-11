@@ -412,12 +412,12 @@ with the side it fights for.
 | Action | Gamepad |
 |---|---|
 | Move | Left stick |
-| Jump | A |
+| Jump | A or RT |
 | Crouch / fast-fall | Left stick ▼ |
 | Light attack | X |
 | Heavy attack (hold = charge) | Y |
-| Special | RT |
-| Dash | B, or double-tap |
+| Special | B |
+| Dash | Double-tap a direction |
 | Ultimate | RB |
 | Domain Expansion | LB |
 | Shield / dodges | LT |
@@ -453,10 +453,17 @@ aerial for that direction. Held rather than flicked it still angles a charging
 side smash on release; a charging fighter cannot act, so aiming never becomes an
 attack. Summon steering moved to the D-pad when the stick took this job.
 
-**Special is the right trigger and B dashes.** Special used to be B while LT and
-RT were both shield, which spent a face button and a trigger on two things that
-never needed both. Double-tap a direction still dashes — the
-button is a second way in, not a replacement.
+**Special is B, and dash is a double-tap again.** Special spent one mapping on
+the right trigger with dash on B, and it is back where it started: special is
+pressed constantly and wants a face button under the thumb, while dash has a
+motion — double-tap a direction — that has always worked and never needed a
+button of its own.
+
+**The right trigger is a second jump.** Not a new action: jump is the one input
+a player wants while the thumb is already on an attack button, and the right
+index finger is free at exactly that moment. A binding may name several buttons
+(`PAD_BUTTONS` in `src/config_controls.js`); they merge by OR, and the first is
+the one the pad diagram calls that action's home.
 
 ## 9. Hitboxes vs. visuals
 

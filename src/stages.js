@@ -81,6 +81,32 @@ export function getStage(key) {
   return STAGES.find((s) => s.key === key) || STAGES[0];
 }
 
+// Every board ships TWO paintings of the same scene, because the two cameras
+// frame a backdrop differently and one plate cannot serve both:
+//
+//   assets/backgrounds/<bgFile>       the wide plate (3200×1800, round 18E)
+//   assets/backgrounds/flat/<bgFile>  the painting the game shipped before it
+//
+// The 3D camera over-fills its frustum on purpose (×1.5 height, ×1.35 width in
+// camera3d/stage_geo.js) so no dolly or yaw can swing past the backdrop's edge,
+// and the cost is that only ~49% of the plate's width is ever on screen. The
+// wide plates were repainted for exactly that crop. Flat mode has no frustum to
+// over-fill — it shows the whole plate — so on the wide plates it sees an outer
+// ring that was never composed as picture, and the boards read sparse and dim.
+// It draws the older paintings instead, which are the framing it was built for.
+//
+// Filenames match between the two directories, with one exception: the flat
+// Shibuya Night is still the `.webp` it shipped as (18E's replacement is the
+// file that became `.jpg`), so it names its own file below.
+const FLAT_BG_FILES = { shibuyaNight: "shibuya_night.webp" };
+
+/** The backdrop file for `stage` under the given camera. `flat` true asks for
+ *  the flat camera's painting; anything else gets the wide 3D plate. */
+export function backgroundFile(stage, flat) {
+  if (!flat) return `assets/backgrounds/${stage.bgFile}`;
+  return `assets/backgrounds/flat/${FLAT_BG_FILES[stage.key] || stage.bgFile}`;
+}
+
 // Where a match of `count` fighters lines up. Two, three and four are placed by
 // hand — those are the spacings the stages were laid out around. A crowd (the
 // Players vs CPUs and Battle Royal modes) is spread evenly across the middle of
