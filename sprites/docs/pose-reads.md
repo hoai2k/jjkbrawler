@@ -55,6 +55,11 @@ another, and what the editor and the contact sheet both lay out in.
 `node server.mjs`, then
 [`/render3d/workbench/?edit=pose`](../../render3d/workbench/).
 
+The bar carries the **build time** of the editor itself. If it is older than a
+change you are looking for, the checkout is behind — `git pull`, then reload;
+the dev server sends `no-store` for source and the read is fetched with a
+cache-buster, so nothing here is ever served stale from a cache.
+
 Pick a character, pick a frame from the grid, drag the joints onto the drawing.
 Dragging a joint carries everything below it in the chain (shift-drag moves the
 one joint); arrow keys nudge; **Snap to art** pulls stray joints onto the

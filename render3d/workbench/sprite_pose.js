@@ -312,6 +312,7 @@ function poseFromJoints(j) {
     // Screen x is world +Z (the facing), screen y counts DOWN, world y counts up.
     const from = jointAt(j, a);
     const to = jointAt(j, b);
+    if (!from || !to) continue;
     const dx = to[0] - from[0];
     const dy = to[1] - from[1];
     if (!dx && !dy) continue;
@@ -373,26 +374,44 @@ function drawThree() {
 
 // --------------------------------------------------------------------- view
 
-function mannequinSVG(j, { handles = false } = {}) {
+/** Draw whatever joints are present, and draw nothing for the ones that are
+ *  not. A pose from an older file — or from a stale copy of this page — can be
+ *  short a joint the current build knows about, and when that happened the
+ *  figure did not lose a limb, it threw: one undefined joint took out the
+ *  whole picker, which reads as "the editor is broken" rather than "this pose
+ *  is missing a toe". Missing joints are worth SAYING, once, and worth
+ *  surviving. */
+function mannequinSVG(j, { handles = false, label = "" } = {}) {
+  const missing = JOINTS.filter((n) => !Array.isArray(j[n]));
+  if (missing.length) {
+    console.warn(`pose editor: ${label || "a pose"} has no ${missing.join(", ")} — `
+      + "drawing the joints it does have. Reload to pick up the current read.");
+  }
+  const has = (n) => Array.isArray(j[n]);
   const p = (n) => `${j[n][0]} ${j[n][1]}`;
-  const line = (a, b) =>
-    `<line class="bone ${SIDE(a) === "far" || SIDE(b) === "far" ? "far" : "near"}" `
-    + `x1="${j[a][0]}" y1="${j[a][1]}" x2="${j[b][0]}" y2="${j[b][1]}"/>`;
+  const line = (a, b) => (has(a) && has(b)
+    ? `<line class="bone ${SIDE(a) === "far" || SIDE(b) === "far" ? "far" : "near"}" `
+      + `x1="${j[a][0]}" y1="${j[a][1]}" x2="${j[b][0]}" y2="${j[b][1]}"/>`
+    : "");
   const parts = [
-    `<polygon class="torso" points="${p("shoulderL")} ${p("shoulderR")} ${p("hipR")} ${p("hipL")}"/>`,
+    ["shoulderL", "shoulderR", "hipR", "hipL"].every(has)
+      ? `<polygon class="torso" points="${p("shoulderL")} ${p("shoulderR")} ${p("hipR")} ${p("hipL")}"/>`
+      : "",
     ...Object.entries(PARENT).map(([child, parent]) => line(parent, child)),
     line("shoulderL", "shoulderR"), line("hipL", "hipR"),
   ];
-  const r = Math.max(2.6, Math.hypot(j.head[0] - j.neck[0], j.head[1] - j.neck[1]) * 0.8);
-  parts.push(`<circle class="skull" cx="${j.head[0]}" cy="${j.head[1]}" r="${r.toFixed(1)}"/>`);
+  if (has("head") && has("neck")) {
+    const r = Math.max(2.6, Math.hypot(j.head[0] - j.neck[0], j.head[1] - j.neck[1]) * 0.8);
+    parts.push(`<circle class="skull" cx="${j.head[0]}" cy="${j.head[1]}" r="${r.toFixed(1)}"/>`);
+  }
   if (handles) {
-    for (const name of JOINTS) {
+    for (const name of JOINTS.filter(has)) {
       parts.push(
         `<circle class="handle ${SIDE(name)}" data-joint="${name}" `
         + `cx="${j[name][0]}" cy="${j[name][1]}" r="2.1"><title>${name}</title></circle>`);
     }
   } else {
-    for (const name of ["handL", "handR", "footL", "footR"]) {
+    for (const name of ["handL", "handR", "toeL", "toeR"].filter(has)) {
       parts.push(`<circle class="tip ${SIDE(name)}" cx="${j[name][0]}" cy="${j[name][1]}" r="1.6"/>`);
     }
   }
@@ -403,7 +422,7 @@ function plateHTML(char, key, j, { handles = false } = {}) {
   const flip = faceLeft(char, key) ? ' class="flip"' : "";
   return `<img${flip} src="${spriteSrc(char, key)}" alt="${key}" loading="lazy">`
     + `<svg class="rigline" viewBox="0 0 100 100" preserveAspectRatio="none">`
-    + `${mannequinSVG(j, { handles })}</svg>`;
+    + `${mannequinSVG(j, { handles, label: `${char}/${key}` })}</svg>`;
 }
 
 function renderPicker() {
@@ -438,7 +457,8 @@ function renderEditor() {
   $("#faceNote").hidden = !faceLeft(ui.char, ui.pose);
   $("#jointList").innerHTML = JOINTS.map((n) => `
     <li class="${n === ui.sel ? "on" : ""}" data-joint="${n}">
-      <span>${n}</span><b>${pose.j[n][0].toFixed(1)}, ${pose.j[n][1].toFixed(1)}</b></li>`).join("");
+      <span>${n}</span><b>${pose.j[n]
+        ? `${pose.j[n][0].toFixed(1)}, ${pose.j[n][1].toFixed(1)}` : "—"}</b></li>`).join("");
   poseFromJoints(pose.j);
   drawThree();
 }
@@ -473,7 +493,7 @@ function commit() {
 
 function moveJoint(name, dx, dy, { chain = true } = {}) {
   const pose = reads.get(ui.char).poses[ui.pose];
-  const names = chain ? [name, ...descendants(name)] : [name];
+  const names = (chain ? [name, ...descendants(name)] : [name]).filter((n) => pose.j[n]);
   for (const n of names) {
     pose.j[n][0] = round1(clamp(pose.j[n][0] + dx, 0, 100));
     pose.j[n][1] = round1(clamp(pose.j[n][1] + dy, 0, 100));
@@ -558,7 +578,9 @@ function exportChar(char) {
     if (pose.source) out.source = pose.source;
     else if (pose.seed) out.seed = pose.seed;
     if (pose.flags) out.flags = pose.flags;
-    out.j = Object.fromEntries(JOINTS.map((n) => [n, pose.j[n]]));
+    // Export every joint the format has; a pose short of one is exported short
+    // of it too, and tools/pose_apply.py is where that gets caught and named.
+    out.j = Object.fromEntries(JOINTS.filter((n) => pose.j[n]).map((n) => [n, pose.j[n]]));
     poses[key] = out;
   }
   return {
@@ -598,6 +620,7 @@ function shell() {
   $(".bar strong").after(hint);
   const link = $('.bar a[href="./?edit=pose"]');
   if (link) { link.href = "./"; link.textContent = "← 3D Workbench"; }
+  showBuild();
   $("main.layout").outerHTML = `
     <main class="poseedit">
       <aside class="picker">
@@ -655,6 +678,23 @@ function shell() {
     </main>`;
 }
 
+/** When this file was last written, in the bar. The editor is served with
+ *  no-store, so a page that is behind is a checkout that is behind — and the
+ *  only way to tell by looking used to be to notice that a fix was missing. */
+async function showBuild() {
+  try {
+    const res = await fetch(import.meta.url, { method: "HEAD", cache: "reload" });
+    const when = res.headers.get("last-modified");
+    if (!when) return;
+    const stamp = document.createElement("span");
+    stamp.className = "hint build";
+    stamp.textContent = `build ${new Date(when).toISOString().slice(0, 16).replace("T", " ")}`;
+    stamp.title = "When this build of the editor was written. If it is older than a "
+      + "change you are looking for, the checkout is behind — git pull, then reload.";
+    $(".bar").append(stamp);
+  } catch { /* a HEAD that fails is not worth a broken page */ }
+}
+
 async function selectChar(char) {
   ui.char = char;
   const data = await loadRead(char);
@@ -709,6 +749,7 @@ async function boot() {
     pushUndo();
     const swapped = { ...pose.j };
     for (const part of SIDED) {
+      if (!pose.j[`${part}L`] || !pose.j[`${part}R`]) continue;
       swapped[`${part}L`] = pose.j[`${part}R`];
       swapped[`${part}R`] = pose.j[`${part}L`];
     }
@@ -763,7 +804,7 @@ function snapToArt() {
   if (!ink.length) return;
 
   pushUndo();
-  for (const name of JOINTS) {
+  for (const name of JOINTS.filter((n) => pose.j[n])) {
     const cx = (pose.j[name][0] * N) / 100;
     const cy = (pose.j[name][1] * N) / 100;
     let best = null;
