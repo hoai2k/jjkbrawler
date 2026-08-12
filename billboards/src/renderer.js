@@ -27,7 +27,7 @@ import { getRig } from "./rig.js";
 import { swayChains, simulateChains, simulates } from "./props.js";
 import {
   applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs,
-  characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
+  characterLateral, rotateBoneAboutWorldAxis, initLayerAxes, applyStance,
 } from "./ik.js";
 
 export const TEX_SIZE = 384;
@@ -251,6 +251,16 @@ export function renderPose(charKey, animKey, animTime, resolveClip, aim = null, 
   if (!resolved) return null;
 
   pose(rig, animKey, animTime, resolved.clip);
+  // The rig's own orientation correction, applied before anything reads a
+  // world position off it — the aim solve and the reach IK both do, and both
+  // are wrong by exactly this angle if it lands afterwards. `pose()` restores
+  // the clip's own root track every frame, so this is re-applied every frame
+  // rather than once at load.
+  rig.root.rotation.y = rig.yawOffset || 0;
+  // How wide they plant their feet is a fact about the fighter, the same way
+  // their height is — part of how big they READ — so it belongs here beside the
+  // facing rather than in whatever posed them.
+  applyStance(THREE, rig.root, rig.stanceDeg || 0, _ik);
   // Body morphs (Mahito's transfiguration arms) come FIRST among the layers:
   // aim and reach must solve against the limb's morphed length.
   applyMorphs(rig.root, charKey, animKey, clipTime(animKey, animTime));
@@ -280,6 +290,10 @@ export function renderPose(charKey, animKey, animTime, resolveClip, aim = null, 
   scene.add(rig.root);
   renderer.render(scene, camera);
   scene.remove(rig.root);
+  // Put the root back, exactly as render3d's scene.js does: the yaw belongs to
+  // the DRAW, and leaving a rig turned would hand the next reader — a
+  // workbench overlay, a measurement — a model in a pose nothing asked for.
+  rig.root.rotation.y = 0;
   stats.renders++;
 
   const canvas = document.createElement("canvas");
@@ -290,6 +304,10 @@ export function renderPose(charKey, animKey, animTime, resolveClip, aim = null, 
   const entry = {
     canvas,
     heightM: rig.height,
+    // The hand-set size dial, kept beside the height rather than folded into
+    // it: `heightM` stays the honest measurement and each consumer applies the
+    // artist's intent explicitly (src/camera3d/billboards.js already reads it).
+    renderScale: rig.renderScale ?? 1,
     rowsPerMetre: TEX_SIZE / (rig.height * FRAME_MUL),
     source: resolved.source,
   };

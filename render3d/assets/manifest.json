@@ -11,7 +11,8 @@
           0.7699,
           0.7742
         ]
-      }
+      },
+      "renderScale": 1.03
     },
     "maki": {
       "model": "maki/maki.glb",
@@ -24,7 +25,8 @@
           0.6846,
           0.6899
         ]
-      }
+      },
+      "renderScale": 1.15
     },
     "jogo": {
       "model": "jogo/jogo.glb",
@@ -37,7 +39,9 @@
           0.71,
           0.6787
         ]
-      }
+      },
+      "renderScale": 1.01,
+      "stanceDeg": 21
     },
     "megumi": {
       "model": "megumi/megumi.glb",
@@ -49,7 +53,8 @@
           0.6575,
           0.6629
         ]
-      }
+      },
+      "renderScale": 1.02
     },
     "hanami": {
       "model": "hanami/hanami.glb",
@@ -62,7 +67,8 @@
           0.7991,
           0.7835
         ]
-      }
+      },
+      "renderScale": 1.02
     },
     "uro": {
       "model": "uro/uro.glb",
@@ -78,7 +84,8 @@
           0.8099,
           0.8647
         ]
-      }
+      },
+      "renderScale": 1.26
     },
     "geto": {
       "model": "geto/geto.glb",
@@ -90,7 +97,9 @@
           0.829,
           0.7799
         ]
-      }
+      },
+      "renderScale": 1.02,
+      "stanceDeg": -10
     },
     "mahito": {
       "model": "mahito/mahito.glb",
@@ -128,7 +137,9 @@
           0.7722,
           0.7675
         ]
-      }
+      },
+      "renderScale": 1.01,
+      "stanceDeg": -10
     },
     "nobara": {
       "model": "nobara/nobara.glb",
@@ -141,7 +152,8 @@
           0.6861
         ]
       },
-      "yawOffsetDeg": 45
+      "yawOffsetDeg": 45,
+      "renderScale": 1.03
     },
     "choso": {
       "model": "choso/choso.glb",
@@ -154,7 +166,9 @@
           0.7923
         ]
       },
-      "yawOffsetDeg": 0
+      "yawOffsetDeg": 0,
+      "renderScale": 1.03,
+      "stanceDeg": -10
     },
     "gakuganji": {
       "model": "gakuganji/gakuganji.glb",
@@ -180,7 +194,8 @@
           0.7212
         ]
       },
-      "yawOffsetDeg": 30
+      "yawOffsetDeg": 30,
+      "renderScale": 1.01
     },
     "mechamaru": {
       "model": "mechamaru/mechamaru.glb",
@@ -193,7 +208,8 @@
           0.7959
         ]
       },
-      "yawOffsetDeg": 75
+      "yawOffsetDeg": 75,
+      "renderScale": 1.02
     },
     "meimei": {
       "model": "meimei/meimei.glb",
@@ -231,7 +247,8 @@
           0.9179
         ]
       },
-      "yawOffsetDeg": 45
+      "yawOffsetDeg": 45,
+      "renderScale": 1.03
     },
     "inumaki": {
       "model": "inumaki/inumaki.glb",
@@ -244,7 +261,8 @@
           0.7988
         ]
       },
-      "yawOffsetDeg": 30
+      "yawOffsetDeg": 30,
+      "renderScale": 1.01
     },
     "kurourushi": {
       "model": "kurourushi/kurourushi.glb",
@@ -257,7 +275,8 @@
           0.7969
         ]
       },
-      "yawOffsetDeg": 45
+      "yawOffsetDeg": 45,
+      "renderScale": 2.34
     },
     "momo": {
       "model": "momo/momo.glb",
@@ -270,7 +289,8 @@
           0.73
         ]
       },
-      "yawOffsetDeg": 60
+      "yawOffsetDeg": 60,
+      "renderScale": 1.16
     },
     "nanami": {
       "model": "nanami/nanami.glb",
@@ -309,7 +329,8 @@
           0.7054
         ]
       },
-      "yawOffsetDeg": 80
+      "yawOffsetDeg": 80,
+      "renderScale": 1.01
     },
     "toji": {
       "model": "toji/toji.glb",
@@ -335,7 +356,8 @@
           0.8276
         ]
       },
-      "yawOffsetDeg": 60
+      "yawOffsetDeg": 60,
+      "renderScale": 1.01
     },
     "yuki": {
       "model": "yuki/yuki.glb",
@@ -348,7 +370,8 @@
           0.8313
         ]
       },
-      "yawOffsetDeg": 60
+      "yawOffsetDeg": 60,
+      "renderScale": 1.01
     }
   }
 }

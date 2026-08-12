@@ -48,6 +48,19 @@ try {
     const { GLTFLoader } = await import("/vendor/three/loaders/GLTFLoader.js");
     const out = {};
 
+    // BOTH backends reset the root's yaw the moment they have drawn (see the
+    // line after `scene.remove(rig.root)` in each renderer): the turn belongs
+    // to the draw, not to the rig at rest. So a measurement taken after
+    // renderPose returns reads the model UN-turned — which is why this smoke
+    // reported the two backends identical for months while one of them applied
+    // a per-character facing correction and the other did not. Put the turn
+    // back before measuring, exactly as the draw does.
+    const asDrawn = (rig) => {
+      rig.root.rotation.y = rig.yawOffset || 0;
+      rig.root.updateMatrixWorld(true);
+      return rig;
+    };
+
     const measure = (rig, cam) => {
       // Heel to toe, flattened: the body's own forward, independent of how the
       // node it hangs under happens to be rotated.
@@ -76,7 +89,7 @@ try {
       const rig = rigs.getRig(char);
       if (rig) {
         scene.renderPose(char, "idle", 0.1, rig, rigs.resolveClip(char, "idle"), { turnYawRad: 0 });
-        out["render3d"] = measure(rig, scene.__cam());
+        out["render3d"] = measure(asDrawn(rig), scene.__cam());
       }
     }
     {
@@ -88,7 +101,7 @@ try {
       const rig = rigMod.getRig(char);
       if (rig) {
         renderer.renderPose(char, "idle", 0.1, rigMod.resolveClip);
-        out["billboard"] = measure(rig, renderer.__cam());
+        out["billboard"] = measure(asDrawn(rig), renderer.__cam());
       }
     }
     return out;
