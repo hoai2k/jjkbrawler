@@ -1,4 +1,4 @@
-// Smoke the two-handed weapon layer (billboards/src/ik.js applyTwoHandGrip):
+// Smoke the two-handed weapon layer (render3d/src/ik.js applyTwoHandGrip):
 // the off hand must land ON the shaft, not near it, not on the old clip pose.
 //
 // This layer cannot be checked in Blender — it is an engine-time solve, run

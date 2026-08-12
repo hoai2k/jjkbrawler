@@ -103,7 +103,7 @@ their partners. `attack_heavy_a` is the only true anticipation drawing on the
 sheet — everything else labelled `_a`/`_b` is two contacts, not wind-up and
 strike. All six run frames lead with the same leg, so the sheet is one
 half-cycle and the other half must be mirrored, which is already how it is
-built (`mirrorClips` in [`clips.js`](../../billboards/src/clips.js)).
+built (`mirrorClips` in [`clips.js`](../../render3d/src/clips.js)).
 
 ### Where Yuji disagrees with the pose audit
 

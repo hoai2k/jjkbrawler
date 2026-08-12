@@ -19,7 +19,7 @@
 // time, which is what the workbench's pose mode is for.
 //
 // THE TIMING IS ALREADY AGREED. A state's sprite animation names its frames
-// and an fps; billboards/src/states.js gives the same state a duration derived
+// and an fps; render3d/src/states.js gives the same state a duration derived
 // from that fps (see the note at the top of that file). So frame `i` belongs
 // at `i / fps` seconds, and a two-frame idle at 2.2 fps fills exactly the
 // 0.909 s the clip lasts. Nothing is stretched to fit — the two tables were

@@ -340,7 +340,7 @@ YUJI_FINDINGS = [
      "idle_b and attack_light_b repeat their partners. Only attack_heavy_a is a true wind-up."),
     ("Run cycle", "Every run frame leads with the same leg.",
      "The six run drawings are one half-cycle. The other half has to be mirrored — which is "
-     "what mirrorClips in billboards/src/clips.js already does."),
+     "what mirrorClips in render3d/src/clips.js already does."),
 ]
 
 
