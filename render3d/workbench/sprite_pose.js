@@ -55,7 +55,7 @@ import { CHARACTER_KEYS, CHARACTERS } from "../../src/characters.js";
 const READS_URL = "../../sprites/docs/pose-reads/";
 const SPRITES_URL = "../../sprites/assets/";
 const MANIFEST_URL = `${SPRITES_URL}manifest.json`;
-/** Where in-progress edits live between reloads. */
+/** The old localStorage key. Only read now, to throw its contents away. */
 const STORE = "jjk.poseEdits.v1";
 
 const JOINTS = [
@@ -156,41 +156,67 @@ let manifest = null;
 /** Per-pose undo stacks, keyed `char/pose`. */
 const undo = new Map();
 
-// ------------------------------------------------------------------ storage
+// ------------------------------------------------------------------ session
+//
+// Edits live for as long as the tab does, and no longer. They used to be kept
+// in localStorage, which sounded like a kindness and was not: the way this
+// tool is used is edit-a-few-frames-then-download, so a reload is how you say
+// "start again from what is on disk" — and a stored edit silently outranked
+// the file, so corrections that HAD been applied to the tree kept coming back
+// as the old pose. Worse, a stored pose is a snapshot of the joint set as it
+// was: when feet grew toes, every held edit became a pose with no toe in it,
+// and the editor drew a handle for a joint that was not there. Anything left
+// over from that era is cleared on the way in.
 
-function loadEdits() {
-  try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch { return {}; }
+const SESSION = new Map();                    // `char/pose` -> { j, read }
+const editKey = (char, pose) => `${char}/${pose}`;
+
+function clearStaleStorage() {
+  try { localStorage.removeItem(STORE); } catch { /* private mode, fine */ }
 }
-function saveEdit(char, pose, joints) {
-  const all = loadEdits();
-  ((all[char] ||= {})[pose] ||= {}).j = joints;
-  all[char][pose].source = "pose editor";
-  localStorage.setItem(STORE, JSON.stringify(all));
+function noteEdit(char, pose, patch) {
+  const held = SESSION.get(editKey(char, pose)) || {};
+  SESSION.set(editKey(char, pose), { ...held, ...patch });
 }
-function saveNote(char, pose, text) {
-  const all = loadEdits();
-  ((all[char] ||= {})[pose] ||= {}).read = text;
-  localStorage.setItem(STORE, JSON.stringify(all));
-}
-function dropEdit(char, pose) {
-  const all = loadEdits();
-  if (all[char]) { delete all[char][pose]; localStorage.setItem(STORE, JSON.stringify(all)); }
-}
-const editedPoses = (char) => Object.keys(loadEdits()[char] || {});
+const editedPoses = (char) =>
+  [...SESSION.keys()].filter((k) => k.startsWith(`${char}/`)).map((k) => k.split("/")[1]);
+const editedChars = () => [...new Set([...SESSION.keys()].map((k) => k.split("/")[0]))];
 
 // --------------------------------------------------------------------- data
 
+/** A pose from a file written before a joint existed still has to draw. Every
+ *  joint the editor knows about gets a value, derived the same way
+ *  tools/pose_reads.py derives it, so old data opens instead of throwing. */
+function fillJoints(j) {
+  for (const side of ["L", "R"]) {
+    if (j[`toe${side}`]) continue;
+    const foot = j[`foot${side}`];
+    const knee = j[`knee${side}`];
+    if (!foot || !knee) continue;
+    const dx = foot[0] - knee[0];
+    const dy = foot[1] - knee[1];
+    const len = Math.hypot(dx, dy) || 1;
+    let px = -dy / len;
+    let py = dx / len;
+    if (px < 0) { px = -px; py = -py; }
+    j[`toe${side}`] = [round1(clamp(foot[0] + px * 4, 0, 100)),
+                       round1(clamp(foot[1] + py * 4, 0, 100))];
+  }
+  return j;
+}
+
 async function loadRead(char) {
   if (reads.has(char)) return reads.get(char);
-  const res = await fetch(`${READS_URL}${char}.json`, { cache: "no-cache" });
+  // Cache-bust: this file changes every time a correction lands in the tree,
+  // and a stale copy looks exactly like "my edit did not save".
+  const res = await fetch(`${READS_URL}${char}.json?t=${Date.now()}`, { cache: "reload" });
   if (!res.ok) throw new Error(`no pose read for ${char} (${res.status})`);
   const data = await res.json();
-  const edits = loadEdits()[char] || {};
-  for (const [key, edit] of Object.entries(edits)) {
-    const pose = data.poses[key];
-    if (!pose) continue;
-    if (edit.j) { pose.j = edit.j; pose.source = edit.source; delete pose.seed; }
-    if (edit.read !== undefined) pose.read = edit.read;
+  for (const [key, pose] of Object.entries(data.poses)) {
+    fillJoints(pose.j);
+    const edit = SESSION.get(editKey(char, key));
+    if (edit?.j) { pose.j = edit.j; pose.source = "pose editor"; delete pose.seed; }
+    if (edit?.read !== undefined) pose.read = edit.read;
   }
   reads.set(char, data);
   return data;
@@ -400,9 +426,14 @@ function renderEditor() {
   if (!pose) return;
   $("#plate").innerHTML = plateHTML(ui.char, ui.pose, pose.j, { handles: true });
   $("#poseName").textContent = ui.pose;
-  const stamp = pose.source ? `edited here` : pose.seed ? pose.seed : "read by eye";
+  // Three different things, and conflating them cost a round trip: what YOU
+  // changed since the page loaded, what a human placed at some point and is
+  // already in the tree, and what is still a fitted guess.
+  const mine = SESSION.has(editKey(ui.char, ui.pose));
+  const stamp = mine ? "edited here" : pose.source ? "hand-placed on disk"
+    : pose.seed ? pose.seed : "read by eye";
   $("#poseStamp").textContent = stamp;
-  $("#poseStamp").className = `stamp ${pose.source ? "on" : pose.seed ? "seed" : "read"}`;
+  $("#poseStamp").className = `stamp ${mine ? "on" : pose.source ? "read" : pose.seed ? "seed" : "read"}`;
   $("#poseNote").value = pose.read || "";
   $("#faceNote").hidden = !faceLeft(ui.char, ui.pose);
   $("#jointList").innerHTML = JOINTS.map((n) => `
@@ -435,7 +466,7 @@ function commit() {
   const pose = reads.get(ui.char).poses[ui.pose];
   pose.source = "pose editor";
   delete pose.seed;
-  saveEdit(ui.char, ui.pose, pose.j);
+  noteEdit(ui.char, ui.pose, { j: pose.j });
   renderEditor();
   renderPicker();
 }
@@ -562,8 +593,8 @@ function shell() {
   $("#facingReviewTop")?.remove();
   const hint = document.createElement("span");
   hint.className = "hint";
-  hint.textContent = "Sixteen joints a frame, read off the art as the engine draws it. "
-    + "Edits stay in your browser until you download them.";
+  hint.textContent = "Eighteen joints a frame, read off the art as the engine draws it. "
+    + "Edits last until you reload — download before you go.";
   $(".bar strong").after(hint);
   const link = $('.bar a[href="./?edit=pose"]');
   if (link) { link.href = "./"; link.textContent = "← 3D Workbench"; }
@@ -640,6 +671,7 @@ async function selectChar(char) {
 
 async function boot() {
   shell();
+  clearStaleStorage();
   manifest = await (await fetch(MANIFEST_URL, { cache: "no-cache" })).json();
   initThree($("#rigView"));
   initPose(THREE);
@@ -662,10 +694,10 @@ async function boot() {
   });
   $("#poseNote").addEventListener("input", (e) => {
     reads.get(ui.char).poses[ui.pose].read = e.target.value;
-    saveNote(ui.char, ui.pose, e.target.value);
+    noteEdit(ui.char, ui.pose, { read: e.target.value });
   });
   $("#btnReset").addEventListener("click", async () => {
-    dropEdit(ui.char, ui.pose);
+    SESSION.delete(editKey(ui.char, ui.pose));
     reads.delete(ui.char);
     await loadRead(ui.char);
     renderPicker();
@@ -686,7 +718,7 @@ async function boot() {
   $("#btnExport").addEventListener("click", () => download(`${ui.char}.json`, exportChar(ui.char)));
   $("#btnExportAll").addEventListener("click", async () => {
     const all = {};
-    for (const char of Object.keys(loadEdits())) {
+    for (const char of editedChars()) {
       await loadRead(char);
       all[char] = exportChar(char);
     }

@@ -62,10 +62,15 @@ nearest ink; ⌘Z undoes. Beside the plate the character's **own 3D rig** takes
 the pose, each bone swung in the drawing's plane to match — which is where a
 read that looked fine flat turns out to bend a knee backwards.
 
-Edits live in the browser until you press **Download this character** (or
-**All edited**, for a session that touched several). Send the file on and
-`python3 tools/pose_apply.py <file>` puts it back in the tree in canonical
-format, checking joint completeness, frame names and ranges on the way in.
+Edits last as long as the tab and no longer: press **Download this character**
+(or **All edited**, for a session that touched several) before you leave, and
+a reload is how you say "start again from what is on disk". They used to be
+kept in localStorage, which sounded like a kindness and was not — a held edit
+silently outranked the file, so a correction already applied to the tree came
+back as the old pose, and a pose held from before toes existed drew a handle
+for a joint that was not in it. Send the file on and `python3
+tools/pose_apply.py <file>` puts it back in the tree in canonical format,
+checking joint completeness, frame names and ranges on the way in.
 
 Two limits worth knowing while you work:
 
