@@ -121,7 +121,7 @@ that the editor displays and that disappears the moment a human moves a joint.
 
 On the character that has been read properly: in the drawing plane, yes.
 `python3 tools/pose_contact_sheet.py yuji --check` measures every joint to the
-nearest opaque pixel and all 640 land on the art; at overlay the figure tracks
+nearest opaque pixel and all 720 land on the art; at overlay the figure tracks
 hip height, knee bend, stance width and reach closely enough to build a clip
 from. Out of plane, no — which limb is nearer, and how far a fist travels
 toward camera, is inference from overlap and shading, and needs a human.
