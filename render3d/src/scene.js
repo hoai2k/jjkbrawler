@@ -195,6 +195,13 @@ export function turnaroundYaw() {
 /** The cache key for one drawable pose. Every live layer is quantised by the
  *  caller, so the dimensions stay small; facing joins as the turn yaw (the
  *  turnaround replaces blit-time mirroring). */
+/** `layers` with the rig's own stance folded in, unless the caller pinned
+ *  one (the workbench does, while the slider is being dragged). */
+function withStance(rig, layers) {
+  const deg = layers.stanceDeg ?? rig?.stanceDeg ?? 0;
+  return deg ? { ...layers, stanceDeg: deg } : layers;
+}
+
 export function poseToken(charKey, animKey, animTime, layers) {
   const s = sampleTime(animKey, animTime);
   const q = Math.round(s * 720); // exact at any sane sample rate
@@ -208,11 +215,14 @@ export function poseToken(charKey, animKey, animTime, layers) {
   const rch = layers.reach && aimable(animKey)
     ? `~r${layers.reach.dx},${layers.reach.dy}` : "";
   const par = layers.parallaxDeg ? `~p${layers.parallaxDeg}` : "";
+  // Stance changes the silhouette, so it changes the pose, so it changes the
+  // key — a cache that ignored it would keep serving the old stance.
+  const st = layers.stanceDeg ? `~s${layers.stanceDeg}` : "";
   // Workbench pose edits: never set in game, but when they are set they change
   // pixels, so they have to change the token or the cache serves the un-edited
   // body forever.
   const ed = layers.editKey ? `~e${layers.editKey}` : "";
-  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${rch}${par}${ed}~L${lightKey()}`;
+  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${rch}${par}${st}${ed}~L${lightKey()}`;
 }
 
 /** For the determinism smoke: drop every cached render. */
@@ -240,6 +250,7 @@ export function __cam() { return camera; }
  *  nothing. Returns false when there is nothing to pose. */
 export function posePreview(charKey, animKey, animTime, rig, resolved, layers = {}) {
   if (!rig || !resolved) return false;
+  layers = withStance(rig, layers);
   const sampled = sampleTime(animKey, animTime);
   poseRig(rig, animKey, sampled, resolved.clip, { ...layers, charKey });
   swayChains(rig.root, sampled, charKey);
@@ -273,6 +284,12 @@ function frameDelta() {
 }
 
 export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {}) {
+  // The fighter's stance rides on the RIG, not on the caller. Every layer
+  // above is something about this moment — where they are aiming, who hit
+  // them — while stance is a fact about the fighter, so taking it from the
+  // rig here means the game, the workbench and the 2.5D camera all get it
+  // without three copies of the same lookup drifting apart.
+  layers = withStance(rig, layers);
   const token = poseToken(charKey, animKey, animTime, layers);
   // Simulated chains carry state, so the same token draws different pixels by
   // design — such a fighter neither reads nor writes the cache. props.js

@@ -200,17 +200,19 @@ p.hint .dot {
   .axis { grid-template-columns: 14px 1fr 64px; }
 }
 
-/* ------------------------------------------------------- facing review
+/* -------------------------------------------------------- size review
  *
- * A full-screen pass over the roster, one fighter at a time. Two rules
- * shape it: the FIGURE gets whatever space is left, because that is the
- * thing being judged; and every control sits at the BOTTOM within thumb
- * reach, because the judgement is usually made on a phone held one-handed.
+ * A full-screen pass over the roster, one fighter at a time, each beside
+ * their own idle sprite. Two rules shape it: the FIGURES get whatever space
+ * is left, because they are what is being compared; and every control sits
+ * at the BOTTOM within thumb reach, because the judgement is usually made
+ * on a phone held one-handed.
  *
  * The viewer canvas is moved in here by the JS rather than duplicated, so
- * this shows the real render with every layer on it, not a copy that could
- * drift. It is sized by CSS alone — the canvas keeps its own backing
- * resolution, so nothing about the render changes when it is borrowed. */
+ * this shows the real render with every layer on it. Unlike the facing pass
+ * it must show the canvas WHOLE — sprite and model stand side by side, and
+ * cropping the width to make the figures bigger is exactly what threw the
+ * reference off screen last time. */
 #facingOverlay {
   position: fixed; inset: 0; z-index: 60;
   background: #0b0e17;
@@ -229,62 +231,53 @@ p.hint .dot {
 #facingStage {
   flex: 1; min-height: 0;
   display: flex; align-items: center; justify-content: center;
-  padding: 8px; overflow: hidden;
+  padding: 6px; overflow: hidden;
 }
-/* Fit the borrowed canvas to whatever room is left, both ways, without
- * distorting it. */
+/* CONTAIN, always — both figures have to be in frame. */
 #facingStage canvas {
   max-width: 100%; max-height: 100%;
   width: auto; height: auto; object-fit: contain;
 }
 
 #facingOverlay footer {
-  flex: none; display: flex; flex-direction: column; gap: 10px;
-  padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+  flex: none; display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
   background: #121728; border-top: 1px solid #232c44;
 }
 #facingOverlay footer .hint { color: #8b96b3; font-size: 12.5px; }
-.facing-nudge {
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  flex-wrap: wrap;
+
+/* One dial per row: label, minus, slider, plus, readout. The slider takes
+ * the slack so it stays the biggest target on the row. */
+.facing-dial {
+  display: flex; align-items: center; gap: 8px;
 }
-.facing-nudge button {
-  min-width: 58px; padding: 10px 8px; font-size: 14px;
+.facing-dial .dial-label {
+  min-width: 52px; color: #8b96b3; font-size: 12.5px;
+}
+.facing-dial input[type="range"] { flex: 1; min-width: 0; height: 30px; }
+.facing-dial button {
+  min-width: 44px; padding: 10px 8px; font-size: 16px; line-height: 1;
   background: #1a2138; border: 1px solid #2c3654; border-radius: 8px; color: inherit;
 }
-.facing-nudge button:active { background: #24406b; }
-#facingYawVal { min-width: 62px; text-align: center; font-size: 16px; color: #cfe0ff; }
-#facingRange { width: 100%; height: 30px; }
+.facing-dial button:active { background: #24406b; }
+.facing-dial .mono { min-width: 56px; text-align: right; color: #cfe0ff; }
+
 .facing-actions { display: flex; gap: 8px; }
 .facing-actions button {
-  flex: 1; padding: 13px 10px; font-size: 15px; border-radius: 8px;
+  flex: 1; padding: 13px 8px; font-size: 14px; border-radius: 8px;
   background: #1a2138; border: 1px solid #2c3654; color: inherit;
 }
 .facing-actions .primary { background: #24406b; border-color: #6f8fd0; font-weight: 600; }
 .facing-actions button:disabled { opacity: 0.45; }
-/* A fighter already settled this session reads as done at a glance. */
-#facingOverlay.decided #facingName::after {
-  content: " ✓"; color: #9fd39f;
-}
+/* A fighter whose numbers were touched this session, at a glance. */
+#facingOverlay.decided #facingName::after { content: " ✎"; color: #d3c69f; }
 
 @media (max-width: 900px) {
-  /* Labels off the nudge row so seven controls still fit a narrow phone. */
-  .facing-nudge button { min-width: 44px; padding: 12px 6px; font-size: 13px; }
-  .facing-actions button { padding: 15px 6px; font-size: 14px; }
+  .facing-dial .dial-label { min-width: 44px; font-size: 12px; }
+  .facing-dial button { min-width: 40px; padding: 11px 6px; }
+  .facing-dial .mono { min-width: 50px; font-size: 13px; }
+  .facing-actions button { padding: 14px 4px; font-size: 13px; }
   #facingOverlay footer .hint { display: none; }
-}
-
-/* Portrait: fill the HEIGHT and let the wide canvas spill past the sides.
- * The stage is 1040x660 landscape, so fitting it inside a phone screen by
- * width wastes most of the screen on empty floor and sky and leaves the
- * fighter too small to judge. The figure stands on the centre line, so
- * clipping left and right costs nothing. */
-@media (max-aspect-ratio: 1/1) {
-  #facingStage { overflow: hidden; padding: 0; }
-  #facingStage canvas {
-    height: 100%; width: auto;
-    max-width: none; max-height: none;
-  }
 }
 
 /* Boot failures, said out loud. See the note in index.html: a dead module

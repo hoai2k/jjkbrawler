@@ -175,6 +175,11 @@ export function releaseInstancesExcept(live) {
 //                about how the fighter should read next to their sprite, not
 //                an arithmetic fact.
 //
+//   stanceDeg    How far apart the fighter plants their feet in idle, degrees
+//                of thigh splay per leg. Their sprite's stance is part of how
+//                big they READ, so this sits beside renderScale rather than
+//                being a posing afterthought (ik.js applyStance).
+//
 //   yawOffsetDeg Which way the rig faces. The delivery spec says forward is
 //                +Z; a model that arrives built the other way round faces
 //                backwards in every state, and there is nothing to fix in the
@@ -194,10 +199,12 @@ function applyEntrySettings(rig, entry) {
   const yaw = Number(entry?.yawOffsetDeg);
   rig.yawOffsetDeg = Number.isFinite(yaw) ? yaw : 0;
   rig.yawOffset = (rig.yawOffsetDeg * Math.PI) / 180;
+  const stance = Number(entry?.stanceDeg);
+  rig.stanceDeg = Number.isFinite(stance) ? stance : 0;
 }
 
 /** Set them live, from the workbench. */
-export function setRigSettings(charKey, { renderScale, yawOffsetDeg } = {}) {
+export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg } = {}) {
   const rig = RIGS.get(charKey);
   if (!rig) return null;
   if (renderScale !== undefined && Number.isFinite(renderScale) && renderScale > 0) {
@@ -207,6 +214,7 @@ export function setRigSettings(charKey, { renderScale, yawOffsetDeg } = {}) {
     rig.yawOffsetDeg = yawOffsetDeg;
     rig.yawOffset = (yawOffsetDeg * Math.PI) / 180;
   }
+  if (stanceDeg !== undefined && Number.isFinite(stanceDeg)) rig.stanceDeg = stanceDeg;
   // Instances already handed out share the character's settings.
   for (const inst of INSTANCES.values()) {
     if (inst.charKey !== charKey) continue;

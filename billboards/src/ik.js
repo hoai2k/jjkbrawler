@@ -518,6 +518,41 @@ export function rotateBoneAboutWorldAxis(THREE, bone, axisWorld, rad, tmp) {
   bone.quaternion.premultiply(tmp.q1.setFromAxisAngle(localAxis, rad));
 }
 
+/**
+ * Widen or narrow the legs — the fighter's STANCE.
+ *
+ * A sizing dial as much as a posing one. Two idle sprites of the same height
+ * can read as very different figures because one plants their feet a shoulder
+ * apart and the other stands almost closed, and matching a model's height to
+ * a sprite while their stances disagree leaves the silhouettes stubbornly
+ * unalike — you end up scaling the model wrong to compensate for a stance you
+ * were not looking at.
+ *
+ * Splays both thighs about the character's own FORWARD axis, symmetrically, so
+ * the legs open sideways rather than into a stride. Positive is wider. The
+ * feet come along, and the foot IK afterwards puts them back on the floor;
+ * what changes is how far apart they stand, which is exactly the dial.
+ *
+ * Composed onto whatever the clip did, so a stance is a per-fighter constant
+ * rather than a re-authored idle.
+ */
+export function applyStance(THREE, root3d, deg, tmp) {
+  if (!deg) return false;
+  const left = root3d.getObjectByName("LeftUpLeg");
+  const right = root3d.getObjectByName("RightUpLeg");
+  if (!left || !right) return false;
+  // The character's forward, which is the axis legs swing out around. Their
+  // LATERAL is the axis a stride swings around, and rotating about that would
+  // put one leg in front of the other rather than opening the stance.
+  const lateral = characterLateral(THREE, root3d, tmp.v4);
+  const fwd = tmp.v5.set(-lateral.z, 0, lateral.x).normalize();
+  const rad = (deg * Math.PI) / 180;
+  rotateBoneAboutWorldAxis(THREE, left, fwd, -rad, tmp);
+  rotateBoneAboutWorldAxis(THREE, right, fwd, rad, tmp);
+  root3d.updateMatrixWorld(true);
+  return true;
+}
+
 export function initLayerAxes(THREE) {
   _lq = new THREE.Quaternion();
 }

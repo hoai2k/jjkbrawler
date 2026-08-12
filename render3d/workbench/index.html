@@ -48,7 +48,7 @@
       <!-- In the bar, not in a panel tab: the review is a phone job, and on a
            phone the panels are behind a tab bar. An entry point you have to
            go looking for is one nobody uses. -->
-      <button id="facingReviewTop" class="ghost sm">▶ Review facing</button>
+      <button id="facingReviewTop" class="ghost sm">▶ Review size</button>
       <a class="ghost sm" href="../../billboards/workbench/">Billboard Workbench →</a>
       <a class="ghost sm" href="../../sprites/workbench/">Sprite Workbench →</a>
     </header>
@@ -173,7 +173,7 @@
             <button id="yawFlip" class="ghost sm" title="Add a half turn">+180°</button>
           </div>
           <div class="row">
-            <button id="facingReviewBtn" class="ghost sm">▶ Review facing, one by one</button>
+            <button id="facingReviewBtn" class="ghost sm">▶ Review size &amp; stance, one by one</button>
           </div>
           <p class="hint">Turns the whole rig, before every pose layer — for a
           delivery authored facing some way other than the spec's +Z. Turn it
@@ -266,13 +266,22 @@
       </nav>
     </main>
 
-    <!-- FACING REVIEW — a full-screen, one-fighter-at-a-time pass over the
-         whole delivered roster. The desk above is for working ON a fighter;
-         this is for making the same small judgement about all of them without
-         the desk in the way, and it is built to be usable on a phone, which
-         is where a "does this look right?" call actually gets made. The
-         viewer canvas is MOVED in here while it is open rather than
-         duplicated, so what is being judged is the real render. -->
+    <!-- SIZE REVIEW — the whole delivered roster, one fighter at a time,
+         each beside their own idle sprite.
+         
+         It began as a facing pass and became a sizing one, which is the same
+         shape of job: a judgement that does not automate, made about every
+         fighter, best made on a phone. Sizing needs the SPRITE IN FRAME —
+         "is this model as big as the drawing?" is meaningless from memory —
+         so unlike the facing pass this viewer is a comparison, and the
+         layout gives up figure size to fit both.
+         
+         Stance sits next to scale because it is part of the same judgement:
+         two idles of equal height read as different sizes when one plants
+         their feet wide and the other stands closed, and matching height
+         while the stances disagree makes you scale the model wrong to
+         compensate. No Approve here — this pass produces a set of
+         adjustments to hand back, not a sign-off. -->
     <div id="facingOverlay" hidden>
       <header>
         <div>
@@ -285,25 +294,30 @@
       <div id="facingStage"></div>
 
       <footer>
-        <div id="facingHint" class="hint">Turn each fighter until they face
-          RIGHT — the way they are drawn in a match — then Approve. Skip
-          leaves one alone; Download JSON saves everything approved so far.</div>
-        <!-- Coarse steps as buttons, fine work on the slider below. Seven
-             controls did not fit a 390px phone without wrapping onto a
-             second row, and the 5-degree buttons were the ones the slider
-             already does better. -->
-        <div class="facing-nudge">
-          <button data-nudge="-45">−45°</button>
-          <button data-nudge="-15">−15°</button>
-          <span class="mono" id="facingYawVal">0°</span>
-          <button data-nudge="15">+15°</button>
-          <button data-nudge="45">+45°</button>
+        <div id="facingHint" class="hint">Sprite on the left, model on the
+          right. Match the model's height and stance to the drawing, then move
+          on — Download JSON saves every change.</div>
+
+        <div class="facing-dial">
+          <span class="dial-label">Size</span>
+          <button data-scale="-0.05">−</button>
+          <input id="facingScale" type="range" min="0.4" max="2.5" step="0.01" value="1">
+          <button data-scale="0.05">+</button>
+          <span class="mono" id="facingScaleVal">1.00×</span>
         </div>
-        <input id="facingRange" type="range" min="0" max="355" step="5" value="0">
+
+        <div class="facing-dial">
+          <span class="dial-label">Stance</span>
+          <button data-stance="-2">−</button>
+          <input id="facingStance" type="range" min="-10" max="25" step="1" value="0">
+          <button data-stance="2">+</button>
+          <span class="mono" id="facingStanceVal">0°</span>
+        </div>
+
         <div class="facing-actions">
           <button id="facingPrev" class="ghost">← Back</button>
-          <button id="facingApprove" class="primary">✓ Approve</button>
-          <button id="facingNext" class="ghost">Skip →</button>
+          <button id="facingFit" class="ghost" title="Set the scale that makes this model stand its measured height">Fit height</button>
+          <button id="facingNext" class="primary">Next →</button>
           <button id="facingSave" class="ghost">⤓ Download JSON</button>
         </div>
       </footer>

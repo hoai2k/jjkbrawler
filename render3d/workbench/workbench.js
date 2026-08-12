@@ -443,30 +443,34 @@ $("exportBtn").onclick = () => {
     : "exported an empty payload — nothing has been edited");
 };
 
-// ------------------------------------------------------------ facing review
+// -------------------------------------------------------------- size review
 //
-// One judgement — "which way is this fighter pointing?" — made about every
-// delivered rig in turn, full screen, with nothing else on the page.
+// The whole delivered roster, one fighter at a time, each beside their own
+// idle sprite, full screen and thumb-driven.
 //
-// It exists because that judgement does not automate. Three attempts to
-// DERIVE facing from the skeleton each worked on most of the roster and
-// failed on a different part of it (toe direction dies on non-human feet,
-// spine roll does not separate the two families at all, the conform pass
-// normalises the hips axes away), and matching the model against its own
-// sprite scores a shallow optimum that lands plainly wrong on some fighters.
-// An eye settles it in two seconds. What was missing was somewhere to use
-// one, twenty-seven times, without driving the whole desk each time.
+// It began as a FACING pass and became a SIZING one. Same shape of job — a
+// judgement that does not automate, made about every fighter, usually on a
+// phone — but one thing changes and it changes the layout: sizing needs the
+// SPRITE IN FRAME. "Which way is this fighter pointing?" can be answered
+// from a single figure; "is this model as big as the drawing?" cannot be
+// answered from memory at all. So this viewer is a comparison, and it gives
+// up figure size to fit both, where the facing pass gave up the reference to
+// make one figure as large as possible.
 //
-// The viewer canvas is BORROWED — moved into the overlay and put back on
-// close — so this is the real render with every layer live, not a still and
-// not a second code path that could disagree with the first.
+// STANCE sits beside scale because it is the same judgement. Two idles of
+// equal height read as different sizes when one plants their feet a shoulder
+// apart and the other stands closed, and matching height while the stances
+// disagree makes you scale the model wrong to compensate for something you
+// were not looking at.
+//
+// No Approve: this pass produces a set of adjustments to hand back, not a
+// sign-off, so every fighter it touches goes into the payload.
 const facing = {
   list: [],
   i: 0,
-  /** char -> yaw, for those settled THIS session. The manifest already
-   *  carries a value for everyone; this records which of them a human has
-   *  actually looked at, which is the whole point of the exercise. */
-  decided: new Map(),
+  /** Fighters whose numbers were touched this session — what Download
+   *  carries. */
+  touched: new Set(),
   home: null,      // the canvas's real parent, to put it back
   wasPlaying: true,
   wasZoom: 1,
@@ -475,35 +479,31 @@ const facing = {
   wasCompare: "overlay",
 };
 
-/** How far in to push the viewer while reviewing.
- *
- *  The desk sits at 1× because it frames a whole stage. That is useless on a
- *  phone: a 1040x660 canvas letterboxed into a portrait screen left the
- *  fighter about eighty pixels tall, which is not enough to tell a
- *  three-quarter turn from a profile — the exact call being asked for.
- *
- *  Bounded by having to fit a WHOLE fighter, head and feet, for the tallest
- *  of them: at 2.6 the figure filled the frame beautifully and stood with
- *  its feet off the bottom of it, and feet are half of how a stance reads. */
-const FACING_ZOOM = 1.8;
-
 const facingUI = {
   overlay: $("facingOverlay"),
   name: $("facingName"),
   progress: $("facingProgress"),
-  val: $("facingYawVal"),
-  range: $("facingRange"),
+  scale: $("facingScale"),
+  scaleVal: $("facingScaleVal"),
+  stance: $("facingStance"),
+  stanceVal: $("facingStanceVal"),
   stage: $("facingStage"),
 };
 
-/** Every fighter with a delivered rig, in roster order — a mannequin has no
- *  facing to approve. */
+/** How far in to push the viewer.
+ *
+ *  Bounded at both ends. The PAIR — sprite, gap, model — spans roughly
+ *  COMPARE_DX plus two bodies, about 400 canvas px, so much past 2.4x and
+ *  the sprite walks off the side, which is exactly the bug that made the
+ *  facing pass give up on the reference. Much under 2x and both figures sit
+ *  marooned in the middle of a 1040x660 stage that has to be shown whole. */
+const FACING_ZOOM = 2.0;
+
+/** Every fighter with a delivered rig, in roster order. */
 function facingRoster() {
   const man = rig.rigManifest();
   return CHARACTER_KEYS.filter((k) => man.characters?.[k]?.model);
 }
-
-const wrap360 = (d) => ((Math.round(d / 5) * 5) % 360 + 360) % 360;
 
 function facingOpen() {
   facing.list = facingRoster();
@@ -517,26 +517,16 @@ function facingOpen() {
   facing.wasPan = { x: view.panX, y: view.panY };
   facing.wasAim = wb.aimOn;
   facing.wasCompare = wb.compare;
-  // Hold the idle still. A looping breath makes two fighters look different
-  // at the same yaw depending on when you happened to look at them.
+  // Hold the idle still: a looping breath changes a figure's height by a few
+  // pixels, which is enough to argue with while sizing.
   wb.playing = false;
-  // No aim crosshair or target line: this mode asks one question, and the
-  // dashed line to a target is answering a different one.
   wb.aimOn = false;
-  // ONE figure, as big as it will go — the comparison sprite is deliberately
-  // left off. Beside was tried and does not survive a phone: the portrait
-  // crop fills the height and clips the sides, so the sprite lands outside
-  // the visible window and the reviewer gets a label pointing at nothing.
-  // Ghosted behind is no better, being a 35%-alpha figure under an opaque
-  // one of the same size. A fighter drawn large enough to read is worth more
-  // than a reference that is not actually on screen.
-  wb.compare = "off";
-  $("compareMode").value = "off";
-  view.pivot.x = CX;
+  // THE REFERENCE, beside the model — the whole point of this pass.
+  wb.compare = "left";
+  $("compareMode").value = "left";
+  view.pivot.x = CX - COMPARE_DX / 2;
   view.setZoom(FACING_ZOOM);
-  // Pull the framing up so a zoomed figure sits in the middle of the frame
-  // rather than with their head out of it — the pivot is the ground line.
-  view.panY = canvas.height * 0.06;
+  view.panY = canvas.height * 0.07;
   document.documentElement.requestFullscreen?.().catch(() => {});
   facingShow();
 }
@@ -557,7 +547,7 @@ function facingClose() {
   syncPanel();
 }
 
-/** Put the current fighter on screen and sync the controls to their yaw. */
+/** Put the current fighter on screen and sync the dials to their numbers. */
 function facingShow() {
   const char = facing.list[facing.i];
   // Fetch this one if it has not been seen yet — the review is the one place
@@ -580,25 +570,51 @@ function facingShow() {
   applyLook();
   syncSizePanel();
   syncPanel();
+  // The sprite has to be in memory or the reference half of the frame is
+  // blank — and a blank reference looks exactly like a model that is right.
+  loadFrame(char, "idle_a").catch(() => {});
 
-  const yaw = wrap360(rig.getRig(char)?.yawOffsetDeg || 0);
-  facingUI.range.value = String(yaw);
-  facingUI.val.textContent = `${yaw}°`;
+  const r = rig.getRig(char);
+  const scale = r?.renderScale ?? 1;
+  const stance = r?.stanceDeg ?? 0;
+  facingUI.scale.value = String(scale);
+  facingUI.scaleVal.textContent = `${scale.toFixed(2)}×`;
+  facingUI.stance.value = String(stance);
+  facingUI.stanceVal.textContent = `${stance}°`;
   facingUI.name.textContent = CHARACTERS[char]?.name || char;
-  const done = facing.decided.size;
-  facingUI.progress.textContent =
-    `${facing.i + 1} / ${facing.list.length}  ·  ${done} approved`;
-  facingUI.overlay.classList.toggle("decided", facing.decided.has(char));
+  facingSyncProgress();
+  facingUI.overlay.classList.toggle("decided", facing.touched.has(char));
 }
 
-/** Absolute yaw, in the same 0-355 space the slider uses. Writes through the
- *  ordinary setYaw so the manifest entry, the dirty set and the pose cache
- *  all behave exactly as they do from the desk. */
-function facingSetYaw(deg) {
-  const yaw = wrap360(deg);
-  setYaw(yaw);
-  facingUI.range.value = String(yaw);
-  facingUI.val.textContent = `${yaw}°`;
+function facingSetScale(v) {
+  const clamped = Math.max(0.4, Math.min(2.5, v));
+  setScale(clamped);
+  facing.touched.add(facing.list[facing.i]);
+  facingUI.scale.value = String(clamped);
+  facingUI.scaleVal.textContent = `${clamped.toFixed(2)}×`;
+  facingUI.overlay.classList.add("decided");
+  facingSyncProgress();
+}
+
+function facingSetStance(deg) {
+  const clamped = Math.max(-10, Math.min(25, Math.round(deg)));
+  const char = facing.list[facing.i];
+  rig.setRigSettings(char, { stanceDeg: clamped });
+  entryFor(char).stanceDeg = clamped;
+  wb.dirty.add(char);
+  facing.touched.add(char);
+  scene.clearCache();
+  facingUI.stance.value = String(clamped);
+  facingUI.stanceVal.textContent = `${clamped}°`;
+  facingUI.overlay.classList.add("decided");
+  facingSyncProgress();
+}
+
+/** The header counts changes, so it has to be refreshed when one happens
+ *  and not only when the fighter changes. */
+function facingSyncProgress() {
+  facingUI.progress.textContent =
+    `${facing.i + 1} / ${facing.list.length}  ·  ${facing.touched.size} changed`;
 }
 
 function facingGo(step) {
@@ -609,56 +625,57 @@ function facingGo(step) {
 $("facingReviewBtn").onclick = facingOpen;
 $("facingReviewTop").onclick = facingOpen;
 $("facingClose").onclick = facingClose;
-$("facingRange").oninput = () => facingSetYaw(parseFloat(facingUI.range.value) || 0);
-for (const b of document.querySelectorAll("[data-nudge]")) {
-  b.onclick = () => facingSetYaw((parseFloat(facingUI.range.value) || 0)
-    + parseFloat(b.dataset.nudge));
+$("facingScale").oninput = () => facingSetScale(parseFloat(facingUI.scale.value) || 1);
+$("facingStance").oninput = () => facingSetStance(parseFloat(facingUI.stance.value) || 0);
+for (const b of document.querySelectorAll("[data-scale]")) {
+  b.onclick = () => facingSetScale((parseFloat(facingUI.scale.value) || 1)
+    + parseFloat(b.dataset.scale));
 }
-$("facingApprove").onclick = () => {
-  const char = facing.list[facing.i];
-  facing.decided.set(char, wrap360(parseFloat(facingUI.range.value) || 0));
-  wb.dirty.add(char);
-  // Straight on to the next unreviewed fighter — the point is to get through
-  // the roster, and stopping to press Next after every Approve doubles the
-  // taps for no decision.
-  const nextUndone = facing.list.findIndex((k, n) =>
-    n > facing.i && !facing.decided.has(k));
-  facing.i = nextUndone >= 0 ? nextUndone
-    : (facing.list.findIndex((k) => !facing.decided.has(k)) >= 0
-      ? facing.list.findIndex((k) => !facing.decided.has(k))
-      : (facing.i + 1) % facing.list.length);
-  facingShow();
+for (const b of document.querySelectorAll("[data-stance]")) {
+  b.onclick = () => facingSetStance((parseFloat(facingUI.stance.value) || 0)
+    + parseFloat(b.dataset.stance));
+}
+$("facingFit").onclick = () => {
+  // The measured answer, as a starting point rather than a verdict: it makes
+  // the model stand its declared height, which is right when the sprite is
+  // drawn to the same proportions and wrong whenever the art says otherwise.
+  const s = rig.suggestedScale(wb.char, editor?.editedClip?.(wb.char, "idle") || null);
+  if (s) facingSetScale(s.scale);
+  else notify("no measurement for this fighter — size by eye");
 };
 $("facingNext").onclick = () => facingGo(1);
 $("facingPrev").onclick = () => facingGo(-1);
 $("facingSave").onclick = () => {
   const man = rig.rigManifest();
-  // The SAME payload shape the desk's Export writes, so a phone download
-  // goes straight through `billboard_intake.mjs apply … --backend 3d` with
-  // nothing in between. `facing` is a human-readable summary beside it;
-  // apply reads `characters` and ignores the rest.
-  const chars = [...facing.decided.keys()];
+  // The SAME payload shape the desk's Export writes, so a phone download goes
+  // straight through `billboard_intake.mjs apply … --backend 3d`. `sizes` is
+  // a readable summary beside it; apply reads `characters` and ignores the
+  // rest.
+  const chars = [...facing.touched];
   const payload = {
     kind: "render3d-workbench",
     exported: new Date().toISOString(),
-    facing: Object.fromEntries([...facing.decided]),
+    sizes: Object.fromEntries(chars.map((k) => [k, {
+      renderScale: man.characters[k]?.renderScale ?? 1,
+      stanceDeg: man.characters[k]?.stanceDeg ?? 0,
+    }])),
     characters: Object.fromEntries(chars.map((k) => [k, man.characters[k]])),
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "facing-approvals.json";
+  a.download = "size-adjustments.json";
   a.click();
   notify(chars.length
-    ? `saved ${chars.length} approved facing(s) — apply with tools/billboard_intake.mjs apply facing-approvals.json --backend 3d`
-    : "nothing approved yet — the file would be empty");
+    ? `saved ${chars.length} adjustment(s) — apply with tools/billboard_intake.mjs apply size-adjustments.json --backend 3d`
+    : "nothing changed yet — the file would be empty");
 };
 addEventListener("keydown", (e) => {
   if (facingUI.overlay.hidden) return;
   if (e.key === "Escape") facingClose();
-  else if (e.key === "ArrowLeft") facingSetYaw((parseFloat(facingUI.range.value) || 0) - 5);
-  else if (e.key === "ArrowRight") facingSetYaw((parseFloat(facingUI.range.value) || 0) + 5);
-  else if (e.key === "Enter") $("facingApprove").click();
+  else if (e.key === "ArrowLeft") facingSetScale((parseFloat(facingUI.scale.value) || 1) - 0.01);
+  else if (e.key === "ArrowRight") facingSetScale((parseFloat(facingUI.scale.value) || 1) + 0.01);
+  else if (e.key === "Enter") facingGo(1);
   else return;
   e.preventDefault();
 });

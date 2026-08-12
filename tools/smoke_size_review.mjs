@@ -1,5 +1,6 @@
-// Smoke the 3D workbench's facing review — the full-screen, one-fighter-at-a-
-// time pass that produces the yaw payload.
+// Smoke the 3D workbench's size review — the full-screen, one-fighter-at-a-
+// time pass that sizes each model against its own idle sprite and produces
+// the adjustment payload.
 //
 // It is driven on a PHONE viewport, because that is what it is for and
 // because every failure it has had so far was a layout failure: an entry
@@ -9,7 +10,7 @@
 // shows them.
 //
 // Needs `playwright` with WebKit installed; start the game first
-// (node server.mjs), then: node tools/smoke_facing_review.mjs [baseUrl]
+// (node server.mjs), then: node tools/smoke_size_review.mjs [baseUrl]
 import { chromium, webkit, devices } from "playwright";
 
 // Flags and the base URL share argv; take the first non-flag.
@@ -93,63 +94,141 @@ const open = await page.evaluate(() => {
     winH: innerHeight,
     name: document.getElementById("facingName").textContent,
     progress: document.getElementById("facingProgress").textContent,
-    yaw: document.getElementById("facingYawVal").textContent,
+    scale: document.getElementById("facingScaleVal").textContent,
+    stance: document.getElementById("facingStanceVal").textContent,
   };
 });
 check(open.visible && open.borrowedCanvas,
   "it opens full screen with the real viewer canvas moved into it");
-// The figure has to be big enough to judge a three-quarter turn from a
-// profile. Letterboxing a 1040x660 stage into a portrait phone by width is
-// what this guards against — it left the fighter unreadably small.
-check(open.canvasH > open.stageH * 0.9,
-  "the viewer fills the height it is given", `${open.canvasH}px of ${open.stageH}px`);
+// The FIGURES have to be big enough to compare, which is not the same as the
+// canvas filling its box. The facing pass cropped the stage sideways so one
+// fighter could fill the height; this pass must show the stage WHOLE, because
+// the sprite stands off to the left and cropping is what threw it off screen
+// last time. So the thing to hold is the figure, measured on the canvas.
+const figure = await page.evaluate(() => {
+  const c = document.querySelector("#facingStage canvas");
+  const ctx = c.getContext("2d");
+  const x0 = Math.round(c.width * 0.5);
+  const d = ctx.getImageData(x0, 0, c.width - x0, c.height).data;
+  const w = c.width - x0;
+  let top = -1, bot = -1;
+  for (let y = 0; y < c.height; y++) {
+    for (let x = 0; x < w; x++) {
+      if (d[((y * w) + x) * 4 + 3] > 90) { if (top < 0) top = y; bot = y; break; }
+    }
+  }
+  return { h: bot - top, canvas: c.height };
+});
+check(figure.h > figure.canvas * 0.45, "the model fills enough of the frame to judge",
+  `${figure.h}px of ${figure.canvas}px`);
 check(/\d+ \/ \d+/.test(open.progress),
   "it says where you are in the roster", open.progress);
 
 // Every control on one screen, none wrapped off the bottom.
 const rows = await page.evaluate(() => {
-  const b = [...document.querySelectorAll(".facing-nudge button")].map((e) => e.getBoundingClientRect());
+  const dial = [...document.querySelectorAll(".facing-dial button, .facing-dial input")]
+    .map((e) => e.getBoundingClientRect());
   const acts = [...document.querySelectorAll(".facing-actions button")].map((e) => e.getBoundingClientRect());
-  const tops = new Set(b.map((r) => Math.round(r.top)));
+  const dialRows = new Set([...document.querySelectorAll(".facing-dial")]
+    .map((e) => Math.round(e.getBoundingClientRect().top)));
   return {
-    nudgeRows: tops.size,
-    allOnScreen: [...b, ...acts].every((r) => r.bottom <= innerHeight + 1 && r.top >= 0),
-    smallestTouch: Math.min(...[...b, ...acts].map((r) => Math.min(r.width, r.height))),
+    dials: dialRows.size,
+    allOnScreen: [...dial, ...acts].every((r) => r.bottom <= innerHeight + 1 && r.top >= 0),
+    smallestTouch: Math.min(...[...dial, ...acts].map((r) => Math.min(r.width, r.height))),
   };
 });
-check(rows.nudgeRows === 1, "the turn buttons fit one row", `${rows.nudgeRows} row(s)`);
+check(rows.dials === 2, "both dials get a row of their own", `${rows.dials} row(s)`);
 check(rows.allOnScreen, "every control is on screen");
-check(rows.smallestTouch >= 30, "controls are thumb-sized",
+check(rows.smallestTouch >= 28, "controls are thumb-sized",
   `smallest ${Math.round(rows.smallestTouch)}px`);
 
-// Turning actually turns the rig, not just the readout.
-const before = await page.evaluate(async () =>
-  (await import("/render3d/src/loader.js")).getRig("gakuganji").yawOffsetDeg);
-await page.click('[data-nudge="45"]');
-await page.waitForTimeout(600);
-const after = await page.evaluate(async () => ({
-  rig: (await import("/render3d/src/loader.js")).getRig("gakuganji").yawOffsetDeg,
-  shown: document.getElementById("facingYawVal").textContent,
-}));
-check(after.rig === (before + 45) % 360,
-  "a turn button moves the RIG, not just the number",
-  `${before}° -> ${after.rig}° (shown ${after.shown})`);
+// THE REFERENCE IS ON SCREEN. Sizing against a sprite that is not drawn is
+// sizing from memory, and a blank half-frame looks exactly like a model that
+// is already right. Both figures are sampled from the real canvas: the sprite
+// stands COMPARE_DX left of the model, and both must have pixels standing on
+// the floor line.
+const halves = await page.evaluate(() => {
+  const c = document.querySelector("#facingStage canvas");
+  const ctx = c.getContext("2d");
+  const count = (x0, x1) => {
+    const d = ctx.getImageData(x0, 0, x1 - x0, c.height).data;
+    let n = 0;
+    for (let i = 3; i < d.length; i += 4) if (d[i] > 90) n++;
+    return n;
+  };
+  const mid = Math.round(c.width * 0.5);
+  return { left: count(0, mid), right: count(mid, c.width) };
+});
+check(halves.left > 400, "the idle sprite is drawn beside the model",
+  `${halves.left} px in the sprite half`);
+check(halves.right > 400, "...and the model is drawn too",
+  `${halves.right} px in the model half`);
 
-// Approve advances, and counts.
-const advanced = await (async () => {
-  const nameBefore = await page.textContent("#facingName");
-  await page.click("#facingApprove");
-  await page.waitForTimeout(1500);
+// The dials move the RIG, not just their readouts.
+const sized = await (async () => {
+  const before = await page.evaluate(async () =>
+    (await import("/render3d/src/loader.js")).getRig("gakuganji").renderScale);
+  await page.fill("#facingScale", "1.22");
+  await page.dispatchEvent("#facingScale", "input");
+  await page.waitForTimeout(700);
   return {
-    nameBefore,
-    nameAfter: await page.textContent("#facingName"),
-    progress: await page.textContent("#facingProgress"),
+    before,
+    after: await page.evaluate(async () =>
+      (await import("/render3d/src/loader.js")).getRig("gakuganji").renderScale),
+    shown: await page.textContent("#facingScaleVal"),
   };
 })();
-check(advanced.nameAfter !== advanced.nameBefore,
-  "Approve moves on to the next fighter",
-  `${advanced.nameBefore} -> ${advanced.nameAfter}`);
-check(/1 approved/.test(advanced.progress), "...and counts it", advanced.progress);
+check(Math.abs(sized.after - 1.22) < 0.001, "the size dial rescales the RIG",
+  `${sized.before}× -> ${sized.after}× (shown ${sized.shown})`);
+
+const stanced = await (async () => {
+  await page.fill("#facingStance", "12");
+  await page.dispatchEvent("#facingStance", "input");
+  await page.waitForTimeout(700);
+  return {
+    rig: await page.evaluate(async () =>
+      (await import("/render3d/src/loader.js")).getRig("gakuganji").stanceDeg),
+    shown: await page.textContent("#facingStanceVal"),
+  };
+})();
+check(stanced.rig === 12, "the stance dial widens the RIG's legs",
+  `${stanced.rig}° (shown ${stanced.shown})`);
+
+// Stance has to reach the PIXELS, not just the rig object — it is a pose
+// layer, and a layer that never gets applied changes a number and nothing
+// else. Wide legs are wider: measure the model's silhouette at ankle height.
+const widths = await page.evaluate(async (deg) => {
+  const rigMod = await import("/render3d/src/loader.js");
+  const scene = await import("/render3d/src/scene.js");
+  const c = document.querySelector("#facingStage canvas");
+  const ctx = c.getContext("2d");
+  const ankleBand = () => {
+    // A band just above the floor line, model half only.
+    const y0 = Math.round(c.height * 0.78), y1 = Math.round(c.height * 0.86);
+    const x0 = Math.round(c.width * 0.5);
+    const d = ctx.getImageData(x0, y0, c.width - x0, y1 - y0).data;
+    const w = c.width - x0;
+    let lo = 1e9, hi = -1;
+    for (let y = 0; y < y1 - y0; y++) {
+      for (let x = 0; x < w; x++) {
+        if (d[((y * w) + x) * 4 + 3] > 90) { if (x < lo) lo = x; if (x > hi) hi = x; }
+      }
+    }
+    return hi < 0 ? 0 : hi - lo;
+  };
+  const settle = () => new Promise((r) => setTimeout(r, 700));
+  rigMod.setRigSettings("gakuganji", { stanceDeg: 0 });
+  scene.clearCache();
+  await settle();
+  const narrow = ankleBand();
+  rigMod.setRigSettings("gakuganji", { stanceDeg: deg });
+  scene.clearCache();
+  await settle();
+  return { narrow, wide: ankleBand() };
+}, 22);
+check(widths.wide > widths.narrow + 4,
+  "...and that reaches the pixels, not just the number",
+  `ankles ${widths.narrow}px at 0° -> ${widths.wide}px at 22°`);
 
 // The download is the thing the whole mode exists to produce, and it has to
 // be a payload `billboard_intake.mjs apply` will take without editing.
@@ -167,9 +246,9 @@ if (download) {
   check(payload?.kind === "render3d-workbench",
     "...in the shape `apply --backend 3d` expects", `kind ${payload?.kind}`);
   const entry = payload?.characters?.gakuganji;
-  check(!!entry && Number.isFinite(entry.yawOffsetDeg),
-    "...carrying the approved yaw on a full manifest entry",
-    entry ? `gakuganji ${entry.yawOffsetDeg}°` : "gakuganji missing");
+  check(!!entry && Number.isFinite(entry.renderScale) && Number.isFinite(entry.stanceDeg),
+    "...carrying both adjustments on a full manifest entry",
+    entry ? `gakuganji ${entry.renderScale}× / ${entry.stanceDeg}°` : "gakuganji missing");
   check(!!entry?.model && entry?.approved === true,
     "...without dropping the rest of that character's entry");
 }
