@@ -1,7 +1,7 @@
 {
   "character": "geto",
   "facing": "right",
-  "_about": "Seed poses fitted from the hand-read yuji sheet, not read from this art. Every pose here is a starting point for the pose editor (render3d/workbench/?edit=pose), not a statement about how geto is drawn.",
+  "_about": "Poses marked `seed` were fitted from the hand-read yuji sheet, not read from this art: a starting point for the pose editor (render3d/workbench/?edit=pose), not a statement about how geto is drawn. A pose carrying `source` has been through the editor and is a read.",
   "_joints": ["head", "neck", "chest", "pelvis", "shoulderL", "elbowL", "handL", "shoulderR", "elbowR", "handR", "hipL", "kneeL", "footL", "hipR", "kneeR", "footR"],
   "_seed": "tools/pose_seed.py, from yuji",
   "poses": {
@@ -28,6 +28,14 @@
              "elbowR": [54.9, 23.3], "handR": [57.5, 20], "hipL": [40.2, 48.1], "kneeL": [37.6, 61.1],
              "footL": [20.3, 87.1], "toeL": [21.4, 88.2], "hipR": [45.4, 48.1], "kneeR": [56.6, 44.9],
              "footR": [72.6, 36.5], "toeR": [74.5, 40]}
+    },
+    "attack_dash": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [51.5, 13], "neck": [48, 19], "chest": [48, 24.2], "pelvis": [44.4, 47.4],
+             "shoulderL": [37.3, 22.5], "elbowL": [30.2, 34.5], "handL": [27.8, 48.9], "shoulderR": [58.6, 22.5],
+             "elbowR": [65.7, 34.5], "handR": [69.3, 45.7], "hipL": [33.8, 47.4], "kneeL": [30.2, 65.4],
+             "footL": [21.6, 76.2], "toeL": [24.7, 78.7], "hipR": [55.1, 47.4], "kneeR": [58.6, 65.4],
+             "footR": [59.1, 86], "toeR": [63.1, 85.9]}
     },
     "attack_down": {
       "seed": "fitted from yuji/attack_down",
@@ -138,7 +146,7 @@
       "j": {"head": [70.3, 24.8], "neck": [73.9, 24.5], "chest": [70, 28.1], "pelvis": [60.2, 48.8],
              "shoulderL": [60.2, 29.5], "elbowL": [38.4, 32.7], "handL": [32.6, 35.9], "shoulderR": [71.2, 31.6],
              "elbowR": [68, 33.1], "handR": [60.2, 30.2], "hipL": [54.3, 48.8], "kneeL": [60.2, 58.7],
-             "footL": [28.1, 66.2], "toeL": [31.1, 65.1], "hipR": [66.1, 48.8], "kneeR": [75.9, 58.7],
+             "footL": [28.1, 66.2], "toeL": [30.3, 67.1], "hipR": [66.1, 48.8], "kneeR": [75.9, 58.7],
              "footR": [60.2, 75.9], "toeR": [64.3, 76.4]}
     },
     "dodge_roll": {
@@ -156,6 +164,30 @@
              "elbowR": [70, 30.6], "handR": [67.6, 29.8], "hipL": [53.7, 45.1], "kneeL": [59.7, 67.4],
              "footL": [60.6, 79.3], "toeL": [64.6, 79], "hipR": [59.7, 45.1], "kneeR": [69.6, 54.8],
              "footR": [71.6, 59.7], "toeR": [75.3, 58.2]}
+    },
+    "grab_hold": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [44.8, 7.7], "neck": [47.7, 16.8], "chest": [48.7, 20], "pelvis": [46.5, 47],
+             "shoulderL": [42.1, 18], "elbowL": [37.7, 32], "handL": [35.5, 45], "shoulderR": [55.2, 18],
+             "elbowR": [59.6, 32], "handR": [66.3, 36.6], "hipL": [39.9, 47], "kneeL": [37.7, 68],
+             "footL": [25.2, 90.6], "toeL": [26.3, 92.5], "hipR": [53, 47], "kneeR": [55.2, 68],
+             "footR": [58.6, 95.6], "toeR": [59.7, 95]}
+    },
+    "grab_reach": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [51.2, 7], "neck": [48.3, 14], "chest": [48.3, 20], "pelvis": [45.5, 47],
+             "shoulderL": [39.8, 18], "elbowL": [34.1, 32], "handL": [31.3, 45], "shoulderR": [56.8, 18],
+             "elbowR": [62.5, 32], "handR": [65.4, 45], "hipL": [37, 47], "kneeL": [34.1, 68],
+             "footL": [26.4, 78.7], "toeL": [29.6, 81], "hipR": [54, 47], "kneeR": [56.8, 68],
+             "footR": [65.4, 90], "toeR": [69.1, 88.5]}
+    },
+    "grabbed": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.9, 7], "neck": [49.1, 14], "chest": [49.1, 20], "pelvis": [47.2, 47],
+             "shoulderL": [43.5, 18], "elbowL": [39.8, 32], "handL": [37.9, 45], "shoulderR": [54.6, 18],
+             "elbowR": [58.4, 32], "handR": [60.2, 45], "hipL": [41.6, 47], "kneeL": [39.8, 68],
+             "footL": [36.1, 92], "toeL": [38.6, 91.1], "hipR": [52.8, 47], "kneeR": [54.6, 68],
+             "footR": [60.2, 90], "toeR": [64.1, 89]}
     },
     "guard": {
       "seed": "fitted from yuji/guard",

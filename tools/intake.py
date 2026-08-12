@@ -303,6 +303,48 @@ def measure(frame, box, src_shape, key=None):
     }
 
 
+def coverage(rows, anims):
+    """Which fighters a roster-wide pose did NOT arrive for, and who is not one.
+
+    A round asked for "27, one per fighter" twice (20C, 20D) and got 27 files
+    both times — with Mahoraga among them and Yuji missing. He is animated out
+    of a character sprite set and has a directory here like everybody else, but
+    he is a summon and not on `CHARACTER_KEYS`, so the delivery counted right
+    and covered the wrong set. Nothing downstream could tell: 27 plates landing
+    in 27 named directories is indistinguishable from the right 27 to any tool
+    that is not comparing names against the roster. So the names are compared
+    here, once, at the front of the pipeline.
+
+    It reports and never fails. A round is allowed to land one fighter at a
+    time — that is the stated shape of 20D — so a gap is news, not an error.
+    Only a pose delivered for over half the roster is treated as roster-wide;
+    below that the delivery is plainly a subset and listing the other 20 names
+    would be noise.
+    """
+    roster = set(anims)
+    by_pose = {}
+    for r in rows:
+        by_pose.setdefault(r["key"], set()).add(r["char"])
+
+    strangers = sorted({r["char"] for r in rows} - roster)
+    gaps = []
+    for pose, chars in sorted(by_pose.items()):
+        if len(chars & roster) * 2 <= len(roster):
+            continue
+        missing = sorted(roster - chars)
+        if missing:
+            gaps.append(f"{pose}: {len(chars & roster)}/{len(roster)} fighters, "
+                        f"missing {', '.join(missing)}")
+    if not strangers and not gaps:
+        return
+    print("\nROSTER COVERAGE (CHARACTER_KEYS):")
+    for line in gaps:
+        print("  " + line)
+    for name in strangers:
+        print(f"  {name}: delivered, but not a fighter — no pose of theirs is "
+              f"part of a roster-wide round")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--chars")
@@ -383,6 +425,7 @@ def main():
 
     mir = sum(1 for r in rows if r["mirrored"])
     print(f"{len(rows)} frame(s) processed, {mir} mirrored to face right")
+    coverage(rows, anims)
     if flagged:
         print("\nFLAGGED:")
         for f in flagged:

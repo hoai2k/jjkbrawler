@@ -5,9 +5,12 @@ the single image-request document for every render mode, generated from the
 rounds and from what is on disk. This file is about what happens to a delivery
 once it lands here.
 
-**Upload new art here, not into `sprites/assets/`.** Sub-folders are fine and
-are searched at any depth, so a delivery that arrives wrapped in its own batch
-directory needs no flattening by hand.
+**Upload new art here, not into `sprites/assets/`.** A delivery that arrives
+wrapped in its own batch directory — `R20A/assets/intake/summons/...`, the shape
+an upload of a whole tree makes — has to be flattened onto the layout below
+before anything runs: `tools/intake.py` reads `assets/intake/<dir>/*.png` one
+level deep, so a plate nested deeper is silently not there rather than an error.
+`git mv` it into place; the batch directory is not kept.
 
 **The 3D track's reference images (DI rounds) have their own importer**, because
 they are not sprites — nothing keys, trims or measures them:
@@ -33,6 +36,19 @@ needs no keying or measuring, so landing it is a move into `assets/sfx/`, a key
 in `src/config_audio.js`, and the request moved into
 [docs/audio-requests-history.md](../../docs/audio-requests-history.md) where
 `tools/generate_sfx.py` can re-roll it.
+
+**A summon plate takes the short path too**, in its own tree: creatures belong
+to no fighter, so nothing about them is in `manifest.json` and neither
+`intake_variants.py` nor `intake_import.py` knows what they are — handing them a
+`summons/` directory registers a character called "summons". Key them with
+`intake.py` like anything else, then copy `_processed/summons/*.png` into
+`assets/sprites/summons/`, run `python3 tools/prep_effects.py --dirs summons` to
+trim and downscale, and **run `python3 tools/check_summon_plates.py`**, which
+fails on a plate holding three or more figures — the fault that put 44
+contact sheets into the game and became round 20A. Their raw originals archive
+to `assets/reference/round<N>/summons/`. A creature's hit box is measured off
+its own `idle_a`, so landing that pose is also what retires any authored
+`hitW`/`hitH` pair in `src/config_summons.js`.
 
 A **background** takes the short path too — no keying, no measuring, no manifest
 entry — so landing one is a copy into `assets/backgrounds/` and nothing else.
@@ -87,9 +103,16 @@ that way, so this is the normal case, not a mistake.
    count as an edit: the poses stay on the workbench's to-do lists, because a
    rule cannot say whether this drawing looks right. See
    [sprites/docs/sprite-auto-adjust.md](../../sprites/docs/sprite-auto-adjust.md).
-6. The untouched originals are moved to `assets/reference/round<N>/<char>/` so a
+6. `tools/pose_seed.py` fits a pose read onto each new frame. Every frame in the
+   manifest owes one — `node tools/check_pose_reads.mjs` fails on a frame with
+   no pose, so a round that adds pose keys is red until this runs — and the
+   seed is a starting point for the pose editor, not a read. It is additive:
+   poses already in the file are kept, including the hand-read ones, and only
+   the new frames are fitted. (`--force` still reseeds a whole character from
+   the reference and throws their hand work away.)
+7. The untouched originals are moved to `assets/reference/round<N>/<char>/` so a
    frame can be reprocessed later without regenerating it.
-7. **Once the round's verdicts are applied, put the names back on the
+8. **Once the round's verdicts are applied, put the names back on the
    drawings.** `python3 tools/canonicalise_sprites.py` moves whatever each pose
    ended up drawing to `sprites/assets/<char>/<pose>.png`, and whatever used to
    hold that name into `<char>/archive/<pose>_2.png`. Approving is a change of
@@ -97,8 +120,12 @@ that way, so this is the normal case, not a mistake.
    staging path and `<char>/<pose>.png` is a drawing nothing draws. Nothing is
    deleted — a superseded drawing is the only copy of art that shipped for a
    while, and the workbench still offers it — and every reference in the
-   manifest is rewritten, checked for dangling paths before it writes.
-8. **Update the request docs.** A delivery answers a request, and the request
+   manifest is rewritten. It checks the whole plan first — that no two drawings
+   want one name, that the file count is unchanged, that nothing is left
+   pointing at a path that will not exist — and moves only once all three hold,
+   because a refusal after the moves leaves the tree rearranged and the manifest
+   describing the old arrangement, which is a repair by hand (round 20).
+9. **Update the request docs.** A delivery answers a request, and the request
    file is defined as "everything in here is outstanding" — so art that has
    landed has to leave it the same day, or the file starts lying about what is
    still needed. Move the delivered section out of
