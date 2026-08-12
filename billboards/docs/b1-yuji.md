@@ -86,7 +86,7 @@ reference image's hue well and its value badly, because it infers albedo from
 pictures that already have shading in them, and navy cloth in shadow
 photographs as almost black.
 
-`billboards/assets/canon-palette.json` now declares, per fighter, the costume
+`render3d/assets/canon-palette.json` now declares, per fighter, the costume
 regions that have a canon colour and where they belong;
 `tools/blender_grade_texture.py` moves them there. It REMAPS rather than
 repaints — the region's median value lands on target and every other pixel

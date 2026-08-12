@@ -24,8 +24,8 @@
 // trail window, same as billboards. Same token -> same pixels, byte for byte
 // — the determinism smoke asserts it, because the trail replays tokens.
 
-import { clipNameFor, aimable } from "../../billboards/src/states.js";
-import { swayChains, simulateChains, simulates } from "../../billboards/src/props.js";
+import { clipNameFor, aimable } from "./states.js";
+import { swayChains, simulateChains, simulates } from "./props.js";
 import { state } from "../../src/state.js";
 import { getStage } from "../../src/stages.js";
 import { DIALS, sampleTime, poseRig } from "./pose.js";

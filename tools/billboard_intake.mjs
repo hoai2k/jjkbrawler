@@ -23,7 +23,7 @@
 //     -> approve      shortcut: flip a character's approved flag directly
 //
 //   node tools/billboard_intake.mjs validate <char> [--backend 3d]
-//   node tools/billboard_intake.mjs import <char>   [--backend 3d]
+//   node tools/billboard_intake.mjs import <char>
 //   node tools/billboard_intake.mjs approve <char> | revoke <char>
 //   node tools/billboard_intake.mjs apply <payload.json>
 //   node tools/billboard_intake.mjs list
@@ -40,24 +40,28 @@ import { fileURLToPath } from "url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-// --backend selection: strip the flag from argv before subcommand parsing.
+// ONE REGISTRY, ONE INTAKE. There used to be a `--backend` flag pointing this
+// at billboards/ or render3d/, because each backend kept its own copy of every
+// rig and its own manifest. They were byte-identical copies, and the two
+// manifests drifted — a facing review turned 22 fighters in one and left the
+// other showing them the old way. The billboard backend now DRAWS render3d's
+// rigs, so there is one place a rig lands and one record of it.
+//
+// The flag is still accepted and ignored, so a bookmarked command or a note in
+// a doc keeps working instead of failing obscurely.
 const rawArgs = process.argv.slice(2);
 const beIdx = rawArgs.indexOf("--backend");
-const BACKEND = beIdx >= 0 ? (rawArgs.splice(beIdx, 2)[1] || "") : "billboard";
-const IS_3D = ["3d", "render3d"].includes(BACKEND);
-if (!IS_3D && !["billboard", "billboards"].includes(BACKEND)) {
-  console.log(`unknown --backend "${BACKEND}" — use billboard (default) or 3d`);
-  process.exit(2);
-}
-const DIR = IS_3D ? "render3d" : "billboards";
-const PAYLOAD_KIND = IS_3D ? "render3d-workbench" : "billboard-workbench";
-const WORKBENCH_URL = IS_3D ? "/render3d/workbench/" : "/billboards/workbench/";
+if (beIdx >= 0) rawArgs.splice(beIdx, 2);
+
+const DIR = "render3d";
+const PAYLOAD_KIND = "render3d-workbench";
+const WORKBENCH_URL = "/render3d/workbench/";
 
 const INTAKE = join(ROOT, DIR, "intake");
 const ASSETS = join(ROOT, DIR, "assets");
 const MANIFEST = join(ASSETS, "manifest.json");
-const STATES_JS = join(ROOT, "billboards", "src", "states.js"); // ONE state list, both backends
-const PROPS_JS = join(ROOT, "billboards", "src", "props.js");
+const STATES_JS = join(ROOT, "render3d", "src", "states.js"); // the one state list
+const PROPS_JS = join(ROOT, "render3d", "src", "props.js");
 
 // ------------------------------------------------------------- shared bits
 
@@ -74,7 +78,7 @@ function clipStates() {
   const src = readFileSync(STATES_JS, "utf8");
   const body = /export const STATES = \{([\s\S]*?)\n\};/.exec(src)?.[1] || "";
   const names = [...body.matchAll(/^  ([A-Za-z_]\w*):/gm)].map((m) => m[1]);
-  if (!names.length) throw new Error("could not parse STATES out of billboards/src/states.js");
+  if (!names.length) throw new Error("could not parse STATES out of render3d/src/states.js");
   return names.filter((n) => n !== "dodge");
 }
 
@@ -207,7 +211,7 @@ function validate(char) {
   // D-spec advisories (render3d/docs/asset-requests.md): both are legal to
   // omit, but the anime pass reads noticeably better with them — say so at
   // intake, not at review.
-  if (IS_3D) {
+  {
     const prims = (gltf.meshes || []).flatMap((m) => m.primitives || []);
     if (!prims.some((p) => p.attributes?.COLOR_0 !== undefined)) {
       warnings.push("no COLOR_0 vertex channel — outline width will be uniform everywhere (D-spec addition 2)");
@@ -256,7 +260,7 @@ function cmdImport(char) {
   };
   writeManifest(man);
   console.log(`imported ${char} (${info.heightM}m, ${info.clips}/${info.states} states) — NOT approved yet.`);
-  console.log(`review in ${WORKBENCH_URL}?char=${char}, export the payload, then: apply <payload.json>${IS_3D ? " --backend 3d" : ""}`);
+  console.log(`review in ${WORKBENCH_URL}?char=${char}, export the payload, then: apply <payload.json>`);
   return 0;
 }
 
@@ -275,7 +279,7 @@ function setApproved(char, value) {
 function cmdApply(payloadPath) {
   const payload = JSON.parse(readFileSync(payloadPath, "utf8"));
   if (payload.kind !== PAYLOAD_KIND) {
-    console.log(`ERROR  not a ${DIR} workbench payload (kind "${payload.kind}", expected "${PAYLOAD_KIND}" — did you mean a different --backend?).`);
+    console.log(`ERROR  not a ${DIR} workbench payload (kind "${payload.kind}", expected "${PAYLOAD_KIND}").`);
     return 1;
   }
   const man = readManifest();
@@ -335,7 +339,7 @@ function cmdCheck() {
   const sem = /export const SEMANTIC_ANIMS = \{([\s\S]*?)\n\};/.exec(chars)?.[1] || "";
   const animKeys = [...sem.matchAll(/^  (\w+):/gm)].map((m) => m[1]);
   for (const k of animKeys) {
-    if (!states.includes(k) && k !== "dodge") problems.push(`SEMANTIC_ANIMS has "${k}" but billboards/src/states.js does not`);
+    if (!states.includes(k) && k !== "dodge") problems.push(`SEMANTIC_ANIMS has "${k}" but render3d/src/states.js does not`);
   }
   for (const p of problems) console.log(`ERROR  ${p}`);
   if (!problems.length) console.log(`${DIR} manifest ok: ${Object.keys(man.characters || {}).length} character(s), ${states.length} states cover the game's animation keys`);
@@ -355,7 +359,7 @@ const run = {
   check: cmdCheck,
 }[cmd];
 if (!run || ((cmd !== "list" && cmd !== "check") && !arg)) {
-  console.log("usage: billboard_intake.mjs validate|import|approve|revoke <char> | apply <payload.json> | list | check   [--backend 3d]");
+  console.log("usage: billboard_intake.mjs validate|import|approve|revoke <char> | apply <payload.json> | list | check");
   process.exit(2);
 }
 process.exit(run());

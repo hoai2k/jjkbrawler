@@ -35,11 +35,11 @@ const r = await page.evaluate(async () => {
   const THREE = await import("/vendor/three/three.module.js");
   const { GLTFLoader } = await import("/vendor/three/loaders/GLTFLoader.js");
   const { applyTwoHandGrip, fitPropShaft, makeScratch } =
-    await import("/billboards/src/ik.js");
-  const { STATES } = await import("/billboards/src/states.js");
-  const { twoHandGrip } = await import("/billboards/src/props.js");
+    await import("/render3d/src/ik.js");
+  const { STATES } = await import("/render3d/src/states.js");
+  const { twoHandGrip } = await import("/render3d/src/props.js");
 
-  const gltf = await new GLTFLoader().loadAsync("/billboards/assets/maki/maki.glb");
+  const gltf = await new GLTFLoader().loadAsync("/render3d/assets/maki/maki.glb");
   const root = gltf.scene;
   const mixer = new THREE.AnimationMixer(root);
 

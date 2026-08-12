@@ -1,5 +1,13 @@
 # The billboard rendering system — implementation plan
 
+
+**Where this path now stands.** Everything about the MODELS — rigs, clips, the
+state contract, IK, props and chains, the mannequin and every posing layer —
+moved to [`render3d/`](../../render3d/) and is imported from there. This path
+defines only what makes a card a card: the offscreen ¾ render, the pose cache,
+and the blit. The two used to keep separate copies of all of it, and the copies
+drifted (facing, then size and stance), which is what settled the question.
+
 How the 2.5D path gets built: posed 3D models rendered offscreen and blitted
 into the unchanged 2D game. The stub in `billboards/src/billboard.js` is the
 skeleton this plan fleshes out; the asset side is

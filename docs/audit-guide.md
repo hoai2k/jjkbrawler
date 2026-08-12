@@ -61,7 +61,6 @@ docs/               mechanics, character research, asset pipeline, asset request
 
       node tools/check_imports.mjs      # module graph, no browser needed
       node tools/check_music.mjs        # stage/track wiring, no browser needed
-      node tools/check_rig_manifests.mjs # the two model backends agree about the rigs
       node tools/smoke_controllers.mjs  # two pads: seats, join, split cursors
       python3 tools/check_doc_links.py  # every relative doc link and anchor
       node tools/build_image_requests.mjs --check   # docs/image-requests.md is current

@@ -23,9 +23,9 @@
 // register, exactly like billboards — art is in the repo before it is in the
 // game, and what players see is what was reviewed.
 
-import { clipNameFor } from "../../billboards/src/states.js";
-import { mirrorClip } from "../../billboards/src/clips.js";
-import { buildMannequin, buildDefaultClips, MANNEQUIN_HEIGHT_M } from "../../billboards/src/mannequin.js";
+import { clipNameFor } from "./states.js";
+import { mirrorClip } from "./clips.js";
+import { buildMannequin, buildDefaultClips, MANNEQUIN_HEIGHT_M } from "./mannequin.js";
 import { clone as cloneSkinned } from "../../vendor/three/utils/SkeletonUtils.js";
 import { applyToonMaterials, characterToon } from "./toon.js";
 import { addOutlines, setOutlineFor } from "./outline.js";

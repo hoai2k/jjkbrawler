@@ -29,7 +29,7 @@
 
 import * as THREE from "../../vendor/three/three.module.js";
 import { GLTFLoader } from "../../vendor/three/loaders/GLTFLoader.js";
-import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimPitch, aimSolve, AIM_MAX_DEG } from "../../billboards/src/states.js";
+import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimPitch, aimSolve, AIM_MAX_DEG } from "../src/states.js";
 import { artReach } from "../../src/silhouette.js";
 import * as rig from "../src/loader.js";
 import * as scene from "../src/scene.js";

@@ -1,7 +1,7 @@
 """Author a fighter's animation clips onto their delivered rig, headless.
 
     blender --background --python tools/blender_author_clips.py -- \
-        --in  billboards/assets/yuji/yuji.glb \
+        --in  render3d/assets/yuji/yuji.glb \
         --out billboards/intake/yuji/yuji.glb \
         --char yuji [--face-fix]
 
@@ -779,7 +779,7 @@ def manifest_height(char):
     """The delivered height from whichever model manifest carries this
     character. Both backends record the same figure at import."""
     import json
-    for rel in ("billboards/assets/manifest.json", "render3d/assets/manifest.json"):
+    for rel in ("render3d/assets/manifest.json",):
         path = os.path.join(REPO, rel)
         if not os.path.exists(path):
             continue

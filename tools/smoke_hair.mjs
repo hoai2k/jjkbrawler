@@ -33,9 +33,9 @@ await page.goto(`${BASE}/index.html`, { waitUntil: "load" });
 const r = await page.evaluate(async () => {
   const THREE = await import("/vendor/three/three.module.js");
   const { GLTFLoader } = await import("/vendor/three/loaders/GLTFLoader.js");
-  const { swayChains, chainsOf, CHARACTER_CHAINS } = await import("/billboards/src/props.js");
+  const { swayChains, chainsOf, CHARACTER_CHAINS } = await import("/render3d/src/props.js");
 
-  const gltf = await new GLTFLoader().loadAsync("/billboards/assets/uro/uro.glb");
+  const gltf = await new GLTFLoader().loadAsync("/render3d/assets/uro/uro.glb");
   const root = gltf.scene;
   root.updateMatrixWorld(true);
 
@@ -105,7 +105,7 @@ const r = await page.evaluate(async () => {
     headMoved: spread(headA, headB),
     // Yuji has no chains at all: the layer must not invent any.
     yujiChains: (await (async () => {
-      const g = await new GLTFLoader().loadAsync("/billboards/assets/yuji/yuji.glb");
+      const g = await new GLTFLoader().loadAsync("/render3d/assets/yuji/yuji.glb");
       return [...chainsOf(g.scene).keys()];
     })()),
   };

@@ -29,12 +29,12 @@
 // and blit.js applies it, identically to sprites and billboards. Clips must
 // not bake it; the delivery rule carries over verbatim.
 
-import { STATES, clipNameFor, clipTime, aimable } from "../../billboards/src/states.js";
+import { STATES, clipNameFor, clipTime, aimable } from "./states.js";
 import {
   applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs, applyStance,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
   reachChain, gripBones,
-} from "../../billboards/src/ik.js";
+} from "./ik.js";
 
 /** The engine-side dials, each independently workbench-editable. */
 export const DIALS = {
@@ -422,7 +422,7 @@ export function boneOwners(animKey, charKey = null) {
   return owners;
 }
 
-/** Solve the striking limb onto the aim point (billboards/src/ik.js).
+/** Solve the striking limb onto the aim point (render3d/src/ik.js).
  *
  *  The offsets arrive in GAME PIXELS along the fighter's facing and up from
  *  their feet — quantised by aimSolve, because they are part of the cache key.
@@ -434,6 +434,19 @@ export function boneOwners(animKey, charKey = null) {
  *  blit, where the rig sits at the origin, and for the in-scene camera path,
  *  where it stands at the fighter's position scaled to game size. */
 function applyMachineReach(rig, animKey, sampled, layers) {
+  // A caller that knows better hands over the world point itself. That is not
+  // a convenience: WHERE a strike should land depends on how the fighter is
+  // presented, and it is one of the few places the two model backends really
+  // do differ. Live geometry reaches along the fighter's OWN forward, because
+  // that is where they are pointing in the world. A billboard card is always
+  // seen from one fixed ¾ camera, so its `dx` is a distance ACROSS THE SCREEN
+  // — the card has to reach where the sprite it replaces reached, and that is
+  // a camera-relative direction. Building the card's target the rig-relative
+  // way put the striking hand 30° off.
+  if (DIALS.reach && layers.reachTarget && reaches(animKey)) {
+    applyReach(THREE, rig.root, animKey, clipTime(animKey, sampled), layers.reachTarget, _ik);
+    return;
+  }
   const reach = layers.reach;
   if (!DIALS.reach || !reach || !reaches(animKey)) return;
   const targetPx = reach.targetPx || 0;

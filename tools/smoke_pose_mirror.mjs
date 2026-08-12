@@ -25,9 +25,9 @@
 // checks here are what goes red.
 
 import * as THREE from "../vendor/three/three.module.js";
-import { STATES, CLIP_STATES } from "../billboards/src/states.js";
-import { buildDefaultClips, buildMannequin } from "../billboards/src/mannequin.js";
-import { clipToKeys, mirrorKeys, mirrorClip, mirrorBoneName } from "../billboards/src/clips.js";
+import { STATES, CLIP_STATES } from "../render3d/src/states.js";
+import { buildDefaultClips, buildMannequin } from "../render3d/src/mannequin.js";
+import { clipToKeys, mirrorKeys, mirrorClip, mirrorBoneName } from "../render3d/src/clips.js";
 
 let failures = 0;
 const check = (ok, label, detail = "") => {

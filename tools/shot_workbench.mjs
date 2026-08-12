@@ -51,7 +51,7 @@ for (const state of states) {
   // being empty by giving it a beat.
   await page.waitForTimeout(3500);
   await page.evaluate(async (s) => {
-    const { STATES, clipNameFor } = await import("/billboards/src/states.js");
+    const { STATES, clipNameFor } = await import("/render3d/src/states.js");
     const spec = STATES[clipNameFor(s)];
     if (window.wb) {
       window.wb.playing = false;

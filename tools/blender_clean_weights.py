@@ -1,8 +1,8 @@
 """Prune anatomically impossible skin weights from a delivered rig.
 
     blender --background --python tools/blender_clean_weights.py -- \
-        --in  billboards/assets/yuji/yuji.glb \
-        --out billboards/assets/yuji/yuji.glb
+        --in  render3d/assets/yuji/yuji.glb \
+        --out render3d/assets/yuji/yuji.glb
 
 WHY THIS EXISTS. Round B1's fighter lifts his arm and part of his trousers
 comes with it: rotating `RightArm` alone moves 230 vertices whose own dominant

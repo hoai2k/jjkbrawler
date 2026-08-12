@@ -37,13 +37,13 @@ import {
   currentFrame as spriteFrame,
   cyclePhase as spriteCycle,
 } from "../../sprites/src/sprites.js";
-import { cycleInfo, aimSolve } from "./states.js";
+import { cycleInfo, aimSolve } from "../../render3d/src/states.js";
 import { headHeightTarget } from "../../src/heights.js";
 import { artReach } from "../../src/silhouette.js";
 
 let ready = false;
 let initFailed = false;
-let rigs = null;      // ./rig.js module
+let rigs = null;      // render3d/src/loader.js — the shared rig registry
 let renderer = null;  // ./renderer.js module
 let blit = null;      // ./blit.js module
 
@@ -64,7 +64,7 @@ export async function init() {
     const [three, loaderMod, rigMod, rendererMod, blitMod] = await Promise.all([
       import("../../vendor/three/three.module.js"),
       import("../../vendor/three/loaders/GLTFLoader.js"),
-      import("./rig.js"),
+      import("../../render3d/src/loader.js"),
       import("./renderer.js"),
       import("./blit.js"),
     ]);

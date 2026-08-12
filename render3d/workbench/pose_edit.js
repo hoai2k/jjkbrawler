@@ -2,7 +2,7 @@
 //
 // It edits KEYFRAMES, not frames. A state's clip is a handful of extremes —
 // the contact of a run, the full extension of a strike, the deepest point of a
-// landing — and everything between them is a curve (billboards/src/clips.js).
+// landing — and everything between them is a curve (render3d/src/clips.js).
 // So the editor gives you the extremes and nothing else: pick a key, pose the
 // body, pick how it travels out of that key, and the in-betweens rebuild
 // themselves. Nothing here can produce the thing hand-authored in-betweens
@@ -37,7 +37,7 @@
 // how tall the model stands in its idle IS how big it is drawn, in every
 // state. The panel shows the number and says so.
 
-import { buildClipFromKeys, clipToKeys, sampleDeltaTrack, EASE_NAMES } from "../../billboards/src/clips.js";
+import { buildClipFromKeys, clipToKeys, sampleDeltaTrack, EASE_NAMES } from "../src/clips.js";
 
 const DEG = Math.PI / 180;
 /** Handle hit radius, in game pixels before the viewer's zoom. */
@@ -464,8 +464,8 @@ export function makePoseEditor(opts) {
       exported: new Date().toISOString(),
       note: "Keyframe tables in DEGREES (local XYZ euler per bone), one entry per "
         + "extreme; `ease` is how the pose travels OUT of that key and is baked by "
-        + "billboards/src/clips.js. Drop these into the POSES/stateKeys tables in "
-        + "billboards/src/mannequin.js. `targetSpaceOffsetsDeg` are NOT keyframes: "
+        + "render3d/src/clips.js. Drop these into the POSES/stateKeys tables in "
+        + "render3d/src/mannequin.js. `targetSpaceOffsetsDeg` are NOT keyframes: "
         + "those bones are solved onto the aim point at pose time (ik.js), and the "
         + "offsets are applied after the solve — they belong in the solver's shares, "
         + "not in a clip.",
