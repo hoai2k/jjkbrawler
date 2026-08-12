@@ -1,8 +1,8 @@
 # Pose reads — what each sprite frame says the body is doing
 
-A **pose read** is sixteen joints written down for one drawing: head, neck,
-chest, pelvis, and a shoulder/elbow/hand and hip/knee/foot for each side. One
-file per character in [`pose-reads/`](pose-reads/), keyed by frame name.
+A **pose read** is eighteen joints written down for one drawing: head, neck,
+chest, pelvis, and a shoulder/elbow/hand and hip/knee/foot/toe for each side.
+One file per character in [`pose-reads/`](pose-reads/), keyed by frame name.
 
 It exists because the 3D fighters need to know what their own art does, and
 because *describing* a pose does not work. A description can be vague and
@@ -33,6 +33,17 @@ the RIGHT limb is the near one and the LEFT limb is the far one drawn behind
 the body. Sided names survive a mirror; "near" and "far" do not, and a rig
 posed from near/far data throws a left-handed punch on half the roster.
 
+Which drawn limb is the near one is a **judgement, and the obvious answer is
+usually wrong**. The reflex is to give the near side to the arm the eye lands
+on — the one extended into the punch. In this art it is the other way round:
+the extended arm is drawn passing BEHIND the collar, and the arm crossing the
+chest, fully visible over the jacket, is the near one. Eight of Yuji's frames
+were read the wrong way round on exactly that reflex. Judge it by occlusion,
+never by prominence: **the near limb is the one drawn over the torso; the far
+limb is the one the torso interrupts.** When a whole pose comes out backwards,
+the editor's **⇄ Swap L/R** exchanges every sided joint in one click, and
+`python3 tools/pose_migrate.py swap <char> <pose>...` does the same on disk.
+
 **The cell.** Coordinates are percentages of the frame's own square cell — the
 frame scaled so its long side fills a square, centred, x rightwards, y
 downwards, 0–100 both ways. Frames differ wildly in aspect (a prone drawing is
@@ -44,6 +55,11 @@ another, and what the editor and the contact sheet both lay out in.
 `node server.mjs`, then
 [`/render3d/workbench/?edit=pose`](../../render3d/workbench/).
 
+The bar carries the **build time** of the editor itself. If it is older than a
+change you are looking for, the checkout is behind — `git pull`, then reload;
+the dev server sends `no-store` for source and the read is fetched with a
+cache-buster, so nothing here is ever served stale from a cache.
+
 Pick a character, pick a frame from the grid, drag the joints onto the drawing.
 Dragging a joint carries everything below it in the chain (shift-drag moves the
 one joint); arrow keys nudge; **Snap to art** pulls stray joints onto the
@@ -51,10 +67,15 @@ nearest ink; ⌘Z undoes. Beside the plate the character's **own 3D rig** takes
 the pose, each bone swung in the drawing's plane to match — which is where a
 read that looked fine flat turns out to bend a knee backwards.
 
-Edits live in the browser until you press **Download this character** (or
-**All edited**, for a session that touched several). Send the file on and
-`python3 tools/pose_apply.py <file>` puts it back in the tree in canonical
-format, checking joint completeness, frame names and ranges on the way in.
+Edits last as long as the tab and no longer: press **Download this character**
+(or **All edited**, for a session that touched several) before you leave, and
+a reload is how you say "start again from what is on disk". They used to be
+kept in localStorage, which sounded like a kindness and was not — a held edit
+silently outranked the file, so a correction already applied to the tree came
+back as the old pose, and a pose held from before toes existed drew a handle
+for a joint that was not in it. Send the file on and `python3
+tools/pose_apply.py <file>` puts it back in the tree in canonical format,
+checking joint completeness, frame names and ranges on the way in.
 
 Two limits worth knowing while you work:
 
@@ -64,12 +85,38 @@ Two limits worth knowing while you work:
   * **The hips do not move.** The preview swings bones; it does not translate
     the root or plant the feet, so a deep lunge reads shallower in 3D than in
     the art.
+  * **Anything the eighteen joints cannot say** — a wrist roll, a head turn
+    out of plane, a spine twist — belongs to the keyframe bench at
+    `?edit=animation`, which poses any bone on any axis.
+
+### What each joint drives in the preview
+
+| Joint | Bone |
+|---|---|
+| pelvis → chest, chest → neck | `Spine`, `Spine2` |
+| shoulder line → head | `Neck` |
+| chest → shoulder | `LeftShoulder` / `RightShoulder` — the clavicle, so a shoulder can be **raised** into a punch |
+| shoulder → elbow → hand | `LeftArm` / `LeftForeArm` and the right pair |
+| hip → knee → foot | `LeftUpLeg` / `LeftLeg` and the right pair |
+| foot → toe | `LeftFoot` / `RightFoot` — the toe joint is how a foot is **pointed** for a kick |
+
+Two of those rows exist because of what the reads could not previously say.
+The clavicles are aimed with their reach ACROSS the body preserved and only
+the up/down, fore/aft part turned — aim a clavicle flat into the drawing's
+plane and both shoulders collapse onto the spine, dragging the collar with
+them. And the neck aims from the **shoulder line**, not from the read's own
+`neck` joint: the rig's Neck bone starts between the shoulders while the neck
+joint is drawn halfway up a neck, and measuring from the higher point
+over-stated the bend by the same few degrees on every frame. Every upright
+frame in Yuji's sheet craned forward by 8.1° — the identical number three
+times over, which is the signature of a convention error rather than a
+reading. From the shoulder line it is 5° in the idle and 0° in the jab.
 
 ## What is read, and what is only seeded
 
 | | |
 |---|---|
-| **Read by eye** | `yuji` — all 40 frames, each checked against the art |
+| **Read by eye** | `yuji` — all 40 frames, each checked against the art; 11 poses hand-corrected since |
 | **Fitted seeds** | every other character, 1237 frames, from `tools/pose_seed.py` |
 
 A seed is Yuji's read of the same-named frame, fitted to this character's own
@@ -84,7 +131,7 @@ that the editor displays and that disappears the moment a human moves a joint.
 
 On the character that has been read properly: in the drawing plane, yes.
 `python3 tools/pose_contact_sheet.py yuji --check` measures every joint to the
-nearest opaque pixel and all 640 land on the art; at overlay the figure tracks
+nearest opaque pixel and all 720 land on the art; at overlay the figure tracks
 hip height, knee bend, stance width and reach closely enough to build a clip
 from. Out of plane, no — which limb is nearer, and how far a fist travels
 toward camera, is inference from overlap and shading, and needs a human.

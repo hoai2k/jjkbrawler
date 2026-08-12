@@ -67,6 +67,7 @@ main.poseedit {
   background: #121728; border: 1px solid #232c44; border-radius: 6px; padding: 8px 10px;
 }
 .edit-head .grow { flex: 1; }
+.bar .build { flex: none; font: 11px ui-monospace, Menlo, monospace; color: #6b7690; }
 .stamp {
   font-size: 11px; padding: 2px 7px; border-radius: 999px; border: 1px solid #2f3a58;
   color: #8b96b3;

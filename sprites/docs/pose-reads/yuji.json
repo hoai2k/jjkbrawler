@@ -6,83 +6,102 @@
   "poses": {
     "attack_air": {
       "read": "Air punch. Body on a diagonal, lead arm fully extended forward at head height, off fist tucked at the chest, both legs trailing behind and below \u2014 the whole figure a single forward-leaning line.",
-      "j": {"head": [62, 9], "neck": [59, 15], "chest": [57, 20], "pelvis": [48, 45],
-             "shoulderL": [52, 21], "elbowL": [42, 24], "handL": [45, 27], "shoulderR": [60, 20],
-             "elbowR": [76, 20], "handR": [93, 20], "hipL": [45, 45], "kneeL": [27, 63],
-             "footL": [9, 87], "hipR": [51, 45], "kneeR": [45, 62], "footR": [32, 77]}
+      "source": "pose editor",
+      "j": {"head": [60.2, 8.1], "neck": [59, 15], "chest": [57, 20], "pelvis": [48, 45],
+             "shoulderL": [64.5, 17.7], "elbowL": [77.4, 19.1], "handL": [95.3, 20.2], "shoulderR": [52.1, 19.4],
+             "elbowR": [31.7, 21.6], "handR": [36.8, 27.2], "hipL": [42.5, 49.7], "kneeL": [57, 58.6],
+             "footL": [34, 73.7], "toeL": [36.2, 77], "hipR": [42.6, 43.7], "kneeR": [29.6, 59.7],
+             "footR": [16.6, 74.7], "toeR": [19.6, 77.3]}
     },
     "attack_air_a": {
       "read": "Airborne, hands OPEN not fisted, near knee snapped up and forward with the foot above hip height, far arm flung back and down for counterweight. Reads as the chamber of an aerial kick.",
-      "j": {"head": [62, 9], "neck": [59, 15], "chest": [58, 20], "pelvis": [54, 48],
-             "shoulderL": [54, 22], "elbowL": [38, 32], "handL": [22, 40], "shoulderR": [62, 20],
-             "elbowR": [68, 22], "handR": [76, 19], "hipL": [51, 48], "kneeL": [48, 68],
-             "footL": [35, 87], "hipR": [57, 48], "kneeR": [64, 55], "footR": [70, 52]}
+      "source": "pose editor",
+      "j": {"head": [62.9, 7.2], "neck": [61.3, 15.7], "chest": [58, 20], "pelvis": [54, 48],
+             "shoulderL": [60, 19.8], "elbowL": [72, 27], "handL": [79.1, 19.5], "shoulderR": [53.6, 19.7],
+             "elbowR": [38.1, 24.4], "handR": [28.1, 36.8], "hipL": [51, 48], "kneeL": [54.2, 68.2],
+             "footL": [36.2, 84.1], "toeL": [38.8, 87.1], "hipR": [57, 48], "kneeR": [69.9, 36.8],
+             "footR": [68.9, 56.8], "toeR": [72.9, 57]}
     },
     "attack_air_b": {
       "read": "Aerial kick at extension \u2014 near leg thrust straight forward at hip height with the impact burst on the sole, support leg tucked under and back, near fist at the chest, far arm dropped low behind.",
       "j": {"head": [43, 10], "neck": [42, 17], "chest": [42, 22], "pelvis": [42, 48],
              "shoulderL": [38, 24], "elbowL": [20, 32], "handL": [6, 47], "shoulderR": [46, 23],
              "elbowR": [56, 25], "handR": [59, 22], "hipL": [39, 48], "kneeL": [36, 60],
-             "footL": [16, 84], "hipR": [45, 48], "kneeR": [58, 45], "footR": [82, 47]}
+             "footL": [16, 84], "toeL": [16.9, 86.5], "hipR": [45, 48], "kneeR": [58, 45],
+             "footR": [82, 47], "toeR": [82.3, 43]}
     },
     "attack_down": {
       "read": "Downward ground smash \u2014 near fist driven straight into the floor with debris, torso folded down over it, far arm cocked back at chest height, legs in a wide low split.",
       "j": {"head": [75, 26], "neck": [71, 31], "chest": [69, 35], "pelvis": [62, 47],
              "shoulderL": [64, 36], "elbowL": [50, 36], "handL": [40, 40], "shoulderR": [70, 37],
              "elbowR": [70, 52], "handR": [66, 72], "hipL": [59, 47], "kneeL": [35, 55],
-             "footL": [10, 68], "hipR": [65, 47], "kneeR": [80, 55], "footR": [89, 68]}
+             "footL": [10, 68], "toeL": [11.8, 71.5], "hipR": [65, 47], "kneeR": [80, 55],
+             "footR": [89, 68], "toeR": [92.3, 65.7]}
     },
     "attack_heavy": {
       "read": "Straight right at full extension out of a deep lunge. Hips dropped, rear leg long and straight, torso pitched forward over the front knee, off hand low at the belt.",
+      "source": "sides corrected against the art",
       "j": {"head": [65, 13], "neck": [62, 19], "chest": [60, 24], "pelvis": [54, 50],
-             "shoulderL": [56, 25], "elbowL": [48, 33], "handL": [48, 42], "shoulderR": [64, 24],
-             "elbowR": [78, 24], "handR": [93, 26], "hipL": [51, 50], "kneeL": [30, 68],
-             "footL": [9, 84], "hipR": [57, 50], "kneeR": [68, 66], "footR": [70, 85]}
+             "shoulderL": [64, 24], "elbowL": [78, 24], "handL": [93, 26], "shoulderR": [56, 25],
+             "elbowR": [48, 33], "handR": [48, 42], "hipL": [51, 50], "kneeL": [30, 68],
+             "footL": [9, 84], "toeL": [8.7, 84.8], "hipR": [57, 50], "kneeR": [68, 66],
+             "footR": [70, 85], "toeR": [74, 84.6]}
     },
     "attack_heavy_a": {
       "read": "The heavy's WIND-UP: striking fist cocked far behind the head at shoulder height trailing blue cursed energy, off arm hanging open and forward, torso coiled back over the rear leg. The only true anticipation frame in the sheet.",
+      "source": "sides corrected against the art",
       "flags": [{"k": "note", "t": "the only true wind-up in the set"}],
       "j": {"head": [68, 10], "neck": [65, 16], "chest": [63, 21], "pelvis": [55, 48],
-             "shoulderL": [58, 22], "elbowL": [38, 22], "handL": [19, 23], "shoulderR": [66, 24],
-             "elbowR": [80, 32], "handR": [86, 52], "hipL": [52, 48], "kneeL": [32, 68],
-             "footL": [13, 88], "hipR": [58, 48], "kneeR": [70, 68], "footR": [76, 86]}
+             "shoulderL": [66, 24], "elbowL": [80, 32], "handL": [86, 52], "shoulderR": [58, 22],
+             "elbowR": [38, 22], "handR": [19, 23], "hipL": [52, 48], "kneeL": [32, 68],
+             "footL": [13, 88], "toeL": [15.9, 90.8], "hipR": [58, 48], "kneeR": [70, 68],
+             "footR": [76, 86], "toeR": [79.8, 84.7]}
     },
     "attack_heavy_b": {
       "read": "The heavy's CONTACT: same arm now fully extended forward with the impact burst on the fist, rear fist pulled to the hip, hips square and low, rear leg long.",
+      "source": "sides corrected against the art",
       "j": {"head": [52, 8], "neck": [50, 14], "chest": [49, 19], "pelvis": [46, 48],
-             "shoulderL": [45, 20], "elbowL": [32, 28], "handL": [26, 45], "shoulderR": [53, 19],
-             "elbowR": [68, 19], "handR": [85, 20], "hipL": [43, 48], "kneeL": [24, 66],
-             "footL": [9, 88], "hipR": [49, 48], "kneeR": [62, 68], "footR": [65, 87]}
+             "shoulderL": [53, 19], "elbowL": [68, 19], "handL": [85, 20], "shoulderR": [45, 20],
+             "elbowR": [32, 28], "handR": [26, 45], "hipL": [43, 48], "kneeL": [24, 66],
+             "footL": [9, 88], "toeL": [12.3, 90.3], "hipR": [49, 48], "kneeR": [62, 68],
+             "footR": [65, 87], "toeR": [69, 86.4]}
     },
     "attack_light_a": {
       "read": "Jab at FULL extension \u2014 lead arm straight out at shoulder height, rear fist chambered at the ribs. Torso upright, long wide stance. This is a contact frame, not a wind-up.",
+      "source": "sides corrected against the art",
       "flags": [{"k": "note", "t": "contact, no wind-up"}],
       "j": {"head": [47, 8], "neck": [46, 15], "chest": [46, 21], "pelvis": [44, 50],
-             "shoulderL": [44, 21], "elbowL": [40, 30], "handL": [42, 35], "shoulderR": [50, 20],
-             "elbowR": [62, 21], "handR": [84, 20], "hipL": [41, 50], "kneeL": [28, 68],
-             "footL": [16, 92], "hipR": [47, 50], "kneeR": [58, 68], "footR": [62, 90]}
+             "shoulderL": [50, 20], "elbowL": [62, 21], "handL": [84, 20], "shoulderR": [44, 21],
+             "elbowR": [40, 30], "handR": [42, 35], "hipL": [41, 50], "kneeL": [28, 68],
+             "footL": [16, 92], "toeL": [19.6, 93.8], "hipR": [47, 50], "kneeR": [58, 68],
+             "footR": [62, 90], "toeR": [65.9, 89.3]}
     },
     "attack_light_b": {
       "read": "The second jab, also at full extension \u2014 same arm, torso rotated further into it, shoulders lower, rear arm swept further back. Reads as the follow-through of light_a rather than a contrasting beat.",
+      "source": "sides corrected against the art",
       "flags": [{"k": "dup", "t": "second contact of the same jab"}],
       "j": {"head": [57, 8], "neck": [55, 15], "chest": [54, 20], "pelvis": [49, 50],
-             "shoulderL": [50, 21], "elbowL": [38, 26], "handL": [32, 33], "shoulderR": [58, 20],
-             "elbowR": [74, 22], "handR": [92, 25], "hipL": [46, 50], "kneeL": [26, 70],
-             "footL": [11, 90], "hipR": [52, 50], "kneeR": [68, 68], "footR": [73, 90]}
+             "shoulderL": [58, 20], "elbowL": [74, 22], "handL": [92, 25], "shoulderR": [50, 21],
+             "elbowR": [38, 26], "handR": [32, 33], "hipL": [46, 50], "kneeL": [26, 70],
+             "footL": [11, 90], "toeL": [14.2, 92.4], "hipR": [52, 50], "kneeR": [68, 68],
+             "footR": [73, 90], "toeR": [76.9, 89.1]}
     },
     "attack_up": {
       "read": "Rising uppercut \u2014 near fist punched up and forward above the head, body stretched tall and leaning back slightly, near knee driven up, rear leg trailing straight down and back. Airborne.",
+      "source": "sides corrected against the art",
       "j": {"head": [52, 14], "neck": [52, 20], "chest": [52, 25], "pelvis": [50, 50],
-             "shoulderL": [49, 25], "elbowL": [48, 37], "handL": [49, 45], "shoulderR": [56, 24],
-             "elbowR": [62, 15], "handR": [70, 4], "hipL": [47, 50], "kneeL": [42, 70],
-             "footL": [28, 92], "hipR": [53, 50], "kneeR": [64, 60], "footR": [60, 79]}
+             "shoulderL": [56, 24], "elbowL": [62, 15], "handL": [70, 4], "shoulderR": [49, 25],
+             "elbowR": [48, 37], "handR": [49, 45], "hipL": [47, 50], "kneeL": [42, 70],
+             "footL": [28, 92], "toeL": [29.4, 92.6], "hipR": [53, 50], "kneeR": [64, 60],
+             "footR": [60, 79], "toeR": [63.9, 79.8]}
     },
     "charge": {
       "read": "Power-up. Both fists clenched and drawn apart at chest height wreathed in cursed energy, elbows out, deep wide stance, torso pitched forward, head up.",
       "j": {"head": [62, 9], "neck": [59, 16], "chest": [57, 22], "pelvis": [52, 50],
              "shoulderL": [53, 22], "elbowL": [44, 30], "handL": [35, 28], "shoulderR": [60, 22],
              "elbowR": [64, 28], "handR": [68, 32], "hipL": [48, 50], "kneeL": [33, 68],
-             "footL": [24, 93], "hipR": [55, 50], "kneeR": [65, 62], "footR": [68, 85]}
+             "footL": [24, 93], "toeL": [27.8, 94.4], "hipR": [55, 50], "kneeR": [65, 62],
+             "footR": [68, 85], "toeR": [72, 84.5]}
     },
     "crouch_a": {
       "read": "NOT a squat \u2014 a sprinter's three-point stance. Far hand planted flat on the ground, near knee up and folded, far leg stretched right back with the shin along the floor, torso low and level, head up and looking forward.",
@@ -90,7 +109,8 @@
       "j": {"head": [78, 17], "neck": [74, 24], "chest": [71, 29], "pelvis": [62, 50],
              "shoulderL": [66, 32], "elbowL": [62, 48], "handL": [55, 88], "shoulderR": [74, 33],
              "elbowR": [84, 44], "handR": [92, 55], "hipL": [59, 50], "kneeL": [35, 62],
-             "footL": [9, 72], "hipR": [65, 50], "kneeR": [70, 62], "footR": [72, 84]}
+             "footL": [9, 72], "toeL": [10.4, 75.7], "hipR": [65, 50], "kneeR": [70, 62],
+             "footR": [72, 84], "toeR": [76, 83.6]}
     },
     "crouch_attack_a": {
       "read": "Low sweeping strike from the crouch \u2014 near hand cutting down and forward past the knee with the slash arc, far fist cocked at the chest, legs in a wide low lunge, torso level and close to the floor.",
@@ -98,7 +118,8 @@
       "j": {"head": [65, 28], "neck": [62, 33], "chest": [60, 37], "pelvis": [55, 50],
              "shoulderL": [57, 37], "elbowL": [45, 34], "handL": [33, 36], "shoulderR": [63, 39],
              "elbowR": [70, 52], "handR": [76, 68], "hipL": [52, 50], "kneeL": [30, 58],
-             "footL": [8, 70], "hipR": [58, 50], "kneeR": [58, 60], "footR": [55, 68]}
+             "footL": [8, 70], "toeL": [7.9, 71.4], "hipR": [58, 50], "kneeR": [58, 60],
+             "footR": [55, 68], "toeR": [58.7, 69.4]}
     },
     "crouch_attack_b": {
       "read": "The sweep carried through \u2014 same lunge, striking hand swung further out and down past the leading foot, body driven forward. The pair reads as two frames of one motion.",
@@ -106,7 +127,8 @@
       "j": {"head": [76, 30], "neck": [73, 35], "chest": [70, 38], "pelvis": [62, 49],
              "shoulderL": [66, 38], "elbowL": [52, 36], "handL": [41, 40], "shoulderR": [73, 40],
              "elbowR": [84, 50], "handR": [92, 65], "hipL": [59, 49], "kneeL": [33, 57],
-             "footL": [8, 66], "hipR": [65, 49], "kneeR": [63, 58], "footR": [57, 68]}
+             "footL": [8, 66], "toeL": [6, 70.1], "hipR": [65, 49], "kneeR": [63, 58],
+             "footR": [57, 68], "toeR": [60.4, 70.1]}
     },
     "crouch_b": {
       "read": "The same three-point stance, settled: hips a shade lower, planted hand further forward, rear leg longer. The two crouch frames differ by a small weight shift, not a pose change.",
@@ -114,14 +136,16 @@
       "j": {"head": [76, 15], "neck": [73, 22], "chest": [70, 28], "pelvis": [60, 52],
              "shoulderL": [64, 31], "elbowL": [58, 52], "handL": [45, 88], "shoulderR": [72, 32],
              "elbowR": [84, 45], "handR": [92, 58], "hipL": [57, 52], "kneeL": [30, 68],
-             "footL": [7, 80], "hipR": [63, 52], "kneeR": [68, 64], "footR": [68, 86]}
+             "footL": [7, 80], "toeL": [8.9, 83.5], "hipR": [63, 52], "kneeR": [68, 64],
+             "footR": [68, 86], "toeR": [72, 86]}
     },
     "dash": {
       "read": "A ground-skimming lunge. The spine is nearly HORIZONTAL, head thrust forward and low, both hands open \u2014 the lead one out in front, the trailing one flung back level with the shoulders, rear leg extended long behind.",
       "j": {"head": [82, 20], "neck": [78, 25], "chest": [75, 29], "pelvis": [58, 45],
              "shoulderL": [70, 29], "elbowL": [45, 29], "handL": [26, 30], "shoulderR": [76, 31],
              "elbowR": [84, 36], "handR": [88, 40], "hipL": [55, 45], "kneeL": [32, 58],
-             "footL": [8, 76], "hipR": [61, 45], "kneeR": [52, 60], "footR": [42, 62]}
+             "footL": [8, 76], "toeL": [7.7, 76.1], "hipR": [61, 45], "kneeR": [52, 60],
+             "footR": [42, 62], "toeR": [42.8, 65.9]}
     },
     "dizzy": {
       "read": "Head lolled BACKWARD with the chin up, torso leaning back off vertical, arms hanging dead at the sides, knees loose. Not a forward slump \u2014 the whole figure tips away from the camera-forward direction.",
@@ -129,7 +153,8 @@
       "j": {"head": [44, 9], "neck": [46, 16], "chest": [46, 20], "pelvis": [49, 48],
              "shoulderL": [43, 20], "elbowL": [41, 32], "handL": [40, 46], "shoulderR": [50, 20],
              "elbowR": [57, 32], "handR": [62, 45], "hipL": [46, 48], "kneeL": [48, 68],
-             "footL": [42, 90], "hipR": [52, 48], "kneeR": [54, 68], "footR": [57, 92]}
+             "footL": [42, 90], "toeL": [50.9, 92.4], "hipR": [52, 48], "kneeR": [54, 68],
+             "footR": [57, 92], "toeR": [58.9, 95.7]}
     },
     "dodge_air": {
       "read": "An air twist \u2014 knees drawn up and folded to one side, both arms pulled in tight across the chest, head turned up and away over the shoulder. Compact but NOT a ball; the spine stays long.",
@@ -137,14 +162,16 @@
       "j": {"head": [62, 8], "neck": [59, 14], "chest": [57, 19], "pelvis": [52, 48],
              "shoulderL": [52, 21], "elbowL": [42, 27], "handL": [38, 30], "shoulderR": [59, 21],
              "elbowR": [56, 26], "handR": [52, 22], "hipL": [49, 48], "kneeL": [52, 62],
-             "footL": [40, 74], "hipR": [55, 48], "kneeR": [60, 62], "footR": [52, 86]}
+             "footL": [40, 74], "toeL": [42.8, 76.8], "hipR": [55, 48], "kneeR": [60, 62],
+             "footR": [52, 86], "toeR": [55.8, 87.3]}
     },
     "dodge_roll": {
       "read": "A true tucked ball. Chin to chest, spine fully curled, knees folded into the chest, both hands drawn in against the shins. Silhouette is round.",
       "j": {"head": [80, 22], "neck": [73, 28], "chest": [68, 33], "pelvis": [45, 45],
              "shoulderL": [64, 33], "elbowL": [56, 42], "handL": [58, 52], "shoulderR": [70, 36],
              "elbowR": [62, 46], "handR": [64, 55], "hipL": [42, 42], "kneeL": [22, 50],
-             "footL": [22, 74], "hipR": [48, 48], "kneeR": [30, 56], "footR": [30, 80]}
+             "footL": [22, 74], "toeL": [26, 74], "hipR": [48, 48], "kneeR": [30, 56],
+             "footR": [30, 80], "toeR": [34, 80]}
     },
     "fall": {
       "read": "Descending. Both arms out wide and open for balance, near knee lifted and folded in front, trailing leg reaching down. Torso pitched forward, head up.",
@@ -152,14 +179,17 @@
       "j": {"head": [68, 9], "neck": [65, 15], "chest": [63, 20], "pelvis": [57, 45],
              "shoulderL": [57, 22], "elbowL": [40, 25], "handL": [24, 31], "shoulderR": [65, 22],
              "elbowR": [74, 26], "handR": [80, 28], "hipL": [54, 45], "kneeL": [60, 68],
-             "footL": [73, 90], "hipR": [60, 45], "kneeR": [70, 55], "footR": [72, 60]}
+             "footL": [73, 90], "toeL": [76.4, 88], "hipR": [60, 45], "kneeR": [70, 55],
+             "footR": [72, 60], "toeR": [72.6, 59.2]}
     },
     "guard": {
       "read": "Boxing guard. Both fists up at cheek height in front of the face, elbows tucked in, torso pitched forward over a long stance, rear leg trailing well back and straight, front knee soft.",
+      "flags": [{"k": "sides", "t": "sides look swapped \u2014 check"}],
       "j": {"head": [57, 9], "neck": [54, 16], "chest": [53, 21], "pelvis": [48, 47],
              "shoulderL": [50, 20], "elbowL": [54, 30], "handL": [62, 15], "shoulderR": [56, 19],
              "elbowR": [61, 27], "handR": [66, 13], "hipL": [45, 47], "kneeL": [36, 67],
-             "footL": [26, 91], "hipR": [50, 47], "kneeR": [60, 63], "footR": [66, 88]}
+             "footL": [26, 91], "toeL": [29.7, 92.5], "hipR": [50, 47], "kneeR": [60, 63],
+             "footR": [66, 88], "toeR": [69.9, 87.1]}
     },
     "hurt": {
       "read": "Struck. Head snapped hard back, spine arched backward, both arms loose and thrown out behind, feet leaving the ground. The reaction is in the SPINE, not in flung-wide arms. (Read in the engine's orientation: this frame is delivered facing left and mirrored at blit.)",
@@ -167,14 +197,17 @@
       "j": {"head": [37, 6], "neck": [43, 12], "chest": [46, 18], "pelvis": [53, 52],
              "shoulderL": [50, 20], "elbowL": [58, 32], "handL": [60, 42], "shoulderR": [43, 20],
              "elbowR": [38, 34], "handR": [35, 48], "hipL": [56, 52], "kneeL": [62, 66],
-             "footL": [60, 86], "hipR": [54.5, 53], "kneeR": [52, 68], "footR": [45, 88]}
+             "footL": [60, 86], "toeL": [61.2, 87.9], "hipR": [54.5, 53], "kneeR": [52, 68],
+             "footR": [45, 88], "toeR": [43.5, 88.9]}
     },
     "idle_a": {
       "read": "Standing at rest, weight even, arms hanging. Torso vertical, head level, near foot a half-step forward.",
+      "source": "pose editor",
       "j": {"head": [50, 7], "neck": [49, 14], "chest": [49, 20], "pelvis": [48, 47],
-             "shoulderL": [46, 18], "elbowL": [44, 32], "handL": [43, 45], "shoulderR": [52, 18],
+             "shoulderL": [46, 18], "elbowL": [43.7, 32.3], "handL": [42.3, 44.5], "shoulderR": [52, 18],
              "elbowR": [54, 32], "handR": [55, 45], "hipL": [45, 47], "kneeL": [44, 68],
-             "footL": [42, 92], "hipR": [51, 47], "kneeR": [52, 68], "footR": [55, 90]}
+             "footL": [42, 92], "toeL": [52.3, 92.6], "hipR": [51, 47], "kneeR": [52, 68],
+             "footR": [55, 90], "toeR": [59, 89.5]}
     },
     "idle_b": {
       "read": "The breathing half of the idle. Materially the same pose as idle_a \u2014 a shoulder-height and chest difference of about one percent of body height, no limb moves.",
@@ -182,7 +215,8 @@
       "j": {"head": [50, 7.5], "neck": [49, 14.5], "chest": [49, 20.5], "pelvis": [48, 47],
              "shoulderL": [46, 18.5], "elbowL": [44, 32], "handL": [43, 45], "shoulderR": [52, 18.5],
              "elbowR": [54, 32], "handR": [55, 45], "hipL": [45, 47], "kneeL": [44, 68],
-             "footL": [42, 92], "hipR": [51, 47], "kneeR": [52, 68], "footR": [55, 90]}
+             "footL": [42, 92], "toeL": [52.3, 92.6], "hipR": [51, 47], "kneeR": [52, 68],
+             "footR": [55, 90], "toeR": [59, 89.5]}
     },
     "jump_rise": {
       "read": "Rising \u2014 knees folded up under the body, far arm swept up overhead, near arm out at chest height, hands open. Tucked, not stretched: the legs are already gathered at this beat.",
@@ -190,7 +224,8 @@
       "j": {"head": [55, 10], "neck": [53, 16], "chest": [52, 21], "pelvis": [48, 45],
              "shoulderL": [47, 22], "elbowL": [38, 16], "handL": [33, 7], "shoulderR": [55, 22],
              "elbowR": [67.8, 29.1], "handR": [74, 27], "hipL": [45, 45], "kneeL": [42, 55],
-             "footL": [35, 86], "hipR": [51, 45], "kneeR": [55, 58], "footR": [42, 70]}
+             "footL": [35, 86], "toeL": [38.9, 86.9], "hipR": [51, 45], "kneeR": [55, 58],
+             "footR": [42, 70], "toeR": [44.7, 72.9]}
     },
     "land": {
       "read": "Impact absorb. Deep squat with the rear knee near the floor, torso folded forward over the front thigh, BOTH hands reaching out forward and down, fingers spread. Not a one-hand touchdown.",
@@ -198,7 +233,8 @@
       "j": {"head": [62, 12], "neck": [58, 19], "chest": [56, 24], "pelvis": [46, 55],
              "shoulderL": [52, 26], "elbowL": [62.1, 37.1], "handL": [72, 54], "shoulderR": [58, 26],
              "elbowR": [72, 46], "handR": [92, 52], "hipL": [43, 55], "kneeL": [30, 68],
-             "footL": [8, 82], "hipR": [49, 55], "kneeR": [58, 60], "footR": [52, 88]}
+             "footL": [8, 82], "toeL": [10.1, 85.4], "hipR": [49, 55], "kneeR": [58, 60],
+             "footR": [52, 88], "toeR": [55.9, 88.8]}
     },
     "ledge_hang": {
       "read": "Hanging from ONE arm \u2014 the near arm reaches straight overhead to the grip, the other hangs at the side. Body dead straight and vertical below, legs together, toes down.",
@@ -206,14 +242,16 @@
       "j": {"head": [52, 17], "neck": [51, 23], "chest": [51, 27], "pelvis": [51, 50],
              "shoulderL": [53, 27], "elbowL": [54, 38], "handL": [55, 48], "shoulderR": [50, 27],
              "elbowR": [47, 17], "handR": [45, 4], "hipL": [49, 50], "kneeL": [49, 68],
-             "footL": [47, 90], "hipR": [53, 50], "kneeR": [53, 68], "footR": [54, 90]}
+             "footL": [47, 90], "toeL": [51, 90.4], "hipR": [53, 50], "kneeR": [53, 68],
+             "footR": [54, 90], "toeR": [51.7, 89.4]}
     },
     "prone": {
       "read": "Flat on the back, head to the left, body fully extended and level, arms resting across the belly, legs straight with the toes up.",
       "j": {"head": [8, 45], "neck": [15, 47], "chest": [20, 48], "pelvis": [45, 50],
              "shoulderL": [20, 46], "elbowL": [27, 50], "handL": [35, 54], "shoulderR": [20, 50],
              "elbowR": [28, 54], "handR": [36, 56], "hipL": [45, 48], "kneeL": [65, 50],
-             "footL": [88, 47], "hipR": [45, 52], "kneeR": [65, 54], "footR": [90, 53]}
+             "footL": [88, 47], "toeL": [88.5, 51], "hipR": [45, 52], "kneeR": [65, 54],
+             "footR": [90, 53], "toeR": [90.2, 57]}
     },
     "run_a": {
       "read": "Run contact \u2014 legs at full fore-aft split, near leg forward and planted, far leg long behind. Fists CLOSED, near arm driving forward, far arm swept back. Torso leaning about 30 degrees.",
@@ -221,7 +259,8 @@
       "j": {"head": [75, 10], "neck": [71, 16], "chest": [69, 21], "pelvis": [57, 45],
              "shoulderL": [64, 23], "elbowL": [38, 24], "handL": [23, 30], "shoulderR": [72, 24],
              "elbowR": [86, 28], "handR": [89, 32], "hipL": [54, 45], "kneeL": [32, 62],
-             "footL": [8, 84], "hipR": [60, 45], "kneeR": [75, 62], "footR": [88, 84]}
+             "footL": [8, 84], "toeL": [8.3, 85.6], "hipR": [60, 45], "kneeR": [75, 62],
+             "footR": [88, 84], "toeR": [91.4, 82]}
     },
     "run_b": {
       "read": "Push-off \u2014 same leading leg as run_a, but the near leg has folded up off the floor and the lead hand is OPEN. Same half of the cycle, not the opposite one.",
@@ -229,7 +268,8 @@
       "j": {"head": [75, 9], "neck": [71, 15], "chest": [69, 20], "pelvis": [58, 45],
              "shoulderL": [64, 22], "elbowL": [38, 25], "handL": [22, 32], "shoulderR": [72, 23],
              "elbowR": [88, 26], "handR": [92, 30], "hipL": [55, 45], "kneeL": [30, 62],
-             "footL": [8, 88], "hipR": [61, 45], "kneeR": [62, 62], "footR": [48, 72]}
+             "footL": [8, 88], "toeL": [8.9, 90.5], "hipR": [61, 45], "kneeR": [62, 62],
+             "footR": [48, 72], "toeR": [50.3, 75.3]}
     },
     "run_pass_a": {
       "read": "Passing position \u2014 legs gathered under the hips, near knee swinging through in front, far leg trailing to the floor. Fists closed, arms compact.",
@@ -237,7 +277,8 @@
       "j": {"head": [62, 9], "neck": [59, 15], "chest": [58, 20], "pelvis": [52, 45],
              "shoulderL": [52, 22], "elbowL": [35, 30], "handL": [28, 40], "shoulderR": [60, 22],
              "elbowR": [70, 22], "handR": [74, 20], "hipL": [49, 45], "kneeL": [45, 62],
-             "footL": [25, 88], "hipR": [55, 45], "kneeR": [62, 58], "footR": [45, 73]}
+             "footL": [25, 88], "toeL": [28.2, 90.4], "hipR": [55, 45], "kneeR": [62, 58],
+             "footR": [45, 73], "toeR": [47.6, 76]}
     },
     "run_pass_b": {
       "read": "The open-handed passing frame \u2014 same limb configuration as run_pass_a with the lead hand open and raised a little higher, torso a touch more upright.",
@@ -245,7 +286,8 @@
       "j": {"head": [65, 9], "neck": [62, 15], "chest": [60, 20], "pelvis": [52, 45],
              "shoulderL": [54, 22], "elbowL": [33.1, 30.9], "handL": [26, 42], "shoulderR": [62, 22],
              "elbowR": [66.2, 21.7], "handR": [78, 18], "hipL": [49, 45], "kneeL": [45, 62],
-             "footL": [24, 88], "hipR": [55, 45], "kneeR": [60, 58], "footR": [44, 74]}
+             "footL": [24, 88], "toeL": [27.1, 90.5], "hipR": [55, 45], "kneeR": [60, 58],
+             "footR": [44, 74], "toeR": [45, 75]}
     },
     "run_reach_a": {
       "read": "Full reach \u2014 the widest stride in the set. Near leg thrown forward, far leg folded up high BEHIND with the heel above knee height, both hands open, far arm swept back level with the shoulders.",
@@ -253,7 +295,8 @@
       "j": {"head": [76, 12], "neck": [72, 18], "chest": [70, 22], "pelvis": [58, 45],
              "shoulderL": [65, 24], "elbowL": [48.2, 27.8], "handL": [24, 26], "shoulderR": [73, 25],
              "elbowR": [85, 28], "handR": [90, 32], "hipL": [55, 45], "kneeL": [35, 58],
-             "footL": [10, 52], "hipR": [59, 46], "kneeR": [76, 62], "footR": [90, 82]}
+             "footL": [10, 52], "toeL": [10.9, 48.1], "hipR": [59, 46], "kneeR": [76, 62],
+             "footR": [90, 82], "toeR": [93.3, 79.7]}
     },
     "run_reach_b": {
       "read": "The same reach a beat later \u2014 rear heel kicked up higher still, lead leg further forward, torso a little lower. Again the same leading leg as every other run frame.",
@@ -261,7 +304,8 @@
       "j": {"head": [76, 10], "neck": [72, 16], "chest": [70, 21], "pelvis": [58, 44],
              "shoulderL": [65, 22], "elbowL": [50.6, 27.8], "handL": [22, 26], "shoulderR": [73, 23],
              "elbowR": [78.5, 29.1], "handR": [90, 30], "hipL": [55, 44], "kneeL": [32, 58],
-             "footL": [8, 48], "hipR": [59, 45], "kneeR": [74, 62], "footR": [90, 84]}
+             "footL": [8, 48], "toeL": [9.5, 44.3], "hipR": [59, 45], "kneeR": [74, 62],
+             "footR": [90, 84], "toeR": [93.2, 81.6]}
     },
     "special_down": {
       "read": "Standing all but upright with the arms hanging and only a wisp of cursed energy at the shoulders. Within a couple of percent of body height this is IDLE \u2014 the frame carries no distinct pose.",
@@ -269,44 +313,52 @@
       "j": {"head": [50, 8], "neck": [48, 15], "chest": [47, 20], "pelvis": [44, 47],
              "shoulderL": [43, 20], "elbowL": [41, 32], "handL": [41, 46], "shoulderR": [50, 20],
              "elbowR": [53, 32], "handR": [55, 45], "hipL": [41, 47], "kneeL": [41, 68],
-             "footL": [33.8, 89.6], "hipR": [47, 47], "kneeR": [52.1, 66.6], "footR": [56.8, 91.4]}
+             "footL": [33.8, 89.6], "toeL": [34.7, 88.9], "hipR": [47, 47], "kneeR": [52.1, 66.6],
+             "footR": [56.8, 91.4], "toeR": [60.7, 90.7]}
     },
     "special_neutral": {
       "read": "Both fists punched out to OPPOSITE sides at shoulder height, arms near straight, torso upright and square, feet planted wide. A symmetrical gathering pose \u2014 unique in the sheet.",
       "j": {"head": [52, 8], "neck": [50, 14], "chest": [50, 20], "pelvis": [48, 50],
              "shoulderL": [46, 20], "elbowL": [32, 20], "handL": [20, 21], "shoulderR": [54, 20],
              "elbowR": [68, 20], "handR": [81, 20], "hipL": [45, 50], "kneeL": [30, 68],
-             "footL": [19, 88], "hipR": [51, 50], "kneeR": [66, 68], "footR": [70, 88]}
+             "footL": [19, 88], "toeL": [22.5, 89.9], "hipR": [51, 50], "kneeR": [66, 68],
+             "footR": [70, 88], "toeR": [73.9, 87.2]}
     },
     "special_side": {
       "read": "A flying side kick, body almost horizontal in the air. Near leg driven straight out forward at hip height, support leg folded under, both hands open \u2014 far arm flung back, near hand at the chest.",
       "j": {"head": [50, 22], "neck": [47, 27], "chest": [46, 31], "pelvis": [42, 48],
              "shoulderL": [40, 32], "elbowL": [22, 38], "handL": [8, 45], "shoulderR": [46, 32],
              "elbowR": [52, 42], "handR": [50, 49], "hipL": [39, 48], "kneeL": [35, 62],
-             "footL": [31, 76], "hipR": [45, 48], "kneeR": [62, 55], "footR": [88, 60]}
+             "footL": [31, 76], "toeL": [33, 78.4], "hipR": [45, 48], "kneeR": [62, 55],
+             "footR": [88, 60], "toeR": [89.8, 62.3]}
     },
     "ult_a": {
       "read": "Ultimate, first beat \u2014 near arm at full extension with the red burst on the fist, far fist chambered at the ribs, deep long stance, torso upright. Skeletally this is attack_heavy_b with a different effect.",
+      "source": "sides corrected against the art",
       "flags": [{"k": "dup", "t": "skeleton of attack_heavy_b"}],
       "j": {"head": [52, 8], "neck": [50, 14], "chest": [49, 19], "pelvis": [46, 48],
-             "shoulderL": [45, 21], "elbowL": [34, 28], "handL": [38, 36], "shoulderR": [53, 20],
-             "elbowR": [68, 20], "handR": [83, 20], "hipL": [43, 48], "kneeL": [24, 66],
-             "footL": [10, 88], "hipR": [49, 48], "kneeR": [62, 68], "footR": [65, 86]}
+             "shoulderL": [53, 20], "elbowL": [68, 20], "handL": [83, 20], "shoulderR": [45, 21],
+             "elbowR": [34, 28], "handR": [38, 36], "hipL": [43, 48], "kneeL": [24, 66],
+             "footL": [10, 88], "toeL": [13.4, 90.1], "hipR": [49, 48], "kneeR": [62, 68],
+             "footR": [65, 86], "toeR": [68.9, 85.3]}
     },
     "ult_b": {
       "read": "Ultimate, second beat \u2014 the same extended arm carried further through with a trailing slash, hips a little squarer, stance a shade deeper. Again very close to the heavy contact frame.",
+      "source": "sides corrected against the art",
       "flags": [{"k": "dup", "t": "skeleton of attack_heavy_b"}],
       "j": {"head": [48, 8], "neck": [46, 14], "chest": [46, 19], "pelvis": [45, 48],
-             "shoulderL": [42, 21], "elbowL": [34, 30], "handL": [38, 37], "shoulderR": [50, 20],
-             "elbowR": [66, 20], "handR": [86, 22], "hipL": [42, 48], "kneeL": [26, 68],
-             "footL": [15, 88], "hipR": [48, 48], "kneeR": [62, 68], "footR": [63, 88]}
+             "shoulderL": [50, 20], "elbowL": [66, 20], "handL": [86, 22], "shoulderR": [42, 21],
+             "elbowR": [34, 30], "handR": [38, 37], "hipL": [42, 48], "kneeL": [26, 68],
+             "footL": [15, 88], "toeL": [18.5, 89.9], "hipR": [48, 48], "kneeR": [62, 68],
+             "footR": [63, 88], "toeR": [64.2, 88.1]}
     },
     "victory": {
       "read": "Standing tall and relaxed with one fist raised quietly to chin height, other arm at the side, feet together. A small gesture, not a celebration \u2014 the silhouette is idle plus one bent arm.",
       "j": {"head": [52, 8], "neck": [51, 15], "chest": [51, 20], "pelvis": [50, 47],
              "shoulderL": [48, 20], "elbowL": [46, 32], "handL": [47, 44], "shoulderR": [54, 20],
              "elbowR": [57, 28], "handR": [59, 17], "hipL": [47, 47], "kneeL": [48, 68],
-             "footL": [45, 91], "hipR": [53, 47], "kneeR": [54, 68], "footR": [57, 90]}
+             "footL": [45, 91], "toeL": [49, 91.5], "hipR": [53, 47], "kneeR": [54, 68],
+             "footR": [57, 90], "toeR": [61, 89.5]}
     }
   }
 }

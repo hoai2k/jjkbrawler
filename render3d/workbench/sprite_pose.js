@@ -1,4 +1,4 @@
-// The SPRITE POSE EDITOR (`render3d/workbench/?edit=pose`): drag sixteen
+// The SPRITE POSE EDITOR (`render3d/workbench/?edit=pose`): drag eighteen
 // joints onto a drawing until the mannequin IS the pose, and watch the 3D
 // fighter take that pose beside it.
 //
@@ -14,9 +14,12 @@
 // claim, and the overlay of one on the other the test.
 //
 // WHAT IT EDITS. Not clips — pose_edit.js does that, in keyframes and degrees,
-// against a state. This edits READS: sixteen 2D joints per FRAME, stored per
+// against a state. This edits READS: eighteen 2D joints per FRAME, stored per
 // character in sprites/docs/pose-reads/. A read is upstream of everything; it
 // is what the art says, and it stays true whatever the clip tables do next.
+// The joints drive spine, neck, both clavicles, arms, legs and feet; a bone
+// they cannot reach, or any rotation out of the drawing's plane, belongs to
+// the keyframe bench at ?edit=animation.
 //
 // THREE THINGS IT IS CAREFUL ABOUT, ALL OF WHICH SILENTLY PRODUCE PLAUSIBLE
 // AND WRONG DATA IF GOT WRONG (tools/pose_reads.py says the same in Python,
@@ -30,7 +33,10 @@
 //
 //   SIDES. Joints are the CHARACTER's own left and right, never the screen's.
 //   Facing right, the camera sits off the fighter's right shoulder: the RIGHT
-//   limb is the near one. Sided names survive a mirror; near/far do not.
+//   limb is the near one. Sided names survive a mirror; near/far do not — and
+//   which drawn limb is near is a judgement whose obvious answer is usually
+//   wrong, because the extended arm of a punch is drawn BEHIND the collar
+//   while the near arm crosses the chest. Hence ⇄ Swap L/R.
 //
 //   DEPTH IS NOT IN THE DATA. A read is the sagittal plane and nothing else.
 //   The 3D preview therefore poses each bone by turning it IN that plane and
@@ -49,15 +55,15 @@ import { CHARACTER_KEYS, CHARACTERS } from "../../src/characters.js";
 const READS_URL = "../../sprites/docs/pose-reads/";
 const SPRITES_URL = "../../sprites/assets/";
 const MANIFEST_URL = `${SPRITES_URL}manifest.json`;
-/** Where in-progress edits live between reloads. */
+/** The old localStorage key. Only read now, to throw its contents away. */
 const STORE = "jjk.poseEdits.v1";
 
 const JOINTS = [
   "head", "neck", "chest", "pelvis",
   "shoulderL", "elbowL", "handL",
   "shoulderR", "elbowR", "handR",
-  "hipL", "kneeL", "footL",
-  "hipR", "kneeR", "footR",
+  "hipL", "kneeL", "footL", "toeL",
+  "hipR", "kneeR", "footR", "toeR",
 ];
 
 /** Each joint's parent. Dragging a joint carries its descendants, because a
@@ -66,8 +72,8 @@ const PARENT = {
   chest: "pelvis", neck: "chest", head: "neck",
   shoulderL: "chest", elbowL: "shoulderL", handL: "elbowL",
   shoulderR: "chest", elbowR: "shoulderR", handR: "elbowR",
-  hipL: "pelvis", kneeL: "hipL", footL: "kneeL",
-  hipR: "pelvis", kneeR: "hipR", footR: "kneeR",
+  hipL: "pelvis", kneeL: "hipL", footL: "kneeL", toeL: "footL",
+  hipR: "pelvis", kneeR: "hipR", footR: "kneeR", toeR: "footR",
 };
 const KIDS = {};
 for (const [child, parent] of Object.entries(PARENT)) (KIDS[parent] ||= []).push(child);
@@ -78,28 +84,58 @@ const descendants = (joint) =>
  *  solid, the far (left) ones washed back, so an overlap still reads as two. */
 const SIDE = (j) => (j.endsWith("L") ? "far" : j.endsWith("R") ? "near" : "mid");
 
-/** [parent joint, child joint] -> the bone whose direction that segment is. */
+/** The sided pairs, for the commonest correction of all: a drawing whose near
+ *  arm was read as the far one. Which limb a sprite shows nearer the camera is
+ *  a judgement — the extended arm of a punch is usually the FAR one, drawn
+ *  behind the collar, while the near arm is the one crossing the chest — and
+ *  when the judgement goes wrong the whole pose is right-handed instead of
+ *  left. One button beats dragging six handles. */
+const SIDED = ["shoulder", "elbow", "hand", "hip", "knee", "foot", "toe"];
+
+/** [parent joint, child joint, bone] — the segment each bone's direction is.
+ *  Parent-first, because every bone is aimed in the frame its ancestors left.
+ *
+ *  `plane: false` marks a bone whose bind direction is mostly ACROSS the body
+ *  rather than in the drawing's plane. The two clavicles are the case: they
+ *  hold the shoulders apart, so aiming one flat into the sagittal plane —
+ *  which is what every other bone here wants — would collapse both shoulders
+ *  onto the spine. They keep their lateral reach and swing only up/down and
+ *  fore/aft, which is exactly the movement "raise the shoulder for the punch"
+ *  is asking for. */
 const SEGMENT_BONE = [
-  ["pelvis", "chest", "Spine"],
-  ["chest", "neck", "Spine2"],
-  ["neck", "head", "Neck"],
-  ["shoulderL", "elbowL", "LeftArm"],
-  ["elbowL", "handL", "LeftForeArm"],
-  ["shoulderR", "elbowR", "RightArm"],
-  ["elbowR", "handR", "RightForeArm"],
-  ["hipL", "kneeL", "LeftUpLeg"],
-  ["kneeL", "footL", "LeftLeg"],
-  ["hipR", "kneeR", "RightUpLeg"],
-  ["kneeR", "footR", "RightLeg"],
+  ["pelvis", "chest", "Spine", true],
+  ["chest", "neck", "Spine2", true],
+  // The neck aims from the SHOULDER LINE, not from the read's `neck` joint.
+  // The rig's Neck bone starts between the shoulders; the read's neck joint is
+  // drawn where a neck looks like it is, halfway up. Measuring the head's
+  // direction from the higher point over-states the bend by the same few
+  // degrees every time — every upright frame in Yuji's sheet came out craning
+  // forward by 8.1°, the same number three times over, which is the signature
+  // of a convention error rather than a reading. From the shoulders it is 5°
+  // in the idle and 0° in the jab, which is what the drawings show.
+  ["shoulderMid", "head", "Neck", true],
+  ["chest", "shoulderL", "LeftShoulder", false],
+  ["shoulderL", "elbowL", "LeftArm", true],
+  ["elbowL", "handL", "LeftForeArm", true],
+  ["chest", "shoulderR", "RightShoulder", false],
+  ["shoulderR", "elbowR", "RightArm", true],
+  ["elbowR", "handR", "RightForeArm", true],
+  ["hipL", "kneeL", "LeftUpLeg", true],
+  ["kneeL", "footL", "LeftLeg", true],
+  ["footL", "toeL", "LeftFoot", true],
+  ["hipR", "kneeR", "RightUpLeg", true],
+  ["kneeR", "footR", "RightLeg", true],
+  ["footR", "toeR", "RightFoot", true],
 ];
 /** The child each driven bone points AT in the bind pose. Its offset gives the
  *  bone's own forward direction without hardcoding one rig's axis convention. */
 const BONE_TIP = {
   Spine: "Spine1", Spine2: "Neck", Neck: "Head",
+  LeftShoulder: "LeftArm", RightShoulder: "RightArm",
   LeftArm: "LeftForeArm", LeftForeArm: "LeftHand",
   RightArm: "RightForeArm", RightForeArm: "RightHand",
-  LeftUpLeg: "LeftLeg", LeftLeg: "LeftFoot",
-  RightUpLeg: "RightLeg", RightLeg: "RightFoot",
+  LeftUpLeg: "LeftLeg", LeftLeg: "LeftFoot", LeftFoot: "LeftToeBase",
+  RightUpLeg: "RightLeg", RightLeg: "RightFoot", RightFoot: "RightToeBase",
 };
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -120,41 +156,67 @@ let manifest = null;
 /** Per-pose undo stacks, keyed `char/pose`. */
 const undo = new Map();
 
-// ------------------------------------------------------------------ storage
+// ------------------------------------------------------------------ session
+//
+// Edits live for as long as the tab does, and no longer. They used to be kept
+// in localStorage, which sounded like a kindness and was not: the way this
+// tool is used is edit-a-few-frames-then-download, so a reload is how you say
+// "start again from what is on disk" — and a stored edit silently outranked
+// the file, so corrections that HAD been applied to the tree kept coming back
+// as the old pose. Worse, a stored pose is a snapshot of the joint set as it
+// was: when feet grew toes, every held edit became a pose with no toe in it,
+// and the editor drew a handle for a joint that was not there. Anything left
+// over from that era is cleared on the way in.
 
-function loadEdits() {
-  try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch { return {}; }
+const SESSION = new Map();                    // `char/pose` -> { j, read }
+const editKey = (char, pose) => `${char}/${pose}`;
+
+function clearStaleStorage() {
+  try { localStorage.removeItem(STORE); } catch { /* private mode, fine */ }
 }
-function saveEdit(char, pose, joints) {
-  const all = loadEdits();
-  ((all[char] ||= {})[pose] ||= {}).j = joints;
-  all[char][pose].source = "pose editor";
-  localStorage.setItem(STORE, JSON.stringify(all));
+function noteEdit(char, pose, patch) {
+  const held = SESSION.get(editKey(char, pose)) || {};
+  SESSION.set(editKey(char, pose), { ...held, ...patch });
 }
-function saveNote(char, pose, text) {
-  const all = loadEdits();
-  ((all[char] ||= {})[pose] ||= {}).read = text;
-  localStorage.setItem(STORE, JSON.stringify(all));
-}
-function dropEdit(char, pose) {
-  const all = loadEdits();
-  if (all[char]) { delete all[char][pose]; localStorage.setItem(STORE, JSON.stringify(all)); }
-}
-const editedPoses = (char) => Object.keys(loadEdits()[char] || {});
+const editedPoses = (char) =>
+  [...SESSION.keys()].filter((k) => k.startsWith(`${char}/`)).map((k) => k.split("/")[1]);
+const editedChars = () => [...new Set([...SESSION.keys()].map((k) => k.split("/")[0]))];
 
 // --------------------------------------------------------------------- data
 
+/** A pose from a file written before a joint existed still has to draw. Every
+ *  joint the editor knows about gets a value, derived the same way
+ *  tools/pose_reads.py derives it, so old data opens instead of throwing. */
+function fillJoints(j) {
+  for (const side of ["L", "R"]) {
+    if (j[`toe${side}`]) continue;
+    const foot = j[`foot${side}`];
+    const knee = j[`knee${side}`];
+    if (!foot || !knee) continue;
+    const dx = foot[0] - knee[0];
+    const dy = foot[1] - knee[1];
+    const len = Math.hypot(dx, dy) || 1;
+    let px = -dy / len;
+    let py = dx / len;
+    if (px < 0) { px = -px; py = -py; }
+    j[`toe${side}`] = [round1(clamp(foot[0] + px * 4, 0, 100)),
+                       round1(clamp(foot[1] + py * 4, 0, 100))];
+  }
+  return j;
+}
+
 async function loadRead(char) {
   if (reads.has(char)) return reads.get(char);
-  const res = await fetch(`${READS_URL}${char}.json`, { cache: "no-cache" });
+  // Cache-bust: this file changes every time a correction lands in the tree,
+  // and a stale copy looks exactly like "my edit did not save".
+  const res = await fetch(`${READS_URL}${char}.json?t=${Date.now()}`, { cache: "reload" });
   if (!res.ok) throw new Error(`no pose read for ${char} (${res.status})`);
   const data = await res.json();
-  const edits = loadEdits()[char] || {};
-  for (const [key, edit] of Object.entries(edits)) {
-    const pose = data.poses[key];
-    if (!pose) continue;
-    if (edit.j) { pose.j = edit.j; pose.source = edit.source; delete pose.seed; }
-    if (edit.read !== undefined) pose.read = edit.read;
+  for (const [key, pose] of Object.entries(data.poses)) {
+    fillJoints(pose.j);
+    const edit = SESSION.get(editKey(char, key));
+    if (edit?.j) { pose.j = edit.j; pose.source = "pose editor"; delete pose.seed; }
+    if (edit?.read !== undefined) pose.read = edit.read;
   }
   reads.set(char, data);
   return data;
@@ -218,10 +280,20 @@ async function showRig(char) {
   three.height = entry.height || 1.75;
 }
 
+/** A joint, or one of the midpoints a bone actually hangs off. */
+function jointAt(j, name) {
+  if (name === "shoulderMid") {
+    return [(j.shoulderL[0] + j.shoulderR[0]) / 2, (j.shoulderL[1] + j.shoulderR[1]) / 2];
+  }
+  return j[name];
+}
+
 const _dir = new THREE.Vector3();
 const _tip = new THREE.Vector3();
 const _inv = new THREE.Quaternion();
 const _swing = new THREE.Quaternion();
+const _boneQ = new THREE.Quaternion();
+const _want = new THREE.Vector3();
 const _parentQ = new THREE.Quaternion();
 
 /** Turn the read into rig rotations: every driven bone is swung, in the
@@ -231,15 +303,18 @@ function poseFromJoints(j) {
   for (const [bone, q] of three.bind) bone.quaternion.copy(q);
   three.root.updateMatrixWorld(true);
 
-  for (const [a, b, boneName] of SEGMENT_BONE) {
+  for (const [a, b, boneName, inPlane] of SEGMENT_BONE) {
     const bone = three.bones.get(boneName);
     // The tip is the child the bone points at in the bind pose; any rig that
     // names its bones differently still has a first child in the right place.
     const tip = three.bones.get(BONE_TIP[boneName]) || bone?.children.find((c) => c.isBone);
     if (!bone || !tip || !bone.parent) continue;
     // Screen x is world +Z (the facing), screen y counts DOWN, world y counts up.
-    const dx = j[b][0] - j[a][0];
-    const dy = j[b][1] - j[a][1];
+    const from = jointAt(j, a);
+    const to = jointAt(j, b);
+    if (!from || !to) continue;
+    const dx = to[0] - from[0];
+    const dy = to[1] - from[1];
     if (!dx && !dy) continue;
     _dir.set(0, -dy, dx).normalize();
 
@@ -249,16 +324,34 @@ function poseFromJoints(j) {
     // rather than replacing it. Replacing looked simpler and was wrong — it
     // discards whatever twist the rig's rest pose carries, which on a
     // delivered model is what keeps the chest square to the camera.
+    // The bone's tip, as a world direction. Bone offsets are bone-LOCAL (this
+    // rig runs every one of them along its own +Y), so the only frame in which
+    // "up", "across" and "forward" mean anything is the world's.
+    bone.getWorldQuaternion(_boneQ);
+    _tip.copy(tip.position).applyQuaternion(_boneQ).normalize();
+
+    _want.copy(_dir);
+    if (!inPlane) {
+      // Keep the bone's reach ACROSS the body and turn only the part of it the
+      // drawing can see. Without this a clavicle aimed at a flat sagittal
+      // target swings the shoulder into the midline and drags the collar with
+      // it — which is what "raise his shoulder" must not do.
+      const across = _tip.x;
+      const rest = Math.sqrt(Math.max(0, 1 - across * across));
+      const planar = Math.hypot(_dir.y, _dir.z) || 1;
+      _want.set(across, (_dir.y / planar) * rest, (_dir.z / planar) * rest);
+    }
+    _swing.setFromUnitVectors(_tip, _want);
+
+    // Apply a world rotation to a local one: undo the parent, turn, redo it.
     bone.parent.getWorldQuaternion(_parentQ);
     _inv.copy(_parentQ).invert();
-    _dir.applyQuaternion(_inv).normalize();
-    _tip.copy(tip.position).applyQuaternion(bone.quaternion).normalize();
-    _swing.setFromUnitVectors(_tip, _dir);
-    bone.quaternion.premultiply(_swing);
+    bone.quaternion.premultiply(_parentQ).premultiply(_swing).premultiply(_inv);
     bone.updateMatrixWorld(true);
   }
   three.root.updateMatrixWorld(true);
 }
+
 
 function drawThree() {
   const canvas = three.renderer?.domElement;
@@ -281,26 +374,44 @@ function drawThree() {
 
 // --------------------------------------------------------------------- view
 
-function mannequinSVG(j, { handles = false } = {}) {
+/** Draw whatever joints are present, and draw nothing for the ones that are
+ *  not. A pose from an older file — or from a stale copy of this page — can be
+ *  short a joint the current build knows about, and when that happened the
+ *  figure did not lose a limb, it threw: one undefined joint took out the
+ *  whole picker, which reads as "the editor is broken" rather than "this pose
+ *  is missing a toe". Missing joints are worth SAYING, once, and worth
+ *  surviving. */
+function mannequinSVG(j, { handles = false, label = "" } = {}) {
+  const missing = JOINTS.filter((n) => !Array.isArray(j[n]));
+  if (missing.length) {
+    console.warn(`pose editor: ${label || "a pose"} has no ${missing.join(", ")} — `
+      + "drawing the joints it does have. Reload to pick up the current read.");
+  }
+  const has = (n) => Array.isArray(j[n]);
   const p = (n) => `${j[n][0]} ${j[n][1]}`;
-  const line = (a, b) =>
-    `<line class="bone ${SIDE(a) === "far" || SIDE(b) === "far" ? "far" : "near"}" `
-    + `x1="${j[a][0]}" y1="${j[a][1]}" x2="${j[b][0]}" y2="${j[b][1]}"/>`;
+  const line = (a, b) => (has(a) && has(b)
+    ? `<line class="bone ${SIDE(a) === "far" || SIDE(b) === "far" ? "far" : "near"}" `
+      + `x1="${j[a][0]}" y1="${j[a][1]}" x2="${j[b][0]}" y2="${j[b][1]}"/>`
+    : "");
   const parts = [
-    `<polygon class="torso" points="${p("shoulderL")} ${p("shoulderR")} ${p("hipR")} ${p("hipL")}"/>`,
+    ["shoulderL", "shoulderR", "hipR", "hipL"].every(has)
+      ? `<polygon class="torso" points="${p("shoulderL")} ${p("shoulderR")} ${p("hipR")} ${p("hipL")}"/>`
+      : "",
     ...Object.entries(PARENT).map(([child, parent]) => line(parent, child)),
     line("shoulderL", "shoulderR"), line("hipL", "hipR"),
   ];
-  const r = Math.max(2.6, Math.hypot(j.head[0] - j.neck[0], j.head[1] - j.neck[1]) * 0.8);
-  parts.push(`<circle class="skull" cx="${j.head[0]}" cy="${j.head[1]}" r="${r.toFixed(1)}"/>`);
+  if (has("head") && has("neck")) {
+    const r = Math.max(2.6, Math.hypot(j.head[0] - j.neck[0], j.head[1] - j.neck[1]) * 0.8);
+    parts.push(`<circle class="skull" cx="${j.head[0]}" cy="${j.head[1]}" r="${r.toFixed(1)}"/>`);
+  }
   if (handles) {
-    for (const name of JOINTS) {
+    for (const name of JOINTS.filter(has)) {
       parts.push(
         `<circle class="handle ${SIDE(name)}" data-joint="${name}" `
         + `cx="${j[name][0]}" cy="${j[name][1]}" r="2.1"><title>${name}</title></circle>`);
     }
   } else {
-    for (const name of ["handL", "handR", "footL", "footR"]) {
+    for (const name of ["handL", "handR", "toeL", "toeR"].filter(has)) {
       parts.push(`<circle class="tip ${SIDE(name)}" cx="${j[name][0]}" cy="${j[name][1]}" r="1.6"/>`);
     }
   }
@@ -311,7 +422,7 @@ function plateHTML(char, key, j, { handles = false } = {}) {
   const flip = faceLeft(char, key) ? ' class="flip"' : "";
   return `<img${flip} src="${spriteSrc(char, key)}" alt="${key}" loading="lazy">`
     + `<svg class="rigline" viewBox="0 0 100 100" preserveAspectRatio="none">`
-    + `${mannequinSVG(j, { handles })}</svg>`;
+    + `${mannequinSVG(j, { handles, label: `${char}/${key}` })}</svg>`;
 }
 
 function renderPicker() {
@@ -334,14 +445,20 @@ function renderEditor() {
   if (!pose) return;
   $("#plate").innerHTML = plateHTML(ui.char, ui.pose, pose.j, { handles: true });
   $("#poseName").textContent = ui.pose;
-  const stamp = pose.source ? `edited here` : pose.seed ? pose.seed : "read by eye";
+  // Three different things, and conflating them cost a round trip: what YOU
+  // changed since the page loaded, what a human placed at some point and is
+  // already in the tree, and what is still a fitted guess.
+  const mine = SESSION.has(editKey(ui.char, ui.pose));
+  const stamp = mine ? "edited here" : pose.source ? "hand-placed on disk"
+    : pose.seed ? pose.seed : "read by eye";
   $("#poseStamp").textContent = stamp;
-  $("#poseStamp").className = `stamp ${pose.source ? "on" : pose.seed ? "seed" : "read"}`;
+  $("#poseStamp").className = `stamp ${mine ? "on" : pose.source ? "read" : pose.seed ? "seed" : "read"}`;
   $("#poseNote").value = pose.read || "";
   $("#faceNote").hidden = !faceLeft(ui.char, ui.pose);
   $("#jointList").innerHTML = JOINTS.map((n) => `
     <li class="${n === ui.sel ? "on" : ""}" data-joint="${n}">
-      <span>${n}</span><b>${pose.j[n][0].toFixed(1)}, ${pose.j[n][1].toFixed(1)}</b></li>`).join("");
+      <span>${n}</span><b>${pose.j[n]
+        ? `${pose.j[n][0].toFixed(1)}, ${pose.j[n][1].toFixed(1)}` : "—"}</b></li>`).join("");
   poseFromJoints(pose.j);
   drawThree();
 }
@@ -369,14 +486,14 @@ function commit() {
   const pose = reads.get(ui.char).poses[ui.pose];
   pose.source = "pose editor";
   delete pose.seed;
-  saveEdit(ui.char, ui.pose, pose.j);
+  noteEdit(ui.char, ui.pose, { j: pose.j });
   renderEditor();
   renderPicker();
 }
 
 function moveJoint(name, dx, dy, { chain = true } = {}) {
   const pose = reads.get(ui.char).poses[ui.pose];
-  const names = chain ? [name, ...descendants(name)] : [name];
+  const names = (chain ? [name, ...descendants(name)] : [name]).filter((n) => pose.j[n]);
   for (const n of names) {
     pose.j[n][0] = round1(clamp(pose.j[n][0] + dx, 0, 100));
     pose.j[n][1] = round1(clamp(pose.j[n][1] + dy, 0, 100));
@@ -461,7 +578,9 @@ function exportChar(char) {
     if (pose.source) out.source = pose.source;
     else if (pose.seed) out.seed = pose.seed;
     if (pose.flags) out.flags = pose.flags;
-    out.j = Object.fromEntries(JOINTS.map((n) => [n, pose.j[n]]));
+    // Export every joint the format has; a pose short of one is exported short
+    // of it too, and tools/pose_apply.py is where that gets caught and named.
+    out.j = Object.fromEntries(JOINTS.filter((n) => pose.j[n]).map((n) => [n, pose.j[n]]));
     poses[key] = out;
   }
   return {
@@ -496,11 +615,12 @@ function shell() {
   $("#facingReviewTop")?.remove();
   const hint = document.createElement("span");
   hint.className = "hint";
-  hint.textContent = "Sixteen joints a frame, read off the art as the engine draws it. "
-    + "Edits stay in your browser until you download them.";
+  hint.textContent = "Eighteen joints a frame, read off the art as the engine draws it. "
+    + "Edits last until you reload — download before you go.";
   $(".bar strong").after(hint);
   const link = $('.bar a[href="./?edit=pose"]');
   if (link) { link.href = "./"; link.textContent = "← 3D Workbench"; }
+  showBuild();
   $("main.layout").outerHTML = `
     <main class="poseedit">
       <aside class="picker">
@@ -517,6 +637,7 @@ function shell() {
           <b class="mono" id="poseName">—</b>
           <span id="poseStamp" class="stamp"></span>
           <span class="grow"></span>
+          <button id="btnSwap" class="ghost sm" title="This drawing's near limbs are the other side's — exchange left and right">⇄ Swap L/R</button>
           <button id="btnSnap" class="ghost sm" title="Pull every joint onto the drawing">Snap to art</button>
           <button id="btnReset" class="ghost sm" title="Throw away this frame's edits">Reset frame</button>
           <button id="btnExport" class="primary sm">⤓ Download this character</button>
@@ -530,15 +651,24 @@ function shell() {
               chain. <kbd>Shift</kbd>-drag moves the one joint. Arrow keys nudge the
               selected joint, <kbd>Shift</kbd> for a bigger step, <kbd>Alt</kbd> for
               that joint alone. <kbd>⌘Z</kbd> undoes.</p>
+            <p class="hint">Red handles are the fighter's RIGHT side — the one nearer
+              the camera when they face right. In a punch that is usually the
+              chambered arm, not the extended one: the extended arm is normally
+              drawn passing behind the collar, which puts it on the far side. If a
+              whole pose is the wrong way round, <b>Swap L/R</b>. The two
+              <b>toe</b> handles set which way each foot points.</p>
             <p class="hint warn" id="faceNote" hidden>This frame is delivered facing
               LEFT and mirrored by the engine. It is shown here mirrored, the way the
               game draws it — pose it as you see it.</p>
           </div>
           <div class="pane">
             <canvas id="rigView"></canvas>
-            <p class="hint">The fighter's own rig, each bone turned in the drawing's
-              plane to match the joints. Depth is not in a read, so the third axis
-              stays at rest — this is a check on the read, not a finished clip.</p>
+            <p class="hint">The fighter's own rig: spine, neck, both clavicles,
+              arms, legs and feet, each turned in the drawing's plane to match the
+              joints. Depth is not in a read, so the third axis stays at rest — this
+              is a check on the read, not a finished clip. For a bone the read
+              cannot reach, or a rotation out of plane, use the keyframe bench at
+              <a href="./?edit=animation">?edit=animation</a>.</p>
             <label class="note-label" for="poseNote">What this frame is doing</label>
             <textarea id="poseNote" rows="3" placeholder="e.g. three-point stance, far hand planted, rear leg stretched back"></textarea>
             <ul class="joints" id="jointList"></ul>
@@ -546,6 +676,23 @@ function shell() {
         </div>
       </section>
     </main>`;
+}
+
+/** When this file was last written, in the bar. The editor is served with
+ *  no-store, so a page that is behind is a checkout that is behind — and the
+ *  only way to tell by looking used to be to notice that a fix was missing. */
+async function showBuild() {
+  try {
+    const res = await fetch(import.meta.url, { method: "HEAD", cache: "reload" });
+    const when = res.headers.get("last-modified");
+    if (!when) return;
+    const stamp = document.createElement("span");
+    stamp.className = "hint build";
+    stamp.textContent = `build ${new Date(when).toISOString().slice(0, 16).replace("T", " ")}`;
+    stamp.title = "When this build of the editor was written. If it is older than a "
+      + "change you are looking for, the checkout is behind — git pull, then reload.";
+    $(".bar").append(stamp);
+  } catch { /* a HEAD that fails is not worth a broken page */ }
 }
 
 async function selectChar(char) {
@@ -564,6 +711,7 @@ async function selectChar(char) {
 
 async function boot() {
   shell();
+  clearStaleStorage();
   manifest = await (await fetch(MANIFEST_URL, { cache: "no-cache" })).json();
   initThree($("#rigView"));
   initPose(THREE);
@@ -586,20 +734,32 @@ async function boot() {
   });
   $("#poseNote").addEventListener("input", (e) => {
     reads.get(ui.char).poses[ui.pose].read = e.target.value;
-    saveNote(ui.char, ui.pose, e.target.value);
+    noteEdit(ui.char, ui.pose, { read: e.target.value });
   });
   $("#btnReset").addEventListener("click", async () => {
-    dropEdit(ui.char, ui.pose);
+    SESSION.delete(editKey(ui.char, ui.pose));
     reads.delete(ui.char);
     await loadRead(ui.char);
     renderPicker();
     renderEditor();
   });
   $("#btnSnap").addEventListener("click", () => { snapToArt(); });
+  $("#btnSwap").addEventListener("click", () => {
+    const pose = reads.get(ui.char).poses[ui.pose];
+    pushUndo();
+    const swapped = { ...pose.j };
+    for (const part of SIDED) {
+      if (!pose.j[`${part}L`] || !pose.j[`${part}R`]) continue;
+      swapped[`${part}L`] = pose.j[`${part}R`];
+      swapped[`${part}R`] = pose.j[`${part}L`];
+    }
+    pose.j = swapped;
+    commit();
+  });
   $("#btnExport").addEventListener("click", () => download(`${ui.char}.json`, exportChar(ui.char)));
   $("#btnExportAll").addEventListener("click", async () => {
     const all = {};
-    for (const char of Object.keys(loadEdits())) {
+    for (const char of editedChars()) {
       await loadRead(char);
       all[char] = exportChar(char);
     }
@@ -644,7 +804,7 @@ function snapToArt() {
   if (!ink.length) return;
 
   pushUndo();
-  for (const name of JOINTS) {
+  for (const name of JOINTS.filter((n) => pose.j[n])) {
     const cx = (pose.j[name][0] * N) / 100;
     const cy = (pose.j[name][1] * N) / 100;
     let best = null;

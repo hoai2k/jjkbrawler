@@ -33,8 +33,8 @@ const JOINTS = [
   "head", "neck", "chest", "pelvis",
   "shoulderL", "elbowL", "handL",
   "shoulderR", "elbowR", "handR",
-  "hipL", "kneeL", "footL",
-  "hipR", "kneeR", "footR",
+  "hipL", "kneeL", "footL", "toeL",
+  "hipR", "kneeR", "footR", "toeR",
 ];
 /** Sprite sets that are not a fighter's body — nothing to read a pose off. */
 const SKIP = new Set(["effects"]);

@@ -39,6 +39,11 @@ export function makeViewport(canvas, pivot, ids = {}) {
     minZ: 0.4, maxZ: 4,
     panning: false, _last: null,
     pinching: false, // two touch pointers down: single-finger handlers yield
+    // Set by a workbench that has taken the pointer for something else — the
+    // 3D workbench's free-look, which needs the same drag and the same wheel.
+    // A flag rather than "remove the listeners": the 2D view has to come back
+    // exactly as it was when free-look is switched off.
+    locked: false,
   };
 
   const clamp = (z) => Math.max(vp.minZ, Math.min(vp.maxZ, z));
@@ -90,7 +95,10 @@ export function makeViewport(canvas, pivot, ids = {}) {
   // Panning: the workbench calls startPan only when nothing nearer the pointer
   // (a handle, the aim crosshair) claimed the press, so dragging the empty
   // background moves the view and dragging a handle never does.
-  vp.startPan = (ev) => { vp.panning = true; vp._last = canvasPoint(canvas, ev); };
+  vp.startPan = (ev) => {
+    if (vp.locked) return;
+    vp.panning = true; vp._last = canvasPoint(canvas, ev);
+  };
   vp.movePan = (ev) => {
     if (!vp.panning) return false;
     const pt = canvasPoint(canvas, ev);
@@ -106,6 +114,7 @@ export function makeViewport(canvas, pivot, ids = {}) {
   if (el.out) el.out.onclick = () => vp.setZoom(vp.z / 1.25);
   if (el.reset) el.reset.onclick = () => vp.reset();
   canvas.addEventListener("wheel", (ev) => {
+    if (vp.locked) return;
     ev.preventDefault();
     vp.setZoom(vp.z * (ev.deltaY < 0 ? 1.1 : 1 / 1.1), canvasPoint(canvas, ev));
   }, { passive: false });
