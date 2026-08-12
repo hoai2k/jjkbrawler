@@ -1,0 +1,119 @@
+/* The sprite pose editor (?edit=pose). Same dark tool shell as the rest of the
+ * 3D workbench, with one deliberate exception: the PLATE a frame is posed on
+ * stays lit whatever else is dark. Sprite art is drawn for a bright page and
+ * read against one; a fighter on a near-black ground loses the outline you are
+ * trying to put a joint on. */
+
+body[data-mode="pose"] .layout { display: none; }
+
+main.poseedit {
+  flex: 1; min-height: 0;
+  display: grid; grid-template-columns: 232px minmax(0, 1fr);
+  gap: 12px; padding: 12px;
+}
+
+/* ------------------------------------------------------------- the picker */
+.picker { display: flex; flex-direction: column; min-height: 0; gap: 8px; }
+.picker-head { display: flex; flex-direction: column; gap: 6px; }
+.picker-head select {
+  background: #182034; color: #dbe2f0; border: 1px solid #2b3550;
+  border-radius: 5px; padding: 7px 8px; font: inherit;
+}
+.thumbs {
+  overflow-y: auto; min-height: 0; display: grid;
+  grid-template-columns: repeat(2, 1fr); gap: 6px; padding-right: 4px;
+}
+.thumb {
+  background: #141b2b; border: 1px solid #26314c; border-radius: 6px;
+  padding: 4px; cursor: pointer; color: #9fabc7; display: grid; gap: 3px;
+}
+.thumb:hover { border-color: #3d4d78; }
+.thumb.on { border-color: #6ea8ff; background: #1b2438; color: #e8eefc; }
+.thumb.edited .thumb-name::after { content: " ●"; color: #7ddc9a; }
+.thumb-name {
+  font: 10.5px ui-monospace, Menlo, monospace; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; text-align: left;
+}
+
+/* -------------------------------------------------------------- the plate */
+.plate { position: relative; aspect-ratio: 1; background: #f4f6f8; border-radius: 4px; }
+.plate img, .plate svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.plate img { object-fit: contain; }
+.plate img.flip { transform: scaleX(-1); }
+.plate.big { touch-action: none; }
+.plate.big img { opacity: 0.55; filter: grayscale(1); }
+
+.rigline { pointer-events: none; }
+.plate.big .rigline { pointer-events: auto; }
+.torso { fill: #131a20; opacity: 0.12; }
+.bone { stroke-linecap: round; vector-effect: non-scaling-stroke; fill: none; }
+.bone.near { stroke: #131a20; stroke-width: 3.5; }
+.bone.far { stroke: #8fa2b4; stroke-width: 3; }
+.skull { fill: none; stroke: #131a20; stroke-width: 3; vector-effect: non-scaling-stroke; }
+.tip { fill: #b4442f; }
+.tip.far { fill: #8fa2b4; }
+.handle {
+  fill: #fff; stroke: #131a20; stroke-width: 2; vector-effect: non-scaling-stroke;
+  cursor: grab;
+}
+.handle.near { stroke: #b4442f; }
+.handle.far { stroke: #64809b; }
+.handle:hover { fill: #ffe9a8; }
+
+/* ------------------------------------------------------------- the editor */
+.editor { display: flex; flex-direction: column; min-height: 0; gap: 10px; }
+.edit-head {
+  display: flex; align-items: center; gap: 10px; flex: none;
+  background: #121728; border: 1px solid #232c44; border-radius: 6px; padding: 8px 10px;
+}
+.edit-head .grow { flex: 1; }
+.stamp {
+  font-size: 11px; padding: 2px 7px; border-radius: 999px; border: 1px solid #2f3a58;
+  color: #8b96b3;
+}
+.stamp.on { color: #7ddc9a; border-color: #2f5a44; }
+.stamp.read { color: #6ea8ff; border-color: #2c456e; }
+
+.panes {
+  flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px; overflow-y: auto;
+}
+.pane { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+#rigView {
+  width: 100%; aspect-ratio: 1; background: #10141f; border: 1px solid #232c44;
+  border-radius: 4px; display: block;
+}
+.pane .hint { color: #8b96b3; font-size: 12px; margin: 0; }
+.pane .hint.warn { color: #ffcf8a; }
+kbd {
+  font: 11px ui-monospace, Menlo, monospace; background: #1d2438; border: 1px solid #2f3a58;
+  border-radius: 3px; padding: 0 4px;
+}
+.note-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #8b96b3; }
+#poseNote {
+  background: #141b2b; color: #dbe2f0; border: 1px solid #2b3550; border-radius: 5px;
+  padding: 7px 8px; font: inherit; resize: vertical;
+}
+.joints {
+  list-style: none; margin: 0; padding: 0; display: grid;
+  grid-template-columns: repeat(2, 1fr); gap: 2px 10px;
+  font: 11.5px ui-monospace, Menlo, monospace;
+}
+.joints li {
+  display: flex; justify-content: space-between; gap: 8px; padding: 2px 5px;
+  border-radius: 3px; color: #8b96b3; cursor: pointer;
+}
+.joints li:hover { background: #182034; }
+.joints li.on { background: #22304d; color: #e8eefc; }
+.joints b { font-weight: 500; color: #a9b6d2; }
+
+@media (max-width: 900px) {
+  main.poseedit { grid-template-columns: 1fr; overflow-y: auto; }
+  .thumbs { grid-template-columns: repeat(4, 1fr); max-height: 200px; }
+  .panes { grid-template-columns: 1fr; overflow: visible; }
+  /* The head is five controls on a phone-wide row: let it wrap, and keep the
+   * buttons on one line each rather than stacking a word per line. */
+  .edit-head { flex-wrap: wrap; gap: 6px; }
+  .edit-head button { padding: 6px 9px; font-size: 12px; white-space: nowrap; }
+  .edit-head .grow { flex-basis: 100%; height: 0; }
+}

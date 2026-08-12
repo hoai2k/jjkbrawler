@@ -32,7 +32,7 @@ import sys
 from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from sprite_paths import CHAR  # noqa: E402
+import pose_reads as pr  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS = os.path.join(ROOT, "sprites", "docs")
@@ -42,20 +42,22 @@ THUMB = 480         # pixels the embedded sprite copy is encoded at
 
 # Limb chains, as (a, b, near?) — near limbs draw solid, far ones washed back so
 # an overlapping pair still reads as two arms rather than one thick one.
+# Limb chains, as (a, b, near?). Facing right, the character's RIGHT limbs are
+# the near ones — they draw solid, the left pair washed back, so an overlapping
+# pair still reads as two arms rather than one thick one.
 BONES = [
     ("neck", "chest", True), ("chest", "pelvis", True),
-    ("sf", "ef", False), ("ef", "hf", False),
-    ("sn", "en", True), ("en", "hn", True),
-    ("pf", "kf", False), ("kf", "ff", False),
-    ("pn", "kn", True), ("kn", "fn", True),
-    ("sf", "sn", True), ("pf", "pn", True),
+    ("shoulderL", "elbowL", False), ("elbowL", "handL", False),
+    ("shoulderR", "elbowR", True), ("elbowR", "handR", True),
+    ("hipL", "kneeL", False), ("kneeL", "footL", False),
+    ("hipR", "kneeR", True), ("kneeR", "footR", True),
+    ("shoulderL", "shoulderR", True), ("hipL", "hipR", True),
 ]
-ENDS = [("hf", False), ("hn", True), ("ff", False), ("fn", True)]
+ENDS = [("handL", False), ("handR", True), ("footL", False), ("footR", True)]
 
 
-def sprite_data_uri(path):
+def sprite_data_uri(im):
     """The frame, shrunk and centred in a square, as an inline JPEG."""
-    im = Image.open(path).convert("RGBA")
     w, h = im.size
     s = THUMB / max(w, h)
     im = im.resize((max(1, round(w * s)), max(1, round(h * s))), Image.LANCZOS)
@@ -76,7 +78,8 @@ def mannequin_svg(j):
 
     # Torso as a solid slab from shoulders to hips, so the figure carries a
     # readable mass and the spine's lean is visible at thumbnail size.
-    sfx, sfy = p("sf"); snx, sny = p("sn"); pfx, pfy = p("pf"); pnx, pny = p("pn")
+    sfx, sfy = p("shoulderL"); snx, sny = p("shoulderR")
+    pfx, pfy = p("hipL"); pnx, pny = p("hipR")
     out.append(
         f'<polygon class="torso" points="{sfx:.1f},{sfy:.1f} {snx:.1f},{sny:.1f} '
         f'{pnx:.1f},{pny:.1f} {pfx:.1f},{pfy:.1f}"/>'
@@ -88,8 +91,7 @@ def mannequin_svg(j):
         out.append(f'<line class="{cls}" x1="{ax:.1f}" y1="{ay:.1f}" x2="{bx:.1f}" y2="{by:.1f}"/>')
 
     # Head: a circle sized off the neck-to-head distance, and a nose stub
-    # pointing the way the head faces — Yuji is drawn facing right, so the stub
-    # leans towards the head's own offset from the neck.
+    # leaning the way the head does, which is the read's own head-to-neck offset.
     hx, hy = p("head"); nx, ny = p("neck")
     r = max(9.0, ((hx - nx) ** 2 + (hy - ny) ** 2) ** 0.5 * 0.78)
     out.append(f'<line class="bone near" x1="{nx:.1f}" y1="{ny:.1f}" x2="{hx:.1f}" y2="{hy:.1f}"/>')
@@ -98,7 +100,7 @@ def mannequin_svg(j):
     for name, near in ENDS:
         ex, ey = p(name)
         out.append(f'<circle class="end {"near" if near else "far"}" cx="{ex:.1f}" cy="{ey:.1f}" r="5"/>')
-    for name in ("ef", "en", "kf", "kn"):
+    for name in ("elbowL", "elbowR", "kneeL", "kneeR"):
         ex, ey = p(name)
         out.append(f'<circle class="joint" cx="{ex:.1f}" cy="{ey:.1f}" r="3"/>')
 
@@ -181,6 +183,7 @@ figcaption:focus-visible { outline: 2px solid var(--accent); outline-offset: -2p
 .chip { font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase;
   padding: 3px 6px; background: var(--chip); color: var(--muted); }
 .chip.audit { background: transparent; color: var(--warn); box-shadow: inset 0 0 0 1px currentColor; }
+.chip.seed { background: transparent; color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); }
 .chip.cycle { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1px currentColor; }
 .read { color: var(--muted); font-size: 11.5px; line-height: 1.5; margin-top: 6px;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
@@ -229,49 +232,43 @@ def check(char):
     a joint can sit on the body and still be the wrong joint — but it catches
     the errors an eye slides over: a limb traced a whole hand's width off the
     art, or a figure placed correctly in shape and wrongly in the frame."""
-    data = json.load(open(os.path.join(DOCS, f"{char}-pose-read.json")))
-    grid = 200
+    man = pr.manifest()
+    data = pr.load(char)
     off = []
     for name, pose in data["poses"].items():
-        im = Image.open(os.path.join(CHAR, char, f"{name}.png")).convert("RGBA")
-        w, h = im.size
-        s = grid / max(w, h)
-        mask = Image.new("L", (grid, grid), 0)
-        alpha = im.split()[3].resize((max(1, round(w * s)), max(1, round(h * s))), Image.LANCZOS)
-        mask.paste(alpha, ((grid - alpha.width) // 2, (grid - alpha.height) // 2))
-        px = mask.load()
-        ink = [(x, y) for y in range(grid) for x in range(grid) if px[x, y] > 60]
+        ink = pr.cell_mask(pr.open_frame(man, char, name))
         for joint, (jx, jy) in pose["j"].items():
-            cx, cy = jx * grid / 100.0, jy * grid / 100.0
-            d = min((cx - x) ** 2 + (cy - y) ** 2 for x, y in ink) ** 0.5 * 100.0 / grid
+            _, _, d = pr.nearest_ink(jx, jy, ink)
             if d > 2.0:
                 off.append((round(d, 1), name, joint))
     off.sort(reverse=True)
     total = sum(len(p["j"]) for p in data["poses"].values())
-    print(f"{len(off)}/{total} joints more than 2% of the cell off the art")
+    print(f"{char}: {len(off)}/{total} joints more than 2% of the cell off the art")
     for d, name, joint in off:
         print(f"  {d:>4}%  {name}.{joint}")
     return off
 
 
 def build(char, findings=()):
-    data = json.load(open(os.path.join(DOCS, f"{char}-pose-read.json")))
+    man = pr.manifest()
+    data = pr.load(char)
     poses = data["poses"]
-    cells, flagged = [], 0
+    cells, flagged, seeded = [], 0, 0
     for name, pose in poses.items():
-        path = os.path.join(CHAR, char, f"{name}.png")
-        if not os.path.exists(path):
-            raise SystemExit(f"no sprite for pose {name}: {path}")
-        chips = pose.get("flags", [])
-        flagged += 1 if chips else 0
+        chips = list(pose.get("flags", []))
+        if pose.get("seed"):
+            seeded += 1
+            chips = [{"k": "seed", "t": pose["seed"]}] + chips
+        flagged += 1 if pose.get("flags") else 0
         chip_html = "".join(f'<span class="chip {c["k"]}">{c["t"]}</span>' for c in chips)
+        blurb = pose.get("read") or "No read yet — this pose is a fitted seed, waiting for the editor."
         cells.append(
-            f'<figure class="{"flagged" if chips else ""}"><div class="plate">'
-            f'<img src="{sprite_data_uri(path)}" alt="the {name} sprite">'
+            f'<figure class="{"flagged" if pose.get("flags") else ""}"><div class="plate">'
+            f'<img src="{sprite_data_uri(pr.open_frame(man, char, name))}" alt="the {name} sprite">'
             f'{mannequin_svg(pose["j"])}'
             f'</div><figcaption><div class="name">{name}</div>'
             f'{f"<div class=chips>{chip_html}</div>" if chip_html else ""}'
-            f'<div class="read">{pose["read"]}</div></figcaption></figure>'
+            f'<div class="read">{blurb}</div></figcaption></figure>'
         )
 
     find_html = "".join(
@@ -279,20 +276,21 @@ def build(char, findings=()):
         for k, h, rest in findings
     )
     name = char.capitalize()
-    title = f"{name} Pose Contact Sheet"
-    html = f"""<title>{title}</title>
+    read_n = len(poses) - seeded
+    html = f"""<title>{name} Pose Contact Sheet</title>
 <style>{PAGE_CSS}</style>
 <div class="wrap">
   <p class="eyebrow">Sprite pose read &middot; {name}</p>
   <h1>{name} Pose Contact Sheet</h1>
-  <p class="dek">Every frame in <span class="mono">sprites/assets/{char}/</span>, read by eye into
-  sixteen joints and drawn back as a mannequin over the art it came from. The overlay is the test:
-  where the figure and the drawing separate, the read is wrong. Tap any caption for the full read.</p>
+  <p class="dek">Every frame in <span class="mono">sprites/assets/{char}/</span>, drawn as the engine
+  draws it, with the pose read into sixteen joints and drawn back as a mannequin over the art.
+  The overlay is the test: where the figure and the drawing separate, the read is wrong.
+  Tap any caption for the full read.</p>
   <div class="stats">
-    <div class="stat"><b>{len(poses)}</b><span>frames read</span></div>
+    <div class="stat"><b>{len(poses)}</b><span>frames</span></div>
+    <div class="stat"><b>{read_n}</b><span>read by eye</span></div>
+    <div class="stat"><b>{seeded}</b><span>fitted seeds</span></div>
     <div class="stat"><b>{len(poses) * 16}</b><span>joints placed</span></div>
-    <div class="stat"><b>0</b><span>joints off the art</span></div>
-    <div class="stat"><b>{flagged}</b><span>frames flagged</span></div>
   </div>
   <ul class="findings">{find_html}</ul>
   <div class="bar">

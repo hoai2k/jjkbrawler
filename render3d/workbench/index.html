@@ -7,6 +7,7 @@
     <link rel="icon" href="../../favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
     <link rel="stylesheet" href="workbench.css">
+    <link rel="stylesheet" href="sprite_pose.css">
     <!-- BOOT WATCH. This page is one ES module with a top-level await, so
          anything that throws or never settles up there leaves a fully
          rendered page whose every control is dead — which reads as "the
@@ -49,6 +50,7 @@
            phone the panels are behind a tab bar. An entry point you have to
            go looking for is one nobody uses. -->
       <button id="facingReviewTop" class="ghost sm">▶ Review size</button>
+      <a class="ghost sm" href="./?edit=pose">Pose reads →</a>
       <a class="ghost sm" href="../../billboards/workbench/">Billboard Workbench →</a>
       <a class="ghost sm" href="../../sprites/workbench/">Sprite Workbench →</a>
     </header>
@@ -323,6 +325,15 @@
       </footer>
     </div>
 
-    <script type="module" src="workbench.js"></script>
+    <!-- Two tools, one page. `?edit=pose` is the SPRITE POSE EDITOR — reads
+         off the art, sixteen joints a frame — and it replaces the workbench
+         rather than sitting inside it: it wants the whole window, and loading
+         both would pay for the look-dev panel, the sprite pipeline and every
+         clip table to edit a drawing. The other query modes are workbench.js's
+         own and unaffected. -->
+    <script type="module">
+      const mode = new URLSearchParams(location.search).get("edit");
+      await import(mode === "pose" ? "./sprite_pose.js" : "./workbench.js");
+    </script>
   </body>
 </html>

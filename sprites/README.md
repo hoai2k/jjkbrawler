@@ -9,6 +9,8 @@ sprites/
   src/         sprites.js — the sprite render backend
   workbench/   the sprite workbench, served at /sprites/workbench/
   docs/        the sprite pipeline, pose briefs, motion and cleanup notes
+  docs/pose-reads/   sixteen joints per frame, per character — what each
+                     drawing says the body is doing (docs/pose-reads.md)
 ```
 
 ## What is in here and what is not

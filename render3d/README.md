@@ -59,9 +59,21 @@ render3d/
   intake/      deliveries land here; validate -> import -> review -> apply
   workbench/   /render3d/workbench/ — pose editor, look-dev dials,
                sweeping-light check, comparison sprite, aim crosshair,
-               clip inheritance, approval
+               clip inheritance, approval; ?edit=pose is the SPRITE POSE
+               EDITOR (sprite_pose.js), a separate tool on the same page
   docs/        plan, asset requests (D-rounds), image requests (DI-rounds)
 ```
+
+## Reading the art: the sprite pose editor (`?edit=pose`)
+
+Upstream of every clip is a question the clip cannot answer: what does this
+fighter's own art actually do? `/render3d/workbench/?edit=pose` is where that
+gets written down — sixteen joints dragged onto each frame, the fighter's own
+rig taking the pose beside it, and a JSON download at the end. The data lives
+in `sprites/docs/pose-reads/` and drives nothing in the game yet; it is the
+reference the clip tables get checked against. See
+[sprites/docs/pose-reads.md](../sprites/docs/pose-reads.md) for the format, the
+orientation and sidedness rules, and what reading Yuji's sheet turned up.
 
 ## Posing by hand: the workbench pose editor
 
