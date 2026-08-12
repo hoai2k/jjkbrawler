@@ -487,14 +487,20 @@ function download(name, obj) {
 function shell() {
   const chars = CHARACTER_KEYS.filter((c) => c !== "effects");
   document.body.dataset.mode = "pose";
-  // The page's own header belongs to the other tool. Say which one is running
-  // and turn its entry point into the way back out.
-  $(".bar strong").textContent = "Sprite Pose Reads";
-  $(".bar .hint").innerHTML = "Sixteen joints a frame, read off the art as the engine "
-    + "draws it. Edits are in your browser until you download them.";
+  // The page's own header belongs to the other two benches — its hints and
+  // its mode links are theirs, and their show/hide rules key off a body class
+  // this bench does not wear. Strip them, say which bench is running, and turn
+  // this one's entry point into the way back out.
+  $(".bar strong").textContent = "Sprite Joint Reads";
+  document.querySelectorAll(".bar .pose-only, .bar .anim-only").forEach((el) => el.remove());
+  $("#facingReviewTop")?.remove();
+  const hint = document.createElement("span");
+  hint.className = "hint";
+  hint.textContent = "Sixteen joints a frame, read off the art as the engine draws it. "
+    + "Edits stay in your browser until you download them.";
+  $(".bar strong").after(hint);
   const link = $('.bar a[href="./?edit=pose"]');
   if (link) { link.href = "./"; link.textContent = "← 3D Workbench"; }
-  $("#facingReviewTop")?.remove();
   $("main.layout").outerHTML = `
     <main class="poseedit">
       <aside class="picker">
