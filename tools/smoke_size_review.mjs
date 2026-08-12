@@ -230,6 +230,53 @@ check(widths.wide > widths.narrow + 4,
   "...and that reaches the pixels, not just the number",
   `ankles ${widths.narrow}px at 0° -> ${widths.wide}px at 22°`);
 
+// WIDTH, not a stride. The first stance layer turned the thighs about the
+// direction the manifest THOUGHT the fighter faced, which is off by the yaw
+// offset — a right angle for the worst of them, so the dial walked their legs
+// forward and back instead of apart, and rolled the soles off the floor while
+// it was at it. Measured on the skeleton, in the pelvis's own frame, because
+// pixels alone cannot tell a widening from a stride under a ¾ camera.
+const splay = await page.evaluate(async (deg) => {
+  const rigMod = await import("/render3d/src/loader.js");
+  const pose = await import("/render3d/src/pose.js");
+  const r = rigMod.getRig("gakuganji");
+  const clip = rigMod.resolveClip("gakuganji", "idle")?.clip;
+  if (!r || !clip) return null;
+  const read = (stanceDeg) => {
+    pose.poseRig(r, "idle", 0, clip, { charKey: "gakuganji", stanceDeg });
+    r.root.updateMatrixWorld(true);
+    const at = (n) => { const e = r.root.getObjectByName(n).matrixWorld.elements; return [e[12], e[13], e[14]]; };
+    const soleUp = () => { const e = r.root.getObjectByName("LeftFoot").matrixWorld.elements;
+      const l = Math.hypot(e[4], e[5], e[6]) || 1; return [e[4] / l, e[5] / l, e[6] / l]; };
+    const lh = at("LeftUpLeg"), rh = at("RightUpLeg");
+    const n = Math.hypot(rh[0] - lh[0], rh[2] - lh[2]) || 1;
+    const lat = [(rh[0] - lh[0]) / n, (rh[2] - lh[2]) / n];
+    const lf = at("LeftFoot"), rf = at("RightFoot");
+    const d = [rf[0] - lf[0], rf[2] - lf[2]];
+    return {
+      width: d[0] * lat[0] + d[1] * lat[1],
+      stride: d[0] * -lat[1] + d[1] * lat[0],
+      floor: Math.min(lf[1], rf[1]),
+      up: soleUp(),
+    };
+  };
+  const a = read(0), b = read(deg);
+  const dot = Math.max(-1, Math.min(1, a.up.reduce((s, c, i) => s + c * b.up[i], 0)));
+  rigMod.setRigSettings("gakuganji", { stanceDeg: 0 });
+  return {
+    width: (b.width - a.width) * 100,
+    stride: (b.stride - a.stride) * 100,
+    roll: (Math.acos(dot) * 180) / Math.PI,
+    lift: (b.floor - a.floor) * 100,
+  };
+}, 22);
+check(splay && splay.width > 8 && Math.abs(splay.stride) < 1,
+  "...as WIDTH across the pelvis, not a stride along it",
+  splay ? `+${splay.width.toFixed(1)}cm apart, ${splay.stride.toFixed(1)}cm fore/aft` : "no rig");
+check(splay && splay.roll < 1 && Math.abs(splay.lift) < 0.5,
+  "...with the soles still flat on the floor",
+  splay ? `sole turned ${splay.roll.toFixed(1)}°, floor moved ${splay.lift.toFixed(1)}cm` : "no rig");
+
 // The download is the thing the whole mode exists to produce, and it has to
 // be a payload `billboard_intake.mjs apply` will take without editing.
 const dl = page.waitForEvent("download", { timeout: 10000 }).catch(() => null);
