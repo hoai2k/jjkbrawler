@@ -8,17 +8,30 @@
 // of those throw; they just make the tool useless, and only a real viewport
 // shows them.
 //
-// Needs `playwright` and Chromium; start the game first (node server.mjs),
-// then: node tools/smoke_facing_review.mjs [baseUrl]
-import { chromium } from "playwright";
+// Needs `playwright` with WebKit installed; start the game first
+// (node server.mjs), then: node tools/smoke_facing_review.mjs [baseUrl]
+import { chromium, webkit, devices } from "playwright";
 
-const BASE = process.argv[2] || "http://127.0.0.1:5174";
+// Flags and the base URL share argv; take the first non-flag.
+const BASE = process.argv.slice(2).find((a) => !a.startsWith("--"))
+  || "http://127.0.0.1:5174";
 const PHONE = { width: 390, height: 844 };
 
-const browser = await chromium.launch({
-  executablePath: process.env.CHROMIUM_PATH || "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
-  args: ["--no-proxy-server", "--enable-unsafe-swiftshader"],
-});
+// WEBKIT BY DEFAULT, because the bug this test now guards was invisible to
+// Chromium. A phone-sized Chromium window is not a phone: the workbench
+// booted fine there while an actual iPhone ran out of memory loading
+// twenty-seven models, never finished its module, and presented a fully
+// drawn page on which nothing at all worked. Same engine as Safari or the
+// test does not cover the device the tool is for. Pass --chromium to
+// cross-check the other engine.
+const useChromium = process.argv.includes("--chromium");
+const browser = useChromium
+  ? await chromium.launch({
+    executablePath: process.env.CHROMIUM_PATH || "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
+    args: ["--no-proxy-server", "--enable-unsafe-swiftshader"],
+  })
+  : await webkit.launch();
+console.log(`engine: ${useChromium ? "chromium" : "webkit (Safari)"}`);
 
 let failures = 0;
 const check = (ok, label, detail = "") => {
@@ -26,14 +39,38 @@ const check = (ok, label, detail = "") => {
   console.log(`${ok ? "ok  " : "FAIL"} ${label}${detail ? `   ${detail}` : ""}`);
 };
 
-const page = await browser.newPage({
-  viewport: PHONE, deviceScaleFactor: 2, isMobile: true, hasTouch: true,
-});
+const context = useChromium
+  ? await browser.newContext({ viewport: PHONE, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
+  : await browser.newContext({ ...devices["iPhone 13"] });
+const page = await context.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e).slice(0, 200)));
+// Every model the page pulls, so the boot cost is measured rather than
+// assumed — see the eager-load note below.
+let glbCount = 0, glbBytes = 0;
+page.on("response", async (r) => {
+  if (!r.url().endsWith(".glb")) return;
+  glbCount++;
+  try { glbBytes += (await r.body()).length; } catch { /* body gone */ }
+});
+
+const t0 = Date.now();
 await page.goto(`${BASE}/render3d/workbench/index.html?char=gakuganji&state=idle`,
   { waitUntil: "load" });
-await page.waitForTimeout(5200);
+let booted = true;
+await page.waitForFunction(() => window.__workbenchReady === true, { timeout: 90000 })
+  .catch(() => { booted = false; });
+const bootSecs = (Date.now() - t0) / 1000;
+
+check(booted, "the module finishes booting on a phone", `${bootSecs.toFixed(1)}s`);
+// THE regression guard. The workbench used to fetch every approved delivery
+// before wiring a single control: 27 models, 56 MB. That is what killed it on
+// an iPhone, and nothing about it looked like a failure — the page rendered,
+// and every button did nothing.
+check(glbCount <= 3, "boot loads one fighter, not the whole roster",
+  `${glbCount} model(s), ${(glbBytes / 1e6).toFixed(1)} MB in ${bootSecs.toFixed(1)}s`);
+check(await page.evaluate(() => document.getElementById("bootError").hidden),
+  "no boot failure was reported");
 
 // The way in has to be reachable without opening anything first.
 check(await page.isVisible("#facingReviewTop"),
@@ -146,6 +183,8 @@ const closed = await page.evaluate(() => ({
   back: !!document.querySelector(".stage-col canvas#stage"),
 }));
 check(closed.hidden && closed.back, "closing restores the viewer to the desk");
+check(glbCount < 27, "the whole roster never got pulled in",
+  `${glbCount} model(s), ${(glbBytes / 1e6).toFixed(1)} MB`);
 check(errors.length === 0, "no page errors throughout", errors.slice(0, 2).join(" | "));
 
 await browser.close();

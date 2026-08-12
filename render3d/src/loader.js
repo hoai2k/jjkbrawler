@@ -273,7 +273,7 @@ export function suggestedScale(charKey, clip = null) {
 
 // -------------------------------------------------------------------- setup
 
-function registerRig(charKey, { root, height, clips }, entry = null) {
+function registerRig(charKey, { root, height, clips, isMannequin = false }, entry = null) {
   const mixer = new THREE.AnimationMixer(root);
   // The bind pose, taken here because here is the last moment it is certainly
   // the bind pose — every pose from now on starts by restoring it (pose.js).
@@ -282,7 +282,7 @@ function registerRig(charKey, { root, height, clips }, entry = null) {
   // what the model measures in its idle pose, filled in by calibrateHeight
   // once every rig is registered (the measurement needs the clip set).
   const rig = { root, height, declaredHeight: height, clips, mixer,
-                actions: new Map(), entry };
+                actions: new Map(), entry, isMannequin };
   applyEntrySettings(rig, entry);
   RIGS.set(charKey, rig);
 }
@@ -303,10 +303,43 @@ async function loadGlbRig(charKey, entry, GLTFLoader) {
   }, entry);
 }
 
+/** Load one delivered rig on demand, if it is not already in.
+ *
+ *  Twenty-seven models is 56 MB of glTF and twenty-seven textures to decode,
+ *  and asking for all of it up front is what made the workbench unusable on a
+ *  phone: iOS Safari runs out of memory partway through, the module's
+ *  top-level await never settles, and NOTHING after it runs — so every button
+ *  on a fully rendered page silently does nothing. The game still loads the
+ *  roster eagerly (a match needs whoever is in it, immediately), but a tool
+ *  that looks at one fighter at a time should pay for one fighter at a time.
+ *
+ *  Resolves to true when the character has a rig afterwards, however it got
+ *  one; concurrent calls for the same character share a single load. */
+const inFlight = new Map();
+export async function ensureRig(charKey, GLTFLoader) {
+  const entry = MANIFEST?.characters?.[charKey];
+  if (!entry?.approved || !entry.model) return RIGS.has(charKey);
+  const existing = RIGS.get(charKey);
+  if (existing && !existing.isMannequin) return true;
+  if (!inFlight.has(charKey)) {
+    inFlight.set(charKey, loadGlbRig(charKey, entry, GLTFLoader)
+      .catch((err) => {
+        console.warn(`render3d: rig for "${charKey}" failed to load (${err.message})`);
+      })
+      .finally(() => inFlight.delete(charKey)));
+  }
+  await inFlight.get(charKey);
+  return RIGS.has(charKey);
+}
+
 /** Load the manifest, the approved rigs, and any mannequin stand-ins —
  *  `mannequinFor` from the URL (`?mannequin=all` or a key list), never
- *  displacing a delivered rig. */
-export async function initRigs(three, GLTFLoader, mannequinFor = [], allCharKeys = []) {
+ *  displacing a delivered rig.
+ *
+ *  `eager` limits WHICH delivered rigs are fetched now: a list of keys loads
+ *  only those and leaves the rest to `ensureRig`. Omitted means all of them,
+ *  which is what a match wants. */
+export async function initRigs(three, GLTFLoader, mannequinFor = [], allCharKeys = [], eager = null) {
   THREE = three;
   DEFAULT_CLIPS = buildDefaultClips(THREE);
 
@@ -319,8 +352,10 @@ export async function initRigs(three, GLTFLoader, mannequinFor = [], allCharKeys
   }
 
   const loads = [];
+  const wanted = eager ? new Set(eager) : null;
   for (const [charKey, entry] of Object.entries(MANIFEST.characters || {})) {
     if (!entry?.approved || !entry.model) continue;
+    if (wanted && !wanted.has(charKey)) continue;
     loads.push(loadGlbRig(charKey, entry, GLTFLoader).catch((err) => {
       console.warn(`render3d: rig for "${charKey}" failed to load — drawing their sprites instead. ${err.message}`);
     }));
@@ -337,7 +372,10 @@ export async function initRigs(three, GLTFLoader, mannequinFor = [], allCharKeys
     // before any character exists.
     applyToonMaterials(THREE, m.root);
     addOutlines(THREE, m.root);
-    registerRig(charKey, { root: m.root, height: m.height, clips: new Map() },
+    // Flagged, so a later ensureRig() knows a stand-in is still standing in
+    // and goes and fetches the real delivery.
+    registerRig(charKey, { root: m.root, height: m.height, clips: new Map(),
+      isMannequin: true },
       MANIFEST.characters?.[charKey] || null);
   }
 

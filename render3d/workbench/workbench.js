@@ -91,7 +91,21 @@ const view = makeViewport(canvas, { x: CX, y: GROUND_Y },
 await loadCoreAssets();
 initPose(THREE);
 scene.initScene(THREE);
-await rig.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS);
+// ONE rig now, the rest on demand (loader.js ensureRig).
+//
+// This used to fetch every approved delivery before wiring a single button:
+// 56 MB of glTF and twenty-seven textures to decode. A desktop shrugs; iOS
+// Safari runs out of memory partway through, so the top-level await above
+// never settles, nothing below it ever runs, and the page renders perfectly
+// with every control dead. That is the worst failure shape there is — it
+// looks like a broken button, not like a browser giving up.
+await rig.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS, [wb.char]);
+
+/** Bring a character's real rig in before showing them. */
+async function ensureChar(charKey) {
+  await rig.ensureRig(charKey, GLTFLoader).catch(() => {});
+  scene.clearCache();
+}
 
 
 /**
@@ -546,6 +560,16 @@ function facingClose() {
 /** Put the current fighter on screen and sync the controls to their yaw. */
 function facingShow() {
   const char = facing.list[facing.i];
+  // Fetch this one if it has not been seen yet — the review is the one place
+  // that walks all twenty-seven, and it does it one at a time. Re-shown once
+  // the real model lands, and ONLY then: re-showing unconditionally would
+  // call straight back into here and never stop.
+  const held = rig.getRig(char);
+  if (!held || held.isMannequin) {
+    ensureChar(char).then(() => {
+      if (facing.list[facing.i] === char && !rig.getRig(char)?.isMannequin) facingShow();
+    });
+  }
   wb.char = char;
   wb.state = "idle";
   wb.t = 0;
@@ -925,8 +949,9 @@ async function draw() {
 
 // ------------------------------------------------------------------- wiring
 
-charSel.onchange = () => {
+charSel.onchange = async () => {
   wb.char = charSel.value;
+  await ensureChar(wb.char);
   const url = new URL(location);
   url.searchParams.set("char", wb.char);
   history.replaceState(null, "", url);
@@ -1009,3 +1034,8 @@ const mobile = initMobile({
 });
 $("playBtn").textContent = "⏸ Pause";
 draw();
+
+// Boot finished and everything above is wired. index.html's boot watch reads
+// this: if it is still unset well after load, the module died or stalled and
+// the page says so instead of presenting dead controls.
+window.__workbenchReady = true;

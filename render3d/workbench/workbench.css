@@ -286,3 +286,13 @@ p.hint .dot {
     max-width: none; max-height: none;
   }
 }
+
+/* Boot failures, said out loud. See the note in index.html: a dead module
+ * leaves a page that looks fine and does nothing, which is the hardest
+ * failure to report and the easiest to mistake for a broken feature. */
+#bootError {
+  position: fixed; left: 0; right: 0; top: 0; z-index: 100;
+  padding: 12px 16px; background: #5a1f26; color: #ffe6e9;
+  border-bottom: 1px solid #8d3641; font-size: 13.5px; line-height: 1.4;
+}
+#bootError[hidden] { display: none; }
