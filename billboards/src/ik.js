@@ -528,29 +528,92 @@ export function rotateBoneAboutWorldAxis(THREE, bone, axisWorld, rad, tmp) {
  * unalike — you end up scaling the model wrong to compensate for a stance you
  * were not looking at.
  *
- * Splays both thighs about the character's own FORWARD axis, symmetrically, so
- * the legs open sideways rather than into a stride. Positive is wider. The
- * feet come along, and the foot IK afterwards puts them back on the floor;
- * what changes is how far apart they stand, which is exactly the dial.
+ * WIDTH, MEASURED FROM THE PELVIS. The first version swung the thighs about
+ * the direction it believed the fighter faced, taken from the rig's local +Z
+ * per the delivery spec. That belief is exactly the one `yawOffsetDeg` exists
+ * to say is false: a rig is turned at the root until it LOOKS right, so local
+ * +Z misses the fighter's real forward by the offset — nothing for Yuji at 0°,
+ * a right angle for Dagon at 80°. A right angle turns a widening into a
+ * STRIDE, which is what showed up as "sometimes the legs move forward and
+ * back instead of sideways". Measured across the roster the error ran from 7°
+ * to 93°, tracking the offset.
+ *
+ * So do not ask the manifest which way anyone faces. The hip JOINTS are the
+ * pelvis, in the pose being drawn: the axis from one hip to the other is the
+ * width direction by definition, whatever the rig believes about forward and
+ * however bladed the idle happens to be. The splay axis is that crossed with
+ * up. It does not even have to be true that "LeftUpLeg" is on the fighter's
+ * left — swap the two names and the measured lateral flips WITH the sign each
+ * leg is turned by, so both legs still part company and the dial still reads
+ * "positive is wider".
+ *
+ * FEET STAY FLAT. Turning a thigh alone carries the shin and foot with it, so
+ * the sole rolls onto its edge and the toes swing out. The shin is turned back
+ * by the same amount about the same axis, which leaves it upright and hands
+ * the foot back its world orientation exactly: the leg TRANSLATES sideways
+ * instead of swinging. Widening also shortens the legs (thigh · (1 − cos)),
+ * as it does on a real person, so the hips come down by the height the feet
+ * gained and the fighter keeps the floor.
  *
  * Composed onto whatever the clip did, so a stance is a per-fighter constant
  * rather than a re-authored idle.
  */
 export function applyStance(THREE, root3d, deg, tmp) {
   if (!deg) return false;
-  const left = root3d.getObjectByName("LeftUpLeg");
-  const right = root3d.getObjectByName("RightUpLeg");
-  if (!left || !right) return false;
-  // The character's forward, which is the axis legs swing out around. Their
-  // LATERAL is the axis a stride swings around, and rotating about that would
-  // put one leg in front of the other rather than opening the stance.
-  const lateral = characterLateral(THREE, root3d, tmp.v4);
-  const fwd = tmp.v5.set(-lateral.z, 0, lateral.x).normalize();
-  const rad = (deg * Math.PI) / 180;
-  rotateBoneAboutWorldAxis(THREE, left, fwd, -rad, tmp);
-  rotateBoneAboutWorldAxis(THREE, right, fwd, rad, tmp);
+  const legs = ["Left", "Right"].map((side) => ({
+    up: root3d.getObjectByName(`${side}UpLeg`),
+    lo: root3d.getObjectByName(`${side}Leg`),
+    foot: root3d.getObjectByName(`${side}Foot`),
+  }));
+  if (!legs[0].up || !legs[1].up) return false;
   root3d.updateMatrixWorld(true);
+
+  // The pelvis's own width axis, hip joint to hip joint, flattened to the floor.
+  const lateral = tmp.v4.setFromMatrixPosition(legs[1].up.matrixWorld)
+    .sub(tmp.v5.setFromMatrixPosition(legs[0].up.matrixWorld));
+  lateral.y = 0;
+  if (lateral.lengthSq() < 1e-8) return false;
+  lateral.normalize();
+  // axis = lateral x up: turning a leg about it moves the foot along lateral.
+  const axis = tmp.v5.set(-lateral.z, 0, lateral.x);
+
+  const floorBefore = footFloor(legs, tmp);
+  const rad = (deg * Math.PI) / 180;
+  for (let i = 0; i < 2; i++) {
+    const sign = i === 0 ? -1 : 1; // apart, not both the same way
+    rotateBoneAboutWorldAxis(THREE, legs[i].up, axis, sign * rad, tmp);
+    // Give the world orientation back to everything below the knee. Without a
+    // shin there is nothing to straighten, so settle for a level foot.
+    const under = legs[i].lo || legs[i].foot;
+    if (under) rotateBoneAboutWorldAxis(THREE, under, axis, -sign * rad, tmp);
+  }
+  root3d.updateMatrixWorld(true);
+
+  // Legs are shorter now than they were standing closed. Sink to meet the
+  // floor rather than hover above it.
+  const hips = root3d.getObjectByName("Hips");
+  const floorAfter = footFloor(legs, tmp);
+  if (hips && hips.parent && floorBefore !== null && floorAfter !== null
+      && Math.abs(floorAfter - floorBefore) > 1e-4) {
+    tmp.v6.setFromMatrixPosition(hips.matrixWorld);
+    tmp.v6.y -= floorAfter - floorBefore;
+    hips.position.copy(hips.parent.worldToLocal(tmp.v6));
+    root3d.updateMatrixWorld(true);
+  }
   return true;
+}
+
+/** The lower of the two ankles, in world Y — the height the stance has to
+ *  hold on to. Null when neither foot exists. */
+function footFloor(legs, tmp) {
+  let y = null;
+  for (const leg of legs) {
+    const foot = leg.foot || leg.lo;
+    if (!foot) continue;
+    const fy = tmp.v7.setFromMatrixPosition(foot.matrixWorld).y;
+    y = y === null ? fy : Math.min(y, fy);
+  }
+  return y;
 }
 
 export function initLayerAxes(THREE) {

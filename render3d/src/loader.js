@@ -251,7 +251,10 @@ export function measureIdleHeight(charKey, rigEntry = null, clip = null) {
   if (!rig) return null;
   const idle = clip || resolveClip(charKey, "idle")?.clip;
   if (!idle) return null;
-  poseRig(rig, "idle", 0, idle, {});
+  // With the fighter's own stance: widening the legs shortens them, so a
+  // height measured with the feet closed is not the height being drawn — and
+  // the "fit height" reading would ask for a scale the stance then spends.
+  poseRig(rig, "idle", 0, idle, { charKey, stanceDeg: rig.stanceDeg || 0 });
   rig.root.updateMatrixWorld(true);
   const box = new THREE.Box3();
   let any = false;
