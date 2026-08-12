@@ -1,140 +1,162 @@
 {
-  "comment": "Index of delivered billboard rigs. Written by tools/billboard_intake.mjs and the billboard workbench's exported payloads — not by hand. Schema: characters.<key> = { model: path relative to billboards/assets/, heightM: real-world height in metres (measured from the glb at import), approved: bool — only approved rigs register in the game, inheritClips: character key or 'default' — where unanswered states fall back before the default pose set, clips: { <state>: { from: <charKey>|'default' } } — per-state overrides, hand-set in the workbench, which win over the rig's own clip. Resolution order per state: clips[state].from, then the rig's own clip, then inheritClips, then the default pose set.",
-  "characters": {
-    "yuji": {
-      "model": "yuji/yuji.glb",
-      "heightM": 1.73,
-      "approved": true
-    },
-    "maki": {
-      "model": "maki/maki.glb",
-      "heightM": 1.7,
-      "approved": true
-    },
-    "jogo": {
-      "model": "jogo/jogo.glb",
-      "heightM": 1.8,
-      "approved": true
-    },
-    "megumi": {
-      "model": "megumi/megumi.glb",
-      "heightM": 1.75,
-      "approved": true
-    },
-    "hanami": {
-      "model": "hanami/hanami.glb",
-      "heightM": 2.2,
-      "approved": true
-    },
-    "uro": {
-      "model": "uro/uro.glb",
-      "heightM": 1.9,
-      "approved": true
-    },
-    "geto": {
-      "model": "geto/geto.glb",
-      "heightM": 1.91,
-      "approved": true
-    },
-    "mahito": {
-      "model": "mahito/mahito.glb",
-      "heightM": 1.79,
-      "approved": true
-    },
-    "gojo": {
-      "model": "gojo/gojo.glb",
-      "heightM": 1.9,
-      "approved": true
-    },
-    "sukuna": {
-      "model": "sukuna/sukuna.glb",
-      "heightM": 1.73,
-      "approved": true
-    },
-    "nobara": {
-      "model": "nobara/nobara.glb",
-      "heightM": 1.6,
-      "approved": true
-    },
-    "choso": {
-      "model": "choso/choso.glb",
-      "heightM": 1.81,
-      "approved": true
-    },
-    "gakuganji": {
-      "model": "gakuganji/gakuganji.glb",
-      "heightM": 1.9,
-      "approved": true
-    },
-    "hakari": {
-      "model": "hakari/hakari.glb",
-      "heightM": 1.85,
-      "approved": true
-    },
-    "mechamaru": {
-      "model": "mechamaru/mechamaru.glb",
-      "heightM": 2.05,
-      "approved": true
-    },
-    "meimei": {
-      "model": "meimei/meimei.glb",
-      "heightM": 1.9,
-      "approved": true
-    },
-    "panda": {
-      "model": "panda/panda.glb",
-      "heightM": 2,
-      "approved": true
-    },
-    "yuta": {
-      "model": "yuta/yuta.glb",
-      "heightM": 1.75,
-      "approved": true
-    },
-    "inumaki": {
-      "model": "inumaki/inumaki.glb",
-      "heightM": 1.64,
-      "approved": true
-    },
-    "kurourushi": {
-      "model": "kurourushi/kurourushi.glb",
-      "heightM": 1.9,
-      "approved": true
-    },
-    "momo": {
-      "model": "momo/momo.glb",
-      "heightM": 1.5,
-      "approved": true
-    },
-    "nanami": {
-      "model": "nanami/nanami.glb",
-      "heightM": 1.84,
-      "approved": true
-    },
-    "todo": {
-      "model": "todo/todo.glb",
-      "heightM": 1.9,
-      "approved": true
-    },
-    "dagon": {
-      "model": "dagon/dagon.glb",
-      "heightM": 2.15,
-      "approved": true
-    },
-    "toji": {
-      "model": "toji/toji.glb",
-      "heightM": 1.87,
-      "approved": true
-    },
-    "reggie": {
-      "model": "reggie/reggie.glb",
-      "heightM": 1.9,
-      "approved": true
-    },
-    "yuki": {
-      "model": "yuki/yuki.glb",
-      "heightM": 1.8,
-      "approved": true
-    }
+ "comment": "Index of delivered billboard rigs. Written by tools/billboard_intake.mjs and the billboard workbench's exported payloads \u2014 not by hand. Schema: characters.<key> = { model: path relative to billboards/assets/, heightM: real-world height in metres (measured from the glb at import), approved: bool \u2014 only approved rigs register in the game, inheritClips: character key or 'default' \u2014 where unanswered states fall back before the default pose set, clips: { <state>: { from: <charKey>|'default' } } \u2014 per-state overrides, hand-set in the workbench, which win over the rig's own clip. Resolution order per state: clips[state].from, then the rig's own clip, then inheritClips, then the default pose set.",
+ "characters": {
+  "yuji": {
+   "model": "yuji/yuji.glb",
+   "heightM": 1.73,
+   "approved": true
+  },
+  "maki": {
+   "model": "maki/maki.glb",
+   "heightM": 1.7,
+   "approved": true,
+   "yawOffsetDeg": 60
+  },
+  "jogo": {
+   "model": "jogo/jogo.glb",
+   "heightM": 1.8,
+   "approved": true,
+   "yawOffsetDeg": 45
+  },
+  "megumi": {
+   "model": "megumi/megumi.glb",
+   "heightM": 1.75,
+   "approved": true
+  },
+  "hanami": {
+   "model": "hanami/hanami.glb",
+   "heightM": 2.2,
+   "approved": true,
+   "yawOffsetDeg": 75
+  },
+  "uro": {
+   "model": "uro/uro.glb",
+   "heightM": 1.9,
+   "approved": true,
+   "yawOffsetDeg": 45
+  },
+  "geto": {
+   "model": "geto/geto.glb",
+   "heightM": 1.91,
+   "approved": true
+  },
+  "mahito": {
+   "model": "mahito/mahito.glb",
+   "heightM": 1.79,
+   "approved": true,
+   "yawOffsetDeg": 345
+  },
+  "gojo": {
+   "model": "gojo/gojo.glb",
+   "heightM": 1.9,
+   "approved": true,
+   "yawOffsetDeg": 45
+  },
+  "sukuna": {
+   "model": "sukuna/sukuna.glb",
+   "heightM": 1.73,
+   "approved": true
+  },
+  "nobara": {
+   "model": "nobara/nobara.glb",
+   "heightM": 1.6,
+   "approved": true,
+   "yawOffsetDeg": 45
+  },
+  "choso": {
+   "model": "choso/choso.glb",
+   "heightM": 1.81,
+   "approved": true,
+   "yawOffsetDeg": 0
+  },
+  "gakuganji": {
+   "model": "gakuganji/gakuganji.glb",
+   "heightM": 1.9,
+   "approved": true,
+   "yawOffsetDeg": 45
+  },
+  "hakari": {
+   "model": "hakari/hakari.glb",
+   "heightM": 1.85,
+   "approved": true,
+   "yawOffsetDeg": 30
+  },
+  "mechamaru": {
+   "model": "mechamaru/mechamaru.glb",
+   "heightM": 2.05,
+   "approved": true,
+   "yawOffsetDeg": 75
+  },
+  "meimei": {
+   "model": "meimei/meimei.glb",
+   "heightM": 1.9,
+   "approved": true
+  },
+  "panda": {
+   "model": "panda/panda.glb",
+   "heightM": 2,
+   "approved": true,
+   "yawOffsetDeg": 45
+  },
+  "yuta": {
+   "model": "yuta/yuta.glb",
+   "heightM": 1.75,
+   "approved": true,
+   "yawOffsetDeg": 45
+  },
+  "inumaki": {
+   "model": "inumaki/inumaki.glb",
+   "heightM": 1.64,
+   "approved": true,
+   "yawOffsetDeg": 30
+  },
+  "kurourushi": {
+   "model": "kurourushi/kurourushi.glb",
+   "heightM": 1.9,
+   "approved": true,
+   "yawOffsetDeg": 45
+  },
+  "momo": {
+   "model": "momo/momo.glb",
+   "heightM": 1.5,
+   "approved": true,
+   "yawOffsetDeg": 60
+  },
+  "nanami": {
+   "model": "nanami/nanami.glb",
+   "heightM": 1.84,
+   "approved": true,
+   "yawOffsetDeg": 75
+  },
+  "todo": {
+   "model": "todo/todo.glb",
+   "heightM": 1.9,
+   "approved": true,
+   "yawOffsetDeg": 45
+  },
+  "dagon": {
+   "model": "dagon/dagon.glb",
+   "heightM": 2.15,
+   "approved": true,
+   "yawOffsetDeg": 80
+  },
+  "toji": {
+   "model": "toji/toji.glb",
+   "heightM": 1.87,
+   "approved": true,
+   "yawOffsetDeg": 45
+  },
+  "reggie": {
+   "model": "reggie/reggie.glb",
+   "heightM": 1.9,
+   "approved": true,
+   "yawOffsetDeg": 60
+  },
+  "yuki": {
+   "model": "yuki/yuki.glb",
+   "heightM": 1.8,
+   "approved": true,
+   "yawOffsetDeg": 60
   }
+ }
 }

@@ -251,6 +251,12 @@ export function renderPose(charKey, animKey, animTime, resolveClip, aim = null, 
   if (!resolved) return null;
 
   pose(rig, animKey, animTime, resolved.clip);
+  // The rig's own orientation correction, applied before anything reads a
+  // world position off it — the aim solve and the reach IK both do, and both
+  // are wrong by exactly this angle if it lands afterwards. `pose()` restores
+  // the clip's own root track every frame, so this is re-applied every frame
+  // rather than once at load.
+  rig.root.rotation.y = rig.yawOffset || 0;
   // Body morphs (Mahito's transfiguration arms) come FIRST among the layers:
   // aim and reach must solve against the limb's morphed length.
   applyMorphs(rig.root, charKey, animKey, clipTime(animKey, animTime));
@@ -280,6 +286,10 @@ export function renderPose(charKey, animKey, animTime, resolveClip, aim = null, 
   scene.add(rig.root);
   renderer.render(scene, camera);
   scene.remove(rig.root);
+  // Put the root back, exactly as render3d's scene.js does: the yaw belongs to
+  // the DRAW, and leaving a rig turned would hand the next reader — a
+  // workbench overlay, a measurement — a model in a pose nothing asked for.
+  rig.root.rotation.y = 0;
   stats.renders++;
 
   const canvas = document.createElement("canvas");

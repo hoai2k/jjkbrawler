@@ -136,7 +136,19 @@ function finishClip(clip, source, charKey, name, entry) {
 
 function registerRig(charKey, { root, height, clips }, entry = null) {
   const mixer = new THREE.AnimationMixer(root);
-  RIGS.set(charKey, { root, height, clips, mixer, actions: new Map(), entry });
+  // Which way the rig faces is a property of the MODEL, not of the backend
+  // drawing it: the delivery spec says forward is +Z, a generated rig often
+  // arrives built some other way round, and the correction is the same number
+  // whichever renderer loads the file. Both backends load byte-identical .glb
+  // files under the same -60° camera, so a per-character yaw applied in one and
+  // not the other is simply the two showing different fighters — which is what
+  // happened: 22 of 27 were turned in render3d and none were here.
+  const yaw = Number(entry?.yawOffsetDeg);
+  RIGS.set(charKey, {
+    root, height, clips, mixer, actions: new Map(), entry,
+    yawOffsetDeg: Number.isFinite(yaw) ? yaw : 0,
+    yawOffset: Number.isFinite(yaw) ? (yaw * Math.PI) / 180 : 0,
+  });
 }
 
 async function loadGlbRig(charKey, entry, GLTFLoader) {
