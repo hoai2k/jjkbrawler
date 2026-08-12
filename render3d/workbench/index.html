@@ -12,6 +12,10 @@
     <header class="bar">
       <strong>3D Workbench</strong>
       <span class="hint">Live clips through the game's own anime pipeline, over the sprite they replace. What you see is what <code>?render=3d</code> draws.</span>
+      <!-- In the bar, not in a panel tab: the review is a phone job, and on a
+           phone the panels are behind a tab bar. An entry point you have to
+           go looking for is one nobody uses. -->
+      <button id="facingReviewTop" class="ghost sm">▶ Review facing</button>
       <a class="ghost sm" href="../../billboards/workbench/">Billboard Workbench →</a>
       <a class="ghost sm" href="../../sprites/workbench/">Sprite Workbench →</a>
     </header>
@@ -133,6 +137,9 @@
             <button id="yawReset" class="ghost sm">0°</button>
             <button id="yawFlip" class="ghost sm" title="Add a half turn">+180°</button>
           </div>
+          <div class="row">
+            <button id="facingReviewBtn" class="ghost sm">▶ Review facing, one by one</button>
+          </div>
           <p class="hint">Turns the whole rig, before every pose layer — for a
           delivery authored facing some way other than the spec's +Z. Turn it
           until the model carries itself like the others do (a delivered rig
@@ -223,6 +230,49 @@
         <button id="mobilePlay">⏸<span>Pause</span></button>
       </nav>
     </main>
+
+    <!-- FACING REVIEW — a full-screen, one-fighter-at-a-time pass over the
+         whole delivered roster. The desk above is for working ON a fighter;
+         this is for making the same small judgement about all of them without
+         the desk in the way, and it is built to be usable on a phone, which
+         is where a "does this look right?" call actually gets made. The
+         viewer canvas is MOVED in here while it is open rather than
+         duplicated, so what is being judged is the real render. -->
+    <div id="facingOverlay" hidden>
+      <header>
+        <div>
+          <b id="facingName">—</b>
+          <span class="mono" id="facingProgress"></span>
+        </div>
+        <button id="facingClose" class="ghost sm" title="Close (Esc)">✕</button>
+      </header>
+
+      <div id="facingStage"></div>
+
+      <footer>
+        <div id="facingHint" class="hint">Turn each fighter until they face
+          RIGHT — the way they are drawn in a match — then Approve. Skip
+          leaves one alone; Download JSON saves everything approved so far.</div>
+        <!-- Coarse steps as buttons, fine work on the slider below. Seven
+             controls did not fit a 390px phone without wrapping onto a
+             second row, and the 5-degree buttons were the ones the slider
+             already does better. -->
+        <div class="facing-nudge">
+          <button data-nudge="-45">−45°</button>
+          <button data-nudge="-15">−15°</button>
+          <span class="mono" id="facingYawVal">0°</span>
+          <button data-nudge="15">+15°</button>
+          <button data-nudge="45">+45°</button>
+        </div>
+        <input id="facingRange" type="range" min="0" max="355" step="5" value="0">
+        <div class="facing-actions">
+          <button id="facingPrev" class="ghost">← Back</button>
+          <button id="facingApprove" class="primary">✓ Approve</button>
+          <button id="facingNext" class="ghost">Skip →</button>
+          <button id="facingSave" class="ghost">⤓ Download JSON</button>
+        </div>
+      </footer>
+    </div>
 
     <script type="module" src="workbench.js"></script>
   </body>

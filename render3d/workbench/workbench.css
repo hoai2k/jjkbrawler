@@ -199,3 +199,90 @@ p.hint .dot {
   .keychip { padding: 6px 9px; }
   .axis { grid-template-columns: 14px 1fr 64px; }
 }
+
+/* ------------------------------------------------------- facing review
+ *
+ * A full-screen pass over the roster, one fighter at a time. Two rules
+ * shape it: the FIGURE gets whatever space is left, because that is the
+ * thing being judged; and every control sits at the BOTTOM within thumb
+ * reach, because the judgement is usually made on a phone held one-handed.
+ *
+ * The viewer canvas is moved in here by the JS rather than duplicated, so
+ * this shows the real render with every layer on it, not a copy that could
+ * drift. It is sized by CSS alone — the canvas keeps its own backing
+ * resolution, so nothing about the render changes when it is borrowed. */
+#facingOverlay {
+  position: fixed; inset: 0; z-index: 60;
+  background: #0b0e17;
+  display: flex; flex-direction: column;
+}
+#facingOverlay[hidden] { display: none; }
+#facingOverlay header {
+  flex: none; display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 10px 14px;
+  background: #121728; border-bottom: 1px solid #232c44;
+}
+#facingOverlay header b { font-size: 16px; }
+#facingProgress { color: #8b96b3; margin-left: 10px; }
+#facingClose { font-size: 16px; padding: 6px 12px; }
+
+#facingStage {
+  flex: 1; min-height: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px; overflow: hidden;
+}
+/* Fit the borrowed canvas to whatever room is left, both ways, without
+ * distorting it. */
+#facingStage canvas {
+  max-width: 100%; max-height: 100%;
+  width: auto; height: auto; object-fit: contain;
+}
+
+#facingOverlay footer {
+  flex: none; display: flex; flex-direction: column; gap: 10px;
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: #121728; border-top: 1px solid #232c44;
+}
+#facingOverlay footer .hint { color: #8b96b3; font-size: 12.5px; }
+.facing-nudge {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  flex-wrap: wrap;
+}
+.facing-nudge button {
+  min-width: 58px; padding: 10px 8px; font-size: 14px;
+  background: #1a2138; border: 1px solid #2c3654; border-radius: 8px; color: inherit;
+}
+.facing-nudge button:active { background: #24406b; }
+#facingYawVal { min-width: 62px; text-align: center; font-size: 16px; color: #cfe0ff; }
+#facingRange { width: 100%; height: 30px; }
+.facing-actions { display: flex; gap: 8px; }
+.facing-actions button {
+  flex: 1; padding: 13px 10px; font-size: 15px; border-radius: 8px;
+  background: #1a2138; border: 1px solid #2c3654; color: inherit;
+}
+.facing-actions .primary { background: #24406b; border-color: #6f8fd0; font-weight: 600; }
+.facing-actions button:disabled { opacity: 0.45; }
+/* A fighter already settled this session reads as done at a glance. */
+#facingOverlay.decided #facingName::after {
+  content: " ✓"; color: #9fd39f;
+}
+
+@media (max-width: 900px) {
+  /* Labels off the nudge row so seven controls still fit a narrow phone. */
+  .facing-nudge button { min-width: 44px; padding: 12px 6px; font-size: 13px; }
+  .facing-actions button { padding: 15px 6px; font-size: 14px; }
+  #facingOverlay footer .hint { display: none; }
+}
+
+/* Portrait: fill the HEIGHT and let the wide canvas spill past the sides.
+ * The stage is 1040x660 landscape, so fitting it inside a phone screen by
+ * width wastes most of the screen on empty floor and sky and leaves the
+ * fighter too small to judge. The figure stands on the centre line, so
+ * clipping left and right costs nothing. */
+@media (max-aspect-ratio: 1/1) {
+  #facingStage { overflow: hidden; padding: 0; }
+  #facingStage canvas {
+    height: 100%; width: auto;
+    max-width: none; max-height: none;
+  }
+}
