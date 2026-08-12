@@ -1,4 +1,4 @@
-// The SPRITE POSE EDITOR (`render3d/workbench/?edit=pose`): drag sixteen
+// The SPRITE POSE EDITOR (`render3d/workbench/?edit=pose`): drag eighteen
 // joints onto a drawing until the mannequin IS the pose, and watch the 3D
 // fighter take that pose beside it.
 //
@@ -14,9 +14,12 @@
 // claim, and the overlay of one on the other the test.
 //
 // WHAT IT EDITS. Not clips — pose_edit.js does that, in keyframes and degrees,
-// against a state. This edits READS: sixteen 2D joints per FRAME, stored per
+// against a state. This edits READS: eighteen 2D joints per FRAME, stored per
 // character in sprites/docs/pose-reads/. A read is upstream of everything; it
 // is what the art says, and it stays true whatever the clip tables do next.
+// The joints drive spine, neck, both clavicles, arms, legs and feet; a bone
+// they cannot reach, or any rotation out of the drawing's plane, belongs to
+// the keyframe bench at ?edit=animation.
 //
 // THREE THINGS IT IS CAREFUL ABOUT, ALL OF WHICH SILENTLY PRODUCE PLAUSIBLE
 // AND WRONG DATA IF GOT WRONG (tools/pose_reads.py says the same in Python,
@@ -30,7 +33,10 @@
 //
 //   SIDES. Joints are the CHARACTER's own left and right, never the screen's.
 //   Facing right, the camera sits off the fighter's right shoulder: the RIGHT
-//   limb is the near one. Sided names survive a mirror; near/far do not.
+//   limb is the near one. Sided names survive a mirror; near/far do not — and
+//   which drawn limb is near is a judgement whose obvious answer is usually
+//   wrong, because the extended arm of a punch is drawn BEHIND the collar
+//   while the near arm crosses the chest. Hence ⇄ Swap L/R.
 //
 //   DEPTH IS NOT IN THE DATA. A read is the sagittal plane and nothing else.
 //   The 3D preview therefore poses each bone by turning it IN that plane and
@@ -56,8 +62,8 @@ const JOINTS = [
   "head", "neck", "chest", "pelvis",
   "shoulderL", "elbowL", "handL",
   "shoulderR", "elbowR", "handR",
-  "hipL", "kneeL", "footL",
-  "hipR", "kneeR", "footR",
+  "hipL", "kneeL", "footL", "toeL",
+  "hipR", "kneeR", "footR", "toeR",
 ];
 
 /** Each joint's parent. Dragging a joint carries its descendants, because a
@@ -66,8 +72,8 @@ const PARENT = {
   chest: "pelvis", neck: "chest", head: "neck",
   shoulderL: "chest", elbowL: "shoulderL", handL: "elbowL",
   shoulderR: "chest", elbowR: "shoulderR", handR: "elbowR",
-  hipL: "pelvis", kneeL: "hipL", footL: "kneeL",
-  hipR: "pelvis", kneeR: "hipR", footR: "kneeR",
+  hipL: "pelvis", kneeL: "hipL", footL: "kneeL", toeL: "footL",
+  hipR: "pelvis", kneeR: "hipR", footR: "kneeR", toeR: "footR",
 };
 const KIDS = {};
 for (const [child, parent] of Object.entries(PARENT)) (KIDS[parent] ||= []).push(child);
@@ -78,28 +84,58 @@ const descendants = (joint) =>
  *  solid, the far (left) ones washed back, so an overlap still reads as two. */
 const SIDE = (j) => (j.endsWith("L") ? "far" : j.endsWith("R") ? "near" : "mid");
 
-/** [parent joint, child joint] -> the bone whose direction that segment is. */
+/** The sided pairs, for the commonest correction of all: a drawing whose near
+ *  arm was read as the far one. Which limb a sprite shows nearer the camera is
+ *  a judgement — the extended arm of a punch is usually the FAR one, drawn
+ *  behind the collar, while the near arm is the one crossing the chest — and
+ *  when the judgement goes wrong the whole pose is right-handed instead of
+ *  left. One button beats dragging six handles. */
+const SIDED = ["shoulder", "elbow", "hand", "hip", "knee", "foot", "toe"];
+
+/** [parent joint, child joint, bone] — the segment each bone's direction is.
+ *  Parent-first, because every bone is aimed in the frame its ancestors left.
+ *
+ *  `plane: false` marks a bone whose bind direction is mostly ACROSS the body
+ *  rather than in the drawing's plane. The two clavicles are the case: they
+ *  hold the shoulders apart, so aiming one flat into the sagittal plane —
+ *  which is what every other bone here wants — would collapse both shoulders
+ *  onto the spine. They keep their lateral reach and swing only up/down and
+ *  fore/aft, which is exactly the movement "raise the shoulder for the punch"
+ *  is asking for. */
 const SEGMENT_BONE = [
-  ["pelvis", "chest", "Spine"],
-  ["chest", "neck", "Spine2"],
-  ["neck", "head", "Neck"],
-  ["shoulderL", "elbowL", "LeftArm"],
-  ["elbowL", "handL", "LeftForeArm"],
-  ["shoulderR", "elbowR", "RightArm"],
-  ["elbowR", "handR", "RightForeArm"],
-  ["hipL", "kneeL", "LeftUpLeg"],
-  ["kneeL", "footL", "LeftLeg"],
-  ["hipR", "kneeR", "RightUpLeg"],
-  ["kneeR", "footR", "RightLeg"],
+  ["pelvis", "chest", "Spine", true],
+  ["chest", "neck", "Spine2", true],
+  // The neck aims from the SHOULDER LINE, not from the read's `neck` joint.
+  // The rig's Neck bone starts between the shoulders; the read's neck joint is
+  // drawn where a neck looks like it is, halfway up. Measuring the head's
+  // direction from the higher point over-states the bend by the same few
+  // degrees every time — every upright frame in Yuji's sheet came out craning
+  // forward by 8.1°, the same number three times over, which is the signature
+  // of a convention error rather than a reading. From the shoulders it is 5°
+  // in the idle and 0° in the jab, which is what the drawings show.
+  ["shoulderMid", "head", "Neck", true],
+  ["chest", "shoulderL", "LeftShoulder", false],
+  ["shoulderL", "elbowL", "LeftArm", true],
+  ["elbowL", "handL", "LeftForeArm", true],
+  ["chest", "shoulderR", "RightShoulder", false],
+  ["shoulderR", "elbowR", "RightArm", true],
+  ["elbowR", "handR", "RightForeArm", true],
+  ["hipL", "kneeL", "LeftUpLeg", true],
+  ["kneeL", "footL", "LeftLeg", true],
+  ["footL", "toeL", "LeftFoot", true],
+  ["hipR", "kneeR", "RightUpLeg", true],
+  ["kneeR", "footR", "RightLeg", true],
+  ["footR", "toeR", "RightFoot", true],
 ];
 /** The child each driven bone points AT in the bind pose. Its offset gives the
  *  bone's own forward direction without hardcoding one rig's axis convention. */
 const BONE_TIP = {
   Spine: "Spine1", Spine2: "Neck", Neck: "Head",
+  LeftShoulder: "LeftArm", RightShoulder: "RightArm",
   LeftArm: "LeftForeArm", LeftForeArm: "LeftHand",
   RightArm: "RightForeArm", RightForeArm: "RightHand",
-  LeftUpLeg: "LeftLeg", LeftLeg: "LeftFoot",
-  RightUpLeg: "RightLeg", RightLeg: "RightFoot",
+  LeftUpLeg: "LeftLeg", LeftLeg: "LeftFoot", LeftFoot: "LeftToeBase",
+  RightUpLeg: "RightLeg", RightLeg: "RightFoot", RightFoot: "RightToeBase",
 };
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -218,10 +254,20 @@ async function showRig(char) {
   three.height = entry.height || 1.75;
 }
 
+/** A joint, or one of the midpoints a bone actually hangs off. */
+function jointAt(j, name) {
+  if (name === "shoulderMid") {
+    return [(j.shoulderL[0] + j.shoulderR[0]) / 2, (j.shoulderL[1] + j.shoulderR[1]) / 2];
+  }
+  return j[name];
+}
+
 const _dir = new THREE.Vector3();
 const _tip = new THREE.Vector3();
 const _inv = new THREE.Quaternion();
 const _swing = new THREE.Quaternion();
+const _boneQ = new THREE.Quaternion();
+const _want = new THREE.Vector3();
 const _parentQ = new THREE.Quaternion();
 
 /** Turn the read into rig rotations: every driven bone is swung, in the
@@ -231,15 +277,17 @@ function poseFromJoints(j) {
   for (const [bone, q] of three.bind) bone.quaternion.copy(q);
   three.root.updateMatrixWorld(true);
 
-  for (const [a, b, boneName] of SEGMENT_BONE) {
+  for (const [a, b, boneName, inPlane] of SEGMENT_BONE) {
     const bone = three.bones.get(boneName);
     // The tip is the child the bone points at in the bind pose; any rig that
     // names its bones differently still has a first child in the right place.
     const tip = three.bones.get(BONE_TIP[boneName]) || bone?.children.find((c) => c.isBone);
     if (!bone || !tip || !bone.parent) continue;
     // Screen x is world +Z (the facing), screen y counts DOWN, world y counts up.
-    const dx = j[b][0] - j[a][0];
-    const dy = j[b][1] - j[a][1];
+    const from = jointAt(j, a);
+    const to = jointAt(j, b);
+    const dx = to[0] - from[0];
+    const dy = to[1] - from[1];
     if (!dx && !dy) continue;
     _dir.set(0, -dy, dx).normalize();
 
@@ -249,16 +297,34 @@ function poseFromJoints(j) {
     // rather than replacing it. Replacing looked simpler and was wrong — it
     // discards whatever twist the rig's rest pose carries, which on a
     // delivered model is what keeps the chest square to the camera.
+    // The bone's tip, as a world direction. Bone offsets are bone-LOCAL (this
+    // rig runs every one of them along its own +Y), so the only frame in which
+    // "up", "across" and "forward" mean anything is the world's.
+    bone.getWorldQuaternion(_boneQ);
+    _tip.copy(tip.position).applyQuaternion(_boneQ).normalize();
+
+    _want.copy(_dir);
+    if (!inPlane) {
+      // Keep the bone's reach ACROSS the body and turn only the part of it the
+      // drawing can see. Without this a clavicle aimed at a flat sagittal
+      // target swings the shoulder into the midline and drags the collar with
+      // it — which is what "raise his shoulder" must not do.
+      const across = _tip.x;
+      const rest = Math.sqrt(Math.max(0, 1 - across * across));
+      const planar = Math.hypot(_dir.y, _dir.z) || 1;
+      _want.set(across, (_dir.y / planar) * rest, (_dir.z / planar) * rest);
+    }
+    _swing.setFromUnitVectors(_tip, _want);
+
+    // Apply a world rotation to a local one: undo the parent, turn, redo it.
     bone.parent.getWorldQuaternion(_parentQ);
     _inv.copy(_parentQ).invert();
-    _dir.applyQuaternion(_inv).normalize();
-    _tip.copy(tip.position).applyQuaternion(bone.quaternion).normalize();
-    _swing.setFromUnitVectors(_tip, _dir);
-    bone.quaternion.premultiply(_swing);
+    bone.quaternion.premultiply(_parentQ).premultiply(_swing).premultiply(_inv);
     bone.updateMatrixWorld(true);
   }
   three.root.updateMatrixWorld(true);
 }
+
 
 function drawThree() {
   const canvas = three.renderer?.domElement;
@@ -517,6 +583,7 @@ function shell() {
           <b class="mono" id="poseName">—</b>
           <span id="poseStamp" class="stamp"></span>
           <span class="grow"></span>
+          <button id="btnSwap" class="ghost sm" title="This drawing's near limbs are the other side's — exchange left and right">⇄ Swap L/R</button>
           <button id="btnSnap" class="ghost sm" title="Pull every joint onto the drawing">Snap to art</button>
           <button id="btnReset" class="ghost sm" title="Throw away this frame's edits">Reset frame</button>
           <button id="btnExport" class="primary sm">⤓ Download this character</button>
@@ -530,15 +597,24 @@ function shell() {
               chain. <kbd>Shift</kbd>-drag moves the one joint. Arrow keys nudge the
               selected joint, <kbd>Shift</kbd> for a bigger step, <kbd>Alt</kbd> for
               that joint alone. <kbd>⌘Z</kbd> undoes.</p>
+            <p class="hint">Red handles are the fighter's RIGHT side — the one nearer
+              the camera when they face right. In a punch that is usually the
+              chambered arm, not the extended one: the extended arm is normally
+              drawn passing behind the collar, which puts it on the far side. If a
+              whole pose is the wrong way round, <b>Swap L/R</b>. The two
+              <b>toe</b> handles set which way each foot points.</p>
             <p class="hint warn" id="faceNote" hidden>This frame is delivered facing
               LEFT and mirrored by the engine. It is shown here mirrored, the way the
               game draws it — pose it as you see it.</p>
           </div>
           <div class="pane">
             <canvas id="rigView"></canvas>
-            <p class="hint">The fighter's own rig, each bone turned in the drawing's
-              plane to match the joints. Depth is not in a read, so the third axis
-              stays at rest — this is a check on the read, not a finished clip.</p>
+            <p class="hint">The fighter's own rig: spine, neck, both clavicles,
+              arms, legs and feet, each turned in the drawing's plane to match the
+              joints. Depth is not in a read, so the third axis stays at rest — this
+              is a check on the read, not a finished clip. For a bone the read
+              cannot reach, or a rotation out of plane, use the keyframe bench at
+              <a href="./?edit=animation">?edit=animation</a>.</p>
             <label class="note-label" for="poseNote">What this frame is doing</label>
             <textarea id="poseNote" rows="3" placeholder="e.g. three-point stance, far hand planted, rear leg stretched back"></textarea>
             <ul class="joints" id="jointList"></ul>
@@ -596,6 +672,17 @@ async function boot() {
     renderEditor();
   });
   $("#btnSnap").addEventListener("click", () => { snapToArt(); });
+  $("#btnSwap").addEventListener("click", () => {
+    const pose = reads.get(ui.char).poses[ui.pose];
+    pushUndo();
+    const swapped = { ...pose.j };
+    for (const part of SIDED) {
+      swapped[`${part}L`] = pose.j[`${part}R`];
+      swapped[`${part}R`] = pose.j[`${part}L`];
+    }
+    pose.j = swapped;
+    commit();
+  });
   $("#btnExport").addEventListener("click", () => download(`${ui.char}.json`, exportChar(ui.char)));
   $("#btnExportAll").addEventListener("click", async () => {
     const all = {};

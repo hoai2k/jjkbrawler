@@ -45,18 +45,54 @@ JOINTS = [
     "head", "neck", "chest", "pelvis",
     "shoulderL", "elbowL", "handL",
     "shoulderR", "elbowR", "handR",
-    "hipL", "kneeL", "footL",
-    "hipR", "kneeR", "footR",
+    "hipL", "kneeL", "footL", "toeL",
+    "hipR", "kneeR", "footR", "toeR",
 ]
+
+# The sided pairs live next to swap_sides, below.
 
 #: parent -> child, the segments a mannequin is drawn from and a rig posed by.
 SEGMENTS = [
     ("pelvis", "chest"), ("chest", "neck"), ("neck", "head"),
     ("shoulderL", "elbowL"), ("elbowL", "handL"),
     ("shoulderR", "elbowR"), ("elbowR", "handR"),
-    ("hipL", "kneeL"), ("kneeL", "footL"),
-    ("hipR", "kneeR"), ("kneeR", "footR"),
+    ("hipL", "kneeL"), ("kneeL", "footL"), ("footL", "toeL"),
+    ("hipR", "kneeR"), ("kneeR", "footR"), ("footR", "toeR"),
 ]
+
+
+def default_toe(foot, knee):
+    """Where a toe sits when nobody has said — a short step from the ankle,
+    square to the shin and pointing the way the fighter faces (right). It is a
+    guess, and a visible one: the editor draws the foot, so a toe left at its
+    default reads as a foot that has not been looked at yet."""
+    dx, dy = foot[0] - knee[0], foot[1] - knee[1]
+    length = (dx * dx + dy * dy) ** 0.5 or 1.0
+    # Square to the shin, on the side the fighter faces.
+    px, py = -dy / length, dx / length
+    if px < 0:
+        px, py = -px, -py
+    return [round(min(100, max(0, foot[0] + px * 4)), 1),
+            round(min(100, max(0, foot[1] + py * 4)), 1)]
+
+
+#: The sided pairs, grouped, because arms and legs are misread INDEPENDENTLY.
+#: In a punch the extended arm is the far one and the leading leg is the near
+#: one — counter-rotation, which is what a body actually does — so a pose can
+#: need its arms exchanged and its legs left exactly where they are.
+SIDED_ARMS = [("shoulderL", "shoulderR"), ("elbowL", "elbowR"), ("handL", "handR")]
+SIDED_LEGS = [("hipL", "hipR"), ("kneeL", "kneeR"), ("footL", "footR"), ("toeL", "toeR")]
+SIDED = SIDED_ARMS + SIDED_LEGS
+
+
+def swap_sides(joints, pairs=None):
+    """The same pose with left and right exchanged. Not a mirror: the body does
+    not move, only the labels — this is for a drawing whose near arm was read
+    as the far one. Pass SIDED_ARMS or SIDED_LEGS to exchange only half."""
+    out = dict(joints)
+    for left, right in (pairs or SIDED):
+        out[left], out[right] = joints[right], joints[left]
+    return out
 
 #: Frames that are not a fighter's body and have no pose to read.
 SKIP_CHARS = {"effects"}
@@ -154,7 +190,10 @@ def dump(char, data):
     items = list(data["poses"].items())
     for i, (name, pose) in enumerate(items):
         out.append(f"    {json.dumps(name)}: {{")
-        for key in ("read", "seed"):
+        # `source` says a human placed this pose, and it is what stops a later
+        # re-apply of an older export from quietly undoing their work
+        # (tools/pose_apply.py). Dropping it here cost exactly that once.
+        for key in ("read", "source", "seed"):
             if pose.get(key):
                 out.append(f"      {json.dumps(key)}: {json.dumps(pose[key])},")
         if pose.get("flags"):
