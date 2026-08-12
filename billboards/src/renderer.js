@@ -27,7 +27,7 @@ import { getRig } from "./rig.js";
 import { swayChains, simulateChains, simulates } from "./props.js";
 import {
   applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs,
-  characterLateral, rotateBoneAboutWorldAxis, initLayerAxes, applyStance,
+  characterLateral, rotateBoneAboutWorldAxis, initLayerAxes, applyIdleStand, clearIdleStand,
 } from "./ik.js";
 
 export const TEX_SIZE = 384;
@@ -257,10 +257,16 @@ export function renderPose(charKey, animKey, animTime, resolveClip, aim = null, 
   // the clip's own root track every frame, so this is re-applied every frame
   // rather than once at load.
   rig.root.rotation.y = rig.yawOffset || 0;
-  // How wide they plant their feet is a fact about the fighter, the same way
-  // their height is — part of how big they READ — so it belongs here beside the
-  // facing rather than in whatever posed them.
-  applyStance(THREE, rig.root, rig.stanceDeg || 0, _ik);
+  // How the fighter stands: legs straight, soles flat, feet as far apart as
+  // their stance says. A fact about the fighter, the same way their height is
+  // — part of how big they READ — so it belongs here beside the facing rather
+  // than in whatever posed them. Idle only: straight legs through a run cycle
+  // are not a stand, they are a stilt walk.
+  if (clipNameFor(animKey) === "idle") {
+    applyIdleStand(THREE, rig.root, rig.stanceDeg || 0, _ik);
+  } else {
+    clearIdleStand(rig.root);
+  }
   // Body morphs (Mahito's transfiguration arms) come FIRST among the layers:
   // aim and reach must solve against the limb's morphed length.
   applyMorphs(rig.root, charKey, animKey, clipTime(animKey, animTime));

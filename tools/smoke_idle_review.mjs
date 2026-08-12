@@ -1,6 +1,6 @@
-// Smoke the 3D workbench's size review — the full-screen, one-fighter-at-a-
-// time pass that sizes each model against its own idle sprite and produces
-// the adjustment payload.
+// Smoke the 3D workbench's IDLE REVIEW — the full-screen, one-fighter-at-a-
+// time pass that judges each model's idle against its own idle sprite (size,
+// stance, facing) and produces the adjustment payload.
 //
 // It is driven on a PHONE viewport, because that is what it is for and
 // because every failure it has had so far was a layout failure: an entry
@@ -10,7 +10,7 @@
 // shows them.
 //
 // Needs `playwright` with WebKit installed; start the game first
-// (node server.mjs), then: node tools/smoke_size_review.mjs [baseUrl]
+// (node server.mjs), then: node tools/smoke_idle_review.mjs [baseUrl]
 import { chromium, webkit, devices } from "playwright";
 
 // Flags and the base URL share argv; take the first non-flag.
@@ -76,6 +76,8 @@ check(await page.evaluate(() => document.getElementById("bootError").hidden),
 // The way in has to be reachable without opening anything first.
 check(await page.isVisible("#facingReviewTop"),
   "the way in is visible on a phone without opening a panel");
+check((await page.textContent("#facingReviewTop")).includes("Idle Review"),
+  "...and it is called what it does", (await page.textContent("#facingReviewTop")).trim());
 
 await page.click("#facingReviewTop");
 await page.waitForTimeout(2600);
@@ -96,6 +98,7 @@ const open = await page.evaluate(() => {
     progress: document.getElementById("facingProgress").textContent,
     scale: document.getElementById("facingScaleVal").textContent,
     stance: document.getElementById("facingStanceVal").textContent,
+    yaw: document.getElementById("facingYawVal").textContent,
   };
 });
 check(open.visible && open.borrowedCanvas,
@@ -137,7 +140,7 @@ const rows = await page.evaluate(() => {
     smallestTouch: Math.min(...[...dial, ...acts].map((r) => Math.min(r.width, r.height))),
   };
 });
-check(rows.dials === 2, "both dials get a row of their own", `${rows.dials} row(s)`);
+check(rows.dials === 3, "all three dials get a row of their own", `${rows.dials} row(s)`);
 check(rows.allOnScreen, "every control is on screen");
 check(rows.smallestTouch >= 28, "controls are thumb-sized",
   `smallest ${Math.round(rows.smallestTouch)}px`);
@@ -193,6 +196,23 @@ const stanced = await (async () => {
 })();
 check(stanced.rig === 12, "the stance dial widens the RIG's legs",
   `${stanced.rig}° (shown ${stanced.shown})`);
+
+// The third dial. Facing was settled in its own pass, but it is judged against
+// the same drawing as the size, so it belongs on the same screen.
+const turned = await (async () => {
+  await page.fill("#facingYaw", "35");
+  await page.dispatchEvent("#facingYaw", "input");
+  await page.waitForTimeout(700);
+  return {
+    rig: await page.evaluate(async () =>
+      (await import("/render3d/src/loader.js")).getRig("gakuganji").yawOffsetDeg),
+    shown: await page.textContent("#facingYawVal"),
+  };
+})();
+check(turned.rig === 35, "the turn dial rotates the RIG", `${turned.rig}° (shown ${turned.shown})`);
+await page.fill("#facingYaw", "45");
+await page.dispatchEvent("#facingYaw", "input");
+await page.waitForTimeout(400);
 
 // Stance has to reach the PIXELS, not just the rig object — it is a pose
 // layer, and a layer that never gets applied changes a number and nothing
@@ -273,9 +293,52 @@ const splay = await page.evaluate(async (deg) => {
 check(splay && splay.width > 8 && Math.abs(splay.stride) < 1,
   "...as WIDTH across the pelvis, not a stride along it",
   splay ? `+${splay.width.toFixed(1)}cm apart, ${splay.stride.toFixed(1)}cm fore/aft` : "no rig");
-check(splay && splay.roll < 1 && Math.abs(splay.lift) < 0.5,
-  "...with the soles still flat on the floor",
-  splay ? `sole turned ${splay.roll.toFixed(1)}°, floor moved ${splay.lift.toFixed(1)}cm` : "no rig");
+check(splay && Math.abs(splay.lift) < 0.5,
+  "...without lifting the fighter off the floor",
+  splay ? `floor moved ${splay.lift.toFixed(1)}cm` : "no rig");
+
+// THE STAND ITSELF, on the skeleton. Straight legs, level soles, both ankles
+// on one floor — the last of those needs the legs to be the same LENGTH, and
+// twenty of the twenty-seven deliveries arrived asymmetric (Geto by 12 cm).
+const stand = await page.evaluate(async () => {
+  const rigMod = await import("/render3d/src/loader.js");
+  const pose = await import("/render3d/src/pose.js");
+  const r = rigMod.getRig("gakuganji");
+  const clip = rigMod.resolveClip("gakuganji", "idle")?.clip;
+  if (!r || !clip) return null;
+  const at = (n) => { const b = r.root.getObjectByName(n); if (!b) return null;
+    const e = b.matrixWorld.elements; return [e[12], e[13], e[14]]; };
+  const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const norm = (v) => { const l = Math.hypot(...v) || 1; return v.map((c) => c / l); };
+  const read = (stanceDeg) => {
+  pose.poseRig(r, "idle", 0, clip, { charKey: "gakuganji", stanceDeg });
+  r.root.updateMatrixWorld(true);
+  let bend = 0, tilt = 0;
+  const ankles = [];
+  for (const side of ["Left", "Right"]) {
+    const hip = at(`${side}UpLeg`), knee = at(`${side}Leg`), ankle = at(`${side}Foot`);
+    const a = norm(sub(knee, hip)), b = norm(sub(ankle, knee));
+    bend = Math.max(bend, (Math.acos(Math.max(-1, Math.min(1,
+      a[0] * b[0] + a[1] * b[1] + a[2] * b[2]))) * 180) / Math.PI);
+    const foot = r.root.getObjectByName(`${side}Foot`);
+    const toe = foot?.children.find((c) => c.isBone);
+    if (toe) {
+      const d = norm(sub(at(toe.name), ankle));
+      tilt = Math.max(tilt, Math.abs((Math.asin(d[1]) * 180) / Math.PI));
+    }
+    ankles.push(ankle[1]);
+  }
+  return { bend, tilt, dY: Math.abs(ankles[0] - ankles[1]) * 100 };
+  };
+  return { closed: read(0), wide: read(22) };
+});
+check(stand && stand.closed.bend < 1 && stand.wide.bend < 1, "the idle stands on STRAIGHT legs",
+  stand ? `knee ${stand.closed.bend.toFixed(1)}° off straight closed, ${stand.wide.bend.toFixed(1)}° wide` : "no rig");
+check(stand && stand.closed.tilt < 1 && stand.closed.dY < 0.3
+    && stand.wide.tilt < 1 && stand.wide.dY < 0.3,
+  "...with both soles flat on one floor, at any stance",
+  stand ? `closed: ${stand.closed.tilt.toFixed(1)}° off level, ${stand.closed.dY.toFixed(2)}cm apart`
+        + `  ·  wide: ${stand.wide.tilt.toFixed(1)}° off level, ${stand.wide.dY.toFixed(2)}cm apart` : "no rig");
 
 // The download is the thing the whole mode exists to produce, and it has to
 // be a payload `billboard_intake.mjs apply` will take without editing.
@@ -293,9 +356,10 @@ if (download) {
   check(payload?.kind === "render3d-workbench",
     "...in the shape `apply --backend 3d` expects", `kind ${payload?.kind}`);
   const entry = payload?.characters?.gakuganji;
-  check(!!entry && Number.isFinite(entry.renderScale) && Number.isFinite(entry.stanceDeg),
-    "...carrying both adjustments on a full manifest entry",
-    entry ? `gakuganji ${entry.renderScale}× / ${entry.stanceDeg}°` : "gakuganji missing");
+  check(!!entry && Number.isFinite(entry.renderScale) && Number.isFinite(entry.stanceDeg)
+      && Number.isFinite(entry.yawOffsetDeg),
+    "...carrying all three adjustments on a full manifest entry",
+    entry ? `gakuganji ${entry.renderScale}× / ${entry.stanceDeg}° / ${entry.yawOffsetDeg}°` : "gakuganji missing");
   check(!!entry?.model && entry?.approved === true,
     "...without dropping the rest of that character's entry");
 }

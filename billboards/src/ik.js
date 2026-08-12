@@ -519,47 +519,56 @@ export function rotateBoneAboutWorldAxis(THREE, bone, axisWorld, rad, tmp) {
 }
 
 /**
- * Widen or narrow the legs — the fighter's STANCE.
+ * HOW A FIGHTER STANDS in their idle: legs straight, soles flat on the floor,
+ * feet however far apart the stance dial says.
  *
- * A sizing dial as much as a posing one. Two idle sprites of the same height
- * can read as very different figures because one plants their feet a shoulder
- * apart and the other stands almost closed, and matching a model's height to
- * a sprite while their stances disagree leaves the silhouettes stubbornly
- * unalike — you end up scaling the model wrong to compensate for a stance you
- * were not looking at.
+ * WHY THE ENGINE OWNS THIS AT ALL. A generated idle arrives with whatever the
+ * generator felt about standing — a knee half bent, one foot rolled onto its
+ * edge, one ankle four centimetres above the other — and none of it is a
+ * decision anybody made about the character. It reads as sloppiness rather
+ * than as personality, and it is different sloppiness on every one of the
+ * twenty-seven, so no single fix applies. Rebuilding the stand here makes the
+ * whole roster agree on the boring part, which is the only way the
+ * interesting part (how WIDE they stand) becomes a dial worth turning.
  *
- * WIDTH, MEASURED FROM THE PELVIS. The first version swung the thighs about
- * the direction it believed the fighter faced, taken from the rig's local +Z
- * per the delivery spec. That belief is exactly the one `yawOffsetDeg` exists
- * to say is false: a rig is turned at the root until it LOOKS right, so local
- * +Z misses the fighter's real forward by the offset — nothing for Yuji at 0°,
- * a right angle for Dagon at 80°. A right angle turns a widening into a
- * STRIDE, which is what showed up as "sometimes the legs move forward and
- * back instead of sideways". Measured across the roster the error ran from 7°
- * to 93°, tracking the offset.
+ * STANCE IS WIDTH, MEASURED FROM THE PELVIS. The first version swung the
+ * thighs about the direction it believed the fighter faced, taken from the
+ * rig's local +Z per the delivery spec. That belief is exactly the one
+ * `yawOffsetDeg` exists to say is false: a rig is turned at the root until it
+ * LOOKS right, so local +Z misses the fighter's real forward by the offset —
+ * nothing for Yuji at 0°, a right angle for Dagon at 80°. A right angle turns
+ * a widening into a STRIDE, which is what showed up as "sometimes the legs
+ * move forward and back instead of sideways".
  *
  * So do not ask the manifest which way anyone faces. The hip JOINTS are the
  * pelvis, in the pose being drawn: the axis from one hip to the other is the
- * width direction by definition, whatever the rig believes about forward and
- * however bladed the idle happens to be. The splay axis is that crossed with
- * up. It does not even have to be true that "LeftUpLeg" is on the fighter's
- * left — swap the two names and the measured lateral flips WITH the sign each
- * leg is turned by, so both legs still part company and the dial still reads
+ * width direction by definition, whatever the rig believes about forward. It
+ * does not even have to be true that "LeftUpLeg" is on the fighter's left —
+ * swap the two names and the measured lateral flips WITH the sign each leg is
+ * turned by, so both legs still part company and the dial still reads
  * "positive is wider".
  *
- * FEET STAY FLAT. Turning a thigh alone carries the shin and foot with it, so
- * the sole rolls onto its edge and the toes swing out. The shin is turned back
- * by the same amount about the same axis, which leaves it upright and hands
- * the foot back its world orientation exactly: the leg TRANSLATES sideways
- * instead of swinging. Widening also shortens the legs (thigh · (1 − cos)),
- * as it does on a real person, so the hips come down by the height the feet
- * gained and the fighter keeps the floor.
+ * WHAT IT DOES, IN ORDER:
  *
- * Composed onto whatever the clip did, so a stance is a per-fighter constant
- * rather than a re-authored idle.
+ *   1. Points each thigh straight down, then out by `deg` about that pelvis
+ *      axis. Straight down is the reference the dial is measured from, so 0°
+ *      is a fighter standing square and every value means the same thing on
+ *      every model.
+ *   2. Points the shin along the thigh, so the leg is one straight line from
+ *      hip to ankle. The knee bend the delivery came with is gone — including
+ *      the half-bend that made a fighter look like they were about to sit
+ *      down.
+ *   3. Levels the sole: the foot is turned until the toes point along the
+ *      floor rather than into it, then rolled until it is not standing on its
+ *      edge. Yaw is untouched, so a foot turned out stays turned out.
+ *   4. Drops the hips by whatever height the feet gained, so the fighter keeps
+ *      the ground contact their idle had. Straightening a bent knee makes
+ *      somebody taller, and a fighter who grows also floats.
+ *
+ * Idle only, and composed onto the clip rather than replacing it: everything
+ * above the hips is still the delivered pose.
  */
-export function applyStance(THREE, root3d, deg, tmp) {
-  if (!deg) return false;
+export function applyIdleStand(THREE, root3d, deg, tmp) {
   const legs = ["Left", "Right"].map((side) => ({
     up: root3d.getObjectByName(`${side}UpLeg`),
     lo: root3d.getObjectByName(`${side}Leg`),
@@ -568,30 +577,74 @@ export function applyStance(THREE, root3d, deg, tmp) {
   if (!legs[0].up || !legs[1].up) return false;
   root3d.updateMatrixWorld(true);
 
-  // The pelvis's own width axis, hip joint to hip joint, flattened to the floor.
-  const lateral = tmp.v4.setFromMatrixPosition(legs[1].up.matrixWorld)
+  // The pelvis's own width axis, hip joint to hip joint.
+  const span = tmp.v4.setFromMatrixPosition(legs[1].up.matrixWorld)
     .sub(tmp.v5.setFromMatrixPosition(legs[0].up.matrixWorld));
-  lateral.y = 0;
+  const lateral = tmp.v3.set(span.x, 0, span.z);
   if (lateral.lengthSq() < 1e-8) return false;
   lateral.normalize();
   // axis = lateral x up: turning a leg about it moves the foot along lateral.
-  const axis = tmp.v5.set(-lateral.z, 0, lateral.x);
+  const axis = tmp.v5.set(-lateral.z, 0, lateral.x).normalize();
 
   const floorBefore = footFloor(legs, tmp);
+
+  // LEVEL THE PELVIS. An idle usually rests its weight on one leg, which rolls
+  // the hips — and with both legs then hanging straight down from hip joints
+  // at different heights, one foot ends up in the air. Rolling the pelvis
+  // level costs nothing above the waist (the spine keeps its own rotation, so
+  // a lean stays a lean) and puts both hip joints on one line to hang from.
+  const hips = root3d.getObjectByName("Hips");
+  if (hips && span.lengthSq() > 1e-8) {
+    turnBoneWorld(THREE, hips, tmp.q1.setFromUnitVectors(span.normalize(), lateral), tmp);
+    root3d.updateMatrixWorld(true);
+  }
+
+  // MATCH THE LEG LENGTHS, which is not a thing a pose layer should have to do
+  // and is unarguably what the deliveries need. Levelling the pelvis made the
+  // float WORSE on several fighters, which was the clue: their idle's pelvis
+  // roll was covering for legs of different lengths. Measured hip joint to
+  // ankle, twenty of the twenty-seven are asymmetric, and Geto's right leg is
+  // 12 cm longer than his left — 13%, a limp built into the skeleton. So each
+  // leg is scaled to the pair's MEAN rather than the shorter one stretched to
+  // the longer: half the correction each way is half the visible change, and
+  // at these sizes (±6% at the worst, under 2% for most) it reads as nothing
+  // at all, where a foot hanging 12 cm off the floor reads immediately.
+  equaliseLegs(legs, tmp);
+  root3d.updateMatrixWorld(true);
   const rad = (deg * Math.PI) / 180;
   for (let i = 0; i < 2; i++) {
     const sign = i === 0 ? -1 : 1; // apart, not both the same way
-    rotateBoneAboutWorldAxis(THREE, legs[i].up, axis, sign * rad, tmp);
-    // Give the world orientation back to everything below the knee. Without a
-    // shin there is nothing to straighten, so settle for a level foot.
-    const under = legs[i].lo || legs[i].foot;
-    if (under) rotateBoneAboutWorldAxis(THREE, under, axis, -sign * rad, tmp);
+    const { up, lo, foot } = legs[i];
+    // Straight down, then out by the stance. One direction for the whole leg.
+    const dir = tmp.v6.set(0, -1, 0).applyAxisAngle(axis, sign * rad).normalize();
+
+    up.updateWorldMatrix(true, false);
+    const hip = tmp.p1.setFromMatrixPosition(up.matrixWorld);
+    if (lo) {
+      lo.updateWorldMatrix(true, false);
+      const knee = tmp.p2.setFromMatrixPosition(lo.matrixWorld);
+      const thighLen = knee.distanceTo(hip);
+      aimBoneAt(THREE, up, hip, knee, tmp.p3.copy(hip).addScaledVector(dir, thighLen), tmp);
+      if (foot) {
+        lo.updateWorldMatrix(true, false);
+        foot.updateWorldMatrix(true, false);
+        const knee2 = tmp.p1.setFromMatrixPosition(lo.matrixWorld);
+        const ankle = tmp.p2.setFromMatrixPosition(foot.matrixWorld);
+        const shinLen = ankle.distanceTo(knee2);
+        aimBoneAt(THREE, lo, knee2, ankle, tmp.p3.copy(knee2).addScaledVector(dir, shinLen), tmp);
+      }
+    } else if (foot) {
+      foot.updateWorldMatrix(true, false);
+      const ankle = tmp.p2.setFromMatrixPosition(foot.matrixWorld);
+      aimBoneAt(THREE, up, hip, ankle,
+        tmp.p3.copy(hip).addScaledVector(dir, ankle.distanceTo(hip)), tmp);
+    }
+    if (foot) levelSole(THREE, foot, tmp);
   }
   root3d.updateMatrixWorld(true);
 
-  // Legs are shorter now than they were standing closed. Sink to meet the
-  // floor rather than hover above it.
-  const hips = root3d.getObjectByName("Hips");
+  // A straightened leg is a longer leg, and a splayed one is shorter. Either
+  // way the fighter keeps the floor they were standing on.
   const floorAfter = footFloor(legs, tmp);
   if (hips && hips.parent && floorBefore !== null && floorAfter !== null
       && Math.abs(floorAfter - floorBefore) > 1e-4) {
@@ -603,8 +656,106 @@ export function applyStance(THREE, root3d, deg, tmp) {
   return true;
 }
 
-/** The lower of the two ankles, in world Y — the height the stance has to
- *  hold on to. Null when neither foot exists. */
+/** Hip joint to ankle, following the knee — the length that decides how far
+ *  off the floor this foot ends up. */
+function legLength(leg, tmp) {
+  if (!leg.up || !leg.foot) return 0;
+  leg.up.updateWorldMatrix(true, false);
+  leg.foot.updateWorldMatrix(true, false);
+  const hip = tmp.p1.setFromMatrixPosition(leg.up.matrixWorld);
+  const ankle = tmp.p2.setFromMatrixPosition(leg.foot.matrixWorld);
+  if (!leg.lo) return hip.distanceTo(ankle);
+  leg.lo.updateWorldMatrix(true, false);
+  const knee = tmp.p3.setFromMatrixPosition(leg.lo.matrixWorld);
+  return hip.distanceTo(knee) + knee.distanceTo(ankle);
+}
+
+/** Scale both legs to their mean length. Scaling the thigh takes the whole
+ *  chain below it, which is the point — a leg is lengthened, not a thigh. */
+function equaliseLegs(legs, tmp) {
+  for (const leg of legs) leg.up.scale.set(1, 1, 1);
+  legs[0].up.parent?.updateMatrixWorld(true);
+  const a = legLength(legs[0], tmp);
+  const b = legLength(legs[1], tmp);
+  if (a < 1e-4 || b < 1e-4) return;
+  const mean = (a + b) / 2;
+  legs[0].up.scale.setScalar(mean / a);
+  legs[1].up.scale.setScalar(mean / b);
+}
+
+/** Give the legs their delivered lengths back. The clean-pose buffer restores
+ *  rotations and positions but not SCALE, so a scale left on by the idle would
+ *  follow the fighter into every other state (pose.js calls this there). */
+export function clearIdleStand(root3d) {
+  for (const side of ["Left", "Right"]) {
+    const up = root3d.getObjectByName(`${side}UpLeg`);
+    if (up && (up.scale.x !== 1 || up.scale.y !== 1 || up.scale.z !== 1)) up.scale.set(1, 1, 1);
+  }
+}
+
+/**
+ * Put the sole on the floor: level the foot without turning it.
+ *
+ * Two rotations, because a foot can be wrong in two ways and fixing one leaves
+ * the other. First the toe direction is brought into the horizontal plane —
+ * that is toes-down and toes-up. Then the foot is rolled about that direction
+ * until its most upright axis is as upright as it can be — that is standing on
+ * the inside or outside edge. What is deliberately NOT touched is yaw: a
+ * fighter whose feet splay outward keeps them splayed, because that is a pose,
+ * not an error.
+ */
+function levelSole(THREE, foot, tmp) {
+  foot.updateWorldMatrix(true, false);
+  const at = tmp.p1.setFromMatrixPosition(foot.matrixWorld);
+  const toe = foot.children.find((c) => c.isBone);
+  let dir;
+  if (toe) {
+    toe.updateWorldMatrix(true, false);
+    dir = tmp.v1.setFromMatrixPosition(toe.matrixWorld).sub(at);
+  } else {
+    // No toe bone: the standard skeleton's foot points along its own +Y.
+    dir = tmp.v1.set(0, 1, 0).applyQuaternion(foot.getWorldQuaternion(tmp.q3));
+  }
+  if (dir.lengthSq() < 1e-10) return;
+  dir.normalize();
+  const flat = tmp.v2.set(dir.x, 0, dir.z);
+  if (flat.lengthSq() < 1e-8) return; // a foot pointing straight up or down
+  flat.normalize();
+  turnBoneWorld(THREE, foot, tmp.q1.setFromUnitVectors(dir, flat), tmp);
+
+  // Roll. Of the foot's own three axes, take whichever now stands closest to
+  // vertical and bring it the rest of the way.
+  foot.updateWorldMatrix(true, false);
+  const m = foot.matrixWorld.elements;
+  let best = null, bestDot = 0;
+  for (const [i, v] of [[0, tmp.v3], [1, tmp.v4], [2, tmp.v6]]) {
+    const c = v.set(m[i * 4], m[i * 4 + 1], m[i * 4 + 2]).normalize();
+    const d = c.y;
+    if (Math.abs(d) > Math.abs(bestDot)) { bestDot = d; best = v; }
+  }
+  if (!best || Math.abs(bestDot) < 0.2) return; // no axis is meaningfully "up"
+  if (bestDot < 0) best.negate();
+  // Both the axis and world up, measured in the plane perpendicular to the toe
+  // direction — the only plane a roll can move anything in.
+  const cur = tmp.v7.copy(best).addScaledVector(flat, -best.dot(flat));
+  const up = tmp.v1.set(0, 1, 0).addScaledVector(flat, -flat.y);
+  if (cur.lengthSq() < 1e-8 || up.lengthSq() < 1e-8) return;
+  cur.normalize();
+  up.normalize();
+  turnBoneWorld(THREE, foot, tmp.q1.setFromUnitVectors(cur, up), tmp);
+}
+
+/** Compose a WORLD-space rotation onto a bone, keeping everything the clip and
+ *  the layers before it did. */
+function turnBoneWorld(THREE, bone, deltaWorld, tmp) {
+  const world = bone.getWorldQuaternion(tmp.q2);
+  const parentWorld = bone.parent ? bone.parent.getWorldQuaternion(tmp.q3) : tmp.q3.identity();
+  bone.quaternion.copy(parentWorld.invert().multiply(deltaWorld.multiply(world)));
+  bone.updateMatrixWorld(true);
+}
+
+/** The lower of the two ankles, in world Y — the height the stand has to hold
+ *  on to. Null when neither foot exists. */
 function footFloor(legs, tmp) {
   let y = null;
   for (const leg of legs) {

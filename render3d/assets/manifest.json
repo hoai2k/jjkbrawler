@@ -26,7 +26,8 @@
           0.6899
         ]
       },
-      "renderScale": 1.15
+      "renderScale": 1.15,
+      "stanceDeg": 7
     },
     "jogo": {
       "model": "jogo/jogo.glb",
@@ -54,7 +55,8 @@
           0.6629
         ]
       },
-      "renderScale": 1.02
+      "renderScale": 1.02,
+      "stanceDeg": 10
     },
     "hanami": {
       "model": "hanami/hanami.glb",
@@ -68,7 +70,8 @@
           0.7835
         ]
       },
-      "renderScale": 1.02
+      "renderScale": 1.02,
+      "stanceDeg": 16
     },
     "uro": {
       "model": "uro/uro.glb",
@@ -85,7 +88,8 @@
           0.8647
         ]
       },
-      "renderScale": 1.26
+      "renderScale": 1.26,
+      "stanceDeg": 9
     },
     "geto": {
       "model": "geto/geto.glb",
@@ -99,7 +103,7 @@
         ]
       },
       "renderScale": 1.02,
-      "stanceDeg": -10
+      "stanceDeg": 18
     },
     "mahito": {
       "model": "mahito/mahito.glb",
@@ -139,7 +143,7 @@
         ]
       },
       "renderScale": 1.01,
-      "stanceDeg": -10
+      "stanceDeg": 19
     },
     "nobara": {
       "model": "nobara/nobara.glb",
@@ -153,7 +157,8 @@
         ]
       },
       "yawOffsetDeg": 45,
-      "renderScale": 1.03
+      "renderScale": 1.03,
+      "stanceDeg": 6
     },
     "choso": {
       "model": "choso/choso.glb",
@@ -168,7 +173,7 @@
       },
       "yawOffsetDeg": 0,
       "renderScale": 1.03,
-      "stanceDeg": -10
+      "stanceDeg": 9
     },
     "gakuganji": {
       "model": "gakuganji/gakuganji.glb",
@@ -181,7 +186,8 @@
           0.7286
         ]
       },
-      "yawOffsetDeg": 45
+      "yawOffsetDeg": 45,
+      "stanceDeg": 9
     },
     "hakari": {
       "model": "hakari/hakari.glb",
@@ -195,7 +201,8 @@
         ]
       },
       "yawOffsetDeg": 30,
-      "renderScale": 1.01
+      "renderScale": 1.01,
+      "stanceDeg": 7
     },
     "mechamaru": {
       "model": "mechamaru/mechamaru.glb",
@@ -209,7 +216,8 @@
         ]
       },
       "yawOffsetDeg": 75,
-      "renderScale": 1.02
+      "renderScale": 1.02,
+      "stanceDeg": 14
     },
     "meimei": {
       "model": "meimei/meimei.glb",
@@ -221,7 +229,8 @@
           0.7358,
           0.7457
         ]
-      }
+      },
+      "stanceDeg": -10
     },
     "panda": {
       "model": "panda/panda.glb",
@@ -234,7 +243,8 @@
           0.8597
         ]
       },
-      "yawOffsetDeg": 45
+      "yawOffsetDeg": 45,
+      "stanceDeg": 10
     },
     "yuta": {
       "model": "yuta/yuta.glb",
@@ -248,7 +258,8 @@
         ]
       },
       "yawOffsetDeg": 45,
-      "renderScale": 1.03
+      "renderScale": 1.03,
+      "stanceDeg": 5
     },
     "inumaki": {
       "model": "inumaki/inumaki.glb",
@@ -262,7 +273,8 @@
         ]
       },
       "yawOffsetDeg": 30,
-      "renderScale": 1.01
+      "renderScale": 1.01,
+      "stanceDeg": 11
     },
     "kurourushi": {
       "model": "kurourushi/kurourushi.glb",
@@ -290,7 +302,8 @@
         ]
       },
       "yawOffsetDeg": 60,
-      "renderScale": 1.16
+      "renderScale": 1.16,
+      "stanceDeg": 3
     },
     "nanami": {
       "model": "nanami/nanami.glb",
@@ -303,7 +316,8 @@
           0.7271
         ]
       },
-      "yawOffsetDeg": 75
+      "yawOffsetDeg": 75,
+      "stanceDeg": 9
     },
     "todo": {
       "model": "todo/todo.glb",
@@ -316,7 +330,8 @@
           0.8395
         ]
       },
-      "yawOffsetDeg": 45
+      "yawOffsetDeg": 45,
+      "stanceDeg": 12
     },
     "dagon": {
       "model": "dagon/dagon.glb",
@@ -330,7 +345,8 @@
         ]
       },
       "yawOffsetDeg": 80,
-      "renderScale": 1.01
+      "renderScale": 1.01,
+      "stanceDeg": 14
     },
     "toji": {
       "model": "toji/toji.glb",
@@ -343,7 +359,8 @@
           0.6291
         ]
       },
-      "yawOffsetDeg": 45
+      "yawOffsetDeg": 45,
+      "stanceDeg": 10
     },
     "reggie": {
       "model": "reggie/reggie.glb",
@@ -357,7 +374,8 @@
         ]
       },
       "yawOffsetDeg": 60,
-      "renderScale": 1.01
+      "renderScale": 1.01,
+      "stanceDeg": 12
     },
     "yuki": {
       "model": "yuki/yuki.glb",
@@ -371,7 +389,8 @@
         ]
       },
       "yawOffsetDeg": 60,
-      "renderScale": 1.01
+      "renderScale": 1.01,
+      "stanceDeg": 12
     }
   }
 }

@@ -31,7 +31,7 @@
 
 import { STATES, clipNameFor, clipTime, aimable } from "../../billboards/src/states.js";
 import {
-  applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs, applyStance,
+  applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs, applyIdleStand, clearIdleStand,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
   reachChain, gripBones,
 } from "../../billboards/src/ik.js";
@@ -359,12 +359,18 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   restoreClean(rig.root);
   playClip(rig, animKey, sampled, clip);
   keepClean(rig.root);
-  // Stance before anything reaches: widening the legs moves the hips and
-  // therefore every joint above them, so a solve run first would be solving
-  // from a body about to move. Idle only — it is a standing trait, and a
-  // splay held through a run cycle reads as a limp.
-  if (layers.stanceDeg && clipNameFor(animKey) === "idle") {
-    applyStance(THREE, rig.root, layers.stanceDeg, _ik);
+  // How the fighter STANDS, before anything reaches: straightening the legs
+  // and squaring the feet moves the hips, and therefore every joint above
+  // them, so a solve run first would be solving from a body about to move.
+  //
+  // Idle only, and unconditional there — the straight legs and level soles are
+  // not an opt-in setting but what standing looks like, so a fighter whose
+  // stance dial reads 0 still gets them. A splay held through a run cycle
+  // reads as a limp, which is why it stops at the idle.
+  if (clipNameFor(animKey) === "idle") {
+    applyIdleStand(THREE, rig.root, layers.stanceDeg || 0, _ik);
+  } else {
+    clearIdleStand(rig.root);
   }
   // Body morphs (Mahito's transfiguration arms) precede aim/reach so every
   // solve sees the morphed limb.
