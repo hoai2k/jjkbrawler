@@ -43,12 +43,17 @@
   </head>
   <body>
     <header class="bar">
-      <strong>3D Workbench</strong>
-      <span class="hint">Live clips through the game's own anime pipeline, over the sprite they replace. What you see is what <code>?render=3d</code> draws.</span>
+      <strong id="wbTitle">3D Pose Workbench</strong>
+      <span class="hint pose-only">One sprite pose at a time, the drawing beside the
+        model. Match the pose — and the colour, the size, the stance — and the
+        animation is the interpolation between them.</span>
+      <span class="hint anim-only">Live clips through the game's own anime pipeline, over the sprite they replace. What you see is what <code>?render=3d</code> draws.</span>
       <!-- In the bar, not in a panel tab: the review is a phone job, and on a
            phone the panels are behind a tab bar. An entry point you have to
            go looking for is one nobody uses. -->
       <button id="facingReviewTop" class="ghost sm">▶ Review size</button>
+      <a class="ghost sm anim-only" id="toPose" href="?">← Poses</a>
+      <a class="ghost sm pose-only" id="toAnim" href="?edit=animation">Animation →</a>
       <a class="ghost sm" href="../../billboards/workbench/">Billboard Workbench →</a>
       <a class="ghost sm" href="../../sprites/workbench/">Sprite Workbench →</a>
     </header>
@@ -73,38 +78,65 @@
 
       <aside class="panel" id="panel">
         <div class="ptab" data-tab="scene">
-        <label>Character
+        <label>Character</label>
+        <div class="row navrow">
+          <button id="charPrev" class="ghost sm" title="Previous character (,)">◀</button>
           <select id="charSelect"></select>
-        </label>
-        <label>State
+          <button id="charNext" class="ghost sm" title="Next character (.)">▶</button>
+        </div>
+        <label class="check"><input id="fiveToggle" type="checkbox"> Show 5 across</label>
+        <p class="hint five-only">A line-up: five fighters from the selected one
+        on, each under their own drawing. Size, colour and stance only disagree
+        visibly side by side — so this is a viewing mode, and the per-fighter
+        dials are put away rather than left pointed at whichever one is
+        selected.</p>
+
+        <!-- POSE MODE's subject: a DRAWING, not a state. Every pose the game
+             can draw this fighter in, grouped by the state that draws it. -->
+        <label class="pose-only">Sprite pose</label>
+        <div class="row navrow pose-only">
+          <button id="posePrev" class="ghost sm" title="Previous pose ([)">◀</button>
+          <select id="poseSelect"></select>
+          <button id="poseNext" class="ghost sm" title="Next pose (])">▶</button>
+        </div>
+        <div id="poseWhere" class="mono hint pose-only"></div>
+
+        <label class="anim-only">State
           <select id="stateSelect"></select>
         </label>
-        <div class="row">
+        <div class="row anim-only">
           <button id="playBtn" class="ghost sm">▶ Play</button>
           <input id="scrub" type="range" min="0" max="1" step="0.001" value="0">
           <span id="timeLabel" class="mono">0.00s</span>
         </div>
         <label>Comparison sprite
           <select id="compareMode">
-            <option value="overlay" selected>Overlay — ghosted behind the model</option>
-            <option value="left">Beside — drawn to the left</option>
+            <option value="left" selected>Beside — drawn to the left</option>
+            <option value="overlay">Overlay — ghosted behind the model</option>
             <option value="off">None</option>
           </select>
         </label>
         <div class="row">
-          <label class="check"><input id="beatToggle" type="checkbox" checked> Snap to beat</label>
+          <label class="check anim-only"><input id="beatToggle" type="checkbox" checked> Snap to beat</label>
           <label class="check"><input id="aimToggle" type="checkbox" checked> Aim target</label>
         </div>
         <div class="row">
           <label class="check"><input id="turnToggle" type="checkbox"> Face left (turnaround)</label>
-          <label class="check"><input id="twosToggle" type="checkbox" checked> On twos</label>
+          <label class="check anim-only"><input id="twosToggle" type="checkbox" checked> On twos</label>
         </div>
+        <div class="row anim-only">
+          <label class="check"><input id="interpToggle" type="checkbox"> Play from sprite poses</label>
+        </div>
+        <p class="hint anim-only">The A/B for the strategy: OFF plays the
+        delivered clip; ON throws it away and plays the interpolation between
+        this state's sprite poses — the same poses the pose bench edits, at the
+        sprite animation's own frame rate. Nothing on disk changes either way.</p>
         <p class="hint">Drag the crosshair to move the aim target. Face left
         shows the real turnaround — the rig yawed, not mirrored, so
         asymmetric costumes stay correct.</p>
         </div>
 
-        <div class="ptab" data-tab="pose">
+        <div class="ptab one-char" data-tab="pose">
         <h3>3D pose</h3>
         <div class="pose-box" id="poseBox">
           <div class="row">
@@ -112,18 +144,18 @@
             <button id="poseExportBtn" class="ghost sm">⭳ Output changes</button>
           </div>
 
-          <label>Keyframe (the extremes — everything else is the curve)</label>
-          <div class="row keyrow">
-            <button id="keyPrev" class="ghost sm" title="Previous keyframe">◀</button>
+          <label class="anim-only">Pose (the extremes — everything else is the curve)</label>
+          <div class="row keyrow anim-only">
+            <button id="keyPrev" class="ghost sm" title="Previous pose">◀</button>
             <div id="keyStrip" class="keystrip"></div>
-            <button id="keyNext" class="ghost sm" title="Next keyframe">▶</button>
+            <button id="keyNext" class="ghost sm" title="Next pose">▶</button>
           </div>
-          <div class="row">
-            <button id="keyAdd" class="ghost sm" title="Add a keyframe at the playhead">＋ key here</button>
-            <button id="keyBeat" class="ghost sm" title="Add a keyframe at the contact beat">＋ at beat</button>
-            <button id="keyDel" class="ghost sm" title="Delete the selected keyframe">− key</button>
+          <div class="row anim-only">
+            <button id="keyAdd" class="ghost sm" title="Add an extreme at the playhead — an in-between the sprite set does not draw">＋ key here</button>
+            <button id="keyBeat" class="ghost sm" title="Add an extreme at the contact beat">＋ at beat</button>
+            <button id="keyDel" class="ghost sm" title="Delete the selected extreme">− key</button>
           </div>
-          <label>Travels out of this key by
+          <label class="anim-only">Travels out of this pose by
             <select id="easeSelect"></select>
           </label>
 
@@ -143,16 +175,17 @@
           <div id="poseLine" class="mono hint"></div>
           <div id="poseCount" class="mono hint"></div>
           <p class="hint">Drag a joint and its PARENT bone rotates toward the
-          pointer. Edits land on the SELECTED keyframe, and the playhead snaps
-          there so what you drag is what you change; the in-betweens rebuild
-          from the curve. Round handles are the clip's to pose; diamond ones
-          <b>⌖</b> are aimed at the target by a solver, and their edits are
+          pointer. Edits land on the pose named above — the drawing beside the
+          model — and every state that draws it gets them; the in-betweens
+          rebuild from the curve. Round handles are the pose's to set; diamond
+          ones <b>⌖</b> are aimed at the target by a solver, and their edits are
           saved as offsets from that solve. <b>Output changes</b> downloads the
-          keyframe tables.</p>
+          pose library.</p>
         </div>
         </div>
 
         <div class="ptab" data-tab="look">
+        <div class="one-char">
         <h3>Model size &amp; facing</h3>
         <div class="pose-box">
           <label>Scale <span class="mono" id="scaleVal">1.00×</span>
@@ -213,7 +246,16 @@
             <span class="dot"></span><button class="clear" data-key="outlinePx" title="Use the roster's value">×</button>
             <input id="outline" type="range" min="0" max="4" step="0.1">
           </label>
-          <label>Sample rate (Hz) <span class="mono" id="hzVal"></span>
+        </details>
+        </div>
+
+        <!-- The dials that are NOT a fact about one model: an engine sample
+             rate, the stage's own light, a camera trim. They stay put in the
+             line-up, where they are exactly what you want to sweep across five
+             fighters at once. -->
+        <details class="group" open>
+          <summary>Scene &amp; engine</summary>
+          <label class="anim-only">Sample rate (Hz) <span class="mono" id="hzVal"></span>
             <input id="hz" type="range" min="6" max="30" step="1">
           </label>
           <div class="row">
@@ -233,7 +275,7 @@
 
         </div>
 
-        <div class="ptab" data-tab="clips">
+        <div class="ptab one-char" data-tab="clips">
         <h3>This state's clip</h3>
         <div id="sourceLine" class="mono src"></div>
         <label>Inherit this pose from
@@ -262,7 +304,7 @@
         <button data-open="pose">✥<span>Pose</span></button>
         <button data-open="look">🎨<span>Look</span></button>
         <button data-open="clips">🎞<span>Clips</span></button>
-        <button id="mobilePlay">⏸<span>Pause</span></button>
+        <button id="mobilePlay" class="anim-only">⏸<span>Pause</span></button>
       </nav>
     </main>
 

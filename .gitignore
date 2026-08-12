@@ -12,3 +12,4 @@ tools/__pycache__/
 # Local dev
 node_modules/
 package-lock.json
+_shots/

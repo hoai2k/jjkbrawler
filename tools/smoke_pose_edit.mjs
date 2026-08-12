@@ -64,18 +64,22 @@ const clientOf = (pt) => page.evaluate(([x, y]) => {
 
 // A mannequin character: its clips are the authored default set, so the table
 // under test is the one the pose tables actually hold.
-await open("?char=gojo&state=run");
+// ...on the ANIMATION bench: this is the playhead-and-curves half of the tool,
+// and the pose bench deliberately hides all of it (workbench.js MODE).
+await open("?edit=animation&char=gojo&state=run");
 await page.click("#editPoseBtn");
 await page.waitForTimeout(500);
 
-// ---- 3a. the clip arrives as extremes, not as frames ------------------------
+// ---- 3a. the clip arrives as the SPRITE POSES, not as frames ----------------
+// Every key is one of this fighter's run drawings, named as such — two of them
+// on the old `run_a`/`run_b` pair, four once the run cycle art lands.
 const keys = await page.$$eval(".keychip", (n) => n.map((x) => x.textContent));
-check(keys.length >= 5 && keys.length <= 12,
-  "a run cycle presents as a handful of extremes", `${keys.length} keys`);
+check(keys.length >= 2 && keys.length <= 12 && keys.every((k) => /^[a-z]/.test(k)),
+  "a run cycle presents as its sprite poses", keys.join(", "));
 
-// Work on a middle extreme: the first key has no predecessor to interpolate
+// Work on a LATER extreme: the first key has no predecessor to interpolate
 // from, which would make the curve check compare a segment against itself.
-await page.$$eval(".keychip", (n) => n[2].click());
+await page.$$eval(".keychip", (n) => n[Math.min(2, n.length - 1)].click());
 await page.waitForTimeout(300);
 
 // ---- 1. handles are game-pixel positions ------------------------------------
@@ -160,7 +164,7 @@ check(added === before + 1 && back === before,
   `${before} -> ${added} -> ${back}`);
 
 // ---- 4. the two spaces ------------------------------------------------------
-await open("?char=gojo&state=light");
+await open("?edit=animation&char=gojo&state=light");
 await page.click("#editPoseBtn");
 await page.waitForTimeout(400);
 await page.selectOption("#jointSelect", "RightForeArm");
@@ -194,18 +198,26 @@ check(Array.isArray(spaces.post) && spaces.post.includes("RightForeArm"),
 const dir = mkdtempSync(join(tmpdir(), "clip-edit-"));
 const dl = page.waitForEvent("download");
 await page.click("#poseExportBtn");
-const file = join(dir, "clip-edits.json");
+const file = join(dir, "pose-library.json");
 await (await dl).saveAs(file);
 const payload = JSON.parse(readFileSync(file, "utf8"));
-check(payload.kind === "render3d-clip-edits", "the payload names itself", payload.kind);
-const block = payload.characters?.gojo?.light;
-check(Array.isArray(block?.keys) && block.keys.every((k) => k.ease && k.pose),
-  "every exported key carries its pose and its curve", `${block?.keys?.length} keys`);
+check(payload.kind === "render3d-pose-library", "the payload names itself", payload.kind);
+const gojo = payload.characters?.gojo;
+const block = gojo?.states?.light;
+// The library is keyed by DRAWING; a state says which drawings it plays, when,
+// and how the body travels out of each. One pose, one entry, however many
+// states use it.
+check(Array.isArray(block?.keys) && block.keys.every((k) => k.ease && k.frame)
+  && block.keys.every((k) => gojo.poses[k.frame]),
+  "every exported key names a drawing the library carries",
+  `${block?.keys?.length} keys, ${Object.keys(gojo?.poses || {}).length} poses`);
+check(block.keys.every((k) => !k.pose),
+  "...and carries no second copy of the pose beside it");
 check(!!block?.targetSpaceOffsetsDeg?.RightForeArm,
-  "target-space offsets are exported apart from the keyframes");
+  "target-space offsets are exported apart from the poses");
 
 // ---- 5. the delivery settings -------------------------------------------------
-await open("?char=gojo&state=idle");
+await open("?edit=animation&char=gojo&state=idle");
 const drawn = () => page.evaluate(async () => {
   const rigs = await import("/render3d/src/loader.js");
   const scene = await import("/render3d/src/scene.js");
