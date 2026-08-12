@@ -1,7 +1,7 @@
 {
   "character": "yuki",
   "facing": "right",
-  "_about": "Seed poses fitted from the hand-read yuji sheet, not read from this art. Every pose here is a starting point for the pose editor (render3d/workbench/?edit=pose), not a statement about how yuki is drawn.",
+  "_about": "Poses marked `seed` were fitted from the hand-read yuji sheet, not read from this art: a starting point for the pose editor (render3d/workbench/?edit=pose), not a statement about how yuki is drawn. A pose carrying `source` has been through the editor and is a read.",
   "_joints": ["head", "neck", "chest", "pelvis", "shoulderL", "elbowL", "handL", "shoulderR", "elbowR", "handR", "hipL", "kneeL", "footL", "hipR", "kneeR", "footR"],
   "_seed": "tools/pose_seed.py, from yuji",
   "poses": {
@@ -18,6 +18,13 @@
              "shoulderL": [38, 23.7], "elbowL": [20, 31.8], "handL": [7.4, 36.5], "shoulderR": [46, 22.7],
              "elbowR": [56, 24.7], "handR": [59, 21.7], "hipL": [39, 48], "kneeL": [36, 60.1],
              "footL": [11.8, 80.3], "hipR": [45, 48], "kneeR": [58, 45], "footR": [68.7, 47]}
+    },
+    "attack_dash": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [51.5, 11.7], "neck": [48, 18], "chest": [48, 23.3], "pelvis": [44.4, 47.3],
+             "shoulderL": [37.3, 21.5], "elbowL": [25, 31.2], "handL": [32.7, 49], "shoulderR": [58.6, 21.5],
+             "elbowR": [65.7, 34], "handR": [66.8, 51.1], "hipL": [33.8, 47.3], "kneeL": [28.5, 63.9],
+             "footL": [9, 79.2], "hipR": [55.1, 47.3], "kneeR": [57.8, 63.9], "footR": [43.7, 77.1]}
     },
     "attack_down": {
       "seed": "fitted from yuji/attack_down",
@@ -130,6 +137,27 @@
              "shoulderL": [57.2, 22.4], "elbowL": [39.1, 25.4], "handL": [22, 31.3], "shoulderR": [65.8, 22.4],
              "elbowR": [70.6, 30], "handR": [74.4, 35.5], "hipL": [54, 45.3], "kneeL": [50, 65.8],
              "footL": [43.1, 59.2], "hipR": [60.4, 45.3], "kneeR": [71.1, 55.2], "footR": [69.4, 53.6]}
+    },
+    "grab_hold": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.5, 7], "neck": [48.5, 14], "chest": [48.5, 20], "pelvis": [46.6, 47],
+             "shoulderL": [42.6, 18], "elbowL": [54.5, 29.2], "handL": [51.1, 49.9], "shoulderR": [54.4, 18],
+             "elbowR": [58.3, 32], "handR": [60.3, 45], "hipL": [49.5, 49.1], "kneeL": [46.1, 70.8],
+             "footL": [36.5, 96.2], "hipR": [52.4, 47], "kneeR": [48.9, 68], "footR": [73.9, 86.5]}
+    },
+    "grab_reach": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.6, 7], "neck": [48.4, 14], "chest": [48.4, 20], "pelvis": [46.2, 47],
+             "shoulderL": [41.9, 18], "elbowL": [37.5, 32], "handL": [35.3, 45], "shoulderR": [54.9, 18],
+             "elbowR": [59.3, 32], "handR": [58.7, 47.8], "hipL": [39.7, 47], "kneeL": [33.3, 64.5],
+             "footL": [22.4, 91.3], "hipR": [52.8, 47], "kneeR": [58.5, 68], "footR": [61.5, 90]}
+    },
+    "grabbed": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.4, 7], "neck": [48.5, 17.5], "chest": [48.6, 20], "pelvis": [46.8, 47],
+             "shoulderL": [43.1, 18], "elbowL": [39.5, 32], "handL": [37.7, 45], "shoulderR": [54.1, 18],
+             "elbowR": [57.7, 32], "handR": [59.5, 45], "hipL": [37.4, 42.8], "kneeL": [43, 72.2],
+             "footL": [31.2, 92], "hipR": [52.2, 47], "kneeR": [54.1, 68], "footR": [61.6, 89.3]}
     },
     "guard": {
       "seed": "fitted from yuji/guard",

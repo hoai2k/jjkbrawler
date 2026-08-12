@@ -421,10 +421,11 @@ export function spawnSummon(owner, cfg) {
     // against it without reaching into this module's config.
     //
     // Measured off the drawing (derivedBox) unless the kit states one. A kit
-    // that states one is saying the art cannot be trusted for it — today that
-    // is the creatures whose plates arrived as sheets of six figures, where the
-    // drawn rectangle is six creatures wide. Art loads asynchronously, so this
-    // is re-measured until it lands.
+    // that states one is saying the art cannot be trusted for it — which was
+    // the seven creatures whose plates arrived as sheets of six figures, where
+    // the drawn rectangle was six creatures wide. Round 20A redrew those, so no
+    // kit states a pair today and every creature is hit on its own art. Art
+    // loads asynchronously, so this is re-measured until it lands.
     hitW: cfg.hitW ?? 70,
     hitH: cfg.hitH ?? 90,
     boxFromArt: false,
