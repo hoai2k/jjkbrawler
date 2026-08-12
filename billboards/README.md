@@ -1,11 +1,39 @@
-# `billboards/` — the 2.5D character rendering path
+# `billboards/` — one way of PRESENTING the 3D models
 
-3D models, posed and rendered to a texture, blitted into the same 2D world the
-sprite path draws into. **Yuji plays as a model today** — round B1 is delivered:
-his rig is conformed to spec and carries all 26 clips, and he fights beside
-twenty-six sprite fighters in a real match. Everyone else draws their sprites
-until their rig lands, per character, per draw. What the pilot cost and what it
-found is [docs/b1-yuji.md](docs/b1-yuji.md).
+A card: the same rig `?render=3d` animates, rendered once through a fixed ¾
+camera into a texture and blitted flat into the 2D world. That is the whole of
+what lives here now.
+
+**This is not a second model pipeline.** The rigs, the clips, the state
+contract, the IK, the props and chains, the default pose set and every posing
+layer belong to [`render3d/`](../render3d/) and are imported from it. billboards
+defines only what makes a card a card:
+
+```
+billboards/
+  src/
+    billboard.js   the backend entry — which fighters have a rig, and the
+                   adapter that hands the 2.5D camera a TEXTURE rather than
+                   geometry (render3d hands over the rig itself)
+    renderer.js    the offscreen WebGL canvas, the fixed ¾ ortho camera, and
+                   the pose cache that is the entire economy of this path
+    blit.js        anchoring the card's foot line and mirroring it to face left
+  workbench/       /billboards/workbench/ — how a fighter READS as a card,
+                   beside the sprite it replaces. Read-only: the rig itself is
+                   edited in the 3D workbench
+  docs/            this path's plan, its asset spec and the B1 pilot writeup
+```
+
+It used to keep its own rig registry, its own copy of every `.glb`, its own
+manifest and its own copies of states/ik/clips/props/mannequin. They were
+byte-identical copies that drifted: a facing review turned 22 of 27 fighters in
+render3d's manifest and this path went on drawing them the old way, and the
+same happened again with size and stance a day later. One registry is the fix
+that makes that class of bug impossible rather than merely fixed.
+
+**Yuji plays as a model today** — round B1 is delivered: his rig is conformed to
+spec and carries all 26 clips. What the pilot cost and what it found is
+[docs/b1-yuji.md](docs/b1-yuji.md); the whole roster has rigs now.
 
     node server.mjs
     open 'http://127.0.0.1:5174/?render=billboard'               # the real thing
@@ -20,24 +48,12 @@ aliases (src/render_backend.js), not typos.
 - **[docs/asset-requests.md](docs/asset-requests.md)** — every rig and clip the
   roster needs: delivery spec, clip timing contract, prop and chain bone
   naming, the aim contract. Round B1 (the Yuji pilot) is open.
-- **[intake/README.md](intake/README.md)** — where deliveries land and how they
-  get into the game. Separate from the sprite intake on purpose.
+- **[intake/README.md](intake/README.md)** — retired: rigs land in
+  `render3d/intake/` and this path draws them.
 
-```
-billboards/
-  src/         the pipeline: billboard.js (backend entry), rig.js (registry +
-               clip inheritance), renderer.js (offscreen WebGL + pose cache),
-               blit.js, states.js (the 26-state contract), mannequin.js (the
-               proof body + THE DEFAULT POSE SET), props.js (weapons, props,
-               physics chains), ik.js (two-bone reach solver)
-  workbench/   /billboards/workbench/ — model vs sprite ghost, aim target,
-               per-state clip inheritance editor, approval
-               (three.js is shared with the 2.5D camera and lives at the repo
-               root: ../vendor/, see its VENDOR.md. src/ reaches it only via
-               dynamic import(), so sprite players never load it)
-  assets/      approved runtime rigs + manifest.json (the index)
-  intake/      where deliveries land first
-```
+three.js is shared with the 2.5D camera and lives at the repo root
+(`../vendor/`, see its VENDOR.md); `src/` reaches it only through dynamic
+`import()`, so sprite players never load it.
 
 ## How it works, in one paragraph
 

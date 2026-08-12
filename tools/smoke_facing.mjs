@@ -93,7 +93,7 @@ try {
       }
     }
     {
-      const rigMod = await import("/billboards/src/rig.js");
+      const rigMod = await import("/render3d/src/loader.js");
       const renderer = await import("/billboards/src/renderer.js");
       const { CHARACTER_KEYS } = await import("/src/characters.js");
       renderer.initRenderer(THREE);

@@ -28,10 +28,10 @@
 
 import * as THREE from "../../vendor/three/three.module.js";
 import { GLTFLoader } from "../../vendor/three/loaders/GLTFLoader.js";
-import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimSolve, AIM_MAX_DEG } from "../src/states.js";
-import { reaches, reachWeight } from "../src/ik.js";
-import { propsOf, chainsOf, CHARACTER_PROPS, CHARACTER_CHAINS } from "../src/props.js";
-import * as rig from "../src/rig.js";
+import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimSolve, AIM_MAX_DEG } from "../../render3d/src/states.js";
+import { reaches, reachWeight } from "../../render3d/src/ik.js";
+import { propsOf, chainsOf, CHARACTER_PROPS, CHARACTER_CHAINS } from "../../render3d/src/props.js";
+import * as rig from "../../render3d/src/loader.js";
 import * as renderer from "../src/renderer.js";
 import { blitPose } from "../src/blit.js";
 import { CHARACTER_KEYS, CHARACTERS, getActor } from "../../src/characters.js";
@@ -128,33 +128,24 @@ for (const s of CLIP_STATES) {
 }
 stateSel.value = clipNameFor(state.state);
 
-const fromSel = $("poseFrom");
-const inheritSel = $("inheritSelect");
-function fillSourceSelect(sel, extra) {
-  sel.innerHTML = "";
-  for (const [v, label] of extra) {
-    const o = document.createElement("option");
-    o.value = v;
-    o.textContent = label;
-    sel.append(o);
-  }
-  for (const key of CHARACTER_KEYS) {
-    const o = document.createElement("option");
-    o.value = key;
-    o.textContent = `${CHARACTERS[key]?.name || key} (${key})`;
-    sel.append(o);
-  }
-}
-fillSourceSelect(fromSel, [["", "— resolve normally (own → set → default)"], ["default", "the default pose set"]]);
-fillSourceSelect(inheritSel, [["default", "the default pose set"]]);
+// ------------------------------------------------------------------ readout
+//
+// READ-ONLY, deliberately. Clip inheritance, approval, facing, size and stance
+// are facts about the MODEL, and both backends now draw the same rigs out of
+// render3d — so they are edited in one place (the 3D workbench) and this screen
+// reports what they produced. Two screens editing one manifest is how the two
+// backends came to disagree about which way 22 fighters faced.
 
-// ------------------------------------------------------------- manifest edit
-
-function entryFor(charKey) {
-  const man = rig.rigManifest();
-  man.characters = man.characters || {};
-  man.characters[charKey] = man.characters[charKey] || {};
-  return man.characters[charKey];
+/** The card readout, which is the one panel that changes every frame: the
+ *  cache fills as the clip plays, and watching it fill is how you tell a state
+ *  that re-uses its renders from one that thrashes. */
+function syncCardLine() {
+  const c = renderer.stats;
+  const asked = c.hits + c.misses;
+  $("cardLine").textContent =
+    `texture: ${renderer.TEX_SIZE}px  ·  cache ${c.hits}/${asked} hits`
+    + `${asked ? ` (${Math.round((c.hits / asked) * 100)}%)` : ""}`
+    + `  ·  ${c.renders} render(s), ${c.evictions} evicted`;
 }
 
 function syncPanel() {
@@ -163,9 +154,10 @@ function syncPanel() {
   $("sourceLine").textContent = resolved
     ? `resolves: ${resolved.source}` : "resolves: NOTHING — state would fall to sprites";
   const r = rig.getRig(state.char);
-  $("rigLine").textContent = entry.model
-    ? `rig: ${entry.model}${entry.approved ? " (approved)" : " (NOT approved)"}`
-    : `rig: none delivered — mannequin standing in (${r ? r.clips.size : 0} own clips)`;
+  // What this backend itself decides: the size of the baked texture and how
+  // well the pose cache is doing. One render serves many frames and both
+  // facings, and the hit rate is the whole argument for drawing cards at all.
+  syncCardLine();
   // What the rig carries beyond the body — and what the roster table says it
   // SHOULD carry, so a delivery missing its weapon is visible here.
   const expectedProps = (CHARACTER_PROPS[state.char] || []).map((pr) => `${pr.bone} (${pr.kind})`);
@@ -175,9 +167,6 @@ function syncPanel() {
   $("propsLine").textContent =
     `props: ${actualProps.join(", ") || "none"}${expectedProps.length ? `  (expected: ${expectedProps.join(", ")})` : ""}\n` +
     `chains: ${actualChains.join(", ") || "none"}${expectedChains.length ? `  (expected: ${expectedChains.join(", ")})` : ""}`;
-  fromSel.value = entry.clips?.[clipNameFor(state.state)]?.from || "";
-  inheritSel.value = entry.inheritClips || "default";
-  $("approveToggle").checked = !!entry.approved;
 
   const table = $("stateTable");
   table.innerHTML = "";
@@ -193,43 +182,6 @@ function syncPanel() {
     table.append(name, src);
   }
 }
-
-fromSel.onchange = () => {
-  const entry = entryFor(state.char);
-  const clip = clipNameFor(state.state);
-  entry.clips = entry.clips || {};
-  if (fromSel.value) entry.clips[clip] = { from: fromSel.value };
-  else delete entry.clips[clip];
-  state.dirty.add(state.char);
-  syncPanel();
-};
-inheritSel.onchange = () => {
-  entryFor(state.char).inheritClips = inheritSel.value;
-  state.dirty.add(state.char);
-  syncPanel();
-};
-$("approveToggle").onchange = () => {
-  entryFor(state.char).approved = $("approveToggle").checked;
-  state.dirty.add(state.char);
-  syncPanel();
-};
-
-$("exportBtn").onclick = () => {
-  const man = rig.rigManifest();
-  const payload = {
-    kind: "billboard-workbench",
-    exported: new Date().toISOString(),
-    characters: Object.fromEntries([...state.dirty].map((k) => [k, man.characters[k]])),
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "billboard-payload.json";
-  a.click();
-  $("status").textContent = state.dirty.size
-    ? `exported ${state.dirty.size} character(s) — apply with tools/billboard_intake.mjs`
-    : "exported an empty payload — nothing has been edited";
-};
 
 // ------------------------------------------------------------------ drawing
 
@@ -339,6 +291,7 @@ async function draw() {
     ctx.fillText(`beat ${st.beat}s`, 16, 24);
   }
 
+  syncCardLine();
   requestAnimationFrame(draw);
 }
 

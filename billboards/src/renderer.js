@@ -22,13 +22,11 @@
 // The texture rows-per-metre that framing implies is reported alongside the
 // canvas, so the blit can convert game-pixel height to texture scale exactly.
 
-import { STATES, clipNameFor, clipTime, aimable, aimKey } from "./states.js";
-import { getRig } from "./rig.js";
-import { swayChains, simulateChains, simulates } from "./props.js";
-import {
-  applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs,
-  characterLateral, rotateBoneAboutWorldAxis, initLayerAxes, applyStance,
-} from "./ik.js";
+import { clipNameFor, clipTime, aimable, aimKey } from "../../render3d/src/states.js";
+import { getRig } from "../../render3d/src/loader.js";
+import { swayChains, simulateChains, simulates } from "../../render3d/src/props.js";
+import { poseRig, sampleTime, initPose } from "../../render3d/src/pose.js";
+import { initLayerAxes } from "../../render3d/src/ik.js";
 
 export const TEX_SIZE = 384;
 /** Fraction of the frame height under the foot line (world y = 0). */
@@ -59,9 +57,10 @@ export const stats = { renders: 0, hits: 0, misses: 0, evictions: 0 };
 
 export function initRenderer(three) {
   THREE = three;
-  _lateral = new THREE.Vector3();
-  _ik = makeScratch(THREE);
+  // The lateral axis table is shared scratch the IK reads; the pose layers
+  // themselves live in render3d/src/pose.js and hold their own.
   initLayerAxes(THREE);
+  initPose(three);
   _camRight = new THREE.Vector3();
   _target = new THREE.Vector3();
   const canvas = document.createElement("canvas");
@@ -100,50 +99,16 @@ export function poseToken(charKey, animKey, animTime, aim = null) {
   return `${charKey}/${clipNameFor(animKey)}@${Math.round(t / QUANT)}${a}`;
 }
 
-/** Aim: pitch the strike toward the target. Applied AFTER the clip poses the
- *  body, split across the spine so the whole upper body leans into the shot
- *  rather than the torso snapping alone. Clips are authored aim-neutral
- *  (docs/asset-requests.md); this is the only place aim touches a pose. */
-// Shares were set when the spine was the ONLY thing that aimed — it had to
-// carry the whole read, so it leaned hard. Now the IK places the limb and the
-// spine only has to supply body English, so these are softer: a big lean on
-// top of a correctly-aimed arm reads as a fighter falling over backwards.
-const AIM_BONES = [["Spine1", 0.20], ["Spine2", 0.26], ["Neck", -0.18]];
-function applyAim(root, pitchRad) {
-  if (!pitchRad) return;
-  // The nod axis is the CHARACTER's lateral direction, not the bone's local X.
-  // Local X is the nodding axis only on a rig built that way; on a generated
-  // one whose neck carries its own roll, aiming about it yaws and rolls the
-  // head instead of pitching it (ik.js). Screen-up aim = lean back = negative.
-  characterLateral(THREE, root, _lateral);
-  for (const [name, share] of AIM_BONES) {
-    const bone = root.getObjectByName(name);
-    if (!bone) continue;
-    // The Neck takes a counter-share so the head keeps facing the target
-    // rather than the sky.
-    rotateBoneAboutWorldAxis(THREE, bone, _lateral, -pitchRad * share, _ik);
-  }
-}
-let _lateral = null;
-let _ik = null;
 let _camRight = null;
 let _target = null;
 
-/** The aim target, in the MODEL's own space.
+/** The reach target as a world point, built along the CAMERA's right axis.
  *
- *  The offsets arrive in game pixels along the fighter's facing and up from
- *  their feet (states.js aimSolve). Two conversions land them in the scene:
- *  metres per pixel comes from the rig's real height against the pixels it
- *  occupies on screen, and "along the facing" becomes the camera's own right
- *  axis — the camera is yaw-only, so screen-up is world Y exactly and screen
- *  right is the camera's X column. Working in the camera's basis rather than
- *  the model's means the hand lands where it LOOKS like it should, which is
- *  the only thing a billboarded fighter can be judged on.
- *
- *  Mirroring is not applied here: the blit mirrors the finished texture, and
- *  the offsets were already measured along the facing, so one rendered pose
- *  serves both directions and the cache stays half the size. */
-function targetInModelSpace(aim, rigHeightM, targetPx) {
+ *  `aim.dx` is how far across the frame the strike should land, in the same
+ *  pixels the sprite's reach was measured in, and this camera never moves — so
+ *  screen-right is a fixed world direction and the card can be solved against
+ *  it directly. */
+function screenTarget(aim, rigHeightM, targetPx) {
   const mPerPx = rigHeightM / Math.max(1, targetPx);
   _camRight.setFromMatrixColumn(camera.matrixWorld, 0);
   return _target
@@ -191,23 +156,6 @@ function frameCamera(height) {
   camera.updateMatrixWorld(true);
 }
 
-function pose(rig, animKey, animTime, clip) {
-  const name = clipNameFor(animKey);
-  let action = rig.actions.get(name);
-  if (!action || action.getClip() !== clip) {
-    rig.mixer.stopAllAction();
-    // Cached actions bind clip tracks to bones once; a state whose resolved
-    // clip changed (workbench edited inheritance) rebinds here.
-    action = rig.mixer.clipAction(clip);
-    rig.actions.set(name, action);
-  }
-  if (!action.isRunning()) {
-    rig.mixer.stopAllAction();
-    action.reset().play();
-  }
-  rig.mixer.setTime(clipTime(animKey, animTime));
-}
-
 /** Real seconds since the last simulated frame.
  *
  *  Simulated chains need WALL-CLOCK time, not clip time: clip time restarts
@@ -250,36 +198,36 @@ export function renderPose(charKey, animKey, animTime, resolveClip, aim = null, 
   const resolved = resolveClip(charKey, animKey);
   if (!resolved) return null;
 
-  pose(rig, animKey, animTime, resolved.clip);
-  // The rig's own orientation correction, applied before anything reads a
-  // world position off it — the aim solve and the reach IK both do, and both
-  // are wrong by exactly this angle if it lands afterwards. `pose()` restores
-  // the clip's own root track every frame, so this is re-applied every frame
-  // rather than once at load.
-  rig.root.rotation.y = rig.yawOffset || 0;
-  // How wide they plant their feet is a fact about the fighter, the same way
-  // their height is — part of how big they READ — so it belongs here beside the
-  // facing rather than in whatever posed them.
-  applyStance(THREE, rig.root, rig.stanceDeg || 0, _ik);
-  // Body morphs (Mahito's transfiguration arms) come FIRST among the layers:
-  // aim and reach must solve against the limb's morphed length.
-  applyMorphs(rig.root, charKey, animKey, clipTime(animKey, animTime));
-  if (aimable(animKey) && aim) {
-    // Lean into it, then REACH for it. Order matters: the spine pitch moves
-    // the shoulder, so solving the arm first would aim it from a position the
-    // body is about to leave.
-    applyAim(rig.root, aim.pitch);
-    frameCamera(rig.height);
-    if (reaches(animKey) && targetPx > 0) {
-      applyReach(THREE, rig.root, animKey, clipTime(animKey, animTime),
-        targetInModelSpace(aim, rig.height, targetPx), _ik);
-    }
-  }
-  // The off hand joins a two-handed weapon LAST among the arm layers: the
-  // shaft rides the striking hand, so this has to see where aim and reach
-  // finally put it (ik.js applyTwoHandGrip; a no-op for one-handed fighters).
-  applyTwoHandGrip(THREE, rig.root, charKey, animKey,
-    clipTime(animKey, animTime), _ik);
+  // POSING IS NOT THIS BACKEND'S JOB. Every layer that puts a body in a
+  // position — the clip, the facing correction, stance, morphs, aim, reach,
+  // the two-handed grip, look, flinch, breath, foot planting, pose edits —
+  // belongs to the model pipeline in render3d/src/pose.js, and this backend
+  // draws whatever that produces. It used to run its own copy of that sequence
+  // and the copies drifted: this one had no breath, no foot planting and no
+  // pose edits, and applied stance in a different place.
+  //
+  // What is left below IS this backend: render the posed rig once through a
+  // fixed ¾ ortho camera, keep the pixels, hand back a card.
+  // Frame the camera BEFORE the reach target is built. The target is a world
+  // point along the camera's right axis, so it reads `camera.matrixWorld` —
+  // and this camera is re-aimed per fighter height. Building the target first
+  // solved the strike against the PREVIOUS fighter's camera, which is worth 49°
+  // of error on a level strike and none at all on a high or low one, because
+  // those clamp to an elevation the frame does not affect.
+  frameCamera(rig.height);
+  poseRig(rig, animKey, sampleTime(animKey, animTime), resolved.clip, {
+    charKey,
+    aimRad: aim ? aim.pitch : 0,
+    // Handed over as a world POINT rather than as dx/dy, because on a card
+    // `dx` is across the SCREEN — see applyMachineReach.
+    reachTarget: aim && targetPx > 0 ? screenTarget(aim, rig.height, targetPx) : null,
+    stanceDeg: rig.stanceDeg || 0,
+    // No turnaround layer: a card is MIRRORED at blit time to face left
+    // (blit.js), which is the whole economy of a card — one render serves both
+    // directions. render3d turns the rig instead, because a mirrored mesh
+    // inverts its winding.
+    turnYawRad: 0,
+  });
   // Secondary motion — braids, tendrils — driven by the same quantised clock
   // as the pose, so the cache stays honest (props.js explains the trade).
   swayChains(rig.root, clipTime(animKey, animTime), charKey);

@@ -3,7 +3,8 @@
 // on the way in (toon materials + ink outlines), so nothing downstream ever
 // meets a raw PBR material.
 //
-// Deliberately the same shape as billboards/src/rig.js, because the two
+// The one rig registry for both 3D backends. It used to have a twin in
+// billboards/, and the two
 // backends share one asset truth: the same delivery spec, the same standard
 // skeleton, the same clip names — a rig approved for billboards is a valid
 // intake candidate here the day it lands (render3d/docs/asset-requests.md).
@@ -23,9 +24,9 @@
 // register, exactly like billboards — art is in the repo before it is in the
 // game, and what players see is what was reviewed.
 
-import { clipNameFor } from "../../billboards/src/states.js";
-import { mirrorClip } from "../../billboards/src/clips.js";
-import { buildMannequin, buildDefaultClips, MANNEQUIN_HEIGHT_M } from "../../billboards/src/mannequin.js";
+import { clipNameFor } from "./states.js";
+import { mirrorClip } from "./clips.js";
+import { buildMannequin, buildDefaultClips, MANNEQUIN_HEIGHT_M } from "./mannequin.js";
 import { clone as cloneSkinned } from "../../vendor/three/utils/SkeletonUtils.js";
 import { applyToonMaterials, characterToon } from "./toon.js";
 import { addOutlines, setOutlineFor } from "./outline.js";
@@ -87,7 +88,7 @@ export function resolveClip(charKey, state) {
   return fallback ? answer(fallback, "default") : null;
 }
 
-// Mirrored clips — identical to billboards/src/rig.js, same manifest keys:
+// Mirrored clips, same manifest keys:
 // `characters[C].clips[S].mirror` flips one state's resolved clip left-right,
 // `characters[C].mirrorClips` flips the whole set (a per-state `mirror` then
 // exempts a clip). This is POSE data changing hands, not facing: the

@@ -59,7 +59,7 @@ look-at produced 14.8° of pure ROLL and 0.0° of pitch — the head lolling
 sideways, which is what "his head rotates in a funny way" was. They now rotate
 about the CHARACTER's lateral axis, derived from the rig's own facing and
 converted into whatever local frame each bone has
-(`characterLateral` / `rotateBoneAboutWorldAxis` in `billboards/src/ik.js`).
+(`characterLateral` / `rotateBoneAboutWorldAxis` in `render3d/src/ik.js`).
 Same input now measures 14.8° of pitch, 0° yaw, 0° roll.
 
 **The auto-rigger bound trousers to the hand.** Rotating `RightArm` alone moved
@@ -86,7 +86,7 @@ reference image's hue well and its value badly, because it infers albedo from
 pictures that already have shading in them, and navy cloth in shadow
 photographs as almost black.
 
-`billboards/assets/canon-palette.json` now declares, per fighter, the costume
+`render3d/assets/canon-palette.json` now declares, per fighter, the costume
 regions that have a canon colour and where they belong;
 `tools/blender_grade_texture.py` moves them there. It REMAPS rather than
 repaints — the region's median value lands on target and every other pixel

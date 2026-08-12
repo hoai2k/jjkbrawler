@@ -27,10 +27,10 @@ WHAT IT DOES, in order:
   3. Scale and orient: the figure ends up in metres at the character's real
      height, Y-up, facing +Z, origin on the floor between the feet.
   4. Retime every action to the duration its state declares in
-     billboards/src/states.js — the timing contract combat is tuned around.
+     render3d/src/states.js — the timing contract combat is tuned around.
      An action whose name is not a state is reported and left alone.
   5. Add any missing prop / chain bones the roster expects for this character
-     (billboards/src/props.js), empty, so a rigger has the hook to hang art on
+     (render3d/src/props.js), empty, so a rigger has the hook to hang art on
      and the validator stops warning about a missing weapon.
   6. Rescue a held weapon from the skin passes. A generated polearm arrives
      bound by proximity — foot influences at the bottom of the shaft — and
@@ -89,7 +89,7 @@ def load_states():
     src = open(STATES_JS, encoding="utf8").read()
     body = re.search(r"export const STATES = \{(.*?)\n\};", src, re.S)
     if not body:
-        sys.exit("could not parse STATES out of billboards/src/states.js")
+        sys.exit("could not parse STATES out of render3d/src/states.js")
     states = {}
     for m in re.finditer(r"^  (\w+):\s*\{([^}]*)\}", body.group(1), re.M):
         name, fields = m.group(1), m.group(2)

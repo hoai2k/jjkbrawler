@@ -1,8 +1,8 @@
 """Grade a generated texture back onto the character's canon colours.
 
     blender --background --python tools/blender_grade_texture.py -- \
-        --in  billboards/assets/yuji/yuji.glb \
-        --out billboards/assets/yuji/yuji.glb \
+        --in  render3d/assets/yuji/yuji.glb \
+        --out render3d/assets/yuji/yuji.glb \
         --char yuji
 
 WHY THIS EXISTS. Yuji's uniform is navy. The delivered model read as black, and
@@ -14,7 +14,7 @@ pictures that already have shading baked into them, and a navy garment in
 shadow photographs as almost black. Every fighter will arrive with some
 version of this, so it is a pipeline step and not a paint job.
 
-WHAT IT DOES. billboards/assets/canon-palette.json declares, per fighter, the
+WHAT IT DOES. render3d/assets/canon-palette.json declares, per fighter, the
 regions of the costume that have a canon colour: how to find their pixels (a
 hue / saturation / value window) and where they belong. This moves them there.
 
@@ -48,7 +48,7 @@ import bpy
 import numpy as np
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PALETTE = os.path.join(REPO, "billboards", "assets", "canon-palette.json")
+PALETTE = os.path.join(REPO, "render3d", "assets", "canon-palette.json")
 
 
 # ----------------------------------------------------------------- colour bits

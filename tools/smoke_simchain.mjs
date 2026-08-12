@@ -33,9 +33,9 @@ const r = await page.evaluate(async () => {
   const THREE = await import("/vendor/three/three.module.js");
   const { GLTFLoader } = await import("/vendor/three/loaders/GLTFLoader.js");
   const { simulateChains, simulates, CHARACTER_CHAINS } =
-    await import("/billboards/src/props.js");
+    await import("/render3d/src/props.js");
 
-  const gltf = await new GLTFLoader().loadAsync("/billboards/assets/meimei/meimei.glb");
+  const gltf = await new GLTFLoader().loadAsync("/render3d/assets/meimei/meimei.glb");
   const root = gltf.scene;
   root.updateMatrixWorld(true);
 

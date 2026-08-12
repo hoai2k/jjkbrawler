@@ -646,7 +646,7 @@ applies as always.
 **The 2.5D/3D side of the same mechanic is aliased, not owed:** the rig states
 `grabReach`, `grabHold`, `grabbed` and the four throws currently play the
 `light` / `charge` / `hurt` / heavy clips (`STATE_ALIASES` in
-`billboards/src/states.js`). Bespoke grab clips would be a B-/D-round request
+`render3d/src/states.js`). Bespoke grab clips would be a B-/D-round request
 if the mechanic graduates from its flag; nothing is asked of the model tracks
 yet.
 
@@ -762,7 +762,7 @@ creature art — but the same fault is worth a glance: one figure per file.
 
 The 2.5D billboard path and the live-3D path both know these two states now,
 and both **alias** them to the strike clips they already have (`STATE_ALIASES`
-in `billboards/src/states.js`, beside the grab states 20C describes) exactly as
+in `render3d/src/states.js`, beside the grab states 20C describes) exactly as
 the sprites fall back. A bespoke pair of
 dash-attack clips is a billboard round (B-numbers) if anyone wants one; it is
 not a hole in the roster today, and no rig is missing anything because of it.

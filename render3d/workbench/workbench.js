@@ -4,7 +4,7 @@
 //   their sprite poses, and the sprite stands beside the model in that exact
 //   pose — then make the model match it, in shape, colour, size and stance.
 //   The animation is not authored here at all; it is the INTERPOLATION between
-//   these poses (billboards/src/sprite_poses.js), so the poses are the whole
+//   these poses (render3d/src/sprite_poses.js), so the poses are the whole
 //   job and the playhead is somebody else's problem.
 //
 //   ANIMATION (?edit=animation). The playhead, the beat snap, on twos, the
@@ -43,7 +43,7 @@
 
 import * as THREE from "../../vendor/three/three.module.js";
 import { GLTFLoader } from "../../vendor/three/loaders/GLTFLoader.js";
-import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimPitch, aimSolve, AIM_MAX_DEG } from "../../billboards/src/states.js";
+import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimPitch, aimSolve, AIM_MAX_DEG } from "../src/states.js";
 import { artReach } from "../../src/silhouette.js";
 import * as rig from "../src/loader.js";
 import * as scene from "../src/scene.js";
@@ -54,7 +54,7 @@ import { blitPose } from "../src/blit.js";
 import { makeViewport } from "../../billboards/workbench/viewport.js";
 import { makePoseEditor } from "./pose_edit.js";
 import { initMobile } from "./mobile.js";
-import { poseSchedule, poseCatalogue } from "../../billboards/src/sprite_poses.js";
+import { poseSchedule, poseCatalogue } from "../src/sprite_poses.js";
 import { CHARACTER_KEYS, CHARACTERS, getActor } from "../../src/characters.js";
 import { STAGES } from "../../src/stages.js";
 import { state as gameState } from "../../src/state.js";
@@ -91,6 +91,9 @@ const wb = {
   compare: "left",
   /** The line-up: five fighters across the floor, references overhead. */
   five: false,
+  /** Free look: the viewer becomes a model viewer (scene.js setOrbit). */
+  view3d: false,
+  orbit: { yaw: 0, pitch: 0, dolly: 1 },
   snapBeat: true,
   // The drawing is not aimed at anything. Leaving the solver on would pull the
   // striking arm onto the crosshair and then invite a comparison between that
@@ -103,6 +106,7 @@ const wb = {
   parallax: 0,
   target: { x: CX + 300, y: GROUND_Y - 220 },
   dragging: false,
+  orbiting: null,
   dirty: new Set(),
   notice: "",
   noticeUntil: 0,
@@ -188,12 +192,57 @@ function charStep(step) {
 $("charPrev").onclick = () => charStep(-1);
 $("charNext").onclick = () => charStep(1);
 
+// FREE LOOK. The match camera is one fixed ¾ angle for the whole roster, which
+// is right for comparing fighters and useless for inspecting one: whether the
+// back of a coat is modelled, whether the hair passes through a shoulder,
+// whether that hand is a hand. So the viewer becomes a model viewer — drag to
+// turn, wheel to move in — as an OFFSET on the match camera rather than a
+// second camera, so switching it off is a return to exactly what the game
+// draws rather than to another approximation.
+function setView3d(on) {
+  wb.view3d = on && !wb.five;
+  $("view3d").checked = wb.view3d;
+  $("view3dBox").classList.toggle("on", wb.view3d);
+  // While free-look owns the drag and the wheel, the 2D pan/zoom stands down —
+  // and comes back untouched, because it was never dismantled.
+  view.locked = wb.view3d;
+  if (!wb.view3d) wb.orbit = { yaw: 0, pitch: 0, dolly: 1 };
+  scene.setOrbit({ yawDeg: wb.orbit.yaw, pitchDeg: wb.orbit.pitch, dolly: wb.orbit.dolly });
+  scene.clearCache();
+  if (wb.view3d && editor.on) editor.setEditMode(false);
+}
+$("view3d").onchange = () => setView3d($("view3d").checked);
+
+/** Turn the model by a drag, in canvas pixels. */
+function orbitBy(dx, dy) {
+  wb.orbit.yaw += dx * 0.35;
+  wb.orbit.pitch = Math.max(-80, Math.min(80, wb.orbit.pitch - dy * 0.3));
+  // No cache clear: the angle is part of the pose token (scene.orbitKey), so
+  // every new angle is its own entry and dragging back over an angle already
+  // seen is a hit rather than a re-render.
+  scene.setOrbit({ yawDeg: wb.orbit.yaw, pitchDeg: wb.orbit.pitch, dolly: wb.orbit.dolly });
+}
+function dollyBy(factor) {
+  wb.orbit.dolly = Math.max(0.3, Math.min(4, wb.orbit.dolly * factor));
+  scene.setOrbit({ yawDeg: wb.orbit.yaw, pitchDeg: wb.orbit.pitch, dolly: wb.orbit.dolly });
+}
+canvas.addEventListener("wheel", (ev) => {
+  if (!wb.view3d) return;
+  ev.preventDefault();
+  dollyBy(ev.deltaY < 0 ? 1.1 : 1 / 1.1);
+}, { passive: false });
+
 // The line-up. Pulls in four more models on demand — the boot still loads one,
 // and this is the deliberate exception, asked for by a click.
 const beforeFive = { z: 1, panX: 0, panY: 0, pivotX: CX };
 $("fiveToggle").onchange = async () => {
   wb.five = $("fiveToggle").checked;
   document.body.classList.toggle("five", wb.five);
+  // Five models turned five different ways is not a comparison, so free look
+  // is greyed out rather than left pointing at whichever one is selected.
+  if (wb.five) setView3d(false);
+  $("view3dBox").classList.toggle("disabled", wb.five);
+  $("view3d").disabled = wb.five;
   if (wb.five) {
     if (editor.on) editor.setEditMode(false);
     beforeFive.z = view.z;
@@ -629,25 +678,26 @@ $("exportBtn").onclick = () => {
     : "exported an empty payload — nothing has been edited");
 };
 
-// -------------------------------------------------------------- size review
+// -------------------------------------------------------------- idle review
 //
-// The whole delivered roster, one fighter at a time, each beside their own
-// idle sprite, full screen and thumb-driven.
+// The whole delivered roster's IDLE, one fighter at a time, each beside their
+// own idle sprite, full screen and thumb-driven.
 //
-// It began as a FACING pass and became a SIZING one. Same shape of job — a
-// judgement that does not automate, made about every fighter, usually on a
-// phone — but one thing changes and it changes the layout: sizing needs the
-// SPRITE IN FRAME. "Which way is this fighter pointing?" can be answered
-// from a single figure; "is this model as big as the drawing?" cannot be
-// answered from memory at all. So this viewer is a comparison, and it gives
-// up figure size to fit both, where the facing pass gave up the reference to
-// make one figure as large as possible.
+// It began as a FACING pass, became a SIZING one, and is now all three
+// judgements at once — size, stance, facing — because they were never
+// separable. A fighter who stands too wide reads short. A fighter turned too
+// far square reads wide. Each of those gets "corrected" with the wrong dial
+// when it is the only dial on screen, and the roster carries two passes of
+// that already.
 //
-// STANCE sits beside scale because it is the same judgement. Two idles of
-// equal height read as different sizes when one plants their feet a shoulder
-// apart and the other stands closed, and matching height while the stances
-// disagree makes you scale the model wrong to compensate for something you
-// were not looking at.
+// It needs the SPRITE IN FRAME: "which way is this fighter pointing?" can be
+// answered from a single figure, but "is this model as big as the drawing?"
+// cannot be answered from memory at all. So this viewer is a comparison, and
+// it gives up figure size to fit both.
+//
+// The legs arrive straight and the soles level (ik.js applyIdleStand), so the
+// three dials are the only things left that differ — which is what makes them
+// judgeable in a few seconds each.
 //
 // No Approve: this pass produces a set of adjustments to hand back, not a
 // sign-off, so every fighter it touches goes into the payload.
@@ -674,6 +724,8 @@ const facingUI = {
   scaleVal: $("facingScaleVal"),
   stance: $("facingStance"),
   stanceVal: $("facingStanceVal"),
+  yaw: $("facingYaw"),
+  yawVal: $("facingYawVal"),
   stage: $("facingStage"),
 };
 
@@ -696,8 +748,8 @@ function facingOpen() {
   facing.list = facingRoster();
   if (!facing.list.length) { notify("no delivered rigs to review"); return; }
   facing.i = Math.max(0, facing.list.indexOf(wb.char));
-  facing.home = canvas.parentNode;
-  facingUI.stage.append(canvas);
+  facing.home = $("stageWrap").parentNode;
+  facingUI.stage.append($("stageWrap"));
   facingUI.overlay.hidden = false;
   facing.wasPlaying = wb.playing;
   facing.wasZoom = view.z;
@@ -720,7 +772,7 @@ function facingOpen() {
 }
 
 function facingClose() {
-  if (facing.home) facing.home.insertBefore(canvas, facing.home.firstChild);
+  if (facing.home) facing.home.insertBefore($("stageWrap"), facing.home.firstChild);
   facingUI.overlay.hidden = true;
   wb.playing = facing.wasPlaying;
   wb.aimOn = facing.wasAim;
@@ -772,10 +824,13 @@ function facingShow() {
   const r = rig.getRig(char);
   const scale = r?.renderScale ?? 1;
   const stance = r?.stanceDeg ?? 0;
+  const yaw = ((r?.yawOffsetDeg ?? 0) + 180) % 360 - 180; // shown in [-180, 180)
   facingUI.scale.value = String(scale);
   facingUI.scaleVal.textContent = `${scale.toFixed(2)}×`;
   facingUI.stance.value = String(stance);
   facingUI.stanceVal.textContent = `${stance}°`;
+  facingUI.yaw.value = String(yaw);
+  facingUI.yawVal.textContent = `${yaw}°`;
   facingUI.name.textContent = CHARACTERS[char]?.name || char;
   facingSyncProgress();
   facingUI.overlay.classList.toggle("decided", facing.touched.has(char));
@@ -805,6 +860,21 @@ function facingSetStance(deg) {
   facingSyncProgress();
 }
 
+function facingSetYaw(deg) {
+  // Wrapped, not clamped: turning past the end of the dial is how a rig that
+  // arrived backwards gets turned round, and a stop at 180 makes that a
+  // journey the long way instead.
+  const wrapped = ((Math.round(deg / 5) * 5) % 360 + 360) % 360;
+  const char = facing.list[facing.i];
+  setYaw(wrapped);
+  facing.touched.add(char);
+  const shown = (wrapped + 180) % 360 - 180;
+  facingUI.yaw.value = String(shown);
+  facingUI.yawVal.textContent = `${shown}°`;
+  facingUI.overlay.classList.add("decided");
+  facingSyncProgress();
+}
+
 /** The header counts changes, so it has to be refreshed when one happens
  *  and not only when the fighter changes. */
 function facingSyncProgress() {
@@ -822,6 +892,7 @@ $("facingReviewTop").onclick = facingOpen;
 $("facingClose").onclick = facingClose;
 $("facingScale").oninput = () => facingSetScale(parseFloat(facingUI.scale.value) || 1);
 $("facingStance").oninput = () => facingSetStance(parseFloat(facingUI.stance.value) || 0);
+$("facingYaw").oninput = () => facingSetYaw(parseFloat(facingUI.yaw.value) || 0);
 for (const b of document.querySelectorAll("[data-scale]")) {
   b.onclick = () => facingSetScale((parseFloat(facingUI.scale.value) || 1)
     + parseFloat(b.dataset.scale));
@@ -829,6 +900,10 @@ for (const b of document.querySelectorAll("[data-scale]")) {
 for (const b of document.querySelectorAll("[data-stance]")) {
   b.onclick = () => facingSetStance((parseFloat(facingUI.stance.value) || 0)
     + parseFloat(b.dataset.stance));
+}
+for (const b of document.querySelectorAll("[data-yaw]")) {
+  b.onclick = () => facingSetYaw((parseFloat(facingUI.yaw.value) || 0)
+    + parseFloat(b.dataset.yaw));
 }
 $("facingFit").onclick = () => {
   // The measured answer, as a starting point rather than a verdict: it makes
@@ -853,16 +928,17 @@ $("facingSave").onclick = () => {
     sizes: Object.fromEntries(chars.map((k) => [k, {
       renderScale: man.characters[k]?.renderScale ?? 1,
       stanceDeg: man.characters[k]?.stanceDeg ?? 0,
+      yawOffsetDeg: man.characters[k]?.yawOffsetDeg ?? 0,
     }])),
     characters: Object.fromEntries(chars.map((k) => [k, man.characters[k]])),
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "size-adjustments.json";
+  a.download = "idle-adjustments.json";
   a.click();
   notify(chars.length
-    ? `saved ${chars.length} adjustment(s) — apply with tools/billboard_intake.mjs apply size-adjustments.json --backend 3d`
+    ? `saved ${chars.length} adjustment(s) — apply with tools/billboard_intake.mjs apply idle-adjustments.json --backend 3d`
     : "nothing changed yet — the file would be empty");
 };
 addEventListener("keydown", (e) => {
@@ -1327,6 +1403,9 @@ canvas.addEventListener("pointerdown", (ev) => {
   if (view.pinching) { editor.pointerUp(); wb.dragging = false; return; }
   const pt = view.pointer(ev);
   canvas.setPointerCapture(ev.pointerId);
+  // Free look owns the drag outright: no handle, no crosshair, no pan. A
+  // model viewer in which a stray press edits the pose is not a viewer.
+  if (wb.view3d) { wb.orbiting = { x: ev.clientX, y: ev.clientY }; return; }
   // Coarse pointers get a fatter hit ring — a fingertip is not a cursor.
   const slop = ev.pointerType === "touch" ? 2 : 1;
   if (editor.on && posePreviewNow() && editor.pointerDown(pt, view.z / slop)) return;
@@ -1334,6 +1413,11 @@ canvas.addEventListener("pointerdown", (ev) => {
   else view.startPan(ev);
 });
 canvas.addEventListener("pointermove", (ev) => {
+  if (wb.orbiting) {
+    orbitBy(ev.clientX - wb.orbiting.x, ev.clientY - wb.orbiting.y);
+    wb.orbiting = { x: ev.clientX, y: ev.clientY };
+    return;
+  }
   if (view.pinching) { editor.pointerUp(); wb.dragging = false; view.endPan(); return; }
   const pt = view.pointer(ev);
   if (editor.pointerMove(pt)) return;
@@ -1341,11 +1425,13 @@ canvas.addEventListener("pointermove", (ev) => {
   else view.movePan(ev);
 });
 canvas.addEventListener("pointerup", () => {
+  wb.orbiting = null;
   editor.pointerUp();
   wb.dragging = false;
   view.endPan();
 });
 canvas.addEventListener("pointercancel", () => {
+  wb.orbiting = null;
   editor.pointerUp();
   wb.dragging = false;
   view.endPan();

@@ -1,7 +1,7 @@
 """Measure skin-weight bleed: how much of the body moves when ONE bone does.
 
     blender --background --python tools/blender_probe_bleed.py -- \
-        --in billboards/assets/yuji/yuji.glb --bone RightArm --deg 60
+        --in render3d/assets/yuji/yuji.glb --bone RightArm --deg 60
 
 Raises `--bone` alone in the bind pose and reports every vertex that moved more
 than a centimetre while sitting BELOW the hips — i.e. skin the bone has no
