@@ -143,11 +143,19 @@ function registerRig(charKey, { root, height, clips }, entry = null) {
   // files under the same -60° camera, so a per-character yaw applied in one and
   // not the other is simply the two showing different fighters — which is what
   // happened: 22 of 27 were turned in render3d and none were here.
-  const yaw = Number(entry?.yawOffsetDeg);
+  // The three settings that describe the MODEL rather than the renderer: which
+  // way it faces, how big it is against its own height, and how wide it plants
+  // its feet. All three are read the same way by render3d (loader.js
+  // applyEntrySettings) and checked identical by tools/check_rig_manifests.mjs.
+  const num = (v, fallback) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
+  const yaw = num(entry?.yawOffsetDeg, 0);
+  const scale = num(entry?.renderScale, 1);
   RIGS.set(charKey, {
     root, height, clips, mixer, actions: new Map(), entry,
-    yawOffsetDeg: Number.isFinite(yaw) ? yaw : 0,
-    yawOffset: Number.isFinite(yaw) ? (yaw * Math.PI) / 180 : 0,
+    yawOffsetDeg: yaw,
+    yawOffset: (yaw * Math.PI) / 180,
+    renderScale: scale > 0 ? scale : 1,
+    stanceDeg: num(entry?.stanceDeg, 0),
   });
 }
 
