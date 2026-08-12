@@ -62,7 +62,17 @@
 
     <main class="layout">
       <section class="stage-col">
-        <canvas id="stage" width="1040" height="660"></canvas>
+        <!-- The viewer, and the one control that belongs ON it rather than in
+             the panel: free look is a thing you do WHILE looking, and reaching
+             into a side panel to turn the model is reaching away from the
+             model. It travels with the canvas into the Idle Review, which
+             borrows the same viewer. -->
+        <div id="stageWrap">
+          <canvas id="stage" width="1040" height="660"></canvas>
+          <label class="check stage-toggle" id="view3dBox" title="Drag to turn the model, scroll to move in — off returns to the game's own camera">
+            <input id="view3d" type="checkbox"> View 3D
+          </label>
+        </div>
 
         <div class="row viewer-tools">
           <button id="zoomOut" class="ghost sm" title="Zoom out">−</button>

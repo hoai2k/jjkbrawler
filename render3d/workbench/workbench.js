@@ -91,6 +91,9 @@ const wb = {
   compare: "left",
   /** The line-up: five fighters across the floor, references overhead. */
   five: false,
+  /** Free look: the viewer becomes a model viewer (scene.js setOrbit). */
+  view3d: false,
+  orbit: { yaw: 0, pitch: 0, dolly: 1 },
   snapBeat: true,
   // The drawing is not aimed at anything. Leaving the solver on would pull the
   // striking arm onto the crosshair and then invite a comparison between that
@@ -103,6 +106,7 @@ const wb = {
   parallax: 0,
   target: { x: CX + 300, y: GROUND_Y - 220 },
   dragging: false,
+  orbiting: null,
   dirty: new Set(),
   notice: "",
   noticeUntil: 0,
@@ -188,12 +192,57 @@ function charStep(step) {
 $("charPrev").onclick = () => charStep(-1);
 $("charNext").onclick = () => charStep(1);
 
+// FREE LOOK. The match camera is one fixed ¾ angle for the whole roster, which
+// is right for comparing fighters and useless for inspecting one: whether the
+// back of a coat is modelled, whether the hair passes through a shoulder,
+// whether that hand is a hand. So the viewer becomes a model viewer — drag to
+// turn, wheel to move in — as an OFFSET on the match camera rather than a
+// second camera, so switching it off is a return to exactly what the game
+// draws rather than to another approximation.
+function setView3d(on) {
+  wb.view3d = on && !wb.five;
+  $("view3d").checked = wb.view3d;
+  $("view3dBox").classList.toggle("on", wb.view3d);
+  // While free-look owns the drag and the wheel, the 2D pan/zoom stands down —
+  // and comes back untouched, because it was never dismantled.
+  view.locked = wb.view3d;
+  if (!wb.view3d) wb.orbit = { yaw: 0, pitch: 0, dolly: 1 };
+  scene.setOrbit({ yawDeg: wb.orbit.yaw, pitchDeg: wb.orbit.pitch, dolly: wb.orbit.dolly });
+  scene.clearCache();
+  if (wb.view3d && editor.on) editor.setEditMode(false);
+}
+$("view3d").onchange = () => setView3d($("view3d").checked);
+
+/** Turn the model by a drag, in canvas pixels. */
+function orbitBy(dx, dy) {
+  wb.orbit.yaw += dx * 0.35;
+  wb.orbit.pitch = Math.max(-80, Math.min(80, wb.orbit.pitch - dy * 0.3));
+  // No cache clear: the angle is part of the pose token (scene.orbitKey), so
+  // every new angle is its own entry and dragging back over an angle already
+  // seen is a hit rather than a re-render.
+  scene.setOrbit({ yawDeg: wb.orbit.yaw, pitchDeg: wb.orbit.pitch, dolly: wb.orbit.dolly });
+}
+function dollyBy(factor) {
+  wb.orbit.dolly = Math.max(0.3, Math.min(4, wb.orbit.dolly * factor));
+  scene.setOrbit({ yawDeg: wb.orbit.yaw, pitchDeg: wb.orbit.pitch, dolly: wb.orbit.dolly });
+}
+canvas.addEventListener("wheel", (ev) => {
+  if (!wb.view3d) return;
+  ev.preventDefault();
+  dollyBy(ev.deltaY < 0 ? 1.1 : 1 / 1.1);
+}, { passive: false });
+
 // The line-up. Pulls in four more models on demand — the boot still loads one,
 // and this is the deliberate exception, asked for by a click.
 const beforeFive = { z: 1, panX: 0, panY: 0, pivotX: CX };
 $("fiveToggle").onchange = async () => {
   wb.five = $("fiveToggle").checked;
   document.body.classList.toggle("five", wb.five);
+  // Five models turned five different ways is not a comparison, so free look
+  // is greyed out rather than left pointing at whichever one is selected.
+  if (wb.five) setView3d(false);
+  $("view3dBox").classList.toggle("disabled", wb.five);
+  $("view3d").disabled = wb.five;
   if (wb.five) {
     if (editor.on) editor.setEditMode(false);
     beforeFive.z = view.z;
@@ -699,8 +748,8 @@ function facingOpen() {
   facing.list = facingRoster();
   if (!facing.list.length) { notify("no delivered rigs to review"); return; }
   facing.i = Math.max(0, facing.list.indexOf(wb.char));
-  facing.home = canvas.parentNode;
-  facingUI.stage.append(canvas);
+  facing.home = $("stageWrap").parentNode;
+  facingUI.stage.append($("stageWrap"));
   facingUI.overlay.hidden = false;
   facing.wasPlaying = wb.playing;
   facing.wasZoom = view.z;
@@ -723,7 +772,7 @@ function facingOpen() {
 }
 
 function facingClose() {
-  if (facing.home) facing.home.insertBefore(canvas, facing.home.firstChild);
+  if (facing.home) facing.home.insertBefore($("stageWrap"), facing.home.firstChild);
   facingUI.overlay.hidden = true;
   wb.playing = facing.wasPlaying;
   wb.aimOn = facing.wasAim;
@@ -1354,6 +1403,9 @@ canvas.addEventListener("pointerdown", (ev) => {
   if (view.pinching) { editor.pointerUp(); wb.dragging = false; return; }
   const pt = view.pointer(ev);
   canvas.setPointerCapture(ev.pointerId);
+  // Free look owns the drag outright: no handle, no crosshair, no pan. A
+  // model viewer in which a stray press edits the pose is not a viewer.
+  if (wb.view3d) { wb.orbiting = { x: ev.clientX, y: ev.clientY }; return; }
   // Coarse pointers get a fatter hit ring — a fingertip is not a cursor.
   const slop = ev.pointerType === "touch" ? 2 : 1;
   if (editor.on && posePreviewNow() && editor.pointerDown(pt, view.z / slop)) return;
@@ -1361,6 +1413,11 @@ canvas.addEventListener("pointerdown", (ev) => {
   else view.startPan(ev);
 });
 canvas.addEventListener("pointermove", (ev) => {
+  if (wb.orbiting) {
+    orbitBy(ev.clientX - wb.orbiting.x, ev.clientY - wb.orbiting.y);
+    wb.orbiting = { x: ev.clientX, y: ev.clientY };
+    return;
+  }
   if (view.pinching) { editor.pointerUp(); wb.dragging = false; view.endPan(); return; }
   const pt = view.pointer(ev);
   if (editor.pointerMove(pt)) return;
@@ -1368,11 +1425,13 @@ canvas.addEventListener("pointermove", (ev) => {
   else view.movePan(ev);
 });
 canvas.addEventListener("pointerup", () => {
+  wb.orbiting = null;
   editor.pointerUp();
   wb.dragging = false;
   view.endPan();
 });
 canvas.addEventListener("pointercancel", () => {
+  wb.orbiting = null;
   editor.pointerUp();
   wb.dragging = false;
   view.endPan();

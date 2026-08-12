@@ -172,6 +172,89 @@ check(ab.delivered > 1000 && ab.interpolated > 1000 && ab.delivered !== ab.inter
   "the sprite-pose interpolation is a real alternative, not the same clip",
   `mid-strike covers ${ab.delivered}px delivered -> ${ab.interpolated}px interpolated`);
 
+// --------------------------------------------------------------- free look
+
+const look = await page.evaluate(async () => {
+  const scene = await import("/render3d/src/scene.js");
+  // A SIGNATURE of the model half, not a count of it. Turning a figure barely
+  // changes how many pixels it covers — the ground line alone is wider than
+  // the difference — so what is compared is a coarse coverage grid, which says
+  // "this is a different picture" whatever the areas happen to be.
+  const ink = () => {
+    const c = document.getElementById("stage");
+    const x0 = Math.round(c.width * 0.5);
+    const d = c.getContext("2d").getImageData(x0, 0, c.width - x0, c.height).data;
+    const w = c.width - x0, G = 24;
+    const g = new Array(G * G).fill(0);
+    for (let y = 0; y < c.height; y++) {
+      for (let x = 0; x < w; x++) {
+        if (d[((y * w) + x) * 4 + 3] > 40) {
+          g[Math.min(G - 1, Math.floor((y / c.height) * G)) * G
+            + Math.min(G - 1, Math.floor((x / w) * G))]++;
+        }
+      }
+    }
+    return g;
+  };
+  const settle = () => new Promise((r) => setTimeout(r, 700));
+  await settle();
+  const before = { key: scene.orbitKey(), ink: ink() };
+  document.getElementById("view3d").click();
+  await settle();
+  return { before, on: document.getElementById("view3d").checked,
+           locked: (await import("/billboards/workbench/viewport.js"), window.__viewport?.locked) };
+});
+check(look.on && look.locked === true,
+  "View 3D takes the viewer over from the 2D pan and zoom");
+
+// A real drag, through the real pointer path.
+const box = await page.locator("#stage").boundingBox();
+await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.5);
+await page.mouse.down();
+for (let i = 1; i <= 8; i++) {
+  await page.mouse.move(box.x + box.width * 0.6 - i * 18, box.y + box.height * 0.5 - i * 4);
+  await page.waitForTimeout(40);
+}
+await page.mouse.up();
+await page.waitForTimeout(900);
+const turned = await page.evaluate(async (before) => {
+  const scene = await import("/render3d/src/scene.js");
+  const c = document.getElementById("stage");
+  const x0 = Math.round(c.width * 0.5);
+  const d = c.getContext("2d").getImageData(x0, 0, c.width - x0, c.height).data;
+  const w = c.width - x0, G = 24;
+  const g = new Array(G * G).fill(0);
+  let total = 0;
+  for (let y = 0; y < c.height; y++) {
+    for (let x = 0; x < w; x++) {
+      if (d[((y * w) + x) * 4 + 3] > 40) {
+        g[Math.min(G - 1, Math.floor((y / c.height) * G)) * G
+          + Math.min(G - 1, Math.floor((x / w) * G))]++;
+        total++;
+      }
+    }
+  }
+  let moved = 0;
+  for (let i = 0; i < g.length; i++) moved += Math.abs(g[i] - before[i]);
+  return { key: scene.orbitKey(), moved, total,
+           edits: !!document.querySelector("#poseBox.editing") };
+}, look.before.ink);
+check(turned.key && turned.key !== look.before.key,
+  "dragging turns the model", `orbit ${turned.key}`);
+check(turned.moved > turned.total * 0.15,
+  "...and the pixels turn with it",
+  `${turned.moved} of ${turned.total} px moved in the silhouette`);
+check(!turned.edits, "...without the drag landing on the pose");
+
+const off = await page.evaluate(async () => {
+  const scene = await import("/render3d/src/scene.js");
+  document.getElementById("view3d").click();
+  await new Promise((r) => setTimeout(r, 700));
+  return { key: scene.orbitKey(), locked: window.__viewport?.locked };
+});
+check(off.key === "" && off.locked === false,
+  "turning it off puts the game's own camera back", `orbit "${off.key}"`);
+
 // ------------------------------------------------------------- the line-up
 
 await page.goto(`${BASE}/render3d/workbench/index.html?char=gojo`, { waitUntil: "load" });
@@ -183,6 +266,9 @@ await page.waitForTimeout(14000);
 
 check(await page.evaluate(() => document.body.classList.contains("five")),
   "Show 5 across opens the line-up");
+check(await page.evaluate(() => document.getElementById("view3d").disabled
+    && document.getElementById("view3dBox").classList.contains("disabled")),
+  "...and free look greys out rather than turning one of the five");
 check(glb >= 4, "...and brings the other four models in", `${glb} model(s) fetched on demand`);
 // Computed display, not offsetParent: the panel sections are `display:
 // contents`, which has no box of its own and so reads as "not visible"

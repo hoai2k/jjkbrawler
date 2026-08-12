@@ -131,6 +131,37 @@ function syncStageLight() {
 
 // ------------------------------------------------------------ framing
 
+/**
+ * FREE LOOK, for inspecting a model rather than playing it.
+ *
+ * The match camera is fixed on purpose: one ¾ angle for the whole roster, so
+ * every fighter is drawn under the same lens and can be compared. But a
+ * delivery has to be LOOKED at — is the back of the coat modelled, does the
+ * hair intersect the shoulder, is that hand a hand — and none of that is
+ * answerable from the one angle the game happens to use.
+ *
+ * So the orbit is a workbench-only offset ON the match camera, not a second
+ * camera: same framing arithmetic, same lens, same lights. Zeroed, it is
+ * exactly the shot the game renders, which is what makes turning it off a
+ * return to the truth rather than to another approximation.
+ */
+const orbit = { yawRad: 0, pitchRad: 0, dolly: 1 };
+
+export function setOrbit({ yawDeg = 0, pitchDeg = 0, dolly = 1 } = {}) {
+  orbit.yawRad = (yawDeg * Math.PI) / 180;
+  // Short of the poles: at 90° the camera is looking straight down its own up
+  // vector and lookAt has no answer, which shows up as the model flipping.
+  orbit.pitchRad = (Math.max(-80, Math.min(80, pitchDeg)) * Math.PI) / 180;
+  orbit.dolly = Math.max(0.3, Math.min(4, dolly));
+}
+
+/** Part of the pose-cache key: a different angle is different pixels. */
+export function orbitKey() {
+  return orbit.yawRad || orbit.pitchRad || orbit.dolly !== 1
+    ? `${Math.round((orbit.yawRad * 180) / Math.PI)},${Math.round((orbit.pitchRad * 180) / Math.PI)},${orbit.dolly.toFixed(2)}`
+    : "";
+}
+
 function frameCamera(height, parallaxRad = 0) {
   // Same guarantee as the billboard renderer, restated for perspective: the
   // camera aims HORIZONTALLY at the frustum's world-space centre cy, and its
@@ -154,8 +185,11 @@ function frameCamera(height, parallaxRad = 0) {
   // viewer (0.5): the three-quarter the sprite art is drawn at. The original
   // +30° satisfied neither, which is why every fighter strode into the screen
   // and showed their back.
-  const yaw = CAMERA_YAW_RAD + parallaxRad;
-  camera.position.set(Math.sin(yaw) * dist, cy, Math.cos(yaw) * dist);
+  const yaw = CAMERA_YAW_RAD + parallaxRad + orbit.yawRad;
+  // The orbit rides on top: same aim point, same framing, a different seat.
+  const d = dist / orbit.dolly;
+  const flat = Math.cos(orbit.pitchRad) * d;
+  camera.position.set(Math.sin(yaw) * flat, cy + Math.sin(orbit.pitchRad) * d, Math.cos(yaw) * flat);
   camera.lookAt(0, cy, 0);
   camera.updateProjectionMatrix();
 }
@@ -222,7 +256,9 @@ export function poseToken(charKey, animKey, animTime, layers) {
   // pixels, so they have to change the token or the cache serves the un-edited
   // body forever.
   const ed = layers.editKey ? `~e${layers.editKey}` : "";
-  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${rch}${par}${st}${ed}~L${lightKey()}`;
+  const orb = orbitKey();
+  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${rch}${par}${st}${ed}`
+    + `${orb ? `~o${orb}` : ""}~L${lightKey()}`;
 }
 
 /** For the determinism smoke: drop every cached render. */
