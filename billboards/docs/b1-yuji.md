@@ -59,7 +59,7 @@ look-at produced 14.8° of pure ROLL and 0.0° of pitch — the head lolling
 sideways, which is what "his head rotates in a funny way" was. They now rotate
 about the CHARACTER's lateral axis, derived from the rig's own facing and
 converted into whatever local frame each bone has
-(`characterLateral` / `rotateBoneAboutWorldAxis` in `billboards/src/ik.js`).
+(`characterLateral` / `rotateBoneAboutWorldAxis` in `render3d/src/ik.js`).
 Same input now measures 14.8° of pitch, 0° yaw, 0° roll.
 
 **The auto-rigger bound trousers to the hand.** Rotating `RightArm` alone moved

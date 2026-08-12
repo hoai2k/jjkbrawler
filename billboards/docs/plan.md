@@ -95,24 +95,33 @@ the engine does not adapt to clips, clips are authored to the engine.
 
 ## The architecture, module by module
 
-All under `billboards/src/`, all reached only through the backend entry:
+Three files, all reached only through the backend entry. Everything else this
+path needs — rigs, clips, states, IK, props, the mannequin, posing — is
+imported from `render3d/src/`, which owns the model pipeline for both 3D
+backends:
 
 ```
-billboard.js     the backend (exists, stubbed) — currentFrame / cyclePhase /
-                 drawCharFrame, falling through to sprites per character
-loader.js        fetch + parse .glb, register into MODELS, retarget shared
-                 clips onto the rig; gated like config_transform.js gates
-                 installs — enabled AND art present, never half-loaded
-pose.js          animKey + animTime -> pose token; drives the AnimationMixer;
-                 owns quantisation (30 Hz) so held poses hash equal
-renderer.js      the shared offscreen WebGL canvas, ortho camera, toon
-                 material; (model, pose token) -> texture, LRU-cached
+billboard.js     the backend — currentFrame / cyclePhase / drawCharFrame,
+                 falling through to sprites per character; and the 2.5D
+                 camera adapter that hands over a TEXTURE where render3d
+                 hands over the rig itself
+renderer.js      the offscreen WebGL canvas, the fixed ¾ ortho camera, and the
+                 pose cache: (character, state, quantised time, aim) -> texture,
+                 LRU-cached. Posing is delegated to render3d/src/pose.js; what
+                 is decided here is the FRAMING and the caching
 blit.js          texture -> 2D context with the drawCharFrame opts contract:
                  foot line at (x, y), mirror by facing, rotate about the
                  hips-projected com, scaleX/Y about the foot line, alpha,
                  glow via ctx.shadow*, context restored — the same maths as
                  sprites.js, sharing constants where they can be shared
 ```
+
+The one place the two backends genuinely disagree, and so the one thing
+`renderer.js` still solves for itself: **where a strike should land.** Live
+geometry reaches along the fighter's own forward; a card is always seen from
+one fixed camera, so its reach offset is a distance across the SCREEN — it has
+to land where the sprite it replaces landed. `poseRig` takes a world target
+from this path and builds its own for the live one.
 
 Contracts the stub already documents and every module above must keep:
 `drawCharFrame` returns `false` on failure (render.js paints the placeholder);

@@ -1,6 +1,20 @@
-// The 3D workbench: live clips through the game's own anime pipeline
-// (loader -> pose -> scene -> blit), over the sprite each state replaces —
-// plus the LOOK-DEV PANEL this backend needs and billboards did not:
+// The 3D workbench. TWO BENCHES, ONE PAGE:
+//
+//   POSE (the default). One drawing at a time. Pick a fighter, pick one of
+//   their sprite poses, and the sprite stands beside the model in that exact
+//   pose — then make the model match it, in shape, colour, size and stance.
+//   The animation is not authored here at all; it is the INTERPOLATION between
+//   these poses (render3d/src/sprite_poses.js), so the poses are the whole
+//   job and the playhead is somebody else's problem.
+//
+//   ANIMATION (?edit=animation). The playhead, the beat snap, on twos, the
+//   keyframe strip and the ease curves — everything that only means something
+//   while a clip is running. Same module, same viewer, same rig; a body class
+//   decides which set of controls is on screen, because a second page is a
+//   second page to keep in step.
+//
+// Both share the pipeline the game draws with (loader -> pose -> scene ->
+// blit) and the LOOK-DEV PANEL this backend needs and billboards did not:
 //
 //   * ramp / rim / outline dials, editing the same TOON/OUTLINE defaults the
 //     game renders with (render3d/src/toon.js, outline.js);
@@ -40,6 +54,7 @@ import { blitPose } from "../src/blit.js";
 import { makeViewport } from "../../billboards/workbench/viewport.js";
 import { makePoseEditor } from "./pose_edit.js";
 import { initMobile } from "./mobile.js";
+import { poseSchedule, poseCatalogue } from "../src/sprite_poses.js";
 import { CHARACTER_KEYS, CHARACTERS, getActor } from "../../src/characters.js";
 import { STAGES } from "../../src/stages.js";
 import { state as gameState } from "../../src/state.js";
@@ -56,16 +71,32 @@ const CX = canvas.width / 2;
 /** Where the comparison sprite stands when drawn BESIDE the model. */
 const COMPARE_DX = 300;
 
+const params = new URLSearchParams(location.search);
+/** Which bench: "pose" (a drawing at a time) or "anim" (?edit=animation). */
+const MODE = params.get("edit") === "animation" ? "anim" : "pose";
+document.body.classList.add(`mode-${MODE}`);
+
 const wb = {
-  char: new URLSearchParams(location.search).get("char") || CHARACTER_KEYS[0],
-  state: new URLSearchParams(location.search).get("state") || "idle",
+  char: params.get("char") || CHARACTER_KEYS[0],
+  state: params.get("state") || "idle",
+  /** The sprite pose being matched, in pose mode — a frame key. */
+  pose: params.get("pose") || null,
   t: 0,
-  playing: true,
+  // Pose mode holds still by definition: the thing being matched is a single
+  // drawing, and a body that keeps moving cannot be compared to one.
+  playing: MODE === "anim",
   // "overlay" (ghosted under the model), "left" (beside it, unghosted) or
-  // "off" — the same three the billboard workbench offers.
-  compare: "overlay",
+  // "off" — the same three the billboard workbench offers. BESIDE by default:
+  // this bench is a comparison, and a reference you squint through is not one.
+  compare: "left",
+  /** The line-up: five fighters across the floor, references overhead. */
+  five: false,
   snapBeat: true,
-  aimOn: true,
+  // The drawing is not aimed at anything. Leaving the solver on would pull the
+  // striking arm onto the crosshair and then invite a comparison between that
+  // and a sprite thrown level — you would spend the session posing out an
+  // offset the game applies on top anyway.
+  aimOn: MODE === "anim",
   faceLeft: false,
   sweep: false,
   sweepT: 0,
@@ -144,6 +175,47 @@ fillCharSelect(charSel, (k) => {
 });
 charSel.value = wb.char;
 
+/** Step to the next/previous fighter in the list the dropdown shows — which is
+ *  delivered-first, so ▶ walks the models before the mannequins. Flipping
+ *  between fighters is most of what both benches are for, and doing it through
+ *  a dropdown costs two gestures every time. */
+function charStep(step) {
+  const keys = [...charSel.options].filter((o) => !o.disabled).map((o) => o.value);
+  const i = keys.indexOf(wb.char);
+  charSel.value = keys[(Math.max(0, i) + step + keys.length) % keys.length];
+  charSel.onchange();
+}
+$("charPrev").onclick = () => charStep(-1);
+$("charNext").onclick = () => charStep(1);
+
+// The line-up. Pulls in four more models on demand — the boot still loads one,
+// and this is the deliberate exception, asked for by a click.
+const beforeFive = { z: 1, panX: 0, panY: 0, pivotX: CX };
+$("fiveToggle").onchange = async () => {
+  wb.five = $("fiveToggle").checked;
+  document.body.classList.toggle("five", wb.five);
+  if (wb.five) {
+    if (editor.on) editor.setEditMode(false);
+    beforeFive.z = view.z;
+    beforeFive.panX = view.panX;
+    beforeFive.panY = view.panY;
+    beforeFive.pivotX = view.pivot.x;
+    view.pivot.x = CX;
+    view.panX = 0;
+    view.panY = 0;
+    // Far enough out for five bodies and five references stacked over them.
+    view.setZoom(0.75);
+    notify("loading the line-up…");
+    await ensureCast();
+    notify(`line-up: ${castOf(wb.char).map((k) => CHARACTERS[k]?.name || k).join(", ")}`);
+  } else {
+    view.pivot.x = beforeFive.pivotX;
+    view.panX = beforeFive.panX;
+    view.panY = beforeFive.panY;
+    view.setZoom(beforeFive.z);
+  }
+};
+
 const stateSel = $("stateSelect");
 for (const s of CLIP_STATES) {
   const o = document.createElement("option");
@@ -152,6 +224,109 @@ for (const s of CLIP_STATES) {
   stateSel.append(o);
 }
 stateSel.value = clipNameFor(wb.state);
+
+// ------------------------------------------------------------- sprite poses
+//
+// The pose bench's subject. Every drawing the game can put this fighter in,
+// once each, grouped under the state that draws it (sprite_poses.js) — so the
+// list IS the job: work down it, and when the last one matches, the fighter is
+// done. A drawing several states share is one entry, because it is one pose.
+
+const poseSel = $("poseSelect");
+let poseList = [];
+
+function fillPoseSelect() {
+  poseList = poseCatalogue(wb.char);
+  poseSel.innerHTML = "";
+  let group = null;
+  for (const p of poseList) {
+    if (!group || group.label !== p.state) {
+      group = document.createElement("optgroup");
+      group.label = p.state;
+      poseSel.append(group);
+    }
+    const o = document.createElement("option");
+    o.value = p.frame;
+    // The count of OTHER states that draw this same pose: a warning that an
+    // edit here shows up in more places than the one being looked at.
+    o.textContent = p.alsoIn.length ? `${p.frame}  (+${p.alsoIn.length} more)` : p.frame;
+    group.append(o);
+  }
+  if (!poseList.some((p) => p.frame === wb.pose)) wb.pose = poseList[0]?.frame || null;
+  if (wb.pose) poseSel.value = wb.pose;
+  refreshPoseMarks();
+}
+
+/** Put one drawing on screen: its state, its instant, and the editor key that
+ *  IS it, so a drag lands on the pose being looked at. */
+function showPose(frame) {
+  const p = poseList.find((x) => x.frame === frame);
+  if (!p) return;
+  wb.pose = p.frame;
+  wb.state = p.state;
+  wb.t = p.t;
+  wb.playing = false;
+  poseSel.value = p.frame;
+  stateSel.value = clipNameFor(p.state);
+  const ki = editor?.indexOfFrame(p.frame, wb.char, clipNameFor(p.state)) ?? -1;
+  if (ki >= 0) editor.selectKey(ki);
+  const shared = p.alsoIn.length ? `, also drawn by ${p.alsoIn.join(", ")}` : "";
+  $("poseWhere").textContent =
+    `${p.state} frame ${p.i + 1} of ${poseSchedule(wb.char, p.state).length}`
+    + ` · ${p.t.toFixed(2)}s at ${p.fps} fps${shared}`;
+  const url = new URL(location);
+  url.searchParams.set("pose", p.frame);
+  url.searchParams.set("state", clipNameFor(p.state));
+  history.replaceState(null, "", url);
+  syncModeLinks();
+  editor?.syncPanel();
+  syncPanel();
+}
+
+/** Keep the other bench's link pointing at what is on screen here. Landing on
+ *  somebody else's model because the link was a bare href is a small thing
+ *  that happens every single time. */
+function syncModeLinks() {
+  for (const [id, edit] of [["toPose", null], ["toAnim", "animation"]]) {
+    const url = new URL(location);
+    if (edit) url.searchParams.set("edit", edit);
+    else url.searchParams.delete("edit");
+    const el = $(id);
+    if (el) el.href = `${url.pathname}${url.search}`;
+  }
+}
+
+/** Tick the poses that have been posed by hand. A 36-item list you walk once
+ *  per fighter needs to say where you got to. */
+function refreshPoseMarks() {
+  for (const o of poseSel.options) {
+    const p = poseList.find((x) => x.frame === o.value);
+    if (!p) continue;
+    const also = p.alsoIn.length ? `  (+${p.alsoIn.length} more)` : "";
+    o.textContent = `${editor?.poseEdited(wb.char, p.frame) ? "\u25cf " : ""}${p.frame}${also}`;
+  }
+}
+
+function poseStep(step) {
+  const i = poseList.findIndex((p) => p.frame === wb.pose);
+  const next = poseList[(Math.max(0, i) + step + poseList.length) % poseList.length];
+  if (next) showPose(next.frame);
+}
+poseSel.onchange = () => showPose(poseSel.value);
+$("posePrev").onclick = () => poseStep(-1);
+$("poseNext").onclick = () => poseStep(1);
+
+// Keys for the two things this bench does most: change fighter, change pose.
+addEventListener("keydown", (e) => {
+  if (!facingUI.overlay.hidden) return;             // the review owns the keys
+  if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target?.tagName || "")) return;
+  if (e.key === ",") charStep(-1);
+  else if (e.key === ".") charStep(1);
+  else if (e.key === "[" && MODE === "pose") poseStep(-1);
+  else if (e.key === "]" && MODE === "pose") poseStep(1);
+  else return;
+  e.preventDefault();
+});
 
 const stageSel = $("stageSelect");
 for (const s of STAGES) {
@@ -357,10 +532,21 @@ for (const [id, valId, get, set] of [
     scene.clearCache();
   };
 }
-$("sweepToggle").onchange = () => { wb.sweep = $("sweepToggle").checked; if (!wb.sweep) { scene.setKeyLightAngle(0.55); scene.clearCache(); } };
+$("sweepToggle").onchange = () => { wb.sweep = $("sweepToggle").checked; if (!wb.sweep) { // THE POSE BENCH RENDERS AT EXACT TIMES. Same reason as editing (below): a
+// drawing is matched at the instant it is on screen, and the on-twos sampler
+// would quietly answer with the nearest 13 Hz tick instead — a different pose
+// from the one named in the dropdown, in exactly the states that move fastest.
+if (MODE === "pose") DIALS.onTwos = false;
+scene.setKeyLightAngle(0.55); scene.clearCache(); } };
 $("ikToggle").onchange = () => { DIALS.footIK = $("ikToggle").checked; scene.clearCache(); };
-$("twosToggle").onchange = () => { DIALS.onTwos = $("twosToggle").checked; scene.clearCache(); };
+$("twosToggle").onchange = () => { DIALS.onTwos = $("twosToggle").checked && !editor.on; scene.clearCache(); };
 $("turnToggle").onchange = () => { wb.faceLeft = $("turnToggle").checked; };
+$("interpToggle").onchange = () => {
+  editor.setInterpolate($("interpToggle").checked);
+  notify($("interpToggle").checked
+    ? "playing the interpolation between this state's sprite poses"
+    : "playing the delivered clip");
+};
 stageSel.onchange = () => { gameState.stageKey = stageSel.value; scene.clearCache(); };
 
 // ------------------------------------------------------------- manifest edit
@@ -476,7 +662,8 @@ const facing = {
   wasZoom: 1,
   wasPan: { x: 0, y: 0 },
   wasAim: true,
-  wasCompare: "overlay",
+  wasCompare: "left",
+  wasPose: null,
 };
 
 const facingUI = {
@@ -517,6 +704,7 @@ function facingOpen() {
   facing.wasPan = { x: view.panX, y: view.panY };
   facing.wasAim = wb.aimOn;
   facing.wasCompare = wb.compare;
+  facing.wasPose = wb.pose;
   // Hold the idle still: a looping breath changes a figure's height by a few
   // pixels, which is enough to argue with while sizing.
   wb.playing = false;
@@ -537,7 +725,10 @@ function facingClose() {
   wb.playing = facing.wasPlaying;
   wb.aimOn = facing.wasAim;
   wb.compare = facing.wasCompare;
+  wb.pose = facing.wasPose;
   $("compareMode").value = facing.wasCompare;
+  fillPoseSelect();
+  if (MODE === "pose" && wb.pose) showPose(wb.pose);
   view.pivot.x = facing.wasCompare === "left" ? CX - COMPARE_DX / 2 : CX;
   view.setZoom(facing.wasZoom);
   view.panX = facing.wasPan.x;
@@ -563,6 +754,10 @@ function facingShow() {
   wb.char = char;
   wb.state = "idle";
   wb.t = 0;
+  // The reference is pinned to the pose being matched (ensureGhostFrame), and
+  // the review's pose is the idle — otherwise it would keep showing whichever
+  // drawing the bench was left on and size the fighter against a punch.
+  wb.pose = poseSchedule(char, "idle")[0]?.frame || null;
   charSel.value = char;
   stateSel.value = "idle";
   editor.fillJoints();
@@ -789,6 +984,9 @@ editor = makePoseEditor({
   stateKey: () => clipNameFor(wb.state),
   stateSpec: (st) => STATES[clipNameFor(st)],
   resolveClip: (char, st) => rig.resolveClip(char, st),
+  // The keys ARE the sprite poses: the clip is read at the instants this
+  // fighter's drawings are on screen, so an edit is an edit to a drawing.
+  poseSchedule,
   boneOwners,
   clipTime: () => clipTime(wb.state, wb.t),
   setTime: (t) => {
@@ -801,7 +999,7 @@ editor = makePoseEditor({
   },
   project, mirror: mirrorSign,
   posePreview: posePreviewNow,
-  onChange: () => { scene.clearCache(); },
+  onChange: () => { scene.clearCache(); refreshPoseMarks(); },
   onHeightChange: () => {
     // Editing the idle changes what the model MEASURES, which changes what
     // scale would make it stand its target — a reading, not an action: the
@@ -816,6 +1014,16 @@ editor = makePoseEditor({
       wb.playing = false;
       $("playBtn").textContent = "▶ Play";
     }
+    // ...and stops SAMPLING on twos, which is the other way the body on screen
+    // stops being the pose you think you are editing. On twos the render is
+    // taken at the nearest 13 Hz tick, so parking the playhead on a keyframe
+    // at 0.077 s draws the clip at 0.0769 s instead — near enough to look
+    // right and far enough, in a run cycle, to put a dragged forearm 75° from
+    // where it was dropped, because the drag composes into a pose the body was
+    // never actually in. Exact times while editing; the toggle is honoured
+    // again the moment it is off.
+    DIALS.onTwos = on ? false : $("twosToggle").checked;
+    scene.clearCache();
   },
   status: notify,
 });
@@ -823,9 +1031,93 @@ editor = makePoseEditor({
 // ------------------------------------------------------------------ drawing
 
 async function ensureGhostFrame() {
-  const frame = currentFrame(wb.char, wb.state, wb.t);
+  // In pose mode the reference is PINNED to the drawing being matched, not
+  // read off the playhead: they agree while the playhead sits on the pose, and
+  // the moment anything nudges it (a scrub, a rounding, a state whose art
+  // outruns its duration) the comparison would quietly become a comparison
+  // with a different drawing.
+  const frame = MODE === "pose" && wb.pose ? wb.pose : currentFrame(wb.char, wb.state, wb.t);
   await loadFrame(wb.char, frame).catch(() => {});
   return frame;
+}
+
+// ------------------------------------------------------------------ five up
+//
+// A LINE-UP, not five workbenches. One fighter at a time answers "is this pose
+// right?", and answers it well — but it cannot answer "does this roster read
+// as one set of characters?", which is the question that decides whether the
+// 3D fighters look like a game or like twenty-seven separate deliveries. Five
+// abreast, each under their own drawing, is the smallest arrangement that
+// does: differences in size, in colour temperature, in how heavily they are
+// outlined, in how wide they stand, are all invisible one at a time and
+// obvious in a row.
+//
+// So it is a VIEWING mode, and the panel says so by putting every per-fighter
+// control away — a dial that silently edits whichever of the five happens to
+// be selected is a dial that damages four of them by accident.
+
+const CAST = 5;
+/** How far apart they stand, in game pixels — wide enough that a spear or a
+ *  swung axe does not cross into the neighbour's half. */
+const CAST_DX = 250;
+
+/** Five fighters starting at the selected one, wrapping — in the order the
+ *  dropdown shows, so ▶ walks the line-up along by one. */
+function castOf(char) {
+  const keys = [...charSel.options].filter((o) => !o.disabled).map((o) => o.value);
+  const at = Math.max(0, keys.indexOf(char));
+  return Array.from({ length: Math.min(CAST, keys.length) },
+    (_, i) => keys[(at + i) % keys.length]);
+}
+
+/** Pull in the models the line-up needs, one at a time so a slow fetch shows
+ *  four fighters rather than none. */
+async function ensureCast() {
+  for (const char of castOf(wb.char)) {
+    const held = rig.getRig(char);
+    if (!held || held.isMannequin) await ensureChar(char);
+  }
+}
+
+async function drawLineUp() {
+  const cast = castOf(wb.char);
+  const facing = wb.faceLeft ? -1 : 1;
+  // ONE baseline for the whole reference row, cleared by the tallest fighter
+  // in it. Hanging each sprite its own distance above its own model would make
+  // the row a staircase, and a staircase is the one thing that stops five
+  // drawings from being comparable to each other.
+  const shelf = GROUND_Y - Math.max(...cast.map(headHeightTarget)) - 44;
+  for (const [i, char] of cast.entries()) {
+    const x = CX + (i - (cast.length - 1) / 2) * CAST_DX;
+    const target = headHeightTarget(char);
+    const r = rig.getRig(char);
+    const resolved = resolvedClip(char, wb.state);
+    // No aim, no reach, no hand edits: this is the pose as authored, which is
+    // the only version of it that means the same thing for all five.
+    const entry = scene.renderPose(char, wb.state, wb.t, r, resolved,
+      { parallaxDeg: wb.parallax, turnYawRad: DIALS.turnaround && facing < 0 ? scene.turnaroundYaw() : 0 });
+    if (entry) blitPose(ctx, entry, char, x, GROUND_Y, { scale: getActor(char)?.scale, facing, alpha: 0.95 });
+
+    if (wb.compare !== "off") {
+      // ABOVE, not beside: five pairs side by side have no room for a second
+      // column each, and stacking keeps every fighter's reference over the
+      // fighter it belongs to rather than next to their neighbour.
+      const frame = MODE === "pose" && wb.pose && frameDrawn(char, wb.pose)
+        ? wb.pose : currentFrame(char, wb.state, wb.t);
+      await loadFrame(char, frame).catch(() => {});
+      drawCharFrame(ctx, char, frame, x, shelf,
+        { scale: getActor(char)?.scale, alpha: 1, facing });
+    }
+    ctx.fillStyle = char === wb.char ? "#9fd39f" : "#8b96b3";
+    ctx.fillText(CHARACTERS[char]?.name || char, x - 24, GROUND_Y + 18);
+  }
+}
+
+/** Does this fighter's art actually have that drawing? Two fighters' pose sets
+ *  are not the same set — half the roster still reaches a state through a
+ *  fallback — so the line-up shows each of them the pose they really draw. */
+function frameDrawn(char, frame) {
+  return poseCatalogue(char).some((p) => p.frame === frame);
 }
 
 let lastTick = performance.now();
@@ -856,6 +1148,18 @@ async function draw() {
   ctx.moveTo(-2000, GROUND_Y);
   ctx.lineTo(canvas.width + 2000, GROUND_Y);
   ctx.stroke();
+
+  // FIVE UP: the line-up. Everything below draws one fighter at CX; this draws
+  // the same thing five times across the floor, and puts each reference over
+  // its own model instead of beside it — a row of pairs, which is the only
+  // arrangement in which five comparisons fit on one screen at once.
+  if (wb.five) {
+    await drawLineUp();
+    view.end(ctx);
+    hud(now);
+    requestAnimationFrame(draw);
+    return;
+  }
 
   if (wb.compare !== "off") {
     const frame = await ensureGhostFrame();
@@ -948,20 +1252,22 @@ async function draw() {
 
   view.end(ctx);
 
-  // Screen-fixed HUD, outside the zoom transform.
+  hud(now);
+  requestAnimationFrame(draw);
+}
+
+/** Screen-fixed readouts, outside the zoom transform. */
+function hud(now) {
   const st = STATES[clipNameFor(wb.state)];
-  if (st.beat !== undefined) {
+  if (st.beat !== undefined && !wb.five) {
     ctx.fillStyle = clipTime(wb.state, wb.t) >= st.beat ? "#9fd39f" : "#5a6486";
     ctx.fillText(`beat ${st.beat}s`, 16, 24);
   }
-
   // The status line is a live readout, so a one-off message (an export) has to
   // be held for long enough to read or the next frame eats it.
   const s = scene.stats;
   $("status").textContent = now < wb.noticeUntil ? wb.notice
     : `renders ${s.renders} · cache ${s.hits}/${s.hits + s.misses} hits · ${DIALS.onTwos ? `${DIALS.sampleHz} Hz on twos` : "on ones"}`;
-
-  requestAnimationFrame(draw);
 }
 
 // ------------------------------------------------------------------- wiring
@@ -972,6 +1278,14 @@ charSel.onchange = async () => {
   const url = new URL(location);
   url.searchParams.set("char", wb.char);
   history.replaceState(null, "", url);
+  syncModeLinks();
+  if (wb.five) ensureCast();
+  // A different fighter is a different pose set — a different SIZE of pose
+  // set, even, since half the roster still draws a state through a fallback.
+  // Hold the pose being worked on if the new fighter has it, so walking the
+  // roster to compare one drawing stays on that drawing.
+  fillPoseSelect();
+  if (MODE === "pose" && wb.pose) showPose(wb.pose);
   // A different rig is a different skeleton: the joint list is rebuilt from
   // whatever bones this body actually has.
   editor.fillJoints();
@@ -1037,7 +1351,27 @@ canvas.addEventListener("pointercancel", () => {
   view.endPan();
 });
 
+// THE POSE BENCH RENDERS AT EXACT TIMES. Same reason as editing (below): a
+// drawing is matched at the instant it is on screen, and the on-twos sampler
+// would quietly answer with the nearest 13 Hz tick instead — a different pose
+// from the one named in the dropdown, in exactly the states that move fastest.
+if (MODE === "pose") DIALS.onTwos = false;
 scene.setKeyLightAngle(0.55);
+// The comparison stands BESIDE by default now, so the zoom has to grow around
+// the pair rather than around the model — otherwise the reference walks off
+// the side the first time anybody zooms in, which is exactly how the sizing
+// pass lost its sprite.
+view.pivot.x = wb.compare === "left" ? CX - COMPARE_DX / 2 : CX;
+// Close enough to judge a hand. Matching a pose is a comparison of details —
+// where the elbow sits, which way the palm faces — and both figures drawn a
+// third of the frame tall is a comparison nobody can make. The pair spans
+// COMPARE_DX plus two bodies, so this is as far in as it goes before the
+// reference starts leaving the frame.
+if (MODE === "pose") view.setZoom(1.8);
+$("aimToggle").checked = wb.aimOn;
+syncModeLinks();
+fillPoseSelect();
+if (MODE === "pose" && wb.pose) showPose(wb.pose);
 syncSizePanel();
 syncLookPanel();
 applyLook();

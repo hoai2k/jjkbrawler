@@ -50,6 +50,20 @@ select, button, input[type="number"] {
   padding: 6px 8px; font: inherit;
 }
 .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+/* TWO WORKBENCHES, ONE PAGE. The pose bench is about ONE DRAWING — pick a
+   fighter, pick a pose, make the model match it — and every control that only
+   means something while a clip is PLAYING (the playhead, the beat snap, on
+   twos, the keyframe strip, the ease curve) is noise in that job. The
+   animation bench at ?edit=animation is where those live. Same module, same
+   viewer, same rig: `body.mode-*` decides which set is on screen, so there is
+   no second page to keep in step. */
+body.mode-pose .anim-only, body.mode-anim .pose-only { display: none !important; }
+/* The line-up is a VIEWING mode: five fighters, and no dial that would edit
+   only one of them. `.five-only` is the other half — the note that says so. */
+body.five .one-char, body:not(.five) .five-only { display: none !important; }
+.navrow { flex-wrap: nowrap; }
+.navrow select { flex: 1; min-width: 0; }
+.navrow button { flex: none; min-width: 34px; }
 /* A checkbox reads as one line whether or not it sits in a .row — this used to
    be scoped to .row, which stacked the stray ones over their own caption. */
 .check { flex-direction: row; align-items: center; gap: 6px; }

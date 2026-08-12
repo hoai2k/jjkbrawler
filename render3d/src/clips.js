@@ -196,16 +196,34 @@ export function clipToKeys(THREE, clip, maxKeys = 24) {
     const step = (list.length - 1) / (maxKeys - 1);
     list = Array.from({ length: maxKeys }, (_, i) => list[Math.round(i * step)]);
   }
+  return posesAt(THREE, clip, list);
+}
 
+/**
+ * Read `clip` at exactly the times asked for, as table keys.
+ *
+ * The times are the caller's, not the clip's, which is what makes a clip
+ * RESAMPLABLE onto a schedule it was not authored to. That is how a delivered
+ * animation is converted into the poses the sprite set draws: a fighter's
+ * `idle` is two drawings 0.45 s apart, so their 3D idle read at those two
+ * instants is the pair of poses the drawings correspond to, and interpolating
+ * back between them reproduces an idle keyed to the art rather than to
+ * whatever the generator baked.
+ *
+ * Every bone the clip rotates is read; a bone it does not mention keeps
+ * whatever the rig's bind pose has, exactly as before.
+ */
+export function posesAt(THREE, clip, times) {
+  if (!clip || !times?.length) return [];
   const e = new THREE.Euler();
   const q = new THREE.Quaternion();
-  const keys = list.map((t) => ({ t, pose: {}, ease: "linear" }));
+  const keys = times.map((t) => ({ t, pose: {}, ease: "linear" }));
   for (const track of clip.tracks) {
     const parsed = THREE.PropertyBinding.parseTrackName(track.name);
     if (parsed.propertyName !== "quaternion") continue;
     const interpolant = track.createInterpolant();
     for (const key of keys) {
-      const v = interpolant.evaluate(key.t);
+      const v = interpolant.evaluate(Math.min(key.t, clip.duration));
       q.set(v[0], v[1], v[2], v[3]);
       e.setFromQuaternion(q, "XYZ");
       key.pose[parsed.nodeName] = [e.x / DEG, e.y / DEG, e.z / DEG].map((d) => +d.toFixed(2));

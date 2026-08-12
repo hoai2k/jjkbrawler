@@ -10,7 +10,7 @@ Two pose tables feed the 3D paths, and the audit fixes landed in both:
 
 | Table | Who plays it | Where |
 |---|---|---|
-| The runtime default set | mannequins, and any rig/state without a delivered clip (resolution step 4 in rig.js/loader.js) | `billboards/src/mannequin.js` |
+| The runtime default set | mannequins, and any rig/state without a delivered clip (resolution step 4 in loader.js) | `render3d/src/mannequin.js` |
 | The Blender authoring vocabulary | baked into every delivered `.glb`'s own clips at intake | `tools/blender_author_clips.py` |
 
 The delivered roster carries baked clips for all 26 states, so the
@@ -46,7 +46,7 @@ way, the clip itself stays right-handed and aim-neutral.
 What WAS missing is the pose itself changing hands without losing its read —
 a model delivered mirrored against the spec, a left-handed identity playing
 the shared right-handed library. That is now one shared transform,
-`mirrorPose`/`mirrorKeys`/`mirrorClip` in `billboards/src/clips.js`: a
+`mirrorPose`/`mirrorKeys`/`mirrorClip` in `render3d/src/clips.js`: a
 reflection across the character's own sagittal plane — sided bones swap,
 sagittal rotation (the part that faces) carries over, yaw and roll negate,
 hip heights and timing untouched. A mirrored punch extends exactly as far

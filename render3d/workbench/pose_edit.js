@@ -1,15 +1,21 @@
 // The 3D workbench's POSE EDITOR: drag a joint, get an animation back.
 //
-// It edits KEYFRAMES, not frames. A state's clip is a handful of extremes —
+// It edits POSES, not frames of animation. A state is a handful of extremes —
 // the contact of a run, the full extension of a strike, the deepest point of a
 // landing — and everything between them is a curve (render3d/src/clips.js).
-// So the editor gives you the extremes and nothing else: pick a key, pose the
-// body, pick how it travels out of that key, and the in-betweens rebuild
-// themselves. Nothing here can produce the thing hand-authored in-betweens
-// always decay into, which is one extreme moved and eleven left behind.
+// So the editor gives you the extremes and nothing else: pick one, pose the
+// body, pick how it travels out, and the in-betweens rebuild themselves.
+// Nothing here can produce the thing hand-authored in-betweens always decay
+// into, which is one extreme moved and eleven left behind.
 //
-// The table it edits comes from the clip itself (`clipToKeys`), so this works
-// on a delivered rig's own animation exactly as it does on the default set.
+// AND THE EXTREMES ARE THE DRAWINGS. Which poses a state has is not a question
+// this tool asks the animator: the fighter's sprite set already answers it —
+// `idle_a` and `idle_b`, four run frames, a wind-up and a strike — and at a
+// frame rate the clip durations were derived from (sprite_poses.js). So the
+// table is built by reading the delivered clip AT THOSE INSTANTS, each key
+// carries the name of the drawing it has to match, and the animation is the
+// interpolation between them. That is what makes "does this look right?" a
+// question with an answer on screen: the drawing is next to it.
 //
 // TWO SPACES, AND WHY THE UI INSISTS ON SAYING WHICH
 //
@@ -37,7 +43,7 @@
 // how tall the model stands in its idle IS how big it is drawn, in every
 // state. The panel shows the number and says so.
 
-import { buildClipFromKeys, clipToKeys, sampleDeltaTrack, EASE_NAMES } from "../src/clips.js";
+import { buildClipFromKeys, clipToKeys, posesAt, sampleDeltaTrack, EASE_NAMES } from "../../render3d/src/clips.js";
 
 const DEG = Math.PI / 180;
 /** Handle hit radius, in game pixels before the viewer's zoom. */
@@ -86,16 +92,57 @@ export function makePoseEditor(opts) {
 
   // ------------------------------------------------------------ the table
 
+  /**
+   * The keyframe table for one state, built on first touch.
+   *
+   * ITS KEYS ARE THE SPRITE POSES. A state's drawings and their frame rate say
+   * when each pose is on screen (sprite_poses.js), and the delivered clip is
+   * READ at exactly those instants — so key three of a run is the pose that
+   * belongs to the third drawing of the run, and the animation between them is
+   * the interpolation. Editing key three edits that drawing's pose everywhere
+   * it is used, which is the whole point of posing against the art.
+   *
+   * A state whose art does not resolve (no frames delivered) falls back to the
+   * clip's own extremes, so nothing becomes uneditable for want of a drawing.
+   */
   function tableFor(char = charKey(), st = stateKey(), make = true) {
     const held = tables[char]?.[st];
     if (held || !make) return held || null;
     const resolved = resolveClip(char, st);
     if (!resolved) return null;
-    const keys = clipToKeys(THREE, resolved.clip);
+    const sched = (opts.poseSchedule?.(char, st) || [])
+      // Two frames can land on the same instant when a fallback pose set plays
+      // at the wrong rate; one instant is one key.
+      .filter((s, i, all) => all.findIndex((o) => Math.abs(o.t - s.t) < 1e-4) === i);
+    let keys;
+    if (sched.length) {
+      keys = posesAt(THREE, resolved.clip, sched.map((s) => s.t));
+      keys.forEach((k, i) => { k.frame = sched[i].frame; k.ease = sched[i].ease; });
+    } else {
+      keys = clipToKeys(THREE, resolved.clip);
+    }
     if (!keys.length) return null;
     tables[char] = tables[char] || {};
-    tables[char][st] = { keys, deltas: {}, clip: null, dirty: false, source: resolved.source };
+    tables[char][st] = { keys, deltas: {}, clip: null, dirty: false, source: resolved.source,
+                         fromPoses: !!sched.length };
     return tables[char][st];
+  }
+
+  /** Has this drawing been posed by hand yet, in any state that draws it? The
+   *  pose bench walks 36 of them per fighter, and "which have I done" is the
+   *  one thing a list of 36 has to be able to say. */
+  function poseEdited(char, frame) {
+    for (const t of Object.values(tables[char] || {})) {
+      if (t.keys.some((k) => k.frame === frame && k.editedBones?.size)) return true;
+    }
+    return false;
+  }
+
+  /** Select the key that IS this sprite frame. -1 when the state does not draw
+   *  it, which the caller reads as "nothing to select". */
+  function indexOfFrame(frame, char = charKey(), st = stateKey()) {
+    const t = tableFor(char, st);
+    return t ? t.keys.findIndex((k) => k.frame === frame) : -1;
   }
 
   function key() {
@@ -105,10 +152,27 @@ export function makePoseEditor(opts) {
     return t.keys[ed.ki];
   }
 
-  /** The clip to play: rebuilt from the table once anything is edited. */
+  /**
+   * Play the interpolation between the sprite poses INSTEAD of the delivered
+   * clip, edits or no edits — the A/B for the whole strategy. Off, a delivered
+   * animation plays exactly as it always did.
+   */
+  let interpolate = false;
+  function setInterpolate(on) {
+    if (interpolate === on) return;
+    interpolate = on;
+    for (const states of Object.values(tables)) {
+      for (const t of Object.values(states)) t.clip = null;
+    }
+    onChange();
+    syncPanel();
+  }
+
+  /** The clip to play: rebuilt from the table once anything is edited — or
+   *  always, when the pose interpolation is being auditioned. */
   function editedClip(char, st) {
-    const t = tables[char]?.[st];
-    if (!t || !t.dirty) return null;
+    const t = interpolate ? tableFor(char, st) : tables[char]?.[st];
+    if (!t || !(t.dirty || (interpolate && t.fromPoses))) return null;
     if (!t.clip) {
       const spec = stateSpec(st);
       t.clip = buildClipFromKeys(THREE, st, t.keys,
@@ -156,6 +220,7 @@ export function makePoseEditor(opts) {
     const rounded = deg.map((v) => Math.round(v * 100) / 100);
     if (isPost(bone)) {
       const track = t.deltas[bone] || (t.deltas[bone] = []);
+      (k.editedBones || (k.editedBones = new Set())).add(bone);
       const at = track.find((d) => Math.abs(d.t - k.t) < 1e-6);
       if (at) at.deg = rounded;
       else track.push({ t: k.t, deg: rounded, ease: k.ease || "ease" });
@@ -169,6 +234,11 @@ export function makePoseEditor(opts) {
       return;
     }
     k.pose[bone] = rounded;
+    // Which bones were MOVED, as opposed to which the clip already had a value
+    // for — which is all of them. Without this every handle lit up gold the
+    // moment anything in the state was touched, and "what have I actually
+    // changed on this pose?" had no answer on screen.
+    (k.editedBones || (k.editedBones = new Set())).add(bone);
     touched(t);
   }
 
@@ -188,8 +258,15 @@ export function makePoseEditor(opts) {
 
   /** Same edits, same pixels: the pose cache's share of the table. */
   function editKey() {
-    const t = tableFor(charKey(), stateKey(), false);
-    if (!t?.dirty) return "";
+    // Built here when the interpolation is on, because `editedClip` below is
+    // about to build it anyway: a key read before the table exists is the key
+    // the interpolated frame would get CACHED under.
+    const t = tableFor(charKey(), stateKey(), interpolate);
+    // The interpolation is a different set of pixels from the delivered clip,
+    // so it is a different cache key — without this the A/B shows whichever
+    // one was rendered first.
+    if (!t || !(t.dirty || interpolate)) return "";
+    if (!t.dirty) return interpolate ? "poses" : "";
     const poses = t.keys.map((k, i) => `${i}:${k.ease}:${Object.entries(k.pose)
       .map(([b, d]) => `${b}${d.join(",")}`).join(";")}`).join("|");
     const deltas = Object.entries(t.deltas)
@@ -313,9 +390,12 @@ export function makePoseEditor(opts) {
       const b = document.createElement("button");
       b.className = "keychip" + (i === ed.ki ? " sel" : "")
         + (beat !== undefined && Math.abs(k.t - beat) < 1e-6 ? " beat" : "");
-      b.textContent = `${k.t.toFixed(2)}s`;
+      // Named by the DRAWING when there is one: "attack_light_b" says what the
+      // pose has to look like in a way "0.08s" never can.
+      b.textContent = k.frame || `${k.t.toFixed(2)}s`;
       b.title = beat !== undefined && Math.abs(k.t - beat) < 1e-6
-        ? "the contact beat — full extension belongs here" : `keyframe ${i + 1}`;
+        ? `the contact beat — full extension belongs here (${k.t.toFixed(2)}s)`
+        : `${k.frame ? `${k.frame} — ` : ""}${k.t.toFixed(2)}s`;
       b.onclick = () => selectKey(i);
       keyStrip.append(b);
     });
@@ -334,7 +414,7 @@ export function makePoseEditor(opts) {
       const s = spaceOf(o.value, map);
       const has = POST_SPACES.has(s)
         ? !!t?.deltas[o.value]
-        : !!(k?.pose?.[o.value]) && !!t?.dirty;
+        : !!k?.editedBones?.has(o.value);
       o.textContent = `${has ? "● " : ""}${o.value}${POST_SPACES.has(s) ? " ⌖" : ""}`;
     }
 
@@ -343,7 +423,8 @@ export function makePoseEditor(opts) {
 
     const n = editCount();
     $("poseLine").textContent = t
-      ? `${stateKey()}: ${t.keys.length} keyframes from ${t.source}${t.dirty ? " — EDITED" : ""}`
+      ? `${stateKey()}: ${t.keys.length} ${t.fromPoses ? "sprite pose(s)" : "keyframes"}`
+        + ` from ${t.source}${t.dirty ? " — EDITED" : ""}`
       : "no clip resolves for this state";
     $("poseCount").textContent = n ? `${n} edited block(s) this session` : "";
   }
@@ -447,38 +528,54 @@ export function makePoseEditor(opts) {
     for (const [char, states] of Object.entries(tables)) {
       for (const [st, t] of Object.entries(states)) {
         if (!t.dirty) continue;
-        characters[char] = characters[char] || {};
+        const c = characters[char] = characters[char] || { poses: {}, states: {} };
         const spec = stateSpec(st) || {};
-        characters[char][st] = {
+        // THE POSE LIBRARY: one entry per DRAWING, not per state. A pose shared
+        // by two states is one pose, and exporting it twice is how the two
+        // copies start to disagree.
+        for (const k of t.keys) {
+          if (k.frame) c.poses[k.frame] = k.pose;
+        }
+        c.states[st] = {
           from: t.source,
           duration: spec.duration,
           beat: spec.beat,
           loop: !!spec.loop,
-          keys: t.keys.map((k) => ({ t: +k.t.toFixed(4), ease: k.ease || "linear", pose: k.pose })),
+          keys: t.keys.map((k) => ({
+            ...(k.frame ? { frame: k.frame } : {}),
+            t: +k.t.toFixed(4),
+            ease: k.ease || "linear",
+            // Named poses live in the library above; only an unnamed key (a
+            // state with no delivered art) carries its own table.
+            ...(k.frame ? {} : { pose: k.pose }),
+          })),
           ...(Object.keys(t.deltas).length ? { targetSpaceOffsetsDeg: t.deltas } : {}),
         };
       }
     }
     const payload = {
-      kind: "render3d-clip-edits",
+      kind: "render3d-pose-library",
       exported: new Date().toISOString(),
-      note: "Keyframe tables in DEGREES (local XYZ euler per bone), one entry per "
-        + "extreme; `ease` is how the pose travels OUT of that key and is baked by "
-        + "render3d/src/clips.js. Drop these into the POSES/stateKeys tables in "
-        + "render3d/src/mannequin.js. `targetSpaceOffsetsDeg` are NOT keyframes: "
+      note: "POSES are keyed by SPRITE FRAME — the drawing the model is matched "
+        + "to — in DEGREES (local XYZ euler per bone). STATES say which poses a "
+        + "state plays, when, and how the body travels out of each (`ease`, baked "
+        + "by render3d/src/clips.js): the animation is the interpolation between "
+        + "the poses, so a state carries no pose data of its own. Times come from "
+        + "the sprite animation's own fps, which render3d/src/states.js already "
+        + "derives its durations from. `targetSpaceOffsetsDeg` are NOT poses: "
         + "those bones are solved onto the aim point at pose time (ik.js), and the "
-        + "offsets are applied after the solve — they belong in the solver's shares, "
-        + "not in a clip.",
+        + "offsets are applied after the solve.",
       characters,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "clip-edits.json";
+    a.download = "pose-library.json";
     a.click();
+    const poses = Object.values(characters).reduce((n, c) => n + Object.keys(c.poses).length, 0);
     status(Object.keys(characters).length
-      ? `exported ${Object.keys(characters).length} character(s) of keyframes — hand clip-edits.json back`
-      : "exported an empty payload — no keyframes have been moved");
+      ? `exported ${poses} pose(s) across ${Object.keys(characters).length} character(s) — hand pose-library.json back`
+      : "exported an empty payload — no poses have been moved");
   };
 
   // -------------------------------------------------------------- viewer
@@ -505,7 +602,7 @@ export function makePoseEditor(opts) {
     for (const h of handles()) {
       const sel = h.bone.name === ed.joint;
       const post = POST_SPACES.has(h.space);
-      const edited = post ? !!t?.deltas[h.bone.name] : !!(t?.dirty && k?.pose?.[h.bone.name]);
+      const edited = post ? !!t?.deltas[h.bone.name] : !!k?.editedBones?.has(h.bone.name);
       if (h.bone.parent?.isBone) {
         h.bone.parent.getWorldPosition(vA);
         const p = project(vA);
@@ -618,6 +715,8 @@ export function makePoseEditor(opts) {
     get on() { return ed.on; },
     get joint() { return ed.joint; },
     editedClip, postEdits, editKey, draw, pointerDown, pointerMove, pointerUp,
-    fillJoints, syncPanel, setEditMode, tableFor,
+    fillJoints, syncPanel, setEditMode, tableFor, selectKey, indexOfFrame, poseEdited,
+    setInterpolate,
+    get keyIndex() { return ed.ki; },
   };
 }
