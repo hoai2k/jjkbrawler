@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Build a tiny but VALID .glb delivery and drop it in billboards/intake/ —
+// Build a tiny but VALID .glb delivery and drop it in render3d/intake/ —
 // the fixture that lets the whole delivery pipeline (validate -> import ->
 // approve -> load -> draw) be exercised with no art commissioned. The smoke
 // test uses it; run it by hand to try the intake flow end to end.
@@ -25,10 +25,10 @@ if (!char) {
   console.log("usage: billboard_test_rig.mjs <char> [outPath]");
   process.exit(2);
 }
-const out = process.argv[3] || join(ROOT, "billboards", "intake", char, `${char}.glb`);
+const out = process.argv[3] || join(ROOT, "render3d", "intake", char, `${char}.glb`);
 
 const H = 1.75;
-// Same proportions as the mannequin's skeleton (billboards/src/mannequin.js).
+// Same proportions as the mannequin's skeleton (render3d/src/mannequin.js).
 const BONES = [
   ["Hips", null, [0, 0.530 * H, 0]],
   ["Spine", "Hips", [0, 0.050 * H, 0]],

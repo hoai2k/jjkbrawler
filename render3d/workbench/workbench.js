@@ -4,7 +4,7 @@
 //   their sprite poses, and the sprite stands beside the model in that exact
 //   pose — then make the model match it, in shape, colour, size and stance.
 //   The animation is not authored here at all; it is the INTERPOLATION between
-//   these poses (billboards/src/sprite_poses.js), so the poses are the whole
+//   these poses (render3d/src/sprite_poses.js), so the poses are the whole
 //   job and the playhead is somebody else's problem.
 //
 //   ANIMATION (?edit=animation). The playhead, the beat snap, on twos, the
@@ -43,7 +43,7 @@
 
 import * as THREE from "../../vendor/three/three.module.js";
 import { GLTFLoader } from "../../vendor/three/loaders/GLTFLoader.js";
-import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimPitch, aimSolve, AIM_MAX_DEG } from "../../billboards/src/states.js";
+import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimPitch, aimSolve, AIM_MAX_DEG } from "../src/states.js";
 import { artReach } from "../../src/silhouette.js";
 import * as rig from "../src/loader.js";
 import * as scene from "../src/scene.js";
@@ -54,7 +54,7 @@ import { blitPose } from "../src/blit.js";
 import { makeViewport } from "../../billboards/workbench/viewport.js";
 import { makePoseEditor } from "./pose_edit.js";
 import { initMobile } from "./mobile.js";
-import { poseSchedule, poseCatalogue } from "../../billboards/src/sprite_poses.js";
+import { poseSchedule, poseCatalogue } from "../src/sprite_poses.js";
 import { CHARACTER_KEYS, CHARACTERS, getActor } from "../../src/characters.js";
 import { STAGES } from "../../src/stages.js";
 import { state as gameState } from "../../src/state.js";

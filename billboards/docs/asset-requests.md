@@ -45,7 +45,7 @@ the sprite request history. Model the fighter that image shows.
 
 ## Where to deliver
 
-**Upload to `billboards/intake/`, never to `billboards/assets/`.** The flow —
+**Upload to `render3d/intake/`** — one intake now serves both 3D backends, because they draw the same rigs. The flow —
 validate, import, workbench review, apply — is [../intake/README.md](../intake/README.md);
 it is deliberately separate from the sprite intake.
 
@@ -56,7 +56,7 @@ billboards/intake/_shared/library.glb      the shared locomotion/defense clips
 billboards/intake/_shared/<archetype>.glb  one normals set per archetype
 ```
 
-`billboards/assets/` holds **approved runtime art only**. A delivery sits in
+`render3d/assets/` holds **approved runtime art only**. A delivery sits in
 intake until every clip clears review in the billboard workbench; a fighter
 registers all-or-nothing (the same readiness rule as `TRANSFORM_POSES` in
 src/config_transform.js, for the same reason — a half-approved set pops holes

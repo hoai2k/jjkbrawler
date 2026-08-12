@@ -31,7 +31,8 @@ import { fileURLToPath } from "url";
 
 const BASE = process.argv[2] || "http://127.0.0.1:5174";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const MANIFEST = join(ROOT, "billboards", "assets", "manifest.json");
+// One registry now: the billboard backend draws render3d's rigs as cards.
+const MANIFEST = join(ROOT, "render3d", "assets", "manifest.json");
 
 // The fighter this test fabricates a delivery for, imports, approves, and then
 // DELETES from disk on the way out.
@@ -169,7 +170,7 @@ try {
 
   const r = await page.evaluate(async (charKey) => {
     const bb = await import("/billboards/src/billboard.js");
-    const rig = await import("/billboards/src/rig.js");
+    const rig = await import("/render3d/src/loader.js");
     const own = rig.resolveClip(charKey, "light");
     const inherited = rig.resolveClip(charKey, "ult");
     // Draw once through the real entry point onto a scratch canvas.
@@ -204,7 +205,7 @@ try {
 } finally {
   writeFileSync(MANIFEST, manifestBefore);
   rmSync(join(ROOT, "billboards", "assets", TEST_CHAR), { recursive: true, force: true });
-  rmSync(join(ROOT, "billboards", "intake", TEST_CHAR), { recursive: true, force: true });
+  rmSync(join(ROOT, "render3d", "intake", TEST_CHAR), { recursive: true, force: true });
 }
 
 // ------------------------------------------------------------- 3. IK reach
@@ -213,7 +214,7 @@ try {
 // strike at four targets and check the striking hand ends up pointing at each
 // one. Angular error, because at fighting range the target is metres away and
 // an arm reaches half a metre — the limb holds the clip's own extension and
-// only the DIRECTION tracks (see applyReach in billboards/src/ik.js).
+// only the DIRECTION tracks (see applyReach in render3d/src/ik.js).
 {
   const page = await browser.newPage();
   const errors = [];
@@ -222,9 +223,9 @@ try {
 
   const r = await page.evaluate(async () => {
     const THREE = await import("/vendor/three/three.module.js");
-    const rig = await import("/billboards/src/rig.js");
+    const rig = await import("/render3d/src/loader.js");
     const renderer = await import("/billboards/src/renderer.js");
-    const { aimSolve, STATES } = await import("/billboards/src/states.js");
+    const { aimSolve, STATES } = await import("/render3d/src/states.js");
     renderer.initRenderer(THREE);
     await rig.initRigs(THREE, null, ["mann"], ["mann"]);
 

@@ -40,7 +40,9 @@ outstanding but not art: 25 poses waiting on approval in the sprite workbench.
 
 **All three render modes are covered here.** The sprite path is fed by the 2D
 art rounds (row 1); the billboard and render3d paths are fed by **one shared
-commission** (rows 2–8) because both read the same rigs and clips. Neither
+commission** (rows 2–8) because they are now one pipeline: `render3d/` owns the
+rigs, clips and posing, and `billboards/` is a way of PRESENTING them (a cached
+card instead of live geometry). Neither
 model path is blocked on code — both run today against the mannequin, which
 is what `?render=billboard` and `?render=3d` now show by default for any
 fighter without a delivered rig.

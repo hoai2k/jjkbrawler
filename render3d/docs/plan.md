@@ -21,7 +21,7 @@ digit). The game, the sim, the sprites and the billboard path are untouched.
 This is the sibling of `billboards/` and deliberately its heir: the billboard
 backend proved the pipe (offscreen WebGL → texture → blit through the
 `drawCharFrame` contract) and wrote the contracts a model must honour (the
-26-state clip contract in `billboards/src/states.js`, the delivery spec, the
+26-state clip contract in `render3d/src/states.js`, the delivery spec, the
 timing beats, the no-baked-engine-motion rule). This backend keeps **all** of
 those and changes two things:
 
@@ -95,7 +95,7 @@ render3d/
     image-requests.md  the 2D images this backend needs (Tripo inputs, ramps)
 ```
 
-**The state list is imported from `billboards/src/states.js`, not copied.**
+**The state list is imported from `render3d/src/states.js`, not copied.**
 It is dependency-free by design, it *is* the contract (durations, contact
 beats, tiers), and two copies of a timing table is how the two backends drift
 apart. `tools/` gains a check that both backends resolve all 26 states.
@@ -374,7 +374,7 @@ Approval stays all-or-nothing per fighter.
 **Testing**: the URL-driven suite pattern holds — every smoke runs with
 `?render=3d`. Added: a determinism smoke (same seed, same pose tokens →
 identical pixels, protecting the trail cache), the states-coverage check
-against `billboards/src/states.js`, and a perf smoke asserting renders per
+against `render3d/src/states.js`, and a perf smoke asserting renders per
 second stays ≤ samples-per-second × fighters (the on-twos cache doing its
 job).
 

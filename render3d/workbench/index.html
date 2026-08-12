@@ -7,6 +7,7 @@
     <link rel="icon" href="../../favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
     <link rel="stylesheet" href="workbench.css">
+    <link rel="stylesheet" href="sprite_pose.css">
     <!-- BOOT WATCH. This page is one ES module with a top-level await, so
          anything that throws or never settles up there leaves a fully
          rendered page whose every control is dead — which reads as "the
@@ -54,6 +55,7 @@
       <button id="facingReviewTop" class="ghost sm">▶ Idle Review</button>
       <a class="ghost sm anim-only" id="toPose" href="?">← Poses</a>
       <a class="ghost sm pose-only" id="toAnim" href="?edit=animation">Animation →</a>
+      <a class="ghost sm" href="./?edit=pose">Joint reads →</a>
       <a class="ghost sm" href="../../billboards/workbench/">Billboard Workbench →</a>
       <a class="ghost sm" href="../../sprites/workbench/">Sprite Workbench →</a>
     </header>
@@ -386,6 +388,19 @@
       </footer>
     </div>
 
-    <script type="module" src="workbench.js"></script>
+    <!-- Three benches, one page, and only one of them loads.
+         `?edit=pose` (or `?edit=reads`) is the SPRITE JOINT READS editor: it
+         records what the DRAWING does, sixteen 2D joints a frame, and its
+         output is data about the art rather than a clip. The other two are
+         workbench.js — no `edit` opens the pose bench (model matched to a
+         drawing), `?edit=animation` the keyframe bench.
+         Reads replaces the page rather than sitting inside it: it wants the
+         whole window, and loading both would pay for the look-dev panel, the
+         sprite pipeline and every clip table to drag a joint. -->
+    <script type="module">
+      const mode = new URLSearchParams(location.search).get("edit");
+      const reads = mode === "pose" || mode === "reads";
+      await import(reads ? "./sprite_pose.js" : "./workbench.js");
+    </script>
   </body>
 </html>

@@ -5,7 +5,7 @@
 // Selected with `?render=3d` (aliases: `render3d`, `model`, `models`,
 // `anime` — see src/render_backend.js). This is the sibling and heir of the
 // billboard backend: same offscreen-render-to-blit pipe, same 26-state clip
-// contract (imported from billboards/src/states.js, never copied), same
+// contract (imported from render3d/src/states.js, never copied), same
 // per-character fallthrough — a fighter with no approved 3D set draws
 // sprites, mid-roster, loudly on failure. What changes: clips PLAY instead
 // of holding quantised poses, and the render is an anime pass (toon.js /
@@ -30,7 +30,7 @@ import {
   currentFrame as spriteFrame,
   cyclePhase as spriteCycle,
 } from "../../sprites/src/sprites.js";
-import { cycleInfo, aimPitch, aimSolve, aimable, clipNameFor } from "../../billboards/src/states.js";
+import { cycleInfo, aimPitch, aimSolve, aimable, clipNameFor } from "./states.js";
 import { headHeightTarget } from "../../src/heights.js";
 import { artReach } from "../../src/silhouette.js";
 import { state } from "../../src/state.js";

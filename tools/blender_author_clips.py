@@ -1,7 +1,7 @@
 """Author a fighter's animation clips onto their delivered rig, headless.
 
     blender --background --python tools/blender_author_clips.py -- \
-        --in  billboards/assets/yuji/yuji.glb \
+        --in  render3d/assets/yuji/yuji.glb \
         --out billboards/intake/yuji/yuji.glb \
         --char yuji [--face-fix]
 
@@ -28,7 +28,7 @@ Bones a pose does not mention stay at rest, so each entry says only what it
 changes.
 
 THE CONTRACT, restated because this file is where it is honoured:
-  * durations and contact beats come from billboards/src/states.js — combat is
+  * durations and contact beats come from render3d/src/states.js — combat is
     tuned so a strike lands the instant its hitbox goes live;
   * clips are AIM-NEUTRAL — the engine pitches the spine and solves the
     striking limb onto the target (ik.js), so a clip that bakes its own angle
@@ -56,7 +56,7 @@ def load_states():
     src = open(STATES_JS, encoding="utf8").read()
     body = re.search(r"export const STATES = \{(.*?)\n\};", src, re.S)
     if not body:
-        sys.exit("could not parse STATES out of billboards/src/states.js")
+        sys.exit("could not parse STATES out of render3d/src/states.js")
     out = {}
     for m in re.finditer(r"^  (\w+):\s*\{([^}]*)\}", body.group(1), re.M):
         name, fields = m.group(1), m.group(2)
@@ -779,7 +779,7 @@ def manifest_height(char):
     """The delivered height from whichever model manifest carries this
     character. Both backends record the same figure at import."""
     import json
-    for rel in ("billboards/assets/manifest.json", "render3d/assets/manifest.json"):
+    for rel in ("render3d/assets/manifest.json",):
         path = os.path.join(REPO, rel)
         if not os.path.exists(path):
             continue

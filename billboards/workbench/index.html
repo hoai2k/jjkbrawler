@@ -65,22 +65,23 @@
 
         <h3>This state's clip</h3>
         <div id="sourceLine" class="mono src"></div>
-        <label>Inherit this pose from
-          <select id="poseFrom"></select>
-        </label>
 
-        <h3>Whole set</h3>
-        <div id="rigLine" class="mono src"></div>
-        <label>Unanswered states fall back to
-          <select id="inheritSelect"></select>
-        </label>
-        <label class="check"><input id="approveToggle" type="checkbox"> Approved for play</label>
+        <h3>The card</h3>
+        <div id="cardLine" class="mono src"></div>
+        <p class="hint">What this backend actually decides: the texture the
+        card is baked into, and how much of the pose cache is being hit. A card
+        is one render re-used across frames and both facings — the hit rate is
+        the whole economy of it.</p>
 
         <h3>All states</h3>
         <div id="stateTable" class="states"></div>
 
-        <button id="exportBtn">Export payload</button>
-        <p class="hint">Apply with <code>node tools/billboard_intake.mjs apply &lt;payload.json&gt;</code> — the workbench edits in-memory only; nothing changes on disk until the payload is applied.</p>
+        <p class="hint"><strong>The rig itself is edited in the
+        <a href="/render3d/workbench/">3D workbench</a>.</strong> Clip
+        inheritance, approval, facing, size and stance are facts about the
+        MODEL, and both backends draw the same one — so they are set in one
+        place and this screen shows what they produced. Everything here is
+        read-only.</p>
       </aside>
     </main>
 

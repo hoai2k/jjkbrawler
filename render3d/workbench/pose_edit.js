@@ -2,7 +2,7 @@
 //
 // It edits POSES, not frames of animation. A state is a handful of extremes —
 // the contact of a run, the full extension of a strike, the deepest point of a
-// landing — and everything between them is a curve (billboards/src/clips.js).
+// landing — and everything between them is a curve (render3d/src/clips.js).
 // So the editor gives you the extremes and nothing else: pick one, pose the
 // body, pick how it travels out, and the in-betweens rebuild themselves.
 // Nothing here can produce the thing hand-authored in-betweens always decay
@@ -43,7 +43,7 @@
 // how tall the model stands in its idle IS how big it is drawn, in every
 // state. The panel shows the number and says so.
 
-import { buildClipFromKeys, clipToKeys, posesAt, sampleDeltaTrack, EASE_NAMES } from "../../billboards/src/clips.js";
+import { buildClipFromKeys, clipToKeys, posesAt, sampleDeltaTrack, EASE_NAMES } from "../../render3d/src/clips.js";
 
 const DEG = Math.PI / 180;
 /** Handle hit radius, in game pixels before the viewer's zoom. */
@@ -559,9 +559,9 @@ export function makePoseEditor(opts) {
       note: "POSES are keyed by SPRITE FRAME — the drawing the model is matched "
         + "to — in DEGREES (local XYZ euler per bone). STATES say which poses a "
         + "state plays, when, and how the body travels out of each (`ease`, baked "
-        + "by billboards/src/clips.js): the animation is the interpolation between "
+        + "by render3d/src/clips.js): the animation is the interpolation between "
         + "the poses, so a state carries no pose data of its own. Times come from "
-        + "the sprite animation's own fps, which billboards/src/states.js already "
+        + "the sprite animation's own fps, which render3d/src/states.js already "
         + "derives its durations from. `targetSpaceOffsetsDeg` are NOT poses: "
         + "those bones are solved onto the aim point at pose time (ik.js), and the "
         + "offsets are applied after the solve.",
