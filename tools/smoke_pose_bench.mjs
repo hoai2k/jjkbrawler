@@ -172,6 +172,38 @@ check(ab.delivered > 1000 && ab.interpolated > 1000 && ab.delivered !== ab.inter
   "the sprite-pose interpolation is a real alternative, not the same clip",
   `mid-strike covers ${ab.delivered}px delivered -> ${ab.interpolated}px interpolated`);
 
+// ------------------------------------------------------------- the bone proxy
+
+const rigView = await page.evaluate(async () => {
+  const scene = await import("/render3d/src/scene.js");
+  const rigMod = await import("/render3d/src/loader.js");
+  const settle = () => new Promise((r) => setTimeout(r, 800));
+  const skinShown = () => {
+    let skin = 0, boxes = 0;
+    rigMod.getRig("maki").root.traverse((o) => {
+      if (!o.isMesh) return;
+      if (o.userData.isBoneProxy) { if (o.visible) boxes++; }
+      else if (o.visible) skin++;
+    });
+    return { skin, boxes };
+  };
+  const before = skinShown();
+  document.getElementById("mqToggle").click();
+  await settle();
+  const on = skinShown();
+  document.getElementById("mqToggle").click();
+  await settle();
+  return { before, on, off: skinShown() };
+});
+check(rigView.before.boxes === 0 && rigView.before.skin > 0,
+  "the model is the model until asked otherwise", `${rigView.before.skin} skin mesh(es)`);
+check(rigView.on.skin === 0 && rigView.on.boxes > 20,
+  "Mannequin(s) draws the fighter's own bones instead of their skin",
+  `${rigView.on.boxes} bone boxes, ${rigView.on.skin} skin`);
+check(rigView.off.skin === rigView.before.skin && rigView.off.boxes === 0,
+  "...and turning it off gives the model back exactly",
+  `${rigView.off.skin} skin mesh(es)`);
+
 // --------------------------------------------------------------- free look
 
 const look = await page.evaluate(async () => {

@@ -256,8 +256,11 @@ export function poseToken(charKey, animKey, animTime, layers) {
   // pixels, so they have to change the token or the cache serves the un-edited
   // body forever.
   const ed = layers.editKey ? `~e${layers.editKey}` : "";
+  // The proof body is a different body: same character, same pose, different
+  // pixels, so it cannot share a cache entry with the model.
+  const mq = layers.mannequin ? "~M" : "";
   const orb = orbitKey();
-  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${rch}${par}${st}${ed}`
+  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${rch}${par}${st}${ed}${mq}`
     + `${orb ? `~o${orb}` : ""}~L${lightKey()}`;
 }
 

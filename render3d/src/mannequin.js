@@ -35,6 +35,25 @@ export const MANNEQUIN_HEIGHT_M = 1.75;
 /** Painted one flat colour so smoke tests can find it in a frame by hue. */
 export const MANNEQUIN_COLOR = 0x8fa0bd;
 
+// FACING AND HANDEDNESS, PAINTED ON.
+//
+// The mannequin's other job is to be the PROOF BODY: drawn in a delivered
+// fighter's place, driven by that fighter's own clip, so a pose that reads
+// wrong can be blamed on the pose or on the model's binding rather than on
+// both at once. A uniform grey figure cannot do that job. Which way is it
+// facing? Which arm is the left one? Those are exactly the questions being
+// asked, and a body that cannot answer them turns the comparison into two
+// unknowns.
+//
+// So: the front is marked (a chest plate and a nose, both on +Z, which the
+// delivery spec says is forward), and the two sides are different colours —
+// warm on the character's LEFT, cool on their RIGHT. A rig whose arms are
+// swapped, whose skeleton faces the other way, or whose mesh disagrees with
+// its own bones says so at a glance instead of after a minute of squinting.
+export const MANNEQUIN_LEFT = 0xd8a06a;   // warm: the character's left
+export const MANNEQUIN_RIGHT = 0x6f9cd8;  // cool: the character's right
+export const MANNEQUIN_FRONT = 0xd8d06a;  // the chest plate and the nose
+
 const DEG = Math.PI / 180;
 
 // ---------------------------------------------------------------- skeleton
@@ -531,6 +550,79 @@ export function buildDefaultClips(THREE) {
  *  `charKey` decides the extras: a fighter the roster table gives a weapon or
  *  a physics chain gets the placeholder version (props.js), because a clip
  *  authored against empty hands proves nothing about a two-handed spear. */
+/**
+ * Box the SKELETON of an already-built rig: a beam down every bone, a cube at
+ * every joint, and facing markers on the head and chest. Returns the meshes it
+ * made and the skin it is standing in for, so the caller can swap between
+ * them.
+ *
+ * Everything is parented to the BONES, so it poses itself — this is the
+ * fighter's own skeleton in the fighter's own pose, which is the whole point:
+ * where the bones are is answerable independently of where the mesh ends up.
+ *
+ * The markers go along each bone's OWN +Z. That is what makes the facing
+ * legible AND diagnosable at once: the delivery spec says forward is +Z, so a
+ * head whose nose points sideways is a head whose bone frame disagrees with
+ * the mesh welded to it.
+ */
+export function buildBoneProxy(THREE, root, height = MANNEQUIN_HEIGHT_M) {
+  const proxy = [];
+  const skin = [];
+  root.traverse((o) => { if (o.isMesh) skin.push(o); });
+
+  const mats = {
+    Left: new THREE.MeshLambertMaterial({ color: MANNEQUIN_LEFT }),
+    Right: new THREE.MeshLambertMaterial({ color: MANNEQUIN_RIGHT }),
+    mid: new THREE.MeshLambertMaterial({ color: MANNEQUIN_COLOR }),
+    front: new THREE.MeshLambertMaterial({ color: MANNEQUIN_FRONT }),
+  };
+  const matFor = (name) => name.startsWith("Left") ? mats.Left
+    : name.startsWith("Right") ? mats.Right : mats.mid;
+  const add = (bone, mesh) => {
+    mesh.userData.isBoneProxy = true;
+    bone.add(mesh);
+    proxy.push(mesh);
+  };
+
+  const joint = 0.022 * height;
+  const beam = 0.016 * height;
+  const up = new THREE.Vector3(0, 1, 0);
+  const dir = new THREE.Vector3();
+
+  const bones = [];
+  root.traverse((o) => { if (o.isBone) bones.push(o); });
+  for (const bone of bones) {
+    // The joint itself, so a leaf (a hand, a foot, the head) is still visible.
+    add(bone, new THREE.Mesh(new THREE.BoxGeometry(joint, joint, joint), matFor(bone.name)));
+    for (const child of bone.children) {
+      if (!child.isBone) continue;
+      const len = child.position.length();
+      if (len < 1e-4) continue;
+      // A beam from this joint to that one, laid along the offset between them
+      // — so a bone that points somewhere unexpected LOOKS like it does.
+      const m = new THREE.Mesh(new THREE.BoxGeometry(beam, len, beam), matFor(child.name));
+      m.position.copy(child.position).multiplyScalar(0.5);
+      m.quaternion.setFromUnitVectors(up, dir.copy(child.position).normalize());
+      add(bone, m);
+    }
+  }
+
+  // FORWARD, per the delivery spec (+Z): a nose on the head and a plate on the
+  // chest. Both sized off the rig rather than off the mannequin, so they read
+  // the same on a 1.5 m fighter and a 2.2 m one.
+  for (const [name, w, h, d, off] of [
+    ["Head", 0.030 * height, 0.026 * height, 0.055 * height, [0, 0.03 * height, 0.03 * height]],
+    ["Spine2", 0.10 * height, 0.07 * height, 0.016 * height, [0, 0.02 * height, 0.05 * height]],
+  ]) {
+    const bone = root.getObjectByName(name);
+    if (!bone) continue;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mats.front);
+    m.position.set(...off);
+    add(bone, m);
+  }
+  return { proxy, skin };
+}
+
 export function buildMannequin(THREE, charKey = null) {
   const root = new THREE.Group();
   root.name = charKey ? `mannequin:${charKey}` : "mannequin";
@@ -543,8 +635,26 @@ export function buildMannequin(THREE, charKey = null) {
     (def.parent ? bones[def.parent] : root).add(bone);
   }
   const mat = new THREE.MeshLambertMaterial({ color: MANNEQUIN_COLOR });
+  const side = {
+    Left: new THREE.MeshLambertMaterial({ color: MANNEQUIN_LEFT }),
+    Right: new THREE.MeshLambertMaterial({ color: MANNEQUIN_RIGHT }),
+  };
   for (const [boneName, w, h, dpt, off] of LIMBS) {
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, dpt), mat);
+    const hand = boneName.startsWith("Left") ? "Left"
+      : boneName.startsWith("Right") ? "Right" : null;
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, dpt), hand ? side[hand] : mat);
+    mesh.position.set(...off);
+    bones[boneName].add(mesh);
+  }
+  // Which way is FORWARD: a nose and a chest plate, both on +Z. Small enough
+  // to be a marking rather than a feature, big enough to read at the size a
+  // fighter is drawn.
+  const front = new THREE.MeshLambertMaterial({ color: MANNEQUIN_FRONT });
+  for (const [boneName, w, h, dpt, off] of [
+    ["Head", 0.05 * H, 0.04 * H, 0.05 * H, [0, 0.07 * H, 0.085 * H]],
+    ["Spine1", 0.14 * H, 0.10 * H, 0.02 * H, [0, 0.05 * H, 0.065 * H]],
+  ]) {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, dpt), front);
     mesh.position.set(...off);
     bones[boneName].add(mesh);
   }

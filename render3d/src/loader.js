@@ -26,7 +26,7 @@
 
 import { clipNameFor } from "./states.js";
 import { mirrorClip } from "./clips.js";
-import { buildMannequin, buildDefaultClips, MANNEQUIN_HEIGHT_M } from "./mannequin.js";
+import { buildMannequin, buildBoneProxy, buildDefaultClips, MANNEQUIN_HEIGHT_M } from "./mannequin.js";
 import { clone as cloneSkinned } from "../../vendor/three/utils/SkeletonUtils.js";
 import { applyToonMaterials, characterToon } from "./toon.js";
 import { addOutlines, setOutlineFor } from "./outline.js";
@@ -281,6 +281,45 @@ export function suggestedScale(charKey, clip = null) {
   if (!measured) return null;
   return { measured, declared: rig.declaredHeight ?? rig.height,
            scale: (rig.declaredHeight ?? rig.height) / measured };
+}
+
+// ------------------------------------------------------------- the bone proxy
+//
+// THE RIG, DRAWN. Not a mannequin retargeted onto a fighter — that is a
+// different question and a misleading answer, because a delivered clip is
+// authored in ITS OWN rig's bind pose and playing it on a T-pose stand-in
+// produces a pose neither rig has. What this draws is the fighter's OWN
+// skeleton, in the fighter's own pose, as boxes: one down every bone, a cube
+// at every joint, warm on their left and cool on their right, with a nose and
+// a chest plate along the head's and the chest's own +Z.
+//
+// It exists because "the arm looks wrong" has two possible causes and they
+// need different fixes. If the BONES are where the drawing wants them and the
+// mesh is not, the delivery's skinning is wrong. If the bones are wrong too,
+// it is the pose. Every fighter with a suspicious limb has been that question,
+// and answering it meant opening the .glb in another tool.
+//
+// The skin is hidden rather than removed while it is on, so it comes back
+// exactly as it was — including the outline shells, which are meshes too and
+// would otherwise leave a fighter-shaped ink ghost around the boxes.
+
+/** root -> { proxy: Mesh[], skin: Mesh[] } */
+const PROXIES = new WeakMap();
+
+/** Draw `charKey`'s skeleton instead of their model, or put the model back.
+ *  Returns false when there is no rig to do it to. */
+export function setBoneProxy(charKey, on) {
+  const rig = RIGS.get(charKey);
+  if (!rig || !THREE) return false;
+  let held = PROXIES.get(rig.root);
+  if (!held) {
+    if (!on) return false;
+    held = buildBoneProxy(THREE, rig.root, rig.declaredHeight || rig.height);
+    PROXIES.set(rig.root, held);
+  }
+  for (const m of held.proxy) m.visible = on;
+  for (const m of held.skin) m.visible = !on;
+  return true;
 }
 
 // -------------------------------------------------------------------- setup

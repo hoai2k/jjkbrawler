@@ -96,7 +96,17 @@
           <select id="charSelect"></select>
           <button id="charNext" class="ghost sm" title="Next character (.)">▶</button>
         </div>
-        <label class="check"><input id="fiveToggle" type="checkbox"> Show 5 across</label>
+        <div class="row">
+          <label class="check"><input id="fiveToggle" type="checkbox"> Show 5 across</label>
+          <label class="check"><input id="mqToggle" type="checkbox"> Mannequin(s)</label>
+        </div>
+        <p class="hint mq-only">THE RIG, DRAWN: this fighter's own skeleton in
+        this fighter's own pose, as boxes — warm on their left, cool on their
+        right, with a nose and a chest plate along the head's and the chest's
+        own <b>+Z</b> (the delivery spec's forward). Not a stand-in body: the
+        bones you are looking at are the ones the model is welded to. If a limb
+        reads wrong on the model and right here, the skinning is at fault; if
+        it is wrong here too, the pose or the rig is.</p>
         <p class="hint five-only">A line-up: five fighters from the selected one
         on, each under their own drawing. Size, colour and stance only disagree
         visibly side by side — so this is a viewing mode, and the per-fighter

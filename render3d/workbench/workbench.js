@@ -91,6 +91,8 @@ const wb = {
   compare: "left",
   /** The line-up: five fighters across the floor, references overhead. */
   five: false,
+  /** Draw the proof body instead of the model (loader.js proofRig). */
+  mannequin: false,
   /** Free look: the viewer becomes a model viewer (scene.js setOrbit). */
   view3d: false,
   orbit: { yaw: 0, pitch: 0, dolly: 1 },
@@ -232,6 +234,37 @@ canvas.addEventListener("wheel", (ev) => {
   dollyBy(ev.deltaY < 0 ? 1.1 : 1 / 1.1);
 }, { passive: false });
 
+// THE PROOF BODY. Same fighter, same clip, same facing and stance, on the
+// standard skeleton instead of their model — the only way to ask whether a
+// pose that reads wrong is a bad pose or a bad binding without opening the
+// .glb somewhere else. Works alone or five across.
+$("mqToggle").onchange = () => {
+  wb.mannequin = $("mqToggle").checked;
+  document.body.classList.toggle("mq", wb.mannequin);
+  syncBoneProxy();
+  scene.clearCache();
+};
+
+/** Show or hide the skeleton for everyone currently on screen. The rig itself
+ *  is what changes — same object, same pose, its skin swapped for its bones —
+ *  so nothing else in the draw path has to know. */
+function syncBoneProxy() {
+  const shown = new Set(wb.five ? castOf(wb.char) : [wb.char]);
+  for (const char of shown) rig.setBoneProxy(char, wb.mannequin);
+  // Anyone who was on screen before and is not now goes back to their skin,
+  // or walking the roster leaves a trail of skeletons behind it.
+  for (const char of proxied) if (!shown.has(char)) rig.setBoneProxy(char, false);
+  proxied.clear();
+  if (wb.mannequin) for (const char of shown) proxied.add(char);
+}
+const proxied = new Set();
+
+/** What to draw for `char` — always their own rig; the skeleton toggle
+ *  changes what that rig SHOWS, not which rig it is. */
+function bodyFor(char) {
+  return rig.getRig(char);
+}
+
 // The line-up. Pulls in four more models on demand — the boot still loads one,
 // and this is the deliberate exception, asked for by a click.
 const beforeFive = { z: 1, panX: 0, panY: 0, pivotX: CX };
@@ -256,8 +289,11 @@ $("fiveToggle").onchange = async () => {
     view.setZoom(0.75);
     notify("loading the line-up…");
     await ensureCast();
+    if (wb.mannequin) syncBoneProxy();
     notify(`line-up: ${castOf(wb.char).map((k) => CHARACTERS[k]?.name || k).join(", ")}`);
+    scene.clearCache();
   } else {
+    if (wb.mannequin) syncBoneProxy();
     view.pivot.x = beforeFive.pivotX;
     view.panX = beforeFive.panX;
     view.panY = beforeFive.panY;
@@ -1166,12 +1202,13 @@ async function drawLineUp() {
   for (const [i, char] of cast.entries()) {
     const x = CX + (i - (cast.length - 1) / 2) * CAST_DX;
     const target = headHeightTarget(char);
-    const r = rig.getRig(char);
+    const r = bodyFor(char);
     const resolved = resolvedClip(char, wb.state);
     // No aim, no reach, no hand edits: this is the pose as authored, which is
     // the only version of it that means the same thing for all five.
     const entry = scene.renderPose(char, wb.state, wb.t, r, resolved,
-      { parallaxDeg: wb.parallax, turnYawRad: DIALS.turnaround && facing < 0 ? scene.turnaroundYaw() : 0 });
+      { parallaxDeg: wb.parallax, mannequin: wb.mannequin,
+        turnYawRad: DIALS.turnaround && facing < 0 ? scene.turnaroundYaw() : 0 });
     if (entry) blitPose(ctx, entry, char, x, GROUND_Y, { scale: getActor(char)?.scale, facing, alpha: 0.95 });
 
     if (wb.compare !== "off") {
@@ -1277,8 +1314,9 @@ async function draw() {
     postEdits: editor.postEdits(clipTime(wb.state, wb.t)),
     editKey: editor.editKey(),
   };
+  if (wb.mannequin) layers.mannequin = true;
   lastLayers = layers;
-  const r = rig.getRig(wb.char);
+  const r = bodyFor(wb.char);
   const resolved = resolvedClip();
   const entry = scene.renderPose(wb.char, wb.state, wb.t, r, resolved, layers);
   lastEntry = entry;
@@ -1360,6 +1398,7 @@ charSel.onchange = async () => {
   // set, even, since half the roster still draws a state through a fallback.
   // Hold the pose being worked on if the new fighter has it, so walking the
   // roster to compare one drawing stays on that drawing.
+  if (wb.mannequin) syncBoneProxy();
   fillPoseSelect();
   if (MODE === "pose" && wb.pose) showPose(wb.pose);
   // A different rig is a different skeleton: the joint list is rebuilt from
