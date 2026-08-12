@@ -49,11 +49,11 @@ BONES = [
     ("neck", "chest", True), ("chest", "pelvis", True),
     ("shoulderL", "elbowL", False), ("elbowL", "handL", False),
     ("shoulderR", "elbowR", True), ("elbowR", "handR", True),
-    ("hipL", "kneeL", False), ("kneeL", "footL", False),
-    ("hipR", "kneeR", True), ("kneeR", "footR", True),
+    ("hipL", "kneeL", False), ("kneeL", "footL", False), ("footL", "toeL", False),
+    ("hipR", "kneeR", True), ("kneeR", "footR", True), ("footR", "toeR", True),
     ("shoulderL", "shoulderR", True), ("hipL", "hipR", True),
 ]
-ENDS = [("handL", False), ("handR", True), ("footL", False), ("footR", True)]
+ENDS = [("handL", False), ("handR", True), ("toeL", False), ("toeR", True)]
 
 
 def sprite_data_uri(im):
