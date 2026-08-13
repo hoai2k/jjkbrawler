@@ -134,6 +134,13 @@ both dialled in the workbench under **Model size & facing**:
   +Z; a model built the other way round faces backwards in every state and no
   clip can fix it, because the whole rig is turned. 180 is the common case
   (Maki and Uro both arrived this way).
+- `headTiltDeg` — how the fighter carries their head, in degrees of nod;
+  positive lifts the chin. Generated heads arrive modelled looking slightly
+  down, and the tilt is in the MESH rather than the skeleton: measured
+  across the roster the joints come out level to within a degree, so there
+  is nothing in the rig to detect it from and no clip can fix it — every
+  state inherits the same stoop. Dialled by eye against the drawing in the
+  Idle Review, beside size, stance and facing.
 
   These are corrections the ASSET should have carried, so they are on their
   way into the files themselves: `tools/bake_yaw.mjs` writes each rig's yaw

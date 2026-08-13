@@ -142,6 +142,7 @@ export function acquireInstance(charKey, instanceId) {
   const inst = {
     charKey, root, height: base.height, clips: base.clips,
     renderScale: base.renderScale ?? 1, yawOffset: base.yawOffset ?? 0,
+    headTiltDeg: base.headTiltDeg ?? 0,
     mixer: new THREE.AnimationMixer(root), actions: new Map(),
   };
   INSTANCES.set(key, inst);
@@ -222,13 +223,17 @@ function applyEntrySettings(rig, entry) {
   const yaw = Number(entry?.yawOffsetDeg);
   rig.yawOffsetDeg = delivered && Number.isFinite(yaw) ? yaw : 0;
   rig.yawOffset = (rig.yawOffsetDeg * Math.PI) / 180;
+  // How the head is carried. A correction to the MODEL's mesh, so the stand-in
+  // — built to spec, head level — does not take it either.
+  const tilt = Number(entry?.headTiltDeg);
+  rig.headTiltDeg = delivered && Number.isFinite(tilt) ? tilt : 0;
   // Stance is the character's, not the file's.
   const stance = Number(entry?.stanceDeg);
   rig.stanceDeg = Number.isFinite(stance) ? stance : 0;
 }
 
 /** Set them live, from the workbench. */
-export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg } = {}) {
+export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg, headTiltDeg } = {}) {
   const rig = RIGS.get(charKey);
   if (!rig) return null;
   if (renderScale !== undefined && Number.isFinite(renderScale) && renderScale > 0) {
@@ -238,12 +243,14 @@ export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg }
     rig.yawOffsetDeg = yawOffsetDeg;
     rig.yawOffset = (yawOffsetDeg * Math.PI) / 180;
   }
+  if (headTiltDeg !== undefined && Number.isFinite(headTiltDeg)) rig.headTiltDeg = headTiltDeg;
   if (stanceDeg !== undefined && Number.isFinite(stanceDeg)) rig.stanceDeg = stanceDeg;
   // Instances already handed out share the character's settings.
   for (const inst of INSTANCES.values()) {
     if (inst.charKey !== charKey) continue;
     inst.renderScale = rig.renderScale;
     inst.yawOffset = rig.yawOffset;
+    inst.headTiltDeg = rig.headTiltDeg;
   }
   return rig;
 }

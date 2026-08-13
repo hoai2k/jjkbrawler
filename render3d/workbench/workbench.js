@@ -242,17 +242,18 @@ $("mqToggle").onchange = () => {
   scene.clearCache();
 };
 
-/** Show or hide the skeleton for everyone currently on screen. The rig itself
- *  is what changes — same object, same pose, its skin swapped for its bones —
- *  so nothing else in the draw path has to know. */
+/** Put every rig back to its skin.
+ *
+ *  The skeleton is no longer a MODE the rigs sit in — it is a second render of
+ *  the same body, taken with the proxy on for the length of one renderPose and
+ *  turned off again (see the draw path). All this has to do now is guarantee
+ *  nobody is left showing bones: walking the roster with the toggle on used to
+ *  leave a trail of skeletons behind it. */
 function syncBoneProxy() {
   const shown = new Set(wb.five ? castOf(wb.char) : [wb.char]);
-  for (const char of shown) rig.setBoneProxy(char, wb.mannequin);
-  // Anyone who was on screen before and is not now goes back to their skin,
-  // or walking the roster leaves a trail of skeletons behind it.
-  for (const char of proxied) if (!shown.has(char)) rig.setBoneProxy(char, false);
+  for (const char of shown) rig.setBoneProxy(char, false);
+  for (const char of proxied) rig.setBoneProxy(char, false);
   proxied.clear();
-  if (wb.mannequin) for (const char of shown) proxied.add(char);
 }
 const proxied = new Set();
 
@@ -759,6 +760,8 @@ const facingUI = {
   stanceVal: $("facingStanceVal"),
   yaw: $("facingYaw"),
   yawVal: $("facingYawVal"),
+  head: $("facingHead"),
+  headVal: $("facingHeadVal"),
   stage: $("facingStage"),
 };
 
@@ -864,6 +867,9 @@ function facingShow() {
   facingUI.stanceVal.textContent = `${stance}°`;
   facingUI.yaw.value = String(yaw);
   facingUI.yawVal.textContent = `${yaw}°`;
+  const head = r?.headTiltDeg ?? 0;
+  facingUI.head.value = String(head);
+  facingUI.headVal.textContent = `${head}°`;
   facingUI.name.textContent = CHARACTERS[char]?.name || char;
   facingSyncProgress();
   facingUI.overlay.classList.toggle("decided", facing.touched.has(char));
@@ -875,6 +881,25 @@ function facingSetScale(v) {
   facing.touched.add(facing.list[facing.i]);
   facingUI.scale.value = String(clamped);
   facingUI.scaleVal.textContent = `${clamped.toFixed(2)}×`;
+  facingUI.overlay.classList.add("decided");
+  facingSyncProgress();
+}
+
+/** How this fighter carries their head, in degrees of nod: positive lifts the
+ *  chin. It corrects the MODEL — generated heads arrive looking slightly down,
+ *  and the tilt lives in the mesh rather than the skeleton, so it is judged
+ *  against the drawing here rather than measured off the rig. */
+function facingSetHead(deg) {
+  const clamped = Math.max(-20, Math.min(20, Math.round(deg * 2) / 2));
+  const char = facing.list[facing.i];
+  rig.setRigSettings(char, { headTiltDeg: clamped });
+  if (clamped) entryFor(char).headTiltDeg = clamped;
+  else delete entryFor(char).headTiltDeg;
+  wb.dirty.add(char);
+  facing.touched.add(char);
+  scene.clearCache();
+  facingUI.head.value = String(clamped);
+  facingUI.headVal.textContent = `${clamped}°`;
   facingUI.overlay.classList.add("decided");
   facingSyncProgress();
 }
@@ -926,6 +951,7 @@ $("facingClose").onclick = facingClose;
 $("facingScale").oninput = () => facingSetScale(parseFloat(facingUI.scale.value) || 1);
 $("facingStance").oninput = () => facingSetStance(parseFloat(facingUI.stance.value) || 0);
 $("facingYaw").oninput = () => facingSetYaw(parseFloat(facingUI.yaw.value) || 0);
+$("facingHead").oninput = () => facingSetHead(parseFloat(facingUI.head.value) || 0);
 for (const b of document.querySelectorAll("[data-scale]")) {
   b.onclick = () => facingSetScale((parseFloat(facingUI.scale.value) || 1)
     + parseFloat(b.dataset.scale));
@@ -937,6 +963,10 @@ for (const b of document.querySelectorAll("[data-stance]")) {
 for (const b of document.querySelectorAll("[data-yaw]")) {
   b.onclick = () => facingSetYaw((parseFloat(facingUI.yaw.value) || 0)
     + parseFloat(b.dataset.yaw));
+}
+for (const b of document.querySelectorAll("[data-headtilt]")) {
+  b.onclick = () => facingSetHead((parseFloat(facingUI.head.value) || 0)
+    + parseFloat(b.dataset.headtilt));
 }
 $("facingFit").onclick = () => {
   // The measured answer, as a starting point rather than a verdict: it makes
@@ -1203,12 +1233,27 @@ async function drawLineUp() {
     const resolved = resolvedClip(char, wb.state);
     // No aim, no reach, no hand edits: this is the pose as authored, which is
     // the only version of it that means the same thing for all five.
-    const entry = scene.renderPose(char, wb.state, wb.t, r, resolved,
-      { parallaxDeg: wb.parallax, mannequin: wb.mannequin,
-        turnYawRad: DIALS.turnaround && facing < 0 ? scene.turnaroundYaw() : 0 });
+    const base = { parallaxDeg: wb.parallax,
+      turnYawRad: DIALS.turnaround && facing < 0 ? scene.turnaroundYaw() : 0 };
+    rig.setBoneProxy(char, false);
+    const entry = scene.renderPose(char, wb.state, wb.t, r, resolved, base);
     if (entry) blitPose(ctx, entry, char, x, GROUND_Y, { scale: getActor(char)?.scale, facing, alpha: 0.95 });
 
-    if (wb.compare !== "off") {
+    // The rig goes on the SHELF, in the slot the drawing would have taken.
+    // Five pairs have no room for a third column each, and the models are the
+    // thing being lined up — so here the skeleton displaces the reference
+    // rather than the body, which is the same trade the single view makes in
+    // the other direction.
+    if (wb.mannequin) {
+      rig.setBoneProxy(char, true);
+      const mqEntry = scene.renderPose(char, wb.state, wb.t, r, resolved,
+        { ...base, mannequin: true });
+      rig.setBoneProxy(char, false);
+      proxied.add(char);
+      if (mqEntry) {
+        blitPose(ctx, mqEntry, char, x, shelf, { scale: getActor(char)?.scale, facing, alpha: 0.95 });
+      }
+    } else if (wb.compare !== "off") {
       // ABOVE, not beside: five pairs side by side have no room for a second
       // column each, and stacking keeps every fighter's reference over the
       // fighter it belongs to rather than next to their neighbour.
@@ -1271,16 +1316,31 @@ async function draw() {
     return;
   }
 
-  if (wb.compare !== "off") {
+  // WHERE EACH BODY STANDS. The skeleton used to REPLACE the model in its slot,
+  // which is the one arrangement in which it cannot do its job: the question it
+  // answers is "does the rig agree with the model", and you cannot ask that of
+  // two things never on screen together. So it takes the COMPARISON slot, and
+  // the drawing yields it — the model stays a model.
+  //
+  // Yields rather than shuffles left: the pose bench opens at 1.8x, where the
+  // pair already fills the canvas, and a third body at that zoom is drawn
+  // off the edge where it looks like nothing was drawn at all. The sprite is
+  // one click away on the compare dial, and `Overlay` keeps all three at once
+  // — drawing, rig and model — for the moment you want them.
+  const beside = wb.compare === "left";
+  const mqX = wb.mannequin ? CX - COMPARE_DX : null;
+  const spriteX = beside ? CX - COMPARE_DX : CX;
+  const spriteYields = wb.mannequin && beside;
+
+  if (wb.compare !== "off" && !spriteYields) {
     const frame = await ensureGhostFrame();
-    const beside = wb.compare === "left";
-    drawCharFrame(ctx, wb.char, frame, beside ? CX - COMPARE_DX : CX, GROUND_Y, {
+    drawCharFrame(ctx, wb.char, frame, spriteX, GROUND_Y, {
       scale: getActor(wb.char)?.scale, alpha: beside ? 1 : 0.35,
       facing: wb.faceLeft ? -1 : 1,
     });
     if (beside) {
       ctx.fillStyle = "#8b96b3";
-      ctx.fillText("sprite", CX - COMPARE_DX - 20, GROUND_Y + 18);
+      ctx.fillText("sprite", spriteX - 20, GROUND_Y + 18);
       ctx.fillText("3D", CX - 8, GROUND_Y + 18);
     }
   }
@@ -1311,10 +1371,12 @@ async function draw() {
     postEdits: editor.postEdits(clipTime(wb.state, wb.t)),
     editKey: editor.editKey(),
   };
-  if (wb.mannequin) layers.mannequin = true;
   lastLayers = layers;
   const r = bodyFor(wb.char);
   const resolved = resolvedClip();
+  // The model, always as the model: the proxy is off for this render even when
+  // the rig view is on, because the mannequin now stands beside it.
+  if (wb.mannequin) rig.setBoneProxy(wb.char, false);
   const entry = scene.renderPose(wb.char, wb.state, wb.t, r, resolved, layers);
   lastEntry = entry;
   if (entry) {
@@ -1322,6 +1384,25 @@ async function draw() {
   } else {
     ctx.fillStyle = "#d38f8f";
     ctx.fillText("no pose resolved — this state would draw as sprites in-game", CX - 160, GROUND_Y - 100);
+  }
+
+  // ...and the rig beside it, drawn from the SAME pose: same clip, same time,
+  // same live layers, so anything that disagrees between the two is the
+  // skinning rather than the pose. The proxy is toggled around this one render
+  // and put back, and `layers.mannequin` keeps the two apart in the pose cache
+  // (scene.js) so neither is ever served the other's pixels.
+  if (wb.mannequin && mqX !== null) {
+    rig.setBoneProxy(wb.char, true);
+    const mqEntry = scene.renderPose(wb.char, wb.state, wb.t, r, resolved,
+      { ...layers, mannequin: true });
+    rig.setBoneProxy(wb.char, false);
+    proxied.add(wb.char);
+    if (mqEntry) {
+      blitPose(ctx, mqEntry, wb.char, mqX, GROUND_Y,
+        { scale: getActor(wb.char)?.scale, facing, alpha: 0.95 });
+      ctx.fillStyle = "#8b96b3";
+      ctx.fillText("rig", mqX - 10, GROUND_Y + 18);
+    }
   }
 
   // Size reference: the height the game draws this fighter at. LABELLED,

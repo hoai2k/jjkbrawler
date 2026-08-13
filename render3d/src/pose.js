@@ -372,6 +372,16 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   } else {
     clearIdleStand(rig.root);
   }
+  // HOW THE HEAD IS CARRIED, per delivery. Generated heads arrive modelled
+  // looking slightly down — the tilt is in the MESH, not the skeleton, so no
+  // amount of measuring the rig finds it (the joints come out level to within
+  // a degree across the whole roster) and no clip can correct it: every state
+  // inherits the same stoop. It is the same class of fact as the yaw and the
+  // scale, corrected the same way, and dialled by eye in the idle review.
+  //
+  // Applied here, before the live layers, so look-at still nods FROM the
+  // corrected carriage rather than fighting it. Positive lifts the chin.
+  if (rig.headTiltDeg) rotateBoneNod(rig.root, "Head", -rig.headTiltDeg * DEG);
   // Body morphs (Mahito's transfiguration arms) precede aim/reach so every
   // solve sees the morphed limb.
   if (layers.charKey) applyMorphs(rig.root, layers.charKey, animKey, clipTime(animKey, sampled));

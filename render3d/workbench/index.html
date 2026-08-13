@@ -381,6 +381,19 @@
              applied, but a fighter's yaw is judged against the same drawing
              as their size — and the value that looked right alone can look
              square once the legs are straight. Same dial, same screen. -->
+        <!-- HEAD CARRIAGE. Generated heads arrive modelled looking slightly
+             down; the tilt is in the mesh rather than the skeleton, so it
+             cannot be measured off the rig — the joints are level to within a
+             degree across the roster — and it has to be judged against the
+             drawing like the size and the stance. Positive lifts the chin. -->
+        <div class="facing-dial">
+          <span class="dial-label">Head</span>
+          <button data-headtilt="-1">−</button>
+          <input id="facingHead" type="range" min="-20" max="20" step="0.5" value="0">
+          <button data-headtilt="1">+</button>
+          <span class="mono" id="facingHeadVal">0°</span>
+        </div>
+
         <div class="facing-dial">
           <span class="dial-label">Turn</span>
           <button data-yaw="-5">−</button>
