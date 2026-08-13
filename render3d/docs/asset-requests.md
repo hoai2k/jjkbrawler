@@ -322,6 +322,43 @@ list of measurements rather than a list of opinions — every one of these five
 shipped through a facing review, a size review and a stance pass with nobody
 noticing.
 
+**THE ATTACH KNOWS WHICH END IS HEAVY, NOT WHICH END IS THE TOP.** `grip` in
+`render3d/src/props.js` is measured from the heavy end, and the comment beside
+it says why: which end is heavy is measurable and which end is the top is not.
+That is true, and it is also a hole in the contract — nothing says which end
+points AWAY from the hand, so the attach can seat a weapon perfectly and hand
+it over upside down. Maki shipped with her blade at her feet and the butt of
+the shaft past her head.
+
+`python3 tools/flip_prop.py --char <key> --apply` turns one end for end by
+rewriting a single node's rotation — no geometry, no skin, no texture, no
+Blender. It is the STOPGAP. The fix is a tip direction in the prop spec and a
+re-attach, and until that lands every newly attached weapon has to be looked
+at.
+
+**A REGENERATION IS NOT UNIFORMLY BETTER, AND ONE PART CAN BE MOVED ACROSS.**
+Maki's D6 rebuild fixed her limb balance and her fused weapon and broke her
+face: a flat plate of hair lands through the middle of it, hiding one eye
+behind a hard vertical edge. Her boots came back bulkier than the pair they
+replaced. Regenerating again re-rolls the whole body, including the parts that
+came out right, so the fix is to move the good parts across —
+`python3 tools/graft_model_part.py --donor old.glb --onto new.glb --part head
+--part shins --out merged.glb`. She now wears the new body with the old head
+and the old lower legs.
+
+A part is defined by the BONES that own it rather than by a box, and it lands
+by the two rigs' bind matrices — `bind_recipient(root) @
+inverseBind_donor(root)` — so nothing is fitted or guessed. **The seam is the
+whole risk**, which is why these two parts and not others: a neck seam sits
+inside a collar and a knee seam sits inside a leg. Grafting the foot at the
+ANKLE was tried first and tore, because the donor's slimmer boot met the
+recipient's bulkier cuff at a change of silhouette; taking the shin with it
+moves the join somewhere nothing changes shape.
+
+The donor part keeps its own texture, as its own primitive with its own
+material and the donor's image copied in beside it — two models do not share a
+UV atlas, and repainting the part into the recipient's is a much larger job.
+
 **The tears are already closed, and they were not a regeneration problem.**
 Every delivered model but three arrived with holes in its surface — rims where
 the generator ended the mesh instead of guessing at what it could not see from
