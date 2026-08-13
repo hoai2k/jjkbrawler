@@ -186,8 +186,24 @@ function actorOf(charKey) {
 /** The character whose kit spawns this shared sprite, if one does. The usage
  *  index records the name for reading; this wants the key, to draw them. */
 function sharedOwner(key) {
-  const who = (sharedUsage().get(key) || [])[0]?.who;
-  return WB_FIGHTERS.find((k) => CHARACTERS[k]?.name === who) || null;
+  // The REGISTRY's owner first. Both indexes walk the same kits, but only the
+  // registry knows the difference between a move that spawns a drawing and a
+  // creature pool that merely lists it as a stand-in — it files stand-ins last,
+  // so the fighter it names is the one whose move this art belongs to. Reading
+  // the raw usage order instead stood Megumi beside Panda's triceratops,
+  // because the shikigami pool happens to list it before Panda's ultimate
+  // declares it. On a size reference that is not a cosmetic error: the whole
+  // judgement is "how big is this next to the man who throws it", and it was
+  // being made against the wrong man.
+  //
+  // Only when it names a FIGHTER, though. A creature's registry owner is the
+  // creature itself — "Divine Dogs", "Transfigured Human" — which is the right
+  // answer to "whose drawing is this" and no answer at all to "who do we stand
+  // it beside". Those fall through to the usage index, which records the
+  // fighter whose kit the pool hangs off.
+  const byName = (name) => WB_FIGHTERS.find((k) => CHARACTERS[k]?.name === name) || null;
+  return byName(sharedSpriteInfo(key)?.owner)
+    || byName((sharedUsage().get(key) || [])[0]?.who);
 }
 
 /** Where a shared sprite is drawn from, and how tall the game draws it. Built
@@ -1156,11 +1172,11 @@ function drawAnchorHandle(name, active) {
   ctx.restore();
 }
 
-function drawGhost(charKey, frameKey, alpha, x = canvas.width / 2, as = null) {
+function drawGhost(charKey, frameKey, alpha, x = canvas.width / 2, as = null, zoom = state.zoom) {
   if (!as && (!rawMeta(charKey, frameKey) || !frameImage(charKey, frameKey))) return;
   if (as && (!as.meta || !as.img)) return;
   drawCharFrame(ctx, charKey, frameKey, x, GROUND_Y, {
-    scale: actorOf(charKey).scale * state.zoom, facing: 1, alpha,
+    scale: actorOf(charKey).scale * zoom, facing: 1, alpha,
     preview: !as, as,
   });
 }
@@ -1355,7 +1371,7 @@ function comparisonTarget() {
  *  as an overlay that had slipped sideways. */
 const comparisonAsked = new Set();
 
-function drawComparison({ charKey, frameKey, caption, sub, as, empty }) {
+function drawComparison({ charKey, frameKey, caption, sub, as, empty }, zoom = state.zoom) {
   const x = platformX() + BENCHMARK_INSET;
   // The slot can name a character whose set has never been streamed — the
   // fighter who throws an effect, most of all, since Other Sprites downloads
@@ -1367,7 +1383,7 @@ function drawComparison({ charKey, frameKey, caption, sub, as, empty }) {
       loadFrame(charKey, frameKey).then((ok) => { if (ok) render(); });
     }
   }
-  if (!empty) drawGhost(charKey, frameKey, 1, x, as);
+  if (!empty) drawGhost(charKey, frameKey, 1, x, as, zoom);
   ctx.save();
   ctx.fillStyle = empty ? "rgba(154, 164, 192, 0.55)" : "rgba(154, 164, 192, 0.9)";
   ctx.font = "600 11px Inter, sans-serif";
@@ -1420,7 +1436,16 @@ function render() {
   }
 
   const comparison = comparisonTarget();
-  if (comparison) drawComparison(comparison);
+  // The fighter beside a shared drawing is a SIZE REFERENCE, and a reference
+  // drawn at a different zoom from the thing it references is worse than none:
+  // it was standing at the Zoom slider's value while a too-tall effect was
+  // fitted to the canvas, so at a 76% fit the effect was shown three quarters
+  // its real size next to him and every judgement made against him was wrong by
+  // that much. One zoom for the whole scene. Below the fit they grow together
+  // and the slider does the obvious thing; at the fit the drawing holds the
+  // canvas and the fighter shrinks against it, which is the same fact seen from
+  // the other side — the effect is getting bigger relative to a man.
+  if (comparison) drawComparison(comparison, isOther(state.char) ? sceneZoom() : state.zoom);
   // Overlaid, and only overlaid: within one sprite set the question is whether
   // this pose lines up with the character's own idle, and that is only readable
   // when the two occupy the same space. Standing it aside is the Comparison
@@ -1892,13 +1917,15 @@ function drawSharedSprite(cx) {
   // appears to do nothing: once the fit is active, Size is spent entirely on
   // making the view smaller, and the picture sits at the same height however
   // far it is pushed. The Zoom control is the way out, so it is named here.
-  if (v.fitted) {
+  if (v.fitted || v.overflows) {
     ctx.save();
     ctx.fillStyle = "rgba(255, 210, 140, 0.85)";
     ctx.font = "500 11px Inter, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(`too tall for the viewer — fitted to ${Math.round(v.z / state.zoom * 100)}% of Zoom, `
-      + "so Size moves the numbers, not the picture. Lower Zoom to watch it grow.",
+    ctx.fillText(v.fitted
+      ? `nothing declares this one's size — fitted to ${Math.round(v.z / state.zoom * 100)}% of Zoom, `
+        + "reference included. Size is relative here."
+      : "taller than the viewer — drawn full size against the reference. Lower Zoom to see all of it.",
       canvasCentreX(), GROUND_Y + 34);
     ctx.restore();
   }
@@ -2061,6 +2088,18 @@ function drawSharedHit(v) {
 /** The canvas x every sprite is drawn about. */
 const canvasCentreX = () => canvas.width / 2;
 
+/** The zoom EVERYTHING in the Other Sprites view is drawn at — the drawing, its
+ *  hit shape, its spawn point, and the fighter standing beside it as a size
+ *  reference. The Zoom slider unless the drawing is too tall for the canvas, in
+ *  which case the whole scene comes down together rather than the drawing alone.
+ *
+ *  Sizing an effect is a question about a ratio — "how big is this next to the
+ *  man who throws it" — so the one thing the viewer must never do is scale the
+ *  two by different numbers. */
+function sceneZoom(key = state.frame) {
+  return sharedView(key)?.z ?? state.zoom;
+}
+
 /** Everything about a shared drawing's place on the canvas, in one place.
  *
  *  The art, the move's hit shape, the spawn crosshair and the drag that moves
@@ -2089,21 +2128,35 @@ function sharedView(key = state.frame) {
   const hit = can?.info?.hit || null;
   // A drop's box IS the height the art is painted at (`h` serves both in
   // randomDrop), so it grows with Size; every other shape is a fixed kit
-  // number. Both have to be inside the view or the fit lies about one of them.
+  // number. Both have to be inside the view or a fit lies about one of them.
   const hitH = !hit ? 0
     : hit.shape === "circle" ? hit.r * 2
     : hit.h * (hit.followsSize ? scale : 1);
-  const z = Math.min(state.zoom, (GROUND_Y - 20) / Math.max(artH, hitH, 1));
+  // A drawing the kit gives a height to is drawn at the Zoom slider's value and
+  // nothing else, however tall that makes it. Fitting it to the canvas was the
+  // wrong instinct: this is the case where the size is a RATIO to the fighter
+  // standing beside it, and a fit spends every further turn of the slider on
+  // shrinking the view instead of growing the picture — the machine looked
+  // frozen while its number climbed. Overflowing the top of the viewer is the
+  // honest outcome, and Zoom is right there to pull it back in.
+  //
+  // The fit survives for the other case only: art nobody declares a height for,
+  // which is standing in with its own plate — 1400px of domain backdrop that
+  // would otherwise fill the canvas fifteen times over and mean nothing when it
+  // did, there being no ratio in it to preserve.
+  const z = Number.isFinite(gameH) ? state.zoom
+    : Math.min(state.zoom, (GROUND_Y - 20) / Math.max(artH, hitH, 1));
   const h = artH * z;
   const anchor = can?.anchor || "feet";
   const py = anchorScreenY(anchor, h);
   return {
     img, can, meta, scale, hit, z, h, anchor,
-    // Whether the viewer had to shrink to hold this drawing. Worth saying out
-    // loud: at the default zoom a tall drop already fills the canvas, so every
-    // further turn of the Size slider is absorbed by the fit and the picture
-    // looks frozen while the numbers underneath keep moving.
+    // Two different things worth saying out loud, and only one of them is a
+    // compromise: `fitted` means the view was shrunk because the drawing has no
+    // declared size to hold it to, `overflows` means it is drawn at full size
+    // and runs off the top, which is only ever a reason to reach for Zoom.
     fitted: z < state.zoom - 1e-6,
+    overflows: artH * z > GROUND_Y - 4,
     w: img.width * h / img.height,
     px: canvasCentreX(),
     py,

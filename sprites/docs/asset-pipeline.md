@@ -234,12 +234,30 @@ One shape is labelled `follows Size` instead, and it is not an inconsistency:
 `randomDrop` paints a drop at the same `h` it collides on, so there the box and
 the art are one number and no amount of sizing will make them disagree.
 
-**The whole canvas is fitted, never just the art.** A drawing too big for the
-viewer used to be clamped on its own while its hit shape was not, so past about
-120% the two grew apart and the art could not be matched to its box at any
-setting. The fit is a view zoom now — the art, the hit shape, the spawn point
-and the drag all read the same one — so the proportions on screen are the
-proportions in a match whatever the slider says.
+**One zoom for the whole scene, and no fit where the size means something.**
+The art, the hit shape, the spawn point, the drag, and the fighter standing
+beside it as a size reference all read the same zoom. That reference is the
+entire basis for sizing an effect — the question is "how big is this next to
+the man who throws it" — so a viewer that scales the two by different numbers
+is worse than no viewer: a too-tall drawing used to be fitted to the canvas
+while the fighter stayed at the slider's value, showing the effect at three
+quarters its real size next to him.
+
+So a drawing whose height the kit declares is drawn at the Zoom slider's value
+and nothing else, and runs off the top of the viewer if it is that big — which
+a vending machine twice a fighter's height genuinely is. Zoom is the control
+for that, and the canvas says so. The fit survives only for art nobody declares
+a size for, standing in with its own plate, where there is no ratio to preserve
+in the first place; there the reference shrinks with it and the panel says the
+size is relative.
+
+**The reference is the fighter whose move spawns it**, taken from the registry
+rather than from the first kit that mentions the art. Megumi's shikigami pool
+lists Panda's triceratops as a stand-in before Panda's ultimate declares it, so
+reading mention order stood the wrong man beside it — and on a size reference
+that is the whole judgement, not a caption detail. Creature drawings are the
+exception the other way: their registry owner is the creature itself, so those
+fall through to the kit that carries the pool.
 
 That distinction decides which way round to work. Against a fixed box you size
 the art to fit the box; against a box measured from the art you size the art to
