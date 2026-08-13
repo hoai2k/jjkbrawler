@@ -143,6 +143,38 @@ main.poseedit {
 .how.generated { color: #6ea8ff; border-color: #2c456e; }
 .how.ingame { color: #7ddc9a; border-color: #2f5a44; }
 .how.baseline { color: #b3a5e0; border-color: #4a3f6b; }
+
+/* What the pose is supposed to REACH, top right of the viewer, opposite the
+ * badge that says which pose it is. Green when it lands, red with the distance
+ * when it does not — a fist that stops at hip height is not an overhand into
+ * the floor, however good the body looks. */
+.contact {
+  position: absolute; right: 8px; top: 8px; font: 11px ui-monospace, Menlo, monospace;
+  padding: 2px 8px; border-radius: 999px; background: rgba(12, 17, 28, 0.82);
+  border: 1px solid #2b3550; pointer-events: none;
+}
+.contact.ok { color: #7ddc9a; border-color: #2f5a44; }
+.contact.miss { color: #e0a3a3; border-color: #6b3a3a; }
+
+/* THE SECOND SKELETON: what the rig is actually doing, over the drawing,
+ * beneath the draggable read. Coloured by mode so it matches the badge and the
+ * cycle button, and inert — the handles belong to the read. */
+.plate.big .rigline.shown { pointer-events: none; }
+.rigline.shown .bone.near, .rigline.shown .bone.far {
+  stroke: #d8a657; stroke-opacity: 0.9; stroke-width: 2;
+}
+.rigline.shown .torso { fill: #d8a657; fill-opacity: 0.13; stroke: none; }
+.rigline.shown .skull { fill: none; stroke: #d8a657; stroke-opacity: 0.75; stroke-width: 0.7; }
+.rigline.shown .tip { fill: #d8a657; fill-opacity: 0.8; }
+.rigline.shown.baseline .bone.near, .rigline.shown.baseline .bone.far,
+.rigline.shown.baseline .skull { stroke: #b3a5e0; }
+.rigline.shown.baseline .torso, .rigline.shown.baseline .tip { fill: #b3a5e0; }
+.rigline.shown.ingame .bone.near, .rigline.shown.ingame .bone.far,
+.rigline.shown.ingame .skull { stroke: #7ddc9a; }
+.rigline.shown.ingame .torso, .rigline.shown.ingame .tip { fill: #7ddc9a; }
+.rigline.shown.generated .bone.near, .rigline.shown.generated .bone.far,
+.rigline.shown.generated .skull { stroke: #6ea8ff; }
+.rigline.shown.generated .torso, .rigline.shown.generated .tip { fill: #6ea8ff; }
 /* The mode asked for one thing and the pane is showing another. Whatever it
  * fell back TO, a fallback reads as a fallback — that is the whole point of
  * saying which pose you are looking at. */

@@ -219,12 +219,16 @@ export const BATTLE_POSES = {
   // OVERHAND / HAMMER DOWN into the floor. Trunk flexes hard, the arm comes
   // over the top, and the stance splits wide to get the shoulder low — the
   // legs are what make a downward strike read as force rather than a bow.
+  // The contact is `ground`, and reaching it is mostly the LEGS: a standing
+  // shoulder is 1.45m up and an arm is 0.55m, so the body has to drop most of a
+  // metre. A wide split with the rear leg folded to near kneeling does it; an
+  // arm swung harder does not.
   attack_down: p({
-    Spine: [40, 16, 0], Spine1: [16, 8, 0], Head: [-18, -6, 0],
-    LeftUpLeg: [-42, 0, 6], LeftLeg: [16, 0, 0], LeftFoot: [-2, 0, 0],
-    RightUpLeg: [40, 0, -6], RightLeg: [18, 0, 0], RightFoot: [-14, 0, 0],
-    RightArm: [-64, 44, 62], RightForeArm: [-16, 0, 16],
-    LeftArm: [34, 0, -46], LeftForeArm: [-40, 0, -15],
+    Spine: [44, 14, 0], Spine1: [18, 8, 0], Head: [-24, -6, 0],
+    RightUpLeg: [-68, 0, -8], RightLeg: [80, 0, 0], RightFoot: [-10, 0, 0],
+    LeftUpLeg: [50, 0, 8], LeftLeg: [14, 0, 0], LeftFoot: [-24, 0, 0],
+    RightArm: [-8, 26, 80], RightForeArm: [-10, 0, 6],
+    LeftArm: [36, 0, -56], LeftForeArm: [-44, 0, -40],
   }),
 
   // ------------------------------------------------------------ the crouch

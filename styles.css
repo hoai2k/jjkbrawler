@@ -1159,36 +1159,27 @@ html, body {
   border-radius: 14px;
 }
 
-/* Random styled as the draw it is (runStageRoulette): a slow-rolling gradient
-   and a lifted hover, so it reads as the fun option rather than the fallback.
-   Scoped under .menu-actions to outweigh the `.menu-actions button` defaults —
-   same reason .primary-action resorts to !important. */
+/* Random styled as the draw it is (runStageRoulette) — but quietly. The first
+   pass was a rolling five-colour gradient, which did read as the fun option and
+   also as the only thing on the screen: twenty painted arenas underneath it,
+   and the eye went to the button every time. This keeps the warmth and drops
+   the shouting — one soft two-stop wash in the roulette's own colours, no
+   animation at rest, and the lift saved for hover, where it is an answer to the
+   player rather than a demand for them. Scoped under .menu-actions to outweigh
+   the `.menu-actions button` defaults. */
 .menu-actions .random-stage {
-  background: linear-gradient(115deg, #ffb347, #ff4c55, #b56cff, #62dcff, #ffb347);
-  background-size: 320% 100%;
-  animation: randomShift 4.5s linear infinite;
-  border: none;
-  color: #fff;
-  font-weight: 900;
-  font-size: 1.08rem;
-  letter-spacing: 0.05em;
-  padding: 14px 34px;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
-  box-shadow: 0 8px 26px rgba(255, 95, 90, 0.38);
+  background: linear-gradient(120deg, rgba(255, 160, 90, 0.22), rgba(181, 108, 255, 0.22));
+  border: 1px solid rgba(255, 178, 120, 0.55);
+  color: var(--text);
+  font-weight: 800;
+  letter-spacing: 0.03em;
 }
 
 .menu-actions .random-stage:hover,
 .menu-actions .random-stage:focus-visible {
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 10px 32px rgba(255, 120, 100, 0.55);
-}
-
-@keyframes randomShift {
-  to { background-position: 320% 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .menu-actions .random-stage { animation: none; }
+  border-color: rgba(255, 190, 130, 0.9);
+  background: linear-gradient(120deg, rgba(255, 160, 90, 0.34), rgba(181, 108, 255, 0.34));
+  transform: translateY(-2px);
 }
 
 

@@ -1,5 +1,5 @@
 {
-  "comment": "Index of delivered render3d rigs. Written by tools/billboard_intake.mjs --backend 3d and the render3d workbench's exported payloads — not by hand. Same schema as billboards/assets/manifest.json (model, heightM, approved, inheritClips, clips.<state>.from), plus: toon — per-character overrides of the TOON defaults in render3d/src/toon.js ({ shadeTint: [r,g,b], shadeThreshold, shadeSoftness, biasScale, rimColor, rimStrength, rimPower }); a material's own glTF extras win over this block. Resolution order per state: clips[state].from, then the rig's own clip, then inheritClips, then the default pose set.",
+  "comment": "Index of delivered render3d rigs. Written by tools/billboard_intake.mjs --backend 3d and the render3d workbench's exported payloads \u2014 not by hand. Same schema as billboards/assets/manifest.json (model, heightM, approved, inheritClips, clips.<state>.from), plus: toon \u2014 per-character overrides of the TOON defaults in render3d/src/toon.js ({ shadeTint: [r,g,b], shadeThreshold, shadeSoftness, biasScale, rimColor, rimStrength, rimPower }); a material's own glTF extras win over this block. Resolution order per state: clips[state].from, then the rig's own clip, then inheritClips, then the default pose set.",
   "characters": {
     "yuji": {
       "model": "yuji/yuji.glb",
@@ -31,7 +31,7 @@
       "stanceDeg": 7,
       "alt": {
         "model": "maki/maki_alt.glb",
-        "label": "pre-D6 — single-view seed",
+        "label": "pre-D6 \u2014 single-view seed",
         "heightM": 1.7,
         "yawOffsetDeg": 60,
         "renderScale": 1.15,
@@ -110,7 +110,7 @@
       "stanceDeg": 9,
       "alt": {
         "model": "uro/uro_alt.glb",
-        "label": "pre-D6 — single-view seed",
+        "label": "pre-D6 \u2014 single-view seed",
         "heightM": 1.9,
         "yawOffsetDeg": 45,
         "renderScale": 1.26,
@@ -232,7 +232,7 @@
       "renderScale": 0.99,
       "alt": {
         "model": "gakuganji/gakuganji_alt.glb",
-        "label": "pre-D6 — single-view seed",
+        "label": "pre-D6 \u2014 single-view seed",
         "heightM": 1.9,
         "yawOffsetDeg": 45,
         "stanceDeg": 9,
@@ -293,7 +293,7 @@
       "headTiltDeg": -8.5,
       "alt": {
         "model": "meimei/meimei_alt.glb",
-        "label": "pre-D6 — single-view seed",
+        "label": "pre-D6 \u2014 single-view seed",
         "heightM": 1.9,
         "stanceDeg": -10,
         "toon": {
@@ -381,7 +381,7 @@
       "stanceDeg": 6,
       "alt": {
         "model": "momo/momo_alt.glb",
-        "label": "pre-D6 — single-view seed",
+        "label": "pre-D6 \u2014 single-view seed",
         "heightM": 1.5,
         "yawOffsetDeg": 60,
         "renderScale": 1.16,

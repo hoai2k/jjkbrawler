@@ -81,8 +81,13 @@ cache-buster, so nothing here is ever served stale from a cache.
 
 Pick a character, pick a frame from the grid, drag the joints onto the drawing.
 Dragging a joint carries everything below it in the chain (shift-drag moves the
-one joint); arrow keys nudge; **Snap to art** pulls stray joints onto the
-nearest ink; ⌘Z undoes. Beside the plate the character's **own 3D rig** takes
+one joint); **Snap to art** pulls stray joints onto the nearest ink; ⌘Z undoes.
+
+**The arrow keys do two things and which one is unambiguous.** With a joint
+selected they nudge it. With nothing selected they walk the picker grid — left
+and right by one frame, up and down by a row, the column count read off the
+grid so it stays right if the layout changes. **Escape** drops the joint and
+gives the grid back. Beside the plate the character's **own 3D rig** takes
 the pose, each bone swung in the drawing's plane to match — which is where a
 read that looked fine flat turns out to bend a knee backwards.
 
@@ -101,6 +106,61 @@ It is a cycle rather than a checkbox because there are four answers, and the
 last is the one that decides anything: the first three are proposals, and none
 is worth shipping unless it beats what a player already sees.
 `tools/pose_three_up.mjs` lays all five out for a whole sheet at once.
+
+**The plate carries two skeletons.** The black one is the read — the eighteen
+joints the handles drag. Over it, in the mode's own colour, is what the rig
+*actually ended up doing*, read back off the posed bones and fitted onto the
+drawing. Without it, cycling the mode changed the model and left the stick
+figure alone, and there was no way to see what a matched or baseline pose was
+doing to the body except by eye on the render.
+
+It is **fitted**, not anchored — one uniform scale and one offset, chosen to
+minimise the squared distance over every joint the two skeletons share.
+Anchoring at the pelvis and scaling by the torso was the obvious thing and it
+piles every proportion difference onto the extremities: the rig's `Head` bone
+sits at the base of the skull where the read's `head` is its centre, so the
+overlay's head landed nine cells low and its feet seven cells through the floor
+even when the pose was right. A fit leaves only the thing worth looking at.
+
+In **Generated** the two skeletons are meant to agree, and the gap between them
+is the interpreter's compromise — an arm the IK could not reach, a knee it had
+to fold. In the other three the gap is the whole point.
+
+### The fighter stands on the floor, and the pose says what it has to reach
+
+Two things a pose table normally leaves to be noticed later by eye, both now
+stated and both checked.
+
+**Nothing used to touch anything.** The preview swung bones and never
+translated the root, so an idle floated 7cm above the ground, a matched crouch
+floated 29, and "does the fist reach the floor" had no meaning, because the
+floor was not where the fighter was standing. Grounded poses are now dropped
+until their **feet** sit on the line. Feet, not "the lowest bone", which sounds
+more general and is wrong twice over: a delivered rig hangs its armature off an
+outer node parked at the world origin, so the lowest bone is that node and the
+fighter never moves; and once that is fixed, an overhand whose fist goes below
+the feet is planted *on its fist*, which is a handstand. Airborne intents —
+`jump`, `fall`, the air attacks, the evades, `hang` — are left where the pose
+puts them, because a fighter mid-jump touching the floor is a worse lie than
+one hovering over it.
+
+**And a pose declares what it has to reach.** A body can be anatomically
+perfect and useless: an overhand meant for the legs is not that move if the
+fist stops at hip height, and a low sweep that arrives at chest height is a
+different attack. `CONTACTS` in `baseline_poses.js` names the bone and the
+height — as a fraction of the fighter's own height, so it means the same on any
+of them — and the editor prints, top right of the viewer, whether the pose
+lands it and by how much it misses if not. It is keyed by *intent*, so a
+matched pose and the baseline it overrides are held to the same target.
+
+The first thing it caught was worth the trouble. `attack_down`'s target was
+written as `ground`, and posing a body that actually reaches the floor lays it
+out flat — a dive, not a smash, because a standing shoulder is 1.45m up and an
+arm is 0.55m, so a fist touches the floor only from a kneel. What the drawings
+show is a fist at about **shin** height with the impact *effect* on the floor
+beneath it. Aiming at the floor made a worse pose and a truer-sounding number;
+the target is `shin`, and both the matched and baseline poses are lunges that
+hit it.
 
 ### The baseline is the floor, and it has no holes
 
