@@ -172,10 +172,58 @@ lens, win-pose orbits — flagged per clip in extras so spectacle never blurs a
 hitbox), and state-keyed material variants (Yuji's Sukuna markings during
 ult, Yuta's full-meter glow).
 
-### Round D6 — reserved: workbench catches
+### Round D6 — regeneration: the workbench catches *(open)*
 
 Every art round has produced a catch round; D6 is this track's, held open so
-findings from D1–D5 have a number that is not a new fighter's round.
+findings from D1–D5 have a number that is not a new fighter's round. It is
+now open, and what it holds is five models that cannot be repaired.
+
+**These are not rigging faults.** A pose can be re-authored, a facing turned, a
+skin re-weighted — but a leg that was never reconstructed is not in the file,
+and a horn that was invented cannot be un-invented without leaving a hole where
+a skull should be. Mei Mei's horns are still there with her hair chain removed
+and her chain bones reset to identity; Momo's missing leg is missing mesh, and
+the broom standing in its place carries 4201 of skin weight. The only fix is a
+new model from a better seed.
+
+**The seed is [DI5](image-requests.md#round-di5--regeneration-seeds-the-boards-that-produced-broken-models)**,
+which reopens the turnaround board for exactly these fighters and states the
+four rules their old boards broke. Do not regenerate from the boards on file:
+they are the cause.
+
+| Fighter | Regenerate because | Priority |
+|---|---|---|
+| `momo` | one leg not reconstructed (51% of a normal leg against the other's 181%); the broom is fused into the body and fragments across it | **first** — visible in every frame she is on screen |
+| `meimei` | 5.8% of her stature is invented geometry above her head, read in game as horns; her braid is welded to the skull, so the chain extraction cannot find it | **first** |
+| `maki` | one arm at 167% of normal — the polearm is fused into the forearm rather than parented to `Prop_Main`, so the two-handed grip solves onto skin | second |
+| `gakuganji` | one arm at 158% — the guitar, same fault as Maki's polearm | second |
+| `uro` | legs at 55% of normal and 29% of stature above the head: the proportions the Idle Review kept fighting (she needed 1.26× where the roster needed 1.02×) | second |
+
+`nanami`, `nobara` and `yuji` measure uneven-armed (0.55–0.71) with no fused
+prop. Look at them in the workbench's **Mannequin(s)** view before spending
+credits — an uneven arm can be a pose, and none of the three reads wrong on
+screen today.
+
+**The gate, before approval:** `blender -b -P tools/audit_model_health.py`.
+A delivery is refused if any limb is under 70% or over 150% of the roster's
+median for that limb, or if geometry sits more than 6% of stature above the
+head without a hat to explain it. That check is why this round exists as a
+list of measurements rather than a list of opinions — every one of these five
+shipped through a facing review, a size review and a stance pass with nobody
+noticing.
+
+**While regenerating, two pipeline fixes ride along:**
+
+- **Strip the stray.** Every one of the 27 delivered files carries an
+  unweighted 42-vertex icosphere, 2 m across, from the generator. It is hidden
+  so it never drew, but it is in every file and every download.
+  `tools/blender_conform.py` now deletes unweighted meshes at conform.
+- **A prop must be a prop.** Maki's and Gakuganji's weapons are body skin, not
+  `Prop_Main` geometry, which is why the two-handed grip has never engaged for
+  either of them. A regenerated model whose weapon is a separate object in the
+  seed board can be bound properly at conform.
+
+**Deliverable: 5 rigs, regenerated from DI5 boards, same intake as D3.**
 
 ---
 

@@ -77,11 +77,32 @@ for a joint that was not in it. Send the file on and `python3
 tools/pose_apply.py <file>` puts it back in the tree in canonical format,
 checking joint completeness, frame names and ranges on the way in.
 
+### Depth, and the view that authors it
+
+A joint is `[x, y]`, or `[x, y, depth]` once somebody says otherwise. Depth
+points at the camera, in the same cell percent, and it is absent by default —
+a drawing is one view, and it does not say how far a fist travels toward the
+lens.
+
+Some poses need it anyway. An arm angled inward across the chest reads flat as
+a short arm, and dragging in two dimensions cannot fix a pose whose problem is
+the third. **View 3D**, bottom right of the rig pane, turns both panes off the
+drawing's angle together — drag either one, scroll to move in, and the joint
+overlay on the sprite turns by exactly the angle the rig does. A joint dragged
+while the view is turned moves in the plane you are looking at, so the drag
+lands as x, y *and* depth. Switch it off and both return to the drawing's
+angle. The angle is shown next to the pose name and clicking it goes back.
+
+As the view turns away, the sprite behind the joints fades — from there it is
+a picture of a different viewpoint, and reading it as the thing to match is
+how a pose gets dragged onto the wrong silhouette. It never disappears.
+
+The free-look dial itself is [`render3d/workbench/orbit.js`](../../render3d/workbench/orbit.js),
+shared with the clip bench's own **View 3D** so the same gesture means the same
+thing in every pane of that page.
+
 Two limits worth knowing while you work:
 
-  * **Depth is not in a read.** The sagittal plane is all a side-on drawing
-    gives. The preview therefore leaves the third axis at rest, so it is a
-    check on the read, not a finished clip.
   * **The hips do not move.** The preview swings bones; it does not translate
     the root or plant the feet, so a deep lunge reads shallower in 3D than in
     the art.

@@ -199,7 +199,31 @@ const PER_FIGHTER = {
     note: "The shared eye-highlight texture is delivered; these are the optional per-fighter mouth sheets. Nothing ships blocked on one.",
     pending: () => KEYS.filter((k) => !has(`render3d/assets/textures/${k}_mouth_sheet.png`)),
   },
+  DI5: {
+    note: "Named by MEASUREMENT, not by eye: tools/audit_model_health.py weighs the mesh bound to each limb against the roster's median and reports what cannot be true of a body. A fighter leaves this list when a replacement board lands — not when their model is regenerated, since regenerating from the same board is what produced the fault.",
+    // The one round whose list is not "who is missing a file" but "whose
+    // delivered model is broken". Read from the audit's own output so the
+    // request and the evidence cannot drift apart; the fallback is the
+    // hand-listed five, so the doc still builds on a machine without Blender.
+    pending: () => {
+      const named = health().length ? health() : ["momo", "meimei", "maki", "gakuganji", "uro"];
+      return named.filter((k) => !has(`render3d/docs/reference/${k}_turnaround_v2.png`));
+    },
+  },
 };
+
+/** Fighters the model-health audit flags as unrepairable, newest run.
+ *  Empty when the audit has never been run — the caller falls back. */
+function health() {
+  const p = "render3d/docs/reference/model-health.json";
+  if (!exists(p)) return [];
+  try {
+    const rows = JSON.parse(read(p)).rows || [];
+    return rows
+      .filter((r) => (r.findings || []).some((f) => /NOT RECONSTRUCTED|FUSED INTO|ABOVE the head/.test(f)))
+      .map((r) => r.char);
+  } catch { return []; }
+}
 
 // ------------------------------------------------------------------- rendering
 

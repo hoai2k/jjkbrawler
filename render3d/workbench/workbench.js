@@ -53,6 +53,7 @@ import { OUTLINE, setOutlineFor } from "../src/outline.js";
 import { blitPose } from "../src/blit.js";
 import { makeViewport } from "../../billboards/workbench/viewport.js";
 import { makePoseEditor } from "./pose_edit.js";
+import { makeOrbit } from "./orbit.js";
 import { initMobile } from "./mobile.js";
 import { poseSchedule, poseCatalogue } from "../src/sprite_poses.js";
 import { CHARACTER_KEYS, CHARACTERS, getActor } from "../../src/characters.js";
@@ -95,7 +96,6 @@ const wb = {
   mannequin: false,
   /** Free look: the viewer becomes a model viewer (scene.js setOrbit). */
   view3d: false,
-  orbit: { yaw: 0, pitch: 0, dolly: 1 },
   snapBeat: true,
   // The drawing is not aimed at anything. Leaving the solver on would pull the
   // striking arm onto the crosshair and then invite a comparison between that
@@ -201,33 +201,30 @@ $("charNext").onclick = () => charStep(1);
 // turn, wheel to move in — as an OFFSET on the match camera rather than a
 // second camera, so switching it off is a return to exactly what the game
 // draws rather than to another approximation.
+// The dial itself — sensitivity, clamps and rest angle — is orbit.js, shared
+// with the reads bench so one gesture does not mean two things on one page.
+// No cache clear on a turn: the angle is part of the pose token
+// (scene.orbitKey), so every new angle is its own entry and dragging back over
+// an angle already seen is a hit rather than a re-render.
+const look = makeOrbit(({ yaw, pitch, dolly }) =>
+  scene.setOrbit({ yawDeg: yaw, pitchDeg: pitch, dolly }));
+
 function setView3d(on) {
-  wb.view3d = on && !wb.five;
+  look.setOn(on && !wb.five);
+  wb.view3d = look.on;
   $("view3d").checked = wb.view3d;
   $("view3dBox").classList.toggle("on", wb.view3d);
   // While free-look owns the drag and the wheel, the 2D pan/zoom stands down —
   // and comes back untouched, because it was never dismantled.
   view.locked = wb.view3d;
-  if (!wb.view3d) wb.orbit = { yaw: 0, pitch: 0, dolly: 1 };
-  scene.setOrbit({ yawDeg: wb.orbit.yaw, pitchDeg: wb.orbit.pitch, dolly: wb.orbit.dolly });
   scene.clearCache();
   if (wb.view3d && editor.on) editor.setEditMode(false);
 }
 $("view3d").onchange = () => setView3d($("view3d").checked);
 
 /** Turn the model by a drag, in canvas pixels. */
-function orbitBy(dx, dy) {
-  wb.orbit.yaw += dx * 0.35;
-  wb.orbit.pitch = Math.max(-80, Math.min(80, wb.orbit.pitch - dy * 0.3));
-  // No cache clear: the angle is part of the pose token (scene.orbitKey), so
-  // every new angle is its own entry and dragging back over an angle already
-  // seen is a hit rather than a re-render.
-  scene.setOrbit({ yawDeg: wb.orbit.yaw, pitchDeg: wb.orbit.pitch, dolly: wb.orbit.dolly });
-}
-function dollyBy(factor) {
-  wb.orbit.dolly = Math.max(0.3, Math.min(4, wb.orbit.dolly * factor));
-  scene.setOrbit({ yawDeg: wb.orbit.yaw, pitchDeg: wb.orbit.pitch, dolly: wb.orbit.dolly });
-}
+const orbitBy = (dx, dy) => look.dragBy(dx, dy);
+const dollyBy = (factor) => look.dollyBy(factor);
 canvas.addEventListener("wheel", (ev) => {
   if (!wb.view3d) return;
   ev.preventDefault();

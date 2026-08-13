@@ -798,6 +798,27 @@ def retime_actions(states, report):
 
 # ---------------------------------------------------------------------- main
 
+def strip_strays(arm_obj, report):
+    """Drop mesh objects that belong to nobody.
+
+    Every delivery so far has carried an unweighted 42-vertex icosphere two
+    metres across, out of the generator. It is hidden, so it never drew — and
+    it is in all twenty-seven files and every download of them, and it makes
+    "how tall is this model" a question the audit has to ask twice.
+
+    The rule is deliberately narrow: no vertex groups AND no parent. A rigid
+    prop is legitimately unweighted (it hangs off a bone), so weights alone
+    would be a rule that deletes weapons.
+    """
+    doomed = [o for o in list(bpy.data.objects)
+              if o.type == "MESH" and not o.vertex_groups and o.parent is None]
+    for o in doomed:
+        report.append(f"  stray mesh dropped: '{o.name}' "
+                      f"({len(o.data.vertices)} verts, no weights, no parent)")
+        bpy.data.objects.remove(o, do_unlink=True)
+    return len(doomed)
+
+
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     ap = argparse.ArgumentParser(prog="blender_conform")
@@ -834,6 +855,7 @@ def main():
     # the pruner looks at it.
     extract_skin_chain(arm, chains, report)
     retime_actions(states, report)
+    strip_strays(arm, report)
     clean_all(arm, report)
     grade_char(args.char, report)
 

@@ -38,6 +38,18 @@ import sprite_paths
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 READS = os.path.join(ROOT, "sprites", "docs", "pose-reads")
 
+#: A joint is [x, y] or [x, y, DEPTH]. Depth is toward the camera, in the same
+#: cell percent, and it is absent until somebody sets it in the editor's 3D
+#: view — the honest default, because a side-on drawing does not say how far a
+#: fist travels toward the lens. Everything here reads two or three and writes
+#: back what it was given.
+DEPTH_LIMIT = 60
+
+
+def depth(point):
+    return float(point[2]) if len(point) > 2 else 0.0
+
+
 #: The skeleton a read records, in draw order. Sided by the CHARACTER's own
 #: left and right (see the module docstring), which is why the far limb —
 #: drawn behind the body when the fighter faces right — is the LEFT one.
@@ -182,6 +194,9 @@ def dump(char, data):
     def num(v):
         return str(int(v)) if float(v) == int(v) else str(round(float(v), 1))
 
+    def point(p):
+        return "[" + ", ".join(num(v) for v in (p if len(p) > 2 and depth(p) else p[:2])) + "]"
+
     out = ["{"]
     for key in ("character", "facing", "_about", "_joints", "_seed"):
         if key in data:
@@ -199,7 +214,7 @@ def dump(char, data):
         if pose.get("flags"):
             chips = ", ".join(json.dumps(f, separators=(", ", ": ")) for f in pose["flags"])
             out.append(f'      "flags": [{chips}],')
-        rows = [f'"{j}": [{num(pose["j"][j][0])}, {num(pose["j"][j][1])}]' for j in JOINTS]
+        rows = [f'"{j}": {point(pose["j"][j])}' for j in JOINTS]
         lines = [", ".join(rows[a:a + 4]) for a in range(0, len(rows), 4)]
         out.append('      "j": {' + lines[0] + ",")
         for ln in lines[1:-1]:

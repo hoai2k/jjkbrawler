@@ -41,7 +41,13 @@ main.poseedit {
 .plate img { object-fit: contain; }
 .plate img.flip { transform: scaleX(-1); }
 .plate.big { touch-action: none; }
-.plate.big img { opacity: 0.55; filter: grayscale(1); }
+/* The sprite behind the joints fades as the view turns away from the angle it
+ * was drawn at — see applyTurn. Flat-on it is the reference; side-on it is a
+ * picture of a different moment, and reading it as truth is how a pose gets
+ * dragged to match the wrong thing. */
+.plate.big { --sprite-dim: 0.55; }
+.plate.big img { opacity: var(--sprite-dim); filter: grayscale(1); }
+.plate.big.turned { outline: 1px solid #2f6b86; outline-offset: -1px; }
 
 .rigline { pointer-events: none; }
 .plate.big .rigline { pointer-events: auto; }
@@ -59,6 +65,9 @@ main.poseedit {
 .handle.near { stroke: #b4442f; }
 .handle.far { stroke: #64809b; }
 .handle:hover { fill: #ffe9a8; }
+/* A joint that has been pushed off the drawing's plane. Worth seeing flat-on,
+ * where its depth is invisible by definition. */
+.handle.deep { fill: #8fd0ea; }
 
 /* ------------------------------------------------------------- the editor */
 .editor { display: flex; flex-direction: column; min-height: 0; gap: 10px; }
@@ -80,10 +89,28 @@ main.poseedit {
   gap: 12px; overflow-y: auto;
 }
 .pane { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.rigwrap { position: relative; }
 #rigView {
   width: 100%; aspect-ratio: 1; background: #10141f; border: 1px solid #232c44;
-  border-radius: 4px; display: block;
+  border-radius: 4px; display: block; touch-action: none;
 }
+/* Bottom right of the viewer, over the render: it belongs to the view, not to
+ * the panel of things that change the pose. */
+.check.view3d {
+  position: absolute; right: 8px; bottom: 8px; display: flex; align-items: center;
+  gap: 6px; padding: 5px 9px; border-radius: 999px; cursor: pointer;
+  background: rgba(12, 17, 28, 0.82); border: 1px solid #2b3550; color: #9fabc7;
+  font-size: 12px; user-select: none;
+}
+.check.view3d:hover { border-color: #3d4d78; }
+.check.view3d.on { border-color: #6ea8ff; color: #dbe2f0; }
+.check.view3d input { accent-color: #6ea8ff; margin: 0; }
+
+.angle {
+  font: 11.5px ui-monospace, Menlo, monospace; padding: 3px 8px; border-radius: 999px;
+  background: #16233a; border: 1px solid #2f6b86; color: #8fd0ea; cursor: pointer;
+}
+.angle:hover { background: #1d2e49; }
 .pane .hint { color: #8b96b3; font-size: 12px; margin: 0; }
 .pane .hint.warn { color: #ffcf8a; }
 kbd {
