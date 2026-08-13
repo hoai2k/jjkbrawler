@@ -1195,7 +1195,7 @@ const DIRECTORS = {
           // Pigeon Viola: five orbs that follow until they meet something.
           for (let i = 0; i < p.orbs; i++) {
             spawnProjectile(f, {
-              speed: 460, ox: 54, oy: -150 + i * 34, r: 22, dur: 1.9,
+              speed: 460, ox: 54, oy: -150 + i * 34, r: p.orbR ?? 22, dur: 1.9,
               dmg: p.orbDmg, base: p.orbBase, growth: p.orbGrowth, angle: 0.4,
               color: p.color, homing: 190, fxElement: "machine",
               label: "Pigeon Viola", sprite: p.orbSprite, spriteH: p.orbSpriteH || 64,

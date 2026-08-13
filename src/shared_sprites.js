@@ -53,12 +53,17 @@ import { spriteManifest } from "./assets.js";
  *  A null height means the drawing is sized by the renderer rather than by the
  *  kit — auras and domain backdrops — and is handled at those draw sites.
  */
+// The third element, where present, is the field's OWN hit numbers. A node can
+// declare two drawings at once — Mechamaru's ultimate names the cannon under
+// `sprite` and the five orbs it opens with under `orbSprite` — and the node's
+// hit numbers describe only the first of them. Without this the orbs inherited
+// the cannon's, and a 64px pigeon was shown against a 170px shot.
 const SPRITE_FIELDS = [
   // A list per field, first one present wins: Yuta's side special names Rika
   // under `sprite` but declares her height as plain `h`, so a single partner
   // name would leave that one drawing unscalable.
   ["sprite", ["spriteH", "h"]],
-  ["orbSprite", ["orbSpriteH"]],
+  ["orbSprite", ["orbSpriteH"], { r: "orbR" }],
   ["key", ["h"]],          // a random-drop entry: `{ key: "effect:…", w, h }`
   ["aura", []],
   ["domainSprite", []],
@@ -257,6 +262,12 @@ const STAGE_FX = {
 
 const POOLS = [SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL];
 
+/** The usual answer: this drawing's spawn site reads sharedAdjust, so a dx/dy
+ *  and a tilt set against it are honoured. Spread into an entry rather than
+ *  assumed, so the two sites that do NOT (DRAW_SITES below) read as a decision
+ *  rather than as a field somebody forgot. */
+const NUDGED = { nudge: true };
+
 let registry = null;
 
 /** The region of the world this drawing's move actually acts on, if the kit
@@ -272,13 +283,33 @@ function hitOfNode(node) {
     return { shape: "circle", r: node.r, from: "r",
              what: "the radius it collides on" };
   }
+  // A `width` is not a band. Both moves that declare one — Gojo's Purple and
+  // Mechamaru's cannon — spawn an ordinary projectile with `r: width / 2`
+  // (ultimates.js), so what they actually collide on is a circle that crosses
+  // the stage. Drawing it as a screen-wide beam described the fiction rather
+  // than the code, and put a 190px band over art that hits on 95px.
   if (Number.isFinite(node.width) && Number.isFinite(node.duration)) {
-    return { shape: "beam", w: node.width, from: "width",
-             what: "how wide the beam hits" };
+    return { shape: "circle", r: node.width / 2, from: "width",
+             what: "the radius it collides on, half the move's width" };
   }
   if (Number.isFinite(node.w) && Number.isFinite(node.h)) {
-    return { shape: "rect", w: node.w, h: node.h, from: "w/h",
+    // `hBase` is the authored height, before applySharedSpriteScales folded a
+    // workbench size into it — the same number the drawing is measured from,
+    // so the two cannot disagree about what "1×" means.
+    return { shape: "rect", w: node.w, h: node.hBase ?? node.h, from: "w/h",
              what: "the box it lands in" };
+  }
+  return null;
+}
+
+/** A secondary drawing's own hit numbers, named by its SPRITE_FIELDS entry.
+ *  Absent numbers mean no shape rather than the node's: a drawing whose spawn
+ *  site invents its collision is one the kit cannot describe, and guessing
+ *  there is how the orbs ended up wearing the cannon's. */
+function hitOfField(node, spec) {
+  if (spec.r && Number.isFinite(node[spec.r])) {
+    return { shape: "circle", r: node[spec.r], from: spec.r,
+             what: "the radius it collides on" };
   }
   return null;
 }
@@ -319,7 +350,7 @@ function buildRegistry() {
       const measured = !(Number.isFinite(entry.hitW) && Number.isFinite(entry.hitH));
       const owner = entry.name || entry.id || "a summon";
       const creature = (keys, height, hit) => (poolLists.add(keys), keys).forEach((key, i) => {
-        const info = { h: height, anchor: "feet", owner, hit, measuredBox: measured,
+        const info = { h: height, anchor: "feet", owner, hit, measuredBox: measured, ...NUDGED,
                        what: i === 0
                          ? "the creature's height on stage (config_summons.js)"
                          : `a STAND-IN for ${owner} — only drawn if that creature's own art is missing (config_summons.js)` };
@@ -334,7 +365,7 @@ function buildRegistry() {
 
   // 2. Hazards.
   for (const [key, fx] of Object.entries(STAGE_FX)) {
-    put(key, { h: fx.h, anchor: fx.anchor, owner: "a stage hazard",
+    put(key, { h: fx.h, anchor: fx.anchor, owner: "a stage hazard", ...NUDGED,
                what: `${fx.what} — its height in stage_fx.js` });
   }
 
@@ -345,7 +376,24 @@ function buildRegistry() {
   // throws the bird — while Yuta's Rika, under the same prefix, is a summon
   // that stands on the stage. Reading the prefix instead got Nue exactly
   // backwards.
-  const ANCHOR_BY_TYPE = { summon: "feet", projectile: "centre" };
+  //
+  // `nudge` is the other half of what a spawn site decides: whether it reads
+  // sharedAdjust at all. Most do (render.js for projectiles and auras,
+  // summons.js, stage_fx.js), and two do not — makeTrap and randomDrop in
+  // specials.js paint straight from `getImage`. A drawing they own can be
+  // sized, because the size is folded into the kit's own height, but a dx/dy
+  // set against one is stored and inert. Saying so here is what stops the
+  // workbench offering a control the game ignores.
+  const DRAW_SITES = {
+    summon: { anchor: "feet", nudge: true },
+    projectile: { anchor: "centre", nudge: true },
+    // Both are drawn with their bottom edge on the ground: `this.y - h` in
+    // makeTrap's draw, `y - drop.h` in randomDrop's. A trap is not thrown at
+    // anybody — it erupts out of the floor — so centring it on the spawn point
+    // was never right.
+    trap: { anchor: "feet", nudge: false, site: "makeTrap (src/specials.js)" },
+    randomDrop: { anchor: "feet", nudge: false, site: "randomDrop (src/specials.js)" },
+  };
   // `bodyH` is the nearest enclosing creature's own height. A summon declared
   // inline in a special — Dagon's shikigami, Mahoraga, Kurourushi's brood —
   // never passes through the pool walk above, and its size is `h` on the config
@@ -353,11 +401,13 @@ function buildRegistry() {
   // every one of them "sized by the code that spawns it". It is carried down
   // because a per-unit override names the art while the config above it
   // declares the size, which is the same merge specials.js does at spawn.
-  const visit = (node, who, drawnBy = "centre", bodyH = null) => {
+  const visit = (node, who, drawnBy = "centre", bodyH = null, nudge = NUDGED) => {
     if (!node || typeof node !== "object" || seen.has(node)) return;
     seen.add(node);
-    if (typeof node.type === "string" && ANCHOR_BY_TYPE[node.type]) {
-      drawnBy = ANCHOR_BY_TYPE[node.type];
+    if (typeof node.type === "string" && DRAW_SITES[node.type]) {
+      const site = DRAW_SITES[node.type];
+      drawnBy = site.anchor;
+      nudge = site.nudge ? NUDGED : { nudge: false, nudgeSite: site.site };
     }
     if (Number.isFinite(node.h)) bodyH = node.h;
     // A creature config, wherever it hangs. `behavior` is the field spawnSummon
@@ -367,15 +417,23 @@ function buildRegistry() {
     // centre-anchored effect of unknown size.
     if (typeof node.behavior === "string" && Array.isArray(node.sprites)) drawnBy = "feet";
     if (isSharedKey(node.aura)) {
-      put(node.aura, { h: AURA_H, anchor: "feet", owner: who,
+      put(node.aura, { h: AURA_H, anchor: "feet", owner: who, ...NUDGED,
                        what: "the install aura's height around the fighter (render.js)" });
     }
     const hit = hitOfNode(node);
-    for (const [field, heightFields] of SPRITE_FIELDS) {
+    for (const [field, heightFields, ownHit] of SPRITE_FIELDS) {
       if (field === "aura" || !isSharedKey(node[field])) continue;
       const hf = heightFields.find((h) => Number.isFinite(node[`${h}Base`]) || Number.isFinite(node[h]));
       const h = hf ? (node[`${hf}Base`] ?? node[hf]) : null;
-      put(node[field], { h, anchor: drawnBy, owner: who, hit,
+      // A drop declares one `h` and uses it twice — the height it is painted at
+      // and the height of the box it lands in (randomDrop, specials.js) — so a
+      // size set here moves the box with the art. That is the opposite of every
+      // other hit shape, which is a number the art has to be matched TO, and
+      // the workbench has to say which of the two it is showing.
+      const followsSize = !!hit && hit.from === "w/h" && hf === "h";
+      put(node[field], { h, anchor: drawnBy, owner: who, ...nudge,
+                         hit: ownHit ? hitOfField(node, ownHit)
+                                     : (followsSize ? { ...hit, followsSize } : hit),
                          what: h ? "the height its move declares (the kit's own number)"
                                  : "sized by the code that spawns it" });
     }
@@ -391,10 +449,10 @@ function buildRegistry() {
         h = bodyH ?? 110;
         what = "the creature's height on stage (its kit's own `h`)";
       }
-      for (const key of node[field]) put(key, { h, anchor: drawnBy, owner: who, hit, what });
+      for (const key of node[field]) put(key, { h, anchor: drawnBy, owner: who, hit, what, ...nudge });
     }
     for (const value of Object.values(node)) {
-      if (value && typeof value === "object") visit(value, who, drawnBy, bodyH);
+      if (value && typeof value === "object") visit(value, who, drawnBy, bodyH, nudge);
     }
   };
   for (const key of CHARACTER_KEYS) {
@@ -415,6 +473,12 @@ function buildRegistry() {
  *            when the spawn site decides per instance
  *   anchor   which part of the drawing lands on the spawn point
  *   owner    who puts it on screen, for the panel to name
+ *   nudge    whether that spawn site reads sharedAdjust, so a dx/dy and a tilt
+ *            reach the screen. False for the two that paint straight from
+ *            getImage, with `nudgeSite` naming which.
+ *   hit      the region its move acts on, or null where the spawn site invents
+ *            one the kit cannot describe. `followsSize` marks the one case
+ *            where the box is the art's own height rather than a target for it.
  */
 export function sharedSpriteInfo(key) {
   if (!key) return null;
