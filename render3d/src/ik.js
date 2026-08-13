@@ -497,10 +497,37 @@ export function applyMorphs(root3d, charKey, state, clipT) {
 // both world up and the way they face — computed from the rig and converted
 // into whatever local frame the bone happens to have.
 
-/** The character's lateral (right-hand-side) axis in world space, from the
- *  rig's forward (+Z by the delivery spec) and world up. */
+/**
+ * The character's lateral (right-hand-side) axis in world space, from the way
+ * they actually face and world up.
+ *
+ * THE RIG'S FORWARD IS NOT ITS LOCAL +Z. That is what the delivery spec asks
+ * for and what `yawOffsetDeg` exists to say is false: a generated model arrives
+ * built facing some other way, and is turned AT THE ROOT until it looks right.
+ * So the root's local +Z misses the fighter's real forward by exactly that
+ * offset — nothing for the six rigs that came in square, 45° for most of the
+ * roster, 80° for Dagon.
+ *
+ * Reading it wrong does not look like a wrong axis. It looks like the nod
+ * layers going strange on SOME characters and not others: the head lifting
+ * cleanly on Yuji and rolling sideways on Nobara, which is how it was
+ * reported. A rotation about an axis n° off the lateral is cos(n) of the nod
+ * you asked for plus sin(n) of roll you did not, so the failure grades
+ * smoothly from invisible to absurd across the roster and never looks like one
+ * bug.
+ *
+ * The offset is stamped on the root by loader.js, so this reads the same rig
+ * the engine poses rather than trusting the spec about it. Everything that
+ * nods goes through here — aim, look-at, flinch, breath and the head-carriage
+ * correction — so they are all right or all wrong together.
+ */
 export function characterLateral(THREE, root, out) {
-  const fwd = out.set(0, 0, 1).applyQuaternion(root.getWorldQuaternion(_lq));
+  // The fighter's true forward in the ROOT's own frame: +Z turned back by the
+  // delivery's framing error, so the world quaternion below (which includes
+  // that error) lands on where they actually look.
+  const off = root.userData?.yawOffsetRad || 0;
+  const fwd = out.set(-Math.sin(off), 0, Math.cos(off))
+    .applyQuaternion(root.getWorldQuaternion(_lq));
   fwd.y = 0;
   if (fwd.lengthSq() < 1e-8) return out.set(1, 0, 0);
   fwd.normalize();

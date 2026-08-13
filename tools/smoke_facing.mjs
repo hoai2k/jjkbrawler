@@ -203,6 +203,48 @@ try {
   // and the result was a stand-in that stood turned 80° while Dagon's model
   // downloaded and then snapped straight: the body you look at to decide
   // whether the orientation data is right, lying about the orientation.
+  // EVERY FIGHTER NODS ABOUT THEIR OWN LATERAL — the whole roster, not one
+  // fighter, because the check above passed for two months while most of the
+  // roster was wrong. It tests Yuji, whose `yawOffsetDeg` is 0, and the fault
+  // was proportional to that offset: the nod axis missed by exactly the angle
+  // the rig was turned by, so it was invisible on the six square rigs, half
+  // roll on the 45° ones and almost pure roll on Dagon at 80°. One character
+  // cannot answer a question whose answer varies per character.
+  const nods = await page.evaluate(async () => {
+    const THREE = await import("/vendor/three/three.module.js");
+    const rigs = await import("/render3d/src/loader.js");
+    const pose = await import("/render3d/src/pose.js");
+    const bad = [];
+    let tested = 0;
+    for (const [char, e] of Object.entries(rigs.rigManifest().characters || {})) {
+      if (!e?.model || !e.approved) continue;
+      const rig = rigs.getRig(char);
+      const head = rig?.root.getObjectByName("Head");
+      const clip = rigs.resolveClip(char, "idle")?.clip;
+      if (!head || !clip) continue;
+      const at = (tilt) => {
+        rigs.setRigSettings(char, { headTiltDeg: tilt });
+        pose.poseRig(rig, "idle", 0, clip, {});
+        rig.root.updateMatrixWorld(true);
+        return head.getWorldQuaternion(new THREE.Quaternion());
+      };
+      const q0 = at(0), q1 = at(10);
+      rigs.setRigSettings(char, { headTiltDeg: Number(e.headTiltDeg) || 0 });
+      // With the delivery's framing error corrected the fighter faces world
+      // +Z, so a nod is a rotation about world X and nothing else.
+      const d = q1.clone().multiply(q0.clone().invert());
+      const ax = new THREE.Vector3(d.x, d.y, d.z).normalize();
+      const off = Math.acos(Math.min(1, Math.abs(ax.x))) * 180 / Math.PI;
+      tested++;
+      if (off > 2) bad.push(`${char} ${off.toFixed(0)}° off (yaw ${e.yawOffsetDeg || 0}°)`);
+    }
+    return { tested, bad };
+  });
+  check(nods.tested > 20, "the nod axis is checked across the roster", `${nods.tested} rigs`);
+  check(nods.bad.length === 0,
+    "...and every one of them nods about their own lateral, not the rig's +Z",
+    nods.bad.join(", "));
+
   // Asked on the WORKBENCH, which fetches one fighter at a time: a character
   // nobody has selected is still a stand-in there, so this is a fact to read
   // rather than a race to win.

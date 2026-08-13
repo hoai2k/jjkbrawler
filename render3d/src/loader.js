@@ -139,6 +139,7 @@ export function acquireInstance(charKey, instanceId) {
   // The clone copies the base's CURRENT transforms, which may be mid-pose, so
   // it takes the base's remembered bind pose rather than its own.
   captureCleanPose(root, base.root);
+  root.userData.yawOffsetRad = base.yawOffset ?? 0;
   const inst = {
     charKey, root, height: base.height, clips: base.clips,
     renderScale: base.renderScale ?? 1, yawOffset: base.yawOffset ?? 0,
@@ -223,6 +224,11 @@ function applyEntrySettings(rig, entry) {
   const yaw = Number(entry?.yawOffsetDeg);
   rig.yawOffsetDeg = delivered && Number.isFinite(yaw) ? yaw : 0;
   rig.yawOffset = (rig.yawOffsetDeg * Math.PI) / 180;
+  // Stamped on the root as well as the rig entry: every layer that NODS asks
+  // the root which way this fighter faces (ik.js characterLateral), and it has
+  // only the object to ask — a rig posed without its offset to hand nods about
+  // an axis that is wrong by exactly the offset.
+  rig.root.userData.yawOffsetRad = rig.yawOffset;
   // How the head is carried. A correction to the MODEL's mesh, so the stand-in
   // — built to spec, head level — does not take it either.
   const tilt = Number(entry?.headTiltDeg);
@@ -244,6 +250,7 @@ export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg, 
     rig.yawOffset = (yawOffsetDeg * Math.PI) / 180;
   }
   if (headTiltDeg !== undefined && Number.isFinite(headTiltDeg)) rig.headTiltDeg = headTiltDeg;
+  rig.root.userData.yawOffsetRad = rig.yawOffset;
   if (stanceDeg !== undefined && Number.isFinite(stanceDeg)) rig.stanceDeg = stanceDeg;
   // Instances already handed out share the character's settings.
   for (const inst of INSTANCES.values()) {
@@ -251,6 +258,7 @@ export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg, 
     inst.renderScale = rig.renderScale;
     inst.yawOffset = rig.yawOffset;
     inst.headTiltDeg = rig.headTiltDeg;
+    inst.root.userData.yawOffsetRad = rig.yawOffset;
   }
   return rig;
 }
