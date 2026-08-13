@@ -20,9 +20,25 @@ export const SHORT_HOP_CUT = 0.52;
 export const AIR_JUMP_MULT = 0.92;
 
 // dashing
+//
+// A burst, not a commitment: the dash should be over before anything can react
+// to it and leave the fighter available again, rather than being a button you
+// press and then wait to arrive somewhere.
+//
+// DASH_TIME is how long, DASH_MULT is how fast, and `startDash` (fighter.js)
+// snaps the velocity to the cap so the two are independent. They were not:
+// DASH_MULT only raises the ceiling the ordinary acceleration climbs toward, so
+// a dash from standing spent its whole window getting up to speed and a shorter
+// dash was a SLOWER one. Tuning for control used to cost the speed.
+//
+// Measured on Gojo (468 speed), against the 0.22 / 1.45 it replaces:
+//
+//     distance   87px -> 71px     shorter, which is the point
+//     top speed  650  -> 718 px/s faster, which is the other point
+//     duration   13   -> 6 frames brief enough to be uncommittal
 export const DASH_TAP_WINDOW = 0.24;
-export const DASH_TIME = 0.22;
-export const DASH_MULT = 1.45;
+export const DASH_TIME = 0.10;
+export const DASH_MULT = 1.55;
 
 // shield
 export const SHIELD_MAX = 100;
@@ -132,7 +148,8 @@ export const SMASH_TILT_ANGLE = 0.6;
 
 // ------------------------------------------------------------------- grabs
 //
-// Smash-style grabbing and throwing (?throw=true — src/flags.js, src/grab.js).
+// Smash-style grabbing and throwing (src/flags.js, src/grab.js). On by
+// default since the flag graduated; `?throw=false` plays without it.
 //
 // The triangle it exists to complete: attacks lose to shield, shield loses to
 // grab, grab loses to attacks — a whiffed grab is the most punishable thing a
@@ -166,16 +183,35 @@ export const GRAB = {
 // The four throws. Fixed data rather than per-character kit numbers, exactly
 // like Smash's early games: a throw is positional currency, not a damage race.
 // Every one of these is routed through applyHit, so DI, staling, tallies and
-// KO credit all apply. Balance intent, against a charged side smash (baseKb
-// 430–537, growth 8.4): throws never KO earlier than a smash at centre stage —
-// back throw only edges it out at the ledge, which is the classic reason to
-// take somebody's back.
+// KO credit all apply.
+//
+// The three POSITIONAL throws send about a quarter further than they used to.
+// `baseKb` is the knob rather than `growth`, deliberately: launch speed is
+// `(baseKb + damage * growth) / weight`, so raising the base moves every throw
+// the same distance further at every damage, while raising the growth would
+// have rewritten the KO percentages instead of the throw.
+//
+// Balance intent, measured against a side smash (`430 * (1 + 0.25 * charge)`,
+// growth 8.4 — moves.js), because that is the move a throw is competing with:
+//
+//   vs a FULLY charged smash (537): forward is passed almost at once, back at
+//   ~35% damage, and up never leads it at all. So at the percentages that
+//   actually kill, a smash still KOs earliest — back throw at the ledge being
+//   the classic exception, and the reason to take somebody's back.
+//
+//   vs an UNCHARGED one (430): the throws now send further up to 61% (forward),
+//   100% (up) and 115% (back). That is the real cost of this change, and it is
+//   the right way round: a grab has to be landed first, and a whiffed one is
+//   the most punishable thing in the game. Paying for that risk in distance is
+//   the point — throwing should beat swinging a heavy you did not charge.
 export const THROWS = {
-  fwd:  { dmg: 8,   baseKb: 430, growth: 6.6, angle: 0.55, label: "Throw",       sfx: "punch" },
-  back: { dmg: 9.5, baseKb: 470, growth: 7.1, angle: 0.62, label: "Back Throw",  sfx: "punch" },
-  up:   { dmg: 7,   baseKb: 400, growth: 7.7, angle: 1.42, label: "Up Throw",    sfx: "whoosh" },
-  // Low knockback on purpose: the down throw is the combo starter — it buys a
-  // juggle at low damage and stops being worth it once they fly too far.
+  fwd:  { dmg: 8,   baseKb: 540, growth: 6.6, angle: 0.55, label: "Throw",       sfx: "punch" },
+  back: { dmg: 9.5, baseKb: 580, growth: 7.1, angle: 0.62, label: "Back Throw",  sfx: "punch" },
+  up:   { dmg: 7,   baseKb: 500, growth: 7.7, angle: 1.42, label: "Up Throw",    sfx: "whoosh" },
+  // Left where it was, and the one throw that should not send further: the down
+  // throw is the combo starter. Its whole job is to put them barely above you
+  // at low damage so the juggle is on, and it stops being worth taking once
+  // they fly too far — which is the tuning, not a shortfall in it.
   down: { dmg: 6,   baseKb: 270, growth: 4.0, angle: 1.12, label: "Down Throw",  sfx: "punch" },
 };
 

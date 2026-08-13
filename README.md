@@ -24,7 +24,7 @@ Or double-click `play-mac.command` (macOS) / `play-windows.bat` (Windows).
 | Action | Gamepad |
 |---|---|
 | Move | Left stick |
-| Jump | A or RT |
+| Jump | A |
 | Crouch / fast-fall | Left stick ▼ |
 | Light attack | X |
 | Heavy attack (hold = charge) | Y |
@@ -34,6 +34,7 @@ Or double-click `play-mac.command` (macOS) / `play-windows.bat` (Windows).
 | Ultimate | RB |
 | Domain Expansion | LB |
 | Shield / dodges | LT |
+| Grab (direction throws · Light pummels) | RT |
 | Tilt attacks (no run-up) | Right stick |
 | Steer summons / aim creature shots | D-pad |
 | Pause | Start |

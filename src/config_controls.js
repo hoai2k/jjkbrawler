@@ -31,9 +31,9 @@ export const KEY_BINDS = {
     // of the attack keys, reachable without leaving the WASD hand's
     // neighbours; see summons.js for what it drives.
     steerUp: ["KeyT"], steerLeft: ["KeyF"], steerDown: ["KeyG"], steerRight: ["KeyH"],
-    // Grab (?throw=true only — src/flags.js). Next to the attack cluster, and
-    // dead weight without the flag: input.js reads it either way, grab.js only
-    // acts on it when the mechanic is on.
+    // Grab (src/flags.js). Next to the attack cluster. input.js reads it
+    // either way; grab.js acts on it while the mechanic is on, which is the
+    // default and everything but a `?throw=false` session.
     grab: ["KeyO"],
   },
   2: {
@@ -58,10 +58,10 @@ export const PAD_BUTTONS = {
   // jumping while attacking asks that thumb for two buttons at once; the right
   // index finger is doing nothing at that moment.
   //
-  // Unless the experimental grab mechanic is on (?throw=true — src/flags.js):
+  // Unless the grab mechanic is on (src/flags.js), which it now is by default:
   // grab wants exactly the button a Smash player's index finger expects, so RT
-  // is conditionally taken back from jump for the sessions that opt in. A jumps
-  // alone there; everywhere else this stays the shipped layout.
+  // is taken back from jump and A jumps alone. The two-button jump is what a
+  // `?throw=false` session falls back to.
   jump: THROW_ENABLED ? [0] : [0, 7],
   grab: THROW_ENABLED ? 7 : [],   // RT behind the flag; bound to nothing otherwise
   dash: [],    // double-tap a direction
@@ -144,8 +144,9 @@ const ROWS = [
   { id: "ult", action: "Ultimate", bind: "ult" },
   { id: "domain", action: "Domain Expansion", bind: "domain", short: "Domain" },
   { id: "shield", action: "Shield / dodges", bind: "shield", short: "Shield / dodge" },
-  // Only listed while the mechanic exists (?throw=true): a control row the
-  // game does not read would be a lie in every generated table and tip.
+  // Only listed while the mechanic is on (the default; `?throw=false` drops
+  // it): a control row the game does not read would be a lie in every
+  // generated table and tip.
   ...(THROW_ENABLED
     ? [{ id: "grab", action: "Grab (direction throws · Light pummels)", bind: "grab", short: "Grab" }]
     : []),

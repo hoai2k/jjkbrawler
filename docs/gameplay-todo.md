@@ -3,13 +3,14 @@
 Two pieces of work that came out of the round-18 polish review. Status, as of
 round 19:
 
-- **The grab (§1) is BUILT** — `src/grab.js`, behind `?throw=true`
-  (`src/flags.js`). It matches this brief: shield-ignoring reach with whiff
+- **The grab (§1) is BUILT and now ON BY DEFAULT** — `src/grab.js`,
+  `src/flags.js`. It matches this brief: shield-ignoring reach with whiff
   recovery, four throws routed through `applyHit`, damage-scaled mash escape,
   break-out punish window, a no-regrab beat, `isFoe` teams routing — plus a
-  pummel and the shield-grab input this brief didn't ask for. What remains is
-  the flag graduation and the two shield tweaks below (§1a), which belong to
-  the same balance pass.
+  pummel and the shield-grab input this brief didn't ask for. The flag has
+  flipped and every generated control surface names RT as grab; `?throw=false`
+  is all that is left of it, kept so the game can be played without grabs to
+  compare. What remains is the two shield tweaks below (§1a).
 - **The fairness patches (§2) are DONE**: projectiles and owned entities
   freeze through their owner's hitlag, particles and the camera run on the
   slow-motion clock, and the ledge is one-per-customer with a Smash-style
@@ -89,8 +90,10 @@ as one balance pass:
 - **Shield-drop lag** — dropping shield is still free; a few frames of
   recovery on release makes a read on the shield drop punishable.
 
-And the graduation itself: `?throw=true` → default, the flag removed, and the
-controls table regenerated to name RT as grab.
+The graduation is DONE: the flag defaults on, the controls tables are
+regenerated and name RT as grab, and only `?throw=false` remains. Removing the
+flag entirely is the last step, and is worth leaving until the balance pass
+below has been played against.
 
 ---
 
@@ -121,5 +124,5 @@ brief protection window. Hogging a ledge is now an interaction, not a wall.
 
 ## Order
 
-What's left: the shield tweaks and the `?throw=true` flag graduation (§1a),
-as one balance pass.
+What's left: the shield tweaks (§1a). The flag graduation that used to sit
+beside them is done.
