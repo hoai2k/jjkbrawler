@@ -123,6 +123,39 @@ command grabs, installs, teleports, gambles — plus bespoke signature logic
 (Boogie Woogie's swap, Cursed Speech's throat strain, the Gorilla core, etc.).
 Specials have individual cooldowns (0.8–7 s) instead of resource costs.
 
+### Spoken moves wind up while they are spoken
+Twelve moves in the game are **announced out loud** — Inumaki's three commands
+and his ultimate, and the eight Domain Expansions. Those moves do not happen on
+the frame you press the button. The fighter holds the move's own pose, says the
+line, and the move lands **80% of the way through it** (`SPOKEN_TIMING` in
+`src/config_audio.js`; clamped to 0.35–2.2 s, so Gojo's 3.28-second call-out
+does not stall the match for its whole length).
+
+This is frame data, not decoration, and it cuts both ways:
+
+- **Inumaki's commands are a read.** "Blast Away" now has 0.91 s of wind-up
+  where it used to be instant. Being hit during the command **cancels it** —
+  the cooldown and the throat strain are still spent, because he still opened
+  his mouth. His four moves are his whole kit, so this is the single largest
+  balance consequence in the game and the thing to watch if he feels weak.
+- **A Domain Expansion is now telegraphed.** Nothing exists during the call:
+  no barrier, no backdrop swap, no hitbox. The caster is **untouchable and
+  uninterruptible** for all of it (the action was already uninterruptible, so
+  leaving them damageable would only have handed the opponent free damage for
+  no counterplay). What the delay buys the opponent is **repositioning** —
+  you can hear which domain is coming and from where, and leave.
+- A second domain cannot start during the first one's call, even though the
+  barrier is not up yet (`state.domainCasting`).
+
+**The delay never depends on the audio.** It is read from the line lengths
+written in `SPOKEN_LINES`, not measured from the sound, so a move behaves
+identically with the sound off, the SFX slider at zero, or the file still
+downloading. `node tools/check_voice.mjs` fails if a written length has drifted
+from the file it describes — re-rolling a line changes the frame data.
+
+Setting `SPOKEN_TIMING.fraction` to 0 restores the old behaviour, where
+everything fired on the same frame as the shout.
+
 ### Summons, and steering them
 
 Five moves put a persistent creature on the stage rather than a hitbox — four

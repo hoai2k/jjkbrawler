@@ -441,6 +441,9 @@ export function ringOut(f) {
   for (let i = state.entities.length - 1; i >= 0; i--) if (state.entities[i].owner === f) state.entities.splice(i, 1);
   if (state.domainOverlay && state.domainOverlay.ownerId === f.id) state.domainOverlay = null;
   if (state.domain && state.domain.owner === f) state.domain = null;
+  // A fighter KO'd mid-call loses the action carrying the "open the barrier"
+  // event, so nothing would ever clear this and no domain could open again.
+  if (state.domainCasting === f) state.domainCasting = null;
 
   f.action = null; f.charging = null; f.counter = null; f.reflect = null; f.healing = null;
   f.simpleDomain = null;

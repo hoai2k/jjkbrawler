@@ -1041,6 +1041,29 @@ request assumed all four fired the shared grunt; in fact only "Don't Move"
 he does — were the only handlers in `specials.js` that never called it. Both
 types are his alone, so adding the call there changed nothing for anyone else.
 
+### Follow-up: the line became the wind-up
+
+Round 11 shipped with the line and the move on the same frame — the command was
+said *over* the attack rather than before it. That was corrected afterwards for
+all twelve spoken moves, Inumaki's four and the eight domain call-outs alike:
+the fighter now holds the pose, says the line, and the move lands 80% of the way
+through it (`SPOKEN_TIMING`, `src/config_audio.js`). A Domain Expansion is
+announced and then arrives, rather than arriving and being described.
+
+Two things about that are audio decisions with gameplay consequences, and are
+written up properly in [game-mechanics.md](game-mechanics.md#spoken-moves-wind-up-while-they-are-spoken):
+
+- **The delay is read from written line lengths, never measured from the
+  audio.** A move whose frame data depends on whether an mp3 finished
+  downloading is a move nobody can learn, so `SPOKEN_LINES` carries the
+  delivered length of each line and `tools/check_voice.mjs` fails when one has
+  drifted from its file. **Re-rolling a line changes the frame data** — update
+  its row, or the checker will say so.
+- **The clamp matters more than the fraction.** Gojo's call-out is 3.28 s and
+  80% of it would hold the match for 2.6 s; `SPOKEN_TIMING.max` caps every
+  wind-up at 2.2 s, which is why his line, Jogo's and Mahito's all land at the
+  ceiling rather than at their own 80%.
+
 **`MOVE_CALL` is the reusable half of this round.** It keys a spoken line by
 character and then by the move's own `name`, and `playGrunt(charKey, moveName)`
 plays it *instead* of the grunt. The 20 `playGrunt` sites in `specials.js` pass

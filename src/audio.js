@@ -9,7 +9,10 @@ import {
   BOARD_MUSIC_DIR, BOARD_TRACKS, FALLBACK_TRACKS, MENU_TRACK, MUSIC_DIR, MUSIC_EXT,
   MUSIC_MODES as MUSIC_MODE_CONFIG, UNUSED_BOARD_TRACKS,
 } from "./config_music.js";
-import { AUDIO_MIX, MAX_VOICES, MOVE_CALL, SFX, SFX_ALIASES, SFX_DIR } from "./config_audio.js";
+import {
+  AUDIO_MIX, MAX_VOICES, MOVE_CALL, SFX, SFX_ALIASES, SFX_DIR,
+  SPOKEN_LINES, SPOKEN_TIMING,
+} from "./config_audio.js";
 import { CHARACTERS } from "./characters.js";
 import { state } from "./state.js";
 
@@ -252,13 +255,33 @@ export function playSfx(name, intensity = 1, rate = 0) {
 // shout is the failure this replaces rather than layers on, the same rule the
 // domain call-outs set.
 export function playGrunt(charKey, moveName) {
-  const call = moveName && MOVE_CALL[charKey]?.[moveName];
+  const call = moveCallFor(charKey, moveName);
   if (call) {
     playSfx(call, 1);
     return;
   }
   const group = GRUNT_GROUPS[charKey];
   if (group) playSfx(group, 0.9);
+}
+
+/** The spoken line for a move, or null. Exported because the move itself has
+ *  to know whether it is introduced by one before it decides when to land. */
+export function moveCallFor(charKey, moveName) {
+  return (moveName && MOVE_CALL[charKey]?.[moveName]) || null;
+}
+
+/**
+ * How long a move waits, in seconds, while its line is spoken — 0 for a move
+ * with no line, which is every move in the game bar twelve.
+ *
+ * Read from SPOKEN_LINES rather than from the audio (see the note there): this
+ * has to return the same number whether or not the sound is on.
+ */
+export function spokenLead(call) {
+  const length = call && SPOKEN_LINES[call];
+  if (!length) return 0;
+  const { fraction, min, max } = SPOKEN_TIMING;
+  return Math.min(max, Math.max(min, length * fraction));
 }
 
 // The defeat cry, chosen from the fighter's voice group.

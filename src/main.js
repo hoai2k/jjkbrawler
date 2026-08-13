@@ -144,6 +144,7 @@ async function resetMatch() {
   state.banners.length = 0;
   state.domainOverlay = null;
   state.domain = null;
+  state.domainCasting = null;
   // A domain open when the match ended never runs its own close path — the
   // entity is dropped here, not expired — so its held sound is stopped by the
   // reset that dropped it. Without this a rematch starts inside the last
