@@ -95,8 +95,9 @@
 
 /** Arms down at the sides. Every pose builds on it, so a pose only has to say
  *  what it changes — and a pose that says nothing is a fighter standing still
- *  rather than a fighter in a T. */
-const REST = {
+ *  rather than a fighter in a T. Exported because the baseline library next
+ *  door builds on the same zero. */
+export const REST = {
   LeftArm: [0, 0, -65], RightArm: [0, 0, 65],
   LeftForeArm: [-12, 0, -12], RightForeArm: [-12, 0, 12],
 };

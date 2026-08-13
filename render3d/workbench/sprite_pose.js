@@ -59,6 +59,7 @@ import { CHARACTER_KEYS, CHARACTERS } from "../../src/characters.js";
 import { makeOrbit } from "./orbit.js";
 import { matchedPose, MATCHED_FRAMES } from "../src/battle_poses.js";
 import { poseEntry } from "../src/sprite_poses.js";
+import { baselinePose } from "../src/baseline_poses.js";
 
 const READS_URL = "../../sprites/docs/pose-reads/";
 const SPRITES_URL = "../../sprites/assets/";
@@ -1048,29 +1049,50 @@ function poseFromGame(char, key) {
 function poseRigFor(key, j) {
   if (ui.mode === "matched") {
     const match = matchedPose(key);
-    if (match && poseFromMatch(match)) return "matched";
+    if (match && poseFromMatch(match)) return { shown: "matched" };
+    const fell = baselinePose(key);
+    poseFromMatch(fell.pose);
+    return { shown: "baseline", asked: "matched", why: "no per-frame match for this frame",
+             intent: fell.intent };
+  }
+  if (ui.mode === "baseline") {
+    const b = baselinePose(key);
+    // Total by contract — see baseline_poses.js — so there is no fallback path
+    // here, and if one ever appears it is a bug rather than a missing pose.
+    if (poseFromMatch(b.pose)) return { shown: "baseline", intent: b.intent };
     poseFromJoints(j);
-    return "unmatched";
+    return { shown: "generated", asked: "baseline", why: "the baseline library returned nothing" };
   }
   if (ui.mode === "ingame") {
-    if (poseFromGame(ui.char, key)) return "ingame";
-    poseFromJoints(j);
-    return "noclip";
+    if (poseFromGame(ui.char, key)) return { shown: "ingame" };
+    const fell = baselinePose(key);
+    poseFromMatch(fell.pose);
+    return { shown: "baseline", asked: "ingame", why: "nothing in the game draws this frame",
+             intent: fell.intent };
   }
   poseFromJoints(j);
-  return "generated";
+  return { shown: "generated" };
 }
 
-/** The cycle, in the order the button walks: proposal, proposal, reality. */
-const MODES = ["matched", "generated", "ingame"];
-const MODE_LABEL = { matched: "Matched", generated: "Generated", ingame: "In Game" };
-const HOW_LABEL = {
-  matched: "3D: matched human pose",
-  generated: "3D: generated from the joints",
-  ingame: "3D: the clip the game plays today",
-  unmatched: "3D: no matched pose for this frame — generated from the joints",
-  noclip: "3D: nothing in the game draws this frame — generated from the joints",
+/** The cycle: two libraries, the drawing's own answer, and what ships. */
+const MODES = ["matched", "baseline", "generated", "ingame"];
+const MODE_LABEL = {
+  matched: "Matched", baseline: "Baseline match",
+  generated: "Generated", ingame: "In Game",
 };
+const SHOWN_LABEL = {
+  matched: "the per-frame matched human pose",
+  baseline: "the baseline pose",
+  generated: "the pose generated from the joints",
+  ingame: "the clip the game plays today",
+};
+
+/** What the pane is showing, and whether that is what was asked for. Those are
+ *  two facts and the badge was only ever carrying one of them. */
+function howText(r) {
+  const what = SHOWN_LABEL[r.shown] + (r.intent ? ` for “${r.intent}”` : "");
+  return r.asked ? `fallback — ${r.why}, showing ${what}` : `showing ${what}`;
+}
 
 /** Turn the read into rig rotations: every driven bone is swung, in the
  *  sagittal plane only, until it points the way the drawing does. */
@@ -1365,8 +1387,8 @@ function renderEditor() {
         ? `${pose.j[n][0].toFixed(1)}, ${pose.j[n][1].toFixed(1)}`
           + (depth(pose.j[n]) ? `, ${depth(pose.j[n]).toFixed(1)}` : "") : "—"}</b></li>`).join("");
   const how = poseRigFor(ui.pose, pose.j);
-  $("#poseHow").textContent = HOW_LABEL[how];
-  $("#poseHow").className = `how ${how}`;
+  $("#poseHow").textContent = howText(how);
+  $("#poseHow").className = `how ${how.shown}${how.asked ? " fell" : ""}`;
   $("#poseMode").textContent = MODE_LABEL[ui.mode];
   $("#poseModeBox").className = `check mode ${ui.mode}`;
   drawThree();
@@ -1670,7 +1692,7 @@ function shell() {
                 <input id="poseView3d" type="checkbox"> View 3D
               </label>
               <button class="check mode matched" id="poseModeBox" type="button"
-                      title="Click to cycle. Matched: the frame's pose from the human battle-pose library. Generated: the pose worked out from the joints you can drag. In Game: the clip the game plays today.">
+                      title="Click to cycle. Matched: this frame's own pose from the human battle-pose library. Baseline match: the generic pose for what this frame IS, which every frame has. Generated: worked out from the joints you can drag. In Game: the clip the game plays today.">
                 <span id="poseMode">Matched</span> <span class="cycle">⟳</span>
               </button>
               <span class="how" id="poseHow"></span>

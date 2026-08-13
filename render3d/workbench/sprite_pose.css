@@ -131,6 +131,7 @@ main.poseedit {
 .check.mode.matched   { border-color: #d8a657; color: #f0e2cb; }
 .check.mode.generated { border-color: #2c456e; color: #bcd2f5; }
 .check.mode.ingame    { border-color: #2f5a44; color: #c7ecd6; }
+.check.mode.baseline  { border-color: #4a3f6b; color: #d6cdf0; }
 /* Which of the two the pane is actually showing — it is not always what the
  * checkbox asks for, because a frame with no match falls back to the read. */
 .how {
@@ -141,10 +142,11 @@ main.poseedit {
 .how.matched { color: #d8a657; border-color: #5c4a2a; }
 .how.generated { color: #6ea8ff; border-color: #2c456e; }
 .how.ingame { color: #7ddc9a; border-color: #2f5a44; }
-/* The mode asked for one thing and the pane is showing another, because this
- * frame has no matched pose or nothing in the game draws it. Worth a warning
- * colour rather than a silent fall back to the generated pose. */
-.how.unmatched, .how.noclip { color: #e0a3a3; border-color: #6b3a3a; }
+.how.baseline { color: #b3a5e0; border-color: #4a3f6b; }
+/* The mode asked for one thing and the pane is showing another. Whatever it
+ * fell back TO, a fallback reads as a fallback — that is the whole point of
+ * saying which pose you are looking at. */
+.how.fell { color: #e0a3a3; border-color: #6b3a3a; }
 
 .facing {
   font: 11.5px ui-monospace, Menlo, monospace; color: #8fb8a0; white-space: nowrap;

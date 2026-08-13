@@ -12,6 +12,7 @@
 //   node tools/check_battle_poses.mjs        (runs in `npm run check`)
 
 import { BATTLE_POSES, MATCHED_FRAMES } from "../render3d/src/battle_poses.js";
+import { INTENT_POSES, INTENTS, intentFor, baselinePose } from "../render3d/src/baseline_poses.js";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -37,24 +38,27 @@ const BONES = new Set([
 // widest real range and they do not reach 180.
 const LIMIT = 175;
 
-for (const [frame, pose] of Object.entries(BATTLE_POSES)) {
-  if (!pose || typeof pose !== "object") { fail(`${frame}: not a pose table`); continue; }
-  if (!Object.keys(pose).length) fail(`${frame}: empty`);
+const checkPose = (label, pose) => {
+  if (!pose || typeof pose !== "object") { fail(`${label}: not a pose table`); return; }
+  if (!Object.keys(pose).length) fail(`${label}: empty`);
   for (const [bone, angles] of Object.entries(pose)) {
-    if (!BONES.has(bone)) fail(`${frame}.${bone}: no such bone`);
+    if (!BONES.has(bone)) fail(`${label}.${bone}: no such bone`);
     if (!Array.isArray(angles) || angles.length !== 3) {
-      fail(`${frame}.${bone}: want [x, y, z] degrees`);
+      fail(`${label}.${bone}: want [x, y, z] degrees`);
       continue;
     }
     for (const [i, v] of angles.entries()) {
       if (typeof v !== "number" || !Number.isFinite(v)) {
-        fail(`${frame}.${bone}[${i}]: ${v} is not an angle`);
+        fail(`${label}.${bone}[${i}]: ${v} is not an angle`);
       } else if (Math.abs(v) > LIMIT) {
-        fail(`${frame}.${bone}[${i}]: ${v}° is past anything a joint does`);
+        fail(`${label}.${bone}[${i}]: ${v}° is past anything a joint does`);
       }
     }
   }
-}
+};
+
+for (const [frame, pose] of Object.entries(BATTLE_POSES)) checkPose(frame, pose);
+for (const [intent, pose] of Object.entries(INTENT_POSES)) checkPose(`baseline/${intent}`, pose);
 
 // Every frame any character's sheet draws should eventually have a match. Only
 // the frames Yuji has are required today — he is the read character, and the
@@ -63,16 +67,50 @@ const yuji = JSON.parse(readFileSync(join(READS, "yuji.json"), "utf8"));
 const missing = Object.keys(yuji.poses).filter((k) => !MATCHED_FRAMES.has(k));
 if (missing.length) fail(`yuji has no matched pose for: ${missing.join(", ")}`);
 
+// THE BASELINE'S ONE PROMISE: it covers everything. A per-frame match is an
+// override on top of a floor, and a floor with a hole in it is not a floor —
+// the editor would fall through to the generated pose on some frame nobody
+// thought about, which is exactly the silent behaviour the cycle exists to
+// make visible. So every frame name on every sheet is walked, and the intent
+// it resolves to has to be one that exists.
 const others = new Set();
+const generic = new Set();
+let frames = 0;
 for (const file of readdirSync(READS).filter((f) => f.endsWith(".json"))) {
   const data = JSON.parse(readFileSync(join(READS, file), "utf8"));
-  for (const k of Object.keys(data.poses)) if (!MATCHED_FRAMES.has(k)) others.add(k);
+  for (const k of Object.keys(data.poses)) {
+    frames++;
+    if (!MATCHED_FRAMES.has(k)) others.add(k);
+    const b = baselinePose(k);
+    if (!b?.pose) fail(`${file}/${k}: the baseline returned nothing — it is supposed to be total`);
+    else if (!INTENT_POSES[b.intent]) fail(`${file}/${k}: intent "${b.intent}" has no pose`);
+    // Landing on the universal floor is not a failure, but it IS the resolver
+    // saying "I have never heard of this frame", and that is worth printing.
+    if (b.intent === "stance" && intentFor(k) === "stance" && !/^idle/.test(k)) generic.add(k);
+  }
 }
 
+// Nothing should be defined and never reachable: an intent no frame resolves
+// to is either a dead pose or a resolver rule somebody forgot to write.
+const reached = new Set();
+for (const file of readdirSync(READS).filter((f) => f.endsWith(".json"))) {
+  for (const k of Object.keys(JSON.parse(readFileSync(join(READS, file), "utf8")).poses)) {
+    reached.add(intentFor(k));
+  }
+}
+const orphans = INTENTS.filter((i) => !reached.has(i));
+if (orphans.length) fail(`baseline intents no frame reaches: ${orphans.join(", ")}`);
+
 console.log(`battle poses ok: ${MATCHED_FRAMES.size} matched frames, `
-  + `${Object.keys(yuji.poses).length}/${Object.keys(yuji.poses).length} of yuji's sheet covered`);
+  + `all ${Object.keys(yuji.poses).length} of yuji's sheet covered`);
+console.log(`baseline ok: ${INTENTS.length} intents cover all ${frames} frames `
+  + `across the roster, ${reached.size} of them reached`);
 if (others.size) {
-  console.log(`  (${others.size} frame name(s) elsewhere on the roster have no match yet: `
-    + `${[...others].sort().slice(0, 8).join(", ")}${others.size > 8 ? ", …" : ""})`);
+  console.log(`  (${others.size} frame name(s) have no PER-FRAME match and use the baseline: `
+    + `${[...others].sort().slice(0, 6).join(", ")}${others.size > 6 ? ", …" : ""})`);
+}
+if (generic.size) {
+  console.log(`  (${generic.size} frame name(s) fell to the generic stance: `
+    + `${[...generic].sort().slice(0, 6).join(", ")})`);
 }
 process.exit(fails ? 1 : 0);
