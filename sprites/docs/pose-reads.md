@@ -102,6 +102,25 @@ last is the one that decides anything: the first three are proposals, and none
 is worth shipping unless it beats what a player already sees.
 `tools/pose_three_up.mjs` lays all five out for a whole sheet at once.
 
+**The plate carries two skeletons.** The black one is the read — the eighteen
+joints the handles drag. Over it, in the mode's own colour, is what the rig
+*actually ended up doing*, read back off the posed bones and fitted onto the
+drawing. Without it, cycling the mode changed the model and left the stick
+figure alone, and there was no way to see what a matched or baseline pose was
+doing to the body except by eye on the render.
+
+It is **fitted**, not anchored — one uniform scale and one offset, chosen to
+minimise the squared distance over every joint the two skeletons share.
+Anchoring at the pelvis and scaling by the torso was the obvious thing and it
+piles every proportion difference onto the extremities: the rig's `Head` bone
+sits at the base of the skull where the read's `head` is its centre, so the
+overlay's head landed nine cells low and its feet seven cells through the floor
+even when the pose was right. A fit leaves only the thing worth looking at.
+
+In **Generated** the two skeletons are meant to agree, and the gap between them
+is the interpreter's compromise — an arm the IK could not reach, a knee it had
+to fold. In the other three the gap is the whole point.
+
 ### The baseline is the floor, and it has no holes
 
 Matched is per-drawing and only exists where somebody has looked at a drawing —

@@ -1332,9 +1332,99 @@ function mannequinSVG(j, { handles = false, label = "", flat = false } = {}) {
   return parts.join("");
 }
 
-function plateHTML(char, key, j, { handles = false, flat = false } = {}) {
+/** Which bone stands where each read joint is drawn. The midpoints the spine
+ *  hangs off (`shoulderMid`) are not in here — this is the eighteen a read has,
+ *  so the two skeletons can be laid on top of each other. */
+const JOINT_BONE = {
+  head: "Head", neck: "Neck", chest: "Spine2",
+  shoulderL: "LeftArm", elbowL: "LeftForeArm", handL: "LeftHand",
+  shoulderR: "RightArm", elbowR: "RightForeArm", handR: "RightHand",
+  hipL: "LeftUpLeg", kneeL: "LeftLeg", footL: "LeftFoot", toeL: "LeftToeBase",
+  hipR: "RightUpLeg", kneeR: "RightLeg", footR: "RightFoot", toeR: "RightToeBase",
+};
+
+/**
+ * THE RIG, READ BACK OUT AS EIGHTEEN JOINTS, in the drawing's own cell space.
+ *
+ * Without this the joint overlay always draws the READ, whatever the rig is
+ * actually doing — so cycling the mode changed the model and left the stick
+ * figure alone, and there was no way to see what a matched or baseline pose
+ * was doing to the body except by eye on the render.
+ *
+ * It is FITTED onto the read rather than anchored to it — one uniform scale
+ * and one offset, chosen to minimise the squared distance over every joint the
+ * two have in common. Anchoring at the pelvis and scaling by the torso was the
+ * obvious thing and it piles every proportion difference onto the extremities:
+ * the rig's Head bone sits at the base of the skull where the read's `head` is
+ * its centre, so the overlay's head landed nine cells low and its feet seven
+ * cells through the floor even when the pose was right. A fit puts the two
+ * skeletons in their best correspondence, so what is left over is the thing
+ * worth looking at — the POSE difference — instead of the fact that a rig and
+ * a drawing are not built alike.
+ *
+ * What it still cannot show is the hips MOVING: the preview never translates
+ * the root, so a matched crouch overlays at the drawing's hip height rather
+ * than at its own.
+ */
+function jointsFromRig(j) {
+  if (!three.root || !three.bones) return null;
+  const at = (n) => {
+    const b = three.bones.get(n);
+    return b ? new THREE.Vector3().setFromMatrixPosition(b.matrixWorld) : null;
+  };
+  const pelvisBone = three.bones.get("Spine")?.parent;
+  if (!pelvisBone) return null;
+  // Through the FIGHTER's axes, not the world's. A delivered .glb carries a
+  // yaw offset — Yuji's facing runs about 20° off the world's — so mapping
+  // cell x straight onto world +Z lays the skeleton down at an angle.
+  const { up, forward, lateral } = anatomy();
+  const origin = new THREE.Vector3().setFromMatrixPosition(pelvisBone.matrixWorld);
+  const d = new THREE.Vector3();
+  // Cell x is his facing, cell y counts down while up counts up, and cell
+  // depth points at the camera — which stands off his RIGHT shoulder, so
+  // toward the lens is away from his own left.
+  const flat = (v) => {
+    d.copy(v).sub(origin);
+    return [d.dot(forward), -d.dot(up), -d.dot(lateral)];
+  };
+  const raw = { pelvis: flat(origin) };
+  for (const [joint, bone] of Object.entries(JOINT_BONE)) {
+    const v = at(bone);
+    if (v) raw[joint] = flat(v);
+  }
+  // The fit, over the joints both skeletons have.
+  const shared = Object.keys(raw).filter((n) => Array.isArray(j[n]));
+  if (shared.length < 4) return null;
+  const mean = (get) => shared.reduce((a, n) => a + get(n), 0) / shared.length;
+  const rx = mean((n) => raw[n][0]); const ry = mean((n) => raw[n][1]);
+  const jx = mean((n) => j[n][0]); const jy = mean((n) => j[n][1]);
+  let num = 0; let den = 0;
+  for (const n of shared) {
+    num += (raw[n][0] - rx) * (j[n][0] - jx) + (raw[n][1] - ry) * (j[n][1] - jy);
+    den += (raw[n][0] - rx) ** 2 + (raw[n][1] - ry) ** 2;
+  }
+  const k = den ? num / den : 1;
+  if (!Number.isFinite(k) || k <= 0) return null;
+  const out = {};
+  for (const [n, v] of Object.entries(raw)) {
+    out[n] = [jx + (v[0] - rx) * k, jy + (v[1] - ry) * k, v[2] * k];
+  }
+  return out;
+}
+
+function plateHTML(char, key, j, { handles = false, flat = false, shown = null, mode = "" } = {}) {
   const flip = faceLeft(char, key) ? ' class="flip"' : "";
+  // Two skeletons, deliberately: the READ is what the handles drag, and
+  // `shown` is what the rig is currently doing. In Generated mode they are
+  // meant to agree and the gap between them is the interpreter's compromise —
+  // an arm the IK could not reach, a foot it had to fold. In the other modes
+  // the gap is the whole point.
+  const layer = shown
+    ? `<svg class="rigline shown ${mode}" viewBox="0 0 100 100" preserveAspectRatio="none">`
+      + `${mannequinSVG(shown, { label: `${char}/${key} (rig)` })}</svg>`
+    : "";
   return `<img${flip} src="${spriteSrc(char, key)}" alt="${key}" loading="lazy">`
+    + layer
     + `<svg class="rigline" viewBox="0 0 100 100" preserveAspectRatio="none">`
     + `${mannequinSVG(j, { handles, flat, label: `${char}/${key}` })}</svg>`;
 }
@@ -1360,7 +1450,7 @@ function renderEditor() {
   const data = reads.get(ui.char);
   const pose = data.poses[ui.pose];
   if (!pose) return;
-  $("#plate").innerHTML = plateHTML(ui.char, ui.pose, pose.j, { handles: true });
+  // Filled in below, once the rig has actually been posed.
   $("#poseName").textContent = ui.pose;
   // Three different things, and conflating them cost a round trip: what YOU
   // changed since the page loaded, what a human placed at some point and is
@@ -1389,6 +1479,10 @@ function renderEditor() {
   const how = poseRigFor(ui.pose, pose.j);
   $("#poseHow").textContent = howText(how);
   $("#poseHow").className = `how ${how.shown}${how.asked ? " fell" : ""}`;
+  // The plate is drawn AFTER the rig is posed, so the overlay can show what
+  // the rig ended up doing rather than what the read asked for.
+  $("#plate").innerHTML = plateHTML(ui.char, ui.pose, pose.j,
+    { handles: true, shown: jointsFromRig(pose.j), mode: how.shown });
   $("#poseMode").textContent = MODE_LABEL[ui.mode];
   $("#poseModeBox").className = `check mode ${ui.mode}`;
   drawThree();
@@ -1443,9 +1537,12 @@ function applyTurn() {
 /** Redraw only what a drag moves, so dragging stays at frame rate. */
 function refreshDrag() {
   const pose = reads.get(ui.char).poses[ui.pose];
-  $("#plate .rigline").innerHTML = mannequinSVG(pose.j, { handles: true });
   showFacing(pose.j);
   poseRigFor(ui.pose, pose.j);
+  const shown = jointsFromRig(pose.j);
+  $("#plate .rigline:not(.shown)").innerHTML = mannequinSVG(pose.j, { handles: true });
+  const layer = $("#plate .rigline.shown");
+  if (layer && shown) layer.innerHTML = mannequinSVG(shown);
   drawThree();
 }
 
@@ -1698,7 +1795,9 @@ function shell() {
               <span class="how" id="poseHow"></span>
             </div>
             <p class="hint">The fighter's own rig: spine, neck, both clavicles,
-              arms, legs and feet, each turned to match the joints. <b>View 3D</b>
+              arms, legs and feet. The plate carries a second skeleton in the
+              mode's colour — that is what the rig is <b>actually</b> doing,
+              fitted over the drawing, beside the black one you can drag. <b>View 3D</b>
               turns this pane and the plate together — drag either, scroll to move
               in — and a joint dragged while turned gains DEPTH, which is how a pose
               the drawing cannot hold (an arm angled inward, a foot rolled out) gets
