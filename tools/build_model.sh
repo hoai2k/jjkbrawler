@@ -6,6 +6,11 @@
 #     tools/build_model.sh gojo            # generate, then everything after
 #     tools/build_model.sh gojo --local    # skip generation, reuse _raw.glb
 #
+# A fighter whose weapon would be fused into their body by the generator is
+# drawn and generated EMPTY-HANDED, with the weapon generated alone; drop it at
+# billboards/intake/<char>/_prop.glb and this joins the two after conform
+# (tools/blender_attach_prop.py). Nothing else in the run changes.
+#
 # Every step here already existed; what did not exist was the ORDER, which is
 # not obvious and is wrong in two places if you guess it:
 #
@@ -33,6 +38,7 @@ LOCAL=""
 cd "$(dirname "$0")/.."
 BLENDER="${BLENDER:-blender}"
 RAW="billboards/intake/$CHAR/_raw.glb"
+PROP="billboards/intake/$CHAR/_prop.glb"
 GLB="billboards/intake/$CHAR/$CHAR.glb"
 
 step() { printf '\n=== %s: %s\n' "$CHAR" "$1"; }
@@ -56,12 +62,20 @@ run_blender() {
   if ! "$BLENDER" --background --python "$script" -- "$@" >"$log" 2>&1; then
     echo "--- $script FAILED:"; tail -25 "$log"; rm -f "$log"; return 1
   fi
-  grep -E "renamed|scaled|hook|rescue|hair chain|pruned|palette|STILL MISSING|authoring|did not take|wrote" "$log" || true
+  grep -E "renamed|scaled|hook|rescue|hair chain|pruned|palette|STILL MISSING|authoring|did not take|attached|grip|stray|wrote" "$log" || true
   rm -f "$log"
 }
 
 step "conform"
 run_blender tools/blender_conform.py --in "$RAW" --out "$GLB" --char "$CHAR"
+
+# A weapon generated on its own, joined here. Optional by design: only the
+# fighters whose weapon a generator would otherwise fuse into an arm are drawn
+# empty-handed, and the rest carry their props in the delivery as before.
+if [ -f "$PROP" ]; then
+  step "attach the separately generated prop"
+  run_blender tools/blender_attach_prop.py --rig "$GLB" --prop "$PROP" --char "$CHAR" --out "$GLB"
+fi
 
 step "import once, for the height the clip author needs"
 node tools/billboard_intake.mjs import "$CHAR" >/dev/null
