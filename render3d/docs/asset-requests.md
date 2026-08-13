@@ -115,6 +115,44 @@ Approval is **all-or-nothing per fighter**, decided in the render3d workbench
 (sweeping-light face check first, then every clip against its sprite ghost,
 at the beat, under the aim crosshair, facing both ways).
 
+### Two models of one fighter
+
+A regeneration does not always win. When a fighter is rebuilt, the model it
+replaces is kept beside it as `<char>_alt.glb` and registered under an `alt`
+block in the manifest, so the two can be judged against each other on screen
+rather than from memory — the workbench's **Compare: Alt GLB** dial stands the
+alternate where the drawing usually goes, in the same pose, and the Idle
+Review carries the same dial.
+
+```jsonc
+"momo": {
+  "model": "momo/momo.glb", "heightM": 1.5,
+  "renderScale": 1.12, "stanceDeg": 6, "yawOffsetDeg": 60,
+  "alt": {
+    "model": "momo/momo_alt.glb", "label": "pre-D6 — single-view seed",
+    "heightM": 1.5, "renderScale": 1.16, "stanceDeg": 3, "yawOffsetDeg": 60
+  }
+}
+```
+
+**The alternate carries its own numbers, and that is the point.** Size, turn,
+stance and head carriage describe one specific .glb — how tall it measures,
+how far round it was built, how its legs are planted. Dress an older model in
+the current one's corrections and it looks wrong for a reason that has nothing
+to do with the model, which is precisely the question the comparison exists to
+answer. The review dials follow whichever body is on screen.
+
+### `heightM` is measured, never reviewed
+
+It is read off the .glb at import — **the fighter, not their weapon**. A
+separately generated prop hangs off a bone as its own un-skinned mesh, and
+counting it recorded Momo at 1.91 m against a canon 1.50 m. On-screen size is
+`renderScale / heightM` (blit.js), so all four prop carriers were drawn ~20%
+small and the size dial got raised to hide it — a correction sitting on top of
+a measurement error. `apply` now drops `heightM` from a payload for the same
+reason: a stale export must not be able to reinstate an old height. Re-import
+is what changes a height.
+
 ---
 
 ## The rounds

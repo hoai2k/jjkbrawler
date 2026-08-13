@@ -62,6 +62,11 @@ body.mode-pose .anim-only, body.mode-anim .pose-only { display: none !important;
    only one of them. `.five-only` is the other half — the note that says so. */
 body.five .one-char, body:not(.five) .five-only { display: none !important; }
 body:not(.mq) .mq-only { display: none !important; }
+body:not(.alt) .alt-only { display: none !important; }
+/* The compare dial sits on the same line as its caption, like .check, but it
+   is a select rather than a box to tick. */
+.inline { flex-direction: row; align-items: center; gap: 6px; }
+.inline select { flex: 1; min-width: 0; }
 .navrow { flex-wrap: nowrap; }
 .navrow select { flex: 1; min-width: 0; }
 .navrow button { flex: none; min-width: 34px; }

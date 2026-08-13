@@ -1,5 +1,5 @@
 {
-  "comment": "Index of delivered render3d rigs. Written by tools/billboard_intake.mjs --backend 3d and the render3d workbench's exported payloads — not by hand. Same schema as billboards/assets/manifest.json (model, heightM, approved, inheritClips, clips.<state>.from), plus: toon — per-character overrides of the TOON defaults in render3d/src/toon.js ({ shadeTint: [r,g,b], shadeThreshold, shadeSoftness, biasScale, rimColor, rimStrength, rimPower }); a material's own glTF extras win over this block. Resolution order per state: clips[state].from, then the rig's own clip, then inheritClips, then the default pose set.",
+  "comment": "Index of delivered render3d rigs. Written by tools/billboard_intake.mjs --backend 3d and the render3d workbench's exported payloads \u2014 not by hand. Same schema as billboards/assets/manifest.json (model, heightM, approved, inheritClips, clips.<state>.from), plus: toon \u2014 per-character overrides of the TOON defaults in render3d/src/toon.js ({ shadeTint: [r,g,b], shadeThreshold, shadeSoftness, biasScale, rimColor, rimStrength, rimPower }); a material's own glTF extras win over this block. Resolution order per state: clips[state].from, then the rig's own clip, then inheritClips, then the default pose set.",
   "characters": {
     "yuji": {
       "model": "yuji/yuji.glb",
@@ -16,7 +16,7 @@
     },
     "maki": {
       "model": "maki/maki.glb",
-      "heightM": 2,
+      "heightM": 1.7,
       "approved": true,
       "yawOffsetDeg": 60,
       "toon": {
@@ -27,7 +27,22 @@
         ]
       },
       "renderScale": 1.15,
-      "stanceDeg": 7
+      "stanceDeg": 7,
+      "alt": {
+        "model": "maki/maki_alt.glb",
+        "label": "pre-D6 \u2014 single-view seed",
+        "heightM": 1.7,
+        "yawOffsetDeg": 60,
+        "renderScale": 1.15,
+        "stanceDeg": 7,
+        "toon": {
+          "shadeTint": [
+            0.6795,
+            0.6846,
+            0.6899
+          ]
+        }
+      }
     },
     "jogo": {
       "model": "jogo/jogo.glb",
@@ -89,7 +104,25 @@
         ]
       },
       "renderScale": 1.26,
-      "stanceDeg": 9
+      "stanceDeg": 9,
+      "alt": {
+        "model": "uro/uro_alt.glb",
+        "label": "pre-D6 \u2014 single-view seed",
+        "heightM": 1.9,
+        "yawOffsetDeg": 45,
+        "renderScale": 1.26,
+        "stanceDeg": 9,
+        "toon": {
+          "shadeThreshold": 0.2,
+          "outlinePx": 0.2,
+          "brightness": 1.25,
+          "shadeTint": [
+            0.7719,
+            0.8099,
+            0.8647
+          ]
+        }
+      }
     },
     "geto": {
       "model": "geto/geto.glb",
@@ -129,7 +162,8 @@
           0.8485
         ]
       },
-      "yawOffsetDeg": 45
+      "yawOffsetDeg": 45,
+      "headTiltDeg": 13
     },
     "sukuna": {
       "model": "sukuna/sukuna.glb",
@@ -158,7 +192,8 @@
       },
       "yawOffsetDeg": 45,
       "renderScale": 1.03,
-      "stanceDeg": 6
+      "stanceDeg": 6,
+      "headTiltDeg": 8
     },
     "choso": {
       "model": "choso/choso.glb",
@@ -177,7 +212,7 @@
     },
     "gakuganji": {
       "model": "gakuganji/gakuganji.glb",
-      "heightM": 2.25,
+      "heightM": 1.9,
       "approved": true,
       "toon": {
         "shadeTint": [
@@ -186,8 +221,23 @@
           0.7286
         ]
       },
-      "yawOffsetDeg": 45,
-      "stanceDeg": 9
+      "yawOffsetDeg": 55,
+      "stanceDeg": 9,
+      "renderScale": 0.99,
+      "alt": {
+        "model": "gakuganji/gakuganji_alt.glb",
+        "label": "pre-D6 \u2014 single-view seed",
+        "heightM": 1.9,
+        "yawOffsetDeg": 45,
+        "stanceDeg": 9,
+        "toon": {
+          "shadeTint": [
+            0.7683,
+            0.7523,
+            0.7286
+          ]
+        }
+      }
     },
     "hakari": {
       "model": "hakari/hakari.glb",
@@ -202,7 +252,8 @@
       },
       "yawOffsetDeg": 30,
       "renderScale": 1.01,
-      "stanceDeg": 7
+      "stanceDeg": 7,
+      "headTiltDeg": 20
     },
     "mechamaru": {
       "model": "mechamaru/mechamaru.glb",
@@ -221,7 +272,7 @@
     },
     "meimei": {
       "model": "meimei/meimei.glb",
-      "heightM": 2.39,
+      "heightM": 1.9,
       "approved": true,
       "toon": {
         "shadeTint": [
@@ -230,7 +281,23 @@
           0.7457
         ]
       },
-      "stanceDeg": -10
+      "stanceDeg": 4,
+      "renderScale": 0.99,
+      "yawOffsetDeg": 70,
+      "headTiltDeg": -8.5,
+      "alt": {
+        "model": "meimei/meimei_alt.glb",
+        "label": "pre-D6 \u2014 single-view seed",
+        "heightM": 1.9,
+        "stanceDeg": -10,
+        "toon": {
+          "shadeTint": [
+            0.7481,
+            0.7358,
+            0.7457
+          ]
+        }
+      }
     },
     "panda": {
       "model": "panda/panda.glb",
@@ -259,7 +326,8 @@
       },
       "yawOffsetDeg": 45,
       "renderScale": 1.03,
-      "stanceDeg": 5
+      "stanceDeg": 5,
+      "headTiltDeg": 5.5
     },
     "inumaki": {
       "model": "inumaki/inumaki.glb",
@@ -292,7 +360,7 @@
     },
     "momo": {
       "model": "momo/momo.glb",
-      "heightM": 1.91,
+      "heightM": 1.5,
       "approved": true,
       "toon": {
         "shadeTint": [
@@ -302,8 +370,23 @@
         ]
       },
       "yawOffsetDeg": 60,
-      "renderScale": 1.16,
-      "stanceDeg": 3
+      "renderScale": 1.12,
+      "stanceDeg": 6,
+      "alt": {
+        "model": "momo/momo_alt.glb",
+        "label": "pre-D6 \u2014 single-view seed",
+        "heightM": 1.5,
+        "yawOffsetDeg": 60,
+        "renderScale": 1.16,
+        "stanceDeg": 3,
+        "toon": {
+          "shadeTint": [
+            0.7486,
+            0.7393,
+            0.73
+          ]
+        }
+      }
     },
     "nanami": {
       "model": "nanami/nanami.glb",
@@ -317,7 +400,8 @@
         ]
       },
       "yawOffsetDeg": 75,
-      "stanceDeg": 9
+      "stanceDeg": 9,
+      "headTiltDeg": 12
     },
     "todo": {
       "model": "todo/todo.glb",
@@ -390,7 +474,8 @@
       },
       "yawOffsetDeg": 60,
       "renderScale": 1.01,
-      "stanceDeg": 12
+      "stanceDeg": 12,
+      "headTiltDeg": 5.5
     }
   }
 }

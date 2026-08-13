@@ -220,12 +220,16 @@ const rigView = await page.evaluate(async () => {
     }
     return g;
   };
+  const pick = async (v) => {
+    const sel = document.getElementById("compareWith");
+    sel.value = v;
+    sel.onchange();
+    await settle();
+  };
   const drawnSkin = ink();
-  document.getElementById("mqToggle").click();
-  await settle();
+  await pick("mannequin");
   const drawnBones = ink();
-  document.getElementById("mqToggle").click();
-  await settle();
+  await pick("sprite");
   const drawnAgain = ink();
   const diff = (a, b) => a.reduce((n, v, i) => n + (v !== b[i] ? 1 : 0), 0);
   return {
@@ -252,6 +256,74 @@ check(rigView.changed > rigView.inked * 0.25,
 check(rigView.restored === 0,
   "...and unchecking it draws the model back, to the cell",
   `${rigView.restored} cell(s) still differ`);
+
+// ------------------------------------------------------------- the alternate
+//
+// TWO MODELS OF ONE FIGHTER, judged against each other rather than from
+// memory. The claim that matters is not that a second body appears — it is
+// that the second body is dressed in ITS OWN numbers: an older generation was
+// reviewed at its own size and turn, and showing it at the current model's
+// would answer the question being asked before it is asked.
+
+const alt = await page.evaluate(async () => {
+  const rigMod = await import("/render3d/src/loader.js");
+  const settle = () => new Promise((r) => setTimeout(r, 900));
+  const sel = document.getElementById("compareWith");
+  const pick = async (v) => { sel.value = v; sel.onchange(); await settle(); };
+  const dial = () => document.getElementById("scaleVal").textContent;
+
+  // MOMO, not the fighter this page opened on. Maki's two generations happen
+  // to share a renderScale (1.15 both), so a test run on her passes whether
+  // the alternate wears its own numbers or the current model's — it cannot
+  // fail, which makes it worthless for the one thing it is here to check.
+  // Momo's differ (1.16 against 1.12). Walking there also exercises the
+  // character switch while Alt GLB is the selected comparison.
+  const chars = document.getElementById("charSelect");
+  chars.value = "momo";
+  chars.onchange();
+  await settle();
+  await settle();
+
+  await pick("sprite");
+  const current = { dial: dial(), scale: rigMod.getRig("momo")?.renderScale };
+  await pick("alt");
+  await settle();
+  const shown = rigMod.getRig(rigMod.altKey("momo"));
+  const out = {
+    has: rigMod.hasAlt("momo"),
+    entry: rigMod.altEntry("momo"),
+    loaded: !!shown,
+    altScale: shown?.renderScale, altHeight: shown?.declaredHeight,
+    altYaw: shown?.yawOffsetDeg, altStance: shown?.stanceDeg,
+    dialNow: dial(),
+    current,
+    labelled: (() => {
+      // The two columns are named on the canvas, or you cannot tell which is
+      // which — which is the entire job of this view.
+      const c = document.getElementById("stage");
+      return c.width > 0;
+    })(),
+  };
+  await pick("sprite");
+  out.dialBack = dial();
+  chars.value = "maki";
+  chars.onchange();
+  await settle();
+  return out;
+});
+
+check(alt.has && !!alt.entry?.model, "momo has a second model on file", alt.entry?.model);
+check(alt.loaded, "picking Alt GLB loads it as its own rig", "momo#alt");
+check(alt.altScale === alt.entry.renderScale && alt.altHeight === alt.entry.heightM
+  && alt.altScale !== alt.current.scale,
+  "...wearing its OWN size, not the current model's",
+  `alt ${alt.altScale}x at ${alt.altHeight}m vs current ${alt.current.scale}x`);
+check(alt.altYaw === (alt.entry.yawOffsetDeg ?? 0) && alt.altStance === (alt.entry.stanceDeg ?? 0),
+  "...and its own turn and stance", `yaw ${alt.altYaw}°, stance ${alt.altStance}°`);
+check(alt.dialNow === `${alt.altScale.toFixed(2)}×`,
+  "the size dial points at the model being shown", `${alt.current.dial} -> ${alt.dialNow}`);
+check(alt.dialBack === alt.current.dial,
+  "...and points back at the current model when the drawing returns", alt.dialBack);
 
 // --------------------------------------------------------------- free look
 

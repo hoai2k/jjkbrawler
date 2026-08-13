@@ -98,8 +98,21 @@
         </div>
         <div class="row">
           <label class="check"><input id="fiveToggle" type="checkbox"> Show 5 across</label>
-          <label class="check"><input id="mqToggle" type="checkbox"> Mannequin(s)</label>
+          <label class="inline">Compare:
+            <select id="compareWith">
+              <option value="sprite" selected>Sprite(s)</option>
+              <option value="mannequin">Mannequin(s)</option>
+              <option value="alt">Alt GLB</option>
+            </select>
+          </label>
         </div>
+        <p class="hint alt-only">A SECOND MODEL OF THIS FIGHTER, standing where
+        the drawing usually does. Sizes, turns, stances and head carriage are
+        read from the alternate's OWN manifest block — an older generation keeps
+        the numbers it was reviewed with rather than wearing the current
+        model's, because a model dressed in another model's corrections is not
+        the model you are judging. Pick whichever body is better; the dials on
+        this screen edit the one being shown.</p>
         <p class="hint mq-only">THE RIG, DRAWN: this fighter's own skeleton in
         this fighter's own pose, as boxes — warm on their left, cool on their
         right, with a nose and a chest plate along the head's and the chest's
@@ -349,6 +362,18 @@
           <b id="facingName">—</b>
           <span class="mono" id="facingProgress"></span>
         </div>
+        <!-- The compare dial, repeated here because this is the screen the
+             positioning dials live on and the side panel is behind the
+             overlay. Choosing the alternate here points every dial below at
+             THAT .glb — which is the only way to judge two generations
+             without one of them wearing the other's numbers. -->
+        <label class="inline">Compare:
+          <select id="facingCompareWith">
+            <option value="sprite" selected>Sprite(s)</option>
+            <option value="mannequin">Mannequin(s)</option>
+            <option value="alt">Alt GLB</option>
+          </select>
+        </label>
         <button id="facingClose" class="ghost sm" title="Close (Esc)">✕</button>
       </header>
 
