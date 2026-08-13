@@ -103,12 +103,12 @@ export function flinchSide(animKey, x, aim, facing) {
   return Math.sign((aim.x - x) * (facing < 0 ? -1 : 1)) || 1;
 }
 
-/** How far a relaxed arm hangs from straight down, in degrees. One number for
- *  the roster, the way the legs' stance is one number per fighter: it is what
- *  "relaxed" looks like rather than a fact about any one model. Small on
- *  purpose — past about fifteen it stops reading as rest and starts reading as
- *  a stance. */
-const IDLE_ARM_DEG = 9;
+/** How far a relaxed arm hangs from straight down, in degrees, for a fighter
+ *  whose manifest does not say. It is what "relaxed" looks like rather than a
+ *  fact about any one model — but a heavy coat or a wide body wants more, so
+ *  `armDeg` overrides it per character, the way `stanceDeg` does for the legs.
+ *  Small on purpose: past about fifteen it stops reading as rest. */
+export const IDLE_ARM_DEG = 9;
 
 // ------------------------------------------------------------ posing proper
 
@@ -378,7 +378,9 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
     applyIdleStand(THREE, rig.root, layers.stanceDeg || 0, _ik);
     // The arms get the same treatment one axis up — unless this fighter's
     // delivered idle is a pose somebody chose, which the manifest says.
-    if (rig.idleArms !== false) applyIdleArms(THREE, rig.root, IDLE_ARM_DEG, _ik);
+    if (rig.idleArms !== false) {
+      applyIdleArms(THREE, rig.root, rig.armDeg ?? IDLE_ARM_DEG, _ik);
+    }
   } else {
     clearIdleStand(rig.root);
   }

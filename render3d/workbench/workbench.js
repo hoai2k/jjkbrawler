@@ -47,7 +47,7 @@ import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimPitch, aimSolve
 import { artReach } from "../../src/silhouette.js";
 import * as rig from "../src/loader.js";
 import * as scene from "../src/scene.js";
-import { DIALS, initPose, LOOK_STATES, flinchSide, boneOwners } from "../src/pose.js";
+import { DIALS, initPose, LOOK_STATES, flinchSide, boneOwners, IDLE_ARM_DEG } from "../src/pose.js";
 import { TOON, setToonFor, clearToonFor, PER_CHARACTER_SHADE } from "../src/toon.js";
 import { OUTLINE, setOutlineFor } from "../src/outline.js";
 import { blitPose } from "../src/blit.js";
@@ -845,6 +845,8 @@ const facingUI = {
   yawVal: $("facingYawVal"),
   head: $("facingHead"),
   headVal: $("facingHeadVal"),
+  arm: $("facingArm"),
+  armVal: $("facingArmVal"),
   stage: $("facingStage"),
   pick: $("facingDialPick"),
 };
@@ -883,6 +885,7 @@ function revertChar(char) {
     yawOffsetDeg: entry.yawOffsetDeg ?? 0,
     stanceDeg: entry.stanceDeg ?? 0,
     headTiltDeg: entry.headTiltDeg ?? 0,
+    armDeg: entry.armDeg ?? NaN,   // NaN clears it back to "nobody has said"
   });
 
   // The look dials pin themselves onto the materials, so a knob this session
@@ -1016,6 +1019,12 @@ function facingShow() {
   const head = r?.headTiltDeg ?? 0;
   facingUI.head.value = String(head);
   facingUI.headVal.textContent = `${head}°`;
+  // Null means "nobody has said", which shows as the roster's own number
+  // rather than as zero — a dial reading 0 beside arms that are clearly out
+  // is a dial nobody can trust.
+  const arm = r?.armDeg ?? IDLE_ARM_DEG;
+  facingUI.arm.value = String(arm);
+  facingUI.armVal.textContent = `${arm}°`;
   facingUI.name.textContent = CHARACTERS[char]?.name || char;
   facingSyncProgress();
   facingUI.overlay.classList.toggle("decided", facing.touched.has(char));
@@ -1046,6 +1055,25 @@ function facingSetHead(deg) {
   scene.clearCache();
   facingUI.head.value = String(clamped);
   facingUI.headVal.textContent = `${clamped}°`;
+  facingUI.overlay.classList.add("decided");
+  facingSyncProgress();
+}
+
+/** How far this fighter's arms hang out from the body, in degrees. The engine
+ *  straightens every idle's arms and holds them a few degrees clear (ik.js
+ *  applyIdleArms); this is how far for this one, and it is the same kind of
+ *  judgement as the legs' stance — a heavy coat wants more room than a school
+ *  uniform, and only the drawing can say how much. */
+function facingSetArm(deg) {
+  const clamped = Math.max(0, Math.min(30, Math.round(deg)));
+  const char = facing.list[facing.i];
+  rig.setRigSettings(tunedKey(char), { armDeg: clamped });
+  tunedEntry(char).armDeg = clamped;
+  wb.dirty.add(char);
+  facing.touched.add(char);
+  scene.clearCache();
+  facingUI.arm.value = String(clamped);
+  facingUI.armVal.textContent = `${clamped}°`;
   facingUI.overlay.classList.add("decided");
   facingSyncProgress();
 }
@@ -1098,6 +1126,7 @@ $("facingScale").oninput = () => facingSetScale(parseFloat(facingUI.scale.value)
 $("facingStance").oninput = () => facingSetStance(parseFloat(facingUI.stance.value) || 0);
 $("facingYaw").oninput = () => facingSetYaw(parseFloat(facingUI.yaw.value) || 0);
 $("facingHead").oninput = () => facingSetHead(parseFloat(facingUI.head.value) || 0);
+$("facingArm").oninput = () => facingSetArm(parseFloat(facingUI.arm.value) || 0);
 for (const b of document.querySelectorAll("[data-scale]")) {
   b.onclick = () => facingSetScale((parseFloat(facingUI.scale.value) || 1)
     + parseFloat(b.dataset.scale));
@@ -1109,6 +1138,10 @@ for (const b of document.querySelectorAll("[data-stance]")) {
 for (const b of document.querySelectorAll("[data-yaw]")) {
   b.onclick = () => facingSetYaw((parseFloat(facingUI.yaw.value) || 0)
     + parseFloat(b.dataset.yaw));
+}
+for (const b of document.querySelectorAll("[data-arm]")) {
+  b.onclick = () => facingSetArm((parseFloat(facingUI.arm.value) || 0)
+    + parseFloat(b.dataset.arm));
 }
 for (const b of document.querySelectorAll("[data-headtilt]")) {
   b.onclick = () => facingSetHead((parseFloat(facingUI.head.value) || 0)
@@ -1157,6 +1190,7 @@ $("facingSave").onclick = () => {
     sizes: Object.fromEntries(chars.map((k) => [k, {
       renderScale: man.characters[k]?.renderScale ?? 1,
       stanceDeg: man.characters[k]?.stanceDeg ?? 0,
+      armDeg: man.characters[k]?.armDeg ?? null,
       yawOffsetDeg: man.characters[k]?.yawOffsetDeg ?? 0,
     }])),
     characters: Object.fromEntries(chars.map((k) => [k, man.characters[k]])),

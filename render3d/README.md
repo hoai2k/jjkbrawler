@@ -134,6 +134,11 @@ both dialled in the workbench under **Model size & facing**:
   +Z; a model built the other way round faces backwards in every state and no
   clip can fix it, because the whole rig is turned. 180 is the common case
   (Maki and Uro both arrived this way).
+- `armDeg` — how far this fighter's idle arms hang out from the body, in
+  degrees, and the legs' `stanceDeg` one axis up. Unset means the roster's own
+  number (`IDLE_ARM_DEG`, 9°); a heavy coat or a wide body wants more room than
+  a school uniform does, and only the drawing can say how much. Dialled in the
+  Idle Review beside size, stance, head and facing.
 - `idleArms` — set `false` to keep this fighter's delivered idle arms. The
   engine otherwise rebuilds them, straight and hanging a few degrees out from
   the body (`ik.js applyIdleArms`), for the same reason it rebuilds the legs: a
@@ -143,6 +148,15 @@ both dialled in the workbench under **Model size & facing**:
   from 171° to 104° — a hand held at the chest — and the wrist's distance from
   the body's centreline varied SIX-FOLD. Sukuna is the one `false`: his
   delivered idle is a pose somebody wants.
+
+  **The arms are aimed from the BIND pose, not from the delivered clip**, and
+  that is what decides which way an elbow points. Aiming from wherever the clip
+  left the arm sets the bone's direction and inherits its TWIST, and for a limb
+  the twist is what the joint below it hinges about — Gojo's upper arm came out
+  rolled, so his elbow bulged forward and the arm read as hinging backwards.
+  The bind pose is the only place a bone's neutral roll is recorded (it comes
+  out of the skeleton's `boneInverses`), and the rotation onto the hanging
+  direction is a pure swing, which adds no twist of its own.
 
   **A weapon needs no special case.** A prop hangs off the hand bone, so
   straightening the arm carries it to the fighter's side; Maki's naginata ends
