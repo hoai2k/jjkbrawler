@@ -3261,7 +3261,7 @@ change.
 
 **Three new poses per fighter, all 27 fighters**, for the Smash-style grab and
 throw mechanic that shipped behind `?throw=true` (`src/grab.js`,
-[game-mechanics.md §8](game-mechanics.md#grabs--throws--experimental-behind-throwtrue)).
+[game-mechanics.md §8](game-mechanics.md#grabs--throws--on-by-default-throwfalse-turns-them-off)).
 The mechanic is fully playable now on **reused art** — the table below is what
 each state draws in the meantime — so nothing is blocked; this request is what
 makes a grab look like a grab instead of a frozen light attack.
