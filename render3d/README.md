@@ -142,6 +142,17 @@ both dialled in the workbench under **Model size & facing**:
   state inherits the same stoop. Dialled by eye against the drawing in the
   Idle Review, beside size, stance and facing.
 
+  The Idle Review carries a **Revert** per fighter. Every dial in this bench
+  edits the live manifest in place, which is what makes them feel immediate and
+  left exactly one way back from a number moved by accident: reload the page
+  and lose the whole session's work to undo one fighter's. Revert restores that
+  one entry to what the file said at boot — the placement numbers, the head
+  carriage, and the look overrides, which have to be actively un-pinned from
+  the materials rather than merely dropped from the entry. **On a phone the
+  review shows one dial at a time**, picked from a dropdown where the label
+  sits, because four dial rows plus the buttons is most of a phone screen and
+  the screen is what the pass is for.
+
   These are corrections the ASSET should have carried, so they are on their
   way into the files themselves: `tools/bake_yaw.mjs` writes each rig's yaw
   onto its scene root — a JSON-chunk edit, no Blender, binary chunk

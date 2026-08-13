@@ -115,6 +115,44 @@ Approval is **all-or-nothing per fighter**, decided in the render3d workbench
 (sweeping-light face check first, then every clip against its sprite ghost,
 at the beat, under the aim crosshair, facing both ways).
 
+### Two models of one fighter
+
+A regeneration does not always win. When a fighter is rebuilt, the model it
+replaces is kept beside it as `<char>_alt.glb` and registered under an `alt`
+block in the manifest, so the two can be judged against each other on screen
+rather than from memory — the workbench's **Compare: Alt GLB** dial stands the
+alternate where the drawing usually goes, in the same pose, and the Idle
+Review carries the same dial.
+
+```jsonc
+"momo": {
+  "model": "momo/momo.glb", "heightM": 1.5,
+  "renderScale": 1.12, "stanceDeg": 6, "yawOffsetDeg": 60,
+  "alt": {
+    "model": "momo/momo_alt.glb", "label": "pre-D6 — single-view seed",
+    "heightM": 1.5, "renderScale": 1.16, "stanceDeg": 3, "yawOffsetDeg": 60
+  }
+}
+```
+
+**The alternate carries its own numbers, and that is the point.** Size, turn,
+stance and head carriage describe one specific .glb — how tall it measures,
+how far round it was built, how its legs are planted. Dress an older model in
+the current one's corrections and it looks wrong for a reason that has nothing
+to do with the model, which is precisely the question the comparison exists to
+answer. The review dials follow whichever body is on screen.
+
+### `heightM` is measured, never reviewed
+
+It is read off the .glb at import — **the fighter, not their weapon**. A
+separately generated prop hangs off a bone as its own un-skinned mesh, and
+counting it recorded Momo at 1.91 m against a canon 1.50 m. On-screen size is
+`renderScale / heightM` (blit.js), so all four prop carriers were drawn ~20%
+small and the size dial got raised to hide it — a correction sitting on top of
+a measurement error. `apply` now drops `heightM` from a payload for the same
+reason: a stale export must not be able to reinstate an old height. Re-import
+is what changes a height.
+
 ---
 
 ## The rounds
@@ -172,7 +210,7 @@ lens, win-pose orbits — flagged per clip in extras so spectacle never blurs a
 hitbox), and state-keyed material variants (Yuji's Sukuna markings during
 ult, Yuta's full-meter glow).
 
-### Round D6 — regeneration: the workbench catches *(open)*
+### Round D6 — regeneration: the workbench catches *(delivered)*
 
 Every art round has produced a catch round; D6 is this track's, held open so
 findings from D1–D5 have a number that is not a new fighter's round. It is
@@ -203,6 +241,38 @@ they are the cause.
 prop. Look at them in the workbench's **Mannequin(s)** view before spending
 credits — an uneven arm can be a pose, and none of the three reads wrong on
 screen today.
+
+#### Delivered — and the seed was never the art
+
+All five rebuilt, all five through the gate. Against the roster's medians
+(leg 21.5%, arm 11.3% of a model's own mass):
+
+| Fighter | legs | arms | was |
+|---|---|---|---|
+| `momo` | **0.98** | 0.75 | 0.29 — "LEG NOT RECONSTRUCTED" |
+| `maki` | **0.97** | **0.96** | 0.91 / 0.48 — "ARM NOT RECONSTRUCTED" |
+| `gakuganji` | **0.97** | 0.86 | 0.41 / 0.73 — leg *and* arm |
+| `uro` | 0.90 | 0.77 | legs at 19% of normal |
+| `meimei` | 0.84 | 0.43 | fused arm at 287% of normal; now 151% |
+
+Momo has two legs, Mei Mei has no horns, and Uro's hair finally extracts onto
+its chain (3240 verts; the old model had **none** past the threshold). Mei
+Mei's arm is the one number still outside the gate — it is her cape weighted
+to one side, not a missing limb, and it is down from 287% to 151%.
+
+**The boards were fine. We were feeding them in wrong.** A DI5 board is four
+drawings in ONE png, and it was going to the single-image endpoint whole — so
+the generator modelled the *picture*: four Momo statues in a row, one skeleton
+fitted to one of them and the other three skinned onto her hands. That is the
+entire "fused into one arm" signal, on all five, and it is why the first
+rebuild measured *identical* to the models it was replacing. The weapon plates
+are boards too: four brooms, four axes — which is what "her broom is divided
+into many pieces" always was.
+
+`tools/slice_turnaround.py` now cuts a board into its panels and
+`tripo_generate.mjs` sends them to the **multiview** endpoint as separate
+views (front, left, back; the ¾ panel is dropped, having no slot). Same art,
+same round, same credits — one body out instead of four.
 
 **The gate, before approval:** `blender -b -P tools/audit_model_health.py`.
 A delivery is refused if any limb is under 70% or over 150% of the roster's

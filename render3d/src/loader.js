@@ -392,6 +392,49 @@ async function loadGlbRig(charKey, entry, GLTFLoader) {
   }, entry);
 }
 
+/** The rig key an alternate model is registered under.
+ *
+ *  A SECOND MODEL OF THE SAME FIGHTER, kept so two generations can be judged
+ *  against each other rather than from memory. It is registered as its own rig
+ *  under its own key, which is what makes the comparison honest: the size,
+ *  yaw, stance and head carriage in `entry.alt` describe THAT .glb and travel
+ *  with it. Sharing the character's settings would dress the old model in the
+ *  new one's corrections and quietly answer the question being asked — the
+ *  alternate would look wrong for a reason that has nothing to do with the
+ *  alternate. The manifest keeps them apart; so does this.
+ */
+export const altKey = (charKey) => `${charKey}#alt`;
+
+/** Does this fighter have a second model on file? */
+export function hasAlt(charKey) {
+  return !!MANIFEST?.characters?.[charKey]?.alt?.model;
+}
+
+/** The alternate's own manifest block — what the review dials edit when the
+ *  comparison is showing it. */
+export function altEntry(charKey) {
+  return MANIFEST?.characters?.[charKey]?.alt || null;
+}
+
+/** Load a fighter's alternate model on demand, under `altKey(charKey)`. */
+export async function ensureAltRig(charKey, GLTFLoader) {
+  const alt = altEntry(charKey);
+  if (!alt?.model) return false;
+  const key = altKey(charKey);
+  if (RIGS.has(key)) return true;
+  if (!inFlight.has(key)) {
+    // `alt` IS the entry — height, scale, yaw, stance, toon, all of it. That
+    // is the whole point; see altKey above.
+    inFlight.set(key, loadGlbRig(key, alt, GLTFLoader)
+      .catch((err) => {
+        console.warn(`render3d: alternate rig for "${charKey}" failed to load (${err.message})`);
+      })
+      .finally(() => inFlight.delete(key)));
+  }
+  await inFlight.get(key);
+  return RIGS.has(key);
+}
+
 /** Load one delivered rig on demand, if it is not already in.
  *
  *  Twenty-seven models is 56 MB of glTF and twenty-seven textures to decode,

@@ -76,7 +76,20 @@ const r = await page.evaluate(async () => {
   step();
   const movingEarly = deg(localDir(), a);
 
-  // Hold still: it must swing back to where the skeleton wants it...
+  // Hold still, then TURN THE HEAD BACK before asking whether it came home.
+  //
+  // A simulated braid hangs where gravity and the bone's rest direction
+  // balance, so its settled HEAD-LOCAL direction depends on how the head is
+  // oriented — with the head still rotated 90°, "down" sits somewhere else in
+  // its frame and the braid is right to settle somewhere else too. Comparing
+  // that against a direction measured before the turn charges the solver for
+  // gravity: it read 6.4° on Mei Mei's rebuilt braid, which is sag, not drift.
+  // Restoring the orientation removes the variable, and the answer is then
+  // geometry-independent — a braid that came home reads ~0° whatever its
+  // length or rest angle.
+  for (let i = 0; i < 400; i++) step();
+  head.rotation.z -= Math.PI / 2;
+  root.updateMatrixWorld(true);
   for (let i = 0; i < 400; i++) step();
   const recovered = deg(localDir(), rest);
   // ...and stop moving.

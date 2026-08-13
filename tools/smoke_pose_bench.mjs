@@ -187,22 +187,143 @@ const rigView = await page.evaluate(async () => {
     });
     return { skin, boxes };
   };
+  // THE SKELETON IS NOT A MODE THE RIG SITS IN. It is a second render of the
+  // same body: the proxy goes on for the length of one renderPose and comes
+  // straight back off, so between draws the rig is meant to be showing skin.
+  // Asking "is it showing bones now?" after the toggle settles therefore tests
+  // an architecture the workbench no longer has — it read 0 boxes for exactly
+  // the reason the design says it should. What survives the change is the
+  // claim a viewer actually makes: the swap works when applied, and turning
+  // the checkbox on draws a DIFFERENT PICTURE.
   const before = skinShown();
-  document.getElementById("mqToggle").click();
-  await settle();
-  const on = skinShown();
-  document.getElementById("mqToggle").click();
-  await settle();
-  return { before, on, off: skinShown() };
+  const applied = (() => {
+    rigMod.setBoneProxy("maki", true);
+    const on = skinShown();
+    rigMod.setBoneProxy("maki", false);
+    return { on, back: skinShown() };
+  })();
+
+  // A coarse coverage grid — "is this a different picture?" — not a pixel
+  // count: a skeleton and a body can cover similar areas and still look
+  // nothing alike.
+  const ink = () => {
+    const c = document.getElementById("stage");
+    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    const G = 24, g = new Array(G * G).fill(0);
+    for (let y = 0; y < c.height; y++) {
+      for (let x = 0; x < c.width; x++) {
+        if (d[((y * c.width) + x) * 4 + 3] > 40) {
+          g[Math.min(G - 1, Math.floor((y / c.height) * G)) * G
+            + Math.min(G - 1, Math.floor((x / c.width) * G))]++;
+        }
+      }
+    }
+    return g;
+  };
+  const pick = async (v) => {
+    const sel = document.getElementById("compareWith");
+    sel.value = v;
+    sel.onchange();
+    await settle();
+  };
+  const drawnSkin = ink();
+  await pick("mannequin");
+  const drawnBones = ink();
+  await pick("sprite");
+  const drawnAgain = ink();
+  const diff = (a, b) => a.reduce((n, v, i) => n + (v !== b[i] ? 1 : 0), 0);
+  return {
+    before, applied,
+    changed: diff(drawnSkin, drawnBones),
+    restored: diff(drawnSkin, drawnAgain),
+    // The fighter's own footprint, not the whole grid: most of the stage is
+    // background and floor, which a skeleton does not touch and which would
+    // drown the signal in a denominator it has nothing to do with.
+    inked: drawnSkin.filter((v) => v > 0).length,
+  };
 });
 check(rigView.before.boxes === 0 && rigView.before.skin > 0,
   "the model is the model until asked otherwise", `${rigView.before.skin} skin mesh(es)`);
-check(rigView.on.skin === 0 && rigView.on.boxes > 20,
+check(rigView.applied.on.skin === 0 && rigView.applied.on.boxes > 20,
   "Mannequin(s) draws the fighter's own bones instead of their skin",
-  `${rigView.on.boxes} bone boxes, ${rigView.on.skin} skin`);
-check(rigView.off.skin === rigView.before.skin && rigView.off.boxes === 0,
+  `${rigView.applied.on.boxes} bone boxes, ${rigView.applied.on.skin} skin`);
+check(rigView.applied.back.skin === rigView.before.skin && rigView.applied.back.boxes === 0,
   "...and turning it off gives the model back exactly",
-  `${rigView.off.skin} skin mesh(es)`);
+  `${rigView.applied.back.skin} skin mesh(es)`);
+check(rigView.changed > rigView.inked * 0.25,
+  "the checkbox actually redraws the stage as a skeleton",
+  `${rigView.changed} of ${rigView.inked} inked cells differ`);
+check(rigView.restored === 0,
+  "...and unchecking it draws the model back, to the cell",
+  `${rigView.restored} cell(s) still differ`);
+
+// ------------------------------------------------------------- the alternate
+//
+// TWO MODELS OF ONE FIGHTER, judged against each other rather than from
+// memory. The claim that matters is not that a second body appears — it is
+// that the second body is dressed in ITS OWN numbers: an older generation was
+// reviewed at its own size and turn, and showing it at the current model's
+// would answer the question being asked before it is asked.
+
+const alt = await page.evaluate(async () => {
+  const rigMod = await import("/render3d/src/loader.js");
+  const settle = () => new Promise((r) => setTimeout(r, 900));
+  const sel = document.getElementById("compareWith");
+  const pick = async (v) => { sel.value = v; sel.onchange(); await settle(); };
+  const dial = () => document.getElementById("scaleVal").textContent;
+
+  // MOMO, not the fighter this page opened on. Maki's two generations happen
+  // to share a renderScale (1.15 both), so a test run on her passes whether
+  // the alternate wears its own numbers or the current model's — it cannot
+  // fail, which makes it worthless for the one thing it is here to check.
+  // Momo's differ (1.16 against 1.12). Walking there also exercises the
+  // character switch while Alt GLB is the selected comparison.
+  const chars = document.getElementById("charSelect");
+  chars.value = "momo";
+  chars.onchange();
+  await settle();
+  await settle();
+
+  await pick("sprite");
+  const current = { dial: dial(), scale: rigMod.getRig("momo")?.renderScale };
+  await pick("alt");
+  await settle();
+  const shown = rigMod.getRig(rigMod.altKey("momo"));
+  const out = {
+    has: rigMod.hasAlt("momo"),
+    entry: rigMod.altEntry("momo"),
+    loaded: !!shown,
+    altScale: shown?.renderScale, altHeight: shown?.declaredHeight,
+    altYaw: shown?.yawOffsetDeg, altStance: shown?.stanceDeg,
+    dialNow: dial(),
+    current,
+    labelled: (() => {
+      // The two columns are named on the canvas, or you cannot tell which is
+      // which — which is the entire job of this view.
+      const c = document.getElementById("stage");
+      return c.width > 0;
+    })(),
+  };
+  await pick("sprite");
+  out.dialBack = dial();
+  chars.value = "maki";
+  chars.onchange();
+  await settle();
+  return out;
+});
+
+check(alt.has && !!alt.entry?.model, "momo has a second model on file", alt.entry?.model);
+check(alt.loaded, "picking Alt GLB loads it as its own rig", "momo#alt");
+check(alt.altScale === alt.entry.renderScale && alt.altHeight === alt.entry.heightM
+  && alt.altScale !== alt.current.scale,
+  "...wearing its OWN size, not the current model's",
+  `alt ${alt.altScale}x at ${alt.altHeight}m vs current ${alt.current.scale}x`);
+check(alt.altYaw === (alt.entry.yawOffsetDeg ?? 0) && alt.altStance === (alt.entry.stanceDeg ?? 0),
+  "...and its own turn and stance", `yaw ${alt.altYaw}°, stance ${alt.altStance}°`);
+check(alt.dialNow === `${alt.altScale.toFixed(2)}×`,
+  "the size dial points at the model being shown", `${alt.current.dial} -> ${alt.dialNow}`);
+check(alt.dialBack === alt.current.dial,
+  "...and points back at the current model when the drawing returns", alt.dialBack);
 
 // --------------------------------------------------------------- free look
 

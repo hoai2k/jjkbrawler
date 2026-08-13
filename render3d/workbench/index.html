@@ -98,8 +98,21 @@
         </div>
         <div class="row">
           <label class="check"><input id="fiveToggle" type="checkbox"> Show 5 across</label>
-          <label class="check"><input id="mqToggle" type="checkbox"> Mannequin(s)</label>
+          <label class="inline">Compare:
+            <select id="compareWith">
+              <option value="sprite" selected>Sprite(s)</option>
+              <option value="mannequin">Mannequin(s)</option>
+              <option value="alt">Alt GLB</option>
+            </select>
+          </label>
         </div>
+        <p class="hint alt-only">A SECOND MODEL OF THIS FIGHTER, standing where
+        the drawing usually does. Sizes, turns, stances and head carriage are
+        read from the alternate's OWN manifest block — an older generation keeps
+        the numbers it was reviewed with rather than wearing the current
+        model's, because a model dressed in another model's corrections is not
+        the model you are judging. Pick whichever body is better; the dials on
+        this screen edit the one being shown.</p>
         <p class="hint mq-only">THE RIG, DRAWN: this fighter's own skeleton in
         this fighter's own pose, as boxes — warm on their left, cool on their
         right, with a nose and a chest plate along the head's and the chest's
@@ -349,6 +362,18 @@
           <b id="facingName">—</b>
           <span class="mono" id="facingProgress"></span>
         </div>
+        <!-- The compare dial, repeated here because this is the screen the
+             positioning dials live on and the side panel is behind the
+             overlay. Choosing the alternate here points every dial below at
+             THAT .glb — which is the only way to judge two generations
+             without one of them wearing the other's numbers. -->
+        <label class="inline">Compare:
+          <select id="facingCompareWith">
+            <option value="sprite" selected>Sprite(s)</option>
+            <option value="mannequin">Mannequin(s)</option>
+            <option value="alt">Alt GLB</option>
+          </select>
+        </label>
         <button id="facingClose" class="ghost sm" title="Close (Esc)">✕</button>
       </header>
 
@@ -357,11 +382,27 @@
       <footer>
         <div id="facingHint" class="hint">Sprite on the left, model on the
           right. Match the model's height, stance and facing to the drawing,
-          then move on — Download JSON saves every change. The legs are
-          straightened and the soles levelled for you; stance opens them from
-          there.</div>
+          then move on — Download JSON saves every change, and Revert puts one
+          fighter back to what the file said if you moved the wrong dial. The
+          legs are straightened and the soles levelled for you; stance opens
+          them from there.</div>
 
-        <div class="facing-dial">
+        <!-- ONE CONTROL AT A TIME, on a phone. Four dial rows plus the action
+             row is most of a phone screen, and the screen is what the pass is
+             FOR — the whole judgement is "does this model match that drawing",
+             which needs the picture big. So the small layout keeps the head
+             dial and turns the label into this picker; the other three are
+             still here, one select away. On the desk all four stay visible,
+             because there the space is free. -->
+        <select id="facingDialPick" class="dial-pick" aria-label="Which dial to show">
+          <option value="head" selected>Head</option>
+          <option value="scale">Size</option>
+          <option value="stance">Stance</option>
+          <option value="yaw">Turn</option>
+        </select>
+
+        <div id="facingDials">
+        <div class="facing-dial" data-dial="scale">
           <span class="dial-label">Size</span>
           <button data-scale="-0.05">−</button>
           <input id="facingScale" type="range" min="0.4" max="2.5" step="0.01" value="1">
@@ -369,7 +410,7 @@
           <span class="mono" id="facingScaleVal">1.00×</span>
         </div>
 
-        <div class="facing-dial">
+        <div class="facing-dial" data-dial="stance">
           <span class="dial-label">Stance</span>
           <button data-stance="-2">−</button>
           <input id="facingStance" type="range" min="-10" max="25" step="1" value="0">
@@ -386,7 +427,7 @@
              cannot be measured off the rig — the joints are level to within a
              degree across the roster — and it has to be judged against the
              drawing like the size and the stance. Positive lifts the chin. -->
-        <div class="facing-dial">
+        <div class="facing-dial active" data-dial="head">
           <span class="dial-label">Head</span>
           <button data-headtilt="-1">−</button>
           <input id="facingHead" type="range" min="-20" max="20" step="0.5" value="0">
@@ -394,19 +435,25 @@
           <span class="mono" id="facingHeadVal">0°</span>
         </div>
 
-        <div class="facing-dial">
+        <div class="facing-dial" data-dial="yaw">
           <span class="dial-label">Turn</span>
           <button data-yaw="-5">−</button>
           <input id="facingYaw" type="range" min="-180" max="180" step="5" value="0">
           <button data-yaw="5">+</button>
           <span class="mono" id="facingYawVal">0°</span>
         </div>
+        </div>
 
         <div class="facing-actions">
-          <button id="facingPrev" class="ghost">← Back</button>
-          <button id="facingFit" class="ghost" title="Set the scale that makes this model stand its measured height">Fit height</button>
-          <button id="facingNext" class="primary">Next →</button>
-          <button id="facingSave" class="ghost">⤓ Download JSON</button>
+          <button id="facingPrev" class="ghost" data-short="←">← Back</button>
+          <button id="facingFit" class="ghost" data-short="Fit" title="Set the scale that makes this model stand its measured height">Fit height</button>
+          <!-- UNDO, per fighter. Every other control here writes a number and
+               there was no way back to what the file said except reloading the
+               page, which throws away the whole session's work to undo one
+               fighter's. -->
+          <button id="facingRevert" class="ghost" data-short="↺ Undo" title="Put this fighter's numbers back to what the manifest says">↺ Revert</button>
+          <button id="facingNext" class="primary" data-short="Next →">Next →</button>
+          <button id="facingSave" class="ghost" data-short="⤓ Save">⤓ Download JSON</button>
         </div>
       </footer>
     </div>
