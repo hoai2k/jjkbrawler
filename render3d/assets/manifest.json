@@ -19,7 +19,7 @@
       "model": "maki/maki.glb",
       "heightM": 1.7,
       "approved": true,
-      "yawOffsetDeg": -22,
+      "yawOffsetDeg": 60,
       "toon": {
         "shadeTint": [
           0.6795,
@@ -79,7 +79,7 @@
       "model": "hanami/hanami.glb",
       "heightM": 2.2,
       "approved": true,
-      "yawOffsetDeg": 45,
+      "yawOffsetDeg": 75,
       "toon": {
         "shadeTint": [
           0.8067,
@@ -166,7 +166,7 @@
           0.8485
         ]
       },
-      "yawOffsetDeg": 24,
+      "yawOffsetDeg": 45,
       "headTiltDeg": 13
     },
     "sukuna": {
@@ -195,7 +195,7 @@
           0.6861
         ]
       },
-      "yawOffsetDeg": -151,
+      "yawOffsetDeg": 45,
       "renderScale": 1.03,
       "stanceDeg": 6,
       "headTiltDeg": 8
@@ -227,7 +227,7 @@
           0.7286
         ]
       },
-      "yawOffsetDeg": -59,
+      "yawOffsetDeg": 55,
       "stanceDeg": 9,
       "renderScale": 0.99,
       "alt": {
@@ -289,7 +289,7 @@
       },
       "stanceDeg": 4,
       "renderScale": 0.99,
-      "yawOffsetDeg": 139,
+      "yawOffsetDeg": 70,
       "headTiltDeg": -8.5,
       "alt": {
         "model": "meimei/meimei_alt.glb",
@@ -330,7 +330,7 @@
           0.9179
         ]
       },
-      "yawOffsetDeg": 172,
+      "yawOffsetDeg": 45,
       "renderScale": 1.03,
       "stanceDeg": 5,
       "headTiltDeg": 5.5
@@ -346,7 +346,7 @@
           0.7988
         ]
       },
-      "yawOffsetDeg": 14,
+      "yawOffsetDeg": 30,
       "renderScale": 1.01,
       "stanceDeg": 11
     },
@@ -406,7 +406,7 @@
           0.7271
         ]
       },
-      "yawOffsetDeg": -23,
+      "yawOffsetDeg": 75,
       "stanceDeg": 9,
       "headTiltDeg": 12
     },
@@ -421,7 +421,7 @@
           0.8395
         ]
       },
-      "yawOffsetDeg": 165,
+      "yawOffsetDeg": 45,
       "stanceDeg": 12,
       "headTiltDeg": 12
     },
@@ -436,7 +436,7 @@
           0.7054
         ]
       },
-      "yawOffsetDeg": -168,
+      "yawOffsetDeg": 80,
       "renderScale": 1.01,
       "stanceDeg": 14,
       "headTiltDeg": 13
@@ -467,7 +467,7 @@
           0.8276
         ]
       },
-      "yawOffsetDeg": 35,
+      "yawOffsetDeg": 60,
       "renderScale": 1.01,
       "stanceDeg": 12,
       "headTiltDeg": 15
@@ -483,7 +483,7 @@
           0.8313
         ]
       },
-      "yawOffsetDeg": -163,
+      "yawOffsetDeg": 60,
       "renderScale": 1.01,
       "stanceDeg": 12,
       "headTiltDeg": 5.5
