@@ -1,45 +1,87 @@
 # Audio Requests — open requests
 
-**Nothing is outstanding for the 23 fighters who can be played.** The element
-and signature round — the last one open — is delivered, wired in and recorded in
-[audio-requests-history.md](audio-requests-history.md) as Round 9, along with
-every earlier round's audit, prompts and delivery record.
+**One small round is open: round 12, the grab pack — three sounds.** Everything
+before it is delivered, wired in and recorded in
+[audio-requests-history.md](audio-requests-history.md), along with every
+round's audit, prompts and delivery record.
 
-**Four sounds come due when round 15's art lands**, and not before — see
-[Owed by the staged fighters](#owed-by-the-staged-fighters) at the bottom. They
-are listed rather than requested because nothing plays them today: the four
-fighters they belong to are not on the select screen.
+## Round 12 — the grab pack (open) — 3 sounds
+
+The Smash-style grab/throw mechanic shipped behind `?throw=true`
+(`src/grab.js`, [game-mechanics.md §8](game-mechanics.md#grabs--throws--experimental-behind-throwtrue)).
+It is fully voiced today off existing files — the table below is the interim
+wiring — so nothing is silent; these three are what give the mechanic its own
+sonic identity instead of a borrowed one. If the mechanic graduates from its
+flag, this round should land with it.
+
+| Key | Moment | What it should be | Playing in the meantime |
+|---|---|---|---|
+| `grabConnect` | the hand closes on a body | a short cloth-and-impact clutch — a seize, not a punch; no ring-out tail | `punch` |
+| `grabBreak` | the victim mashes free | a strained burst-apart — effort released, slightly triumphant, distinct from a parry | `guardHit` (pitched up) |
+| `throwHeave` | any of the four throws leaves the hands | one big body-weight heave with a whoosh tail; the landing hit already has its own sound | `whoosh` |
+
+Delivery and registration follow the standing flow in
+[Adding a sound](#adding-a-sound); wire the keys into `SFX`
+(`src/config_audio.js`) and swap the three call sites in `src/grab.js` from the
+interim keys.
+
+Round 11 was the last of them: **Inumaki's cursed speech** — his three commands
+and his ultimate, spoken in Japanese in a voice cast for him alone, replacing
+the wordless grunt he had been sharing with four other students. It also built
+the general mechanism the domain call-outs had only hinted at: `MOVE_CALL` maps
+any fighter's move to a spoken line, so the next character to get one needs no
+new code.
+
+Round 10 was the one before it: the domain moment — a barrier, a room tone, a
+refusal cue, Dagon's missing sting, and **the eight domain owners saying
+領域展開 and the name of the domain in their own voices**, which are the first
+spoken lines in the game. It landed together with the four sounds Mechamaru,
+Dagon and Kurourushi had been owed since round 15 staged them, which had
+stopped being sounds owed against future art and become silent gaps in play
+once those fighters reached the select screen.
 
 This file exists so there is somewhere obvious for the next request to go, and
 so "is any audio still owed?" has a one-line answer rather than an 800-line
 document to read.
 
-**Voice is the one thing that could still be asked for** — all 23 fighters have
-grunt trios and KO cries, but nobody has per-character technique call-outs. That
-is a separate, much larger round (23 fighters × lines) and should be scoped on
-its own rather than tacked onto a sound-effect pass.
+**Voice is where the next requests go.** Every fighter has a grunt trio and a
+KO cry, and the eight domain owners have their call-out; nobody has
+per-character technique call-outs beyond that. A full pass is 27 fighters ×
+lines and should be scoped on its own — round 10A was the first slice of it and
+round 11 the second. `tools/generate_voice.py` is the route both used, and
+`MOVE_CALL` (`src/config_audio.js`) is now the wiring any further slice needs:
+a row per move, no new code.
 
 ## Where the game actually is
 
 | | |
 |---|---|
-| Sound files | **96** referenced, in `assets/sfx/` |
-| Registry keys | **84** in `SFX` (`src/config_audio.js`) |
-| With a generation prompt on file | **95 of 96** — `sound_shield.mp3` predates the rounds and has none |
-| Fighters with a voice | **23 of 23** — six voice groups, three grunt variants each, plus a matching KO cry |
-| Domain Expansions with their own sting | **7 of 7** |
-| Element hit layers | **7 of 7** — fire, blood, steel, wind, sound, shadow, soul |
+| Sound files | **115** referenced, in `assets/sfx/` |
+| Registry keys | **103** in `SFX` (`src/config_audio.js`) |
+| With a generation prompt on file | **114 of 115** — `sound_shield.mp3` predates the rounds and has none |
+| Fighters with a voice | **27 of 27** — six voice groups, three grunt variants each, plus a matching KO cry |
+| Fighters with a spoken line | **9** — the 8 domain owners, plus Inumaki on all four of his commands |
+| Domain Expansions with their own sting | **8 of 8** |
+| Element hit layers | **10 of 10** — fire, blood, steel, wind, sound, shadow, soul, water, machine, swarm |
 | Generic sounds left in `stage_fx.js` | **none** — all 26 calls name a specific hazard sound |
 
-Categories and their mix levels: `combat` (22), `energy` (14), `voice` (12),
-`domain` (10), `hazard` (10), `ui` (7), `stinger` (5), `movement` (4).
+Categories and their mix levels: `combat` (25), `voice` (24), `energy` (14),
+`domain` (13), `hazard` (10), `ui` (8), `stinger` (5), `movement` (4).
 
 The things the original audit was written to fix are all fixed: one explosion no
 longer covers every impact, no fighter is mute, the countdown / match end /
 meter-full / respawn / Black Flash / 7:3-crit moments all sound, and the menus
 no longer borrow swordfight clips. Round 9 closed the last of it: a fire hit no
 longer sounds the same as a steel one, and the techniques whose whole identity
-is a sound — Todo's clap, Gakuganji's chord, Mei Mei's crow — make it.
+is a sound — Todo's clap, Gakuganji's chord, Mei Mei's crow — make it. Round 10
+closed the last silence that was structural rather than incidental: a Domain
+Expansion no longer runs seven seconds of ordinary fight mix under the biggest
+move in the game, and the barrier coming down is no longer a popup over silence.
+
+The one fxElement with no hit layer is **`feather`** (Mei Mei's crow and Axe
+Rush). It is the only element left out of `ELEMENT_HIT_SFX`, and no layer has
+been requested for it — her crow already carries `crowCaw` as a fire sound, so
+it is the one case where the element is not silent for want of that table.
 
 ## Music
 
@@ -66,11 +108,14 @@ knowing before reading it as an open request.
 
 ## Adding a sound
 
-1. Write the request into
-   [audio-requests-history.md](audio-requests-history.md), in the shape the
-   entries there already use — **`filename.wav`** · what it is · length, then a
-   fenced prompt. That file is not only a record: `tools/generate_sfx.py`
-   parses it, so a prompt written anywhere else cannot be generated or re-rolled.
+1. Write the request **into this file**, in the shape the entries in
+   [audio-requests-history.md](audio-requests-history.md) already use —
+   **`filename.wav`** · what it is · length, then a fenced prompt — and move it
+   across once it lands. `tools/generate_sfx.py` parses **both** files, which is
+   the point of it reading two: a round that has not landed yet cannot have its
+   prompts in a file called "history" without the status line lying, and a round
+   nobody can generate is not a request, it is a wish. A prompt written anywhere
+   but these two files cannot be generated or re-rolled.
 2. Generate it:
    ```sh
    ELEVENLABS_API_KEY=... python3 tools/generate_sfx.py
@@ -82,41 +127,42 @@ knowing before reading it as an open request.
 3. Register the key in `src/config_audio.js` with its category, and call it with
    `playSfx("key")` — or, for a held sound, `startLoop` in `src/audio.js`.
 
-If a whole new round is ever commissioned, write it here as an open request and
-move it across once it lands — the same relationship
-[asset-requests.md](asset-requests.md) has with its history file. Delivered
-files are uploaded to `assets/intake/sfx/` and moved into `assets/sfx/` as part
-of that landing, the way art arrives through `assets/intake/`.
+## Adding a spoken line
 
----
+Same shape, one extra field, a different tool. An entry that names a cast voice
+belongs to [`tools/generate_voice.py`](../tools/generate_voice.py):
 
-## Owed by the staged fighters
+~~~
+**`domain_call_gojo.wav`** · Gojo — Unlimited Void · voice `<voice id>` · 3.0 s
+```
+[casually] りょういきてんかい……むりょうくうしょ。
+```
+~~~
 
-Round 15 of [asset-requests.md](asset-requests.md) adds four fighters —
-Mechamaru, Yuki Tsukumo, Dagon and Kurourushi — whose kits are already built but
-who are held off the select screen until their art exists. Their audio is wired
-as far as it can be without new files: all four are in `GRUNT_GROUPS`
-(`src/audio.js`) and so already have a grunt trio and a KO cry from the existing
-six voice groups.
+```sh
+ELEVENLABS_API_KEY=... python3 tools/generate_voice.py
+```
 
-Four sounds are genuinely new, and **none of them can be heard today** — nothing
-in a match reaches a staged fighter. They are recorded here so the tallies above
-do not quietly become wrong, and so this is a delivery rather than a discovery
-on the day those four ship.
+That ``· voice `id` ·`` field is the whole routing rule between the two tools:
+an entry that has one is speech and `generate_sfx.py` skips it, an entry that
+does not is a sound effect and `generate_voice.py` skips it. A line with no
+cast voice is invisible to both, which is the loudest way for that omission to
+show up. Three things the round-10 lines settled, worth not rediscovering:
 
-| Key | Where it belongs | What it is |
-|---|---|---|
-| `hitWater` | `ELEMENT_HIT_SFX.water` | The eighth element hit layer, for Dagon. A heavy wet slap and displacement — a body hit by a mass of water, not a splash in a puddle |
-| `hitMachine` | `ELEMENT_HIT_SFX.machine` | The ninth, for Mechamaru. Steel on steel with a servo whine under it and a short vent of pressure after |
-| `hitSwarm` | `ELEMENT_HIT_SFX.swarm` | The tenth, for Kurourushi. A dry chitinous crunch and a scatter of skittering — insects, close and many |
-| `domainCaptivatingSkandha` | `DOMAIN_STING` (`src/domains.js`) | The eighth domain sting, for Horizon of the Captivating Skandha. Surf and gulls opening into something enormous moving underwater — the domain's whole trick is that it sounds like a holiday |
+- **Write the line in kana, not kanji.** Every domain name in this game is an
+  irregular reading, and a synthesiser handed the kanji guesses at them and
+  guesses wrong. Take the furigana from the fandom wiki, which is the repo's
+  standing authority for this — it caught three wrong romanizations in the
+  round-10 request itself.
+- **Bracketed cues are direction, not text.** The `v3` model performs them and
+  does not speak them (measured: a tagged line and the same line untagged come
+  back within 0.2 s of each other).
+- **A spoken entry is never length-capped**, unlike a sound effect — the cap
+  lands mid-word. A line that overruns its brief is reported, not trimmed; it
+  is a take to re-roll.
 
-The three element layers are the same brief as Round 9's seven (see the history
-file for those prompts and their mix levels): **seasoning under the impact, not
-the impact** — short, dry, and gain-trimmed to about 0.5.
-
-`DOMAIN_STING` already names the Skandha key, and `ELEMENT_HIT_SFX` deliberately
-does **not** name the three hit layers yet: an entry pointing at a file that is
-not there logs a failed fetch on every hit, which reads as an error and trips
-the smoke tests. Adding the three lines is part of landing the files, not part
-of staging the fighters.
+Both routes above put a new round **here** first and move it across once it
+lands — the same relationship [asset-requests.md](asset-requests.md) has with
+its history file. Delivered files are uploaded to `assets/intake/sfx/` and moved
+into `assets/sfx/` as part of that landing, the way art arrives through
+`assets/intake/`.

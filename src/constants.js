@@ -45,9 +45,16 @@ export const AIR_DODGE_TIME = 0.34;
 export const DODGE_STALE_WINDOW = 1.4;
 
 // ledges
-export const LEDGE_GRAB_X = 44;
+//
+// The snap box, sized for Smash-style magnet hands rather than precision
+// landings. Horizontal: air speeds run 300-380 px/s, so 72 px is about a fifth
+// of a second of drift — catchable on reaction. Below: 150 px is roughly a
+// body height (fighters stand 147-200 px), matching the proportions of Smash's
+// grab boxes; at 60 px the window lasted ~3 frames of ordinary falling and
+// recovering from below meant threading it.
+export const LEDGE_GRAB_X = 72;
 export const LEDGE_GRAB_Y_ABOVE = 112;
-export const LEDGE_GRAB_Y_BELOW = 60;
+export const LEDGE_GRAB_Y_BELOW = 150;
 export const LEDGE_HANG_X = 28;
 export const LEDGE_HANG_Y = 58;
 
@@ -123,6 +130,55 @@ export const SAKURAI_KB = 620;        // where one becomes the other
 export const SMASH_TILT = 0.42;
 export const SMASH_TILT_ANGLE = 0.6;
 
+// ------------------------------------------------------------------- grabs
+//
+// Smash-style grabbing and throwing (?throw=true — src/flags.js, src/grab.js).
+//
+// The triangle it exists to complete: attacks lose to shield, shield loses to
+// grab, grab loses to attacks — a whiffed grab is the most punishable thing a
+// fighter can do, which is why `whiffRecover` is longer than any jab's endlag.
+export const GRAB = {
+  startup: 0.07,        // hand closes this long after the press
+  active: 0.11,         // window in which it can connect
+  whiffRecover: 0.34,   // arms out, hit me: the price of guessing wrong
+  grace: 26,            // px past the measured art reach a closing hand gets
+
+  // How long a hold lasts before the victim slips free on their own. Scales
+  // with their damage — Smash's rule, and what makes a late-game grab a real
+  // threat while an opening grab is only ever a throw's worth of trouble.
+  holdBase: 1.15, holdPerDmg: 0.006, holdMax: 2.4,
+  // Every fresh press or stick flick the VICTIM makes shaves this much off the
+  // hold. Mashing out of an early grab is genuinely possible; at high damage
+  // the arithmetic stops working, which is the point.
+  mashReduce: 0.09,
+
+  releaseImmune: 0.7,   // no-regrab window after ANY release: no chain grabs
+  escapeLag: 0.34,      // grabber's stumble when mashed out of — their punish window
+  breakoutPush: 300,    // the hop a victim breaks away with (px/s, plus a small rise)
+
+  pummelDmg: 2.2,       // per hit; deliberately worse than throwing immediately
+  pummelRate: 0.34,     // minimum gap between pummels
+  pummelFirst: 0.22,    // the hold has to settle before the first one
+
+  throwDur: 0.3,        // the grabber's own throw animation / commitment
+};
+
+// The four throws. Fixed data rather than per-character kit numbers, exactly
+// like Smash's early games: a throw is positional currency, not a damage race.
+// Every one of these is routed through applyHit, so DI, staling, tallies and
+// KO credit all apply. Balance intent, against a charged side smash (baseKb
+// 430–537, growth 8.4): throws never KO earlier than a smash at centre stage —
+// back throw only edges it out at the ledge, which is the classic reason to
+// take somebody's back.
+export const THROWS = {
+  fwd:  { dmg: 8,   baseKb: 430, growth: 6.6, angle: 0.55, label: "Throw",       sfx: "punch" },
+  back: { dmg: 9.5, baseKb: 470, growth: 7.1, angle: 0.62, label: "Back Throw",  sfx: "punch" },
+  up:   { dmg: 7,   baseKb: 400, growth: 7.7, angle: 1.42, label: "Up Throw",    sfx: "whoosh" },
+  // Low knockback on purpose: the down throw is the combo starter — it buys a
+  // juggle at low damage and stops being worth it once they fly too far.
+  down: { dmg: 6,   baseKb: 270, growth: 4.0, angle: 1.12, label: "Down Throw",  sfx: "punch" },
+};
+
 // meter / ultimate
 export const METER_MAX = 100;
 export const METER_PASSIVE = 1.1;
@@ -166,6 +222,29 @@ export const RESPAWN_PLATFORM_TIME = 3.0;
 // enough to not be hit in the act of stepping down, short enough that it is no
 // substitute for the platform you just gave up.
 export const RESPAWN_GRACE = 0.5;
+
+// ------------------------------------------------------------- match clock
+//
+// A stock match with no clock cannot be made to end: two players who both
+// refuse to approach, or a CPU that has decided to keep its distance, run
+// forever. The limit is the backstop for that, not the normal way a match
+// finishes — every option here is longer than a fight that is actually being
+// fought.
+//
+// Seconds. 0 is "no limit", and it stays available because a friendly match
+// between two people who want to keep going is a real thing.
+export const TIME_OPTIONS = [0, 120, 180, 300, 480];
+export const DEFAULT_TIME_LIMIT = 300;
+
+// When the clock runs out on a tie, the tied fighters play it off: one stock
+// each at this much damage, so the next clean hit ends it.
+export const SUDDEN_DEATH_DAMAGE = 150;
+
+// How long after a hit the attacker's combo counter stays open. Measured on
+// top of the victim's own hitstun, so a true combo — the next hit landing
+// while they still cannot act — always counts, and a re-engagement a moment
+// after they recover does not.
+export const COMBO_GRACE = 0.35;
 
 export const CELL_W = 313.5;
 export const CELL_H = 313.6;

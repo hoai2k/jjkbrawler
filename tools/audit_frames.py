@@ -18,6 +18,7 @@ sheets for the frames it flags.
 Usage:
   python3 audit_frames.py [--chars gojo,maki] [--board] [--only bleed,size]
 """
+import sprite_paths
 
 import argparse
 import json
@@ -29,7 +30,7 @@ from PIL import Image, ImageDraw
 from scipy import ndimage
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 CHAR_JS = os.path.join(HERE, "..", "src", "characters.js")
 CELL_W, CELL_H = 313.5, 313.6
 

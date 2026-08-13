@@ -22,7 +22,7 @@ export const STAGES = [
   { key: "floodedGate", name: "Flooded Gate", bgFile: "flooded_gate.jpg", tint: "rgba(107, 174, 214, 0.13)", platforms: [
     { x: 220, y: 570, w: 840, h: 42, kind: "main" }, { x: 190, y: 446, w: 180, h: 22, kind: "side" }, { x: 910, y: 446, w: 180, h: 22, kind: "side" }, { x: 552, y: 336, w: 176, h: 20, kind: "top" }
   ] },
-  { key: "shibuyaNight", name: "Shibuya Night", bgFile: "shibuya_night.webp", tint: "rgba(88, 116, 220, 0.16)", platforms: [
+  { key: "shibuyaNight", name: "Shibuya Night", bgFile: "shibuya_night.jpg", tint: "rgba(88, 116, 220, 0.16)", platforms: [
     { x: 250, y: 566, w: 780, h: 42, kind: "main" }, { x: 200, y: 452, w: 220, h: 22, kind: "side" }, { x: 860, y: 452, w: 220, h: 22, kind: "side" }, { x: 360, y: 342, w: 190, h: 22, kind: "side" }, { x: 730, y: 342, w: 190, h: 22, kind: "side" }, { x: 505, y: 240, w: 270, h: 20, kind: "top" }
   ] },
   { key: "curseMaw", name: "Curse Maw", bgFile: "curse_maw.jpg", tint: "rgba(60, 215, 218, 0.13)", platforms: [
@@ -79,6 +79,51 @@ export const STAGES = [
 
 export function getStage(key) {
   return STAGES.find((s) => s.key === key) || STAGES[0];
+}
+
+// Every board ships TWO paintings of the same scene, because the two cameras
+// frame a backdrop differently and one plate cannot serve both:
+//
+//   assets/backgrounds/<bgFile>       the wide plate (3200×1800, round 18E)
+//   assets/backgrounds/flat/<bgFile>  the painting the game shipped before it
+//
+// The 3D camera over-fills its frustum on purpose (×1.5 height, ×1.35 width in
+// camera3d/stage_geo.js) so no dolly or yaw can swing past the backdrop's edge,
+// and the cost is that only ~49% of the plate's width is ever on screen. The
+// wide plates were repainted for exactly that crop. Flat mode has no frustum to
+// over-fill — it shows the whole plate — so on the wide plates it sees an outer
+// ring that was never composed as picture, and the boards read sparse and dim.
+// It draws the older paintings instead, which are the framing it was built for.
+//
+// Filenames match between the two directories, with one exception: the flat
+// Shibuya Night is still the `.webp` it shipped as (18E's replacement is the
+// file that became `.jpg`), so it names its own file below.
+const FLAT_BG_FILES = { shibuyaNight: "shibuya_night.webp" };
+
+/** The backdrop file for `stage` under the given camera. `flat` true asks for
+ *  the flat camera's painting; anything else gets the wide 3D plate. */
+export function backgroundFile(stage, flat) {
+  if (!flat) return `assets/backgrounds/${stage.bgFile}`;
+  return `assets/backgrounds/flat/${FLAT_BG_FILES[stage.key] || stage.bgFile}`;
+}
+
+// Where a match of `count` fighters lines up. Two, three and four are placed by
+// hand — those are the spacings the stages were laid out around. A crowd (the
+// Players vs CPUs and Battle Royal modes) is spread evenly across the middle of
+// the stage instead, tightening as it grows so eight fighters still start on
+// solid ground on the narrowest board.
+const SPAWN_SETS = {
+  2: [430, 850],
+  3: [320, 640, 960],
+  4: [250, 500, 780, 1030],
+};
+const CROWD_SPAN = { left: 320, right: 960 };
+
+export function spawnXs(count) {
+  if (SPAWN_SETS[count]) return SPAWN_SETS[count];
+  const { left, right } = CROWD_SPAN;
+  const step = (right - left) / Math.max(1, count - 1);
+  return Array.from({ length: count }, (_, i) => Math.round(left + step * i));
 }
 
 export function mainPlatform(platforms) {

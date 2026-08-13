@@ -8,20 +8,23 @@ import { duckMusic } from "./audio.js";
 import { ELEMENT_HIT_SFX } from "./config_audio.js";
 import { playSfx, noteFireBurning } from "./audio.js";
 import { domainKnockbackMul } from "./domains.js";
+import { isFoe } from "./teams.js";
 import {
   SHIELD_DAMAGE_MULT, SHIELD_BREAK_STUN, PARRY_WINDOW, METER_MAX,
   METER_ON_DEAL, METER_ON_TAKE, HURTBOX,
   GROUND_RELEASE, GROUND_SLIDE_BOOST, GROUND_SPIKE_BOUNCE,
   SAKURAI, SAKURAI_AIR, SAKURAI_LOW, SAKURAI_POP, SAKURAI_KB,
+  COMBO_GRACE,
 } from "./constants.js";
 import { bodyMetrics } from "./silhouette.js";
 import { swingExtent } from "./moves.js";
+import { breakGrabsOn } from "./grab.js";
 import {
   TUMBLE_KB_MIN, TUMBLE_SPIN_PER_KB, TUMBLE_SPIN_MAX,
   DI_MAX_TURN, DI_SPEED, STALE_QUEUE, STALE_DMG_STEP, STALE_KB_STEP,
 } from "./config_tuning.js";
 
-// The right stick belonging to a fighter, or a centred stick when they have no
+// The aim pad (the d-pad) belonging to a fighter, or a centred one when they have no
 // live input this step. CPU fighters always read as centred: aiming and steering
 // are player affordances, and their kits behave exactly as they did before.
 //
@@ -79,8 +82,8 @@ export function hurtbox(f) {
 }
 
 export function opponentOf(f) {
-  const candidates = state.fighters.filter((o) => o !== f && !o.dead && o.respawnTimer <= 0);
-  if (!candidates.length) return state.fighters.find((o) => o !== f && !o.dead) || null;
+  const candidates = state.fighters.filter((o) => isFoe(f, o) && !o.dead && o.respawnTimer <= 0);
+  if (!candidates.length) return state.fighters.find((o) => isFoe(f, o) && !o.dead) || null;
   return candidates.reduce((best, o) =>
     Math.abs(o.x - f.x) < Math.abs(best.x - f.x) ? o : best
   );
@@ -145,7 +148,8 @@ function enemySummons(attacker) {
     // `intangible` covers a summon that has not finished arriving and one that
     // is already dissipating: neither is on the board to be hit (summons.js).
     if (e.kind !== "summon" || e.dead || e.intangible || !e.damage) continue;
-    if (e.owner === attacker) continue;
+    // A summon is its owner's: an attack that cannot hit them cannot hit it.
+    if (!isFoe(attacker, e.owner)) continue;
     out.push(e);
   }
   return out;
@@ -191,7 +195,7 @@ export function updateHitboxes(dt) {
     }
     const rect = hitboxRect(hb);
     for (const target of state.fighters) {
-      if (target === o || target.dead || target.respawnTimer > 0) continue;
+      if (!isFoe(o, target) || target.dead || target.respawnTimer > 0) continue;
       let rec = hb.hits.get(target);
       if (rec && (rec.count >= hb.maxHits || hb.age < rec.nextAt)) continue;
       if (!rectsOverlap(rect, hurtbox(target))) continue;
@@ -258,7 +262,7 @@ export function spawnProjectile(owner, cfg) {
     unblockable: !!cfg.unblockable,
     shieldMul: cfg.shieldMul || 1,
     // Creature projectiles (Nue, Geto's cursed spirits) can be flown with the
-    // right stick. `steerRate` is how fast the flight path can be turned, in
+    // d-pad. `steerRate` is how fast the flight path can be turned, in
     // radians per second.
     steerable: !!cfg.steerable,
     steerRate: cfg.steerRate ?? 5.2,
@@ -272,7 +276,7 @@ function explodeProjectile(p) {
   explodeFx(p);
   playSfx("projectileHit", 0.9);
   for (const target of state.fighters) {
-    if (target === p.owner || target.dead || target.respawnTimer > 0) continue;
+    if (!isFoe(p.owner, target) || target.dead || target.respawnTimer > 0) continue;
     if (circleRectOverlap(p.x, p.y, p.explode, hurtbox(target))) {
       applyHit(p.owner, target, { ...p, dmg: p.dmg, sfx: "blast" }, "projectile");
     }
@@ -283,6 +287,11 @@ export function updateProjectiles(dt) {
   const groundY = state.platforms.length ? state.platforms[0].y : 568;
   for (let i = state.projectiles.length - 1; i >= 0; i--) {
     const p = state.projectiles[i];
+    // Hitboxes freeze with their owner through hitlag (updateHitboxes above);
+    // projectiles did not, so the frame a shot connected, everything froze for
+    // the impact EXCEPT the shot that caused it, which slid visibly onward
+    // through its own freeze frames.
+    if (p.owner && p.owner.hitPause > 0) continue;
     p.age += dt;
     p.dur -= dt;
     // Comet tail: sample where the shot has actually been, so an arcing or
@@ -294,7 +303,7 @@ export function updateProjectiles(dt) {
       if (p.trailPts.length > PROJ_TRAIL.len * 2) p.trailPts.splice(0, 2);
     }
     projectileEmit(p, dt);
-    const target = state.fighters.find((f) => f !== p.owner && !f.dead);
+    const target = state.fighters.find((f) => isFoe(p.owner, f) && !f.dead);
 
     // Flying it by hand. The path turns toward the stick at a limited rate
     // rather than snapping, so a steered curse arcs instead of teleporting its
@@ -652,6 +661,9 @@ function pushStale(owner, id) {
 }
 
 export function applyHit(owner, target, hit, source) {
+  // The one gate every damage path funnels through, so friendly fire is off in
+  // a team match no matter which kit spawned the hit (teams.js).
+  if (!isFoe(owner, target)) return "ignored";
   if (target.invuln > 0 || target.dead || target.respawnTimer > 0) return "ignored";
   if (owner.dead || owner.respawnTimer > 0) return "ignored";
 
@@ -662,6 +674,11 @@ export function applyHit(owner, target, hit, source) {
     triggerCounter(target, owner);
     return "countered";
   }
+
+  // A landed hit shakes any grab apart (?throw=true): striking the grabber
+  // frees their victim, and a third party striking the victim knocks them out
+  // of the hands holding them. The holder's own pummel is exempt (grab.js).
+  breakGrabsOn(target, owner);
 
   let dmg = hit.dmg;
   let baseKb = hit.baseKb;
@@ -932,7 +949,61 @@ export function applyHit(owner, target, hit, source) {
     burst(owner.x, owner.y - 80, "#ff7a2f", 10, 0.7);
   }
 
+  recordHit(owner, target, dmg, armored);
   return "hit";
+}
+
+// How long a hit stands as KO credit. A fighter launched off the top of the
+// stage is often nowhere near whoever hit them by the time they cross the blast
+// line, so the credit has to outlive the contact — but not so far that a stray
+// poke thirty seconds ago claims a self-destruct.
+const KO_CREDIT_TIME = 4;
+
+/** The bookkeeping every landed hit does for the SCREEN rather than for the
+ *  simulation: the result-screen tally, the combo chain, and who to credit if
+ *  this hit turns out to have been the one that ended a stock.
+ *
+ *  Deliberately at the very end of applyHit, where a hit is known to have
+ *  actually landed and `dmg` is final — every multiplier, the shield and armor
+ *  branches, and Rika's echo have all had their say by here. Nothing in this
+ *  function is read back by the simulation, so it cannot desync anything. */
+function recordHit(owner, target, dmg, armored) {
+  owner.tally.dealt += dmg;
+  target.tally.taken += dmg;
+  owner.tally.biggestHit = Math.max(owner.tally.biggestHit, dmg);
+  target.lastHitBy = owner;
+  target.lastHitT = KO_CREDIT_TIME;
+
+  // A combo is counted against ONE victim: hits spread across a Battle Royal
+  // are not a combo, they are a busy afternoon. The chain continues only while
+  // the previous hit's window is still open on the same target.
+  const continuing = owner.comboT > 0 && owner.comboTarget === target;
+  owner.combo = continuing ? owner.combo + 1 : 1;
+  owner.comboTarget = target;
+  // Open for as long as the victim cannot act, plus a little. An armored hit
+  // grants no hitstun, so it gets the grace alone.
+  owner.comboT = (armored ? 0 : target.hitstun) + COMBO_GRACE;
+  owner.tally.bestCombo = Math.max(owner.tally.bestCombo, owner.combo);
+
+  // Taking a hit ends whatever you were building. Otherwise two fighters
+  // trading blows both read as being on a ten-hit run.
+  target.combo = 0;
+  target.comboT = 0;
+  target.comboTarget = null;
+}
+
+/** Steps the two timers recordHit sets. Called once per sim step per fighter
+ *  from the main loop — outside updateFighter, which returns early during
+ *  hitlag and would freeze the combo window along with the fighter. */
+export function stepHitCredit(f, dt) {
+  if (f.comboT > 0) {
+    f.comboT -= dt;
+    if (f.comboT <= 0) { f.combo = 0; f.comboTarget = null; }
+  }
+  if (f.lastHitT > 0) {
+    f.lastHitT -= dt;
+    if (f.lastHitT <= 0) f.lastHitBy = null;
+  }
 }
 
 function interruptActions(target) {

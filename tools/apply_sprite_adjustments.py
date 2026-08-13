@@ -10,7 +10,7 @@ and `ox` live against the game's real renderer, then exports JSON like:
                                        "anchors": { "com": [148.7, 512.0],
                                                     "ledge": [161.0, 40.6] } } } }
 
-This writes those values into `assets/sprites/manifest.json`. Multiple payloads
+This writes those values into `sprites/assets/manifest.json`. Multiple payloads
 can be applied at once — paste several into one file as a JSON array, or pass
 several files.
 
@@ -30,6 +30,7 @@ Usage:
   pbpaste | python3 apply_sprite_adjustments.py -        # straight from clipboard
   python3 apply_sprite_adjustments.py patch.json --dry-run
 """
+import sprite_paths
 
 import argparse
 import datetime as dt
@@ -38,7 +39,7 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-MANIFEST = os.path.join(HERE, "..", "assets", "sprites", "manifest.json")
+MANIFEST = sprite_paths.MANIFEST
 
 # The workbench's pseudo-character for shared effect/summon art. Its edits go to
 # manifest["otherSprites"], not under any character.
@@ -52,7 +53,7 @@ OTHER_KEY = "__other"
 # corner: "com" is the centre of mass every rotation pivots about, and states
 # can add their own ("ledge" is the hand that grips the edge). Image-local
 # coordinates mean an anchor stays on the same piece of artwork through any
-# later renderScale / ox / bodyBottom change. See src/sprites.js.
+# later renderScale / ox / bodyBottom change. See sprites/src/sprites.js.
 #
 # faceLeft mirrors a frame whose art was drawn facing left. `nativeLeft` in the
 # manifest seeded these by guess; a per-frame faceLeft is an explicit decision
@@ -61,7 +62,7 @@ OTHER_KEY = "__other"
 #
 # needsReplacement flags a frame whose ART is wrong. Its VALUE says what is
 # wrong — "replace", "crop", "alpha", "bleed" (REPLACEMENT_KINDS in
-# src/sprites.js) — because a wholesale redraw and a crop fix are very different
+# sprites/src/sprites.js) — because a wholesale redraw and a crop fix are very different
 # asks. `false` clears the flag; a legacy `true` means "replace".
 # tools/list_replacements.py collects them for the asset request list, and
 # intake clears the flag when new art lands.
@@ -73,7 +74,7 @@ OTHER_KEY = "__other"
 #
 # wantsImprovement is the softer ask: the art works, it is just not as good as
 # it should be. Its value is "quality", "pose" or "character"
-# (IMPROVEMENT_KINDS in src/sprites.js). Collected at a lower priority, since
+# (IMPROVEMENT_KINDS in sprites/src/sprites.js). Collected at a lower priority, since
 # nothing is blocked by one.
 #
 # replacementNote / improvementNote are the free text written beside either
@@ -83,6 +84,15 @@ OTHER_KEY = "__other"
 # the drawing (VARIANT_REVIEW), not the pose, and the workbench drops a note when
 # the flag it explains is cleared.
 ALLOWED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "anchors", "faceLeft",
+           # Shared drawings (`otherSprites`) only: a nudge in GAME pixels from
+           # the point the spawn site paints them on. They have no cell to be
+           # placed in, so `ox`/`bodyBottom` mean nothing there.
+           "dx", "dy",
+           # Shared CREATURES only: the box a summon hits with, as four
+           # fractions of its own drawing (x, y, w, h — see sharedAttack in
+           # src/shared_sprites.js). Its hurt box is the whole drawing and is
+           # measured, so there is nothing to store for that one.
+           "attackBox",
            "needsReplacement", "wantsImprovement",
            "replacementNote", "improvementNote"}
 # Free text. "" is meaningful — it clears the note rather than leaving the old
@@ -91,7 +101,9 @@ TEXT = {"replacementNote", "improvementNote"}
 # Flags whose VALUE is a kind string. `false` clears; a legacy `true` means the
 # first kind in the list.
 KIND_FIELDS = {"needsReplacement": "replace", "wantsImprovement": "quality"}
-NUMERIC = {"renderScale", "ox", "bodyBottom", "rotationDeg"}
+NUMERIC = {"renderScale", "ox", "bodyBottom", "rotationDeg", "dx", "dy"}
+# Fields whose value is an object, taken whole rather than compared as a number.
+OBJECT = {"attackBox", "anchors"}
 BOOLEAN = {"faceLeft"}
 
 # Fields whose pre-edit value is worth remembering. `edited` maps each to what
@@ -99,7 +111,7 @@ BOOLEAN = {"faceLeft"}
 # hand-tuned (the workbench's view filter reads it), and it lets intake roll the
 # tuning back when the art is replaced — nudges made to compensate for bad art
 # must not be inherited by the art that fixes it.
-TRACKED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "faceLeft"}
+TRACKED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "faceLeft", "dx", "dy"}
 
 # The fields that mean somebody PLACED this pose, as opposed to judging the
 # drawing on it. Only these take a pose off the recently-updated list — see the
@@ -110,7 +122,7 @@ PLACEMENT_WORK = TRACKED | {"anchors"}
 # variant that does not set a field cannot inherit the previous drawing's. That
 # covers the review flags as well as the numbers: "fix alpha" is a verdict on a
 # DRAWING, and a pose that keeps it across a switch pins it to whichever art
-# happens to be selected. Mirrors VARIANT_BANKED in src/sprites.js and BANKED in
+# happens to be selected. Mirrors VARIANT_BANKED in sprites/src/sprites.js and BANKED in
 # build_variants.py.
 VARIANT_PLACEMENT = [
     "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
@@ -122,7 +134,7 @@ VARIANT_REVIEW = ["needsReplacement", "wantsImprovement",
 VARIANT_BANKED = VARIANT_PLACEMENT + VARIANT_REVIEW
 
 # Kinds that only mean something about an option, never about the pose.
-# Mirrors VARIANT_ONLY_KINDS in src/sprites.js.
+# Mirrors VARIANT_ONLY_KINDS in sprites/src/sprites.js.
 VARIANT_ONLY_KINDS = {"delete"}
 
 
@@ -258,7 +270,7 @@ def main():
         }
         # Which sprite each action draws. The workbench's secondary-action
         # editor writes these when a state is pointed at a different cell; the
-        # game reads them in animsOf() (src/sprites.js), so characters.js does
+        # game reads them in animsOf() (sprites/src/sprites.js), so characters.js does
         # not change. An empty list clears an override.
         if "animOverrides" in payload:
             table = man.setdefault("animOverrides", {}).setdefault(char, {})
@@ -443,6 +455,29 @@ def main():
                         meta.pop(field, None)
                     applied.append(f"{char}/{key}.{field}: "
                                    + ("cleared" if not text else f"{len(text)} chars"))
+                    continue
+                if field == "attackBox":
+                    # Four fractions of the drawing, taken whole: they only mean
+                    # anything together, and a partial one would place a box
+                    # nobody chose. Clamped to the same bounds the workbench
+                    # drags within, so a hand-edited export cannot put a
+                    # creature's bite off its own body.
+                    if not isinstance(value, dict):
+                        skipped.append(f"{char}/{key}.attackBox: not an object")
+                        continue
+                    bounds = {"x": (-1, 1), "y": (0, 1.5), "w": (0.05, 2), "h": (0.05, 2)}
+                    before = meta.get("attackBox")
+                    box = {}
+                    for name, (lo, hi) in bounds.items():
+                        if name not in value:
+                            skipped.append(f"{char}/{key}.attackBox: missing '{name}'")
+                            box = None
+                            break
+                        box[name] = round(min(hi, max(lo, float(value[name]))), 3)
+                    if box is None:
+                        continue
+                    meta["attackBox"] = box
+                    applied.append(f"{char}/{key}.attackBox: {before} -> {box}")
                     continue
                 if field == "anchors":
                     # merge, so exporting one anchor never drops the others

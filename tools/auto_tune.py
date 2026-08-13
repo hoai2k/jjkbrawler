@@ -2,7 +2,7 @@
 """Apply the placement corrections that are mechanical, so the hand pass is not.
 
 An intake round lands art at numbers `intake_import.place()` derives, and then
-somebody opens the workbench and moves them. `docs/sprite-auto-adjust.md` is the
+somebody opens the workbench and moves them. `sprites/docs/sprite-auto-adjust.md` is the
 measurement of which of those moves are mechanical: it reads the `edited` map
 (which stores each hand-tuned field's PRE-edit value) and asks, for every
 correction ever made, whether the derived value was wrong in a predictable way.
@@ -56,6 +56,7 @@ by somebody looking at the sprite, and no measurement here outranks that.
   python3 tools/auto_tune.py --char maki uro
   python3 tools/auto_tune.py --backtest        # score the rules against hand values
 """
+import sprite_paths
 
 import argparse
 import collections
@@ -75,7 +76,7 @@ sys.path.insert(0, HERE)
 from audit_frame_sizes import anims_by_frame, DEFAULT_REVIEWED  # noqa: E402
 from extract_sprites import ALPHA_THRESHOLD, SHEET_W, COLS  # noqa: E402
 
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 CHARACTERS_JS = os.path.join(HERE, "..", "src", "characters.js")
 
@@ -91,9 +92,19 @@ CELL_MID = SHEET_W / COLS / 2
 # human tunes it, which is what happens today anyway.
 
 # A state's height ratio counts as uniform when its spread across the reviewed
-# roster is under this. The measured populations are <=0.1% and >=8%, so
-# anything in between is a state that has changed character and should be
-# looked at rather than tuned. Nothing currently lands there.
+# roster is under this. The populations used to be <=0.1% and >=8%, with nothing
+# in between; today ten states (`hurt`, `fall`, `jump`, `shield`, `ledge`,
+# `win`, `upHeavy`, `charge`, `dizzy`, `land`) sit together at 1.3%, so `idle`
+# is the only state left the size rule will apply.
+#
+# The 1.3% is one cause, not ten: jogo, nobara and inumaki size EVERY one of
+# those states ~3% low against their own idle, uniformly, so their idle_a
+# `bodyH` is what differs rather than the poses. The threshold is deliberately
+# NOT loosened to swallow it — the failure mode of declining is that a human
+# tunes the pose, which is the status quo, and the failure mode of accepting is
+# a wrong size written into the manifest by a script. `tools/test_auto_tune.py`
+# fails on this and should keep failing until those three idles are re-measured
+# or the difference is confirmed to be real.
 UNIFORM_CV = 0.01
 # Reviewed characters a state needs before its ratio is trusted at all.
 MIN_STATE_SAMPLES = 6
@@ -144,7 +155,7 @@ def measure(path):
     """The three things the rules need from a drawing.
 
     `body_bottom` is the bottom of the LARGEST connected component, which is
-    what docs/asset-pipeline.md means by the foot line — a detached energy burst
+    what sprites/docs/asset-pipeline.md means by the foot line — a detached energy burst
     below the feet is not the floor. `centroid_x` is alpha-weighted, so it is
     the middle of the character's mass rather than of its bounding box.
     """

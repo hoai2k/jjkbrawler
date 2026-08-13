@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Billboard Workbench — JJK Brawler II</title>
+    <link rel="icon" href="../../favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+    <link rel="stylesheet" href="workbench.css">
+  </head>
+  <body>
+    <header class="bar">
+      <strong>Billboard Workbench</strong>
+      <span class="hint">The model posed by the game's own pipeline, over the sprite it replaces. What you see is what <code>?render=billboard</code> draws.</span>
+      <a class="ghost sm" href="../../render3d/workbench/">3D Workbench →</a>
+      <a class="ghost sm" href="../../sprites/workbench/">Sprite Workbench →</a>
+    </header>
+
+    <main class="layout">
+      <section class="stage-col">
+        <canvas id="stage" width="1040" height="660"></canvas>
+
+        <div class="row viewer-tools">
+          <button id="zoomOut" class="ghost sm" title="Zoom out">−</button>
+          <input id="zoom" type="range" min="0.4" max="4" step="0.05" value="1">
+          <button id="zoomIn" class="ghost sm" title="Zoom in">+</button>
+          <button id="zoomReset" class="ghost sm">Reset view</button>
+          <span id="zoomVal" class="mono">1.00×</span>
+          <span class="hint">Scroll over the viewer to zoom; drag the background to pan.</span>
+        </div>
+
+        <div id="status" class="mono"></div>
+      </section>
+
+      <aside class="panel">
+        <label>Character
+          <select id="charSelect"></select>
+        </label>
+        <label>State
+          <select id="stateSelect"></select>
+        </label>
+        <div class="row">
+          <button id="playBtn" class="ghost sm">▶ Play</button>
+          <input id="scrub" type="range" min="0" max="1" step="0.001" value="0">
+          <span id="timeLabel" class="mono">0.00s</span>
+        </div>
+        <label>Comparison sprite
+          <select id="compareMode">
+            <option value="overlay" selected>Overlay — ghosted behind the model</option>
+            <option value="left">Beside — drawn to the left</option>
+            <option value="off">None</option>
+          </select>
+        </label>
+        <div class="row">
+          <label class="check"><input id="beatToggle" type="checkbox" checked> Snap to beat</label>
+          <label class="check"><input id="aimToggle" type="checkbox" checked> Aim target</label>
+          <label class="check"><input id="ikToggle" type="checkbox" checked> IK reach</label>
+        </div>
+        <p class="hint">Drag the crosshair to move the target point — aimable
+        states (attacks) pitch toward it and, with IK on, actually reach it —
+        exactly as they do toward an opponent in-game. Locomotion never re-aims.</p>
+
+        <h3>Props &amp; chains</h3>
+        <div id="propsLine" class="mono src" style="white-space: pre-line"></div>
+
+        <h3>This state's clip</h3>
+        <div id="sourceLine" class="mono src"></div>
+
+        <h3>The card</h3>
+        <div id="cardLine" class="mono src"></div>
+        <p class="hint">What this backend actually decides: the texture the
+        card is baked into, and how much of the pose cache is being hit. A card
+        is one render re-used across frames and both facings — the hit rate is
+        the whole economy of it.</p>
+
+        <h3>All states</h3>
+        <div id="stateTable" class="states"></div>
+
+        <p class="hint"><strong>The rig itself is edited in the
+        <a href="/render3d/workbench/">3D workbench</a>.</strong> Clip
+        inheritance, approval, facing, size and stance are facts about the
+        MODEL, and both backends draw the same one — so they are set in one
+        place and this screen shows what they produced. Everything here is
+        read-only.</p>
+      </aside>
+    </main>
+
+    <script type="module" src="workbench.js"></script>
+  </body>
+</html>

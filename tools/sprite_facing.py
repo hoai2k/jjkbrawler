@@ -24,6 +24,7 @@ Examples:
   python3 sprite_facing.py --flip toji/r4c0 toji/r4c1
   python3 sprite_facing.py --check ~/Downloads/new_pose.png
 """
+import sprite_paths
 
 import argparse
 import json
@@ -34,7 +35,7 @@ from PIL import Image, ImageDraw, ImageOps
 from scipy import ndimage
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SPRITES = os.path.join(HERE, "..", "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 CELL_W = 313.5
 

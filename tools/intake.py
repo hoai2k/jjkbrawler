@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Process delivered art in `assets/intake/` — key, straighten, measure, report.
 
-Nothing here touches `assets/sprites/` or the manifest. Intake exists so a
+Nothing here touches `sprites/assets/` or the manifest. Intake exists so a
 delivery can be judged BEFORE it reaches the game, because past rounds fixed
 one problem while introducing another: a corrected costume at half the
 resolution, a corrected pose facing the wrong way, art keyed off green that
@@ -19,6 +19,7 @@ Usage:
   python3 intake.py --report
   python3 intake.py --chars panda,sukuna
 """
+import sprite_paths
 
 import argparse
 import json
@@ -37,7 +38,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
 INTAKE = os.path.join(ROOT, "assets", "intake")
 PROCESSED = os.path.join(INTAKE, "_processed")
-SPRITES = os.path.join(ROOT, "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 
 SHEET_CELL = re.compile(r"^r\d+c\d+$")
 # Body size below which the art is softer than what it replaces. The sheet
@@ -238,7 +239,7 @@ def grey_tint_mask(rgb, key, alpha, min_px=400):
 # either turns correct art backwards: round 15 delivered `egg_shot` pointing left
 # exactly as asked and the mirror flipped it, which is silent, because a mirrored
 # egg still looks like an egg.
-NO_MIRROR_DIRS = {"effects"}
+NO_MIRROR_DIRS = {"effects", "garnish"}
 
 # Frames the facing detector called wrong, corrected by eye on the intake board.
 FACING_OVERRIDE = {
@@ -253,6 +254,11 @@ FACING_OVERRIDE = {
     "mechamaru/attack_up": "right",
     "mechamaru/hurt": "right",
     "yuki/attack_light_b": "right",
+    # Round 18: the same frame, the same fighter, the same mistake. Her heavy
+    # came back facing right and the detector flipped it, which puts the punch
+    # behind her — and a mirrored punch reads as a punch until you notice where
+    # it lands. Two of her four strike frames have now needed this entry.
+    "yuki/attack_heavy_b": "right",
 }
 
 
@@ -295,6 +301,48 @@ def measure(frame, box, src_shape, key=None):
         "greenFringe": fringe,
         "clipped": clipped,
     }
+
+
+def coverage(rows, anims):
+    """Which fighters a roster-wide pose did NOT arrive for, and who is not one.
+
+    A round asked for "27, one per fighter" twice (20C, 20D) and got 27 files
+    both times — with Mahoraga among them and Yuji missing. He is animated out
+    of a character sprite set and has a directory here like everybody else, but
+    he is a summon and not on `CHARACTER_KEYS`, so the delivery counted right
+    and covered the wrong set. Nothing downstream could tell: 27 plates landing
+    in 27 named directories is indistinguishable from the right 27 to any tool
+    that is not comparing names against the roster. So the names are compared
+    here, once, at the front of the pipeline.
+
+    It reports and never fails. A round is allowed to land one fighter at a
+    time — that is the stated shape of 20D — so a gap is news, not an error.
+    Only a pose delivered for over half the roster is treated as roster-wide;
+    below that the delivery is plainly a subset and listing the other 20 names
+    would be noise.
+    """
+    roster = set(anims)
+    by_pose = {}
+    for r in rows:
+        by_pose.setdefault(r["key"], set()).add(r["char"])
+
+    strangers = sorted({r["char"] for r in rows} - roster)
+    gaps = []
+    for pose, chars in sorted(by_pose.items()):
+        if len(chars & roster) * 2 <= len(roster):
+            continue
+        missing = sorted(roster - chars)
+        if missing:
+            gaps.append(f"{pose}: {len(chars & roster)}/{len(roster)} fighters, "
+                        f"missing {', '.join(missing)}")
+    if not strangers and not gaps:
+        return
+    print("\nROSTER COVERAGE (CHARACTER_KEYS):")
+    for line in gaps:
+        print("  " + line)
+    for name in strangers:
+        print(f"  {name}: delivered, but not a fighter — no pose of theirs is "
+              f"part of a roster-wide round")
 
 
 def main():
@@ -377,6 +425,7 @@ def main():
 
     mir = sum(1 for r in rows if r["mirrored"])
     print(f"{len(rows)} frame(s) processed, {mir} mirrored to face right")
+    coverage(rows, anims)
     if flagged:
         print("\nFLAGGED:")
         for f in flagged:

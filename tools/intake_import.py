@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Import approved intake art into the game.
 
-Copies from `assets/intake/_processed/` into `assets/sprites/`, computes the
+Copies from `assets/intake/_processed/` into `sprites/assets/`, computes the
 placement metadata the renderer needs, and registers it in `manifest.json`.
 Only frames named in an approval file move; everything else stays in intake.
 
@@ -11,7 +11,7 @@ scaled so its body height matches what it replaces, so a swap does not
 silently resize the fighter — a replacement is a change of ART, never of size.
 
 How much of the replaced frame's own settings carries over depends on WHY it
-was flagged (KIND_PLACEMENT in src/sprites.js). A redraw and a crop fix
+was flagged (KIND_PLACEMENT in sprites/src/sprites.js). A redraw and a crop fix
 are not the same event:
 
   quality, pose,
@@ -64,10 +64,10 @@ from list_replacements import placement_rule, variant_banked
 
 CELL_W = CELL_H = 313.5
 
-# kind -> what survives, parsed from src/sprites.js so there is one source of
+# kind -> what survives, parsed from sprites/src/sprites.js so there is one source of
 # truth for the rule rather than a copy here that can drift.
 PLACEMENT = placement_rule()
-# What a variant option carries, parsed from src/sprites.js so a held-back
+# What a variant option carries, parsed from sprites/src/sprites.js so a held-back
 # replacement banks exactly what a chosen one does.
 VARIANT_BANKED = variant_banked()
 SPRITES = intake.SPRITES

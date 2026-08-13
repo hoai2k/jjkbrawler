@@ -18,7 +18,7 @@
 //                 tweakable, but these change what the game IS, and code
 //                 depends on their relationships.
 //
-// Background for the motion values is in docs/sprite-motion.md; for the
+// Background for the motion values is in sprites/docs/sprite-motion.md; for the
 // defence values, docs/combat-feel.md.
 
 // ------------------------------------------------------------ character size

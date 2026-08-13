@@ -4,6 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>JJK Brawler II</title>
+    <meta name="description" content="A cursed-energy platform fighter for one to four players. Two dozen sorcerers and curses, ultimates, Domain Expansions, and twenty arenas — in your browser, no install.">
+    <meta name="theme-color" content="#05070f">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="JJK Brawler II">
+    <meta property="og:description" content="A cursed-energy platform fighter for one to four players. Ultimates, Domain Expansions, and twenty arenas — in your browser, no install.">
+    <meta property="og:image" content="assets/ui/logo.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="JJK Brawler II">
+    <meta name="twitter:description" content="A cursed-energy platform fighter for one to four players — in your browser, no install.">
+    <meta name="twitter:image" content="assets/ui/logo.png">
     <link rel="icon" href="favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -14,6 +24,10 @@
   <body>
     <main class="game-shell">
       <section class="arena-wrap" aria-label="JJK Brawler game">
+        <!-- The 3D scene, under the game canvas. Only drawn to in `?camera=3d`
+             mode (src/render3d/); in flat mode it stays a blank layer the
+             opaque backdrop above completely covers. -->
+        <canvas id="glCanvas" width="1280" height="720"></canvas>
         <canvas id="gameCanvas" width="1280" height="720"></canvas>
 
         <nav id="utilityActions" class="utility-actions hidden" aria-label="Game options">
@@ -30,51 +44,13 @@
           </button>
         </nav>
 
+        <!-- Fighter panels are built in ui.js (buildHud): a match can seat
+             anywhere from two to eight fighters, so the row is generated from
+             the roster rather than hand-written per slot. -->
         <div class="hud hidden" id="hud" aria-live="polite">
-          <div class="fighter-status fighter-status--left" id="p1Panel">
-            <img id="p1Portrait" class="hud-portrait" alt="">
-            <div class="hud-info">
-              <div class="hud-row">
-                <span id="p1Name" class="fighter-name">Gojo</span>
-                <strong id="p1Damage" class="damage">0%</strong>
-              </div>
-              <div id="p1Stocks" class="stocks"></div>
-              <div class="meter"><div id="p1Meter" class="meter-fill"></div><span id="p1MeterLabel" class="meter-label"></span></div>
-            </div>
-          </div>
-
           <div class="round-actions">
-            <button id="pauseButton" type="button" aria-label="Pause game">Pause</button>
-          </div>
-
-          <div class="fighter-status fighter-status--right" id="p2Panel">
-            <div class="hud-info">
-              <div class="hud-row">
-                <strong id="p2Damage" class="damage">0%</strong>
-                <span id="p2Name" class="fighter-name">Sukuna</span>
-              </div>
-              <div id="p2Stocks" class="stocks stocks--right"></div>
-              <div class="meter"><div id="p2Meter" class="meter-fill"></div><span id="p2MeterLabel" class="meter-label"></span></div>
-            </div>
-            <img id="p2Portrait" class="hud-portrait" alt="">
-          </div>
-
-          <div class="fighter-status fighter-status--p3 hidden" id="p3Panel">
-            <img id="p3Portrait" class="hud-portrait" alt="">
-            <div class="hud-info">
-              <div class="hud-row"><span id="p3Name" class="fighter-name">Megumi</span><strong id="p3Damage" class="damage">0%</strong></div>
-              <div id="p3Stocks" class="stocks"></div>
-              <div class="meter"><div id="p3Meter" class="meter-fill"></div><span id="p3MeterLabel" class="meter-label"></span></div>
-            </div>
-          </div>
-
-          <div class="fighter-status fighter-status--p4 hidden" id="p4Panel">
-            <div class="hud-info">
-              <div class="hud-row"><strong id="p4Damage" class="damage">0%</strong><span id="p4Name" class="fighter-name">Nobara</span></div>
-              <div id="p4Stocks" class="stocks stocks--right"></div>
-              <div class="meter"><div id="p4Meter" class="meter-fill"></div><span id="p4MeterLabel" class="meter-label"></span></div>
-            </div>
-            <img id="p4Portrait" class="hud-portrait" alt="">
+            <div id="matchClock" class="match-clock hidden" aria-label="Time remaining">0:00</div>
+            <div id="arenaSign" class="arena-sign"><span id="arenaSignName">Training Bridge</span></div>
           </div>
         </div>
 
@@ -102,7 +78,11 @@
               <i id="p3PickReady" class="hero-ready hidden">Ready</i>
             </button>
             <div class="matchup-center">
-              <img class="vs-badge" src="assets/ui/vs_badge.png" alt="Versus">
+              <button id="vsModeButton" class="vs-mode" type="button" aria-haspopup="true" aria-expanded="false" title="Change match mode">
+                <img class="vs-badge" src="assets/ui/vs_badge.png" alt="Versus">
+                <span id="vsModeLabel" class="vs-mode-label">Vs Battle</span>
+              </button>
+              <div id="modeMenu" class="mode-menu hidden" role="menu" aria-label="Match mode"></div>
               <button id="startButton" class="primary-action" type="button">Choose Stage</button>
             </div>
             <button id="p4PickCard" class="matchup-side hidden" type="button">
@@ -125,6 +105,7 @@
 
           <div id="characterGrid" class="character-grid" aria-label="Fighter select"></div>
 
+          <p id="modeNote" class="controller-status mode-note hidden"></p>
           <p id="menuHint" class="controller-status">Pick a fighter to lock in — confirm again to start. B / Backspace un-readies.</p>
           <p id="controllerStatus" class="controller-status hidden"></p>
           <p id="loadHint" class="controller-status load-hint hidden"></p>
@@ -161,8 +142,12 @@
             <span class="eyebrow" id="roundKicker">Match complete</span>
             <h2 id="winnerText">Gojo wins</h2>
           </div>
+          <!-- Built in ui.js (renderMatchStats): one row per fighter, in
+               finishing order. -->
+          <div id="matchStats" class="match-stats"></div>
           <div class="menu-actions">
             <button id="rematchButton" class="primary-action" type="button">Rematch</button>
+            <button id="stageAgainButton" type="button">Change Stage</button>
             <button id="menuButton" type="button">Fighter Select</button>
           </div>
         </div>
@@ -172,6 +157,7 @@
             <span class="eyebrow">Match paused</span>
             <h2>Paused</h2>
           </div>
+          <p id="pauseNotice" class="pause-notice hidden"></p>
           <div class="menu-actions">
             <button id="resumeButton" class="primary-action" type="button">Resume</button>
             <button id="pauseResetButton" type="button">Reset</button>
@@ -197,7 +183,7 @@
             <button id="settingsMusicButton" type="button">Music: Mix</button>
             <button id="settingsCpuButton" type="button">CPU Difficulty: Normal</button>
             <button id="settingsStocksButton" type="button">Lives per fighter: 3</button>
-            <button id="settingsSpritesButton" type="button">Sprites: Default</button>
+            <button id="settingsTimeButton" type="button">Time limit: 5:00</button>
             <button id="settingsBoardsButton" type="button">Active Boards: On</button>
           </div>
           <div class="menu-actions">
@@ -216,6 +202,10 @@
         </div>
       </section>
     </main>
+
+    <!-- Failure the player can actually see. Written by reportError (ui.js);
+         empty and hidden until something throws. -->
+    <div id="errorToast" class="error-toast hidden" role="alert"></div>
 
     <audio id="musicTrack" preload="auto"></audio>
     <script type="module" src="src/main.js"></script>

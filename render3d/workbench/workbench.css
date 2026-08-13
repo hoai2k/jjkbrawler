@@ -1,0 +1,323 @@
+/* 3D workbench — same dark-tool look as the sprite and billboard workbenches,
+ * kept independent so the tools can drift without breaking each other.
+ *
+ * LAYOUT: the sprite workbench's shell — the page itself never scrolls, the
+ * viewer column and the control panel each own their own overflow, and the
+ * panel sits on the RIGHT. A panel taller than the window can no longer push
+ * the canvas off screen, which is what made pose editing unusable. */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: #0b0e17; color: #dbe2f0;
+  font: 14px/1.45 system-ui, sans-serif;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.bar {
+  display: flex; align-items: center; gap: 14px; flex: none;
+  padding: 10px 16px; background: #121728; border-bottom: 1px solid #232c44;
+}
+.bar .hint { color: #8b96b3; font-size: 12.5px; flex: 1; }
+
+main.layout {
+  flex: 1; min-height: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 14px; padding: 14px;
+}
+.stage-col {
+  min-width: 0; min-height: 0; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.panel {
+  min-height: 0; overflow-y: auto;
+  background: #121728; border: 1px solid #232c44;
+  border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px;
+}
+/* The two scrolling columns get a thin thumb rather than the platform bar,
+   which at 360px wide would eat a control's worth of room. */
+.panel::-webkit-scrollbar, .stage-col::-webkit-scrollbar { width: 10px; }
+.panel::-webkit-scrollbar-track, .stage-col::-webkit-scrollbar-track { background: transparent; }
+.panel::-webkit-scrollbar-thumb, .stage-col::-webkit-scrollbar-thumb {
+  background: #2c3654; border-radius: 6px; border: 3px solid transparent; background-clip: content-box;
+}
+.panel { scrollbar-width: thin; scrollbar-color: #2c3654 transparent; }
+
+.panel h3 { margin: 8px 0 0; font-size: 12px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #8b96b3; }
+label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #aab4cc; }
+select, input[type="range"] { width: 100%; }
+select, button, input[type="number"] {
+  background: #1a2136; color: #dbe2f0; border: 1px solid #2c3654; border-radius: 6px;
+  padding: 6px 8px; font: inherit;
+}
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+/* TWO WORKBENCHES, ONE PAGE. The pose bench is about ONE DRAWING — pick a
+   fighter, pick a pose, make the model match it — and every control that only
+   means something while a clip is PLAYING (the playhead, the beat snap, on
+   twos, the keyframe strip, the ease curve) is noise in that job. The
+   animation bench at ?edit=animation is where those live. Same module, same
+   viewer, same rig: `body.mode-*` decides which set is on screen, so there is
+   no second page to keep in step. */
+body.mode-pose .anim-only, body.mode-anim .pose-only { display: none !important; }
+/* The line-up is a VIEWING mode: five fighters, and no dial that would edit
+   only one of them. `.five-only` is the other half — the note that says so. */
+body.five .one-char, body:not(.five) .five-only { display: none !important; }
+body:not(.mq) .mq-only { display: none !important; }
+.navrow { flex-wrap: nowrap; }
+.navrow select { flex: 1; min-width: 0; }
+.navrow button { flex: none; min-width: 34px; }
+/* A checkbox reads as one line whether or not it sits in a .row — this used to
+   be scoped to .row, which stacked the stray ones over their own caption. */
+.check { flex-direction: row; align-items: center; gap: 6px; }
+.mono { font-family: ui-monospace, monospace; font-size: 12px; }
+.src { color: #9fd39f; }
+.hint { color: #8b96b3; font-size: 12px; margin: 2px 0; }
+canvas { width: 100%; max-width: 1040px; background: #101522; border: 1px solid #232c44;
+  border-radius: 10px; touch-action: none; }
+#status { color: #8b96b3; min-height: 1.4em; }
+button { cursor: pointer; }
+button:hover { border-color: #46557f; }
+.ghost { background: transparent; }
+.sm { font-size: 12px; padding: 4px 8px; }
+a.ghost { text-decoration: none; border: 1px solid #2c3654; border-radius: 6px; padding: 4px 8px; color: #aab4cc; }
+.states { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px;
+  max-height: 220px; overflow-y: auto; font-size: 12px; }
+.states .own { color: #9fd39f; }
+.states .inh { color: #d3c69f; }
+.states .def { color: #8b96b3; }
+.states .sel { outline: 1px solid #46557f; border-radius: 3px; }
+.states div { padding: 1px 4px; cursor: pointer; }
+
+/* Viewer tools: the zoom row under the canvas. */
+.viewer-tools { gap: 6px; }
+.viewer-tools input[type="range"] { flex: 1; min-width: 120px; width: auto; }
+.viewer-tools .hint { flex-basis: 100%; margin: 0; }
+
+/* Collapsible groups — Look-dev folds away so the pose controls above it are
+   what the panel opens on. */
+details.group {
+  border: 1px solid #232c44; border-radius: 8px; padding: 8px 10px; background: #0f1424;
+}
+details.group > summary {
+  cursor: pointer; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: #8b96b3; list-style: none;
+}
+details.group > summary::-webkit-details-marker { display: none; }
+details.group > summary::before { content: "▸ "; }
+details.group[open] > summary::before { content: "▾ "; }
+details.group > *:not(summary) { margin-top: 8px; }
+details.group > label { display: flex; }
+
+/* Pose editor */
+.pose-box { border: 1px solid #232c44; border-radius: 8px; padding: 8px 10px; background: #0f1424;
+  display: flex; flex-direction: column; gap: 8px; }
+.pose-box.editing { border-color: #6f8fd0; }
+button.on { background: #24406b; border-color: #6f8fd0; }
+.axis { display: grid; grid-template-columns: 14px 1fr 56px; align-items: center; gap: 6px; }
+.axis span { color: #8b96b3; font-size: 12px; }
+.axis input[type="number"] { padding: 2px 4px; font-size: 12px; width: 100%; }
+.edited { color: #d3c69f; }
+
+/* The keyframe strip: one chip per extreme, the contact beat marked. */
+.keyrow { flex-wrap: nowrap; gap: 4px; }
+.keystrip { display: flex; gap: 4px; overflow-x: auto; flex: 1; padding-bottom: 2px; }
+.keychip {
+  flex: none; font-size: 11px; padding: 3px 6px; background: #1a2136;
+  border: 1px solid #2c3654; border-radius: 5px; color: #aab4cc;
+  font-family: ui-monospace, monospace;
+}
+.keychip.sel { background: #24406b; border-color: #6f8fd0; color: #dbe2f0; }
+.keychip.beat { border-color: #9fd39f; }
+.keychip.beat::after { content: " ★"; color: #9fd39f; }
+
+/* A dial that this character overrides carries a dot and a clear button, so
+   "did that stick, and is it saved against this fighter?" is answered where
+   the dial is rather than in the export. */
+label.dial { position: relative; padding-right: 40px; }
+label.dial .dot {
+  position: absolute; right: 24px; top: 3px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #4d8ff0; box-shadow: 0 0 6px rgba(77, 143, 240, 0.6);
+  display: none;
+}
+label.dial.overridden .dot { display: block; }
+label.dial .clear {
+  position: absolute; right: 0; top: -2px; display: none;
+  padding: 0 5px; font-size: 12px; line-height: 1.4; background: transparent;
+}
+label.dial.overridden .clear { display: block; }
+p.hint .dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: #4d8ff0; vertical-align: middle;
+}
+
+/* Which space an edit lands in — stated, not implied. */
+.badge {
+  font-size: 11px; padding: 2px 7px; border-radius: 10px; letter-spacing: 0.02em;
+  border: 1px solid;
+}
+.badge.character { color: #9fb4e0; border-color: #46557f; background: #182034; }
+.badge.target { color: #cba0d2; border-color: #7d5a92; background: #241b2c; }
+
+/* The panel's tab sections are invisible wrappers on desktop — the panel
+   reads as one column, exactly as before they existed. */
+.ptab { display: contents; }
+#mobileBar { display: none; }
+
+/* ------------------------------------------------------------ the phone
+ *
+ * Small screens get a MODAL workbench: the viewer owns the whole screen, a
+ * bottom toolbar names the four jobs (Scene / Pose / Look / Clips), and
+ * tapping one opens that section of the SAME panel as a bottom sheet over the
+ * viewer — same controls, same ids, same wiring; nothing forks. The two jobs
+ * the phone is actually for — compare against the sprite, drag bones and
+ * export — sit one tap deep.
+ */
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1100px) {
+  body { overflow: hidden; height: 100%; }
+  .bar { flex-wrap: wrap; gap: 6px; padding: 8px 10px; }
+  .bar .hint { display: none; }
+
+  main.layout { display: block; padding: 0; }
+  .stage-col { overflow: visible; height: 100%; padding: 8px 8px 96px; }
+  canvas { max-width: none; }
+  .viewer-tools .hint { display: none; }
+  #status { font-size: 11px; }
+
+  /* The panel becomes the sheet. Closed by default; .open slides it up. */
+  .panel {
+    position: fixed; left: 0; right: 0; bottom: 56px; z-index: 30;
+    max-height: 62vh; border-radius: 14px 14px 0 0;
+    border-bottom: none; box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+    transform: translateY(110%); transition: transform 0.2s ease;
+    padding-bottom: 18px;
+  }
+  .panel.open { transform: none; }
+  /* One section at a time: the toolbar picks which. */
+  .ptab { display: none; }
+  .ptab.active { display: flex; flex-direction: column; gap: 10px; }
+
+  #mobileBar {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 31;
+    height: 56px; background: #121728; border-top: 1px solid #232c44;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  #mobileBar button {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 1px; font-size: 17px; background: none;
+    border: none; border-radius: 0; color: #8b96b3; padding: 4px 0;
+  }
+  #mobileBar button span { font-size: 10px; letter-spacing: 0.04em; }
+  #mobileBar button.active { color: #dbe2f0; background: #1a2136; }
+
+  /* Touch targets: the whole panel breathes a little wider. */
+  select, button, input[type="number"] { padding: 8px 10px; }
+  .keychip { padding: 6px 9px; }
+  .axis { grid-template-columns: 14px 1fr 64px; }
+}
+
+/* -------------------------------------------------------- size review
+ *
+ * A full-screen pass over the roster, one fighter at a time, each beside
+ * their own idle sprite. Two rules shape it: the FIGURES get whatever space
+ * is left, because they are what is being compared; and every control sits
+ * at the BOTTOM within thumb reach, because the judgement is usually made
+ * on a phone held one-handed.
+ *
+ * The viewer canvas is moved in here by the JS rather than duplicated, so
+ * this shows the real render with every layer on it. Unlike the facing pass
+ * it must show the canvas WHOLE — sprite and model stand side by side, and
+ * cropping the width to make the figures bigger is exactly what threw the
+ * reference off screen last time. */
+#facingOverlay {
+  position: fixed; inset: 0; z-index: 60;
+  background: #0b0e17;
+  display: flex; flex-direction: column;
+}
+#facingOverlay[hidden] { display: none; }
+#facingOverlay header {
+  flex: none; display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 10px 14px;
+  background: #121728; border-bottom: 1px solid #232c44;
+}
+#facingOverlay header b { font-size: 16px; }
+#facingProgress { color: #8b96b3; margin-left: 10px; }
+#facingClose { font-size: 16px; padding: 6px 12px; }
+
+/* The viewer and the one control that sits on top of it. Bottom LEFT: the
+   right side of a phone screen is where a thumb rests, and a checkbox under a
+   resting thumb is a checkbox that gets toggled by accident. */
+#stageWrap { position: relative; display: block; max-width: 1040px; }
+.stage-toggle {
+  position: absolute; left: 10px; bottom: 10px; z-index: 3;
+  background: rgba(18, 23, 40, 0.86); border: 1px solid #2c3654; border-radius: 8px;
+  padding: 7px 11px; font-size: 13px; color: #dbe2f0;
+  backdrop-filter: blur(3px); cursor: pointer; user-select: none;
+}
+.stage-toggle.on { border-color: #9fd39f; color: #9fd39f; }
+/* Greyed rather than gone, in the line-up: five models turned five different
+   ways is not a comparison, so the control says "not here" instead of
+   vanishing and leaving people hunting for it. */
+.stage-toggle.disabled { opacity: 0.4; pointer-events: none; }
+
+#facingStage {
+  flex: 1; min-height: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 6px; overflow: hidden;
+}
+#facingStage #stageWrap { max-height: 100%; }
+/* CONTAIN, always — both figures have to be in frame. */
+#facingStage canvas {
+  max-width: 100%; max-height: 100%;
+  width: auto; height: auto; object-fit: contain;
+}
+
+#facingOverlay footer {
+  flex: none; display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: #121728; border-top: 1px solid #232c44;
+}
+#facingOverlay footer .hint { color: #8b96b3; font-size: 12.5px; }
+
+/* One dial per row: label, minus, slider, plus, readout. The slider takes
+ * the slack so it stays the biggest target on the row. */
+.facing-dial {
+  display: flex; align-items: center; gap: 8px;
+}
+.facing-dial .dial-label {
+  min-width: 52px; color: #8b96b3; font-size: 12.5px;
+}
+.facing-dial input[type="range"] { flex: 1; min-width: 0; height: 30px; }
+.facing-dial button {
+  min-width: 44px; padding: 10px 8px; font-size: 16px; line-height: 1;
+  background: #1a2138; border: 1px solid #2c3654; border-radius: 8px; color: inherit;
+}
+.facing-dial button:active { background: #24406b; }
+.facing-dial .mono { min-width: 56px; text-align: right; color: #cfe0ff; }
+
+.facing-actions { display: flex; gap: 8px; }
+.facing-actions button {
+  flex: 1; padding: 13px 8px; font-size: 14px; border-radius: 8px;
+  background: #1a2138; border: 1px solid #2c3654; color: inherit;
+}
+.facing-actions .primary { background: #24406b; border-color: #6f8fd0; font-weight: 600; }
+.facing-actions button:disabled { opacity: 0.45; }
+/* A fighter whose numbers were touched this session, at a glance. */
+#facingOverlay.decided #facingName::after { content: " ✎"; color: #d3c69f; }
+
+@media (max-width: 900px) {
+  .facing-dial .dial-label { min-width: 44px; font-size: 12px; }
+  .facing-dial button { min-width: 40px; padding: 11px 6px; }
+  .facing-dial .mono { min-width: 50px; font-size: 13px; }
+  .facing-actions button { padding: 14px 4px; font-size: 13px; }
+  #facingOverlay footer .hint { display: none; }
+}
+
+/* Boot failures, said out loud. See the note in index.html: a dead module
+ * leaves a page that looks fine and does nothing, which is the hardest
+ * failure to report and the easiest to mistake for a broken feature. */
+#bootError {
+  position: fixed; left: 0; right: 0; top: 0; z-index: 100;
+  padding: 12px 16px; background: #5a1f26; color: #ffe6e9;
+  border-bottom: 1px solid #8d3641; font-size: 13.5px; line-height: 1.4;
+}
+#bootError[hidden] { display: none; }

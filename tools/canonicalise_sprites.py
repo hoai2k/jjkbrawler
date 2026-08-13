@@ -41,6 +41,7 @@ Run after applying a round's adjustments:
     python3 tools/canonicalise_sprites.py --dry-run
     python3 tools/canonicalise_sprites.py
 """
+import sprite_paths
 
 import argparse
 import collections
@@ -52,7 +53,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
-SPRITES = os.path.join(ROOT, "assets", "sprites")
+SPRITES = sprite_paths.CHAR
 MANIFEST = os.path.join(SPRITES, "manifest.json")
 
 ARCHIVE_DIR = "archive"
@@ -113,6 +114,18 @@ def collect(man):
                 note(meta.get("file"), lambda v, m=meta: m.__setitem__("file", v),
                      "alternate", char, pose)
     return refs
+
+
+def in_shared(file):
+    """Is this reference into the SHARED tree rather than a fighter's own?
+
+    A handful of manifest entries name art that belongs to no fighter — the
+    install auras are registered as poses of a pseudo-character `effects` and
+    live in `assets/sprites/effects/` (sprite_paths.SHARED). Nothing here ever
+    moves one, but `on_disk()` walks CHAR only, so without this every run
+    reported three auras as dangling and refused.
+    """
+    return os.path.exists(os.path.join(sprite_paths.SHARED, file))
 
 
 def on_disk():
@@ -260,12 +273,9 @@ def main():
         print(f"REFUSING: {before} files in, {len(landing)} out", file=sys.stderr)
         return 1
 
-    moves = apply_moves(targets, args.dry_run)
-    for file, dst in sorted(targets.items()):
-        where = "canonical" if f"/{ARCHIVE_DIR}/" not in dst else "archived"
-        print(f"  {where:9s} {file} -> {dst}")
-
-    # Rewrite every reference through the setters the collection captured.
+    # Rewrite every reference through the setters the collection captured. This
+    # is in memory: the manifest is written at the end, and only if everything
+    # below agrees.
     rewritten = 0
     for file, uses in refs.items():
         dst = targets.get(file)
@@ -275,12 +285,22 @@ def main():
             use["set"](dst)
             rewritten += 1
 
-    # Nothing may point at a file that is not there.
+    # Nothing may point at a file that is not there — checked BEFORE a single
+    # file moves. It used to run after apply_moves, which made a refusal the
+    # worst of the three outcomes: the tree was already rearranged and the
+    # manifest still described the old arrangement, so the game was pointed at
+    # paths that no longer existed and the repair was by hand (round 20's
+    # intake). The move is the irreversible half, so it goes last.
     after = (files - set(targets)) | set(targets.values())
-    dangling = [f for f in collect(man) if f not in after]
+    dangling = [f for f in collect(man) if f not in after and not in_shared(f)]
     if dangling:
         print("REFUSING: references left dangling:", dangling[:5], file=sys.stderr)
         return 1
+
+    moves = apply_moves(targets, args.dry_run)
+    for file, dst in sorted(targets.items()):
+        where = "canonical" if f"/{ARCHIVE_DIR}/" not in dst else "archived"
+        print(f"  {where:9s} {file} -> {dst}")
 
     print(f"\n{len(moves)} file(s) moved, {rewritten} reference(s) rewritten, "
           f"{before} file(s) before and after")

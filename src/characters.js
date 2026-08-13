@@ -22,7 +22,7 @@
 // and redrawing a pose retunes the move. The forgiveness margins are in
 // MELEE_GRACE (src/config_tuning.js). See docs/hitbox-audit.md.
 //
-// Frame keys are sheet cells "r{row}c{col}" resolved via assets/sprites/manifest.json.
+// Frame keys are sheet cells "r{row}c{col}" resolved via sprites/assets/manifest.json.
 // Sheet rows: 0 idle/poses, 1 run, 2 air, 3 technique effects, 4 crouch.
 // The 17 launch fighters come from those sheets. The six round-7 fighters
 // (Choso, Mei Mei, Uro, Yuji, Reggie, Gakuganji) have no sheet at all — their
@@ -57,8 +57,14 @@ export const STAGED_CHARACTER_KEYS = [];
 // randomCharacterKey() before building a fighter.
 export const RANDOM_KEY = "__random";
 
-export function randomCharacterKey() {
-  return CHARACTER_KEYS[Math.floor(Math.random() * CHARACTER_KEYS.length)];
+/** A fighter at random. `avoid` is a soft preference, not a rule: the CPUs a
+ *  match mode brings along pass the fighters already in the match so a Battle
+ *  Royal does not field the same curse three times, and a roster smaller than
+ *  the match simply falls back to drawing from everyone. */
+export function randomCharacterKey(avoid = []) {
+  const pool = avoid.length ? CHARACTER_KEYS.filter((k) => !avoid.includes(k)) : CHARACTER_KEYS;
+  const from = pool.length ? pool : CHARACTER_KEYS;
+  return from[Math.floor(Math.random() * from.length)];
 }
 
 // The four-frame run cycle (round 12): reach (full stride, one leg planted
@@ -91,6 +97,11 @@ export const DEFAULT_ANIMS = {
   dodge_roll: { frames: ["dodge_roll"], fps: 1, loop: true },
   dodge_air: { frames: ["dodge_air"], fps: 1, loop: true },
   light: { frames: ["r3c0", "r3c1"], fps: 12, loop: false },
+  // The dash attack (moves.js, variant "dash"). Round 20D art; until it lands
+  // the state falls back to the light strike, which is what the move drew when
+  // it shipped — so this line is the whole integration and nothing waits on it.
+  dashAttack: { frames: ["attack_dash"], fallback: ["r3c0"], fps: 8, loop: false },
+  dashAttackHeavy: { frames: ["attack_dash"], fallback: ["r3c0"], fps: 8, loop: false },
   // Wind-up then strike (see SEMANTIC_ANIMS below for the timing note). The
   // `fallback` is what a fighter without the round-9 pair keeps drawing.
   airLight: { frames: ["attack_air_a", "attack_air_b"], fallback: ["attack_air"], fps: 8, loop: false },
@@ -107,12 +118,22 @@ export const DEFAULT_ANIMS = {
   // renderer simulates it: `hurt` swept 90 degrees onto the back (fighter.js).
   prone: { frames: ["prone"], fallback: ["hurt"], fps: 1, loop: true },
   win: { frames: ["victory"], fps: 1, loop: true },
+  // Grabs and throws (?throw=true — src/grab.js). Sheet-era fallbacks; the
+  // semantic table below carries the full reasoning and the 20C request that
+  // replaces these stand-ins.
+  grabReach: { frames: ["grab_reach"], fallback: ["attack_light_a", "r3c0"], fps: 10, loop: false },
+  grabHold: { frames: ["grab_hold"], fallback: ["charge"], fps: 2, loop: true },
+  grabbed: { frames: ["grabbed"], fallback: ["hurt"], fps: 1, loop: true },
+  throwFwd: { frames: ["throw_fwd"], fallback: ["attack_heavy_a", "r3c0"], fps: 8, loop: false },
+  throwBack: { frames: ["throw_back"], fallback: ["attack_heavy_b", "attack_heavy_a", "r3c0"], fps: 8, loop: false },
+  throwUp: { frames: ["throw_up"], fallback: ["attack_up"], fps: 8, loop: false },
+  throwDown: { frames: ["throw_down"], fallback: ["attack_down", "r2c2"], fps: 8, loop: false },
 };
 
 // Staged characters have no legacy sheet, so every animation state maps to a
 // semantic pose key (round-5 naming) rather than an r{row}c{col} cell. This is
 // the complete pose list the round-7 asset request asks for — when the art
-// lands at assets/sprites/<char>/<pose_key>.png and is registered in the
+// lands at sprites/assets/<char>/<pose_key>.png and is registered in the
 // manifest, these animations resolve with no further code changes.
 export const SEMANTIC_ANIMS = {
   idle: { frames: ["idle_a", "idle_b"], fps: 2.2, loop: true },
@@ -130,6 +151,15 @@ export const SEMANTIC_ANIMS = {
   dodge_roll: { frames: ["dodge_roll"], fps: 1, loop: true },
   dodge_air: { frames: ["dodge_air"], fps: 1, loop: true },
   light: { frames: ["attack_light_a", "attack_light_b"], fps: 12, loop: false },
+  // The dash attack — round 20D. One pose rather than a wind-up pair: a dash
+  // attack has no wind-up to draw, the run already was it. The fallback is the
+  // light strike frame it draws today, so the pose can land one fighter at a
+  // time and everybody else keeps the drawing they have.
+  dashAttack: { frames: ["attack_dash"], fallback: ["attack_light_a", "attack_light_b"], fps: 8, loop: false },
+  // Same delivered pose, different fallback: one drawing covers both dash
+  // attacks, but while it is undrawn the heavy one keeps standing in with the
+  // heavy strike it plays today rather than switching to a light punch.
+  dashAttackHeavy: { frames: ["attack_dash"], fallback: ["attack_heavy_a", "attack_heavy_b", "attack_heavy"], fps: 6, loop: false },
   // Wind-up then strike, the same shape the light attack has always had. The
   // `_a`/`_b` art is a round-9 delivery; until it lands for a character, the
   // single delivered frame is all that survives the missing-frame filter in
@@ -156,6 +186,21 @@ export const SEMANTIC_ANIMS = {
   // renderer simulates it: `hurt` swept 90 degrees onto the back (fighter.js).
   prone: { frames: ["prone"], fallback: ["hurt"], fps: 1, loop: true },
   win: { frames: ["victory"], fps: 1, loop: true },
+  // Grabs and throws (?throw=true — src/grab.js; round-20C art request in
+  // docs/asset-requests.md). Every state names its own pose and falls back to
+  // the nearest delivered art, so the mechanic animates on the whole roster
+  // today and upgrades pose by pose as 20C lands:
+  //   grabReach  the lunge with an open hand — a light strike reads closest
+  //   grabHold   gripping a body at arm's length — the charge stance holds
+  //   grabbed    seized and struggling — the hurt pose is the honest stand-in
+  //   throw*     the four heaves — each borrows the attack thrown that way
+  grabReach: { frames: ["grab_reach"], fallback: ["attack_light_a", "attack_light"], fps: 10, loop: false },
+  grabHold: { frames: ["grab_hold"], fallback: ["charge"], fps: 2, loop: true },
+  grabbed: { frames: ["grabbed"], fallback: ["hurt"], fps: 1, loop: true },
+  throwFwd: { frames: ["throw_fwd"], fallback: ["attack_heavy_a", "attack_heavy"], fps: 8, loop: false },
+  throwBack: { frames: ["throw_back"], fallback: ["attack_heavy_b", "attack_heavy_a", "attack_heavy"], fps: 8, loop: false },
+  throwUp: { frames: ["throw_up"], fallback: ["attack_up"], fps: 8, loop: false },
+  throwDown: { frames: ["throw_down"], fallback: ["attack_down"], fps: 8, loop: false },
 };
 
 export const CHARACTERS = {
@@ -374,7 +419,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Great Serpent... no — Nue!", type: "projectile", cooldown: 1.15,
         desc: "The shadow bird dives across the arena, crackling with paralytic charge.",
-        // Nue is a creature, not a bullet: the right stick aims the launch and
+        // Nue is a creature, not a bullet: the d-pad aims the launch and
         // flies it. Steering suspends the arc, so a hand-flown Nue holds its
         // line instead of dropping.
         p: { speed: 520, vy: -120, gravity: 260, r: 38, dur: 1.0, dmg: 11, base: 360, growth: 7.0, angle: 0.5, color: "#7c8cff", effect: "snare", label: "Nue", sprite: "summon:nue", spriteH: 132, steerable: true, steerRate: 6.0 },
@@ -403,7 +448,7 @@ export const CHARACTERS = {
       // A summon with the `brawler` behavior (summons.js): Mahoraga arrives as
       // his own actor and fights like a character — walking, jumping, choosing
       // between a poke, a committed smash and an anti-air — rather than being a
-      // body Megumi wears. Push the right stick and Megumi drives him instead.
+      // body Megumi wears. Push the d-pad and Megumi drives him instead.
       //
       // `actor` names the sprite set he animates through; `sprites` is the
       // still-image fallback for a set that has not been fully delivered.
@@ -830,7 +875,10 @@ export const CHARACTERS = {
         p: { vel: 560, iframes: 0.1, delay: 0.05, dur: 0.24, ox: 66, oy: -94, w: 204, h: 104, dmg: 13, base: 410, growth: 7.0, angle: 0.3, effect: "soulMark", label: "Distortion", sfx: "slash" },
       },
       down: {
-        name: "Idle Transfiguration", type: "summon", cooldown: 3.4,
+        // Named apart from his NEUTRAL, which is the canon "Idle
+        // Transfiguration" soul-touch. Both are the same technique; only this
+        // one leaves something walking around afterwards.
+        name: "Transfigured Souls", type: "summon", cooldown: 3.4,
         desc: "Reshapes a stored soul into whatever amuses him — a lurching bomb, a bloated hulk, a pair of crawlers, or something that sits back and spits.",
         // He is reshaping a soul on the spot; getting the same shape every time
         // was the one thing his technique should never do. TRANSFIGURED_POOL
@@ -1291,6 +1339,10 @@ export const CHARACTERS = {
       },
       down: {
         name: "New Shadow Style: Simple Domain", type: "simpleDomain", cooldown: 4.5,
+        // A domain, so the DOMAIN button casts it as well as Down+Special.
+        // Costs nothing but its own cooldown — see domainSpecialSlot in
+        // domains.js. Only meaningful on a fighter with no Expansion.
+        domainButton: true,
         desc: "The technique he built into cartridges because he could not cast it himself. Inside the circle nothing arrives unopposed — and no domain is sure of its hit.",
         p: { duration: 1.6, dmg: 11, base: 400, growth: 6.8, angle: 0.45, radius: 138, color: "#b8f0e4" },
       },
@@ -1335,6 +1387,10 @@ export const CHARACTERS = {
       },
       down: {
         name: "New Shadow Style: Simple Domain", type: "simpleDomain", cooldown: 4.5,
+        // A domain, so the DOMAIN button casts it as well as Down+Special.
+        // Costs nothing but its own cooldown — see domainSpecialSlot in
+        // domains.js. Only meaningful on a fighter with no Expansion.
+        domainButton: true,
         desc: "The circle she taught Todo. It turns what reaches it, and a domain's guaranteed hit stops being guaranteed.",
         p: { duration: 1.6, dmg: 12, base: 420, growth: 7.0, angle: 0.45, radius: 138, color: "#ffe1a0" },
       },

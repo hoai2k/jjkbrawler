@@ -53,11 +53,11 @@ async function until(fn, arg, timeout = 60000) {
 // marks it, and exports. That holds in any view. So: prefer the unedited view
 // while anyone is still outstanding, because that is where the original bug
 // lived, and fall back to the full list once nobody is.
-await page.goto(`${BASE}/workbench/`, { waitUntil: "domcontentloaded" });
+await page.goto(`${BASE}/sprites/workbench/`, { waitUntil: "domcontentloaded" });
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 const PICK = await page.evaluate(async () => {
   const { spriteManifest } = await import("/src/assets.js");
-  const { statesUsingFrame } = await import("/src/sprites.js");
+  const { statesUsingFrame } = await import("/sprites/src/sprites.js");
   // Both conditions the view applies: the pose has to be one the game DRAWS,
   // and untouched. A standby fallback nothing reaches is untouched forever and
   // is filtered out of every "used" view, so counting it would pick a
@@ -93,7 +93,7 @@ check(!staged.keys.length || !staged.missing.length,
   staged.keys.length ? `${staged.keys.join(", ")}${staged.missing.length ? " — missing " + staged.missing.join(", ") : ""}`
                      : "none staged");
 
-await page.goto(`${BASE}/workbench/?char=${PICK.char}`, { waitUntil: "domcontentloaded" });
+await page.goto(`${BASE}/sprites/workbench/?char=${PICK.char}`, { waitUntil: "domcontentloaded" });
 await until((c) => document.querySelector("#charSel")?.value === c, PICK.char);
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 
@@ -102,7 +102,7 @@ await page.waitForTimeout(250);
 // Only poses the game draws: the "all" fallback includes retired grid cells,
 // and a cell nothing animates behaves differently from a live pose.
 const before = await page.evaluate(async (char) => {
-  const { statesUsingFrame } = await import("/src/sprites.js");
+  const { statesUsingFrame } = await import("/sprites/src/sprites.js");
   return [...document.querySelectorAll("#poseList button")]
     .map((b) => b.textContent)
     .filter((t) => statesUsingFrame(char, (t.match(/[a-z0-9_]+$/) || [t])[0]).length > 0);
@@ -276,7 +276,7 @@ const VAR = await page.evaluate(async () => {
 check(!!VAR, "found a pose with two settled drawings to test the flag against",
   VAR ? `${VAR.char}/${VAR.frame}` : "none — every pose with variants is mid-delivery");
 
-await page.goto(`${BASE}/workbench/?char=${VAR.char}&frame=${VAR.frame}`, { waitUntil: "domcontentloaded" });
+await page.goto(`${BASE}/sprites/workbench/?char=${VAR.char}&frame=${VAR.frame}`, { waitUntil: "domcontentloaded" });
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 await page.waitForTimeout(400);
 
@@ -342,7 +342,7 @@ const shot = async () => (await page.locator("#stage").screenshot()).toString("b
 // r4c0 used to serve here and no longer exists as a pose of its own — the
 // sheet cells that drove an action are now offered as alternates ON that
 // action, which is the whole point of the case below.
-await page.goto(`${BASE}/workbench/?char=yuta&frame=r4c1`, { waitUntil: "domcontentloaded" });
+await page.goto(`${BASE}/sprites/workbench/?char=yuta&frame=r4c1`, { waitUntil: "domcontentloaded" });
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 await page.selectOption("#viewSel", "all");
 await page.waitForTimeout(600);
@@ -369,7 +369,7 @@ check((await shot()) === afterSwitch, "un-ticking it returns exactly where it st
 // still carrying the tuning it was given while it was in use showed up as work
 // that had been done — the poses most likely to appear being exactly the ones a
 // re-point had just taken out of the game.
-await page.goto(`${BASE}/workbench/?char=geto`, { waitUntil: "domcontentloaded" });
+await page.goto(`${BASE}/sprites/workbench/?char=geto`, { waitUntil: "domcontentloaded" });
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 const cells = async () => page.evaluate(() =>
   [...document.querySelectorAll("#poseList button:not(.pose-variant)")]
@@ -389,7 +389,7 @@ check((await cells()) > 0, `"All sprites" still shows them`, `${await cells()} c
 // The specials, the ultimate and the victory pose do not — they run on action
 // kinds fighterTransform never tests — so placing an anchor on them is work
 // with no effect, and the row is hidden with the reason in its place.
-await page.goto(`${BASE}/workbench/?char=yuji&frame=special_side`, { waitUntil: "domcontentloaded" });
+await page.goto(`${BASE}/sprites/workbench/?char=yuji&frame=special_side`, { waitUntil: "domcontentloaded" });
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 await page.waitForTimeout(400);
 
@@ -409,7 +409,7 @@ check(anc.rows === 1, "'Place it anyway' brings it back", JSON.stringify(anc));
 await page.uncheck("#anchorForce");
 await page.waitForTimeout(250);
 
-await page.goto(`${BASE}/workbench/?char=yuji&frame=idle_a`, { waitUntil: "domcontentloaded" });
+await page.goto(`${BASE}/sprites/workbench/?char=yuji&frame=idle_a`, { waitUntil: "domcontentloaded" });
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 await page.waitForTimeout(400);
 anc = await anchors();
@@ -423,7 +423,7 @@ const canvasHash = () => page.evaluate(() => {
   for (let i = 0; i < d.length; i += 997) h = (h * 31 + d[i]) >>> 0;
   return h;
 });
-await page.goto(`${BASE}/workbench/?char=yuji&frame=special_side`, { waitUntil: "domcontentloaded" });
+await page.goto(`${BASE}/sprites/workbench/?char=yuji&frame=special_side`, { waitUntil: "domcontentloaded" });
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 await page.waitForTimeout(500);
 const square = await canvasHash();
@@ -456,7 +456,7 @@ check(forYuji?.adjustments?.special_side?.rotationDeg === 15,
 // is that it is offered, that it stands on its own (the per-character view
 // filter is a different question and is locked while it is open), and that it
 // says so plainly when there is nothing outstanding.
-await page.goto(`${BASE}/workbench/?char=maki`, { waitUntil: "domcontentloaded" });
+await page.goto(`${BASE}/sprites/workbench/?char=maki`, { waitUntil: "domcontentloaded" });
 await until(() => /assets loaded/.test(document.getElementById("loadState").textContent), null, 120000);
 await page.waitForTimeout(300);
 check(await page.evaluate(() =>

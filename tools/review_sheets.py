@@ -6,7 +6,7 @@ white leak vs white art, a clipped pose vs a deliberate one, bleed vs a
 scattered effect, a hole vs a limb gap. Measurements overlap in all four, so
 each sheet is a question, not a finding.
 
-Anything already ruled on in `docs/sprite-review-log.json` is left out, so a
+Anything already ruled on in `sprites/docs/sprite-review-log.json` is left out, so a
 frame is only ever asked about once. Record decisions there — including "it was
 fine" — or the same tiles come back next round.
 
@@ -20,6 +20,7 @@ Usage:
   python3 review_sheets.py --topics white,crop
   python3 review_sheets.py --counts            # how much is outstanding
 """
+import sprite_paths
 
 import argparse
 import json
@@ -34,7 +35,7 @@ import clean_frames as cf
 import facing_review as fr
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-LOG = os.path.join(HERE, "..", "docs", "sprite-review-log.json")
+LOG = os.path.join(sprite_paths.ROOT, "sprites", "docs", "sprite-review-log.json")
 CELL_W = CELL_H = 313.5
 COLS, CW, CH = 6, 216, 250
 SHEET_CELL = re.compile(r"^r\d+c\d+$")

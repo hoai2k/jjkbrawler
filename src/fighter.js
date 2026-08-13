@@ -5,7 +5,7 @@ import { lightMove, heavyMove } from "./moves.js";
 import { spawnMelee, opponentOf, updateStatuses } from "./combat.js";
 import { performSpecial, updateSpecialState } from "./specials.js";
 import { performUltimate } from "./ultimates.js";
-import { performDomain, domainInput, canOpenDomain, activeDomain, domainSlotFor } from "./domains.js";
+import { performDomain, domainInput, canOpenDomain, activeDomain, domainSlotFor, domainSpecialSlot } from "./domains.js";
 import { burst, dust, popup, banner, ring } from "./particles.js";
 import { playSfx, playGrunt, playKoCry, startShieldLoop, stopShieldLoop, noteFireBurning } from "./audio.js";
 import { rumbleEvent } from "./rumble.js";
@@ -21,10 +21,12 @@ import {
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
 import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "./config_tuning.js";
-import { mainPlatform } from "./stages.js";
+import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
-import { currentFrame } from "./sprites.js";
+import { currentFrame } from "./render_backend.js";
 import { trailStrength } from "./motion.js";
+import { THROW_ENABLED } from "./flags.js";
+import { beginGrab, updateGrabReach, updateGrabHold, updateGrabbedFighter, clearGrabLinks } from "./grab.js";
 
 /** `dodge_roll` / `dodge_air` where the character has that art, else the old
  *  shared `dodge`. Round 6 delivered the new frames for only some of the
@@ -51,6 +53,9 @@ export function makeFighter(id, charKey, x, facing) {
     dizzy: 0, prone: 0, dodgeStale: 0, lastDodgeAt: -10,
     airT: 0, shieldDownSince: -10,
     action: null, charging: null, jabStep: 0, jabResetT: 0,
+    // Grabbing (?throw=true — src/grab.js). `grab` on the holder, `grabbedBy`
+    // on the held, `grabImmune` on anyone recently released.
+    grab: null, grabbedBy: null, grabImmune: 0,
     counter: null, reflect: null, healing: null, installs: null, armorT: 0,
     // New Shadow Style: Simple Domain — the anti-domain circle Mechamaru and
     // Yuki both carry. Null unless one is held; domains.js asks about it before
@@ -76,9 +81,21 @@ export function makeFighter(id, charKey, x, facing) {
     landT: 0, takeoffT: 0, trail: [], trailTick: 0, fxTrailT: 0,
     aiState: null,
     // The input this fighter last acted on, written by the sim loop. Summons
-    // read it to find their owner's right stick (see summons.js).
+    // read it to find their owner's aim pad (see summons.js).
     lastInput: null,
     winner: false,
+    // What this fighter did with the match, for the result screen. Built here
+    // rather than in a side table so it is cleared by the same reset that
+    // builds the fighter — a rematch starts from zero without anyone
+    // remembering to empty anything.
+    tally: { dealt: 0, taken: 0, kos: 0, falls: 0, biggestHit: 0, bestCombo: 0 },
+    // The combo this fighter is currently BUILDING, as the attacker: how many
+    // hits, who they are on, and how long the chain stays open (combat.js).
+    combo: 0, comboT: 0, comboTarget: null,
+    // Who last hit this fighter and how long that credit stands. A ring-out is
+    // scored to whoever put them off the stage, which is not necessarily
+    // whoever is nearest when they cross the blast line.
+    lastHitBy: null, lastHitT: 0,
   };
 }
 
@@ -127,7 +144,12 @@ function beginAction(f, kind, dur, anim, opts = {}) {
 
 function executeMove(f, move, opts = {}) {
   const total = move.delay + move.dur + move.recover;
-  beginAction(f, "attack", total, move.anim, { move });
+  // `keepMomentum` travels from the move onto the action because it is the
+  // MOVE that knows whether it slides: a grounded attack otherwise bleeds its
+  // speed off the moment it locks movement, which is right for a tilt thrown on
+  // the spot and wrong for a dash attack, whose whole idea is the run carrying
+  // through the swing.
+  beginAction(f, "attack", total, move.anim, { move, keepMomentum: move.keepMomentum });
   if (move.lungeVx && f.grounded) f.vx += f.facing * move.lungeVx * 3;
   spawnMelee(f, {
     ...move,
@@ -144,8 +166,11 @@ function beginLight(f, input) {
     variant = "down";
   } else if (input.up) {
     variant = "up";
-  } else if (f.dashT > 0 || Math.abs(f.vx) > stats(f).speed * 0.7) {
-    variant = "side";
+  } else if (isRunning(f)) {
+    // A light press at a run is the DASH ATTACK, not a side tilt. The tilt is
+    // still one flick of the right stick away (beginTilt), which is the whole
+    // reason the run can afford to have its own attack: nothing was lost.
+    variant = "dash";
   } else {
     // jab chain
     if (f.jabResetT <= 0) f.jabStep = 0;
@@ -158,9 +183,50 @@ function beginLight(f, input) {
   executeMove(f, lightMove(f.char, variant));
 }
 
+/**
+ * A tilt thrown with the right stick.
+ *
+ * The tilt stick's whole point is that it does not need the left stick's help:
+ * a side tilt off a light press only comes out at a run (otherwise the jab
+ * chain wins), and up/down tilts need a direction held. Flicked, each one is a
+ * single deliberate attack — and in the air, the aerial for that direction,
+ * which is the same grammar one level up.
+ */
+function beginTilt(f, dir) {
+  if (!dir) return;
+  if (!f.grounded) {
+    executeMove(f, lightMove(f.char, dir === "up" ? "upAir" : dir === "down" ? "downAir" : "air"));
+    return;
+  }
+  if (dir === "left" || dir === "right") {
+    // Turn into the flick: a tilt aimed behind you is a tilt behind you.
+    f.facing = dir === "left" ? -1 : 1;
+    executeMove(f, lightMove(f.char, "side"));
+    return;
+  }
+  executeMove(f, lightMove(f.char, dir === "up" ? "up" : "down"));
+}
+
+/** Moving fast enough on the ground to have a run's attacks rather than a
+ *  standing fighter's — the initial dash, or a sprint that has kept its speed
+ *  after it. One definition, so the light and heavy dash attacks can never
+ *  disagree about when a fighter is running. */
+function isRunning(f) {
+  return f.grounded && (f.dashT > 0 || Math.abs(f.vx) > stats(f).speed * 0.7);
+}
+
 function beginHeavy(f, input) {
   if (!f.grounded) {
     executeMove(f, heavyMove(f.char, "air"));
+    return;
+  }
+  // Out of a run the heavy button throws its dash attack instead of planting
+  // for a charge: a smash is a fighter standing still deciding to, and stopping
+  // a sprint dead to start one is not a decision anybody was making on purpose.
+  // Holding a direction does not change it — up and down smashes are standing
+  // moves, and at a run the input already means "keep going that way".
+  if (isRunning(f) && !f.crouching) {
+    executeMove(f, heavyMove(f.char, "dash"), { grunt: true });
     return;
   }
   const variant = input.down || f.crouching ? "down" : input.up ? "up" : "side";
@@ -176,7 +242,8 @@ function beginHeavy(f, input) {
  * of the vertical mixup in the grounded game. The right stick is used rather
  * than the left because the left one already chose which smash this is: holding
  * up or down at the start picks the up or down variant, so it has nothing left
- * to say about aim.
+ * to say about aim. Holding it is safe: the same stick FLICKED throws a tilt,
+ * but a fighter mid-charge cannot act, so an aim never becomes an attack.
  *
  * The hitbox is swung about the fighter rather than simply nudged, so an angled
  * smash reaches the same distance along its new line — and because the strike
@@ -189,7 +256,7 @@ function releaseHeavy(f, input) {
   f.charging = null;
   const charge = clamp(c.t / 0.8, 0, 1);
   const move = heavyMove(f.char, c.variant, charge);
-  const aim = clamp(input?.aimY || 0, -1, 1);
+  const aim = clamp(input?.tiltY || 0, -1, 1);
   if (c.variant === "side" && Math.abs(aim) > 0.25) {
     const tilt = aim * SMASH_TILT;                 // + is downward, as y is
     const radius = move.ox + move.w * 0.5;
@@ -239,15 +306,40 @@ function beginDodge(f, type, dir = 0) {
 
 function tryGrabLedge(f) {
   if (f.grounded || f.ledge || f.ledgeCooldown > 0 || f.respawnTimer > 0) return;
-  // must have genuinely left the stage (no walk-off regrab loops) and not be
-  // reeling — the ledge is a recovery tool, not a combo breaker
-  if (f.vy < -70 || f.hitstun > 0.05 || f.airT < 0.18) return;
+  // Must have genuinely left the stage (no walk-off regrab loops) and not be
+  // reeling — the ledge is a recovery tool, not a combo breaker.
+  //
+  // Rising grabs are allowed: a double jump that carries you past the ledge
+  // catches it on the way up, which is most of what Smash's "magnet hands"
+  // feel is. The old `vy < -70` gate made the whole rise ineligible — jumps
+  // launch at 745-800 px/s, so you had to float over the snap window and come
+  // back DOWN into it. The walk-off loop it guarded against is already covered
+  // by airT and the getup cooldowns.
+  if (f.hitstun > 0.05 || f.airT < 0.18) return;
   const plat = mainPlatform(state.platforms);
   if (f.y < plat.y - LEDGE_GRAB_Y_ABOVE || f.y > plat.y + LEDGE_GRAB_Y_BELOW) return;
   for (const side of [-1, 1]) {
     const edgeX = side === -1 ? plat.x : plat.x + plat.w;
     const outside = side === -1 ? f.x <= edgeX : f.x >= edgeX;
     if (outside && Math.abs(f.x - edgeX) <= LEDGE_GRAB_X) {
+      // One hand per ledge. Two fighters could hold the same point, drawn on
+      // top of each other with both hang timers running. Instead the newcomer
+      // TRUMPS: they take the ledge and the occupant is popped off it —
+      // outward and slightly up, briefly protected so the trump itself is a
+      // positional win rather than a free hit. (Smash's rule, and the reason
+      // hogging a ledge is an interaction instead of a wall.)
+      const occupant = state.fighters.find(
+        (o) => o !== f && !o.dead && o.ledge && o.ledge.edgeX === edgeX
+      );
+      if (occupant) {
+        occupant.ledge = null;
+        occupant.ledgeCooldown = 0.6;
+        occupant.vx = side * 170;
+        occupant.vy = -240;
+        occupant.invuln = Math.max(occupant.invuln, 0.3);
+        dust(occupant.x, occupant.y - 40, 6);
+        playSfx("whoosh", 0.6);
+      }
       f.ledge = { side, edgeX, plat };
       f.x = edgeX + (side === -1 ? -LEDGE_HANG_X : LEDGE_HANG_X);
       f.y = plat.y + LEDGE_HANG_Y;
@@ -378,6 +470,13 @@ function startDash(f, dir) {
 export function ringOut(f) {
   const opp = opponentOf(f);
   f.stocks -= 1;
+  // Result-screen bookkeeping. The KO is credited to whoever last hit them
+  // while that credit still stands (combat.js) — a fighter who walked off the
+  // edge on their own scores nobody a KO, which is the honest reading of a
+  // self-destruct.
+  f.tally.falls += 1;
+  const killer = f.lastHitT > 0 ? f.lastHitBy : null;
+  if (killer && killer !== f) killer.tally.kos += 1;
   playSfx("launch", 1);
   playKoCry(f.charKey);
   rumbleEvent(f, "ko");
@@ -400,6 +499,7 @@ export function ringOut(f) {
 
   f.action = null; f.charging = null; f.counter = null; f.reflect = null; f.healing = null;
   f.simpleDomain = null;
+  clearGrabLinks(f);
   f.installs = null; f.spriteChar = null; f.hitstun = 0; f.statuses = freshStatuses();
   f.vx = 0; f.vy = 0; f.ledge = null; f.dizzy = 0; f.prone = 0; f.armorT = 0;
   f.spin = 0; f.spinAngle = 0; f.trail.length = 0;
@@ -437,7 +537,11 @@ export function respawnX(f) {
     3: { 1: 320, 2: 640, 3: 960 },
     4: RESPAWN_X,
   };
-  return respawnSets[state.fighters.length]?.[f.id] || RESPAWN_X[f.id] || 640;
+  const set = respawnSets[state.fighters.length];
+  if (set) return set[f.id] || RESPAWN_X[f.id] || 640;
+  // Five or more (the Players vs CPUs and Battle Royal modes): come back where
+  // this fighter started, which is already spread across the stage.
+  return spawnXs(state.fighters.length)[f.id - 1] ?? RESPAWN_X[f.id] ?? 640;
 }
 
 function respawn(f) {
@@ -484,6 +588,7 @@ function stepRespawnPlatform(f, dt, input) {
   const plat = f.respawnPlat;
   plat.t -= dt;
   const acted = input.lightP || input.heavyP || input.specialP || input.ultP ||
+                input.domainP || !!input.tiltDir || input.grabP ||
                 input.jumpP || input.shieldHeld || input.down;
   const walkedOff = Math.abs(f.x - plat.x) > RESPAWN_PLATFORM_HALF_W;
   if (plat.t <= 0 || acted || walkedOff) leaveRespawnPlatform(f);
@@ -544,6 +649,7 @@ export function updateFighter(f, dt, input) {
   f.throatLock = Math.max(0, f.throatLock - dt);
   f.throatStrain = Math.max(0, f.throatStrain - dt * 0.5);
   f.armorT = Math.max(0, f.armorT - dt);
+  f.grabImmune = Math.max(0, f.grabImmune - dt);
   f.airT = f.grounded ? 0 : f.airT + dt;
   // Paper Trail (Reggie): the fine print always favors him — cooldowns run fast
   const cdRate = f.char.passive.id === "contractor" ? 1.18 : 1;
@@ -600,6 +706,23 @@ export function updateFighter(f, dt, input) {
   if (f.respawnTimer > 0) {
     f.respawnTimer -= dt;
     if (f.respawnTimer <= 0) respawn(f);
+    return;
+  }
+
+  // Held in someone's grip (?throw=true): position and fate belong to the
+  // grabber's update — the victim's own turn is the struggle, nothing else.
+  // Timers and statuses above have already ticked, so a burn keeps burning
+  // through a hold.
+  if (f.grabbedBy) {
+    updateGrabbedFighter(f, dt, input);
+    return;
+  }
+
+  // Holding someone (?throw=true): the hold is the whole turn — pin, pummel,
+  // throw or lose them. Movement, jumping and attacks are all forfeit, which
+  // is what a grab costs the grabber.
+  if (f.grab) {
+    updateGrabHold(f, dt, input);
     return;
   }
 
@@ -670,9 +793,16 @@ export function updateFighter(f, dt, input) {
   // A Domain Expansion costs the entire bar, so silently eating the press
   // because the fighter was two frames into a jab is the worst possible
   // outcome. It buffers like everything else, ahead of the smaller actions.
-  const pressedDomainSlot = domainSlotFor(input.domainDir, f.char.domains?.length || 0);
-  if (pressedDomainSlot >= 0 && f.char.domains?.[pressedDomainSlot]) {
-    f.bufferedAction = { kind: "domain", slot: pressedDomainSlot, t: ACTION_BUFFER };
+  const domainSlot = input.domainP ? domainSlotFor(f, input) : -1;
+  // Buffered whether it opens an Expansion or casts a Simple Domain (slot -1):
+  // both are the domain button, and eating either because the fighter was two
+  // frames into a jab is the outcome the buffer exists to prevent.
+  if (input.domainP && (domainSlot >= 0 || domainSpecialSlot(f))) {
+    f.bufferedAction = { kind: "domain", slot: domainSlot, t: ACTION_BUFFER };
+  } else if (input.tiltDir) {
+    f.bufferedAction = { kind: "tilt", dir: input.tiltDir, t: ACTION_BUFFER };
+  } else if (THROW_ENABLED && input.grabP) {
+    f.bufferedAction = { kind: "grab", t: ACTION_BUFFER };
   } else if (input.lightP) f.bufferedAction = { kind: "light", t: ACTION_BUFFER };
   else if (input.heavyP) f.bufferedAction = { kind: "heavy", t: ACTION_BUFFER };
   else if (input.specialP) f.bufferedAction = { kind: "special", t: ACTION_BUFFER };
@@ -695,7 +825,10 @@ export function updateFighter(f, dt, input) {
   // ---- action progress
   if (f.action) {
     f.action.t += dt;
-    if (f.action.t >= f.action.dur) {
+    // A grab reach checks for a body in its hands every step of its live
+    // window; connecting consumes the action (grab.js).
+    if (f.action.kind === "grabReach") updateGrabReach(f);
+    if (f.action && f.action.t >= f.action.dur) {
       f.action = null;
     }
   }
@@ -754,24 +887,46 @@ export function updateFighter(f, dt, input) {
   // ---- crouch
   f.crouching = f.grounded && canAct && input.down && !f.shielding;
 
+  // ---- shield grab (?throw=true)
+  // Light or the grab button while the shield is up drops the shield into a
+  // grab — Smash's answer to "they are just standing on my bubble", and the
+  // reason holding shield against a grappler is the wrong plan.
+  if (THROW_ENABLED && canAct && f.shielding && f.grounded &&
+      (input.grabP || input.lightP)) {
+    f.shielding = false;
+    f.shieldDownSince = state.matchTime;
+    stopShieldLoop();
+    f.bufferedAction = null;
+    beginGrab(f);
+  }
+
   // ---- attacks & specials
-  if (canAct && !f.shielding) {
+  if (canAct && !f.shielding && !f.action) {
     // A domain that is open owns SPECIAL (and, for Sukuna, LIGHT/HEAVY after a
     // blade is taken) — that is the interaction the domain exists for, so it is
     // checked before the normal action routing and swallows the press.
     const domainAte = activeDomain(f) ? domainInput(f, input) : false;
 
-    // Domain Expansion: d-pad up / left / right, one slot each. A fresh press
-    // wins; otherwise a buffered one fires as soon as control returns.
-    const domainSlot = pressedDomainSlot >= 0 ? pressedDomainSlot
+    // Domain Expansion: LB, or U / ; on a keyboard. A fresh press wins;
+    // otherwise a buffered one fires as soon as control returns.
+    const openSlot = domainSlot >= 0 ? domainSlot
       : f.bufferedAction?.kind === "domain" ? f.bufferedAction.slot : -1;
+    // A fighter with no Domain Expansion may still have a domain — the Simple
+    // Domain the New Shadow Style teaches, which lives in their special list.
+    // The domain button casts it, at its own cooldown rather than a full bar,
+    // so "the domain button opens my domain" is true for everyone who has one.
+    const domainSpecial = (input.domainP || f.bufferedAction?.kind === "domain")
+      && openSlot < 0 ? domainSpecialSlot(f) : null;
     if (domainAte) {
       // consumed by the open domain
-    } else if (domainSlot >= 0 && f.char.domains?.[domainSlot]) {
+    } else if (openSlot >= 0 && f.char.domains?.[openSlot]) {
       f.bufferedAction = null;
-      if (canOpenDomain(f, domainSlot)) performDomain(f, domainSlot);
+      if (canOpenDomain(f, openSlot)) performDomain(f, openSlot);
       else if (f.meter < DOMAIN_METER_COST) popup(f.x, f.y - 160, "NEEDS A FULL BAR", "#9aa4c0", 15);
-    } else if (pressedDomainSlot >= 0) {
+    } else if (domainSpecial) {
+      f.bufferedAction = null;
+      performSpecial(f, domainSpecial);
+    } else if (input.domainP) {
       popup(f.x, f.y - 160, "NO DOMAIN", "#9aa4c0", 15);
     } else if (input.ultP && f.meter >= ULT_METER_COST) {
       performUltimate(f);
@@ -781,11 +936,20 @@ export function updateFighter(f, dt, input) {
     } else {
       // A fresh press wins over a buffered one; the buffer only covers inputs
       // that arrived while the fighter was busy.
-      const act = input.specialP ? "special"
+      const act = THROW_ENABLED && input.grabP ? "grab"
+        : input.specialP ? "special"
         : input.heavyP ? "heavy"
         : input.lightP ? "light"
+        : input.tiltDir ? "tilt"
         : f.bufferedAction?.kind;
-      if (act === "special") {
+      if (act === "grab") {
+        // Grounded only, like Smash: the air already belongs to aerials, and
+        // an air grab would be a fifth aerial nobody asked for. A press in the
+        // air stays buffered and fires on landing.
+        if (f.grounded) beginGrab(f);
+      } else if (act === "tilt") {
+        beginTilt(f, input.tiltDir || f.bufferedAction?.dir);
+      } else if (act === "special") {
         const slot = input.down || f.crouching ? "down" : (input.dirX !== 0 ? "side" : "neutral");
         performSpecial(f, slot);
       } else if (act === "heavy") {
@@ -793,7 +957,9 @@ export function updateFighter(f, dt, input) {
       } else if (act === "light") {
         beginLight(f, input);
       }
-      if (act) f.bufferedAction = null;
+      // A grab "used" in the air was not actually spent — it stays buffered
+      // for the landing instead.
+      if (act && (act !== "grab" || f.grounded)) f.bufferedAction = null;
     }
   }
 
@@ -810,13 +976,26 @@ export function updateFighter(f, dt, input) {
   const frPow = state.stageMods.frictionPow || 1;
   const friction = frPow === 1 ? st.friction : Math.pow(st.friction, frPow);
 
-  // The dash BUTTON. Same dash the double tap starts, reachable without
-  // spending a direction on it — which matters most for the thing double tap
-  // is worst at: dashing the way you are already walking, where the second tap
-  // has to come after a release the player did not want to make. Neutral
-  // dashes the way the fighter faces, so it is never a no-op.
+  // The dash BUTTON — keyboard only. No pad button is bound to dash any more
+  // (`PAD_BUTTONS` in config_controls.js): B went back to special, and dash
+  // has the double tap below, which is how it has always mostly been played.
+  // The branch stays because the keyboard keeps its key and because a pad
+  // binding is one line away if the double tap ever proves not to be enough.
+  // Neutral dashes the way the fighter faces, so it is never a no-op.
   if (!locked && !f.crouching && f.grounded && input.dashP) {
     startDash(f, input.dirX || f.facing);
+  }
+
+  // The stick shove (input.js, DASH_FLICK): the pad's dash, and the one a
+  // player coming from Smash will try first. Facing is set HERE rather than
+  // left to the movement block below, because that block will not turn a
+  // fighter who is already dashing — and on a flick fast enough to cross the
+  // walk threshold and the dash threshold in one sample, the dash is already
+  // running by the time it would have. A dash attack that lunged the way the
+  // fighter happened to be looking is the bug that costs.
+  if (!locked && !f.crouching && f.grounded && input.dashFlick) {
+    if (!inHitstun) f.facing = input.dashFlick;
+    startDash(f, input.dashFlick);
   }
 
   if (!locked && !f.crouching) {
@@ -929,7 +1108,7 @@ export function updateFighter(f, dt, input) {
   if (f.vy >= 0 || f.grounded) resolvePlatforms(f, prevY);
   else f.grounded = false;
 
-  if (!f.grounded && f.vy > -70) tryGrabLedge(f);
+  if (!f.grounded) tryGrabLedge(f);
 
   // ---- blast zones
   if (checkBlastZones(f)) return;

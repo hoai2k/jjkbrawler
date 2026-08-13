@@ -1,14 +1,17 @@
 import { state } from "./state.js";
 import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, RESOLVED_GROUPS, randomCharacterKey } from "./characters.js";
-import { STAGES } from "./stages.js";
+import { STAGES, getStage, backgroundFile } from "./stages.js";
 import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx, toggleMute } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
-import { METER_MAX } from "./constants.js";
+import { METER_MAX, TIME_OPTIONS } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
-import { setSpriteSet, previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
+import { cameraMode } from "./camera_mode.js";
+import { previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
 import { RANDOM_GROUP, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
-import { domainDirsFor } from "./domains.js";
+import { CONTROL_ROWS, rowAtPad } from "./config_controls.js";
+import { domainStickFor, charDomainSpecialSlot } from "./domains.js";
+import { MATCH_MODES, MAX_FIGHTERS, matchPlan, modeLabel, HUMAN_TEAM } from "./modes.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -25,11 +28,18 @@ let settingsReturnPhase = "menu";
 
 const STOCK_OPTIONS = [1, 2, 3, 5];
 const PLAYER_IDS = [1, 2, 3, 4];
+// Every seat a match can have, human or CPU. Only the first four are ever
+// picked by hand; the rest are fighters a match mode brought along.
+const FIGHTER_IDS = Array.from({ length: MAX_FIGHTERS }, (_, i) => i + 1);
 const pickerCursor = { 1: null, 2: null, 3: null, 4: null };
 const pickerRepeat = PLAYER_IDS.map(() => ({ dir: null, t: 0 }));
 
 export function initUi(cb) {
   callbacks = cb;
+  // The in-match panels exist before anything looks them up: they are built
+  // from MAX_FIGHTERS rather than written out per slot, because a match can
+  // seat anywhere from two to eight fighters.
+  buildHud();
   for (const id of [
     "hud", "utilityActions", "menuOverlay", "stageOverlay", "movesOverlay", "roundOverlay", "pauseOverlay",
     "settingsOverlay", "loadOverlay", "loadStatus", "loadBar", "loadBarFill", "characterGrid", "stageGrid",
@@ -42,18 +52,17 @@ export function initUi(cb) {
     "p1PickReady", "p2PickReady", "p3PickReady", "p4PickReady",
     "p1PickRandomArt", "p2PickRandomArt", "p3PickRandomArt", "p4PickRandomArt",
     "startButton", "movesButton", "settingsButton", "fullscreenButton", "muteButton", "controllerStatus", "menuHint", "loadHint",
-    "p1Panel", "p2Panel", "p3Panel", "p4Panel",
-    "p1Name", "p2Name", "p3Name", "p4Name",
-    "p1Damage", "p2Damage", "p3Damage", "p4Damage",
-    "p1Stocks", "p2Stocks", "p3Stocks", "p4Stocks",
-    "p1Meter", "p2Meter", "p3Meter", "p4Meter",
-    "p1MeterLabel", "p2MeterLabel", "p3MeterLabel", "p4MeterLabel",
-    "p1Portrait", "p2Portrait", "p3Portrait", "p4Portrait", "pauseButton",
+    ...FIGHTER_IDS.flatMap((id) => [
+      `p${id}Panel`, `p${id}Name`, `p${id}Damage`, `p${id}Stocks`,
+      `p${id}Meter`, `p${id}MeterLabel`, `p${id}Portrait`, `p${id}Team`, `p${id}Combo`,
+    ]),
+    "arenaSign", "arenaSignName", "matchClock", "errorToast", "pauseNotice", "matchStats", "stageAgainButton",
+    "vsModeButton", "vsModeLabel", "modeMenu", "modeNote",
     "movesPanel", "movesTitle", "movesKicker", "movesPrevButton", "movesNextButton", "movesBackButton",
     "movesModeButton",
     "randomStageButton", "stageBackButton", "roundKicker", "winnerText", "rematchButton", "menuButton",
     "resumeButton", "pauseResetButton", "pauseMenuButton",
-    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsSpritesButton", "settingsBoardsButton", "musicVolumeRange", "musicVolumeLabel",
+    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsTimeButton", "settingsBoardsButton", "musicVolumeRange", "musicVolumeLabel",
     "sfxVolumeRange", "sfxVolumeLabel", "settingsBackButton",
   ]) {
     els[id] = $(id);
@@ -63,6 +72,7 @@ export function initUi(cb) {
   syncVolumeControls();
   buildCharacterGrid();
   buildStageGrid();
+  buildModeMenu();
   bindMenuButtons();
   bindMenuKeyboardNav();
   updateSelectionUi();
@@ -101,7 +111,6 @@ function updateLoadHint() {
 // the render functions below.
 function applyStaticText() {
   const set = (el, text) => { if (el) el.textContent = text; };
-  set(els.pauseButton, TEXT.pause.pauseButton);
   set(els.startButton, TEXT.menu.startWaiting);
   set(els.loadStatus, TEXT.loading.title);
   set(els.randomStageButton, TEXT.stages.random);
@@ -110,6 +119,7 @@ function applyStaticText() {
   set(els.movesNextButton, TEXT.moves.next);
   set(els.movesBackButton, TEXT.moves.back);
   set(els.rematchButton, TEXT.roundOver.rematch);
+  set(els.stageAgainButton, TEXT.roundOver.stageSelect);
   set(els.menuButton, TEXT.roundOver.fighterSelect);
   set(els.resumeButton, TEXT.pause.resume);
   set(els.pauseResetButton, TEXT.pause.reset);
@@ -179,7 +189,9 @@ export function resetReady() {
 // select screen can show who they are about to face. Backing out of a lock
 // discards the draw, so re-readying faces a fresh opponent.
 function syncCpuRoll() {
-  const auto = state.playerCount === 1 && state.selection[2] === RANDOM_KEY;
+  // Only for the CPU opponent a player picked on the select screen. A mode's
+  // own CPUs are never shown, so there is nothing to draw early for.
+  const auto = state.playerCount === 1 && state.selection[2] === RANDOM_KEY && matchPlan().cpuFrom > 2;
   if (!auto || !allReady()) state.cpuRoll = null;
   else if (!state.cpuRoll) {
     state.cpuRoll = randomCharacterKey();
@@ -238,7 +250,9 @@ function unready(id) {
 }
 
 function tryStart() {
-  if (!allReady()) return;
+  // Confirming before everyone has locked in does nothing, and doing nothing
+  // silently reads as a dropped input rather than as a refusal.
+  if (!allReady()) { playSfx("uiDenied"); return; }
   els.startButton.click();
 }
 
@@ -416,9 +430,184 @@ function buildStageGrid() {
   for (const stage of STAGES) {
     const btn = document.createElement("button");
     btn.className = "stage-card";
-    btn.innerHTML = `<img src="assets/backgrounds/${stage.bgFile}" alt="${stage.name}" loading="lazy"><span>${stage.name}</span>`;
-    btn.addEventListener("click", () => callbacks.startMatch(stage.key));
+    // The same plate the match will draw, so the card is a preview rather than
+    // a different painting of the same place (src/stages.js, backgroundFile).
+    const src = backgroundFile(stage, cameraMode !== "3d");
+    btn.innerHTML = `<img src="${src}" alt="${stage.name}" loading="lazy"><span>${stage.name}</span>`;
+    btn.dataset.stage = stage.key;
+    btn.addEventListener("click", () => { if (!rouletteRunning) callbacks.startMatch(stage.key); });
     els.stageGrid.appendChild(btn);
+  }
+}
+
+// ------------------------------------------------- the Random Stage draw
+//
+// Choosing Random is a draw, so it looks like one: the selector sprints once
+// over every arena, then comes round a second time slowing to a stop on the
+// stage that was actually rolled, and only then does the match load. While it
+// runs, nothing else on the screen answers — see updateMenuNav and the click
+// handlers above, which both bail on `rouletteRunning`.
+let rouletteRunning = false;
+// Halved from the original 0.055/0.26. The draw reads the same — a sprint, an
+// ease-out, a landing — because what carries it is the SHAPE of the
+// deceleration, not its duration. The beat on the winning card is deliberately
+// not halved: it is what makes the result register, and a landing with no beat
+// after it reads as a cut rather than as an arrival. Measured end to end that
+// puts the whole draw at a bit over half its old length (~2.9s against ~4.0s,
+// varying with how far round the wheel the target sits); halve LANDED_HOLD too
+// if the landing should be as quick as the spin.
+const SWEEP_STEP = 0.0275; // seconds per card on the fast first lap
+const SETTLE_STEP = 0.13;  // …and on the very last hop of the second
+const LANDED_HOLD = 0.55;  // beat on the winning card before the match loads
+
+const wait = (seconds) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+
+async function runStageRoulette() {
+  const cards = [...els.stageGrid.querySelectorAll(".stage-card")];
+  if (rouletteRunning || !cards.length) return;
+  rouletteRunning = true;
+  // The pad/keyboard cursor steps aside: two highlights racing each other on
+  // the same grid would read as a bug.
+  clearMenuFocus();
+
+  const n = cards.length;
+  const target = Math.floor(Math.random() * n);
+  // One full lap at a flat sprint (i < n), then a second lap that eases out
+  // over the remaining hops and stops on `target`.
+  const last = n + target;
+  let landed = null;
+  for (let i = 0; i <= last; i++) {
+    // Backing out of the screen (or anything else that changes phase) ends the
+    // draw where it stands; the match must not start behind the player's back.
+    if (state.phase !== "stageSelect") { rouletteRunning = false; cards.forEach((c) => c.classList.remove("stage-card--rolling", "stage-card--drawn")); return; }
+    if (landed) landed.classList.remove("stage-card--rolling");
+    landed = cards[i % n];
+    landed.classList.add("stage-card--rolling");
+    landed.scrollIntoView({ block: "nearest", inline: "nearest" });
+    // Every card ticks on the slow lap; on the sprint only every third does,
+    // otherwise twenty blips in a second turn into noise.
+    if (i >= n || i % 3 === 0) playSfx("uiMove");
+    const settle = i < n ? 0 : (target ? (i - n + 1) / target : 1);
+    await wait(SWEEP_STEP + (SETTLE_STEP - SWEEP_STEP) * settle * settle);
+  }
+
+  landed.classList.add("stage-card--drawn");
+  playSfx("uiSelect");
+  await wait(LANDED_HOLD);
+  landed.classList.remove("stage-card--rolling", "stage-card--drawn");
+  rouletteRunning = false;
+  if (state.phase !== "stageSelect") return;
+  callbacks.startMatch(cards[target].dataset.stage);
+}
+
+// ------------------------------------------------------------------ hud
+//
+// One panel per seat, built once. Odd slots read left to right and take their
+// accent on the left edge; even slots are mirrored, which is what makes a 1v1
+// read as two fighters facing each other rather than a list. The accent colour
+// itself is published per panel as --panel-theme when the match starts, so a
+// panel needs no per-slot CSS.
+function buildHud() {
+  const hud = $("hud");
+  const center = hud.querySelector(".round-actions");
+  for (const id of FIGHTER_IDS) {
+    const mirror = id % 2 === 0;
+    const panel = document.createElement("div");
+    panel.id = `p${id}Panel`;
+    panel.className = `fighter-status hidden${mirror ? " fighter-status--mirror" : ""}`;
+    const portrait = `<img id="p${id}Portrait" class="hud-portrait" alt="">`;
+    const info = `
+      <div class="hud-info">
+        <div class="hud-row">${mirror
+          ? `<strong id="p${id}Damage" class="damage">0%</strong><i id="p${id}Team" class="team-tag hidden"></i><span id="p${id}Name" class="fighter-name"></span>`
+          : `<span id="p${id}Name" class="fighter-name"></span><i id="p${id}Team" class="team-tag hidden"></i><strong id="p${id}Damage" class="damage">0%</strong>`}
+        </div>
+        <div id="p${id}Stocks" class="stocks${mirror ? " stocks--right" : ""}"></div>
+        <div class="meter"><div id="p${id}Meter" class="meter-fill"></div><span id="p${id}MeterLabel" class="meter-label"></span></div>
+        <b id="p${id}Combo" class="combo-count hidden"></b>
+      </div>`;
+    panel.innerHTML = mirror ? info + portrait : portrait + info;
+    // Slot order left to right, with the arena sign left where it is.
+    hud.insertBefore(panel, null);
+  }
+  hud.insertBefore(center, hud.firstChild);
+}
+
+// ------------------------------------------------------------- match mode
+//
+// The VS badge is a button: it opens this list. Everything the modes actually
+// DO lives in modes.js — here they are four labels and a blurb.
+let modeMenuOpen = false;
+
+function buildModeMenu() {
+  els.modeMenu.innerHTML = "";
+  const title = document.createElement("i");
+  title.className = "mode-menu-title";
+  title.textContent = TEXT.modes.title;
+  els.modeMenu.appendChild(title);
+  for (const key of MATCH_MODES) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "mode-option";
+    btn.dataset.mode = key;
+    btn.innerHTML = `<b>${TEXT.modes[key].label}</b><em>${TEXT.modes[key].blurb}</em>`;
+    btn.addEventListener("click", () => chooseMode(key));
+    els.modeMenu.appendChild(btn);
+  }
+}
+
+function chooseMode(key) {
+  state.matchMode = key;
+  // Players vs CPUs takes the CPU's hero card off the screen. If that card was
+  // the one being picked for, the cursor goes back to Player 1 rather than
+  // steering a slot nobody can see.
+  if (!pickedSlots().includes(state.activePicker)) state.activePicker = 1;
+  closeModeMenu();
+  updateSelectionUi();
+}
+
+function openModeMenu() {
+  modeMenuOpen = true;
+  els.modeMenu.classList.remove("hidden");
+  els.vsModeButton.setAttribute("aria-expanded", "true");
+  syncModeMenu();
+  // Opens on the mode already chosen, so a pad player can see where they are
+  // before moving.
+  const current = els.modeMenu.querySelector(`[data-mode="${state.matchMode}"]`);
+  setFocus(current || els.modeMenu.querySelector(".mode-option"), { quiet: true });
+}
+
+function closeModeMenu() {
+  if (!modeMenuOpen) return;
+  modeMenuOpen = false;
+  els.modeMenu.classList.add("hidden");
+  els.vsModeButton.setAttribute("aria-expanded", "false");
+  // Hand the cursor back where it came from: the LB/RB corner cycle for a pad,
+  // plain focus for mouse and keyboard.
+  if (padsMenuStates().length) {
+    utilityIdx = UTILITY_IDS.indexOf("vsModeButton");
+    syncMenuHighlight();
+  } else {
+    setFocus(els.vsModeButton, { quiet: true });
+  }
+}
+
+// What the select screen says about the mode: its name under the VS badge, and
+// — for anything but a plain Vs Battle — a line saying how many CPUs are about
+// to join. Never WHICH CPUs: they are drawn when the match starts.
+function syncModeUi() {
+  const plan = matchPlan();
+  els.vsModeLabel.textContent = modeLabel(state.matchMode);
+  els.vsModeButton.classList.toggle("is-alternate", state.matchMode !== "versus");
+  const note = TEXT.modes[state.matchMode].note(plan.added);
+  els.modeNote.textContent = note;
+  els.modeNote.classList.toggle("hidden", !note);
+  syncModeMenu();
+}
+
+function syncModeMenu() {
+  for (const btn of els.modeMenu.querySelectorAll(".mode-option")) {
+    btn.classList.toggle("is-current", btn.dataset.mode === state.matchMode);
   }
 }
 
@@ -429,12 +618,19 @@ function setActivePicker(n) {
 
 function bindMenuButtons() {
   for (const id of PLAYER_IDS) els[`p${id}PickCard`].addEventListener("click", () => setActivePicker(id));
+  els.vsModeButton.addEventListener("click", () => {
+    if (modeMenuOpen) closeModeMenu();
+    else openModeMenu();
+  });
+  // A click anywhere else is a dismissal — the picker is a menu, not a screen.
+  window.addEventListener("mousedown", (e) => {
+    if (!modeMenuOpen) return;
+    if (els.modeMenu.contains(e.target) || els.vsModeButton.contains(e.target)) return;
+    closeModeMenu();
+  });
   els.startButton.addEventListener("click", () => setPhase("stageSelect"));
   els.stageBackButton.addEventListener("click", () => setPhase("menu"));
-  els.randomStageButton.addEventListener("click", () => {
-    const stage = STAGES[Math.floor(Math.random() * STAGES.length)];
-    callbacks.startMatch(stage.key);
-  });
+  els.randomStageButton.addEventListener("click", () => { runStageRoulette(); });
 
   els.settingsCpuButton.addEventListener("click", () => {
     state.cpuLevel = (state.cpuLevel + 1) % 3;
@@ -445,9 +641,12 @@ function bindMenuButtons() {
     state.stocks = STOCK_OPTIONS[(i + 1) % STOCK_OPTIONS.length];
     updateMenuButtons();
   });
-  els.settingsSpritesButton.addEventListener("click", () => {
-    state.spriteSet = state.spriteSet === "alternate" ? "default" : "alternate";
-    setSpriteSet(state.spriteSet);
+  // Takes effect on the next match start, like the other match rules — a clock
+  // that changed length under a running match would be a strange thing to do
+  // to the two people playing it.
+  els.settingsTimeButton.addEventListener("click", () => {
+    const i = TIME_OPTIONS.indexOf(state.timeLimit);
+    state.timeLimit = TIME_OPTIONS[(i + 1) % TIME_OPTIONS.length];
     updateMenuButtons();
   });
   // Takes effect on the next match start; an in-progress match keeps the
@@ -455,8 +654,6 @@ function bindMenuButtons() {
   els.settingsSfxButton.addEventListener("click", () => {
     state.sfxEnabled = !state.sfxEnabled;
     updateMenuButtons();
-    // Confirm audibly when switching back on; silence is its own confirmation.
-    if (state.sfxEnabled) playSfx("uiSelect");
   });
   els.settingsBoardsButton.addEventListener("click", () => {
     state.activeBoards = !state.activeBoards;
@@ -502,10 +699,9 @@ function bindMenuButtons() {
   els.muteButton.addEventListener("click", () => {
     // Silence first, repaint second: if anything ever threw while updating the
     // icon, the audio must already be muted rather than left running.
-    const muted = toggleMute();
+    toggleMute();
     syncMusic(state.phase);
     updateMuteButton();
-    if (!muted) playSfx("uiSelect"); // audible confirmation that sound is back
   });
 
   els.settingsButton.addEventListener("click", () => {
@@ -525,12 +721,35 @@ function bindMenuButtons() {
     playSfx("uiSelect", 0.8);
   });
 
-  els.pauseButton.addEventListener("click", () => callbacks.togglePause());
   els.resumeButton.addEventListener("click", () => callbacks.togglePause());
   els.pauseResetButton.addEventListener("click", () => callbacks.resetMatch());
   els.pauseMenuButton.addEventListener("click", () => callbacks.quitToMenu());
   els.rematchButton.addEventListener("click", () => callbacks.resetMatch());
+  // Same fighters, different arena — the one thing the result screen could not
+  // do before, which sent the player back through fighter select to reach a
+  // screen they were only passing through.
+  els.stageAgainButton.addEventListener("click", () => setPhase("stageSelect"));
   els.menuButton.addEventListener("click", () => callbacks.quitToMenu());
+  bindMenuClickAudio();
+}
+
+/** Every menu button clicks audibly, however it was pressed.
+ *
+ *  One delegated listener rather than a playSfx at each call site: the pad and
+ *  keyboard paths go through activateFocus, which used to be the ONLY thing
+ *  that made a sound, so a mouse player got silence from the stage grid, the
+ *  whole settings screen and the start button. Because activateFocus reaches
+ *  its target with .click(), routing everything through the resulting event
+ *  covers both without either double-blipping. */
+function bindMenuClickAudio() {
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn || btn.disabled) return;
+    if (!btn.closest(".overlay, .utility-actions, .mode-menu")) return;
+    // The roster has its own, louder confirmation (selectFighter).
+    if (btn.classList.contains("char-card")) return;
+    playSfx("uiSelect");
+  });
 }
 
 // Speaker on / speaker off, plus the wording and pressed state that go with it.
@@ -547,13 +766,21 @@ function updateMuteButton() {
   btn.querySelector(".icon-sound-off")?.classList.toggle("hidden", !muted);
 }
 
+/** Seconds as m:ss. Rounds UP while counting down, so a clock reading 1:00 has
+ *  a full minute left rather than having just lost one — a timer that shows
+ *  0:00 for a whole second before the match ends looks broken. */
+export function formatClock(seconds) {
+  const total = Math.max(0, Math.ceil(seconds));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+}
+
 export function updateMenuButtons() {
   const label = MUSIC_MODES[audioSettings.musicMode].label;
   els.settingsMusicButton.textContent = TEXT.settings.music(label);
   els.settingsCpuButton.textContent = TEXT.settings.cpu(cpuLevelName(state.cpuLevel));
   els.settingsStocksButton.textContent = TEXT.settings.stocks(state.stocks);
-  els.settingsSpritesButton.textContent = TEXT.settings.sprites(
-    state.spriteSet === "alternate" ? TEXT.settings.spriteAlternate : TEXT.settings.spriteDefault
+  els.settingsTimeButton.textContent = TEXT.settings.timeLimit(
+    state.timeLimit ? formatClock(state.timeLimit) : TEXT.settings.timeOff
   );
   els.settingsBoardsButton.textContent = TEXT.settings.activeBoards(state.activeBoards);
   els.settingsSfxButton.textContent = TEXT.settings.sfxEnabled(state.sfxEnabled);
@@ -594,6 +821,15 @@ function heroInfoHtml(char) {
   `;
 }
 
+// The slots that get a hero card: the ones a person actually picks. A mode's
+// CPUs (`plan.cpuFrom` and up) are drawn at the start of the match and never
+// shown — there is nothing to look at yet, and nothing to choose.
+function pickedSlots() {
+  const cpuFrom = matchPlan().cpuFrom;
+  const seats = state.playerCount === 1 ? [1, 2] : PLAYER_IDS.slice(0, state.playerCount);
+  return seats.filter((id) => id < cpuFrom);
+}
+
 // A human slot that has not locked in is "browsing": its card shows whatever
 // the cursor is over (or its last pick) greyed out, because nothing is settled
 // yet. The CPU slot never browses — it is committed to whatever it holds.
@@ -619,9 +855,9 @@ function shownKey(id) {
 
 export function updateSelectionUi() {
   syncCpuRoll();
+  const visiblePlayers = pickedSlots();
   for (const btn of els.characterGrid.querySelectorAll(".char-card")) {
     const key = btn.dataset.character;
-    const visiblePlayers = state.playerCount === 1 ? [1, 2] : PLAYER_IDS.slice(0, state.playerCount);
     for (const id of PLAYER_IDS) btn.classList.toggle(`is-p${id}`, visiblePlayers.includes(id) && key === shownKey(id));
     btn.querySelectorAll(".pick-tag").forEach((el) => el.remove());
     for (const id of visiblePlayers) {
@@ -659,7 +895,7 @@ export function updateSelectionUi() {
     badge.textContent = drawn ? TEXT.slot.randomBadge : TEXT.slot.readyBadge;
     badge.classList.toggle("hero-ready--random", !!drawn);
     badge.classList.toggle("hidden", !state.ready[id] && !drawn);
-    els[`p${id}PickCard`].classList.toggle("hidden", id > 2 && id > state.playerCount);
+    els[`p${id}PickCard`].classList.toggle("hidden", !visiblePlayers.includes(id));
     els[`p${id}PickCard`].classList.toggle("is-active", state.activePicker === id);
     els[`p${id}PickCard`].classList.toggle("is-ready", state.ready[id]);
   }
@@ -670,6 +906,7 @@ export function updateSelectionUi() {
     [1, 2, 3, 4].filter((id) => !els[`p${id}PickCard`].classList.contains("hidden")).length
   );
   els.p2PickLabel.textContent = state.mode === "cpu" ? TEXT.slot.cpu : TEXT.slot.player(2);
+  syncModeUi();
   const go = allReady();
   els.startButton.disabled = !go;
   els.startButton.textContent = go ? TEXT.menu.startReady : TEXT.menu.startWaiting;
@@ -707,10 +944,22 @@ const OVERLAY_FOR_PHASE = {
 };
 
 export function setPhase(phase) {
+  const changed = state.phase !== phase;
   state.prevPhase = state.phase;
   state.phase = phase;
   for (const [ph, id] of Object.entries(OVERLAY_FOR_PHASE)) {
     if (id) els[id].classList.toggle("hidden", ph !== phase);
+  }
+  // Screens arrive rather than appearing. `.hidden` is display:none, so a CSS
+  // transition has nothing to run against — the overlay that just became
+  // visible is given its entrance animation instead, restarted by hand so
+  // returning to a screen you were just on still plays it. The whole effect is
+  // ~180ms and CSS turns it off under prefers-reduced-motion.
+  const arriving = OVERLAY_FOR_PHASE[phase] && els[OVERLAY_FOR_PHASE[phase]];
+  if (changed && arriving) {
+    arriving.classList.remove("is-entering");
+    void arriving.offsetWidth;
+    arriving.classList.add("is-entering");
   }
   els.utilityActions.classList.toggle("hidden", phase === "loading");
   els.hud.classList.toggle("hidden", !["playing", "paused", "roundOver"].includes(phase));
@@ -718,7 +967,36 @@ export function setPhase(phase) {
   if (phase === "menu") layoutCharacterGrid();
   if (phase === "moves") renderMoveList();
   clearMenuFocus();
+  // Arriving on the arena screen, the cursor is already parked on Random: a
+  // player who just presses A gets a stage without ever steering the grid.
+  if (phase === "stageSelect") setFocus(els.randomStageButton, { quiet: true });
+  if (phase === "playing") els.arenaSignName.textContent = getStage(state.stageKey)?.name || "";
   syncMusic(phase);
+}
+
+/** The line on the pause screen explaining WHY the match stopped, when it was
+ *  not the player who stopped it. `seats` is the player numbers whose pads
+ *  went missing, or null to clear. */
+export function setPauseNotice(seats) {
+  if (!els.pauseNotice) return;
+  const list = seats && seats.length ? seats : null;
+  els.pauseNotice.classList.toggle("hidden", !list);
+  if (list) els.pauseNotice.textContent = TEXT.pause.disconnected(TEXT.pause.playerList(list));
+}
+
+/** Something threw. The player is told, in the game, rather than being left
+ *  looking at a screen that has quietly stopped updating with the explanation
+ *  sitting in a console they will never open. Always logs as well, because the
+ *  console is where the stack trace is. */
+export function reportError(what, err) {
+  console.error(what, err);
+  const el = els.errorToast;
+  if (!el) return;
+  const detail = err && err.message ? err.message : String(err ?? "");
+  el.textContent = detail ? `${what}: ${detail}` : what;
+  el.classList.remove("hidden");
+  clearTimeout(reportError.timer);
+  reportError.timer = setTimeout(() => el.classList.add("hidden"), 8000);
 }
 
 export function setLoadProgress(done, total) {
@@ -788,7 +1066,6 @@ function renderMovesSplit() {
             <span class="moves-player-epithet">${c.epithet}</span>
           </header>
           ${characterBody(c)}
-          <p class="moves-player-keys"><strong>${TEXT.moves.yourKeys(p.id)}</strong> ${TEXT.moves.keyLines[p.id] || ""}</p>
         </section>`;
       }).join("")}
     </div>
@@ -803,32 +1080,66 @@ function renderMovesSingle() {
   els.movesPanel.innerHTML = `
     ${controllerGuide()}
     ${characterBody(c)}
-    <p class="keyboard-hint">${TEXT.moves.keyboardHint}</p>
+    <p class="keyboard-hint">${TEXT.moves.stickHint}</p>
   `;
 }
 
-/** The button map, identical for every fighter and every player. */
+/** The button map, identical for every fighter and every player.
+ *
+ *  Every label on the pad is looked up in the control map (config_controls.js),
+ *  which is the same file input.js binds from — so a rebinding redraws this
+ *  diagram instead of leaving it describing the game as it used to be. This
+ *  drawing is why that matters: it is the first thing a player reads, and it
+ *  was still promising RT was a second shield two mappings later. */
+function padFor(id) {
+  return CONTROL_ROWS.find((row) => row.id === id);
+}
+
+/** "LB · DOMAIN EXPANSION" — a physical button and what it currently does, in
+ *  the diagram's shouting case. Asked by BUTTON, so moving an action across
+ *  the pad moves its label with it instead of leaving the drawing to be
+ *  re-authored by hand. An unbound button reads as an empty string. */
+function buttonCallout(label) {
+  const row = rowAtPad(label);
+  return row ? `${label} · ${row.short || row.action}`.toUpperCase() : "";
+}
+
+/** Just the action at a button — the face cluster prints the letter in the
+ *  circle and the name beside it. */
+function buttonAction(label) {
+  const row = rowAtPad(label);
+  return row ? (row.short || row.action).toUpperCase() : "";
+}
+
+/** For the two rows that are a stick or the d-pad rather than a button. */
+function stickCallout(id, short) {
+  const row = padFor(id);
+  return row ? `${row.pad} · ${short || row.short || row.action}`.toUpperCase() : "";
+}
+
 function controllerGuide() {
   return `
     <div class="controller-guide">
       <svg class="xbox-controller" viewBox="0 0 660 300" role="img" aria-label="Xbox controller button map">
         <path class="controller-shell" d="M180 55C128 60 94 99 80 155L53 246c-8 28 25 43 43 21l69-81h330l69 81c18 22 51 7 43-21l-27-91c-14-56-48-95-100-100-48-5-66 14-110 14S228 50 180 55Z"/>
         <rect class="controller-bumper" x="145" y="38" width="100" height="26" rx="10"/><rect class="controller-bumper" x="415" y="38" width="100" height="26" rx="10"/>
-        <text x="195" y="56">LB · ULTIMATE</text><text x="465" y="56">RB · ULTIMATE</text>
+        <text x="195" y="56">${buttonCallout("LB")}</text><text x="465" y="56">${buttonCallout("RB")}</text>
         <circle class="controller-stick" cx="205" cy="126" r="35"/><circle class="controller-stick-cap" cx="205" cy="126" r="21"/>
-        <text class="controller-callout" x="205" y="184">MOVE · CROUCH · AIM</text>
+        <text class="controller-callout" x="205" y="184">MOVE · CROUCH</text>
         <g class="controller-dpad controller-dpad--domain"><rect x="270" y="168" width="62" height="22" rx="5"/><rect x="290" y="148" width="22" height="62" rx="5"/></g>
-        <text class="controller-callout" x="301" y="228">D-PAD · DOMAIN</text>
+        <text class="controller-callout" x="301" y="228">${stickCallout("steer")}</text>
         <circle class="controller-menu" cx="305" cy="104" r="10"/><circle class="controller-menu" cx="355" cy="104" r="10"/>
+        <circle class="controller-stick" cx="548" cy="212" r="30"/><circle class="controller-stick-cap" cx="548" cy="212" r="18"/>
+        <text class="controller-callout" x="548" y="262">${stickCallout("tilt")}</text>
         <g class="controller-face">
           <circle class="button-y" cx="468" cy="102" r="20"/><text x="468" y="108">Y</text>
           <circle class="button-x" cx="428" cy="141" r="20"/><text x="428" y="147">X</text>
           <circle class="button-b" cx="508" cy="141" r="20"/><text x="508" y="147">B</text>
           <circle class="button-a" cx="468" cy="180" r="20"/><text x="468" y="186">A</text>
         </g>
-        <text class="face-label" x="552" y="106">HEAVY</text><text class="face-label" x="368" y="146" text-anchor="end">LIGHT</text>
-        <text class="face-label" x="552" y="146">SPECIAL</text><text class="face-label" x="552" y="186">JUMP</text>
-        <text class="controller-trigger" x="113" y="27">LT · SHIELD / DODGE</text><text class="controller-trigger" x="547" y="27" text-anchor="end">RT · SHIELD / DODGE</text>
+        <text class="face-label" x="552" y="106">${buttonAction("Y")}</text><text class="face-label" x="368" y="146" text-anchor="end">${buttonAction("X")}</text>
+        <text class="face-label" x="552" y="146">${buttonAction("B")}</text><text class="face-label" x="552" y="186">${buttonAction("A")}</text>
+        <text class="controller-trigger" x="113" y="27">${buttonCallout("LT")}</text><text class="controller-trigger" x="547" y="27" text-anchor="end">${buttonCallout("RT")}</text>
       </svg>
       <div class="controller-tips">
         ${TEXT.moves.tips.map(([input, action]) => `<span><strong>${input}</strong> ${action}</span>`).join("")}
@@ -857,23 +1168,37 @@ function characterBody(c) {
 
 /** Domain Expansion rows for the moves screen. Most fighters have none at all,
  *  and saying so explicitly is better than an empty section the player has to
- *  interpret.
+ *  interpret — but a fighter with a SIMPLE Domain has one this screen must
+ *  name, because the domain button casts it.
  *
- *  Which arrows open which domain is asked of `domainDirsFor` rather than
- *  written here, because the answer depends on how many the fighter has: with
- *  one, every direction opens it; with two, the pad splits up/left and
- *  down/right. A screen that stated a fixed mapping would be wrong for one of
- *  those cases and there would be nothing to make it notice. */
+ *  How a domain is reached is asked of domains.js rather than written here: the
+ *  button alone opens the one domain a fighter has, and only a fighter with
+ *  more than one splits them across the left stick. A screen that stated a
+ *  fixed mapping would be wrong for one of those cases with nothing to make it
+ *  notice. */
 function domainRows(c) {
   const list = c.domains || [];
-  if (!list.length) return `<p class="moves-blurb moves-blurb--muted">${TEXT.moves.domainNone}</p>`;
-  return `<dl class="moves-table">` + list.map((d, i) => `
-      <dt>${TEXT.moves.domainInputAlt(
-        domainDirsFor(i, list.length).map((d) => TEXT.moves.domainArrows[d]))}</dt>
+  const input = TEXT.moves.domainInput;
+  if (!list.length) {
+    const slot = charDomainSpecialSlot(c);
+    if (!slot) return `<p class="moves-blurb moves-blurb--muted">${TEXT.moves.domainNone}</p>`;
+    const move = c.specials[slot];
+    return `<dl class="moves-table">
+      <dt>${input}</dt>
+      <dd>
+        <strong>${move.name}</strong> — ${move.desc}
+        <em>${TEXT.moves.simpleDomainNote(TEXT.moves[`special${slot[0].toUpperCase()}${slot.slice(1)}`])}</em>
+      </dd></dl>`;
+  }
+  return `<dl class="moves-table">` + list.map((d, i) => {
+    const stick = domainStickFor(i, list.length);
+    return `
+      <dt>${stick ? TEXT.moves.domainInputAlt(input, stick.map((k) => TEXT.moves.domainSticks[k])) : input}</dt>
       <dd>
         <strong>${d.name}</strong> — ${d.desc} <em>${TEXT.moves.domainNote}</em>
         <span class="domain-howto"><strong>${TEXT.moves.domainHowTo}</strong> ${d.howTo}</span>
-      </dd>`).join("") + `</dl>`;
+      </dd>`;
+  }).join("") + `</dl>`;
 }
 
 // -------------------------------------------------------------------- HUD
@@ -886,20 +1211,83 @@ function damageColor(d) {
   return `rgb(${r},${g},${b})`;
 }
 
+// This runs 60 times a second for up to eight panels, and almost nothing on it
+// changes between one frame and the next: a name never changes at all, a
+// portrait changes once per match, damage changes only when somebody is hit.
+// Writing them anyway made every frame pay for a style recalculation — worst
+// with `--pN-theme`, which is set on the document root and so invalidates the
+// whole page. So each write is guarded by what it wrote last.
+const hudCache = new Map();
+
+function hudSet(key, value, write) {
+  if (hudCache.get(key) === value) return;
+  hudCache.set(key, value);
+  write(value);
+}
+
+/** Dropped when a match starts, so the first frame of a new match writes
+ *  everything rather than trusting values left by the last one. */
+export function resetHudCache() {
+  hudCache.clear();
+}
+
 export function updateHud() {
   els.hud.classList.toggle("hud--multiplayer", state.fighters.length > 2);
-  for (const id of PLAYER_IDS) {
+  // Five or more panels no longer fit at multiplayer size: portraits go and the
+  // type shrinks so a Battle Royal still reads at a glance.
+  els.hud.classList.toggle("hud--crowd", state.fighters.length > 4);
+  updateMatchClock();
+  const teamMatch = matchPlan().teams;
+  for (const id of FIGHTER_IDS) {
     const f = state.fighters[id - 1];
     els[`p${id}Panel`].classList.toggle("hidden", !f);
     if (!f) continue;
-    document.documentElement.style.setProperty(`--p${id}-theme`, f.char.theme);
-    els[`p${id}Name`].textContent = f.char.name;
-    els[`p${id}Portrait`].src = heroCardSrc(f.charKey);
-    els[`p${id}Damage`].textContent = `${Math.round(f.damage)}%`;
-    els[`p${id}Damage`].style.color = damageColor(f.damage);
+    const panel = els[`p${id}Panel`];
+    // Slots 1-4 also colour the select screen; every panel colours itself.
+    hudSet(`${id}:theme`, f.char.theme, (theme) => {
+      if (id <= 4) document.documentElement.style.setProperty(`--p${id}-theme`, theme);
+      panel.style.setProperty("--panel-theme", theme);
+    });
+    // In a team match the panels have to say which side each fighter is on;
+    // eight names in a row are otherwise eight strangers.
+    const side = teamMatch ? (f.team === HUMAN_TEAM ? TEXT.hud.playerSide : TEXT.hud.cpuSide) : "";
+    hudSet(`${id}:side`, side, (text) => {
+      els[`p${id}Team`].textContent = text;
+      els[`p${id}Team`].classList.toggle("hidden", !text);
+    });
+    hudSet(`${id}:cpuSide`, teamMatch && f.team !== HUMAN_TEAM, (on) =>
+      panel.classList.toggle("fighter-status--cpu-side", on));
+    hudSet(`${id}:name`, f.char.name, (name) => { els[`p${id}Name`].textContent = name; });
+    hudSet(`${id}:portrait`, f.charKey, (key) => { els[`p${id}Portrait`].src = heroCardSrc(key); });
+    hudSet(`${id}:damage`, Math.round(f.damage), (dmg) => {
+      els[`p${id}Damage`].textContent = `${dmg}%`;
+      els[`p${id}Damage`].style.color = damageColor(dmg);
+    });
+    // Two hits is the smallest thing worth calling a combo; one is a hit.
+    hudSet(`${id}:combo`, f.comboT > 0 && f.combo > 1 ? f.combo : 0, (n) => {
+      const el = els[`p${id}Combo`];
+      el.classList.toggle("hidden", !n);
+      if (!n) return;
+      el.textContent = TEXT.hud.combo(n);
+      // Restarted per hit, so a running combo pulses on every one of them
+      // rather than animating once and sitting still while it grows.
+      el.classList.remove("is-hit");
+      void el.offsetWidth;
+      el.classList.add("is-hit");
+    });
     renderStocks(els[`p${id}Stocks`], f);
     renderMeter(els[`p${id}Meter`], els[`p${id}MeterLabel`], f);
   }
+}
+
+function updateMatchClock() {
+  const on = state.timeLimit > 0 && !state.suddenDeath;
+  els.matchClock.classList.toggle("hidden", !on);
+  if (!on) return;
+  hudSet("clock", formatClock(state.timeLeft), (text) => { els.matchClock.textContent = text; });
+  // The last ten seconds read differently, because by then the clock is the
+  // thing deciding the match rather than a limit sitting in the corner.
+  els.matchClock.classList.toggle("match-clock--urgent", state.timeLeft <= 10);
 }
 
 function renderStocks(el, f) {
@@ -931,21 +1319,58 @@ function renderMeter(fillEl, labelEl, f) {
     : TEXT.hud.ultimateReady;
 }
 
-export function showRoundOver(winner, loser) {
-  els.roundKicker.textContent = TEXT.roundOver.kicker;
-  els.winnerText.textContent = winner ? TEXT.roundOver.winner(winner.char.name) : TEXT.roundOver.draw;
+/** The result screen. `side` is set only in a team match, where the result
+ *  belongs to a side rather than to whichever fighter happened to be left
+ *  standing, and `reason` is how the match ended — a player who was watching
+ *  the fight saw the KO, but a match decided on the clock needs saying. */
+export function showRoundOver({ winner, side = null, reason = "ko" } = {}) {
+  els.roundKicker.textContent = TEXT.roundOver.kickerFor[reason] || TEXT.roundOver.kicker;
+  els.winnerText.textContent = !winner ? TEXT.roundOver.draw
+    : side ? TEXT.roundOver.teamWinner(side)
+    : TEXT.roundOver.winner(winner.char.name);
+  renderMatchStats(winner);
   setPhase("roundOver");
+}
+
+/** Who did what, in finishing order.
+ *
+ *  The order is the one the match itself used to decide the winner: stocks
+ *  left, then least damage taken. That makes the table a placement list in a
+ *  Battle Royal, which is the screen's other job — with eight fighters, "Gojo
+ *  wins" leaves seven players with no idea how they did. */
+function renderMatchStats(winner) {
+  const ranked = [...state.fighters].sort((a, b) =>
+    (b.stocks - a.stocks) || (a.damage - b.damage) || (b.tally.dealt - a.tally.dealt));
+  const s = TEXT.roundOver.stats;
+  const cell = (v) => `<span>${v}</span>`;
+  const rows = ranked.map((f, i) => `
+    <div class="stat-row${f === winner ? " stat-row--winner" : ""}" style="--row-theme:${f.char.theme}">
+      ${cell(i + 1)}
+      <span class="stat-name">${f.char.name}</span>
+      ${cell(`${Math.round(f.tally.dealt)}%`)}
+      ${cell(`${Math.round(f.tally.taken)}%`)}
+      ${cell(f.tally.kos)}
+      ${cell(f.tally.falls)}
+      ${cell(s.comboValue(f.tally.bestCombo))}
+    </div>`).join("");
+  els.matchStats.innerHTML = `
+    <div class="stat-row stat-row--head">
+      ${cell(s.place)}<span class="stat-name">${s.fighter}</span>
+      ${cell(s.dealt)}${cell(s.taken)}${cell(s.kos)}${cell(s.falls)}${cell(s.combo)}
+    </div>
+    ${rows}
+    <p class="stat-footer">${s.duration(formatClock(state.matchTime))}</p>`;
 }
 
 export function updateControllerStatus(count) {
   els.controllerStatus.classList.toggle("hidden", count === 0);
   if (count > 0) {
+    // Every connected pad is already seated by the time this runs (input.js
+    // seats on sight), so there is no longer a "waiting to join" state to
+    // report — a pad that exists is a player.
     const joined = state.playerCount;
-    const waiting = Math.max(0, Math.min(4, count) - joined);
     const who = joined === 1 ? TEXT.controllers.vsCpu : TEXT.controllers.joined(joined);
-    els.controllerStatus.textContent = waiting
-      ? TEXT.controllers.waiting(who)
-      : TEXT.controllers.allJoined(who);
+    els.controllerStatus.textContent = TEXT.controllers.allJoined(who);
   }
 }
 
@@ -967,6 +1392,10 @@ const BACK_TARGET = {
 };
 
 function menuFocusables() {
+  // The mode picker is modal: while it is open it is the only thing the cursor
+  // can reach, so arrows walk its options instead of wandering the roster
+  // behind it.
+  if (modeMenuOpen) return [...els.modeMenu.querySelectorAll("button")];
   const overlayId = OVERLAY_FOR_PHASE[state.phase];
   if (!overlayId) return [];
   const overlay = els[overlayId];
@@ -983,6 +1412,9 @@ function menuFocusables() {
 function defaultFocus() {
   const items = menuFocusables();
   if (!items.length) return null;
+  if (modeMenuOpen) {
+    return els.modeMenu.querySelector(`[data-mode="${state.matchMode}"]`) || items[0];
+  }
   // A locked-in player starts on the start button, not on the roster: their pick
   // is made, so the only thing left to point at is the match. menuFocusables()
   // has already dropped the cards in that case, hence the membership test.
@@ -993,14 +1425,15 @@ function defaultFocus() {
       : els.characterGrid.querySelector(".char-card");
     if (current && items.includes(current)) return current;
   }
-  if (state.phase === "stageSelect") {
-    const first = els.stageGrid.querySelector(".stage-card");
-    if (first) return first;
-  }
+  // Random is the arena screen's resting position: it needs no browsing and it
+  // always has an answer, so it is what a blind press of A should get.
+  if (state.phase === "stageSelect" && items.includes(els.randomStageButton)) return els.randomStageButton;
   return items.find((el) => el.classList.contains("primary-action")) || items[0];
 }
 
-function setFocus(el) {
+// `quiet` places the cursor without the move blip — used when a screen opens
+// with something already selected, which is a starting position, not a move.
+function setFocus(el, { quiet = false } = {}) {
   if (focusEl === el) return;
   if (focusEl) focusEl.classList.remove("pad-focus");
   focusEl = el;
@@ -1079,7 +1512,9 @@ function movePickerCursor(playerId, dx, dy) {
 // LB/RB on the menu cycle a highlight through the utility buttons in the top
 // right corner, then wrap back to the fighter grid (or the start button once
 // everyone is locked in). A activates the highlighted button.
-const UTILITY_IDS = ["movesButton", "muteButton", "settingsButton", "fullscreenButton"];
+// The VS badge rides along with the corner menus so LB/RB reaches the mode
+// picker too — a pad player never touches the mouse.
+const UTILITY_IDS = ["movesButton", "muteButton", "settingsButton", "fullscreenButton", "vsModeButton"];
 let utilityIdx = -1;
 let menuHighlightEl = null;
 
@@ -1117,7 +1552,6 @@ function updateCharacterPickerPads(dt) {
       const el = els[UTILITY_IDS[utilityIdx]];
       utilityIdx = -1;
       setMenuHighlight(null);
-      playSfx("uiSelect");
       el.click();
       return;
     }
@@ -1127,6 +1561,9 @@ function updateCharacterPickerPads(dt) {
     return;
   }
 
+  // `pads` is indexed by SEAT (input.js), so `pads[i]` is player i+1's own pad
+  // and a seat with no pad connected right now is a blank snapshot rather than
+  // a gap that shifts everyone along.
   for (let i = 0; i < Math.min(4, pads.length, state.playerCount); i++) {
     const playerId = i + 1;
     const pad = pads[i];
@@ -1236,18 +1673,22 @@ function activateFocus() {
     tryStart();
     return;
   }
-  playSfx("uiSelect");
   focusEl.click();
 }
 
 function menuBack() {
+  if (modeMenuOpen) { closeModeMenu(); playSfx("uiBack"); return; }
   const target = BACK_TARGET[state.phase]?.();
   if (target) target.click();
 }
 
 // Called every frame by the main loop while a menu phase is active.
 export function updateMenuNav(dt) {
-  if (state.phase === "menu" && padsMenuStates().length) {
+  if (rouletteRunning) return; // the draw owns the arena screen until it lands
+  // An open mode picker takes the pad off the roster: directions walk its
+  // options, A chooses one, B closes it. Without this the picker path below
+  // would keep steering fighter cursors behind the menu.
+  if (state.phase === "menu" && padsMenuStates().length && !modeMenuOpen) {
     updateCharacterPickerPads(dt);
     return;
   }
@@ -1300,7 +1741,7 @@ function bindMenuKeyboardNav() {
   });
 
   window.addEventListener("keydown", (e) => {
-    if (state.phase === "playing" || state.phase === "loading") return;
+    if (state.phase === "playing" || state.phase === "loading" || rouletteRunning) return;
     const map = {
       ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1],
     };
@@ -1313,8 +1754,14 @@ function bindMenuKeyboardNav() {
       activateFocus();
     } else if (code === "Backspace") {
       e.preventDefault();
-      if (state.phase === "menu") unready(state.activePicker);
+      if (modeMenuOpen) closeModeMenu();
+      else if (state.phase === "menu") unready(state.activePicker);
       else menuBack();
+    } else if (code === "Escape" && modeMenuOpen) {
+      // Escape is the pause key in a match; on the select screen the only thing
+      // it can dismiss is the mode picker.
+      e.preventDefault();
+      closeModeMenu();
     }
   });
   // real mouse use hides the pad cursor until the pad speaks again

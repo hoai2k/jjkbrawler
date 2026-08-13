@@ -68,11 +68,11 @@ def run_import(work, char, key, plate):
     json.dump({char: [key]}, open(appr, "w"))
     subprocess.run([sys.executable, os.path.join(work, "tools", "intake_import.py"),
                     "--approve", appr], cwd=work, capture_output=True, check=True)
-    return json.load(open(os.path.join(work, "assets", "sprites", "manifest.json")))
+    return json.load(open(os.path.join(work, "sprites", "assets", "manifest.json")))
 
 
 def main():
-    man0 = json.load(open(os.path.join(ROOT, "assets", "sprites", "manifest.json")))
+    man0 = json.load(open(os.path.join(ROOT, "sprites", "assets", "manifest.json")))
     # A pose with art on disk and nothing pending, so the first import below is
     # the ordinary case and the second is the one that used to break.
     pick = None
@@ -80,7 +80,7 @@ def main():
         for key, meta in frames.items():
             if meta.get("awaitingApproval") or "/" in meta.get("file", "").replace(f"{char}/", ""):
                 continue
-            if os.path.exists(os.path.join(ROOT, "assets", "sprites", meta["file"])):
+            if os.path.exists(os.path.join(ROOT, "sprites", "assets", meta["file"])):
                 pick = (char, key, meta["file"])
                 break
         if pick:
@@ -94,17 +94,17 @@ def main():
     with tempfile.TemporaryDirectory() as work:
         for sub in ("tools", "src"):
             shutil.copytree(os.path.join(ROOT, sub), os.path.join(work, sub))
-        os.makedirs(os.path.join(work, "assets", "sprites", char), exist_ok=True)
+        os.makedirs(os.path.join(work, "sprites", "assets", char), exist_ok=True)
         os.makedirs(os.path.join(work, "assets", "intake", char), exist_ok=True)
-        shutil.copy2(os.path.join(ROOT, "assets", "sprites", original),
-                     os.path.join(work, "assets", "sprites", original))
+        shutil.copy2(os.path.join(ROOT, "sprites", "assets", original),
+                     os.path.join(work, "sprites", "assets", original))
         json.dump({"characters": {char: {key: dict(man0["characters"][char][key])}}},
-                  open(os.path.join(work, "assets", "sprites", "manifest.json"), "w"))
+                  open(os.path.join(work, "sprites", "assets", "manifest.json"), "w"))
 
         # Two different plates, so "did the file change" is answerable by size.
         plates = []
         for other in man0["characters"][char]:
-            p = os.path.join(ROOT, "assets", "sprites",
+            p = os.path.join(ROOT, "sprites", "assets",
                              man0["characters"][char][other].get("file", ""))
             if other != key and os.path.exists(p):
                 plates.append(p)
@@ -122,7 +122,7 @@ def main():
         check(first_pending != first_live,
               "and the workbench on the newcomer", first_pending)
 
-        pending_bytes = open(os.path.join(work, "assets", "sprites", first_pending), "rb").read()
+        pending_bytes = open(os.path.join(work, "sprites", "assets", first_pending), "rb").read()
 
         man2 = run_import(work, char, key, plates[1])
         second_live = live_file(man2, char, key)
@@ -133,10 +133,10 @@ def main():
         check(second_pending != first_pending,
               "the new drawing gets its own file rather than overwriting the last",
               f"{first_pending} -> {second_pending}")
-        check(open(os.path.join(work, "assets", "sprites", first_pending), "rb").read() == pending_bytes,
+        check(open(os.path.join(work, "sprites", "assets", first_pending), "rb").read() == pending_bytes,
               "and the drawing it replaces is byte-for-byte untouched on disk")
         for who, f in (("live", second_live), ("pending", second_pending)):
-            check(os.path.exists(os.path.join(work, "assets", "sprites", f)),
+            check(os.path.exists(os.path.join(work, "sprites", "assets", f)),
                   f"the {who} drawing is on disk", f)
 
     print()

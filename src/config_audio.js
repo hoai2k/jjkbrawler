@@ -131,6 +131,41 @@ export const SFX = {
   domainIronMountain: { file: "domain_iron_mountain.mp3", category: "domain", gain: 0.8 },
   domainIdleDeathGamble: { file: "domain_idle_death_gamble.mp3", category: "domain", gain: 0.8 },
   domainMutualLove: { file: "domain_mutual_love.mp3", category: "domain", gain: 0.8 },
+  // The eighth, for Dagon. Owed since round 15 staged him, delivered with
+  // round 10 — DOMAIN_STING has always named this key.
+  domainCaptivatingSkandha: { file: "domain_captivating_skandha.mp3", category: "domain", gain: 0.8 },
+
+  // ---- The domain moment, round 10 (docs/audio-requests-history.md). Every
+  // key here was registered ahead of its file — an undelivered sound is dropped
+  // silently (audio.js) — so the sequence played exactly as it had until the
+  // mp3s landed, and needed no code change on the day they did.
+  //
+  // The call-out: "領域展開" and the domain's name, in the owner's own voice.
+  // Per CHARACTER rather than per voice group — eight fighters have a domain
+  // and this is the one line each of them is known for, so the grunt-group
+  // sharing that covers 27 fighters' effort noises is the wrong economy here.
+  domainCallGojo: { file: "domain_call_gojo.mp3", category: "voice", gain: 1.1 },
+  domainCallSukuna: { file: "domain_call_sukuna.mp3", category: "voice", gain: 1.1 },
+  domainCallMegumi: { file: "domain_call_megumi.mp3", category: "voice", gain: 1.1 },
+  domainCallMahito: { file: "domain_call_mahito.mp3", category: "voice", gain: 1.1 },
+  domainCallJogo: { file: "domain_call_jogo.mp3", category: "voice", gain: 1.1 },
+  domainCallDagon: { file: "domain_call_dagon.mp3", category: "voice", gain: 1.1 },
+  domainCallHakari: { file: "domain_call_hakari.mp3", category: "voice", gain: 1.1 },
+  domainCallYuta: { file: "domain_call_yuta.mp3", category: "voice", gain: 1.1 },
+  // ---- Inumaki's cursed speech, round 11. The command itself, in Japanese,
+  // in his voice — see MOVE_CALL below for how these reach a move. He is the
+  // one fighter whose entire technique is his voice, and until these landed he
+  // fired the wordless young-male grunt he shares with four other students.
+  callInumakiBlastAway: { file: "call_inumaki_blast_away.mp3", category: "voice", gain: 1.1 },
+  callInumakiDontMove: { file: "call_inumaki_dont_move.mp3", category: "voice", gain: 1.1 },
+  callInumakiGetCrushed: { file: "call_inumaki_get_crushed.mp3", category: "voice", gain: 1.1 },
+  callInumakiUltimate: { file: "call_inumaki_ultimate.mp3", category: "voice", gain: 1.1 },
+
+  // The barrier itself, and the room it encloses.
+  domainBarrier: { file: "domain_barrier.mp3", category: "domain", gain: 0.9 },
+  domainInterior: { file: "domain_interior.mp3", category: "domain", loop: true, gain: 0.45 },
+  // A second domain refused while one is open — the popup has never had a sound.
+  domainRejected: { file: "domain_rejected.mp3", category: "ui", gain: 0.9 },
 
   // ---- Tier 6: stage hazards (Active Boards)
   hazardTelegraph: { file: "hazard_telegraph.mp3", category: "hazard" },
@@ -155,6 +190,11 @@ export const SFX = {
   hitSound: { file: "hit_sound.mp3", category: "combat", gain: 0.5 },
   hitShadow: { file: "hit_shadow.mp3", category: "combat", gain: 0.5 },
   hitSoul: { file: "hit_soul.mp3", category: "combat", gain: 0.5 },
+  // The three owed since round 15 staged Dagon, Mechamaru and Kurourushi. They
+  // were the only fighters on the roster whose element hit nothing at all.
+  hitWater: { file: "hit_water.mp3", category: "combat", gain: 0.5 },
+  hitMachine: { file: "hit_machine.mp3", category: "combat", gain: 0.5 },
+  hitSwarm: { file: "hit_swarm.mp3", category: "combat", gain: 0.5 },
 
   // ---- Tier 7b: signature one-shots. Each is the sound of one technique, so
   // they sit with the layer they belong to rather than in a group of their own.
@@ -174,10 +214,15 @@ export const SFX = {
 };
 
 // Element hit layers — played UNDER the normal hit sound when a hit's
-// fxElement (config_fx.js / characters.js) matches, at reduced gain. All seven
+// fxElement (config_fx.js / characters.js) matches, at reduced gain. All ten
 // are delivered and registered in SFX above; playSfx treats an unregistered
 // name as silence, so an element listed here with no entry up there is simply
 // silent. Remove a row to silence that element.
+//
+// `feather` — Mei Mei's crow and Axe Rush — is the one fxElement in the game
+// with no row here, and is deliberately absent rather than forgotten: no layer
+// has been requested for it. Her crow already has crowCaw as a fire sound, so
+// she is the one case where the element is not silent for want of this table.
 export const ELEMENT_HIT_SFX = {
   fire: "hitFire",
   blood: "hitBlood",
@@ -186,6 +231,32 @@ export const ELEMENT_HIT_SFX = {
   sound: "hitSound",
   shadow: "hitShadow",
   soul: "hitSoul",
+  water: "hitWater",
+  machine: "hitMachine",
+  swarm: "hitSwarm",
+};
+
+// The line a fighter speaks when they use a particular move, played INSTEAD of
+// their wordless effort grunt (`playGrunt`, audio.js). Keyed by character and
+// then by the move's own `name` from characters.js, so a row reads like the
+// character sheet and survives a move being moved between slots.
+//
+// This is the general form of what `DOMAIN_CALL` (domains.js) does for the
+// eight Domain Expansions: a fighter with a line for this move says it, and
+// everyone else keeps the grunt, so a move is never silent. Nothing here is
+// Inumaki-shaped except the rows — any fighter who is ever given a technique
+// call-out goes in the same map.
+//
+// The names carry curly quotes because the kit does (“Blast Away”, not "Blast
+// Away"). A row whose name matches no move would silently never play, so
+// audio.js checks them against the roster at load and says so.
+export const MOVE_CALL = {
+  inumaki: {
+    "“Blast Away”": "callInumakiBlastAway",
+    "“Don't Move”": "callInumakiDontMove",
+    "“Get Crushed”": "callInumakiGetCrushed",
+    "“GET TWISTED AND BLAST AWAY”": "callInumakiUltimate",
+  },
 };
 
 // Legacy keys from before the round-8 sound pass. Call sites and move configs

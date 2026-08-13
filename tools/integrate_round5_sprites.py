@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Register processed Round 5 semantic sprites in the runtime manifest."""
+import sprite_paths
 
 import json
 from pathlib import Path
@@ -11,7 +12,7 @@ from extract_sprites import GENERATED_FRAME_TARGETS, generated_frame_meta
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SPRITES = ROOT / "assets" / "sprites"
+SPRITES = sprite_paths.CHAR
 MANIFEST = SPRITES / "manifest.json"
 
 

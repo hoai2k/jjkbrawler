@@ -58,7 +58,8 @@ the moment you get hit. It dims and then blinks as its time runs out.
 | Mechanic | Detail |
 |---|---|
 | Run | Per-character top speed (356–468 px/s) and acceleration |
-| **Dash** | Double-tap a direction within 0.24 s → 1.45× burst for 0.22 s |
+| **Dash** | **Shove the left stick** out from centre (past 0.78 within 0.14 s of leaving the 0.36 rest zone), or double-tap a direction within 0.24 s → 1.45× burst for 0.22 s |
+| **Dash attack** | Light or heavy while running: the run's own committal attack (§4) |
 | Turn lock | Reversing at speed costs 0.08 s of traction — spacing has commitment |
 | Jump | Per-character impulse; **short hop** by releasing jump within ~0.09 s |
 | Double jump | One air jump at 92% power (Momo gets two — broom flight) |
@@ -66,6 +67,16 @@ the moment you get hit. It dims and then blinks as its time runs out.
 | **Fast fall** | Press down while airborne: fall cap rises 1.62× |
 | Crouch | Shrinks the hurtbox; ducks under high projectiles |
 | Platform drop | Down + jump drops through side/top platforms (not the main stage) |
+
+**The dash is a stick input, not a button.** How *fast* the stick leaves centre
+is what separates a dash from a walk — shove it and you dash, roll it out and
+you walk — which is Smash's smash input and the thing a player coming from that
+game tries first. One dash per shove: the stick has to be seen back inside the
+rest zone before another can fire, so holding a direction never machine-guns
+dashes, and yanking the stick across centre is a dash-turn. It is **analog
+only**: a key crosses every threshold in the frame it is pressed, so a keyboard
+cannot tell a shove from a walk and keeps the double tap (`DASH_FLICK` in
+`src/input.js`).
 
 ### Ledges
 Only the main platform has grabbable ledges. Falling near an edge (after real airtime —
@@ -105,11 +116,41 @@ per-character (from their `light`/`heavy` profiles in `src/characters.js`).
 ### Light attacks (fast, low commitment)
 - **Jab combo** — neutral light on the ground: two quick hits into a knockback
   finisher.
-- **Side tilt** — light while moving/dashing: the character's spacing poke.
+- **Side tilt** — the character's spacing poke. On the ground it is a flick of
+  the right stick (the tilt stick), because a light press at a run now has its
+  own attack.
 - **Up tilt** — light + up: anti-air arc.
 - **Down tilt** — light while crouching: low poke, slight launch.
 - **Aerials** — neutral / up / **down air** in midair; down airs are
   **spikes** that launch downward — the edge-guard finisher.
+
+### Dash attacks (the run's own attacks)
+
+Attacking out of a dash or a sprint — either attack button — throws a **dash
+attack** rather than the standing move. Both carry the run through the swing
+(`keepMomentum`, so the slide does not decay the moment the action locks) and
+both are deliberately committal: the trade for reaching with your momentum
+behind you is that you are standing in the recovery afterwards.
+
+| | Light, running | Heavy, running |
+|---|---|---|
+| Damage | 1.1× the side tilt | 0.95× a smash, uncharged |
+| Launch | 330 base / 6.2 growth | 420 base / 8.0 growth |
+| Recovery | ~1.7× the side tilt's | ~1.4× the side smash's |
+| Lunge | 150 | 210 — the running shoulder-charge |
+
+Both draw `attack_dash`, a pose round 20D added to the semantic set: one
+committed lunge per fighter, weapon leading, serving the light and the heavy
+alike because the distinction is one a player reads from the hit rather than the
+frame. A fighter without one falls back to their standing strike, which is what
+the whole roster did until the round landed and is what Yuji still does.
+
+A smash cannot be charged at a run: a charge is a fighter standing still
+deciding to, so the heavy button out of a dash commits to one uncharged swing
+instead of stopping the sprint dead. Nothing was lost from the standing game —
+the side tilt is still one flick of the right stick away. `tools/audit_hitboxes.mjs`
+checks the trade holds for every fighter: a dash attack that recovered faster or
+hit softer than the move it replaces would simply retire the standing game.
 
 ### Heavy attacks (slow, chargeable, shield-hungry)
 - Hold heavy to **charge** up to 0.8 s → up to +55% damage and +25% launch.
@@ -139,7 +180,7 @@ information.
 | Character | Special | Pool |
 |---|---|---|
 | Megumi | Ten Shadows: Shikigami | **Divine Dogs** (two chasers, snare bite) · **Great Serpent** (fast, enormous reach, fragile) · **Toad** (holds ground behind him, tongue lash) · **Max Elephant** (slow, huge, very hard to remove) · **Rabbit Escape** (three bombers, chip and clutter) |
-| Mahito | Idle Transfiguration | **Transfigured Human** (bomber) · **Bloated Hulk** (slow tanky chaser) · **Crawlers** (two fast bombers) · **Spitter** (support) |
+| Mahito | Transfigured Souls | **Transfigured Human** (bomber) · **Bloated Hulk** (slow tanky chaser) · **Crawlers** (two fast bombers) · **Spitter** (support) |
 | Geto | Cursed Spirit Release | **Rainbow Dragon** (chaser) · **Smallpox Deity** (support, poison) · **Curse Hounds** (two fast chasers) · **Cursed Womb** (bomber) |
 | Toji | Open the Inventory | **Inventory Curse** (support, cursed tools) · **Coil Curse** (chaser) · **Husk Curse** (bomber, breaks weapons) |
 
@@ -164,6 +205,24 @@ The exception is a summon that was **killed**. That one bursts on the spot with
 no flash and no fade — the difference between a timer running out and an
 opponent taking your shikigami apart should be visible from across the stage.
 
+**A summon has two boxes, the way a fighter does.** What it can be **hit on** is
+the whole drawing — measured off its own resting pose at 85% of the drawn
+rectangle rather than authored per creature, so a dog drawn 205 px long is a
+205 px dog to hit. A kit can still state that box, which is how you say "the
+drawing cannot be trusted for this", and seven creatures did: the ones whose art
+arrived as a sheet of six figures, where measuring the drawing would have given
+a box six creatures wide. Round 20A redrew those sheets, so all seven pairs came
+out and **no creature is authored today**.
+
+What it hits **with** is separate, because a dog bites with its head — being
+brushed by a passing shikigami's tail should not cost 6.5%. That box is a
+rectangle placed on the drawing in the sprite workbench and stored as fractions
+of it, so it travels with the art. Unplaced it is the leading 44% of the
+creature's length, which is the right end of every quadruped, serpent and hulk
+in the pools; a bomber's is its whole body, since it detonates on contact and
+what touches you is whichever part arrived first. Turn on debug hitboxes to see
+both: white is what it is hit on, red is what it hits with.
+
 **Hitting one moves it.** A summon that took a hit and kept walking looked like
 a summon that had not been hit, so a blow now **staggers** it: shoved along the
 line of the attack, thrown off its own behaviour for a beat, popped off the
@@ -177,15 +236,14 @@ free stock for whoever hits hardest, which is exactly what giving them hit
 points was meant to avoid.
 
 Each one **hunts on its own** the moment it lands, so casting one costs no
-attention. Push the **right stick** (keyboard: `TFGH` for P1, `8/4/5/6` for P2)
-and you take it over instead — it goes where you point until the stick has been
+attention. Push the **D-pad** and you take it over instead — it goes where you point until the stick has been
 centred for 1.2 s, then resumes hunting. A driven summon is marked with a white
 chevron and moves 15% faster than a hunting one.
 
 Steering is movement only. Attacks stay automatic — chasers bite on contact,
 bombers detonate, the support summon keeps firing on its cooldown — so driving
 one never means abandoning your own fighter mid-combo. All of a player's live
-summons answer the same stick, so Megumi's two dogs drive as a pack.
+summons answer the same pad, so Megumi's two dogs drive as a pack.
 
 The vertical axis depends on what the summon is:
 
@@ -194,7 +252,7 @@ The vertical axis depends on what the summon is:
 | Divine Dogs, Rainbow Dragon, Transfigured Human, Mahoraga (grounded) | **Jump** — one per push, lands on platforms like a fighter | Fast-fall |
 | Inventory Curse (flyer) | Fly up | Fly down |
 
-Holding up gives one jump, not a hover: the stick has to return to centre
+Holding up gives one jump, not a hover: the pad has to be released
 before the next one. Only piloted summons jump — a hunting one has no way to
 judge when it is worth it. A summon released mid-air finishes its arc before
 resuming the hunt, and one that walks off the ledge it landed on falls.
@@ -219,34 +277,34 @@ He has **150 HP** and can be killed like any summon — but the wheel turns: aft
 Kill him early or live with him for the full 10 s.
 
 Megumi keeps his own body and his own controls the whole time and fights beside
-him, with a damage-taken reduction while the shikigami is out — and the right
-stick drives Mahoraga exactly like any other summon if you would rather steer
+him, with a damage-taken reduction while the shikigami is out — and the
+D-pad drives Mahoraga exactly like any other summon if you would rather steer
 him yourself. (He used to be a *transformation* Megumi wore, which put the
 player in Mahoraga's body but took Megumi off the board. The transform machinery
 is still in `config_transform.js` for the next fighter who needs a second body.)
 
 ### Steering creature projectiles
 
-Two specials throw creatures rather than persistent summons, and the same stick
+Two specials throw creatures rather than persistent summons, and the same pad
 flies them: Megumi's **Nue** (neutral) and Geto's **Cursed Spirit Volley**
 (neutral). Both are marked `steerable` in their kit config, which does two
 things:
 
-- **Aim on release.** Fire with the stick held and the shot launches along the
-  stick instead of straight ahead. Geto's three curses keep their spread
+- **Aim on release.** Fire with the pad held and the shot launches along it
+  instead of straight ahead. Geto's three curses keep their spread
   *perpendicular* to that heading, so an aimed volley fans exactly like a
   forward one, rotated.
-- **Fly it after release.** Holding the stick turns the shot's flight path
+- **Fly it after release.** Holding the pad turns the shot's flight path
   toward it at a limited rate (Nue 6.0 rad/s, the volley 4.6). Speed is
   preserved — steering redirects a shot, it never accelerates one.
 
 While you are steering, the shot's own guidance stands down: gravity stops
 (so a hand-flown Nue holds its line instead of dropping) and the volley's homing
-yields to the stick. Let go and both resume, so an unsteered shot behaves
+yields to the pad. Let go and both resume, so an unsteered shot behaves
 exactly as it always did.
 
 Aiming is opt-in per press. Nothing changes for a player who never touches the
-stick, and CPU shots are unaffected.
+pad, and CPU shots are unaffected.
 
 **Cursed Energy meter** (0–100): builds from dealing damage (×0.5), taking
 damage (×0.85), and slowly over time (+1.1/s). At 100, the ultimate button
@@ -328,39 +386,172 @@ hazard can never KO by itself. The CPU steps out of telegraphed zones.
 ## 7. Match structure & options
 
 - Stock battle: 1 / 2 / 3 / 5 stocks (default 3).
+- Match clock: none / 2:00 / 3:00 / 5:00 / 8:00 (default 5:00).
 - **VS CPU** (Easy / Normal / Hard — reaction time, aggression, defense, and a
-  damage handicap all scale) or **2 players local**. Gamepads supported
-  (first pad = P1, second = P2).
-- Pause (Space/Esc/Start), Move List in the pause menu, hitbox debug on `` ` ``.
+  damage handicap all scale) or **local multiplayer** — one gamepad per player,
+  seated on sight, up to four.
+- Pause (Start), Move List in the pause menu, hitbox debug on `` ` ``.
+
+### The clock, and sudden death
+
+A stock match with no clock cannot be made to end: two players who refuse to
+approach each other, or a CPU that has decided to keep its distance, run
+forever. The limit is a backstop for that rather than the normal way a match
+finishes — every option is longer than a fight that is actually being fought,
+and "none" stays available for a friendly match that wants to keep going.
+
+When it runs out the side ahead on **stocks** takes it, and on level stocks the
+side that has taken **less damage**. A dead heat on both is played off instead
+of being called a draw: the tied fighters get one stock each at 150%, the clock
+stops, and the next clean hit ends it.
+
+Both readings are per SIDE rather than per fighter, so a team match is decided
+the same way it is won — `standings()` in `src/main.js` groups by `f.team`, and
+a free-for-all gives everyone a side of their own so the same comparison
+handles both shapes.
+
+### The result screen
+
+Every fighter's match is tallied on the fighter itself (`f.tally`, built in
+`makeFighter` so a rematch clears it) and shown in finishing order: damage
+dealt and taken, KOs, falls and best combo, ordered by the same stocks-then-
+damage comparison the clock uses. In a Battle Royal that ordering is the
+placement list — with eight fighters, "Gojo wins" otherwise leaves seven
+players with no idea how they did.
+
+A KO is credited to whoever last landed a hit within the previous four seconds.
+Walking off the edge on your own therefore scores nobody a KO, which is the
+honest reading of a self-destruct.
+
+### Match modes
+
+Chosen from the **VS badge** in the middle of the fighter select screen
+(`src/modes.js` decides what each one builds; the picker itself is in `ui.js`).
+Whatever is chosen is named under the badge, and anything but the default also
+prints a line under the roster saying how many CPUs are joining. It never says
+*which* CPUs — they are drawn when the match starts, avoiding fighters already
+in the match so a crowd is a crowd of different faces.
+
+| Mode | What it builds |
+|---|---|
+| **Vs Battle** (default) | Everyone for themselves — the original match. |
+| **Players vs CPUs** | Teams: every human player, against an equal number of random CPUs. |
+| **Battle Royal +1 / +2** | One or two extra random CPUs join the free-for-all. |
+
+Teams are one field on the fighter (`f.team`) and one predicate
+(`isFoe` in `src/teams.js`), which every damage path funnels through — melee,
+projectiles, summons, domains — so teammates simply pass through each other.
+A free-for-all gives every fighter a team of their own, which makes "different
+team" and "different fighter" the same test, and the match ends when one side
+is left standing rather than one fighter.
+
+A match seats up to eight fighters (four players and four CPUs). Five or more
+switches the HUD to its compact row, and in a team match each panel is tagged
+with the side it fights for.
 
 ## 8. Controls
 
-| Action | P1 | P2 | Gamepad |
-|---|---|---|---|
-| Move | A / D | ◀ / ▶ | Left stick |
-| Jump | W | ▲ | A |
-| Crouch / fast-fall | S | ▼ | Down |
-| Light attack | J | , | X |
-| Heavy attack (hold = charge) | K | . | Y |
-| Special | L | / | **RT** |
-| Dash | Q, or double-tap a direction | \\, or double-tap | **B**, or double-tap |
-| Ultimate | I | ' | LB / RB |
-| Domain Expansion | U / Y / O | ; / [ / ] | **D-pad, any direction** |
-| Shield / dodges | Left Shift | Right Shift | LT |
-| Steer summons / aim creature shots | T / F / G / H | 8 / 4 / 5 / 6 | Right stick |
-| Pause | Space / Esc | — | Start |
+<!-- controls-table:start (generated by tools/check_controls.mjs — do not edit) -->
+| Action | Gamepad |
+|---|---|
+| Move | Left stick |
+| Jump | A or RT |
+| Crouch / fast-fall | Left stick ▼ |
+| Light attack | X |
+| Heavy attack (hold = charge) | Y |
+| Special | B |
+| Dash | Shove the stick, or double-tap |
+| Dash attack | Light or heavy, while running |
+| Ultimate | RB |
+| Domain Expansion | LB |
+| Shield / dodges | LT |
+| Tilt attacks (no run-up) | Right stick |
+| Steer summons / aim creature shots | D-pad |
+| Pause | Start |
+<!-- controls-table:end -->
 
-**The D-pad is the domain pad, and every direction opens one.** Movement is the
-left stick. A fighter with a single Domain Expansion — which is all of them
-today — opens it from any of the four; only a fighter with more than one splits
-the pad, up/left for the first and down/right for the second
-(`domainSlotFor` in `src/domains.js`, which the controls screen reads so the two
-cannot disagree).
+**This table is generated.** `src/config_controls.js` is the single control map:
+`input.js` builds its snapshots from it, the in-game move list builds its pad
+diagram and tips from it, and `tools/check_controls.mjs` (part of
+`npm run check`) regenerates this table and README's from it and fails if either
+has drifted. Change a binding there and everything that describes it follows —
+`node tools/check_controls.mjs --fix` writes the tables.
 
-**Special is the right trigger and B dashes.** Special used to be B while LT and
-RT were both shield, which spent a face button and a trigger on two things that
-never needed both. Double-tap still dashes, on pad and keyboard alike — the
-button is a second way in, not a replacement.
+**LB opens a domain, RB fires the ultimate.** One shoulder each, so neither
+super can be reached for and get the other. Domain used to be the whole D-pad,
+which spent four buttons on a move only eight fighters have and none has two of
+— a fighter who ever does have two picks between them by holding the left stick
+up or down with LB (`domainSlotFor` in `src/domains.js`, which the controls
+screen reads so the two cannot disagree).
+
+**The domain button opens whatever domain you have.** Eight fighters have a
+Domain Expansion at a full bar. Mechamaru and Yuki instead carry the New Shadow
+Style's **Simple Domain** — a special, on its own cooldown, costing no meter —
+and LB casts that for them, as well as Down+Special. It is a binding, not a
+rebalance: nothing about the move changed.
+
+**The right stick throws tilt attacks.** Flick it and the fighter throws the
+tilt in that direction on the spot — a side tilt without the run-up a light
+press needs, an up or down tilt without holding a direction, or in the air the
+aerial for that direction. Held rather than flicked it still angles a charging
+side smash on release; a charging fighter cannot act, so aiming never becomes an
+attack. Summon steering moved to the D-pad when the stick took this job.
+
+**Special is B, and dash is a double-tap again.** Special spent one mapping on
+the right trigger with dash on B, and it is back where it started: special is
+pressed constantly and wants a face button under the thumb, while dash has a
+motion — double-tap a direction — that has always worked and never needed a
+button of its own.
+
+**The right trigger is a second jump.** Not a new action: jump is the one input
+a player wants while the thumb is already on an attack button, and the right
+index finger is free at exactly that moment. A binding may name several buttons
+(`PAD_BUTTONS` in `src/config_controls.js`); they merge by OR, and the first is
+the one the pad diagram calls that action's home.
+
+### Grabs & throws — experimental, behind `?throw=true`
+
+Add `?throw=true` to the URL and the game grows Smash's fourth option
+(`src/flags.js`, `src/grab.js`). **RT becomes grab** for that session — the flag
+conditionally takes the trigger back from the second jump, because grab wants
+exactly the button a Smash player's index finger expects — and every generated
+control surface (this table, the in-game pad diagram, the tips) follows the
+flag: with it off, nothing anywhere mentions grabbing. The table above is
+generated with the flag off, which is the shipped game.
+
+What the flag turns on:
+
+- **Grab — RT, or Light while shielding (the shield grab).** Grounded only,
+  a short reach with real startup and long whiff recovery. It completes the
+  triangle: attacks lose to shield, **shield loses to grab**, and a whiffed
+  grab is the most punishable move in the game.
+- **Holding.** The victim is carried in front of the grabber. The hold's length
+  scales with their damage (`GRAB` in `src/constants.js`) and drains faster for
+  every button the victim mashes — at low damage they *will* break out of a
+  lazy hold, shoving free with brief invulnerability while the grabber
+  stumbles. Nobody can be re-grabbed for a beat after any release: there are
+  deliberately no chain grabs.
+- **Pummel — Light while holding.** Small damage on a cooldown; strictly worse
+  than throwing unless you can afford the mash race.
+- **Throws — a direction while holding.** Forward and back (tossed behind you)
+  are the kill throws, up starts juggles, down is the low-knockback combo
+  starter. All four route through `applyHit`, so DI, move staling, KO credit
+  and the result-screen tally treat a throw exactly like any other hit — and
+  none of them KOs earlier than a charged smash except back throw at the ledge,
+  which is the classic reason to take somebody's back.
+- **A landed hit breaks any grab** — striking the grabber frees their victim,
+  and a third party hitting the victim knocks them loose (their pummel is the
+  one exception).
+
+The CPU plays along: it grabs shields, mashes out at its difficulty's rate, and
+spends its own holds on throws. **The grab set is drawn** — round 20C delivered
+`grab_reach`, `grab_hold` and `grabbed` for twenty-six of the twenty-seven, all
+of them placing the grip at chest height so a hold reads as one action across
+any pairing. Yuji is the exception and still reuses the nearest poses
+([20E](asset-requests.md#20e-yujis-four-round-20-poses--4-sprites)), as does
+every fighter for the four throws, which play the heavy attack swung that way on
+purpose. The 2.5D and live-3D paths alias all seven states to clips they already
+have (`STATE_ALIASES` in `render3d/src/states.js`).
 
 ## 9. Hitboxes vs. visuals
 

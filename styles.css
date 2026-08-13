@@ -56,6 +56,12 @@ html, body {
   display: grid;
   place-items: center;
   padding: 12px;
+  /* A game, not a document. Dragging across the arena during a fight used to
+     select the HUD's text and leave it highlighted for the rest of the match,
+     and a double-click on a menu label did the same. Nothing on this screen is
+     meant to be copied. */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .arena-wrap {
@@ -68,7 +74,8 @@ html, body {
   background: #05070f;
 }
 
-#gameCanvas {
+#gameCanvas,
+#glCanvas {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -146,12 +153,17 @@ html, body {
   border-radius: 14px;
   padding: 8px 12px;
   min-width: 250px;
+  /* The combo readout hangs off the bottom edge of this panel. */
+  position: relative;
 }
 
-.fighter-status--left { border-left: 3px solid var(--p1-theme); }
-.fighter-status--right { border-right: 3px solid var(--p2-theme); }
-.fighter-status--p3 { border-left: 3px solid var(--p3-theme); }
-.fighter-status--p4 { border-right: 3px solid var(--p4-theme); }
+/* Each panel publishes its fighter's colour as --panel-theme (ui.js), so one
+   pair of rules dresses every seat from two fighters up to eight. */
+.fighter-status { border-left: 3px solid var(--panel-theme, var(--line)); }
+.fighter-status--mirror {
+  border-left: 1px solid var(--line);
+  border-right: 3px solid var(--panel-theme, var(--line));
+}
 
 .hud-portrait {
   width: 52px;
@@ -179,10 +191,7 @@ html, body {
   color: var(--text-dim);
 }
 
-.fighter-status--left .fighter-name { color: var(--p1-theme); }
-.fighter-status--right .fighter-name { color: var(--p2-theme); }
-.fighter-status--p3 .fighter-name { color: var(--p3-theme); }
-.fighter-status--p4 .fighter-name { color: var(--p4-theme); }
+.fighter-status .fighter-name { color: var(--panel-theme, var(--text-dim)); }
 
 .damage {
   font-size: 1.5rem;
@@ -207,10 +216,27 @@ html, body {
   box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.25);
 }
 
-.fighter-status--left .stocks { color: var(--p1-theme); }
-.fighter-status--right .stocks { color: var(--p2-theme); }
-.fighter-status--p3 .stocks { color: var(--p3-theme); }
-.fighter-status--p4 .stocks { color: var(--p4-theme); }
+.fighter-status .stocks { color: var(--panel-theme, var(--text-dim)); }
+
+/* Team match only: which side this fighter is on. Hidden in a free-for-all,
+   where there are no sides to tell apart. */
+.team-tag {
+  font-size: 8px;
+  font-weight: 900;
+  font-style: normal;
+  letter-spacing: 0.16em;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: rgba(98, 220, 255, 0.16);
+  border: 1px solid rgba(98, 220, 255, 0.55);
+  color: #bdefff;
+}
+
+.fighter-status--cpu-side .team-tag {
+  background: rgba(255, 76, 85, 0.16);
+  border-color: rgba(255, 76, 85, 0.6);
+  color: #ffc2c5;
+}
 
 .meter {
   position: relative;
@@ -258,6 +284,63 @@ html, body {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* The match clock, above the arena sign. Tabular figures so the digits do not
+   jitter the whole readout sideways as the seconds tick over. */
+.match-clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #f2f5ff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  line-height: 1;
+}
+
+/* Inside ten seconds the clock stops being a limit in the corner and starts
+   being the thing deciding the match. */
+.match-clock--urgent {
+  color: #ff9a7a;
+  animation: clockPulse 1s ease-in-out infinite;
+}
+
+@keyframes clockPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.09); }
+}
+
+/* The live combo count on a fighter's panel. Absolutely positioned so it can
+   never reflow the panel it sits on — the numbers appear and vanish constantly
+   and a HUD that resized on every third hit would be unreadable. */
+.combo-count {
+  position: absolute;
+  right: 8px;
+  bottom: -7px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  color: var(--panel-theme, #fff);
+  text-shadow: 0 1px 4px #000, 0 0 10px var(--panel-theme, transparent);
+  pointer-events: none;
+}
+
+.fighter-status--mirror .combo-count { right: auto; left: 8px; }
+
+/* Restarted by updateHud on every hit, so a growing combo kicks each time. */
+.combo-count.is-hit { animation: comboKick 220ms cubic-bezier(0.22, 1, 0.36, 1); }
+
+@keyframes comboKick {
+  from { transform: scale(1.5); opacity: 0.55; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .match-clock--urgent { animation: none; }
+  .combo-count.is-hit { animation: none; }
 }
 
 .hud--multiplayer { gap: 7px; padding-inline: 10px; }
@@ -268,17 +351,48 @@ html, body {
 .hud--multiplayer .fighter-name { font-size: 0.7rem; }
 .hud--multiplayer .hud-row { gap: 5px; }
 
-.round-actions button {
-  background: rgba(10, 14, 26, 0.8);
-  color: var(--text-dim);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 7px 14px;
-  font-weight: 700;
-  cursor: pointer;
+/* Five to eight fighters. The portraits are the first thing to go — at this
+   width they are thumbnails of thumbnails, and the name, damage and stocks are
+   what a player actually reads mid-match. */
+.hud--crowd { gap: 4px; padding-inline: 8px; }
+.hud--crowd .hud-portrait { display: none; }
+.hud--crowd .fighter-status { padding: 5px 7px; border-radius: 10px; }
+.hud--crowd .damage { font-size: 0.95rem; }
+.hud--crowd .fighter-name { font-size: 0.58rem; letter-spacing: 0.02em; }
+.hud--crowd .stock-dot { width: 8px; height: 8px; }
+.hud--crowd .meter { height: 7px; }
+.hud--crowd .meter-label { font-size: 7px; letter-spacing: 0.12em; }
+
+/* A hanging plaque naming the arena, where the pause button used to sit.
+   Purely informational — pausing lives on Esc / Space / Start. */
+.arena-sign {
+  position: relative;
+  background: linear-gradient(180deg, rgba(24, 20, 14, 0.92), rgba(10, 9, 8, 0.92));
+  border: 1px solid rgba(196, 158, 92, 0.55);
+  border-radius: 8px;
+  padding: 5px 16px;
+  margin-top: 7px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 226, 170, 0.16);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #f0dcb0;
+  text-shadow: 0 1px 2px #000;
+  white-space: nowrap;
 }
 
-.round-actions button:hover { color: var(--text); border-color: rgba(160, 190, 255, 0.5); }
+/* the little peg the sign hangs from */
+.arena-sign::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 2px;
+  height: 7px;
+  transform: translateX(-50%);
+  background: rgba(196, 158, 92, 0.55);
+}
 
 /* ---------- Overlays ---------- */
 
@@ -301,6 +415,36 @@ html, body {
 }
 
 .overlay--compact { background: rgba(4, 6, 13, 0.82); backdrop-filter: blur(6px); }
+
+/* Screens arrive instead of appearing.
+
+   `.hidden` is display:none, which no CSS transition can animate across, so the
+   overlay that has just become visible is given a one-shot entrance animation
+   by setPhase() rather than a transition. The panel lifts slightly further than
+   the backdrop, which is what stops a plain cross-fade reading as a flicker.
+
+   Deliberately short. This is between the player and the thing they asked for,
+   every single time, and a menu that is pleasant on the first pass is tiresome
+   on the fiftieth. */
+.overlay.is-entering { animation: overlayIn 180ms ease-out both; }
+.overlay.is-entering > * { animation: overlayContentIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes overlayContentIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Some people get motion sick, and a fighting game is already a lot of motion.
+   The screens still change; they just stop moving to do it. */
+@media (prefers-reduced-motion: reduce) {
+  .overlay.is-entering,
+  .overlay.is-entering > * { animation-duration: 1ms; }
+}
 
 #roundOverlay {
   background:
@@ -876,6 +1020,90 @@ html, body {
   filter: drop-shadow(0 0 14px rgba(255, 76, 85, 0.62));
 }
 
+/* ---------- Match mode ---------- */
+
+/* The VS badge is the button that opens the mode picker, and its caption is
+   what the screen shows for the mode in force. */
+.vs-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px 4px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  color: var(--text-dim);
+}
+
+.vs-mode:hover { border-color: rgba(160, 190, 255, 0.45); color: var(--text); }
+
+.vs-mode-label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Anything but a plain Vs Battle is a deliberate change to how the match is
+   fought, so the badge itself says so rather than leaving it to the note. */
+.vs-mode.is-alternate {
+  border-color: rgba(255, 211, 90, 0.5);
+  color: #ffd35a;
+  background: rgba(255, 211, 90, 0.08);
+}
+
+.mode-menu {
+  position: absolute;
+  z-index: 20;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  background: var(--panel);
+  border: 1px solid rgba(160, 190, 255, 0.4);
+  border-radius: 14px;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.6);
+}
+
+.mode-menu-title {
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-style: normal;
+  padding: 0 4px 2px;
+}
+
+.mode-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 7px 9px;
+  text-align: left;
+  background: var(--panel-soft);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.mode-option b { font-size: 0.78rem; font-weight: 800; }
+.mode-option em { font-size: 0.63rem; font-style: normal; color: var(--text-dim); }
+.mode-option:hover { border-color: rgba(160, 190, 255, 0.55); }
+.mode-option.is-current { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(98, 220, 255, 0.35) inset; }
+
+/* The standing reminder of what the chosen mode adds, under the roster. */
+.mode-note { color: #ffd35a; font-weight: 700; }
+
 /* ---------- Buttons ---------- */
 
 .menu-actions {
@@ -960,6 +1188,23 @@ html, body {
 }
 
 .stage-card:hover { transform: translateY(-3px) scale(1.02); border-color: rgba(160, 190, 255, 0.6); }
+
+/* The Random Stage draw sweeping the grid. Reads like the pad cursor so the
+   sweep looks like the selector running, not a new kind of highlight. */
+.stage-card--rolling {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px rgba(98, 220, 255, 0.25), 0 0 22px rgba(98, 220, 255, 0.55);
+  transform: scale(1.03);
+  z-index: 2;
+}
+
+/* the stage it lands on */
+.stage-card--drawn {
+  outline-color: #ffd97a;
+  box-shadow: 0 0 0 6px rgba(255, 217, 122, 0.3), 0 0 34px rgba(255, 217, 122, 0.7);
+  transform: translateY(-4px) scale(1.06);
+}
 
 /* ---------- Move list ---------- */
 
@@ -1163,4 +1408,98 @@ html, body {
   .matchup-side { width: 160px; padding: 7px; }
   .controller-guide { grid-template-columns: 1fr; }
   .controller-tips { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ---------- Match result: the scoreboard ---------- */
+/*
+   Seven columns on a fixed grid rather than a <table>, so every row lines up
+   without the table's own layout getting a say — with eight fighters this is
+   the difference between a scoreboard and a paragraph.
+
+   The name column is the only flexible one; the numbers are all short and
+   knowing their width in advance is what keeps the columns from shifting as
+   damage totals grow a digit.
+*/
+.match-stats {
+  width: min(680px, 92%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.76rem;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: 2ch minmax(0, 1fr) 5ch 5ch 4ch 4ch 7ch;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: rgba(8, 12, 24, 0.6);
+  border-left: 3px solid var(--row-theme, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Numbers right-aligned, the name left: the two read as different kinds of
+   thing and mixing their alignment is what makes a table hard to scan. */
+.stat-row > span { text-align: right; }
+.stat-row .stat-name { text-align: left; font-weight: 700; }
+
+.stat-row--head {
+  background: none;
+  border-left-color: transparent;
+  color: var(--text-dim);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.stat-row--winner {
+  background: rgba(60, 84, 150, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(150, 180, 245, 0.35);
+}
+
+.stat-footer {
+  margin: 4px 0 0;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.66rem;
+}
+
+/* Under four or so fighters the table is mostly whitespace, and on a short
+   window it is the first thing that can afford to shrink. */
+@media (max-height: 640px) {
+  .match-stats { font-size: 0.68rem; }
+  .stat-row { padding: 3px 10px; }
+}
+
+/* ---------- Interruptions ---------- */
+
+/* Why the match stopped, when it was not the player who stopped it. */
+.pause-notice {
+  margin: 0;
+  max-width: 46ch;
+  text-align: center;
+  color: #ffd0a8;
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+/* Failure the player can see. Bottom left, clear of the utility buttons in the
+   opposite corner, and above everything — an error that appeared behind an
+   overlay would be no better than the console it came from. */
+.error-toast {
+  position: fixed;
+  left: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 100;
+  max-width: min(48ch, calc(100vw - 32px));
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(52, 12, 16, 0.95);
+  border: 1px solid rgba(255, 138, 138, 0.5);
+  color: #ffd8d8;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
 }

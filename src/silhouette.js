@@ -40,7 +40,7 @@
 // PNG.
 
 import { spriteManifest, frameMeta } from "./assets.js";
-import { resolvedAnim, frameFootY } from "./sprites.js";
+import { resolvedAnim, frameFootY } from "../sprites/src/sprites.js";
 import { headHeightTarget, referenceSpan } from "./heights.js";
 import { CELL_W, HURTBOX } from "./constants.js";
 import { BODY } from "./config_tuning.js";
@@ -49,7 +49,10 @@ import { clamp } from "./utils.js";
 // The animation states whose frames show a committed swing. Named by state
 // rather than by frame key so a character who re-points `light` at different
 // art is measured from whatever they now actually draw.
-const SWING_STATES = ["light", "sideHeavy", "upHeavy", "downHeavy", "airLight", "crouchAttack"];
+// `dashAttack` is listed for when its pose lands (round 20D): until then it
+// resolves to the light strike frame already in the list, and measuring the
+// same frame twice changes nothing.
+const SWING_STATES = ["light", "dashAttack", "dashAttackHeavy", "sideHeavy", "upHeavy", "downHeavy", "airLight", "crouchAttack"];
 
 // And the states that show the body at rest, which is what "how wide is this
 // fighter" means. Deliberately excludes anything mid-swing — an outstretched
@@ -182,7 +185,7 @@ const PLACEMENT_FIELDS = ["renderScale", "ox", "bodyBottom"];
  * It matters because a freshly delivered sprite lands at numbers the intake
  * pipeline derived, and those are routinely wrong — `renderScale` in
  * particular, which is measured to be corrected on most poses
- * (docs/sprite-auto-adjust.md). Measuring reach off an unplaced frame reads the
+ * (sprites/docs/sprite-auto-adjust.md). Measuring reach off an unplaced frame reads the
  * pipeline's guess at the art's size, not the art, and would hand a character a
  * range that changes the moment somebody opens the workbench.
  *
