@@ -142,6 +142,46 @@ the current one's corrections and it looks wrong for a reason that has nothing
 to do with the model, which is precisely the question the comparison exists to
 answer. The review dials follow whichever body is on screen.
 
+### Fixing a foot instead of regenerating a fighter
+
+`tools/blender_fix_foot.py` replaces a malformed foot with a good one. It
+works because a generated body is a **patchwork of disconnected shells** —
+198 on Mei Mei, 272 on Momo — that overlap rather than share edges, so there
+is no continuous surface to cut and nothing to tear: swapping a shell for one
+that fills the same space at the ankle is a local edit.
+
+```
+<blender> -b -P tools/blender_fix_foot.py -- \
+    --in render3d/intake/momo/momo.glb --out render3d/intake/momo/momo.glb \
+    --from Right --to Left
+```
+
+**Mirroring the fighter's own good foot works. Grafting one from another
+generation does not** — both were tried on the same models. The mirror is
+clean because everything matches by construction: same density, same texture,
+same leg, and the two ankle bones are already mirror images, so reflecting the
+geometry and renaming its weight groups puts the foot in the right place *and*
+deforms correctly. A cross-model graft has none of that. A foot shell is only
+40–50% foot — the rest is shin — so it drags one generation's calf into
+another's leg, and since the donor's sole hangs lower it sinks (Maki's feet
+landed 8.6 cm and 1.7 cm under the floor, 6.9 cm out of level with each
+other). Narrowing the graft to the foot bones' own vertices only trades the
+knot for a torn ankle. `--donor` is still there, and it still measures
+better; it just does not *look* better, which is the only test that counts.
+
+The mirror plane is the perpendicular bisector of the two ankle bones, never
+`x = 0` — these rigs carry a yaw offset and half of them sit off-centre.
+
+**The audit measures feet now**, so this cannot pass unnoticed again: a foot is
+longer than it is wide, and the ratio is taken along the foot's own principal
+axis (never off the toe bone, which is a 2 cm stub whose direction is noise and
+which scores known-good feet as badly as broken ones). Delivered feet run about
+2.0; a lump reads about 1.0. Momo's left was **1.05** against her right's 1.98,
+and the sweep turned up Sukuna's left at **1.29** against 1.97 — both now 1.98
+from their own right foot mirrored over. Maki's are **1.03 / 1.15**: both lumps,
+so there is no good foot to copy and nothing a mirror can do. She needs the
+generator, not surgery.
+
 ### `heightM` is measured, never reviewed
 
 It is read off the .glb at import — **the fighter, not their weapon**. A
