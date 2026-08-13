@@ -59,7 +59,7 @@ import { CHARACTER_KEYS, CHARACTERS } from "../../src/characters.js";
 import { makeOrbit } from "./orbit.js";
 import { matchedPose, MATCHED_FRAMES } from "../src/battle_poses.js";
 import { poseEntry } from "../src/sprite_poses.js";
-import { baselinePose } from "../src/baseline_poses.js";
+import { baselinePose, INTENT_POSES } from "../src/baseline_poses.js";
 
 const READS_URL = "../../sprites/docs/pose-reads/";
 const SPRITES_URL = "../../sprites/assets/";
@@ -1821,6 +1821,50 @@ async function boot() {
   // most of it: a hand doing nothing belongs in FRONT (fwd > 0), and an elbow
   // that has not been lifted on purpose belongs near the ribs (|lat| < 0.44,
   // about the width of the shoulders).
+  // SILHOUETTE. Pose the rig from a named baseline intent and hand back the
+  // outline as an occupancy grid, so a tool can ask whether two poses read the
+  // same. It is the fighting-game requirement — players read the outline before
+  // they read anything else, so two moves with one silhouette are two moves the
+  // player cannot tell apart — and it is the one quality of a pose LIBRARY that
+  // no amount of looking at a single pose can check.
+  window.__showIntent = (intent) => {
+    const pose = INTENT_POSES[intent];
+    if (!pose) return false;
+    poseFromMatch(pose);
+    drawThree();
+    return true;
+  };
+  window.__silhouette = (n = 48) => {
+    const canvas = three.renderer?.domElement;
+    if (!canvas) return null;
+    // RENDER FIRST, IN THIS CALL. A WebGL drawing buffer is cleared once the
+    // frame is composited unless the context asked to keep it, so reading the
+    // canvas from a later task hands back a blank one — which does not look
+    // like a bug, it looks like every pose having an identical silhouette.
+    drawThree();
+    const w = canvas.width; const h = canvas.height;
+    const ctx = document.createElement("canvas");
+    ctx.width = w; ctx.height = h;
+    const g = ctx.getContext("2d");
+    g.drawImage(canvas, 0, 0);
+    const data = g.getImageData(0, 0, w, h).data;
+    // The pane paints a flat background, so "is there a fighter here" is "is
+    // this pixel different from the corner". Sampling the corner rather than
+    // hardcoding the colour keeps it honest if the theme moves.
+    const bg = [data[0], data[1], data[2]];
+    const grid = new Array(n * n).fill(0);
+    for (let y = 0; y < h; y++) {
+      const gy = Math.min(n - 1, Math.floor((y / h) * n));
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        if (Math.abs(data[i] - bg[0]) + Math.abs(data[i + 1] - bg[1])
+            + Math.abs(data[i + 2] - bg[2]) > 40) {
+          grid[gy * n + Math.min(n - 1, Math.floor((x / w) * n))] = 1;
+        }
+      }
+    }
+    return grid.join("");
+  };
   window.__handsAt = () => {
     const basis = anatomy();
     const at = (n) => new THREE.Vector3().setFromMatrixPosition(three.bones.get(n).matrixWorld);
