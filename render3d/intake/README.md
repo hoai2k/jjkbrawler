@@ -44,11 +44,15 @@ python3 tools/fill_model_holes.py --file render3d/intake/<char>/<char>.glb
 python3 tools/fill_model_holes.py --apply --file render3d/intake/<char>/<char>.glb
 ```
 
-It adds triangles across each rim's existing vertices and adds **no vertices**,
-so skin weights, UVs and normals come out byte-identical — an invented vertex
-would need an invented weight, and a wrong weight swims off the body as soon
-as a clip plays. Rims wider than a quarter of the figure's height are left
-alone as hems (a skirt, a coat, a sleeve cuff), so read what it skips.
+A cap adds one vertex per rim position and invents **only its texture
+coordinate**: position, normal and the skin weights are copied from the rim
+vertex it sits on, so the patch is driven by the same bones as the surface
+around it. The UV is a single coordinate for the whole cap, read off the
+surviving surface, so the patch comes out the colour of what it patches — the
+`UVx` column reports the worst cap's atlas footprint as a multiple of a normal
+triangle's, and anything over 2× is a cap that will smear. Rims wider than a
+quarter of the figure's height are left alone as hems (a skirt, a coat, a
+sleeve cuff), so read what it skips.
 `tools/build_model.sh` runs it as a step; a hand-built delivery needs it run
 by hand.
 

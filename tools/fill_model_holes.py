@@ -15,15 +15,32 @@ the inside of the body through it, worse in motion than in a still, and worse
 under the toon pass than under a plain material because the interior faces are
 lit from the wrong side.
 
-**The repair adds triangles and NOTHING ELSE — no new vertices, no moved
-vertices, no touched attributes.** That restraint is the whole design. A .glb
-here is a SKINNED mesh: every vertex carries JOINTS_0/WEIGHTS_0 tying it to the
-skeleton, plus a UV into the character's one texture and a normal. A vertex
-this tool invented would have to have all three invented too, and an invented
-weight is a vertex that swims away from the body the moment a clip plays — a
-worse fault than the hole, and one that only shows up in motion. So each rim is
-triangulated across the vertices ALREADY on it. The attribute buffers come out
-byte-identical; only the index buffer grows.
+**A CAP GETS ITS OWN TEXTURE COORDINATE, INHERITING EVERYTHING ELSE.** The
+first version of this closed each rim over the vertices already on it, which
+kept every attribute buffer byte-identical and painted Yuji's hip with the skin
+of his hand. The reason is that a rim is exactly where the texture atlas is cut:
+walk around one and consecutive vertices land in unrelated islands, so a
+triangle spanning them samples a stripe clear across the sheet. No choice among
+the rim's own vertices fixes that, because none of them is wrong; the RIM is
+the seam.
+
+The `UVx` column is what says so, and it is worth trusting over the obvious
+alternative. It reports the widest cap as a multiple of what a normal triangle
+in that same mesh covers of the atlas: the version that shipped scored 46×,
+this one scores 0. **Colour does not separate them** — the smeared caps drew
+from colours the surrounding surface genuinely wears, just not at that point,
+so a "is the patch the right colour" check passed the broken build. A number
+that looks like a guard and is not is worse than no number.
+
+So a cap adds one vertex per rim position, and the only thing it invents is the
+UV: a single coordinate for the whole cap, taken from the surviving surface
+around the hole, so the patch comes out the colour of what it is patching.
+Everything else — position, normal, JOINTS_0, WEIGHTS_0 — is copied from the
+rim vertex it sits on. **That copy is the part that matters.** These are skinned
+meshes, and a weight this tool guessed at would be a vertex that swims off the
+body the moment a clip plays: a worse fault than the hole, and one that only
+shows up in motion. Inheriting a weight from a vertex in the same place is not
+guessing.
 
 WHAT IT WILL NOT CLOSE. A big rim is usually not a tear: it is a hem. The
 bottom of a coat, a sleeve cuff, the open end of a skirt — all are legitimately
@@ -51,6 +68,14 @@ MAX_FRAC = 0.26
 # a vertex for a UV seam or a hard normal, so the index buffer shows a rim where
 # the SURFACE has none — welding by position first is what tells the two apart.
 WELD_FRAC = 1e-5
+# A cap triangle may not cover more of the texture atlas than the mesh's own
+# triangles do, times this. THIS is the check that separates a good cap from
+# the smeared one that shipped first: the smear scored 23x, because its corners
+# sat in different atlas islands and the texture sampled the whole line between
+# them. Colour does NOT separate them — the broken caps drew from colours the
+# surrounding surface really does wear, just not at that point — so measuring
+# colour here would have been a number that looked like a guard and was not.
+UV_SPAN_MAX = 2.0
 
 
 # --- glTF plumbing ---------------------------------------------------------
@@ -135,14 +160,31 @@ def weld(positions, tol):
 
 
 def boundary_cycles(tris, rep):
-    """Ordered rims. Each is a list of welded vertex ids, walked end to end."""
+    """Ordered rims, plus which REAL vertices the surviving surface uses.
+
+    The second return value is what stops a cap from being painted out of the
+    wrong part of the texture. A welded id stands for several real vertices —
+    that is the point of welding — and on a rim those duplicates are usually
+    a UV SEAM, so they carry positions that agree and texture coordinates that
+    are nowhere near each other. Picking among them arbitrarily is picking an
+    atlas island arbitrarily, and Yuji's hip came out painted in the skin of
+    his hand. So each boundary edge remembers the real pair from the ONE
+    triangle that still owns it, and the cap is built from those.
+    """
     count = defaultdict(int)
-    for a, b, c in tris:
+    real = defaultdict(dict)
+    ring = defaultdict(list)
+    for tri in tris:
+        a, b, c = tri
         for u, v in ((a, b), (b, c), (c, a)):
             ru, rv = rep[u], rep[v]
             if ru == rv:
                 continue
-            count[(min(ru, rv), max(ru, rv))] += 1
+            key = (min(ru, rv), max(ru, rv))
+            count[key] += 1
+            real[key][ru] = u
+            real[key][rv] = v
+            ring[key] = list(tri)
     edges = [e for e, n in count.items() if n == 1]
     adj = defaultdict(list)
     for u, v in edges:
@@ -176,7 +218,10 @@ def boundary_cycles(tris, rep):
                 used.add((min(cur, nxt), max(cur, nxt)))
                 prev, cur = cur, nxt
             if cur == start and len(loop) >= 3:
-                cycles.append(loop)
+                cycles.append((loop, {e: (real[e], ring[e]) for e in real if e in set(
+                    (min(loop[i], loop[(i + 1) % len(loop)]),
+                     max(loop[i], loop[(i + 1) % len(loop)]))
+                    for i in range(len(loop)))}))
     return cycles
 
 
@@ -258,8 +303,60 @@ def ear_clip(poly):
     return tris
 
 
-def cap_rim(loop, positions, normals, rep_members):
-    """Triangles closing one rim, as triples of REAL (unwelded) vertex ids."""
+def rim_sources(loop, edge_info):
+    """(source vertex per rim position, the surviving ring around the hole)."""
+    src, ring = {}, []
+    for i in range(len(loop)):
+        a, b = loop[i], loop[(i + 1) % len(loop)]
+        info = edge_info.get((min(a, b), max(a, b)))
+        if not info:
+            continue
+        pairs, tri = info
+        ring.extend(tri)
+        for w, r in pairs.items():
+            src.setdefault(w, r)
+    return src, ring
+
+
+def patch_uv(ring, uvs):
+    """One texture coordinate for a whole cap, read off the surface around it.
+
+    Not the mean of the ring: a rim that runs along a seam has its ring split
+    between two islands, and the mean of two islands is a third place on the
+    sheet that has nothing to do with either — which is how a hip ends up
+    painted in a hand. So the ring VOTES. The densest cluster wins, and the
+    answer is that cluster's median, which is a coordinate the surviving
+    surface actually uses rather than an average of coordinates it uses.
+
+    One coordinate for the whole cap, not one per corner, and that is on
+    purpose. A cap sits in a crevice a few centimetres across; a flat patch of
+    the right colour disappears there, and any gradient across it can only be
+    built out of the same seam-crossing that made the smear.
+    """
+    pts = [uvs[i] for i in ring]
+    if not pts:
+        return (0.0, 0.0)
+    near = 0.05                        # islands are further apart than this
+    best, best_n = pts[0], -1
+    for c in pts:
+        n = sum(1 for q in pts if math.dist(c, q) <= near)
+        if n > best_n:
+            best, best_n = c, n
+    cluster = [q for q in pts if math.dist(best, q) <= near]
+    cluster.sort(key=lambda q: q[0])
+    mx = cluster[len(cluster) // 2][0]
+    cluster.sort(key=lambda q: q[1])
+    my = cluster[len(cluster) // 2][1]
+    return (mx, my)
+
+
+def cap_rim(loop, srcs, positions, normals, uvs, base):
+    """Close one rim. Returns (triangles, new vertices) for the caller to append.
+
+    A new vertex is `(source index, uv)`: everything but the texture coordinate
+    is copied from the vertex it sits on, so the cap is welded to the body by
+    the same bones, at the same place, facing the same way.
+    """
     pts = [positions[i] for i in loop]
     ctr, u, v, n = plane_basis(pts)
     flat = [(sum((p[k] - ctr[k]) * u[k] for k in range(3)),
@@ -270,15 +367,14 @@ def cap_rim(loop, positions, normals, rep_members):
     # normals already point out of the body, so the cap agrees with them or it
     # is inside-out — and an inside-out cap is invisible from outside, which
     # looks exactly like not having fixed anything.
-    avg = [sum(normals[i][k] for i in loop) / len(loop) for k in range(3)]
+    avg = [sum(normals[srcs[w]][k] for w in loop) / len(loop) for k in range(3)]
     if sum(avg[k] * n[k] for k in range(3)) < 0:
         tris = [(t[0], t[2], t[1]) for t in tris]
 
-    out = []
-    for a, b, c in tris:
-        out.append((rep_members[loop[a]], rep_members[loop[b]],
-                    rep_members[loop[c]]))
-    return out
+    uv = patch_uv([srcs[w] for w in loop] + list(base[1]), uvs)
+    new_verts = [(srcs[w], uv) for w in loop]
+    off = base[0]
+    return [(off + a, off + b, off + c) for a, b, c in tris], new_verts
 
 
 # --- per-model -------------------------------------------------------------
@@ -293,7 +389,7 @@ def process(path, max_frac, apply):
              for pi, p in enumerate(mesh.get("primitives", []))
              if "POSITION" in p.get("attributes", {}) and "indices" in p]
     if not prims:
-        return [], [], 0, 1.0, "no indexed geometry"
+        return [], [], 0, 1.0, "no indexed geometry", 0
     note = "" if len(prims) == 1 else f"only 1 of {len(prims)} primitives"
     mi, pi, prim = prims[0]
     prim_path = (mi, pi)
@@ -315,9 +411,17 @@ def process(path, max_frac, apply):
         if r not in members or i < members[r]:
             members[r] = i
 
+    uvs = (read_accessor(doc, blob, prim["attributes"]["TEXCOORD_0"])
+           if "TEXCOORD_0" in prim["attributes"] else [(0.0, 0.0)] * len(positions))
+    # The mesh's own triangles set the scale for what a sane UV span is.
+    spans = sorted(max(math.dist(uvs[a], uvs[b])
+                       for a, b in ((t[0], t[1]), (t[1], t[2]), (t[2], t[0])))
+                   for t in tris)
+    normal_span = spans[int(len(spans) * 0.99)] if spans else 1.0
+
     cycles = boundary_cycles(tris, rep)
-    filled, skipped, added = [], [], []
-    for loop in cycles:
+    filled, skipped, added, new_verts, errors = [], [], [], [], []
+    for loop, edge_info in cycles:
         pts = [positions[i] for i in loop]
         span = max(math.dist(pts[i], pts[j])
                    for i in range(0, len(pts), max(1, len(pts) // 24))
@@ -326,15 +430,31 @@ def process(path, max_frac, apply):
         if frac > max_frac:
             skipped.append((len(loop), frac, pts))
             continue
+        srcs, ring = rim_sources(loop, edge_info)
+        # Every POSITION on the rim needs a source, and a rim may visit one
+        # twice where two rims pinch together — so this counts distinct
+        # positions. Counting the list instead read a pinch as a missing source
+        # and quietly left five real holes open.
+        if len(srcs) < len(set(loop)):
+            skipped.append((len(loop), frac, pts))   # no surviving surface to read
+            continue
         filled.append((len(loop), frac, pts))
-        added.extend(cap_rim(loop, positions, normals, members))
+        base = (len(positions) + len(new_verts), ring)
+        caps, made = cap_rim(loop, srcs, positions, normals, uvs, base)
+        added.extend(caps)
+        new_verts.extend(made)
+        allw = uvs + [v[1] for v in new_verts]
+        errors.append(max((max(math.dist(allw[a], allw[b])
+                               for a, b in ((t[0], t[1]), (t[1], t[2]), (t[2], t[0])))
+                           for t in caps), default=0.0))
 
     if apply and added:
-        write_back(path, doc, blob, prim_path, flat_idx, added)
-    return filled, skipped, len(added), height, note
+        write_back(path, doc, blob, prim_path, flat_idx, added, new_verts)
+    worst = max(errors, default=0.0) / (normal_span or 1.0)
+    return filled, skipped, len(added), height, note, worst
 
 
-def write_back(path, doc, blob, prim_path, flat_idx, added):
+def write_back(path, doc, blob, prim_path, flat_idx, added, new_verts):
     """Rewrite the .glb with a longer index view, and NOTHING else changed.
 
     Two things this deliberately does the long way.
@@ -357,9 +477,31 @@ def write_back(path, doc, blob, prim_path, flat_idx, added):
     packed = b"".join(struct.pack(fmt, i) for i in new)
 
     mi, pi = prim_path
-    acc_i = doc["meshes"][mi]["primitives"][pi]["indices"]
-    acc = doc["accessors"][acc_i]
+    prim = doc["meshes"][mi]["primitives"][pi]
+    acc = doc["accessors"][prim["indices"]]
     target = acc["bufferView"]
+
+    # Grow every attribute by the cap vertices, each one a copy of the vertex it
+    # sits on except for TEXCOORD_0. Copying the raw bytes rather than decoding
+    # and re-encoding is deliberate: JOINTS_0 is integer and WEIGHTS_0 may be
+    # normalised bytes, and a round trip through floats is how a weight quietly
+    # changes value.
+    grown = {}
+    for name, ai in sorted(prim["attributes"].items()):
+        a = doc["accessors"][ai]
+        view = doc["bufferViews"][a["bufferView"]]
+        size = CSIZE[a["componentType"]] * NCOMP[a["type"]]
+        if a.get("byteOffset") or view.get("byteStride", size) != size:
+            raise SystemExit(f"{path}: {name} is interleaved — refusing to grow it")
+        start = view.get("byteOffset", 0)
+        buf = bytearray(blob[start:start + view["byteLength"]])
+        for src, uv in new_verts:
+            if name == "TEXCOORD_0":
+                buf.extend(struct.pack("<ff", uv[0], uv[1]))
+            else:
+                buf.extend(blob[start + src * size:start + (src + 1) * size])
+        grown[a["bufferView"]] = bytes(buf)
+        a["count"] += len(new_verts)
     views = doc["bufferViews"]
     order = sorted(range(len(views)), key=lambda i: views[i].get("byteOffset", 0))
 
@@ -376,7 +518,8 @@ def write_back(path, doc, blob, prim_path, flat_idx, added):
         while len(out) % 4:
             out.append(0)
         start = view.get("byteOffset", 0)
-        chunk = packed if i == target else blob[start:start + view["byteLength"]]
+        chunk = (packed if i == target
+                 else grown.get(i, blob[start:start + view["byteLength"]]))
         view["byteOffset"] = len(out)
         view["byteLength"] = len(chunk)
         out.extend(chunk)
@@ -425,18 +568,21 @@ def main():
         for k in missing:
             print(f"{k:14}  no model in the manifest")
 
-    print(f"{'model':14}{'tears':>6}{'widest':>8}{'tris':>7}   hems left open")
-    total_t = total_s = notes = 0
+    print(f"{'model':14}{'tears':>6}{'widest':>8}{'tris':>7}{'UVx':>6}   hems left open")
+    total_t = total_s = notes = off = 0
     for key, path in targets:
         if not os.path.exists(path):
             print(f"{key:14}  {path} missing")
             continue
-        filled, skipped, tris, _h, note = process(path, args.max_frac, args.apply)
+        filled, skipped, tris, _h, note, err = process(path, args.max_frac, args.apply)
         widest = max((f for _n, f, _p in filled), default=0.0)
         hems = ", ".join(f"{f:.2f}" for _n, f, _p in
                          sorted(skipped, key=lambda s: -s[1])[:4]) or "—"
-        print(f"{key:14}{len(filled):>6}{widest:>8.3f}{tris:>7}   {hems}"
-              + (f"   ⚠ {note}" if note else ""))
+        print(f"{key:14}{len(filled):>6}{widest:>8.3f}{tris:>7}{err:>6.1f}   {hems}"
+              + (f"   ⚠ {note}" if note else "")
+              + ("   ⚠ a cap spans the atlas — it will smear"
+                 if err > UV_SPAN_MAX else ""))
+        off += 1 if err > UV_SPAN_MAX else 0
         notes += 1 if note else 0
         total_t += len(filled)
         total_s += len(skipped)
@@ -444,6 +590,9 @@ def main():
     print(f"\n{verb} {total_t} tear(s); {total_s} rim(s) left open as hems")
     if notes:
         print(f"{notes} model(s) only partly covered — see the ⚠ rows")
+    if off:
+        print(f"{off} model(s) with a cap spanning more than {UV_SPAN_MAX}x the "
+              f"atlas area of a normal triangle — look at them")
     if not args.apply:
         print("dry run — pass --apply to write the .glb files")
     return 0
