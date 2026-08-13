@@ -189,17 +189,40 @@ export function releaseInstancesExcept(live) {
 // Both default to "as delivered" (1 and 0), so a rig that honours the spec
 // needs neither.
 
-/** Read the manifest's size/orientation/look settings onto a rig entry. */
+/**
+ * Read the manifest's size/orientation/look settings onto a rig entry.
+ *
+ * NONE OF THE DELIVERY CORRECTIONS APPLY TO A MANNEQUIN. `renderScale`,
+ * `yawOffsetDeg` and the outline width all describe one specific .glb — how
+ * that model was built, how tall it measures, how heavy a line its costume
+ * wants. The stand-in is a different body entirely: built to spec by
+ * mannequin.js, facing +Z, measuring its own declared height, wearing nothing.
+ *
+ * Handing it the delivery's numbers made the stand-in wrong in exactly the way
+ * the delivery was: while Dagon's model was still downloading, his mannequin
+ * stood turned 80° — his file's error, applied to a body that does not have
+ * it — and then snapped straight when the real rig arrived. Which is a worse
+ * failure than it looks, because the stand-in is what you are looking at when
+ * you are trying to decide whether the ORIENTATION DATA IS RIGHT: it lies
+ * about the one thing it is on screen to help you check.
+ *
+ * `stanceDeg` is the exception and stays: how wide a fighter plants their feet
+ * is a fact about the CHARACTER, not about the file they arrived in, and the
+ * stand-in should stand the way they stand.
+ */
 function applyEntrySettings(rig, entry) {
+  const delivered = !rig.isMannequin;
   // Line weight is per character where the manifest says so (the toon block's
   // one non-material knob); the ramp knobs in that block were already applied
-  // when the materials were built.
-  setOutlineFor(rig.root, entry?.toon?.outlinePx ?? null);
+  // when the materials were built. The mannequin takes neither — it is
+  // deliberately built without this character's toon overrides too.
+  setOutlineFor(rig.root, (delivered && entry?.toon?.outlinePx) ?? null);
   const scale = Number(entry?.renderScale);
-  rig.renderScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
+  rig.renderScale = delivered && Number.isFinite(scale) && scale > 0 ? scale : 1;
   const yaw = Number(entry?.yawOffsetDeg);
-  rig.yawOffsetDeg = Number.isFinite(yaw) ? yaw : 0;
+  rig.yawOffsetDeg = delivered && Number.isFinite(yaw) ? yaw : 0;
   rig.yawOffset = (rig.yawOffsetDeg * Math.PI) / 180;
+  // Stance is the character's, not the file's.
   const stance = Number(entry?.stanceDeg);
   rig.stanceDeg = Number.isFinite(stance) ? stance : 0;
 }
