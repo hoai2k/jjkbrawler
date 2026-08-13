@@ -38,8 +38,10 @@ def check(man, char, poses):
         for joint, xy in pose.get("j", {}).items():
             if joint not in pr.JOINTS:
                 problems.append(f"{char}/{key}: unknown joint {joint}")
-            elif not (len(xy) == 2 and all(0 <= float(v) <= 100 for v in xy)):
+            elif not (2 <= len(xy) <= 3 and all(0 <= float(v) <= 100 for v in xy[:2])):
                 problems.append(f"{char}/{key}.{joint}: {xy} is outside the cell")
+            elif abs(pr.depth(xy)) > pr.DEPTH_LIMIT:
+                problems.append(f"{char}/{key}.{joint}: depth {xy[2]} is past the cell")
     return problems
 
 
@@ -66,7 +68,7 @@ def apply_one(man, char, incoming):
         j = dict(pose["j"])
         for side in ("L", "R"):
             j.setdefault(f"toe{side}", pr.default_toe(j[f"foot{side}"], j[f"knee{side}"]))
-        held["j"] = {name: [round(float(v), 1) for v in j[name]] for name in pr.JOINTS}
+        held["j"] = {name: [round(float(v), 1) for v in j[name][:3]] for name in pr.JOINTS}
         if pose.get("read"):
             held["read"] = pose["read"]
         if pose.get("flags"):
