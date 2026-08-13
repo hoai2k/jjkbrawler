@@ -1,0 +1,505 @@
+{
+ "rows": [
+  {
+   "char": "yuji",
+   "height": 1.730000981670571,
+   "total": 18351.000058332473,
+   "legL": 3644.975501832567,
+   "legR": 4107.820679406068,
+   "armL": 1369.1415149646782,
+   "armR": 1929.2509418978007,
+   "legBal": 0.8873258562882492,
+   "armBal": 0.709675182855091,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "arms uneven (0.71)",
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "maki",
+   "height": 1.700002034872341,
+   "total": 18394.000025227113,
+   "legL": 3092.2905267557653,
+   "legR": 3423.078122562074,
+   "armL": 1677.17458847104,
+   "armR": 3577.434450445944,
+   "legBal": 0.9033654553116878,
+   "armBal": 0.4688204946038836,
+   "crown": 0.08091748593548016,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 617.0,
+   "findings": [
+    "something is FUSED INTO one arm \u2014 the heavy side is 167% of normal",
+    "geometry 8% of stature ABOVE the head",
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "jogo",
+   "height": 1.8000009550069649,
+   "total": 17866.00008775387,
+   "legL": 2739.0372799415854,
+   "legR": 2592.6174366626365,
+   "armL": 3314.30051041767,
+   "armR": 2960.1941670097367,
+   "legBal": 0.9465433185772223,
+   "armBal": 0.8931580457792258,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "megumi",
+   "height": 1.7500015254648247,
+   "total": 18175.000049775386,
+   "legL": 3564.258808856539,
+   "legR": 3481.6342794234224,
+   "armL": 2054.6276362377102,
+   "armR": 2248.5822491899016,
+   "legBal": 0.9768185943097596,
+   "armBal": 0.9137435986510756,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "hanami",
+   "height": 2.200001695988931,
+   "total": 17934.00007152131,
+   "legL": 4047.639437341626,
+   "legR": 3829.294112399948,
+   "armL": 1935.5347486516112,
+   "armR": 2054.964749923558,
+   "legBal": 0.946056132636883,
+   "armBal": 0.9418822141467929,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "uro",
+   "height": 1.9000007363154907,
+   "total": 20490.000069342655,
+   "legL": 2320.2011423381045,
+   "legR": 2088.039076584275,
+   "armL": 1974.883817889262,
+   "armR": 2786.299950248911,
+   "legBal": 0.8999388193043142,
+   "armBal": 0.7087836389304885,
+   "crown": 0.28874938215034,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "both legs undersized \u2014 55% of normal",
+    "arms uneven (0.71)",
+    "geometry 29% of stature ABOVE the head",
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "geto",
+   "height": 1.9050010765971734,
+   "total": 19068.000090754016,
+   "legL": 3379.8716006429677,
+   "legR": 4293.056684902302,
+   "armL": 2410.0298261444113,
+   "armR": 2880.0987659831444,
+   "legBal": 0.7872879043338056,
+   "armBal": 0.8367872152890314,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "mahito",
+   "height": 1.7910010930493172,
+   "total": 19261.000078204022,
+   "legL": 2239.71316416841,
+   "legR": 2440.886343462669,
+   "armL": 2367.4925600491115,
+   "armR": 2996.196472563184,
+   "legBal": 0.9175819145233642,
+   "armBal": 0.7901659926939872,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "both legs undersized \u2014 62% of normal",
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "gojo",
+   "height": 1.900001778845791,
+   "total": 18765.00002188691,
+   "legL": 4398.582549399856,
+   "legR": 3820.548808016567,
+   "armL": 1387.5433938306523,
+   "armR": 1664.1087119097065,
+   "legBal": 0.868586360516945,
+   "armBal": 0.8338057387118226,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "sukuna",
+   "height": 1.7269991934475684,
+   "total": 17948.000016901242,
+   "legL": 3540.9006074767385,
+   "legR": 3685.3144039680774,
+   "armL": 1569.147344623605,
+   "armR": 1632.0676911990158,
+   "legBal": 0.9608137106739537,
+   "armBal": 0.9614474651298405,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "nobara",
+   "height": 1.6000013690483001,
+   "total": 19082.000061234765,
+   "legL": 5475.405004727669,
+   "legR": 5760.899103241798,
+   "armL": 1468.4820449396502,
+   "armR": 2218.322096914766,
+   "legBal": 0.9504427879402584,
+   "armBal": 0.6619787302222745,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "arms uneven (0.66)",
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "choso",
+   "height": 1.8100008047306062,
+   "total": 18778.00008933543,
+   "legL": 3638.0278733980085,
+   "legR": 3028.447921710962,
+   "armL": 3247.995890743885,
+   "armR": 3678.602373617905,
+   "legBal": 0.8324421986581197,
+   "armBal": 0.8829429116986844,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "gakuganji",
+   "height": 1.900000680321682,
+   "total": 19025.000088011904,
+   "legL": 3831.5777927520103,
+   "legR": 3667.2486571197805,
+   "armL": 2450.9369012507377,
+   "armR": 3489.860056946345,
+   "legBal": 0.9571118884906676,
+   "armBal": 0.7023023448668961,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "something is FUSED INTO one arm \u2014 the heavy side is 158% of normal",
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "hakari",
+   "height": 1.8500014275947478,
+   "total": 18038.00002727072,
+   "legL": 3739.812149090256,
+   "legR": 3666.167595211031,
+   "armL": 1979.7413500545372,
+   "armR": 2077.2055491028586,
+   "legBal": 0.9803079537304729,
+   "armBal": 0.9530791745234765,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "mechamaru",
+   "height": 2.0500014691327806,
+   "total": 18513.000020064006,
+   "legL": 4509.319067670003,
+   "legR": 4921.374056911503,
+   "armL": 2367.0924378651107,
+   "armR": 2761.5386099196476,
+   "legBal": 0.9162723693674907,
+   "armBal": 0.8571643464850871,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "meimei",
+   "height": 1.8999994299964555,
+   "total": 19445.00009676488,
+   "legL": 3115.590166146634,
+   "legR": 4156.811410755807,
+   "armL": 2517.2229079031385,
+   "armR": 4502.652428581394,
+   "legBal": 0.7495144374567972,
+   "armBal": 0.559053346406357,
+   "crown": 0.05817998573590036,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 927.0,
+   "findings": [
+    "legs uneven (0.75)",
+    "something is FUSED INTO one arm \u2014 the heavy side is 199% of normal",
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "panda",
+   "height": 2.0000014723364643,
+   "total": 17264.000085309497,
+   "legL": 3084.0611432109217,
+   "legR": 3500.807667475965,
+   "armL": 2660.725691939442,
+   "armR": 2731.8029394885016,
+   "legBal": 0.8809570351045558,
+   "armBal": 0.9739815612167224,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "yuta",
+   "height": 1.7530005952745,
+   "total": 18433.00005627292,
+   "legL": 4243.340707892421,
+   "legR": 3700.2396949872928,
+   "armL": 2084.0308127482567,
+   "armR": 1985.333056137897,
+   "legBal": 0.8720109813725339,
+   "armBal": 0.9526409321749879,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "inumaki",
+   "height": 1.639999872485646,
+   "total": 18345.00005428522,
+   "legL": 4173.219448507603,
+   "legR": 4000.385292278457,
+   "armL": 1847.6638715218724,
+   "armR": 1836.9759137835354,
+   "legBal": 0.9585849346381835,
+   "armBal": 0.9942154209415084,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "kurourushi",
+   "height": 1.9000006231522093,
+   "total": 18300.00010905698,
+   "legL": 6227.162253309652,
+   "legR": 5261.268069593076,
+   "armL": 1149.524844238389,
+   "armR": 1434.762111770222,
+   "legBal": 0.844890153102528,
+   "armBal": 0.8011954280142618,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "both arms undersized \u2014 67% of normal",
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "momo",
+   "height": 1.500002559244649,
+   "total": 20987.000071474904,
+   "legL": 2205.9769172702363,
+   "legR": 7801.589789882477,
+   "armL": 740.9320897701691,
+   "armR": 1053.3558991838945,
+   "legBal": 0.2827599215907335,
+   "armBal": 0.7034014717572844,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 4201.0,
+   "findings": [
+    "LEG NOT RECONSTRUCTED \u2014 one side is 51% of a normal leg, the other 181%",
+    "both arms undersized \u2014 43% of normal",
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "nanami",
+   "height": 1.8400001327607214,
+   "total": 17630.000054136195,
+   "legL": 3220.8272002521844,
+   "legR": 4023.8207874199725,
+   "armL": 1564.780286849069,
+   "armR": 2826.242757329019,
+   "legBal": 0.8004400221604655,
+   "armBal": 0.5536609630546694,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "arms uneven (0.55)",
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "todo",
+   "height": 1.900000270503071,
+   "total": 17981.000061530074,
+   "legL": 3264.6045176844636,
+   "legR": 3320.2700109743746,
+   "armL": 2837.2973141741313,
+   "armR": 2950.3098229214083,
+   "legBal": 0.9832346486563076,
+   "armBal": 0.961694698004506,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "dagon",
+   "height": 2.150000662341995,
+   "total": 18157.00006696349,
+   "legL": 4451.0627326048125,
+   "legR": 4797.983958801167,
+   "armL": 1995.8931928683305,
+   "armR": 1552.05925414573,
+   "legBal": 0.9276943755595554,
+   "armBal": 0.7776264079117582,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "toji",
+   "height": 1.870000669866016,
+   "total": 18306.0000447111,
+   "legL": 3820.6018028840263,
+   "legR": 4165.617260584695,
+   "armL": 1884.328945950867,
+   "armR": 1975.8405948357831,
+   "legBal": 0.9171754301660826,
+   "armBal": 0.953684700514759,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "reggie",
+   "height": 1.900001032112982,
+   "total": 23868.000103446495,
+   "legL": 5434.486707525197,
+   "legR": 5196.885489331697,
+   "armL": 3240.476758343255,
+   "armR": 3565.4094505614194,
+   "legBal": 0.9562789954266534,
+   "armBal": 0.9088652518809587,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  },
+  {
+   "char": "yuki",
+   "height": 1.8000018829857254,
+   "total": 19428.00008379176,
+   "legL": 3173.2092854416114,
+   "legR": 3113.1137541330972,
+   "armL": 1726.2809678078338,
+   "armR": 2271.9767093455885,
+   "legBal": 0.9810615922548106,
+   "armBal": 0.7598145529867977,
+   "crown": 0.0,
+   "loose": 42,
+   "looseN": 1,
+   "prop": 0.0,
+   "findings": [
+    "1 unweighted mesh (42 verts)"
+   ]
+  }
+ ]
+}

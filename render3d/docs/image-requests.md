@@ -184,6 +184,92 @@ per-fighter art:
 **Deliverable: 1 shared highlight texture now; mouth sheets ride whichever
 D-round their fighter ships in.**
 
+## Round DI5 — regeneration seeds *(the boards that produced broken models)*
+
+Some delivered models are wrong in ways nothing downstream can fix, because
+what is wrong with them is missing or invented GEOMETRY. Mei Mei has horns.
+Momo has one leg and a broom where the other should be. Both survived a facing
+review, a size review and a stance pass before anybody said so out loud, which
+is its own lesson.
+
+**Both faults trace to their seed board**, and both boards are on DI1's refused
+list — they were used anyway, because rigs for the whole roster landed while
+the refusal was being sorted out and DI1 was closed as "overtaken, not
+completed". This is that round reopening, for the fighters it actually cost.
+
+### What went wrong, measured
+
+`blender -b -P tools/audit_model_health.py` weighs the mesh bound to each limb
+against the roster's own median and reports what cannot be true of a body. It
+is the acceptance gate for this round's models as well as the evidence for it;
+the full table is at [reference/model-health.json](reference/model-health.json).
+
+| Fighter | What the model does | What the mesh says |
+|---|---|---|
+| `momo` | one leg, a broom standing in its place, broom in fragments | one leg is **51%** of a normal leg and the other **181%**; the prop carries 4201 of weight — the broom is fused into the body |
+| `meimei` | two horns rising from the crown | **5.8% of her stature** sits above her head, and it is mesh: it is still there with the hair chain removed and the chain bones reset |
+| `maki` | polearm merged into the forearm | one arm is **167%** of a normal arm, and 8% of stature sits above the head |
+| `gakuganji` | guitar merged into the arm | one arm is **158%** of normal |
+| `uro` | proportions the stance pass could not settle | legs **55%** of normal, and **29% of stature above the head** |
+
+`nanami`, `nobara` and `yuji` show uneven arms (0.55–0.71) without a fused
+prop — worth looking at in the workbench's **Mannequin(s)** view before
+spending credits, not worth a regeneration on the number alone.
+
+### The board, and the four rules that are new
+
+Same deliverable as DI1 — **one 2048×1024+ PNG per fighter, front, ¾-front,
+side and back, flat colour, no dramatic lighting, no perspective, clean white
+or transparent ground** — with everything DI1 asks for, plus what these two
+failures taught. Each rule below is here because a specific model is broken
+without it.
+
+1. **THE WHOLE FIGURE, WITH MARGIN — INCLUDING THE CROWN.** Every view
+   complete inside the canvas: the top of the head, any hat, horn, hair or
+   headgear, and the feet, with clear ground on all four sides. Mei Mei's board
+   was cut at her *eyes* in all four views, so the generator had nothing to
+   reconstruct a skull from and invented one. What it invents is spikes.
+   `tools/import_render3d_images.py` REFUSES a board whose head runs off the
+   top, and now measures the other three edges too — it warns rather than
+   refuses on those, because the top edge is proven (twelve boards, two broken
+   models) and the others are not: Todo's board runs 107px off the bottom and
+   his model measures clean.
+
+2. **PROPS DO NOT TOUCH THE BODY.** No weapon, broom, axe, guitar or bag may
+   overlap or touch the figure's silhouette in ANY view. Draw it held at
+   arm's length, or lay it beside the figure and give it its own isolated
+   view. Momo's broom stood against her leg in three views of four, and image-
+   to-3D cannot separate a long thin object from a limb it is touching —
+   so it did not: her leg *is* the broom.
+
+3. **NOTHING LONG AND THIN PARALLEL TO A LIMB.** Even clear of the body, a
+   staff drawn vertically beside a standing leg reads as that leg's second
+   silhouette. Angle it — 30° off vertical is enough — or lay it horizontally
+   below the figure.
+
+4. **DAYLIGHT BETWEEN THE LEGS, AND BETWEEN ARMS AND TORSO.** A visible gap in
+   the front and back views, ankles apart, hands clear of the hips. DI1 asked
+   for a near-A-pose; this says why, and extends it downward.
+
+Two more that cost less but are worth stating:
+
+5. **HAIR THAT HANGS IS DRAWN ALONG ITS WHOLE LENGTH** in the side and back
+   views, clear of the head's silhouette — a braid or a tendril the engine
+   simulates has to be findable as its own shape. Mei Mei's braid chain
+   extraction grabbed the top of her skull instead of her braid, because on
+   this model the braid is welded to the head.
+
+6. **THE BACK VIEW ANSWERS THE QUESTIONS THE SPRITES NEVER HAD TO** — hair
+   back, uniform back, where the prop is stowed — since it is the only view of
+   that half of the fighter the generator will ever see.
+
+**Deliver to** `assets/intake/render3d/<char>_turnaround.png`, replacing the
+refused board. The old plates stay at `assets/reference/round21/di1_cropped/`
+for comparison.
+
+**Deliverable: 1 board per fighter listed above.** The model round that
+consumes them is [D6](asset-requests.md#round-d6--regeneration-the-workbench-catches-open).
+
 ---
 
 ## Not requested here, on purpose

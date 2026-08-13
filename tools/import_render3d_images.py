@@ -61,8 +61,17 @@ def roster_keys():
     return {m.group(1) for m in re.finditer(r"^\|\s*`(\w+)`\s*\|", text, re.M)}
 
 
-def head_cut(path):
-    """Widest contiguous top-edge ink run in each of the board's four views."""
+def edge_cut(path):
+    """Widest contiguous ink run along each edge, per view — the measurement
+    that says a figure has been drawn off the canvas.
+
+    It was the TOP edge only, because the top of the head is the feature a
+    generator fails on first and the one twelve boards lost. Momo's board
+    passed that check and still produced a model with one leg: her hat tips
+    ran off the top by less than the threshold, and the rest of what went
+    wrong was inside the frame. So all four edges are measured now — the
+    bottom one especially, since feet cut off at the ankle generate a fighter
+    who ends at the ankle."""
     try:
         from PIL import Image
         import numpy as np
@@ -71,15 +80,27 @@ def head_cut(path):
     a = np.asarray(Image.open(path).convert("RGB"))
     h, w, _ = a.shape
     ink = (a[:, :, 0] < 240) | (a[:, :, 1] < 240) | (a[:, :, 2] < 240)
-    row = ink[0:2, :].any(axis=0)
-    widest = 0
-    for i in range(4):
-        best = cur = 0
-        for v in row[i * w // 4:(i + 1) * w // 4]:
-            cur = cur + 1 if v else 0
-            best = max(best, cur)
-        widest = max(widest, best)
-    return widest
+    def widest_run(mask, views):
+        """The longest unbroken ink run on this edge, worst of the views."""
+        worst = 0
+        n = len(mask)
+        for i in range(views):
+            best = cur = 0
+            for v in mask[i * n // views:(i + 1) * n // views]:
+                cur = cur + 1 if v else 0
+                best = max(best, cur)
+            worst = max(worst, best)
+        return worst
+
+    return {
+        # The board is four views side by side, so the top and bottom edges are
+        # measured per view; the left and right edges belong to the outermost
+        # views only and are measured whole.
+        "top": widest_run(ink[0:2, :].any(axis=0), 4),
+        "bottom": widest_run(ink[h - 2:h, :].any(axis=0), 4),
+        "left": widest_run(ink[:, 0:2].any(axis=1), 1),
+        "right": widest_run(ink[:, w - 2:w].any(axis=1), 1),
+    }
 
 
 def deliveries():
@@ -104,19 +125,29 @@ def main():
         print("nothing to import — no DI images under assets/intake/")
         return 0
 
-    take, refuse = [], []
+    take, refuse, warn = [], [], []
     for src, char, rnd, dest, name in found:
         if char not in keys:
             refuse.append((src, char, rnd, name, f"no fighter keyed `{char}`"))
             continue
         if rnd == "DI1":
-            run = head_cut(src)
-            if run is None:
+            runs = edge_cut(src)
+            if runs is None:
                 refuse.append((src, char, rnd, name, "cannot check the crop — Pillow/numpy missing"))
                 continue
-            if run >= HEAD_RUN:
-                refuse.append((src, char, rnd, name, f"head runs off the top edge ({run}px)"))
+            # REFUSE on the top edge, WARN on the others. The top is proven:
+            # twelve boards lost the crown, and the two models measured worst
+            # (Mei Mei's horns, Momo's leg) came from two of them. The other
+            # three edges are suspected and not proven — Todo's board runs
+            # 107px off the BOTTOM and his model measures clean — so they are
+            # worth saying out loud and not worth rejecting art over.
+            if runs["top"] >= HEAD_RUN:
+                refuse.append((src, char, rnd, name,
+                               f"head runs off the top edge ({runs['top']}px)"))
                 continue
+            edgy = {e: r for e, r in runs.items() if e != "top" and r >= HEAD_RUN}
+            if edgy:
+                warn.append((char, name, ", ".join(f"{e} {r}px" for e, r in sorted(edgy.items()))))
         take.append((src, char, rnd, dest, name))
 
     by_round = {}
@@ -129,6 +160,10 @@ def main():
         print("\nrefused:")
         for _src, char, rnd, _name, why in refuse:
             print(f"  {rnd} {char:12} {why}")
+    if warn:
+        print("\nimported, but the figure touches an edge — look before generating:")
+        for char, _name, where in warn:
+            print(f"  {char:12} {where}")
 
     if not args.apply:
         print("\ndry run — pass --apply to move them")
