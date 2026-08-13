@@ -508,8 +508,9 @@ export function ringOut(f) {
   if (state.domainOverlay && state.domainOverlay.ownerId === f.id) state.domainOverlay = null;
   if (state.domain && state.domain.owner === f) state.domain = null;
   // A fighter KO'd mid-call loses the action carrying the "open the barrier"
-  // event, so nothing would ever clear this and no domain could open again.
-  if (state.domainCasting === f) state.domainCasting = null;
+  // event. domainOpen() would notice on its own — it checks the action is still
+  // theirs — but dropping the reference here keeps a dead fighter out of it.
+  if (state.domainCasting?.f === f) state.domainCasting = null;
 
   f.action = null; f.charging = null; f.counter = null; f.reflect = null; f.healing = null;
   f.simpleDomain = null;

@@ -86,7 +86,21 @@ export function performSpecial(f, slot) {
 
   const handler = HANDLERS[cfg.type];
   if (!handler) return;
-  f.cooldowns[slot] = cfg.cooldown || 1.2;
+
+  // What the move costs, charged the moment it actually goes off. For an
+  // ordinary special that is now; for a spoken one it is the end of the line,
+  // so a command that gets cut off costs nothing and can be tried again.
+  const spend = () => {
+    f.cooldowns[slot] = cfg.cooldown || 1.2;
+    if (f.char.passive.id === "throatStrain" && cfg.strain) {
+      f.throatStrain += cfg.strain;
+      if (f.throatStrain >= 3) {
+        f.throatStrain = 0;
+        f.throatLock = 2.5;
+        popup(f.x, f.y - 176, "THROAT STRAIN!", "#ff8a8a", 18);
+      }
+    }
+  };
 
   // A move with a spoken line is introduced by it: the command comes first, the
   // fighter holds the special's own pose while it is said, and the move itself
@@ -98,10 +112,11 @@ export function performSpecial(f, slot) {
   // move's internal timing is untouched: when the handler finally runs it runs
   // exactly as it always did, just later.
   //
-  // Deliberately interruptible, unlike a domain or an ultimate. The hold is an
-  // ordinary special action, so being hit during the command clears it and the
-  // pending event dies with it: the command was cut off. The cooldown and the
-  // throat strain below are still spent, because he still opened his mouth.
+  // The hold is an ordinary special action, so being hit during the command
+  // clears it and the pending event dies with it — the command was cut off. It
+  // costs nothing: `spend()` has not run, so the cooldown is untouched and the
+  // throat is unstrained, and he can say it again straight away. Speaking is
+  // the commitment; the sentence is where an opponent gets to answer it.
   const lead = spokenLead(moveCallFor(f.charKey, cfg.name));
   if (lead > 0) {
     playGrunt(f.charKey, cfg.name);
@@ -109,21 +124,14 @@ export function performSpecial(f, slot) {
     // frame the move is due — fighter.js ticks events before it ages actions.
     beginSpecialAction(f, slot, lead + SPOKEN_HOLD_TAIL, { lockMovement: true });
     f.action.events.push({ at: lead, fn: () => {
+      spend();
       lineAlreadySpoken = true;
       try { handler(f, cfg.p || {}, cfg, slot); } finally { lineAlreadySpoken = false; }
     } });
-  } else {
-    handler(f, cfg.p || {}, cfg, slot);
+    return;
   }
-
-  if (f.char.passive.id === "throatStrain" && cfg.strain) {
-    f.throatStrain += cfg.strain;
-    if (f.throatStrain >= 3) {
-      f.throatStrain = 0;
-      f.throatLock = 2.5;
-      popup(f.x, f.y - 176, "THROAT STRAIN!", "#ff8a8a", 18);
-    }
-  }
+  spend();
+  handler(f, cfg.p || {}, cfg, slot);
 }
 
 // The last creature each fighter rolled out of each summon pool, so the next

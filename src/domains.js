@@ -60,7 +60,15 @@ const DOMAIN_OPEN_TIME = 0.9;
  *  mid-sentence and the barrier is coming, and both call sites are asking
  *  "may another domain start?", to which the answer is no. */
 export function domainOpen() {
-  return !!(state.domainCasting || (state.domain && !state.domain.dead));
+  if (state.domain && !state.domain.dead) return true;
+  // A cast counts only while it is still standing. `state.domainCasting`
+  // remembers the ACTION as well as the fighter, so a cast that was knocked out
+  // of them — hit, KO'd, respawned, anything that drops the action — stops
+  // counting the instant it happens, with nothing to clean up. Without the
+  // identity check a fighter interrupted mid-sentence would block every domain
+  // in the match forever.
+  const c = state.domainCasting;
+  return !!(c && c.f.action === c.action);
 }
 
 export function canOpenDomain(f, slot = 0) {
@@ -81,8 +89,9 @@ export function performDomain(f, slot = 0) {
     popup(f.x, f.y - 160, "NEEDS A FULL BAR", "#9aa4c0", 15);
     return;
   }
-  f.meter = 0;
-
+  // The bar is NOT spent here. It is spent when the barrier actually lands —
+  // see `open()`. A call that gets cut off costs the caster nothing but the
+  // opening they gave away, so a domain is something you can try again.
   const p = def.p || {};
   const color = p.color || f.char.theme;
 
@@ -103,32 +112,41 @@ export function performDomain(f, slot = 0) {
   // whole shape of the moment, and firing both on one frame threw it away.
   const lead = spokenLead(call);
 
-  // The pose is held for the whole call, not for a fixed 0.9 s, and the owner
-  // is untouchable for all of it. Being locked in place and damageable for two
-  // and a half seconds after spending a full bar would be the worst of both:
-  // the action is `uninterruptible`, so an opponent could not stop the domain
-  // even by landing everything, and would only be farming free damage. The
-  // counterplay the delay actually buys is REPOSITIONING — you can hear which
-  // domain is coming and where from, and get out of the middle of it.
-  const hold = lead + DOMAIN_OPEN_TIME;
-  f.action = { kind: "ult", t: 0, dur: hold, anim: "ult", lockMovement: true, uninterruptible: true, events: [] };
+  // The pose is held for the call, and the caster is WIDE OPEN while they hold
+  // it — no invulnerability, and interruptible like any other move. Announcing
+  // a domain is a commitment you can be punished for: land a hit during the
+  // sentence and the barrier never arrives.
+  //
+  // What makes that fair rather than merely punishing is that the bar is not
+  // spent until the barrier lands (above). Being cut off costs the tempo and
+  // the telegraph, not the resource — you can go again.
+  f.action = { kind: "ult", t: 0, dur: lead + DOMAIN_OPEN_TIME, anim: "ult", lockMovement: true, events: [] };
   f.animTime = 0;
   f.animKey = "ult";
-  f.invuln = Math.max(f.invuln, hold + 0.2);
 
   // A second domain must not start during the call. `state.domain` is not set
   // until the barrier lands, so without this the window between the shout and
   // the barrier is one where domainOpen() is false and another fighter could
-  // begin their own — two domains, both mid-sentence.
-  state.domainCasting = f;
+  // begin their own — two domains, both mid-sentence. The action is stored
+  // alongside the fighter so an interrupted cast stops counting by itself.
+  state.domainCasting = { f, action: f.action };
 
   const open = () => {
-    if (state.domainCasting === f) state.domainCasting = null;
-    // The owner can still be gone by the time the line finishes — knocked into
-    // a blast zone by something that ignores invulnerability, or the match
-    // ended. A domain opening around a corpse would never run its close path.
+    state.domainCasting = null;
+    // The owner can still be gone by the time the line finishes, or the match
+    // over. A domain opening around a corpse would never run its close path.
     if (f.dead || f.respawnTimer > 0 || state.phase !== "playing") return;
     if (state.domain && !state.domain.dead) return;
+
+    // Paid for on delivery. Everything above this line is refundable; nothing
+    // below it is.
+    f.meter = 0;
+    // The barrier going up is the part nobody can take from them: a fixed
+    // opening pose, untouchable, exactly as it was before the call existed.
+    f.action = { kind: "ult", t: 0, dur: DOMAIN_OPEN_TIME, anim: "ult", lockMovement: true, uninterruptible: true };
+    f.animTime = 0;
+    f.animKey = "ult";
+    f.invuln = Math.max(f.invuln, DOMAIN_OPEN_TIME + 0.2);
 
     // Opening cinematic. Deliberately louder than an ultimate's: this is the
     // biggest thing in the game and it costs everything the fighter has banked.

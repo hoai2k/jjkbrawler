@@ -172,21 +172,41 @@ line, and the move lands **80% of the way through it** (`SPOKEN_TIMING` in
 `src/config_audio.js`; clamped to 0.35–2.2 s, so Gojo's 3.28-second call-out
 does not stall the match for its whole length).
 
-This is frame data, not decoration, and it cuts both ways:
+This is frame data, not decoration.
 
-- **Inumaki's commands are a read.** "Blast Away" now has 0.91 s of wind-up
-  where it used to be instant. Being hit during the command **cancels it** —
-  the cooldown and the throat strain are still spent, because he still opened
-  his mouth. His four moves are his whole kit, so this is the single largest
-  balance consequence in the game and the thing to watch if he feels weak.
-- **A Domain Expansion is now telegraphed.** Nothing exists during the call:
-  no barrier, no backdrop swap, no hitbox. The caster is **untouchable and
-  uninterruptible** for all of it (the action was already uninterruptible, so
-  leaving them damageable would only have handed the opponent free damage for
-  no counterplay). What the delay buys the opponent is **repositioning** —
-  you can hear which domain is coming and from where, and leave.
-- A second domain cannot start during the first one's call, even though the
-  barrier is not up yet (`state.domainCasting`).
+**Speaking is a commitment, and the sentence is where you answer it.** Every
+spoken move is **interruptible for its whole wind-up**, with no invulnerability
+— including Domain Expansions. Land a hit during the call and the move never
+happens: no barrier, no hitbox, no ultimate.
+
+**An interrupted move costs nothing.** Nothing is spent until the move actually
+goes off:
+
+| Move | Charged when it fires, not when it starts |
+|---|---|
+| Inumaki's specials | cooldown, and the throat strain toward his *cough* lock |
+| Inumaki's ultimate | the full meter bar |
+| Domain Expansions | the full meter bar |
+
+So a fighter shouted down mid-sentence keeps their bar and their cooldowns and
+can simply try again. What they lose is the tempo and the opening they gave
+away — which is the real cost, and the thing that makes announcing a domain a
+decision rather than a formality.
+
+Two details follow from that:
+
+- **Once the barrier lands, it cannot be taken back.** The 0.9 s opening pose
+  after a domain's call is untouchable and uninterruptible, exactly as it was
+  before this existed. The window you can punish is the *call*, not the domain.
+- **A second domain cannot start during the first one's call**, even though the
+  barrier is not up yet (`state.domainCasting`). An interrupted cast stops
+  blocking the instant it is interrupted — the state remembers the action, not
+  just the fighter, so there is nothing to clean up on a hit, a KO or a
+  respawn.
+
+**Inumaki is where this matters most.** "Blast Away" now has 0.91 s of wind-up
+where it used to be instant, and his four moves are his whole kit. He is the
+fighter to watch if the fraction ever needs tuning.
 
 **The delay never depends on the audio.** It is read from the line lengths
 written in `SPOKEN_LINES`, not measured from the sound, so a move behaves

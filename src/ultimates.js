@@ -73,28 +73,28 @@ export function performUltimate(f) {
   if (!ult) return;
   // The whole bar. Firing this is choosing it over a domain, not a step on the
   // way to one.
-  f.meter = Math.max(0, f.meter - ULT_METER_COST);
   const color = ult.p.color || f.char.theme;
   announce(f, ult.name, color);
 
   // An ultimate with a spoken line is introduced by it, the same way a domain
   // is: the fighter holds the ult pose for the call and the move goes off near
-  // the end of it. Uninterruptible and untouchable for the wind-up, matching a
-  // domain — both cost the entire bar, and being locked in place and damageable
-  // after paying that is the worst of both.
+  // the end of it. Also like a domain, the wind-up is interruptible and grants
+  // no invulnerability, and **the bar is not spent until the move fires** — an
+  // ultimate shouted down mid-sentence can be shouted again.
   const lead = spokenLead(moveCallFor(f.charKey, ult.name));
   if (lead > 0) {
-    f.action = { kind: "ult", t: 0, dur: lead + SPOKEN_HOLD_TAIL, anim: "ult", lockMovement: true, uninterruptible: true, events: [] };
+    f.action = { kind: "ult", t: 0, dur: lead + SPOKEN_HOLD_TAIL, anim: "ult", lockMovement: true, events: [] };
     f.animTime = 0;
     f.animKey = "ult";
-    f.invuln = Math.max(f.invuln, lead + 0.2);
     f.action.events.push({ at: lead, fn: () => {
       if (f.dead || f.respawnTimer > 0 || state.phase !== "playing") return;
+      f.meter = Math.max(0, f.meter - ULT_METER_COST);
       impact(f, color);
       DIRECTORS[ult.type](f, ult.p, ult);
     } });
     return;
   }
+  f.meter = Math.max(0, f.meter - ULT_METER_COST);
   impact(f, color);
   DIRECTORS[ult.type](f, ult.p, ult);
 }
