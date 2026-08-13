@@ -12,7 +12,8 @@
 //   node tools/check_battle_poses.mjs        (runs in `npm run check`)
 
 import { BATTLE_POSES, MATCHED_FRAMES } from "../render3d/src/battle_poses.js";
-import { INTENT_POSES, INTENTS, intentFor, baselinePose } from "../render3d/src/baseline_poses.js";
+import { INTENT_POSES, INTENTS, intentFor, baselinePose, CONTACTS, HEIGHTS, AIRBORNE }
+  from "../render3d/src/baseline_poses.js";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -90,6 +91,26 @@ for (const file of readdirSync(READS).filter((f) => f.endsWith(".json"))) {
   }
 }
 
+// A CONTACT has to name a bone that exists and a height that means something,
+// or the editor's readout is measuring against nothing. What it cannot check
+// is whether the pose REACHES — that needs a posed rig, and the editor prints
+// it per frame.
+for (const [intent, c] of Object.entries(CONTACTS)) {
+  if (!INTENT_POSES[intent]) fail(`contact for "${intent}": no such intent`);
+  if (!c) continue;
+  if (!BONES.has(c.bone)) fail(`contact for "${intent}": no bone "${c.bone}"`);
+  if (!(c.at in HEIGHTS)) fail(`contact for "${intent}": no height "${c.at}"`);
+  if (!c.why) fail(`contact for "${intent}": say what the contact is for`);
+}
+// Every intent whose name says it strikes something should say WHAT it
+// strikes. Anticipation and recovery frames legitimately hit nothing.
+for (const intent of INTENTS) {
+  if (/^(strike|air)_/.test(intent) && !/_wind$/.test(intent)
+      && !(intent in CONTACTS)) fail(`"${intent}" strikes something but declares no contact`);
+}
+// An airborne intent that is not a pose is a typo in one list or the other.
+for (const a of AIRBORNE) if (!INTENT_POSES[a]) fail(`AIRBORNE lists "${a}", which is not an intent`);
+
 // Nothing should be defined and never reachable: an intent no frame resolves
 // to is either a dead pose or a resolver rule somebody forgot to write.
 const reached = new Set();
@@ -105,6 +126,8 @@ console.log(`battle poses ok: ${MATCHED_FRAMES.size} matched frames, `
   + `all ${Object.keys(yuji.poses).length} of yuji's sheet covered`);
 console.log(`baseline ok: ${INTENTS.length} intents cover all ${frames} frames `
   + `across the roster, ${reached.size} of them reached`);
+console.log(`contacts ok: ${Object.values(CONTACTS).filter(Boolean).length} declared, `
+  + `${INTENTS.length - AIRBORNE.size} intents planted on the ground`);
 if (others.size) {
   console.log(`  (${others.size} frame name(s) have no PER-FRAME match and use the baseline: `
     + `${[...others].sort().slice(0, 6).join(", ")}${others.size > 6 ? ", …" : ""})`);
