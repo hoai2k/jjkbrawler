@@ -110,6 +110,37 @@ Two limits worth knowing while you work:
     out of plane, a spine twist — belongs to the keyframe bench at
     `?edit=animation`, which poses any bone on any axis.
 
+### The shoulder line and the hip line say which way the body is TURNED
+
+They sit on rigid bars, so how far apart a drawing puts them is not decoration
+— it is an angle, and it is the one piece of depth a flat read has always
+carried without anyone reading it:
+
+| The drawing | The body |
+|---|---|
+| shoulders one on top of the other | pure side view |
+| shoulders their full width apart | square to the camera |
+| left marker drawn to the RIGHT | turned toward the lens |
+| left marker drawn to the LEFT | turned away — his back is to us |
+
+Facing right with his chest open to us, a fighter's LEFT shoulder is the far
+one and lands on the screen RIGHT: the same flip you see looking at someone
+across a table. The editor prints both angles beside the pose name, so widening
+the markers turns the fighter and the number follows.
+
+From that angle everything else follows. The shoulders and hips get their
+depth; the pelvis turn goes on the hips so both legs — and the feet on the end
+of them — come round with it, which is how a foot ends up pointing at the
+camera; and the chest turn goes on the spine as the DIFFERENCE, because a body
+counter-rotates and the shoulders are allowed to face somewhere the hips do
+not. Widths come from the fighter's own rig as a fraction of their torso, since
+a read is in cell percent and a cell is a different size in every frame.
+
+It is also a **check on the sides**. A drawing that shows the chest and a read
+whose left marker is on the left cannot both be right — the arms are the wrong
+way round. That test flagged 24 of Yuji's frames in one pass, which is the same
+mix-up occlusion catches, caught by arithmetic instead of by eye.
+
 ### What each joint drives in the preview
 
 | Joint | Bone |
@@ -120,8 +151,10 @@ Two limits worth knowing while you work:
 | shoulder → elbow → hand | `LeftArm` / `LeftForeArm` and the right pair |
 | hip → knee → foot | `LeftUpLeg` / `LeftLeg` and the right pair |
 | foot → toe | `LeftFoot` / `RightFoot` — the toe joint is how a foot is **pointed** for a kick |
+| shoulder line | the spine's TWIST — how far the chest is turned toward the camera |
+| hip line | the pelvis's twist, and both legs and feet come with it |
 
-Two of those rows exist because of what the reads could not previously say.
+Four of those rows exist because of what the reads could not previously say.
 The clavicles are aimed with their reach ACROSS the body preserved and only
 the up/down, fore/aft part turned — aim a clavicle flat into the drawing's
 plane and both shoulders collapse onto the spine, dragging the collar with

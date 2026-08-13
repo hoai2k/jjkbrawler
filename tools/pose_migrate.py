@@ -8,7 +8,7 @@ it did, not when.
 
     python3 tools/pose_migrate.py toes          # add toeL/toeR where missing
     python3 tools/pose_migrate.py snap-toes     # ...and pull them onto the shoe
-    python3 tools/pose_migrate.py swap [arms|legs] yuji attack_air ...
+    python3 tools/pose_migrate.py swap [arms|legs|hips|shoulders] yuji attack_air ...
 """
 
 import sys
@@ -64,10 +64,16 @@ def snap_toes(chars):
 
 def swap(char, keys, part="all"):
     """Exchange left and right for named poses — the fix for a drawing whose
-    near limb was read as the far one. `part` is all, arms or legs: a punch
-    frame usually needs its ARMS exchanged and its legs left alone, because a
-    body counter-rotates and the drawing is telling the truth about the legs."""
-    pairs = {"all": pr.SIDED, "arms": pr.SIDED_ARMS, "legs": pr.SIDED_LEGS}[part]
+    near limb was read as the far one.
+
+    `part` picks how much: a punch frame usually needs its ARMS exchanged and
+    its legs left alone, because a body counter-rotates and the drawing is
+    telling the truth about which leg leads. HIPS and SHOULDERS swap only the
+    two markers on the rigid bar, which is what a pelvis or a chest read facing
+    the wrong way needs when the limbs below it are already right.
+    """
+    pairs = {"all": pr.SIDED, "arms": pr.SIDED_ARMS, "legs": pr.SIDED_LEGS,
+             "hips": pr.SIDED_HIPS, "shoulders": pr.SIDED_SHOULDERS}[part]
     data = pr.load(char)
     for key in keys:
         pose = data["poses"].get(key)
@@ -89,7 +95,7 @@ def main(argv):
         snap_toes(argv[1:] or pr.characters())
     elif argv[0] == "swap":
         part = "all"
-        if argv[1] in ("arms", "legs", "all"):
+        if argv[1] in ("arms", "legs", "hips", "shoulders", "all"):
             part, argv = argv[1], argv[1:]
         swap(argv[1], argv[2:], part)
     else:

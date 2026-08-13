@@ -101,16 +101,15 @@ const SIDED = ["shoulder", "elbow", "hand", "hip", "knee", "foot", "toe"];
 /** [parent joint, child joint, bone] — the segment each bone's direction is.
  *  Parent-first, because every bone is aimed in the frame its ancestors left.
  *
- *  `plane: false` marks a bone whose bind direction is mostly ACROSS the body
- *  rather than in the drawing's plane. The two clavicles are the case: they
- *  hold the shoulders apart, so aiming one flat into the sagittal plane —
- *  which is what every other bone here wants — would collapse both shoulders
- *  onto the spine. They keep their lateral reach and swing only up/down and
- *  fore/aft, which is exactly the movement "raise the shoulder for the punch"
- *  is asking for. */
+ *  The clavicles are in here too, aimed chest -> shoulder, which is what lets
+ *  a shoulder be RAISED into a punch. They used to need a special case that
+ *  kept their reach across the body, because a flat read put both shoulders at
+ *  zero depth and aiming at that collapsed them onto the spine. The facing
+ *  model gives the shoulders their real depth, so the plain aim is now the
+ *  right one. */
 const SEGMENT_BONE = [
-  ["pelvis", "chest", "Spine", true],
-  ["chest", "neck", "Spine2", true],
+  ["pelvis", "chest", "Spine"],
+  ["chest", "neck", "Spine2"],
   // The neck aims from the SHOULDER LINE, not from the read's `neck` joint.
   // The rig's Neck bone starts between the shoulders; the read's neck joint is
   // drawn where a neck looks like it is, halfway up. Measuring the head's
@@ -119,19 +118,19 @@ const SEGMENT_BONE = [
   // forward by 8.1°, the same number three times over, which is the signature
   // of a convention error rather than a reading. From the shoulders it is 5°
   // in the idle and 0° in the jab, which is what the drawings show.
-  ["shoulderMid", "head", "Neck", true],
-  ["chest", "shoulderL", "LeftShoulder", false],
-  ["shoulderL", "elbowL", "LeftArm", true],
-  ["elbowL", "handL", "LeftForeArm", true],
-  ["chest", "shoulderR", "RightShoulder", false],
-  ["shoulderR", "elbowR", "RightArm", true],
-  ["elbowR", "handR", "RightForeArm", true],
-  ["hipL", "kneeL", "LeftUpLeg", true],
-  ["kneeL", "footL", "LeftLeg", true],
-  ["footL", "toeL", "LeftFoot", true],
-  ["hipR", "kneeR", "RightUpLeg", true],
-  ["kneeR", "footR", "RightLeg", true],
-  ["footR", "toeR", "RightFoot", true],
+  ["shoulderMid", "head", "Neck"],
+  ["chest", "shoulderL", "LeftShoulder"],
+  ["shoulderL", "elbowL", "LeftArm"],
+  ["elbowL", "handL", "LeftForeArm"],
+  ["chest", "shoulderR", "RightShoulder"],
+  ["shoulderR", "elbowR", "RightArm"],
+  ["elbowR", "handR", "RightForeArm"],
+  ["hipL", "kneeL", "LeftUpLeg"],
+  ["kneeL", "footL", "LeftLeg"],
+  ["footL", "toeL", "LeftFoot"],
+  ["hipR", "kneeR", "RightUpLeg"],
+  ["kneeR", "footR", "RightLeg"],
+  ["footR", "toeR", "RightFoot"],
 ];
 /** The child each driven bone points AT in the bind pose. Its offset gives the
  *  bone's own forward direction without hardcoding one rig's axis convention. */
@@ -163,6 +162,108 @@ const DEG = Math.PI / 180;
 // the depth gets in.
 const depth = (pt) => (pt.length > 2 ? pt[2] : 0);
 const hasDepth = (j) => JOINTS.some((n) => j[n] && depth(j[n]) !== 0);
+
+// -------------------------------------------------------------- FACING
+//
+// The shoulder line and the hip line are RIGID BARS of known length. So how
+// far apart the drawing puts them is not decoration — it is the angle the
+// body is turned at, and it is the one piece of depth a flat read has always
+// carried without anyone reading it.
+//
+//   shoulders one on top of the other  ->  pure side view
+//   shoulders their full width apart   ->  square to the camera
+//   left shoulder drawn to the RIGHT   ->  turned toward the lens
+//   left shoulder drawn to the LEFT    ->  turned away, showing their back
+//
+// (Facing right with their chest open to us, a fighter's LEFT shoulder is the
+// far one and lands on the screen RIGHT — the same flip you see looking at
+// someone across a table.)
+//
+// From that angle everything else follows: the shoulders and hips get their
+// depth, the chest and pelvis get their twist, and the legs — hanging off a
+// pelvis that has turned — carry the feet round with them, which is how a
+// foot ends up pointing at the camera.
+//
+// Widths come from the fighter's OWN rig where there is one, as a fraction of
+// their torso, because a read is in cell percent and a cell is a different
+// size in every frame. These are the fallbacks for a character with no rig.
+const SHOULDER_SPAN = 0.67;   // shoulder width / torso length
+const HIP_SPAN = 0.37;
+
+/**
+ * How far the shoulder line and the hip line are turned, in radians, and the
+ * half-widths they are turned by. Positive is turned toward the camera.
+ */
+function facingOf(j, spans) {
+  const torso = j.shoulderL && j.shoulderR && j.pelvis
+    ? Math.hypot((j.shoulderL[0] + j.shoulderR[0]) / 2 - j.pelvis[0],
+                 (j.shoulderL[1] + j.shoulderR[1]) / 2 - j.pelvis[1])
+    : 0;
+  const bar = (a, b, span) => {
+    if (!j[a] || !j[b] || !torso) return { yaw: 0, half: 0 };
+    const width = span * torso;
+    const across = j[a][0] - j[b][0];
+    // A drawing can put them further apart than the body allows — a read is a
+    // hand placing dots, not a measurement. Square to the camera is the most
+    // it can mean.
+    const sin = clamp(across / (width || 1), -1, 1);
+    // Explicit depth wins outright: somebody said which way this is facing.
+    const dz = depth(j[a]) - depth(j[b]);
+    const yaw = dz ? Math.atan2(across, -dz) : Math.asin(sin);
+    return { yaw, half: width / 2 };
+  };
+  return { chest: bar("shoulderL", "shoulderR", spans.shoulder),
+           pelvis: bar("hipL", "hipR", spans.hip) };
+}
+
+/**
+ * Every joint's depth, explicit where the read has one and derived where it
+ * does not.
+ *
+ *   shoulders and hips  from the facing angle — the bar's own half width,
+ *                       swung round by however far the drawing turned it
+ *   limbs               inherit their parent, so an arm drawn flat stays in
+ *                       the plane it was drawn in, hanging off a shoulder
+ *                       that is in the right place
+ *   toes                swing with the PELVIS, so a turned hip turns the foot
+ *                       — the difference between a foot pointing along the
+ *                       drawing and a foot pointing at the camera
+ */
+function resolveDepth(j, spans) {
+  const face = facingOf(j, spans);
+  const z = {};
+  const set = (name, value) => {
+    if (!j[name]) return;
+    z[name] = j[name].length > 2 ? depth(j[name]) : value;
+  };
+  for (const name of ["pelvis", "chest", "neck", "head"]) set(name, 0);
+  set("shoulderL", -face.chest.half * Math.cos(face.chest.yaw));
+  set("shoulderR", face.chest.half * Math.cos(face.chest.yaw));
+  set("hipL", -face.pelvis.half * Math.cos(face.pelvis.yaw));
+  set("hipR", face.pelvis.half * Math.cos(face.pelvis.yaw));
+  // Down the chains IN ORDER, and only into joints nothing has answered for
+  // yet — a pass that re-derives everything would overwrite the shoulders and
+  // hips the facing just placed, which flattens the body and hands every
+  // fighter a shoulder line square to the camera.
+  const inherit = (name) => {
+    for (const child of KIDS[name] || []) {
+      if (z[child] === undefined) set(child, z[name] ?? 0);
+      inherit(child);
+    }
+  };
+  inherit("pelvis");
+  for (const side of ["L", "R"]) {
+    const toe = `toe${side}`;
+    const foot = `foot${side}`;
+    if (!j[toe] || j[toe].length > 2) continue;
+    const along = Math.hypot(j[toe][0] - j[foot][0], j[toe][1] - j[foot][1]);
+    z[toe] = (z[foot] ?? 0) + along * Math.sin(face.pelvis.yaw);
+  }
+  return { z, face };
+}
+
+/** A joint as a 3D point, with derived depth folded in. */
+const point3 = (j, name, z) => [j[name][0], j[name][1], z[name] ?? depth(j[name])];
 
 /** Project a joint through the current view. Returns [screenX, screenY, near],
  *  all in cell percent; `near` is the depth after turning, for sorting. */
@@ -207,6 +308,7 @@ function pivotOf(j) {
 }
 
 const viewOf = (j) => ({ ...orbit.state, ...pivotOf(j) });
+const spans = () => three.spans || { shoulder: SHOULDER_SPAN, hip: HIP_SPAN };
 
 const ui = {
   char: new URLSearchParams(location.search).get("char") || "yuji",
@@ -354,17 +456,56 @@ async function showRig(char) {
   three.bind = bindRig(three.root);
   three.bones = boneIndex(three.root);
   three.height = entry.height || 1.75;
+  three.spans = spansOf(three.bones);
 }
 
-/** A joint, or one of the midpoints a bone actually hangs off. */
-function jointAt(j, name) {
+/** A joint as a resolved 3D point, or one of the midpoints a bone hangs off. */
+function jointAt(j, name, z) {
   if (name === "shoulderMid") {
     if (!j.shoulderL || !j.shoulderR) return null;
-    return [(j.shoulderL[0] + j.shoulderR[0]) / 2,
-            (j.shoulderL[1] + j.shoulderR[1]) / 2,
-            (depth(j.shoulderL) + depth(j.shoulderR)) / 2];
+    const l = point3(j, "shoulderL", z);
+    const r = point3(j, "shoulderR", z);
+    return [(l[0] + r[0]) / 2, (l[1] + r[1]) / 2, (l[2] + r[2]) / 2];
   }
-  return j[name];
+  return j[name] ? point3(j, name, z) : null;
+}
+
+const _axis = new THREE.Vector3(0, 1, 0);
+const _yawQ = new THREE.Quaternion();
+
+/** Turn one bone about the WORLD vertical — the body's own turn, applied where
+ *  it belongs on the skeleton so everything below comes with it. */
+function yawBone(bone, radians) {
+  if (!bone || !radians || !bone.parent) return;
+  _yawQ.setFromAxisAngle(_axis, radians);
+  bone.parent.getWorldQuaternion(_parentQ);
+  _inv.copy(_parentQ).invert();
+  bone.quaternion.premultiply(_parentQ).premultiply(_yawQ).premultiply(_inv);
+  bone.updateMatrixWorld(true);
+}
+
+/** Shoulder and hip width as a fraction of torso length, off the rig itself —
+ *  a read is in cell percent and a cell is a different size in every frame, so
+ *  the only scale that travels is the fighter's own proportions. Panda is not
+ *  built like Yuji and their shoulder lines should not be read as if he were. */
+function spansOf(bones) {
+  const at = (n) => (bones.get(n)
+    ? new THREE.Vector3().setFromMatrixPosition(bones.get(n).matrixWorld) : null);
+  const la = at("LeftArm"); const ra = at("RightArm");
+  const lu = at("LeftUpLeg"); const ru = at("RightUpLeg");
+  const neck = at("Neck");
+  // Torso is neck to the LEG ROOTS, not neck to "Hips". A delivered rig can
+  // carry an outer node also called Hips sitting on the floor at the origin,
+  // and measuring to that made every torso three times too long — which made
+  // every shoulder line look three times wider than the body, which turned
+  // every fighter square to the camera. The leg roots are unambiguous.
+  const hipY = lu && ru ? (lu.y + ru.y) / 2 : null;
+  const torso = neck && hipY !== null ? Math.abs(neck.y - hipY) : 0;
+  if (!torso) return { shoulder: SHOULDER_SPAN, hip: HIP_SPAN };
+  return {
+    shoulder: la && ra ? la.distanceTo(ra) / torso : SHOULDER_SPAN,
+    hip: lu && ru ? lu.distanceTo(ru) / torso : HIP_SPAN,
+  };
 }
 
 const _dir = new THREE.Vector3();
@@ -372,7 +513,6 @@ const _tip = new THREE.Vector3();
 const _inv = new THREE.Quaternion();
 const _swing = new THREE.Quaternion();
 const _boneQ = new THREE.Quaternion();
-const _want = new THREE.Vector3();
 const _parentQ = new THREE.Quaternion();
 
 /** Turn the read into rig rotations: every driven bone is swung, in the
@@ -382,21 +522,39 @@ function poseFromJoints(j) {
   for (const [bone, q] of three.bind) bone.quaternion.copy(q);
   three.root.updateMatrixWorld(true);
 
-  for (const [a, b, boneName, inPlane] of SEGMENT_BONE) {
+  // 1. WHICH WAY THE BODY IS TURNED, from the shoulder and hip lines.
+  const { z, face } = resolveDepth(j, spans());
+  // The pelvis turn goes on the hips, so everything hanging off them — both
+  // legs, and the feet on the end of them — comes round with it. The chest
+  // turn goes on the spine as the DIFFERENCE, because a body counter-rotates
+  // and the shoulders are allowed to face somewhere the hips do not.
+  // Negated: the rig faces +Z and the camera stands on -X, so turning a body
+  // TOWARD the lens is a negative rotation about the world vertical, while a
+  // positive facing angle means turned toward it.
+  // The PELVIS is the Spine's parent, not whatever is called "Hips" — some
+  // rigs hang the whole armature off a node of that name, and turning it turns
+  // the fighter's world rather than their hips.
+  yawBone(three.bones?.get("Spine")?.parent, -face.pelvis.yaw);
+  yawBone(three.bones?.get("Spine1"), -(face.chest.yaw - face.pelvis.yaw));
+  three.root.updateMatrixWorld(true);
+
+  // 2. AIM EVERY DRIVEN BONE. The aim is a minimal swing, so it points the
+  //    bone without undoing the turn above.
+  for (const [a, b, boneName] of SEGMENT_BONE) {
     const bone = three.bones.get(boneName);
     // The tip is the child the bone points at in the bind pose; any rig that
     // names its bones differently still has a first child in the right place.
     const tip = three.bones.get(BONE_TIP[boneName]) || bone?.children.find((c) => c.isBone);
     if (!bone || !tip || !bone.parent) continue;
     // Screen x is world +Z (the facing), screen y counts DOWN, world y counts up.
-    const from = jointAt(j, a);
-    const to = jointAt(j, b);
+    const from = jointAt(j, a, z);
+    const to = jointAt(j, b, z);
     if (!from || !to) continue;
     const dx = to[0] - from[0];
     const dy = to[1] - from[1];
-    // Depth, when the read carries any. Cell x is world +Z (the facing), cell
-    // y counts down, and cell depth points at the camera, which stands on -X.
-    const dz = depth(to) - depth(from);
+    // Cell x is world +Z (the facing), cell y counts down, and cell depth
+    // points at the camera, which stands on -X.
+    const dz = to[2] - from[2];
     if (!dx && !dy && !dz) continue;
     _dir.set(-dz, -dy, dx).normalize();
 
@@ -412,18 +570,7 @@ function poseFromJoints(j) {
     bone.getWorldQuaternion(_boneQ);
     _tip.copy(tip.position).applyQuaternion(_boneQ).normalize();
 
-    _want.copy(_dir);
-    if (!inPlane) {
-      // Keep the bone's reach ACROSS the body and turn only the part of it the
-      // drawing can see. Without this a clavicle aimed at a flat sagittal
-      // target swings the shoulder into the midline and drags the collar with
-      // it — which is what "raise his shoulder" must not do.
-      const across = _tip.x;
-      const rest = Math.sqrt(Math.max(0, 1 - across * across));
-      const planar = Math.hypot(_dir.y, _dir.z) || 1;
-      _want.set(across, (_dir.y / planar) * rest, (_dir.z / planar) * rest);
-    }
-    _swing.setFromUnitVectors(_tip, _want);
+    _swing.setFromUnitVectors(_tip, _dir);
 
     // Apply a world rotation to a local one: undo the parent, turn, redo it.
     bone.parent.getWorldQuaternion(_parentQ);
@@ -432,6 +579,22 @@ function poseFromJoints(j) {
     bone.updateMatrixWorld(true);
   }
   three.root.updateMatrixWorld(true);
+  // A hook for the smoke test and for anyone asking "why is he facing that
+  // way": the angles the read implied, and where the rig actually put the bar.
+  window.__poseFacing = () => {
+    const at = (n) => (three.bones.get(n)
+      ? new THREE.Vector3().setFromMatrixPosition(three.bones.get(n).matrixWorld) : null);
+    const l = at("LeftArm"); const r = at("RightArm");
+    const lz = l && r ? l.clone().sub(r) : null;
+    return {
+      chestDeg: (face.chest.yaw * 180) / Math.PI,
+      pelvisDeg: (face.pelvis.yaw * 180) / Math.PI,
+      spans: spans(),
+      shoulderZ: lz ? lz.z : null,
+      shoulderWidth: lz ? lz.length() : null,
+      rigChestDeg: lz ? (Math.asin(clamp(lz.z / (lz.length() || 1), -1, 1)) * 180) / Math.PI : null,
+    };
+  };
 }
 
 
@@ -486,8 +649,11 @@ function mannequinSVG(j, { handles = false, label = "", flat = false } = {}) {
   // finding a frame, and forty foreshortened stick figures is not a contact
   // sheet, it is noise.
   const view = flat ? { yaw: 0, pitch: 0, dolly: 1, ...pivotOf(j) } : viewOf(j);
+  // Through the FACING model, so a turned view shows the body the shoulder and
+  // hip lines describe rather than a flat cut-out of it.
+  const { z } = resolveDepth(j, spans());
   const at = {};
-  for (const n of JOINTS) if (has(n)) at[n] = project(j[n], view);
+  for (const n of JOINTS) if (has(n)) at[n] = project(point3(j, n, z), view);
   const p = (n) => `${at[n][0].toFixed(2)} ${at[n][1].toFixed(2)}`;
   const line = (a, b) => (has(a) && has(b)
     ? `<line class="bone ${SIDE(a) === "far" || SIDE(b) === "far" ? "far" : "near"}" `
@@ -560,6 +726,7 @@ function renderEditor() {
   $("#poseStamp").className = `stamp ${mine ? "on" : pose.source ? "read" : pose.seed ? "seed" : "read"}`;
   $("#poseNote").value = pose.read || "";
   $("#depthNote").hidden = !hasDepth(pose.j);
+  showFacing(pose.j);
   $("#faceNote").hidden = !faceLeft(ui.char, ui.pose);
   $("#jointList").innerHTML = JOINTS.map((n) => `
     <li class="${n === ui.sel ? "on" : ""}" data-joint="${n}">
@@ -568,6 +735,24 @@ function renderEditor() {
           + (depth(pose.j[n]) ? `, ${depth(pose.j[n]).toFixed(1)}` : "") : "—"}</b></li>`).join("");
   poseFromJoints(pose.j);
   drawThree();
+}
+
+/** The facing the shoulder and hip lines add up to, in the head, in degrees.
+ *  Positive is turned toward the camera. It is a readout of the joints rather
+ *  than a control: widen the shoulder markers and the number follows. */
+function showFacing(j) {
+  const el = $("#facingRead");
+  if (!el) return;
+  const { face } = resolveDepth(j, spans());
+  const deg = (r) => Math.round((r * 180) / Math.PI);
+  const chest = deg(face.chest.yaw);
+  const hips = deg(face.pelvis.yaw);
+  el.textContent = `chest ${chest >= 0 ? "+" : ""}${chest}° · hips ${hips >= 0 ? "+" : ""}${hips}°`;
+  el.classList.toggle("away", chest < 0);
+  el.title = `${chest >= 0 ? "Chest turned toward the camera" : "Chest turned AWAY — his back is to us"}`
+    + `, ${Math.abs(chest)}°; hips ${Math.abs(hips)}° `
+    + `${hips >= 0 ? "toward" : "away"}. Read off the shoulder and hip lines: how far apart the `
+    + `drawing puts them is how far the body is turned, and crossed over means turned away.`;
 }
 
 /**
@@ -602,6 +787,7 @@ function applyTurn() {
 function refreshDrag() {
   const pose = reads.get(ui.char).poses[ui.pose];
   $("#plate .rigline").innerHTML = mannequinSVG(pose.j, { handles: true });
+  showFacing(pose.j);
   poseFromJoints(pose.j);
   drawThree();
 }
@@ -803,6 +989,8 @@ function shell() {
         <div class="edit-head">
           <b class="mono" id="poseName">—</b>
           <span id="poseStamp" class="stamp"></span>
+          <span id="facingRead" class="facing"
+                title="How far the shoulder line and the hip line say the body is turned. Drag a shoulder or hip marker wider to turn toward the camera, cross them over to turn away."></span>
           <button id="viewAngle" class="angle" hidden
                   title="The view is turned away from the drawing's angle — click to go back"></button>
           <span class="grow"></span>
@@ -820,6 +1008,13 @@ function shell() {
               chain. <kbd>Shift</kbd>-drag moves the one joint. Arrow keys nudge the
               selected joint, <kbd>Shift</kbd> for a bigger step, <kbd>Alt</kbd> for
               that joint alone. <kbd>⌘Z</kbd> undoes.</p>
+            <p class="hint">The <b>shoulder</b> and <b>hip</b> markers say which way the
+              body is TURNED, not just where the joints are: they sit on rigid bars, so
+              how far apart the drawing puts them is the angle. Wide apart with the left
+              marker on the right — where a fighter facing right keeps their far
+              shoulder — is square to the camera; crossed over is turned away; on top of
+              each other is a pure side view. The hips carry the legs and the feet round
+              with them, which is how a foot ends up pointing at the lens.</p>
             <p class="hint">Red handles are the fighter's RIGHT side — the one nearer
               the camera when they face right. In a punch that is usually the
               chambered arm, not the extended one: the extended arm is normally
