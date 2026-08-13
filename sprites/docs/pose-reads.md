@@ -165,10 +165,28 @@ carried without anyone reading it:
 
 | The drawing | The body |
 |---|---|
-| shoulders one on top of the other | pure side view |
-| shoulders their full width apart | square to the camera |
-| left marker drawn to the RIGHT | turned toward the lens |
-| left marker drawn to the LEFT | turned away — his back is to us |
+| shoulders as far apart as this sheet usually draws them | side on, facing right |
+| shoulders wider than usual | angled toward the lens |
+| shoulders narrower than usual | angled away — we are seeing some of his back |
+
+**"As usual" is doing real work in that table, and it is measured.** The naive
+zero — shoulders one on top of the other — is not how anybody draws a side
+view. An artist drawing a fighter side-on still shows both shoulders: Yuji's
+sit 0.286 torsos apart in the median frame, and 38 of his 40 frames are on the
+same side of zero. Read literally that says the entire sheet is turned a
+quarter of the way toward the camera, which is not what a single one of those
+drawings shows. It is the house style, applied evenly.
+
+So the zero is **the sheet's own median**, and what turns a fighter is how far
+a frame departs from how that fighter is usually drawn. It calibrates per
+character, which matters — the roster is not drawn to one shoulder convention,
+and a baseline borrowed from Yuji would turn Panda. And it is capped at 35°:
+this is side-on art, a marker line is a few hand-placed dots, and past a
+three-quarter view those dots are being asked for more than they know.
+
+On Yuji the result is 33 of 40 frames within 10° of facing right, which is what
+the sheet looks like; the ones that move are the ones drawn turned —
+`dodge_air` and `dodge_roll` tumbling away from us at −35°, `prone` at −24°.
 
 Facing right with his chest open to us, a fighter's LEFT shoulder is the far
 one and lands on the screen RIGHT: the same flip you see looking at someone
