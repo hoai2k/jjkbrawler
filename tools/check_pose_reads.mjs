@@ -66,11 +66,16 @@ for (const char of Object.keys(man.characters)) {
     poses += 1;
     if (pose.source) hand += 1;
     for (const joint of JOINTS) {
+      // [x, y] or [x, y, depth]: depth is toward the camera and may be
+      // negative, and is absent on every joint nobody has pushed off the
+      // drawing's plane.
       const xy = pose.j?.[joint];
-      if (!Array.isArray(xy) || xy.length !== 2) {
+      if (!Array.isArray(xy) || xy.length < 2 || xy.length > 3) {
         problems.push(`${char}/${key}: missing joint ${joint}`);
-      } else if (!xy.every((v) => typeof v === "number" && v >= 0 && v <= 100)) {
+      } else if (!xy.slice(0, 2).every((v) => typeof v === "number" && v >= 0 && v <= 100)) {
         problems.push(`${char}/${key}.${joint}: ${xy.join(", ")} is outside the cell`);
+      } else if (xy.length === 3 && !(typeof xy[2] === "number" && Math.abs(xy[2]) <= 60)) {
+        problems.push(`${char}/${key}.${joint}: depth ${xy[2]} is past the cell`);
       }
     }
     for (const joint of Object.keys(pose.j || {})) {

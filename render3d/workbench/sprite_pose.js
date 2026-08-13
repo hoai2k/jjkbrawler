@@ -38,10 +38,15 @@
 //   wrong, because the extended arm of a punch is drawn BEHIND the collar
 //   while the near arm crosses the chest. Hence ⇄ Swap L/R.
 //
-//   DEPTH IS NOT IN THE DATA. A read is the sagittal plane and nothing else.
-//   The 3D preview therefore poses each bone by turning it IN that plane and
-//   leaves the third axis at rest — which is honest about what a read knows,
-//   and is why the preview is a check on the read rather than a finished clip.
+//   DEPTH IS NOT ASSUMED. A drawing is one view, so a read starts flat: every
+//   joint is [x, y] and the preview turns each bone in the drawing's plane.
+//   But some poses are not in that plane — an arm angled inward across the
+//   chest reads flat as a short arm, and no amount of dragging in two
+//   dimensions fixes it. So VIEW 3D turns both panes off the drawing's angle
+//   together, a drag then lands in the plane you are looking at, and the joint
+//   gains a third number. Depth is written only where someone put it, and the
+//   sprite fades as the view turns away from the angle it was drawn at,
+//   because from there it is no longer the thing to match.
 //
 // The output is a JSON file per character in exactly the on-disk format, so a
 // finished character is a file copy into sprites/docs/pose-reads/.
@@ -51,6 +56,7 @@ import { GLTFLoader } from "../../vendor/three/loaders/GLTFLoader.js";
 import * as rigs from "../src/loader.js";
 import { initPose } from "../src/pose.js";
 import { CHARACTER_KEYS, CHARACTERS } from "../../src/characters.js";
+import { makeOrbit } from "./orbit.js";
 
 const READS_URL = "../../sprites/docs/pose-reads/";
 const SPRITES_URL = "../../sprites/assets/";
@@ -141,6 +147,66 @@ const BONE_TIP = {
 const $ = (sel, root = document) => root.querySelector(sel);
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 const round1 = (v) => Math.round(v * 10) / 10;
+const DEG = Math.PI / 180;
+
+// ------------------------------------------------------------------- depth
+//
+// A joint is [x, y] or [x, y, z]. The third number is DEPTH — toward the
+// camera, in the same cell percent as the other two — and it is absent until
+// somebody sets it, which is the honest default: a side-on drawing does not
+// say how far a fist travels toward the lens.
+//
+// It exists for the poses the drawing plane cannot hold. An arm angled inward
+// across the chest is a real pose that reads flat as a short arm, and no
+// amount of dragging in two dimensions fixes it. Turn the view (View 3D), drag
+// the hand, and the drag lands in the plane you are looking at — which is how
+// the depth gets in.
+const depth = (pt) => (pt.length > 2 ? pt[2] : 0);
+const hasDepth = (j) => JOINTS.some((n) => j[n] && depth(j[n]) !== 0);
+
+/** Project a joint through the current view. Returns [screenX, screenY, near],
+ *  all in cell percent; `near` is the depth after turning, for sorting. */
+function project(pt, view) {
+  const { yaw, pitch, dolly, cx, cy } = view;
+  const X = pt[0] - cx;
+  const Y = -(pt[1] - cy);
+  const Z = depth(pt);
+  const cy_ = Math.cos(yaw * DEG);
+  const sy = Math.sin(yaw * DEG);
+  const cp = Math.cos(pitch * DEG);
+  const sp = Math.sin(pitch * DEG);
+  const Xr = X * cy_ + Z * sy;
+  const Zr = -X * sy + Z * cy_;
+  const Yr = Y * cp - Zr * sp;
+  const Zr2 = Y * sp + Zr * cp;
+  return [cx + Xr * dolly, cy - Yr * dolly, Zr2];
+}
+
+/** The camera's right and up axes, in cell space — the inverse of `project`
+ *  for a drag, so a hand dragged across a turned view moves across the view
+ *  and not across the drawing. */
+function screenAxes({ yaw, pitch, dolly }) {
+  const cy_ = Math.cos(yaw * DEG);
+  const sy = Math.sin(yaw * DEG);
+  const cp = Math.cos(pitch * DEG);
+  const sp = Math.sin(pitch * DEG);
+  // In (X, Y, Z) with Y up; cell y counts down, hence the negation on return.
+  const right = [cy_, 0, sy];
+  const up = [sy * sp, cp, -cy_ * sp];
+  return { right, up, dolly };
+}
+
+/** Where the view turns about: the middle of the joints it is turning. */
+function pivotOf(j) {
+  const pts = JOINTS.map((n) => j[n]).filter(Boolean);
+  if (!pts.length) return { cx: 50, cy: 50 };
+  return {
+    cx: pts.reduce((a, p) => a + p[0], 0) / pts.length,
+    cy: pts.reduce((a, p) => a + p[1], 0) / pts.length,
+  };
+}
+
+const viewOf = (j) => ({ ...orbit.state, ...pivotOf(j) });
 
 const ui = {
   char: new URLSearchParams(location.search).get("char") || "yuji",
@@ -149,6 +215,16 @@ const ui = {
   ghost: 0.4,
   showSprite: true,
 };
+
+/** Free look, shared with the clip bench (orbit.js). Turning it drives both
+ *  panes off one angle: the rig's camera and the joint overlay on the plate.
+ *  Two views of one pose that disagree about where you are standing is worse
+ *  than one view. */
+const orbit = makeOrbit(() => {
+  if (!ui.pose || !reads.has(ui.char)) return;
+  applyTurn();
+  refreshDrag();
+});
 
 /** char -> the read file as loaded, with edits already folded in. */
 const reads = new Map();
@@ -283,7 +359,10 @@ async function showRig(char) {
 /** A joint, or one of the midpoints a bone actually hangs off. */
 function jointAt(j, name) {
   if (name === "shoulderMid") {
-    return [(j.shoulderL[0] + j.shoulderR[0]) / 2, (j.shoulderL[1] + j.shoulderR[1]) / 2];
+    if (!j.shoulderL || !j.shoulderR) return null;
+    return [(j.shoulderL[0] + j.shoulderR[0]) / 2,
+            (j.shoulderL[1] + j.shoulderR[1]) / 2,
+            (depth(j.shoulderL) + depth(j.shoulderR)) / 2];
   }
   return j[name];
 }
@@ -315,8 +394,11 @@ function poseFromJoints(j) {
     if (!from || !to) continue;
     const dx = to[0] - from[0];
     const dy = to[1] - from[1];
-    if (!dx && !dy) continue;
-    _dir.set(0, -dy, dx).normalize();
+    // Depth, when the read carries any. Cell x is world +Z (the facing), cell
+    // y counts down, and cell depth points at the camera, which stands on -X.
+    const dz = depth(to) - depth(from);
+    if (!dx && !dy && !dz) continue;
+    _dir.set(-dz, -dy, dx).normalize();
 
     // Swing the bone from where it rests to where the drawing wants it, in the
     // PARENT's frame: the smallest rotation that takes the bone's current tip
@@ -365,8 +447,17 @@ function drawThree() {
   const size = box.getSize(new THREE.Vector3());
   const mid = box.getCenter(new THREE.Vector3());
   const span = Math.max(size.y, size.z, 0.4) * 1.25;
-  const dist = span / (2 * Math.tan((three.camera.fov * Math.PI) / 360));
-  three.camera.position.set(mid.x - dist, mid.y, mid.z);
+  const dist = span / (2 * Math.tan((three.camera.fov * Math.PI) / 360)) / orbit.state.dolly;
+  // The rest camera is side-on off the fighter's right (-X, facing +Z), which
+  // is the sprite's own viewpoint. Free look is an offset on that, turned the
+  // same way and by the same amount as the overlay on the plate.
+  const yaw = orbit.state.yaw * DEG;
+  const pitch = orbit.state.pitch * DEG;
+  three.camera.position.set(
+    mid.x - dist * Math.cos(pitch) * Math.cos(yaw),
+    mid.y + dist * Math.sin(pitch),
+    mid.z - dist * Math.cos(pitch) * Math.sin(yaw),
+  );
   three.camera.lookAt(mid);
   three.camera.updateProjectionMatrix();
   three.renderer.render(three.scene, three.camera);
@@ -381,17 +472,27 @@ function drawThree() {
  *  whole picker, which reads as "the editor is broken" rather than "this pose
  *  is missing a toe". Missing joints are worth SAYING, once, and worth
  *  surviving. */
-function mannequinSVG(j, { handles = false, label = "" } = {}) {
+function mannequinSVG(j, { handles = false, label = "", flat = false } = {}) {
   const missing = JOINTS.filter((n) => !Array.isArray(j[n]));
   if (missing.length) {
     console.warn(`pose editor: ${label || "a pose"} has no ${missing.join(", ")} — `
       + "drawing the joints it does have. Reload to pick up the current read.");
   }
   const has = (n) => Array.isArray(j[n]);
-  const p = (n) => `${j[n][0]} ${j[n][1]}`;
+  // Every joint goes through the view, so the overlay and the rig are looking
+  // from the same place. At rest the projection is the identity and this is
+  // the flat drawing it always was.
+  // The picker draws flat whatever the view is doing: a thumbnail is for
+  // finding a frame, and forty foreshortened stick figures is not a contact
+  // sheet, it is noise.
+  const view = flat ? { yaw: 0, pitch: 0, dolly: 1, ...pivotOf(j) } : viewOf(j);
+  const at = {};
+  for (const n of JOINTS) if (has(n)) at[n] = project(j[n], view);
+  const p = (n) => `${at[n][0].toFixed(2)} ${at[n][1].toFixed(2)}`;
   const line = (a, b) => (has(a) && has(b)
     ? `<line class="bone ${SIDE(a) === "far" || SIDE(b) === "far" ? "far" : "near"}" `
-      + `x1="${j[a][0]}" y1="${j[a][1]}" x2="${j[b][0]}" y2="${j[b][1]}"/>`
+      + `x1="${at[a][0].toFixed(2)}" y1="${at[a][1].toFixed(2)}" `
+      + `x2="${at[b][0].toFixed(2)}" y2="${at[b][1].toFixed(2)}"/>`
     : "");
   const parts = [
     ["shoulderL", "shoulderR", "hipR", "hipL"].every(has)
@@ -401,28 +502,32 @@ function mannequinSVG(j, { handles = false, label = "" } = {}) {
     line("shoulderL", "shoulderR"), line("hipL", "hipR"),
   ];
   if (has("head") && has("neck")) {
-    const r = Math.max(2.6, Math.hypot(j.head[0] - j.neck[0], j.head[1] - j.neck[1]) * 0.8);
-    parts.push(`<circle class="skull" cx="${j.head[0]}" cy="${j.head[1]}" r="${r.toFixed(1)}"/>`);
+    const r = Math.max(2.6, Math.hypot(at.head[0] - at.neck[0], at.head[1] - at.neck[1]) * 0.8);
+    parts.push(`<circle class="skull" cx="${at.head[0].toFixed(2)}" cy="${at.head[1].toFixed(2)}" `
+      + `r="${r.toFixed(1)}"/>`);
   }
   if (handles) {
     for (const name of JOINTS.filter(has)) {
       parts.push(
-        `<circle class="handle ${SIDE(name)}" data-joint="${name}" `
-        + `cx="${j[name][0]}" cy="${j[name][1]}" r="2.1"><title>${name}</title></circle>`);
+        `<circle class="handle ${SIDE(name)}${depth(j[name]) ? " deep" : ""}" data-joint="${name}" `
+        + `cx="${at[name][0].toFixed(2)}" cy="${at[name][1].toFixed(2)}" r="2.1">`
+        + `<title>${name}${depth(j[name]) ? ` (depth ${depth(j[name]).toFixed(1)})` : ""}</title>`
+        + `</circle>`);
     }
   } else {
     for (const name of ["handL", "handR", "toeL", "toeR"].filter(has)) {
-      parts.push(`<circle class="tip ${SIDE(name)}" cx="${j[name][0]}" cy="${j[name][1]}" r="1.6"/>`);
+      parts.push(`<circle class="tip ${SIDE(name)}" cx="${at[name][0].toFixed(2)}" `
+        + `cy="${at[name][1].toFixed(2)}" r="1.6"/>`);
     }
   }
   return parts.join("");
 }
 
-function plateHTML(char, key, j, { handles = false } = {}) {
+function plateHTML(char, key, j, { handles = false, flat = false } = {}) {
   const flip = faceLeft(char, key) ? ' class="flip"' : "";
   return `<img${flip} src="${spriteSrc(char, key)}" alt="${key}" loading="lazy">`
     + `<svg class="rigline" viewBox="0 0 100 100" preserveAspectRatio="none">`
-    + `${mannequinSVG(j, { handles, label: `${char}/${key}` })}</svg>`;
+    + `${mannequinSVG(j, { handles, flat, label: `${char}/${key}` })}</svg>`;
 }
 
 function renderPicker() {
@@ -432,7 +537,7 @@ function renderPicker() {
   list.innerHTML = Object.entries(data.poses).map(([key, pose]) => `
     <button class="thumb ${key === ui.pose ? "on" : ""} ${edited.has(key) ? "edited" : ""}"
             data-pose="${key}" title="${key}">
-      <span class="plate mini">${plateHTML(ui.char, key, pose.j)}</span>
+      <span class="plate mini">${plateHTML(ui.char, key, pose.j, { flat: true })}</span>
       <span class="thumb-name">${key}</span>
     </button>`).join("");
   $("#poseCount").textContent =
@@ -454,13 +559,43 @@ function renderEditor() {
   $("#poseStamp").textContent = stamp;
   $("#poseStamp").className = `stamp ${mine ? "on" : pose.source ? "read" : pose.seed ? "seed" : "read"}`;
   $("#poseNote").value = pose.read || "";
+  $("#depthNote").hidden = !hasDepth(pose.j);
   $("#faceNote").hidden = !faceLeft(ui.char, ui.pose);
   $("#jointList").innerHTML = JOINTS.map((n) => `
     <li class="${n === ui.sel ? "on" : ""}" data-joint="${n}">
       <span>${n}</span><b>${pose.j[n]
-        ? `${pose.j[n][0].toFixed(1)}, ${pose.j[n][1].toFixed(1)}` : "—"}</b></li>`).join("");
+        ? `${pose.j[n][0].toFixed(1)}, ${pose.j[n][1].toFixed(1)}`
+          + (depth(pose.j[n]) ? `, ${depth(pose.j[n]).toFixed(1)}` : "") : "—"}</b></li>`).join("");
   poseFromJoints(pose.j);
   drawThree();
+}
+
+/**
+ * What the rest of the page does when the view turns.
+ *
+ * The sprite behind the joints is a DRAWING, made from one angle. Turn away
+ * from that angle and it stops being a reference and starts being a picture
+ * the figure no longer matches — so it fades as the view turns, far enough to
+ * stop reading it as truth, not so far that you lose where the body is. The
+ * angle is shown as a number because "roughly back to flat" is not a place you
+ * can find by dragging, and Reset is one click.
+ */
+function applyTurn() {
+  const box = $("#poseView3dBox");
+  const plate = $("#plate");
+  if (!box || !plate) return;
+  box.classList.toggle("on", orbit.on);
+  $("#poseView3d").checked = orbit.on;
+  plate.classList.toggle("turned", !orbit.atRest);
+  // 0.55 flat-on, easing to 0.22 by a quarter turn: dim enough to stop reading
+  // it as the thing to match, present enough to still see where the body is.
+  plate.style.setProperty("--sprite-dim", (0.55 - 0.33 * orbit.turned).toFixed(3));
+  const angle = $("#viewAngle");
+  if (angle) {
+    angle.hidden = orbit.atRest;
+    angle.textContent = `${Math.round(orbit.state.yaw)}° / ${Math.round(orbit.state.pitch)}°`
+      + (orbit.state.dolly !== 1 ? ` · ${orbit.state.dolly.toFixed(2)}×` : "");
+  }
 }
 
 /** Redraw only what a drag moves, so dragging stays at frame rate. */
@@ -491,12 +626,32 @@ function commit() {
   renderPicker();
 }
 
-function moveJoint(name, dx, dy, { chain = true } = {}) {
+/**
+ * Move a joint by a drag measured ON SCREEN, and its chain with it.
+ *
+ * At rest that is what it has always been: cell x and cell y, one to one. With
+ * the view turned it is the same gesture in the plane you are actually looking
+ * at, which is the whole point of turning it — the movement decomposes into
+ * cell x, y AND depth, so an arm can be angled inward by looking from above
+ * and pulling the hand across.
+ */
+function moveJoint(name, dsx, dsy, { chain = true } = {}) {
   const pose = reads.get(ui.char).poses[ui.pose];
+  const { right, up, dolly } = screenAxes(orbit.state);
+  const a = dsx / dolly;
+  const b = -dsy / dolly;
+  const dx = right[0] * a + up[0] * b;
+  const dyUp = right[1] * a + up[1] * b;
+  const dz = right[2] * a + up[2] * b;
   const names = (chain ? [name, ...descendants(name)] : [name]).filter((n) => pose.j[n]);
   for (const n of names) {
-    pose.j[n][0] = round1(clamp(pose.j[n][0] + dx, 0, 100));
-    pose.j[n][1] = round1(clamp(pose.j[n][1] + dy, 0, 100));
+    const pt = pose.j[n];
+    pt[0] = round1(clamp(pt[0] + dx, 0, 100));
+    pt[1] = round1(clamp(pt[1] - dyUp, 0, 100));
+    const z = round1(clamp(depth(pt) + dz, -60, 60));
+    // Depth is only written once there is some: a pose edited flat-on stays a
+    // two-number pose, and the file stays a file about a drawing.
+    if (z || pt.length > 2) pt[2] = z;
   }
 }
 
@@ -516,20 +671,24 @@ function bindPlate() {
     ui.sel = name;
     pushUndo();
     const pose = reads.get(ui.char).poses[ui.pose];
+    // Track the pointer in SCREEN cell units and hand moveJoint the delta: with
+    // the view turned there is no longer one cell coordinate under the cursor.
     const [x, y] = at(e);
-    drag = { name, ox: pose.j[name][0] - x, oy: pose.j[name][1] - y, chain: !e.shiftKey, moved: false };
+    const shown = project(pose.j[name], viewOf(pose.j));
+    drag = { name, ox: shown[0] - x, oy: shown[1] - y, sx: shown[0], sy: shown[1],
+             chain: !e.shiftKey, moved: false };
     plate.setPointerCapture(e.pointerId);
     e.preventDefault();
   });
 
   plate.addEventListener("pointermove", (e) => {
     if (!drag) return;
-    const pose = reads.get(ui.char).poses[ui.pose];
     const [x, y] = at(e);
     const wantX = clamp(x + drag.ox, 0, 100);
     const wantY = clamp(y + drag.oy, 0, 100);
-    moveJoint(drag.name, wantX - pose.j[drag.name][0], wantY - pose.j[drag.name][1],
-      { chain: drag.chain });
+    moveJoint(drag.name, wantX - drag.sx, wantY - drag.sy, { chain: drag.chain });
+    drag.sx = wantX;
+    drag.sy = wantY;
     drag.moved = true;
     refreshDrag();
   });
@@ -541,6 +700,14 @@ function bindPlate() {
   };
   plate.addEventListener("pointerup", end);
   plate.addEventListener("pointercancel", end);
+
+  // WHO OWNS A PRESS. On the plate a handle always edits — this is an editor,
+  // and refusing to move a joint because the view is turned would take away
+  // the only way to author depth. Empty space turns the view instead, and only
+  // while free look is on. On the rig canvas there is nothing to edit, so
+  // every drag turns.
+  orbit.bind(plate, (ev) => orbit.on && !ev.target.closest("[data-joint]"));
+  orbit.bind($("#rigView"), () => orbit.on);
 }
 
 function bindKeys() {
@@ -636,6 +803,8 @@ function shell() {
         <div class="edit-head">
           <b class="mono" id="poseName">—</b>
           <span id="poseStamp" class="stamp"></span>
+          <button id="viewAngle" class="angle" hidden
+                  title="The view is turned away from the drawing's angle — click to go back"></button>
           <span class="grow"></span>
           <button id="btnSwap" class="ghost sm" title="This drawing's near limbs are the other side's — exchange left and right">⇄ Swap L/R</button>
           <button id="btnSnap" class="ghost sm" title="Pull every joint onto the drawing">Snap to art</button>
@@ -657,17 +826,27 @@ function shell() {
               drawn passing behind the collar, which puts it on the far side. If a
               whole pose is the wrong way round, <b>Swap L/R</b>. The two
               <b>toe</b> handles set which way each foot points.</p>
+            <p class="hint" id="depthNote" hidden>This pose carries DEPTH — one or
+              more joints sit off the drawing's plane. Turn the view on to see it.</p>
             <p class="hint warn" id="faceNote" hidden>This frame is delivered facing
               LEFT and mirrored by the engine. It is shown here mirrored, the way the
               game draws it — pose it as you see it.</p>
           </div>
           <div class="pane">
-            <canvas id="rigView"></canvas>
+            <div class="rigwrap">
+              <canvas id="rigView"></canvas>
+              <label class="check view3d" id="poseView3dBox"
+                     title="Drag to turn, scroll to move in. Both panes turn together; off returns to the drawing's own angle.">
+                <input id="poseView3d" type="checkbox"> View 3D
+              </label>
+            </div>
             <p class="hint">The fighter's own rig: spine, neck, both clavicles,
-              arms, legs and feet, each turned in the drawing's plane to match the
-              joints. Depth is not in a read, so the third axis stays at rest — this
-              is a check on the read, not a finished clip. For a bone the read
-              cannot reach, or a rotation out of plane, use the keyframe bench at
+              arms, legs and feet, each turned to match the joints. <b>View 3D</b>
+              turns this pane and the plate together — drag either, scroll to move
+              in — and a joint dragged while turned gains DEPTH, which is how a pose
+              the drawing cannot hold (an arm angled inward, a foot rolled out) gets
+              said. Off returns both to the drawing's own angle. For a bone the read
+              has no joint for, use the keyframe bench at
               <a href="./?edit=animation">?edit=animation</a>.</p>
             <label class="note-label" for="poseNote">What this frame is doing</label>
             <textarea id="poseNote" rows="3" placeholder="e.g. three-point stance, far hand planted, rear leg stretched back"></textarea>
@@ -743,6 +922,8 @@ async function boot() {
     renderPicker();
     renderEditor();
   });
+  $("#poseView3d").addEventListener("change", (e) => orbit.setOn(e.target.checked));
+  $("#viewAngle").addEventListener("click", () => orbit.reset());
   $("#btnSnap").addEventListener("click", () => { snapToArt(); });
   $("#btnSwap").addEventListener("click", () => {
     const pose = reads.get(ui.char).poses[ui.pose];
@@ -769,6 +950,7 @@ async function boot() {
   bindPlate();
   bindKeys();
   await selectChar(ui.char);
+  applyTurn();
   window.__workbenchReady = true;
 }
 
@@ -781,6 +963,9 @@ async function boot() {
 
 let snapCanvas = null;
 function snapToArt() {
+  // Nearest-ink is a statement about the DRAWING, so it only means anything
+  // from the drawing's own angle.
+  if (!orbit.atRest) { orbit.reset(); }
   const pose = reads.get(ui.char).poses[ui.pose];
   const img = $("#plate img");
   if (!img?.complete) return;
