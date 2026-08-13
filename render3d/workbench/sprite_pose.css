@@ -144,6 +144,18 @@ main.poseedit {
 .how.ingame { color: #7ddc9a; border-color: #2f5a44; }
 .how.baseline { color: #b3a5e0; border-color: #4a3f6b; }
 
+/* What the pose is supposed to REACH, top right of the viewer, opposite the
+ * badge that says which pose it is. Green when it lands, red with the distance
+ * when it does not — a fist that stops at hip height is not an overhand into
+ * the floor, however good the body looks. */
+.contact {
+  position: absolute; right: 8px; top: 8px; font: 11px ui-monospace, Menlo, monospace;
+  padding: 2px 8px; border-radius: 999px; background: rgba(12, 17, 28, 0.82);
+  border: 1px solid #2b3550; pointer-events: none;
+}
+.contact.ok { color: #7ddc9a; border-color: #2f5a44; }
+.contact.miss { color: #e0a3a3; border-color: #6b3a3a; }
+
 /* THE SECOND SKELETON: what the rig is actually doing, over the drawing,
  * beneath the draggable read. Coloured by mode so it matches the badge and the
  * cycle button, and inert — the handles belong to the read. */

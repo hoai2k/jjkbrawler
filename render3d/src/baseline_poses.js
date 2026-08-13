@@ -94,14 +94,22 @@ export const INTENT_POSES = {
     RightArm: [-104, 16, 50], RightForeArm: [-86, 0, 40],
     LeftArm: [-40, -12, -70], LeftForeArm: [-106, 0, -58],
   }),
-  // Overhand into the floor: trunk folds hard, the arm comes over the top, and
-  // the stance splits wide to get the shoulder low.
+  // OVERHAND INTO THE FLOOR, and it has to actually get there — the contact
+  // below says `ground`, and a fist that stops at hip height is a different
+  // move however good the body looks. Reaching it is mostly the LEGS: a
+  // standing shoulder is 1.45m up and an arm is 0.55m, so the body has to drop
+  // most of a metre, which is a deep split with the rear leg folded to near
+  // kneeling. The arm itself is straight down, not swung across.
+  // A WIDE SPLIT LUNGE, which is what the sheets draw: the near leg bent under
+  // the body taking the weight, the far leg stretched back and near straight,
+  // the trunk folded over the near knee and the striking arm hanging straight
+  // down through it. The reach comes from the stance, not from the shoulder.
   strike_down: p({
-    Spine: [40, 16, 0], Spine1: [16, 8, 0], Head: [-18, -6, 0],
-    LeftUpLeg: [-42, 0, 6], LeftLeg: [16, 0, 0], LeftFoot: [-2, 0, 0],
-    RightUpLeg: [40, 0, -6], RightLeg: [18, 0, 0], RightFoot: [-14, 0, 0],
-    RightArm: [-64, 44, 30], RightForeArm: [-16, 0, 12],
-    LeftArm: [34, 0, -62], LeftForeArm: [-40, 0, -45],
+    Spine: [40, 14, 0], Spine1: [16, 8, 0], Head: [-22, -6, 0],
+    RightUpLeg: [-62, 0, -8], RightLeg: [72, 0, 0], RightFoot: [-10, 0, 0],
+    LeftUpLeg: [44, 0, 8], LeftLeg: [16, 0, 0], LeftFoot: [-22, 0, 0],
+    RightArm: [-8, 24, 80], RightForeArm: [-10, 0, 6],
+    LeftArm: [34, 0, -56], LeftForeArm: [-44, 0, -40],
   }),
   // A low sweeping strike: trunk rotated hard over a wide split stance, arm
   // travelling across at hip height.
@@ -442,6 +450,69 @@ export function intentFor(frame) {
 export function baselinePose(frame) {
   const intent = intentFor(frame);
   return { intent, pose: INTENT_POSES[intent] || INTENT_POSES.stance };
+}
+
+/**
+ * HEIGHTS a strike can be aimed at, as a fraction of the fighter's own height.
+ * Taken from the mannequin's own skeleton (render3d/src/mannequin.js) so they
+ * mean the same thing on a fighter of any size: hips at 0.53, chest where
+ * Spine2 sits, head where the Head bone does.
+ */
+export const HEIGHTS = {
+  ground: 0, ankle: 0.06, shin: 0.25, hip: 0.53, chest: 0.72, head: 0.86,
+};
+
+/**
+ * WHERE THE POSE HAS TO REACH, and with what.
+ *
+ * A pose can be anatomically perfect and useless: an overhand meant to smash
+ * the floor is not that move if the fist stops at hip height, and a low sweep
+ * that arrives at chest height is a different attack. The body says what the
+ * fighter is DOING; this says what they are doing it TO, which is the half a
+ * pose table normally leaves to be noticed later by eye.
+ *
+ * It is also the half that can be checked. `tools/check_battle_poses.mjs`
+ * fails on a contact naming a bone or a height that does not exist, and the
+ * editor prints how far the pose actually falls short.
+ */
+export const CONTACTS = {
+  // SHIN, not ground, and the difference is a judgement worth writing down.
+  // A standing shoulder is 1.45m up and an arm is 0.55m, so a fist reaches the
+  // floor only from a kneel — and posing the fold that gets there lays the
+  // fighter out flat, which is a dive rather than a smash. Look at what the
+  // drawings actually do: the fist lands around shin height and the impact
+  // EFFECT is what sits on the floor under it. Aiming at the floor makes a
+  // worse pose and a truer-sounding number.
+  strike_down: { bone: "RightHand", at: "shin", why: "an overhand down at the legs" },
+  strike_straight: { bone: "RightHand", at: "chest", why: "a cross to the body" },
+  strike_up: { bone: "RightHand", at: "head", why: "an uppercut through the chin" },
+  strike_sweep: { bone: "RightHand", at: "shin", why: "a low sweep at the legs" },
+  strike_push: { bone: "RightHand", at: "chest", why: "a two-handed push to the body" },
+  crouch_strike: { bone: "RightHand", at: "shin",
+                   why: "the brief: extended at ankle-to-knee height, staying down" },
+  air_strike: { bone: "RightHand", at: "chest", why: "a cross thrown from the air" },
+  air_wind: null, land: { bone: "RightHand", at: "ground", why: "a hand posted on the landing" },
+};
+
+/**
+ * WHAT IS ON THE FLOOR. Everything here is planted — the preview drops the
+ * root until the lowest of its bones sits on the ground line — and everything
+ * NOT here is in the air and stays where the pose puts it.
+ *
+ * This is not a detail. Without it nothing in the preview touches anything:
+ * an idle floats seven centimetres up, a crouch floats thirty, and the
+ * question "does the fist reach the floor" has no meaning because the floor is
+ * not where the fighter is standing.
+ */
+export const AIRBORNE = new Set([
+  "jump", "fall", "air_wind", "air_strike", "evade_twist", "evade_ball",
+  "hang", "grabbed", "stride_reach", "stride_pass",
+]);
+
+/** The contact a frame has to make, or null. Keyed by intent, so a matched
+ *  pose and the baseline it overrides are held to the same target. */
+export function contactFor(frame) {
+  return CONTACTS[intentFor(frame)] || null;
 }
 
 export const INTENTS = Object.keys(INTENT_POSES);
