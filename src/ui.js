@@ -56,7 +56,7 @@ export function initUi(cb) {
       `p${id}Panel`, `p${id}Name`, `p${id}Damage`, `p${id}Stocks`,
       `p${id}Meter`, `p${id}MeterLabel`, `p${id}Portrait`, `p${id}Team`, `p${id}Combo`,
     ]),
-    "arenaSign", "arenaSignName", "matchClock", "errorToast", "pauseNotice", "matchStats", "stageAgainButton",
+    "arenaSign", "arenaSignName", "matchClock", "errorToast", "pauseNotice", "matchStats", "victoryPodium", "stageAgainButton",
     "vsModeButton", "vsModeLabel", "modeMenu", "modeNote",
     "movesPanel", "movesTitle", "movesKicker", "movesPrevButton", "movesNextButton", "movesBackButton",
     "movesModeButton",
@@ -1328,19 +1328,50 @@ export function showRoundOver({ winner, side = null, reason = "ko" } = {}) {
   els.winnerText.textContent = !winner ? TEXT.roundOver.draw
     : side ? TEXT.roundOver.teamWinner(side)
     : TEXT.roundOver.winner(winner.char.name);
+  renderPodium(winner, side);
   renderMatchStats(winner);
   setPhase("roundOver");
 }
 
+/** The match's finishing order: stocks left, then least damage taken — the
+ *  same comparison the match itself used to decide the result. The winner is
+ *  pinned first regardless, because in a sudden-death finish the tie-break
+ *  columns can disagree with who actually landed the deciding hit, and a
+ *  results screen that ranks the winner second argues with its own headline. */
+function rankFighters(winner) {
+  return [...state.fighters].sort((a, b) =>
+    (b === winner) - (a === winner) ||
+    (b.stocks - a.stocks) || (a.damage - b.damage) || (b.tally.dealt - a.tally.dealt));
+}
+
+/** The Smash results podium: the winner's hero card big and lit in their own
+ *  theme colour, everyone else small, grey and ranked under it. In a team match
+ *  (`side` set) the whole winning side stands up top — the survivor did not win
+ *  alone. A draw has no winner to celebrate, so it renders nothing and the
+ *  table carries the screen. */
+function renderPodium(winner, side = null) {
+  if (!winner) { els.victoryPodium.innerHTML = ""; return; }
+  const card = (f, cls, badge) => `
+    <figure class="victory-card ${cls}" style="--card-theme:${f.char.theme}">
+      <img src="${heroCardSrc(f.charKey)}" alt="${f.char.name}">
+      <figcaption><i>${badge}</i><b>${f.char.name}</b></figcaption>
+    </figure>`;
+  const ranked = rankFighters(winner);
+  const winners = side ? ranked.filter((f) => f.team === winner.team) : [winner];
+  const losers = ranked.filter((f) => !winners.includes(f));
+  els.victoryPodium.innerHTML =
+    winners.map((f) => card(f, "victory-card--winner", TEXT.roundOver.winnerBadge)).join("") +
+    `<div class="victory-losers">${losers.map((f, i) =>
+      card(f, "victory-card--loser", TEXT.roundOver.place(i + 2))).join("")}</div>`;
+}
+
 /** Who did what, in finishing order.
  *
- *  The order is the one the match itself used to decide the winner: stocks
- *  left, then least damage taken. That makes the table a placement list in a
- *  Battle Royal, which is the screen's other job — with eight fighters, "Gojo
- *  wins" leaves seven players with no idea how they did. */
+ *  That makes the table a placement list in a Battle Royal, which is the
+ *  screen's other job — with eight fighters, "Gojo wins" leaves seven players
+ *  with no idea how they did. */
 function renderMatchStats(winner) {
-  const ranked = [...state.fighters].sort((a, b) =>
-    (b.stocks - a.stocks) || (a.damage - b.damage) || (b.tally.dealt - a.tally.dealt));
+  const ranked = rankFighters(winner);
   const s = TEXT.roundOver.stats;
   const cell = (v) => `<span>${v}</span>`;
   const rows = ranked.map((f, i) => `
