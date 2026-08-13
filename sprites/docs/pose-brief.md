@@ -123,8 +123,12 @@ workbench pass on the whole set if it is ever redrawn.
 
 ## 4. The pose lines
 
-36 poses, the same semantic set every fighter has (`SEMANTIC_ANIMS`,
-`src/characters.js`). Combine each with the fighter's character block.
+40 poses, the same semantic set every fighter has (`SEMANTIC_ANIMS`,
+`src/characters.js`). Combine each with the fighter's character block. Four
+further keys are registered and NOT drawn — `throw_fwd`, `throw_back`,
+`throw_up`, `throw_down` each play the heavy attack swung that way, which reads
+correctly because a throw is a heave in that direction. Deliver one under those
+names and it is picked up with no code change; nobody is owed one.
 
 ### Stance
 
@@ -202,6 +206,37 @@ not read — fingers not wrapped, a naginata kinking where it crossed the body,
 a blade passing through the hand. Draw the hand closed around the haft and the
 weapon unbroken across the figure.
 
+### The grab set, and the dash attack
+
+Four poses the roster went without until round 20, and the last four to join the
+semantic set. Three are the grab mechanic's (`?throw=true`, `src/grab.js`), one
+is the attack a run throws.
+
+| Pose | Pose line |
+|---|---|
+| `grab_reach` | a committed forward lunge with one open, grasping hand leading — reaching to seize, not to strike — the other arm up as a guard |
+| `grab_hold` | gripping an unseen opponent at arm's length by the collar: front hand closed in a fist at chest height, weight planted, body coiled to heave |
+| `grabbed` | seized and struggling: body arched back from the collar, feet scrabbling, both hands prying at an unseen grip at their own chest |
+| `attack_dash` | sprinting forward and striking at the same moment, body low and driving, weight thrown ahead of the leading foot, back leg extended behind, striking arm or weapon fully extended forward along the direction of the run, trailing arm swept back, at the instant of impact |
+
+**The grip point is the constraint that spans fighters.** `grab_hold`'s closed
+fist and `grabbed`'s prying hands must both sit at **chest height on the leading
+edge of the body**, because the game draws the two side by side at a fixed gap
+(`holdGap` in `src/grab.js`) and the pair is what the player reads. A fist drawn
+high on one fighter and low on another makes every crossing of the two look like
+they are holding different arguments. Chest height, front edge, both poses,
+whole roster — and it is checkable by eye, on the two drawings side by side,
+before the round is delivered.
+
+**Do not draw the opponent.** Both grab poses are one figure: the game supplies
+the other body. A `grab_hold` drawn with somebody in the fist ships two victims.
+
+**The dash attack is drawn at the heavy's weight.** One drawing serves both the
+running light and the running shoulder-charge, so a pose that reads as a light
+poke looks weak on half of what it plays. When in doubt, draw the heavy — and
+draw the *blow*, not a wind-up: the run was the wind-up, so there is no `_a`/`_b`
+pair here and the arm or weapon is already extended along the line of travel.
+
 ### Techniques
 
 The fighter's own kit decides what these look like — the technique names are in
@@ -276,6 +311,7 @@ often.
 | **An ambiguous costume sentence gets drawn the covered way** | any | 13, 18D |
 | **Rewording an ambiguous costume line does not fix it** | Uro's cloud wrap | 18D |
 | **The reach frame reaches with the arm** | `run_reach_*` | 15A |
+| **The set covers the wrong roster** — right count, wrong names | any roster-wide round | 20C, 20D |
 
 Two of these are worth stating as numbers rather than as complaints, because
 that is the difference between a rule somebody reads and a rule somebody checks:
@@ -302,6 +338,24 @@ the pose's framing, and to say so in the request rather than spend a third round
 on it. **A costume that a generator is fighting is a limitation to plan around,
 not a brief to keep sharpening.**
 
+**Round 20 landed 108 sprites and re-ran none of this table** — no low-resolution
+figure, no sheet, no mirrored strike, four clipped canvas edges across the lot,
+and the grip point that 20C was written around held on all twenty-seven. What it
+did produce is the newest row, and it is not a drawing fault at all:
+
+**A roster-wide round is delivered against `CHARACTER_KEYS`, and the count is
+not the check.** 20C and 20D both asked for "27, one per fighter" and both
+arrived as 27 files — with Mahoraga in them and **Yuji missing**. Mahoraga is
+animated out of a character sprite set and reads like a fighter in the intake
+tree, but he is a summon: the roster he is not on is the same list the request
+cited. The delivery counted correctly and covered the wrong set, and every
+downstream tool agreed with it, because 27 files landing in 27 named directories
+is indistinguishable from the right 27 to anything that is not comparing names.
+So a roster-wide request should **name the list** rather than its length, and
+the intake should diff the delivered directories against `CHARACTER_KEYS` before
+the round is called complete. Four sprites of Yuji are what this cost, and they
+are the only part of round 20's sprites still open.
+
 The Mahoraga entry has a cause worth naming: **Mahoraga was the only fighter with no
 character block**, so his prompts carried no design text at all and the design
 lived entirely in a reference image. That works when somebody opens the image and
@@ -321,7 +375,7 @@ be measured, into §3. That is the whole mechanism by which the next set arrives
 better than the last one, and it takes about five minutes at the end of a round.
 
 Round intake already ends with "update the request docs"
-([assets/intake/README.md](../../assets/intake/README.md), step 7). Updating this
+([assets/intake/README.md](../../assets/intake/README.md), step 9). Updating this
 file is part of that step.
 
 **Look at the review boards before importing, not after.** `tools/intake_sheets.py`

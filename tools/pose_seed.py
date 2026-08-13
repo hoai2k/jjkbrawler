@@ -24,8 +24,8 @@ first. Every pose is stamped with where it came from, and the editor shows
 that stamp, because a derived seed is a guess and must never be mistaken for
 a read.
 
-    python3 tools/pose_seed.py                 # every character that has none
-    python3 tools/pose_seed.py --chars panda,jogo --force
+    python3 tools/pose_seed.py                 # every frame that has no read yet
+    python3 tools/pose_seed.py --chars panda,jogo --force   # start those two again
 """
 
 import argparse
@@ -53,15 +53,30 @@ def fit(joints, src_box, dst_box):
 
 
 def seed_character(man, char, ref, ref_boxes, force=False):
+    """Seed the frames this character has no read for, and only those.
+
+    A read is written once and then worked on: every pose the editor has been
+    through carries a `source` stamp, and reseeding one throws that away. But a
+    round of intake adds FRAMES, not characters — round 20 landed four new
+    poses on twenty-seven sheets — and `check_pose_reads.mjs` fails on a frame
+    with no pose, so "the file exists, leave it alone" left the only way out as
+    `--force`, which reseeds the whole sheet and discards every hand read to
+    place four new poses. So the default is additive: existing poses are kept
+    verbatim and the new frames are fitted beside them. `--force` still means
+    what it said — start this character's read again from the reference.
+    """
+    kept = {}
     if not force:
         try:
-            pr.load(char)
-            return None
+            kept = pr.load(char).get("poses") or {}
         except FileNotFoundError:
             pass
 
     poses = {}
     for key in pr.frames(man, char):
+        if key in kept:
+            poses[key] = kept[key]
+            continue
         template = ref["poses"].get(key) or ref["poses"][FALLBACK]
         from_key = key if key in ref["poses"] else FALLBACK
         ink = pr.cell_mask(pr.open_frame(man, char, key))
@@ -77,17 +92,22 @@ def seed_character(man, char, ref, ref_boxes, force=False):
             "j": {j: joints[j] for j in pr.JOINTS},
         }
 
+    added = len(poses) - sum(1 for key in poses if key in kept)
+    if kept and not added:
+        return None
+
     pr.dump(char, {
         "character": char,
         "facing": "right",
-        "_about": f"Seed poses fitted from the hand-read {REFERENCE} sheet, not read from this "
-                  f"art. Every pose here is a starting point for the pose editor "
-                  f"(render3d/workbench/?edit=pose), not a statement about how {char} is drawn.",
+        "_about": f"Poses marked `seed` were fitted from the hand-read {REFERENCE} sheet, not "
+                  f"read from this art: a starting point for the pose editor "
+                  f"(render3d/workbench/?edit=pose), not a statement about how {char} is drawn. "
+                  f"A pose carrying `source` has been through the editor and is a read.",
         "_joints": pr.JOINTS,
         "_seed": f"tools/pose_seed.py, from {REFERENCE}",
         "poses": poses,
     })
-    return len(poses)
+    return added
 
 
 def main():
@@ -110,11 +130,11 @@ def main():
             continue
         n = seed_character(man, char, ref, ref_boxes, force=args.force)
         if n is None:
-            print(f"{char}: already read, left alone")
+            print(f"{char}: every frame already read, left alone")
         else:
             total += n
-            print(f"{char}: {n} poses seeded")
-    print(f"{total} poses written to {pr.READS}")
+            print(f"{char}: {n} pose(s) seeded")
+    print(f"{total} pose(s) written to {pr.READS}")
 
 
 if __name__ == "__main__":

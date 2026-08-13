@@ -12,9 +12,9 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**172 images outstanding.**
+**24 images outstanding.**
 
-- **The sprite game** — 172 images, round 20
+- **The sprite game** — 24 images, round 20
 - **The live-3D anime path** — 0 images
 
 ## Rules that hold everywhere here
@@ -45,71 +45,11 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**172 images, round 20.** Authored in
+**24 images, round 20.** Authored in
 [docs/asset-requests.md](asset-requests.md) and reproduced whole below.
 
-- **20A** — Summon plates that are contact sheets (44 sprites)
 - **20B** — Twenty backgrounds, re-extended from the paintings they replaced (20 images)
-- **20C** — The grab poses (81 sprites)
-- **20D** — The dash attack pose (27 sprites)
-
-## 20A. Summon plates that are contact sheets — 44 sprites
-
-**Forty-four of the hundred and fourteen summon plates hold six creatures
-instead of one**, and the game draws the whole file as one summon. A six-across
-strip of dogs is painted at the dog's height, so what walks the stage is six
-dogs in a row at a sixth of the size each — and it changes mid-animation,
-because one pose of a creature is a sheet and the next is not.
-
-It shipped because a sheet is invisible at review size: a strip of six dogs in a
-thumbnail looks like a dog. It is the same fault as `mechamaru/run_reach_a` in
-round 15, which was caught only because the importer refused it, and summon art
-has no importer to refuse it — it is a file drop.
-
-So it is a tool now rather than an eye. **`python3 tools/check_summon_plates.py`**
-counts the separate figures in each plate's alpha and fails on three or more of
-comparable size; detached art (a floating wheel, a thrown chain) reads as one
-big blob and some small ones and passes. Run it on any summon delivery before
-importing. This table is its output.
-
-| Creature | Sheets | Poses |
-|---|---|---|
-| `divine_dog_white` | 2 | `move_a`, `hurt` |
-| `great_serpent` | 4 | `idle_a`, `idle_b`, `move_a`, `move_b` |
-| `inventory_curse` | 4 | `idle_b`, `move_a`, `attack`, `hurt` |
-| `max_elephant` | 4 | `idle_a`, `move_a`, `move_b`, `hurt` |
-| `rabbit_escape` | 5 | `idle_a`, `idle_b`, `move_a`, `move_b`, `hurt` |
-| `rainbow_dragon` | 3 | `move_b`, `attack`, `hurt` |
-| `toad` | 4 | `idle_a`, `move_a`, `move_b`, `hurt` |
-| `transfigured_crawler` | 6 | all six |
-| `transfigured_hulk` | 6 | all six |
-| `transfigured_human` | 6 | all six |
-
-**What to deliver: the same pose, as one figure.** Not a redesign, not a new
-pose — every one of these sheets contains the right drawing several times over,
-so the brief is the pose line it was drawn against
-([round 16 in the history](asset-requests-history.md#round-16--the-summons-animate-delivered)),
-with **one creature on the canvas**. Where a sheet has an obviously best figure
-in it, that figure at full resolution is a complete answer.
-
-Same rules as the round-16 summon art: one subject per file, flat key screen, at
-least 600 px of creature, one zoom across all six poses of a creature, delivered
-to `assets/intake/summons/<file>_<pose>.png`.
-
-### It is also what is holding up seven hit boxes
-
-A creature's hit box is **measured off its own `idle_a`** now — 85% of the drawn
-rectangle — rather than authored in `src/config_summons.js`, which is the rule a
-fighter's hurtbox has followed since it started coming off their art. Ten
-creatures measure theirs today.
-
-The seven whose `idle_a` is on this list cannot: measuring a sheet would give a
-box six creatures wide. They keep an authored pair with a comment naming this
-round, and **each pair comes out when the plate lands** — at which point the
-creature starts being hit on the shape it is drawn as, with no further code
-change.
-
----
+- **20E** — Yuji's four Round 20 poses (4 sprites)
 
 ## 20B. Twenty backgrounds, re-extended from the paintings they replaced — 20 images
 
@@ -261,166 +201,43 @@ Checked on delivery, per plate:
 
 ---
 
-## 20C. The grab poses — 81 sprites
+## 20E. Yuji's four Round 20 poses — 4 sprites
 
-**Three new poses per fighter, all 27 fighters**, for the Smash-style grab and
-throw mechanic that shipped behind `?throw=true` (`src/grab.js`,
-[game-mechanics.md §8](game-mechanics.md#grabs--throws--experimental-behind-throwtrue)).
-The mechanic is fully playable now on **reused art** — the table below is what
-each state draws in the meantime — so nothing is blocked; this request is what
-makes a grab look like a grab instead of a frozen light attack.
+**The remainder of 20C and 20D, and the whole of it is one fighter.** Both
+rounds asked for one file per fighter, both arrived as twenty-seven files, and
+both of those twenty-seven were Mahoraga rather than Yuji. Mahoraga is animated
+out of a character sprite set and has an intake directory like everyone else,
+but he is a summon and is not on `CHARACTER_KEYS`; his four are landed and
+welcome, and they are not a fighter's. So the count was right twice and the
+roster was wrong twice, which is now a row in
+[pose-brief.md § 5](../sprites/docs/pose-brief.md#5-the-faults-that-keep-coming-back)
+and a `ROSTER COVERAGE` line that `tools/intake.py` prints on every delivery.
 
-| Pose key | What it must read as | Drawing in the meantime |
-|---|---|---|
-| `grab_reach` | A committed forward lunge with one open, grasping hand leading — reaching to seize, not to strike. The other arm guards. | first light-attack frame |
-| `grab_hold` | Gripping an (unseen) opponent at arm's length by the collar — front hand closed in a fist at chest height, weight planted, coiled to heave. The opponent is NOT in the drawing: the game places the victim's own body in the grip. | `charge` |
-| `grabbed` | Seized and struggling: body arched back from the collar, feet scrabbling, both hands prying at an (unseen) grip at their own chest. Also unlocks: this doubles as the pose for any future "held/dragged" effects. | `hurt` |
+**Nothing is blocked.** Yuji draws exactly what the whole roster drew before
+round 20: `grabReach` falls back to his first light-attack frame, `grabHold` to
+`charge`, `grabbed` to `hurt`, and both dash attacks to his standing strike
+(`src/characters.js`). He is the one fighter whose grab still reads as a frozen
+jab, which is precisely the thing 20C was written to end.
 
-The four throw states (`throw_fwd`, `throw_back`, `throw_up`, `throw_down`)
-are **registered but not requested**: each currently plays the heavy attack
-swung that way, which reads correctly because a throw IS a heave in that
-direction. If a fighter's grab set ever gets a bespoke throw pose, deliver it
-under those keys and it is picked up with no code change — but 20C is complete
-without them.
+| File | Pose line |
+|---|---|
+| `assets/intake/yuji/grab_reach.png` | "a committed forward lunge with one open, grasping hand leading — reaching to seize, not to strike — the other arm up as a guard" |
+| `assets/intake/yuji/grab_hold.png` | "gripping an unseen opponent at arm's length by the collar: front hand closed in a fist at chest height, weight planted, body coiled to heave" |
+| `assets/intake/yuji/grabbed.png` | "seized and struggling: body arched back from the collar, feet scrabbling, both hands prying at an unseen grip at their own chest" |
+| `assets/intake/yuji/attack_dash.png` | "sprinting forward and striking at the same moment, body low and driving, weight thrown ahead of the leading foot, back leg extended behind, striking arm fully extended forward along the direction of the run, trailing arm swept back, at the instant of impact" |
 
-**The critical constraint is the grip point.** `grab_hold`'s closed fist and
-`grabbed`'s prying hands must both sit at **chest height on the leading edge of
-the body**, because the game overlaps the two drawings at a fixed gap
-(`holdGap` in `src/grab.js`) — a fist drawn high on one fighter and low on
-another makes every pairing look like they are holding different arguments.
-Chest height, front edge, both poses, whole roster.
+The two grab poses have to answer the same grip-point rule the other twenty-six
+already do — **fist and prying hands both at chest height on the leading edge of
+the body** — because the game draws Yuji's `grab_hold` against somebody else's
+`grabbed` at a fixed gap, so his is not judged on its own. Open any delivered
+pair (`sprites/assets/gojo/grab_hold.png` beside
+`sprites/assets/nobara/grabbed.png`) and match the height.
 
-Same spec as every sprite round: one subject per file, flat key screen (grey
-for the warm-palette fighters — see the list at the top), facing right, one
-zoom per character matched to their own `idle_a`, at least 600 px of body,
-delivered to `assets/intake/<character>/<pose_key>.png`. Read
-[pose-brief.md](../sprites/docs/pose-brief.md) first, and the
-[canonical reference](asset-requests.md#the-canonical-reference-image--one-per-fighter) rule
-applies as always.
-
-**The 2.5D/3D side of the same mechanic is aliased, not owed:** the rig states
-`grabReach`, `grabHold`, `grabbed` and the four throws currently play the
-`light` / `charge` / `hurt` / heavy clips (`STATE_ALIASES` in
-`render3d/src/states.js`). Bespoke grab clips would be a B-/D-round request
-if the mechanic graduates from its flag; nothing is asked of the model tracks
-yet.
-
----
-
-## 20D. The dash attack pose — 27 sprites
-
-**A pose the roster has never had, for two attacks it did not have until now.**
-Attacking out of a dash or a sprint throws a **dash attack** — light for the
-lunge, heavy for the running shoulder-charge (see §4 of
-[game-mechanics.md](game-mechanics.md)). Both are in the game and both are
-correct in every way except what they look like: they draw the fighter's
-standing strike, because that is the only attack art there is. A committed
-forward lunge drawn as a jab thrown on the spot reads as a fighter sliding
-along the floor while punching the air in front of them.
-
-**Nothing is waiting on this.** `dashAttack` and `dashAttackHeavy` already name
-`attack_dash` in `src/characters.js`, with the strike each move draws today as
-their `fallback`. So a fighter with no dash pose keeps exactly the drawing they
-have now, a fighter who gets one starts using it the moment the manifest knows
-about it, and **the delivery can land one fighter at a time** with no code
-change at any point.
-
-### The two attacks, so the pose can be drawn to fit both
-
-One drawing serves both dash attacks. That is deliberate — it is the same
-motion at two weights, and asking for two poses would double a round to buy a
-distinction a player reads from the hit, not the frame.
-
-| | Light, running | Heavy, running |
-|---|---|---|
-| Reads as | a lunging strike carried by the run | the same lunge, thrown with everything |
-| Active | 0.13 s | 0.15 s |
-| Recovery | ~1.7× the side tilt's | ~1.4× the side smash's |
-
-So the drawing wants to be the **committed** end of that range: it stands in
-for a smash-weight blow as well as a quick one, and a pose that reads as a
-light poke will look weak on the heavy version. When in doubt, draw the heavy.
-
-### What the pose has to show
-
-Read [pose-brief.md](../sprites/docs/pose-brief.md) first — it is the standing
-brief for every sprite, and this pose is measured by the same four criteria.
-On top of it, this one specifically:
-
-- **Weight ahead of the lead foot.** The whole point is momentum: the body is
-  travelling and the strike is going with it. A dash attack drawn balanced over
-  the hips is a tilt.
-- **No wind-up.** The run WAS the wind-up. This is a single held pose, not the
-  `_a`/`_b` wind-up-then-strike pair the light and heavy attacks use — draw the
-  moment of the blow, arm or weapon already extended along the line of travel.
-- **Low and driving**, not upright: shoulder or hip leading, back leg extended
-  behind, the trailing arm counterweighting. A shoulder-charge silhouette reads
-  at game size where a punch does not.
-- **The character's own weapon.** Whoever fights with something leads with it
-  — Maki's naginata levelled along the run, Nanami's cleaver driving forward,
-  Mei Mei's axe carried low, Gakuganji's guitar swung through. A weapon
-  character drawn throwing a shoulder is a different fighter.
-- **Facing RIGHT**, one zoom per character (this pose at the same figure scale
-  as the rest of their set — it is the criterion that costs the most to fix
-  later), flat key screen per the [delivery spec](asset-requests.md#delivery-spec) above, at
-  least 600 px of body.
-
-Prompt formula, as always: `[CHARACTER BLOCK]` (the table above — use it
-verbatim), the pose line, facing right, `[STYLE SUFFIX]`.
-
-> **Pose line:** "sprinting forward and striking at the same moment, body low
-> and driving, weight thrown ahead of the leading foot, back leg extended
-> behind, striking arm or weapon fully extended forward along the direction of
-> the run, trailing arm swept back, at the instant of impact"
-
-### The canonical reference is their own `idle_a`
-
-Same rule as every other request in this file (see
-[above](asset-requests.md#the-canonical-reference-image--one-per-fighter)): open the fighter's
-`idle_a` and match its costume, proportions, palette, line weight and shading.
-Hanami and Mahoraga are the two exceptions the table there records, and they
-are exceptions here too.
-
-### Delivery, and how the old drawing is kept
-
-`assets/intake/<character>/attack_dash.png` — one file per fighter, 27 in all
-(`CHARACTER_KEYS`). Standard intake: `tools/intake.py` keys and measures it,
-`tools/intake_sheets.py` boards it for approval, `tools/intake_import.py
---approve` registers it in `manifest.json`, then it is placed in the sprite
-workbench like any other pose.
-
-**The current art stays, in both of the ways this repo keeps art:**
-
-1. **In code, as the fallback.** `attack_dash` is a NEW pose key, so nothing is
-   replaced and nothing is overwritten. The light and heavy strikes stay
-   exactly where they are, still drawn by their own attacks, and still standing
-   in for the dash attacks of every fighter whose pose has not landed or has
-   been rejected. Delete a delivered `attack_dash` and the game is back to
-   today's look with no other edit.
-2. **In the manifest, as a banked variant.** A second drawing of the pose banks
-   beside the first rather than replacing it — the workbench's **`alternate`**
-   kind (`ALTERNATE_KIND` in `sprites/src/sprites.js`, routed by
-   `tools/intake_variants.py`), the same mechanism that lets a pose keep an
-   older drawing selectable after a redraw. So if a delivered dash pose turns
-   out worse than the strike it replaced for some fighter, that is a click in
-   the workbench, not a re-request.
-
-### Checked on delivery
-
-Per sprite: it is the same character at the same figure scale as their
-`idle_a`; the body is travelling rather than planted; nothing is clipped at
-the canvas edge; the key screen is flat and has not bounced colour into hair or
-cloth. `python3 tools/check_summon_plates.py` does not apply here — that is
-creature art — but the same fault is worth a glance: one figure per file.
-
-### Not part of this round: the 3D clips
-
-The 2.5D billboard path and the live-3D path both know these two states now,
-and both **alias** them to the strike clips they already have (`STATE_ALIASES`
-in `render3d/src/states.js`, beside the grab states 20C describes) exactly as
-the sprites fall back. A bespoke pair of
-dash-attack clips is a billboard round (B-numbers) if anyone wants one; it is
-not a hole in the roster today, and no rig is missing anything because of it.
+Otherwise the standard spec: grey key screen (Yuji is on the warm-palette list),
+facing right, one zoom matched to his own `idle_a`, at least 600 px of body, one
+subject per file. His character block and canonical reference are above, and
+[pose-brief.md](../sprites/docs/pose-brief.md) has all four pose lines in the
+set they now belong to.
 
 ---
 

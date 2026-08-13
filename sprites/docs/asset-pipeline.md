@@ -560,7 +560,7 @@ by the game. Three steps, each separable so a bad delivery stops at the door:
 7. **Move the answered requests into history.**
    [asset-requests.md](../../docs/asset-requests.md) is defined as "everything in here is
    outstanding", so a delivered section has to leave it or the file misreports
-   what is still needed. See step 8 in
+   what is still needed. See step 9 in
    [assets/intake/README.md](../../assets/intake/README.md#what-happens-to-it).
 
 Placement is delegated to `extract_sprites.generated_frame_meta`. A replacement

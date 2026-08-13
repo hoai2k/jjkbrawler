@@ -139,6 +139,12 @@ behind you is that you are standing in the recovery afterwards.
 | Recovery | ~1.7× the side tilt's | ~1.4× the side smash's |
 | Lunge | 150 | 210 — the running shoulder-charge |
 
+Both draw `attack_dash`, a pose round 20D added to the semantic set: one
+committed lunge per fighter, weapon leading, serving the light and the heavy
+alike because the distinction is one a player reads from the hit rather than the
+frame. A fighter without one falls back to their standing strike, which is what
+the whole roster did until the round landed and is what Yuji still does.
+
 A smash cannot be charged at a run: a charge is a fighter standing still
 deciding to, so the heavy button out of a dash commits to one uncharged swing
 instead of stopping the sprint dead. Nothing was lost from the standing game —
@@ -202,9 +208,11 @@ opponent taking your shikigami apart should be visible from across the stage.
 **A summon has two boxes, the way a fighter does.** What it can be **hit on** is
 the whole drawing — measured off its own resting pose at 85% of the drawn
 rectangle rather than authored per creature, so a dog drawn 205 px long is a
-205 px dog to hit. A kit can still state that box, and seven creatures do: the
-ones whose art arrived as a sheet of six figures, where measuring the drawing
-would give a box six creatures wide (asset-requests round 20A).
+205 px dog to hit. A kit can still state that box, which is how you say "the
+drawing cannot be trusted for this", and seven creatures did: the ones whose art
+arrived as a sheet of six figures, where measuring the drawing would have given
+a box six creatures wide. Round 20A redrew those sheets, so all seven pairs came
+out and **no creature is authored today**.
 
 What it hits **with** is separate, because a dog bites with its head — being
 brushed by a passing shikigami's tail should not cost 6.5%. That box is a
@@ -536,9 +544,14 @@ What the flag turns on:
   one exception).
 
 The CPU plays along: it grabs shields, mashes out at its difficulty's rate, and
-spends its own holds on throws. Interim animations reuse the nearest delivered
-poses roster-wide; the bespoke grab art is asset request **20C** in
-[asset-requests.md](asset-requests.md).
+spends its own holds on throws. **The grab set is drawn** — round 20C delivered
+`grab_reach`, `grab_hold` and `grabbed` for twenty-six of the twenty-seven, all
+of them placing the grip at chest height so a hold reads as one action across
+any pairing. Yuji is the exception and still reuses the nearest poses
+([20E](asset-requests.md#20e-yujis-four-round-20-poses--4-sprites)), as does
+every fighter for the four throws, which play the heavy attack swung that way on
+purpose. The 2.5D and live-3D paths alias all seven states to clips they already
+have (`STATE_ALIASES` in `render3d/src/states.js`).
 
 ## 9. Hitboxes vs. visuals
 

@@ -14,7 +14,7 @@ sprite path with 27 fighters; everything below either extends it (the 3D
 tracks) or fills a gap that currently degrades to silence or to a fallback.
 
 **[image-requests.md](image-requests.md) is THE image-request document** — every
-render mode's requests, in one file — 184 of them, with every prompt, canon reference, height
+render mode's requests, in one file — 24 of them, with every prompt, canon reference, height
 and character block needed to draw them. Re-run
 `node tools/build_image_requests.mjs` after any delivery; it reads the open
 round, the manifests and the files on disk, so it cannot go stale the way this
@@ -29,14 +29,16 @@ DI2, DI3 and DI4 complete for the whole roster; DI1 is 12 short, all of them
 boards refused at import for having the top of the head off the canvas. So the
 outstanding total is now dominated by the sprite round.
 
-That splits **172 for the game itself** (round 20: summon plates, re-extended
-backgrounds, the grab poses and the dash attack — the last two are poses the
-roster has never had) and **101 2D inputs to the 3D track**, which change
-nothing a sprite player sees.
+All **24 are for the game itself**: round 20's twenty re-extended backgrounds
+(20B) and Yuji's four poses (20E). The rest of round 20 landed — 44 summon
+plates, the grab set and the dash attack, 152 sprites in one delivery — and is
+[in the history](asset-requests-history.md#round-20--the-summon-sheets-the-grab-set-and-the-dash-attack).
 
 Round 18 was delivered complete and is
 [in the history](asset-requests-history.md#round-18--delivered). Also
-outstanding but not art: 25 poses waiting on approval in the sprite workbench.
+outstanding but not art: 25 poses waiting on approval in the sprite workbench,
+and six retired `hanami_alt` variant options that
+`tools/canonicalise_sprites.py` refuses on.
 
 **All three render modes are covered here.** The sprite path is fed by the 2D
 art rounds (row 1); the billboard and render3d paths are fed by **one shared
@@ -53,8 +55,8 @@ fighter without a delivered rig.
 
 | # | Request | Type | Status | Blocked by |
 |---|---|---|---|---|
-| 0 | [**image-requests.md — every open image request**](image-requests.md) | 🖼️ **Images** | **184 outstanding.** Generated; supersedes rows 1–3 and DI4 below, which are where those rounds are AUTHORED | — |
-| 1 | [2D art — round 20](asset-requests.md) *(authoring source)* | 🖼️ **Images** (sprites, backdrops) | 172 open across 20A–20D; round 18 delivered complete | — |
+| 0 | [**image-requests.md — every open image request**](image-requests.md) | 🖼️ **Images** | **24 outstanding.** Generated; supersedes rows 1–3 and DI4 below, which are where those rounds are AUTHORED | — |
+| 1 | [2D art — round 20](asset-requests.md) *(authoring source)* | 🖼️ **Images** (sprites, backdrops) | 24 open — 20B (20 backgrounds) and 20E (Yuji's four); 20A, 20C and 20D delivered | — |
 | 2 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) *(authoring source)* | 🖼️ **Images** (reference) | 12 open — boards refused for a cropped head | — |
 | 3 | [3D images — DI2/DI3: face sheets, shade palettes](../render3d/docs/image-requests.md#round-di2--face-sheets-the-face-first-gates-reference) *(authoring source)* | 🖼️ **Images** (reference) | **delivered** — all 28, both rounds | — |
 | 4 | [3D models — B1/D1: the Yuji pilot](../render3d/docs/asset-requests.md#round-d1--the-pilot-yuji-complete-open--draw-against-this) | 🧊 **3D model + clips** | open | DI1–DI3 for Yuji |
