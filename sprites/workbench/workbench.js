@@ -23,7 +23,7 @@ import { applySharedSpriteScales, sharedSpriteInfo, SPRITE_LIST_KEY_FIELDS } fro
 import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../../src/moves.js";
 import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
 import { PIVOTED_STATES } from "../../src/motion.js";
-import { HURTBOX } from "../../src/constants.js";
+import { HURTBOX, GRAB } from "../../src/constants.js";
 import { CHARACTERS, CHARACTER_KEYS, STAGED_CHARACTER_KEYS, SPRITE_ACTORS, getActor }
   from "../../src/characters.js";
 import { TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "../../src/config_transform.js";
@@ -1486,19 +1486,36 @@ function render() {
 // at), so when move data changes, these markers change with it — there is no
 // copied number to drift.
 
-// Which concrete moves each attack animation stands for. A frame serving
-// several states gets a target per distinct move.
-const RANGE_MOVES = {
-  light: (c) => [["Jab finisher", lightMove(c, "jab", 2)], ["Side tilt", lightMove(c, "side")]],
-  crouchAttack: (c) => [["Down tilt", lightMove(c, "down")]],
-  // The aerial frame serves four moves, and they are not all the same shape:
-  // the two forward ones, the rising hit above, and the meteor below.
-  airLight: (c) => [["Air light", lightMove(c, "air")], ["Air heavy", heavyMove(c, "air")],
-                    ["Up air", lightMove(c, "upAir")], ["Meteor", lightMove(c, "downAir")]],
-  sideHeavy: (c) => [["Side smash", heavyMove(c, "side")]],
-  upHeavy: (c) => [["Up smash", heavyMove(c, "up")]],
-  downHeavy: (c) => [["Down smash", heavyMove(c, "down")]],
-};
+// Every move in the kit, and what to call it. Which ANIMATION each one plays is
+// not listed here — moves.js already knows, on the move's own `anim` field, and
+// asking it is what keeps this honest. The table used to name the animations
+// itself, and the three moves nobody thought to add (both dash attacks and the
+// up tilt) drew no target at all: `attack_dash` is a pose whose whole job is
+// reach, shown with nothing to place it against.
+const KIT_MOVES = (c) => [
+  ["Jab finisher", lightMove(c, "jab", 2)],
+  ["Side tilt", lightMove(c, "side")],
+  ["Up tilt", lightMove(c, "up")],
+  ["Down tilt", lightMove(c, "down")],
+  ["Dash attack", lightMove(c, "dash")],
+  ["Air light", lightMove(c, "air")],
+  ["Up air", lightMove(c, "upAir")],
+  ["Meteor", lightMove(c, "downAir")],
+  ["Side smash", heavyMove(c, "side")],
+  ["Up smash", heavyMove(c, "up")],
+  ["Down smash", heavyMove(c, "down")],
+  ["Dash smash", heavyMove(c, "dash")],
+  ["Air heavy", heavyMove(c, "air")],
+];
+
+/** The moves a given animation plays for, grouped off their own `anim`.
+ *
+ *  A frame serving several states gets a target per distinct move — the aerial
+ *  pose alone stands for four, and they are not the same shape: the two forward
+ *  ones, the rising hit above and the meteor below. */
+function movesForAnim(c, anim) {
+  return KIT_MOVES(c).filter(([, m]) => m?.anim === anim);
+}
 
 // A move's hitbox is a rectangle offset from the fighter (combat.js
 // hitboxRect), and the shape of that rectangle says what kind of attack it is.
@@ -1582,20 +1599,99 @@ function drawHurtbox(cx) {
   ctx.restore();
 }
 
+// ------------------------------------------------------------------- grabs
+//
+// A grab has no hitbox — it tests a plain rectangle and ignores shields, which
+// is the entire reason it exists (src/grab.js) — so it produced no range target
+// and its three poses were placed against nothing at all. They are the poses
+// that need it most: `grab_reach` is a defined distance, and the two holding
+// poses are drawn against a body that has to be exactly where the game pins it.
+//
+// Everything here is read from grab.js's own arithmetic, at the workbench's
+// live measurements, so a resized pose moves these with it.
+
+/** What the game does with this pose, if it is one of the grab three. */
+function grabShapes(charKey, anim) {
+  if (!["grabReach", "grabHold", "grabbed"].includes(anim)) return [];
+  const m = bodyMetrics(charKey);
+  if (anim === "grabReach") {
+    // updateGrabReach: a box from the fighter's own x, forward by their
+    // measured reach plus the closing hand's grace, 90% of body height tall.
+    return [{ kind: "reach", w: m.reach * 0.85 + GRAB.grace, h: m.height * 0.9 }];
+  }
+  // pinVictim puts the two bodies (a.width + b.width) * 0.45 apart, and turns
+  // the victim to face the holder. So from EITHER pose, drawn facing right, the
+  // other fighter stands the same gap ahead — the holder in front of the one
+  // being held, the victim in front of the one holding. Measured against
+  // another fighter of this build, there being only one body on this canvas.
+  return [{ kind: "partner", gap: m.width * 0.9, w: m.width, h: m.height * HURTBOX.standH,
+            label: anim === "grabHold" ? "the fighter held" : "the fighter holding" }];
+}
+
+/** The grab's own geometry, in the same red as a move's reach: the reach box
+ *  with its far edge marked, or the partner body a hold is pinned against. */
+function drawGrabShape(cx, g) {
+  const z = state.zoom;
+  const wx = (v) => cx + v * z;
+  const wy = (v) => GROUND_Y + v * z;
+  ctx.save();
+  ctx.font = "600 10.5px Inter, sans-serif";
+  ctx.textAlign = "left";
+  ctx.lineWidth = 1.5;
+  if (g.kind === "reach") {
+    ctx.strokeStyle = "rgba(255, 120, 90, 0.28)";
+    ctx.setLineDash([2, 3]);
+    ctx.strokeRect(wx(0), wy(-g.h), g.w * z, g.h * z);
+    ctx.setLineDash([]);
+    ctx.strokeStyle = "rgba(255, 120, 90, 0.9)";
+    ctx.fillStyle = "rgba(255, 140, 110, 0.95)";
+    ctx.beginPath();                       // the far edge: the last px it closes on
+    ctx.moveTo(wx(g.w), wy(-g.h)); ctx.lineTo(wx(g.w), wy(0));
+    ctx.stroke();
+    ctx.fillText(`Grab reach · ${Math.round(g.w)}px`, wx(g.w) + 6, wy(-g.h) + 12);
+  } else {
+    // The other body, where the pin puts it: a plain hurtbox, because that is
+    // all the pose has to agree with — hands on it, and not through it.
+    ctx.strokeStyle = "rgba(255, 120, 90, 0.55)";
+    ctx.setLineDash([5, 4]);
+    ctx.strokeRect(wx(g.gap - g.w / 2), wy(-g.h), g.w * z, g.h * z);
+    ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(255, 140, 110, 0.95)";
+    ctx.fillText(`${g.label} · ${Math.round(g.gap)}px away`, wx(g.gap - g.w / 2), wy(-g.h) - 5);
+    ctx.beginPath();                       // the centre line the other body pins to
+    ctx.moveTo(wx(g.gap), wy(-g.h)); ctx.lineTo(wx(g.gap), wy(0));
+    ctx.strokeStyle = "rgba(255, 120, 90, 0.9)";
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function drawRangeTargets(cx) {
   const char = CHARACTERS[state.char];
   if (!char?.light || !char?.heavy) return false;   // sprite actors have no kit
   const moves = [];
+  const grabs = [];
   for (const anim of statesUsing(state.char, state.frame)) {
-    const make = RANGE_MOVES[anim];
-    if (!make) continue;
+    const made = movesForAnim(char, anim);
+    const grab = grabShapes(state.char, anim);
+    if (!made.length && !grab.length) continue;
     // Strike frames only: the wind-up of a pair gets no target, because its
     // job is to not have connected yet.
     const frames = resolvedAnim(state.char, anim).frames;
     if (frames.length > 1 && frames.indexOf(state.frame) < frames.length - 1) continue;
-    for (const [label, m] of make(char)) moves.push([label, m]);
+    for (const [label, m] of made) moves.push([label, m]);
+    grabs.push(...grab);
   }
-  if (!moves.length) return false;
+  if (!moves.length && !grabs.length) return false;
+  if (!moves.length) {
+    // A grab reaches and holds; it has no hitbox rectangle to mark, so the
+    // shapes below have nothing to iterate. The body it reaches FROM still
+    // matters — it is what the drawing is placed against — so the hurtbox and
+    // the grab's own geometry are drawn on their own.
+    drawHurtbox(cx);
+    for (const g of grabs) drawGrabShape(cx, g);
+    return true;
+  }
 
   const z = state.zoom;   // world px -> canvas px at this viewer zoom
   const wx = (v) => cx + v * z;
@@ -1737,6 +1833,10 @@ function drawRangeTargets(cx) {
     ctx.fillText(text, tx + (flip ? -12 : 12), clearOf(tx, ty));
   });
   ctx.restore();
+  // A pose can serve both — a dash attack whose frame is also the grab reach —
+  // so the grab geometry is drawn here too rather than only on the path where
+  // there are no moves at all.
+  for (const g of grabs) drawGrabShape(cx, g);
   return true;      // it drew, hurtbox included
 }
 
@@ -1760,40 +1860,12 @@ function drawSharedSprite(cx) {
     ctx.textAlign = "left";
     return;
   }
-  const meta = rawMeta(state.char, state.frame);
-  const can = sharedControls(state.frame);
-  const scale = Number.isFinite(meta?.renderScale) && meta.renderScale > 0 ? meta.renderScale : 1;
-
-  // The size the GAME paints it at, times the workbench's own zoom. This used
-  // to fall back to the delivered pixel height and then clamp to the canvas,
-  // which is why the size slider looked dead: nearly every shared plate is
-  // taller than the viewer, so every one of them was already pinned at the
-  // clamp and multiplying by the scale changed nothing on screen.
-  const gameH = can?.info?.h ?? gameHeightOf(state.frame);
-  const maxH = GROUND_Y - 20;
-  let h;
-  if (Number.isFinite(gameH)) {
-    h = gameH * scale * state.zoom;
-    if (h > maxH) h = maxH;              // only a very large zoom reaches this
-  } else {
-    // Nothing declares a height — a domain backdrop, or art whose spawn site
-    // sizes it per instance. Fit it, and still let the scale move it, so the
-    // control is honest about being relative rather than absolute.
-    h = Math.min(img.height * state.zoom, maxH) * scale;
-  }
-  const w = img.width * h / img.height;
-
-  // Where the spawn point sits on the drawing, and therefore where the drawing
-  // sits around the spawn point. The point itself is the fixed thing.
-  const anchor = can?.anchor || "feet";
-  const px = cx, py = anchorScreenY(anchor, h);
-  const nx = (meta?.dx ?? 0) * state.zoom;
-  const ny = (meta?.dy ?? 0) * state.zoom;
-  const deg = meta?.rotationDeg ?? 0;
+  const v = sharedView();
+  if (!v) return;
+  const { h, w, px, py, top, nx, ny, deg } = v;
 
   ctx.save();
   if (deg) { ctx.translate(px, py); ctx.rotate(deg * Math.PI / 180); ctx.translate(-px, -py); }
-  const top = anchor === "centre" ? py - h / 2 : anchor === "top" ? py : py - h;
   ctx.drawImage(img, px - w / 2 + nx, top + ny, w, h);
   if ($("showBox").checked) {
     ctx.strokeStyle = "rgba(255, 120, 160, 0.8)";
@@ -1806,11 +1878,14 @@ function drawSharedSprite(cx) {
   // The region the move actually acts on, at the same scale as the drawing —
   // the one thing art has to agree with that cannot be seen in the art. Under
   // the same toggle as a fighter's hurtbox, because it is the same question.
-  if ($("showHurtbox")?.checked && can?.info?.hit) drawSharedHit(px, py, can.info.hit, anchor);
+  if ($("showHurtbox")?.checked && v.hit) drawSharedHit(v);
   // A creature has no fixed hit region to draw — its hurt box is the drawing —
   // so the same toggle shows the one shape that IS placed by hand.
   if ($("showHurtbox")?.checked && canPlaceAttack(state.frame)) drawAttackBox(state.frame);
-  if (can?.offset) drawSpawnPoint(px, py, anchor);
+  // Drawn wherever the game has a point to paint this on, even where the nudge
+  // is not honoured: the crosshair is the ground contact — the thing the art
+  // has to be sitting on — before it is a handle to drag.
+  if (v.can?.used && v.can.anchor) drawSpawnPoint(px, py, v.anchor, v.can.offset);
 }
 
 // ---------------------------------------------------------------- attack box
@@ -1847,13 +1922,13 @@ function attackBoxOf(key) {
 /** The drawn rectangle on the CANVAS, which the fractions are measured against:
  *  the same rectangle the game paints, at the workbench's zoom. */
 function drawnRectOnCanvas(key) {
-  const img = getImage(key);
-  const h = gameHeightOf(key);
-  if (!img || !h) return null;
-  const z = state.zoom;
-  const dh = h * z;
-  const dw = img.width * (dh / img.height);
-  return { x: canvasCentreX() - dw / 2, y: GROUND_Y - dh, w: dw, h: dh };
+  // The rectangle the art is ACTUALLY drawn in — size, nudge and view fit
+  // included — rather than a second guess at it. A creature sized to 60% used
+  // to keep its attack box on the 100% rectangle, which put the bite off the
+  // head by the same amount the drawing had shrunk.
+  const v = sharedView(key);
+  if (!v || !Number.isFinite(v.h) || v.h <= 0) return null;
+  return { x: v.px - v.w / 2 + v.nx, y: v.top + v.ny, w: v.w, h: v.h };
 }
 
 /** The attack box on the canvas, from the fractions. The art is drawn facing
@@ -1862,8 +1937,12 @@ function attackBoxOnCanvas(key) {
   const rect = drawnRectOnCanvas(key);
   if (!rect) return null;
   const box = attackBoxOf(key);
-  const cx = canvasCentreX() + box.x * rect.w;
-  const cy = GROUND_Y - box.y * rect.h;
+  // Measured from the DRAWING — forward from its middle, up from its feet —
+  // which is where sharedAttack measures from, and no longer from the canvas
+  // centre line and the ground: a creature painted off the ground line or
+  // nudged aside took its box with it in game and left it behind here.
+  const cx = rect.x + rect.w / 2 + box.x * rect.w;
+  const cy = rect.y + rect.h - box.y * rect.h;
   return { x: cx - (box.w * rect.w) / 2, y: cy - (box.h * rect.h) / 2,
            w: box.w * rect.w, h: box.h * rect.h, rect };
 }
@@ -1911,48 +1990,45 @@ function setAttackBox(key, box, start) {
  *  art can be matched to them instead of guessed at. Nothing here changes play:
  *  this is the game's shape, drawn, not a shape the workbench sets.
  *
- *  **It does not follow Size, and it does not follow the spawn nudge**, and
- *  that is the useful part: this shape is a kit number, so moving the slider
- *  moves the picture against a fixed target and you can see when they agree.
- *  Marked `fixed` on the label, because a shape that held still could otherwise
- *  be mistaken for one that had not been re-drawn yet. Contrast a FIGHTER's
- *  hurtbox, which is measured off the art and therefore does follow it.
+ *  **It does not follow the spawn nudge, and — with one exception — it does not
+ *  follow Size**, which is the useful part: the shape is a kit number, so
+ *  moving the slider moves the picture against a fixed target and you can see
+ *  when they agree. Marked `fixed` on the label, because a shape that held
+ *  still could otherwise be mistaken for one that had not been re-drawn yet.
+ *  The exception is a random drop, whose `h` is both the height it is painted
+ *  at and the height of the box it lands in, so there the box does follow Size
+ *  and says so. Contrast a FIGHTER's hurtbox, which is measured off the art and
+ *  therefore always follows it.
  */
-function drawSharedHit(px, py, hit, anchor) {
-  const z = state.zoom;
+function drawSharedHit(v) {
+  const { px, py, z, hit, anchor, scale } = v;
   ctx.save();
   ctx.strokeStyle = "rgba(255, 210, 90, 0.9)";
   ctx.fillStyle = "rgba(255, 210, 90, 0.10)";
   ctx.lineWidth = 1.5;
   ctx.setLineDash([5, 4]);
-  let label = "";
+  const follows = !!hit.followsSize;
+  const note = follows ? "follows Size" : "fixed";
+  let label = "", topOf;
   if (hit.shape === "circle") {
     const r = hit.r * z;
     ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2);
     ctx.fill(); ctx.stroke();
-    label = `hit radius ${hit.r}px · fixed`;
-  } else if (hit.shape === "beam") {
-    // A beam hits along its whole length; the number is how thick that band is.
-    const half = (hit.w * z) / 2;
-    ctx.fillRect(0, py - half, canvas.width, half * 2);
-    ctx.beginPath();
-    ctx.moveTo(0, py - half); ctx.lineTo(canvas.width, py - half);
-    ctx.moveTo(0, py + half); ctx.lineTo(canvas.width, py + half);
-    ctx.stroke();
-    label = `beam ${hit.w}px wide · fixed`;
+    label = `hit radius ${hit.r}px · ${note}`;
+    topOf = py - r;
   } else {
-    const w = hit.w * z, h = hit.h * z;
+    const hh = hit.h * (follows ? scale : 1);
+    const w = hit.w * z, h = hh * z;
     const top = anchor === "feet" ? py - h : py - h / 2;
     ctx.fillRect(px - w / 2, top, w, h);
     ctx.strokeRect(px - w / 2, top, w, h);
-    label = `${hit.from === "hitW/hitH" ? "hitbox" : "hit box"} ${hit.w}×${hit.h}px · fixed`;
+    label = `${hit.from === "hitW/hitH" ? "hitbox" : "hit box"} `
+      + `${Math.round(hit.w)}×${Math.round(hh)}px · ${note}`;
+    topOf = top;
   }
   ctx.setLineDash([]);
   // Above the shape, and above the spawn-point caption, so the two readouts do
   // not sit on top of each other.
-  const topOf = hit.shape === "circle" ? py - hit.r * z
-    : hit.shape === "beam" ? py - (hit.w * z) / 2
-    : anchor === "feet" ? py - hit.h * z : py - (hit.h * z) / 2;
   ctx.globalAlpha = 0.95;
   ctx.fillStyle = "rgba(255, 226, 150, 0.95)";
   ctx.font = "600 11px Inter, sans-serif";
@@ -1961,24 +2037,66 @@ function drawSharedHit(px, py, hit, anchor) {
   ctx.restore();
 }
 
-/** The y the spawn point sits at on the canvas, for each anchor. The drawing is
- *  hung off it; the point does not move when the art is resized. */
 /** The canvas x every sprite is drawn about. */
 const canvasCentreX = () => canvas.width / 2;
+
+/** Everything about a shared drawing's place on the canvas, in one place.
+ *
+ *  The art, the move's hit shape, the spawn crosshair and the drag that moves
+ *  it were each doing this arithmetic themselves, and the copies disagreed the
+ *  moment a drawing was too big for the viewer: the picture was clamped to the
+ *  canvas and the hit shape was not, so past about 120% they grew apart and the
+ *  art could never be made to meet its box. The clamp is now a VIEW zoom that
+ *  everything here is drawn at — shrink the view, not the drawing — so the two
+ *  hold their real proportions at any size.
+ *
+ *  `z` is that view zoom: game pixels to canvas pixels, and the divisor the
+ *  drag uses to turn a gesture back into `dx`/`dy` game pixels.
+ */
+function sharedView(key = state.frame) {
+  const img = getImage(key);
+  if (!img) return null;
+  const can = sharedControls(key);
+  const meta = rawMeta(OTHER_KEY, key);
+  const scale = Number.isFinite(meta?.renderScale) && meta.renderScale > 0 ? meta.renderScale : 1;
+  const gameH = can?.info?.h ?? gameHeightOf(key);
+  // Art whose spawn site sizes it per instance — a domain backdrop, an aura —
+  // has no height in game pixels to work in, so its own plate stands in for
+  // one. The scale still moves it, which keeps the control honest about being
+  // relative rather than absolute.
+  const artH = (Number.isFinite(gameH) ? gameH : img.height) * scale;
+  const hit = can?.info?.hit || null;
+  // A drop's box IS the height the art is painted at (`h` serves both in
+  // randomDrop), so it grows with Size; every other shape is a fixed kit
+  // number. Both have to be inside the view or the fit lies about one of them.
+  const hitH = !hit ? 0
+    : hit.shape === "circle" ? hit.r * 2
+    : hit.h * (hit.followsSize ? scale : 1);
+  const z = Math.min(state.zoom, (GROUND_Y - 20) / Math.max(artH, hitH, 1));
+  const h = artH * z;
+  const anchor = can?.anchor || "feet";
+  const py = anchorScreenY(anchor, h);
+  return {
+    img, can, meta, scale, hit, z, h, anchor,
+    w: img.width * h / img.height,
+    px: canvasCentreX(),
+    py,
+    top: anchor === "centre" ? py - h / 2 : anchor === "top" ? py : py - h,
+    nx: (meta?.dx ?? 0) * z,
+    ny: (meta?.dy ?? 0) * z,
+    deg: meta?.rotationDeg ?? 0,
+  };
+}
 
 /** The spawn point's place on the canvas — one definition, used by the marker
  *  and by the hit test, so they cannot drift apart. */
 function spawnHome() {
-  const img = getImage(state.frame);
-  const can = sharedControls(state.frame);
-  const meta = rawMeta(state.char, state.frame);
-  const scale = Number.isFinite(meta?.renderScale) && meta.renderScale > 0 ? meta.renderScale : 1;
-  const gameH = can?.info?.h ?? gameHeightOf(state.frame);
-  const maxH = GROUND_Y - 20;
-  let h = Number.isFinite(gameH) ? Math.min(gameH * scale * state.zoom, maxH)
-                                 : Math.min((img?.height || 200) * state.zoom, maxH) * scale;
-  return { x: canvasCentreX(), y: anchorScreenY(can?.anchor || "feet", h) };
+  const v = sharedView();
+  return v ? { x: v.px, y: v.py } : { x: canvasCentreX(), y: GROUND_Y };
 }
+
+/** The y the spawn point sits at on the canvas, for each anchor. The drawing is
+ *  hung off it; the point does not move when the art is resized. */
 
 function anchorScreenY(anchor, h) {
   if (anchor === "centre") return GROUND_Y - Math.max(h, 120) / 2 - 40;
@@ -1989,8 +2107,13 @@ function anchorScreenY(anchor, h) {
 /** The point the game paints this drawing on — the thing the nudge is measured
  *  from. Draggable: moving it moves the DRAWING under it, which is the edit
  *  somebody actually wants to make, and it is one gesture instead of two
- *  sliders and a guess about which way is positive. */
-function drawSpawnPoint(px, py, anchor) {
+ *  sliders and a guess about which way is positive.
+ *
+ *  Not everywhere, though. A trap and a dropped vending machine are painted
+ *  straight from the image by their spawn sites, which never read the nudge, so
+ *  there the crosshair is a reference and says so: it is still where the art
+ *  meets the ground, and that is worth seeing even when nothing can move it. */
+function drawSpawnPoint(px, py, anchor, draggable = true) {
   const held = state.dragSpawn;
   ctx.save();
   ctx.strokeStyle = held ? "rgba(120, 255, 200, 0.95)" : "rgba(120, 220, 255, 0.9)";
@@ -2003,7 +2126,7 @@ function drawSpawnPoint(px, py, anchor) {
   ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI * 2); ctx.stroke();
   // On a backing plate: the label sits over whatever the drawing happens to be,
   // and a caption that cannot be read is not a caption.
-  const label = "spawn point";
+  const label = draggable ? "spawn point" : "spawn point · not nudgeable";
   const sub = ANCHOR_WORDS[anchor] || "";
   ctx.font = "500 10px Inter, sans-serif";
   const wSub = ctx.measureText(sub).width;
@@ -2689,13 +2812,21 @@ function sharedControls(key) {
     return { used: true, size: false, offset: false, rotate: false, info,
              what: info.what };
   }
+  // Two spawn sites paint straight from `getImage` and never read sharedAdjust
+  // (src/shared_sprites.js names them): a trap erupting out of the floor, and
+  // one of Reggie's drops. Their size still works — that is folded into the
+  // kit's own height — but a nudge or a tilt set against one is stored and
+  // inert, which is the same lie the Size slider used to tell on summons. So
+  // the controls come off rather than sit there looking live.
+  const nudge = info.nudge !== false;
   return {
     used: true,
     // A drawing whose height the spawn site decides per instance has no single
     // size to set; everything else does.
     size: Number.isFinite(info.h),
-    offset: true,
-    rotate: true,
+    offset: nudge,
+    rotate: nudge,
+    nudgeSite: info.nudgeSite || null,
     info,
     what: info.what,
     anchor: info.anchor,
@@ -2732,11 +2863,13 @@ function refreshUsageInfo() {
     if (can.size) lines.push(`<b>Size</b> multiplies ${can.what}.`);
     if (can.info?.hit) {
       const h = can.info.hit;
-      const shape = h.shape === "circle" ? `a ${h.r}px radius`
-        : h.shape === "beam" ? `a ${h.w}px band`
-        : `${h.w}×${h.h}px`;
+      const shape = h.shape === "circle" ? `a ${h.r}px radius` : `${h.w}×${h.h}px`;
       lines.push(`<b>Hit region:</b> ${shape} — ${h.what} (the kit's <code>${h.from}</code>). `
-        + "<b>It does not follow Size or the spawn point</b>, so the art is what moves to meet it. "
+        + (h.followsSize
+          ? "<b>This one follows Size</b>: the move paints the drawing at the same "
+            + "<code>h</code> it collides on, so the box grows with the art and the two "
+            + "cannot be made to disagree. "
+          : "<b>It does not follow Size or the spawn point</b>, so the art is what moves to meet it. ")
         + "Turn on Hurtbox to see it.");
     }
     // A creature with no authored pair measures its box off this drawing, so
@@ -2762,6 +2895,17 @@ function refreshUsageInfo() {
       lines.push(`Drawing sits ${dx || dy ? `${dx > 0 ? "+" : ""}${dx}, ${dy > 0 ? "+" : ""}${dy} px from it`
                                           : "on the point, unmoved"}`
         + (deg ? ` · tilted ${deg > 0 ? "+" : ""}${deg}°` : ""));
+    } else if (can.anchor) {
+      // The point is still worth showing — it is where the art meets the world
+      // — but this spawn site paints straight from the image and never reads
+      // the nudge, so there is nothing to drag and saying so beats a handle
+      // that quietly does nothing.
+      lines.push(`<b>Spawn point:</b> ${ANCHOR_WORDS[can.anchor] || ""}. `
+        + `<b>Nudge and tilt are not read here</b> — ${can.nudgeSite} paints this `
+        + "drawing straight from the image, so only Size reaches the screen. "
+        + "Match the art to the point by how it is drawn in the plate."
+        + (dx || dy || deg ? ` (${dx}, ${dy}px${deg ? ` and ${deg}°` : ""} are stored on this `
+          + "drawing and have no effect.)" : ""));
     }
   } else if (can) {
     lines.push(`<b>No size or position controls:</b> ${can.what}.`);
@@ -4239,10 +4383,13 @@ async function boot() {
       const d = state.dragSpawn;
       // The handle stays where the game puts it; what moves is the art beneath
       // it, so dragging the handle right pushes the drawing LEFT relative to
-      // the point. Divided by the zoom, because dx/dy are game pixels.
+      // the point. Divided by the VIEW zoom — the one the drawing is actually
+      // painted at, which is smaller than the slider's whenever a big drawing
+      // has been fitted — because dx/dy are game pixels.
       const meta = d.meta;
-      meta.dx = round1((meta.dx ?? 0) - (p.x - d.grabX) / state.zoom);
-      meta.dy = round1((meta.dy ?? 0) - (p.y - d.grabY) / state.zoom);
+      const z = sharedView()?.z || state.zoom;
+      meta.dx = round1((meta.dx ?? 0) - (p.x - d.grabX) / z);
+      meta.dy = round1((meta.dy ?? 0) - (p.y - d.grabY) / z);
       d.grabX = p.x; d.grabY = p.y;
       refreshControls(); buildPoseList(); render();
       return;

@@ -196,22 +196,50 @@ creature's footing, a hazard's reach: all unchanged. That is the point — art
 arrives off-centre in its plate and the fix is to move the picture onto the point
 the game is using, not to move the point.
 
+**Two spawn sites do not read the nudge at all**, and the crosshair says so
+rather than pretending. `makeTrap` and `randomDrop` (`src/specials.js`) paint
+straight from the image — an erupting geyser, a dropped vending machine — so
+`dx`/`dy` and a tilt set against one of those drawings are stored and inert.
+Their Size still works, because that is folded into the kit's own declared
+height. The crosshair is still drawn, because where the art meets the ground is
+worth seeing; it just cannot be dragged. Which sites honour it is recorded in
+the registry (`DRAW_SITES` in `src/shared_sprites.js`), beside where each one
+puts the point, so the two facts about a spawn site live together.
+
 ### The region of interest, and what follows what
 
 With **Hurtbox** ticked, a shared drawing is shown with the region its move
-actually acts on: a projectile's `r` as a circle, a beam's `width` as a band
-across the screen, a creature's `hitW`/`hitH` or a drop's `w`/`h` as a box. All
-of them are numbers the kit already declares — nothing is invented here and
-nothing changes play. They are drawn because they are the one thing the art has
-to agree with and cannot be measured from the art: a bolt drawn twice the width
-of its `r` looks like it should clip somebody it passes straight through.
+actually acts on: a projectile's `r` as a circle, a creature's `hitW`/`hitH` or
+a drop's `w`/`h` as a box. All of them are numbers the kit already declares —
+nothing is invented here and nothing changes play. A move that declares a
+`width` rather than an `r` is one of the two big shots, and both of those spawn
+an ordinary projectile at `r: width / 2` (`ultimates.js`), so that is what is
+drawn: a circle of that radius, not a band across the screen. And the shape
+belongs to the drawing it describes rather than to the node it was found on —
+Mechamaru's ultimate names the cannon and its five orbs together, and the orbs
+collide on their own `orbR`.
+
+They are drawn because they are the one thing the art has to agree with and
+cannot be measured from the art: a bolt drawn twice the width of its `r` looks
+like it should clip somebody it passes straight through.
 
 **They are marked `fixed`, and that word is the point.** A shared drawing's hit
 region does not follow Size and does not follow the spawn point — it is a kit
-number. So moving the size slider moves the picture against a stationary target,
+number, so moving the size slider moves the picture against a stationary target
 and you can see the moment they agree. A fighter's hurtbox is the opposite case
 and is labelled the other way, *follows the art*: it is measured off the sprite
 (`src/silhouette.js`), so resizing the pose resizes the box with it.
+
+One shape is labelled `follows Size` instead, and it is not an inconsistency:
+`randomDrop` paints a drop at the same `h` it collides on, so there the box and
+the art are one number and no amount of sizing will make them disagree.
+
+**The whole canvas is fitted, never just the art.** A drawing too big for the
+viewer used to be clamped on its own while its hit shape was not, so past about
+120% the two grew apart and the art could not be matched to its box at any
+setting. The fit is a view zoom now — the art, the hit shape, the spawn point
+and the drag all read the same one — so the proportions on screen are the
+proportions in a match whatever the slider says.
 
 That distinction decides which way round to work. Against a fixed box you size
 the art to fit the box; against a box measured from the art you size the art to
@@ -222,6 +250,33 @@ same answer drives the **Used in game** filter for Other Sprites.
 `node tools/check_shared_sprites.mjs` walks the real kits and fails if a move
 names its art under a field the registry does not know — which is how Yuta's
 Rika (`sprite` beside a plain `h`) and Mechamaru's pigeon orbs were found.
+
+### What a FIGHTER's pose is placed against
+
+The same question, on the other side of the workbench: a pose is drawn against
+the shapes the game tests while it is on screen, so the art can be matched to
+the play rather than to a guess.
+
+**Attacks.** Every move in `moves.js` is asked which animation it plays
+(`m.anim`) and grouped off that answer, rather than a table here naming the
+animations itself. The table drifted, which is exactly what a derived list
+cannot do: both dash attacks and the up tilt were missing from it, so
+`attack_dash` — a pose whose whole job is reach — was shown with nothing to
+place it against. Only the STRIKE frame of a pair gets a target; a wind-up's job
+is to not have connected yet.
+
+**Grabs.** A grab tests a plain rectangle and ignores shields (`src/grab.js`),
+so it has no hitbox to mark and its three poses used to be placed against
+nothing at all. Each is now shown with its own geometry, read from that file's
+arithmetic at the workbench's live measurements:
+
+- `grab_reach` — the box the closing hand tests, `reach × 0.85 + GRAB.grace`
+  forward and 90% of body height tall, with the far edge marked. The open hand
+  should be somewhere near that edge.
+- `grab_hold` and `grabbed` — the other fighter's body, `(a.width + b.width) ×
+  0.45` ahead, where `pinVictim` puts it. From either pose the partner stands
+  the same distance forward, because the victim is turned to face the holder:
+  the hands in one and the body in the other have the same place to be.
 
 ## Preparing delivered effect art
 

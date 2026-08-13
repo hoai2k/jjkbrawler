@@ -1350,7 +1350,7 @@ export const CHARACTERS = {
     ultimate: {
       name: "Ultimate Mechamaru — Mode: Absolute", type: "cannonade",
       desc: "Seventeen years, five months and six days of banked cursed energy, spent at once: a tracking volley to take the ground away, then the three-barrel cannon.",
-      p: { charge: 0.7, orbs: 5, orbDmg: 6, orbBase: 260, orbGrowth: 5.4, orbSprite: "effect:pigeon_orb", orbSpriteH: 64, dmg: 30, base: 880, growth: 10.5, width: 170, duration: 1.2, color: "#63c7b0", label: "MODE: ABSOLUTE", sprite: "effect:ultimate_cannon", spriteH: 220 },
+      p: { charge: 0.7, orbs: 5, orbDmg: 6, orbBase: 260, orbGrowth: 5.4, orbSprite: "effect:pigeon_orb", orbSpriteH: 64, orbR: 22, dmg: 30, base: 880, growth: 10.5, width: 170, duration: 1.2, color: "#63c7b0", label: "MODE: ABSOLUTE", sprite: "effect:ultimate_cannon", spriteH: 220 },
     },
     passive: { id: "heavenlyOutput", name: "Heavenly Restriction (Output)", desc: "A body traded for range and output: his cannons and techniques hit 15% harder — but the frame is a puppet, and it takes 8% more." },
     ai: { style: "zoner", range: 400 },
