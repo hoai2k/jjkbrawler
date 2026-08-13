@@ -351,9 +351,30 @@ T-pose. Two things make that portable, and both had to be built:
     from the camera.
 
 Every axis sign was established by rotating one bone and asking where the hand
-went. **Three of the six guesses were backwards**, including the one that
-mattered most: with the sign taken from the delivery spec rather than from the
-rig, every punch on the sheet was thrown over his shoulder.
+went, and the guesses kept coming back backwards. First the punches: with the
+sign taken from the delivery spec rather than the rig, every one on the sheet
+was thrown over his shoulder. Then the arms: `+x` put **both hands 15cm behind
+the chest on every frame**, which is what "his arms are tucked behind his back"
+looks like from the front.
+
+Both have the same cause, and it is worth keeping in mind for the next table.
+`x` turns about the line through the shoulders, so it tips the **top** of the
+spine forward and the **bottom** of a hanging arm backward — same rotation,
+opposite ends of the vertical.
+
+The elbow is the other trap, and it is not a sign error but a plane error. An
+elbow is a hinge **perpendicular to the upper arm**, so it belongs on `x`; bend
+it about the facing axis and the forearm sweeps sideways across the body, which
+from the side reads as a hand tucked behind. And the axes are deliberately
+**not carried down the chain** — carrying them rotates "lateral" until it runs
+along the upper arm, and an elbow asked to hinge about its own bone just
+twists. Measured: a hanging arm with a 110° elbow came out perfectly straight.
+
+`window.__handsAt()` in the editor reports where both hands sit relative to the
+chest in the fighter's own frame. It exists because "his hand looks wrong" is
+not reviewable and "his hand is 15cm behind his chest" is. Two rules catch most
+of it: a hand doing nothing belongs in **front**, and an elbow nobody lifted on
+purpose belongs near the **ribs**.
 
 `tools/check_battle_poses.mjs` runs in `npm run check` and guards the three
 things that rot silently — a bone renamed, a frame added, an angle typo'd past

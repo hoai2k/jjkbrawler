@@ -61,20 +61,34 @@
 //   then swing it — which is what makes them separately readable:
 //
 //     Spine    +x leans forward · +y brings the RIGHT shoulder forward
-//     Arm      ±z drops it to the side (+ right, − left) · then, from there,
-//              +x swings a hanging arm FORWARD and up
-//              y turns it about the vertical: + is forward for the RIGHT arm
-//              and backward for the LEFT, because there is one vertical and
-//              the two arms are on opposite ends of it
-//     ForeArm  ±z bends the elbow (+ right, − left)
+//     Arm      ±z drops it to the side (+ right, − left)
+//              −x then swings the hanging arm FORWARD (+x sends it behind him)
+//              +y turns it about the vertical: forward for the RIGHT arm and
+//              backward for the LEFT, because there is one vertical and the
+//              two arms hang off opposite ends of it. Only bites once the arm
+//              is up; a hanging arm lies along the axis and just twists.
+//     ForeArm  −x BENDS THE ELBOW, bringing the hand forward and up
+//              ±z swings the bend inward across the chest (+ right, − left),
+//              which is what puts a guard hand on the cheek instead of out
+//              beside the ear
 //     UpLeg    −x swings the thigh forward, +x back
 //     Leg      +x bends the knee
 //     Foot     −x points the toe down
 //
-//   Every one of those was MEASURED off the rig rather than read off the
-//   delivery spec, by rotating one bone and asking where the hand went. Three
-//   of the six guesses were backwards, including the one that matters most:
-//   the punches were all thrown over his shoulder.
+//   Every one of those was MEASURED off the rig by rotating one bone and asking
+//   where the hand went, and the guesses kept being backwards — first the
+//   punches, thrown over his shoulder; then the arms, whose +x put both hands
+//   15cm BEHIND the chest on every frame of the sheet. The reason is the same
+//   both times and worth keeping in mind: x turns about the line through his
+//   shoulders, so it tips the TOP of the spine forward and the BOTTOM of a
+//   hanging arm backward. Same rotation, opposite ends of the vertical.
+//
+//   The elbow is the other trap. It is a hinge PERPENDICULAR to the upper arm,
+//   so it belongs on x, not on the facing axis: bend it about the facing and
+//   the forearm sweeps sideways across the body, which from the side reads as
+//   an arm tucked behind the back. And the axes are deliberately NOT carried
+//   down the chain — carrying them rotates "lateral" until it runs along the
+//   upper arm, and an elbow asked to hinge about its own bone just twists.
 //
 //   Left and right are the CHARACTER's, as everywhere else in this pipeline:
 //   facing right, RIGHT is the near limb and LEFT is the far one.
@@ -84,7 +98,7 @@
  *  rather than a fighter in a T. */
 const REST = {
   LeftArm: [0, 0, -65], RightArm: [0, 0, 65],
-  LeftForeArm: [0, 0, -12], RightForeArm: [0, 0, 12],
+  LeftForeArm: [-12, 0, -12], RightForeArm: [-12, 0, 12],
 };
 const p = (extra) => ({ ...REST, ...extra });
 
@@ -101,8 +115,8 @@ const GUARD = p({
   Spine: [6, -10, 0], Spine1: [2, -6, 0], Head: [-2, 8, 0],
   LeftUpLeg: [-16, 0, 2], LeftLeg: [20, 0, 0], LeftFoot: [-4, 0, 0],
   RightUpLeg: [12, 0, -2], RightLeg: [24, 0, 0], RightFoot: [-8, 0, 0],
-  LeftArm: [46, -14, -18], LeftForeArm: [0, 0, -122],
-  RightArm: [42, 12, 22], RightForeArm: [0, 0, 118],
+  LeftArm: [-40, -12, -70], LeftForeArm: [-110, 0, -60],
+  RightArm: [-38, 10, 70], RightForeArm: [-108, 0, 60],
 });
 
 export const BATTLE_POSES = {
@@ -116,7 +130,7 @@ export const BATTLE_POSES = {
   idle_b: { ...GUARD, Spine: [7, -9, -1], Spine1: [3, -5, 0], Head: [-1, 7, 0],
             LeftUpLeg: [-17, 0, 2], LeftLeg: [22, 0, 0],
             RightUpLeg: [13, 0, -2], RightLeg: [26, 0, 0],
-            LeftArm: [48, -14, -17], RightArm: [40, 12, 23] },
+            LeftArm: [-42, -12, -69], RightArm: [-36, 10, 71] },
 
   // Matched to a TIGHT boxing guard — the shell. Both forearms vertical in
   // front of the face, elbows pinched to the ribs, shoulders lifted to meet
@@ -128,8 +142,8 @@ export const BATTLE_POSES = {
     LeftShoulder: [0, 0, -12], RightShoulder: [0, 0, 12],
     LeftUpLeg: [-20, 0, 2], LeftLeg: [30, 0, 0], LeftFoot: [-6, 0, 0],
     RightUpLeg: [10, 0, -2], RightLeg: [34, 0, 0], RightFoot: [-10, 0, 0],
-    LeftArm: [58, -20, -10], LeftForeArm: [0, 0, -140],
-    RightArm: [54, 18, 14], RightForeArm: [0, 0, 136],
+    LeftArm: [-52, -16, -74], LeftForeArm: [-128, 0, -66],
+    RightArm: [-50, 14, 74], RightForeArm: [-126, 0, 66],
   }),
 
   // ------------------------------------------------------------- the strikes
@@ -146,8 +160,8 @@ export const BATTLE_POSES = {
     Spine: [4, 20, 0], Spine1: [2, 14, 0], Head: [0, -6, 0],
     LeftUpLeg: [-26, 0, 2], LeftLeg: [12, 0, 0], LeftFoot: [-6, 0, 0],
     RightUpLeg: [20, 0, -2], RightLeg: [16, 0, 0], RightFoot: [-16, 0, 0],
-    RightArm: [0, 84, 6], RightForeArm: [0, 0, 4],
-    LeftArm: [46, -14, -18], LeftForeArm: [0, 0, -120],
+    RightArm: [0, 84, 6], RightForeArm: [-4, 0, 4],
+    LeftArm: [-40, -14, -70], LeftForeArm: [-108, 0, -58],
   }),
   // The jab's second contact — a half beat later, arm still out, weight
   // arriving on the lead foot and the chest beginning to unwind.
@@ -155,8 +169,8 @@ export const BATTLE_POSES = {
     Spine: [6, 15, 0], Spine1: [3, 10, 0], Head: [0, -4, 0],
     LeftUpLeg: [-30, 0, 2], LeftLeg: [16, 0, 0], LeftFoot: [-4, 0, 0],
     RightUpLeg: [24, 0, -2], RightLeg: [20, 0, 0], RightFoot: [-20, 0, 0],
-    RightArm: [0, 74, 12], RightForeArm: [0, 0, 14],
-    LeftArm: [44, -12, -20], LeftForeArm: [0, 0, -116],
+    RightArm: [0, 74, 12], RightForeArm: [-14, 0, 14],
+    LeftArm: [-44, -12, -62], LeftForeArm: [-116, 0, -45],
   }),
 
   // THE CROSS. Its anticipation is the only true wind-up drawing on the sheet:
@@ -166,8 +180,8 @@ export const BATTLE_POSES = {
     Spine: [2, -28, 0], Spine1: [0, -16, 0], Head: [0, 14, 0],
     LeftUpLeg: [-10, 0, 2], LeftLeg: [18, 0, 0], LeftFoot: [-2, 0, 0],
     RightUpLeg: [8, 0, -2], RightLeg: [34, 0, 0], RightFoot: [-6, 0, 0],
-    RightArm: [-26, -30, 48], RightForeArm: [0, 0, 96],
-    LeftArm: [44, -14, -20], LeftForeArm: [0, 0, -114],
+    RightArm: [26, -30, 48], RightForeArm: [-96, 0, 15],
+    LeftArm: [-44, -14, -62], LeftForeArm: [-114, 0, -45],
   }),
   // Contact. Hip through, trunk rotated hard, rear heel up, arm arriving last
   // and level — the hitbox goes live on this pose, so it is full extension and
@@ -176,8 +190,8 @@ export const BATTLE_POSES = {
     Spine: [0, 34, 0], Spine1: [0, 20, 0], Head: [0, -10, 0],
     LeftUpLeg: [-24, 0, 2], LeftLeg: [8, 0, 0], LeftFoot: [-4, 0, 0],
     RightUpLeg: [22, 0, -4], RightLeg: [14, 0, 0], RightFoot: [-30, 0, 0],
-    RightArm: [0, 88, 4], RightForeArm: [0, 0, 2],
-    LeftArm: [42, -10, -22], LeftForeArm: [0, 0, -118],
+    RightArm: [0, 88, 4], RightForeArm: [-2, 0, 2],
+    LeftArm: [-42, -10, -62], LeftForeArm: [-118, 0, -45],
   }),
   // The follow-through: everything the same, one notch further round and
   // beginning to recover. Skeletally the heavy's contact, per the read.
@@ -185,8 +199,8 @@ export const BATTLE_POSES = {
     Spine: [4, 28, 0], Spine1: [2, 16, 0], Head: [0, -8, 0],
     LeftUpLeg: [-30, 0, 2], LeftLeg: [14, 0, 0], LeftFoot: [-4, 0, 0],
     RightUpLeg: [26, 0, -4], RightLeg: [20, 0, 0], RightFoot: [-26, 0, 0],
-    RightArm: [0, 70, 14], RightForeArm: [0, 0, 18],
-    LeftArm: [43, -12, -21], LeftForeArm: [0, 0, -116],
+    RightArm: [0, 70, 14], RightForeArm: [-18, 0, 18],
+    LeftArm: [-43, -12, -62], LeftForeArm: [-116, 0, -45],
   }),
 
   // UPPERCUT. Matched to a rear-hand uppercut rather than a generic "arm up":
@@ -197,8 +211,8 @@ export const BATTLE_POSES = {
     Spine: [-14, 22, 0], Spine1: [-6, 12, 0], Head: [-14, -6, 0],
     LeftUpLeg: [-18, 0, 2], LeftLeg: [10, 0, 0], LeftFoot: [-6, 0, 0],
     RightUpLeg: [10, 0, -2], RightLeg: [6, 0, 0], RightFoot: [-24, 0, 0],
-    RightArm: [104, 16, 50], RightForeArm: [0, 0, 86],
-    LeftArm: [45, -12, -20], LeftForeArm: [0, 0, -118],
+    RightArm: [-104, 16, 50], RightForeArm: [-86, 0, 15],
+    LeftArm: [-45, -12, -62], LeftForeArm: [-118, 0, -45],
   }),
 
   // OVERHAND / HAMMER DOWN into the floor. Trunk flexes hard, the arm comes
@@ -208,8 +222,8 @@ export const BATTLE_POSES = {
     Spine: [40, 16, 0], Spine1: [16, 8, 0], Head: [-18, -6, 0],
     LeftUpLeg: [-42, 0, 6], LeftLeg: [16, 0, 0], LeftFoot: [-2, 0, 0],
     RightUpLeg: [40, 0, -6], RightLeg: [18, 0, 0], RightFoot: [-14, 0, 0],
-    RightArm: [64, 44, 30], RightForeArm: [0, 0, 16],
-    LeftArm: [-34, 0, -46], LeftForeArm: [0, 0, -40],
+    RightArm: [-64, 44, 62], RightForeArm: [-16, 0, 16],
+    LeftArm: [34, 0, -46], LeftForeArm: [-40, 0, -15],
   }),
 
   // ------------------------------------------------------------ the crouch
@@ -222,15 +236,15 @@ export const BATTLE_POSES = {
     Spine: [46, -8, 0], Spine1: [16, -4, 0], Head: [-32, 6, 0],
     LeftUpLeg: [-56, 0, 4], LeftLeg: [88, 0, 0], LeftFoot: [-14, 0, 0],
     RightUpLeg: [-14, 0, -4], RightLeg: [124, 0, 0], RightFoot: [-24, 0, 0],
-    RightArm: [18, 6, 76], RightForeArm: [0, 0, 10],
-    LeftArm: [-34, 6, -58], LeftForeArm: [0, 0, -62],
+    RightArm: [-18, 6, 76], RightForeArm: [-10, 0, 10],
+    LeftArm: [34, 6, -58], LeftForeArm: [-62, 0, -15],
   }),
   crouch_b: p({
     Spine: [50, -6, 0], Spine1: [18, -4, 0], Head: [-34, 4, 0],
     LeftUpLeg: [-62, 0, 4], LeftLeg: [94, 0, 0], LeftFoot: [-14, 0, 0],
     RightUpLeg: [-18, 0, -4], RightLeg: [128, 0, 0], RightFoot: [-26, 0, 0],
-    RightArm: [22, 6, 78], RightForeArm: [0, 0, 8],
-    LeftArm: [-30, 6, -60], LeftForeArm: [0, 0, -66],
+    RightArm: [-22, 6, 78], RightForeArm: [-8, 0, 8],
+    LeftArm: [30, 6, -60], LeftForeArm: [-66, 0, -15],
   }),
   // Driving OUT of the set — the sprint start's first step, with a strike on
   // the end of it. Rear leg extending behind, trunk still low, lead arm out.
@@ -238,15 +252,15 @@ export const BATTLE_POSES = {
     Spine: [44, 18, 0], Spine1: [16, 10, 0], Head: [-30, -8, 0],
     LeftUpLeg: [-58, 0, 4], LeftLeg: [70, 0, 0], LeftFoot: [-10, 0, 0],
     RightUpLeg: [34, 0, -4], RightLeg: [28, 0, 0], RightFoot: [-30, 0, 0],
-    RightArm: [30, 74, 22], RightForeArm: [0, 0, 8],
-    LeftArm: [-46, 10, -50], LeftForeArm: [0, 0, -48],
+    RightArm: [-30, 74, 22], RightForeArm: [-8, 0, 8],
+    LeftArm: [46, 10, -50], LeftForeArm: [-48, 0, -15],
   }),
   crouch_attack_b: p({
     Spine: [42, 24, 0], Spine1: [15, 12, 0], Head: [-28, -10, 0],
     LeftUpLeg: [-64, 0, 4], LeftLeg: [58, 0, 0], LeftFoot: [-8, 0, 0],
     RightUpLeg: [42, 0, -4], RightLeg: [22, 0, 0], RightFoot: [-32, 0, 0],
-    RightArm: [22, 82, 16], RightForeArm: [0, 0, 4],
-    LeftArm: [-54, 10, -46], LeftForeArm: [0, 0, -44],
+    RightArm: [-22, 82, 16], RightForeArm: [-4, 0, 4],
+    LeftArm: [54, 10, -46], LeftForeArm: [-44, 0, -15],
   }),
 
   // ------------------------------------------------------------- locomotion
@@ -263,16 +277,16 @@ export const BATTLE_POSES = {
     Spine: [18, -6, 0], Spine1: [6, -2, 0], Head: [-14, 4, 0],
     RightUpLeg: [-55, 0, 2], RightLeg: [42, 0, 0], RightFoot: [-14, 0, 0],
     LeftUpLeg: [30, 0, -2], LeftLeg: [34, 0, 0], LeftFoot: [-24, 0, 0],
-    LeftArm: [46, 10, -30], LeftForeArm: [0, 0, -96],
-    RightArm: [-40, -8, 34], RightForeArm: [0, 0, 88],
+    LeftArm: [-46, 10, -62], LeftForeArm: [-96, 0, -45],
+    RightArm: [40, -8, 62], RightForeArm: [-88, 0, 45],
   }),
   // The same instant on the other side of the stride.
   run_reach_b: p({
     Spine: [18, 6, 0], Spine1: [6, 2, 0], Head: [-14, -4, 0],
     LeftUpLeg: [-55, 0, 2], LeftLeg: [42, 0, 0], LeftFoot: [-14, 0, 0],
     RightUpLeg: [30, 0, -2], RightLeg: [34, 0, 0], RightFoot: [-24, 0, 0],
-    RightArm: [46, -10, 30], RightForeArm: [0, 0, 96],
-    LeftArm: [-40, 8, -34], LeftForeArm: [0, 0, -88],
+    RightArm: [-46, -10, 62], RightForeArm: [-96, 0, 45],
+    LeftArm: [40, 8, -62], LeftForeArm: [-88, 0, -45],
   }),
   // PASSING — the swing leg folded to its tightest under the hip (knee ~125°)
   // as it crosses the stance leg. The narrowest frame, and the one that gets
@@ -281,30 +295,30 @@ export const BATTLE_POSES = {
     Spine: [16, -2, 0], Spine1: [6, 0, 0], Head: [-12, 2, 0],
     RightUpLeg: [-12, 0, 2], RightLeg: [118, 0, 0], RightFoot: [-20, 0, 0],
     LeftUpLeg: [4, 0, -2], LeftLeg: [26, 0, 0], LeftFoot: [-10, 0, 0],
-    LeftArm: [16, 4, -34], LeftForeArm: [0, 0, -92],
-    RightArm: [-12, -4, 36], RightForeArm: [0, 0, 90],
+    LeftArm: [-16, 4, -62], LeftForeArm: [-92, 0, -45],
+    RightArm: [12, -4, 62], RightForeArm: [-90, 0, 45],
   }),
   run_pass_b: p({
     Spine: [16, 2, 0], Spine1: [6, 0, 0], Head: [-12, -2, 0],
     LeftUpLeg: [-12, 0, 2], LeftLeg: [118, 0, 0], LeftFoot: [-20, 0, 0],
     RightUpLeg: [4, 0, -2], RightLeg: [26, 0, 0], RightFoot: [-10, 0, 0],
-    RightArm: [16, -4, 34], RightForeArm: [0, 0, 92],
-    LeftArm: [-12, 4, -36], LeftForeArm: [0, 0, -90],
+    RightArm: [-16, -4, 62], RightForeArm: [-92, 0, 45],
+    LeftArm: [12, 4, -62], LeftForeArm: [-90, 0, -45],
   }),
   // CONTACT — foot strike, knee ~40° and loading, body at its lowest.
   run_a: p({
     Spine: [20, -4, 0], Spine1: [7, -2, 0], Head: [-15, 3, 0],
     RightUpLeg: [-34, 0, 2], RightLeg: [40, 0, 0], RightFoot: [-6, 0, 0],
     LeftUpLeg: [22, 0, -2], LeftLeg: [56, 0, 0], LeftFoot: [-18, 0, 0],
-    LeftArm: [32, 8, -32], LeftForeArm: [0, 0, -94],
-    RightArm: [-28, -6, 36], RightForeArm: [0, 0, 90],
+    LeftArm: [-32, 8, -62], LeftForeArm: [-94, 0, -45],
+    RightArm: [28, -6, 62], RightForeArm: [-90, 0, 45],
   }),
   run_b: p({
     Spine: [20, 4, 0], Spine1: [7, 2, 0], Head: [-15, -3, 0],
     LeftUpLeg: [-34, 0, 2], LeftLeg: [40, 0, 0], LeftFoot: [-6, 0, 0],
     RightUpLeg: [22, 0, -2], RightLeg: [56, 0, 0], RightFoot: [-18, 0, 0],
-    RightArm: [32, -8, 32], RightForeArm: [0, 0, 94],
-    LeftArm: [-28, 6, -36], LeftForeArm: [0, 0, -90],
+    RightArm: [-32, -8, 62], RightForeArm: [-94, 0, 45],
+    LeftArm: [28, 6, -62], LeftForeArm: [-90, 0, -45],
   }),
   // DASH — the drive phase, which is a different animal from the run cycle:
   // trunk lean near 45° early, both arms driving, and the body travelling
@@ -313,8 +327,8 @@ export const BATTLE_POSES = {
     Spine: [30, -4, 0], Spine1: [10, -2, 0], Head: [-22, 2, 0],
     RightUpLeg: [-46, 0, 2], RightLeg: [50, 0, 0], RightFoot: [-12, 0, 0],
     LeftUpLeg: [32, 0, -2], LeftLeg: [30, 0, 0], LeftFoot: [-26, 0, 0],
-    LeftArm: [54, 10, -28], LeftForeArm: [0, 0, -100],
-    RightArm: [-48, -8, 32], RightForeArm: [0, 0, 94],
+    LeftArm: [-54, 10, -62], LeftForeArm: [-100, 0, -45],
+    RightArm: [48, -8, 62], RightForeArm: [-94, 0, 45],
   }),
 
   // -------------------------------------------------------------- air, fall
@@ -327,8 +341,8 @@ export const BATTLE_POSES = {
     Spine: [-8, -4, 0], Spine1: [-2, -2, 0], Head: [-14, 2, 0],
     RightUpLeg: [-74, 0, 4], RightLeg: [96, 0, 0], RightFoot: [-16, 0, 0],
     LeftUpLeg: [-50, 0, -4], LeftLeg: [72, 0, 0], LeftFoot: [-20, 0, 0],
-    LeftArm: [-58, 10, -30], LeftForeArm: [0, 0, -56],
-    RightArm: [-52, -8, 34], RightForeArm: [0, 0, 50],
+    LeftArm: [58, 10, -62], LeftForeArm: [-56, 0, -45],
+    RightArm: [52, -8, 62], RightForeArm: [-50, 0, 45],
   }),
   // Falling: legs gathered under, arms low and out for balance, head up
   // watching the ground come.
@@ -336,8 +350,8 @@ export const BATTLE_POSES = {
     Spine: [-6, -2, 0], Spine1: [-2, 0, 0], Head: [-12, 2, 0],
     RightUpLeg: [-26, 0, 4], RightLeg: [46, 0, 0], RightFoot: [-18, 0, 0],
     LeftUpLeg: [-14, 0, -4], LeftLeg: [34, 0, 0], LeftFoot: [-16, 0, 0],
-    LeftArm: [-30, 6, -22], LeftForeArm: [0, 0, -26],
-    RightArm: [-38, -6, 26], RightForeArm: [0, 0, 22],
+    LeftArm: [30, 6, -62], LeftForeArm: [-26, 0, -26],
+    RightArm: [38, -6, 62], RightForeArm: [-22, 0, 22],
   }),
   // LANDING, matched to a drop landing: peak knee flexion 80–86° and the
   // absorbing trunk flexion that goes with it. Yuji reaches BOTH hands
@@ -346,8 +360,8 @@ export const BATTLE_POSES = {
     Spine: [42, 0, 0], Spine1: [14, 0, 0], Head: [-26, 0, 0],
     RightUpLeg: [-64, 0, 6], RightLeg: [86, 0, 0], RightFoot: [-14, 0, 0],
     LeftUpLeg: [-52, 0, -6], LeftLeg: [80, 0, 0], LeftFoot: [-12, 0, 0],
-    LeftArm: [58, 8, -52], LeftForeArm: [0, 0, -30],
-    RightArm: [62, -6, 56], RightForeArm: [0, 0, 26],
+    LeftArm: [-58, 8, -52], LeftForeArm: [-30, 0, -30],
+    RightArm: [-62, -6, 56], RightForeArm: [-26, 0, 26],
   }),
 
   // AERIAL STRIKES. A jumping punch is a cross thrown off a body with nothing
@@ -357,16 +371,16 @@ export const BATTLE_POSES = {
     Spine: [10, 30, 0], Spine1: [4, 18, 0], Head: [-6, -10, 0],
     RightUpLeg: [-34, 0, 4], RightLeg: [58, 0, 0], RightFoot: [-18, 0, 0],
     LeftUpLeg: [26, 0, -4], LeftLeg: [40, 0, 0], LeftFoot: [-22, 0, 0],
-    RightArm: [0, 86, 6], RightForeArm: [0, 0, 4],
-    LeftArm: [26, -10, -34], LeftForeArm: [0, 0, -96],
+    RightArm: [0, 86, 6], RightForeArm: [-4, 0, 4],
+    LeftArm: [-26, -10, -62], LeftForeArm: [-96, 0, -45],
   }),
   // Its wind-up in the air: knees drawn up, chest turned away, fist chambered.
   attack_air_a: p({
     Spine: [16, -22, 0], Spine1: [6, -12, 0], Head: [-4, 12, 0],
     RightUpLeg: [-72, 0, 4], RightLeg: [92, 0, 0], RightFoot: [-18, 0, 0],
     LeftUpLeg: [-40, 0, -4], LeftLeg: [66, 0, 0], LeftFoot: [-20, 0, 0],
-    RightArm: [-24, -28, 46], RightForeArm: [0, 0, 100],
-    LeftArm: [46, -12, -18], LeftForeArm: [0, 0, -118],
+    RightArm: [24, -28, 46], RightForeArm: [-100, 0, 15],
+    LeftArm: [-40, -12, -70], LeftForeArm: [-108, 0, -58],
   }),
   // FLYING KICK, matched to a jumping front/side kick: the kicking leg extends
   // through the target with the ankle dorsiflexed, the support leg folds under,
@@ -375,8 +389,8 @@ export const BATTLE_POSES = {
     Spine: [-16, 10, 0], Spine1: [-6, 6, 0], Head: [8, -6, 0],
     RightUpLeg: [-78, 0, 6], RightLeg: [10, 0, 0], RightFoot: [16, 0, 0],
     LeftUpLeg: [16, 0, -6], LeftLeg: [86, 0, 0], LeftFoot: [-14, 0, 0],
-    RightArm: [-24, -20, 44], RightForeArm: [0, 0, 40],
-    LeftArm: [-40, 12, -38], LeftForeArm: [0, 0, -30],
+    RightArm: [24, -20, 62], RightForeArm: [-40, 0, 15],
+    LeftArm: [40, 12, -62], LeftForeArm: [-30, 0, -30],
   }),
 
   // ---------------------------------------------------------------- evasion
@@ -387,15 +401,15 @@ export const BATTLE_POSES = {
     Spine: [18, -40, 8], Spine1: [8, -22, 4], Head: [-8, 22, 0],
     RightUpLeg: [-66, 0, 8], RightLeg: [80, 0, 0], RightFoot: [-10, 0, 0],
     LeftUpLeg: [-44, 0, -8], LeftLeg: [62, 0, 0], LeftFoot: [-8, 0, 0],
-    LeftArm: [50, -16, -16], LeftForeArm: [0, 0, -108],
-    RightArm: [46, 14, 20], RightForeArm: [0, 0, 104],
+    LeftArm: [-50, -16, -62], LeftForeArm: [-108, 0, -45],
+    RightArm: [-46, 14, 62], RightForeArm: [-104, 0, 45],
   }),
   dodge_roll: p({
     Spine: [56, -18, 0], Spine1: [22, -10, 0], Head: [34, 10, 0],
     RightUpLeg: [-112, 0, 6], RightLeg: [128, 0, 0], RightFoot: [-18, 0, 0],
     LeftUpLeg: [-104, 0, -6], LeftLeg: [124, 0, 0], LeftFoot: [-18, 0, 0],
-    LeftArm: [70, -14, -40], LeftForeArm: [0, 0, -128],
-    RightArm: [66, 12, 44], RightForeArm: [0, 0, 124],
+    LeftArm: [-70, -14, -62], LeftForeArm: [-128, 0, -45],
+    RightArm: [-66, 12, 62], RightForeArm: [-124, 0, 45],
   }),
 
   // --------------------------------------------------------------- reactions
@@ -406,8 +420,8 @@ export const BATTLE_POSES = {
     Spine: [-26, 4, 0], Spine1: [-12, 2, 0], Head: [-34, -4, 0],
     RightUpLeg: [14, 0, 4], RightLeg: [22, 0, 0], RightFoot: [-8, 0, 0],
     LeftUpLeg: [8, 0, -4], LeftLeg: [16, 0, 0], LeftFoot: [-6, 0, 0],
-    LeftArm: [-14, 0, -68], LeftForeArm: [0, 0, -22],
-    RightArm: [-18, 0, 70], RightForeArm: [0, 0, 18],
+    LeftArm: [14, 0, -68], LeftForeArm: [-22, 0, -22],
+    RightArm: [18, 0, 70], RightForeArm: [-18, 0, 18],
   }),
   // Yuji's dizzy tips BACKWARD, chin up, arms dead at the sides — the audit's
   // forward slump is a different character's stagger.
@@ -415,16 +429,16 @@ export const BATTLE_POSES = {
     Spine: [-16, 0, 6], Spine1: [-8, 0, -3], Head: [-22, 0, 14],
     RightUpLeg: [10, 0, 6], RightLeg: [18, 0, 0], RightFoot: [-4, 0, 0],
     LeftUpLeg: [-6, 0, -6], LeftLeg: [10, 0, 0], LeftFoot: [-2, 0, 0],
-    LeftArm: [-8, 0, -74], LeftForeArm: [0, 0, -8],
-    RightArm: [-6, 0, 76], RightForeArm: [0, 0, 6],
+    LeftArm: [8, 0, -74], LeftForeArm: [-8, 0, -8],
+    RightArm: [6, 0, 76], RightForeArm: [-6, 0, 6],
   }),
   // Face down on the floor. The whole body rotates at the hips; the limbs only
   // say how it fell.
   prone: {
     Hips: [-86, 0, 0],
     Spine: [-6, 0, 0], Head: [26, 0, 0],
-    LeftArm: [0, 0, -42], LeftForeArm: [0, 0, -30],
-    RightArm: [0, 0, 46], RightForeArm: [0, 0, 26],
+    LeftArm: [0, 0, -62], LeftForeArm: [-30, 0, -30],
+    RightArm: [0, 0, 46], RightForeArm: [-26, 0, 26],
     LeftLeg: [14, 0, 0], RightLeg: [8, 0, 0],
   },
 
@@ -434,8 +448,8 @@ export const BATTLE_POSES = {
   // grip, toes pointed, knees just off straight: dangling, not standing.
   ledge_hang: p({
     Spine: [-2, 6, 0], Spine1: [0, 4, 0], Head: [-10, -8, 0],
-    RightArm: [0, -6, -82], RightForeArm: [0, 0, 4],
-    LeftArm: [-6, 0, -58], LeftForeArm: [0, 0, -18],
+    RightArm: [0, -6, -82], RightForeArm: [-4, 0, 4],
+    LeftArm: [6, 0, -58], LeftForeArm: [-18, 0, -18],
     RightUpLeg: [-8, 0, 3], RightLeg: [16, 0, 0], RightFoot: [22, 0, 0],
     LeftUpLeg: [4, 0, -3], LeftLeg: [10, 0, 0], LeftFoot: [26, 0, 0],
   }),
@@ -448,8 +462,8 @@ export const BATTLE_POSES = {
     Spine: [22, 0, 0], Spine1: [8, 0, 0], Head: [-16, 0, 0],
     RightUpLeg: [-34, 0, 6], RightLeg: [48, 0, 0], RightFoot: [-8, 0, 0],
     LeftUpLeg: [-30, 0, -6], LeftLeg: [44, 0, 0], LeftFoot: [-8, 0, 0],
-    LeftArm: [52, -22, -20], LeftForeArm: [0, 0, -124],
-    RightArm: [50, 20, 24], RightForeArm: [0, 0, 120],
+    LeftArm: [-52, -22, -62], LeftForeArm: [-124, 0, -45],
+    RightArm: [-50, 20, 62], RightForeArm: [-120, 0, 45],
   }),
   // A two-handed push out from the centre — the palm strike, thrown off the
   // same hip-first chain as the cross but with both arms and a squarer chest.
@@ -457,8 +471,8 @@ export const BATTLE_POSES = {
     Spine: [4, 26, 0], Spine1: [2, 16, 0], Head: [0, -8, 0],
     LeftUpLeg: [-34, 0, 6], LeftLeg: [18, 0, 0], LeftFoot: [-6, 0, 0],
     RightUpLeg: [30, 0, -6], RightLeg: [20, 0, 0], RightFoot: [-22, 0, 0],
-    RightArm: [0, 80, 10], RightForeArm: [0, 0, 8],
-    LeftArm: [-8, -26, -18], LeftForeArm: [0, 0, -26],
+    RightArm: [0, 80, 10], RightForeArm: [-8, 0, 8],
+    LeftArm: [8, -26, -62], LeftForeArm: [-26, 0, -26],
   }),
   // A low sweeping strike — trunk rotated hard over a wide split stance, arm
   // travelling across at hip height.
@@ -466,14 +480,14 @@ export const BATTLE_POSES = {
     Spine: [16, 38, 0], Spine1: [6, 20, 0], Head: [-8, -14, 0],
     LeftUpLeg: [-46, 0, 8], LeftLeg: [22, 0, 0], LeftFoot: [-4, 0, 0],
     RightUpLeg: [42, 0, -8], RightLeg: [26, 0, 0], RightFoot: [-24, 0, 0],
-    RightArm: [16, 66, 30], RightForeArm: [0, 0, 12],
-    LeftArm: [-26, 10, -44], LeftForeArm: [0, 0, -34],
+    RightArm: [-16, 66, 30], RightForeArm: [-12, 0, 12],
+    LeftArm: [26, 10, -62], LeftForeArm: [-34, 0, -15],
   }),
   // The idle with a wisp of aura — skeletally the stance, per the read, with
   // the weight settled and the hands opened.
   special_down: { ...GUARD, Spine: [8, -8, 0], Head: [-4, 6, 0],
-                  LeftArm: [38, -10, -28], LeftForeArm: [0, 0, -96],
-                  RightArm: [34, 8, 32], RightForeArm: [0, 0, 92] },
+                  LeftArm: [-38, -10, -62], LeftForeArm: [-96, 0, -45],
+                  RightArm: [-34, 8, 62], RightForeArm: [-92, 0, 45] },
 
   // The ults are skeletally the heavy's contact frame, per the read — the same
   // cross, thrown bigger: a longer stance and a fuller rotation.
@@ -481,15 +495,15 @@ export const BATTLE_POSES = {
     Spine: [0, 38, 0], Spine1: [0, 22, 0], Head: [0, -12, 0],
     LeftUpLeg: [-34, 0, 4], LeftLeg: [10, 0, 0], LeftFoot: [-4, 0, 0],
     RightUpLeg: [30, 0, -4], RightLeg: [12, 0, 0], RightFoot: [-34, 0, 0],
-    RightArm: [0, 90, 2], RightForeArm: [0, 0, 2],
-    LeftArm: [40, -8, -24], LeftForeArm: [0, 0, -114],
+    RightArm: [0, 90, 2], RightForeArm: [-2, 0, 2],
+    LeftArm: [-40, -8, -62], LeftForeArm: [-114, 0, -45],
   }),
   ult_b: p({
     Spine: [4, 32, 0], Spine1: [2, 18, 0], Head: [0, -10, 0],
     LeftUpLeg: [-40, 0, 4], LeftLeg: [16, 0, 0], LeftFoot: [-4, 0, 0],
     RightUpLeg: [34, 0, -4], RightLeg: [18, 0, 0], RightFoot: [-30, 0, 0],
-    RightArm: [0, 76, 12], RightForeArm: [0, 0, 14],
-    LeftArm: [42, -10, -22], LeftForeArm: [0, 0, -112],
+    RightArm: [0, 76, 12], RightForeArm: [-14, 0, 14],
+    LeftArm: [-42, -10, -62], LeftForeArm: [-112, 0, -45],
   }),
 
   // ------------------------------------------------------------ grabs, dash
@@ -501,8 +515,8 @@ export const BATTLE_POSES = {
     Spine: [26, 26, 0], Spine1: [10, 15, 0], Head: [-16, -10, 0],
     LeftUpLeg: [-40, 0, 4], LeftLeg: [24, 0, 0], LeftFoot: [-8, 0, 0],
     RightUpLeg: [34, 0, -4], RightLeg: [30, 0, 0], RightFoot: [-28, 0, 0],
-    RightArm: [0, 82, 8], RightForeArm: [0, 0, 6],
-    LeftArm: [40, -12, -26], LeftForeArm: [0, 0, -108],
+    RightArm: [0, 82, 8], RightForeArm: [-6, 0, 6],
+    LeftArm: [-40, -12, -62], LeftForeArm: [-108, 0, -45],
   }),
   // REACHING for a grab: both arms out at chest height, hands open and
   // leading, weight moving onto the front foot. It is not a strike — the
@@ -512,8 +526,8 @@ export const BATTLE_POSES = {
     Spine: [12, 10, 0], Spine1: [4, 6, 0], Head: [-8, -4, 0],
     LeftUpLeg: [-28, 0, 4], LeftLeg: [20, 0, 0], LeftFoot: [-6, 0, 0],
     RightUpLeg: [18, 0, -4], RightLeg: [26, 0, 0], RightFoot: [-16, 0, 0],
-    RightArm: [0, 72, 16], RightForeArm: [0, 0, 24],
-    LeftArm: [0, -66, -20], LeftForeArm: [0, 0, -28],
+    RightArm: [0, 72, 16], RightForeArm: [-24, 0, 24],
+    LeftArm: [0, -66, -20], LeftForeArm: [-28, 0, -28],
   }),
   // HOLDING one: elbows drawn back in to the ribs with the load close to the
   // body, hips under it, knees bent — the way anything heavy is actually
@@ -522,8 +536,8 @@ export const BATTLE_POSES = {
     Spine: [-6, 6, 0], Spine1: [-2, 4, 0], Head: [-6, -4, 0],
     LeftUpLeg: [-22, 0, 5], LeftLeg: [32, 0, 0], LeftFoot: [-6, 0, 0],
     RightUpLeg: [-6, 0, -5], RightLeg: [34, 0, 0], RightFoot: [-8, 0, 0],
-    RightArm: [30, 44, 34], RightForeArm: [0, 0, 92],
-    LeftArm: [30, -40, -30], LeftForeArm: [0, 0, -96],
+    RightArm: [-30, 44, 62], RightForeArm: [-92, 0, 45],
+    LeftArm: [-30, -40, -62], LeftForeArm: [-96, 0, -45],
   }),
   // BEING held: feet off the line, hands up at the grip trying to break it,
   // body slack below. Matched to someone lifted rather than someone standing
@@ -532,8 +546,8 @@ export const BATTLE_POSES = {
     Spine: [-12, -6, 0], Spine1: [-6, -4, 0], Head: [-18, 4, 0],
     LeftUpLeg: [-30, 0, 6], LeftLeg: [54, 0, 0], LeftFoot: [-14, 0, 0],
     RightUpLeg: [-18, 0, -6], RightLeg: [44, 0, 0], RightFoot: [-12, 0, 0],
-    RightArm: [24, 20, -16], RightForeArm: [0, 0, 76],
-    LeftArm: [24, -18, 12], LeftForeArm: [0, 0, -80],
+    RightArm: [-24, 20, 62], RightForeArm: [-76, 0, 45],
+    LeftArm: [-24, -18, -62], LeftForeArm: [-80, 0, -45],
   }),
 
   // ----------------------------------------------------------------- victory
@@ -543,8 +557,8 @@ export const BATTLE_POSES = {
     Spine: [-4, 8, 0], Spine1: [-2, 6, 0], Head: [-8, -8, 0],
     RightUpLeg: [-6, 0, 3], RightLeg: [8, 0, 0],
     LeftUpLeg: [4, 0, -3], LeftLeg: [10, 0, 0],
-    RightArm: [-6, -10, -74], RightForeArm: [0, 0, 26],
-    LeftArm: [10, 0, -48], LeftForeArm: [0, 0, -40],
+    RightArm: [6, -10, -74], RightForeArm: [-26, 0, 26],
+    LeftArm: [-10, 0, -48], LeftForeArm: [-40, 0, -15],
   }),
 };
 

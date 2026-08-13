@@ -952,33 +952,45 @@ function poseFromMatch(pose) {
   // vertical (yaw — turn a shoulder through a punch), z about his facing
   // (roll — drop an arm to his side). Composed x·y·z, which is what three's
   // "XYZ" Euler order means, so the numbers read the same as the mannequin's.
-  const qx = new THREE.Quaternion();
-  const qy = new THREE.Quaternion();
-  const qz = new THREE.Quaternion();
-  const world = new THREE.Quaternion();
-  const parent = new THREE.Quaternion();
-  const inv = new THREE.Quaternion();
-  // Parent orientations are read from the T-POSE, all of them, before anything
-  // moves: the table's angles are each relative to that one reference, not to
-  // wherever an ancestor happened to end up part-way through applying it.
-  const frames = new Map();
-  for (const [name] of T_POSE) {
-    const bone = three.bones.get(name);
-    if (bone?.parent) frames.set(name, bone.parent.getWorldQuaternion(new THREE.Quaternion()));
-  }
-  for (const [name, [rx, ry, rz]] of Object.entries(pose)) {
-    const bone = three.bones.get(name);
-    const p = frames.get(name) || bone?.parent?.getWorldQuaternion(new THREE.Quaternion());
-    if (!bone || !p) continue;
-    qx.setFromAxisAngle(basis.lateral, rx * DEG);
-    qy.setFromAxisAngle(basis.up, ry * DEG);
-    qz.setFromAxisAngle(basis.forward, rz * DEG);
-    world.copy(qx).multiply(qy).multiply(qz);
-    inv.copy(p).invert();
-    bone.quaternion.premultiply(p).premultiply(world).premultiply(inv);
-  }
+  //
+  // The axes are the FIGHTER's throughout and are NOT carried down the chain,
+  // which is worth defending because carrying them is the obvious thing to do
+  // and it is wrong here. Carry the axes and a bone turns about its parent's
+  // rotated frame — fine for a shoulder, useless for an elbow, because the
+  // shoulder's own drop rotates the "lateral" axis until it runs ALONG the
+  // upper arm, and an elbow asked to bend about the bone it is attached to
+  // just twists. Measured: an arm hanging at the side with a 110° elbow came
+  // out perfectly straight. Fixed axes keep every hinge perpendicular to the
+  // limb it bends, which is what a hinge is.
+  applyChain(three.bones.get("Hips") || three.root, pose, basis);
   three.root.updateMatrixWorld(true);
   return true;
+}
+
+const _ax = new THREE.Vector3();
+const _ay = new THREE.Vector3();
+const _az = new THREE.Vector3();
+const _qa = new THREE.Quaternion();
+const _qb = new THREE.Quaternion();
+const _qc = new THREE.Quaternion();
+
+/** Walk the skeleton parent-first, turning each posed bone about the fighter's
+ *  axes. Parent-first matters even with fixed axes: a bone's parent's world
+ *  orientation is what the rotation is converted through, so the spine has to
+ *  have moved before the arm hanging off it is asked where it is. */
+function applyChain(node, pose, basis) {
+  const e = node.isBone && pose[node.name];
+  if (e && node.parent) {
+    const [rx, ry, rz] = e;
+    _qa.setFromAxisAngle(basis.lateral, rx * DEG);
+    _qb.setFromAxisAngle(basis.up, ry * DEG);
+    _qc.setFromAxisAngle(basis.forward, rz * DEG);
+    const R = _qa.clone().multiply(_qb).multiply(_qc);
+    const p = node.parent.getWorldQuaternion(new THREE.Quaternion());
+    node.quaternion.premultiply(p).premultiply(R).premultiply(p.clone().invert());
+    node.updateMatrixWorld(true);
+  }
+  for (const child of node.children) if (child.isBone) applyChain(child, pose, basis);
 }
 
 /** Whichever of the two the pane is currently showing. */
@@ -1700,6 +1712,24 @@ async function boot() {
   bindKeys();
   await selectChar(ui.char);
   applyTurn();
+  // WHERE THE HANDS ARE, relative to the chest, in the fighter's own frame:
+  // fwd + is in front of him, up + is above the shoulder line, lat + is to his
+  // own left, all in metres. It exists because "his hand looks wrong" is not
+  // reviewable and "his hand is 15cm behind his chest" is — and that is
+  // literally what every guard on this sheet was doing, on both sides, until
+  // somebody looked at the model rather than the numbers. Two rules catch
+  // most of it: a hand doing nothing belongs in FRONT (fwd > 0), and an elbow
+  // that has not been lifted on purpose belongs near the ribs (|lat| < 0.44,
+  // about the width of the shoulders).
+  window.__handsAt = () => {
+    const basis = anatomy();
+    const at = (n) => new THREE.Vector3().setFromMatrixPosition(three.bones.get(n).matrixWorld);
+    const chest = at('Spine2');
+    const rel = (n) => { const v = at(n).sub(chest);
+      return { fwd: +v.dot(basis.forward).toFixed(2), up: +v.dot(basis.up).toFixed(2),
+               lat: +v.dot(basis.lateral).toFixed(2) }; };
+    return { L: rel('LeftHand'), R: rel('RightHand') };
+  };
   window.__workbenchReady = true;
 }
 
