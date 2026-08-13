@@ -256,15 +256,70 @@ function torsoTypical(j, spans) {
 }
 
 /**
+ * WHERE THIS SHEET'S "SIDE ON" ACTUALLY SITS.
+ *
+ * A fighting-game sheet is drawn facing right, and the poses on it are angled
+ * only slightly toward or away from the lens. But the drawings do not put the
+ * two shoulder markers on top of each other, because an artist drawing a
+ * side view still shows both shoulders — Yuji's sit 0.286 torsos apart in the
+ * median frame and 38 of his 40 frames are on the same side of zero.
+ *
+ * Taken literally that says the entire sheet is turned a quarter of the way
+ * toward the camera, which is not what any of those drawings show; it is the
+ * house style, applied evenly, and reading it as a rotation turns every
+ * fighter on every frame. So the ZERO is the sheet's own median rather than
+ * zero separation, and what turns a fighter is how far a frame departs from
+ * how that fighter is usually drawn. Below the median he is angled away, above
+ * it he is angled toward — which is what "slightly angled either way" means,
+ * measured rather than assumed.
+ *
+ * It calibrates per character, which matters: the roster is not drawn to one
+ * shoulder convention, and a baseline borrowed from Yuji would turn Panda.
+ */
+const facingBase = new Map();
+
+function baselineFor(char) {
+  if (facingBase.has(char)) return facingBase.get(char);
+  const data = reads.get(char);
+  const base = { shoulder: 0, hip: 0 };
+  if (data) {
+    for (const [key, pair] of [["shoulder", ["shoulderL", "shoulderR"]],
+                               ["hip", ["hipL", "hipR"]]]) {
+      const vs = [];
+      for (const pose of Object.values(data.poses)) {
+        const j = pose.j;
+        const t = spineLength(j);
+        if (!t || !j[pair[0]] || !j[pair[1]]) continue;
+        vs.push((j[pair[0]][0] - j[pair[1]][0]) / t);
+      }
+      if (!vs.length) continue;
+      vs.sort((a, b) => a - b);
+      const mid = vs.length >> 1;
+      base[key] = vs.length % 2 ? vs[mid] : (vs[mid - 1] + vs[mid]) / 2;
+    }
+  }
+  facingBase.set(char, base);
+  return base;
+}
+
+/** How far a fighter is allowed to be turned by the markers alone. The sheet
+ *  is side-on art; a marker line is a few hand-placed dots, and past a
+ *  three-quarter view it is saying more than a few dots can support. */
+const TURN_MAX = 35 * (Math.PI / 180);
+
+/**
  * How far the shoulder line and the hip line are turned, in radians, and the
  * half-widths they are turned by. Positive is turned toward the camera.
  */
-function facingOf(j, spans) {
+function facingOf(j, spans, base = { shoulder: 0, hip: 0 }) {
   const torso = torsoScale(j, spans);
-  const bar = (a, b, span) => {
+  const bar = (a, b, span, zero) => {
     if (!j[a] || !j[b] || !torso) return { yaw: 0, half: 0 };
     const width = span * torso;
-    const across = j[a][0] - j[b][0];
+    // Measured from where THIS SHEET draws a side view, not from zero
+    // separation — see baselineFor. `zero` is in torsos, the same units the
+    // baseline was taken in, so it scales with the frame like everything else.
+    const across = j[a][0] - j[b][0] - zero * spineLength(j);
     // A drawing can put them further apart than the body allows — a read is a
     // hand placing dots, not a measurement. Square to the camera is the most
     // it can mean.
@@ -295,10 +350,14 @@ function facingOf(j, spans) {
     const dz = depth(j[a]) - depth(j[b]);
     let yaw = Math.asin(sin);
     if (Math.abs(dz) > 0.1 * width && Math.sign(-dz) !== Math.sign(yaw || -dz)) yaw = -yaw;
+    yaw = clamp(yaw, -TURN_MAX, TURN_MAX);
+    // The half-width still describes the body, not the reading: it is how far
+    // apart the shoulders are, and that does not shrink because the baseline
+    // moved.
     return { yaw, half: width / 2 };
   };
-  return { chest: bar("shoulderL", "shoulderR", spans.shoulder),
-           pelvis: bar("hipL", "hipR", spans.hip) };
+  return { chest: bar("shoulderL", "shoulderR", spans.shoulder, base.shoulder),
+           pelvis: bar("hipL", "hipR", spans.hip, base.hip) };
 }
 
 /**
@@ -315,7 +374,7 @@ function facingOf(j, spans) {
  *                       drawing and a foot pointing at the camera
  */
 function resolveDepth(j, spans) {
-  const face = facingOf(j, spans);
+  const face = facingOf(j, spans, baselineFor(ui.char));
   const z = {};
   const set = (name, value) => {
     if (!j[name]) return;
