@@ -732,6 +732,65 @@ export function applyIdleStand(THREE, root3d, deg, tmp) {
   return true;
 }
 
+/** The bind (rest) world matrix of every bone, cached on the root.
+ *
+ *  `boneInverses[i]` is the inverse of bone i's world matrix at bind, so its
+ *  inverse is that matrix — the pose the MODEL was built in, before any clip
+ *  touched it. That is the only place a bone's neutral ROLL is recorded, and
+ *  roll is the half of an arm that aiming does not set. */
+function bindFrames(THREE, root3d) {
+  if (root3d.userData.__bind) return root3d.userData.__bind;
+  let out = null;
+  root3d.traverse((o) => {
+    if (out || !o.isSkinnedMesh || !o.skeleton) return;
+    const map = new Map();
+    o.skeleton.bones.forEach((b, i) => {
+      const m = new THREE.Matrix4().copy(o.skeleton.boneInverses[i]).invert();
+      map.set(b.name, {
+        pos: new THREE.Vector3().setFromMatrixPosition(m),
+        quat: new THREE.Quaternion().setFromRotationMatrix(m),
+      });
+    });
+    out = map;
+  });
+  root3d.userData.__bind = out || new Map();
+  return root3d.userData.__bind;
+}
+
+/**
+ * Point a bone along `dir` FROM ITS BIND POSE, keeping the bind roll.
+ *
+ * The difference from aimBoneAt, and the whole reason this exists: aimBoneAt
+ * turns the bone from wherever the clip left it, by the shortest rotation that
+ * lands on the target. That sets the bone's DIRECTION and inherits its TWIST,
+ * and for a limb the twist is what decides which way the joint below it
+ * hinges. Straightening a delivered idle's arms this way left every elbow
+ * pointing wherever that fighter's clip happened to roll the upper arm —
+ * Gojo's forward, so his arm read as hinging backwards.
+ *
+ * Rotating from BIND instead makes the roll a fact about the model: the pose
+ * the mesh was built and weighted in, where the elbow points the way the
+ * modeller drew it. The rotation used is the minimal one from the bind
+ * direction to `dir`, which is a pure swing and adds no twist of its own.
+ */
+function aimBoneFromBind(THREE, root3d, bone, childName, dir, tmp) {
+  const bind = bindFrames(THREE, root3d);
+  const here = bind.get(bone.name);
+  const child = bind.get(childName);
+  if (!here || !child) return false;
+  const bindDir = tmp.v1.copy(child.pos).sub(here.pos);
+  if (bindDir.lengthSq() < 1e-10) return false;
+  bindDir.normalize();
+  const swing = tmp.q1.setFromUnitVectors(bindDir, dir);
+  const want = tmp.q2.copy(swing).multiply(here.quat);
+  const parent = bone.parent
+    ? bone.parent.getWorldQuaternion(new THREE.Quaternion())
+    : new THREE.Quaternion();
+  bone.quaternion.copy(parent.invert().multiply(want));
+  bone.updateMatrixWorld(true);
+  return true;
+}
+
 /**
  * HOW A FIGHTER CARRIES THEIR ARMS in their idle: straight, hanging, and out
  * from the body by `deg`.
@@ -786,28 +845,16 @@ export function applyIdleArms(THREE, root3d, deg, tmp) {
     const { up, lo, hand } = arms[i];
     const dir = tmp.v6.set(0, -1, 0).applyAxisAngle(axis, sign * rad).normalize();
 
-    up.updateWorldMatrix(true, false);
-    const shoulder = tmp.p1.setFromMatrixPosition(up.matrixWorld);
+    // FROM BIND, not from the clip: the bind pose is where the elbow's hinge
+    // is recorded. Aiming from wherever the delivery left the arm carries that
+    // clip's twist into the idle, and a twisted upper arm is an elbow that
+    // points the wrong way.
+    const side = i === 0 ? "Left" : "Right";
     if (lo) {
-      lo.updateWorldMatrix(true, false);
-      const elbow = tmp.p2.setFromMatrixPosition(lo.matrixWorld);
-      const upperLen = elbow.distanceTo(shoulder);
-      aimBoneAt(THREE, up, shoulder, elbow,
-        tmp.p3.copy(shoulder).addScaledVector(dir, upperLen), tmp);
-      if (hand) {
-        lo.updateWorldMatrix(true, false);
-        hand.updateWorldMatrix(true, false);
-        const elbow2 = tmp.p1.setFromMatrixPosition(lo.matrixWorld);
-        const wrist = tmp.p2.setFromMatrixPosition(hand.matrixWorld);
-        const foreLen = wrist.distanceTo(elbow2);
-        aimBoneAt(THREE, lo, elbow2, wrist,
-          tmp.p3.copy(elbow2).addScaledVector(dir, foreLen), tmp);
-      }
+      aimBoneFromBind(THREE, root3d, up, `${side}ForeArm`, dir, tmp);
+      if (hand) aimBoneFromBind(THREE, root3d, lo, `${side}Hand`, dir, tmp);
     } else if (hand) {
-      hand.updateWorldMatrix(true, false);
-      const wrist = tmp.p2.setFromMatrixPosition(hand.matrixWorld);
-      aimBoneAt(THREE, up, shoulder, wrist,
-        tmp.p3.copy(shoulder).addScaledVector(dir, wrist.distanceTo(shoulder)), tmp);
+      aimBoneFromBind(THREE, root3d, up, `${side}Hand`, dir, tmp);
     }
   }
   root3d.updateMatrixWorld(true);

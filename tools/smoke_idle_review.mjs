@@ -171,7 +171,7 @@ if (rows.pickerShown) {
   const switched = await page.evaluate(async () => {
     const sel = document.getElementById("facingDialPick");
     const seen = [];
-    for (const v of ["yaw", "scale", "stance", "head"]) {
+    for (const v of ["yaw", "scale", "stance", "arms", "head"]) {
       sel.value = v;
       sel.dispatchEvent(new Event("change", { bubbles: true }));
       const on = [...document.querySelectorAll("#facingDials .facing-dial")]
@@ -182,7 +182,7 @@ if (rows.pickerShown) {
   });
   check(switched, "the picker switches which dial is shown");
 } else {
-  check(rows.dialCount === 4, "the desk shows every dial at once",
+  check(rows.dialCount === 5, "the desk shows every dial at once",
     `${rows.dialCount} visible`);
 }
 
@@ -192,6 +192,41 @@ async function useDialEarly(name) {
     await page.selectOption("#facingDialPick", name);
     await page.waitForTimeout(120);
   }
+}
+
+// THE ARM DIAL MOVES THE RIG. Same claim as the size, stance and turn dials
+// below: a readout that changes while the model does not is the failure that
+// looks most like success.
+await useDialEarly("arms");
+const armed = await page.evaluate(async () => {
+  const L = await import("/render3d/src/loader.js");
+  const THREE = await import("/vendor/three/three.module.js");
+  const key = document.getElementById("charSelect").value;
+  const reach = () => {
+    const r = L.getRig(key);
+    if (!r) return null;
+    r.root.updateMatrixWorld(true);
+    const h = r.root.getObjectByName("LeftHand");
+    const s = r.root.getObjectByName("LeftArm");
+    if (!h || !s) return null;
+    const a = new THREE.Vector3().setFromMatrixPosition(h.matrixWorld);
+    const b = new THREE.Vector3().setFromMatrixPosition(s.matrixWorld);
+    return Math.hypot(a.x - b.x, a.z - b.z);
+  };
+  const before = reach();
+  const el = document.getElementById("facingArm");
+  el.value = "26";
+  el.dispatchEvent(new Event("input", { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 200));
+  return { before, after: reach(), deg: L.getRig(key)?.armDeg };
+});
+if (armed.before === null) {
+  check(true, "arm dial check skipped — this fighter has no arm bones");
+} else {
+  check(armed.deg === 26, "the arm dial reaches the rig", `armDeg ${armed.deg}`);
+  check(armed.after > armed.before + 0.02,
+    "...and the hand actually moves out from the shoulder",
+    `${(armed.before * 100).toFixed(0)}cm -> ${(armed.after * 100).toFixed(0)}cm`);
 }
 
 // REVERT, per fighter. Every other control writes a number and there was no way
