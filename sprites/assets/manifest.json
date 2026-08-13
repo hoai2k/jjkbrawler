@@ -10438,12 +10438,6 @@
     "centroidX": 54.6,
     "renderScale": 0.219,
     "file": "sukuna/grab_hold.png",
-    "replaced": {
-     "at": "2026-08-12T23:16:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 954,
@@ -11896,7 +11890,7 @@
     "bodyBottom": 229.0,
     "bodyH": 284.4,
     "centroidX": 71.5,
-    "renderScale": 0.215,
+    "renderScale": 0.2118,
     "file": "megumi/grab_reach.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -11915,6 +11909,9 @@
       "bodyBottom": "foot=0.938 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.215
     }
    },
    "grabbed": {
@@ -18058,10 +18055,10 @@
     "h": 1505,
     "ox": -121.1,
     "oy": -1194,
-    "bodyBottom": 227.4,
+    "bodyBottom": 200.9,
     "bodyH": 298.0,
     "centroidX": 41.1,
-    "renderScale": 0.198,
+    "renderScale": 0.2,
     "file": "nobara/grab_hold.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -18080,6 +18077,10 @@
       "bodyBottom": "foot=0.944 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.198,
+     "bodyBottom": 227.4
     }
    },
    "grab_reach": {
@@ -33700,7 +33701,7 @@
     "h": 1280,
     "ox": -392.5,
     "oy": -969,
-    "bodyBottom": 264.2,
+    "bodyBottom": 251.2,
     "bodyH": 503.9,
     "centroidX": 128.0,
     "renderScale": 0.394,
@@ -33722,6 +33723,9 @@
       "bodyBottom": "foot=0.963 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 264.2
     }
    },
    "grab_reach": {
@@ -33729,7 +33733,7 @@
     "h": 1079,
     "ox": -447.3,
     "oy": -768,
-    "bodyBottom": 271.6,
+    "bodyBottom": 246.1,
     "bodyH": 424.8,
     "centroidX": 74.8,
     "renderScale": 0.394,
@@ -33751,6 +33755,9 @@
       "bodyBottom": "foot=0.963 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 271.6
     }
    },
    "grabbed": {
@@ -39154,7 +39161,7 @@
     "bodyBottom": 176.1,
     "bodyH": 435.8,
     "centroidX": 191.6,
-    "renderScale": 0.292,
+    "renderScale": 0.2832,
     "file": "kurourushi/grabbed.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -39173,6 +39180,9 @@
       "bodyBottom": "foot=0.909 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.292
     }
    }
   }
@@ -61384,6 +61394,26 @@
    },
    "dx": -13.6,
    "dy": 3.2
+  },
+  "effect:drop_bike": {
+   "edited": {
+    "renderScale": null,
+    "dx": null,
+    "dy": null
+   },
+   "renderScale": 1.525,
+   "dx": 2.2,
+   "dy": -19.7
+  },
+  "effect:drop_vending": {
+   "edited": {
+    "renderScale": null,
+    "dx": null,
+    "dy": null
+   },
+   "renderScale": 1.2,
+   "dx": 1.9,
+   "dy": -44.4
   }
  }
 }
