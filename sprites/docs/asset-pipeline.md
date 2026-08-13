@@ -215,6 +215,35 @@ one place is the point — a tornado that stands on the floor (`tempest`:
 `translate(640, 595)` then `-h`) was centred in mid-air for the same reason a
 geyser was, and both are one line here.
 
+### Standing it where the move puts it
+
+A shared drawing used to be shown alone in the middle of the canvas with a
+fighter beside it for scale. It is now shown **where the move puts it**: the
+fighter stands in the pose that throws it — the special's own slot animation, or
+`ult` — at exactly the distance the handler spawns it at, so a beam can be lined
+up against the hand that fires it rather than against a guess.
+
+Those distances are read off the handlers and live in `LAUNCH` beside the rest
+of each spawn site's answers: `spawnProjectile` at `ox ?? 70` forward and
+`oy ?? -86` up, `spawnSummonFlash` at the fighter's feet and its own `forward`,
+a trap at `dist ?? 220`. The drawing keeps the middle of the canvas and the
+FIGHTER moves to the right distance, so switching drawings does not send the
+thing you are looking at wandering around the viewer.
+
+The offset itself is the MOVE's, not the drawing's — it is a kit number, the
+same one for every drawing that move might use — so the workbench shows it and
+does not edit it. What the workbench edits is where the picture sits relative to
+that point.
+
+**A melee move's box is drawn on the fighter too.** Several moves whose art is a
+flash beside a swing — Yuji's divergent fist, Panda's drum, Mahito's soul touch,
+Rika's claw — declare that swing's `w`/`h` on the same kit node as the drawing,
+where they read like the drawing's own box. They are nothing of the kind:
+`spawnMelee` puts them on the FIGHTER at its own offset while the art stands
+somewhere else. Drawing that rectangle around the picture claimed a shape the
+game never tests there; it is drawn from the fighter now, labelled as the
+swing's.
+
 ### Directional effects, and the one point they have
 
 A projectile is drawn centred on its own position, and that position IS the

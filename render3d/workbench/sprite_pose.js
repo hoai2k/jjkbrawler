@@ -59,7 +59,8 @@ import { CHARACTER_KEYS, CHARACTERS } from "../../src/characters.js";
 import { makeOrbit } from "./orbit.js";
 import { matchedPose, MATCHED_FRAMES } from "../src/battle_poses.js";
 import { poseEntry } from "../src/sprite_poses.js";
-import { baselinePose, INTENT_POSES } from "../src/baseline_poses.js";
+import { baselinePose, INTENT_POSES, intentFor, contactFor, AIRBORNE, HEIGHTS }
+  from "../src/baseline_poses.js";
 
 const READS_URL = "../../sprites/docs/pose-reads/";
 const SPRITES_URL = "../../sprites/assets/";
@@ -1040,6 +1041,58 @@ function poseFromGame(char, key) {
 }
 
 /**
+ * PUT THE FIGHTER ON THE FLOOR.
+ *
+ * The preview swings bones and never translated the root, so nothing was ever
+ * in contact with anything: an idle floated 7cm up, a matched crouch floated
+ * 29, and "does the fist reach the ground" had no meaning because the ground
+ * was not where he was standing. Grounded poses now drop until their lowest
+ * bone sits on the line; airborne ones are left exactly where the pose puts
+ * them, because a fighter mid-jump touching the floor is a worse lie than one
+ * hovering over it.
+ *
+ * It only moves him VERTICALLY. Where a pose travels along the ground is the
+ * engine's business (motion.js), not a pose's.
+ */
+function plantOnGround(frame) {
+  if (!three.root) return;
+  three.root.position.y = 0;
+  three.root.updateMatrixWorld(true);
+  if (AIRBORNE.has(intentFor(frame))) return;
+  // THE FEET ARE THE SUPPORT, so they are what sits on the line — not "the
+  // lowest bone", which sounds more general and is wrong twice over. A
+  // delivered rig hangs its armature off an outer node parked at the world
+  // origin, so the lowest bone is that node and the fighter never moves; and
+  // once that is fixed, an overhand whose fist goes below the feet is planted
+  // ON ITS FIST, which is a handstand. A fist that does not reach the floor is
+  // a pose that is short, and saying so is the contact readout's job.
+  const support = intentFor(frame) === "prone"
+    ? [...Object.values(JOINT_BONE), "LeftToeBase", "RightToeBase"]
+    : ["LeftFoot", "RightFoot", "LeftToeBase", "RightToeBase"];
+  let low = Infinity;
+  for (const name of support) {
+    const bone = three.bones.get(name);
+    if (!bone) continue;
+    const y = new THREE.Vector3().setFromMatrixPosition(bone.matrixWorld).y;
+    if (y < low) low = y;
+  }
+  if (!Number.isFinite(low)) return;
+  three.root.position.y = -low;
+  three.root.updateMatrixWorld(true);
+}
+
+/** How far the pose is from the contact it is supposed to make, in metres.
+ *  Positive is short of it; negative is past it. */
+function contactMiss(frame) {
+  const want = contactFor(frame);
+  const bone = want && three.bones?.get(want.bone);
+  if (!bone) return null;
+  const y = new THREE.Vector3().setFromMatrixPosition(bone.matrixWorld).y;
+  const target = (HEIGHTS[want.at] ?? 0) * (three.height || 1.75);
+  return { ...want, y, target, miss: y - target };
+}
+
+/**
  * Which of the three the pane is showing — and it is not always the one asked
  * for, which is the whole reason this returns a name rather than a boolean.
  * "Matched, and this frame has one" and "Matched, but this frame has none so
@@ -1047,6 +1100,12 @@ function poseFromGame(char, key) {
  * control and completely different facts about the frame.
  */
 function poseRigFor(key, j) {
+  const out = poseRigOnly(key, j);
+  plantOnGround(key);
+  return out;
+}
+
+function poseRigOnly(key, j) {
   if (ui.mode === "matched") {
     const match = matchedPose(key);
     if (match && poseFromMatch(match)) return { shown: "matched" };
@@ -1483,6 +1542,21 @@ function renderEditor() {
   // the rig ended up doing rather than what the read asked for.
   $("#plate").innerHTML = plateHTML(ui.char, ui.pose, pose.j,
     { handles: true, shown: jointsFromRig(pose.j), mode: how.shown });
+  // WHAT THE POSE IS SUPPOSED TO REACH, and whether it does. A fist that stops
+  // at hip height is not an overhand into the floor however good the body
+  // looks, and this is the only place that says so.
+  const c = contactMiss(ui.pose);
+  const hit = $("#poseContact");
+  hit.hidden = !c;
+  if (c) {
+    const cm = Math.round(Math.abs(c.miss) * 100);
+    const ok = cm <= 8;
+    hit.textContent = `${c.bone.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase()} → `
+      + `${c.at}${ok ? "" : ` · ${cm}cm ${c.miss > 0 ? "short" : "past"}`}`;
+    hit.className = `contact ${ok ? "ok" : "miss"}`;
+    hit.title = `${c.why} — the bone sits at ${c.y.toFixed(2)}m, `
+      + `the target is ${c.target.toFixed(2)}m`;
+  }
   $("#poseMode").textContent = MODE_LABEL[ui.mode];
   $("#poseModeBox").className = `check mode ${ui.mode}`;
   drawThree();
@@ -1653,6 +1727,7 @@ function bindPlate() {
 function bindKeys() {
   addEventListener("keydown", (e) => {
     if (e.target.matches("input, textarea, select")) return;
+    if (e.key === "Escape" && ui.sel) { ui.sel = null; renderEditor(); e.preventDefault(); return; }
     if ((e.key === "z" || e.key === "Z") && (e.metaKey || e.ctrlKey)) {
       const stack = undo.get(`${ui.char}/${ui.pose}`);
       if (stack?.length) {
@@ -1663,13 +1738,38 @@ function bindKeys() {
       return;
     }
     const step = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
-    if (!step || !ui.sel) return;
+    if (!step) return;
+    // WITH NO JOINT SELECTED THE ARROWS WALK THE GRID. One key does two things
+    // and which one is unambiguous: a selected joint is a thing you are moving,
+    // and nothing selected means you are still choosing a frame. Click the
+    // plate's background (or press Escape) to drop the joint and get the grid
+    // back.
+    if (!ui.sel) { stepPose(step); e.preventDefault(); return; }
     const k = e.shiftKey ? 2 : 0.5;
     pushUndo();
     moveJoint(ui.sel, step[0] * k, step[1] * k, { chain: !e.altKey });
     commit();
     e.preventDefault();
   });
+}
+
+/**
+ * Move one place through the picker. The column count is read off the grid
+ * rather than hardcoded, so up/down keeps meaning "the frame above" if the
+ * layout ever changes width.
+ */
+function stepPose([dx, dy]) {
+  const keys = Object.keys(reads.get(ui.char)?.poses || {});
+  if (!keys.length) return;
+  const list = $("#poseList");
+  const cols = Math.max(1,
+    getComputedStyle(list).gridTemplateColumns.split(" ").filter(Boolean).length);
+  const i = keys.indexOf(ui.pose);
+  const next = i < 0 ? 0 : clamp(i + dx + dy * cols, 0, keys.length - 1);
+  if (keys[next] === ui.pose) return;
+  selectPose(keys[next]);
+  list.querySelector(`[data-pose="${keys[next]}"]`)
+    ?.scrollIntoView({ block: "nearest" });
 }
 
 // ------------------------------------------------------------------- export
@@ -1793,6 +1893,7 @@ function shell() {
                 <span id="poseMode">Matched</span> <span class="cycle">⟳</span>
               </button>
               <span class="how" id="poseHow"></span>
+              <span class="contact" id="poseContact" hidden></span>
             </div>
             <p class="hint">The fighter's own rig: spine, neck, both clavicles,
               arms, legs and feet. The plate carries a second skeleton in the
@@ -1830,6 +1931,14 @@ async function showBuild() {
   } catch { /* a HEAD that fails is not worth a broken page */ }
 }
 
+function selectPose(key) {
+  if (!key || key === ui.pose) return;
+  ui.pose = key;
+  ui.sel = null;
+  renderPicker();
+  renderEditor();
+}
+
 async function selectChar(char) {
   ui.char = char;
   const data = await loadRead(char);
@@ -1857,11 +1966,7 @@ async function boot() {
   $("#charPick").addEventListener("change", (e) => { ui.pose = null; selectChar(e.target.value); });
   $("#poseList").addEventListener("click", (e) => {
     const btn = e.target.closest("[data-pose]");
-    if (!btn) return;
-    ui.pose = btn.dataset.pose;
-    ui.sel = null;
-    renderPicker();
-    renderEditor();
+    if (btn) selectPose(btn.dataset.pose);
   });
   $("#jointList").addEventListener("click", (e) => {
     const li = e.target.closest("[data-joint]");

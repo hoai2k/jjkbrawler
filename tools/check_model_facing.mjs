@@ -24,6 +24,24 @@
 // whether two poses read apart, for the same reason: it is what the eye is
 // doing when it decides which way somebody is facing.
 //
+// WHAT THIS CANNOT DO, AND IT COST A ROSTER TO LEARN IT. An outline cannot tell
+// FRONT from BACK. Turn a standing figure through 180° and the silhouette is
+// very nearly the same shape — measured across this roster the two score within
+// 0.118 of each other on average, within 0.012 for Nobara, and for four
+// fighters the model facing AWAY scores HIGHER than the model facing the
+// camera. So a sweep of the whole circle has a second peak about 180° from the
+// true one, and it can win on details that have nothing to do with facing: a
+// gap under an arm, the flare of a coat.
+//
+// An earlier version of this file swept the circle, took the best score, and
+// called it confident when the score beat the stored angle by a margin. That
+// margin measured OUTLINE FIT, not FACING, and it duly turned Nobara, Yuta,
+// Todo, Yuki and Dagon around backwards — every one of them moved by 112° to
+// 164°, which is the signature of landing on the wrong peak. `--solve` now
+// refuses any answer its own opposite can match (frontBackGap below), which is
+// most of them. Front-versus-back is a job for the 3D workbench, where a human
+// looks at the model beside the drawing.
+//
 //   node server.mjs
 //   node tools/check_model_facing.mjs            # every fighter
 //   node tools/check_model_facing.mjs gojo       # just one
@@ -209,10 +227,16 @@ const rows = await page.evaluate(async ([only, wantMasks, solve, turnSweep]) => 
         if (sc > best.score) best = { deg: d, score: sc };
       }
       const storedScore = scoreAt(stored);
+      // THE ONE CHECK THAT MATTERS: how much worse is this same answer spun
+      // half a turn? If the outline cannot tell, neither can this tool, and
+      // the number it would print is a coin toss between facing and facing
+      // away.
+      const oppositeScore = scoreAt(best.deg + 180);
       rigs.setRigSettings(key, { yawOffsetDeg: stored });
       scene.clearCache();
       out.push({ key, solve: true, stored, storedScore: +storedScore.toFixed(3),
                  bestDeg: best.deg, bestScore: +best.score.toFixed(3),
+                 frontBackGap: +(best.score - oppositeScore).toFixed(3),
                  curve: curve.sort((a, b) => b[1] - a[1]).slice(0, 6) });
       continue;
     }
@@ -268,16 +292,29 @@ if (SOLVE) {
     const gain = r.bestScore - r.storedScore;
     console.log(`${r.key}: stored ${r.stored}° scores ${r.storedScore}`
       + `  ·  best ${r.bestDeg}° scores ${r.bestScore}  (+${gain.toFixed(3)})`);
-    console.log(gain >= SOLVE_CONFIDENT
-      ? `  CONFIDENT — the stored angle is wrong; ${r.bestDeg}° is what the drawing says`
-      : `  not readable off an idle (needs +${SOLVE_CONFIDENT} to call): leave the stored angle alone`);
+    console.log(`  same angle spun 180°: ${(r.bestScore - r.frontBackGap).toFixed(3)}`
+      + `  (gap ${r.frontBackGap >= 0 ? "+" : ""}${r.frontBackGap.toFixed(3)})`);
+    if (r.frontBackGap < SOLVE_CONFIDENT) {
+      console.log(`  WITHHELD — the outline cannot tell front from back here, so `
+        + `${r.bestDeg}° and ${((r.bestDeg + 180 + 180) % 360) - 180}° are the same claim.`);
+      console.log(`  Judge this one in the 3D workbench, model beside drawing.`);
+    } else if (gain < SOLVE_CONFIDENT) {
+      console.log(`  WITHHELD — beats the stored angle by only ${gain.toFixed(3)} `
+        + `(needs ${SOLVE_CONFIDENT}): leave it alone.`);
+    } else {
+      console.log(`  usable — ${r.bestDeg}° fits the drawing better AND survives the `
+        + `front/back check. Still worth a look in the workbench before writing it.`);
+    }
     console.log(`  top angles: ${r.curve.map(([d, v]) => `${d}°=${v}`).join("  ")}`);
   }
   process.exit(0);
 }
 
 let backwards = 0, unclear = 0, ok = 0;
-const call = (d) => (d > MARGIN ? "BACKWARDS" : d < -MARGIN ? "ok" : "unclear");
+// "MIRRORED" rather than "backwards": the mirror of the drawing is what a
+// fighter facing LEFT looks like, and also roughly what one facing AWAY looks
+// like, so a flag here says the facing is wrong without saying which way.
+const call = (d) => (d > MARGIN ? "MIRRORED" : d < -MARGIN ? "ok" : "unclear");
 console.log("fighter       facing RIGHT              facing LEFT");
 console.log("              drawn  mirror  verdict    drawn  mirror  verdict");
 for (const r of rows) {
@@ -286,7 +323,7 @@ for (const r of rows) {
   const dL = r.leftSame === null ? null : r.leftMirrored - r.leftSame;
   const vR = call(dR), vL = dL === null ? "—" : call(dL);
   for (const v of [vR, vL]) {
-    if (v === "BACKWARDS") backwards++; else if (v === "ok") ok++; else if (v === "unclear") unclear++;
+    if (v === "MIRRORED") backwards++; else if (v === "ok") ok++; else if (v === "unclear") unclear++;
   }
   console.log(`${r.key.padEnd(13)} ${String(r.same).padStart(5)} ${String(r.mirrored).padStart(7)}`
     + `  ${vR.padEnd(9)}  ${String(r.leftSame).padStart(5)} ${String(r.leftMirrored).padStart(7)}  ${vL}`);
@@ -295,6 +332,6 @@ for (const r of rows) {
     writeFileSync(`${OUT}/${r.key}_sprite.png`, Buffer.from(r.spritePng.split(",")[1], "base64"));
   }
 }
-console.log(`\n${ok} right way round · ${backwards} backwards · ${unclear} too close to call`
+console.log(`\n${ok} right way round · ${backwards} mirrored · ${unclear} too close to call`
   + "   (each fighter counts twice: facing right and facing left)");
 process.exit(backwards > 0 ? 1 : 0);

@@ -1354,10 +1354,19 @@ function comparisonTarget() {
     if (mode === "hide") return null;
     const owner = sharedOwner(state.frame);
     const charKey = mode === "gojo" || !owner ? "gojo" : owner;
-    const key = rawMeta(charKey, "idle_a") ? "idle_a" : "r0c0";
+    // The pose the fighter is IN while this drawing exists, when the move says
+    // which — the special's own slot animation, or `ult`. A beam is aligned to
+    // the hand that fires it, and that hand is only in the right place in the
+    // pose that fires it; an idle put it somewhere else entirely.
+    const launch = charKey === owner ? sharedControls(state.frame)?.launch : null;
+    const firing = launch?.anim ? launchPose(charKey, launch.anim) : null;
+    const key = firing || (rawMeta(charKey, "idle_a") ? "idle_a" : "r0c0");
+    const move = sharedUsage().get(state.frame)?.[0]?.label;
     return {
       charKey, frameKey: key,
-      caption: charKey === owner ? `${actorOf(charKey).name} — throws this` : "Gojo — roster size reference",
+      caption: charKey === owner
+        ? `${actorOf(charKey).name}${firing && move ? ` — ${move}` : " — throws this"}`
+        : "Gojo — roster size reference",
     };
   }
   const row = state.actionRow;
@@ -1406,8 +1415,17 @@ function comparisonTarget() {
  *  as an overlay that had slipped sideways. */
 const comparisonAsked = new Set();
 
-function drawComparison({ charKey, frameKey, caption, sub, as, empty }, zoom = state.zoom) {
-  const x = platformX() + BENCHMARK_INSET;
+/** The frame a fighter is showing while their own move runs — the last frame of
+ *  that animation, which is the release rather than the wind-up. Null when they
+ *  have no art for it, in which case the idle stands in rather than a hole. */
+function launchPose(charKey, anim) {
+  const frames = resolvedAnim(charKey, anim)?.frames || [];
+  const key = frames[frames.length - 1];
+  return key && rawMeta(charKey, key) ? key : null;
+}
+
+function drawComparison({ charKey, frameKey, caption, sub, as, empty }, zoom = state.zoom, x = null) {
+  x ??= platformX() + BENCHMARK_INSET;
   // The slot can name a character whose set has never been streamed — the
   // fighter who throws an effect, most of all, since Other Sprites downloads
   // no fighter at all. Asked for once, then drawn when it lands.
@@ -1480,7 +1498,14 @@ function render() {
   // and the slider does the obvious thing; at the fit the drawing holds the
   // canvas and the fighter shrinks against it, which is the same fact seen from
   // the other side — the effect is getting bigger relative to a man.
-  if (comparison) drawComparison(comparison, isOther(state.char) ? sceneZoom() : state.zoom);
+  if (comparison) {
+    const v = isOther(state.char) ? sharedView() : null;
+    // Standing at the distance the move puts between them: the drawing holds the
+    // middle of the canvas and the FIGHTER moves to where they would be, so
+    // switching drawings does not send the thing you are looking at wandering.
+    const x = v?.launch ? canvasCentreX() - v.launch.forward * v.z : null;
+    drawComparison(comparison, v ? v.z : state.zoom, x);
+  }
   // Overlaid, and only overlaid: within one sprite set the question is whether
   // this pose lines up with the character's own idle, and that is only readable
   // when the two occupy the same space. Standing it aside is the Comparison
@@ -2093,6 +2118,31 @@ function setAttackBox(key, box, start) {
  */
 function drawSharedHit(v) {
   const { px, py, z, hit, anchor, scale } = v;
+  // A melee move's box is measured from the FIGHTER, not from the drawing —
+  // `hitboxRect` in combat.js — so it is drawn there, beside the pose, and says
+  // whose it is. Only possible at all now that the fighter is standing at the
+  // distance the move puts them; before this the rectangle had nowhere honest
+  // to go and was drawn around the picture, which claimed a shape the game
+  // never tests there.
+  if (hit.melee && v.launch) {
+    const fx = px - v.launch.forward * z;
+    const x = fx + hit.melee.forward * z, y = GROUND_Y + hit.melee.y * z;
+    ctx.save();
+    ctx.strokeStyle = "rgba(255, 210, 90, 0.9)";
+    ctx.fillStyle = "rgba(255, 210, 90, 0.10)";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]);
+    ctx.fillRect(x, y, hit.melee.w * z, hit.melee.h * z);
+    ctx.strokeRect(x, y, hit.melee.w * z, hit.melee.h * z);
+    ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(255, 226, 150, 0.95)";
+    ctx.font = "600 11px Inter, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(`the swing's box ${Math.round(hit.melee.w)}×${Math.round(hit.melee.h)}px — on the fighter`,
+                 x, Math.max(12, y - 6));
+    ctx.restore();
+    return;
+  }
   ctx.save();
   ctx.strokeStyle = "rgba(255, 210, 90, 0.9)";
   ctx.fillStyle = "rgba(255, 210, 90, 0.10)";
@@ -2229,9 +2279,14 @@ function sharedView(key = state.frame) {
     : Math.min(state.zoom, (GROUND_Y - 20) / Math.max(artH, hitH, 1));
   const h = artH * z;
   const anchor = can?.anchor || "feet";
-  const py = anchorScreenY(anchor, h);
+  // Where the move puts it on the fighter, when the handler's arithmetic is
+  // known: `y` game pixels from their feet, which is the height the crosshair
+  // and everything hung off it belong at. Without a launch it falls back to the
+  // viewer's own resting heights.
+  const launch = can?.launch || null;
+  const py = launch ? GROUND_Y + launch.y * z : anchorScreenY(anchor, h);
   return {
-    img, can, meta, scale, hit, z, h, anchor,
+    img, can, meta, scale, hit, z, h, anchor, launch,
     // Two different things worth saying out loud, and only one of them is a
     // compromise: `fitted` means the view was shrunk because the drawing has no
     // declared size to hold it to, `overflows` means it is drawn at full size
@@ -2244,7 +2299,7 @@ function sharedView(key = state.frame) {
     // plate while the game shows the flip is how a drawing already pointing
     // the right way gets "corrected" with the Mirror box into flying backwards.
     // Fired right rather than left because the reference fighter faces right.
-    mirror: !!can?.travels,
+    mirror: !!can?.mirrored,
     w: img.width * h / img.height,
     px: canvasCentreX(),
     py,
@@ -2994,6 +3049,8 @@ function sharedControls(key) {
     // the stage. Those have a height to draw them at and no way to change it.
     size: Number.isFinite(info.h) && info.sizable !== false,
     travels: !!info.travels,
+    mirrored: !!info.mirrored,
+    launch: info.launch || null,
     kind: info.kind || "effect",
     offset: nudge,
     rotate: nudge,
@@ -3061,6 +3118,16 @@ function refreshUsageInfo() {
           + "Drag it on the canvas to place it (a dog bites with its head, not its tail); "
           + "drag the corner to size it. Shown under the Hurtbox toggle.");
       }
+    }
+    if (can.launch) {
+      const L = can.launch;
+      const where = `${Math.abs(L.forward)}px ${L.forward < 0 ? "behind" : "in front of"} them`
+        + `, ${L.y < 0 ? `${Math.abs(L.y)}px up` : L.y > 0 ? `${L.y}px below their feet` : "at their feet"}`;
+      lines.push(`<b>Launched from the fighter:</b> ${where} — so the canvas stands them `
+        + "at that distance, in the pose the move plays, and you can line the drawing up "
+        + "against the hand that throws it. That offset is the MOVE's "
+        + "(<code>ox</code>/<code>oy</code> in the kit, or the spawn site's default); it is not "
+        + "editable here, and moving the drawing off it is what the nudge does.");
     }
     if (can.travels) {
       lines.push("<b>Directional.</b> The game mirrors this drawing to the way it is "
