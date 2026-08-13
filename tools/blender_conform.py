@@ -72,8 +72,8 @@ from blender_clean_weights import clean_all  # noqa: E402
 from blender_grade_texture import grade_char  # noqa: E402
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATES_JS = os.path.join(REPO, "billboards", "src", "states.js")
-PROPS_JS = os.path.join(REPO, "billboards", "src", "props.js")
+STATES_JS = os.path.join(REPO, "render3d", "src", "states.js")
+PROPS_JS = os.path.join(REPO, "render3d", "src", "props.js")
 CHARACTERS_JS = os.path.join(REPO, "src", "characters.js")
 
 FPS = 30
@@ -825,6 +825,12 @@ def main():
     ap.add_argument("--in", dest="src", required=True)
     ap.add_argument("--out", dest="dst", required=True)
     ap.add_argument("--char", required=True)
+    # The fighter was drawn and generated EMPTY-HANDED and the weapon comes in
+    # its own file, so there is no weapon in this mesh to rescue. Saying so
+    # matters: the rescue finds a weapon by geometry, and with no weapon there
+    # it still finds something — on Momo it bound 4231 vertices of her LEGS to
+    # the prop hook and handed her shins to the broom.
+    ap.add_argument("--prop-supplied", action="store_true")
     args = ap.parse_args(argv)
 
     states = load_states()
@@ -848,7 +854,11 @@ def main():
     add_missing_hooks(arm, props, chains, report)
     # Before clean_all, or the weight passes mistake the weapon for badly
     # bound skin and saw it apart — see the function's own comment.
-    rescue_rigid_props(arm, props, report)
+    if args.prop_supplied:
+        report.append("  prop rescue skipped: the weapon is generated separately "
+                      "and joined after conform — nothing in this mesh to rescue")
+    else:
+        rescue_rigid_props(arm, props, report)
     # Also before clean_all: the new chain bones are children of Head, so the
     # weight passes accept them — but only once the verts actually belong to
     # them. Run the other way round and the hair is still Head's skin when
