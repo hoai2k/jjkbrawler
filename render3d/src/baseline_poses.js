@@ -69,11 +69,11 @@ export const INTENT_POSES = {
   // The anticipation: chest rotates AWAY, rear hand chambers at the jaw,
   // weight loads onto the rear leg. The frame that makes the strike read fast.
   strike_wind: p({
-    Spine: [2, -28, 0], Spine1: [0, -16, 0], Head: [0, 14, 0],
-    LeftUpLeg: [-10, 0, 2], LeftLeg: [18, 0, 0], LeftFoot: [-2, 0, 0],
-    RightUpLeg: [8, 0, -2], RightLeg: [34, 0, 0], RightFoot: [-6, 0, 0],
-    RightArm: [26, -30, 62], RightForeArm: [-96, 0, 45],
-    LeftArm: [-40, -12, -70], LeftForeArm: [-108, 0, -58],
+    Spine: [10, -46, 0], Spine1: [4, -24, 0], Head: [-4, 30, 0],
+    LeftUpLeg: [-34, 0, 4], LeftLeg: [46, 0, 0], LeftFoot: [-6, 0, 0],
+    RightUpLeg: [4, 0, -4], RightLeg: [58, 0, 0], RightFoot: [-4, 0, 0],
+    RightArm: [40, -46, 28], RightForeArm: [-118, 0, 30],
+    LeftArm: [-58, -18, -50], LeftForeArm: [-84, 0, -40],
   }),
   // Contact: hip through, trunk rotated, rear heel up, arm arriving last and
   // level. The hitbox goes live here, so it is full extension and aim-neutral.
@@ -226,11 +226,11 @@ export const INTENT_POSES = {
   // Winding up from the crouch and STAYING DOWN — the brief is emphatic that a
   // crouch attack whose head rises is not one.
   crouch_wind: p({
-    Spine: [34, -24, 0], Spine1: [13, -14, 0], Head: [-18, 12, 0],
-    LeftUpLeg: [-86, 0, 4], LeftLeg: [92, 0, 0], LeftFoot: [-8, 0, 0],
-    RightUpLeg: [-80, 0, -4], RightLeg: [90, 0, 0], RightFoot: [-8, 0, 0],
-    RightArm: [30, -32, 60], RightForeArm: [-98, 0, 45],
-    LeftArm: [-36, -10, -66], LeftForeArm: [-100, 0, -56],
+    Spine: [26, -48, 0], Spine1: [10, -26, 0], Head: [-14, 30, 0],
+    LeftUpLeg: [-96, 0, 10], LeftLeg: [104, 0, 0], LeftFoot: [-8, 0, 0],
+    RightUpLeg: [-62, 0, -14], RightLeg: [110, 0, 0], RightFoot: [-8, 0, 0],
+    RightArm: [56, -52, 20], RightForeArm: [-124, 0, 24],
+    LeftArm: [-70, -14, -44], LeftForeArm: [-70, 0, -34],
   }),
   // A twist out of the line of the blow: body turned, knees drawn to one side,
   // limbs pulled in.
