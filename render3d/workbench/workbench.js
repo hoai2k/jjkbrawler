@@ -763,7 +763,64 @@ const facingUI = {
   head: $("facingHead"),
   headVal: $("facingHeadVal"),
   stage: $("facingStage"),
+  pick: $("facingDialPick"),
 };
+
+/** WHAT THE FILE SAID, before this session touched anything.
+ *
+ *  Taken once, at boot, and never written to. Every control in this bench
+ *  edits the live manifest in place — which is what makes the dials feel
+ *  immediate — and that left exactly one way back from a number typed by
+ *  accident: reload the page and lose every other fighter's work with it.
+ *  Maki's turn was changed by accident during a head-tilt pass and the pass
+ *  had to be hand-edited out of the payload afterwards. */
+const PRISTINE = new Map();
+// Filled HERE rather than beside initRigs so it is next to what it means, and
+// this line still runs before any handler can fire: everything above is
+// definitions, and the rigs finished loading at the top-level await.
+for (const [k, v] of Object.entries(rig.rigManifest().characters || {})) {
+  PRISTINE.set(k, structuredClone(v));
+}
+
+/** Put one fighter back to what the manifest said at boot. */
+function revertChar(char) {
+  const before = PRISTINE.get(char);
+  const man = rig.rigManifest();
+  man.characters = man.characters || {};
+  if (before) man.characters[char] = structuredClone(before);
+  else delete man.characters[char];
+  const entry = man.characters[char] || {};
+
+  // The three placement numbers and the head carriage live on the RIG as well
+  // as in the entry, so putting the entry back is only half of it. Undefined
+  // where the entry has nothing, so the rig falls back to its own defaults
+  // rather than keeping the edited value.
+  rig.setRigSettings(char, {
+    renderScale: entry.renderScale ?? 1,
+    yawOffsetDeg: entry.yawOffsetDeg ?? 0,
+    stanceDeg: entry.stanceDeg ?? 0,
+    headTiltDeg: entry.headTiltDeg ?? 0,
+  });
+
+  // The look dials pin themselves onto the materials, so a knob this session
+  // added has to be actively un-pinned — dropping it from the entry alone
+  // leaves the material still wearing it.
+  const r = rig.getRig(char);
+  if (r) {
+    for (const [key, spec] of Object.entries(LOOK)) {
+      const stored = entry.toon?.[key];
+      if (stored === undefined) {
+        if (key === "outlinePx") setOutlineFor(r.root, null);
+        else clearToonFor(r.root, [key]);
+      } else if (spec.pushRaw) spec.pushRaw(r.root, stored);
+      else spec.push(r.root, spec.fromStore ? spec.fromStore(stored) : stored);
+    }
+  }
+
+  wb.dirty.delete(char);
+  facing.touched.delete(char);
+  scene.clearCache();
+}
 
 /** How far in to push the viewer.
  *
@@ -976,6 +1033,26 @@ $("facingFit").onclick = () => {
   if (s) facingSetScale(s.scale);
   else notify("no measurement for this fighter — size by eye");
 };
+/** Which single dial the phone layout shows. Desktop shows all four and this
+ *  class does nothing there. */
+facingUI.pick.onchange = () => {
+  for (const d of document.querySelectorAll("#facingDials .facing-dial")) {
+    d.classList.toggle("active", d.dataset.dial === facingUI.pick.value);
+  }
+};
+
+$("facingRevert").onclick = () => {
+  const char = facing.list[facing.i];
+  if (!facing.touched.has(char) && !wb.dirty.has(char)) {
+    notify(`${CHARACTERS[char]?.name || char} has no changes to revert`);
+    return;
+  }
+  revertChar(char);
+  facingShow();
+  syncLookPanel();
+  notify(`${CHARACTERS[char]?.name || char} back to the manifest's numbers`);
+};
+
 $("facingNext").onclick = () => facingGo(1);
 $("facingPrev").onclick = () => facingGo(-1);
 $("facingSave").onclick = () => {

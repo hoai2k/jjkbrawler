@@ -50,9 +50,10 @@ let camera = null;
 let keyLight = null;
 let hemiLight = null;
 let rimStage = null; // last stage key the light rig was derived from
+let contextLost = false;
 
 const cache = new Map(); // token -> { canvas, heightM, rowsPerMetre, yawed }
-export const stats = { renders: 0, hits: 0, misses: 0, evictions: 0 };
+export const stats = { renders: 0, hits: 0, misses: 0, evictions: 0, lostFrames: 0 };
 
 export function initScene(three) {
   THREE = three;
@@ -68,9 +69,40 @@ export function initScene(three) {
   scene.add(hemiLight, keyLight);
   camera = new THREE.PerspectiveCamera(FOV_DEG, 1, 0.05, 80);
   _proj = new THREE.Vector3();
+
+  // A LOST CONTEXT MUST NOT REACH THE CACHE.
+  //
+  // three's renderer makes `render()` a silent no-op while the GPU context is
+  // gone, and this function's next act is to copy the canvas into a cache entry
+  // keyed by the pose. Nothing about that key mentions the context, so a render
+  // taken during the outage is stored as if it were the fighter — and every
+  // later request for that pose is a HIT on a blank. The context comes back,
+  // three re-uploads everything, and the roster is still dark, because the
+  // darkness is in the cache rather than on the GPU. Walking the whole roster
+  // in the idle review is how you fill the cache with them: one browser hiccup
+  // partway through and all twenty-seven come out dark and stay dark.
+  //
+  // preventDefault is what makes the restore happen at all — without it the
+  // browser is entitled to keep the context gone for good.
+  canvas.addEventListener("webglcontextlost", (e) => {
+    e.preventDefault();
+    contextLost = true;
+  });
+  canvas.addEventListener("webglcontextrestored", () => {
+    contextLost = false;
+    // Whatever landed during the outage is unreliable, and it is cheaper to
+    // redraw the roster than to work out which entries are blank.
+    cache.clear();
+  });
+
   if (typeof window !== "undefined") {
     window.__render3d = window.__render3d || {};
     window.__render3d.stats = stats;
+    // The offscreen renderer is otherwise unreachable, which makes the case
+    // above untestable — a fault you cannot trigger on purpose is one you fix
+    // by argument. smoke_render3d.mjs takes the context away through this.
+    window.__render3d.renderer = renderer;
+    Object.defineProperty(window.__render3d, "contextLost", { get: () => contextLost });
   }
 }
 
@@ -124,6 +156,12 @@ function syncStageLight() {
   if (key === rimStage) return;
   rimStage = key;
   const t = stageLightTint();
+  // A stage with no tint leaves the last stage's light in place, which is a
+  // latch: the key it would need to re-sync on has already been recorded as
+  // done. Every stage carries a tint, so it cannot happen today — and putting
+  // the light back to white here instead COSTS, because it re-lights on every
+  // sync and cut the pose cache from 353 hits to 162 in smoke_billboard. Left
+  // as it is on purpose; if a tintless stage ever lands, this is the line.
   if (!t) return;
   keyLight.color.setRGB(...t.key);
   setRimColor(...t.rim);
@@ -363,6 +401,13 @@ export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {
   renderer.render(scene, camera);
   scene.remove(rig.root);
   rig.root.rotation.y = 0;
+  if (contextLost) {
+    // Nothing was drawn. Draw NOTHING rather than cache the blank: a missing
+    // frame is a fighter who does not appear for a moment, and a cached blank
+    // is a fighter who is dark until the page reloads.
+    stats.lostFrames++;
+    return null;
+  }
   stats.renders++;
 
   // Downsample the supersampled render once, into the cached texture.

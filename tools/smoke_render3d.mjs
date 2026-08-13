@@ -334,6 +334,55 @@ try {
   await page.close();
 }
 
+// ---------------------------------------------------------------------------
+// A LOST GPU CONTEXT MUST NOT BE CACHED.
+//
+// three makes render() a silent no-op while the context is gone, and the pose
+// cache's next act is to copy the canvas and store it under a key that says
+// nothing about the context. A phone that loses its context partway through the
+// idle review would fill the cache with blanks and go on serving them after the
+// GPU came back — the whole roster dark, permanently, with a reload the only
+// cure. Driven on purpose here, because a fault you cannot trigger is one you
+// fix by argument.
+{
+  const page = await browser.newPage({ viewport: { width: 1100, height: 720 } });
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e)));
+  await page.goto(`${BASE}/render3d/workbench/index.html?char=yuji`, { waitUntil: "load" });
+  await page.waitForFunction(() => window.__render3d?.renderer, { timeout: 60000 });
+  await page.waitForTimeout(2500);
+
+  const r = await page.evaluate(async () => {
+    const scene = await import("/render3d/src/scene.js");
+    const gl = window.__render3d.renderer.getContext();
+    const ext = gl.getExtension("WEBGL_lose_context");
+    if (!ext) return { skipped: true };
+    const before = window.__render3d.stats.lostFrames;
+    ext.loseContext();
+    await new Promise((r) => setTimeout(r, 400));
+    const flagged = window.__render3d.contextLost === true;
+    // Ask for renders while it is gone. Each one must come back empty-handed
+    // rather than banking a blank.
+    scene.clearCache();
+    await new Promise((r) => setTimeout(r, 1200));
+    const dropped = window.__render3d.stats.lostFrames - before;
+    ext.restoreContext();
+    await new Promise((r) => setTimeout(r, 1500));
+    return { skipped: false, flagged, dropped, restored: window.__render3d.contextLost === false };
+  });
+
+  if (r.skipped) {
+    check(true, "context-loss check skipped — WEBGL_lose_context unavailable");
+  } else {
+    check(r.flagged, "a lost context is noticed");
+    check(r.dropped > 0, "and frames drawn during it are dropped rather than cached",
+      `${r.dropped} dropped`);
+    check(r.restored, "the context comes back");
+  }
+  check(errors.length === 0, "no page errors around a context loss", errors.slice(0, 2).join(" | "));
+  await page.close();
+}
+
 await browser.close();
 console.log(failures ? `\n${failures} check(s) failed` : "\nall checks passed");
 process.exit(failures ? 1 : 0);

@@ -128,17 +128,25 @@ check(/\d+ \/ \d+/.test(open.progress),
   "it says where you are in the roster", open.progress);
 
 // Every control on one screen, none wrapped off the bottom.
+// VISIBLE controls only. The phone layout shows one dial at a time and hides
+// the rest, and a hidden element measures 0x0 — so measuring everything in the
+// document reported a 0 px touch target and a row count that had nothing to do
+// with what is on screen. What these checks are about is what a thumb can
+// reach, which is exactly the visible set.
 const rows = await page.evaluate(() => {
+  const shown = (e) => e.offsetParent !== null;
+  const dials = [...document.querySelectorAll(".facing-dial")].filter(shown);
   const dial = [...document.querySelectorAll(".facing-dial button, .facing-dial input")]
-    .map((e) => e.getBoundingClientRect());
-  const acts = [...document.querySelectorAll(".facing-actions button")].map((e) => e.getBoundingClientRect());
-  const dialRows = new Set([...document.querySelectorAll(".facing-dial")]
-    .map((e) => Math.round(e.getBoundingClientRect().top)));
+    .filter(shown).map((e) => e.getBoundingClientRect());
+  const acts = [...document.querySelectorAll(".facing-actions button")]
+    .filter(shown).map((e) => e.getBoundingClientRect());
+  const dialRows = new Set(dials.map((e) => Math.round(e.getBoundingClientRect().top)));
   return {
     dials: dialRows.size,
-    dialCount: document.querySelectorAll(".facing-dial").length,
+    dialCount: dials.length,
     allOnScreen: [...dial, ...acts].every((r) => r.bottom <= innerHeight + 1 && r.top >= 0),
     smallestTouch: Math.min(...[...dial, ...acts].map((r) => Math.min(r.width, r.height))),
+    pickerShown: document.getElementById("facingDialPick")?.offsetParent !== null,
   };
 });
 // Counted, not hardcoded: the claim is that no dial shares a row with another
@@ -146,11 +154,70 @@ const rows = await page.evaluate(() => {
 // misread), and that claim holds whether there are three of them or five. A
 // literal 3 here failed the day a Head carriage dial was added — which is the
 // review getting BETTER, and not something a smoke should call a regression.
-check(rows.dials === rows.dialCount, "every dial gets a row of its own",
+check(rows.dials === rows.dialCount, "every visible dial gets a row of its own",
   `${rows.dials} row(s) for ${rows.dialCount} dial(s)`);
 check(rows.allOnScreen, "every control is on screen");
 check(rows.smallestTouch >= 28, "controls are thumb-sized",
   `smallest ${Math.round(rows.smallestTouch)}px`);
+
+// ONE DIAL AT A TIME, on a phone, and the picker is how you reach the others.
+// The narrow layout gives its rows to the canvas — which is the only thing on
+// this screen anybody is looking at — so "one visible dial plus a picker" is
+// the claim, and a picker that does not switch is the failure that would put
+// three dials permanently out of reach.
+if (rows.pickerShown) {
+  check(rows.dialCount === 1, "the phone layout shows exactly one dial",
+    `${rows.dialCount} visible`);
+  const switched = await page.evaluate(async () => {
+    const sel = document.getElementById("facingDialPick");
+    const seen = [];
+    for (const v of ["yaw", "scale", "stance", "head"]) {
+      sel.value = v;
+      sel.dispatchEvent(new Event("change", { bubbles: true }));
+      const on = [...document.querySelectorAll("#facingDials .facing-dial")]
+        .filter((e) => e.offsetParent !== null).map((e) => e.dataset.dial);
+      seen.push(on.length === 1 && on[0] === v);
+    }
+    return seen.every(Boolean);
+  });
+  check(switched, "the picker switches which dial is shown");
+} else {
+  check(rows.dialCount === 4, "the desk shows every dial at once",
+    `${rows.dialCount} visible`);
+}
+
+/** Same as useDial below, needed before it is defined. */
+async function useDialEarly(name) {
+  if (await page.evaluate(() => document.getElementById("facingDialPick")?.offsetParent !== null)) {
+    await page.selectOption("#facingDialPick", name);
+    await page.waitForTimeout(120);
+  }
+}
+
+// REVERT, per fighter. Every other control writes a number and there was no way
+// back short of reloading the page, which throws away the whole session to undo
+// one fighter's dial.
+await useDialEarly("head");
+const reverted = await page.evaluate(async () => {
+  const val = () => document.getElementById("facingHeadVal").textContent;
+  const was = val();
+  const count = () => +(/· (\d+) changed/.exec(
+    document.getElementById("facingProgress").textContent)?.[1] ?? -1);
+  const changedBefore = count();
+  const s = document.getElementById("facingHead");
+  s.value = String(parseFloat(s.value) === -20 ? 20 : -20);
+  s.dispatchEvent(new Event("input", { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 120));
+  const moved = val() !== was;
+  document.getElementById("facingRevert").click();
+  await new Promise((r) => setTimeout(r, 250));
+  // Compared, not asserted at zero: earlier checks in this file touch other
+  // fighters, and "the counter is 0" would be a claim about them.
+  return { moved, back: val() === was, clean: count() === changedBefore };
+});
+check(reverted.moved, "the head dial moves the number");
+check(reverted.back, "Revert puts the fighter back to the manifest's number");
+check(reverted.clean, "and drops them from the changed count");
 
 // THE REFERENCE IS ON SCREEN. Sizing against a sprite that is not drawn is
 // sizing from memory, and a blank half-frame looks exactly like a model that
@@ -174,10 +241,24 @@ check(halves.left > 400, "the idle sprite is drawn beside the model",
 check(halves.right > 400, "...and the model is drawn too",
   `${halves.right} px in the model half`);
 
+/** Bring a dial into reach before driving it.
+ *
+ *  On a phone only one dial is on screen and the rest are display:none, which
+ *  playwright refuses to fill — correctly, because a user cannot touch them
+ *  either. Picking first is what a user does, so it is what this does. On the
+ *  desk the picker is hidden and every dial is already reachable. */
+async function useDial(name) {
+  if (await page.evaluate(() => document.getElementById("facingDialPick")?.offsetParent !== null)) {
+    await page.selectOption("#facingDialPick", name);
+    await page.waitForTimeout(120);
+  }
+}
+
 // The dials move the RIG, not just their readouts.
 const sized = await (async () => {
   const before = await page.evaluate(async () =>
     (await import("/render3d/src/loader.js")).getRig("gakuganji").renderScale);
+  await useDial("scale");
   await page.fill("#facingScale", "1.22");
   await page.dispatchEvent("#facingScale", "input");
   await page.waitForTimeout(700);
@@ -192,6 +273,7 @@ check(Math.abs(sized.after - 1.22) < 0.001, "the size dial rescales the RIG",
   `${sized.before}× -> ${sized.after}× (shown ${sized.shown})`);
 
 const stanced = await (async () => {
+  await useDial("stance");
   await page.fill("#facingStance", "12");
   await page.dispatchEvent("#facingStance", "input");
   await page.waitForTimeout(700);
@@ -207,6 +289,7 @@ check(stanced.rig === 12, "the stance dial widens the RIG's legs",
 // The third dial. Facing was settled in its own pass, but it is judged against
 // the same drawing as the size, so it belongs on the same screen.
 const turned = await (async () => {
+  await useDial("yaw");
   await page.fill("#facingYaw", "35");
   await page.dispatchEvent("#facingYaw", "input");
   await page.waitForTimeout(700);
@@ -217,6 +300,7 @@ const turned = await (async () => {
   };
 })();
 check(turned.rig === 35, "the turn dial rotates the RIG", `${turned.rig}° (shown ${turned.shown})`);
+await useDial("yaw");
 await page.fill("#facingYaw", "45");
 await page.dispatchEvent("#facingYaw", "input");
 await page.waitForTimeout(400);

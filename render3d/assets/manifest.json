@@ -12,7 +12,8 @@
           0.7742
         ]
       },
-      "renderScale": 1.03
+      "renderScale": 1.03,
+      "headTiltDeg": 12
     },
     "maki": {
       "model": "maki/maki.glb",
@@ -56,7 +57,8 @@
         ]
       },
       "renderScale": 1.02,
-      "stanceDeg": 10
+      "stanceDeg": 10,
+      "headTiltDeg": 20
     },
     "hanami": {
       "model": "hanami/hanami.glb",
@@ -71,7 +73,8 @@
         ]
       },
       "renderScale": 1.02,
-      "stanceDeg": 16
+      "stanceDeg": 16,
+      "headTiltDeg": 18
     },
     "uro": {
       "model": "uro/uro.glb",
@@ -116,7 +119,8 @@
           0.7336
         ]
       },
-      "yawOffsetDeg": 345
+      "yawOffsetDeg": 345,
+      "headTiltDeg": 20
     },
     "gojo": {
       "model": "gojo/gojo.glb",
@@ -143,7 +147,8 @@
         ]
       },
       "renderScale": 1.01,
-      "stanceDeg": 19
+      "stanceDeg": 19,
+      "headTiltDeg": 16
     },
     "nobara": {
       "model": "nobara/nobara.glb",
@@ -158,7 +163,8 @@
       },
       "yawOffsetDeg": 45,
       "renderScale": 1.03,
-      "stanceDeg": 6
+      "stanceDeg": 6,
+      "headTiltDeg": 10
     },
     "choso": {
       "model": "choso/choso.glb",
@@ -173,7 +179,8 @@
       },
       "yawOffsetDeg": 0,
       "renderScale": 1.03,
-      "stanceDeg": 9
+      "stanceDeg": 9,
+      "headTiltDeg": 14
     },
     "gakuganji": {
       "model": "gakuganji/gakuganji.glb",
@@ -202,7 +209,8 @@
       },
       "yawOffsetDeg": 30,
       "renderScale": 1.01,
-      "stanceDeg": 7
+      "stanceDeg": 7,
+      "headTiltDeg": 20
     },
     "mechamaru": {
       "model": "mechamaru/mechamaru.glb",
@@ -259,7 +267,8 @@
       },
       "yawOffsetDeg": 45,
       "renderScale": 1.03,
-      "stanceDeg": 5
+      "stanceDeg": 5,
+      "headTiltDeg": 11
     },
     "inumaki": {
       "model": "inumaki/inumaki.glb",
@@ -288,7 +297,8 @@
         ]
       },
       "yawOffsetDeg": 45,
-      "renderScale": 2.34
+      "renderScale": 2.34,
+      "headTiltDeg": 13
     },
     "momo": {
       "model": "momo/momo.glb",
@@ -331,7 +341,8 @@
         ]
       },
       "yawOffsetDeg": 45,
-      "stanceDeg": 12
+      "stanceDeg": 12,
+      "headTiltDeg": 12
     },
     "dagon": {
       "model": "dagon/dagon.glb",
@@ -346,7 +357,8 @@
       },
       "yawOffsetDeg": 80,
       "renderScale": 1.01,
-      "stanceDeg": 14
+      "stanceDeg": 14,
+      "headTiltDeg": 13
     },
     "toji": {
       "model": "toji/toji.glb",
@@ -360,7 +372,8 @@
         ]
       },
       "yawOffsetDeg": 45,
-      "stanceDeg": 10
+      "stanceDeg": 10,
+      "headTiltDeg": 18
     },
     "reggie": {
       "model": "reggie/reggie.glb",
@@ -375,7 +388,8 @@
       },
       "yawOffsetDeg": 60,
       "renderScale": 1.01,
-      "stanceDeg": 12
+      "stanceDeg": 12,
+      "headTiltDeg": 15
     },
     "yuki": {
       "model": "yuki/yuki.glb",
