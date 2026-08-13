@@ -135,6 +135,14 @@ both dialled in the workbench under **Model size & facing**:
   clip can fix it, because the whole rig is turned. 180 is the common case
   (Maki and Uro both arrived this way).
 
+  These are corrections the ASSET should have carried, so they are on their
+  way into the files themselves: `tools/bake_yaw.mjs` writes each rig's yaw
+  onto its scene root — a JSON-chunk edit, no Blender, binary chunk
+  untouched — after which the manifest field goes to 0. The runbook is
+  [docs/bake-yaw.md](docs/bake-yaw.md). `renderScale` and `stanceDeg` stay
+  live on purpose: those are dials you keep turning, not facts the file
+  got wrong.
+
 The comparison sprite can stand BESIDE the model instead of ghosting under it
 (the honest side-by-side for "does this match the sprite"), and the viewer
 zooms — slider, ± buttons, scroll wheel — and pans by dragging the background,
