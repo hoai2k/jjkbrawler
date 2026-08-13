@@ -185,26 +185,66 @@ function sharedOwner(key) {
   return WB_FIGHTERS.find((k) => CHARACTERS[k]?.name === who) || null;
 }
 
+/** A summon still with no height of its own — `cfg.h ?? 110` in summons.js. */
+const SUMMON_FALLBACK_H = 110;
+/** An install aura is drawn at a fixed height, not one its kit declares:
+ *  `220 * pulse` in render.js, where the pulse runs 0.82–0.94. The canvas holds
+ *  still, so it shows the middle of that breath rather than either end. */
+const AURA_H = Math.round(220 * 0.88);
+
 /** Where a shared sprite is drawn from, and how tall the game draws it. Built
  *  by walking the kits for `sprite:`/`sprites:` references, so it stays true as
- *  moves change instead of being a second list to maintain. */
+ *  moves change instead of being a second list to maintain.
+ *
+ *  The height is NOT one field. Which one applies depends on how the node names
+ *  the drawing, because a different piece of the renderer draws each kind:
+ *
+ *    sprite / spritePool   a projectile or a summon flash — `spriteH`
+ *    sprites               a summon's still image — `h`, the creature's body
+ *                          height, inherited from the pool entry when the unit
+ *                          does not set its own (specials.js merges
+ *                          `{...spec, ...unit}`), and 110 when nobody does
+ *    aura                  an install aura — a fixed 220, from render.js
+ *    domainSprite          a full-screen backdrop, which has no height at all
+ *
+ *  Reading `spriteH` for all four was the old behaviour, and it meant every
+ *  summon in the game reported no known size: the canvas fell back to the
+ *  drawing's own pixel height, so a shikigami the game draws 96px tall was
+ *  shown at 779 next to the fighter who throws it. */
 let sharedUsageCache = null;
 function sharedUsage() {
   if (sharedUsageCache) return sharedUsageCache;
   sharedUsageCache = new Map();
-  const note = (key, who, label, h) => {
+  // `via` is which of the four the height came from. It decides more than the
+  // readout: only a `spriteH` reference is one `applySharedSpriteScales()` can
+  // fold a scale into, so it is also the answer to "does the Size slider reach
+  // the game for this drawing".
+  const note = (key, who, label, h, via) => {
     if (!key) return;
     const list = sharedUsageCache.get(key) || [];
-    list.push({ who, label, h });
+    list.push({ who, label, h: Number.isFinite(h) ? h : null, via });
     sharedUsageCache.set(key, list);
   };
-  const walk = (node, who, label) => {
+  // `bodyH` is the nearest enclosing summon's body height: a unit inside a pool
+  // entry names the drawing but the entry above it declares the size.
+  const walk = (node, who, label, bodyH) => {
     if (!node || typeof node !== "object") return;
-    if (typeof node.sprite === "string") note(node.sprite, who, label, node.spriteH);
-    if (Array.isArray(node.sprites)) for (const k of node.sprites) note(k, who, label, node.spriteH);
-    if (typeof node.aura === "string") note(node.aura, who, `${label} (aura)`, node.spriteH);
-    if (typeof node.domainSprite === "string") note(node.domainSprite, who, `${label} (domain)`, node.spriteH);
-    for (const v of Object.values(node)) if (v && typeof v === "object") walk(v, who, label);
+    const h = Number.isFinite(node.h) ? node.h : bodyH;
+    // A projectile with no `spriteH` at all is sized by whichever spawn site
+    // draws it, each with its own fallback (`p.spriteH || 150`, `|| 310`,
+    // `p.r * 3`…). There is no one answer to mirror here, and the fold has
+    // nothing to write into either, so it is "code" rather than a guess.
+    const projectile = Number.isFinite(node.spriteH) ? "spriteH" : "code";
+    if (typeof node.sprite === "string") note(node.sprite, who, label, node.spriteH, projectile);
+    if (Array.isArray(node.spritePool)) {
+      for (const k of node.spritePool) note(k, who, label, node.spriteH, projectile);
+    }
+    if (Array.isArray(node.sprites)) {
+      for (const k of node.sprites) note(k, who, label, h ?? SUMMON_FALLBACK_H, "summon");
+    }
+    if (typeof node.aura === "string") note(node.aura, who, `${label} (aura)`, AURA_H, "aura");
+    if (typeof node.domainSprite === "string") note(node.domainSprite, who, `${label} (domain)`, null, "domain");
+    for (const v of Object.values(node)) if (v && typeof v === "object") walk(v, who, label, h);
   };
   for (const key of WB_FIGHTERS) {
     const c = CHARACTERS[key];
@@ -1770,8 +1810,18 @@ function drawPendingNotice(cx) {
 
 /** The height the game draws a shared sprite at, from the kit that spawns it. */
 function gameHeightOf(key) {
-  const uses = sharedUsage().get(key) || [];
-  return uses.find((u) => Number.isFinite(u.h))?.h ?? null;
+  return usedAt(key)?.h ?? null;
+}
+
+/** The usage the canvas draws the sprite at. A drawing can be spawned more than
+ *  one way at more than one size — `effect:curse_a` is a rabbit shikigami's
+ *  stand-in at 62px and one of Geto's four volley curses at 96 — and only one
+ *  size can be on the canvas. A `spriteH` usage wins, because that is the one
+ *  the Size slider adjusts: showing the other height beside a live slider that
+ *  moves neither it nor the game would be the same lie in a new place. */
+function usedAt(key) {
+  const uses = (sharedUsage().get(key) || []).filter((u) => Number.isFinite(u.h));
+  return uses.find((u) => u.via === "spriteH") || uses[0] || null;
 }
 
 /** Drawn where the sprite will be, so the wait reads as "this pose is coming"
@@ -2365,6 +2415,29 @@ function applyPanelMode() {
     group.classList.toggle("disabled", pending);
     for (const input of group.querySelectorAll("input, select, button")) input.disabled = pending;
   }
+
+  // Size, on a shared drawing whose size the scale cannot reach. A summon's
+  // still is drawn at the creature's own body height and an install aura at a
+  // fixed one, neither of which `applySharedSpriteScales()` has anywhere to
+  // fold a multiplier into — so the slider would move, the canvas would follow
+  // it, and the game would not. Greyed with the reason in the readout, the same
+  // answer the ground slider gives on a ledge pose.
+  if (other) {
+    const inert = !scaleReachesGame(state.frame);
+    const group = $("scaleGroup");
+    group.classList.toggle("disabled", inert);
+    for (const input of group.querySelectorAll("input, select, button")) input.disabled = inert;
+  }
+}
+
+/** Whether the Size slider on a shared drawing changes anything in a match.
+ *  True only where a kit declares the height as `spriteH`, because that is the
+ *  one field `applySharedSpriteScales()` multiplies. A drawing nothing
+ *  references at all keeps the slider: it is spawned from code this cannot see,
+ *  so "no" would be a guess. */
+function scaleReachesGame(key) {
+  const uses = sharedUsage().get(key) || [];
+  return !uses.length || uses.some((u) => u.via === "spriteH");
 }
 
 /** Who spawns this sprite, and how big the game draws it. */
@@ -2375,10 +2448,15 @@ function refreshUsageInfo() {
   const uses = sharedUsage().get(state.frame) || [];
   const size = img ? `${img.width}×${img.height} delivered` : "not loaded";
   const drawn = gameHeightOf(state.frame);
+  const how = { summon: "the creature's body height", aura: "a fixed install-aura height" };
   const lines = [
     `<b>${state.frame}</b>`,
     size + (drawn ? ` · drawn ${drawn}px tall in game` : " · size decided by the code that spawns it"),
   ];
+  // Where the height is not the move's own `spriteH`, say whose it is — that is
+  // also why the Size slider next to it is greyed out.
+  const why = how[usedAt(state.frame)?.via];
+  if (why && !scaleReachesGame(state.frame)) lines.push(`<i>${why} — not adjustable here</i>`);
   lines.push(uses.length
     ? uses.map((u) => `${u.who} — ${u.label}`).join("<br>")
     : "No kit references this sprite — it is spawned from code (a stage hazard, a domain, or a shikigami).");

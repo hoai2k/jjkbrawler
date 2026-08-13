@@ -28,6 +28,11 @@ import { spriteManifest } from "./assets.js";
 
 /** The keys a kit node names a shared drawing with. */
 const SPRITE_FIELDS = ["sprite", "aura", "domainSprite"];
+/** ...and the ones that name several at once. `spritePool` is how a move that
+ *  rolls its art each cast declares it (Geto's spirit volley, four curses on
+ *  one `spriteH`); leaving it out made those drawings the only ones whose
+ *  scale the workbench could set and nothing would read. */
+const SPRITE_LISTS = ["sprites", "spritePool"];
 
 function scaleOf(key) {
   const scale = spriteManifest?.otherSprites?.[key]?.renderScale;
@@ -55,7 +60,9 @@ export function applySharedSpriteScales() {
       for (const field of SPRITE_FIELDS) {
         if (typeof node[field] === "string") keys.push(node[field]);
       }
-      if (Array.isArray(node.sprites)) keys.push(...node.sprites.filter((k) => typeof k === "string"));
+      for (const field of SPRITE_LISTS) {
+        if (Array.isArray(node[field])) keys.push(...node[field].filter((k) => typeof k === "string"));
+      }
       // A node naming several drawings (a summon with a borrowed stand-in)
       // takes the scale of the one it prefers, which is the first.
       const scale = keys.map(scaleOf).find((s) => s !== null);
