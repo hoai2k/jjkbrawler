@@ -134,6 +134,23 @@ both dialled in the workbench under **Model size & facing**:
   +Z; a model built the other way round faces backwards in every state and no
   clip can fix it, because the whole rig is turned. 180 is the common case
   (Maki and Uro both arrived this way).
+- `idleArms` — set `false` to keep this fighter's delivered idle arms. The
+  engine otherwise rebuilds them, straight and hanging a few degrees out from
+  the body (`ik.js applyIdleArms`), for the same reason it rebuilds the legs: a
+  generated idle arrives with whatever the generator felt about standing, it is
+  different on every fighter, and it reads as sloppiness rather than as
+  personality. Measured across the roster before the rule, the idle elbow ran
+  from 171° to 104° — a hand held at the chest — and the wrist's distance from
+  the body's centreline varied SIX-FOLD. Sukuna is the one `false`: his
+  delivered idle is a pose somebody wants.
+
+  **A weapon needs no special case.** A prop hangs off the hand bone, so
+  straightening the arm carries it to the fighter's side; Maki's naginata ends
+  up vertical with its butt near the floor, which is the carry. Putting the
+  off hand on the shaft in idle was tried and reverted — the grip solve places
+  it a fixed distance down-shaft, which is right for a weapon presented across
+  the body and absurd for one hanging at the side, and it sent Maki's off arm
+  straight up over her head.
 - `headTiltDeg` — how the fighter carries their head, in degrees of nod;
   positive lifts the chin. Generated heads arrive modelled looking slightly
   down, and the tilt is in the MESH rather than the skeleton: measured
