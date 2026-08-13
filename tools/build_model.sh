@@ -77,6 +77,16 @@ if [ -f "$PROP" ]; then
   run_blender tools/blender_attach_prop.py --rig "$GLB" --prop "$PROP" --char "$CHAR" --out "$GLB"
 fi
 
+# Generated meshes arrive torn: where the boards showed nothing — the underside
+# of a forearm against the ribs, the back of a hidden thigh — the generator ends
+# the surface rather than guessing, and what is left shows the inside of the
+# body through it. Every delivery but three had them, so this is the normal case
+# and belongs in the run rather than in somebody's memory. Closed by adding
+# triangles across each rim's existing vertices, never by adding a vertex, so
+# skin weights are untouched.
+step "close the tears in the mesh"
+python3 tools/fill_model_holes.py --apply --file "$GLB"
+
 step "import once, for the height the clip author needs"
 node tools/billboard_intake.mjs import "$CHAR" >/dev/null
 
