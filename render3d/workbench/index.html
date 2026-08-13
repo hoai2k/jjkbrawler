@@ -399,6 +399,7 @@
           <option value="scale">Size</option>
           <option value="stance">Stance</option>
           <option value="arms">Arms</option>
+          <option value="shoulders">Shoulders</option>
           <option value="yaw">Turn</option>
         </select>
 
@@ -438,6 +439,18 @@
           <input id="facingArm" type="range" min="0" max="30" step="1" value="9">
           <button data-arm="1">+</button>
           <span class="mono" id="facingArmVal">9°</span>
+        </div>
+
+        <!-- SHOULDER WIDTH. A generated clavicle often comes out short, which
+             reads as the near arm being buried in the ribs; this moves both
+             arm roots out along the body's own width axis, in centimetres,
+             without lengthening the arms. -->
+        <div class="facing-dial" data-dial="shoulders">
+          <span class="dial-label">Shldrs</span>
+          <button data-shoulder="-0.5">−</button>
+          <input id="facingShoulder" type="range" min="0" max="10" step="0.5" value="0">
+          <button data-shoulder="0.5">+</button>
+          <span class="mono" id="facingShoulderVal">0.0cm</span>
         </div>
 
         <div class="facing-dial active" data-dial="head">

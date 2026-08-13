@@ -379,7 +379,8 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
     // The arms get the same treatment one axis up — unless this fighter's
     // delivered idle is a pose somebody chose, which the manifest says.
     if (rig.idleArms !== false) {
-      applyIdleArms(THREE, rig.root, rig.armDeg ?? IDLE_ARM_DEG, _ik);
+      applyIdleArms(THREE, rig.root, rig.armDeg ?? IDLE_ARM_DEG, _ik,
+        (rig.shoulderOutCm || 0) / 100);
     }
   } else {
     clearIdleStand(rig.root);

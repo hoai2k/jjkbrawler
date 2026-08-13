@@ -847,6 +847,8 @@ const facingUI = {
   headVal: $("facingHeadVal"),
   arm: $("facingArm"),
   armVal: $("facingArmVal"),
+  shoulder: $("facingShoulder"),
+  shoulderVal: $("facingShoulderVal"),
   stage: $("facingStage"),
   pick: $("facingDialPick"),
 };
@@ -886,6 +888,7 @@ function revertChar(char) {
     stanceDeg: entry.stanceDeg ?? 0,
     headTiltDeg: entry.headTiltDeg ?? 0,
     armDeg: entry.armDeg ?? NaN,   // NaN clears it back to "nobody has said"
+    shoulderOutCm: entry.shoulderOutCm ?? 0,
   });
 
   // The look dials pin themselves onto the materials, so a knob this session
@@ -1025,6 +1028,9 @@ function facingShow() {
   const arm = r?.armDeg ?? IDLE_ARM_DEG;
   facingUI.arm.value = String(arm);
   facingUI.armVal.textContent = `${arm}°`;
+  const shoulder = r?.shoulderOutCm ?? 0;
+  facingUI.shoulder.value = String(shoulder);
+  facingUI.shoulderVal.textContent = `${shoulder.toFixed(1)}cm`;
   facingUI.name.textContent = CHARACTERS[char]?.name || char;
   facingSyncProgress();
   facingUI.overlay.classList.toggle("decided", facing.touched.has(char));
@@ -1078,6 +1084,25 @@ function facingSetArm(deg) {
   facingSyncProgress();
 }
 
+/** How far this fighter's arm roots sit out from the body, in centimetres.
+ *  A short clavicle is a generation fault rather than a pose, and it reads as
+ *  the shoulder nearest the camera being squashed into the ribs. This moves
+ *  where the arm STARTS without lengthening it. */
+function facingSetShoulder(cm) {
+  const clamped = Math.max(0, Math.min(10, Math.round(cm * 2) / 2));
+  const char = facing.list[facing.i];
+  rig.setRigSettings(tunedKey(char), { shoulderOutCm: clamped });
+  if (clamped) tunedEntry(char).shoulderOutCm = clamped;
+  else delete tunedEntry(char).shoulderOutCm;
+  wb.dirty.add(char);
+  facing.touched.add(char);
+  scene.clearCache();
+  facingUI.shoulder.value = String(clamped);
+  facingUI.shoulderVal.textContent = `${clamped.toFixed(1)}cm`;
+  facingUI.overlay.classList.add("decided");
+  facingSyncProgress();
+}
+
 function facingSetStance(deg) {
   const clamped = Math.max(-10, Math.min(25, Math.round(deg)));
   const char = facing.list[facing.i];
@@ -1127,6 +1152,7 @@ $("facingStance").oninput = () => facingSetStance(parseFloat(facingUI.stance.val
 $("facingYaw").oninput = () => facingSetYaw(parseFloat(facingUI.yaw.value) || 0);
 $("facingHead").oninput = () => facingSetHead(parseFloat(facingUI.head.value) || 0);
 $("facingArm").oninput = () => facingSetArm(parseFloat(facingUI.arm.value) || 0);
+$("facingShoulder").oninput = () => facingSetShoulder(parseFloat(facingUI.shoulder.value) || 0);
 for (const b of document.querySelectorAll("[data-scale]")) {
   b.onclick = () => facingSetScale((parseFloat(facingUI.scale.value) || 1)
     + parseFloat(b.dataset.scale));
@@ -1138,6 +1164,10 @@ for (const b of document.querySelectorAll("[data-stance]")) {
 for (const b of document.querySelectorAll("[data-yaw]")) {
   b.onclick = () => facingSetYaw((parseFloat(facingUI.yaw.value) || 0)
     + parseFloat(b.dataset.yaw));
+}
+for (const b of document.querySelectorAll("[data-shoulder]")) {
+  b.onclick = () => facingSetShoulder((parseFloat(facingUI.shoulder.value) || 0)
+    + parseFloat(b.dataset.shoulder));
 }
 for (const b of document.querySelectorAll("[data-arm]")) {
   b.onclick = () => facingSetArm((parseFloat(facingUI.arm.value) || 0)
@@ -1191,6 +1221,7 @@ $("facingSave").onclick = () => {
       renderScale: man.characters[k]?.renderScale ?? 1,
       stanceDeg: man.characters[k]?.stanceDeg ?? 0,
       armDeg: man.characters[k]?.armDeg ?? null,
+      shoulderOutCm: man.characters[k]?.shoulderOutCm ?? 0,
       yawOffsetDeg: man.characters[k]?.yawOffsetDeg ?? 0,
     }])),
     characters: Object.fromEntries(chars.map((k) => [k, man.characters[k]])),

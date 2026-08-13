@@ -180,6 +180,7 @@ export function releaseInstancesExcept(live) {
 //
 //   stanceDeg    How far apart the fighter plants their feet in idle, degrees
 //   armDeg       How far the arms hang out from the body in idle, degrees
+//   shoulderOutCm  How far the arm roots move out from the body, centimetres
 //                of thigh splay per leg. Their sprite's stance is part of how
 //                big they READ, so this sits beside renderScale rather than
 //                being a posing afterthought (ik.js applyStance).
@@ -246,10 +247,15 @@ function applyEntrySettings(rig, entry) {
   // "nobody has said", and fall back to the roster's number for the second.
   const arm = Number(entry?.armDeg);
   rig.armDeg = Number.isFinite(arm) ? arm : null;
+  // How far the arm roots move out from the body, in centimetres. A fact about
+  // the DELIVERY -- a generated clavicle that came out short -- so the stand-in
+  // does not take it.
+  const shoulder = Number(entry?.shoulderOutCm);
+  rig.shoulderOutCm = delivered && Number.isFinite(shoulder) ? shoulder : 0;
 }
 
 /** Set them live, from the workbench. */
-export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg, headTiltDeg, armDeg } = {}) {
+export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg, headTiltDeg, armDeg, shoulderOutCm } = {}) {
   const rig = RIGS.get(charKey);
   if (!rig) return null;
   if (renderScale !== undefined && Number.isFinite(renderScale) && renderScale > 0) {
@@ -263,6 +269,7 @@ export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg, 
   rig.root.userData.yawOffsetRad = rig.yawOffset;
   if (stanceDeg !== undefined && Number.isFinite(stanceDeg)) rig.stanceDeg = stanceDeg;
   if (armDeg !== undefined) rig.armDeg = Number.isFinite(armDeg) ? armDeg : null;
+  if (shoulderOutCm !== undefined) rig.shoulderOutCm = Number.isFinite(shoulderOutCm) ? shoulderOutCm : 0;
   // Instances already handed out share the character's settings.
   for (const inst of INSTANCES.values()) {
     if (inst.charKey !== charKey) continue;

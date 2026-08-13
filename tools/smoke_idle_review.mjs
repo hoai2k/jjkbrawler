@@ -171,7 +171,7 @@ if (rows.pickerShown) {
   const switched = await page.evaluate(async () => {
     const sel = document.getElementById("facingDialPick");
     const seen = [];
-    for (const v of ["yaw", "scale", "stance", "arms", "head"]) {
+    for (const v of ["yaw", "scale", "stance", "arms", "shoulders", "head"]) {
       sel.value = v;
       sel.dispatchEvent(new Event("change", { bubbles: true }));
       const on = [...document.querySelectorAll("#facingDials .facing-dial")]
@@ -182,7 +182,7 @@ if (rows.pickerShown) {
   });
   check(switched, "the picker switches which dial is shown");
 } else {
-  check(rows.dialCount === 5, "the desk shows every dial at once",
+  check(rows.dialCount === 6, "the desk shows every dial at once",
     `${rows.dialCount} visible`);
 }
 

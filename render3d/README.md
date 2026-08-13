@@ -134,6 +134,13 @@ both dialled in the workbench under **Model size & facing**:
   +Z; a model built the other way round faces backwards in every state and no
   clip can fix it, because the whole rig is turned. 180 is the common case
   (Maki and Uro both arrived this way).
+- `shoulderOutCm` — how far this fighter's arm roots move out from the body,
+  in centimetres. A generated clavicle often comes out short, which reads as
+  the shoulder nearest the camera being squashed into the ribs; this moves
+  where the arm STARTS without lengthening the arm. The engine already squares
+  the pair — both clavicles go back to their bind rotation, because the
+  delivered clip's shoulder is where the asymmetry came from (Gojo's arm roots
+  sat 6 cm apart in height and 3 cm apart in distance from the spine).
 - `armDeg` — how far this fighter's idle arms hang out from the body, in
   degrees, and the legs' `stanceDeg` one axis up. Unset means the roster's own
   number (`IDLE_ARM_DEG`, 9°); a heavy coat or a wide body wants more room than
@@ -148,6 +155,14 @@ both dialled in the workbench under **Model size & facing**:
   from 171° to 104° — a hand held at the chest — and the wrist's distance from
   the body's centreline varied SIX-FOLD. Sukuna is the one `false`: his
   delivered idle is a pose somebody wants.
+
+  **The elbow keeps the bend the model was built with.** Forcing the arm dead
+  straight is what made Gojo's elbow read as hinging backwards: a bind pose
+  carries 27–33° of elbow bend across the roster (Nanami's left arm 78°), and
+  straightening it rotates the forearm that far against skin weighted for the
+  bent pose, so the mesh folds at the joint. The arm swings as one rigid piece
+  from bind instead, clamped at `MAX_IDLE_ELBOW` for a bind that arrived
+  mid-pose.
 
   **The arms are aimed from the BIND pose, not from the delivered clip**, and
   that is what decides which way an elbow points. Aiming from wherever the clip

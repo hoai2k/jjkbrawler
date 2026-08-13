@@ -791,9 +791,59 @@ function aimBoneFromBind(THREE, root3d, bone, childName, dir, tmp) {
   return true;
 }
 
+/** Put one bone's LOCAL rotation back to what it was at bind. */
+function setLocalFromBind(THREE, root3d, bone, bind) {
+  const here = bind.get(bone.name);
+  const parent = bone.parent && bind.get(bone.parent.name);
+  if (!here) return;
+  const local = parent
+    ? new THREE.Quaternion().copy(parent.quat).invert().multiply(here.quat)
+    : here.quat.clone();
+  bone.quaternion.copy(local);
+  bone.updateMatrixWorld(true);
+}
+
+/** Put one bone's WORLD rotation back to bind, whatever its parent is doing. */
+function setLocalFromBindWorld(THREE, bone, bindHere) {
+  const parent = bone.parent
+    ? bone.parent.getWorldQuaternion(new THREE.Quaternion())
+    : new THREE.Quaternion();
+  bone.quaternion.copy(parent.invert().multiply(bindHere.quat));
+  bone.updateMatrixWorld(true);
+}
+
+/** Straighten an elbow only as far as it is bent past `MAX_IDLE_ELBOW`.
+ *
+ *  A relaxed arm is not a straight arm, and most binds carry a sensible bend
+ *  that should survive. A bind holding 78 degrees is a delivery that arrived
+ *  mid-pose, and that one has to come back — but only to the limit, not to
+ *  straight, because every degree of correction is a degree the skin was not
+ *  weighted for. */
+function clampElbow(THREE, root3d, fore, handName, dir, tmp) {
+  const hand = root3d.getObjectByName(handName);
+  if (!hand) return;
+  fore.updateWorldMatrix(true, false);
+  hand.updateWorldMatrix(true, false);
+  const here = tmp.p1.setFromMatrixPosition(fore.matrixWorld);
+  const wrist = tmp.p2.setFromMatrixPosition(hand.matrixWorld);
+  const have = tmp.v2.copy(wrist).sub(here);
+  if (have.lengthSq() < 1e-10) return;
+  have.normalize();
+  const bend = Math.acos(Math.max(-1, Math.min(1, have.dot(dir)))) * 180 / Math.PI;
+  if (bend <= MAX_IDLE_ELBOW) return;
+  const swing = new THREE.Quaternion().setFromUnitVectors(have, dir);
+  const part = new THREE.Quaternion().slerp(swing, (bend - MAX_IDLE_ELBOW) / bend);
+  const parent = fore.parent
+    ? fore.parent.getWorldQuaternion(new THREE.Quaternion())
+    : new THREE.Quaternion();
+  const want = part.multiply(fore.getWorldQuaternion(new THREE.Quaternion()));
+  fore.quaternion.copy(parent.invert().multiply(want));
+  fore.updateMatrixWorld(true);
+}
+
 /**
- * HOW A FIGHTER CARRIES THEIR ARMS in their idle: straight, hanging, and out
- * from the body by `deg`.
+ * HOW A FIGHTER CARRIES THEIR ARMS in their idle: hanging as the model was
+ * built, out from the body by `deg`, with the shoulders squared.
  *
  * THE SAME ARGUMENT AS THE LEGS, one axis later. `applyIdleStand` rebuilt the
  * legs because a generated idle arrives with whatever the generator felt about
@@ -811,6 +861,23 @@ function aimBoneFromBind(THREE, root3d, bone, childName, dir, tmp) {
  * the same shape of dial as the legs' stance: one number, measured from
  * straight down, meaning the same thing on every model.
  *
+ * THE ELBOW KEEPS THE BEND THE MODEL WAS BUILT WITH. The first version forced
+ * the arm dead straight, and that is what made Gojo's elbow read as hinging
+ * the wrong way: measured across the roster, a bind pose carries 27-33 degrees
+ * of elbow bend (Nanami's left arm 78), and straightening it rotates the
+ * forearm that far against skin weighted for the bent pose. The mesh folds at
+ * the joint. Nobody stands with locked elbows anyway, so the arm is swung as
+ * ONE RIGID PIECE from bind and the bend comes along — clamped at
+ * MAX_IDLE_ELBOW, because a bind that arrived at 78 degrees is not a relaxed
+ * arm, it is a delivery holding a pose.
+ *
+ * THE SHOULDER IS RESET TOO, and it has to be. The clavicle carries whatever
+ * the delivered clip left on it, which is where "one shoulder squashed into
+ * the body" comes from: Gojo's arm roots sat 6 cm apart in height and 3 cm
+ * apart in distance from the spine, one hunched and one not. Putting both back
+ * to bind makes the pair symmetric; `outM` then moves them outward together,
+ * for a fighter whose shoulders read narrow.
+ *
  * WHAT IT DOES NOT TOUCH. The wrist, so a hand posed around a weapon keeps its
  * grip; and any fighter whose manifest says `idleArms: false`, whose delivered
  * idle is a pose somebody wants (Sukuna's).
@@ -820,7 +887,9 @@ function aimBoneFromBind(THREE, root3d, bone, childName, dir, tmp) {
  * side with the butt near the floor, which is the carry. The off hand joins
  * the shaft separately (applyTwoHandGrip, which now runs in idle too).
  */
-export function applyIdleArms(THREE, root3d, deg, tmp) {
+export const MAX_IDLE_ELBOW = 25;
+
+export function applyIdleArms(THREE, root3d, deg, tmp, outM = 0) {
   const arms = ["Left", "Right"].map((side) => ({
     up: root3d.getObjectByName(`${side}Arm`),
     lo: root3d.getObjectByName(`${side}ForeArm`),
@@ -850,11 +919,36 @@ export function applyIdleArms(THREE, root3d, deg, tmp) {
     // clip's twist into the idle, and a twisted upper arm is an elbow that
     // points the wrong way.
     const side = i === 0 ? "Left" : "Right";
+    const bind = bindFrames(THREE, root3d);
+
+    // The clavicle first, back to the pose the body was built in. Everything
+    // below hangs off it, so an arm aimed correctly from a hunched shoulder is
+    // still an arm coming out of the wrong place.
+    const clav = root3d.getObjectByName(`${side}Shoulder`);
+    if (clav && bind.has(clav.name)) setLocalFromBindWorld(THREE, clav, bind.get(clav.name));
+
     if (lo) {
       aimBoneFromBind(THREE, root3d, up, `${side}ForeArm`, dir, tmp);
-      if (hand) aimBoneFromBind(THREE, root3d, lo, `${side}Hand`, dir, tmp);
+      // The forearm rides along: its BIND local rotation, so the elbow keeps
+      // the bend and the crease the modeller gave it, and the skin sees no
+      // relative rotation at the joint at all.
+      if (bind.has(lo.name)) {
+        setLocalFromBind(THREE, root3d, lo, bind);
+        clampElbow(THREE, root3d, lo, `${side}Hand`, dir, tmp);
+      }
     } else if (hand) {
       aimBoneFromBind(THREE, root3d, up, `${side}Hand`, dir, tmp);
+    }
+
+    // LENGTHEN THE SHOULDER: move the arm's root out along the body's own
+    // width axis. A translation rather than a scale, so the arm keeps its
+    // length — what reads as squashed is where the arm STARTS, not how long
+    // it is.
+    if (outM && up.parent) {
+      up.updateWorldMatrix(true, false);
+      tmp.p1.setFromMatrixPosition(up.matrixWorld).addScaledVector(lateral, sign * outM);
+      up.position.copy(up.parent.worldToLocal(tmp.p1));
+      up.updateMatrixWorld(true);
     }
   }
   root3d.updateMatrixWorld(true);
