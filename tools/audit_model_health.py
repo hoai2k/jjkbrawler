@@ -53,7 +53,13 @@ def report(char):
     bpy.ops.import_scene.gltf(filepath=path)
     meshes = [o for o in bpy.data.objects if o.type == "MESH"]
     skinned = [o for o in meshes if o.vertex_groups]
-    loose = [o for o in meshes if not o.vertex_groups]
+    # A weapon generated on its own hangs off a bone rather than being skinned
+    # to one, so it has no vertex groups AND is not a stray — it is the whole
+    # point of the separate-prop pipeline. Counting it as an unweighted stray
+    # reported "2 unweighted mesh (20451 verts)" for every fighter carrying
+    # one, which reads as a serious defect and is in fact the design.
+    boned = [o for o in meshes if not o.vertex_groups and o.parent_type == "BONE"]
+    loose = [o for o in meshes if not o.vertex_groups and o.parent_type != "BONE"]
 
     # Stature from the SKINNED body only: an unweighted stray would otherwise
     # decide how tall the fighter is.
@@ -95,7 +101,10 @@ def report(char):
         "crown": crown,
         "loose": sum(len(o.data.vertices) for o in loose),
         "looseN": len(loose),
-        "prop": mass.get("Prop_Main", 0.0) + mass.get("Prop_Off", 0.0),
+        # Skinned prop weight, plus the verts of any bone-parented weapon —
+        # both are "the fighter's kit", however it got there.
+        "prop": (mass.get("Prop_Main", 0.0) + mass.get("Prop_Off", 0.0)
+                 + sum(len(o.data.vertices) for o in boned)),
     }
 
 rows = []

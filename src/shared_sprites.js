@@ -346,12 +346,26 @@ function buildRegistry() {
   // that stands on the stage. Reading the prefix instead got Nue exactly
   // backwards.
   const ANCHOR_BY_TYPE = { summon: "feet", projectile: "centre" };
-  const visit = (node, who, drawnBy = "centre") => {
+  // `bodyH` is the nearest enclosing creature's own height. A summon declared
+  // inline in a special — Dagon's shikigami, Mahoraga, Kurourushi's brood —
+  // never passes through the pool walk above, and its size is `h` on the config
+  // rather than a `spriteH` on the move, so reading only the kit fields left
+  // every one of them "sized by the code that spawns it". It is carried down
+  // because a per-unit override names the art while the config above it
+  // declares the size, which is the same merge specials.js does at spawn.
+  const visit = (node, who, drawnBy = "centre", bodyH = null) => {
     if (!node || typeof node !== "object" || seen.has(node)) return;
     seen.add(node);
     if (typeof node.type === "string" && ANCHOR_BY_TYPE[node.type]) {
       drawnBy = ANCHOR_BY_TYPE[node.type];
     }
+    if (Number.isFinite(node.h)) bodyH = node.h;
+    // A creature config, wherever it hangs. `behavior` is the field spawnSummon
+    // steers by and every creature has one, which makes it a better mark than
+    // the special's `type`: Kurourushi's brood is `offspring` on an ULTIMATE, so
+    // it never passes a `type: "summon"` node and was being filed as a
+    // centre-anchored effect of unknown size.
+    if (typeof node.behavior === "string" && Array.isArray(node.sprites)) drawnBy = "feet";
     if (isSharedKey(node.aura)) {
       put(node.aura, { h: AURA_H, anchor: "feet", owner: who,
                        what: "the install aura's height around the fighter (render.js)" });
@@ -367,15 +381,20 @@ function buildRegistry() {
     }
     for (const [field, heightField] of SPRITE_LIST_FIELDS) {
       if (!Array.isArray(node[field]) || poolLists.has(node[field])) continue;
-      const h = node[`${heightField}Base`] ?? node[heightField] ?? null;
-      for (const key of node[field]) {
-        put(key, { h, anchor: drawnBy, owner: who, hit,
-                   what: h ? "the height its move declares (the kit's own number)"
-                           : "sized by the code that spawns it" });
+      let h = node[`${heightField}Base`] ?? node[heightField] ?? null;
+      let what = h ? "the height its move declares (the kit's own number)"
+                   : "sized by the code that spawns it";
+      // `sprites` is a creature's still list and nothing else, so a summon that
+      // declares no `spriteH` is not unsized — it is drawn at its body height,
+      // and at summons.js's own 110 when it does not name one either.
+      if (h === null && field === "sprites" && drawnBy === "feet") {
+        h = bodyH ?? 110;
+        what = "the creature's height on stage (its kit's own `h`)";
       }
+      for (const key of node[field]) put(key, { h, anchor: drawnBy, owner: who, hit, what });
     }
     for (const value of Object.values(node)) {
-      if (value && typeof value === "object") visit(value, who, drawnBy);
+      if (value && typeof value === "object") visit(value, who, drawnBy, bodyH);
     }
   };
   for (const key of CHARACTER_KEYS) {

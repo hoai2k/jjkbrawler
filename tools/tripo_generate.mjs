@@ -9,9 +9,9 @@
 //
 //     export TRIPO_API_KEY=tsk_...          # never pass it on the command line
 //     node tools/tripo_generate.mjs yuji
-//     node tools/tripo_generate.mjs yuji --image path/to/other.png --backend 3d
+//     node tools/tripo_generate.mjs yuji --image path/to/other.png
 //
-// Output lands at <backend>/intake/<char>/_raw.glb — the input side of
+// Output lands at render3d/intake/<char>/_raw.glb — the input side of
 // blender_conform.py, which is the next step it prints.
 //
 // ---------------------------------------------------------------------------
@@ -36,6 +36,7 @@
 // ---------------------------------------------------------------------------
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
+import { execFileSync } from "child_process";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -59,13 +60,22 @@ if (!KEY) {
 }
 
 const argv = process.argv.slice(2);
-const backend = argv.includes("--backend") ? argv[argv.indexOf("--backend") + 1] : "billboard";
-const DIR = backend === "3d" ? "render3d" : "billboards";
+// ONE INTAKE. The billboard backend draws render3d's rigs now, so there is a
+// single place a delivery lands and `--backend` has nothing left to choose.
+// It stayed here defaulting to `billboards/` long enough to drop a fresh
+// generation into a directory nothing reads, while build_model.sh looked for
+// it under render3d/ and rebuilt the PREVIOUS model without saying so.
+const DIR = "render3d";
 const imageArg = argv.includes("--image") ? argv[argv.indexOf("--image") + 1] : null;
-const char = argv.find((a) => !a.startsWith("--") && argv[argv.indexOf(a) - 1] !== "--image"
-  && argv[argv.indexOf(a) - 1] !== "--backend");
+// A WEAPON, generated on its own: no rig, no clips, one mesh that
+// tools/blender_attach_prop.py puts in the fighter's hand afterwards. The
+// seed is that fighter's DI5 weapon plate, and the output is the `_prop.glb`
+// tools/build_model.sh looks for. See render3d/src/props.js for why the
+// weapon is not in the fighter's own board any more.
+const propMode = argv.includes("--prop");
+const char = argv.find((a) => !a.startsWith("--") && argv[argv.indexOf(a) - 1] !== "--image");
 if (!char) {
-  console.error("usage: tripo_generate.mjs <char> [--image <png>] [--backend 3d]");
+  console.error("usage: tripo_generate.mjs <char> [--image <png>] [--prop]");
   process.exit(2);
 }
 
@@ -94,13 +104,35 @@ const CANON_OVERRIDE = {
 };
 
 /** The fighter's canonical appearance reference — the same image every 2D
- *  round is matched against, and the best single seed we have: full body,
- *  relaxed, clean alpha. */
+ *  round is matched against, and the best single seed we have when there is
+ *  nothing better: full body, relaxed, clean alpha.
+ *
+ *  THE TURNAROUND BOARD IS BETTER, and is preferred whenever one exists. A
+ *  canon idle is ONE view; a DI1/DI5 board is four, drawn for exactly this
+ *  purpose — front, ¾, side and back at one scale, so the generator is told
+ *  what the back of the coat looks like instead of inventing it. Every model
+ *  the roster has today was seeded from a single idle, which is part of why
+ *  the review found what it found. */
 const canonName = CANON_OVERRIDE[char] || `${char}_idle.png`;
-const defaultImage = join(ROOT, "assets/reference/canon", canonName);
+const board = join(ROOT, "render3d/docs/reference", `${char}_turnaround.png`);
+const propPlate = join(ROOT, "render3d/docs/reference", `${char}_prop.png`);
+const defaultImage = propMode ? propPlate
+  : existsSync(board) ? board
+  : join(ROOT, "assets/reference/canon", canonName);
 const imagePath = imageArg ? join(ROOT, imageArg) : defaultImage;
-if (!imageArg && CANON_OVERRIDE[char]) {
-  console.log(`canon: ${char}'s idle is retired as an authority — seeding from ${canonName}`);
+// A board is only a multiview seed once it has been CUT UP. Sent whole to the
+// single-image endpoint it is one picture of four people, and the generator
+// models exactly that — see tools/slice_turnaround.py, which exists because
+// five fighters came back as four statues each.
+// The weapon plates are boards as well — four brooms, four axes — so prop
+// mode takes the same route rather than modelling the whole plate.
+const seedBoard = propMode ? propPlate : board;
+const useMultiview = !imageArg && existsSync(seedBoard);
+if (!imageArg && !propMode) {
+  if (existsSync(board)) console.log(`seeding from the turnaround board — four views, sent separately`);
+  else if (CANON_OVERRIDE[char]) {
+    console.log(`canon: ${char}'s idle is retired as an authority — seeding from ${canonName}`);
+  }
 }
 
 const auth = { Authorization: `Bearer ${KEY}` };
@@ -175,33 +207,74 @@ async function download(url, dest) {
   writeFileSync(dest, Buffer.from(await res.arrayBuffer()));
 }
 
+async function upload(path) {
+  const form = new FormData();
+  form.append("file", new Blob([readFileSync(path)], { type: "image/png" }), "seed.png");
+  const up = await api(`${V2}/upload`, { method: "POST", body: form });
+  return up.image_token;
+}
+
+/** The board's panels, cut and uploaded, in the slot order the API expects:
+ *  [front, left, back, right]. We have no right-hand panel — the board draws a
+ *  ¾ instead — and an ABSENT view is an empty object, not a repeat of another
+ *  one. Padding the slot with the left view would tell the generator the
+ *  fighter is symmetric front-to-back about the wrong axis. */
+async function multiviewFiles() {
+  const argsFor = [join(ROOT, "tools/slice_turnaround.py"), char];
+  if (propMode) argsFor.push("--board", seedBoard);
+  console.log(execFileSync("python3", argsFor, { encoding: "utf8" }).trimEnd());
+  const dir = join(ROOT, "render3d/docs/reference/_views");
+  const stem = propMode ? `${char}_prop` : char;
+  const files = [];
+  for (const slot of ["front", "left", "back"]) {
+    const token = await upload(join(dir, `${stem}_${slot}.png`));
+    console.log(`uploaded  ${slot.padEnd(5)} ${token}`);
+    files.push({ type: "png", file_token: token });
+  }
+  files.push({});               // right: not drawn
+  return files;
+}
+
 async function main() {
   if (!existsSync(imagePath)) throw new Error(`no seed image at ${imagePath}`);
   console.log(`seed: ${imagePath.replace(ROOT + "/", "")}`);
 
-  // 1. Upload. Multipart field is `file`; the token comes back as image_token.
-  const form = new FormData();
-  form.append("file", new Blob([readFileSync(imagePath)], { type: "image/png" }), `${char}.png`);
-  const up = await api(`${V2}/upload`, { method: "POST", body: form });
-  const token = up.image_token;
-  console.log(`uploaded  ${token}`);
-
-  // 2. Mesh. pbr:false because the delivery spec wants baseColor only — the
-  //    engine's toon pass supplies all shading, and anything pre-lit fights it.
+  // 1. Upload, and 2. mesh. pbr:false because the delivery spec wants
+  //    baseColor only — the engine's toon pass supplies all shading, and
+  //    anything pre-lit fights it.
+  let body;
+  if (useMultiview) {
+    body = { type: "multiview_to_model", files: await multiviewFiles() };
+  } else {
+    const token = await upload(imagePath);
+    console.log(`uploaded  ${token}`);
+    body = { type: "image_to_model", file: { type: "png", file_token: token } };
+  }
   const gen = await api(`${V2}/task`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      type: "image_to_model",
-      file: { type: "png", file_token: token },
+      ...body,
       face_limit: FACE_LIMIT,
       texture: true,
       pbr: false,
     }),
   });
   console.log(`mesh task ${gen.task_id}`);
-  await waitFor(gen.task_id, { label: "mesh" });
+  const meshDone = await waitFor(gen.task_id, { label: "mesh" });
   console.log("\nmesh done");
+
+  // A prop stops here. It is rigid geometry that hangs off a bone, so a
+  // biped rig would be nonsense to ask for and nonsense to receive.
+  if (propMode) {
+    const outDir = join(ROOT, DIR, "intake", char);
+    mkdirSync(outDir, { recursive: true });
+    const out = join(outDir, "_prop.glb");
+    await download(meshDone.output.pbr_model || meshDone.output.model, out);
+    console.log(`\nwrote ${out.replace(ROOT + "/", "")}`);
+    console.log(`\nnext: tools/build_model.sh ${char} --local picks it up after conform`);
+    return;
+  }
 
   // 3. Rig. See note 1: the model version is the whole ballgame.
   const rig = await api(`${V3}/animations/rig`, {
@@ -240,7 +313,7 @@ async function main() {
   }
   console.log(`\nnext:\n  <blender> --background --python tools/blender_conform.py -- \\`
     + `\n      --in ${DIR}/intake/${char}/_raw.glb --out ${DIR}/intake/${char}/${char}.glb --char ${char}`
-    + `\n  node tools/billboard_intake.mjs validate ${char}${backend === "3d" ? " --backend 3d" : ""}`);
+    + `\n  node tools/billboard_intake.mjs validate ${char}`);
 }
 
 main().catch((err) => {

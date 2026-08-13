@@ -8,7 +8,7 @@
 #
 # A fighter whose weapon would be fused into their body by the generator is
 # drawn and generated EMPTY-HANDED, with the weapon generated alone; drop it at
-# billboards/intake/<char>/_prop.glb and this joins the two after conform
+# render3d/intake/<char>/_prop.glb and this joins the two after conform
 # (tools/blender_attach_prop.py). Nothing else in the run changes.
 #
 # Every step here already existed; what did not exist was the ORDER, which is
@@ -37,9 +37,12 @@ LOCAL=""
 
 cd "$(dirname "$0")/.."
 BLENDER="${BLENDER:-blender}"
-RAW="billboards/intake/$CHAR/_raw.glb"
-PROP="billboards/intake/$CHAR/_prop.glb"
-GLB="billboards/intake/$CHAR/$CHAR.glb"
+# ONE INTAKE. The billboard backend now draws render3d's rigs, so there is one
+# place a rig lands and one manifest recording it (tools/billboard_intake.mjs
+# says the same thing at more length). This script used to walk both.
+RAW="render3d/intake/$CHAR/_raw.glb"
+PROP="render3d/intake/$CHAR/_prop.glb"
+GLB="render3d/intake/$CHAR/$CHAR.glb"
 
 step() { printf '\n=== %s: %s\n' "$CHAR" "$1"; }
 
@@ -66,8 +69,20 @@ run_blender() {
   rm -f "$log"
 }
 
+# The mtime is taken BEFORE the step and checked after. `set -e` catches a
+# conform that exits non-zero, but not a run driven by a loop that swallowed
+# the status — and a conform that never wrote leaves the PREVIOUS fighter's
+# .glb sitting exactly where the new one should be, so every later step
+# succeeds on the old mesh and the run reports an approval for it. Five
+# fighters shipped their old bodies with their new weapons attached that way.
+# Checking that the output was actually written is one line and ends it.
+was=$(stat -c %Y "$GLB" 2>/dev/null || echo 0)
+SUPPLIED=()
+[ -f "$PROP" ] && SUPPLIED=(--prop-supplied)
 step "conform"
-run_blender tools/blender_conform.py --in "$RAW" --out "$GLB" --char "$CHAR"
+run_blender tools/blender_conform.py --in "$RAW" --out "$GLB" --char "$CHAR" "${SUPPLIED[@]}"
+[ "$(stat -c %Y "$GLB" 2>/dev/null || echo 0)" != "$was" ] || {
+  echo "conform did not write $GLB — the file on disk is the PREVIOUS build"; exit 1; }
 
 # A weapon generated on its own, joined here. Optional by design: only the
 # fighters whose weapon a generator would otherwise fuse into an arm are drawn
@@ -93,15 +108,9 @@ node tools/billboard_intake.mjs import "$CHAR" >/dev/null
 step "author clips"
 run_blender tools/blender_author_clips.py --in "$GLB" --out "$GLB" --char "$CHAR" --face-fix
 
-step "validate, import and approve — billboards"
+step "validate, import and approve"
 node tools/billboard_intake.mjs validate "$CHAR" 2>&1 | grep -E "^(ok|FAIL|warn.*MISSING)" || true
 node tools/billboard_intake.mjs import "$CHAR" >/dev/null
 node tools/billboard_intake.mjs approve "$CHAR"
-
-step "same model, render3d"
-mkdir -p "render3d/intake/$CHAR"
-cp "$GLB" "render3d/intake/$CHAR/$CHAR.glb"
-node tools/billboard_intake.mjs import "$CHAR" --backend 3d >/dev/null
-node tools/billboard_intake.mjs approve "$CHAR" --backend 3d
 
 printf '\n=== %s: done — review with\n    node tools/shot_workbench.mjs %s idle run sideHeavy\n' "$CHAR" "$CHAR"
