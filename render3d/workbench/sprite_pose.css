@@ -133,6 +133,10 @@ main.poseedit {
 }
 .how.matched { color: #d8a657; border-color: #5c4a2a; }
 .how.read { color: #6ea8ff; border-color: #2c456e; }
+/* Matched is ON but this frame has none — the checkbox says one thing and the
+ * pane is showing another, which is worth a warning colour rather than a
+ * silent fall back to the read. */
+.how.unmatched { color: #e0a3a3; border-color: #6b3a3a; }
 
 .facing {
   font: 11.5px ui-monospace, Menlo, monospace; color: #8fb8a0; white-space: nowrap;

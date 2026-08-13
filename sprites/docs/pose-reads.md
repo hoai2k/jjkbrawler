@@ -82,9 +82,26 @@ read that looked fine flat turns out to bend a knee backwards.
 
 The rig pane has two dials of its own. **Matched** (bottom left, on by default)
 shows the frame's matched human pose instead of the one solved from the joints
-— see below — and the badge top left always says which of the two you are
-actually looking at. **View 3D** (bottom right) turns both panes off the
-drawing's angle together.
+— see below. **View 3D** (bottom right) turns both panes off the drawing's
+angle together.
+
+### The two badges answer different questions
+
+They sit on the same screen and are easy to read as one, so both now name what
+they are talking about:
+
+| | |
+|---|---|
+| `joints: …` beside the frame name | where the **eighteen dots on the plate** came from — `read by eye`, `fitted from yuji/idle_a`, `hand-placed on disk`, `edited here` |
+| `3D: …` over the rig | which pipeline **posed the model** — `matched human pose`, or `solved from the joints` |
+
+So `joints: read by eye` next to `3D: matched human pose` is not a
+contradiction and does not mean the frame lacks a match. It means a human
+placed those dots *and* the frame has a matched pose — the normal case for
+every frame of Yuji's sheet. A frame with no match is called out explicitly, in
+a warning colour, as **`3D: no match for this frame — solved from the joints`**,
+and its picker tile carries no dot. That is the only reading that means "no
+match", and the badge says so rather than leaving it to be inferred.
 
 Edits last as long as the tab and no longer: press **Download this character**
 (or **All edited**, for a session that touched several) before you leave, and

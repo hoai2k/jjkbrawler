@@ -993,14 +993,18 @@ function applyChain(node, pose, basis) {
   for (const child of node.children) if (child.isBone) applyChain(child, pose, basis);
 }
 
-/** Whichever of the two the pane is currently showing. */
+/**
+ * Whichever of the two the pane is currently showing — and it is THREE
+ * answers, not two. "Matched is on and this frame has one" and "Matched is on
+ * but this frame has none, so you are looking at the read after all" feel the
+ * same from the checkbox and are completely different facts about the frame,
+ * so the badge says which.
+ */
 function poseRigFor(key, j) {
-  if (ui.matched) {
-    const match = matchedPose(key);
-    if (match && poseFromMatch(match)) return "matched";
-  }
+  const match = ui.matched ? matchedPose(key) : null;
+  if (match && poseFromMatch(match)) return "matched";
   poseFromJoints(j);
-  return "read";
+  return ui.matched ? "unmatched" : "read";
 }
 
 /** Turn the read into rig rotations: every driven bone is swung, in the
@@ -1274,10 +1278,17 @@ function renderEditor() {
   // Three different things, and conflating them cost a round trip: what YOU
   // changed since the page loaded, what a human placed at some point and is
   // already in the tree, and what is still a fitted guess.
+  // It says JOINTS: out loud, because the two badges on this screen answer
+  // different questions and they were being read as one. This one is about
+  // where the eighteen dots on the plate came from. The one over the rig is
+  // about which pipeline posed the model. "read by eye" beside "matched human
+  // pose" is not a contradiction and does not mean the frame lacks a match —
+  // it means a human placed those dots AND the frame has a matched pose, which
+  // is the normal case for every frame of Yuji's sheet.
   const mine = SESSION.has(editKey(ui.char, ui.pose));
   const stamp = mine ? "edited here" : pose.source ? "hand-placed on disk"
     : pose.seed ? pose.seed : "read by eye";
-  $("#poseStamp").textContent = stamp;
+  $("#poseStamp").textContent = `joints: ${stamp}`;
   $("#poseStamp").className = `stamp ${mine ? "on" : pose.source ? "read" : pose.seed ? "seed" : "read"}`;
   $("#poseNote").value = pose.read || "";
   $("#depthNote").hidden = !hasDepth(pose.j);
@@ -1289,8 +1300,12 @@ function renderEditor() {
         ? `${pose.j[n][0].toFixed(1)}, ${pose.j[n][1].toFixed(1)}`
           + (depth(pose.j[n]) ? `, ${depth(pose.j[n]).toFixed(1)}` : "") : "—"}</b></li>`).join("");
   const how = poseRigFor(ui.pose, pose.j);
-  $("#poseHow").textContent = how === "matched" ? "matched human pose" : "solved from the read";
-  $("#poseHow").className = `stamp ${how === "matched" ? "matched" : "read"}`;
+  $("#poseHow").textContent = {
+    matched: "3D: matched human pose",
+    unmatched: "3D: no match for this frame — solved from the joints",
+    read: "3D: solved from the joints",
+  }[how];
+  $("#poseHow").className = `how ${how}`;
   drawThree();
 }
 
