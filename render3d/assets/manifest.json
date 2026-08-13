@@ -182,7 +182,8 @@
       },
       "renderScale": 1.01,
       "stanceDeg": 19,
-      "headTiltDeg": 16
+      "headTiltDeg": 16,
+      "idleArms": false
     },
     "nobara": {
       "model": "nobara/nobara.glb",

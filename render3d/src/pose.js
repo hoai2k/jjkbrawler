@@ -31,7 +31,7 @@
 
 import { STATES, clipNameFor, clipTime, aimable } from "./states.js";
 import {
-  applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs, applyIdleStand, clearIdleStand,
+  applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs, applyIdleStand, applyIdleArms, clearIdleStand,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
   reachChain, gripBones,
 } from "./ik.js";
@@ -102,6 +102,13 @@ export function flinchSide(animKey, x, aim, facing) {
   if (!DIALS.flinch || !aim || !FLINCH_STATES.has(clipNameFor(animKey))) return 0;
   return Math.sign((aim.x - x) * (facing < 0 ? -1 : 1)) || 1;
 }
+
+/** How far a relaxed arm hangs from straight down, in degrees. One number for
+ *  the roster, the way the legs' stance is one number per fighter: it is what
+ *  "relaxed" looks like rather than a fact about any one model. Small on
+ *  purpose — past about fifteen it stops reading as rest and starts reading as
+ *  a stance. */
+const IDLE_ARM_DEG = 9;
 
 // ------------------------------------------------------------ posing proper
 
@@ -369,6 +376,9 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   // reads as a limp, which is why it stops at the idle.
   if (clipNameFor(animKey) === "idle") {
     applyIdleStand(THREE, rig.root, layers.stanceDeg || 0, _ik);
+    // The arms get the same treatment one axis up — unless this fighter's
+    // delivered idle is a pose somebody chose, which the manifest says.
+    if (rig.idleArms !== false) applyIdleArms(THREE, rig.root, IDLE_ARM_DEG, _ik);
   } else {
     clearIdleStand(rig.root);
   }

@@ -233,6 +233,10 @@ function applyEntrySettings(rig, entry) {
   // — built to spec, head level — does not take it either.
   const tilt = Number(entry?.headTiltDeg);
   rig.headTiltDeg = delivered && Number.isFinite(tilt) ? tilt : 0;
+  // Whether the engine rebuilds this fighter's idle arms. A fact about the
+  // DELIVERY — "the pose this model came with is the one we want" — so the
+  // stand-in, which came with no pose at all, always takes the rule.
+  rig.idleArms = delivered ? entry?.idleArms !== false : true;
   // Stance is the character's, not the file's.
   const stance = Number(entry?.stanceDeg);
   rig.stanceDeg = Number.isFinite(stance) ? stance : 0;

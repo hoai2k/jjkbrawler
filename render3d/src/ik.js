@@ -259,6 +259,13 @@ export function applyReach(THREE, root3d, state, clipT, targetWorld, tmp) {
  *  and states that need the off hand elsewhere — ledge, dodges, hurt — are
  *  simply absent. */
 const TWO_HAND_STATES = new Set([
+  // IDLE IS NOT IN HERE, and it was tried. The grip solve puts the off hand a
+  // fixed distance down the shaft from the main one, which is right when the
+  // weapon is presented across the body for a strike and absurd when it is
+  // hanging at the fighter's side: Maki's off arm went straight up over her
+  // head to reach a shaft point that was above her. A relaxed carry is
+  // one-handed — which is also the canon one — and the weapon follows the
+  // carrying hand on its own, because the prop hangs off that bone.
   "light", "sideHeavy", "upHeavy", "downHeavy", "crouchAttack",
   "specialNeutral", "specialSide", "specialDown", "charge", "ult",
 ]);
@@ -722,6 +729,88 @@ export function applyIdleStand(THREE, root3d, deg, tmp) {
     hips.position.copy(hips.parent.worldToLocal(tmp.v6));
     root3d.updateMatrixWorld(true);
   }
+  return true;
+}
+
+/**
+ * HOW A FIGHTER CARRIES THEIR ARMS in their idle: straight, hanging, and out
+ * from the body by `deg`.
+ *
+ * THE SAME ARGUMENT AS THE LEGS, one axis later. `applyIdleStand` rebuilt the
+ * legs because a generated idle arrives with whatever the generator felt about
+ * standing, it is different on every fighter, and it reads as sloppiness
+ * rather than as personality. Everything above the hips was left alone, and
+ * the arms turned out to be worse than the legs ever were: measured across the
+ * roster at rest, the elbow ran from 171° (all but straight) to 104° (a hand
+ * held at the chest), and the wrist's distance from the body's centreline
+ * varied SIX-FOLD. Uro and Sukuna stand with their hands up; Yuji's hang at
+ * his sides. None of that was anybody's decision about the character.
+ *
+ * WHY OUT AND NOT DOWN. Arms hung dead flat against the ribs read as
+ * attention, not as rest, and they also intersect the coat on the wider
+ * fighters. A few degrees of abduction is what "relaxed" looks like, and it is
+ * the same shape of dial as the legs' stance: one number, measured from
+ * straight down, meaning the same thing on every model.
+ *
+ * WHAT IT DOES NOT TOUCH. The wrist, so a hand posed around a weapon keeps its
+ * grip; and any fighter whose manifest says `idleArms: false`, whose delivered
+ * idle is a pose somebody wants (Sukuna's).
+ *
+ * AND THE WEAPON COMES WITH IT. A prop hangs off the hand bone, so moving the
+ * arm moves the weapon — a straightened arm carries a polearm to the fighter's
+ * side with the butt near the floor, which is the carry. The off hand joins
+ * the shaft separately (applyTwoHandGrip, which now runs in idle too).
+ */
+export function applyIdleArms(THREE, root3d, deg, tmp) {
+  const arms = ["Left", "Right"].map((side) => ({
+    up: root3d.getObjectByName(`${side}Arm`),
+    lo: root3d.getObjectByName(`${side}ForeArm`),
+    hand: root3d.getObjectByName(`${side}Hand`),
+  }));
+  if (!arms[0].up || !arms[1].up) return false;
+  root3d.updateMatrixWorld(true);
+
+  // The chest's own width axis, shoulder joint to shoulder joint — the same
+  // trick the legs use on the pelvis, and for the same reason: it does not ask
+  // the manifest which way anybody faces, so `yawOffsetDeg` cannot mislead it.
+  const span = tmp.v4.setFromMatrixPosition(arms[1].up.matrixWorld)
+    .sub(tmp.v5.setFromMatrixPosition(arms[0].up.matrixWorld));
+  const lateral = tmp.v3.set(span.x, 0, span.z);
+  if (lateral.lengthSq() < 1e-8) return false;
+  lateral.normalize();
+  const axis = tmp.v5.set(-lateral.z, 0, lateral.x).normalize();
+
+  const rad = (deg * Math.PI) / 180;
+  for (let i = 0; i < 2; i++) {
+    const sign = i === 0 ? -1 : 1; // away from the body, not both the same way
+    const { up, lo, hand } = arms[i];
+    const dir = tmp.v6.set(0, -1, 0).applyAxisAngle(axis, sign * rad).normalize();
+
+    up.updateWorldMatrix(true, false);
+    const shoulder = tmp.p1.setFromMatrixPosition(up.matrixWorld);
+    if (lo) {
+      lo.updateWorldMatrix(true, false);
+      const elbow = tmp.p2.setFromMatrixPosition(lo.matrixWorld);
+      const upperLen = elbow.distanceTo(shoulder);
+      aimBoneAt(THREE, up, shoulder, elbow,
+        tmp.p3.copy(shoulder).addScaledVector(dir, upperLen), tmp);
+      if (hand) {
+        lo.updateWorldMatrix(true, false);
+        hand.updateWorldMatrix(true, false);
+        const elbow2 = tmp.p1.setFromMatrixPosition(lo.matrixWorld);
+        const wrist = tmp.p2.setFromMatrixPosition(hand.matrixWorld);
+        const foreLen = wrist.distanceTo(elbow2);
+        aimBoneAt(THREE, lo, elbow2, wrist,
+          tmp.p3.copy(elbow2).addScaledVector(dir, foreLen), tmp);
+      }
+    } else if (hand) {
+      hand.updateWorldMatrix(true, false);
+      const wrist = tmp.p2.setFromMatrixPosition(hand.matrixWorld);
+      aimBoneAt(THREE, up, shoulder, wrist,
+        tmp.p3.copy(shoulder).addScaledVector(dir, wrist.distanceTo(shoulder)), tmp);
+    }
+  }
+  root3d.updateMatrixWorld(true);
   return true;
 }
 
