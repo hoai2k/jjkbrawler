@@ -479,7 +479,7 @@ function buildRegistry() {
       site = null;
     }
     if (isSharedKey(node.aura)) {
-      put(node.aura, { h: AURA_H, anchor: "feet", owner: who, ...NUDGED,
+      put(node.aura, { h: AURA_H, anchor: "feet", owner: who, ...NUDGED, kind: "aura",
                        what: "the install aura's height around the fighter (render.js)" });
     }
     const hit = hitOfNode(node);
@@ -504,6 +504,7 @@ function buildRegistry() {
       // the stage's own 1280x720 shape.
       if (field === "domainSprite") {
         put(node[field], { h: null, anchor: "centre", owner: who, nudge: false, sizable: false,
+                           kind: "domain",
                            what: "cover-fitted to the whole stage behind the fight (render.js)" });
         continue;
       }

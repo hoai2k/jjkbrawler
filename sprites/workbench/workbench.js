@@ -202,8 +202,15 @@ function sharedOwner(key) {
   // it beside". Those fall through to the usage index, which records the
   // fighter whose kit the pool hangs off.
   const byName = (name) => WB_FIGHTERS.find((k) => CHARACTERS[k]?.name === name) || null;
+  // A creature POSE (`summon:toad:idle_a`) is not itself referenced by any kit —
+  // the creature is — so the lookup falls back to the creature the same way the
+  // manifest does. Without it every pose of every shikigami stood beside Gojo,
+  // the last-resort reference, instead of beside the fighter who summons them.
+  const creature = key.split(":").length === 3 ? key.split(":").slice(0, 2).join(":") : null;
+  const usage = (k) => (sharedUsage().get(k) || [])[0]?.who;
   return byName(sharedSpriteInfo(key)?.owner)
-    || byName((sharedUsage().get(key) || [])[0]?.who);
+    || byName(usage(key))
+    || (creature ? byName(sharedSpriteInfo(creature)?.owner) || byName(usage(creature)) : null);
 }
 
 /** Where a shared sprite is drawn from, and how tall the game draws it. Built
@@ -820,6 +827,7 @@ function snapshot(charKey, frameKey) {
   for (const f of EDITABLE) out[f] = meta[f];
   // deep so an undo entry can't alias the live anchors object
   out.anchors = meta.anchors ? JSON.parse(JSON.stringify(meta.anchors)) : null;
+  out.attackBox = meta.attackBox ? { ...meta.attackBox } : null;
   return out;
 }
 
@@ -828,6 +836,10 @@ function restore(charKey, frameKey, snap) {
   for (const f of EDITABLE) meta[f] = snap[f];
   if (snap.anchors) meta.anchors = JSON.parse(JSON.stringify(snap.anchors));
   else delete meta.anchors;
+  // Undo and Reset have to reach it too, or a box placed this session survives
+  // the thing that is supposed to take it back.
+  if (snap.attackBox) meta.attackBox = { ...snap.attackBox };
+  else delete meta.attackBox;
 }
 
 // ------------------------------------------------------------------ anchors
@@ -933,7 +945,21 @@ function isDirty(charKey, frameKey) {
     if (BOOLEAN_FIELDS.has(f)) return !!meta[f] !== !!orig[f];
     if (TEXT_FIELDS.has(f)) return (meta[f] || "") !== (orig[f] || "");
     return Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4;
-  }) || anchorsDirty(charKey, frameKey);
+  }) || anchorsDirty(charKey, frameKey) || attackBoxDirty(charKey, frameKey);
+}
+
+/** A creature's attack box, compared whole.
+ *
+ *  It is four fractions in one object, so it cannot ride in EDITABLE with the
+ *  scalars — and being left out of the dirty test did not just cost it the
+ *  yellow dot. `payloadFor` walks `dirtyFrames`, so a pose whose ONLY change
+ *  was its attack box was never reached, and the box was dropped at export: it
+ *  survived only when some other edit on the same pose carried it out. */
+function attackBoxDirty(charKey, frameKey) {
+  const orig = state.originals[charKey]?.[frameKey];
+  if (!orig) return false;
+  const now = rawMeta(charKey, frameKey)?.attackBox;
+  return JSON.stringify(now ?? null) !== JSON.stringify(orig.attackBox ?? null);
 }
 
 // Two INDEPENDENT questions get asked about a frame, and they must not be
@@ -988,7 +1014,16 @@ function isUsed(charKey, frameKey) {
   // to be a blanket yes, which put every unreferenced leftover in front of you
   // in the working views. `sharedControls` already has to know who draws each
   // one to decide which sliders are honest; the filter reads the same answer.
-  if (isOther(charKey)) return !!sharedControls(frameKey)?.used;
+  if (isOther(charKey)) {
+    const can = sharedControls(frameKey);
+    // Ambience is not the working set. A domain backdrop is cover-fitted to the
+    // whole stage and an install aura is a glow around a fighter: the game
+    // draws both, neither is placed against anything, and having them in the
+    // three working views padded every to-do list with drawings there is no
+    // placement work to do on. They keep their controls — they are still there
+    // under "All sprites", and an aura's size and nudge still reach the screen.
+    return !!can?.used && can.kind !== "aura" && can.kind !== "domain";
+  }
   // An ACTOR is asked the same question as a fighter. It used to be exempt,
   // from when `animsOf` could not resolve a SPRITE_ACTOR's table at all and the
   // honest answer was unavailable; that is fixed (sprites/src/sprites.js), so exempting
@@ -2021,12 +2056,19 @@ function drawAttackBox(key) {
 
 /** Write a changed attack box back onto the drawing's manifest entry. */
 function setAttackBox(key, box, start) {
+  // Take the baseline before the first change of a drag, the same as every
+  // other edit does. Without it the box was compared against nothing, so it
+  // could not be dirty, could not show its dot, and — because the export walks
+  // the dirty list — could not be exported unless something else on the same
+  // drawing happened to be edited too.
+  remember(OTHER_KEY, key);
   if (start) pushHistory(OTHER_KEY, key);
   const meta = rawMeta(OTHER_KEY, key);
   if (!meta) return;
   const r3 = (v) => Number(v.toFixed(3));
   meta.attackBox = { x: r3(box.x), y: r3(box.y), w: r3(box.w), h: r3(box.h) };
   refreshControls();
+  buildPoseList();          // the dot in the list is part of the feedback
   render();
 }
 
@@ -2952,6 +2994,7 @@ function sharedControls(key) {
     // the stage. Those have a height to draw them at and no way to change it.
     size: Number.isFinite(info.h) && info.sizable !== false,
     travels: !!info.travels,
+    kind: info.kind || "effect",
     offset: nudge,
     rotate: nudge,
     nudgeSite: info.nudgeSite || null,

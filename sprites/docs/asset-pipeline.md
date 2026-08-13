@@ -289,6 +289,13 @@ That distinction decides which way round to work. Against a fixed box you size
 the art to fit the box; against a box measured from the art you size the art to
 look right and the box follows.
 
+**Ambience is not the working set.** A domain backdrop is cover-fitted to the
+whole stage and an install aura is a glow around a fighter — the game draws
+both, neither is placed against anything, and listing them padded every to-do
+view with drawings there is no placement work to do on. They appear under **All
+sprites** only, and keep their controls there: an aura's size and nudge do reach
+the screen.
+
 **A drawing that nothing spawns gets no controls**, and the panel says why. That
 same answer drives the **Used in game** filter for Other Sprites.
 `node tools/check_shared_sprites.mjs` walks the real kits and fails if a move
