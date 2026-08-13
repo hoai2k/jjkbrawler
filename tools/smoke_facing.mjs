@@ -195,6 +195,44 @@ try {
     check(head.yaw < 1 && head.roll < 1, "...and only pitches it",
       `${head.yaw}° yaw, ${head.roll}° roll`);
   }
+
+  // THE STAND-IN MUST NOT INHERIT THE DELIVERY'S ERRORS. A mannequin is built
+  // to spec — facing +Z, its own declared height — so the corrections that
+  // describe one .glb (which way that model was built, how tall it measures,
+  // how heavy a line its costume wants) do not apply to it. They were applied,
+  // and the result was a stand-in that stood turned 80° while Dagon's model
+  // downloaded and then snapped straight: the body you look at to decide
+  // whether the orientation data is right, lying about the orientation.
+  // Asked on the WORKBENCH, which fetches one fighter at a time: a character
+  // nobody has selected is still a stand-in there, so this is a fact to read
+  // rather than a race to win.
+  await page.goto(`${BASE}/render3d/workbench/?char=${CHAR}`);
+  await page.waitForFunction(() => window.__workbenchReady === true, { timeout: 120000 });
+  const standIn = await page.evaluate(async (self) => {
+    const rigs = await import("/render3d/src/loader.js");
+    const man = rigs.rigManifest();
+    const worst = Object.entries(man.characters || {})
+      .filter(([c, e]) => c !== self && e?.model && Math.abs(Number(e.yawOffsetDeg) || 0) > 0)
+      .sort((a, b) => Math.abs(b[1].yawOffsetDeg) - Math.abs(a[1].yawOffsetDeg))[0];
+    if (!worst) return null;
+    const [char, entry] = worst;
+    const rig = rigs.getRig(char);
+    if (!rig) return null;
+    return { char, manifestYaw: entry.yawOffsetDeg, isMannequin: !!rig.isMannequin,
+             yaw: rig.yawOffsetDeg, scale: rig.renderScale, stance: rig.stanceDeg,
+             manifestStance: Number(entry.stanceDeg) || 0 };
+  }, CHAR);
+  if (standIn) {
+    check(standIn.isMannequin,
+      `${standIn.char} is still a stand-in on a workbench showing ${CHAR}`,
+      standIn.isMannequin ? "" : "their .glb loaded — the check below is weaker than it looks");
+    check(standIn.yaw === 0 && standIn.scale === 1,
+      `a mannequin standing in for ${standIn.char} ignores the delivery's corrections`,
+      `manifest says ${standIn.manifestYaw}° / their model's scale; stand-in is at ${standIn.yaw}° / ${standIn.scale}×`);
+    check(standIn.stance === standIn.manifestStance,
+      "...but keeps the stance, which is the character's and not the file's",
+      `${standIn.stance}°`);
+  }
 } catch (err) {
   check(false, "smoke_facing ran", err.message);
 } finally {
