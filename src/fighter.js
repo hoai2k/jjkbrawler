@@ -461,6 +461,17 @@ function resolvePlatforms(f, prevY) {
 function startDash(f, dir) {
   f.dashT = DASH_TIME;
   f.dashDir = dir;
+  // The dash is a BURST, so it starts at burst speed instead of accelerating
+  // into it. `DASH_MULT` is a cap on the movement code's usual acceleration,
+  // and a fighter walking from a standstill spends the whole window climbing
+  // toward it — which meant the shorter the dash got, the SLOWER it was, since
+  // it ended before the speed arrived. Shortening it for control then cost the
+  // one thing a dash is for. Snapping the velocity here separates the two:
+  // DASH_TIME says how long, DASH_MULT says how fast, and they stop fighting.
+  //
+  // Floored rather than assigned, so dashing out of a run never brakes you.
+  const target = stats(f).speed * DASH_MULT * speedMul(f);
+  if (Math.abs(f.vx) < target) f.vx = dir * target;
   dust(f.x - dir * 20, f.y, 8);
   playSfx("whoosh", 0.5);
 }

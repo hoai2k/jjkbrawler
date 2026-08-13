@@ -58,7 +58,7 @@ the moment you get hit. It dims and then blinks as its time runs out.
 | Mechanic | Detail |
 |---|---|
 | Run | Per-character top speed (356–468 px/s) and acceleration |
-| **Dash** | **Shove the left stick** out from centre (past 0.78 within 0.14 s of leaving the 0.36 rest zone), or double-tap a direction within 0.24 s → 1.45× burst for 0.22 s |
+| **Dash** | **Shove the left stick** out from centre (past 0.78 within 0.14 s of leaving the 0.36 rest zone), or double-tap a direction within 0.24 s → snaps to a 1.55× burst for 0.10 s (about 6 frames and ~70 px — brief and uncommittal by design; `startDash` in `src/fighter.js` sets the speed rather than accelerating into it) |
 | **Dash attack** | Light or heavy while running: the run's own committal attack (§4) |
 | Turn lock | Reversing at speed costs 0.08 s of traction — spacing has commitment |
 | Jump | Per-character impulse; **short hop** by releasing jump within ~0.09 s |
@@ -455,7 +455,7 @@ with the side it fights for.
 | Action | Gamepad |
 |---|---|
 | Move | Left stick |
-| Jump | A or RT |
+| Jump | A |
 | Crouch / fast-fall | Left stick ▼ |
 | Light attack | X |
 | Heavy attack (hold = charge) | Y |
@@ -465,6 +465,7 @@ with the side it fights for.
 | Ultimate | RB |
 | Domain Expansion | LB |
 | Shield / dodges | LT |
+| Grab (direction throws · Light pummels) | RT |
 | Tilt attacks (no run-up) | Right stick |
 | Steer summons / aim creature shots | D-pad |
 | Pause | Start |
@@ -509,17 +510,20 @@ index finger is free at exactly that moment. A binding may name several buttons
 (`PAD_BUTTONS` in `src/config_controls.js`); they merge by OR, and the first is
 the one the pad diagram calls that action's home.
 
-### Grabs & throws — experimental, behind `?throw=true`
+### Grabs & throws — on by default; `?throw=false` turns them off
 
-Add `?throw=true` to the URL and the game grows Smash's fourth option
-(`src/flags.js`, `src/grab.js`). **RT becomes grab** for that session — the flag
-conditionally takes the trigger back from the second jump, because grab wants
-exactly the button a Smash player's index finger expects — and every generated
-control surface (this table, the in-game pad diagram, the tips) follows the
-flag: with it off, nothing anywhere mentions grabbing. The table above is
-generated with the flag off, which is the shipped game.
+The game has Smash's fourth option (`src/flags.js`, `src/grab.js`). **RT is
+grab** — the flag takes the trigger back from the second jump, because grab
+wants exactly the button a Smash player's index finger expects — and every
+generated control surface (this table, the in-game pad diagram, the tips)
+follows the flag, so with `?throw=false` nothing anywhere mentions grabbing.
+The table above is generated with the flag at its default, which is the shipped
+game.
 
-What the flag turns on:
+The flag survives the graduation only so the game can be played without grabs
+to compare; the mechanic itself is no longer experimental.
+
+What it gives you:
 
 - **Grab — RT, or Light while shielding (the shield grab).** Grounded only,
   a short reach with real startup and long whiff recovery. It completes the
@@ -536,9 +540,11 @@ What the flag turns on:
 - **Throws — a direction while holding.** Forward and back (tossed behind you)
   are the kill throws, up starts juggles, down is the low-knockback combo
   starter. All four route through `applyHit`, so DI, move staling, KO credit
-  and the result-screen tally treat a throw exactly like any other hit — and
-  none of them KOs earlier than a charged smash except back throw at the ledge,
-  which is the classic reason to take somebody's back.
+  and the result-screen tally treat a throw exactly like any other hit. The
+  three positional throws send about a quarter further than a charged smash
+  does below roughly 35% damage; above that the smash's steeper growth passes
+  them again, so none of them KOs earlier than a smash except back throw at the
+  ledge, which is the classic reason to take somebody's back.
 - **A landed hit breaks any grab** — striking the grabber frees their victim,
   and a third party hitting the victim knocks them loose (their pummel is the
   one exception).

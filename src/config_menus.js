@@ -181,8 +181,9 @@ export const TEXT = {
       ["Shield + direction", "Dodge"],
       ["Tap shield on impact", "Parry"],
       ...padTips(),
-      // Grab detail rows only exist while the mechanic does (?throw=true) —
-      // the grab row itself arrives via padTips() from the control map.
+      // Grab detail rows only exist while the mechanic does — on by default,
+      // gone in a `?throw=false` session. The grab row itself arrives via
+      // padTips() from the control map.
       ...(THROW_ENABLED ? [
         ["While holding a grab", "Direction throws · Light pummels"],
         ["When grabbed", "Mash buttons to break free"],
