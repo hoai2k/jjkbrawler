@@ -250,6 +250,23 @@ export const ELEMENT_HIT_SFX = {
 // The names carry curly quotes because the kit does (“Blast Away”, not "Blast
 // Away"). A row whose name matches no move would silently never play, so
 // audio.js checks them against the roster at load and says so.
+// The Domain Expansion call-out — "Ryōiki Tenkai", and the domain's name — in
+// the owner's own voice. Keyed by CHARACTER rather than by move, unlike
+// MOVE_CALL below: a fighter has at most one Domain Expansion, and the line is
+// a person speaking rather than a property of a particular move. An unlisted
+// key is silence, so a fighter who gains a domain later is mute rather than
+// borrowing someone else's voice.
+export const DOMAIN_CALL = {
+  gojo: "domainCallGojo",
+  sukuna: "domainCallSukuna",
+  megumi: "domainCallMegumi",
+  mahito: "domainCallMahito",
+  jogo: "domainCallJogo",
+  dagon: "domainCallDagon",
+  hakari: "domainCallHakari",
+  yuta: "domainCallYuta",
+};
+
 export const MOVE_CALL = {
   inumaki: {
     "“Blast Away”": "callInumakiBlastAway",
@@ -257,6 +274,54 @@ export const MOVE_CALL = {
     "“Get Crushed”": "callInumakiGetCrushed",
     "“GET TWISTED AND BLAST AWAY”": "callInumakiUltimate",
   },
+};
+
+// ------------------------------------------------- spoken lines as wind-up
+//
+// A spoken line is an INTRODUCTION, not a sound laid over a move that has
+// already happened. A fighter who says something holds the pose while they say
+// it and the attack lands near the end of the line, so the voice builds the
+// moment instead of commenting on it after the fact.
+//
+// **The delay is read from here and never measured from the audio**, which is
+// the whole reason these lengths are written down rather than taken off the
+// Audio element. Timing must be identical with the sound off, with the SFX
+// slider at zero, on a machine that has not finished downloading the mp3, and
+// on the first cast of a match before anything is cached. A move whose frame
+// data depends on whether audio loaded is a move nobody can learn.
+//
+// Lengths are the DELIVERED lengths, in seconds. Re-rolling a line changes its
+// length, so a re-roll means updating its row — `node tools/check_voice.mjs`
+// compares these against the files and says which ones drifted.
+export const SPOKEN_LINES = {
+  domainCallGojo: 3.28,
+  domainCallSukuna: 2.52,
+  domainCallMegumi: 2.48,
+  domainCallMahito: 3.03,
+  domainCallJogo: 2.80,
+  domainCallDagon: 2.25,
+  domainCallHakari: 2.03,
+  domainCallYuta: 2.42,
+  callInumakiBlastAway: 1.14,
+  callInumakiDontMove: 0.73,
+  callInumakiGetCrushed: 0.97,
+  callInumakiUltimate: 2.10,
+};
+
+// How far into a line its move actually lands.
+//
+// `fraction` is the dial the whole feature turns on: 1.0 waits for the line to
+// finish before anything happens, 0.8 lets the attack overlap the last fifth of
+// it so the two land together, and 0 restores the old behaviour of everything
+// firing on the same frame as the shout. The clamps are what keep it a range
+// rather than a straight multiplier: `min` stops a very short line from being
+// no wind-up at all, and `max` is the hard ceiling on how long any one move may
+// stall a match — Gojo's line is the longest at 3.28 s and would otherwise hold
+// the game for 2.6 s on its own.
+export const SPOKEN_TIMING = {
+  fraction: 0.8,
+  min: 0.35,
+  max: 2.2,
 };
 
 // Legacy keys from before the round-8 sound pass. Call sites and move configs

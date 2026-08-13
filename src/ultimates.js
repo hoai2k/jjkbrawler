@@ -12,7 +12,7 @@ import { applyInstall } from "./specials.js";
 import { spawnSummon } from "./summons.js";
 import { TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "./config_transform.js";
 import { frameMeta } from "./assets.js";
-import { playSfx, playGrunt } from "./audio.js";
+import { playSfx, playGrunt, moveCallFor, spokenLead } from "./audio.js";
 import { critFinisherFx, dismantleLatticeFx, steelInstallFx } from "./fx.js";
 import { CHAR_FX } from "./config_fx.js";
 import { rumbleEvent } from "./rumble.js";
@@ -21,14 +21,21 @@ import { ULT_METER_COST, METER_MAX } from "./constants.js";
 import { getImage } from "./assets.js";
 import { isFoe } from "./teams.js";
 
-function cinematic(f, name, color) {
+// The two halves of an ultimate's opening. They fire on the same frame for the
+// 26 fighters with nothing to say, and a spoken line pushes them apart: the
+// announcement is what the fighter is DOING, the impact is what it DOES.
+//
+// `name` is the ultimate's own name, which is also how MOVE_CALL keys a spoken
+// line — so a fighter with one says it here instead of grunting.
+function announce(f, name, color) {
+  banner(name, color, { y: 210, size: 46, life: 1.5 });
+  playGrunt(f.charKey, name);
+}
+
+function impact(f, color) {
   state.slowMo = Math.max(state.slowMo, 0.45);
   state.screenFlash = { color, life: 0.32, maxLife: 0.32 };
-  banner(name, color, { y: 210, size: 46, life: 1.5 });
   playSfx("ult", 1);
-  // `name` is the ultimate's own name, which is also how MOVE_CALL keys a
-  // spoken line — so a fighter with one says it here instead of grunting.
-  playGrunt(f.charKey, name);
   state.camera.shake = Math.max(state.camera.shake, 9);
   ring(f.x, f.y - 90, color, 190);
   rumbleEvent(f, "ult"); // a low swell under the slow-mo
@@ -57,13 +64,38 @@ export function transformReady(cfg) {
   return actorPosesReady(cfg.actor);
 }
 
+// Matches the special path: the hold outlives its event by a few frames so the
+// action cannot expire on the frame the move is due.
+const SPOKEN_HOLD_TAIL = 0.1;
+
 export function performUltimate(f) {
   const ult = f.char.ultimate;
   if (!ult) return;
   // The whole bar. Firing this is choosing it over a domain, not a step on the
   // way to one.
   f.meter = Math.max(0, f.meter - ULT_METER_COST);
-  cinematic(f, ult.name, ult.p.color || f.char.theme);
+  const color = ult.p.color || f.char.theme;
+  announce(f, ult.name, color);
+
+  // An ultimate with a spoken line is introduced by it, the same way a domain
+  // is: the fighter holds the ult pose for the call and the move goes off near
+  // the end of it. Uninterruptible and untouchable for the wind-up, matching a
+  // domain — both cost the entire bar, and being locked in place and damageable
+  // after paying that is the worst of both.
+  const lead = spokenLead(moveCallFor(f.charKey, ult.name));
+  if (lead > 0) {
+    f.action = { kind: "ult", t: 0, dur: lead + SPOKEN_HOLD_TAIL, anim: "ult", lockMovement: true, uninterruptible: true, events: [] };
+    f.animTime = 0;
+    f.animKey = "ult";
+    f.invuln = Math.max(f.invuln, lead + 0.2);
+    f.action.events.push({ at: lead, fn: () => {
+      if (f.dead || f.respawnTimer > 0 || state.phase !== "playing") return;
+      impact(f, color);
+      DIRECTORS[ult.type](f, ult.p, ult);
+    } });
+    return;
+  }
+  impact(f, color);
   DIRECTORS[ult.type](f, ult.p, ult);
 }
 
