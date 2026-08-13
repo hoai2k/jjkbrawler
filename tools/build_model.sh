@@ -81,9 +81,9 @@ fi
 # of a forearm against the ribs, the back of a hidden thigh — the generator ends
 # the surface rather than guessing, and what is left shows the inside of the
 # body through it. Every delivery but three had them, so this is the normal case
-# and belongs in the run rather than in somebody's memory. Closed by adding
-# triangles across each rim's existing vertices, never by adding a vertex, so
-# skin weights are untouched.
+# and belongs in the run rather than in somebody's memory. Each cap copies its
+# position, normal and skin weights from the rim vertex it sits on and invents
+# only a texture coordinate, read off the surviving surface around the hole.
 step "close the tears in the mesh"
 python3 tools/fill_model_holes.py --apply --file "$GLB"
 

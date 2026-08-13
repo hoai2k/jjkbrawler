@@ -219,12 +219,19 @@ the boards, most often where a forearm rests against the ribs or one thigh
 hides behind the other. They read in game as slits that show the inside of the
 body, and the toon pass makes them worse rather than better because the
 interior faces light from the wrong side. `python3 tools/fill_model_holes.py`
-reports them and `--apply` closes them: 120 tears across 24 rigs, closed by
-adding triangles across the vertices already on each rim. **It adds no
-vertices**, which is the point — a vertex it invented would need invented skin
-weights, and a wrong weight is a vertex that swims off the body the moment a
-clip plays, which is a worse fault than the hole and one that only shows up in
-motion. Attribute buffers come out byte-identical. Rims wider than 26% of the
+reports them and `--apply` closes them: 120 tears across 23 rigs. A cap adds
+one vertex per rim position and **invents only its texture coordinate** —
+position, normal, JOINTS_0 and WEIGHTS_0 are all copied from the rim vertex it
+sits on, because a skin weight this tool guessed at would be a vertex that
+swims off the body the moment a clip plays, a worse fault than the hole and one
+that only shows in motion. The UV is one coordinate for the whole cap, read off
+the surviving surface around the hole, so the patch comes out the colour of
+what it patches. Closing a rim over its OWN vertices instead — which is what
+shipped first — paints the patch out of the wrong part of the sheet, because a
+rim is exactly where the atlas is cut: Yuji's hip came out wearing the skin of
+his hand. The tool now reports each model's worst cap as a multiple of a normal
+triangle's atlas footprint, and refuses to be quiet about anything over 2×; the
+version that shipped scored 46×. Rims wider than 26% of the
 figure's height are left alone as hems: Momo's skirt and her broom bristles are
 open surfaces on purpose, and a cap there is a lid. Re-run it after any
 regeneration — a new delivery arrives torn.
