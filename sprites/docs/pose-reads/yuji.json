@@ -8,28 +8,28 @@
       "read": "Air punch. Body on a diagonal, lead arm fully extended forward at head height, off fist tucked at the chest, both legs trailing behind and below \u2014 the whole figure a single forward-leaning line.",
       "source": "pose editor",
       "j": {"head": [60.2, 8.1], "neck": [59, 15], "chest": [57, 20], "pelvis": [48, 45],
-             "shoulderL": [64.5, 17.7], "elbowL": [77.4, 19.1], "handL": [95.3, 20.2], "shoulderR": [52.1, 19.4],
-             "elbowR": [31.7, 21.6], "handR": [36.8, 27.2], "hipL": [42.5, 49.7], "kneeL": [57, 58.6],
-             "footL": [34, 73.7], "toeL": [36.2, 77], "hipR": [42.6, 43.7], "kneeR": [29.6, 59.7],
-             "footR": [16.6, 74.7], "toeR": [19.6, 77.3]}
+             "shoulderL": [64.5, 17.7], "elbowL": [77.4, 19.5, 2.4], "handL": [95.3, 21, 3.5], "shoulderR": [52.1, 19.4],
+             "elbowR": [27.9, 24.9, 6], "handR": [33.2, 28.1, 6.8], "hipL": [42.5, 49.7], "kneeL": [57, 58.6],
+             "footL": [34, 74, -2.5], "toeL": [36, 77.3, -2.6], "hipR": [42.6, 43.7], "kneeR": [29.6, 59.7],
+             "footR": [16.6, 74.7], "toeR": [19.5, 79.1]}
     },
     "attack_air_a": {
       "read": "Airborne, hands OPEN not fisted, near knee snapped up and forward with the foot above hip height, far arm flung back and down for counterweight. Reads as the chamber of an aerial kick.",
       "source": "sides corrected against the art",
-      "j": {"head": [58.5, 6.3], "neck": [61.3, 15.7], "chest": [58, 20], "pelvis": [54, 48],
-             "shoulderL": [61.3, 17.8], "elbowL": [72.4, 25.6], "handL": [77.9, 20.2], "shoulderR": [53.6, 19.7],
-             "elbowR": [38.1, 24.4], "handR": [28.1, 36.8], "hipL": [57, 48], "kneeL": [54.2, 68.2],
-             "footL": [36.2, 84.1], "toeL": [38.8, 87.1], "hipR": [51, 48], "kneeR": [69.9, 36.8],
-             "footR": [68.9, 56.8], "toeR": [72.9, 57]}
+      "j": {"head": [59.1, 6.6, -0.8], "neck": [61.1, 15.7, -0.1], "chest": [58, 20], "pelvis": [54, 48],
+             "shoulderL": [60, 19.8], "elbowL": [72, 27], "handL": [74.3, 22.1, 7.6], "shoulderR": [53.5, 19.4, 0.1],
+             "elbowR": [35, 26.5, 5.2], "handR": [25, 38.9, 5.2], "hipL": [57, 48], "kneeL": [54.2, 68.2],
+             "footL": [36.2, 84.1], "toeL": [38.8, 87.1], "hipR": [51, 48], "kneeR": [69, 37.6, 4.9],
+             "footR": [68, 57.6, 4.9], "toeR": [71.8, 56.7, 5.9]}
     },
     "attack_air_b": {
       "read": "Aerial kick at extension \u2014 near leg thrust straight forward at hip height with the impact burst on the sole, support leg tucked under and back, near fist at the chest, far arm dropped low behind.",
       "source": "pose editor",
-      "j": {"head": [42.5, 9.7], "neck": [42, 17], "chest": [42, 22], "pelvis": [42, 48],
-             "shoulderL": [44.6, 21.8], "elbowL": [55.7, 30.2], "handL": [57.8, 26.3], "shoulderR": [39, 23.2],
-             "elbowR": [27, 29.7], "handR": [22.1, 49.6], "hipL": [39, 48], "kneeL": [52.5, 43.7],
-             "footL": [77.1, 46.4], "toeL": [79.7, 38.3], "hipR": [36.3, 47.8], "kneeR": [36.8, 61.1],
-             "footR": [22.9, 74.9], "toeR": [24.3, 81.4]}
+      "j": {"head": [42.2, 10.9, -0.2], "neck": [45.1, 17.5, 0.8], "chest": [42.1, 23.2, 1.4], "pelvis": [42.3, 47.9, 0.2],
+             "shoulderL": [46.9, 21.8, 1.4], "elbowL": [56.2, 28.3, -1.6], "handL": [57.9, 27.4, 3.4], "shoulderR": [35.2, 23.9, 1.4],
+             "elbowR": [22.6, 29.5, 1.4], "handR": [16, 43.7, 1.4], "hipL": [46, 46.5, 0.6], "kneeL": [57, 43.8, 3.3],
+             "footL": [78.7, 46.8, 6.8], "toeL": [80.5, 41.6, 7.1], "hipR": [35.9, 49.8, 0.2], "kneeR": [30.4, 62.1, 0.2],
+             "footR": [20.3, 76.2, 0.2], "toeR": [22.2, 81.5, 1.9]}
     },
     "attack_down": {
       "read": "Downward ground smash \u2014 near fist driven straight into the floor with debris, torso folded down over it, far arm cocked back at chest height, legs in a wide low split.",
@@ -43,21 +43,21 @@
     "attack_heavy": {
       "read": "Straight right at full extension out of a deep lunge. Hips dropped, rear leg long and straight, torso pitched forward over the front knee, off hand low at the belt.",
       "source": "sides corrected against the art",
-      "j": {"head": [65.3, 12.8], "neck": [64.8, 18.9], "chest": [62.9, 24.3], "pelvis": [54, 50],
-             "shoulderL": [66.9, 24.3], "elbowL": [81.1, 25.5], "handL": [96.8, 25.9], "shoulderR": [58.9, 25.3],
-             "elbowR": [46.7, 35.9], "handR": [52.3, 40.7], "hipL": [57, 50], "kneeL": [33.4, 63.1],
-             "footL": [14.5, 75.6], "toeL": [14.6, 80], "hipR": [51, 50], "kneeR": [72.6, 56.3],
-             "footR": [67.5, 74.9], "toeR": [72.9, 75.4]}
+      "j": {"head": [65, 13], "neck": [62, 19], "chest": [60, 24], "pelvis": [54, 50],
+             "shoulderL": [64, 24], "elbowL": [78, 24], "handL": [93, 26], "shoulderR": [56, 25],
+             "elbowR": [48, 33], "handR": [48, 42], "hipL": [57, 50], "kneeL": [30, 68],
+             "footL": [9, 84], "toeL": [8.7, 84.8], "hipR": [51, 50], "kneeR": [68, 66],
+             "footR": [70, 85], "toeR": [74, 84.6]}
     },
     "attack_heavy_a": {
       "read": "The heavy's WIND-UP: striking fist cocked far behind the head at shoulder height trailing blue cursed energy, off arm hanging open and forward, torso coiled back over the rear leg. The only true anticipation frame in the sheet.",
-      "source": "pose editor",
+      "source": "sides corrected against the art",
       "flags": [{"k": "note", "t": "the only true wind-up in the set"}],
-      "j": {"head": [66, 9], "neck": [65, 16], "chest": [63, 21], "pelvis": [55, 48],
-             "shoulderL": [71.8, 25.3], "elbowL": [77.9, 40], "handL": [87.6, 53.7], "shoulderR": [54.3, 18.3],
-             "elbowR": [34.3, 18.3], "handR": [22.5, 23.7], "hipL": [60.1, 50.7], "kneeL": [77.8, 58.8],
-             "footL": [77, 87.5], "toeL": [81.9, 87.9], "hipR": [48.3, 48.5], "kneeR": [32.8, 67.9],
-             "footR": [13.7, 81.3], "toeR": [16.4, 85.3]}
+      "j": {"head": [68, 10], "neck": [65, 16], "chest": [63, 21], "pelvis": [55, 48],
+             "shoulderL": [66, 24], "elbowL": [80, 32], "handL": [86, 52], "shoulderR": [58, 22],
+             "elbowR": [38, 22], "handR": [19, 23], "hipL": [58, 48], "kneeL": [32, 68],
+             "footL": [13, 88], "toeL": [15.9, 90.8], "hipR": [52, 48], "kneeR": [70, 68],
+             "footR": [76, 86], "toeR": [79.8, 84.7]}
     },
     "attack_heavy_b": {
       "read": "The heavy's CONTACT: same arm now fully extended forward with the impact burst on the fist, rear fist pulled to the hip, hips square and low, rear leg long.",

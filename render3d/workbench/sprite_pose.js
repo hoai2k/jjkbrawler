@@ -143,6 +143,11 @@ const BONE_TIP = {
   RightUpLeg: "RightLeg", RightLeg: "RightFoot", RightFoot: "RightToeBase",
 };
 
+/** The inverse of BONE_TIP: which driven bone each one hangs off. Used to spot
+ *  the bones that must be aimed AFTER a chain above them is solved. */
+const BONE_PARENT = Object.fromEntries(
+  Object.entries(BONE_TIP).map(([bone, tip]) => [tip, bone]));
+
 const $ = (sel, root = document) => root.querySelector(sel);
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 const round1 = (v) => Math.round(v * 10) / 10;
@@ -191,14 +196,43 @@ const SHOULDER_SPAN = 0.67;   // shoulder width / torso length
 const HIP_SPAN = 0.37;
 
 /**
+ * How big this fighter is IN THIS CELL, as a torso length.
+ *
+ * The obvious answer — measure the torso — is wrong in exactly the frames that
+ * matter. A body pitched forward or curled in the air draws a torso two thirds
+ * its real length, the shoulder width derived from it comes out too small, and
+ * a perfectly ordinary shoulder line then reads as square to the camera. Yuji's
+ * airborne frames all came out at 89°.
+ *
+ * So take the longest limb instead: every segment foreshortens, but a pose
+ * rarely foreshortens all of them at once, and the rig says what each one is
+ * worth in torsos. The longest estimate wins because foreshortening only ever
+ * makes a segment look SHORTER than it is.
+ */
+function torsoScale(j, spans) {
+  const seg = (a, b) => (j[a] && j[b] ? Math.hypot(j[a][0] - j[b][0], j[a][1] - j[b][1]) : 0);
+  const mid = j.shoulderL && j.shoulderR
+    ? [(j.shoulderL[0] + j.shoulderR[0]) / 2, (j.shoulderL[1] + j.shoulderR[1]) / 2] : null;
+  const spine = mid && j.pelvis ? Math.hypot(mid[0] - j.pelvis[0], mid[1] - j.pelvis[1]) : 0;
+  const limbs = spans.limbs || {};
+  const from = (length, ratio) => (length && ratio ? length / ratio : 0);
+  return Math.max(
+    spine,
+    from(seg("hipL", "kneeL"), limbs.thigh), from(seg("hipR", "kneeR"), limbs.thigh),
+    from(seg("kneeL", "footL"), limbs.shin), from(seg("kneeR", "footR"), limbs.shin),
+    from(seg("shoulderL", "elbowL"), limbs.upperArm),
+    from(seg("shoulderR", "elbowR"), limbs.upperArm),
+    from(seg("elbowL", "handL"), limbs.foreArm),
+    from(seg("elbowR", "handR"), limbs.foreArm),
+  );
+}
+
+/**
  * How far the shoulder line and the hip line are turned, in radians, and the
  * half-widths they are turned by. Positive is turned toward the camera.
  */
 function facingOf(j, spans) {
-  const torso = j.shoulderL && j.shoulderR && j.pelvis
-    ? Math.hypot((j.shoulderL[0] + j.shoulderR[0]) / 2 - j.pelvis[0],
-                 (j.shoulderL[1] + j.shoulderR[1]) / 2 - j.pelvis[1])
-    : 0;
+  const torso = torsoScale(j, spans);
   const bar = (a, b, span) => {
     if (!j[a] || !j[b] || !torso) return { yaw: 0, half: 0 };
     const width = span * torso;
@@ -206,7 +240,10 @@ function facingOf(j, spans) {
     // A drawing can put them further apart than the body allows — a read is a
     // hand placing dots, not a measurement. Square to the camera is the most
     // it can mean.
-    const sin = clamp(across / (width || 1), -1, 1);
+    // Short of square-on: a drawing that puts the markers a shade wider than
+    // the body allows should read as "very turned", not as a body that has
+    // rotated past its own shoulders.
+    const sin = clamp(across / (width || 1), -0.985, 0.985);
     // Explicit depth wins outright: somebody said which way this is facing.
     const dz = depth(j[a]) - depth(j[b]);
     const yaw = dz ? Math.atan2(across, -dz) : Math.asin(sin);
@@ -258,6 +295,30 @@ function resolveDepth(j, spans) {
     if (!j[toe] || j[toe].length > 2) continue;
     const along = Math.hypot(j[toe][0] - j[foot][0], j[toe][1] - j[foot][1]);
     z[toe] = (z[foot] ?? 0) + along * Math.sin(face.pelvis.yaw);
+  }
+
+  // FORESHORTENING IS DEPTH. A limb drawn short is not a short limb: it is a
+  // limb pointing at the camera, and the drawing says so by how much of its
+  // length is missing. A chambered fist reads five cells where the punching
+  // one reads twenty-two — the other seventeen went into the third dimension.
+  //
+  // Which WAY it went is the one thing the drawing cannot say, so the limb
+  // follows its own side: a right arm foreshortens toward the lens, a left arm
+  // away from it, which is where those limbs already are.
+  const torso = torsoScale(j, spans);
+  const bones = [
+    ["shoulderL", "elbowL", "upperArm", -1], ["elbowL", "handL", "foreArm", -1],
+    ["shoulderR", "elbowR", "upperArm", 1], ["elbowR", "handR", "foreArm", 1],
+    ["hipL", "kneeL", "thigh", -1], ["kneeL", "footL", "shin", -1],
+    ["hipR", "kneeR", "thigh", 1], ["kneeR", "footR", "shin", 1],
+  ];
+  for (const [a, b, kind, side] of bones) {
+    if (!j[a] || !j[b] || j[b].length > 2) continue;
+    const want = (spans.limbs?.[kind] || 0) * torso;
+    if (!want) continue;
+    const flat = Math.hypot(j[b][0] - j[a][0], j[b][1] - j[a][1]);
+    if (flat >= want) continue;                       // nothing missing
+    z[b] = (z[a] ?? 0) + side * Math.sqrt(want * want - flat * flat);
   }
   return { z, face };
 }
@@ -470,6 +531,106 @@ function jointAt(j, name, z) {
   return j[name] ? point3(j, name, z) : null;
 }
 
+/** Swing a bone so its tip points along a WORLD direction, keeping its twist. */
+function aimBone(bone, tip, worldDir) {
+  bone.getWorldQuaternion(_boneQ);
+  _tip.copy(tip.position).applyQuaternion(_boneQ).normalize();
+  _swing.setFromUnitVectors(_tip, worldDir.clone().normalize());
+  bone.parent.getWorldQuaternion(_parentQ);
+  _inv.copy(_parentQ).invert();
+  bone.quaternion.premultiply(_parentQ).premultiply(_swing).premultiply(_inv);
+  bone.updateMatrixWorld(true);
+}
+
+/** The four two-bone chains, each named by its joints and its bones. */
+const IK_CHAINS = [
+  { joints: ["shoulderL", "elbowL", "handL"], bones: ["LeftArm", "LeftForeArm"] },
+  { joints: ["shoulderR", "elbowR", "handR"], bones: ["RightArm", "RightForeArm"] },
+  { joints: ["hipL", "kneeL", "footL"], bones: ["LeftUpLeg", "LeftLeg"] },
+  { joints: ["hipR", "kneeR", "footR"], bones: ["RightUpLeg", "RightLeg"] },
+];
+
+const _from = new THREE.Vector3();
+const _to = new THREE.Vector3();
+const _mid = new THREE.Vector3();
+const _u = new THREE.Vector3();
+const _bend = new THREE.Vector3();
+const _knee = new THREE.Vector3();
+
+/** A cell-space delta as a world-space one: cell x is the facing (+Z), cell y
+ *  counts down, and cell depth points at the camera on -X. */
+const cellVec = (out, a, b, scale = 1) =>
+  out.set(-(b[2] - a[2]) * scale, -(b[1] - a[1]) * scale, (b[0] - a[0]) * scale);
+
+/**
+ * Two-bone IK: fold the chain so its end lands where the drawing puts it, with
+ * the bend going the way the drawing bends it.
+ *
+ * The elbow or knee in the read is not used as a POSITION — a read is a
+ * drawing and its limb lengths are whatever the artist drew, foreshortened and
+ * all — but as the direction the joint bends in, which is the part a drawing
+ * really does know.
+ *
+ * Nor is the read's DISTANCE used, and that is the important one. Converting
+ * cell percent into rig metres needs a scale, every way of picking one is a
+ * guess, and the guess is wrong in exactly the poses that matter: this art
+ * draws a punching arm longer than the model's arm, so any honest scale turns
+ * a straight punch into a folded one. What a drawing does say without a scale
+ * is how STRAIGHT the limb is — the distance from shoulder to fist over the
+ * arm's own drawn length. That fraction is a property of the pose rather than
+ * of anybody's proportions, and it survives foreshortening once depth is in,
+ * so the rig extends by the same fraction of ITS reach along the direction the
+ * drawing points. An arm drawn dead straight comes out dead straight, on any
+ * character, at any size.
+ */
+function solveChain(chain, j, z) {
+  const [aName, bName, cName] = chain.joints;
+  const A = three.bones.get(chain.bones[0]);
+  const B = three.bones.get(chain.bones[1]);
+  if (!A || !B || !j[aName] || !j[bName] || !j[cName]) return;
+  const tipA = three.bones.get(BONE_TIP[chain.bones[0]]);
+  const tipB = three.bones.get(BONE_TIP[chain.bones[1]]);
+  if (!tipA || !tipB) return;
+
+  A.updateMatrixWorld(true);
+  _from.setFromMatrixPosition(A.matrixWorld);
+  const l1 = _mid.setFromMatrixPosition(B.matrixWorld).distanceTo(_from);
+  const l2 = _to.setFromMatrixPosition(tipB.matrixWorld)
+    .distanceTo(_mid.setFromMatrixPosition(B.matrixWorld));
+  if (!l1 || !l2) return;
+
+  const pa = point3(j, aName, z);
+  const pb = point3(j, bName, z);
+  const pc = point3(j, cName, z);
+  cellVec(_u, pa, pc);                                    // which way the end lies
+  cellVec(_bend, pa, pb);                                 // which way it bends
+
+  // How straight the drawing has the limb: end-to-end over the drawn length.
+  const drawn = Math.hypot(pb[0] - pa[0], pb[1] - pa[1], pb[2] - pa[2])
+    + Math.hypot(pc[0] - pb[0], pc[1] - pb[1], pc[2] - pb[2]);
+  const span = _u.length();
+  if (!span || !drawn) return;
+  _u.divideScalar(span);
+  const reach = l1 + l2;
+  const d = clamp((span / drawn) * reach,
+    Math.abs(l1 - l2) + 1e-4, reach - 1e-4);
+  _to.copy(_from).addScaledVector(_u, d);                 // where the end goes
+
+  // The bend direction, square to the line from root to end.
+  _bend.addScaledVector(_u, -_bend.dot(_u));
+  if (_bend.lengthSq() < 1e-8) _bend.set(0, 1, 0).addScaledVector(_u, -_u.y);
+  _bend.normalize();
+
+  const cosA = clamp((l1 * l1 + d * d - l2 * l2) / (2 * l1 * d), -1, 1);
+  const sinA = Math.sqrt(Math.max(0, 1 - cosA * cosA));
+  _knee.copy(_from).addScaledVector(_u, l1 * cosA).addScaledVector(_bend, l1 * sinA);
+
+  aimBone(A, tipA, _knee.clone().sub(_from));
+  B.updateMatrixWorld(true);
+  _mid.setFromMatrixPosition(B.matrixWorld);
+  aimBone(B, tipB, _to.clone().sub(_mid));
+}
+
 const _axis = new THREE.Vector3(0, 1, 0);
 const _yawQ = new THREE.Quaternion();
 
@@ -502,9 +663,18 @@ function spansOf(bones) {
   const hipY = lu && ru ? (lu.y + ru.y) / 2 : null;
   const torso = neck && hipY !== null ? Math.abs(neck.y - hipY) : 0;
   if (!torso) return { shoulder: SHOULDER_SPAN, hip: HIP_SPAN };
+  // Every segment as a fraction of the torso, so a foreshortened frame can be
+  // scaled off whichever limb is still showing its true length.
+  const len = (a, b) => (at(a) && at(b) ? at(a).distanceTo(at(b)) / torso : 0);
   return {
     shoulder: la && ra ? la.distanceTo(ra) / torso : SHOULDER_SPAN,
     hip: lu && ru ? lu.distanceTo(ru) / torso : HIP_SPAN,
+    limbs: {
+      thigh: len("LeftUpLeg", "LeftLeg") || 0.55,
+      shin: len("LeftLeg", "LeftFoot") || 0.53,
+      upperArm: len("LeftArm", "LeftForeArm") || 0.37,
+      foreArm: len("LeftForeArm", "LeftHand") || 0.33,
+    },
   };
 }
 
@@ -540,7 +710,17 @@ function poseFromJoints(j) {
 
   // 2. AIM EVERY DRIVEN BONE. The aim is a minimal swing, so it points the
   //    bone without undoing the turn above.
-  for (const [a, b, boneName] of SEGMENT_BONE) {
+  //
+  //    Bones hanging BELOW a solved chain wait: the solve turns the thigh and
+  //    the shin, and a foot aimed before that gets carried wherever its
+  //    parents go. Aiming it first looked harmless and was the single biggest
+  //    error in the rig — every one of Yuji's forty frames had a foot between
+  //    50° and 170° off the drawing, which is a foot pointing at the ceiling.
+  const belowChain = (name) =>
+    IK_CHAINS.some((c) => c.bones.includes(BONE_PARENT[name]));
+  const aimSegments = (segments) => {
+  for (const [a, b, boneName] of segments) {
+    if (IK_CHAINS.some((c) => c.bones.includes(boneName))) continue;   // solved below
     const bone = three.bones.get(boneName);
     // The tip is the child the bone points at in the bind pose; any rig that
     // names its bones differently still has a first child in the right place.
@@ -570,17 +750,52 @@ function poseFromJoints(j) {
     bone.getWorldQuaternion(_boneQ);
     _tip.copy(tip.position).applyQuaternion(_boneQ).normalize();
 
-    _swing.setFromUnitVectors(_tip, _dir);
-
-    // Apply a world rotation to a local one: undo the parent, turn, redo it.
-    bone.parent.getWorldQuaternion(_parentQ);
-    _inv.copy(_parentQ).invert();
-    bone.quaternion.premultiply(_parentQ).premultiply(_swing).premultiply(_inv);
-    bone.updateMatrixWorld(true);
+    aimBone(bone, tip, _dir);
   }
+  };
+  aimSegments(SEGMENT_BONE.filter(([, , n]) => !belowChain(n)));
+
+  // 3. REACH. Arms and legs are SOLVED to land where the drawing puts the hand
+  //    and the foot, rather than aimed and left at full stretch. Aiming alone
+  //    was why every low pose stood up: a rig leg is one length, so a knee
+  //    aimed down and a foot aimed down put the foot a whole leg away and the
+  //    fighter back on his feet, whatever the drawing said. Reaching for the
+  //    foot instead folds the knee, and a crouch becomes a crouch.
+  for (const chain of IK_CHAINS) solveChain(chain, j, z);
+  three.root.updateMatrixWorld(true);
+
+  // 4. AND NOW THE FEET, on the legs the solve has finished moving.
+  aimSegments(SEGMENT_BONE.filter(([, , n]) => belowChain(n)));
   three.root.updateMatrixWorld(true);
   // A hook for the smoke test and for anyone asking "why is he facing that
   // way": the angles the read implied, and where the rig actually put the bar.
+  // A second hook, for the sheet-checking tools: how far each bone ended up
+  // from the direction the drawing asked for, measured in the drawing's own
+  // plane and in degrees. Zero everywhere means the rig is saying what the
+  // read says; a big number on one segment is either a bone the solver had to
+  // compromise (an arm reaching further than the rig's arm goes) or a read the
+  // rig cannot honour. Either way it is a number, which beats squinting.
+  window.__poseAngles = () => {
+    const err = {};
+    for (const [a, b, boneName] of SEGMENT_BONE) {
+      const bone = three.bones.get(boneName);
+      const tip = three.bones.get(BONE_TIP[boneName]) || bone?.children.find((c) => c.isBone);
+      if (!bone || !tip) continue;
+      const from = jointAt(j, a, z);
+      const to = jointAt(j, b, z);
+      if (!from || !to) continue;
+      const want = Math.atan2(to[1] - from[1], to[0] - from[0]);
+      const p0 = new THREE.Vector3().setFromMatrixPosition(bone.matrixWorld);
+      const p1 = new THREE.Vector3().setFromMatrixPosition(tip.matrixWorld);
+      // Cell x is world +Z, cell y counts down while world y counts up.
+      const got = Math.atan2(-(p1.y - p0.y), p1.z - p0.z);
+      let d = ((want - got) * 180) / Math.PI;
+      while (d > 180) d -= 360;
+      while (d < -180) d += 360;
+      err[boneName] = Math.abs(d);
+    }
+    return err;
+  };
   window.__poseFacing = () => {
     const at = (n) => (three.bones.get(n)
       ? new THREE.Vector3().setFromMatrixPosition(three.bones.get(n).matrixWorld) : null);

@@ -237,7 +237,9 @@ def check(char):
     off = []
     for name, pose in data["poses"].items():
         ink = pr.cell_mask(pr.open_frame(man, char, name))
-        for joint, (jx, jy) in pose["j"].items():
+        # A joint is [x, y] or [x, y, depth]; only the drawing plane is on the
+        # art, and depth is by definition not in the picture.
+        for joint, (jx, jy, *_rest) in pose["j"].items():
             _, _, d = pr.nearest_ink(jx, jy, ink)
             if d > 2.0:
                 off.append((round(d, 1), name, joint))

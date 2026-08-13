@@ -13,3 +13,7 @@ tools/__pycache__/
 node_modules/
 package-lock.json
 _shots/
+
+# Generated pose rig sheets (tools/pose_rig_sheet.mjs) and scratch output.
+debug/
+tmp/
