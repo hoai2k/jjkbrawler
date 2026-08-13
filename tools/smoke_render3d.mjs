@@ -103,25 +103,61 @@ async function bootAndFight(page, url) {
     const stats = window.__render3d.stats;
     const dials = window.__render3d.dials;
     const elapsed = (performance.now() - before.t) / 1000;
-    // Mannequin pixels near a live fighter: the toon-shaded grey-blue body.
+    // A BODY, drawn where a fighter stands.
+    //
+    // Two things were wrong with the version this replaces, and they hid each
+    // other. It counted grey-BLUE pixels, on the reasoning that the toon
+    // mannequin is grey-blue — which stopped meaning anything the moment every
+    // fighter had a real model, since what it then measured was whether the
+    // costume happened to be navy. And it sampled at the fighter's WORLD
+    // coordinates, which are not canvas coordinates: the camera pans and zooms
+    // (camera.js applyCamera), so the patch it looked at was somewhere else
+    // entirely. Between them the check passed or failed at random.
+    //
+    // So: sample where the camera actually puts the fighter, and look for the
+    // INK OUTLINE this backend draws every body with — hard local contrast,
+    // measured against a same-sized patch of empty sky so a busy background
+    // cannot pass for a fighter.
+    const { WORLD } = await import("/src/constants.js");
     const c = document.getElementById("gameCanvas");
     const ctx = c.getContext("2d");
     const f = state.fighters.find((x) => !x.dead && x.respawnTimer <= 0);
-    let hit = 0;
+    let hit = 0, sky = 0;
     if (f) {
-      const sx = c.width / 1280, sy = c.height / 720;
-      const d = ctx.getImageData((f.x - 70) * sx, (f.y - 210) * sy, 140 * sx, 220 * sy).data;
-      for (let i = 0; i < d.length; i += 4) {
-        const [red, g, b, a] = [d[i], d[i + 1], d[i + 2], d[i + 3]];
-        if (a > 100 && b >= red && b >= g && red > 60 && b > 90) hit++;
-      }
+      const cam = state.camera;
+      const sx = c.width / WORLD.w, sy = c.height / WORLD.h;
+      const toScreen = (wx, wy) => ({
+        x: ((wx - cam.x) * cam.zoom + WORLD.w / 2) * sx,
+        y: ((wy - cam.y) * cam.zoom + WORLD.h / 2) * sy,
+      });
+      const edges = (cx, cy, w, h) => {
+        const x = Math.max(0, Math.min(c.width - w, Math.round(cx - w / 2)));
+        const y = Math.max(0, Math.min(c.height - h, Math.round(cy)));
+        const img = ctx.getImageData(x, y, w, h);
+        const d = img.data;
+        let n = 0;
+        for (let py = 0; py < img.height; py++) {
+          for (let px = 1; px < img.width; px++) {
+            const i = ((py * img.width) + px) * 4;
+            const j = i - 4;
+            if (Math.abs(d[i] - d[j]) + Math.abs(d[i + 1] - d[j + 1])
+                + Math.abs(d[i + 2] - d[j + 2]) > 90) n++;
+          }
+        }
+        return n;
+      };
+      const w = Math.round(150 * sx * cam.zoom), h = Math.round(210 * sy * cam.zoom);
+      const at = toScreen(f.x, f.y - 200);
+      hit = edges(at.x, at.y, w, h);
+      // Empty sky: the top of the frame, well above anybody's head.
+      sky = edges(c.width / 2, 0, w, Math.round(h * 0.4));
     }
     return {
       backend: renderBackendName(), rigged: window.__render3d.rigged,
       renders: stats.renders, hits: stats.hits, misses: stats.misses,
       windowRenders: stats.renders - before.renders, elapsed,
       hz: dials.sampleHz, fighters: state.fighters.length,
-      pixels: hit, sampled: !!f,
+      pixels: hit, sky, sampled: !!f,
     };
   }, before);
 
@@ -135,7 +171,9 @@ async function bootAndFight(page, url) {
   check(r.windowRenders <= budget, "renders/sec stays inside the on-twos budget",
     `${r.windowRenders} renders in ${r.elapsed.toFixed(1)}s vs budget ${Math.round(budget)}`);
   check(r.hits > r.misses, "the pose cache carries most frames", `${r.hits} hits / ${r.misses} misses`);
-  check(r.sampled && r.pixels > 200, "toon mannequin pixels drawn where a fighter stands", `${r.pixels} px`);
+  check(r.sampled && r.pixels > 200 && r.pixels > r.sky * 3,
+    "an inked 3D body is drawn where a fighter stands",
+    `${r.pixels} edge px on the fighter vs ${r.sky} on an empty patch of stage`);
   check(errors.length === 0, "no page errors in a 3d match", errors.slice(0, 2).join(" | "));
   await page.close();
 }
