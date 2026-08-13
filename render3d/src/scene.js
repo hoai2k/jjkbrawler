@@ -257,6 +257,21 @@ const CAMERA_YAW_RAD = (CAMERA_YAW_DEG * Math.PI) / 180;
  * flipped, so an asymmetric costume, a scar or a one-shouldered cloak stays
  * on the side it belongs on. The viewer simply sees his other flank, which is
  * what really happens when someone turns to face the other way.
+ *
+ * IT REFLECTS (0,0,1), AND THAT IS AN ASSUMPTION ABOUT THE RIGS. A delivered
+ * model is turned at the root by its own `yawOffsetDeg` (loader.js), so this
+ * is only the right yaw while that offset genuinely CANCELS the model's own
+ * framing error — leaving a fighter whose forward really is +Z before the
+ * turnaround. That is exactly what the offset is for, so the assumption is
+ * fair; it is just load-bearing, and silently so.
+ *
+ * When an offset is merely eyeballed close, the residual error does not stay
+ * put: it lands on the far side of the reflection with its sign flipped, so a
+ * fighter who looks nearly right facing right is off by TWICE that facing
+ * left. That is why turning around used to be so much worse than not, and it
+ * is a reason to measure the offsets rather than nudge them —
+ * `tools/check_model_facing.mjs` scores both facings against the drawing, and
+ * `--solve` reads the offset off the art.
  */
 export function turnaroundYaw() {
   return 2 * CAMERA_YAW_RAD;
@@ -280,7 +295,11 @@ export function poseToken(charKey, animKey, animTime, layers) {
   const aim = aimable(animKey) && layers.aimRad ? `~a${Math.round((layers.aimRad * 180) / Math.PI)}` : "";
   const look = layers.lookRad ? `~l${Math.round((layers.lookRad * 180) / Math.PI)}` : "";
   const fl = layers.flinch ? `~f${layers.flinch}` : "";
-  const turn = layers.turnYawRad ? "~y180" : "";
+  // Turned or not, which is all this has to say: the turn is one constant for
+  // the whole roster (scene.turnaroundYaw). It read `~y180`, which stopped
+  // being the angle when the turnaround became camera-derived — harmless as a
+  // key, misleading as a label, so it says what it means.
+  const turn = layers.turnYawRad ? "~yTurned" : "";
   // Reach joins the key: two strikes solved onto different targets are two
   // different poses, and a cache that ignored that would serve the first one
   // for every angle after it.
