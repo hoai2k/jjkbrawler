@@ -97,6 +97,39 @@ points at the camera, in the same cell percent, and it is absent by default —
 a drawing is one view, and it does not say how far a fist travels toward the
 lens.
 
+### Foreshortening is depth, but only when there is a lot of it
+
+A limb drawn short *can* be a limb pointing at the camera, and the missing
+length says how far. Inferring that is worth doing and easy to overdo, and the
+overdone version is much worse than not doing it at all — this sheet is nearly
+all flat, side-on drawings, and a fighter wrongly swung toward the lens is a
+worse read than a flat one. Four rules keep it honest, and each of them exists
+because leaving it out broke the sheet:
+
+  * **Measure against a typical limb, not the longest one.** The body's scale
+    in a cell is the *median* of what its limbs imply. Taking the maximum — as
+    the facing calculation must, or it saturates — means measuring seven limbs
+    against the single most generously drawn one and calling all seven
+    foreshortened. That alone put a limb more than 15 cells deep on 39 of
+    Yuji's 40 frames, one of them **170 cells deep in a 100-cell frame**.
+  * **Compare a limb to its own opposite number.** Yuji's shins are drawn at
+    0.89 of what the rig says a shin is worth, on all forty frames — that is
+    how the artist draws a leg ending in a trainer, not forty drawings of a
+    shin angled at the lens. Two shins both at 0.89 are two normal shins.
+    One at 0.45 beside a partner at 1.0 is a leg coming at the camera.
+    Asymmetry is the signal; shortness alone is not, and this self-calibrates
+    to whatever body a character is drawn with.
+  * **Make it clear a threshold first.** `sqrt(want² − flat²)` is savage near
+    the top of its range: a limb at 90% of length comes out 44% of a limb deep.
+    Nothing under three quarters counts, and only the part beyond that.
+  * **An authored limb is nobody else's business.** If any joint down an arm or
+    a leg carries an explicit depth, the whole limb is left alone. A hand set
+    by hand at 7.6 with an inferred elbow at −13 wedged in behind it is not the
+    arm anybody drew.
+
+The result on Yuji: thirteen frames carry no inferred depth at all, the median
+frame's most-affected limb moves 6.5 cells, and the worst moves 17.
+
 Some poses need it anyway. An arm angled inward across the chest reads flat as
 a short arm, and dragging in two dimensions cannot fix a pose whose problem is
 the third. **View 3D**, bottom right of the rig pane, turns both panes off the
@@ -149,6 +182,20 @@ camera; and the chest turn goes on the spine as the DIFFERENCE, because a body
 counter-rotates and the shoulders are allowed to face somewhere the hips do
 not. Widths come from the fighter's own rig as a fraction of their torso, since
 a read is in cell percent and a cell is a different size in every frame.
+
+**How far** the bar is turned comes from that width and nothing else. Authored
+depth on the shoulder or hip markers gets a vote on *which way* and no vote on
+how far, which is not the obvious rule: given depths on both ends, the angle of
+the bar falls straight out of `atan2`, and that reading is correct in geometry
+and disastrous in practice. It treats two authored numbers as measurements of
+one rigid bar, and nobody authors them that way. `attack_air_a` carried 0.1 on
+one shoulder and nothing on the other and came out at **+89°**, dead square to
+the camera off a tenth of a cell; `attack_air_b` carried a deliberate 0.6 and
+0.2 on the hips and came out at **+92°**. A bar six cells across in a drawing
+is six cells across whatever hangs off its ends, and a fraction of a cell
+between them is not the twenty-five cells of depth a genuinely square-on
+shoulder line would carry. What the depths do settle — when they are at least a
+tenth of the bar's width, so they clearly mean it — is which end is nearer.
 
 It is also a **check on the sides**. A drawing that shows the chest and a read
 whose left marker is on the left cannot both be right — the arms are the wrong
