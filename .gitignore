@@ -13,3 +13,14 @@ tools/__pycache__/
 node_modules/
 package-lock.json
 _shots/
+
+# The model smokes BUILD their test rig and delete it again (smoke_render3d.mjs
+# and smoke_billboard.mjs, TEST_CHAR = "__smoketest"): it is generated from
+# tools/billboard_test_rig.mjs on every run, imported through the real intake,
+# and removed in cleanup. It was tracked by accident, so every session that ran
+# a smoke saw a phantom deletion in `git status` and had to decide whether it
+# mattered.
+render3d/assets/__smoketest/
+render3d/intake/__smoketest/
+billboards/assets/__smoketest/
+billboards/intake/__smoketest/
