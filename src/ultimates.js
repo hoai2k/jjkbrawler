@@ -8,7 +8,7 @@ import { state } from "./state.js";
 import { clamp, sign, rand } from "./utils.js";
 import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox, ownerStick } from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
-import { applyInstall } from "./specials.js";
+import { applyInstall, spokenCast } from "./specials.js";
 import { spawnSummon } from "./summons.js";
 import { TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "./config_transform.js";
 import { frameMeta } from "./assets.js";
@@ -29,7 +29,7 @@ import { isFoe } from "./teams.js";
 // line — so a fighter with one says it here instead of grunting.
 function announce(f, name, color) {
   banner(name, color, { y: 210, size: 46, life: 1.5 });
-  playGrunt(f.charKey, name);
+  return playGrunt(f.charKey, name);   // the handle, so the line can be cut
 }
 
 function impact(f, color) {
@@ -74,16 +74,20 @@ export function performUltimate(f) {
   // The whole bar. Firing this is choosing it over a domain, not a step on the
   // way to one.
   const color = ult.p.color || f.char.theme;
-  announce(f, ult.name, color);
+  const lineEl = announce(f, ult.name, color);
 
   // An ultimate with a spoken line is introduced by it, the same way a domain
   // is: the fighter holds the ult pose for the call and the move goes off near
   // the end of it. Also like a domain, the wind-up is interruptible and grants
   // no invulnerability, and **the bar is not spent until the move fires** — an
   // ultimate shouted down mid-sentence can be shouted again.
-  const lead = spokenLead(moveCallFor(f.charKey, ult.name));
+  const call = moveCallFor(f.charKey, ult.name);
+  const lead = spokenLead(call);
   if (lead > 0) {
-    f.action = { kind: "ult", t: 0, dur: lead + SPOKEN_HOLD_TAIL, anim: "ult", lockMovement: true, events: [] };
+    f.action = {
+      kind: "ult", t: 0, dur: lead + SPOKEN_HOLD_TAIL, anim: "ult",
+      lockMovement: true, events: [], ...spokenCast(f, lineEl, call),
+    };
     f.animTime = 0;
     f.animKey = "ult";
     f.action.events.push({ at: lead, fn: () => {

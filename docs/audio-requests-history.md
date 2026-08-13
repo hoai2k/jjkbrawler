@@ -1063,12 +1063,19 @@ written up properly in [game-mechanics.md](game-mechanics.md#spoken-moves-wind-u
   80% of it would hold the match for 2.6 s; `SPOKEN_TIMING.max` caps every
   wind-up at 2.2 s, which is why his line, Jogo's and Mahito's all land at the
   ceiling rather than at their own 80%.
-- **The wind-up is interruptible and free.** Every spoken move can be hit out
-  of its own sentence, domains included, and nothing is charged until the move
-  actually goes off — no meter, no cooldown, no throat strain. A fighter shouted
-  down keeps everything and can try again; what they lose is the opening they
-  gave away. That is what makes a two-second telegraph a decision rather than a
-  tax, and it is why the delay could be this long at all.
+- **The first half of the line is interruptible, and free.** A spoken move can
+  be hit out of its own sentence for the first 50% of it (`SPOKEN_TIMING.commit`)
+  — domains included — and nothing is charged until the move actually goes off:
+  no meter, no cooldown, no throat strain. A fighter shouted down keeps
+  everything and can try again; what they lose is the opening they gave away.
+  That is what makes a two-second telegraph a decision rather than a tax, and it
+  is why the delay could be this long at all. Past the halfway point the move is
+  committed, because by then it is visibly already happening.
+- **An interrupted line stops mid-word**, faded over 60 ms rather than paused
+  dead — a voice cut off on a vowel clicks, and the point is that the sentence
+  was interrupted, not that the game stopped playing a file. `playSfx` returns
+  its element so a caster can keep the handle and `cutSfx` it; a short winded
+  grunt goes in its place.
 
 **`MOVE_CALL` is the reusable half of this round.** It keys a spoken line by
 character and then by the move's own `name`, and `playGrunt(charKey, moveName)`

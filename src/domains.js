@@ -22,7 +22,7 @@ import { clamp, sign, rand, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
 import { playSfx, playGrunt, spokenLead, startDomainLoop, stopDomainLoop } from "./audio.js";
 import { applyHit, opponentOf, hurtbox, spawnMelee, applyStatus } from "./combat.js";
-import { applyInstall } from "./specials.js";
+import { applyInstall, spokenCast } from "./specials.js";
 import { getImage } from "./assets.js";
 import { DOMAIN_METER_COST } from "./constants.js";
 import { DOMAIN_CALL } from "./config_audio.js";
@@ -104,8 +104,7 @@ export function performDomain(f, slot = 0) {
   // The call-out replaces the generic effort grunt for the eight fighters who
   // have a line; everyone else keeps the grunt, so a domain is never silent.
   const call = DOMAIN_CALL[f.charKey];
-  if (call) playSfx(call, 1);
-  else playGrunt(f.charKey);
+  const lineEl = call ? playSfx(call, 1) : playGrunt(f.charKey);
 
   // ...and the domain itself lands near the end of the line. A Domain
   // Expansion is a declaration; hearing it start and watching it arrive is the
@@ -120,7 +119,10 @@ export function performDomain(f, slot = 0) {
   // What makes that fair rather than merely punishing is that the bar is not
   // spent until the barrier lands (above). Being cut off costs the tempo and
   // the telegraph, not the resource — you can go again.
-  f.action = { kind: "ult", t: 0, dur: lead + DOMAIN_OPEN_TIME, anim: "ult", lockMovement: true, events: [] };
+  f.action = {
+    kind: "ult", t: 0, dur: lead + DOMAIN_OPEN_TIME, anim: "ult",
+    lockMovement: true, events: [], ...spokenCast(f, lineEl, call),
+  };
   f.animTime = 0;
   f.animKey = "ult";
 

@@ -229,11 +229,13 @@ export function audioSuspended() {
   return suspended;
 }
 
+/** Returns the element playing it, or null — a caller that may need to CUT the
+ *  sound short keeps the handle; everyone else ignores the return value. */
 export function playSfx(name, intensity = 1, rate = 0) {
-  if (!unlocked || suspended || audioSettings.muted || !state.sfxEnabled || audioSettings.sfxVolume <= 0) return;
+  if (!unlocked || suspended || audioSettings.muted || !state.sfxEnabled || audioSettings.sfxVolume <= 0) return null;
   const entry = entryFor(name);
-  if (!entry) return; // an undelivered sound is silence, not an error
-  if (active.size > MAX_VOICES) return; // safety valve
+  if (!entry) return null; // an undelivered sound is silence, not an error
+  if (active.size > MAX_VOICES) return null; // safety valve
   const el = new Audio(srcFor(entry));
   el.muted = audioSettings.muted;
   el.volume = gainFor(entry, intensity);
@@ -244,6 +246,35 @@ export function playSfx(name, intensity = 1, rate = 0) {
   el.addEventListener("error", drop);
   setTimeout(drop, 6000); // stalled elements must not clog the voice cap
   el.play().catch(drop);
+  return el;
+}
+
+/**
+ * Cut a one-shot off mid-way — a fighter hit in the middle of a spoken line.
+ *
+ * Faded over 60 ms rather than paused outright: stopping a voice dead on a
+ * vowel clicks, and the point is that the sentence was cut off, not that the
+ * game stopped playing a file. Short enough to still read as an interruption.
+ */
+export function cutSfx(el) {
+  if (!el || el.paused) return;
+  const step = el.volume / 6;
+  const fade = setInterval(() => {
+    el.volume = Math.max(0, el.volume - step);
+    if (el.volume <= 0.001) {
+      clearInterval(fade);
+      el.pause();
+      active.delete(el);
+    }
+  }, 10);
+}
+
+/** The sound of a line being cut off: the fighter's own voice, well under the
+ *  effort grunt they would have made, so it reads as being winded rather than
+ *  as a second attack. */
+export function playCutGrunt(charKey) {
+  const group = GRUNT_GROUPS[charKey];
+  if (group) playSfx(group, 0.45, 1.12);
 }
 
 // The effort noise a fighter makes using a move — unless that move is one they
@@ -256,12 +287,9 @@ export function playSfx(name, intensity = 1, rate = 0) {
 // domain call-outs set.
 export function playGrunt(charKey, moveName) {
   const call = moveCallFor(charKey, moveName);
-  if (call) {
-    playSfx(call, 1);
-    return;
-  }
+  if (call) return playSfx(call, 1);
   const group = GRUNT_GROUPS[charKey];
-  if (group) playSfx(group, 0.9);
+  return group ? playSfx(group, 0.9) : null;
 }
 
 /** The spoken line for a move, or null. Exported because the move itself has
@@ -282,6 +310,18 @@ export function spokenLead(call) {
   if (!length) return 0;
   const { fraction, min, max } = SPOKEN_TIMING;
   return Math.min(max, Math.max(min, length * fraction));
+}
+
+/**
+ * How long a spoken move can still be knocked out of the fighter saying it,
+ * in seconds from the start of the line — the first `SPOKEN_TIMING.commit` of
+ * the line, and never longer than the wind-up it guards (a clamped lead, like
+ * Gojo's, would otherwise commit after the move had already gone off).
+ */
+export function spokenCommitAt(call) {
+  const length = call && SPOKEN_LINES[call];
+  if (!length) return 0;
+  return Math.min(spokenLead(call), length * SPOKEN_TIMING.commit);
 }
 
 // The defeat cry, chosen from the fighter's voice group.

@@ -7,7 +7,7 @@ import { state } from "./state.js";
 import { clamp, sign, rand, chance } from "./utils.js";
 import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox, applyStatus, ownerStick } from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
-import { playSfx, playGrunt, moveCallFor, spokenLead } from "./audio.js";
+import { playSfx, playGrunt, moveCallFor, spokenLead, spokenCommitAt, cutSfx, playCutGrunt } from "./audio.js";
 import { METER_MAX } from "./constants.js";
 import { rectsOverlap, circleRectOverlap } from "./utils.js";
 import { getImage } from "./assets.js";
@@ -47,6 +47,35 @@ let lineAlreadySpoken = false;
 function effortSound(f, cfg) {
   if (lineAlreadySpoken) return;
   playGrunt(f.charKey, cfg?.name);
+}
+
+/**
+ * The interruptible half of a spoken wind-up: how long it may be knocked out
+ * of the fighter, and what that looks and sounds like when it is.
+ *
+ * Spread into the wind-up action by all three casters — specials, ultimates
+ * and domains — so being shouted down is one behaviour with one definition
+ * rather than three that drift apart.
+ *
+ * `lineEl` is the handle for the line currently being spoken, so the sentence
+ * actually stops mid-word instead of finishing over a fighter who is no longer
+ * saying it. That is the whole tell: you hear the command stop.
+ */
+export function spokenCast(f, lineEl, call) {
+  return {
+    commitAt: spokenCommitAt(call),
+    onInterrupt: () => {
+      cutSfx(lineEl);
+      playCutGrunt(f.charKey);
+      // Deliberately small. A cut-off command is a thing that DIDN'T happen —
+      // it gets a puff of breath at head height and a quiet word, not a hit's
+      // worth of spectacle, and no screen shake at all. The fighter is about to
+      // be in hitstun from whatever cut them off, and that is the loud part.
+      dust(f.x + f.facing * 18, f.y - 132, 6);
+      burst(f.x + f.facing * 18, f.y - 132, "#9aa4c0", 7, 0.5);
+      popup(f.x, f.y - 168, "CUT OFF", "#9aa4c0", 15);
+    },
+  };
 }
 
 function beginSpecialAction(f, slot, dur, opts = {}) {
@@ -117,12 +146,15 @@ export function performSpecial(f, slot) {
   // costs nothing: `spend()` has not run, so the cooldown is untouched and the
   // throat is unstrained, and he can say it again straight away. Speaking is
   // the commitment; the sentence is where an opponent gets to answer it.
-  const lead = spokenLead(moveCallFor(f.charKey, cfg.name));
+  const call = moveCallFor(f.charKey, cfg.name);
+  const lead = spokenLead(call);
   if (lead > 0) {
-    playGrunt(f.charKey, cfg.name);
+    const lineEl = playGrunt(f.charKey, cfg.name);
     // Held a little past the event so the action cannot expire on the same
     // frame the move is due — fighter.js ticks events before it ages actions.
-    beginSpecialAction(f, slot, lead + SPOKEN_HOLD_TAIL, { lockMovement: true });
+    beginSpecialAction(f, slot, lead + SPOKEN_HOLD_TAIL, {
+      lockMovement: true, ...spokenCast(f, lineEl, call),
+    });
     f.action.events.push({ at: lead, fn: () => {
       spend();
       lineAlreadySpoken = true;
