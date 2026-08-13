@@ -45,14 +45,14 @@ export const MANNEQUIN_COLOR = 0x8fa0bd;
 // asked, and a body that cannot answer them turns the comparison into two
 // unknowns.
 //
-// So: the front is marked (a chest plate and a nose, both on +Z, which the
-// delivery spec says is forward), and the two sides are different colours —
+// So: the FACE is marked — a nose and two eyes on the head's +Z, which the
+// delivery spec says is forward — and the two sides are different colours —
 // warm on the character's LEFT, cool on their RIGHT. A rig whose arms are
 // swapped, whose skeleton faces the other way, or whose mesh disagrees with
 // its own bones says so at a glance instead of after a minute of squinting.
 export const MANNEQUIN_LEFT = 0xd8a06a;   // warm: the character's left
 export const MANNEQUIN_RIGHT = 0x6f9cd8;  // cool: the character's right
-export const MANNEQUIN_FRONT = 0xd8d06a;  // the chest plate and the nose
+export const MANNEQUIN_FRONT = 0xd8d06a;  // the nose and the thumb nubs
 
 const DEG = Math.PI / 180;
 
@@ -85,24 +85,6 @@ const BONES = {
   RightLeg:      { parent: "RightUpLeg",    pos: [0, -0.240 * H, 0] },
   RightFoot:     { parent: "RightLeg",      pos: [0, -0.230 * H, 0] },
 };
-
-// Limb boxes hung on the bones: [bone, w, h, d, offset] in metres, offset
-// being the box centre relative to the bone origin.
-const LIMBS = [
-  ["Hips",          0.26 * H, 0.10 * H, 0.13 * H, [0, 0.02 * H, 0]],
-  ["Spine1",        0.24 * H, 0.16 * H, 0.12 * H, [0, 0.05 * H, 0]],
-  ["Head",          0.13 * H, 0.15 * H, 0.14 * H, [0, 0.075 * H, 0]],
-  ["LeftArm",       0.16 * H, 0.055 * H, 0.055 * H, [0.08 * H, 0, 0]],
-  ["LeftForeArm",   0.15 * H, 0.05 * H, 0.05 * H, [0.07 * H, 0, 0]],
-  ["RightArm",      0.16 * H, 0.055 * H, 0.055 * H, [-0.08 * H, 0, 0]],
-  ["RightForeArm",  0.15 * H, 0.05 * H, 0.05 * H, [-0.07 * H, 0, 0]],
-  ["LeftUpLeg",     0.075 * H, 0.24 * H, 0.075 * H, [0, -0.12 * H, 0]],
-  ["LeftLeg",       0.065 * H, 0.23 * H, 0.065 * H, [0, -0.115 * H, 0]],
-  ["LeftFoot",      0.07 * H, 0.05 * H, 0.16 * H, [0, -0.025 * H, 0.04 * H]],
-  ["RightUpLeg",    0.075 * H, 0.24 * H, 0.075 * H, [0, -0.12 * H, 0]],
-  ["RightLeg",      0.065 * H, 0.23 * H, 0.065 * H, [0, -0.115 * H, 0]],
-  ["RightFoot",     0.07 * H, 0.05 * H, 0.16 * H, [0, -0.025 * H, 0.04 * H]],
-];
 
 // ------------------------------------------------------------ default poses
 //
@@ -550,76 +532,274 @@ export function buildDefaultClips(THREE) {
  *  `charKey` decides the extras: a fighter the roster table gives a weapon or
  *  a physics chain gets the placeholder version (props.js), because a clip
  *  authored against empty hands proves nothing about a two-handed spear. */
+// ------------------------------------------------------------- the body
+//
+// One body-builder for both stand-ins: the mannequin (its own skeleton) and
+// the bone proxy (a delivered fighter's skeleton with the mesh hidden). It
+// used to be two — the mannequin hung boxes off a limb table, the proxy drew a
+// beam down every bone with a cube at every joint — and the proxy in
+// particular was unreadable as a figure: floating rectangles for the chest
+// and nose, stick limbs with no volume, and a "post" up the middle wherever a
+// rig kept a root bone at the origin, because the beam-walker drew EVERY
+// bone, structural or not.
+//
+// This walks only the bones it recognises and dresses each in a human-girth
+// volume — capsule limbs, an elliptical chest and pelvis, a skull with a nose
+// and two eyes, palms with thumb nubs, wedge feet. The point is that a POSE
+// should be readable off it the way it is readable off a person: where the
+// face looks, where the palms turn, which way the feet point. Girths are
+// average-human fractions of height, so it reads as a body, not a skeleton.
+//
+// Everything is parented to the BONES, so it poses itself — where the bones
+// are is answerable independently of where any delivered mesh ends up.
+
+// [parentBone, childBone, radius as a fraction of height] — a capsule laid
+// along the parent->child offset, whatever direction that offset points, so a
+// bone that points somewhere unexpected still LOOKS like it does.
+const SEGMENTS = [
+  ["LeftArm", "LeftForeArm", 0.030],
+  ["LeftForeArm", "LeftHand", 0.024],
+  ["RightArm", "RightForeArm", 0.030],
+  ["RightForeArm", "RightHand", 0.024],
+  ["LeftUpLeg", "LeftLeg", 0.046],
+  ["LeftLeg", "LeftFoot", 0.036],
+  ["RightUpLeg", "RightLeg", 0.046],
+  ["RightLeg", "RightFoot", 0.036],
+  ["Neck", "Head", 0.026],
+];
+
+/** Dress a standard-named skeleton in average-human volumes. Returns the
+ *  meshes it added; touches nothing it does not recognise. */
+function dressSkeleton(THREE, root, height, register) {
+  const mats = {
+    mid: new THREE.MeshLambertMaterial({ color: MANNEQUIN_COLOR }),
+    Left: new THREE.MeshLambertMaterial({ color: MANNEQUIN_LEFT }),
+    Right: new THREE.MeshLambertMaterial({ color: MANNEQUIN_RIGHT }),
+    front: new THREE.MeshLambertMaterial({ color: MANNEQUIN_FRONT }),
+    dark: new THREE.MeshLambertMaterial({ color: 0x2a2f3a }),
+  };
+  const matFor = (name) => name.startsWith("Left") ? mats.Left
+    : name.startsWith("Right") ? mats.Right : mats.mid;
+  // Bones are resolved by NAME BUT NOT BY TRUST. Yuji's delivered rig ships
+  // an extra root bone also called "Hips", parked at the floor, with the real
+  // hip ("mixamorigHips") inside it — getObjectByName returns the floor one,
+  // which is where the old proxy's post up the middle came from and where a
+  // pelvis would land. So: exact-name candidates first (a prop bone that
+  // merely ENDS in "Head" never beats the real head), and a tie between
+  // exact twins is settled by structure — the Hips is whichever candidate has
+  // the leg bones as children, and otherwise the deepest candidate wins,
+  // because exporters add wrappers OUTSIDE the skeleton, not inside it.
+  const boneList = [];
+  root.traverse((o) => { if (o.isBone) boneList.push(o); });
+  const depthOf = (o) => { let d = 0, p = o.parent; while (p) { d++; p = p.parent; } return d; };
+  // What a joint IS, structurally — the tests that outrank a name. An exact
+  // name is not proof: yuji's impostor root is the bone named exactly "Hips",
+  // and the real hip is the suffix match, so "prefer exact" picked the floor.
+  const STRUCTURE = {
+    Hips: (b) => b.children.some((c) => c.isBone && /UpLeg$/.test(c.name)),
+    Head: (b) => /Neck$/.test(b.parent?.name || ""),
+  };
+  const bone = (name) => {
+    const cands = boneList.filter((b) => b.name === name || b.name.endsWith(name));
+    if (!cands.length) return null;
+    if (cands.length === 1) return cands[0];
+    const test = STRUCTURE[name];
+    const score = (b) => (test && test(b) ? 4 : 0) + (b.name === name ? 2 : 0) + depthOf(b) / 100;
+    return cands.sort((a, b) => score(b) - score(a))[0];
+  };
+  const add = (parent, mesh) => { parent.add(mesh); register(mesh); return mesh; };
+  const up = new THREE.Vector3(0, 1, 0);
+  const H = height;
+
+  // THE BIND FRAME, PER BONE, POSE-INDEPENDENTLY. A delivered rig's bones do
+  // not point their local axes anywhere in particular — a foot bone's +Z can
+  // be anything the generator liked — and the rig may be mid-pose when this
+  // runs, so reading live transforms is wrong twice over. The skinned mesh
+  // carries the answer: `skeleton.boneInverses` is the bind pose, frozen at
+  // export. From it, world directions ("down", "forward") and positions are
+  // translated into each bone's own frame, which is the frame everything
+  // below is parented in. The hand-built mannequin has no skin and identity
+  // bones, so world axes pass through unchanged — the same code serves both.
+  const bindQ = new Map();
+  const bindP = new Map();
+  {
+    const m = new THREE.Matrix4();
+    const pos = new THREE.Vector3(), q = new THREE.Quaternion(), sc = new THREE.Vector3();
+    root.traverse((o) => {
+      if (!o.isSkinnedMesh || !o.skeleton) return;
+      o.skeleton.bones.forEach((b, i) => {
+        if (bindQ.has(b)) return;
+        m.copy(o.skeleton.boneInverses[i]).invert().decompose(pos, q, sc);
+        bindQ.set(b, q.clone());
+        bindP.set(b, pos.clone());
+      });
+    });
+  }
+  /** A world-space direction, expressed in this bone's own bind frame. Keyed
+   *  by the bone OBJECT — names duplicate (see the resolver above). */
+  const localDir = (b, x, y, z) => {
+    const v = new THREE.Vector3(x, y, z);
+    const q = b ? bindQ.get(b) : null;
+    return q ? v.applyQuaternion(q.clone().invert()) : v;
+  };
+  /** Orient a mesh so its local +Y lies along `upDir` and +Z along `fwdDir`. */
+  const orient = (mesh, upDir, fwdDir) => {
+    const zAxis = fwdDir.clone().normalize();
+    const xAxis = upDir.clone().cross(zAxis).normalize();
+    const yAxis = zAxis.clone().cross(xAxis).normalize();
+    mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis));
+  };
+
+  // Limbs: a capsule per segment, plus a sphere at the joint so elbows and
+  // knees stay round mid-bend instead of showing a gap.
+  for (const [parentName, childName, rFrac] of SEGMENTS) {
+    const p = bone(parentName);
+    const c = bone(childName);
+    if (!p || !c) continue;
+    const off = c.position;
+    const len = off.length();
+    if (len < 1e-4) continue;
+    const r = rFrac * H;
+    const capsule = new THREE.Mesh(
+      new THREE.CapsuleGeometry(r, Math.max(len - r, len * 0.4), 4, 12), matFor(childName));
+    capsule.position.copy(off).multiplyScalar(0.5);
+    capsule.quaternion.setFromUnitVectors(up, off.clone().normalize());
+    add(p, capsule);
+    add(c, new THREE.Mesh(new THREE.SphereGeometry(r * 0.95, 12, 10), matFor(childName)));
+  }
+
+  // Torso: pelvis and chest as squashed spheres — wider than deep, the way a
+  // torso is — bridged by a waist capsule so the silhouette is one body.
+  const torso = (boneName, mesh, upOff) => {
+    const b = bone(boneName);
+    if (!b) return false;
+    const bUp = localDir(b, 0, 1, 0);
+    orient(mesh, bUp, localDir(b, 0, 0, 1));
+    mesh.position.copy(bUp).multiplyScalar(upOff);
+    add(b, mesh);
+    return true;
+  };
+  {
+    const pelvis = new THREE.Mesh(new THREE.SphereGeometry(0.080 * H, 16, 12), mats.mid);
+    pelvis.scale.set(1.30, 0.80, 0.85);
+    torso("Hips", pelvis, 0.005 * H);
+    const chest = new THREE.Mesh(new THREE.SphereGeometry(0.085 * H, 16, 12), mats.mid);
+    chest.scale.set(1.35, 1.05, 0.78);
+    torso("Spine2", chest, 0.045 * H) || torso("Spine1", chest, 0.045 * H);
+    const waist = new THREE.Mesh(new THREE.CapsuleGeometry(0.062 * H, 0.10 * H, 4, 12), mats.mid);
+    waist.scale.set(1.25, 1, 0.85);
+    torso("Spine", waist, 0.06 * H);
+  }
+  // Shoulders: caps where the arms meet the chest.
+  for (const sideName of ["LeftArm", "RightArm"]) {
+    const b = bone(sideName);
+    if (b) add(b, new THREE.Mesh(new THREE.SphereGeometry(0.034 * H, 12, 10), matFor(sideName)));
+  }
+
+  // The head: a skull with a FACE, because "which way is it looking" is the
+  // first question a pose review asks. Nose and eyes sit on the bone's own
+  // +Z — the delivery spec's forward — so a head whose face points sideways
+  // is a head whose bone frame disagrees with the spec, made visible.
+  const head = bone("Head");
+  if (head) {
+    const hUp = localDir(head, 0, 1, 0);
+    const hFwd = localDir(head, 0, 0, 1);
+    const hRight = localDir(head, 1, 0, 0);
+    const at = (u, f, r) => hUp.clone().multiplyScalar(u)
+      .addScaledVector(hFwd, f).addScaledVector(hRight, r);
+    const rHead = 0.062 * H;
+    const skull = new THREE.Mesh(new THREE.SphereGeometry(rHead, 16, 14), mats.mid);
+    skull.scale.set(0.82, 1.12, 0.92);
+    orient(skull, hUp, hFwd);
+    skull.position.copy(at(0.062 * H, 0, 0));
+    add(head, skull);
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.011 * H, 0.028 * H, 8), mats.front);
+    orient(nose, hFwd, hUp.clone().negate()); // cone points along its +Y
+    nose.position.copy(at(0.055 * H, rHead * 0.92, 0));
+    add(head, nose);
+    for (const sx of [-1, 1]) {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.0075 * H, 8, 8), mats.dark);
+      eye.position.copy(at(0.075 * H, rHead * 0.82, sx * 0.021 * H));
+      add(head, eye);
+    }
+  }
+
+  // Hands: a palm continuing the forearm's line, flattened across the palm
+  // axis, with a thumb nub on the +Z (palm-forward-at-bind) side in the facing
+  // colour — so which way a palm is turned reads at a glance.
+  for (const sideName of ["LeftHand", "RightHand"]) {
+    const hand = bone(sideName);
+    const fore = bone(sideName.replace("Hand", "ForeArm"));
+    if (!hand || !fore) continue;
+    // The palm continues the forearm's line. Structurally that line is the
+    // forearm->hand offset; with a bind pose on record it is taken between
+    // bind WORLD positions and expressed in the hand's own frame, so it holds
+    // whatever the exporter did to the local axes.
+    let dir;
+    const hp = bindP.get(hand), fp = bindP.get(fore);
+    if (hp && fp && bindQ.get(hand)) {
+      dir = hp.clone().sub(fp).normalize()
+        .applyQuaternion(bindQ.get(hand).clone().invert());
+    } else {
+      dir = hand.position.clone().normalize();
+    }
+    const palmFwd = localDir(hand, 0, 0, 1);
+    const palmLen = 0.055 * H;
+    const palm = new THREE.Mesh(new THREE.BoxGeometry(0.026 * H, palmLen, 0.045 * H), matFor(sideName));
+    palm.position.copy(dir).multiplyScalar(palmLen * 0.45);
+    orient(palm, dir, palmFwd);
+    add(hand, palm);
+    // The thumb nub, on the bind-forward side in the facing colour: which way
+    // a palm is TURNED reads off it at a glance.
+    const thumb = new THREE.Mesh(new THREE.BoxGeometry(0.013 * H, 0.028 * H, 0.016 * H), mats.front);
+    thumb.position.copy(dir).multiplyScalar(palmLen * 0.3).addScaledVector(palmFwd, 0.028 * H);
+    thumb.quaternion.copy(palm.quaternion);
+    add(hand, thumb);
+  }
+
+  // Feet: a wedge pointing +Z — long toward the toe, a rounded heel behind
+  // the ankle — so foot direction is legible from any angle.
+  for (const sideName of ["LeftFoot", "RightFoot"]) {
+    const foot = bone(sideName);
+    if (!foot) continue;
+    const down = localDir(foot, 0, -1, 0);
+    const fwd = localDir(foot, 0, 0, 1);
+    const at = (d, f) => down.clone().multiplyScalar(d).addScaledVector(fwd, f);
+    const sole = new THREE.Mesh(new THREE.BoxGeometry(0.055 * H, 0.038 * H, 0.135 * H), matFor(sideName));
+    orient(sole, down.clone().negate(), fwd);
+    sole.position.copy(at(0.028 * H, 0.035 * H));
+    add(foot, sole);
+    const toe = new THREE.Mesh(new THREE.SphereGeometry(0.026 * H, 10, 8), matFor(sideName));
+    toe.scale.set(1.0, 0.72, 1.0);
+    orient(toe, down.clone().negate(), fwd);
+    toe.position.copy(at(0.032 * H, 0.10 * H));
+    add(foot, toe);
+    const heel = new THREE.Mesh(new THREE.SphereGeometry(0.026 * H, 10, 8), matFor(sideName));
+    heel.scale.set(0.95, 0.9, 0.9);
+    orient(heel, down.clone().negate(), fwd);
+    heel.position.copy(at(0.026 * H, -0.025 * H));
+    add(foot, heel);
+  }
+}
+
 /**
- * Box the SKELETON of an already-built rig: a beam down every bone, a cube at
- * every joint, and facing markers on the head and chest. Returns the meshes it
- * made and the skin it is standing in for, so the caller can swap between
- * them.
+ * Dress the SKELETON of an already-built rig as a human figure, hiding its
+ * mesh: the fighter's own bones in the fighter's own pose, wearing average
+ * girths. Returns the meshes it made and the skin it is standing in for, so
+ * the caller can swap between them.
  *
- * Everything is parented to the BONES, so it poses itself — this is the
- * fighter's own skeleton in the fighter's own pose, which is the whole point:
- * where the bones are is answerable independently of where the mesh ends up.
- *
- * The markers go along each bone's OWN +Z. That is what makes the facing
- * legible AND diagnosable at once: the delivery spec says forward is +Z, so a
- * head whose nose points sideways is a head whose bone frame disagrees with
- * the mesh welded to it.
+ * Bones the dresser does not recognise — prop bones, physics chains, a root
+ * an exporter left at the origin — get NOTHING, which is what retired the
+ * old proxy's floating rectangles and its post up the middle.
  */
 export function buildBoneProxy(THREE, root, height = MANNEQUIN_HEIGHT_M) {
   const proxy = [];
   const skin = [];
   root.traverse((o) => { if (o.isMesh) skin.push(o); });
-
-  const mats = {
-    Left: new THREE.MeshLambertMaterial({ color: MANNEQUIN_LEFT }),
-    Right: new THREE.MeshLambertMaterial({ color: MANNEQUIN_RIGHT }),
-    mid: new THREE.MeshLambertMaterial({ color: MANNEQUIN_COLOR }),
-    front: new THREE.MeshLambertMaterial({ color: MANNEQUIN_FRONT }),
-  };
-  const matFor = (name) => name.startsWith("Left") ? mats.Left
-    : name.startsWith("Right") ? mats.Right : mats.mid;
-  const add = (bone, mesh) => {
+  dressSkeleton(THREE, root, height, (mesh) => {
     mesh.userData.isBoneProxy = true;
-    bone.add(mesh);
     proxy.push(mesh);
-  };
-
-  const joint = 0.022 * height;
-  const beam = 0.016 * height;
-  const up = new THREE.Vector3(0, 1, 0);
-  const dir = new THREE.Vector3();
-
-  const bones = [];
-  root.traverse((o) => { if (o.isBone) bones.push(o); });
-  for (const bone of bones) {
-    // The joint itself, so a leaf (a hand, a foot, the head) is still visible.
-    add(bone, new THREE.Mesh(new THREE.BoxGeometry(joint, joint, joint), matFor(bone.name)));
-    for (const child of bone.children) {
-      if (!child.isBone) continue;
-      const len = child.position.length();
-      if (len < 1e-4) continue;
-      // A beam from this joint to that one, laid along the offset between them
-      // — so a bone that points somewhere unexpected LOOKS like it does.
-      const m = new THREE.Mesh(new THREE.BoxGeometry(beam, len, beam), matFor(child.name));
-      m.position.copy(child.position).multiplyScalar(0.5);
-      m.quaternion.setFromUnitVectors(up, dir.copy(child.position).normalize());
-      add(bone, m);
-    }
-  }
-
-  // FORWARD, per the delivery spec (+Z): a nose on the head and a plate on the
-  // chest. Both sized off the rig rather than off the mannequin, so they read
-  // the same on a 1.5 m fighter and a 2.2 m one.
-  for (const [name, w, h, d, off] of [
-    ["Head", 0.030 * height, 0.026 * height, 0.055 * height, [0, 0.03 * height, 0.03 * height]],
-    ["Spine2", 0.10 * height, 0.07 * height, 0.016 * height, [0, 0.02 * height, 0.05 * height]],
-  ]) {
-    const bone = root.getObjectByName(name);
-    if (!bone) continue;
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mats.front);
-    m.position.set(...off);
-    add(bone, m);
-  }
+  });
   return { proxy, skin };
 }
 
@@ -634,30 +814,7 @@ export function buildMannequin(THREE, charKey = null) {
     bones[name] = bone;
     (def.parent ? bones[def.parent] : root).add(bone);
   }
-  const mat = new THREE.MeshLambertMaterial({ color: MANNEQUIN_COLOR });
-  const side = {
-    Left: new THREE.MeshLambertMaterial({ color: MANNEQUIN_LEFT }),
-    Right: new THREE.MeshLambertMaterial({ color: MANNEQUIN_RIGHT }),
-  };
-  for (const [boneName, w, h, dpt, off] of LIMBS) {
-    const hand = boneName.startsWith("Left") ? "Left"
-      : boneName.startsWith("Right") ? "Right" : null;
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, dpt), hand ? side[hand] : mat);
-    mesh.position.set(...off);
-    bones[boneName].add(mesh);
-  }
-  // Which way is FORWARD: a nose and a chest plate, both on +Z. Small enough
-  // to be a marking rather than a feature, big enough to read at the size a
-  // fighter is drawn.
-  const front = new THREE.MeshLambertMaterial({ color: MANNEQUIN_FRONT });
-  for (const [boneName, w, h, dpt, off] of [
-    ["Head", 0.05 * H, 0.04 * H, 0.05 * H, [0, 0.07 * H, 0.085 * H]],
-    ["Spine1", 0.14 * H, 0.10 * H, 0.02 * H, [0, 0.05 * H, 0.065 * H]],
-  ]) {
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, dpt), front);
-    mesh.position.set(...off);
-    bones[boneName].add(mesh);
-  }
+  dressSkeleton(THREE, root, MANNEQUIN_HEIGHT_M, () => {});
   if (charKey) {
     const propMat = new THREE.MeshLambertMaterial({ color: 0x6f7d99 });
     attachPlaceholders(THREE, root, charKey, MANNEQUIN_HEIGHT_M, propMat);

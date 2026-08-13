@@ -1327,9 +1327,13 @@ async function draw() {
     ctx.fillText("no pose resolved — this state would draw as sprites in-game", CX - 160, GROUND_Y - 100);
   }
 
-  // Size reference: the height the game draws this fighter at.
+  // Size reference: the height the game draws this fighter at. LABELLED,
+  // because an unlabelled bar standing in the scene reads as a mystery post —
+  // it was reported as exactly that.
   ctx.strokeStyle = "rgba(159, 211, 159, 0.35)";
   ctx.strokeRect(CX - 130, GROUND_Y - target, 4, target);
+  ctx.fillStyle = "rgba(159, 211, 159, 0.55)";
+  ctx.fillText("game height", CX - 158, GROUND_Y - target - 6);
 
   if (wb.aimOn) {
     const canAim = aimable(wb.state) || LOOK_STATES.has(clipNameFor(wb.state));
