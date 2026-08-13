@@ -1886,6 +1886,22 @@ function drawSharedSprite(cx) {
   // is not honoured: the crosshair is the ground contact — the thing the art
   // has to be sitting on — before it is a handle to drag.
   if (v.can?.used && v.can.anchor) drawSpawnPoint(px, py, v.anchor, v.can.offset);
+
+  // The drawing is too big for the viewer and everything on the canvas has been
+  // shrunk to hold it. Said out loud because the alternative is a slider that
+  // appears to do nothing: once the fit is active, Size is spent entirely on
+  // making the view smaller, and the picture sits at the same height however
+  // far it is pushed. The Zoom control is the way out, so it is named here.
+  if (v.fitted) {
+    ctx.save();
+    ctx.fillStyle = "rgba(255, 210, 140, 0.85)";
+    ctx.font = "500 11px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`too tall for the viewer — fitted to ${Math.round(v.z / state.zoom * 100)}% of Zoom, `
+      + "so Size moves the numbers, not the picture. Lower Zoom to watch it grow.",
+      canvasCentreX(), GROUND_Y + 34);
+    ctx.restore();
+  }
 }
 
 // ---------------------------------------------------------------- attack box
@@ -2007,8 +2023,13 @@ function drawSharedHit(v) {
   ctx.fillStyle = "rgba(255, 210, 90, 0.10)";
   ctx.lineWidth = 1.5;
   ctx.setLineDash([5, 4]);
+  // "follows Size" was only ever half true, and the missing half is the one
+  // that confuses: a drop's HEIGHT is the art's own height, so those two can
+  // never disagree, while its WIDTH is a plain kit number that does not move at
+  // all. Size a vending machine up and it grows wider than the box it lands in
+  // while staying exactly as tall — which reads as the box shrinking.
   const follows = !!hit.followsSize;
-  const note = follows ? "follows Size" : "fixed";
+  const note = follows ? "height follows Size · width fixed" : "fixed";
   let label = "", topOf;
   if (hit.shape === "circle") {
     const r = hit.r * z;
@@ -2078,6 +2099,11 @@ function sharedView(key = state.frame) {
   const py = anchorScreenY(anchor, h);
   return {
     img, can, meta, scale, hit, z, h, anchor,
+    // Whether the viewer had to shrink to hold this drawing. Worth saying out
+    // loud: at the default zoom a tall drop already fills the canvas, so every
+    // further turn of the Size slider is absorbed by the fit and the picture
+    // looks frozen while the numbers underneath keep moving.
+    fitted: z < state.zoom - 1e-6,
     w: img.width * h / img.height,
     px: canvasCentreX(),
     py,
@@ -2866,9 +2892,11 @@ function refreshUsageInfo() {
       const shape = h.shape === "circle" ? `a ${h.r}px radius` : `${h.w}×${h.h}px`;
       lines.push(`<b>Hit region:</b> ${shape} — ${h.what} (the kit's <code>${h.from}</code>). `
         + (h.followsSize
-          ? "<b>This one follows Size</b>: the move paints the drawing at the same "
-            + "<code>h</code> it collides on, so the box grows with the art and the two "
-            + "cannot be made to disagree. "
+          ? "<b>Its height follows Size and its width does not.</b> The move paints the "
+            + "drawing at the same <code>h</code> it collides on, so those two can never "
+            + "disagree — but the art keeps its aspect while <code>w</code> stays put, so "
+            + "sizing up makes the picture wider than the box it lands in. Width is the "
+            + "only thing there is to match here. "
           : "<b>It does not follow Size or the spawn point</b>, so the art is what moves to meet it. ")
         + "Turn on Hurtbox to see it.");
     }
