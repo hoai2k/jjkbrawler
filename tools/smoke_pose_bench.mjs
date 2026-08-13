@@ -187,22 +187,71 @@ const rigView = await page.evaluate(async () => {
     });
     return { skin, boxes };
   };
+  // THE SKELETON IS NOT A MODE THE RIG SITS IN. It is a second render of the
+  // same body: the proxy goes on for the length of one renderPose and comes
+  // straight back off, so between draws the rig is meant to be showing skin.
+  // Asking "is it showing bones now?" after the toggle settles therefore tests
+  // an architecture the workbench no longer has — it read 0 boxes for exactly
+  // the reason the design says it should. What survives the change is the
+  // claim a viewer actually makes: the swap works when applied, and turning
+  // the checkbox on draws a DIFFERENT PICTURE.
   const before = skinShown();
+  const applied = (() => {
+    rigMod.setBoneProxy("maki", true);
+    const on = skinShown();
+    rigMod.setBoneProxy("maki", false);
+    return { on, back: skinShown() };
+  })();
+
+  // A coarse coverage grid — "is this a different picture?" — not a pixel
+  // count: a skeleton and a body can cover similar areas and still look
+  // nothing alike.
+  const ink = () => {
+    const c = document.getElementById("stage");
+    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    const G = 24, g = new Array(G * G).fill(0);
+    for (let y = 0; y < c.height; y++) {
+      for (let x = 0; x < c.width; x++) {
+        if (d[((y * c.width) + x) * 4 + 3] > 40) {
+          g[Math.min(G - 1, Math.floor((y / c.height) * G)) * G
+            + Math.min(G - 1, Math.floor((x / c.width) * G))]++;
+        }
+      }
+    }
+    return g;
+  };
+  const drawnSkin = ink();
   document.getElementById("mqToggle").click();
   await settle();
-  const on = skinShown();
+  const drawnBones = ink();
   document.getElementById("mqToggle").click();
   await settle();
-  return { before, on, off: skinShown() };
+  const drawnAgain = ink();
+  const diff = (a, b) => a.reduce((n, v, i) => n + (v !== b[i] ? 1 : 0), 0);
+  return {
+    before, applied,
+    changed: diff(drawnSkin, drawnBones),
+    restored: diff(drawnSkin, drawnAgain),
+    // The fighter's own footprint, not the whole grid: most of the stage is
+    // background and floor, which a skeleton does not touch and which would
+    // drown the signal in a denominator it has nothing to do with.
+    inked: drawnSkin.filter((v) => v > 0).length,
+  };
 });
 check(rigView.before.boxes === 0 && rigView.before.skin > 0,
   "the model is the model until asked otherwise", `${rigView.before.skin} skin mesh(es)`);
-check(rigView.on.skin === 0 && rigView.on.boxes > 20,
+check(rigView.applied.on.skin === 0 && rigView.applied.on.boxes > 20,
   "Mannequin(s) draws the fighter's own bones instead of their skin",
-  `${rigView.on.boxes} bone boxes, ${rigView.on.skin} skin`);
-check(rigView.off.skin === rigView.before.skin && rigView.off.boxes === 0,
+  `${rigView.applied.on.boxes} bone boxes, ${rigView.applied.on.skin} skin`);
+check(rigView.applied.back.skin === rigView.before.skin && rigView.applied.back.boxes === 0,
   "...and turning it off gives the model back exactly",
-  `${rigView.off.skin} skin mesh(es)`);
+  `${rigView.applied.back.skin} skin mesh(es)`);
+check(rigView.changed > rigView.inked * 0.25,
+  "the checkbox actually redraws the stage as a skeleton",
+  `${rigView.changed} of ${rigView.inked} inked cells differ`);
+check(rigView.restored === 0,
+  "...and unchecking it draws the model back, to the cell",
+  `${rigView.restored} cell(s) still differ`);
 
 // --------------------------------------------------------------- free look
 

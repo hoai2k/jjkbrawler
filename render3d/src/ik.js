@@ -300,7 +300,49 @@ export function fitPropShaft(THREE, root3d, propBoneName) {
       locals.push(v.clone());
     }
   });
-  if (locals.length < 16) return null;
+
+  // A SEPARATELY GENERATED WEAPON IS NOT SKIN. Fighters whose weapon a
+  // generator would fuse into their arm are now drawn empty-handed and the
+  // weapon is joined afterwards as a mesh PARENTED TO the prop bone
+  // (tools/blender_attach_prop.py) — so it carries no skin weights at all and
+  // the loop above finds nothing on it. Maki's shaft went missing exactly
+  // that way, and with no shaft the off hand has nothing to be solved onto.
+  //
+  // A bone-parented mesh rides its bone rigidly, so its vertices are already
+  // constant in the bone's frame whatever pose the rig is in: bone-local is
+  // just boneWorld⁻¹ × meshWorld × v, with no bind matrices needed.
+  if (!locals.length) {
+    root3d.updateMatrixWorld(true);
+    let bone = null;
+    root3d.traverse((o) => { if (o.isBone && o.name === propBoneName) bone = o; });
+    if (bone) {
+      const toLocal = new THREE.Matrix4();
+      const v = new THREE.Vector3();
+      bone.traverse((obj) => {
+        if (!obj.isMesh || obj.isSkinnedMesh || obj === bone) return;
+        toLocal.copy(bone.matrixWorld).invert().multiply(obj.matrixWorld);
+        const pos = obj.geometry.attributes.position;
+        if (!pos) return;
+        for (let i = 0; i < pos.count; i++) {
+          v.fromBufferAttribute(pos, i).applyMatrix4(toLocal);
+          locals.push(v.clone());
+        }
+      });
+      // The butt test below needs the bone's REST orientation, and with no
+      // skinned verts we never picked one up. The prop bone is still a member
+      // of the fighter's skeleton, so its boneInverse is there to be read.
+      if (!restWorldRot) {
+        root3d.traverse((obj) => {
+          if (restWorldRot || !obj.isSkinnedMesh || !obj.skeleton) return;
+          const j = obj.skeleton.bones.findIndex((b) => b.name === propBoneName);
+          if (j < 0) return;
+          restWorldRot = new THREE.Matrix4()
+            .copy(obj.skeleton.boneInverses[j]).invert();
+        });
+      }
+    }
+  }
+  if (locals.length < 16 || !restWorldRot) return null;
 
   // Principal axis by power iteration on the covariance — the shaft dominates
   // every other dimension of a polearm, so this converges in a few steps.

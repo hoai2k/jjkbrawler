@@ -172,7 +172,7 @@ lens, win-pose orbits — flagged per clip in extras so spectacle never blurs a
 hitbox), and state-keyed material variants (Yuji's Sukuna markings during
 ult, Yuta's full-meter glow).
 
-### Round D6 — regeneration: the workbench catches *(open)*
+### Round D6 — regeneration: the workbench catches *(delivered)*
 
 Every art round has produced a catch round; D6 is this track's, held open so
 findings from D1–D5 have a number that is not a new fighter's round. It is
@@ -203,6 +203,38 @@ they are the cause.
 prop. Look at them in the workbench's **Mannequin(s)** view before spending
 credits — an uneven arm can be a pose, and none of the three reads wrong on
 screen today.
+
+#### Delivered — and the seed was never the art
+
+All five rebuilt, all five through the gate. Against the roster's medians
+(leg 21.5%, arm 11.3% of a model's own mass):
+
+| Fighter | legs | arms | was |
+|---|---|---|---|
+| `momo` | **0.98** | 0.75 | 0.29 — "LEG NOT RECONSTRUCTED" |
+| `maki` | **0.97** | **0.96** | 0.91 / 0.48 — "ARM NOT RECONSTRUCTED" |
+| `gakuganji` | **0.97** | 0.86 | 0.41 / 0.73 — leg *and* arm |
+| `uro` | 0.90 | 0.77 | legs at 19% of normal |
+| `meimei` | 0.84 | 0.43 | fused arm at 287% of normal; now 151% |
+
+Momo has two legs, Mei Mei has no horns, and Uro's hair finally extracts onto
+its chain (3240 verts; the old model had **none** past the threshold). Mei
+Mei's arm is the one number still outside the gate — it is her cape weighted
+to one side, not a missing limb, and it is down from 287% to 151%.
+
+**The boards were fine. We were feeding them in wrong.** A DI5 board is four
+drawings in ONE png, and it was going to the single-image endpoint whole — so
+the generator modelled the *picture*: four Momo statues in a row, one skeleton
+fitted to one of them and the other three skinned onto her hands. That is the
+entire "fused into one arm" signal, on all five, and it is why the first
+rebuild measured *identical* to the models it was replacing. The weapon plates
+are boards too: four brooms, four axes — which is what "her broom is divided
+into many pieces" always was.
+
+`tools/slice_turnaround.py` now cuts a board into its panels and
+`tripo_generate.mjs` sends them to the **multiview** endpoint as separate
+views (front, left, back; the ¾ panel is dropped, having no slot). Same art,
+same round, same credits — one body out instead of four.
 
 **The gate, before approval:** `blender -b -P tools/audit_model_health.py`.
 A delivery is refused if any limb is under 70% or over 150% of the roster's

@@ -48,7 +48,7 @@ import bpy
 from mathutils import Matrix, Quaternion, Vector
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATES_JS = os.path.join(REPO, "billboards", "src", "states.js")
+STATES_JS = os.path.join(REPO, "render3d", "src", "states.js")
 FPS = 30
 
 

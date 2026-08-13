@@ -136,11 +136,18 @@ const rows = await page.evaluate(() => {
     .map((e) => Math.round(e.getBoundingClientRect().top)));
   return {
     dials: dialRows.size,
+    dialCount: document.querySelectorAll(".facing-dial").length,
     allOnScreen: [...dial, ...acts].every((r) => r.bottom <= innerHeight + 1 && r.top >= 0),
     smallestTouch: Math.min(...[...dial, ...acts].map((r) => Math.min(r.width, r.height))),
   };
 });
-check(rows.dials === 3, "all three dials get a row of their own", `${rows.dials} row(s)`);
+// Counted, not hardcoded: the claim is that no dial shares a row with another
+// (they are read left-to-right against the drawing, so a wrapped one is a
+// misread), and that claim holds whether there are three of them or five. A
+// literal 3 here failed the day a Head carriage dial was added — which is the
+// review getting BETTER, and not something a smoke should call a regression.
+check(rows.dials === rows.dialCount, "every dial gets a row of its own",
+  `${rows.dials} row(s) for ${rows.dialCount} dial(s)`);
 check(rows.allOnScreen, "every control is on screen");
 check(rows.smallestTouch >= 28, "controls are thumb-sized",
   `smallest ${Math.round(rows.smallestTouch)}px`);
