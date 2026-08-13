@@ -80,6 +80,12 @@ nearest ink; ⌘Z undoes. Beside the plate the character's **own 3D rig** takes
 the pose, each bone swung in the drawing's plane to match — which is where a
 read that looked fine flat turns out to bend a knee backwards.
 
+The rig pane has two dials of its own. **Matched** (bottom left, on by default)
+shows the frame's matched human pose instead of the one solved from the joints
+— see below — and the badge top left always says which of the two you are
+actually looking at. **View 3D** (bottom right) turns both panes off the
+drawing's angle together.
+
 Edits last as long as the tab and no longer: press **Download this character**
 (or **All edited**, for a session that touched several) before you leave, and
 a reload is how you say "start again from what is on disk". They used to be
@@ -278,7 +284,8 @@ reading. From the shoulder line it is 5° in the idle and 0° in the jab.
 
 | | |
 |---|---|
-| **Read by eye** | `yuji` — all 40 frames, each checked against the art, then re-checked against the posed rig; 16 poses hand-corrected since |
+| **Read by eye** | `yuji` — all 40 frames, each checked against the art, then re-checked against the posed rig |
+| **Matched by hand** | all 40 of Yuji's frames, to a named human pose in `battle_poses.js` |
 | **Fitted seeds** | every other character, 1237 frames, from `tools/pose_seed.py` |
 
 A seed is Yuji's read of the same-named frame, fitted to this character's own
@@ -288,6 +295,69 @@ so `crouch_a` means the same thing everywhere; it is only a starting point
 because the bodies do not match — Panda, Jogo and Mahoraga are not built like a
 teenage boy, and their seeds show it. Every seeded pose carries a `seed` stamp
 that the editor displays and that disappears the moment a human moves a joint.
+
+## The other way round: matched battle poses
+
+Everything above works forwards from the drawing — read the joints, infer the
+depth, solve the rig onto them. It answers *where are his limbs* and it cannot
+answer *is this a pose a fighter would be in*, because a read has no idea what
+a fighter is. Two frames apart can read as two unrelated bodies, a foreshortened
+forearm reads as an arm that is simply short, and nothing objects, because
+nothing in the pipeline knows what a jab looks like.
+
+[`render3d/src/battle_poses.js`](../../render3d/src/battle_poses.js) works the
+other way. Each frame is **matched** to a named human pose — an orthodox boxing
+guard, a rear-hand cross at full extension, mid-swing of a sprint stride, a
+sprinter's three-point set — and the rig is put in that pose directly. The
+drawing chooses *which* pose; the pose itself comes from how bodies are built.
+All 40 of Yuji's frames have one, and the editor marks them with a dot.
+
+The trade is worth stating, because the editor's **Matched** checkbox exists to
+let a human make it frame by frame: a matched pose does not track the drawing
+joint for joint, and in exchange it is never anatomically nonsense, never
+inconsistent with its neighbours, and never needs depth inferred, because it
+was authored in three dimensions in the first place. Matched is the default;
+turning it off shows the same frame solved from the read, in the same pane, so
+the comparison is one click.
+
+### Where the numbers come from
+
+Measured human movement, wherever a measurement exists:
+
+| | |
+|---|---|
+| Orthodox stance | feet ~shoulder width and staggered, rear foot ~45°, knees "sitting" |
+| The cross | proximal-to-distal; hip extension the largest contributor; peak-speed order hip → shoulder → elbow → wrist, so the contact frames drive the SPINE and the arm merely arrives |
+| Sprint gait | hip 55° flexion in late swing, ~10° hyperextension after toe-off; knee ~125° at mid-swing, ~40° at strike, ~60° loading |
+| Three-point start | front knee ~90°, rear knee ~120–135°, trunk ~45° to the ground, hips above the shoulders |
+| Drop landing | peak knee flexion ~80–86°, and trunk flexion is what absorbs the force |
+| Roundhouse kick | pelvis leads, then hip flexion with the knee extending through; ankle stays dorsiflexed |
+
+Where Yuji disagrees with the generic pose, **the drawing wins** — the five
+frames in the audit table below are matched to what he is drawn doing, not to
+what the state is usually drawn doing.
+
+### The angles are in the FIGHTER's frame, and it is measured
+
+A pose is `{Bone: [x, y, z]}` in degrees: x about the line through his
+shoulders, y about the vertical, z about his facing, composed z → y → x, from a
+T-pose. Two things make that portable, and both had to be built:
+
+  * **The rig is swung into a T-pose first.** A delivered `.glb` is not bound in
+    one — Yuji arrives with his arms already at his sides — so adding a table's
+    "arms down" to arms that are already down swings them 65° past his legs.
+  * **The frame is measured off the rig, not assumed.** Yuji's lateral axis runs
+    about 20° off the world's, so a table applied raw turns him to face away
+    from the camera.
+
+Every axis sign was established by rotating one bone and asking where the hand
+went. **Three of the six guesses were backwards**, including the one that
+mattered most: with the sign taken from the delivery spec rather than from the
+rig, every punch on the sheet was thrown over his shoulder.
+
+`tools/check_battle_poses.mjs` runs in `npm run check` and guards the three
+things that rot silently — a bone renamed, a frame added, an angle typo'd past
+what a joint reaches.
 
 ## Is a read accurate enough to author from?
 

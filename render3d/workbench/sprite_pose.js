@@ -57,6 +57,7 @@ import * as rigs from "../src/loader.js";
 import { initPose } from "../src/pose.js";
 import { CHARACTER_KEYS, CHARACTERS } from "../../src/characters.js";
 import { makeOrbit } from "./orbit.js";
+import { matchedPose, MATCHED_FRAMES } from "../src/battle_poses.js";
 
 const READS_URL = "../../sprites/docs/pose-reads/";
 const SPRITES_URL = "../../sprites/assets/";
@@ -545,6 +546,10 @@ const ui = {
   sel: null,
   ghost: 0.4,
   showSprite: true,
+  // Show the MATCHED human pose rather than the one solved from the read.
+  // Defaults on: the matched set is the one being evaluated, and a comparison
+  // nobody can see is not a comparison.
+  matched: true,
 };
 
 /** Free look, shared with the clip bench (orbit.js). Turning it drives both
@@ -853,6 +858,139 @@ const _swing = new THREE.Quaternion();
 const _boneQ = new THREE.Quaternion();
 const _parentQ = new THREE.Quaternion();
 
+/**
+ * THE OTHER WAY TO POSE THE RIG: put it in a named human pose.
+ *
+ * `poseFromJoints` below works forwards from the drawing and answers "where
+ * are his limbs". This answers "what is he DOING" — the frame is matched to a
+ * real pose (an orthodox guard, a cross at full extension, mid-swing of a
+ * sprint stride) in render3d/src/battle_poses.js, and the rig is simply put in
+ * it. No read, no depth inference, no solve.
+ *
+ * The trade is worth stating plainly, because the editor's checkbox is there
+ * to let a human make it per frame: a matched pose does not track the drawing
+ * joint for joint, and in exchange it is anatomically sound, consistent with
+ * its neighbours, and authored in three dimensions rather than inferred from
+ * one view.
+ */
+/**
+ * THE FIGHTER'S OWN AXES, measured off the rig rather than assumed.
+ *
+ * A pose table is written against a body — "lean the spine forward", "swing
+ * the thigh back" — and those words only mean something once you know which
+ * way the body faces. Assuming it costs a whole afternoon: the tables are
+ * written against a T-pose facing +Z, and Yuji's delivered .glb is neither. It
+ * binds with the arms already down, and its lateral axis runs 20° off the
+ * world's, so a table applied to it raw turns him to face away from the camera
+ * and throws his punches over his shoulder.
+ *
+ * So: LATERAL is the line between his shoulders (his own left), UP is the
+ * world's, and FORWARD is their cross product, which is the direction a body
+ * with those shoulders faces. Every rig answers those three questions about
+ * itself, whatever it was delivered in.
+ */
+function anatomy() {
+  const at = (n) => (three.bones.get(n)
+    ? new THREE.Vector3().setFromMatrixPosition(three.bones.get(n).matrixWorld) : null);
+  const up = new THREE.Vector3(0, 1, 0);
+  const l = at("LeftArm"); const r = at("RightArm");
+  const lateral = l && r ? l.clone().sub(r) : new THREE.Vector3(1, 0, 0);
+  lateral.addScaledVector(up, -lateral.dot(up)).normalize();      // square to up
+  // left × up is the facing, the same handedness the mannequin's own table
+  // uses (left arm along +X, up +Y, facing +Z).
+  const forward = lateral.clone().cross(up).normalize();
+  return { up, lateral, forward };
+}
+
+/** The bones a matched pose can talk about, PARENT FIRST, and where each one
+ *  points in the reference T-pose the table is written against. */
+const T_POSE = [
+  // Head is deliberately absent: it has no bone below it to aim, so "which way
+  // does a head point" resolves to whatever hair or eye bone the rig happens to
+  // list first, and aiming THAT upright screws the skull round on the neck.
+  ["Spine", "up"], ["Spine1", "up"], ["Spine2", "up"], ["Neck", "up"],
+  ["LeftShoulder", "left"], ["LeftArm", "left"], ["LeftForeArm", "left"],
+  ["RightShoulder", "right"], ["RightArm", "right"], ["RightForeArm", "right"],
+  ["LeftUpLeg", "down"], ["LeftLeg", "down"], ["LeftFoot", "forward"],
+  ["RightUpLeg", "down"], ["RightLeg", "down"], ["RightFoot", "forward"],
+];
+
+/**
+ * Put the rig in the pose the table counts as zero.
+ *
+ * The tables say "relative to a T-pose bind", and a delivered rig is not bound
+ * in one — Yuji arrives with his arms at his sides. Adding a table's REST drop
+ * to arms that are already down swings them 65° past his legs. Rather than
+ * re-author every number against every fighter's own bind, the rig is first
+ * SWUNG into the T-pose the table means, using the same world-space aim the
+ * read interpreter uses. After that the table is portable: the same numbers
+ * describe the same human pose on any rig that has these bones.
+ */
+function toTPose({ up, lateral, forward }) {
+  const dirs = {
+    up, down: up.clone().negate(), forward,
+    left: lateral, right: lateral.clone().negate(),
+  };
+  for (const [name, which] of T_POSE) {
+    const bone = three.bones.get(name);
+    const tip = three.bones.get(BONE_TIP[name]) || bone?.children.find((c) => c.isBone);
+    if (!bone || !tip) continue;
+    aimBone(bone, tip, dirs[which]);
+    three.root.updateMatrixWorld(true);
+  }
+}
+
+function poseFromMatch(pose) {
+  if (!three.root || !three.bind || !three.bones) return false;
+  for (const [bone, q] of three.bind) bone.quaternion.copy(q);
+  three.root.updateMatrixWorld(true);
+  const basis = anatomy();
+  toTPose(basis);
+
+  // Every rotation is read in the FIGHTER's frame, not the world's or the
+  // bone's: x about his lateral axis (pitch — lean forward), y about the
+  // vertical (yaw — turn a shoulder through a punch), z about his facing
+  // (roll — drop an arm to his side). Composed x·y·z, which is what three's
+  // "XYZ" Euler order means, so the numbers read the same as the mannequin's.
+  const qx = new THREE.Quaternion();
+  const qy = new THREE.Quaternion();
+  const qz = new THREE.Quaternion();
+  const world = new THREE.Quaternion();
+  const parent = new THREE.Quaternion();
+  const inv = new THREE.Quaternion();
+  // Parent orientations are read from the T-POSE, all of them, before anything
+  // moves: the table's angles are each relative to that one reference, not to
+  // wherever an ancestor happened to end up part-way through applying it.
+  const frames = new Map();
+  for (const [name] of T_POSE) {
+    const bone = three.bones.get(name);
+    if (bone?.parent) frames.set(name, bone.parent.getWorldQuaternion(new THREE.Quaternion()));
+  }
+  for (const [name, [rx, ry, rz]] of Object.entries(pose)) {
+    const bone = three.bones.get(name);
+    const p = frames.get(name) || bone?.parent?.getWorldQuaternion(new THREE.Quaternion());
+    if (!bone || !p) continue;
+    qx.setFromAxisAngle(basis.lateral, rx * DEG);
+    qy.setFromAxisAngle(basis.up, ry * DEG);
+    qz.setFromAxisAngle(basis.forward, rz * DEG);
+    world.copy(qx).multiply(qy).multiply(qz);
+    inv.copy(p).invert();
+    bone.quaternion.premultiply(p).premultiply(world).premultiply(inv);
+  }
+  three.root.updateMatrixWorld(true);
+  return true;
+}
+
+/** Whichever of the two the pane is currently showing. */
+function poseRigFor(key, j) {
+  if (ui.matched) {
+    const match = matchedPose(key);
+    if (match && poseFromMatch(match)) return "matched";
+  }
+  poseFromJoints(j);
+  return "read";
+}
+
 /** Turn the read into rig rotations: every driven bone is swung, in the
  *  sagittal plane only, until it points the way the drawing does. */
 function poseFromJoints(j) {
@@ -1104,12 +1242,15 @@ function renderPicker() {
   const list = $("#poseList");
   list.innerHTML = Object.entries(data.poses).map(([key, pose]) => `
     <button class="thumb ${key === ui.pose ? "on" : ""} ${edited.has(key) ? "edited" : ""}"
-            data-pose="${key}" title="${key}">
+            data-pose="${key}" title="${key}${MATCHED_FRAMES.has(key)
+              ? " — matched to a human battle pose" : ""}">
       <span class="plate mini">${plateHTML(ui.char, key, pose.j, { flat: true })}</span>
+      ${MATCHED_FRAMES.has(key) ? '<span class="matched-dot" aria-label="matched">●</span>' : ""}
       <span class="thumb-name">${key}</span>
     </button>`).join("");
+  const matched = Object.keys(data.poses).filter((k) => MATCHED_FRAMES.has(k)).length;
   $("#poseCount").textContent =
-    `${Object.keys(data.poses).length} frames · ${edited.size} edited`;
+    `${Object.keys(data.poses).length} frames · ${matched} matched · ${edited.size} edited`;
 }
 
 function renderEditor() {
@@ -1135,7 +1276,9 @@ function renderEditor() {
       <span>${n}</span><b>${pose.j[n]
         ? `${pose.j[n][0].toFixed(1)}, ${pose.j[n][1].toFixed(1)}`
           + (depth(pose.j[n]) ? `, ${depth(pose.j[n]).toFixed(1)}` : "") : "—"}</b></li>`).join("");
-  poseFromJoints(pose.j);
+  const how = poseRigFor(ui.pose, pose.j);
+  $("#poseHow").textContent = how === "matched" ? "matched human pose" : "solved from the read";
+  $("#poseHow").className = `stamp ${how === "matched" ? "matched" : "read"}`;
   drawThree();
 }
 
@@ -1190,7 +1333,7 @@ function refreshDrag() {
   const pose = reads.get(ui.char).poses[ui.pose];
   $("#plate .rigline").innerHTML = mannequinSVG(pose.j, { handles: true });
   showFacing(pose.j);
-  poseFromJoints(pose.j);
+  poseRigFor(ui.pose, pose.j);
   drawThree();
 }
 
@@ -1436,6 +1579,11 @@ function shell() {
                      title="Drag to turn, scroll to move in. Both panes turn together; off returns to the drawing's own angle.">
                 <input id="poseView3d" type="checkbox"> View 3D
               </label>
+              <label class="check matched" id="poseMatchedBox"
+                     title="On: the frame's matched HUMAN pose. Off: the pose solved from the joints you can drag.">
+                <input id="poseMatched" type="checkbox" checked> Matched
+              </label>
+              <span class="how" id="poseHow"></span>
             </div>
             <p class="hint">The fighter's own rig: spine, neck, both clavicles,
               arms, legs and feet, each turned to match the joints. <b>View 3D</b>
@@ -1520,6 +1668,10 @@ async function boot() {
     renderEditor();
   });
   $("#poseView3d").addEventListener("change", (e) => orbit.setOn(e.target.checked));
+  $("#poseMatched").addEventListener("change", (e) => {
+    ui.matched = e.target.checked;
+    if (ui.pose) renderEditor();
+  });
   $("#viewAngle").addEventListener("click", () => orbit.reset());
   $("#btnSnap").addEventListener("click", () => { snapToArt(); });
   $("#btnSwap").addEventListener("click", () => {
