@@ -17,20 +17,25 @@ tools/pose_seed.py                      seeds a character from the read referenc
 tools/pose_apply.py                     puts an editor export back in the tree
 tools/pose_contact_sheet.py <char>      the sheet, and --check
 tools/pose_rig_sheet.mjs <char>         every pose's RIG beside its drawing
+tools/pose_three_up.mjs <char>          drawing · matched · generated · in-game
 tools/pose_verify.py <char>             crossed limbs, lopsided pairs, impossible turns
 tools/check_pose_reads.mjs              runs in `npm run check`
 ```
 
-Those four check different things and none of them replaces another.
+Those five check different things and none of them replaces another.
 `--check` measures every joint to the nearest ink, so it proves the read sits
 on the art. `pose_verify.py` asks whether the *body* those joints describe is
 possible — legs that cross at the shins, a thigh twice its partner, a shoulder
 line wider than the shoulders go — which is what a swapped side actually looks
 like in arithmetic. `pose_rig_sheet.mjs` drives the real editor in a real
 browser and puts each posed rig next to the drawing it came from, which is the
-only one of the four that catches an interpreter bug rather than a read bug,
-and it is how the feet above were caught. And `window.__poseAngles()` in the
-editor gives the same comparison as a number per bone, in degrees.
+only one of them that catches an interpreter bug rather than a read bug, and it
+is how the feet below were caught. `pose_three_up.mjs` goes one further and
+puts the two proposed poses beside the one the game plays today, which is the
+only view that can say whether either is an improvement. And
+`window.__poseAngles()` in the editor gives the rig-versus-drawing comparison
+as a number per bone, in degrees, while `window.__handsAt()` says where the
+hands ended up.
 
 ## The three things a read has to get right
 
@@ -80,28 +85,51 @@ nearest ink; ⌘Z undoes. Beside the plate the character's **own 3D rig** takes
 the pose, each bone swung in the drawing's plane to match — which is where a
 read that looked fine flat turns out to bend a knee backwards.
 
-The rig pane has two dials of its own. **Matched** (bottom left, on by default)
-shows the frame's matched human pose instead of the one solved from the joints
-— see below. **View 3D** (bottom right) turns both panes off the drawing's
-angle together.
+The rig pane has two dials of its own. **View 3D** (bottom right) turns both
+panes off the drawing's angle together. Bottom left is a **mode cycle** —
+click it to walk the three poses this frame has:
+
+| | |
+|---|---|
+| **Matched** | the frame's pose from the human battle-pose library ([`battle_poses.js`](../../render3d/src/battle_poses.js)) |
+| **Generated** | the pose worked out from the eighteen joints you can drag |
+| **In Game** | the clip the game plays for this frame **today** |
+
+It is a cycle rather than a checkbox because there are three answers, and the
+third is the one that decides anything: Matched and Generated are both
+proposals, and neither is worth shipping unless it beats what a player already
+sees. `tools/pose_three_up.mjs` lays all four out — drawing, matched,
+generated, in-game — for a whole sheet at once.
+
+**In Game** samples the fighter's real clip: `poseEntry` says which state draws
+this frame and at what time (the two tables come from the same fps, so frame
+*i* lands at *i/fps*), and `resolveClip` resolves the same clip the engine
+would — the character's own, an inherited one, or the default, mirrored if the
+manifest mirrors it. Rotation only: applying the root's position track would
+slide the model out of frame while the other two keep their hips at the bind,
+and holding all three to one rule is what makes them comparable.
 
 ### The two badges answer different questions
 
-They sit on the same screen and are easy to read as one, so both now name what
-they are talking about:
+They sit on the same screen and are easy to read as one, so both name what they
+are talking about:
 
 | | |
 |---|---|
 | `joints: …` beside the frame name | where the **eighteen dots on the plate** came from — `read by eye`, `fitted from yuji/idle_a`, `hand-placed on disk`, `edited here` |
-| `3D: …` over the rig | which pipeline **posed the model** — `matched human pose`, or `solved from the joints` |
+| `3D: …` over the rig | which pose the **model is actually in** |
 
 So `joints: read by eye` next to `3D: matched human pose` is not a
 contradiction and does not mean the frame lacks a match. It means a human
 placed those dots *and* the frame has a matched pose — the normal case for
-every frame of Yuji's sheet. A frame with no match is called out explicitly, in
-a warning colour, as **`3D: no match for this frame — solved from the joints`**,
-and its picker tile carries no dot. That is the only reading that means "no
-match", and the badge says so rather than leaving it to be inferred.
+every frame of Yuji's sheet.
+
+The mode you asked for is not always the one you get, and the badge says so in
+a warning colour when it is not: **`no matched pose for this frame`** (its
+picker tile also carries no dot), or **`nothing in the game draws this frame`**
+— which is true of `attack_heavy`, among others, because the states draw
+`attack_heavy_a` and `_b` instead. Those are the only two readings that mean
+"there is nothing here", and they are stated rather than left to be inferred.
 
 Edits last as long as the tab and no longer: press **Download this character**
 (or **All edited**, for a session that touched several) before you leave, and

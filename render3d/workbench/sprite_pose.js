@@ -58,6 +58,7 @@ import { initPose } from "../src/pose.js";
 import { CHARACTER_KEYS, CHARACTERS } from "../../src/characters.js";
 import { makeOrbit } from "./orbit.js";
 import { matchedPose, MATCHED_FRAMES } from "../src/battle_poses.js";
+import { poseEntry } from "../src/sprite_poses.js";
 
 const READS_URL = "../../sprites/docs/pose-reads/";
 const SPRITES_URL = "../../sprites/assets/";
@@ -546,10 +547,10 @@ const ui = {
   sel: null,
   ghost: 0.4,
   showSprite: true,
-  // Show the MATCHED human pose rather than the one solved from the read.
-  // Defaults on: the matched set is the one being evaluated, and a comparison
-  // nobody can see is not a comparison.
-  matched: true,
+  // Which of the three poses the rig pane shows. Defaults to the matched set:
+  // it is the one being evaluated, and a comparison nobody can see is not a
+  // comparison.
+  mode: "matched",
 };
 
 /** Free look, shared with the clip bench (orbit.js). Turning it drives both
@@ -994,18 +995,82 @@ function applyChain(node, pose, basis) {
 }
 
 /**
- * Whichever of the two the pane is currently showing — and it is THREE
- * answers, not two. "Matched is on and this frame has one" and "Matched is on
- * but this frame has none, so you are looking at the read after all" feel the
- * same from the checkbox and are completely different facts about the frame,
- * so the badge says which.
+ * THE THIRD ANSWER: what the game actually plays right now.
+ *
+ * Matched and Generated are both proposals — one from a pose library, one from
+ * the drawing. Neither is what a player sees today, and without that on screen
+ * beside them the comparison is between two things nobody has ever shipped.
+ * So this samples the fighter's REAL clip: `poseEntry` says which state draws
+ * this frame and at what time (the two tables were built from the same fps, so
+ * frame i genuinely lands at i/fps), `resolveClip` resolves the same clip the
+ * engine would — the character's own, an inherited one, or the default, mirrored
+ * if the manifest mirrors it — and the tracks are read at that instant.
+ *
+ * Rotation only. The clips carry position and scale tracks too, and applying
+ * the root's would slide the model out of the frame while the other two modes
+ * keep their hips at the bind. Holding all three to the same rule is what makes
+ * them comparable; it is also the same "the hips do not move" limit the preview
+ * has always had.
+ */
+const _interp = new WeakMap();
+
+function poseFromGame(char, key) {
+  if (!three.root || !three.bind) return false;
+  const entry = poseEntry(char, key);
+  if (!entry) return false;
+  const clip = rigs.resolveClip(char, entry.state)?.clip;
+  if (!clip) return false;
+  for (const [bone, q] of three.bind) bone.quaternion.copy(q);
+  const t = Math.min(entry.t, clip.duration);
+  let hit = 0;
+  for (const track of clip.tracks) {
+    const dot = track.name.lastIndexOf(".");
+    if (dot < 0 || track.name.slice(dot + 1) !== "quaternion") continue;
+    const bone = three.root.getObjectByName(track.name.slice(0, dot));
+    if (!bone) continue;
+    let fn = _interp.get(track);
+    if (!fn) { fn = track.createInterpolant(); _interp.set(track, fn); }
+    bone.quaternion.fromArray(fn.evaluate(t));
+    hit++;
+  }
+  if (!hit) return false;
+  three.root.updateMatrixWorld(true);
+  return true;
+}
+
+/**
+ * Which of the three the pane is showing — and it is not always the one asked
+ * for, which is the whole reason this returns a name rather than a boolean.
+ * "Matched, and this frame has one" and "Matched, but this frame has none so
+ * you are looking at the generated pose after all" are identical from the
+ * control and completely different facts about the frame.
  */
 function poseRigFor(key, j) {
-  const match = ui.matched ? matchedPose(key) : null;
-  if (match && poseFromMatch(match)) return "matched";
+  if (ui.mode === "matched") {
+    const match = matchedPose(key);
+    if (match && poseFromMatch(match)) return "matched";
+    poseFromJoints(j);
+    return "unmatched";
+  }
+  if (ui.mode === "ingame") {
+    if (poseFromGame(ui.char, key)) return "ingame";
+    poseFromJoints(j);
+    return "noclip";
+  }
   poseFromJoints(j);
-  return ui.matched ? "unmatched" : "read";
+  return "generated";
 }
+
+/** The cycle, in the order the button walks: proposal, proposal, reality. */
+const MODES = ["matched", "generated", "ingame"];
+const MODE_LABEL = { matched: "Matched", generated: "Generated", ingame: "In Game" };
+const HOW_LABEL = {
+  matched: "3D: matched human pose",
+  generated: "3D: generated from the joints",
+  ingame: "3D: the clip the game plays today",
+  unmatched: "3D: no matched pose for this frame — generated from the joints",
+  noclip: "3D: nothing in the game draws this frame — generated from the joints",
+};
 
 /** Turn the read into rig rotations: every driven bone is swung, in the
  *  sagittal plane only, until it points the way the drawing does. */
@@ -1300,12 +1365,10 @@ function renderEditor() {
         ? `${pose.j[n][0].toFixed(1)}, ${pose.j[n][1].toFixed(1)}`
           + (depth(pose.j[n]) ? `, ${depth(pose.j[n]).toFixed(1)}` : "") : "—"}</b></li>`).join("");
   const how = poseRigFor(ui.pose, pose.j);
-  $("#poseHow").textContent = {
-    matched: "3D: matched human pose",
-    unmatched: "3D: no match for this frame — solved from the joints",
-    read: "3D: solved from the joints",
-  }[how];
+  $("#poseHow").textContent = HOW_LABEL[how];
   $("#poseHow").className = `how ${how}`;
+  $("#poseMode").textContent = MODE_LABEL[ui.mode];
+  $("#poseModeBox").className = `check mode ${ui.mode}`;
   drawThree();
 }
 
@@ -1606,10 +1669,10 @@ function shell() {
                      title="Drag to turn, scroll to move in. Both panes turn together; off returns to the drawing's own angle.">
                 <input id="poseView3d" type="checkbox"> View 3D
               </label>
-              <label class="check matched" id="poseMatchedBox"
-                     title="On: the frame's matched HUMAN pose. Off: the pose solved from the joints you can drag.">
-                <input id="poseMatched" type="checkbox" checked> Matched
-              </label>
+              <button class="check mode matched" id="poseModeBox" type="button"
+                      title="Click to cycle. Matched: the frame's pose from the human battle-pose library. Generated: the pose worked out from the joints you can drag. In Game: the clip the game plays today.">
+                <span id="poseMode">Matched</span> <span class="cycle">⟳</span>
+              </button>
               <span class="how" id="poseHow"></span>
             </div>
             <p class="hint">The fighter's own rig: spine, neck, both clavicles,
@@ -1695,8 +1758,8 @@ async function boot() {
     renderEditor();
   });
   $("#poseView3d").addEventListener("change", (e) => orbit.setOn(e.target.checked));
-  $("#poseMatched").addEventListener("change", (e) => {
-    ui.matched = e.target.checked;
+  $("#poseModeBox").addEventListener("click", () => {
+    ui.mode = MODES[(MODES.indexOf(ui.mode) + 1) % MODES.length];
     if (ui.pose) renderEditor();
   });
   $("#viewAngle").addEventListener("click", () => orbit.reset());

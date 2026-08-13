@@ -113,17 +113,24 @@ main.poseedit {
 .check.view3d.on { border-color: #6ea8ff; color: #dbe2f0; }
 .check.view3d input { accent-color: #6ea8ff; margin: 0; }
 
-/* The Matched dial sits beside View 3D and reads the same way — both are
- * things you do to the viewer, not to the pose data. */
-.check.matched {
+/* The mode cycle sits beside View 3D and reads the same way — both are things
+ * you do to the viewer, not to the pose data. It is a BUTTON rather than a
+ * checkbox because there are three answers and a checkbox can only hold two;
+ * the ⟳ is there so it reads as "click me again" rather than as a label. */
+.check.mode {
   position: absolute; left: 8px; bottom: 8px; display: flex; align-items: center;
   gap: 6px; padding: 5px 9px; border-radius: 999px; cursor: pointer;
   background: rgba(12, 17, 28, 0.82); border: 1px solid #2b3550; color: #9fabc7;
   font-size: 12px; user-select: none;
 }
-.check.matched:hover { border-color: #5c4a2a; }
-.check.matched:has(input:checked) { border-color: #d8a657; color: #f0e2cb; }
-.check.matched input { accent-color: #d8a657; margin: 0; }
+.check.mode { font: inherit; font-size: 12px; }
+.check.mode:hover { filter: brightness(1.25); }
+.check.mode .cycle { opacity: 0.5; font-size: 11px; }
+/* One colour per mode, and the same colour on the badge that reports what the
+ * pane actually did, so the two agree at a glance. */
+.check.mode.matched   { border-color: #d8a657; color: #f0e2cb; }
+.check.mode.generated { border-color: #2c456e; color: #bcd2f5; }
+.check.mode.ingame    { border-color: #2f5a44; color: #c7ecd6; }
 /* Which of the two the pane is actually showing — it is not always what the
  * checkbox asks for, because a frame with no match falls back to the read. */
 .how {
@@ -132,11 +139,12 @@ main.poseedit {
   border: 1px solid #2b3550; color: #8b96b3; pointer-events: none;
 }
 .how.matched { color: #d8a657; border-color: #5c4a2a; }
-.how.read { color: #6ea8ff; border-color: #2c456e; }
-/* Matched is ON but this frame has none — the checkbox says one thing and the
- * pane is showing another, which is worth a warning colour rather than a
- * silent fall back to the read. */
-.how.unmatched { color: #e0a3a3; border-color: #6b3a3a; }
+.how.generated { color: #6ea8ff; border-color: #2c456e; }
+.how.ingame { color: #7ddc9a; border-color: #2f5a44; }
+/* The mode asked for one thing and the pane is showing another, because this
+ * frame has no matched pose or nothing in the game draws it. Worth a warning
+ * colour rather than a silent fall back to the generated pose. */
+.how.unmatched, .how.noclip { color: #e0a3a3; border-color: #6b3a3a; }
 
 .facing {
   font: 11.5px ui-monospace, Menlo, monospace; color: #8fb8a0; white-space: nowrap;
