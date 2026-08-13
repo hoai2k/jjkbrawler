@@ -204,27 +204,55 @@ const HIP_SPAN = 0.37;
  * a perfectly ordinary shoulder line then reads as square to the camera. Yuji's
  * airborne frames all came out at 89°.
  *
- * So take the longest limb instead: every segment foreshortens, but a pose
- * rarely foreshortens all of them at once, and the rig says what each one is
- * worth in torsos. The longest estimate wins because foreshortening only ever
- * makes a segment look SHORTER than it is.
+ * So take the limbs instead: every segment foreshortens, but a pose rarely
+ * foreshortens all of them at once, and the rig says what each one is worth in
+ * torsos.
+ *
+ * WHICH estimate to take depends on what is asking, and the two callers want
+ * opposite things:
+ *
+ *   * `torsoScale` — the LARGEST, for the facing. Under-estimate the body and
+ *     the shoulder width derived from it comes out too small, so an ordinary
+ *     shoulder line divides out to sin(yaw) ≈ 1 and the fighter snaps square
+ *     to the camera. Erring large costs a few degrees; erring small costs 89.
+ *   * `torsoTypical` — the MEDIAN, for judging whether a limb is drawn short.
+ *     Here the largest estimate is poison: it is by construction the length of
+ *     the single most generously drawn limb, so measuring the other seven
+ *     against it declares all seven foreshortened. That is precisely what it
+ *     did — 39 of Yuji's 40 frames came out with a limb driven more than 15
+ *     cells deep, one of them 170 cells deep in a 100-cell frame, on drawings
+ *     that are nearly all flat and side-on.
  */
-function torsoScale(j, spans) {
+function torsoEstimates(j, spans) {
   const seg = (a, b) => (j[a] && j[b] ? Math.hypot(j[a][0] - j[b][0], j[a][1] - j[b][1]) : 0);
-  const mid = j.shoulderL && j.shoulderR
-    ? [(j.shoulderL[0] + j.shoulderR[0]) / 2, (j.shoulderL[1] + j.shoulderR[1]) / 2] : null;
-  const spine = mid && j.pelvis ? Math.hypot(mid[0] - j.pelvis[0], mid[1] - j.pelvis[1]) : 0;
   const limbs = spans.limbs || {};
   const from = (length, ratio) => (length && ratio ? length / ratio : 0);
-  return Math.max(
-    spine,
+  return [
     from(seg("hipL", "kneeL"), limbs.thigh), from(seg("hipR", "kneeR"), limbs.thigh),
     from(seg("kneeL", "footL"), limbs.shin), from(seg("kneeR", "footR"), limbs.shin),
     from(seg("shoulderL", "elbowL"), limbs.upperArm),
     from(seg("shoulderR", "elbowR"), limbs.upperArm),
     from(seg("elbowL", "handL"), limbs.foreArm),
     from(seg("elbowR", "handR"), limbs.foreArm),
-  );
+  ].filter(Boolean).sort((a, b) => a - b);
+}
+
+function spineLength(j) {
+  const mid = j.shoulderL && j.shoulderR
+    ? [(j.shoulderL[0] + j.shoulderR[0]) / 2, (j.shoulderL[1] + j.shoulderR[1]) / 2] : null;
+  return mid && j.pelvis ? Math.hypot(mid[0] - j.pelvis[0], mid[1] - j.pelvis[1]) : 0;
+}
+
+function torsoScale(j, spans) {
+  return Math.max(spineLength(j), ...torsoEstimates(j, spans), 0);
+}
+
+/** The same measurement, taken as the median rather than the maximum. */
+function torsoTypical(j, spans) {
+  const all = torsoEstimates(j, spans);
+  if (!all.length) return spineLength(j);
+  const mid = all.length >> 1;
+  return all.length % 2 ? all[mid] : (all[mid - 1] + all[mid]) / 2;
 }
 
 /**
@@ -244,9 +272,29 @@ function facingOf(j, spans) {
     // the body allows should read as "very turned", not as a body that has
     // rotated past its own shoulders.
     const sin = clamp(across / (width || 1), -0.985, 0.985);
-    // Explicit depth wins outright: somebody said which way this is facing.
+    // HOW FAR the bar is turned comes from how wide the drawing puts it, and
+    // only from that. Authored depth gets a vote on WHICH WAY and no vote on
+    // how far.
+    //
+    // Reading the angle straight off the depths — atan2(across, -dz) — is
+    // right in geometry and disastrous in practice, because it takes both
+    // numbers as measurements of the same rigid bar and nobody authors them
+    // that way. Yuji's `attack_air_a` had 0.1 on one shoulder and nothing on
+    // the other and came out at +89°, dead square to the camera off a tenth of
+    // a cell; `attack_air_b` had 0.6 and 0.2 on the hips, both deliberate, and
+    // came out at +92°. A bar six cells across in a drawing is a bar six cells
+    // across whatever depths hang off its ends; a fraction of a cell between
+    // them is not the twenty-five cells of depth that a genuinely square-on
+    // shoulder line would carry, and treating it as if it were turns every
+    // annotated frame to face the lens.
+    //
+    // What the depths DO settle is the front/back ambiguity, when they are
+    // large enough to mean it: a bar leaning at least a tenth of its own width
+    // out of the page says which end is nearer, and the magnitude still comes
+    // from the width.
     const dz = depth(j[a]) - depth(j[b]);
-    const yaw = dz ? Math.atan2(across, -dz) : Math.asin(sin);
+    let yaw = Math.asin(sin);
+    if (Math.abs(dz) > 0.1 * width && Math.sign(-dz) !== Math.sign(yaw || -dz)) yaw = -yaw;
     return { yaw, half: width / 2 };
   };
   return { chest: bar("shoulderL", "shoulderR", spans.shoulder),
@@ -297,28 +345,89 @@ function resolveDepth(j, spans) {
     z[toe] = (z[foot] ?? 0) + along * Math.sin(face.pelvis.yaw);
   }
 
-  // FORESHORTENING IS DEPTH. A limb drawn short is not a short limb: it is a
-  // limb pointing at the camera, and the drawing says so by how much of its
-  // length is missing. A chambered fist reads five cells where the punching
-  // one reads twenty-two — the other seventeen went into the third dimension.
+  // FORESHORTENING IS DEPTH — but only when there is really a lot of it.
+  //
+  // A limb drawn short can be a limb pointing at the camera, and the drawing
+  // says so by how much of its length is missing. A chambered fist reads five
+  // cells where the punching one reads twenty-two, and the other seventeen
+  // plausibly went into the third dimension.
+  //
+  // The trap is that sqrt(want² − flat²) is savagely sensitive at the top of
+  // its range: a limb drawn at 90% of its expected length — well inside what
+  // a hand-placed dot, a stylised proportion or a rounded torso estimate can
+  // account for — comes out 44% of a limb deep. Applied to eight segments on
+  // every frame it turned a sheet of flat, side-on drawings into a crowd of
+  // fighters lunging at the lens.
+  //
+  // So a shortfall has to clear a THRESHOLD before any of it is believed, and
+  // only the part beyond the threshold counts. Rescaling the flat length by
+  // KEEP does both at once and stays continuous: at KEEP of the expected
+  // length the depth is exactly zero, and it grows from there. A limb has to
+  // be drawn at under three quarters of its length before the drawing is taken
+  // to be saying anything about depth at all — which is roughly the point
+  // where a human looking at the frame would say "that arm is coming at me".
   //
   // Which WAY it went is the one thing the drawing cannot say, so the limb
   // follows its own side: a right arm foreshortens toward the lens, a left arm
   // away from it, which is where those limbs already are.
-  const torso = torsoScale(j, spans);
+  // The limb is also measured against ITS OWN OPPOSITE NUMBER, and the shorter
+  // reference wins. This is what keeps a stylised proportion from reading as a
+  // pose: Yuji's shins are drawn at 0.89 of what the rig says a shin is worth,
+  // consistently, on all forty frames — that is how the artist draws a leg
+  // ending in a trainer, not forty drawings of a shin angled at the lens. Two
+  // shins both drawn at 0.89 are two normal shins and get nothing. One shin at
+  // 0.45 beside a partner at 1.0 is a leg coming toward the camera, and gets
+  // it. Asymmetry is the signal; shortness on its own is not, and it
+  // self-calibrates to whatever body the character is drawn with.
+  const KEEP = 0.75;
+  const torso = torsoTypical(j, spans);
+  const flatLen = (a, b) =>
+    (j[a] && j[b] ? Math.hypot(j[b][0] - j[a][0], j[b][1] - j[a][1]) : 0);
   const bones = [
-    ["shoulderL", "elbowL", "upperArm", -1], ["elbowL", "handL", "foreArm", -1],
-    ["shoulderR", "elbowR", "upperArm", 1], ["elbowR", "handR", "foreArm", 1],
-    ["hipL", "kneeL", "thigh", -1], ["kneeL", "footL", "shin", -1],
-    ["hipR", "kneeR", "thigh", 1], ["kneeR", "footR", "shin", 1],
+    ["shoulderL", "elbowL", "upperArm", -1, ["shoulderR", "elbowR"]],
+    ["elbowL", "handL", "foreArm", -1, ["elbowR", "handR"]],
+    ["shoulderR", "elbowR", "upperArm", 1, ["shoulderL", "elbowL"]],
+    ["elbowR", "handR", "foreArm", 1, ["elbowL", "handL"]],
+    ["hipL", "kneeL", "thigh", -1, ["hipR", "kneeR"]],
+    ["kneeL", "footL", "shin", -1, ["kneeR", "footR"]],
+    ["hipR", "kneeR", "thigh", 1, ["hipL", "kneeL"]],
+    ["kneeR", "footR", "shin", 1, ["kneeL", "footL"]],
   ];
-  for (const [a, b, kind, side] of bones) {
+  // A limb somebody has AUTHORED is theirs. If any joint down an arm or a leg
+  // carries an explicit depth, the whole limb is left alone — the authored
+  // values stand and the joints between them inherit, rather than having a
+  // guess wedged in among them. Yuji's `attack_air_a` is the case: a hand set
+  // by hand at 7.6 with an inferred elbow at −13 behind it, which is not the
+  // arm anybody drew or authored, and is the reading of it that comes out
+  // worst of all forty frames.
+  const LIMB_JOINTS = {
+    L_arm: ["shoulderL", "elbowL", "handL"], R_arm: ["shoulderR", "elbowR", "handR"],
+    L_leg: ["hipL", "kneeL", "footL", "toeL"], R_leg: ["hipR", "kneeR", "footR", "toeR"],
+  };
+  const authored = {};
+  for (const [limb, names] of Object.entries(LIMB_JOINTS))
+    authored[limb] = names.some((n) => j[n]?.length > 2);
+
+  for (const [a, b, kind, side, opposite] of bones) {
     if (!j[a] || !j[b] || j[b].length > 2) continue;
-    const want = (spans.limbs?.[kind] || 0) * torso;
-    if (!want) continue;
-    const flat = Math.hypot(j[b][0] - j[a][0], j[b][1] - j[a][1]);
-    if (flat >= want) continue;                       // nothing missing
-    z[b] = (z[a] ?? 0) + side * Math.sqrt(want * want - flat * flat);
+    const limb = `${b.endsWith("L") ? "L" : "R"}_${/hand|elbow/.test(b) ? "arm" : "leg"}`;
+    if (authored[limb]) continue;
+    const rig = (spans.limbs?.[kind] || 0) * torso;
+    if (!rig) continue;
+    const mirror = flatLen(opposite[0], opposite[1]);
+    const want = mirror ? Math.min(rig, mirror) : rig;
+    const flat = flatLen(a, b);
+    const credited = Math.min(want, flat / KEEP);
+    if (credited >= want) continue;                   // nothing worth believing
+    // And a ceiling on the whole business. Past about 30° out of plane the
+    // inference stops being a reading and starts being an extrapolation from
+    // one short measurement, and the sheet is nearly all side-on drawings: it
+    // is better to under-state a limb that really is coming at the camera than
+    // to swing a quarter of the frame's worth of leg on the strength of a knee
+    // marker placed a few cells high.
+    const CAP = 0.5;
+    const out = Math.min(Math.sqrt(want * want - credited * credited), want * CAP);
+    z[b] = (z[a] ?? 0) + side * out;
   }
   return { z, face };
 }
@@ -796,12 +905,31 @@ function poseFromJoints(j) {
     }
     return err;
   };
+  // Each limb's drawn length over the length the rig expects. A kind whose
+  // median sits well under 1 across a whole sheet is not a sheet full of
+  // foreshortening — it is a ratio that does not describe this artist's
+  // figure, and believing it puts depth on every frame.
+  window.__poseRatios = () => {
+    const torso = torsoTypical(j, spans());
+    const out = {};
+    for (const [a, b, kind] of [
+      ["shoulderL", "elbowL", "upperArm"], ["shoulderR", "elbowR", "upperArm"],
+      ["elbowL", "handL", "foreArm"], ["elbowR", "handR", "foreArm"],
+      ["hipL", "kneeL", "thigh"], ["hipR", "kneeR", "thigh"],
+      ["kneeL", "footL", "shin"], ["kneeR", "footR", "shin"]]) {
+      const want = (spans().limbs?.[kind] || 0) * torso;
+      if (!want || !j[a] || !j[b]) continue;
+      (out[kind] ||= []).push(Math.hypot(j[b][0] - j[a][0], j[b][1] - j[a][1]) / want);
+    }
+    return out;
+  };
   window.__poseFacing = () => {
     const at = (n) => (three.bones.get(n)
       ? new THREE.Vector3().setFromMatrixPosition(three.bones.get(n).matrixWorld) : null);
     const l = at("LeftArm"); const r = at("RightArm");
     const lz = l && r ? l.clone().sub(r) : null;
     return {
+      depth: z,
       chestDeg: (face.chest.yaw * 180) / Math.PI,
       pelvisDeg: (face.pelvis.yaw * 180) / Math.PI,
       spans: spans(),
