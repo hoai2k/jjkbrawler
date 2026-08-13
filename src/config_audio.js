@@ -318,10 +318,24 @@ export const SPOKEN_LINES = {
 // no wind-up at all, and `max` is the hard ceiling on how long any one move may
 // stall a match — Gojo's line is the longest at 3.28 s and would otherwise hold
 // the game for 2.6 s on its own.
+// `commit` is how much of the LINE an opponent may still interrupt: 0.5 means
+// you can shout someone down during the first half of what they are saying,
+// and after that the move is going to happen. By the time a line is finishing
+// its move is already underway, and taking it back then would read as the game
+// reneging on something it had visibly started.
+//
+// Measured against the spoken line rather than the wind-up because that is the
+// thing a player actually perceives — "you can interrupt them early in the
+// sentence" is a rule someone can hear. It is capped by the wind-up itself, so
+// it can never outlast the move it guards.
+//
+// 1.0 leaves a move interruptible right up to the moment it fires; 0 makes one
+// safe as soon as it is announced.
 export const SPOKEN_TIMING = {
   fraction: 0.8,
   min: 0.35,
   max: 2.2,
+  commit: 0.5,
 };
 
 // Legacy keys from before the round-8 sound pass. Call sites and move configs

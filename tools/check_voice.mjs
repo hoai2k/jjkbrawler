@@ -62,8 +62,9 @@ for (const [key, declared] of Object.entries(SPOKEN_LINES)) {
   }
   const actual = mp3Seconds(file);
   const drift = actual - declared;
-  const { fraction, min, max } = SPOKEN_TIMING;
+  const { fraction, min, max, commit } = SPOKEN_TIMING;
   const lead = Math.min(max, Math.max(min, declared * fraction));
+  const commitAt = Math.min(lead, declared * commit);
   const where = reachable.get(key);
   if (!where) problems.push(`${key}: registered and delivered, but no move names it`);
   if (Math.abs(drift) > TOLERANCE) {
@@ -73,7 +74,7 @@ for (const [key, declared] of Object.entries(SPOKEN_LINES)) {
       `${lead > actual ? "AFTER the line has finished" : "which is now the wrong fraction"}`
     );
   }
-  rows.push({ key, declared, actual, lead, where: where || "—" });
+  rows.push({ key, declared, actual, lead, commitAt, where: where || "—" });
 }
 
 // A move mapped to a line with no length has no wind-up at all: it would fire
@@ -103,10 +104,12 @@ for (const [charKey, moves] of Object.entries(MOVE_CALL)) {
 }
 
 rows.sort((a, b) => a.key.localeCompare(b.key));
-console.log(`${rows.length} spoken lines · fires ${SPOKEN_TIMING.fraction * 100}% in, clamped to ` +
-            `${SPOKEN_TIMING.min}–${SPOKEN_TIMING.max}s\n`);
+console.log(`${rows.length} spoken lines · fires ${SPOKEN_TIMING.fraction * 100}% in (clamped to ` +
+            `${SPOKEN_TIMING.min}–${SPOKEN_TIMING.max}s) · interruptible for the first ` +
+            `${SPOKEN_TIMING.commit * 100}% of the line\n`);
 for (const r of rows) {
-  console.log(`  ${r.key.padEnd(24)} ${r.declared.toFixed(2)}s  move at ${r.lead.toFixed(2)}s   ${r.where}`);
+  console.log(`  ${r.key.padEnd(24)} ${r.declared.toFixed(2)}s  interruptible to ${r.commitAt.toFixed(2)}s  ` +
+              `move at ${r.lead.toFixed(2)}s   ${r.where}`);
 }
 
 if (problems.length) {

@@ -174,10 +174,22 @@ does not stall the match for its whole length).
 
 This is frame data, not decoration.
 
-**Speaking is a commitment, and the sentence is where you answer it.** Every
-spoken move is **interruptible for its whole wind-up**, with no invulnerability
-— including Domain Expansions. Land a hit during the call and the move never
-happens: no barrier, no hitbox, no ultimate.
+**Speaking is a commitment, and the first half of the sentence is where you
+answer it.** A spoken move is interruptible — with no invulnerability, Domain
+Expansions included — but only for the **first 50% of the line**
+(`SPOKEN_TIMING.commit`). Land a hit inside that window and the move never
+happens: no barrier, no hitbox, no ultimate. Land one after it and the move
+goes off anyway; by then it is already underway, and taking it back would read
+as the game reneging on something it had visibly started.
+
+For Gojo's 3.28-second call-out that is a 1.64 s window to punish, against a
+move that lands at 2.20 s. For Inumaki's "Don't Move" it is 0.36 s.
+
+**Being cut off is legible in both channels.** The line **stops mid-word**
+(faded over 60 ms so it does not click), the fighter makes a short winded grunt
+in its place, and a small puff and a `CUT OFF` popup appear at head height. No
+screen shake and no flash — the hit that cut them off is the loud part, and the
+move that didn't happen should not out-shout it.
 
 **An interrupted move costs nothing.** Nothing is spent until the move actually
 goes off:
@@ -197,7 +209,8 @@ Two details follow from that:
 
 - **Once the barrier lands, it cannot be taken back.** The 0.9 s opening pose
   after a domain's call is untouchable and uninterruptible, exactly as it was
-  before this existed. The window you can punish is the *call*, not the domain.
+  before this existed. The window you can punish is the first half of the
+  *call*, not the domain.
 - **A second domain cannot start during the first one's call**, even though the
   barrier is not up yet (`state.domainCasting`). An interrupted cast stops
   blocking the instant it is interrupted — the state remembers the action, not
