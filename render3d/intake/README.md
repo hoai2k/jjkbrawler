@@ -33,6 +33,25 @@ node tools/billboard_intake.mjs apply payload.json --backend 3d
 node tools/billboard_intake.mjs list --backend 3d
 ```
 
+**Close the tears first, before the review.** A generated mesh arrives with
+holes in it — rims where the generator ended the surface rather than guess at
+what the seed boards never showed it, most often under a forearm or behind a
+thigh — and they read in game as slits showing the inside of the body. Every
+delivered model but three had them.
+
+```
+python3 tools/fill_model_holes.py --file render3d/intake/<char>/<char>.glb
+python3 tools/fill_model_holes.py --apply --file render3d/intake/<char>/<char>.glb
+```
+
+It adds triangles across each rim's existing vertices and adds **no vertices**,
+so skin weights, UVs and normals come out byte-identical — an invented vertex
+would need an invented weight, and a wrong weight swims off the body as soon
+as a clip plays. Rims wider than a quarter of the figure's height are left
+alone as hems (a skirt, a coat, a sleeve cuff), so read what it skips.
+`tools/build_model.sh` runs it as a step; a hand-built delivery needs it run
+by hand.
+
 (One intake validator serves both backends — extended, not forked — which is
 the structural answer to spec drift; see plan.md §9.)
 

@@ -16,8 +16,21 @@ render3d/workbench/?edit=pose           the editor — drag joints, watch the ri
 tools/pose_seed.py                      seeds a character from the read reference
 tools/pose_apply.py                     puts an editor export back in the tree
 tools/pose_contact_sheet.py <char>      the sheet, and --check
+tools/pose_rig_sheet.mjs <char>         every pose's RIG beside its drawing
+tools/pose_verify.py <char>             crossed limbs, lopsided pairs, impossible turns
 tools/check_pose_reads.mjs              runs in `npm run check`
 ```
+
+Those four check different things and none of them replaces another.
+`--check` measures every joint to the nearest ink, so it proves the read sits
+on the art. `pose_verify.py` asks whether the *body* those joints describe is
+possible — legs that cross at the shins, a thigh twice its partner, a shoulder
+line wider than the shoulders go — which is what a swapped side actually looks
+like in arithmetic. `pose_rig_sheet.mjs` drives the real editor in a real
+browser and puts each posed rig next to the drawing it came from, which is the
+only one of the four that catches an interpreter bug rather than a read bug,
+and it is how the feet above were caught. And `window.__poseAngles()` in the
+editor gives the same comparison as a number per bone, in degrees.
 
 ## The three things a read has to get right
 
@@ -105,7 +118,8 @@ Two limits worth knowing while you work:
 
   * **The hips do not move.** The preview swings bones; it does not translate
     the root or plant the feet, so a deep lunge reads shallower in 3D than in
-    the art.
+    the art, and the widest stances on the sheet — `ult_a`, `ult_b` — come out
+    narrower than they are drawn.
   * **Anything the eighteen joints cannot say** — a wrist roll, a head turn
     out of plane, a spine twist — belongs to the keyframe bench at
     `?edit=animation`, which poses any bone on any axis.
@@ -154,7 +168,36 @@ mix-up occlusion catches, caught by arithmetic instead of by eye.
 | shoulder line | the spine's TWIST — how far the chest is turned toward the camera |
 | hip line | the pelvis's twist, and both legs and feet come with it |
 
-Four of those rows exist because of what the reads could not previously say.
+### How far a limb reaches, and in what order the bones are aimed
+
+Arms and legs are **solved**, not aimed: the drawing says where the fist and
+the foot are, and the chain folds until they land there. Aiming alone was why
+every low pose stood up — a rig leg is one length, so a knee aimed down and a
+foot aimed down put the foot a whole leg away and the fighter back on his feet
+whatever the drawing said. The read's elbow and knee are used as the direction
+the joint **bends**, never as a position: a drawing's limb lengths are whatever
+the artist drew.
+
+Its **distance** is not used either, and that is the one that took two goes to
+get right. Turning cell percent into rig metres needs a scale, every way of
+picking one is a guess, and the guess fails hardest in the poses that matter —
+this art draws a punching arm longer than the model's arm, so any honest scale
+folds a straight punch up at the chest. What a drawing says *without* a scale
+is how **straight** the limb is: shoulder-to-fist over the arm's own drawn
+length. That fraction belongs to the pose rather than to anyone's proportions,
+it survives foreshortening once depth is in, and the rig extends by the same
+fraction of **its** reach along the direction the drawing points. An arm drawn
+dead straight comes out dead straight, on any character, at any size.
+
+Order matters too. A foot is aimed **after** the leg above it is solved, not
+with the rest of the body: the solve turns the thigh and the shin, and a foot
+aimed before that is simply carried wherever its parents end up. That looked
+harmless and was the single largest error in the whole rig — every one of
+Yuji's forty frames had a foot between 50° and 170° off the drawing, which is
+a foot pointing at the ceiling. Measured the same way afterwards, the worst
+frame on the sheet is 6° and thirty-six of the forty are under 1°.
+
+Four of the rows above exist because of what the reads could not previously say.
 The clavicles are aimed with their reach ACROSS the body preserved and only
 the up/down, fore/aft part turned — aim a clavicle flat into the drawing's
 plane and both shoulders collapse onto the spine, dragging the collar with
@@ -170,7 +213,7 @@ reading. From the shoulder line it is 5° in the idle and 0° in the jab.
 
 | | |
 |---|---|
-| **Read by eye** | `yuji` — all 40 frames, each checked against the art; 11 poses hand-corrected since |
+| **Read by eye** | `yuji` — all 40 frames, each checked against the art, then re-checked against the posed rig; 16 poses hand-corrected since |
 | **Fitted seeds** | every other character, 1237 frames, from `tools/pose_seed.py` |
 
 A seed is Yuji's read of the same-named frame, fitted to this character's own
@@ -185,10 +228,17 @@ that the editor displays and that disappears the moment a human moves a joint.
 
 On the character that has been read properly: in the drawing plane, yes.
 `python3 tools/pose_contact_sheet.py yuji --check` measures every joint to the
-nearest opaque pixel and all 720 land on the art; at overlay the figure tracks
-hip height, knee bend, stance width and reach closely enough to build a clip
-from. Out of plane, no — which limb is nearer, and how far a fist travels
+nearest opaque pixel and 719 of 720 land on the art; at overlay the figure
+tracks hip height, knee bend, stance width and reach closely enough to build a
+clip from. Out of plane, no — which limb is nearer, and how far a fist travels
 toward camera, is inference from overlap and shading, and needs a human.
+
+The read being accurate and the **rig** being accurate are separate questions,
+and asking the second one is what `pose_rig_sheet.mjs` is for. Yuji's reads
+were passing every flat check at a point when the interpreter was still
+pointing his feet at the ceiling on all forty frames and folding his punches up
+at the chest — neither of which a joint-on-the-ink test can see, and both of
+which are obvious the moment the rig is drawn beside the drawing.
 
 The failure mode is not a wrong limb but a *plausible* one: a fist placed on
 the sleeve instead of the fist, an elbow slid along a forearm. Those survive

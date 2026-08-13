@@ -22,9 +22,19 @@ canvas, which twelve of the first twenty did.
 assets/intake/<character>/<pose_key>.png     e.g. assets/intake/yuji/idle_a.png
 assets/intake/effects/<name>.png             e.g. assets/intake/effects/sedan.png
 assets/intake/summons/<name>.png
+assets/intake/garnish/<name>.png
 assets/intake/cards/<key>_card.jpg
 assets/intake/cards/simple/<key>_tile.jpg
 ```
+
+**Garnish cards are sprites, not backgrounds**, despite belonging to the 3D
+camera: keyed screen, one subject, margin all round, at least 1000 px on the
+long edge. They land at `assets/sprites/garnish/<name>.png` and
+[src/camera3d/garnish.js](../../src/camera3d/garnish.js) draws them between the
+lens and the fight in place of its procedural stand-in, one file at a time — a
+card with no delivery keeps the drawing it has. Round 18F delivered all
+fourteen, so anything arriving now is a redraw or a new element, and a new
+element also needs a spawner in `garnish.js` the way `signal_gantry` did.
 
 **Cards take the short path.** Neither kind is keyed, trimmed, measured or
 registered in the manifest, so landing one is a move into `assets/cards/` (hero
@@ -80,10 +90,10 @@ that way, so this is the normal case, not a mistake.
 1. `tools/intake.py` keys the background, straightens facing, and measures body
    height / clipping / fringe / holes → `assets/intake/_processed/` (gitignored).
    Straightening facing is a **character** rule: fighters are drawn facing right,
-   so art delivered facing left is flipped. `assets/intake/effects/` is exempt
-   (`NO_MIRROR_DIRS`) — travelling effects are drawn pointing LEFT because the
-   projectile renderer mirrors them when they fly right, and the rest have no
-   facing at all.
+   so art delivered facing left is flipped. `assets/intake/effects/` and
+   `assets/intake/garnish/` are exempt (`NO_MIRROR_DIRS`) — anything that
+   travels sideways in those two is drawn pointing LEFT because its renderer
+   mirrors it when it flies right, and the rest have no facing at all.
 2. `tools/intake_sheets.py` renders before/after boards for approval. **Look at
    them before importing.** They are the only step that catches what no
    measurement will: round 15A's four-figures-on-one-plate run frame and its

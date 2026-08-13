@@ -212,6 +212,23 @@ list of measurements rather than a list of opinions — every one of these five
 shipped through a facing review, a size review and a stance pass with nobody
 noticing.
 
+**The tears are already closed, and they were not a regeneration problem.**
+Every delivered model but three arrived with holes in its surface — rims where
+the generator ended the mesh instead of guessing at what it could not see from
+the boards, most often where a forearm rests against the ribs or one thigh
+hides behind the other. They read in game as slits that show the inside of the
+body, and the toon pass makes them worse rather than better because the
+interior faces light from the wrong side. `python3 tools/fill_model_holes.py`
+reports them and `--apply` closes them: 120 tears across 24 rigs, closed by
+adding triangles across the vertices already on each rim. **It adds no
+vertices**, which is the point — a vertex it invented would need invented skin
+weights, and a wrong weight is a vertex that swims off the body the moment a
+clip plays, which is a worse fault than the hole and one that only shows up in
+motion. Attribute buffers come out byte-identical. Rims wider than 26% of the
+figure's height are left alone as hems: Momo's skirt and her broom bristles are
+open surfaces on purpose, and a cap there is a lid. Re-run it after any
+regeneration — a new delivery arrives torn.
+
 **THE WEAPON IS A SEPARATE GENERATION.** Four of the five carry one, and a
 weapon drawn in a hand is a weapon the generator fuses into the hand. So each
 of them is two generations — the fighter empty-handed, the weapon alone — and

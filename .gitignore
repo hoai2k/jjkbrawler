@@ -14,6 +14,10 @@ node_modules/
 package-lock.json
 _shots/
 
+# Generated pose rig sheets (tools/pose_rig_sheet.mjs) and scratch output.
+debug/
+tmp/
+
 # The model smokes BUILD their test rig and delete it again (smoke_render3d.mjs
 # and smoke_billboard.mjs, TEST_CHAR = "__smoketest"): it is generated from
 # tools/billboard_test_rig.mjs on every run, imported through the real intake,
