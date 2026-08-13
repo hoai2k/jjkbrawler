@@ -327,7 +327,7 @@ refused board. The old plates stay at `assets/reference/round21/di1_cropped/`
 for comparison.
 
 **Deliverable: 1 board per fighter listed above.** The model round that
-consumes them is [D6](asset-requests.md#round-d6--regeneration-the-workbench-catches-open).
+consumes them is [D6](asset-requests.md#round-d6--regeneration-the-workbench-catches-delivered).
 
 ---
 

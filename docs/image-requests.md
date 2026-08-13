@@ -271,8 +271,16 @@ is not its own says so silently, which is how seven of them stayed invisible
 until round 18G. Neither can see a pose that was never drawn — that is what
 the rounds above are for.
 
-**Nothing outstanding.** No pose carries a replacement flag, and no pose is
-drawing a file that is not its own.
+**6 flagged, 0 drawing somebody else's art.**
+
+| Fighter | Pose | Why |
+|---|---|---|
+| choso | `attack_light_b` | quality |
+| dagon | `attack_light_a` | pose |
+| dagon | `crouch_attack_b` | pose |
+| dagon | `crouch_b` | pose |
+| dagon | `run_reach_a` | pose |
+| dagon | `run_reach_b` | pose |
 
 Separately, **2 improvement requests** — the art works and is just
 not as good as it should be. Nothing is blocked by one, and the standing

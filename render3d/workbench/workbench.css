@@ -309,12 +309,39 @@ p.hint .dot {
 /* A fighter whose numbers were touched this session, at a glance. */
 #facingOverlay.decided #facingName::after { content: " ✎"; color: #d3c69f; }
 
+/* The dial picker is a PHONE control: on the desk all four dials fit and
+   choosing between them would be a click in the way of nothing. */
+.dial-pick { display: none; }
+
 @media (max-width: 900px) {
   .facing-dial .dial-label { min-width: 44px; font-size: 12px; }
-  .facing-dial button { min-width: 40px; padding: 11px 6px; }
   .facing-dial .mono { min-width: 50px; font-size: 13px; }
-  .facing-actions button { padding: 14px 4px; font-size: 13px; }
   #facingOverlay footer .hint { display: none; }
+
+  /* HALF-HEIGHT BUTTONS AND ONE DIAL. Both give their pixels to the canvas,
+     which is the only thing on this screen anyone is actually looking at.
+     The buttons stay full WIDTH — a short wide target is still an easy one,
+     and shrinking both axes is how a control becomes a miss. */
+  .facing-dial button { min-width: 40px; padding: 6px; }
+  .facing-actions button { padding: 7px 4px; font-size: 13px; }
+  /* HALVING THE PADDING IS NOT HALVING THE BUTTON. Five buttons across a
+     390 px screen is 62 px each, and "Download JSON" wraps to three lines
+     there — the height was the TEXT, not the box, and trimming the padding
+     took 87 px down to 73. The short label is what actually halves it. */
+  .facing-actions button[data-short] { font-size: 0; white-space: nowrap; }
+  .facing-actions button[data-short]::after { content: attr(data-short); font-size: 13px; }
+
+  .dial-pick {
+    display: block; width: 100%;
+    padding: 7px 8px; font-size: 13px;
+    background: #1a2138; border: 1px solid #2c3654; border-radius: 8px;
+    color: #cfe0ff;
+  }
+  #facingDials .facing-dial { display: none; }
+  #facingDials .facing-dial.active { display: flex; }
+  /* The picker IS the label now — keeping the word beside it says the same
+     thing twice and takes the room the slider wants. */
+  #facingDials .facing-dial .dial-label { display: none; }
 }
 
 /* Boot failures, said out loud. See the note in index.html: a dead module
