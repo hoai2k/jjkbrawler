@@ -184,7 +184,47 @@ per-fighter art:
 **Deliverable: 1 shared highlight texture now; mouth sheets ride whichever
 D-round their fighter ships in.**
 
-## Round DI5 — regeneration seeds *(the boards that produced broken models)*
+## Round DI5 — regeneration seeds *(delivered — read the verdict before generating)*
+
+**All nine landed and all nine pass**: five turnaround boards (`gakuganji`,
+`maki`, `meimei`, `momo`, `uro`) and four weapon plates (everyone but Uro, who
+carries none). The edge check refused nothing and warned about nothing — the
+crowns, the hat tips and the feet are all inside the canvas with margin, which
+is the fault that produced Mei Mei's horns.
+
+Checked by eye against every rule below:
+
+| | Verdict |
+|---|---|
+| Crown and feet in frame | **yes**, all five, with margin — Momo's hat tips included |
+| Weapons out of the boards | **yes** — all four are drawn empty-handed |
+| Weapon plates | **yes** — broom, polearm, axe, guitar, four views each, alone on white |
+| Daylight between the legs | **yes** on Maki and Uro; Momo and Mei Mei stand closer but keep a gap; Gakuganji's legs are inside hakama at any pose |
+| Hanging hair drawn along its length | **yes** — Mei Mei's braid reads as its own shape in the side and back views, which is what the chain extraction needs |
+
+**Two notes to weigh before spending credits, neither a blocker:**
+
+1. **Arms hang at the sides rather than in an A-pose.** DI1 asks for them
+   slightly away from the body and these are closer than that — wrists near
+   the hips on Maki, Momo and Mei Mei. The roster's existing models were
+   generated from boards drawn the same way and their arms measure fine
+   (0.80–0.99 balance for twenty of them), so this is a known-survivable
+   deviation rather than a repeat of the fusion fault. It is also the most
+   likely explanation for the three fighters that measure 0.55–0.71.
+
+2. **Hands are relaxed-open, not curled.** The hand is a single bone and
+   cannot close later, so a weapon joined to a flat palm reads as passing
+   through it. Mei Mei's axe and Maki's polearm are the ones this shows on.
+   Worth a redraw of the hands ONLY if the joined result looks wrong — which
+   is now a thing that can be checked in an afternoon rather than guessed at,
+   because the join is arithmetic.
+
+**Uro's crown flag was partly the metric's fault.** Her board makes it plain
+that the hair standing 29% of her stature above her head is her design, not
+generated damage. Her legs at 55% of a normal leg still stand, and so does the
+scale the Idle Review kept fighting.
+
+## The brief they were drawn from
 
 Some delivered models are wrong in ways nothing downstream can fix, because
 what is wrong with them is missing or invented GEOMETRY. Mei Mei has horns.

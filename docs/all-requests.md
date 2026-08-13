@@ -58,7 +58,7 @@ fighter without a delivered rig.
 | 0 | [**image-requests.md — every open image request**](image-requests.md) | 🖼️ **Images** | **9 outstanding.** Generated; supersedes rows 1–3 and DI4 below, which are where those rounds are AUTHORED | — |
 | 1 | [2D art — round 20](asset-requests.md) *(authoring source)* | 🖼️ **Images** (sprites, backdrops) | 4 open — 20E (Yuji's four); 20A, 20B, 20C and 20D delivered | — |
 | 2 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) *(authoring source)* | 🖼️ **Images** (reference) | **delivered** — all 20 | — |
-| 2b | [3D images — DI5: regeneration seeds](../render3d/docs/image-requests.md#round-di5--regeneration-seeds-the-boards-that-produced-broken-models) *(authoring source)* | 🖼️ **Images** (reference) | 5 open — reseeds for models that came back broken | — |
+| 2b | [3D images — DI5: regeneration seeds](../render3d/docs/image-requests.md#round-di5--regeneration-seeds-delivered--read-the-verdict-before-generating) *(authoring source)* | 🖼️ **Images** (reference) | 5 open — reseeds for models that came back broken | — |
 | 3 | [3D images — DI2/DI3: face sheets, shade palettes](../render3d/docs/image-requests.md#round-di2--face-sheets-the-face-first-gates-reference) *(authoring source)* | 🖼️ **Images** (reference) | **delivered** — all 28, both rounds | — |
 | 4 | [3D models — B1/D1: the Yuji pilot](../render3d/docs/asset-requests.md#round-d1--the-pilot-yuji-complete-open--draw-against-this) | 🧊 **3D model + clips** | open | DI1–DI3 for Yuji |
 | 5 | [3D models — D2: library + archetypes](../render3d/docs/asset-requests.md#round-d2--the-shared-library-and-the-archetype-sets) | 🧊 **Animation clips** | open | D1 review |

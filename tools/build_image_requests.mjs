@@ -40,6 +40,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
+// Which fighters carry a weapon, so DI5 knows who owes a second plate. Read
+// from the engine's own table rather than listed again here.
+import { CHARACTER_PROPS } from "../render3d/src/props.js";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(ROOT, "docs/image-requests.md");
@@ -207,7 +210,10 @@ const PER_FIGHTER = {
     // hand-listed five, so the doc still builds on a machine without Blender.
     pending: () => {
       const named = health().length ? health() : ["momo", "meimei", "maki", "gakuganji", "uro"];
-      return named.filter((k) => !has(`render3d/docs/reference/${k}_turnaround_v2.png`));
+      // Owed the board, and — for a fighter who carries one — the weapon plate
+      // beside it. Uro has no weapon, so she owes one file and not two.
+      return named.filter((k) => !has(`render3d/docs/reference/${k}_turnaround.png`)
+        || ((CHARACTER_PROPS[k] || []).length && !has(`render3d/docs/reference/${k}_prop.png`)));
     },
   },
 };

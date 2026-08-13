@@ -338,9 +338,12 @@ single addition: **no drawn shadow of any kind** — the game casts its own.
 
 ---
 
-# Round 20 — open
+# Round 20 — delivered
 
-**One request left of the four, and it is four sprites for one fighter.**
+**All four requests are in.** The last of them was Yuji's own four poses, which
+landed as [20E](#20e-yujis-four-round-20-poses--4-sprites) and are in the game:
+his grab now reads as a grab and his dash attack as a lunge, like everybody
+else's. Nothing in round 20 is outstanding.
 
 - **~~44 of the 114 summon plates hold six creatures instead of one~~** —
   delivered. All forty-four came back as one figure each,
@@ -356,10 +359,13 @@ single addition: **no drawn shadow of any kind** — the game casts its own.
   fighters of 27 each, plus Mahoraga. Both are in the game: every one is a new
   pose key, so nothing was replaced and nothing waited for an approval. A grab
   now reads as a grab and a dash attack as a lunge, on everybody except Yuji.
-- **Yuji's four** — [20E](#20e-yujis-four-round-20-poses--4-sprites). 20C and
-  20D each asked for 27, one per fighter, and each arrived as 27 files with
-  Mahoraga in Yuji's place. Nothing is blocked by it: Yuji keeps the fallbacks
-  the whole roster had before the round.
+- **~~Yuji's four~~** — [20E](#20e-yujis-four-round-20-poses--4-sprites),
+  delivered. 20C and 20D each asked for 27, one per fighter, and each arrived
+  as 27 files with Mahoraga in Yuji's place; this was the correction, and it
+  came back as the four missing drawings. Imported, anchored, and seeded a
+  pose read each — the seeder had to learn that the REFERENCE character can
+  gain frames too, since it was skipping him wholesale and he was then the one
+  fighter with unread art.
 
 Round 18 is closed and everything in it landed.
 
@@ -407,6 +413,11 @@ Four things, and none of them is a drawing anybody owes us:
 ---
 
 ## 20E. Yuji's four Round 20 poses — 4 sprites
+
+**Delivered.** All four landed, keyed and measured through `tools/intake.py`,
+imported with `tools/intake_import.py`, anchored, and given a seeded pose read
+apiece — those four are marked `seed`, not `source`, so the joint-reads bench
+knows they are a starting point rather than a read of the art.
 
 **The remainder of 20C and 20D, and the whole of it is one fighter.** Both
 rounds asked for one file per fighter, both arrived as twenty-seven files, and

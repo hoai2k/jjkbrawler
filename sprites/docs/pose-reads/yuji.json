@@ -1,8 +1,9 @@
 {
   "character": "yuji",
   "facing": "right",
-  "_about": "Sixteen joints per frame, read by eye from the art as the ENGINE draws it (frames the manifest marks faceLeft are mirrored first). Percentages of the frame's own square cell: long side fills the square, centred, x rightwards, y downwards. Sides are the CHARACTER's own \u2014 facing right, the RIGHT limb is the near one.",
-  "_joints": ["head", "neck", "chest", "pelvis", "shoulderL", "elbowL", "handL", "shoulderR", "elbowR", "handR", "hipL", "kneeL", "footL", "hipR", "kneeR", "footR"],
+  "_about": "Poses marked `seed` were fitted from the hand-read yuji sheet, not read from this art: a starting point for the pose editor (render3d/workbench/?edit=pose), not a statement about how yuji is drawn. A pose carrying `source` has been through the editor and is a read.",
+  "_joints": ["head", "neck", "chest", "pelvis", "shoulderL", "elbowL", "handL", "shoulderR", "elbowR", "handR", "hipL", "kneeL", "footL", "toeL", "hipR", "kneeR", "footR", "toeR"],
+  "_seed": "tools/pose_seed.py, from yuji",
   "poses": {
     "attack_air": {
       "read": "Air punch. Body on a diagonal, lead arm fully extended forward at head height, off fist tucked at the chest, both legs trailing behind and below \u2014 the whole figure a single forward-leaning line.",
@@ -30,6 +31,14 @@
              "elbowR": [22.6, 29.5, 1.4], "handR": [16, 43.7, 1.4], "hipL": [46, 46.5, 0.6], "kneeL": [57, 43.8, 3.3],
              "footL": [78.7, 46.8, 6.8], "toeL": [80.5, 41.6, 7.1], "hipR": [35.9, 49.8, 0.2], "kneeR": [30.4, 62.1, 0.2],
              "footR": [20.3, 76.2, 0.2], "toeR": [22.2, 81.5, 1.9]}
+    },
+    "attack_dash": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [55, 12.8], "neck": [48, 16.4], "chest": [48, 22], "pelvis": [44.4, 47],
+             "shoulderL": [58.6, 20.1], "elbowL": [65.7, 33.1], "handL": [63.3, 56.9], "shoulderR": [37.3, 20.1],
+             "elbowR": [26.9, 30], "handR": [20.4, 38.9], "hipL": [55.1, 47], "kneeL": [30.2, 66.4],
+             "footL": [16.7, 78], "toeL": [59.7, 89.1], "hipR": [33.8, 47], "kneeR": [58.6, 66.4],
+             "footR": [57.7, 92.7], "toeR": [56.9, 69.1]}
     },
     "attack_down": {
       "read": "Downward ground smash \u2014 near fist driven straight into the floor with debris, torso folded down over it, far arm cocked back at chest height, legs in a wide low split.",
@@ -191,6 +200,30 @@
              "elbowR": [40, 25], "handR": [24, 31], "hipL": [60, 45], "kneeL": [60, 68],
              "footL": [73, 90], "toeL": [76.4, 88], "hipR": [54, 45], "kneeR": [70, 55],
              "footR": [72, 60], "toeR": [72.6, 59.2]}
+    },
+    "grab_hold": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.7, 7], "neck": [48.3, 14], "chest": [48.3, 20], "pelvis": [45.9, 47],
+             "shoulderL": [55.6, 18], "elbowL": [60.5, 21.5], "handL": [49.7, 54.8], "shoulderR": [41, 18],
+             "elbowR": [35.4, 32.3], "handR": [32, 44.5], "hipL": [50.2, 47.7], "kneeL": [36.1, 68],
+             "footL": [20.4, 92], "toeL": [56.3, 92.6], "hipR": [38.6, 47], "kneeR": [55.6, 68],
+             "footR": [62.9, 90], "toeR": [66.9, 94.4]}
+    },
+    "grab_reach": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [51.3, 7], "neck": [48.2, 14], "chest": [48.2, 20], "pelvis": [45.2, 47],
+             "shoulderL": [57.4, 18], "elbowL": [64.9, 24.3], "handL": [63, 51.3], "shoulderR": [39.1, 18],
+             "elbowR": [32, 32.3], "handR": [36.5, 47.3], "hipL": [54.3, 47], "kneeL": [33, 68],
+             "footL": [21.5, 80.8], "toeL": [62.8, 84.8], "hipR": [36, 47], "kneeR": [66.6, 68],
+             "footR": [66.5, 87.2], "toeR": [76.3, 88.1]}
+    },
+    "grabbed": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [44.9, 8.4], "neck": [48.5, 14], "chest": [48.5, 20], "pelvis": [46.4, 47],
+             "shoulderL": [54.6, 18], "elbowL": [58.7, 32], "handL": [60.7, 45], "shoulderR": [42.4, 18],
+             "elbowR": [37.7, 32.3], "handR": [49.8, 44.5], "hipL": [52.6, 47], "kneeL": [38.3, 68],
+             "footL": [28.3, 87.1], "toeL": [59.1, 90.4], "hipR": [47.6, 46.3], "kneeR": [51.7, 67.3],
+             "footR": [60.7, 90], "toeR": [68.8, 89.5]}
     },
     "guard": {
       "read": "Boxing guard. Both fists up at cheek height in front of the face, elbows tucked in, torso pitched forward over a long stance, rear leg trailing well back and straight, front knee soft.",

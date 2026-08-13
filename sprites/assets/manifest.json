@@ -30431,6 +30431,118 @@
      "renderScale": 0.206,
      "bodyBottom": 263.0
     }
+   },
+   "attack_dash": {
+    "w": 1062,
+    "h": 980,
+    "ox": -374.2,
+    "oy": -669,
+    "bodyBottom": 310.4,
+    "bodyH": 189.0,
+    "centroidX": 142.3,
+    "renderScale": 0.193,
+    "file": "yuji/attack_dash.png",
+    "replaced": {
+     "at": "2026-08-13T02:17:41+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1062,
+    "coreLeft": 53.1,
+    "coreRight": 949.2,
+    "anchors": {
+     "com": [
+      517.1,
+      391.0
+     ]
+    }
+   },
+   "grab_hold": {
+    "w": 954,
+    "h": 1392,
+    "ox": -320.2,
+    "oy": -1081,
+    "bodyBottom": 310.4,
+    "bodyH": 268.5,
+    "centroidX": 64.7,
+    "renderScale": 0.193,
+    "file": "yuji/grab_hold.png",
+    "replaced": {
+     "at": "2026-08-13T02:17:41+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 954,
+    "coreLeft": 69.6,
+    "coreRight": 817.8,
+    "anchors": {
+     "com": [
+      386.8,
+      554.0
+     ]
+    }
+   },
+   "grab_reach": {
+    "w": 984,
+    "h": 1145,
+    "ox": -335.2,
+    "oy": -834,
+    "bodyBottom": 310.4,
+    "bodyH": 220.9,
+    "centroidX": 152.8,
+    "renderScale": 0.193,
+    "file": "yuji/grab_reach.png",
+    "replaced": {
+     "at": "2026-08-13T02:17:41+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 984,
+    "coreLeft": 64.4,
+    "coreRight": 873.1,
+    "anchors": {
+     "com": [
+      490.3,
+      455.9
+     ]
+    }
+   },
+   "grabbed": {
+    "w": 775,
+    "h": 1345,
+    "ox": -230.8,
+    "oy": -1034,
+    "bodyBottom": 310.4,
+    "bodyH": 259.5,
+    "centroidX": 177.8,
+    "renderScale": 0.193,
+    "file": "yuji/grabbed.png",
+    "replaced": {
+     "at": "2026-08-13T02:17:41+00:00",
+     "kept": "new",
+     "how": "new",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 775,
+    "coreLeft": 58.8,
+    "coreRight": 714.5,
+    "anchors": {
+     "com": [
+      408.2,
+      585.0
+     ]
+    }
    }
   },
   "reggie": {

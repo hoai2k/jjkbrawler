@@ -186,7 +186,7 @@ and her chain bones reset to identity; Momo's missing leg is missing mesh, and
 the broom standing in its place carries 4201 of skin weight. The only fix is a
 new model from a better seed.
 
-**The seed is [DI5](image-requests.md#round-di5--regeneration-seeds-the-boards-that-produced-broken-models)**,
+**The seed is [DI5](image-requests.md#round-di5--regeneration-seeds-delivered--read-the-verdict-before-generating)**,
 which reopens the turnaround board for exactly these fighters and states the
 four rules their old boards broke. Do not regenerate from the boards on file:
 they are the cause.
