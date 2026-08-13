@@ -12,10 +12,10 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**24 images outstanding.**
+**9 images outstanding.**
 
-- **The sprite game** — 24 images, round 20
-- **The live-3D anime path** — 0 images
+- **The sprite game** — 4 images, round 20
+- **The live-3D anime path** — 5 images
 
 ## Rules that hold everywhere here
 
@@ -45,161 +45,10 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**24 images, round 20.** Authored in
+**4 images, round 20.** Authored in
 [docs/asset-requests.md](asset-requests.md) and reproduced whole below.
 
-- **20B** — Twenty backgrounds, re-extended from the paintings they replaced (20 images)
 - **20E** — Yuji's four Round 20 poses (4 sprites)
-
-## 20B. Twenty backgrounds, re-extended from the paintings they replaced — 20 images
-
-**This is a re-request of 18E against a different input: the old painting
-itself.** 18E asked for twenty boards repainted at 3200×1800 and got exactly
-that — the resolution problem it was written to fix is fixed, and nothing here
-is a complaint about sharpness. What it did not ask for, and so did not get, is
-*the same picture*. Each plate was drawn fresh from the board's brief, so twenty
-scenes were re-invented at the same time as they were enlarged, and the result
-against the 3D camera's crop reads **sparser and darker than the paintings it
-replaced** — more empty middle distance, less of the lit, busy, close detail the
-old boards put right behind the fighters.
-
-So: keep the resolution win, take the composition back. **Extend each previous
-painting outward instead of replacing it.**
-
-### The previous paintings are the input
-
-They are in the repo, at **`assets/backgrounds/flat/`** — moved there from
-`assets/reference/backgrounds_previous/` when this request was written, because
-they are runtime art again: the flat camera now draws them (`backgroundFile()`
-in `src/stages.js`), which is the half of this that needed no art at all. Flat
-mode shows a whole plate, so pointing it back at the paintings composed for a
-whole plate fixed flat mode the same afternoon. 3d mode is what this request is
-for.
-
-**The input image is the brief.** There is no scene description below and there
-should not be one — the board being asked for is the board that is already
-there, and any wording paraphrasing it is a chance to drift. Open the file.
-
-### The one rule
-
-> **Keep the source painting as the picture. Extend the scene outward by 30% on
-> each of the four sides — same place, same moment, more of it — and deliver the
-> whole thing at 3200×1800 or larger, exactly 16:9.**
-
-30% on each side is **1.6× linear**, so the source painting ends up as the
-**centre 62.5%** of the delivered plate, in both dimensions:
-
-| delivered plate | the source painting occupies | new ring |
-|---|---|---|
-| 3200×1800 (minimum) | centre **2000×1125** | 600 px left/right, 337 px top/bottom |
-| 4096×2304 (preferred) | centre **2560×1440** | 768 px left/right, 432 px top/bottom |
-
-**Why 30% and not more.** The 3D camera over-fills its frustum on purpose
-(×1.5 height, ×1.35 width — `src/camera3d/stage_geo.js`), so only the centre
-**49.4%** of a plate's width is ever on screen. Against a 1.6× extension that
-visible crop is **79% of the source painting**, centred — so what a player sees
-in 3d becomes the old board, very slightly cropped, instead of a different
-painting. The ring is not scenery anybody is meant to look at: it exists so no
-dolly, yaw or roll can swing past the edge. Extending further would push the old
-composition back out of frame, which is the fault being fixed.
-
-The 3D crop of a 3200×1800 delivery is 1581 source pixels across 1280 CSS
-pixels — still a downscale, so 18E's sharpness holds. 4096×2304 gives 2023 and
-is comfortable at DPR 2, which is why it is preferred.
-
-### What the ring may contain
-
-- **More of the same scene, continued.** Same architecture, materials, weather,
-  time of day, light direction and colour temperature; the same painterly style
-  and line weight. A wall keeps going, a street keeps receding, a canopy of
-  branches keeps spreading.
-- **Nothing that reads as a second picture.** No new focal subject, no character,
-  no creature, no large new light source, no text, watermark, border or vignette.
-  If the ring is interesting enough to look at on its own, it is wrong.
-- **Nothing painted at foreground depth in the centre 49.4%.** That is 18E's
-  standing rule and it still holds: the near field belongs to the garnish layer
-  (`src/camera3d/garnish.js`), which draws cards in front of the backdrop and
-  will overlap anything painted there. Where a source painting already has a
-  foreground element in its centre, **leave it** — it is the board players know,
-  and the garnish placement is checked per board after delivery.
-
-### Do not re-light the middle
-
-The other half of what feels wrong is exposure. Match the source plate's
-**brightness, contrast and palette exactly** where the ring meets it, and do not
-take the opportunity to grade the centre — no darkening, no desaturating, no
-"cinematic" cool cast. Note that the renderer already lays a 30% black wash and
-the stage's tint over the plate before a player sees it
-(`drawBackdrop()` in `src/render.js`), so a plate that looks a little bright and
-a little saturated on its own is the one that lands correctly in the game.
-
-Resampling the centre is unavoidable — a 1600×900 source becomes 2000×1125 at
-the minimum delivery size — so upscale it cleanly and keep its detail. **Do not
-repaint it.**
-
-### The twenty, and what to open
-
-Filenames are the ones `src/stages.js` registers, so nineteen boards need no
-code change and Shibuya Night needs none either as long as it is delivered as
-`.jpg` (the source is the older `.webp`; the live plate is already `.jpg`).
-
-| Board | Stage key | Source file (under `assets/backgrounds/flat/`) | Source size | Region to extend |
-|---|---|---|---|---|
-| Training Bridge | `trainingBridge` | `training_bridge.jpg` | 1920×1080 | whole image |
-| Quiet Hall | `quietHall` | `quiet_hall.jpg` | 1920×1080 | whole image |
-| Flooded Gate | `floodedGate` | `flooded_gate.jpg` | 800×437 | centre **777×437** ⚠ |
-| Shibuya Night | `shibuyaNight` | `shibuya_night.webp` | 1200×675 | whole image |
-| Curse Maw | `curseMaw` | `curse_maw.jpg` | 1920×1640 | centre **1920×1080** ⚠ |
-| Garden Steps | `gardenSteps` | `garden_steps.jpg` | 1600×900 | whole image |
-| Lantern Corridor | `lanternCorridor` | `lantern_corridor.jpg` | 1600×900 | whole image |
-| Sunken Crossing | `sunkenCrossing` | `sunken_crossing.jpg` | 1600×900 | whole image |
-| Neon Split | `neonSplit` | `neon_split.jpg` | 1600×900 | whole image |
-| Bone Sanctum | `boneSanctum` | `bone_sanctum.jpg` | 1600×900 | whole image |
-| Bridge Duel | `bridgeDuel` | `bridge_duel.jpg` | 1600×900 | whole image |
-| Academy Hall | `academyHall` | `academy_hall.jpg` | 1600×900 | whole image |
-| Mist Pier | `mistPier` | `mist_pier.jpg` | 1600×900 | whole image |
-| Crosswalk Rush | `crosswalkRush` | `crosswalk_rush.jpg` | 1600×900 | whole image |
-| Cursed Teeth | `cursedTeeth` | `cursed_teeth.jpg` | 1600×900 | whole image |
-| River Gate | `riverGate` | `river_gate.jpg` | 1600×900 | whole image |
-| School Wing | `schoolWing` | `school_wing.jpg` | 1600×900 | whole image |
-| Empty City | `emptyCity` | `empty_city.jpg` | 1600×900 | whole image |
-| Billboard Roof | `billboardRoof` | `billboard_roof.jpg` | 1600×900 | whole image |
-| Domain Core | `domainCore` | `domain_core.jpg` | 1600×900 | whole image |
-
-**The two ⚠ rows are the boards whose source is not 16:9.** Take the centred
-16:9 region first — that is what the game has always shown of them, since
-`drawBackdrop()` cover-fits — and extend *that*, so the delivery is 16:9
-throughout and nothing the player knows is cropped by the change.
-
-**Flooded Gate is the hard one.** Its source is 800×437, so the centre of a
-3200×1800 delivery is a 2.6× upscale of a small, soft image and clean
-resampling will not carry it. This is the one board where **re-detailing inside
-the kept composition is expected**: same gate, same water, same framing, same
-palette and light, painted at the delivered resolution. It is also the board
-where a 4096×2304 delivery buys the least, so 3200×1800 is fine for it.
-
-### Delivery
-
-`assets/intake/backgrounds/<file>.jpg` — JPEG, high quality, the filenames in
-the table above (Shibuya Night as `shibuya_night.jpg`). No alpha, no key screen:
-a background is a finished picture, not a subject on a field, and it takes the
-short path through intake — no keying, no measuring, no manifest entry (see
-[assets/intake/README.md](../assets/intake/README.md)).
-
-**On landing, archive the plate being replaced** into
-`assets/reference/backgrounds_18e/`, the same way 18E archived what it replaced.
-`assets/backgrounds/flat/` is **not** an archive and must not be touched: the
-flat camera draws those twenty files every match.
-
-Checked on delivery, per plate:
-
-1. exactly 16:9, at least 3200×1800;
-2. the centre 62.5% is the source painting — not a redraw of it — at matching
-   brightness and palette;
-3. the centre 49.4% stands as a finished picture, which follows from (2);
-4. no text, border, watermark or signature anywhere, ring included.
-
----
 
 ## 20E. Yuji's four Round 20 poses — 4 sprites
 
@@ -248,13 +97,14 @@ GENERATED from, and textures the anime pass reads at runtime. They serve
 `?render=billboard` too, which reads the same rigs. These are NOT keyed
 plates — each round states its own delivery.
 
-**0 images.** Authored in
+**5 images.** Authored in
 [render3d/docs/image-requests.md](../render3d/docs/image-requests.md) and reproduced whole below.
 
 - **DI1** — model-generation turnaround boards (the Tripo inputs) (0 images)
 - **DI2** — face sheets (the face-first gate's reference) (0 images)
 - **DI3** — shade palette swatches (0 images)
 - **DI4** — shared face textures (0 images)
+- **DI5** — regeneration seeds (5 images)
 
 ## Round DI1 — model-generation turnaround boards (the Tripo inputs)
 
@@ -351,13 +201,130 @@ per-fighter art:
 **Deliverable: 1 shared highlight texture now; mouth sheets ride whichever
 D-round their fighter ships in.**
 
----
-
 ### DI4: who is still owed one — 0 of 28
 
 The shared eye-highlight texture is delivered; these are the optional per-fighter mouth sheets. Nothing ships blocked on one.
 
 **Nothing outstanding.** Every fighter has one.
+
+## Round DI5 — regeneration seeds *(the boards that produced broken models)*
+
+Some delivered models are wrong in ways nothing downstream can fix, because
+what is wrong with them is missing or invented GEOMETRY. Mei Mei has horns.
+Momo has one leg and a broom where the other should be. Both survived a facing
+review, a size review and a stance pass before anybody said so out loud, which
+is its own lesson.
+
+**Both faults trace to their seed board**, and both boards are on DI1's refused
+list — they were used anyway, because rigs for the whole roster landed while
+the refusal was being sorted out and DI1 was closed as "overtaken, not
+completed". This is that round reopening, for the fighters it actually cost.
+
+### What went wrong, measured
+
+`blender -b -P tools/audit_model_health.py` weighs the mesh bound to each limb
+against the roster's own median and reports what cannot be true of a body. It
+is the acceptance gate for this round's models as well as the evidence for it;
+the full table is at [reference/model-health.json](../render3d/docs/reference/model-health.json).
+
+| Fighter | What the model does | What the mesh says |
+|---|---|---|
+| `momo` | one leg, a broom standing in its place, broom in fragments | one leg is **51%** of a normal leg and the other **181%**; the prop carries 4201 of weight — the broom is fused into the body |
+| `meimei` | two horns rising from the crown | **5.8% of her stature** sits above her head, and it is mesh: it is still there with the hair chain removed and the chain bones reset |
+| `maki` | polearm merged into the forearm | one arm is **167%** of a normal arm, and 8% of stature sits above the head |
+| `gakuganji` | guitar merged into the arm | one arm is **158%** of normal |
+| `uro` | proportions the stance pass could not settle | legs **55%** of normal, and **29% of stature above the head** |
+
+`nanami`, `nobara` and `yuji` show uneven arms (0.55–0.71) without a fused
+prop — worth looking at in the workbench's **Mannequin(s)** view before
+spending credits, not worth a regeneration on the number alone.
+
+### The board, and the four rules that are new
+
+Same deliverable as DI1 — **one 2048×1024+ PNG per fighter, front, ¾-front,
+side and back, flat colour, no dramatic lighting, no perspective, clean white
+or transparent ground** — with everything DI1 asks for, plus what these two
+failures taught. Each rule below is here because a specific model is broken
+without it.
+
+1. **THE WHOLE FIGURE, WITH MARGIN — INCLUDING THE CROWN.** Every view
+   complete inside the canvas: the top of the head, any hat, horn, hair or
+   headgear, and the feet, with clear ground on all four sides. Mei Mei's board
+   was cut at her *eyes* in all four views, so the generator had nothing to
+   reconstruct a skull from and invented one. What it invents is spikes.
+   `tools/import_render3d_images.py` REFUSES a board whose head runs off the
+   top, and now measures the other three edges too — it warns rather than
+   refuses on those, because the top edge is proven (twelve boards, two broken
+   models) and the others are not: Todo's board runs 107px off the bottom and
+   his model measures clean.
+
+2. **THE ARMED FIGHTERS ARE DRAWN EMPTY-HANDED, AND THE WEAPON GETS ITS OWN
+   PLATE.** Not "keep the prop clear of the body" — keep it out of the board
+   entirely. Image-to-3D cannot separate two objects that touch in the picture,
+   and a weapon in a hand touches by definition: Momo's broom stood against her
+   leg in three views of four and came back as her leg; Maki's polearm and
+   Gakuganji's guitar came back as part of an arm.
+
+   So `momo`, `maki`, `gakuganji` and `meimei` are drawn with **empty hands,
+   fingers loosely curled as if holding** (the hand is one bone — it cannot
+   close later, so it has to be drawn closed), and each delivers a **second
+   plate: the weapon alone**, four views, same size and background rules, no
+   hand on it. The two are generated separately and joined at conform by
+   `tools/blender_attach_prop.py`, which reads the weapon's real length and
+   grip point from `render3d/src/props.js`:
+
+   | Fighter | Weapon | Length | Hand sits, from the heavy end |
+   |---|---|---|---|
+   | `maki` | polearm | 1.80 m | 0.45 |
+   | `momo` | broom | 1.40 m | 0.70 |
+   | `meimei` | axe | 1.30 m | 0.80 |
+   | `gakuganji` | guitar | 1.00 m | 0.75 |
+
+   Deliver the weapon plate as `<char>_prop.png`. The engine contract is
+   unchanged — the rig that lands still carries its weapon on `Prop_Main` —
+   what changes is that we do the joining instead of the generator.
+
+3. **NOTHING LONG AND THIN PARALLEL TO A LIMB.** Even clear of the body, a
+   staff drawn vertically beside a standing leg reads as that leg's second
+   silhouette. Angle it — 30° off vertical is enough — or lay it horizontally
+   below the figure.
+
+4. **DAYLIGHT BETWEEN THE LEGS, AND BETWEEN ARMS AND TORSO.** A visible gap in
+   the front and back views, ankles apart, hands clear of the hips. DI1 asked
+   for a near-A-pose; this says why, and extends it downward.
+
+Two more that cost less but are worth stating:
+
+5. **HAIR THAT HANGS IS DRAWN ALONG ITS WHOLE LENGTH** in the side and back
+   views, clear of the head's silhouette — a braid or a tendril the engine
+   simulates has to be findable as its own shape. Mei Mei's braid chain
+   extraction grabbed the top of her skull instead of her braid, because on
+   this model the braid is welded to the head.
+
+6. **THE BACK VIEW ANSWERS THE QUESTIONS THE SPRITES NEVER HAD TO** — hair
+   back, uniform back, where the prop is stowed — since it is the only view of
+   that half of the fighter the generator will ever see.
+
+**Deliver to** `assets/intake/render3d/<char>_turnaround.png`, replacing the
+refused board. The old plates stay at `assets/reference/round21/di1_cropped/`
+for comparison.
+
+**Deliverable: 1 board per fighter listed above.** The model round that
+consumes them is [D6](../render3d/docs/asset-requests.md#round-d6--regeneration-the-workbench-catches-open).
+
+---
+
+### DI5: who is still owed one — 5 of 28
+
+Named by MEASUREMENT, not by eye: tools/audit_model_health.py weighs the mesh bound to each limb against the roster's median and reports what cannot be true of a body. A fighter leaves this list when a replacement board lands — not when their model is regenerated, since regenerating from the same board is what produced the fault.
+
+| Fighter | Key | Model at | Archetype | Canon reference | Notes |
+|---|---|---|---|---|---|
+| Maki Zen'in | `maki` | 170 cm | polearm | `assets/reference/canon/maki_idle.png` | Playful Cloud |
+| Takako Uro | `uro` | 190 cm* | unarmed | `assets/reference/canon/uro_idle.png` | Sky-palm effects are engine-side |
+| Yoshinobu Gakuganji | `gakuganji` | 190 cm* | caster | `assets/reference/canon/gakuganji_idle.png` | Guitar, slung and played |
+| Mei Mei | `meimei` | 190 cm* | heavy | `assets/reference/canon/meimei_idle.png` | Braided axe; braid needs bones |
+| Momo Nishimiya | `momo` | 150 cm | polearm | `assets/reference/canon/momo_idle.png` | Broom — also ridden; see her kit |
 
 ---
 

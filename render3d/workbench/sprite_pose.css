@@ -106,6 +106,10 @@ main.poseedit {
 .check.view3d.on { border-color: #6ea8ff; color: #dbe2f0; }
 .check.view3d input { accent-color: #6ea8ff; margin: 0; }
 
+.facing {
+  font: 11.5px ui-monospace, Menlo, monospace; color: #8fb8a0; white-space: nowrap;
+}
+.facing.away { color: #e0a06a; }
 .angle {
   font: 11.5px ui-monospace, Menlo, monospace; padding: 3px 8px; border-radius: 999px;
   background: #16233a; border: 1px solid #2f6b86; color: #8fd0ea; cursor: pointer;

@@ -94,6 +94,12 @@ def default_toe(foot, knee):
 #: need its arms exchanged and its legs left exactly where they are.
 SIDED_ARMS = [("shoulderL", "shoulderR"), ("elbowL", "elbowR"), ("handL", "handR")]
 SIDED_LEGS = [("hipL", "hipR"), ("kneeL", "kneeR"), ("footL", "footR"), ("toeL", "toeR")]
+#: The hip markers alone. They sit on the pelvis, which is a rigid bar, while
+#: the legs hanging off them go wherever the stride puts them — so a pelvis
+#: read the wrong way round is fixed without touching which leg leads. Same
+#: for shoulders, where the arms are usually the thing that was right.
+SIDED_HIPS = [("hipL", "hipR")]
+SIDED_SHOULDERS = [("shoulderL", "shoulderR")]
 SIDED = SIDED_ARMS + SIDED_LEGS
 
 

@@ -14,7 +14,7 @@ sprite path with 27 fighters; everything below either extends it (the 3D
 tracks) or fills a gap that currently degrades to silence or to a fallback.
 
 **[image-requests.md](image-requests.md) is THE image-request document** — every
-render mode's requests, in one file — 24 of them, with every prompt, canon reference, height
+render mode's requests, in one file — 9 of them, with every prompt, canon reference, height
 and character block needed to draw them. Re-run
 `node tools/build_image_requests.mjs` after any delivery; it reads the open
 round, the manifests and the files on disk, so it cannot go stale the way this
@@ -24,14 +24,14 @@ page can.
 place to edit or add one. Nobody needs to read them to draw: everything in them
 is reproduced in the generated file, resolved against what is actually on disk.
 
-**The 3D track's image rounds are nearly done.** One delivery of 101 landed
-DI2, DI3 and DI4 complete for the whole roster; DI1 is 12 short, all of them
-boards refused at import for having the top of the head off the canvas. So the
-outstanding total is now dominated by the sprite round.
+**The 3D track's image rounds are nearly done.** DI1, DI2, DI3 and DI4 are
+complete for the whole roster; what is left is DI5, five regeneration seeds for
+the boards that produced broken models.
 
-All **24 are for the game itself**: round 20's twenty re-extended backgrounds
-(20B) and Yuji's four poses (20E). The rest of round 20 landed — 44 summon
-plates, the grab set and the dash attack, 152 sprites in one delivery — and is
+All **9 are for the game itself**: Yuji's four round-20 poses (20E) and those
+five seeds. The rest of round 20 landed — 44 summon plates, the grab set and
+the dash attack, 152 sprites in one delivery, then the twenty re-extended
+backgrounds (20B) in a delivery of their own — and is
 [in the history](asset-requests-history.md#round-20--the-summon-sheets-the-grab-set-and-the-dash-attack).
 
 Round 18 was delivered complete and is
@@ -55,9 +55,10 @@ fighter without a delivered rig.
 
 | # | Request | Type | Status | Blocked by |
 |---|---|---|---|---|
-| 0 | [**image-requests.md — every open image request**](image-requests.md) | 🖼️ **Images** | **24 outstanding.** Generated; supersedes rows 1–3 and DI4 below, which are where those rounds are AUTHORED | — |
-| 1 | [2D art — round 20](asset-requests.md) *(authoring source)* | 🖼️ **Images** (sprites, backdrops) | 24 open — 20B (20 backgrounds) and 20E (Yuji's four); 20A, 20C and 20D delivered | — |
-| 2 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) *(authoring source)* | 🖼️ **Images** (reference) | 12 open — boards refused for a cropped head | — |
+| 0 | [**image-requests.md — every open image request**](image-requests.md) | 🖼️ **Images** | **9 outstanding.** Generated; supersedes rows 1–3 and DI4 below, which are where those rounds are AUTHORED | — |
+| 1 | [2D art — round 20](asset-requests.md) *(authoring source)* | 🖼️ **Images** (sprites, backdrops) | 4 open — 20E (Yuji's four); 20A, 20B, 20C and 20D delivered | — |
+| 2 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) *(authoring source)* | 🖼️ **Images** (reference) | **delivered** — all 20 | — |
+| 2b | [3D images — DI5: regeneration seeds](../render3d/docs/image-requests.md#round-di5--regeneration-seeds-the-boards-that-produced-broken-models) *(authoring source)* | 🖼️ **Images** (reference) | 5 open — reseeds for models that came back broken | — |
 | 3 | [3D images — DI2/DI3: face sheets, shade palettes](../render3d/docs/image-requests.md#round-di2--face-sheets-the-face-first-gates-reference) *(authoring source)* | 🖼️ **Images** (reference) | **delivered** — all 28, both rounds | — |
 | 4 | [3D models — B1/D1: the Yuji pilot](../render3d/docs/asset-requests.md#round-d1--the-pilot-yuji-complete-open--draw-against-this) | 🧊 **3D model + clips** | open | DI1–DI3 for Yuji |
 | 5 | [3D models — D2: library + archetypes](../render3d/docs/asset-requests.md#round-d2--the-shared-library-and-the-archetype-sets) | 🧊 **Animation clips** | open | D1 review |
@@ -151,6 +152,12 @@ shows the whole frame. `flooded_gate.jpg` (800×437), `shibuya_night.webp`
 **Delivered.** All twenty landed at 3200×1800; the previous paintings are kept
 at `assets/reference/backgrounds_previous/`. Shibuya Night came as `.jpg` and
 `src/stages.js` changed with it. The rest of round 18 is still open.
+
+**Then re-done once more as 20B**, because several 18E plates had reworked the
+centre instead of extending it, and the centre is the only part the 3D camera
+sees. The twenty 20B plates are live in `assets/backgrounds/`; 18E's are kept
+at `assets/reference/backgrounds_18e/`, and `assets/backgrounds/flat/` — the
+pre-18E paintings the flat camera still draws — was untouched by either round.
 
 **18F** is the more interesting half and is optional: fourteen keyed near-field
 cards for the garnish layer. Splitting a *backdrop* into parallax layers buys
