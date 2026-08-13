@@ -58,6 +58,8 @@ import { initPose } from "../src/pose.js";
 import { CHARACTER_KEYS, CHARACTERS } from "../../src/characters.js";
 import { makeOrbit } from "./orbit.js";
 import { matchedPose, MATCHED_FRAMES } from "../src/battle_poses.js";
+import { poseEntry } from "../src/sprite_poses.js";
+import { baselinePose } from "../src/baseline_poses.js";
 
 const READS_URL = "../../sprites/docs/pose-reads/";
 const SPRITES_URL = "../../sprites/assets/";
@@ -546,10 +548,10 @@ const ui = {
   sel: null,
   ghost: 0.4,
   showSprite: true,
-  // Show the MATCHED human pose rather than the one solved from the read.
-  // Defaults on: the matched set is the one being evaluated, and a comparison
-  // nobody can see is not a comparison.
-  matched: true,
+  // Which of the three poses the rig pane shows. Defaults to the matched set:
+  // it is the one being evaluated, and a comparison nobody can see is not a
+  // comparison.
+  mode: "matched",
 };
 
 /** Free look, shared with the clip bench (orbit.js). Turning it drives both
@@ -993,14 +995,103 @@ function applyChain(node, pose, basis) {
   for (const child of node.children) if (child.isBone) applyChain(child, pose, basis);
 }
 
-/** Whichever of the two the pane is currently showing. */
+/**
+ * THE THIRD ANSWER: what the game actually plays right now.
+ *
+ * Matched and Generated are both proposals — one from a pose library, one from
+ * the drawing. Neither is what a player sees today, and without that on screen
+ * beside them the comparison is between two things nobody has ever shipped.
+ * So this samples the fighter's REAL clip: `poseEntry` says which state draws
+ * this frame and at what time (the two tables were built from the same fps, so
+ * frame i genuinely lands at i/fps), `resolveClip` resolves the same clip the
+ * engine would — the character's own, an inherited one, or the default, mirrored
+ * if the manifest mirrors it — and the tracks are read at that instant.
+ *
+ * Rotation only. The clips carry position and scale tracks too, and applying
+ * the root's would slide the model out of the frame while the other two modes
+ * keep their hips at the bind. Holding all three to the same rule is what makes
+ * them comparable; it is also the same "the hips do not move" limit the preview
+ * has always had.
+ */
+const _interp = new WeakMap();
+
+function poseFromGame(char, key) {
+  if (!three.root || !three.bind) return false;
+  const entry = poseEntry(char, key);
+  if (!entry) return false;
+  const clip = rigs.resolveClip(char, entry.state)?.clip;
+  if (!clip) return false;
+  for (const [bone, q] of three.bind) bone.quaternion.copy(q);
+  const t = Math.min(entry.t, clip.duration);
+  let hit = 0;
+  for (const track of clip.tracks) {
+    const dot = track.name.lastIndexOf(".");
+    if (dot < 0 || track.name.slice(dot + 1) !== "quaternion") continue;
+    const bone = three.root.getObjectByName(track.name.slice(0, dot));
+    if (!bone) continue;
+    let fn = _interp.get(track);
+    if (!fn) { fn = track.createInterpolant(); _interp.set(track, fn); }
+    bone.quaternion.fromArray(fn.evaluate(t));
+    hit++;
+  }
+  if (!hit) return false;
+  three.root.updateMatrixWorld(true);
+  return true;
+}
+
+/**
+ * Which of the three the pane is showing — and it is not always the one asked
+ * for, which is the whole reason this returns a name rather than a boolean.
+ * "Matched, and this frame has one" and "Matched, but this frame has none so
+ * you are looking at the generated pose after all" are identical from the
+ * control and completely different facts about the frame.
+ */
 function poseRigFor(key, j) {
-  if (ui.matched) {
+  if (ui.mode === "matched") {
     const match = matchedPose(key);
-    if (match && poseFromMatch(match)) return "matched";
+    if (match && poseFromMatch(match)) return { shown: "matched" };
+    const fell = baselinePose(key);
+    poseFromMatch(fell.pose);
+    return { shown: "baseline", asked: "matched", why: "no per-frame match for this frame",
+             intent: fell.intent };
+  }
+  if (ui.mode === "baseline") {
+    const b = baselinePose(key);
+    // Total by contract — see baseline_poses.js — so there is no fallback path
+    // here, and if one ever appears it is a bug rather than a missing pose.
+    if (poseFromMatch(b.pose)) return { shown: "baseline", intent: b.intent };
+    poseFromJoints(j);
+    return { shown: "generated", asked: "baseline", why: "the baseline library returned nothing" };
+  }
+  if (ui.mode === "ingame") {
+    if (poseFromGame(ui.char, key)) return { shown: "ingame" };
+    const fell = baselinePose(key);
+    poseFromMatch(fell.pose);
+    return { shown: "baseline", asked: "ingame", why: "nothing in the game draws this frame",
+             intent: fell.intent };
   }
   poseFromJoints(j);
-  return "read";
+  return { shown: "generated" };
+}
+
+/** The cycle: two libraries, the drawing's own answer, and what ships. */
+const MODES = ["matched", "baseline", "generated", "ingame"];
+const MODE_LABEL = {
+  matched: "Matched", baseline: "Baseline match",
+  generated: "Generated", ingame: "In Game",
+};
+const SHOWN_LABEL = {
+  matched: "the per-frame matched human pose",
+  baseline: "the baseline pose",
+  generated: "the pose generated from the joints",
+  ingame: "the clip the game plays today",
+};
+
+/** What the pane is showing, and whether that is what was asked for. Those are
+ *  two facts and the badge was only ever carrying one of them. */
+function howText(r) {
+  const what = SHOWN_LABEL[r.shown] + (r.intent ? ` for “${r.intent}”` : "");
+  return r.asked ? `fallback — ${r.why}, showing ${what}` : `showing ${what}`;
 }
 
 /** Turn the read into rig rotations: every driven bone is swung, in the
@@ -1274,10 +1365,17 @@ function renderEditor() {
   // Three different things, and conflating them cost a round trip: what YOU
   // changed since the page loaded, what a human placed at some point and is
   // already in the tree, and what is still a fitted guess.
+  // It says JOINTS: out loud, because the two badges on this screen answer
+  // different questions and they were being read as one. This one is about
+  // where the eighteen dots on the plate came from. The one over the rig is
+  // about which pipeline posed the model. "read by eye" beside "matched human
+  // pose" is not a contradiction and does not mean the frame lacks a match —
+  // it means a human placed those dots AND the frame has a matched pose, which
+  // is the normal case for every frame of Yuji's sheet.
   const mine = SESSION.has(editKey(ui.char, ui.pose));
   const stamp = mine ? "edited here" : pose.source ? "hand-placed on disk"
     : pose.seed ? pose.seed : "read by eye";
-  $("#poseStamp").textContent = stamp;
+  $("#poseStamp").textContent = `joints: ${stamp}`;
   $("#poseStamp").className = `stamp ${mine ? "on" : pose.source ? "read" : pose.seed ? "seed" : "read"}`;
   $("#poseNote").value = pose.read || "";
   $("#depthNote").hidden = !hasDepth(pose.j);
@@ -1289,8 +1387,10 @@ function renderEditor() {
         ? `${pose.j[n][0].toFixed(1)}, ${pose.j[n][1].toFixed(1)}`
           + (depth(pose.j[n]) ? `, ${depth(pose.j[n]).toFixed(1)}` : "") : "—"}</b></li>`).join("");
   const how = poseRigFor(ui.pose, pose.j);
-  $("#poseHow").textContent = how === "matched" ? "matched human pose" : "solved from the read";
-  $("#poseHow").className = `stamp ${how === "matched" ? "matched" : "read"}`;
+  $("#poseHow").textContent = howText(how);
+  $("#poseHow").className = `how ${how.shown}${how.asked ? " fell" : ""}`;
+  $("#poseMode").textContent = MODE_LABEL[ui.mode];
+  $("#poseModeBox").className = `check mode ${ui.mode}`;
   drawThree();
 }
 
@@ -1591,10 +1691,10 @@ function shell() {
                      title="Drag to turn, scroll to move in. Both panes turn together; off returns to the drawing's own angle.">
                 <input id="poseView3d" type="checkbox"> View 3D
               </label>
-              <label class="check matched" id="poseMatchedBox"
-                     title="On: the frame's matched HUMAN pose. Off: the pose solved from the joints you can drag.">
-                <input id="poseMatched" type="checkbox" checked> Matched
-              </label>
+              <button class="check mode matched" id="poseModeBox" type="button"
+                      title="Click to cycle. Matched: this frame's own pose from the human battle-pose library. Baseline match: the generic pose for what this frame IS, which every frame has. Generated: worked out from the joints you can drag. In Game: the clip the game plays today.">
+                <span id="poseMode">Matched</span> <span class="cycle">⟳</span>
+              </button>
               <span class="how" id="poseHow"></span>
             </div>
             <p class="hint">The fighter's own rig: spine, neck, both clavicles,
@@ -1680,8 +1780,8 @@ async function boot() {
     renderEditor();
   });
   $("#poseView3d").addEventListener("change", (e) => orbit.setOn(e.target.checked));
-  $("#poseMatched").addEventListener("change", (e) => {
-    ui.matched = e.target.checked;
+  $("#poseModeBox").addEventListener("click", () => {
+    ui.mode = MODES[(MODES.indexOf(ui.mode) + 1) % MODES.length];
     if (ui.pose) renderEditor();
   });
   $("#viewAngle").addEventListener("click", () => orbit.reset());
