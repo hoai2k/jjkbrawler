@@ -1890,12 +1890,17 @@ function drawSharedSprite(cx) {
   const { h, w, px, py, top, nx, ny, deg } = v;
 
   ctx.save();
-  if (deg) { ctx.translate(px, py); ctx.rotate(deg * Math.PI / 180); ctx.translate(-px, -py); }
-  ctx.drawImage(img, px - w / 2 + nx, top + ny, w, h);
+  // The same transform render.js builds, in the same order: to the point, mirror
+  // if it travels, then the drawing's own tilt, then the picture with its nudge
+  // — so a `dx` moves the art the same way here as it does in a match.
+  ctx.translate(px, py);
+  if (v.mirror) ctx.scale(-1, 1);
+  if (deg) ctx.rotate(deg * Math.PI / 180);
+  ctx.drawImage(img, -w / 2 + nx, top - py + ny, w, h);
   if ($("showBox").checked) {
     ctx.strokeStyle = "rgba(255, 120, 160, 0.8)";
     ctx.setLineDash([4, 4]);
-    ctx.strokeRect(px - w / 2 + nx, top + ny, w, h);
+    ctx.strokeRect(-w / 2 + nx, top - py + ny, w, h);
     ctx.setLineDash([]);
   }
   ctx.restore();
@@ -1911,6 +1916,7 @@ function drawSharedSprite(cx) {
   // is not honoured: the crosshair is the ground contact — the thing the art
   // has to be sitting on — before it is a handle to drag.
   if (v.can?.used && v.can.anchor) drawSpawnPoint(px, py, v.anchor, v.can.offset);
+  if (v.can?.travels) drawTravelDirection(v);
 
   // The drawing is too big for the viewer and everything on the canvas has been
   // shrunk to hold it. Said out loud because the alternative is a slider that
@@ -2088,6 +2094,39 @@ function drawSharedHit(v) {
 /** The canvas x every sprite is drawn about. */
 const canvasCentreX = () => canvas.width / 2;
 
+/** Which way a travelling drawing flies, and which way its plate has to point.
+ *
+ *  This is the one thing about a projectile the viewer could not show and the
+ *  art most needs to get right. drawProjectiles mirrors the drawing to the way
+ *  it is travelling — `flip = vx > 0 ? -1 : 1` — so what a player sees flying
+ *  RIGHT is the mirror of the plate, and the plate itself is the leftward
+ *  version. A cone drawn opening to the right therefore fires apex-first, and
+ *  nothing on this canvas said so: the workbench shows the plate, the game
+ *  shows it flipped, and the two look like different drawings.
+ *
+ *  The nudge is honest in this frame either way — render.js applies `dx` INSIDE
+ *  the mirrored transform, so pushing the picture right here pushes it toward
+ *  the same end of the drawing in flight, whichever way the shot goes. */
+function drawTravelDirection(v) {
+  const y = v.py;
+  const x0 = v.px + v.w / 2 + 14;
+  ctx.save();
+  ctx.strokeStyle = "rgba(150, 230, 255, 0.75)";
+  ctx.fillStyle = "rgba(150, 230, 255, 0.9)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();                       // an arrow the way this shot is flying
+  ctx.moveTo(x0, y); ctx.lineTo(x0 + 34, y);
+  ctx.moveTo(x0 + 26, y - 5); ctx.lineTo(x0 + 34, y); ctx.lineTo(x0 + 26, y + 5);
+  ctx.stroke();
+  ctx.font = "500 10.5px Inter, sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText("flying", x0 + 40, y + 4);
+  ctx.textAlign = "center";
+  ctx.fillText("shown as fired — mirrored, the way a player sees it. The plate faces the other way.",
+               canvasCentreX(), GROUND_Y + 50);
+  ctx.restore();
+}
+
 /** The zoom EVERYTHING in the Other Sprites view is drawn at — the drawing, its
  *  hit shape, its spawn point, and the fighter standing beside it as a size
  *  reference. The Zoom slider unless the drawing is too tall for the canvas, in
@@ -2157,6 +2196,13 @@ function sharedView(key = state.frame) {
     // and runs off the top, which is only ever a reason to reach for Zoom.
     fitted: z < state.zoom - 1e-6,
     overflows: artH * z > GROUND_Y - 4,
+    // Travelling art is shown AS FIRED, to the right — mirrored, exactly as
+    // drawProjectiles paints it (`flip = vx > 0 ? -1 : 1`). The plate and the
+    // thing a player sees are mirror images of each other, and showing the
+    // plate while the game shows the flip is how a drawing already pointing
+    // the right way gets "corrected" with the Mirror box into flying backwards.
+    // Fired right rather than left because the reference fighter faces right.
+    mirror: !!can?.travels,
     w: img.width * h / img.height,
     px: canvasCentreX(),
     py,
@@ -2901,8 +2947,11 @@ function sharedControls(key) {
   return {
     used: true,
     // A drawing whose height the spawn site decides per instance has no single
-    // size to set; everything else does.
-    size: Number.isFinite(info.h),
+    // size to set; nor has one the RENDERER fixes a height for — Yuta's Rika at
+    // 238px, Panda's triceratops at 210px, a domain backdrop cover-fitted to
+    // the stage. Those have a height to draw them at and no way to change it.
+    size: Number.isFinite(info.h) && info.sizable !== false,
+    travels: !!info.travels,
     offset: nudge,
     rotate: nudge,
     nudgeSite: info.nudgeSite || null,
@@ -2969,6 +3018,15 @@ function refreshUsageInfo() {
           + "Drag it on the canvas to place it (a dog bites with its head, not its tail); "
           + "drag the corner to size it. Shown under the Hurtbox toggle.");
       }
+    }
+    if (can.travels) {
+      lines.push("<b>Directional.</b> The game mirrors this drawing to the way it is "
+        + "travelling, so the plate is the version you see flying LEFT and a player "
+        + "firing right sees it flipped. There is only ONE point here: the projectile's "
+        + "position is both what it collides on and what the picture is hung around "
+        + "(<code>drawProjectiles</code>, render.js). Moving the drawing off that point "
+        + "is what the nudge does — the hit region cannot be moved away from it, "
+        + "because in the game there is nothing else to move.");
     }
     if (can.offset) {
       lines.push(`<b>Spawn point:</b> ${ANCHOR_WORDS[can.anchor] || ""}. `
@@ -4468,8 +4526,13 @@ async function boot() {
       // painted at, which is smaller than the slider's whenever a big drawing
       // has been fitted — because dx/dy are game pixels.
       const meta = d.meta;
-      const z = sharedView()?.z || state.zoom;
-      meta.dx = round1((meta.dx ?? 0) - (p.x - d.grabX) / z);
+      const view = sharedView();
+      const z = view?.z || state.zoom;
+      // In the mirrored (as-fired) view the drawing's own x runs the other way,
+      // so the same gesture writes the opposite sign — the picture still
+      // follows the pointer.
+      const sx = view?.mirror ? 1 : -1;
+      meta.dx = round1((meta.dx ?? 0) + sx * (p.x - d.grabX) / z);
       meta.dy = round1((meta.dy ?? 0) - (p.y - d.grabY) / z);
       d.grabX = p.x; d.grabY = p.y;
       refreshControls(); buildPoseList(); render();

@@ -196,15 +196,41 @@ creature's footing, a hazard's reach: all unchanged. That is the point — art
 arrives off-centre in its plate and the fix is to move the picture onto the point
 the game is using, not to move the point.
 
-**Two spawn sites do not read the nudge at all**, and the crosshair says so
-rather than pretending. `makeTrap` and `randomDrop` (`src/specials.js`) paint
-straight from the image — an erupting geyser, a dropped vending machine — so
-`dx`/`dy` and a tilt set against one of those drawings are stored and inert.
-Their Size still works, because that is folded into the kit's own declared
-height. The crosshair is still drawn, because where the art meets the ground is
-worth seeing; it just cannot be dragged. Which sites honour it is recorded in
-the registry (`DRAW_SITES` in `src/shared_sprites.js`), beside where each one
-puts the point, so the two facts about a spawn site live together.
+**Most spawn sites do not read the nudge at all**, and the crosshair says so
+rather than pretending. Two draw sites place a drawing on something that moves
+and read `sharedAdjust` as they go — `drawProjectiles` in `render.js` and the
+creature draw in `summons.js` — and every other handler paints its set piece
+straight from `getImage`: the traps, the drops, `spawnSummonFlash`, and the
+dozen ultimate directors. A `dx`/`dy` or a tilt set against one of those is
+stored and inert. Size still works, because that is folded into the kit's own
+declared height before the handler sees it — except where the RENDERER fixes a
+height too (Yuta's Rika at 238px, Panda's triceratops at 210px, a domain
+backdrop cover-fitted to the stage), and those are marked unsizable so the
+slider comes off rather than sitting there looking live.
+
+`DRAW_SITES` in `src/shared_sprites.js` is that table, one entry per special or
+ultimate `type`, each read off its handler: where the point is, whether the
+nudge reaches it, whether it travels. Two answers about a spawn site living in
+one place is the point — a tornado that stands on the floor (`tempest`:
+`translate(640, 595)` then `-h`) was centred in mid-air for the same reason a
+geyser was, and both are one line here.
+
+### Directional effects, and the one point they have
+
+A projectile is drawn centred on its own position, and that position IS the
+circle it collides on: `drawProjectiles` hangs the picture around `p.x`/`p.y`
+and tests a radius at the same point. There is no second point to move. A nudge
+moves the PICTURE off the point; nothing can move the collision off the art,
+because in the game there is only the one coordinate.
+
+**It is also mirrored to the way it is travelling** (`flip = vx > 0 ? -1 : 1`),
+which is why `docs/asset-requests.md` asks for travelling art drawn pointing
+LEFT: the stored plate is the leftward version, and a player firing right sees
+its mirror. The workbench therefore shows travelling art **as fired**, mirrored,
+with an arrow — because showing the plate while the game shows the flip is how a
+drawing already pointing the right way gets "corrected" with the Mirror box into
+flying backwards. The nudge is applied inside that same mirrored frame, in the
+game and here, so `dx` means the same thing in both.
 
 ### The region of interest, and what follows what
 

@@ -378,21 +378,72 @@ function buildRegistry() {
   // backwards.
   //
   // `nudge` is the other half of what a spawn site decides: whether it reads
-  // sharedAdjust at all. Most do (render.js for projectiles and auras,
-  // summons.js, stage_fx.js), and two do not — makeTrap and randomDrop in
-  // specials.js paint straight from `getImage`. A drawing they own can be
-  // sized, because the size is folded into the kit's own height, but a dx/dy
-  // set against one is stored and inert. Saying so here is what stops the
-  // workbench offering a control the game ignores.
+  // sharedAdjust at all. The two that place a drawing on a moving thing do —
+  // render.js for projectiles and auras, summons.js for creatures — and the
+  // handlers that paint a set piece themselves do not. A drawing they own can
+  // still be sized, because the size is folded into the kit's own height
+  // before it reaches them, but a dx/dy or a tilt set against one is stored and
+  // inert. Saying so here is what stops the workbench offering a control the
+  // game ignores.
+  //
+  // Every entry below was read off its handler. Where a handler paints at a
+  // height of its own rather than the kit's, that height is here too and
+  // `sizable: false` says the slider cannot move it.
+  const SELF = (site) => ({ nudge: false, site });
   const DRAW_SITES = {
+    // --- drawn by render.js / summons.js, on something that moves ---------
     summon: { anchor: "feet", nudge: true },
-    projectile: { anchor: "centre", nudge: true },
-    // Both are drawn with their bottom edge on the ground: `this.y - h` in
-    // makeTrap's draw, `y - drop.h` in randomDrop's. A trap is not thrown at
-    // anybody — it erupts out of the floor — so centring it on the spawn point
-    // was never right.
-    trap: { anchor: "feet", nudge: false, site: "makeTrap (src/specials.js)" },
-    randomDrop: { anchor: "feet", nudge: false, site: "randomDrop (src/specials.js)" },
+    // A projectile is drawn centred on its own position, which IS the circle it
+    // collides on, and mirrored to the way it is travelling.
+    projectile: { anchor: "centre", nudge: true, travels: true },
+    wave: { anchor: "centre", nudge: true, travels: true },
+    beam: { anchor: "centre", nudge: true, travels: true },
+    cannonade: { anchor: "centre", nudge: true, travels: true },
+    birdstrike: { anchor: "centre", nudge: true, travels: true },
+    deathSwarm: { anchor: "centre", nudge: true, travels: true },
+    parthenogenesis: { anchor: "feet", nudge: true },
+
+    // --- painted by their own handler, straight from getImage -------------
+    // Standing on the ground: `-h` under the point, or drawn at a ground line
+    // the handler works out for itself.
+    trap: { anchor: "feet", ...SELF("makeTrap (src/specials.js)") },
+    randomDrop: { anchor: "feet", ...SELF("randomDrop (src/specials.js)") },
+    cloudField: { anchor: "feet", ...SELF("cloudField (src/specials.js)") },
+    // A tornado stands on the floor and rises out of it — `translate(640, 595)`
+    // then `-h` — so it is a ground drawing, not one centred on a point in the
+    // air, however much a centred crosshair suggested otherwise.
+    tempest: { anchor: "feet", ...SELF("tempest (src/ultimates.js)") },
+    eruption: { anchor: "feet", ...SELF("eruption (src/ultimates.js)") },
+    cardrop: { anchor: "feet", ...SELF("cardrop (src/ultimates.js)") },
+    // Centred on the point the handler puts them on: a falling meteor, a ring
+    // of blood orbs, a shout in front of the mouth.
+    meteor: { anchor: "centre", ...SELF("meteor (src/ultimates.js)") },
+    vortex: { anchor: "centre", ...SELF("vortex (src/ultimates.js)") },
+    nailstorm: { anchor: "centre", ...SELF("nailstorm (src/ultimates.js)") },
+    shout: { anchor: "centre", ...SELF("shout (src/ultimates.js)") },
+    skyInvert: { anchor: "centre", ...SELF("skyInvert (src/ultimates.js)") },
+    massDrive: { anchor: "centre", ...SELF("massDrive (src/ultimates.js)") },
+    supernova: { anchor: "centre", ...SELF("supernova (src/ultimates.js)") },
+    concert: { anchor: "centre", ...SELF("concert (src/ultimates.js)") },
+    warpStrike: { anchor: "centre", ...SELF("warpStrike (src/specials.js)") },
+    // A one-shot flash of art beside the fighter — Todo's clap, Yuji's
+    // divergent impact, Rika's fist, Todo's drum. spawnSummonFlash stands it on
+    // the ground at the fighter's feet and mirrors it with their facing, at the
+    // move's own `spriteH`; it never reads the nudge.
+    swap: { anchor: "feet", ...SELF("spawnSummonFlash (src/specials.js)") },
+    echoStrike: { anchor: "feet", ...SELF("spawnSummonFlash (src/specials.js)") },
+    burst: { anchor: "feet", ...SELF("spawnSummonFlash (src/specials.js)") },
+    commandGrab: { anchor: "feet", ...SELF("spawnSummonFlash (src/specials.js)") },
+
+    // --- a second body for the fighter, at a height the RENDERER fixes -----
+    // Yuta's Rika stands behind him at 238px; Panda's triceratops replaces his
+    // body at 210px. Neither reads the kit's height, so the Size slider has
+    // nothing to multiply — which is why it is marked unsizable rather than
+    // left looking live.
+    install: { anchor: "feet", spriteH: 238, sizable: false,
+               ...SELF("install (src/ultimates.js)") },
+    rampage: { anchor: "feet", spriteH: 210, sizable: false,
+               ...SELF("the transformed-body branch of drawFighters (src/render.js)") },
   };
   // `bodyH` is the nearest enclosing creature's own height. A summon declared
   // inline in a special — Dagon's shikigami, Mahoraga, Kurourushi's brood —
@@ -401,13 +452,15 @@ function buildRegistry() {
   // every one of them "sized by the code that spawns it". It is carried down
   // because a per-unit override names the art while the config above it
   // declares the size, which is the same merge specials.js does at spawn.
-  const visit = (node, who, drawnBy = "centre", bodyH = null, nudge = NUDGED) => {
+  const visit = (node, who, drawnBy = "centre", bodyH = null, nudge = NUDGED, site = null) => {
     if (!node || typeof node !== "object" || seen.has(node)) return;
     seen.add(node);
     if (typeof node.type === "string" && DRAW_SITES[node.type]) {
-      const site = DRAW_SITES[node.type];
+      site = DRAW_SITES[node.type];
       drawnBy = site.anchor;
-      nudge = site.nudge ? NUDGED : { nudge: false, nudgeSite: site.site };
+      nudge = site.nudge
+        ? { nudge: true, travels: !!site.travels }
+        : { nudge: false, nudgeSite: site.site, travels: !!site.travels };
     }
     if (Number.isFinite(node.h)) bodyH = node.h;
     // A creature config, wherever it hangs. `behavior` is the field spawnSummon
@@ -415,7 +468,16 @@ function buildRegistry() {
     // the special's `type`: Kurourushi's brood is `offspring` on an ULTIMATE, so
     // it never passes a `type: "summon"` node and was being filed as a
     // centre-anchored effect of unknown size.
-    if (typeof node.behavior === "string" && Array.isArray(node.sprites)) drawnBy = "feet";
+    // A creature is drawn by summons.js wherever it hangs — including inside a
+    // move whose own flash art is painted by hand — so it stands on its feet
+    // AND gets its nudge back. Inheriting `nudge: false` from the move above it
+    // would have taken the offset control off every creature declared inside a
+    // burst.
+    if (typeof node.behavior === "string" && Array.isArray(node.sprites)) {
+      drawnBy = "feet";
+      nudge = { nudge: true, travels: false };
+      site = null;
+    }
     if (isSharedKey(node.aura)) {
       put(node.aura, { h: AURA_H, anchor: "feet", owner: who, ...NUDGED,
                        what: "the install aura's height around the fighter (render.js)" });
@@ -431,11 +493,28 @@ function buildRegistry() {
       // other hit shape, which is a number the art has to be matched TO, and
       // the workbench has to say which of the two it is showing.
       const followsSize = !!hit && hit.from === "w/h" && hf === "h";
-      put(node[field], { h, anchor: drawnBy, owner: who, ...nudge,
+      // A handler that paints at a height of its own overrides the kit for the
+      // one field it paints — `sprite`. Its `aura` and `domainSprite` are drawn
+      // somewhere else entirely and keep their own answers.
+      const fixed = site && field === "sprite" && Number.isFinite(site.spriteH) ? site : null;
+      // A domain's backdrop is not placed on anything. It is cover-fitted to
+      // the whole stage behind the fight (drawDomainBackdrop, render.js), so it
+      // has no spawn point, no nudge and no size — the fit decides all three,
+      // and the only thing the art has to get right is what it looks like at
+      // the stage's own 1280x720 shape.
+      if (field === "domainSprite") {
+        put(node[field], { h: null, anchor: "centre", owner: who, nudge: false, sizable: false,
+                           what: "cover-fitted to the whole stage behind the fight (render.js)" });
+        continue;
+      }
+      put(node[field], { h: fixed ? fixed.spriteH : h, anchor: drawnBy, owner: who, ...nudge,
+                         ...(fixed ? { sizable: false } : {}),
                          hit: ownHit ? hitOfField(node, ownHit)
                                      : (followsSize ? { ...hit, followsSize } : hit),
-                         what: h ? "the height its move declares (the kit's own number)"
-                                 : "sized by the code that spawns it" });
+                         what: fixed
+                           ? `a height ${fixed.site} fixes at ${fixed.spriteH}px — the kit does not set it and neither can the slider`
+                           : h ? "the height its move declares (the kit's own number)"
+                               : "sized by the code that spawns it" });
     }
     for (const [field, heightField] of SPRITE_LIST_FIELDS) {
       if (!Array.isArray(node[field]) || poolLists.has(node[field])) continue;
@@ -452,7 +531,7 @@ function buildRegistry() {
       for (const key of node[field]) put(key, { h, anchor: drawnBy, owner: who, hit, what, ...nudge });
     }
     for (const value of Object.values(node)) {
-      if (value && typeof value === "object") visit(value, who, drawnBy, bodyH, nudge);
+      if (value && typeof value === "object") visit(value, who, drawnBy, bodyH, nudge, site);
     }
   };
   for (const key of CHARACTER_KEYS) {

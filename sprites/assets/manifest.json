@@ -61728,6 +61728,354 @@
    "renderScale": 1.566,
    "dx": 1.9,
    "dy": -44.4
+  },
+  "effect:boogie_clap": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -1.9,
+   "dy": -2.6
+  },
+  "effect:concert_wave": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.4,
+   "dy": -2.3
+  },
+  "effect:divergent_shock": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 1.2,
+   "dy": 1.4
+  },
+  "effect:pigeon_orb": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -33.4,
+   "dy": -5.6
+  },
+  "effect:purple": {
+   "edited": {
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
+   },
+   "faceLeft": true,
+   "dx": -21.2,
+   "dy": -2.9
+  },
+  "effect:red": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -17.6,
+   "dy": -1.5
+  },
+  "effect:sedan": {
+   "edited": {
+    "renderScale": null
+   },
+   "renderScale": 0.915
+  },
+  "effect:sky_shard": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -4.3,
+   "dy": -25.4
+  },
+  "effect:sound_wave": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -2.6,
+   "dy": -5.1
+  },
+  "effect:tempest": {
+   "edited": {
+    "renderScale": null
+   },
+   "renderScale": 0.815
+  },
+  "summon:curseHound:idle_a": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 0.2,
+   "dy": 2
+  },
+  "summon:curseHound:idle_b": {
+   "edited": {
+    "dy": null
+   },
+   "dy": 2.7
+  },
+  "summon:curseHound:move_a": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 1.5,
+   "dy": 5.4
+  },
+  "summon:curseHound:move_b": {
+   "edited": {
+    "dy": null
+   },
+   "dy": 1.2
+  },
+  "summon:dagon_shikigami": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 0.2,
+   "dy": 21.7
+  },
+  "summon:divineDogBlack": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.1,
+   "dy": 9.3
+  },
+  "summon:divineDogBlack:hurt": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 0.6,
+   "dy": 2.9
+  },
+  "summon:divineDogBlack:idle_a": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 0.4,
+   "dy": 4.4
+  },
+  "summon:divineDogBlack:idle_b": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.4,
+   "dy": 4.6
+  },
+  "summon:divineDogBlack:move_b": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 0.4,
+   "dy": 1.9
+  },
+  "summon:divineDogWhite:hurt": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 0.2,
+   "dy": 1.2
+  },
+  "summon:divineDogWhite:idle_a": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.5,
+   "dy": 7.3
+  },
+  "summon:divineDogWhite:idle_b": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.6,
+   "dy": 5.1
+  },
+  "summon:toad:hurt": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.2,
+   "dy": 3.9,
+   "attackBox": {
+    "x": 0.284,
+    "y": 0.668,
+    "w": 0.44,
+    "h": 0.76
+   }
+  },
+  "summon:toad:idle_a": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.1,
+   "dy": 5.2,
+   "attackBox": {
+    "x": 0.296,
+    "y": 0.658,
+    "w": 0.44,
+    "h": 0.76
+   }
+  },
+  "summon:toad:idle_b": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.8,
+   "dy": 5.2,
+   "attackBox": {
+    "x": 0.283,
+    "y": 0.635,
+    "w": 0.44,
+    "h": 0.76
+   }
+  },
+  "summon:toad:move_a": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 0.7,
+   "dy": 3.8,
+   "attackBox": {
+    "x": 0.279,
+    "y": 0.558,
+    "w": 0.44,
+    "h": 0.76
+   }
+  },
+  "summon:toad:move_b": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 0.3,
+   "dy": 5.8,
+   "attackBox": {
+    "x": 0.251,
+    "y": 0.618,
+    "w": 0.44,
+    "h": 0.76
+   }
+  },
+  "summon:transfiguredCrawler:attack": {
+   "edited": {
+    "dy": null
+   },
+   "dy": 1.1,
+   "attackBox": {
+    "x": 0.289,
+    "y": 0.638,
+    "w": 0.44,
+    "h": 0.76
+   }
+  },
+  "summon:transfiguredHulk:attack": {
+   "edited": {
+    "dy": null
+   },
+   "dy": 4.4
+  },
+  "summon:transfiguredHulk:hurt": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 0.1,
+   "dy": 4.4
+  },
+  "summon:transfiguredHulk:idle_a": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.4,
+   "dy": 7.1
+  },
+  "summon:transfiguredHulk:idle_b": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 1.3,
+   "dy": 10.2
+  },
+  "summon:transfiguredHulk:move_a": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.3,
+   "dy": 2.7
+  },
+  "summon:transfiguredHulk:move_b": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 0.2,
+   "dy": 3.1,
+   "attackBox": {
+    "x": 0.268,
+    "y": 0.53,
+    "w": 0.577,
+    "h": 0.926
+   }
+  },
+  "summon:transfiguredHuman": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 1,
+   "dy": 12.4,
+   "attackBox": {
+    "x": 0.264,
+    "y": 0.582,
+    "w": 0.491,
+    "h": 0.808
+   }
+  },
+  "summon:transfiguredHuman:move_a": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.6,
+   "dy": 5.2
+  },
+  "summon:transfiguredHuman:move_b": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.5,
+   "dy": 4,
+   "attackBox": {
+    "x": 0.2,
+    "y": 0.531,
+    "w": 0.458,
+    "h": 0.861
+   }
   }
  }
 }
