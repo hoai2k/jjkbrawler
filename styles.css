@@ -615,29 +615,30 @@ html, body {
    below. It still has to be right, because those are the two places the
    paintings are shown at size. */
 .char-card img,
-.matchup-side img {
+.matchup-side img,
+.victory-card--winner img {
   filter: brightness(var(--card-lift, 1.18)) saturate(1.04);
 }
 
 /* Dim art: a stronger lift to bring it level with the rest of the roster. */
-:is(.char-card, .matchup-side) img[src$="nanami_card.jpg"],
-:is(.char-card, .matchup-side) img[src$="toji_card.jpg"],
-:is(.char-card, .matchup-side) img[src$="geto_card.jpg"],
-:is(.char-card, .matchup-side) img[src$="reggie_card.jpg"],
-:is(.char-card, .matchup-side) img[src$="meimei_card.jpg"],
-:is(.char-card, .matchup-side) img[src$="gakuganji_card.jpg"] {
+:is(.char-card, .matchup-side, .victory-card--winner) img[src$="nanami_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner) img[src$="toji_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner) img[src$="geto_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner) img[src$="reggie_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner) img[src$="meimei_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner) img[src$="gakuganji_card.jpg"] {
   --card-lift: 1.38;
 }
 
 /* Darkest art: near-black backgrounds that stay murky at anything less. */
-:is(.char-card, .matchup-side) img[src$="mahito_card.jpg"],
-:is(.char-card, .matchup-side) img[src$="sukuna_card.jpg"],
-:is(.char-card, .matchup-side) img[src$="choso_card.jpg"] {
+:is(.char-card, .matchup-side, .victory-card--winner) img[src$="mahito_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner) img[src$="sukuna_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner) img[src$="choso_card.jpg"] {
   --card-lift: 1.58;
 }
 
 /* Panda is already bright enough; only the saturation applies. */
-:is(.char-card, .matchup-side) img[src$="panda_card.jpg"] {
+:is(.char-card, .matchup-side, .victory-card--winner) img[src$="panda_card.jpg"] {
   --card-lift: 1;
 }
 
@@ -654,8 +655,8 @@ html, body {
 }
 
 /* Uro and Hakari are bright enough as drawn — no filter at all. */
-:is(.char-card, .matchup-side) img[src$="uro_card.jpg"],
-:is(.char-card, .matchup-side) img[src$="hakari_card.jpg"] {
+:is(.char-card, .matchup-side, .victory-card--winner) img[src$="uro_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner) img[src$="hakari_card.jpg"] {
   filter: none;
 }
 
@@ -1146,6 +1147,51 @@ html, body {
 
 /* ---------- Stage select ---------- */
 
+/* The action row sits ABOVE the grid (index.html): twenty arenas push anything
+   below them toward the fold, and the screen's best offer should not live
+   there. Bigger targets than the standard menu row, because this row IS the
+   screen's controls rather than its footer. */
+.menu-actions--stage { gap: 14px; }
+
+.menu-actions--stage button {
+  font-size: 0.95rem;
+  padding: 13px 26px;
+  border-radius: 14px;
+}
+
+/* Random styled as the draw it is (runStageRoulette): a slow-rolling gradient
+   and a lifted hover, so it reads as the fun option rather than the fallback.
+   Scoped under .menu-actions to outweigh the `.menu-actions button` defaults —
+   same reason .primary-action resorts to !important. */
+.menu-actions .random-stage {
+  background: linear-gradient(115deg, #ffb347, #ff4c55, #b56cff, #62dcff, #ffb347);
+  background-size: 320% 100%;
+  animation: randomShift 4.5s linear infinite;
+  border: none;
+  color: #fff;
+  font-weight: 900;
+  font-size: 1.08rem;
+  letter-spacing: 0.05em;
+  padding: 14px 34px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 26px rgba(255, 95, 90, 0.38);
+}
+
+.menu-actions .random-stage:hover,
+.menu-actions .random-stage:focus-visible {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 10px 32px rgba(255, 120, 100, 0.55);
+}
+
+@keyframes randomShift {
+  to { background-position: 320% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-actions .random-stage { animation: none; }
+}
+
+
 .stage-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -1471,6 +1517,107 @@ html, body {
 @media (max-height: 640px) {
   .match-stats { font-size: 0.68rem; }
   .stat-row { padding: 3px 10px; }
+}
+
+/* ---------- Victory podium ---------- */
+
+/* Smash's results screen in miniature: the headline is a shout, the winner's
+   card is the picture, everyone else stands small and grey beneath their
+   placement. The overlay already scrolls on short windows, so the sizes clamp
+   on viewport height rather than shrinking the whole screen to fit. */
+.title-lockup--victory h2 {
+  font-size: clamp(2.2rem, 7vw, 4.2rem);
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 46px rgba(98, 220, 255, 0.5), 0 4px 20px rgba(0, 0, 0, 0.85);
+}
+
+.title-lockup--victory .eyebrow { font-size: 0.78rem; }
+
+.victory-podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 26px;
+}
+
+.victory-podium:empty { display: none; }   /* a draw renders no podium */
+
+.victory-card {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.victory-card img {
+  width: clamp(120px, 24vh, 190px);
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 16px;
+  border: 2px solid var(--card-theme, var(--line));
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55), 0 0 30px var(--card-theme, transparent);
+}
+
+.victory-card figcaption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.25;
+}
+
+.victory-card i {
+  font-style: normal;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #ffd97a;
+}
+
+.victory-card b { font-weight: 900; }
+
+.victory-card--winner b { font-size: 1.05rem; }
+
+.victory-losers {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.victory-card--loser img {
+  width: clamp(64px, 12vh, 96px);
+  filter: grayscale(0.85) brightness(0.72);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+.victory-card--loser i { color: var(--text-dim); letter-spacing: 0.12em; }
+
+.victory-card--loser b { font-size: 0.72rem; color: var(--text-dim); }
+
+/* The winner arrives like a stinger — pops past full size and settles — while
+   the beaten file in a beat later. Both die to 1ms under the reduced-motion
+   rule that already covers overlay entrances, because they run on the same
+   .is-entering pass. */
+.overlay.is-entering .victory-card--winner {
+  animation: winnerPop 460ms cubic-bezier(0.2, 1.45, 0.35, 1) both;
+}
+
+.overlay.is-entering .victory-losers {
+  animation: overlayContentIn 260ms ease-out 140ms both;
+}
+
+@keyframes winnerPop {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay.is-entering .victory-card--winner,
+  .overlay.is-entering .victory-losers { animation-duration: 1ms; animation-delay: 0ms; }
 }
 
 /* ---------- Interruptions ---------- */

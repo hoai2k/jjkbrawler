@@ -116,11 +116,14 @@
             <span class="eyebrow">Choose arena</span>
             <h2>Stages</h2>
           </div>
-          <div id="stageGrid" class="stage-grid" aria-label="Stage select"></div>
-          <div class="menu-actions">
-            <button id="randomStageButton" class="primary-action" type="button">Random Stage</button>
+          <!-- Actions ABOVE the grid: twenty arenas push anything below them
+               toward the fold, and Random is the choice the screen most wants
+               to offer — so it sits first, styled as a draw, not a fallback. -->
+          <div class="menu-actions menu-actions--stage">
+            <button id="randomStageButton" class="random-stage" type="button">Random Stage</button>
             <button id="stageBackButton" type="button">Back</button>
           </div>
+          <div id="stageGrid" class="stage-grid" aria-label="Stage select"></div>
         </div>
 
         <div id="movesOverlay" class="overlay hidden">
@@ -138,10 +141,14 @@
         </div>
 
         <div id="roundOverlay" class="overlay overlay--compact hidden">
-          <div class="title-lockup">
+          <div class="title-lockup title-lockup--victory">
             <span class="eyebrow" id="roundKicker">Match complete</span>
             <h2 id="winnerText">Gojo wins</h2>
           </div>
+          <!-- Built in ui.js (showRoundOver): the winner's card big and lit,
+               everyone else small and grey below their placement — the Smash
+               results podium. Empty on a draw. -->
+          <div id="victoryPodium" class="victory-podium"></div>
           <!-- Built in ui.js (renderMatchStats): one row per fighter, in
                finishing order. -->
           <div id="matchStats" class="match-stats"></div>

@@ -136,7 +136,10 @@ export const TEXT = {
   stages: {
     eyebrow: "Choose arena",
     title: "Stages",
-    random: "Random Stage",
+    // The die is part of the pitch: this button is a DRAW (it runs the roulette
+    // in ui.js), and it should read like a gamble worth taking, not a fallback
+    // for players who could not decide.
+    random: "🎲 Random Stage",
     back: "Back",
   },
 
@@ -261,6 +264,14 @@ export const TEXT = {
     },
     winner: (name) => `${name} wins!`,
     teamWinner: (side) => `${side} win!`,
+    // The podium: the ribbon over the winner's card, and the placement over
+    // everyone else's ("2nd", "3rd", …).
+    winnerBadge: "WINNER",
+    place: (n) => {
+      const teens = n % 100 >= 11 && n % 100 <= 13;
+      const suffix = teens ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th";
+      return `${n}${suffix}`;
+    },
     players: "Players",
     cpus: "CPUs",
     draw: "Draw",
