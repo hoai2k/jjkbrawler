@@ -18,11 +18,12 @@ tools/pose_apply.py                     puts an editor export back in the tree
 tools/pose_contact_sheet.py <char>      the sheet, and --check
 tools/pose_rig_sheet.mjs <char>         every pose's RIG beside its drawing
 tools/pose_three_up.mjs <char>          drawing · matched · baseline · generated · in-game
+tools/pose_silhouettes.mjs              do the baseline poses read apart?
 tools/pose_verify.py <char>             crossed limbs, lopsided pairs, impossible turns
 tools/check_pose_reads.mjs              runs in `npm run check`
 ```
 
-Those five check different things and none of them replaces another.
+Those check different things and none of them replaces another.
 `--check` measures every joint to the nearest ink, so it proves the read sits
 on the art. `pose_verify.py` asks whether the *body* those joints describe is
 possible — legs that cross at the shins, a thigh twice its partner, a shoulder
@@ -111,7 +112,34 @@ library. Every frame name on every sheet resolves to one, so it never falls
 back — `tools/check_battle_poses.mjs` walks all 1389 frames across the roster
 and fails if any lands nowhere, or if an intent is defined that nothing reaches.
 
-Two things make it more than a default. The first is the **beat**: the brief is
+#### Do the poses read apart?
+
+A fighting game is read at speed and at size, and what a player reads first is
+the **outline** — before the colours, before the details, long before the
+hands. Two moves with one silhouette are two moves the player cannot tell
+apart. That is a property of the *library* rather than of any pose in it, so no
+amount of looking at one pose catches it, and it gets worse exactly as the
+library grows.
+
+`tools/pose_silhouettes.mjs` measures it: every intent is posed on a real rig,
+its outline is read off the canvas, and all 528 pairs are compared by
+intersection over union. It fails above 0.86, and the handful of pairs allowed
+to be close have to say what tells them apart in play — a `poise` and a
+`stance` are the same body, and the aura is the difference.
+
+**Anticipation is held to a tighter limit (0.72)**, against the pose it winds
+up out of. A wind-up is the only frames an opponent gets to react in, so it has
+to read differently from what the fighter was doing a moment earlier — not
+merely differently from everything. That rule found two real defects on its
+first run: `strike_wind` sat at **0.73** against the stance and `crouch_wind`
+at **0.79** against the crouch, which is a heavy attack telegraphing nothing.
+Both were re-coiled — chest further away, hips dropped and loaded onto the rear
+leg, lead shoulder pulled back — and are now 0.61 and 0.48.
+
+It needs a browser and a running server, so it is a hand-run tool rather than
+part of `npm run check`; run it whenever the library gains a pose.
+
+Two other things make the baseline more than a default. The first is the **beat**: the brief is
 explicit that in an attack pair `_a` is the wind-up and `_b` is the strike, so
 the suffix selects a *different intent*, not a variation on one. Getting that
 wrong gives a fighter two contact frames and no anticipation, which is the
