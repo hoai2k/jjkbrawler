@@ -354,6 +354,21 @@ Blender. It is the STOPGAP. The fix is a tip direction in the prop spec and a
 re-attach, and until that lands every newly attached weapon has to be looked
 at.
 
+**The same tool angles a CARRY**, with `--deg` and `--pivot hand`, and
+Gakuganji is the case for it. His guitar is attached exactly as the spec says
+— `grip` 0.75 of a 1.00 m instrument — so 0.75 m of it hangs below a hand that
+his straightened arm puts at 0.95 m. That is physically right and it reads as
+a red object lying on the floor, because his robe covers the neck and only the
+body clears it. `--deg 45 --pivot hand` swings the whole attachment about the
+hand, so the grip stays on the same fret and the instrument comes forward,
+clear of the robe and clear of the floor.
+
+Which way it swings is not a free choice: **−45° looked better in a still and
+puts the body of the guitar through his hakama.** The direction that reads is
+the one that moves the prop AWAY from the body, and the way to tell is to
+render it from four sides rather than from the angle that prompted the
+change.
+
 **A REGENERATION IS NOT UNIFORMLY BETTER, AND ONE PART CAN BE MOVED ACROSS.**
 Maki's D6 rebuild fixed her limb balance and her fused weapon and broke her
 face: a flat plate of hair lands through the middle of it, hiding one eye
