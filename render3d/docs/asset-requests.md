@@ -212,6 +212,21 @@ list of measurements rather than a list of opinions — every one of these five
 shipped through a facing review, a size review and a stance pass with nobody
 noticing.
 
+**THE WEAPON IS A SEPARATE GENERATION.** Four of the five carry one, and a
+weapon drawn in a hand is a weapon the generator fuses into the hand. So each
+of them is two generations — the fighter empty-handed, the weapon alone — and
+`tools/blender_attach_prop.py` joins them onto `Prop_Main` after conform,
+scaling the weapon to its declared `lengthM` and putting its declared `grip`
+point in the fist. That step is wired into `tools/build_model.sh`: drop the
+weapon at `billboards/intake/<char>/_prop.glb` and the run picks it up.
+
+It costs a second generation per armed fighter and buys three things beyond
+the fusion going away: hands that are hands rather than fists moulded round a
+shaft, a weapon that can be re-scaled or replaced without re-generating the
+fighter, and `Prop_Main` finally carrying real geometry for Maki and
+Gakuganji — whose two-handed grip has never engaged because their weapons are
+body skin.
+
 **While regenerating, two pipeline fixes ride along:**
 
 - **Strip the stray.** Every one of the 27 delivered files carries an

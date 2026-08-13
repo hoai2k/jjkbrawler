@@ -409,12 +409,31 @@ without it.
    models) and the others are not: Todo's board runs 107px off the bottom and
    his model measures clean.
 
-2. **PROPS DO NOT TOUCH THE BODY.** No weapon, broom, axe, guitar or bag may
-   overlap or touch the figure's silhouette in ANY view. Draw it held at
-   arm's length, or lay it beside the figure and give it its own isolated
-   view. Momo's broom stood against her leg in three views of four, and image-
-   to-3D cannot separate a long thin object from a limb it is touching —
-   so it did not: her leg *is* the broom.
+2. **THE ARMED FIGHTERS ARE DRAWN EMPTY-HANDED, AND THE WEAPON GETS ITS OWN
+   PLATE.** Not "keep the prop clear of the body" — keep it out of the board
+   entirely. Image-to-3D cannot separate two objects that touch in the picture,
+   and a weapon in a hand touches by definition: Momo's broom stood against her
+   leg in three views of four and came back as her leg; Maki's polearm and
+   Gakuganji's guitar came back as part of an arm.
+
+   So `momo`, `maki`, `gakuganji` and `meimei` are drawn with **empty hands,
+   fingers loosely curled as if holding** (the hand is one bone — it cannot
+   close later, so it has to be drawn closed), and each delivers a **second
+   plate: the weapon alone**, four views, same size and background rules, no
+   hand on it. The two are generated separately and joined at conform by
+   `tools/blender_attach_prop.py`, which reads the weapon's real length and
+   grip point from `render3d/src/props.js`:
+
+   | Fighter | Weapon | Length | Hand sits, from the heavy end |
+   |---|---|---|---|
+   | `maki` | polearm | 1.80 m | 0.45 |
+   | `momo` | broom | 1.40 m | 0.70 |
+   | `meimei` | axe | 1.30 m | 0.80 |
+   | `gakuganji` | guitar | 1.00 m | 0.75 |
+
+   Deliver the weapon plate as `<char>_prop.png`. The engine contract is
+   unchanged — the rig that lands still carries its weapon on `Prop_Main` —
+   what changes is that we do the joining instead of the generator.
 
 3. **NOTHING LONG AND THIN PARALLEL TO A LIMB.** Even clear of the body, a
    staff drawn vertically beside a standing leg reads as that leg's second

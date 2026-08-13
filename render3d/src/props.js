@@ -2,8 +2,18 @@
 // body: Nobara's hammer, Maki's polearm, Mahoraga's wheel, Mei Mei's braid.
 //
 // THE CONTRACT (mirrored in docs/asset-requests.md): props and chains are part
-// of the RIG, never separate files. A delivered .glb carries its own weapon
-// geometry hung on named bones; what this module adds is
+// of the RIG. A delivered .glb carries its own weapon geometry hung on named
+// bones — that has not changed, and nothing downstream needs it to.
+//
+// What HAS changed is who puts it there. A weapon drawn in a fighter's hand is
+// a weapon an image-to-3D generator will fuse INTO the fighter: Momo's broom
+// came back as her leg, Maki's polearm and Gakuganji's guitar as part of an
+// arm. So a generated fighter is now drawn and generated empty-handed, their
+// weapon is generated alone, and tools/blender_attach_prop.py joins the two
+// onto the prop bone before intake — arithmetic where it used to be inference.
+// The .glb that lands is the same shape of file it always was.
+//
+// What this module adds is
 //
 //   * the NAMING those bones must use, so clips and tools can find them:
 //       Prop_Main        the weapon hand's prop (sword, hammer, broom…)
@@ -39,24 +49,39 @@ const DEG = Math.PI / 180;
 // bare hands and no chains. `kind` picks the placeholder shape for the
 // mannequin; a delivered rig brings its own geometry on the same bone.
 
+// `lengthM` and `grip` are what a SEPARATELY generated weapon needs to be
+// joined to the body (tools/blender_attach_prop.py): how long the thing really
+// is, and where along it the hand sits — as a fraction measured FROM THE HEAVY
+// END, because which end is heavy is measurable and which end is the top is
+// not. They are also the brief a modeller draws the weapon plate from.
 export const CHARACTER_PROPS = {
-  yuta:      [{ bone: "Prop_Main", kind: "sword", hand: "RightHand" }],
-  nanami:    [{ bone: "Prop_Main", kind: "sword", hand: "RightHand" }],
-  toji:      [{ bone: "Prop_Main", kind: "spear2h", hand: "RightHand" }],
-  reggie:    [{ bone: "Prop_Main", kind: "umbrella", hand: "RightHand" }],
-  nobara:    [{ bone: "Prop_Main", kind: "hammer", hand: "RightHand" },
-              { bone: "Prop_Off", kind: "nail", hand: "LeftHand" }],
+  yuta:      [{ bone: "Prop_Main", kind: "sword", hand: "RightHand",
+                lengthM: 0.95, grip: 0.82 }],
+  nanami:    [{ bone: "Prop_Main", kind: "sword", hand: "RightHand",
+                lengthM: 0.80, grip: 0.85 }],
+  toji:      [{ bone: "Prop_Main", kind: "spear2h", hand: "RightHand",
+                lengthM: 1.90, grip: 0.55 }],
+  reggie:    [{ bone: "Prop_Main", kind: "umbrella", hand: "RightHand",
+                lengthM: 0.95, grip: 0.85 }],
+  nobara:    [{ bone: "Prop_Main", kind: "hammer", hand: "RightHand",
+                lengthM: 0.35, grip: 0.80 },
+              { bone: "Prop_Off", kind: "nail", hand: "LeftHand",
+                lengthM: 0.12, grip: 0.60 }],
   // `rescue: "offBone"` — see blender_conform.py rescue_offbone_prop. Her axe
   // hangs at hip height, so the default strategy (find the thing taller than
   // the fighter) cannot see it; what does see it is that the generator bound
   // it to her thigh and hands, leaving it further from those bones than skin
   // ever is. OPT-IN because loose clothing looks identical to that test.
   meimei:    [{ bone: "Prop_Main", kind: "axe", hand: "RightHand",
-                rescue: "offBone" }],
-  maki:      [{ bone: "Prop_Main", kind: "spear2h", hand: "RightHand" }],
-  momo:      [{ bone: "Prop_Main", kind: "broom", hand: "RightHand" }],
-  gakuganji: [{ bone: "Prop_Main", kind: "guitar", hand: "LeftHand" }],
-  mahoraga:  [{ bone: "Prop_Float", kind: "wheel", hand: null }],
+                rescue: "offBone", lengthM: 1.30, grip: 0.80 }],
+  maki:      [{ bone: "Prop_Main", kind: "spear2h", hand: "RightHand",
+                lengthM: 1.80, grip: 0.45 }],
+  momo:      [{ bone: "Prop_Main", kind: "broom", hand: "RightHand",
+                lengthM: 1.40, grip: 0.70 }],
+  gakuganji: [{ bone: "Prop_Main", kind: "guitar", hand: "LeftHand",
+                lengthM: 1.00, grip: 0.75 }],
+  mahoraga:  [{ bone: "Prop_Float", kind: "wheel", hand: null,
+                lengthM: 0.90, grip: 0.50 }],
 };
 
 // `fromSkin: true` means the chain is not a hook for a rigger to hang art on
