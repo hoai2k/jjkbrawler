@@ -53,7 +53,7 @@ its own `idle_a`, so landing that pose is also what retires any authored
 A **background** takes the short path too — no keying, no measuring, no manifest
 entry — so landing one is a copy into `assets/backgrounds/` and nothing else.
 **Copy the painting it replaces into `assets/reference/backgrounds_<round>/`
-first** (18E's went to `backgrounds_previous/`, 20B's go to `backgrounds_18e/`).
+first** (18E's went to `backgrounds_previous/`, 20B's to `backgrounds_18e/`).
 Putting a board back is then one file copy rather than a trip through git.
 Watch the extension: a board is registered in `src/stages.js` by filename, so a
 `.webp` replaced by a `.jpg` needs that one string changed with it (round 18E,
