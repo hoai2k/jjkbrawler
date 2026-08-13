@@ -55,12 +55,13 @@ PARTS = {
     # slimmer boot against the recipient's bulkier trouser cuff and the join is
     # a visible tear; taking the lower leg too moves the seam up to the knee,
     # which is inside the leg rather than at a change of silhouette.
-    "shins": {"root": None,
+    "shins": {"root": None, "land": True,
               "bones": {"LeftLeg", "LeftFoot", "LeftToeBase",
                         "RightLeg", "RightFoot", "RightToeBase"},
               "split": [("LeftLeg", {"LeftLeg", "LeftFoot", "LeftToeBase"}),
                         ("RightLeg", {"RightLeg", "RightFoot", "RightToeBase"})]},
-    "feet": {"root": None, "bones": {"LeftFoot", "LeftToeBase",
+    "feet": {"root": None, "land": True,
+             "bones": {"LeftFoot", "LeftToeBase",
                                      "RightFoot", "RightToeBase"},
              # Two separate grafts, each about its own ankle: a single frame for
              # both feet would carry the left foot's error onto the right.
@@ -227,17 +228,18 @@ def main():
     rtris = [tuple(ridxs[i:i + 3]) for i in range(0, len(ridxs), 3)]
     rj = acc_read(rdoc, rblob, rprim["attributes"]["JOINTS_0"])
     rw = acc_read(rdoc, rblob, rprim["attributes"]["WEIGHTS_0"])
+    rpos = acc_read(rdoc, rblob, rprim["attributes"]["POSITION"])
 
     # Which bones each part is made of, expanded over the requested parts.
     jobs = []
     for name in args.part:
         spec = PARTS[name]
         for root, bones in spec.get("split", [(spec["root"], spec["bones"])]):
-            jobs.append((name, root, bones))
+            jobs.append((name, root, bones, spec.get("land", False)))
 
     # --- 1. cut the part out of the recipient ------------------------------
     all_bones = set()
-    for _n, _r, bones in jobs:
+    for _n, _r, bones, _l in jobs:
         all_bones |= bones
     rin = [dominant(rj[i], rw[i], rjname) in all_bones for i in range(len(rj))]
     kept = [t for t in rtris if not (rin[t[0]] and rin[t[1]] and rin[t[2]])]
@@ -246,10 +248,11 @@ def main():
     # --- 2. lift the part out of the donor, one root frame at a time --------
     new_pos, new_nor, new_uv, new_j, new_w = [], [], [], [], []
     new_tris = []
-    for pname, root, bones in jobs:
+    for pname, root, bones, land in jobs:
         if root not in dinv or root not in rinv:
             print(f"  {pname}/{root}: bone missing from one of the rigs — skipped")
             continue
+        first_new = len(new_pos)
         # donor world -> root bone's frame -> recipient world
         M = mat_mul(mat_inv(rinv[root]), dinv[root])
         if args.scale != 1.0:
@@ -260,6 +263,10 @@ def main():
                 S[i][3] = pivot[i] * (1 - args.scale)
             M = mat_mul(S, M)
 
+        # The recipient verts THIS job removed — what the graft has to stand
+        # where. Recomputed per job so the left leg is landed on the left leg's
+        # old sole rather than on the lower of the two.
+        rin_job = [dominant(rj[i], rw[i], rjname) in bones for i in range(len(rj))]
         din = [dominant(dj[i], dw[i], djname) in bones for i in range(len(dj))]
         take = [t for t in dtris if din[t[0]] and din[t[1]] and din[t[2]]]
         remap = {}
@@ -289,6 +296,28 @@ def main():
                     new_w.append(tuple(ws))
                 tri.append(remap[v])
             new_tris.append(tuple(tri))
+        # THE FIGHTER HAS TO STAND ON THE FLOOR. The bind matrices land the
+        # part correctly ORIENTED and correctly placed relative to its root
+        # joint, which is the right answer for a head and half an answer for a
+        # leg: a donor whose boot has a thicker sole hangs that much lower, and
+        # because the two ankles sit at slightly different heights the two legs
+        # hang by DIFFERENT amounts. Maki came out of her graft floating 2.5 cm
+        # above the floor with her feet 2.5 cm out of level with each other,
+        # which reads as a limp long before anyone thinks to look at the boots.
+        # So a part that touches the ground has its lowest point put back where
+        # the lowest point of the part it replaced was, and the millimetres of
+        # slack go into the seam, up inside the calf, where nothing can see it.
+        if land and len(new_pos) > first_new:
+            old_low = min((rpos[i][1] for i in range(len(rpos)) if rin_job[i]),
+                          default=None)
+            if old_low is not None:
+                new_low = min(p[1] for p in new_pos[first_new:])
+                drop = old_low - new_low
+                if abs(drop) > 1e-6:
+                    for k in range(first_new, len(new_pos)):
+                        x, y, z = new_pos[k]
+                        new_pos[k] = (x, y + drop, z)
+                    print(f"  {pname}/{root}: sole landed on the floor ({drop * 100:+.1f} cm)")
         print(f"  {pname}/{root}: took {len(take)} triangles, {len(remap)} vertices")
 
     if not new_tris:

@@ -1,11 +1,20 @@
-"""Replace a malformed foot with a good one — the other foot, mirrored, or the
-same foot from another generation of the model.
+"""Replace a malformed foot with the fighter's OWN good foot, mirrored.
 
     <blender> -b -P tools/blender_fix_foot.py -- \
         --in  render3d/assets/momo/momo.glb --out out.glb --from Right --to Left
 
-    <blender> -b -P tools/blender_fix_foot.py -- \
-        --in ... --out ... --to Left --to Right --donor render3d/assets/meimei/meimei_alt.glb
+ONE JOB. Taking a foot from ANOTHER MODEL is tools/graft_model_part.py, which
+does it properly and does it better: it moves whole TRIANGLES whose vertices
+all belong to the part, so the seam lands on the recipient's side, and it
+carries the donor's texture across as its own primitive. This tool tried the
+same thing at shell granularity and dragged half a shin with every foot; that
+path is gone rather than left around to be picked by mistake. What is left is
+the case the other tool cannot do, because it needs two models and here there
+is only one.
+
+WHY THE MIRROR IS THE BETTER ANSWER WHEN IT APPLIES: everything matches by
+construction — same mesh density, same texture, same leg, same generation. A
+cross-model graft has to reconcile all four.
 
 WHY THIS IS POSSIBLE AT ALL, and it is not because the meshes are tidy: a
 generated body is a PATCHWORK of disconnected shells — 198 on Mei Mei, 340 on
@@ -94,23 +103,19 @@ def islands(obj):
     return out
 
 
-def shells_for(obj, side, dom=None, isl=None, foot_only=False):
+def shells_for(obj, side, dom=None, isl=None):
     """The shells that carry this side's foot, and the verts in them.
 
-    `foot_only` narrows each shell to the vertices the foot bones actually
-    own. A shell is 40-50% foot at best — the rest is shin — so taking whole
-    shells across MODELS drags one generation's calf into another's leg, which
-    is what turned Maki's boots into a knot. Within one model that does not
-    arise: the mirror's donor shin is this same body's other shin."""
+    Whole shells, shin included. Across models that would drag one
+    generation's calf into another's leg — which is why cross-model work
+    belongs to graft_model_part.py — but within ONE model the shin that comes
+    along is this same body's other shin, already the right length and the
+    right thickness."""
     dom = dom if dom is not None else dominant(obj)
     isl = isl if isl is not None else islands(obj)
     want = foot_groups(side)
-    keep = []
-    for verts in isl.values():
-        hit = [i for i in verts if dom.get(i) in want]
-        if hit:
-            keep.append(hit if foot_only else verts)
-    return keep
+    return [verts for verts in isl.values()
+            if any(dom.get(i) in want for i in verts)]
 
 
 def mirror_plane(arm):
@@ -174,10 +179,10 @@ def body_meshes(arm):
             if o.type == "MESH" and o.vertex_groups and o.parent_type != "BONE"]
 
 
-def graft(target_obj, donor_obj, src_side, dst_side, arm, report, mirrored,
-          donor_arm=None, foot_only=False):
-    """Put donor's `src_side` foot shells onto target as its `dst_side` foot."""
-    donor_shells = shells_for(donor_obj, src_side, foot_only=foot_only)
+def mirror_foot(target_obj, src_side, dst_side, arm, report):
+    """Put the `src_side` foot onto `dst_side`, reflected about the midline."""
+    donor_obj = target_obj
+    donor_shells = shells_for(donor_obj, src_side)
     if not donor_shells:
         report.append(f"  no {src_side} foot found on the donor — nothing to take")
         return False
@@ -188,70 +193,42 @@ def graft(target_obj, donor_obj, src_side, dst_side, arm, report, mirrored,
     bpy.context.scene.collection.objects.link(copy)
     keep_only(copy, donor_verts)
 
-    if donor_arm and donor_arm is not arm:
-        # ANOTHER MODEL'S FOOT LANDS IN THIS MODEL'S ANKLE. Two generations of
-        # the same fighter are both conformed to the same canon height with
-        # their feet on the floor, but that does not put their ankles in the
-        # same place — legs differ by a few centimetres and the whole body may
-        # be turned. Carrying the foot through the ankle BONE's frame (out of
-        # the donor's, into the target's) puts it where this rig's ankle
-        # actually is, pointing the way this rig's foot actually points.
-        dj = bone_named(donor_arm, src_side + "Foot")
-        tj = bone_named(arm, dst_side + "Foot")
-        if not dj or not tj:
-            report.append(f"  no {src_side}Foot on one of the rigs — cannot place the graft")
-            bpy.data.objects.remove(copy, do_unlink=True)
-            return False
-        into = (arm.matrix_world @ tj.matrix_local) \
-            @ (donor_arm.matrix_world @ dj.matrix_local).inverted()
-        mw = copy.matrix_world
-        inv = mw.inverted()
-        for v in copy.data.vertices:
-            v.co = inv @ (into @ (mw @ v.co))
+    origin, normal = mirror_plane(arm)
+    mw = copy.matrix_world
+    inv = mw.inverted()
+    for v in copy.data.vertices:
+        v.co = inv @ reflect(mw @ v.co, origin, normal)
+    # A reflection reverses winding; flip it back or the foot is inside-out.
+    bm = bmesh.new()
+    bm.from_mesh(copy.data)
+    for f in bm.faces:
+        f.normal_flip()
+    bm.to_mesh(copy.data)
+    bm.free()
 
-    if mirrored:
-        origin, normal = mirror_plane(arm)
-        mw = copy.matrix_world
-        inv = mw.inverted()
-        for v in copy.data.vertices:
-            v.co = inv @ reflect(mw @ v.co, origin, normal)
-        # A reflection reverses winding; flip it back or the foot is inside-out.
-        bm = bmesh.new()
-        bm.from_mesh(copy.data)
-        for f in bm.faces:
-            f.normal_flip()
-        bm.to_mesh(copy.data)
-        bm.free()
-
-    table = weights_of(copy)
-    if mirrored:
-        def remap(name):
-            if name.startswith(src_side):
-                return dst_side + name[len(src_side):]
-            if name.startswith(dst_side):
-                return src_side + name[len(dst_side):]
-            return name
-    else:
-        def remap(name):
-            return name
-    rebind(copy, table, remap)
+    def remap(name):
+        if name.startswith(src_side):
+            return dst_side + name[len(src_side):]
+        if name.startswith(dst_side):
+            return src_side + name[len(dst_side):]
+        return name
+    rebind(copy, weights_of(copy), remap)
 
     # Out with the bad one. Done AFTER the donor is prepared, so a failure
     # above leaves the model as it was rather than footless.
-    old_shells = shells_for(target_obj, dst_side, foot_only=foot_only)
+    old_shells = shells_for(target_obj, dst_side)
     doomed = [i for s in old_shells for i in s]
     old_sole = min((target_obj.matrix_world @ target_obj.data.vertices[i].co).z
                    for i in doomed) if doomed else None
 
-    # THE FIGHTER HAS TO STAND ON THE FLOOR. Matching ankle to ankle is the
-    # right way to ORIENT a borrowed foot and the wrong way to place it: a
-    # donor with a thicker sole hangs that much lower, and since the two
-    # ankles sit at different heights the two feet sink by different amounts.
-    # Maki's grafted feet ended 8.6 cm and 1.6 cm under the floor — one leg
-    # buried, and the pair 6.9 cm out of level with each other, which reads as
-    # a limp before anyone thinks to look at the boots. So the sole is landed
-    # where the sole it replaces was, and the centimetre or two of slack goes
-    # into the ankle, inside the boot, where nothing can see it.
+    # THE FIGHTER HAS TO STAND ON THE FLOOR. A reflection about the midline is
+    # exact in the horizontal but inherits whatever height the good foot sat
+    # at, and the two ankles are rarely level to the millimetre. Landing the
+    # sole where the replaced sole was costs a few millimetres at the ankle,
+    # inside the boot, and buys a fighter who is standing rather than hovering.
+    # graft_model_part.py needed the same and for a larger reason: Maki came
+    # out of her shin graft 2.5 cm off the floor with her feet 2.5 cm out of
+    # level, which reads as a limp before anyone looks at the boots.
     if old_sole is not None and copy.data.vertices:
         new_sole = min((copy.matrix_world @ v.co).z for v in copy.data.vertices)
         drop = old_sole - new_sole
@@ -271,8 +248,7 @@ def graft(target_obj, donor_obj, src_side, dst_side, arm, report, mirrored,
     target_obj.select_set(True)
     bpy.context.view_layer.objects.active = target_obj
     bpy.ops.object.join()
-    report.append(f"  {dst_side} foot <- {src_side} "
-                  f"{'mirrored' if mirrored else 'grafted'}: "
+    report.append(f"  {dst_side} foot <- {src_side} mirrored: "
                   f"{len(donor_verts)} vert(s) in {len(donor_shells)} shell(s) in, "
                   f"{len(doomed)} out")
     return True
@@ -285,14 +261,11 @@ def main():
     ap.add_argument("--out", dest="dst", required=True)
     ap.add_argument("--to", dest="to", action="append", required=True,
                     choices=SIDES, help="the foot to REPLACE; repeatable")
-    ap.add_argument("--from", dest="frm", choices=SIDES,
+    ap.add_argument("--from", dest="frm", choices=SIDES, required=True,
                     help="the foot to copy, mirrored, from the same model")
-    ap.add_argument("--donor", help="another .glb of the same fighter to take feet from")
-    ap.add_argument("--foot-only", action="store_true",
-                    help="take only the foot bones' own verts, leaving each model its own shin")
     args = ap.parse_args(argv)
-    if not args.frm and not args.donor:
-        sys.exit("say where the good foot comes from: --from <side> or --donor <glb>")
+    if args.frm in args.to:
+        sys.exit("a foot cannot be mirrored onto itself — --from and --to must differ")
 
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.import_scene.gltf(filepath=args.src)
@@ -307,28 +280,8 @@ def main():
 
     report = [f"fixing feet on {os.path.basename(args.src)}:"]
 
-    donor_obj = target
-    donor_arm = arm
-    if args.donor:
-        before = set(bpy.data.objects)
-        bpy.ops.import_scene.gltf(filepath=args.donor)
-        new = [o for o in bpy.data.objects if o not in before]
-        donor_arm = next((o for o in new if o.type == "ARMATURE"), None)
-        if donor_arm:
-            donor_arm.data.pose_position = "REST"
-        bpy.context.view_layer.update()
-        cands = [o for o in new if o.type == "MESH" and o.vertex_groups
-                 and o.parent_type != "BONE"]
-        if not cands:
-            sys.exit("the donor has no skinned mesh")
-        donor_obj = max(cands, key=lambda o: len(o.data.vertices))
-        report.append(f"  donor: {os.path.basename(args.donor)}")
-
     for side in args.to:
-        src_side = args.frm or side
-        graft(target, donor_obj, src_side, side, arm, report,
-              mirrored=bool(args.frm) and src_side != side,
-              donor_arm=donor_arm, foot_only=args.foot_only)
+        mirror_foot(target, args.frm, side, arm, report)
 
     # Only the fighter ships: the export selects this armature and its own
     # children, so whatever the donor dragged in is simply never written.

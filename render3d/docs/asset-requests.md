@@ -156,21 +156,39 @@ that fills the same space at the ankle is a local edit.
     --from Right --to Left
 ```
 
-**Mirroring the fighter's own good foot works. Grafting one from another
-generation does not** — both were tried on the same models. The mirror is
-clean because everything matches by construction: same density, same texture,
-same leg, and the two ankle bones are already mirror images, so reflecting the
-geometry and renaming its weight groups puts the foot in the right place *and*
-deforms correctly. A cross-model graft has none of that. A foot shell is only
-40–50% foot — the rest is shin — so it drags one generation's calf into
-another's leg, and since the donor's sole hangs lower it sinks (Maki's feet
-landed 8.6 cm and 1.7 cm under the floor, 6.9 cm out of level with each
-other). Narrowing the graft to the foot bones' own vertices only trades the
-knot for a torn ankle. `--donor` is still there, and it still measures
-better; it just does not *look* better, which is the only test that counts.
+**Two tools, two jobs — take the foot from the right place.** Mirroring is for
+one model with one good foot; **`tools/graft_model_part.py` is for taking a part from another
+generation**, and it is the better tool
+whenever there are two models: it moves whole TRIANGLES whose vertices all
+belong to the part, so the seam falls on the recipient's side, and it carries
+the donor's texture across as its own primitive. `blender_fix_foot.py` once
+had a `--donor` path that worked at SHELL granularity and dragged half a shin
+with every foot; that path is deleted rather than left around to be picked by
+mistake.
 
-The mirror plane is the perpendicular bisector of the two ankle bones, never
-`x = 0` — these rigs carry a yaw offset and half of them sit off-centre.
+The mirror is clean because everything matches by construction: same density,
+same texture, same leg, same generation, and the two ankle bones are already
+mirror images — so reflecting the geometry and renaming its weight groups puts
+the foot in the right place *and* deforms correctly. The mirror plane is the
+perpendicular bisector of the two ankle bones, never `x = 0` — these rigs
+carry a yaw offset and half of them sit off-centre.
+
+**Both tools land the sole**, and both need to. A graft placed by bind matrix
+arrives correctly *oriented* and hanging at the donor's own sole depth: Maki
+came out of her shin graft **2.5 cm off the floor with her feet 2.5 cm out of
+level with each other**, which reads as a limp long before anyone looks at the
+boots. The lowest point of the new part is put where the lowest point of the
+part it replaced was, and the slack goes into the seam, up inside the calf.
+
+**A shin graft is only safe when nothing else hangs off the leg bones.** Mei
+Mei's old feet measure much better than her new ones (2.24/2.43 against
+1.52/1.56) and she still cannot have them: her skirt hem is weighted to
+`Left/RightLeg`, so cutting the shins tears the skirt, and the distances give
+no way to spare it — hem and leg run continuously from 3 cm to 17 cm off the
+shin axis, with the boot itself reaching 14.9 cm, so any radius that keeps the
+skirt also keeps the old boot. Grafting her at the ANKLE instead leaves the
+skirt alone and tears the ankle. Her feet are mid-roster and under no flag, so
+she keeps them.
 
 **The audit measures feet now**, so this cannot pass unnoticed again: a foot is
 longer than it is wide, and the ratio is taken along the foot's own principal
@@ -178,9 +196,9 @@ axis (never off the toe bone, which is a 2 cm stub whose direction is noise and
 which scores known-good feet as badly as broken ones). Delivered feet run about
 2.0; a lump reads about 1.0. Momo's left was **1.05** against her right's 1.98,
 and the sweep turned up Sukuna's left at **1.29** against 1.97 — both now 1.98
-from their own right foot mirrored over. Maki's are **1.03 / 1.15**: both lumps,
-so there is no good foot to copy and nothing a mirror can do. She needs the
-generator, not surgery.
+from their own right foot mirrored over. Maki's were **1.03 / 1.15** — both lumps, so no mirror could
+help her; she took her old boots instead and reads **2.41 / 2.31**, the best on
+the roster.
 
 ### `heightM` is measured, never reviewed
 
