@@ -32,6 +32,13 @@ function entryFor(name) {
 
 // A sound may declare several interchangeable files (the voice groups); one is
 // drawn per call so a repeated special never loops the identical sample.
+/** The URL a sound file actually lives at, resolved the way the loader does.
+ *  Exported for the audio workbench, which measures a take's real duration off
+ *  the file before proposing it as a replacement. */
+export function sfxUrl(file) {
+  return new URL(SFX_DIR + file, ASSET_BASE).href;
+}
+
 function srcFor(entry) {
   const f = entry.file;
   const file = Array.isArray(f) ? f[Math.floor(Math.random() * f.length)] : f;

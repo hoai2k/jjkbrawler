@@ -39,7 +39,7 @@ body {
 .modes a { color: var(--dim); font-size: 12px; text-decoration: none; }
 .modes a:hover { color: var(--accent); }
 .ghost {
-  margin-left: auto;
+  margin-left: 8px;
   background: #232a3d;
   color: var(--text);
   border: 1px solid var(--line);
@@ -50,6 +50,7 @@ body {
   cursor: pointer;
 }
 .ghost:hover { border-color: var(--accent); color: var(--accent); }
+.ghost--go { margin-left: auto; border-color: rgba(98, 220, 255, 0.4); color: var(--accent); }
 .loading { margin-left: 12px; color: var(--warn); font-size: 12px; }
 .loading.done { color: #7fe0a0; }
 
@@ -205,3 +206,8 @@ h2 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: 
   overflow-x: auto;
   white-space: pre;
 }
+
+/* A pick that differs from what ships is the one thing on this page somebody
+   has to act on, so it stops looking like the rest of the page. */
+.track.chooser.changed { border-left: 3px solid var(--accent); }
+.track.chooser.changed .label { color: var(--accent); }

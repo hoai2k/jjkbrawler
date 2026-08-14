@@ -1,0 +1,119 @@
+// The audio workbench: does it show the whole voice, and draw the fighter?
+//
+// Written after a cache-key change quietly broke every sprite on the page. The
+// canvas fell back to "art still loading…", which is what a slow load looks
+// like, so the bench looked busy rather than broken and stayed that way through
+// a commit. A pixel count is the only assertion that can tell those two apart.
+//
+// It also guards the coverage rule that gives the page its point: every voice
+// group in the game has to be reachable from it. Two of the six were not, for
+// as long as the cast list was built from spoken lines alone — and the two that
+// were missing had alternate takes nobody could audition.
+//
+// Needs `playwright` and a Chromium binary (set CHROMIUM_PATH if yours is
+// elsewhere). Start the game first (node server.mjs), then:
+//   node tools/smoke_audio_bench.mjs [baseUrl]
+import { chromium } from "playwright";
+
+const BASE = process.argv[2] || "http://127.0.0.1:5174";
+const browser = await chromium.launch({
+  executablePath: process.env.CHROMIUM_PATH || "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
+  args: ["--no-proxy-server"],
+});
+
+let failed = 0;
+function ok(pass, label, detail = "") {
+  if (!pass) failed++;
+  console.log(`${pass ? "ok  " : "FAIL"} ${label}${detail ? `   ${detail}` : ""}`);
+}
+
+const page = await browser.newPage({ acceptDownloads: true });
+const errors = [];
+page.on("pageerror", (e) => errors.push(String(e).slice(0, 160)));
+page.on("console", (m) => {
+  if (m.type() === "error" && !/Failed to load resource/.test(m.text())) errors.push(m.text().slice(0, 160));
+});
+
+await page.goto(`${BASE}/workbench/?edit=audio`, { waitUntil: "load" });
+await page.waitForTimeout(4000);
+
+// ---- every voice group in the game is reachable from the cast list
+const reach = await page.evaluate(async () => {
+  const audio = await import("/src/audio.js");
+  const cfg = await import("/src/config_audio.js");
+  const chars = await import("/src/characters.js");
+  const cast = [...document.querySelectorAll("#castList button")]
+    .map((b) => b.innerText.split("\n")[0].trim());
+  const byName = Object.fromEntries(
+    Object.entries(chars.CHARACTERS).map(([k, c]) => [c.name, k]));
+  const castKeys = cast.map((n) => byName[n]).filter(Boolean);
+  const groups = new Set(Object.values(audio.GRUNT_GROUPS));
+  const reached = new Set(castKeys.map((k) => audio.GRUNT_GROUPS[k]).filter(Boolean));
+  return {
+    cast,
+    all: [...groups],
+    missing: [...groups].filter((g) => !reached.has(g)),
+    kos: Object.values(audio.KO_FOR_GROUP).filter((k) => !cfg.SFX[k]),
+  };
+});
+ok(reach.missing.length === 0, "every voice group is reachable from the cast",
+   reach.missing.length ? `unreachable: ${reach.missing.join(", ")}` : `${reach.all.length} groups, ${reach.cast.length} in the list`);
+ok(reach.kos.length === 0, "every KO cry is registered", reach.kos.join(", "));
+
+// ---- the fighter actually draws
+//
+// The canvas is never empty — it prints a placeholder when it cannot draw — so
+// this counts opaque pixels rather than asking whether anything was painted.
+// A line of text is a few hundred; a fighter is thousands.
+for (const who of ["gojo", "maki", "nanami"]) {
+  await page.goto(`${BASE}/workbench/?edit=audio&char=${who}`, { waitUntil: "load" });
+  await page.waitForTimeout(4500);
+  const px = await page.evaluate(() => {
+    const c = document.querySelector("#stage");
+    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    let n = 0;
+    for (let i = 3; i < d.length; i += 4) if (d[i] > 8) n++;
+    return n;
+  });
+  ok(px > 3000, `${who}'s idle draws on the stage`, `${px} opaque pixels`);
+}
+
+// ---- a group's files are individually playable, and the pick is exportable
+await page.goto(`${BASE}/workbench/?edit=audio&char=gojo`, { waitUntil: "load" });
+await page.waitForTimeout(4000);
+const shape = await page.evaluate(() => ({
+  files: document.querySelectorAll(".track.file").length,
+  radios: document.querySelectorAll('.track.file input[type="radio"]').length,
+  checks: document.querySelectorAll('.track.file input[type="checkbox"]').length,
+  choosers: document.querySelectorAll(".track.chooser").length,
+}));
+ok(shape.files >= 6 && shape.choosers >= 2, "one row per recording, with a chooser each",
+   JSON.stringify(shape));
+ok(shape.radios >= 2, "a single-file sound picks exclusively", `${shape.radios} radios`);
+ok(shape.checks >= 3, "a group keeps any subset", `${shape.checks} checkboxes`);
+
+// Change one of each kind, then export.
+await page.locator('.track.file input[type="radio"]').nth(1).click();
+await page.locator('.track.file input[type="checkbox"]').nth(1).click();
+await page.waitForTimeout(300);
+const [download] = await Promise.all([
+  page.waitForEvent("download"),
+  page.click("#exportBtn"),
+]);
+const doc = JSON.parse(await (await download.createReadStream()).setEncoding("utf8").toArray().then((c) => c.join("")));
+ok(download.suggestedFilename().endsWith(".json"), "export downloads a JSON file",
+   download.suggestedFilename());
+ok(doc.changes.length === 2, "export carries both changes", `${doc.changes.length} change(s)`);
+const line = doc.changes.find((c) => c.spokenLine);
+ok(!!line && typeof line.spokenLine.measuredLength === "number",
+   "a spoken line's export measures the new take's real length",
+   line ? `${line.spokenLine.currentLength}s -> ${line.spokenLine.measuredLength}s` : "");
+const group = doc.changes.find((c) => Array.isArray(c.chosen));
+ok(!!group && group.dropped.length === 1, "a group's export says what was dropped",
+   group ? group.dropped.join(", ") : "");
+
+ok(errors.length === 0, "no page errors", errors.slice(0, 2).join(" | "));
+
+await browser.close();
+console.log(failed ? `\n${failed} check(s) failed` : "\nthe audio bench shows every voice, draws its fighter and exports its verdict");
+process.exit(failed ? 1 : 0);
