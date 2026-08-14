@@ -19,24 +19,47 @@
 // The cast list is derived from the call tables rather than written down here.
 // A fighter given a line tomorrow shows up on this page with no edit to it.
 
-import { CHARACTERS } from "../src/characters.js";
-import {
-  DOMAIN_CALL, MOVE_CALL, SFX, SPOKEN_LINES, SPOKEN_TIMING, AUDIO_MIX, VOICE_ALTERNATES,
-} from "../src/config_audio.js";
-import {
-  playSfx, playSfxEntry, cutSfx, spokenLead, spokenCommitAt, audioSettings,
-  GRUNT_GROUPS, KO_FOR_GROUP,
-} from "../src/audio.js";
-import { loadCoreAssets, loadFrame, frameKeys } from "../src/assets.js";
-import { currentFrame, drawCharFrame } from "../src/render_backend.js";
-import { state } from "../src/state.js";
+// The game modules are imported DYNAMICALLY, with this page's cache key on
+// every URL (router.js sets it; ?bust= on the page overrides it).
+//
+// Static imports would be cleaner to read and would defeat the point: a fresh
+// copy of this file that imports a stale `config_audio.js` shows a stale set of
+// alternates, and nothing about the page says so.
+//
+// The key travels ONE level, which is everything the bench reads for itself.
+// Modules imported deeper (audio.js's own import of config_audio.js) revalidate
+// on the ordinary schedule, so there are briefly two instances of some pure-data
+// modules. That is harmless — they hold no mutable state — and the alternative
+// is versioning imports across src/, which would put a workbench concern in the
+// game's source.
+//
+// Top-level await, so the rest of the module can go on using these as if they
+// had been imported the ordinary way.
+const CACHE_KEY = new URL(import.meta.url).searchParams.get("v") || "";
+const v = CACHE_KEY ? `?v=${encodeURIComponent(CACHE_KEY)}` : "";
+
+const [
+  { CHARACTERS },
+  { DOMAIN_CALL, MOVE_CALL, SFX, SPOKEN_LINES, SPOKEN_TIMING, AUDIO_MIX, VOICE_ALTERNATES },
+  { playSfx, playSfxEntry, cutSfx, spokenLead, spokenCommitAt, audioSettings, GRUNT_GROUPS, KO_FOR_GROUP },
+  { loadCoreAssets, loadFrame, frameKeys },
+  { currentFrame, drawCharFrame },
+  { state },
+] = await Promise.all([
+  import(`../src/characters.js${v}`),
+  import(`../src/config_audio.js${v}`),
+  import(`../src/audio.js${v}`),
+  import(`../src/assets.js${v}`),
+  import(`../src/render_backend.js${v}`),
+  import(`../src/state.js${v}`),
+]);
 
 const $ = (sel) => document.querySelector(sel);
 const els = {
   castList: $("#castList"), castSummary: $("#castSummary"),
   charName: $("#charName"), charSub: $("#charSub"),
   trackList: $("#trackList"), trackSummary: $("#trackSummary"),
-  loadState: $("#loadState"), stage: $("#stage"),
+  loadState: $("#loadState"), stage: $("#stage"), refresh: $("#refreshBtn"),
 };
 const ctx = els.stage.getContext("2d");
 
@@ -387,6 +410,19 @@ async function boot() {
   state.sfxEnabled = true;
   if (audioSettings.sfxVolume <= 0) audioSettings.sfxVolume = AUDIO_MIX.sfxVolume;
   audioSettings.muted = false;
+
+  // Reload against a key nobody has fetched: the HTML misses the cache, and the
+  // token it carries makes the stylesheet, this module and everything this
+  // module imports miss it too. The one button that always tells the truth.
+  els.refresh.addEventListener("click", () => {
+    const url = new URL(location.href);
+    url.searchParams.set("bust", Date.now().toString(36));
+    location.href = url.href;
+  });
+  if (params.get("bust")) {
+    els.refresh.textContent = "↻ Refreshed";
+    els.refresh.title = `Loaded with cache key ${CACHE_KEY} — nothing on this page came from a cache`;
+  }
 
   await loadCoreAssets();
   renderCast();

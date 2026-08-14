@@ -148,9 +148,9 @@ that plays the identical sample is the thing the trio exists to prevent.
 
 ### The two domain calls
 
-**`domain_call_gojo_alt_commanding.wav`** · Gojo — Unlimited Void, authoritative · voice `FWySLPyI58wEujI5OCqQ` *(Azel — commanding, cinematic)* · 3.0 s
+**`domain_call_gojo_alt_relaxed.wav`** · Gojo — Unlimited Void, relaxed and even · voice `FWySLPyI58wEujI5OCqQ` *(Azel — cinematic)* · stability 1.0 · pitch 0.96 · 3.6 s
 ```
-[commanding] りょういきてんかい。むりょうくうしょ。
+[relaxed, even pace] りょういきてんかい……[pause] むりょうくうしょ。
 ```
 
 **`domain_call_dagon_alt_deep.wav`** · Dagon — Horizon of the Captivating Skandha, lower · voice `3YKJpNw2ZvG9JayfGYAm` *(Sharo — low-pitched, calm)* · pitch 0.86 · 3.0 s
@@ -163,14 +163,21 @@ that plays the identical sample is the thing the trio exists to prevent.
 [quietly, to himself] りょういきてんかい。むりょうくうしょ。
 ```
 
-**Two Gojos, and they are asking different questions.** The commanding take
-answers "he should sound like he means it"; this one answers "he should sound
-like it costs him nothing" — a man saying something to himself on the way to
-doing it, with the emphasis nowhere. It carries `· stability 1.0 ·` because
-that is the only lever that reaches it: v3's stability is how far it may wander
-from a flat reading, and while it is free to act, no wording of the direction
-stops it acting. The first alternate was judged **too expressive**, which is a
-note about the model's freedom rather than about the words.
+**Two Gojos, and neither of them is trying to sound impressive.** The first
+attempt at an alternate was directed *authoritative* and came back at 1.58 s
+against the 3.28 s it replaces — commanding, and **rushed**, which is the
+opposite of the man. Being the strongest sorcerer alive is not something he
+has to push. So the word came out of the direction entirely and both takes now
+ask a quieter question: whether the line should sound relaxed and evenly paced,
+or flat to the point of unperformed — someone saying it to themselves on the
+way to doing it.
+
+Both carry `· stability 1.0 ·`, which is the lever that actually reaches this:
+v3's stability is how far it may wander from a flat reading, and while it is
+free to act, no wording of the direction stops it acting. "Too expressive" and
+"too rushed" are both notes about the model's freedom rather than about the
+words. The relaxed take also carries `· pitch 0.96 ·` — a 4% stretch, which
+buys pace without touching the delivery.
 
 **Dagon's is the one that needed a new lever.** No amount of direction stops a
 text-to-speech model sounding like a person, because it is a model of people —
@@ -274,6 +281,14 @@ convenient way to hear what an interrupted line sounds like.
 and `not in game`, and are mixed through the same category and gain — so what
 you are comparing is the performance and nothing else. They live in
 `VOICE_ALTERNATES` (`src/config_audio.js`) and **the game never plays them**.
+
+**Not seeing a change you just made?** The header's **↻ Refresh** reloads
+against a cache key nobody has fetched — the page, its stylesheet, its module
+and everything that module imports all miss the cache together. GitHub Pages
+serves source with a ten-minute max-age and a browser may hold an ES module in
+a tab with no revalidation at all, so "I edited it and reloaded" is not always
+enough on its own. When the bench itself changes, bump `BENCH_VERSION` in
+[`workbench/router.js`](../workbench/router.js) so everyone else gets it too.
 
 **A sound with several interchangeable files gets a row per file** — for the
 take in play and for every alternate. A grunt trio is three performances, not
