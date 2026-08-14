@@ -64,6 +64,7 @@ const fmt = (k, v) => {
     return Object.entries(v)
       .map(([bone, r]) => `${bone} [${r.join(", ")}]`).join("; ");
   }
+  if (k === "symmetry") return String(v);
   if (k === "shoulderOutCm") return `${v}cm out`;
   if (k === "renderScale") return `×${v}`;
   return `${v}°`;

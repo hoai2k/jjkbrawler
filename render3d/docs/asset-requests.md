@@ -222,7 +222,8 @@ So:
 
 - **Position fixes (`SYMMETRISE`) are safe everywhere.** Clips animate
   rotations, not bone positions, so there is no state where a mirrored
-  skeleton fights what the clip asked for.
+  skeleton fights what the clip asked for. It is now ON for the whole roster —
+  see below.
 - **Rotation fixes are safe on bones the clips do not drive** — a clavicle
   roll, a wrist the grip solver owns. On a foot, a knee or a toe they should be
   BAKED into the .glb rather than applied live. Baking puts the correction in
@@ -232,6 +233,56 @@ So:
 Geto's foot, toe and leg entries are in `RIG_FIXES` today so they can be looked
 at, and they carry this warning in the file. They are the strongest argument
 yet for getting the bake done rather than living on the correction layer.
+
+### The mirror is on for everybody
+
+A body is symmetric. That is not a style choice about these characters, it is
+what the drawings show and what every pose library assumes when it says one
+thing about "the arm" — so the mirror is the rule and an exemption is the claim
+that needs arguing. The survey that settled it, taken across the roster with
+the correction layer lifted (left joint minus right, centimetres):
+
+```
+hanami  shoulders  8.5    jogo  -6.9    sukuna  -5.5    dagon   4.4
+geto              -3.9    nanami  3.8   toji (knee) 3.7  mecha   3.4
+maki (knee)        3.2    choso   3.0   ...eighteen more under 3
+```
+
+A third of the roster is lopsided by over a centimetre in the joints that
+matter. Every non-exempt fighter now measures **0.00cm** at the shoulders and
+knees, and the eighteen that were already square pay nothing.
+
+**Hanami is exempt**, alone. His arm roots are 8.5cm apart — the widest gap on
+the roster by a distance, which is either the worst rig we have or the point of
+the character, and those look identical from here.
+
+**Three solved shoulder rolls were retired by it.** Yuji, Megumi and Jogo
+carried a `LeftShoulder` roll from `tools/rig_calibrate.mjs`. They worked, and
+running them alongside the mirror double-corrects:
+
+| arm roots, L−R (cm) | neither | roll | mirror | both |
+|---|---|---|---|---|
+| yuji | −1.96 | −0.13 | **0.00** | +2.52 |
+| megumi | −0.40 | −0.01 | **0.00** | +0.56 |
+| jogo | −6.94 | −0.05 | **0.00** | +6.56 |
+
+The roll was a *rotation* compensating for a *position* error — it tilted the
+clavicle until the arm root happened to come out level, which is why it had to
+be solved numerically and why it landed near zero rather than on it. The mirror
+moves the joint to where it belongs, is exact, and is safe in every state. Two
+fixes for one defect; this is the one that keeps. The same goes for the fighters
+the calibrate loop gave up on (Nanami, Dagon, Mahito, tilted the other way): the
+mirror takes all three to zero without needing to know which way anybody leans.
+
+**A skeleton fix must be idempotent, and this one nearly was not.** The first
+version measured the sagittal plane off the skeleton *as it stood* and wrote
+positions back through the posed parents — inside the per-frame loop, between
+the clip and the clean-pose snapshot, so its own output became the next frame's
+input and the frame it measured moved with the clip. The rig walked: two renders
+of one frame came out thirteen cells apart, and the shoulder-width dial measured
+20cm in the idle and 0 in every other state. It is derived from the **bind** now
+and cached as local offsets, so applying it is a copy — safe to call every
+frame, in any state, in any order. `tools/smoke_model_bench.mjs` holds it there.
 
 ### The model bench — turning the bones, not the pose
 

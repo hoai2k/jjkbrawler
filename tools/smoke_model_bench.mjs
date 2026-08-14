@@ -330,6 +330,30 @@ check(Math.abs(straight.on.shoulder) < 0.002 && Math.abs(straight.on.knee) < 0.0
 check(straight.inPayload,
   "...and the payload says so, since it is not a rotation and cannot be one");
 
+// IT MUST NOT DRIFT. The first version measured the sagittal plane off the
+// skeleton as it stood at that instant and wrote positions back through the
+// posed parents — inside the per-frame loop, between the clip and the
+// clean-pose snapshot, so its own output became the next frame's input. The
+// rig walked: two renders of one frame came out thirteen cells apart and the
+// shoulder-width dial read 20cm in the idle and 0 in every other state. A fix
+// to the SKELETON is a fact about the bind, and applying it twice has to mean
+// the same as applying it once.
+const drift = await page.evaluate(async () => {
+  const THREE = await import("/vendor/three/three.module.js");
+  const rigs = await import("/render3d/src/loader.js");
+  const r = rigs.getRig("geto");
+  const y = (n) => r.root.getObjectByName(n).getWorldPosition(new THREE.Vector3()).y;
+  const gap = () => +((y("LeftArm") - y("RightArm")) * 100).toFixed(3);
+  const frame = () => new Promise((z) => requestAnimationFrame(() => requestAnimationFrame(z)));
+  await frame();
+  const first = gap();
+  for (let i = 0; i < 30; i++) await frame();
+  return { first, after: gap() };
+});
+check(Math.abs(drift.after - drift.first) < 0.01,
+  "...and thirty frames later the skeleton is in exactly the same place",
+  `${drift.first}cm -> ${drift.after}cm`);
+
 // ------------------------------------------------------------ the mannequin
 //
 // The stand-in is the one body in the project that is certainly correct, so

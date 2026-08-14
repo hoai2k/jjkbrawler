@@ -108,7 +108,7 @@ export function pendingFixes(charKey, entry = null) {
   }
   const bones = RIG_FIXES[charKey];
   if (bones && Object.keys(bones).length) out.bones = bones;
-  if (SYMMETRISE[charKey] === true) out.symmetry = "mirrored about the centre line";
+  if (symmetrises(charKey)) out.symmetry = "mirrored about the centre line";
   return out;
 }
 
@@ -128,22 +128,26 @@ export function pendingFixes(charKey, entry = null) {
  * inconsistent one.
  */
 export const RIG_FIXES = {
-  // ------------------------------------------------------------- shoulders
+  // ------------------------------------------------- the shoulder rolls, gone
   //
-  // Measured and then SOLVED, not eyeballed: `tools/rig_calibrate.mjs` reads
-  // the shoulder height difference off each rig as a fraction of the shoulder
-  // width, and `--solve` finds the correction by applying a trial roll to the
-  // POSED rig, measuring what actually moved, and scaling. Only the fighters
-  // whose tilt the loop drives to zero are here. Deriving the angle from the
-  // tilt directly — the obvious way — under-corrected Yuji by four fifths,
-  // because a fix composes in the bone's parent frame while the tilt is
-  // measured in the world's, and those stop agreeing the moment the clavicle
-  // has any rest rotation.
+  // Yuji, Megumi and Jogo carried a solved LeftShoulder roll here — 19.2°,
+  // 3.6° and 16.7°, found by `tools/rig_calibrate.mjs` by applying a trial
+  // rotation to the posed rig and scaling. They worked. They are gone anyway,
+  // because SYMMETRISE now does the same job properly and running both
+  // double-corrects:
   //
-  // Each RAISES THE LOWER SHOULDER rather than dropping the higher one: the
-  // higher one is where the costume and the silhouette were built, and
-  // dropping it moves the collar.
-  yuji: { LeftShoulder: [0, 0, 19.2] },    // -0.057 -> 0.000
+  //     arm roots, left minus right (cm)   neither   roll   mirror   both
+  //       yuji                              -1.96   -0.13     0.00   +2.52
+  //       megumi                            -0.40   -0.01     0.00   +0.56
+  //       jogo                              -6.94   -0.05     0.00   +6.56
+  //
+  // The roll was a ROTATION compensating for a POSITION error — it tilted the
+  // clavicle until the arm root happened to come out level, which is why it
+  // had to be solved numerically and why it landed near zero rather than on
+  // it. The mirror moves the joint to where it belongs, is exact, and is safe
+  // in every state; the roll was approximate and rode on top of every clip.
+  // Two fixes for one defect, and this is the one that keeps.
+
   // ------------------------------------------------------------------ geto
   //
   // HAND-DIALLED IN THE MODEL BENCH (?edit=models), not solved: somebody stood
@@ -188,18 +192,17 @@ export const RIG_FIXES = {
     LeftHand: [33.47, -24.96, 15.59],
     RightHand: [0, 29.64, 0],
   },
-  megumi: { LeftShoulder: [0, 0, 3.6] },   // -0.011 -> 0.000
-  jogo: { LeftShoulder: [0, 0, 16.7] },    // -0.131 -> 0.000
 
   // WHAT IS DELIBERATELY NOT HERE, because the same loop said so:
   //
-  //   * Nanami, Hanami, Dagon and Mahito are tilted the OTHER way and the
-  //     solve makes them worse, not better — Nanami's 0.087 becomes 0.174. A
+  //   * Nanami, Dagon and Mahito, tilted the OTHER way, where the solve made
+  //     them worse rather than better — Nanami's 0.087 became 0.174, because a
   //     right-shoulder correction is not a mirrored left-shoulder one on these
-  //     rigs and the axis it wants has not been found yet. Better tilted than
-  //     tilted twice as far.
-  //   * Uro, Hakari, Meimei, Kurourushi and Choso measure ZERO tilt once
-  //     posed: the idle clip sets their clavicles and levels the skeleton, so
+  //     rigs. SYMMETRISE takes all three to exactly zero without needing to
+  //     know which way anybody leans, which is the answer that whole line of
+  //     enquiry was looking for.
+  //   * Uro, Hakari, Meimei, Kurourushi and Choso measure ZERO shoulder tilt
+  //     once posed: the idle clip sets their clavicles and levels the skeleton, so
   //     a bone correction has nothing to correct. Their unevenness is in the
   //     MESH (Uro -0.069, Kurourushi -0.234) and a rotation that levels skin
   //     while the bones are already level is a different fix, sized off a
@@ -273,15 +276,39 @@ export function applyRigFixes(THREE, root, charKey) {
 // asymmetric on purpose (a prop bone, a hair chain). Only the paired skeleton,
 // and only its placement.
 
-/** Characters whose skeleton is mirrored about its own centre line before
- *  anything is posed on it. Per character rather than roster-wide: it is a
- *  claim about a delivery, and a fighter whose rig is already square should
- *  not be paying for the measurement. */
+/**
+ * ON BY DEFAULT, for everybody.
+ *
+ * A body is symmetric. That is not a style choice about these characters, it
+ * is what the drawings show and what every pose library assumes when it says
+ * one thing about "the arm" — so the mirror is the rule and an exemption is
+ * the claim that needs arguing, not the other way round.
+ *
+ * The survey that settled it, measured across the roster with the correction
+ * layer lifted (left joint minus right, centimetres):
+ *
+ *     hanami   shoulders  8.5    jogo    -6.9    sukuna  -5.5
+ *     dagon           4.4        geto    -3.9    nanami   3.8
+ *     toji     knees    3.7      mecha    3.4    maki     3.2
+ *     choso             3.0      ...eighteen more under 3
+ *
+ * A third of the roster is lopsided by more than a centimetre in the joints
+ * that matter, and the eighteen that are already square pay nothing: their
+ * bones move a fraction of a millimetre. And unlike a rotation fix, this one
+ * cannot go wrong in a state nobody looked at — clips animate rotations, not
+ * bone positions, so there is no pose where a mirrored skeleton fights what
+ * the clip asked for.
+ *
+ * `false` EXEMPTS a fighter. Only two reasons are good ones: the asymmetry is
+ * the design (a broken limb, a lopsided machine), or the body is not a body.
+ * "It looked odd" is not — that is what the model bench's checkbox is for.
+ */
 export const SYMMETRISE = {
-  // Geto: arm roots 3.9cm apart in height, knees likewise, feet splayed 26°
-  // and 46°. The rotations below square the feet; this squares the frame they
-  // hang off, which is the half a rotation cannot reach.
-  geto: true,
+  // Hanami's arm roots are 8.5cm apart in height, the widest gap on the
+  // roster by a distance — which is either the worst rig we have or the point
+  // of the character, and those look identical from here. Held out until
+  // somebody has looked at him with the checkbox on and off.
+  hanami: false,
 };
 
 /** The bones a mirror applies to: everything the standard skeleton names in
@@ -291,46 +318,71 @@ export const SYMMETRISE = {
 const PAIRED = ["Shoulder", "Arm", "ForeArm", "Hand", "UpLeg", "Leg", "Foot", "ToeBase"];
 const CENTRED = ["Hips", "Spine", "Spine1", "Spine2", "Neck", "Head"];
 
+/** Does this fighter's skeleton get mirrored? Everybody, unless exempted. */
 export function symmetrises(charKey) {
-  return SYMMETRISE[charKey] === true;
+  return SYMMETRISE[charKey] !== false;
 }
 
 /**
- * Mirror a rig's bone POSITIONS about its own sagittal plane.
- *
- * Measured in the rig's own frame rather than the world's, and the frame comes
- * from the SKELETON — the lateral axis is hip joint to hip joint — so a model
- * built facing anywhere is judged on its own body. That is the same trick the
- * idle stand and the shoulder width use, and for the same reason: asking the
- * manifest which way somebody faces is how a correction ends up rotated by
- * their `yawOffsetDeg`.
- *
- * Parents before children, because a bone's local position is read against a
- * parent this function is also moving. Doing it in any other order mirrors a
- * child about where its parent USED to be.
+ * The bind pose's bone positions and rotations, in MODEL space, cached on the
+ * root. The same reading `ik.js` takes for the arm layer and for the same
+ * reason: the inverse-bind matrices are the only record of the skeleton as it
+ * was built, before any clip touched it.
  */
-export function applySkeletonSymmetry(THREE, root, charKey) {
-  if (!symmetrises(charKey)) return false;
-  const get = (n) => root.getObjectByName(n);
-  const hipL = get("LeftUpLeg"), hipR = get("RightUpLeg");
-  if (!hipL || !hipR) return false;
-  root.updateMatrixWorld(true);
+function bindPose(THREE, root) {
+  if (root.userData.__bindTRS) return root.userData.__bindTRS;
+  let map = null;
+  root.traverse((o) => {
+    if (map || !o.isSkinnedMesh || !o.skeleton) return;
+    map = new Map();
+    o.skeleton.bones.forEach((bone, i) => {
+      const m = new THREE.Matrix4().copy(o.skeleton.boneInverses[i]).invert();
+      map.set(bone.name, {
+        pos: new THREE.Vector3().setFromMatrixPosition(m),
+        quat: new THREE.Quaternion().setFromRotationMatrix(m),
+      });
+    });
+  });
+  root.userData.__bindTRS = map || new Map();
+  return root.userData.__bindTRS;
+}
 
-  // The rig's own frame, in ROOT-LOCAL space: everything below is measured and
-  // written there, so the root's yaw and the turnaround never enter into it.
-  const inv = new THREE.Matrix4().copy(root.matrixWorld).invert();
-  const local = (bone) => new THREE.Vector3()
-    .setFromMatrixPosition(bone.matrixWorld).applyMatrix4(inv);
+/**
+ * What a mirrored skeleton's LOCAL bone positions are — computed once from the
+ * bind, cached, and thereafter just copied onto the bones.
+ *
+ * COMPUTED FROM THE BIND AND NOT FROM THE POSE, which is the whole design of
+ * this function and was learned the hard way. The first version measured the
+ * sagittal plane off the skeleton as it stood at that instant and wrote
+ * positions back through the posed parents. It ran inside the per-frame loop,
+ * between the clip and the clean-pose snapshot, so its own output became the
+ * next frame's input — and because the frame it measured moved with the clip,
+ * every pass landed somewhere slightly different. The rig drifted: two renders
+ * of one frame came out thirteen cells apart, and the shoulder-width dial
+ * measured 20cm in the idle and 0 everywhere else.
+ *
+ * A bone's LOCAL position is its offset from its parent in the parent's own
+ * frame, which is a fact about the skeleton and not about any pose. So that is
+ * what is corrected, once, and copying it onto a bone is idempotent no matter
+ * how many times or in what state it happens.
+ */
+function mirroredLocals(THREE, root) {
+  if (root.userData.__mirrorLocals) return root.userData.__mirrorLocals;
+  const bind = bindPose(THREE, root);
+  const out = new Map();
+  root.userData.__mirrorLocals = out;
+  const hipL = bind.get("LeftUpLeg"), hipR = bind.get("RightUpLeg");
+  if (!hipL || !hipR) return out;
 
-  const pL = local(hipL), pR = local(hipR);
-  const lat = new THREE.Vector3(pR.x - pL.x, 0, pR.z - pL.z);
-  if (lat.lengthSq() < 1e-8) return false;
+  // The rig's own frame, taken from the BIND skeleton: hip joint to hip joint
+  // is the width axis, so a model built facing anywhere is judged on its own
+  // body and `yawOffsetDeg` never enters into it.
+  const lat = new THREE.Vector3(hipR.pos.x - hipL.pos.x, 0, hipR.pos.z - hipL.pos.z);
+  if (lat.lengthSq() < 1e-8) return out;
   lat.normalize();
   const up = new THREE.Vector3(0, 1, 0);
   const fwd = new THREE.Vector3().crossVectors(up, lat).normalize();
-  // The centre line: the midpoint of the hips is the one point on it every
-  // humanoid skeleton has, whatever else the generator did.
-  const mid = pL.clone().add(pR).multiplyScalar(0.5);
+  const mid = hipL.pos.clone().add(hipR.pos).multiplyScalar(0.5);
 
   const coords = (p) => {
     const d = p.clone().sub(mid);
@@ -339,39 +391,67 @@ export function applySkeletonSymmetry(THREE, root, charKey) {
   const point = (c) => mid.clone()
     .addScaledVector(lat, c.l).addScaledVector(up, c.u).addScaledVector(fwd, c.f);
 
-  /** Write a bone's ROOT-LOCAL position back as a local one, through whatever
-   *  its parent is now. */
-  const place = (bone, target) => {
-    bone.parent.updateWorldMatrix(true, false);
-    const world = target.clone().applyMatrix4(root.matrixWorld);
-    bone.position.copy(bone.parent.worldToLocal(world));
-    bone.updateMatrixWorld(true);
-  };
-
-  let moved = 0;
-  // Down the body, parents first. PAIRED is already in that order and the
-  // centre line is done first so the pairs mirror about a straightened spine.
+  // Where every corrected bone ends up, in model space. Built first and in
+  // full, because a bone's local offset is read against its PARENT's corrected
+  // position and some parents are themselves in this list.
+  const want = new Map();
   for (const name of CENTRED) {
-    const bone = get(name);
-    if (!bone || !bone.parent) continue;
-    const c = coords(local(bone));
+    const b = bind.get(name);
+    if (!b) continue;
+    const c = coords(b.pos);
     if (Math.abs(c.l) < 1e-5) continue;
-    place(bone, point({ l: 0, u: c.u, f: c.f }));
-    moved++;
+    want.set(name, point({ l: 0, u: c.u, f: c.f }));
   }
   for (const base of PAIRED) {
-    const bl = get(`Left${base}`), br = get(`Right${base}`);
-    if (!bl || !br || !bl.parent || !br.parent) continue;
-    const cl = coords(local(bl)), cr = coords(local(br));
+    const bl = bind.get(`Left${base}`), br = bind.get(`Right${base}`);
+    if (!bl || !br) continue;
+    const cl = coords(bl.pos), cr = coords(br.pos);
     // Sideways: the same distance out on each side, which is the average of
-    // the two magnitudes rather than of the two signed numbers — those nearly
-    // cancel, and a limb pair is not meant to average to the middle.
-    const out = (Math.abs(cl.l) + Math.abs(cr.l)) / 2;
+    // the two MAGNITUDES rather than of the two signed numbers — those nearly
+    // cancel, and a limb pair is not meant to average onto the centre line.
+    const outM = (Math.abs(cl.l) + Math.abs(cr.l)) / 2;
     const u = (cl.u + cr.u) / 2;
     const f = (cl.f + cr.f) / 2;
-    place(bl, point({ l: Math.sign(cl.l || -1) * out, u, f }));
-    place(br, point({ l: Math.sign(cr.l || 1) * out, u, f }));
-    moved += 2;
+    want.set(`Left${base}`, point({ l: Math.sign(cl.l || -1) * outM, u, f }));
+    want.set(`Right${base}`, point({ l: Math.sign(cr.l || 1) * outM, u, f }));
+  }
+
+  // ...and then as LOCAL offsets, which is what a bone actually carries.
+  for (const [name, target] of want) {
+    const bone = root.getObjectByName(name);
+    const parent = bone?.parent;
+    if (!parent) continue;
+    const parentBind = bind.get(parent.name);
+    const parentAt = want.get(parent.name) || parentBind?.pos;
+    if (!parentAt) continue;
+    const local = target.clone().sub(parentAt);
+    // Into the parent's frame. Its BIND rotation, because a local position is
+    // read against whatever the parent's rotation is at the time and the
+    // offset itself must not depend on that.
+    if (parentBind) local.applyQuaternion(parentBind.quat.clone().invert());
+    out.set(name, local);
+  }
+  return out;
+}
+
+/**
+ * Mirror a rig's bone positions about its own sagittal plane.
+ *
+ * Cheap and idempotent: the arithmetic happens once per rig (mirroredLocals),
+ * and this copies the answer onto the bones. Safe to call every frame, in any
+ * state, in any order relative to the clip — which is exactly what a fix to
+ * the SKELETON has to be.
+ */
+export function applySkeletonSymmetry(THREE, root, charKey) {
+  if (!symmetrises(charKey)) return false;
+  const locals = mirroredLocals(THREE, root);
+  if (!locals.size) return false;
+  let moved = 0;
+  for (const [name, pos] of locals) {
+    const bone = root.getObjectByName(name);
+    if (!bone) continue;
+    bone.position.copy(pos);
+    moved++;
   }
   if (moved) root.updateMatrixWorld(true);
   return moved > 0;
