@@ -135,7 +135,11 @@ both dialled in the workbench under **Model size & facing**:
   clip can fix it, because the whole rig is turned. 180 is the common case
   (Maki and Uro both arrived this way).
 - `shoulderOutCm` — how far this fighter's arm roots move out from the body,
-  in centimetres. A generated clavicle often comes out short, which reads as
+  in centimetres. **Seeded from a measurement**: a clavicle's length as a
+  fraction of stature runs 2.9% to 14.7% across the roster against a median of
+  9.9%, and the nine fighters set here are the ones measurably short — the
+  value brings each up to that median. It is a starting point for the eye, not
+  a verdict; the review dial is what settles it. A generated clavicle often comes out short, which reads as
   the shoulder nearest the camera being squashed into the ribs; this moves
   where the arm STARTS without lengthening the arm. The engine already squares
   the pair — both clavicles go back to their bind rotation, because the
@@ -146,6 +150,16 @@ both dialled in the workbench under **Model size & facing**:
   number (`IDLE_ARM_DEG`, 9°); a heavy coat or a wide body wants more room than
   a school uniform does, and only the drawing can say how much. Dialled in the
   Idle Review beside size, stance, head and facing.
+**Two mesh repairs live in `tools/`** for faults no dial can reach. Both edit a
+delivered .glb and leave the skeleton, weights and UVs alone.
+`smooth_mesh_region.py` takes the high-frequency lumps out of a patch of
+surface an image-to-3D generator had to guess at — a back turned away from
+every seed view — using Taubin rather than plain Laplacian smoothing, which is
+what lets it flatten the noise without shrinking the body. Maki's and Momo's
+upper backs came down from a mean 4.0 and 4.4 mm of bump to 2.9 mm each.
+`bake_bone_rotation.py` turns the geometry a bone carries without moving the
+bone, weighted by that bone's own skin weight so the correction feathers out.
+
 - `idleArms` — set `false` to keep this fighter's delivered idle arms. The
   engine otherwise rebuilds them, straight and hanging a few degrees out from
   the body (`ik.js applyIdleArms`), for the same reason it rebuilds the legs: a

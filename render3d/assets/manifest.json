@@ -14,7 +14,8 @@
       },
       "renderScale": 1.03,
       "headTiltDeg": 12,
-      "armDeg": 11
+      "armDeg": 11,
+      "shoulderOutCm": 1.5
     },
     "maki": {
       "model": "maki/maki.glb",
@@ -44,7 +45,8 @@
             0.6899
           ]
         }
-      }
+      },
+      "shoulderOutCm": 4.0
     },
     "jogo": {
       "model": "jogo/jogo.glb",
@@ -130,7 +132,8 @@
           ]
         }
       },
-      "armDeg": 16
+      "armDeg": 16,
+      "shoulderOutCm": 6.5
     },
     "geto": {
       "model": "geto/geto.glb",
@@ -160,7 +163,8 @@
       },
       "yawOffsetDeg": 345,
       "headTiltDeg": 20,
-      "armDeg": 11
+      "armDeg": 11,
+      "shoulderOutCm": 3.5
     },
     "gojo": {
       "model": "gojo/gojo.glb",
@@ -208,7 +212,8 @@
       "renderScale": 1.03,
       "stanceDeg": 6,
       "headTiltDeg": 8,
-      "armDeg": 16
+      "armDeg": 16,
+      "shoulderOutCm": 4.0
     },
     "choso": {
       "model": "choso/choso.glb",
@@ -288,7 +293,8 @@
       "yawOffsetDeg": 75,
       "renderScale": 1.02,
       "stanceDeg": 14,
-      "armDeg": 11
+      "armDeg": 11,
+      "shoulderOutCm": 1.0
     },
     "meimei": {
       "model": "meimei/meimei.glb",
@@ -350,7 +356,8 @@
       "renderScale": 1.03,
       "stanceDeg": 5,
       "headTiltDeg": 5.5,
-      "armDeg": 12
+      "armDeg": 12,
+      "shoulderOutCm": 3.0
     },
     "inumaki": {
       "model": "inumaki/inumaki.glb",
@@ -411,7 +418,8 @@
           ]
         }
       },
-      "armDeg": 13
+      "armDeg": 13,
+      "shoulderOutCm": 4.0
     },
     "nanami": {
       "model": "nanami/nanami.glb",
@@ -510,7 +518,8 @@
       "renderScale": 1.01,
       "stanceDeg": 12,
       "headTiltDeg": 5.5,
-      "armDeg": 14
+      "armDeg": 14,
+      "shoulderOutCm": 3.5
     }
   }
 }
