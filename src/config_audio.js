@@ -87,10 +87,10 @@ export const SFX = {
   // ---- Tier 3: character voices. Groups are picked in GRUNT_GROUPS (audio.js)
   // and one variant is drawn at random per call, so a repeated special does not
   // loop the identical sample.
-  gruntYoungMale: { file: ["grunt_young_male_1.mp3", "grunt_young_male_2.mp3", "grunt_young_male_3.mp3"], category: "voice" },
+  gruntYoungMale: { file: ["grunt_young_male_alt_1.mp3", "grunt_young_male_alt_2.mp3"], category: "voice" },
   gruntAdultMale: { file: ["grunt_adult_male_1.mp3", "grunt_adult_male_2.mp3", "grunt_adult_male_3.mp3"], category: "voice" },
-  gruntBig: { file: ["grunt_big_1.mp3", "grunt_big_2.mp3", "grunt_big_3.mp3"], category: "voice" },
-  gruntFemale: { file: ["grunt_female_1.mp3", "grunt_female_2.mp3", "grunt_female_3.mp3"], category: "voice" },
+  gruntBig: { file: "grunt_big_alt_1.mp3", category: "voice" },
+  gruntFemale: { file: ["grunt_female_alt_1.mp3", "grunt_female_alt_2.mp3", "grunt_female_alt_3.mp3"], category: "voice" },
   gruntMonster: { file: ["grunt_monster_1.mp3", "grunt_monster_2.mp3", "grunt_monster_3.mp3"], category: "voice" },
   gruntAnimal: { file: ["grunt_animal_1.mp3", "grunt_animal_2.mp3", "grunt_animal_3.mp3"], category: "voice" },
 
@@ -144,12 +144,12 @@ export const SFX = {
   // Per CHARACTER rather than per voice group — eight fighters have a domain
   // and this is the one line each of them is known for, so the grunt-group
   // sharing that covers 27 fighters' effort noises is the wrong economy here.
-  domainCallGojo: { file: "domain_call_gojo.mp3", category: "voice", gain: 1.1 },
+  domainCallGojo: { file: "domain_call_gojo_alt_relaxed.mp3", category: "voice", gain: 1.1 },
   domainCallSukuna: { file: "domain_call_sukuna.mp3", category: "voice", gain: 1.1 },
   domainCallMegumi: { file: "domain_call_megumi.mp3", category: "voice", gain: 1.1 },
   domainCallMahito: { file: "domain_call_mahito.mp3", category: "voice", gain: 1.1 },
   domainCallJogo: { file: "domain_call_jogo.mp3", category: "voice", gain: 1.1 },
-  domainCallDagon: { file: "domain_call_dagon.mp3", category: "voice", gain: 1.1 },
+  domainCallDagon: { file: "domain_call_dagon_alt_deep.mp3", category: "voice", gain: 1.1 },
   domainCallHakari: { file: "domain_call_hakari.mp3", category: "voice", gain: 1.1 },
   domainCallYuta: { file: "domain_call_yuta.mp3", category: "voice", gain: 1.1 },
   // ---- Inumaki's cursed speech, round 11. The command itself, in Japanese,
@@ -293,49 +293,68 @@ export const MOVE_CALL = {
 // `file` takes the same shape as an SFX entry's: a string, or several
 // interchangeable files for a group that draws one per call.
 export const VOICE_ALTERNATES = {
-  // Two Gojos, and neither is trying to sound impressive. An earlier attempt
-  // directed "authoritative" came back rushed, which is the opposite of a man
-  // who does not have to push. Both of these ask a quieter question instead.
+  // Gojo's line was promoted to the relaxed take; the other two stay here so
+  // the choice is reversible without going through the history.
   domainCallGojo: [
-    {
-      name: "Relaxed",
-      file: "domain_call_gojo_alt_relaxed.mp3",
-      note: "even pace, stretched 4% — unhurried rather than commanding",
-    },
-    {
-      name: "Flat",
-      file: "domain_call_gojo_alt_even.mp3",
-      note: "even and unperformed, stability 1.0 — a man saying it to himself",
-    },
+    { name: "Flat", file: "domain_call_gojo_alt_even.mp3",
+      note: "even and unperformed, stability 1.0 — a man saying it to himself" },
+    { name: "Original", file: "domain_call_gojo.mp3",
+      note: "the first delivery — casual, and the longest of the three" },
   ],
-  domainCallDagon: [{
-    name: "Deep",
-    file: "domain_call_dagon_alt_deep.mp3",
-    note: "lower, resampled to 0.86 — the throat of something much bigger",
-  }],
-  // The four human groups only. gruntMonster and gruntAnimal are supposed to
-  // sound like something that is not a person, so "less animal-like" is the
-  // wrong note for them and they have no alternates.
-  gruntYoungMale: [{
-    name: "Human",
-    file: ["grunt_young_male_alt_1.mp3", "grunt_young_male_alt_2.mp3", "grunt_young_male_alt_3.mp3"],
-    note: "a real voice rather than the effects endpoint's impression of one",
-  }],
-  gruntAdultMale: [{
-    name: "Human",
-    file: ["grunt_adult_male_alt_1.mp3", "grunt_adult_male_alt_2.mp3", "grunt_adult_male_alt_3.mp3"],
-    note: "a real voice rather than the effects endpoint's impression of one",
-  }],
-  gruntBig: [{
-    name: "Human",
-    file: ["grunt_big_alt_1.mp3", "grunt_big_alt_2.mp3", "grunt_big_alt_3.mp3"],
-    note: "a real voice, resampled to 0.94 for weight",
-  }],
-  gruntFemale: [{
-    name: "Human",
-    file: ["grunt_female_alt_1.mp3", "grunt_female_alt_2.mp3", "grunt_female_alt_3.mp3"],
-    note: "a real voice rather than the effects endpoint's impression of one",
-  }],
+  domainCallDagon: [
+    { name: "Original", file: "domain_call_dagon.mp3",
+      note: "the first delivery — gentle, before the 0.86 resample" },
+  ],
+
+  // ---- effort grunts
+  //
+  // Round 13's takes are the WORDLESS ones, and that is the whole distinction:
+  // round 12 used kiai — せいっ, どりゃっ — which a voice model articulates
+  // because they are things a person chooses to say. These are stopped vowels
+  // and nasals, which have no lexical content to articulate.
+  // tools/audit_voice_takes.py counts utterances and flags anything that comes
+  // back as more than one, which is what a word looks like from the outside.
+  gruntYoungMale: [
+    { name: "Wordless", file: ["grunt_young_male_alt_4.mp3", "grunt_young_male_alt_5.mp3", "grunt_young_male_alt_6.mp3"],
+      note: "round 13 — non-lexical, one utterance each" },
+    { name: "Round 12", file: ["grunt_young_male_alt_3.mp3"],
+      note: "the one of that trio not already in game" },
+  ],
+  gruntAdultMale: [
+    { name: "Wordless", file: ["grunt_adult_male_alt_4.mp3", "grunt_adult_male_alt_5.mp3", "grunt_adult_male_alt_6.mp3"],
+      note: "round 13 — recast to a different voice, non-lexical" },
+    { name: "Round 12", file: ["grunt_adult_male_alt_2.mp3", "grunt_adult_male_alt_3.mp3"],
+      note: "kept for comparison; alt_1 of that trio came back SILENT and is not offered" },
+  ],
+  gruntBig: [
+    { name: "Wordless", file: ["grunt_big_alt_4.mp3", "grunt_big_alt_5.mp3", "grunt_big_alt_6.mp3"],
+      note: "round 13 — non-lexical, from the chest" },
+    { name: "Round 12", file: ["grunt_big_alt_2.mp3", "grunt_big_alt_3.mp3"],
+      note: "the rest of that trio" },
+  ],
+  // The monster group had no alternates at all until now.
+  gruntMonster: [
+    { name: "Wordless", file: ["grunt_monster_alt_1.mp3", "grunt_monster_alt_2.mp3", "grunt_monster_alt_3.mp3"],
+      note: "round 13 — snarl, growl and huff, resampled to 0.85" },
+  ],
+
+  // ---- KO cries
+  //
+  // Three for each of the six, because none of the originals worked. Longer and
+  // wilder than an effort grunt — a KO cry plays once, as its owner leaves the
+  // stage — but held to the same rule about words.
+  koYoungMale: [{ name: "Wordless", file: ["ko_young_male_alt_1.mp3", "ko_young_male_alt_2.mp3", "ko_young_male_alt_3.mp3"],
+    note: "round 13 — a cry, not an exclamation" }],
+  koAdultMale: [{ name: "Wordless", file: ["ko_adult_male_alt_1.mp3", "ko_adult_male_alt_2.mp3", "ko_adult_male_alt_3.mp3"],
+    note: "round 13 — recast, a cry rather than an exclamation" }],
+  koBig: [{ name: "Wordless", file: ["ko_big_alt_1.mp3", "ko_big_alt_2.mp3", "ko_big_alt_3.mp3"],
+    note: "round 13 — a bellow, resampled to 0.94" }],
+  koFemale: [{ name: "Wordless", file: ["ko_female_alt_1.mp3", "ko_female_alt_2.mp3", "ko_female_alt_3.mp3"],
+    note: "round 13 — a cry, not an exclamation" }],
+  koMonster: [{ name: "Wordless", file: ["ko_monster_alt_1.mp3", "ko_monster_alt_2.mp3", "ko_monster_alt_3.mp3"],
+    note: "round 13 — shriek, roar and rattle, resampled to 0.85" }],
+  koAnimal: [{ name: "Wordless", file: ["ko_animal_alt_1.mp3", "ko_animal_alt_2.mp3", "ko_animal_alt_3.mp3"],
+    note: "round 13 — yelp, cry and huff, resampled to 0.88" }],
 };
 
 // ------------------------------------------------- spoken lines as wind-up
@@ -356,12 +375,12 @@ export const VOICE_ALTERNATES = {
 // length, so a re-roll means updating its row — `node tools/check_voice.mjs`
 // compares these against the files and says which ones drifted.
 export const SPOKEN_LINES = {
-  domainCallGojo: 3.28,
+  domainCallGojo: 2.83,
   domainCallSukuna: 2.52,
   domainCallMegumi: 2.48,
   domainCallMahito: 3.03,
   domainCallJogo: 2.80,
-  domainCallDagon: 2.25,
+  domainCallDagon: 2.59,
   domainCallHakari: 2.03,
   domainCallYuta: 2.42,
   callInumakiBlastAway: 1.14,

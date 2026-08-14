@@ -84,19 +84,46 @@ export function keyHeld(code) {
   return held.has(code);
 }
 
+/** Seats stop moving once a match owns them (main.js). Away from a fight the
+ *  seating is re-derived from whoever is actually plugged in; during one it is
+ *  frozen, because a pad that drops out mid-match must keep its fighter rather
+ *  than have the seats shuffle up under the remaining players. */
+let seatsFrozen = false;
+
+export function freezePadSeats(on) {
+  seatsFrozen = on;
+}
+
+/** Seat every connected pad, in the order the browser lists them.
+ *
+ *  Seats used to be handed out on first sight and kept per pad.index for the
+ *  session, which quietly broke for the commonest case of all: ONE controller.
+ *  A pad that sleeps and wakes, or is unplugged and plugged back in, can come
+ *  back under a different index — and the old mapping had no idea it was the
+ *  same controller, so it took the "next free" seat 2 while seat 1 stayed held
+ *  by an index that no longer exists. The player then drove player 2 with the
+ *  only pad in the room. Counting the pads that are actually there cannot get
+ *  that wrong. */
+function reseatPads(pads) {
+  padSeats.clear();
+  let seat = 1;
+  for (const pad of pads) {
+    if (!pad || !pad.connected || seat > 4) continue;
+    padSeats.set(pad.index, seat);
+    seat += 1;
+  }
+}
+
 export function readGamepads() {
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  // Seating on sight — rather than on a deliberate button press — is what lets
+  // a second player start browsing the roster the moment they pick their
+  // controller up, without player 1 having to touch anything first. The browser
+  // only reveals a pad once its owner has touched it, so "detected" already
+  // means "somebody is holding this".
+  if (!seatsFrozen) reseatPads(pads);
   for (const pad of pads) {
     if (!pad || !pad.connected) continue;
-    // A pad we have not seen before takes the next free seat and keeps it for
-    // the session. Seating on sight — rather than on a deliberate button press
-    // — is what lets a second player start browsing the roster the moment they
-    // pick their controller up, without player 1 having to touch anything
-    // first. The browser only reveals a pad once its owner has touched it, so
-    // "detected" already means "somebody is holding this".
-    if (!padSeats.has(pad.index) && padSeats.size < 4) {
-      padSeats.set(pad.index, padSeats.size + 1);
-    }
     const prev = padNow.get(pad.index) || [];
     const now = pad.buttons.map((b) => b.pressed);
     padPrev.set(pad.index, prev);
@@ -107,11 +134,12 @@ export function readGamepads() {
     // session is silent. Cheap to test — this only looks until the first press.
     if (now.some((down, i) => down && !prev[i])) noteGamepadGesture();
   }
-  // Never falls: a seat, once taken, is that player's for the session. A pad
-  // that drops out mid-menu (a flat battery, a kicked cable) must not silently
-  // hand their fighter back to a CPU, and the same pad reconnecting keeps the
-  // seat it had because seats are keyed on the pad's own index.
-  joinedPlayers = Math.max(joinedPlayers, Math.min(4, padSeats.size));
+  // Inside a match the count never falls: a pad that drops out (a flat battery,
+  // a kicked cable) must not silently hand its fighter back to a CPU. On the
+  // menu it tracks what is plugged in, so unplugging a second pad before the
+  // fight starts is allowed to un-join that player.
+  const seated = Math.min(4, padSeats.size);
+  joinedPlayers = seatsFrozen ? Math.max(joinedPlayers, seated) : Math.max(1, seated);
 }
 
 export function joinedPlayerCount() {

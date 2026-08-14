@@ -1091,12 +1091,18 @@ that was recorded, registered and silent.
 
 ## Round 12 — alternate takes (15 files)
 
-Delivered, and **deliberately not in play**. The request is above in
+> **Five of these were promoted into the game and round 13 answers the rest.**
+> Gojo's relaxed take and Dagon's deep one replaced their originals (with
+> `SPOKEN_LINES` moved to match), the female trio went in whole, two of the
+> young-male trio and one of the big trio went in. Everything else was judged
+> unusable — see the round-13 verdicts below.
+
+Delivered as alternates rather than as replacements. The request is above in
 [audio-requests.md](audio-requests.md) — it stays there rather than moving here
 while the alternates are still alternates, because the round is not finished
 until somebody has listened and chosen. Delivered lengths: the two domain calls
-at 1.58 s (Gojo) and 2.59 s (Dagon, after the 0.86 resample), the twelve grunts
-between 0.54 s and 0.86 s.
+at 2.83 s (Gojo, after the direction was re-written) and 2.59 s (Dagon, after the
+0.86 resample), and the twelve grunts between 0.54 s and 0.86 s.
 
 **Gojo has two alternates, and they ask different questions** — whether he
 should sound like he means it (*Commanding*) or like it costs him nothing
