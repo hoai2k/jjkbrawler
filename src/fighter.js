@@ -1061,6 +1061,10 @@ export function updateFighter(f, dt, input) {
   const walkFrac = WALK_MIN + (WALK_MAX - WALK_MIN)
     * clamp((tilt - MOVE_DEADZONE) / Math.max(1e-6, RUN_TILT - MOVE_DEADZONE), 0, 1);
   const topFrac = f.dashT > 0 ? DASH_MULT : walking ? walkFrac : 1;
+  // The animation layer and the ledge brake both need to know, and neither is
+  // in a position to recompute it — pickAnim runs after the movement block and
+  // a slowed fighter's speed alone cannot tell a walk from a snared run.
+  f.walking = walking;
   const maxSpeed = (f.grounded ? st.speed : st.airSpeed) * moveMul * topFrac;
   const accel = st.accel * (f.grounded ? 1 : 0.62) * moveMul;
   // Ground friction, shaped by the stage surface (Active Boards): a slick
@@ -1225,7 +1229,7 @@ export function updateFighter(f, dt, input) {
   // over-strode, feet skating — and a walk drawn with the run cycle would have
   // been the same fault at half speed. Floored so a fighter easing to a halt
   // does not freeze mid-stride.
-  const strideRate = f.animKey === "run" && f.grounded
+  const strideRate = (f.animKey === "run" || f.animKey === "walk") && f.grounded
     ? clamp(Math.abs(f.vx) / (stats(f).speed || 1), 0.5, 1.3)
     : 1;
   f.animTime += dt * strideRate;
@@ -1297,6 +1301,10 @@ function pickAnim(f, input) {
   if (!f.grounded) { setAnim(f, f.vy < 0 ? "jump" : "fall"); return; }
   if (f.crouching) { setAnim(f, "crouch"); return; }
   if (f.dashT > 0) { setAnim(f, "dash"); return; }
+  // A walk is its own cycle where the art exists and the run cycle at a walking
+  // cadence where it does not (characters.js WALK_ANIM), so this line is the
+  // whole of the switch-over when round 21 lands.
+  if (f.walking && Math.abs(f.vx) > 30) { setAnim(f, "walk"); return; }
   if (Math.abs(f.vx) > 50) { setAnim(f, "run"); return; }
   if (f.landTimer > 0) { setAnim(f, "land"); return; }
   setAnim(f, "idle");

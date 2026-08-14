@@ -135,7 +135,35 @@ that way, so this is the normal case, not a mistake.
    pointing at a path that will not exist — and moves only once all three hold,
    because a refusal after the moves leaves the tree rearranged and the manifest
    describing the old arrangement, which is a repair by hand (round 20).
-9. **Update the request docs.** A delivery answers a request, and the request
+9. **A NEW POSE KEY OWES A 3D STATE.** The game draws through more than one
+   renderer, and a round that adds a pose key nobody has drawn before has only
+   answered the sprite half of it. Check whether the new key is a state
+   `render3d/src/states.js` knows: if it is not, the 3D and 2.5D paths have an
+   animKey they cannot resolve, which is a fighter frozen mid-match rather than
+   a fighter drawn slightly wrong.
+
+   There are two honest answers and the cheap one is usually right:
+
+   - **Alias it.** Add the state and point it at the nearest existing clip in
+     `STATE_ALIASES`. No rig owes anything, every fighter animates, and the
+     entry is there to be upgraded later. This is what the grab set, both dash
+     attacks and the walk all do.
+   - **Author the clip.** Only when the pose genuinely differs from everything
+     already in the library — a walk's upright torso against a run's forward
+     drive is the example. Drop the alias, add it to the pose library, and raise
+     it as a round in
+     [render3d/docs/asset-requests.md](../../render3d/docs/asset-requests.md)
+     (D-numbers) or
+     [billboards/docs/asset-requests.md](../../billboards/docs/asset-requests.md)
+     (B-numbers) — those are model/clip requests, not sprite ones, and they do
+     not belong in the 2D file.
+
+   Either way the answer is written down in the round, so "the sprites landed
+   and the 3D path still plays the old pose" is a decision rather than an
+   oversight. `node tools/check_kits.mjs` catches an animKey with no state at
+   all; it cannot tell you that an alias is the wrong clip, which is why this is
+   a step and not just a check.
+10. **Update the request docs.** A delivery answers a request, and the request
    file is defined as "everything in here is outstanding" — so art that has
    landed has to leave it the same day, or the file starts lying about what is
    still needed. Move the delivered section out of

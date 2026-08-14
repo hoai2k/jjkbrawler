@@ -61,7 +61,7 @@ function actionPhase(f) {
 // branch that reads `f.animKey` or a new action kind belongs here too.
 export const PIVOTED_STATES = new Set([
   "idle", "crouch",              // breathing sway
-  "run",                         // stride sway and bob
+  "run", "walk",                 // stride sway and bob
   "dash",                        // lean into the sprint
   "jump", "fall",                // air lean, and the stretch into a fast fall
   "land",                        // landing squash
@@ -150,12 +150,13 @@ export function fighterTransform(f) {
   } else if (f.turnLock > 0) {
     // caught mid-pivot: lean against the direction being abandoned
     rot += -f.facing * A.turnLean * clamp(f.turnLock / 0.08, 0, 1);
-  } else if (f.animKey === "run") {
+  } else if (f.animKey === "run" || f.animKey === "walk") {
     // Sway once per stride cycle, bob once per footfall — twice per cycle —
-    // measured against however many frames the run resolved to, so the timing
-    // holds for both the four-frame cycle and the two-frame fallback. The
-    // cycle art draws its own rise and fall (reach low, pass high), so the
-    // procedural bob backs off to half on it rather than doubling the bounce.
+    // measured against however many frames the cycle resolved to, so the timing
+    // holds for the four-frame run, the two-frame fallback and the two-frame
+    // walk alike. Cycle art draws its own rise and fall (reach low, pass high),
+    // so the procedural bob backs off to half on it rather than doubling the
+    // bounce — which is why this counts FRAMES rather than naming a state.
     const { phase: c, frames } = cyclePhase(f.charKey, f.animKey, f.animTime);
     rot += Math.sin(c * TAU) * A.runSway * f.facing;
     dy -= Math.abs(Math.sin(c * TAU)) * A.runBob * (frames > 2 ? 0.5 : 1);
