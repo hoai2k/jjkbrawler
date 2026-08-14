@@ -41,7 +41,7 @@ export function initUi(cb) {
   // seat anywhere from two to eight fighters.
   buildHud();
   for (const id of [
-    "hud", "utilityActions", "introOverlay", "selectSpotlight", "pauseStandings", "menuOverlay", "stageOverlay", "movesOverlay", "roundOverlay", "pauseOverlay",
+    "hud", "utilityActions", "introOverlay", "titleOverlay", "titlePressStart", "titleCredit", "titleHint", "selectSpotlight", "pauseStandings", "menuOverlay", "stageOverlay", "movesOverlay", "roundOverlay", "pauseOverlay",
     "settingsOverlay", "loadOverlay", "loadStatus", "loadBar", "loadBarFill", "characterGrid", "stageGrid",
     "matchupBar",
     "p1PickCard", "p2PickCard", "p3PickCard", "p4PickCard",
@@ -111,6 +111,11 @@ function updateLoadHint() {
 // the render functions below.
 function applyStaticText() {
   const set = (el, text) => { if (el) el.textContent = text; };
+  set(els.titlePressStart, TEXT.title.pressStart);
+  set(els.titleCredit, TEXT.title.credit);
+  set(els.titleHint, TEXT.title.hint);
+  const titleLogo = els.titleOverlay?.querySelector(".title-logo");
+  if (titleLogo) titleLogo.alt = TEXT.title.logoAlt;
   set(els.startButton, TEXT.menu.startWaiting);
   set(els.loadStatus, TEXT.loading.title);
   set(els.randomStageButton, TEXT.stages.random);
@@ -705,11 +710,10 @@ function bindMenuButtons() {
     renderMoveList();
   });
 
-  const fullscreen = () => {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else document.querySelector(".arena-wrap").requestFullscreen?.();
-  };
-  els.fullscreenButton.addEventListener("click", fullscreen);
+  els.fullscreenButton.addEventListener("click", toggleFullscreen);
+  // Leaving the title splash. A click is deliberately NOT a fullscreen
+  // trigger — see leaveTitle.
+  els.titleOverlay.addEventListener("click", () => leaveTitle({ fullscreen: false }));
 
   els.muteButton.addEventListener("click", () => {
     // Silence first, repaint second: if anything ever threw while updating the
@@ -975,7 +979,40 @@ export function syncControllerPlayers(count) {
 
 // ------------------------------------------------------------------ phases
 
+/** The arena, not the document: fullscreening the whole page would letterbox
+ *  the 16:9 frame inside a black document body instead of filling the screen
+ *  with it. `requestFullscreen` rejects without a user gesture, so every call
+ *  site has to tolerate a refusal. */
+function enterFullscreen() {
+  if (document.fullscreenElement) return;
+  document.querySelector(".arena-wrap")?.requestFullscreen?.().catch(() => {});
+}
+
+function toggleFullscreen() {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else enterFullscreen();
+}
+
+/** Press start. Hands the game from the title splash to fighter select.
+ *
+ *  `fullscreen` is the one thing that differs by input: a controller (or Enter)
+ *  is somebody sitting down to play, so the game takes the screen; a mouse
+ *  click is somebody browsing, and seizing their display for that would be
+ *  rude. Browsers also only grant fullscreen inside a real user gesture, and a
+ *  gamepad poll is not one — enterFullscreen swallows the refusal, so a pad
+ *  press always reaches the menu whether or not the screen follows.
+ *
+ *  Guarded on the phase because three input paths lead here and a second press
+ *  arriving a frame later must not re-run it. */
+export function leaveTitle({ fullscreen = false } = {}) {
+  if (state.phase !== "title") return;
+  if (fullscreen) enterFullscreen();
+  playSfx("uiStart");
+  setPhase("menu");
+}
+
 const OVERLAY_FOR_PHASE = {
+  title: "titleOverlay",
   loading: "loadOverlay",
   menu: "menuOverlay",
   stageSelect: "stageOverlay",
@@ -1004,7 +1041,10 @@ export function setPhase(phase) {
     void arriving.offsetWidth;
     arriving.classList.add("is-entering");
   }
-  els.utilityActions.classList.toggle("hidden", phase === "loading");
+  // The corner chrome stays off the loading screen AND the title splash: the
+  // splash is one image and one instruction, and a row of buttons in the
+  // corner of it is the opposite of that.
+  els.utilityActions.classList.toggle("hidden", phase === "loading" || phase === "title");
   // Any screen change away from the fight takes the VS splash down with it.
   if (phase !== "playing") hideBattleIntro();
   // The pause screen reads the match as it stands right now, so its standings
@@ -1850,6 +1890,14 @@ function menuBack() {
 // Called every frame by the main loop while a menu phase is active.
 export function updateMenuNav(dt) {
   if (rouletteRunning) return; // the draw owns the arena screen until it lands
+  // The title splash has one control: any button begins. A pad player is
+  // sitting down to play, so this path takes the screen — main.js handles the
+  // Start button itself the same way.
+  if (state.phase === "title") {
+    const pads = padsMenuStates();
+    if (pads.some((p) => p.confirmP) || padsMenuState().confirmP) leaveTitle({ fullscreen: true });
+    return;
+  }
   // An open mode picker takes the pad off the roster: directions walk its
   // options, A chooses one, B closes it. Without this the picker path below
   // would keep steering fighter cursors behind the menu.
@@ -1906,6 +1954,17 @@ function bindMenuKeyboardNav() {
   });
 
   window.addEventListener("keydown", (e) => {
+    // The title splash, before anything else: Enter or Space begins, and it
+    // counts as sitting down to play, so it takes the screen. A keydown IS a
+    // user gesture, so unlike the pad path this fullscreen request is granted.
+    if (state.phase === "title") {
+      const key = e.code || e.key;
+      if (["Enter", "Return", "NumpadEnter", "Space"].includes(key)) {
+        e.preventDefault();
+        leaveTitle({ fullscreen: true });
+      }
+      return;
+    }
     if (state.phase === "playing" || state.phase === "loading" || rouletteRunning) return;
     const map = {
       ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1],

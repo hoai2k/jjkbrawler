@@ -131,6 +131,18 @@ export const CHARACTER_QUOTES = {
 // Every player-facing string in the game. Values that take an argument are
 // written as functions so word order stays translatable.
 export const TEXT = {
+  // The title splash — the first screen of the game.
+  title: {
+    logoAlt: "JJK Brawler II",
+    // Deliberately the arcade formula, not a sentence: this line is furniture
+    // every player already knows how to read.
+    pressStart: "Press Start",
+    credit: "A cursed brawler by Hoai and Francis Nguyen",
+    // Says what each input actually does, because they differ: a pad press
+    // takes the game fullscreen, a mouse click deliberately does not.
+    hint: "Start on a controller · Enter · or click to begin",
+  },
+
   // Fighter select
   menu: {
     eyebrow: "Cursed energy platform fighter",

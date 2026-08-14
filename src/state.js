@@ -2,7 +2,7 @@
 import { DEFAULT_TIME_LIMIT } from "./constants.js";
 
 export const state = {
-  phase: "loading", // loading | menu | stageSelect | moves | playing | paused | roundOver | settings
+  phase: "loading", // loading | title | menu | stageSelect | moves | playing | paused | roundOver | settings
   prevPhase: "menu",
   mode: "cpu",      // cpu | local
   playerCount: 1,   // human players; 1 means P1 versus CPU
