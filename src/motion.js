@@ -61,6 +61,7 @@ function actionPhase(f) {
 // branch that reads `f.animKey` or a new action kind belongs here too.
 export const PIVOTED_STATES = new Set([
   "idle", "crouch",              // breathing sway
+  "teeter",                      // the lean out over a lip, and the sway back
   "run", "walk",                 // stride sway and bob
   "dash",                        // lean into the sprint
   "jump", "fall",                // air lean, and the stretch into a fast fall
@@ -116,9 +117,8 @@ export function fighterTransform(f) {
     rot += Math.sin(t * 7 + phase(f)) * A.dizzyWobble;
     dy += Math.sin(t * 3.5 + phase(f)) * 1.2;
   } else if (f.ledge) {
-    // Eased in rather than snapped on: the grab is already a jump in position
-    // (fighter.js placeFighter smooths that), and a lean that arrives in the
-    // same single frame is the other half of the pop.
+    // Eased in over the same window the catch takes, so arriving on the hang
+    // is a settle rather than a posture appearing.
     rot += f.facing * A.ledgeLean * clamp(f.ledgeTimer / A.ledgeLeanIn, 0, 1);
   } else if (f.hitstun > 0) {
     // low-knockback hits don't tumble; they flinch away from the blow
@@ -163,6 +163,15 @@ export function fighterTransform(f) {
     const { phase: c, frames } = cyclePhase(f.charKey, f.animKey, f.animTime);
     rot += Math.sin(c * TAU) * A.runSway * f.facing;
     dy -= Math.abs(Math.sin(c * TAU)) * A.runBob * (frames > 2 ? 0.5 : 1);
+  } else if (f.animKey === "teeter") {
+    // Out over the drop, and swaying back from it. Eased in over the same
+    // window the ledge lean uses, so arriving at the lip is a settle rather
+    // than a snap into a different posture.
+    const k = clamp(f.teeterT / A.ledgeLeanIn, 0, 1);
+    const w = Math.sin(t * A.teeterRate + phase(f));
+    rot += (f.teeterDir * A.teeterLean + w * A.teeterSway) * k;
+    dx += f.teeterDir * w * A.teeterShift * k;
+    dy -= (Math.sin(t * A.breathRate + phase(f)) * 0.5 + 0.5) * A.idleBob;
   } else if (f.animKey === "idle" || f.animKey === "crouch") {
     const b = t * A.breathRate + phase(f);
     rot += Math.sin(b) * A.idleSway * f.facing;
@@ -189,13 +198,6 @@ export function fighterTransform(f) {
       sx += S.hit * k * SQUASH;
     }
   }
-
-  // ---- the drawing catching up with a snap: a ledge grab, and every way off
-  // a ledge, PUTS the fighter somewhere rather than moving them there
-  // (fighter.js placeFighter). Applied last so it slides the whole pose,
-  // lean and squash included, instead of being deformed by them.
-  dx += f.visDX || 0;
-  dy += f.visDY || 0;
 
   return { rotation: rot, scaleX: sx, scaleY: sy, offsetX: dx, offsetY: dy };
 }

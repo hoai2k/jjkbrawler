@@ -103,7 +103,8 @@ they cover every way a fighter used to leave the ground without meaning to:
 This is Smash's **teeter** ([SmashWiki](https://www.ssbwiki.com/Teeter)): walk
 slowly to the edge there and the character stops, and will not step off until
 the stick is pushed past a threshold. It needs an analog walk to hang off,
-which is why the walk above had to exist first.
+which is why the walk above had to exist first. It has its own pose now, too —
+see the ledge section below.
 
 Everything deliberate is untouched, because everything deliberate is a held
 input: running off to chase, dropping to the ledge, edge-cancelling an aerial.
@@ -111,25 +112,46 @@ input: running off to chase, dropping to the ledge, edge-cancelling an aerial.
 so is a dash attack whose slide carries its owner over the end.
 
 ### Ledges
-Only the main platform has grabbable ledges. Falling near an edge (after real airtime —
-no walk-off regrab loops) snaps the fighter to a hang (brief invincibility,
-refreshed double jump); getting hit knocks them off the hang. From the hang:
-climb (toward), **ledge roll** (shield — long invulnerable climb), **ledge
-jump** (jump), **ledge attack** (attack — climbs and swings), or drop (down/away).
-Hanging times out after 2.8 s so ledges can't be camped.
+Only the main platform has grabbable ledges. Falling near an edge (after real
+airtime — no walk-off regrab loops) catches the fighter onto a hang (brief
+invincibility, refreshed double jump); getting hit knocks them off it. From the
+hang: climb (toward), **ledge roll** (shield — long invulnerable climb), **ledge
+jump** (jump), **ledge attack** (attack — climbs and swings), or drop
+(down/away). Hanging times out after 2.8 s so ledges can't be camped.
 
-Every one of those is a **teleport in the simulation** — the hang point and each
-get-up spot are exact positions, and they have to be, because a ledge attack's
-hitbox must be where the attack is the frame it exists. Drawn verbatim that is a
-body vanishing and reappearing up to 100 px away, twice in half a second, which
-is what made the ledge read as flickering. So the *drawing* lags: `placeFighter`
-(`src/fighter.js`) banks each jump as a visual offset and eases it off over
-0.18 s on a smoothstep, turning the snap into a very fast slide — worst frame
-13 px on the grab and 19 px on the get-up, against 98 and 102 before, and about
-what a run covers in a frame. The hang lean eases in over the same window
-instead of arriving with the pose. None of it touches `f.x`/`f.y`, so hurtboxes,
-ledge occupancy and the blast zones stay exactly where the simulation put them.
-Guarded by `tools/smoke_ledge.mjs`.
+**Getting on and off one is a move, not a teleport.** Every one of those used to
+be a single-frame jump of 40–110 px, and drawn verbatim that is a body vanishing
+and reappearing somewhere else, twice in half a second — the ledge's whole
+flicker. Smoothing the *drawing* over the snap fixed the flicker but not the
+lie: the fighter still arrived before their body did, and there was no trip for
+a pose to play on. So the fighter now **travels**, on the clock, with a pose per
+phase and the hurtbox going where the drawing goes:
+
+| | time | drawn as |
+|---|---|---|
+| catch | 0.13 s | the fall (or the rise) it came in on, all the way to the ledge, then the hang |
+| climb | 0.20 s | `jump_rise` up, `land` arriving |
+| roll | 0.26 s | `dodge_roll`, then `land` |
+| attack | 0.14 s | `jump_rise`, and the swing fires on arrival |
+| jump off | — | no transition at all: push off *from* the hang and let the arc carry |
+
+None of it waits on new art — the poses are ones every fighter already has. The
+transitions are invulnerable, which they already were; the ledge jump lost its
+placement entirely, which is why it is the smoothest of the five. Worst
+single-frame movement across any of them is 18 px, against 98 and 102 for the
+teleports they replace, and a fast fall covers 15. Guarded by
+`tools/smoke_ledge.mjs`, which checks both halves — how far the body moves in a
+frame *and* which poses are drawn while it moves, because a body that slides
+smoothly while holding its hang pose the whole way is still wrong.
+
+**Teetering** is the other half, and the answer to when a fighter should *not*
+be hanging. The ledge brake stops people dead on the last pixel of a platform
+constantly — that is its job — and nothing drew it, so the most common thing
+that happens at an edge looked like standing in the middle of the stage.
+Stopping within 16 px of the lip for 0.08 s now draws `teeter`: its own pose
+where the art exists (round 22A), and otherwise the idle with a lean out over
+the drop and a slow sway back, which is what a teeter is. Somebody who stopped
+at the edge has not left it, so it is a stance, not a hang.
 
 ## 3. Defense
 

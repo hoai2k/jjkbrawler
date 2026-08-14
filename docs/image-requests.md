@@ -12,9 +12,9 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**0 images outstanding.**
+**31 images outstanding.**
 
-- **The sprite game** — 0 images
+- **The sprite game** — 31 images, round 22
 - **The live-3D anime path** — 0 images
 
 ## Rules that hold everywhere here
@@ -45,7 +45,169 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**Nothing outstanding.** No open round in [asset-requests.md](asset-requests.md).
+**31 images, round 22.** Authored in
+[docs/asset-requests.md](asset-requests.md) and reproduced whole below.
+
+- **22A** — Balanced on the lip: the teeter (27 sprites)
+- **20E** — Yuji's four Round 20 poses (4 sprites)
+
+## 22A. Balanced on the lip: the teeter — 27 sprites
+
+**One new pose key, `teeter`, for every fighter.** Nothing is blocked by it:
+until it lands the state draws the fighter's own IDLE frames with a procedural
+lean supplied by `src/motion.js`, so the read exists today and the drawing
+upgrades it.
+
+**What it is for.** The ledge brake (`brakeAtLedge` in `src/fighter.js`) stops
+a fighter dead on the last pixel of a platform whenever momentum would have
+carried them off — that is its entire job, and it happens constantly. Nothing
+drew it, so the most common thing that happens at an edge looked exactly like
+standing in the middle of the stage. It is also the answer to when a fighter
+should NOT be hanging: someone who stopped at the edge has not left it, and a
+ledge hang would be telling the player they fell when they did not.
+
+**The brief.** A standing pose, weight shifted BACK from the drop, arms out for
+balance, front foot at or just over the lip, head turned down toward the fall.
+Not alarmed — this roster does not panic — but caught: the moment after
+realising the ground ran out. It reads at a glance against the idle beside it,
+which is the test: a player should be able to tell from the silhouette that
+they are on the edge.
+
+**Facing.** Drawn facing RIGHT like every other pose, with the drop on the
+right. The engine mirrors it for the left-hand lip and leans it the correct way
+either side (`teeterLean` in `src/config_tuning.js`), so one drawing serves
+both edges.
+
+| pose key | count |
+|---|---|
+| `teeter` | 27 (one per fighter) |
+
+**Not requested, deliberately: a ledge-climb pose.** Getting on and off a ledge
+is now an animated transition rather than a teleport (`beginLedgeMove` in
+`src/fighter.js`), and it is built from poses the roster already has — the fall
+carries onto the ledge, the climb rises on `jump_rise` and arrives on `land`,
+the roll uses `dodge_roll`. A bespoke `ledge_climb` would be an upgrade to
+that, not a dependency, and 27 more sprites is not worth spending before the
+reused ones have been seen in motion.
+
+# Round 20 — delivered
+
+**All four requests are in.** The last of them was Yuji's own four poses, which
+landed as [20E](asset-requests.md#20e-yujis-four-round-20-poses--4-sprites) and are in the game:
+his grab now reads as a grab and his dash attack as a lunge, like everybody
+else's. Nothing in round 20 is outstanding.
+
+- **~~44 of the 114 summon plates hold six creatures instead of one~~** —
+  delivered. All forty-four came back as one figure each,
+  `tools/check_summon_plates.py` passes on the whole tree of 114, and the seven
+  authored hit boxes that were standing in for an unmeasurable plate came out
+  with them.
+- **~~Twenty backgrounds, re-extended from the paintings 18E replaced~~** —
+  delivered, all twenty at 3200×1800, and in the game. Each one carries its
+  source painting's composition rather than a fresh take on the brief, which is
+  the whole thing 18E got wrong and the only thing this round was asking for.
+  See [the history entry](asset-requests-history.md#20b-twenty-backgrounds-re-extended--delivered).
+- **~~The grab poses~~** and **~~the dash attack pose~~** — delivered, 26
+  fighters of 27 each, plus Mahoraga. Both are in the game: every one is a new
+  pose key, so nothing was replaced and nothing waited for an approval. A grab
+  now reads as a grab and a dash attack as a lunge, on everybody except Yuji.
+- **~~Yuji's four~~** — [20E](asset-requests.md#20e-yujis-four-round-20-poses--4-sprites),
+  delivered. 20C and 20D each asked for 27, one per fighter, and each arrived
+  as 27 files with Mahoraga in Yuji's place; this was the correction, and it
+  came back as the four missing drawings. Imported, anchored, and seeded a
+  pose read each — the seeder had to learn that the REFERENCE character can
+  gain frames too, since it was skipping him wholesale and he was then the one
+  fighter with unread art.
+
+Round 18 is closed and everything in it landed.
+
+**Round 18 was delivered complete** — 28 sprites and 14 near-field cards, every
+section of it, plus the five render3d image inputs (DI1–DI4). Its record, and
+the reasoning behind each request in it, is now in
+[the history](asset-requests-history.md#round-18--delivered).
+
+**Round 20 is the open round.** (19 is skipped as a request number: it was used
+for the *intake* of round 18, so `assets/reference/round19/` holds the delivered
+plates and no request ever carried that number. Reusing it would make "round 19"
+mean two different things.) Anything found from here — a placement pass, an
+approval rejection, a manifest audit — lands in 20 beside 20B.
+
+## Also outstanding, but work here rather than art
+
+Four things, and none of them is a drawing anybody owes us:
+
+- **25 poses are waiting in the approval queue.** Round 18's sprites are in the
+  repo but not in the game: each is a decision in the sprite workbench, and
+  until it is made the pose keeps drawing what it drew before. This is the
+  [approval step](../assets/intake/README.md#the-confirm-step) working as
+  intended, not a backlog. `mechamaru/run_reach_a` is the one exception — it
+  filled an empty pose rather than replacing a drawn one, so it went straight
+  in and completed his run cycle.
+- **The two alpha fixes** above — `hakari/dodge_air` and `toji/dodge_air` — are
+  repo work on delivered files, not art anybody owes us.
+- **Six variant options point at art that was retired.** `hanami_alt/` was
+  folded away when the alternate-art-set machinery went ([8843a0f]) and its
+  drawings moved to `assets/reference/hanami_alt/`, but six options in
+  `manifest["variants"]["hanami"]` still name the old path — a chevron offering
+  a file that is not there. It is also what `tools/canonicalise_sprites.py`
+  refuses on, so the step that puts canonical names back on approved art cannot
+  run until those six entries are dropped or repointed. Round 20's own sprites
+  did not need it — a new pose key lands at its canonical name — but round 18's
+  approvals do.
+- **Rejections from the approval pass** will become round 20. A pose rejected
+  at approval is pointed at another frame so the game keeps drawing something,
+  which raises no flag; [18G](asset-requests-history.md#18g-seven-a-pose-is-drawing-somebody-elses-art--7-sprites)
+  is what that costs when nobody checks, and the manifest audit that found it is
+  how the count at the top of this file is now derived.
+
+---
+
+---
+
+## 20E. Yuji's four Round 20 poses — 4 sprites
+
+**Delivered.** All four landed, keyed and measured through `tools/intake.py`,
+imported with `tools/intake_import.py`, anchored, and given a seeded pose read
+apiece — those four are marked `seed`, not `source`, so the joint-reads bench
+knows they are a starting point rather than a read of the art.
+
+**The remainder of 20C and 20D, and the whole of it is one fighter.** Both
+rounds asked for one file per fighter, both arrived as twenty-seven files, and
+both of those twenty-seven were Mahoraga rather than Yuji. Mahoraga is animated
+out of a character sprite set and has an intake directory like everyone else,
+but he is a summon and is not on `CHARACTER_KEYS`; his four are landed and
+welcome, and they are not a fighter's. So the count was right twice and the
+roster was wrong twice, which is now a row in
+[pose-brief.md § 5](../sprites/docs/pose-brief.md#5-the-faults-that-keep-coming-back)
+and a `ROSTER COVERAGE` line that `tools/intake.py` prints on every delivery.
+
+**Nothing is blocked.** Yuji draws exactly what the whole roster drew before
+round 20: `grabReach` falls back to his first light-attack frame, `grabHold` to
+`charge`, `grabbed` to `hurt`, and both dash attacks to his standing strike
+(`src/characters.js`). He is the one fighter whose grab still reads as a frozen
+jab, which is precisely the thing 20C was written to end.
+
+| File | Pose line |
+|---|---|
+| `assets/intake/yuji/grab_reach.png` | "a committed forward lunge with one open, grasping hand leading — reaching to seize, not to strike — the other arm up as a guard" |
+| `assets/intake/yuji/grab_hold.png` | "gripping an unseen opponent at arm's length by the collar: front hand closed in a fist at chest height, weight planted, body coiled to heave" |
+| `assets/intake/yuji/grabbed.png` | "seized and struggling: body arched back from the collar, feet scrabbling, both hands prying at an unseen grip at their own chest" |
+| `assets/intake/yuji/attack_dash.png` | "sprinting forward and striking at the same moment, body low and driving, weight thrown ahead of the leading foot, back leg extended behind, striking arm fully extended forward along the direction of the run, trailing arm swept back, at the instant of impact" |
+
+The two grab poses have to answer the same grip-point rule the other twenty-six
+already do — **fist and prying hands both at chest height on the leading edge of
+the body** — because the game draws Yuji's `grab_hold` against somebody else's
+`grabbed` at a fixed gap, so his is not judged on its own. Open any delivered
+pair (`sprites/assets/gojo/grab_hold.png` beside
+`sprites/assets/nobara/grabbed.png`) and match the height.
+
+Otherwise the standard spec: grey key screen (Yuji is on the warm-palette list),
+facing right, one zoom matched to his own `idle_a`, at least 600 px of body, one
+subject per file. His character block and canonical reference are above, and
+[pose-brief.md](../sprites/docs/pose-brief.md) has all four pose lines in the
+set they now belong to.
+
+---
 
 ---
 
