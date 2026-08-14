@@ -266,6 +266,132 @@ round 8.
 
 ---
 
+# Round 21 — the walk cycle
+
+**Delivered complete: 54 sprites, `walk_a` and `walk_b` for all twenty-seven.**
+Keyed and measured through `tools/intake.py` (one frame arrived facing left and
+was mirrored), imported, anchored, auto-tuned and given a seeded pose read
+apiece. They are BRAND-NEW pose keys, so nothing was replaced and nothing waits
+in the approval queue — every fighter draws its own walk the moment it loads,
+where before they all replayed the run cycle at a walking cadence.
+
+**Sprite round only, by design.** The 3D and 2.5D renderers play a hand-authored
+four-phase cycle (`render3d/src/walk_cycle.js`) and ignore `walk_a`/`walk_b`
+entirely; the reasoning is kept in full below. Nothing in 3D changed.
+
+**One fighter's pair is worth a second look.** Maki's naginata is carried
+blade-down-and-forward in `walk_a` and blade-up-and-back in `walk_b`, so the
+weapon turns over once per stride. Every other armed fighter carries theirs the
+same way in both frames — Gakuganji's guitar is the check — so this is hers
+alone rather than a fault in the brief. It landed with the rest because the
+alternative is her old fallback, which is the run cycle at half speed, and a
+walk that carries its weapon oddly still reads better than a jog that does not
+walk. A redraw of the two frames would settle it.
+
+**The request, as written**
+
+- **21A** — a walk cycle for every fighter (54 sprites)
+
+**54 sprites, none of it blocking.** Every fighter walks today; the pose they
+walk in is their run cycle replayed at a walking cadence, which is exactly what
+they drew before the walk existed.
+
+## 21A. A walk cycle for every fighter — 54 sprites
+
+### Why
+
+**The game grew a walk and has nothing to draw it with.** Ground movement used
+to be one speed: `dirX` was ±1 past a deadzone, so any input accelerated to the
+same run. It is analog now — a partial stick tilt walks at 34–62% of run speed,
+scaled by how far it is pushed, and a full tilt or a flick runs, which is how
+Smash has always done it ([SmashWiki](https://www.ssbwiki.com/Walk)).
+
+That was not a cosmetic addition. It is what makes the **ledge brake** possible:
+a fighter walking into the lip of a platform stops there and will not step off
+until the stick is pushed to a run — Smash's teeter
+([SmashWiki](https://www.ssbwiki.com/Teeter)) — and a teeter needs a walk to
+protect. Both are in `docs/game-mechanics.md § 2`.
+
+So there is a new movement state with real presence in play, and no art. It
+currently borrows the run.
+
+### What is already wired
+
+**Nothing is blocked and nothing needs a code change when this lands.** `walk`
+is a state on both renderers already, falling back the way the round-20C grab
+set did:
+
+- **Sprites** — `WALK_ANIM` in `src/characters.js` names `walk_a` / `walk_b` and
+  falls back to the four-frame run cycle (then the old `run_a`/`run_b` pair) at
+  a walking cadence. A fighter who has the pair never plays the fallback.
+- **3D** — `walk` is a state in `render3d/src/states.js`, aliased to the run
+  clip. No rig owes a new clip today. See the note below on when it should.
+- **Cadence** — the stride now plays at the speed the fighter is actually
+  travelling (`strideRate`, `src/fighter.js`), so a walk does not skate and
+  neither does anyone snared or slowed.
+
+Delivery therefore upgrades the roster fighter by fighter, in any order.
+
+### The brief
+
+**Two contacts, not four.** The run is a four-frame cycle (reach and pass on
+each leg) because a sprint needs the extension. A walk reads at half the cadence
+and half the extension, and two frames is what the roster's other held cycles —
+idle, crouch — use for the same reason.
+
+`walk_a` and `walk_b` are **the same walk half a cycle apart**: opposite legs
+leading, mirrored in gait but NOT mirrored as images — each is drawn facing
+right, with the costume on its correct side, exactly as `run_reach_a` and
+`run_reach_b` are.
+
+| File | Pose line |
+|---|---|
+| `assets/intake/<char>/walk_a.png` | "walking at an unhurried pace, RIGHT leg forward and the heel just making contact, left leg trailing straight behind, arms swinging naturally in opposition — left arm forward — torso upright and relaxed, no lean" |
+| `assets/intake/<char>/walk_b.png` | "the same unhurried walk half a stride later, LEFT leg forward and the heel just making contact, right leg trailing straight behind, arms swinging in opposition — right arm forward — torso upright and relaxed, no lean" |
+
+What separates these from the run poses, and the thing most likely to come back
+wrong:
+
+- **Upright, not driving.** A run leans into the direction of travel and throws
+  its weight ahead of the leading foot. A walk carries the torso vertically over
+  the hips. If the pose would read as a slow run, it is the wrong pose.
+- **A short stride.** Feet roughly shoulder-width apart at contact, not the
+  full split of `run_reach_*`. Both feet stay near the ground; a walk has no
+  airborne phase at all, which is the definition of one.
+- **Relaxed arms.** Swinging from the shoulder in opposition to the legs, elbows
+  soft and near the body — not the pumped, high-elbow carriage of the run.
+- **Weapons carried, not readied.** A fighter who runs with a weapon up should
+  walk with it lowered or shouldered. This is the calm approach, not the charge.
+
+Otherwise the standard spec: the character's own key screen colour, facing
+right, one zoom matched to their own `idle_a`, at least 600 px of body, one
+subject per file. Character blocks and canonical references are above;
+[pose-brief.md](../sprites/docs/pose-brief.md) is the standing brief.
+
+### The 3D gaits are already authored, and ignore these
+
+**The 3D and 2.5D renderers do not use `walk_a`/`walk_b` and will not.** They
+play a hand-authored four-phase cycle instead — `render3d/src/walk_cycle.js` —
+and that is a deliberate divergence rather than an interim.
+
+The reason is the cost of a pose. In 2D a pose is a drawing, so two contacts is
+the right ask; in 3D a pose is eight joint angles, so the phases a sheet cannot
+afford are free. A rig interpolated between two contacts scissors its legs
+through each other with the knees straight and the hips never rising — the
+DOWN and PASSING positions are what make a walk read as carrying weight, and
+they are exactly the two frames a two-frame sheet leaves out.
+
+So this round is a sprite round only, and delivery changes nothing in 3D. The
+note above about raising a D- or B-numbered round does not apply: it was
+written before the cycle existed and the cycle is the answer to it.
+
+The RUN is now the same, for the same reason: the four-frame sprint cycle is a
+reach and a pass, mirrored, and `render3d/src/run_cycle.js` plays contact, down,
+passing and up instead. The sprite path keeps both sets of drawings; the rigs
+read neither gait off the sheet.
+
+---
+
 # Round 11 — delivered
 
 Three parts; any can be delivered on its own.

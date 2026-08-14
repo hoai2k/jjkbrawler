@@ -2,7 +2,7 @@
   "character": "yuta",
   "facing": "right",
   "_about": "Poses marked `seed` were fitted from the hand-read yuji sheet, not read from this art: a starting point for the pose editor (render3d/workbench/?edit=pose), not a statement about how yuta is drawn. A pose carrying `source` has been through the editor and is a read.",
-  "_joints": ["head", "neck", "chest", "pelvis", "shoulderL", "elbowL", "handL", "shoulderR", "elbowR", "handR", "hipL", "kneeL", "footL", "hipR", "kneeR", "footR"],
+  "_joints": ["head", "neck", "chest", "pelvis", "shoulderL", "elbowL", "handL", "shoulderR", "elbowR", "handR", "hipL", "kneeL", "footL", "toeL", "hipR", "kneeR", "footR", "toeR"],
   "_seed": "tools/pose_seed.py, from yuji",
   "poses": {
     "attack_air": {
@@ -508,6 +508,22 @@
              "elbowR": [58.8, 33.3], "handR": [65.1, 20.8], "hipL": [44.4, 47.3], "kneeL": [46.3, 67.8],
              "footL": [40.7, 90.2], "toeL": [44.6, 91.2], "hipR": [55.5, 47.3], "kneeR": [57.4, 67.8],
              "footR": [62.9, 89.2], "toeR": [63.6, 90.7]}
+    },
+    "walk_a": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.3, 7.5], "neck": [48.7, 14.4], "chest": [48.7, 20.4], "pelvis": [47, 47.3],
+             "shoulderL": [53.6, 18.4], "elbowL": [56.9, 32.3], "handL": [58.5, 45.3], "shoulderR": [43.8, 18.4],
+             "elbowR": [40, 32.6], "handR": [37.7, 44.8], "hipL": [52, 47.3], "kneeL": [40.5, 68.2],
+             "footL": [37.2, 92], "toeL": [58.2, 91.8], "hipR": [42.1, 47.3], "kneeR": [53.6, 68.2],
+             "footR": [58.5, 90], "toeR": [65.1, 89.6]}
+    },
+    "walk_b": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.2, 7], "neck": [48.8, 14], "chest": [48.8, 20], "pelvis": [47.4, 47],
+             "shoulderL": [53, 18], "elbowL": [55.8, 32], "handL": [57.2, 45], "shoulderR": [44.6, 18],
+             "elbowR": [41.4, 32.3], "handR": [39.5, 44.5], "hipL": [51.6, 47], "kneeL": [44.2, 67.3],
+             "footL": [39.1, 92], "toeL": [53.4, 92.6], "hipR": [43.2, 47], "kneeR": [53, 68],
+             "footR": [57.2, 90], "toeR": [58.9, 91.6]}
     }
   }
 }

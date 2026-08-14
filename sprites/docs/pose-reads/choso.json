@@ -2,7 +2,7 @@
   "character": "choso",
   "facing": "right",
   "_about": "Poses marked `seed` were fitted from the hand-read yuji sheet, not read from this art: a starting point for the pose editor (render3d/workbench/?edit=pose), not a statement about how choso is drawn. A pose carrying `source` has been through the editor and is a read.",
-  "_joints": ["head", "neck", "chest", "pelvis", "shoulderL", "elbowL", "handL", "shoulderR", "elbowR", "handR", "hipL", "kneeL", "footL", "hipR", "kneeR", "footR"],
+  "_joints": ["head", "neck", "chest", "pelvis", "shoulderL", "elbowL", "handL", "shoulderR", "elbowR", "handR", "hipL", "kneeL", "footL", "toeL", "hipR", "kneeR", "footR", "toeR"],
   "_seed": "tools/pose_seed.py, from yuji",
   "poses": {
     "attack_air": {
@@ -356,6 +356,22 @@
              "elbowR": [60.7, 28], "handR": [64.8, 27.5], "hipL": [45.2, 47], "kneeL": [46.8, 68],
              "footL": [42.2, 91], "toeL": [46.1, 91.8], "hipR": [51, 47], "kneeR": [48.3, 68],
              "footR": [50.6, 95.6], "toeR": [54.6, 95.3]}
+    },
+    "walk_a": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.5, 7], "neck": [49, 14], "chest": [49, 20], "pelvis": [47.5, 47],
+             "shoulderL": [53.5, 18], "elbowL": [56.6, 32], "handL": [58.1, 45], "shoulderR": [44.4, 18],
+             "elbowR": [40.9, 32.3], "handR": [38.8, 44.5], "hipL": [52, 47], "kneeL": [41.4, 68],
+             "footL": [35, 93.4], "toeL": [54.7, 88.3], "hipR": [42.9, 47], "kneeR": [53.5, 68],
+             "footR": [58.1, 90], "toeR": [61.1, 91.6]}
+    },
+    "walk_b": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.4, 7], "neck": [49.1, 14], "chest": [49.1, 20], "pelvis": [47.9, 47],
+             "shoulderL": [52.8, 18], "elbowL": [55.3, 32], "handL": [56.5, 45], "shoulderR": [45.4, 18],
+             "elbowR": [42.6, 32.3], "handR": [40.9, 44.5], "hipL": [51.6, 47], "kneeL": [43, 68],
+             "footL": [40.5, 92], "toeL": [53.2, 92.6], "hipR": [44.2, 47], "kneeR": [52.8, 68],
+             "footR": [56.5, 90], "toeR": [55.2, 89.5]}
     }
   }
 }

@@ -587,3 +587,19 @@ export const matchedPose = (frame) => BATTLE_POSES[frame] || null;
 
 /** Which frames have one. The editor badges these in the picker. */
 export const MATCHED_FRAMES = new Set(Object.keys(BATTLE_POSES));
+
+/**
+ * Sprite frames that will never get a matched pose, and are not a gap.
+ *
+ * The gait is the one part of the 3D path that is NOT read off the sprite
+ * sheet: `render3d/src/walk_cycle.js` generates the walk and the run as a
+ * continuous cycle with its own phase, contact timing and stride length,
+ * because two drawn keyframes cannot say how a leg travels between them.
+ * Matching a pose to `walk_a` would freeze a model mid-stride and then fight
+ * the cycle for the same bones.
+ *
+ * Round 21 delivered `walk_a` and `walk_b` for all 27 fighters, which is what
+ * put these names on every sheet. The sprites are used — by the sprite
+ * renderer, which is where drawn keyframes belong.
+ */
+export const GAIT_FRAMES = new Set(["walk_a", "walk_b"]);
