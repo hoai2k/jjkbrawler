@@ -903,7 +903,7 @@ function clampElbow(THREE, root3d, fore, handName, dir, tmp) {
  */
 export const MAX_IDLE_ELBOW = 25;
 
-export function applyIdleArms(THREE, root3d, deg, tmp, outM = 0) {
+export function applyIdleArms(THREE, root3d, deg, tmp) {
   const arms = ["Left", "Right"].map((side) => ({
     up: root3d.getObjectByName(`${side}Arm`),
     lo: root3d.getObjectByName(`${side}ForeArm`),
@@ -960,16 +960,45 @@ export function applyIdleArms(THREE, root3d, deg, tmp, outM = 0) {
       aimBoneFromBind(THREE, root3d, up, `${side}Hand`, dir, tmp, rootQ);
     }
 
-    // LENGTHEN THE SHOULDER: move the arm's root out along the body's own
-    // width axis. A translation rather than a scale, so the arm keeps its
-    // length — what reads as squashed is where the arm STARTS, not how long
-    // it is.
-    if (outM && up.parent) {
-      up.updateWorldMatrix(true, false);
-      tmp.p1.setFromMatrixPosition(up.matrixWorld).addScaledVector(lateral, sign * outM);
-      up.position.copy(up.parent.worldToLocal(tmp.p1));
-      up.updateMatrixWorld(true);
-    }
+  }
+  root3d.updateMatrixWorld(true);
+  return true;
+}
+
+/**
+ * LENGTHEN THE SHOULDERS: move both arm roots out along the body's own width
+ * axis. A translation rather than a scale, so the arms keep their length —
+ * what reads as squashed is where the arm STARTS, not how long it is.
+ *
+ * A MODEL FIX, NOT A POSE, which is why it lives out here on its own rather
+ * than inside the idle. It used to be a parameter of `applyIdleArms` and so
+ * only happened at rest, and the fighters carrying one visibly narrowed the
+ * instant they moved: Uro's shoulders measured 37.6 cm apart standing and
+ * 24.9 cm mid-punch, the whole 12.7 cm being twice her 6.5 cm correction
+ * arriving and leaving. See render3d/src/rig_fixes.js, which owns the list of
+ * corrections this belongs to and applies it under every state.
+ */
+export function applyShoulderWidth(THREE, root3d, outM, tmp) {
+  if (!outM) return false;
+  const arms = ["Left", "Right"].map((s) => root3d.getObjectByName(`${s}Arm`));
+  if (!arms[0] || !arms[1]) return false;
+  root3d.updateMatrixWorld(true);
+  // The chest's own width axis, shoulder joint to shoulder joint — the same
+  // measurement applyIdleArms makes, and for the same reason: it never asks
+  // the manifest which way anybody faces, so `yawOffsetDeg` cannot mislead it.
+  const span = tmp.v4.setFromMatrixPosition(arms[1].matrixWorld)
+    .sub(tmp.v5.setFromMatrixPosition(arms[0].matrixWorld));
+  const lateral = tmp.v3.set(span.x, 0, span.z);
+  if (lateral.lengthSq() < 1e-8) return false;
+  lateral.normalize();
+  for (let i = 0; i < 2; i++) {
+    const bone = arms[i];
+    const sign = i === 0 ? -1 : 1; // apart, not both the same way
+    if (!bone.parent) continue;
+    bone.updateWorldMatrix(true, false);
+    tmp.p1.setFromMatrixPosition(bone.matrixWorld).addScaledVector(lateral, sign * outM);
+    bone.position.copy(bone.parent.worldToLocal(tmp.p1));
+    bone.updateMatrixWorld(true);
   }
   root3d.updateMatrixWorld(true);
   return true;

@@ -145,32 +145,52 @@ check(strip.join(",") === "attack_heavy_a,attack_heavy_b",
   "the keyframe strip names the drawings", strip.join(" / "));
 
 // The A/B the strategy needs: same state, two different animations.
+//
+// ASKED OF THE CLIPS, not of the pixels. This used to compare opaque-pixel
+// counts between the toggle's two settings, and it could not fail: the edit
+// check above dirties maki's sideHeavy table and the edit survives the
+// reload, so both halves played the same rebuilt clip, and two frames of one
+// animation differ by a pixel or two, which the count read as "different".
+//
+// Nor can pixels answer it in general. Every state of maki's except the idle
+// already resolves to a LIBRARY clip, which is itself built from the sprite
+// poses — for those, "delivered" and "interpolated" are two roads to the same
+// animation and SHOULD look alike. The question the toggle actually asks is
+// which clip is playing, so that is what is checked.
 const ab = await page.evaluate(async () => {
-  const scene = await import("/render3d/src/scene.js");
-  const shot = () => {
-    const c = document.getElementById("stage");
-    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
-    let n = 0;
-    for (let i = 3; i < d.length; i += 4) if (d[i] > 40) n++;
-    return n;
-  };
-  const settle = () => new Promise((r) => setTimeout(r, 800));
-  document.getElementById("playBtn").onclick();          // hold the playhead
-  document.getElementById("scrub").value = "0.5";
-  document.getElementById("scrub").oninput();
-  scene.clearCache();
-  await settle();
-  const delivered = shot();
+  const ed = window.__poseEditor;
+  const rigs = await import("/render3d/src/loader.js");
   const box = document.getElementById("interpToggle");
-  box.checked = true;
-  box.onchange();
-  scene.clearCache();
-  await settle();
-  return { delivered, interpolated: shot() };
+  // A state with no edits on it, so "a clip comes back" means the
+  // interpolation put it there rather than the editor having done.
+  const st = "light";
+  const settle = () => new Promise((r) => setTimeout(r, 400));
+  box.checked = false; box.onchange(); await settle();
+  const off = ed.editedClip("maki", st);
+  box.checked = true; box.onchange(); await settle();
+  const on = ed.editedClip("maki", st);
+  const table = ed.tables.maki?.[st];
+  // Put the toggle back — everything downstream draws the stage and compares
+  // it, and an audition left running is a difference they would all inherit.
+  box.checked = false; box.onchange(); await settle();
+  return {
+    off: off ? off.name : null,
+    on: on ? { name: on.name, tracks: on.tracks.length, dur: +on.duration.toFixed(3) } : null,
+    dirty: !!table?.dirty,
+    fromPoses: !!table?.fromPoses,
+    keys: table?.keys?.map((k) => k.frame) || [],
+    resolved: rigs.resolveClip("maki", st)?.source,
+  };
 });
-check(ab.delivered > 1000 && ab.interpolated > 1000 && ab.delivered !== ab.interpolated,
-  "the sprite-pose interpolation is a real alternative, not the same clip",
-  `mid-strike covers ${ab.delivered}px delivered -> ${ab.interpolated}px interpolated`);
+check(!ab.dirty && ab.fromPoses && ab.keys.length > 1,
+  "the A/B runs on an unedited state whose keys are sprite poses",
+  `maki light: ${ab.keys.join(", ")} (${ab.resolved} clip), dirty=${ab.dirty}`);
+check(ab.off === null,
+  "with the toggle off the fighter plays the clip they were given",
+  ab.off === null ? "no editor clip" : `editor clip "${ab.off}"`);
+check(!!ab.on && ab.on.tracks > 10 && ab.on.dur > 0,
+  "...and with it on, one built from the sprite poses instead",
+  ab.on ? `"${ab.on.name}", ${ab.on.tracks} tracks, ${ab.on.dur}s` : "no clip built");
 
 // ------------------------------------------------------------- the bone proxy
 
@@ -308,6 +328,60 @@ if (!wide) {
   check(wide.fwdCm.every((v) => Math.abs(v) < 1),
     "...and does not push either of them fore or aft",
     `${wide.fwdCm.join(" / ")} cm fore/aft`);
+}
+
+// ------------------------------------------- the GLB corrections hold in ALL
+//                                             states, not just the idle
+//
+// The shoulder dial used to be an argument to the idle-arm layer, which meant
+// it only existed while a fighter was standing still: Uro measured 37.6 cm
+// across the shoulders in her idle and 24.9 cm mid-punch — a 12.7 cm snap,
+// exactly twice her 6.5 cm correction, on the first frame of every attack.
+//
+// That is the failure mode this class of number invites, so it is guarded
+// rather than commented: a correction to the MODEL is true of the body no
+// matter what it is doing, and the test is that turning the dial moves the
+// shoulders by the same amount in a strike as it does at rest.
+
+const across = await page.evaluate(async () => {
+  const rigs = await import("/render3d/src/loader.js");
+  const scene = await import("/render3d/src/scene.js");
+  const THREE = await import("/vendor/three/three.module.js");
+  const r = rigs.getRig("maki");
+  if (!r || r.isMannequin) return null;
+  const at = (n) => r.root.getObjectByName(n).getWorldPosition(new THREE.Vector3());
+  const keep = r.shoulderOutCm;
+  // Span between the arm roots, with the dial off and then at 10 cm. The
+  // DIFFERENCE is what has to match across states — the raw span does not,
+  // because a punch legitimately swings one shoulder round.
+  const spanFor = (state) => {
+    const res = rigs.resolveClip("maki", state);
+    const measure = () => {
+      scene.posePreview("maki", state, 0, r, res, {});
+      r.root.updateMatrixWorld(true);
+      return at("LeftArm").distanceTo(at("RightArm"));
+    };
+    r.shoulderOutCm = 0; const off = measure();
+    r.shoulderOutCm = 10; const on = measure();
+    return +((on - off) * 100).toFixed(2);
+  };
+  const out = {};
+  for (const s of ["idle", "light", "sideHeavy", "crouch", "run"]) out[s] = spanFor(s);
+  r.shoulderOutCm = keep;
+  scene.posePreview("maki", "idle", 0, r, rigs.resolveClip("maki", "idle"), {});
+  return out;
+});
+if (!across) {
+  check(false, "maki's rig is loaded for the cross-state correction check");
+} else {
+  const vals = Object.values(across);
+  const spread = Math.max(...vals) - Math.min(...vals);
+  const shown = Object.entries(across).map(([k, v]) => `${k} ${v}`).join(" / ");
+  check(vals.every((v) => v > 15),
+    "the shoulder correction reaches every state, not only the idle", shown);
+  check(spread < 1.5,
+    "...and widens the shoulders by the same amount in each",
+    `spread ${spread.toFixed(2)} cm`);
 }
 
 // ------------------------------------------------------------- the alternate

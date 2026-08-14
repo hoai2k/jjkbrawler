@@ -181,9 +181,13 @@ export function acquireInstance(charKey, instanceId) {
   const inst = {
     charKey, root, height: base.height, clips: base.clips,
     renderScale: base.renderScale ?? 1, yawOffset: base.yawOffset ?? 0,
-    headTiltDeg: base.headTiltDeg ?? 0,
     mixer: new THREE.AnimationMixer(root), actions: new Map(),
   };
+  // The GLB corrections come across too. They are facts about the FILE, so the
+  // in-game copy of a fighter has to carry exactly what the workbench copy
+  // does — a shoulder correction that only existed on the base rig meant the
+  // number was dialled in the review and then never seen in a match.
+  copyModelFixes(inst, base);
   INSTANCES.set(key, inst);
   return inst;
 }
@@ -292,6 +296,19 @@ function applyEntrySettings(rig, entry) {
   rig.shoulderOutCm = delivered && Number.isFinite(shoulder) ? shoulder : 0;
 }
 
+/** Carry the GLB correction layer from one rig object to another — a fresh
+ *  instance, or a base rig whose numbers just changed under the workbench.
+ *
+ *  One list, one place: every key here is in `MODEL_FIX_KEYS` (rig_fixes.js),
+ *  and anything added there has to be added here or it stops at the base rig.
+ *  `renderScale` and `yawOffset` are handled by their callers, which have to
+ *  restamp the root's userData alongside them. */
+function copyModelFixes(dst, src) {
+  dst.headTiltDeg = src.headTiltDeg ?? 0;
+  dst.shoulderOutCm = src.shoulderOutCm ?? 0;
+  return dst;
+}
+
 /** Set them live, from the workbench. */
 export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg, headTiltDeg, armDeg, shoulderOutCm } = {}) {
   const rig = RIGS.get(charKey);
@@ -313,7 +330,7 @@ export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg, 
     if (inst.charKey !== charKey) continue;
     inst.renderScale = rig.renderScale;
     inst.yawOffset = rig.yawOffset;
-    inst.headTiltDeg = rig.headTiltDeg;
+    copyModelFixes(inst, rig);
     inst.root.userData.yawOffsetRad = rig.yawOffset;
   }
   return rig;
@@ -426,7 +443,11 @@ function registerRig(charKey, { root, height, clips, isMannequin = false }, entr
   // `declaredHeight` is what the manifest says the character is; `height` is
   // what the model measures in its idle pose, filled in by calibrateHeight
   // once every rig is registered (the measurement needs the clip set).
-  const rig = { root, height, declaredHeight: height, clips, mixer,
+  // `charKey` rides on the rig so the GLB correction layer (pose.js) can find
+  // a fighter's per-bone fixes without the caller remembering to pass it —
+  // a correction that only lands when someone sets `layers.charKey` is a
+  // correction that silently does not land in half the game.
+  const rig = { charKey, root, height, declaredHeight: height, clips, mixer,
                 actions: new Map(), entry, isMannequin };
   applyEntrySettings(rig, entry);
   RIGS.set(charKey, rig);

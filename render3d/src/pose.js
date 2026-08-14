@@ -30,10 +30,10 @@
 // not bake it; the delivery rule carries over verbatim.
 
 import { STATES, clipNameFor, clipTime, aimable } from "./states.js";
-import { applyRigFixes } from "./rig_fixes.js";
+import { applyRigFixes, modelFixesEnabled } from "./rig_fixes.js";
 import { groundOffset } from "./pose_library.js";
 import {
-  applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs, applyIdleStand, applyIdleArms, clearIdleStand,
+  applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs, applyIdleStand, applyIdleArms, applyShoulderWidth, clearIdleStand,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
   reachChain, gripBones,
 } from "./ik.js";
@@ -436,26 +436,50 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
     // The arms get the same treatment one axis up — unless this fighter's
     // delivered idle is a pose somebody chose, which the manifest says.
     if (rig.idleArms !== false) {
-      applyIdleArms(THREE, rig.root, rig.armDeg ?? IDLE_ARM_DEG, _ik,
-        (rig.shoulderOutCm || 0) / 100);
+      applyIdleArms(THREE, rig.root, rig.armDeg ?? IDLE_ARM_DEG, _ik);
     }
   } else {
     clearIdleStand(rig.root);
   }
-  // HOW THE HEAD IS CARRIED, per delivery. Generated heads arrive modelled
-  // looking slightly down — the tilt is in the MESH, not the skeleton, so no
-  // amount of measuring the rig finds it (the joints come out level to within
-  // a degree across the whole roster) and no clip can correct it: every state
-  // inherits the same stoop. It is the same class of fact as the yaw and the
-  // scale, corrected the same way, and dialled by eye in the idle review.
+  // ------------------------------------------------------------------------
+  // THE GLB CORRECTION LAYER — begin. Everything between these two markers is
+  // a fix to the delivered MODEL, not to any pose: things the file got wrong
+  // that no clip can fix, because every state inherits them. They are dialled
+  // by eye in the idle review (which is the one pose with an obvious right
+  // answer) but they are NOT part of the idle, so they are applied here, for
+  // every state, unconditionally.
   //
-  // Applied here, before the live layers, so look-at still nods FROM the
-  // corrected carriage rather than fighting it. Positive lifts the chin.
-  if (rig.headTiltDeg) rotateBoneNod(rig.root, "Head", -rig.headTiltDeg * DEG);
-  // ...and the rest of the same class of fact: corrections that belong to the
-  // MODEL rather than to any pose, found in the idle review and applied under
-  // every state until they are baked into the .glb (rig_fixes.js).
-  if (layers.charKey) applyRigFixes(THREE, rig.root, layers.charKey);
+  // It is one block on purpose. The bake list lives in rig_fixes.js
+  // (MODEL_FIXES / MODEL_FIX_KEYS) and `tools/model_fixes.mjs` prints what is
+  // still outstanding per fighter; when a fighter's corrections go into their
+  // .glb, `setModelFixesEnabled(false)` must leave them looking IDENTICAL —
+  // that is the test of a complete bake, and it only works if nothing in this
+  // class is applied outside these markers.
+  //
+  // Order within the block matters only in that it runs before the live
+  // layers below: look-at nods FROM the corrected carriage rather than
+  // fighting it, and reach solves from a body whose shoulders are already
+  // where the model should have put them.
+  if (modelFixesEnabled()) {
+    // Generated heads arrive modelled looking slightly down — the tilt is in
+    // the MESH, not the skeleton, so no amount of measuring the rig finds it
+    // (the joints come out level to within a degree across the whole roster).
+    // Positive lifts the chin.
+    if (rig.headTiltDeg) rotateBoneNod(rig.root, "Head", -rig.headTiltDeg * DEG);
+    // Arm roots built too far into the body. This used to live inside the
+    // idle-arms call, which meant a fighter's shoulders snapped inward the
+    // instant they threw a punch — Uro measured 37.6cm standing and 24.9cm
+    // mid-strike, exactly twice her 6.5cm correction. A fact about the model
+    // cannot come and go with the state.
+    if (rig.shoulderOutCm) {
+      applyShoulderWidth(THREE, rig.root, rig.shoulderOutCm / 100, _ik);
+    }
+    // Per-bone bind corrections: a rolled clavicle, a cocked wrist.
+    const fixKey = layers.charKey || rig.charKey;
+    if (fixKey) applyRigFixes(THREE, rig.root, fixKey);
+  }
+  // THE GLB CORRECTION LAYER — end.
+  // ------------------------------------------------------------------------
   // STAND ON THE FLOOR. A pose that folds the legs without lowering the hips
   // leaves the fighter hovering — a library crouch floated 29cm — and foot IK
   // does not catch it, because that only pushes feet that have sunk BELOW the
