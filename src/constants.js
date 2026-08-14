@@ -40,6 +40,28 @@ export const DASH_TAP_WINDOW = 0.24;
 export const DASH_TIME = 0.10;
 export const DASH_MULT = 1.55;
 
+// ------------------------------------------------------------------ walking
+//
+// Smash's ground movement is analog: a partial tilt walks, and how far you tilt
+// picks how fast, while a full or flicked stick runs (ssbwiki.com/Walk). This
+// game had only the run — `dirX` is ±1 past a deadzone, so every input
+// accelerated to the same top speed and there was no way to approach anything
+// slowly. That is the missing half of the ledge problem: without a walk there
+// is no such thing as arriving at an edge uncommitted, and so nothing for a
+// teeter to protect.
+//
+// `RUN_TILT` is where the stick stops asking to walk and starts asking to run.
+// Below it the top speed scales across the walk band; at or above it the
+// fighter runs as they always did. Keyboards have no analog axis and report a
+// full deflection, so they run — the same way a Smash player on a d-pad does.
+export const RUN_TILT = 0.72;
+/** The walk band, as fractions of the character's own run speed. Smash's walks
+ *  sit around half of a run; these are the slowest and fastest ends of it. */
+export const WALK_MIN = 0.34;
+export const WALK_MAX = 0.62;
+/** Below this the stick is at rest — the same deadzone input.js reads. */
+export const MOVE_DEADZONE = 0.28;
+
 // shield
 export const SHIELD_MAX = 100;
 export const SHIELD_DRAIN = 22;

@@ -15,6 +15,7 @@ import {
   SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
   DASH_MULT, ACTION_BUFFER, AERIAL_LAND_LAG_MULT, AERIAL_LAND_LAG_MIN, SHIELD_MAX, SHIELD_DRAIN, SHIELD_REGEN, ROLL_TIME, ROLL_DIST,
   SPOT_DODGE_TIME, AIR_DODGE_TIME, DODGE_STALE_WINDOW, METER_MAX, METER_PASSIVE,
+  RUN_TILT, WALK_MIN, WALK_MAX, MOVE_DEADZONE,
   ULT_METER_COST, DOMAIN_METER_COST,
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
   RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE,
@@ -410,6 +411,75 @@ function updateLedge(f, dt, input) {
 
 // ---------------------------------------------------------------- platforms
 
+/** How hard the stick is being pushed sideways, 0..1 — what tells a walk from
+ *  a run (constants.js RUN_TILT).
+ *
+ *  An absent axis means FULL deflection, not none. Only a real pad reports
+ *  `moveX`; the CPU builds its input from `dirX` alone (ai.js), as do the
+ *  smokes, and a keyboard is filled in by playerInput. Reading a missing axis
+ *  as zero made those callers walk as far as the ledge brake was concerned and
+ *  run as far as the movement was — so the CPU moved at full speed and could
+ *  not leave a platform, which is a stuck fighter rather than a careful one. */
+function moveTilt(input) {
+  const ax = Math.abs(input.moveX || 0);
+  return ax > 0 ? Math.min(1, ax) : Math.abs(input.dirX || 0);
+}
+
+/** How far past a platform's lip a fighter can stand before they are off it.
+ *  Read by the ledge brake as well as by the contact test, so "the last pixel
+ *  you can stand on" is one number rather than two that drift. */
+function standMargin(plat) {
+  return plat.kind === "main" ? 14 : plat.kind === "respawn" ? 0 : 24;
+}
+
+/**
+ * THE LEDGE BRAKE: you do not leave the ground unless you meant to.
+ *
+ * Smash protects this with the TEETER — walk slowly to the lip and the
+ * character stops there, arms windmilling, and will not step off until the
+ * stick is pushed past a threshold (ssbwiki.com/Teeter). That mechanic needs
+ * an analog walk to hang off, and this game has none: `dirX` is ±1 past a
+ * 0.28 deadzone, so every input accelerates toward the same top speed. The
+ * distinction it is really drawing, though, is not slow-versus-fast. It is
+ * DELIBERATE versus not, and that this game can answer exactly: a fighter
+ * holding toward the edge has decided, and one coasting on leftover momentum
+ * has not.
+ *
+ * So momentum alone never carries anyone off. Hold the direction and you walk,
+ * run or dash off the end as before — chasing, edge-cancelling, dropping to
+ * the ledge are all untouched, because all of them are held inputs.
+ *
+ * Measured before this existed: one frame of dash flick needed 42 px of runway
+ * to stop in, against 4 px for the same one frame of walk. That is the whole
+ * complaint — the dash starts at full burst speed by design (startDash), so the
+ * shortest possible tap already spends more room than most players read as a
+ * tap's worth.
+ *
+ * Hitstun and committed actions are left out on purpose. Being knocked off the
+ * stage is the game working, and a dash attack that carries its owner off the
+ * end is a move with a cost, not an accident.
+ */
+function brakeAtLedge(f, input) {
+  if (!f.wasGrounded || f.hitstun > 0 || f.action || f.ledge || f.dead) return;
+  const plat = f.currentPlatform;
+  if (!plat || plat.ghost) return;
+  const dir = Math.sign(f.vx);
+  if (!dir) return;
+  if (input.dirX === dir) {
+    // Held toward the edge. RUNNING off is a decision and goes through;
+    // WALKING off does not, which is the teeter proper — Smash will not let a
+    // walk take you over the lip until the stick is pushed further, and now
+    // that this game has a walk it can say the same thing. Pushing to a run,
+    // jumping, or dropping through are all still one input away.
+    if (moveTilt(input) >= RUN_TILT) return;
+  }
+  const m = standMargin(plat);
+  const lip = dir > 0 ? plat.x + plat.w + m : plat.x - m;
+  if (dir > 0 ? f.x <= lip : f.x >= lip) return;
+  f.x = lip;
+  f.vx = 0;
+}
+
 function resolvePlatforms(f, prevY) {
   f.grounded = false;
   // A fighter's own revival platform is checked first and only for them, so
@@ -420,7 +490,7 @@ function resolvePlatforms(f, prevY) {
     // phased-out platform (Active Boards: Bone Sanctum, Empty City)
     if (plat.ghost) continue;
     if (f.dropTimer > 0 && plat.kind !== "main") continue;
-    const margin = plat.kind === "main" ? 14 : plat.kind === "respawn" ? 0 : 24;
+    const margin = standMargin(plat);
     if (f.x < plat.x - margin || f.x > plat.x + plat.w + margin) continue;
     if (f.vy < 0) continue;
     if (prevY <= plat.y + 4 && f.y >= plat.y) {
@@ -983,7 +1053,15 @@ export function updateFighter(f, dt, input) {
     f.charging || f.shielding || inHitstun || f.healing || (f.counter && f.counter.holdStill);
 
   const moveMul = speedMul(f);
-  const maxSpeed = (f.grounded ? st.speed : st.airSpeed) * moveMul * (f.dashT > 0 ? DASH_MULT : 1);
+  // How hard the stick is pushed, which is what separates a walk from a run
+  // (constants.js). Only the ground cares: there is no such thing as strolling
+  // through the air, so an aerial drift reads full either way.
+  const tilt = moveTilt(input);
+  const walking = f.grounded && f.dashT <= 0 && tilt > 0 && tilt < RUN_TILT;
+  const walkFrac = WALK_MIN + (WALK_MAX - WALK_MIN)
+    * clamp((tilt - MOVE_DEADZONE) / Math.max(1e-6, RUN_TILT - MOVE_DEADZONE), 0, 1);
+  const topFrac = f.dashT > 0 ? DASH_MULT : walking ? walkFrac : 1;
+  const maxSpeed = (f.grounded ? st.speed : st.airSpeed) * moveMul * topFrac;
   const accel = st.accel * (f.grounded ? 1 : 0.62) * moveMul;
   // Ground friction, shaped by the stage surface (Active Boards): a slick
   // stage (frictionPow < 1) pushes the per-character base toward 1, so
@@ -1029,6 +1107,14 @@ export function updateFighter(f, dt, input) {
       }
       if (f.turnLock <= 0) {
         f.vx += dir * accel * dt;
+        // Easing the stick back from a run to a walk has to actually slow the
+        // fighter down. Clamping alone does it, but instantly, which reads as
+        // hitting a wall; friction to the new cap keeps the deceleration the
+        // character's own.
+        if (walking && Math.abs(f.vx) > maxSpeed) {
+          f.vx *= Math.pow(friction, dt * 60);
+          if (Math.abs(f.vx) < maxSpeed) f.vx = dir * maxSpeed;
+        }
         f.vx = clamp(f.vx, -maxSpeed, maxSpeed);
       } else {
         f.vx *= Math.pow(friction, dt * 80);
@@ -1119,6 +1205,10 @@ export function updateFighter(f, dt, input) {
   const prevY = f.y;
   f.wasGrounded = f.grounded;
   f.x += f.vx * dt;
+  // Before the contact test, not after: the brake decides whether this step is
+  // allowed to take them off the platform at all, so it has to run while they
+  // are still standing on the one they are leaving.
+  brakeAtLedge(f, input);
   f.y += f.vy * dt;
   if (f.vy >= 0 || f.grounded) resolvePlatforms(f, prevY);
   else f.grounded = false;
@@ -1130,7 +1220,15 @@ export function updateFighter(f, dt, input) {
 
   // ---- animation selection
   pickAnim(f, input);
-  f.animTime += dt;
+  // The run cycle plays at the pace the fighter is actually travelling. It ran
+  // at a fixed rate, which was already wrong for anyone snared or slowed — they
+  // over-strode, feet skating — and a walk drawn with the run cycle would have
+  // been the same fault at half speed. Floored so a fighter easing to a halt
+  // does not freeze mid-stride.
+  const strideRate = f.animKey === "run" && f.grounded
+    ? clamp(Math.abs(f.vx) / (stats(f).speed || 1), 0.5, 1.3)
+    : 1;
+  f.animTime += dt * strideRate;
 }
 
 // Draw-time state that still has to advance on the fixed clock: tumble spin,

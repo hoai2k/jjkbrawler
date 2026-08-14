@@ -249,6 +249,7 @@ function padSnapshot(pad) {
   const dDown = padButton(pad, PAD_BUTTONS.dpadDown);
   return {
     left, right, up, down,
+    moveX: axX,
     aimX: (dRight ? 1 : 0) - (dLeft ? 1 : 0),
     aimY: (dDown ? 1 : 0) - (dUp ? 1 : 0),
     tiltX: Math.abs(tx) > AIM_DEADZONE ? tx : 0,
@@ -321,6 +322,11 @@ export function blankInput() {
     jumpP: false, jumpHeld: false, lightP: false,
     heavyP: false, heavyHeld: false, specialP: false, ultP: false,
     shieldHeld: false, pauseP: false, dirX: 0, dashP: false,
+    // How far the stick is pushed sideways, -1..1, kept ALONGSIDE `dirX`
+    // rather than replacing it: everything that only asks "which way" still
+    // reads dirX, while the movement code reads this to tell a walk from a
+    // run (constants.js RUN_TILT). A keyboard reports ±1, so it runs.
+    moveX: 0,
     // Grab (?throw=true). Bound to nothing when the flag is off, so it simply
     // never reads true there.
     grabP: false,
@@ -342,7 +348,7 @@ export function blankInput() {
 // Buttons merge by OR; the analog axes merge by whichever source is pushed
 // furthest, so a pad and a keyboard on the same player cannot cancel out or
 // collapse a stick to a boolean.
-const AXIS_KEYS = new Set(["dirX", "aimX", "aimY", "tiltX", "tiltY", "dashFlick"]);
+const AXIS_KEYS = new Set(["dirX", "moveX", "aimX", "aimY", "tiltX", "tiltY", "dashFlick"]);
 // Fields that carry a VALUE rather than a flag. Whichever source has one wins,
 // pad first. ORing these would turn "up" into `true`, which reads as a flick in
 // no direction at all.
@@ -370,6 +376,9 @@ export function playerInput(playerId) {
   const pad = padFor(playerId);
   const merged = pad ? mergeInputs(keys, padSnapshot(pad)) : keys;
   merged.dirX = (merged.right ? 1 : 0) - (merged.left ? 1 : 0);
+  // A keyboard has no axis to report, so it stands in at full deflection —
+  // otherwise every key press would read as the gentlest possible walk.
+  if (!merged.moveX) merged.moveX = merged.dirX;
   return merged;
 }
 

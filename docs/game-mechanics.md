@@ -57,9 +57,11 @@ the moment you get hit. It dims and then blinks as its time runs out.
 
 | Mechanic | Detail |
 |---|---|
-| Run | Per-character top speed (356–468 px/s) and acceleration |
+| **Walk** | **Partial stick tilt** (0.28–0.72) → 34–62% of run speed, scaled by how far you push. A keyboard has no axis and always runs |
+| Run | Full tilt: per-character top speed (356–468 px/s) and acceleration |
 | **Dash** | **Shove the left stick** out from centre (past 0.78 within 0.14 s of leaving the 0.36 rest zone), or double-tap a direction within 0.24 s → snaps to a 1.55× burst for 0.10 s (about 6 frames and ~70 px — brief and uncommittal by design; `startDash` in `src/fighter.js` sets the speed rather than accelerating into it) |
 | **Dash attack** | Light or heavy while running: the run's own committal attack (§4) |
+| **Ledge brake** | Momentum never carries you off a platform, and a WALK never does either — see below |
 | Turn lock | Reversing at speed costs 0.08 s of traction — spacing has commitment |
 | Jump | Per-character impulse; **short hop** by releasing jump within ~0.09 s |
 | Double jump | One air jump at 92% power (Momo gets two — broom flight) |
@@ -70,13 +72,38 @@ the moment you get hit. It dims and then blinks as its time runs out.
 
 **The dash is a stick input, not a button.** How *fast* the stick leaves centre
 is what separates a dash from a walk — shove it and you dash, roll it out and
-you walk — which is Smash's smash input and the thing a player coming from that
+you walk (and how *far* you roll it out picks the walking speed) — which is Smash's smash input and the thing a player coming from that
 game tries first. One dash per shove: the stick has to be seen back inside the
 rest zone before another can fire, so holding a direction never machine-guns
 dashes, and yanking the stick across centre is a dash-turn. It is **analog
 only**: a key crosses every threshold in the frame it is pressed, so a keyboard
 cannot tell a shove from a walk and keeps the double tap (`DASH_FLICK` in
 `src/input.js`).
+
+### Walking off is a decision
+
+**Nothing takes you off a platform by accident.** Two rules, and between them
+they cover every way a fighter used to leave the ground without meaning to:
+
+- **Momentum never carries you off.** Let go of the stick and whatever speed
+  you had bleeds away *on the platform* — you stop at the lip rather than
+  sliding over it. Before this, one frame of dash flick needed 42 px of runway
+  to stop in, against 4 px for one frame of walk: the dash starts at full burst
+  speed by design, so the shortest tap a player could give it already spent
+  more room than a tap looks like it should.
+- **A walk never carries you off either.** Hold a partial tilt into the lip and
+  the fighter stops there and stays there, however long you hold it. Push the
+  stick to a run and they go straight over.
+
+This is Smash's **teeter** ([SmashWiki](https://www.ssbwiki.com/Teeter)): walk
+slowly to the edge there and the character stops, and will not step off until
+the stick is pushed past a threshold. It needs an analog walk to hang off,
+which is why the walk above had to exist first.
+
+Everything deliberate is untouched, because everything deliberate is a held
+input: running off to chase, dropping to the ledge, edge-cancelling an aerial.
+**Knockback is never braked** — being hit off the stage is the game working, and
+so is a dash attack whose slide carries its owner over the end.
 
 ### Ledges
 Only the main platform has grabbable ledges. Falling near an edge (after real airtime —
