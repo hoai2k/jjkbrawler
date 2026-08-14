@@ -19,6 +19,7 @@ import { RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { makeAiState, aiInput, cpuDamageMul } from "./ai.js";
 import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady, setPauseNotice, reportError, resetHudCache } from "./ui.js";
 import { FIXED_DT, MAX_FIXED_STEPS, WORLD, SUDDEN_DEATH_DAMAGE } from "./constants.js";
+import { clamp } from "./utils.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -112,14 +113,24 @@ async function resetMatch() {
   // Pick this match's battle track before the phase flips to "playing".
   setBattleStage(stage.key);
   state.platforms = stage.platforms.map((p) => ({ ...p }));
-  const groundY = state.platforms[0].y;
+
+  // A spawn stands on the lowest surface under its x — usually the main, but
+  // on boards whose main is narrower than the spawn spread (Bridge Duel) the
+  // outer slots start on the side platforms, Battlefield-style. An x with
+  // nothing under it at all is pulled onto the main rather than into the void.
+  const main = state.platforms[0];
+  const spawnSpot = (x) => {
+    const under = state.platforms.filter((p) => x >= p.x + 12 && x <= p.x + p.w - 12);
+    if (under.length) return { x, y: Math.max(...under.map((p) => p.y)) };
+    return { x: clamp(x, main.x + 50, main.x + main.w - 50), y: main.y };
+  };
 
   const spawns = spawnXs(entrantCount);
   state.fighters = Array.from({ length: entrantCount }, (_, i) => {
     const id = i + 1;
-    const x = spawns[i];
-    const fighter = makeFighter(id, state.roster[id], x, x < WORLD.w / 2 ? 1 : -1);
-    fighter.y = groundY;
+    const spot = spawnSpot(spawns[i]);
+    const fighter = makeFighter(id, state.roster[id], spot.x, spot.x < WORLD.w / 2 ? 1 : -1);
+    fighter.y = spot.y;
     fighter.grounded = true;
     // Free-for-all gives every fighter a side of their own, so "teammate" only
     // means something in the modes that actually have teams.

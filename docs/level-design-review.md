@@ -6,7 +6,22 @@ variety as the reference point. Follow-up to the Phase 2 archetype work in
 [stage-variety-plan.md](stage-variety-plan.md) — this review takes the
 archetypes as given and asks whether the *proportions* serve them.
 
-Suggestions only; nothing here is implemented.
+**Status: implemented** (same branch, follow-up commit), with the user's two
+additions: G1 landed as (a) *and* a mild (b) — `HEIGHT_BASE_PX` 175.3 → 149
+and every jump impulse +10% (710–800 → 780–880, single rise 129–165 px) — and
+the camera got Smash-style dynamic framing (`camera.js`): the alive fighters'
+padded bounding box picks the zoom, up to 1.32× on close fights so the smaller
+roster still reads large, padded 280 px above vs 120 below so top space wins
+and the main platform sits low in the frame. Everything in §4 landed as
+written, plus: Garden Steps' risers restretched to 110/90/90 and Billboard
+Roof rebuilt as a real tower (ledges 470 → mid 370 → summit 262) under the new
+jump envelope; Bone Sanctum's ribs restretched to 118/110/110 steps; spawns
+now land on the lowest platform under their x (Battlefield-style) so narrow
+mains can't drop an outer spawn into the void. The per-board "optional" items
+landed too (Quiet Hall's rafter lean, Curse Maw's molars moved outward, School
+Wing's 130/170 balconies). The one thing deliberately NOT done is the
+split-main board — G6's Phase 3 candidate, which needs per-stage spawn logic
+first. The sections below are the original review as written.
 
 ## 1. The measured baseline
 
