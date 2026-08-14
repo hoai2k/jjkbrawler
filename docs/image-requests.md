@@ -122,7 +122,7 @@ right, one zoom matched to their own `idle_a`, at least 600 px of body, one
 subject per file. Character blocks and canonical references are above;
 [pose-brief.md](../sprites/docs/pose-brief.md) is the standing brief.
 
-### The 3D walk is already authored, and ignores these
+### The 3D gaits are already authored, and ignore these
 
 **The 3D and 2.5D renderers do not use `walk_a`/`walk_b` and will not.** They
 play a hand-authored four-phase cycle instead — `render3d/src/walk_cycle.js` —
@@ -138,6 +138,11 @@ they are exactly the two frames a two-frame sheet leaves out.
 So this round is a sprite round only, and delivery changes nothing in 3D. The
 note above about raising a D- or B-numbered round does not apply: it was
 written before the cycle existed and the cycle is the answer to it.
+
+The RUN is now the same, for the same reason: the four-frame sprint cycle is a
+reach and a pass, mirrored, and `render3d/src/run_cycle.js` plays contact, down,
+passing and up instead. The sprite path keeps both sets of drawings; the rigs
+read neither gait off the sheet.
 
 ---
 

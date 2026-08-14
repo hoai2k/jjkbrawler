@@ -150,10 +150,11 @@ that way, so this is the normal case, not a mistake.
      dash attacks do.
    - **Author the clip.** Only when the pose genuinely differs from everything
      already in the library, or when 3D can afford phases the sheet cannot. The
-     WALK is the worked example of both: round 21 asks the artists for two
-     contacts, and `render3d/src/walk_cycle.js` plays a four-phase cycle that
-     ignores those drawings entirely, because a pose costs a drawing in 2D and
-     eight joint angles here. Where the clip needs ART rather than authoring,
+     GAITS are the worked example of both: round 21 asks the artists for two
+     walk contacts and the run sheet is a reach and a pass, and
+     `render3d/src/walk_cycle.js` and `render3d/src/run_cycle.js` play
+     four-phase cycles that ignore those drawings entirely, because a pose
+     costs a drawing in 2D and eight joint angles here. Where the clip needs ART rather than authoring,
      raise it as a round in
      [render3d/docs/asset-requests.md](../../render3d/docs/asset-requests.md)
      (D-numbers) or
