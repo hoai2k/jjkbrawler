@@ -30,11 +30,12 @@ export function debugStats() {
   // Read off LIVE materials, not off the constants that set them, so the
   // smoke test fails if the flags are changed rather than if a comment is.
   const quad = billboards?.quadPools().body.children[0];
-  const auraQuad = billboards?.quadPools().aura.children[0];
+  const behindQuad = billboards?.quadPools().behind.children[0];
   const plat = scene?.userData.platMeshes?.[0];
   return {
     quads: billboards ? billboards.count() : 0,
     auras: billboards ? billboards.auraCount() : 0,
+    fxLayer: billboards ? billboards.fxLayerDrawn() : false,
     models: models ? models.count() : 0,
     posedCards: billboards ? billboards.posedCount() : 0,
     cardBail: billboards ? billboards.lastBail() : null,
@@ -46,10 +47,11 @@ export function debugStats() {
     layering: {
       billboardDepthTest: quad ? quad.material.depthTest : null,
       platformFaceDepthWrite: plat ? plat.children[1]?.material.depthWrite : null,
-      // The aura is the one quad that MUST test depth: it is the only thing
-      // here that has to end up behind a fighter, and under `?render=3d` that
-      // fighter is opaque geometry no paint order can get in front of.
-      auraDepthTest: auraQuad ? auraQuad.material.depthTest : null,
+      // The behind-the-fighters layer (auras, projectile art) is the one that
+      // MUST test depth: it is the only thing here that has to end up behind a
+      // fighter, and under `?render=3d` that fighter is opaque geometry no
+      // paint order can get in front of.
+      auraDepthTest: behindQuad ? behindQuad.material.depthTest : null,
     },
   };
 }

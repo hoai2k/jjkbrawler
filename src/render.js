@@ -72,7 +72,14 @@ function draw3d(ctx) {
   ctx.save();
   ctx.transform(t.a, t.b, t.c, t.d, t.e, t.f);
 
-  for (const e of state.entities) if (e.draw) e.draw(ctx);
+  // `e.draw` is NOT here — it is a quad in the scene, behind the fighters
+  // (src/camera3d/effects.js). This canvas sits above the whole WebGL layer,
+  // so drawing an entity on it can only ever put it in FRONT of every
+  // fighter, and these are the biggest pictures in the game: an ultimate wave
+  // painted here erased the fighter it was cast at and the one across the
+  // stage with it. `e.drawTop` still runs below, because effects that mean to
+  // cover the fighters are exactly what that hook is for.
+  //
   // Projectile bodies are billboards in the scene; their comet trails are
   // additive strokes and stay here, over the scene like every other glow.
   for (const p of state.projectiles) drawProjectileTrail(ctx, p);

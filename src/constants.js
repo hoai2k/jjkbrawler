@@ -25,20 +25,31 @@ export const AIR_JUMP_MULT = 0.92;
 // to it and leave the fighter available again, rather than being a button you
 // press and then wait to arrive somewhere.
 //
-// DASH_TIME is how long, DASH_MULT is how fast, and `startDash` (fighter.js)
-// snaps the velocity to the cap so the two are independent. They were not:
-// DASH_MULT only raises the ceiling the ordinary acceleration climbs toward, so
-// a dash from standing spent its whole window getting up to speed and a shorter
-// dash was a SLOWER one. Tuning for control used to cost the speed.
+// DASH_TIME is how long, DASH_MULT is how fast. `startDash` (fighter.js) also
+// snaps the velocity to the cap, the intent being that the two dials stay
+// independent — but the movement block computes its speed cap BEFORE the dash
+// triggers run and clamps the snap straight back off, so in practice a dash
+// from standing still ACCELERATES toward DASH_MULT rather than starting there.
+// Measured: sweeping DASH_MULT 1.55 -> 1.20 moves the distance a dash covers by
+// 6%, while DASH_TIME moves it by 34%. Worth fixing on its own terms one day;
+// deliberately not fixed while tuning the dash SHORTER, because restoring the
+// snap lengthens the slide a released dash leaves behind (55px -> 74px), which
+// is the opposite of what this pass is for.
 //
-// Measured on Gojo (468 speed), against the 0.22 / 1.45 it replaces:
+// Measured on Gojo (468 speed), distance covered while the dash is live, with
+// the direction held (tools/debug/measure_dash.mjs):
 //
-//     distance   87px -> 71px     shorter, which is the point
-//     top speed  650  -> 718 px/s faster, which is the other point
-//     duration   13   -> 6 frames brief enough to be uncommittal
+//     0.22 / 1.45   87px    the original, before the dash was made a burst
+//     0.10 / 1.55   71px    too far: a dash across a platform ran off the end
+//     0.07 / 1.20   45px    63% of that, and nothing else got longer
+//
+// Nothing else got longer is the part that matters. The dash's contribution
+// over a third of a second drops 49px -> 38px, and the slide a RELEASED dash
+// leaves is untouched at 55px — the ledge brake (fighter.js brakeAtLedge) is
+// what stops that one, and it still does.
 export const DASH_TAP_WINDOW = 0.24;
-export const DASH_TIME = 0.10;
-export const DASH_MULT = 1.55;
+export const DASH_TIME = 0.07;
+export const DASH_MULT = 1.20;
 
 // ------------------------------------------------------------------ walking
 //

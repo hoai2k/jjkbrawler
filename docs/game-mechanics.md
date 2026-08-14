@@ -59,7 +59,7 @@ the moment you get hit. It dims and then blinks as its time runs out.
 |---|---|
 | **Walk** | **Partial stick tilt** (0.28–0.72) → 34–62% of run speed, scaled by how far you push. A keyboard has no axis and always runs |
 | Run | Full tilt: per-character top speed (356–468 px/s) and acceleration |
-| **Dash** | **Shove the left stick** out from centre (past 0.78 within 0.14 s of leaving the 0.36 rest zone), or double-tap a direction within 0.24 s → snaps to a 1.55× burst for 0.10 s (about 6 frames and ~70 px — brief and uncommittal by design; `startDash` in `src/fighter.js` sets the speed rather than accelerating into it) |
+| **Dash** | **Shove the left stick** out from centre (past 0.78 within 0.14 s of leaving the 0.36 rest zone), or double-tap a direction within 0.24 s → a 1.20× burst for 0.07 s (about 5 frames and ~45 px on Gojo — brief and uncommittal by design) |
 | **Dash attack** | Light or heavy while running: the run's own committal attack (§4) |
 | **Ledge brake** | Momentum never carries you off a platform, and a WALK never does either — see below |
 | Turn lock | Reversing at speed costs 0.08 s of traction — spacing has commitment |
@@ -91,6 +91,11 @@ they cover every way a fighter used to leave the ground without meaning to:
   to stop in, against 4 px for one frame of walk: the dash starts at full burst
   speed by design, so the shortest tap a player could give it already spent
   more room than a tap looks like it should.
+- **The dash is short.** It covers about 45 px, down from ~70: a dash across a
+  platform used to arrive at the far lip with speed to spare, which made
+  running off the end the default outcome of a dash rather than a decision.
+  Measured with `tools/debug/measure_dash.mjs`; the slide a *released* dash
+  leaves behind is unchanged at 55 px, because that one is the brake's job.
 - **A walk never carries you off either.** Hold a partial tilt into the lip and
   the fighter stops there and stays there, however long you hold it. Push the
   stick to a run and they go straight over.
@@ -112,6 +117,19 @@ refreshed double jump); getting hit knocks them off the hang. From the hang:
 climb (toward), **ledge roll** (shield — long invulnerable climb), **ledge
 jump** (jump), **ledge attack** (attack — climbs and swings), or drop (down/away).
 Hanging times out after 2.8 s so ledges can't be camped.
+
+Every one of those is a **teleport in the simulation** — the hang point and each
+get-up spot are exact positions, and they have to be, because a ledge attack's
+hitbox must be where the attack is the frame it exists. Drawn verbatim that is a
+body vanishing and reappearing up to 100 px away, twice in half a second, which
+is what made the ledge read as flickering. So the *drawing* lags: `placeFighter`
+(`src/fighter.js`) banks each jump as a visual offset and eases it off over
+0.18 s on a smoothstep, turning the snap into a very fast slide — worst frame
+13 px on the grab and 19 px on the get-up, against 98 and 102 before, and about
+what a run covers in a frame. The hang lean eases in over the same window
+instead of arriving with the pose. None of it touches `f.x`/`f.y`, so hurtboxes,
+ledge occupancy and the blast zones stay exactly where the simulation put them.
+Guarded by `tools/smoke_ledge.mjs`.
 
 ## 3. Defense
 

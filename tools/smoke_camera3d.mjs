@@ -268,6 +268,26 @@ check(aura.layering.auraDepthTest === true,
   "the aura quad tests depth, so a fighter with volume occludes it",
   `depthTest=${aura.layering.auraDepthTest}`);
 
+// Entity effects — traps, ultimate waves, hazards — belong in the SCENE too,
+// and for the same reason. Flat they draw before the fighters; on the overlay
+// they could only ever be in front, and these are the biggest pictures the
+// game has: an Encore wave painted there erased the fighter it was cast at and
+// the one across the stage with it. src/camera3d/effects.js draws the whole
+// layer as one quad behind the bodies.
+current = "effect-layer";
+await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  state.entities.push({
+    __smoke: true, dead: false, update() {},
+    draw(ctx) { ctx.fillStyle = "#ff00ff"; ctx.fillRect(600, 400, 80, 80); },
+  });
+});
+await runUntil(0.5);
+const fx = await page.evaluate(async () =>
+  (await import("/src/camera3d/index.js")).debugStats().fxLayer);
+check(fx === true, "entity effects are drawn into the scene, not onto the overlay",
+  `fxLayer=${fx}`);
+
 await browser.close();
 console.log(failures ? `\n${failures} check(s) failed` : "\nall checks passed");
 process.exit(failures ? 1 : 0);
