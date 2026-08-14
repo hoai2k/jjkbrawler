@@ -733,57 +733,68 @@ export function applyIdleStand(THREE, root3d, deg, tmp) {
 }
 
 /**
- * TURN THE KNEES, about the thigh's own long axis. Positive brings them IN.
+ * SWING THE LEGS IN OR OUT, about the fighter's FORWARD axis. Positive brings
+ * the knees — and the feet with them — toward the midline.
  *
- * WHAT IT IS FOR. Generated legs come out externally rotated: the whole limb
- * is built screwed outward at the hip, so the kneecap faces away from the
- * midline and the toe points off at an angle. Measured on the posed idle, the
- * knee's hinge axis is 80 degrees off the body's width line on Geto, Mahito
- * and Choso, 60 on Yuji and Megumi, and under 5 on Meimei — so it is a
- * per-model fault rather than a roster-wide one, which is exactly the shape of
- * thing that wants a dial.
+ * WHAT IT IS FOR. Generated legs arrive bandy: the knees sit outboard of the
+ * line from hip to foot and the whole leg bows away from the body, which reads
+ * at game size as a fighter standing on the outside edges of their boots. It
+ * is a fact about the FILE, so it is applied under every state rather than
+ * posed around, and the eye judges it in the idle review.
  *
- * WHY IT IS NOT THE KNEE BEND, and why the bend was the wrong thing to chase.
- * The obvious reading of "his knees bend outward" is a bandy leg — thigh and
- * shin meeting at an angle in the frontal plane — and the bind pose does have
- * that (Geto's shins jut 18 and 34 degrees out of his thighs). But nothing
- * posed shows it: `applyIdleStand` aims both leg bones down one direction, so
- * the leg comes out dead straight and the frontal kink measures 0 on every
- * fighter. What survives that straightening is the ROLL, because aiming a bone
- * sets its direction and says nothing about its twist. So the knee that looks
- * wrong is a knee facing the wrong WAY, not one bent the wrong way, and the
- * correction is a rotation about the leg rather than a bend in it.
+ * ABOUT FORWARD, WHICH IS THE ONLY AXIS THAT MOVES A KNEE SIDEWAYS. The first
+ * version of this turned each leg about its OWN LENGTH, on the theory that the
+ * fault was a femur built externally rotated — which does square a kneecap and
+ * a toe to the front, and is a real thing some of these rigs have, but is not
+ * what "the knees bend outward" describes. A roll about the leg cannot move a
+ * knee closer to its neighbour; only a rotation about the fore-aft axis does
+ * that, and that is what this is now.
  *
- * THE WHOLE LEG TURNS, rigidly — thigh, shin and foot together. That is what
- * femoral rotation is anatomically, and it is what keeps the correction honest
- * in every other state: rotating about the hip-to-knee axis leaves a bent knee
- * bent by the same amount, just pointed somewhere else. Turning the thigh
- * alone and counter-turning the shin also squares the knee, but it builds a
- * twist into the leg that then has to be right for the crouch and the kick as
- * well, and it is not.
+ * THE WHOLE LEG SWINGS, rigidly — thigh, shin and foot together — so the leg
+ * stays as straight or as bent as the pose made it and simply leans. The knee
+ * and the ankle both come in, which is what the correction is for: a bow leg
+ * is not fixed by moving the knee alone, which would just replace it with a
+ * knock knee.
  *
- * The sole is re-levelled afterwards because the turn tips it: with any stance
- * at all the leg axis is off vertical, so rolling about it stands the foot on
- * an edge. Yaw is left where the turn put it — that is the point.
+ * THE FOOT KEEPS ITS ANGLE TO THE GROUND. Leaning a leg tips the sole onto its
+ * edge by exactly the lean, so each foot is re-levelled afterwards — pitch and
+ * roll only. Yaw is left alone, because which way a fighter's toes point is a
+ * pose and this is not the dial for it.
+ *
+ * NOT THE SAME THING AS `stanceDeg`, though they move the same joint about the
+ * same axis, and the difference is the whole reason both exist. Stance is a
+ * fact about the CHARACTER — how wide this fighter plants their feet — so it
+ * belongs to the idle and is rebuilt from scratch there by aiming both leg
+ * bones down one line. This is a fact about the MODEL, so it composes on top of
+ * whatever any state's pose already did and holds through the crouch, the run
+ * and the kick.
  */
 export function applyKneeTurn(THREE, root3d, deg, tmp) {
   if (!deg) return false;
+  const hipL = root3d.getObjectByName("LeftUpLeg");
+  const hipR = root3d.getObjectByName("RightUpLeg");
+  if (!hipL || !hipR) return false;
+  root3d.updateMatrixWorld(true);
+  // The pelvis's own width line, hip joint to hip joint, flattened — the same
+  // basis `applyIdleStand` opens the stance about, and for the same reason: a
+  // rig's local +Z is a claim about facing that `yawOffsetDeg` exists to say
+  // is false, while two hip joints are where they are.
+  const lateral = tmp.v7.setFromMatrixPosition(hipL.matrixWorld)
+    .sub(tmp.v6.setFromMatrixPosition(hipR.matrixWorld));
+  lateral.y = 0;
+  if (lateral.lengthSq() < 1e-8) return false;
+  lateral.normalize();
+  // forward = up x lateral. Turning a leg about it swings the foot along the
+  // width line, which is the whole point.
+  const axis = tmp.v6.set(-lateral.z, 0, lateral.x).normalize();
   const rad = (deg * Math.PI) / 180;
   let turned = 0;
   for (const side of ["Left", "Right"]) {
     const up = root3d.getObjectByName(`${side}UpLeg`);
-    const knee = root3d.getObjectByName(`${side}Leg`);
-    if (!up || !knee) continue;
-    root3d.updateMatrixWorld(true);
-    // Down the thigh, hip to knee. Taken from the POSED rig, so the axis is
-    // the leg's real one rather than the bind's guess at it.
-    const axis = tmp.v7.setFromMatrixPosition(knee.matrixWorld)
-      .sub(tmp.v6.setFromMatrixPosition(up.matrixWorld));
-    if (axis.lengthSq() < 1e-10) continue;
-    axis.normalize();
-    // About a DOWNWARD axis, +ve turns the left knee toward the midline; the
-    // right leg is the mirror of that, hence the sign.
-    rotateBoneAboutWorldAxis(THREE, up, axis, (side === "Left" ? 1 : -1) * rad, tmp);
+    if (!up) continue;
+    // Mirrored, so one number closes both legs by the same amount rather than
+    // walking the fighter sideways.
+    rotateBoneAboutWorldAxis(THREE, up, axis, (side === "Left" ? -1 : 1) * rad, tmp);
     root3d.updateMatrixWorld(true);
     const foot = root3d.getObjectByName(`${side}Foot`);
     if (foot) levelSole(THREE, foot, tmp);

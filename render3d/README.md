@@ -150,46 +150,37 @@ both dialled in the workbench under **Model size & facing**:
   number (`IDLE_ARM_DEG`, 9°); a heavy coat or a wide body wants more room than
   a school uniform does, and only the drawing can say how much. Dialled in the
   Idle Review beside size, stance, head and facing.
-- `kneeDeg` — how far each leg is turned about its own length, degrees,
-  positive bringing the knees IN. Generated legs arrive screwed outward at the
-  hip: the kneecap and the toe both point away from the midline, and the leg
-  reads bandy however straight it is. **It is a roll, not a bend, and that
-  distinction cost a round.** The obvious reading of "his knees bend outward"
-  is a bow leg — thigh and shin meeting at an angle seen from the front — and
-  the BIND does have exactly that (Geto's shins jut 18° and 34° out of their
-  thighs, the worst on the roster). But nothing posed shows it: `applyIdleStand`
-  aims both leg bones down one line, so the leg comes out dead straight and the
-  frontal kink measures 0 on every fighter. What survives the straightening is
-  the twist, because aiming a bone sets its direction and says nothing about
-  its roll — so the knee that looks wrong is one facing the wrong WAY.
-  Correcting the bend instead ADDED 2.9° and 5.4° of kink to Geto and visibly
-  widened him.
+- `kneeDeg` — how far this fighter's legs lean in or out, degrees about the
+  fighter's own FORWARD axis, positive bringing the knees and the feet toward
+  the midline. Each leg swings rigidly — thigh, shin and foot together — so the
+  leg keeps whatever bend the pose gave it and simply leans, and each sole is
+  re-levelled afterwards so a foot keeps its angle to the ground. Yaw is left
+  alone: which way the toes point is a pose.
 
-  Note this is not what `stanceDeg` does. Stance swings the whole leg out from
-  the hip as one rigid direction — it opens the feet and never touches the
-  knee — and the two dials sit beside each other in the review because they are
-  the two independent things a leg can be wrong about.
+  **It is the same joint and the same axis as `stanceDeg`**, and the difference
+  is which question each answers. Stance is a fact about the CHARACTER — how
+  wide this fighter plants their feet — so it belongs to the idle, where it is
+  rebuilt from scratch by aiming both leg bones down one line. `kneeDeg` is a
+  fact about the MODEL, so it composes on top of whatever a state's pose
+  already did and holds through the crouch, the run and the kick.
 
-  Applied under EVERY state (`ik.js applyKneeTurn`, from the GLB correction
-  block in `pose.js`), not just the idle: knees that square up standing and
-  splay again in a crouch would be a correction in the wrong layer. The whole
-  leg turns rigidly, thigh, shin and foot together, which is what femoral
-  rotation is and what leaves a bent knee bent by the same amount somewhere
-  else. `tools/rig_calibrate.mjs` names the fighters worth looking at — it
-  prints two readings, the knee's hinge axis and the toe's heading, and flags
-  only rigs where both agree, because each is wrong on its own (the hinge
-  over-reads: Yuji measures 60° and wants about 15; the toe bone is built at an
-  angle on some rigs: Meimei measures 82° and wants nothing). Seven fighters
-  carry a value; the dial is what settles it.
-**Two mesh repairs live in `tools/`** for faults no dial can reach. Both edit a
-delivered .glb and leave the skeleton, weights and UVs alone.
-`smooth_mesh_region.py` takes the high-frequency lumps out of a patch of
-surface an image-to-3D generator had to guess at — a back turned away from
-every seed view — using Taubin rather than plain Laplacian smoothing, which is
-what lets it flatten the noise without shrinking the body. Maki's and Momo's
-upper backs came down from a mean 4.0 and 4.4 mm of bump to 2.9 mm each.
-`bake_bone_rotation.py` turns the geometry a bone carries without moving the
-bone, weighted by that bone's own skin weight so the correction feathers out.
+  **What the measurement says about using it.** `tools/rig_calibrate.mjs`
+  reports two frontal-plane numbers on the posed idle: the LEAN of each leg
+  (what this dial moves, one for one) and the BOW of each knee off the
+  hip-to-ankle line (which a rigid swing cannot touch). Every fighter currently
+  reads a bow of 0.0° and a lean equal to their own `stanceDeg` to a tenth of a
+  degree — `applyIdleStand` has already put both legs dead straight under the
+  hips — so nothing on the roster carries a value here. If a fighter reads as
+  bandy in their idle, the number to look at first is their stance.
+
+  Two earlier readings of "the knees bend outward" were tried and are recorded
+  here so they are not tried again. The bind's frontal KINK is real and large
+  (Geto's shins jut 18° and 34° out of their thighs) but does not survive
+  posing, and correcting it added 2.9° and 5.4° of kink to a leg that had none.
+  A ROLL about each leg's own length squares a kneecap and a toe to the front —
+  several rigs are built externally rotated, Geto and Choso by about 80° of
+  hinge axis — but a roll cannot move a knee closer to its neighbour, which is
+  what the complaint was about.
 
 - `idleArms` — set `false` to keep this fighter's delivered idle arms. The
   engine otherwise rebuilds them, straight and hanging a few degrees out from

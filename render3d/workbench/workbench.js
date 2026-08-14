@@ -1237,20 +1237,23 @@ function facingSetShoulder(cm) {
   facingSyncProgress();
 }
 
-/** How far this fighter's legs are turned about their own length, in degrees,
- *  positive bringing the knees IN.
+/** How far this fighter's legs lean in or out, in degrees about the fighter's
+ *  forward axis, positive bringing the knees and the feet toward the midline.
  *
- *  A MODEL correction, not a pose: generated legs come out screwed outward at
- *  the hip, so the kneecap and the toe both point away from the midline and
- *  the leg reads bandy even though it is dead straight — straightening a bone
- *  sets its direction and never its twist. Measured on the posed idle the
- *  knee's hinge sits 80 degrees off the body's width line on Geto, Mahito and
- *  Choso and under 5 on Meimei, so it is per-model and wants a dial. It is
- *  applied under every state (pose.js, the GLB correction block) rather than
- *  in the idle, because knees that square up standing and splay again in a
- *  crouch would be a correction in the wrong layer. */
+ *  A MODEL correction, not a pose: generated legs arrive bandy, with the knees
+ *  outboard and the whole leg bowing away from the body, and it reads at game
+ *  size as a fighter standing on the outside edges of their boots. Applied
+ *  under every state (pose.js, the GLB correction block) rather than in the
+ *  idle, because legs that straighten standing and bow again in a crouch would
+ *  be a correction in the wrong layer.
+ *
+ *  It moves the same joint about the same axis as the stance dial, and the
+ *  difference is which question it answers: stance is how wide this FIGHTER
+ *  plants their feet, so it is rebuilt from scratch in the idle and means
+ *  nothing anywhere else; this is how their MODEL was built, so it composes on
+ *  top of whatever a state's pose already did. */
 function facingSetKnee(deg) {
-  const clamped = Math.max(-30, Math.min(80, Math.round(deg)));
+  const clamped = Math.max(-25, Math.min(25, Math.round(deg)));
   const char = facing.list[facing.i];
   rig.setRigSettings(tunedKey(char), { kneeDeg: clamped });
   if (clamped) tunedEntry(char).kneeDeg = clamped;
