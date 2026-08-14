@@ -52,6 +52,7 @@ try {
     const { state } = await import("/src/state.js");
     const { updateFighter } = await import("/src/fighter.js");
     const { blankInput } = await import("/src/input.js");
+    const { fighterTransform } = await import("/src/motion.js");
     const dt = 1 / 60;
     const [a, b] = state.fighters;
     const main = (state.platforms || []).find((p) => p.kind === "main");
@@ -118,6 +119,43 @@ try {
     settle(40, blankInput());
     out.hitstunLeft = !a.grounded;
 
+    // 6a. THE LEDGE POP. Grabbing a ledge and getting off one are teleports in
+    //     the simulation — up to ~100px in one frame — and drawn verbatim that
+    //     is a body vanishing and reappearing, twice in half a second. What is
+    //     measured is the position the RENDERER uses: f.x/f.y plus
+    //     fighterTransform's offsets, which is where fighter.js placeFighter
+    //     puts the catch-up slide. Ordinary movement is the yardstick: a run
+    //     covers ~8px in a frame and a fast fall ~15, so anything past 24 is a
+    //     jump rather than a move.
+    const drawnAt = () => {
+      const m = fighterTransform(a);
+      return { x: a.x + (m.offsetX || 0), y: a.y + (m.offsetY || 0) };
+    };
+    const worstStep = (frames, input) => {
+      let prev = drawnAt();
+      let worst = 0;
+      for (let i = 0; i < frames; i++) {
+        updateFighter(a, dt, input);
+        const d = drawnAt();
+        worst = Math.max(worst, Math.hypot(d.x - prev.x, d.y - prev.y));
+        prev = d;
+      }
+      return +worst.toFixed(1);
+    };
+    // Fall past the lip into a grab. reset() first, because check 5 threw this
+    // fighter off the stage and a respawn in flight is its own teleport.
+    reset(0);
+    Object.assign(a, {
+      x: edge + 26, y: main.y - 40, vx: 0, vy: 40, grounded: false,
+      facing: -1, ledgeCooldown: 0, airT: 1, visDX: 0, visDY: 0, visT: 0,
+      respawnTimer: 0, respawnPlat: null,
+    });
+    out.grabStep = worstStep(24, blankInput());
+    out.grabbed = !!a.ledge;
+    // ...then climb back on.
+    out.getupStep = worstStep(24, IN({ left: true, dirX: -1 }));
+    out.gotUp = a.grounded && !a.ledge;
+
     // 6. Standing still at the lip is undisturbed — the brake must not shove
     //    anyone back from where they are legitimately allowed to stand.
     reset(0);
@@ -142,6 +180,12 @@ try {
   check(r.hitstunLeft, "knockback is never braked — hitstun still leaves the stage");
   check(Math.abs(r.restMoved) < 0.01, "standing at the lip is left alone",
     `moved ${r.restMoved}px`);
+  check(r.grabbed && r.grabStep <= 24,
+    "grabbing the ledge slides the drawing in instead of teleporting it",
+    `worst frame ${r.grabStep}px${r.grabbed ? "" : " (NEVER GRABBED)"}`);
+  check(r.gotUp && r.getupStep <= 24,
+    "...and so does climbing back off it",
+    `worst frame ${r.getupStep}px${r.gotUp ? "" : " (NEVER GOT UP)"}`);
 } catch (err) {
   check(false, "smoke_ledge ran", err.message);
 } finally {

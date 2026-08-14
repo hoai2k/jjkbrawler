@@ -28,6 +28,7 @@ import {
 import { frameMeta, frameImage, getImage } from "../assets.js";
 import { paintProceduralAura, AURA_ELLIPSE } from "../render.js";
 import { sharedAdjust, AURA_H } from "../shared_sprites.js";
+import { makeEffectLayer } from "./effects.js";
 // The SPRITE pose resolver, deliberately not the render-backend dispatcher.
 //
 // The sprite CARD path below has to come out of frameImage(), which
@@ -57,10 +58,13 @@ import { TRAIL_ALPHA } from "../config_tuning.js";
 import { CELL_W } from "../constants.js";
 
 const DEG = Math.PI / 180;
-// How far behind the gameplay plane the install aura sits — see auraPool.
-const AURA_Z = -0.01;
+// How far behind the gameplay plane the "behind the fighters" layer sits —
+// see behindPool.
+const BEHIND_Z = -0.01;
 const EMPTY = new Set();
 let posedCards = 0;
+let auraQuads = 0;
+let fxLayer = false;
 let bail = null;
 
 /** The auto-aim target the pose-per-draw backends take: the nearest live
@@ -162,20 +166,27 @@ export function makeBillboards() {
   // fighters, so traffic still passes in front of them.
   const pool = makeQuadPool({ depthTest: false });
 
-  // The one exception, and it is an exception on purpose: the install aura.
+  // THE LAYER BEHIND THE FIGHTERS — install auras and projectile art.
   //
-  // Everything above is about fighters never being CUT by the stage. The aura
-  // has the opposite requirement — it must go behind the fighter it belongs
-  // to, and under `?render=3d` that fighter is opaque geometry, so paint order
-  // cannot do it: three draws every transparent quad after every opaque mesh,
-  // whatever the renderOrder. Only the depth buffer can put a quad behind a
-  // rig. So the aura gets its own pool that DOES test depth, and sits a
-  // centimetre behind the gameplay plane: far enough back for a body with
-  // volume to occlude it, still well in front of the platform surface at
-  // z = -0.06, so it paints over the stage exactly as it does flat.
-  const auraPool = makeQuadPool({ depthTest: true });
+  // Everything above is about fighters never being CUT by the stage. These
+  // have the opposite requirement: they must go BEHIND the fighter, which is
+  // where the flat renderer puts them (render.js draws the aura between the
+  // shadow and the body, and every projectile before drawFighters). Paint
+  // order alone cannot do it under `?render=3d`, because there the body is
+  // opaque geometry and three draws every transparent quad after every opaque
+  // mesh whatever its renderOrder — only the depth buffer can put a quad
+  // behind a rig.
+  //
+  // So they get their own pool that DOES test depth, sitting a centimetre
+  // behind the gameplay plane: far enough back for a body with volume to
+  // occlude it, still well in front of the platform surface at z = -0.06, so
+  // it paints over the stage exactly as it does flat.
+  const behindPool = makeQuadPool({ depthTest: true });
   const group = new Group();
-  group.add(auraPool.group, pool.group);
+  group.add(behindPool.group, pool.group);
+
+  // Every state.entities draw, as one picture behind the fighters (effects.js).
+  const effects = makeEffectLayer();
 
   /** The drawCharFrame transform chain as a matrix, quad space -> sim space.
    *  Mirrors sprites.js drawCharFrame line for line. */
@@ -278,6 +289,7 @@ export function makeBillboards() {
    *  equivalent and is skipped, as it is for bodies. */
   function drawAura(f, order) {
     if (!f.installs) return;
+    auraQuads++;
     const art = f.installs.aura ? getImage(f.installs.aura) : null;
     const pulse = 0.88 + 0.06 * Math.sin(gameState.matchTime * 8);
     if (art) {
@@ -289,14 +301,14 @@ export function makeBillboards() {
       if (adj.rot) matRotate(m, adj.rot);
       matTranslate(m, -w / 2 + adj.dx, -h + adj.dy);
       matScale(m, w, h);
-      auraPool.draw(imageTexture(art), m, {
-        z: AURA_Z, order, alpha: 0.72, blending: AdditiveBlending,
+      behindPool.draw(imageTexture(art), m, {
+        z: BEHIND_Z, order, alpha: 0.72, blending: AdditiveBlending,
       });
       return;
     }
     const { tex, w, h } = proceduralAura(f);
-    auraPool.draw(tex, rectMatrix(f.x, f.y + AURA_ELLIPSE.dy, w, h), {
-      z: AURA_Z, order, blending: AdditiveBlending,
+    behindPool.draw(tex, rectMatrix(f.x, f.y + AURA_ELLIPSE.dy, w, h), {
+      z: BEHIND_Z, order, blending: AdditiveBlending,
     });
   }
 
@@ -309,13 +321,53 @@ export function makeBillboards() {
   }
 
   /** Rebuild the frame's billboards from state. Order mirrors the flat
-   *  renderer: shadows, trails, bodies back-to-front by y, then projectiles. */
+   *  renderer: projectiles, then per fighter the shadow, the aura, the
+   *  afterimage trail and the body, back-to-front by y. */
   function update(st, asModels = EMPTY) {
     pool.begin();
-    auraPool.begin();
+    behindPool.begin();
     posedCards = 0;
+    auraQuads = 0;
+    fxLayer = false;
     bail = null;
     let order = ORDER.billboard;
+
+    // The entity effect layer first of all — traps, ultimate waves, hazards.
+    // Flat, render.js draws these before the fighters; on the overlay canvas
+    // they could only ever be in front, so they come into the scene as one
+    // quad (effects.js) at the back of this layer.
+    const fxRect = effects.update(st);
+    fxLayer = !!fxRect;
+    if (fxRect) {
+      behindPool.draw(effects.texture,
+        rectMatrix(fxRect.x + fxRect.w / 2, fxRect.y + fxRect.h / 2, fxRect.w, fxRect.h),
+        { z: BEHIND_Z, order: order++ });
+    }
+
+    // Projectiles next, into the same layer.
+    //
+    // The flat renderer draws every projectile before drawFighters, so a blast
+    // passes BEHIND the fighter it is about to hit and you can still read the
+    // body. Drawing them last here — which is where they used to be, on the
+    // no-depth pool — inverted that: Gakuganji's Power Chord is 120 px of
+    // opaque energy art, and parked on a target it simply erased them from the
+    // chest down. Sprite art as oriented quads, fallback orbs as additive
+    // blobs. Comet trails stay on the overlay canvas.
+    for (const p of st.projectiles) {
+      const sprite = p.sprite ? getImage(p.sprite) : null;
+      if (sprite) {
+        const h = p.spriteH || p.r * 3;
+        const w = sprite.width * h / sprite.height;
+        const flip = p.vx > 0;
+        const rot = p.vy ? Math.atan2((flip ? 1 : -1) * p.vy, (flip ? 1 : -1) * p.vx) : 0;
+        behindPool.draw(imageTexture(sprite),
+          rectMatrix(p.x, p.y + (p.wave ? p.r * 0.68 : 0), w, h, { rotation: rot, flipX: flip }),
+          { z: BEHIND_Z, order: order++ });
+      } else {
+        behindPool.draw(orbTexture(p.color), rectMatrix(p.x, p.y, p.r * 2, p.r * 2),
+          { z: BEHIND_Z, order: order++, blending: AdditiveBlending });
+      }
+    }
 
     const sorted = [...st.fighters].sort((a, b) => a.y - b.y);
     for (const f of sorted) {
@@ -382,32 +434,16 @@ export function makeBillboards() {
       // 3d mode (render.js), so the failure stays as loud as it is flat.
     }
 
-    // projectiles: sprite art as oriented quads, fallback orbs as additive
-    // blobs. Comet trails stay on the overlay canvas.
-    for (const p of st.projectiles) {
-      const sprite = p.sprite ? getImage(p.sprite) : null;
-      if (sprite) {
-        const h = p.spriteH || p.r * 3;
-        const w = sprite.width * h / sprite.height;
-        const flip = p.vx > 0;
-        const rot = p.vy ? Math.atan2((flip ? 1 : -1) * p.vy, (flip ? 1 : -1) * p.vx) : 0;
-        drawRect(imageTexture(sprite), p.x, p.y + (p.wave ? p.r * 0.68 : 0), w, h,
-          { rotation: rot, flipX: flip }, 0.02, order++);
-      } else {
-        drawRect(orbTexture(p.color), p.x, p.y, p.r * 2, p.r * 2,
-          { additive: true }, 0.02, order++);
-      }
-    }
-
     pool.end();
-    auraPool.end();
+    behindPool.end();
   }
 
   // Posed-model cards drawn last frame, and why the last attempt declined.
   // Same reasoning as the quad count: a card layer that silently drew sprites
   // instead of models looks identical from outside to one that worked.
   return { group, update, count: pool.count,
-           auraCount: auraPool.count,
-           quadPools: () => ({ body: pool.group, aura: auraPool.group }),
+           auraCount: () => auraQuads,
+           fxLayerDrawn: () => fxLayer,
+           quadPools: () => ({ body: pool.group, behind: behindPool.group }),
            posedCount: () => posedCards, lastBail: () => bail };
 }
