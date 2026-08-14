@@ -21,6 +21,7 @@
     <link rel="manifest" href="site.webmanifest">
     <link rel="preload" href="assets/fonts/barlow-condensed-italic-900.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="assets/fonts/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/press-start-2p.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -214,6 +215,18 @@
              the match roster when a fight launches; a timed cut-scene beat, not
              a menu — no input, self-dismissing. -->
         <div id="introOverlay" class="intro-overlay hidden" aria-hidden="true"></div>
+
+        <!-- The title splash: the first screen the game shows, once the core
+             assets are in. A button rather than a div, so a click, Enter and a
+             pad's A all reach it through the paths that already exist — the
+             Start button is handled separately in main.js because only that
+             one takes the game fullscreen. -->
+        <button id="titleOverlay" class="overlay title-screen hidden" type="button">
+          <img class="title-logo" src="assets/ui/logo.png" alt="JJK Brawler II">
+          <span id="titlePressStart" class="press-start">Press Start</span>
+          <span id="titleCredit" class="title-credit">A cursed brawler by Hoai and Francis Nguyen</span>
+          <span id="titleHint" class="title-hint">Start on a controller · Enter · or click to begin</span>
+        </button>
 
         <div id="loadOverlay" class="overlay">
           <div class="title-lockup">

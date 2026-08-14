@@ -35,6 +35,16 @@
   src: url("assets/fonts/barlow-condensed-italic-900.woff2") format("woff2");
 }
 
+/* The arcade face: Press Start 2P (OFL, bundled), used for exactly one string
+   in the whole game — PRESS START on the title splash. It is a period-correct
+   bitmap face and unreadable at length, so it never carries anything else. */
+@font-face {
+  font-family: "Press Start 2P";
+  font-style: normal;
+  font-weight: 400;
+  src: url("assets/fonts/press-start-2p.woff2") format("woff2");
+}
+
 :root {
   --bg: #05060d;
   /* The slash: the ONE angle the whole interface leans on. Buttons, plates,
@@ -623,6 +633,124 @@ html, body {
   font-weight: 900;
   letter-spacing: 0.045em;
   text-shadow: 0 3px 14px rgba(0, 0, 0, 0.7), 0 0 30px rgba(98, 220, 255, 0.22);
+}
+
+/* ---------- Title splash ---------- */
+/*
+   The first screen: the logo, one instruction, and the credit. It is a <button>
+   (index.html) so a click, Enter and a pad's A all reach it through paths that
+   already exist — leaveTitle() in ui.js is what they all end up calling.
+
+   Deliberately emptier than every other screen. No corner chrome (setPhase
+   hides it), no panels, no slash-cut furniture competing with the logo: the
+   only geometry is the ambient streak on the ground, so the artwork is the
+   whole composition.
+*/
+.title-screen {
+  /* a button, dressed back down to a screen */
+  appearance: none;
+  border: 0;
+  width: 100%;
+  font: inherit;
+  color: var(--text);
+  text-align: center;
+  cursor: pointer;
+  gap: 0;
+  background:
+    repeating-linear-gradient(100deg, transparent 0 130px, rgba(130, 170, 255, 0.03) 130px 210px),
+    radial-gradient(70% 55% at 50% 38%, rgba(56, 96, 190, 0.4) 0%, transparent 68%),
+    linear-gradient(rgba(3, 5, 13, 0.82), rgba(3, 5, 13, 0.94)),
+    url("assets/backgrounds/menu.jpg") center / cover no-repeat;
+  background-color: #04060e;
+}
+
+.title-logo {
+  display: block;
+  /* Sized by the composition, not by the source file: the splash is the
+     logo, so it takes as much of the frame as the PRESS START line and the
+     credit will leave it. The artwork carries transparent margin of its own,
+     so the drawn mark reads smaller than this box — hence the generous cap.
+     Any higher-resolution file dropped in at the same path sharpens this
+     automatically; nothing here is tied to the current 900px asset. */
+  width: min(74vw, 1000px);
+  max-height: 58vh;
+  object-fit: contain;
+  /* The logo is its own light source on this screen. */
+  filter:
+    drop-shadow(0 18px 40px rgba(0, 0, 0, 0.75))
+    drop-shadow(0 0 46px rgba(98, 220, 255, 0.28))
+    drop-shadow(0 0 90px rgba(255, 76, 85, 0.16));
+}
+
+/* The generic overlay entrance (`.overlay.is-entering > *`) outranks a plain
+   class selector AND is-entering is never taken off again, so a looping
+   animation declared on the child alone silently never runs. These two rules
+   outrank it and re-declare the entrance themselves, with the loop second in
+   the list so it takes over the moment the arrival finishes. */
+.overlay.title-screen .title-logo {
+  animation:
+    overlayContentIn 260ms cubic-bezier(0.22, 1, 0.36, 1) both,
+    titleBreathe 5.5s ease-in-out 260ms infinite;
+}
+
+/* Barely there: enough that the screen is alive while it waits, not enough to
+   read as an effect. */
+@keyframes titleBreathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-6px) scale(1.012); }
+}
+
+/* The arcade blink: a hard on/off on a steps() timing function, not a fade —
+   a cross-fade here would read as a modern web animation rather than as the
+   attract mode this is quoting. */
+.press-start {
+  margin-top: clamp(10px, 2.4vh, 26px);
+  font-family: "Press Start 2P", var(--font-display), monospace;
+  font-size: clamp(0.72rem, 1.5vw, 1.15rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow:
+    0 0 12px rgba(98, 220, 255, 0.9),
+    0 0 30px rgba(98, 220, 255, 0.5),
+    0 3px 0 #0b1a3a;
+}
+
+.overlay.title-screen .press-start {
+  animation:
+    overlayContentIn 260ms cubic-bezier(0.22, 1, 0.36, 1) both,
+    pressStartBlink 1.06s steps(1, end) 380ms infinite;
+}
+
+@keyframes pressStartBlink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0; }
+}
+
+.title-credit {
+  margin-top: clamp(18px, 3.6vh, 40px);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(0.78rem, 1.5vw, 1.05rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+}
+
+.title-hint {
+  margin-top: 8px;
+  font-size: clamp(0.6rem, 1vw, 0.72rem);
+  letter-spacing: 0.06em;
+  color: rgba(150, 161, 192, 0.75);
+}
+
+/* A blinking word is the one thing on this screen that must be able to stop:
+   it holds steady rather than pulsing, and the logo stops breathing with it. */
+@media (prefers-reduced-motion: reduce) {
+  .overlay.title-screen .press-start { animation: none; opacity: 1; }
+  .overlay.title-screen .title-logo { animation: none; }
 }
 
 /* ---------- Loading ---------- */
