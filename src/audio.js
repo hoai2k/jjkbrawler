@@ -261,8 +261,21 @@ export function audioSuspended() {
 /** Returns the element playing it, or null — a caller that may need to CUT the
  *  sound short keeps the handle; everyone else ignores the return value. */
 export function playSfx(name, intensity = 1, rate = 0) {
+  return playSfxEntry(entryFor(name), intensity, rate);
+}
+
+/**
+ * Play a sound described by a registry-shaped entry rather than by name.
+ *
+ * The game always knows the name; the audio workbench does not — it auditions
+ * ALTERNATE takes (config_audio.js `VOICE_ALTERNATES`), which are files with no
+ * registry key because the game never plays them. Routing them through here
+ * rather than through a bare Audio element is the point: an alternate is judged
+ * at the level its category and gain would give it in a match, which is the
+ * comparison that decides whether to promote it.
+ */
+export function playSfxEntry(entry, intensity = 1, rate = 0) {
   if (!unlocked || suspended || audioSettings.muted || !state.sfxEnabled || audioSettings.sfxVolume <= 0) return null;
-  const entry = entryFor(name);
   if (!entry) return null; // an undelivered sound is silence, not an error
   if (active.size > MAX_VOICES) return null; // safety valve
   const el = new Audio(srcFor(entry));

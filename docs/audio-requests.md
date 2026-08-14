@@ -52,6 +52,122 @@ round 11 the second. `tools/generate_voice.py` is the route both used, and
 `MOVE_CALL` (`src/config_audio.js`) is now the wiring any further slice needs:
 a row per move, no new code.
 
+## Round 12 — alternate takes *(open)*
+
+Three things in the delivered audio were judged wrong by ear, which is the one
+test neither `generate_voice.py` nor `check_voice.mjs` can run. This round is
+**alternates, not replacements**: each file below sits beside the one in play,
+both are auditionable in the
+[audio workbench](../workbench/?edit=audio), and promoting one is a deliberate
+edit rather than something this round does on delivery. A take that is merely
+*different* is not automatically *better*, and the only way to know is to hear
+them next to each other.
+
+| What | Why | Alternate |
+|---|---|---|
+| Gojo's domain call | Cast cool and unhurried, which read as **uninvested** rather than effortless | More authoritative — a man giving an instruction to reality |
+| Dagon's domain call | Cast gentle and serene, which read as **a polite man** rather than a curse | Lower, with the throat of something much bigger |
+| The effort grunts | Made on the sound-EFFECTS endpoint in round 8, which is why they read as odd and animal-like — that endpoint does not have a voice, it imitates one | A short human effort, from an actual voice |
+
+### The grunts are the interesting one
+
+They came from `generate_sfx.py`, and that is the whole defect: the
+sound-generation endpoint was asked for a human noise and produced its
+impression of one. The alternates go through **`generate_voice.py` instead**,
+because a voice model making a short vocal effort is a human being making a
+short vocal effort. Same reason the domain call-outs never went near the
+effects endpoint.
+
+**Only the four human groups are re-requested.** `gruntMonster` (Jogo, Hanami,
+Dagon, Kurourushi) and `gruntAnimal` (Panda, Mahito) are *supposed* to sound
+like something that is not a person, so "less animal-like" is the wrong note
+for them and they are deliberately left alone.
+
+Three variants each, as now — one is drawn per call, and a repeated special
+that plays the identical sample is the thing the trio exists to prevent.
+
+**`grunt_young_male_alt_1.wav`** · young male effort · voice `WFLyIjdIbVuEXaAkU0Xb` *(Ryunosuke — natural, 20s)* · capped · 0.5 s
+```
+[short sharp effort grunt] はっ！
+```
+
+**`grunt_young_male_alt_2.wav`** · young male effort · voice `WFLyIjdIbVuEXaAkU0Xb` *(Ryunosuke)* · capped · 0.5 s
+```
+[short sharp effort grunt] ふっ！
+```
+
+**`grunt_young_male_alt_3.wav`** · young male effort · voice `WFLyIjdIbVuEXaAkU0Xb` *(Ryunosuke)* · capped · 0.5 s
+```
+[strained effort grunt] せいっ！
+```
+
+**`grunt_adult_male_alt_1.wav`** · adult male effort · voice `BTUNhQfNpOekzVjlvRHS` *(Nagi — deep, mid-30s)* · capped · 0.5 s
+```
+[short sharp effort grunt] はっ！
+```
+
+**`grunt_adult_male_alt_2.wav`** · adult male effort · voice `BTUNhQfNpOekzVjlvRHS` *(Nagi)* · capped · 0.5 s
+```
+[short sharp effort grunt] ふんっ！
+```
+
+**`grunt_adult_male_alt_3.wav`** · adult male effort · voice `BTUNhQfNpOekzVjlvRHS` *(Nagi)* · capped · 0.5 s
+```
+[strained effort grunt] ぐっ！
+```
+
+**`grunt_big_alt_1.wav`** · heavy fighter effort · voice `wiBTiCATMiTaXSfv8hdN` *(Sho — warm, deep, 40s)* · pitch 0.94 · capped · 0.6 s
+```
+[heavy effort grunt] ぬんっ！
+```
+
+**`grunt_big_alt_2.wav`** · heavy fighter effort · voice `wiBTiCATMiTaXSfv8hdN` *(Sho)* · pitch 0.94 · capped · 0.6 s
+```
+[heavy effort grunt] どりゃっ！
+```
+
+**`grunt_big_alt_3.wav`** · heavy fighter effort · voice `wiBTiCATMiTaXSfv8hdN` *(Sho)* · pitch 0.94 · capped · 0.6 s
+```
+[strained heavy effort grunt] ぐぬっ！
+```
+
+**`grunt_female_alt_1.wav`** · female effort · voice `lxNssjs8lZzgD44uVifH` *(Rina — natural, late 20s)* · capped · 0.5 s
+```
+[short sharp effort grunt] はっ！
+```
+
+**`grunt_female_alt_2.wav`** · female effort · voice `lxNssjs8lZzgD44uVifH` *(Rina)* · capped · 0.5 s
+```
+[short sharp effort grunt] ふっ！
+```
+
+**`grunt_female_alt_3.wav`** · female effort · voice `lxNssjs8lZzgD44uVifH` *(Rina)* · capped · 0.5 s
+```
+[strained effort grunt] くっ！
+```
+
+### The two domain calls
+
+**`domain_call_gojo_alt.wav`** · Gojo — Unlimited Void, authoritative · voice `FWySLPyI58wEujI5OCqQ` *(Azel — commanding, cinematic)* · 3.0 s
+```
+[commanding] りょういきてんかい。むりょうくうしょ。
+```
+
+**`domain_call_dagon_alt.wav`** · Dagon — Horizon of the Captivating Skandha, lower · voice `3YKJpNw2ZvG9JayfGYAm` *(Sharo — low-pitched, calm)* · pitch 0.86 · 3.0 s
+```
+[low and guttural] りょういきてんかい。たううんへいせん。
+```
+
+**Dagon's is the one that needed a new lever.** No amount of direction stops a
+text-to-speech model sounding like a person, because it is a model of people —
+so the entry carries `· pitch 0.86 ·`, and `generate_voice.py` resamples the
+take downward. Deliberately *not* a formant-preserving shift: dragging the
+formants down with the pitch is exactly what makes a voice read as coming from
+a bigger throat rather than as a man slowed down. It lengthens the take too,
+which is why the brief allows 3.0 s for a 2.25 s line.
+
+---
+
 ## Where the game actually is
 
 | | |
@@ -139,6 +255,14 @@ It plays through **the game's own mixer**, so the loudness is the loudness in a
 match: category trim and per-sound gain applied, not the raw file. Starting a
 second track cuts the first the way a hit does, which is also the only
 convenient way to hear what an interrupted line sounds like.
+
+**Alternate takes appear under the take they would replace**, marked `in game`
+and `not in game`, and are mixed through the same category and gain — so what
+you are comparing is the performance and nothing else. They live in
+`VOICE_ALTERNATES` (`src/config_audio.js`) and **the game never plays them**.
+Promoting one is three deliberate steps: swap the filename in the `SFX` entry,
+update its `SPOKEN_LINES` length if it is a spoken line, and run
+`node tools/check_voice.mjs` to confirm the timing still adds up.
 
 This is the answer to the one thing neither `generate_voice.py` nor
 `check_voice.mjs` can tell you: **whether the take is any good.** They can

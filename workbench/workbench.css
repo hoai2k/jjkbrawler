@@ -143,3 +143,23 @@ h2 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: 
 .shortcuts span { color: var(--dim); font-size: 11px; }
 .shortcuts .sub { margin: 10px 0 0; }
 .shortcuts .unknown { color: var(--warn); font-size: 11.5px; margin: 0 0 8px; }
+
+/* ------------------------------------------------------- alternate takes */
+/* An alternate is indented and quieter than the take in play: the page has to
+   answer "which one does the game use" at a glance, or the comparison is
+   worse than useless. */
+.track.alt { padding-left: 30px; background: #11141f; }
+.track.alt .label { font-weight: 500; color: var(--dim); }
+.tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dim);
+  vertical-align: 1px;
+}
+.tag--live { border-color: rgba(98, 220, 255, 0.5); color: var(--accent); margin-left: 0; }

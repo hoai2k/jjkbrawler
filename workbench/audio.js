@@ -21,10 +21,10 @@
 
 import { CHARACTERS } from "../src/characters.js";
 import {
-  DOMAIN_CALL, MOVE_CALL, SFX, SPOKEN_LINES, SPOKEN_TIMING, AUDIO_MIX,
+  DOMAIN_CALL, MOVE_CALL, SFX, SPOKEN_LINES, SPOKEN_TIMING, AUDIO_MIX, VOICE_ALTERNATES,
 } from "../src/config_audio.js";
 import {
-  playSfx, cutSfx, spokenLead, spokenCommitAt, audioSettings,
+  playSfx, playSfxEntry, cutSfx, spokenLead, spokenCommitAt, audioSettings,
   GRUNT_GROUPS, KO_FOR_GROUP,
 } from "../src/audio.js";
 import { loadCoreAssets, loadFrame, frameKeys } from "../src/assets.js";
@@ -135,7 +135,7 @@ function renderTracks() {
     const h = document.createElement("h3");
     h.textContent = title;
     box.append(h);
-    for (const t of list) box.append(trackRow(t));
+    for (const t of list) box.append(...trackRow(t));
     els.trackList.append(box);
   }
   const lines = tracks.filter((t) => t.kind === "line").length;
@@ -159,6 +159,7 @@ function trackRow(t) {
   const length = SPOKEN_LINES[t.sfx];
   const bits = [];
   if (t.detail) bits.push(t.detail);
+  if (VOICE_ALTERNATES[t.sfx]) bits.push('<span class="tag tag--live">in game</span>');
   bits.push(`<code>${t.sfx}</code>`);
   if (files.length) bits.push(files.length > 1 ? `${files.length} files` : `<code>${files[0]}</code>`);
 
@@ -180,7 +181,36 @@ function trackRow(t) {
 
   body.innerHTML = `<div class="label">${t.label}</div><div class="meta">${bits.join(" · ")}</div>`;
   row.append(play, body);
-  return row;
+
+  // Other recordings of the same sound, if any were kept. Shown UNDER the take
+  // in play and marked as alternates, because the comparison only means
+  // anything if it is obvious which one the game actually uses — and because
+  // the answer to "is this one better" is usually "play them again".
+  const alts = VOICE_ALTERNATES[t.sfx] || [];
+  if (!alts.length) return [row];
+  const out = [row];
+  row.classList.add("has-alts");
+  for (const alt of alts) {
+    const files = [alt.file].flat();
+    const arow = document.createElement("div");
+    arow.className = "track alt";
+    const abtn = document.createElement("button");
+    abtn.type = "button";
+    abtn.textContent = "▶";
+    abtn.title = `Play the alternate take of ${t.sfx}`;
+    // Mixed through the entry the alternate would REPLACE — same category, same
+    // gain — so what is being compared is the take and nothing else.
+    abtn.addEventListener("click", () =>
+      playEntry({ file: alt.file, category: entry.category, gain: entry.gain }, arow));
+    const abody = document.createElement("div");
+    const ameta = [alt.note];
+    ameta.push(files.length > 1 ? `${files.length} files` : `<code>${files[0]}</code>`);
+    abody.innerHTML = `<div class="label">Alternate <span class="tag">not in game</span></div>`
+      + `<div class="meta">${ameta.join(" · ")}</div>`;
+    arow.append(abtn, abody);
+    out.push(arow);
+  }
+  return out;
 }
 
 // ------------------------------------------------------------------ playing
@@ -190,11 +220,16 @@ function trackRow(t) {
 let nowPlaying = null;
 
 function playTrack(t, row) {
+  playEntry(t.sfx, row);
+}
+
+/** `what` is a registry key or a registry-shaped entry (an alternate take). */
+function playEntry(what, row) {
   if (nowPlaying) {
     cutSfx(nowPlaying.el);
     nowPlaying.row.classList.remove("playing");
   }
-  const el = playSfx(t.sfx, 1);
+  const el = typeof what === "string" ? playSfx(what, 1) : playSfxEntry(what, 1);
   if (!el) {
     els.loadState.textContent = "nothing to play — the file is missing or sound is off";
     els.loadState.className = "loading";
