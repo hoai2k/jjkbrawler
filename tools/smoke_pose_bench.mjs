@@ -257,6 +257,59 @@ check(rigView.restored === 0,
   "...and unchecking it draws the model back, to the cell",
   `${rigView.restored} cell(s) still differ`);
 
+// --------------------------------------------------- the shoulder-width dial
+//
+// IT MUST PUSH THE SHOULDERS APART, not turn them. The dial moves each arm
+// root out along the body's own shoulder line, and the arm layer reads BIND
+// frames — which are the model's, and know nothing about the yaw poseRig puts
+// on the root for a delivery that was built facing somewhere other than the
+// camera. Treating those frames as world silently rotated the push by exactly
+// that offset, so at Nanami's 75 degrees almost all of a 10 cm widening went
+// fore-and-aft instead: one shoulder forward, one back, which is a twist.
+// Maki is yawed 60, so a rig with no offset cannot stand in for her here.
+
+const wide = await page.evaluate(async () => {
+  const rigs = await import("/render3d/src/loader.js");
+  const scene = await import("/render3d/src/scene.js");
+  const THREE = await import("/vendor/three/three.module.js");
+  const r = rigs.getRig("maki");
+  if (!r || r.isMannequin) return null;
+  const at = (n) => {
+    const o = r.root.getObjectByName(n);
+    const v = new THREE.Vector3();
+    o.getWorldPosition(v);
+    return v;
+  };
+  const res = rigs.resolveClip("maki", "idle");
+  const keep = r.shoulderOutCm;
+  const pose = () => { scene.posePreview("maki", "idle", 0, r, res, {}); r.root.updateMatrixWorld(true); };
+  r.shoulderOutCm = 0; pose();
+  const L0 = at("LeftArm"), R0 = at("RightArm");
+  // The body's own axes, taken before anything moves.
+  const lat = R0.clone().sub(L0); lat.y = 0; lat.normalize();
+  const fwd = new THREE.Vector3(-lat.z, 0, lat.x);
+  r.shoulderOutCm = 10; pose();
+  const dL = at("LeftArm").sub(L0), dR = at("RightArm").sub(R0);
+  r.shoulderOutCm = keep; pose();
+  return {
+    yaw: r.yawOffsetDeg,
+    outCm: [-dL.dot(lat) * 100, dR.dot(lat) * 100].map((v) => +v.toFixed(2)),
+    fwdCm: [dL.dot(fwd) * 100, dR.dot(fwd) * 100].map((v) => +v.toFixed(2)),
+  };
+});
+if (!wide) {
+  check(false, "maki's rig is loaded for the shoulder check");
+} else {
+  check(Math.abs(wide.yaw) > 15,
+    "the shoulder check runs on a YAWED rig, or it proves nothing", `yaw ${wide.yaw}°`);
+  check(wide.outCm.every((v) => v > 9.5),
+    "a 10 cm shoulder dial moves both arm roots 10 cm outward",
+    `${wide.outCm.join(" / ")} cm out`);
+  check(wide.fwdCm.every((v) => Math.abs(v) < 1),
+    "...and does not push either of them fore or aft",
+    `${wide.fwdCm.join(" / ")} cm fore/aft`);
+}
+
 // ------------------------------------------------------------- the alternate
 //
 // TWO MODELS OF ONE FIGHTER, judged against each other rather than from

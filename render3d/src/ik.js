@@ -773,16 +773,24 @@ function bindFrames(THREE, root3d) {
  * modeller drew it. The rotation used is the minimal one from the bind
  * direction to `dir`, which is a pure swing and adds no twist of its own.
  */
-function aimBoneFromBind(THREE, root3d, bone, childName, dir, tmp) {
+function aimBoneFromBind(THREE, root3d, bone, childName, dir, tmp, rootQ) {
   const bind = bindFrames(THREE, root3d);
   const here = bind.get(bone.name);
   const child = bind.get(childName);
   if (!here || !child) return false;
+  // BIND IS THE MODEL'S FRAME; `dir` IS THE WORLD'S. bindFrames reads the
+  // skeleton's own inverse-bind matrices, which know nothing about the yaw
+  // poseRig puts on the root — the delivery's own facing plus the turnaround.
+  // Comparing the two directly silently discards that yaw, so every fighter
+  // whose model was built facing somewhere other than the camera had their arm
+  // aimed along an axis turned by their `yawOffsetDeg`. Carrying bind into the
+  // world first is the whole fix, and it is a no-op on a rig with no offset,
+  // which is why it went unseen: Yuji is 0 and reads perfectly.
   const bindDir = tmp.v1.copy(child.pos).sub(here.pos);
   if (bindDir.lengthSq() < 1e-10) return false;
-  bindDir.normalize();
+  bindDir.normalize().applyQuaternion(rootQ);
   const swing = tmp.q1.setFromUnitVectors(bindDir, dir);
-  const want = tmp.q2.copy(swing).multiply(here.quat);
+  const want = tmp.q2.copy(rootQ).multiply(here.quat).premultiply(swing);
   const parent = bone.parent
     ? bone.parent.getWorldQuaternion(new THREE.Quaternion())
     : new THREE.Quaternion();
@@ -804,11 +812,17 @@ function setLocalFromBind(THREE, root3d, bone, bind) {
 }
 
 /** Put one bone's WORLD rotation back to bind, whatever its parent is doing. */
-function setLocalFromBindWorld(THREE, bone, bindHere) {
+function setLocalFromBindWorld(THREE, bone, bindHere, rootQ) {
   const parent = bone.parent
     ? bone.parent.getWorldQuaternion(new THREE.Quaternion())
     : new THREE.Quaternion();
-  bone.quaternion.copy(parent.invert().multiply(bindHere.quat));
+  // Same frame correction as aimBoneFromBind: the bind orientation is the
+  // MODEL's, and setting it as a world orientation un-yaws the bone. On the
+  // clavicle that rotated both shoulders by the fighter's own yaw offset,
+  // which is what made the review's shoulder-width dial push one shoulder
+  // forward and the other back instead of both outward.
+  const want = new THREE.Quaternion().copy(rootQ).multiply(bindHere.quat);
+  bone.quaternion.copy(parent.invert().multiply(want));
   bone.updateMatrixWorld(true);
 }
 
@@ -908,6 +922,10 @@ export function applyIdleArms(THREE, root3d, deg, tmp, outM = 0) {
   lateral.normalize();
   const axis = tmp.v5.set(-lateral.z, 0, lateral.x).normalize();
 
+  // The rig's own rotation, once: everything below reads bind frames, which
+  // are the model's, and acts in the world.
+  const rootQ = root3d.getWorldQuaternion(new THREE.Quaternion());
+
   const rad = (deg * Math.PI) / 180;
   for (let i = 0; i < 2; i++) {
     const sign = i === 0 ? -1 : 1; // away from the body, not both the same way
@@ -925,10 +943,12 @@ export function applyIdleArms(THREE, root3d, deg, tmp, outM = 0) {
     // below hangs off it, so an arm aimed correctly from a hunched shoulder is
     // still an arm coming out of the wrong place.
     const clav = root3d.getObjectByName(`${side}Shoulder`);
-    if (clav && bind.has(clav.name)) setLocalFromBindWorld(THREE, clav, bind.get(clav.name));
+    if (clav && bind.has(clav.name)) {
+      setLocalFromBindWorld(THREE, clav, bind.get(clav.name), rootQ);
+    }
 
     if (lo) {
-      aimBoneFromBind(THREE, root3d, up, `${side}ForeArm`, dir, tmp);
+      aimBoneFromBind(THREE, root3d, up, `${side}ForeArm`, dir, tmp, rootQ);
       // The forearm rides along: its BIND local rotation, so the elbow keeps
       // the bend and the crease the modeller gave it, and the skin sees no
       // relative rotation at the joint at all.
@@ -937,7 +957,7 @@ export function applyIdleArms(THREE, root3d, deg, tmp, outM = 0) {
         clampElbow(THREE, root3d, lo, `${side}Hand`, dir, tmp);
       }
     } else if (hand) {
-      aimBoneFromBind(THREE, root3d, up, `${side}Hand`, dir, tmp);
+      aimBoneFromBind(THREE, root3d, up, `${side}Hand`, dir, tmp, rootQ);
     }
 
     // LENGTHEN THE SHOULDER: move the arm's root out along the body's own
