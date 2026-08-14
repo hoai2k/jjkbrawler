@@ -1,6 +1,6 @@
 import { state } from "./state.js";
 import { loadCoreAssets, startBackgroundLoad, ensureMatchAssets, matchAssetsPending } from "./assets.js";
-import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, joinedPlayerCount, blankInput, clearHeldKeys, disconnectedSeats } from "./input.js";
+import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, joinedPlayerCount, blankInput, clearHeldKeys, disconnectedSeats, freezePadSeats } from "./input.js";
 import { initAudio, playSfx, setBattleStage, syncMusic, stepAudio, stopDomainLoop, stopShieldLoop, setAudioSuspended, setMatchLive } from "./audio.js";
 import { updateRumble } from "./rumble.js";
 import { makeFighter, updateFighter } from "./fighter.js";
@@ -205,6 +205,9 @@ async function resetMatch() {
   // this: while it is set, Settings and the move list hold the battle track
   // where it is instead of cutting to the menu one (audio.js).
   setMatchLive(true);
+  // The seats belong to this match now: a pad that drops out keeps its fighter
+  // instead of the remaining pads shuffling up under the players holding them.
+  freezePadSeats(true);
   playSfx("uiStart");
   setPhase("playing");
   showBattleIntro();
@@ -212,6 +215,8 @@ async function resetMatch() {
 
 function quitToMenu() {
   setMatchLive(false);
+  // Back on the menu the seating follows whatever is actually plugged in again.
+  freezePadSeats(false);
   setPauseNotice(null);
   resetReady();
   setPhase("menu");

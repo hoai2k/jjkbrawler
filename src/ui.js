@@ -81,6 +81,17 @@ export function initUi(cb) {
   updateLoadHint();
   onLoadProgress(updateLoadHint);
   window.addEventListener("resize", layoutCharacterGrid);
+  // Entering fullscreen from the TITLE screen used to leave the roster at its
+  // windowed size: leaveTitle asks for fullscreen and then shows the select
+  // screen immediately, but the request resolves a beat later, so the fitter
+  // measured the old viewport and pinned the cards small — and only a second
+  // fullscreen toggle, which does fire a resize while the roster is on screen,
+  // put it right. `fullscreenchange` is the exact signal that the viewport has
+  // finished changing; the rAF lets the browser finish laying out at the new
+  // size before anything is measured.
+  document.addEventListener("fullscreenchange", () => {
+    requestAnimationFrame(layoutCharacterGrid);
+  });
 }
 
 // The roster streams in behind the menu, so a match can occasionally have to
@@ -186,7 +197,14 @@ function allReady() {
 }
 
 export function resetReady() {
-  for (const id of PLAYER_IDS) state.ready[id] = false;
+  for (const id of PLAYER_IDS) {
+    state.ready[id] = false;
+    // Back on the roster after a match, each player's marker starts on the
+    // fighter they just used — considering it again rather than still
+    // committed to it. Without this the cursor kept whatever it held before
+    // the match and the marker sat somewhere else entirely.
+    pickerCursor[id] = state.selection[id] || null;
+  }
   state.cpuRoll = null;
   state.activePicker = 1;
 }
@@ -408,40 +426,65 @@ function placeRosterBlocks(grid, rows) {
   // those cards narrower than the rest of the roster — the cards all have to
   // stay the same size, so the space between categories has to be a track of
   // its own.
+  const children = [...grid.children];
   const tracks = [];
-  const card = () => tracks.push("minmax(0, 1fr)");
+  const blocks = [];
   let col = 1;
+
+  // Pass one: the blocks, from the titles alone. Each category is
+  // ceil(members / rows) columns wide at this depth, so its capacity — and
+  // therefore whether it has a spare cell at the end — is known before a
+  // single card is placed.
+  for (const child of children) {
+    if (!child.classList.contains("char-group-title")) continue;
+    // Only BETWEEN blocks: no leading gap at the left edge of the roster.
+    if (tracks.length) { tracks.push("var(--group-gap)"); col += 1; }
+    const size = Number(child.dataset.size);
+    const width = Math.ceil(size / rows);
+    for (let i = 0; i < width; i++) tracks.push("minmax(0, 1fr)");
+    child.style.gridArea = `1 / ${col} / 2 / ${col + width}`;
+    blocks.push({ key: child.dataset.group, start: col, width, size });
+    col += width;
+  }
+
+  // The wildcard is a fighter-sized card like every other one, and it goes in
+  // the first hole the roster leaves: a category whose members do not divide
+  // evenly into its columns ends with a spare cell, and that is where Random
+  // belongs — at the end of the Students, most often. It used to be a
+  // full-height slab of its own at the far right, which made the one tile
+  // every player starts on the odd one out. Only a roster that fills every
+  // block exactly makes it take a column of its own.
+  const random = children.find((c) => c.classList.contains("char-card--random"));
+  const host = random ? blocks.find((b) => b.width * rows > b.size) : null;
+  if (random && !host) {
+    if (tracks.length) { tracks.push("var(--group-gap)"); col += 1; }
+    tracks.push("minmax(0, 1fr)");
+    random.style.gridArea = `2 / ${col} / 3 / ${col + 1}`;
+    col += 1;
+  }
+
+  // Pass two: the cards, filling each block left to right, row by row.
   let block = null;
   let seen = 0;
-  // Only BETWEEN blocks: no leading gap at the left edge of the roster.
-  const gap = () => { if (tracks.length) { tracks.push("var(--group-gap)"); col += 1; } };
-
-  for (const child of grid.children) {
+  for (const child of children) {
     if (child.classList.contains("char-group-title")) {
-      col += block ? block.width : 0;
-      gap();
-      block = { start: col, width: 0, size: Number(child.dataset.size) };
-      block.width = Math.ceil(block.size / rows);
-      for (let i = 0; i < block.width; i++) card();
+      block = blocks.find((b) => b.key === child.dataset.group);
       seen = 0;
-      child.style.gridArea = `1 / ${block.start} / 2 / ${block.start + block.width}`;
       continue;
     }
-    if (child.classList.contains("char-card--random")) {
-      // No block of its own and no title: one card, as tall as the rest.
-      col += block ? block.width : 0;
-      gap();
-      block = null;
-      card();
-      child.style.gridArea = `2 / ${col} / ${2 + rows} / ${col + 1}`;
-      col += 1;
-      continue;
-    }
+    if (child.classList.contains("char-card--random")) continue; // placed below
     const line = block.start + (seen % block.width);
     const row = 2 + Math.floor(seen / block.width);
     child.style.gridArea = `${row} / ${line} / ${row + 1} / ${line + 1}`;
     seen += 1;
   }
+  // …and the wildcard into its host block's first free cell.
+  if (random && host) {
+    const line = host.start + (host.size % host.width);
+    const row = 2 + Math.floor(host.size / host.width);
+    random.style.gridArea = `${row} / ${line} / ${row + 1} / ${line + 1}`;
+  }
+
   grid.style.gridTemplateColumns = tracks.join(" ");
   grid.style.setProperty("--rows", String(rows));
 }
@@ -874,6 +917,59 @@ function browsingKey(id) {
   return cursor || state.selection[id];
 }
 
+/** The ONE card a player's marker sits on.
+ *
+ *  A player is either considering a fighter or committed to one, never both:
+ *  while they browse the marker rides their cursor, and once they lock in it
+ *  rests on what they locked. Previously the grid drew the marker from the
+ *  SELECTION while the cursor moved independently, so after a match — where
+ *  the old pick survives and only the ready flag is cleared — a player could
+ *  walk a second highlight around the roster with their P1 tag still sitting
+ *  on last match's fighter. */
+function markedKey(id) {
+  const drawn = id === 2 && state.selection[id] === RANDOM_KEY ? state.cpuRoll : null;
+  if (drawn) return drawn;
+  if (isBrowsing(id)) return pickerCursor[id] || state.selection[id] || null;
+  return state.selection[id] || null;
+}
+
+/** Paints every marker on the roster in one pass.
+ *
+ *  Several players share a card constantly — everyone starts on Random — so a
+ *  card takes a RING PER PLAYER, drawn concentrically in seat order, rather
+ *  than one player's colour winning and the others vanishing. The rings are
+ *  built here instead of in CSS because the combinations are the power set of
+ *  four seats; the stylesheet just consumes --mark-rings. */
+function renderRosterMarkers() {
+  const marks = new Map();
+  for (const id of pickedSlots()) {
+    const key = markedKey(id);
+    if (!key) continue;
+    if (!marks.has(key)) marks.set(key, []);
+    marks.get(key).push(id);
+  }
+  for (const btn of els.characterGrid?.querySelectorAll(".char-card") || []) {
+    const on = marks.get(btn.dataset.character) || [];
+    btn.classList.toggle("is-marked", on.length > 0);
+    btn.querySelectorAll(".pick-tag").forEach((el) => el.remove());
+    if (!on.length) {
+      btn.style.removeProperty("--mark-rings");
+      btn.style.removeProperty("--mark-color");
+      continue;
+    }
+    const rings = on.map((id, i) => `0 0 0 ${(i + 1) * 3}px var(--p${id}-theme)`).join(", ");
+    btn.style.setProperty("--mark-rings",
+      `${rings}, 0 0 18px color-mix(in srgb, var(--p${on[0]}-theme) 55%, transparent)`);
+    btn.style.setProperty("--mark-color", `var(--p${on[0]}-theme)`);
+    for (const id of on) {
+      const tag = document.createElement("i");
+      tag.className = `pick-tag pick-tag--p${id}`;
+      tag.textContent = id === 2 && state.playerCount === 1 ? "CPU" : `P${id}`;
+      btn.appendChild(tag);
+    }
+  }
+}
+
 // What each slot's card should point at right now. Normally the selection
 // itself, but once the CPU has drawn, its tag follows the drawn fighter rather
 // than sitting on the Random card.
@@ -912,18 +1008,7 @@ function updateSpotlight() {
 export function updateSelectionUi() {
   syncCpuRoll();
   const visiblePlayers = pickedSlots();
-  for (const btn of els.characterGrid.querySelectorAll(".char-card")) {
-    const key = btn.dataset.character;
-    for (const id of PLAYER_IDS) btn.classList.toggle(`is-p${id}`, visiblePlayers.includes(id) && key === shownKey(id));
-    btn.querySelectorAll(".pick-tag").forEach((el) => el.remove());
-    for (const id of visiblePlayers) {
-      if (key !== shownKey(id)) continue;
-      const tag = document.createElement("i");
-      tag.className = `pick-tag pick-tag--p${id}`;
-      tag.textContent = id === 2 && state.playerCount === 1 ? "CPU" : `P${id}`;
-      btn.appendChild(tag);
-    }
-  }
+  renderRosterMarkers();
   for (const id of PLAYER_IDS) {
     // A random slot shows a "?" tile, except the CPU once it has drawn: then
     // the card reveals the fighter the next match will actually use. A slot
@@ -1748,19 +1833,10 @@ function setFocus(el, { quiet = false } = {}) {
   }
 }
 
+// The cursor and the commit are one marker now (renderRosterMarkers), so the
+// pad loop simply repaints them.
 function updatePickerCursorClasses() {
-  // Cards, not the grid's direct children — those are the group sections, and
-  // clearing them would leave a cursor ring on every card ever visited.
-  for (const btn of els.characterGrid?.querySelectorAll(".char-card") || []) {
-    for (const id of PLAYER_IDS) btn.classList.remove(`pad-focus-p${id}`);
-  }
-  for (const id of PLAYER_IDS.slice(0, state.playerCount)) {
-    // a ready player's cursor disappears: their pick is committed
-    if (state.ready[id]) continue;
-    const key = pickerCursor[id];
-    if (!key) continue;
-    els.characterGrid.querySelector(`[data-character="${key}"]`)?.classList.add(`pad-focus-p${id}`);
-  }
+  renderRosterMarkers();
 }
 
 function setPickerCursor(playerId, key, { quiet = false } = {}) {
@@ -1781,6 +1857,16 @@ function setPickerCursor(playerId, key, { quiet = false } = {}) {
   if (!quiet) playSfx("uiMove");
 }
 
+/** Steer one player's cursor across the roster, WRAPPING at the edges.
+ *
+ *  The roster is one grid of blocks rather than a rectangle, so the move is
+ *  geometric: the nearest card in the pressed direction, biased to stay in the
+ *  same row (or column). Running out of grid does not stop the cursor — it
+ *  comes back on the far side of the same row, which is what a player expects
+ *  from every fighter select ever made, and what the old code only faked for
+ *  left/right by stepping through the DOM order (so pressing left on the first
+ *  card of a row landed on the LAST card of the row above, and pressing up
+ *  anywhere on the top row did nothing at all). */
 function movePickerCursor(playerId, dx, dy) {
   const items = [...els.characterGrid.querySelectorAll(".char-card")];
   if (!items.length) return;
@@ -1789,8 +1875,14 @@ function movePickerCursor(playerId, dx, dy) {
   const from = current.getBoundingClientRect();
   const fx = from.left + from.width / 2;
   const fy = from.top + from.height / 2;
+  // How far out of line a card may be and still count as "this row" when
+  // wrapping. Half a card, so a roster whose blocks are a few pixels out of
+  // step still reads as rows.
+  const tolerance = (dx !== 0 ? from.height : from.width) * 0.5;
+
   let best = null;
   let bestScore = Infinity;
+  const behind = [];
   for (const el of items) {
     if (el === current) continue;
     const r = el.getBoundingClientRect();
@@ -1798,13 +1890,18 @@ function movePickerCursor(playerId, dx, dy) {
     const cy = r.top + r.height / 2;
     const along = dx !== 0 ? (cx - fx) * dx : (cy - fy) * dy;
     const ortho = dx !== 0 ? Math.abs(cy - fy) : Math.abs(cx - fx);
-    if (along < 4) continue;
+    if (along < 4) { behind.push({ el, along, ortho }); continue; }
     const score = along + ortho * 2.6;
     if (score < bestScore) { bestScore = score; best = el; }
   }
-  if (!best && dx !== 0) {
-    const index = items.indexOf(current);
-    best = items[index + dx] || null;
+
+  // Nothing ahead: wrap to the FURTHEST card the other way, staying in the
+  // nearest row — pressing left off the left edge lands on the rightmost card
+  // beside you, not on some card two rows up that happens to be far away.
+  if (!best && behind.length) {
+    const nearest = Math.min(...behind.map((c) => c.ortho));
+    const sameLine = behind.filter((c) => c.ortho <= nearest + tolerance);
+    best = sameLine.reduce((a, b) => (a.along <= b.along ? a : b)).el;
   }
   if (best) setPickerCursor(playerId, best.dataset.character);
 }
