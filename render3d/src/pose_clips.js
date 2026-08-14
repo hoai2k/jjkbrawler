@@ -33,6 +33,7 @@ import { STATES, clipNameFor } from "./states.js";
 import { buildClipFromKeys } from "./clips.js";
 import { BATTLE_POSES } from "./battle_poses.js";
 import { baselinePose, intentFor } from "./baseline_poses.js";
+import { WALK_POSES, walkKeys } from "./walk_cycle.js";
 import {
   boneIndex, bindOf, applyLibraryPose, bakeLocalEulers,
 } from "./pose_library.js";
@@ -53,6 +54,23 @@ import {
  */
 export const NOT_FROM_LIBRARY = new Set(["idle"]);
 
+/**
+ * States whose clip is a HAND-AUTHORED CYCLE rather than an interpolation of
+ * that fighter's drawings.
+ *
+ * The sheet is the right source for a state the artists drew, and the wrong
+ * one for a walk: round 21 asks for two contacts, and a body scissoring between
+ * two contacts with no passing position between them floats rather than walks.
+ * A pose costs a drawing in 2D and eight joint angles here, so the phases a
+ * sheet cannot afford are free — see walk_cycle.js.
+ *
+ * Anything listed here ignores its sprite frames completely. That is a
+ * deliberate divergence between the two renderers and should stay a short list.
+ */
+const AUTHORED_CYCLES = {
+  walk: { poses: WALK_POSES, keys: walkKeys },
+};
+
 /** Matched first, baseline behind it. Never null: the baseline is total. */
 export function poseForFrame(frame) {
   const matched = BATTLE_POSES[frame];
@@ -68,7 +86,7 @@ export function poseForFrame(frame) {
  * not free, and the same forty poses are wanted by every clip that character
  * has.
  */
-export function bakeCharacterPoses(THREE, root, frames) {
+export function bakeCharacterPoses(THREE, root, frames, extraPoses = null) {
   const bones = boneIndex(root);
   if (!bones.size) return null;
   const bind = bindOf(bones);
@@ -77,6 +95,13 @@ export function bakeCharacterPoses(THREE, root, frames) {
     const { pose, from } = poseForFrame(frame);
     applyLibraryPose(THREE, root, bones, bind, pose);
     baked.set(frame, { pose: bakeLocalEulers(THREE, bones), from });
+  }
+  // Authored cycle poses go through the same bake: they are written in the
+  // same fighter-frame convention as the libraries, so they need the same
+  // trip through this rig to become its own local rotations.
+  for (const [name, pose] of Object.entries(extraPoses || {})) {
+    applyLibraryPose(THREE, root, bones, bind, pose);
+    baked.set(name, { pose: bakeLocalEulers(THREE, bones), from: "authored" });
   }
   // Leave the rig as we found it — the caller may be about to render with it.
   for (const [bone, q] of bind) bone.quaternion.copy(q);
@@ -92,9 +117,24 @@ export function bakeCharacterPoses(THREE, root, frames) {
  */
 export function buildStateClip(THREE, charKey, state, baked) {
   const name = clipNameFor(state);
+  const spec = STATES[name] || STATES[state];
+
+  // An authored cycle needs no sheet and reads none: its keys are already a
+  // schedule, and the poses were baked with the rest.
+  const cycle = AUTHORED_CYCLES[name];
+  if (cycle) {
+    const duration = spec?.duration ?? 1;
+    const keys = cycle.keys(duration)
+      .map((k) => ({ t: k.t, ease: k.ease, frame: k.poseName, pose: baked.get(k.poseName)?.pose }))
+      .filter((k) => k.pose);
+    if (!keys.length) return null;
+    return buildClipFromKeys(THREE, name, keys, {
+      duration, beat: spec?.beat, loop: !!spec?.loop,
+    });
+  }
+
   const schedule = poseSchedule(charKey, state);
   if (!schedule.length) return null;
-  const spec = STATES[name] || STATES[state];
   const keys = [];
   for (const entry of schedule) {
     const hit = baked.get(entry.frame);
@@ -125,14 +165,23 @@ export function buildStateClip(THREE, charKey, state, baked) {
 export function buildCharacterClips(THREE, charKey, root, states) {
   const frames = new Set();
   const wanted = [];
+  const extraPoses = {};
   for (const state of states) {
+    const cycle = AUTHORED_CYCLES[clipNameFor(state)];
+    if (cycle) {
+      Object.assign(extraPoses, cycle.poses);
+      wanted.push(state);
+      continue;
+    }
     const schedule = poseSchedule(charKey, state);
     if (!schedule.length) continue;
     for (const e of schedule) frames.add(e.frame);
     wanted.push(state);
   }
-  if (!frames.size) return { clips: new Map(), sources: new Map() };
-  const baked = bakeCharacterPoses(THREE, root, frames);
+  if (!frames.size && !Object.keys(extraPoses).length) {
+    return { clips: new Map(), sources: new Map() };
+  }
+  const baked = bakeCharacterPoses(THREE, root, frames, extraPoses);
   if (!baked) return { clips: new Map(), sources: new Map() };
 
   const clips = new Map();

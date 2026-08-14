@@ -531,12 +531,19 @@ right, one zoom matched to their own `idle_a`, at least 600 px of body, one
 subject per file. Character blocks and canonical references are above;
 [pose-brief.md](../sprites/docs/pose-brief.md) is the standing brief.
 
-### If a bespoke 3D walk is wanted later
+### The 3D walk is already authored, and ignores these
 
-The 3D side is answered by the alias for now and does not need art from this
-round. A walk that visibly differs from a slowed run — the upright torso most of
-all — is a **billboard/3D pose round**, not a sprite one: drop `walk: "run"`
-from `STATE_ALIASES` and author the clip. The intake process now raises this
-question on every new pose key (see
-[assets/intake/README.md](../assets/intake/README.md)), so it will not be
-forgotten the way it could have been here.
+**The 3D and 2.5D renderers do not use `walk_a`/`walk_b` and will not.** They
+play a hand-authored four-phase cycle instead — `render3d/src/walk_cycle.js` —
+and that is a deliberate divergence rather than an interim.
+
+The reason is the cost of a pose. In 2D a pose is a drawing, so two contacts is
+the right ask; in 3D a pose is eight joint angles, so the phases a sheet cannot
+afford are free. A rig interpolated between two contacts scissors its legs
+through each other with the knees straight and the hips never rising — the
+DOWN and PASSING positions are what make a walk read as carrying weight, and
+they are exactly the two frames a two-frame sheet leaves out.
+
+So this round is a sprite round only, and delivery changes nothing in 3D. The
+note above about raising a D- or B-numbered round does not apply: it was
+written before the cycle existed and the cycle is the answer to it.

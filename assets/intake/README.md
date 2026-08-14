@@ -146,12 +146,15 @@ that way, so this is the normal case, not a mistake.
 
    - **Alias it.** Add the state and point it at the nearest existing clip in
      `STATE_ALIASES`. No rig owes anything, every fighter animates, and the
-     entry is there to be upgraded later. This is what the grab set, both dash
-     attacks and the walk all do.
+     entry is there to be upgraded later. This is what the grab set and both
+     dash attacks do.
    - **Author the clip.** Only when the pose genuinely differs from everything
-     already in the library — a walk's upright torso against a run's forward
-     drive is the example. Drop the alias, add it to the pose library, and raise
-     it as a round in
+     already in the library, or when 3D can afford phases the sheet cannot. The
+     WALK is the worked example of both: round 21 asks the artists for two
+     contacts, and `render3d/src/walk_cycle.js` plays a four-phase cycle that
+     ignores those drawings entirely, because a pose costs a drawing in 2D and
+     eight joint angles here. Where the clip needs ART rather than authoring,
+     raise it as a round in
      [render3d/docs/asset-requests.md](../../render3d/docs/asset-requests.md)
      (D-numbers) or
      [billboards/docs/asset-requests.md](../../billboards/docs/asset-requests.md)

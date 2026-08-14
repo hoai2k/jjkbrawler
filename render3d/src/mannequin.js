@@ -126,6 +126,43 @@ const POSES = {
   // them has no weight in it at all. Vertical travel stays out of the clip
   // (motion.js owns the bob, and doubling it is the delivery rule everyone
   // breaks once); the read comes from the legs and the counter-swinging arms.
+  // A WALK, so the stand-in does not answer a walk with an idle wobble. The
+  // delivered rigs play the authored cycle in walk_cycle.js; this is the same
+  // four phases on the mannequin's own skeleton, which bends elbows about z
+  // rather than x and so cannot share that table. Half the cycle, mirrored
+  // below like the run's.
+  //
+  // Against the run directly above: the torso is upright (2° against 15), the
+  // stride is half as long, the knees stay far straighter, and one foot is
+  // always on the floor.
+  walk_contact_l: p({
+    Spine: [2, -3, 0], Head: [-1, 3, 0],
+    LeftUpLeg: [-20, 0, 0], LeftLeg: [4, 0, 0], LeftFoot: [-10, 0, 0],
+    RightUpLeg: [16, 0, 0], RightLeg: [10, 0, 0], RightFoot: [12, 0, 0],
+    LeftArm: [12, 0, -72], LeftForeArm: [0, 0, -16],
+    RightArm: [-14, 0, 72], RightForeArm: [0, 0, 18],
+  }),
+  walk_down_l: p({
+    Spine: [3, -2, 0], Head: [-1, 2, 0],
+    LeftUpLeg: [-10, 0, 0], LeftLeg: [16, 0, 0], LeftFoot: [-2, 0, 0],
+    RightUpLeg: [10, 0, 0], RightLeg: [30, 0, 0], RightFoot: [4, 0, 0],
+    LeftArm: [8, 0, -72], LeftForeArm: [0, 0, -14],
+    RightArm: [-10, 0, 72], RightForeArm: [0, 0, 16],
+  }),
+  walk_pass_l: p({
+    Spine: [2, 0, 0], Head: [-1, 0, 0],
+    LeftUpLeg: [0, 0, 0], LeftLeg: [2, 0, 0], LeftFoot: [0, 0, 0],
+    RightUpLeg: [-4, 0, 0], RightLeg: [42, 0, 0], RightFoot: [-8, 0, 0],
+    LeftArm: [0, 0, -72], LeftForeArm: [0, 0, -12],
+    RightArm: [0, 0, 72], RightForeArm: [0, 0, 14],
+  }),
+  walk_up_l: p({
+    Spine: [2, 2, 0], Head: [-1, -2, 0],
+    LeftUpLeg: [12, 0, 0], LeftLeg: [6, 0, 0], LeftFoot: [10, 0, 0],
+    RightUpLeg: [-16, 0, 0], RightLeg: [24, 0, 0], RightFoot: [-6, 0, 0],
+    LeftArm: [-8, 0, -72], LeftForeArm: [0, 0, -12],
+    RightArm: [10, 0, 72], RightForeArm: [0, 0, 16],
+  }),
   run_contact_l: p({
     Spine: [15, -6, 0], Head: [-6, 6, 0],
     LeftUpLeg: [-32, 0, 0], LeftLeg: [10, 0, 0], LeftFoot: [-10, 0, 0],
@@ -433,6 +470,17 @@ function stateKeys(name) {
         [(3 * d) / 4, "run_pass_r", "ease"], [(7 * d) / 8, "run_up_r", "in"],
         [d, "run_contact_l", "out"],
       ];
+    case "walk":
+      // The same four phases as the run, at a walk's accents: only the contacts
+      // get a settle, because nothing else in a walk lands hard enough to
+      // deserve one.
+      return [
+        [0, "walk_contact_l", "out"], [d / 8, "walk_down_l", "ease"],
+        [d / 4, "walk_pass_l", "ease"], [(3 * d) / 8, "walk_up_l", "ease"],
+        [h, "walk_contact_r", "out"], [(5 * d) / 8, "walk_down_r", "ease"],
+        [(3 * d) / 4, "walk_pass_r", "ease"], [(7 * d) / 8, "walk_up_r", "ease"],
+        [d, "walk_contact_l", "out"],
+      ];
     case "dash":   return [[0, "dash_a", "ease"], [h, "dash_b", "ease"], [d, "dash_a", "ease"]];
     case "jump":   return [[0, "jump_launch", "out"], [h, "jump_peak", "ease"], [d, "jump_launch", "ease"]];
     case "fall":   return [[0, "fall_a", "ease"], [h, "fall_b", "ease"], [d, "fall_a", "ease"]];
@@ -492,6 +540,7 @@ function stateKeys(name) {
 // which is the guarantee these poses stay valid under one.
 for (const k of ["contact", "down", "pass", "up"]) {
   POSES[`run_${k}_r`] = mirrorPose(POSES[`run_${k}_l`]);
+  POSES[`walk_${k}_r`] = mirrorPose(POSES[`walk_${k}_l`]);
 }
 
 // ------------------------------------------------------------------ builders
