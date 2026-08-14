@@ -150,7 +150,7 @@ export const RIG_FIXES = {
 
   // ------------------------------------------------------------------ geto
   //
-  // HAND-DIALLED IN THE MODEL BENCH (?edit=models), not solved: somebody stood
+  // HAND-DIALLED IN THE RIG BENCH (?edit=rigs), not solved: somebody stood
   // him in a T-pose and turned joints until he looked like one. That is a
   // different instrument from the calibrate loop above and it reaches things
   // the loop cannot — the loop only knows how to level shoulders, and most of
@@ -301,7 +301,7 @@ export function applyRigFixes(THREE, root, charKey) {
  *
  * `false` EXEMPTS a fighter. Only two reasons are good ones: the asymmetry is
  * the design (a broken limb, a lopsided machine), or the body is not a body.
- * "It looked odd" is not — that is what the model bench's checkbox is for.
+ * "It looked odd" is not — that is what the rig bench's checkbox is for.
  */
 export const SYMMETRISE = {
   // Hanami's arm roots are 8.5cm apart in height, the widest gap on the

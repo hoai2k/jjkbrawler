@@ -184,7 +184,7 @@ a tool nobody remembers to run.
 
 ### What a live bone correction can and cannot fix — the Geto round
 
-Geto's rig was hand-dialled in the model bench and the skeleton mirrored, then
+Geto's rig was hand-dialled in the rig bench and the skeleton mirrored, then
 measured in five states. The result is worth writing down, because it changes
 what belongs in this layer at all.
 
@@ -282,11 +282,11 @@ input and the frame it measured moved with the clip. The rig walked: two renders
 of one frame came out thirteen cells apart, and the shoulder-width dial measured
 20cm in the idle and 0 in every other state. It is derived from the **bind** now
 and cached as local offsets, so applying it is a copy — safe to call every
-frame, in any state, in any order. `tools/smoke_model_bench.mjs` holds it there.
+frame, in any state, in any order. `tools/smoke_rig_bench.mjs` holds it there.
 
-### The model bench — turning the bones, not the pose
+### The rig bench — turning the bones, not the pose
 
-`render3d/workbench/?edit=models` is the tool that goes with those poses: one
+`render3d/workbench/?edit=rigs` is the tool that goes with those poses: one
 fighter in a T- or A-pose, in a live viewport you can orbit and zoom, with a
 rotation handle on every bone.
 
@@ -346,7 +346,7 @@ parent rather than to the world: what you drag is what gets recorded.
 It has its own renderer rather than the game's pipeline, and deliberately: the
 other benches pose a rig, render it to a 512px texture and blit that, which is
 right for judging what a player sees and useless for surgery — you cannot orbit
-a texture or pick a joint in one. `tools/smoke_model_bench.mjs` guards it,
+a texture or pick a joint in one. `tools/smoke_rig_bench.mjs` guards it,
 including that a tenth of a turn on a ring records 36° about that ring's axis
 and nothing about the other two.
 

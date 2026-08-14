@@ -1,4 +1,4 @@
-// THE MODEL BENCH (`?edit=models`): fixing the RIG, not the animation.
+// THE RIG BENCH (`?edit=rigs`): fixing the RIG, not the animation.
 //
 // Every other bench on this page asks a question about a POSE — does the model
 // match this drawing, does this clip read as one move. This one asks the
@@ -59,9 +59,9 @@ const params = new URLSearchParams(location.search);
 // replace the layout. The pose bench's cockpit belongs to a different tool,
 // and loading this one into it would mean a screen of dead controls.
 
-document.title = "3D Model Bench — JJK Brawler II";
-document.body.classList.add("mode-models");
-$("wbTitle").textContent = "3D Model Bench";
+document.title = "3D Rig Bench — JJK Brawler II";
+document.body.classList.add("mode-rigs");
+$("wbTitle").textContent = "3D Rig Bench";
 document.querySelectorAll(".bar .pose-only, .bar .anim-only, #facingReviewTop")
   .forEach((el) => el.remove());
 {
@@ -74,7 +74,7 @@ document.querySelectorAll(".bar .pose-only, .bar .anim-only, #facingReviewTop")
   // A link to the page you are already on is furniture that looks like a way
   // out, so this bench's own entry comes out of the bar rather than being
   // greyed; the way BACK goes in, which the bar has no reason to carry.
-  bar.querySelector('a[href="?edit=models"]')?.remove();
+  bar.querySelector('a[href="?edit=rigs"]')?.remove();
   const back = document.createElement("a");
   back.className = "ghost sm";
   back.href = "?";
@@ -85,7 +85,7 @@ $("facingOverlay")?.remove();
 $("mobileBar")?.remove();
 
 document.querySelector("main.layout").outerHTML = `
-  <main class="layout models">
+  <main class="layout rigs">
     <section class="stage-col">
       <div id="viewWrap"><canvas id="view"></canvas></div>
       <p class="hint">Drag the background to orbit · wheel to zoom · click a
@@ -945,7 +945,7 @@ function ringScreenPoint(axis, turn = 0) {
   return { x: p.x, y: p.y };
 }
 
-window.__modelBench = { state, edits, publish, nudge, setAxis, boneList,
+window.__rigBench = { state, edits, publish, nudge, setAxis, boneList,
                         ringScreenPoint, view, camera, canvas, RIG_FIXES,
                         VIEW_AXIS, sessionPayload,
                         /** Is the ghost on screen, and does it stand at this

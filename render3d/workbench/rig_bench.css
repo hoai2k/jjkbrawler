@@ -1,4 +1,4 @@
-/* THE MODEL BENCH's layout: a viewport that takes the whole left side, and a
+/* THE RIG BENCH's layout: a viewport that takes the whole left side, and a
    narrow column of controls. Different from the other benches on purpose —
    they show a fixed-size canvas because they are comparing against a drawing
    at a fixed size, and this one is a model viewer, where every pixel of the
@@ -9,15 +9,15 @@
    which matches nothing here, so the panel had no height limit and no scroll
    and the download button sat below the fold — present, styled, and invisible
    unless you thought to scroll a page that does not look scrollable. */
-body.mode-models main.layout.models {
+body.mode-rigs main.layout.rigs {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
   gap: 14px;
 }
 
-body.mode-models .stage-col { min-width: 0; }
+body.mode-rigs .stage-col { min-width: 0; }
 
-body.mode-models #viewWrap {
+body.mode-rigs #viewWrap {
   position: relative;
   height: min(78vh, 860px);
   border: 1px solid #232c44;
@@ -25,7 +25,7 @@ body.mode-models #viewWrap {
   overflow: hidden;
   background: #101522;
 }
-body.mode-models #view {
+body.mode-rigs #view {
   display: block;
   width: 100%;
   height: 100%;
@@ -35,31 +35,31 @@ body.mode-models #view {
   user-select: none;
 }
 
-body.mode-models .panel h3 {
+body.mode-rigs .panel h3 {
   margin: 14px 0 4px;
   font-size: 13px;
   color: #cdd6ee;
 }
-body.mode-models .panel select { width: 100%; }
+body.mode-rigs .panel select { width: 100%; }
 
 /* One row per axis: the letter in its own colour — the same colour as the ring
    it turns, so the panel and the gizmo are obviously the same three things —
    then a slider for feel and a number for precision. */
-body.mode-models .axis {
+body.mode-rigs .axis {
   display: grid;
   grid-template-columns: 16px 1fr 68px;
   align-items: center;
   gap: 6px;
   margin: 4px 0;
 }
-body.mode-models .axis b { font-family: ui-monospace, monospace; }
-body.mode-models .axis input[type="number"] { width: 100%; }
+body.mode-rigs .axis b { font-family: ui-monospace, monospace; }
+body.mode-rigs .axis input[type="number"] { width: 100%; }
 
 /* The panel is a flex column, so anything with its own height has to say it
    will not be squeezed — the corrections list collapsed to a two-pixel sliver
    between its own heading and the next one. */
-body.mode-models .panel > * { flex: 0 0 auto; }
-body.mode-models #fixList {
+body.mode-rigs .panel > * { flex: 0 0 auto; }
+body.mode-rigs #fixList {
   min-height: 90px;
   max-height: 30vh;
   overflow: auto;
@@ -68,16 +68,16 @@ body.mode-models #fixList {
   padding: 6px 8px;
   background: #151b2b;
 }
-body.mode-models #fixList .fixrow { display: flex; flex-direction: column; margin-bottom: 6px; }
-body.mode-models #fixList .fixrow b { color: #ffcf8a; font-weight: 600; }
-body.mode-models #fixList .fixrow.man b { color: #9fd39f; }
-body.mode-models #fixList .fixrow.none b { color: #8b96b3; font-weight: 400; }
-body.mode-models #fixList .fixrow span { color: #8b96b3; font-size: 11.5px; }
+body.mode-rigs #fixList .fixrow { display: flex; flex-direction: column; margin-bottom: 6px; }
+body.mode-rigs #fixList .fixrow b { color: #ffcf8a; font-weight: 600; }
+body.mode-rigs #fixList .fixrow.man b { color: #9fd39f; }
+body.mode-rigs #fixList .fixrow.none b { color: #8b96b3; font-weight: 400; }
+body.mode-rigs #fixList .fixrow span { color: #8b96b3; font-size: 11.5px; }
 
 /* The way to hand the work back, always reachable: a panel this tall would
    otherwise put the buttons under a scroll, which is the bug that hid them in
    the first place. */
-body.mode-models #fixText {
+body.mode-rigs #fixText {
   width: 100%;
   min-height: 120px;
   background: #0d1220;
@@ -88,7 +88,7 @@ body.mode-models #fixText {
   font-size: 11px;
   resize: vertical;
 }
-body.mode-models .row.handback {
+body.mode-rigs .row.handback {
   position: sticky;
   bottom: 0;
   background: #121728;
@@ -97,6 +97,6 @@ body.mode-models .row.handback {
 }
 
 @media (max-width: 900px) {
-  body.mode-models main.layout.models { grid-template-columns: 1fr; }
-  body.mode-models #viewWrap { height: 58vh; }
+  body.mode-rigs main.layout.rigs { grid-template-columns: 1fr; }
+  body.mode-rigs #viewWrap { height: 58vh; }
 }
