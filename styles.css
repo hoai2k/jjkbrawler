@@ -746,11 +746,37 @@ html, body {
   color: rgba(150, 161, 192, 0.75);
 }
 
+/* The cabinet coming on (wakeTitle in ui.js): the logo takes a hit of light
+   and the whole splash lifts a shade, once. It reads as the machine waking
+   rather than as a screen change, which is the point — the player has not
+   started the game yet, they have switched the sound on. Specificity high
+   enough to beat the looping `.overlay.title-screen` rules above. */
+.overlay.title-screen.is-waking .title-logo {
+  animation: titleWake 620ms cubic-bezier(0.2, 1.2, 0.3, 1) both;
+}
+
+@keyframes titleWake {
+  0% { transform: scale(1); filter: brightness(1); }
+  22% {
+    transform: scale(1.045);
+    filter: brightness(1.9) drop-shadow(0 0 60px rgba(98, 220, 255, 0.85));
+  }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+/* And the blink quickens for a beat, so the instruction itself acknowledges
+   the press it just absorbed. */
+.overlay.title-screen.is-waking .press-start {
+  animation: pressStartBlink 0.12s steps(1, end) 5;
+}
+
 /* A blinking word is the one thing on this screen that must be able to stop:
    it holds steady rather than pulsing, and the logo stops breathing with it. */
 @media (prefers-reduced-motion: reduce) {
-  .overlay.title-screen .press-start { animation: none; opacity: 1; }
-  .overlay.title-screen .title-logo { animation: none; }
+  .overlay.title-screen .press-start,
+  .overlay.title-screen.is-waking .press-start { animation: none; opacity: 1; }
+  .overlay.title-screen .title-logo,
+  .overlay.title-screen.is-waking .title-logo { animation: none; }
 }
 
 /* ---------- Loading ---------- */
