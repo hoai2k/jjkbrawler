@@ -443,13 +443,46 @@ export function intentFor(frame) {
 }
 
 /**
+ * A pose, mirrored across the fighter's own midline.
+ *
+ * Left and right bones swap, and the y and z angles negate while x does not.
+ * That is not a guess: a rotation is a pseudovector, so reflecting through a
+ * plane preserves the component along the plane's NORMAL and flips the rest —
+ * and the mirror plane here is the sagittal one, whose normal is the lateral
+ * axis that x turns about.
+ */
+export function mirrorPose(pose) {
+  const out = {};
+  for (const [bone, [x, y, z]] of Object.entries(pose)) {
+    const other = bone.startsWith("Left") ? `Right${bone.slice(4)}`
+      : bone.startsWith("Right") ? `Left${bone.slice(5)}` : bone;
+    out[other] = [x, -y, -z];
+  }
+  return out;
+}
+
+/**
+ * Intents whose `_a` and `_b` are the two SIDES of one cycle rather than two
+ * moments of one move. Without this the baseline hands `run_reach_a` and
+ * `run_reach_b` the same pose and the fighter runs by hopping on one leg —
+ * which is what it did until the intent-divergence check noticed that Yuji's
+ * matched `run_reach_b` was 28° away from a baseline it should have matched.
+ */
+const TWO_SIDED = new Set(["stride_reach", "stride_pass", "stride_contact"]);
+
+/**
  * The baseline pose for a frame, and the intent it came from. NEVER null —
  * that is the contract this file exists to keep, and tools/check_battle_poses.mjs
  * enforces it over every frame name on every sheet.
  */
+const _mirrored = new Map();
+
 export function baselinePose(frame) {
   const intent = intentFor(frame);
-  return { intent, pose: INTENT_POSES[intent] || INTENT_POSES.stance };
+  const pose = INTENT_POSES[intent] || INTENT_POSES.stance;
+  if (!TWO_SIDED.has(intent) || !/_b$/.test(frame)) return { intent, pose };
+  if (!_mirrored.has(intent)) _mirrored.set(intent, mirrorPose(pose));
+  return { intent, pose: _mirrored.get(intent), mirrored: true };
 }
 
 /**

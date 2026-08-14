@@ -591,9 +591,31 @@ scope: a default pose set derived from a sample needs a per-fighter check
 before it stands in for that fighter's clip. The reads are that check, and the
 editor is how the rest of the roster gets one.
 
-## Nothing here changes what the game draws — yet
+## The game plays these now
 
-The reads are upstream data. No clip table, rig manifest or default pose reads
-them, so a wrong seed cannot make a fighter pose wrongly in a match. Wiring
-them into the clip tables is the step after a character's reads are finished
-and reviewed.
+`sprite_poses.js` opens by saying a fighter's animation should be *the
+interpolation between their own sprite poses* — the same drawings, in the same
+order, at the same frame rate, with the model passing through each one. With
+the libraries in place that is finally buildable, and
+[`pose_clips.js`](../../render3d/src/pose_clips.js) builds it: the schedule says
+which frame a state shows and when, the libraries say what each of those frames
+IS, and the result is an `AnimationClip` per state.
+
+`resolveClip` prefers a built clip over everything, including a delivered one —
+that is the point, since a delivered clip is a second opinion about the same
+question. A per-character `clips[name].from` override still wins, because that
+is somebody deliberately borrowing another fighter's animation. The dial is
+`POSE_LIBRARY_CLIPS.on` in [`loader.js`](../../render3d/src/loader.js), on by
+default; turn it off and the old resolution order returns unchanged, which is
+how the editor's **In Game** column stays a fair comparison.
+
+Across the roster: **27 characters, 26 of 26 states each, all built from the
+library.** One movement library, applied to every fighter — the per-character
+difference comes out of each rig's own proportions and bind, which
+[`pose_library.js`](../../render3d/src/pose_library.js) measures rather than
+assumes.
+
+The reads themselves are still upstream data, and a wrong seed still cannot
+pose a fighter wrongly in a match: the game reads the libraries, not the reads.
+What the reads drive is the editor's **Generated** column, which is how you
+tell whether a library pose is better than the drawing it came from.
