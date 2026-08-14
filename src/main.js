@@ -17,7 +17,7 @@ import { TEXT } from "./config_menus.js";
 import { initStageFx } from "./stage_fx.js";
 import { RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { makeAiState, aiInput, cpuDamageMul } from "./ai.js";
-import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, showBattleIntro, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady, setPauseNotice, reportError, resetHudCache } from "./ui.js";
+import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, showBattleIntro, leaveTitle, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady, setPauseNotice, reportError, resetHudCache } from "./ui.js";
 import { FIXED_DT, MAX_FIXED_STEPS, WORLD, SUDDEN_DEATH_DAMAGE } from "./constants.js";
 import { clamp } from "./utils.js";
 
@@ -469,7 +469,11 @@ function loop(time) {
   stepAudio(dt);
 
   if (anyPadPausePressed()) {
-    if (["playing", "paused"].includes(state.phase)) togglePause();
+    // PRESS START, literally: the pad's Start button leaves the title splash
+    // and takes the game fullscreen (leaveTitle tolerates a browser that
+    // refuses the fullscreen request outside a real user gesture).
+    if (state.phase === "title") leaveTitle({ fullscreen: true });
+    else if (["playing", "paused"].includes(state.phase)) togglePause();
     else if (state.phase === "menu") document.getElementById("startButton").click();
     else if (state.phase === "stageSelect") document.getElementById("randomStageButton").click();
     else if (state.phase === "roundOver") document.getElementById("rematchButton").click();
@@ -619,7 +623,10 @@ async function init() {
     document.getElementById("loadStatus").textContent = TEXT.loading.failed(err.message);
     return;
   }
-  setPhase("menu");
+  // The game opens on its title splash rather than dropping the player
+  // straight into fighter select; pressing start there is what reaches the
+  // menu (leaveTitle in ui.js).
+  setPhase("title");
   // The roster is ~450 MB of sprite art and a match uses at most four fighters,
   // so it streams in behind the menu instead of in front of it. Choosing a
   // fighter pulls them to the front of that queue (see ui.js), and startMatch

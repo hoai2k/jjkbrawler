@@ -7,7 +7,7 @@
 import { STAGES } from "./stages.js";
 import {
   BOARD_MUSIC_DIR, BOARD_TRACKS, FALLBACK_TRACKS, MENU_TRACK, MUSIC_DIR, MUSIC_EXT,
-  MUSIC_MODES as MUSIC_MODE_CONFIG, UNUSED_BOARD_TRACKS,
+  MUSIC_MODES as MUSIC_MODE_CONFIG, TITLE_TRACK, UNUSED_BOARD_TRACKS,
 } from "./config_music.js";
 import {
   AUDIO_MIX, MAX_VOICES, MOVE_CALL, SFX, SFX_ALIASES, SFX_DIR,
@@ -78,6 +78,9 @@ export const audioSettings = {
 // Filenames carry spaces, so every src is encoded before it reaches the element.
 const trackUrl = (dir, file) => encodeURI(`${dir}${file}${MUSIC_EXT}`);
 const MENU_SRC = trackUrl(MUSIC_DIR, MENU_TRACK.file);
+// The title screen's own track. A battle track, played at battle volume — see
+// TITLE_TRACK in config_music.js for why it is not simply the menu track.
+const TITLE_SRC = trackUrl(MUSIC_DIR, TITLE_TRACK.file);
 const FALLBACK_SRCS = FALLBACK_TRACKS.map((t) => trackUrl(MUSIC_DIR, t.file));
 const BOARD_TRACK_SET = new Set(BOARD_TRACKS);
 
@@ -401,7 +404,15 @@ export function syncMusic(phase) {
   // element is only paused, never re-sourced.
   const hold = MATCH_HOLD_PHASES.has(phase) && matchLive;
   const menu = !hold && MENU_PHASES.has(phase);
-  const src = hold ? null : phase === "playing" ? battleSrc : menu ? MENU_SRC : null;
+  // The title screen is deliberately NOT a menu phase: it takes its own track
+  // and skips MENU_TRACK.volumeScale below, so the splash opens at full
+  // battle volume and pressing start drops into the quieter menu mix.
+  const title = !hold && phase === "title";
+  const src = hold ? null
+    : phase === "playing" ? battleSrc
+    : title ? TITLE_SRC
+    : menu ? MENU_SRC
+    : null;
   const off = (MUSIC_MODES[audioSettings.musicMode] || MUSIC_MODES[0]).key === "off";
   const volume = audioSettings.musicVolume * (menu ? MENU_TRACK.volumeScale : 1);
 
