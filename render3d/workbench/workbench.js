@@ -1239,21 +1239,20 @@ function facingSetShoulder(cm) {
   facingSyncProgress();
 }
 
-/** How far this fighter's legs lean in or out, in degrees about the fighter's
- *  forward axis, positive bringing the knees and the feet toward the midline.
+/** How far this fighter's shins swing in or out AT THE KNEE, in degrees about
+ *  the fighter's forward axis, positive bringing the feet toward the midline.
  *
- *  A MODEL correction, not a pose: generated legs arrive bandy, with the knees
- *  outboard and the whole leg bowing away from the body, and it reads at game
- *  size as a fighter standing on the outside edges of their boots. Applied
- *  under every state (pose.js, the GLB correction block) rather than in the
- *  idle, because legs that straighten standing and bow again in a crouch would
- *  be a correction in the wrong layer.
+ *  A MODEL correction, not a pose: generated legs arrive bandy, and it reads at
+ *  game size as a fighter standing on the outside edges of their boots.
+ *  Applied under every state (pose.js, the GLB correction block) rather than in
+ *  the idle, because legs that straighten standing and bow again in a crouch
+ *  would be a correction in the wrong layer.
  *
- *  It moves the same joint about the same axis as the stance dial, and the
- *  difference is which question it answers: stance is how wide this FIGHTER
- *  plants their feet, so it is rebuilt from scratch in the idle and means
- *  nothing anywhere else; this is how their MODEL was built, so it composes on
- *  top of whatever a state's pose already did. */
+ *  It pivots at the KNEE, which is what separates it from the stance dial:
+ *  stance turns the whole leg from the hip, so the knee travels with the foot
+ *  and the fighter just stands narrower. Here the hips and knees stay put and
+ *  only the shins move, so the bow comes out of the leg rather than the width
+ *  out of the stance. */
 function facingSetKnee(deg) {
   const clamped = Math.max(-25, Math.min(25, Math.round(deg)));
   const char = facing.list[facing.i];

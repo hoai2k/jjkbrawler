@@ -25,16 +25,17 @@
 //                   because it survives every pose the legs are put in.
 //   KNEE BEND       how bent the leg is at rest, in the side view. A rig that
 //                   arrives pre-bent fights every pose that wants to stand.
-//   LEG LEAN        how far each leg leans off vertical seen from the FRONT,
-//                   measured on the posed idle. This is what `kneeDeg` moves,
-//                   one for one, and what reads at game size as a fighter
-//                   standing on the outside edges of their boots.
 //   KNEE BOW        how far the knee sits outboard of the line from hip to
-//                   ankle. The other half of a bandy leg, and the half NO dial
-//                   currently reaches: `kneeDeg` swings the whole leg rigidly,
-//                   so it moves the lean and leaves the bow exactly where it
-//                   was. Printed because it is worth knowing which of the two
-//                   a fighter has before reaching for the dial.
+//                   ankle, on the posed idle. This is what `kneeDeg` moves,
+//                   one for one — the dial hinges the SHIN, so the knee stays
+//                   and the foot swings under it — and it is what reads at
+//                   game size as a bandy leg.
+//   LEG LEAN        how far the whole leg leans off vertical seen from the
+//                   FRONT. Printed beside the bow because the two are easy to
+//                   confuse and only one of them is a defect: lean is the
+//                   STANCE, which is a fighter's own and not something to
+//                   correct, and a leg can lean a long way while standing
+//                   perfectly straight.
 //
 // It prints the fix each finding implies, in the form rig_fixes.js takes, so
 // the correction is copy-pasteable rather than re-derived by hand — and with
@@ -241,7 +242,7 @@ if (!findings.length) {
   });
   const page3 = await browser3.newPage({ viewport: { width: 1200, height: 800 } });
   page3.on("pageerror", (e) => errors.push(e.message));
-  await page3.goto(`${BASE}/render3d/workbench/?edit=animation`, { waitUntil: "networkidle" });
+  await page3.goto(`${BASE}/render3d/workbench/?edit=keys`, { waitUntil: "networkidle" });
   await page3.waitForFunction(() => !!window.__poseEditor, { timeout: 120000 });
   await page3.waitForTimeout(1200);
   const legs = await page3.evaluate(async (want) => {
@@ -299,15 +300,15 @@ if (!findings.length) {
   }, only);
   await browser3.close();
 
-  console.log("\nTHE LEGS, on the posed idle — lean is what the Knees dial moves");
+  console.log("\nTHE LEGS, on the posed idle — bow is what the Knees dial moves");
   console.log("char          stance    lean L/R         bow L/R");
   const look = [];
   for (const r of legs) {
     const lean = ((r.LeftLean ?? 0) + (r.RightLean ?? 0)) / 2;
     const bow = ((r.LeftBow ?? 0) + (r.RightBow ?? 0)) / 2;
-    // THE STANCE IS SUBTRACTED, because it is not a defect: a fighter told to
-    // plant their feet 15 degrees apart has legs leaning 15 degrees apart and
-    // that is the dial working. What is left over is the model's own bow.
+    // THE STANCE IS SUBTRACTED from the lean, because it is not a defect: a
+    // fighter told to plant their feet 15 degrees apart has legs leaning 15
+    // degrees apart and that is the dial working.
     const extra = lean - (r.stance || 0);
     const flag = Math.abs(extra) > LIMITS.lean || Math.abs(bow) > LIMITS.bow;
     console.log(`${r.key.padEnd(13)}${String(r.stance).padStart(5)}   ${n(r.LeftLean)} ${n(r.RightLean)}   `
@@ -320,12 +321,12 @@ if (!findings.length) {
     console.log(`\n${look.length} rig(s) to look at in the idle review's Knees dial:`);
     for (const l of look) {
       const parts = [];
-      if (Math.abs(l.extra) > LIMITS.lean) parts.push(`lean ${l.extra > 0 ? "+" : ""}${Math.round(l.extra)}° past its stance`);
-      if (Math.abs(l.bow) > LIMITS.bow) parts.push(`bow ${Math.round(l.bow)}° (the dial does NOT reach this)`);
+      if (Math.abs(l.bow) > LIMITS.bow) parts.push(`bow ${Math.round(l.bow)}° — start the dial there`);
+      if (Math.abs(l.extra) > LIMITS.lean) parts.push(`leans ${l.extra > 0 ? "+" : ""}${Math.round(l.extra)}° past its own stance (a STANCE question, not a knee one)`);
       console.log(`  ${l.key.padEnd(12)} ${parts.join(", ")}`);
     }
-    console.log("\nThe lean figure is where to START the dial, negated — it swings the");
-    console.log("legs back under the hips. The drawing is what settles it.");
+    console.log("\nThe bow figure is where to START the dial — it swings each shin back");
+    console.log("under its knee. The drawing is what settles it.");
   } else {
     console.log("\nevery leg stands under its own hip");
   }
@@ -337,7 +338,7 @@ if (process.argv.includes("--solve") && findings.length) {
     executablePath: process.env.CHROMIUM_PATH || "/opt/pw-browsers/chromium",
   });
   const page2 = await browser2.newPage({ viewport: { width: 1200, height: 800 } });
-  await page2.goto(`${BASE}/render3d/workbench/?edit=animation`, { waitUntil: "networkidle" });
+  await page2.goto(`${BASE}/render3d/workbench/?edit=keys`, { waitUntil: "networkidle" });
   await page2.waitForFunction(() => !!window.__poseEditor, { timeout: 120000 });
   await page2.waitForTimeout(1200);
   const solved = await page2.evaluate(async (want) => {

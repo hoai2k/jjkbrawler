@@ -150,37 +150,38 @@ both dialled in the workbench under **Model size & facing**:
   number (`IDLE_ARM_DEG`, 9°); a heavy coat or a wide body wants more room than
   a school uniform does, and only the drawing can say how much. Dialled in the
   Idle Review beside size, stance, head and facing.
-- `kneeDeg` — how far this fighter's legs lean in or out, degrees about the
-  fighter's own FORWARD axis, positive bringing the knees and the feet toward
-  the midline. Each leg swings rigidly — thigh, shin and foot together — so the
-  leg keeps whatever bend the pose gave it and simply leans, and each sole is
-  re-levelled afterwards so a foot keeps its angle to the ground. Yaw is left
-  alone: which way the toes point is a pose.
+- `kneeDeg` — how far this fighter's shins swing in or out at the KNEE,
+  degrees about the fighter's own forward axis, positive bringing the feet
+  toward the midline. The hips and the knees do not move; only what hangs below
+  them does, so the bow comes out of the leg without the width coming out of
+  the stance. Each sole is re-levelled afterwards so a foot keeps its angle to
+  the ground. Yaw is left alone: which way the toes point is a pose.
 
-  **It is the same joint and the same axis as `stanceDeg`**, and the difference
-  is which question each answers. Stance is a fact about the CHARACTER — how
-  wide this fighter plants their feet — so it belongs to the idle, where it is
-  rebuilt from scratch by aiming both leg bones down one line. `kneeDeg` is a
-  fact about the MODEL, so it composes on top of whatever a state's pose
-  already did and holds through the crouch, the run and the kick.
+  **The bone is `${side}Leg`** — the shin, whose head is the knee joint. `UpLeg`
+  is the thigh. Worth stating because the name reads like the whole limb, and
+  two earlier versions of this dial grabbed the wrong end of it: turning the
+  thigh moves everything hanging off it, so the knee and the ankle both travel
+  and the fighter simply stands narrower, which is `stanceDeg` with a second
+  name on it.
 
   **What the measurement says about using it.** `tools/rig_calibrate.mjs`
-  reports two frontal-plane numbers on the posed idle: the LEAN of each leg
-  (what this dial moves, one for one) and the BOW of each knee off the
-  hip-to-ankle line (which a rigid swing cannot touch). Every fighter currently
-  reads a bow of 0.0° and a lean equal to their own `stanceDeg` to a tenth of a
-  degree — `applyIdleStand` has already put both legs dead straight under the
-  hips — so nothing on the roster carries a value here. If a fighter reads as
-  bandy in their idle, the number to look at first is their stance.
+  reports two frontal-plane numbers on the posed idle: each knee's BOW off the
+  hip-to-ankle line, which is what this dial moves one for one, and each leg's
+  LEAN off vertical, printed beside it because the two are easy to confuse and
+  only one is a defect — a leg can lean a long way while standing perfectly
+  straight. Every fighter currently reads a bow of 0.0° and a lean equal to
+  their own `stanceDeg` to a tenth of a degree, because `applyIdleStand` aims
+  both leg bones down one line. So nothing on the roster carries a value here,
+  and if a fighter reads as bandy in their idle, the number to look at first is
+  their stance.
 
-  Two earlier readings of "the knees bend outward" were tried and are recorded
-  here so they are not tried again. The bind's frontal KINK is real and large
-  (Geto's shins jut 18° and 34° out of their thighs) but does not survive
-  posing, and correcting it added 2.9° and 5.4° of kink to a leg that had none.
-  A ROLL about each leg's own length squares a kneecap and a toe to the front —
+  Two earlier readings of "the knees bend outward" are recorded here so they
+  are not tried again. The bind's frontal kink is real and large (Geto's shins
+  jut 18° and 34° out of their thighs) but does not survive posing, and
+  correcting it added 2.9° and 5.4° of kink to a leg that had none. A ROLL
+  about each leg's own length squares a kneecap and a toe to the front —
   several rigs are built externally rotated, Geto and Choso by about 80° of
-  hinge axis — but a roll cannot move a knee closer to its neighbour, which is
-  what the complaint was about.
+  hinge axis — but a roll cannot move a knee closer to its neighbour.
 
 - `idleArms` — set `false` to keep this fighter's delivered idle arms. The
   engine otherwise rebuilds them, straight and hanging a few degrees out from
