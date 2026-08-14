@@ -14,6 +14,7 @@
 import { BATTLE_POSES, MATCHED_FRAMES } from "../render3d/src/battle_poses.js";
 import { INTENT_POSES, INTENTS, intentFor, baselinePose, CONTACTS, HEIGHTS, AIRBORNE }
   from "../render3d/src/baseline_poses.js";
+import { RIG_FIXES, applyRigFixes, fixesFor } from "../render3d/src/rig_fixes.js";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -111,6 +112,111 @@ for (const intent of INTENTS) {
 // An airborne intent that is not a pose is a typo in one list or the other.
 for (const a of AIRBORNE) if (!INTENT_POSES[a]) fail(`AIRBORNE lists "${a}", which is not an intent`);
 
+// HOW FAR A MATCHED POSE DEPARTS FROM ITS OWN INTENT.
+//
+// The matched set follows the DRAWING and the baseline follows the frame's
+// NAME, and when those two disagree the name wins — a drawing is a guideline
+// for how a move looks, the brief is what the move is FOR. Yuji's
+// `attack_light_a` is drawn at full extension where the brief says wind-up,
+// and shipping that gives a light attack two contact frames and no
+// anticipation, which is the one thing that makes a strike unreadable.
+//
+// So a big departure is not forbidden — five of Yuji's frames are legitimately
+// a different animal — but it has to be RARE and it has to be argued. Each
+// allowance names what the drawing shows that the name could not have known.
+// Anything else over the threshold is a sprite the intent should have
+// overruled, and this is what makes "it should be rare" a number.
+const DIVERGENCE = 26;
+const DIVERGES = new Map([
+  ["crouch_a", "a sprinter's three-point set, not the brief's squat"],
+  ["crouch_b", "a sprinter's three-point set, not the brief's squat"],
+  ["ledge_hang", "hangs from ONE arm; the brief grips with both"],
+  ["land", "reaches BOTH hands forward; the brief posts one"],
+  ["dizzy", "tips backward; the brief slumps forward"],
+  ["jump_rise", "knees already tucked; the brief is still stretching upward"],
+  ["crouch_attack_a", "lunges out of the three-point set his crouch actually is"],
+  ["crouch_attack_b", "lunges out of the three-point set his crouch actually is"],
+  ["attack_air_b", "the striking limb is a LEG — a flying kick, which is a fair "
+    + "reading of \"fully extended through the aerial arc\" and not something "
+    + "the frame's name could have told anyone"],
+]);
+
+/** Root-mean-square difference between two pose tables, in degrees. */
+function apart(a, b) {
+  const bones = new Set([...Object.keys(a), ...Object.keys(b)]);
+  let sum = 0; let n = 0; let worst = 0; let where = "";
+  for (const bone of bones) {
+    const x = a[bone] || [0, 0, 0]; const y = b[bone] || [0, 0, 0];
+    for (let i = 0; i < 3; i++) {
+      const d = Math.abs(x[i] - y[i]);
+      sum += d * d; n++;
+      if (d > worst) { worst = d; where = bone; }
+    }
+  }
+  return { rms: n ? Math.sqrt(sum / n) : 0, worst, where };
+}
+
+const diverged = [];
+for (const [frame, pose] of Object.entries(BATTLE_POSES)) {
+  const base = baselinePose(frame)?.pose;
+  if (!base) continue;
+  const d = apart(pose, base);
+  if (d.rms > DIVERGENCE) diverged.push({ frame, ...d, why: DIVERGES.get(frame) });
+}
+diverged.sort((a, b) => b.rms - a.rms);
+const unexplained = diverged.filter((d) => !d.why);
+for (const d of unexplained) {
+  fail(`${d.frame}: matched pose is ${d.rms.toFixed(0)}° from the "${intentFor(d.frame)}" `
+    + `baseline (worst ${d.worst.toFixed(0)}° at ${d.where}) — either the drawing is `
+    + "showing something the name could not know, and it belongs in DIVERGES with a "
+    + "reason, or the intent should have overruled the drawing");
+}
+
+// THE CORRECTION LAYER is data too, and it is the data most likely to be
+// written in a hurry between two other things — it exists because somebody
+// noticed a shoulder looked wrong. So: real bones, real angles, and a note
+// saying what was wrong, because the entry is a message to whoever bakes it
+// into the .glb and deletes it.
+for (const [charKey, fix] of Object.entries(RIG_FIXES)) {
+  if (!fix || !Object.keys(fix).length) { fail(`rig fix for "${charKey}" is empty`); continue; }
+  for (const [bone, angles] of Object.entries(fix)) {
+    if (!BONES.has(bone)) fail(`rig fix ${charKey}.${bone}: no such bone`);
+    if (!Array.isArray(angles) || angles.length !== 3) {
+      fail(`rig fix ${charKey}.${bone}: want [x, y, z] degrees`);
+      continue;
+    }
+    // A CORRECTION, not a pose. A bind-pose error big enough to need 40° is a
+    // model to send back, not a model to bend at runtime.
+    for (const [i, v] of angles.entries()) {
+      if (!Number.isFinite(v)) fail(`rig fix ${charKey}.${bone}[${i}]: ${v} is not an angle`);
+      else if (Math.abs(v) > 40) {
+        fail(`rig fix ${charKey}.${bone}[${i}]: ${v}° is a broken model, not a correction`);
+      }
+    }
+  }
+}
+
+// And the layer has to actually reach a bone. An empty table is the normal
+// state — the corrections still live in the manifest's headTiltDeg while the
+// idle review is the only thing writing them — so the WIRING is what needs
+// proving, with a stand-in rig rather than a fake entry in the real table.
+{
+  const moved = [];
+  const stubBone = (name) => ({ name, quaternion: { premultiply: () => moved.push(name) } });
+  const bones = new Map([["LeftShoulder", stubBone("LeftShoulder")]]);
+  const stubRoot = { getObjectByName: (n) => bones.get(n) || null, updateMatrixWorld() {} };
+  const stubTHREE = {
+    Quaternion: class { setFromEuler() { return this; } },
+    Euler: class { set() { return this; } },
+  };
+  const saved = RIG_FIXES.__check;
+  RIG_FIXES.__check = { LeftShoulder: [0, 0, 3] };
+  const hit = applyRigFixes(stubTHREE, stubRoot, "__check");
+  if (!hit || !moved.includes("LeftShoulder")) fail("rig fixes: the layer never reaches a bone");
+  if (fixesFor("nobody-at-all")) fail("rig fixes: an unknown character should get nothing");
+  if (saved === undefined) delete RIG_FIXES.__check; else RIG_FIXES.__check = saved;
+}
+
 // Nothing should be defined and never reachable: an intent no frame resolves
 // to is either a dead pose or a resolver rule somebody forgot to write.
 const reached = new Set();
@@ -128,6 +234,11 @@ console.log(`baseline ok: ${INTENTS.length} intents cover all ${frames} frames `
   + `across the roster, ${reached.size} of them reached`);
 console.log(`contacts ok: ${Object.values(CONTACTS).filter(Boolean).length} declared, `
   + `${INTENTS.length - AIRBORNE.size} intents planted on the ground`);
+console.log(`rig fixes ok: ${Object.keys(RIG_FIXES).length} character(s) carry a correction `
+  + "layer, applied under every state until it is baked into the .glb");
+console.log(`intent ok: ${diverged.length} of ${MATCHED_FRAMES.size} matched poses depart `
+  + `from their intent by more than ${DIVERGENCE}°, all of them argued`);
+for (const d of diverged) console.log(`  ${d.rms.toFixed(0)}°  ${d.frame} — ${d.why}`);
 if (others.size) {
   console.log(`  (${others.size} frame name(s) have no PER-FRAME match and use the baseline: `
     + `${[...others].sort().slice(0, 6).join(", ")}${others.size > 6 ? ", …" : ""})`);

@@ -31,9 +31,36 @@ import { clone as cloneSkinned } from "../../vendor/three/utils/SkeletonUtils.js
 import { applyToonMaterials, characterToon } from "./toon.js";
 import { addOutlines, setOutlineFor } from "./outline.js";
 import { captureCleanPose, poseRig } from "./pose.js";
+import { buildCharacterClips } from "./pose_clips.js";
+import { CLIP_STATES } from "./states.js";
 
 /** charKey -> { root, height, clips: Map, mixer, actions: Map, entry } */
 const RIGS = new Map();
+
+/**
+ * ANIMATE FROM THE POSE LIBRARIES rather than from delivered clips.
+ *
+ * The strategy `sprite_poses.js` opens by stating: a fighter's animation is
+ * the interpolation between THEIR OWN SPRITE POSES, not a separate 3D
+ * performance that happens to share a name with a sprite state. With the
+ * libraries in place that is finally buildable, so it is on — and it is a dial
+ * rather than a deletion because a delivered clip is still the ground truth
+ * for whether the built one is any good, and `?edit=pose`'s **In Game** column
+ * is how you compare them.
+ *
+ * Off, nothing changes: the resolution order below is exactly what it was.
+ */
+export const POSE_LIBRARY_CLIPS = { on: true };
+
+/** charKey -> Map(clipName -> AnimationClip), built once per rig. */
+const BUILT = new Map();
+/** charKey -> Map(frame -> "matched" | "baseline:<intent>"), for the report. */
+const BUILT_SOURCES = new Map();
+
+/** What the libraries covered for a character, once its clips are built. */
+export function builtPoseSources(charKey) {
+  return BUILT_SOURCES.get(charKey) || null;
+}
 let DEFAULT_CLIPS = null;
 let MANIFEST = { characters: {} };
 let THREE = null;
@@ -67,6 +94,17 @@ export function resolveClip(charKey, state) {
   const entry = MANIFEST.characters?.[charKey];
   const own = RIGS.get(charKey);
   const answer = (clip, source) => finishClip(clip, source, name, entry);
+
+  // BUILT FROM THE POSE LIBRARIES, ahead of everything — including a delivered
+  // clip, which is the point: the whole exercise is to make the model do what
+  // the drawings do, and a delivered clip is a second opinion about the same
+  // question. A per-character `clips[name].from` override still wins below,
+  // because that is somebody deliberately borrowing another fighter's
+  // animation and the libraries have no business overruling it.
+  if (POSE_LIBRARY_CLIPS.on && !entry?.clips?.[name]?.from) {
+    const built = BUILT.get(charKey)?.get(name);
+    if (built) return answer(built, "library");
+  }
 
   const override = entry?.clips?.[name]?.from;
   if (override) {
@@ -392,6 +430,27 @@ function registerRig(charKey, { root, height, clips, isMannequin = false }, entr
                 actions: new Map(), entry, isMannequin };
   applyEntrySettings(rig, entry);
   RIGS.set(charKey, rig);
+  buildLibraryClips(charKey, root);
+}
+
+/**
+ * Build this character's clips from the pose libraries, once, at registration.
+ *
+ * It needs the rig, not just the tables: the libraries are written in the
+ * fighter's own frame against a T-pose, and turning that into the local bone
+ * rotations a clip track holds means posing THIS rig and reading it back.
+ * Failures are swallowed to a warning on purpose — a fighter whose sheet the
+ * libraries cannot schedule should fall through to their delivered clip, not
+ * take the loader down with them.
+ */
+function buildLibraryClips(charKey, root) {
+  if (!THREE || !root) return;
+  try {
+    const { clips: built, sources } = buildCharacterClips(THREE, charKey, root, CLIP_STATES);
+    if (built.size) { BUILT.set(charKey, built); BUILT_SOURCES.set(charKey, sources); }
+  } catch (err) {
+    console.warn(`pose library: could not build clips for ${charKey} —`, err.message);
+  }
 }
 
 async function loadGlbRig(charKey, entry, GLTFLoader) {
