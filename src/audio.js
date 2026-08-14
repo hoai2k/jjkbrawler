@@ -63,7 +63,12 @@ export const GRUNT_GROUPS = {
   maki: "gruntFemale", momo: "gruntFemale", nobara: "gruntFemale",
   meimei: "gruntFemale", uro: "gruntFemale",
   jogo: "gruntMonster", hanami: "gruntMonster",
-  panda: "gruntAnimal", mahito: "gruntAnimal",
+  panda: "gruntAnimal",
+  // Mahito is shaped like a young man and sounds like one; the animal group is
+  // for the thing that is actually an animal. He was in it because he is a
+  // curse, which is a fact about what he IS rather than about what he sounds
+  // like — and it is the second that a voice group is choosing.
+  mahito: "gruntYoungMale",
   hakari: "gruntBig", todo: "gruntBig", sukuna: "gruntBig",
   choso: "gruntBig", gakuganji: "gruntBig",
   // Staged (round 15). Assigned now, from the groups that already exist, so a
