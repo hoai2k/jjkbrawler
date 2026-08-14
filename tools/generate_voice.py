@@ -67,6 +67,14 @@ PITCH_FIELD = re.compile(r"·\s*pitch\s+([0-9.]+)")
 # take is. Entries that are a single utterance rather than a sentence opt in.
 CAP_FIELD = re.compile(r"·\s*capped\s*(?=·|$)")
 
+# An optional `· stability 1.0 ·` field, overriding VOICE_SETTINGS for one
+# entry. v3 reads this as how far it may wander from a flat reading: 0.0 is
+# "creative", 0.5 natural, 1.0 robust. The default is right for a performance
+# and wrong for a line that is supposed to sound UNPERFORMED — somebody saying
+# something to themselves does not put the emphasis anywhere, and no wording of
+# the direction gets there if the model is still free to act.
+STABILITY_FIELD = re.compile(r"·\s*stability\s+([0-9.]+)")
+
 
 def parse_doc():
     """-> [(filename, voice_id, seconds, text)], open requests first.
@@ -85,9 +93,11 @@ def parse_doc():
                 continue
             seen.add(name)
             pitch = PITCH_FIELD.search(header)
+            stab = STABILITY_FIELD.search(header)
             out.append((name, voice.group(1), float(m.group(3)), m.group(4).strip(),
                         float(pitch.group(1)) if pitch else 1.0,
-                        bool(CAP_FIELD.search(header))))
+                        bool(CAP_FIELD.search(header)),
+                        float(stab.group(1)) if stab else None))
     return out
 
 
@@ -108,14 +118,17 @@ def repitch(x, factor):
     return (x[lo] * (1 - frac) + x[hi] * frac).astype(np.float32)
 
 
-def request_mp3(text, voice_id, key):
+def request_mp3(text, voice_id, key, stability=None):
     """-> mp3 bytes. PCM output is a Pro-tier format, so this asks for MP3 at
     the highest bitrate available and decodes it below; the file ships as MP3
     anyway, so the only cost is one extra generation of lossy encoding."""
+    settings = dict(VOICE_SETTINGS)
+    if stability is not None:
+        settings["stability"] = stability
     body = json.dumps({
         "text": text,
         "model_id": MODEL,
-        "voice_settings": VOICE_SETTINGS,
+        "voice_settings": settings,
     }).encode()
     req = urllib.request.Request(
         f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
@@ -144,7 +157,7 @@ def decode(mp3_bytes):
 
 
 def one(entry, key, force):
-    name, voice_id, seconds, text, pitch, capped = entry
+    name, voice_id, seconds, text, pitch, capped, stability = entry
     dest = os.path.join(OUT, name.replace(".wav", ".mp3"))
     if os.path.exists(dest) and not force:
         return name, "skip", os.path.getsize(dest)
@@ -155,7 +168,7 @@ def one(entry, key, force):
             # it lands mid-word. A line is as long as it is performed; the
             # length in the doc is the brief, and the check below reports a
             # miss rather than hiding it by truncating.
-            x = post_process(decode(request_mp3(text, voice_id, key)),
+            x = post_process(decode(request_mp3(text, voice_id, key, stability)),
                              seconds, cap=capped)
             if x is None:
                 return name, "EMPTY", 0
@@ -165,7 +178,8 @@ def one(entry, key, force):
             # A capped entry is held to length by the cap itself, so measuring
             # it against the brief again would warn about every one of them.
             over = "" if capped or got <= seconds * 1.15 else f" OVER {seconds:.1f}s brief"
-            tag = ("" if pitch == 1.0 else f" @{pitch:g}") + (" capped" if capped else "")
+            tag = ("" if pitch == 1.0 else f" @{pitch:g}") + (" capped" if capped else "") \
+                + ("" if stability is None else f" stab{stability:g}")
             return name, f"ok {got:.2f}s{tag}{over}", os.path.getsize(dest)
         except urllib.error.HTTPError as e:
             detail = e.read()[:200].decode("utf8", "replace")

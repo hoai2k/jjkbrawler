@@ -184,33 +184,113 @@ function trackRow(t) {
 
   // Other recordings of the same sound, if any were kept. Shown UNDER the take
   // in play and marked as alternates, because the comparison only means
-  // anything if it is obvious which one the game actually uses — and because
-  // the answer to "is this one better" is usually "play them again".
+  // anything if it is obvious which one the game actually uses.
   const alts = VOICE_ALTERNATES[t.sfx] || [];
-  if (!alts.length) return [row];
   const out = [row];
+  if (!alts.length && files.length < 2) return out;
   row.classList.add("has-alts");
+
+  // A sound with several interchangeable files gets a row PER FILE, both for
+  // the take in play and for every alternate. A group is not a thing you judge
+  // as a unit: three grunts are three performances, and the useful verdict is
+  // usually "the first and third, and the alternate's second" — which needs
+  // each one on its own button, not one button that draws at random.
+  const perFile = (list, kind, label) => {
+    if (list.length < 2) return;
+    for (const file of list) out.push(fileRow(t.sfx, entry, file, kind, label));
+  };
+  perFile(files, "live", "in game");
+
   for (const alt of alts) {
-    const files = [alt.file].flat();
+    const afiles = [alt.file].flat();
     const arow = document.createElement("div");
     arow.className = "track alt";
     const abtn = document.createElement("button");
     abtn.type = "button";
     abtn.textContent = "▶";
-    abtn.title = `Play the alternate take of ${t.sfx}`;
+    abtn.title = `Play ${alt.name || "the alternate"}`;
     // Mixed through the entry the alternate would REPLACE — same category, same
     // gain — so what is being compared is the take and nothing else.
     abtn.addEventListener("click", () =>
       playEntry({ file: alt.file, category: entry.category, gain: entry.gain }, arow));
     const abody = document.createElement("div");
     const ameta = [alt.note];
-    ameta.push(files.length > 1 ? `${files.length} files` : `<code>${files[0]}</code>`);
-    abody.innerHTML = `<div class="label">Alternate <span class="tag">not in game</span></div>`
+    ameta.push(afiles.length > 1 ? `${afiles.length} files` : `<code>${afiles[0]}</code>`);
+    abody.innerHTML = `<div class="label">${alt.name || "Alternate"} <span class="tag">not in game</span></div>`
       + `<div class="meta">${ameta.join(" · ")}</div>`;
     arow.append(abtn, abody);
     out.push(arow);
+    perFile(afiles, "alt", alt.name || "alternate");
   }
+
+  // The verdict, as something that can be acted on. Ticking files across the
+  // takes builds the array that would go in the registry, so "I like these
+  // three" leaves the bench as a line to paste rather than as a description.
+  if (files.length > 1) out.push(chooserRow(t.sfx, entry, alts));
   return out;
+}
+
+// Which files are ticked, per sound. Seeded from what the game plays, so the
+// readout starts by describing the status quo and every change to it is
+// visible as a change.
+const chosen = new Map();
+function chosenFor(key, entry) {
+  if (!chosen.has(key)) chosen.set(key, new Set([entry.file].flat()));
+  return chosen.get(key);
+}
+
+function fileRow(key, entry, file, kind, label) {
+  const row = document.createElement("div");
+  row.className = `track file file--${kind}`;
+  const play = document.createElement("button");
+  play.type = "button";
+  play.textContent = "▶";
+  play.title = `Play ${file}`;
+  // One exact file, not a draw from the group: this row exists to judge THIS
+  // recording, so it must play this recording every time.
+  play.addEventListener("click", () =>
+    playEntry({ file, category: entry.category, gain: entry.gain }, row));
+
+  const body = document.createElement("div");
+  const tick = document.createElement("label");
+  tick.className = "tick";
+  const box = document.createElement("input");
+  box.type = "checkbox";
+  const set = chosenFor(key, entry);
+  box.checked = set.has(file);
+  box.addEventListener("change", () => {
+    if (box.checked) set.add(file);
+    else set.delete(file);
+    refreshChooser(key, entry);
+  });
+  tick.append(box, document.createTextNode("keep"));
+  body.innerHTML = `<code>${file}</code> <span class="from">${label}</span>`;
+  body.append(tick);
+  row.append(play, body);
+  return row;
+}
+
+function chooserRow(key, entry) {
+  const row = document.createElement("div");
+  row.className = "track chooser";
+  row.dataset.chooser = key;
+  row.innerHTML = "<div></div><div></div>";
+  refreshChooser(key, entry, row);
+  return row;
+}
+
+function refreshChooser(key, entry, row) {
+  const el = row || els.trackList.querySelector(`[data-chooser="${CSS.escape(key)}"]`);
+  if (!el) return;
+  const picked = [...chosenFor(key, entry)];
+  const live = [entry.file].flat();
+  const same = picked.length === live.length && picked.every((f) => live.includes(f));
+  const body = el.lastElementChild;
+  body.innerHTML = picked.length
+    ? `<div class="label">${same ? "As it ships" : "Your pick"} <span class="tag">${picked.length} file${picked.length === 1 ? "" : "s"}</span></div>`
+      + `<div class="meta">Paste into <code>SFX.${key}</code>:</div>`
+      + `<pre>file: [${picked.map((f) => `"${f}"`).join(", ")}],</pre>`
+    : `<div class="label">Nothing kept</div><div class="meta">A group with no files is silence — tick at least one.</div>`;
 }
 
 // ------------------------------------------------------------------ playing

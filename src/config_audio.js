@@ -293,30 +293,45 @@ export const MOVE_CALL = {
 // `file` takes the same shape as an SFX entry's: a string, or several
 // interchangeable files for a group that draws one per call.
 export const VOICE_ALTERNATES = {
-  domainCallGojo: [{
-    file: "domain_call_gojo_alt.mp3",
-    note: "authoritative — an instruction to reality rather than a remark",
-  }],
+  // Two Gojos, asking different questions of the same line: whether he should
+  // sound like he means it, or like it costs him nothing.
+  domainCallGojo: [
+    {
+      name: "Commanding",
+      file: "domain_call_gojo_alt_commanding.mp3",
+      note: "authoritative — an instruction to reality rather than a remark",
+    },
+    {
+      name: "Flat",
+      file: "domain_call_gojo_alt_even.mp3",
+      note: "even and unperformed, stability 1.0 — a man saying it to himself",
+    },
+  ],
   domainCallDagon: [{
-    file: "domain_call_dagon_alt.mp3",
+    name: "Deep",
+    file: "domain_call_dagon_alt_deep.mp3",
     note: "lower, resampled to 0.86 — the throat of something much bigger",
   }],
   // The four human groups only. gruntMonster and gruntAnimal are supposed to
   // sound like something that is not a person, so "less animal-like" is the
   // wrong note for them and they have no alternates.
   gruntYoungMale: [{
+    name: "Human",
     file: ["grunt_young_male_alt_1.mp3", "grunt_young_male_alt_2.mp3", "grunt_young_male_alt_3.mp3"],
     note: "a real voice rather than the effects endpoint's impression of one",
   }],
   gruntAdultMale: [{
+    name: "Human",
     file: ["grunt_adult_male_alt_1.mp3", "grunt_adult_male_alt_2.mp3", "grunt_adult_male_alt_3.mp3"],
     note: "a real voice rather than the effects endpoint's impression of one",
   }],
   gruntBig: [{
+    name: "Human",
     file: ["grunt_big_alt_1.mp3", "grunt_big_alt_2.mp3", "grunt_big_alt_3.mp3"],
     note: "a real voice, resampled to 0.94 for weight",
   }],
   gruntFemale: [{
+    name: "Human",
     file: ["grunt_female_alt_1.mp3", "grunt_female_alt_2.mp3", "grunt_female_alt_3.mp3"],
     note: "a real voice rather than the effects endpoint's impression of one",
   }],
