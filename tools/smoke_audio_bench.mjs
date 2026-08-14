@@ -84,7 +84,9 @@ await page.waitForTimeout(4000);
 const shape = await page.evaluate(() => ({
   files: document.querySelectorAll(".track.file").length,
   radios: document.querySelectorAll('.track.file input[type="radio"]').length,
-  checks: document.querySelectorAll('.track.file input[type="checkbox"]').length,
+  checks: document.querySelectorAll('.track.file .tick--keep input[type="checkbox"]').length,
+  bins: document.querySelectorAll('.track.file .tick--bin input').length,
+  movers: document.querySelectorAll('.track.file .tick--move input').length,
   choosers: document.querySelectorAll(".track.chooser").length,
 }));
 ok(shape.files >= 6 && shape.choosers >= 2, "one row per recording, with a chooser each",
@@ -93,8 +95,16 @@ ok(shape.radios >= 2, "a single-file sound picks exclusively", `${shape.radios} 
 ok(shape.checks >= 3, "a group keeps any subset", `${shape.checks} checkboxes`);
 
 // Change one of each kind, then export.
+ok(shape.bins === shape.files && shape.movers === shape.files,
+   "every recording can be binned or moved", `${shape.bins} delete, ${shape.movers} move`);
+
+// One of each decision: pick a take, drop a take, bin a take, move a take.
 await page.locator('.track.file input[type="radio"]').nth(1).click();
-await page.locator('.track.file input[type="checkbox"]').nth(1).click();
+await page.locator('.track.file .tick--keep input[type="checkbox"]').nth(1).click();
+await page.locator('.track.file .tick--bin input').nth(2).click();
+const moveRow = page.locator('.track.file').nth(3);
+await moveRow.locator('.tick--move input').click();
+await moveRow.locator('select').selectOption({ index: 1 });
 await page.waitForTimeout(300);
 const [download] = await Promise.all([
   page.waitForEvent("download"),
@@ -104,6 +114,10 @@ const doc = JSON.parse(await (await download.createReadStream()).setEncoding("ut
 ok(download.suggestedFilename().endsWith(".json"), "export downloads a JSON file",
    download.suggestedFilename());
 ok(doc.changes.length === 2, "export carries both changes", `${doc.changes.length} change(s)`);
+ok(doc.deletions.length === 1, "export carries the deletion", doc.deletions.join(", "));
+ok(doc.reassignments.length === 1 && doc.reassignments[0].from && doc.reassignments[0].to,
+   "a move says where it came from and where it goes",
+   doc.reassignments[0] ? `${doc.reassignments[0].file}: ${doc.reassignments[0].from} -> ${doc.reassignments[0].to}` : "");
 const line = doc.changes.find((c) => c.spokenLine);
 ok(!!line && typeof line.spokenLine.measuredLength === "number",
    "a spoken line's export measures the new take's real length",

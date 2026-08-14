@@ -211,3 +211,23 @@ h2 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: 
    has to act on, so it stops looking like the rest of the page. */
 .track.chooser.changed { border-left: 3px solid var(--accent); }
 .track.chooser.changed .label { color: var(--accent); }
+
+/* ------------------------------------------------- prune and reassign rows */
+/* A file row now carries three decisions — keep it, bin it, move it — so the
+   row has to say which one is live at a glance. Colour does that; the labels
+   are too small to scan. */
+.track.file > div:last-child { flex-wrap: wrap; }
+.tick--bin { color: #d98a8a; }
+.track.file.binned { opacity: 0.55; }
+.track.file.binned code { text-decoration: line-through; color: #d98a8a; }
+.track.file.moving { border-left: 3px solid var(--accent); }
+.move-to {
+  background: #232a3d;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 2px 6px;
+  font: inherit;
+  font-size: 11px;
+}
+.move-to:hover { border-color: var(--accent); }

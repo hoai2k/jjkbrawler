@@ -497,11 +497,32 @@ a bad one, but it catches the failure that shipped a whole round of unusable
 grunts — and it found two more on its first run: a delivered alternate that was
 **completely silent**, and two of the original KO cries.
 
+**Every take that exists is listed, including the rejected rounds.** The bench
+is where takes get pruned as well as chosen, and a file nobody can see is a file
+nobody can delete — so a rejected round stays visible until somebody says
+otherwise rather than quietly accumulating in `assets/sfx/`, where the only way
+to find it is a directory listing.
+
+Each recording carries three decisions, not one:
+
+| | |
+|---|---|
+| **keep** / **use** | it belongs in this sound |
+| **delete** | it belongs nowhere — bin the file. Clears **keep**, since a file cannot be both wanted and binned |
+| **move** | it belongs in a *different* voice group. Tick it and pick the destination |
+
+**Move is the one that changes what to generate next.** Once the bank holds
+only takes that work, the groups that are short are obvious, and the takes
+already in them are the reference for what the next round should sound like —
+which is a far better brief than a description written from memory.
+
 **⭳ Export changes** downloads every pick that differs from what ships, as
 JSON: the shipping files, the chosen ones, what was added and dropped, and —
 for a spoken line — the new take's **measured** duration next to the one in
 `SPOKEN_LINES`, so whoever applies it has the frame data in hand rather than
-having to go and get it. A verdict that lives only on a screen has to be
+having to go and get it. Deletions and moves ride along in the same file, a
+move reported whole (`file`, `from`, `to`) rather than as a removal in one
+sound and an addition in another that somebody has to pair up by hand. A verdict that lives only on a screen has to be
 retyped by whoever acts on it, and retyping eleven filenames is how the wrong
 take ends up in the game.
 
