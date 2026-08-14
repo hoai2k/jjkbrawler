@@ -41,7 +41,7 @@ export function initUi(cb) {
   // seat anywhere from two to eight fighters.
   buildHud();
   for (const id of [
-    "hud", "utilityActions", "menuOverlay", "stageOverlay", "movesOverlay", "roundOverlay", "pauseOverlay",
+    "hud", "utilityActions", "introOverlay", "menuOverlay", "stageOverlay", "movesOverlay", "roundOverlay", "pauseOverlay",
     "settingsOverlay", "loadOverlay", "loadStatus", "loadBar", "loadBarFill", "characterGrid", "stageGrid",
     "matchupBar",
     "p1PickCard", "p2PickCard", "p3PickCard", "p4PickCard",
@@ -294,6 +294,14 @@ function buildGroupLabel(key, label, size) {
  *  simplified set is a roster-tile format and would read as a mugshot here. */
 function heroCardSrc(key) {
   return `assets/cards/${key}_card.jpg`;
+}
+
+/** A fighter's full-body victory pose, transparent PNG. The results screen
+ *  stands the winner up at poster size with this instead of the framed card —
+ *  a cut-out figure reads as a character, a cropped painting reads as a photo.
+ *  Every fighter in sprites/assets/ ships one. */
+function victorySpriteSrc(key) {
+  return `sprites/assets/${key}/victory.png`;
 }
 
 /** The art the roster GRID draws, which is a different question: at tile size,
@@ -962,6 +970,8 @@ export function setPhase(phase) {
     arriving.classList.add("is-entering");
   }
   els.utilityActions.classList.toggle("hidden", phase === "loading");
+  // Any screen change away from the fight takes the VS splash down with it.
+  if (phase !== "playing") hideBattleIntro();
   els.hud.classList.toggle("hidden", !["playing", "paused", "roundOver"].includes(phase));
   // The roster can only be measured once its overlay is on screen.
   if (phase === "menu") layoutCharacterGrid();
@@ -997,6 +1007,52 @@ export function reportError(what, err) {
   el.classList.remove("hidden");
   clearTimeout(reportError.timer);
   reportError.timer = setTimeout(() => el.classList.add("hidden"), 8000);
+}
+
+// ------------------------------------------------------- battle intro splash
+//
+// The VS splash: every entrant's painted hero card, huge, in angled panels
+// that slam in from the sides before the READY…GO! countdown. A cut-scene
+// beat rather than a menu — it takes no input and dismisses itself; main.js
+// budgets the countdown (introT) so gameplay starts after it has left.
+let introToken = 0;
+
+export function showBattleIntro(duration = 1.4) {
+  const el = els.introOverlay;
+  const fighters = state.fighters || [];
+  if (!el || fighters.length < 2) return;
+  const token = ++introToken;
+  const seat = (f) => f.aiState ? TEXT.intro.seatCpu : TEXT.intro.seatPlayer(f.id);
+  el.innerHTML = `
+    <div class="intro-splash" data-count="${fighters.length}">
+      ${fighters.map((f, i) => `
+        <div class="intro-panel" style="--seat:${f.char.theme}; --i:${i}">
+          <img src="${heroCardSrc(f.charKey)}" alt="${f.char.name}">
+          <div class="intro-plate">
+            <i class="intro-seat">${seat(f)}</i>
+            <b class="intro-name">${f.char.name}</b>
+          </div>
+        </div>`).join("")}
+    </div>
+    <b class="intro-vs" aria-hidden="true">${TEXT.intro.vs}</b>
+    <div class="intro-stage">${TEXT.intro.stageLabel(getStage(state.stageKey)?.name || "")}</div>`;
+  el.classList.remove("hidden", "is-leaving");
+  // Restart the entrance animations even if the overlay was just up (rematch).
+  void el.offsetWidth;
+  el.classList.add("is-entering");
+  setTimeout(() => { if (token === introToken) el.classList.add("is-leaving"); }, Math.max(0, duration - 0.28) * 1000);
+  setTimeout(() => { if (token === introToken) hideBattleIntro(); }, duration * 1000);
+}
+
+/** Drops the splash instantly. Also the guard setPhase runs on every change of
+ *  screen, so pausing or quitting mid-intro can never leave it parked on top. */
+export function hideBattleIntro() {
+  introToken++;
+  const el = els.introOverlay;
+  if (!el || el.classList.contains("hidden")) return;
+  el.classList.add("hidden");
+  el.classList.remove("is-entering", "is-leaving");
+  el.innerHTML = "";
 }
 
 export function setLoadProgress(done, total) {
@@ -1351,11 +1407,16 @@ function rankFighters(winner) {
  *  table carries the screen. */
 function renderPodium(winner, side = null) {
   if (!winner) { els.victoryPodium.innerHTML = ""; return; }
-  const card = (f, cls, badge) => `
+  // Winners stand up as their full-body victory pose at poster size; the
+  // beaten stay as small framed cards. The size contrast IS the result.
+  const card = (f, cls, badge) => {
+    const sprite = cls === "victory-card--winner";
+    return `
     <figure class="victory-card ${cls}" style="--card-theme:${f.char.theme}">
-      <img src="${heroCardSrc(f.charKey)}" alt="${f.char.name}">
+      <img${sprite ? ` class="victory-sprite"` : ""} src="${sprite ? victorySpriteSrc(f.charKey) : heroCardSrc(f.charKey)}" alt="${f.char.name}">
       <figcaption><i>${badge}</i><b>${f.char.name}</b></figcaption>
     </figure>`;
+  };
   const ranked = rankFighters(winner);
   const winners = side ? ranked.filter((f) => f.team === winner.team) : [winner];
   const losers = ranked.filter((f) => !winners.includes(f));

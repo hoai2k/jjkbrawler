@@ -17,7 +17,7 @@ import { TEXT } from "./config_menus.js";
 import { initStageFx } from "./stage_fx.js";
 import { RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { makeAiState, aiInput, cpuDamageMul } from "./ai.js";
-import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady, setPauseNotice, reportError, resetHudCache } from "./ui.js";
+import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, showBattleIntro, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady, setPauseNotice, reportError, resetHudCache } from "./ui.js";
 import { FIXED_DT, MAX_FIXED_STEPS, WORLD, SUDDEN_DEATH_DAMAGE } from "./constants.js";
 
 const canvas = document.getElementById("gameCanvas");
@@ -166,16 +166,18 @@ async function resetMatch() {
   // After the arrays are cleared, so the fx entity survives the reset.
   initStageFx();
 
-  introT = 1.6;
+  // The countdown budget: the VS splash owns the first stretch, then READY…
+  // fires as it leaves (the crossing check in update()) and GO! at 0.6 as
+  // always. The splash duration and these numbers are one schedule.
+  introT = 3.0;
   endT = 0;
   // Music, and the screens that can be opened from inside a fight, both key off
   // this: while it is set, Settings and the move list hold the battle track
   // where it is instead of cutting to the menu one (audio.js).
   setMatchLive(true);
-  banner("READY…", "#e8ecf8", { y: 300, size: 60, life: 1.0 });
   playSfx("uiStart");
-  playSfx("countdownReady");
   setPhase("playing");
+  showBattleIntro(1.4);
 }
 
 function quitToMenu() {
@@ -323,6 +325,13 @@ function updateSimulation(dt, held) {
   if (introT > 0) {
     const before = introT;
     introT -= dt;
+    // READY… waits for the VS splash to leave (showBattleIntro runs 1.4s from
+    // introT=3.0, so 1.6 is the first clear frame), then dies exactly as GO!
+    // arrives — the same relay the pre-splash intro ran from t=0.
+    if (before > 1.6 && introT <= 1.6) {
+      banner("READY…", "#e8ecf8", { y: 300, size: 60, life: 1.0 });
+      playSfx("countdownReady");
+    }
     if (before > 0.6 && introT <= 0.6) {
       banner("GO!", "#ffd35a", { y: 300, size: 72, life: 0.6 });
       playSfx("countdownGo");
