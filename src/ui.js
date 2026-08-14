@@ -7,6 +7,7 @@ import { METER_MAX, TIME_OPTIONS } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
 import { cameraMode } from "./camera_mode.js";
+import { cycleRenderBackend, renderBackendMenuLabel } from "./render_backend.js";
 import { previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
 import { CHARACTER_QUOTES, RANDOM_GROUP, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
 import { CONTROL_ROWS, rowAtPad } from "./config_controls.js";
@@ -62,7 +63,7 @@ export function initUi(cb) {
     "movesModeButton",
     "randomStageButton", "stageBackButton", "roundKicker", "winnerText", "rematchButton", "menuButton",
     "resumeButton", "pauseResetButton", "pauseMenuButton",
-    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsTimeButton", "settingsBoardsButton", "musicVolumeRange", "musicVolumeLabel",
+    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsTimeButton", "settingsBoardsButton", "settingsRenderButton", "musicVolumeRange", "musicVolumeLabel",
     "sfxVolumeRange", "sfxVolumeLabel", "settingsBackButton",
   ]) {
     els[id] = $(id);
@@ -679,6 +680,14 @@ function bindMenuButtons() {
     state.activeBoards = !state.activeBoards;
     updateMenuButtons();
   });
+  // The one setting here that applies to the match already running: it changes
+  // how fighters are DRAWN, not any rule they are playing by, so there is
+  // nothing to be unfair about mid-fight and waiting for the next match would
+  // only make it harder to compare the two.
+  els.settingsRenderButton.addEventListener("click", () => {
+    cycleRenderBackend();
+    updateMenuButtons();
+  });
   const musicClick = () => {
     cycleMusicMode();
     updateMenuButtons();
@@ -803,6 +812,7 @@ export function updateMenuButtons() {
   );
   els.settingsBoardsButton.textContent = TEXT.settings.activeBoards(state.activeBoards);
   els.settingsSfxButton.textContent = TEXT.settings.sfxEnabled(state.sfxEnabled);
+  els.settingsRenderButton.textContent = TEXT.settings.render(renderBackendMenuLabel());
 }
 
 // Stat bars for the hero cards, normalized against the full roster so a bar

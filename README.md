@@ -50,6 +50,10 @@ these instructions together (`node tools/check_controls.mjs --fix`).
 
 The in-game `i` button lists the full move set.
 
+**Settings → Render** switches how characters are drawn — Sprites, 3D or
+Billboards — without leaving the match. It is the same choice `?render=` makes
+at boot (see [Rendering](#rendering)), reachable from inside the game.
+
 Drawing or generating art for the project? **[docs/image-requests.md](docs/image-requests.md)**
 is the single list of every image still wanted, for every render mode, with the
 prompts and references to make each one.
@@ -82,6 +86,9 @@ and `3d`/`render3d`/`anime` all resolve (the extra spellings are aliases):
 Gameplay is identical on every backend by design — hurtboxes, reach and
 height stay sprite-derived however a fighter is drawn.
 
+Pick a backend at boot with `?render=`, or from **Settings → Render** in the
+game, which switches mid-match.
+
 Shared art the renderer spawns — effects, summon creatures, backgrounds — stays
 under [`assets/`](assets/sprites/README.md) and is untouched by that choice.
 
@@ -97,6 +104,18 @@ final-blow shot ([plan & status](docs/2.5d-camera-plan.md)).
 `?camera=flat` opts back into the original flat framing, and it is also the
 automatic fallback: a machine with no WebGL, or a failed load of the camera
 module, lands there with a console note rather than on a broken screen.
+
+## Workbenches
+
+Authoring tools, served from the game itself — each one drives the real pipeline
+rather than a copy of it, so what a bench shows is what a match gets.
+
+| | |
+|---|---|
+| [`/workbench/?edit=audio`](workbench/) | **Audio** — every fighter with a spoken line, their idle, and each of their voice tracks with the timing the move plays at. Auditioning a take is the one thing the generator cannot check |
+| [`/sprites/workbench/`](sprites/workbench/) | 2D sprite placement, anchors, the cleanup flags |
+| [`/billboards/workbench/`](billboards/workbench/) | the 2.5D posed-model path |
+| [`/render3d/workbench/`](render3d/workbench/) | live 3D: poses, joint reads, keyframes |
 
 ## Docs
 
