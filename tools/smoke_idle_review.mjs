@@ -253,36 +253,33 @@ if (armed.before === null) {
     `${(armed.before * 100).toFixed(0)}cm -> ${(armed.after * 100).toFixed(0)}cm`);
 }
 
-// THE KNEE DIAL TURNS THE LEGS. Same claim as the arm dial: the readout is
-// the easy half. What is measured is the TOE, because a leg screwed outward at
-// the hip shows it at the foot — and because the knee itself is inside a
-// trouser leg on most of the roster and has no landmark to read.
+// THE KNEE DIAL SWINGS THE LEGS IN. Same claim as the arm dial: the readout
+// is the easy half. What is measured is the gap between the ANKLES, because
+// that is what the dial is for — the legs lean about the fighter's forward
+// axis, so the feet come toward the midline together.
 await useDialEarly("knees");
 const kneed = await page.evaluate(async () => {
   const L = await import("/render3d/src/loader.js");
   const THREE = await import("/vendor/three/three.module.js");
   const key = document.getElementById("charSelect").value;
-  // How far the toe points off the body's forward, in degrees, positive out.
-  const splay = () => {
+  const measure = () => {
     const r = L.getRig(key);
     if (!r) return null;
     r.root.updateMatrixWorld(true);
     const at = (n) => { const b = r.root.getObjectByName(n);
       return b ? new THREE.Vector3().setFromMatrixPosition(b.matrixWorld) : null; };
-    const hl = at("LeftUpLeg"), hr = at("RightUpLeg");
-    const foot = at("LeftFoot"), toe = at("LeftToeBase") || at("LeftToe");
-    if (!hl || !hr || !foot || !toe) return null;
-    const lat = hl.clone().sub(hr); lat.y = 0; lat.normalize();
-    const fwd = new THREE.Vector3(-lat.z, 0, lat.x);
-    const d = toe.clone().sub(foot); d.y = 0; d.normalize();
-    return Math.atan2(d.dot(lat), d.dot(fwd)) * 180 / Math.PI;
+    const a = at("LeftFoot"); const b = at("RightFoot");
+    if (!a || !b) return null;
+    // Across the body only, and the floor with it: a foot that swung forward
+    // or sank is a different failure and should not read as this one.
+    return { gap: Math.hypot(a.x - b.x, a.z - b.z), floor: Math.min(a.y, b.y) };
   };
-  const before = splay();
+  const before = measure();
   const el = document.getElementById("facingKnee");
-  el.value = "40";
+  el.value = "20";
   el.dispatchEvent(new Event("input", { bubbles: true }));
   await new Promise((r) => setTimeout(r, 250));
-  const after = splay();
+  const after = measure();
   const deg = L.getRig(key)?.kneeDeg;
   // Put it back before reporting — read the dial FIRST, or the reset is what
   // gets reported and the check fails on its own tidying up.
@@ -291,13 +288,16 @@ const kneed = await page.evaluate(async () => {
   await new Promise((r) => setTimeout(r, 200));
   return { before, after, deg };
 });
-if (kneed.before === null) {
-  check(true, "knee dial check skipped — this fighter has no toe bones");
+if (!kneed.before) {
+  check(true, "knee dial check skipped — this fighter has no foot bones");
 } else {
-  check(kneed.deg === 40, "the knee dial reaches the rig", `kneeDeg ${kneed.deg}`);
-  check(kneed.after < kneed.before - 5,
-    "...and the toe swings in toward the front",
-    `${kneed.before.toFixed(0)}deg -> ${kneed.after.toFixed(0)}deg`);
+  check(kneed.deg === 20, "the knee dial reaches the rig", `kneeDeg ${kneed.deg}`);
+  check(kneed.after.gap < kneed.before.gap - 0.02,
+    "...and the feet close toward the midline",
+    `${(kneed.before.gap * 100).toFixed(0)}cm -> ${(kneed.after.gap * 100).toFixed(0)}cm apart`);
+  check(Math.abs(kneed.after.floor - kneed.before.floor) < 0.01,
+    "...without lifting the fighter off the floor",
+    `floor moved ${((kneed.after.floor - kneed.before.floor) * 100).toFixed(1)}cm`);
 }
 
 // REVERT, per fighter. Every other control writes a number and there was no way

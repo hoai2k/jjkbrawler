@@ -53,6 +53,20 @@ VOICE_SETTINGS = {"stability": 0.5, "similarity_boost": 0.85, "use_speaker_boost
 
 VOICE_FIELD = re.compile(r"·\s*voice\s+`([A-Za-z0-9]+)`")
 
+# An optional `· pitch 0.88 ·` field on an entry. Below 1.0 the take is
+# resampled downward: lower AND slower, which is what makes a voice read as
+# something bigger than a person rather than as a person played back wrong.
+# A curse is not a man with a deep voice, and no amount of direction gets a
+# text-to-speech model to stop sounding human — this does.
+PITCH_FIELD = re.compile(r"·\s*pitch\s+([0-9.]+)")
+
+# An optional `· capped ·` flag. A spoken line is never cut to length by
+# default, because the cap lands mid-word in a sentence — but a one-syllable
+# effort grunt has no mid-word to land in, and an effort grunt is fired on
+# every special, so one that runs two seconds long is unusable however good the
+# take is. Entries that are a single utterance rather than a sentence opt in.
+CAP_FIELD = re.compile(r"·\s*capped\s*(?=·|$)")
+
 
 def parse_doc():
     """-> [(filename, voice_id, seconds, text)], open requests first.
@@ -70,8 +84,28 @@ def parse_doc():
             if name in seen or not voice:
                 continue
             seen.add(name)
-            out.append((name, voice.group(1), float(m.group(3)), m.group(4).strip()))
+            pitch = PITCH_FIELD.search(header)
+            out.append((name, voice.group(1), float(m.group(3)), m.group(4).strip(),
+                        float(pitch.group(1)) if pitch else 1.0,
+                        bool(CAP_FIELD.search(header))))
     return out
+
+
+def repitch(x, factor):
+    """Resample by `factor`, lowering pitch and lengthening together.
+
+    Linear interpolation rather than a phase vocoder: a formant-preserving
+    shift is exactly what is NOT wanted here. Dragging the formants down with
+    the pitch is what turns a voice into something with a bigger throat.
+    """
+    if factor == 1.0:
+        return x
+    n = int(x.size / factor)
+    at = np.arange(n, dtype=np.float32) * factor
+    lo = np.clip(np.floor(at).astype(int), 0, x.size - 1)
+    hi = np.clip(lo + 1, 0, x.size - 1)
+    frac = (at - lo).astype(np.float32)
+    return (x[lo] * (1 - frac) + x[hi] * frac).astype(np.float32)
 
 
 def request_mp3(text, voice_id, key):
@@ -110,7 +144,7 @@ def decode(mp3_bytes):
 
 
 def one(entry, key, force):
-    name, voice_id, seconds, text = entry
+    name, voice_id, seconds, text, pitch, capped = entry
     dest = os.path.join(OUT, name.replace(".wav", ".mp3"))
     if os.path.exists(dest) and not force:
         return name, "skip", os.path.getsize(dest)
@@ -122,16 +156,24 @@ def one(entry, key, force):
             # length in the doc is the brief, and the check below reports a
             # miss rather than hiding it by truncating.
             x = post_process(decode(request_mp3(text, voice_id, key)),
-                             seconds, cap=False)
+                             seconds, cap=capped)
             if x is None:
                 return name, "EMPTY", 0
+            x = repitch(x, pitch)
             write_mp3(dest, x)
             got = x.size / SR
-            over = "" if got <= seconds * 1.15 else f" OVER {seconds:.1f}s brief"
-            return name, f"ok {got:.2f}s{over}", os.path.getsize(dest)
+            # A capped entry is held to length by the cap itself, so measuring
+            # it against the brief again would warn about every one of them.
+            over = "" if capped or got <= seconds * 1.15 else f" OVER {seconds:.1f}s brief"
+            tag = ("" if pitch == 1.0 else f" @{pitch:g}") + (" capped" if capped else "")
+            return name, f"ok {got:.2f}s{tag}{over}", os.path.getsize(dest)
         except urllib.error.HTTPError as e:
             detail = e.read()[:200].decode("utf8", "replace")
-            if e.code in (429, 500, 502, 503) and attempt < 3:
+            # 409 is the shared-voice library conflict: several entries cast to
+            # the SAME voice, generated in parallel, race each other to add it.
+            # Normal here — a grunt trio is three entries on one voice — and the
+            # API's own advice is to retry shortly.
+            if e.code in (409, 429, 500, 502, 503) and attempt < 3:
                 import time; time.sleep(2 ** attempt * 3)
                 continue
             return name, f"HTTP {e.code}: {detail}", 0

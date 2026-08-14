@@ -393,9 +393,10 @@
           then move on — Download JSON saves every change, and Revert puts one
           fighter back to what the file said if you moved the wrong dial. The
           legs are straightened and the soles levelled for you; stance opens
-          them from there, and Knees turns them about their own length when the
-          model was built with the kneecaps and toes pointing outward. More
-          unfolds size, arms, head and facing.</div>
+          them from there, and Knees leans them in or out about the forward axis —
+          feet closer or further apart, soles staying flat — as a correction
+          that holds in every state rather than only this one. More unfolds
+          size, arms, head and facing.</div>
 
         <!-- ONE CONTROL AT A TIME, on a phone. Four dial rows plus the action
              row is most of a phone screen, and the screen is what the pass is
@@ -415,17 +416,19 @@
         </select>
 
         <div id="facingDials">
-        <!-- KNEE CORRECTION. Generated legs arrive screwed outward at the hip:
-             the kneecap and the toe both point away from the midline, and the
-             leg reads as bandy even after the engine has straightened it,
-             because straightening sets a bone's DIRECTION and never its
-             twist. This turns each leg about its own length until the knees
-             square to the front — positive is inward — and it is a correction
-             to the model, so it holds in every state, not just the idle. -->
+        <!-- KNEE CORRECTION. Generated legs arrive bandy — the knees sit
+             outboard and the whole leg bows away from the body, which reads at
+             game size as a fighter standing on the outside edges of their
+             boots. This swings each leg about the fighter's FORWARD axis, so
+             positive brings the knees and the feet in toward the midline and
+             negative opens them, with the soles re-levelled so a foot keeps
+             its angle to the ground. Same joint and same axis as Stance, but a
+             correction to the MODEL rather than a fact about the character, so
+             it holds in every state instead of only the idle. -->
         <div class="facing-dial active" data-dial="knees">
           <span class="dial-label">Knees</span>
           <button data-knee="-2">−</button>
-          <input id="facingKnee" type="range" min="-30" max="80" step="1" value="0">
+          <input id="facingKnee" type="range" min="-25" max="25" step="1" value="0">
           <button data-knee="2">+</button>
           <span class="mono" id="facingKneeVal">0°</span>
         </div>

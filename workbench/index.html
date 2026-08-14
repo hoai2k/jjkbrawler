@@ -7,15 +7,18 @@
     <link rel="icon" href="../favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
     <link rel="stylesheet" href="workbench.css">
+    <!-- Runs while the document is still parsing, so `?edit=<other bench>`
+         redirects before this page's modules execute. See router.js. -->
+    <script src="router.js"></script>
   </head>
   <body>
     <header class="bar">
       <strong>Audio Workbench</strong>
       <span class="hint">Plays through the game's own mixer — the level you hear is the level in a match.</span>
       <nav class="modes">
-        <a href="../sprites/workbench/">Sprites →</a>
-        <a href="../billboards/workbench/">Billboards →</a>
-        <a href="../render3d/workbench/">3D →</a>
+        <a href="../sprites/workbench/" title="also /workbench/?edit=sprites">Sprites →</a>
+        <a href="../billboards/workbench/" title="also /workbench/?edit=billboards">Billboards →</a>
+        <a href="../render3d/workbench/" title="also /workbench/?edit=3d">3D →</a>
       </nav>
       <span id="loadState" class="loading">loading…</span>
     </header>
@@ -27,6 +30,24 @@
         <h2>Voices</h2>
         <p class="sub" id="castSummary">—</p>
         <ul id="castList" class="cast-list"></ul>
+
+        <!-- The hub half of this page. Every bench in the repo is reachable
+             from this one address, so nobody has to remember which directory
+             the joint-reads editor lives under. -->
+        <div class="shortcuts">
+          <h3>Every bench, one address</h3>
+          <p id="unknownMode" class="unknown" hidden></p>
+          <ul>
+            <li><code>/workbench/?edit=audio</code><span>this one</span></li>
+            <li><a href="?edit=sprites"><code>?edit=sprites</code></a><span>sprite placement</span></li>
+            <li><a href="?edit=actions"><code>?edit=actions</code></a><span>action playback</span></li>
+            <li><a href="?edit=billboards"><code>?edit=billboards</code></a><span>posed models</span></li>
+            <li><a href="?edit=3d"><code>?edit=3d</code></a><span>live 3D poses</span></li>
+            <li><a href="?edit=animation"><code>?edit=animation</code></a><span>keyframes</span></li>
+            <li><a href="?edit=pose"><code>?edit=pose</code></a><span>joint reads</span></li>
+          </ul>
+          <p class="sub">Anything else you pass — <code>&amp;char=gojo</code> — travels with you.</p>
+        </div>
       </aside>
 
       <section class="col stage-col">

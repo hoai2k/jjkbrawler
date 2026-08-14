@@ -54,8 +54,8 @@ export const MODEL_FIXES = {
   },
   kneeDeg: {
     where: "manifest",
-    means: "the legs were built rotated outward at the hip — the knee faces away from the midline",
-    bake: "rotate each leg (and its skin) about its own length until the knee squares to the front",
+    means: "the legs lean out from under the hips — a bandy stand built into the model",
+    bake: "swing each leg (and its skin) about the body's forward axis until it stands under its hip",
   },
   renderScale: {
     where: "manifest",
@@ -158,10 +158,11 @@ export const RIG_FIXES = {
   //     real in the bind (Geto's shins jut 18° and 34° out of their thighs)
   //     and does not survive into a posed state, so a bend correction applied
   //     there only ADDS one: Geto gained 2.9° and 5.4° and visibly widened.
-  //     What the eye is actually catching is the leg's ROLL, which aiming a
-  //     bone never sets — and that has its own dial, `kneeDeg`, in the
-  //     manifest beside the other model corrections. A rotation about the leg
-  //     is not a rotation of one bone, so it does not belong in this table.
+  //     A leg that leans out from under its hip has its own dial, `kneeDeg`,
+  //     in the manifest beside the other model corrections — a rotation of a
+  //     whole limb is not a rotation of one bone, so it does not belong in
+  //     this table. Measured, no fighter needs it: on the posed idle every
+  //     leg reads a bow of 0.0 and a lean equal to its own stance.
 };
 
 
