@@ -193,7 +193,11 @@ const probe = (x, y) => ({ x: T.a * x + T.c * y + T.e, y: T.b * x + T.d * y + T.
 // things that must land exactly (hitbox debug, particles, popups riding the
 // fighters) are at the anchor; a free-standing stage-FX drawing 400 px from
 // the fight may sit a few px off its GL counterpart, which nothing overlaps.
-for (const [x, y, tol] of [[640, 568, 0.75], [500, 480, 0.75], [300, 400, 2.5], [1000, 250, 6]]) {
+// Tolerances are calibrated at the dynamic camera's tightest shot (ZOOM_MAX
+// 1.32, camera.js): a closer dolly both magnifies the error in screen px and
+// steepens the perspective the affine cannot carry — and at that zoom the far
+// probes sit at or beyond the frame edge, where nothing aligned is drawn.
+for (const [x, y, tol] of [[640, 568, 0.75], [500, 480, 0.75], [300, 400, 4], [1000, 250, 12]]) {
   const direct = worldToScreen(x, y);
   const affine = probe(x, y);
   const err = Math.hypot(direct.x - affine.x, direct.y - affine.y);

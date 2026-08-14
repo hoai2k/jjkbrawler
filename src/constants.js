@@ -86,8 +86,8 @@ export const DODGE_STALE_WINDOW = 1.4;
 //
 // The snap box, sized for Smash-style magnet hands rather than precision
 // landings. Horizontal: air speeds run 300-380 px/s, so 72 px is about a fifth
-// of a second of drift — catchable on reaction. Below: 150 px is roughly a
-// body height (fighters stand 147-200 px), matching the proportions of Smash's
+// of a second of drift — catchable on reaction. Below: 150 px is a generous
+// body height (fighters stand 125-170 px), matching the proportions of Smash's
 // grab boxes; at 60 px the window lasted ~3 frames of ordinary falling and
 // recovering from below meant threading it.
 export const LEDGE_GRAB_X = 72;
