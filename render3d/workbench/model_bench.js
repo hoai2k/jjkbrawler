@@ -101,6 +101,9 @@ document.querySelector("main.layout").outerHTML = `
           <option value="A">A-pose — arms at 45°</option>
         </select>
       </label>
+      <div class="row">
+        <button id="viewReset" class="ghost sm">Reset view</button>
+      </div>
       <label class="check"><input id="showBones" type="checkbox" checked> Bone dots</label>
       <label class="check"><input id="showFixes" type="checkbox" checked> Corrections on</label>
       <p class="hint">Turn corrections off to see the .glb as delivered. The
@@ -289,6 +292,17 @@ function poseNow() {
   return r;
 }
 
+/** Point the camera at this fighter, head to foot. Framed off their own
+ *  height, so a 1.5m model and a 2.2m one are both filled rather than one of
+ *  them being filled and the other cropped. */
+function frameChar(r) {
+  if (!r) return;
+  view.yaw = 0;
+  view.pitch = 6;
+  view.target.set(0, (r.height || 1.8) * 0.5, 0);
+  view.dist = (r.height || 1.8) * 2.3;
+}
+
 let shown = null;
 function showChar(charKey) {
   state.char = charKey;
@@ -298,8 +312,7 @@ function showChar(charKey) {
   if (!r) return;
   if (shown && shown !== r.root) scene.remove(shown);
   if (shown !== r.root) { scene.add(r.root); shown = r.root; }
-  view.target.set(0, (r.height || 1.8) * 0.5, 0);
-  view.dist = (r.height || 1.8) * 2.3;
+  frameChar(r);
   fillBoneSelect();
   syncFixList();
   const url = new URL(location);
@@ -662,6 +675,9 @@ poseSel.onchange = () => {
 };
 
 $("boneSelect").onchange = () => { state.bone = $("boneSelect").value; syncBonePanel(); };
+// Orbiting and zooming is how you judge a joint, and it is also how you end up
+// inside somebody's ribcage with no idea which way is out.
+$("viewReset").onclick = () => frameChar(currentRig());
 $("showBones").onchange = () => { state.showBones = $("showBones").checked; };
 $("showFixes").onchange = () => {
   state.showFixes = $("showFixes").checked;
