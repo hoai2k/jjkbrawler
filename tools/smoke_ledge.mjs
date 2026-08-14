@@ -13,6 +13,7 @@
 //   node server.mjs   then:   node tools/smoke_ledge.mjs [baseUrl]
 
 import { chromium } from "playwright";
+import { pressStart } from "./smoke_boot.mjs";
 
 const BASE = process.argv[2] || "http://127.0.0.1:5174";
 let failures = 0;
@@ -30,6 +31,7 @@ page.on("pageerror", (e) => console.log(`  page error: ${String(e).slice(0, 200)
 
 try {
   await page.goto(`${BASE}/?camera=flat`);
+  await pressStart(page);
   await page.waitForSelector('[data-character="gojo"]', { timeout: 120000 });
   await page.click('[data-character="gojo"]');
   await page.waitForTimeout(300);

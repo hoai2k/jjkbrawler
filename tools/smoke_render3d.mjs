@@ -24,6 +24,7 @@
 // served first:  node server.mjs   then:  node tools/smoke_render3d.mjs [baseUrl]
 
 import { chromium } from "playwright";
+import { pressStart } from "./smoke_boot.mjs";
 import { execFileSync } from "child_process";
 import { readFileSync, writeFileSync, rmSync } from "fs";
 import { join, dirname } from "path";
@@ -52,8 +53,7 @@ const browser = await chromium.launch({
 
 async function bootAndFight(page, url) {
   await page.goto(url);
-  await page.waitForFunction(async () =>
-    (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
+  await pressStart(page);
   await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 30000 });
   await page.click('[data-character="gojo"]');
   await page.waitForTimeout(300);
@@ -185,6 +185,7 @@ async function bootAndFight(page, url) {
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.goto(`${BASE}/index.html?render=3d&mannequin=all&camera=flat`);
+  await pressStart(page);
   await page.waitForFunction(async () =>
     (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
   await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 30000 });
@@ -229,6 +230,7 @@ try {
   page.on("pageerror", (e) => errors.push(String(e)));
 
   await page.goto(`${BASE}/index.html?render=3d&camera=flat`);
+  await pressStart(page);
   await page.waitForFunction(async () =>
     (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
   await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 30000 });
@@ -284,6 +286,7 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.goto(`${BASE}/index.html?render=3d&camera=flat`);
+  await pressStart(page);
   await page.waitForFunction(async () =>
     (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
 
@@ -396,6 +399,7 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.goto(`${BASE}/index.html?render=3d&mannequin=none&camera=flat`);
+  await pressStart(page);
   await page.waitForFunction(
     async () => (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
   await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 90000 });

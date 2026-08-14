@@ -19,13 +19,15 @@
 // half-delivered roster mixes models and sprites in one shot.
 
 import {
-  CanvasTexture, SRGBColorSpace, AdditiveBlending, NormalBlending,
+  CanvasTexture, SRGBColorSpace, AdditiveBlending, NormalBlending, Group,
 } from "../../vendor/three/three.module.js";
 import {
   makeQuadPool, imageTexture, rectMatrix, ORDER,
   matIdentity, matTranslate, matScale, matRotate,
 } from "./quads.js";
 import { frameMeta, frameImage, getImage } from "../assets.js";
+import { paintProceduralAura, AURA_ELLIPSE } from "../render.js";
+import { sharedAdjust, AURA_H } from "../shared_sprites.js";
 // The SPRITE pose resolver, deliberately not the render-backend dispatcher.
 //
 // The sprite CARD path below has to come out of frameImage(), which
@@ -55,6 +57,8 @@ import { TRAIL_ALPHA } from "../config_tuning.js";
 import { CELL_W } from "../constants.js";
 
 const DEG = Math.PI / 180;
+// How far behind the gameplay plane the install aura sits — see auraPool.
+const AURA_Z = -0.01;
 const EMPTY = new Set();
 let posedCards = 0;
 let bail = null;
@@ -95,6 +99,32 @@ function orbTexture(color) {
   return tex;
 }
 
+// The procedural install aura, baked per fighter into a canvas the scene can
+// wear. Redrawn every frame because the drawing itself moves — the ellipse
+// pulses and Distortion Solo's clipped ring spins — and painted by render.js's
+// own paintProceduralAura, so the flat aura and this one are one drawing.
+const auraCanvases = new Map(); // fighter id -> { canvas, tex }
+
+function proceduralAura(f) {
+  const w = Math.ceil(AURA_ELLIPSE.rx * 2) + 8;
+  const h = Math.ceil(AURA_ELLIPSE.ry * 2) + 8;
+  let entry = auraCanvases.get(f.id);
+  if (!entry) {
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    entry = { canvas, tex: new CanvasTexture(canvas), w, h };
+    entry.tex.colorSpace = SRGBColorSpace;
+    auraCanvases.set(f.id, entry);
+  }
+  const ctx = entry.canvas.getContext("2d");
+  ctx.clearRect(0, 0, w, h);
+  ctx.save();
+  paintProceduralAura(ctx, f, w / 2, h / 2);
+  ctx.restore();
+  entry.tex.needsUpdate = true;
+  return entry;
+}
+
 // Shared shadow blob under each fighter.
 let shadowTex = null;
 function shadowTexture() {
@@ -131,6 +161,21 @@ export function makeBillboards() {
   // above ORDER.platform, so fighters land on top; ORDER.garnishFront is above
   // fighters, so traffic still passes in front of them.
   const pool = makeQuadPool({ depthTest: false });
+
+  // The one exception, and it is an exception on purpose: the install aura.
+  //
+  // Everything above is about fighters never being CUT by the stage. The aura
+  // has the opposite requirement — it must go behind the fighter it belongs
+  // to, and under `?render=3d` that fighter is opaque geometry, so paint order
+  // cannot do it: three draws every transparent quad after every opaque mesh,
+  // whatever the renderOrder. Only the depth buffer can put a quad behind a
+  // rig. So the aura gets its own pool that DOES test depth, and sits a
+  // centimetre behind the gameplay plane: far enough back for a body with
+  // volume to occlude it, still well in front of the platform surface at
+  // z = -0.06, so it paints over the stage exactly as it does flat.
+  const auraPool = makeQuadPool({ depthTest: true });
+  const group = new Group();
+  group.add(auraPool.group, pool.group);
 
   /** The drawCharFrame transform chain as a matrix, quad space -> sim space.
    *  Mirrors sprites.js drawCharFrame line for line. */
@@ -217,6 +262,44 @@ export function makeBillboards() {
     });
   }
 
+  /** The install aura, BEHIND the fighter.
+   *
+   *  Flat, render.js paints this between the shadow and the body, so it sits
+   *  under them. Here the body is a card — or, under `?render=3d`, real
+   *  geometry — in the WebGL layer, and the overlay canvas is strictly on top
+   *  of that layer, so the same call there put the aura in FRONT of the
+   *  fighter wearing it. It is a picture standing on the gameplay plane like
+   *  everything else in this file, so it belongs in the scene, drawn before
+   *  the body in the same paint order the flat renderer uses.
+   *
+   *  Art auras replay drawInstallAura's transform chain call for call: the
+   *  tilt turns about the FEET, not the image centre, so a leaning aura leans
+   *  instead of sliding. The canvas shadowBlur halo has no cheap GL
+   *  equivalent and is skipped, as it is for bodies. */
+  function drawAura(f, order) {
+    if (!f.installs) return;
+    const art = f.installs.aura ? getImage(f.installs.aura) : null;
+    const pulse = 0.88 + 0.06 * Math.sin(gameState.matchTime * 8);
+    if (art) {
+      const adj = sharedAdjust(f.installs.aura);
+      const h = AURA_H * pulse * adj.scale;
+      const w = art.width * h / art.height;
+      const m = matIdentity();
+      matTranslate(m, f.x, f.y + 10);
+      if (adj.rot) matRotate(m, adj.rot);
+      matTranslate(m, -w / 2 + adj.dx, -h + adj.dy);
+      matScale(m, w, h);
+      auraPool.draw(imageTexture(art), m, {
+        z: AURA_Z, order, alpha: 0.72, blending: AdditiveBlending,
+      });
+      return;
+    }
+    const { tex, w, h } = proceduralAura(f);
+    auraPool.draw(tex, rectMatrix(f.x, f.y + AURA_ELLIPSE.dy, w, h), {
+      z: AURA_Z, order, blending: AdditiveBlending,
+    });
+  }
+
   function groundBelow(f, platforms) {
     let best = 700;
     for (const p of platforms) {
@@ -229,6 +312,7 @@ export function makeBillboards() {
    *  renderer: shadows, trails, bodies back-to-front by y, then projectiles. */
   function update(st, asModels = EMPTY) {
     pool.begin();
+    auraPool.begin();
     posedCards = 0;
     bail = null;
     let order = ORDER.billboard;
@@ -241,6 +325,9 @@ export function makeBillboards() {
       const gy = groundBelow(f, st.platforms);
       const shAlpha = Math.min(0.42, Math.max(0.08, 0.42 - (gy - f.y) / 900));
       drawRect(shadowTexture(), f.x, gy + 8, 68, 16, { alpha: shAlpha }, 0.01, order++);
+
+      // ...then the aura, under the body — render.js's own order.
+      drawAura(f, order++);
 
       const spriteKey = f.spriteChar || f.charKey;
       const spriteActor = getActor(spriteKey) || f.char;
@@ -313,11 +400,14 @@ export function makeBillboards() {
     }
 
     pool.end();
+    auraPool.end();
   }
 
   // Posed-model cards drawn last frame, and why the last attempt declined.
   // Same reasoning as the quad count: a card layer that silently drew sprites
   // instead of models looks identical from outside to one that worked.
-  return { group: pool.group, update, count: pool.count,
+  return { group, update, count: pool.count,
+           auraCount: auraPool.count,
+           quadPools: () => ({ body: pool.group, aura: auraPool.group }),
            posedCount: () => posedCards, lastBail: () => bail };
 }
