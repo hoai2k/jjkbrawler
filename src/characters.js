@@ -100,9 +100,21 @@ const WALK_ANIM = {
   fps: 5, fallbackFps: 7, loop: true,
 };
 
+// Balanced on the very lip of a platform — the pose the ledge brake leaves a
+// fighter in constantly and nothing drew (fighter.js updateTeeter). Round 22
+// art; until it lands the state falls back to the IDLE frames and motion.js
+// supplies the read procedurally — a lean out over the drop and a slow
+// counter-sway, which is what a teeter is. So this line is the whole
+// integration and nothing waits on the drawing.
+const TEETER_ANIM = {
+  frames: ["teeter"], fallback: ["idle_a", "idle_b"],
+  fps: 1, fallbackFps: 2.2, loop: true,
+};
+
 // Anim defaults; characters override entries whose sheet cells differ.
 export const DEFAULT_ANIMS = {
   idle: { frames: ["idle_a", "idle_b"], fps: 2.2, loop: true },
+  teeter: TEETER_ANIM,
   walk: WALK_ANIM,
   run: RUN_ANIM,
   dash: { frames: ["r1c2"], fps: 1, loop: true },
@@ -161,6 +173,7 @@ export const DEFAULT_ANIMS = {
 // manifest, these animations resolve with no further code changes.
 export const SEMANTIC_ANIMS = {
   idle: { frames: ["idle_a", "idle_b"], fps: 2.2, loop: true },
+  teeter: TEETER_ANIM,
   walk: WALK_ANIM,
   run: RUN_ANIM,
   dash: { frames: ["dash"], fps: 1, loop: true },

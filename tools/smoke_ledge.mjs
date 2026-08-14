@@ -119,19 +119,30 @@ try {
     settle(40, blankInput());
     out.hitstunLeft = !a.grounded;
 
-    // 6a. THE LEDGE POP. Grabbing a ledge and getting off one are teleports in
-    //     the simulation — up to ~100px in one frame — and drawn verbatim that
-    //     is a body vanishing and reappearing, twice in half a second. What is
-    //     measured is the position the RENDERER uses: f.x/f.y plus
-    //     fighterTransform's offsets, which is where fighter.js placeFighter
-    //     puts the catch-up slide. Ordinary movement is the yardstick: a run
-    //     covers ~8px in a frame and a fast fall ~15, so anything past 24 is a
-    //     jump rather than a move.
+    // 6a. THE LEDGE IS TRAVELLED, NOT TELEPORTED. Catching a ledge and getting
+    //     off one used to be single-frame jumps of 40-110px; they are now
+    //     transitions the fighter makes on the clock, with a pose per phase
+    //     (fighter.js beginLedgeMove). Two things are asserted, because either
+    //     alone can be true while the thing still looks wrong:
+    //
+    //     WHERE — the worst single-frame step of the position the RENDERER
+    //     uses. Ordinary movement is the yardstick: a run covers ~8px in a
+    //     frame and a fast fall ~15, so anything past 24 is a jump.
+    //     WHAT — the sequence of poses drawn across it. A body that slides
+    //     smoothly while holding its hang pose the whole way is still wrong;
+    //     the fall has to reach the ledge before the hang starts, and the
+    //     climb has to rise and land.
     const drawnAt = () => {
       const m = fighterTransform(a);
       return { x: a.x + (m.offsetX || 0), y: a.y + (m.offsetY || 0) };
     };
-    const worstStep = (frames, input) => {
+    const trace = (frames, input) => {
+      const anims = [];
+      // What is drawn WHILE the transition is running, which is the half a
+      // sequence of state names cannot see: "fall -> ledge" is equally true of
+      // a fighter who fell, snapped, and hung, and of one who carried the fall
+      // all the way onto the ledge. Only this tells them apart.
+      const during = {};
       let prev = drawnAt();
       let worst = 0;
       for (let i = 0; i < frames; i++) {
@@ -139,22 +150,62 @@ try {
         const d = drawnAt();
         worst = Math.max(worst, Math.hypot(d.x - prev.x, d.y - prev.y));
         prev = d;
+        if (anims[anims.length - 1] !== a.animKey) anims.push(a.animKey);
+        const kind = a.ledgeMove?.kind;
+        if (kind) (during[kind] ||= []).push(a.animKey);
       }
-      return +worst.toFixed(1);
+      return { worst: +worst.toFixed(1), anims, during };
     };
-    // Fall past the lip into a grab. reset() first, because check 5 threw this
+    // Fall past the lip into a catch. reset() first, because check 5 threw this
     // fighter off the stage and a respawn in flight is its own teleport.
-    reset(0);
-    Object.assign(a, {
-      x: edge + 26, y: main.y - 40, vx: 0, vy: 40, grounded: false,
-      facing: -1, ledgeCooldown: 0, airT: 1, visDX: 0, visDY: 0, visT: 0,
-      respawnTimer: 0, respawnPlat: null,
-    });
-    out.grabStep = worstStep(24, blankInput());
+    const fallToLedge = () => {
+      reset(0);
+      Object.assign(a, {
+        x: edge + 26, y: main.y - 40, vx: 0, vy: 40, grounded: false,
+        facing: -1, ledge: null, ledgeMove: null, ledgeCooldown: 0, airT: 1,
+        respawnTimer: 0, respawnPlat: null, teeterT: 0, teeterDir: 0,
+      });
+    };
+    fallToLedge();
+    const grab = trace(26, blankInput());
+    out.grabStep = grab.worst;
+    out.grabAnims = grab.anims;
+    out.grabDuring = grab.during.catch || [];
     out.grabbed = !!a.ledge;
     // ...then climb back on.
-    out.getupStep = worstStep(24, IN({ left: true, dirX: -1 }));
+    const climb = trace(26, IN({ left: true, dirX: -1 }));
+    out.getupStep = climb.worst;
+    out.climbAnims = climb.anims;
+    out.climbDuring = climb.during.climb || [];
     out.gotUp = a.grounded && !a.ledge;
+    // The roll off it is its own pose.
+    fallToLedge();
+    trace(20, blankInput());
+    const roll = trace(30, IN({ shieldHeld: true }));
+    out.rollStep = roll.worst;
+    out.rollAnims = roll.anims;
+    // Jumping off never teleported once the placement was dropped: push off
+    // FROM the hang and let the arc carry.
+    fallToLedge();
+    trace(20, blankInput());
+    const hop = trace(14, IN({ jumpP: true }));
+    out.jumpStep = hop.worst;
+
+    // 6b. TEETERING. The brake stops a fighter on the lip constantly and
+    //     nothing drew it. Stand, then coast into the edge: wasGrounded has to
+    //     be true for the brake to be armed at all.
+    reset(0);
+    Object.assign(a, {
+      x: edge - 90, y: main.y, vx: 0, vy: 0, grounded: true, ledge: null,
+      ledgeMove: null, ledgeCooldown: 0, teeterT: 0, teeterDir: 0, airT: 0,
+      respawnTimer: 0, respawnPlat: null,
+    });
+    settle(6, blankInput());
+    a.vx = 320;
+    settle(40, blankInput());
+    out.teeterAnim = a.animKey;
+    out.teeterDir = a.teeterDir;
+    out.teeterGrounded = a.grounded;
 
     // 6. Standing still at the lip is undisturbed — the brake must not shove
     //    anyone back from where they are legitimately allowed to stand.
@@ -181,11 +232,28 @@ try {
   check(Math.abs(r.restMoved) < 0.01, "standing at the lip is left alone",
     `moved ${r.restMoved}px`);
   check(r.grabbed && r.grabStep <= 24,
-    "grabbing the ledge slides the drawing in instead of teleporting it",
+    "catching a ledge is travelled, not teleported",
     `worst frame ${r.grabStep}px${r.grabbed ? "" : " (NEVER GRABBED)"}`);
+  check(r.grabDuring.length >= 4 && r.grabDuring.every((k) => k === "fall")
+      && r.grabAnims.includes("ledge"),
+    "...drawing the fall all the way to the ledge, then the hang",
+    `${r.grabDuring.length} frame(s) of ${[...new Set(r.grabDuring)].join("/")}`
+    + ` then ${r.grabAnims.join(" -> ")}`);
   check(r.gotUp && r.getupStep <= 24,
-    "...and so does climbing back off it",
+    "climbing off one is travelled too",
     `worst frame ${r.getupStep}px${r.gotUp ? "" : " (NEVER GOT UP)"}`);
+  check(r.climbDuring.includes("jump") && r.climbDuring.includes("land")
+      && r.climbAnims.join(">").includes("jump>land"),
+    "...rising, then landing on the stage",
+    `${r.climbDuring.length} frame(s): ${r.climbAnims.join(" -> ")}`);
+  check(r.rollStep <= 24 && r.rollAnims.includes("dodge_roll"),
+    "the ledge roll rolls", `worst frame ${r.rollStep}px, ${r.rollAnims.join(" -> ")}`);
+  check(r.jumpStep <= 24,
+    "the ledge jump pushes off from the hang instead of being placed above it",
+    `worst frame ${r.jumpStep}px`);
+  check(r.teeterAnim === "teeter" && r.teeterGrounded,
+    "stopping on the lip draws the teeter",
+    `anim=${r.teeterAnim} dir=${r.teeterDir} grounded=${r.teeterGrounded}`);
 } catch (err) {
   check(false, "smoke_ledge ran", err.message);
 } finally {

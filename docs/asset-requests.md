@@ -22,8 +22,9 @@ numbered DI1, DI2… — so the tracks never collide. All of them are gathered i
 [image-requests.md](image-requests.md), which is what to read to draw any of
 them; these files are where each is written.)
 
-**Current status: rounds 1–21 delivered, and nothing is outstanding.** Round
-21's walk cycle landed complete — 54 sprites, two frames for each of the
+**Current status: rounds 1–21 delivered. Round 22 is open** — one pose key for
+every fighter, 27 sprites, below. Nothing is blocked by it.
+Round 21's walk cycle landed complete — 54 sprites, two frames for each of the
 twenty-seven — and is
 [in the history](asset-requests-history.md#round-21--the-walk-cycle).
 
@@ -332,6 +333,49 @@ If a redelivery is ever easier than a cut, the spec is the standard one with a
 single addition: **no drawn shadow of any kind** — the game casts its own.
 
 ---
+
+---
+
+# Round 22 — open
+
+## 22A. Balanced on the lip: the teeter — 27 sprites
+
+**One new pose key, `teeter`, for every fighter.** Nothing is blocked by it:
+until it lands the state draws the fighter's own IDLE frames with a procedural
+lean supplied by `src/motion.js`, so the read exists today and the drawing
+upgrades it.
+
+**What it is for.** The ledge brake (`brakeAtLedge` in `src/fighter.js`) stops
+a fighter dead on the last pixel of a platform whenever momentum would have
+carried them off — that is its entire job, and it happens constantly. Nothing
+drew it, so the most common thing that happens at an edge looked exactly like
+standing in the middle of the stage. It is also the answer to when a fighter
+should NOT be hanging: someone who stopped at the edge has not left it, and a
+ledge hang would be telling the player they fell when they did not.
+
+**The brief.** A standing pose, weight shifted BACK from the drop, arms out for
+balance, front foot at or just over the lip, head turned down toward the fall.
+Not alarmed — this roster does not panic — but caught: the moment after
+realising the ground ran out. It reads at a glance against the idle beside it,
+which is the test: a player should be able to tell from the silhouette that
+they are on the edge.
+
+**Facing.** Drawn facing RIGHT like every other pose, with the drop on the
+right. The engine mirrors it for the left-hand lip and leans it the correct way
+either side (`teeterLean` in `src/config_tuning.js`), so one drawing serves
+both edges.
+
+| pose key | count |
+|---|---|
+| `teeter` | 27 (one per fighter) |
+
+**Not requested, deliberately: a ledge-climb pose.** Getting on and off a ledge
+is now an animated transition rather than a teleport (`beginLedgeMove` in
+`src/fighter.js`), and it is built from poses the roster already has — the fall
+carries onto the ledge, the climb rises on `jump_rise` and arrives on `land`,
+the roll uses `dodge_roll`. A bespoke `ledge_climb` would be an upgrade to
+that, not a dependency, and 27 more sprites is not worth spending before the
+reused ones have been seen in motion.
 
 # Round 20 — delivered
 

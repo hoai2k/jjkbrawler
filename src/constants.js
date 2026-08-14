@@ -107,6 +107,38 @@ export const LEDGE_GRAB_Y_BELOW = 150;
 export const LEDGE_HANG_X = 28;
 export const LEDGE_HANG_Y = 58;
 
+// GETTING ON AND OFF ONE IS A MOVE, NOT A TELEPORT.
+//
+// Every one of these used to be a single-frame jump of 40-110 px: the catch,
+// the climb, the roll, the ledge attack. Smoothing the DRAWING over it stopped
+// it reading as a flicker, but a slid drawing over an instant simulation is
+// still a fighter arriving before their body does — and it could not put a
+// pose on the trip, because as far as the simulation was concerned there was
+// no trip. These are the real thing: the fighter TRAVELS, on the clock, with a
+// pose per phase, and the hurtbox travels with them. The smoothing it replaces
+// is gone rather than kept as a second mechanism.
+//
+// Times are what a body that size can plausibly do. The catch is fast because
+// it is a catch: 100 px in 0.13 s is ~770 px/s, about double a run and about
+// what a fall is already doing. The climbs are slower because they are a pull
+// up and a step over, and they are still far quicker than Smash's (its plain
+// getup is ~34 frames, 0.57 s).
+//
+// All of them are covered by invulnerability that already existed — the
+// numbers below are the extra the transition itself needs on top.
+export const LEDGE_CATCH_TIME = 0.13;
+export const LEDGE_CLIMB_TIME = 0.20;   // hang -> standing, the inward input
+export const LEDGE_ROLL_TIME = 0.26;    // further, and it rolls
+export const LEDGE_ATTACK_TIME = 0.14;  // shortest: the swing is the point
+
+// TEETERING. Standing with your toes over the drop, which the ledge brake
+// (fighter.js brakeAtLedge) puts fighters in constantly and nothing drew. How
+// close to the lip counts, and how long you have to have been there — a
+// fighter passing through the last few pixels of a platform at speed is not
+// teetering, they are running.
+export const TEETER_EDGE = 16;          // px from the lip
+export const TEETER_DELAY = 0.08;       // s standing there before it shows
+
 // ------------------------------------------------------------------ bodies
 //
 // A hurtbox as a proportion of the fighter it belongs to. src/silhouette.js

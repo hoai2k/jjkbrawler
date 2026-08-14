@@ -96,6 +96,18 @@ async function waitForMatch(timeout = 120000) {
   }
 }
 
+/** Wait for the scene to actually draw a few more frames. Not runUntil: that
+ *  takes an ABSOLUTE match time, so asking it for half a second inside a match
+ *  already four seconds old returns instantly and reads back state no frame
+ *  has rendered yet — which is exactly how the aura check below came to pass
+ *  or fail on whether a frame happened to land between two evaluate calls. */
+async function settleFrames(n = 6) {
+  await page.evaluate(async (count) => {
+    const frame = () => new Promise((r) => requestAnimationFrame(() => r()));
+    for (let i = 0; i < count; i++) await frame();
+  }, n);
+}
+
 /** Software GL renders slowly and the game loop clamps dt, so the SIM clock
  *  runs well behind the wall clock. Poll matchTime rather than sleeping. */
 async function runUntil(simSeconds, timeout = 240000) {
@@ -259,7 +271,7 @@ await page.evaluate(async () => {
     f.installs = { duration: 99, life: 99, color: "#ff62cf", label: "PROBE", aura: null };
   }
 });
-await runUntil(0.5);
+await settleFrames();
 const aura = await page.evaluate(async () =>
   (await import("/src/camera3d/index.js")).debugStats());
 check(aura.auras > 0, "the install aura is drawn in the scene, not on the overlay",
@@ -282,7 +294,7 @@ await page.evaluate(async () => {
     draw(ctx) { ctx.fillStyle = "#ff00ff"; ctx.fillRect(600, 400, 80, 80); },
   });
 });
-await runUntil(0.5);
+await settleFrames();
 const fx = await page.evaluate(async () =>
   (await import("/src/camera3d/index.js")).debugStats().fxLayer);
 check(fx === true, "entity effects are drawn into the scene, not onto the overlay",
