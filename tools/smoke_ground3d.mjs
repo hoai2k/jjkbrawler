@@ -108,11 +108,19 @@ for (let i = 0; i < plats.length; i++) {
       const { state } = await import("/src/state.js");
       const p = state.platforms[idx];
       if (!p) return;
-      for (const f of state.fighters) {
+      // ONE rig on screen, and it is standing still. The CPU opponent keeps
+      // acting whatever is done to it, and an attack pose is not a GROUNDED
+      // state — its foot belongs to the clip, not to the ground solver — so a
+      // reading taken during one measures nothing at all. Holding them off
+      // screen (models.js skips a respawning fighter) leaves exactly the rig
+      // this test is about.
+      state.fighters.forEach((f, i) => {
+        if (i > 0) { f.respawnTimer = 1; return; }
         f.x = p.x + p.w / 2; f.y = p.y; f.vx = 0; f.vy = 0;
         f.grounded = true; f.animKey = "idle"; f.animTime = 0.3;
         f.facing = 1; f.facingVis = 1;
-      }
+        f.action = null; f.charging = null; f.hitstun = 0; f.shielding = false;
+      });
     }, 8);
   }, i);
   await page.waitForTimeout(1500);
@@ -126,7 +134,8 @@ for (let i = 0; i < plats.length; i++) {
     const p = state.platforms[idx];
     const out = {
       kind: p.kind, y: p.y, rigs: [],
-      who: state.fighters.map((f) => `${f.spriteChar || f.charKey}/${f.animKey}`),
+      who: `${state.fighters[0].spriteChar || state.fighters[0].charKey}`
+        + `/${state.fighters[0].animKey}`,
     };
     for (const c of models.children) {
       if (!c.visible || c.children.some((x) => x.isLight)) continue;
@@ -152,7 +161,7 @@ for (let i = 0; i < plats.length; i++) {
   const worst = Math.max(...m.rigs.map(Math.abs));
   check(worst <= TOLERANCE,
     `${board} ${m.kind} platform (sim y ${m.y}): feet stand on the deck`,
-    `worst ${worst.toFixed(2)} px, tolerance ${TOLERANCE} — ${m.who.join(" ")}`);
+    `worst ${worst.toFixed(2)} px, tolerance ${TOLERANCE} — ${m.who}`);
 }
 await page.evaluate(() => { if (window.__pin) clearInterval(window.__pin); });
 

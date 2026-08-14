@@ -21,10 +21,10 @@
 
 import { CHARACTERS } from "../src/characters.js";
 import {
-  DOMAIN_CALL, MOVE_CALL, SFX, SPOKEN_LINES, SPOKEN_TIMING, AUDIO_MIX,
+  DOMAIN_CALL, MOVE_CALL, SFX, SPOKEN_LINES, SPOKEN_TIMING, AUDIO_MIX, VOICE_ALTERNATES,
 } from "../src/config_audio.js";
 import {
-  playSfx, cutSfx, spokenLead, spokenCommitAt, audioSettings,
+  playSfx, playSfxEntry, cutSfx, spokenLead, spokenCommitAt, audioSettings,
   GRUNT_GROUPS, KO_FOR_GROUP,
 } from "../src/audio.js";
 import { loadCoreAssets, loadFrame, frameKeys } from "../src/assets.js";
@@ -135,7 +135,7 @@ function renderTracks() {
     const h = document.createElement("h3");
     h.textContent = title;
     box.append(h);
-    for (const t of list) box.append(trackRow(t));
+    for (const t of list) box.append(...trackRow(t));
     els.trackList.append(box);
   }
   const lines = tracks.filter((t) => t.kind === "line").length;
@@ -159,6 +159,7 @@ function trackRow(t) {
   const length = SPOKEN_LINES[t.sfx];
   const bits = [];
   if (t.detail) bits.push(t.detail);
+  if (VOICE_ALTERNATES[t.sfx]) bits.push('<span class="tag tag--live">in game</span>');
   bits.push(`<code>${t.sfx}</code>`);
   if (files.length) bits.push(files.length > 1 ? `${files.length} files` : `<code>${files[0]}</code>`);
 
@@ -180,7 +181,116 @@ function trackRow(t) {
 
   body.innerHTML = `<div class="label">${t.label}</div><div class="meta">${bits.join(" · ")}</div>`;
   row.append(play, body);
+
+  // Other recordings of the same sound, if any were kept. Shown UNDER the take
+  // in play and marked as alternates, because the comparison only means
+  // anything if it is obvious which one the game actually uses.
+  const alts = VOICE_ALTERNATES[t.sfx] || [];
+  const out = [row];
+  if (!alts.length && files.length < 2) return out;
+  row.classList.add("has-alts");
+
+  // A sound with several interchangeable files gets a row PER FILE, both for
+  // the take in play and for every alternate. A group is not a thing you judge
+  // as a unit: three grunts are three performances, and the useful verdict is
+  // usually "the first and third, and the alternate's second" — which needs
+  // each one on its own button, not one button that draws at random.
+  const perFile = (list, kind, label) => {
+    if (list.length < 2) return;
+    for (const file of list) out.push(fileRow(t.sfx, entry, file, kind, label));
+  };
+  perFile(files, "live", "in game");
+
+  for (const alt of alts) {
+    const afiles = [alt.file].flat();
+    const arow = document.createElement("div");
+    arow.className = "track alt";
+    const abtn = document.createElement("button");
+    abtn.type = "button";
+    abtn.textContent = "▶";
+    abtn.title = `Play ${alt.name || "the alternate"}`;
+    // Mixed through the entry the alternate would REPLACE — same category, same
+    // gain — so what is being compared is the take and nothing else.
+    abtn.addEventListener("click", () =>
+      playEntry({ file: alt.file, category: entry.category, gain: entry.gain }, arow));
+    const abody = document.createElement("div");
+    const ameta = [alt.note];
+    ameta.push(afiles.length > 1 ? `${afiles.length} files` : `<code>${afiles[0]}</code>`);
+    abody.innerHTML = `<div class="label">${alt.name || "Alternate"} <span class="tag">not in game</span></div>`
+      + `<div class="meta">${ameta.join(" · ")}</div>`;
+    arow.append(abtn, abody);
+    out.push(arow);
+    perFile(afiles, "alt", alt.name || "alternate");
+  }
+
+  // The verdict, as something that can be acted on. Ticking files across the
+  // takes builds the array that would go in the registry, so "I like these
+  // three" leaves the bench as a line to paste rather than as a description.
+  if (files.length > 1) out.push(chooserRow(t.sfx, entry, alts));
+  return out;
+}
+
+// Which files are ticked, per sound. Seeded from what the game plays, so the
+// readout starts by describing the status quo and every change to it is
+// visible as a change.
+const chosen = new Map();
+function chosenFor(key, entry) {
+  if (!chosen.has(key)) chosen.set(key, new Set([entry.file].flat()));
+  return chosen.get(key);
+}
+
+function fileRow(key, entry, file, kind, label) {
+  const row = document.createElement("div");
+  row.className = `track file file--${kind}`;
+  const play = document.createElement("button");
+  play.type = "button";
+  play.textContent = "▶";
+  play.title = `Play ${file}`;
+  // One exact file, not a draw from the group: this row exists to judge THIS
+  // recording, so it must play this recording every time.
+  play.addEventListener("click", () =>
+    playEntry({ file, category: entry.category, gain: entry.gain }, row));
+
+  const body = document.createElement("div");
+  const tick = document.createElement("label");
+  tick.className = "tick";
+  const box = document.createElement("input");
+  box.type = "checkbox";
+  const set = chosenFor(key, entry);
+  box.checked = set.has(file);
+  box.addEventListener("change", () => {
+    if (box.checked) set.add(file);
+    else set.delete(file);
+    refreshChooser(key, entry);
+  });
+  tick.append(box, document.createTextNode("keep"));
+  body.innerHTML = `<code>${file}</code> <span class="from">${label}</span>`;
+  body.append(tick);
+  row.append(play, body);
   return row;
+}
+
+function chooserRow(key, entry) {
+  const row = document.createElement("div");
+  row.className = "track chooser";
+  row.dataset.chooser = key;
+  row.innerHTML = "<div></div><div></div>";
+  refreshChooser(key, entry, row);
+  return row;
+}
+
+function refreshChooser(key, entry, row) {
+  const el = row || els.trackList.querySelector(`[data-chooser="${CSS.escape(key)}"]`);
+  if (!el) return;
+  const picked = [...chosenFor(key, entry)];
+  const live = [entry.file].flat();
+  const same = picked.length === live.length && picked.every((f) => live.includes(f));
+  const body = el.lastElementChild;
+  body.innerHTML = picked.length
+    ? `<div class="label">${same ? "As it ships" : "Your pick"} <span class="tag">${picked.length} file${picked.length === 1 ? "" : "s"}</span></div>`
+      + `<div class="meta">Paste into <code>SFX.${key}</code>:</div>`
+      + `<pre>file: [${picked.map((f) => `"${f}"`).join(", ")}],</pre>`
+    : `<div class="label">Nothing kept</div><div class="meta">A group with no files is silence — tick at least one.</div>`;
 }
 
 // ------------------------------------------------------------------ playing
@@ -190,11 +300,16 @@ function trackRow(t) {
 let nowPlaying = null;
 
 function playTrack(t, row) {
+  playEntry(t.sfx, row);
+}
+
+/** `what` is a registry key or a registry-shaped entry (an alternate take). */
+function playEntry(what, row) {
   if (nowPlaying) {
     cutSfx(nowPlaying.el);
     nowPlaying.row.classList.remove("playing");
   }
-  const el = playSfx(t.sfx, 1);
+  const el = typeof what === "string" ? playSfx(what, 1) : playSfxEntry(what, 1);
   if (!el) {
     els.loadState.textContent = "nothing to play — the file is missing or sound is off";
     els.loadState.className = "loading";
@@ -253,10 +368,18 @@ function draw(now) {
 // --------------------------------------------------------------------- boot
 
 async function boot() {
-  // `?edit=audio` is how this bench is addressed, matching the other three.
-  // It is the only mode here, so an absent or unknown value opens it rather
-  // than erroring — the URL in the docs should always work.
+  // `?edit=audio` is how this bench is addressed; every OTHER `?edit=` value is
+  // a different bench and router.js has already redirected by the time this
+  // runs (see index.html). What can still arrive here is a mode nobody has —
+  // the router leaves those on this page and marks them, so say so rather than
+  // pretending the URL was what they meant.
   const params = new URLSearchParams(location.search);
+  const unknown = document.documentElement.dataset.unknownMode;
+  if (unknown) {
+    const note = $("#unknownMode");
+    note.textContent = `No bench called “${unknown}”. These are the ones there are:`;
+    note.hidden = false;
+  }
 
   // playSfx refuses to make a sound while the game thinks effects are off, and
   // this page has no Settings screen to turn them back on. It is a bench: it

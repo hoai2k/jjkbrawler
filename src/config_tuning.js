@@ -187,8 +187,37 @@ export const MOTION = {
   dizzyWobble: 0.075,
   airDodgeTilt: 0.4,
   ledgeLean: 0.12,
+  ledgeLeanIn: 0.12,      // s for the hang lean to arrive, instead of snapping
   summonSway: 0.045,      // hovering summons
   summonLunge: 0.12,      // and their lean into an attack
+};
+
+// ------------------------------------------------------- teleport smoothing
+//
+// A few moves do not MOVE a fighter, they PUT them somewhere: grabbing a ledge
+// snaps to the hang point, and every way off a ledge — get-up, roll, jump,
+// attack — snaps back onto the stage. In one frame, from up to a hundred
+// pixels away. The simulation is right to do that (the hang and the get-up are
+// exact positions, and hitboxes have to agree with them the instant they
+// exist), but drawing it verbatim is a body vanishing and reappearing, which
+// is what "the ledge looks like flickering" is.
+//
+// So the DRAWING lags: the jump is recorded as an offset and eased off over
+// SETTLE seconds, which turns each snap into a very fast slide. Nothing here
+// touches f.x/f.y, so hurtboxes, hitboxes, ledge occupancy and the blast zones
+// are all exactly where the simulation put them — this is fighterTransform's
+// offsetX/offsetY, the same channel the run bob and the charge shake use.
+// The curve is EASED, not exponential. Exponential decay is steepest at the
+// start, which is exactly where it must not be: a 97px grab settling with a
+// 0.11s half-life spent 63 of those pixels in its first frame, so the pop was
+// still a pop, just a slightly smaller one. A smoothstep leaves and arrives
+// slowly and puts its fastest moment in the middle — worst single frame is
+// about 1.5 x distance x dt / settle, so 97px over 0.18s peaks at 13px/frame,
+// under what a run covers in a frame and therefore not a jump at all.
+export const TELEPORT = {
+  settle: 0.18,           // s for the drawing to catch up
+  max: 120,               // px, so a respawn-sized jump is not chased anyway
+  min: 6,                 // px below which a snap is not worth smoothing
 };
 
 // ------------------------------------------------------------- afterimages

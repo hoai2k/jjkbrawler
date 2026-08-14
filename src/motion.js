@@ -116,7 +116,10 @@ export function fighterTransform(f) {
     rot += Math.sin(t * 7 + phase(f)) * A.dizzyWobble;
     dy += Math.sin(t * 3.5 + phase(f)) * 1.2;
   } else if (f.ledge) {
-    rot += f.facing * A.ledgeLean;
+    // Eased in rather than snapped on: the grab is already a jump in position
+    // (fighter.js placeFighter smooths that), and a lean that arrives in the
+    // same single frame is the other half of the pop.
+    rot += f.facing * A.ledgeLean * clamp(f.ledgeTimer / A.ledgeLeanIn, 0, 1);
   } else if (f.hitstun > 0) {
     // low-knockback hits don't tumble; they flinch away from the blow
     if (Math.abs(f.spin) < 0.1) rot += clamp(f.vx / 900, -1, 1) * A.hurtLean;
@@ -186,6 +189,13 @@ export function fighterTransform(f) {
       sx += S.hit * k * SQUASH;
     }
   }
+
+  // ---- the drawing catching up with a snap: a ledge grab, and every way off
+  // a ledge, PUTS the fighter somewhere rather than moving them there
+  // (fighter.js placeFighter). Applied last so it slides the whole pose,
+  // lean and squash included, instead of being deformed by them.
+  dx += f.visDX || 0;
+  dy += f.visDY || 0;
 
   return { rotation: rot, scaleX: sx, scaleY: sy, offsetX: dx, offsetY: dy };
 }

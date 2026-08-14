@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, RESOLVED_GROUPS, randomCharacterKey } from "./characters.js";
 import { STAGES, getStage, backgroundFile } from "./stages.js";
-import { audioSettings, audioUnlocked, cycleMusicMode, MUSIC_MODES, musicPlaying, syncMusic, playSfx, toggleMute } from "./audio.js";
+import { audioSettings, audioUnlocked, cycleMusicMode, MUSIC_MODES, musicPlaying, setTitleLive, syncMusic, playSfx, toggleMute } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
 import { METER_MAX, TIME_OPTIONS } from "./constants.js";
 import { clamp } from "./utils.js";
@@ -1070,6 +1070,11 @@ export function leaveTitle({ fullscreen = false } = {}) {
   setPhase("menu");
 }
 
+// Screens that can be opened from the splash and return to it. While one of
+// these is up the title is still "the screen underneath", which is what keeps
+// its music playing (setTitleLive above).
+const TITLE_HOLD_PHASES = new Set(["settings", "moves"]);
+
 const OVERLAY_FOR_PHASE = {
   title: "titleOverlay",
   loading: "loadOverlay",
@@ -1100,15 +1105,20 @@ export function setPhase(phase) {
     void arriving.offsetWidth;
     arriving.classList.add("is-entering");
   }
-  // The corner chrome stays off the loading screen AND the title splash: the
-  // splash is one image and one instruction, and a row of buttons in the
-  // corner of it is the opposite of that.
-  els.utilityActions.classList.toggle("hidden", phase === "loading" || phase === "title");
+  // Everywhere but the loading screen, including the title splash: mute in
+  // particular has to be reachable on the one screen that starts playing music
+  // at you unprompted.
+  els.utilityActions.classList.toggle("hidden", phase === "loading");
   // Any screen change away from the fight takes the VS splash down with it.
   if (phase !== "playing") hideBattleIntro();
   // Arriving on the splash decides whether it owes a wake-up press. Asked here
   // rather than at press time because by then the press itself has already
   // unlocked audio through audio.js's own window listeners.
+  // Settings and the move list can be opened from the splash now, and they sit
+  // OVER it rather than replacing it — so the title track holds underneath
+  // them instead of cutting to the menu one and restarting on the way back.
+  if (phase === "title") setTitleLive(true);
+  else if (!TITLE_HOLD_PHASES.has(phase)) setTitleLive(false);
   if (phase === "title") {
     titleArmed = !titleNeedsWake();
     els.titleOverlay?.classList.remove("is-waking");
@@ -1804,7 +1814,11 @@ function movePickerCursor(playerId, dx, dy) {
 // everyone is locked in). A activates the highlighted button.
 // The VS badge rides along with the corner menus so LB/RB reaches the mode
 // picker too — a pad player never touches the mouse.
-const UTILITY_IDS = ["movesButton", "muteButton", "settingsButton", "fullscreenButton", "vsModeButton"];
+// The four buttons in the bottom-right corner, in cycling order. They are the
+// whole list on the title splash; the select screen appends its VS badge so
+// LB/RB reaches the mode picker there too.
+const CORNER_IDS = ["movesButton", "muteButton", "settingsButton", "fullscreenButton"];
+const UTILITY_IDS = [...CORNER_IDS, "vsModeButton"];
 let utilityIdx = -1;
 let menuHighlightEl = null;
 
@@ -1820,11 +1834,13 @@ function setMenuHighlight(el) {
 
 function syncMenuHighlight() {
   if (utilityIdx >= 0) setMenuHighlight(els[UTILITY_IDS[utilityIdx]]);
+  // No fighters to be ready on the splash, and its start button belongs to the
+  // select screen — the highlight simply rests nowhere.
+  else if (state.phase === "title") setMenuHighlight(null);
   else setMenuHighlight(allReady() ? els.startButton : null);
 }
 
-function cycleUtility(dir) {
-  const n = UTILITY_IDS.length;
+function cycleUtility(dir, n = UTILITY_IDS.length) {
   utilityIdx = dir > 0
     ? (utilityIdx >= n - 1 ? -1 : utilityIdx + 1)
     : (utilityIdx < 0 ? n - 1 : utilityIdx - 1);
@@ -1980,6 +1996,25 @@ export function updateMenuNav(dt) {
   // Start button itself the same way.
   if (state.phase === "title") {
     const pads = padsMenuStates();
+    // LB/RB reach the corner buttons here as they do on the select screen —
+    // otherwise a pad-only player has no way to mute the one screen that
+    // starts playing music at them unasked. Nothing is highlighted to begin
+    // with, so a blind press of A still just starts the game.
+    if (pads.some((p) => p.pageNextP)) cycleUtility(1, CORNER_IDS.length);
+    else if (pads.some((p) => p.pagePrevP)) cycleUtility(-1, CORNER_IDS.length);
+    if (utilityIdx >= 0) {
+      if (pads.some((p) => p.confirmP)) {
+        const el = els[CORNER_IDS[utilityIdx]];
+        utilityIdx = -1;
+        setMenuHighlight(null);
+        el.click();
+        return;
+      }
+      if (pads.some((p) => p.backP)) utilityIdx = -1;
+      syncMenuHighlight();
+      return;
+    }
+    setMenuHighlight(null);
     if (pads.some((p) => p.confirmP) || padsMenuState().confirmP) leaveTitle({ fullscreen: true });
     return;
   }
@@ -2044,6 +2079,10 @@ function bindMenuKeyboardNav() {
     // user gesture, so unlike the pad path this fullscreen request is granted.
     if (state.phase === "title") {
       const key = e.code || e.key;
+      // …unless the player has tabbed to one of the corner buttons, in which
+      // case Enter belongs to the thing they are pointing at. Without this,
+      // tabbing to Mute and pressing Enter started the match instead.
+      if (document.activeElement?.closest(".utility-actions")) return;
       if (["Enter", "Return", "NumpadEnter", "Space"].includes(key)) {
         e.preventDefault();
         leaveTitle({ fullscreen: true });

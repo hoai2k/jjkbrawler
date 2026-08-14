@@ -113,6 +113,18 @@ export function setMatchLive(live) {
   matchLive = live;
 }
 
+// The same question for the title splash, which now has the corner menus on it:
+// Settings and the move list can be opened from the title as well as from a
+// live match, and in both cases they are a screen laid OVER something with its
+// own music rather than a place of their own. Without this, ducking into
+// Settings from the title cut Iron vs Bone to the menu track and coming back
+// restarted it from zero.
+let titleLive = false;
+
+export function setTitleLive(live) {
+  titleLive = live;
+}
+
 // Default: the stage's own track. Random: anything in the library, board tracks
 // and originals alike, drawn fresh per match. Off: silence everywhere.
 export const MUSIC_MODES = MUSIC_MODE_CONFIG;
@@ -261,8 +273,21 @@ export function audioSuspended() {
 /** Returns the element playing it, or null — a caller that may need to CUT the
  *  sound short keeps the handle; everyone else ignores the return value. */
 export function playSfx(name, intensity = 1, rate = 0) {
+  return playSfxEntry(entryFor(name), intensity, rate);
+}
+
+/**
+ * Play a sound described by a registry-shaped entry rather than by name.
+ *
+ * The game always knows the name; the audio workbench does not — it auditions
+ * ALTERNATE takes (config_audio.js `VOICE_ALTERNATES`), which are files with no
+ * registry key because the game never plays them. Routing them through here
+ * rather than through a bare Audio element is the point: an alternate is judged
+ * at the level its category and gain would give it in a match, which is the
+ * comparison that decides whether to promote it.
+ */
+export function playSfxEntry(entry, intensity = 1, rate = 0) {
   if (!unlocked || suspended || audioSettings.muted || !state.sfxEnabled || audioSettings.sfxVolume <= 0) return null;
-  const entry = entryFor(name);
   if (!entry) return null; // an undelivered sound is silence, not an error
   if (active.size > MAX_VOICES) return null; // safety valve
   const el = new Audio(srcFor(entry));
@@ -428,7 +453,7 @@ export function syncMusic(phase) {
   // Paused, or on a screen opened from inside a live match: hold the battle
   // track exactly where it is. `src` stays what is already loaded so the
   // element is only paused, never re-sourced.
-  const hold = MATCH_HOLD_PHASES.has(phase) && matchLive;
+  const hold = MATCH_HOLD_PHASES.has(phase) && (matchLive || titleLive);
   const menu = !hold && MENU_PHASES.has(phase);
   // The title screen is deliberately NOT a menu phase: it takes its own track
   // and skips MENU_TRACK.volumeScale below, so the splash opens at full

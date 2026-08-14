@@ -21,7 +21,7 @@ import {
   RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
-import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "./config_tuning.js";
+import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, TELEPORT } from "./config_tuning.js";
 import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
 import { currentFrame } from "./render_backend.js";
@@ -69,6 +69,7 @@ export function makeFighter(id, charKey, x, facing) {
     throatStrain: 0, throatLock: 0,
     statuses: freshStatuses(),
     ledge: null, ledgeCooldown: 0, ledgeTimer: 0,
+    visDX: 0, visDY: 0, visX0: 0, visY0: 0, visT: 0,
     respawnTimer: 0, dead: false,
     // The revival platform this fighter is currently standing on, or null.
     // {x, y, t} — see stepRespawnPlatform.
@@ -305,6 +306,35 @@ function beginDodge(f, type, dir = 0) {
 
 // ------------------------------------------------------------------ ledges
 
+/**
+ * Put a fighter somewhere, and let the DRAWING catch up.
+ *
+ * The ledge is a sequence of exact positions — the hang point, the get-up
+ * spot, the roll's landing — and the simulation is right to snap to them: the
+ * hitbox of a ledge attack has to be where the attack is the frame it exists.
+ * Drawn verbatim, though, a snap of 40-110 px in one frame is a body
+ * disappearing and reappearing somewhere else, and doing that twice in half a
+ * second (grab, then get-up) is the flicker.
+ *
+ * So the jump is banked as a visual offset that eases off over TELEPORT.settle
+ * (config_tuning.js) — the same offsetX/offsetY channel the run bob uses, read
+ * by every render backend. f.x/f.y are the simulation's, untouched.
+ */
+function placeFighter(f, x, y) {
+  const dx = f.x - x;
+  const dy = f.y - y;
+  f.x = x;
+  f.y = y;
+  if (Math.abs(dx) < TELEPORT.min && Math.abs(dy) < TELEPORT.min) return;
+  // Added to whatever is still settling, so a get-up half a slide after the
+  // grab resumes from where the body actually is rather than snapping to it.
+  f.visDX = clamp(f.visDX + dx, -TELEPORT.max, TELEPORT.max);
+  f.visDY = clamp(f.visDY + dy, -TELEPORT.max, TELEPORT.max);
+  f.visX0 = f.visDX;
+  f.visY0 = f.visDY;
+  f.visT = TELEPORT.settle;
+}
+
 function tryGrabLedge(f) {
   if (f.grounded || f.ledge || f.ledgeCooldown > 0 || f.respawnTimer > 0) return;
   // Must have genuinely left the stage (no walk-off regrab loops) and not be
@@ -342,8 +372,8 @@ function tryGrabLedge(f) {
         playSfx("whoosh", 0.6);
       }
       f.ledge = { side, edgeX, plat };
-      f.x = edgeX + (side === -1 ? -LEDGE_HANG_X : LEDGE_HANG_X);
-      f.y = plat.y + LEDGE_HANG_Y;
+      placeFighter(f, edgeX + (side === -1 ? -LEDGE_HANG_X : LEDGE_HANG_X),
+                   plat.y + LEDGE_HANG_Y);
       f.vx = 0; f.vy = 0;
       f.spin = 0;
       f.action = null;
@@ -379,8 +409,7 @@ function updateLedge(f, dt, input) {
   if (input.jumpP) {
     f.ledge = null;
     f.ledgeCooldown = 0.5;
-    f.x = l.edgeX + (l.side === -1 ? 40 : -40);
-    f.y = l.plat.y - 8;
+    placeFighter(f, l.edgeX + (l.side === -1 ? 40 : -40), l.plat.y - 8);
     f.vy = -stats(f).jump * 0.95;
     f.invuln = Math.max(f.invuln, 0.32);
     dust(f.x, f.y, 10);
@@ -389,8 +418,7 @@ function updateLedge(f, dt, input) {
   if (input.lightP || input.heavyP) {
     f.ledge = null;
     f.ledgeCooldown = 0.55;
-    f.x = l.edgeX + (l.side === -1 ? 52 : -52);
-    f.y = l.plat.y;
+    placeFighter(f, l.edgeX + (l.side === -1 ? 52 : -52), l.plat.y);
     f.grounded = true;
     f.invuln = Math.max(f.invuln, 0.3);
     executeMove(f, { ...lightMove(f.char, "side"), label: "Ledge " + f.char.light.label });
@@ -400,8 +428,8 @@ function updateLedge(f, dt, input) {
     const roll = input.shieldHeld;
     f.ledge = null;
     f.ledgeCooldown = 0.55;
-    f.x = l.edgeX + (l.side === -1 ? (roll ? 110 : 56) : (roll ? -110 : -56));
-    f.y = l.plat.y;
+    placeFighter(f, l.edgeX + (l.side === -1 ? (roll ? 110 : 56) : (roll ? -110 : -56)),
+                 l.plat.y);
     f.grounded = true;
     f.vx = 0;
     f.invuln = Math.max(f.invuln, roll ? 0.55 : 0.34);
@@ -1242,6 +1270,18 @@ function updatePresentation(f, dt) {
   f.landT = Math.max(0, f.landT - dt);
   f.takeoffT = Math.max(0, f.takeoffT - dt);
   f.fxTrailT = Math.max(0, f.fxTrailT - dt);
+
+  // The drawing catching up with a snap (placeFighter), on a smoothstep: no
+  // frame of it moves much more than a run does, which is what stops the
+  // catch-up from being a second pop.
+  if (f.visT > 0) {
+    f.visT = Math.max(0, f.visT - dt);
+    const k = f.visT / TELEPORT.settle;
+    const e = k * k * (3 - 2 * k);
+    f.visDX = f.visX0 * e;
+    f.visDY = f.visY0 * e;
+    if (f.visT === 0) { f.visDX = 0; f.visDY = 0; f.visX0 = 0; f.visY0 = 0; }
+  }
 
   // Tumble: spin while reeling, then unwind to upright so a fighter always
   // lands on their feet rather than frozen at whatever angle hitstun ended on.

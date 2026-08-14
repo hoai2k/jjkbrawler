@@ -182,6 +182,46 @@ One pose answers "is this rig good" and "what is left in the pipeline" at the
 same time — which is the whole reason the list lives here rather than only in
 a tool nobody remembers to run.
 
+### The model bench — turning the bones, not the pose
+
+`render3d/workbench/?edit=models` is the tool that goes with those poses: one
+fighter in a T- or A-pose, in a live viewport you can orbit and zoom, with a
+rotation handle on every bone.
+
+Pick a bone — from the list, or by clicking its dot on the body — and drag one
+of the three rings until the pose looks like an actual T. Red turns about X,
+green about Y, blue about Z, and a ring seen edge-on goes dim, because a
+thirteen-pixel ellipse cannot be dragged accurately and no amount of trying
+changes that: orbit until it opens up.
+
+**What you are editing is not the pose.** It is the fighter's entry in
+`RIG_FIXES`, so a shoulder straightened here is straightened in the idle, the
+run and the punch. The bench writes into that live table, which means the
+figure in front of you is drawn by exactly the code that will draw it in the
+game — and **Corrections on/off** switches the whole layer, so you can see the
+`.glb` as delivered and what the engine makes of it, one click apart.
+
+**⤓ Download corrections** hands back every fighter touched in the session, in
+the shape `RIG_FIXES` takes:
+
+```jsonc
+{ "kind": "render3d-model-bench",
+  "fixes": { "yuji": { "model": "yuji/yuji.glb",
+                       "bones": { "LeftShoulder": [0, 0, 19.2] } } } }
+```
+
+Angles are XYZ Euler degrees in the bone's **parent** frame, which is the frame
+`applyRigFixes` composes in — the one frame that means the same thing whatever
+the arm happens to be doing. That is also why the rings are aligned to the
+parent rather than to the world: what you drag is what gets recorded.
+
+It has its own renderer rather than the game's pipeline, and deliberately: the
+other benches pose a rig, render it to a 512px texture and blit that, which is
+right for judging what a player sees and useless for surgery — you cannot orbit
+a texture or pick a joint in one. `tools/smoke_model_bench.mjs` guards it,
+including that a tenth of a turn on a ring records 36° about that ring's axis
+and nothing about the other two.
+
 Implementation: `poseRigCheck` in `render3d/src/pose.js` (which throws the
 clip away and calls `applyBindPose` — `restoreClean` restores the pose the
 last CLIP left, which after one frame is not the bind), and `applyBindPose` in
