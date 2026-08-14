@@ -90,6 +90,11 @@ def main():
             if target.startswith(("http://", "https://", "mailto:", "#!")):
                 continue
             file_part, _, frag = target.partition("#")
+            # A query string is part of the URL, not of the path. The workbench
+            # router reads `/workbench/?edit=audio`, so eight honest links in
+            # README.md and docs/audio-requests.md were reported as missing
+            # files that were sitting right there.
+            file_part = file_part.partition("?")[0]
             resolved = path if not file_part else os.path.normpath(os.path.join(base, file_part))
             if file_part and not os.path.exists(resolved):
                 problems.append((path, target, "no such file"))

@@ -11,7 +11,7 @@
 //
 //   node tools/check_battle_poses.mjs        (runs in `npm run check`)
 
-import { BATTLE_POSES, MATCHED_FRAMES } from "../render3d/src/battle_poses.js";
+import { BATTLE_POSES, MATCHED_FRAMES, GAIT_FRAMES } from "../render3d/src/battle_poses.js";
 import { INTENT_POSES, INTENTS, intentFor, baselinePose, CONTACTS, HEIGHTS, AIRBORNE }
   from "../render3d/src/baseline_poses.js";
 import { RIG_FIXES, applyRigFixes, fixesFor } from "../render3d/src/rig_fixes.js";
@@ -66,7 +66,8 @@ for (const [intent, pose] of Object.entries(INTENT_POSES)) checkPose(`baseline/$
 // the frames Yuji has are required today — he is the read character, and the
 // rest of the roster is seeded — but the gap is worth printing.
 const yuji = JSON.parse(readFileSync(join(READS, "yuji.json"), "utf8"));
-const missing = Object.keys(yuji.poses).filter((k) => !MATCHED_FRAMES.has(k));
+const missing = Object.keys(yuji.poses)
+  .filter((k) => !MATCHED_FRAMES.has(k) && !GAIT_FRAMES.has(k));
 if (missing.length) fail(`yuji has no matched pose for: ${missing.join(", ")}`);
 
 // THE BASELINE'S ONE PROMISE: it covers everything. A per-frame match is an
@@ -82,13 +83,14 @@ for (const file of readdirSync(READS).filter((f) => f.endsWith(".json"))) {
   const data = JSON.parse(readFileSync(join(READS, file), "utf8"));
   for (const k of Object.keys(data.poses)) {
     frames++;
-    if (!MATCHED_FRAMES.has(k)) others.add(k);
+    if (!MATCHED_FRAMES.has(k) && !GAIT_FRAMES.has(k)) others.add(k);
     const b = baselinePose(k);
     if (!b?.pose) fail(`${file}/${k}: the baseline returned nothing — it is supposed to be total`);
     else if (!INTENT_POSES[b.intent]) fail(`${file}/${k}: intent "${b.intent}" has no pose`);
     // Landing on the universal floor is not a failure, but it IS the resolver
     // saying "I have never heard of this frame", and that is worth printing.
-    if (b.intent === "stance" && intentFor(k) === "stance" && !/^idle/.test(k)) generic.add(k);
+    if (b.intent === "stance" && intentFor(k) === "stance" && !/^idle/.test(k)
+        && !GAIT_FRAMES.has(k)) generic.add(k);
   }
 }
 
@@ -228,8 +230,10 @@ for (const file of readdirSync(READS).filter((f) => f.endsWith(".json"))) {
 const orphans = INTENTS.filter((i) => !reached.has(i));
 if (orphans.length) fail(`baseline intents no frame reaches: ${orphans.join(", ")}`);
 
+const gait = Object.keys(yuji.poses).filter((k) => GAIT_FRAMES.has(k));
 console.log(`battle poses ok: ${MATCHED_FRAMES.size} matched frames, `
-  + `all ${Object.keys(yuji.poses).length} of yuji's sheet covered`);
+  + `all ${Object.keys(yuji.poses).length - gait.length} of yuji's sheet covered`
+  + (gait.length ? `, ${gait.length} left to the gait cycle (${gait.join(", ")})` : ""));
 console.log(`baseline ok: ${INTENTS.length} intents cover all ${frames} frames `
   + `across the roster, ${reached.size} of them reached`);
 console.log(`contacts ok: ${Object.values(CONTACTS).filter(Boolean).length} declared, `
