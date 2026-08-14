@@ -489,7 +489,21 @@ export async function ensureRig(charKey, GLTFLoader) {
  *  `eager` limits WHICH delivered rigs are fetched now: a list of keys loads
  *  only those and leaves the rest to `ensureRig`. Omitted means all of them,
  *  which is what a match wants. */
-export async function initRigs(three, GLTFLoader, mannequinFor = [], allCharKeys = [], eager = null) {
+/** APPROVED IS NOT THE SAME AS READY TO PLAY. `approved` says the delivery
+ *  passed intake and belongs in the repo; `inGame: false` says this particular
+ *  body is not fit to be seen by a player yet — Mei Mei's arm is 151% of a
+ *  normal one, Kurourushi is mid-rebuild — while still being exactly what the
+ *  workbench exists to look at. Two flags because they answer two questions,
+ *  and collapsing them would mean un-approving an asset to hide it, which also
+ *  hides it from the tool that would fix it.
+ *
+ *  Absent means yes: a fighter is in the game unless someone says otherwise. */
+export function inGame(charKey) {
+  return MANIFEST?.characters?.[charKey]?.inGame !== false;
+}
+
+export async function initRigs(three, GLTFLoader, mannequinFor = [], allCharKeys = [],
+                               eager = null, opts = {}) {
   THREE = three;
   DEFAULT_CLIPS = buildDefaultClips(THREE);
 
@@ -505,6 +519,11 @@ export async function initRigs(three, GLTFLoader, mannequinFor = [], allCharKeys
   const wanted = eager ? new Set(eager) : null;
   for (const [charKey, entry] of Object.entries(MANIFEST.characters || {})) {
     if (!entry?.approved || !entry.model) continue;
+    // Held back from PLAY, not from the tools. The default is the cautious
+    // one, so a caller that has not thought about it — the game, and anything
+    // added later — gets the fighter's sprites rather than a body somebody
+    // marked as not ready. The workbenches opt in.
+    if (entry.inGame === false && !opts.includeDisabled) continue;
     if (wanted && !wanted.has(charKey)) continue;
     loads.push(loadGlbRig(charKey, entry, GLTFLoader).catch((err) => {
       console.warn(`render3d: rig for "${charKey}" failed to load — drawing their sprites instead. ${err.message}`);

@@ -140,7 +140,9 @@ scene.initScene(THREE);
 // never settles, nothing below it ever runs, and the page renders perfectly
 // with every control dead. That is the worst failure shape there is — it
 // looks like a broken button, not like a browser giving up.
-await rig.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS, [wb.char]);
+await rig.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS, [wb.char],
+  // The bench looks at bodies the game is not showing yet — that is the job.
+  { includeDisabled: true });
 
 /** Bring a character's real rig in before showing them. */
 async function ensureChar(charKey) {
@@ -165,7 +167,10 @@ function fillCharSelect(sel, hasModel) {
   const add = (key) => {
     const o = document.createElement("option");
     o.value = key;
-    o.textContent = label(key);
+    // ⊘ marks a body the game is not showing yet. Marked in the LIST because
+    // "why is this fighter drawing as sprites in-game" is a question you want
+    // answered before spending a session on them, not after.
+    o.textContent = rig.inGame(key) ? label(key) : `⊘ ${label(key)}`;
     sel.append(o);
   };
   for (const key of delivered) add(key);
@@ -730,9 +735,13 @@ function syncPanel() {
   $("sourceLine").textContent = resolved
     ? `resolves: ${resolved.source}` : "resolves: NOTHING — state would fall to sprites";
   const r = rig.getRig(wb.char);
+  const held = entry.inGame === false
+    ? ` — HELD BACK FROM THE GAME${entry.inGameNote ? `: ${entry.inGameNote}` : ""}`
+    : "";
   $("rigLine").textContent = entry.model
-    ? `rig: ${entry.model}${entry.approved ? " (approved)" : " (NOT approved)"}`
+    ? `rig: ${entry.model}${entry.approved ? " (approved)" : " (NOT approved)"}${held}`
     : `rig: none delivered — mannequin standing in (${r ? r.clips.size : 0} own clips)`;
+  document.body.classList.toggle("held-back", entry.inGame === false);
   fromSel.value = entry.clips?.[clipNameFor(wb.state)]?.from || "";
   inheritSel.value = entry.inheritClips || "default";
   $("approveToggle").checked = !!entry.approved;
@@ -1427,6 +1436,25 @@ async function ensureGhostFrame() {
 // control away — a dial that silently edits whichever of the five happens to
 // be selected is a dial that damages four of them by accident.
 
+/** "This body is not in the game yet", written where the body is.
+ *
+ *  The panel says it too, but the panel is not on screen in the line-up and is
+ *  behind the overlay in the Idle Review — and those are exactly the views
+ *  where five fighters are being compared and one of them is not shipping.
+ *  Drawn under the feet, in the same place every other caption goes. */
+function drawHeldBack(ctx, charKey, x, groundY) {
+  if (rig.inGame(charKey)) return;
+  ctx.save();
+  ctx.font = "600 12px system-ui, sans-serif";
+  const text = "not in game yet";
+  const w = ctx.measureText(text).width;
+  ctx.fillStyle = "rgba(210, 150, 90, 0.16)";
+  ctx.fillRect(x - w / 2 - 6, groundY + 24, w + 12, 17);
+  ctx.fillStyle = "#d3925a";
+  ctx.fillText(text, x - w / 2, groundY + 36);
+  ctx.restore();
+}
+
 const CAST = 5;
 /** How far apart they stand, in game pixels — wide enough that a spear or a
  *  swung axe does not cross into the neighbour's half. */
@@ -1470,6 +1498,7 @@ async function drawLineUp() {
     rig.setBoneProxy(char, false);
     const entry = scene.renderPose(char, wb.state, wb.t, r, resolved, base);
     if (entry) blitPose(ctx, entry, char, x, GROUND_Y, { scale: getActor(char)?.scale, facing, alpha: 0.95 });
+    drawHeldBack(ctx, char, x, GROUND_Y);
 
     // The rig goes on the SHELF, in the slot the drawing would have taken.
     // Five pairs have no room for a third column each, and the models are the
@@ -1627,6 +1656,7 @@ async function draw() {
   lastEntry = entry;
   if (entry) {
     blitPose(ctx, entry, wb.char, CX, GROUND_Y, { scale: getActor(wb.char)?.scale, facing, alpha: 0.95 });
+    drawHeldBack(ctx, wb.char, CX, GROUND_Y);
   } else {
     ctx.fillStyle = "#d38f8f";
     ctx.fillText("no pose resolved — this state would draw as sprites in-game", CX - 160, GROUND_Y - 100);

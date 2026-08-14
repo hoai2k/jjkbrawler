@@ -1961,7 +1961,7 @@ async function boot() {
   initPose(THREE);
   // Mannequins for everyone and no GLB fetched up front: a tool that looks at
   // one fighter at a time pays for one fighter at a time (loader.js initRigs).
-  await rigs.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS, []);
+  await rigs.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS, [], { includeDisabled: true });
 
   $("#charPick").addEventListener("change", (e) => { ui.pose = null; selectChar(e.target.value); });
   $("#poseList").addEventListener("click", (e) => {

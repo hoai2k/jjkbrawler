@@ -115,7 +115,87 @@ Approval is **all-or-nothing per fighter**, decided in the render3d workbench
 (sweeping-light face check first, then every clip against its sprite ghost,
 at the beat, under the aim crosshair, facing both ways).
 
-### Two models of one fighter
+### Approved, but not in the game yet
+
+`approved` and `inGame` answer two different questions and a fighter needs both
+to reach a player. `approved: true` says the delivery passed intake and belongs
+in the repo — it is what the workbench opens. `inGame: false` says this
+particular body is not fit to be SEEN by a player yet, and the game draws their
+sprites instead.
+
+```jsonc
+"meimei": { "approved": true, "inGame": false,
+            "inGameNote": "arm at 151% of a normal one; feet 1.52/1.56" }
+```
+
+Collapsing the two — hiding a fighter by un-approving them, which is what was
+done to Mei Mei and Kurourushi — also hides them from the tool that would fix
+them. The workbenches pass `{ includeDisabled: true }` to `initRigs` and mark
+them: `⊘` in the roster list, the reason on the rig line, and **"not in game
+yet"** drawn under the fighter's feet, so it travels into the line-up and the
+Idle Review where the panel is not on screen. Everything else — the default —
+gets the cautious answer.
+
+### Gakuganji cannot be given a two-handed idle by the grip solver
+
+He is drawn playing his guitar with both hands and the model carries it in one,
+so the obvious fix is to let the off-hand grip solve run in idle for a guitar
+while leaving polearms alone (a `carryTwoHanded` flag on the weapon KIND). It
+was built, and it must not be: it reproduces exactly the failure
+`TWO_HAND_STATES` was written to avoid, and it takes the carrying arm with it.
+
+Measured on his idle, the flag being the only difference:
+
+| | left elbow | left hand | guitar |
+|---|---|---|---|
+| grip off in idle (shipping) | 7.3° | 0.943 m | 0.678 m — at his side |
+| grip on in idle | **118.7°** | 1.406 m | **1.658 m** — above his head (1.564) |
+
+The solve puts the off hand a fixed distance DOWN-SHAFT from the carrying hand.
+In a strike that is right, because the clip presents the weapon across the body
+and both arms are posed. At rest the shaft rides a hand the solver is also
+moving, so the two chase each other upward — the same runaway that sent Maki's
+off arm over her head, and the reason the comment in `ik.js` says idle "was
+tried". It also breaks the Idle Review's arm dial for him, because his arms
+stop answering to `applyIdleArms` at all.
+
+What a two-handed idle actually needs is a grip TARGET that is a point on the
+instrument's body rather than an offset from the other hand, or simply an
+authored idle pose — his clip already holds his arms up near the instrument.
+Not this solver.
+
+### Uro's neck cannot be repaired by surgery
+
+Recorded because it was tried three ways and none of them work, and the next
+person to look at her should skip straight to a regeneration.
+
+Her sprite wears a plain dark choker. The generator saw the choker AND the
+pale-blue cursed-energy cloud she is drawn inside, and built both out of the
+same lumpy shelves: a collar of irregular slabs through her throat, in **41
+separate shells** in the band around the neck joint.
+
+They cannot be cut away, because they are not separable from her:
+
+* **By shell, conservatively** (shells lying wholly in the collar band): 396
+  vertices, 7 shells — the shelves straddle the band edge and survive.
+* **By shell, widened** to everything between 1.5 and 5 neck-radii out with no
+  Head/Neck/Chain vertex: 1865 vertices, 16 shells — clears some, leaves the
+  ring at the collarbone and a ragged fringe where each shell was cut.
+* **By shell, aggressively** (down to the chest, out to 9 radii): 4293
+  vertices, 52 shells — and it takes her shoulders and upper torso with them,
+  leaving a floating head.
+
+The cloud is weighted to `Left/RightShoulder` and `Spine2`, the same bones as
+her actual shoulders, and interleaved with them in space; there is no
+threshold in bone, height or radius that separates the two. **Grafting the
+head from her pre-D6 model** (`graft_model_part.py --part head`) does give a
+clean skull and column — her older generation has a proper neck with the
+choker's band at its base — but the shelves are shoulder-weighted, so they
+stand untouched under the new head.
+
+What she needs is a seed that does not draw the cloud: the DI board reshot
+with the cursed energy removed, so the generator models a woman with a choker
+instead of a woman inside a cloud.
 
 A regeneration does not always win. When a fighter is rebuilt, the model it
 replaces is kept beside it as `<char>_alt.glb` and registered under an `alt`
