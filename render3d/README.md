@@ -150,6 +150,37 @@ both dialled in the workbench under **Model size & facing**:
   number (`IDLE_ARM_DEG`, 9°); a heavy coat or a wide body wants more room than
   a school uniform does, and only the drawing can say how much. Dialled in the
   Idle Review beside size, stance, head and facing.
+- `kneeDeg` — how far each leg is turned about its own length, degrees,
+  positive bringing the knees IN. Generated legs arrive screwed outward at the
+  hip: the kneecap and the toe both point away from the midline, and the leg
+  reads bandy however straight it is. **It is a roll, not a bend, and that
+  distinction cost a round.** The obvious reading of "his knees bend outward"
+  is a bow leg — thigh and shin meeting at an angle seen from the front — and
+  the BIND does have exactly that (Geto's shins jut 18° and 34° out of their
+  thighs, the worst on the roster). But nothing posed shows it: `applyIdleStand`
+  aims both leg bones down one line, so the leg comes out dead straight and the
+  frontal kink measures 0 on every fighter. What survives the straightening is
+  the twist, because aiming a bone sets its direction and says nothing about
+  its roll — so the knee that looks wrong is one facing the wrong WAY.
+  Correcting the bend instead ADDED 2.9° and 5.4° of kink to Geto and visibly
+  widened him.
+
+  Note this is not what `stanceDeg` does. Stance swings the whole leg out from
+  the hip as one rigid direction — it opens the feet and never touches the
+  knee — and the two dials sit beside each other in the review because they are
+  the two independent things a leg can be wrong about.
+
+  Applied under EVERY state (`ik.js applyKneeTurn`, from the GLB correction
+  block in `pose.js`), not just the idle: knees that square up standing and
+  splay again in a crouch would be a correction in the wrong layer. The whole
+  leg turns rigidly, thigh, shin and foot together, which is what femoral
+  rotation is and what leaves a bent knee bent by the same amount somewhere
+  else. `tools/rig_calibrate.mjs` names the fighters worth looking at — it
+  prints two readings, the knee's hinge axis and the toe's heading, and flags
+  only rigs where both agree, because each is wrong on its own (the hinge
+  over-reads: Yuji measures 60° and wants about 15; the toe bone is built at an
+  angle on some rigs: Meimei measures 82° and wants nothing). Seven fighters
+  carry a value; the dial is what settles it.
 **Two mesh repairs live in `tools/`** for faults no dial can reach. Both edit a
 delivered .glb and leave the skeleton, weights and UVs alone.
 `smooth_mesh_region.py` takes the high-frequency lumps out of a patch of

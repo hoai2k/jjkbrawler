@@ -971,6 +971,9 @@ const facingUI = {
   armVal: $("facingArmVal"),
   shoulder: $("facingShoulder"),
   shoulderVal: $("facingShoulderVal"),
+  knee: $("facingKnee"),
+  kneeVal: $("facingKneeVal"),
+  more: $("facingMore"),
   stage: $("facingStage"),
   pick: $("facingDialPick"),
 };
@@ -1011,6 +1014,7 @@ function revertChar(char) {
     headTiltDeg: entry.headTiltDeg ?? 0,
     armDeg: entry.armDeg ?? NaN,   // NaN clears it back to "nobody has said"
     shoulderOutCm: entry.shoulderOutCm ?? 0,
+    kneeDeg: entry.kneeDeg ?? 0,
   });
 
   // The look dials pin themselves onto the materials, so a knob this session
@@ -1158,6 +1162,9 @@ function facingShow() {
   const shoulder = r?.shoulderOutCm ?? 0;
   facingUI.shoulder.value = String(shoulder);
   facingUI.shoulderVal.textContent = `${shoulder.toFixed(1)}cm`;
+  const knee = r?.kneeDeg ?? 0;
+  facingUI.knee.value = String(knee);
+  facingUI.kneeVal.textContent = `${knee}°`;
   facingUI.name.textContent = CHARACTERS[char]?.name || char;
   facingSyncProgress();
   facingUI.overlay.classList.toggle("decided", facing.touched.has(char));
@@ -1230,6 +1237,33 @@ function facingSetShoulder(cm) {
   facingSyncProgress();
 }
 
+/** How far this fighter's legs are turned about their own length, in degrees,
+ *  positive bringing the knees IN.
+ *
+ *  A MODEL correction, not a pose: generated legs come out screwed outward at
+ *  the hip, so the kneecap and the toe both point away from the midline and
+ *  the leg reads bandy even though it is dead straight — straightening a bone
+ *  sets its direction and never its twist. Measured on the posed idle the
+ *  knee's hinge sits 80 degrees off the body's width line on Geto, Mahito and
+ *  Choso and under 5 on Meimei, so it is per-model and wants a dial. It is
+ *  applied under every state (pose.js, the GLB correction block) rather than
+ *  in the idle, because knees that square up standing and splay again in a
+ *  crouch would be a correction in the wrong layer. */
+function facingSetKnee(deg) {
+  const clamped = Math.max(-30, Math.min(80, Math.round(deg)));
+  const char = facing.list[facing.i];
+  rig.setRigSettings(tunedKey(char), { kneeDeg: clamped });
+  if (clamped) tunedEntry(char).kneeDeg = clamped;
+  else delete tunedEntry(char).kneeDeg;
+  wb.dirty.add(char);
+  facing.touched.add(char);
+  scene.clearCache();
+  facingUI.knee.value = String(clamped);
+  facingUI.kneeVal.textContent = `${clamped}°`;
+  facingUI.overlay.classList.add("decided");
+  facingSyncProgress();
+}
+
 function facingSetStance(deg) {
   const clamped = Math.max(-10, Math.min(25, Math.round(deg)));
   const char = facing.list[facing.i];
@@ -1280,6 +1314,7 @@ $("facingYaw").oninput = () => facingSetYaw(parseFloat(facingUI.yaw.value) || 0)
 $("facingHead").oninput = () => facingSetHead(parseFloat(facingUI.head.value) || 0);
 $("facingArm").oninput = () => facingSetArm(parseFloat(facingUI.arm.value) || 0);
 $("facingShoulder").oninput = () => facingSetShoulder(parseFloat(facingUI.shoulder.value) || 0);
+$("facingKnee").oninput = () => facingSetKnee(parseFloat(facingUI.knee.value) || 0);
 for (const b of document.querySelectorAll("[data-scale]")) {
   b.onclick = () => facingSetScale((parseFloat(facingUI.scale.value) || 1)
     + parseFloat(b.dataset.scale));
@@ -1300,6 +1335,10 @@ for (const b of document.querySelectorAll("[data-arm]")) {
   b.onclick = () => facingSetArm((parseFloat(facingUI.arm.value) || 0)
     + parseFloat(b.dataset.arm));
 }
+for (const b of document.querySelectorAll("[data-knee]")) {
+  b.onclick = () => facingSetKnee((parseFloat(facingUI.knee.value) || 0)
+    + parseFloat(b.dataset.knee));
+}
 for (const b of document.querySelectorAll("[data-headtilt]")) {
   b.onclick = () => facingSetHead((parseFloat(facingUI.head.value) || 0)
     + parseFloat(b.dataset.headtilt));
@@ -1318,6 +1357,15 @@ facingUI.pick.onchange = () => {
   for (const d of document.querySelectorAll("#facingDials .facing-dial")) {
     d.classList.toggle("active", d.dataset.dial === facingUI.pick.value);
   }
+};
+
+/** The four settle-once dials, folded away. Desk only — the phone layout
+ *  shows one dial at a time and reaches the rest through the picker, so this
+ *  button is hidden there rather than fighting it. */
+facingUI.more.onclick = () => {
+  const on = $("facingDials").classList.toggle("more");
+  facingUI.more.setAttribute("aria-expanded", String(on));
+  facingUI.more.textContent = on ? "Less \u25b4" : "More \u25be";
 };
 
 $("facingRevert").onclick = () => {
@@ -1349,6 +1397,7 @@ $("facingSave").onclick = () => {
       stanceDeg: man.characters[k]?.stanceDeg ?? 0,
       armDeg: man.characters[k]?.armDeg ?? null,
       shoulderOutCm: man.characters[k]?.shoulderOutCm ?? 0,
+      kneeDeg: man.characters[k]?.kneeDeg ?? 0,
       yawOffsetDeg: man.characters[k]?.yawOffsetDeg ?? 0,
     }])),
     characters: Object.fromEntries(chars.map((k) => [k, man.characters[k]])),

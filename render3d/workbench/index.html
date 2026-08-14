@@ -389,7 +389,9 @@
           then move on — Download JSON saves every change, and Revert puts one
           fighter back to what the file said if you moved the wrong dial. The
           legs are straightened and the soles levelled for you; stance opens
-          them from there.</div>
+          them from there, and Knees turns them about their own length when the
+          model was built with the kneecaps and toes pointing outward. More
+          unfolds size, arms, head and facing.</div>
 
         <!-- ONE CONTROL AT A TIME, on a phone. Four dial rows plus the action
              row is most of a phone screen, and the screen is what the pass is
@@ -399,16 +401,32 @@
              still here, one select away. On the desk all four stay visible,
              because there the space is free. -->
         <select id="facingDialPick" class="dial-pick" aria-label="Which dial to show">
-          <option value="head" selected>Head</option>
-          <option value="scale">Size</option>
-          <option value="stance">Stance</option>
-          <option value="arms">Arms</option>
+          <option value="knees" selected>Knees</option>
           <option value="shoulders">Shoulders</option>
+          <option value="stance">Stance</option>
+          <option value="head">Head</option>
+          <option value="scale">Size</option>
+          <option value="arms">Arms</option>
           <option value="yaw">Turn</option>
         </select>
 
         <div id="facingDials">
-        <div class="facing-dial" data-dial="scale">
+        <!-- KNEE CORRECTION. Generated legs arrive screwed outward at the hip:
+             the kneecap and the toe both point away from the midline, and the
+             leg reads as bandy even after the engine has straightened it,
+             because straightening sets a bone's DIRECTION and never its
+             twist. This turns each leg about its own length until the knees
+             square to the front — positive is inward — and it is a correction
+             to the model, so it holds in every state, not just the idle. -->
+        <div class="facing-dial active" data-dial="knees">
+          <span class="dial-label">Knees</span>
+          <button data-knee="-2">−</button>
+          <input id="facingKnee" type="range" min="-30" max="80" step="1" value="0">
+          <button data-knee="2">+</button>
+          <span class="mono" id="facingKneeVal">0°</span>
+        </div>
+
+        <div class="facing-dial" data-dial="scale" data-more>
           <span class="dial-label">Size</span>
           <button data-scale="-0.05">−</button>
           <input id="facingScale" type="range" min="0.4" max="2.5" step="0.01" value="1">
@@ -416,7 +434,7 @@
           <span class="mono" id="facingScaleVal">1.00×</span>
         </div>
 
-        <div class="facing-dial" data-dial="stance">
+        <div class="facing-dial" data-dial="stance" data-primary>
           <span class="dial-label">Stance</span>
           <button data-stance="-2">−</button>
           <input id="facingStance" type="range" min="-10" max="25" step="1" value="0">
@@ -437,7 +455,7 @@
              idle's arms straight and a few degrees out (ik.js applyIdleArms);
              this is how far, per fighter, because a heavy coat or a wide body
              wants more room than a school uniform does. -->
-        <div class="facing-dial" data-dial="arms">
+        <div class="facing-dial" data-dial="arms" data-more>
           <span class="dial-label">Arms</span>
           <button data-arm="-1">−</button>
           <input id="facingArm" type="range" min="0" max="30" step="1" value="9">
@@ -449,7 +467,7 @@
              reads as the near arm being buried in the ribs; this moves both
              arm roots out along the body's own width axis, in centimetres,
              without lengthening the arms. -->
-        <div class="facing-dial" data-dial="shoulders">
+        <div class="facing-dial" data-dial="shoulders" data-primary>
           <span class="dial-label">Shldrs</span>
           <button data-shoulder="-0.5">−</button>
           <input id="facingShoulder" type="range" min="0" max="10" step="0.5" value="0">
@@ -457,7 +475,7 @@
           <span class="mono" id="facingShoulderVal">0.0cm</span>
         </div>
 
-        <div class="facing-dial active" data-dial="head">
+        <div class="facing-dial" data-dial="head" data-more>
           <span class="dial-label">Head</span>
           <button data-headtilt="-1">−</button>
           <input id="facingHead" type="range" min="-20" max="20" step="0.5" value="0">
@@ -465,13 +483,18 @@
           <span class="mono" id="facingHeadVal">0°</span>
         </div>
 
-        <div class="facing-dial" data-dial="yaw">
+        <div class="facing-dial" data-dial="yaw" data-more>
           <span class="dial-label">Turn</span>
           <button data-yaw="-5">−</button>
           <input id="facingYaw" type="range" min="-180" max="180" step="5" value="0">
           <button data-yaw="5">+</button>
           <span class="mono" id="facingYawVal">0°</span>
         </div>
+        <!-- THE REST, folded away. Size, arms, head and turn are settled once
+             per fighter and then not touched again; knees, shoulders and
+             stance are what a pass is actually for. On a phone the picker
+             already shows one dial at a time and this button does nothing. -->
+        <button id="facingMore" class="dial-more" aria-expanded="false">More ▾</button>
         </div>
 
         <div class="facing-actions">

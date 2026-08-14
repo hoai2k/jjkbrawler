@@ -33,7 +33,7 @@ import { STATES, clipNameFor, clipTime, aimable } from "./states.js";
 import { applyRigFixes, modelFixesEnabled } from "./rig_fixes.js";
 import { groundOffset } from "./pose_library.js";
 import {
-  applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs, applyIdleStand, applyIdleArms, applyShoulderWidth, applyBindPose, clearIdleStand,
+  applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs, applyIdleStand, applyIdleArms, applyShoulderWidth, applyBindPose, applyKneeTurn, clearIdleStand,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
   reachChain, gripBones,
 } from "./ik.js";
@@ -485,6 +485,12 @@ function applyModelFixes(rig, layers) {
   if (rig.shoulderOutCm) {
     applyShoulderWidth(THREE, rig.root, rig.shoulderOutCm / 100, _ik);
   }
+  // Legs built screwed outward at the hip, so the kneecap and the toe both
+  // point away from the midline. Same argument as the shoulders one line up:
+  // it is how the FILE was built, so it cannot stop at the idle — a fighter
+  // whose knees square up standing and splay again the moment they crouch is
+  // a fighter with a correction in the wrong layer.
+  if (rig.kneeDeg) applyKneeTurn(THREE, rig.root, rig.kneeDeg, _ik);
   // Per-bone bind corrections: a rolled clavicle, a cocked wrist.
   const fixKey = layers.charKey || rig.charKey;
   if (fixKey) applyRigFixes(THREE, rig.root, fixKey);

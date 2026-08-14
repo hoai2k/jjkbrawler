@@ -223,6 +223,12 @@ export function releaseInstancesExcept(live) {
 //   stanceDeg    How far apart the fighter plants their feet in idle, degrees
 //   armDeg       How far the arms hang out from the body in idle, degrees
 //   shoulderOutCm  How far the arm roots move out from the body, centimetres
+//   kneeDeg      How far each leg is turned about its own length to square the
+//                knee to the front, degrees, positive inward. Generated legs
+//                arrive screwed outward at the hip — kneecap and toe both
+//                pointing away from the midline — and it is a fault in the
+//                FILE, so it is corrected under every state (ik.js
+//                applyKneeTurn) rather than posed around
 //                of thigh splay per leg. Their sprite's stance is part of how
 //                big they READ, so this sits beside renderScale rather than
 //                being a posing afterthought (ik.js applyStance).
@@ -294,6 +300,11 @@ function applyEntrySettings(rig, entry) {
   // does not take it.
   const shoulder = Number(entry?.shoulderOutCm);
   rig.shoulderOutCm = delivered && Number.isFinite(shoulder) ? shoulder : 0;
+  // How far the legs are turned to square the knees, degrees. Also a fact
+  // about the DELIVERY — a mannequin's legs are built straight — so the
+  // stand-in does not take it.
+  const knee = Number(entry?.kneeDeg);
+  rig.kneeDeg = delivered && Number.isFinite(knee) ? knee : 0;
 }
 
 /** Carry the GLB correction layer from one rig object to another — a fresh
@@ -306,11 +317,12 @@ function applyEntrySettings(rig, entry) {
 function copyModelFixes(dst, src) {
   dst.headTiltDeg = src.headTiltDeg ?? 0;
   dst.shoulderOutCm = src.shoulderOutCm ?? 0;
+  dst.kneeDeg = src.kneeDeg ?? 0;
   return dst;
 }
 
 /** Set them live, from the workbench. */
-export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg, headTiltDeg, armDeg, shoulderOutCm } = {}) {
+export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg, headTiltDeg, armDeg, shoulderOutCm, kneeDeg } = {}) {
   const rig = RIGS.get(charKey);
   if (!rig) return null;
   if (renderScale !== undefined && Number.isFinite(renderScale) && renderScale > 0) {
@@ -325,6 +337,7 @@ export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg, 
   if (stanceDeg !== undefined && Number.isFinite(stanceDeg)) rig.stanceDeg = stanceDeg;
   if (armDeg !== undefined) rig.armDeg = Number.isFinite(armDeg) ? armDeg : null;
   if (shoulderOutCm !== undefined) rig.shoulderOutCm = Number.isFinite(shoulderOutCm) ? shoulderOutCm : 0;
+  if (kneeDeg !== undefined) rig.kneeDeg = Number.isFinite(kneeDeg) ? kneeDeg : 0;
   // Instances already handed out share the character's settings.
   for (const inst of INSTANCES.values()) {
     if (inst.charKey !== charKey) continue;

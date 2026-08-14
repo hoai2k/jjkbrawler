@@ -732,6 +732,67 @@ export function applyIdleStand(THREE, root3d, deg, tmp) {
   return true;
 }
 
+/**
+ * TURN THE KNEES, about the thigh's own long axis. Positive brings them IN.
+ *
+ * WHAT IT IS FOR. Generated legs come out externally rotated: the whole limb
+ * is built screwed outward at the hip, so the kneecap faces away from the
+ * midline and the toe points off at an angle. Measured on the posed idle, the
+ * knee's hinge axis is 80 degrees off the body's width line on Geto, Mahito
+ * and Choso, 60 on Yuji and Megumi, and under 5 on Meimei — so it is a
+ * per-model fault rather than a roster-wide one, which is exactly the shape of
+ * thing that wants a dial.
+ *
+ * WHY IT IS NOT THE KNEE BEND, and why the bend was the wrong thing to chase.
+ * The obvious reading of "his knees bend outward" is a bandy leg — thigh and
+ * shin meeting at an angle in the frontal plane — and the bind pose does have
+ * that (Geto's shins jut 18 and 34 degrees out of his thighs). But nothing
+ * posed shows it: `applyIdleStand` aims both leg bones down one direction, so
+ * the leg comes out dead straight and the frontal kink measures 0 on every
+ * fighter. What survives that straightening is the ROLL, because aiming a bone
+ * sets its direction and says nothing about its twist. So the knee that looks
+ * wrong is a knee facing the wrong WAY, not one bent the wrong way, and the
+ * correction is a rotation about the leg rather than a bend in it.
+ *
+ * THE WHOLE LEG TURNS, rigidly — thigh, shin and foot together. That is what
+ * femoral rotation is anatomically, and it is what keeps the correction honest
+ * in every other state: rotating about the hip-to-knee axis leaves a bent knee
+ * bent by the same amount, just pointed somewhere else. Turning the thigh
+ * alone and counter-turning the shin also squares the knee, but it builds a
+ * twist into the leg that then has to be right for the crouch and the kick as
+ * well, and it is not.
+ *
+ * The sole is re-levelled afterwards because the turn tips it: with any stance
+ * at all the leg axis is off vertical, so rolling about it stands the foot on
+ * an edge. Yaw is left where the turn put it — that is the point.
+ */
+export function applyKneeTurn(THREE, root3d, deg, tmp) {
+  if (!deg) return false;
+  const rad = (deg * Math.PI) / 180;
+  let turned = 0;
+  for (const side of ["Left", "Right"]) {
+    const up = root3d.getObjectByName(`${side}UpLeg`);
+    const knee = root3d.getObjectByName(`${side}Leg`);
+    if (!up || !knee) continue;
+    root3d.updateMatrixWorld(true);
+    // Down the thigh, hip to knee. Taken from the POSED rig, so the axis is
+    // the leg's real one rather than the bind's guess at it.
+    const axis = tmp.v7.setFromMatrixPosition(knee.matrixWorld)
+      .sub(tmp.v6.setFromMatrixPosition(up.matrixWorld));
+    if (axis.lengthSq() < 1e-10) continue;
+    axis.normalize();
+    // About a DOWNWARD axis, +ve turns the left knee toward the midline; the
+    // right leg is the mirror of that, hence the sign.
+    rotateBoneAboutWorldAxis(THREE, up, axis, (side === "Left" ? 1 : -1) * rad, tmp);
+    root3d.updateMatrixWorld(true);
+    const foot = root3d.getObjectByName(`${side}Foot`);
+    if (foot) levelSole(THREE, foot, tmp);
+    turned++;
+  }
+  if (turned) root3d.updateMatrixWorld(true);
+  return turned > 0;
+}
+
 /** The bind (rest) world matrix of every bone, cached on the root.
  *
  *  `boneInverses[i]` is the inverse of bone i's world matrix at bind, so its
