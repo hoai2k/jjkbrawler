@@ -253,10 +253,18 @@ function draw(now) {
 // --------------------------------------------------------------------- boot
 
 async function boot() {
-  // `?edit=audio` is how this bench is addressed, matching the other three.
-  // It is the only mode here, so an absent or unknown value opens it rather
-  // than erroring — the URL in the docs should always work.
+  // `?edit=audio` is how this bench is addressed; every OTHER `?edit=` value is
+  // a different bench and router.js has already redirected by the time this
+  // runs (see index.html). What can still arrive here is a mode nobody has —
+  // the router leaves those on this page and marks them, so say so rather than
+  // pretending the URL was what they meant.
   const params = new URLSearchParams(location.search);
+  const unknown = document.documentElement.dataset.unknownMode;
+  if (unknown) {
+    const note = $("#unknownMode");
+    note.textContent = `No bench called “${unknown}”. These are the ones there are:`;
+    note.hidden = false;
+  }
 
   // playSfx refuses to make a sound while the game thinks effects are off, and
   // this page has no Settings screen to turn them back on. It is a bench: it
