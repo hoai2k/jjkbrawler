@@ -39,7 +39,7 @@ sys.path.insert(0, HERE)
 # the same code: a line that is trimmed, capped and peak-normalised differently
 # from the sting it plays over would sit wrong in the mix for reasons nobody
 # could hear the cause of.
-from generate_sfx import DOCS, OUT, SR, ENTRY, post_process, write_mp3
+from generate_sfx import DOCS, OUT, SR, ENTRY, post_process, write_mp3, pruned
 
 # v3 takes the bracketed cues in the doc as performance direction. Everything
 # else the library offers is worse here: the older models ignore the cues, and
@@ -80,16 +80,17 @@ def parse_doc():
     """-> [(filename, voice_id, seconds, text)], open requests first.
 
     Only entries carrying a `· voice `id` ·` field: everything else in these
-    docs is a sound effect and belongs to generate_sfx.py.
+    docs is a sound effect and belongs to generate_sfx.py. Entries listed in
+    docs/audio-pruned.md are skipped whatever they carry — see generate_sfx.
     """
-    out, seen = [], set()
+    out, seen, gone = [], set(), pruned()
     for doc in DOCS:
         if not os.path.exists(doc):
             continue
         for m in ENTRY.finditer(open(doc).read()):
             name, header = m.group(1), m.group(2)
             voice = VOICE_FIELD.search(header)
-            if name in seen or not voice:
+            if name in seen or name in gone or not voice:
                 continue
             seen.add(name)
             pitch = PITCH_FIELD.search(header)
