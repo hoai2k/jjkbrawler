@@ -115,27 +115,67 @@ export const LEDGE_HANG_Y = 58;
 // still a fighter arriving before their body does — and it could not put a
 // pose on the trip, because as far as the simulation was concerned there was
 // no trip. These are the real thing: the fighter TRAVELS, on the clock, with a
-// pose per phase, and the hurtbox travels with them. The smoothing it replaces
-// is gone rather than kept as a second mechanism.
+// pose per phase, and the hurtbox travels with them.
 //
-// Times are what a body that size can plausibly do. The catch is fast because
-// it is a catch: 100 px in 0.13 s is ~770 px/s, about double a run and about
-// what a fall is already doing. The climbs are slower because they are a pull
-// up and a step over, and they are still far quicker than Smash's (its plain
-// getup is ~34 frames, 0.57 s).
+// HOW LONG IS SET BY A MEASUREMENT, not by taste: no frame of a transition may
+// move the body further than a full-speed RUN does, which is 7.8 px at Gojo's
+// 468 px/s. Below that nothing in the trip is travelling faster than a
+// character can travel on their own feet, so nothing in it can read as a jump.
+// The durations fall out of the distance each one covers — the climb crosses
+// 84 px across and 58 up, the roll 138 and 58 — and a smoothstep's fastest
+// moment is 1.5x its average, which is what the arithmetic has to clear.
 //
-// All of them are covered by invulnerability that already existed — the
-// numbers below are the extra the transition itself needs on top.
-export const LEDGE_CATCH_TIME = 0.13;
-export const LEDGE_CLIMB_TIME = 0.20;   // hang -> standing, the inward input
-export const LEDGE_ROLL_TIME = 0.26;    // further, and it rolls
-export const LEDGE_ATTACK_TIME = 0.14;  // shortest: the swing is the point
+// The first pass at this rushed them (0.13/0.20/0.26/0.14) and peaked at
+// 15-18 px per frame — better than the 98 px teleport by a mile, still twice a
+// run. Smash is the sanity check on the other side: its getups are
+// percent-independent and take roughly half a second (Melee's, the numbers
+// actually published, are 34 frames of invincibility on the getup and ~48 for
+// the roll), so these are not slow by the genre's standards. They are normal.
+//
+// Measured worst frame, tools/debug/measure_ledge_pop.mjs, against the 7.8 px
+// a run covers:
+//
+//     climb   24 frames   7.9 px    3 hanging, 14 rising, 8 landing
+//     roll    38 frames   8.2 px    4 hanging, 24 rolling, 10 landing
+//     attack  23 frames   8.0 px    then the swing
+export const LEDGE_CLIMB_TIME = 0.40;   // hang -> standing, the inward input
+export const LEDGE_ROLL_TIME = 0.64;    // further, and it rolls
+export const LEDGE_ATTACK_TIME = 0.38;  // the climb; the swing follows it
 
-// TEETERING. Standing with your toes over the drop, which the ledge brake
-// (fighter.js brakeAtLedge) puts fighters in constantly and nothing drew. How
-// close to the lip counts, and how long you have to have been there — a
-// fighter passing through the last few pixels of a platform at speed is not
-// teetering, they are running.
+// The catch is the exception, and it is timed by SPEED rather than by a fixed
+// duration: it starts wherever the fighter was when the ledge caught them,
+// which is anywhere in a 100x210 px reach, so one duration would make a short
+// catch crawl and a long one snap. Constant speed keeps the per-frame step the
+// same wherever it starts. Quicker than the climbs on purpose — this is the
+// hands closing on the ledge, and Smash's own catch animation is about seven
+// frames; a slow one feels like the recovery failing rather than working.
+//
+// The MAX matters more than it looks. Once it binds, speed stops being
+// constant and the step grows with distance again, so it is set where the
+// longest possible reach still moves no faster than a FAST FALL (15 px/frame)
+// — which is what the fighter was already doing when the ledge caught them, so
+// it cannot read as a jump. Typical catches are 60-110 px and take 0.13-0.24 s.
+export const LEDGE_CATCH_SPEED = 450;   // px/s
+export const LEDGE_CATCH_MIN = 0.09;    // s, for a catch from right beside it
+export const LEDGE_CATCH_MAX = 0.40;    // s, for the far corner of the reach
+
+// INVULNERABILITY, and what it is measured from.
+//
+// These are the grace AFTER arriving — unchanged from what each option had
+// when it was instant. The trip itself is covered on top of them, because a
+// fighter mid-transition cannot act: they are locked into a scripted climb, and
+// being hittable through one would be strictly worse than any alternative here.
+//
+// So the TOTAL protection does grow with the longer animations, and that is a
+// small buff to holding a ledge. Smash's shape is the opposite — intangibility
+// ends BEFORE the getup does, which is exactly what makes ledge play a read and
+// ledge camping punishable. Adopting it is a balance decision rather than an
+// animation one, so it is not taken here; it would be one line each.
+export const LEDGE_CLIMB_INVULN = 0.34;   // + LEDGE_CLIMB_TIME
+export const LEDGE_ROLL_INVULN = 0.55;    // + LEDGE_ROLL_TIME
+export const LEDGE_ATTACK_INVULN = 0.30;  // + LEDGE_ATTACK_TIME
+export const LEDGE_CATCH_INVULN = 0.28;   // + however long the reach took
+
 export const TEETER_EDGE = 16;          // px from the lip
 export const TEETER_DELAY = 0.08;       // s standing there before it shows
 

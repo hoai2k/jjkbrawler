@@ -127,22 +127,44 @@ lie: the fighter still arrived before their body did, and there was no trip for
 a pose to play on. So the fighter now **travels**, on the clock, with a pose per
 phase and the hurtbox going where the drawing goes:
 
-| | time | drawn as |
-|---|---|---|
-| catch | 0.13 s | the fall (or the rise) it came in on, all the way to the ledge, then the hang |
-| climb | 0.20 s | `jump_rise` up, `land` arriving |
-| roll | 0.26 s | `dodge_roll`, then `land` |
-| attack | 0.14 s | `jump_rise`, and the swing fires on arrival |
-| jump off | — | no transition at all: push off *from* the hang and let the arc carry |
+| | time | drawn as | worst frame |
+|---|---|---|---|
+| catch | by distance, 450 px/s (0.09–0.40 s) | the fall (or the rise) it came in on, all the way to the ledge, then the hang | 11.2 px |
+| climb | 0.40 s (24 f) | 3 f still hanging, 14 f `jump_rise`, 8 f `land` | 7.9 px |
+| roll | 0.64 s (38 f) | 4 f hanging, 24 f `dodge_roll`, 10 f `land` | 8.2 px |
+| attack | 0.38 s (23 f) | hanging, then `jump_rise` — the swing fires on arrival | 8.0 px |
+| jump off | — | no transition at all: push off *from* the hang and let the arc carry | 6.8 px |
 
-None of it waits on new art — the poses are ones every fighter already has. The
-transitions are invulnerable, which they already were; the ledge jump lost its
-placement entirely, which is why it is the smoothest of the five. Worst
-single-frame movement across any of them is 18 px, against 98 and 102 for the
-teleports they replace, and a fast fall covers 15. Guarded by
-`tools/smoke_ledge.mjs`, which checks both halves — how far the body moves in a
-frame *and* which poses are drawn while it moves, because a body that slides
-smoothly while holding its hang pose the whole way is still wrong.
+None of it waits on new art — the poses are ones every fighter already has.
+
+**How long is a measurement, not a taste.** No frame of a transition may move
+the body further than a full-speed **run** does (7.8 px at Gojo's 468 px/s):
+below that, nothing in the trip travels faster than a character can travel on
+their own feet, so nothing in it can read as a jump. The durations fall out of
+that and the distance each one covers. The first pass at this rushed them
+(0.13 / 0.20 / 0.26 / 0.14) and peaked at 15–18 px — far better than the 98 px
+teleport, still twice a run. Smash is the sanity check on the other side: its
+getups are percent-independent and take roughly half a second, so these are
+normal for the genre rather than slow.
+
+The **catch** is the one exception, timed by speed rather than duration —
+it starts wherever the fighter was when the ledge caught them, so a fixed time
+would make a short reach crawl and a long one snap. It is quicker than the
+climbs on purpose: this is hands closing on a ledge, and a slow one feels like
+the recovery failing. Its cap is set where even the longest possible reach
+moves no faster than the **fast fall** it interrupted (15 px/frame).
+
+Each option is invulnerable for the trip plus the grace it always had after
+arriving — a fighter mid-climb cannot act, so being hittable through one would
+be worse than any alternative. That does make holding a ledge slightly safer
+than before. Smash's shape is the opposite (intangibility ends *before* the
+getup does, which is what makes ledge camping punishable); adopting it is a
+balance decision rather than an animation one and has not been taken.
+
+Guarded by `tools/smoke_ledge.mjs`, which checks both halves — how far the body
+moves in a frame *and* which poses are drawn while it moves, because a body
+that slides smoothly while holding its hang pose the whole way is still
+wrong.
 
 **Teetering** is the other half, and the answer to when a fighter should *not*
 be hanging. The ledge brake stops people dead on the last pixel of a platform
