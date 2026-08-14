@@ -230,12 +230,12 @@ check(gone.hidden && !gone.url && gone.pose === "attack_heavy_b",
 
 // ------------------------------------------------------- the animation bench
 
-await page.goto(`${BASE}/render3d/workbench/index.html?edit=animation&char=maki&state=sideHeavy`,
+await page.goto(`${BASE}/render3d/workbench/index.html?edit=keys&char=maki&state=sideHeavy`,
   { waitUntil: "load" });
 await page.waitForFunction(() => window.__workbenchReady === true, { timeout: 90000 });
 await page.waitForTimeout(1200);
 check(await page.evaluate(() => document.body.classList.contains("mode-anim")),
-  "?edit=animation opens the animation bench");
+  "?edit=keys opens the animation bench");
 const shownAnim = await page.evaluate(() =>
   ["scrub", "playBtn", "keyStrip", "easeSelect", "interpToggle"]
     .filter((id) => document.getElementById(id)?.offsetParent !== null));
