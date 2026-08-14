@@ -52,6 +52,194 @@ round 11 the second. `tools/generate_voice.py` is the route both used, and
 `MOVE_CALL` (`src/config_audio.js`) is now the wiring any further slice needs:
 a row per move, no new code.
 
+## Round 13 — a wider bank to choose from *(open)*
+
+Round 12's grunts were judged in play and most of them failed. The verdicts,
+and what this round does about each:
+
+| Verdict | Response |
+|---|---|
+| **Some of them have words in them** — unusable, whatever else is right about the take | Every line below is a **non-lexical vocalisation**: a stopped vowel or a nasal, nothing that is a word in any language |
+| **None of the adult-male takes work** | Recast entirely — a different voice, not a different reading of the same one |
+| **The monster grunts want more variety** | Three of them, and the first alternates that group has ever had |
+| **The KO cries do not work**, in any group | Three alternates for every one of the six |
+
+**The words were mine, and they were avoidable.** Round 12 used せいっ, どりゃっ
+and ぬんっ — kiai, which are shouts a person chooses to make and which a voice
+model articulates as speech. A grunt is not chosen and is not articulated. The
+vocabulary here is うっ / んっ / ぐっ / はっ and their stretched forms, which
+have no lexical content to articulate.
+
+**A tag on its own produces silence**, which is worth writing down because it
+is the obvious first idea: `[grunts]` with no text returns an empty file. The
+model needs something to voice, so every entry is a tag *and* a vocalisation —
+the tag directs, the kana is what the voice actually does.
+
+**Wordlessness is checked, not hoped for.** `tools/audit_voice_takes.py`
+measures how many separate utterances a take contains. A grunt is one; a word
+is a run of syllables. Anything that comes back as several is a take to re-roll
+whatever it sounds like, and the audit runs over this whole round below.
+
+### Effort grunts — three more for each male group, and the monster's first
+
+**`grunt_young_male_alt_4.wav`** · young male effort · voice `WFLyIjdIbVuEXaAkU0Xb` *(Ryunosuke — natural, 20s)* · capped · 0.5 s
+```
+[sharp effort grunt] うっ
+```
+
+**`grunt_young_male_alt_5.wav`** · young male effort · voice `WFLyIjdIbVuEXaAkU0Xb` *(Ryunosuke — natural, 20s)* · capped · 0.5 s
+```
+[strained effort grunt] んっ
+```
+
+**`grunt_young_male_alt_6.wav`** · young male effort · voice `WFLyIjdIbVuEXaAkU0Xb` *(Ryunosuke — natural, 20s)* · capped · 0.5 s
+```
+[hard exhaled effort grunt] ふっ
+```
+
+**`grunt_adult_male_alt_4.wav`** · adult male effort · voice `OrIijq7uyVaGDbu9tqly` *(Akira — cinematic, measured)* · capped · 0.5 s
+```
+[low sharp effort grunt] ぐっ
+```
+
+**`grunt_adult_male_alt_5.wav`** · adult male effort · voice `OrIijq7uyVaGDbu9tqly` *(Akira — cinematic, measured)* · capped · 0.5 s
+```
+[strained effort grunt] んっ
+```
+
+**`grunt_adult_male_alt_6.wav`** · adult male effort · voice `OrIijq7uyVaGDbu9tqly` *(Akira — cinematic, measured)* · capped · 0.5 s
+```
+[hard exhaled effort grunt] はっ
+```
+
+**`grunt_big_alt_4.wav`** · big effort · voice `wiBTiCATMiTaXSfv8hdN` *(Sho — warm, deep, 40s)* · pitch 0.94 · capped · 0.5 s
+```
+[heavy effort grunt from the chest] ぐっ
+```
+
+**`grunt_big_alt_5.wav`** · big effort · voice `wiBTiCATMiTaXSfv8hdN` *(Sho — warm, deep, 40s)* · pitch 0.94 · capped · 0.5 s
+```
+[deep strained effort grunt] んんっ
+```
+
+**`grunt_big_alt_6.wav`** · big effort · voice `wiBTiCATMiTaXSfv8hdN` *(Sho — warm, deep, 40s)* · pitch 0.94 · capped · 0.5 s
+```
+[heavy exhaled effort grunt] はっ
+```
+
+**`grunt_monster_alt_1.wav`** · monster effort · voice `3U6tYxUqUpcplL5Qep78` *(Shimura — husky, hoarse)* · pitch 0.85 · capped · 0.5 s
+```
+[guttural inhuman snarl] ぐるっ
+```
+
+**`grunt_monster_alt_2.wav`** · monster effort · voice `3U6tYxUqUpcplL5Qep78` *(Shimura — husky, hoarse)* · pitch 0.85 · capped · 0.5 s
+```
+[low wet inhuman growl] ごぉっ
+```
+
+**`grunt_monster_alt_3.wav`** · monster effort · voice `3U6tYxUqUpcplL5Qep78` *(Shimura — husky, hoarse)* · pitch 0.85 · capped · 0.5 s
+```
+[rasping inhuman huff] はぁっ
+```
+
+### KO cries — three alternates for every group
+
+A KO cry plays once, as its owner leaves the stage, so it can be longer and
+wilder than an effort grunt — but it is the same rule about words. These are
+cries, not exclamations.
+
+**`ko_young_male_alt_1.wav`** · young male KO cry · voice `WFLyIjdIbVuEXaAkU0Xb` *(Ryunosuke)* · capped · 1.0 s
+```
+[pained falling cry] うわあっ
+```
+
+**`ko_young_male_alt_2.wav`** · young male KO cry · voice `WFLyIjdIbVuEXaAkU0Xb` *(Ryunosuke)* · capped · 1.0 s
+```
+[sharp cry of pain] ぐあぁ
+```
+
+**`ko_young_male_alt_3.wav`** · young male KO cry · voice `WFLyIjdIbVuEXaAkU0Xb` *(Ryunosuke)* · capped · 1.0 s
+```
+[breathless cry, falling away] あぁっ
+```
+
+**`ko_adult_male_alt_1.wav`** · adult male KO cry · voice `OrIijq7uyVaGDbu9tqly` *(Akira)* · capped · 1.0 s
+```
+[pained falling cry] ぐあっ
+```
+
+**`ko_adult_male_alt_2.wav`** · adult male KO cry · voice `OrIijq7uyVaGDbu9tqly` *(Akira)* · capped · 1.0 s
+```
+[sharp cry of pain] うおっ
+```
+
+**`ko_adult_male_alt_3.wav`** · adult male KO cry · voice `OrIijq7uyVaGDbu9tqly` *(Akira)* · capped · 1.0 s
+```
+[breathless cry, falling away] あぁっ
+```
+
+**`ko_big_alt_1.wav`** · big KO cry · voice `wiBTiCATMiTaXSfv8hdN` *(Sho)* · pitch 0.94 · capped · 1.0 s
+```
+[deep pained bellow] ぐおおっ
+```
+
+**`ko_big_alt_2.wav`** · big KO cry · voice `wiBTiCATMiTaXSfv8hdN` *(Sho)* · pitch 0.94 · capped · 1.0 s
+```
+[heavy cry of pain] うぐあっ
+```
+
+**`ko_big_alt_3.wav`** · big KO cry · voice `wiBTiCATMiTaXSfv8hdN` *(Sho)* · pitch 0.94 · capped · 1.0 s
+```
+[winded falling cry] はあっ
+```
+
+**`ko_female_alt_1.wav`** · female KO cry · voice `lxNssjs8lZzgD44uVifH` *(Rina)* · capped · 1.0 s
+```
+[pained falling cry] きゃあっ
+```
+
+**`ko_female_alt_2.wav`** · female KO cry · voice `lxNssjs8lZzgD44uVifH` *(Rina)* · capped · 1.0 s
+```
+[sharp cry of pain] ああっ
+```
+
+**`ko_female_alt_3.wav`** · female KO cry · voice `lxNssjs8lZzgD44uVifH` *(Rina)* · capped · 1.0 s
+```
+[breathless cry, falling away] うぅっ
+```
+
+**`ko_monster_alt_1.wav`** · monster KO cry · voice `3U6tYxUqUpcplL5Qep78` *(Shimura)* · pitch 0.85 · capped · 1.0 s
+```
+[inhuman shriek of pain] ぎゃあっ
+```
+
+**`ko_monster_alt_2.wav`** · monster KO cry · voice `3U6tYxUqUpcplL5Qep78` *(Shimura)* · pitch 0.85 · capped · 1.0 s
+```
+[guttural dying roar] ごあああっ
+```
+
+**`ko_monster_alt_3.wav`** · monster KO cry · voice `3U6tYxUqUpcplL5Qep78` *(Shimura)* · pitch 0.85 · capped · 1.0 s
+```
+[wet rasping death rattle] ぐぅっ
+```
+
+**`ko_animal_alt_1.wav`** · animal KO cry · voice `AAxVQbetQhXWMEZC9p8S` *(Kmy)* · pitch 0.88 · capped · 1.0 s
+```
+[animal yelp of pain] ぎゃんっ
+```
+
+**`ko_animal_alt_2.wav`** · animal KO cry · voice `AAxVQbetQhXWMEZC9p8S` *(Kmy)* · pitch 0.88 · capped · 1.0 s
+```
+[startled animal cry] うわんっ
+```
+
+**`ko_animal_alt_3.wav`** · animal KO cry · voice `AAxVQbetQhXWMEZC9p8S` *(Kmy)* · pitch 0.88 · capped · 1.0 s
+```
+[winded animal huff] ふぎゃっ
+```
+
+---
+
 ## Round 12 — alternate takes *(open)*
 
 Three things in the delivered audio were judged wrong by ear, which is the one
@@ -301,6 +489,13 @@ one, and the useful verdict is usually "the first and third, and the
 alternate's second", which needs each recording on its own button rather than
 one button that draws at random. Tick the ones worth keeping and the bench
 writes the `file:` array they add up to, ready to paste into the registry.
+
+**`node tools/audit_voice_takes.py`** answers the one question about a grunt
+that a machine can answer: is it a grunt, or is it a word? A grunt is a single
+burst of voicing; a word is a run of syllables. It cannot tell a good take from
+a bad one, but it catches the failure that shipped a whole round of unusable
+grunts — and it found two more on its first run: a delivered alternate that was
+**completely silent**, and two of the original KO cries.
 
 **⭳ Export changes** downloads every pick that differs from what ships, as
 JSON: the shipping files, the chosen ones, what was added and dropped, and —
