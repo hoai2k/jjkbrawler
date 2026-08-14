@@ -37,6 +37,22 @@ import {
   boneIndex, bindOf, applyLibraryPose, bakeLocalEulers,
 } from "./pose_library.js";
 
+/**
+ * THE IDLE IS NOT BUILT FROM THE LIBRARIES, and it is the only state that is
+ * not.
+ *
+ * Every other state is a proposal being tried out. The idle is not: it is the
+ * one pose with an obvious right answer — a fighter standing next to their own
+ * idle sprite either matches it or does not — and it has been dialled in,
+ * per character, in the workbench's idle review, against that sprite. It is
+ * also what everything else is judged against, because it is the pose a player
+ * spends most of the match looking at. Replacing it with a generic orthodox
+ * guard would throw away the one place the roster has already been reviewed
+ * fighter by fighter, and would move the yardstick at the same time as the
+ * things being measured against it.
+ */
+export const NOT_FROM_LIBRARY = new Set(["idle"]);
+
 /** Matched first, baseline behind it. Never null: the baseline is total. */
 export function poseForFrame(frame) {
   const matched = BATTLE_POSES[frame];
@@ -121,6 +137,7 @@ export function buildCharacterClips(THREE, charKey, root, states) {
 
   const clips = new Map();
   for (const state of wanted) {
+    if (NOT_FROM_LIBRARY.has(clipNameFor(state))) continue;
     const clip = buildStateClip(THREE, charKey, state, baked);
     if (clip) clips.set(clipNameFor(state), clip);
   }
