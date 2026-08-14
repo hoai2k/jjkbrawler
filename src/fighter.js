@@ -18,7 +18,9 @@ import {
   RUN_TILT, WALK_MIN, WALK_MAX, MOVE_DEADZONE,
   ULT_METER_COST, DOMAIN_METER_COST,
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
-  LEDGE_CATCH_TIME, LEDGE_CLIMB_TIME, LEDGE_ROLL_TIME, LEDGE_ATTACK_TIME,
+  LEDGE_CLIMB_TIME, LEDGE_ROLL_TIME, LEDGE_ATTACK_TIME,
+  LEDGE_CATCH_SPEED, LEDGE_CATCH_MIN, LEDGE_CATCH_MAX,
+  LEDGE_CLIMB_INVULN, LEDGE_ROLL_INVULN, LEDGE_ATTACK_INVULN, LEDGE_CATCH_INVULN,
   TEETER_EDGE, TEETER_DELAY,
   RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
@@ -337,7 +339,10 @@ function beginLedgeMove(f, kind, dur, toX, toY, extra = {}) {
 
 /** Where a transition has got to. `x` and `y` run on different curves for the
  *  climbs: the body comes UP first and swings IN second, which is what a pull-up
- *  is — a straight diagonal reads as being winched. */
+ *  is — a straight diagonal reads as being winched. The two curves also OVERLAP
+ *  less than they used to, which is most of what the longer durations bought:
+ *  the rise finishes and the step over starts, instead of both happening at
+ *  once in the middle. */
 function ledgeMovePos(m) {
   const k = clamp(m.t / m.dur, 0, 1);
   if (m.kind === "catch") {
@@ -345,8 +350,8 @@ function ledgeMovePos(m) {
     const e = ease(k);
     return { x: m.fromX + (m.toX - m.fromX) * e, y: m.fromY + (m.toY - m.fromY) * e };
   }
-  const ky = ease(k / 0.74);              // up by three quarters of the way
-  const kx = ease((k - 0.26) / 0.74);     // over, starting a quarter in
+  const ky = ease(k / 0.62);              // up, and up first
+  const kx = ease((k - 0.34) / 0.66);     // over, once the height is nearly won
   return { x: m.fromX + (m.toX - m.fromX) * kx, y: m.fromY + (m.toY - m.fromY) * ky };
 }
 
@@ -356,9 +361,14 @@ function ledgeMovePos(m) {
 function ledgeMoveAnim(m) {
   const k = m.t / m.dur;
   if (m.kind === "catch") return m.rising ? "jump" : "fall";
-  if (m.kind === "roll") return k < 0.72 ? "dodge_roll" : "land";
+  // Off the ledge, all three open with a beat of the HANG. The body barely
+  // moves in the first frames anyway — the smoothstep is at its slowest there
+  // — so this is the moment of taking the weight before the pull, and without
+  // it the rise pose appears while the fighter is still hanging.
+  if (k < 0.1) return "ledge";
+  if (m.kind === "roll") return k < 0.78 ? "dodge_roll" : "land";
   if (m.kind === "attack") return "jump";
-  return k < 0.66 ? "jump" : "land";
+  return k < 0.7 ? "jump" : "land";
 }
 
 /** Step one transition. Returns true while it is still running, so the caller
@@ -441,15 +451,18 @@ function tryGrabLedge(f) {
       f.airJumpsLeft = stats(f).airJumps;
       f.airDodged = false;
       f.facing = side === -1 ? 1 : -1;
-      // Covers the reach as well as the hang — a fighter halfway to the ledge
-      // is committed and cannot defend, so the window that protected the snap
-      // has to protect the trip too.
-      f.invuln = Math.max(f.invuln, LEDGE_CATCH_TIME + 0.28);
       f.ledgeTimer = 0;
-      beginLedgeMove(f, "catch", LEDGE_CATCH_TIME,
-        edgeX + (side === -1 ? -LEDGE_HANG_X : LEDGE_HANG_X),
-        plat.y + LEDGE_HANG_Y,
-        { rising: f.vy < -20 });
+      const hangX = edgeX + (side === -1 ? -LEDGE_HANG_X : LEDGE_HANG_X);
+      const hangY = plat.y + LEDGE_HANG_Y;
+      // Timed by distance, so the reach travels at one speed wherever in the
+      // snap box it started (constants.js LEDGE_CATCH_SPEED).
+      const reach = Math.hypot(hangX - f.x, hangY - f.y);
+      const catchTime = clamp(reach / LEDGE_CATCH_SPEED, LEDGE_CATCH_MIN, LEDGE_CATCH_MAX);
+      // The trip plus the grace on the hang: a fighter halfway to a ledge is
+      // committed and cannot defend, so the window that protected the snap has
+      // to protect the reach too.
+      f.invuln = Math.max(f.invuln, catchTime + LEDGE_CATCH_INVULN);
+      beginLedgeMove(f, "catch", catchTime, hangX, hangY, { rising: f.vy < -20 });
       playSfx("landing", 0.3);
       dust(f.x, f.y, 8);
       return;
@@ -496,7 +509,7 @@ function updateLedge(f, dt, input) {
   if (input.lightP || input.heavyP) {
     f.ledge = null;
     f.ledgeCooldown = 0.55;
-    f.invuln = Math.max(f.invuln, LEDGE_ATTACK_TIME + 0.3);
+    f.invuln = Math.max(f.invuln, LEDGE_ATTACK_TIME + LEDGE_ATTACK_INVULN);
     beginLedgeMove(f, "attack", LEDGE_ATTACK_TIME, inX(52), l.plat.y);
     return;
   }
@@ -505,7 +518,7 @@ function updateLedge(f, dt, input) {
     f.ledge = null;
     f.ledgeCooldown = 0.55;
     const dur = roll ? LEDGE_ROLL_TIME : LEDGE_CLIMB_TIME;
-    f.invuln = Math.max(f.invuln, dur + (roll ? 0.55 : 0.34));
+    f.invuln = Math.max(f.invuln, dur + (roll ? LEDGE_ROLL_INVULN : LEDGE_CLIMB_INVULN));
     beginLedgeMove(f, roll ? "roll" : "climb", dur, inX(roll ? 110 : 56), l.plat.y);
   }
 }

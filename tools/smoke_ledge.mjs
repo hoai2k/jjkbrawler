@@ -16,6 +16,15 @@ import { chromium } from "playwright";
 import { pressStart } from "./smoke_boot.mjs";
 
 const BASE = process.argv[2] || "http://127.0.0.1:5174";
+
+// The bar for "travelled, not teleported", in px of rendered movement in one
+// frame. Ordinary movement is the yardstick: a full-speed run covers 7.8 px in
+// a frame and a fast fall 15. The four climbs off a ledge are timed to clear
+// the run (measured 7.9-8.2); the CATCH is deliberately quicker, because it is
+// hands closing on a ledge rather than a body pulling itself up, and it is
+// bounded by the fall it interrupts instead. 13 sits between the two and is
+// still seven times under the 98 px teleport this replaced.
+const MOVE_BAR = 13;
 let failures = 0;
 const check = (ok, label, detail = "") => {
   if (!ok) failures++;
@@ -126,8 +135,7 @@ try {
     //     alone can be true while the thing still looks wrong:
     //
     //     WHERE — the worst single-frame step of the position the RENDERER
-    //     uses. Ordinary movement is the yardstick: a run covers ~8px in a
-    //     frame and a fast fall ~15, so anything past 24 is a jump.
+    //     uses, against MOVE_BAR below.
     //     WHAT — the sequence of poses drawn across it. A body that slides
     //     smoothly while holding its hang pose the whole way is still wrong;
     //     the fall has to reach the ledge before the hang starts, and the
@@ -158,6 +166,7 @@ try {
     };
     // Fall past the lip into a catch. reset() first, because check 5 threw this
     // fighter off the stage and a respawn in flight is its own teleport.
+    //
     const fallToLedge = () => {
       reset(0);
       Object.assign(a, {
@@ -181,9 +190,17 @@ try {
     // The roll off it is its own pose.
     fallToLedge();
     trace(20, blankInput());
-    const roll = trace(30, IN({ shieldHeld: true }));
+    const roll = trace(48, IN({ shieldHeld: true }));
     out.rollStep = roll.worst;
     out.rollAnims = roll.anims;
+    out.rollDuring = roll.during.roll || [];
+    // The ledge attack climbs before it swings.
+    fallToLedge();
+    trace(20, blankInput());
+    const atk = trace(30, IN({ lightP: true }));
+    out.attackStep = atk.worst;
+    out.attackAnims = atk.anims;
+
     // Jumping off never teleported once the placement was dropped: push off
     // FROM the hang and let the arc carry.
     fallToLedge();
@@ -231,24 +248,29 @@ try {
   check(r.hitstunLeft, "knockback is never braked — hitstun still leaves the stage");
   check(Math.abs(r.restMoved) < 0.01, "standing at the lip is left alone",
     `moved ${r.restMoved}px`);
-  check(r.grabbed && r.grabStep <= 24,
+  check(r.grabbed && r.grabStep <= MOVE_BAR,
     "catching a ledge is travelled, not teleported",
-    `worst frame ${r.grabStep}px${r.grabbed ? "" : " (NEVER GRABBED)"}`);
+    `worst frame ${r.grabStep}px of ${MOVE_BAR}${r.grabbed ? "" : " (NEVER GRABBED)"}`);
   check(r.grabDuring.length >= 4 && r.grabDuring.every((k) => k === "fall")
       && r.grabAnims.includes("ledge"),
     "...drawing the fall all the way to the ledge, then the hang",
     `${r.grabDuring.length} frame(s) of ${[...new Set(r.grabDuring)].join("/")}`
     + ` then ${r.grabAnims.join(" -> ")}`);
-  check(r.gotUp && r.getupStep <= 24,
+  check(r.gotUp && r.getupStep <= MOVE_BAR,
     "climbing off one is travelled too",
-    `worst frame ${r.getupStep}px${r.gotUp ? "" : " (NEVER GOT UP)"}`);
+    `worst frame ${r.getupStep}px of ${MOVE_BAR}${r.gotUp ? "" : " (NEVER GOT UP)"}`);
   check(r.climbDuring.includes("jump") && r.climbDuring.includes("land")
       && r.climbAnims.join(">").includes("jump>land"),
     "...rising, then landing on the stage",
     `${r.climbDuring.length} frame(s): ${r.climbAnims.join(" -> ")}`);
-  check(r.rollStep <= 24 && r.rollAnims.includes("dodge_roll"),
-    "the ledge roll rolls", `worst frame ${r.rollStep}px, ${r.rollAnims.join(" -> ")}`);
-  check(r.jumpStep <= 24,
+  check(r.rollStep <= MOVE_BAR && r.rollDuring.includes("dodge_roll")
+      && r.rollDuring.includes("land"),
+    "the ledge roll rolls, then lands",
+    `worst frame ${r.rollStep}px of ${MOVE_BAR}, ${r.rollAnims.join(" -> ")}`);
+  check(r.attackStep <= MOVE_BAR && r.attackAnims.includes("light"),
+    "the ledge attack climbs, then swings",
+    `worst frame ${r.attackStep}px of ${MOVE_BAR}, ${r.attackAnims.join(" -> ")}`);
+  check(r.jumpStep <= MOVE_BAR,
     "the ledge jump pushes off from the hang instead of being placed above it",
     `worst frame ${r.jumpStep}px`);
   check(r.teeterAnim === "teeter" && r.teeterGrounded,
