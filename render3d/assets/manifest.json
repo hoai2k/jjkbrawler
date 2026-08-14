@@ -15,7 +15,8 @@
       "renderScale": 1.03,
       "headTiltDeg": 12,
       "armDeg": 11,
-      "shoulderOutCm": 1.5
+      "shoulderOutCm": 1.5,
+      "kneeDeg": 15
     },
     "maki": {
       "model": "maki/maki.glb",
@@ -151,7 +152,8 @@
       "stanceDeg": 15,
       "armDeg": 11,
       "shoulderOutCm": 0,
-      "yawOffsetDeg": 0
+      "yawOffsetDeg": 0,
+      "kneeDeg": 45
     },
     "mahito": {
       "model": "mahito/mahito.glb",
@@ -182,7 +184,8 @@
       },
       "yawOffsetDeg": 45,
       "headTiltDeg": 13,
-      "armDeg": 11
+      "armDeg": 11,
+      "kneeDeg": 20
     },
     "sukuna": {
       "model": "sukuna/sukuna.glb",
@@ -233,7 +236,8 @@
       "renderScale": 1.03,
       "stanceDeg": 9,
       "headTiltDeg": 14,
-      "armDeg": 11
+      "armDeg": 11,
+      "kneeDeg": 45
     },
     "gakuganji": {
       "model": "gakuganji/gakuganji.glb",
@@ -280,7 +284,8 @@
       "renderScale": 1.01,
       "stanceDeg": 7,
       "headTiltDeg": 20,
-      "armDeg": 13
+      "armDeg": 13,
+      "kneeDeg": 25
     },
     "mechamaru": {
       "model": "mechamaru/mechamaru.glb",
@@ -362,7 +367,8 @@
       "stanceDeg": 5,
       "headTiltDeg": 5.5,
       "armDeg": 12,
-      "shoulderOutCm": 3
+      "shoulderOutCm": 3,
+      "kneeDeg": 30
     },
     "inumaki": {
       "model": "inumaki/inumaki.glb",
@@ -458,7 +464,8 @@
       "yawOffsetDeg": 45,
       "stanceDeg": 12,
       "headTiltDeg": 12,
-      "armDeg": 10
+      "armDeg": 10,
+      "kneeDeg": 35
     },
     "dagon": {
       "model": "dagon/dagon.glb",

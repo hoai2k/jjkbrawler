@@ -25,6 +25,16 @@
 //                   because it survives every pose the legs are put in.
 //   KNEE BEND       how bent the leg is at rest, in the side view. A rig that
 //                   arrives pre-bent fights every pose that wants to stand.
+//   KNEE ROLL       which way the knee FACES, measured on the posed idle. The
+//                   one leg fault that survives posing, and therefore the only
+//                   one worth correcting: `applyIdleStand` aims both leg bones
+//                   down one line, which kills the kink and says nothing about
+//                   the twist, so a leg built screwed outward at the hip stays
+//                   screwed outward with its kneecap and its toe pointing away
+//                   from the midline. Read as the angle between the knee's
+//                   hinge axis and the body's own width line — 0 is a knee
+//                   facing dead front — and corrected by `kneeDeg` in the
+//                   manifest, which is a dial in the idle review.
 //   MESH TILT       the same shoulder question asked of the SKIN rather than
 //                   the skeleton, from the skinned vertices each shoulder owns.
 //                   They can disagree and it matters which one is off: Uro's
@@ -64,6 +74,7 @@ const LIMITS = {
   tilt: 0.05,    // shoulder height gap, as a fraction of shoulder width
   kink: 12.0,    // degrees the shin juts sideways out of the thigh's line
   bend: 18.0,    // degrees of knee bend in a bind that should be standing
+  roll: 15.0,    // degrees the knee faces off the front, on the POSED idle
 };
 
 /** How much of a MESH-only tilt to believe. A shoulder measured off skinned
@@ -224,6 +235,124 @@ if (!findings.length) {
     console.log(`  ${r.key}: ${JSON.stringify(fix)},`);
   }
 }
+// ---------------------------------------------------------------- knee roll
+//
+// A separate pass because it is a separate question, asked of a different
+// body: everything above is read from the BIND, where a defect can only be the
+// model, but the roll has to be read from the POSED idle. That is not a
+// weakness of the measurement, it is the point — the kink measured in the bind
+// is genuinely large and genuinely does not survive `applyIdleStand`, and a
+// pass that only looked at the bind spent a whole round correcting the wrong
+// thing and made Geto worse.
+{
+  const browser3 = await chromium.launch({
+    executablePath: process.env.CHROMIUM_PATH || "/opt/pw-browsers/chromium",
+  });
+  const page3 = await browser3.newPage({ viewport: { width: 1200, height: 800 } });
+  page3.on("pageerror", (e) => errors.push(e.message));
+  await page3.goto(`${BASE}/render3d/workbench/?edit=animation`, { waitUntil: "networkidle" });
+  await page3.waitForFunction(() => !!window.__poseEditor, { timeout: 120000 });
+  await page3.waitForTimeout(1200);
+  const knees = await page3.evaluate(async (want) => {
+    const THREE = await import("/vendor/three/three.module.js");
+    const rigs = await import("/render3d/src/loader.js");
+    const { CHARACTER_KEYS } = await import("/src/characters.js");
+    const { GLTFLoader } = await import("/vendor/three/loaders/GLTFLoader.js");
+    const { poseRig } = await import("/render3d/src/pose.js");
+    const keys = want.length ? want : CHARACTER_KEYS;
+    const out = [];
+    for (const key of keys) {
+      try { await rigs.ensureRig(key, GLTFLoader); } catch { continue; }
+      const rig = rigs.getRig(key);
+      if (!rig?.root || rig.isMannequin) continue;
+      // WITH THE DIAL AT ZERO, so the reading is of the model rather than of
+      // the last reviewer: a rig already carrying a kneeDeg would otherwise
+      // measure straight and the tool would say it needs nothing.
+      const held = rig.kneeDeg || 0;
+      rig.kneeDeg = 0;
+      const clip = rigs.resolveClip(key, "idle");
+      poseRig(rig, "idle", { t: 0, animTime: 0 }, clip?.clip || null,
+        { charKey: key, stanceDeg: rig.stanceDeg || 0 });
+      rig.root.updateMatrixWorld(true);
+      rig.kneeDeg = held;
+      const at = (n) => { const b = rig.root.getObjectByName(n);
+        return b ? new THREE.Vector3().setFromMatrixPosition(b.matrixWorld) : null; };
+      const hl = at("LeftUpLeg"); const hr = at("RightUpLeg");
+      if (!hl || !hr) continue;
+      const lat = hl.clone().sub(hr); lat.y = 0;
+      if (lat.lengthSq() < 1e-8) continue;
+      lat.normalize();
+      const fwd = new THREE.Vector3(-lat.z, 0, lat.x);
+      const row = { key };
+      for (const side of ["Left", "Right"]) {
+        const leg = rig.root.getObjectByName(`${side}Leg`);
+        if (!leg) continue;
+        // The knee hinges about the shin bone's own local X (measured, not
+        // assumed — it is the convention the pose libraries were built on), so
+        // where that axis points says which way the knee faces. Flattened to
+        // the ground plane: a knee's facing is a yaw question.
+        const hinge = new THREE.Vector3(1, 0, 0)
+          .applyQuaternion(leg.getWorldQuaternion(new THREE.Quaternion()));
+        hinge.y = 0;
+        if (hinge.lengthSq() < 1e-8) continue;
+        hinge.normalize();
+        // Signed so positive means the knee is turned OUT, either side.
+        const sign = side === "Left" ? 1 : -1;
+        const off = Math.atan2(hinge.dot(fwd) * sign, hinge.dot(lat) * sign) * 180 / Math.PI;
+        // The hinge is a line, not an arrow: 180 away is the same axis.
+        row[side] = +(((off + 270) % 180) - 90).toFixed(1);
+        // AND THE TOE, which is the same fault read at the other end of the
+        // leg. Kept beside the hinge rather than instead of it because the two
+        // disagree and each is wrong in its own way: the hinge over-reads
+        // (Yuji measures 60 and wants about 15), and the toe bone is built at
+        // an angle on some rigs (Meimei measures 82 and wants nothing at all).
+        // Two readings that agree are worth looking at; one on its own is not.
+        const foot = at(`${side}Foot`);
+        const toe = at(`${side}ToeBase`) || at(`${side}Toe`);
+        if (foot && toe) {
+          const d = toe.clone().sub(foot); d.y = 0;
+          if (d.lengthSq() > 1e-8) {
+            d.normalize();
+            row[`${side}Toe`] = +(Math.atan2(d.dot(lat) * sign, d.dot(fwd)) * 180 / Math.PI).toFixed(1);
+          }
+        }
+      }
+      out.push(row);
+    }
+    return out;
+  }, only);
+  await browser3.close();
+
+  console.log("\nKNEE ROLL, on the posed idle — how far the leg is screwed outward");
+  console.log("char           hinge L/R        toe L/R");
+  const look = [];
+  for (const r of knees) {
+    const hinge = ((r.Left ?? 0) + (r.Right ?? 0)) / 2;
+    const toe = ((r.LeftToe ?? 0) + (r.RightToe ?? 0)) / 2;
+    // BOTH, or neither. Either measure alone names fighters that turn out to
+    // want nothing, and the disagreements are the interesting rows: a big
+    // hinge with a small toe is a knee built rolled inside a leg that stands
+    // straight, and it does not read at game size.
+    const flag = hinge > LIMITS.roll && toe > LIMITS.roll;
+    console.log(`${r.key.padEnd(13)} ${n(r.Left)} ${n(r.Right)}   ${n(r.LeftToe)} ${n(r.RightToe)}`
+      + (flag ? "   << screwed out" : ""));
+    if (flag) look.push({ key: r.key, toe });
+  }
+  if (look.length) {
+    // NO NUMBER IS PRINTED, deliberately. The dial moves the toe one for one,
+    // so the toe reading is the obvious answer and it is right about half the
+    // time — Geto's 35 wants 45 and Choso's 25 wants 45, because the foot is
+    // not the only thing the eye is reading. This is a shortlist for the idle
+    // review, which is where a dial judged against the drawing belongs.
+    console.log(`\n${look.length} rig(s) to look at in the idle review's Knees dial:`);
+    console.log(`  ${look.map((l) => `${l.key} (~${Math.round(l.toe)}°)`).join(", ")}`);
+    console.log("The bracketed number is the toe splay, which is where to START");
+    console.log("the dial, not where to leave it — the drawing settles it.");
+  } else {
+    console.log("\nevery knee faces the front");
+  }
+}
+
 if (process.argv.includes("--solve") && findings.length) {
   console.log("\nsolving each shoulder against the POSED rig...\n");
   const browser2 = await chromium.launch({

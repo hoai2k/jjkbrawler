@@ -309,9 +309,33 @@ p.hint .dot {
 /* A fighter whose numbers were touched this session, at a glance. */
 #facingOverlay.decided #facingName::after { content: " ✎"; color: #d3c69f; }
 
-/* The dial picker is a PHONE control: on the desk all four dials fit and
-   choosing between them would be a click in the way of nothing. */
+/* The dial picker is a PHONE control: on the desk the dials fit and choosing
+   between them would be a click in the way of nothing. */
 .dial-pick { display: none; }
+
+/* THE DIALS THAT MATTER, THEN THE REST. Knees, shoulders and stance are what
+   a review pass actually turns; size, arms, head and turn get settled once per
+   fighter and then sit there being read. Ordered here rather than in the
+   markup so the two groups can be re-cut without moving blocks of HTML — the
+   knee dial has neither attribute, which puts it first. */
+#facingDials { display: flex; flex-direction: column; gap: 8px; }
+.facing-dial[data-primary] { order: 1; }
+.facing-dial[data-more] { order: 2; }
+#facingMore { order: 3; }
+.dial-more {
+  align-self: flex-start; padding: 5px 12px; font-size: 12.5px;
+  background: transparent; border: 1px solid #2c3654; border-radius: 8px;
+  color: #8b96b3;
+}
+.dial-more:hover { color: #cfe0ff; border-color: #3d4a70; }
+
+/* Folded away on the DESK only. The phone layout already shows exactly one
+   dial and reaches the others through the picker, so a second hiding rule
+   there would only put four of them out of reach entirely. */
+@media (min-width: 901px) {
+  #facingDials .facing-dial[data-more] { display: none; }
+  #facingDials.more .facing-dial[data-more] { display: flex; }
+}
 
 @media (max-width: 900px) {
   .facing-dial .dial-label { min-width: 44px; font-size: 12px; }
@@ -339,6 +363,7 @@ p.hint .dot {
   }
   #facingDials .facing-dial { display: none; }
   #facingDials .facing-dial.active { display: flex; }
+  .dial-more { display: none; }
   /* The picker IS the label now — keeping the word beside it says the same
      thing twice and takes the room the slider wants. */
   #facingDials .facing-dial .dial-label { display: none; }

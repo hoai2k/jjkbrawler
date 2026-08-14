@@ -52,6 +52,11 @@ export const MODEL_FIXES = {
     means: "the arm roots were built too far into the body",
     bake: "move the Left/RightArm joints (and their skin) out along the shoulder line",
   },
+  kneeDeg: {
+    where: "manifest",
+    means: "the legs were built rotated outward at the hip — the knee faces away from the midline",
+    bake: "rotate each leg (and its skin) about its own length until the knee squares to the front",
+  },
   renderScale: {
     where: "manifest",
     means: "the model measures a different height than the fighter is drawn at",
@@ -71,7 +76,7 @@ export const MODEL_FIXES = {
  *  means anything in the idle — baking them would freeze a fighter mid-idle in
  *  every other state. Everything listed here is true of the body no matter
  *  what it is doing, which is exactly the test for belonging on this list. */
-export const MODEL_FIX_KEYS = ["yawOffsetDeg", "headTiltDeg", "shoulderOutCm", "renderScale"];
+export const MODEL_FIX_KEYS = ["yawOffsetDeg", "headTiltDeg", "shoulderOutCm", "kneeDeg", "renderScale"];
 
 /**
  * The whole layer, on or off.
@@ -149,14 +154,14 @@ export const RIG_FIXES = {
   //     MESH (Uro -0.069, Kurourushi -0.234) and a rotation that levels skin
   //     while the bones are already level is a different fix, sized off a
   //     different measurement.
-  //   * Every knee. The kink is real in the BIND — Geto's shins jut 18° and
-  //     34° out of their thighs — but it does not survive into a posed state,
-  //     because the poses rotate legs in the sagittal plane and overwrite it.
-  //     Measured on the posed idle every fighter reads a kink of 0, and a
-  //     correction applied there only ADDS one: Geto gained 2.9° and 5.4° and
-  //     visibly widened. What the eye is catching on Geto is more likely his
-  //     `stanceDeg`, which this round's idle review raised to 15 — among the
-  //     widest on the roster.
+  //   * Every knee — but not because the knees are fine. The frontal KINK is
+  //     real in the bind (Geto's shins jut 18° and 34° out of their thighs)
+  //     and does not survive into a posed state, so a bend correction applied
+  //     there only ADDS one: Geto gained 2.9° and 5.4° and visibly widened.
+  //     What the eye is actually catching is the leg's ROLL, which aiming a
+  //     bone never sets — and that has its own dial, `kneeDeg`, in the
+  //     manifest beside the other model corrections. A rotation about the leg
+  //     is not a rotation of one bone, so it does not belong in this table.
 };
 
 

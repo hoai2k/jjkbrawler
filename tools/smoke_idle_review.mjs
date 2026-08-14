@@ -147,6 +147,8 @@ const rows = await page.evaluate(() => {
     allOnScreen: [...dial, ...acts].every((r) => r.bottom <= innerHeight + 1 && r.top >= 0),
     smallestTouch: Math.min(...[...dial, ...acts].map((r) => Math.min(r.width, r.height))),
     pickerShown: document.getElementById("facingDialPick")?.offsetParent !== null,
+    moreShown: document.getElementById("facingMore")?.offsetParent !== null,
+    total: document.querySelectorAll(".facing-dial").length,
   };
 });
 // Counted, not hardcoded: the claim is that no dial shares a row with another
@@ -171,7 +173,7 @@ if (rows.pickerShown) {
   const switched = await page.evaluate(async () => {
     const sel = document.getElementById("facingDialPick");
     const seen = [];
-    for (const v of ["yaw", "scale", "stance", "arms", "shoulders", "head"]) {
+    for (const v of ["yaw", "scale", "stance", "arms", "shoulders", "head", "knees"]) {
       sel.value = v;
       sel.dispatchEvent(new Event("change", { bubbles: true }));
       const on = [...document.querySelectorAll("#facingDials .facing-dial")]
@@ -182,8 +184,30 @@ if (rows.pickerShown) {
   });
   check(switched, "the picker switches which dial is shown");
 } else {
-  check(rows.dialCount === 6, "the desk shows every dial at once",
+  // FOLDED, not fewer. The desk starts on the three dials a pass actually
+  // turns — knees, shoulders, stance — and More opens the four that get
+  // settled once per fighter. The claim worth smoking is that the button
+  // reaches ALL of them, because a fold that hides a dial for good is the
+  // same failure as a picker that will not switch.
+  check(rows.moreShown, "the desk offers the More fold");
+  check(rows.dialCount === 3, "...and starts on the three working dials",
     `${rows.dialCount} visible`);
+  const opened = await page.evaluate(async () => {
+    document.getElementById("facingMore").click();
+    await new Promise((r) => setTimeout(r, 120));
+    const shown = [...document.querySelectorAll(".facing-dial")]
+      .filter((e) => e.offsetParent !== null);
+    const on = document.getElementById("facingMore").getAttribute("aria-expanded");
+    document.getElementById("facingMore").click();
+    await new Promise((r) => setTimeout(r, 120));
+    const after = [...document.querySelectorAll(".facing-dial")]
+      .filter((e) => e.offsetParent !== null).length;
+    return { count: shown.length, total: rowsTotal(), on, after };
+    function rowsTotal() { return document.querySelectorAll(".facing-dial").length; }
+  });
+  check(opened.on === "true" && opened.count === opened.total,
+    "...and More opens every one of them", `${opened.count} of ${opened.total}`);
+  check(opened.after === 3, "...and folds back up again", `${opened.after} visible`);
 }
 
 /** Same as useDial below, needed before it is defined. */
@@ -227,6 +251,53 @@ if (armed.before === null) {
   check(armed.after > armed.before + 0.02,
     "...and the hand actually moves out from the shoulder",
     `${(armed.before * 100).toFixed(0)}cm -> ${(armed.after * 100).toFixed(0)}cm`);
+}
+
+// THE KNEE DIAL TURNS THE LEGS. Same claim as the arm dial: the readout is
+// the easy half. What is measured is the TOE, because a leg screwed outward at
+// the hip shows it at the foot — and because the knee itself is inside a
+// trouser leg on most of the roster and has no landmark to read.
+await useDialEarly("knees");
+const kneed = await page.evaluate(async () => {
+  const L = await import("/render3d/src/loader.js");
+  const THREE = await import("/vendor/three/three.module.js");
+  const key = document.getElementById("charSelect").value;
+  // How far the toe points off the body's forward, in degrees, positive out.
+  const splay = () => {
+    const r = L.getRig(key);
+    if (!r) return null;
+    r.root.updateMatrixWorld(true);
+    const at = (n) => { const b = r.root.getObjectByName(n);
+      return b ? new THREE.Vector3().setFromMatrixPosition(b.matrixWorld) : null; };
+    const hl = at("LeftUpLeg"), hr = at("RightUpLeg");
+    const foot = at("LeftFoot"), toe = at("LeftToeBase") || at("LeftToe");
+    if (!hl || !hr || !foot || !toe) return null;
+    const lat = hl.clone().sub(hr); lat.y = 0; lat.normalize();
+    const fwd = new THREE.Vector3(-lat.z, 0, lat.x);
+    const d = toe.clone().sub(foot); d.y = 0; d.normalize();
+    return Math.atan2(d.dot(lat), d.dot(fwd)) * 180 / Math.PI;
+  };
+  const before = splay();
+  const el = document.getElementById("facingKnee");
+  el.value = "40";
+  el.dispatchEvent(new Event("input", { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 250));
+  const after = splay();
+  const deg = L.getRig(key)?.kneeDeg;
+  // Put it back before reporting — read the dial FIRST, or the reset is what
+  // gets reported and the check fails on its own tidying up.
+  el.value = "0";
+  el.dispatchEvent(new Event("input", { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 200));
+  return { before, after, deg };
+});
+if (kneed.before === null) {
+  check(true, "knee dial check skipped — this fighter has no toe bones");
+} else {
+  check(kneed.deg === 40, "the knee dial reaches the rig", `kneeDeg ${kneed.deg}`);
+  check(kneed.after < kneed.before - 5,
+    "...and the toe swings in toward the front",
+    `${kneed.before.toFixed(0)}deg -> ${kneed.after.toFixed(0)}deg`);
 }
 
 // REVERT, per fighter. Every other control writes a number and there was no way
