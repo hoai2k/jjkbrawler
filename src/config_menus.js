@@ -151,6 +151,9 @@ export const TEXT = {
     startWaiting: "Waiting for fighters…",
     hintPicking: "Pick a fighter to lock in. B / Backspace un-readies · LB/RB cycles the corner menus.",
     hintReady: "All fighters locked — confirm again (A / Enter) to choose the stage. B / Backspace un-readies.",
+    // One-player only, once you have locked yourself in: the selector is still
+    // live, and what it is choosing now is who you are about to fight.
+    hintOpponent: "Locked in — now pick your opponent. A / Enter chooses the stage · B / Backspace re-picks your fighter.",
     // Shown while the roster streams in behind the select screen. Any fighter
     // is playable before this finishes; picking one just pulls their art to the
     // front of the queue. Hidden once every fighter is in memory.
@@ -262,6 +265,10 @@ export const TEXT = {
     seatPlayer: (n) => `P${n}`,
     seatCpu: "CPU",
     stageLabel: (name) => name,
+    // Only ever seen when a fighter's art is still streaming as the match
+    // starts; the splash carries the bar so the screen is the VS screen either
+    // way, rather than a loading screen standing in front of it.
+    loading: "Summoning fighters",
   },
 
   pause: {

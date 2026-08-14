@@ -2271,6 +2271,29 @@ html, body {
   padding: 8px 26px 7px;
 }
 
+/* The bar along the bottom of the splash, shown only when a match's art is
+   still streaming as it goes up. Deliberately thin and unlabelled: the screen
+   is the VS screen, and this is a footnote on it rather than a loading screen
+   wearing the splash as a background. */
+.intro-load {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  height: 5px;
+  background: rgba(4, 6, 14, 0.75);
+}
+
+.intro-load-fill {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #1d5fd8, var(--accent));
+  box-shadow: 0 0 14px rgba(98, 220, 255, 0.6);
+  transition: width 0.18s ease-out;
+}
+
 /* The slam: odd panels arrive from the left, even from the right, each a beat
    after the one before; the VS mark stamps down over them; the plates and
    stage plaque settle last. All of it dies to 1ms under reduced motion. */
