@@ -29,3 +29,7 @@ render3d/intake/__smoketest/
 billboards/assets/__smoketest/
 billboards/intake/__smoketest/
 render3d/docs/reference/_views/
+
+# Written by the deploy workflow ("Stamp the build") so the published site can
+# report which commit it is. Per-deploy, never committed — see src/deploystamp.js.
+version.json
