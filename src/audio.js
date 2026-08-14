@@ -207,6 +207,22 @@ export function noteGamepadGesture() {
   unlock();
 }
 
+/** Whether a gesture has already bought the page the right to make noise.
+ *  The title screen asks, because it is the one screen whose whole job is to
+ *  be heard: if the answer is no it spends the player's first press waking the
+ *  cabinet instead of starting the game (see leaveTitle in ui.js). */
+export function audioUnlocked() {
+  return unlocked;
+}
+
+/** Whether the music is audibly playing RIGHT NOW. The honest test of whether
+ *  the cabinet is already awake: some browsers (and most headless ones) permit
+ *  autoplay outright, and on those there is nothing for a wake-up press to
+ *  turn on — asking for one would be friction bought with nothing. */
+export function musicPlaying() {
+  return !!musicEl && !musicEl.paused && !musicEl.muted && musicEl.volume > 0;
+}
+
 // ------------------------------------------------------------ tab visibility
 //
 // A hidden tab makes no sound. Everything already playing is stopped rather

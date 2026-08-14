@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, RESOLVED_GROUPS, randomCharacterKey } from "./characters.js";
 import { STAGES, getStage, backgroundFile } from "./stages.js";
-import { audioSettings, cycleMusicMode, MUSIC_MODES, syncMusic, playSfx, toggleMute } from "./audio.js";
+import { audioSettings, audioUnlocked, cycleMusicMode, MUSIC_MODES, musicPlaying, syncMusic, playSfx, toggleMute } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
 import { METER_MAX, TIME_OPTIONS } from "./constants.js";
 import { clamp } from "./utils.js";
@@ -993,6 +993,53 @@ function toggleFullscreen() {
   else enterFullscreen();
 }
 
+// ------------------------------------------------------------ attract mode
+//
+// An arcade cabinet is already making noise when you walk up to it; a web page
+// is not allowed to. Nothing may sound until the page has had a user gesture,
+// so a player whose very first press is the one that starts the game would
+// hear Iron vs Bone for a single frame before the menu track replaced it.
+//
+// So the title screen spends that first press the way a cabinet does: it turns
+// the sound on and keeps standing there. The screen does not change what it is
+// asking for — PRESS START still blinks — it just comes alive first, and the
+// next press starts the game. Only ever ONE extra press, and only when there
+// is actually something to wake: with the music off, muted, or already
+// unlocked, the title is armed from the moment it appears and the first press
+// starts the game as normal.
+let titleArmed = false;
+let armTimer = null;
+
+/** Whether the splash still owes the player a wake-up press. False whenever
+ *  waking would accomplish nothing audible — silence is a setting, and making
+ *  someone press twice to reach a menu for no reason is just a worse menu. */
+function titleNeedsWake() {
+  if (audioUnlocked() || musicPlaying()) return false;
+  if (audioSettings.muted || audioSettings.musicVolume <= 0) return false;
+  return (MUSIC_MODES[audioSettings.musicMode] || MUSIC_MODES[0]).key !== "off";
+}
+
+/** The cabinet coming on: the music starts and the logo takes a hit of light.
+ *  The gesture that got here has already unlocked audio (audio.js listens on
+ *  the window, and the pad path calls noteGamepadGesture), so this only has to
+ *  ask for the title track again — a pad press unlocks after that re-ask has
+ *  already been made for the frame. */
+function wakeTitle() {
+  titleArmed = true;
+  syncMusic(state.phase);
+  playSfx("uiSelect");
+  const el = els.titleOverlay;
+  if (!el) return;
+  el.classList.remove("is-waking");
+  void el.offsetWidth;
+  el.classList.add("is-waking");
+  // Taken off again once the flourish is done, and not merely for tidiness:
+  // while it is on, its rules outrank the looping ones, so leaving it would
+  // stop PRESS START blinking for good the moment its finite burst ended.
+  clearTimeout(wakeTitle.timer);
+  wakeTitle.timer = setTimeout(() => el.classList.remove("is-waking"), 660);
+}
+
 /** Press start. Hands the game from the title splash to fighter select.
  *
  *  `fullscreen` is the one thing that differs by input: a controller (or Enter)
@@ -1006,6 +1053,8 @@ function toggleFullscreen() {
  *  arriving a frame later must not re-run it. */
 export function leaveTitle({ fullscreen = false } = {}) {
   if (state.phase !== "title") return;
+  // The attract-mode press: wake the cabinet, stay on the splash.
+  if (!titleArmed) { wakeTitle(); return; }
   if (fullscreen) enterFullscreen();
   playSfx("uiStart");
   setPhase("menu");
@@ -1047,6 +1096,23 @@ export function setPhase(phase) {
   els.utilityActions.classList.toggle("hidden", phase === "loading" || phase === "title");
   // Any screen change away from the fight takes the VS splash down with it.
   if (phase !== "playing") hideBattleIntro();
+  // Arriving on the splash decides whether it owes a wake-up press. Asked here
+  // rather than at press time because by then the press itself has already
+  // unlocked audio through audio.js's own window listeners.
+  if (phase === "title") {
+    titleArmed = !titleNeedsWake();
+    els.titleOverlay?.classList.remove("is-waking");
+    // …and asked once more a beat later. `play()` is a promise: on a browser
+    // that permits autoplay the track is still `paused` for a few ms after
+    // syncMusic asks for it, and a cabinet that turns out to be making noise
+    // on its own has nothing left to wake.
+    clearTimeout(armTimer);
+    if (!titleArmed) {
+      armTimer = setTimeout(() => {
+        if (state.phase === "title" && musicPlaying()) titleArmed = true;
+      }, 450);
+    }
+  }
   // The pause screen reads the match as it stands right now, so its standings
   // strip is rebuilt on every pause rather than kept live.
   if (phase === "paused") renderPauseStandings();
