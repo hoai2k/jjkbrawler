@@ -117,11 +117,48 @@ export function pendingFixes(charKey, entry = null) {
  * inconsistent one.
  */
 export const RIG_FIXES = {
-  // (empty — the roster's corrections still live in the manifest's
-  // `headTiltDeg` while the idle review is the only thing that writes them.
-  // Shoulder and clavicle fixes land here as the review starts producing them,
-  // one entry per bone with a note saying what looked wrong.)
+  // ------------------------------------------------------------- shoulders
+  //
+  // Measured and then SOLVED, not eyeballed: `tools/rig_calibrate.mjs` reads
+  // the shoulder height difference off each rig as a fraction of the shoulder
+  // width, and `--solve` finds the correction by applying a trial roll to the
+  // POSED rig, measuring what actually moved, and scaling. Only the fighters
+  // whose tilt the loop drives to zero are here. Deriving the angle from the
+  // tilt directly — the obvious way — under-corrected Yuji by four fifths,
+  // because a fix composes in the bone's parent frame while the tilt is
+  // measured in the world's, and those stop agreeing the moment the clavicle
+  // has any rest rotation.
+  //
+  // Each RAISES THE LOWER SHOULDER rather than dropping the higher one: the
+  // higher one is where the costume and the silhouette were built, and
+  // dropping it moves the collar.
+  yuji: { LeftShoulder: [0, 0, 19.2] },    // -0.057 -> 0.000
+  megumi: { LeftShoulder: [0, 0, 3.6] },   // -0.011 -> 0.000
+  jogo: { LeftShoulder: [0, 0, 16.7] },    // -0.131 -> 0.000
+
+  // WHAT IS DELIBERATELY NOT HERE, because the same loop said so:
+  //
+  //   * Nanami, Hanami, Dagon and Mahito are tilted the OTHER way and the
+  //     solve makes them worse, not better — Nanami's 0.087 becomes 0.174. A
+  //     right-shoulder correction is not a mirrored left-shoulder one on these
+  //     rigs and the axis it wants has not been found yet. Better tilted than
+  //     tilted twice as far.
+  //   * Uro, Hakari, Meimei, Kurourushi and Choso measure ZERO tilt once
+  //     posed: the idle clip sets their clavicles and levels the skeleton, so
+  //     a bone correction has nothing to correct. Their unevenness is in the
+  //     MESH (Uro -0.069, Kurourushi -0.234) and a rotation that levels skin
+  //     while the bones are already level is a different fix, sized off a
+  //     different measurement.
+  //   * Every knee. The kink is real in the BIND — Geto's shins jut 18° and
+  //     34° out of their thighs — but it does not survive into a posed state,
+  //     because the poses rotate legs in the sagittal plane and overwrite it.
+  //     Measured on the posed idle every fighter reads a kink of 0, and a
+  //     correction applied there only ADDS one: Geto gained 2.9° and 5.4° and
+  //     visibly widened. What the eye is catching on Geto is more likely his
+  //     `stanceDeg`, which this round's idle review raised to 15 — among the
+  //     widest on the roster.
 };
+
 
 /** The fixes for a character, or null. Never throws on an unknown key. */
 export function fixesFor(charKey) {

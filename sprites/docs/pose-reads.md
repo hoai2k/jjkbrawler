@@ -643,6 +643,21 @@ character and per bone, applied under every state. `headTiltDeg` in the rig
 manifest is the same idea and predates it; it stays where the idle review
 already writes it, applied alongside.
 
+**They are measured and solved, not eyeballed.**
+[`tools/rig_calibrate.mjs`](../../tools/rig_calibrate.mjs) reads three things
+off every rig — shoulder tilt as a fraction of shoulder width, the knee's
+sideways *kink* out of the thigh's line, and how bent the leg is at rest — and
+with `--solve` it finds each correction by applying a trial roll to the posed
+rig, measuring what actually moved, and scaling. That last part is not
+belt-and-braces: deriving the angle from the tilt directly under-corrected Yuji
+by four fifths, because a fix composes in the bone's parent frame while the
+tilt is measured in the world's, and those stop agreeing the moment the
+clavicle has any rest rotation.
+
+The tool also separates two faults that hide under "his shoulders look
+uneven" — a tilted *skeleton* and a tilted *skin* — by measuring the second off
+the skinned vertices each shoulder owns. They disagree more often than not.
+
 They are authored in the BONE's own frame, which is the opposite of the pose
 libraries and is deliberate: a fix corrects how one bone was built, so it is
 authored by looking at that bone, while a pose is a human movement described
