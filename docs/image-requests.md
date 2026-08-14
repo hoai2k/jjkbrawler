@@ -12,9 +12,9 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**0 images outstanding.**
+**54 images outstanding.**
 
-- **The sprite game** — 0 images
+- **The sprite game** — 54 images, round 21
 - **The live-3D anime path** — 0 images
 
 ## Rules that hold everywhere here
@@ -45,7 +45,92 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**Nothing outstanding.** No open round in [asset-requests.md](asset-requests.md).
+**54 images, round 21.** Authored in
+[docs/asset-requests.md](asset-requests.md) and reproduced whole below.
+
+- **21A** — A walk cycle for every fighter (54 sprites)
+
+## 21A. A walk cycle for every fighter — 54 sprites
+
+### Why
+
+**The game grew a walk and has nothing to draw it with.** Ground movement used
+to be one speed: `dirX` was ±1 past a deadzone, so any input accelerated to the
+same run. It is analog now — a partial stick tilt walks at 34–62% of run speed,
+scaled by how far it is pushed, and a full tilt or a flick runs, which is how
+Smash has always done it ([SmashWiki](https://www.ssbwiki.com/Walk)).
+
+That was not a cosmetic addition. It is what makes the **ledge brake** possible:
+a fighter walking into the lip of a platform stops there and will not step off
+until the stick is pushed to a run — Smash's teeter
+([SmashWiki](https://www.ssbwiki.com/Teeter)) — and a teeter needs a walk to
+protect. Both are in `docs/game-mechanics.md § 2`.
+
+So there is a new movement state with real presence in play, and no art. It
+currently borrows the run.
+
+### What is already wired
+
+**Nothing is blocked and nothing needs a code change when this lands.** `walk`
+is a state on both renderers already, falling back the way the round-20C grab
+set did:
+
+- **Sprites** — `WALK_ANIM` in `src/characters.js` names `walk_a` / `walk_b` and
+  falls back to the four-frame run cycle (then the old `run_a`/`run_b` pair) at
+  a walking cadence. A fighter who has the pair never plays the fallback.
+- **3D** — `walk` is a state in `render3d/src/states.js`, aliased to the run
+  clip. No rig owes a new clip today. See the note below on when it should.
+- **Cadence** — the stride now plays at the speed the fighter is actually
+  travelling (`strideRate`, `src/fighter.js`), so a walk does not skate and
+  neither does anyone snared or slowed.
+
+Delivery therefore upgrades the roster fighter by fighter, in any order.
+
+### The brief
+
+**Two contacts, not four.** The run is a four-frame cycle (reach and pass on
+each leg) because a sprint needs the extension. A walk reads at half the cadence
+and half the extension, and two frames is what the roster's other held cycles —
+idle, crouch — use for the same reason.
+
+`walk_a` and `walk_b` are **the same walk half a cycle apart**: opposite legs
+leading, mirrored in gait but NOT mirrored as images — each is drawn facing
+right, with the costume on its correct side, exactly as `run_reach_a` and
+`run_reach_b` are.
+
+| File | Pose line |
+|---|---|
+| `assets/intake/<char>/walk_a.png` | "walking at an unhurried pace, RIGHT leg forward and the heel just making contact, left leg trailing straight behind, arms swinging naturally in opposition — left arm forward — torso upright and relaxed, no lean" |
+| `assets/intake/<char>/walk_b.png` | "the same unhurried walk half a stride later, LEFT leg forward and the heel just making contact, right leg trailing straight behind, arms swinging in opposition — right arm forward — torso upright and relaxed, no lean" |
+
+What separates these from the run poses, and the thing most likely to come back
+wrong:
+
+- **Upright, not driving.** A run leans into the direction of travel and throws
+  its weight ahead of the leading foot. A walk carries the torso vertically over
+  the hips. If the pose would read as a slow run, it is the wrong pose.
+- **A short stride.** Feet roughly shoulder-width apart at contact, not the
+  full split of `run_reach_*`. Both feet stay near the ground; a walk has no
+  airborne phase at all, which is the definition of one.
+- **Relaxed arms.** Swinging from the shoulder in opposition to the legs, elbows
+  soft and near the body — not the pumped, high-elbow carriage of the run.
+- **Weapons carried, not readied.** A fighter who runs with a weapon up should
+  walk with it lowered or shouldered. This is the calm approach, not the charge.
+
+Otherwise the standard spec: the character's own key screen colour, facing
+right, one zoom matched to their own `idle_a`, at least 600 px of body, one
+subject per file. Character blocks and canonical references are above;
+[pose-brief.md](../sprites/docs/pose-brief.md) is the standing brief.
+
+### If a bespoke 3D walk is wanted later
+
+The 3D side is answered by the alias for now and does not need art from this
+round. A walk that visibly differs from a slowed run — the upright torso most of
+all — is a **billboard/3D pose round**, not a sprite one: drop `walk: "run"`
+from `STATE_ALIASES` and author the clip. The intake process now raises this
+question on every new pose key (see
+[assets/intake/README.md](../assets/intake/README.md)), so it will not be
+forgotten the way it could have been here.
 
 ---
 
@@ -271,16 +356,28 @@ is not its own says so silently, which is how seven of them stayed invisible
 until round 18G. Neither can see a pose that was never drawn — that is what
 the rounds above are for.
 
-**6 flagged, 0 drawing somebody else's art.**
+**6 flagged, 12 drawing somebody else's art.**
 
 | Fighter | Pose | Why |
 |---|---|---|
-| choso | `attack_light_b` | quality |
+| uro | `attack_light_a` | quality |
 | dagon | `attack_light_a` | pose |
 | dagon | `crouch_attack_b` | pose |
 | dagon | `crouch_b` | pose |
 | dagon | `run_reach_a` | pose |
 | dagon | `run_reach_b` | pose |
+| hanami | `attack_light_b` | drawing `special_neutral` |
+| sukuna | `attack_light_b` | drawing `r3c0` |
+| yuta | `attack_heavy_b` | drawing `attack_dash` |
+| yuta | `attack_light_a` | drawing `attack_air_a` |
+| yuta | `attack_light_b` | drawing `attack_air_b` |
+| uro | `attack_light_a` | drawing `attack_light_b` |
+| uro | `attack_light_b` | drawing `attack_light_a` |
+| yuki | `attack_heavy_b` | drawing `ult_b` |
+| kurourushi | `attack_heavy_b` | drawing `attack_light_b` |
+| kurourushi | `attack_light_b` | drawing `attack_air_b_2` |
+| kurourushi | `crouch_attack_b` | drawing `dash_2` |
+| kurourushi | `dash` | drawing `dodge_roll_2` |
 
 Separately, **2 improvement requests** — the art works and is just
 not as good as it should be. Nothing is blocked by one, and the standing

@@ -27,6 +27,12 @@
 export const STATES = {
   idle:           { loop: true,  duration: 0.909, tier: "library" },
   run:            { loop: true,  duration: 0.308, tier: "library" },
+  // The walk (constants.js RUN_TILT). ALIASED to the run for now, the same
+  // interim the grab states and both dash attacks take: the state exists so an
+  // animKey the game plays is never an unknown one, and it borrows the run's
+  // clip — replayed slower, since clip time follows the fighter's speed — until
+  // a bespoke walk cycle is authored. No new clip is owed by any rig today.
+  walk:           { loop: true,  duration: 0.6,   tier: "library" },
   dash:           { loop: true,  duration: 0.4,   tier: "library" },
   jump:           { loop: true,  duration: 0.4,   tier: "library" },
   fall:           { loop: true,  duration: 0.4,   tier: "library" },
@@ -83,6 +89,7 @@ export const STATES = {
 // them appear in CLIP_STATES.
 const STATE_ALIASES = {
   dodge: "dodge_roll",
+  walk: "run",
   dashAttack: "light",
   dashAttackHeavy: "sideHeavy",
   grabReach: "light",

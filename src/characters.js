@@ -77,9 +77,33 @@ export function randomCharacterKey(avoid = []) {
 export const RUN_CYCLE_FRAMES = ["run_reach_a", "run_pass_a", "run_reach_b", "run_pass_b"];
 const RUN_ANIM = { frames: RUN_CYCLE_FRAMES, fallback: ["run_a", "run_b"], fps: 13, fallbackFps: 10, loop: true };
 
+// A WALK, added with the analog walk itself (constants.js RUN_TILT). Two
+// contacts rather than the run's four: a walk reads at half the cadence and
+// half the extension, and the roster's other held cycles — idle, crouch — are
+// pairs for the same reason.
+//
+// It ships FALLING BACK ON THE RUN, the way the grab set shipped falling back
+// on the nearest strike: the mechanic animates on all twenty-seven today and
+// upgrades fighter by fighter as round 21 lands, with no code change when it
+// does. The fallback is the run cycle, replayed at a walking cadence — which is
+// exactly what the game drew before the walk existed, so nothing regresses
+// while the art is outstanding.
+const WALK_ANIM = {
+  frames: ["walk_a", "walk_b"],
+  // The run CYCLE, and only it. The first version appended the legacy
+  // `run_a`/`run_b` pair as a second fallback, which is not how the mechanism
+  // works: `fallback` is one list played whole, so the twenty-four fighters
+  // who still carry the old pair walked in a six-frame mixture of two
+  // different drawings of running. Every fighter has the four-frame cycle
+  // (round 11 finished that conversion), so it always resolves.
+  fallback: RUN_CYCLE_FRAMES,
+  fps: 5, fallbackFps: 7, loop: true,
+};
+
 // Anim defaults; characters override entries whose sheet cells differ.
 export const DEFAULT_ANIMS = {
   idle: { frames: ["idle_a", "idle_b"], fps: 2.2, loop: true },
+  walk: WALK_ANIM,
   run: RUN_ANIM,
   dash: { frames: ["r1c2"], fps: 1, loop: true },
   jump: { frames: ["jump_rise"], fps: 1, loop: true },
@@ -137,6 +161,7 @@ export const DEFAULT_ANIMS = {
 // manifest, these animations resolve with no further code changes.
 export const SEMANTIC_ANIMS = {
   idle: { frames: ["idle_a", "idle_b"], fps: 2.2, loop: true },
+  walk: WALK_ANIM,
   run: RUN_ANIM,
   dash: { frames: ["dash"], fps: 1, loop: true },
   jump: { frames: ["jump_rise"], fps: 1, loop: true },
