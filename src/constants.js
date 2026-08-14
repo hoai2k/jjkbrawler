@@ -159,22 +159,38 @@ export const LEDGE_CATCH_SPEED = 450;   // px/s
 export const LEDGE_CATCH_MIN = 0.09;    // s, for a catch from right beside it
 export const LEDGE_CATCH_MAX = 0.40;    // s, for the far corner of the reach
 
-// INVULNERABILITY, and what it is measured from.
+// LEDGE INTANGIBILITY, on Smash's terms. Two rules, both about the same thing:
+// a ledge is a place you recover THROUGH, not a place you live.
 //
-// These are the grace AFTER arriving — unchanged from what each option had
-// when it was instant. The trip itself is covered on top of them, because a
-// fighter mid-transition cannot act: they are locked into a scripted climb, and
-// being hittable through one would be strictly worse than any alternative here.
+// 1. IT ENDS BEFORE THE GETUP DOES. Each option is covered for the first
+//    three-quarters of its trip and nothing after, so the last frames of a
+//    climb and the whole of the arrival are punishable. That is what makes
+//    ledge play a read rather than a free re-entry: the option is a
+//    commitment, and getting up in front of somebody who guessed right costs.
+//    (Ultimate's neutral getup is intangible for about 20 of its 26 frames.
+//    That figure is widely quoted rather than published, so the fraction is
+//    chosen to match its SHAPE — covered while travelling, exposed on arrival
+//    — rather than copied from a number I could source.)
 //
-// So the TOTAL protection does grow with the longer animations, and that is a
-// small buff to holding a ledge. Smash's shape is the opposite — intangibility
-// ends BEFORE the getup does, which is exactly what makes ledge play a read and
-// ledge camping punishable. Adopting it is a balance decision rather than an
-// animation one, so it is not taken here; it would be one line each.
-export const LEDGE_CLIMB_INVULN = 0.34;   // + LEDGE_CLIMB_TIME
-export const LEDGE_ROLL_INVULN = 0.55;    // + LEDGE_ROLL_TIME
-export const LEDGE_ATTACK_INVULN = 0.30;  // + LEDGE_ATTACK_TIME
-export const LEDGE_CATCH_INVULN = 0.28;   // + however long the reach took
+// 2. IT DECAYS WITH REGRABS, AND ONLY THE GROUND RESETS IT. Ultimate: "The
+//    intangibility granted by all ledge getup options (standard, jump, attack
+//    and roll) is reduced for each ledge regrab, applying a multiplier of 0.8x
+//    after the first regrab, 0.5x after the second, and being disabled
+//    entirely from the third regrab onwards... This penalty resets when the
+//    character becomes grounded again." (ssbwiki.com/Edge.) That one is exact
+//    rather than adapted, and it is the anti-camping mechanic proper.
+//
+//    The loop it kills is grab -> drop -> regrab, which never touches the
+//    stage; climbing up resets it, because climbing up is what a ledge is for.
+//    At the far end a fighter on their fourth consecutive grab is hittable
+//    through the reach itself, unable to act — severe, and meant to be. It is
+//    the fourth time in a row they chose the ledge over the stage.
+export const LEDGE_INVULN_TRAVEL = 0.75;
+export const LEDGE_REGRAB_SCALE = [1, 0.8, 0.5, 0];
+/** The hang, once a catch has landed on it. */
+export const LEDGE_HANG_INVULN = 0.28;
+/** The ledge jump, which has no travel of its own to be covered for. */
+export const LEDGE_JUMP_INVULN = 0.32;
 
 export const TEETER_EDGE = 16;          // px from the lip
 export const TEETER_DELAY = 0.08;       // s standing there before it shows

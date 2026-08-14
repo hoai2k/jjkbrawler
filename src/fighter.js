@@ -20,7 +20,7 @@ import {
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
   LEDGE_CLIMB_TIME, LEDGE_ROLL_TIME, LEDGE_ATTACK_TIME,
   LEDGE_CATCH_SPEED, LEDGE_CATCH_MIN, LEDGE_CATCH_MAX,
-  LEDGE_CLIMB_INVULN, LEDGE_ROLL_INVULN, LEDGE_ATTACK_INVULN, LEDGE_CATCH_INVULN,
+  LEDGE_INVULN_TRAVEL, LEDGE_REGRAB_SCALE, LEDGE_HANG_INVULN, LEDGE_JUMP_INVULN,
   TEETER_EDGE, TEETER_DELAY,
   RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
@@ -73,7 +73,7 @@ export function makeFighter(id, charKey, x, facing) {
     cooldowns: { neutral: 0, side: 0, down: 0 },
     throatStrain: 0, throatLock: 0,
     statuses: freshStatuses(),
-    ledge: null, ledgeCooldown: 0, ledgeTimer: 0, ledgeMove: null,
+    ledge: null, ledgeCooldown: 0, ledgeTimer: 0, ledgeMove: null, ledgeGrabs: 0,
     respawnTimer: 0, dead: false,
     // The revival platform this fighter is currently standing on, or null.
     // {x, y, t} — see stepRespawnPlatform.
@@ -310,6 +310,19 @@ function beginDodge(f, type, dir = 0) {
 
 // ------------------------------------------------------------------ ledges
 
+/**
+ * How much of a ledge option's intangibility this fighter still gets.
+ *
+ * Smash Ultimate's anti-camping rule, exactly (ssbwiki.com/Edge): full on the
+ * first grab, 0.8x after one regrab, 0.5x after two, nothing from three on —
+ * and the counter resets the moment they are grounded, which is why climbing
+ * up costs nothing and grab -> drop -> regrab costs everything.
+ */
+function ledgeInvulnScale(f) {
+  const i = Math.min(Math.max(f.ledgeGrabs - 1, 0), LEDGE_REGRAB_SCALE.length - 1);
+  return LEDGE_REGRAB_SCALE[i];
+}
+
 /** Smoothstep, the shape every ledge transition below travels on: leaves and
  *  arrives slowly, quickest in the middle. */
 function ease(k) {
@@ -458,10 +471,13 @@ function tryGrabLedge(f) {
       // snap box it started (constants.js LEDGE_CATCH_SPEED).
       const reach = Math.hypot(hangX - f.x, hangY - f.y);
       const catchTime = clamp(reach / LEDGE_CATCH_SPEED, LEDGE_CATCH_MIN, LEDGE_CATCH_MAX);
-      // The trip plus the grace on the hang: a fighter halfway to a ledge is
-      // committed and cannot defend, so the window that protected the snap has
-      // to protect the reach too.
-      f.invuln = Math.max(f.invuln, catchTime + LEDGE_CATCH_INVULN);
+      // The reach plus a grace on the hang — and the whole of it scaled by how
+      // many times they have taken this ledge without touching the stage. At
+      // the fourth grab the scale is zero and the reach itself is a free hit,
+      // which is the point of the rule.
+      f.ledgeGrabs += 1;
+      f.invuln = Math.max(f.invuln,
+        (catchTime + LEDGE_HANG_INVULN) * ledgeInvulnScale(f));
       beginLedgeMove(f, "catch", catchTime, hangX, hangY, { rising: f.vy < -20 });
       playSfx("landing", 0.3);
       dust(f.x, f.y, 8);
@@ -501,7 +517,7 @@ function updateLedge(f, dt, input) {
     f.ledgeCooldown = 0.5;
     f.vy = -stats(f).jump * 0.95;
     f.vx = (l.side === -1 ? 1 : -1) * 150;
-    f.invuln = Math.max(f.invuln, 0.32);
+    f.invuln = Math.max(f.invuln, LEDGE_JUMP_INVULN * ledgeInvulnScale(f));
     setAnim(f, "jump");
     dust(f.x, f.y, 10);
     return;
@@ -509,7 +525,8 @@ function updateLedge(f, dt, input) {
   if (input.lightP || input.heavyP) {
     f.ledge = null;
     f.ledgeCooldown = 0.55;
-    f.invuln = Math.max(f.invuln, LEDGE_ATTACK_TIME + LEDGE_ATTACK_INVULN);
+    f.invuln = Math.max(f.invuln,
+      LEDGE_ATTACK_TIME * LEDGE_INVULN_TRAVEL * ledgeInvulnScale(f));
     beginLedgeMove(f, "attack", LEDGE_ATTACK_TIME, inX(52), l.plat.y);
     return;
   }
@@ -518,7 +535,9 @@ function updateLedge(f, dt, input) {
     f.ledge = null;
     f.ledgeCooldown = 0.55;
     const dur = roll ? LEDGE_ROLL_TIME : LEDGE_CLIMB_TIME;
-    f.invuln = Math.max(f.invuln, dur + (roll ? LEDGE_ROLL_INVULN : LEDGE_CLIMB_INVULN));
+    // Covered while travelling, exposed on arrival — the last quarter of the
+    // climb and every frame after it is a punish window.
+    f.invuln = Math.max(f.invuln, dur * LEDGE_INVULN_TRAVEL * ledgeInvulnScale(f));
     beginLedgeMove(f, roll ? "roll" : "climb", dur, inX(roll ? 110 : 56), l.plat.y);
   }
 }
@@ -735,7 +754,8 @@ export function ringOut(f) {
   f.simpleDomain = null;
   clearGrabLinks(f);
   f.installs = null; f.spriteChar = null; f.hitstun = 0; f.statuses = freshStatuses();
-  f.vx = 0; f.vy = 0; f.ledge = null; f.ledgeMove = null; f.dizzy = 0; f.prone = 0; f.armorT = 0;
+  f.vx = 0; f.vy = 0; f.ledge = null; f.ledgeMove = null; f.ledgeGrabs = 0;
+  f.dizzy = 0; f.prone = 0; f.armorT = 0;
   f.spin = 0; f.spinAngle = 0; f.trail.length = 0;
   // The revival platform goes with the stock it belonged to, whether or not
   // there is another one coming.
@@ -1386,6 +1406,11 @@ export function updateFighter(f, dt, input) {
   // After the contact test, so it reads the platform this step actually left
   // the fighter standing on.
   updateTeeter(f, dt);
+  // ONLY THE GROUND clears the regrab penalty (constants.js
+  // LEDGE_REGRAB_SCALE). Not time, not being hit, not letting go — Smash's
+  // rule verbatim, and the reason grab -> drop -> regrab is the loop that
+  // pays for itself while climbing up is free.
+  if (f.grounded) f.ledgeGrabs = 0;
 
   // ---- blast zones
   if (checkBlastZones(f)) return;
