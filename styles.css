@@ -478,7 +478,12 @@ html, body {
   overflow-y: auto;
 }
 
-.overlay--compact { background: rgba(4, 6, 13, 0.82); backdrop-filter: blur(6px); }
+.overlay--compact {
+  background:
+    repeating-linear-gradient(100deg, transparent 0 110px, rgba(130, 170, 255, 0.035) 110px 190px),
+    rgba(4, 6, 13, 0.82);
+  backdrop-filter: blur(6px);
+}
 
 /* Screens arrive instead of appearing.
 
@@ -516,6 +521,41 @@ html, body {
   background:
     linear-gradient(rgba(3, 5, 13, 0.38), rgba(3, 5, 13, 0.76)),
     url("assets/backgrounds/victory.jpg") center / cover no-repeat;
+}
+
+/* The select spotlight: the fighter the active picker is browsing, blown up
+   behind the whole screen and answering every cursor move. Two stacked images
+   crossfade (ui.js alternates them); everything else on the overlay rides one
+   z-layer above. Dim and bottom-masked so the roster and its name bands keep
+   their contrast. */
+.select-spotlight {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+#menuOverlay > :not(.select-spotlight) { position: relative; z-index: 1; }
+
+.select-spotlight img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 124%;
+  width: auto;
+  transform: translate(-50%, -47%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  filter: saturate(1.1) brightness(0.9);
+  mask-image: linear-gradient(185deg, rgba(0, 0, 0, 0.9) 40%, transparent 88%);
+  -webkit-mask-image: linear-gradient(185deg, rgba(0, 0, 0, 0.9) 40%, transparent 88%);
+}
+
+.select-spotlight img.is-on { opacity: 0.3; }
+
+@media (prefers-reduced-motion: reduce) {
+  .select-spotlight img { transition-duration: 1ms; }
 }
 
 #menuOverlay {
@@ -1680,9 +1720,10 @@ html, body {
 
 .victory-podium {
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 26px;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
 }
 
 .victory-podium:empty { display: none; }   /* a draw renders no podium */
@@ -1731,44 +1772,89 @@ html, body {
   letter-spacing: 0.04em;
 }
 
-/* The winner stands up: the full-body victory pose (a transparent cut-out,
-   not a framed painting — renderPodium swaps the art), at poster size over an
-   angled panel washed in the fighter's own color. */
-.victory-card--winner { position: relative; }
+/* The winner takes the screen the way the VS splash took it: a wide angled
+   panel with the painted card as its backdrop, the full-body victory pose
+   standing in front, the gold plate, the poster name — and the fighter's own
+   line, spoken once more. Same geometry as .intro-panel: the frame leans on
+   the slash, everything inside counter-skews upright. */
+.victory-hero-row {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  width: min(94%, 980px);
+}
 
-.victory-card--winner::before {
+.victory-hero {
+  position: relative;
+  margin: 0;
+  flex: 1;
+  max-width: 640px;
+  height: clamp(230px, 36vh, 330px);
+  transform: var(--skew);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  border-inline: 3px solid var(--gold);
+  background: color-mix(in srgb, var(--card-theme, #62dcff) 18%, #070a16);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+/* The painted card, full-bleed and pushed back: dim enough that the sprite
+   and the plate read over it, alive enough to keep the fighter's world. */
+.victory-hero-art {
+  position: absolute;
+  top: 0;
+  left: -12%;
+  width: 124%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  transform: var(--unskew);
+  opacity: 0.52;
+  filter: saturate(1.05) brightness(0.8);
+}
+
+/* Readability scrim: ink rising from the plate's corner, on the slash. */
+.victory-hero::after {
   content: "";
   position: absolute;
-  inset: 6% 4% 12%;
-  transform: var(--skew);
-  background:
-    linear-gradient(200deg, color-mix(in srgb, var(--card-theme, #62dcff) 30%, transparent), transparent 62%),
-    linear-gradient(180deg, rgba(10, 14, 28, 0.55), rgba(10, 14, 28, 0.2));
-  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
-  border-top: 3px solid var(--gold);
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: linear-gradient(100deg, rgba(4, 6, 14, 0.88) 8%, rgba(4, 6, 14, 0.35) 48%, transparent 78%);
 }
 
-.victory-card--winner img.victory-sprite {
-  position: relative;
+.victory-hero-sprite {
+  position: absolute;
+  right: 7%;
+  bottom: 0;
+  z-index: 2;
+  height: 94%;
   width: auto;
-  max-width: 46vw;
-  height: clamp(220px, 42vh, 380px);
-  aspect-ratio: auto;
-  object-fit: contain;
-  object-position: bottom;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
+  transform: var(--unskew);
   filter:
-    drop-shadow(0 16px 26px rgba(0, 0, 0, 0.65))
-    drop-shadow(0 0 22px color-mix(in srgb, var(--card-theme, #62dcff) 55%, transparent));
+    drop-shadow(0 14px 22px rgba(0, 0, 0, 0.65))
+    drop-shadow(0 0 20px color-mix(in srgb, var(--card-theme, #62dcff) 55%, transparent));
 }
 
-.victory-card--winner figcaption { position: relative; }
+.victory-hero-plate {
+  position: absolute;
+  left: 8%;
+  bottom: 11%;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  transform: var(--unskew);
+  text-align: left;
+  max-width: 58%;
+}
 
-/* WINNER rides a gold slash plate; the name goes up to poster size. */
-.victory-card--winner i {
+.victory-hero-plate i {
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
   color: #241a04;
   background: linear-gradient(100deg, #ffe9ad, var(--gold) 60%, #eab54e);
   padding: 4px 16px 3px;
@@ -1776,11 +1862,31 @@ html, body {
   box-shadow: 0 3px 14px rgba(255, 217, 122, 0.45);
 }
 
-.victory-card--winner b {
-  font-size: clamp(1.5rem, 3.4vw, 2.3rem);
-  line-height: 1;
-  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.8);
+.victory-hero-plate b {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: clamp(1.8rem, 4.2vw, 3rem);
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-shadow: 0 4px 16px rgba(0, 0, 0, 0.9), 0 0 30px color-mix(in srgb, var(--card-theme, #62dcff) 55%, transparent);
 }
+
+.victory-hero-plate em {
+  font-style: italic;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: rgba(238, 241, 251, 0.88);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+}
+
+/* Team wins stand two to four heroes side by side; the plates tighten so the
+   narrower panels still hold a name and a line. */
+.victory-hero-row[data-count="2"] .victory-hero-plate b { font-size: clamp(1.3rem, 2.8vw, 2rem); }
+.victory-hero-row[data-count="2"] .victory-hero-plate em { font-size: 0.72rem; }
+.victory-hero-row:not([data-count="1"]) .victory-hero-sprite { right: 3%; }
 
 .victory-losers {
   display: flex;
@@ -1790,10 +1896,40 @@ html, body {
   justify-content: center;
 }
 
+.victory-card--loser {
+  position: relative;
+  overflow: hidden;
+  transform: var(--skew);
+  width: clamp(120px, 15vw, 172px);
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--card-theme, var(--line));
+  background: #0a0f1e;
+}
+
 .victory-card--loser img {
-  width: clamp(64px, 12vh, 96px);
-  filter: grayscale(0.85) brightness(0.72);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  position: absolute;
+  top: 0;
+  left: -12%;
+  width: 124%;
+  height: 100%;
+  aspect-ratio: auto;
+  object-fit: cover;
+  object-position: top;
+  border: none;
+  border-radius: 0;
+  transform: var(--unskew);
+  filter: grayscale(0.85) brightness(0.55);
+  box-shadow: none;
+}
+
+.victory-card--loser figcaption {
+  position: absolute;
+  left: 10px;
+  bottom: 7px;
+  align-items: flex-start;
+  transform: var(--unskew);
+  gap: 1px;
 }
 
 .victory-card--loser i { color: var(--text-dim); letter-spacing: 0.12em; }
@@ -1804,7 +1940,7 @@ html, body {
    the beaten file in a beat later. Both die to 1ms under the reduced-motion
    rule that already covers overlay entrances, because they run on the same
    .is-entering pass. */
-.overlay.is-entering .victory-card--winner {
+.overlay.is-entering .victory-hero-row {
   animation: winnerPop 460ms cubic-bezier(0.2, 1.45, 0.35, 1) both;
 }
 
@@ -1818,7 +1954,7 @@ html, body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .overlay.is-entering .victory-card--winner,
+  .overlay.is-entering .victory-hero-row,
   .overlay.is-entering .victory-losers { animation-duration: 1ms; animation-delay: 0ms; }
 }
 
@@ -1843,7 +1979,7 @@ html, body {
 
 .intro-splash {
   position: absolute;
-  inset: -8% -12%;
+  inset: -8% -6%;
   display: flex;
   gap: clamp(6px, 1vw, 14px);
 }
@@ -1912,6 +2048,30 @@ html, body {
     0 4px 18px rgba(0, 0, 0, 0.9),
     0 0 34px color-mix(in srgb, var(--seat, #62dcff) 65%, transparent);
 }
+
+/* The fighter's line, spoken as their panel lands. Sized off the panel's own
+   width like the name; on Battle-Royal slats too narrow to speak, it yields
+   rather than wrapping into a paragraph. */
+.intro-quote {
+  font-style: italic;
+  font-size: clamp(0.66rem, 3.4cqw, 1rem);
+  line-height: 1.4;
+  max-width: 78%;
+  color: rgba(238, 241, 251, 0.9);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95);
+  text-align: center;
+  text-wrap: balance;
+}
+
+@container (max-width: 190px) {
+  .intro-quote { display: none; }
+}
+
+/* The outermost panels bleed past the screen edge (that is what hides their
+   slanted corners), which drags their centred plates off-centre with them.
+   Padding on the clipped side hands the plate back the visible middle. */
+.intro-panel:first-child .intro-plate { padding-left: 9%; }
+.intro-panel:last-child .intro-plate { padding-right: 9%; }
 
 .intro-vs {
   position: absolute;
@@ -1997,6 +2157,87 @@ html, body {
   .intro-overlay.is-entering .intro-plate,
   .intro-overlay.is-entering .intro-stage,
   .intro-overlay.is-leaving { animation-duration: 1ms; animation-delay: 0ms; }
+}
+
+/* ---------- Pause standings ---------- */
+
+/* The match as it stands, one plate per fighter (renderPauseStandings):
+   portrait, damage, stocks, ordered by who is winning. The same leaning-plate
+   grammar as the in-match HUD, so the pause screen reads as the match held
+   still rather than as a different place. */
+.pause-standings {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  max-width: 92%;
+}
+
+.pause-standings:empty { display: none; }
+
+.pause-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px 8px 10px;
+  min-width: 172px;
+  transform: var(--skew);
+  background:
+    repeating-linear-gradient(100deg, transparent 0 14px, rgba(255, 255, 255, 0.018) 14px 20px),
+    linear-gradient(180deg, rgba(10, 15, 30, 0.94), rgba(10, 15, 30, 0.72));
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--seat, var(--line));
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+}
+
+.pause-chip > * { transform: var(--unskew); }
+
+.pause-chip img {
+  width: 44px;
+  height: 44px;
+  border-radius: 3px;
+  object-fit: cover;
+  object-position: top;
+  border: 1px solid var(--line);
+}
+
+.pause-chip-info { display: flex; flex-direction: column; gap: 3px; }
+
+.pause-chip-info strong {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 0.85rem;
+  color: var(--seat, var(--text));
+}
+
+.pause-chip-row { display: flex; align-items: center; gap: 9px; }
+
+.pause-chip-row i {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 1.15rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.pause-chip-stocks { display: flex; gap: 4px; }
+
+.pause-chip-stocks b {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--seat, var(--text-dim));
+  box-shadow: 0 0 6px var(--seat, transparent);
+}
+
+.pause-chip-stocks b.is-lost {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.25);
 }
 
 /* ---------- Interruptions ---------- */

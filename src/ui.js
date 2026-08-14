@@ -8,7 +8,7 @@ import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
 import { cameraMode } from "./camera_mode.js";
 import { previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
-import { RANDOM_GROUP, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
+import { CHARACTER_QUOTES, RANDOM_GROUP, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
 import { CONTROL_ROWS, rowAtPad } from "./config_controls.js";
 import { domainStickFor, charDomainSpecialSlot } from "./domains.js";
 import { MATCH_MODES, MAX_FIGHTERS, matchPlan, modeLabel, HUMAN_TEAM } from "./modes.js";
@@ -41,7 +41,7 @@ export function initUi(cb) {
   // seat anywhere from two to eight fighters.
   buildHud();
   for (const id of [
-    "hud", "utilityActions", "introOverlay", "menuOverlay", "stageOverlay", "movesOverlay", "roundOverlay", "pauseOverlay",
+    "hud", "utilityActions", "introOverlay", "selectSpotlight", "pauseStandings", "menuOverlay", "stageOverlay", "movesOverlay", "roundOverlay", "pauseOverlay",
     "settingsOverlay", "loadOverlay", "loadStatus", "loadBar", "loadBarFill", "characterGrid", "stageGrid",
     "matchupBar",
     "p1PickCard", "p2PickCard", "p3PickCard", "p4PickCard",
@@ -302,6 +302,13 @@ function heroCardSrc(key) {
  *  Every fighter in sprites/assets/ ships one. */
 function victorySpriteSrc(key) {
   return `sprites/assets/${key}/victory.png`;
+}
+
+/** A fighter's one spoken line — the VS splash and the results screen both say
+ *  it. Falls back to the epithet so a fighter without a written line still
+ *  speaks rather than standing under an empty quote mark. */
+function quoteFor(key) {
+  return CHARACTER_QUOTES[key] || CHARACTERS[key]?.epithet || "";
 }
 
 /** The art the roster GRID draws, which is a different question: at tile size,
@@ -861,6 +868,33 @@ function shownKey(id) {
   return drawn || state.selection[id];
 }
 
+// ------------------------------------------------------- select spotlight
+//
+// The fighter the active picker is browsing, huge and dim behind the whole
+// select screen — the screen answers the cursor the way the arena will.
+// Two stacked images alternate so a change crossfades instead of popping;
+// Random (and an empty slot) fades the spotlight out entirely.
+let spotlightKey = null;
+let spotlightFlip = false;
+
+function updateSpotlight() {
+  const el = els.selectSpotlight;
+  if (!el) return;
+  const id = state.activePicker;
+  const shown = browsingKey(id) || state.selection[id];
+  const key = shown && shown !== RANDOM_KEY ? shown : null;
+  if (key === spotlightKey) return;
+  spotlightKey = key;
+  const imgs = el.querySelectorAll("img");
+  const show = imgs[spotlightFlip ? 1 : 0];
+  const hide = imgs[spotlightFlip ? 0 : 1];
+  spotlightFlip = !spotlightFlip;
+  hide.classList.remove("is-on");
+  if (!key) { show.classList.remove("is-on"); return; }
+  show.src = heroCardSrc(key);
+  show.classList.add("is-on");
+}
+
 export function updateSelectionUi() {
   syncCpuRoll();
   const visiblePlayers = pickedSlots();
@@ -919,6 +953,7 @@ export function updateSelectionUi() {
   els.startButton.disabled = !go;
   els.startButton.textContent = go ? TEXT.menu.startReady : TEXT.menu.startWaiting;
   els.menuHint.textContent = go ? TEXT.menu.hintReady : TEXT.menu.hintPicking;
+  updateSpotlight();
   updatePickerCursorClasses();
 }
 
@@ -972,6 +1007,9 @@ export function setPhase(phase) {
   els.utilityActions.classList.toggle("hidden", phase === "loading");
   // Any screen change away from the fight takes the VS splash down with it.
   if (phase !== "playing") hideBattleIntro();
+  // The pause screen reads the match as it stands right now, so its standings
+  // strip is rebuilt on every pause rather than kept live.
+  if (phase === "paused") renderPauseStandings();
   els.hud.classList.toggle("hidden", !["playing", "paused", "roundOver"].includes(phase));
   // The roster can only be measured once its overlay is on screen.
   if (phase === "menu") layoutCharacterGrid();
@@ -982,6 +1020,33 @@ export function setPhase(phase) {
   if (phase === "stageSelect") setFocus(els.randomStageButton, { quiet: true });
   if (phase === "playing") els.arenaSignName.textContent = getStage(state.stageKey)?.name || "";
   syncMusic(phase);
+}
+
+/** The match as it stands, one plate per fighter: portrait, damage, stocks.
+ *  Built fresh each time the game pauses — the pause screen should answer
+ *  "how is this going?" without making anyone resume to find out. Ordered by
+ *  current standing (the same comparison the result screen uses), so the
+ *  plate on the left is whoever is winning right now. */
+function renderPauseStandings() {
+  const el = els.pauseStandings;
+  if (!el) return;
+  const fighters = state.fighters || [];
+  el.classList.toggle("hidden", fighters.length === 0);
+  if (!fighters.length) return;
+  const standing = [...fighters].sort((a, b) =>
+    (b.stocks - a.stocks) || (a.damage - b.damage) || (b.tally.dealt - a.tally.dealt));
+  el.innerHTML = standing.map((f) => {
+    const dots = Array.from({ length: state.stocks }, (_, i) =>
+      `<b class="${i < f.stocks ? "" : "is-lost"}"></b>`).join("");
+    return `
+    <div class="pause-chip" style="--seat:${f.char.theme}">
+      <img src="${heroCardSrc(f.charKey)}" alt="">
+      <span class="pause-chip-info">
+        <strong>${f.char.name}</strong>
+        <span class="pause-chip-row"><i>${Math.round(f.damage)}%</i><span class="pause-chip-stocks">${dots}</span></span>
+      </span>
+    </div>`;
+  }).join("");
 }
 
 /** The line on the pause screen explaining WHY the match stopped, when it was
@@ -1031,6 +1096,7 @@ export function showBattleIntro(duration = 1.4) {
           <div class="intro-plate">
             <i class="intro-seat">${seat(f)}</i>
             <b class="intro-name">${f.char.name}</b>
+            <em class="intro-quote">“${quoteFor(f.charKey)}”</em>
           </div>
         </div>`).join("")}
     </div>
@@ -1400,30 +1466,37 @@ function rankFighters(winner) {
     (b.stocks - a.stocks) || (a.damage - b.damage) || (b.tally.dealt - a.tally.dealt));
 }
 
-/** The Smash results podium: the winner's hero card big and lit in their own
- *  theme colour, everyone else small, grey and ranked under it. In a team match
- *  (`side` set) the whole winning side stands up top — the survivor did not win
- *  alone. A draw has no winner to celebrate, so it renders nothing and the
- *  table carries the screen. */
+/** The results podium, in the VS splash's own grammar: the winner takes a wide
+ *  angled panel — their painted card as the backdrop, their full-body victory
+ *  pose standing in it, gold WINNER plate, name at poster size, and their own
+ *  line spoken under it. In a team match (`side` set) the whole winning side
+ *  gets a panel each — the survivor did not win alone. The beaten file below
+ *  as small grey slats in the same angled cut, ranked. A draw has no winner to
+ *  celebrate, so it renders nothing and the table carries the screen. */
 function renderPodium(winner, side = null) {
   if (!winner) { els.victoryPodium.innerHTML = ""; return; }
-  // Winners stand up as their full-body victory pose at poster size; the
-  // beaten stay as small framed cards. The size contrast IS the result.
-  const card = (f, cls, badge) => {
-    const sprite = cls === "victory-card--winner";
-    return `
-    <figure class="victory-card ${cls}" style="--card-theme:${f.char.theme}">
-      <img${sprite ? ` class="victory-sprite"` : ""} src="${sprite ? victorySpriteSrc(f.charKey) : heroCardSrc(f.charKey)}" alt="${f.char.name}">
+  const hero = (f) => `
+    <figure class="victory-hero" style="--card-theme:${f.char.theme}">
+      <img class="victory-hero-art" src="${heroCardSrc(f.charKey)}" alt="">
+      <img class="victory-hero-sprite" src="${victorySpriteSrc(f.charKey)}" alt="${f.char.name}">
+      <figcaption class="victory-hero-plate">
+        <i>${TEXT.roundOver.winnerBadge}</i>
+        <b>${f.char.name}</b>
+        <em>“${quoteFor(f.charKey)}”</em>
+      </figcaption>
+    </figure>`;
+  const slat = (f, badge) => `
+    <figure class="victory-card victory-card--loser" style="--card-theme:${f.char.theme}">
+      <img src="${heroCardSrc(f.charKey)}" alt="${f.char.name}">
       <figcaption><i>${badge}</i><b>${f.char.name}</b></figcaption>
     </figure>`;
-  };
   const ranked = rankFighters(winner);
   const winners = side ? ranked.filter((f) => f.team === winner.team) : [winner];
   const losers = ranked.filter((f) => !winners.includes(f));
   els.victoryPodium.innerHTML =
-    winners.map((f) => card(f, "victory-card--winner", TEXT.roundOver.winnerBadge)).join("") +
+    `<div class="victory-hero-row" data-count="${winners.length}">${winners.map(hero).join("")}</div>` +
     `<div class="victory-losers">${losers.map((f, i) =>
-      card(f, "victory-card--loser", TEXT.roundOver.place(i + 2))).join("")}</div>`;
+      slat(f, TEXT.roundOver.place(i + 2))).join("")}</div>`;
 }
 
 /** Who did what, in finishing order.

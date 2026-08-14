@@ -94,6 +94,40 @@ export const RANDOM_GROUP = {
   show: true,
 };
 
+// One line per fighter, in their own voice: spoken on the VS splash as the
+// panels slam in, and again under their name when they take the results
+// screen. Keyed by character key; a fighter without a line falls back to
+// their epithet, so adding a new fighter never breaks either screen.
+export const CHARACTER_QUOTES = {
+  yuji: "I'll take it from here.",
+  nobara: "I'm Nobara Kugisaki — like it or not.",
+  megumi: "I'll save people unfairly.",
+  yuta: "Let me borrow a little courage.",
+  maki: "I don't need cursed energy to beat you.",
+  inumaki: "Don't. Move.",
+  panda: "Panda isn't a panda.",
+  mechamaru: "This body feels no pain.",
+  todo: "My friend — let's make this a festival.",
+  momo: "The wind is on my side.",
+  gojo: "Throughout Heaven and Earth, I alone am the honored one.",
+  nanami: "It's overtime.",
+  meimei: "Nothing is free. Not even mercy.",
+  gakuganji: "Respect your elders, child.",
+  toji: "Bring your best jujutsu. I brought none.",
+  yuki: "So — what kind of curse ends you?",
+  hakari: "The reels are already spinning my way.",
+  uro: "The sky belongs to me.",
+  reggie: "Everything's a trump card if you play it right.",
+  mahito: "Your soul is mine to reshape.",
+  jogo: "Learn the fear of curses. Burn.",
+  hanami: "The earth cries out — I answer.",
+  dagon: "The tide swallows all.",
+  kurourushi: "Even curses fear me.",
+  geto: "Shall we usher in a new world?",
+  choso: "I fight for my brothers.",
+  sukuna: "Know your place, fool.",
+};
+
 // Every player-facing string in the game. Values that take an argument are
 // written as functions so word order stays translatable.
 export const TEXT = {
