@@ -45,11 +45,11 @@ main.viewer .gridhead {
 #animGrid .abtn.active { border-color: #6f8fd0; background: #24406b; }
 #animGrid .abtn.active span { color: #aab4cc; }
 
-/* The View 3D toggle rides on the canvas, same as the other benches. */
-body.mode-viewer .stage-toggle {
-  position: absolute; top: 10px; right: 10px;
-  padding: 5px 9px; border-radius: 8px; font-size: 12.5px;
-  background: rgba(18, 23, 40, 0.86); border: 1px solid #2c3654;
-}
-body.mode-viewer .stage-toggle.on { border-color: #6f8fd0; background: rgba(36, 64, 107, 0.9); }
-body.mode-viewer #stageWrap { position: relative; }
+/* The View 3D toggle and #stageWrap are styled by workbench.css and left
+ * alone here on purpose. Re-positioning the toggle from the top-right cost a
+ * whole session once: the base rule pins it `left: 10px; bottom: 10px`, so an
+ * override adding `top`/`right` without clearing those left ALL FOUR edges
+ * set — and an absolutely positioned box with four edges stretches to fill
+ * its container. The result was the toggle's own 86%-opaque background spread
+ * over the entire viewer, which reads as "a dark layer over the models"
+ * rather than as a mispositioned checkbox. */

@@ -55,6 +55,20 @@ let lights = null;
 const cache = new Map(); // token -> { canvas, rowsPerMetre }
 export const stats = { renders: 0, hits: 0, misses: 0, evictions: 0 };
 
+/** Drop every cached card.
+ *
+ *  The token (poseToken) is a QUANTISED POSE and nothing else — it does not
+ *  mention the engine dials that decide what that pose looks like: the sample
+ *  rate, on-twos, foot IK, breath (render3d/src/pose.js DIALS), or the stage
+ *  the light is keyed to. In the game none of those move mid-match, so the
+ *  token is honest and the cache is free. A workbench moves them WHILE
+ *  looking at the picture, and without this every dial would appear dead
+ *  until something else happened to evict the card. Same escape hatch, and
+ *  the same reason, as scene.clearCache on the render3d side. */
+export function clearCache() {
+  cache.clear();
+}
+
 export function initRenderer(three) {
   THREE = three;
   // The lateral axis table is shared scratch the IK reads; the pose layers
