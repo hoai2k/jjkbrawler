@@ -195,12 +195,13 @@ export const scene3d = {
       reach: solved ? { dx: solved.dx, dy: solved.dy, targetPx } : null,
       lookRad: D.lookAt && pose.LOOK_STATES.has(clipNameFor(animKey)) ? pitch : 0,
       flinch: pose.flinchSide(animKey, opts.x ?? 0, aim, facing),
-      // In a real 3D scene facing is ALWAYS the turnaround — there is no
-      // mirror to fall back on, and a negative scale would invert the winding.
-      // Here 180° IS right: the game's own camera looks down the stage
-      // head-on, so a half-turn keeps the fighter's front to the lens. It is
-      // the FLAT path's fixed ¾ camera that needs scene.turnaroundYaw().
-      turnYawRad: facing < 0 ? Math.PI : 0,
+      // In a real 3D scene facing is ALWAYS a yaw — there is no mirror to fall
+      // back on, and a negative scale would invert the winding. But it is a
+      // yaw to ±¾, not 0 and 180°: this camera is head-on, so the fighter has
+      // to carry the three-quarter the flat path gets from its lens position,
+      // and carry it mirrored. See scene.sceneFacingYaw for why the pair that
+      // used to be here pointed one facing at the lens and the other away.
+      turnYawRad: scene.sceneFacingYaw(facing),
     });
     return true;
   },

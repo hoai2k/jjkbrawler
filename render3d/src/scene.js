@@ -277,6 +277,38 @@ export function turnaroundYaw() {
   return 2 * CAMERA_YAW_RAD;
 }
 
+/**
+ * WHICH WAY A FIGHTER STANDS when the camera is HEAD-ON rather than three-
+ * quarter — the game's own perspective camera in `?camera=3d`, which looks
+ * down the stage at the action (src/camera3d/rig.js).
+ *
+ * The two paths reach the same picture from opposite ends, and it is worth
+ * saying which is which because getting them confused is what broke this. The
+ * FLAT path leaves the fighter at 0 and puts the CAMERA at −60°, so the three-
+ * quarter comes out of the lens position. In a real scene the camera belongs
+ * to the game and points where the fight is, so the ¾ has to come out of the
+ * FIGHTER instead: they carry the same 60°, and carry it mirrored, which is
+ * the whole of this function.
+ *
+ * Both facings therefore keep the fighter's front partly toward the lens, and
+ * left is right's mirror image — a fighter turning round shows you their other
+ * flank, never their back. That is also what the sprites do, and the reason
+ * these two backends can draw the same fight.
+ *
+ * It is NOT 0 and 180°. That pair was here, with a comment arguing that a
+ * head-on camera makes a half-turn the honest answer, and it is exactly
+ * backwards: at 0 the fighter's forward is +Z, which under this camera is
+ * STRAIGHT AT THE LENS rather than along the stage, and the half-turn from
+ * there points them straight away from it. So facing right read as staring
+ * down the barrel and facing left read as showing their back, which is what
+ * was reported from the game.
+ */
+export const THREE_QUARTER_RAD = -CAMERA_YAW_RAD;
+
+export function sceneFacingYaw(facing) {
+  return facing < 0 ? -THREE_QUARTER_RAD : THREE_QUARTER_RAD;
+}
+
 // ------------------------------------------------------------- the render
 
 /** The cache key for one drawable pose. Every live layer is quantised by the

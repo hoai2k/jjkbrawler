@@ -43,6 +43,67 @@ try {
     async () => (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
   await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 60000 });
 
+  // ------------------------------------------------- the 2.5D camera scene
+  //
+  // The checks above all measure the FLAT path, where the ¾ comes from the
+  // offscreen camera sitting at -60° and the fighter stands at 0. That is not
+  // the shipped default any more: `?camera=flat` opts OUT, so most players are
+  // in a real perspective scene whose camera points down the stage head-on,
+  // and there the ¾ has to come from the FIGHTER instead.
+  //
+  // Nothing here covered that, which is how it shipped facing right at the
+  // lens and facing left at the back wall — the flat path was measured, passed,
+  // and said nothing about the path the game was actually drawing.
+  const scene3d = await page.evaluate(async (char) => {
+    const THREE = await import("/vendor/three/three.module.js");
+    const backend = await import("/render3d/src/backend.js");
+    const rigs = await import("/render3d/src/loader.js");
+    const adapter = backend.scene3d;
+    if (!adapter?.ready()) return null;
+    // A head-on camera looking down -Z, which is what src/camera3d/rig.js
+    // gives before its few degrees of tracking bias: right is +X, and the
+    // direction "toward the lens" is +Z.
+    const camRight = new THREE.Vector3(1, 0, 0);
+    const towardLens = new THREE.Vector3(0, 0, 1);
+    const read = (facing) => {
+      const inst = adapter.instance(char, facing > 0 ? 901 : 902);
+      if (!inst) return null;
+      if (!adapter.poseInstance(inst, char, "idle", 0.1, { facing, x: 0, chestY: 0 })) return null;
+      inst.root.updateMatrixWorld(true);
+      const off = inst.root.userData?.yawOffsetRad || 0;
+      const fwd = new THREE.Vector3(-Math.sin(off), 0, Math.cos(off))
+        .applyQuaternion(inst.root.getWorldQuaternion(new THREE.Quaternion()));
+      fwd.y = 0;
+      if (fwd.lengthSq() < 1e-8) return null;
+      fwd.normalize();
+      return { across: +fwd.dot(camRight).toFixed(3), toward: +fwd.dot(towardLens).toFixed(3) };
+    };
+    return { right: read(1), left: read(-1) };
+  }, CHAR);
+
+  if (!scene3d || !scene3d.right || !scene3d.left) {
+    check(false, "scene: the 2.5D adapter could pose an instance",
+      "no instance — the scene path is unmeasured");
+  } else {
+    const { right, left } = scene3d;
+    check(right.across > 0.35, `scene: ${CHAR} faces screen-right`,
+      `forward·cameraRight = ${right.across}`);
+    check(right.toward > 0.35, `scene: ...with his front toward the lens`,
+      `forward·towardLens = ${right.toward}`);
+    check(left.across < -0.35, `scene: turned around, ${CHAR} faces screen-LEFT`,
+      `forward·cameraRight = ${left.across}`);
+    // THE ONE THIS EXISTS FOR. A flat 180° satisfies the line above and fails
+    // this one: it points the fighter away from the viewer, which is what
+    // shipped. Facing left has to keep the chest toward the lens, exactly as
+    // facing right does — the two are mirror images, not opposites.
+    check(left.toward > 0.35, "scene: ...and his front STILL toward the lens",
+      `forward·towardLens = ${left.toward} (a flat 180° gives a negative here — his back)`);
+    check(Math.abs(left.toward - right.toward) < 0.12
+      && Math.abs(left.across + right.across) < 0.12,
+      "scene: the two facings are mirror images of each other",
+      `right ${right.across}/${right.toward} vs left ${left.across}/${left.toward}`);
+  }
+
   const measured = await page.evaluate(async (char) => {
     const THREE = await import("/vendor/three/three.module.js");
     const { GLTFLoader } = await import("/vendor/three/loaders/GLTFLoader.js");
