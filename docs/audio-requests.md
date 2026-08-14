@@ -266,11 +266,16 @@ knowing before reading it as an open request.
 
 ## Hearing what you have
 
-**[`/workbench/?edit=audio`](../workbench/)** plays every spoken line in the
-game, next to the fighter who says it. Pick a fighter from the cast list — built
-from `DOMAIN_CALL` and `MOVE_CALL`, so it is exactly the set of people with
-something to say — and each of their tracks lists the move it belongs to, its
+**[`/workbench/?edit=audio`](../workbench/)** plays every voice in the game,
+next to the fighter it belongs to. Each track lists the move it belongs to, its
 length, when the move fires and how long it stays interruptible.
+
+The cast is everyone with something to say — built from `DOMAIN_CALL` and
+`MOVE_CALL` — **plus a stand-in for every voice group none of them uses.** The
+nine speakers cover four of the six grunt groups between them, which used to
+leave `gruntAdultMale` and `gruntFemale` unreachable: eleven fighters, two KO
+cries and two whole alternate trios with no way onto the page. Nanami and Maki
+stand in for those, marked as representatives rather than as speakers.
 
 It plays through **the game's own mixer**, so the loudness is the loudness in a
 match: category trim and per-sound gain applied, not the raw file. Starting a
@@ -297,9 +302,19 @@ alternate's second", which needs each recording on its own button rather than
 one button that draws at random. Tick the ones worth keeping and the bench
 writes the `file:` array they add up to, ready to paste into the registry.
 
+**⭳ Export changes** downloads every pick that differs from what ships, as
+JSON: the shipping files, the chosen ones, what was added and dropped, and —
+for a spoken line — the new take's **measured** duration next to the one in
+`SPOKEN_LINES`, so whoever applies it has the frame data in hand rather than
+having to go and get it. A verdict that lives only on a screen has to be
+retyped by whoever acts on it, and retyping eleven filenames is how the wrong
+take ends up in the game.
+
 Promoting a take is three deliberate steps: swap the filename (or the array) in
 the `SFX` entry, update its `SPOKEN_LINES` length if it is a spoken line, and
 run `node tools/check_voice.mjs` to confirm the timing still adds up.
+`node tools/smoke_audio_bench.mjs` guards the bench itself — every voice group
+reachable, every fighter actually drawn, the export carrying what it claims.
 
 This is the answer to the one thing neither `generate_voice.py` nor
 `check_voice.mjs` can tell you: **whether the take is any good.** They can

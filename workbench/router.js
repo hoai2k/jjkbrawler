@@ -24,7 +24,7 @@
   // one thing no cache argues with.
   //
   // BUMP THIS WHENEVER THE BENCH CHANGES.
-  var BENCH_VERSION = "3";
+  var BENCH_VERSION = "6";
   if (document.currentScript) document.currentScript.dataset.version = BENCH_VERSION;
   // Where each mode lives. Paths are RELATIVE, so the whole thing keeps working
   // under a subdirectory — the GitHub Pages build serves this at

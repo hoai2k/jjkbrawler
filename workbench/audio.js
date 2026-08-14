@@ -19,47 +19,38 @@
 // The cast list is derived from the call tables rather than written down here.
 // A fighter given a line tomorrow shows up on this page with no edit to it.
 
-// The game modules are imported DYNAMICALLY, with this page's cache key on
-// every URL (router.js sets it; ?bust= on the page overrides it).
-//
-// Static imports would be cleaner to read and would defeat the point: a fresh
-// copy of this file that imports a stale `config_audio.js` shows a stale set of
-// alternates, and nothing about the page says so.
-//
-// The key travels ONE level, which is everything the bench reads for itself.
-// Modules imported deeper (audio.js's own import of config_audio.js) revalidate
-// on the ordinary schedule, so there are briefly two instances of some pure-data
-// modules. That is harmless — they hold no mutable state — and the alternative
-// is versioning imports across src/, which would put a workbench concern in the
-// game's source.
-//
-// Top-level await, so the rest of the module can go on using these as if they
-// had been imported the ordinary way.
-const CACHE_KEY = new URL(import.meta.url).searchParams.get("v") || "";
-const v = CACHE_KEY ? `?v=${encodeURIComponent(CACHE_KEY)}` : "";
+import { CHARACTERS } from "../src/characters.js";
+import {
+  playSfx, playSfxEntry, cutSfx, sfxUrl, spokenLead, spokenCommitAt, audioSettings,
+  GRUNT_GROUPS, KO_FOR_GROUP,
+} from "../src/audio.js";
+import { loadCoreAssets, loadFrame, frameKeys } from "../src/assets.js";
+import { currentFrame, drawCharFrame } from "../src/render_backend.js";
+import { state } from "../src/state.js";
 
-const [
-  { CHARACTERS },
-  { DOMAIN_CALL, MOVE_CALL, SFX, SPOKEN_LINES, SPOKEN_TIMING, AUDIO_MIX, VOICE_ALTERNATES },
-  { playSfx, playSfxEntry, cutSfx, spokenLead, spokenCommitAt, audioSettings, GRUNT_GROUPS, KO_FOR_GROUP },
-  { loadCoreAssets, loadFrame, frameKeys },
-  { currentFrame, drawCharFrame },
-  { state },
-] = await Promise.all([
-  import(`../src/characters.js${v}`),
-  import(`../src/config_audio.js${v}`),
-  import(`../src/audio.js${v}`),
-  import(`../src/assets.js${v}`),
-  import(`../src/render_backend.js${v}`),
-  import(`../src/state.js${v}`),
-]);
+// EXACTLY ONE module is imported with this page's cache key on its URL, and the
+// restraint is the whole lesson. A keyed URL is a DIFFERENT MODULE INSTANCE, so
+// keying `assets.js` gave the bench a private image cache: it loaded a
+// fighter's idle into its own copy while the sprite pipeline drew from the
+// other one, and every character sat behind "art still loading…" forever. A
+// stale bench is a nuisance; a broken one is worse.
+//
+// `config_audio.js` is safe to double because it is nothing but const tables —
+// no cache, no handles, no state to split — and it is the file that actually
+// changes when the thing this page displays changes. So it gets the key, and
+// what the bench SHOWS is never stale. What the bench PLAYS goes through
+// audio.js's own copy and revalidates on the ordinary schedule.
+const CACHE_KEY = new URL(import.meta.url).searchParams.get("v") || "";
+const {
+  DOMAIN_CALL, MOVE_CALL, SFX, SPOKEN_LINES, SPOKEN_TIMING, AUDIO_MIX, VOICE_ALTERNATES,
+} = await import(`../src/config_audio.js${CACHE_KEY ? `?v=${encodeURIComponent(CACHE_KEY)}` : ""}`);
 
 const $ = (sel) => document.querySelector(sel);
 const els = {
   castList: $("#castList"), castSummary: $("#castSummary"),
   charName: $("#charName"), charSub: $("#charSub"),
   trackList: $("#trackList"), trackSummary: $("#trackSummary"),
-  loadState: $("#loadState"), stage: $("#stage"), refresh: $("#refreshBtn"),
+  loadState: $("#loadState"), stage: $("#stage"), refresh: $("#refreshBtn"), export: $("#exportBtn"),
 };
 const ctx = els.stage.getContext("2d");
 
@@ -99,6 +90,11 @@ function tracksFor(charKey) {
   return out;
 }
 
+/** `gruntAdultMale` -> "adult male", for a list a person reads. */
+function voiceGroupName(group) {
+  return group.replace(/^grunt/, "").replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+}
+
 /** Which slot a named move sits in, for the track's subtitle. */
 function whereIsMove(char, moveName) {
   for (const [slot, cfg] of Object.entries(char.specials || {})) {
@@ -108,9 +104,28 @@ function whereIsMove(char, moveName) {
   return null;
 }
 
-const CAST = Object.keys(CHARACTERS).filter(
+const SPEAKERS = Object.keys(CHARACTERS).filter(
   (k) => DOMAIN_CALL[k] || Object.keys(MOVE_CALL[k] || {}).length
 );
+
+// Everyone who speaks, plus a stand-in for every voice group none of them uses.
+//
+// The nine speakers between them cover four of the six grunt groups, which left
+// gruntAdultMale and gruntFemale — eleven fighters, two KO cries and two whole
+// alternate trios — with no way into this page at all. A bench for the game's
+// voice has to be able to reach the game's voice, so each uncovered group
+// borrows the first fighter on the roster who uses it. They are here as a
+// REPRESENTATIVE rather than because they say anything, and the page says so.
+const STAND_INS = {};
+{
+  const covered = new Set(SPEAKERS.map((k) => GRUNT_GROUPS[k]).filter(Boolean));
+  for (const [charKey, group] of Object.entries(GRUNT_GROUPS)) {
+    if (covered.has(group)) continue;
+    covered.add(group);
+    STAND_INS[charKey] = group;
+  }
+}
+const CAST = Object.keys(CHARACTERS).filter((k) => SPEAKERS.includes(k) || STAND_INS[k]);
 
 // --------------------------------------------------------------- rendering
 
@@ -125,13 +140,18 @@ function renderCast() {
     const li = document.createElement("li");
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.innerHTML = `${CHARACTERS[key].name}<span class="n">${lines} line${lines === 1 ? "" : "s"}</span>`;
+    const sub = STAND_INS[key]
+      ? `stands in · ${voiceGroupName(STAND_INS[key])}`
+      : `${lines} line${lines === 1 ? "" : "s"}`;
+    btn.innerHTML = `${CHARACTERS[key].name}<span class="n">${sub}</span>`;
     btn.addEventListener("click", () => select(key));
     li.append(btn);
     els.castList.append(li);
   }
-  const totalLines = CAST.reduce((n, k) => n + tracksFor(k).filter((t) => t.kind === "line").length, 0);
-  els.castSummary.textContent = `${CAST.length} fighters · ${totalLines} spoken lines`;
+  const totalLines = SPEAKERS.reduce((n, k) => n + tracksFor(k).filter((t) => t.kind === "line").length, 0);
+  const stand = Object.keys(STAND_INS).length;
+  els.castSummary.textContent = `${SPEAKERS.length} speak · ${totalLines} lines`
+    + (stand ? ` · ${stand} stand in for the rest of the voices` : "");
 }
 
 function markSelected() {
@@ -218,9 +238,13 @@ function trackRow(t) {
   // as a unit: three grunts are three performances, and the useful verdict is
   // usually "the first and third, and the alternate's second" — which needs
   // each one on its own button, not one button that draws at random.
+  // A single-file sound with alternates gets rows too, but they are EXCLUSIVE:
+  // a domain call is one file, and its registry entry cannot hold two. Ticking
+  // one there untanks the other, which is the difference between "which of
+  // these do I want" and "which of these do I want to keep".
+  const exclusive = files.length < 2;
   const perFile = (list, kind, label) => {
-    if (list.length < 2) return;
-    for (const file of list) out.push(fileRow(t.sfx, entry, file, kind, label));
+    for (const file of list) out.push(fileRow(t.sfx, entry, file, kind, label, exclusive));
   };
   perFile(files, "live", "in game");
 
@@ -249,7 +273,7 @@ function trackRow(t) {
   // The verdict, as something that can be acted on. Ticking files across the
   // takes builds the array that would go in the registry, so "I like these
   // three" leaves the bench as a line to paste rather than as a description.
-  if (files.length > 1) out.push(chooserRow(t.sfx, entry, alts));
+  out.push(chooserRow(t.sfx, entry));
   return out;
 }
 
@@ -262,7 +286,7 @@ function chosenFor(key, entry) {
   return chosen.get(key);
 }
 
-function fileRow(key, entry, file, kind, label) {
+function fileRow(key, entry, file, kind, label, exclusive) {
   const row = document.createElement("div");
   row.className = `track file file--${kind}`;
   const play = document.createElement("button");
@@ -278,15 +302,22 @@ function fileRow(key, entry, file, kind, label) {
   const tick = document.createElement("label");
   tick.className = "tick";
   const box = document.createElement("input");
-  box.type = "checkbox";
   const set = chosenFor(key, entry);
+  box.type = exclusive ? "radio" : "checkbox";
+  if (exclusive) box.name = `pick-${key}`;
   box.checked = set.has(file);
   box.addEventListener("change", () => {
-    if (box.checked) set.add(file);
-    else set.delete(file);
+    if (exclusive) {
+      set.clear();
+      set.add(file);
+    } else if (box.checked) {
+      set.add(file);
+    } else {
+      set.delete(file);
+    }
     refreshChooser(key, entry);
   });
-  tick.append(box, document.createTextNode("keep"));
+  tick.append(box, document.createTextNode(exclusive ? "use" : "keep"));
   body.innerHTML = `<code>${file}</code> <span class="from">${label}</span>`;
   body.append(tick);
   row.append(play, body);
@@ -308,12 +339,85 @@ function refreshChooser(key, entry, row) {
   const picked = [...chosenFor(key, entry)];
   const live = [entry.file].flat();
   const same = picked.length === live.length && picked.every((f) => live.includes(f));
+  const single = live.length < 2;
   const body = el.lastElementChild;
+  // A single-file sound reads back as a string, a group as an array, because
+  // that is the shape the registry wants in each case.
+  const value = single ? `"${picked[0]}"` : `[${picked.map((f) => `"${f}"`).join(", ")}]`;
   body.innerHTML = picked.length
     ? `<div class="label">${same ? "As it ships" : "Your pick"} <span class="tag">${picked.length} file${picked.length === 1 ? "" : "s"}</span></div>`
       + `<div class="meta">Paste into <code>SFX.${key}</code>:</div>`
-      + `<pre>file: [${picked.map((f) => `"${f}"`).join(", ")}],</pre>`
-    : `<div class="label">Nothing kept</div><div class="meta">A group with no files is silence — tick at least one.</div>`;
+      + `<pre>file: ${value},</pre>`
+    : `<div class="label">Nothing kept</div><div class="meta">A sound with no file is silence — tick at least one.</div>`;
+  el.classList.toggle("changed", !same);
+}
+
+// ------------------------------------------------------------------ export
+//
+// Everything ticked that differs from what ships, as a file somebody can act
+// on. A verdict that lives only on a screen has to be retyped by whoever
+// applies it, and retyping a list of eleven filenames is how the wrong take
+// ends up in the game.
+async function exportChanges() {
+  const changes = [];
+  for (const [key, set] of chosen) {
+    const entry = SFX[key];
+    if (!entry) continue;
+    const live = [entry.file].flat();
+    const picked = [...set];
+    const same = picked.length === live.length && picked.every((f) => live.includes(f));
+    if (same) continue;
+    const single = live.length < 2;
+    const change = {
+      sfx: key,
+      category: entry.category,
+      shipping: single ? live[0] : live,
+      chosen: single ? picked[0] : picked,
+      added: picked.filter((f) => !live.includes(f)),
+      dropped: live.filter((f) => !picked.includes(f)),
+    };
+    // A spoken line's LENGTH is frame data (SPOKEN_LINES), so a swap is not
+    // done until that number moves with it. Measured off the actual file here
+    // rather than guessed, so whoever applies this has the number in hand.
+    if (SPOKEN_LINES[key] !== undefined) {
+      change.spokenLine = {
+        currentLength: SPOKEN_LINES[key],
+        measuredLength: single ? await measure(picked[0]) : null,
+        note: "update SPOKEN_LINES to the measured length, then run node tools/check_voice.mjs",
+      };
+    }
+    changes.push(change);
+  }
+
+  const doc = {
+    tool: "audio-workbench",
+    format: 1,
+    benchCacheKey: CACHE_KEY || null,
+    summary: changes.length
+      ? `${changes.length} sound(s) changed`
+      : "no changes — every sound is still as it ships",
+    changes,
+  };
+  const blob = new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "audio-workbench-changes.json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  els.loadState.textContent = changes.length
+    ? `exported ${changes.length} change(s)`
+    : "exported — nothing changed yet";
+  els.loadState.className = "loading done";
+}
+
+/** A file's real duration, off the file. Resolves null if it will not load. */
+function measure(file) {
+  return new Promise((done) => {
+    const probe = new Audio(sfxUrl(file));
+    probe.addEventListener("loadedmetadata", () => done(Number(probe.duration.toFixed(2))));
+    probe.addEventListener("error", () => done(null));
+    setTimeout(() => done(null), 5000);
+  });
 }
 
 // ------------------------------------------------------------------ playing
@@ -355,7 +459,9 @@ async function select(charKey) {
   markSelected();
   const char = CHARACTERS[charKey];
   els.charName.textContent = char.fullName || char.name;
-  els.charSub.textContent = char.epithet || "";
+  els.charSub.textContent = STAND_INS[charKey]
+    ? `${char.epithet || ""} — standing in for the ${voiceGroupName(STAND_INS[charKey])} voice, which nobody with a spoken line uses`
+    : (char.epithet || "");
   renderTracks();
 
   // Only this fighter's idle art, loaded on demand — the bench has no reason to
@@ -414,6 +520,7 @@ async function boot() {
   // Reload against a key nobody has fetched: the HTML misses the cache, and the
   // token it carries makes the stylesheet, this module and everything this
   // module imports miss it too. The one button that always tells the truth.
+  els.export.addEventListener("click", () => { exportChanges(); });
   els.refresh.addEventListener("click", () => {
     const url = new URL(location.href);
     url.searchParams.set("bust", Date.now().toString(36));
