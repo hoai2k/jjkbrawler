@@ -182,6 +182,57 @@ One pose answers "is this rig good" and "what is left in the pipeline" at the
 same time — which is the whole reason the list lives here rather than only in
 a tool nobody remembers to run.
 
+### What a live bone correction can and cannot fix — the Geto round
+
+Geto's rig was hand-dialled in the model bench and the skeleton mirrored, then
+measured in five states. The result is worth writing down, because it changes
+what belongs in this layer at all.
+
+**In the T-pose it works, and the two halves need each other.**
+
+| | shoulders apart | knees apart | arms | feet (L / R) |
+|---|---|---|---|---|
+| delivered | 3.9 cm | 5.6 cm | 12° apart | 26° / 46° out |
+| mirrored only | 0 | 0 | 10° apart | 37° / 37° out |
+| rotations only | 3.9 cm | 6.3 cm | 1.4° apart | 10° / 2° out |
+| both | 0 | 0.8 cm | 1.1° apart | 20° / 7° out |
+
+Mirroring is the only thing that levels the pairs — a bone's position is set by
+its parent, so no rotation can move it — and the rotations are the only thing
+that squares the feet. Note the last row's feet: the yaws were dialled against
+the LOPSIDED skeleton, so once it is mirrored they overshoot. **Straighten
+first, then dial**, or the second correction is fitted to a defect the first
+one removed.
+
+**In a clip-driven state the rotations make it worse.** Geto's run, heavy and
+crouch resolve to library clips, which are built from the sprite poses and come
+out symmetric by construction — feet 1.4° apart in the run. With his bone
+corrections on, the same frame reads 45° and −55°: the fix creates exactly the
+splay it was written to remove.
+
+That is not a bug in the fix, it is the shape of the problem. **A rotation
+correction only helps where the BIND is showing through.** In the rig check and
+in the idle, foot yaw comes from the bind (`applyIdleStand` levels soles and
+deliberately leaves yaw alone), so the correction lands on the defect. In a
+clip, the rotation came from the clip, the defect is not there, and the
+correction is pure damage. The layer cannot tell the two apart, because by the
+time it runs they look identical.
+
+So:
+
+- **Position fixes (`SYMMETRISE`) are safe everywhere.** Clips animate
+  rotations, not bone positions, so there is no state where a mirrored
+  skeleton fights what the clip asked for.
+- **Rotation fixes are safe on bones the clips do not drive** — a clavicle
+  roll, a wrist the grip solver owns. On a foot, a knee or a toe they should be
+  BAKED into the .glb rather than applied live. Baking puts the correction in
+  the bind, where the clip overwrites it exactly as it overwrites everything
+  else, and the damage cannot happen.
+
+Geto's foot, toe and leg entries are in `RIG_FIXES` today so they can be looked
+at, and they carry this warning in the file. They are the strongest argument
+yet for getting the bake done rather than living on the correction layer.
+
 ### The model bench — turning the bones, not the pose
 
 `render3d/workbench/?edit=models` is the tool that goes with those poses: one
@@ -204,6 +255,11 @@ Bone dots have a click target much larger than the dot, and picking is done in
 screen space — for both dots and rings, because a ray that must hit the
 geometry makes the target the geometry's size, and these are deliberately small
 so they do not bury the body they are drawn on.
+
+**Straighten skeleton** mirrors the bone POSITIONS about the body's own centre
+line, so paired joints sit at the same height and the same distance out. It is
+the half a rotation cannot reach, and the only correction here that is safe in
+every state — see the Geto round above.
 
 **Mannequin ghost** overlays the stand-in — the one body in the project that is
 certainly correct, being written out in code rather than generated — scaled to

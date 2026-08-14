@@ -45,7 +45,7 @@ import { GLTFLoader } from "../../vendor/three/loaders/GLTFLoader.js";
 import * as rig from "../src/loader.js";
 import { initPose, poseRig, captureCleanPose, RIG_CHECK_POSES } from "../src/pose.js";
 import { buildMannequin, MANNEQUIN_HEIGHT_M } from "../src/mannequin.js";
-import { RIG_FIXES, MODEL_FIXES, pendingFixes, setModelFixesEnabled } from "../src/rig_fixes.js";
+import { RIG_FIXES, MODEL_FIXES, SYMMETRISE, pendingFixes, setModelFixesEnabled } from "../src/rig_fixes.js";
 import { setWorldWidth } from "../src/outline.js";
 import { CHARACTER_KEYS, CHARACTERS } from "../../src/characters.js";
 
@@ -107,6 +107,11 @@ document.querySelector("main.layout").outerHTML = `
       </div>
       <label class="check"><input id="showBones" type="checkbox" checked> Bone dots</label>
       <label class="check"><input id="showFixes" type="checkbox" checked> Corrections on</label>
+      <label class="check"><input id="symmetry" type="checkbox"> Straighten skeleton</label>
+      <p class="hint">Mirror the bone POSITIONS about the body's own centre
+        line, so paired joints sit at the same height and the same distance
+        out. It is the half a rotation cannot reach — a bone's position is set
+        by its parent, so no amount of turning moves it.</p>
       <label class="check"><input id="showMannequin" type="checkbox"> Mannequin ghost</label>
       <p class="hint">The stand-in built exactly to spec, scaled to this
         fighter and standing in the same pose — what a correct T-pose looks
@@ -370,6 +375,7 @@ function showChar(charKey) {
   if (shown !== r.root) { scene.add(r.root); shown = r.root; }
   frameChar(r);
   fillBoneSelect();
+  $("symmetry").checked = SYMMETRISE[charKey] === true;
   syncFixList();
   const url = new URL(location);
   url.searchParams.set("char", charKey);
@@ -804,6 +810,13 @@ $("boneSelect").onchange = () => { state.bone = $("boneSelect").value; syncBoneP
 $("viewReset").onclick = () => frameChar(currentRig());
 $("showBones").onchange = () => { state.showBones = $("showBones").checked; };
 $("showMannequin").onchange = () => { state.mannequin = $("showMannequin").checked; };
+// Straight into the live table, like every other control here: what is on
+// screen is what the engine does, on or off.
+$("symmetry").onchange = () => {
+  if ($("symmetry").checked) SYMMETRISE[state.char] = true;
+  else delete SYMMETRISE[state.char];
+  syncFixList();
+};
 $("showFixes").onchange = () => {
   state.showFixes = $("showFixes").checked;
   // The whole layer, not just this page's bones — "corrections off" has to
@@ -828,15 +841,18 @@ $("allReset").onclick = () => {
  *  provenance to know which build of which model it was measured against. */
 function sessionPayload() {
   const fixes = {};
-  for (const [charKey] of edits) {
+  const touched = new Set([...edits.keys(), ...Object.keys(SYMMETRISE)]);
+  for (const charKey of touched) {
     const out = {};
     for (const [bone, q] of editsFor(charKey)) {
       const e = new THREE.Euler().setFromQuaternion(q, "XYZ");
       const d = [e.x / DEG, e.y / DEG, e.z / DEG].map((v) => +v.toFixed(2));
       if (d.some((v) => Math.abs(v) > 0.005)) out[bone] = d;
     }
-    if (Object.keys(out).length) {
+    const straightened = SYMMETRISE[charKey] === true;
+    if (Object.keys(out).length || straightened) {
       fixes[charKey] = { model: rig.rigManifest().characters?.[charKey]?.model || null,
+                         symmetrise: straightened,
                          bones: out };
     }
   }

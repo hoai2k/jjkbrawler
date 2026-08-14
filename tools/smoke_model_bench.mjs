@@ -283,6 +283,53 @@ if (!download) {
   check(same, "the paste box holds exactly what the file holds");
 }
 
+// ------------------------------------------------------ straighten skeleton
+//
+// The half a rotation cannot reach. A bone's position is set by its parent, so
+// no amount of turning a joint moves it — and generated skeletons come out
+// lopsided in PLACE as well as in angle: Geto's arm roots sit 3.9cm apart in
+// height and his knees 5.6cm. Mirroring the skeleton about its own centre line
+// is the only thing that answers that, and this is the check that it does.
+
+const straight = await page.evaluate(async () => {
+  const THREE = await import("/vendor/three/three.module.js");
+  const rigs = await import("/render3d/src/loader.js");
+  const fixes = await import("/render3d/src/rig_fixes.js");
+  const sel = document.getElementById("charSelect");
+  sel.value = "geto";
+  await sel.onchange();
+  await new Promise((r) => setTimeout(r, 3000));
+  const r = rigs.getRig("geto");
+  const y = (n) => r.root.getObjectByName(n).getWorldPosition(new THREE.Vector3()).y;
+  const gap = () => ({ shoulder: +(y("LeftArm") - y("RightArm")).toFixed(4),
+                       knee: +(y("LeftLeg") - y("RightLeg")).toFixed(4) });
+  // The ROTATION fixes come off for the measurement. They are a separate half
+  // of the layer and two of Geto's are asymmetric on purpose, which tilts the
+  // thighs and puts the knees back off level by 0.8cm — a true fact about that
+  // pairing, and not what this check is about.
+  const keep = fixes.RIG_FIXES.geto;
+  delete fixes.RIG_FIXES.geto;
+  const box = document.getElementById("symmetry");
+  const wasOn = box.checked;
+  box.checked = false; box.onchange();
+  await new Promise((r2) => setTimeout(r2, 400));
+  const off = gap();
+  box.checked = true; box.onchange();
+  await new Promise((r2) => setTimeout(r2, 400));
+  const on = gap();
+  box.checked = wasOn; box.onchange();
+  fixes.RIG_FIXES.geto = keep;
+  return { off, on, inPayload: !!window.__modelBench.sessionPayload().fixes?.geto?.symmetrise };
+});
+check(Math.abs(straight.off.shoulder) > 0.02 && Math.abs(straight.off.knee) > 0.02,
+  "geto's skeleton is measurably lopsided to begin with",
+  `shoulders ${(straight.off.shoulder * 100).toFixed(1)}cm apart, knees ${(straight.off.knee * 100).toFixed(1)}cm`);
+check(Math.abs(straight.on.shoulder) < 0.002 && Math.abs(straight.on.knee) < 0.002,
+  "...and straightening the skeleton levels both pairs exactly",
+  `shoulders ${(straight.on.shoulder * 100).toFixed(2)}cm, knees ${(straight.on.knee * 100).toFixed(2)}cm`);
+check(straight.inPayload,
+  "...and the payload says so, since it is not a rotation and cannot be one");
+
 // ------------------------------------------------------------ the mannequin
 //
 // The stand-in is the one body in the project that is certainly correct, so

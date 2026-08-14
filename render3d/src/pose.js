@@ -30,7 +30,7 @@
 // not bake it; the delivery rule carries over verbatim.
 
 import { STATES, clipNameFor, clipTime, aimable } from "./states.js";
-import { applyRigFixes, modelFixesEnabled } from "./rig_fixes.js";
+import { applyRigFixes, applySkeletonSymmetry, modelFixesEnabled } from "./rig_fixes.js";
 import { groundOffset } from "./pose_library.js";
 import {
   applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs, applyIdleStand, applyIdleArms, applyShoulderWidth, applyBindPose, applyKneeTurn, clearIdleStand,
@@ -441,6 +441,7 @@ function poseRigCheck(rig, kind, layers) {
   // From BIND, not from the clean buffer: the clean buffer holds the pose the
   // last clip left, and a rig check built on a run cycle is not a rig check.
   applyBindPose(THREE, rig.root);
+  applySkeletonFixes(rig, layers);
   keepClean(rig.root);
   // Legs straight and soles level, no splay — the stance dial is a character's
   // idle, and this pose is deliberately nobody's.
@@ -452,7 +453,26 @@ function poseRigCheck(rig, kind, layers) {
 }
 
 /**
- * THE GLB CORRECTION LAYER. Everything in here is a fix to the delivered
+ * THE GLB CORRECTION LAYER, first half: corrections to WHERE THE BONES ARE.
+ *
+ * Split out from the rest because it cannot go where the rest goes. A rotation
+ * fix is applied last, on top of the pose, and composes with it. A POSITION
+ * fix is a change to the skeleton the pose is then built on — straightening
+ * the legs, levelling the soles and aiming the arms all measure the body they
+ * are working on, so a shoulder moved after them is a shoulder the arm layer
+ * never saw. It goes on immediately after the clip, before any of that.
+ *
+ * Same switch, same bake list, same rule: with the skeleton mirrored in the
+ * .glb, `setModelFixesEnabled(false)` must change nothing.
+ */
+function applySkeletonFixes(rig, layers) {
+  if (!modelFixesEnabled()) return;
+  const fixKey = layers.charKey || rig.charKey;
+  if (fixKey) applySkeletonSymmetry(THREE, rig.root, fixKey);
+}
+
+/**
+ * THE GLB CORRECTION LAYER, second half: everything in here is a fix to the delivered
  * MODEL, not to any pose: things the file got wrong that no clip can fix,
  * because every state inherits them. They are dialled by eye in the idle
  * review (the one pose with an obvious right answer) but they are NOT part of
@@ -514,6 +534,7 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
 
   restoreClean(rig.root);
   playClip(rig, animKey, sampled, clip);
+  applySkeletonFixes(rig, layers);
   keepClean(rig.root);
   // How the fighter STANDS, before anything reaches: straightening the legs
   // and squaring the feet moves the hips, and therefore every joint above
