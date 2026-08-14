@@ -1,0 +1,71 @@
+/* THE MODEL BENCH's layout: a viewport that takes the whole left side, and a
+   narrow column of controls. Different from the other benches on purpose —
+   they show a fixed-size canvas because they are comparing against a drawing
+   at a fixed size, and this one is a model viewer, where every pixel of the
+   viewport is a pixel you can see a rolled joint in. */
+
+body.mode-models main.layout.models {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 14px;
+  align-items: start;
+}
+
+body.mode-models .stage-col { min-width: 0; }
+
+body.mode-models #viewWrap {
+  position: relative;
+  height: min(78vh, 860px);
+  border: 1px solid #232c44;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #101522;
+}
+body.mode-models #view {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* The gizmo is dragged, and a drag that also scrolls the page or selects
+     text is a gizmo that fights you on a trackpad. */
+  touch-action: none;
+  user-select: none;
+}
+
+body.mode-models .pane h3 {
+  margin: 14px 0 4px;
+  font-size: 13px;
+  color: #cdd6ee;
+}
+body.mode-models .pane select { width: 100%; }
+
+/* One row per axis: the letter in its own colour — the same colour as the ring
+   it turns, so the panel and the gizmo are obviously the same three things —
+   then a slider for feel and a number for precision. */
+body.mode-models .axis {
+  display: grid;
+  grid-template-columns: 16px 1fr 68px;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0;
+}
+body.mode-models .axis b { font-family: ui-monospace, monospace; }
+body.mode-models .axis input[type="number"] { width: 100%; }
+
+body.mode-models #fixList {
+  max-height: 30vh;
+  overflow: auto;
+  border: 1px solid #232c44;
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #151b2b;
+}
+body.mode-models #fixList .fixrow { display: flex; flex-direction: column; margin-bottom: 6px; }
+body.mode-models #fixList .fixrow b { color: #ffcf8a; font-weight: 600; }
+body.mode-models #fixList .fixrow.man b { color: #9fd39f; }
+body.mode-models #fixList .fixrow.none b { color: #8b96b3; font-weight: 400; }
+body.mode-models #fixList .fixrow span { color: #8b96b3; font-size: 11.5px; }
+
+@media (max-width: 900px) {
+  body.mode-models main.layout.models { grid-template-columns: 1fr; }
+  body.mode-models #viewWrap { height: 58vh; }
+}

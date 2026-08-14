@@ -28,6 +28,7 @@
     animation: "../render3d/workbench/?edit=animation",
     pose: "../render3d/workbench/?edit=pose",
     reads: "../render3d/workbench/?edit=reads",
+    models: "../render3d/workbench/?edit=models",
   };
 
   // Spellings people will actually type, in the spirit of the render backend's
@@ -37,7 +38,10 @@
     sprite: "sprites", "2d": "sprites",
     action: "actions",
     billboard: "billboards", "2.5d": "billboards",
-    render3d: "3d", anime: "3d", model: "3d", models: "3d",
+    render3d: "3d", anime: "3d",
+    // "model" belongs to the MODEL bench, which is the one that edits models.
+    // It used to point at the pose bench, which does not.
+    model: "models", rig: "models", rigs: "models", bones: "models",
     anim: "animation", keyframes: "animation", clip: "animation", clips: "animation",
     joints: "reads", "joint-reads": "reads", read: "reads",
   };
