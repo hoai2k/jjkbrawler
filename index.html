@@ -19,6 +19,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
     <link rel="manifest" href="site.webmanifest">
+    <link rel="preload" href="assets/fonts/barlow-condensed-italic-900.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -197,6 +199,11 @@
             <button id="settingsBackButton" type="button">Back</button>
           </div>
         </div>
+
+        <!-- The battle-intro VS splash. Built by ui.js (showBattleIntro) from
+             the match roster when a fight launches; a timed cut-scene beat, not
+             a menu — no input, self-dismissing. -->
+        <div id="introOverlay" class="intro-overlay hidden" aria-hidden="true"></div>
 
         <div id="loadOverlay" class="overlay">
           <div class="title-lockup">

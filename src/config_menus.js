@@ -209,6 +209,15 @@ export const TEXT = {
         : ""),
   },
 
+  // The battle-intro VS splash: full-bleed hero art panels slamming in before
+  // the READY…GO! countdown. Seat chips say who is driving each fighter.
+  intro: {
+    vs: "VS",
+    seatPlayer: (n) => `P${n}`,
+    seatCpu: "CPU",
+    stageLabel: (name) => name,
+  },
+
   pause: {
     eyebrow: "Match paused",
     title: "Paused",

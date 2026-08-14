@@ -1,5 +1,52 @@
+/* ---------- Display face ----------
+   Barlow Condensed (OFL, bundled in assets/fonts — no network fetch): the
+   game's shouting voice. Italic 800/900 for names, damage, titles and VS;
+   upright 600/800 for chips, labels and buttons, which sit inside surfaces
+   that are already skewed and would double-lean with an italic. Reading text
+   (blurbs, hints, descriptions) stays on the quiet system stack. */
+@font-face {
+  font-family: "Barlow Condensed";
+  font-style: normal;
+  font-weight: 600;
+  src: url("assets/fonts/barlow-condensed-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Barlow Condensed";
+  font-style: normal;
+  font-weight: 800;
+  src: url("assets/fonts/barlow-condensed-800.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Barlow Condensed";
+  font-style: italic;
+  font-weight: 600;
+  src: url("assets/fonts/barlow-condensed-italic-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Barlow Condensed";
+  font-style: italic;
+  font-weight: 800;
+  src: url("assets/fonts/barlow-condensed-italic-800.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Barlow Condensed";
+  font-style: italic;
+  font-weight: 900;
+  src: url("assets/fonts/barlow-condensed-italic-900.woff2") format("woff2");
+}
+
 :root {
   --bg: #05060d;
+  /* The slash: the ONE angle the whole interface leans on. Buttons, plates,
+     ribbons, HUD panels and entrance motion all use it — a second angle
+     anywhere would read as a mistake, so it lives here and nowhere else.
+     --skew is the composable transform (hover states append to it). */
+  --slash: -10deg;
+  --skew: skewX(var(--slash));
+  --unskew: skewX(calc(-1 * var(--slash)));
+  --font-display: "Barlow Condensed", "Arial Narrow", "Inter", sans-serif;
+  /* Victory gold: the results screen only. Nothing else may borrow it. */
+  --gold: #ffd97a;
   --panel: rgba(10, 14, 26, 0.92);
   --panel-soft: rgba(16, 22, 40, 0.85);
   --line: rgba(120, 140, 200, 0.22);
@@ -148,27 +195,35 @@ html, body {
   display: flex;
   gap: 10px;
   align-items: center;
-  background: linear-gradient(180deg, rgba(8, 12, 24, 0.88), rgba(8, 12, 24, 0.55));
+  background:
+    repeating-linear-gradient(100deg, transparent 0 14px, rgba(255, 255, 255, 0.018) 14px 20px),
+    linear-gradient(180deg, rgba(8, 12, 24, 0.9), rgba(8, 12, 24, 0.6));
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 8px 12px;
+  border-radius: 4px;
+  padding: 8px 14px;
   min-width: 250px;
+  /* The whole plate leans into the arena on the slash; each direct child
+     counter-skews so the portrait and readouts stand upright inside it. */
+  transform: var(--skew);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
   /* The combo readout hangs off the bottom edge of this panel. */
   position: relative;
 }
 
+.fighter-status > * { transform: var(--unskew); }
+
 /* Each panel publishes its fighter's colour as --panel-theme (ui.js), so one
    pair of rules dresses every seat from two fighters up to eight. */
-.fighter-status { border-left: 3px solid var(--panel-theme, var(--line)); }
+.fighter-status { border-left: 4px solid var(--panel-theme, var(--line)); }
 .fighter-status--mirror {
   border-left: 1px solid var(--line);
-  border-right: 3px solid var(--panel-theme, var(--line));
+  border-right: 4px solid var(--panel-theme, var(--line));
 }
 
 .hud-portrait {
   width: 52px;
   height: 52px;
-  border-radius: 10px;
+  border-radius: 3px;
   object-fit: cover;
   object-position: top;
   border: 1px solid var(--line);
@@ -184,18 +239,24 @@ html, body {
 }
 
 .fighter-name {
+  font-family: var(--font-display);
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  font-size: 0.82rem;
+  font-size: 0.92rem;
   color: var(--text-dim);
 }
 
 .fighter-status .fighter-name { color: var(--panel-theme, var(--text-dim)); }
 
+/* Damage is the HUD's loudest reading: the display italic at 900, the same
+   voice as the VS splash and the results poster. */
 .damage {
-  font-size: 1.5rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.7rem;
   font-weight: 900;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
 }
@@ -292,9 +353,11 @@ html, body {
 /* The match clock, above the arena sign. Tabular figures so the digits do not
    jitter the whole readout sideways as the seconds tick over. */
 .match-clock {
+  font-family: var(--font-display);
+  font-style: italic;
   font-variant-numeric: tabular-nums;
-  font-size: 1.5rem;
-  font-weight: 800;
+  font-size: 1.7rem;
+  font-weight: 900;
   letter-spacing: 0.06em;
   color: #f2f5ff;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
@@ -356,7 +419,7 @@ html, body {
    what a player actually reads mid-match. */
 .hud--crowd { gap: 4px; padding-inline: 8px; }
 .hud--crowd .hud-portrait { display: none; }
-.hud--crowd .fighter-status { padding: 5px 7px; border-radius: 10px; }
+.hud--crowd .fighter-status { padding: 5px 7px; border-radius: 3px; }
 .hud--crowd .damage { font-size: 0.95rem; }
 .hud--crowd .fighter-name { font-size: 0.58rem; letter-spacing: 0.02em; }
 .hud--crowd .stock-dot { width: 8px; height: 8px; }
@@ -407,6 +470,7 @@ html, body {
   gap: 14px;
   padding: 22px;
   background:
+    repeating-linear-gradient(100deg, transparent 0 110px, rgba(130, 170, 255, 0.03) 110px 190px),
     radial-gradient(90% 70% at 50% 10%, rgba(35, 52, 105, 0.5) 0%, transparent 60%),
     rgba(4, 6, 13, 0.93);
   /* Last-resort guard so a very short window can still reach the buttons
@@ -434,8 +498,10 @@ html, body {
   to { opacity: 1; }
 }
 
+/* Content arrives along the slash axis — a shallow diagonal, not a plain
+   drop — so even a screen change restates the game's one angle. */
 @keyframes overlayContentIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translate(14px, 5px); }
   to { opacity: 1; transform: none; }
 }
 
@@ -478,21 +544,31 @@ html, body {
   filter: drop-shadow(0 0 20px rgba(98, 220, 255, 0.32));
 }
 
+/* The kicker over every screen title: a slash-cut chip rather than a floating
+   whisper, so each screen opens with the same piece of broadcast furniture. */
 .eyebrow {
-  display: block;
+  display: inline-block;
   text-transform: uppercase;
-  letter-spacing: 0.34em;
-  font-size: 0.66rem;
-  font-weight: 700;
-  color: var(--text-dim);
-  margin-bottom: 6px;
+  letter-spacing: 0.26em;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(98, 220, 255, 0.1);
+  border: 1px solid rgba(98, 220, 255, 0.38);
+  padding: 4px 16px 3px;
+  transform: var(--skew);
+  margin-bottom: 8px;
 }
 
 .title-lockup h1 {
   margin: 0;
-  font-size: clamp(1.8rem, 4.6vw, 3rem);
+  font-family: var(--font-display);
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: clamp(2rem, 5vw, 3.4rem);
   font-weight: 900;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-shadow: 0 0 34px rgba(98, 220, 255, 0.45);
 }
 
@@ -500,9 +576,13 @@ html, body {
 
 .title-lockup h2 {
   margin: 0;
-  font-size: clamp(1.4rem, 3.2vw, 2.1rem);
+  font-family: var(--font-display);
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: clamp(1.7rem, 3.8vw, 2.6rem);
   font-weight: 900;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.045em;
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.7), 0 0 30px rgba(98, 220, 255, 0.22);
 }
 
 /* ---------- Loading ---------- */
@@ -510,17 +590,17 @@ html, body {
 .load-bar {
   position: relative;
   width: min(80%, 420px);
-  height: 12px;
-  border-radius: 8px;
+  height: 13px;
+  border-radius: 2px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.07);
   overflow: hidden;
+  transform: var(--skew);
 }
 
 .load-bar-fill {
   height: 100%;
   width: 0%;
-  border-radius: 8px;
   background: linear-gradient(90deg, #1d5fd8, #62dcff);
   box-shadow: 0 0 18px rgba(98, 220, 255, 0.55);
   transition: width 0.18s ease-out;
@@ -565,14 +645,19 @@ html, body {
   margin: 0;
   display: flex;
   align-items: end;
-  font-size: clamp(0.5rem, 0.7vw, 0.72rem);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(0.56rem, 0.8vw, 0.8rem);
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   line-height: 1.25;
   color: var(--text-dim);
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 4px;
+  /* The underline runs out on the slash: solid under the words, fading to
+     nothing before the next category's begins. */
+  border-bottom: 0;
+  background: linear-gradient(100deg, var(--accent) 0, rgba(98, 220, 255, 0.45) 40%, transparent 96%) bottom / 100% 2px no-repeat;
+  padding-bottom: 5px;
   overflow-wrap: anywhere;
 }
 
@@ -584,7 +669,7 @@ html, body {
      count instead of being clipped to "GAKUGA". */
   container-type: inline-size;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 0;
   overflow: hidden;
   cursor: pointer;
@@ -616,29 +701,30 @@ html, body {
    paintings are shown at size. */
 .char-card img,
 .matchup-side img,
-.victory-card--winner img {
+.victory-card--winner img,
+.intro-panel img {
   filter: brightness(var(--card-lift, 1.18)) saturate(1.04);
 }
 
 /* Dim art: a stronger lift to bring it level with the rest of the roster. */
-:is(.char-card, .matchup-side, .victory-card--winner) img[src$="nanami_card.jpg"],
-:is(.char-card, .matchup-side, .victory-card--winner) img[src$="toji_card.jpg"],
-:is(.char-card, .matchup-side, .victory-card--winner) img[src$="geto_card.jpg"],
-:is(.char-card, .matchup-side, .victory-card--winner) img[src$="reggie_card.jpg"],
-:is(.char-card, .matchup-side, .victory-card--winner) img[src$="meimei_card.jpg"],
-:is(.char-card, .matchup-side, .victory-card--winner) img[src$="gakuganji_card.jpg"] {
+:is(.char-card, .matchup-side, .victory-card--winner, .intro-panel) img[src$="nanami_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner, .intro-panel) img[src$="toji_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner, .intro-panel) img[src$="geto_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner, .intro-panel) img[src$="reggie_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner, .intro-panel) img[src$="meimei_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner, .intro-panel) img[src$="gakuganji_card.jpg"] {
   --card-lift: 1.38;
 }
 
 /* Darkest art: near-black backgrounds that stay murky at anything less. */
-:is(.char-card, .matchup-side, .victory-card--winner) img[src$="mahito_card.jpg"],
-:is(.char-card, .matchup-side, .victory-card--winner) img[src$="sukuna_card.jpg"],
-:is(.char-card, .matchup-side, .victory-card--winner) img[src$="choso_card.jpg"] {
+:is(.char-card, .matchup-side, .victory-card--winner, .intro-panel) img[src$="mahito_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner, .intro-panel) img[src$="sukuna_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner, .intro-panel) img[src$="choso_card.jpg"] {
   --card-lift: 1.58;
 }
 
 /* Panda is already bright enough; only the saturation applies. */
-:is(.char-card, .matchup-side, .victory-card--winner) img[src$="panda_card.jpg"] {
+:is(.char-card, .matchup-side, .victory-card--winner, .intro-panel) img[src$="panda_card.jpg"] {
   --card-lift: 1;
 }
 
@@ -655,30 +741,34 @@ html, body {
 }
 
 /* Uro and Hakari are bright enough as drawn — no filter at all. */
-:is(.char-card, .matchup-side, .victory-card--winner) img[src$="uro_card.jpg"],
-:is(.char-card, .matchup-side, .victory-card--winner) img[src$="hakari_card.jpg"] {
+:is(.char-card, .matchup-side, .victory-card--winner, .intro-panel) img[src$="uro_card.jpg"],
+:is(.char-card, .matchup-side, .victory-card--winner, .intro-panel) img[src$="hakari_card.jpg"] {
   filter: none;
 }
 
+/* The name band: a slash-cut plate rising along the card's bottom edge, the
+   same grammar as every other plate in the game. The gradient runs on the
+   slash angle instead of straight up, which is what tips the band's top edge. */
 .char-card span {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 10px 2px 4px;
+  font-family: var(--font-display);
+  padding: 12px 2px 4px;
   /* Scales with the portrait rather than sitting at a fixed size, because the
      longest single-word name on the roster (GAKUGANJI, 9 characters) has to
      fit the tile at every responsive card size — at a fixed 0.62rem it ran
      past the edge and `overflow: hidden` clipped it to "GAKUGA". Multi-word
      names (REGGIE STAR) still wrap to two lines, which is why this scales the
      text instead of forcing `nowrap`. */
-  font-size: clamp(0.36rem, 11cqw, 0.62rem);
+  font-size: clamp(0.4rem, 12cqw, 0.72rem);
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
   text-align: center;
   color: #fff;
-  background: linear-gradient(180deg, transparent, rgba(2, 4, 10, 0.92));
+  background: linear-gradient(190deg, transparent 18%, rgba(2, 4, 10, 0.55) 42%, rgba(2, 4, 10, 0.94) 78%);
   text-shadow: 0 1px 3px #000;
 }
 
@@ -719,10 +809,13 @@ html, body {
 .char-card .pick-tag {
   position: absolute;
   top: 5px;
-  font-size: 0.56rem;
-  font-weight: 900;
-  padding: 2px 7px;
-  border-radius: 20px;
+  font-family: var(--font-display);
+  font-style: normal;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 2px 8px 1px;
+  border-radius: 2px;
+  transform: var(--skew);
   color: #04060d;
 }
 
@@ -747,9 +840,12 @@ html, body {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  background: var(--panel-soft);
+  background:
+    repeating-linear-gradient(100deg, transparent 0 26px, rgba(255, 255, 255, 0.015) 26px 38px),
+    var(--panel-soft);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-top: 3px solid var(--seat, var(--line));
+  border-radius: 5px;
   padding: 10px 14px 9px;
   cursor: pointer;
   color: var(--text);
@@ -761,19 +857,26 @@ html, body {
      which clips to its own line budget. */
   --hero-art-h: clamp(84px, 14vh, 118px);
   --hero-art-w: calc(var(--hero-art-h) * 1.42);
-  --hero-furniture: 190px; /* name + 3 description lines + stats + ultimate */
+  --hero-furniture: 208px; /* seat chip + name + 3 description lines + stats + ultimate */
   height: calc(var(--hero-art-h) + var(--hero-furniture));
   justify-content: flex-start;
   overflow: hidden;
   transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
 }
 
-.matchup-side span {
-  font-size: 0.62rem;
+/* The seat chip: WHO this card belongs to, as a slash-cut plate in the seat's
+   own color — the same chip grammar as the kickers and pick tags. */
+.matchup-side .hero-slot-label {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.16em;
   font-weight: 800;
-  color: var(--text-dim);
+  color: var(--seat, var(--text-dim));
+  background: color-mix(in srgb, var(--seat, #8ea4d6) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--seat, #8ea4d6) 45%, transparent);
+  padding: 2px 12px 1px;
+  transform: var(--skew);
 }
 
 .matchup-side img {
@@ -781,7 +884,7 @@ html, body {
   height: var(--hero-art-h);
   object-fit: cover;
   object-position: top;
-  border-radius: 10px;
+  border-radius: 3px;
 }
 
 /* The hero card carries the character's FULL name (roster tiles stay short), so
@@ -790,8 +893,12 @@ html, body {
    scales with the viewport instead of wrapping — the ellipsis is a guard for a
    future name longer than anything on the roster, not an expected state. */
 .matchup-side strong {
-  font-size: clamp(0.72rem, 0.9vw + 0.25rem, 1.05rem);
-  letter-spacing: 0.04em;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(0.82rem, 1vw + 0.3rem, 1.2rem);
+  letter-spacing: 0.05em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -874,16 +981,20 @@ html, body {
 .hero-ready {
   position: absolute;
   top: 34px;
-  right: 16px;
+  right: 12px;
   z-index: 2;
-  font: 900 0.58rem/1 inherit;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.66rem;
+  line-height: 1;
   font-style: normal;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: #04170b;
   background: #72e596;
-  border-radius: 20px;
-  padding: 4px 9px;
+  border-radius: 2px;
+  padding: 4px 10px 3px;
+  transform: var(--skew);
   box-shadow: 0 2px 10px rgba(114, 229, 150, 0.5);
 }
 
@@ -1041,9 +1152,10 @@ html, body {
 .vs-mode:hover { border-color: rgba(160, 190, 255, 0.45); color: var(--text); }
 
 .vs-mode-label {
-  font-size: 0.6rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -1069,12 +1181,13 @@ html, body {
   padding: 10px;
   background: var(--panel);
   border: 1px solid rgba(160, 190, 255, 0.4);
-  border-radius: 14px;
+  border-radius: 5px;
   box-shadow: 0 22px 50px rgba(0, 0, 0, 0.6);
 }
 
 .mode-menu-title {
-  font-size: 0.58rem;
+  font-family: var(--font-display);
+  font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -1114,30 +1227,53 @@ html, body {
   justify-content: center;
 }
 
+/* Every menu button is a parallelogram on the slash. The (upright, heavy)
+   condensed type inherits the container's lean, so letterform and frame agree
+   — an italic here would double-skew. Hover appends to --skew rather than
+   replacing it, so the lift never straightens the button. */
 .menu-actions button,
 .settings-panel button {
-  background: var(--panel-soft);
+  background: linear-gradient(180deg, rgba(24, 32, 58, 0.9), rgba(12, 17, 34, 0.9));
   color: var(--text);
-  border: 1px solid var(--line);
-  border-radius: 11px;
-  padding: 9px 16px;
-  font-weight: 700;
-  font-size: 0.8rem;
+  border: 1px solid rgba(120, 140, 200, 0.34);
+  border-radius: 3px;
+  padding: 9px 20px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: border-color 0.12s ease, transform 0.12s ease;
+  transform: var(--skew);
+  transition: border-color 0.12s ease, transform 0.12s ease, background 0.12s ease;
 }
 
 .menu-actions button:hover,
-.settings-panel button:hover { border-color: rgba(160, 190, 255, 0.55); transform: translateY(-1px); }
+.settings-panel button:hover {
+  border-color: rgba(160, 190, 255, 0.65);
+  transform: var(--skew) translateY(-1px);
+}
 
+/* Self-sufficient rather than leaning on .menu-actions: the start button sits
+   in the matchup bar's centre column, outside any actions row. */
 .primary-action {
-  background: linear-gradient(135deg, #1d5fd8, #62dcff) !important;
+  background: linear-gradient(115deg, #1d5fd8, #62dcff) !important;
   border: none !important;
   color: #03101f !important;
-  font-weight: 900 !important;
-  letter-spacing: 0.04em;
-  box-shadow: 0 6px 20px rgba(52, 130, 240, 0.4);
+  font-family: var(--font-display);
+  font-weight: 800 !important;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 22px;
+  border-radius: 3px;
+  cursor: pointer;
+  transform: var(--skew);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  box-shadow: 0 6px 20px rgba(52, 130, 240, 0.4), 0 0 0 1px rgba(160, 220, 255, 0.35) inset;
 }
+
+.primary-action:hover:not(:disabled) { transform: var(--skew) translateY(-1px); }
 
 .controller-status { color: var(--text-dim); font-size: 0.72rem; margin: 0; }
 
@@ -1193,7 +1329,7 @@ html, body {
 .stage-card {
   position: relative;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 4px;
   overflow: hidden;
   cursor: pointer;
   aspect-ratio: 16 / 9;
@@ -1215,12 +1351,15 @@ html, body {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 12px 6px 5px;
-  font-size: 0.66rem;
+  padding: 13px 6px 5px;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
   font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   text-align: center;
   color: #fff;
-  background: linear-gradient(180deg, transparent, rgba(2, 4, 10, 0.95));
+  background: linear-gradient(190deg, transparent 12%, rgba(2, 4, 10, 0.6) 45%, rgba(2, 4, 10, 0.95) 82%);
   text-shadow: 0 1px 3px #000;
 }
 
@@ -1249,7 +1388,7 @@ html, body {
   width: min(96%, 960px);
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 6px;
   padding: 18px 22px;
   display: flex;
   flex-direction: column;
@@ -1260,7 +1399,8 @@ html, body {
 
 .moves-blurb { color: var(--text-dim); font-size: 0.82rem; line-height: 1.5; margin: 0; }
 
-.controller-guide { display: grid; grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr); gap: 18px; align-items: center; }
+.controller-guide { display: grid; grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr); gap: 18px; align-items: start; }
+.moves-panel:not(.moves-panel--split) .controller-tips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .xbox-controller { width: 100%; max-height: 265px; overflow: visible; }
 .controller-shell { fill: #151b2d; stroke: #526080; stroke-width: 4; }
 .controller-bumper { fill: #27314b; stroke: #7181a6; stroke-width: 2; }
@@ -1329,15 +1469,17 @@ html, body {
 
 .moves-player-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
 .moves-player-badge {
-  font-weight: 900;
-  font-size: 0.7rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.78rem;
   letter-spacing: 0.1em;
   color: #05060d;
   background: var(--seat);
-  border-radius: 5px;
-  padding: 2px 7px;
+  border-radius: 2px;
+  padding: 2px 9px 1px;
+  transform: var(--skew);
 }
-.moves-player-name { font-weight: 800; font-size: 1rem; }
+.moves-player-name { font-family: var(--font-display); font-style: italic; font-weight: 800; text-transform: uppercase; font-size: 1.1rem; letter-spacing: 0.04em; }
 .moves-player-epithet { color: var(--text-dim); font-size: 0.78rem; font-style: italic; }
 .moves-player-keys { color: var(--text-dim); font-size: 0.7rem; line-height: 1.45; margin: 8px 0 0; }
 
@@ -1384,7 +1526,8 @@ html, body {
 .moves-section {
   border-top: 1px solid var(--line);
   padding-top: 10px;
-  font-size: 0.68rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
   font-weight: 900;
   letter-spacing: 0.28em;
   text-transform: uppercase;
@@ -1400,7 +1543,7 @@ html, body {
   width: min(90%, 380px);
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 6px;
   padding: 18px 20px;
 }
 
@@ -1434,7 +1577,7 @@ html, body {
   #menuOverlay .game-logo { max-height: 52px; }
   /* The hero cards give ground too, so the roster doesn't carry the whole cut:
      two description lines instead of three, and a shorter portrait. */
-  .matchup-side { width: 172px; padding: 7px 10px 6px; --hero-furniture: 156px; }
+  .matchup-side { width: 172px; padding: 7px 10px 6px; --hero-furniture: 172px; }
   .hero-epithet { height: calc(2 * 1.32em); -webkit-line-clamp: 2; }
   .hero-ult { height: calc(2 * 1.3em); -webkit-line-clamp: 2; }
 }
@@ -1467,7 +1610,7 @@ html, body {
 
 .stat-row {
   display: grid;
-  grid-template-columns: 2ch minmax(0, 1fr) 5ch 5ch 4ch 4ch 7ch;
+  grid-template-columns: 2rem minmax(0, 1fr) 3.6rem 3.6rem 2.9rem 2.9rem 5.4rem;
   gap: 8px;
   align-items: center;
   padding: 5px 12px;
@@ -1482,18 +1625,22 @@ html, body {
 .stat-row > span { text-align: right; }
 .stat-row .stat-name { text-align: left; font-weight: 700; }
 
+.stat-row { border-radius: 3px; }
+
 .stat-row--head {
   background: none;
   border-left-color: transparent;
+  font-family: var(--font-display);
   color: var(--text-dim);
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
+/* The winner's row answers the podium in the podium's color. */
 .stat-row--winner {
-  background: rgba(60, 84, 150, 0.5);
-  box-shadow: inset 0 0 0 1px rgba(150, 180, 245, 0.35);
+  background: rgba(255, 217, 122, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 217, 122, 0.35);
 }
 
 .stat-footer {
@@ -1517,12 +1664,19 @@ html, body {
    placement. The overlay already scrolls on short windows, so the sizes clamp
    on viewport height rather than shrinking the whole screen to fit. */
 .title-lockup--victory h2 {
-  font-size: clamp(2.2rem, 7vw, 4.2rem);
-  letter-spacing: 0.04em;
-  text-shadow: 0 0 46px rgba(98, 220, 255, 0.5), 0 4px 20px rgba(0, 0, 0, 0.85);
+  font-size: clamp(2.6rem, 8vw, 4.8rem);
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 46px rgba(255, 217, 122, 0.42), 0 4px 20px rgba(0, 0, 0, 0.85);
 }
 
-.title-lockup--victory .eyebrow { font-size: 0.78rem; }
+/* Gold's ONE home: the results kicker chip goes gold with the rest of the
+   podium, instead of staying on the system cyan every other screen uses. */
+.title-lockup--victory .eyebrow {
+  font-size: 0.82rem;
+  color: var(--gold);
+  background: rgba(255, 217, 122, 0.1);
+  border-color: rgba(255, 217, 122, 0.42);
+}
 
 .victory-podium {
   display: flex;
@@ -1546,7 +1700,7 @@ html, body {
   aspect-ratio: 3 / 4;
   object-fit: cover;
   object-position: top;
-  border-radius: 16px;
+  border-radius: 4px;
   border: 2px solid var(--card-theme, var(--line));
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55), 0 0 30px var(--card-theme, transparent);
 }
@@ -1556,20 +1710,77 @@ html, body {
   flex-direction: column;
   align-items: center;
   line-height: 1.25;
+  gap: 4px;
 }
 
 .victory-card i {
+  font-family: var(--font-display);
   font-style: normal;
-  font-size: 0.62rem;
+  font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #ffd97a;
+  color: var(--gold);
 }
 
-.victory-card b { font-weight: 900; }
+.victory-card b {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
 
-.victory-card--winner b { font-size: 1.05rem; }
+/* The winner stands up: the full-body victory pose (a transparent cut-out,
+   not a framed painting — renderPodium swaps the art), at poster size over an
+   angled panel washed in the fighter's own color. */
+.victory-card--winner { position: relative; }
+
+.victory-card--winner::before {
+  content: "";
+  position: absolute;
+  inset: 6% 4% 12%;
+  transform: var(--skew);
+  background:
+    linear-gradient(200deg, color-mix(in srgb, var(--card-theme, #62dcff) 30%, transparent), transparent 62%),
+    linear-gradient(180deg, rgba(10, 14, 28, 0.55), rgba(10, 14, 28, 0.2));
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  border-top: 3px solid var(--gold);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+}
+
+.victory-card--winner img.victory-sprite {
+  position: relative;
+  width: auto;
+  max-width: 46vw;
+  height: clamp(220px, 42vh, 380px);
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: bottom;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  filter:
+    drop-shadow(0 16px 26px rgba(0, 0, 0, 0.65))
+    drop-shadow(0 0 22px color-mix(in srgb, var(--card-theme, #62dcff) 55%, transparent));
+}
+
+.victory-card--winner figcaption { position: relative; }
+
+/* WINNER rides a gold slash plate; the name goes up to poster size. */
+.victory-card--winner i {
+  color: #241a04;
+  background: linear-gradient(100deg, #ffe9ad, var(--gold) 60%, #eab54e);
+  padding: 4px 16px 3px;
+  transform: var(--skew);
+  box-shadow: 0 3px 14px rgba(255, 217, 122, 0.45);
+}
+
+.victory-card--winner b {
+  font-size: clamp(1.5rem, 3.4vw, 2.3rem);
+  line-height: 1;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.8);
+}
 
 .victory-losers {
   display: flex;
@@ -1587,7 +1798,7 @@ html, body {
 
 .victory-card--loser i { color: var(--text-dim); letter-spacing: 0.12em; }
 
-.victory-card--loser b { font-size: 0.72rem; color: var(--text-dim); }
+.victory-card--loser b { font-size: 0.8rem; color: var(--text-dim); }
 
 /* The winner arrives like a stinger — pops past full size and settles — while
    the beaten file in a beat later. Both die to 1ms under the reduced-motion
@@ -1609,6 +1820,183 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .overlay.is-entering .victory-card--winner,
   .overlay.is-entering .victory-losers { animation-duration: 1ms; animation-delay: 0ms; }
+}
+
+/* ---------- Battle intro: the VS splash ---------- */
+/*
+   Every entrant's painted hero card, huge, in angled panels that slam in from
+   the sides before READY…GO!. Built by showBattleIntro (ui.js); a cut-scene
+   beat, not a menu — no input, self-dismissing on main.js's countdown budget.
+
+   The geometry: each panel is skewed on the slash and its art counter-skewed
+   and oversized, so the frame leans while the painting stays upright. The
+   whole splash bleeds past the screen edges so the outermost slanted edges
+   never expose a background corner.
+*/
+.intro-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40; /* over the HUD and utility corner; the error toast stays above */
+  overflow: hidden;
+  background: #04060e;
+}
+
+.intro-splash {
+  position: absolute;
+  inset: -8% -12%;
+  display: flex;
+  gap: clamp(6px, 1vw, 14px);
+}
+
+.intro-panel {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  transform: var(--skew);
+  /* Name sizes read the panel's own width (cqw), so the same rules carry a
+     1v1's half-screens and a Battle Royal's eight slats. */
+  container-type: inline-size;
+  border-inline: 3px solid var(--seat, var(--line));
+  background: color-mix(in srgb, var(--seat, #62dcff) 16%, #070a16);
+  box-shadow: 0 0 44px rgba(0, 0, 0, 0.65);
+}
+
+.intro-panel img {
+  position: absolute;
+  top: 0;
+  left: -17%;
+  width: 134%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  transform: var(--unskew);
+}
+
+.intro-plate {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  transform: var(--unskew);
+}
+
+.intro-seat {
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 800;
+  font-size: clamp(0.6rem, 5cqw, 0.85rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #04060d;
+  background: var(--seat, var(--accent));
+  padding: 3px 14px 2px;
+  transform: var(--skew);
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--seat, #62dcff) 60%, transparent);
+}
+
+.intro-name {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 0.95;
+  font-size: clamp(1.4rem, 17cqw, 4.2rem);
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.9),
+    0 0 34px color-mix(in srgb, var(--seat, #62dcff) 65%, transparent);
+}
+
+.intro-vs {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  transform: translate(-50%, -54%) skewX(var(--slash));
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: clamp(5rem, 17vw, 11rem);
+  line-height: 1;
+  background: linear-gradient(180deg, #ffb199 8%, #ff4c55 52%, #a01d26 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter:
+    drop-shadow(0 6px 22px rgba(0, 0, 0, 0.8))
+    drop-shadow(0 0 30px rgba(255, 76, 85, 0.55));
+}
+
+.intro-stage {
+  position: absolute;
+  bottom: 4.5%;
+  left: 50%;
+  z-index: 3;
+  transform: translateX(-50%) skewX(var(--slash));
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #f2f5ff;
+  background: rgba(4, 6, 14, 0.8);
+  border: 1px solid rgba(160, 190, 255, 0.4);
+  border-left: 4px solid var(--accent);
+  padding: 8px 26px 7px;
+}
+
+/* The slam: odd panels arrive from the left, even from the right, each a beat
+   after the one before; the VS mark stamps down over them; the plates and
+   stage plaque settle last. All of it dies to 1ms under reduced motion. */
+.intro-overlay.is-entering .intro-panel {
+  animation: introPanelIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+.intro-overlay.is-entering .intro-panel:nth-child(even) { animation-name: introPanelInRight; }
+
+@keyframes introPanelIn {
+  from { transform: var(--skew) translateX(-80vw); }
+  to { transform: var(--skew); }
+}
+
+@keyframes introPanelInRight {
+  from { transform: var(--skew) translateX(80vw); }
+  to { transform: var(--skew); }
+}
+
+.intro-overlay.is-entering .intro-vs {
+  animation: introVsIn 0.46s cubic-bezier(0.2, 1.3, 0.3, 1) 0.2s both;
+}
+
+@keyframes introVsIn {
+  from { opacity: 0; transform: translate(-50%, -54%) skewX(var(--slash)) scale(2.4); }
+  to { opacity: 1; transform: translate(-50%, -54%) skewX(var(--slash)) scale(1); }
+}
+
+.intro-overlay.is-entering .intro-plate { animation: overlayContentIn 0.3s ease-out 0.3s both; }
+.intro-overlay.is-entering .intro-stage { animation: overlayContentIn 0.3s ease-out 0.36s both; }
+
+.intro-overlay.is-leaving { animation: introOut 0.28s ease-in both; }
+
+@keyframes introOut {
+  from { opacity: 1; }
+  to { opacity: 0; transform: scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-overlay.is-entering .intro-panel,
+  .intro-overlay.is-entering .intro-vs,
+  .intro-overlay.is-entering .intro-plate,
+  .intro-overlay.is-entering .intro-stage,
+  .intro-overlay.is-leaving { animation-duration: 1ms; animation-delay: 0ms; }
 }
 
 /* ---------- Interruptions ---------- */
