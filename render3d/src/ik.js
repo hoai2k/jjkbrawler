@@ -750,24 +750,23 @@ export function applyIdleStand(THREE, root3d, deg, tmp) {
  * knee closer to its neighbour; only a rotation about the fore-aft axis does
  * that, and that is what this is now.
  *
- * THE WHOLE LEG SWINGS, rigidly — thigh, shin and foot together — so the leg
- * stays as straight or as bent as the pose made it and simply leans. The knee
- * and the ankle both come in, which is what the correction is for: a bow leg
- * is not fixed by moving the knee alone, which would just replace it with a
- * knock knee.
+ * IT PIVOTS AT THE KNEE, which is the whole difference between this and the
+ * stance. The version before this one turned the THIGH, and turning a thigh
+ * moves everything hanging off it: the knee travelled, the ankle travelled,
+ * and the fighter simply stood narrower — which is `stanceDeg` with a second
+ * name on it. Hinging the SHIN instead leaves the hips and the knees exactly
+ * where the pose put them and swings only what is below them, so the bow comes
+ * out of the leg rather than the width coming out of the stance.
  *
- * THE FOOT KEEPS ITS ANGLE TO THE GROUND. Leaning a leg tips the sole onto its
- * edge by exactly the lean, so each foot is re-levelled afterwards — pitch and
- * roll only. Yaw is left alone, because which way a fighter's toes point is a
- * pose and this is not the dial for it.
+ * WHICH BONE. `${side}Leg`, whose head IS the knee joint in this skeleton —
+ * `UpLeg` is the thigh and `Leg` the shin, so "the knee" as a thing to rotate
+ * is the shin bone. Worth saying out loud because the name reads like the
+ * whole limb and the last two attempts both grabbed the wrong end of it.
  *
- * NOT THE SAME THING AS `stanceDeg`, though they move the same joint about the
- * same axis, and the difference is the whole reason both exist. Stance is a
- * fact about the CHARACTER — how wide this fighter plants their feet — so it
- * belongs to the idle and is rebuilt from scratch there by aiming both leg
- * bones down one line. This is a fact about the MODEL, so it composes on top of
- * whatever any state's pose already did and holds through the crouch, the run
- * and the kick.
+ * THE FOOT KEEPS ITS ANGLE TO THE GROUND. Swinging a shin tips the sole onto
+ * its edge by exactly the swing, so each foot is re-levelled afterwards —
+ * pitch and roll only. Yaw is left alone, because which way a fighter's toes
+ * point is a pose and this is not the dial for it.
  */
 export function applyKneeTurn(THREE, root3d, deg, tmp) {
   if (!deg) return false;
@@ -784,17 +783,19 @@ export function applyKneeTurn(THREE, root3d, deg, tmp) {
   lateral.y = 0;
   if (lateral.lengthSq() < 1e-8) return false;
   lateral.normalize();
-  // forward = up x lateral. Turning a leg about it swings the foot along the
+  // forward = up x lateral. Turning a shin about it swings the foot along the
   // width line, which is the whole point.
   const axis = tmp.v6.set(-lateral.z, 0, lateral.x).normalize();
   const rad = (deg * Math.PI) / 180;
   let turned = 0;
   for (const side of ["Left", "Right"]) {
-    const up = root3d.getObjectByName(`${side}UpLeg`);
-    if (!up) continue;
+    // The SHIN, not the thigh: the knee is this bone's head, so rotating it
+    // pivots there and leaves the thigh alone.
+    const shin = root3d.getObjectByName(`${side}Leg`);
+    if (!shin) continue;
     // Mirrored, so one number closes both legs by the same amount rather than
     // walking the fighter sideways.
-    rotateBoneAboutWorldAxis(THREE, up, axis, (side === "Left" ? -1 : 1) * rad, tmp);
+    rotateBoneAboutWorldAxis(THREE, shin, axis, (side === "Left" ? -1 : 1) * rad, tmp);
     root3d.updateMatrixWorld(true);
     const foot = root3d.getObjectByName(`${side}Foot`);
     if (foot) levelSole(THREE, foot, tmp);
