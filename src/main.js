@@ -17,7 +17,7 @@ import { TEXT } from "./config_menus.js";
 import { initStageFx } from "./stage_fx.js";
 import { RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { makeAiState, aiInput, cpuDamageMul } from "./ai.js";
-import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, showBattleIntro, leaveTitle, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady, setPauseNotice, reportError, resetHudCache } from "./ui.js";
+import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, showBattleIntro, fadeBattleIntro, hideBattleIntro, leaveTitle, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady, setPauseNotice, reportError, resetHudCache } from "./ui.js";
 import { FIXED_DT, MAX_FIXED_STEPS, WORLD, SUDDEN_DEATH_DAMAGE } from "./constants.js";
 import { clamp } from "./utils.js";
 
@@ -28,6 +28,26 @@ let previousTime = 0;
 let accumulator = 0;
 let introT = 0;
 let endT = 0;
+
+// The pre-match schedule, in seconds. One place rather than three numbers in
+// two files that have to be kept in step by hand: `introT` counts DOWN from
+// the total, so the splash owns the first stretch and each banner fires as the
+// countdown crosses its own mark on the way to zero.
+//
+//   t=0 ..... the VS splash slams in and holds
+//   ......... the splash begins its fade (INTRO_FADE)
+//   t=SPLASH  the splash is gone and READY… lands on that same frame
+//   ......... GO!  (INTRO_GO before the end)
+//   t=total   fighters unfreeze
+//
+// The splash is faded and dropped from HERE rather than timing itself, so the
+// two are one clock: `introT` accumulates the fixed step, which stays accurate
+// through the frame hitches a match start is full of, where two setTimeouts
+// simply do not.
+const INTRO_SPLASH = 2.0;    // how long the splash dwells before handing over
+const INTRO_READY = 1.6;     // countdown left when it does — READY…'s cue
+const INTRO_FADE = INTRO_READY + 0.28;  // its exit fade starts a beat earlier
+const INTRO_GO = 0.6;        // …and when GO! takes over from READY…
 
 function resizeCanvas() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -177,10 +197,9 @@ async function resetMatch() {
   // After the arrays are cleared, so the fx entity survives the reset.
   initStageFx();
 
-  // The countdown budget: the VS splash owns the first stretch, then READY…
-  // fires as it leaves (the crossing check in update()) and GO! at 0.6 as
-  // always. The splash duration and these numbers are one schedule.
-  introT = 3.0;
+  // The countdown budget: the splash's dwell plus the READY…GO! that follows
+  // it (see the schedule at the top of this file).
+  introT = INTRO_SPLASH + INTRO_READY;
   endT = 0;
   // Music, and the screens that can be opened from inside a fight, both key off
   // this: while it is set, Settings and the move list hold the battle track
@@ -188,7 +207,7 @@ async function resetMatch() {
   setMatchLive(true);
   playSfx("uiStart");
   setPhase("playing");
-  showBattleIntro(1.4);
+  showBattleIntro();
 }
 
 function quitToMenu() {
@@ -336,15 +355,18 @@ function updateSimulation(dt, held) {
   if (introT > 0) {
     const before = introT;
     introT -= dt;
-    // READY… waits for the VS splash to leave (showBattleIntro runs 1.4s from
-    // introT=3.0, so 1.6 is the first clear frame), then dies exactly as GO!
-    // arrives — the same relay the pre-splash intro ran from t=0.
-    if (before > 1.6 && introT <= 1.6) {
-      banner("READY…", "#e8ecf8", { y: 300, size: 60, life: 1.0 });
+    // The splash's exit, driven by this countdown rather than by its own
+    // timers: it starts fading here…
+    if (before > INTRO_FADE && introT <= INTRO_FADE) fadeBattleIntro();
+    // …and is gone on the very frame READY… lands, which is what makes the
+    // hand-over read as one move instead of two things that nearly agree.
+    if (before > INTRO_READY && introT <= INTRO_READY) {
+      hideBattleIntro();
+      banner("READY…", "#e8ecf8", { y: 300, size: 60, life: INTRO_READY - INTRO_GO });
       playSfx("countdownReady");
     }
-    if (before > 0.6 && introT <= 0.6) {
-      banner("GO!", "#ffd35a", { y: 300, size: 72, life: 0.6 });
+    if (before > INTRO_GO && introT <= INTRO_GO) {
+      banner("GO!", "#ffd35a", { y: 300, size: 72, life: INTRO_GO });
       playSfx("countdownGo");
     }
     // fighters frozen during countdown
