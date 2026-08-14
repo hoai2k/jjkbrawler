@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Audio Workbench — JJK Brawler II</title>
+    <link rel="icon" href="../favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+    <link rel="stylesheet" href="workbench.css">
+  </head>
+  <body>
+    <header class="bar">
+      <strong>Audio Workbench</strong>
+      <span class="hint">Plays through the game's own mixer — the level you hear is the level in a match.</span>
+      <nav class="modes">
+        <a href="../sprites/workbench/">Sprites →</a>
+        <a href="../billboards/workbench/">Billboards →</a>
+        <a href="../render3d/workbench/">3D →</a>
+      </nav>
+      <span id="loadState" class="loading">loading…</span>
+    </header>
+
+    <main class="layout">
+      <!-- Who has anything to say. Built from the game's own call tables, so a
+           fighter given a line tomorrow appears here with no edit to this page. -->
+      <aside class="col cast">
+        <h2>Voices</h2>
+        <p class="sub" id="castSummary">—</p>
+        <ul id="castList" class="cast-list"></ul>
+      </aside>
+
+      <section class="col stage-col">
+        <div class="stage-wrap">
+          <canvas id="stage" width="360" height="420"></canvas>
+        </div>
+        <div class="who">
+          <h2 id="charName">Pick a fighter</h2>
+          <p class="sub" id="charSub">Everyone here has at least one spoken line.</p>
+        </div>
+      </section>
+
+      <section class="col tracks-col">
+        <h2>Voice tracks</h2>
+        <p class="sub" id="trackSummary">—</p>
+        <div id="trackList" class="tracks"></div>
+        <p class="legend">
+          <b>Fires</b> is when the move lands, measured from the first frame of
+          the line. <b>Interruptible</b> is how long an opponent can still knock
+          the move out of them — after that the move is committed. Both come
+          from <code>SPOKEN_TIMING</code> in <code>src/config_audio.js</code>,
+          never from the audio itself, so they are the same with the sound off.
+        </p>
+      </section>
+    </main>
+
+    <script type="module" src="audio.js"></script>
+  </body>
+</html>

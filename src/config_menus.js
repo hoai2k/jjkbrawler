@@ -359,6 +359,7 @@ export const TEXT = {
     timeOff: "None",
     activeBoards: (on) => `Active Boards: ${on ? "On" : "Off"}`,
     sfxEnabled: (on) => `Sound Effects: ${on ? "On" : "Off"}`,
+    render: (mode) => `Render: ${mode}`,
     back: "Back",
   },
 

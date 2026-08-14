@@ -16,6 +16,14 @@ import {
 import { CHARACTERS } from "./characters.js";
 import { state } from "./state.js";
 
+// Asset URLs are resolved against THIS MODULE rather than the document, the
+// same rule (and for the same reason) as src/assets.js: a page served from a
+// subdirectory — the audio workbench at /workbench/, say — must fetch the files
+// the GAME uses rather than look for them beside itself. Document-relative
+// paths worked only because every page that made a sound happened to be the
+// one at the root, which is a coincidence rather than a design.
+const ASSET_BASE = new URL("../", import.meta.url);
+
 // Resolve a name through the alias table, so pre-round-8 call sites keep
 // working while they are migrated.
 function entryFor(name) {
@@ -27,7 +35,7 @@ function entryFor(name) {
 function srcFor(entry) {
   const f = entry.file;
   const file = Array.isArray(f) ? f[Math.floor(Math.random() * f.length)] : f;
-  return SFX_DIR + file;
+  return new URL(SFX_DIR + file, ASSET_BASE).href;
 }
 
 // Category trim x per-sound trim x the SFX slider x the master ceiling.
@@ -38,7 +46,9 @@ function gainFor(entry, intensity) {
 
 // Every fighter on the roster maps to a voice group. Before the round-8 sound
 // pass nine of them mapped to nothing and were silent when they attacked.
-const GRUNT_GROUPS = {
+// Exported for the audio workbench (/workbench/?edit=audio), which shows a
+// fighter's whole voice — their grunt trio and KO cry as well as their lines.
+export const GRUNT_GROUPS = {
   gojo: "gruntYoungMale", yuji: "gruntYoungMale", megumi: "gruntYoungMale",
   yuta: "gruntYoungMale", inumaki: "gruntYoungMale",
   nanami: "gruntAdultMale", toji: "gruntAdultMale", geto: "gruntAdultMale",
@@ -59,7 +69,7 @@ const GRUNT_GROUPS = {
 };
 
 // The KO cry that matches each voice group.
-const KO_FOR_GROUP = {
+export const KO_FOR_GROUP = {
   gruntYoungMale: "koYoungMale", gruntAdultMale: "koAdultMale",
   gruntBig: "koBig", gruntFemale: "koFemale",
   gruntMonster: "koMonster", gruntAnimal: "koAnimal",
@@ -76,7 +86,7 @@ export const audioSettings = {
 };
 
 // Filenames carry spaces, so every src is encoded before it reaches the element.
-const trackUrl = (dir, file) => encodeURI(`${dir}${file}${MUSIC_EXT}`);
+const trackUrl = (dir, file) => new URL(encodeURI(`${dir}${file}${MUSIC_EXT}`), ASSET_BASE).href;
 const MENU_SRC = trackUrl(MUSIC_DIR, MENU_TRACK.file);
 // The title screen's own track. A battle track, played at battle volume — see
 // TITLE_TRACK in config_music.js for why it is not simply the menu track.

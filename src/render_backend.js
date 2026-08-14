@@ -140,6 +140,38 @@ export function selectRenderBackend(name) {
   return activeName;
 }
 
+// What the Settings screen offers, in the order it cycles through them. The
+// registry keys above are what `?render=` takes; these short names are what a
+// player reads, and the order puts the default first so one press off it and
+// one press back is the round trip.
+//
+// Deliberately a separate list rather than `Object.keys(BACKENDS)`: a backend
+// can exist and be reachable by URL without being something to offer in a menu,
+// and the labels here are menu-length rather than descriptive.
+export const RENDER_OPTIONS = [
+  { name: "sprite", label: "Sprites" },
+  { name: "3d", label: "3D" },
+  { name: "billboard", label: "Billboards" },
+];
+
+/** The menu name of the backend in force — "Sprites" unless someone changed it. */
+export function renderBackendMenuLabel() {
+  return RENDER_OPTIONS.find((o) => o.name === activeName)?.label || activeName;
+}
+
+/** Advance to the next backend and switch to it, returning its menu label.
+ *
+ *  Takes effect immediately, mid-match and all: unlike the stock count or the
+ *  clock, this changes nothing about the fight, only how the fighters in it are
+ *  drawn. Any loading the new backend needs starts here and the characters
+ *  whose rigs have not arrived keep drawing as sprites meanwhile, which is the
+ *  per-character fallthrough working rather than a stall. */
+export function cycleRenderBackend() {
+  const i = RENDER_OPTIONS.findIndex((o) => o.name === activeName);
+  selectRenderBackend(RENDER_OPTIONS[(i + 1) % RENDER_OPTIONS.length].name);
+  return renderBackendMenuLabel();
+}
+
 /** Which backend is drawing, for the boot log and debug overlays. */
 export function renderBackendName() {
   return activeName;

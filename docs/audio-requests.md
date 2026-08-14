@@ -127,6 +127,24 @@ knowing before reading it as an open request.
 3. Register the key in `src/config_audio.js` with its category, and call it with
    `playSfx("key")` — or, for a held sound, `startLoop` in `src/audio.js`.
 
+## Hearing what you have
+
+**[`/workbench/?edit=audio`](../workbench/)** plays every spoken line in the
+game, next to the fighter who says it. Pick a fighter from the cast list — built
+from `DOMAIN_CALL` and `MOVE_CALL`, so it is exactly the set of people with
+something to say — and each of their tracks lists the move it belongs to, its
+length, when the move fires and how long it stays interruptible.
+
+It plays through **the game's own mixer**, so the loudness is the loudness in a
+match: category trim and per-sound gain applied, not the raw file. Starting a
+second track cuts the first the way a hit does, which is also the only
+convenient way to hear what an interrupted line sounds like.
+
+This is the answer to the one thing neither `generate_voice.py` nor
+`check_voice.mjs` can tell you: **whether the take is any good.** They can
+confirm a line exists, is registered, is reachable and is the right length. Only
+listening tells you whether Jogo sounds volcanic.
+
 ## Adding a spoken line
 
 Same shape, one extra field, a different tool. An entry that names a cast voice
