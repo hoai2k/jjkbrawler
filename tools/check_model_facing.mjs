@@ -48,6 +48,7 @@
 //   node tools/check_model_facing.mjs --out dir  # ...and write the masks
 
 import { chromium } from "playwright";
+import { pressStart } from "./smoke_boot.mjs";
 import { mkdirSync, writeFileSync } from "node:fs";
 
 const args = process.argv.slice(2);
@@ -94,6 +95,7 @@ const page = await browser.newPage();
 page.on("pageerror", (e) => console.log(`  page error: ${String(e).slice(0, 160)}`));
 
 await page.goto(`${BASE}/index.html?render=3d&mannequin=none&camera=flat`);
+await pressStart(page);
 await page.waitForFunction(
   async () => (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
 await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 90000 });

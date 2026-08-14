@@ -24,6 +24,7 @@
 // served first:  node server.mjs   then:  node tools/smoke_billboard.mjs [baseUrl]
 
 import { chromium } from "playwright";
+import { pressStart } from "./smoke_boot.mjs";
 import { execFileSync } from "child_process";
 import { readFileSync, writeFileSync, rmSync } from "fs";
 import { join, dirname } from "path";
@@ -62,8 +63,7 @@ const browser = await chromium.launch({
 
 async function bootAndFight(page, url) {
   await page.goto(url);
-  await page.waitForFunction(async () =>
-    (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
+  await pressStart(page);
   await page.waitForFunction(() => window.__billboards?.ready === true, { timeout: 30000 });
   await page.click('[data-character="gojo"]');
   await page.waitForTimeout(300);
@@ -164,6 +164,7 @@ try {
   page.on("pageerror", (e) => errors.push(String(e)));
 
   await page.goto(`${BASE}/index.html?render=billboard&camera=flat`);
+  await pressStart(page);
   await page.waitForFunction(async () =>
     (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
   await page.waitForFunction(() => window.__billboards?.ready === true, { timeout: 30000 });
@@ -220,6 +221,7 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.goto(`${BASE}/index.html?camera=flat`);
+  await pressStart(page);
 
   const r = await page.evaluate(async () => {
     const THREE = await import("/vendor/three/three.module.js");

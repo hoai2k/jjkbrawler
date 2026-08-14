@@ -115,7 +115,7 @@ export const IDLE_ARM_DEG = 9;
 // ------------------------------------------------------------ posing proper
 
 let THREE = null;
-let _q1, _q2, _q3, _v1, _v2, _v3, _v4, _e1;
+let _q1, _q2, _q3, _v1, _v2, _v3, _v4, _v5, _e1;
 let _ik = null, _reachTarget = null, _lateral = null;
 
 export function initPose(three) {
@@ -132,6 +132,7 @@ export function initPose(three) {
   _v2 = new THREE.Vector3();
   _v3 = new THREE.Vector3();
   _v4 = new THREE.Vector3();
+  _v5 = new THREE.Vector3();
 }
 
 /**
@@ -360,7 +361,9 @@ function standOnGround(rig, animKey) {
     const b = root.getObjectByName(name);
     if (b) bones.set(name, b);
   }
-  const drop = groundOffset(THREE, bones);
+  // Measured in the ROOT's frame: `node.position.y` is local to the root, and
+  // so is the floor the fighter stands on. See groundOffset.
+  const drop = groundOffset(THREE, bones, { root });
   // A hard clamp, because this is a correction and not a lift: a pose that
   // wants the body a metre lower than its bind is a broken pose, and hoisting
   // a fighter UP to meet a stray foot would be worse than leaving them be.
@@ -380,8 +383,14 @@ function plantFeet(root, animKey) {
     if (!up || !lo || !foot) continue;
     root.updateMatrixWorld(true);
     foot.getWorldPosition(_v1);
-    if (_v1.y >= -0.005) continue;
-    const target = _v2.set(_v1.x, 0, _v1.z);
+    // The ground line is y = 0 of the FIGHTER'S frame, not of the world — the
+    // two coincide only while the rig stands at the origin (the offscreen
+    // blit). In `?camera=3d` the root is at the platform's height, and reading
+    // world y there planted every fighter on the main stage's floor plane.
+    root.worldToLocal(_v5.copy(_v1));
+    if (_v5.y >= -0.005) continue;
+    _v5.y = 0;
+    const target = _v2.copy(root.localToWorld(_v5));
     for (let iter = 0; iter < 3; iter++) {
       for (const bone of [lo, up]) {
         bone.getWorldPosition(_v3);

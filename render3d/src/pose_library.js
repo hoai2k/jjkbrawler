@@ -180,17 +180,29 @@ export function bakeLocalEulers(THREE, bones) {
  * off an outer node parked at the world origin, so the lowest bone is that
  * node and the fighter never moves; and once that is fixed, an overhand whose
  * fist goes below the feet is planted ON ITS FIST, which is a handstand.
+ *
+ * `root` is THE FIGHTER'S OWN FRAME, and the answer is measured in it. The
+ * floor is y = 0 of that frame — never world y = 0. Those are the same line
+ * only while the rig stands at the origin, which is true for the offscreen
+ * blit and false the moment a real scene puts the fighter on a platform: in
+ * `?camera=3d` the root sits at the platform's height, so a world-space
+ * reading made every fighter above the main stage look metres in the air,
+ * and this correction hauled them down by its own clamp — the feet-through-
+ * the-floor bug on every raised platform. Passing no root keeps the old
+ * world-space reading, which is what the origin-parked callers want.
  */
-export function groundOffset(THREE, bones, { prone = false } = {}) {
+export function groundOffset(THREE, bones, { prone = false, root = null } = {}) {
   const support = prone
     ? [...Object.values(BONE_TIP), "Spine2", "Head"]
     : ["LeftFoot", "RightFoot", "LeftToeBase", "RightToeBase"];
+  const v = new THREE.Vector3();
   let low = Infinity;
   for (const name of support) {
     const bone = bones.get(name);
     if (!bone) continue;
-    const y = new THREE.Vector3().setFromMatrixPosition(bone.matrixWorld).y;
-    if (y < low) low = y;
+    v.setFromMatrixPosition(bone.matrixWorld);
+    if (root) root.worldToLocal(v);
+    if (v.y < low) low = v.y;
   }
   return Number.isFinite(low) ? -low : 0;
 }

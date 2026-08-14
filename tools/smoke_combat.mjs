@@ -11,6 +11,7 @@
 // CHROMIUM_PATH if yours is elsewhere. Start the game first (node server.mjs),
 // then: node tools/smoke_combat.mjs [baseUrl]
 import { chromium } from "playwright";
+import { pressStart } from "./smoke_boot.mjs";
 
 const BASE = process.argv[2] || "http://127.0.0.1:5174";
 const SECONDS = 40;
@@ -50,6 +51,7 @@ page.on("response", (r) => {
 });
 
 await page.goto(`${BASE}/index.html?camera=flat`, { waitUntil: "load" });
+await pressStart(page);
 
 // Through the menus the way a player would — the match entry is not exported,
 // and going round it would smoke-test something the game does not do.

@@ -36,6 +36,7 @@
 // Their product is maximised. Reported for every candidate so a close call is
 // visible rather than silently resolved.
 import { chromium } from "playwright";
+import { pressStart } from "./smoke_boot.mjs";
 import { readFileSync, writeFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -60,6 +61,7 @@ const browser = await chromium.launch({
 const page = await browser.newPage();
 page.on("pageerror", (e) => console.log("PAGEERROR", String(e).slice(0, 200)));
 await page.goto(`${BASE}/index.html?render=3d&camera=flat`, { waitUntil: "load" });
+await pressStart(page);
 await page.waitForFunction(async () =>
   (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
 await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 60000 });
