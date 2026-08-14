@@ -91,6 +91,51 @@ await page.goto(`${BASE}/workbench/`, { waitUntil: "domcontentloaded" });
 await page.waitForTimeout(150);
 ok(new URL(page.url()).pathname === "/workbench/", "/workbench/ with no query is the audio bench");
 
+// ---- the deploy stamp, on every bench
+//
+// It exists to answer "is this my change?", so a bench that quietly lost the
+// script tag would leave that question unanswerable exactly when it is asked.
+// The dev server has no version.json — that reading is the local one, and it
+// has to say so rather than going blank, or a missing stamp and a working one
+// look the same.
+for (const [path, name] of [
+  ["/workbench/?edit=audio", "audio"],
+  ["/sprites/workbench/", "sprites"],
+  ["/billboards/workbench/", "billboards"],
+  ["/render3d/workbench/", "3d"],
+]) {
+  await page.goto(BASE + path, { waitUntil: "load" });
+  await page.waitForTimeout(1200);
+  const s = await page.evaluate(() => {
+    const el = document.querySelector(".deploy-stamp");
+    return el && { text: el.textContent, href: el.getAttribute("href"), inBar: !!el.closest(".bar") };
+  });
+  ok(!!s && s.inBar && /local/.test(s.text) && /actions/.test(s.href),
+     `${name} bench carries the deploy stamp`, s ? `“${s.text}”` : "(no stamp)");
+}
+
+// With a stamp published it reports the commit, its age and its run.
+await page.route("**/version.json*", (route) => route.fulfill({
+  contentType: "application/json",
+  body: JSON.stringify({
+    sha: "0123456789abcdef", short: "0123456", ref: "main", title: "Test",
+    deployed: new Date(Date.now() - 3e5).toISOString(),
+    run: "https://github.com/hoai2k/jjkbrawler/actions/runs/1", runNumber: 1,
+  }),
+}));
+await page.goto(`${BASE}/workbench/?edit=audio`, { waitUntil: "load" });
+await page.waitForTimeout(1500);
+{
+  const s = await page.evaluate(() => {
+    const el = document.querySelector(".deploy-stamp");
+    return { text: el.textContent, href: el.getAttribute("href"), sha: el.dataset.sha };
+  });
+  ok(/deployed 0123456/.test(s.text) && /min ago/.test(s.text) && /actions\/runs\/1$/.test(s.href)
+     && s.sha === "0123456789abcdef",
+     "a published stamp names the commit, its age and its run", `“${s.text}” → ${s.href}`);
+}
+await page.unroute("**/version.json*");
+
 await browser.close();
 console.log(failed ? `\n${failed} route(s) wrong` : "\nevery workbench shortcut lands where it says");
 process.exit(failed ? 1 : 0);

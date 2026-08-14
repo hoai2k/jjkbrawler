@@ -386,3 +386,19 @@ p.hint .dot {
   border-bottom: 1px solid #8d3641; font-size: 13.5px; line-height: 1.4;
 }
 #bootError[hidden] { display: none; }
+
+/* ------------------------------------------------------- the deploy stamp */
+/* Which commit is published, in the corner of every bench. Quiet by default —
+   it is reference, not a control — and it only earns attention when somebody
+   is asking "am I looking at my change?", which is when they go find it. */
+.deploy-stamp {
+  margin-left: auto;
+  color: #8b96b3;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  white-space: nowrap;
+  opacity: 0.75;
+}
+.deploy-stamp:hover { opacity: 1; color: #62dcff; }
+.deploy-stamp--local { color: #ffb95f; }
