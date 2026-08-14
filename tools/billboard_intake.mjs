@@ -316,6 +316,22 @@ function cmdApply(payloadPath) {
     // weapon. Re-import is what changes a height.
     const { heightM, ...review } = entry;
     man.characters[char] = { ...man.characters[char], ...review };
+    // A DIAL TURNED BACK TO ZERO IS A DECISION, and a spread merge cannot say
+    // it: the payload's per-character entry omits zero-valued keys, so "the
+    // reviewer set the shoulder offset back to 0" and "the reviewer never
+    // touched it" arrive identical, and the manifest quietly keeps the old
+    // number. Uro came back from a review with the offset cleared and kept
+    // 6.5cm of it.
+    //
+    // The payload's `sizes` block is the record of what the review actually
+    // dialled — every dial it owns, zeros included — so where it exists it is
+    // authoritative for those keys.
+    const dialled = payload.sizes?.[char];
+    if (dialled) {
+      for (const [key, value] of Object.entries(dialled)) {
+        if (Number.isFinite(value)) man.characters[char][key] = value;
+      }
+    }
   }
   writeManifest(man);
   console.log(`applied ${keys.length} character(s): ${keys.join(", ") || "none"}`);

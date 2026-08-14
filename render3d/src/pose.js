@@ -180,7 +180,7 @@ export function captureCleanPose(root, fromRoot = null) {
  *  skips writing a property whose value it believes it already wrote, so a
  *  bone reset behind its back would stay at bind — which is exactly how the
  *  second render of an unchanged frame came out T-posed. */
-function restoreClean(root) {
+export function restoreClean(root) {
   const held = CLEAN_POSE.get(root);
   if (!held) return; // never registered (a hand-built probe rig) — nothing to restore
   for (const [bone, q, p] of held) { bone.quaternion.copy(q); bone.position.copy(p); }
