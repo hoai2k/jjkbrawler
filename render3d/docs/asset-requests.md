@@ -136,6 +136,49 @@ yet"** drawn under the fighter's feet, so it travels into the line-up and the
 Idle Review where the panel is not on screen. Everything else — the default —
 gets the cautious answer.
 
+### The GLB correction layer — what is still owed to the models
+
+Every fighter is drawn with corrections applied on top of their delivered
+`.glb`: a head modelled looking down is tilted back, a model built facing the
+wrong way is yawed round, arm roots built into the body are pushed out. They
+are facts about the FILE — no clip can fix them, because every state inherits
+them — and they are dialled by eye in the Idle Review, which is the one pose
+with an obvious right answer.
+
+**They are meant to go away.** Each one is a modelling job on the `.glb`, after
+which its number is zeroed and nothing else changes. So the layer is written to
+be found and switched off in one piece:
+
+- `render3d/src/rig_fixes.js` holds the bake list. `MODEL_FIXES` says, per key,
+  where the number lives, what it means, and what baking it would be;
+  `MODEL_FIX_KEYS` is the set that counts as a model correction; `RIG_FIXES`
+  holds per-bone bind corrections; `setModelFixesEnabled(false)` turns the
+  whole layer off.
+- `render3d/src/pose.js` applies it in ONE delimited block, marked
+  `THE GLB CORRECTION LAYER — begin/end`, for every state.
+- `node tools/model_fixes.mjs` prints what each fighter still carries.
+
+`armDeg` and `stanceDeg` are deliberately not on the list. They say how a
+fighter carries their arms and plants their feet *at rest*, which is a pose and
+only means anything in the idle; baking them would freeze a fighter mid-idle in
+every other state. The test for belonging on the list is whether the correction
+is true of the body no matter what it is doing.
+
+**The test of a finished bake:** with a fighter's numbers in their model and
+zeroed in the manifest, `setModelFixesEnabled(false)` leaves them looking
+identical. If it does not, the bake was wrong or incomplete.
+
+This layer had exactly the bug the arrangement is meant to make impossible.
+`shoulderOutCm` was an argument to the idle-arm solver, so it existed only
+while a fighter stood still: Uro measured 37.6 cm across the shoulders in her
+idle and 24.9 cm mid-punch — a 12.7 cm snap, exactly twice her 6.5 cm
+correction, on the first frame of every attack (Maki 33.8 → 25.8, Yuji
+34.1 → 31.1; Hakari, who carries no correction, held at 40.4 throughout). The
+in-game instances never received it at all, because `acquireInstance` copied
+`headTiltDeg` and not the rest. `tools/smoke_pose_bench.mjs` guards both:
+the correction has to widen the shoulders by the same amount in the idle, a
+light, a heavy, a crouch and a run.
+
 ### Gakuganji cannot be given a two-handed idle by the grip solver
 
 He is drawn playing his guitar with both hands and the model carries it in one,

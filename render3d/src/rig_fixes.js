@@ -25,8 +25,81 @@
 // nothing else changes — which is the test of whether a correction really
 // belonged here rather than in a pose.
 
-/** Degrees → radians, the only maths this file needs. */
+/** Degrees → radians. */
 const DEG = Math.PI / 180;
+
+/**
+ * THE COMPLETE BAKE LIST — every correction the engine applies on top of a
+ * delivered .glb, in one place, so that "what has to go into the model" is a
+ * question with an answer rather than a search.
+ *
+ * Each entry says where the number lives, what it means, and what baking it
+ * would actually be. `tools/model_fixes.mjs` prints the roster against this.
+ */
+export const MODEL_FIXES = {
+  yawOffsetDeg: {
+    where: "manifest",
+    means: "the model was built facing somewhere other than +Z",
+    bake: "rotate the whole rig about Y by -yawOffsetDeg and re-export",
+  },
+  headTiltDeg: {
+    where: "manifest",
+    means: "the head was modelled looking down; the tilt is in the MESH, not the joints",
+    bake: "rotate the head mesh about the Head joint's lateral axis by -headTiltDeg",
+  },
+  shoulderOutCm: {
+    where: "manifest",
+    means: "the arm roots were built too far into the body",
+    bake: "move the Left/RightArm joints (and their skin) out along the shoulder line",
+  },
+  renderScale: {
+    where: "manifest",
+    means: "the model measures a different height than the fighter is drawn at",
+    bake: "scale the rig uniformly by renderScale and re-measure heightM",
+  },
+  bones: {
+    where: "RIG_FIXES, below",
+    means: "a joint was built rotated — a rolled clavicle, a cocked wrist",
+    bake: "rotate the joint in the bind pose and re-skin",
+  },
+};
+
+/** The manifest keys that are MODEL corrections rather than pose choices.
+ *
+ *  `armDeg` and `stanceDeg` are deliberately NOT here. They say how a fighter
+ *  carries their arms and plants their feet AT REST, which is a pose and only
+ *  means anything in the idle — baking them would freeze a fighter mid-idle in
+ *  every other state. Everything listed here is true of the body no matter
+ *  what it is doing, which is exactly the test for belonging on this list. */
+export const MODEL_FIX_KEYS = ["yawOffsetDeg", "headTiltDeg", "shoulderOutCm", "renderScale"];
+
+/**
+ * The whole layer, on or off.
+ *
+ * OFF IS THE POINT OF BAKING. Once a fighter's corrections are in their .glb,
+ * turning this off must change nothing about how they look — and if it does,
+ * the bake was wrong or incomplete. So it is a switch rather than a set of
+ * deletions: you flip it, compare, and only then delete the numbers.
+ */
+let ENABLED = true;
+export function setModelFixesEnabled(on) { ENABLED = on !== false; }
+export function modelFixesEnabled() { return ENABLED; }
+
+/** What is pending for one fighter, given their manifest entry: the bake list,
+ *  narrowed to the corrections they actually carry. */
+export function pendingFixes(charKey, entry = null) {
+  const out = {};
+  for (const key of MODEL_FIX_KEYS) {
+    const v = entry?.[key];
+    if (v === undefined || v === null) continue;
+    if (key === "renderScale" && Math.abs(v - 1) < 1e-6) continue;
+    if (key !== "renderScale" && !v) continue;
+    out[key] = v;
+  }
+  const bones = RIG_FIXES[charKey];
+  if (bones && Object.keys(bones).length) out.bones = bones;
+  return out;
+}
 
 /**
  * Per character, per bone, a rotation in the BONE'S OWN frame, in degrees.
