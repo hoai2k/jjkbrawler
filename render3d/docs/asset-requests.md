@@ -157,6 +157,38 @@ be found and switched off in one piece:
 - `render3d/src/pose.js` applies it in ONE delimited block, marked
   `THE GLB CORRECTION LAYER — begin/end`, for every state.
 - `node tools/model_fixes.mjs` prints what each fighter still carries.
+- The pose workbench's **rig-check poses** show it on the body — see below.
+
+### T-pose and A-pose: judging the rig instead of the pose
+
+At the top of the pose workbench's pose list, above every drawing, sit
+**T-pose** and **A-pose** (`?rigcheck=T` / `?rigcheck=A`, `[` and `]` step
+onto them). They are not poses of the character and there is no sprite to
+match them against. They are poses of the SKELETON: the bind pose out of the
+`.glb`, legs straight, soles level, arms taken out to 90° or 45° from the
+body's own width axis.
+
+That is where a rig gives itself away. A bone rolled the wrong way, an arm
+root built inside the chest, one shoulder higher than the other, a foot that
+is really a lump — in a pose that came out of a clip, all of it reads as
+something the animation did. With every joint at a right angle to the next
+and a silhouette you already know, it reads as what it is. Jogo's arms come
+out visibly uneven; Hakari's 20° head correction is unmistakable.
+
+**And the corrections are listed beside the figure.** The body on screen is
+the `.glb` PLUS the correction layer, so the panel under the pose is exactly
+that difference: each outstanding key, its value, and what baking it would be.
+One pose answers "is this rig good" and "what is left in the pipeline" at the
+same time — which is the whole reason the list lives here rather than only in
+a tool nobody remembers to run.
+
+Implementation: `poseRigCheck` in `render3d/src/pose.js` (which throws the
+clip away and calls `applyBindPose` — `restoreClean` restores the pose the
+last CLIP left, which after one frame is not the bind), and `applyBindPose` in
+`render3d/src/ik.js`, which reads the skeleton's inverse-bind matrices because
+they are the only record of the rest pose. Positions as well as rotations: the
+shoulder correction is a translation, and a rotation-only restore would leave
+the previous pose's widening on the bone and double it.
 
 `armDeg` and `stanceDeg` are deliberately not on the list. They say how a
 fighter carries their arms and plants their feet *at rest*, which is a pose and

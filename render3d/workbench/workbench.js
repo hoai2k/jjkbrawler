@@ -47,7 +47,8 @@ import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimPitch, aimSolve
 import { artReach } from "../../src/silhouette.js";
 import * as rig from "../src/loader.js";
 import * as scene from "../src/scene.js";
-import { DIALS, initPose, LOOK_STATES, flinchSide, boneOwners, IDLE_ARM_DEG } from "../src/pose.js";
+import { DIALS, initPose, LOOK_STATES, flinchSide, boneOwners, IDLE_ARM_DEG, RIG_CHECK_POSES } from "../src/pose.js";
+import { MODEL_FIXES, pendingFixes } from "../src/rig_fixes.js";
 import { TOON, setToonFor, clearToonFor, PER_CHARACTER_SHADE } from "../src/toon.js";
 import { OUTLINE, setOutlineFor } from "../src/outline.js";
 import { blitPose } from "../src/blit.js";
@@ -82,6 +83,10 @@ const wb = {
   state: params.get("state") || "idle",
   /** The sprite pose being matched, in pose mode — a frame key. */
   pose: params.get("pose") || null,
+  /** A RIG CHECK instead of a drawing: "T", "A", or null for a real pose.
+   *  Not a state and not a sprite — the skeleton straightened out so the
+   *  rigging can be judged on its own (pose.js poseRigCheck). */
+  rigCheck: RIG_CHECK_POSES[params.get("rigcheck")] ? params.get("rigcheck") : null,
   t: 0,
   // Pose mode holds still by definition: the thing being matched is a single
   // drawing, and a body that keeps moving cannot be compared to one.
@@ -406,9 +411,31 @@ stateSel.value = clipNameFor(wb.state);
 const poseSel = $("poseSelect");
 let poseList = [];
 
+/** The rig-check entries, at the TOP of the pose list.
+ *
+ *  They are not drawings and there is no sprite to match them against, which
+ *  is the point: a T-pose is where a bad weight, a bone rolled the wrong way,
+ *  a shoulder built inside the chest or a foot that is really a lump has
+ *  nowhere to hide. In a pose that came out of a clip, all of that reads as
+ *  something the animation did. First in the list because it is the check you
+ *  want to have made BEFORE spending a session matching drawings. */
+const RIG_CHECKS = [
+  { value: "__rig:T", kind: "T", label: "T-pose  (arms level)" },
+  { value: "__rig:A", kind: "A", label: "A-pose  (arms at 45°)" },
+];
+
 function fillPoseSelect() {
   poseList = poseCatalogue(wb.char);
   poseSel.innerHTML = "";
+  const rigGroup = document.createElement("optgroup");
+  rigGroup.label = "rig check — no clip, no sprite";
+  for (const c of RIG_CHECKS) {
+    const o = document.createElement("option");
+    o.value = c.value;
+    o.textContent = c.label;
+    rigGroup.append(o);
+  }
+  poseSel.append(rigGroup);
   let group = null;
   for (const p of poseList) {
     if (!group || group.label !== p.state) {
@@ -424,13 +451,94 @@ function fillPoseSelect() {
     group.append(o);
   }
   if (!poseList.some((p) => p.frame === wb.pose)) wb.pose = poseList[0]?.frame || null;
-  if (wb.pose) poseSel.value = wb.pose;
+  if (wb.rigCheck) poseSel.value = `__rig:${wb.rigCheck}`;
+  else if (wb.pose) poseSel.value = wb.pose;
   refreshPoseMarks();
 }
 
 /** Put one drawing on screen: its state, its instant, and the editor key that
  *  IS it, so a drag lands on the pose being looked at. */
+/** Stand the model up for a rig check, and say what is still owed to its .glb.
+ *
+ *  The figure on screen is NOT the file: it is the file plus the correction
+ *  layer (pose.js applyModelFixes / rig_fixes.js), and the readout below it is
+ *  exactly that difference — the corrections the engine is still making every
+ *  frame because the model does not. Read together, the pair answers "is this
+ *  rig good" and "what is left in the pipeline" at the same time, which is why
+ *  the list belongs on this pose rather than in a tool nobody runs. */
+function showRigCheck(kind) {
+  wb.rigCheck = kind;
+  wb.playing = false;
+  wb.t = 0;
+  // Nominally an idle: the clip is thrown away (poseRigCheck), but the state
+  // still picks the camera framing and keeps the rest of the bench coherent.
+  wb.state = "idle";
+  stateSel.value = "idle";
+  poseSel.value = `__rig:${kind}`;
+  $("poseWhere").textContent =
+    `${kind}-pose · the skeleton at bind, arms at ${RIG_CHECK_POSES[kind]}°,`
+    + " no clip and no sprite to match";
+  const url = new URL(location);
+  url.searchParams.set("rigcheck", kind);
+  url.searchParams.delete("pose");
+  history.replaceState(null, "", url);
+  syncModeLinks();
+  syncPanel();
+  scene.clearCache();
+}
+
+/** The corrections this fighter's model still needs baked in, as lines of
+ *  text. Empty means the .glb is finally telling the truth about itself. */
+function pendingFixLines(charKey) {
+  const entry = rig.rigManifest().characters?.[charKey] || {};
+  const fixes = pendingFixes(charKey, entry);
+  const show = (k, v) => {
+    if (k === "bones") {
+      return Object.entries(v).map(([b, r]) => `${b} [${r.join(", ")}]`).join("; ");
+    }
+    if (k === "shoulderOutCm") return `${v} cm out`;
+    if (k === "renderScale") return `×${v}`;
+    return `${v}°`;
+  };
+  return Object.entries(fixes).map(([k, v]) => ({
+    key: k, value: show(k, v), bake: MODEL_FIXES[k]?.bake || "",
+  }));
+}
+
+function syncRigCheckPanel() {
+  const box = $("rigCheckOut");
+  if (!box) return;
+  box.hidden = !wb.rigCheck;
+  if (!wb.rigCheck) return;
+  const lines = pendingFixLines(wb.char);
+  box.innerHTML = "";
+  const head = document.createElement("div");
+  head.className = "hint";
+  head.textContent = lines.length
+    ? `${lines.length} correction(s) applied here that the .glb still owes:`
+    : "nothing outstanding — this model needs no corrections";
+  box.append(head);
+  for (const l of lines) {
+    const row = document.createElement("div");
+    row.className = "fixrow";
+    const k = document.createElement("b");
+    k.textContent = `${l.key} ${l.value}`;
+    const b = document.createElement("span");
+    b.textContent = l.bake;
+    row.append(k, b);
+    box.append(row);
+  }
+}
+
 function showPose(frame) {
+  const rc = RIG_CHECKS.find((c) => c.value === frame);
+  if (rc) return showRigCheck(rc.kind);
+  wb.rigCheck = null;
+  const url0 = new URL(location);
+  if (url0.searchParams.has("rigcheck")) {
+    url0.searchParams.delete("rigcheck");
+    history.replaceState(null, "", url0);
+  }
   const p = poseList.find((x) => x.frame === frame);
   if (!p) return;
   wb.pose = p.frame;
@@ -479,9 +587,13 @@ function refreshPoseMarks() {
 }
 
 function poseStep(step) {
-  const i = poseList.findIndex((p) => p.frame === wb.pose);
-  const next = poseList[(Math.max(0, i) + step + poseList.length) % poseList.length];
-  if (next) showPose(next.frame);
+  // The rig checks are part of the walk, in the order the list shows them —
+  // stepping off the first drawing lands on the A-pose, not on the last one.
+  const all = [...RIG_CHECKS.map((c) => c.value), ...poseList.map((p) => p.frame)];
+  const here = wb.rigCheck ? `__rig:${wb.rigCheck}` : wb.pose;
+  const i = all.indexOf(here);
+  const next = all[(Math.max(0, i) + step + all.length) % all.length];
+  if (next) showPose(next);
 }
 poseSel.onchange = () => showPose(poseSel.value);
 $("posePrev").onclick = () => poseStep(-1);
@@ -759,6 +871,7 @@ function syncPanel() {
     name.onclick = src.onclick = () => { stateSel.value = s; stateSel.onchange(); };
     table.append(name, src);
   }
+  syncRigCheckPanel();
 }
 
 fromSel.onchange = () => {
@@ -948,6 +1061,10 @@ function facingOpen() {
   facing.wasAim = wb.aimOn;
   facing.wasCompare = wb.compare;
   facing.wasPose = wb.pose;
+  // The review judges an IDLE against an idle sprite. A rig check left running
+  // would put a T-pose under that comparison, which is not the same question.
+  facing.wasRigCheck = wb.rigCheck;
+  wb.rigCheck = null;
   // Hold the idle still: a looping breath changes a figure's height by a few
   // pixels, which is enough to argue with while sizing.
   wb.playing = false;
@@ -969,9 +1086,10 @@ function facingClose() {
   wb.aimOn = facing.wasAim;
   wb.compare = facing.wasCompare;
   wb.pose = facing.wasPose;
+  wb.rigCheck = facing.wasRigCheck || null;
   $("compareMode").value = facing.wasCompare;
   fillPoseSelect();
-  if (MODE === "pose" && wb.pose) showPose(wb.pose);
+  if (MODE === "pose") showPose(wb.rigCheck ? `__rig:${wb.rigCheck}` : wb.pose);
   view.pivot.x = facing.wasCompare === "left" ? CX - COMPARE_DX / 2 : CX;
   view.setZoom(facing.wasZoom);
   view.panX = facing.wasPan.x;
@@ -1607,7 +1725,10 @@ async function draw() {
   const spriteX = beside ? CX - COMPARE_DX : CX;
   const spriteYields = (wb.mannequin || showAlt) && beside;
 
-  if (wb.compare !== "off" && !spriteYields) {
+  // NO REFERENCE DRAWING FOR A RIG CHECK. There is no sprite of anybody
+  // standing in a T-pose, so whatever the ghost drew would be a different pose
+  // presented as the thing to match — the one way this view can mislead.
+  if (wb.compare !== "off" && !spriteYields && !wb.rigCheck) {
     const frame = await ensureGhostFrame();
     drawCharFrame(ctx, wb.char, frame, spriteX, GROUND_Y, {
       scale: getActor(wb.char)?.scale, alpha: beside ? 1 : 0.35,
@@ -1645,6 +1766,9 @@ async function draw() {
     // would have overwritten, applied after it (pose.js).
     postEdits: editor.postEdits(clipTime(wb.state, wb.t)),
     editKey: editor.editKey(),
+    // A rig check replaces the pose entirely, clip and live layers alike —
+    // everything above is ignored while it is set (pose.js poseRigCheck).
+    rigCheck: wb.rigCheck,
   };
   lastLayers = layers;
   const r = bodyFor(wb.char);
@@ -1789,7 +1913,7 @@ charSel.onchange = async () => {
   if (wb.mannequin) syncBoneProxy();
   syncCompareWith();
   fillPoseSelect();
-  if (MODE === "pose" && wb.pose) showPose(wb.pose);
+  if (MODE === "pose") showPose(wb.rigCheck ? `__rig:${wb.rigCheck}` : wb.pose);
   // A different rig is a different skeleton: the joint list is rebuilt from
   // whatever bones this body actually has.
   editor.fillJoints();
@@ -1885,7 +2009,7 @@ if (MODE === "pose") view.setZoom(1.8);
 $("aimToggle").checked = wb.aimOn;
 syncModeLinks();
 fillPoseSelect();
-if (MODE === "pose" && wb.pose) showPose(wb.pose);
+if (MODE === "pose") showPose(wb.rigCheck ? `__rig:${wb.rigCheck}` : wb.pose);
 syncCompareWith();
 syncSizePanel();
 syncLookPanel();

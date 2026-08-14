@@ -348,8 +348,13 @@ export function poseToken(charKey, animKey, animTime, layers) {
   // The proof body is a different body: same character, same pose, different
   // pixels, so it cannot share a cache entry with the model.
   const mq = layers.mannequin ? "~M" : "";
+  // A rig check throws the clip away entirely (pose.js poseRigCheck), so the
+  // state and the clip time in this key describe a pose that is not on screen
+  // — without this every rig check would collide with the idle it was opened
+  // from, and with the other rig check.
+  const rc = layers.rigCheck ? `~C${layers.rigCheck}` : "";
   const orb = orbitKey();
-  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${rch}${par}${st}${ed}${mq}`
+  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${rch}${par}${st}${ed}${mq}${rc}`
     + `${orb ? `~o${orb}` : ""}~L${lightKey()}`;
 }
 
