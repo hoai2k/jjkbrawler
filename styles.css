@@ -2298,11 +2298,17 @@ html, body {
 .intro-overlay.is-entering .intro-plate { animation: overlayContentIn 0.3s ease-out 0.3s both; }
 .intro-overlay.is-entering .intro-stage { animation: overlayContentIn 0.3s ease-out 0.36s both; }
 
+/* Leaving. WHEN this starts is not decided here or by a timer: main.js fades
+   and then drops the splash off the match countdown itself (INTRO_FADE /
+   INTRO_READY), so the splash and the READY… it hands over to are driven by
+   one clock. They used to be separate setTimeouts, and a match start is
+   exactly when the main thread is busiest — on a real load the fade-start and
+   the hide landed 9ms apart, collapsing the fade into a cut. */
 .intro-overlay.is-leaving { animation: introOut 0.28s ease-in both; }
 
 @keyframes introOut {
   from { opacity: 1; }
-  to { opacity: 0; transform: scale(1.05); }
+  to { opacity: 0; transform: scale(1.04); }
 }
 
 @media (prefers-reduced-motion: reduce) {

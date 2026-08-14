@@ -1183,16 +1183,19 @@ export function reportError(what, err) {
 // ------------------------------------------------------- battle intro splash
 //
 // The VS splash: every entrant's painted hero card, huge, in angled panels
-// that slam in from the sides before the READY…GO! countdown. A cut-scene
-// beat rather than a menu — it takes no input and dismisses itself; main.js
-// budgets the countdown (introT) so gameplay starts after it has left.
-let introToken = 0;
+// that slam in from the sides before the READY…GO! countdown. A cut-scene beat
+// rather than a menu — it takes no input.
+//
+// It keeps no clock of its own. main.js fades it and drops it off the match
+// countdown (see the schedule there), so the splash leaving and the READY…
+// that replaces it are the same instant by construction rather than by two
+// timers agreeing — which, at the busiest moment on the main thread, they did
+// not: the fade and the hide once landed 9ms apart and the fade became a cut.
 
-export function showBattleIntro(duration = 1.4) {
+export function showBattleIntro() {
   const el = els.introOverlay;
   const fighters = state.fighters || [];
   if (!el || fighters.length < 2) return;
-  const token = ++introToken;
   const seat = (f) => f.aiState ? TEXT.intro.seatCpu : TEXT.intro.seatPlayer(f.id);
   el.innerHTML = `
     <div class="intro-splash" data-count="${fighters.length}">
@@ -1212,14 +1215,20 @@ export function showBattleIntro(duration = 1.4) {
   // Restart the entrance animations even if the overlay was just up (rematch).
   void el.offsetWidth;
   el.classList.add("is-entering");
-  setTimeout(() => { if (token === introToken) el.classList.add("is-leaving"); }, Math.max(0, duration - 0.28) * 1000);
-  setTimeout(() => { if (token === introToken) hideBattleIntro(); }, duration * 1000);
+}
+
+/** Start the splash's exit fade. Called by the match countdown a beat before
+ *  it drops the splash, so the two are the same clock — see the schedule at
+ *  the top of main.js. */
+export function fadeBattleIntro() {
+  const el = els.introOverlay;
+  if (!el || el.classList.contains("hidden")) return;
+  el.classList.add("is-leaving");
 }
 
 /** Drops the splash instantly. Also the guard setPhase runs on every change of
  *  screen, so pausing or quitting mid-intro can never leave it parked on top. */
 export function hideBattleIntro() {
-  introToken++;
   const el = els.introOverlay;
   if (!el || el.classList.contains("hidden")) return;
   el.classList.add("hidden");
