@@ -34,6 +34,7 @@ import { buildClipFromKeys } from "./clips.js";
 import { BATTLE_POSES } from "./battle_poses.js";
 import { baselinePose, intentFor } from "./baseline_poses.js";
 import { WALK_POSES, walkKeys } from "./walk_cycle.js";
+import { RUN_POSES, runKeys } from "./run_cycle.js";
 import {
   boneIndex, bindOf, applyLibraryPose, bakeLocalEulers,
 } from "./pose_library.js";
@@ -59,16 +60,22 @@ export const NOT_FROM_LIBRARY = new Set(["idle"]);
  * that fighter's drawings.
  *
  * The sheet is the right source for a state the artists drew, and the wrong
- * one for a walk: round 21 asks for two contacts, and a body scissoring between
- * two contacts with no passing position between them floats rather than walks.
- * A pose costs a drawing in 2D and eight joint angles here, so the phases a
- * sheet cannot afford are free — see walk_cycle.js.
+ * one for a gait. A walk sheet is two contacts, and a body scissoring between
+ * two contacts with no passing position between them floats rather than walks;
+ * a run sheet is four frames that are a reach and a pass, mirrored, with
+ * neither the strike nor the float between them. Both are good sprite cycles
+ * and both are half a cycle for a rig, because a sprite cuts between drawings
+ * and an interpolation shows every instant in between. A pose costs a drawing
+ * in 2D and eight joint angles here, so the phases a sheet cannot afford are
+ * free — see walk_cycle.js and run_cycle.js.
  *
  * Anything listed here ignores its sprite frames completely. That is a
- * deliberate divergence between the two renderers and should stay a short list.
+ * deliberate divergence between the two renderers and should stay a short list:
+ * the gaits earn it because they are cycles and a cycle needs its four phases.
  */
 const AUTHORED_CYCLES = {
   walk: { poses: WALK_POSES, keys: walkKeys },
+  run: { poses: RUN_POSES, keys: runKeys },
 };
 
 /** Matched first, baseline behind it. Never null: the baseline is total. */
