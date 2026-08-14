@@ -1089,7 +1089,7 @@ that was recorded, registered and silent.
 
 ---
 
-## Round 12 — alternate takes (14 files)
+## Round 12 — alternate takes (15 files)
 
 Delivered, and **deliberately not in play**. The request is above in
 [audio-requests.md](audio-requests.md) — it stays there rather than moving here
@@ -1098,8 +1098,13 @@ until somebody has listened and chosen. Delivered lengths: the two domain calls
 at 1.58 s (Gojo) and 2.59 s (Dagon, after the 0.86 resample), the twelve grunts
 between 0.54 s and 0.86 s.
 
-**Two levers were added to `tools/generate_voice.py` for it**, and both are
-worth knowing about before the next voice round:
+**Gojo has two alternates, and they ask different questions** — whether he
+should sound like he means it (*Commanding*) or like it costs him nothing
+(*Flat*). The first was judged too expressive, which turned out to be a note
+about the model's freedom rather than about the words.
+
+**Three levers were added to `tools/generate_voice.py` for it**, and all three
+are worth knowing about before the next voice round:
 
 - **`· pitch 0.86 ·`** resamples a take downward — lower and slower together.
   Deliberately not formant-preserving: dragging the formants down with the
@@ -1112,6 +1117,12 @@ worth knowing about before the next voice round:
   a one-syllable effort grunt has no mid-word to land in, and an effort grunt
   fired on every special that runs 2.7 s long is unusable however good the take
   is. Three of the twelve came back over two seconds before this existed.
+
+- **`· stability 1.0 ·`** overrides how far v3 may wander from a flat reading
+  (0.0 creative, 0.5 natural, 1.0 robust). The default is right for a
+  performance and wrong for a line that is meant to sound UNPERFORMED: somebody
+  talking to themselves puts the emphasis nowhere, and while the model is free
+  to act, no wording of the direction stops it acting.
 
 **The grunts moved endpoint, which was the actual fix.** The originals came
 from `generate_sfx.py` in round 8 — the sound-generation endpoint being asked

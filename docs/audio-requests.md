@@ -148,15 +148,29 @@ that plays the identical sample is the thing the trio exists to prevent.
 
 ### The two domain calls
 
-**`domain_call_gojo_alt.wav`** · Gojo — Unlimited Void, authoritative · voice `FWySLPyI58wEujI5OCqQ` *(Azel — commanding, cinematic)* · 3.0 s
+**`domain_call_gojo_alt_commanding.wav`** · Gojo — Unlimited Void, authoritative · voice `FWySLPyI58wEujI5OCqQ` *(Azel — commanding, cinematic)* · 3.0 s
 ```
 [commanding] りょういきてんかい。むりょうくうしょ。
 ```
 
-**`domain_call_dagon_alt.wav`** · Dagon — Horizon of the Captivating Skandha, lower · voice `3YKJpNw2ZvG9JayfGYAm` *(Sharo — low-pitched, calm)* · pitch 0.86 · 3.0 s
+**`domain_call_dagon_alt_deep.wav`** · Dagon — Horizon of the Captivating Skandha, lower · voice `3YKJpNw2ZvG9JayfGYAm` *(Sharo — low-pitched, calm)* · pitch 0.86 · 3.0 s
 ```
 [low and guttural] りょういきてんかい。たううんへいせん。
 ```
+
+**`domain_call_gojo_alt_even.wav`** · Gojo — Unlimited Void, flat and unperformed · voice `A8vsSyy1xmJQkBgZacW0` *(REI — calm, clear, measured)* · stability 1.0 · 3.0 s
+```
+[quietly, to himself] りょういきてんかい。むりょうくうしょ。
+```
+
+**Two Gojos, and they are asking different questions.** The commanding take
+answers "he should sound like he means it"; this one answers "he should sound
+like it costs him nothing" — a man saying something to himself on the way to
+doing it, with the emphasis nowhere. It carries `· stability 1.0 ·` because
+that is the only lever that reaches it: v3's stability is how far it may wander
+from a flat reading, and while it is free to act, no wording of the direction
+stops it acting. The first alternate was judged **too expressive**, which is a
+note about the model's freedom rather than about the words.
 
 **Dagon's is the one that needed a new lever.** No amount of direction stops a
 text-to-speech model sounding like a person, because it is a model of people —
@@ -260,9 +274,17 @@ convenient way to hear what an interrupted line sounds like.
 and `not in game`, and are mixed through the same category and gain — so what
 you are comparing is the performance and nothing else. They live in
 `VOICE_ALTERNATES` (`src/config_audio.js`) and **the game never plays them**.
-Promoting one is three deliberate steps: swap the filename in the `SFX` entry,
-update its `SPOKEN_LINES` length if it is a spoken line, and run
-`node tools/check_voice.mjs` to confirm the timing still adds up.
+
+**A sound with several interchangeable files gets a row per file** — for the
+take in play and for every alternate. A grunt trio is three performances, not
+one, and the useful verdict is usually "the first and third, and the
+alternate's second", which needs each recording on its own button rather than
+one button that draws at random. Tick the ones worth keeping and the bench
+writes the `file:` array they add up to, ready to paste into the registry.
+
+Promoting a take is three deliberate steps: swap the filename (or the array) in
+the `SFX` entry, update its `SPOKEN_LINES` length if it is a spoken line, and
+run `node tools/check_voice.mjs` to confirm the timing still adds up.
 
 This is the answer to the one thing neither `generate_voice.py` nor
 `check_voice.mjs` can tell you: **whether the take is any good.** They can
