@@ -666,8 +666,14 @@ html, body {
 
 .title-logo {
   display: block;
-  width: min(58vw, 620px);
-  max-height: 52vh;
+  /* Sized by the composition, not by the source file: the splash is the
+     logo, so it takes as much of the frame as the PRESS START line and the
+     credit will leave it. The artwork carries transparent margin of its own,
+     so the drawn mark reads smaller than this box — hence the generous cap.
+     Any higher-resolution file dropped in at the same path sharpens this
+     automatically; nothing here is tied to the current 900px asset. */
+  width: min(74vw, 1000px);
+  max-height: 58vh;
   object-fit: contain;
   /* The logo is its own light source on this screen. */
   filter:
@@ -698,7 +704,7 @@ html, body {
    a cross-fade here would read as a modern web animation rather than as the
    attract mode this is quoting. */
 .press-start {
-  margin-top: clamp(14px, 3.2vh, 34px);
+  margin-top: clamp(10px, 2.4vh, 26px);
   font-family: "Press Start 2P", var(--font-display), monospace;
   font-size: clamp(0.72rem, 1.5vw, 1.15rem);
   letter-spacing: 0.12em;
