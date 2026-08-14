@@ -19,7 +19,7 @@
 // is what the art says, and it stays true whatever the clip tables do next.
 // The joints drive spine, neck, both clavicles, arms, legs and feet; a bone
 // they cannot reach, or any rotation out of the drawing's plane, belongs to
-// the keyframe bench at ?edit=animation.
+// the keyframe bench at ?edit=keys.
 //
 // THREE THINGS IT IS CAREFUL ABOUT, ALL OF WHICH SILENTLY PRODUCE PLAUSIBLE
 // AND WRONG DATA IF GOT WRONG (tools/pose_reads.py says the same in Python,
@@ -1904,7 +1904,7 @@ function shell() {
               the drawing cannot hold (an arm angled inward, a foot rolled out) gets
               said. Off returns both to the drawing's own angle. For a bone the read
               has no joint for, use the keyframe bench at
-              <a href="./?edit=animation">?edit=animation</a>.</p>
+              <a href="./?edit=keys">?edit=keys</a>.</p>
             <label class="note-label" for="poseNote">What this frame is doing</label>
             <textarea id="poseNote" rows="3" placeholder="e.g. three-point stance, far hand planted, rear leg stretched back"></textarea>
             <ul class="joints" id="jointList"></ul>

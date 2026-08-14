@@ -7,11 +7,12 @@
 //   these poses (render3d/src/sprite_poses.js), so the poses are the whole
 //   job and the playhead is somebody else's problem.
 //
-//   ANIMATION (?edit=animation). The playhead, the beat snap, on twos, the
+//   ANIMATION (?edit=keys). The playhead, the beat snap, on twos, the
 //   keyframe strip and the ease curves — everything that only means something
 //   while a clip is running. Same module, same viewer, same rig; a body class
 //   decides which set of controls is on screen, because a second page is a
-//   second page to keep in step.
+//   second page to keep in step. (It lived at ?edit=animation until that URL
+//   became the roster-wide animation viewer, anim_viewer.js.)
 //
 // Both share the pipeline the game draws with (loader -> pose -> scene ->
 // blit) and the LOOK-DEV PANEL this backend needs and billboards did not:
@@ -73,8 +74,9 @@ const CX = canvas.width / 2;
 const COMPARE_DX = 300;
 
 const params = new URLSearchParams(location.search);
-/** Which bench: "pose" (a drawing at a time) or "anim" (?edit=animation). */
-const MODE = params.get("edit") === "animation" ? "anim" : "pose";
+/** Which bench: "pose" (a drawing at a time) or "anim" (?edit=keys — the
+ *  keyframe bench; ?edit=animation is the viewer, a different module). */
+const MODE = ["keys", "keyframes"].includes(params.get("edit")) ? "anim" : "pose";
 document.body.classList.add(`mode-${MODE}`);
 
 const wb = {
@@ -458,7 +460,7 @@ function showPose(frame) {
  *  somebody else's model because the link was a bare href is a small thing
  *  that happens every single time. */
 function syncModeLinks() {
-  for (const [id, edit] of [["toPose", null], ["toAnim", "animation"]]) {
+  for (const [id, edit] of [["toPose", null], ["toAnim", "keys"]]) {
     const url = new URL(location);
     if (edit) url.searchParams.set("edit", edit);
     else url.searchParams.delete("edit");

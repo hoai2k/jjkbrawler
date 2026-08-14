@@ -317,7 +317,7 @@ Two limits worth knowing while you work:
     narrower than they are drawn.
   * **Anything the eighteen joints cannot say** — a wrist roll, a head turn
     out of plane, a spine twist — belongs to the keyframe bench at
-    `?edit=animation`, which poses any bone on any axis.
+    `?edit=keys`, which poses any bone on any axis.
 
 ### The shoulder line and the hip line say which way the body is TURNED
 

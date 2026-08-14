@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
     <link rel="stylesheet" href="workbench.css">
     <link rel="stylesheet" href="sprite_pose.css">
+    <link rel="stylesheet" href="anim_viewer.css">
     <!-- BOOT WATCH. This page is one ES module with a top-level await, so
          anything that throws or never settles up there leaves a fully
          rendered page whose every control is dead — which reads as "the
@@ -54,7 +55,8 @@
            go looking for is one nobody uses. -->
       <button id="facingReviewTop" class="ghost sm">▶ Idle Review</button>
       <a class="ghost sm anim-only" id="toPose" href="?">← Poses</a>
-      <a class="ghost sm pose-only" id="toAnim" href="?edit=animation">Animation →</a>
+      <a class="ghost sm pose-only" id="toAnim" href="?edit=keys">Keyframes →</a>
+      <a class="ghost sm" href="?edit=animation">Anim viewer →</a>
       <a class="ghost sm" href="./?edit=pose">Joint reads →</a>
       <a class="ghost sm" href="../../billboards/workbench/">Billboard Workbench →</a>
       <a class="ghost sm" href="../../sprites/workbench/">Sprite Workbench →</a>
@@ -484,19 +486,24 @@
       </footer>
     </div>
 
-    <!-- Three benches, one page, and only one of them loads.
+    <!-- Four benches, one page, and only one of them loads.
          `?edit=pose` (or `?edit=reads`) is the SPRITE JOINT READS editor: it
          records what the DRAWING does, sixteen 2D joints a frame, and its
-         output is data about the art rather than a clip. The other two are
-         workbench.js — no `edit` opens the pose bench (model matched to a
-         drawing), `?edit=animation` the keyframe bench.
-         Reads replaces the page rather than sitting inside it: it wants the
-         whole window, and loading both would pay for the look-dev panel, the
-         sprite pipeline and every clip table to drag a joint. -->
+         output is data about the art rather than a clip. `?edit=animation`
+         is the ANIMATION VIEWER: the in-game roster in a grid, all playing
+         one clip, triggered by mouse or pad. The other two are workbench.js
+         — no `edit` opens the pose bench (model matched to a drawing),
+         `?edit=keys` the keyframe bench.
+         Reads and the viewer replace the page rather than sitting inside it:
+         each wants the whole window, and loading everything would pay for
+         the look-dev panel, the sprite pipeline and every clip table on a
+         page that never uses them. -->
     <script type="module">
       const mode = new URLSearchParams(location.search).get("edit");
       const reads = mode === "pose" || mode === "reads";
-      await import(reads ? "./sprite_pose.js" : "./workbench.js");
+      await import(reads ? "./sprite_pose.js"
+        : mode === "animation" ? "./anim_viewer.js"
+        : "./workbench.js");
     </script>
   </body>
 </html>
