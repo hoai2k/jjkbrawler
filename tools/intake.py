@@ -259,6 +259,15 @@ FACING_OVERRIDE = {
     # behind her — and a mirrored punch reads as a punch until you notice where
     # it lands. Two of her four strike frames have now needed this entry.
     "yuki/attack_heavy_b": "right",
+    # Round 21: Panda for the second time, and for the reason he was here the
+    # first time — a bear drawn nearly front-on gives a right-facing detector
+    # almost nothing to read. `walk_b` was delivered facing right and came back
+    # mirrored, which puts the emblem on the wrong shoulder for one frame out of
+    # two, so he flips mid-stride. Corrected at render time today by a
+    # `faceLeft` on the frame; this entry is what makes a RE-import land it
+    # right, since replacing the art rolls that hand edit back in the same
+    # breath.
+    "panda/walk_b": "right",
 }
 
 
