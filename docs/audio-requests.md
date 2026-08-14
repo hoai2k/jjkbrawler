@@ -1,7 +1,8 @@
 # Audio Requests — open requests
 
-**One small round is open: round 12, the grab pack — three sounds.** Everything
-before it is delivered, wired in and recorded in
+**One small round is open: round 12, the grab pack — three sounds.** Round 14
+(24 alternate takes, bred from the survivors of a 33-file prune) is delivered;
+everything else is delivered, wired in and recorded in
 [audio-requests-history.md](audio-requests-history.md), along with every
 round's audit, prompts and delivery record.
 
@@ -51,6 +52,210 @@ lines and should be scoped on its own — round 10A was the first slice of it an
 round 11 the second. `tools/generate_voice.py` is the route both used, and
 `MOVE_CALL` (`src/config_audio.js`) is now the wiring any further slice needs:
 a row per move, no new code.
+
+## Round 14 — two more of whatever survived *(delivered)*
+
+Rounds 12 and 13 were a wide net: 52 takes across fourteen sounds, most of them
+made to be rejected. They were, and by ear rather than by machine — **33 files
+deleted and 2 reassigned** in one pass through the
+[audio workbench](../workbench/?edit=audio). What is left is small and it is
+known-good, which is the first time either of those has been true.
+
+**So this round stops guessing and starts breeding.** Two new takes for each of
+the twelve groups that still has anything in it, and each pair is cast from
+**the voice its surviving keeper came from**, at the same pitch and the same
+settings. A new voice is a new gamble; the same voice doing a different
+vocalisation is a variation on something already judged to work.
+
+That is the whole shape of the round, and it is worth saying plainly because it
+is what the pruning bought:
+
+| Group | What survived | The voice this round asks |
+|---|---|---|
+| `gruntYoungMale` | 4 takes | Ryunosuke |
+| `gruntAdultMale` | 3 takes | Akira — Nagi's whole round-12 casting was deleted |
+| `gruntBig` | 3 takes | Sho, pitch 0.94 |
+| `gruntFemale` | 3 takes, plus 2 adopted from the adult-male group | Rina |
+| `gruntMonster` | 3 takes | Shimura, pitch 0.85 |
+| `gruntAnimal` | 1 take — **from the effects endpoint** | *no voice* — see below |
+| the five human KO cries | 1–3 takes each | the same voice as that group's grunts |
+| `koAnimal` | 1 take — **from the effects endpoint** | *no voice* — see below |
+
+**The two animal groups are the interesting result, and they say the opposite
+of what round 12 concluded.** Round 12's finding was that human noises made on
+the sound-EFFECTS endpoint read as an impression of a person rather than a
+person, and every human group was recast to a voice on that basis — correctly,
+because every human group's survivors are voice takes. But `gruntAnimal` and
+`koAnimal` are not human noises. Their voice-cast alternates were *all* deleted
+and the round-8 effects-endpoint originals are what stayed. A model imitating a
+beast beats an actor playing one, which is exactly what you would expect and
+exactly the reverse of the human case. **So these two go back to
+`generate_sfx.py`**, and their prompts are variations on the surviving file's.
+
+**Two adult-male grunts are now female grunts.** `grunt_adult_male_alt_2` and
+`_alt_3` — Nagi's takes — were moved into `gruntFemale` rather than deleted with
+the rest of his round. They are listed in `VOICE_ALTERNATES` under their new
+group with their origin noted, because a file called `grunt_adult_male_*`
+sitting in the female bank is confusing precisely once and forever after.
+
+The wordlessness rule from round 13 still holds and still gets checked:
+non-lexical vocalisations only, `tools/audit_voice_takes.py` over the round, and
+anything that comes back as several utterances is a word and gets re-rolled.
+**Three of the 24 came back that way** — `ko_young_male_alt_5`,
+`ko_monster_alt_4` and `ko_animal_alt_5` — and all three were re-rolled on a
+simplified vocalisation before delivery. All 24 are one utterance now.
+
+Two of the takes the audit flags are *keepers* — `ko_animal` and
+`ko_young_male` both read as three utterances. They stay. The audit is a
+tripwire for the generator, not a veto over a human verdict, and a KO cry that
+breaks into a yelp and a fading tail is a cry rather than a word.
+
+**Delivered.** All 24 are in `assets/sfx/` and registered as alternates in
+`VOICE_ALTERNATES` (`src/config_audio.js`), auditionable in the
+[audio workbench](../workbench/?edit=audio) beside the take each was bred from.
+Nothing in this round is in play: promoting one is still a deliberate edit. The
+33 files the round replaced are gone, and listed in
+[audio-pruned.md](audio-pruned.md) so no generator run brings them back.
+
+### Effort grunts — two more for each surviving group
+
+**`grunt_young_male_alt_7.wav`** · young male effort · voice `WFLyIjdIbVuEXaAkU0Xb` *(Ryunosuke — natural, 20s)* · capped · 0.5 s
+```
+[clipped effort grunt] くっ
+```
+
+**`grunt_young_male_alt_8.wav`** · young male effort · voice `WFLyIjdIbVuEXaAkU0Xb` *(Ryunosuke)* · capped · 0.5 s
+```
+[sharp exhaled effort grunt] はっ
+```
+
+**`grunt_adult_male_alt_7.wav`** · adult male effort · voice `OrIijq7uyVaGDbu9tqly` *(Akira — cinematic, measured)* · capped · 0.5 s
+```
+[clipped effort grunt] うっ
+```
+
+**`grunt_adult_male_alt_8.wav`** · adult male effort · voice `OrIijq7uyVaGDbu9tqly` *(Akira)* · capped · 0.5 s
+```
+[tight strained effort grunt] くっ
+```
+
+**`grunt_big_alt_7.wav`** · big effort · voice `wiBTiCATMiTaXSfv8hdN` *(Sho — warm, deep, 40s)* · pitch 0.94 · capped · 0.5 s
+```
+[deep effort grunt from the gut] ぬっ
+```
+
+**`grunt_big_alt_8.wav`** · big effort · voice `wiBTiCATMiTaXSfv8hdN` *(Sho)* · pitch 0.94 · capped · 0.5 s
+```
+[heavy strained effort grunt] ぐぅっ
+```
+
+**`grunt_female_alt_4.wav`** · female effort · voice `lxNssjs8lZzgD44uVifH` *(Rina — natural, late 20s)* · capped · 0.5 s
+```
+[sharp effort grunt] うっ
+```
+
+**`grunt_female_alt_5.wav`** · female effort · voice `lxNssjs8lZzgD44uVifH` *(Rina)* · capped · 0.5 s
+```
+[strained effort grunt] んっ
+```
+
+**`grunt_monster_alt_4.wav`** · monster effort · voice `3U6tYxUqUpcplL5Qep78` *(Shimura — husky, hoarse)* · pitch 0.85 · capped · 0.5 s
+```
+[thick inhuman grunt] ぐぉっ
+```
+
+**`grunt_monster_alt_5.wav`** · monster effort · voice `3U6tYxUqUpcplL5Qep78` *(Shimura)* · pitch 0.85 · capped · 0.5 s
+```
+[short guttural snarl] ぐるぅ
+```
+
+### The animal grunts — back to the effects endpoint
+
+No `· voice ·` field on these two, which is the routing rule doing its job:
+`generate_sfx.py` takes them and `generate_voice.py` never sees them. Both are
+variations on `grunt_animal_2`, the one animal grunt that survived.
+
+**`grunt_animal_alt_1.wav`** · 0.5 s
+```
+A single blunt chuffing woof from a large heavy animal lunging forward, percussive and short, non-verbal, dry close-mic recording with no reverb, about 0.5 seconds long, mono animal creature voice for a fighting game, no words, no music
+```
+
+**`grunt_animal_alt_2.wav`** · 0.5 s
+```
+A single low chuff-bark from a big heavy beast throwing its weight into a strike, dense and clipped, non-verbal, dry close-mic recording with no reverb, about 0.5 seconds long, mono animal creature voice for a fighting game, no words, no music
+```
+
+### KO cries — two more for each surviving group
+
+Each pair keeps the DIRECTION of the take that survived in that group rather
+than the direction of the ones that did not. `koYoungMale` kept a sharp cry and
+lost both a falling one and a breathless one; `koAdultMale` kept the breathless
+one. Those are verdicts about what a group wants, not noise, and re-rolling the
+rejected direction under a new filename would be the round learning nothing.
+
+**`ko_young_male_alt_4.wav`** · young male KO cry · voice `WFLyIjdIbVuEXaAkU0Xb` *(Ryunosuke)* · capped · 1.0 s
+```
+[sharp cry of pain] うあっ
+```
+
+**`ko_young_male_alt_5.wav`** · young male KO cry · voice `WFLyIjdIbVuEXaAkU0Xb` *(Ryunosuke)* · capped · 1.0 s
+```
+[sharp cry of pain] あぁ
+```
+
+**`ko_adult_male_alt_4.wav`** · adult male KO cry · voice `OrIijq7uyVaGDbu9tqly` *(Akira)* · capped · 1.0 s
+```
+[breathless cry, falling away] うぅっ
+```
+
+**`ko_adult_male_alt_5.wav`** · adult male KO cry · voice `OrIijq7uyVaGDbu9tqly` *(Akira)* · capped · 1.0 s
+```
+[winded cry, falling away] はぁっ
+```
+
+**`ko_big_alt_4.wav`** · big KO cry · voice `wiBTiCATMiTaXSfv8hdN` *(Sho)* · pitch 0.94 · capped · 1.0 s
+```
+[deep pained bellow, falling away] うおおっ
+```
+
+**`ko_big_alt_5.wav`** · big KO cry · voice `wiBTiCATMiTaXSfv8hdN` *(Sho)* · pitch 0.94 · capped · 1.0 s
+```
+[heavy winded bellow] ぬぉおっ
+```
+
+**`ko_female_alt_4.wav`** · female KO cry · voice `lxNssjs8lZzgD44uVifH` *(Rina)* · capped · 1.0 s
+```
+[sharp cry of pain] うあっ
+```
+
+**`ko_female_alt_5.wav`** · female KO cry · voice `lxNssjs8lZzgD44uVifH` *(Rina)* · capped · 1.0 s
+```
+[sharp cry of pain, falling away] あぁっ
+```
+
+**`ko_monster_alt_4.wav`** · monster KO cry · voice `3U6tYxUqUpcplL5Qep78` *(Shimura)* · pitch 0.85 · capped · 1.0 s
+```
+[guttural dying roar] ごぉお
+```
+
+**`ko_monster_alt_5.wav`** · monster KO cry · voice `3U6tYxUqUpcplL5Qep78` *(Shimura)* · pitch 0.85 · capped · 1.0 s
+```
+[wet guttural roar, falling away] ごぉおっ
+```
+
+### The animal KO cry — also back to the effects endpoint
+
+**`ko_animal_alt_4.wav`** · 1.0 s
+```
+A single sharp yelping bark of pain from a large beast being knocked away, fading and receding into the distance, non-verbal, close-mic recording with a doppler falloff, about 1 second long, mono animal defeat voice for a fighting game, no words, no music
+```
+
+**`ko_animal_alt_5.wav`** · 1.0 s
+```
+One single unbroken howling whine of pain from a big animal being launched away, one continuous sustained cry with no repeats and no second breath, fading and receding into the distance, non-verbal, close-mic recording with a doppler falloff, about 1 second long, mono animal defeat voice for a fighting game, no words, no music
+```
+
+---
 
 ## Round 13 — a wider bank to choose from *(open)*
 
@@ -381,10 +586,11 @@ which is why the brief allows 3.0 s for a 2.25 s line.
 
 | | |
 |---|---|
-| Sound files | **115** referenced, in `assets/sfx/` |
+| Sound files | **108** in play, in `assets/sfx/`, plus **43** alternate takes nothing plays |
 | Registry keys | **103** in `SFX` (`src/config_audio.js`) |
-| With a generation prompt on file | **114 of 115** — `sound_shield.mp3` predates the rounds and has none |
-| Fighters with a voice | **27 of 27** — six voice groups, three grunt variants each, plus a matching KO cry |
+| With a generation prompt on file | **all but one** — `sound_shield.mp3` predates the rounds and has none |
+| Deleted on purpose | **33**, listed in [audio-pruned.md](audio-pruned.md) so no generator run recreates them |
+| Fighters with a voice | **27 of 27** — six voice groups, 1–3 grunt variants each after the prune, plus a matching KO cry |
 | Fighters with a spoken line | **9** — the 8 domain owners, plus Inumaki on all four of his commands |
 | Domain Expansions with their own sting | **8 of 8** |
 | Element hit layers | **10 of 10** — fire, blood, steel, wind, sound, shadow, soul, water, machine, swarm |
