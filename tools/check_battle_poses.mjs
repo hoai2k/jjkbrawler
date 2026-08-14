@@ -14,6 +14,7 @@
 import { BATTLE_POSES, MATCHED_FRAMES } from "../render3d/src/battle_poses.js";
 import { INTENT_POSES, INTENTS, intentFor, baselinePose, CONTACTS, HEIGHTS, AIRBORNE }
   from "../render3d/src/baseline_poses.js";
+import { RIG_FIXES, applyRigFixes, fixesFor } from "../render3d/src/rig_fixes.js";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -171,6 +172,51 @@ for (const d of unexplained) {
     + "reason, or the intent should have overruled the drawing");
 }
 
+// THE CORRECTION LAYER is data too, and it is the data most likely to be
+// written in a hurry between two other things — it exists because somebody
+// noticed a shoulder looked wrong. So: real bones, real angles, and a note
+// saying what was wrong, because the entry is a message to whoever bakes it
+// into the .glb and deletes it.
+for (const [charKey, fix] of Object.entries(RIG_FIXES)) {
+  if (!fix || !Object.keys(fix).length) { fail(`rig fix for "${charKey}" is empty`); continue; }
+  for (const [bone, angles] of Object.entries(fix)) {
+    if (!BONES.has(bone)) fail(`rig fix ${charKey}.${bone}: no such bone`);
+    if (!Array.isArray(angles) || angles.length !== 3) {
+      fail(`rig fix ${charKey}.${bone}: want [x, y, z] degrees`);
+      continue;
+    }
+    // A CORRECTION, not a pose. A bind-pose error big enough to need 40° is a
+    // model to send back, not a model to bend at runtime.
+    for (const [i, v] of angles.entries()) {
+      if (!Number.isFinite(v)) fail(`rig fix ${charKey}.${bone}[${i}]: ${v} is not an angle`);
+      else if (Math.abs(v) > 40) {
+        fail(`rig fix ${charKey}.${bone}[${i}]: ${v}° is a broken model, not a correction`);
+      }
+    }
+  }
+}
+
+// And the layer has to actually reach a bone. An empty table is the normal
+// state — the corrections still live in the manifest's headTiltDeg while the
+// idle review is the only thing writing them — so the WIRING is what needs
+// proving, with a stand-in rig rather than a fake entry in the real table.
+{
+  const moved = [];
+  const stubBone = (name) => ({ name, quaternion: { premultiply: () => moved.push(name) } });
+  const bones = new Map([["LeftShoulder", stubBone("LeftShoulder")]]);
+  const stubRoot = { getObjectByName: (n) => bones.get(n) || null, updateMatrixWorld() {} };
+  const stubTHREE = {
+    Quaternion: class { setFromEuler() { return this; } },
+    Euler: class { set() { return this; } },
+  };
+  const saved = RIG_FIXES.__check;
+  RIG_FIXES.__check = { LeftShoulder: [0, 0, 3] };
+  const hit = applyRigFixes(stubTHREE, stubRoot, "__check");
+  if (!hit || !moved.includes("LeftShoulder")) fail("rig fixes: the layer never reaches a bone");
+  if (fixesFor("nobody-at-all")) fail("rig fixes: an unknown character should get nothing");
+  if (saved === undefined) delete RIG_FIXES.__check; else RIG_FIXES.__check = saved;
+}
+
 // Nothing should be defined and never reachable: an intent no frame resolves
 // to is either a dead pose or a resolver rule somebody forgot to write.
 const reached = new Set();
@@ -188,6 +234,8 @@ console.log(`baseline ok: ${INTENTS.length} intents cover all ${frames} frames `
   + `across the roster, ${reached.size} of them reached`);
 console.log(`contacts ok: ${Object.values(CONTACTS).filter(Boolean).length} declared, `
   + `${INTENTS.length - AIRBORNE.size} intents planted on the ground`);
+console.log(`rig fixes ok: ${Object.keys(RIG_FIXES).length} character(s) carry a correction `
+  + "layer, applied under every state until it is baked into the .glb");
 console.log(`intent ok: ${diverged.length} of ${MATCHED_FRAMES.size} matched poses depart `
   + `from their intent by more than ${DIVERGENCE}°, all of them argued`);
 for (const d of diverged) console.log(`  ${d.rms.toFixed(0)}°  ${d.frame} — ${d.why}`);

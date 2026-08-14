@@ -601,6 +601,16 @@ the libraries in place that is finally buildable, and
 which frame a state shows and when, the libraries say what each of those frames
 IS, and the result is an `AnimationClip` per state.
 
+**The idle is the one exception**, and it is not built from the libraries. Every
+other state is a proposal being tried out; the idle is not. It is the one pose
+with an obvious right answer — a fighter standing next to their own idle sprite
+either matches it or does not — and it has been dialled in, per character, in
+the workbench's **idle review** against that sprite. It is also what everything
+else is judged against, being the pose a player spends most of a match looking
+at. Replacing it with a generic orthodox guard would throw away the one place
+the roster has already been reviewed fighter by fighter, and would move the
+yardstick at the same time as the things measured against it.
+
 `resolveClip` prefers a built clip over everything, including a delivered one —
 that is the point, since a delivered clip is a second opinion about the same
 question. A per-character `clips[name].from` override still wins, because that
@@ -609,11 +619,52 @@ is somebody deliberately borrowing another fighter's animation. The dial is
 default; turn it off and the old resolution order returns unchanged, which is
 how the editor's **In Game** column stays a fair comparison.
 
-Across the roster: **27 characters, 26 of 26 states each, all built from the
-library.** One movement library, applied to every fighter — the per-character
+Across the roster: **27 characters, 25 of 26 states each built from the
+library**, with the idle held back per above. One movement library, applied to every fighter — the per-character
 difference comes out of each rig's own proportions and bind, which
 [`pose_library.js`](../../render3d/src/pose_library.js) measures rather than
 assumes.
+
+### Two layers under every pose
+
+**The model's own corrections.** A generated model arrives with things wrong
+that are nobody's pose: a head modelled looking slightly down, a shoulder built
+a few degrees high. They are facts about the FILE, so no clip fixes them — every
+state inherits the same stoop — and no amount of measuring the skeleton finds
+them, because the joints come out level to within a degree across the roster
+while the mesh does not.
+
+The idle review is where they get found, precisely because the idle has an
+obvious right answer. But **the correction it lands on is not part of the
+idle** — it is part of the model, and it belongs under the crouch and the punch
+and the run just as much.
+[`rig_fixes.js`](../../render3d/src/rig_fixes.js) is where those live, per
+character and per bone, applied under every state. `headTiltDeg` in the rig
+manifest is the same idea and predates it; it stays where the idle review
+already writes it, applied alongside.
+
+They are authored in the BONE's own frame, which is the opposite of the pose
+libraries and is deliberate: a fix corrects how one bone was built, so it is
+authored by looking at that bone, while a pose is a human movement described
+once for a whole roster and is authored in anatomy. The anatomical frame here
+would give a shoulder fix that changes meaning as the arm swings, which is
+exactly what a bind-pose correction must not do.
+
+**The layer is meant to go away.** Every entry is a note for the modelling pass
+that bakes it into the rig's bind, after which the entry is deleted and nothing
+else changes — which is the test of whether a correction belonged there rather
+than in a pose.
+
+**Standing on the floor.** A pose folds the legs; it does not lower the hips,
+because a pose is bone rotations and hip height is a translation. So a library
+crouch came out at full standing height with its knees bent, hovering 29cm up,
+and foot IK did not catch it — `plantFeet` only pushes feet that have sunk
+*below* the line back up to it, and these were above. Grounded states now drop
+the **armature** (not the rig root, which is where the fighter stands in the
+world and belongs to the backend) until the lowest foot is on the line. Airborne
+states are left alone. Measured in game: every grounded state on every fighter
+now has its lowest foot at exactly 0, and a jump still leaves the ground by
+22cm.
 
 The reads themselves are still upstream data, and a wrong seed still cannot
 pose a fighter wrongly in a match: the game reads the libraries, not the reads.

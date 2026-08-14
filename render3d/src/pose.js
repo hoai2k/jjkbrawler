@@ -30,6 +30,8 @@
 // not bake it; the delivery rule carries over verbatim.
 
 import { STATES, clipNameFor, clipTime, aimable } from "./states.js";
+import { applyRigFixes } from "./rig_fixes.js";
+import { groundOffset } from "./pose_library.js";
 import {
   applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs, applyIdleStand, clearIdleStand,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
@@ -304,6 +306,61 @@ function applyPoseEdits(root, edits) {
   root.updateMatrixWorld(true);
 }
 
+/**
+ * The states whose fighter is standing on something. Everything else is in the
+ * air and stays where the clip puts it — a jump that touches the floor is a
+ * worse lie than one that hovers.
+ */
+const GROUNDED = new Set([
+  "idle", "run", "crouch", "shield", "charge", "dizzy", "win", "land",
+  "light", "heavy", "sideHeavy", "upHeavy", "downHeavy", "crouchAttack",
+  "grab", "grabbed", "hurt", "prone", "dash", "special",
+]);
+
+/** Each rig's armature node and where it sits in the bind, so the ground drop
+ *  is applied fresh every frame instead of accumulating. */
+const _armature = new WeakMap();
+
+/**
+ * DROP THE BODY UNTIL ITS FEET ARE ON THE FLOOR.
+ *
+ * A pose folds the legs; it does not lower the hips, because a pose is bone
+ * rotations and hip height is a translation. So a crouch built from the pose
+ * libraries came out standing at full height with its knees bent — hovering
+ * 29cm up — and foot IK did not catch it: `plantFeet` only pushes feet that
+ * have sunk BELOW the line back up to it, and these are above it.
+ *
+ * It moves the ARMATURE, not the rig root. The root is where the fighter is
+ * standing in the world and belongs to the backend; the armature node inside
+ * it is the body, and moving that leaves placement alone.
+ */
+function standOnGround(rig, animKey) {
+  const root = rig?.root;
+  if (!root) return;
+  let node = _armature.get(root);
+  if (node === undefined) {
+    const hips = root.getObjectByName("Hips") || root.getObjectByName("mixamorigHips");
+    node = hips?.parent === root ? hips : (hips || null);
+    _armature.set(root, node ? Object.assign(node, { _bindY: node.position.y }) : null);
+    node = _armature.get(root);
+  }
+  if (!node) return;
+  node.position.y = node._bindY;
+  if (!GROUNDED.has(clipNameFor(animKey))) { root.updateMatrixWorld(true); return; }
+  root.updateMatrixWorld(true);
+  const bones = new Map();
+  for (const name of ["LeftFoot", "RightFoot", "LeftToeBase", "RightToeBase"]) {
+    const b = root.getObjectByName(name);
+    if (b) bones.set(name, b);
+  }
+  const drop = groundOffset(THREE, bones);
+  // A hard clamp, because this is a correction and not a lift: a pose that
+  // wants the body a metre lower than its bind is a broken pose, and hoisting
+  // a fighter UP to meet a stray foot would be worse than leaving them be.
+  node.position.y = node._bindY + Math.min(0, Math.max(-0.6, drop));
+  root.updateMatrixWorld(true);
+}
+
 /** Foot IK: clamp feet that sink below the ground line back onto it, with a
  *  short CCD pass over knee and hip. Only grounded states, only downward
  *  penetration — a raised foot is the clip's business. */
@@ -382,6 +439,16 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   // Applied here, before the live layers, so look-at still nods FROM the
   // corrected carriage rather than fighting it. Positive lifts the chin.
   if (rig.headTiltDeg) rotateBoneNod(rig.root, "Head", -rig.headTiltDeg * DEG);
+  // ...and the rest of the same class of fact: corrections that belong to the
+  // MODEL rather than to any pose, found in the idle review and applied under
+  // every state until they are baked into the .glb (rig_fixes.js).
+  if (layers.charKey) applyRigFixes(THREE, rig.root, layers.charKey);
+  // STAND ON THE FLOOR. A pose that folds the legs without lowering the hips
+  // leaves the fighter hovering — a library crouch floated 29cm — and foot IK
+  // does not catch it, because that only pushes feet that have sunk BELOW the
+  // line back up to it. This is the other direction, and it is a translation
+  // rather than a bend: the body drops until its lowest foot is on the ground.
+  standOnGround(rig, animKey);
   // Body morphs (Mahito's transfiguration arms) precede aim/reach so every
   // solve sees the morphed limb.
   if (layers.charKey) applyMorphs(rig.root, layers.charKey, animKey, clipTime(animKey, sampled));
