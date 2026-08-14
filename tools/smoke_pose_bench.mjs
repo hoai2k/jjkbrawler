@@ -53,8 +53,12 @@ const poses = await page.evaluate(() => {
            first: sel.value };
 });
 check(poses.n > 20, "every sprite pose this fighter draws is listed", `${poses.n} poses`);
-check(poses.groups.length > 8 && poses.groups[0] === "idle",
-  "grouped by the state that draws them", `${poses.groups.length} groups, first "${poses.groups[0]}"`);
+// The rig checks come first and are not a state (see below), so the drawings
+// start at the second group.
+const spriteGroups = poses.groups.slice(1);
+check(spriteGroups.length > 8 && spriteGroups[0] === "idle",
+  "grouped by the state that draws them",
+  `${spriteGroups.length} groups, first "${spriteGroups[0]}"`);
 
 // The reference has to be the pose NAMED, not whatever the playhead happens to
 // be over — the failure that would quietly waste a whole session.
@@ -124,6 +128,105 @@ check(edited.onKey0.length === 0,
   "...and not on the pose next door", `attack_heavy_a untouched`);
 check(edited.marked.startsWith("●"),
   "...and the list says which poses are done", edited.marked.trim());
+
+// ------------------------------------------------------------ the rig checks
+//
+// T AND A, ABOVE THE DRAWINGS. Not poses of the character — poses of the
+// SKELETON, where a bone rolled the wrong way, a shoulder built inside the
+// chest or a foot that is really a lump has nowhere to hide. In a pose that
+// came out of a clip all of that reads as something the animation did, which
+// is why this is the check you make before spending a session matching
+// drawings, and why it sits at the top of the list rather than the bottom.
+
+const rigChecks = await page.evaluate(() => {
+  const sel = document.getElementById("poseSelect");
+  const first = sel.querySelector("optgroup");
+  return { group: first?.label || "",
+           values: [...(first?.children || [])].map((o) => o.value),
+           beforeAnySprite: sel.options[0].value };
+});
+check(rigChecks.values.join(",") === "__rig:T,__rig:A",
+  "the rig checks head the pose list", `${rigChecks.group}: ${rigChecks.values.join(", ")}`);
+check(rigChecks.beforeAnySprite === "__rig:T",
+  "...before any drawing", rigChecks.beforeAnySprite);
+
+// Picking one has to actually straighten the model out. Arms LEVEL for the T
+// and roughly halfway down for the A, measured against the body's own width
+// axis so a fighter built facing sideways is judged on their own frame.
+const tpose = await page.evaluate(async (kind) => {
+  const sel = document.getElementById("poseSelect");
+  sel.value = `__rig:${kind}`;
+  sel.onchange();
+  await new Promise((r) => setTimeout(r, 900));
+  const rigs = await import("/render3d/src/loader.js");
+  const THREE = await import("/vendor/three/three.module.js");
+  const r = rigs.getRig("maki");
+  r.root.updateMatrixWorld(true);
+  const at = (n) => r.root.getObjectByName(n).getWorldPosition(new THREE.Vector3());
+  const out = {};
+  for (const side of ["Left", "Right"]) {
+    const arm = at(`${side}Arm`), hand = at(`${side}Hand`);
+    const v = hand.clone().sub(arm);
+    // Degrees below horizontal: 0 is a T, 45 is an A, 90 is an arm hanging.
+    out[side] = +(Math.atan2(-v.y, Math.hypot(v.x, v.z)) * 180 / Math.PI).toFixed(1);
+  }
+  out.where = document.getElementById("poseWhere").textContent;
+  out.url = new URL(location).searchParams.get("rigcheck");
+  return out;
+}, "T");
+check(Math.abs(tpose.Left) < 20 && Math.abs(tpose.Right) < 20,
+  "the T-pose puts both arms out level",
+  `left ${tpose.Left}° / right ${tpose.Right}° below horizontal`);
+check(Math.abs(tpose.Left - tpose.Right) < 12,
+  "...and puts them at the SAME angle, which is what makes a bad rig show",
+  `${Math.abs(tpose.Left - tpose.Right).toFixed(1)}° apart`);
+check(tpose.url === "T", "...and says so in the URL, so a rig check is linkable", tpose.url);
+
+const apose = await page.evaluate(async () => {
+  const sel = document.getElementById("poseSelect");
+  sel.value = "__rig:A";
+  sel.onchange();
+  await new Promise((r) => setTimeout(r, 900));
+  const rigs = await import("/render3d/src/loader.js");
+  const THREE = await import("/vendor/three/three.module.js");
+  const r = rigs.getRig("maki");
+  r.root.updateMatrixWorld(true);
+  const at = (n) => r.root.getObjectByName(n).getWorldPosition(new THREE.Vector3());
+  const v = at("LeftHand").sub(at("LeftArm"));
+  return +(Math.atan2(-v.y, Math.hypot(v.x, v.z)) * 180 / Math.PI).toFixed(1);
+});
+check(apose > 25 && apose < 70,
+  "the A-pose drops the arms to about 45°", `${apose}° below horizontal`);
+
+// THE BAKE LIST, BESIDE THE BODY. The figure on screen is the .glb PLUS the
+// corrections; this is that difference written down, so the pose answers "is
+// this rig good" and "what is left in the pipeline" at once.
+const owed = await page.evaluate(async () => {
+  const rigs = await import("/render3d/src/loader.js");
+  const fixes = await import("/render3d/src/rig_fixes.js");
+  const entry = rigs.rigManifest().characters?.maki || {};
+  const box = document.getElementById("rigCheckOut");
+  return { hidden: box.hidden, text: box.innerText,
+           expect: Object.keys(fixes.pendingFixes("maki", entry)) };
+});
+check(!owed.hidden && owed.expect.length > 0,
+  "the rig check shows what the model still owes", owed.expect.join(", "));
+check(owed.expect.every((k) => owed.text.includes(k)),
+  "...every outstanding correction by name, with what baking it would be",
+  `${owed.expect.length} listed`);
+// And it goes away again: on a real drawing the panel would be a list of
+// corrections with no visible connection to what is on screen.
+const gone = await page.evaluate(async () => {
+  const sel = document.getElementById("poseSelect");
+  sel.value = "attack_heavy_b";
+  sel.onchange();
+  await new Promise((r) => setTimeout(r, 600));
+  return { hidden: document.getElementById("rigCheckOut").hidden,
+           url: new URL(location).searchParams.get("rigcheck"),
+           pose: new URL(location).searchParams.get("pose") };
+});
+check(gone.hidden && !gone.url && gone.pose === "attack_heavy_b",
+  "...and steps aside for a real drawing", `?pose=${gone.pose}`);
 
 // ------------------------------------------------------- the animation bench
 

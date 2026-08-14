@@ -135,6 +135,10 @@
           <button id="poseNext" class="ghost sm" title="Next pose (])">▶</button>
         </div>
         <div id="poseWhere" class="mono hint pose-only"></div>
+        <!-- What the engine is still correcting on top of this .glb, shown
+             beside the rig-check poses because the figure on screen IS the
+             model plus these corrections. Empty when a model owes nothing. -->
+        <div id="rigCheckOut" class="mono pose-only" hidden></div>
 
         <label class="anim-only">State
           <select id="stateSelect"></select>

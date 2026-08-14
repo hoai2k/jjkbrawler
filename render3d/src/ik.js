@@ -811,6 +811,45 @@ function setLocalFromBind(THREE, root3d, bone, bind) {
   bone.updateMatrixWorld(true);
 }
 
+/**
+ * THE POSE THE MODEL WAS BUILT IN — every bone, rotation and position, back to
+ * the skeleton's own bind.
+ *
+ * The rig-check poses stand on this, and nothing else in the engine can give
+ * it. `restoreClean` (pose.js) restores the pose the CLIP left, which after
+ * one frame of anything is not the bind; a mixer with no action playing leaves
+ * bones wherever they were. Only the inverse-bind matrices remember the rest
+ * pose, so that is what this reads.
+ *
+ * Positions as well as rotations, because the shoulder-width correction is a
+ * TRANSLATION on the arm roots — a bind restore that only put rotations back
+ * would leave the previous pose's widening on the bone and quietly double it.
+ */
+export function applyBindPose(THREE, root3d) {
+  const bind = bindFrames(THREE, root3d);
+  if (!bind.size) return false;
+  const seen = [];
+  root3d.traverse((o) => { if (o.isBone && bind.has(o.name)) seen.push(o); });
+  // Parents first: a child's local transform is read against a parent that has
+  // to be at bind already, or the pose comes out compounding down the chain.
+  for (const bone of seen) {
+    const here = bind.get(bone.name);
+    const parentBind = bone.parent && bind.get(bone.parent.name);
+    if (parentBind) {
+      const inv = new THREE.Quaternion().copy(parentBind.quat).invert();
+      bone.quaternion.copy(inv.clone().multiply(here.quat));
+      bone.position.copy(
+        new THREE.Vector3().copy(here.pos).sub(parentBind.pos).applyQuaternion(inv));
+    } else {
+      bone.quaternion.copy(here.quat);
+      bone.position.copy(here.pos);
+    }
+    bone.scale.set(1, 1, 1);
+  }
+  root3d.updateMatrixWorld(true);
+  return true;
+}
+
 /** Put one bone's WORLD rotation back to bind, whatever its parent is doing. */
 function setLocalFromBindWorld(THREE, bone, bindHere, rootQ) {
   const parent = bone.parent

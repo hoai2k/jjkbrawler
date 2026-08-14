@@ -76,6 +76,14 @@ body:not(.alt) .alt-only { display: none !important; }
 .mono { font-family: ui-monospace, monospace; font-size: 12px; }
 .src { color: #9fd39f; }
 .hint { color: #8b96b3; font-size: 12px; margin: 2px 0; }
+/* The rig check's bake list. Amber rather than green: every line is work the
+   .glb still owes, so it should read as outstanding, not as a status that is
+   fine. An empty box is the good state, and it says so in plain grey. */
+#rigCheckOut { margin: 6px 0 2px; padding: 6px 8px; border: 1px solid #4a3c22;
+  border-radius: 8px; background: #1b1810; }
+#rigCheckOut .fixrow { display: flex; flex-direction: column; margin-top: 5px; }
+#rigCheckOut .fixrow b { color: #ffcf8a; font-weight: 600; }
+#rigCheckOut .fixrow span { color: #8b96b3; font-size: 11.5px; }
 canvas { width: 100%; max-width: 1040px; background: #101522; border: 1px solid #232c44;
   border-radius: 10px; touch-action: none; }
 #status { color: #8b96b3; min-height: 1.4em; }
