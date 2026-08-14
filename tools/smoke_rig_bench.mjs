@@ -1,4 +1,4 @@
-// Smoke the MODEL BENCH (`?edit=models`) — the bench that edits the rig
+// Smoke the RIG BENCH (`?edit=rigs`) — the bench that edits the rig
 // instead of the animation.
 //
 // What it guards is the claim the page makes: that the figure on screen is the
@@ -9,7 +9,7 @@
 // wrong by a rotation nobody can see.
 //
 //     node server.mjs &
-//     node tools/smoke_model_bench.mjs [baseUrl] [--chromium]
+//     node tools/smoke_rig_bench.mjs [baseUrl] [--chromium]
 import { chromium, webkit } from "playwright";
 
 const BASE = process.argv.slice(2).find((a) => !a.startsWith("--"))
@@ -34,15 +34,15 @@ const page = await context.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e).slice(0, 200)));
 
-await page.goto(`${BASE}/render3d/workbench/index.html?edit=models&char=yuji`,
+await page.goto(`${BASE}/render3d/workbench/index.html?edit=rigs&char=yuji`,
   { waitUntil: "load" });
 await page.waitForFunction(() => window.__workbenchReady === true, { timeout: 90000 });
 await page.waitForTimeout(2500);
 
 // ---------------------------------------------------------------- it opened
 
-check(await page.evaluate(() => document.body.classList.contains("mode-models")),
-  "?edit=models opens the model bench");
+check(await page.evaluate(() => document.body.classList.contains("mode-rigs")),
+  "?edit=rigs opens the rig bench");
 const shell = await page.evaluate(() => ({
   canvas: !!document.getElementById("view"),
   // The pose bench's cockpit must NOT be here: a screen of controls that
@@ -50,7 +50,7 @@ const shell = await page.evaluate(() => ({
   strays: ["poseSelect", "stateSelect", "compareMode"]
     .filter((id) => document.getElementById(id) && id !== "poseSelect").length,
   poses: [...(document.getElementById("poseSelect")?.options || [])].map((o) => o.value),
-  bones: window.__modelBench.boneList().length,
+  bones: window.__rigBench.boneList().length,
 }));
 check(shell.canvas, "it has a live viewport rather than a blitted stage");
 check(shell.strays === 0, "...and none of the pose bench's controls came with it");
@@ -80,7 +80,7 @@ check(handback.box, "...and there is a paste box beside them");
 // The bench opens on a bone worth turning. The first bone in skeleton order is
 // a root wrapper on the floor, and a gizmo around the fighter's ankles is a
 // confusing thing to be handed.
-const opensOn = await page.evaluate(() => window.__modelBench.state.bone);
+const opensOn = await page.evaluate(() => window.__rigBench.state.bone);
 check(opensOn === "LeftShoulder", "it opens on a clavicle, not on the root", opensOn);
 
 // ------------------------------------------------- what the page is showing
@@ -115,11 +115,11 @@ await armAngle("T");
 // to reach.
 
 const viewRing = await page.evaluate(() => {
-  const box = window.__modelBench.canvas.getBoundingClientRect();
-  const at = window.__modelBench.ringScreenPoint(window.__modelBench.VIEW_AXIS, 0);
-  const across = window.__modelBench.ringScreenPoint(window.__modelBench.VIEW_AXIS, 0.5);
-  const wide = window.__modelBench.ringScreenPoint(window.__modelBench.VIEW_AXIS, 0.25);
-  const tall = window.__modelBench.ringScreenPoint(window.__modelBench.VIEW_AXIS, 0.75);
+  const box = window.__rigBench.canvas.getBoundingClientRect();
+  const at = window.__rigBench.ringScreenPoint(window.__rigBench.VIEW_AXIS, 0);
+  const across = window.__rigBench.ringScreenPoint(window.__rigBench.VIEW_AXIS, 0.5);
+  const wide = window.__rigBench.ringScreenPoint(window.__rigBench.VIEW_AXIS, 0.25);
+  const tall = window.__rigBench.ringScreenPoint(window.__rigBench.VIEW_AXIS, 0.75);
   if (!at) return null;
   return { w: Math.hypot(at.x - across.x, at.y - across.y),
            h: Math.hypot(wide.x - tall.x, wide.y - tall.y),
@@ -136,17 +136,17 @@ check(viewRing && Math.abs(viewRing.w - viewRing.h) < viewRing.w * 0.08,
 await page.evaluate(() => document.getElementById("allReset").click());
 await page.waitForTimeout(300);
 {
-  const A = await page.evaluate((ax) => window.__modelBench.ringScreenPoint(ax, 0), 3);
+  const A = await page.evaluate((ax) => window.__rigBench.ringScreenPoint(ax, 0), 3);
   await page.mouse.move(A.x, A.y);
   await page.mouse.down();
   for (let i = 1; i <= 6; i++) {
-    const q = await page.evaluate(([ax, t]) => window.__modelBench.ringScreenPoint(ax, t),
+    const q = await page.evaluate(([ax, t]) => window.__rigBench.ringScreenPoint(ax, t),
       [3, (0.08 * i) / 6]);
     await page.mouse.move(q.x, q.y);
   }
   await page.mouse.up();
   await page.waitForTimeout(300);
-  const rec = await page.evaluate(() => window.__modelBench.RIG_FIXES.yuji?.LeftShoulder);
+  const rec = await page.evaluate(() => window.__rigBench.RIG_FIXES.yuji?.LeftShoulder);
   const size = rec ? Math.hypot(...rec) : 0;
   check(size > 15 && size < 45,
     "dragging the view ring a twelfth of a turn records about 30° of rotation",
@@ -170,18 +170,18 @@ await page.evaluate(() => document.getElementById("allReset").click());
 await page.waitForTimeout(300);
 
 const sweep = 0.1;                                   // a tenth of a turn = 36°
-const start = await page.evaluate((t) => window.__modelBench.ringScreenPoint(0, t), 0.13);
+const start = await page.evaluate((t) => window.__rigBench.ringScreenPoint(0, t), 0.13);
 await page.mouse.move(start.x, start.y);
 await page.mouse.down();
 for (let i = 1; i <= 8; i++) {
-  const at = await page.evaluate(([ax, t]) => window.__modelBench.ringScreenPoint(ax, t),
+  const at = await page.evaluate(([ax, t]) => window.__rigBench.ringScreenPoint(ax, t),
     [0, 0.13 + (sweep * i) / 8]);
   await page.mouse.move(at.x, at.y);
 }
 await page.mouse.up();
 await page.waitForTimeout(300);
 
-const dragged = await page.evaluate(() => window.__modelBench.RIG_FIXES.yuji || {});
+const dragged = await page.evaluate(() => window.__rigBench.RIG_FIXES.yuji || {});
 const rx = dragged.LeftShoulder?.[0] ?? 0;
 check(Math.abs(rx - 36) < 3,
   "dragging a ring a tenth of a turn records 36° about that ring's axis",
@@ -240,7 +240,7 @@ const panel = await page.evaluate(() => {
   const nums = [...document.querySelectorAll("#axisRows .axis input[type=number]")];
   nums[1].value = "-7.5";
   nums[1].onchange();
-  return { after: window.__modelBench.RIG_FIXES.yuji?.LeftShoulder,
+  return { after: window.__rigBench.RIG_FIXES.yuji?.LeftShoulder,
            shown: nums.map((n) => +n.value) };
 });
 check(Math.abs((panel.after?.[1] ?? 0) + 7.5) < 0.01,
@@ -319,7 +319,7 @@ const straight = await page.evaluate(async () => {
   const on = gap();
   box.checked = wasOn; box.onchange();
   fixes.RIG_FIXES.geto = keep;
-  return { off, on, inPayload: !!window.__modelBench.sessionPayload().fixes?.geto?.symmetrise };
+  return { off, on, inPayload: !!window.__rigBench.sessionPayload().fixes?.geto?.symmetrise };
 });
 check(Math.abs(straight.off.shoulder) > 0.02 && Math.abs(straight.off.knee) > 0.02,
   "geto's skeleton is measurably lopsided to begin with",
@@ -363,13 +363,13 @@ check(Math.abs(drift.after - drift.first) < 0.01,
 // from memory and obvious as a green edge sticking out of one.
 const ghost = await page.evaluate(async () => {
   const box = document.getElementById("showMannequin");
-  const before = window.__modelBench.mannequinShown();
+  const before = window.__rigBench.mannequinShown();
   box.checked = true; box.onchange();
   await new Promise((r) => setTimeout(r, 700));
-  const on = window.__modelBench.mannequinShown();
+  const on = window.__rigBench.mannequinShown();
   box.checked = false; box.onchange();
   await new Promise((r) => setTimeout(r, 500));
-  return { before, on, off: window.__modelBench.mannequinShown() };
+  return { before, on, off: window.__rigBench.mannequinShown() };
 });
 check(!ghost.before && ghost.on && !ghost.off,
   "the mannequin ghost comes and goes with its checkbox",
@@ -385,11 +385,11 @@ const swapped = await page.evaluate(async () => {
   sel.value = "jogo";
   await sel.onchange();
   await new Promise((r) => setTimeout(r, 2500));
-  return { char: window.__modelBench.state.bone ? "jogo" : null,
-           bones: window.__modelBench.boneList().length,
+  return { char: window.__rigBench.state.bone ? "jogo" : null,
+           bones: window.__rigBench.boneList().length,
            // Yuji's edits must survive being navigated away from: the download
            // is for the whole session, not for whoever is on screen at the end.
-           keptYuji: !!window.__modelBench.edits.get("yuji")?.size,
+           keptYuji: !!window.__rigBench.edits.get("yuji")?.size,
            url: new URL(location).searchParams.get("char") };
 });
 check(swapped.bones > 15 && swapped.url === "jogo",
