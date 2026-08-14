@@ -238,7 +238,7 @@ export const CHARACTERS = {
     theme: "#62dcff",
     shadow: "rgba(88, 220, 255, 0.36)",
     scale: 0.60,
-    stats: { speed: 468, airSpeed: 380, accel: 3000, jump: 800, airJumps: 1, weight: 0.92, friction: 0.86 },
+    stats: { speed: 468, airSpeed: 380, accel: 3000, jump: 880, airJumps: 1, weight: 0.92, friction: 0.86 },
     // Inherits the semantic table; these keep this fighter's own timing.
     anims: { ...SEMANTIC_ANIMS,
       specialDown: { frames: ["special_down"], fps: 4, loop: true },
@@ -288,7 +288,7 @@ export const CHARACTERS = {
     theme: "#9fc7ff",
     shadow: "rgba(159, 199, 255, 0.36)",
     scale: 0.60,
-    stats: { speed: 402, airSpeed: 318, accel: 2540, jump: 760, airJumps: 1, weight: 1.02, friction: 0.83 },
+    stats: { speed: 402, airSpeed: 318, accel: 2540, jump: 835, airJumps: 1, weight: 1.02, friction: 0.83 },
     // Inherits the semantic table; these keep this fighter's own timing.
     anims: { ...SEMANTIC_ANIMS,
       specialDown: { frames: ["special_down"], fps: 4, loop: true },
@@ -338,7 +338,7 @@ export const CHARACTERS = {
     theme: "#ff62cf",
     shadow: "rgba(255, 98, 207, 0.38)",
     scale: 0.60,
-    stats: { speed: 415, airSpeed: 305, accel: 2560, jump: 745, airJumps: 1, weight: 1.08, friction: 0.82 },
+    stats: { speed: 415, airSpeed: 305, accel: 2560, jump: 820, airJumps: 1, weight: 1.08, friction: 0.82 },
     // Round 11B delivered his last seventeen poses. Inherits the semantic
     // table; the slower down-special is his own timing, kept.
     anims: { ...SEMANTIC_ANIMS,
@@ -390,7 +390,7 @@ export const CHARACTERS = {
     fxElement: "steel",  // Heavenly Restriction: no cursed energy — steel glints, never a glow
     shadow: "rgba(105, 208, 168, 0.34)",
     scale: 0.60,
-    stats: { speed: 452, airSpeed: 340, accel: 2860, jump: 775, airJumps: 1, weight: 1.0, friction: 0.86 },
+    stats: { speed: 452, airSpeed: 340, accel: 2860, jump: 855, airJumps: 1, weight: 1.0, friction: 0.86 },
     // Round 11B delivered her last seventeen poses. Inherits the semantic
     // table; the slow looping down-special is her own, kept.
     anims: { ...SEMANTIC_ANIMS,
@@ -434,7 +434,7 @@ export const CHARACTERS = {
     fxElement: "shadow",  // hits land in shadow-stuff
     shadow: "rgba(124, 140, 255, 0.36)",
     scale: 0.60,
-    stats: { speed: 418, airSpeed: 330, accel: 2620, jump: 765, airJumps: 1, weight: 0.96, friction: 0.84 },
+    stats: { speed: 418, airSpeed: 330, accel: 2620, jump: 840, airJumps: 1, weight: 0.96, friction: 0.84 },
     // Round 11B delivered his last seventeen poses, so every action has its own
     // drawing and every override here was saying what the shared table says.
     anims: SEMANTIC_ANIMS,
@@ -517,7 +517,7 @@ export const CHARACTERS = {
     theme: "#d86a4a",
     shadow: "rgba(216, 106, 74, 0.36)",
     scale: 0.60,
-    stats: { speed: 400, airSpeed: 308, accel: 2480, jump: 750, airJumps: 1, weight: 0.98, friction: 0.83 },
+    stats: { speed: 400, airSpeed: 308, accel: 2480, jump: 825, airJumps: 1, weight: 0.98, friction: 0.83 },
     // Inherits the semantic table; these keep this fighter's own timing.
     anims: { ...SEMANTIC_ANIMS,
       specialDown: { frames: ["special_down"], fps: 6, loop: false },
@@ -559,7 +559,7 @@ export const CHARACTERS = {
     theme: "#d7d9e7",
     shadow: "rgba(215, 217, 231, 0.32)",
     scale: 0.60,
-    stats: { speed: 408, airSpeed: 312, accel: 2500, jump: 755, airJumps: 1, weight: 0.98, friction: 0.83 },
+    stats: { speed: 408, airSpeed: 312, accel: 2500, jump: 830, airJumps: 1, weight: 0.98, friction: 0.83 },
     // Round 11B delivered his last eighteen poses, so every action has its own
     // drawing and every override here was saying what the shared table says.
     anims: SEMANTIC_ANIMS,
@@ -601,7 +601,7 @@ export const CHARACTERS = {
     fxElement: "steel",  // a cursed corpse hits with mass, not energy — impact FX, no glow
     shadow: "rgba(142, 160, 184, 0.36)",
     scale: 0.57,
-    stats: { speed: 356, airSpeed: 275, accel: 2220, jump: 730, airJumps: 1, weight: 1.28, friction: 0.78 },
+    stats: { speed: 356, airSpeed: 275, accel: 2220, jump: 805, airJumps: 1, weight: 1.28, friction: 0.78 },
     // Round 11B delivered his last eighteen poses. Inherits the semantic table;
     // the slower jab and down-special are his own timing, kept.
     anims: { ...SEMANTIC_ANIMS,
@@ -645,7 +645,7 @@ export const CHARACTERS = {
     theme: "#b66cff",
     shadow: "rgba(182, 108, 255, 0.38)",
     scale: 0.59,
-    stats: { speed: 392, airSpeed: 295, accel: 2400, jump: 750, airJumps: 1, weight: 1.18, friction: 0.8 },
+    stats: { speed: 392, airSpeed: 295, accel: 2400, jump: 825, airJumps: 1, weight: 1.18, friction: 0.8 },
     // Round 11B delivered his last eighteen poses. Inherits the semantic table;
     // the slow down-special is his own timing, kept.
     anims: { ...SEMANTIC_ANIMS,
@@ -690,7 +690,7 @@ export const CHARACTERS = {
     theme: "#b7b8ff",
     shadow: "rgba(183, 184, 255, 0.36)",
     scale: 0.59,
-    stats: { speed: 428, airSpeed: 372, accel: 2760, jump: 770, airJumps: 2, weight: 0.88, friction: 0.84 },
+    stats: { speed: 428, airSpeed: 372, accel: 2760, jump: 845, airJumps: 2, weight: 0.88, friction: 0.84 },
     // Round 11B delivered her last eighteen poses. Inherits the semantic table;
     // her slower run cadence and down-special timing are her own, kept.
     anims: { ...SEMANTIC_ANIMS,
@@ -734,7 +734,7 @@ export const CHARACTERS = {
     theme: "#ffd35a",
     shadow: "rgba(255, 205, 82, 0.32)",
     scale: 0.60,
-    stats: { speed: 388, airSpeed: 285, accel: 2380, jump: 715, airJumps: 1, weight: 1.14, friction: 0.8 },
+    stats: { speed: 388, airSpeed: 285, accel: 2380, jump: 785, airJumps: 1, weight: 1.14, friction: 0.8 },
     // Round 11B delivered his last eighteen poses. Inherits the semantic table;
     // the faster heavy and the very slow looping down-special are his own.
     anims: { ...SEMANTIC_ANIMS,
@@ -779,7 +779,7 @@ export const CHARACTERS = {
     fxElement: "steel",  // Heavenly Restriction: no cursed energy — steel glints, never a glow
     shadow: "rgba(168, 174, 184, 0.34)",
     scale: 0.60,
-    stats: { speed: 465, airSpeed: 350, accel: 2980, jump: 780, airJumps: 1, weight: 1.04, friction: 0.87 },
+    stats: { speed: 465, airSpeed: 350, accel: 2980, jump: 860, airJumps: 1, weight: 1.04, friction: 0.87 },
     // Round 11B delivered his last eighteen poses — the last fighter on the
     // sprite sheets. Inherits the semantic table; the fast jab and quicker
     // ultimate are his own timing, kept.
@@ -829,7 +829,7 @@ export const CHARACTERS = {
     theme: "#ff4c55",
     shadow: "rgba(255, 67, 75, 0.4)",
     scale: 0.60,
-    stats: { speed: 435, airSpeed: 322, accel: 2700, jump: 755, airJumps: 1, weight: 1.06, friction: 0.83 },
+    stats: { speed: 435, airSpeed: 322, accel: 2700, jump: 830, airJumps: 1, weight: 1.06, friction: 0.83 },
     // Round 11B delivered his last eighteen poses, so every action has its own
     // drawing and every override here was saying what the shared table says.
     // His crouch attack loses its third frame with them: the sheet happened to
@@ -881,7 +881,7 @@ export const CHARACTERS = {
     fxElement: "soul",  // hits touch the soul
     shadow: "rgba(177, 92, 255, 0.4)",
     scale: 0.60,
-    stats: { speed: 422, airSpeed: 328, accel: 2600, jump: 760, airJumps: 1, weight: 0.98, friction: 0.82 },
+    stats: { speed: 422, airSpeed: 328, accel: 2600, jump: 835, airJumps: 1, weight: 0.98, friction: 0.82 },
     // Inherits the semantic table; these keep this fighter's own timing.
     anims: { ...SEMANTIC_ANIMS,
       ult: { frames: ["ult_a", "ult_b"], fps: 8, loop: true },
@@ -940,7 +940,7 @@ export const CHARACTERS = {
     theme: "#7d58d8",
     shadow: "rgba(125, 88, 216, 0.38)",
     scale: 0.60,
-    stats: { speed: 398, airSpeed: 305, accel: 2440, jump: 745, airJumps: 1, weight: 1.04, friction: 0.82 },
+    stats: { speed: 398, airSpeed: 305, accel: 2440, jump: 820, airJumps: 1, weight: 1.04, friction: 0.82 },
     // Round 11B delivered his last fifteen poses, so every action has its own
     // drawing and every override here was saying the same thing the shared
     // table already says.
@@ -994,7 +994,7 @@ export const CHARACTERS = {
     fxElement: "fire",  // every hit burns
     shadow: "rgba(255, 122, 47, 0.42)",
     scale: 0.60,
-    stats: { speed: 368, airSpeed: 288, accel: 2280, jump: 720, airJumps: 1, weight: 1.16, friction: 0.79 },
+    stats: { speed: 368, airSpeed: 288, accel: 2280, jump: 790, airJumps: 1, weight: 1.16, friction: 0.79 },
     // Round 11B delivered his last seventeen poses. Inherits the semantic
     // table; the slower jab and down-special are his own timing, kept.
     anims: { ...SEMANTIC_ANIMS,
@@ -1046,7 +1046,7 @@ export const CHARACTERS = {
     theme: "#9bb36b",
     shadow: "rgba(155, 179, 107, 0.4)",
     scale: 0.58,
-    stats: { speed: 358, airSpeed: 278, accel: 2220, jump: 730, airJumps: 1, weight: 1.24, friction: 0.78 },
+    stats: { speed: 358, airSpeed: 278, accel: 2220, jump: 805, airJumps: 1, weight: 1.24, friction: 0.78 },
     // Round 11B delivered his last sixteen poses. Inherits the semantic table;
     // the slower jab and down-special are his own timing, kept.
     anims: { ...SEMANTIC_ANIMS,
@@ -1091,7 +1091,7 @@ export const CHARACTERS = {
     fxElement: "blood",  // every hit is blood
     shadow: "rgba(194, 46, 74, 0.4)",
     scale: 0.60,
-    stats: { speed: 405, airSpeed: 315, accel: 2500, jump: 750, airJumps: 1, weight: 1.06, friction: 0.82 },
+    stats: { speed: 405, airSpeed: 315, accel: 2500, jump: 825, airJumps: 1, weight: 1.06, friction: 0.82 },
     anims: SEMANTIC_ANIMS,
     light: { dmg: 8, speed: 1.05, angle: 0.31, effect: null, label: "Blood Edge", sfx: "slash" },
     heavy: { dmg: 15.5, speed: 0.98, angle: 0.44, effect: null, label: "Crimson Arc", sfx: "slashHeavy", shieldMul: 1.6 },
@@ -1130,7 +1130,7 @@ export const CHARACTERS = {
     theme: "#d8b95c",
     shadow: "rgba(216, 185, 92, 0.36)",
     scale: 0.60,
-    stats: { speed: 425, airSpeed: 330, accel: 2650, jump: 765, airJumps: 1, weight: 1.0, friction: 0.84 },
+    stats: { speed: 425, airSpeed: 330, accel: 2650, jump: 840, airJumps: 1, weight: 1.0, friction: 0.84 },
     anims: SEMANTIC_ANIMS,
     light: { dmg: 8.5, speed: 1.0, angle: 0.3, effect: null, label: "Axe Combo", sfx: "slash" },
     heavy: { dmg: 16.5, speed: 0.95, angle: 0.44, effect: null, label: "Executioner's Cleave", sfx: "slashHeavy", shieldMul: 2.0 },
@@ -1169,7 +1169,7 @@ export const CHARACTERS = {
     theme: "#8fd7e8",
     shadow: "rgba(143, 215, 232, 0.36)",
     scale: 0.60,
-    stats: { speed: 432, airSpeed: 385, accel: 2750, jump: 790, airJumps: 2, weight: 0.9, friction: 0.84 },
+    stats: { speed: 432, airSpeed: 385, accel: 2750, jump: 870, airJumps: 2, weight: 0.9, friction: 0.84 },
     anims: SEMANTIC_ANIMS,
     light: { dmg: 8, speed: 1.1, angle: 0.3, effect: null, label: "Palm Arts", sfx: "punch" },
     heavy: { dmg: 15, speed: 1.05, angle: 0.46, effect: null, label: "Sky-Splitting Palm", sfx: "punch", shieldMul: 1.5 },
@@ -1208,7 +1208,7 @@ export const CHARACTERS = {
     theme: "#ff8264",
     shadow: "rgba(255, 130, 100, 0.38)",
     scale: 0.60,
-    stats: { speed: 448, airSpeed: 345, accel: 2900, jump: 780, airJumps: 1, weight: 1.02, friction: 0.86 },
+    stats: { speed: 448, airSpeed: 345, accel: 2900, jump: 860, airJumps: 1, weight: 1.02, friction: 0.86 },
     anims: SEMANTIC_ANIMS,
     light: { dmg: 8.5, speed: 1.1, angle: 0.3, effect: null, label: "Straight Right", sfx: "punch" },
     heavy: { dmg: 16, speed: 1.0, angle: 0.44, effect: null, label: "Crushing Blow", sfx: "punch", shieldMul: 1.7 },
@@ -1247,7 +1247,7 @@ export const CHARACTERS = {
     theme: "#86d67c",
     shadow: "rgba(134, 214, 124, 0.36)",
     scale: 0.60,
-    stats: { speed: 402, airSpeed: 310, accel: 2480, jump: 745, airJumps: 1, weight: 1.05, friction: 0.82 },
+    stats: { speed: 402, airSpeed: 310, accel: 2480, jump: 820, airJumps: 1, weight: 1.05, friction: 0.82 },
     anims: SEMANTIC_ANIMS,
     light: { dmg: 8, speed: 1.0, angle: 0.3, effect: null, label: "Umbrella Blade", sfx: "slash" },
     heavy: { dmg: 15.5, speed: 0.98, angle: 0.44, effect: null, label: "Contract Cleave", sfx: "slashHeavy", shieldMul: 1.6 },
@@ -1293,7 +1293,7 @@ export const CHARACTERS = {
     theme: "#d89b3f",
     shadow: "rgba(216, 155, 63, 0.36)",
     scale: 0.60,
-    stats: { speed: 356, airSpeed: 272, accel: 2200, jump: 710, airJumps: 1, weight: 1.18, friction: 0.79 },
+    stats: { speed: 356, airSpeed: 272, accel: 2200, jump: 780, airJumps: 1, weight: 1.18, friction: 0.79 },
     anims: SEMANTIC_ANIMS,
     light: { dmg: 9, speed: 0.92, angle: 0.32, effect: null, label: "Guitar Swing", sfx: "punch" },
     heavy: { dmg: 17, speed: 0.88, angle: 0.44, effect: null, label: "Amp Smash", sfx: "slashHeavy", shieldMul: 1.7 },
@@ -1347,7 +1347,7 @@ export const CHARACTERS = {
     fxElement: "machine",  // a cursed corpse full of cannons: glints, sparks, steam
     shadow: "rgba(99, 199, 176, 0.36)",
     scale: 0.60,
-    stats: { speed: 372, airSpeed: 286, accel: 2280, jump: 720, airJumps: 1, weight: 1.22, friction: 0.79 },
+    stats: { speed: 372, airSpeed: 286, accel: 2280, jump: 790, airJumps: 1, weight: 1.22, friction: 0.79 },
     anims: SEMANTIC_ANIMS,
     light: { dmg: 8.5, speed: 1.0, angle: 0.3, effect: null, label: "Sword Option", sfx: "slash" },
     heavy: { dmg: 17, speed: 0.9, angle: 0.42, effect: null, label: "Ultra Spin", sfx: "slashHeavy", shieldMul: 2.1 },
@@ -1390,7 +1390,7 @@ export const CHARACTERS = {
     theme: "#ffb703",
     shadow: "rgba(255, 183, 3, 0.36)",
     scale: 0.60,
-    stats: { speed: 430, airSpeed: 330, accel: 2700, jump: 770, airJumps: 1, weight: 1.04, friction: 0.85 },
+    stats: { speed: 430, airSpeed: 330, accel: 2700, jump: 845, airJumps: 1, weight: 1.04, friction: 0.85 },
     anims: SEMANTIC_ANIMS,
     light: { dmg: 8.5, speed: 1.08, angle: 0.28, effect: null, label: "Bombaye Jab", sfx: "punch" },
     heavy: { dmg: 17.5, speed: 0.95, angle: 0.46, effect: null, label: "Star Rage Hook", sfx: "punch", shieldMul: 1.8 },
@@ -1442,7 +1442,7 @@ export const CHARACTERS = {
     fxElement: "water",  // he generates the sea out of cursed energy
     shadow: "rgba(47, 143, 216, 0.4)",
     scale: 0.58,
-    stats: { speed: 350, airSpeed: 300, accel: 2200, jump: 740, airJumps: 1, weight: 1.26, friction: 0.78 },
+    stats: { speed: 350, airSpeed: 300, accel: 2200, jump: 815, airJumps: 1, weight: 1.26, friction: 0.78 },
     anims: SEMANTIC_ANIMS,
     light: { dmg: 9.5, speed: 0.92, angle: 0.32, effect: "drench", label: "Tide Lash", sfx: "punch" },
     heavy: { dmg: 17.5, speed: 0.88, angle: 0.44, effect: "drench", label: "Deluge Sweep", sfx: "slashHeavy", shieldMul: 1.7 },
@@ -1495,7 +1495,7 @@ export const CHARACTERS = {
     fxElement: "swarm",  // every hit is partly the roaches
     shadow: "rgba(143, 59, 78, 0.4)",
     scale: 0.60,
-    stats: { speed: 412, airSpeed: 340, accel: 2520, jump: 760, airJumps: 2, weight: 1.08, friction: 0.82 },
+    stats: { speed: 412, airSpeed: 340, accel: 2520, jump: 835, airJumps: 2, weight: 1.08, friction: 0.82 },
     anims: SEMANTIC_ANIMS,
     light: { dmg: 8.5, speed: 1.05, angle: 0.3, effect: "infest", label: "Festering Slash", sfx: "slash" },
     heavy: { dmg: 16, speed: 0.98, angle: 0.44, effect: "infest", label: "Ranshoto Cleave", sfx: "slashHeavy", shieldMul: 1.7 },

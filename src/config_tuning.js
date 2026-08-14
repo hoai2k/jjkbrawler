@@ -48,10 +48,17 @@ export const HEIGHT_COMPRESSION = 1.0;
 export const HEIGHT_MIN_RATIO = 0.84;
 export const HEIGHT_MAX_RATIO = 1.14;
 
-// Rendered head height in game pixels for a fighter at ratio 1.0. Chosen so the
-// roster's average drawn height is unchanged from before heights were canon —
-// the fighters redistribute around it, the game does not globally resize.
-export const HEIGHT_BASE_PX = 175.3;
+// Rendered head height in game pixels for a fighter at ratio 1.0.
+//
+// Was 175.3 (chosen to keep the roster's average drawn height unchanged when
+// heights became canon). The level-design review (docs/level-design-review.md,
+// G1) found that at that size no fighter could jump their own height and every
+// main platform was only ~4–5 body-heights long — the boards had no room for
+// Smash-style spacing or vertical play. 149 shrinks the roster ~15%: mains
+// read ~5.3–6.5 body-heights, tier steps land near body height, and the
+// dynamic camera (camera.js) zooms in to keep fighters visually large when
+// the fight is close.
+export const HEIGHT_BASE_PX = 149;
 
 // A fighter with no published height and nothing to infer from. 1.0 means "as
 // tall as the reference", which is a neutral default rather than a claim.
