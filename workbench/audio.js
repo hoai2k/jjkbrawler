@@ -281,6 +281,21 @@ function trackRow(t) {
 // readout starts by describing the status quo and every change to it is
 // visible as a change.
 const chosen = new Map();
+
+// Files marked for deletion, and files marked to move to a different voice
+// group. Both are decisions ABOUT A FILE rather than about a sound, so they
+// live beside `chosen` rather than inside it: a take can be dropped from the
+// group it is in and still be wanted somewhere else, and one that is wanted
+// nowhere should stop taking up space in assets/sfx/.
+const deleted = new Set();
+const moved = new Map();
+
+// Where a take can be moved TO: the voice groups and the KO cries, which are
+// the sounds a wordless take could plausibly belong to. Deliberately not every
+// voice-category sound — nothing here belongs in a Domain Expansion call-out.
+const MOVE_TARGETS = [
+  ...new Set([...Object.values(GRUNT_GROUPS), ...Object.values(KO_FOR_GROUP)]),
+].filter((k) => SFX[k]);
 function chosenFor(key, entry) {
   if (!chosen.has(key)) chosen.set(key, new Set([entry.file].flat()));
   return chosen.get(key);
@@ -300,7 +315,7 @@ function fileRow(key, entry, file, kind, label, exclusive) {
 
   const body = document.createElement("div");
   const tick = document.createElement("label");
-  tick.className = "tick";
+  tick.className = "tick tick--keep";
   const box = document.createElement("input");
   const set = chosenFor(key, entry);
   box.type = exclusive ? "radio" : "checkbox";
@@ -318,8 +333,72 @@ function fileRow(key, entry, file, kind, label, exclusive) {
     refreshChooser(key, entry);
   });
   tick.append(box, document.createTextNode(exclusive ? "use" : "keep"));
+
+  // Delete. Contradicts "keep", so ticking one clears the other rather than
+  // letting a file be both wanted and binned — the export would have to guess.
+  const binLabel = document.createElement("label");
+  binLabel.className = "tick tick--bin";
+  const bin = document.createElement("input");
+  bin.type = "checkbox";
+  bin.checked = deleted.has(file);
+  binLabel.append(bin, document.createTextNode("delete"));
+
+  // Move to another group. The checkbox is the decision; the select is where it
+  // goes, and stays hidden until there is a decision to make, because most rows
+  // are never moved and a select on every one of them is noise.
+  const moveLabel = document.createElement("label");
+  moveLabel.className = "tick tick--move";
+  const mover = document.createElement("input");
+  mover.type = "checkbox";
+  mover.checked = moved.has(file);
+  moveLabel.append(mover, document.createTextNode("move"));
+
+  const where = document.createElement("select");
+  where.className = "move-to";
+  where.hidden = !moved.has(file);
+  for (const target of MOVE_TARGETS) {
+    const opt = document.createElement("option");
+    opt.value = target;
+    opt.textContent = voiceGroupName(target.replace(/^ko/, "KO ")) || target;
+    if (target === key) opt.disabled = true;
+    where.append(opt);
+  }
+  where.value = moved.get(file) || MOVE_TARGETS.find((t) => t !== key);
+
+  const syncRow = () => {
+    row.classList.toggle("binned", bin.checked);
+    row.classList.toggle("moving", mover.checked);
+    where.hidden = !mover.checked;
+    refreshChooser(key, entry);
+  };
+  bin.addEventListener("change", () => {
+    if (bin.checked) {
+      deleted.add(file);
+      box.checked = false;
+      set.delete(file);
+      mover.checked = false;
+      moved.delete(file);
+    } else {
+      deleted.delete(file);
+    }
+    syncRow();
+  });
+  mover.addEventListener("change", () => {
+    if (mover.checked) {
+      moved.set(file, where.value);
+      bin.checked = false;
+      deleted.delete(file);
+    } else {
+      moved.delete(file);
+    }
+    syncRow();
+  });
+  where.addEventListener("change", () => { moved.set(file, where.value); refreshChooser(key, entry); });
+
   body.innerHTML = `<code>${file}</code> <span class="from">${label}</span>`;
-  body.append(tick);
+  body.append(tick, binLabel, moveLabel, where);
+  row.classList.toggle("binned", bin.checked);
+  row.classList.toggle("moving", mover.checked);
   row.append(play, body);
   return row;
 }
@@ -389,14 +468,31 @@ async function exportChanges() {
     changes.push(change);
   }
 
+  // A move is a file leaving one group for another, so it is reported once,
+  // whole, rather than as a removal in one sound and an addition in another
+  // that somebody has to pair up by hand.
+  const reassignments = [...moved].map(([file, to]) => ({
+    file,
+    from: Object.keys(SFX).find((k) => [SFX[k].file].flat().includes(file))
+      || Object.entries(VOICE_ALTERNATES).find(([, list]) =>
+           list.some((a) => [a.file].flat().includes(file)))?.[0] || null,
+    to,
+  }));
+  const deletions = [...deleted];
+
+  const parts = [];
+  if (changes.length) parts.push(`${changes.length} sound(s) changed`);
+  if (deletions.length) parts.push(`${deletions.length} file(s) to delete`);
+  if (reassignments.length) parts.push(`${reassignments.length} file(s) to move`);
+
   const doc = {
     tool: "audio-workbench",
-    format: 1,
+    format: 2,
     benchCacheKey: CACHE_KEY || null,
-    summary: changes.length
-      ? `${changes.length} sound(s) changed`
-      : "no changes — every sound is still as it ships",
+    summary: parts.join(" · ") || "no changes — everything is still as it ships",
     changes,
+    deletions,
+    reassignments,
   };
   const blob = new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
@@ -404,9 +500,7 @@ async function exportChanges() {
   a.download = "audio-workbench-changes.json";
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-  els.loadState.textContent = changes.length
-    ? `exported ${changes.length} change(s)`
-    : "exported — nothing changed yet";
+  els.loadState.textContent = parts.length ? `exported: ${parts.join(", ")}` : "exported — nothing changed yet";
   els.loadState.className = "loading done";
 }
 

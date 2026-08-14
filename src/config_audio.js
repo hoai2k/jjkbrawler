@@ -87,18 +87,18 @@ export const SFX = {
   // ---- Tier 3: character voices. Groups are picked in GRUNT_GROUPS (audio.js)
   // and one variant is drawn at random per call, so a repeated special does not
   // loop the identical sample.
-  gruntYoungMale: { file: ["grunt_young_male_alt_1.mp3", "grunt_young_male_alt_2.mp3"], category: "voice" },
-  gruntAdultMale: { file: ["grunt_adult_male_1.mp3", "grunt_adult_male_2.mp3", "grunt_adult_male_3.mp3"], category: "voice" },
-  gruntBig: { file: "grunt_big_alt_1.mp3", category: "voice" },
+  gruntYoungMale: { file: ["grunt_young_male_alt_2.mp3", "grunt_young_male_alt_4.mp3", "grunt_young_male_alt_6.mp3"], category: "voice" },
+  gruntAdultMale: { file: ["grunt_adult_male_alt_5.mp3", "grunt_adult_male_alt_6.mp3"], category: "voice" },
+  gruntBig: { file: "grunt_big_alt_6.mp3", category: "voice" },
   gruntFemale: { file: ["grunt_female_alt_1.mp3", "grunt_female_alt_2.mp3", "grunt_female_alt_3.mp3"], category: "voice" },
-  gruntMonster: { file: ["grunt_monster_1.mp3", "grunt_monster_2.mp3", "grunt_monster_3.mp3"], category: "voice" },
-  gruntAnimal: { file: ["grunt_animal_1.mp3", "grunt_animal_2.mp3", "grunt_animal_3.mp3"], category: "voice" },
+  gruntMonster: { file: "grunt_monster_alt_3.mp3", category: "voice" },
+  gruntAnimal: { file: "grunt_animal_2.mp3", category: "voice" },
 
-  koYoungMale: { file: "ko_young_male.mp3", category: "voice" },
-  koAdultMale: { file: "ko_adult_male.mp3", category: "voice" },
-  koBig: { file: "ko_big.mp3", category: "voice" },
-  koFemale: { file: "ko_female.mp3", category: "voice" },
-  koMonster: { file: "ko_monster.mp3", category: "voice" },
+  koYoungMale: { file: "ko_young_male_alt_2.mp3", category: "voice" },
+  koAdultMale: { file: "ko_adult_male_alt_3.mp3", category: "voice" },
+  koBig: { file: "ko_big_alt_1.mp3", category: "voice" },
+  koFemale: { file: "ko_female_alt_2.mp3", category: "voice" },
+  koMonster: { file: "ko_monster_alt_2.mp3", category: "voice" },
   koAnimal: { file: "ko_animal.mp3", category: "voice" },
 
   // ---- Tier 4: menus
@@ -306,55 +306,85 @@ export const VOICE_ALTERNATES = {
       note: "the first delivery — gentle, before the 0.86 resample" },
   ],
 
-  // ---- effort grunts
+  // ---- every take that exists for a voice group and is not currently in it.
   //
-  // Round 13's takes are the WORDLESS ones, and that is the whole distinction:
-  // round 12 used kiai — せいっ, どりゃっ — which a voice model articulates
-  // because they are things a person chooses to say. These are stopped vowels
-  // and nasals, which have no lexical content to articulate.
-  // tools/audit_voice_takes.py counts utterances and flags anything that comes
-  // back as more than one, which is what a word looks like from the outside.
+  // Listed exhaustively ON PURPOSE. The bench is now where takes get pruned as
+  // well as chosen, and a file nobody can see is a file nobody can delete — so
+  // the rejected rounds stay visible until somebody says otherwise, rather than
+  // quietly accumulating in assets/sfx/ where the only way to find them is a
+  // directory listing.
   gruntYoungMale: [
-    { name: "Wordless", file: ["grunt_young_male_alt_4.mp3", "grunt_young_male_alt_5.mp3", "grunt_young_male_alt_6.mp3"],
-      note: "round 13 — non-lexical, one utterance each" },
-    { name: "Round 12", file: ["grunt_young_male_alt_3.mp3"],
-      note: "the one of that trio not already in game" },
+    { name: "Round 13", file: ["grunt_young_male_alt_5.mp3"],
+      note: "wordless bank — non-lexical, one utterance each" },
+    { name: "Round 12", file: ["grunt_young_male_alt_1.mp3", "grunt_young_male_alt_3.mp3"],
+      note: "the kiai round; some of these contain words" },
+    { name: "Original", file: ["grunt_young_male_1.mp3", "grunt_young_male_2.mp3", "grunt_young_male_3.mp3"],
+      note: "the round-8 take, from the sound-effects endpoint" },
   ],
   gruntAdultMale: [
-    { name: "Wordless", file: ["grunt_adult_male_alt_4.mp3", "grunt_adult_male_alt_5.mp3", "grunt_adult_male_alt_6.mp3"],
-      note: "round 13 — recast to a different voice, non-lexical" },
-    { name: "Round 12", file: ["grunt_adult_male_alt_2.mp3", "grunt_adult_male_alt_3.mp3"],
-      note: "kept for comparison; alt_1 of that trio came back SILENT and is not offered" },
+    { name: "Round 13", file: ["grunt_adult_male_alt_4.mp3"],
+      note: "wordless bank — non-lexical, one utterance each" },
+    { name: "Round 12", file: ["grunt_adult_male_alt_1.mp3", "grunt_adult_male_alt_2.mp3", "grunt_adult_male_alt_3.mp3"],
+      note: "the kiai round; some of these contain words" },
+    { name: "Original", file: ["grunt_adult_male_1.mp3", "grunt_adult_male_2.mp3", "grunt_adult_male_3.mp3"],
+      note: "the round-8 take, from the sound-effects endpoint" },
   ],
   gruntBig: [
-    { name: "Wordless", file: ["grunt_big_alt_4.mp3", "grunt_big_alt_5.mp3", "grunt_big_alt_6.mp3"],
-      note: "round 13 — non-lexical, from the chest" },
-    { name: "Round 12", file: ["grunt_big_alt_2.mp3", "grunt_big_alt_3.mp3"],
-      note: "the rest of that trio" },
+    { name: "Round 13", file: ["grunt_big_alt_4.mp3", "grunt_big_alt_5.mp3"],
+      note: "wordless bank — non-lexical, one utterance each" },
+    { name: "Round 12", file: ["grunt_big_alt_1.mp3", "grunt_big_alt_2.mp3", "grunt_big_alt_3.mp3"],
+      note: "the kiai round; some of these contain words" },
+    { name: "Original", file: ["grunt_big_1.mp3", "grunt_big_2.mp3", "grunt_big_3.mp3"],
+      note: "the round-8 take, from the sound-effects endpoint" },
   ],
-  // The monster group had no alternates at all until now.
+  gruntFemale: [
+    { name: "Original", file: ["grunt_female_1.mp3", "grunt_female_2.mp3", "grunt_female_3.mp3"],
+      note: "the round-8 take, from the sound-effects endpoint" },
+  ],
   gruntMonster: [
-    { name: "Wordless", file: ["grunt_monster_alt_1.mp3", "grunt_monster_alt_2.mp3", "grunt_monster_alt_3.mp3"],
-      note: "round 13 — snarl, growl and huff, resampled to 0.85" },
+    { name: "Round 13", file: ["grunt_monster_alt_1.mp3", "grunt_monster_alt_2.mp3"],
+      note: "wordless bank — non-lexical, one utterance each" },
+    { name: "Original", file: ["grunt_monster_1.mp3", "grunt_monster_2.mp3", "grunt_monster_3.mp3"],
+      note: "the round-8 take, from the sound-effects endpoint" },
   ],
-
-  // ---- KO cries
-  //
-  // Three for each of the six, because none of the originals worked. Longer and
-  // wilder than an effort grunt — a KO cry plays once, as its owner leaves the
-  // stage — but held to the same rule about words.
-  koYoungMale: [{ name: "Wordless", file: ["ko_young_male_alt_1.mp3", "ko_young_male_alt_2.mp3", "ko_young_male_alt_3.mp3"],
-    note: "round 13 — a cry, not an exclamation" }],
-  koAdultMale: [{ name: "Wordless", file: ["ko_adult_male_alt_1.mp3", "ko_adult_male_alt_2.mp3", "ko_adult_male_alt_3.mp3"],
-    note: "round 13 — recast, a cry rather than an exclamation" }],
-  koBig: [{ name: "Wordless", file: ["ko_big_alt_1.mp3", "ko_big_alt_2.mp3", "ko_big_alt_3.mp3"],
-    note: "round 13 — a bellow, resampled to 0.94" }],
-  koFemale: [{ name: "Wordless", file: ["ko_female_alt_1.mp3", "ko_female_alt_2.mp3", "ko_female_alt_3.mp3"],
-    note: "round 13 — a cry, not an exclamation" }],
-  koMonster: [{ name: "Wordless", file: ["ko_monster_alt_1.mp3", "ko_monster_alt_2.mp3", "ko_monster_alt_3.mp3"],
-    note: "round 13 — shriek, roar and rattle, resampled to 0.85" }],
-  koAnimal: [{ name: "Wordless", file: ["ko_animal_alt_1.mp3", "ko_animal_alt_2.mp3", "ko_animal_alt_3.mp3"],
-    note: "round 13 — yelp, cry and huff, resampled to 0.88" }],
+  gruntAnimal: [
+    { name: "Original", file: ["grunt_animal_1.mp3", "grunt_animal_3.mp3"],
+      note: "the round-8 take, from the sound-effects endpoint" },
+  ],
+  koYoungMale: [
+    { name: "Round 13", file: ["ko_young_male_alt_1.mp3", "ko_young_male_alt_3.mp3"],
+      note: "wordless bank — non-lexical, one utterance each" },
+    { name: "Original", file: ["ko_young_male.mp3"],
+      note: "the round-8 take, from the sound-effects endpoint" },
+  ],
+  koAdultMale: [
+    { name: "Round 13", file: ["ko_adult_male_alt_1.mp3", "ko_adult_male_alt_2.mp3"],
+      note: "wordless bank — non-lexical, one utterance each" },
+    { name: "Original", file: ["ko_adult_male.mp3"],
+      note: "the round-8 take, from the sound-effects endpoint" },
+  ],
+  koBig: [
+    { name: "Round 13", file: ["ko_big_alt_2.mp3", "ko_big_alt_3.mp3"],
+      note: "wordless bank — non-lexical, one utterance each" },
+    { name: "Original", file: ["ko_big.mp3"],
+      note: "the round-8 take, from the sound-effects endpoint" },
+  ],
+  koFemale: [
+    { name: "Round 13", file: ["ko_female_alt_1.mp3", "ko_female_alt_3.mp3"],
+      note: "wordless bank — non-lexical, one utterance each" },
+    { name: "Original", file: ["ko_female.mp3"],
+      note: "the round-8 take, from the sound-effects endpoint" },
+  ],
+  koMonster: [
+    { name: "Round 13", file: ["ko_monster_alt_1.mp3", "ko_monster_alt_3.mp3"],
+      note: "wordless bank — non-lexical, one utterance each" },
+    { name: "Original", file: ["ko_monster.mp3"],
+      note: "the round-8 take, from the sound-effects endpoint" },
+  ],
+  koAnimal: [
+    { name: "Round 13", file: ["ko_animal_alt_1.mp3", "ko_animal_alt_2.mp3", "ko_animal_alt_3.mp3"],
+      note: "wordless bank — non-lexical, one utterance each" },
+  ],
 };
 
 // ------------------------------------------------- spoken lines as wind-up
