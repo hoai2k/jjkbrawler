@@ -189,10 +189,29 @@ fighter in a T- or A-pose, in a live viewport you can orbit and zoom, with a
 rotation handle on every bone.
 
 Pick a bone — from the list, or by clicking its dot on the body — and drag one
-of the three rings until the pose looks like an actual T. Red turns about X,
-green about Y, blue about Z, and a ring seen edge-on goes dim, because a
-thirteen-pixel ellipse cannot be dragged accurately and no amount of trying
-changes that: orbit until it opens up.
+of the four rings until the pose looks like an actual T.
+
+The three coloured rings turn about the bone's own axes: red X, green Y, blue
+Z. They write a clean single-axis number, and they are the ones you cannot
+always use — a ring seen edge-on projects thirteen pixels wide and cannot be
+dragged accurately by anyone, so it goes dim to say so. The fourth, white and
+outside them, turns the bone in the **plane of the screen**, about whatever the
+camera is looking down. It is face-on by construction, so there is never a
+joint you have to orbit twice to reach: nudge it the way it looks wrong and the
+bench works out which axes that was.
+
+Bone dots have a click target much larger than the dot, and picking is done in
+screen space — for both dots and rings, because a ray that must hit the
+geometry makes the target the geometry's size, and these are deliberately small
+so they do not bury the body they are drawn on.
+
+**Mannequin ghost** overlays the stand-in — the one body in the project that is
+certainly correct, being written out in code rather than generated — scaled to
+this fighter and posed by the same call. It turns "does this look like a
+T-pose" into "does this match that". Overlaid rather than beside on purpose: a
+five-degree shoulder is invisible when you are comparing two silhouettes from
+memory, and obvious as a green edge sticking out of one. Its *proportions* are
+the stand-in's, so judge angles and symmetry against it, not limb lengths.
 
 **What you are editing is not the pose.** It is the fighter's entry in
 `RIG_FIXES`, so a shoulder straightened here is straightened in the idle, the
@@ -201,8 +220,10 @@ figure in front of you is drawn by exactly the code that will draw it in the
 game — and **Corrections on/off** switches the whole layer, so you can see the
 `.glb` as delivered and what the engine makes of it, one click apart.
 
-**⤓ Download corrections** hands back every fighter touched in the session, in
-the shape `RIG_FIXES` takes:
+**Handing the work back** is a paste box and two buttons, pinned to the bottom
+of the panel: ⧉ Copy for a message, ⤓ Download for a file. The box holds the
+same payload the file does — every fighter touched in the session, in the shape
+`RIG_FIXES` takes:
 
 ```jsonc
 { "kind": "render3d-model-bench",

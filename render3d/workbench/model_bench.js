@@ -43,7 +43,8 @@
 import * as THREE from "../../vendor/three/three.module.js";
 import { GLTFLoader } from "../../vendor/three/loaders/GLTFLoader.js";
 import * as rig from "../src/loader.js";
-import { initPose, poseRig, RIG_CHECK_POSES } from "../src/pose.js";
+import { initPose, poseRig, captureCleanPose, RIG_CHECK_POSES } from "../src/pose.js";
+import { buildMannequin, MANNEQUIN_HEIGHT_M } from "../src/mannequin.js";
 import { RIG_FIXES, MODEL_FIXES, pendingFixes, setModelFixesEnabled } from "../src/rig_fixes.js";
 import { setWorldWidth } from "../src/outline.js";
 import { CHARACTER_KEYS, CHARACTERS } from "../../src/characters.js";
@@ -91,7 +92,7 @@ document.querySelector("main.layout").outerHTML = `
         dot to pick that bone · drag a ring to turn it</p>
       <div id="status" class="mono"></div>
     </section>
-    <aside class="pane">
+    <aside class="panel">
       <label>Character
         <select id="charSelect"></select>
       </label>
@@ -106,6 +107,10 @@ document.querySelector("main.layout").outerHTML = `
       </div>
       <label class="check"><input id="showBones" type="checkbox" checked> Bone dots</label>
       <label class="check"><input id="showFixes" type="checkbox" checked> Corrections on</label>
+      <label class="check"><input id="showMannequin" type="checkbox"> Mannequin ghost</label>
+      <p class="hint">The stand-in built exactly to spec, scaled to this
+        fighter and standing in the same pose — what a correct T-pose looks
+        like, in the same pixels as the one you are judging.</p>
       <p class="hint">Turn corrections off to see the .glb as delivered. The
         difference between the two IS the bake list.</p>
 
@@ -120,11 +125,15 @@ document.querySelector("main.layout").outerHTML = `
       <h3>Corrections</h3>
       <div id="fixList" class="mono"></div>
 
-      <div class="row">
-        <button id="download" class="primary">⤓ Download corrections</button>
+      <h3>Hand it back</h3>
+      <textarea id="fixText" class="mono" rows="8" readonly spellcheck="false"></textarea>
+      <div class="row handback">
+        <button id="copyFixes" class="ghost sm">⧉ Copy</button>
+        <button id="download" class="primary">⤓ Download</button>
       </div>
-      <p class="hint">One file for the whole session — every fighter you
-        touched, in the shape <code>RIG_FIXES</code> takes.</p>
+      <p class="hint">The box is the same thing the file is — paste it straight
+        into a message if that is easier. Every fighter you touched this
+        session, in the shape <code>RIG_FIXES</code> takes.</p>
     </aside>
   </main>`;
 
@@ -146,6 +155,7 @@ const state = {
   bone: null,
   showBones: true,
   showFixes: true,
+  mannequin: false,
 };
 
 // ------------------------------------------------------------------ the scene
@@ -245,14 +255,14 @@ function seed(charKey) {
 }
 
 /** Turn the selected bone about one of its parent's axes. `axis` is 0/1/2. */
-function nudge(boneName, axis, rad) {
+function nudge(boneName, axisParent, rad) {
   if (!rad) return;
   const m = editsFor(state.char);
   const q = m.get(boneName) || new THREE.Quaternion();
-  const v = new THREE.Vector3(axis === 0 ? 1 : 0, axis === 1 ? 1 : 0, axis === 2 ? 1 : 0);
   // PREMULTIPLY, matching applyRigFixes: the correction is read in the
   // parent's frame, so a second drag composes on the left of the first.
-  m.set(boneName, new THREE.Quaternion().setFromAxisAngle(v, rad).multiply(q));
+  m.set(boneName, new THREE.Quaternion()
+    .setFromAxisAngle(axisParent.clone().normalize(), rad).multiply(q));
   publish(state.char);
   syncBonePanel();
   syncFixList();
@@ -278,6 +288,52 @@ function setAxis(boneName, axis, deg) {
 // correction layer — which reads the table this page is editing.
 
 function currentRig() { return rig.getRig(state.char); }
+
+// ------------------------------------------------------------ the mannequin
+//
+// THE STAND-IN, BUILT TO SPEC. It is the one body in the project that is
+// certainly correct — a skeleton written out in code, level and symmetric,
+// with no generator's opinion in it. Standing it in the same pose, scaled to
+// the same height, in the same pixels, turns "does this look like a T-pose"
+// into "does this match that", which is a question a person can answer.
+//
+// A GHOST, not a second figure beside the first. Side by side you compare two
+// silhouettes from memory and a five-degree shoulder is invisible; overlaid,
+// the same five degrees is a green edge sticking out of a shoulder.
+
+let mannequin = null;
+function ensureMannequin() {
+  if (mannequin) return mannequin;
+  const built = buildMannequin(THREE);
+  built.root.traverse((o) => {
+    if (!o.isMesh) return;
+    o.material = new THREE.MeshBasicMaterial({
+      color: 0x7bd88f, transparent: true, opacity: 0.28, depthWrite: false });
+    o.renderOrder = 5;
+  });
+  captureCleanPose(built.root);
+  mannequin = { root: built.root, height: built.height, clips: new Map(),
+                mixer: new THREE.AnimationMixer(built.root), actions: new Map() };
+  return mannequin;
+}
+
+function poseMannequin() {
+  const r = currentRig();
+  const m = state.mannequin && r ? ensureMannequin() : mannequin;
+  if (!m) return;
+  if (!state.mannequin || !r) {
+    if (m.root.parent) scene.remove(m.root);
+    return;
+  }
+  if (!m.root.parent) scene.add(m.root);
+  // The SAME call the character gets, so any difference on screen is a
+  // difference in the models rather than in how they were posed.
+  poseRig(m, "idle", 0, null, { rigCheck: state.pose });
+  // Scaled to this fighter, last: the pose is built at the mannequin's own
+  // height and then matched to theirs, so the two stand eye to eye.
+  m.root.scale.setScalar((r.height || MANNEQUIN_HEIGHT_M) / MANNEQUIN_HEIGHT_M);
+  m.root.updateMatrixWorld(true);
+}
 
 function poseNow() {
   const r = currentRig();
@@ -365,6 +421,19 @@ const AXES = [
   { i: 2, name: "Z", colour: "#6bb6ff", hex: 0x6bb6ff },
 ];
 
+/** THE VIEW RING — turn the bone in the plane of the screen, about whatever
+ *  the camera is looking down.
+ *
+ *  The three axis rings are the ones that write a clean single-axis number,
+ *  and they are the ones you cannot always use: on a clavicle from the default
+ *  camera one of them projects thirteen pixels wide. This one is face-on by
+ *  construction, always, so there is never a joint you have to orbit twice to
+ *  reach — you nudge it the way it looks wrong on screen and the bench works
+ *  out which axes that was. Same white ring every 3D tool puts outside the
+ *  coloured three, and outside them here too so it is never in their way. */
+const VIEW_AXIS = 3;
+const VIEW_RING = { i: VIEW_AXIS, name: "view", colour: "#e6ecff", hex: 0xe6ecff };
+
 function syncBonePanel() {
   const rows = $("axisRows");
   const q = editsFor(state.char).get(state.bone);
@@ -397,6 +466,7 @@ function syncBonePanel() {
  *  is the sum of all of them and a list that showed only half would be read as
  *  the whole. */
 function syncFixList() {
+  syncPasteBox();
   const box = $("fixList");
   box.innerHTML = "";
   const m = editsFor(state.char);
@@ -436,6 +506,12 @@ function syncFixList() {
 // gizmo that shrinks as you dolly out is a gizmo you cannot use on a foot.
 
 const RING_SEGMENTS = 64;
+/** Bone dots as a fraction of the gizmo's on-screen size. Big enough to aim
+ *  at, small enough not to bury the body they are drawn on — the click target
+ *  is bigger than the dot (DOT_PX), which is the part that matters. */
+const DOT_SCALE = 0.075;
+/** The view ring sits outside the coloured three so it is never in their way. */
+const VIEW_RING_MUL = 1.28;
 const dotGeom = new THREE.SphereGeometry(1, 10, 8);
 const dotMat = new THREE.MeshBasicMaterial({ color: 0x8b96b3, depthTest: false });
 const dotSel = new THREE.MeshBasicMaterial({ color: 0xffcf8a, depthTest: false });
@@ -479,7 +555,7 @@ function rebuildHandles() {
       const at = bone.getWorldPosition(new THREE.Vector3());
       const d = new THREE.Mesh(dotGeom, name === state.bone ? dotSel : dotMat);
       d.position.copy(at);
-      d.scale.setScalar(gizmoScale(at) * 0.055);
+      d.scale.setScalar(gizmoScale(at) * DOT_SCALE);
       d.userData.bone = name;
       d.renderOrder = 20;
       dots.add(d);
@@ -494,16 +570,19 @@ function rebuildHandles() {
     : new THREE.Quaternion();
   const s = gizmoScale(at);
   const toCam = new THREE.Vector3().subVectors(camera.position, at).normalize();
+  const parentInv = parentQ.clone().invert();
+
   for (const ax of AXES) {
     // FADE A RING SEEN EDGE-ON. From the default camera the blue ring on a
     // clavicle projects thirteen pixels wide against the others' hundred and
     // twelve, and dragging round a thirteen-pixel ellipse is not turning a
     // bone, it is fighting the pointer — a 36° sweep came out as 6°. Nothing
-    // is broken there and nothing can fix it but a different camera angle, so
-    // the ring says so by going dim: bright means you can turn this one, faint
-    // means orbit first.
-    const normal = new THREE.Vector3(ax.i === 0 ? 1 : 0, ax.i === 1 ? 1 : 0,
-      ax.i === 2 ? 1 : 0).applyQuaternion(parentQ);
+    // is broken there and nothing can fix it but a different camera angle (or
+    // the view ring below), so the ring says so by going dim: bright means you
+    // can turn this one, faint means use another.
+    const axisParent = new THREE.Vector3(ax.i === 0 ? 1 : 0, ax.i === 1 ? 1 : 0,
+      ax.i === 2 ? 1 : 0);
+    const normal = axisParent.clone().applyQuaternion(parentQ);
     const faceOn = Math.abs(normal.dot(toCam));
     const mat = new THREE.LineBasicMaterial({ color: ax.hex, depthTest: false,
       transparent: true, opacity: 0.22 + 0.73 * faceOn });
@@ -512,10 +591,27 @@ function rebuildHandles() {
     line.quaternion.copy(parentQ);
     line.scale.setScalar(s);
     line.renderOrder = 21;
-    line.userData.axis = ax.i;
     rings.add(line);
-    ringMeshes.push({ axis: ax.i, at, parentQ, radius: s });
+    ringMeshes.push({ axis: ax.i, at, quat: parentQ.clone(), radius: s,
+                      normal, axisParent, geom: ax.i });
   }
+
+  // The view ring, outside the three so it is never in their way. Its plane is
+  // the screen's, so it is face-on by construction and there is no joint you
+  // have to orbit twice to reach.
+  const viewQuat = new THREE.Quaternion().setFromUnitVectors(
+    new THREE.Vector3(0, 0, 1), toCam);
+  const viewMat = new THREE.LineBasicMaterial({ color: VIEW_RING.hex, depthTest: false,
+    transparent: true, opacity: 0.6 });
+  const viewLine = new THREE.LineLoop(ringGeoms[2], viewMat);
+  viewLine.position.copy(at);
+  viewLine.quaternion.copy(viewQuat);
+  viewLine.scale.setScalar(s * VIEW_RING_MUL);
+  viewLine.renderOrder = 22;
+  rings.add(viewLine);
+  ringMeshes.push({ axis: VIEW_AXIS, at, quat: viewQuat, radius: s * VIEW_RING_MUL,
+                    normal: toCam.clone(),
+                    axisParent: toCam.clone().applyQuaternion(parentInv), geom: 2 });
 }
 
 // ------------------------------------------------------------------- pointing
@@ -530,19 +626,36 @@ function toNdc(ev) {
   ray.setFromCamera(ndc, camera);
 }
 
-/** How near the pointer has to be to a ring, in canvas pixels, to grab it. */
-const GRAB_PX = 12;
+/** Where a point on a ring lands on the canvas, in client pixels. */
+function ringPointOnScreen(rm, turn, box) {
+  const a = turn * Math.PI * 2;
+  const c = Math.cos(a), s = Math.sin(a);
+  const local = rm.geom === 0 ? new THREE.Vector3(0, c, s)
+    : rm.geom === 1 ? new THREE.Vector3(c, 0, s)
+      : new THREE.Vector3(c, s, 0);
+  const world = local.multiplyScalar(rm.radius).applyQuaternion(rm.quat).add(rm.at);
+  const depth = world.distanceTo(camera.position);
+  const p = world.clone().project(camera);
+  return { x: box.left + (p.x * 0.5 + 0.5) * box.width,
+           y: box.top + (0.5 - p.y * 0.5) * box.height, depth };
+}
+
+/** How near the pointer has to be to a ring or a dot, in canvas pixels, to
+ *  grab it. Generous on purpose: a bone dot is a few pixels of sphere and
+ *  asking somebody to hit that exactly is asking them to miss. */
+const GRAB_PX = 14;
+const DOT_PX = 18;
 
 /**
  * Which ring the pointer is over, IN SCREEN SPACE.
  *
- * Three rings that share a centre cross each other twice per pair, and at
- * every crossing more than one of them is under the cursor. Deciding by depth
- * — the nearest plane the ray meets — picks by which ring happens to lean
- * toward the camera, which is not what the eye picked: grabbing a point
- * visibly ON the blue ring handed back the green one, and the drag that
- * followed measured almost nothing, because the pointer was travelling across
- * the green ring's plane rather than around it.
+ * Rings that share a centre cross each other twice per pair, and at every
+ * crossing more than one of them is under the cursor. Deciding by depth — the
+ * nearest plane the ray meets — picks by which ring happens to lean toward the
+ * camera, which is not what the eye picked: grabbing a point visibly ON the
+ * blue ring handed back the green one, and the drag that followed measured
+ * almost nothing, because the pointer was travelling across the green ring's
+ * plane rather than around it.
  *
  * So it is decided the way it is seen: each ring's curve is projected to the
  * canvas and the closest one to the pointer wins. Ties at a genuine crossing
@@ -550,44 +663,48 @@ const GRAB_PX = 12;
  */
 function pickRing(clientX, clientY) {
   const box = canvas.getBoundingClientRect();
-  const px = clientX - box.left, py = clientY - box.top;
-  const v = new THREE.Vector3();
   let best = null;
   for (const rm of ringMeshes) {
-    const normal = new THREE.Vector3(rm.axis === 0 ? 1 : 0, rm.axis === 1 ? 1 : 0,
-      rm.axis === 2 ? 1 : 0).applyQuaternion(rm.parentQ);
     let near = Infinity, depth = 0;
     for (let i = 0; i < RING_SEGMENTS; i++) {
-      const a = (i / RING_SEGMENTS) * Math.PI * 2;
-      const c = Math.cos(a), s = Math.sin(a);
-      v.set(rm.axis === 0 ? 0 : c, rm.axis === 0 ? c : rm.axis === 1 ? 0 : s,
-        rm.axis === 2 ? 0 : s);
-      v.multiplyScalar(rm.radius).applyQuaternion(rm.parentQ).add(rm.at);
-      const d = v.distanceTo(camera.position);
-      v.project(camera);
-      const sx = (v.x * 0.5 + 0.5) * box.width, sy = (0.5 - v.y * 0.5) * box.height;
-      const dist = Math.hypot(sx - px, sy - py);
-      if (dist < near) { near = dist; depth = d; }
+      const p = ringPointOnScreen(rm, i / RING_SEGMENTS, box);
+      const dist = Math.hypot(p.x - clientX, p.y - clientY);
+      if (dist < near) { near = dist; depth = p.depth; }
     }
     if (near > GRAB_PX) continue;
     if (!best || near < best.near - 1 || (Math.abs(near - best.near) <= 1 && depth < best.depth)) {
-      best = { rm, normal, near, depth };
+      best = { rm, near, depth };
     }
   }
   if (!best) return null;
   // Where on that ring's plane the pointer actually is, which is what the drag
   // measures its angle from.
-  const denom = best.normal.dot(ray.ray.direction);
+  const denom = best.rm.normal.dot(ray.ray.direction);
   if (Math.abs(denom) < 1e-5) return null;
-  const t = best.normal.dot(new THREE.Vector3().subVectors(best.rm.at, ray.ray.origin)) / denom;
+  const t = best.rm.normal.dot(new THREE.Vector3().subVectors(best.rm.at, ray.ray.origin)) / denom;
   if (t <= 0) return null;
   best.point = ray.ray.at(t, new THREE.Vector3());
   return best;
 }
 
-function pickDot() {
-  const hits = ray.intersectObjects(dots.children, false);
-  return hits.length ? hits[0].object.userData.bone : null;
+/** The bone dot nearest the pointer, in screen space and within DOT_PX. Same
+ *  reasoning as the rings: a ray that has to hit a sphere makes the click
+ *  target the sphere's size, and these are deliberately small so they do not
+ *  bury the body they are drawn on. */
+function pickDot(clientX, clientY) {
+  const box = canvas.getBoundingClientRect();
+  const v = new THREE.Vector3();
+  let best = null;
+  for (const d of dots.children) {
+    v.copy(d.position).project(camera);
+    if (v.z > 1) continue;
+    const x = box.left + (v.x * 0.5 + 0.5) * box.width;
+    const y = box.top + (0.5 - v.y * 0.5) * box.height;
+    const dist = Math.hypot(x - clientX, y - clientY);
+    if (dist > DOT_PX) continue;
+    if (!best || dist < best.dist) best = { dist, bone: d.userData.bone };
+  }
+  return best ? best.bone : null;
 }
 
 let drag = null;   // { kind: "orbit" | "ring", ... }
@@ -601,12 +718,12 @@ canvas.addEventListener("pointerdown", (ev) => {
     // turning by however many pixels it moved — a drag that circles the ring
     // twice turns the bone twice, which is what a ring handle should do.
     const from = new THREE.Vector3().subVectors(ring.point, ring.rm.at);
-    drag = { kind: "ring", rm: ring.rm, normal: ring.normal, from, last: 0 };
+    drag = { kind: "ring", rm: ring.rm, normal: ring.rm.normal.clone(), from, last: 0 };
     canvas.setPointerCapture(ev.pointerId);
     ev.preventDefault();
     return;
   }
-  const bone = pickDot();
+  const bone = pickDot(ev.clientX, ev.clientY);
   if (bone) {
     state.bone = bone;
     $("boneSelect").value = bone;
@@ -618,13 +735,20 @@ canvas.addEventListener("pointerdown", (ev) => {
 });
 
 canvas.addEventListener("pointermove", (ev) => {
-  if (!drag) return;
+  if (!drag) {
+    // Say what is under the pointer before it is clicked — a handle you cannot
+    // tell you are on is a handle you grab by trial and error.
+    canvas.style.cursor = pickRing(ev.clientX, ev.clientY) ? "grab"
+      : pickDot(ev.clientX, ev.clientY) ? "pointer" : "default";
+    return;
+  }
   if (drag.kind === "orbit") {
     view.yaw -= (ev.clientX - drag.x) * 0.4;
     view.pitch = Math.max(-80, Math.min(80, view.pitch + (ev.clientY - drag.y) * 0.3));
     drag.x = ev.clientX; drag.y = ev.clientY;
     return;
   }
+  canvas.style.cursor = "grabbing";
   toNdc(ev);
   const denom = drag.normal.dot(ray.ray.direction);
   if (Math.abs(denom) < 1e-5) return;
@@ -635,7 +759,7 @@ canvas.addEventListener("pointermove", (ev) => {
   const angle = Math.atan2(
     new THREE.Vector3().crossVectors(drag.from, now).dot(drag.normal),
     drag.from.dot(now));
-  nudge(state.bone, drag.rm.axis, angle - drag.last);
+  nudge(state.bone, drag.rm.axisParent, angle - drag.last);
   drag.last = angle;
 });
 
@@ -679,6 +803,7 @@ $("boneSelect").onchange = () => { state.bone = $("boneSelect").value; syncBoneP
 // inside somebody's ribcage with no idea which way is out.
 $("viewReset").onclick = () => frameChar(currentRig());
 $("showBones").onchange = () => { state.showBones = $("showBones").checked; };
+$("showMannequin").onchange = () => { state.mannequin = $("showMannequin").checked; };
 $("showFixes").onchange = () => {
   state.showFixes = $("showFixes").checked;
   // The whole layer, not just this page's bones — "corrections off" has to
@@ -701,12 +826,11 @@ $("allReset").onclick = () => {
 
 /** The session's work, in the shape RIG_FIXES takes — paste-ready, plus enough
  *  provenance to know which build of which model it was measured against. */
-$("download").onclick = () => {
+function sessionPayload() {
   const fixes = {};
   for (const [charKey] of edits) {
-    const m = editsFor(charKey);
     const out = {};
-    for (const [bone, q] of m) {
+    for (const [bone, q] of editsFor(charKey)) {
       const e = new THREE.Euler().setFromQuaternion(q, "XYZ");
       const d = [e.x / DEG, e.y / DEG, e.z / DEG].map((v) => +v.toFixed(2));
       if (d.some((v) => Math.abs(v) > 0.005)) out[bone] = d;
@@ -716,7 +840,7 @@ $("download").onclick = () => {
                          bones: out };
     }
   }
-  const payload = {
+  return {
     kind: "render3d-model-bench",
     exported: new Date().toISOString(),
     note: "Bone corrections in the bone's PARENT frame, XYZ Euler degrees — "
@@ -725,13 +849,42 @@ $("download").onclick = () => {
       + "the fighter looking identical.",
     fixes,
   };
+}
+
+/** Keep the paste box in step with the work. It is the SAME payload the file
+ *  is, not a summary of it — a box that showed a prettier version of the truth
+ *  would be the one thing here you could not trust. */
+function syncPasteBox() {
+  const box = $("fixText");
+  if (!box) return;
+  const payload = sessionPayload();
+  box.value = Object.keys(payload.fixes).length
+    ? JSON.stringify(payload, null, 2)
+    : "// nothing edited yet — turn a bone and it appears here";
+}
+
+$("copyFixes").onclick = async () => {
+  const text = $("fixText").value;
+  try {
+    await navigator.clipboard.writeText(text);
+    $("status").textContent = "corrections copied";
+  } catch {
+    // Clipboard permission is not guaranteed and a silent failure here would
+    // look like the button doing nothing. Select it so ⌘C still works.
+    $("fixText").select();
+    $("status").textContent = "selected — press ⌘C / Ctrl-C";
+  }
+};
+
+$("download").onclick = () => {
+  const payload = sessionPayload();
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "model-corrections.json";
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  $("status").textContent = `downloaded ${Object.keys(fixes).length} fighter(s)`;
+  $("status").textContent = `downloaded ${Object.keys(payload.fixes).length} fighter(s)`;
 };
 
 // ------------------------------------------------------------------ the loop
@@ -742,6 +895,7 @@ function tick() {
   resize();
   placeCamera();
   poseNow();
+  poseMannequin();
   rebuildHandles();
   renderer.render(scene, camera);
   if (++frames % 30 === 0) {
@@ -765,18 +919,23 @@ tick();
 function ringScreenPoint(axis, turn = 0) {
   const rm = ringMeshes.find((m) => m.axis === axis);
   if (!rm) return null;
-  const a = turn * Math.PI * 2;
-  const c = Math.cos(a), s = Math.sin(a);
-  const local = axis === 0 ? new THREE.Vector3(0, c, s)
-    : axis === 1 ? new THREE.Vector3(c, 0, s)
-      : new THREE.Vector3(c, s, 0);
-  const world = local.multiplyScalar(rm.radius).applyQuaternion(rm.parentQ).add(rm.at);
-  const p = world.project(camera);
-  const box = canvas.getBoundingClientRect();
-  return { x: box.left + (p.x * 0.5 + 0.5) * box.width,
-           y: box.top + (0.5 - p.y * 0.5) * box.height };
+  const p = ringPointOnScreen(rm, turn, canvas.getBoundingClientRect());
+  return { x: p.x, y: p.y };
 }
 
 window.__modelBench = { state, edits, publish, nudge, setAxis, boneList,
-                        ringScreenPoint, view, camera, canvas, RIG_FIXES };
+                        ringScreenPoint, view, camera, canvas, RIG_FIXES,
+                        VIEW_AXIS, sessionPayload,
+                        /** Is the ghost on screen, and does it stand at this
+                         *  fighter's height? Null when it is not shown. */
+                        mannequinShown: () => {
+                          if (!mannequin?.root.parent) return null;
+                          const r = currentRig();
+                          const box = new THREE.Box3().setFromObject(mannequin.root);
+                          const top = box.max.y;
+                          const charTop = new THREE.Box3().setFromObject(r.root).max.y;
+                          return { mannequinTop: +top.toFixed(3),
+                                   charTop: +charTop.toFixed(3),
+                                   heightRatio: +(top / charTop).toFixed(3) };
+                        } };
 window.__workbenchReady = true;
