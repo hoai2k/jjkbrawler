@@ -110,12 +110,23 @@ module, lands there with a console note rather than on a broken screen.
 Authoring tools, served from the game itself — each one drives the real pipeline
 rather than a copy of it, so what a bench shows is what a match gets.
 
-| | |
-|---|---|
-| [`/workbench/?edit=audio`](workbench/) | **Audio** — every fighter with a spoken line, their idle, and each of their voice tracks with the timing the move plays at. Auditioning a take is the one thing the generator cannot check |
-| [`/sprites/workbench/`](sprites/workbench/) | 2D sprite placement, anchors, the cleanup flags |
-| [`/billboards/workbench/`](billboards/workbench/) | the 2.5D posed-model path |
-| [`/render3d/workbench/`](render3d/workbench/) | live 3D: poses, joint reads, keyframes |
+**[`/workbench/?edit=<mode>`](workbench/) reaches all of them.** Each bench
+lives beside the code it drives, which is right for the code and useless for
+the fingers; this is one address that opens any of them, and anything else in
+the query (`&char=gojo`) travels with you.
+
+| Shortcut | Bench | |
+|---|---|---|
+| [`?edit=audio`](workbench/?edit=audio) | [`/workbench/`](workbench/) | **Audio** — every fighter with a spoken line, their idle, and each of their voice tracks with the timing the move plays at. Auditioning a take is the one thing the generator cannot check |
+| [`?edit=sprites`](workbench/?edit=sprites) | [`/sprites/workbench/`](sprites/workbench/) | 2D sprite placement, anchors, the cleanup flags |
+| [`?edit=actions`](workbench/?edit=actions) | `/sprites/workbench/?edit=actions` | play any character action |
+| [`?edit=billboards`](workbench/?edit=billboards) | [`/billboards/workbench/`](billboards/workbench/) | the 2.5D posed-model path |
+| [`?edit=3d`](workbench/?edit=3d) | [`/render3d/workbench/`](render3d/workbench/) | live 3D poses |
+| [`?edit=animation`](workbench/?edit=animation) | `/render3d/workbench/?edit=animation` | the keyframe bench |
+| [`?edit=pose`](workbench/?edit=pose) | `/render3d/workbench/?edit=pose` | sprite joint reads |
+
+`node tools/smoke_workbench_routes.mjs` walks every one of those, plus the
+aliases (`sprite`, `2d`, `anim`, `render3d`, …).
 
 ## Docs
 

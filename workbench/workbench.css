@@ -54,7 +54,11 @@ h2 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: 
 .sub { color: var(--dim); font-size: 12px; margin: 0 0 12px; }
 
 /* ------------------------------------------------------------------ cast */
-.cast-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+/* The cast scrolls; the shortcut list under it does not. It is navigation —
+   the one thing on this page that is about LEAVING it — so pushing it below
+   the fold behind a roster would defeat the point of putting it here. */
+.cast { display: flex; flex-direction: column; overflow: hidden; }
+.cast-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; overflow-y: auto; }
 .cast-list button {
   width: 100%;
   text-align: left;
@@ -124,3 +128,18 @@ h2 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: 
 
 .legend { color: var(--dim); font-size: 11.5px; margin-top: 14px; line-height: 1.5; }
 .legend code { color: #b9c4e4; }
+
+/* ------------------------------------------------------- the hub shortcuts */
+.shortcuts { flex: none; margin-top: 18px; border-top: 1px solid var(--line); padding-top: 12px; }
+.shortcuts h3 {
+  margin: 0 0 8px;
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim);
+}
+.shortcuts ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.shortcuts li { display: flex; flex-direction: column; line-height: 1.3; }
+.shortcuts code { font-size: 11.5px; color: #b9c4e4; }
+.shortcuts a { text-decoration: none; }
+.shortcuts a:hover code { color: var(--accent); }
+.shortcuts span { color: var(--dim); font-size: 11px; }
+.shortcuts .sub { margin: 10px 0 0; }
+.shortcuts .unknown { color: var(--warn); font-size: 11.5px; margin: 0 0 8px; }
