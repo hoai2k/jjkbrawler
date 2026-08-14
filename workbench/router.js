@@ -15,6 +15,17 @@
 // executed and nothing is loaded for a page nobody is going to look at.
 
 (function () {
+  // The cache key for this bench's own files, and for every module they import.
+  //
+  // GitHub Pages serves HTML, CSS and JS with a ten-minute max-age, and a
+  // browser may keep an ES module in a tab's memory cache with no revalidation
+  // at all — so "I edited the bench and reloaded" can mean "the bench did not
+  // change", for longer than anyone is willing to wait. A different URL is the
+  // one thing no cache argues with.
+  //
+  // BUMP THIS WHENEVER THE BENCH CHANGES.
+  var BENCH_VERSION = "3";
+  if (document.currentScript) document.currentScript.dataset.version = BENCH_VERSION;
   // Where each mode lives. Paths are RELATIVE, so the whole thing keeps working
   // under a subdirectory — the GitHub Pages build serves this at
   // /jjkbrawler/workbench/ and absolute paths would walk out of the project.
@@ -76,4 +87,32 @@
   // replace(), not assign(): the hub is a doorway, and leaving it in the history
   // would make Back bounce off it straight back to where you just left.
   window.location.replace(target.href);
+})();
+
+// The bench's own assets, keyed so a stale copy cannot survive a reload.
+//
+// `?bust=<anything>` on the page URL wins over the baked-in version, which is
+// what the Refresh button in the header uses: it navigates to a URL nobody has
+// ever fetched, so the HTML misses the cache, and the token it carries then
+// makes the stylesheet, the module and everything the module imports miss too.
+// Read from the LIVE url rather than from this file, so it works even when this
+// file is itself the stale copy.
+(function () {
+  var version = document.currentScript && document.currentScript.dataset.version;
+  var bust = new URL(window.location.href).searchParams.get("bust");
+  var key = bust || version || "0";
+  window.__benchCacheKey = key;
+
+  var css = document.createElement("link");
+  css.rel = "stylesheet";
+  css.href = "workbench.css?v=" + encodeURIComponent(key);
+  document.head.appendChild(css);
+
+  // Module scripts are deferred whether they are parsed or injected, so
+  // appending here runs it after the document is parsed, exactly as a tag at
+  // the end of the body would have.
+  var js = document.createElement("script");
+  js.type = "module";
+  js.src = "audio.js?v=" + encodeURIComponent(key);
+  document.head.appendChild(js);
 })();

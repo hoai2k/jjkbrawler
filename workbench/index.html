@@ -6,9 +6,11 @@
     <title>Audio Workbench — JJK Brawler II</title>
     <link rel="icon" href="../favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
-    <link rel="stylesheet" href="workbench.css">
-    <!-- Runs while the document is still parsing, so `?edit=<other bench>`
-         redirects before this page's modules execute. See router.js. -->
+    <!-- router.js does two jobs, both before anything else loads: it redirects
+         `?edit=<other bench>` to the bench that owns it, and it injects this
+         page's own stylesheet and module WITH A CACHE KEY on the URL. They are
+         not linked here because the key is not always the same one — see
+         BENCH_VERSION and the ?bust= override in that file. -->
     <script src="router.js"></script>
   </head>
   <body>
@@ -20,6 +22,8 @@
         <a href="../billboards/workbench/" title="also /workbench/?edit=billboards">Billboards →</a>
         <a href="../render3d/workbench/" title="also /workbench/?edit=3d">3D →</a>
       </nav>
+      <button id="refreshBtn" class="ghost" type="button"
+              title="Reload with a fresh cache key — every file this page uses, refetched">↻ Refresh</button>
       <span id="loadState" class="loading">loading…</span>
     </header>
 
@@ -74,6 +78,5 @@
       </section>
     </main>
 
-    <script type="module" src="audio.js"></script>
   </body>
 </html>

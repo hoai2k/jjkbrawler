@@ -293,13 +293,14 @@ export const MOVE_CALL = {
 // `file` takes the same shape as an SFX entry's: a string, or several
 // interchangeable files for a group that draws one per call.
 export const VOICE_ALTERNATES = {
-  // Two Gojos, asking different questions of the same line: whether he should
-  // sound like he means it, or like it costs him nothing.
+  // Two Gojos, and neither is trying to sound impressive. An earlier attempt
+  // directed "authoritative" came back rushed, which is the opposite of a man
+  // who does not have to push. Both of these ask a quieter question instead.
   domainCallGojo: [
     {
-      name: "Commanding",
-      file: "domain_call_gojo_alt_commanding.mp3",
-      note: "authoritative — an instruction to reality rather than a remark",
+      name: "Relaxed",
+      file: "domain_call_gojo_alt_relaxed.mp3",
+      note: "even pace, stretched 4% — unhurried rather than commanding",
     },
     {
       name: "Flat",
