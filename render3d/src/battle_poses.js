@@ -157,12 +157,20 @@ export const BATTLE_POSES = {
 
   // LEAD JAB, full extension. The near (right) hand goes; the far hand stays
   // home at the cheek. Lead knee straightening, rear foot pivoted.
+  // THE JAB'S WIND-UP — and the drawing disagrees, which is the interesting
+  // part. Yuji's `attack_light_a` is drawn at full extension, but the brief is
+  // explicit that `_a` is the wind-up and `_b` is the strike, and a light
+  // attack with two contact frames and no anticipation is a light attack the
+  // opponent gets no frames to see. THE INTENT WINS: a matched pose follows
+  // the drawing where the drawing is a legitimate interpretation, not where it
+  // contradicts what the frame is FOR. Same body as the heavy's wind-up, a
+  // notch smaller, because a jab is chambered less.
   attack_light_a: p({
-    Spine: [4, 20, 0], Spine1: [2, 14, 0], Head: [0, -6, 0],
-    LeftUpLeg: [-26, 0, 2], LeftLeg: [12, 0, 0], LeftFoot: [-6, 0, 0],
-    RightUpLeg: [20, 0, -2], RightLeg: [16, 0, 0], RightFoot: [-16, 0, 0],
-    RightArm: [0, 84, 6], RightForeArm: [-4, 0, 4],
-    LeftArm: [-40, -14, -70], LeftForeArm: [-108, 0, -58],
+    Spine: [8, -32, 0], Spine1: [3, -18, 0], Head: [-2, 22, 0],
+    LeftUpLeg: [-26, 0, 4], LeftLeg: [34, 0, 0], LeftFoot: [-6, 0, 0],
+    RightUpLeg: [8, 0, -4], RightLeg: [44, 0, 0], RightFoot: [-6, 0, 0],
+    RightArm: [30, -36, 40], RightForeArm: [-112, 0, 34],
+    LeftArm: [-48, -16, -58], LeftForeArm: [-92, 0, -46],
   }),
   // The jab's second contact — a half beat later, arm still out, weight
   // arriving on the lead foot and the chest beginning to unwind.
@@ -494,17 +502,24 @@ export const BATTLE_POSES = {
                   LeftArm: [-38, -10, -62], LeftForeArm: [-96, 0, -45],
                   RightArm: [-34, 8, 62], RightForeArm: [-92, 0, 45] },
 
-  // The ults are skeletally the heavy's contact frame, per the read — the same
-  // cross, thrown bigger: a longer stance and a fuller rotation.
+  // GATHERING, then release — and again the drawing disagrees. Yuji's `ult_a`
+  // and `ult_b` are drawn as two contact frames (the read notes it: they are
+  // "skeletally the heavy's contact frame"), but the brief is unambiguous that
+  // `ult_a` is "the wind-up of their ultimate: gathering, energy at maximum,
+  // before release". An ultimate that begins already extended has no moment of
+  // gathering, which is the only thing that makes an ultimate read as one. So
+  // `ult_a` gathers, and `ult_b` releases.
   ult_a: p({
-    Spine: [0, 38, 0], Spine1: [0, 22, 0], Head: [0, -12, 0],
-    LeftUpLeg: [-34, 0, 4], LeftLeg: [10, 0, 0], LeftFoot: [-4, 0, 0],
-    RightUpLeg: [30, 0, -4], RightLeg: [12, 0, 0], RightFoot: [-34, 0, 0],
-    RightArm: [0, 90, 2], RightForeArm: [-2, 0, 2],
-    LeftArm: [-40, -8, -62], LeftForeArm: [-114, 0, -45],
+    Spine: [20, -10, 0], Spine1: [8, -6, 0], Head: [-14, 8, 0],
+    RightUpLeg: [-38, 0, 6], RightLeg: [52, 0, 0], RightFoot: [-8, 0, 0],
+    LeftUpLeg: [-32, 0, -6], LeftLeg: [48, 0, 0], LeftFoot: [-8, 0, 0],
+    LeftArm: [-56, -24, -62], LeftForeArm: [-128, 0, -48],
+    RightArm: [-54, 22, 62], RightForeArm: [-124, 0, 48],
   }),
+  // The release: the heavy's cross thrown bigger — a longer stance and a
+  // fuller rotation than any ordinary strike.
   ult_b: p({
-    Spine: [4, 32, 0], Spine1: [2, 18, 0], Head: [0, -10, 0],
+    Spine: [2, 38, 0], Spine1: [1, 22, 0], Head: [0, -12, 0],
     LeftUpLeg: [-40, 0, 4], LeftLeg: [16, 0, 0], LeftFoot: [-4, 0, 0],
     RightUpLeg: [34, 0, -4], RightLeg: [18, 0, 0], RightFoot: [-30, 0, 0],
     RightArm: [0, 76, 12], RightForeArm: [-14, 0, 14],
