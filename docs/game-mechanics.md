@@ -115,9 +115,10 @@ so is a dash attack whose slide carries its owner over the end.
 Only the main platform has grabbable ledges. Falling near an edge (after real
 airtime — no walk-off regrab loops) catches the fighter onto a hang (brief
 invincibility, refreshed double jump); getting hit knocks them off it. From the
-hang: climb (toward), **ledge roll** (shield — long invulnerable climb), **ledge
-jump** (jump), **ledge attack** (attack — climbs and swings), or drop
-(down/away). Hanging times out after 2.8 s so ledges can't be camped.
+hang: climb (toward), **ledge roll** (shield — the longest intangibility),
+**ledge jump** (jump), **ledge attack** (attack — climbs and swings), or drop
+(down/away). Hanging times out after 2.8 s, and repeatedly retaking the ledge
+costs you the intangibility that made it worth doing (below).
 
 **Getting on and off one is a move, not a teleport.** Every one of those used to
 be a single-frame jump of 40–110 px, and drawn verbatim that is a body vanishing
@@ -154,12 +155,25 @@ climbs on purpose: this is hands closing on a ledge, and a slow one feels like
 the recovery failing. Its cap is set where even the longest possible reach
 moves no faster than the **fast fall** it interrupted (15 px/frame).
 
-Each option is invulnerable for the trip plus the grace it always had after
-arriving — a fighter mid-climb cannot act, so being hittable through one would
-be worse than any alternative. That does make holding a ledge slightly safer
-than before. Smash's shape is the opposite (intangibility ends *before* the
-getup does, which is what makes ledge camping punishable); adopting it is a
-balance decision rather than an animation one and has not been taken.
+**Ledge camping is punishable, on Smash's two rules.**
+
+- **Intangibility ends before the getup does.** Each option is covered for the
+  first three quarters of its trip and *nothing* after, so the last frames of a
+  climb and the whole of the arrival are a punish window — 10 of a climb's 25
+  frames are exposed. Getting up in front of somebody who guessed right costs,
+  which is what makes ledge play a read rather than a free re-entry.
+- **It decays with every regrab, and only the ground resets it.** Full on the
+  first grab, ×0.8 after one regrab, ×0.5 after two, **nothing from the third
+  on** — Ultimate's rule verbatim
+  ([SmashWiki](https://www.ssbwiki.com/Edge)). Measured across four grabs:
+  0.50 s → 0.40 → 0.25 → 0. The loop it kills is grab → drop → regrab, which
+  never touches the stage; **climbing up clears it**, because climbing up is
+  what a ledge is for. At the far end, a fighter on their fourth consecutive
+  grab is hittable through the reach itself while unable to act. That is
+  severe, and it is meant to be: it is the fourth time in a row they chose the
+  ledge over the stage.
+
+Both are guarded, each against a mutation that turns it back off.
 
 Guarded by `tools/smoke_ledge.mjs`, which checks both halves — how far the body
 moves in a frame *and* which poses are drawn while it moves, because a body

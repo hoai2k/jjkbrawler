@@ -208,18 +208,63 @@ try {
     const hop = trace(14, IN({ jumpP: true }));
     out.jumpStep = hop.worst;
 
+    // 6c. LEDGE CAMPING IS PUNISHABLE, on Smash's two rules.
+    //
+    //     ONE: intangibility ends before the getup does, so the arrival is a
+    //     punish window rather than a free re-entry. Measured as the frame the
+    //     invulnerability runs out, against the frame the fighter is standing.
+    //
+    //     TWO: it decays per regrab and only the GROUND resets it — 0.8x after
+    //     one regrab, 0.5x after two, nothing from three on (ssbwiki.com/Edge).
+    //     Grab, drop, grab again without touching the stage, four times, and
+    //     read the window each time.
+    fallToLedge();
+    settle(40, blankInput());            // the catch completes, hang held
+    let climbing = 0;
+    let exposed = 0;
+    updateFighter(a, dt, IN({ left: true, dirX: -1 }));
+    while (a.ledgeMove) {
+      climbing++;
+      if (a.invuln <= 0) exposed++;
+      updateFighter(a, dt, IN({}));
+    }
+    out.climbFrames = climbing;
+    out.climbExposedFrames = exposed;
+    out.exposedOnArrival = a.invuln <= 0 && a.grounded;
+
+    // The decay. reset() grounds the fighter, so the count starts clean.
+    const grabInvuln = [];
+    reset(0);
+    a.ledgeGrabs = 0;
+    for (let n = 0; n < 4; n++) {
+      Object.assign(a, {
+        x: edge + 26, y: main.y - 40, vx: 0, vy: 0, grounded: false,
+        facing: -1, ledge: null, ledgeMove: null, ledgeCooldown: 0, airT: 1,
+        invuln: 0, hitstun: 0, action: null, respawnTimer: 0, dead: false,
+      });
+      for (let i = 0; i < 8 && !a.ledge; i++) updateFighter(a, dt, blankInput());
+      grabInvuln.push(+a.invuln.toFixed(3));
+      // Drop off without ever touching the stage — the camping loop.
+      a.ledge = null; a.ledgeMove = null; a.ledgeCooldown = 0; a.invuln = 0;
+    }
+    out.grabInvuln = grabInvuln;
+    out.grabCount = a.ledgeGrabs;
+    // ...and the ground clears it.
+    reset(0);
+    settle(2, blankInput());
+    out.groundedResets = a.ledgeGrabs;
+
     // 6b. TEETERING. The brake stops a fighter on the lip constantly and
     //     nothing drew it. Stand, then coast into the edge: wasGrounded has to
     //     be true for the brake to be armed at all.
-    reset(0);
+    reset(80);
     Object.assign(a, {
-      x: edge - 90, y: main.y, vx: 0, vy: 0, grounded: true, ledge: null,
-      ledgeMove: null, ledgeCooldown: 0, teeterT: 0, teeterDir: 0, airT: 0,
-      respawnTimer: 0, respawnPlat: null,
+      ledgeMove: null, ledgeCooldown: 0, ledgeGrabs: 0,
+      teeterT: 0, teeterDir: 0, airT: 0, respawnPlat: null,
     });
-    settle(6, blankInput());
-    a.vx = 320;
-    settle(40, blankInput());
+    // Walked into the lip, which check 4 already proves stops them on it —
+    // the point here is what they DRAW once stopped, not that they stop.
+    settle(200, IN({ right: true, dirX: 1, moveX: 0.45 }));
     out.teeterAnim = a.animKey;
     out.teeterDir = a.teeterDir;
     out.teeterGrounded = a.grounded;
@@ -273,6 +318,18 @@ try {
   check(r.jumpStep <= MOVE_BAR,
     "the ledge jump pushes off from the hang instead of being placed above it",
     `worst frame ${r.jumpStep}px`);
+  check(r.climbExposedFrames > 0 && r.exposedOnArrival,
+    "a getup's intangibility runs out before the getup does",
+    `${r.climbExposedFrames} of ${r.climbFrames} climb frames exposed, `
+    + `and standing up is${r.exposedOnArrival ? "" : " NOT"} a punish window`);
+  check(r.grabInvuln.length === 4 && r.grabInvuln[0] > 0
+      && r.grabInvuln[1] < r.grabInvuln[0] && r.grabInvuln[2] < r.grabInvuln[1]
+      && r.grabInvuln[3] === 0,
+    "ledge intangibility decays on every regrab, and is gone by the fourth",
+    r.grabInvuln.join(" -> "));
+  check(r.groundedResets === 0,
+    "...and touching the ground is the only thing that clears it",
+    `ledgeGrabs=${r.groundedResets} after landing`);
   check(r.teeterAnim === "teeter" && r.teeterGrounded,
     "stopping on the lip draws the teeter",
     `anim=${r.teeterAnim} dir=${r.teeterDir} grounded=${r.teeterGrounded}`);
