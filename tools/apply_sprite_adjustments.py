@@ -490,6 +490,22 @@ def main():
                 before = meta.get(field)
                 meta[field] = value
                 applied.append(f"{char}/{key}.{field}: {before} -> {value}")
+                # `bodyH` is a RENDERED height — the drawing's own height times
+                # renderScale — so resizing a frame and leaving it alone makes
+                # the manifest say the pose is a size it is not. It went unseen
+                # while the edits were nudges; round 21 moved Maki's walk by a
+                # third and left `bodyH` claiming she stands 1.6x her idle.
+                #
+                # Nothing on screen reads it (heights.js prefers the measured
+                # `bodyTop` span, which is live), but auto_tune.py compares
+                # every pose's bodyH against the idle's to find scale outliers —
+                # so a stale one is a future pass "correcting" a size somebody
+                # chose by eye. Scaling it by the same ratio is exact.
+                if field == "renderScale" and meta.get("bodyH") and before:
+                    was = meta["bodyH"]
+                    meta["bodyH"] = round(was * (float(value) / float(before)), 1)
+                    applied.append(f"{char}/{key}.bodyH: {was} -> {meta['bodyH']}"
+                                   " (follows renderScale)")
             # Retuning a pose whose art was just replaced is exactly what the
             # updated list asks for, so the marker comes off with the work. A
             # surfaced pose leaves by the same door: `edited` now records it as

@@ -1670,17 +1670,11 @@
     "h": 1349,
     "ox": -148.7,
     "oy": -1038,
-    "bodyBottom": 246.6,
-    "bodyH": 379.1,
+    "bodyBottom": 301.1,
+    "bodyH": 267.3,
     "centroidX": 140.2,
-    "renderScale": 0.281,
+    "renderScale": 0.1981,
     "file": "gojo/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 644,
@@ -1698,6 +1692,10 @@
       "bodyBottom": "foot=0.952 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.281,
+     "bodyBottom": 246.6
     }
    },
    "walk_b": {
@@ -1705,17 +1703,11 @@
     "h": 1348,
     "ox": -37.5,
     "oy": -1037,
-    "bodyBottom": 246.6,
-    "bodyH": 378.8,
+    "bodyBottom": 302.6,
+    "bodyH": 265.2,
     "centroidX": 121.5,
-    "renderScale": 0.281,
+    "renderScale": 0.1967,
     "file": "gojo/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 459,
@@ -1733,6 +1725,10 @@
       "bodyBottom": "foot=0.952 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.281,
+     "bodyBottom": 246.6
     }
    }
   },
@@ -3116,17 +3112,11 @@
     "h": 1348,
     "ox": -243.5,
     "oy": -1037,
-    "bodyBottom": 257.3,
-    "bodyH": 409.0,
+    "bodyBottom": 299.8,
+    "bodyH": 288.3,
     "centroidX": 165.5,
-    "renderScale": 0.303,
+    "renderScale": 0.2136,
     "file": "nanami/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 783,
@@ -3144,6 +3134,10 @@
       "bodyBottom": "foot=0.960 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.303,
+     "bodyBottom": 257.3
     }
    },
    "walk_b": {
@@ -3151,17 +3145,11 @@
     "h": 1348,
     "ox": -189.7,
     "oy": -1037,
-    "bodyBottom": 257.3,
-    "bodyH": 409.0,
+    "bodyBottom": 265.3,
+    "bodyH": 296.6,
     "centroidX": 221.2,
-    "renderScale": 0.303,
+    "renderScale": 0.2197,
     "file": "nanami/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 564,
@@ -3179,6 +3167,10 @@
       "bodyBottom": "foot=0.960 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.303,
+     "bodyBottom": 257.3
     }
    }
   },
@@ -4795,17 +4787,11 @@
     "h": 1350,
     "ox": -213.0,
     "oy": -1039,
-    "bodyBottom": 195.0,
-    "bodyH": 312.0,
+    "bodyBottom": 300,
+    "bodyH": 304.2,
     "centroidX": 129.0,
-    "renderScale": 0.231,
+    "renderScale": 0.2252,
     "file": "hanami/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 795,
@@ -4823,6 +4809,10 @@
       "bodyBottom": "foot=0.914 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.231,
+     "bodyBottom": 195.0
     }
    },
    "walk_b": {
@@ -4830,17 +4820,11 @@
     "h": 1349,
     "ox": -57.6,
     "oy": -1038,
-    "bodyBottom": 195.1,
-    "bodyH": 311.8,
+    "bodyBottom": 277.1,
+    "bodyH": 305.6,
     "centroidX": 147.6,
-    "renderScale": 0.231,
+    "renderScale": 0.2264,
     "file": "hanami/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 447,
@@ -4858,6 +4842,10 @@
       "bodyBottom": "foot=0.914 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.231,
+     "bodyBottom": 195.1
     }
    }
   },
@@ -6285,17 +6273,11 @@
     "h": 1350,
     "ox": -152.7,
     "oy": -1039,
-    "bodyBottom": 255.4,
-    "bodyH": 422.1,
+    "bodyBottom": 302.4,
+    "bodyH": 295.5,
     "centroidX": 128.7,
-    "renderScale": 0.313,
+    "renderScale": 0.2191,
     "file": "geto/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 675,
@@ -6313,6 +6295,10 @@
       "bodyBottom": "foot=0.959 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.313,
+     "bodyBottom": 255.4
     }
    },
    "walk_b": {
@@ -6320,17 +6306,11 @@
     "h": 1350,
     "ox": -107.4,
     "oy": -1039,
-    "bodyBottom": 255.4,
-    "bodyH": 422.1,
+    "bodyBottom": 297.9,
+    "bodyH": 297.6,
     "centroidX": 123.4,
-    "renderScale": 0.313,
+    "renderScale": 0.2207,
     "file": "geto/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 595,
@@ -6348,6 +6328,10 @@
       "bodyBottom": "foot=0.959 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.313,
+     "bodyBottom": 255.4
     }
    }
   },
@@ -7737,17 +7721,11 @@
     "h": 1237,
     "ox": -374.7,
     "oy": -926,
-    "bodyBottom": 253.5,
-    "bodyH": 410.3,
+    "bodyBottom": 298,
+    "bodyH": 318.0,
     "centroidX": 217.2,
-    "renderScale": 0.332,
+    "renderScale": 0.2573,
     "file": "momo/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 942,
@@ -7765,6 +7743,10 @@
       "bodyBottom": "foot=0.954 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.332,
+     "bodyBottom": 253.5
     }
    },
    "walk_b": {
@@ -7772,17 +7754,11 @@
     "h": 1350,
     "ox": -359.3,
     "oy": -1039,
-    "bodyBottom": 248.3,
-    "bodyH": 447.8,
+    "bodyBottom": 297.3,
+    "bodyH": 317.9,
     "centroidX": 258.8,
-    "renderScale": 0.332,
+    "renderScale": 0.2357,
     "file": "momo/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 828,
@@ -7800,6 +7776,10 @@
       "bodyBottom": "foot=0.954 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.332,
+     "bodyBottom": 248.3
     }
    }
   },
@@ -9489,17 +9469,11 @@
     "h": 1349,
     "ox": -135.5,
     "oy": -1038,
-    "bodyBottom": 238.5,
+    "bodyBottom": 297,
     "bodyH": 291.8,
     "centroidX": 146.0,
     "renderScale": 0.216,
     "file": "mahito/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 606,
@@ -9517,6 +9491,9 @@
       "bodyBottom": "foot=0.946 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 238.5
     }
    },
    "walk_b": {
@@ -9524,17 +9501,11 @@
     "h": 1348,
     "ox": -128.2,
     "oy": -1037,
-    "bodyBottom": 238.5,
-    "bodyH": 291.6,
+    "bodyBottom": 283,
+    "bodyH": 295.9,
     "centroidX": 154.2,
-    "renderScale": 0.216,
+    "renderScale": 0.2192,
     "file": "mahito/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 575,
@@ -9552,6 +9523,10 @@
       "bodyBottom": "foot=0.946 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.216,
+     "bodyBottom": 238.5
     }
    }
   },
@@ -10951,17 +10926,11 @@
     "h": 1349,
     "ox": -131.1,
     "oy": -1038,
-    "bodyBottom": 232.2,
+    "bodyBottom": 295.7,
     "bodyH": 296.1,
     "centroidX": 122.1,
     "renderScale": 0.219,
     "file": "sukuna/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 645,
@@ -10979,6 +10948,9 @@
       "bodyBottom": "foot=0.942 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 232.2
     }
    },
    "walk_b": {
@@ -10986,17 +10958,11 @@
     "h": 1349,
     "ox": -52.8,
     "oy": -1038,
-    "bodyBottom": 232.2,
-    "bodyH": 296.1,
+    "bodyBottom": 297.2,
+    "bodyH": 297.6,
     "centroidX": 114.3,
-    "renderScale": 0.219,
+    "renderScale": 0.2201,
     "file": "sukuna/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 504,
@@ -11014,6 +10980,10 @@
       "bodyBottom": "foot=0.942 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.219,
+     "bodyBottom": 232.2
     }
    }
   },
@@ -12446,17 +12416,11 @@
     "h": 1349,
     "ox": -105.9,
     "oy": -1038,
-    "bodyBottom": 228.7,
-    "bodyH": 290.2,
+    "bodyBottom": 295.7,
+    "bodyH": 303.3,
     "centroidX": 123.4,
-    "renderScale": 0.215,
+    "renderScale": 0.2247,
     "file": "megumi/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 592,
@@ -12474,6 +12438,10 @@
       "bodyBottom": "foot=0.939 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.215,
+     "bodyBottom": 228.7
     }
    },
    "walk_b": {
@@ -12481,17 +12449,11 @@
     "h": 1349,
     "ox": -76.9,
     "oy": -1038,
-    "bodyBottom": 228.7,
-    "bodyH": 290.2,
+    "bodyBottom": 293.7,
+    "bodyH": 304.8,
     "centroidX": 130.9,
-    "renderScale": 0.215,
+    "renderScale": 0.2258,
     "file": "megumi/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 519,
@@ -12509,6 +12471,10 @@
       "bodyBottom": "foot=0.939 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.215,
+     "bodyBottom": 228.7
     }
    }
   },
@@ -13959,17 +13925,11 @@
     "h": 1349,
     "ox": -220.9,
     "oy": -1038,
-    "bodyBottom": 242.1,
-    "bodyH": 299.9,
+    "bodyBottom": 292.6,
+    "bodyH": 281.9,
     "centroidX": 159.4,
-    "renderScale": 0.222,
+    "renderScale": 0.2087,
     "file": "jogo/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 750,
@@ -13987,24 +13947,24 @@
       "bodyBottom": "foot=0.949 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.222,
+     "bodyBottom": 242.1,
+     "faceLeft": null
+    },
+    "faceLeft": true
    },
    "walk_b": {
     "w": 696,
     "h": 1349,
     "ox": -218.1,
     "oy": -1038,
-    "bodyBottom": 242.1,
-    "bodyH": 299.9,
+    "bodyBottom": 304.1,
+    "bodyH": 279.0,
     "centroidX": 183.6,
-    "renderScale": 0.222,
+    "renderScale": 0.2065,
     "file": "jogo/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 696,
@@ -14022,7 +13982,13 @@
       "bodyBottom": "foot=0.949 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.222,
+     "bodyBottom": 242.1,
+     "faceLeft": null
+    },
+    "faceLeft": true
    }
   },
   "hakari": {
@@ -15411,17 +15377,11 @@
     "h": 1348,
     "ox": -183.9,
     "oy": -1037,
-    "bodyBottom": 212.0,
-    "bodyH": 433.5,
+    "bodyBottom": 297,
+    "bodyH": 297.0,
     "centroidX": 132.4,
-    "renderScale": 0.322,
+    "renderScale": 0.2206,
     "file": "hakari/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 730,
@@ -15439,6 +15399,10 @@
       "bodyBottom": "foot=0.927 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.322,
+     "bodyBottom": 212.0
     }
    },
    "walk_b": {
@@ -15446,17 +15410,11 @@
     "h": 1349,
     "ox": -73.6,
     "oy": -1038,
-    "bodyBottom": 211.9,
-    "bodyH": 433.8,
+    "bodyBottom": 296.4,
+    "bodyH": 297.2,
     "centroidX": 129.1,
-    "renderScale": 0.322,
+    "renderScale": 0.2206,
     "file": "hakari/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 516,
@@ -15474,6 +15432,10 @@
       "bodyBottom": "foot=0.927 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.322,
+     "bodyBottom": 211.9
     }
    }
   },
@@ -17132,17 +17094,11 @@
     "h": 1350,
     "ox": -150.1,
     "oy": -1039,
-    "bodyBottom": 243.7,
-    "bodyH": 245.4,
+    "bodyBottom": 280.7,
+    "bodyH": 292.1,
     "centroidX": 149.1,
-    "renderScale": 0.182,
+    "renderScale": 0.2166,
     "file": "yuta/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 629,
@@ -17160,6 +17116,10 @@
       "bodyBottom": "foot=0.950 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.182,
+     "bodyBottom": 243.7
     }
    },
    "walk_b": {
@@ -17167,17 +17127,11 @@
     "h": 1348,
     "ox": -116.7,
     "oy": -1037,
-    "bodyBottom": 243.8,
-    "bodyH": 245.1,
+    "bodyBottom": 291.8,
+    "bodyH": 290.5,
     "centroidX": 164.2,
-    "renderScale": 0.182,
+    "renderScale": 0.2157,
     "file": "yuta/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 532,
@@ -17195,6 +17149,10 @@
       "bodyBottom": "foot=0.950 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.182,
+     "bodyBottom": 243.8
     }
    }
   },
@@ -18935,17 +18893,11 @@
     "h": 1351,
     "ox": -109.2,
     "oy": -1040,
-    "bodyBottom": 235.0,
-    "bodyH": 267.5,
+    "bodyBottom": 285,
+    "bodyH": 288.8,
     "centroidX": 107.2,
-    "renderScale": 0.198,
+    "renderScale": 0.2138,
     "file": "nobara/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 631,
@@ -18963,6 +18915,10 @@
       "bodyBottom": "foot=0.944 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.198,
+     "bodyBottom": 235.0
     }
    },
    "walk_b": {
@@ -18970,17 +18926,11 @@
     "h": 1349,
     "ox": -80.2,
     "oy": -1038,
-    "bodyBottom": 235.1,
-    "bodyH": 267.1,
+    "bodyBottom": 266.1,
+    "bodyH": 293.8,
     "centroidX": 153.2,
-    "renderScale": 0.198,
+    "renderScale": 0.2178,
     "file": "nobara/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 481,
@@ -18998,6 +18948,10 @@
       "bodyBottom": "foot=0.944 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.198,
+     "bodyBottom": 235.1
     }
    }
   },
@@ -20436,17 +20390,11 @@
     "h": 1348,
     "ox": -248.4,
     "oy": -1037,
-    "bodyBottom": 229.4,
-    "bodyH": 470.7,
+    "bodyBottom": 305.9,
+    "bodyH": 296.6,
     "centroidX": 157.9,
-    "renderScale": 0.349,
+    "renderScale": 0.2199,
     "file": "maki/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 808,
@@ -20464,6 +20412,10 @@
       "bodyBottom": "foot=0.939 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.349,
+     "bodyBottom": 229.4
     }
    },
    "walk_b": {
@@ -20471,17 +20423,11 @@
     "h": 1348,
     "ox": -352.8,
     "oy": -1037,
-    "bodyBottom": 229.4,
-    "bodyH": 470.7,
+    "bodyBottom": 282.9,
+    "bodyH": 303.6,
     "centroidX": 241.8,
-    "renderScale": 0.349,
+    "renderScale": 0.2251,
     "file": "maki/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 849,
@@ -20499,6 +20445,10 @@
       "bodyBottom": "foot=0.939 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.349,
+     "bodyBottom": 229.4
     }
    }
   },
@@ -21938,17 +21888,11 @@
     "h": 1349,
     "ox": -142.4,
     "oy": -1038,
-    "bodyBottom": 231.8,
-    "bodyH": 244.6,
+    "bodyBottom": 292.8,
+    "bodyH": 254.3,
     "centroidX": 113.9,
-    "renderScale": 0.181,
+    "renderScale": 0.1882,
     "file": "inumaki/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 684,
@@ -21966,6 +21910,10 @@
       "bodyBottom": "foot=0.941 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.181,
+     "bodyBottom": 231.8
     }
    },
    "walk_b": {
@@ -21973,17 +21921,11 @@
     "h": 1350,
     "ox": -30.1,
     "oy": -1039,
-    "bodyBottom": 231.7,
-    "bodyH": 244.8,
+    "bodyBottom": 285.2,
+    "bodyH": 255.8,
     "centroidX": 118.1,
-    "renderScale": 0.181,
+    "renderScale": 0.1891,
     "file": "inumaki/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 451,
@@ -22001,6 +21943,10 @@
       "bodyBottom": "foot=0.941 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.181,
+     "bodyBottom": 231.7
     }
    }
   },
@@ -23384,17 +23330,11 @@
     "h": 1348,
     "ox": -182.2,
     "oy": -1037,
-    "bodyBottom": 228.0,
-    "bodyH": 402.9,
+    "bodyBottom": 290.5,
+    "bodyH": 286.1,
     "centroidX": 112.2,
-    "renderScale": 0.299,
+    "renderScale": 0.2123,
     "file": "panda/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 767,
@@ -23412,6 +23352,10 @@
       "bodyBottom": "foot=0.938 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.299,
+     "bodyBottom": 228.0
     }
    },
    "walk_b": {
@@ -23419,17 +23363,11 @@
     "h": 1349,
     "ox": -69.0,
     "oy": -1038,
-    "bodyBottom": 228.0,
-    "bodyH": 403.2,
+    "bodyBottom": 267,
+    "bodyH": 290.3,
     "centroidX": 153.0,
-    "renderScale": 0.299,
+    "renderScale": 0.2153,
     "file": "panda/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 459,
@@ -23447,7 +23385,13 @@
       "bodyBottom": "foot=0.938 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.299,
+     "bodyBottom": 228.0,
+     "faceLeft": null
+    },
+    "faceLeft": true
    }
   },
   "todo": {
@@ -24783,17 +24727,11 @@
     "h": 1349,
     "ox": -132.1,
     "oy": -1038,
-    "bodyBottom": 229.3,
-    "bodyH": 437.9,
+    "bodyBottom": 302.3,
+    "bodyH": 308.7,
     "centroidX": 112.1,
-    "renderScale": 0.325,
+    "renderScale": 0.2291,
     "file": "todo/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 667,
@@ -24811,6 +24749,10 @@
       "bodyBottom": "foot=0.939 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.325,
+     "bodyBottom": 229.3
     }
    },
    "walk_b": {
@@ -24818,17 +24760,11 @@
     "h": 1349,
     "ox": -97.1,
     "oy": -1038,
-    "bodyBottom": 229.3,
-    "bodyH": 437.9,
+    "bodyBottom": 289.3,
+    "bodyH": 306.5,
     "centroidX": 114.1,
-    "renderScale": 0.325,
+    "renderScale": 0.2275,
     "file": "todo/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 593,
@@ -24846,6 +24782,10 @@
       "bodyBottom": "foot=0.939 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.325,
+     "bodyBottom": 229.3
     }
    }
   },
@@ -26263,17 +26203,11 @@
     "h": 1349,
     "ox": -127.1,
     "oy": -1038,
-    "bodyBottom": 228.2,
-    "bodyH": 421.6,
+    "bodyBottom": 304.7,
+    "bodyH": 295.1,
     "centroidX": 140.1,
-    "renderScale": 0.313,
+    "renderScale": 0.2191,
     "file": "toji/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 601,
@@ -26291,6 +26225,10 @@
       "bodyBottom": "foot=0.939 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.313,
+     "bodyBottom": 228.2
     }
    },
    "walk_b": {
@@ -26298,17 +26236,11 @@
     "h": 1349,
     "ox": -48.2,
     "oy": -1038,
-    "bodyBottom": 228.2,
-    "bodyH": 421.6,
+    "bodyBottom": 302.7,
+    "bodyH": 299.3,
     "centroidX": 119.2,
-    "renderScale": 0.313,
+    "renderScale": 0.2222,
     "file": "toji/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 485,
@@ -26326,6 +26258,10 @@
       "bodyBottom": "foot=0.939 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.313,
+     "bodyBottom": 228.2
     }
    }
   },
@@ -27580,17 +27516,11 @@
     "h": 1349,
     "ox": -117.8,
     "oy": -1038,
-    "bodyBottom": 249.3,
-    "bodyH": 264.9,
+    "bodyBottom": 301.3,
+    "bodyH": 299.4,
     "centroidX": 140.3,
-    "renderScale": 0.196,
+    "renderScale": 0.2215,
     "file": "choso/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 582,
@@ -27608,6 +27538,10 @@
       "bodyBottom": "foot=0.954 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.196,
+     "bodyBottom": 249.3
     }
    },
    "walk_b": {
@@ -27615,17 +27549,11 @@
     "h": 1349,
     "ox": -73.1,
     "oy": -1038,
-    "bodyBottom": 249.3,
-    "bodyH": 264.9,
+    "bodyBottom": 300.3,
+    "bodyH": 298.0,
     "centroidX": 151.6,
-    "renderScale": 0.196,
+    "renderScale": 0.2205,
     "file": "choso/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 470,
@@ -27643,6 +27571,10 @@
       "bodyBottom": "foot=0.954 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.196,
+     "bodyBottom": 249.3
     }
    }
   },
@@ -28878,16 +28810,10 @@
     "ox": -283.5,
     "oy": -1039,
     "bodyBottom": 289.6,
-    "bodyH": 279.4,
+    "bodyH": 294.8,
     "centroidX": 168.0,
-    "renderScale": 0.207,
+    "renderScale": 0.2184,
     "file": "meimei/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 858,
@@ -28905,6 +28831,9 @@
       "bodyBottom": "foot=0.984 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.207
     }
    },
    "walk_b": {
@@ -28913,16 +28842,10 @@
     "ox": -175.9,
     "oy": -1037,
     "bodyBottom": 289.7,
-    "bodyH": 279.0,
+    "bodyH": 294.4,
     "centroidX": 140.9,
-    "renderScale": 0.207,
+    "renderScale": 0.2184,
     "file": "meimei/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 697,
@@ -28940,6 +28863,9 @@
       "bodyBottom": "foot=0.984 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.207
     }
    }
   },
@@ -30210,17 +30136,11 @@
     "h": 1350,
     "ox": -79.4,
     "oy": -1039,
-    "bodyBottom": 235.2,
-    "bodyH": 336.6,
+    "bodyBottom": 297.2,
+    "bodyH": 365.3,
     "centroidX": 136.9,
-    "renderScale": 0.249,
+    "renderScale": 0.2702,
     "file": "uro/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 512,
@@ -30238,6 +30158,10 @@
       "bodyBottom": "foot=0.944 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.249,
+     "bodyBottom": 235.2
     }
    },
    "walk_b": {
@@ -30245,17 +30169,11 @@
     "h": 1349,
     "ox": -59.6,
     "oy": -1038,
-    "bodyBottom": 235.2,
-    "bodyH": 336.3,
+    "bodyBottom": 294.2,
+    "bodyH": 369.9,
     "centroidX": 132.1,
-    "renderScale": 0.249,
+    "renderScale": 0.2739,
     "file": "uro/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 482,
@@ -30273,6 +30191,10 @@
       "bodyBottom": "foot=0.944 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.249,
+     "bodyBottom": 235.2
     }
    }
   },
@@ -31469,17 +31391,11 @@
     "h": 1350,
     "ox": -102.3,
     "oy": -1039,
-    "bodyBottom": 239.9,
-    "bodyH": 260.4,
+    "bodyBottom": 304.9,
+    "bodyH": 276.1,
     "centroidX": 129.8,
-    "renderScale": 0.193,
+    "renderScale": 0.2046,
     "file": "yuji/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 572,
@@ -31497,6 +31413,10 @@
       "bodyBottom": "foot=0.947 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.193,
+     "bodyBottom": 239.9
     }
    },
    "walk_b": {
@@ -31504,17 +31424,11 @@
     "h": 1350,
     "ox": -29.4,
     "oy": -1039,
-    "bodyBottom": 239.9,
-    "bodyH": 260.4,
+    "bodyBottom": 300.4,
+    "bodyH": 276.1,
     "centroidX": 146.9,
-    "renderScale": 0.193,
+    "renderScale": 0.2046,
     "file": "yuji/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 392,
@@ -31532,6 +31446,10 @@
       "bodyBottom": "foot=0.947 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.193,
+     "bodyBottom": 239.9
     }
    }
   },
@@ -32823,17 +32741,11 @@
     "h": 1349,
     "ox": -134.5,
     "oy": -1038,
-    "bodyBottom": 235.3,
+    "bodyBottom": 297.3,
     "bodyH": 293.1,
     "centroidX": 123.0,
     "renderScale": 0.217,
     "file": "reggie/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 650,
@@ -32851,6 +32763,9 @@
       "bodyBottom": "foot=0.944 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 235.3
     }
    },
    "walk_b": {
@@ -32858,17 +32773,11 @@
     "h": 1350,
     "ox": -60.9,
     "oy": -1039,
-    "bodyBottom": 235.2,
+    "bodyBottom": 291.7,
     "bodyH": 293.4,
     "centroidX": 97.4,
     "renderScale": 0.217,
     "file": "reggie/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 554,
@@ -32886,6 +32795,9 @@
       "bodyBottom": "foot=0.944 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 235.2
     }
    }
   },
@@ -34127,17 +34039,11 @@
     "h": 1350,
     "ox": -154.3,
     "oy": -1039,
-    "bodyBottom": 246.7,
-    "bodyH": 282.1,
+    "bodyBottom": 300.2,
+    "bodyH": 284.9,
     "centroidX": 144.8,
-    "renderScale": 0.209,
+    "renderScale": 0.2111,
     "file": "gakuganji/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 646,
@@ -34155,6 +34061,10 @@
       "bodyBottom": "foot=0.952 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.209,
+     "bodyBottom": 246.7
     }
    },
    "walk_b": {
@@ -34162,17 +34072,11 @@
     "h": 1350,
     "ox": -112.7,
     "oy": -1039,
-    "bodyBottom": 246.7,
-    "bodyH": 282.1,
+    "bodyBottom": 295.2,
+    "bodyH": 286.3,
     "centroidX": 93.7,
-    "renderScale": 0.209,
+    "renderScale": 0.2121,
     "file": "gakuganji/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 665,
@@ -34190,6 +34094,10 @@
       "bodyBottom": "foot=0.952 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.209,
+     "bodyBottom": 246.7
     }
    }
   },
@@ -36866,17 +36774,11 @@
     "h": 1348,
     "ox": -249.8,
     "oy": -1037,
-    "bodyBottom": 196.6,
-    "bodyH": 352.1,
+    "bodyBottom": 304.6,
+    "bodyH": 330.9,
     "centroidX": 128.8,
-    "renderScale": 0.261,
+    "renderScale": 0.2453,
     "file": "dagon/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 869,
@@ -36894,6 +36796,10 @@
       "bodyBottom": "foot=0.915 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.261,
+     "bodyBottom": 196.6
     }
    },
    "walk_b": {
@@ -36901,17 +36807,11 @@
     "h": 1349,
     "ox": -194.0,
     "oy": -1038,
-    "bodyBottom": 196.5,
-    "bodyH": 352.4,
+    "bodyBottom": 268,
+    "bodyH": 340.1,
     "centroidX": 208.0,
-    "renderScale": 0.261,
+    "renderScale": 0.2519,
     "file": "dagon/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 599,
@@ -36929,6 +36829,10 @@
       "bodyBottom": "foot=0.915 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.261,
+     "bodyBottom": 196.5
     }
    }
   },
@@ -38257,17 +38161,11 @@
     "h": 1350,
     "ox": -127.8,
     "oy": -1039,
-    "bodyBottom": 218.3,
-    "bodyH": 344.2,
+    "bodyBottom": 299.3,
+    "bodyH": 363.1,
     "centroidX": 129.8,
-    "renderScale": 0.255,
+    "renderScale": 0.269,
     "file": "mechamaru/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 623,
@@ -38285,6 +38183,10 @@
       "bodyBottom": "foot=0.931 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.255,
+     "bodyBottom": 218.3
     }
    },
    "walk_b": {
@@ -38292,17 +38194,11 @@
     "h": 1349,
     "ox": -24.2,
     "oy": -1038,
-    "bodyBottom": 218.4,
-    "bodyH": 344.0,
+    "bodyBottom": 287.4,
+    "bodyH": 368.1,
     "centroidX": 161.2,
-    "renderScale": 0.255,
+    "renderScale": 0.2729,
     "file": "mechamaru/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 353,
@@ -38320,6 +38216,10 @@
       "bodyBottom": "foot=0.931 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.255,
+     "bodyBottom": 218.4
     }
    }
   },
@@ -39634,17 +39534,11 @@
     "h": 1349,
     "ox": -124.6,
     "oy": -1038,
-    "bodyBottom": 253.8,
-    "bodyH": 337.2,
+    "bodyBottom": 300.3,
+    "bodyH": 345.6,
     "centroidX": 116.6,
-    "renderScale": 0.25,
+    "renderScale": 0.2562,
     "file": "yuki/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 643,
@@ -39662,6 +39556,10 @@
       "bodyBottom": "foot=0.958 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 253.8
     }
    },
    "walk_b": {
@@ -39669,17 +39567,11 @@
     "h": 1350,
     "ox": -101.6,
     "oy": -1039,
-    "bodyBottom": 253.8,
-    "bodyH": 337.5,
+    "bodyBottom": 291.8,
+    "bodyH": 347.6,
     "centroidX": 159.1,
-    "renderScale": 0.25,
+    "renderScale": 0.2575,
     "file": "yuki/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 512,
@@ -39697,6 +39589,10 @@
       "bodyBottom": "foot=0.958 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 253.8
     }
    }
   },
@@ -41020,17 +40916,11 @@
     "h": 1350,
     "ox": -290.9,
     "oy": -1039,
-    "bodyBottom": 194.7,
+    "bodyBottom": 252.7,
     "bodyH": 394.9,
     "centroidX": 152.9,
     "renderScale": 0.293,
     "file": "kurourushi/walk_a.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 903,
@@ -41048,6 +40938,9 @@
       "bodyBottom": "foot=0.914 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 194.7
     }
    },
    "walk_b": {
@@ -41055,17 +40948,11 @@
     "h": 1348,
     "ox": -234.1,
     "oy": -1037,
-    "bodyBottom": 194.9,
+    "bodyBottom": 285.9,
     "bodyH": 394.3,
     "centroidX": 118.1,
     "renderScale": 0.293,
     "file": "kurourushi/walk_b.png",
-    "replaced": {
-     "at": "2026-08-14T16:34:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 859,
@@ -41083,6 +40970,9 @@
       "bodyBottom": "foot=0.914 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 194.9
     }
    }
   }
