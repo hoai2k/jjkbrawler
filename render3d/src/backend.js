@@ -30,8 +30,9 @@ import {
   currentFrame as spriteFrame,
   cyclePhase as spriteCycle,
 } from "../../sprites/src/sprites.js";
-import { cycleInfo, aimPitch, aimSolve, aimable, clipNameFor } from "./states.js";
+import { STATES, cycleInfo, aimPitch, aimSolve, aimable, clipNameFor } from "./states.js";
 import { headHeightTarget } from "../../src/heights.js";
+import { COM_BODY_FRAC } from "../../src/config_tuning.js";
 import { artReach } from "../../src/silhouette.js";
 import { state } from "../../src/state.js";
 import { WORLD } from "../../src/constants.js";
@@ -121,6 +122,22 @@ export function cyclePhase(charKey, animKey, animTime) {
   return spriteCycle(charKey, animKey, animTime);
 }
 
+/** The move-synced contact beat for this draw, or undefined. `opts.beat` is
+ *  the attack's own hitbox delay (render.js passes f.action.move.delay); it
+ *  replaces the state table's beat so the clip's full extension shows the
+ *  instant the hitbox goes live — the table's number is per STATE while the
+ *  delay is per MOVE and speed-scaled per character (an up-tilt and an
+ *  up-smash share the upHeavy clip at very different startups). Only states
+ *  that have a beat take one — a loop state has no contact to sync. Quantised
+ *  to the ms (it joins the pose-cache key) and clamped inside the clip: some
+ *  actions outlast the one-shot that plays them. */
+function beatOverride(animKey, opts) {
+  const spec = STATES[clipNameFor(animKey)];
+  const b = opts.beat;
+  if (!spec?.beat || typeof b !== "number" || !(b > 0)) return undefined;
+  return Math.min(Math.round(b * 1000) / 1000, spec.duration - 0.02);
+}
+
 /** The live layers for this draw, every one quantised so it joins the pose
  *  cache key without exploding it (pose.js documents each dial). */
 function liveLayers(charKey, animKey, x, y, opts) {
@@ -128,26 +145,40 @@ function liveLayers(charKey, animKey, x, y, opts) {
   const facing = opts.facing ?? 1;
   const aim = opts.aim || null;
   const targetPx = headHeightTarget(charKey);
-  const chestY = y - targetPx * 0.55;
+  const chestY = y - targetPx * COM_BODY_FRAC;
   const pitch = aim ? aimPitch(x, chestY, aim, facing) : 0;
   // The reach half of the aim solution: where the strike has to land, in game
   // pixels from the fighter's own origin. Quantised by aimSolve so it can join
   // the cache key (poseToken) without making every frame of an approach a
   // unique pose.
   const solved = aimSolve(x, y, chestY, aim, facing, animKey, artReach(charKey));
+  // The turn is a SWEEP, not a switch: fighter.js slides facingVis through
+  // zero over TURN_TIME exactly so a turn reads as a motion, and this used
+  // to collapse it to its sign — the model snapped its full turnaround on
+  // the frame the sweep crossed the midline. Quantised to quarter steps
+  // (about one per frame of the 70 ms sweep) so it joins the pose-cache key
+  // without exploding it; at rest facingVis sits at ±1 and the steps vanish.
+  const fq = Math.max(-1, Math.min(1, Math.round(facing * 2) / 2));
   return {
+    beat: beatOverride(animKey, opts),
     aimRad: D.aim && aimable(animKey) ? pitch : 0,
     reach: solved ? { dx: solved.dx, dy: solved.dy, targetPx } : null,
     lookRad: D.lookAt && pose.LOOK_STATES.has(clipNameFor(animKey)) ? pitch : 0,
     flinch: pose.flinchSide(animKey, x, aim, facing),
     // Derived from the camera, not 180° — see scene.turnaroundYaw. A flat
-    // half-turn under a ¾ camera shows the fighter's back.
-    turnYawRad: D.turnaround && facing < 0 ? scene.turnaroundYaw() : 0,
+    // half-turn under a ¾ camera shows the fighter's back. Scaled by the
+    // facing sweep: full at fq=-1, zero at fq=1, partway through the turn
+    // in between.
+    turnYawRad: D.turnaround ? scene.turnaroundYaw() * (1 - fq) / 2 : 0,
     // The presentation mirror is this path's (pose.facingYaw), and it needs
     // the facing stated: it used to read "left" off turnYawRad being non-zero,
     // which is true here and true of both directions in the scene.
     presentMirror: D.turnaround,
     facing,
+    // The quantised sweep, for the locomotion mirror (pose.facingYaw): those
+    // states re-aim the body rather than taking turnYawRad, so they need the
+    // sweep stated separately or they still snap.
+    facingK: fq,
     parallaxDeg: pose.parallaxDeg(x, state.camera?.x ?? WORLD.w / 2, WORLD.w / 2),
   };
 }
@@ -188,14 +219,16 @@ export const scene3d = {
     const targetPx = headHeightTarget(charKey);
     // The camera hands over the chest line; the reach offsets are measured
     // from the FOOT line, so derive it when it is not passed.
-    const footY = opts.y ?? chestY + targetPx * 0.55;
+    const footY = opts.y ?? chestY + targetPx * COM_BODY_FRAC;
     const x = opts.x ?? 0;
     const pitch = aim ? aimPitch(x, chestY, aim, facing) : 0;
     const solved = aimSolve(x, footY, chestY, aim, facing, animKey, artReach(charKey));
     const resolved = rigs.resolveClip(charKey, animKey);
     if (!resolved) return false;
-    pose.poseRig(inst, animKey, pose.sampleTime(animKey, animTime), resolved.clip, {
+    const beat = beatOverride(animKey, opts);
+    pose.poseRig(inst, animKey, pose.sampleTime(animKey, animTime, beat), resolved.clip, {
       charKey,
+      beat,
       aimRad: D.aim && aimable(animKey) ? pitch : 0,
       reach: solved ? { dx: solved.dx, dy: solved.dy, targetPx } : null,
       lookRad: D.lookAt && pose.LOOK_STATES.has(clipNameFor(animKey)) ? pitch : 0,

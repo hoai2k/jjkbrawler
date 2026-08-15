@@ -36,11 +36,9 @@ import { CAMERA as C } from "../config_camera.js";
 import { sceneAdapter } from "../render_backend.js";
 import { headHeightTarget } from "../heights.js";
 import { fighterTransform } from "../motion.js";
+import { COM_BODY_FRAC as COM_FRAC } from "../config_tuning.js";
 
 const S = C.simScale;
-/** Centre of mass as a fraction of body height — the pivot motion.js rotations
- *  turn about. Same constant as the flat blits, so a tumble reads identically. */
-const COM_FRAC = 0.55;
 
 export function makeModels() {
   const group = new Group();
@@ -82,8 +80,12 @@ export function makeModels() {
     // here, so there is no per-actor ratio to carry.)
     const onScreenPx = headHeightTarget(charKey);
 
+    // The move's own hitbox delay, mirroring render.js actionBeat: the clip's
+    // contact frame snaps to it (backend.js beatOverride).
+    const delay = f.action?.move?.delay;
+    const beat = typeof delay === "number" && f.action.anim === f.animKey ? delay : undefined;
     const posed = adapter.poseInstance(inst, charKey, f.animKey, f.animTime, {
-      facing: f.facingVis, aim, x: f.x, chestY: f.y - onScreenPx * COM_FRAC,
+      facing: f.facingVis, aim, x: f.x, chestY: f.y - onScreenPx * COM_FRAC, beat,
     });
     if (!posed) return false;
 
@@ -97,14 +99,19 @@ export function makeModels() {
     // between the feet (delivery spec), so this positions the feet.
     const s = (onScreenPx / inst.height) * S * (inst.renderScale ?? 1);
     root.scale.set(s * (m.scaleX ?? 1), s * (m.scaleY ?? 1), s);
+    // Tumble/swing is a roll in the screen plane, about the centre of mass —
+    // the flat path rotates about that same point. The rig's origin is at the
+    // FEET, so rotating in place would swing the body like a felled tree;
+    // displace the origin so the COM stays fixed under the roll instead.
+    // (Scale stays foot-anchored on purpose: squash keeps the feet planted.)
+    const rot = -(m.rotation || 0);
+    root.rotation.z = rot;
+    const com = onScreenPx * COM_FRAC * S * (m.scaleY ?? 1);
     root.position.set(
-      worldX(f.x + (m.offsetX || 0)),
-      worldY(f.y + (m.offsetY || 0)),
+      worldX(f.x + (m.offsetX || 0)) + Math.sin(rot) * com,
+      worldY(f.y + (m.offsetY || 0)) + (1 - Math.cos(rot)) * com,
       0,
     );
-    // Tumble/swing is a roll in the screen plane, about the centre of mass —
-    // the flat path rotates about that same point.
-    root.rotation.z = -(m.rotation || 0);
     // Outline width is authored in blitted pixels; in-scene it has to be a
     // local displacement, since the rig is uniformly scaled to game size.
     adapter.setOutlineScale?.(root, inst.height, onScreenPx);

@@ -80,14 +80,17 @@ export function gripBones(charKey, state) {
 
 /** How much of the solve is blended in at `t` seconds into the clip: nothing
  *  through the first part of the wind-up, smoothly to full by the contact
- *  beat, held after so the follow-through stays on target. */
-export function reachWeight(state, t) {
-  const spec = STATES[clipNameFor(state)];
-  if (!spec?.beat) return 1;
-  const start = spec.beat * 0.4;
+ *  beat, held after so the follow-through stays on target. `beat` overrides
+ *  the state table's contact instant — the game passes the move's own hitbox
+ *  delay, which is per-move and speed-scaled where the table is one global
+ *  number per state (pose.js sampleTime documents the sync). */
+export function reachWeight(state, t, beat) {
+  const b = beat ?? STATES[clipNameFor(state)]?.beat;
+  if (!b) return 1;
+  const start = b * 0.4;
   if (t <= start) return 0;
-  if (t >= spec.beat) return 1;
-  const u = (t - start) / (spec.beat - start);
+  if (t >= b) return 1;
+  const u = (t - start) / (b - start);
   return u * u * (3 - 2 * u);
 }
 
@@ -188,10 +191,10 @@ export function makeScratch(THREE) {
  * state's weight ramp. No-op for states that do not reach, rigs missing the
  * chain, or weight 0.
  */
-export function applyReach(THREE, root3d, state, clipT, targetWorld, tmp) {
+export function applyReach(THREE, root3d, state, clipT, targetWorld, tmp, beat) {
   const chain = REACH[clipNameFor(state)];
   if (!chain) return false;
-  const weight = reachWeight(state, clipT);
+  const weight = reachWeight(state, clipT, beat);
   if (weight <= 0) return false;
 
   const bones = chain.map((n) => root3d.getObjectByName(n));
@@ -485,7 +488,7 @@ export function applyCarry(THREE, root3d, charKey, state, tmp) {
  * states where a two-handed grip reads. Call AFTER applyAim/applyReach — the
  * shaft rides the striking hand, so this must see its final position.
  */
-export function applyTwoHandGrip(THREE, root3d, charKey, state, clipT, tmp) {
+export function applyTwoHandGrip(THREE, root3d, charKey, state, clipT, tmp, beat) {
   const grip = twoHandGrip(charKey);
   if (!grip || !TWO_HAND_STATES.has(clipNameFor(state))) return false;
   const bone = root3d.getObjectByName(grip.bone);
@@ -513,7 +516,7 @@ export function applyTwoHandGrip(THREE, root3d, charKey, state, clipT, tmp) {
     `${gripHand === "RightHand" ? "Right" : "Left"}ForeArm`, gripHand]
     .map((n) => root3d.getObjectByName(n));
 
-  const weight = reachWeight(state, clipT);
+  const weight = reachWeight(state, clipT, beat);
   if (weight <= 0) return false;
 
   // The grasp point: the spot on the shaft a real off hand would take — the
@@ -613,11 +616,11 @@ export function applyTwoHandGrip(THREE, root3d, charKey, state, clipT, tmp) {
 
 /** Apply `charKey`'s per-state morphs for `state` at `clipT` seconds in.
  *  No-op (false) for fighters that declare none. */
-export function applyMorphs(root3d, charKey, state, clipT) {
+export function applyMorphs(root3d, charKey, state, clipT, beat) {
   const bones = morphBones(charKey);
   if (!bones) return false;
   const spec = CHARACTER_MORPHS[charKey][clipNameFor(state)] || null;
-  const w = spec ? reachWeight(state, clipT) : 0;
+  const w = spec ? reachWeight(state, clipT, beat) : 0;
   for (const name of bones) {
     const bone = root3d.getObjectByName(name);
     if (!bone) continue;

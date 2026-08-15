@@ -29,7 +29,7 @@ import { swayChains, simulateChains, simulates } from "./props.js";
 import { state } from "../../src/state.js";
 import { getStage } from "../../src/stages.js";
 import { DIALS, sampleTime, poseRig } from "./pose.js";
-import { setRimColor } from "./toon.js";
+import { setRimColor, TOON } from "./toon.js";
 import { setWorldWidth, OUTLINE } from "./outline.js";
 
 export const TEX_SIZE = 384;
@@ -50,6 +50,7 @@ let camera = null;
 let keyLight = null;
 let hemiLight = null;
 let rimStage = null; // last stage key the light rig was derived from
+let neutralRim = null; // toon.js's own rim, captured before any stage override
 let contextLost = false;
 
 const cache = new Map(); // token -> { canvas, heightM, rowsPerMetre, yawed }
@@ -156,13 +157,23 @@ function syncStageLight() {
   if (key === rimStage) return;
   rimStage = key;
   const t = stageLightTint();
-  // A stage with no tint leaves the last stage's light in place, which is a
-  // latch: the key it would need to re-sync on has already been recorded as
-  // done. Every stage carries a tint, so it cannot happen today — and putting
-  // the light back to white here instead COSTS, because it re-lights on every
-  // sync and cut the pose cache from 353 hits to 162 in smoke_billboard. Left
-  // as it is on purpose; if a tintless stage ever lands, this is the line.
-  if (!t) return;
+  // A stage with no tint gets the NEUTRAL rig — white key, toon.js's own rim
+  // — instead of whatever the previous stage left in the lights. This resets
+  // once per stage change (rimStage is already recorded above), so it does
+  // not re-light on every sync, which is the cost that kept an earlier
+  // version of this branch out (353 pose-cache hits fell to 162 when the
+  // reset ran unconditionally). No shipped stage is tintless today; this is
+  // the line that keeps the first one from inheriting the last stage's light.
+  if (!t) {
+    if (neutralRim) {
+      keyLight.color.setRGB(1, 1, 1);
+      setRimColor(...neutralRim);
+    }
+    return;
+  }
+  // Captured before the first stage override, so "neutral" stays the toon
+  // config's own rim rather than a previous stage's.
+  if (!neutralRim) neutralRim = [...TOON.rimColor];
   keyLight.color.setRGB(...t.key);
   setRimColor(...t.rim);
 }
@@ -306,7 +317,11 @@ export function turnaroundYaw() {
 export const THREE_QUARTER_RAD = -CAMERA_YAW_RAD;
 
 export function sceneFacingYaw(facing) {
-  return facing < 0 ? -THREE_QUARTER_RAD : THREE_QUARTER_RAD;
+  // Continuous on purpose: this path is live geometry with no pose cache, so
+  // the turnaround can ride fighter.js's facingVis sweep directly — the body
+  // yaws through the lens over TURN_TIME instead of snapping between ±¾.
+  // At rest facingVis sits at ±1 and this is exactly the old two-pole answer.
+  return THREE_QUARTER_RAD * Math.max(-1, Math.min(1, facing));
 }
 
 // ------------------------------------------------------------- the render
@@ -322,16 +337,21 @@ function withStance(rig, layers) {
 }
 
 export function poseToken(charKey, animKey, animTime, layers) {
-  const s = sampleTime(animKey, animTime);
+  const s = sampleTime(animKey, animTime, layers.beat);
   const q = Math.round(s * 720); // exact at any sane sample rate
+  // A move-synced contact beat moves the snapped sample AND the reach/morph
+  // ramps, so it is part of the pose. Moves' delays are a small discrete set
+  // per character, so the key stays dense.
+  const bt = layers.beat ? `~k${Math.round(layers.beat * 1000)}` : "";
   const aim = aimable(animKey) && layers.aimRad ? `~a${Math.round((layers.aimRad * 180) / Math.PI)}` : "";
   const look = layers.lookRad ? `~l${Math.round((layers.lookRad * 180) / Math.PI)}` : "";
   const fl = layers.flinch ? `~f${layers.flinch}` : "";
-  // Turned or not, which is all this has to say: the turn is one constant for
-  // the whole roster (scene.turnaroundYaw). It read `~y180`, which stopped
-  // being the angle when the turnaround became camera-derived — harmless as a
-  // key, misleading as a label, so it says what it means.
-  const turn = layers.turnYawRad ? "~yTurned" : "";
+  // The turn yaw in whole degrees. It used to be a boolean ("turned or not"),
+  // which was all there was to say while facing was binary; the facing sweep
+  // (backend.js facingK) yaws partway through a turnaround, and each step is
+  // a different pose. The locomotion mirror keys off the same sweep, and
+  // turnYawRad encodes it one-to-one, so this fragment covers both.
+  const turn = layers.turnYawRad ? `~y${Math.round((layers.turnYawRad * 180) / Math.PI)}` : "";
   // Reach joins the key: two strikes solved onto different targets are two
   // different poses, and a cache that ignored that would serve the first one
   // for every angle after it.
@@ -354,7 +374,7 @@ export function poseToken(charKey, animKey, animTime, layers) {
   // from, and with the other rig check.
   const rc = layers.rigCheck ? `~C${layers.rigCheck}` : "";
   const orb = orbitKey();
-  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${rch}${par}${st}${ed}${mq}${rc}`
+  return `${charKey}/${clipNameFor(animKey)}@${q}${bt}${aim}${look}${fl}${turn}${rch}${par}${st}${ed}${mq}${rc}`
     + `${orb ? `~o${orb}` : ""}~L${lightKey()}`;
 }
 
@@ -384,7 +404,7 @@ export function __cam() { return camera; }
 export function posePreview(charKey, animKey, animTime, rig, resolved, layers = {}) {
   if (!rig || !resolved) return false;
   layers = withStance(rig, layers);
-  const sampled = sampleTime(animKey, animTime);
+  const sampled = sampleTime(animKey, animTime, layers.beat);
   poseRig(rig, animKey, sampled, resolved.clip, { ...layers, charKey });
   swayChains(rig.root, sampled, charKey);
   frameCamera(rig.height, (layers.parallaxDeg || 0) * Math.PI / 180);
@@ -440,7 +460,7 @@ export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {
   if (!rig || !resolved || !renderer) return null;
 
   syncStageLight();
-  const sampled = sampleTime(animKey, animTime);
+  const sampled = sampleTime(animKey, animTime, layers.beat);
   poseRig(rig, animKey, sampled, resolved.clip, { ...layers, charKey });
   // Secondary motion on the same quantised clock as the pose — cache-honest.
   swayChains(rig.root, sampled, charKey);

@@ -132,7 +132,15 @@ export function makeToonMaterial(THREE, src, overrides = {}) {
     transparent: !!src?.transparent,
     opacity: src?.opacity ?? 1,
     side: src?.side ?? THREE.FrontSide,
+    // Cutouts survive the conversion: a delivery's hair card or lash plane
+    // with alphaTest rendered fully OPAQUE when only the five knobs above
+    // were carried. depthWrite rides along for the same reason — a material
+    // that turned it off for layered transparency gets its choice kept.
+    alphaTest: src?.alphaTest ?? 0,
+    alphaMap: src?.alphaMap || null,
+    depthWrite: src?.depthWrite ?? true,
   });
+  if (src?.name) mat.name = src.name;
   const u = {
     uShadeColor: { value: new THREE.Color(
       p.shadeTint[0], p.shadeTint[1], p.shadeTint[2]) },
@@ -144,7 +152,16 @@ export function makeToonMaterial(THREE, src, overrides = {}) {
     uRimPower: { value: p.rimPower },
     uBrightness: { value: p.brightness ?? 1 },
   };
-  const alphaBias = src?.userData?.shadeBias === "baseColorAlpha" && !!src?.map;
+  // baseColor alpha cannot be a shade-bias map AND a cutout/opacity channel
+  // at once — the two readings of the same bytes are mutually exclusive. The
+  // cutout wins (visible geometry beats a lighting nuance) and the collision
+  // is said out loud, because a delivery that does this has a real problem.
+  const alphaInUse = !!src?.transparent || (src?.alphaTest ?? 0) > 0;
+  let alphaBias = src?.userData?.shadeBias === "baseColorAlpha" && !!src?.map;
+  if (alphaBias && alphaInUse) {
+    console.warn(`toon: material "${src?.name || "?"}" declares shadeBias=baseColorAlpha but also uses alpha for transparency/cutout — bias disabled.`);
+    alphaBias = false;
+  }
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, u);
     if (alphaBias) shader.defines = { ...shader.defines, TOON_ALPHA_BIAS: "" };

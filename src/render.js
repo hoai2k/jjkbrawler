@@ -555,6 +555,12 @@ function drawFighters(ctx, { bodies = true } = {}) {
         // otherwise the nearest live opponent. The sprite backend ignores it —
         // a drawing cannot re-aim.
         aim: f.aimPoint || nearestOpponentPoint(f),
+        // The attack's own hitbox delay, for backends that pose per draw: the
+        // clip's contact frame snaps to it, so the visual hit and the live
+        // hitbox agree per move and per character (moves are speed-scaled;
+        // the state table's beat is one global number). animTime and the
+        // action run on the same clock — beginAction rewinds both.
+        beat: actionBeat(f),
         alpha: flicker ? 0.6 : 1,
         rotation: m.rotation,
         scaleX: m.scaleX,
@@ -585,6 +591,14 @@ function drawFighters(ctx, { bodies = true } = {}) {
     if (f.grabbedBy) drawGrabStruggle(ctx, f);
     drawShieldMeter(ctx, f);
   }
+}
+
+// The instant this fighter's current attack turns its hitbox on, in seconds
+// from action start, or undefined outside an attack (or when the anim has
+// already moved on — a landed jab cut into hitstun must not carry its beat).
+function actionBeat(f) {
+  const d = f.action?.move?.delay;
+  return typeof d === "number" && f.action.anim === f.animKey ? d : undefined;
 }
 
 // Auto-aim target: the nearest live opponent's chest, or null alone on stage.
