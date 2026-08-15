@@ -76,6 +76,55 @@ export function getRig(charKey) {
   return RIGS.get(charKey) || null;
 }
 
+/** The COM bones, best first. The mass of a standing human sits around the
+ *  navel, which on this skeleton is between `Spine` and `Spine1`; `Spine` is
+ *  the closer of the two and measures 0.58 of height across the delivered
+ *  roster, against the 0.497–0.641 the hand-verified sprite values span. Hips
+ *  is a last resort — on a body that is not a standing biped it can sit at the
+ *  floor (Dagon's is at −0.04 of his height). */
+const COM_BONES = ["Spine", "mixamorigSpine", "Spine1", "Hips", "mixamorigHips"];
+
+/**
+ * Where this rig's mass sits, as a fraction of the rig's own height above the
+ * floor — or null if it cannot be measured.
+ *
+ * MEASURED OFF THE MODEL, deliberately, because that is the body being turned.
+ * `comFrac` (src/body_points.js) is a fraction of the DRAWN SPRITE's height,
+ * placed by eye on the drawing, and the sprite and the rig are not the same
+ * body: Panda's drawing carries its mass at 0.497 of its height and his rig is
+ * an ordinary biped skeleton whose spine is at 0.58. Rotating the RIG about the
+ * DRAWING's centre is what put the pivot in the wrong place.
+ *
+ * Cached on the rig: the bind pose does not move, and a fraction of height is
+ * scale-free, so this is measured once per model rather than per frame.
+ */
+export function rigComFrac(charKey) {
+  return RIGS.get(charKey)?.comFrac ?? null;
+}
+
+/** Measured at registration, where the rig is certainly in its bind pose — a
+ *  lazy read would catch whatever pose the workbench last left it in, and then
+ *  cache that. Heights are taken RELATIVE TO THE ROOT so the answer does not
+ *  depend on where the root happens to be standing or what it is scaled to. */
+function measureComFrac(root, height) {
+  if (!root || !(height > 0)) return null;
+  root.updateMatrixWorld(true);
+  const bones = {};
+  root.traverse((o) => { if (o.isBone) bones[o.name] = o; });
+  const rootY = root.matrixWorld.elements[13];
+  const scaleY = root.scale?.y || 1;
+  for (const name of COM_BONES) {
+    const b = bones[name];
+    if (!b) continue;
+    const y = (b.matrixWorld.elements[13] - rootY) / (height * scaleY);
+    // A bone below the floor or up at the shoulders is not a centre of mass;
+    // it is a rig built to a different convention, and the sprite-derived
+    // fraction is a better answer than a confident wrong one.
+    if (y > 0.3 && y < 0.8) return +y.toFixed(4);
+  }
+  return null;
+}
+
 export function rigCount() {
   return RIGS.size;
 }
@@ -577,7 +626,9 @@ function registerRig(charKey, { root, height, clips, isMannequin = false }, entr
   // a correction that only lands when someone sets `layers.charKey` is a
   // correction that silently does not land in half the game.
   const rig = { charKey, root, height, declaredHeight: height, clips, mixer,
-                actions: new Map(), entry, isMannequin };
+                actions: new Map(), entry, isMannequin,
+                // Taken now, beside captureCleanPose, for the same reason.
+                comFrac: measureComFrac(root, height) };
   applyEntrySettings(rig, entry);
   RIGS.set(charKey, rig);
   buildLibraryClips(charKey, root);

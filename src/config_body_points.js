@@ -19,11 +19,20 @@
 //              tumble and a squash about (sprites.js), and it is editable in
 //              the sprite workbench. This value serves the consumers that
 //              have no frame to consult: the prone/tumble hurtbox centre
-//              (combat.js), the chest line an aim solves from and the pivot
-//              the rig rotates about in a 3D scene (backend.js,
-//              camera3d/models.js), and the fallback for art that arrives
-//              before the anchor bake has run. The two do not compete — one
-//              is per drawing, the other is per fighter.
+//              (combat.js), the chest line an aim solves from (backend.js),
+//              and the fallback for art that arrives before the anchor bake
+//              has run. The two do not compete — one is per drawing, the other
+//              is per fighter.
+//
+//              IT IS NOT WHAT A 3D MODEL TURNS ABOUT any more. This is a
+//              fraction of the DRAWN SPRITE's height, placed by eye on the
+//              drawing, and a rig is a different body: Panda's drawing carries
+//              its mass at 0.497 of its height and his rig is an ordinary
+//              biped whose spine sits at 0.58. render3d/src/loader.js
+//              (rigComFrac) measures the model's own spine instead, and
+//              camera3d/models.js prefers it, falling back to this for a
+//              character with no rig. The value here is still the right one
+//              for the drawing, which is what everything else above asks it.
 //   muzzle     { x, y } in game px from the fighter's centre line and foot
 //              line (up is negative) — where a projectile leaves them. This is
 //              the fighter's ANSWER FOR EVERY POSE, and the one other render
