@@ -14,7 +14,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { SFX, MOVE_CALL, DOMAIN_CALL, SPOKEN_LINES, SPOKEN_TIMING, VOICE_ALTERNATES } from "../src/config_audio.js";
+import { SFX, MOVE_CALL, DOMAIN_CALL, SPOKEN_LINES, SPOKEN_TIMING, VOICE_ALTERNATES, SIGNATURE_SFX } from "../src/config_audio.js";
 import { CHARACTERS } from "../src/characters.js";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -118,6 +118,31 @@ for (const [key, list] of Object.entries(VOICE_ALTERNATES)) {
   }
 }
 
+// SIGNATURE_SFX records sounds a HANDLER plays rather than a move declares, so
+// the audio bench can list them. It is a duplication by construction — the
+// handler is still the thing that plays them — and the two halves can drift
+// apart silently. What can be checked is checked: the fighter is real, the
+// registry key is real, and the file behind it exists. The attribution itself
+// cannot be, which is why each row carries a note saying where it is played.
+let sigCount = 0;
+for (const [charKey, list] of Object.entries(SIGNATURE_SFX)) {
+  if (!CHARACTERS[charKey]) problems.push(`SIGNATURE_SFX: no such fighter — ${charKey}`);
+  for (const sig of list) {
+    sigCount++;
+    const entry = SFX[sig.sfx];
+    if (!entry) {
+      problems.push(`SIGNATURE_SFX.${charKey}: no such registry key — ${sig.sfx}`);
+      continue;
+    }
+    for (const f of [entry.file].flat()) {
+      if (!fs.existsSync(path.join(SFX_DIR, f))) {
+        problems.push(`SIGNATURE_SFX.${charKey}: ${sig.sfx} names a missing file — ${f}`);
+      }
+    }
+    if (!sig.note) problems.push(`SIGNATURE_SFX.${charKey}: needs a note saying WHERE it is played`);
+  }
+}
+
 rows.sort((a, b) => a.key.localeCompare(b.key));
 console.log(`${rows.length} spoken lines · fires ${SPOKEN_TIMING.fraction * 100}% in (clamped to ` +
             `${SPOKEN_TIMING.min}–${SPOKEN_TIMING.max}s) · interruptible for the first ` +
@@ -133,4 +158,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(`\n  ${altCount} alternate take(s) on ${Object.keys(VOICE_ALTERNATES).length} sounds, all present`);
+console.log(`  ${sigCount} handler-played signature sound(s) named and present`);
 console.log("  every spoken line is registered, delivered, reachable and the right length");

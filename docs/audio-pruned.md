@@ -1,6 +1,6 @@
 # Audio — pruned takes
 
-**33 takes, delivered and then deleted on purpose.** They were auditioned in
+**38 takes, delivered and then deleted on purpose.** They were auditioned in
 the [audio workbench](../workbench/?edit=audio) and thrown out by ear, which is
 the one test no tool in this repo can run.
 
@@ -98,3 +98,22 @@ Read as a group they are not 33 separate opinions, they are about four:
 - `ko_animal_alt_1.wav`
 - `ko_animal_alt_2.wav`
 - `ko_animal_alt_3.wav`
+
+### Round 14's own casualties — pruned in the pass after it
+
+Five of the 24 takes round 14 delivered did not survive their first audition,
+which is the round working rather than failing: two per group was always going
+to be one or two too many, and the ones that stayed are the point.
+
+- `grunt_young_male_alt_7.wav`
+- `grunt_big_alt_7.wav`
+- `ko_young_male_alt_4.wav`
+- `ko_young_male_alt_5.wav`
+- `ko_animal.wav` — the round-8 original, beaten outright by `ko_animal_alt_5`
+  and deleted rather than kept as an alternate. The last effects-endpoint KO
+  cry in the game
+
+**`koYoungMale` now has one file and no alternates at all** — the whole group
+came down to `ko_young_male_alt_2`. That is the narrowest any voice has been
+since the banks were built, and it is the clearest possible brief for what to
+generate next.

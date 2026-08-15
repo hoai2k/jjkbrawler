@@ -660,9 +660,10 @@ knowing before reading it as an open request.
 
 ## Hearing what you have
 
-**[`/workbench/?edit=audio`](../workbench/)** plays every voice in the game,
-next to the fighter it belongs to. Each track lists the move it belongs to, its
-length, when the move fires and how long it stays interruptible.
+**[`/workbench/?edit=audio`](../workbench/)** plays every voice in the game and
+every sound its techniques make, next to the fighter they belong to. Each track
+lists the move it belongs to, its length, when the move fires and how long it
+stays interruptible.
 
 The cast is everyone with something to say — built from `DOMAIN_CALL` and
 `MOVE_CALL` — **plus a stand-in for every voice group none of them uses.** The
@@ -680,6 +681,41 @@ convenient way to hear what an interrupted line sounds like.
 and `not in game`, and are mixed through the same category and gain — so what
 you are comparing is the performance and nothing else. They live in
 `VOICE_ALTERNATES` (`src/config_audio.js`) and **the game never plays them**.
+
+**A sound holds a BANK of files unless it is a spoken line**, and the page's
+controls now say so: a bank's recordings get checkboxes and any subset can be
+kept, a spoken line's get radio buttons and exactly one wins. That rule used to
+be inferred from how many files a sound happened to hold, which meant a grunt
+group pruned down to a single take started offering a radio — the page quietly
+refusing to let anybody grow the bank back, on half the voice groups at once.
+Only a spoken line is genuinely single, and for a reason no pruning can change:
+its length is frame data (`SPOKEN_LINES`), so two takes of different lengths
+under one key would be a move whose timing changed per draw.
+
+**Techniques are on the page too, not only voices.** Every sound a fighter's
+specials and ultimate make is listed under *Techniques*, walked out of the kits
+rather than written down — `fireSfx` (the projectile leaving), `castSfx` (the
+technique starting), `sfx` (its impact) and the element layer its `fxElement`
+picks out of `ELEMENT_HIT_SFX`. The element layer gets its own row on purpose:
+it is a second sound played under the first at reduced gain, so a fighter whose
+hits sound wrong may have a fine impact and a bad layer, and those are different
+files to re-request. This is what put Gakuganji, Mei Mei, Reggie and eighteen
+others on a page that had been about the voice alone.
+
+Two sounds are played by a HANDLER rather than declared on a move — Todo's clap
+and Nanami's 7:3 seam — so nothing walking the kits could see them, which meant
+the two sounds most specific to their owners were the two nobody could audition.
+`SIGNATURE_SFX` (`src/config_audio.js`) records those, and `check_voice.mjs`
+confirms the keys and files are real. It cannot confirm the attribution: the
+handler still decides when to play them, so that table is a record of a
+duplication rather than a source of truth.
+
+**Playing a technique puts its art on the stage for two seconds**, starting on
+the same frame as the sound and fading out. Judging a power chord with the wall
+of sound absent is judging it against nothing — the question is never "is this a
+good noise", it is "does this sound like that thing happening". It is a still,
+not an animation: the action bench plays the real move, and this pretending to
+would make it the worse reference of the two.
 
 **Not seeing a change you just made?** The header's **↻ Refresh** reloads
 against a cache key nobody has fetched — the page, its stylesheet, its module
