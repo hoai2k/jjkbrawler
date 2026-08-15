@@ -15,13 +15,14 @@
       "renderScale": 1.03,
       "armDeg": 13.75,
       "baked": true,
-      "stanceDeg": 3.75
+      "stanceDeg": 3.75,
+      "yawOffsetDeg": 10
     },
     "maki": {
       "model": "maki/maki.glb",
       "heightM": 1.7,
       "approved": true,
-      "yawOffsetDeg": 60,
+      "yawOffsetDeg": 65,
       "toon": {
         "shadeTint": [
           0.6795,
@@ -152,7 +153,7 @@
       "renderScale": 1.02,
       "stanceDeg": 12.25,
       "armDeg": 13.25,
-      "yawOffsetDeg": 0,
+      "yawOffsetDeg": 5,
       "baked": true
     },
     "mahito": {
@@ -166,7 +167,7 @@
           0.7336
         ]
       },
-      "yawOffsetDeg": 345,
+      "yawOffsetDeg": 340,
       "armDeg": 10.75,
       "baked": true,
       "stanceDeg": 2.75
@@ -249,7 +250,7 @@
           0.7286
         ]
       },
-      "yawOffsetDeg": 60,
+      "yawOffsetDeg": 65,
       "stanceDeg": 9,
       "renderScale": 0.99,
       "alt": {
@@ -379,7 +380,7 @@
           0.7988
         ]
       },
-      "yawOffsetDeg": 30,
+      "yawOffsetDeg": 35,
       "renderScale": 1.01,
       "stanceDeg": 10,
       "armDeg": 15.5,
@@ -447,7 +448,7 @@
           0.7271
         ]
       },
-      "yawOffsetDeg": 75,
+      "yawOffsetDeg": 65,
       "stanceDeg": 7,
       "armDeg": 15.5,
       "baked": true
@@ -463,7 +464,7 @@
           0.8395
         ]
       },
-      "yawOffsetDeg": 45,
+      "yawOffsetDeg": 35,
       "stanceDeg": 13.25,
       "armDeg": 10,
       "baked": true

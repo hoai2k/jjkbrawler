@@ -3,6 +3,15 @@
 // Both put a rendered 3D model beside the drawing it is supposed to be, and
 // ask a question no script can answer.
 //
+// WHAT FACING ASKS, precisely, because it is easy to answer a different
+// question by accident: is the MODEL's body turned the way the DRAWING's body
+// is turned? Nothing else. Not whether the pose matches, not whether the
+// drawing is the one you would have chosen, and not where the character is
+// looking — Momo's sprite has her body facing one way and her face the other,
+// and the answer for her is about the body. A sprite whose art you disagree
+// with is a job for the sprite bench; this set only moves `yawOffsetDeg`,
+// which turns the model and can do nothing about a drawing.
+//
 // FACING is the sharper of the two, and the project has scars to prove it.
 // `tools/check_model_facing.mjs` says so at length: an outline CANNOT tell
 // front from back — turn a standing figure through 180° and the silhouette
@@ -147,7 +156,7 @@ export async function facingProvider() {
       `stored <b>${manifest[task.charKey]?.yawOffsetDeg ?? 0}°</b>`
       + (value.yaw !== (manifest[task.charKey]?.yawOffsetDeg ?? 0)
         ? ` → proposed <b>${value.yaw}°</b>` : "")
-      + ` — do both bodies face the same way?`,
+      + ` — does the MODEL's body face the way the drawing's body does?`,
     renderEditor(task, { container, value, onChange }) {
       container.replaceChildren();
       slider(container, {
@@ -167,7 +176,7 @@ export async function facingProvider() {
     draw(task, ctx) {
       drawPair(task, { ...ctx, state: "idle", yawDeg: ctx.value.yaw - (manifest[task.charKey]?.yawOffsetDeg ?? 0) });
       caption(ctx.ctx, ctx.canvas,
-        "same direction? a silhouette cannot answer this — that is why you are here");
+        "judge the BODY, not the face or the pose — is the model turned the same way?");
     },
     exportBlock(decisions) {
       const rows = [];
