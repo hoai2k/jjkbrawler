@@ -3740,6 +3740,16 @@ function refreshUsageInfo() {
     lines.push(`<b>No size or position controls:</b> ${can.what}.`);
   }
   box.innerHTML = lines.join("<br>");
+  // Folded shut, the summary still has to answer the question you would have
+  // opened it for: who draws this. Everything else in there is detail you go
+  // looking for; this is the bit you want at a glance.
+  const val = $("usageVal");
+  if (val) {
+    const who = [...new Set(uses.map((u) => u.who))];
+    val.textContent = who.length === 0 ? "spawned from code"
+      : who.length === 1 ? who[0]
+      : `${who[0]} +${who.length - 1}`;
+  }
 
   // Offered only where there is an action to play: art fired by a move. A
   // stage hazard or a domain backdrop has no character animation to run it
