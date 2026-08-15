@@ -24,7 +24,7 @@ import {
   playSfx, playSfxEntry, cutSfx, sfxUrl, spokenLead, spokenCommitAt, audioSettings,
   GRUNT_GROUPS, KO_FOR_GROUP,
 } from "../src/audio.js";
-import { loadCoreAssets, loadFrame, frameKeys } from "../src/assets.js";
+import { loadCoreAssets, loadFrame, frameKeys, loadSharedImage, getImage } from "../src/assets.js";
 import { currentFrame, drawCharFrame } from "../src/render_backend.js";
 import { state } from "../src/state.js";
 
@@ -43,6 +43,7 @@ import { state } from "../src/state.js";
 const CACHE_KEY = new URL(import.meta.url).searchParams.get("v") || "";
 const {
   DOMAIN_CALL, MOVE_CALL, SFX, SPOKEN_LINES, SPOKEN_TIMING, AUDIO_MIX, VOICE_ALTERNATES,
+  ELEMENT_HIT_SFX, SFX_ALIASES, SIGNATURE_SFX,
 } = await import(`../src/config_audio.js${CACHE_KEY ? `?v=${encodeURIComponent(CACHE_KEY)}` : ""}`);
 
 const $ = (sel) => document.querySelector(sel);
@@ -83,11 +84,93 @@ function tracksFor(charKey) {
   // this fighter sound like" rather than only "what do they say".
   const group = GRUNT_GROUPS[charKey];
   if (group) {
-    out.push({ kind: "grunt", sfx: group, label: "Effort grunt", detail: `${group} — one of three, drawn at random` });
+    // How many files the group actually holds, not a number written down here.
+    // It used to say "one of three" for every group in the game; the prune
+    // rounds left groups holding one, two and three, and a page that describes
+    // the bank wrongly is worse than one that does not describe it at all.
+    const n = SFX[group] ? [SFX[group].file].flat().length : 0;
+    out.push({
+      kind: "grunt", sfx: group, label: "Effort grunt",
+      detail: `${group} — ${n === 1 ? "one file" : `one of ${n}, drawn at random`}`,
+    });
     const ko = KO_FOR_GROUP[group];
     if (ko) out.push({ kind: "grunt", sfx: ko, label: "KO cry", detail: ko });
   }
+
+  out.push(...effectTracks(charKey));
   return out;
+}
+
+// ------------------------------------------------------- technique sounds
+//
+// The noise a fighter's kit makes, as opposed to the noise the fighter makes.
+// Walked out of the kits rather than listed here, on the same rule the cast
+// list follows: a technique given a sound tomorrow appears on this page with no
+// edit to it.
+//
+// Four ways a move names a sound, and all four are here because all four are
+// audible and any of them can be the wrong one:
+//
+//   fireSfx    the projectile leaving        (Gakuganji's power chord)
+//   castSfx    the technique starting        (Yuta's healing chime)
+//   sfx        the move's own impact         (Rika's bite)
+//   fxElement  the layer UNDER that impact   (fire, water, machine…)
+//
+// The element layer is the subtle one and the reason it is listed separately:
+// it is a second sound played beneath the first at reduced gain, so a fighter
+// whose hits sound wrong may have a fine impact sound and a bad layer, and
+// those are different files to re-request.
+const SFX_SOURCES = [
+  ["fireSfx", "on release"],
+  ["castSfx", "on cast"],
+  ["sfx", "on hit"],
+];
+
+/** Every sound one fighter's specials and ultimate make. */
+function effectTracks(charKey) {
+  const char = CHARACTERS[charKey];
+  const out = [];
+  const moves = [
+    ...Object.entries(char.specials || {}).map(([slot, m]) => [`${slot} special`, m]),
+    ...(char.ultimate ? [["ultimate", char.ultimate]] : []),
+  ];
+  for (const [slot, move] of moves) {
+    const p = move.p || {};
+    for (const [field, when] of SFX_SOURCES) {
+      if (p[field]) out.push(effectTrack(move, slot, p, resolve(p[field]), when));
+    }
+    const layer = ELEMENT_HIT_SFX[p.fxElement];
+    if (layer) out.push(effectTrack(move, slot, p, layer, `${p.fxElement} layer, under the hit`));
+  }
+  // The two nobody could reach: played by a handler rather than declared on a
+  // move, so nothing that walks the kits can see them. See SIGNATURE_SFX.
+  for (const sig of SIGNATURE_SFX[charKey] || []) {
+    out.push({
+      kind: "effect", sfx: sig.sfx, label: sig.move,
+      detail: `signature · ${sig.note}`, sprite: null, spriteH: null,
+    });
+  }
+  return out;
+}
+
+function effectTrack(move, slot, p, sfx, when) {
+  return {
+    kind: "effect",
+    sfx,
+    label: move.name || slot,
+    detail: `${slot} · ${when}`,
+    // What the move puts on screen at the same moment, if anything. Drawn on
+    // the stage while the sound plays — see showcase().
+    sprite: p.sprite || p.aura || null,
+    spriteH: p.spriteH || null,
+  };
+}
+
+/** Legacy keys (`punch`, `slash`, `whoosh`) name real sounds through
+ *  SFX_ALIASES. Resolving here rather than showing the alias keeps the page
+ *  honest about which FILE a move actually plays. */
+function resolve(key) {
+  return SFX[key] ? key : (SFX_ALIASES[key] || key);
 }
 
 /** `gruntAdultMale` -> "adult male", for a list a person reads. */
@@ -125,7 +208,17 @@ const STAND_INS = {};
     STAND_INS[charKey] = group;
   }
 }
-const CAST = Object.keys(CHARACTERS).filter((k) => SPEAKERS.includes(k) || STAND_INS[k]);
+// ...and everyone whose TECHNIQUES make a sound, which is nearly the roster.
+//
+// The page was built around the voice and that was too narrow a reading of what
+// it is for. Gakuganji says nothing and has no grunt group anybody would come
+// here to judge, but his Power Chord is a sound with a filename, played by one
+// move, belonging to one fighter — exactly the thing this bench exists to let
+// somebody hear on demand. Any fighter with one of those is in the list now,
+// and the list says which kind of entry they are.
+const CAST = Object.keys(CHARACTERS).filter(
+  (k) => SPEAKERS.includes(k) || STAND_INS[k] || effectTracks(k).length
+);
 
 // --------------------------------------------------------------- rendering
 
@@ -136,22 +229,30 @@ let lastFrameTime = 0;
 function renderCast() {
   els.castList.innerHTML = "";
   for (const key of CAST) {
-    const lines = tracksFor(key).filter((t) => t.kind === "line").length;
+    const tracks = tracksFor(key);
+    const lines = tracks.filter((t) => t.kind === "line").length;
+    const fx = tracks.filter((t) => t.kind === "effect").length;
     const li = document.createElement("li");
     const btn = document.createElement("button");
     btn.type = "button";
-    const sub = STAND_INS[key]
-      ? `stands in · ${voiceGroupName(STAND_INS[key])}`
-      : `${lines} line${lines === 1 ? "" : "s"}`;
-    btn.innerHTML = `${CHARACTERS[key].name}<span class="n">${sub}</span>`;
+    // Say what is actually behind the name. A fighter here for their techniques
+    // is a different kind of entry from one here because they speak, and
+    // "0 lines" would read as a fault rather than as the reason they are listed.
+    const bits = [];
+    if (lines) bits.push(`${lines} line${lines === 1 ? "" : "s"}`);
+    if (STAND_INS[key]) bits.push(`stands in · ${voiceGroupName(STAND_INS[key])}`);
+    if (fx) bits.push(`${fx} technique${fx === 1 ? "" : "s"}`);
+    btn.innerHTML = `${CHARACTERS[key].name}<span class="n">${bits.join(" · ")}</span>`;
     btn.addEventListener("click", () => select(key));
     li.append(btn);
     els.castList.append(li);
   }
   const totalLines = SPEAKERS.reduce((n, k) => n + tracksFor(k).filter((t) => t.kind === "line").length, 0);
   const stand = Object.keys(STAND_INS).length;
+  const withFx = CAST.filter((k) => effectTracks(k).length).length;
   els.castSummary.textContent = `${SPEAKERS.length} speak · ${totalLines} lines`
-    + (stand ? ` · ${stand} stand in for the rest of the voices` : "");
+    + (stand ? ` · ${stand} stand in for the rest of the voices` : "")
+    + (withFx ? ` · ${withFx} have technique sounds` : "");
 }
 
 function markSelected() {
@@ -170,6 +271,7 @@ function renderTracks() {
   const groups = [
     ["Spoken lines", tracks.filter((t) => t.kind === "line")],
     ["Wordless", tracks.filter((t) => t.kind === "grunt")],
+    ["Techniques", tracks.filter((t) => t.kind === "effect")],
   ];
   for (const [title, list] of groups) {
     if (!list.length) continue;
@@ -182,14 +284,23 @@ function renderTracks() {
     els.trackList.append(box);
   }
   const lines = tracks.filter((t) => t.kind === "line").length;
-  els.trackSummary.textContent =
-    `${CHARACTERS[selected].name} · ${lines} spoken, ${tracks.length - lines} wordless`;
+  const fx = tracks.filter((t) => t.kind === "effect").length;
+  const bits = [];
+  if (lines) bits.push(`${lines} spoken`);
+  if (tracks.length - lines - fx) bits.push(`${tracks.length - lines - fx} wordless`);
+  if (fx) bits.push(`${fx} technique${fx === 1 ? "" : "s"}`);
+  els.trackSummary.textContent = `${CHARACTERS[selected].name} · ${bits.join(", ") || "nothing to play"}`;
 }
 
 function trackRow(t) {
   const entry = SFX[t.sfx];
   const row = document.createElement("div");
   row.className = "track";
+  // Which registry key this row is for, named rather than left to be guessed
+  // from the text. The meta line carries several `<code>` spans — the key, the
+  // filename, the sprite — and a test that scrapes them cannot tell which is
+  // which; one that reads this cannot get it wrong.
+  row.dataset.sfx = t.sfx;
 
   const play = document.createElement("button");
   play.type = "button";
@@ -203,6 +314,9 @@ function trackRow(t) {
   const bits = [];
   if (t.detail) bits.push(t.detail);
   if (VOICE_ALTERNATES[t.sfx]) bits.push('<span class="tag tag--live">in game</span>');
+  // Say the art is coming BEFORE it appears. A still that turns up on the
+  // stage two panels away is easy to miss entirely if nothing said it would.
+  if (t.sprite) bits.push(`<span class="tag tag--art">shows <code>${t.sprite}</code></span>`);
   bits.push(`<code>${t.sfx}</code>`);
   if (files.length) bits.push(files.length > 1 ? `${files.length} files` : `<code>${files[0]}</code>`);
 
@@ -238,11 +352,22 @@ function trackRow(t) {
   // as a unit: three grunts are three performances, and the useful verdict is
   // usually "the first and third, and the alternate's second" — which needs
   // each one on its own button, not one button that draws at random.
-  // A single-file sound with alternates gets rows too, but they are EXCLUSIVE:
-  // a domain call is one file, and its registry entry cannot hold two. Ticking
-  // one there untanks the other, which is the difference between "which of
-  // these do I want" and "which of these do I want to keep".
-  const exclusive = files.length < 2;
+  // Some sounds can only ever be one file, and those rows are EXCLUSIVE: a
+  // radio, where ticking one unticks the other.
+  //
+  // **Which sounds those are is a property of the SOUND, not of how many files
+  // it happens to hold today** — and getting that wrong is how a grunt group
+  // that had been pruned to a single take started offering a radio button. Its
+  // bank had shrunk to one, so it looked single-file, so the page quietly
+  // stopped letting anybody grow it back. Half the voice groups were in that
+  // state and the page was telling you the opposite of the truth about them.
+  //
+  // A SPOKEN LINE is the genuinely exclusive case, and for a reason that
+  // outlives any pruning: its length is frame data (SPOKEN_LINES) — the move
+  // winds up for exactly as long as the take runs — so two takes of different
+  // lengths under one key would mean a move whose timing changed per draw.
+  // Everything else is a bank, however few files are in it.
+  const exclusive = t.kind === "line";
   const perFile = (list, kind, label) => {
     for (const file of list) out.push(fileRow(t.sfx, entry, file, kind, label, exclusive));
   };
@@ -275,6 +400,18 @@ function trackRow(t) {
   // three" leaves the bench as a line to paste rather than as a description.
   out.push(chooserRow(t.sfx, entry));
   return out;
+}
+
+/** Whether this sound can hold exactly one file, ever.
+ *
+ *  Only a spoken line can. Its length is frame data (SPOKEN_LINES) and the move
+ *  winds up for exactly as long as the take runs, so two takes of different
+ *  lengths under one key would be a move whose timing changed per draw. Every
+ *  other sound is a bank the game draws from, however few files are in it
+ *  today — which is the rule the radio/checkbox, the paste line and the export
+ *  all read, so they cannot disagree about what a sound is. */
+function isSingleFile(key) {
+  return SPOKEN_LINES[key] !== undefined;
 }
 
 // Which files are ticked, per sound. Seeded from what the game plays, so the
@@ -418,11 +555,14 @@ function refreshChooser(key, entry, row) {
   const picked = [...chosenFor(key, entry)];
   const live = [entry.file].flat();
   const same = picked.length === live.length && picked.every((f) => live.includes(f));
-  const single = live.length < 2;
   const body = el.lastElementChild;
-  // A single-file sound reads back as a string, a group as an array, because
-  // that is the shape the registry wants in each case.
-  const value = single ? `"${picked[0]}"` : `[${picked.map((f) => `"${f}"`).join(", ")}]`;
+  // A spoken line reads back as a string and everything else as an array —
+  // matching the radio/checkbox rule above, and for the same reason. A bank
+  // that currently holds one file is still a bank, and printing it as a bare
+  // string would quietly turn it into a single every time somebody pasted it.
+  const value = isSingleFile(key)
+    ? `"${picked[0]}"`
+    : `[${picked.map((f) => `"${f}"`).join(", ")}]`;
   body.innerHTML = picked.length
     ? `<div class="label">${same ? "As it ships" : "Your pick"} <span class="tag">${picked.length} file${picked.length === 1 ? "" : "s"}</span></div>`
       + `<div class="meta">Paste into <code>SFX.${key}</code>:</div>`
@@ -446,7 +586,7 @@ async function exportChanges() {
     const picked = [...set];
     const same = picked.length === live.length && picked.every((f) => live.includes(f));
     if (same) continue;
-    const single = live.length < 2;
+    const single = isSingleFile(key);
     const change = {
       sfx: key,
       category: entry.category,
@@ -522,6 +662,40 @@ let nowPlaying = null;
 
 function playTrack(t, row) {
   playEntry(t.sfx, row);
+  showcase(t);
+}
+
+// ------------------------------------------------------- the sprite showcase
+//
+// A technique sound is half of a moment. Gakuganji's power chord plays as a
+// wall of sound leaves the guitar, and judging the chord with the wall absent
+// is judging it against nothing — the question is never "is this a good noise",
+// it is "does this sound like that thing happening".
+//
+// So when a track that has art plays, the art goes on the stage beside the
+// fighter for a couple of seconds, starting on the same frame as the sound.
+// It fades out rather than vanishing, because a hard cut reads as a glitch on
+// a page whose whole job is looking closely at things.
+//
+// Deliberately NOT an animation of the move. The bench draws an idle and a
+// still, and pretending otherwise would make it a worse reference than the
+// action bench, which does play the real thing. This is here to say what the
+// sound belongs to.
+const SHOWCASE_SECS = 2.0;
+const SHOWCASE_FADE = 0.45;
+let shown = null;
+
+function showcase(t) {
+  if (!t.sprite) {
+    shown = null;
+    return;
+  }
+  const key = t.sprite;
+  shown = { key, spriteH: t.spriteH, t: 0 };
+  // Already in memory in the normal case — loadCoreAssets pulls the shared
+  // group at boot — so this resolves instantly and the still is up on the same
+  // frame as the sound. The await is for the case where it is not.
+  loadSharedImage(key).catch(() => {});
 }
 
 /** `what` is a registry key or a registry-shaped entry (an alternate take). */
@@ -550,6 +724,7 @@ function playEntry(what, row) {
 
 async function select(charKey) {
   selected = charKey;
+  shown = null;   // whatever was on the stage belonged to the last fighter
   markSelected();
   const char = CHARACTERS[charKey];
   els.charName.textContent = char.fullName || char.name;
@@ -586,6 +761,35 @@ function draw(now) {
     ctx.textAlign = "center";
     ctx.fillText("art still loading…", els.stage.width / 2, els.stage.height / 2);
   }
+
+  drawShowcase(dt);
+}
+
+/** The effect art for the sound that just played, over the fighter's shoulder. */
+function drawShowcase(dt) {
+  if (!shown) return;
+  shown.t += dt;
+  if (shown.t > SHOWCASE_SECS) {
+    shown = null;
+    return;
+  }
+  const img = getImage(shown.key);
+  if (!img) return;
+
+  // Scaled by the move's own `spriteH` where it declares one, at the same 1.05
+  // the fighter is drawn at, so a big effect looks big next to them. Without
+  // one, its natural height — capped, because a full-screen domain background
+  // would otherwise cover the stage.
+  const h = Math.min(340, (shown.spriteH || img.naturalHeight || 120) * 1.05);
+  const w = h * (img.naturalWidth / img.naturalHeight || 1);
+  const x = els.stage.width / 2 + 90;
+  const y = els.stage.height - 20 - 150;
+
+  const left = SHOWCASE_SECS - shown.t;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, left / SHOWCASE_FADE);
+  ctx.drawImage(img, x - w / 2, y - h / 2, w, h);
+  ctx.restore();
 }
 
 // --------------------------------------------------------------------- boot

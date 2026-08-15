@@ -247,3 +247,11 @@ h2 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: 
 }
 .deploy-stamp:hover { opacity: 1; color: #62dcff; }
 .deploy-stamp--local { color: #ffb95f; }
+
+/* ------------------------------------------------------ technique sounds */
+/* A move's sound, as opposed to a fighter's voice. Same furniture as the rest
+   of the list — it is the same question asked about a different file — with one
+   addition: a row that will put art on the stage says so before it does, or the
+   still appears two panels away and nobody connects the two. */
+.tag--art { border-color: rgba(216, 155, 63, 0.45); color: #d89b3f; }
+.tag--art code { color: inherit; font-size: 10px; }
