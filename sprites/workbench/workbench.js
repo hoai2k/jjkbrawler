@@ -285,6 +285,14 @@ function sharedUsage() {
   return sharedUsageCache;
 }
 
+/** The colour an install glows in — its kit's `p.color`, carried through the
+ *  shared registry. The aura art is a white-ish plate that the game tints by
+ *  glowing it in this colour, so a preview that skips it is showing the plate
+ *  rather than the effect. Falls back to the game's own default cyan. */
+function installColorOf(key) {
+  return sharedSpriteInfo(key)?.installColor || "#8fd3ff";
+}
+
 /** The shared effect/summon art THIS fighter's kit draws.
  *
  *  The Other Sprites set is one long alphabetical list of every drawing in the
@@ -1490,10 +1498,14 @@ function comparisonTarget() {
     const firing = launch?.anim ? launchPose(charKey, launch.anim) : null;
     const key = firing || (rawMeta(charKey, "idle_a") ? "idle_a" : "r0c0");
     const move = sharedUsage().get(state.frame)?.[0]?.label;
+    // Nobody throws an aura. It hangs on the fighter for the length of an
+    // install, which is why the reference stands inside it rather than beside
+    // it — and the caption has to say the same thing the picture does.
+    const worn = sharedControls(state.frame)?.kind === "aura" ? " — wears this" : " — throws this";
     return {
       charKey, frameKey: key,
       caption: charKey === owner
-        ? `${actorOf(charKey).name}${firing && move ? ` — ${move}` : " — throws this"}`
+        ? `${actorOf(charKey).name}${firing && move ? ` — ${move}` : worn}`
         : "Gojo — roster size reference",
     };
   }
@@ -1626,13 +1638,20 @@ function render() {
   // and the slider does the obvious thing; at the fit the drawing holds the
   // canvas and the fighter shrinks against it, which is the same fact seen from
   // the other side — the effect is getting bigger relative to a man.
-  if (comparison) {
-    const v = isOther(state.char) ? sharedView() : null;
+  const sharedV = isOther(state.char) ? sharedView() : null;
+  // An install aura is WORN, not thrown, and standing the fighter off to one
+  // side answers only "how big" — leaving the questions an aura actually raises
+  // (is it centred on him, does it sit at his feet, does his head come out of
+  // the top) answerable nowhere but in a match. So the reference goes INSIDE
+  // the drawing instead of beside it, and is drawn after it, because the game
+  // paints the aura under the body. See the aura branch of drawSharedSprite.
+  const auraOverlay = !!comparison && sharedV?.can?.kind === "aura";
+  if (comparison && !auraOverlay) {
     // Standing at the distance the move puts between them: the drawing holds the
     // middle of the canvas and the FIGHTER moves to where they would be, so
     // switching drawings does not send the thing you are looking at wandering.
-    const x = v?.launch ? canvasCentreX() - v.launch.forward * v.z : null;
-    drawComparison(comparison, v ? v.z : state.zoom, x);
+    const x = sharedV?.launch ? canvasCentreX() - sharedV.launch.forward * sharedV.z : null;
+    drawComparison(comparison, sharedV ? sharedV.z : state.zoom, x);
   }
   // Overlaid, and only overlaid: within one sprite set the question is whether
   // this pose lines up with the character's own idle, and that is only readable
@@ -1648,6 +1667,8 @@ function render() {
   // indistinguishable from a broken sprite — say so instead.
   if (isOther(state.char)) {
     drawSharedSprite(cx);
+    // The body over the glow, at the aura's own centre — the game's paint order.
+    if (auraOverlay) drawComparison(comparison, sharedV.z, sharedV.px);
   } else if (isPending(state.char, state.frame)) {
     drawPendingNotice(cx);
   } else if (!frameLoaded(state.char, state.frame)) {
@@ -2084,7 +2105,23 @@ function drawSharedSprite(cx) {
   ctx.translate(px, py);
   if (v.mirror) ctx.scale(-1, 1);
   if (deg) ctx.rotate(deg * Math.PI / 180);
+  // An aura is an additive glow with the install's colour bleeding off its edge,
+  // and it was being shown here as a flat opaque plate. Two different pictures:
+  // the plate reads as a hard-edged shape you would align by its bounding box,
+  // and the thing the player sees has no edge at all. Same numbers as
+  // drawInstallAura, so what is on this canvas is what goes on the screen.
+  if (v.can?.kind === "aura") {
+    ctx.globalCompositeOperation = "lighter";
+    ctx.globalAlpha = 0.72;
+    ctx.shadowColor = installColorOf(state.frame);
+    ctx.shadowBlur = 18 * v.z;
+  }
   ctx.drawImage(img, -w / 2 + nx, top - py + ny, w, h);
+  // The box is an annotation, not part of the drawing — it must not pick up the
+  // aura's blend, or it stops being readable on exactly the art that needs it.
+  ctx.globalCompositeOperation = "source-over";
+  ctx.globalAlpha = 1;
+  ctx.shadowBlur = 0;
   if ($("showBox").checked) {
     ctx.strokeStyle = "rgba(255, 120, 160, 0.8)";
     ctx.setLineDash([4, 4]);
@@ -2412,9 +2449,15 @@ function sharedView(key = state.frame) {
   // and everything hung off it belong at. Without a launch it falls back to the
   // viewer's own resting heights.
   const launch = can?.launch || null;
-  const py = launch ? GROUND_Y + launch.y * z : anchorScreenY(anchor, h);
+  // An aura does not stand on the floor: render.js paints it from `f.y + 10`,
+  // ten pixels UNDER the fighter's feet, so the glow skirts the platform rather
+  // than being sheared off by it. Drawing it on the ground line here was a
+  // silent ten-pixel lie in the one view somebody sets `dy` from — small, and
+  // exactly the size of the nudges this panel exists to make.
+  const footDy = Number.isFinite(can?.info?.footDy) ? can.info.footDy : 0;
+  const py = launch ? GROUND_Y + launch.y * z : anchorScreenY(anchor, h) + footDy * z;
   return {
-    img, can, meta, scale, hit, z, h, anchor, launch,
+    img, can, meta, scale, hit, z, h, anchor, launch, footDy,
     // Two different things worth saying out loud, and only one of them is a
     // compromise: `fitted` means the view was shrunk because the drawing has no
     // declared size to hold it to, `overflows` means it is drawn at full size
