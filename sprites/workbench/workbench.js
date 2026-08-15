@@ -2403,19 +2403,33 @@ function drawSharedHit(v) {
       + (moved ? ` · moved ${v.hitAdj.dx}, ${v.hitAdj.dy} from the spawn point`
                : " · on the spawn point");
     topOf = c.y - r;
-    // Two handles: the centre moves it, the rim on the right sizes it. Only
-    // while the shape is on screen at all, since it hangs off the Hurtbox
-    // toggle like everything else here.
+    // Both handles on the RIM — see hitHandles for why not the centre. The
+    // shape's interior is draggable too, but a big circle makes that obvious
+    // and a small one has no room for it, so the handles are what is drawn.
     ctx.setLineDash([]);
     ctx.globalAlpha = 1;
-    for (const [hx, hy, held] of [[c.x, c.y, state.dragHit?.mode === "move"],
-                                  [c.x + r, c.y, state.dragHit?.mode === "size"]]) {
+    const hh = hitHandles(c, r);
+    for (const [pt, mode] of [[hh.move, "move"], [hh.size, "size"]]) {
       ctx.beginPath();
-      ctx.arc(hx, hy, HANDLE_R * 0.8, 0, Math.PI * 2);
-      ctx.fillStyle = held ? "rgba(255, 240, 190, 0.95)" : "rgba(255, 210, 90, 0.55)";
+      ctx.arc(pt.x, pt.y, HANDLE_R * 0.8, 0, Math.PI * 2);
+      ctx.fillStyle = state.dragHit?.mode === mode
+        ? "rgba(255, 240, 190, 0.95)" : "rgba(255, 210, 90, 0.55)";
       ctx.fill();
       ctx.strokeStyle = "rgba(255, 226, 150, 0.95)";
       ctx.stroke();
+    }
+    // A short tick from the circle's centre toward the spawn point whenever the
+    // two have parted, so "how far has this been moved, and from what" is
+    // readable without doing arithmetic on the numbers in the panel.
+    if (v.hitAdj.dx || v.hitAdj.dy) {
+      ctx.globalAlpha = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(c.x, c.y); ctx.lineTo(px, py);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, 2.5, 0, Math.PI * 2);
+      ctx.fill();
     }
     ctx.setLineDash([5, 4]);
     ctx.strokeStyle = "rgba(255, 210, 90, 0.9)";
@@ -2651,6 +2665,15 @@ function launchScale(key) {
   const owner = sharedOwner(key);
   if (!base?.scaled || !owner) return 1;
   return bodyMetrics(owner).height / HEIGHT_BASE_PX;
+}
+
+/** The circle's two grab points, both ON THE RIM. Deliberately not at the
+ *  centre: that is where the spawn crosshair is until the circle is moved, and
+ *  a handle there would compete with it for the same pixels on every drawing
+ *  nobody has touched yet — which is exactly how the crosshair became
+ *  ungrabbable. Top moves, right resizes. */
+function hitHandles(c, r) {
+  return { move: { x: c.x, y: c.y - r }, size: { x: c.x + r, y: c.y } };
 }
 
 /** Where the hit circle's centre lands on the canvas — the spawn point plus the
@@ -3456,11 +3479,15 @@ function refreshUsageInfo() {
           : "It does not follow Size — the kit owns how far this move reaches. ")
         + "Turn on Hurtbox to see it."
         + (h.shape === "circle" && !h.melee
-          ? " <b>The circle has its own two handles:</b> drag its centre to move it off the "
-            + "spawn point, drag its right edge to resize it. Both are corrections stored "
-            + "against this DRAWING — a shot whose art is a wall of water should collide "
-            + "with the water, not with the middle of a mostly-empty plate — and they ride "
-            + "on top of the kit's own number rather than replacing it."
+          ? " <b>Two handles on the circle's edge:</b> the top one moves it, the right one "
+            + "resizes it — or drag anywhere inside the shape to move it. Both sit on the "
+            + "RIM rather than the middle on purpose: until you move the circle its centre "
+            + "is exactly where the spawn crosshair is, and the crosshair keeps the middle "
+            + "so the DRAWING can still be nudged. The two are separate edits — where the "
+            + "picture sits, and where the shot actually connects. Corrections against this "
+            + "drawing (a shot whose art is a wall of water should collide with the water, "
+            + "not with the middle of a mostly-empty plate), riding on top of the kit's own "
+            + "number rather than replacing it."
           : ""));
     }
     // A creature with no authored pair measures its box off this drawing, so
@@ -5148,19 +5175,43 @@ async function boot() {
         return;
       }
     }
-    // The hit circle before the spawn point: it is the smaller target, it sits
-    // ON the spawn point until somebody moves it, and it is the one you came to
-    // grab if you are looking at it.
+    // TWO POINTS THAT START ON TOP OF EACH OTHER, and both have to stay
+    // reachable. The hit circle is centred on the spawn point until somebody
+    // moves it, so a grab test that took the circle's CENTRE swallowed the
+    // spawn crosshair whole: the drawing could not be nudged at all until the
+    // circle had been dragged out of the way first, which is not an order
+    // anybody would guess.
+    //
+    // So the two are grabbed by different parts of themselves. The crosshair
+    // keeps the middle — it is the smaller, more precise target and the one
+    // that is there on every drawing. The circle is taken by its RIM to resize
+    // and by its AREA to move, which is a much bigger target than the point it
+    // is centred on and never competes for the same pixels.
+    const spawn = sharedControls(state.frame)?.offset ? spawnHome() : null;
+    const onSpawn = spawn && Math.hypot(spawn.x - p.x, spawn.y - p.y) <= HANDLE_R * 3;
+    const near = (x, y) => Math.hypot(p.x - x, p.y - y) <= HANDLE_R * 1.8;
     if (isOther(state.char) && $("showHurtbox")?.checked) {
       const v = sharedView();
       if (v?.hit?.shape === "circle" && !v.hit.melee) {
         const c = hitCentreOnCanvas(v);
         const r = v.hit.r * v.hitAdj.scale * v.z;
-        const onRim = Math.abs(Math.hypot(p.x - c.x, p.y - c.y) - r) <= HANDLE_R * 1.6
-                      && p.x > c.x;
-        const onCentre = Math.hypot(p.x - c.x, p.y - c.y) <= HANDLE_R * 1.6;
-        if (onRim || onCentre) {
-          state.dragHit = { mode: onCentre ? "move" : "size", grabX: p.x, grabY: p.y,
+        const h = hitHandles(c, r);
+        // The two handles first, and they sit ON THE RIM rather than at the
+        // centre — which is the whole reason they exist. The circle starts
+        // centred on the spawn crosshair, so anything grabbed near the middle
+        // is ambiguous, and on a small circle (Piercing Blood's is 18 game px)
+        // there is barely any "inside but clear of the crosshair" to aim at.
+        // Out on the edge there is never a contest, whatever the radius.
+        const mode = near(h.move.x, h.move.y) ? "move"
+          : near(h.size.x, h.size.y) ? "size"
+          // The interior stays live as well: on something the size of a tide
+          // wave, dragging the shape itself is the obvious gesture and the
+          // handles are a long way apart. Yields to the crosshair, which keeps
+          // the middle.
+          : (!onSpawn && Math.hypot(p.x - c.x, p.y - c.y) < r) ? "move"
+          : null;
+        if (mode) {
+          state.dragHit = { mode, grabX: p.x, grabY: p.y,
                             hit: { ...v.hitAdj }, started: false };
           canvas.setPointerCapture(e.pointerId);
           e.preventDefault();
@@ -5581,12 +5632,15 @@ async function boot() {
     // Read-only, and here for the same reason the flag predicates are: a
     // draggable shape drawn on a canvas has no DOM for a test to grab, so
     // without this a smoke can only click at coordinates it guessed.
+    /** The spawn crosshair's place on the canvas, for the same reason. */
+    spawnPoint: () => (isOther(state.char) ? spawnHome() : null),
     hitGeometry() {
       const v = isOther(state.char) ? sharedView() : null;
       if (!v?.hit || v.hit.shape !== "circle" || v.hit.melee) return null;
       const c = hitCentreOnCanvas(v);
       const r = v.hit.r * v.hitAdj.scale * v.z;
-      return { cx: c.x, cy: c.y, r, rimX: c.x + r, rimY: c.y, adj: { ...v.hitAdj } };
+      const h = hitHandles(c, r);
+      return { cx: c.x, cy: c.y, r, move: h.move, size: h.size, adj: { ...v.hitAdj } };
     },
   };
 }
