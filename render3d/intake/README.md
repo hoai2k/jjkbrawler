@@ -15,6 +15,11 @@ render3d/intake/_shared/library.glb        the 14 shared locomotion clips
 render3d/intake/_shared/<archetype>.glb    a normals set (unarmed, blade, …)
 ```
 
+A **fix** to a fighter who is already in the repo comes back the same way and
+through the same folder: one `.glb` per fighter, containing everything they had
+before plus the change. What is asked for, and what an export must not lose on
+the way, is [../docs/blender-requests.md](../docs/blender-requests.md).
+
 The delivery spec is the billboard spec **plus the D-spec additions**
 (shade-bias alpha, outline vertex-color channel, edited normals, shade-tint
 extras): [../docs/asset-requests.md](../docs/asset-requests.md). Read it

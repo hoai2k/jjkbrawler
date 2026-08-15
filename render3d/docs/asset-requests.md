@@ -1,5 +1,9 @@
 # 3D Asset Requests — open requests (the D-rounds)
 
+**Modelling jobs on a fighter who is already delivered — geometry that has to
+be cut, closed or re-topologised by hand — are asked for in
+[blender-requests.md](blender-requests.md), not here.**
+
 **This file asks for MODELS and CLIPS. Every 2D image any render mode needs —
 including the reference boards these rounds are generated from — is in
 [docs/image-requests.md](../../docs/image-requests.md), the single
