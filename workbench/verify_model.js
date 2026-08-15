@@ -174,12 +174,17 @@ export async function facingProvider() {
         ? ` → proposed <b>${value.yaw}°</b>` : "")
       + (value.artWrong ? ` — <b>drawing flagged</b>, model kept as stored` : "")
       + ` — is the model's body turned the way the game should draw it?`,
-    renderEditor(task, { container, value, onChange }) {
+    renderEditor(task, { container, value, onChange, bindSync }) {
       container.replaceChildren();
-      slider(container, {
+      // The editor is not rebuilt between changes, so the buttons below cannot
+      // read `value` — it is the value as of the last rebuild. `live` is kept
+      // current by the engine's sync, and is what they read instead.
+      let live = value;
+      const yawSlider = slider(container, {
         label: "yawOffsetDeg", hint: "the manifest's own facing correction",
-        min: 0, max: 359, step: 5, value: value.yaw,
+        min: 0, max: 359, step: 5, value: value.yaw, unit: "°",
       }, (yaw) => onChange({ yaw }));
+      bindSync((v) => { live = v; yawSlider.set(v.yaw); });
       const wrap = document.createElement("div");
       wrap.className = "v-nav v-nav--wrap";
       const stored = manifest[task.charKey]?.yawOffsetDeg ?? 0;
@@ -189,13 +194,13 @@ export async function facingProvider() {
         + `the sprite's body is turned wrong. Records a note for the sprite bench and `
         + `leaves yawOffsetDeg alone.">Drawing is wrong</button>`;
       wrap.querySelector('[data-turn="180"]').addEventListener("click",
-        () => onChange({ ...value, yaw: (value.yaw + 180) % 360 }));
+        () => onChange({ yaw: (live.yaw + 180) % 360 }));
       wrap.querySelector('[data-turn="0"]').addEventListener("click",
-        () => onChange({ ...value, yaw: stored }));
+        () => onChange({ yaw: stored }));
       // Never emulate a bad drawing: this keeps the model's own yaw and sends
       // the disagreement where it can actually be fixed.
       wrap.querySelector('[data-art="1"]').addEventListener("click",
-        () => onChange({ yaw: stored, artWrong: !value.artWrong }));
+        () => onChange({ yaw: stored, artWrong: !live.artWrong }));
       container.appendChild(wrap);
     },
     draw(task, ctx) {

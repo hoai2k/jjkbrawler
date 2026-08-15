@@ -59,14 +59,27 @@ export function hurtbox(f) {
   const key = f.spriteChar || f.charKey;
   const b = bodyMetrics(key);
   const H = b.height, W = b.width;
-  // A box grown or shrunk about its own bottom edge by a human-verified fit
-  // (body_points.js, the "hurtbox-fit" review). 1x1 for anyone nobody has
-  // checked, so this is a no-op until a decision lands.
+  // A box resized and repositioned by a human-verified fit (body_points.js,
+  // the "hurtbox-fit" review). Identity for anyone nobody has checked, so this
+  // is a no-op until a decision lands.
+  //
+  // Resized about its own BOTTOM edge — the foot line, which is the one edge
+  // that is not a judgement call — and then shifted: `dx` forward along the
+  // facing, `dy` up, both as fractions of the DERIVED size. The shift is what
+  // covers a drawing that sits off-centre in its cell; without it a lopsided
+  // body could only be covered by widening the box on the empty side too.
   const fit = (box, caseKey) => {
     const m = hurtboxFit(key, caseKey);
-    if (m.w === 1 && m.h === 1) return box;
+    if (m.w === 1 && m.h === 1 && !m.dx && !m.dy) return box;
     const w = box.w * m.w, h = box.h * m.h;
-    return { x: box.x + (box.w - w) / 2, y: box.y + box.h - h, w, h };
+    // `dx` is authored looking at a fighter drawn facing right, so it mirrors
+    // with them — a correction for a body leaning forward has to lean the
+    // same way when they turn around.
+    return {
+      x: box.x + (box.w - w) / 2 + (f.facing || 1) * m.dx * box.w,
+      y: box.y + box.h - h - m.dy * box.h,
+      w, h,
+    };
   };
   if (f.ledge) {
     return fit({ x: f.x - W * HURTBOX.ledgeW / 2, y: f.y - H * HURTBOX.ledgeTop,

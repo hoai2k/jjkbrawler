@@ -225,9 +225,20 @@ export const caption = (ctx, canvas, text) => {
 
 // ------------------------------------------------------------------ editor
 
-/** A labelled slider tied to a number box, the pattern every bench in this
- *  repo uses. `onCommit` fires on both. */
-export function slider(container, { label, hint, min, max, step = 1, value }, onCommit) {
+/**
+ * A labelled slider tied to a number box, the pattern every bench in this repo
+ * uses. `onCommit` fires on both.
+ *
+ * Returns `{ el, set }`. `set(v)` moves the control WITHOUT firing onCommit —
+ * that is how a slider follows a corner dragged on the canvas without the two
+ * shouting the value back and forth at each other. It is also why the editor
+ * no longer has to be rebuilt on every change, which is what the sliders were
+ * paying for in lag.
+ *
+ * `unit` because these sets no longer only measure pixels: a hurtbox fit is a
+ * multiplier and reading "1.05 px" off it was worse than reading nothing.
+ */
+export function slider(container, { label, hint, min, max, step = 1, value, unit = "px" }, onCommit) {
   const wrap = document.createElement("div");
   wrap.className = "group";
   wrap.innerHTML = `
@@ -235,11 +246,12 @@ export function slider(container, { label, hint, min, max, step = 1, value }, on
     <div class="slider-row">
       <input type="range" min="${min}" max="${max}" step="${step}" value="${value}">
       <input type="number" class="num" step="${step}" value="${value}">
-      <span class="unit">px</span>
+      <span class="unit">${unit}</span>
     </div>`;
   const [range, num] = wrap.querySelectorAll("input");
+  const round = (v) => (step < 1 ? Number(Number(v).toFixed(3)) : Math.round(Number(v)));
   const push = (v) => {
-    const n = step < 1 ? Number(Number(v).toFixed(3)) : Math.round(Number(v));
+    const n = round(v);
     if (!Number.isFinite(n)) return;
     range.value = n; num.value = n;
     onCommit(n);
@@ -247,21 +259,36 @@ export function slider(container, { label, hint, min, max, step = 1, value }, on
   range.addEventListener("input", (e) => push(e.target.value));
   num.addEventListener("change", (e) => push(e.target.value));
   container.appendChild(wrap);
-  return wrap;
+  return {
+    el: wrap,
+    set(v) {
+      const n = round(v);
+      if (!Number.isFinite(n) || n === round(range.value)) return;
+      range.value = n; num.value = n;
+    },
+  };
 }
 
-/** The two sliders a point-placing set wants. */
-export function pointEditor(container, charKey, value, onChange) {
+/**
+ * The two sliders a point-placing set wants.
+ *
+ * Each emits a SINGLE-KEY PATCH rather than a whole value. The editor is not
+ * rebuilt between changes any more, so `value` here is the value as of the
+ * last rebuild — spreading it would carry a stale sibling axis back over a
+ * fresh one, and dragging Forward would quietly undo Height.
+ */
+export function pointEditor(container, charKey, value, onChange, bindSync) {
   const b = bodyMetrics(charKey);
-  slider(container, {
+  const x = slider(container, {
     label: "Forward", hint: "from the centre line, along the facing",
     min: -Math.round(b.width), max: Math.round(Math.max(b.reach * 2.2, b.width * 3)),
     value: value.x,
-  }, (x) => onChange({ ...value, x }));
-  slider(container, {
+  }, (v) => onChange({ x: v }));
+  const y = slider(container, {
     label: "Height", hint: "from the foot line; up is negative",
     min: -Math.round(b.height * 1.3), max: 0, value: value.y,
-  }, (y) => onChange({ ...value, y }));
+  }, (v) => onChange({ y: v }));
+  bindSync?.((v) => { x.set(v.x); y.set(v.y); });
 }
 
 /**

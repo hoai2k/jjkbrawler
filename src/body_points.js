@@ -38,12 +38,21 @@ export function comFrac(charKey) {
 // `ledge` anchor (sprites.js ANCHORED_STATES), which is where a point on a
 // drawing belongs. See the note in config_body_points.js.
 
-/** Multipliers on a derived hurtbox for one state, or 1×1. Cases:
- *  stand | crouch | air | hurt | prone | ledge. */
+/**
+ * How a derived hurtbox was corrected for one state: `w`/`h` scale it, `dx`/`dy`
+ * shift it. Cases: stand | crouch | air | hurt | prone | ledge.
+ *
+ * The identity is 1×1 with no shift, which is what an unreviewed fighter gets —
+ * so this reader is a no-op until somebody's decision lands. `dx` is a fraction
+ * of the derived WIDTH and points forward along the facing; `dy` is a fraction
+ * of the derived HEIGHT and points up. Fractions rather than pixels so a
+ * redrawn fighter keeps the correction (config_body_points.js says why).
+ */
 export function hurtboxFit(charKey, caseKey) {
   const f = HURTBOX_FIT[charKey]?.[caseKey];
+  const num = (v, fallback) => (Number.isFinite(v) ? v : fallback);
   return {
-    w: Number.isFinite(f?.w) ? f.w : 1,
-    h: Number.isFinite(f?.h) ? f.h : 1,
+    w: num(f?.w, 1), h: num(f?.h, 1),
+    dx: num(f?.dx, 0), dy: num(f?.dy, 0),
   };
 }

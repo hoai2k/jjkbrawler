@@ -84,13 +84,14 @@ export async function comProvider() {
       return `${task.subtitle} · <b>${frac.toFixed(3)}</b> of height `
         + `(<b>${-value.y}px</b> up of ${Math.round(b.height)}) — roster default 0.55`;
     },
-    renderEditor(task, { container, value, onChange }) {
+    renderEditor(task, { container, value, onChange, bindSync }) {
       const b = bodyMetrics(task.charKey);
       container.replaceChildren();
-      slider(container, {
+      const y = slider(container, {
         label: "Centre of mass", hint: "height above the foot line",
         min: -Math.round(b.height), max: 0, value: value.y,
-      }, (y) => onChange({ y }));
+      }, (v) => onChange({ y: v }));
+      bindSync((v) => y.set(v.y));
     },
     onCanvasDrag: (task, pt) => ({ y: Math.min(0, toGame(pt).y) }),
     draw(task, { ctx, canvas, value, redraw }) {
@@ -160,10 +161,10 @@ export async function muzzleProvider() {
     },
     describe: (task, value) =>
       `${task.subtitle} · <b>x ${value.x}</b>, <b>y ${value.y}</b> — where the shot leaves`,
-    renderEditor(task, { container, value, onChange, redraw }) {
+    renderEditor(task, { container, value, onChange, redraw, bindSync }) {
       container.replaceChildren();
       frameStepper(container, task, redraw);
-      pointEditor(container, task.charKey, value, onChange);
+      pointEditor(container, task.charKey, value, onChange, bindSync);
     },
     onCanvasDrag: (task, pt) => toGame(pt),
     draw(task, { ctx, canvas, value, redraw }) {
