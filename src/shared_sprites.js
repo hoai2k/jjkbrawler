@@ -206,6 +206,26 @@ export function sharedHit(key) {
   };
 }
 
+/**
+ * A QUICK FADE-IN AS THE SHOT LEAVES, in seconds. 0 — the default — is the hard
+ * cut every projectile has always had.
+ *
+ * Energy art is the case that wants it. A lance of blood or a ball of cursed
+ * energy has no edge in the fiction: it gathers. Cutting it in at full opacity
+ * one frame after the hand opens reads as a decal appearing rather than as
+ * something being released, and the fix is a handful of frames of ramp — short
+ * enough that it is still a fast attack, long enough that the eye reads a
+ * beginning.
+ *
+ * A property of the DRAWING rather than the move, like everything else here:
+ * whether a picture needs easing in is a fact about the picture. A solid object
+ * — a vending machine, a nail — wants 0 and gets it.
+ */
+export function sharedFadeIn(key) {
+  const v = entryOf(key)?.fadeIn;
+  return Number.isFinite(v) && v > 0 ? v : 0;
+}
+
 /** Has anybody moved or resized this drawing's hit region? For the workbench,
  *  which says so, and for the checker. */
 export function hasSharedHit(key) {
@@ -553,6 +573,11 @@ function buildRegistry() {
     // own width rather than a fixed distance: `f.x + f.facing * w * 0.3`. It
     // has to be resolved against the drawing, so it is named rather than
     // guessed at.
+    // The beam director charges for 0.55s, then throws a real projectile with
+    // offsets of its OWN — `ox: 90, oy: -96` written into the handler rather
+    // than into the kit (src/ultimates.js). Through spawnProjectileScaled like
+    // any shot, so it rides the fighter's muzzle too.
+    beam: () => ({ forward: 90, y: -96, scaled: true }),
     concert: () => ({ forward: 0, y: -110 }),
     shout: () => ({ forward: 0, forwardOfWidth: 0.3, y: -105 }),
     massDrive: () => ({ forward: 150, y: -100 }),

@@ -262,7 +262,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Cursed Technique Lapse: Blue", type: "projectile", cooldown: 1.0,
         desc: "A core of attraction that drags the enemy toward it, then pops.",
-        p: { speed: 470, vy: 0, r: 40, dur: 1.05, dmg: 9, base: 260, growth: 5.4, angle: 0.6, color: "#3f8dff", pull: 320, label: "Blue", sprite: "effect:blue", spriteH: 126 },
+        p: { speed: 470, vy: 0, r: 40, dur: 1.05, dmg: 9, base: 260, growth: 5.4, angle: 0.6, color: "#3f8dff", pull: 320, label: "Blue", ox: 66, oy: -89, sprite: "effect:blue", spriteH: 126 },
       },
       side: {
         name: "Cursed Technique Reversal: Red", type: "projectile", cooldown: 1.15,

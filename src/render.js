@@ -1,6 +1,6 @@
 import { state } from "./state.js";
 import { getImage } from "./assets.js";
-import { sharedAdjust, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "./shared_sprites.js";
+import { sharedAdjust, sharedFadeIn, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "./shared_sprites.js";
 import { getStage } from "./stages.js";
 import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { getActor } from "./characters.js";
@@ -253,6 +253,14 @@ function drawProjectiles(ctx) {
       const h = p.spriteH || p.r * 3;
       const w = sprite.width * h / sprite.height;
       ctx.save();
+      // Energy gathers rather than appearing. A drawing that asks for it eases
+      // in over its first few frames (sharedFadeIn) instead of cutting to full
+      // opacity one frame after the hand opens — which reads as a decal being
+      // switched on. Only the LOOK: the shot collides from the instant it is
+      // spawned, whatever it looks like, because a hitbox you can see through
+      // is a hitbox that lies.
+      const fade = sharedFadeIn(p.sprite);
+      if (fade) ctx.globalAlpha = Math.min(1, p.age / fade);
       ctx.translate(p.x, p.y + (p.wave ? p.r * 0.68 : 0));
       // Point the art along its actual flight path. An arcing shot used to
       // hold one orientation the whole way, which read as a sliding decal.
