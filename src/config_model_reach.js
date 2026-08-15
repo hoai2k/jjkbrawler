@@ -43,7 +43,7 @@ export const MODEL_REACH = {
 
 export const ENVELOPE_INPUTS = {
   "manifest": "6af6aa4768ad",
-  "sprites": "d60d63ba1ce7",
+  "sprites": "ec05e666e9b5",
   "poses": "52c7677b05bf",
   "models": {
     "yuji": "e70184c8b516",

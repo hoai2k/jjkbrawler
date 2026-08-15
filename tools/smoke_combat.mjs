@@ -81,6 +81,25 @@ for (let i = 0; i < SECONDS * 10; i++) {
     const { state } = await import("/src/state.js");
     const { hurtbox } = await import("/src/combat.js");
     const { bodyMetrics } = await import("/src/silhouette.js");
+    const { HURTBOX_FIT } = await import("/src/config_body_points.js");
+    // How far a REVIEWED fit is entitled to move this actor's box away from
+    // the derived size — the narrowest width multiplier and the tallest height
+    // one anybody signed off for them. The bound below is a statement about
+    // measurement, not about taste, so it has to admit the corrections a person
+    // deliberately made; without this it fails on exactly the fighters somebody
+    // took the trouble to fit.
+    const span = (drawn) => {
+      const fits = Object.values(HURTBOX_FIT[drawn] || {});
+      return {
+        minW: fits.reduce((m, v) => Math.min(m, v.w ?? 1), 1),
+        // `dy` counts toward the ceiling as well as `h`: a grounded box lifted
+        // off the floor is extended back down to it (combat.js fit), so the
+        // shipped box is TALLER than its own height multiplier by exactly the
+        // lift. Leaving that out made the bound fail on whichever fighter
+        // happened to be standing when the sample was taken.
+        maxH: fits.reduce((m, v) => Math.max(m, (v.h ?? 1) + Math.max(0, v.dy ?? 0)), 1),
+      };
+    };
     return {
       t: state.matchTime,
       phase: state.phase,
@@ -94,6 +113,7 @@ for (let i = 0; i < SECONDS * 10; i++) {
         // hit, which is the whole point of sizing boxes off the art.
         drawn: f.spriteChar || f.charKey,
         want: bodyMetrics(f.spriteChar || f.charKey),
+        span: span(f.spriteChar || f.charKey),
       })),
     };
   });
@@ -226,9 +246,14 @@ for (const s of samples) {
     // its width is a fraction of the fighter's HEIGHT, not their standing
     // width. Admit exactly that shape (low, and no longer than the body) so
     // the bound still catches a box that is simply wrong-sized.
-    const flat = hr <= 0.30 && f.box.w <= f.want.height * 0.70 && wr >= 0.55;
+    // Widened by whatever fit this actor was reviewed at — the bound polices
+    // "built from this fighter's own measurements", and a verified correction
+    // is part of those measurements now (src/config_body_points.js).
+    const lo = 0.55 * f.span.minW;
+    const hi = 0.95 * f.span.maxH;
+    const flat = hr <= 0.30 && f.box.w <= f.want.height * 0.70 && wr >= lo;
     if (flat) continue;
-    if (wr < 0.55 || wr > 1.25 || hr > 0.95) {
+    if (wr < lo || wr > 1.25 || hr > hi) {
       offenders.push(`${f.charKey} as ${f.drawn} `
         + `${Math.round(f.box.w)}x${Math.round(f.box.h)} `
         + `vs body ${Math.round(f.want.width)}x${Math.round(f.want.height)}`);

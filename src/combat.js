@@ -70,16 +70,43 @@ export function hurtbox(f) {
   // body could only be covered by widening the box on the empty side too.
   const fit = (box, caseKey) => {
     const m = hurtboxFit(key, caseKey);
-    if (m.w === 1 && m.h === 1 && !m.dx && !m.dy) return box;
-    const w = box.w * m.w, h = box.h * m.h;
-    // `dx` is authored looking at a fighter drawn facing right, so it mirrors
-    // with them — a correction for a body leaning forward has to lean the
-    // same way when they turn around.
-    return {
-      x: box.x + (box.w - w) / 2 + (f.facing || 1) * m.dx * box.w,
-      y: box.y + box.h - h - m.dy * box.h,
-      w, h,
-    };
+    let out = box;
+    if (m.w !== 1 || m.h !== 1 || m.dx || m.dy) {
+      const w = box.w * m.w, h = box.h * m.h;
+      // `dx` is authored looking at a fighter drawn facing right, so it mirrors
+      // with them — a correction for a body leaning forward has to lean the
+      // same way when they turn around.
+      out = {
+        x: box.x + (box.w - w) / 2 + (f.facing || 1) * m.dx * box.w,
+        y: box.y + box.h - h - m.dy * box.h,
+        w, h,
+      };
+    }
+    // A FIGHTER ON THE FLOOR IS HITTABLE DOWN TO IT.
+    //
+    // The review fits the box to a body's MAIN MASS, and on most drawings that
+    // starts a little above the feet — a stance with the weight on one leg, a
+    // crouch whose trailing shin is a thin diagonal. Honouring the lifted
+    // bottom edge literally would make a leg sweep whiff on somebody standing
+    // right in front of it, which is not a thing any fighting game should do.
+    // So the bottom is dropped back to the foot line whenever the fighter is
+    // actually on it, and the reviewed TOP edge is what the decision governs.
+    //
+    // Only ever lowered, never raised: a prone fit that hangs below the line
+    // goes on hanging, and airborne states (air, ledge, tumble) are untouched
+    // because there is no floor under them to extend to.
+    if (f.grounded && out.y + out.h < f.y) out = { ...out, h: f.y - out.y };
+    // ...AND A HANGING ONE IS HITTABLE UP TO THE LIP, which is the same
+    // argument the other way up. A fighter on the ledge has their hands on the
+    // platform's corner; an attack thrown down over the edge has to reach them
+    // there, not stop at the top of whatever the hang drawing's shoulders came
+    // out as. The lip is the platform's own surface (fighter.js tryGrabLedge
+    // hangs them off `plat.y`).
+    const lip = f.ledge?.plat?.y;
+    if (lip !== undefined && out.y > lip) {
+      out = { x: out.x, w: out.w, y: lip, h: out.h + (out.y - lip) };
+    }
+    return out;
   };
   if (f.ledge) {
     return fit({ x: f.x - W * HURTBOX.ledgeW / 2, y: f.y - H * HURTBOX.ledgeTop,
@@ -89,11 +116,18 @@ export function hurtbox(f) {
   // upright standing box on a body drawn sideways was the biggest remaining
   // silhouette/box divergence in the air. Long and low like prone, but hung
   // about the centre of mass — the point the spin pivots on.
+  //
+  // ITS OWN CASE, not "prone", though the derived shape is the same. What is
+  // drawn here is the fighter's HURT pose rotated (motion.js fighterTransform),
+  // not the flat-out drawing: an arched body mid-launch with its limbs out, not
+  // a sprawl on the ground. The two want different corrections, and sharing a
+  // key meant a fit reviewed on the floor drawing silently reshaped the box a
+  // launched fighter carries through the air.
   if (!f.grounded && Math.abs(Math.sin(f.spinAngle || 0)) > 0.7) {
     const bh = H * HURTBOX.proneH;
     const cy = f.y - H * comFrac(key);
     return fit({ x: f.x - H * HURTBOX.proneW / 2, y: cy - bh / 2,
-                 w: H * HURTBOX.proneW, h: bh }, "prone");
+                 w: H * HURTBOX.proneW, h: bh }, "tumble");
   }
   // Lying flat: long and low, matching what is drawn. High pokes whiff over a
   // downed fighter, which is most of what makes a knockdown mean anything.
