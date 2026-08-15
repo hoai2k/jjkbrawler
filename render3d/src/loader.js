@@ -31,7 +31,7 @@ import { clone as cloneSkinned } from "../../vendor/three/utils/SkeletonUtils.js
 import { applyToonMaterials, characterToon } from "./toon.js";
 import { addOutlines, setOutlineFor } from "./outline.js";
 import { captureCleanPose, poseRig } from "./pose.js";
-import { reachChain } from "./ik.js";
+import { reachChain, applyBindPose } from "./ik.js";
 import { buildCharacterClips } from "./pose_clips.js";
 import { clampGuardOpen } from "./guard_open.js";
 import { CLIP_STATES } from "./states.js";
@@ -691,6 +691,17 @@ function registerRig(charKey, { root, height, clips, isMannequin = false }, entr
 function buildLibraryClips(charKey, root) {
   if (!THREE || !root) return;
   try {
+    // BAKE FROM THE BIND POSE, not from whatever the rig is standing in.
+    //
+    // pose_clips.bakeCharacterPoses takes its reference frame by cloning the
+    // bones' CURRENT rotations (pose_library.bindOf) and writes every library
+    // pose relative to that. At load that is the true bind and it is correct.
+    // On a REBUILD it is not: the rig is posed from the last frame drawn, so
+    // the new clips are baked on top of the old pose — and the next rebuild on
+    // top of that. Dragging the workbench's guard slider rebuilds on every
+    // step, which is why the guard wandered and would not come back to where
+    // it started however far the dial was wound down.
+    applyBindPose(THREE, root);
     const guardOpenDeg = RIGS.get(charKey)?.guardOpenDeg || 0;
     const { clips: built, sources } =
       buildCharacterClips(THREE, charKey, root, CLIP_STATES, { guardOpenDeg });
