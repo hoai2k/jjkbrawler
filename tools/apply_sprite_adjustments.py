@@ -30,10 +30,12 @@ Usage:
   pbpaste | python3 apply_sprite_adjustments.py -        # straight from clipboard
   python3 apply_sprite_adjustments.py patch.json --dry-run
 """
+import shared_art_stamp
 import sprite_paths
 
 import argparse
 import datetime as dt
+import hashlib
 import json
 import os
 import sys
@@ -84,6 +86,10 @@ OTHER_KEY = "__other"
 # the drawing (VARIANT_REVIEW), not the pose, and the workbench drops a note when
 # the flag it explains is cleared.
 ALLOWED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "anchors", "faceLeft",
+           # Shared drawings only: WHICH IMAGE this tuning was measured against.
+           # Not an adjustment — it is how the numbers beside it can later be
+           # told to be stale. See `stamp_source`.
+           "file",
            # Shared drawings (`otherSprites`) only: a nudge in GAME pixels from
            # the point the spawn site paints them on. They have no cell to be
            # placed in, so `ox`/`bodyBottom` mean nothing there.
@@ -427,6 +433,15 @@ def main():
             for field, value in changes.items():
                 if field not in ALLOWED:
                     skipped.append(f"{char}/{key}: ignoring unsupported field '{field}'")
+                    continue
+                if field == "file":
+                    # Not a number to store: the drawing these numbers were
+                    # measured against. Stamped with a hash of its bytes so a
+                    # redelivery can be told from a touch-up later — the thing
+                    # a shared key, being one fixed filename forever, cannot
+                    # say for itself. Only meaningful on shared art.
+                    if char == OTHER_KEY and not shared_art_stamp.stamp(meta, value):
+                        skipped.append(f"{char}/{key}: cannot stamp, no file at '{value}'")
                     continue
                 if field in TRACKED:
                     # record the pristine value once, before it is overwritten
