@@ -22,7 +22,7 @@ import { drawPlatformShape } from "../../src/render.js";
 import { applySharedSpriteScales, sharedSpriteInfo, SPRITE_LIST_KEY_FIELDS } from "../../src/shared_sprites.js";
 import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../../src/moves.js";
 import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
-import { muzzlePoint, hasMuzzlePoint } from "../../src/body_points.js";
+import { muzzleOf, spawnOffset, REFERENCE_MUZZLE } from "../../src/muzzle.js";
 import { PIVOTED_STATES } from "../../src/motion.js";
 import { HURTBOX, GRAB } from "../../src/constants.js";
 import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
@@ -2515,21 +2515,24 @@ function sharedView(key = state.frame) {
  *
  *  Two corrections on the kit's own `ox`/`oy`, and both were missing:
  *
- *    the HEIGHT SCALE   a shot is spawned through spawnProjectileScaled, which
- *                       runs those offsets through muzzlePoint: they describe a
- *                       149px reference body and each fighter scales them onto
- *                       their own height. Choso fires from 66.7px forward, not
- *                       70. The crosshair was standing where nothing leaves.
- *    the PENDING EDIT   `spawnOx`/`spawnOy` — the muzzle dragged on the action
- *                       preview and not yet carried into the kit. Only that
- *                       canvas was reading them, so the two views of one drawing
- *                       disagreed about where it comes from, and the main viewer
- *                       was the one ignoring the change you had just made.
+ *    the FIGHTER'S HAND  a shot leaves the muzzle src/muzzle.js resolves for
+ *                        this fighter in this pose — a verified point, the
+ *                        rig's measured hand, or the reference offsets scaled
+ *                        onto their height. The kit's numbers are a
+ *                        displacement from the reference on top of that, not
+ *                        the whole answer. The crosshair used to sit at the raw
+ *                        kit number, which is where nothing leaves from.
+ *    the PENDING EDIT    `spawnOx`/`spawnOy` — the muzzle dragged on the action
+ *                        preview and not yet carried into the kit. Only that
+ *                        canvas was reading them, so the two views of one
+ *                        drawing disagreed about where it comes from, and the
+ *                        main viewer was the one ignoring the change you had
+ *                        just made.
  *
- *  `edited` says the second correction is in play, and `verified` that the first
- *  one does not apply because somebody has placed this fighter's muzzle by hand
- *  — in which case the kit's numbers are dead and dragging them is pointless.
- *  Both are for the readout to explain rather than for anything to draw. */
+ *  `edited` says the second correction is in play, and `source` names which of
+ *  the three answers the hand came from, so the readout can say whether anybody
+ *  has actually looked at this fighter. Both are for the readout to explain
+ *  rather than for anything to draw. */
 function launchPoint(key) {
   const base = sharedControls(key)?.launch;
   if (!base) return null;
@@ -2538,18 +2541,20 @@ function launchPoint(key) {
   const ox = Number.isFinite(meta.spawnOx) ? meta.spawnOx : base.forward;
   const oy = Number.isFinite(meta.spawnOy) ? meta.spawnOy : base.y;
   const owner = sharedOwner(key);
-  if (!base.scaled || !owner) return { ...base, forward: ox, y: oy, edited, verified: false };
-  const m = muzzlePoint(owner, bodyMetrics(owner).height, ox, oy);
-  return { ...base, forward: m.x, y: m.y, edited, verified: hasMuzzlePoint(owner) };
+  if (!base.scaled || !owner) {
+    return { ...base, forward: ox, y: oy, edited, source: null };
+  }
+  const m = spawnOffset(owner, base.anim, ox, oy);
+  return { ...base, forward: m.x, y: m.y, edited, source: m.source };
 }
 
-/** The kit-space multiplier the game applies to `ox`/`oy` for this drawing —
- *  what a number dragged on a canvas has to be divided by to become the number
- *  that belongs in the kit. 1 when nothing scales it. */
+/** The kit-space multiplier the game applies to a move's own offset — what a
+ *  number dragged on a canvas has to be divided by to become the number that
+ *  belongs in the kit. 1 when nothing scales it. */
 function launchScale(key) {
   const base = sharedControls(key)?.launch;
   const owner = sharedOwner(key);
-  if (!base?.scaled || !owner || hasMuzzlePoint(owner)) return 1;
+  if (!base?.scaled || !owner) return 1;
   return bodyMetrics(owner).height / HEIGHT_BASE_PX;
 }
 
@@ -3372,27 +3377,36 @@ function refreshUsageInfo() {
         + "at that distance, in the pose the move plays, and you can line the drawing up "
         + "against the hand that throws it. Moving the drawing off that point is what the "
         + "nudge does.");
-      // The offset shown is rarely the kit's own number, and every way it can
-      // differ is a thing somebody has to know before they tune one.
+      // The point shown is rarely the kit's own number, and how it was arrived
+      // at is the thing somebody has to know before tuning one.
       const k = launchScale(state.frame);
-      if (L.verified) {
-        lines.push(`<b>${actorOf(sharedOwner(state.frame)).name}'s muzzle is placed by hand</b> `
-          + "(<code>muzzle</code> in config_body_points.js), so the kit's <code>ox</code>/"
-          + "<code>oy</code> are dead numbers for this move — the verified point wins. "
-          + "Dragging the spawn marker on the action preview changes nothing in game.");
-      } else if (Math.abs(k - 1) > 0.005) {
-        lines.push(`<b>Scaled onto this body:</b> a shot's <code>ox</code>/<code>oy</code> describe `
-          + `a ${HEIGHT_BASE_PX}px reference fighter and the game scales them onto each one's own `
-          + `height (<code>muzzlePoint</code>, spawnProjectileScaled) — ×${k.toFixed(3)} here. `
-          + "The point above is where the shot really leaves them; a number bound for the kit "
-          + "is that divided by the same amount.");
+      const who = sharedOwner(state.frame);
+      if (L.source) {
+        const name = actorOf(who).name;
+        lines.push({
+          human: `<b>${name}'s muzzle is placed by hand</b> (<code>muzzle</code> in `
+            + "config_body_points.js, written by the verification bench). That point is "
+            + "where the shot leaves; the move's <code>ox</code>/<code>oy</code> ride on "
+            + "top of it as an offset from the reference body.",
+          model: `<b>${name}'s muzzle is measured off their rig</b> — the hand posed at this `
+            + "move's own beat (<code>config_model_reach.js</code>). Good enough to place "
+            + "art against; verify it on the bench to make it a decision rather than a "
+            + "measurement.",
+          derived: `<b>Nobody has placed ${name}'s muzzle.</b> This is the reference body's `
+            + `70, -86 scaled onto their height — ×${k.toFixed(3)} here — which is a guess `
+            + "the whole roster shares. The verification bench's “muzzle-points” set is "
+            + "where that stops being a guess.",
+        }[L.source]);
       }
       if (L.edited) {
-        lines.push("<b>Unsaved spawn point.</b> This is the muzzle dragged on the action "
+        lines.push("<b>Unsaved spawn offset.</b> This is the point dragged on the action "
           + "preview, not the one the kit holds. It exports as <code>spawnOx</code>/"
           + "<code>spawnOy</code>, which is a NOTE: nothing in the game reads those, and "
           + "apply_sprite_adjustments.py skips them. Landing it means editing "
-          + "<code>ox</code>/<code>oy</code> on the move in src/characters.js.");
+          + "<code>ox</code>/<code>oy</code> on the move in src/characters.js — or, if what "
+          + "you are really correcting is where this FIGHTER's hand is rather than where "
+          + "this MOVE spawns, placing their muzzle on the verification bench instead, "
+          + "which fixes it for every move they throw.");
       }
     }
     if (can.travels) {

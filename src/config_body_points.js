@@ -15,8 +15,23 @@
 //              the chest line an aim solves from, and the centre the prone
 //              box hangs off.
 //   muzzle     { x, y } in game px from the fighter's centre line and foot
-//              line (up is negative) — where a projectile leaves them. The
-//              default is the reference body's 70, -86 scaled by height.
+//              line (up is negative) — where a projectile leaves them. This is
+//              the fighter's ANSWER FOR EVERY POSE, and the one other render
+//              modes inherit.
+//
+//              A pose that throws from somewhere else can say so under
+//              `states`, keyed by the animation the move plays —
+//              specialNeutral, specialSide, specialDown, ult:
+//
+//                "gojo": { muzzle: { x: 62, y: -104,
+//                                    states: { specialDown: { x: 40, y: -58 } } } }
+//
+//              Resolution order is in src/muzzle.js: the per-pose entry, then
+//              this one, then the rig's measured hand for that pose
+//              (config_model_reach.js), then the reference body's 70, -86
+//              scaled onto this fighter's height. Everything is optional and
+//              absent means "the next answer down", so an empty file is
+//              exactly the behaviour the game had before anybody checked.
 //   ledgeGrip  { x, y } likewise — where the gripping hand meets the lip on
 //              a ledge hang.
 

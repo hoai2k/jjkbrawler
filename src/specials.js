@@ -10,6 +10,7 @@ import { state } from "./state.js";
 // pillar, a ward — pieces that stand ON the floor, where being a few pixels
 // off the ground line is the whole difference between planted and hovering.
 import { sharedAdjust } from "./shared_sprites.js";
+import { spawnOffset } from "./muzzle.js";
 import { clamp, sign, rand, chance } from "./utils.js";
 // The scaled spawns: kit blocks author oy/h for the reference body, and these
 // wrappers size them to the caster (combat.js spawnMeleeScaled) — the same
@@ -263,7 +264,12 @@ const HANDLERS = {
         spawnProjectile(f, { ...p, vy: (p.vy || 0) + spreadVy, sprite });
       }
     }
-    muzzleFx(p.fxElement, f.x + f.facing * 70, f.y - 86, f.facing, p.color || f.char.theme);
+    // The flash belongs on the same point the shot leaves from. It was written
+    // as the bare reference offsets, which agreed with the shot only for a
+    // fighter the exact size of the reference body — and would have parted from
+    // it outright the moment anybody verified a muzzle.
+    const mz = spawnOffset(f.spriteChar || f.charKey, f.animKey, p.ox, p.oy);
+    muzzleFx(p.fxElement, f.x + f.facing * mz.x, f.y + mz.y, f.facing, p.color || f.char.theme);
     // A signature firing sound (Gakuganji's chord, Mei Mei's caw). Silence
     // until the file is delivered and registered.
     if (p.fireSfx) playSfx(p.fireSfx, 0.9);
