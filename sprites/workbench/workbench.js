@@ -293,6 +293,17 @@ function installColorOf(key) {
   return sharedSpriteInfo(key)?.installColor || "#8fd3ff";
 }
 
+/** The moves of `charKey` that draw this shared art, named — "Piercing Blood",
+ *  "Overtime (aura)". Joined when a kit names the same drawing from more than
+ *  one move, because that is a fact about the drawing worth seeing before you
+ *  resize it: the other move is about to move too. */
+function movesDrawing(key, charKey) {
+  const labels = (sharedUsage().get(key) || [])
+    .filter((u) => u.charKey === charKey)
+    .map((u) => u.label);
+  return [...new Set(labels)].join(" · ") || null;
+}
+
 /** The shared effect/summon art THIS fighter's kit draws.
  *
  *  The Other Sprites set is one long alphabetical list of every drawing in the
@@ -334,6 +345,12 @@ const state = {
   // real character throughout — every control below edits the pose that is
   // selected, and which list it was picked from changes nothing about that.
   group: null,
+  // The fighter whose "Effects this fighter uses" list is open, while the thing
+  // being EDITED is a shared drawing in `__other`. The two have to be held
+  // apart: a shared drawing's numbers only exist in the shared set, so `char`
+  // has to go there, but the list you picked it from is a question about a
+  // kit and belongs to the fighter. Null whenever the list is not open.
+  effectsOwner: null,
   view: "unedited",    // key into VIEWS
   // The secondary action being previewed: the canvas shows the sprite it is
   // pointed at now, and the saved choice stands where the size benchmark does,
@@ -416,7 +433,15 @@ function framesOf(charKey) {
   // sprite sheet, so it lists shared drawings instead of this character's
   // poses. They belong to the `__other` set and are edited there; the cells
   // carry their owner and selecting one takes you to it.
-  if (view.shared) return isOther(charKey) ? [] : effectsOf(charKey);
+  // Selecting one of them opens the shared set to edit it — that is where a
+  // shared drawing's numbers live — and the list has to survive that, or the
+  // view empties itself the moment it is used: `charKey` is `__other` from the
+  // first click on, and `__other` has no kit to walk. `effectsOwner` is the
+  // fighter whose list this is, remembered across that hop.
+  if (view.shared) {
+    const owner = isOther(charKey) ? state.effectsOwner : charKey;
+    return owner ? effectsOf(owner) : [];
+  }
   return allFramesOf(charKey).filter((k) => view.keep(charKey, k));
 }
 
@@ -3883,15 +3908,19 @@ function buildPoseList() {
   }
   const view = VIEWS[state.view] || VIEWS.unedited;
   for (const key of frames) {
+    // In the effects list every cell has the same owner — the shared set — so
+    // naming it under each one says nothing and repeats the key. What is worth
+    // saying there is which MOVE draws it, since that is the question the view
+    // was opened to answer, and one fighter can name the same art from two.
     list.appendChild(view.shared
-      ? buildPoseEntry(OTHER_KEY, key, { owner: true })
+      ? buildPoseEntry(OTHER_KEY, key, { sub: movesDrawing(key, state.effectsOwner || state.char) })
       : buildPoseEntry(state.char, key));
   }
 }
 
 /** One cell of the pose grid. Takes the character rather than reading
  *  `state.char`, because the updated list mixes several in one grid. */
-function buildPoseEntry(charKey, key, { owner = false } = {}) {
+function buildPoseEntry(charKey, key, { owner = false, sub: subOverride = null } = {}) {
   remember(charKey, key);
   const options = poseVariants(charKey, key);
   // A pose with a choice of drawings is a cell plus a chevron, so the two
@@ -3907,7 +3936,7 @@ function buildPoseEntry(charKey, key, { owner = false } = {}) {
   // an `idle_a`, and the pose name alone would be the same cell twice. The key
   // goes with it rather than `label.sub`, which on an undrawn cell is a remark
   // ("unused") rather than the pose's name.
-  const sub = owner ? `${actorOf(charKey).name} · ${key}` : label.sub;
+  const sub = subOverride ?? (owner ? `${actorOf(charKey).name} · ${key}` : label.sub);
   b.innerHTML = sub ? `${label.name}<i class="pose-file">${sub}</i>` : label.name;
   const states = statesUsing(charKey, key);
   const doomed = hasDeleteTag(charKey, key);
@@ -4138,6 +4167,13 @@ function movePose([dx, dy]) {
  *  has to be streamed, and everything else in the panel is keyed to it. */
 function selectPose(charKey, frameKey) {
   state.actionRow = null;
+  // Picking a drawing out of the effects list edits it in the shared set, but
+  // must not close the fighter you were reading it against. Remember whose list
+  // it is on the way through — every route to a shared drawing from that view
+  // comes past here, the cells and the arrow keys alike.
+  if (VIEWS[state.view]?.shared && isOther(charKey) && !isOther(state.char)) {
+    state.effectsOwner = state.char;
+  }
   if (charKey !== state.char) { openChar(charKey, frameKey); return; }
   state.frame = frameKey;
   syncAll();
@@ -4180,13 +4216,39 @@ function syncAll() {
  *  is which, so the select can be re-pointed from anywhere that moves the
  *  selection (undo, a deep link, a pose in another character's set). */
 function syncCharSelect() {
-  $("charSel").value = state.group || state.char;
+  // `effectsOwner` outranks `char` for the same reason `group` does: the
+  // dropdown names the SET you are working through, and while the effects list
+  // is open that is a fighter's kit, even though the drawing being edited lives
+  // in the shared set. "Choso" beside "Effects this fighter uses" is the whole
+  // sentence; flipping to "Other Sprites" on the first click broke it in half.
+  $("charSel").value = state.group || state.effectsOwner || state.char;
+}
+
+/** Open a fighter's effects list: the LIST is theirs, and the drawing selected
+ *  out of it is edited in the shared set, which is the only place a shared
+ *  drawing's numbers exist. Both halves are set here so no caller has to know
+ *  about the split. False when their kit draws no shared art at all — then
+ *  there is no list, and the caller opens them the ordinary way. */
+function openEffectsOf(charKey) {
+  const first = effectsOf(charKey)[0];
+  if (!first) return false;
+  state.effectsOwner = charKey;
+  openChar(OTHER_KEY, first);
+  return true;
 }
 
 /** Pick a real character. */
 function setChar(charKey, wantFrame = null) {
   state.group = null;
+  state.effectsOwner = null;
   defaultSelfIdleMode("comparison");
+  // The effects view survives a change of character — it is a view, and the new
+  // fighter has a kit too — but everything it lists belongs to the shared set,
+  // so the selection has to go there. Otherwise the fighter is left selected
+  // against an `effect:` key that means nothing in their own sprite sheet: no
+  // cell highlights and the canvas draws a pose they do not have.
+  if (!wantFrame && VIEWS[state.view]?.shared && !isOther(charKey)
+      && openEffectsOf(charKey)) return;
   openChar(charKey, wantFrame);
 }
 
@@ -4209,6 +4271,7 @@ function setFlagged(wantChar = null, wantFrame = null) {
  *  "nothing here" would be worse than the note in the list itself. */
 function openList(key, entries, wantChar, wantFrame) {
   state.group = key;
+  state.effectsOwner = null;   // a cross-character list is nobody's effects list
   defaultSelfIdleMode("alternate");
   const target = entries.find((e) => e.char === wantChar && e.frame === wantFrame) || entries[0];
   if (target) { openChar(target.char, target.frame); return; }
@@ -4961,7 +5024,23 @@ async function boot() {
   }
   viewSel.value = state.view;
   viewSel.onchange = () => {
+    const wasEffects = !!VIEWS[state.view]?.shared;
     state.view = viewSel.value;
+    const nowEffects = !!VIEWS[state.view]?.shared;
+    // Leaving the effects list goes back to the fighter it belonged to. The
+    // dropdown has been naming them the whole time, so anything else would have
+    // the view change move the character too — and it would land on `__other`,
+    // which is the set you were trying not to be dumped into.
+    if (wasEffects && !nowEffects && state.effectsOwner) {
+      const owner = state.effectsOwner;
+      state.effectsOwner = null;
+      openChar(owner);
+      return;
+    }
+    // Entering it from a fighter: same split, made now rather than on the first
+    // click, so the view is coherent from the moment it is chosen.
+    if (!wasEffects && nowEffects && !isOther(state.char)
+        && openEffectsOf(state.char)) return;
     // move to a visible pose when the filter hides the current one, but keep it
     // selected when the filter matches nothing at all — better a stale canvas
     // than a blank one
