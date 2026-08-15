@@ -19,6 +19,7 @@ import {
 import { bodyMetrics } from "./silhouette.js";
 import { comFrac, hurtboxFit } from "./body_points.js";
 import { spawnOffset } from "./muzzle.js";
+import { sharedHit } from "./shared_sprites.js";
 import { swingExtent } from "./moves.js";
 import { breakGrabsOn } from "./grab.js";
 import {
@@ -296,6 +297,31 @@ export function updateHitboxes(dt) {
 
 // -------------------------------------------------------------- projectiles
 
+/** The drawing's hit correction, folded into fields a hit test can use. `hitDx`
+ *  is FORWARD, so it is mirrored by the shot's direction where it is read. */
+function hitRegion(cfg) {
+  const h = sharedHit(cfg.sprite);
+  return { hitDx: h.dx, hitDy: h.dy, hitR: (cfg.r ?? 30) * h.scale };
+}
+
+/** Where a projectile's collision circle really is, and how big. One
+ *  definition, because five call sites used to spell `p.x, p.y, p.r` out
+ *  themselves and a correction applied to four of them is a bug you find by
+ *  being hit through a wave. */
+export function projectileHit(p) {
+  // The SAME flip drawProjectiles uses — `flip = vx > 0 ? -1 : 1`, applied
+  // around the draw — because `hitDx` is in the drawing's own frame, like the
+  // `dx` nudge beside it. That is the only reading that lets the collision
+  // follow a feature OF THE ART: put it on the face of the wave and it stays on
+  // the face whichever way the wave rolls, instead of swapping to the tail.
+  const dir = p.vx > 0 ? -1 : 1;
+  return {
+    x: p.x + dir * (p.hitDx || 0),
+    y: p.y + (p.hitDy || 0),
+    r: p.hitR ?? p.r,
+  };
+}
+
 export function spawnProjectile(owner, cfg) {
   const dir = cfg.dir ?? owner.facing;
   const p = {
@@ -324,6 +350,15 @@ export function spawnProjectile(owner, cfg) {
     wave: !!cfg.wave,
     sprite: cfg.sprite || null,
     spriteH: cfg.spriteH || 0,
+    // The collision region, which is no longer forced to sit on the projectile's
+    // own position. Resolved once at spawn rather than per hit test: the drawing
+    // cannot change mid-flight, and there are five call sites.
+    //
+    // `r` is left exactly as the kit declares it. The scaled radius is a
+    // separate field because `r` is not only a collision number — a wave rides
+    // the floor at `groundY - r * 0.7` — and a hit-region correction has no
+    // business moving the shot itself.
+    ...hitRegion(cfg),
     // Element tag (config_fx.js): drives the in-flight emitter, the detonation
     // recipe, and — because the projectile object IS the hit descriptor — the
     // element of the hit sparks when it connects.
@@ -347,9 +382,10 @@ export function spawnProjectile(owner, cfg) {
 function explodeProjectile(p) {
   explodeFx(p);
   playSfx("projectileHit", 0.9);
+  const hp = projectileHit(p);
   for (const target of state.fighters) {
     if (!isFoe(p.owner, target) || target.dead || target.respawnTimer > 0) continue;
-    if (circleRectOverlap(p.x, p.y, p.explode, hurtbox(target))) {
+    if (circleRectOverlap(hp.x, hp.y, p.explode, hurtbox(target))) {
       applyHit(p.owner, target, { ...p, dmg: p.dmg, sfx: "blast" }, "projectile");
     }
   }
@@ -410,6 +446,12 @@ export function updateProjectiles(dt) {
     p.x += p.vx * dt;
     p.y += p.vy * dt;
     if (p.wave) p.y = groundY - p.r * 0.7;
+    // Where this shot hits from HERE, resolved once now that it has finished
+    // moving: the drawing's own correction on top of the projectile's position
+    // (src/shared_sprites.js, sharedHit). Every test below uses it, so a shot
+    // whose art is a wall of water collides with the water rather than with the
+    // middle of a mostly-empty plate.
+    const hp = projectileHit(p);
 
     if (p.pull && target && target.hitstun <= 0) {
       const dx = p.x - target.x;
@@ -423,7 +465,8 @@ export function updateProjectiles(dt) {
     if (p.clearsProjectiles) {
       for (let j = state.projectiles.length - 1; j >= 0; j--) {
         const q = state.projectiles[j];
-        if (q !== p && q.owner !== p.owner && Math.hypot(q.x - p.x, q.y - p.y) < q.r + p.r) {
+        const qh = projectileHit(q);
+        if (q !== p && q.owner !== p.owner && Math.hypot(qh.x - hp.x, qh.y - hp.y) < qh.r + hp.r) {
           burst(q.x, q.y, q.color, 14, 0.9);
           state.projectiles.splice(j, 1);
           if (j < i) i -= 1;
@@ -440,7 +483,7 @@ export function updateProjectiles(dt) {
     if (!remove) {
       for (const s of enemySummons(p.owner)) {
         if (p.hit.has(s)) continue;
-        if (!circleRectOverlap(p.x, p.y, p.r, summonBox(s))) continue;
+        if (!circleRectOverlap(hp.x, hp.y, hp.r, summonBox(s))) continue;
         p.hit.add(s);
         s.damage(p.dmg, p.owner);
         burst(p.x, p.y, p.color, 10, 0.7);
@@ -462,7 +505,7 @@ export function updateProjectiles(dt) {
       // Sky Fold (Uro): projectiles entering the folded sky are bent straight
       // back at their owner instead of landing
       if (!ducked && target.reflect && target.reflect.t > 0 &&
-          circleRectOverlap(p.x, p.y, p.r + 30, box)) {
+          circleRectOverlap(hp.x, hp.y, hp.r + 30, box)) {
         p.owner = target;
         p.vx = -p.vx;
         p.vy = -p.vy * 0.4;
@@ -474,7 +517,7 @@ export function updateProjectiles(dt) {
         playSfx("guardHit", 0.9, 1.3);
         continue;
       }
-      if (!ducked && circleRectOverlap(p.x, p.y, p.r, box)) {
+      if (!ducked && circleRectOverlap(hp.x, hp.y, hp.r, box)) {
         if (p.explode) {
           explodeProjectile(p);
           remove = true;

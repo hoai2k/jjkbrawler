@@ -99,6 +99,13 @@ ALLOWED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "anchors", "faceLef
            # src/shared_sprites.js). Its hurt box is the whole drawing and is
            # measured, so there is nothing to store for that one.
            "attackBox",
+           # Shared PROJECTILES: where the collision circle sits relative to the
+           # shot's own position, and how big — { dx, dy, scale }, sharedHit in
+           # src/shared_sprites.js. A shot used to have exactly one point, which
+           # is right until the drawing is not a ball: Dagon's tide is a wall of
+           # water, and the part that should hit is the face of the wave rather
+           # than the middle of a mostly-empty plate. `null` clears it.
+           "hit",
            "needsReplacement", "wantsImprovement",
            "replacementNote", "improvementNote"}
 # Free text. "" is meaningful — it clears the note rather than leaving the old
@@ -109,7 +116,7 @@ TEXT = {"replacementNote", "improvementNote"}
 KIND_FIELDS = {"needsReplacement": "replace", "wantsImprovement": "quality"}
 NUMERIC = {"renderScale", "ox", "bodyBottom", "rotationDeg", "dx", "dy"}
 # Fields whose value is an object, taken whole rather than compared as a number.
-OBJECT = {"attackBox", "anchors"}
+OBJECT = {"attackBox", "anchors", "hit"}
 BOOLEAN = {"faceLeft"}
 
 # Fields whose pre-edit value is worth remembering. `edited` maps each to what
