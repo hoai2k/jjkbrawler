@@ -20,7 +20,12 @@
 //                  starts a clean queue instead of restoring stale decisions
 //   initialValue(task)              -> the value before any human touched it
 //   describe(task, value)           -> the line above the editor (HTML)
-//   renderEditor(task, ctx)         -> build controls into ctx.container
+//   renderEditor(task, ctx)         -> build controls into ctx.container.
+//                  ctx.onChange takes a PATCH — the keys that moved, not the
+//                  whole value — because the editor is not rebuilt between
+//                  changes and a captured `value` goes stale. ctx.bindSync
+//                  registers a control that should follow the value when
+//                  something else (the canvas, an undo) moves it.
 //   draw(task, ctx)                 -> paint the canvas
 //   onCanvasDrag(task, pt, ctx)     -> optional; return a new value
 //   exportBlock(decisions)          -> optional; paste-ready config text
@@ -130,13 +135,13 @@ function describe(task, value) {
     + ` — ${upFrac}% of height up, ${reachFrac}% of measured reach out`;
 }
 
-function renderEditor(task, { container, value, onChange, redraw }) {
+function renderEditor(task, { container, value, onChange, redraw, bindSync }) {
   container.replaceChildren();
   // The point is a claim about the CONTACT frame, and that is what the bench
   // opens on — but the neighbours are how you tell a fist at full extension
   // from one still travelling, so they are a click away.
   frameStepper(container, task, redraw);
-  pointEditor(container, task.charKey, value, onChange);
+  pointEditor(container, task.charKey, value, onChange, bindSync);
 }
 
 function onCanvasDrag(task, pt) {

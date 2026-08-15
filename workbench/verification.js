@@ -284,6 +284,49 @@ function setDecision(task, patch) {
   persist();
 }
 
+const isPlain = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+
+/**
+ * A VALUE CHANGE, from a slider, a nudge button or a drag.
+ *
+ * `patch` is MERGED into the value in play rather than replacing it, so a
+ * control only has to say the part it owns — `onChange({ x })` from the
+ * forward slider leaves `y` alone. That matters more than it looks: the
+ * editor's DOM is no longer rebuilt on every change (see refreshValue), so a
+ * control's captured `value` goes stale the moment a sibling moves, and a
+ * spread of it would silently revert the sibling's edit.
+ *
+ * Only the cheap half of a render runs. A drag is a stream of these — up to
+ * one per pointer pixel — and the expensive half (rebuilding the editor and
+ * the whole queue list) is exactly what made the sliders crawl: every input
+ * event replaced the DOM node the pointer was holding, then walked 162 rows
+ * to redraw badges that had not changed.
+ */
+function applyValue(task, patch) {
+  if (patch === undefined || patch === null) return;
+  const before = statusOf(task);
+  const cur = valueFor(task);
+  const value = isPlain(patch) && isPlain(cur) ? { ...cur, ...patch } : patch;
+  setDecision(task, { status: "edited", value });
+  // Controls the change did NOT come from still have to show it — a corner
+  // dragged on the canvas has to move the width slider under it. Sent for
+  // every change, including the editor's own: a control that emits one key
+  // still needs the others, and `set` ignores a value it is already showing,
+  // so the control under the pointer is never fought with.
+  syncEditor(value);
+  refreshValue();
+  // The row's badge and the counters only move on a STATUS transition, which
+  // happens once per item however many times it is nudged.
+  if (statusOf(task) !== before) { renderList(); renderProgress(); }
+}
+
+/** Controls that want telling when the value moved underneath them. Rebuilt
+ *  with the editor, so a stale one cannot outlive the item it belongs to. */
+let editorSyncs = [];
+function syncEditor(value) {
+  for (const fn of editorSyncs) { try { fn(value); } catch { /* a control's problem */ } }
+}
+
 // --------------------------------------------------------------- rendering
 
 /** Put the cursor on something the active filter is actually showing. A queue
@@ -440,8 +483,34 @@ function renderProgress() {
     : "Downloads every decision so far, as one JSON file";
 }
 
+/**
+ * THE CHEAP HALF. Everything that follows from the VALUE moving: the summary
+ * line above the editor, and the canvas. No DOM is replaced, so a control the
+ * pointer is holding survives.
+ */
+function refreshValue() {
+  const task = current();
+  if (!task) return;
+  const status = statusOf(task);
+  els.source.innerHTML = bench.provider.describe(task, valueFor(task))
+    + (status !== "todo" ? ` <span class="v-item-tag">${STATUS_LABEL[status]}</span>` : "");
+  scheduleDraw();
+}
+
+/** One repaint per frame however many changes arrive in it. A slider fires an
+ *  input event per pixel of travel; a sprite-and-overlay redraw per pixel is
+ *  what a dragged slider felt like. */
+let drawPending = 0;
+function scheduleDraw() {
+  if (drawPending) return;
+  drawPending = requestAnimationFrame(() => { drawPending = 0; draw(); });
+}
+
+/** THE EXPENSIVE HALF. Rebuilds the editor for a DIFFERENT item — so it runs
+ *  on navigation, on undo and on a reset, and not on a drag. */
 function renderCurrent() {
   const task = current();
+  editorSyncs = [];
   if (!task) {
     els.title.textContent = "Nothing to review";
     els.subtitle.textContent = "";
@@ -452,24 +521,20 @@ function renderCurrent() {
   els.subtitle.textContent = task.subtitle || "";
   const d = decisionFor(task);
   els.note.value = d?.note || "";
-  const status = statusOf(task);
-  els.source.innerHTML = bench.provider.describe(task, valueFor(task))
-    + (status !== "todo" ? ` <span class="v-item-tag">${STATUS_LABEL[status]}</span>` : "");
   bench.provider.renderEditor(task, {
     container: els.editor,
     value: valueFor(task),
-    onChange: (value) => {
-      setDecision(task, { status: "edited", value });
-      renderCurrent();
-      renderList();
-      renderProgress();
-    },
+    onChange: (patch) => applyValue(task, patch),
     // For controls that change the VIEW rather than the value — which frame
     // is on screen, say. A view change must not record a decision, so it gets
     // its own door rather than going through onChange.
-    redraw: () => renderCurrent(),
+    redraw: () => { renderCurrent(); },
+    /** Register a control that should follow the value when something ELSE
+     *  moves it — the canvas, an undo, a nudge button. Optional: a control
+     *  that does not bind simply goes stale until the editor is rebuilt. */
+    bindSync: (fn) => { editorSyncs.push(fn); },
   });
-  draw();
+  refreshValue();
   // ART READINESS IS THE ENGINE'S JOB, not each task set's. A provider says
   // what an item needs (`ensureReady`); this asks for it and repaints once it
   // lands. Leaving it to the draw functions is how the canvas got stuck on
@@ -801,10 +866,7 @@ function wire() {
     const value = bench.provider.onCanvasDrag(task, toStage(e), {
       canvas: els.stage, value: valueFor(task), phase,
     });
-    if (value === undefined || value === null) return;
-    setDecision(task, { status: "edited", value });
-    renderCurrent();
-    if (phase === "end") { renderList(); renderProgress(); }
+    applyValue(task, value);
   };
   els.stage.addEventListener("pointerdown", (e) => {
     if (!bench.provider?.onCanvasDrag) return;

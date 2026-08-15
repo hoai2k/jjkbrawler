@@ -79,20 +79,32 @@ export const BODY_POINTS = {
 };
 
 /**
- * Per-fighter, per-state corrections to the hurtbox, as MULTIPLIERS on the
- * box combat.js derives. Written by the "hurtbox-fit" task set.
+ * Per-fighter, per-state corrections to the hurtbox, RELATIVE to the box
+ * combat.js derives. Written by the "hurtbox-fit" task set.
  *
- * Multipliers rather than sizes on purpose: the derived box tracks the art
+ *   w, h    multipliers on the derived size, applied about the box's own
+ *           bottom edge (the foot line). Default 1.
+ *   dx, dy  a shift of the whole box — `dx` forward along the facing as a
+ *           fraction of the derived WIDTH, `dy` up as a fraction of the
+ *           derived HEIGHT. Default 0. This is for the drawings that sit
+ *           off-centre in their cell: without it, covering a body that has
+ *           leaned to one side means widening the box on the empty side too,
+ *           which is a fighter being hit out of thin air.
+ *
+ * Relative rather than absolute on purpose: the derived box tracks the art
  * (height and width are measured from the drawings, and the crouch and air
- * fractions from those poses), so a fighter whose sprites are redrawn keeps
- * a correct box. An absolute size would freeze it at whatever the art was on
- * the day somebody looked. A case a reviewer approved as-derived is
- * deliberately ABSENT here rather than written as 1×1, for the same reason.
+ * fractions from those poses), so a fighter whose sprites are redrawn keeps a
+ * correct box. Pixel sizes and pixel offsets would both freeze the decision at
+ * whatever the art was on the day somebody looked.
+ *
+ * A case a reviewer approved as-derived IS written here, as `{ w: 1, h: 1 }` —
+ * an identity that changes nothing, and the only way the review queue can tell
+ * "checked and correct" from "nobody has looked yet".
  *
  * Cases: stand | crouch | air | hurt | prone | ledge.
  */
 export const HURTBOX_FIT = {
-  // "hanami": { air: { w: 1.1, h: 0.95 } },
+  // "hanami": { air: { w: 1.1, h: 0.95, dx: -0.08 } },
 };
 
 /** Who checked what, and when. Same keys; `at` is an ISO date. */
