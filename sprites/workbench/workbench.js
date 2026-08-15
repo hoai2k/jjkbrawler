@@ -253,7 +253,7 @@ function sharedOwner(key) {
   // wrong answer about size. Whoever's list this was opened from wins, as long
   // as their kit really does draw it.
   const inContext = state.effectsOwner
-    && (sharedUsage().get(key) || []).some((u) => u.charKey === state.effectsOwner)
+    && (sharedUsage().get(key) || []).some((u) => u.charKey === state.effectsOwner && !u.dead)
     ? state.effectsOwner : null;
   return inContext
     || byName(sharedSpriteInfo(key)?.owner)
@@ -264,14 +264,31 @@ function sharedOwner(key) {
 /** Where a shared sprite is drawn from, and how tall the game draws it. Built
  *  by walking the kits for `sprite:`/`sprites:` references, so it stays true as
  *  moves change instead of being a second list to maintain. */
+/** Is `key` a fallback in `stack` that an earlier entry's art already covers?
+ *
+ *  Mirrors summons.js: the creature is drawn from its own pose set when it has
+ *  one, and every entry behind it is dead weight. Only entries AFTER the first
+ *  drawable one can be superseded — the head of the stack is the creature. */
+function supersededStandIn(stack, key) {
+  const i = stack.indexOf(key);
+  if (i <= 0) return false;
+  // Asked of the REGISTERED fetches rather than of loaded images: this index is
+  // built once, early, and a check against what happens to be in memory would
+  // answer differently depending on how far the page had got.
+  registeredShared ||= new Set(sharedSpriteKeys());
+  const has = (k) => registeredShared.has(k) || registeredShared.has(`${k}:idle_a`);
+  return stack.slice(0, i).some(has);
+}
+let registeredShared = null;
+
 let sharedUsageCache = null;
 function sharedUsage() {
   if (sharedUsageCache) return sharedUsageCache;
   sharedUsageCache = new Map();
-  const note = (key, who, label, h, charKey) => {
+  const note = (key, who, label, h, charKey, dead) => {
     if (!key) return;
     const list = sharedUsageCache.get(key) || [];
-    list.push({ who, label, h, charKey });
+    list.push({ who, label, h, charKey, dead: !!dead });
     sharedUsageCache.set(key, list);
   };
   const walk = (node, who, label, charKey) => {
@@ -283,7 +300,18 @@ function sharedUsage() {
     // "sized by the code that spawns it" and the Size control went away — on
     // the four drawings whose size the workbench is the only way to set.
     for (const field of SPRITE_LIST_KEY_FIELDS) {
-      if (Array.isArray(node[field])) for (const k of node[field]) note(k, who, label, node.spriteH, charKey);
+      if (!Array.isArray(node[field])) continue;
+      for (const k of node[field]) {
+        // A creature's `sprites` is a stack, not a set: summons.js draws
+        // `poseKeyOf(...)` and only reaches a later entry where NO pose art
+        // landed (src/summons.js, drawStill). Mahito's Crawlers shipped all six
+        // plates, so `effect:curse_b` — the stand-in behind them — is never
+        // drawn for him, and listing it under his effects sent you to align art
+        // against a body that never shows it. Recorded as a dead stand-in
+        // rather than dropped, so the panel can still say who kept it.
+        const dead = field === "sprites" && supersededStandIn(node[field], k);
+        note(k, who, label, node.spriteH, charKey, dead);
+      }
     }
     if (typeof node.aura === "string") note(node.aura, who, `${label} (aura)`, node.spriteH, charKey);
     if (typeof node.domainSprite === "string") note(node.domainSprite, who, `${label} (domain)`, node.spriteH, charKey);
@@ -333,7 +361,10 @@ function movesDrawing(key, charKey) {
 function effectsOf(charKey) {
   const out = [];
   for (const [key, uses] of sharedUsage()) {
-    if (uses.some((u) => u.charKey === charKey)) out.push(key);
+    // A stand-in the fighter's own creature art supersedes is not one of their
+    // effects — it is a fallback nothing reaches. Listing it sent you to tune a
+    // drawing against a body that never draws it.
+    if (uses.some((u) => u.charKey === charKey && !u.dead)) out.push(key);
   }
   return out.sort();
 }
@@ -3764,7 +3795,7 @@ function refreshUsageInfo() {
   // button.
   const play = $("playEffectBtn");
   if (play) {
-    const fires = isOther(state.char) ? firingUse(state.frame) : null;
+    const fires = isOther(state.char) ? firingUse(state.frame, state.effectsOwner) : null;
     play.hidden = !fires;
     if (fires) play.textContent = `▶ Play it in action — ${fires.name}`;
   }
@@ -3805,7 +3836,7 @@ const effectPreview = makeEffectPreview({
 
 function openEffectPreview() {
   const title = $("effectTitle");
-  if (!effectPreview.open(state.frame)) return;
+  if (!effectPreview.open(state.frame, state.effectsOwner)) return;
   const u = effectPreview.use;
   title.textContent = `${u.name} — ${CHARACTERS[u.charKey]?.name || u.charKey}, ${u.state}`;
   refreshFadeIn();

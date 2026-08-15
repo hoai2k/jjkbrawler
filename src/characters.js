@@ -267,7 +267,7 @@ export const CHARACTERS = {
       side: {
         name: "Cursed Technique Reversal: Red", type: "projectile", cooldown: 1.15,
         desc: "A repulsive blast with brutal knockback. Destroys other projectiles.",
-        p: { speed: 660, vy: -8, r: 44, dur: 0.9, dmg: 14, base: 500, growth: 8.6, angle: 0.3, color: "#ff4d5d", pierce: true, clearsProjectiles: true, fxRing: 7, label: "Red", sprite: "effect:red", spriteH: 138 },
+        p: { speed: 660, vy: -8, r: 44, dur: 0.9, dmg: 14, base: 500, growth: 8.6, angle: 0.3, color: "#ff4d5d", pierce: true, clearsProjectiles: true, fxRing: 7, ox: 68, oy: -84, label: "Red", sprite: "effect:red", spriteH: 138 },
       },
       down: {
         name: "Infinity", type: "counter", cooldown: 2.6,
@@ -363,7 +363,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Rough Energy Shutter", type: "projectile", cooldown: 1.25,
         desc: "Slams a cursed-energy shutter door forward that bulldozes the lane.",
-        p: { speed: 380, vy: 0, r: 52, dur: 0.85, dmg: 12, base: 420, growth: 7.0, angle: 0.34, color: "#ff62cf", pierce: true, label: "Shutter", sprite: "effect:shutter", spriteH: 150 },
+        p: { speed: 380, vy: 0, r: 52, dur: 0.85, dmg: 12, base: 420, growth: 7.0, angle: 0.34, color: "#ff62cf", pierce: true, ox: 50, oy: -85, label: "Shutter", sprite: "effect:shutter", spriteH: 150 },
       },
       side: {
         name: "Restless Rush", type: "dashStrike", cooldown: 1.35,
