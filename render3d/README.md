@@ -140,6 +140,44 @@ directions in the scene — so every fighter in the scene faced left in every
 locomotion state while their attacks still turned correctly. `tools/smoke_facing.mjs`
 covers both paths.
 
+## What holds still: the centre of mass, not the feet
+
+The delivery spec puts a rig's origin on the floor between the feet, and the
+in-scene layer used to plant that origin at the fighter's foot line. That is
+right on the ground and wrong in the air — a body mid-somersault has no feet on
+anything for the anchor to mean, and anchoring there turns the clip's own
+movement of the hips into the whole fighter bobbing. So `camera3d/models.js`
+anchors the **mass**: it puts the centre of mass where the sim says the centre
+of mass is, and only when the fighter is standing on something does the ground
+win and push the feet back onto the deck. Measured across a full roll, the
+centre moves 0.001 world units while the origin moves 0.188.
+
+Where that centre is is **measured off the model** (`loader.rigComFrac`, the
+`Spine` bone as a fraction of rig height), not taken from `comFrac`. The two are
+different numbers about different bodies: `comFrac` is a fraction of the drawn
+SPRITE's height placed by eye on the drawing, and Panda's drawing carries its
+mass at 0.497 where his rig — an ordinary biped skeleton — has its spine at
+0.58. A character with no rig still gets the sprite value.
+
+**The roll is composed outside the yaw.** `rotation.y` on the rig root carries
+the facing and the presentation angle; the tumble is `rotation.z` on the same
+object, and three.js composes an Euler as XYZ by default — applying Z first and
+then yawing the result, so the roll axis came out as the body's local Z carried
+round by the yaw. A 45° roll put a point one metre up at:
+
+| yaw | | | | |
+|---|---|---|---|---|
+| 0° | (−0.707, 0.707, 0.000) | | the screen-plane roll it should be | |
+| 60° | (−0.354, 0.707, **0.612**) | | half of it has become depth | |
+| 80° | (−0.123, 0.707, **0.696**) | | almost all of it has | |
+
+So a rolling fighter barely tipped on screen and instead swung toward the lens.
+`rotation.order = "ZYX"` applies the roll last, which makes it a screen-plane
+roll at every yaw — exactly, not approximately.
+
+Guarded by `tools/smoke_roll_axis.mjs`, which checks the composition, the
+measurement, and the shipped layer in a real match.
+
 ## What angle each state is shown at
 
 A stand is a portrait: the costume and the face are the point, so the idle keeps
