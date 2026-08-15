@@ -19,6 +19,7 @@ import { PROJ_TRAIL } from "./config_fx.js";
 import { headHeightTarget } from "./heights.js";
 import { strikeArcs, visibleArtReach, swingExtent } from "./moves.js";
 import { bodyWidth } from "./silhouette.js";
+import { strikePoint, STRIKE_STATES } from "./strike_points.js";
 import { respawnX } from "./fighter.js";
 import { isFoe } from "./teams.js";
 
@@ -1043,6 +1044,26 @@ function drawDebug(ctx) {
     // Where this character's artwork actually reaches, measured from their own
     // frames (silhouette.js). A hitbox extending far past this is a hit that
     // will land out of thin air.
+    // Where the blow itself is (strike_points.js): the fist, foot or blade,
+    // as opposed to the box it threatens with. Ringed rather than filled, and
+    // colour-coded by how well it is known — cyan where a person checked it,
+    // amber where it is the model's measurement, faint where it is derived
+    // from the body. Only while this fighter is actually swinging.
+    if (STRIKE_STATES.has(f.animKey)) {
+      const sp = strikePoint(f.spriteChar || f.charKey, f.animKey);
+      const px = f.x + f.facing * sp.x;
+      const py = f.y + sp.y;
+      ctx.strokeStyle = sp.source === "human" ? "rgba(120, 240, 255, 0.95)"
+        : sp.source === "model" ? "rgba(255, 190, 90, 0.9)" : "rgba(160,170,190,0.5)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(px, py, 7, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(px - 10, py); ctx.lineTo(px + 10, py);
+      ctx.moveTo(px, py - 10); ctx.lineTo(px, py + 10);
+      ctx.stroke();
+    }
     const reach = visibleArtReach(f.char);
     if (reach) {
       const x = f.x + f.facing * reach;

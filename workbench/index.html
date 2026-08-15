@@ -17,7 +17,27 @@
     <script type="module" src="../src/deploystamp.js"></script>
 </head>
   <body>
-    <header class="bar">
+    <!-- Two benches answer at this address (router.js ROUTES): the audio bench
+         below, and the verification queue, which builds its own header and
+         layout into this root. The one that was not asked for is removed
+         before its module runs, so neither can reach the other's nodes. -->
+    <div id="verificationRoot" hidden></div>
+    <script>
+      (function () {
+        if (document.documentElement.dataset.bench !== "verification") {
+          document.getElementById("verificationRoot").remove();
+        } else {
+          document.getElementById("verificationRoot").hidden = false;
+          // Drop the audio shell outright rather than hiding it: audio.js is
+          // not loaded on this bench, so its markup would sit there inert and
+          // its ids would answer any getElementById the new bench made.
+          document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll("[data-audio-shell]").forEach(function (n) { n.remove(); });
+          });
+        }
+      })();
+    </script>
+    <header class="bar" data-audio-shell>
       <strong>Audio Workbench</strong>
       <span class="hint">Plays through the game's own mixer — the level you hear is the level in a match.</span>
       <nav class="modes">
@@ -32,7 +52,7 @@
       <span id="loadState" class="loading">loading…</span>
     </header>
 
-    <main class="layout">
+    <main class="layout" data-audio-shell>
       <!-- Who has anything to say. Built from the game's own call tables, so a
            fighter given a line tomorrow appears here with no edit to this page. -->
       <aside class="col cast">
@@ -54,6 +74,7 @@
             <li><a href="?edit=3d"><code>?edit=3d</code></a><span>live 3D poses</span></li>
             <li><a href="?edit=animation"><code>?edit=animation</code></a><span>keyframes</span></li>
             <li><a href="?edit=pose"><code>?edit=pose</code></a><span>joint reads</span></li>
+            <li><a href="?edit=verification"><code>?edit=verification</code></a><span>review queue</span></li>
           </ul>
           <p class="sub">Anything else you pass — <code>&amp;char=gojo</code> — travels with you.</p>
         </div>
