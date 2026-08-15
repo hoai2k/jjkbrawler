@@ -23,7 +23,7 @@ import { bodyMetrics } from "../src/silhouette.js";
 import { HURTBOX } from "../src/constants.js";
 import {
   ZOOM, GROUND_Y, CENTRE_X, drawStage, caption, slider, frameStepper,
-  prefetchTask,
+  ensureTaskArt,
 } from "./verify_common.js";
 
 /** The states whose box the game actually builds, with the drawing that shows
@@ -88,7 +88,8 @@ export async function provider() {
       ctx.fillText("does it cover the body, and nothing that is not the body?",
         10, canvas.height - 10);
     },
-    prefetch: prefetchTask,
+    ensureReady: ensureTaskArt,
+    committed: (task) => HURTBOX_FIT[task.charKey]?.[task.caseKey] !== undefined,
     exportBlock,
   };
 }
@@ -136,12 +137,18 @@ function exportBlock(decisions) {
       flagged.push(`//   ${d.char}.${d.case}: ${d.note || "flagged, no note"}`);
       continue;
     }
-    // An approve at 1,1 is "the derived box is right" — worth recording as a
-    // decision, but it is not an override and writing it as one would freeze
-    // a box that should keep tracking the art.
-    if (d.value.w === 1 && d.value.h === 1) continue;
+    // An approve at 1,1 IS recorded, as 1x1. It costs nothing — a multiplier
+    // of one is a no-op, so the box goes on tracking the art exactly as it
+    // did — and it is what makes "somebody looked at this and it was right"
+    // a fact the queue can see, instead of a review that has to be done again
+    // every time the bench is opened.
     if (!byChar.has(d.char)) byChar.set(d.char, []);
     byChar.get(d.char).push(d);
+  }
+  // Committed fits first, so the block replaces the file cleanly.
+  for (const [char, held] of Object.entries(HURTBOX_FIT)) {
+    if (byChar.has(char)) continue;
+    byChar.set(char, Object.entries(held).map(([c, v]) => ({ char, case: c, value: v })));
   }
   const lines = [];
   for (const [char, list] of [...byChar].sort()) {
@@ -150,8 +157,8 @@ function exportBlock(decisions) {
   }
   return {
     file: "src/config_body_points.js",
-    note: "merge into HURTBOX_FIT. Boxes approved as-derived are deliberately "
-      + "absent: they keep tracking the art.",
+    note: "replaces HURTBOX_FIT. A box approved as-derived is recorded at 1x1 — "
+      + "a no-op multiplier that still says somebody checked it.",
     text: `export const HURTBOX_FIT = {\n${lines.join("\n")}\n};\n`
       + (flagged.length ? `\n// Flagged — a fix at the source:\n${flagged.join("\n")}\n` : ""),
   };

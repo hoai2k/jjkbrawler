@@ -31,7 +31,7 @@
 import { resolvedAnim } from "../sprites/src/sprites.js";
 import { CHARACTER_KEYS } from "../src/characters.js";
 import { MODEL_REACH, ENVELOPE_INPUTS } from "../src/config_model_reach.js";
-import { STRIKE_POINTS } from "../src/config_strike_points.js";
+import { STRIKE_POINTS, STRIKE_POINT_META } from "../src/config_strike_points.js";
 import { contactFrame, imageToGame, gameToImage } from "../src/strike_points.js";
 import { bodyMetrics } from "../src/silhouette.js";
 import { frameMeta } from "../src/assets.js";
@@ -39,7 +39,7 @@ import { STATES, clipNameFor } from "../render3d/src/states.js";
 import { COM_BODY_FRAC } from "../src/config_tuning.js";
 import {
   ZOOM, toCanvas, toGame, drawStage, marker, caption,
-  frameStepper, pointEditor, prefetchTask,
+  frameStepper, pointEditor, ensureTaskArt,
 } from "./verify_common.js";
 
 /** The attacks worth checking, in the order somebody would want to walk them:
@@ -75,8 +75,26 @@ export async function provider() {
     tasks,
     fingerprint: `${ENVELOPE_INPUTS.manifest}-${ENVELOPE_INPUTS.poses}-${ENVELOPE_INPUTS.sprites}`,
     initialValue, describe, renderEditor, draw, onCanvasDrag, exportBlock,
-    prefetch: prefetchTask,
+    ensureReady: ensureTaskArt,
+    committed,
   };
+}
+
+/**
+ * Is this item's answer already in the tree?
+ *
+ * A point committed to src/config_strike_points.js on an earlier pass is
+ * settled — the queue should not ask again, which is the whole reason the
+ * engine consults this. A point whose FILE has since changed does not count:
+ * the drawing was replaced, so the decision is about a picture that is no
+ * longer there and somebody has to look at it afresh.
+ */
+function committed(task) {
+  const frame = contactFrame(task.charKey, task.state);
+  const held = frame ? STRIKE_POINTS[task.charKey]?.[frame] : null;
+  if (!held) return false;
+  const file = frameMeta(task.charKey, frame)?.file;
+  return !held.file || !file || held.file === file;
 }
 
 /** Where the value on screen came from before anybody touched it. */
@@ -159,6 +177,21 @@ const fileOf = (charKey, frame) => frameMeta(charKey, frame)?.file || null;
 function exportBlock(decisions) {
   const byChar = new Map();
   const flagged = [];
+  // Everything already in the tree goes in FIRST, so the block this produces
+  // is the whole file rather than a fragment. Pasting it over the old one is
+  // then a safe, complete replacement — a block carrying only the current
+  // sitting would silently drop every point committed before it.
+  for (const [char, frames] of Object.entries(STRIKE_POINTS)) {
+    for (const [frame, held] of Object.entries(frames)) {
+      if (!byChar.has(char)) byChar.set(char, new Map());
+      byChar.get(char).set(frame, {
+        char, frame, image: { x: held.x, y: held.y }, file: held.file || null,
+        at: STRIKE_POINT_META[char]?.[frame]?.at || null,
+        states: STRIKE_POINT_META[char]?.[frame]?.states || [],
+        fromTree: true,
+      });
+    }
+  }
   for (let d of decisions) {
     if (d.status === "skipped") continue;
     if (d.status === "rejected") {
@@ -188,7 +221,7 @@ function exportBlock(decisions) {
     const sorted = [...frames].sort(([a], [b]) => a.localeCompare(b));
     lines.push(`  ${JSON.stringify(char)}: { `
       + sorted.map(([frame, d]) => `${frame}: { x: ${d.image.x}, y: ${d.image.y}`
-        + `, file: ${JSON.stringify(fileOf(d.char, frame))} }`).join(", ")
+        + `, file: ${JSON.stringify(d.fromTree ? d.file : fileOf(d.char, frame))} }`).join(", ")
       + ` },`);
     meta.push(`  ${JSON.stringify(char)}: { `
       + sorted.map(([frame, d]) => `${frame}: { at: ${JSON.stringify((d.at || "").slice(0, 10))}`

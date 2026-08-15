@@ -3,6 +3,15 @@
 // Both put a rendered 3D model beside the drawing it is supposed to be, and
 // ask a question no script can answer.
 //
+// WHAT FACING ASKS, precisely, because it is easy to answer a different
+// question by accident: is the MODEL's body turned the way the DRAWING's body
+// is turned? Nothing else. Not whether the pose matches, not whether the
+// drawing is the one you would have chosen, and not where the character is
+// looking — Momo's sprite has her body facing one way and her face the other,
+// and the answer for her is about the body. A sprite whose art you disagree
+// with is a job for the sprite bench; this set only moves `yawOffsetDeg`,
+// which turns the model and can do nothing about a drawing.
+//
 // FACING is the sharper of the two, and the project has scars to prove it.
 // `tools/check_model_facing.mjs` says so at length: an outline CANNOT tell
 // front from back — turn a standing figure through 180° and the silhouette
@@ -31,7 +40,7 @@ import { clearCache } from "../render3d/src/scene.js";
 import * as render3d from "../render3d/src/backend.js";
 import { STATES, clipNameFor } from "../render3d/src/states.js";
 import {
-  ZOOM, GROUND_Y, artScaleFor, ensureFrames, caption, slider, frameStepper, frameIndex,
+  ZOOM, GROUND_Y, artScaleFor, ensureTaskArt, caption, slider, frameStepper, frameIndex,
 } from "./verify_common.js";
 
 /** The 3D engine, started once and shared by both sets. Resolves false when
@@ -86,7 +95,10 @@ function drawPair(task, { ctx, canvas, redraw, yawDeg = 0, state }) {
   const t = anim?.fps ? (idx + 0.5) / anim.fps : 0;
   const drew = spriteDraw(ctx, charKey, spriteFrame(charKey, state, t), SPRITE_X, GROUND_Y,
     { scale, facing: 1 });
-  if (!drew) ensureFrames(charKey).then((fresh) => { if (fresh) redraw?.(); });
+  if (!drew) {
+    ctx.fillStyle = "#9aa4c0";
+    ctx.fillText("loading art…", SPRITE_X - 34, GROUND_Y - 60);
+  }
 
   // The model, posed through the backend's own token path so what is on
   // screen is what a match would draw.
@@ -138,12 +150,13 @@ export async function facingProvider() {
     tasks,
     fingerprint: fingerprint(),
     ready: ok,
+    ensureReady: ensureTaskArt,
     initialValue: (task) => ({ yaw: manifest[task.charKey]?.yawOffsetDeg ?? 0 }),
     describe: (task, value) =>
       `stored <b>${manifest[task.charKey]?.yawOffsetDeg ?? 0}°</b>`
       + (value.yaw !== (manifest[task.charKey]?.yawOffsetDeg ?? 0)
         ? ` → proposed <b>${value.yaw}°</b>` : "")
-      + ` — do both bodies face the same way?`,
+      + ` — does the MODEL's body face the way the drawing's body does?`,
     renderEditor(task, { container, value, onChange }) {
       container.replaceChildren();
       slider(container, {
@@ -163,7 +176,7 @@ export async function facingProvider() {
     draw(task, ctx) {
       drawPair(task, { ...ctx, state: "idle", yawDeg: ctx.value.yaw - (manifest[task.charKey]?.yawOffsetDeg ?? 0) });
       caption(ctx.ctx, ctx.canvas,
-        "same direction? a silhouette cannot answer this — that is why you are here");
+        "judge the BODY, not the face or the pose — is the model turned the same way?");
     },
     exportBlock(decisions) {
       const rows = [];
@@ -215,6 +228,7 @@ export async function poseProvider() {
     tasks,
     fingerprint: fingerprint(),
     ready: ok,
+    ensureReady: ensureTaskArt,
     // Nothing to edit: this set's answer is a verdict, and its value carries
     // the reviewer's reading of WHY rather than a number to apply.
     initialValue: () => ({ reads: true }),

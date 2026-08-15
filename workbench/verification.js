@@ -66,11 +66,6 @@ const SETS = {
       + "roster, scaled by height — so it departs one fighter's forehead and another's waist.",
     load: () => import(withKey("./verify_body_points.js")).then((m) => m.muzzleProvider()),
   },
-  "ledge-grip": {
-    label: "Ledge grip",
-    blurb: "Where the hand meets the lip on a ledge hang, per fighter.",
-    load: () => import(withKey("./verify_body_points.js")).then((m) => m.ledgeProvider()),
-  },
   "hurtbox-fit": {
     label: "Hurtbox fit",
     blurb: "Does the box you can be hit on cover the body that is drawn — standing, "
@@ -158,7 +153,8 @@ root.innerHTML = `
         <button id="vClear" class="ghost sm" type="button">Undecide</button>
       </div>
       <p class="legend">
-        <b>Approve</b> records the value as it stands — measured or edited.
+        <b>Editing is the decision</b> — drag or nudge and the item is settled;
+        Approve is for the ones where the measurement was already right.
         <b>Flag as broken</b> is for an item no nudge can fix (a mis-gripped
         weapon, a pose that never extends): it exports as a rejection with your
         note, so the fix lands where the fault is instead of being papered over
@@ -166,7 +162,7 @@ root.innerHTML = `
         and committed.
       </p>
       <p class="legend" id="vKeys">
-        <b>←/→</b> move · <b>Enter</b> approve &amp; next · <b>S</b> skip ·
+        <b>←/→</b> or <b>↑/↓</b> move · <b>Enter</b> approve &amp; next · <b>S</b> skip ·
         <b>R</b> flag · <b>Z</b> undo edit · drag on the canvas to place.
       </p>
     </section>
@@ -190,7 +186,9 @@ const bench = {
   provider: null,
   tasks: [],
   i: 0,
-  filter: "all",
+  // A queue opens on the work that is LEFT. After a committed pass, "All" is
+  // mostly things somebody already answered.
+  filter: "todo",
   /** EVERY set's work, together, because the export is a single document:
    *  setId -> { fingerprint, i, decisions: Map(taskId -> decision) }. A
    *  decision is { status, value, note, at }, status one of
@@ -288,6 +286,18 @@ function setDecision(task, patch) {
 
 // --------------------------------------------------------------- rendering
 
+/** Put the cursor on something the active filter is actually showing. A queue
+ *  that opens on "To do" and then displays an item that is not in that list
+ *  reads as broken — and stepping from it lands nowhere near the visible
+ *  rows. Returns true when it moved. */
+function snapToVisible() {
+  const shown = visibleTasks();
+  if (!shown.length || shown.includes(current())) return false;
+  bench.i = bench.tasks.indexOf(shown[0]);
+  setWork(bench.setId).i = bench.i;
+  return true;
+}
+
 function renderAll() {
   renderList();
   renderCurrent();
@@ -304,31 +314,82 @@ function refreshSetCounts() {
   }
 }
 
+/**
+ * Where an item stands. A decision made in this tab wins; failing that, a
+ * set can report that the answer is ALREADY IN THE TREE — committed on some
+ * earlier pass — and that counts as settled.
+ *
+ * Without this the queue asked for everything again after every reload, which
+ * is the opposite of what a review queue is for: the work left to do is the
+ * work nobody has answered yet, whether they answered it a minute ago or last
+ * week.
+ */
 function statusOf(task) {
-  return decisionFor(task)?.status || "todo";
+  const d = decisionFor(task);
+  if (d?.status) return d.status;
+  return bench.provider?.committed?.(task) ? "committed" : "todo";
 }
+
+/** Settled, however it got that way. */
+const SETTLED = new Set(["approved", "edited", "rejected", "committed"]);
+
+const FILTER_LABEL = { all: "All", todo: "To do", done: "In tree" };
 
 const STATUS_LABEL = {
   approved: "approved", edited: "edited", rejected: "flagged",
-  skipped: "skipped", todo: "",
+  skipped: "skipped", committed: "in tree", todo: "",
 };
 
+/**
+ * THE LIST IS A WORKLIST AGAINST THE REPO, not against this tab.
+ *
+ * "To do" is everything whose answer is not yet in the tree — and it stays
+ * there after you edit it, because an edit in a browser tab has not landed
+ * anywhere. It leaves the list when the export is applied and committed, and
+ * not before. That keeps the queue honest about what is actually done, and it
+ * means a decision can be revisited and re-dragged right up until it ships
+ * without the item vanishing out from under you mid-pass.
+ *
+ * A session decision still shows as a badge on the row (edited / approved /
+ * flagged) — it just does not change which list the row is in.
+ */
+const inTree = (task) => !!bench.provider?.committed?.(task);
+
 function visibleTasks() {
-  if (bench.filter === "todo") {
-    return bench.tasks.filter((t) => {
-      const s = statusOf(t);
-      return s === "todo" || s === "skipped";
-    });
-  }
-  if (bench.filter === "done") {
-    return bench.tasks.filter((t) => ["approved", "edited", "rejected"].includes(statusOf(t)));
-  }
+  if (bench.filter === "todo") return bench.tasks.filter((t) => !inTree(t));
+  if (bench.filter === "done") return bench.tasks.filter(inTree);
   return bench.tasks;
 }
 
+/** How many items each filter would show, for the buttons. */
+function filterCounts() {
+  let done = 0;
+  for (const t of bench.tasks) if (inTree(t)) done++;
+  return { all: bench.tasks.length, todo: bench.tasks.length - done, done };
+}
+
+const EMPTY_NOTE = {
+  todo: "Nothing left — every item in this set is already in the tree. "
+    + "Switch to <b>All</b> to revisit one, or pick another set.",
+  done: "Nothing committed yet. Decisions land here once an export has been "
+    + "applied to the config and committed.",
+  all: "This set has no items.",
+};
+
 function renderList() {
   const frag = document.createDocumentFragment();
-  for (const task of visibleTasks()) {
+  const shown = visibleTasks();
+  if (!shown.length) {
+    // A blank column reads as a broken bench. Say which filter emptied it and
+    // what would fill it — the same courtesy the sprite bench's work lists pay.
+    const li = document.createElement("li");
+    li.className = "v-empty";
+    li.innerHTML = EMPTY_NOTE[bench.filter] || EMPTY_NOTE.all;
+    frag.appendChild(li);
+    els.list.replaceChildren(frag);
+    return;
+  }
+  for (const task of shown) {
     const li = document.createElement("li");
     const b = document.createElement("button");
     const status = statusOf(task);
@@ -348,17 +409,24 @@ function renderList() {
 
 function renderProgress() {
   const total = bench.tasks.length;
-  let decided = 0, edited = 0, flagged = 0;
+  let committed = 0, fresh = 0, flagged = 0;
   for (const t of bench.tasks) {
+    if (inTree(t)) committed++;
     const s = statusOf(t);
-    if (["approved", "edited", "rejected"].includes(s)) decided++;
-    if (s === "edited") edited++;
+    // What THIS sitting produced, which is what the export will carry.
+    if (s === "edited" || s === "approved") fresh++;
     if (s === "rejected") flagged++;
   }
-  const pct = total ? Math.round((decided / total) * 100) : 0;
+  const pct = total ? Math.round((committed / total) * 100) : 0;
   els.progress.textContent = total
-    ? `${decided} / ${total} decided (${pct}%) · ${edited} edited · ${flagged} flagged`
+    ? `${committed} / ${total} in the tree (${pct}%) · ${fresh} decided here${
+      flagged ? ` · ${flagged} flagged` : ""}`
     : "nothing to review";
+  const counts = filterCounts();
+  for (const b of root.querySelectorAll("[data-filter]")) {
+    const n = counts[b.dataset.filter];
+    b.textContent = `${FILTER_LABEL[b.dataset.filter]} (${n})`;
+  }
   els.barFill.style.width = `${pct}%`;
   // The button counts EVERY set's work, because that is what it downloads —
   // a number that only described the open set would understate the file.
@@ -402,6 +470,18 @@ function renderCurrent() {
     redraw: () => renderCurrent(),
   });
   draw();
+  // ART READINESS IS THE ENGINE'S JOB, not each task set's. A provider says
+  // what an item needs (`ensureReady`); this asks for it and repaints once it
+  // lands. Leaving it to the draw functions is how the canvas got stuck on
+  // "loading art…" in the sets whose draw forgot to ask — a framework can
+  // only forget once.
+  const wait = bench.provider.ensureReady?.(task);
+  if (wait?.then) {
+    wait.then((fresh) => {
+      // Only if the reviewer is still looking at the item that was waiting.
+      if (fresh && current() === task) { renderCurrent(); }
+    });
+  }
 }
 
 function draw() {
@@ -426,11 +506,14 @@ function goTo(index) {
   setWork(bench.setId).i = bench.i;
   persist();
   renderAll();
-  // Warm what is coming, so stepping into a new fighter does not stall on
-  // their art. Both directions: a queue gets walked backwards as often as
-  // forwards when somebody is second-guessing a call they just made.
-  bench.provider?.prefetch?.(bench.tasks[(bench.i + 1) % bench.tasks.length]);
-  bench.provider?.prefetch?.(bench.tasks[(bench.i - 1 + bench.tasks.length) % bench.tasks.length]);
+  // Warm what is coming through the SAME hook, so a set declares readiness
+  // once and gets both behaviours. Both directions: a queue gets walked
+  // backwards as often as forwards when somebody is second-guessing a call.
+  const warm = bench.provider?.ensureReady;
+  if (warm) {
+    warm(bench.tasks[(bench.i + 1) % bench.tasks.length]);
+    warm(bench.tasks[(bench.i - 1 + bench.tasks.length) % bench.tasks.length]);
+  }
 }
 
 /** Advance to the next item that still wants a decision, or just the next one
@@ -441,7 +524,7 @@ function advance() {
   for (let n = 1; n <= bench.tasks.length; n++) {
     const j = (start + n) % bench.tasks.length;
     const s = statusOf(bench.tasks[j]);
-    if (s === "todo") return goTo(j);
+    if (s === "todo") return goTo(j);   // committed items are not asked again
   }
   goTo(start + 1);
 }
@@ -627,6 +710,7 @@ async function openSet(id) {
   bench.i = Math.min(w.i || 0, Math.max(0, bench.tasks.length - 1));
   const wanted = parseInt(params.get("i") || "", 10);
   if (Number.isFinite(wanted)) bench.i = Math.max(0, Math.min(wanted, bench.tasks.length - 1));
+  snapToVisible();
   els.state.textContent = `${bench.tasks.length} item(s)`;
   els.state.className = "loading done";
   renderResume();
@@ -669,10 +753,11 @@ function wire() {
       for (const other of root.querySelectorAll("[data-filter]")) {
         other.classList.toggle("is-on", other === b);
       }
-      renderList();
+      // Follow the filter: switching to "To do" should show you a to-do.
+      if (snapToVisible()) renderAll(); else renderList();
     });
   }
-  root.querySelector('[data-filter="all"]').classList.add("is-on");
+  root.querySelector(`[data-filter="${bench.filter}"]`).classList.add("is-on");
 
   els.refresh.addEventListener("click", () => {
     const url = new URL(location.href);
@@ -686,8 +771,11 @@ function wire() {
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
     if (typing && e.key !== "Escape") return;
     switch (e.key) {
-      case "ArrowLeft": goTo(bench.i - 1); break;
-      case "ArrowRight": goTo(bench.i + 1); break;
+      // Up/down and left/right both step the queue: the list reads as a
+      // vertical thing and the stage as a horizontal one, and which of those
+      // a hand reaches for depends on where the eye is.
+      case "ArrowLeft": case "ArrowUp": goTo(bench.i - 1); break;
+      case "ArrowRight": case "ArrowDown": goTo(bench.i + 1); break;
       case "Enter": approve(); break;
       case "s": case "S": skip(); break;
       case "r": case "R": reject(); break;

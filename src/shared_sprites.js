@@ -417,8 +417,8 @@ function buildRegistry() {
   // a canvas: a beam can be lined up with the hand that fires it.
   // `scaled` is the one thing these numbers do NOT say on their own: a shot is
   // spawned through spawnProjectileScaled, which runs the kit's offsets through
-  // muzzlePoint (body_points.js). They are offsets on a 149px REFERENCE body,
-  // and every fighter scales them onto their own height — Choso fires from 66.7
+  // the resolved muzzle (src/muzzle.js). They are offsets on a 149px REFERENCE
+  // body, and every fighter scales them onto their own height — Choso from 66.7
   // rather than 70, Panda from 73.7 — or ignores them outright once somebody
   // has placed a verified muzzle for him. The flash handlers below take their
   // forward distance raw, which is why it is a per-entry fact and not a rule.
