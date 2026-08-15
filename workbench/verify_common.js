@@ -88,15 +88,46 @@ export function frameStepper(container, task, redraw) {
   container.appendChild(wrap);
 }
 
-const loaded = new Set();
+const ready = new Set();      // characters whose art is in memory
+const inFlight = new Map();   // charKey -> the one load promise
 
-/** Pull a character's frames into memory once. Resolves true when something
- *  new arrived, so a caller only repaints when there is a reason to. */
-export async function ensureFrames(charKey) {
-  if (loaded.has(charKey)) return false;
-  loaded.add(charKey);
-  await Promise.all(frameKeys(charKey).map((k) => loadFrame(charKey, k).catch(() => {})));
-  return true;
+/**
+ * Pull a character's frames into memory. Resolves true when the art arrived
+ * on THIS call's watch — so a caller repaints when there is a reason to, and
+ * only then.
+ *
+ * The in-flight map is the whole point, and its absence was a bug you could
+ * see: an earlier version marked the character loaded BEFORE awaiting, so a
+ * second draw during the load — and there is always a second draw, because
+ * selecting an item renders the editor and the canvas — was told "nothing
+ * new" and scheduled no repaint. The load then finished with nobody
+ * listening, and the canvas sat on "loading art…" until something else
+ * repainted it. Switching away and back worked because by then the art was
+ * in memory and the first draw succeeded.
+ *
+ * Now every caller that arrives mid-load gets the SAME promise and all of
+ * them resolve true together, so whichever draw was last still repaints.
+ */
+export function ensureFrames(charKey) {
+  if (ready.has(charKey)) return Promise.resolve(false);
+  let load = inFlight.get(charKey);
+  if (!load) {
+    load = Promise.all(frameKeys(charKey).map((k) => loadFrame(charKey, k).catch(() => {})))
+      .then(() => {
+        ready.add(charKey);
+        inFlight.delete(charKey);
+        return true;
+      });
+    inFlight.set(charKey, load);
+  }
+  return load;
+}
+
+/** Fetch a character's art without drawing anything — used to warm the next
+ *  item in the queue while the current one is being looked at, so stepping
+ *  through a set does not stall on every new fighter. */
+export function prefetchFrames(charKey) {
+  if (charKey && !ready.has(charKey)) ensureFrames(charKey);
 }
 
 // ------------------------------------------------------------------ canvas
@@ -238,6 +269,9 @@ export function pointEditor(container, charKey, value, onChange) {
     min: -Math.round(b.height * 1.3), max: 0, value: value.y,
   }, (y) => onChange({ ...value, y }));
 }
+
+/** The provider hook the engine calls to warm an upcoming item. */
+export const prefetchTask = (task) => prefetchFrames(task?.charKey);
 
 /** A read-only line of context above the editor. */
 export const describeXY = (charKey, value, source) => {

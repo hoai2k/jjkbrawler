@@ -206,76 +206,56 @@ const bench = {
   providers: new Map(),
 };
 
-/** One store for the whole bench. Each set carries the fingerprint of the
- *  measurements it was reviewing, so a re-bake drops THAT set's stale
- *  decisions and leaves the others alone — the failure the pose bench's
- *  stored edits used to cause, headed off rather than repeated. */
-const STORE = "jjk.verify.v2";
-
+/**
+ * DECISIONS ARE NOT PERSISTED, and that is deliberate.
+ *
+ * They live as long as the tab does — switching task sets keeps them, which
+ * is what lets one export cover a whole sitting; reloading throws them away.
+ * The reason is the one the pose bench learned the hard way
+ * (render3d/workbench/sprite_pose.js): stored edits outlive the moment they
+ * were applied to the tree, so corrections that HAD been committed kept
+ * coming back. A review queue makes that worse rather than better — the
+ * export means "here is what I decided just now", and a session that quietly
+ * carried already-committed decisions into the next file would make old and
+ * new work indistinguishable at exactly the moment somebody has to tell them
+ * apart.
+ *
+ * So: export before closing the tab. The download is the record, and the
+ * config file is the destination.
+ */
 function setWork(setId) {
   let w = bench.work.get(setId);
   if (!w) bench.work.set(setId, (w = { fingerprint: null, i: 0, decisions: new Map() }));
   return w;
 }
 
-function persist() {
-  try {
-    const out = {};
-    for (const [id, w] of bench.work) {
-      if (!w.decisions.size) continue;
-      out[id] = { fingerprint: w.fingerprint, i: w.i, decisions: [...w.decisions] };
-    }
-    localStorage.setItem(STORE, JSON.stringify({ at: new Date().toISOString(), sets: out }));
-  } catch { /* private mode, quota — the export is the real record */ }
-}
+/** Every mutation calls this. It does nothing on purpose — see above; keeping
+ *  the call sites is what makes "where would this be saved" answerable in one
+ *  place if the decision is ever revisited. */
+function persist() {}
 
-/** Read every set's stored work back. Called once, before any set opens, so
- *  the total is known even for sets this session never visits. */
-function restoreAll() {
-  let saved = null;
-  try { saved = JSON.parse(localStorage.getItem(STORE) || "null"); } catch { saved = null; }
-  if (!saved?.sets) return;
-  for (const [id, w] of Object.entries(saved.sets)) {
-    if (!SETS[id]) continue;   // a set that has since been removed
-    bench.work.set(id, {
-      fingerprint: w.fingerprint || null,
-      i: w.i || 0,
-      decisions: new Map(w.decisions || []),
-    });
-  }
-  bench.restoredAt = saved.at || null;
-}
-
-/** Drop a set's restored decisions when the numbers they were about have
- *  moved. Announced rather than silent: a queue that quietly emptied itself
- *  would read as the bench losing work. */
+/** Note which measurements a set's decisions are about, for the export.
+ *  Nothing survives a reload, so there is no stale work to reconcile. */
 function reconcileFingerprint(setId, fingerprint) {
-  const w = setWork(setId);
-  if (w.fingerprint && fingerprint && w.fingerprint !== fingerprint && w.decisions.size) {
-    const n = w.decisions.size;
-    w.decisions.clear();
-    w.i = 0;
-    w.fingerprint = fingerprint;
-    return n;
-  }
-  w.fingerprint = fingerprint;
+  setWork(setId).fingerprint = fingerprint;
   return 0;
 }
 
-function renderResume(dropped) {
+/** The standing note under the queue: what is held, and that it is not saved. */
+function renderResume() {
   const total = totalDecisions();
-  if (!total && !dropped) { els.resume.hidden = true; return; }
+  if (!total) {
+    els.resume.hidden = false;
+    els.resume.textContent = "Decisions live in this tab only — reloading clears them. "
+      + "Export before you close it.";
+    return;
+  }
   els.resume.hidden = false;
-  const when = (bench.restoredAt || "").slice(0, 16).replace("T", " ");
-  const parts = [];
-  if (total) parts.push(`Holding <b>${total}</b> decision(s) across ${setsWithWork().length} set(s)`
-    + (when ? `, last touched ${when}` : ""));
-  if (dropped) parts.push(`<b>${dropped}</b> dropped — the measurements they were about have changed`);
-  els.resume.innerHTML = `${parts.join(". ")}. `
-    + `<button class="ghost sm" id="vDiscard" type="button">Discard all and start over</button>`;
+  els.resume.innerHTML = `Holding <b>${total}</b> decision(s) across `
+    + `${setsWithWork().length} set(s), <b>not saved</b> — export before closing or reloading. `
+    + `<button class="ghost sm" id="vDiscard" type="button">Discard all</button>`;
   el("vDiscard").addEventListener("click", () => {
     if (!confirm("Throw away every decision in every set?")) return;
-    try { localStorage.removeItem(STORE); } catch { /* nothing to clear */ }
     bench.work.clear();
     setWork(bench.setId).fingerprint = bench.provider?.fingerprint || null;
     bench.i = 0;
@@ -313,6 +293,7 @@ function renderAll() {
   renderCurrent();
   renderProgress();
   refreshSetCounts();
+  renderResume();
 }
 
 /** Decision counts on the set picker's options. */
@@ -445,6 +426,11 @@ function goTo(index) {
   setWork(bench.setId).i = bench.i;
   persist();
   renderAll();
+  // Warm what is coming, so stepping into a new fighter does not stall on
+  // their art. Both directions: a queue gets walked backwards as often as
+  // forwards when somebody is second-guessing a call they just made.
+  bench.provider?.prefetch?.(bench.tasks[(bench.i + 1) % bench.tasks.length]);
+  bench.provider?.prefetch?.(bench.tasks[(bench.i - 1 + bench.tasks.length) % bench.tasks.length]);
 }
 
 /** Advance to the next item that still wants a decision, or just the next one
@@ -636,14 +622,14 @@ async function openSet(id) {
   }
   bench.provider = provider;
   bench.tasks = provider.tasks;
-  const dropped = reconcileFingerprint(id, provider.fingerprint);
+  reconcileFingerprint(id, provider.fingerprint);
   const w = setWork(id);
   bench.i = Math.min(w.i || 0, Math.max(0, bench.tasks.length - 1));
   const wanted = parseInt(params.get("i") || "", 10);
   if (Number.isFinite(wanted)) bench.i = Math.max(0, Math.min(wanted, bench.tasks.length - 1));
   els.state.textContent = `${bench.tasks.length} item(s)`;
   els.state.className = "loading done";
-  renderResume(dropped);
+  renderResume();
   renderAll();
 }
 
@@ -745,6 +731,5 @@ function wire() {
 }
 
 await loadCoreAssets();
-restoreAll();
 wire();
 await openSet(els.set.value);

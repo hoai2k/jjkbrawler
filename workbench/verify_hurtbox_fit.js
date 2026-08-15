@@ -23,6 +23,7 @@ import { bodyMetrics } from "../src/silhouette.js";
 import { HURTBOX } from "../src/constants.js";
 import {
   ZOOM, GROUND_Y, CENTRE_X, drawStage, caption, slider, frameStepper,
+  prefetchTask,
 } from "./verify_common.js";
 
 /** The states whose box the game actually builds, with the drawing that shows
@@ -87,6 +88,7 @@ export async function provider() {
       ctx.fillText("does it cover the body, and nothing that is not the body?",
         10, canvas.height - 10);
     },
+    prefetch: prefetchTask,
     exportBlock,
   };
 }
