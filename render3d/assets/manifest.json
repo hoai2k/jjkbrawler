@@ -17,7 +17,9 @@
       "baked": true,
       "stanceDeg": 3.75,
       "yawOffsetDeg": 10,
-      "facingCheckedAt": "2026-08-15"
+      "facingCheckedAt": "2026-08-15",
+      "guardOpenDeg": 12,
+      "guardCheckedAt": "2026-08-15"
     },
     "maki": {
       "model": "maki/maki.glb",
@@ -85,7 +87,9 @@
       "stanceDeg": 9,
       "armDeg": 11.5,
       "baked": true,
-      "facingCheckedAt": "2026-08-15"
+      "facingCheckedAt": "2026-08-15",
+      "guardOpenDeg": 8,
+      "guardCheckedAt": "2026-08-15"
     },
     "hanami": {
       "model": "hanami/hanami.glb",
@@ -103,7 +107,9 @@
       "stanceDeg": 13,
       "armDeg": 23,
       "baked": true,
-      "facingCheckedAt": "2026-08-15"
+      "facingCheckedAt": "2026-08-15",
+      "guardOpenDeg": 8,
+      "guardCheckedAt": "2026-08-15"
     },
     "uro": {
       "model": "uro/uro_alt.glb",
@@ -161,7 +167,9 @@
       "armDeg": 13.25,
       "yawOffsetDeg": 5,
       "baked": true,
-      "facingCheckedAt": "2026-08-15"
+      "facingCheckedAt": "2026-08-15",
+      "guardOpenDeg": 14,
+      "guardCheckedAt": "2026-08-15"
     },
     "mahito": {
       "model": "mahito/mahito.glb",
@@ -178,7 +186,9 @@
       "armDeg": 10.75,
       "baked": true,
       "stanceDeg": 2.75,
-      "facingCheckedAt": "2026-08-15"
+      "facingCheckedAt": "2026-08-15",
+      "guardOpenDeg": 8,
+      "guardCheckedAt": "2026-08-15"
     },
     "gojo": {
       "model": "gojo/gojo.glb",
@@ -195,7 +205,9 @@
       "baked": true,
       "stanceDeg": 0,
       "facingCheckedAt": "2026-08-15",
-      "yawOffsetDeg": 45
+      "yawOffsetDeg": 45,
+      "guardOpenDeg": 8,
+      "guardCheckedAt": "2026-08-15"
     },
     "sukuna": {
       "model": "sukuna/sukuna.glb",
@@ -231,7 +243,9 @@
       "stanceDeg": 5.5,
       "armDeg": 14.75,
       "baked": true,
-      "facingCheckedAt": "2026-08-15"
+      "facingCheckedAt": "2026-08-15",
+      "guardOpenDeg": 8,
+      "guardCheckedAt": "2026-08-15"
     },
     "choso": {
       "model": "choso/choso.glb",
@@ -249,7 +263,9 @@
       "stanceDeg": 8,
       "armDeg": 11,
       "baked": true,
-      "facingCheckedAt": "2026-08-15"
+      "facingCheckedAt": "2026-08-15",
+      "guardOpenDeg": 16,
+      "guardCheckedAt": "2026-08-15"
     },
     "gakuganji": {
       "model": "gakuganji/gakuganji.glb",
@@ -299,7 +315,9 @@
       "stanceDeg": 4,
       "armDeg": 13.25,
       "baked": true,
-      "facingCheckedAt": "2026-08-15"
+      "facingCheckedAt": "2026-08-15",
+      "guardOpenDeg": 8,
+      "guardCheckedAt": "2026-08-15"
     },
     "mechamaru": {
       "model": "mechamaru/mechamaru.glb",
@@ -317,7 +335,8 @@
       "stanceDeg": 14.75,
       "armDeg": 8,
       "baked": true,
-      "facingCheckedAt": "2026-08-15"
+      "facingCheckedAt": "2026-08-15",
+      "guardCheckedAt": "2026-08-15"
     },
     "meimei": {
       "model": "meimei/meimei.glb",
@@ -384,7 +403,8 @@
       "stanceDeg": 5,
       "armDeg": 11.25,
       "baked": true,
-      "facingCheckedAt": "2026-08-15"
+      "facingCheckedAt": "2026-08-15",
+      "guardCheckedAt": "2026-08-15"
     },
     "inumaki": {
       "model": "inumaki/inumaki.glb",
@@ -402,7 +422,9 @@
       "stanceDeg": 10,
       "armDeg": 15.5,
       "baked": true,
-      "facingCheckedAt": "2026-08-15"
+      "facingCheckedAt": "2026-08-15",
+      "guardOpenDeg": 8,
+      "guardCheckedAt": "2026-08-15"
     },
     "kurourushi": {
       "model": "kurourushi/kurourushi.glb",
@@ -506,7 +528,8 @@
       "renderScale": 1.01,
       "stanceDeg": 13.5,
       "armDeg": 19.25,
-      "baked": true
+      "baked": true,
+      "guardCheckedAt": "2026-08-15"
     },
     "toji": {
       "model": "toji/toji.glb",
@@ -523,7 +546,8 @@
       "stanceDeg": 10.25,
       "armDeg": 16,
       "baked": true,
-      "facingCheckedAt": "2026-08-15"
+      "facingCheckedAt": "2026-08-15",
+      "guardCheckedAt": "2026-08-15"
     },
     "reggie": {
       "model": "reggie/reggie.glb",
@@ -541,7 +565,8 @@
       "stanceDeg": 15,
       "armDeg": 14.75,
       "baked": true,
-      "facingCheckedAt": "2026-08-15"
+      "facingCheckedAt": "2026-08-15",
+      "guardCheckedAt": "2026-08-15"
     },
     "yuki": {
       "model": "yuki/yuki.glb",
