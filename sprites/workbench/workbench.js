@@ -96,6 +96,11 @@ const VIEWS = {
   edited: { label: "Has saved edits (done)", keep: (c, k) => isUsed(c, k) && hasSavedEdits(c, k) },
   used: { label: "Used in game", keep: (c, k) => isUsed(c, k) },
   all: { label: "All sprites", keep: () => true },
+  // Not a filter on this character's own poses at all — a different SET,
+  // narrowed to them: the shared effect and summon art their kit draws. It
+  // lives in this dropdown because that is where you are standing when the
+  // question arises, and framesOf below is where the swap happens.
+  effects: { label: "Effects this fighter uses", keep: () => true, shared: true },
 };
 // Three kinds of entry in the character list are not fighters — the third,
 // "All Recently Updated Poses", is not even a sprite set; see recentUpdates().
@@ -243,41 +248,55 @@ let sharedUsageCache = null;
 function sharedUsage() {
   if (sharedUsageCache) return sharedUsageCache;
   sharedUsageCache = new Map();
-  const note = (key, who, label, h) => {
+  const note = (key, who, label, h, charKey) => {
     if (!key) return;
     const list = sharedUsageCache.get(key) || [];
-    list.push({ who, label, h });
+    list.push({ who, label, h, charKey });
     sharedUsageCache.set(key, list);
   };
-  const walk = (node, who, label) => {
+  const walk = (node, who, label, charKey) => {
     if (!node || typeof node !== "object") return;
-    if (typeof node.sprite === "string") note(node.sprite, who, label, node.spriteH);
+    if (typeof node.sprite === "string") note(node.sprite, who, label, node.spriteH, charKey);
     // Every list-valued field shared_sprites.js walks, read from that file so
     // the two cannot drift. They did: this knew `sprites` and not `spritePool`,
     // so Geto's four volley curses had no height here, the header called them
     // "sized by the code that spawns it" and the Size control went away — on
     // the four drawings whose size the workbench is the only way to set.
     for (const field of SPRITE_LIST_KEY_FIELDS) {
-      if (Array.isArray(node[field])) for (const k of node[field]) note(k, who, label, node.spriteH);
+      if (Array.isArray(node[field])) for (const k of node[field]) note(k, who, label, node.spriteH, charKey);
     }
-    if (typeof node.aura === "string") note(node.aura, who, `${label} (aura)`, node.spriteH);
-    if (typeof node.domainSprite === "string") note(node.domainSprite, who, `${label} (domain)`, node.spriteH);
+    if (typeof node.aura === "string") note(node.aura, who, `${label} (aura)`, node.spriteH, charKey);
+    if (typeof node.domainSprite === "string") note(node.domainSprite, who, `${label} (domain)`, node.spriteH, charKey);
     // The two kit shapes that name a drawing under their own field names.
     // Missing them made five drawings read as "nothing references this" —
     // Reggie's three falling objects and Mechamaru's pigeon orbs — which then
     // hid them from the used-in-game view and took their Size slider away.
-    if (typeof node.orbSprite === "string") note(node.orbSprite, who, `${label} (orbs)`, node.orbSpriteH);
+    if (typeof node.orbSprite === "string") note(node.orbSprite, who, `${label} (orbs)`, node.orbSpriteH, charKey);
     if (typeof node.key === "string" && node.key.startsWith("effect:")) {
-      note(node.key, who, `${label}${node.name ? ` — ${node.name}` : ""}`, node.h);
+      note(node.key, who, `${label}${node.name ? ` — ${node.name}` : ""}`, node.h, charKey);
     }
-    for (const v of Object.values(node)) if (v && typeof v === "object") walk(v, who, label);
+    for (const v of Object.values(node)) if (v && typeof v === "object") walk(v, who, label, charKey);
   };
   for (const key of WB_FIGHTERS) {
     const c = CHARACTERS[key];
-    for (const [slot, def] of Object.entries(c.specials || {})) walk(def, c.name, def.name || slot);
-    if (c.ultimate) walk(c.ultimate, c.name, c.ultimate.name || "Ultimate");
+    for (const [slot, def] of Object.entries(c.specials || {})) walk(def, c.name, def.name || slot, key);
+    if (c.ultimate) walk(c.ultimate, c.name, c.ultimate.name || "Ultimate", key);
   }
   return sharedUsageCache;
+}
+
+/** The shared effect/summon art THIS fighter's kit draws.
+ *
+ *  The Other Sprites set is one long alphabetical list of every drawing in the
+ *  game, which is the right shape for working through it and the wrong shape
+ *  for the question that actually comes up: I am looking at Gakuganji, which
+ *  of these are his. Same drawings, filtered by whose kit names them. */
+function effectsOf(charKey) {
+  const out = [];
+  for (const [key, uses] of sharedUsage()) {
+    if (uses.some((u) => u.charKey === charKey)) out.push(key);
+  }
+  return out.sort();
 }
 
 const HANDLE_R = 7;
@@ -385,6 +404,11 @@ function awaitingApproval(charKey, frameKey) {
  *  The selected pose stays on the canvas either way. */
 function framesOf(charKey) {
   const view = VIEWS[state.view] || VIEWS.unedited;
+  // The effects view answers a question about the KIT rather than about the
+  // sprite sheet, so it lists shared drawings instead of this character's
+  // poses. They belong to the `__other` set and are edited there; the cells
+  // carry their owner and selecting one takes you to it.
+  if (view.shared) return isOther(charKey) ? [] : effectsOf(charKey);
   return allFramesOf(charKey).filter((k) => view.keep(charKey, k));
 }
 
@@ -3814,7 +3838,12 @@ function buildPoseList() {
     empty.textContent = "Nothing matches this view.";
     list.appendChild(empty);
   }
-  for (const key of frames) list.appendChild(buildPoseEntry(state.char, key));
+  const view = VIEWS[state.view] || VIEWS.unedited;
+  for (const key of frames) {
+    list.appendChild(view.shared
+      ? buildPoseEntry(OTHER_KEY, key, { owner: true })
+      : buildPoseEntry(state.char, key));
+  }
 }
 
 /** One cell of the pose grid. Takes the character rather than reading
