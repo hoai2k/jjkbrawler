@@ -789,6 +789,57 @@ knowing before reading it as an open request.
 3. Register the key in `src/config_audio.js` with its category, and call it with
    `playSfx("key")` — or, for a held sound, `startLoop` in `src/audio.js`.
 
+## How loud the game is
+
+**The whole mix was about 9 dB under the rest of the web**, and nothing in
+`config_audio.js` looked wrong, because nothing in it *was* wrong on its own.
+Every number there is relative — a category trim of 0.65, a per-sound gain of
+1.1 — and the absolute level was the product of five of them and the file's own
+peak. No single line owned it. A heavy hit came out at
+
+```
+0.706 (the file, normalised to -3 dBFS)  ×  1.00 (combat)  ×  1.0 (its gain)
+      ×  0.20 (the sfx slider)  ×  0.9 (master)   =  0.127, or -18 dBFS
+```
+
+The fix is one factor applied to both sliders: **musicVolume and sfxVolume were
+multiplied by 2.75** (0.28 → 0.77, 0.20 → 0.55). Because every other number in
+the mixer is multiplicative, scaling the two together raises everything and
+changes no balance at all — not between categories, not between a sound and its
+own gain, not between the music and the fight.
+
+| | before | after |
+|---|---|---|
+| a heavy hit | -17.9 dBFS | **-9.1 dBFS** |
+| a 7:3 crit | -16.4 | **-7.6** |
+| a grunt | -20.3 | **-11.6** |
+| a menu lock-in | -24.0 | **-15.2** |
+| a music track | -13.4 | **-4.7** |
+
+**2.75 is near the ceiling, and music is what sets it — not the sound effects.**
+`master` is applied to sfx and not to music (see `playMusic` in `audio.js`), so
+the music slider is the one number here that reaches the output unattenuated.
+At 0.77 it is already three quarters of the way up; pushing the pair further
+would leave a player who wants *more* music with a slider that has nowhere to
+go. Raising `master` instead would not help, because it would move the sfx and
+leave the music behind — which is exactly the balance this change exists not to
+touch.
+
+**`node tools/check_audio_mix.mjs` measures all of it**, rather than asserting
+it. For every registered sound it multiplies the mixer path out, reads the real
+peak off the file with ffmpeg and reports what reaches the speakers; `--all`
+lists every sound instead of the loudest per category. It fails on the two
+things that are bugs rather than taste — a sound that clips on its own, and one
+under -40 dBFS that no fight would let you hear. It runs in `npm run check`.
+
+**One thing it found and this change did not fix:** `hitSteel` comes out at
+-38.8 dBFS, a hair above the floor, because a quiet file meets the 0.5 trim
+every element layer carries. It was **-47.6 dBFS** before — inaudible rather
+than merely quiet — so the raise has already helped it more than most. Bringing
+it up properly means re-rolling the file or giving that one sound a gain, and
+both are changes to the balance rather than to the level, so neither belongs in
+this pass.
+
 ## Hearing what you have
 
 **[`/workbench/?edit=audio`](../workbench/)** plays every voice in the game and
