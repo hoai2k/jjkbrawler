@@ -1041,6 +1041,42 @@ request assumed all four fired the shared grunt; in fact only "Don't Move"
 he does — were the only handlers in `specials.js` that never called it. Both
 types are his alone, so adding the call there changed nothing for anyone else.
 
+### Follow-up: the line became the wind-up
+
+Round 11 shipped with the line and the move on the same frame — the command was
+said *over* the attack rather than before it. That was corrected afterwards for
+all twelve spoken moves, Inumaki's four and the eight domain call-outs alike:
+the fighter now holds the pose, says the line, and the move lands 80% of the way
+through it (`SPOKEN_TIMING`, `src/config_audio.js`). A Domain Expansion is
+announced and then arrives, rather than arriving and being described.
+
+Two things about that are audio decisions with gameplay consequences, and are
+written up properly in [game-mechanics.md](game-mechanics.md#spoken-moves-wind-up-while-they-are-spoken):
+
+- **The delay is read from written line lengths, never measured from the
+  audio.** A move whose frame data depends on whether an mp3 finished
+  downloading is a move nobody can learn, so `SPOKEN_LINES` carries the
+  delivered length of each line and `tools/check_voice.mjs` fails when one has
+  drifted from its file. **Re-rolling a line changes the frame data** — update
+  its row, or the checker will say so.
+- **The clamp matters more than the fraction.** Gojo's call-out is 3.28 s and
+  80% of it would hold the match for 2.6 s; `SPOKEN_TIMING.max` caps every
+  wind-up at 2.2 s, which is why his line, Jogo's and Mahito's all land at the
+  ceiling rather than at their own 80%.
+- **The first half of the line is interruptible, and free.** A spoken move can
+  be hit out of its own sentence for the first 50% of it (`SPOKEN_TIMING.commit`)
+  — domains included — and nothing is charged until the move actually goes off:
+  no meter, no cooldown, no throat strain. A fighter shouted down keeps
+  everything and can try again; what they lose is the opening they gave away.
+  That is what makes a two-second telegraph a decision rather than a tax, and it
+  is why the delay could be this long at all. Past the halfway point the move is
+  committed, because by then it is visibly already happening.
+- **An interrupted line stops mid-word**, faded over 60 ms rather than paused
+  dead — a voice cut off on a vowel clicks, and the point is that the sentence
+  was interrupted, not that the game stopped playing a file. `playSfx` returns
+  its element so a caster can keep the handle and `cutSfx` it; a short winded
+  grunt goes in its place.
+
 **`MOVE_CALL` is the reusable half of this round.** It keys a spoken line by
 character and then by the move's own `name`, and `playGrunt(charKey, moveName)`
 plays it *instead* of the grunt. The 20 `playGrunt` sites in `specials.js` pass
@@ -1050,6 +1086,57 @@ reach it after an early return and a move that bails should still be silent.
 A row naming a move that does not exist is checked at load and warned about
 (`validateMoveCalls` in `audio.js`), because the symptom otherwise is a line
 that was recorded, registered and silent.
+
+---
+
+## Round 12 — alternate takes (15 files)
+
+> **Five of these were promoted into the game and round 13 answers the rest.**
+> Gojo's relaxed take and Dagon's deep one replaced their originals (with
+> `SPOKEN_LINES` moved to match), the female trio went in whole, two of the
+> young-male trio and one of the big trio went in. Everything else was judged
+> unusable — see the round-13 verdicts below.
+
+Delivered as alternates rather than as replacements. The request is above in
+[audio-requests.md](audio-requests.md) — it stays there rather than moving here
+while the alternates are still alternates, because the round is not finished
+until somebody has listened and chosen. Delivered lengths: the two domain calls
+at 2.83 s (Gojo, after the direction was re-written) and 2.59 s (Dagon, after the
+0.86 resample), and the twelve grunts between 0.54 s and 0.86 s.
+
+**Gojo has two alternates, and they ask different questions** — whether he
+should sound like he means it (*Commanding*) or like it costs him nothing
+(*Flat*). The first was judged too expressive, which turned out to be a note
+about the model's freedom rather than about the words.
+
+**Three levers were added to `tools/generate_voice.py` for it**, and all three
+are worth knowing about before the next voice round:
+
+- **`· pitch 0.86 ·`** resamples a take downward — lower and slower together.
+  Deliberately not formant-preserving: dragging the formants down with the
+  pitch is what makes a voice read as coming from a bigger throat rather than
+  as a person played back slowly. It is the only thing that got Dagon away from
+  sounding like a polite man, because no amount of direction stops a
+  text-to-speech model sounding human — it is a model of humans.
+- **`· capped ·`** opts an entry back into the length cap that spoken lines are
+  exempt from. The exemption exists because a cap lands mid-word in a sentence;
+  a one-syllable effort grunt has no mid-word to land in, and an effort grunt
+  fired on every special that runs 2.7 s long is unusable however good the take
+  is. Three of the twelve came back over two seconds before this existed.
+
+- **`· stability 1.0 ·`** overrides how far v3 may wander from a flat reading
+  (0.0 creative, 0.5 natural, 1.0 robust). The default is right for a
+  performance and wrong for a line that is meant to sound UNPERFORMED: somebody
+  talking to themselves puts the emphasis nowhere, and while the model is free
+  to act, no wording of the direction stops it acting.
+
+**The grunts moved endpoint, which was the actual fix.** The originals came
+from `generate_sfx.py` in round 8 — the sound-generation endpoint being asked
+for a human noise and producing its impression of one, which is exactly why
+they read as odd and animal-like. The alternates are a voice model making a
+short vocal effort, which is a person making a short vocal effort.
+`gruntMonster` and `gruntAnimal` are left alone on purpose: they are supposed
+to sound like something that is not a person.
 
 ---
 

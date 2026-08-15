@@ -33,6 +33,7 @@
 //   node server.mjs   then:  node tools/smoke_camera_render.mjs [baseUrl]
 
 import { chromium } from "playwright";
+import { pressStart } from "./smoke_boot.mjs";
 
 const BASE = process.argv[2] || "http://127.0.0.1:5174";
 
@@ -53,6 +54,7 @@ const browser = await chromium.launch({
  *  engine, so an early sample reads as "the models never drew". */
 async function bootAndSettle(page, query) {
   await page.goto(`${BASE}/index.html${query}`);
+  await pressStart(page);
   await page.waitForFunction(async () =>
     (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
   await page.click('[data-character="gojo"]');

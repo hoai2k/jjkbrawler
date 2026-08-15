@@ -32,7 +32,8 @@
 // wind-up in the game into the same straight-line poke.
 
 import { STATES, clipNameFor } from "./states.js";
-import { twoHandGrip, CHARACTER_MORPHS, morphBones } from "./props.js";
+import { twoHandGrip, CHARACTER_MORPHS, morphBones, CHARACTER_PROPS,
+  CARRY_DROP_DEG, CARRY_OVERRIDES } from "./props.js";
 
 /** Which limb reaches, per state: [root, mid, end] bone names.
  *
@@ -259,6 +260,13 @@ export function applyReach(THREE, root3d, state, clipT, targetWorld, tmp) {
  *  and states that need the off hand elsewhere — ledge, dodges, hurt — are
  *  simply absent. */
 const TWO_HAND_STATES = new Set([
+  // IDLE IS NOT IN HERE, and it was tried. The grip solve puts the off hand a
+  // fixed distance down the shaft from the main one, which is right when the
+  // weapon is presented across the body for a strike and absurd when it is
+  // hanging at the fighter's side: Maki's off arm went straight up over her
+  // head to reach a shaft point that was above her. A relaxed carry is
+  // one-handed — which is also the canon one — and the weapon follows the
+  // carrying hand on its own, because the prop hangs off that bone.
   "light", "sideHeavy", "upHeavy", "downHeavy", "crouchAttack",
   "specialNeutral", "specialSide", "specialDown", "charge", "ult",
 ]);
@@ -300,7 +308,49 @@ export function fitPropShaft(THREE, root3d, propBoneName) {
       locals.push(v.clone());
     }
   });
-  if (locals.length < 16) return null;
+
+  // A SEPARATELY GENERATED WEAPON IS NOT SKIN. Fighters whose weapon a
+  // generator would fuse into their arm are now drawn empty-handed and the
+  // weapon is joined afterwards as a mesh PARENTED TO the prop bone
+  // (tools/blender_attach_prop.py) — so it carries no skin weights at all and
+  // the loop above finds nothing on it. Maki's shaft went missing exactly
+  // that way, and with no shaft the off hand has nothing to be solved onto.
+  //
+  // A bone-parented mesh rides its bone rigidly, so its vertices are already
+  // constant in the bone's frame whatever pose the rig is in: bone-local is
+  // just boneWorld⁻¹ × meshWorld × v, with no bind matrices needed.
+  if (!locals.length) {
+    root3d.updateMatrixWorld(true);
+    let bone = null;
+    root3d.traverse((o) => { if (o.isBone && o.name === propBoneName) bone = o; });
+    if (bone) {
+      const toLocal = new THREE.Matrix4();
+      const v = new THREE.Vector3();
+      bone.traverse((obj) => {
+        if (!obj.isMesh || obj.isSkinnedMesh || obj === bone) return;
+        toLocal.copy(bone.matrixWorld).invert().multiply(obj.matrixWorld);
+        const pos = obj.geometry.attributes.position;
+        if (!pos) return;
+        for (let i = 0; i < pos.count; i++) {
+          v.fromBufferAttribute(pos, i).applyMatrix4(toLocal);
+          locals.push(v.clone());
+        }
+      });
+      // The butt test below needs the bone's REST orientation, and with no
+      // skinned verts we never picked one up. The prop bone is still a member
+      // of the fighter's skeleton, so its boneInverse is there to be read.
+      if (!restWorldRot) {
+        root3d.traverse((obj) => {
+          if (restWorldRot || !obj.isSkinnedMesh || !obj.skeleton) return;
+          const j = obj.skeleton.bones.findIndex((b) => b.name === propBoneName);
+          if (j < 0) return;
+          restWorldRot = new THREE.Matrix4()
+            .copy(obj.skeleton.boneInverses[j]).invert();
+        });
+      }
+    }
+  }
+  if (locals.length < 16 || !restWorldRot) return null;
 
   // Principal axis by power iteration on the covariance — the shaft dominates
   // every other dimension of a polearm, so this converges in a few steps.
@@ -330,6 +380,104 @@ export function fitPropShaft(THREE, root3d, propBoneName) {
   let extent = 0;
   for (const p of locals) extent = Math.max(extent, p.dot(dir));
   return { dir, extent };
+}
+
+/**
+ * Slide a delivered weapon along its own axis so the hand grips where it
+ * should. See props.js `gripAt` for why this is a runtime layer and not a
+ * change to `grip`.
+ *
+ * The prop mesh hangs off the prop bone, so moving the BONE moves the weapon
+ * and nothing else — the hand stays where the clip put it. Shifting the bone
+ * by −s along the measured shaft brings the point s metres down-shaft to
+ * where the grip is now, which is the whole of it.
+ *
+ * Runs in every state: where a weapon is held is a fact about the fighter,
+ * not about the move.
+ */
+export function applyGrip(THREE, root3d, charKey, tmp) {
+  let moved = false;
+  for (const p of CHARACTER_PROPS[charKey] || []) {
+    if (p.gripAt === undefined || !p.lengthM) continue;
+    const bone = root3d.getObjectByName(p.bone);
+    if (!bone) continue;
+    if (bone.userData.__shaft === undefined) {
+      bone.userData.__shaft = fitPropShaft(THREE, root3d, p.bone);
+    }
+    const shaft = bone.userData.__shaft;
+    if (!shaft) continue;
+    // Both fractions are measured FROM THE HEAVY END, so a bigger `grip` than
+    // `gripAt` means the hand is too far up and must travel down-shaft.
+    const s = clamp((p.grip - p.gripAt) * p.lengthM, -shaft.extent, shaft.extent);
+    if (Math.abs(s) < 1e-4) continue;
+    bone.position.add(tmp.v1.copy(shaft.dir).multiplyScalar(-s)
+      .applyQuaternion(bone.quaternion));
+    bone.updateMatrixWorld(true);
+    moved = true;
+  }
+  return moved;
+}
+
+/** The states a weapon is CARRIED through rather than presented in: the
+ *  fighter is travelling, and the prop is luggage. Everything else — every
+ *  attack, every guard, the idle — keeps the presentation its pose authored,
+ *  because there the weapon's angle is the point of the pose. */
+const CARRY_STATES = new Set(["walk", "run", "dash"]);
+
+/**
+ * Swing a carried weapon so its heavy end trails, low and behind.
+ *
+ * See the note in props.js for why this is one rule rather than a table of
+ * per-weapon angles: `fitPropShaft` measures which way the heavy end lies in
+ * the prop bone's own frame, so "trail it" is the same instruction for a
+ * naginata, a guitar and a broom.
+ *
+ * The swing is applied to the PROP BONE, not the arm: the fighter's hand goes
+ * where the run cycle put it and only the thing in it turns, which is what
+ * lets this run after the clip without fighting it. Returns true when
+ * something was actually turned.
+ */
+export function applyCarry(THREE, root3d, charKey, state, tmp) {
+  if (!CARRY_STATES.has(clipNameFor(state))) return false;
+  const props = CHARACTER_PROPS[charKey] || [];
+  if (!props.length || CARRY_OVERRIDES[charKey]?.carry === false) return false;
+
+  // Which way the fighter faces, from their own hips — the same measure every
+  // other layer here uses, so a turned-around body carries it turned around.
+  // characterLateral hands back the fighter's lateral axis built as
+  // (fwd.z, 0, -fwd.x); inverting that recovers the forward it came from.
+  // Deriving it the other way round points the weapon forward instead of back,
+  // which is the exact bug this layer exists to fix — so it is spelled out
+  // rather than left as a cross product to re-derive.
+  const lat = characterLateral(THREE, root3d, tmp.v3);
+  const fwdX = -lat.z, fwdZ = lat.x;
+  const drop = ((CARRY_OVERRIDES[charKey]?.dropDeg ?? CARRY_DROP_DEG) * Math.PI) / 180;
+  const cos = Math.cos(drop);
+  const want = tmp.v2.set(-fwdX * cos, -Math.sin(drop), -fwdZ * cos).normalize();
+
+  let turned = false;
+  for (const p of props) {
+    if (!p.hand) continue;                        // not held: nothing to carry
+    const bone = root3d.getObjectByName(p.bone);
+    if (!bone) continue;
+    if (bone.userData.__shaft === undefined) {
+      bone.userData.__shaft = fitPropShaft(THREE, root3d, p.bone);
+    }
+    const shaft = bone.userData.__shaft;
+    if (!shaft) continue;
+    bone.updateWorldMatrix(true, false);
+    // Where the heavy end points NOW, in the world.
+    const cur = tmp.v1.copy(shaft.dir).transformDirection(bone.matrixWorld).normalize();
+    if (cur.lengthSq() < 1e-8) continue;
+    const swing = tmp.q1.setFromUnitVectors(cur, want);
+    const parentQ = bone.parent ? bone.parent.getWorldQuaternion(tmp.q2) : tmp.q2.identity();
+    // world-space swing, expressed back in the bone's parent frame
+    const inv = tmp.q3.copy(parentQ).invert();
+    bone.quaternion.premultiply(parentQ).premultiply(swing).premultiply(inv);
+    bone.updateMatrixWorld(true);
+    turned = true;
+  }
+  return turned;
 }
 
 /**
@@ -680,6 +828,390 @@ export function applyIdleStand(THREE, root3d, deg, tmp) {
     hips.position.copy(hips.parent.worldToLocal(tmp.v6));
     root3d.updateMatrixWorld(true);
   }
+  return true;
+}
+
+/**
+ * SWING THE LEGS IN OR OUT, about the fighter's FORWARD axis. Positive brings
+ * the knees — and the feet with them — toward the midline.
+ *
+ * WHAT IT IS FOR. Generated legs arrive bandy: the knees sit outboard of the
+ * line from hip to foot and the whole leg bows away from the body, which reads
+ * at game size as a fighter standing on the outside edges of their boots. It
+ * is a fact about the FILE, so it is applied under every state rather than
+ * posed around, and the eye judges it in the idle review.
+ *
+ * ABOUT FORWARD, WHICH IS THE ONLY AXIS THAT MOVES A KNEE SIDEWAYS. The first
+ * version of this turned each leg about its OWN LENGTH, on the theory that the
+ * fault was a femur built externally rotated — which does square a kneecap and
+ * a toe to the front, and is a real thing some of these rigs have, but is not
+ * what "the knees bend outward" describes. A roll about the leg cannot move a
+ * knee closer to its neighbour; only a rotation about the fore-aft axis does
+ * that, and that is what this is now.
+ *
+ * IT PIVOTS AT THE KNEE, which is the whole difference between this and the
+ * stance. The version before this one turned the THIGH, and turning a thigh
+ * moves everything hanging off it: the knee travelled, the ankle travelled,
+ * and the fighter simply stood narrower — which is `stanceDeg` with a second
+ * name on it. Hinging the SHIN instead leaves the hips and the knees exactly
+ * where the pose put them and swings only what is below them, so the bow comes
+ * out of the leg rather than the width coming out of the stance.
+ *
+ * WHICH BONE. `${side}Leg`, whose head IS the knee joint in this skeleton —
+ * `UpLeg` is the thigh and `Leg` the shin, so "the knee" as a thing to rotate
+ * is the shin bone. Worth saying out loud because the name reads like the
+ * whole limb and the last two attempts both grabbed the wrong end of it.
+ *
+ * THE FOOT KEEPS ITS ANGLE TO THE GROUND. Swinging a shin tips the sole onto
+ * its edge by exactly the swing, so each foot is re-levelled afterwards —
+ * pitch and roll only. Yaw is left alone, because which way a fighter's toes
+ * point is a pose and this is not the dial for it.
+ */
+export function applyKneeTurn(THREE, root3d, deg, tmp) {
+  if (!deg) return false;
+  const hipL = root3d.getObjectByName("LeftUpLeg");
+  const hipR = root3d.getObjectByName("RightUpLeg");
+  if (!hipL || !hipR) return false;
+  root3d.updateMatrixWorld(true);
+  // The pelvis's own width line, hip joint to hip joint, flattened — the same
+  // basis `applyIdleStand` opens the stance about, and for the same reason: a
+  // rig's local +Z is a claim about facing that `yawOffsetDeg` exists to say
+  // is false, while two hip joints are where they are.
+  const lateral = tmp.v7.setFromMatrixPosition(hipL.matrixWorld)
+    .sub(tmp.v6.setFromMatrixPosition(hipR.matrixWorld));
+  lateral.y = 0;
+  if (lateral.lengthSq() < 1e-8) return false;
+  lateral.normalize();
+  // forward = up x lateral. Turning a shin about it swings the foot along the
+  // width line, which is the whole point.
+  const axis = tmp.v6.set(-lateral.z, 0, lateral.x).normalize();
+  const rad = (deg * Math.PI) / 180;
+  let turned = 0;
+  for (const side of ["Left", "Right"]) {
+    // The SHIN, not the thigh: the knee is this bone's head, so rotating it
+    // pivots there and leaves the thigh alone.
+    const shin = root3d.getObjectByName(`${side}Leg`);
+    if (!shin) continue;
+    // Mirrored, so one number closes both legs by the same amount rather than
+    // walking the fighter sideways.
+    rotateBoneAboutWorldAxis(THREE, shin, axis, (side === "Left" ? -1 : 1) * rad, tmp);
+    root3d.updateMatrixWorld(true);
+    const foot = root3d.getObjectByName(`${side}Foot`);
+    if (foot) levelSole(THREE, foot, tmp);
+    turned++;
+  }
+  if (turned) root3d.updateMatrixWorld(true);
+  return turned > 0;
+}
+
+/** The bind (rest) world matrix of every bone, cached on the root.
+ *
+ *  `boneInverses[i]` is the inverse of bone i's world matrix at bind, so its
+ *  inverse is that matrix — the pose the MODEL was built in, before any clip
+ *  touched it. That is the only place a bone's neutral ROLL is recorded, and
+ *  roll is the half of an arm that aiming does not set. */
+function bindFrames(THREE, root3d) {
+  if (root3d.userData.__bind) return root3d.userData.__bind;
+  let out = null;
+  root3d.traverse((o) => {
+    if (out || !o.isSkinnedMesh || !o.skeleton) return;
+    const map = new Map();
+    o.skeleton.bones.forEach((b, i) => {
+      const m = new THREE.Matrix4().copy(o.skeleton.boneInverses[i]).invert();
+      map.set(b.name, {
+        pos: new THREE.Vector3().setFromMatrixPosition(m),
+        quat: new THREE.Quaternion().setFromRotationMatrix(m),
+      });
+    });
+    out = map;
+  });
+  root3d.userData.__bind = out || new Map();
+  return root3d.userData.__bind;
+}
+
+/**
+ * Point a bone along `dir` FROM ITS BIND POSE, keeping the bind roll.
+ *
+ * The difference from aimBoneAt, and the whole reason this exists: aimBoneAt
+ * turns the bone from wherever the clip left it, by the shortest rotation that
+ * lands on the target. That sets the bone's DIRECTION and inherits its TWIST,
+ * and for a limb the twist is what decides which way the joint below it
+ * hinges. Straightening a delivered idle's arms this way left every elbow
+ * pointing wherever that fighter's clip happened to roll the upper arm —
+ * Gojo's forward, so his arm read as hinging backwards.
+ *
+ * Rotating from BIND instead makes the roll a fact about the model: the pose
+ * the mesh was built and weighted in, where the elbow points the way the
+ * modeller drew it. The rotation used is the minimal one from the bind
+ * direction to `dir`, which is a pure swing and adds no twist of its own.
+ */
+function aimBoneFromBind(THREE, root3d, bone, childName, dir, tmp, rootQ) {
+  const bind = bindFrames(THREE, root3d);
+  const here = bind.get(bone.name);
+  const child = bind.get(childName);
+  if (!here || !child) return false;
+  // BIND IS THE MODEL'S FRAME; `dir` IS THE WORLD'S. bindFrames reads the
+  // skeleton's own inverse-bind matrices, which know nothing about the yaw
+  // poseRig puts on the root — the delivery's own facing plus the turnaround.
+  // Comparing the two directly silently discards that yaw, so every fighter
+  // whose model was built facing somewhere other than the camera had their arm
+  // aimed along an axis turned by their `yawOffsetDeg`. Carrying bind into the
+  // world first is the whole fix, and it is a no-op on a rig with no offset,
+  // which is why it went unseen: Yuji is 0 and reads perfectly.
+  const bindDir = tmp.v1.copy(child.pos).sub(here.pos);
+  if (bindDir.lengthSq() < 1e-10) return false;
+  bindDir.normalize().applyQuaternion(rootQ);
+  const swing = tmp.q1.setFromUnitVectors(bindDir, dir);
+  const want = tmp.q2.copy(rootQ).multiply(here.quat).premultiply(swing);
+  const parent = bone.parent
+    ? bone.parent.getWorldQuaternion(new THREE.Quaternion())
+    : new THREE.Quaternion();
+  bone.quaternion.copy(parent.invert().multiply(want));
+  bone.updateMatrixWorld(true);
+  return true;
+}
+
+/** Put one bone's LOCAL rotation back to what it was at bind. */
+function setLocalFromBind(THREE, root3d, bone, bind) {
+  const here = bind.get(bone.name);
+  const parent = bone.parent && bind.get(bone.parent.name);
+  if (!here) return;
+  const local = parent
+    ? new THREE.Quaternion().copy(parent.quat).invert().multiply(here.quat)
+    : here.quat.clone();
+  bone.quaternion.copy(local);
+  bone.updateMatrixWorld(true);
+}
+
+/**
+ * THE POSE THE MODEL WAS BUILT IN — every bone, rotation and position, back to
+ * the skeleton's own bind.
+ *
+ * The rig-check poses stand on this, and nothing else in the engine can give
+ * it. `restoreClean` (pose.js) restores the pose the CLIP left, which after
+ * one frame of anything is not the bind; a mixer with no action playing leaves
+ * bones wherever they were. Only the inverse-bind matrices remember the rest
+ * pose, so that is what this reads.
+ *
+ * Positions as well as rotations, because the shoulder-width correction is a
+ * TRANSLATION on the arm roots — a bind restore that only put rotations back
+ * would leave the previous pose's widening on the bone and quietly double it.
+ */
+export function applyBindPose(THREE, root3d) {
+  const bind = bindFrames(THREE, root3d);
+  if (!bind.size) return false;
+  const seen = [];
+  root3d.traverse((o) => { if (o.isBone && bind.has(o.name)) seen.push(o); });
+  // Parents first: a child's local transform is read against a parent that has
+  // to be at bind already, or the pose comes out compounding down the chain.
+  for (const bone of seen) {
+    const here = bind.get(bone.name);
+    const parentBind = bone.parent && bind.get(bone.parent.name);
+    if (parentBind) {
+      const inv = new THREE.Quaternion().copy(parentBind.quat).invert();
+      bone.quaternion.copy(inv.clone().multiply(here.quat));
+      bone.position.copy(
+        new THREE.Vector3().copy(here.pos).sub(parentBind.pos).applyQuaternion(inv));
+    } else {
+      bone.quaternion.copy(here.quat);
+      bone.position.copy(here.pos);
+    }
+    bone.scale.set(1, 1, 1);
+  }
+  root3d.updateMatrixWorld(true);
+  return true;
+}
+
+/** Put one bone's WORLD rotation back to bind, whatever its parent is doing. */
+function setLocalFromBindWorld(THREE, bone, bindHere, rootQ) {
+  const parent = bone.parent
+    ? bone.parent.getWorldQuaternion(new THREE.Quaternion())
+    : new THREE.Quaternion();
+  // Same frame correction as aimBoneFromBind: the bind orientation is the
+  // MODEL's, and setting it as a world orientation un-yaws the bone. On the
+  // clavicle that rotated both shoulders by the fighter's own yaw offset,
+  // which is what made the review's shoulder-width dial push one shoulder
+  // forward and the other back instead of both outward.
+  const want = new THREE.Quaternion().copy(rootQ).multiply(bindHere.quat);
+  bone.quaternion.copy(parent.invert().multiply(want));
+  bone.updateMatrixWorld(true);
+}
+
+/** Straighten an elbow only as far as it is bent past `MAX_IDLE_ELBOW`.
+ *
+ *  A relaxed arm is not a straight arm, and most binds carry a sensible bend
+ *  that should survive. A bind holding 78 degrees is a delivery that arrived
+ *  mid-pose, and that one has to come back — but only to the limit, not to
+ *  straight, because every degree of correction is a degree the skin was not
+ *  weighted for. */
+function clampElbow(THREE, root3d, fore, handName, dir, tmp) {
+  const hand = root3d.getObjectByName(handName);
+  if (!hand) return;
+  fore.updateWorldMatrix(true, false);
+  hand.updateWorldMatrix(true, false);
+  const here = tmp.p1.setFromMatrixPosition(fore.matrixWorld);
+  const wrist = tmp.p2.setFromMatrixPosition(hand.matrixWorld);
+  const have = tmp.v2.copy(wrist).sub(here);
+  if (have.lengthSq() < 1e-10) return;
+  have.normalize();
+  const bend = Math.acos(Math.max(-1, Math.min(1, have.dot(dir)))) * 180 / Math.PI;
+  if (bend <= MAX_IDLE_ELBOW) return;
+  const swing = new THREE.Quaternion().setFromUnitVectors(have, dir);
+  const part = new THREE.Quaternion().slerp(swing, (bend - MAX_IDLE_ELBOW) / bend);
+  const parent = fore.parent
+    ? fore.parent.getWorldQuaternion(new THREE.Quaternion())
+    : new THREE.Quaternion();
+  const want = part.multiply(fore.getWorldQuaternion(new THREE.Quaternion()));
+  fore.quaternion.copy(parent.invert().multiply(want));
+  fore.updateMatrixWorld(true);
+}
+
+/**
+ * HOW A FIGHTER CARRIES THEIR ARMS in their idle: hanging as the model was
+ * built, out from the body by `deg`, with the shoulders squared.
+ *
+ * THE SAME ARGUMENT AS THE LEGS, one axis later. `applyIdleStand` rebuilt the
+ * legs because a generated idle arrives with whatever the generator felt about
+ * standing, it is different on every fighter, and it reads as sloppiness
+ * rather than as personality. Everything above the hips was left alone, and
+ * the arms turned out to be worse than the legs ever were: measured across the
+ * roster at rest, the elbow ran from 171° (all but straight) to 104° (a hand
+ * held at the chest), and the wrist's distance from the body's centreline
+ * varied SIX-FOLD. Uro and Sukuna stand with their hands up; Yuji's hang at
+ * his sides. None of that was anybody's decision about the character.
+ *
+ * WHY OUT AND NOT DOWN. Arms hung dead flat against the ribs read as
+ * attention, not as rest, and they also intersect the coat on the wider
+ * fighters. A few degrees of abduction is what "relaxed" looks like, and it is
+ * the same shape of dial as the legs' stance: one number, measured from
+ * straight down, meaning the same thing on every model.
+ *
+ * THE ELBOW KEEPS THE BEND THE MODEL WAS BUILT WITH. The first version forced
+ * the arm dead straight, and that is what made Gojo's elbow read as hinging
+ * the wrong way: measured across the roster, a bind pose carries 27-33 degrees
+ * of elbow bend (Nanami's left arm 78), and straightening it rotates the
+ * forearm that far against skin weighted for the bent pose. The mesh folds at
+ * the joint. Nobody stands with locked elbows anyway, so the arm is swung as
+ * ONE RIGID PIECE from bind and the bend comes along — clamped at
+ * MAX_IDLE_ELBOW, because a bind that arrived at 78 degrees is not a relaxed
+ * arm, it is a delivery holding a pose.
+ *
+ * THE SHOULDER IS RESET TOO, and it has to be. The clavicle carries whatever
+ * the delivered clip left on it, which is where "one shoulder squashed into
+ * the body" comes from: Gojo's arm roots sat 6 cm apart in height and 3 cm
+ * apart in distance from the spine, one hunched and one not. Putting both back
+ * to bind makes the pair symmetric; `outM` then moves them outward together,
+ * for a fighter whose shoulders read narrow.
+ *
+ * WHAT IT DOES NOT TOUCH. The wrist, so a hand posed around a weapon keeps its
+ * grip; and any fighter whose manifest says `idleArms: false`, whose delivered
+ * idle is a pose somebody wants (Sukuna's).
+ *
+ * AND THE WEAPON COMES WITH IT. A prop hangs off the hand bone, so moving the
+ * arm moves the weapon — a straightened arm carries a polearm to the fighter's
+ * side with the butt near the floor, which is the carry. The off hand joins
+ * the shaft separately (applyTwoHandGrip, which now runs in idle too).
+ */
+export const MAX_IDLE_ELBOW = 25;
+
+export function applyIdleArms(THREE, root3d, deg, tmp) {
+  const arms = ["Left", "Right"].map((side) => ({
+    up: root3d.getObjectByName(`${side}Arm`),
+    lo: root3d.getObjectByName(`${side}ForeArm`),
+    hand: root3d.getObjectByName(`${side}Hand`),
+  }));
+  if (!arms[0].up || !arms[1].up) return false;
+  root3d.updateMatrixWorld(true);
+
+  // The chest's own width axis, shoulder joint to shoulder joint — the same
+  // trick the legs use on the pelvis, and for the same reason: it does not ask
+  // the manifest which way anybody faces, so `yawOffsetDeg` cannot mislead it.
+  const span = tmp.v4.setFromMatrixPosition(arms[1].up.matrixWorld)
+    .sub(tmp.v5.setFromMatrixPosition(arms[0].up.matrixWorld));
+  const lateral = tmp.v3.set(span.x, 0, span.z);
+  if (lateral.lengthSq() < 1e-8) return false;
+  lateral.normalize();
+  const axis = tmp.v5.set(-lateral.z, 0, lateral.x).normalize();
+
+  // The rig's own rotation, once: everything below reads bind frames, which
+  // are the model's, and acts in the world.
+  const rootQ = root3d.getWorldQuaternion(new THREE.Quaternion());
+
+  const rad = (deg * Math.PI) / 180;
+  for (let i = 0; i < 2; i++) {
+    const sign = i === 0 ? -1 : 1; // away from the body, not both the same way
+    const { up, lo, hand } = arms[i];
+    const dir = tmp.v6.set(0, -1, 0).applyAxisAngle(axis, sign * rad).normalize();
+
+    // FROM BIND, not from the clip: the bind pose is where the elbow's hinge
+    // is recorded. Aiming from wherever the delivery left the arm carries that
+    // clip's twist into the idle, and a twisted upper arm is an elbow that
+    // points the wrong way.
+    const side = i === 0 ? "Left" : "Right";
+    const bind = bindFrames(THREE, root3d);
+
+    // The clavicle first, back to the pose the body was built in. Everything
+    // below hangs off it, so an arm aimed correctly from a hunched shoulder is
+    // still an arm coming out of the wrong place.
+    const clav = root3d.getObjectByName(`${side}Shoulder`);
+    if (clav && bind.has(clav.name)) {
+      setLocalFromBindWorld(THREE, clav, bind.get(clav.name), rootQ);
+    }
+
+    if (lo) {
+      aimBoneFromBind(THREE, root3d, up, `${side}ForeArm`, dir, tmp, rootQ);
+      // The forearm rides along: its BIND local rotation, so the elbow keeps
+      // the bend and the crease the modeller gave it, and the skin sees no
+      // relative rotation at the joint at all.
+      if (bind.has(lo.name)) {
+        setLocalFromBind(THREE, root3d, lo, bind);
+        clampElbow(THREE, root3d, lo, `${side}Hand`, dir, tmp);
+      }
+    } else if (hand) {
+      aimBoneFromBind(THREE, root3d, up, `${side}Hand`, dir, tmp, rootQ);
+    }
+
+  }
+  root3d.updateMatrixWorld(true);
+  return true;
+}
+
+/**
+ * LENGTHEN THE SHOULDERS: move both arm roots out along the body's own width
+ * axis. A translation rather than a scale, so the arms keep their length —
+ * what reads as squashed is where the arm STARTS, not how long it is.
+ *
+ * A MODEL FIX, NOT A POSE, which is why it lives out here on its own rather
+ * than inside the idle. It used to be a parameter of `applyIdleArms` and so
+ * only happened at rest, and the fighters carrying one visibly narrowed the
+ * instant they moved: Uro's shoulders measured 37.6 cm apart standing and
+ * 24.9 cm mid-punch, the whole 12.7 cm being twice her 6.5 cm correction
+ * arriving and leaving. See render3d/src/rig_fixes.js, which owns the list of
+ * corrections this belongs to and applies it under every state.
+ */
+export function applyShoulderWidth(THREE, root3d, outM, tmp) {
+  if (!outM) return false;
+  const arms = ["Left", "Right"].map((s) => root3d.getObjectByName(`${s}Arm`));
+  if (!arms[0] || !arms[1]) return false;
+  root3d.updateMatrixWorld(true);
+  // The chest's own width axis, shoulder joint to shoulder joint — the same
+  // measurement applyIdleArms makes, and for the same reason: it never asks
+  // the manifest which way anybody faces, so `yawOffsetDeg` cannot mislead it.
+  const span = tmp.v4.setFromMatrixPosition(arms[1].matrixWorld)
+    .sub(tmp.v5.setFromMatrixPosition(arms[0].matrixWorld));
+  const lateral = tmp.v3.set(span.x, 0, span.z);
+  if (lateral.lengthSq() < 1e-8) return false;
+  lateral.normalize();
+  for (let i = 0; i < 2; i++) {
+    const bone = arms[i];
+    const sign = i === 0 ? -1 : 1; // apart, not both the same way
+    if (!bone.parent) continue;
+    bone.updateWorldMatrix(true, false);
+    tmp.p1.setFromMatrixPosition(bone.matrixWorld).addScaledVector(lateral, sign * outM);
+    bone.position.copy(bone.parent.worldToLocal(tmp.p1));
+    bone.updateMatrixWorld(true);
+  }
+  root3d.updateMatrixWorld(true);
   return true;
 }
 

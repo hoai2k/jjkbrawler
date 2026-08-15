@@ -2,7 +2,7 @@
 import { DEFAULT_TIME_LIMIT } from "./constants.js";
 
 export const state = {
-  phase: "loading", // loading | menu | stageSelect | moves | playing | paused | roundOver | settings
+  phase: "loading", // loading | title | menu | stageSelect | moves | playing | paused | roundOver | settings
   prevPhase: "menu",
   mode: "cpu",      // cpu | local
   playerCount: 1,   // human players; 1 means P1 versus CPU
@@ -53,6 +53,10 @@ export const state = {
   vignette: null,    // {color, alpha, life, maxLife} — Black Flash's dark beat
   domainOverlay: null, // {color, life, maxLife, ownerId, label}
   domain: null,        // the live Domain Expansion entity, or null (domains.js)
+  // The fighter part-way through a Domain Expansion call-out, or null. The
+  // barrier does not exist yet during that window, so this is what stops a
+  // second domain starting inside the first one's sentence.
+  domainCasting: null,
 
   matchTime: 0,
   // Seconds left on the match clock, counted down while the fight is live.

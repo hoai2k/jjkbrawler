@@ -1,6 +1,6 @@
 import { state } from "./state.js";
 import { loadCoreAssets, startBackgroundLoad, ensureMatchAssets, matchAssetsPending } from "./assets.js";
-import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, joinedPlayerCount, blankInput, clearHeldKeys, disconnectedSeats } from "./input.js";
+import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, joinedPlayerCount, blankInput, clearHeldKeys, disconnectedSeats, freezePadSeats } from "./input.js";
 import { initAudio, playSfx, setBattleStage, syncMusic, stepAudio, stopDomainLoop, stopShieldLoop, setAudioSuspended, setMatchLive } from "./audio.js";
 import { updateRumble } from "./rumble.js";
 import { makeFighter, updateFighter } from "./fighter.js";
@@ -17,8 +17,9 @@ import { TEXT } from "./config_menus.js";
 import { initStageFx } from "./stage_fx.js";
 import { RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { makeAiState, aiInput, cpuDamageMul } from "./ai.js";
-import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady, setPauseNotice, reportError, resetHudCache } from "./ui.js";
+import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, showBattleIntro, fadeBattleIntro, hideBattleIntro, leaveTitle, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady, setPauseNotice, reportError, resetHudCache } from "./ui.js";
 import { FIXED_DT, MAX_FIXED_STEPS, WORLD, SUDDEN_DEATH_DAMAGE } from "./constants.js";
+import { clamp } from "./utils.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -27,6 +28,26 @@ let previousTime = 0;
 let accumulator = 0;
 let introT = 0;
 let endT = 0;
+
+// The pre-match schedule, in seconds. One place rather than three numbers in
+// two files that have to be kept in step by hand: `introT` counts DOWN from
+// the total, so the splash owns the first stretch and each banner fires as the
+// countdown crosses its own mark on the way to zero.
+//
+//   t=0 ..... the VS splash slams in and holds
+//   ......... the splash begins its fade (INTRO_FADE)
+//   t=SPLASH  the splash is gone and READY… lands on that same frame
+//   ......... GO!  (INTRO_GO before the end)
+//   t=total   fighters unfreeze
+//
+// The splash is faded and dropped from HERE rather than timing itself, so the
+// two are one clock: `introT` accumulates the fixed step, which stays accurate
+// through the frame hitches a match start is full of, where two setTimeouts
+// simply do not.
+const INTRO_SPLASH = 2.0;    // how long the splash dwells before handing over
+const INTRO_READY = 1.6;     // countdown left when it does — READY…'s cue
+const INTRO_FADE = INTRO_READY + 0.28;  // its exit fade starts a beat earlier
+const INTRO_GO = 0.6;        // …and when GO! takes over from READY…
 
 function resizeCanvas() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -102,24 +123,49 @@ async function resetMatch() {
   resolveRoster(plan);
   const entrants = Array.from({ length: entrantCount }, (_, i) => state.roster[i + 1]);
 
-  if (matchAssetsPending(entrants, state.stageKey)) {
-    setPhase("loading");
+  // The VS splash goes up FIRST, before any of this match's art is fetched.
+  // What it draws — the painted hero cards — is core art that is always in
+  // memory, so there was never a reason to make the player watch a loading
+  // screen and only then get the VS screen. Anything still streaming shows as
+  // a bar along the bottom of the splash instead of replacing it.
+  const pending = matchAssetsPending(entrants, state.stageKey);
+  showBattleIntro(
+    Array.from({ length: entrantCount }, (_, i) => ({
+      id: i + 1,
+      key: state.roster[i + 1],
+      cpu: !isHumanSlot(i + 1, plan),
+    })),
+    { loading: pending },
+  );
+  if (pending) {
     await ensureMatchAssets(entrants, state.stageKey, setLoadProgress);
-    if (token !== matchToken || state.phase !== "loading") return; // superseded
+    // Superseded while we waited — something else has taken the screen, and it
+    // took the splash down with it (setPhase).
+    if (token !== matchToken) return;
   }
 
   const stage = getStage(state.stageKey);
   // Pick this match's battle track before the phase flips to "playing".
   setBattleStage(stage.key);
   state.platforms = stage.platforms.map((p) => ({ ...p }));
-  const groundY = state.platforms[0].y;
+
+  // A spawn stands on the lowest surface under its x — usually the main, but
+  // on boards whose main is narrower than the spawn spread (Bridge Duel) the
+  // outer slots start on the side platforms, Battlefield-style. An x with
+  // nothing under it at all is pulled onto the main rather than into the void.
+  const main = state.platforms[0];
+  const spawnSpot = (x) => {
+    const under = state.platforms.filter((p) => x >= p.x + 12 && x <= p.x + p.w - 12);
+    if (under.length) return { x, y: Math.max(...under.map((p) => p.y)) };
+    return { x: clamp(x, main.x + 50, main.x + main.w - 50), y: main.y };
+  };
 
   const spawns = spawnXs(entrantCount);
   state.fighters = Array.from({ length: entrantCount }, (_, i) => {
     const id = i + 1;
-    const x = spawns[i];
-    const fighter = makeFighter(id, state.roster[id], x, x < WORLD.w / 2 ? 1 : -1);
-    fighter.y = groundY;
+    const spot = spawnSpot(spawns[i]);
+    const fighter = makeFighter(id, state.roster[id], spot.x, spot.x < WORLD.w / 2 ? 1 : -1);
+    fighter.y = spot.y;
     fighter.grounded = true;
     // Free-for-all gives every fighter a side of their own, so "teammate" only
     // means something in the modes that actually have teams.
@@ -144,6 +190,7 @@ async function resetMatch() {
   state.banners.length = 0;
   state.domainOverlay = null;
   state.domain = null;
+  state.domainCasting = null;
   // A domain open when the match ended never runs its own close path — the
   // entity is dropped here, not expired — so its held sound is stopped by the
   // reset that dropped it. Without this a rematch starts inside the last
@@ -165,20 +212,27 @@ async function resetMatch() {
   // After the arrays are cleared, so the fx entity survives the reset.
   initStageFx();
 
-  introT = 1.6;
+  // The countdown budget: the splash's dwell plus the READY…GO! that follows
+  // it (see the schedule at the top of this file).
+  introT = INTRO_SPLASH + INTRO_READY;
   endT = 0;
   // Music, and the screens that can be opened from inside a fight, both key off
   // this: while it is set, Settings and the move list hold the battle track
   // where it is instead of cutting to the menu one (audio.js).
   setMatchLive(true);
-  banner("READY…", "#e8ecf8", { y: 300, size: 60, life: 1.0 });
+  // The seats belong to this match now: a pad that drops out keeps its fighter
+  // instead of the remaining pads shuffling up under the players holding them.
+  freezePadSeats(true);
   playSfx("uiStart");
-  playSfx("countdownReady");
+  // The splash is already up (above); this only hands the screen under it to
+  // the match, and starts the countdown that will fade it.
   setPhase("playing");
 }
 
 function quitToMenu() {
   setMatchLive(false);
+  // Back on the menu the seating follows whatever is actually plugged in again.
+  freezePadSeats(false);
   setPauseNotice(null);
   resetReady();
   setPhase("menu");
@@ -322,8 +376,18 @@ function updateSimulation(dt, held) {
   if (introT > 0) {
     const before = introT;
     introT -= dt;
-    if (before > 0.6 && introT <= 0.6) {
-      banner("GO!", "#ffd35a", { y: 300, size: 72, life: 0.6 });
+    // The splash's exit, driven by this countdown rather than by its own
+    // timers: it starts fading here…
+    if (before > INTRO_FADE && introT <= INTRO_FADE) fadeBattleIntro();
+    // …and is gone on the very frame READY… lands, which is what makes the
+    // hand-over read as one move instead of two things that nearly agree.
+    if (before > INTRO_READY && introT <= INTRO_READY) {
+      hideBattleIntro();
+      banner("READY…", "#e8ecf8", { y: 300, size: 60, life: INTRO_READY - INTRO_GO });
+      playSfx("countdownReady");
+    }
+    if (before > INTRO_GO && introT <= INTRO_GO) {
+      banner("GO!", "#ffd35a", { y: 300, size: 72, life: INTRO_GO });
       playSfx("countdownGo");
     }
     // fighters frozen during countdown
@@ -448,7 +512,11 @@ function loop(time) {
   stepAudio(dt);
 
   if (anyPadPausePressed()) {
-    if (["playing", "paused"].includes(state.phase)) togglePause();
+    // PRESS START, literally: the pad's Start button leaves the title splash
+    // and takes the game fullscreen (leaveTitle tolerates a browser that
+    // refuses the fullscreen request outside a real user gesture).
+    if (state.phase === "title") leaveTitle({ fullscreen: true });
+    else if (["playing", "paused"].includes(state.phase)) togglePause();
     else if (state.phase === "menu") document.getElementById("startButton").click();
     else if (state.phase === "stageSelect") document.getElementById("randomStageButton").click();
     else if (state.phase === "roundOver") document.getElementById("rematchButton").click();
@@ -598,7 +666,10 @@ async function init() {
     document.getElementById("loadStatus").textContent = TEXT.loading.failed(err.message);
     return;
   }
-  setPhase("menu");
+  // The game opens on its title splash rather than dropping the player
+  // straight into fighter select; pressing start there is what reaches the
+  // menu (leaveTitle in ui.js).
+  setPhase("title");
   // The roster is ~450 MB of sprite art and a match uses at most four fighters,
   // so it streams in behind the menu instead of in front of it. Choosing a
   // fighter pulls them to the front of that queue (see ui.js), and startMatch

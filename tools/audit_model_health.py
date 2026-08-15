@@ -23,6 +23,17 @@
 #                 invents spikes.
 #   STRAYS        Islands of mesh far from any bone that owns them, and meshes
 #                 with no weights at all.
+#   FOOT SHAPE    A foot is LONGER THAN IT IS WIDE. Measured as the ratio of
+#                 the two horizontal extents of the mesh the foot bones own,
+#                 taken along the foot's OWN principal axis so it does not
+#                 matter which way the fighter is turned or how the file is
+#                 oriented. A delivered foot runs about 2.0 (Yuji 2.05 on both,
+#                 Gakuganji 2.19/2.26); a generator that failed to resolve one
+#                 reports a featureless lump at about 1.0, which is what Momo's
+#                 left foot was while her right was a proper boot. Do NOT take
+#                 this off the toe bone's direction: those bones are 2 cm stubs
+#                 whose orientation is noise, and measuring against them scores
+#                 a known-good foot as badly as a broken one.
 import bpy, sys, math
 from mathutils import Vector
 
@@ -38,6 +49,27 @@ chars = argv or [k for k, v in manifest["characters"].items() if v.get("approved
 
 LEG = ["UpLeg", "Leg", "Foot", "ToeBase"]
 ARM = ["Arm", "ForeArm", "Hand"]
+FOOT = ["Foot", "ToeBase"]
+
+
+def foot_ratio(pts):
+    """How foot-shaped a cloud of vertices is: long axis over short, both
+    horizontal, both measured along the cloud's own principal direction."""
+    if len(pts) < 12:
+        return None
+    cx = sum(p.x for p in pts) / len(pts)
+    cy = sum(p.y for p in pts) / len(pts)
+    xx = xy = yy = 0.0
+    for p in pts:
+        dx, dy = p.x - cx, p.y - cy
+        xx += dx * dx; xy += dx * dy; yy += dy * dy
+    th = 0.5 * math.atan2(2 * xy, xx - yy)
+    a = Vector((math.cos(th), math.sin(th), 0.0))
+    b = Vector((-a.y, a.x, 0.0))
+    la = max(p.dot(a) for p in pts) - min(p.dot(a) for p in pts)
+    lb = max(p.dot(b) for p in pts) - min(p.dot(b) for p in pts)
+    lo, hi = min(la, lb), max(la, lb)
+    return (hi / lo) if lo > 1e-6 else None
 
 def side_mass(mesh_obj, groups, names):
     """Total weight held by a side's bones, and the verts they touch."""
@@ -53,7 +85,13 @@ def report(char):
     bpy.ops.import_scene.gltf(filepath=path)
     meshes = [o for o in bpy.data.objects if o.type == "MESH"]
     skinned = [o for o in meshes if o.vertex_groups]
-    loose = [o for o in meshes if not o.vertex_groups]
+    # A weapon generated on its own hangs off a bone rather than being skinned
+    # to one, so it has no vertex groups AND is not a stray — it is the whole
+    # point of the separate-prop pipeline. Counting it as an unweighted stray
+    # reported "2 unweighted mesh (20451 verts)" for every fighter carrying
+    # one, which reads as a serious defect and is in fact the design.
+    boned = [o for o in meshes if not o.vertex_groups and o.parent_type == "BONE"]
+    loose = [o for o in meshes if not o.vertex_groups and o.parent_type != "BONE"]
 
     # Stature from the SKINNED body only: an unweighted stray would otherwise
     # decide how tall the fighter is.
@@ -65,6 +103,7 @@ def report(char):
 
     mass = {}
     head_top = None
+    feet = {"Left": [], "Right": []}
     for o in skinned:
         gi = {g.index: g.name for g in o.vertex_groups}
         for v in o.data.vertices:
@@ -74,6 +113,15 @@ def report(char):
                 if name == "Head" and g.weight > 0.5:
                     z = (o.matrix_world @ v.co).z
                     head_top = z if head_top is None else max(head_top, z)
+            # Foot shape is about the SHAPE the foot bones own, so a vertex
+            # counts for the bone holding most of it rather than for every
+            # bone touching it.
+            top_g = max(v.groups, key=lambda g: g.weight, default=None)
+            if top_g is not None:
+                n = gi.get(top_g.group, "")
+                for side in ("Left", "Right"):
+                    if n in (side + "Foot", side + "ToeBase"):
+                        feet[side].append(o.matrix_world @ v.co)
 
     def limb(side, parts):
         return sum(mass.get(side + p, 0.0) for p in parts)
@@ -95,7 +143,12 @@ def report(char):
         "crown": crown,
         "loose": sum(len(o.data.vertices) for o in loose),
         "looseN": len(loose),
-        "prop": mass.get("Prop_Main", 0.0) + mass.get("Prop_Off", 0.0),
+        # Skinned prop weight, plus the verts of any bone-parented weapon —
+        # both are "the fighter's kit", however it got there.
+        "prop": (mass.get("Prop_Main", 0.0) + mass.get("Prop_Off", 0.0)
+                 + sum(len(o.data.vertices) for o in boned)),
+        "footL": foot_ratio(feet["Left"]),
+        "footR": foot_ratio(feet["Right"]),
     }
 
 rows = []
@@ -146,17 +199,28 @@ def verdict(r):
         out.append(f"geometry {r['crown']*100:.0f}% of stature ABOVE the head")
     if r["looseN"]:
         out.append(f"{r['looseN']} unweighted mesh ({r['loose']} verts)")
+    # A foot that is as wide as it is long is not a foot. 1.4 sits well below
+    # every delivered foot on the roster and well above the lumps, and the two
+    # sides are called separately because the usual failure is one of them:
+    # Momo's left read 1.05 against her right's 1.98, and the fix was her own
+    # right foot mirrored over (tools/blender_fix_foot.py).
+    for side, key in (("left", "footL"), ("right", "footR")):
+        v = r.get(key)
+        if v is not None and v < 1.4:
+            out.append(f"the {side} FOOT is a lump ({v:.2f} long-to-wide, ~2.0 is a foot)")
     return out
 
 print("\n=== model health")
 print(f"a normal limb, as a share of the model's own mass:"
       f" leg {MED['leg']:.1%}, arm {MED['arm']:.1%}\n")
 print(f"{'char':<12}{'legs L':>8}{'legs R':>8}{'bal':>6}"
-      f"{'arms L':>8}{'arms R':>8}{'bal':>6}{'prop':>7}{'^head':>7}   findings")
+      f"{'arms L':>8}{'arms R':>8}{'bal':>6}{'prop':>7}{'^head':>7}{'feet':>12}   findings")
 for r in sorted(rows, key=lambda r: min(r["legBal"], r["armBal"])):
+    feet_col = ("%.2f/%.2f" % (r["footL"], r["footR"])) if r["footL"] and r["footR"] else "—"
     print(f"{r['char']:<12}{r['legL']:>8.0f}{r['legR']:>8.0f}{r['legBal']:>6.2f}"
           f"{r['armL']:>8.0f}{r['armR']:>8.0f}{r['armBal']:>6.2f}{r['prop']:>7.0f}"
-          f"{r['crown']*100:>6.1f}%   {', '.join(verdict(r))}")
+          f"{r['crown']*100:>6.1f}%{feet_col:>12}"
+          f"   {', '.join(verdict(r))}")
 
 if "--json" in FLAGS:
     out = os.path.join(ROOT, "render3d/docs/reference/model-health.json")

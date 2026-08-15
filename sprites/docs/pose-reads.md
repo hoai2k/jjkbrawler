@@ -17,20 +17,26 @@ tools/pose_seed.py                      seeds a character from the read referenc
 tools/pose_apply.py                     puts an editor export back in the tree
 tools/pose_contact_sheet.py <char>      the sheet, and --check
 tools/pose_rig_sheet.mjs <char>         every pose's RIG beside its drawing
+tools/pose_three_up.mjs <char>          drawing · matched · baseline · generated · in-game
+tools/pose_silhouettes.mjs              do the baseline poses read apart?
 tools/pose_verify.py <char>             crossed limbs, lopsided pairs, impossible turns
 tools/check_pose_reads.mjs              runs in `npm run check`
 ```
 
-Those four check different things and none of them replaces another.
+Those check different things and none of them replaces another.
 `--check` measures every joint to the nearest ink, so it proves the read sits
 on the art. `pose_verify.py` asks whether the *body* those joints describe is
 possible — legs that cross at the shins, a thigh twice its partner, a shoulder
 line wider than the shoulders go — which is what a swapped side actually looks
 like in arithmetic. `pose_rig_sheet.mjs` drives the real editor in a real
 browser and puts each posed rig next to the drawing it came from, which is the
-only one of the four that catches an interpreter bug rather than a read bug,
-and it is how the feet above were caught. And `window.__poseAngles()` in the
-editor gives the same comparison as a number per bone, in degrees.
+only one of them that catches an interpreter bug rather than a read bug, and it
+is how the feet below were caught. `pose_three_up.mjs` goes one further and
+puts the two proposed poses beside the one the game plays today, which is the
+only view that can say whether either is an improvement. And
+`window.__poseAngles()` in the editor gives the rig-versus-drawing comparison
+as a number per bone, in degrees, while `window.__handsAt()` says where the
+hands ended up.
 
 ## The three things a read has to get right
 
@@ -75,10 +81,166 @@ cache-buster, so nothing here is ever served stale from a cache.
 
 Pick a character, pick a frame from the grid, drag the joints onto the drawing.
 Dragging a joint carries everything below it in the chain (shift-drag moves the
-one joint); arrow keys nudge; **Snap to art** pulls stray joints onto the
-nearest ink; ⌘Z undoes. Beside the plate the character's **own 3D rig** takes
+one joint); **Snap to art** pulls stray joints onto the nearest ink; ⌘Z undoes.
+
+**The arrow keys do two things and which one is unambiguous.** With a joint
+selected they nudge it. With nothing selected they walk the picker grid — left
+and right by one frame, up and down by a row, the column count read off the
+grid so it stays right if the layout changes. **Escape** drops the joint and
+gives the grid back. Beside the plate the character's **own 3D rig** takes
 the pose, each bone swung in the drawing's plane to match — which is where a
 read that looked fine flat turns out to bend a knee backwards.
+
+The rig pane has two dials of its own. **View 3D** (bottom right) turns both
+panes off the drawing's angle together. Bottom left is a **mode cycle** —
+click it to walk the four poses every frame has:
+
+| | |
+|---|---|
+| **Matched** | this frame's own pose, matched by looking at the drawing ([`battle_poses.js`](../../render3d/src/battle_poses.js)) |
+| **Baseline match** | the generic pose for what this frame **is**, from its name and the brief ([`baseline_poses.js`](../../render3d/src/baseline_poses.js)) |
+| **Generated** | the pose worked out from the eighteen joints you can drag |
+| **In Game** | the clip the game plays for this frame **today** |
+
+It is a cycle rather than a checkbox because there are four answers, and the
+last is the one that decides anything: the first three are proposals, and none
+is worth shipping unless it beats what a player already sees.
+`tools/pose_three_up.mjs` lays all five out for a whole sheet at once.
+
+**The plate carries two skeletons.** The black one is the read — the eighteen
+joints the handles drag. Over it, in the mode's own colour, is what the rig
+*actually ended up doing*, read back off the posed bones and fitted onto the
+drawing. Without it, cycling the mode changed the model and left the stick
+figure alone, and there was no way to see what a matched or baseline pose was
+doing to the body except by eye on the render.
+
+It is **fitted**, not anchored — one uniform scale and one offset, chosen to
+minimise the squared distance over every joint the two skeletons share.
+Anchoring at the pelvis and scaling by the torso was the obvious thing and it
+piles every proportion difference onto the extremities: the rig's `Head` bone
+sits at the base of the skull where the read's `head` is its centre, so the
+overlay's head landed nine cells low and its feet seven cells through the floor
+even when the pose was right. A fit leaves only the thing worth looking at.
+
+In **Generated** the two skeletons are meant to agree, and the gap between them
+is the interpreter's compromise — an arm the IK could not reach, a knee it had
+to fold. In the other three the gap is the whole point.
+
+### The fighter stands on the floor, and the pose says what it has to reach
+
+Two things a pose table normally leaves to be noticed later by eye, both now
+stated and both checked.
+
+**Nothing used to touch anything.** The preview swung bones and never
+translated the root, so an idle floated 7cm above the ground, a matched crouch
+floated 29, and "does the fist reach the floor" had no meaning, because the
+floor was not where the fighter was standing. Grounded poses are now dropped
+until their **feet** sit on the line. Feet, not "the lowest bone", which sounds
+more general and is wrong twice over: a delivered rig hangs its armature off an
+outer node parked at the world origin, so the lowest bone is that node and the
+fighter never moves; and once that is fixed, an overhand whose fist goes below
+the feet is planted *on its fist*, which is a handstand. Airborne intents —
+`jump`, `fall`, the air attacks, the evades, `hang` — are left where the pose
+puts them, because a fighter mid-jump touching the floor is a worse lie than
+one hovering over it.
+
+**And a pose declares what it has to reach.** A body can be anatomically
+perfect and useless: an overhand meant for the legs is not that move if the
+fist stops at hip height, and a low sweep that arrives at chest height is a
+different attack. `CONTACTS` in `baseline_poses.js` names the bone and the
+height — as a fraction of the fighter's own height, so it means the same on any
+of them — and the editor prints, top right of the viewer, whether the pose
+lands it and by how much it misses if not. It is keyed by *intent*, so a
+matched pose and the baseline it overrides are held to the same target.
+
+The first thing it caught was worth the trouble. `attack_down`'s target was
+written as `ground`, and posing a body that actually reaches the floor lays it
+out flat — a dive, not a smash, because a standing shoulder is 1.45m up and an
+arm is 0.55m, so a fist touches the floor only from a kneel. What the drawings
+show is a fist at about **shin** height with the impact *effect* on the floor
+beneath it. Aiming at the floor made a worse pose and a truer-sounding number;
+the target is `shin`, and both the matched and baseline poses are lunges that
+hit it.
+
+### The baseline is the floor, and it has no holes
+
+Matched is per-drawing and only exists where somebody has looked at a drawing —
+which is Yuji, and nobody else. **Baseline** is per-*intent*: what a frame
+called `crouch_a` should look like, from its name, the
+[pose brief](pose-brief.md) that commissioned it, and the same human-movement
+library. Every frame name on every sheet resolves to one, so it never falls
+back — `tools/check_battle_poses.mjs` walks all 1389 frames across the roster
+and fails if any lands nowhere, or if an intent is defined that nothing reaches.
+
+#### Do the poses read apart?
+
+A fighting game is read at speed and at size, and what a player reads first is
+the **outline** — before the colours, before the details, long before the
+hands. Two moves with one silhouette are two moves the player cannot tell
+apart. That is a property of the *library* rather than of any pose in it, so no
+amount of looking at one pose catches it, and it gets worse exactly as the
+library grows.
+
+`tools/pose_silhouettes.mjs` measures it: every intent is posed on a real rig,
+its outline is read off the canvas, and all 528 pairs are compared by
+intersection over union. It fails above 0.86, and the handful of pairs allowed
+to be close have to say what tells them apart in play — a `poise` and a
+`stance` are the same body, and the aura is the difference.
+
+**Anticipation is held to a tighter limit (0.72)**, against the pose it winds
+up out of. A wind-up is the only frames an opponent gets to react in, so it has
+to read differently from what the fighter was doing a moment earlier — not
+merely differently from everything. That rule found two real defects on its
+first run: `strike_wind` sat at **0.73** against the stance and `crouch_wind`
+at **0.79** against the crouch, which is a heavy attack telegraphing nothing.
+Both were re-coiled — chest further away, hips dropped and loaded onto the rear
+leg, lead shoulder pulled back — and are now 0.61 and 0.48.
+
+It needs a browser and a running server, so it is a hand-run tool rather than
+part of `npm run check`; run it whenever the library gains a pose.
+
+Two other things make the baseline more than a default. The first is the **beat**: the brief is
+explicit that in an attack pair `_a` is the wind-up and `_b` is the strike, so
+the suffix selects a *different intent*, not a variation on one. Getting that
+wrong gives a fighter two contact frames and no anticipation, which is the
+single thing that makes a strike read slow. The second is that the baseline
+follows the **brief** where Yuji's sheet departs from it — a generic `crouch`
+is a deep squat, `ledge_hang` grips with both arms, `land` posts one hand,
+`dizzy` slumps forward, `jump_rise` is still stretching upward. Put Matched and
+Baseline side by side on `crouch_a` and the gap between them *is* the value a
+read adds, which is worth being able to see.
+
+**In Game** samples the fighter's real clip: `poseEntry` says which state draws
+this frame and at what time (the two tables come from the same fps, so frame
+*i* lands at *i/fps*), and `resolveClip` resolves the same clip the engine
+would — the character's own, an inherited one, or the default, mirrored if the
+manifest mirrors it. Rotation only: applying the root's position track would
+slide the model out of frame while the other two keep their hips at the bind,
+and holding all three to one rule is what makes them comparable.
+
+### The two badges answer different questions
+
+They sit on the same screen and are easy to read as one, so both name what they
+are talking about:
+
+| | |
+|---|---|
+| `joints: …` beside the frame name | where the **eighteen dots on the plate** came from — `read by eye`, `fitted from yuji/idle_a`, `hand-placed on disk`, `edited here` |
+| the badge over the rig | which pose the model is **actually in**, and whether that is the one you asked for |
+
+So `joints: read by eye` next to `3D: matched human pose` is not a
+contradiction and does not mean the frame lacks a match. It means a human
+placed those dots *and* the frame has a matched pose — the normal case for
+every frame of Yuji's sheet.
+
+The mode you asked for is not always the one you get, so the badge carries two
+facts rather than one — what is on screen, and whether it is a fallback. A
+fallback says so in a warning colour and names its reason: *no per-frame match
+for this frame* (its picker tile also carries no dot), or *nothing in the game
+draws this frame*, which is true of `attack_heavy` among others, because the
+states draw `attack_heavy_a` and `_b` instead. Fallbacks land on the **baseline**
+rather than on the generated pose, because the baseline is the floor. **Baseline
+match itself never falls back** — that is the contract it exists to keep.
 
 Edits last as long as the tab and no longer: press **Download this character**
 (or **All edited**, for a session that touched several) before you leave, and
@@ -155,7 +317,7 @@ Two limits worth knowing while you work:
     narrower than they are drawn.
   * **Anything the eighteen joints cannot say** — a wrist roll, a head turn
     out of plane, a spine twist — belongs to the keyframe bench at
-    `?edit=animation`, which poses any bone on any axis.
+    `?edit=keys`, which poses any bone on any axis.
 
 ### The shoulder line and the hip line say which way the body is TURNED
 
@@ -165,10 +327,28 @@ carried without anyone reading it:
 
 | The drawing | The body |
 |---|---|
-| shoulders one on top of the other | pure side view |
-| shoulders their full width apart | square to the camera |
-| left marker drawn to the RIGHT | turned toward the lens |
-| left marker drawn to the LEFT | turned away — his back is to us |
+| shoulders as far apart as this sheet usually draws them | side on, facing right |
+| shoulders wider than usual | angled toward the lens |
+| shoulders narrower than usual | angled away — we are seeing some of his back |
+
+**"As usual" is doing real work in that table, and it is measured.** The naive
+zero — shoulders one on top of the other — is not how anybody draws a side
+view. An artist drawing a fighter side-on still shows both shoulders: Yuji's
+sit 0.286 torsos apart in the median frame, and 38 of his 40 frames are on the
+same side of zero. Read literally that says the entire sheet is turned a
+quarter of the way toward the camera, which is not what a single one of those
+drawings shows. It is the house style, applied evenly.
+
+So the zero is **the sheet's own median**, and what turns a fighter is how far
+a frame departs from how that fighter is usually drawn. It calibrates per
+character, which matters — the roster is not drawn to one shoulder convention,
+and a baseline borrowed from Yuji would turn Panda. And it is capped at 35°:
+this is side-on art, a marker line is a few hand-placed dots, and past a
+three-quarter view those dots are being asked for more than they know.
+
+On Yuji the result is 33 of 40 frames within 10° of facing right, which is what
+the sheet looks like; the ones that move are the ones drawn turned —
+`dodge_air` and `dodge_roll` tumbling away from us at −35°, `prone` at −24°.
 
 Facing right with his chest open to us, a fighter's LEFT shoulder is the far
 one and lands on the screen RIGHT: the same flip you see looking at someone
@@ -260,7 +440,8 @@ reading. From the shoulder line it is 5° in the idle and 0° in the jab.
 
 | | |
 |---|---|
-| **Read by eye** | `yuji` — all 40 frames, each checked against the art, then re-checked against the posed rig; 16 poses hand-corrected since |
+| **Read by eye** | `yuji` — all 40 frames, each checked against the art, then re-checked against the posed rig |
+| **Matched by hand** | all 40 of Yuji's frames, to a named human pose in `battle_poses.js` |
 | **Fitted seeds** | every other character, 1237 frames, from `tools/pose_seed.py` |
 
 A seed is Yuji's read of the same-named frame, fitted to this character's own
@@ -270,6 +451,90 @@ so `crouch_a` means the same thing everywhere; it is only a starting point
 because the bodies do not match — Panda, Jogo and Mahoraga are not built like a
 teenage boy, and their seeds show it. Every seeded pose carries a `seed` stamp
 that the editor displays and that disappears the moment a human moves a joint.
+
+## The other way round: matched battle poses
+
+Everything above works forwards from the drawing — read the joints, infer the
+depth, solve the rig onto them. It answers *where are his limbs* and it cannot
+answer *is this a pose a fighter would be in*, because a read has no idea what
+a fighter is. Two frames apart can read as two unrelated bodies, a foreshortened
+forearm reads as an arm that is simply short, and nothing objects, because
+nothing in the pipeline knows what a jab looks like.
+
+[`render3d/src/battle_poses.js`](../../render3d/src/battle_poses.js) works the
+other way. Each frame is **matched** to a named human pose — an orthodox boxing
+guard, a rear-hand cross at full extension, mid-swing of a sprint stride, a
+sprinter's three-point set — and the rig is put in that pose directly. The
+drawing chooses *which* pose; the pose itself comes from how bodies are built.
+All 40 of Yuji's frames have one, and the editor marks them with a dot.
+
+The trade is worth stating, because the editor's **Matched** checkbox exists to
+let a human make it frame by frame: a matched pose does not track the drawing
+joint for joint, and in exchange it is never anatomically nonsense, never
+inconsistent with its neighbours, and never needs depth inferred, because it
+was authored in three dimensions in the first place. Matched is the default;
+turning it off shows the same frame solved from the read, in the same pane, so
+the comparison is one click.
+
+### Where the numbers come from
+
+Measured human movement, wherever a measurement exists:
+
+| | |
+|---|---|
+| Orthodox stance | feet ~shoulder width and staggered, rear foot ~45°, knees "sitting" |
+| The cross | proximal-to-distal; hip extension the largest contributor; peak-speed order hip → shoulder → elbow → wrist, so the contact frames drive the SPINE and the arm merely arrives |
+| Sprint gait | hip 55° flexion in late swing, ~10° hyperextension after toe-off; knee ~125° at mid-swing, ~40° at strike, ~60° loading |
+| Three-point start | front knee ~90°, rear knee ~120–135°, trunk ~45° to the ground, hips above the shoulders |
+| Drop landing | peak knee flexion ~80–86°, and trunk flexion is what absorbs the force |
+| Roundhouse kick | pelvis leads, then hip flexion with the knee extending through; ankle stays dorsiflexed |
+
+Where Yuji disagrees with the generic pose, **the drawing wins** — the five
+frames in the audit table below are matched to what he is drawn doing, not to
+what the state is usually drawn doing.
+
+### The angles are in the FIGHTER's frame, and it is measured
+
+A pose is `{Bone: [x, y, z]}` in degrees: x about the line through his
+shoulders, y about the vertical, z about his facing, composed z → y → x, from a
+T-pose. Two things make that portable, and both had to be built:
+
+  * **The rig is swung into a T-pose first.** A delivered `.glb` is not bound in
+    one — Yuji arrives with his arms already at his sides — so adding a table's
+    "arms down" to arms that are already down swings them 65° past his legs.
+  * **The frame is measured off the rig, not assumed.** Yuji's lateral axis runs
+    about 20° off the world's, so a table applied raw turns him to face away
+    from the camera.
+
+Every axis sign was established by rotating one bone and asking where the hand
+went, and the guesses kept coming back backwards. First the punches: with the
+sign taken from the delivery spec rather than the rig, every one on the sheet
+was thrown over his shoulder. Then the arms: `+x` put **both hands 15cm behind
+the chest on every frame**, which is what "his arms are tucked behind his back"
+looks like from the front.
+
+Both have the same cause, and it is worth keeping in mind for the next table.
+`x` turns about the line through the shoulders, so it tips the **top** of the
+spine forward and the **bottom** of a hanging arm backward — same rotation,
+opposite ends of the vertical.
+
+The elbow is the other trap, and it is not a sign error but a plane error. An
+elbow is a hinge **perpendicular to the upper arm**, so it belongs on `x`; bend
+it about the facing axis and the forearm sweeps sideways across the body, which
+from the side reads as a hand tucked behind. And the axes are deliberately
+**not carried down the chain** — carrying them rotates "lateral" until it runs
+along the upper arm, and an elbow asked to hinge about its own bone just
+twists. Measured: a hanging arm with a 110° elbow came out perfectly straight.
+
+`window.__handsAt()` in the editor reports where both hands sit relative to the
+chest in the fighter's own frame. It exists because "his hand looks wrong" is
+not reviewable and "his hand is 15cm behind his chest" is. Two rules catch most
+of it: a hand doing nothing belongs in **front**, and an elbow nobody lifted on
+purpose belongs near the **ribs**.
+
+`tools/check_battle_poses.mjs` runs in `npm run check` and guards the three
+things that rot silently — a bone renamed, a frame added, an angle typo'd past
+what a joint reaches.
 
 ## Is a read accurate enough to author from?
 
@@ -326,9 +591,97 @@ scope: a default pose set derived from a sample needs a per-fighter check
 before it stands in for that fighter's clip. The reads are that check, and the
 editor is how the rest of the roster gets one.
 
-## Nothing here changes what the game draws — yet
+## The game plays these now
 
-The reads are upstream data. No clip table, rig manifest or default pose reads
-them, so a wrong seed cannot make a fighter pose wrongly in a match. Wiring
-them into the clip tables is the step after a character's reads are finished
-and reviewed.
+`sprite_poses.js` opens by saying a fighter's animation should be *the
+interpolation between their own sprite poses* — the same drawings, in the same
+order, at the same frame rate, with the model passing through each one. With
+the libraries in place that is finally buildable, and
+[`pose_clips.js`](../../render3d/src/pose_clips.js) builds it: the schedule says
+which frame a state shows and when, the libraries say what each of those frames
+IS, and the result is an `AnimationClip` per state.
+
+**The idle is the one exception**, and it is not built from the libraries. Every
+other state is a proposal being tried out; the idle is not. It is the one pose
+with an obvious right answer — a fighter standing next to their own idle sprite
+either matches it or does not — and it has been dialled in, per character, in
+the workbench's **idle review** against that sprite. It is also what everything
+else is judged against, being the pose a player spends most of a match looking
+at. Replacing it with a generic orthodox guard would throw away the one place
+the roster has already been reviewed fighter by fighter, and would move the
+yardstick at the same time as the things measured against it.
+
+`resolveClip` prefers a built clip over everything, including a delivered one —
+that is the point, since a delivered clip is a second opinion about the same
+question. A per-character `clips[name].from` override still wins, because that
+is somebody deliberately borrowing another fighter's animation. The dial is
+`POSE_LIBRARY_CLIPS.on` in [`loader.js`](../../render3d/src/loader.js), on by
+default; turn it off and the old resolution order returns unchanged, which is
+how the editor's **In Game** column stays a fair comparison.
+
+Across the roster: **27 characters, 25 of 26 states each built from the
+library**, with the idle held back per above. One movement library, applied to every fighter — the per-character
+difference comes out of each rig's own proportions and bind, which
+[`pose_library.js`](../../render3d/src/pose_library.js) measures rather than
+assumes.
+
+### Two layers under every pose
+
+**The model's own corrections.** A generated model arrives with things wrong
+that are nobody's pose: a head modelled looking slightly down, a shoulder built
+a few degrees high. They are facts about the FILE, so no clip fixes them — every
+state inherits the same stoop — and no amount of measuring the skeleton finds
+them, because the joints come out level to within a degree across the roster
+while the mesh does not.
+
+The idle review is where they get found, precisely because the idle has an
+obvious right answer. But **the correction it lands on is not part of the
+idle** — it is part of the model, and it belongs under the crouch and the punch
+and the run just as much.
+[`rig_fixes.js`](../../render3d/src/rig_fixes.js) is where those live, per
+character and per bone, applied under every state. `headTiltDeg` in the rig
+manifest is the same idea and predates it; it stays where the idle review
+already writes it, applied alongside.
+
+**They are measured and solved, not eyeballed.**
+[`tools/rig_calibrate.mjs`](../../tools/rig_calibrate.mjs) reads three things
+off every rig — shoulder tilt as a fraction of shoulder width, the knee's
+sideways *kink* out of the thigh's line, and how bent the leg is at rest — and
+with `--solve` it finds each correction by applying a trial roll to the posed
+rig, measuring what actually moved, and scaling. That last part is not
+belt-and-braces: deriving the angle from the tilt directly under-corrected Yuji
+by four fifths, because a fix composes in the bone's parent frame while the
+tilt is measured in the world's, and those stop agreeing the moment the
+clavicle has any rest rotation.
+
+The tool also separates two faults that hide under "his shoulders look
+uneven" — a tilted *skeleton* and a tilted *skin* — by measuring the second off
+the skinned vertices each shoulder owns. They disagree more often than not.
+
+They are authored in the BONE's own frame, which is the opposite of the pose
+libraries and is deliberate: a fix corrects how one bone was built, so it is
+authored by looking at that bone, while a pose is a human movement described
+once for a whole roster and is authored in anatomy. The anatomical frame here
+would give a shoulder fix that changes meaning as the arm swings, which is
+exactly what a bind-pose correction must not do.
+
+**The layer is meant to go away.** Every entry is a note for the modelling pass
+that bakes it into the rig's bind, after which the entry is deleted and nothing
+else changes — which is the test of whether a correction belonged there rather
+than in a pose.
+
+**Standing on the floor.** A pose folds the legs; it does not lower the hips,
+because a pose is bone rotations and hip height is a translation. So a library
+crouch came out at full standing height with its knees bent, hovering 29cm up,
+and foot IK did not catch it — `plantFeet` only pushes feet that have sunk
+*below* the line back up to it, and these were above. Grounded states now drop
+the **armature** (not the rig root, which is where the fighter stands in the
+world and belongs to the backend) until the lowest foot is on the line. Airborne
+states are left alone. Measured in game: every grounded state on every fighter
+now has its lowest foot at exactly 0, and a jump still leaves the ground by
+22cm.
+
+The reads themselves are still upstream data, and a wrong seed still cannot
+pose a fighter wrongly in a match: the game reads the libraries, not the reads.
+What the reads drive is the editor's **Generated** column, which is how you
+tell whether a library pose is better than the drawing it came from.

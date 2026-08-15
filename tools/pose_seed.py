@@ -126,7 +126,17 @@ def main():
     chars = args.chars.split(",") if args.chars else pr.characters(man)
     total = 0
     for char in chars:
-        if char == REFERENCE:
+        # The reference is not exempt. Skipping him wholesale was right while
+        # his sheet was fully hand-read — you never seed the source of truth
+        # from itself — but round 20E landed four new poses ON HIM, and he was
+        # then the one character with unread frames that this tool refused to
+        # touch. The additive path already protects what matters: his existing
+        # reads are kept verbatim, and a new frame of his is fitted from his
+        # own `idle_a` through the same FALLBACK everyone else uses, stamped
+        # `seed` so it is never mistaken for a read.
+        if char == REFERENCE and args.force:
+            print(f"{char}: refusing to --force the reference sheet — "
+                  f"it is what every other seed is fitted from")
             continue
         n = seed_character(man, char, ref, ref_boxes, force=args.force)
         if n is None:

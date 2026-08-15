@@ -196,32 +196,167 @@ creature's footing, a hazard's reach: all unchanged. That is the point — art
 arrives off-centre in its plate and the fix is to move the picture onto the point
 the game is using, not to move the point.
 
+**Most spawn sites do not read the nudge at all**, and the crosshair says so
+rather than pretending. Two draw sites place a drawing on something that moves
+and read `sharedAdjust` as they go — `drawProjectiles` in `render.js` and the
+creature draw in `summons.js` — and every other handler paints its set piece
+straight from `getImage`: the traps, the drops, `spawnSummonFlash`, and the
+dozen ultimate directors. A `dx`/`dy` or a tilt set against one of those is
+stored and inert. Size still works, because that is folded into the kit's own
+declared height before the handler sees it — except where the RENDERER fixes a
+height too (Yuta's Rika at 238px, Panda's triceratops at 210px, a domain
+backdrop cover-fitted to the stage), and those are marked unsizable so the
+slider comes off rather than sitting there looking live.
+
+`DRAW_SITES` in `src/shared_sprites.js` is that table, one entry per special or
+ultimate `type`, each read off its handler: where the point is, whether the
+nudge reaches it, whether it travels. Two answers about a spawn site living in
+one place is the point — a tornado that stands on the floor (`tempest`:
+`translate(640, 595)` then `-h`) was centred in mid-air for the same reason a
+geyser was, and both are one line here.
+
+### Standing it where the move puts it
+
+A shared drawing used to be shown alone in the middle of the canvas with a
+fighter beside it for scale. It is now shown **where the move puts it**: the
+fighter stands in the pose that throws it — the special's own slot animation, or
+`ult` — at exactly the distance the handler spawns it at, so a beam can be lined
+up against the hand that fires it rather than against a guess.
+
+Those distances are read off the handlers and live in `LAUNCH` beside the rest
+of each spawn site's answers: `spawnProjectile` at `ox ?? 70` forward and
+`oy ?? -86` up, `spawnSummonFlash` at the fighter's feet and its own `forward`,
+a trap at `dist ?? 220`. The drawing keeps the middle of the canvas and the
+FIGHTER moves to the right distance, so switching drawings does not send the
+thing you are looking at wandering around the viewer.
+
+The offset itself is the MOVE's, not the drawing's — it is a kit number, the
+same one for every drawing that move might use — so the workbench shows it and
+does not edit it. What the workbench edits is where the picture sits relative to
+that point.
+
+**A melee move's box is drawn on the fighter too.** Several moves whose art is a
+flash beside a swing — Yuji's divergent fist, Panda's drum, Mahito's soul touch,
+Rika's claw — declare that swing's `w`/`h` on the same kit node as the drawing,
+where they read like the drawing's own box. They are nothing of the kind:
+`spawnMelee` puts them on the FIGHTER at its own offset while the art stands
+somewhere else. Drawing that rectangle around the picture claimed a shape the
+game never tests there; it is drawn from the fighter now, labelled as the
+swing's.
+
+### Directional effects, and the one point they have
+
+A projectile is drawn centred on its own position, and that position IS the
+circle it collides on: `drawProjectiles` hangs the picture around `p.x`/`p.y`
+and tests a radius at the same point. There is no second point to move. A nudge
+moves the PICTURE off the point; nothing can move the collision off the art,
+because in the game there is only the one coordinate.
+
+**It is also mirrored to the way it is travelling** (`flip = vx > 0 ? -1 : 1`),
+which is why `docs/asset-requests.md` asks for travelling art drawn pointing
+LEFT: the stored plate is the leftward version, and a player firing right sees
+its mirror. The workbench therefore shows travelling art **as fired**, mirrored,
+with an arrow — because showing the plate while the game shows the flip is how a
+drawing already pointing the right way gets "corrected" with the Mirror box into
+flying backwards. The nudge is applied inside that same mirrored frame, in the
+game and here, so `dx` means the same thing in both.
+
 ### The region of interest, and what follows what
 
 With **Hurtbox** ticked, a shared drawing is shown with the region its move
-actually acts on: a projectile's `r` as a circle, a beam's `width` as a band
-across the screen, a creature's `hitW`/`hitH` or a drop's `w`/`h` as a box. All
-of them are numbers the kit already declares — nothing is invented here and
-nothing changes play. They are drawn because they are the one thing the art has
-to agree with and cannot be measured from the art: a bolt drawn twice the width
-of its `r` looks like it should clip somebody it passes straight through.
+actually acts on: a projectile's `r` as a circle, a creature's `hitW`/`hitH` or
+a drop's `w`/`h` as a box. All of them are numbers the kit already declares —
+nothing is invented here and nothing changes play. A move that declares a
+`width` rather than an `r` is one of the two big shots, and both of those spawn
+an ordinary projectile at `r: width / 2` (`ultimates.js`), so that is what is
+drawn: a circle of that radius, not a band across the screen. And the shape
+belongs to the drawing it describes rather than to the node it was found on —
+Mechamaru's ultimate names the cannon and its five orbs together, and the orbs
+collide on their own `orbR`.
+
+They are drawn because they are the one thing the art has to agree with and
+cannot be measured from the art: a bolt drawn twice the width of its `r` looks
+like it should clip somebody it passes straight through.
 
 **They are marked `fixed`, and that word is the point.** A shared drawing's hit
 region does not follow Size and does not follow the spawn point — it is a kit
-number. So moving the size slider moves the picture against a stationary target,
+number, so moving the size slider moves the picture against a stationary target
 and you can see the moment they agree. A fighter's hurtbox is the opposite case
 and is labelled the other way, *follows the art*: it is measured off the sprite
 (`src/silhouette.js`), so resizing the pose resizes the box with it.
 
+One shape is labelled `follows Size` instead, and it is not an inconsistency:
+`randomDrop` paints a drop at the same `h` it collides on, so there the box and
+the art are one number and no amount of sizing will make them disagree.
+
+**One zoom for the whole scene, and no fit where the size means something.**
+The art, the hit shape, the spawn point, the drag, and the fighter standing
+beside it as a size reference all read the same zoom. That reference is the
+entire basis for sizing an effect — the question is "how big is this next to
+the man who throws it" — so a viewer that scales the two by different numbers
+is worse than no viewer: a too-tall drawing used to be fitted to the canvas
+while the fighter stayed at the slider's value, showing the effect at three
+quarters its real size next to him.
+
+So a drawing whose height the kit declares is drawn at the Zoom slider's value
+and nothing else, and runs off the top of the viewer if it is that big — which
+a vending machine twice a fighter's height genuinely is. Zoom is the control
+for that, and the canvas says so. The fit survives only for art nobody declares
+a size for, standing in with its own plate, where there is no ratio to preserve
+in the first place; there the reference shrinks with it and the panel says the
+size is relative.
+
+**The reference is the fighter whose move spawns it**, taken from the registry
+rather than from the first kit that mentions the art. Megumi's shikigami pool
+lists Panda's triceratops as a stand-in before Panda's ultimate declares it, so
+reading mention order stood the wrong man beside it — and on a size reference
+that is the whole judgement, not a caption detail. Creature drawings are the
+exception the other way: their registry owner is the creature itself, so those
+fall through to the kit that carries the pool.
+
 That distinction decides which way round to work. Against a fixed box you size
 the art to fit the box; against a box measured from the art you size the art to
 look right and the box follows.
+
+**Ambience is not the working set.** A domain backdrop is cover-fitted to the
+whole stage and an install aura is a glow around a fighter — the game draws
+both, neither is placed against anything, and listing them padded every to-do
+view with drawings there is no placement work to do on. They appear under **All
+sprites** only, and keep their controls there: an aura's size and nudge do reach
+the screen.
 
 **A drawing that nothing spawns gets no controls**, and the panel says why. That
 same answer drives the **Used in game** filter for Other Sprites.
 `node tools/check_shared_sprites.mjs` walks the real kits and fails if a move
 names its art under a field the registry does not know — which is how Yuta's
 Rika (`sprite` beside a plain `h`) and Mechamaru's pigeon orbs were found.
+
+### What a FIGHTER's pose is placed against
+
+The same question, on the other side of the workbench: a pose is drawn against
+the shapes the game tests while it is on screen, so the art can be matched to
+the play rather than to a guess.
+
+**Attacks.** Every move in `moves.js` is asked which animation it plays
+(`m.anim`) and grouped off that answer, rather than a table here naming the
+animations itself. The table drifted, which is exactly what a derived list
+cannot do: both dash attacks and the up tilt were missing from it, so
+`attack_dash` — a pose whose whole job is reach — was shown with nothing to
+place it against. Only the STRIKE frame of a pair gets a target; a wind-up's job
+is to not have connected yet.
+
+**Grabs.** A grab tests a plain rectangle and ignores shields (`src/grab.js`),
+so it has no hitbox to mark and its three poses used to be placed against
+nothing at all. Each is now shown with its own geometry, read from that file's
+arithmetic at the workbench's live measurements:
+
+- `grab_reach` — the box the closing hand tests, `reach × 0.85 + GRAB.grace`
+  forward and 90% of body height tall, with the far edge marked. The open hand
+  should be somewhere near that edge.
+- `grab_hold` and `grabbed` — the other fighter's body, `(a.width + b.width) ×
+  0.45` ahead, where `pinVictim` puts it. From either pose the partner stands
+  the same distance forward, because the victim is turned to face the holder:
+  the hands in one and the body in the other have the same place to be.
 
 ## Preparing delivered effect art
 
@@ -505,6 +640,23 @@ being retuned is the entire point of being on it; **Mark reviewed** is for the
 other outcome — the new art needed nothing — and exports as `clearUpdated`, which
 `apply_sprite_adjustments.py` reads. Neither takes effect until the export is
 applied, so a pose stays on the list, ticked or dotted, while it is worked on.
+
+Directly beneath it is its mirror image, **All Needing Regeneration**: every pose
+carrying a `needsReplacement` flag, across the whole roster, grouped by kind. The
+updated list is what *arrived*; this one is what was *sent back*, and it is the
+list an art round is written from. Before it existed the only way to read that
+was to open all twenty-eight characters and count the flagged cells, which is how
+a flag set in one session got forgotten by the next.
+
+**A pose you flagged and then pointed at a drawing that works is not on it.**
+Marking the delivered art bad and choosing a good alternate is a fix, not a
+request — asking again would commission a drawing that is already in the repo.
+Nothing enforces that rule directly: `needsReplacement` reads the *pose*, and a
+pose mirrors whichever drawing it currently points at (`poseView`), so a
+reassigned pose simply stops being flagged. The rejected drawing keeps its own
+tag, which is what the variants menu and `delete` want. `tools/smoke_workbench.mjs`
+asserts both halves, because on screen a listed pose and an unlisted one look
+exactly alike.
 
 ### Improvement requests
 

@@ -493,6 +493,64 @@ if (updated.poses) {
     "and the panel explains what the round overwrote");
 }
 
+// ---- its sibling: the cross-character flagged list
+//
+// Same shape, opposite direction — what was sent back rather than what arrived.
+// Its contents depend on what has been flagged, so what is asserted is that it
+// is offered, that it stands on its own, that the address bar tells the two
+// lists apart, and the one rule that is not obvious from the screen: a pose
+// pointed at a drawing that works is NOT on it, however the drawing it used to
+// use is tagged.
+check(await page.evaluate(() =>
+  [...document.querySelectorAll("#charSel option")].some((o) => o.value === "__flagged"
+    && /Needing Regeneration/.test(o.textContent))),
+  "the character list offers the poses needing regeneration");
+
+await page.selectOption("#charSel", "__flagged");
+await page.waitForTimeout(600);
+const flagged = await page.evaluate(() => ({
+  locked: document.getElementById("viewSel").disabled,
+  count: document.getElementById("poseCount").textContent,
+  poses: document.querySelectorAll("#poseList button").length,
+  note: document.querySelector("#poseList .note")?.textContent ?? "",
+  list: new URL(location.href).searchParams.get("list"),
+  frame: document.getElementById("frameTag").textContent,
+}));
+check(flagged.locked, "it locks the per-character view filter too");
+check(flagged.poses > 0 || /Nothing is flagged/.test(flagged.note),
+  "it lists the flagged poses, or says there are none", JSON.stringify(flagged.count));
+check(flagged.list === "flagged", "the address bar tells the two lists apart");
+check(/\w+\/\w+/.test(flagged.frame), "a pose is on the canvas either way", flagged.frame);
+if (flagged.poses) {
+  check(await page.evaluate(() =>
+    [...document.querySelectorAll("#poseList button .pose-file")].every((i) => /·/.test(i.textContent))),
+    "each flagged entry says which character it belongs to");
+}
+
+// The rule the list exists to get right. Every pose on it must read as flagged
+// through the pose's own view of its current drawing — which is what makes a
+// reassigned pose drop off — so a list entry that is not `needsReplacement` is
+// a pose being asked for again when somebody already fixed it.
+check(await page.evaluate(() => {
+  const wb = window.__spriteWorkbench;
+  if (!wb) return "no test hook";
+  const wrong = wb.flaggedPoses().filter((e) => !wb.needsReplacement(e.char, e.frame));
+  return wrong.length === 0 || `${wrong.length} listed but not flagged`;
+}) === true, "everything listed is flagged on the drawing the pose uses now");
+
+// And the other half, which no fixture can stage: a pose whose CURRENT drawing
+// is clean stays off the list even when one of its other drawings is tagged.
+check(await page.evaluate(() => {
+  const wb = window.__spriteWorkbench;
+  if (!wb) return "no test hook";
+  const listed = new Set(wb.flaggedPoses().map((e) => `${e.char}/${e.frame}`));
+  const reassigned = wb.allFlagBearingPoses()
+    .filter((e) => !wb.needsReplacement(e.char, e.frame));
+  const leaked = reassigned.filter((e) => listed.has(`${e.char}/${e.frame}`));
+  return leaked.length === 0
+    || `${leaked.length} reassigned pose(s) still asked for: ${leaked[0].char}/${leaked[0].frame}`;
+}) === true, "a pose pointed at a drawing that works is not asked for again");
+
 check(!errors.length, "no page errors", errors.slice(0, 2).join(" | "));
 await browser.close();
 console.log(fails ? `\n${fails} check(s) failed` : "\nAll checks pass");

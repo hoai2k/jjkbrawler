@@ -18,6 +18,7 @@
 //
 // Needs `playwright` and a running server: node tools/smoke_controllers.mjs
 import { chromium } from "playwright";
+import { pressStart } from "./smoke_boot.mjs";
 
 const BASE = process.argv[2] || "http://127.0.0.1:5174";
 
@@ -49,6 +50,7 @@ async function padPage({ pads = 2, hideFirst = false } = {}) {
       (window.__hideFirst ? [null, ...window.__pads.slice(1)] : window.__pads);
   }, [pads, hideFirst]);
   await page.goto(`${BASE}/index.html?camera=flat`, { waitUntil: "load" });
+  await pressStart(page);
   await page.waitForSelector('[data-character="gojo"]', { timeout: 60000 });
   await page.waitForTimeout(600);
   return page;

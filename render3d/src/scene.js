@@ -50,9 +50,10 @@ let camera = null;
 let keyLight = null;
 let hemiLight = null;
 let rimStage = null; // last stage key the light rig was derived from
+let contextLost = false;
 
 const cache = new Map(); // token -> { canvas, heightM, rowsPerMetre, yawed }
-export const stats = { renders: 0, hits: 0, misses: 0, evictions: 0 };
+export const stats = { renders: 0, hits: 0, misses: 0, evictions: 0, lostFrames: 0 };
 
 export function initScene(three) {
   THREE = three;
@@ -68,9 +69,40 @@ export function initScene(three) {
   scene.add(hemiLight, keyLight);
   camera = new THREE.PerspectiveCamera(FOV_DEG, 1, 0.05, 80);
   _proj = new THREE.Vector3();
+
+  // A LOST CONTEXT MUST NOT REACH THE CACHE.
+  //
+  // three's renderer makes `render()` a silent no-op while the GPU context is
+  // gone, and this function's next act is to copy the canvas into a cache entry
+  // keyed by the pose. Nothing about that key mentions the context, so a render
+  // taken during the outage is stored as if it were the fighter — and every
+  // later request for that pose is a HIT on a blank. The context comes back,
+  // three re-uploads everything, and the roster is still dark, because the
+  // darkness is in the cache rather than on the GPU. Walking the whole roster
+  // in the idle review is how you fill the cache with them: one browser hiccup
+  // partway through and all twenty-seven come out dark and stay dark.
+  //
+  // preventDefault is what makes the restore happen at all — without it the
+  // browser is entitled to keep the context gone for good.
+  canvas.addEventListener("webglcontextlost", (e) => {
+    e.preventDefault();
+    contextLost = true;
+  });
+  canvas.addEventListener("webglcontextrestored", () => {
+    contextLost = false;
+    // Whatever landed during the outage is unreliable, and it is cheaper to
+    // redraw the roster than to work out which entries are blank.
+    cache.clear();
+  });
+
   if (typeof window !== "undefined") {
     window.__render3d = window.__render3d || {};
     window.__render3d.stats = stats;
+    // The offscreen renderer is otherwise unreachable, which makes the case
+    // above untestable — a fault you cannot trigger on purpose is one you fix
+    // by argument. smoke_render3d.mjs takes the context away through this.
+    window.__render3d.renderer = renderer;
+    Object.defineProperty(window.__render3d, "contextLost", { get: () => contextLost });
   }
 }
 
@@ -124,6 +156,12 @@ function syncStageLight() {
   if (key === rimStage) return;
   rimStage = key;
   const t = stageLightTint();
+  // A stage with no tint leaves the last stage's light in place, which is a
+  // latch: the key it would need to re-sync on has already been recorded as
+  // done. Every stage carries a tint, so it cannot happen today — and putting
+  // the light back to white here instead COSTS, because it re-lights on every
+  // sync and cut the pose cache from 353 hits to 162 in smoke_billboard. Left
+  // as it is on purpose; if a tintless stage ever lands, this is the line.
   if (!t) return;
   keyLight.color.setRGB(...t.key);
   setRimColor(...t.rim);
@@ -219,9 +257,56 @@ const CAMERA_YAW_RAD = (CAMERA_YAW_DEG * Math.PI) / 180;
  * flipped, so an asymmetric costume, a scar or a one-shouldered cloak stays
  * on the side it belongs on. The viewer simply sees his other flank, which is
  * what really happens when someone turns to face the other way.
+ *
+ * IT REFLECTS (0,0,1), AND THAT IS AN ASSUMPTION ABOUT THE RIGS. A delivered
+ * model is turned at the root by its own `yawOffsetDeg` (loader.js), so this
+ * is only the right yaw while that offset genuinely CANCELS the model's own
+ * framing error — leaving a fighter whose forward really is +Z before the
+ * turnaround. That is exactly what the offset is for, so the assumption is
+ * fair; it is just load-bearing, and silently so.
+ *
+ * When an offset is merely eyeballed close, the residual error does not stay
+ * put: it lands on the far side of the reflection with its sign flipped, so a
+ * fighter who looks nearly right facing right is off by TWICE that facing
+ * left. That is why turning around used to be so much worse than not, and it
+ * is a reason to measure the offsets rather than nudge them —
+ * `tools/check_model_facing.mjs` scores both facings against the drawing, and
+ * `--solve` reads the offset off the art.
  */
 export function turnaroundYaw() {
   return 2 * CAMERA_YAW_RAD;
+}
+
+/**
+ * WHICH WAY A FIGHTER STANDS when the camera is HEAD-ON rather than three-
+ * quarter — the game's own perspective camera in `?camera=3d`, which looks
+ * down the stage at the action (src/camera3d/rig.js).
+ *
+ * The two paths reach the same picture from opposite ends, and it is worth
+ * saying which is which because getting them confused is what broke this. The
+ * FLAT path leaves the fighter at 0 and puts the CAMERA at −60°, so the three-
+ * quarter comes out of the lens position. In a real scene the camera belongs
+ * to the game and points where the fight is, so the ¾ has to come out of the
+ * FIGHTER instead: they carry the same 60°, and carry it mirrored, which is
+ * the whole of this function.
+ *
+ * Both facings therefore keep the fighter's front partly toward the lens, and
+ * left is right's mirror image — a fighter turning round shows you their other
+ * flank, never their back. That is also what the sprites do, and the reason
+ * these two backends can draw the same fight.
+ *
+ * It is NOT 0 and 180°. That pair was here, with a comment arguing that a
+ * head-on camera makes a half-turn the honest answer, and it is exactly
+ * backwards: at 0 the fighter's forward is +Z, which under this camera is
+ * STRAIGHT AT THE LENS rather than along the stage, and the half-turn from
+ * there points them straight away from it. So facing right read as staring
+ * down the barrel and facing left read as showing their back, which is what
+ * was reported from the game.
+ */
+export const THREE_QUARTER_RAD = -CAMERA_YAW_RAD;
+
+export function sceneFacingYaw(facing) {
+  return facing < 0 ? -THREE_QUARTER_RAD : THREE_QUARTER_RAD;
 }
 
 // ------------------------------------------------------------- the render
@@ -242,7 +327,11 @@ export function poseToken(charKey, animKey, animTime, layers) {
   const aim = aimable(animKey) && layers.aimRad ? `~a${Math.round((layers.aimRad * 180) / Math.PI)}` : "";
   const look = layers.lookRad ? `~l${Math.round((layers.lookRad * 180) / Math.PI)}` : "";
   const fl = layers.flinch ? `~f${layers.flinch}` : "";
-  const turn = layers.turnYawRad ? "~y180" : "";
+  // Turned or not, which is all this has to say: the turn is one constant for
+  // the whole roster (scene.turnaroundYaw). It read `~y180`, which stopped
+  // being the angle when the turnaround became camera-derived — harmless as a
+  // key, misleading as a label, so it says what it means.
+  const turn = layers.turnYawRad ? "~yTurned" : "";
   // Reach joins the key: two strikes solved onto different targets are two
   // different poses, and a cache that ignored that would serve the first one
   // for every angle after it.
@@ -259,8 +348,13 @@ export function poseToken(charKey, animKey, animTime, layers) {
   // The proof body is a different body: same character, same pose, different
   // pixels, so it cannot share a cache entry with the model.
   const mq = layers.mannequin ? "~M" : "";
+  // A rig check throws the clip away entirely (pose.js poseRigCheck), so the
+  // state and the clip time in this key describe a pose that is not on screen
+  // — without this every rig check would collide with the idle it was opened
+  // from, and with the other rig check.
+  const rc = layers.rigCheck ? `~C${layers.rigCheck}` : "";
   const orb = orbitKey();
-  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${rch}${par}${st}${ed}${mq}`
+  return `${charKey}/${clipNameFor(animKey)}@${q}${aim}${look}${fl}${turn}${rch}${par}${st}${ed}${mq}${rc}`
     + `${orb ? `~o${orb}` : ""}~L${lightKey()}`;
 }
 
@@ -363,6 +457,13 @@ export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {
   renderer.render(scene, camera);
   scene.remove(rig.root);
   rig.root.rotation.y = 0;
+  if (contextLost) {
+    // Nothing was drawn. Draw NOTHING rather than cache the blank: a missing
+    // frame is a fighter who does not appear for a moment, and a cached blank
+    // is a fighter who is dark until the page reloads.
+    stats.lostFrames++;
+    return null;
+  }
   stats.renders++;
 
   // Downsample the supersampled render once, into the cached texture.

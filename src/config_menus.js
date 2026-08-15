@@ -94,9 +94,55 @@ export const RANDOM_GROUP = {
   show: true,
 };
 
+// One line per fighter, in their own voice: spoken on the VS splash as the
+// panels slam in, and again under their name when they take the results
+// screen. Keyed by character key; a fighter without a line falls back to
+// their epithet, so adding a new fighter never breaks either screen.
+export const CHARACTER_QUOTES = {
+  yuji: "I'll take it from here.",
+  nobara: "I'm Nobara Kugisaki — like it or not.",
+  megumi: "I'll save people unfairly.",
+  yuta: "Let me borrow a little courage.",
+  maki: "I don't need cursed energy to beat you.",
+  inumaki: "Don't. Move.",
+  panda: "Panda isn't a panda.",
+  mechamaru: "This body feels no pain.",
+  todo: "My friend — let's make this a festival.",
+  momo: "The wind is on my side.",
+  gojo: "Throughout Heaven and Earth, I alone am the honored one.",
+  nanami: "It's overtime.",
+  meimei: "Nothing is free. Not even mercy.",
+  gakuganji: "Respect your elders, child.",
+  toji: "Bring your best jujutsu. I brought none.",
+  yuki: "So — what kind of curse ends you?",
+  hakari: "The reels are already spinning my way.",
+  uro: "The sky belongs to me.",
+  reggie: "Everything's a trump card if you play it right.",
+  mahito: "Your soul is mine to reshape.",
+  jogo: "Learn the fear of curses. Burn.",
+  hanami: "The earth cries out — I answer.",
+  dagon: "The tide swallows all.",
+  kurourushi: "Even curses fear me.",
+  geto: "Shall we usher in a new world?",
+  choso: "I fight for my brothers.",
+  sukuna: "Know your place, fool.",
+};
+
 // Every player-facing string in the game. Values that take an argument are
 // written as functions so word order stays translatable.
 export const TEXT = {
+  // The title splash — the first screen of the game.
+  title: {
+    logoAlt: "JJK Brawler II",
+    // Deliberately the arcade formula, not a sentence: this line is furniture
+    // every player already knows how to read.
+    pressStart: "Press Start",
+    credit: "A cursed brawler by Hoai and Francis Nguyen",
+    // Says what each input actually does, because they differ: a pad press
+    // takes the game fullscreen, a mouse click deliberately does not.
+    hint: "Start on a controller · Enter · or click to begin",
+  },
+
   // Fighter select
   menu: {
     eyebrow: "Cursed energy platform fighter",
@@ -105,6 +151,9 @@ export const TEXT = {
     startWaiting: "Waiting for fighters…",
     hintPicking: "Pick a fighter to lock in. B / Backspace un-readies · LB/RB cycles the corner menus.",
     hintReady: "All fighters locked — confirm again (A / Enter) to choose the stage. B / Backspace un-readies.",
+    // One-player only, once you have locked yourself in: the selector is still
+    // live, and what it is choosing now is who you are about to fight.
+    hintOpponent: "Locked in — now pick your opponent. A / Enter chooses the stage · B / Backspace re-picks your fighter.",
     // Shown while the roster streams in behind the select screen. Any fighter
     // is playable before this finishes; picking one just pulls their art to the
     // front of the queue. Hidden once every fighter is in memory.
@@ -136,7 +185,10 @@ export const TEXT = {
   stages: {
     eyebrow: "Choose arena",
     title: "Stages",
-    random: "Random Stage",
+    // The die is part of the pitch: this button is a DRAW (it runs the roulette
+    // in ui.js), and it should read like a gamble worth taking, not a fallback
+    // for players who could not decide.
+    random: "🎲 Random Stage",
     back: "Back",
   },
 
@@ -181,8 +233,9 @@ export const TEXT = {
       ["Shield + direction", "Dodge"],
       ["Tap shield on impact", "Parry"],
       ...padTips(),
-      // Grab detail rows only exist while the mechanic does (?throw=true) —
-      // the grab row itself arrives via padTips() from the control map.
+      // Grab detail rows only exist while the mechanic does — on by default,
+      // gone in a `?throw=false` session. The grab row itself arrives via
+      // padTips() from the control map.
       ...(THROW_ENABLED ? [
         ["While holding a grab", "Direction throws · Light pummels"],
         ["When grabbed", "Mash buttons to break free"],
@@ -203,6 +256,19 @@ export const TEXT = {
         ? ` ${padName("grab")} GRABS: it beats shields, a direction throws them, Light pummels,`
           + " and a grabbed fighter mashes buttons to break free."
         : ""),
+  },
+
+  // The battle-intro VS splash: full-bleed hero art panels slamming in before
+  // the READY…GO! countdown. Seat chips say who is driving each fighter.
+  intro: {
+    vs: "VS",
+    seatPlayer: (n) => `P${n}`,
+    seatCpu: "CPU",
+    stageLabel: (name) => name,
+    // Only ever seen when a fighter's art is still streaming as the match
+    // starts; the splash carries the bar so the screen is the VS screen either
+    // way, rather than a loading screen standing in front of it.
+    loading: "Summoning fighters",
   },
 
   pause: {
@@ -260,6 +326,14 @@ export const TEXT = {
     },
     winner: (name) => `${name} wins!`,
     teamWinner: (side) => `${side} win!`,
+    // The podium: the ribbon over the winner's card, and the placement over
+    // everyone else's ("2nd", "3rd", …).
+    winnerBadge: "WINNER",
+    place: (n) => {
+      const teens = n % 100 >= 11 && n % 100 <= 13;
+      const suffix = teens ? "th" : { 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th";
+      return `${n}${suffix}`;
+    },
     players: "Players",
     cpus: "CPUs",
     draw: "Draw",
@@ -292,6 +366,7 @@ export const TEXT = {
     timeOff: "None",
     activeBoards: (on) => `Active Boards: ${on ? "On" : "Off"}`,
     sfxEnabled: (on) => `Sound Effects: ${on ? "On" : "Off"}`,
+    render: (mode) => `Render: ${mode}`,
     back: "Back",
   },
 

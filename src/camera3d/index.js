@@ -29,10 +29,13 @@ export { worldToScreen, overlayTransform };
 export function debugStats() {
   // Read off LIVE materials, not off the constants that set them, so the
   // smoke test fails if the flags are changed rather than if a comment is.
-  const quad = billboards?.group.children[0];
+  const quad = billboards?.quadPools().body.children[0];
+  const behindQuad = billboards?.quadPools().behind.children[0];
   const plat = scene?.userData.platMeshes?.[0];
   return {
     quads: billboards ? billboards.count() : 0,
+    auras: billboards ? billboards.auraCount() : 0,
+    fxLayer: billboards ? billboards.fxLayerDrawn() : false,
     models: models ? models.count() : 0,
     posedCards: billboards ? billboards.posedCount() : 0,
     cardBail: billboards ? billboards.lastBail() : null,
@@ -44,8 +47,20 @@ export function debugStats() {
     layering: {
       billboardDepthTest: quad ? quad.material.depthTest : null,
       platformFaceDepthWrite: plat ? plat.children[1]?.material.depthWrite : null,
+      // The behind-the-fighters layer (auras, projectile art) is the one that
+      // MUST test depth: it is the only thing here that has to end up behind a
+      // fighter, and under `?render=3d` that fighter is opaque geometry no
+      // paint order can get in front of.
+      auraDepthTest: behindQuad ? behindQuad.material.depthTest : null,
     },
   };
+}
+
+/** The live scene graph, for tools that need to measure what is actually in
+ *  it (tools/debug/probe_sink.mjs): where a rig's feet ended up, where a
+ *  platform's top face ended up. Nothing in the game reads this. */
+export function debugScene() {
+  return { scene, models: models?.group ?? null, camera };
 }
 
 let renderer = null;

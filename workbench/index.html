@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Audio Workbench — JJK Brawler II</title>
+    <link rel="icon" href="../favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+    <!-- router.js does two jobs, both before anything else loads: it redirects
+         `?edit=<other bench>` to the bench that owns it, and it injects this
+         page's own stylesheet and module WITH A CACHE KEY on the URL. They are
+         not linked here because the key is not always the same one — see
+         BENCH_VERSION and the ?bust= override in that file. -->
+    <script src="router.js"></script>
+      <!-- Puts the published commit in the header bar, so "is this my change?"
+         has an answer without leaving the page. See src/deploystamp.js. -->
+    <script type="module" src="../src/deploystamp.js"></script>
+</head>
+  <body>
+    <header class="bar">
+      <strong>Audio Workbench</strong>
+      <span class="hint">Plays through the game's own mixer — the level you hear is the level in a match.</span>
+      <nav class="modes">
+        <a href="../sprites/workbench/" title="also /workbench/?edit=sprites">Sprites →</a>
+        <a href="../billboards/workbench/" title="also /workbench/?edit=billboards">Billboards →</a>
+        <a href="../render3d/workbench/" title="also /workbench/?edit=3d">3D →</a>
+      </nav>
+      <button id="exportBtn" class="ghost ghost--go" type="button"
+              title="Download every pick that differs from what ships, as JSON">⭳ Export changes</button>
+      <button id="refreshBtn" class="ghost" type="button"
+              title="Reload with a fresh cache key — every file this page uses, refetched">↻ Refresh</button>
+      <span id="loadState" class="loading">loading…</span>
+    </header>
+
+    <main class="layout">
+      <!-- Who has anything to say. Built from the game's own call tables, so a
+           fighter given a line tomorrow appears here with no edit to this page. -->
+      <aside class="col cast">
+        <h2>Voices</h2>
+        <p class="sub" id="castSummary">—</p>
+        <ul id="castList" class="cast-list"></ul>
+
+        <!-- The hub half of this page. Every bench in the repo is reachable
+             from this one address, so nobody has to remember which directory
+             the joint-reads editor lives under. -->
+        <div class="shortcuts">
+          <h3>Every bench, one address</h3>
+          <p id="unknownMode" class="unknown" hidden></p>
+          <ul>
+            <li><code>/workbench/?edit=audio</code><span>this one</span></li>
+            <li><a href="?edit=sprites"><code>?edit=sprites</code></a><span>sprite placement</span></li>
+            <li><a href="?edit=actions"><code>?edit=actions</code></a><span>action playback</span></li>
+            <li><a href="?edit=billboards"><code>?edit=billboards</code></a><span>posed models</span></li>
+            <li><a href="?edit=3d"><code>?edit=3d</code></a><span>live 3D poses</span></li>
+            <li><a href="?edit=animation"><code>?edit=animation</code></a><span>keyframes</span></li>
+            <li><a href="?edit=pose"><code>?edit=pose</code></a><span>joint reads</span></li>
+          </ul>
+          <p class="sub">Anything else you pass — <code>&amp;char=gojo</code> — travels with you.</p>
+        </div>
+      </aside>
+
+      <section class="col stage-col">
+        <div class="stage-wrap">
+          <canvas id="stage" width="360" height="420"></canvas>
+        </div>
+        <div class="who">
+          <h2 id="charName">Pick a fighter</h2>
+          <p class="sub" id="charSub">Everyone here has at least one spoken line.</p>
+        </div>
+      </section>
+
+      <section class="col tracks-col">
+        <h2>Voice tracks</h2>
+        <p class="sub" id="trackSummary">—</p>
+        <div id="trackList" class="tracks"></div>
+        <p class="legend">
+          <b>Fires</b> is when the move lands, measured from the first frame of
+          the line. <b>Interruptible</b> is how long an opponent can still knock
+          the move out of them — after that the move is committed. Both come
+          from <code>SPOKEN_TIMING</code> in <code>src/config_audio.js</code>,
+          never from the audio itself, so they are the same with the sound off.
+        </p>
+      </section>
+    </main>
+
+  </body>
+</html>

@@ -22,18 +22,14 @@ numbered DI1, DI2… — so the tracks never collide. All of them are gathered i
 [image-requests.md](image-requests.md), which is what to read to draw any of
 them; these files are where each is written.)
 
-**Current status: rounds 1–18 delivered, and round 20 is all but closed. 20A
-(44 summon plates), 20C (the grab poses) and 20D (the dash attack) landed
-together and are recorded in
-[the history](asset-requests-history.md#round-20--the-summon-sheets-the-grab-set-and-the-dash-attack);
-the twenty stage backgrounds
-([20B](asset-requests-history.md#20b-twenty-backgrounds-re-extended--delivered))
-followed and are live. What is still open is four sprites of Yuji
-([20E](#20e-yujis-four-round-20-poses--4-sprites)) — the fighter 20C and 20D
-were both delivered without.**
+**Current status: rounds 1–21 delivered. Round 22 is open** — one pose key for
+every fighter, 27 sprites, below. Nothing is blocked by it.
+Round 21's walk cycle landed complete — 54 sprites, two frames for each of the
+twenty-seven — and is
+[in the history](asset-requests-history.md#round-21--the-walk-cycle).
 
-**Round 20 is the open round** — 19 was used for the intake of round 18 and is
-not a request number. Anything found from here goes into 20.
+**Round 22 is the round to add to** — 19 was used for the intake of round 18 and
+is not a request number. Anything found from here goes into 22.
 
 **How the sprite count is derived.** A pose is outstanding if it carries a
 workbench flag *or* is drawing a file that is not its own. The second half is
@@ -338,9 +334,55 @@ single addition: **no drawn shadow of any kind** — the game casts its own.
 
 ---
 
-# Round 20 — open
+---
 
-**One request left of the four, and it is four sprites for one fighter.**
+# Round 22 — open
+
+## 22A. Balanced on the lip: the teeter — 27 sprites
+
+**One new pose key, `teeter`, for every fighter.** Nothing is blocked by it:
+until it lands the state draws the fighter's own IDLE frames with a procedural
+lean supplied by `src/motion.js`, so the read exists today and the drawing
+upgrades it.
+
+**What it is for.** The ledge brake (`brakeAtLedge` in `src/fighter.js`) stops
+a fighter dead on the last pixel of a platform whenever momentum would have
+carried them off — that is its entire job, and it happens constantly. Nothing
+drew it, so the most common thing that happens at an edge looked exactly like
+standing in the middle of the stage. It is also the answer to when a fighter
+should NOT be hanging: someone who stopped at the edge has not left it, and a
+ledge hang would be telling the player they fell when they did not.
+
+**The brief.** A standing pose, weight shifted BACK from the drop, arms out for
+balance, front foot at or just over the lip, head turned down toward the fall.
+Not alarmed — this roster does not panic — but caught: the moment after
+realising the ground ran out. It reads at a glance against the idle beside it,
+which is the test: a player should be able to tell from the silhouette that
+they are on the edge.
+
+**Facing.** Drawn facing RIGHT like every other pose, with the drop on the
+right. The engine mirrors it for the left-hand lip and leans it the correct way
+either side (`teeterLean` in `src/config_tuning.js`), so one drawing serves
+both edges.
+
+| pose key | count |
+|---|---|
+| `teeter` | 27 (one per fighter) |
+
+**Not requested, deliberately: a ledge-climb pose.** Getting on and off a ledge
+is now an animated transition rather than a teleport (`beginLedgeMove` in
+`src/fighter.js`), and it is built from poses the roster already has — the fall
+carries onto the ledge, the climb rises on `jump_rise` and arrives on `land`,
+the roll uses `dodge_roll`. A bespoke `ledge_climb` would be an upgrade to
+that, not a dependency, and 27 more sprites is not worth spending before the
+reused ones have been seen in motion.
+
+# Round 20 — delivered
+
+**All four requests are in.** The last of them was Yuji's own four poses, which
+landed as [20E](#20e-yujis-four-round-20-poses--4-sprites) and are in the game:
+his grab now reads as a grab and his dash attack as a lunge, like everybody
+else's. Nothing in round 20 is outstanding.
 
 - **~~44 of the 114 summon plates hold six creatures instead of one~~** —
   delivered. All forty-four came back as one figure each,
@@ -356,10 +398,13 @@ single addition: **no drawn shadow of any kind** — the game casts its own.
   fighters of 27 each, plus Mahoraga. Both are in the game: every one is a new
   pose key, so nothing was replaced and nothing waited for an approval. A grab
   now reads as a grab and a dash attack as a lunge, on everybody except Yuji.
-- **Yuji's four** — [20E](#20e-yujis-four-round-20-poses--4-sprites). 20C and
-  20D each asked for 27, one per fighter, and each arrived as 27 files with
-  Mahoraga in Yuji's place. Nothing is blocked by it: Yuji keeps the fallbacks
-  the whole roster had before the round.
+- **~~Yuji's four~~** — [20E](#20e-yujis-four-round-20-poses--4-sprites),
+  delivered. 20C and 20D each asked for 27, one per fighter, and each arrived
+  as 27 files with Mahoraga in Yuji's place; this was the correction, and it
+  came back as the four missing drawings. Imported, anchored, and seeded a
+  pose read each — the seeder had to learn that the REFERENCE character can
+  gain frames too, since it was skipping him wholesale and he was then the one
+  fighter with unread art.
 
 Round 18 is closed and everything in it landed.
 
@@ -408,6 +453,11 @@ Four things, and none of them is a drawing anybody owes us:
 
 ## 20E. Yuji's four Round 20 poses — 4 sprites
 
+**Delivered.** All four landed, keyed and measured through `tools/intake.py`,
+imported with `tools/intake_import.py`, anchored, and given a seeded pose read
+apiece — those four are marked `seed`, not `source`, so the joint-reads bench
+knows they are a starting point rather than a read of the art.
+
 **The remainder of 20C and 20D, and the whole of it is one fighter.** Both
 rounds asked for one file per fighter, both arrived as twenty-seven files, and
 both of those twenty-seven were Mahoraga rather than Yuji. Mahoraga is animated
@@ -443,3 +493,5 @@ facing right, one zoom matched to his own `idle_a`, at least 600 px of body, one
 subject per file. His character block and canonical reference are above, and
 [pose-brief.md](../sprites/docs/pose-brief.md) has all four pose lines in the
 set they now belong to.
+
+---

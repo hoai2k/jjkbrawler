@@ -134,6 +134,89 @@ both dialled in the workbench under **Model size & facing**:
   +Z; a model built the other way round faces backwards in every state and no
   clip can fix it, because the whole rig is turned. 180 is the common case
   (Maki and Uro both arrived this way).
+- `shoulderOutCm` — how far this fighter's arm roots move out from the body,
+  in centimetres. **Seeded from a measurement**: a clavicle's length as a
+  fraction of stature runs 2.9% to 14.7% across the roster against a median of
+  9.9%, and the nine fighters set here are the ones measurably short — the
+  value brings each up to that median. It is a starting point for the eye, not
+  a verdict; the review dial is what settles it. A generated clavicle often comes out short, which reads as
+  the shoulder nearest the camera being squashed into the ribs; this moves
+  where the arm STARTS without lengthening the arm. The engine already squares
+  the pair — both clavicles go back to their bind rotation, because the
+  delivered clip's shoulder is where the asymmetry came from (Gojo's arm roots
+  sat 6 cm apart in height and 3 cm apart in distance from the spine).
+- `armDeg` — how far this fighter's idle arms hang out from the body, in
+  degrees, and the legs' `stanceDeg` one axis up. Unset means the roster's own
+  number (`IDLE_ARM_DEG`, 9°); a heavy coat or a wide body wants more room than
+  a school uniform does, and only the drawing can say how much. Dialled in the
+  Idle Review beside size, stance, head and facing.
+- `kneeDeg` — how far this fighter's shins swing in or out at the KNEE,
+  degrees about the fighter's own forward axis, positive bringing the feet
+  toward the midline. The hips and the knees do not move; only what hangs below
+  them does, so the bow comes out of the leg without the width coming out of
+  the stance. Each sole is re-levelled afterwards so a foot keeps its angle to
+  the ground. Yaw is left alone: which way the toes point is a pose.
+
+  **The bone is `${side}Leg`** — the shin, whose head is the knee joint. `UpLeg`
+  is the thigh. Worth stating because the name reads like the whole limb, and
+  two earlier versions of this dial grabbed the wrong end of it: turning the
+  thigh moves everything hanging off it, so the knee and the ankle both travel
+  and the fighter simply stands narrower, which is `stanceDeg` with a second
+  name on it.
+
+  **What the measurement says about using it.** `tools/rig_calibrate.mjs`
+  reports two frontal-plane numbers on the posed idle: each knee's BOW off the
+  hip-to-ankle line, which is what this dial moves one for one, and each leg's
+  LEAN off vertical, printed beside it because the two are easy to confuse and
+  only one is a defect — a leg can lean a long way while standing perfectly
+  straight. Every fighter currently reads a bow of 0.0° and a lean equal to
+  their own `stanceDeg` to a tenth of a degree, because `applyIdleStand` aims
+  both leg bones down one line. So nothing on the roster carries a value here,
+  and if a fighter reads as bandy in their idle, the number to look at first is
+  their stance.
+
+  Two earlier readings of "the knees bend outward" are recorded here so they
+  are not tried again. The bind's frontal kink is real and large (Geto's shins
+  jut 18° and 34° out of their thighs) but does not survive posing, and
+  correcting it added 2.9° and 5.4° of kink to a leg that had none. A ROLL
+  about each leg's own length squares a kneecap and a toe to the front —
+  several rigs are built externally rotated, Geto and Choso by about 80° of
+  hinge axis — but a roll cannot move a knee closer to its neighbour.
+
+- `idleArms` — set `false` to keep this fighter's delivered idle arms. The
+  engine otherwise rebuilds them, straight and hanging a few degrees out from
+  the body (`ik.js applyIdleArms`), for the same reason it rebuilds the legs: a
+  generated idle arrives with whatever the generator felt about standing, it is
+  different on every fighter, and it reads as sloppiness rather than as
+  personality. Measured across the roster before the rule, the idle elbow ran
+  from 171° to 104° — a hand held at the chest — and the wrist's distance from
+  the body's centreline varied SIX-FOLD. Sukuna is the one `false`: his
+  delivered idle is a pose somebody wants.
+
+  **The elbow keeps the bend the model was built with.** Forcing the arm dead
+  straight is what made Gojo's elbow read as hinging backwards: a bind pose
+  carries 27–33° of elbow bend across the roster (Nanami's left arm 78°), and
+  straightening it rotates the forearm that far against skin weighted for the
+  bent pose, so the mesh folds at the joint. The arm swings as one rigid piece
+  from bind instead, clamped at `MAX_IDLE_ELBOW` for a bind that arrived
+  mid-pose.
+
+  **The arms are aimed from the BIND pose, not from the delivered clip**, and
+  that is what decides which way an elbow points. Aiming from wherever the clip
+  left the arm sets the bone's direction and inherits its TWIST, and for a limb
+  the twist is what the joint below it hinges about — Gojo's upper arm came out
+  rolled, so his elbow bulged forward and the arm read as hinging backwards.
+  The bind pose is the only place a bone's neutral roll is recorded (it comes
+  out of the skeleton's `boneInverses`), and the rotation onto the hanging
+  direction is a pure swing, which adds no twist of its own.
+
+  **A weapon needs no special case.** A prop hangs off the hand bone, so
+  straightening the arm carries it to the fighter's side; Maki's naginata ends
+  up vertical with its butt near the floor, which is the carry. Putting the
+  off hand on the shaft in idle was tried and reverted — the grip solve places
+  it a fixed distance down-shaft, which is right for a weapon presented across
+  the body and absurd for one hanging at the side, and it sent Maki's off arm
+  straight up over her head.
 - `headTiltDeg` — how the fighter carries their head, in degrees of nod;
   positive lifts the chin. Generated heads arrive modelled looking slightly
   down, and the tilt is in the MESH rather than the skeleton: measured
@@ -141,6 +224,17 @@ both dialled in the workbench under **Model size & facing**:
   is nothing in the rig to detect it from and no clip can fix it — every
   state inherits the same stoop. Dialled by eye against the drawing in the
   Idle Review, beside size, stance and facing.
+
+  The Idle Review carries a **Revert** per fighter. Every dial in this bench
+  edits the live manifest in place, which is what makes them feel immediate and
+  left exactly one way back from a number moved by accident: reload the page
+  and lose the whole session's work to undo one fighter's. Revert restores that
+  one entry to what the file said at boot — the placement numbers, the head
+  carriage, and the look overrides, which have to be actively un-pinned from
+  the materials rather than merely dropped from the entry. **On a phone the
+  review shows one dial at a time**, picked from a dropdown where the label
+  sits, because four dial rows plus the buttons is most of a phone screen and
+  the screen is what the pass is for.
 
   These are corrections the ASSET should have carried, so they are on their
   way into the files themselves: `tools/bake_yaw.mjs` writes each rig's yaw

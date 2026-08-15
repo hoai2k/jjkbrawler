@@ -72,7 +72,14 @@ function draw3d(ctx) {
   ctx.save();
   ctx.transform(t.a, t.b, t.c, t.d, t.e, t.f);
 
-  for (const e of state.entities) if (e.draw) e.draw(ctx);
+  // `e.draw` is NOT here — it is a quad in the scene, behind the fighters
+  // (src/camera3d/effects.js). This canvas sits above the whole WebGL layer,
+  // so drawing an entity on it can only ever put it in FRONT of every
+  // fighter, and these are the biggest pictures in the game: an ultimate wave
+  // painted here erased the fighter it was cast at and the one across the
+  // stage with it. `e.drawTop` still runs below, because effects that mean to
+  // cover the fighters are exactly what that hook is for.
+  //
   // Projectile bodies are billboards in the scene; their comet trails are
   // additive strokes and stay here, over the scene like every other glow.
   for (const p of state.projectiles) drawProjectileTrail(ctx, p);
@@ -508,7 +515,12 @@ function drawFighters(ctx, { bodies = true } = {}) {
     // they are playing. The platform goes UNDER them.
     if (f.respawnPlat) drawRevivalPlatform(ctx, f);
     if (bodies) drawShadow(ctx, f);
-    drawInstallAura(ctx, f);
+    // The aura goes UNDER the body, which this canvas can only manage while
+    // the body is also on it. In the 2.5D pass the body is in the WebGL layer
+    // and this canvas is strictly above it, so drawing here painted the aura
+    // over the fighter it belongs to — billboards.js draws it in the scene
+    // instead, between the shadow and the body, exactly as here.
+    if (bodies) drawInstallAura(ctx, f);
 
     // A transformed fighter (Megumi as Mahoraga) draws from another actor's
     // sprite set for the duration of the install; everything else about them —
@@ -659,31 +671,45 @@ function drawInstallAura(ctx, f) {
     ctx.restore();
     return;
   }
+  paintProceduralAura(ctx, f, f.x, f.y + AURA_ELLIPSE.dy);
+  ctx.restore();
+}
+
+/** The procedural aura's geometry, so a caller that has to size a surface for
+ *  it (the 2.5D scene bakes it into a texture) does not have to guess. `dy` is
+ *  the ellipse centre's offset from the fighter's feet; the radii are the
+ *  furthest the drawing reaches, which is the ring, not the ellipse. */
+export const AURA_ELLIPSE = { dy: -60, rx: 84, ry: 84 * 1.45 };
+
+/** The aura an install falls back to when its kit names no art, painted about
+ *  (cx, cy) — the ellipse's own centre. Exported because `?camera=3d` draws
+ *  the aura as a quad in the WebGL scene (so it lands BEHIND the fighter) and
+ *  bakes this same drawing into that quad's texture: one implementation, so
+ *  the two layers cannot drift apart. The caller owns the composite mode. */
+export function paintProceduralAura(ctx, f, cx, cy) {
   ctx.globalAlpha = 0.24 + 0.1 * Math.sin(state.matchTime * 8);
   ctx.fillStyle = f.installs.color;
   ctx.beginPath();
-  ctx.ellipse(f.x, f.y - 60, 56, 96, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx, cy, 56, 96, 0, 0, Math.PI * 2);
   ctx.fill();
   // Distortion Solo: the aura's edge clips like an overdriven signal — a
   // square-wave ring stepping between two radii, not a smooth ellipse.
-  if (f.installs.ampUp) {
-    ctx.globalAlpha = 0.5;
-    ctx.strokeStyle = f.installs.color;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    const steps = 22;
-    const spin = state.matchTime * 1.7;
-    for (let i = 0; i <= steps; i++) {
-      const a = spin + (i / steps) * Math.PI * 2;
-      const r = i % 2 === 0 ? 66 : 84;
-      const px = f.x + Math.cos(a) * r;
-      const py = f.y - 60 + Math.sin(a) * r * 1.45;
-      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    ctx.stroke();
+  if (!f.installs.ampUp) return;
+  ctx.globalAlpha = 0.5;
+  ctx.strokeStyle = f.installs.color;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  const steps = 22;
+  const spin = state.matchTime * 1.7;
+  for (let i = 0; i <= steps; i++) {
+    const a = spin + (i / steps) * Math.PI * 2;
+    const r = i % 2 === 0 ? 66 : 84;
+    const px = cx + Math.cos(a) * r;
+    const py = cy + Math.sin(a) * r * 1.45;
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
   }
-  ctx.restore();
+  ctx.closePath();
+  ctx.stroke();
 }
 
 /** Stand-in for a fighter whose art failed to load. Their hurtbox is the honest

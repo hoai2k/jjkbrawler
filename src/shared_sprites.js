@@ -53,12 +53,17 @@ import { spriteManifest } from "./assets.js";
  *  A null height means the drawing is sized by the renderer rather than by the
  *  kit — auras and domain backdrops — and is handled at those draw sites.
  */
+// The third element, where present, is the field's OWN hit numbers. A node can
+// declare two drawings at once — Mechamaru's ultimate names the cannon under
+// `sprite` and the five orbs it opens with under `orbSprite` — and the node's
+// hit numbers describe only the first of them. Without this the orbs inherited
+// the cannon's, and a 64px pigeon was shown against a 170px shot.
 const SPRITE_FIELDS = [
   // A list per field, first one present wins: Yuta's side special names Rika
   // under `sprite` but declares her height as plain `h`, so a single partner
   // name would leave that one drawing unscalable.
   ["sprite", ["spriteH", "h"]],
-  ["orbSprite", ["orbSpriteH"]],
+  ["orbSprite", ["orbSpriteH"], { r: "orbR" }],
   ["key", ["h"]],          // a random-drop entry: `{ key: "effect:…", w, h }`
   ["aura", []],
   ["domainSprite", []],
@@ -257,6 +262,12 @@ const STAGE_FX = {
 
 const POOLS = [SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL];
 
+/** The usual answer: this drawing's spawn site reads sharedAdjust, so a dx/dy
+ *  and a tilt set against it are honoured. Spread into an entry rather than
+ *  assumed, so the two sites that do NOT (DRAW_SITES below) read as a decision
+ *  rather than as a field somebody forgot. */
+const NUDGED = { nudge: true };
+
 let registry = null;
 
 /** The region of the world this drawing's move actually acts on, if the kit
@@ -272,13 +283,33 @@ function hitOfNode(node) {
     return { shape: "circle", r: node.r, from: "r",
              what: "the radius it collides on" };
   }
+  // A `width` is not a band. Both moves that declare one — Gojo's Purple and
+  // Mechamaru's cannon — spawn an ordinary projectile with `r: width / 2`
+  // (ultimates.js), so what they actually collide on is a circle that crosses
+  // the stage. Drawing it as a screen-wide beam described the fiction rather
+  // than the code, and put a 190px band over art that hits on 95px.
   if (Number.isFinite(node.width) && Number.isFinite(node.duration)) {
-    return { shape: "beam", w: node.width, from: "width",
-             what: "how wide the beam hits" };
+    return { shape: "circle", r: node.width / 2, from: "width",
+             what: "the radius it collides on, half the move's width" };
   }
   if (Number.isFinite(node.w) && Number.isFinite(node.h)) {
-    return { shape: "rect", w: node.w, h: node.h, from: "w/h",
+    // `hBase` is the authored height, before applySharedSpriteScales folded a
+    // workbench size into it — the same number the drawing is measured from,
+    // so the two cannot disagree about what "1×" means.
+    return { shape: "rect", w: node.w, h: node.hBase ?? node.h, from: "w/h",
              what: "the box it lands in" };
+  }
+  return null;
+}
+
+/** A secondary drawing's own hit numbers, named by its SPRITE_FIELDS entry.
+ *  Absent numbers mean no shape rather than the node's: a drawing whose spawn
+ *  site invents its collision is one the kit cannot describe, and guessing
+ *  there is how the orbs ended up wearing the cannon's. */
+function hitOfField(node, spec) {
+  if (spec.r && Number.isFinite(node[spec.r])) {
+    return { shape: "circle", r: node[spec.r], from: spec.r,
+             what: "the radius it collides on" };
   }
   return null;
 }
@@ -319,7 +350,7 @@ function buildRegistry() {
       const measured = !(Number.isFinite(entry.hitW) && Number.isFinite(entry.hitH));
       const owner = entry.name || entry.id || "a summon";
       const creature = (keys, height, hit) => (poolLists.add(keys), keys).forEach((key, i) => {
-        const info = { h: height, anchor: "feet", owner, hit, measuredBox: measured,
+        const info = { h: height, anchor: "feet", owner, hit, measuredBox: measured, ...NUDGED,
                        what: i === 0
                          ? "the creature's height on stage (config_summons.js)"
                          : `a STAND-IN for ${owner} — only drawn if that creature's own art is missing (config_summons.js)` };
@@ -334,7 +365,7 @@ function buildRegistry() {
 
   // 2. Hazards.
   for (const [key, fx] of Object.entries(STAGE_FX)) {
-    put(key, { h: fx.h, anchor: fx.anchor, owner: "a stage hazard",
+    put(key, { h: fx.h, anchor: fx.anchor, owner: "a stage hazard", ...NUDGED,
                what: `${fx.what} — its height in stage_fx.js` });
   }
 
@@ -345,43 +376,240 @@ function buildRegistry() {
   // throws the bird — while Yuta's Rika, under the same prefix, is a summon
   // that stands on the stage. Reading the prefix instead got Nue exactly
   // backwards.
-  const ANCHOR_BY_TYPE = { summon: "feet", projectile: "centre" };
-  const visit = (node, who, drawnBy = "centre") => {
+  //
+  // `nudge` is the other half of what a spawn site decides: whether it reads
+  // sharedAdjust at all. The two that place a drawing on a moving thing do —
+  // render.js for projectiles and auras, summons.js for creatures — and the
+  // handlers that paint a set piece themselves do not. A drawing they own can
+  // still be sized, because the size is folded into the kit's own height
+  // before it reaches them, but a dx/dy or a tilt set against one is stored and
+  // inert. Saying so here is what stops the workbench offering a control the
+  // game ignores.
+  //
+  // Every entry below was read off its handler. Where a handler paints at a
+  // height of its own rather than the kit's, that height is here too and
+  // `sizable: false` says the slider cannot move it.
+  const SELF = (site) => ({ nudge: false, site });
+  // WHERE it leaves the fighter, in game pixels from their feet, forward being
+  // the way they face. Read off each handler, and where the handler defaults a
+  // kit field the default is here too — `spawnProjectile` puts a shot at
+  // `ox ?? 70` forward and `oy ?? -86` up, which is chest height on a fighter.
+  //
+  // This is what lets the workbench stand the drawing where the move actually
+  // puts it, beside the pose that throws it, instead of alone in the middle of
+  // a canvas: a beam can be lined up with the hand that fires it.
+  const LAUNCH = {
+    projectile: (n) => ({ forward: n.ox ?? 70, y: n.oy ?? -86 }),
+    // The wave handler overrides ox itself, one wave per 54px: `ox: 60 + i * 54`.
+    wave: (n) => ({ forward: 60, y: n.oy ?? -86 }),
+    // spawnSummonFlash: on the ground at the fighter's feet (`owner.y + 12`),
+    // `forward` px ahead of them, each handler passing its own.
+    swap: () => ({ forward: 0, y: 12 }),
+    echoStrike: () => ({ forward: 80, y: 12 }),
+    burst: (n) => ({ forward: n.spriteForward ?? 105, y: 12 }),
+    commandGrab: (n) => ({ forward: n.spriteForward ?? 78, y: 12 }),
+    // Planted on the ground ahead of them, at the move's own reach — unless it
+    // is planted at the OPPONENT's feet instead, which is a distance this
+    // canvas has no second fighter to show.
+    trap: (n) => (n.atOpponent ? null : { forward: n.dist ?? 220, y: 0 }),
+    cloudField: (n) => ({ forward: n.dist ?? 210, y: 0 }),
+    // Rika stands BEHIND Yuta — `f.x - f.facing * 58` — and the transformed
+    // body replaces the fighter where they stand.
+    install: () => ({ forward: -58, y: 18 }),
+    rampage: () => ({ forward: 0, y: 10 }),
+  };
+  // The MOVE's own hitbox, for the handlers whose art is a flash beside a melee
+  // swing. Its `w`/`h` sit on the same node as the drawing and read like the
+  // drawing's own box, and they are nothing of the kind: spawnMelee puts them on
+  // the FIGHTER, at its own offset, while the art stands somewhere else
+  // entirely. Drawing that rectangle around the picture claimed a shape the
+  // game never tests there.
+  const MELEE = {
+    burst: (n) => ({ forward: n.ox ?? 40, y: n.oy ?? -96, w: n.w ?? 160, h: n.h ?? 100 }),
+    echoStrike: (n) => ({ forward: n.ox ?? 40, y: n.oy ?? -96, w: n.w ?? 160, h: n.h ?? 100 }),
+    // This one's numbers are in the handler, not the kit: `ox: 24, oy: -104`.
+    commandGrab: (n) => ({ forward: 24, y: -104, w: n.range ?? 120, h: 110 }),
+  };
+  // Which pose the fighter is in while it happens. A special plays the anim for
+  // its slot (slotAnim, specials.js); an ultimate plays `ult`.
+  const SLOT_ANIM = { neutral: "specialNeutral", side: "specialSide", down: "specialDown",
+                      ult: "ult" };
+  const DRAW_SITES = {
+    // --- drawn by render.js / summons.js, on something that moves ---------
+    summon: { anchor: "feet", nudge: true },
+    // A projectile is drawn centred on its own position, which IS the circle it
+    // collides on, and mirrored to the way it is travelling.
+    projectile: { anchor: "centre", nudge: true, travels: true },
+    // `mirrored` is the same fact for art that does not fly: spawnSummonFlash
+    // and the two install bodies scale by `facing > 0 ? -1 : 1`, so what a
+    // player sees a right-facing fighter produce is the mirror of the plate,
+    // exactly as with a shot travelling right.
+    wave: { anchor: "centre", nudge: true, travels: true },
+    beam: { anchor: "centre", nudge: true, travels: true },
+    cannonade: { anchor: "centre", nudge: true, travels: true },
+    birdstrike: { anchor: "centre", nudge: true, travels: true },
+    deathSwarm: { anchor: "centre", nudge: true, travels: true },
+    parthenogenesis: { anchor: "feet", nudge: true },
+
+    // --- painted by their own handler, straight from getImage -------------
+    // Standing on the ground: `-h` under the point, or drawn at a ground line
+    // the handler works out for itself.
+    trap: { anchor: "feet", ...SELF("makeTrap (src/specials.js)") },
+    randomDrop: { anchor: "feet", ...SELF("randomDrop (src/specials.js)") },
+    cloudField: { anchor: "feet", ...SELF("cloudField (src/specials.js)") },
+    // A tornado stands on the floor and rises out of it — `translate(640, 595)`
+    // then `-h` — so it is a ground drawing, not one centred on a point in the
+    // air, however much a centred crosshair suggested otherwise.
+    tempest: { anchor: "feet", ...SELF("tempest (src/ultimates.js)") },
+    eruption: { anchor: "feet", ...SELF("eruption (src/ultimates.js)") },
+    cardrop: { anchor: "feet", ...SELF("cardrop (src/ultimates.js)") },
+    // Centred on the point the handler puts them on: a falling meteor, a ring
+    // of blood orbs, a shout in front of the mouth.
+    meteor: { anchor: "centre", ...SELF("meteor (src/ultimates.js)") },
+    vortex: { anchor: "centre", ...SELF("vortex (src/ultimates.js)") },
+    nailstorm: { anchor: "centre", ...SELF("nailstorm (src/ultimates.js)") },
+    shout: { anchor: "centre", ...SELF("shout (src/ultimates.js)") },
+    skyInvert: { anchor: "centre", ...SELF("skyInvert (src/ultimates.js)") },
+    massDrive: { anchor: "centre", ...SELF("massDrive (src/ultimates.js)") },
+    supernova: { anchor: "centre", ...SELF("supernova (src/ultimates.js)") },
+    concert: { anchor: "centre", ...SELF("concert (src/ultimates.js)") },
+    warpStrike: { anchor: "centre", ...SELF("warpStrike (src/specials.js)") },
+    // A one-shot flash of art beside the fighter — Todo's clap, Yuji's
+    // divergent impact, Rika's fist, Todo's drum. spawnSummonFlash stands it on
+    // the ground at the fighter's feet and mirrors it with their facing, at the
+    // move's own `spriteH`; it never reads the nudge.
+    swap: { anchor: "feet", mirrored: true, ...SELF("spawnSummonFlash (src/specials.js)") },
+    echoStrike: { anchor: "feet", mirrored: true, ...SELF("spawnSummonFlash (src/specials.js)") },
+    burst: { anchor: "feet", mirrored: true, ...SELF("spawnSummonFlash (src/specials.js)") },
+    commandGrab: { anchor: "feet", mirrored: true, ...SELF("spawnSummonFlash (src/specials.js)") },
+
+    // --- a second body for the fighter, at a height the RENDERER fixes -----
+    // Yuta's Rika stands behind him at 238px; Panda's triceratops replaces his
+    // body at 210px. Neither reads the kit's height, so the Size slider has
+    // nothing to multiply — which is why it is marked unsizable rather than
+    // left looking live.
+    install: { anchor: "feet", spriteH: 238, sizable: false, mirrored: true,
+               ...SELF("install (src/ultimates.js)") },
+    rampage: { anchor: "feet", spriteH: 210, sizable: false, mirrored: true,
+               ...SELF("the transformed-body branch of drawFighters (src/render.js)") },
+  };
+  // `bodyH` is the nearest enclosing creature's own height. A summon declared
+  // inline in a special — Dagon's shikigami, Mahoraga, Kurourushi's brood —
+  // never passes through the pool walk above, and its size is `h` on the config
+  // rather than a `spriteH` on the move, so reading only the kit fields left
+  // every one of them "sized by the code that spawns it". It is carried down
+  // because a per-unit override names the art while the config above it
+  // declares the size, which is the same merge specials.js does at spawn.
+  const visit = (node, who, drawnBy = "centre", bodyH = null, nudge = NUDGED, site = null,
+                 slot = null, launch = null, melee = null) => {
     if (!node || typeof node !== "object" || seen.has(node)) return;
     seen.add(node);
-    if (typeof node.type === "string" && ANCHOR_BY_TYPE[node.type]) {
-      drawnBy = ANCHOR_BY_TYPE[node.type];
+    if (typeof node.type === "string" && DRAW_SITES[node.type]) {
+      site = DRAW_SITES[node.type];
+      drawnBy = site.anchor;
+      const shown = { travels: !!site.travels, mirrored: !!site.travels || !!site.mirrored };
+      nudge = site.nudge
+        ? { nudge: true, ...shown }
+        : { nudge: false, nudgeSite: site.site, ...shown };
+      launch = LAUNCH[node.type] || null;
+      melee = MELEE[node.type] || null;
+    }
+    if (Number.isFinite(node.h)) bodyH = node.h;
+    // A creature config, wherever it hangs. `behavior` is the field spawnSummon
+    // steers by and every creature has one, which makes it a better mark than
+    // the special's `type`: Kurourushi's brood is `offspring` on an ULTIMATE, so
+    // it never passes a `type: "summon"` node and was being filed as a
+    // centre-anchored effect of unknown size.
+    // A creature is drawn by summons.js wherever it hangs — including inside a
+    // move whose own flash art is painted by hand — so it stands on its feet
+    // AND gets its nudge back. Inheriting `nudge: false` from the move above it
+    // would have taken the offset control off every creature declared inside a
+    // burst.
+    if (typeof node.behavior === "string" && Array.isArray(node.sprites)) {
+      drawnBy = "feet";
+      nudge = { nudge: true, travels: false };
+      site = null;
     }
     if (isSharedKey(node.aura)) {
-      put(node.aura, { h: AURA_H, anchor: "feet", owner: who,
+      put(node.aura, { h: AURA_H, anchor: "feet", owner: who, ...NUDGED, kind: "aura",
                        what: "the install aura's height around the fighter (render.js)" });
     }
-    const hit = hitOfNode(node);
-    for (const [field, heightFields] of SPRITE_FIELDS) {
+    // A melee move's box belongs to the fighter, so it is described that way
+    // rather than as something the drawing sits inside.
+    const meleeBox = melee ? melee(node) : null;
+    const hit = meleeBox
+      ? { shape: "rect", w: meleeBox.w, h: meleeBox.h, from: "w/h", melee: meleeBox,
+          what: "the box the SWING lands in — on the fighter, not on this drawing" }
+      : hitOfNode(node);
+    for (const [field, heightFields, ownHit] of SPRITE_FIELDS) {
       if (field === "aura" || !isSharedKey(node[field])) continue;
       const hf = heightFields.find((h) => Number.isFinite(node[`${h}Base`]) || Number.isFinite(node[h]));
       const h = hf ? (node[`${hf}Base`] ?? node[hf]) : null;
-      put(node[field], { h, anchor: drawnBy, owner: who, hit,
-                         what: h ? "the height its move declares (the kit's own number)"
-                                 : "sized by the code that spawns it" });
+      // A drop declares one `h` and uses it twice — the height it is painted at
+      // and the height of the box it lands in (randomDrop, specials.js) — so a
+      // size set here moves the box with the art. That is the opposite of every
+      // other hit shape, which is a number the art has to be matched TO, and
+      // the workbench has to say which of the two it is showing.
+      // Only where the box IS the drawing's own height (a drop). A melee box
+      // shares the field name and nothing else.
+      const followsSize = !!hit && !hit.melee && hit.from === "w/h" && hf === "h";
+      // A handler that paints at a height of its own overrides the kit for the
+      // one field it paints — `sprite`. Its `aura` and `domainSprite` are drawn
+      // somewhere else entirely and keep their own answers.
+      const fixed = site && field === "sprite" && Number.isFinite(site.spriteH) ? site : null;
+      // A domain's backdrop is not placed on anything. It is cover-fitted to
+      // the whole stage behind the fight (drawDomainBackdrop, render.js), so it
+      // has no spawn point, no nudge and no size — the fit decides all three,
+      // and the only thing the art has to get right is what it looks like at
+      // the stage's own 1280x720 shape.
+      if (field === "domainSprite") {
+        put(node[field], { h: null, anchor: "centre", owner: who, nudge: false, sizable: false,
+                           kind: "domain",
+                           what: "cover-fitted to the whole stage behind the fight (render.js)" });
+        continue;
+      }
+      put(node[field], { h: fixed ? fixed.spriteH : h, anchor: drawnBy, owner: who, ...nudge,
+                         ...(fixed ? { sizable: false } : {}),
+                         // Only the field the handler actually launches — a move's
+                         // aura hangs on the fighter, not at the muzzle.
+                         ...(launch && field === "sprite" && launch(node)
+                           ? { launch: { ...launch(node), anim: SLOT_ANIM[slot] || null } } : {}),
+                         hit: ownHit ? hitOfField(node, ownHit)
+                                     : (followsSize ? { ...hit, followsSize } : hit),
+                         what: fixed
+                           ? `a height ${fixed.site} fixes at ${fixed.spriteH}px — the kit does not set it and neither can the slider`
+                           : h ? "the height its move declares (the kit's own number)"
+                               : "sized by the code that spawns it" });
     }
     for (const [field, heightField] of SPRITE_LIST_FIELDS) {
       if (!Array.isArray(node[field]) || poolLists.has(node[field])) continue;
-      const h = node[`${heightField}Base`] ?? node[heightField] ?? null;
-      for (const key of node[field]) {
-        put(key, { h, anchor: drawnBy, owner: who, hit,
-                   what: h ? "the height its move declares (the kit's own number)"
-                           : "sized by the code that spawns it" });
+      let h = node[`${heightField}Base`] ?? node[heightField] ?? null;
+      let what = h ? "the height its move declares (the kit's own number)"
+                   : "sized by the code that spawns it";
+      // `sprites` is a creature's still list and nothing else, so a summon that
+      // declares no `spriteH` is not unsized — it is drawn at its body height,
+      // and at summons.js's own 110 when it does not name one either.
+      if (h === null && field === "sprites" && drawnBy === "feet") {
+        h = bodyH ?? 110;
+        what = "the creature's height on stage (its kit's own `h`)";
       }
+      for (const key of node[field]) put(key, { h, anchor: drawnBy, owner: who, hit, what, ...nudge });
     }
     for (const value of Object.values(node)) {
-      if (value && typeof value === "object") visit(value, who, drawnBy);
+      if (value && typeof value === "object") {
+        visit(value, who, drawnBy, bodyH, nudge, site, slot, launch, melee);
+      }
     }
   };
   for (const key of CHARACTER_KEYS) {
     const c = CHARACTERS[key];
-    visit(c?.specials, c?.name || key);
-    visit(c?.ultimate, c?.name || key);
+    // Slot by slot rather than the whole `specials` object at once: which slot a
+    // move sits in IS which pose the fighter is in while they throw it, and that
+    // is the pose the workbench has to stand beside the drawing.
+    for (const [slot, def] of Object.entries(c?.specials || {})) {
+      visit(def, c?.name || key, "centre", null, NUDGED, null, slot);
+    }
+    visit(c?.ultimate, c?.name || key, "centre", null, NUDGED, null, "ult");
   }
   // Stand-ins last: anything a real usage claimed keeps that usage.
   for (const [key, info] of standIns) put(key, info);
@@ -396,6 +624,12 @@ function buildRegistry() {
  *            when the spawn site decides per instance
  *   anchor   which part of the drawing lands on the spawn point
  *   owner    who puts it on screen, for the panel to name
+ *   nudge    whether that spawn site reads sharedAdjust, so a dx/dy and a tilt
+ *            reach the screen. False for the two that paint straight from
+ *            getImage, with `nudgeSite` naming which.
+ *   hit      the region its move acts on, or null where the spawn site invents
+ *            one the kit cannot describe. `followsSize` marks the one case
+ *            where the box is the art's own height rather than a target for it.
  */
 export function sharedSpriteInfo(key) {
   if (!key) return null;

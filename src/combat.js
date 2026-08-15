@@ -1006,8 +1006,25 @@ export function stepHitCredit(f, dt) {
   }
 }
 
+/**
+ * Can this action still be knocked out of the fighter doing it?
+ *
+ * `uninterruptible` is the flat answer most actions give. `commitAt` is the
+ * softer one a spoken cast gives: interruptible up to that point in the
+ * wind-up, committed after it. A Domain Expansion can be shouted down while it
+ * is being announced, but once the sentence is most of the way out the move is
+ * already happening and taking it back would read as the game reneging.
+ */
+function interruptible(a) {
+  if (!a || a.uninterruptible) return false;
+  return a.commitAt === undefined || a.t < a.commitAt;
+}
+
 function interruptActions(target) {
-  if (target.action && !target.action.uninterruptible) {
+  if (interruptible(target.action)) {
+    // Actions that need to say something when they are cut off — refunds,
+    // cutting a spoken line short — hook it here. Nothing else sets this.
+    target.action.onInterrupt?.(target);
     target.action = null;
   }
   target.charging = null;

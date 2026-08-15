@@ -12,10 +12,10 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**9 images outstanding.**
+**31 images outstanding.**
 
-- **The sprite game** — 4 images, round 20
-- **The live-3D anime path** — 5 images
+- **The sprite game** — 31 images, round 22
+- **The live-3D anime path** — 0 images
 
 ## Rules that hold everywhere here
 
@@ -45,12 +45,131 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**4 images, round 20.** Authored in
+**31 images, round 22.** Authored in
 [docs/asset-requests.md](asset-requests.md) and reproduced whole below.
 
+- **22A** — Balanced on the lip: the teeter (27 sprites)
 - **20E** — Yuji's four Round 20 poses (4 sprites)
 
+## 22A. Balanced on the lip: the teeter — 27 sprites
+
+**One new pose key, `teeter`, for every fighter.** Nothing is blocked by it:
+until it lands the state draws the fighter's own IDLE frames with a procedural
+lean supplied by `src/motion.js`, so the read exists today and the drawing
+upgrades it.
+
+**What it is for.** The ledge brake (`brakeAtLedge` in `src/fighter.js`) stops
+a fighter dead on the last pixel of a platform whenever momentum would have
+carried them off — that is its entire job, and it happens constantly. Nothing
+drew it, so the most common thing that happens at an edge looked exactly like
+standing in the middle of the stage. It is also the answer to when a fighter
+should NOT be hanging: someone who stopped at the edge has not left it, and a
+ledge hang would be telling the player they fell when they did not.
+
+**The brief.** A standing pose, weight shifted BACK from the drop, arms out for
+balance, front foot at or just over the lip, head turned down toward the fall.
+Not alarmed — this roster does not panic — but caught: the moment after
+realising the ground ran out. It reads at a glance against the idle beside it,
+which is the test: a player should be able to tell from the silhouette that
+they are on the edge.
+
+**Facing.** Drawn facing RIGHT like every other pose, with the drop on the
+right. The engine mirrors it for the left-hand lip and leans it the correct way
+either side (`teeterLean` in `src/config_tuning.js`), so one drawing serves
+both edges.
+
+| pose key | count |
+|---|---|
+| `teeter` | 27 (one per fighter) |
+
+**Not requested, deliberately: a ledge-climb pose.** Getting on and off a ledge
+is now an animated transition rather than a teleport (`beginLedgeMove` in
+`src/fighter.js`), and it is built from poses the roster already has — the fall
+carries onto the ledge, the climb rises on `jump_rise` and arrives on `land`,
+the roll uses `dodge_roll`. A bespoke `ledge_climb` would be an upgrade to
+that, not a dependency, and 27 more sprites is not worth spending before the
+reused ones have been seen in motion.
+
+# Round 20 — delivered
+
+**All four requests are in.** The last of them was Yuji's own four poses, which
+landed as [20E](asset-requests.md#20e-yujis-four-round-20-poses--4-sprites) and are in the game:
+his grab now reads as a grab and his dash attack as a lunge, like everybody
+else's. Nothing in round 20 is outstanding.
+
+- **~~44 of the 114 summon plates hold six creatures instead of one~~** —
+  delivered. All forty-four came back as one figure each,
+  `tools/check_summon_plates.py` passes on the whole tree of 114, and the seven
+  authored hit boxes that were standing in for an unmeasurable plate came out
+  with them.
+- **~~Twenty backgrounds, re-extended from the paintings 18E replaced~~** —
+  delivered, all twenty at 3200×1800, and in the game. Each one carries its
+  source painting's composition rather than a fresh take on the brief, which is
+  the whole thing 18E got wrong and the only thing this round was asking for.
+  See [the history entry](asset-requests-history.md#20b-twenty-backgrounds-re-extended--delivered).
+- **~~The grab poses~~** and **~~the dash attack pose~~** — delivered, 26
+  fighters of 27 each, plus Mahoraga. Both are in the game: every one is a new
+  pose key, so nothing was replaced and nothing waited for an approval. A grab
+  now reads as a grab and a dash attack as a lunge, on everybody except Yuji.
+- **~~Yuji's four~~** — [20E](asset-requests.md#20e-yujis-four-round-20-poses--4-sprites),
+  delivered. 20C and 20D each asked for 27, one per fighter, and each arrived
+  as 27 files with Mahoraga in Yuji's place; this was the correction, and it
+  came back as the four missing drawings. Imported, anchored, and seeded a
+  pose read each — the seeder had to learn that the REFERENCE character can
+  gain frames too, since it was skipping him wholesale and he was then the one
+  fighter with unread art.
+
+Round 18 is closed and everything in it landed.
+
+**Round 18 was delivered complete** — 28 sprites and 14 near-field cards, every
+section of it, plus the five render3d image inputs (DI1–DI4). Its record, and
+the reasoning behind each request in it, is now in
+[the history](asset-requests-history.md#round-18--delivered).
+
+**Round 20 is the open round.** (19 is skipped as a request number: it was used
+for the *intake* of round 18, so `assets/reference/round19/` holds the delivered
+plates and no request ever carried that number. Reusing it would make "round 19"
+mean two different things.) Anything found from here — a placement pass, an
+approval rejection, a manifest audit — lands in 20 beside 20B.
+
+## Also outstanding, but work here rather than art
+
+Four things, and none of them is a drawing anybody owes us:
+
+- **25 poses are waiting in the approval queue.** Round 18's sprites are in the
+  repo but not in the game: each is a decision in the sprite workbench, and
+  until it is made the pose keeps drawing what it drew before. This is the
+  [approval step](../assets/intake/README.md#the-confirm-step) working as
+  intended, not a backlog. `mechamaru/run_reach_a` is the one exception — it
+  filled an empty pose rather than replacing a drawn one, so it went straight
+  in and completed his run cycle.
+- **The two alpha fixes** above — `hakari/dodge_air` and `toji/dodge_air` — are
+  repo work on delivered files, not art anybody owes us.
+- **Six variant options point at art that was retired.** `hanami_alt/` was
+  folded away when the alternate-art-set machinery went ([8843a0f]) and its
+  drawings moved to `assets/reference/hanami_alt/`, but six options in
+  `manifest["variants"]["hanami"]` still name the old path — a chevron offering
+  a file that is not there. It is also what `tools/canonicalise_sprites.py`
+  refuses on, so the step that puts canonical names back on approved art cannot
+  run until those six entries are dropped or repointed. Round 20's own sprites
+  did not need it — a new pose key lands at its canonical name — but round 18's
+  approvals do.
+- **Rejections from the approval pass** will become round 20. A pose rejected
+  at approval is pointed at another frame so the game keeps drawing something,
+  which raises no flag; [18G](asset-requests-history.md#18g-seven-a-pose-is-drawing-somebody-elses-art--7-sprites)
+  is what that costs when nobody checks, and the manifest audit that found it is
+  how the count at the top of this file is now derived.
+
+---
+
+---
+
 ## 20E. Yuji's four Round 20 poses — 4 sprites
+
+**Delivered.** All four landed, keyed and measured through `tools/intake.py`,
+imported with `tools/intake_import.py`, anchored, and given a seeded pose read
+apiece — those four are marked `seed`, not `source`, so the joint-reads bench
+knows they are a starting point rather than a read of the art.
 
 **The remainder of 20C and 20D, and the whole of it is one fighter.** Both
 rounds asked for one file per fighter, both arrived as twenty-seven files, and
@@ -90,6 +209,8 @@ set they now belong to.
 
 ---
 
+---
+
 # The live-3D anime path
 
 2D images the `?render=3d` pipeline consumes: inputs that models are
@@ -97,14 +218,14 @@ GENERATED from, and textures the anime pass reads at runtime. They serve
 `?render=billboard` too, which reads the same rigs. These are NOT keyed
 plates — each round states its own delivery.
 
-**5 images.** Authored in
+**0 images.** Authored in
 [render3d/docs/image-requests.md](../render3d/docs/image-requests.md) and reproduced whole below.
 
 - **DI1** — model-generation turnaround boards (the Tripo inputs) (0 images)
 - **DI2** — face sheets (the face-first gate's reference) (0 images)
 - **DI3** — shade palette swatches (0 images)
 - **DI4** — shared face textures (0 images)
-- **DI5** — regeneration seeds (5 images)
+- **DI5** — regeneration seeds (0 images)
 
 ## Round DI1 — model-generation turnaround boards (the Tripo inputs)
 
@@ -207,124 +328,51 @@ The shared eye-highlight texture is delivered; these are the optional per-fighte
 
 **Nothing outstanding.** Every fighter has one.
 
-## Round DI5 — regeneration seeds *(the boards that produced broken models)*
+## Round DI5 — regeneration seeds *(delivered — read the verdict before generating)*
 
-Some delivered models are wrong in ways nothing downstream can fix, because
-what is wrong with them is missing or invented GEOMETRY. Mei Mei has horns.
-Momo has one leg and a broom where the other should be. Both survived a facing
-review, a size review and a stance pass before anybody said so out loud, which
-is its own lesson.
+**All nine landed and all nine pass**: five turnaround boards (`gakuganji`,
+`maki`, `meimei`, `momo`, `uro`) and four weapon plates (everyone but Uro, who
+carries none). The edge check refused nothing and warned about nothing — the
+crowns, the hat tips and the feet are all inside the canvas with margin, which
+is the fault that produced Mei Mei's horns.
 
-**Both faults trace to their seed board**, and both boards are on DI1's refused
-list — they were used anyway, because rigs for the whole roster landed while
-the refusal was being sorted out and DI1 was closed as "overtaken, not
-completed". This is that round reopening, for the fighters it actually cost.
+Checked by eye against every rule below:
 
-### What went wrong, measured
+| | Verdict |
+|---|---|
+| Crown and feet in frame | **yes**, all five, with margin — Momo's hat tips included |
+| Weapons out of the boards | **yes** — all four are drawn empty-handed |
+| Weapon plates | **yes** — broom, polearm, axe, guitar, four views each, alone on white |
+| Daylight between the legs | **yes** on Maki and Uro; Momo and Mei Mei stand closer but keep a gap; Gakuganji's legs are inside hakama at any pose |
+| Hanging hair drawn along its length | **yes** — Mei Mei's braid reads as its own shape in the side and back views, which is what the chain extraction needs |
 
-`blender -b -P tools/audit_model_health.py` weighs the mesh bound to each limb
-against the roster's own median and reports what cannot be true of a body. It
-is the acceptance gate for this round's models as well as the evidence for it;
-the full table is at [reference/model-health.json](../render3d/docs/reference/model-health.json).
+**Two notes to weigh before spending credits, neither a blocker:**
 
-| Fighter | What the model does | What the mesh says |
-|---|---|---|
-| `momo` | one leg, a broom standing in its place, broom in fragments | one leg is **51%** of a normal leg and the other **181%**; the prop carries 4201 of weight — the broom is fused into the body |
-| `meimei` | two horns rising from the crown | **5.8% of her stature** sits above her head, and it is mesh: it is still there with the hair chain removed and the chain bones reset |
-| `maki` | polearm merged into the forearm | one arm is **167%** of a normal arm, and 8% of stature sits above the head |
-| `gakuganji` | guitar merged into the arm | one arm is **158%** of normal |
-| `uro` | proportions the stance pass could not settle | legs **55%** of normal, and **29% of stature above the head** |
+1. **Arms hang at the sides rather than in an A-pose.** DI1 asks for them
+   slightly away from the body and these are closer than that — wrists near
+   the hips on Maki, Momo and Mei Mei. The roster's existing models were
+   generated from boards drawn the same way and their arms measure fine
+   (0.80–0.99 balance for twenty of them), so this is a known-survivable
+   deviation rather than a repeat of the fusion fault. It is also the most
+   likely explanation for the three fighters that measure 0.55–0.71.
 
-`nanami`, `nobara` and `yuji` show uneven arms (0.55–0.71) without a fused
-prop — worth looking at in the workbench's **Mannequin(s)** view before
-spending credits, not worth a regeneration on the number alone.
+2. **Hands are relaxed-open, not curled.** The hand is a single bone and
+   cannot close later, so a weapon joined to a flat palm reads as passing
+   through it. Mei Mei's axe and Maki's polearm are the ones this shows on.
+   Worth a redraw of the hands ONLY if the joined result looks wrong — which
+   is now a thing that can be checked in an afternoon rather than guessed at,
+   because the join is arithmetic.
 
-### The board, and the four rules that are new
+**Uro's crown flag was partly the metric's fault.** Her board makes it plain
+that the hair standing 29% of her stature above her head is her design, not
+generated damage. Her legs at 55% of a normal leg still stand, and so does the
+scale the Idle Review kept fighting.
 
-Same deliverable as DI1 — **one 2048×1024+ PNG per fighter, front, ¾-front,
-side and back, flat colour, no dramatic lighting, no perspective, clean white
-or transparent ground** — with everything DI1 asks for, plus what these two
-failures taught. Each rule below is here because a specific model is broken
-without it.
-
-1. **THE WHOLE FIGURE, WITH MARGIN — INCLUDING THE CROWN.** Every view
-   complete inside the canvas: the top of the head, any hat, horn, hair or
-   headgear, and the feet, with clear ground on all four sides. Mei Mei's board
-   was cut at her *eyes* in all four views, so the generator had nothing to
-   reconstruct a skull from and invented one. What it invents is spikes.
-   `tools/import_render3d_images.py` REFUSES a board whose head runs off the
-   top, and now measures the other three edges too — it warns rather than
-   refuses on those, because the top edge is proven (twelve boards, two broken
-   models) and the others are not: Todo's board runs 107px off the bottom and
-   his model measures clean.
-
-2. **THE ARMED FIGHTERS ARE DRAWN EMPTY-HANDED, AND THE WEAPON GETS ITS OWN
-   PLATE.** Not "keep the prop clear of the body" — keep it out of the board
-   entirely. Image-to-3D cannot separate two objects that touch in the picture,
-   and a weapon in a hand touches by definition: Momo's broom stood against her
-   leg in three views of four and came back as her leg; Maki's polearm and
-   Gakuganji's guitar came back as part of an arm.
-
-   So `momo`, `maki`, `gakuganji` and `meimei` are drawn with **empty hands,
-   fingers loosely curled as if holding** (the hand is one bone — it cannot
-   close later, so it has to be drawn closed), and each delivers a **second
-   plate: the weapon alone**, four views, same size and background rules, no
-   hand on it. The two are generated separately and joined at conform by
-   `tools/blender_attach_prop.py`, which reads the weapon's real length and
-   grip point from `render3d/src/props.js`:
-
-   | Fighter | Weapon | Length | Hand sits, from the heavy end |
-   |---|---|---|---|
-   | `maki` | polearm | 1.80 m | 0.45 |
-   | `momo` | broom | 1.40 m | 0.70 |
-   | `meimei` | axe | 1.30 m | 0.80 |
-   | `gakuganji` | guitar | 1.00 m | 0.75 |
-
-   Deliver the weapon plate as `<char>_prop.png`. The engine contract is
-   unchanged — the rig that lands still carries its weapon on `Prop_Main` —
-   what changes is that we do the joining instead of the generator.
-
-3. **NOTHING LONG AND THIN PARALLEL TO A LIMB.** Even clear of the body, a
-   staff drawn vertically beside a standing leg reads as that leg's second
-   silhouette. Angle it — 30° off vertical is enough — or lay it horizontally
-   below the figure.
-
-4. **DAYLIGHT BETWEEN THE LEGS, AND BETWEEN ARMS AND TORSO.** A visible gap in
-   the front and back views, ankles apart, hands clear of the hips. DI1 asked
-   for a near-A-pose; this says why, and extends it downward.
-
-Two more that cost less but are worth stating:
-
-5. **HAIR THAT HANGS IS DRAWN ALONG ITS WHOLE LENGTH** in the side and back
-   views, clear of the head's silhouette — a braid or a tendril the engine
-   simulates has to be findable as its own shape. Mei Mei's braid chain
-   extraction grabbed the top of her skull instead of her braid, because on
-   this model the braid is welded to the head.
-
-6. **THE BACK VIEW ANSWERS THE QUESTIONS THE SPRITES NEVER HAD TO** — hair
-   back, uniform back, where the prop is stowed — since it is the only view of
-   that half of the fighter the generator will ever see.
-
-**Deliver to** `assets/intake/render3d/<char>_turnaround.png`, replacing the
-refused board. The old plates stay at `assets/reference/round21/di1_cropped/`
-for comparison.
-
-**Deliverable: 1 board per fighter listed above.** The model round that
-consumes them is [D6](../render3d/docs/asset-requests.md#round-d6--regeneration-the-workbench-catches-open).
-
----
-
-### DI5: who is still owed one — 5 of 28
+### DI5: who is still owed one — 0 of 28
 
 Named by MEASUREMENT, not by eye: tools/audit_model_health.py weighs the mesh bound to each limb against the roster's median and reports what cannot be true of a body. A fighter leaves this list when a replacement board lands — not when their model is regenerated, since regenerating from the same board is what produced the fault.
 
-| Fighter | Key | Model at | Archetype | Canon reference | Notes |
-|---|---|---|---|---|---|
-| Maki Zen'in | `maki` | 170 cm | polearm | `assets/reference/canon/maki_idle.png` | Playful Cloud |
-| Takako Uro | `uro` | 190 cm* | unarmed | `assets/reference/canon/uro_idle.png` | Sky-palm effects are engine-side |
-| Yoshinobu Gakuganji | `gakuganji` | 190 cm* | caster | `assets/reference/canon/gakuganji_idle.png` | Guitar, slung and played |
-| Mei Mei | `meimei` | 190 cm* | heavy | `assets/reference/canon/meimei_idle.png` | Braided axe; braid needs bones |
-| Momo Nishimiya | `momo` | 150 cm | polearm | `assets/reference/canon/momo_idle.png` | Broom — also ridden; see her kit |
+**Nothing outstanding.** Every fighter has one.
 
 ---
 
@@ -385,8 +433,28 @@ is not its own says so silently, which is how seven of them stayed invisible
 until round 18G. Neither can see a pose that was never drawn — that is what
 the rounds above are for.
 
-**Nothing outstanding.** No pose carries a replacement flag, and no pose is
-drawing a file that is not its own.
+**6 flagged, 12 drawing somebody else's art.**
+
+| Fighter | Pose | Why |
+|---|---|---|
+| uro | `attack_light_a` | quality |
+| dagon | `attack_light_a` | pose |
+| dagon | `crouch_attack_b` | pose |
+| dagon | `crouch_b` | pose |
+| dagon | `run_reach_a` | pose |
+| dagon | `run_reach_b` | pose |
+| hanami | `attack_light_b` | drawing `special_neutral` |
+| sukuna | `attack_light_b` | drawing `r3c0` |
+| yuta | `attack_heavy_b` | drawing `attack_dash` |
+| yuta | `attack_light_a` | drawing `attack_air_a` |
+| yuta | `attack_light_b` | drawing `attack_air_b` |
+| uro | `attack_light_a` | drawing `attack_light_b` |
+| uro | `attack_light_b` | drawing `attack_light_a` |
+| yuki | `attack_heavy_b` | drawing `ult_b` |
+| kurourushi | `attack_heavy_b` | drawing `attack_light_b` |
+| kurourushi | `attack_light_b` | drawing `attack_air_b_2` |
+| kurourushi | `crouch_attack_b` | drawing `dash_2` |
+| kurourushi | `dash` | drawing `dodge_roll_2` |
 
 Separately, **2 improvement requests** — the art works and is just
 not as good as it should be. Nothing is blocked by one, and the standing

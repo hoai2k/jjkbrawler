@@ -7,11 +7,12 @@
 //   these poses (render3d/src/sprite_poses.js), so the poses are the whole
 //   job and the playhead is somebody else's problem.
 //
-//   ANIMATION (?edit=animation). The playhead, the beat snap, on twos, the
+//   ANIMATION (?edit=keys). The playhead, the beat snap, on twos, the
 //   keyframe strip and the ease curves — everything that only means something
 //   while a clip is running. Same module, same viewer, same rig; a body class
 //   decides which set of controls is on screen, because a second page is a
-//   second page to keep in step.
+//   second page to keep in step. (It lived at ?edit=animation until that URL
+//   became the roster-wide animation viewer, anim_viewer.js.)
 //
 // Both share the pipeline the game draws with (loader -> pose -> scene ->
 // blit) and the LOOK-DEV PANEL this backend needs and billboards did not:
@@ -47,7 +48,8 @@ import { STATES, CLIP_STATES, clipNameFor, clipTime, aimable, aimPitch, aimSolve
 import { artReach } from "../../src/silhouette.js";
 import * as rig from "../src/loader.js";
 import * as scene from "../src/scene.js";
-import { DIALS, initPose, LOOK_STATES, flinchSide, boneOwners } from "../src/pose.js";
+import { DIALS, initPose, LOOK_STATES, flinchSide, boneOwners, IDLE_ARM_DEG, RIG_CHECK_POSES } from "../src/pose.js";
+import { MODEL_FIXES, pendingFixes } from "../src/rig_fixes.js";
 import { TOON, setToonFor, clearToonFor, PER_CHARACTER_SHADE } from "../src/toon.js";
 import { OUTLINE, setOutlineFor } from "../src/outline.js";
 import { blitPose } from "../src/blit.js";
@@ -73,8 +75,9 @@ const CX = canvas.width / 2;
 const COMPARE_DX = 300;
 
 const params = new URLSearchParams(location.search);
-/** Which bench: "pose" (a drawing at a time) or "anim" (?edit=animation). */
-const MODE = params.get("edit") === "animation" ? "anim" : "pose";
+/** Which bench: "pose" (a drawing at a time) or "anim" (?edit=keys — the
+ *  keyframe bench; ?edit=animation is the viewer, a different module). */
+const MODE = ["keys", "keyframes"].includes(params.get("edit")) ? "anim" : "pose";
 document.body.classList.add(`mode-${MODE}`);
 
 const wb = {
@@ -82,6 +85,10 @@ const wb = {
   state: params.get("state") || "idle",
   /** The sprite pose being matched, in pose mode — a frame key. */
   pose: params.get("pose") || null,
+  /** A RIG CHECK instead of a drawing: "T", "A", or null for a real pose.
+   *  Not a state and not a sprite — the skeleton straightened out so the
+   *  rigging can be judged on its own (pose.js poseRigCheck). */
+  rigCheck: RIG_CHECK_POSES[params.get("rigcheck")] ? params.get("rigcheck") : null,
   t: 0,
   // Pose mode holds still by definition: the thing being matched is a single
   // drawing, and a body that keeps moving cannot be compared to one.
@@ -92,7 +99,11 @@ const wb = {
   compare: "left",
   /** The line-up: five fighters across the floor, references overhead. */
   five: false,
-  /** Draw the proof body instead of the model (loader.js proofRig). */
+  /** What stands in the comparison slot: "sprite", "mannequin" or "alt". */
+  compareWith: "sprite",
+  /** Draw the proof body instead of the model (loader.js proofRig). Derived
+   *  from `compareWith`, kept as its own flag because the pose cache, the
+   *  body class and the five-across shelf all ask this exact question. */
   mannequin: false,
   /** Free look: the viewer becomes a model viewer (scene.js setOrbit). */
   view3d: false,
@@ -136,7 +147,9 @@ scene.initScene(THREE);
 // never settles, nothing below it ever runs, and the page renders perfectly
 // with every control dead. That is the worst failure shape there is — it
 // looks like a broken button, not like a browser giving up.
-await rig.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS, [wb.char]);
+await rig.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS, [wb.char],
+  // The bench looks at bodies the game is not showing yet — that is the job.
+  { includeDisabled: true });
 
 /** Bring a character's real rig in before showing them. */
 async function ensureChar(charKey) {
@@ -161,7 +174,10 @@ function fillCharSelect(sel, hasModel) {
   const add = (key) => {
     const o = document.createElement("option");
     o.value = key;
-    o.textContent = label(key);
+    // ⊘ marks a body the game is not showing yet. Marked in the LIST because
+    // "why is this fighter drawing as sprites in-game" is a question you want
+    // answered before spending a session on them, not after.
+    o.textContent = rig.inGame(key) ? label(key) : `⊘ ${label(key)}`;
     sel.append(o);
   };
   for (const key of delivered) add(key);
@@ -235,12 +251,91 @@ canvas.addEventListener("wheel", (ev) => {
 // standard skeleton instead of their model — the only way to ask whether a
 // pose that reads wrong is a bad pose or a bad binding without opening the
 // .glb somewhere else. Works alone or five across.
-$("mqToggle").onchange = () => {
-  wb.mannequin = $("mqToggle").checked;
+/** WHAT STANDS IN THE COMPARISON SLOT. One dial, three answers, because the
+ *  slot only ever holds one body: the drawing this pose is matched against,
+ *  the fighter's own skeleton, or a second .glb of the same fighter. It was a
+ *  checkbox while there were only two answers. */
+function setCompareWith(v) {
+  wb.compareWith = v;
+  wb.mannequin = v === "mannequin";
   document.body.classList.toggle("mq", wb.mannequin);
+  document.body.classList.toggle("alt", altShown());
+  // One state, two dials — the Idle Review covers the side panel, so it
+  // carries its own copy of this control and the two must never disagree.
+  $("compareWith").value = v;
+  $("facingCompareWith").value = v;
   syncBoneProxy();
+  if (altShown()) ensureAlt();
+  // The dials now point at a different .glb, so they have to re-read.
+  syncSizePanel();
+  if (!facingUI.overlay.hidden) facingShow();
   scene.clearCache();
-};
+}
+$("compareWith").onchange = () => setCompareWith($("compareWith").value);
+$("facingCompareWith").onchange = () => setCompareWith($("facingCompareWith").value);
+
+/** True when the comparison slot is showing this fighter's alternate model.
+ *  Guarded on the model EXISTING: the option stays selectable while walking
+ *  the roster, and a fighter with no second model simply shows their drawing
+ *  rather than a blank slot. */
+function altShown() {
+  return wb.compareWith === "alt" && rig.hasAlt(wb.char);
+}
+
+/** The rig key the review dials are pointed at — the alternate when it is the
+ *  one on screen. Editing the current model's size while looking at the old
+ *  one is the mistake this exists to make impossible. */
+function tunedKey(charKey) {
+  return altShown() && charKey === wb.char ? rig.altKey(charKey) : charKey;
+}
+
+/** ...and the manifest block those dials write to. An alternate carries its
+ *  own size, turn, stance and head carriage (see loader.js altKey), so its
+ *  numbers live under `alt` and never touch the current model's. */
+function tunedEntry(charKey) {
+  const entry = entryFor(charKey);
+  if (!(altShown() && charKey === wb.char)) return entry;
+  entry.alt = entry.alt || {};
+  return entry.alt;
+}
+
+/** Say whether this fighter HAS a second model, without taking the option
+ *  away. Walking the roster with Alt GLB selected would otherwise reset the
+ *  dial every time it landed on a fighter with one model, and the setting you
+ *  chose would keep evaporating; the option stays put and says "none on file"
+ *  instead, and those fighters simply show their drawing. */
+function syncCompareWith() {
+  const alt = rig.altEntry(wb.char);
+  const label = alt ? `Alt GLB — ${alt.label || "alternate"}` : "Alt GLB — none on file";
+  for (const id of ["compareWith", "facingCompareWith"]) {
+    const sel = $(id);
+    if (!sel) continue;
+    const opt = [...sel.options].find((o) => o.value === "alt");
+    if (opt) opt.textContent = label;
+    sel.value = wb.compareWith;
+  }
+  document.body.classList.toggle("alt", altShown());
+  if (altShown()) ensureAlt();
+}
+
+let altPending = null;
+async function ensureAlt() {
+  if (!rig.hasAlt(wb.char)) return false;
+  const want = wb.char;
+  // ALREADY IN? Then there is nothing to wait for and — more to the point —
+  // nothing to re-show. facingShow calls syncCompareWith, which calls back in
+  // here; re-showing on an already-loaded rig closes that circle and the
+  // review recurses until the stack gives out.
+  if (rig.getRig(rig.altKey(want))) return true;
+  altPending = want;
+  const ok = await rig.ensureAltRig(want, GLTFLoader);
+  if (ok && altPending === want) {
+    syncSizePanel();
+    if (!facingUI.overlay.hidden) facingShow();
+    scene.clearCache();
+  }
+  return ok;
+}
 
 /** Put every rig back to its skin.
  *
@@ -318,9 +413,31 @@ stateSel.value = clipNameFor(wb.state);
 const poseSel = $("poseSelect");
 let poseList = [];
 
+/** The rig-check entries, at the TOP of the pose list.
+ *
+ *  They are not drawings and there is no sprite to match them against, which
+ *  is the point: a T-pose is where a bad weight, a bone rolled the wrong way,
+ *  a shoulder built inside the chest or a foot that is really a lump has
+ *  nowhere to hide. In a pose that came out of a clip, all of that reads as
+ *  something the animation did. First in the list because it is the check you
+ *  want to have made BEFORE spending a session matching drawings. */
+const RIG_CHECKS = [
+  { value: "__rig:T", kind: "T", label: "T-pose  (arms level)" },
+  { value: "__rig:A", kind: "A", label: "A-pose  (arms at 45°)" },
+];
+
 function fillPoseSelect() {
   poseList = poseCatalogue(wb.char);
   poseSel.innerHTML = "";
+  const rigGroup = document.createElement("optgroup");
+  rigGroup.label = "rig check — no clip, no sprite";
+  for (const c of RIG_CHECKS) {
+    const o = document.createElement("option");
+    o.value = c.value;
+    o.textContent = c.label;
+    rigGroup.append(o);
+  }
+  poseSel.append(rigGroup);
   let group = null;
   for (const p of poseList) {
     if (!group || group.label !== p.state) {
@@ -336,13 +453,94 @@ function fillPoseSelect() {
     group.append(o);
   }
   if (!poseList.some((p) => p.frame === wb.pose)) wb.pose = poseList[0]?.frame || null;
-  if (wb.pose) poseSel.value = wb.pose;
+  if (wb.rigCheck) poseSel.value = `__rig:${wb.rigCheck}`;
+  else if (wb.pose) poseSel.value = wb.pose;
   refreshPoseMarks();
 }
 
 /** Put one drawing on screen: its state, its instant, and the editor key that
  *  IS it, so a drag lands on the pose being looked at. */
+/** Stand the model up for a rig check, and say what is still owed to its .glb.
+ *
+ *  The figure on screen is NOT the file: it is the file plus the correction
+ *  layer (pose.js applyModelFixes / rig_fixes.js), and the readout below it is
+ *  exactly that difference — the corrections the engine is still making every
+ *  frame because the model does not. Read together, the pair answers "is this
+ *  rig good" and "what is left in the pipeline" at the same time, which is why
+ *  the list belongs on this pose rather than in a tool nobody runs. */
+function showRigCheck(kind) {
+  wb.rigCheck = kind;
+  wb.playing = false;
+  wb.t = 0;
+  // Nominally an idle: the clip is thrown away (poseRigCheck), but the state
+  // still picks the camera framing and keeps the rest of the bench coherent.
+  wb.state = "idle";
+  stateSel.value = "idle";
+  poseSel.value = `__rig:${kind}`;
+  $("poseWhere").textContent =
+    `${kind}-pose · the skeleton at bind, arms at ${RIG_CHECK_POSES[kind]}°,`
+    + " no clip and no sprite to match";
+  const url = new URL(location);
+  url.searchParams.set("rigcheck", kind);
+  url.searchParams.delete("pose");
+  history.replaceState(null, "", url);
+  syncModeLinks();
+  syncPanel();
+  scene.clearCache();
+}
+
+/** The corrections this fighter's model still needs baked in, as lines of
+ *  text. Empty means the .glb is finally telling the truth about itself. */
+function pendingFixLines(charKey) {
+  const entry = rig.rigManifest().characters?.[charKey] || {};
+  const fixes = pendingFixes(charKey, entry);
+  const show = (k, v) => {
+    if (k === "bones") {
+      return Object.entries(v).map(([b, r]) => `${b} [${r.join(", ")}]`).join("; ");
+    }
+    if (k === "shoulderOutCm") return `${v} cm out`;
+    if (k === "renderScale") return `×${v}`;
+    return `${v}°`;
+  };
+  return Object.entries(fixes).map(([k, v]) => ({
+    key: k, value: show(k, v), bake: MODEL_FIXES[k]?.bake || "",
+  }));
+}
+
+function syncRigCheckPanel() {
+  const box = $("rigCheckOut");
+  if (!box) return;
+  box.hidden = !wb.rigCheck;
+  if (!wb.rigCheck) return;
+  const lines = pendingFixLines(wb.char);
+  box.innerHTML = "";
+  const head = document.createElement("div");
+  head.className = "hint";
+  head.textContent = lines.length
+    ? `${lines.length} correction(s) applied here that the .glb still owes:`
+    : "nothing outstanding — this model needs no corrections";
+  box.append(head);
+  for (const l of lines) {
+    const row = document.createElement("div");
+    row.className = "fixrow";
+    const k = document.createElement("b");
+    k.textContent = `${l.key} ${l.value}`;
+    const b = document.createElement("span");
+    b.textContent = l.bake;
+    row.append(k, b);
+    box.append(row);
+  }
+}
+
 function showPose(frame) {
+  const rc = RIG_CHECKS.find((c) => c.value === frame);
+  if (rc) return showRigCheck(rc.kind);
+  wb.rigCheck = null;
+  const url0 = new URL(location);
+  if (url0.searchParams.has("rigcheck")) {
+    url0.searchParams.delete("rigcheck");
+    history.replaceState(null, "", url0);
+  }
   const p = poseList.find((x) => x.frame === frame);
   if (!p) return;
   wb.pose = p.frame;
@@ -370,7 +568,7 @@ function showPose(frame) {
  *  somebody else's model because the link was a bare href is a small thing
  *  that happens every single time. */
 function syncModeLinks() {
-  for (const [id, edit] of [["toPose", null], ["toAnim", "animation"]]) {
+  for (const [id, edit] of [["toPose", null], ["toAnim", "keys"]]) {
     const url = new URL(location);
     if (edit) url.searchParams.set("edit", edit);
     else url.searchParams.delete("edit");
@@ -391,9 +589,13 @@ function refreshPoseMarks() {
 }
 
 function poseStep(step) {
-  const i = poseList.findIndex((p) => p.frame === wb.pose);
-  const next = poseList[(Math.max(0, i) + step + poseList.length) % poseList.length];
-  if (next) showPose(next.frame);
+  // The rig checks are part of the walk, in the order the list shows them —
+  // stepping off the first drawing lands on the A-pose, not on the last one.
+  const all = [...RIG_CHECKS.map((c) => c.value), ...poseList.map((p) => p.frame)];
+  const here = wb.rigCheck ? `__rig:${wb.rigCheck}` : wb.pose;
+  const i = all.indexOf(here);
+  const next = all[(Math.max(0, i) + step + all.length) % all.length];
+  if (next) showPose(next);
 }
 poseSel.onchange = () => showPose(poseSel.value);
 $("posePrev").onclick = () => poseStep(-1);
@@ -647,9 +849,13 @@ function syncPanel() {
   $("sourceLine").textContent = resolved
     ? `resolves: ${resolved.source}` : "resolves: NOTHING — state would fall to sprites";
   const r = rig.getRig(wb.char);
+  const held = entry.inGame === false
+    ? ` — HELD BACK FROM THE GAME${entry.inGameNote ? `: ${entry.inGameNote}` : ""}`
+    : "";
   $("rigLine").textContent = entry.model
-    ? `rig: ${entry.model}${entry.approved ? " (approved)" : " (NOT approved)"}`
+    ? `rig: ${entry.model}${entry.approved ? " (approved)" : " (NOT approved)"}${held}`
     : `rig: none delivered — mannequin standing in (${r ? r.clips.size : 0} own clips)`;
+  document.body.classList.toggle("held-back", entry.inGame === false);
   fromSel.value = entry.clips?.[clipNameFor(wb.state)]?.from || "";
   inheritSel.value = entry.inheritClips || "default";
   $("approveToggle").checked = !!entry.approved;
@@ -667,6 +873,7 @@ function syncPanel() {
     name.onclick = src.onclick = () => { stateSel.value = s; stateSel.onchange(); };
     table.append(name, src);
   }
+  syncRigCheckPanel();
 }
 
 fromSel.onchange = () => {
@@ -762,8 +969,75 @@ const facingUI = {
   yawVal: $("facingYawVal"),
   head: $("facingHead"),
   headVal: $("facingHeadVal"),
+  arm: $("facingArm"),
+  armVal: $("facingArmVal"),
+  shoulder: $("facingShoulder"),
+  shoulderVal: $("facingShoulderVal"),
+  knee: $("facingKnee"),
+  kneeVal: $("facingKneeVal"),
+  more: $("facingMore"),
   stage: $("facingStage"),
+  pick: $("facingDialPick"),
 };
+
+/** WHAT THE FILE SAID, before this session touched anything.
+ *
+ *  Taken once, at boot, and never written to. Every control in this bench
+ *  edits the live manifest in place — which is what makes the dials feel
+ *  immediate — and that left exactly one way back from a number typed by
+ *  accident: reload the page and lose every other fighter's work with it.
+ *  Maki's turn was changed by accident during a head-tilt pass and the pass
+ *  had to be hand-edited out of the payload afterwards. */
+const PRISTINE = new Map();
+// Filled HERE rather than beside initRigs so it is next to what it means, and
+// this line still runs before any handler can fire: everything above is
+// definitions, and the rigs finished loading at the top-level await.
+for (const [k, v] of Object.entries(rig.rigManifest().characters || {})) {
+  PRISTINE.set(k, structuredClone(v));
+}
+
+/** Put one fighter back to what the manifest said at boot. */
+function revertChar(char) {
+  const before = PRISTINE.get(char);
+  const man = rig.rigManifest();
+  man.characters = man.characters || {};
+  if (before) man.characters[char] = structuredClone(before);
+  else delete man.characters[char];
+  const entry = man.characters[char] || {};
+
+  // The three placement numbers and the head carriage live on the RIG as well
+  // as in the entry, so putting the entry back is only half of it. Undefined
+  // where the entry has nothing, so the rig falls back to its own defaults
+  // rather than keeping the edited value.
+  rig.setRigSettings(char, {
+    renderScale: entry.renderScale ?? 1,
+    yawOffsetDeg: entry.yawOffsetDeg ?? 0,
+    stanceDeg: entry.stanceDeg ?? 0,
+    headTiltDeg: entry.headTiltDeg ?? 0,
+    armDeg: entry.armDeg ?? NaN,   // NaN clears it back to "nobody has said"
+    shoulderOutCm: entry.shoulderOutCm ?? 0,
+    kneeDeg: entry.kneeDeg ?? 0,
+  });
+
+  // The look dials pin themselves onto the materials, so a knob this session
+  // added has to be actively un-pinned — dropping it from the entry alone
+  // leaves the material still wearing it.
+  const r = rig.getRig(char);
+  if (r) {
+    for (const [key, spec] of Object.entries(LOOK)) {
+      const stored = entry.toon?.[key];
+      if (stored === undefined) {
+        if (key === "outlinePx") setOutlineFor(r.root, null);
+        else clearToonFor(r.root, [key]);
+      } else if (spec.pushRaw) spec.pushRaw(r.root, stored);
+      else spec.push(r.root, spec.fromStore ? spec.fromStore(stored) : stored);
+    }
+  }
+
+  wb.dirty.delete(char);
+  facing.touched.delete(char);
+  scene.clearCache();
+}
 
 /** How far in to push the viewer.
  *
@@ -793,6 +1067,10 @@ function facingOpen() {
   facing.wasAim = wb.aimOn;
   facing.wasCompare = wb.compare;
   facing.wasPose = wb.pose;
+  // The review judges an IDLE against an idle sprite. A rig check left running
+  // would put a T-pose under that comparison, which is not the same question.
+  facing.wasRigCheck = wb.rigCheck;
+  wb.rigCheck = null;
   // Hold the idle still: a looping breath changes a figure's height by a few
   // pixels, which is enough to argue with while sizing.
   wb.playing = false;
@@ -814,9 +1092,10 @@ function facingClose() {
   wb.aimOn = facing.wasAim;
   wb.compare = facing.wasCompare;
   wb.pose = facing.wasPose;
+  wb.rigCheck = facing.wasRigCheck || null;
   $("compareMode").value = facing.wasCompare;
   fillPoseSelect();
-  if (MODE === "pose" && wb.pose) showPose(wb.pose);
+  if (MODE === "pose") showPose(wb.rigCheck ? `__rig:${wb.rigCheck}` : wb.pose);
   view.pivot.x = facing.wasCompare === "left" ? CX - COMPARE_DX / 2 : CX;
   view.setZoom(facing.wasZoom);
   view.panX = facing.wasPan.x;
@@ -842,6 +1121,10 @@ function facingShow() {
   wb.char = char;
   wb.state = "idle";
   wb.t = 0;
+  // A different fighter may or may not have a second model; the option says
+  // which, and the alternate is fetched here rather than on the frame that
+  // wants to draw it.
+  syncCompareWith();
   // The reference is pinned to the pose being matched (ensureGhostFrame), and
   // the review's pose is the idle — otherwise it would keep showing whichever
   // drawing the bench was left on and size the fighter against a punch.
@@ -857,7 +1140,9 @@ function facingShow() {
   // blank — and a blank reference looks exactly like a model that is right.
   loadFrame(char, "idle_a").catch(() => {});
 
-  const r = rig.getRig(char);
+  // The dials read the model they write to — the alternate when it is the one
+  // standing in the comparison slot.
+  const r = rig.getRig(tunedKey(char));
   const scale = r?.renderScale ?? 1;
   const stance = r?.stanceDeg ?? 0;
   const yaw = ((r?.yawOffsetDeg ?? 0) + 180) % 360 - 180; // shown in [-180, 180)
@@ -870,6 +1155,18 @@ function facingShow() {
   const head = r?.headTiltDeg ?? 0;
   facingUI.head.value = String(head);
   facingUI.headVal.textContent = `${head}°`;
+  // Null means "nobody has said", which shows as the roster's own number
+  // rather than as zero — a dial reading 0 beside arms that are clearly out
+  // is a dial nobody can trust.
+  const arm = r?.armDeg ?? IDLE_ARM_DEG;
+  facingUI.arm.value = String(arm);
+  facingUI.armVal.textContent = `${arm}°`;
+  const shoulder = r?.shoulderOutCm ?? 0;
+  facingUI.shoulder.value = String(shoulder);
+  facingUI.shoulderVal.textContent = `${shoulder.toFixed(1)}cm`;
+  const knee = r?.kneeDeg ?? 0;
+  facingUI.knee.value = String(knee);
+  facingUI.kneeVal.textContent = `${knee}°`;
   facingUI.name.textContent = CHARACTERS[char]?.name || char;
   facingSyncProgress();
   facingUI.overlay.classList.toggle("decided", facing.touched.has(char));
@@ -892,9 +1189,9 @@ function facingSetScale(v) {
 function facingSetHead(deg) {
   const clamped = Math.max(-20, Math.min(20, Math.round(deg * 2) / 2));
   const char = facing.list[facing.i];
-  rig.setRigSettings(char, { headTiltDeg: clamped });
-  if (clamped) entryFor(char).headTiltDeg = clamped;
-  else delete entryFor(char).headTiltDeg;
+  rig.setRigSettings(tunedKey(char), { headTiltDeg: clamped });
+  if (clamped) tunedEntry(char).headTiltDeg = clamped;
+  else delete tunedEntry(char).headTiltDeg;
   wb.dirty.add(char);
   facing.touched.add(char);
   scene.clearCache();
@@ -904,11 +1201,78 @@ function facingSetHead(deg) {
   facingSyncProgress();
 }
 
+/** How far this fighter's arms hang out from the body, in degrees. The engine
+ *  straightens every idle's arms and holds them a few degrees clear (ik.js
+ *  applyIdleArms); this is how far for this one, and it is the same kind of
+ *  judgement as the legs' stance — a heavy coat wants more room than a school
+ *  uniform, and only the drawing can say how much. */
+function facingSetArm(deg) {
+  const clamped = Math.max(0, Math.min(30, Math.round(deg)));
+  const char = facing.list[facing.i];
+  rig.setRigSettings(tunedKey(char), { armDeg: clamped });
+  tunedEntry(char).armDeg = clamped;
+  wb.dirty.add(char);
+  facing.touched.add(char);
+  scene.clearCache();
+  facingUI.arm.value = String(clamped);
+  facingUI.armVal.textContent = `${clamped}°`;
+  facingUI.overlay.classList.add("decided");
+  facingSyncProgress();
+}
+
+/** How far this fighter's arm roots sit out from the body, in centimetres.
+ *  A short clavicle is a generation fault rather than a pose, and it reads as
+ *  the shoulder nearest the camera being squashed into the ribs. This moves
+ *  where the arm STARTS without lengthening it. */
+function facingSetShoulder(cm) {
+  const clamped = Math.max(0, Math.min(10, Math.round(cm * 2) / 2));
+  const char = facing.list[facing.i];
+  rig.setRigSettings(tunedKey(char), { shoulderOutCm: clamped });
+  if (clamped) tunedEntry(char).shoulderOutCm = clamped;
+  else delete tunedEntry(char).shoulderOutCm;
+  wb.dirty.add(char);
+  facing.touched.add(char);
+  scene.clearCache();
+  facingUI.shoulder.value = String(clamped);
+  facingUI.shoulderVal.textContent = `${clamped.toFixed(1)}cm`;
+  facingUI.overlay.classList.add("decided");
+  facingSyncProgress();
+}
+
+/** How far this fighter's shins swing in or out AT THE KNEE, in degrees about
+ *  the fighter's forward axis, positive bringing the feet toward the midline.
+ *
+ *  A MODEL correction, not a pose: generated legs arrive bandy, and it reads at
+ *  game size as a fighter standing on the outside edges of their boots.
+ *  Applied under every state (pose.js, the GLB correction block) rather than in
+ *  the idle, because legs that straighten standing and bow again in a crouch
+ *  would be a correction in the wrong layer.
+ *
+ *  It pivots at the KNEE, which is what separates it from the stance dial:
+ *  stance turns the whole leg from the hip, so the knee travels with the foot
+ *  and the fighter just stands narrower. Here the hips and knees stay put and
+ *  only the shins move, so the bow comes out of the leg rather than the width
+ *  out of the stance. */
+function facingSetKnee(deg) {
+  const clamped = Math.max(-25, Math.min(25, Math.round(deg)));
+  const char = facing.list[facing.i];
+  rig.setRigSettings(tunedKey(char), { kneeDeg: clamped });
+  if (clamped) tunedEntry(char).kneeDeg = clamped;
+  else delete tunedEntry(char).kneeDeg;
+  wb.dirty.add(char);
+  facing.touched.add(char);
+  scene.clearCache();
+  facingUI.knee.value = String(clamped);
+  facingUI.kneeVal.textContent = `${clamped}°`;
+  facingUI.overlay.classList.add("decided");
+  facingSyncProgress();
+}
+
 function facingSetStance(deg) {
   const clamped = Math.max(-10, Math.min(25, Math.round(deg)));
   const char = facing.list[facing.i];
-  rig.setRigSettings(char, { stanceDeg: clamped });
-  entryFor(char).stanceDeg = clamped;
+  rig.setRigSettings(tunedKey(char), { stanceDeg: clamped });
+  tunedEntry(char).stanceDeg = clamped;
   wb.dirty.add(char);
   facing.touched.add(char);
   scene.clearCache();
@@ -952,6 +1316,9 @@ $("facingScale").oninput = () => facingSetScale(parseFloat(facingUI.scale.value)
 $("facingStance").oninput = () => facingSetStance(parseFloat(facingUI.stance.value) || 0);
 $("facingYaw").oninput = () => facingSetYaw(parseFloat(facingUI.yaw.value) || 0);
 $("facingHead").oninput = () => facingSetHead(parseFloat(facingUI.head.value) || 0);
+$("facingArm").oninput = () => facingSetArm(parseFloat(facingUI.arm.value) || 0);
+$("facingShoulder").oninput = () => facingSetShoulder(parseFloat(facingUI.shoulder.value) || 0);
+$("facingKnee").oninput = () => facingSetKnee(parseFloat(facingUI.knee.value) || 0);
 for (const b of document.querySelectorAll("[data-scale]")) {
   b.onclick = () => facingSetScale((parseFloat(facingUI.scale.value) || 1)
     + parseFloat(b.dataset.scale));
@@ -963,6 +1330,18 @@ for (const b of document.querySelectorAll("[data-stance]")) {
 for (const b of document.querySelectorAll("[data-yaw]")) {
   b.onclick = () => facingSetYaw((parseFloat(facingUI.yaw.value) || 0)
     + parseFloat(b.dataset.yaw));
+}
+for (const b of document.querySelectorAll("[data-shoulder]")) {
+  b.onclick = () => facingSetShoulder((parseFloat(facingUI.shoulder.value) || 0)
+    + parseFloat(b.dataset.shoulder));
+}
+for (const b of document.querySelectorAll("[data-arm]")) {
+  b.onclick = () => facingSetArm((parseFloat(facingUI.arm.value) || 0)
+    + parseFloat(b.dataset.arm));
+}
+for (const b of document.querySelectorAll("[data-knee]")) {
+  b.onclick = () => facingSetKnee((parseFloat(facingUI.knee.value) || 0)
+    + parseFloat(b.dataset.knee));
 }
 for (const b of document.querySelectorAll("[data-headtilt]")) {
   b.onclick = () => facingSetHead((parseFloat(facingUI.head.value) || 0)
@@ -976,6 +1355,35 @@ $("facingFit").onclick = () => {
   if (s) facingSetScale(s.scale);
   else notify("no measurement for this fighter — size by eye");
 };
+/** Which single dial the phone layout shows. Desktop shows all four and this
+ *  class does nothing there. */
+facingUI.pick.onchange = () => {
+  for (const d of document.querySelectorAll("#facingDials .facing-dial")) {
+    d.classList.toggle("active", d.dataset.dial === facingUI.pick.value);
+  }
+};
+
+/** The four settle-once dials, folded away. Desk only — the phone layout
+ *  shows one dial at a time and reaches the rest through the picker, so this
+ *  button is hidden there rather than fighting it. */
+facingUI.more.onclick = () => {
+  const on = $("facingDials").classList.toggle("more");
+  facingUI.more.setAttribute("aria-expanded", String(on));
+  facingUI.more.textContent = on ? "Less \u25b4" : "More \u25be";
+};
+
+$("facingRevert").onclick = () => {
+  const char = facing.list[facing.i];
+  if (!facing.touched.has(char) && !wb.dirty.has(char)) {
+    notify(`${CHARACTERS[char]?.name || char} has no changes to revert`);
+    return;
+  }
+  revertChar(char);
+  facingShow();
+  syncLookPanel();
+  notify(`${CHARACTERS[char]?.name || char} back to the manifest's numbers`);
+};
+
 $("facingNext").onclick = () => facingGo(1);
 $("facingPrev").onclick = () => facingGo(-1);
 $("facingSave").onclick = () => {
@@ -991,6 +1399,9 @@ $("facingSave").onclick = () => {
     sizes: Object.fromEntries(chars.map((k) => [k, {
       renderScale: man.characters[k]?.renderScale ?? 1,
       stanceDeg: man.characters[k]?.stanceDeg ?? 0,
+      armDeg: man.characters[k]?.armDeg ?? null,
+      shoulderOutCm: man.characters[k]?.shoulderOutCm ?? 0,
+      kneeDeg: man.characters[k]?.kneeDeg ?? 0,
       yawOffsetDeg: man.characters[k]?.yawOffsetDeg ?? 0,
     }])),
     characters: Object.fromEntries(chars.map((k) => [k, man.characters[k]])),
@@ -1067,7 +1478,8 @@ function posePreviewNow() {
 /** The size dial, the facing, and the measurement offered beside them. */
 let suggested = null;
 function syncSizePanel() {
-  const r = rig.getRig(wb.char);
+  // Whichever model the comparison is showing — see tunedKey.
+  const r = rig.getRig(tunedKey(wb.char));
   if (!r) return;
   $("scaleRange").value = String(r.renderScale);
   $("scaleNum").value = String(r.renderScale);
@@ -1087,8 +1499,8 @@ function syncSizePanel() {
 
 function setScale(v) {
   const clamped = Math.max(0.4, Math.min(2.5, v));
-  rig.setRigSettings(wb.char, { renderScale: clamped });
-  entryFor(wb.char).renderScale = +clamped.toFixed(4);
+  rig.setRigSettings(tunedKey(wb.char), { renderScale: clamped });
+  tunedEntry(wb.char).renderScale = +clamped.toFixed(4);
   wb.dirty.add(wb.char);
   scene.clearCache();
   syncSizePanel();
@@ -1098,8 +1510,8 @@ $("scaleNum").onchange = () => setScale(parseFloat($("scaleNum").value) || 1);
 $("scaleReset").onclick = () => setScale(1);
 $("scaleSuggest").onclick = () => { if (suggested) setScale(suggested.scale); };
 function setYaw(deg) {
-  rig.setRigSettings(wb.char, { yawOffsetDeg: deg });
-  entryFor(wb.char).yawOffsetDeg = deg;
+  rig.setRigSettings(tunedKey(wb.char), { yawOffsetDeg: deg });
+  tunedEntry(wb.char).yawOffsetDeg = deg;
   wb.dirty.add(wb.char);
   scene.clearCache();
   syncSizePanel();
@@ -1108,7 +1520,7 @@ $("yawRange").oninput = () => setYaw(parseFloat($("yawRange").value) || 0);
 $("yawNum").onchange = () => setYaw(parseFloat($("yawNum").value) || 0);
 $("yawReset").onclick = () => setYaw(0);
 $("yawFlip").onclick = () => {
-  const cur = rig.getRig(wb.char)?.yawOffsetDeg || 0;
+  const cur = rig.getRig(tunedKey(wb.char))?.yawOffsetDeg || 0;
   setYaw(((cur + 180 + 180) % 360 + 360) % 360 - 180);
 };
 
@@ -1195,6 +1607,25 @@ async function ensureGhostFrame() {
 // control away — a dial that silently edits whichever of the five happens to
 // be selected is a dial that damages four of them by accident.
 
+/** "This body is not in the game yet", written where the body is.
+ *
+ *  The panel says it too, but the panel is not on screen in the line-up and is
+ *  behind the overlay in the Idle Review — and those are exactly the views
+ *  where five fighters are being compared and one of them is not shipping.
+ *  Drawn under the feet, in the same place every other caption goes. */
+function drawHeldBack(ctx, charKey, x, groundY) {
+  if (rig.inGame(charKey)) return;
+  ctx.save();
+  ctx.font = "600 12px system-ui, sans-serif";
+  const text = "not in game yet";
+  const w = ctx.measureText(text).width;
+  ctx.fillStyle = "rgba(210, 150, 90, 0.16)";
+  ctx.fillRect(x - w / 2 - 6, groundY + 24, w + 12, 17);
+  ctx.fillStyle = "#d3925a";
+  ctx.fillText(text, x - w / 2, groundY + 36);
+  ctx.restore();
+}
+
 const CAST = 5;
 /** How far apart they stand, in game pixels — wide enough that a spear or a
  *  swung axe does not cross into the neighbour's half. */
@@ -1238,6 +1669,7 @@ async function drawLineUp() {
     rig.setBoneProxy(char, false);
     const entry = scene.renderPose(char, wb.state, wb.t, r, resolved, base);
     if (entry) blitPose(ctx, entry, char, x, GROUND_Y, { scale: getActor(char)?.scale, facing, alpha: 0.95 });
+    drawHeldBack(ctx, char, x, GROUND_Y);
 
     // The rig goes on the SHELF, in the slot the drawing would have taken.
     // Five pairs have no room for a third column each, and the models are the
@@ -1252,6 +1684,19 @@ async function drawLineUp() {
       proxied.add(char);
       if (mqEntry) {
         blitPose(ctx, mqEntry, char, x, shelf, { scale: getActor(char)?.scale, facing, alpha: 0.95 });
+      }
+    } else if (wb.compareWith === "alt" && rig.hasAlt(char)) {
+      // Same shelf, same trade as the skeleton: the alternate displaces the
+      // drawing rather than the body, because the bodies are what is lined up.
+      const altR = rig.getRig(rig.altKey(char));
+      if (!altR) { rig.ensureAltRig(char, GLTFLoader).then(() => scene.clearCache()); }
+      else {
+        const altEntry = scene.renderPose(rig.altKey(char), wb.state, wb.t, altR,
+          resolvedClip(rig.altKey(char), wb.state), base);
+        if (altEntry) {
+          blitPose(ctx, altEntry, char, x, shelf,
+            { scale: getActor(char)?.scale, facing, alpha: 0.95 });
+        }
       }
     } else if (wb.compare !== "off") {
       // ABOVE, not beside: five pairs side by side have no room for a second
@@ -1328,11 +1773,15 @@ async function draw() {
   // one click away on the compare dial, and `Overlay` keeps all three at once
   // — drawing, rig and model — for the moment you want them.
   const beside = wb.compare === "left";
-  const mqX = wb.mannequin ? CX - COMPARE_DX : null;
+  const showAlt = altShown();
+  const mqX = (wb.mannequin || showAlt) ? CX - COMPARE_DX : null;
   const spriteX = beside ? CX - COMPARE_DX : CX;
-  const spriteYields = wb.mannequin && beside;
+  const spriteYields = (wb.mannequin || showAlt) && beside;
 
-  if (wb.compare !== "off" && !spriteYields) {
+  // NO REFERENCE DRAWING FOR A RIG CHECK. There is no sprite of anybody
+  // standing in a T-pose, so whatever the ghost drew would be a different pose
+  // presented as the thing to match — the one way this view can mislead.
+  if (wb.compare !== "off" && !spriteYields && !wb.rigCheck) {
     const frame = await ensureGhostFrame();
     drawCharFrame(ctx, wb.char, frame, spriteX, GROUND_Y, {
       scale: getActor(wb.char)?.scale, alpha: beside ? 1 : 0.35,
@@ -1370,6 +1819,9 @@ async function draw() {
     // would have overwritten, applied after it (pose.js).
     postEdits: editor.postEdits(clipTime(wb.state, wb.t)),
     editKey: editor.editKey(),
+    // A rig check replaces the pose entirely, clip and live layers alike —
+    // everything above is ignored while it is set (pose.js poseRigCheck).
+    rigCheck: wb.rigCheck,
   };
   lastLayers = layers;
   const r = bodyFor(wb.char);
@@ -1381,6 +1833,7 @@ async function draw() {
   lastEntry = entry;
   if (entry) {
     blitPose(ctx, entry, wb.char, CX, GROUND_Y, { scale: getActor(wb.char)?.scale, facing, alpha: 0.95 });
+    drawHeldBack(ctx, wb.char, CX, GROUND_Y);
   } else {
     ctx.fillStyle = "#d38f8f";
     ctx.fillText("no pose resolved — this state would draw as sprites in-game", CX - 160, GROUND_Y - 100);
@@ -1402,6 +1855,36 @@ async function draw() {
         { scale: getActor(wb.char)?.scale, facing, alpha: 0.95 });
       ctx.fillStyle = "#8b96b3";
       ctx.fillText("rig", mqX - 10, GROUND_Y + 18);
+    }
+  }
+
+  // THE OTHER MODEL, in the same slot and the same pose. Its own rig key, so
+  // the pose cache never serves one body the other's pixels, and its own
+  // manifest block, so the size and turn you are comparing are the ones that
+  // .glb was reviewed with. `blitPose` is handed the ALTERNATE's entry but the
+  // CHARACTER's key: the head-height target is a fact about the fighter, while
+  // heightM and renderScale are facts about the file — which is exactly the
+  // split that makes the two stand at comparable size.
+  if (showAlt && mqX !== null) {
+    const altR = rig.getRig(rig.altKey(wb.char));
+    if (altR) {
+      // Same layers, so both bodies hold the SAME pose — the two rigs carry
+      // the same standard bone names, which is what makes an edit meaningful
+      // on either. Only the clip is resolved per rig, because an older model
+      // may cover a different set of states.
+      const altEntry = scene.renderPose(rig.altKey(wb.char), wb.state, wb.t, altR,
+        resolvedClip(rig.altKey(wb.char), wb.state), layers);
+      if (altEntry) {
+        blitPose(ctx, altEntry, wb.char, mqX, GROUND_Y,
+          { scale: getActor(wb.char)?.scale, facing, alpha: 0.95 });
+        ctx.fillStyle = "#8b96b3";
+        ctx.fillText(rig.altEntry(wb.char)?.label || "alt", mqX - 30, GROUND_Y + 18);
+        ctx.fillText("current", CX - 22, GROUND_Y + 18);
+      }
+    } else {
+      ensureAlt();
+      ctx.fillStyle = "#8b96b3";
+      ctx.fillText("loading the alternate…", mqX - 60, GROUND_Y - 40);
     }
   }
 
@@ -1481,8 +1964,9 @@ charSel.onchange = async () => {
   // Hold the pose being worked on if the new fighter has it, so walking the
   // roster to compare one drawing stays on that drawing.
   if (wb.mannequin) syncBoneProxy();
+  syncCompareWith();
   fillPoseSelect();
-  if (MODE === "pose" && wb.pose) showPose(wb.pose);
+  if (MODE === "pose") showPose(wb.rigCheck ? `__rig:${wb.rigCheck}` : wb.pose);
   // A different rig is a different skeleton: the joint list is rebuilt from
   // whatever bones this body actually has.
   editor.fillJoints();
@@ -1578,7 +2062,8 @@ if (MODE === "pose") view.setZoom(1.8);
 $("aimToggle").checked = wb.aimOn;
 syncModeLinks();
 fillPoseSelect();
-if (MODE === "pose" && wb.pose) showPose(wb.pose);
+if (MODE === "pose") showPose(wb.rigCheck ? `__rig:${wb.rigCheck}` : wb.pose);
+syncCompareWith();
 syncSizePanel();
 syncLookPanel();
 applyLook();

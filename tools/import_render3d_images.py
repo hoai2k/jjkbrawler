@@ -40,7 +40,30 @@ ROUNDS = {
     "_face.png":       ("DI2", "render3d/docs/reference"),
     "_shade.png":      ("DI3", "render3d/docs/reference"),
     "_mouth_sheet.png": ("DI4", "render3d/assets/textures"),
+    # DI5's second plate: the weapon alone, so the generator never sees it
+    # touching a hand (tools/blender_attach_prop.py joins them afterwards).
+    "_prop.png":       ("DI5", "render3d/docs/reference"),
 }
+
+
+def regenerating():
+    """Fighters whose delivered model the health audit calls unrepairable.
+
+    A turnaround board for one of them is a DI5 REPLACEMENT, not a first DI1
+    delivery — same file, same checks, different round, and worth saying so in
+    the log because the two rounds mean different things about a fighter.
+    """
+    import json
+    p = os.path.join(ROOT, "render3d/docs/reference/model-health.json")
+    if not os.path.exists(p):
+        return set()
+    try:
+        rows = json.load(open(p, encoding="utf-8")).get("rows", [])
+    except Exception:
+        return set()
+    bad = ("NOT RECONSTRUCTED", "FUSED INTO", "ABOVE the head")
+    return {r["char"] for r in rows
+            if any(any(b in f for b in bad) for f in r.get("findings", []))}
 
 # Where a delivery is archived once imported, and where a refused one is kept.
 ARCHIVE = "assets/reference/round21"
@@ -126,11 +149,14 @@ def main():
         return 0
 
     take, refuse, warn = [], [], []
+    redo = regenerating()
     for src, char, rnd, dest, name in found:
         if char not in keys:
             refuse.append((src, char, rnd, name, f"no fighter keyed `{char}`"))
             continue
-        if rnd == "DI1":
+        if rnd == "DI1" and char in redo:
+            rnd = "DI5"
+        if rnd in ("DI1", "DI5") and name.endswith("_turnaround.png"):
             runs = edge_cut(src)
             if runs is None:
                 refuse.append((src, char, rnd, name, "cannot check the crop — Pillow/numpy missing"))

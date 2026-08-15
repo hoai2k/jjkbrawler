@@ -53,8 +53,12 @@ const poses = await page.evaluate(() => {
            first: sel.value };
 });
 check(poses.n > 20, "every sprite pose this fighter draws is listed", `${poses.n} poses`);
-check(poses.groups.length > 8 && poses.groups[0] === "idle",
-  "grouped by the state that draws them", `${poses.groups.length} groups, first "${poses.groups[0]}"`);
+// The rig checks come first and are not a state (see below), so the drawings
+// start at the second group.
+const spriteGroups = poses.groups.slice(1);
+check(spriteGroups.length > 8 && spriteGroups[0] === "idle",
+  "grouped by the state that draws them",
+  `${spriteGroups.length} groups, first "${spriteGroups[0]}"`);
 
 // The reference has to be the pose NAMED, not whatever the playhead happens to
 // be over — the failure that would quietly waste a whole session.
@@ -125,14 +129,113 @@ check(edited.onKey0.length === 0,
 check(edited.marked.startsWith("●"),
   "...and the list says which poses are done", edited.marked.trim());
 
+// ------------------------------------------------------------ the rig checks
+//
+// T AND A, ABOVE THE DRAWINGS. Not poses of the character — poses of the
+// SKELETON, where a bone rolled the wrong way, a shoulder built inside the
+// chest or a foot that is really a lump has nowhere to hide. In a pose that
+// came out of a clip all of that reads as something the animation did, which
+// is why this is the check you make before spending a session matching
+// drawings, and why it sits at the top of the list rather than the bottom.
+
+const rigChecks = await page.evaluate(() => {
+  const sel = document.getElementById("poseSelect");
+  const first = sel.querySelector("optgroup");
+  return { group: first?.label || "",
+           values: [...(first?.children || [])].map((o) => o.value),
+           beforeAnySprite: sel.options[0].value };
+});
+check(rigChecks.values.join(",") === "__rig:T,__rig:A",
+  "the rig checks head the pose list", `${rigChecks.group}: ${rigChecks.values.join(", ")}`);
+check(rigChecks.beforeAnySprite === "__rig:T",
+  "...before any drawing", rigChecks.beforeAnySprite);
+
+// Picking one has to actually straighten the model out. Arms LEVEL for the T
+// and roughly halfway down for the A, measured against the body's own width
+// axis so a fighter built facing sideways is judged on their own frame.
+const tpose = await page.evaluate(async (kind) => {
+  const sel = document.getElementById("poseSelect");
+  sel.value = `__rig:${kind}`;
+  sel.onchange();
+  await new Promise((r) => setTimeout(r, 900));
+  const rigs = await import("/render3d/src/loader.js");
+  const THREE = await import("/vendor/three/three.module.js");
+  const r = rigs.getRig("maki");
+  r.root.updateMatrixWorld(true);
+  const at = (n) => r.root.getObjectByName(n).getWorldPosition(new THREE.Vector3());
+  const out = {};
+  for (const side of ["Left", "Right"]) {
+    const arm = at(`${side}Arm`), hand = at(`${side}Hand`);
+    const v = hand.clone().sub(arm);
+    // Degrees below horizontal: 0 is a T, 45 is an A, 90 is an arm hanging.
+    out[side] = +(Math.atan2(-v.y, Math.hypot(v.x, v.z)) * 180 / Math.PI).toFixed(1);
+  }
+  out.where = document.getElementById("poseWhere").textContent;
+  out.url = new URL(location).searchParams.get("rigcheck");
+  return out;
+}, "T");
+check(Math.abs(tpose.Left) < 20 && Math.abs(tpose.Right) < 20,
+  "the T-pose puts both arms out level",
+  `left ${tpose.Left}° / right ${tpose.Right}° below horizontal`);
+check(Math.abs(tpose.Left - tpose.Right) < 12,
+  "...and puts them at the SAME angle, which is what makes a bad rig show",
+  `${Math.abs(tpose.Left - tpose.Right).toFixed(1)}° apart`);
+check(tpose.url === "T", "...and says so in the URL, so a rig check is linkable", tpose.url);
+
+const apose = await page.evaluate(async () => {
+  const sel = document.getElementById("poseSelect");
+  sel.value = "__rig:A";
+  sel.onchange();
+  await new Promise((r) => setTimeout(r, 900));
+  const rigs = await import("/render3d/src/loader.js");
+  const THREE = await import("/vendor/three/three.module.js");
+  const r = rigs.getRig("maki");
+  r.root.updateMatrixWorld(true);
+  const at = (n) => r.root.getObjectByName(n).getWorldPosition(new THREE.Vector3());
+  const v = at("LeftHand").sub(at("LeftArm"));
+  return +(Math.atan2(-v.y, Math.hypot(v.x, v.z)) * 180 / Math.PI).toFixed(1);
+});
+check(apose > 25 && apose < 70,
+  "the A-pose drops the arms to about 45°", `${apose}° below horizontal`);
+
+// THE BAKE LIST, BESIDE THE BODY. The figure on screen is the .glb PLUS the
+// corrections; this is that difference written down, so the pose answers "is
+// this rig good" and "what is left in the pipeline" at once.
+const owed = await page.evaluate(async () => {
+  const rigs = await import("/render3d/src/loader.js");
+  const fixes = await import("/render3d/src/rig_fixes.js");
+  const entry = rigs.rigManifest().characters?.maki || {};
+  const box = document.getElementById("rigCheckOut");
+  return { hidden: box.hidden, text: box.innerText,
+           expect: Object.keys(fixes.pendingFixes("maki", entry)) };
+});
+check(!owed.hidden && owed.expect.length > 0,
+  "the rig check shows what the model still owes", owed.expect.join(", "));
+check(owed.expect.every((k) => owed.text.includes(k)),
+  "...every outstanding correction by name, with what baking it would be",
+  `${owed.expect.length} listed`);
+// And it goes away again: on a real drawing the panel would be a list of
+// corrections with no visible connection to what is on screen.
+const gone = await page.evaluate(async () => {
+  const sel = document.getElementById("poseSelect");
+  sel.value = "attack_heavy_b";
+  sel.onchange();
+  await new Promise((r) => setTimeout(r, 600));
+  return { hidden: document.getElementById("rigCheckOut").hidden,
+           url: new URL(location).searchParams.get("rigcheck"),
+           pose: new URL(location).searchParams.get("pose") };
+});
+check(gone.hidden && !gone.url && gone.pose === "attack_heavy_b",
+  "...and steps aside for a real drawing", `?pose=${gone.pose}`);
+
 // ------------------------------------------------------- the animation bench
 
-await page.goto(`${BASE}/render3d/workbench/index.html?edit=animation&char=maki&state=sideHeavy`,
+await page.goto(`${BASE}/render3d/workbench/index.html?edit=keys&char=maki&state=sideHeavy`,
   { waitUntil: "load" });
 await page.waitForFunction(() => window.__workbenchReady === true, { timeout: 90000 });
 await page.waitForTimeout(1200);
 check(await page.evaluate(() => document.body.classList.contains("mode-anim")),
-  "?edit=animation opens the animation bench");
+  "?edit=keys opens the animation bench");
 const shownAnim = await page.evaluate(() =>
   ["scrub", "playBtn", "keyStrip", "easeSelect", "interpToggle"]
     .filter((id) => document.getElementById(id)?.offsetParent !== null));
@@ -145,32 +248,52 @@ check(strip.join(",") === "attack_heavy_a,attack_heavy_b",
   "the keyframe strip names the drawings", strip.join(" / "));
 
 // The A/B the strategy needs: same state, two different animations.
+//
+// ASKED OF THE CLIPS, not of the pixels. This used to compare opaque-pixel
+// counts between the toggle's two settings, and it could not fail: the edit
+// check above dirties maki's sideHeavy table and the edit survives the
+// reload, so both halves played the same rebuilt clip, and two frames of one
+// animation differ by a pixel or two, which the count read as "different".
+//
+// Nor can pixels answer it in general. Every state of maki's except the idle
+// already resolves to a LIBRARY clip, which is itself built from the sprite
+// poses — for those, "delivered" and "interpolated" are two roads to the same
+// animation and SHOULD look alike. The question the toggle actually asks is
+// which clip is playing, so that is what is checked.
 const ab = await page.evaluate(async () => {
-  const scene = await import("/render3d/src/scene.js");
-  const shot = () => {
-    const c = document.getElementById("stage");
-    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
-    let n = 0;
-    for (let i = 3; i < d.length; i += 4) if (d[i] > 40) n++;
-    return n;
-  };
-  const settle = () => new Promise((r) => setTimeout(r, 800));
-  document.getElementById("playBtn").onclick();          // hold the playhead
-  document.getElementById("scrub").value = "0.5";
-  document.getElementById("scrub").oninput();
-  scene.clearCache();
-  await settle();
-  const delivered = shot();
+  const ed = window.__poseEditor;
+  const rigs = await import("/render3d/src/loader.js");
   const box = document.getElementById("interpToggle");
-  box.checked = true;
-  box.onchange();
-  scene.clearCache();
-  await settle();
-  return { delivered, interpolated: shot() };
+  // A state with no edits on it, so "a clip comes back" means the
+  // interpolation put it there rather than the editor having done.
+  const st = "light";
+  const settle = () => new Promise((r) => setTimeout(r, 400));
+  box.checked = false; box.onchange(); await settle();
+  const off = ed.editedClip("maki", st);
+  box.checked = true; box.onchange(); await settle();
+  const on = ed.editedClip("maki", st);
+  const table = ed.tables.maki?.[st];
+  // Put the toggle back — everything downstream draws the stage and compares
+  // it, and an audition left running is a difference they would all inherit.
+  box.checked = false; box.onchange(); await settle();
+  return {
+    off: off ? off.name : null,
+    on: on ? { name: on.name, tracks: on.tracks.length, dur: +on.duration.toFixed(3) } : null,
+    dirty: !!table?.dirty,
+    fromPoses: !!table?.fromPoses,
+    keys: table?.keys?.map((k) => k.frame) || [],
+    resolved: rigs.resolveClip("maki", st)?.source,
+  };
 });
-check(ab.delivered > 1000 && ab.interpolated > 1000 && ab.delivered !== ab.interpolated,
-  "the sprite-pose interpolation is a real alternative, not the same clip",
-  `mid-strike covers ${ab.delivered}px delivered -> ${ab.interpolated}px interpolated`);
+check(!ab.dirty && ab.fromPoses && ab.keys.length > 1,
+  "the A/B runs on an unedited state whose keys are sprite poses",
+  `maki light: ${ab.keys.join(", ")} (${ab.resolved} clip), dirty=${ab.dirty}`);
+check(ab.off === null,
+  "with the toggle off the fighter plays the clip they were given",
+  ab.off === null ? "no editor clip" : `editor clip "${ab.off}"`);
+check(!!ab.on && ab.on.tracks > 10 && ab.on.dur > 0,
+  "...and with it on, one built from the sprite poses instead",
+  ab.on ? `"${ab.on.name}", ${ab.on.tracks} tracks, ${ab.on.dur}s` : "no clip built");
 
 // ------------------------------------------------------------- the bone proxy
 
@@ -187,22 +310,250 @@ const rigView = await page.evaluate(async () => {
     });
     return { skin, boxes };
   };
+  // THE SKELETON IS NOT A MODE THE RIG SITS IN. It is a second render of the
+  // same body: the proxy goes on for the length of one renderPose and comes
+  // straight back off, so between draws the rig is meant to be showing skin.
+  // Asking "is it showing bones now?" after the toggle settles therefore tests
+  // an architecture the workbench no longer has — it read 0 boxes for exactly
+  // the reason the design says it should. What survives the change is the
+  // claim a viewer actually makes: the swap works when applied, and turning
+  // the checkbox on draws a DIFFERENT PICTURE.
   const before = skinShown();
-  document.getElementById("mqToggle").click();
-  await settle();
-  const on = skinShown();
-  document.getElementById("mqToggle").click();
-  await settle();
-  return { before, on, off: skinShown() };
+  const applied = (() => {
+    rigMod.setBoneProxy("maki", true);
+    const on = skinShown();
+    rigMod.setBoneProxy("maki", false);
+    return { on, back: skinShown() };
+  })();
+
+  // A coarse coverage grid — "is this a different picture?" — not a pixel
+  // count: a skeleton and a body can cover similar areas and still look
+  // nothing alike.
+  const ink = () => {
+    const c = document.getElementById("stage");
+    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    const G = 24, g = new Array(G * G).fill(0);
+    for (let y = 0; y < c.height; y++) {
+      for (let x = 0; x < c.width; x++) {
+        if (d[((y * c.width) + x) * 4 + 3] > 40) {
+          g[Math.min(G - 1, Math.floor((y / c.height) * G)) * G
+            + Math.min(G - 1, Math.floor((x / c.width) * G))]++;
+        }
+      }
+    }
+    return g;
+  };
+  const pick = async (v) => {
+    const sel = document.getElementById("compareWith");
+    sel.value = v;
+    sel.onchange();
+    await settle();
+  };
+  const drawnSkin = ink();
+  await pick("mannequin");
+  const drawnBones = ink();
+  await pick("sprite");
+  const drawnAgain = ink();
+  const diff = (a, b) => a.reduce((n, v, i) => n + (v !== b[i] ? 1 : 0), 0);
+  return {
+    before, applied,
+    changed: diff(drawnSkin, drawnBones),
+    restored: diff(drawnSkin, drawnAgain),
+    // The fighter's own footprint, not the whole grid: most of the stage is
+    // background and floor, which a skeleton does not touch and which would
+    // drown the signal in a denominator it has nothing to do with.
+    inked: drawnSkin.filter((v) => v > 0).length,
+  };
 });
 check(rigView.before.boxes === 0 && rigView.before.skin > 0,
   "the model is the model until asked otherwise", `${rigView.before.skin} skin mesh(es)`);
-check(rigView.on.skin === 0 && rigView.on.boxes > 20,
+check(rigView.applied.on.skin === 0 && rigView.applied.on.boxes > 20,
   "Mannequin(s) draws the fighter's own bones instead of their skin",
-  `${rigView.on.boxes} bone boxes, ${rigView.on.skin} skin`);
-check(rigView.off.skin === rigView.before.skin && rigView.off.boxes === 0,
+  `${rigView.applied.on.boxes} bone boxes, ${rigView.applied.on.skin} skin`);
+check(rigView.applied.back.skin === rigView.before.skin && rigView.applied.back.boxes === 0,
   "...and turning it off gives the model back exactly",
-  `${rigView.off.skin} skin mesh(es)`);
+  `${rigView.applied.back.skin} skin mesh(es)`);
+check(rigView.changed > rigView.inked * 0.25,
+  "the checkbox actually redraws the stage as a skeleton",
+  `${rigView.changed} of ${rigView.inked} inked cells differ`);
+check(rigView.restored === 0,
+  "...and unchecking it draws the model back, to the cell",
+  `${rigView.restored} cell(s) still differ`);
+
+// --------------------------------------------------- the shoulder-width dial
+//
+// IT MUST PUSH THE SHOULDERS APART, not turn them. The dial moves each arm
+// root out along the body's own shoulder line, and the arm layer reads BIND
+// frames — which are the model's, and know nothing about the yaw poseRig puts
+// on the root for a delivery that was built facing somewhere other than the
+// camera. Treating those frames as world silently rotated the push by exactly
+// that offset, so at Nanami's 75 degrees almost all of a 10 cm widening went
+// fore-and-aft instead: one shoulder forward, one back, which is a twist.
+// Maki is yawed 60, so a rig with no offset cannot stand in for her here.
+
+const wide = await page.evaluate(async () => {
+  const rigs = await import("/render3d/src/loader.js");
+  const scene = await import("/render3d/src/scene.js");
+  const THREE = await import("/vendor/three/three.module.js");
+  const r = rigs.getRig("maki");
+  if (!r || r.isMannequin) return null;
+  const at = (n) => {
+    const o = r.root.getObjectByName(n);
+    const v = new THREE.Vector3();
+    o.getWorldPosition(v);
+    return v;
+  };
+  const res = rigs.resolveClip("maki", "idle");
+  const keep = r.shoulderOutCm;
+  const pose = () => { scene.posePreview("maki", "idle", 0, r, res, {}); r.root.updateMatrixWorld(true); };
+  r.shoulderOutCm = 0; pose();
+  const L0 = at("LeftArm"), R0 = at("RightArm");
+  // The body's own axes, taken before anything moves.
+  const lat = R0.clone().sub(L0); lat.y = 0; lat.normalize();
+  const fwd = new THREE.Vector3(-lat.z, 0, lat.x);
+  r.shoulderOutCm = 10; pose();
+  const dL = at("LeftArm").sub(L0), dR = at("RightArm").sub(R0);
+  r.shoulderOutCm = keep; pose();
+  return {
+    yaw: r.yawOffsetDeg,
+    outCm: [-dL.dot(lat) * 100, dR.dot(lat) * 100].map((v) => +v.toFixed(2)),
+    fwdCm: [dL.dot(fwd) * 100, dR.dot(fwd) * 100].map((v) => +v.toFixed(2)),
+  };
+});
+if (!wide) {
+  check(false, "maki's rig is loaded for the shoulder check");
+} else {
+  check(Math.abs(wide.yaw) > 15,
+    "the shoulder check runs on a YAWED rig, or it proves nothing", `yaw ${wide.yaw}°`);
+  check(wide.outCm.every((v) => v > 9.5),
+    "a 10 cm shoulder dial moves both arm roots 10 cm outward",
+    `${wide.outCm.join(" / ")} cm out`);
+  check(wide.fwdCm.every((v) => Math.abs(v) < 1),
+    "...and does not push either of them fore or aft",
+    `${wide.fwdCm.join(" / ")} cm fore/aft`);
+}
+
+// ------------------------------------------- the GLB corrections hold in ALL
+//                                             states, not just the idle
+//
+// The shoulder dial used to be an argument to the idle-arm layer, which meant
+// it only existed while a fighter was standing still: Uro measured 37.6 cm
+// across the shoulders in her idle and 24.9 cm mid-punch — a 12.7 cm snap,
+// exactly twice her 6.5 cm correction, on the first frame of every attack.
+//
+// That is the failure mode this class of number invites, so it is guarded
+// rather than commented: a correction to the MODEL is true of the body no
+// matter what it is doing, and the test is that turning the dial moves the
+// shoulders by the same amount in a strike as it does at rest.
+
+const across = await page.evaluate(async () => {
+  const rigs = await import("/render3d/src/loader.js");
+  const scene = await import("/render3d/src/scene.js");
+  const THREE = await import("/vendor/three/three.module.js");
+  const r = rigs.getRig("maki");
+  if (!r || r.isMannequin) return null;
+  const at = (n) => r.root.getObjectByName(n).getWorldPosition(new THREE.Vector3());
+  const keep = r.shoulderOutCm;
+  // Span between the arm roots, with the dial off and then at 10 cm. The
+  // DIFFERENCE is what has to match across states — the raw span does not,
+  // because a punch legitimately swings one shoulder round.
+  const spanFor = (state) => {
+    const res = rigs.resolveClip("maki", state);
+    const measure = () => {
+      scene.posePreview("maki", state, 0, r, res, {});
+      r.root.updateMatrixWorld(true);
+      return at("LeftArm").distanceTo(at("RightArm"));
+    };
+    r.shoulderOutCm = 0; const off = measure();
+    r.shoulderOutCm = 10; const on = measure();
+    return +((on - off) * 100).toFixed(2);
+  };
+  const out = {};
+  for (const s of ["idle", "light", "sideHeavy", "crouch", "run"]) out[s] = spanFor(s);
+  r.shoulderOutCm = keep;
+  scene.posePreview("maki", "idle", 0, r, rigs.resolveClip("maki", "idle"), {});
+  return out;
+});
+if (!across) {
+  check(false, "maki's rig is loaded for the cross-state correction check");
+} else {
+  const vals = Object.values(across);
+  const spread = Math.max(...vals) - Math.min(...vals);
+  const shown = Object.entries(across).map(([k, v]) => `${k} ${v}`).join(" / ");
+  check(vals.every((v) => v > 15),
+    "the shoulder correction reaches every state, not only the idle", shown);
+  check(spread < 1.5,
+    "...and widens the shoulders by the same amount in each",
+    `spread ${spread.toFixed(2)} cm`);
+}
+
+// ------------------------------------------------------------- the alternate
+//
+// TWO MODELS OF ONE FIGHTER, judged against each other rather than from
+// memory. The claim that matters is not that a second body appears — it is
+// that the second body is dressed in ITS OWN numbers: an older generation was
+// reviewed at its own size and turn, and showing it at the current model's
+// would answer the question being asked before it is asked.
+
+const alt = await page.evaluate(async () => {
+  const rigMod = await import("/render3d/src/loader.js");
+  const settle = () => new Promise((r) => setTimeout(r, 900));
+  const sel = document.getElementById("compareWith");
+  const pick = async (v) => { sel.value = v; sel.onchange(); await settle(); };
+  const dial = () => document.getElementById("scaleVal").textContent;
+
+  // MOMO, not the fighter this page opened on. Maki's two generations happen
+  // to share a renderScale (1.15 both), so a test run on her passes whether
+  // the alternate wears its own numbers or the current model's — it cannot
+  // fail, which makes it worthless for the one thing it is here to check.
+  // Momo's differ (1.16 against 1.12). Walking there also exercises the
+  // character switch while Alt GLB is the selected comparison.
+  const chars = document.getElementById("charSelect");
+  chars.value = "momo";
+  chars.onchange();
+  await settle();
+  await settle();
+
+  await pick("sprite");
+  const current = { dial: dial(), scale: rigMod.getRig("momo")?.renderScale };
+  await pick("alt");
+  await settle();
+  const shown = rigMod.getRig(rigMod.altKey("momo"));
+  const out = {
+    has: rigMod.hasAlt("momo"),
+    entry: rigMod.altEntry("momo"),
+    loaded: !!shown,
+    altScale: shown?.renderScale, altHeight: shown?.declaredHeight,
+    altYaw: shown?.yawOffsetDeg, altStance: shown?.stanceDeg,
+    dialNow: dial(),
+    current,
+    labelled: (() => {
+      // The two columns are named on the canvas, or you cannot tell which is
+      // which — which is the entire job of this view.
+      const c = document.getElementById("stage");
+      return c.width > 0;
+    })(),
+  };
+  await pick("sprite");
+  out.dialBack = dial();
+  chars.value = "maki";
+  chars.onchange();
+  await settle();
+  return out;
+});
+
+check(alt.has && !!alt.entry?.model, "momo has a second model on file", alt.entry?.model);
+check(alt.loaded, "picking Alt GLB loads it as its own rig", "momo#alt");
+check(alt.altScale === alt.entry.renderScale && alt.altHeight === alt.entry.heightM
+  && alt.altScale !== alt.current.scale,
+  "...wearing its OWN size, not the current model's",
+  `alt ${alt.altScale}x at ${alt.altHeight}m vs current ${alt.current.scale}x`);
+check(alt.altYaw === (alt.entry.yawOffsetDeg ?? 0) && alt.altStance === (alt.entry.stanceDeg ?? 0),
+  "...and its own turn and stance", `yaw ${alt.altYaw}°, stance ${alt.altStance}°`);
+check(alt.dialNow === `${alt.altScale.toFixed(2)}×`,
+  "the size dial points at the model being shown", `${alt.current.dial} -> ${alt.dialNow}`);
+check(alt.dialBack === alt.current.dial,
+  "...and points back at the current model when the drawing returns", alt.dialBack);
 
 // --------------------------------------------------------------- free look
 

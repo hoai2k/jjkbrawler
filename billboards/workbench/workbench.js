@@ -80,7 +80,7 @@ const view = makeViewport(canvas, { x: CX, y: GROUND_Y },
 await loadCoreAssets();
 renderer.initRenderer(THREE);
 // Mannequins for everyone: delivered rigs win, the rest get the proof body.
-await rig.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS);
+await rig.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS, null, { includeDisabled: true });
 
 
 /**

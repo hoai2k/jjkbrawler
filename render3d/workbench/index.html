@@ -8,6 +8,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
     <link rel="stylesheet" href="workbench.css">
     <link rel="stylesheet" href="sprite_pose.css">
+    <link rel="stylesheet" href="anim_viewer.css">
+    <link rel="stylesheet" href="rig_bench.css">
     <!-- BOOT WATCH. This page is one ES module with a top-level await, so
          anything that throws or never settles up there leaves a fully
          rendered page whose every control is dead — which reads as "the
@@ -41,7 +43,10 @@
         });
       })();
     </script>
-  </head>
+      <!-- Puts the published commit in the header bar, so "is this my change?"
+         has an answer without leaving the page. See src/deploystamp.js. -->
+    <script type="module" src="../../src/deploystamp.js"></script>
+</head>
   <body>
     <header class="bar">
       <strong id="wbTitle">3D Pose Workbench</strong>
@@ -54,7 +59,9 @@
            go looking for is one nobody uses. -->
       <button id="facingReviewTop" class="ghost sm">▶ Idle Review</button>
       <a class="ghost sm anim-only" id="toPose" href="?">← Poses</a>
-      <a class="ghost sm pose-only" id="toAnim" href="?edit=animation">Animation →</a>
+      <a class="ghost sm pose-only" id="toAnim" href="?edit=keys">Keyframes →</a>
+      <a class="ghost sm" href="?edit=animation">Anim viewer →</a>
+      <a class="ghost sm" href="?edit=rigs">Rig bench →</a>
       <a class="ghost sm" href="./?edit=pose">Joint reads →</a>
       <a class="ghost sm" href="../../billboards/workbench/">Billboard Workbench →</a>
       <a class="ghost sm" href="../../sprites/workbench/">Sprite Workbench →</a>
@@ -98,8 +105,21 @@
         </div>
         <div class="row">
           <label class="check"><input id="fiveToggle" type="checkbox"> Show 5 across</label>
-          <label class="check"><input id="mqToggle" type="checkbox"> Mannequin(s)</label>
+          <label class="inline">Compare:
+            <select id="compareWith">
+              <option value="sprite" selected>Sprite(s)</option>
+              <option value="mannequin">Mannequin(s)</option>
+              <option value="alt">Alt GLB</option>
+            </select>
+          </label>
         </div>
+        <p class="hint alt-only">A SECOND MODEL OF THIS FIGHTER, standing where
+        the drawing usually does. Sizes, turns, stances and head carriage are
+        read from the alternate's OWN manifest block — an older generation keeps
+        the numbers it was reviewed with rather than wearing the current
+        model's, because a model dressed in another model's corrections is not
+        the model you are judging. Pick whichever body is better; the dials on
+        this screen edit the one being shown.</p>
         <p class="hint mq-only">THE RIG, DRAWN: this fighter's own skeleton in
         this fighter's own pose, as boxes — warm on their left, cool on their
         right, with a nose and a chest plate along the head's and the chest's
@@ -122,6 +142,10 @@
           <button id="poseNext" class="ghost sm" title="Next pose (])">▶</button>
         </div>
         <div id="poseWhere" class="mono hint pose-only"></div>
+        <!-- What the engine is still correcting on top of this .glb, shown
+             beside the rig-check poses because the figure on screen IS the
+             model plus these corrections. Empty when a model owes nothing. -->
+        <div id="rigCheckOut" class="mono pose-only" hidden></div>
 
         <label class="anim-only">State
           <select id="stateSelect"></select>
@@ -349,6 +373,18 @@
           <b id="facingName">—</b>
           <span class="mono" id="facingProgress"></span>
         </div>
+        <!-- The compare dial, repeated here because this is the screen the
+             positioning dials live on and the side panel is behind the
+             overlay. Choosing the alternate here points every dial below at
+             THAT .glb — which is the only way to judge two generations
+             without one of them wearing the other's numbers. -->
+        <label class="inline">Compare:
+          <select id="facingCompareWith">
+            <option value="sprite" selected>Sprite(s)</option>
+            <option value="mannequin">Mannequin(s)</option>
+            <option value="alt">Alt GLB</option>
+          </select>
+        </label>
         <button id="facingClose" class="ghost sm" title="Close (Esc)">✕</button>
       </header>
 
@@ -357,11 +393,49 @@
       <footer>
         <div id="facingHint" class="hint">Sprite on the left, model on the
           right. Match the model's height, stance and facing to the drawing,
-          then move on — Download JSON saves every change. The legs are
-          straightened and the soles levelled for you; stance opens them from
-          there.</div>
+          then move on — Download JSON saves every change, and Revert puts one
+          fighter back to what the file said if you moved the wrong dial. The
+          legs are straightened and the soles levelled for you; stance opens
+          them from there, and Knees hinges the shins at the knee — feet closer or
+          further apart with the knees staying put, soles flat — as a
+          correction that holds in every state rather than only this one. More
+          unfolds size, arms, head and facing.</div>
 
-        <div class="facing-dial">
+        <!-- ONE CONTROL AT A TIME, on a phone. Four dial rows plus the action
+             row is most of a phone screen, and the screen is what the pass is
+             FOR — the whole judgement is "does this model match that drawing",
+             which needs the picture big. So the small layout keeps the head
+             dial and turns the label into this picker; the other three are
+             still here, one select away. On the desk all four stay visible,
+             because there the space is free. -->
+        <select id="facingDialPick" class="dial-pick" aria-label="Which dial to show">
+          <option value="knees" selected>Knees</option>
+          <option value="shoulders">Shoulders</option>
+          <option value="stance">Stance</option>
+          <option value="head">Head</option>
+          <option value="scale">Size</option>
+          <option value="arms">Arms</option>
+          <option value="yaw">Turn</option>
+        </select>
+
+        <div id="facingDials">
+        <!-- KNEE CORRECTION. Hinges each SHIN at the knee, about the fighter's
+             forward axis: positive swings the feet in toward the midline,
+             negative opens them, and the hips and knees stay exactly where the
+             pose put them. Soles are re-levelled so a foot keeps its angle to
+             the ground. Not the stance — that turns the whole leg from the
+             hip, which moves the knee too and just makes the fighter narrower.
+             This is a correction to the MODEL, so it holds in every state
+             instead of only the idle. -->
+        <div class="facing-dial active" data-dial="knees">
+          <span class="dial-label">Knees</span>
+          <button data-knee="-2">−</button>
+          <input id="facingKnee" type="range" min="-25" max="25" step="1" value="0">
+          <button data-knee="2">+</button>
+          <span class="mono" id="facingKneeVal">0°</span>
+        </div>
+
+        <div class="facing-dial" data-dial="scale" data-more>
           <span class="dial-label">Size</span>
           <button data-scale="-0.05">−</button>
           <input id="facingScale" type="range" min="0.4" max="2.5" step="0.01" value="1">
@@ -369,7 +443,7 @@
           <span class="mono" id="facingScaleVal">1.00×</span>
         </div>
 
-        <div class="facing-dial">
+        <div class="facing-dial" data-dial="stance" data-primary>
           <span class="dial-label">Stance</span>
           <button data-stance="-2">−</button>
           <input id="facingStance" type="range" min="-10" max="25" step="1" value="0">
@@ -386,7 +460,31 @@
              cannot be measured off the rig — the joints are level to within a
              degree across the roster — and it has to be judged against the
              drawing like the size and the stance. Positive lifts the chin. -->
-        <div class="facing-dial">
+        <!-- ARM STANCE, the legs' dial one axis up. The engine hangs every
+             idle's arms straight and a few degrees out (ik.js applyIdleArms);
+             this is how far, per fighter, because a heavy coat or a wide body
+             wants more room than a school uniform does. -->
+        <div class="facing-dial" data-dial="arms" data-more>
+          <span class="dial-label">Arms</span>
+          <button data-arm="-1">−</button>
+          <input id="facingArm" type="range" min="0" max="30" step="1" value="9">
+          <button data-arm="1">+</button>
+          <span class="mono" id="facingArmVal">9°</span>
+        </div>
+
+        <!-- SHOULDER WIDTH. A generated clavicle often comes out short, which
+             reads as the near arm being buried in the ribs; this moves both
+             arm roots out along the body's own width axis, in centimetres,
+             without lengthening the arms. -->
+        <div class="facing-dial" data-dial="shoulders" data-primary>
+          <span class="dial-label">Shldrs</span>
+          <button data-shoulder="-0.5">−</button>
+          <input id="facingShoulder" type="range" min="0" max="10" step="0.5" value="0">
+          <button data-shoulder="0.5">+</button>
+          <span class="mono" id="facingShoulderVal">0.0cm</span>
+        </div>
+
+        <div class="facing-dial" data-dial="head" data-more>
           <span class="dial-label">Head</span>
           <button data-headtilt="-1">−</button>
           <input id="facingHead" type="range" min="-20" max="20" step="0.5" value="0">
@@ -394,36 +492,56 @@
           <span class="mono" id="facingHeadVal">0°</span>
         </div>
 
-        <div class="facing-dial">
+        <div class="facing-dial" data-dial="yaw" data-more>
           <span class="dial-label">Turn</span>
           <button data-yaw="-5">−</button>
           <input id="facingYaw" type="range" min="-180" max="180" step="5" value="0">
           <button data-yaw="5">+</button>
           <span class="mono" id="facingYawVal">0°</span>
         </div>
+        <!-- THE REST, folded away. Size, arms, head and turn are settled once
+             per fighter and then not touched again; knees, shoulders and
+             stance are what a pass is actually for. On a phone the picker
+             already shows one dial at a time and this button does nothing. -->
+        <button id="facingMore" class="dial-more" aria-expanded="false">More ▾</button>
+        </div>
 
         <div class="facing-actions">
-          <button id="facingPrev" class="ghost">← Back</button>
-          <button id="facingFit" class="ghost" title="Set the scale that makes this model stand its measured height">Fit height</button>
-          <button id="facingNext" class="primary">Next →</button>
-          <button id="facingSave" class="ghost">⤓ Download JSON</button>
+          <button id="facingPrev" class="ghost" data-short="←">← Back</button>
+          <button id="facingFit" class="ghost" data-short="Fit" title="Set the scale that makes this model stand its measured height">Fit height</button>
+          <!-- UNDO, per fighter. Every other control here writes a number and
+               there was no way back to what the file said except reloading the
+               page, which throws away the whole session's work to undo one
+               fighter's. -->
+          <button id="facingRevert" class="ghost" data-short="↺ Undo" title="Put this fighter's numbers back to what the manifest says">↺ Revert</button>
+          <button id="facingNext" class="primary" data-short="Next →">Next →</button>
+          <button id="facingSave" class="ghost" data-short="⤓ Save">⤓ Download JSON</button>
         </div>
       </footer>
     </div>
 
-    <!-- Three benches, one page, and only one of them loads.
+    <!-- Five benches, one page, and only one of them loads.
          `?edit=pose` (or `?edit=reads`) is the SPRITE JOINT READS editor: it
          records what the DRAWING does, sixteen 2D joints a frame, and its
-         output is data about the art rather than a clip. The other two are
-         workbench.js — no `edit` opens the pose bench (model matched to a
-         drawing), `?edit=animation` the keyframe bench.
-         Reads replaces the page rather than sitting inside it: it wants the
-         whole window, and loading both would pay for the look-dev panel, the
-         sprite pipeline and every clip table to drag a joint. -->
+         output is data about the art rather than a clip. `?edit=animation`
+         is the ANIMATION VIEWER: the in-game roster in a grid, all playing
+         one clip, triggered by mouse or pad. The other two are workbench.js
+         — no `edit` opens the pose bench (model matched to a drawing),
+         `?edit=keys` the keyframe bench. `?edit=rigs` is the RIG BENCH:
+         one fighter in a T- or A-pose in a live viewport, with a rotation
+         handle on every bone — it edits the GLB correction layer rather than
+         any pose, and its output is a corrections file, not a clip.
+         Reads and the viewer replace the page rather than sitting inside it:
+         each wants the whole window, and loading everything would pay for
+         the look-dev panel, the sprite pipeline and every clip table on a
+         page that never uses them. -->
     <script type="module">
       const mode = new URLSearchParams(location.search).get("edit");
       const reads = mode === "pose" || mode === "reads";
-      await import(reads ? "./sprite_pose.js" : "./workbench.js");
+      await import(reads ? "./sprite_pose.js"
+        : mode === "animation" ? "./anim_viewer.js"
+        : (mode === "rigs" || mode === "models") ? "./rig_bench.js"
+        : "./workbench.js");
     </script>
   </body>
 </html>

@@ -66,7 +66,7 @@ const clientOf = (pt) => page.evaluate(([x, y]) => {
 // under test is the one the pose tables actually hold.
 // ...on the ANIMATION bench: this is the playhead-and-curves half of the tool,
 // and the pose bench deliberately hides all of it (workbench.js MODE).
-await open("?edit=animation&char=gojo&state=run");
+await open("?edit=keys&char=gojo&state=run");
 await page.click("#editPoseBtn");
 await page.waitForTimeout(500);
 
@@ -164,7 +164,7 @@ check(added === before + 1 && back === before,
   `${before} -> ${added} -> ${back}`);
 
 // ---- 4. the two spaces ------------------------------------------------------
-await open("?edit=animation&char=gojo&state=light");
+await open("?edit=keys&char=gojo&state=light");
 await page.click("#editPoseBtn");
 await page.waitForTimeout(400);
 await page.selectOption("#jointSelect", "RightForeArm");
@@ -217,7 +217,7 @@ check(!!block?.targetSpaceOffsetsDeg?.RightForeArm,
   "target-space offsets are exported apart from the poses");
 
 // ---- 5. the delivery settings -------------------------------------------------
-await open("?edit=animation&char=gojo&state=idle");
+await open("?edit=keys&char=gojo&state=idle");
 const drawn = () => page.evaluate(async () => {
   const rigs = await import("/render3d/src/loader.js");
   const scene = await import("/render3d/src/scene.js");

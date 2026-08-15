@@ -19,7 +19,7 @@
 // is what the art says, and it stays true whatever the clip tables do next.
 // The joints drive spine, neck, both clavicles, arms, legs and feet; a bone
 // they cannot reach, or any rotation out of the drawing's plane, belongs to
-// the keyframe bench at ?edit=animation.
+// the keyframe bench at ?edit=keys.
 //
 // THREE THINGS IT IS CAREFUL ABOUT, ALL OF WHICH SILENTLY PRODUCE PLAUSIBLE
 // AND WRONG DATA IF GOT WRONG (tools/pose_reads.py says the same in Python,
@@ -57,6 +57,10 @@ import * as rigs from "../src/loader.js";
 import { initPose } from "../src/pose.js";
 import { CHARACTER_KEYS, CHARACTERS } from "../../src/characters.js";
 import { makeOrbit } from "./orbit.js";
+import { matchedPose, MATCHED_FRAMES } from "../src/battle_poses.js";
+import { poseEntry } from "../src/sprite_poses.js";
+import { baselinePose, INTENT_POSES, intentFor, contactFor, AIRBORNE, HEIGHTS }
+  from "../src/baseline_poses.js";
 
 const READS_URL = "../../sprites/docs/pose-reads/";
 const SPRITES_URL = "../../sprites/assets/";
@@ -256,15 +260,70 @@ function torsoTypical(j, spans) {
 }
 
 /**
+ * WHERE THIS SHEET'S "SIDE ON" ACTUALLY SITS.
+ *
+ * A fighting-game sheet is drawn facing right, and the poses on it are angled
+ * only slightly toward or away from the lens. But the drawings do not put the
+ * two shoulder markers on top of each other, because an artist drawing a
+ * side view still shows both shoulders — Yuji's sit 0.286 torsos apart in the
+ * median frame and 38 of his 40 frames are on the same side of zero.
+ *
+ * Taken literally that says the entire sheet is turned a quarter of the way
+ * toward the camera, which is not what any of those drawings show; it is the
+ * house style, applied evenly, and reading it as a rotation turns every
+ * fighter on every frame. So the ZERO is the sheet's own median rather than
+ * zero separation, and what turns a fighter is how far a frame departs from
+ * how that fighter is usually drawn. Below the median he is angled away, above
+ * it he is angled toward — which is what "slightly angled either way" means,
+ * measured rather than assumed.
+ *
+ * It calibrates per character, which matters: the roster is not drawn to one
+ * shoulder convention, and a baseline borrowed from Yuji would turn Panda.
+ */
+const facingBase = new Map();
+
+function baselineFor(char) {
+  if (facingBase.has(char)) return facingBase.get(char);
+  const data = reads.get(char);
+  const base = { shoulder: 0, hip: 0 };
+  if (data) {
+    for (const [key, pair] of [["shoulder", ["shoulderL", "shoulderR"]],
+                               ["hip", ["hipL", "hipR"]]]) {
+      const vs = [];
+      for (const pose of Object.values(data.poses)) {
+        const j = pose.j;
+        const t = spineLength(j);
+        if (!t || !j[pair[0]] || !j[pair[1]]) continue;
+        vs.push((j[pair[0]][0] - j[pair[1]][0]) / t);
+      }
+      if (!vs.length) continue;
+      vs.sort((a, b) => a - b);
+      const mid = vs.length >> 1;
+      base[key] = vs.length % 2 ? vs[mid] : (vs[mid - 1] + vs[mid]) / 2;
+    }
+  }
+  facingBase.set(char, base);
+  return base;
+}
+
+/** How far a fighter is allowed to be turned by the markers alone. The sheet
+ *  is side-on art; a marker line is a few hand-placed dots, and past a
+ *  three-quarter view it is saying more than a few dots can support. */
+const TURN_MAX = 35 * (Math.PI / 180);
+
+/**
  * How far the shoulder line and the hip line are turned, in radians, and the
  * half-widths they are turned by. Positive is turned toward the camera.
  */
-function facingOf(j, spans) {
+function facingOf(j, spans, base = { shoulder: 0, hip: 0 }) {
   const torso = torsoScale(j, spans);
-  const bar = (a, b, span) => {
+  const bar = (a, b, span, zero) => {
     if (!j[a] || !j[b] || !torso) return { yaw: 0, half: 0 };
     const width = span * torso;
-    const across = j[a][0] - j[b][0];
+    // Measured from where THIS SHEET draws a side view, not from zero
+    // separation — see baselineFor. `zero` is in torsos, the same units the
+    // baseline was taken in, so it scales with the frame like everything else.
+    const across = j[a][0] - j[b][0] - zero * spineLength(j);
     // A drawing can put them further apart than the body allows — a read is a
     // hand placing dots, not a measurement. Square to the camera is the most
     // it can mean.
@@ -295,10 +354,14 @@ function facingOf(j, spans) {
     const dz = depth(j[a]) - depth(j[b]);
     let yaw = Math.asin(sin);
     if (Math.abs(dz) > 0.1 * width && Math.sign(-dz) !== Math.sign(yaw || -dz)) yaw = -yaw;
+    yaw = clamp(yaw, -TURN_MAX, TURN_MAX);
+    // The half-width still describes the body, not the reading: it is how far
+    // apart the shoulders are, and that does not shrink because the baseline
+    // moved.
     return { yaw, half: width / 2 };
   };
-  return { chest: bar("shoulderL", "shoulderR", spans.shoulder),
-           pelvis: bar("hipL", "hipR", spans.hip) };
+  return { chest: bar("shoulderL", "shoulderR", spans.shoulder, base.shoulder),
+           pelvis: bar("hipL", "hipR", spans.hip, base.hip) };
 }
 
 /**
@@ -315,7 +378,7 @@ function facingOf(j, spans) {
  *                       drawing and a foot pointing at the camera
  */
 function resolveDepth(j, spans) {
-  const face = facingOf(j, spans);
+  const face = facingOf(j, spans, baselineFor(ui.char));
   const z = {};
   const set = (name, value) => {
     if (!j[name]) return;
@@ -486,6 +549,10 @@ const ui = {
   sel: null,
   ghost: 0.4,
   showSprite: true,
+  // Which of the three poses the rig pane shows. Defaults to the matched set:
+  // it is the one being evaluated, and a comparison nobody can see is not a
+  // comparison.
+  mode: "matched",
 };
 
 /** Free look, shared with the clip bench (orbit.js). Turning it drives both
@@ -794,6 +861,298 @@ const _swing = new THREE.Quaternion();
 const _boneQ = new THREE.Quaternion();
 const _parentQ = new THREE.Quaternion();
 
+/**
+ * THE OTHER WAY TO POSE THE RIG: put it in a named human pose.
+ *
+ * `poseFromJoints` below works forwards from the drawing and answers "where
+ * are his limbs". This answers "what is he DOING" — the frame is matched to a
+ * real pose (an orthodox guard, a cross at full extension, mid-swing of a
+ * sprint stride) in render3d/src/battle_poses.js, and the rig is simply put in
+ * it. No read, no depth inference, no solve.
+ *
+ * The trade is worth stating plainly, because the editor's checkbox is there
+ * to let a human make it per frame: a matched pose does not track the drawing
+ * joint for joint, and in exchange it is anatomically sound, consistent with
+ * its neighbours, and authored in three dimensions rather than inferred from
+ * one view.
+ */
+/**
+ * THE FIGHTER'S OWN AXES, measured off the rig rather than assumed.
+ *
+ * A pose table is written against a body — "lean the spine forward", "swing
+ * the thigh back" — and those words only mean something once you know which
+ * way the body faces. Assuming it costs a whole afternoon: the tables are
+ * written against a T-pose facing +Z, and Yuji's delivered .glb is neither. It
+ * binds with the arms already down, and its lateral axis runs 20° off the
+ * world's, so a table applied to it raw turns him to face away from the camera
+ * and throws his punches over his shoulder.
+ *
+ * So: LATERAL is the line between his shoulders (his own left), UP is the
+ * world's, and FORWARD is their cross product, which is the direction a body
+ * with those shoulders faces. Every rig answers those three questions about
+ * itself, whatever it was delivered in.
+ */
+function anatomy() {
+  const at = (n) => (three.bones.get(n)
+    ? new THREE.Vector3().setFromMatrixPosition(three.bones.get(n).matrixWorld) : null);
+  const up = new THREE.Vector3(0, 1, 0);
+  const l = at("LeftArm"); const r = at("RightArm");
+  const lateral = l && r ? l.clone().sub(r) : new THREE.Vector3(1, 0, 0);
+  lateral.addScaledVector(up, -lateral.dot(up)).normalize();      // square to up
+  // left × up is the facing, the same handedness the mannequin's own table
+  // uses (left arm along +X, up +Y, facing +Z).
+  const forward = lateral.clone().cross(up).normalize();
+  return { up, lateral, forward };
+}
+
+/** The bones a matched pose can talk about, PARENT FIRST, and where each one
+ *  points in the reference T-pose the table is written against. */
+const T_POSE = [
+  // Head is deliberately absent: it has no bone below it to aim, so "which way
+  // does a head point" resolves to whatever hair or eye bone the rig happens to
+  // list first, and aiming THAT upright screws the skull round on the neck.
+  ["Spine", "up"], ["Spine1", "up"], ["Spine2", "up"], ["Neck", "up"],
+  ["LeftShoulder", "left"], ["LeftArm", "left"], ["LeftForeArm", "left"],
+  ["RightShoulder", "right"], ["RightArm", "right"], ["RightForeArm", "right"],
+  ["LeftUpLeg", "down"], ["LeftLeg", "down"], ["LeftFoot", "forward"],
+  ["RightUpLeg", "down"], ["RightLeg", "down"], ["RightFoot", "forward"],
+];
+
+/**
+ * Put the rig in the pose the table counts as zero.
+ *
+ * The tables say "relative to a T-pose bind", and a delivered rig is not bound
+ * in one — Yuji arrives with his arms at his sides. Adding a table's REST drop
+ * to arms that are already down swings them 65° past his legs. Rather than
+ * re-author every number against every fighter's own bind, the rig is first
+ * SWUNG into the T-pose the table means, using the same world-space aim the
+ * read interpreter uses. After that the table is portable: the same numbers
+ * describe the same human pose on any rig that has these bones.
+ */
+function toTPose({ up, lateral, forward }) {
+  const dirs = {
+    up, down: up.clone().negate(), forward,
+    left: lateral, right: lateral.clone().negate(),
+  };
+  for (const [name, which] of T_POSE) {
+    const bone = three.bones.get(name);
+    const tip = three.bones.get(BONE_TIP[name]) || bone?.children.find((c) => c.isBone);
+    if (!bone || !tip) continue;
+    aimBone(bone, tip, dirs[which]);
+    three.root.updateMatrixWorld(true);
+  }
+}
+
+function poseFromMatch(pose) {
+  if (!three.root || !three.bind || !three.bones) return false;
+  for (const [bone, q] of three.bind) bone.quaternion.copy(q);
+  three.root.updateMatrixWorld(true);
+  const basis = anatomy();
+  toTPose(basis);
+
+  // Every rotation is read in the FIGHTER's frame, not the world's or the
+  // bone's: x about his lateral axis (pitch — lean forward), y about the
+  // vertical (yaw — turn a shoulder through a punch), z about his facing
+  // (roll — drop an arm to his side). Composed x·y·z, which is what three's
+  // "XYZ" Euler order means, so the numbers read the same as the mannequin's.
+  //
+  // The axes are the FIGHTER's throughout and are NOT carried down the chain,
+  // which is worth defending because carrying them is the obvious thing to do
+  // and it is wrong here. Carry the axes and a bone turns about its parent's
+  // rotated frame — fine for a shoulder, useless for an elbow, because the
+  // shoulder's own drop rotates the "lateral" axis until it runs ALONG the
+  // upper arm, and an elbow asked to bend about the bone it is attached to
+  // just twists. Measured: an arm hanging at the side with a 110° elbow came
+  // out perfectly straight. Fixed axes keep every hinge perpendicular to the
+  // limb it bends, which is what a hinge is.
+  applyChain(three.bones.get("Hips") || three.root, pose, basis);
+  three.root.updateMatrixWorld(true);
+  return true;
+}
+
+const _ax = new THREE.Vector3();
+const _ay = new THREE.Vector3();
+const _az = new THREE.Vector3();
+const _qa = new THREE.Quaternion();
+const _qb = new THREE.Quaternion();
+const _qc = new THREE.Quaternion();
+
+/** Walk the skeleton parent-first, turning each posed bone about the fighter's
+ *  axes. Parent-first matters even with fixed axes: a bone's parent's world
+ *  orientation is what the rotation is converted through, so the spine has to
+ *  have moved before the arm hanging off it is asked where it is. */
+function applyChain(node, pose, basis) {
+  const e = node.isBone && pose[node.name];
+  if (e && node.parent) {
+    const [rx, ry, rz] = e;
+    _qa.setFromAxisAngle(basis.lateral, rx * DEG);
+    _qb.setFromAxisAngle(basis.up, ry * DEG);
+    _qc.setFromAxisAngle(basis.forward, rz * DEG);
+    const R = _qa.clone().multiply(_qb).multiply(_qc);
+    const p = node.parent.getWorldQuaternion(new THREE.Quaternion());
+    node.quaternion.premultiply(p).premultiply(R).premultiply(p.clone().invert());
+    node.updateMatrixWorld(true);
+  }
+  for (const child of node.children) if (child.isBone) applyChain(child, pose, basis);
+}
+
+/**
+ * THE THIRD ANSWER: what the game actually plays right now.
+ *
+ * Matched and Generated are both proposals — one from a pose library, one from
+ * the drawing. Neither is what a player sees today, and without that on screen
+ * beside them the comparison is between two things nobody has ever shipped.
+ * So this samples the fighter's REAL clip: `poseEntry` says which state draws
+ * this frame and at what time (the two tables were built from the same fps, so
+ * frame i genuinely lands at i/fps), `resolveClip` resolves the same clip the
+ * engine would — the character's own, an inherited one, or the default, mirrored
+ * if the manifest mirrors it — and the tracks are read at that instant.
+ *
+ * Rotation only. The clips carry position and scale tracks too, and applying
+ * the root's would slide the model out of the frame while the other two modes
+ * keep their hips at the bind. Holding all three to the same rule is what makes
+ * them comparable; it is also the same "the hips do not move" limit the preview
+ * has always had.
+ */
+const _interp = new WeakMap();
+
+function poseFromGame(char, key) {
+  if (!three.root || !three.bind) return false;
+  const entry = poseEntry(char, key);
+  if (!entry) return false;
+  const clip = rigs.resolveClip(char, entry.state)?.clip;
+  if (!clip) return false;
+  for (const [bone, q] of three.bind) bone.quaternion.copy(q);
+  const t = Math.min(entry.t, clip.duration);
+  let hit = 0;
+  for (const track of clip.tracks) {
+    const dot = track.name.lastIndexOf(".");
+    if (dot < 0 || track.name.slice(dot + 1) !== "quaternion") continue;
+    const bone = three.root.getObjectByName(track.name.slice(0, dot));
+    if (!bone) continue;
+    let fn = _interp.get(track);
+    if (!fn) { fn = track.createInterpolant(); _interp.set(track, fn); }
+    bone.quaternion.fromArray(fn.evaluate(t));
+    hit++;
+  }
+  if (!hit) return false;
+  three.root.updateMatrixWorld(true);
+  return true;
+}
+
+/**
+ * PUT THE FIGHTER ON THE FLOOR.
+ *
+ * The preview swings bones and never translated the root, so nothing was ever
+ * in contact with anything: an idle floated 7cm up, a matched crouch floated
+ * 29, and "does the fist reach the ground" had no meaning because the ground
+ * was not where he was standing. Grounded poses now drop until their lowest
+ * bone sits on the line; airborne ones are left exactly where the pose puts
+ * them, because a fighter mid-jump touching the floor is a worse lie than one
+ * hovering over it.
+ *
+ * It only moves him VERTICALLY. Where a pose travels along the ground is the
+ * engine's business (motion.js), not a pose's.
+ */
+function plantOnGround(frame) {
+  if (!three.root) return;
+  three.root.position.y = 0;
+  three.root.updateMatrixWorld(true);
+  if (AIRBORNE.has(intentFor(frame))) return;
+  // THE FEET ARE THE SUPPORT, so they are what sits on the line — not "the
+  // lowest bone", which sounds more general and is wrong twice over. A
+  // delivered rig hangs its armature off an outer node parked at the world
+  // origin, so the lowest bone is that node and the fighter never moves; and
+  // once that is fixed, an overhand whose fist goes below the feet is planted
+  // ON ITS FIST, which is a handstand. A fist that does not reach the floor is
+  // a pose that is short, and saying so is the contact readout's job.
+  const support = intentFor(frame) === "prone"
+    ? [...Object.values(JOINT_BONE), "LeftToeBase", "RightToeBase"]
+    : ["LeftFoot", "RightFoot", "LeftToeBase", "RightToeBase"];
+  let low = Infinity;
+  for (const name of support) {
+    const bone = three.bones.get(name);
+    if (!bone) continue;
+    const y = new THREE.Vector3().setFromMatrixPosition(bone.matrixWorld).y;
+    if (y < low) low = y;
+  }
+  if (!Number.isFinite(low)) return;
+  three.root.position.y = -low;
+  three.root.updateMatrixWorld(true);
+}
+
+/** How far the pose is from the contact it is supposed to make, in metres.
+ *  Positive is short of it; negative is past it. */
+function contactMiss(frame) {
+  const want = contactFor(frame);
+  const bone = want && three.bones?.get(want.bone);
+  if (!bone) return null;
+  const y = new THREE.Vector3().setFromMatrixPosition(bone.matrixWorld).y;
+  const target = (HEIGHTS[want.at] ?? 0) * (three.height || 1.75);
+  return { ...want, y, target, miss: y - target };
+}
+
+/**
+ * Which of the three the pane is showing — and it is not always the one asked
+ * for, which is the whole reason this returns a name rather than a boolean.
+ * "Matched, and this frame has one" and "Matched, but this frame has none so
+ * you are looking at the generated pose after all" are identical from the
+ * control and completely different facts about the frame.
+ */
+function poseRigFor(key, j) {
+  const out = poseRigOnly(key, j);
+  plantOnGround(key);
+  return out;
+}
+
+function poseRigOnly(key, j) {
+  if (ui.mode === "matched") {
+    const match = matchedPose(key);
+    if (match && poseFromMatch(match)) return { shown: "matched" };
+    const fell = baselinePose(key);
+    poseFromMatch(fell.pose);
+    return { shown: "baseline", asked: "matched", why: "no per-frame match for this frame",
+             intent: fell.intent };
+  }
+  if (ui.mode === "baseline") {
+    const b = baselinePose(key);
+    // Total by contract — see baseline_poses.js — so there is no fallback path
+    // here, and if one ever appears it is a bug rather than a missing pose.
+    if (poseFromMatch(b.pose)) return { shown: "baseline", intent: b.intent };
+    poseFromJoints(j);
+    return { shown: "generated", asked: "baseline", why: "the baseline library returned nothing" };
+  }
+  if (ui.mode === "ingame") {
+    if (poseFromGame(ui.char, key)) return { shown: "ingame" };
+    const fell = baselinePose(key);
+    poseFromMatch(fell.pose);
+    return { shown: "baseline", asked: "ingame", why: "nothing in the game draws this frame",
+             intent: fell.intent };
+  }
+  poseFromJoints(j);
+  return { shown: "generated" };
+}
+
+/** The cycle: two libraries, the drawing's own answer, and what ships. */
+const MODES = ["matched", "baseline", "generated", "ingame"];
+const MODE_LABEL = {
+  matched: "Matched", baseline: "Baseline match",
+  generated: "Generated", ingame: "In Game",
+};
+const SHOWN_LABEL = {
+  matched: "the per-frame matched human pose",
+  baseline: "the baseline pose",
+  generated: "the pose generated from the joints",
+  ingame: "the clip the game plays today",
+};
+
+/** What the pane is showing, and whether that is what was asked for. Those are
+ *  two facts and the badge was only ever carrying one of them. */
+function howText(r) {
+  const what = SHOWN_LABEL[r.shown] + (r.intent ? ` for “${r.intent}”` : "");
+  return r.asked ? `fallback — ${r.why}, showing ${what}` : `showing ${what}`;
+}
+
 /** Turn the read into rig rotations: every driven bone is swung, in the
  *  sagittal plane only, until it points the way the drawing does. */
 function poseFromJoints(j) {
@@ -1032,9 +1391,99 @@ function mannequinSVG(j, { handles = false, label = "", flat = false } = {}) {
   return parts.join("");
 }
 
-function plateHTML(char, key, j, { handles = false, flat = false } = {}) {
+/** Which bone stands where each read joint is drawn. The midpoints the spine
+ *  hangs off (`shoulderMid`) are not in here — this is the eighteen a read has,
+ *  so the two skeletons can be laid on top of each other. */
+const JOINT_BONE = {
+  head: "Head", neck: "Neck", chest: "Spine2",
+  shoulderL: "LeftArm", elbowL: "LeftForeArm", handL: "LeftHand",
+  shoulderR: "RightArm", elbowR: "RightForeArm", handR: "RightHand",
+  hipL: "LeftUpLeg", kneeL: "LeftLeg", footL: "LeftFoot", toeL: "LeftToeBase",
+  hipR: "RightUpLeg", kneeR: "RightLeg", footR: "RightFoot", toeR: "RightToeBase",
+};
+
+/**
+ * THE RIG, READ BACK OUT AS EIGHTEEN JOINTS, in the drawing's own cell space.
+ *
+ * Without this the joint overlay always draws the READ, whatever the rig is
+ * actually doing — so cycling the mode changed the model and left the stick
+ * figure alone, and there was no way to see what a matched or baseline pose
+ * was doing to the body except by eye on the render.
+ *
+ * It is FITTED onto the read rather than anchored to it — one uniform scale
+ * and one offset, chosen to minimise the squared distance over every joint the
+ * two have in common. Anchoring at the pelvis and scaling by the torso was the
+ * obvious thing and it piles every proportion difference onto the extremities:
+ * the rig's Head bone sits at the base of the skull where the read's `head` is
+ * its centre, so the overlay's head landed nine cells low and its feet seven
+ * cells through the floor even when the pose was right. A fit puts the two
+ * skeletons in their best correspondence, so what is left over is the thing
+ * worth looking at — the POSE difference — instead of the fact that a rig and
+ * a drawing are not built alike.
+ *
+ * What it still cannot show is the hips MOVING: the preview never translates
+ * the root, so a matched crouch overlays at the drawing's hip height rather
+ * than at its own.
+ */
+function jointsFromRig(j) {
+  if (!three.root || !three.bones) return null;
+  const at = (n) => {
+    const b = three.bones.get(n);
+    return b ? new THREE.Vector3().setFromMatrixPosition(b.matrixWorld) : null;
+  };
+  const pelvisBone = three.bones.get("Spine")?.parent;
+  if (!pelvisBone) return null;
+  // Through the FIGHTER's axes, not the world's. A delivered .glb carries a
+  // yaw offset — Yuji's facing runs about 20° off the world's — so mapping
+  // cell x straight onto world +Z lays the skeleton down at an angle.
+  const { up, forward, lateral } = anatomy();
+  const origin = new THREE.Vector3().setFromMatrixPosition(pelvisBone.matrixWorld);
+  const d = new THREE.Vector3();
+  // Cell x is his facing, cell y counts down while up counts up, and cell
+  // depth points at the camera — which stands off his RIGHT shoulder, so
+  // toward the lens is away from his own left.
+  const flat = (v) => {
+    d.copy(v).sub(origin);
+    return [d.dot(forward), -d.dot(up), -d.dot(lateral)];
+  };
+  const raw = { pelvis: flat(origin) };
+  for (const [joint, bone] of Object.entries(JOINT_BONE)) {
+    const v = at(bone);
+    if (v) raw[joint] = flat(v);
+  }
+  // The fit, over the joints both skeletons have.
+  const shared = Object.keys(raw).filter((n) => Array.isArray(j[n]));
+  if (shared.length < 4) return null;
+  const mean = (get) => shared.reduce((a, n) => a + get(n), 0) / shared.length;
+  const rx = mean((n) => raw[n][0]); const ry = mean((n) => raw[n][1]);
+  const jx = mean((n) => j[n][0]); const jy = mean((n) => j[n][1]);
+  let num = 0; let den = 0;
+  for (const n of shared) {
+    num += (raw[n][0] - rx) * (j[n][0] - jx) + (raw[n][1] - ry) * (j[n][1] - jy);
+    den += (raw[n][0] - rx) ** 2 + (raw[n][1] - ry) ** 2;
+  }
+  const k = den ? num / den : 1;
+  if (!Number.isFinite(k) || k <= 0) return null;
+  const out = {};
+  for (const [n, v] of Object.entries(raw)) {
+    out[n] = [jx + (v[0] - rx) * k, jy + (v[1] - ry) * k, v[2] * k];
+  }
+  return out;
+}
+
+function plateHTML(char, key, j, { handles = false, flat = false, shown = null, mode = "" } = {}) {
   const flip = faceLeft(char, key) ? ' class="flip"' : "";
+  // Two skeletons, deliberately: the READ is what the handles drag, and
+  // `shown` is what the rig is currently doing. In Generated mode they are
+  // meant to agree and the gap between them is the interpreter's compromise —
+  // an arm the IK could not reach, a foot it had to fold. In the other modes
+  // the gap is the whole point.
+  const layer = shown
+    ? `<svg class="rigline shown ${mode}" viewBox="0 0 100 100" preserveAspectRatio="none">`
+      + `${mannequinSVG(shown, { label: `${char}/${key} (rig)` })}</svg>`
+    : "";
   return `<img${flip} src="${spriteSrc(char, key)}" alt="${key}" loading="lazy">`
+    + layer
     + `<svg class="rigline" viewBox="0 0 100 100" preserveAspectRatio="none">`
     + `${mannequinSVG(j, { handles, flat, label: `${char}/${key}` })}</svg>`;
 }
@@ -1045,27 +1494,37 @@ function renderPicker() {
   const list = $("#poseList");
   list.innerHTML = Object.entries(data.poses).map(([key, pose]) => `
     <button class="thumb ${key === ui.pose ? "on" : ""} ${edited.has(key) ? "edited" : ""}"
-            data-pose="${key}" title="${key}">
+            data-pose="${key}" title="${key}${MATCHED_FRAMES.has(key)
+              ? " — matched to a human battle pose" : ""}">
       <span class="plate mini">${plateHTML(ui.char, key, pose.j, { flat: true })}</span>
+      ${MATCHED_FRAMES.has(key) ? '<span class="matched-dot" aria-label="matched">●</span>' : ""}
       <span class="thumb-name">${key}</span>
     </button>`).join("");
+  const matched = Object.keys(data.poses).filter((k) => MATCHED_FRAMES.has(k)).length;
   $("#poseCount").textContent =
-    `${Object.keys(data.poses).length} frames · ${edited.size} edited`;
+    `${Object.keys(data.poses).length} frames · ${matched} matched · ${edited.size} edited`;
 }
 
 function renderEditor() {
   const data = reads.get(ui.char);
   const pose = data.poses[ui.pose];
   if (!pose) return;
-  $("#plate").innerHTML = plateHTML(ui.char, ui.pose, pose.j, { handles: true });
+  // Filled in below, once the rig has actually been posed.
   $("#poseName").textContent = ui.pose;
   // Three different things, and conflating them cost a round trip: what YOU
   // changed since the page loaded, what a human placed at some point and is
   // already in the tree, and what is still a fitted guess.
+  // It says JOINTS: out loud, because the two badges on this screen answer
+  // different questions and they were being read as one. This one is about
+  // where the eighteen dots on the plate came from. The one over the rig is
+  // about which pipeline posed the model. "read by eye" beside "matched human
+  // pose" is not a contradiction and does not mean the frame lacks a match —
+  // it means a human placed those dots AND the frame has a matched pose, which
+  // is the normal case for every frame of Yuji's sheet.
   const mine = SESSION.has(editKey(ui.char, ui.pose));
   const stamp = mine ? "edited here" : pose.source ? "hand-placed on disk"
     : pose.seed ? pose.seed : "read by eye";
-  $("#poseStamp").textContent = stamp;
+  $("#poseStamp").textContent = `joints: ${stamp}`;
   $("#poseStamp").className = `stamp ${mine ? "on" : pose.source ? "read" : pose.seed ? "seed" : "read"}`;
   $("#poseNote").value = pose.read || "";
   $("#depthNote").hidden = !hasDepth(pose.j);
@@ -1076,7 +1535,30 @@ function renderEditor() {
       <span>${n}</span><b>${pose.j[n]
         ? `${pose.j[n][0].toFixed(1)}, ${pose.j[n][1].toFixed(1)}`
           + (depth(pose.j[n]) ? `, ${depth(pose.j[n]).toFixed(1)}` : "") : "—"}</b></li>`).join("");
-  poseFromJoints(pose.j);
+  const how = poseRigFor(ui.pose, pose.j);
+  $("#poseHow").textContent = howText(how);
+  $("#poseHow").className = `how ${how.shown}${how.asked ? " fell" : ""}`;
+  // The plate is drawn AFTER the rig is posed, so the overlay can show what
+  // the rig ended up doing rather than what the read asked for.
+  $("#plate").innerHTML = plateHTML(ui.char, ui.pose, pose.j,
+    { handles: true, shown: jointsFromRig(pose.j), mode: how.shown });
+  // WHAT THE POSE IS SUPPOSED TO REACH, and whether it does. A fist that stops
+  // at hip height is not an overhand into the floor however good the body
+  // looks, and this is the only place that says so.
+  const c = contactMiss(ui.pose);
+  const hit = $("#poseContact");
+  hit.hidden = !c;
+  if (c) {
+    const cm = Math.round(Math.abs(c.miss) * 100);
+    const ok = cm <= 8;
+    hit.textContent = `${c.bone.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase()} → `
+      + `${c.at}${ok ? "" : ` · ${cm}cm ${c.miss > 0 ? "short" : "past"}`}`;
+    hit.className = `contact ${ok ? "ok" : "miss"}`;
+    hit.title = `${c.why} — the bone sits at ${c.y.toFixed(2)}m, `
+      + `the target is ${c.target.toFixed(2)}m`;
+  }
+  $("#poseMode").textContent = MODE_LABEL[ui.mode];
+  $("#poseModeBox").className = `check mode ${ui.mode}`;
   drawThree();
 }
 
@@ -1129,9 +1611,12 @@ function applyTurn() {
 /** Redraw only what a drag moves, so dragging stays at frame rate. */
 function refreshDrag() {
   const pose = reads.get(ui.char).poses[ui.pose];
-  $("#plate .rigline").innerHTML = mannequinSVG(pose.j, { handles: true });
   showFacing(pose.j);
-  poseFromJoints(pose.j);
+  poseRigFor(ui.pose, pose.j);
+  const shown = jointsFromRig(pose.j);
+  $("#plate .rigline:not(.shown)").innerHTML = mannequinSVG(pose.j, { handles: true });
+  const layer = $("#plate .rigline.shown");
+  if (layer && shown) layer.innerHTML = mannequinSVG(shown);
   drawThree();
 }
 
@@ -1242,6 +1727,7 @@ function bindPlate() {
 function bindKeys() {
   addEventListener("keydown", (e) => {
     if (e.target.matches("input, textarea, select")) return;
+    if (e.key === "Escape" && ui.sel) { ui.sel = null; renderEditor(); e.preventDefault(); return; }
     if ((e.key === "z" || e.key === "Z") && (e.metaKey || e.ctrlKey)) {
       const stack = undo.get(`${ui.char}/${ui.pose}`);
       if (stack?.length) {
@@ -1252,13 +1738,38 @@ function bindKeys() {
       return;
     }
     const step = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
-    if (!step || !ui.sel) return;
+    if (!step) return;
+    // WITH NO JOINT SELECTED THE ARROWS WALK THE GRID. One key does two things
+    // and which one is unambiguous: a selected joint is a thing you are moving,
+    // and nothing selected means you are still choosing a frame. Click the
+    // plate's background (or press Escape) to drop the joint and get the grid
+    // back.
+    if (!ui.sel) { stepPose(step); e.preventDefault(); return; }
     const k = e.shiftKey ? 2 : 0.5;
     pushUndo();
     moveJoint(ui.sel, step[0] * k, step[1] * k, { chain: !e.altKey });
     commit();
     e.preventDefault();
   });
+}
+
+/**
+ * Move one place through the picker. The column count is read off the grid
+ * rather than hardcoded, so up/down keeps meaning "the frame above" if the
+ * layout ever changes width.
+ */
+function stepPose([dx, dy]) {
+  const keys = Object.keys(reads.get(ui.char)?.poses || {});
+  if (!keys.length) return;
+  const list = $("#poseList");
+  const cols = Math.max(1,
+    getComputedStyle(list).gridTemplateColumns.split(" ").filter(Boolean).length);
+  const i = keys.indexOf(ui.pose);
+  const next = i < 0 ? 0 : clamp(i + dx + dy * cols, 0, keys.length - 1);
+  if (keys[next] === ui.pose) return;
+  selectPose(keys[next]);
+  list.querySelector(`[data-pose="${keys[next]}"]`)
+    ?.scrollIntoView({ block: "nearest" });
 }
 
 // ------------------------------------------------------------------- export
@@ -1377,15 +1888,23 @@ function shell() {
                      title="Drag to turn, scroll to move in. Both panes turn together; off returns to the drawing's own angle.">
                 <input id="poseView3d" type="checkbox"> View 3D
               </label>
+              <button class="check mode matched" id="poseModeBox" type="button"
+                      title="Click to cycle. Matched: this frame's own pose from the human battle-pose library. Baseline match: the generic pose for what this frame IS, which every frame has. Generated: worked out from the joints you can drag. In Game: the clip the game plays today.">
+                <span id="poseMode">Matched</span> <span class="cycle">⟳</span>
+              </button>
+              <span class="how" id="poseHow"></span>
+              <span class="contact" id="poseContact" hidden></span>
             </div>
             <p class="hint">The fighter's own rig: spine, neck, both clavicles,
-              arms, legs and feet, each turned to match the joints. <b>View 3D</b>
+              arms, legs and feet. The plate carries a second skeleton in the
+              mode's colour — that is what the rig is <b>actually</b> doing,
+              fitted over the drawing, beside the black one you can drag. <b>View 3D</b>
               turns this pane and the plate together — drag either, scroll to move
               in — and a joint dragged while turned gains DEPTH, which is how a pose
               the drawing cannot hold (an arm angled inward, a foot rolled out) gets
               said. Off returns both to the drawing's own angle. For a bone the read
               has no joint for, use the keyframe bench at
-              <a href="./?edit=animation">?edit=animation</a>.</p>
+              <a href="./?edit=keys">?edit=keys</a>.</p>
             <label class="note-label" for="poseNote">What this frame is doing</label>
             <textarea id="poseNote" rows="3" placeholder="e.g. three-point stance, far hand planted, rear leg stretched back"></textarea>
             <ul class="joints" id="jointList"></ul>
@@ -1412,6 +1931,14 @@ async function showBuild() {
   } catch { /* a HEAD that fails is not worth a broken page */ }
 }
 
+function selectPose(key) {
+  if (!key || key === ui.pose) return;
+  ui.pose = key;
+  ui.sel = null;
+  renderPicker();
+  renderEditor();
+}
+
 async function selectChar(char) {
   ui.char = char;
   const data = await loadRead(char);
@@ -1434,16 +1961,12 @@ async function boot() {
   initPose(THREE);
   // Mannequins for everyone and no GLB fetched up front: a tool that looks at
   // one fighter at a time pays for one fighter at a time (loader.js initRigs).
-  await rigs.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS, []);
+  await rigs.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS, [], { includeDisabled: true });
 
   $("#charPick").addEventListener("change", (e) => { ui.pose = null; selectChar(e.target.value); });
   $("#poseList").addEventListener("click", (e) => {
     const btn = e.target.closest("[data-pose]");
-    if (!btn) return;
-    ui.pose = btn.dataset.pose;
-    ui.sel = null;
-    renderPicker();
-    renderEditor();
+    if (btn) selectPose(btn.dataset.pose);
   });
   $("#jointList").addEventListener("click", (e) => {
     const li = e.target.closest("[data-joint]");
@@ -1461,6 +1984,10 @@ async function boot() {
     renderEditor();
   });
   $("#poseView3d").addEventListener("change", (e) => orbit.setOn(e.target.checked));
+  $("#poseModeBox").addEventListener("click", () => {
+    ui.mode = MODES[(MODES.indexOf(ui.mode) + 1) % MODES.length];
+    if (ui.pose) renderEditor();
+  });
   $("#viewAngle").addEventListener("click", () => orbit.reset());
   $("#btnSnap").addEventListener("click", () => { snapToArt(); });
   $("#btnSwap").addEventListener("click", () => {
@@ -1489,6 +2016,68 @@ async function boot() {
   bindKeys();
   await selectChar(ui.char);
   applyTurn();
+  // WHERE THE HANDS ARE, relative to the chest, in the fighter's own frame:
+  // fwd + is in front of him, up + is above the shoulder line, lat + is to his
+  // own left, all in metres. It exists because "his hand looks wrong" is not
+  // reviewable and "his hand is 15cm behind his chest" is — and that is
+  // literally what every guard on this sheet was doing, on both sides, until
+  // somebody looked at the model rather than the numbers. Two rules catch
+  // most of it: a hand doing nothing belongs in FRONT (fwd > 0), and an elbow
+  // that has not been lifted on purpose belongs near the ribs (|lat| < 0.44,
+  // about the width of the shoulders).
+  // SILHOUETTE. Pose the rig from a named baseline intent and hand back the
+  // outline as an occupancy grid, so a tool can ask whether two poses read the
+  // same. It is the fighting-game requirement — players read the outline before
+  // they read anything else, so two moves with one silhouette are two moves the
+  // player cannot tell apart — and it is the one quality of a pose LIBRARY that
+  // no amount of looking at a single pose can check.
+  window.__showIntent = (intent) => {
+    const pose = INTENT_POSES[intent];
+    if (!pose) return false;
+    poseFromMatch(pose);
+    drawThree();
+    return true;
+  };
+  window.__silhouette = (n = 48) => {
+    const canvas = three.renderer?.domElement;
+    if (!canvas) return null;
+    // RENDER FIRST, IN THIS CALL. A WebGL drawing buffer is cleared once the
+    // frame is composited unless the context asked to keep it, so reading the
+    // canvas from a later task hands back a blank one — which does not look
+    // like a bug, it looks like every pose having an identical silhouette.
+    drawThree();
+    const w = canvas.width; const h = canvas.height;
+    const ctx = document.createElement("canvas");
+    ctx.width = w; ctx.height = h;
+    const g = ctx.getContext("2d");
+    g.drawImage(canvas, 0, 0);
+    const data = g.getImageData(0, 0, w, h).data;
+    // The pane paints a flat background, so "is there a fighter here" is "is
+    // this pixel different from the corner". Sampling the corner rather than
+    // hardcoding the colour keeps it honest if the theme moves.
+    const bg = [data[0], data[1], data[2]];
+    const grid = new Array(n * n).fill(0);
+    for (let y = 0; y < h; y++) {
+      const gy = Math.min(n - 1, Math.floor((y / h) * n));
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        if (Math.abs(data[i] - bg[0]) + Math.abs(data[i + 1] - bg[1])
+            + Math.abs(data[i + 2] - bg[2]) > 40) {
+          grid[gy * n + Math.min(n - 1, Math.floor((x / w) * n))] = 1;
+        }
+      }
+    }
+    return grid.join("");
+  };
+  window.__handsAt = () => {
+    const basis = anatomy();
+    const at = (n) => new THREE.Vector3().setFromMatrixPosition(three.bones.get(n).matrixWorld);
+    const chest = at('Spine2');
+    const rel = (n) => { const v = at(n).sub(chest);
+      return { fwd: +v.dot(basis.forward).toFixed(2), up: +v.dot(basis.up).toFixed(2),
+               lat: +v.dot(basis.lateral).toFixed(2) }; };
+    return { L: rel('LeftHand'), R: rel('RightHand') };
+  };
   window.__workbenchReady = true;
 }
 

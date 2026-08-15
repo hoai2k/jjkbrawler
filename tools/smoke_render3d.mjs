@@ -24,6 +24,7 @@
 // served first:  node server.mjs   then:  node tools/smoke_render3d.mjs [baseUrl]
 
 import { chromium } from "playwright";
+import { pressStart } from "./smoke_boot.mjs";
 import { execFileSync } from "child_process";
 import { readFileSync, writeFileSync, rmSync } from "fs";
 import { join, dirname } from "path";
@@ -52,8 +53,7 @@ const browser = await chromium.launch({
 
 async function bootAndFight(page, url) {
   await page.goto(url);
-  await page.waitForFunction(async () =>
-    (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
+  await pressStart(page);
   await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 30000 });
   await page.click('[data-character="gojo"]');
   await page.waitForTimeout(300);
@@ -185,6 +185,7 @@ async function bootAndFight(page, url) {
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.goto(`${BASE}/index.html?render=3d&mannequin=all&camera=flat`);
+  await pressStart(page);
   await page.waitForFunction(async () =>
     (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
   await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 30000 });
@@ -229,6 +230,7 @@ try {
   page.on("pageerror", (e) => errors.push(String(e)));
 
   await page.goto(`${BASE}/index.html?render=3d&camera=flat`);
+  await pressStart(page);
   await page.waitForFunction(async () =>
     (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
   await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 30000 });
@@ -284,6 +286,7 @@ try {
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.goto(`${BASE}/index.html?render=3d&camera=flat`);
+  await pressStart(page);
   await page.waitForFunction(async () =>
     (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
 
@@ -331,6 +334,196 @@ try {
       "reach follows the 180° turnaround rather than fighting it", `z signs ${r.forwardSigns.join(",")}`);
   }
   check(errors.length === 0, "no page errors solving IK", errors.slice(0, 2).join(" | "));
+  await page.close();
+}
+
+// ---------------------------------------------------------------------------
+// A LOST GPU CONTEXT MUST NOT BE CACHED.
+//
+// three makes render() a silent no-op while the context is gone, and the pose
+// cache's next act is to copy the canvas and store it under a key that says
+// nothing about the context. A phone that loses its context partway through the
+// idle review would fill the cache with blanks and go on serving them after the
+// GPU came back — the whole roster dark, permanently, with a reload the only
+// cure. Driven on purpose here, because a fault you cannot trigger is one you
+// fix by argument.
+{
+  const page = await browser.newPage({ viewport: { width: 1100, height: 720 } });
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e)));
+  await page.goto(`${BASE}/render3d/workbench/index.html?char=yuji`, { waitUntil: "load" });
+  await page.waitForFunction(() => window.__render3d?.renderer, { timeout: 60000 });
+  await page.waitForTimeout(2500);
+
+  const r = await page.evaluate(async () => {
+    const scene = await import("/render3d/src/scene.js");
+    const gl = window.__render3d.renderer.getContext();
+    const ext = gl.getExtension("WEBGL_lose_context");
+    if (!ext) return { skipped: true };
+    const before = window.__render3d.stats.lostFrames;
+    ext.loseContext();
+    await new Promise((r) => setTimeout(r, 400));
+    const flagged = window.__render3d.contextLost === true;
+    // Ask for renders while it is gone. Each one must come back empty-handed
+    // rather than banking a blank.
+    scene.clearCache();
+    await new Promise((r) => setTimeout(r, 1200));
+    const dropped = window.__render3d.stats.lostFrames - before;
+    ext.restoreContext();
+    await new Promise((r) => setTimeout(r, 1500));
+    return { skipped: false, flagged, dropped, restored: window.__render3d.contextLost === false };
+  });
+
+  if (r.skipped) {
+    check(true, "context-loss check skipped — WEBGL_lose_context unavailable");
+  } else {
+    check(r.flagged, "a lost context is noticed");
+    check(r.dropped > 0, "and frames drawn during it are dropped rather than cached",
+      `${r.dropped} dropped`);
+    check(r.restored, "the context comes back");
+  }
+  check(errors.length === 0, "no page errors around a context loss", errors.slice(0, 2).join(" | "));
+  await page.close();
+}
+
+// --------------------------------------------------------------- the walk
+//
+// The walk clip is HAND-AUTHORED (render3d/src/walk_cycle.js) rather than built
+// from the sheet, so nothing upstream checks it: `check_pose_reads` measures
+// drawings and this state deliberately has none of its own. What it checks is
+// the one property that separates a walk from every other gait — ONE FOOT IS
+// ALWAYS DOWN. Fold the support knee at the pass and it fails (6.4% on
+// Hakari); the cycle as authored keeps the whole roster near 2.5%.
+{
+  const page = await browser.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e)));
+  await page.goto(`${BASE}/index.html?render=3d&mannequin=none&camera=flat`);
+  await pressStart(page);
+  await page.waitForFunction(
+    async () => (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
+  await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 90000 });
+  const r = await page.evaluate(async () => {
+    const THREE = await import("/vendor/three/three.module.js");
+    const rigs = await import("/render3d/src/loader.js");
+    const pose = await import("/render3d/src/pose.js");
+    const { CHARACTER_KEYS } = await import("/src/characters.js");
+    const out = { built: 0, missing: [], worstLift: 0, worstWho: null, fromSheet: [] };
+    const V = () => new THREE.Vector3();
+    for (const key of CHARACTER_KEYS) {
+      const rig = rigs.getRig(key);
+      // Not every fighter has been modelled: Mei Mei and Kurourushi have no
+      // .glb yet, and a fighter with no rig owes no clip. The check is that a
+      // rig which EXISTS has a walk, not that the roster is complete.
+      if (!rig) continue;
+      const res = rigs.resolveClip(key, "walk");
+      if (!res?.clip) { out.missing.push(key); continue; }
+      out.built++;
+      if (res.source !== "library") out.fromSheet.push(`${key}:${res.source}`);
+      // EACH FOOT AGAINST ITS OWN FLOOR, not against the other one. These rigs
+      // are not left-right symmetric in their bind pose — Geto's ankles sit
+      // 4cm apart in height standing still — so "the lower foot" swaps sides
+      // every half cycle and a naive min() reports that swap as a lift. It
+      // reported 8.9cm of float on Geto that tuning the cycle could not shift,
+      // because it was never the cycle.
+      const ys = [[], []];
+      for (let i = 0; i < 16; i++) {
+        pose.poseRig(rig, "walk", (i / 16) * res.clip.duration, res.clip, { turnYawRad: 0 });
+        rig.root.updateMatrixWorld(true);
+        const a = V(), b = V();
+        rig.root.getObjectByName("LeftFoot").getWorldPosition(a);
+        rig.root.getObjectByName("RightFoot").getWorldPosition(b);
+        ys[0].push(a.y); ys[1].push(b.y);
+      }
+      const floor = [Math.min(...ys[0]), Math.min(...ys[1])];
+      // At every instant, how far above its own floor is the LOWER of the two?
+      // A walk keeps that near zero; the moment both feet are up, it is not.
+      let worst = 0;
+      for (let i = 0; i < 16; i++) {
+        worst = Math.max(worst, Math.min(ys[0][i] - floor[0], ys[1][i] - floor[1]));
+      }
+      const lift = worst / (rig.height || 1);
+      if (lift > out.worstLift) { out.worstLift = +lift.toFixed(4); out.worstWho = key; }
+    }
+    return out;
+  });
+  check(r.built > 0 && r.missing.length === 0, "every fighter has a walk clip",
+    r.missing.length ? `missing: ${r.missing.slice(0, 4).join(", ")}` : `${r.built} built`);
+  check(r.fromSheet.length === 0, "...and it is the authored cycle, not the sheet",
+    r.fromSheet.length ? r.fromSheet.slice(0, 3).join(", ") : "all from the pose library");
+  // A planted ankle may rise as the foot rolls over its ball; it may not leave
+  // the floor. 3% of body height is that roll and no more — the roster sits
+  // near 2.5% and the first version of the cycle put Geto at 4.7%.
+  check(r.worstLift <= 0.03, "one foot stays down through the whole cycle",
+    `worst planted-foot rise ${(r.worstLift * 100).toFixed(1)}% of height (${r.worstWho})`);
+  check(errors.length === 0, "no page errors building the walk", errors.slice(0, 2).join(" | "));
+  await page.close();
+}
+
+// ---------------------------------------------------------------- the run
+//
+// The run is authored the same way (render3d/src/run_cycle.js) and checked for
+// the property the four sprite frames cannot give it: A STRIDE HAS A SUPPORT
+// PHASE. Reach and pass are the two extremes of the swing, and a cycle made of
+// only those two never lands — the foot touches its lowest point for an instant
+// on the way between them and leaves again, which is why the sheet-built run
+// read as skating rather than running.
+//
+// Measured as DWELL: how much of the cycle the lower foot spends within 2% of
+// body height of its own floor. The sheet-built clip sits at 16%; the authored
+// cycle, with a contact and a loading frame on each side, doubles that. (The
+// flight phase is NOT measured here and cannot be: the clip owns joint angles
+// only, and the body's rise and fall over a stride is motion.js's bob — baking
+// it in here would double it, which is the delivery rule.)
+{
+  const page = await browser.newPage();
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(String(e)));
+  await page.goto(`${BASE}/index.html?render=3d&mannequin=none&camera=flat`);
+  await pressStart(page);
+  await page.waitForFunction(
+    async () => (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });
+  await page.waitForFunction(() => window.__render3d?.ready === true, { timeout: 90000 });
+  const r = await page.evaluate(async () => {
+    const THREE = await import("/vendor/three/three.module.js");
+    const rigs = await import("/render3d/src/loader.js");
+    const pose = await import("/render3d/src/pose.js");
+    const { CHARACTER_KEYS } = await import("/src/characters.js");
+    const out = { built: 0, missing: [], leastDwell: 1, leastWho: null, fromSheet: [] };
+    const V = () => new THREE.Vector3();
+    const N = 32;
+    for (const key of CHARACTER_KEYS) {
+      const rig = rigs.getRig(key);
+      if (!rig) continue;
+      const res = rigs.resolveClip(key, "run");
+      if (!res?.clip) { out.missing.push(key); continue; }
+      out.built++;
+      if (res.source !== "library") out.fromSheet.push(`${key}:${res.source}`);
+      const lows = [];
+      for (let i = 0; i < N; i++) {
+        pose.poseRig(rig, "run", (i / N) * res.clip.duration, res.clip, { turnYawRad: 0 });
+        rig.root.updateMatrixWorld(true);
+        const a = V(), b = V();
+        rig.root.getObjectByName("LeftFoot").getWorldPosition(a);
+        rig.root.getObjectByName("RightFoot").getWorldPosition(b);
+        // Whichever foot is down — it swaps sides every half stride.
+        lows.push(Math.min(a.y, b.y) / (rig.height || 1));
+      }
+      const floor = Math.min(...lows);
+      const dwell = lows.filter((y) => y - floor < 0.02).length / N;
+      if (dwell < out.leastDwell) { out.leastDwell = +dwell.toFixed(3); out.leastWho = key; }
+    }
+    return out;
+  });
+  check(r.built > 0 && r.missing.length === 0, "every fighter has a run clip",
+    r.missing.length ? `missing: ${r.missing.slice(0, 4).join(", ")}` : `${r.built} built`);
+  check(r.fromSheet.length === 0, "...and it is the authored cycle, not the sheet",
+    r.fromSheet.length ? r.fromSheet.slice(0, 3).join(", ") : "all from the pose library");
+  // The roster sits at 28% and up; the reach/pass sheet cycle it replaces sat
+  // at 16%, so this fails the moment the contact and loading frames go away.
+  check(r.leastDwell >= 0.25, "each stride lands and loads rather than scissoring",
+    `least support ${(r.leastDwell * 100).toFixed(0)}% of the cycle (${r.leastWho})`);
+  check(errors.length === 0, "no page errors building the run", errors.slice(0, 2).join(" | "));
   await page.close();
 }
 

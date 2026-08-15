@@ -57,9 +57,11 @@ the moment you get hit. It dims and then blinks as its time runs out.
 
 | Mechanic | Detail |
 |---|---|
-| Run | Per-character top speed (356–468 px/s) and acceleration |
-| **Dash** | **Shove the left stick** out from centre (past 0.78 within 0.14 s of leaving the 0.36 rest zone), or double-tap a direction within 0.24 s → 1.45× burst for 0.22 s |
+| **Walk** | **Partial stick tilt** (0.28–0.72) → 34–62% of run speed, scaled by how far you push. A keyboard has no axis and always runs |
+| Run | Full tilt: per-character top speed (356–468 px/s) and acceleration |
+| **Dash** | **Shove the left stick** out from centre (past 0.78 within 0.14 s of leaving the 0.36 rest zone), or double-tap a direction within 0.24 s → a 1.20× burst for 0.07 s (about 5 frames and ~45 px on Gojo — brief and uncommittal by design) |
 | **Dash attack** | Light or heavy while running: the run's own committal attack (§4) |
+| **Ledge brake** | Momentum never carries you off a platform, and a WALK never does either — see below |
 | Turn lock | Reversing at speed costs 0.08 s of traction — spacing has commitment |
 | Jump | Per-character impulse; **short hop** by releasing jump within ~0.09 s |
 | Double jump | One air jump at 92% power (Momo gets two — broom flight) |
@@ -70,7 +72,7 @@ the moment you get hit. It dims and then blinks as its time runs out.
 
 **The dash is a stick input, not a button.** How *fast* the stick leaves centre
 is what separates a dash from a walk — shove it and you dash, roll it out and
-you walk — which is Smash's smash input and the thing a player coming from that
+you walk (and how *far* you roll it out picks the walking speed) — which is Smash's smash input and the thing a player coming from that
 game tries first. One dash per shove: the stick has to be seen back inside the
 rest zone before another can fire, so holding a direction never machine-guns
 dashes, and yanking the stick across centre is a dash-turn. It is **analog
@@ -78,13 +80,114 @@ only**: a key crosses every threshold in the frame it is pressed, so a keyboard
 cannot tell a shove from a walk and keeps the double tap (`DASH_FLICK` in
 `src/input.js`).
 
+### Walking off is a decision
+
+**Nothing takes you off a platform by accident.** Two rules, and between them
+they cover every way a fighter used to leave the ground without meaning to:
+
+- **Momentum never carries you off.** Let go of the stick and whatever speed
+  you had bleeds away *on the platform* — you stop at the lip rather than
+  sliding over it. Before this, one frame of dash flick needed 42 px of runway
+  to stop in, against 4 px for one frame of walk: the dash starts at full burst
+  speed by design, so the shortest tap a player could give it already spent
+  more room than a tap looks like it should.
+- **The dash is short.** It covers about 45 px, down from ~70: a dash across a
+  platform used to arrive at the far lip with speed to spare, which made
+  running off the end the default outcome of a dash rather than a decision.
+  Measured with `tools/debug/measure_dash.mjs`; the slide a *released* dash
+  leaves behind is unchanged at 55 px, because that one is the brake's job.
+- **A walk never carries you off either.** Hold a partial tilt into the lip and
+  the fighter stops there and stays there, however long you hold it. Push the
+  stick to a run and they go straight over.
+
+This is Smash's **teeter** ([SmashWiki](https://www.ssbwiki.com/Teeter)): walk
+slowly to the edge there and the character stops, and will not step off until
+the stick is pushed past a threshold. It needs an analog walk to hang off,
+which is why the walk above had to exist first. It has its own pose now, too —
+see the ledge section below.
+
+Everything deliberate is untouched, because everything deliberate is a held
+input: running off to chase, dropping to the ledge, edge-cancelling an aerial.
+**Knockback is never braked** — being hit off the stage is the game working, and
+so is a dash attack whose slide carries its owner over the end.
+
 ### Ledges
-Only the main platform has grabbable ledges. Falling near an edge (after real airtime —
-no walk-off regrab loops) snaps the fighter to a hang (brief invincibility,
-refreshed double jump); getting hit knocks them off the hang. From the hang:
-climb (toward), **ledge roll** (shield — long invulnerable climb), **ledge
-jump** (jump), **ledge attack** (attack — climbs and swings), or drop (down/away).
-Hanging times out after 2.8 s so ledges can't be camped.
+Only the main platform has grabbable ledges. Falling near an edge (after real
+airtime — no walk-off regrab loops) catches the fighter onto a hang (brief
+invincibility, refreshed double jump); getting hit knocks them off it. From the
+hang: climb (toward), **ledge roll** (shield — the longest intangibility),
+**ledge jump** (jump), **ledge attack** (attack — climbs and swings), or drop
+(down/away). Hanging times out after 2.8 s, and repeatedly retaking the ledge
+costs you the intangibility that made it worth doing (below).
+
+**Getting on and off one is a move, not a teleport.** Every one of those used to
+be a single-frame jump of 40–110 px, and drawn verbatim that is a body vanishing
+and reappearing somewhere else, twice in half a second — the ledge's whole
+flicker. Smoothing the *drawing* over the snap fixed the flicker but not the
+lie: the fighter still arrived before their body did, and there was no trip for
+a pose to play on. So the fighter now **travels**, on the clock, with a pose per
+phase and the hurtbox going where the drawing goes:
+
+| | time | drawn as | worst frame |
+|---|---|---|---|
+| catch | by distance, 450 px/s (0.09–0.40 s) | the fall (or the rise) it came in on, all the way to the ledge, then the hang | 11.2 px |
+| climb | 0.40 s (24 f) | 3 f still hanging, 14 f `jump_rise`, 8 f `land` | 7.9 px |
+| roll | 0.64 s (38 f) | 4 f hanging, 24 f `dodge_roll`, 10 f `land` | 8.2 px |
+| attack | 0.38 s (23 f) | hanging, then `jump_rise` — the swing fires on arrival | 8.0 px |
+| jump off | — | no transition at all: push off *from* the hang and let the arc carry | 6.8 px |
+
+None of it waits on new art — the poses are ones every fighter already has.
+
+**How long is a measurement, not a taste.** No frame of a transition may move
+the body further than a full-speed **run** does (7.8 px at Gojo's 468 px/s):
+below that, nothing in the trip travels faster than a character can travel on
+their own feet, so nothing in it can read as a jump. The durations fall out of
+that and the distance each one covers. The first pass at this rushed them
+(0.13 / 0.20 / 0.26 / 0.14) and peaked at 15–18 px — far better than the 98 px
+teleport, still twice a run. Smash is the sanity check on the other side: its
+getups are percent-independent and take roughly half a second, so these are
+normal for the genre rather than slow.
+
+The **catch** is the one exception, timed by speed rather than duration —
+it starts wherever the fighter was when the ledge caught them, so a fixed time
+would make a short reach crawl and a long one snap. It is quicker than the
+climbs on purpose: this is hands closing on a ledge, and a slow one feels like
+the recovery failing. Its cap is set where even the longest possible reach
+moves no faster than the **fast fall** it interrupted (15 px/frame).
+
+**Ledge camping is punishable, on Smash's two rules.**
+
+- **Intangibility ends before the getup does.** Each option is covered for the
+  first three quarters of its trip and *nothing* after, so the last frames of a
+  climb and the whole of the arrival are a punish window — 10 of a climb's 25
+  frames are exposed. Getting up in front of somebody who guessed right costs,
+  which is what makes ledge play a read rather than a free re-entry.
+- **It decays with every regrab, and only the ground resets it.** Full on the
+  first grab, ×0.8 after one regrab, ×0.5 after two, **nothing from the third
+  on** — Ultimate's rule verbatim
+  ([SmashWiki](https://www.ssbwiki.com/Edge)). Measured across four grabs:
+  0.50 s → 0.40 → 0.25 → 0. The loop it kills is grab → drop → regrab, which
+  never touches the stage; **climbing up clears it**, because climbing up is
+  what a ledge is for. At the far end, a fighter on their fourth consecutive
+  grab is hittable through the reach itself while unable to act. That is
+  severe, and it is meant to be: it is the fourth time in a row they chose the
+  ledge over the stage.
+
+Both are guarded, each against a mutation that turns it back off.
+
+Guarded by `tools/smoke_ledge.mjs`, which checks both halves — how far the body
+moves in a frame *and* which poses are drawn while it moves, because a body
+that slides smoothly while holding its hang pose the whole way is still
+wrong.
+
+**Teetering** is the other half, and the answer to when a fighter should *not*
+be hanging. The ledge brake stops people dead on the last pixel of a platform
+constantly — that is its job — and nothing drew it, so the most common thing
+that happens at an edge looked like standing in the middle of the stage.
+Stopping within 16 px of the lip for 0.08 s now draws `teeter`: its own pose
+where the art exists (round 22A), and otherwise the idle with a lean out over
+the drop and a slow sway back, which is what a teeter is. Somebody who stopped
+at the edge has not left it, so it is a stance, not a hang.
 
 ## 3. Defense
 
@@ -163,6 +266,72 @@ shared primitives — projectiles, ground waves, dash strikes, traps, counters,
 command grabs, installs, teleports, gambles — plus bespoke signature logic
 (Boogie Woogie's swap, Cursed Speech's throat strain, the Gorilla core, etc.).
 Specials have individual cooldowns (0.8–7 s) instead of resource costs.
+
+### Spoken moves wind up while they are spoken
+Twelve moves in the game are **announced out loud** — Inumaki's three commands
+and his ultimate, and the eight Domain Expansions. Those moves do not happen on
+the frame you press the button. The fighter holds the move's own pose, says the
+line, and the move lands **80% of the way through it** (`SPOKEN_TIMING` in
+`src/config_audio.js`; clamped to 0.35–2.2 s, so Gojo's 3.28-second call-out
+does not stall the match for its whole length).
+
+This is frame data, not decoration.
+
+**Speaking is a commitment, and the first half of the sentence is where you
+answer it.** A spoken move is interruptible — with no invulnerability, Domain
+Expansions included — but only for the **first 50% of the line**
+(`SPOKEN_TIMING.commit`). Land a hit inside that window and the move never
+happens: no barrier, no hitbox, no ultimate. Land one after it and the move
+goes off anyway; by then it is already underway, and taking it back would read
+as the game reneging on something it had visibly started.
+
+For Gojo's 3.28-second call-out that is a 1.64 s window to punish, against a
+move that lands at 2.20 s. For Inumaki's "Don't Move" it is 0.36 s.
+
+**Being cut off is legible in both channels.** The line **stops mid-word**
+(faded over 60 ms so it does not click), the fighter makes a short winded grunt
+in its place, and a small puff and a `CUT OFF` popup appear at head height. No
+screen shake and no flash — the hit that cut them off is the loud part, and the
+move that didn't happen should not out-shout it.
+
+**An interrupted move costs nothing.** Nothing is spent until the move actually
+goes off:
+
+| Move | Charged when it fires, not when it starts |
+|---|---|
+| Inumaki's specials | cooldown, and the throat strain toward his *cough* lock |
+| Inumaki's ultimate | the full meter bar |
+| Domain Expansions | the full meter bar |
+
+So a fighter shouted down mid-sentence keeps their bar and their cooldowns and
+can simply try again. What they lose is the tempo and the opening they gave
+away — which is the real cost, and the thing that makes announcing a domain a
+decision rather than a formality.
+
+Two details follow from that:
+
+- **Once the barrier lands, it cannot be taken back.** The 0.9 s opening pose
+  after a domain's call is untouchable and uninterruptible, exactly as it was
+  before this existed. The window you can punish is the first half of the
+  *call*, not the domain.
+- **A second domain cannot start during the first one's call**, even though the
+  barrier is not up yet (`state.domainCasting`). An interrupted cast stops
+  blocking the instant it is interrupted — the state remembers the action, not
+  just the fighter, so there is nothing to clean up on a hit, a KO or a
+  respawn.
+
+**Inumaki is where this matters most.** "Blast Away" now has 0.91 s of wind-up
+where it used to be instant, and his four moves are his whole kit. He is the
+fighter to watch if the fraction ever needs tuning.
+
+**The delay never depends on the audio.** It is read from the line lengths
+written in `SPOKEN_LINES`, not measured from the sound, so a move behaves
+identically with the sound off, the SFX slider at zero, or the file still
+downloading. `node tools/check_voice.mjs` fails if a written length has drifted
+from the file it describes — re-rolling a line changes the frame data.
+
+Setting `SPOKEN_TIMING.fraction` to 0 restores the old behaviour, where
+everything fired on the same frame as the shout.
 
 ### Summons, and steering them
 
@@ -455,7 +624,7 @@ with the side it fights for.
 | Action | Gamepad |
 |---|---|
 | Move | Left stick |
-| Jump | A or RT |
+| Jump | A |
 | Crouch / fast-fall | Left stick ▼ |
 | Light attack | X |
 | Heavy attack (hold = charge) | Y |
@@ -465,6 +634,7 @@ with the side it fights for.
 | Ultimate | RB |
 | Domain Expansion | LB |
 | Shield / dodges | LT |
+| Grab (direction throws · Light pummels) | RT |
 | Tilt attacks (no run-up) | Right stick |
 | Steer summons / aim creature shots | D-pad |
 | Pause | Start |
@@ -509,17 +679,20 @@ index finger is free at exactly that moment. A binding may name several buttons
 (`PAD_BUTTONS` in `src/config_controls.js`); they merge by OR, and the first is
 the one the pad diagram calls that action's home.
 
-### Grabs & throws — experimental, behind `?throw=true`
+### Grabs & throws — on by default; `?throw=false` turns them off
 
-Add `?throw=true` to the URL and the game grows Smash's fourth option
-(`src/flags.js`, `src/grab.js`). **RT becomes grab** for that session — the flag
-conditionally takes the trigger back from the second jump, because grab wants
-exactly the button a Smash player's index finger expects — and every generated
-control surface (this table, the in-game pad diagram, the tips) follows the
-flag: with it off, nothing anywhere mentions grabbing. The table above is
-generated with the flag off, which is the shipped game.
+The game has Smash's fourth option (`src/flags.js`, `src/grab.js`). **RT is
+grab** — the flag takes the trigger back from the second jump, because grab
+wants exactly the button a Smash player's index finger expects — and every
+generated control surface (this table, the in-game pad diagram, the tips)
+follows the flag, so with `?throw=false` nothing anywhere mentions grabbing.
+The table above is generated with the flag at its default, which is the shipped
+game.
 
-What the flag turns on:
+The flag survives the graduation only so the game can be played without grabs
+to compare; the mechanic itself is no longer experimental.
+
+What it gives you:
 
 - **Grab — RT, or Light while shielding (the shield grab).** Grounded only,
   a short reach with real startup and long whiff recovery. It completes the
@@ -536,9 +709,11 @@ What the flag turns on:
 - **Throws — a direction while holding.** Forward and back (tossed behind you)
   are the kill throws, up starts juggles, down is the low-knockback combo
   starter. All four route through `applyHit`, so DI, move staling, KO credit
-  and the result-screen tally treat a throw exactly like any other hit — and
-  none of them KOs earlier than a charged smash except back throw at the ledge,
-  which is the classic reason to take somebody's back.
+  and the result-screen tally treat a throw exactly like any other hit. The
+  three positional throws send about a quarter further than a charged smash
+  does below roughly 35% damage; above that the smash's steeper growth passes
+  them again, so none of them KOs earlier than a smash except back throw at the
+  ledge, which is the classic reason to take somebody's back.
 - **A landed hit breaks any grab** — striking the grabber frees their victim,
   and a third party hitting the victim knocks them loose (their pummel is the
   one exception).

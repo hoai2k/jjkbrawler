@@ -15,8 +15,13 @@ import {
   SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
   DASH_MULT, ACTION_BUFFER, AERIAL_LAND_LAG_MULT, AERIAL_LAND_LAG_MIN, SHIELD_MAX, SHIELD_DRAIN, SHIELD_REGEN, ROLL_TIME, ROLL_DIST,
   SPOT_DODGE_TIME, AIR_DODGE_TIME, DODGE_STALE_WINDOW, METER_MAX, METER_PASSIVE,
+  RUN_TILT, WALK_MIN, WALK_MAX, MOVE_DEADZONE,
   ULT_METER_COST, DOMAIN_METER_COST,
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
+  LEDGE_CLIMB_TIME, LEDGE_ROLL_TIME, LEDGE_ATTACK_TIME,
+  LEDGE_CATCH_SPEED, LEDGE_CATCH_MIN, LEDGE_CATCH_MAX,
+  LEDGE_INVULN_TRAVEL, LEDGE_REGRAB_SCALE, LEDGE_HANG_INVULN, LEDGE_JUMP_INVULN,
+  TEETER_EDGE, TEETER_DELAY,
   RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
@@ -49,6 +54,7 @@ export function makeFighter(id, charKey, x, facing) {
     jumpBuffer: 0, coyote: 0, jumpHeldT: 0, jumpCut: false,
     dashT: 0, dashDir: 0, lastTap: { dir: 0, t: -10 },
     turnLock: 0, landTimer: 0, dropTimer: 0, bufferedAction: null, landLag: 0,
+    teeterT: 0, teeterDir: 0,
     invuln: 1.4, hitstun: 0, hitPause: 0, shakeMag: 0,
     dizzy: 0, prone: 0, dodgeStale: 0, lastDodgeAt: -10,
     airT: 0, shieldDownSince: -10,
@@ -67,7 +73,7 @@ export function makeFighter(id, charKey, x, facing) {
     cooldowns: { neutral: 0, side: 0, down: 0 },
     throatStrain: 0, throatLock: 0,
     statuses: freshStatuses(),
-    ledge: null, ledgeCooldown: 0, ledgeTimer: 0,
+    ledge: null, ledgeCooldown: 0, ledgeTimer: 0, ledgeMove: null, ledgeGrabs: 0,
     respawnTimer: 0, dead: false,
     // The revival platform this fighter is currently standing on, or null.
     // {x, y, t} — see stepRespawnPlatform.
@@ -304,6 +310,109 @@ function beginDodge(f, type, dir = 0) {
 
 // ------------------------------------------------------------------ ledges
 
+/**
+ * How much of a ledge option's intangibility this fighter still gets.
+ *
+ * Smash Ultimate's anti-camping rule, exactly (ssbwiki.com/Edge): full on the
+ * first grab, 0.8x after one regrab, 0.5x after two, nothing from three on —
+ * and the counter resets the moment they are grounded, which is why climbing
+ * up costs nothing and grab -> drop -> regrab costs everything.
+ */
+function ledgeInvulnScale(f) {
+  const i = Math.min(Math.max(f.ledgeGrabs - 1, 0), LEDGE_REGRAB_SCALE.length - 1);
+  return LEDGE_REGRAB_SCALE[i];
+}
+
+/** Smoothstep, the shape every ledge transition below travels on: leaves and
+ *  arrives slowly, quickest in the middle. */
+function ease(k) {
+  const t = clamp(k, 0, 1);
+  return t * t * (3 - 2 * t);
+}
+
+/**
+ * A LEDGE TRANSITION: the fighter travels, on the clock, instead of arriving.
+ *
+ * `from`/`to` are simulation positions and the fighter is moved between them
+ * frame by frame, so the hurtbox goes where the drawing goes — the fighter
+ * actually makes the trip rather than the picture being slid over a snap.
+ * `kind` is what the transition IS, which decides the pose sequence and what
+ * happens when it lands (finishLedgeExit).
+ */
+function beginLedgeMove(f, kind, dur, toX, toY, extra = {}) {
+  f.ledgeMove = {
+    kind, dur, t: 0,
+    fromX: f.x, fromY: f.y, toX, toY,
+    ...extra,
+  };
+  f.vx = 0;
+  f.vy = 0;
+  f.fastFalling = false;
+}
+
+/** Where a transition has got to. `x` and `y` run on different curves for the
+ *  climbs: the body comes UP first and swings IN second, which is what a pull-up
+ *  is — a straight diagonal reads as being winched. The two curves also OVERLAP
+ *  less than they used to, which is most of what the longer durations bought:
+ *  the rise finishes and the step over starts, instead of both happening at
+ *  once in the middle. */
+function ledgeMovePos(m) {
+  const k = clamp(m.t / m.dur, 0, 1);
+  if (m.kind === "catch") {
+    // The catch is one reach: both axes together, no arc.
+    const e = ease(k);
+    return { x: m.fromX + (m.toX - m.fromX) * e, y: m.fromY + (m.toY - m.fromY) * e };
+  }
+  const ky = ease(k / 0.62);              // up, and up first
+  const kx = ease((k - 0.34) / 0.66);     // over, once the height is nearly won
+  return { x: m.fromX + (m.toX - m.fromX) * kx, y: m.fromY + (m.toY - m.fromY) * ky };
+}
+
+/** The pose a transition is drawing this frame. Reuses the poses the roster
+ *  already has — a catch is the fall it came in on, a climb is a rise and a
+ *  landing, a roll is the roll — so none of this waits on new art. */
+function ledgeMoveAnim(m) {
+  const k = m.t / m.dur;
+  if (m.kind === "catch") return m.rising ? "jump" : "fall";
+  // Off the ledge, all three open with a beat of the HANG. The body barely
+  // moves in the first frames anyway — the smoothstep is at its slowest there
+  // — so this is the moment of taking the weight before the pull, and without
+  // it the rise pose appears while the fighter is still hanging.
+  if (k < 0.1) return "ledge";
+  if (m.kind === "roll") return k < 0.78 ? "dodge_roll" : "land";
+  if (m.kind === "attack") return "jump";
+  return k < 0.7 ? "jump" : "land";
+}
+
+/** Step one transition. Returns true while it is still running, so the caller
+ *  knows the fighter is not doing anything else this frame. */
+function updateLedgeMove(f, dt) {
+  const m = f.ledgeMove;
+  m.t += dt;
+  const done = m.t >= m.dur;
+  const p = done ? { x: m.toX, y: m.toY } : ledgeMovePos(m);
+  f.x = p.x;
+  f.y = p.y;
+  setAnim(f, ledgeMoveAnim(m));
+  if (!done) return true;
+  f.ledgeMove = null;
+  if (m.kind === "catch") {
+    // Arrived on the hang: from here the ledge options are live.
+    setAnim(f, "ledge");
+    f.ledgeTimer = 0;
+    return true;
+  }
+  f.grounded = true;
+  f.vx = 0;
+  f.landT = LAND_SQUASH_TIME;
+  f.landTimer = 0.12;
+  dust(f.x, f.y, 8);
+  if (m.kind === "attack") {
+    executeMove(f, { ...lightMove(f.char, "side"), label: "Ledge " + f.char.light.label });
+  }
+  return false;
+}
+
 function tryGrabLedge(f) {
   if (f.grounded || f.ledge || f.ledgeCooldown > 0 || f.respawnTimer > 0) return;
   // Must have genuinely left the stage (no walk-off regrab loops) and not be
@@ -333,6 +442,10 @@ function tryGrabLedge(f) {
       );
       if (occupant) {
         occupant.ledge = null;
+        // Including one still REACHING for it: a trump mid-catch has to end
+        // the trip too, or they carry on travelling to a hang they no longer
+        // have.
+        occupant.ledgeMove = null;
         occupant.ledgeCooldown = 0.6;
         occupant.vx = side * 170;
         occupant.vy = -240;
@@ -341,9 +454,9 @@ function tryGrabLedge(f) {
         playSfx("whoosh", 0.6);
       }
       f.ledge = { side, edgeX, plat };
-      f.x = edgeX + (side === -1 ? -LEDGE_HANG_X : LEDGE_HANG_X);
-      f.y = plat.y + LEDGE_HANG_Y;
-      f.vx = 0; f.vy = 0;
+      // Not a snap to the hang point: the fighter REACHES it, over
+      // LEDGE_CATCH_TIME, still drawing the fall (or the rise) they arrived
+      // on. `updateLedgeMove` swaps to the hang pose when the hands land.
       f.spin = 0;
       f.action = null;
       f.charging = null;
@@ -351,9 +464,21 @@ function tryGrabLedge(f) {
       f.airJumpsLeft = stats(f).airJumps;
       f.airDodged = false;
       f.facing = side === -1 ? 1 : -1;
-      f.invuln = Math.max(f.invuln, 0.28);
       f.ledgeTimer = 0;
-      f.fastFalling = false;
+      const hangX = edgeX + (side === -1 ? -LEDGE_HANG_X : LEDGE_HANG_X);
+      const hangY = plat.y + LEDGE_HANG_Y;
+      // Timed by distance, so the reach travels at one speed wherever in the
+      // snap box it started (constants.js LEDGE_CATCH_SPEED).
+      const reach = Math.hypot(hangX - f.x, hangY - f.y);
+      const catchTime = clamp(reach / LEDGE_CATCH_SPEED, LEDGE_CATCH_MIN, LEDGE_CATCH_MAX);
+      // The reach plus a grace on the hang — and the whole of it scaled by how
+      // many times they have taken this ledge without touching the stage. At
+      // the fourth grab the scale is zero and the reach itself is a free hit,
+      // which is the point of the rule.
+      f.ledgeGrabs += 1;
+      f.invuln = Math.max(f.invuln,
+        (catchTime + LEDGE_HANG_INVULN) * ledgeInvulnScale(f));
+      beginLedgeMove(f, "catch", catchTime, hangX, hangY, { rising: f.vy < -20 });
       playSfx("landing", 0.3);
       dust(f.x, f.y, 8);
       return;
@@ -363,10 +488,18 @@ function tryGrabLedge(f) {
 
 function updateLedge(f, dt, input) {
   const l = f.ledge;
+  // The reach onto the ledge, and the climb off it, are trips rather than
+  // events: while one is running it owns the fighter and no option is live.
+  if (f.ledgeMove) {
+    if (f.hitstun > 0) { f.ledgeMove = null; f.ledge = null; return; }
+    if (!updateLedgeMove(f, dt)) f.ledge = null;
+    return;
+  }
   f.ledgeTimer += dt;
   setAnim(f, "ledge");
   const inward = l.side === -1 ? input.right : input.left;
   const outward = l.side === -1 ? input.left : input.right;
+  const inX = (to) => l.edgeX + (l.side === -1 ? to : -to);
 
   if (f.ledgeTimer > 2.8 || input.down || outward) {
     f.ledge = null;
@@ -376,39 +509,144 @@ function updateLedge(f, dt, input) {
     return;
   }
   if (input.jumpP) {
+    // The one exit that never needed a transition and never should have had a
+    // teleport: push off FROM the hang and let the arc do the rest. The old
+    // version placed the fighter above the lip first and then launched, which
+    // is the jump starting after the interesting part of it.
     f.ledge = null;
     f.ledgeCooldown = 0.5;
-    f.x = l.edgeX + (l.side === -1 ? 40 : -40);
-    f.y = l.plat.y - 8;
     f.vy = -stats(f).jump * 0.95;
-    f.invuln = Math.max(f.invuln, 0.32);
+    f.vx = (l.side === -1 ? 1 : -1) * 150;
+    f.invuln = Math.max(f.invuln, LEDGE_JUMP_INVULN * ledgeInvulnScale(f));
+    setAnim(f, "jump");
     dust(f.x, f.y, 10);
     return;
   }
   if (input.lightP || input.heavyP) {
     f.ledge = null;
     f.ledgeCooldown = 0.55;
-    f.x = l.edgeX + (l.side === -1 ? 52 : -52);
-    f.y = l.plat.y;
-    f.grounded = true;
-    f.invuln = Math.max(f.invuln, 0.3);
-    executeMove(f, { ...lightMove(f.char, "side"), label: "Ledge " + f.char.light.label });
+    f.invuln = Math.max(f.invuln,
+      LEDGE_ATTACK_TIME * LEDGE_INVULN_TRAVEL * ledgeInvulnScale(f));
+    beginLedgeMove(f, "attack", LEDGE_ATTACK_TIME, inX(52), l.plat.y);
     return;
   }
   if (inward || input.shieldHeld) {
     const roll = input.shieldHeld;
     f.ledge = null;
     f.ledgeCooldown = 0.55;
-    f.x = l.edgeX + (l.side === -1 ? (roll ? 110 : 56) : (roll ? -110 : -56));
-    f.y = l.plat.y;
-    f.grounded = true;
-    f.vx = 0;
-    f.invuln = Math.max(f.invuln, roll ? 0.55 : 0.34);
-    dust(f.x, f.y, 8);
+    const dur = roll ? LEDGE_ROLL_TIME : LEDGE_CLIMB_TIME;
+    // Covered while travelling, exposed on arrival — the last quarter of the
+    // climb and every frame after it is a punish window.
+    f.invuln = Math.max(f.invuln, dur * LEDGE_INVULN_TRAVEL * ledgeInvulnScale(f));
+    beginLedgeMove(f, roll ? "roll" : "climb", dur, inX(roll ? 110 : 56), l.plat.y);
   }
 }
 
 // ---------------------------------------------------------------- platforms
+
+/** How hard the stick is being pushed sideways, 0..1 — what tells a walk from
+ *  a run (constants.js RUN_TILT).
+ *
+ *  An absent axis means FULL deflection, not none. Only a real pad reports
+ *  `moveX`; the CPU builds its input from `dirX` alone (ai.js), as do the
+ *  smokes, and a keyboard is filled in by playerInput. Reading a missing axis
+ *  as zero made those callers walk as far as the ledge brake was concerned and
+ *  run as far as the movement was — so the CPU moved at full speed and could
+ *  not leave a platform, which is a stuck fighter rather than a careful one. */
+function moveTilt(input) {
+  const ax = Math.abs(input.moveX || 0);
+  return ax > 0 ? Math.min(1, ax) : Math.abs(input.dirX || 0);
+}
+
+/** How far past a platform's lip a fighter can stand before they are off it.
+ *  Read by the ledge brake as well as by the contact test, so "the last pixel
+ *  you can stand on" is one number rather than two that drift. */
+function standMargin(plat) {
+  return plat.kind === "main" ? 14 : plat.kind === "respawn" ? 0 : 24;
+}
+
+/**
+ * THE LEDGE BRAKE: you do not leave the ground unless you meant to.
+ *
+ * Smash protects this with the TEETER — walk slowly to the lip and the
+ * character stops there, arms windmilling, and will not step off until the
+ * stick is pushed past a threshold (ssbwiki.com/Teeter). That mechanic needs
+ * an analog walk to hang off, and this game has none: `dirX` is ±1 past a
+ * 0.28 deadzone, so every input accelerates toward the same top speed. The
+ * distinction it is really drawing, though, is not slow-versus-fast. It is
+ * DELIBERATE versus not, and that this game can answer exactly: a fighter
+ * holding toward the edge has decided, and one coasting on leftover momentum
+ * has not.
+ *
+ * So momentum alone never carries anyone off. Hold the direction and you walk,
+ * run or dash off the end as before — chasing, edge-cancelling, dropping to
+ * the ledge are all untouched, because all of them are held inputs.
+ *
+ * Measured before this existed: one frame of dash flick needed 42 px of runway
+ * to stop in, against 4 px for the same one frame of walk. That is the whole
+ * complaint — the dash starts at full burst speed by design (startDash), so the
+ * shortest possible tap already spends more room than most players read as a
+ * tap's worth.
+ *
+ * Hitstun and committed actions are left out on purpose. Being knocked off the
+ * stage is the game working, and a dash attack that carries its owner off the
+ * end is a move with a cost, not an accident.
+ */
+function brakeAtLedge(f, input) {
+  if (!f.wasGrounded || f.hitstun > 0 || f.action || f.ledge || f.dead) return;
+  const plat = f.currentPlatform;
+  if (!plat || plat.ghost) return;
+  const dir = Math.sign(f.vx);
+  if (!dir) return;
+  if (input.dirX === dir) {
+    // Held toward the edge. RUNNING off is a decision and goes through;
+    // WALKING off does not, which is the teeter proper — Smash will not let a
+    // walk take you over the lip until the stick is pushed further, and now
+    // that this game has a walk it can say the same thing. Pushing to a run,
+    // jumping, or dropping through are all still one input away.
+    if (moveTilt(input) >= RUN_TILT) return;
+  }
+  const m = standMargin(plat);
+  const lip = dir > 0 ? plat.x + plat.w + m : plat.x - m;
+  if (dir > 0 ? f.x <= lip : f.x >= lip) return;
+  f.x = lip;
+  f.vx = 0;
+}
+
+/**
+ * TEETERING: standing with your toes over the drop.
+ *
+ * The ledge brake puts fighters here constantly — that is its whole job, it
+ * stops a slide at the lip — and nothing drew it, so the most common thing
+ * that happens at an edge looked exactly like standing in the middle of the
+ * stage. It is also the answer to "when do you NOT want a ledge hang": a
+ * fighter who stopped at the edge has not left it, and should read as balanced
+ * on it rather than as anything to do with hanging.
+ *
+ * Sets `f.teeterT`, seconds spent there, which the pose (pickAnim) and the
+ * procedural wobble (motion.js) both read. Requires a moment of standing
+ * first, so a fighter crossing the last few pixels at speed is running, not
+ * teetering, and reads as running.
+ */
+function updateTeeter(f, dt) {
+  const plat = f.currentPlatform;
+  const still = f.grounded && !f.action && !f.charging && !f.shielding
+    && !f.crouching && !f.ledge && !f.ledgeMove && f.hitstun <= 0
+    && Math.abs(f.vx) < 24;
+  if (!still || !plat || plat.ghost) { f.teeterT = 0; f.teeterDir = 0; return; }
+  const m = standMargin(plat);
+  const left = plat.x - m;
+  const right = plat.x + plat.w + m;
+  const dir = f.x >= right - TEETER_EDGE ? 1 : f.x <= left + TEETER_EDGE ? -1 : 0;
+  if (!dir) { f.teeterT = 0; f.teeterDir = 0; return; }
+  f.teeterDir = dir;
+  f.teeterT += dt;
+}
+
+/** Whether the teeter has held long enough to be worth drawing. */
+export function isTeetering(f) {
+  return f.teeterT > TEETER_DELAY;
+}
 
 function resolvePlatforms(f, prevY) {
   f.grounded = false;
@@ -420,7 +658,7 @@ function resolvePlatforms(f, prevY) {
     // phased-out platform (Active Boards: Bone Sanctum, Empty City)
     if (plat.ghost) continue;
     if (f.dropTimer > 0 && plat.kind !== "main") continue;
-    const margin = plat.kind === "main" ? 14 : plat.kind === "respawn" ? 0 : 24;
+    const margin = standMargin(plat);
     if (f.x < plat.x - margin || f.x > plat.x + plat.w + margin) continue;
     if (f.vy < 0) continue;
     if (prevY <= plat.y + 4 && f.y >= plat.y) {
@@ -461,6 +699,17 @@ function resolvePlatforms(f, prevY) {
 function startDash(f, dir) {
   f.dashT = DASH_TIME;
   f.dashDir = dir;
+  // The dash is a BURST, so it starts at burst speed instead of accelerating
+  // into it. `DASH_MULT` is a cap on the movement code's usual acceleration,
+  // and a fighter walking from a standstill spends the whole window climbing
+  // toward it — which meant the shorter the dash got, the SLOWER it was, since
+  // it ended before the speed arrived. Shortening it for control then cost the
+  // one thing a dash is for. Snapping the velocity here separates the two:
+  // DASH_TIME says how long, DASH_MULT says how fast, and they stop fighting.
+  //
+  // Floored rather than assigned, so dashing out of a run never brakes you.
+  const target = stats(f).speed * DASH_MULT * speedMul(f);
+  if (Math.abs(f.vx) < target) f.vx = dir * target;
   dust(f.x - dir * 20, f.y, 8);
   playSfx("whoosh", 0.5);
 }
@@ -496,12 +745,17 @@ export function ringOut(f) {
   for (let i = state.entities.length - 1; i >= 0; i--) if (state.entities[i].owner === f) state.entities.splice(i, 1);
   if (state.domainOverlay && state.domainOverlay.ownerId === f.id) state.domainOverlay = null;
   if (state.domain && state.domain.owner === f) state.domain = null;
+  // A fighter KO'd mid-call loses the action carrying the "open the barrier"
+  // event. domainOpen() would notice on its own — it checks the action is still
+  // theirs — but dropping the reference here keeps a dead fighter out of it.
+  if (state.domainCasting?.f === f) state.domainCasting = null;
 
   f.action = null; f.charging = null; f.counter = null; f.reflect = null; f.healing = null;
   f.simpleDomain = null;
   clearGrabLinks(f);
   f.installs = null; f.spriteChar = null; f.hitstun = 0; f.statuses = freshStatuses();
-  f.vx = 0; f.vy = 0; f.ledge = null; f.dizzy = 0; f.prone = 0; f.armorT = 0;
+  f.vx = 0; f.vy = 0; f.ledge = null; f.ledgeMove = null; f.ledgeGrabs = 0;
+  f.dizzy = 0; f.prone = 0; f.armorT = 0;
   f.spin = 0; f.spinAngle = 0; f.trail.length = 0;
   // The revival platform goes with the stock it belonged to, whether or not
   // there is another one coming.
@@ -781,6 +1035,22 @@ export function updateFighter(f, dt, input) {
     return;
   }
 
+  // ...and climbing off one. The trip owns the fighter: no gravity, no input,
+  // no other pose, until they are standing on the stage. One frame per step,
+  // the same as the hang above.
+  //
+  // Unless something hit them. Every ledge transition is invulnerable, so this
+  // should be unreachable — but "should be unreachable" is how a fighter ends
+  // up gliding serenely to a ledge in the middle of being launched, so the
+  // trip yields to knockback rather than trusting the window.
+  if (f.ledgeMove) {
+    if (f.hitstun <= 0) {
+      updateLedgeMove(f, dt);
+      return;
+    }
+    f.ledgeMove = null;
+  }
+
   const st = stats(f);
   const inHitstun = f.hitstun > 0;
   const canAct = !inHitstun && !f.action && !f.charging && f.shieldStun <= 0 && f.landLag <= 0;
@@ -968,7 +1238,19 @@ export function updateFighter(f, dt, input) {
     f.charging || f.shielding || inHitstun || f.healing || (f.counter && f.counter.holdStill);
 
   const moveMul = speedMul(f);
-  const maxSpeed = (f.grounded ? st.speed : st.airSpeed) * moveMul * (f.dashT > 0 ? DASH_MULT : 1);
+  // How hard the stick is pushed, which is what separates a walk from a run
+  // (constants.js). Only the ground cares: there is no such thing as strolling
+  // through the air, so an aerial drift reads full either way.
+  const tilt = moveTilt(input);
+  const walking = f.grounded && f.dashT <= 0 && tilt > 0 && tilt < RUN_TILT;
+  const walkFrac = WALK_MIN + (WALK_MAX - WALK_MIN)
+    * clamp((tilt - MOVE_DEADZONE) / Math.max(1e-6, RUN_TILT - MOVE_DEADZONE), 0, 1);
+  const topFrac = f.dashT > 0 ? DASH_MULT : walking ? walkFrac : 1;
+  // The animation layer and the ledge brake both need to know, and neither is
+  // in a position to recompute it — pickAnim runs after the movement block and
+  // a slowed fighter's speed alone cannot tell a walk from a snared run.
+  f.walking = walking;
+  const maxSpeed = (f.grounded ? st.speed : st.airSpeed) * moveMul * topFrac;
   const accel = st.accel * (f.grounded ? 1 : 0.62) * moveMul;
   // Ground friction, shaped by the stage surface (Active Boards): a slick
   // stage (frictionPow < 1) pushes the per-character base toward 1, so
@@ -1014,6 +1296,14 @@ export function updateFighter(f, dt, input) {
       }
       if (f.turnLock <= 0) {
         f.vx += dir * accel * dt;
+        // Easing the stick back from a run to a walk has to actually slow the
+        // fighter down. Clamping alone does it, but instantly, which reads as
+        // hitting a wall; friction to the new cap keeps the deceleration the
+        // character's own.
+        if (walking && Math.abs(f.vx) > maxSpeed) {
+          f.vx *= Math.pow(friction, dt * 60);
+          if (Math.abs(f.vx) < maxSpeed) f.vx = dir * maxSpeed;
+        }
         f.vx = clamp(f.vx, -maxSpeed, maxSpeed);
       } else {
         f.vx *= Math.pow(friction, dt * 80);
@@ -1104,18 +1394,38 @@ export function updateFighter(f, dt, input) {
   const prevY = f.y;
   f.wasGrounded = f.grounded;
   f.x += f.vx * dt;
+  // Before the contact test, not after: the brake decides whether this step is
+  // allowed to take them off the platform at all, so it has to run while they
+  // are still standing on the one they are leaving.
+  brakeAtLedge(f, input);
   f.y += f.vy * dt;
   if (f.vy >= 0 || f.grounded) resolvePlatforms(f, prevY);
   else f.grounded = false;
 
   if (!f.grounded) tryGrabLedge(f);
+  // After the contact test, so it reads the platform this step actually left
+  // the fighter standing on.
+  updateTeeter(f, dt);
+  // ONLY THE GROUND clears the regrab penalty (constants.js
+  // LEDGE_REGRAB_SCALE). Not time, not being hit, not letting go — Smash's
+  // rule verbatim, and the reason grab -> drop -> regrab is the loop that
+  // pays for itself while climbing up is free.
+  if (f.grounded) f.ledgeGrabs = 0;
 
   // ---- blast zones
   if (checkBlastZones(f)) return;
 
   // ---- animation selection
   pickAnim(f, input);
-  f.animTime += dt;
+  // The run cycle plays at the pace the fighter is actually travelling. It ran
+  // at a fixed rate, which was already wrong for anyone snared or slowed — they
+  // over-strode, feet skating — and a walk drawn with the run cycle would have
+  // been the same fault at half speed. Floored so a fighter easing to a halt
+  // does not freeze mid-stride.
+  const strideRate = (f.animKey === "run" || f.animKey === "walk") && f.grounded
+    ? clamp(Math.abs(f.vx) / (stats(f).speed || 1), 0.5, 1.3)
+    : 1;
+  f.animTime += dt * strideRate;
 }
 
 // Draw-time state that still has to advance on the fixed clock: tumble spin,
@@ -1184,7 +1494,15 @@ function pickAnim(f, input) {
   if (!f.grounded) { setAnim(f, f.vy < 0 ? "jump" : "fall"); return; }
   if (f.crouching) { setAnim(f, "crouch"); return; }
   if (f.dashT > 0) { setAnim(f, "dash"); return; }
+  // A walk is its own cycle where the art exists and the run cycle at a walking
+  // cadence where it does not (characters.js WALK_ANIM), so this line is the
+  // whole of the switch-over when round 21 lands.
+  if (f.walking && Math.abs(f.vx) > 30) { setAnim(f, "walk"); return; }
   if (Math.abs(f.vx) > 50) { setAnim(f, "run"); return; }
   if (f.landTimer > 0) { setAnim(f, "land"); return; }
+  // Standing on the very lip. Its own pose where the art exists, the idle
+  // with a procedural sway where it does not (characters.js TEETER_ANIM,
+  // motion.js) — either way the edge stops looking like the middle.
+  if (isTeetering(f)) { setAnim(f, "teeter"); return; }
   setAnim(f, "idle");
 }

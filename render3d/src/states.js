@@ -26,7 +26,22 @@
 
 export const STATES = {
   idle:           { loop: true,  duration: 0.909, tier: "library" },
+  // The sprint. Like the walk below, NOT built from the sheet: it plays the
+  // hand-authored four-phase cycle in run_cycle.js. The four sprite frames are
+  // a reach and a pass, mirrored — the strike and the float between them are
+  // the phases a four-frame sheet cannot afford and a rig cannot do without.
   run:            { loop: true,  duration: 0.308, tier: "library" },
+  // The walk (constants.js RUN_TILT). NOT aliased and NOT built from the
+  // sheet: it plays a hand-authored four-phase cycle (walk_cycle.js), because
+  // round 21 asks the artists for two contacts and a rig interpolated between
+  // two contacts floats instead of walking — the passing position it needs is
+  // the one a two-frame sheet cannot afford and 3D gets for nothing.
+  walk:           { loop: true,  duration: 1.0,   tier: "library" },
+  // Standing on a lip (fighter.js updateTeeter). Aliased to idle: the read is
+  // a LEAN, which motion.js supplies procedurally in every backend, so the
+  // clip underneath it is just a stand. A bespoke one — weight back, arms out
+  // — would be an upgrade, not a dependency.
+  teeter:         { loop: true,  duration: 0.9,   tier: "library" },
   dash:           { loop: true,  duration: 0.4,   tier: "library" },
   jump:           { loop: true,  duration: 0.4,   tier: "library" },
   fall:           { loop: true,  duration: 0.4,   tier: "library" },
@@ -83,6 +98,7 @@ export const STATES = {
 // them appear in CLIP_STATES.
 const STATE_ALIASES = {
   dodge: "dodge_roll",
+  teeter: "idle",
   dashAttack: "light",
   dashAttackHeavy: "sideHeavy",
   grabReach: "light",

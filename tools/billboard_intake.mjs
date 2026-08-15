@@ -163,8 +163,19 @@ function validate(char) {
   //
   // Vertical extent only (scale.y, translate.y), which is all the check needs
   // and keeps this to a tree walk rather than a matrix library.
+  // A FIGHTER IS NOT AS TALL AS HER BROOM. Separately generated weapons hang
+  // off a bone as their own un-skinned mesh, so this walk counted Momo's
+  // upright broom as part of Momo and recorded her at 1.91 m against a canon
+  // 1.50 m. On-screen size is renderScale / heightM (blit.js), so all four
+  // prop carriers were quietly drawn ~20% small and the size dial got raised
+  // to hide it — a correction sitting on top of a measurement error.
+  //
+  // A prop is a mesh node with no `skin` hanging under a JOINT. The body is
+  // skinned; anything rigidly parented into the skeleton is kit.
+  const joints = new Set((gltf.skins || []).flatMap((s) => s.joints || []));
   let heightM = 0;
-  const visit = (nodeIndex, scaleY, offsetY) => {
+  let propTop = 0;
+  const visit = (nodeIndex, scaleY, offsetY, underJoint = false) => {
     const node = gltf.nodes?.[nodeIndex];
     if (!node) return;
     let s = scaleY;
@@ -177,16 +188,20 @@ function validate(char) {
       if (node.scale) s *= node.scale[1];
       if (node.translation) o += node.translation[1] * scaleY;
     }
+    const isProp = node.mesh !== undefined && node.skin === undefined && underJoint;
     if (node.mesh !== undefined) {
       for (const prim of gltf.meshes?.[node.mesh]?.primitives || []) {
         const acc = gltf.accessors?.[prim.attributes?.POSITION];
         if (!acc?.min || !acc?.max) continue;
         const top = acc.max[1] * s + o;
         const bottom = acc.min[1] * s + o;
-        heightM = Math.max(heightM, top - Math.min(bottom, 0));
+        if (isProp) propTop = Math.max(propTop, top);
+        else heightM = Math.max(heightM, top - Math.min(bottom, 0));
       }
     }
-    for (const child of node.children || []) visit(child, s, o);
+    for (const child of node.children || []) {
+      visit(child, s, o, underJoint || joints.has(nodeIndex));
+    }
   };
   for (const scene of gltf.scenes || []) {
     for (const n of scene.nodes || []) visit(n, 1, 0);
@@ -223,7 +238,8 @@ function validate(char) {
 
   return {
     errors, warnings,
-    info: { heightM: Math.round(heightM * 100) / 100, clips: covered.length, states: states.length, tris: Math.round(tris) },
+    info: { heightM: Math.round(heightM * 100) / 100, clips: covered.length, states: states.length, tris: Math.round(tris),
+            propTopM: propTop > 0 ? Math.round(propTop * 100) / 100 : 0 },
   };
 }
 
@@ -234,7 +250,8 @@ function cmdValidate(char) {
   for (const e of errors) console.log(`ERROR  ${e}`);
   for (const w of warnings) console.log(`warn   ${w}`);
   if (!errors.length) {
-    console.log(`ok     ${char}: ${info.heightM}m, ${info.clips}/${info.states} states covered, ${info.tris} tris`);
+    console.log(`ok     ${char}: ${info.heightM}m${info.propTopM ? ` (weapon reaches ${info.propTopM}m)` : ""}`
+      + `, ${info.clips}/${info.states} states covered, ${info.tris} tris`);
   }
   return errors.length ? 1 : 0;
 }
@@ -288,7 +305,33 @@ function cmdApply(payloadPath) {
   for (const [char, entry] of Object.entries(payload.characters || {})) {
     // The payload carries whole entries for the characters that were edited;
     // merging per-character keeps unrelated manifest edits intact.
-    man.characters[char] = { ...man.characters[char], ...entry };
+    //
+    // MEASUREMENTS ARE NOT REVIEW DECISIONS. `heightM` is read off the .glb at
+    // import; the workbench only ever echoes back whatever it was handed. Let
+    // a payload write it and a stale export silently reinstates an old — or
+    // wrong — height long after the model was rebuilt, and since on-screen
+    // size is renderScale / heightM (blit.js), the next reviewer corrects the
+    // symptom on the size dial instead. That is exactly how four fighters
+    // ended up carrying a ~1.2x size fudge for a height that counted their
+    // weapon. Re-import is what changes a height.
+    const { heightM, ...review } = entry;
+    man.characters[char] = { ...man.characters[char], ...review };
+    // A DIAL TURNED BACK TO ZERO IS A DECISION, and a spread merge cannot say
+    // it: the payload's per-character entry omits zero-valued keys, so "the
+    // reviewer set the shoulder offset back to 0" and "the reviewer never
+    // touched it" arrive identical, and the manifest quietly keeps the old
+    // number. Uro came back from a review with the offset cleared and kept
+    // 6.5cm of it.
+    //
+    // The payload's `sizes` block is the record of what the review actually
+    // dialled — every dial it owns, zeros included — so where it exists it is
+    // authoritative for those keys.
+    const dialled = payload.sizes?.[char];
+    if (dialled) {
+      for (const [key, value] of Object.entries(dialled)) {
+        if (Number.isFinite(value)) man.characters[char][key] = value;
+      }
+    }
   }
   writeManifest(man);
   console.log(`applied ${keys.length} character(s): ${keys.join(", ") || "none"}`);

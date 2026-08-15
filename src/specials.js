@@ -7,7 +7,7 @@ import { state } from "./state.js";
 import { clamp, sign, rand, chance } from "./utils.js";
 import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox, applyStatus, ownerStick } from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
-import { playSfx, playGrunt } from "./audio.js";
+import { playSfx, playGrunt, moveCallFor, spokenLead, spokenCommitAt, cutSfx, playCutGrunt } from "./audio.js";
 import { METER_MAX } from "./constants.js";
 import { rectsOverlap, circleRectOverlap } from "./utils.js";
 import { getImage } from "./assets.js";
@@ -25,6 +25,57 @@ export function applyInstall(f, install, priority = 1) {
   }
   f.installs = { ...install, priority };
   return true;
+}
+
+// How long the wind-up action outlives the event that ends it. fighter.js ticks
+// action events before it ages actions, but an action whose duration is exactly
+// its event's time can still expire on the frame the event is due; a few frames
+// of tail removes the race entirely.
+const SPOKEN_HOLD_TAIL = 0.1;
+
+// True only while a deferred handler is running — that is, while a move that
+// was introduced by a spoken line is finally happening. The line was played at
+// the top of the cast, seconds earlier; without this the handler's own call to
+// `effortSound` would say it a second time, on the frame of the hit.
+//
+// Set and cleared around one synchronous call, so it cannot leak between
+// fighters or across frames.
+let lineAlreadySpoken = false;
+
+/** The noise a handler makes when its move goes off: the fighter's line if the
+ *  move has one and has not already said it, otherwise their effort grunt. */
+function effortSound(f, cfg) {
+  if (lineAlreadySpoken) return;
+  playGrunt(f.charKey, cfg?.name);
+}
+
+/**
+ * The interruptible half of a spoken wind-up: how long it may be knocked out
+ * of the fighter, and what that looks and sounds like when it is.
+ *
+ * Spread into the wind-up action by all three casters — specials, ultimates
+ * and domains — so being shouted down is one behaviour with one definition
+ * rather than three that drift apart.
+ *
+ * `lineEl` is the handle for the line currently being spoken, so the sentence
+ * actually stops mid-word instead of finishing over a fighter who is no longer
+ * saying it. That is the whole tell: you hear the command stop.
+ */
+export function spokenCast(f, lineEl, call) {
+  return {
+    commitAt: spokenCommitAt(call),
+    onInterrupt: () => {
+      cutSfx(lineEl);
+      playCutGrunt(f.charKey);
+      // Deliberately small. A cut-off command is a thing that DIDN'T happen —
+      // it gets a puff of breath at head height and a quiet word, not a hit's
+      // worth of spectacle, and no screen shake at all. The fighter is about to
+      // be in hitstun from whatever cut them off, and that is the loud part.
+      dust(f.x + f.facing * 18, f.y - 132, 6);
+      burst(f.x + f.facing * 18, f.y - 132, "#9aa4c0", 7, 0.5);
+      popup(f.x, f.y - 168, "CUT OFF", "#9aa4c0", 15);
+    },
+  };
 }
 
 function beginSpecialAction(f, slot, dur, opts = {}) {
@@ -64,17 +115,55 @@ export function performSpecial(f, slot) {
 
   const handler = HANDLERS[cfg.type];
   if (!handler) return;
-  f.cooldowns[slot] = cfg.cooldown || 1.2;
-  handler(f, cfg.p || {}, cfg, slot);
 
-  if (f.char.passive.id === "throatStrain" && cfg.strain) {
-    f.throatStrain += cfg.strain;
-    if (f.throatStrain >= 3) {
-      f.throatStrain = 0;
-      f.throatLock = 2.5;
-      popup(f.x, f.y - 176, "THROAT STRAIN!", "#ff8a8a", 18);
+  // What the move costs, charged the moment it actually goes off. For an
+  // ordinary special that is now; for a spoken one it is the end of the line,
+  // so a command that gets cut off costs nothing and can be tried again.
+  const spend = () => {
+    f.cooldowns[slot] = cfg.cooldown || 1.2;
+    if (f.char.passive.id === "throatStrain" && cfg.strain) {
+      f.throatStrain += cfg.strain;
+      if (f.throatStrain >= 3) {
+        f.throatStrain = 0;
+        f.throatLock = 2.5;
+        popup(f.x, f.y - 176, "THROAT STRAIN!", "#ff8a8a", 18);
+      }
     }
+  };
+
+  // A move with a spoken line is introduced by it: the command comes first, the
+  // fighter holds the special's own pose while it is said, and the move itself
+  // runs near the end of the line (SPOKEN_TIMING, config_audio.js).
+  //
+  // The whole handler is deferred rather than each handler learning to delay
+  // its own effect. That is what makes this general — a line given to any of
+  // the twenty-odd special types works with no further code — and it means the
+  // move's internal timing is untouched: when the handler finally runs it runs
+  // exactly as it always did, just later.
+  //
+  // The hold is an ordinary special action, so being hit during the command
+  // clears it and the pending event dies with it — the command was cut off. It
+  // costs nothing: `spend()` has not run, so the cooldown is untouched and the
+  // throat is unstrained, and he can say it again straight away. Speaking is
+  // the commitment; the sentence is where an opponent gets to answer it.
+  const call = moveCallFor(f.charKey, cfg.name);
+  const lead = spokenLead(call);
+  if (lead > 0) {
+    const lineEl = playGrunt(f.charKey, cfg.name);
+    // Held a little past the event so the action cannot expire on the same
+    // frame the move is due — fighter.js ticks events before it ages actions.
+    beginSpecialAction(f, slot, lead + SPOKEN_HOLD_TAIL, {
+      lockMovement: true, ...spokenCast(f, lineEl, call),
+    });
+    f.action.events.push({ at: lead, fn: () => {
+      spend();
+      lineAlreadySpoken = true;
+      try { handler(f, cfg.p || {}, cfg, slot); } finally { lineAlreadySpoken = false; }
+    } });
+    return;
   }
+  spend();
+  handler(f, cfg.p || {}, cfg, slot);
 }
 
 // The last creature each fighter rolled out of each summon pool, so the next
@@ -110,7 +199,7 @@ const HANDLERS = {
   // per cast with per-unit overrides (Megumi's two Divine Dogs).
   summon(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     const rolled = rollSummon(f, cfg, p);
     // The roll wins over the special's shared defaults, and `pool` itself is
     // dropped so it never travels into a summon's own config.
@@ -130,7 +219,7 @@ const HANDLERS = {
 
   projectile(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.42);
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     // Blood Manipulation (Choso): blood techniques are paid for in blood
     if (p.bloodCost) {
       f.damage = Math.min(999, f.damage + p.bloodCost);
@@ -174,7 +263,7 @@ const HANDLERS = {
 
   wave(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.46);
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     const count = p.count || 1;
     for (let i = 0; i < count; i++) {
       // Only override the sprite when a per-shot list is supplied. Passing
@@ -184,12 +273,18 @@ const HANDLERS = {
       spawnProjectile(f, { ...p, wave: true, ox: 60 + i * 54, sprite });
     }
     dust(f.x + f.facing * 50, f.y, 10);
+    // Same signature-sound field the projectile handler reads, and it belongs
+    // here for the same reason: a wave is a thing that LEAVES, and the moment
+    // it leaves is the moment worth scoring. Dagon's tide was silent on release
+    // until this line existed — the only thing you could hear of the biggest
+    // water move in the game was the element layer under its impact.
+    if (p.fireSfx) playSfx(p.fireSfx, 0.9);
     grantSummonMeter(f, cfg);
   },
 
   dashStrike(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), (p.delay || 0.06) + (p.dur || 0.2) + 0.22, { lockMovement: true, keepMomentum: true });
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     f.vx = f.facing * (p.vel || 520);
     if (p.iframes) f.invuln = Math.max(f.invuln, p.iframes);
     if (p.armor) f.armorT = (p.delay || 0.06) + (p.dur || 0.2) + 0.15;
@@ -200,7 +295,7 @@ const HANDLERS = {
 
   burst(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), (p.delay || 0.1) + (p.dur || 0.16) + 0.26);
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     spawnMelee(f, { ...p });
     if (p.sprite) spawnSummonFlash(f, p.sprite, 0.52, p.spriteH || 220, p.spriteForward || 105);
     if (p.unblockable) ring(f.x + f.facing * 70, f.y - 90, p.color || f.char.theme, 80);
@@ -208,7 +303,7 @@ const HANDLERS = {
 
   commandGrab(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     if (p.castSfx) playSfx(p.castSfx, 0.9);
     spawnMelee(f, {
       delay: 0.12, dur: 0.14, ox: 24, oy: -104, w: p.range || 120, h: 110,
@@ -232,7 +327,7 @@ const HANDLERS = {
 
   install(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     const ok = applyInstall(f, {
       t: p.duration, label: p.label || cfg.name, color: p.color || f.char.theme,
       speedMul: p.speedMul, dmgMul: p.dmgMul, armor: p.armor,
@@ -251,7 +346,7 @@ const HANDLERS = {
 
   trap(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.48);
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     const opp = opponentOf(f);
     const tx = p.atOpponent && opp ? opp.x : f.x + f.facing * (p.dist || 220);
     const ground = groundYAt();
@@ -267,7 +362,7 @@ const HANDLERS = {
       playSfx("miss", 0.8);
       return;
     }
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     if (opp.ledge) { opp.ledge = null; opp.ledgeCooldown = 0.5; }
     if (f.ledge) { f.ledge = null; f.ledgeCooldown = 0.5; }
     const fx = f.x, fy = f.y, ox = opp.x, oy = opp.y;
@@ -314,7 +409,7 @@ const HANDLERS = {
 
   gamble(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     if (p.takada) {
       f.meter = clamp(f.meter + 8, 0, METER_MAX);
       f.damage = Math.max(0, f.damage - 2);
@@ -347,7 +442,7 @@ const HANDLERS = {
       popup(f.x, f.y - 170, "PANDA CORE", "#8ea0b8", 20);
       return;
     }
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     const ok = applyInstall(f, {
       id: "gorilla", t: p.duration, label: p.label, color: p.color,
       dmgMul: p.dmgMul, speedMul: p.speedMul, armor: p.armor, aura: p.aura,
@@ -364,7 +459,7 @@ const HANDLERS = {
     // This one and `crush` below are Inumaki's alone and were the two that
     // never called playGrunt at all — his loudest moves, made by the one
     // fighter whose technique is his voice, and silent of him.
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     spawnMelee(f, {
       delay: 0.1, dur: 0.12, ox: p.ox ?? 40, oy: p.oy ?? -120, w: p.w, h: p.h,
       dmg: p.dmg, base: p.base, growth: p.growth, angle: p.angle,
@@ -388,7 +483,7 @@ const HANDLERS = {
     }
     // After the range check, like every other handler that guards first: a
     // command with nobody in reach is not spoken, it is not even attempted.
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     ring(opp.x, opp.y - 90, p.color, 100);
     const res = applyHit(f, opp, {
       dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: 0.1,
@@ -409,7 +504,7 @@ const HANDLERS = {
       popup(f.x, f.y - 160, "no nails set…", "#9aa4c0", 15);
       return;
     }
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     burst(opp.x, opp.y - 90, "#ff9a6a", 16 + marks * 8, 1 + marks * 0.2);
     ring(opp.x, opp.y - 90, "#ff9a6a", 70 + marks * 25);
     applyHit(f, opp, {
@@ -434,7 +529,7 @@ const HANDLERS = {
       popup(f.x, f.y - 160, "…no resonance", "#9aa4c0", 15);
       return;
     }
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     const dmg = Math.round(p.dmgPerMark * marks * 10) / 10;
     opp.damage = Math.min(999, opp.damage + dmg);
     opp.hitstun = Math.max(opp.hitstun, p.hitstun);
@@ -449,7 +544,7 @@ const HANDLERS = {
 
   updraft(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.42);
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     const x = f.x + f.facing * 90;
     state.entities.push(makeWindColumn(f, x, p));
     f.vy = Math.min(f.vy, -(p.liftSelf ? 650 : 0));
@@ -476,7 +571,7 @@ const HANDLERS = {
   echoStrike(f, p, cfg) {
     const dur = (p.delay || 0.08) + (p.echoDelay || 0.34) + 0.28;
     beginSpecialAction(f, currentSlot(cfg, f), dur, { events: [] });
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     spawnMelee(f, { ...p, label: p.label || cfg.name });
     f.action.events.push({
       at: (p.delay || 0.08) + (p.echoDelay || 0.34),
@@ -503,7 +598,7 @@ const HANDLERS = {
       return;
     }
     beginSpecialAction(f, currentSlot(cfg, f), 0.45);
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     f.meter = clamp(f.meter - p.cost, 0, METER_MAX);
     if (!applyInstall(f, { t: p.duration, label: p.label || cfg.name, color: p.color, dmgMul: p.dmgMul })) return;
     banner(p.label || cfg.name, p.color, { y: 240, size: 34, life: 0.9 });
@@ -558,7 +653,7 @@ const HANDLERS = {
   // leaves them soaked, which is where the rest of his kit wants them.
   undertow(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     const color = p.color || f.char.theme;
     playSfx("whoosh", 0.9, 0.7);
     for (const t of state.fighters) {
@@ -601,7 +696,7 @@ const HANDLERS = {
   // the spot the target held when she cast it. Dodge by not standing there.
   warpStrike(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.4);
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     const opp = opponentOf(f);
     const tx = opp && !opp.dead ? opp.x : f.x + f.facing * 240;
     const ty = opp && !opp.dead ? opp.y - 70 : f.y - 70;
@@ -650,7 +745,7 @@ const HANDLERS = {
   // shields; it does gentle ticks with no launch, an attrition zone.
   cloudField(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.46);
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     const x = clamp(f.x + f.facing * (p.dist || 210), 80, 1200);
     const groundY = groundYAt();
     state.entities.push({
@@ -701,7 +796,7 @@ const HANDLERS = {
   // What, exactly, depends on the receipt he tears.
   randomDrop(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
-    playGrunt(f.charKey, cfg.name);
+    effortSound(f, cfg);
     const opp = opponentOf(f);
     const tx = clamp(opp && !opp.dead ? opp.x : f.x + f.facing * 260, 100, 1180);
     const drop = p.drops[Math.floor(Math.random() * p.drops.length)];

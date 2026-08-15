@@ -24,7 +24,7 @@ Or double-click `play-mac.command` (macOS) / `play-windows.bat` (Windows).
 | Action | Gamepad |
 |---|---|
 | Move | Left stick |
-| Jump | A or RT |
+| Jump | A |
 | Crouch / fast-fall | Left stick ▼ |
 | Light attack | X |
 | Heavy attack (hold = charge) | Y |
@@ -34,6 +34,7 @@ Or double-click `play-mac.command` (macOS) / `play-windows.bat` (Windows).
 | Ultimate | RB |
 | Domain Expansion | LB |
 | Shield / dodges | LT |
+| Grab (direction throws · Light pummels) | RT |
 | Tilt attacks (no run-up) | Right stick |
 | Steer summons / aim creature shots | D-pad |
 | Pause | Start |
@@ -48,6 +49,10 @@ generated from it, so a rebinding updates the game, the in-game move list and
 these instructions together (`node tools/check_controls.mjs --fix`).
 
 The in-game `i` button lists the full move set.
+
+**Settings → Render** switches how characters are drawn — Sprites, 3D or
+Billboards — without leaving the match. It is the same choice `?render=` makes
+at boot (see [Rendering](#rendering)), reachable from inside the game.
 
 Drawing or generating art for the project? **[docs/image-requests.md](docs/image-requests.md)**
 is the single list of every image still wanted, for every render mode, with the
@@ -81,6 +86,9 @@ and `3d`/`render3d`/`anime` all resolve (the extra spellings are aliases):
 Gameplay is identical on every backend by design — hurtboxes, reach and
 height stay sprite-derived however a fighter is drawn.
 
+Pick a backend at boot with `?render=`, or from **Settings → Render** in the
+game, which switches mid-match.
+
 Shared art the renderer spawns — effects, summon creatures, backgrounds — stays
 under [`assets/`](assets/sprites/README.md) and is untouched by that choice.
 
@@ -96,6 +104,54 @@ final-blow shot ([plan & status](docs/2.5d-camera-plan.md)).
 `?camera=flat` opts back into the original flat framing, and it is also the
 automatic fallback: a machine with no WebGL, or a failed load of the camera
 module, lands there with a console note rather than on a broken screen.
+
+## Workbenches
+
+Authoring tools, served from the game itself — each one drives the real pipeline
+rather than a copy of it, so what a bench shows is what a match gets.
+
+**[`/workbench/?edit=<mode>`](workbench/) reaches all of them.** Each bench
+lives beside the code it drives, which is right for the code and useless for
+the fingers; this is one address that opens any of them, and anything else in
+the query (`&char=gojo`) travels with you.
+
+| Shortcut | Bench | |
+|---|---|---|
+| [`?edit=audio`](workbench/?edit=audio) | [`/workbench/`](workbench/) | **Audio** — every voice in the game beside the fighter it belongs to, and every sound their techniques make, each recording on its own button. Playing a technique puts its art on the stage for two seconds, so a sound is judged against the thing it belongs to. Auditioning a take is the one thing the generator cannot check; **⭳ Export changes** hands the verdict back as JSON |
+| [`?edit=sprites`](workbench/?edit=sprites) | [`/sprites/workbench/`](sprites/workbench/) | 2D sprite placement, anchors, the cleanup flags |
+| [`?edit=actions`](workbench/?edit=actions) | `/sprites/workbench/?edit=actions` | play any character action |
+| [`?edit=billboards`](workbench/?edit=billboards) | [`/billboards/workbench/`](billboards/workbench/) | the 2.5D posed-model path |
+| [`?edit=3d`](workbench/?edit=3d) | [`/render3d/workbench/`](render3d/workbench/) | live 3D poses |
+| [`?edit=animation`](workbench/?edit=animation) | `/render3d/workbench/?edit=animation` | the keyframe bench |
+| [`?edit=pose`](workbench/?edit=pose) | `/render3d/workbench/?edit=pose` | sprite joint reads |
+
+`node tools/smoke_workbench_routes.mjs` walks every one of those, plus the
+aliases (`sprite`, `2d`, `anim`, `render3d`, …).
+
+### Is the site showing my change yet?
+
+The header of every bench ends with a **deploy stamp** — `deployed 21d99b1 ·
+4 min ago`, linking to the run that published it. Compare the SHA to the commit
+you pushed and the usual confusion resolves itself:
+
+- **The stamp is an older commit.** The deploy has not landed. A push to `main`
+  takes about a minute to publish; the run is at
+  [Actions → Deploy to GitHub Pages](https://github.com/hoai2k/jjkbrawler/actions/workflows/deploy-pages.yml),
+  and the [Pages deployment log](https://github.com/hoai2k/jjkbrawler/deployments/github-pages)
+  lists what is actually live. A run stuck in `queued` holds the concurrency
+  group and starves the ones behind it — cancel it and the queue drains (the
+  workflow file spells this out).
+- **The stamp is your commit but the page still looks old.** A cache is holding
+  a file: Pages sends a ten-minute `max-age`, and a browser can keep an ES
+  module in a tab with no revalidation at all. Hit **↻ Refresh** on the audio
+  bench, or add `?bust=1` to the URL — every file the page uses is refetched
+  under a key nothing has seen.
+- **`local build`** means there is no `version.json`: you are on `node
+  server.mjs`, looking at the files on disk.
+
+The stamp is written by the workflow's "Stamp the build" step and read by
+[`src/deploystamp.js`](src/deploystamp.js). It is fetched with a cache-buster,
+so the stamp itself is never the stale thing.
 
 ## Docs
 
@@ -117,6 +173,8 @@ module, lands there with a console note rather than on a broken screen.
   and whether each one is images, 3D models, sound effects, voice or music
 - [Asset requests](docs/asset-requests.md) — open art rounds
   ([history](docs/asset-requests-history.md))
-- [Audio requests](docs/audio-requests.md) — nothing outstanding; the sound and
-  voice rounds and their prompts are in
-  [history](docs/audio-requests-history.md)
+- [Audio requests](docs/audio-requests.md) — the grab pack is the only round
+  still open; the sound and voice rounds and their prompts are in
+  [history](docs/audio-requests-history.md), and the takes that were auditioned
+  and thrown out are in [pruned](docs/audio-pruned.md) — a list both generators
+  read, so a deleted take stays deleted

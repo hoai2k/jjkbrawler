@@ -14,6 +14,7 @@
 // CHROMIUM_PATH if yours is elsewhere. Start the game first (node server.mjs),
 // then: node tools/smoke_render_backend.mjs [baseUrl]
 import { chromium } from "playwright";
+import { pressStart } from "./smoke_boot.mjs";
 
 const BASE = process.argv[2] || "http://127.0.0.1:5174";
 
@@ -58,6 +59,7 @@ for (const [query, expected, expectWarning] of CASES) {
   });
 
   await page.goto(`${BASE}/index.html${query}${query ? "&" : "?"}camera=flat`);
+  await pressStart(page);
   // Reaching the menu means init() ran to completion, selection included.
   await page.waitForFunction(async () =>
     (await import("/src/state.js")).state.phase === "menu", { timeout: 120000 });

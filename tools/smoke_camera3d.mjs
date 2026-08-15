@@ -17,6 +17,7 @@
 // CHROMIUM_PATH if yours is elsewhere. Start the game first (node server.mjs),
 // then: node tools/smoke_camera3d.mjs [baseUrl]
 import { chromium } from "playwright";
+import { pressStart } from "./smoke_boot.mjs";
 
 const BASE = process.argv[2] || "http://127.0.0.1:5174";
 
@@ -63,6 +64,7 @@ page.on("console", (m) => {
 });
 
 await page.goto(`${BASE}/index.html?camera=3d`, { waitUntil: "load" });
+await pressStart(page);
 await page.waitForSelector('[data-character="gojo"]', { timeout: 60000 });
 
 // Before anything else: did the mode actually take? Every check below is
@@ -92,6 +94,18 @@ async function waitForMatch(timeout = 120000) {
     if (Date.now() > deadline) throw new Error(`match never started (${current})`);
     await page.waitForTimeout(120);
   }
+}
+
+/** Wait for the scene to actually draw a few more frames. Not runUntil: that
+ *  takes an ABSOLUTE match time, so asking it for half a second inside a match
+ *  already four seconds old returns instantly and reads back state no frame
+ *  has rendered yet — which is exactly how the aura check below came to pass
+ *  or fail on whether a frame happened to land between two evaluate calls. */
+async function settleFrames(n = 6) {
+  await page.evaluate(async (count) => {
+    const frame = () => new Promise((r) => requestAnimationFrame(() => r()));
+    for (let i = 0; i < count; i++) await frame();
+  }, n);
 }
 
 /** Software GL renders slowly and the game loop clamps dt, so the SIM clock
@@ -240,6 +254,51 @@ await runUntil(1.5);
 const leftovers = await page.evaluate(async () =>
   (await import("/src/camera3d/index.js")).debugStats().garnish);
 check(leftovers === 0, "garnish is cleared when the board changes", `${leftovers} cards left over`);
+
+// The install aura belongs to the SCENE, not to the overlay canvas.
+//
+// Flat, render.js paints it between the shadow and the body, so it sits under
+// the fighter. In this mode the body is in the WebGL layer and the overlay is
+// strictly above it, so leaving the aura on the overlay put it in FRONT of the
+// fighter wearing it — a lit fighter reading as a fighter behind frosted
+// glass. billboards.js draws it as a quad instead, and that quad is the one
+// thing in this scene that has to test depth: only the depth buffer can put a
+// transparent quad behind opaque rig geometry.
+current = "aura";
+await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  for (const f of state.fighters) {
+    f.installs = { duration: 99, life: 99, color: "#ff62cf", label: "PROBE", aura: null };
+  }
+});
+await settleFrames();
+const aura = await page.evaluate(async () =>
+  (await import("/src/camera3d/index.js")).debugStats());
+check(aura.auras > 0, "the install aura is drawn in the scene, not on the overlay",
+  `${aura.auras} aura quad(s)`);
+check(aura.layering.auraDepthTest === true,
+  "the aura quad tests depth, so a fighter with volume occludes it",
+  `depthTest=${aura.layering.auraDepthTest}`);
+
+// Entity effects — traps, ultimate waves, hazards — belong in the SCENE too,
+// and for the same reason. Flat they draw before the fighters; on the overlay
+// they could only ever be in front, and these are the biggest pictures the
+// game has: an Encore wave painted there erased the fighter it was cast at and
+// the one across the stage with it. src/camera3d/effects.js draws the whole
+// layer as one quad behind the bodies.
+current = "effect-layer";
+await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  state.entities.push({
+    __smoke: true, dead: false, update() {},
+    draw(ctx) { ctx.fillStyle = "#ff00ff"; ctx.fillRect(600, 400, 80, 80); },
+  });
+});
+await settleFrames();
+const fx = await page.evaluate(async () =>
+  (await import("/src/camera3d/index.js")).debugStats().fxLayer);
+check(fx === true, "entity effects are drawn into the scene, not onto the overlay",
+  `fxLayer=${fx}`);
 
 await browser.close();
 console.log(failures ? `\n${failures} check(s) failed` : "\nall checks passed");
