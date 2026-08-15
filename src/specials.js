@@ -5,7 +5,10 @@
 
 import { state } from "./state.js";
 import { clamp, sign, rand, chance } from "./utils.js";
-import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox, applyStatus, ownerStick } from "./combat.js";
+// The scaled spawns: kit blocks author oy/h for the reference body, and these
+// wrappers size them to the caster (combat.js spawnMeleeScaled) — the same
+// height-normalisation moves.js applies to normals.
+import { spawnMeleeScaled as spawnMelee, spawnProjectileScaled as spawnProjectile, opponentOf, applyHit, hurtbox, applyStatus, ownerStick, debugShape } from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
 import { playSfx, playGrunt, moveCallFor, spokenLead, spokenCommitAt, cutSfx, playCutGrunt } from "./audio.js";
 import { METER_MAX } from "./constants.js";
@@ -719,6 +722,7 @@ const HANDLERS = {
         burst(tx, ty, p.color, 20, 1.0);
         ring(tx, ty, p.color, 90);
         playSfx("blast", 0.85, 1.15);
+        debugShape({ x: tx, y: ty, r: p.r || 95 });
         for (const t of state.fighters) {
           if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
           if (circleRectOverlap(tx, ty, p.r || 95, hurtbox(t))) {
@@ -766,6 +770,7 @@ const HANDLERS = {
         if (this.tick > 0) return;
         this.tick = p.tickRate;
         const rect = { x: this.x - p.w / 2, y: this.y - p.h, w: p.w, h: p.h };
+        debugShape(rect);
         for (const t of state.fighters) {
           if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
           if (rectsOverlap(rect, hurtbox(t))) {
@@ -823,6 +828,7 @@ const HANDLERS = {
           state.camera.shake = Math.max(state.camera.shake, drop.dud ? 2 : 7);
           popup(tx, groundY - drop.h - 30, drop.name.toUpperCase(), p.color, 16);
           const rect = { x: tx - drop.w / 2, y: groundY - drop.h, w: drop.w, h: drop.h };
+          debugShape(rect);
           for (const t of state.fighters) {
             if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
             if (rectsOverlap(rect, hurtbox(t))) {
@@ -927,6 +933,7 @@ function makeTrap(owner, x, groundY, p, name) {
         state.camera.shake = Math.max(state.camera.shake, 5);
       }
       const rect = { x: this.x - this.w / 2, y: this.y - this.h, w: this.w, h: this.h };
+      debugShape(rect);
       for (const t of state.fighters) {
         if (!isFoe(owner, t) || t.dead || t.respawnTimer > 0 || this.hit.has(t)) continue;
         if (rectsOverlap(rect, hurtbox(t))) {
@@ -995,6 +1002,7 @@ function makeWindColumn(owner, x, p) {
       if (this.t >= this.dur) { this.dead = true; return; }
       const groundY = groundYAt();
       const rect = { x: this.x - p.w / 2, y: groundY - p.h, w: p.w, h: p.h };
+      debugShape(rect);
       for (const t of state.fighters) {
         if (!isFoe(owner, t) || t.dead || t.respawnTimer > 0 || this.hit.has(t)) continue;
         if (rectsOverlap(rect, hurtbox(t))) {

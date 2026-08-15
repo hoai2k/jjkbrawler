@@ -6,7 +6,9 @@
 
 import { state } from "./state.js";
 import { clamp, sign, rand } from "./utils.js";
-import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox, ownerStick } from "./combat.js";
+// Scaled spawns: kit literals are authored for the reference body and sized
+// to the caster here — see combat.js spawnMeleeScaled.
+import { spawnMeleeScaled as spawnMelee, spawnProjectileScaled as spawnProjectile, opponentOf, applyHit, hurtbox, ownerStick, debugShape } from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
 import { applyInstall, spokenCast } from "./specials.js";
 import { spawnSummon } from "./summons.js";
@@ -199,6 +201,7 @@ const DIRECTORS = {
           const groundY = state.platforms[0]?.y ?? 568;
           burst(tx, groundY - 40, "#ff7a2f", 70, 2.2);
           ring(tx, groundY - 40, "#ffd35a", 260);
+          debugShape({ x: tx, y: groundY - 40, r: p.r });
           for (const t of state.fighters) {
             if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
             if (circleRectOverlap(tx, groundY - 40, p.r, hurtbox(t))) {
@@ -295,6 +298,7 @@ const DIRECTORS = {
         this.x += f.facing * p.speed * dt;
         if (this.t >= p.dur || this.x < -100 || this.x > 1380) {
           this.dead = true;
+          debugShape({ x: this.x, y: this.y, r: p.r * 1.3 });
           for (const t of state.fighters) {
             if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
             if (circleRectOverlap(this.x, this.y, p.r * 1.3, hurtbox(t))) {
@@ -319,6 +323,7 @@ const DIRECTORS = {
         this.tick -= dt;
         if (this.tick <= 0) {
           this.tick = p.tickRate;
+          debugShape({ x: this.x, y: this.y, r: p.r });
           for (const t of state.fighters) {
             if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
             if (circleRectOverlap(this.x, this.y, p.r, hurtbox(t))) {
@@ -1027,6 +1032,7 @@ const DIRECTORS = {
           state.screenFlash = { color: p.color, life: 0.25, maxLife: 0.25 };
           burst(tx, groundY - 50, p.color, 60, 2.0);
           ring(tx, groundY - 50, p.color, 240);
+          debugShape({ x: tx, y: groundY - 50, r: p.r });
           for (const t of state.fighters) {
             if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
             if (circleRectOverlap(tx, groundY - 50, p.r, hurtbox(t))) {
@@ -1303,6 +1309,8 @@ const DIRECTORS = {
         state.screenFlash = { color: p.color, life: 0.3, maxLife: 0.3 };
         burst(ix, iy, p.color, 60, 2.2);
         ring(ix, iy, "#ffffff", p.radius);
+        debugShape({ x: ix, y: iy, r: p.radius });
+        debugShape({ x: f.x, y: f.y - 90, r: p.shockwave });
         for (const t of state.fighters) {
           if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
           const inCore = circleRectOverlap(ix, iy, p.radius, hurtbox(t));
