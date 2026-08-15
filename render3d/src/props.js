@@ -78,8 +78,11 @@ export const CHARACTER_PROPS = {
                 lengthM: 1.80, grip: 0.45 }],
   momo:      [{ bone: "Prop_Main", kind: "broom", hand: "RightHand",
                 lengthM: 1.40, grip: 0.70 }],
+  // `gripAt` re-grips a DELIVERED weapon at runtime — see the note under
+  // CARRY_DROP_DEG. He arrived holding the guitar by the headstock, which is
+  // the one place on a guitar nobody holds it.
   gakuganji: [{ bone: "Prop_Main", kind: "guitar", hand: "LeftHand",
-                lengthM: 1.00, grip: 0.75 }],
+                lengthM: 1.00, grip: 0.75, gripAt: 0.42 }],
   mahoraga:  [{ bone: "Prop_Float", kind: "wheel", hand: null,
                 lengthM: 0.90, grip: 0.50 }],
 };
@@ -139,6 +142,51 @@ export const TWO_HANDED_KINDS = {
   // than a naginata grip: fretting hand to strumming hand is most of the
   // instrument.
   guitar: { spacing: 0.45 },
+};
+
+// ------------------------------------------------------- carrying it about
+//
+// A WEAPON HAS A FRONT, AND RUNNING WITH IT BACKWARDS READS AS A BUG.
+//
+// The prop hangs rigidly off its hand bone, so wherever the clip puts that
+// hand, the weapon follows at whatever angle the delivery happened to weld it.
+// That is right for a strike — the pose IS the presentation — and wrong for
+// every state where the fighter is just carrying the thing: Maki sprinted with
+// her naginata's blade pointing back over her shoulder and the butt leading,
+// Gakuganji's guitar led with its body swung up in front of him, and Momo's
+// broom ran brush-first like a lance.
+//
+// The rule that fixes all three at once is the one a person carrying something
+// heavy actually follows: WHILE MOVING, THE HEAVY END TRAILS, AND IT TRAILS
+// LOW. A polearm's butt drops behind the hip and the blade leads; a guitar's
+// body swings behind; a broom's head drags. `lengthM`/`grip` above already say
+// which end is heavy, and fitPropShaft (ik.js) measures which way that is in
+// the bone's own frame, so the layer has everything it needs without a second
+// table of per-weapon angles.
+//
+// Only the travelling states (ik.js CARRY_STATES). An attack keeps its
+// authored presentation — Momo's broom leading brush-first IS the attack.
+
+// WHERE THE HAND SITS ON THE SHAFT is `grip` above — but `grip` is a BUILD
+// parameter: blender_attach_prop.py reads it when it joins the weapon to the
+// bone, so it describes a .glb that has already been delivered and changing it
+// re-grips nothing that is on disk. `gripAt` is the runtime counterpart: the
+// fraction the hand SHOULD be at, and the layer slides the delivered weapon
+// along its own measured axis by the difference. Gakuganji came back holding
+// his guitar by the headstock — a real grip is at the base of the neck, a
+// third of a metre down — and re-gripping it here is a line of data against
+// re-exporting the model.
+
+/** Degrees below horizontal the trailing end is carried at. Shallow: past
+ *  about forty the weapon drags on the floor on the shorter fighters. */
+export const CARRY_DROP_DEG = 28;
+
+/** Per-character overrides. `carry: false` opts a prop out entirely (a prop
+ *  that is not held — Mahoraga's floating wheel — has no carry to correct). */
+export const CARRY_OVERRIDES = {
+  // The wheel rides beside him rather than in a hand; there is no "heavy end
+  // trailing" to speak of and aiming it would just make it wobble.
+  mahoraga: { carry: false },
 };
 
 /** The two-handed prop a fighter carries, or null. `{ bone, spacing }`. */

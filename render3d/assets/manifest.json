@@ -377,7 +377,9 @@
       },
       "yawOffsetDeg": 30,
       "renderScale": 1.01,
-      "stanceDeg": 11
+      "stanceDeg": 11,
+      "armDeg": 15,
+      "shoulderOutCm": 2.5
     },
     "kurourushi": {
       "model": "kurourushi/kurourushi.glb",
