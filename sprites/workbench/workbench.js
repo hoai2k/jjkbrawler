@@ -240,7 +240,19 @@ function sharedOwner(key) {
   // the last-resort reference, instead of beside the fighter who summons them.
   const creature = key.split(":").length === 3 ? key.split(":").slice(0, 2).join(":") : null;
   const usage = (k) => (sharedUsage().get(k) || [])[0]?.who;
-  return byName(sharedSpriteInfo(key)?.owner)
+  // THE FIGHTER YOU ARE STANDING IN BEATS THE DEFAULT. A drawing two kits draw
+  // has one registry owner and it is whoever the walk reached first, which is
+  // the right answer to "whose drawing is this" and the wrong one to "who am I
+  // looking at". `effect:curse_dragon` is the stand-in for Megumi's Great
+  // Serpent AND Geto's Rainbow Dragon: opened from Geto's effects list it was
+  // standing Megumi beside it, which is a reference to the wrong body and a
+  // wrong answer about size. Whoever's list this was opened from wins, as long
+  // as their kit really does draw it.
+  const inContext = state.effectsOwner
+    && (sharedUsage().get(key) || []).some((u) => u.charKey === state.effectsOwner)
+    ? state.effectsOwner : null;
+  return inContext
+    || byName(sharedSpriteInfo(key)?.owner)
     || byName(usage(key))
     || (creature ? byName(sharedSpriteInfo(creature)?.owner) || byName(usage(creature)) : null);
 }
@@ -1117,6 +1129,23 @@ function isDirty(charKey, frameKey) {
     return Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4;
   }) || anchorsDirty(charKey, frameKey) || attackBoxDirty(charKey, frameKey)
     || hitDirty(charKey, frameKey);
+}
+
+/** A creature's canonical drawing, for the entry that names the creature itself.
+ *
+ *  `summon:curseHound` has no file: that creature shipped as six POSE plates
+ *  and no single still, so the base key is a name rather than a picture and the
+ *  viewer said "not delivered yet" over art that is very much delivered. The
+ *  game has never had this problem — summons.js resolves a creature to
+ *  `poseKeyOf(...)` + `idle_a` and only falls back to a single still where no
+ *  pose art landed (canonicalImage) — so this is the same rule, in the one
+ *  place the workbench needed it.
+ *
+ *  Returns the key to actually draw, which is usually the one passed in. */
+function drawableSharedKey(key) {
+  if (getImage(key) || !key?.startsWith("summon:") || key.split(":").length !== 2) return key;
+  const resting = `${key}:idle_a`;
+  return getImage(resting) ? resting : key;
 }
 
 /** A creature's attack box, compared whole.
@@ -2130,7 +2159,7 @@ function drawRangeTargets(cx) {
 const sharedTried = new Set();
 
 function drawSharedSprite(cx) {
-  const img = getImage(state.frame);
+  const img = getImage(drawableSharedKey(state.frame));
   if (!img) {
     const done = sharedTried.has(state.frame);
     ctx.fillStyle = "rgba(154, 164, 192, 0.9)";
@@ -2544,7 +2573,7 @@ function sceneZoom(key = state.frame) {
  *  drag uses to turn a gesture back into `dx`/`dy` game pixels.
  */
 function sharedView(key = state.frame) {
-  const img = getImage(key);
+  const img = getImage(drawableSharedKey(key));
   if (!img) return null;
   const can = sharedControls(key);
   const meta = rawMeta(OTHER_KEY, key);
@@ -3539,9 +3568,13 @@ const ANCHOR_WORDS = {
 function refreshUsageInfo() {
   const box = $("usageInfo");
   if (!box) return;
-  const img = getImage(state.frame);
+  const shown = drawableSharedKey(state.frame);
+  const img = getImage(shown);
   const uses = sharedUsage().get(state.frame) || [];
-  const size = img ? `${img.width}×${img.height} delivered` : "not loaded";
+  const size = img
+    ? `${img.width}×${img.height} delivered`
+      + (shown !== state.frame ? " — its resting pose; this creature has no single still" : "")
+    : "not loaded";
   const drawn = gameHeightOf(state.frame);
   const lines = [
     `<b>${state.frame}</b>`,
@@ -4522,7 +4555,12 @@ function syncAll() {
   rememberInUrl();
   if (isOther(state.char)) {
     const key = state.frame;
-    loadSharedImage(key).then(() => { sharedTried.add(key); refreshUsageInfo(); render(); });
+    // A creature whose art is a pose set has nothing under its own key, so the
+    // resting pose is asked for too — that is the drawing it stands for.
+    loadSharedImage(key)
+      .then((ok) => (ok || !key.startsWith("summon:") || key.split(":").length !== 2
+        ? ok : loadSharedImage(`${key}:idle_a`)))
+      .then(() => { sharedTried.add(key); refreshUsageInfo(); render(); });
   }
   else charLoader.prioritize(state.frame);
   refreshLoadState();

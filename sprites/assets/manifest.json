@@ -63922,9 +63922,17 @@
   },
   "effect:scissors_curse": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": true,
+   "dx": -50.2,
+   "dy": 19.3,
+   "src": {
+    "file": "assets/sprites/effects/scissors_curse.png",
+    "sha": "aa833f1829b8"
+   }
   },
   "effect:scream_wave": {
    "edited": {
@@ -64090,14 +64098,14 @@
     "renderScale": null,
     "faceLeft": null
    },
-   "dx": -11.9,
-   "dy": -2.2,
-   "renderScale": 0.685,
+   "dx": -2,
+   "dy": -22.4,
+   "renderScale": 0.5206,
    "faceLeft": true,
    "hit": {
-    "dx": -0.6,
-    "dy": 3.0,
-    "scale": 1.072
+    "dx": -0.9,
+    "dy": 1.4,
+    "scale": 0.701
    },
    "src": {
     "file": "assets/sprites/effects/curse_a.png",
@@ -64107,10 +64115,23 @@
   "effect:curse_c": {
    "edited": {
     "dx": null,
-    "dy": null
+    "dy": null,
+    "renderScale": null,
+    "faceLeft": null
    },
-   "dx": -13.6,
-   "dy": 3.2
+   "dx": -3.8,
+   "dy": -17.9,
+   "renderScale": 0.595,
+   "faceLeft": true,
+   "hit": {
+    "dx": -6.3,
+    "dy": -4.8,
+    "scale": 0.87
+   },
+   "src": {
+    "file": "assets/sprites/effects/curse_c.png",
+    "sha": "cfd5abc86f55"
+   }
   },
   "effect:drop_bike": {
    "edited": {
@@ -64545,6 +64566,48 @@
    "src": {
     "file": "assets/sprites/effects/feedback_wall.png",
     "sha": "052eab1a8f8e"
+   }
+  },
+  "effect:curse_b": {
+   "edited": {
+    "renderScale": null,
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
+   },
+   "renderScale": 0.515,
+   "faceLeft": true,
+   "dx": -7.4,
+   "dy": -7.3,
+   "hit": {
+    "dx": 2.2,
+    "dy": 0.3,
+    "scale": 0.782
+   },
+   "src": {
+    "file": "assets/sprites/effects/curse_b.png",
+    "sha": "9644394efbc3"
+   }
+  },
+  "effect:curse_d": {
+   "edited": {
+    "renderScale": null,
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
+   },
+   "renderScale": 0.49,
+   "faceLeft": true,
+   "dx": -3.5,
+   "dy": -14.3,
+   "hit": {
+    "dx": 0.2,
+    "dy": -2.1,
+    "scale": 0.831
+   },
+   "src": {
+    "file": "assets/sprites/effects/curse_d.png",
+    "sha": "fd5045e4c704"
    }
   }
  }
