@@ -17,7 +17,8 @@ import {
   COMBO_GRACE,
 } from "./constants.js";
 import { bodyMetrics } from "./silhouette.js";
-import { comFrac, muzzlePoint, hurtboxFit } from "./body_points.js";
+import { comFrac, hurtboxFit } from "./body_points.js";
+import { spawnOffset } from "./muzzle.js";
 import { swingExtent } from "./moves.js";
 import { breakGrabsOn } from "./grab.js";
 import {
@@ -182,10 +183,15 @@ export function spawnMeleeScaled(owner, cfg) {
 export function spawnProjectileScaled(owner, cfg) {
   // Spawn offsets only: the shot leaves the caster's hand, wherever that is on
   // this body — the shot's own size and flight are the move's, not the body's.
-  // A verified muzzle (body_points.js, the "muzzle-points" review) wins; with
-  // none, this is the reference offsets scaled by height, exactly as before.
+  //
+  // The hand is resolved (src/muzzle.js): a verified point, else the rig's
+  // measured hand for this move's own pose, else the reference offsets scaled
+  // onto this body — which is what the whole roster used to get. The kit's
+  // `ox`/`oy` ride on top as a displacement from the reference rather than as
+  // an absolute, so a move that asks for nothing leaves the hand and one that
+  // deliberately spawns elsewhere (a wave's 54px fan) keeps its spacing.
   const key = owner.spriteChar || owner.charKey;
-  const m = muzzlePoint(key, bodyMetrics(key).height, cfg.ox ?? 70, cfg.oy ?? -86);
+  const m = spawnOffset(key, owner.animKey, cfg.ox, cfg.oy);
   return spawnProjectile(owner, { ...cfg, ox: m.x, oy: m.y });
 }
 

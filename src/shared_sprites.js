@@ -415,10 +415,17 @@ function buildRegistry() {
   // This is what lets the workbench stand the drawing where the move actually
   // puts it, beside the pose that throws it, instead of alone in the middle of
   // a canvas: a beam can be lined up with the hand that fires it.
+  // `scaled` is the one thing these numbers do NOT say on their own: a shot is
+  // spawned through spawnProjectileScaled, which runs the kit's offsets through
+  // muzzlePoint (body_points.js). They are offsets on a 149px REFERENCE body,
+  // and every fighter scales them onto their own height — Choso fires from 66.7
+  // rather than 70, Panda from 73.7 — or ignores them outright once somebody
+  // has placed a verified muzzle for him. The flash handlers below take their
+  // forward distance raw, which is why it is a per-entry fact and not a rule.
   const LAUNCH = {
-    projectile: (n) => ({ forward: n.ox ?? 70, y: n.oy ?? -86 }),
+    projectile: (n) => ({ forward: n.ox ?? 70, y: n.oy ?? -86, scaled: true }),
     // The wave handler overrides ox itself, one wave per 54px: `ox: 60 + i * 54`.
-    wave: (n) => ({ forward: 60, y: n.oy ?? -86 }),
+    wave: (n) => ({ forward: 60, y: n.oy ?? -86, scaled: true }),
     // spawnSummonFlash: on the ground at the fighter's feet (`owner.y + 12`),
     // `forward` px ahead of them, each handler passing its own.
     swap: () => ({ forward: 0, y: 12 }),
