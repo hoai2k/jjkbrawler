@@ -72,6 +72,7 @@ import { state as gameState } from "../../src/state.js";
 import { loadCoreAssets, loadFrame } from "../../src/assets.js";
 import { headHeightTarget } from "../../src/heights.js";
 import { artReach } from "../../src/silhouette.js";
+import { lightMove, heavyMove, strikeArcs } from "../../src/moves.js";
 import { PAD_BUTTONS, PAD_AXES, padLabelsFor } from "../../src/config_controls.js";
 
 const $ = (id) => document.getElementById(id);
@@ -193,6 +194,15 @@ document.querySelector("main.layout").outerHTML = `
       gliding at 60. Turnaround off falls back to a picture mirror, the way
       sprites face.</p>
 
+      <h3>Attack range</h3>
+      <label class="check"><input id="arcToggle" type="checkbox" checked> Show the hitbox and strike arc</label>
+      <p class="hint">The move's REAL hitbox, from the same
+      <code>src/moves.js</code> the simulation hits with — drawn at the
+      fighter's own origin, so the animation and the range it actually covers
+      can be read against each other. The arc is the sweep the game paints
+      (<code>strikeArcs</code>); the dashed ring is the tip sweetspot where
+      one exists.</p>
+
       <h3>Viewer effects</h3>
       <label>Motion blur <span class="mono" id="blurVal">off</span>
         <input id="blur" type="range" min="0" max="0.9" step="0.05" value="0">
@@ -248,6 +258,8 @@ const ui = {
   speed: 1,
   /** Viewer clock, in animation seconds — advances by dt × speed. */
   clock: 0,
+  /** Overlay each attack's real hitbox and strike arc. */
+  arcs: params.get("arcs") !== "0",
   /** 0 = clean frames; toward 1 = longer frame-persistence trail. */
   blur: 0,
   faceLeft: false,
@@ -509,6 +521,9 @@ $("breathToggle").onchange = () => { DIALS.breath = $("breathToggle").checked; c
 $("turnToggle").checked = DIALS.turnaround;
 $("turnToggle").onchange = () => { DIALS.turnaround = $("turnToggle").checked; clearRenderCaches(); };
 
+$("arcToggle").checked = ui.arcs;
+$("arcToggle").onchange = () => { ui.arcs = $("arcToggle").checked; };
+
 $("renderSelect").value = ui.render;
 $("renderSelect").onchange = () => {
   ui.render = $("renderSelect").value;
@@ -713,6 +728,93 @@ function drawSprite(char, state, t, facing) {
     { scale: getActor(char)?.scale, facing, alpha: 1 });
 }
 
+// ------------------------------------------------------- the attack's range
+//
+// WHAT THE MOVE ACTUALLY HITS, drawn where it actually hits it.
+//
+// The animation and the hitbox are authored in different places and neither
+// one is evidence about the other: a swing that reads enormous can carry a
+// stubby box, and a flick of the wrist can reach half the stage. This overlay
+// puts them in the same picture — the fighter's own origin, their own scale,
+// their own facing — so "does this animation look like its range?" becomes a
+// question you can answer by looking rather than by remembering two numbers.
+//
+// It is the REAL hitbox: built by src/moves.js, the same call the simulation
+// makes, so nothing here can drift from what the game hits with. `ox/w/oy/h`
+// are game pixels from the fighter's origin (feet, at their facing), which is
+// exactly the frame this viewer already draws bodies in.
+
+/** Which move builder and variant each attack state plays. Mirrors the
+ *  dispatch in the controller — a state absent here has no hitbox to draw
+ *  (a special or an ult, whose boxes are the character's own script). */
+const MOVE_OF = {
+  light:           [lightMove, "jab"],
+  sideHeavy:       [heavyMove, "side"],
+  upHeavy:         [heavyMove, "up"],
+  downHeavy:       [heavyMove, "down"],
+  airLight:        [lightMove, "air"],
+  crouchAttack:    [lightMove, "down"],
+  dashAttack:      [lightMove, "dash"],
+  dashAttackHeavy: [heavyMove, "dash"],
+};
+
+/** The move this state throws, or null. Failures are swallowed: a variant a
+ *  builder does not know is a missing overlay, never a dead viewer. */
+function moveFor(char, state) {
+  const spec = MOVE_OF[clipNameFor(state)];
+  if (!spec) return null;
+  const [build, variant] = spec;
+  try {
+    return build(CHARACTERS[char], variant, 0) || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Draw the hitbox, the strike arc and the tip ring at the current origin.
+ *  Everything is in game pixels from the fighter's feet, so it rides the same
+ *  transform the body was drawn under and needs no scaling of its own. */
+function drawRange(char, state, facing) {
+  const m = moveFor(char, state);
+  if (!m) return false;
+  const bodyH = headHeightTarget(char);
+  ctx.save();
+  // The box is authored forward-positive; facing left mirrors it, exactly as
+  // the simulation mirrors it about the fighter's own x.
+  ctx.scale(facing, 1);
+
+  // THE BOX: what connects. Filled faintly so it reads under the figure
+  // rather than over it.
+  ctx.fillStyle = "rgba(211, 143, 143, 0.16)";
+  ctx.strokeStyle = "rgba(211, 143, 143, 0.75)";
+  ctx.lineWidth = 1.5;
+  ctx.fillRect(m.ox, m.oy, m.w, m.h);
+  ctx.strokeRect(m.ox, m.oy, m.w, m.h);
+
+  // THE ARC: the sweep the game paints for this box (moves.js strikeArcs), so
+  // the overlay agrees with what a player sees mid-match.
+  ctx.strokeStyle = "rgba(159, 211, 159, 0.8)";
+  ctx.lineWidth = 2;
+  for (const a of strikeArcs(m, bodyH) || []) {
+    ctx.beginPath();
+    ctx.arc(0, a.pivotY, a.radius, a.aim - a.span / 2, a.aim + a.span / 2);
+    ctx.stroke();
+  }
+
+  // THE TIP BAND, where the move has one: the ring that hits hardest.
+  if (m.critBand?.ring) {
+    ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = "rgba(203, 160, 210, 0.9)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, -bodyH * 0.5, m.critBand.ring, -0.9, 0.9);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+  return true;
+}
+
 /** Draw `char` at the origin of the current transform. Returns what actually
  *  drew, so the caption can say when a model backend fell through to sprites
  *  — in a match that fallthrough is invisible by design, and on a bench that
@@ -776,6 +878,9 @@ function draw(now) {
     ctx.save();
     ctx.translate(cx, ground);
     ctx.scale(fit, fit);
+    // Range first, so the figure is drawn over its own hitbox rather than
+    // hidden behind it.
+    if (ui.arcs) drawRange(char, state, facing);
     const drew = drawFighter(char, state, t, facing);
     ctx.restore();
 
