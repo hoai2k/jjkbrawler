@@ -200,7 +200,18 @@ export const SFX = {
   // they sit with the layer they belong to rather than in a group of their own.
   boogieClap: { file: "boogie_clap.mp3", category: "combat", gain: 1.1 },
   seamCrack: { file: "seam_crack.mp3", category: "combat" },
-  powerChord: { file: "power_chord.mp3", category: "energy" },
+  // Three licks, drawn one per shot. The move recharges in 1.1 s and a single
+  // sample on a fast cooldown is the thing a grunt trio exists to prevent —
+  // hearing the identical chord four times in six seconds is what makes a
+  // sound read as a sound effect rather than as a guitarist.
+  powerChord: {
+    file: [
+      "power_chord_alt_lick_1.mp3",
+      "power_chord_alt_lick_2.mp3",
+      "power_chord_alt_lick_3.mp3",
+    ],
+    category: "energy",
+  },
   crowCaw: { file: "crow_caw.mp3", category: "energy" },
   paperRustle: { file: "paper_flutter.mp3", category: "energy" },
   soulReshape: { file: "soul_reshape.mp3", category: "energy" },
@@ -340,12 +351,12 @@ export const SFX_ALTERNATES = {
   // nothing here can tell you whether it is the right one, and the only way to
   // find out is to hear it next to what ships.
   powerChord: [
+    { name: "Round 8 original", file: ["power_chord.mp3"],
+      note: "the single distorted strike that shipped until the licks replaced it" },
     { name: "C♯m — ringing", file: ["power_chord_alt_csharpm_1.mp3"],
       note: "all six strings through a cranked amp, held to decay — a named chord, which the generator may only have approximated" },
     { name: "C♯m — palm-muted", file: ["power_chord_alt_csharpm_2.mp3"],
       note: "muted attack then let ring, thicker and darker" },
-    { name: "Metal licks", file: ["power_chord_alt_lick_1.mp3", "power_chord_alt_lick_2.mp3", "power_chord_alt_lick_3.mp3"],
-      note: "a run into a bend, legato into a pinch harmonic, and a tremolo run into a dive — short, because the move recharges in 1.1 s" },
   ],
   tideCrash: [
     { name: "The deeper break", file: ["tide_crash_alt_1.mp3"],

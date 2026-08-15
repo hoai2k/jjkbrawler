@@ -255,3 +255,7 @@ h2 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: 
    still appears two panels away and nobody connects the two. */
 .tag--art { border-color: rgba(216, 155, 63, 0.45); color: #d89b3f; }
 .tag--art code { color: inherit; font-size: 10px; }
+
+/* A sound several moves play. Warmer than the rest of the meta on purpose: it
+   is the one thing on a technique row that changes what an edit MEANS. */
+.tag--shared { border-color: rgba(255, 185, 95, 0.5); color: var(--warn); }
