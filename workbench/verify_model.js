@@ -4,13 +4,24 @@
 // ask a question no script can answer.
 //
 // WHAT FACING ASKS, precisely, because it is easy to answer a different
-// question by accident: is the MODEL's body turned the way the DRAWING's body
-// is turned? Nothing else. Not whether the pose matches, not whether the
-// drawing is the one you would have chosen, and not where the character is
-// looking — Momo's sprite has her body facing one way and her face the other,
-// and the answer for her is about the body. A sprite whose art you disagree
-// with is a job for the sprite bench; this set only moves `yawOffsetDeg`,
-// which turns the model and can do nothing about a drawing.
+// question by accident: is the MODEL's body turned the way it should be for
+// the game to draw it? Nothing else. Not whether the pose matches, not where
+// the character is looking.
+//
+// `yawOffsetDeg` is a PURELY RENDERING dial. It sets the rig's root rotation
+// when the model is posed (pose.js facingYaw) and tells every layer that nods
+// — aim, look-at, flinch — which way this fighter's forward points
+// (ik.js characterLateral). It says "this .glb was built facing the wrong way
+// by this much; turn it back". Nothing reads it to understand a sprite, and
+// nothing correlates it with one.
+//
+// WHICH MEANS THE DRAWING IS A REFERENCE, NOT AN AUTHORITY. It is beside the
+// model because it is usually the quickest way to see that a body is turned
+// wrong. When the drawing itself is wrong — Momo's sprite has her body facing
+// one way and her face the other — matching it would rotate her MODEL wrong
+// in game to reproduce a mistake. So the model is judged on its own terms
+// there, and "the drawing is wrong" is recorded as a note for the sprite
+// bench rather than paid for in yaw. That is what the third button does.
 //
 // FACING is the sharper of the two, and the project has scars to prove it.
 // `tools/check_model_facing.mjs` says so at length: an outline CANNOT tell
@@ -151,12 +162,18 @@ export async function facingProvider() {
     fingerprint: fingerprint(),
     ready: ok,
     ensureReady: ensureTaskArt,
+    // Reviewed facings are recorded in the manifest as `facingCheckedAt`,
+    // because an approved-as-stored yaw looks EXACTLY like an unreviewed one
+    // — there is no value to diff. Without a record of the review itself the
+    // queue would ask for the whole roster again every session.
+    committed: (task) => !!manifest[task.charKey]?.facingCheckedAt,
     initialValue: (task) => ({ yaw: manifest[task.charKey]?.yawOffsetDeg ?? 0 }),
     describe: (task, value) =>
       `stored <b>${manifest[task.charKey]?.yawOffsetDeg ?? 0}°</b>`
       + (value.yaw !== (manifest[task.charKey]?.yawOffsetDeg ?? 0)
         ? ` → proposed <b>${value.yaw}°</b>` : "")
-      + ` — does the MODEL's body face the way the drawing's body does?`,
+      + (value.artWrong ? ` — <b>drawing flagged</b>, model kept as stored` : "")
+      + ` — is the model's body turned the way the game should draw it?`,
     renderEditor(task, { container, value, onChange }) {
       container.replaceChildren();
       slider(container, {
@@ -165,12 +182,20 @@ export async function facingProvider() {
       }, (yaw) => onChange({ yaw }));
       const wrap = document.createElement("div");
       wrap.className = "v-nav v-nav--wrap";
+      const stored = manifest[task.charKey]?.yawOffsetDeg ?? 0;
       wrap.innerHTML = `<button class="ghost sm" data-turn="180" type="button">Turn 180°</button>`
-        + `<button class="ghost sm" data-turn="0" type="button">Back to stored</button>`;
+        + `<button class="ghost sm" data-turn="0" type="button">Back to stored</button>`
+        + `<button class="ghost sm" data-art="1" type="button" title="The model is fine; `
+        + `the sprite's body is turned wrong. Records a note for the sprite bench and `
+        + `leaves yawOffsetDeg alone.">Drawing is wrong</button>`;
       wrap.querySelector('[data-turn="180"]').addEventListener("click",
-        () => onChange({ yaw: (value.yaw + 180) % 360 }));
+        () => onChange({ ...value, yaw: (value.yaw + 180) % 360 }));
       wrap.querySelector('[data-turn="0"]').addEventListener("click",
-        () => onChange({ yaw: manifest[task.charKey]?.yawOffsetDeg ?? 0 }));
+        () => onChange({ ...value, yaw: stored }));
+      // Never emulate a bad drawing: this keeps the model's own yaw and sends
+      // the disagreement where it can actually be fixed.
+      wrap.querySelector('[data-art="1"]').addEventListener("click",
+        () => onChange({ yaw: stored, artWrong: !value.artWrong }));
       container.appendChild(wrap);
     },
     draw(task, ctx) {
@@ -181,10 +206,20 @@ export async function facingProvider() {
     exportBlock(decisions) {
       const rows = [];
       const flagged = [];
+      const artNotes = [];
+      const checked = [];
       for (const d of decisions) {
         if (d.status === "skipped") continue;
         if (d.status === "rejected") {
           flagged.push(`//   ${d.char}: ${d.note || "flagged, no note"}`);
+          continue;
+        }
+        checked.push(`  ${JSON.stringify(d.char)}: ${JSON.stringify((d.at || "").slice(0, 10))},`);
+        if (d.value.artWrong) {
+          // The model was right and the reference was not. Nothing to change
+          // here; the job is in the sprite.
+          artNotes.push(`- ${d.char}: sprite body faces the wrong way`
+            + (d.note ? ` — ${d.note}` : ""));
           continue;
         }
         if (d.value.yaw === d.measured.yaw) continue;   // confirmed as stored
@@ -193,9 +228,16 @@ export async function facingProvider() {
       }
       return {
         file: "render3d/assets/manifest.json",
-        note: "set each character's yawOffsetDeg to these. A fighter confirmed "
-          + "as already correct is absent — nothing to change.",
-        text: rows.length ? `// yawOffsetDeg\n${rows.join("\n")}\n` : "// no facing changes\n",
+        note: "set each character's yawOffsetDeg to these, and `facingCheckedAt` "
+          + "on every fighter listed under REVIEWED — an approved-as-stored yaw has "
+          + "no value to diff, so the review itself is what gets recorded.",
+        text: (rows.length ? `// yawOffsetDeg\n${rows.join("\n")}\n` : "// no facing changes\n")
+          + (artNotes.length
+            ? `\n// Sprite work — the MODEL is right and the drawing is not.\n`
+              + `// Nothing to change in the manifest for these:\n`
+              + artNotes.map((l) => `//   ${l}`).join("\n") + "\n" : "")
+          + (checked.length ? `\n// REVIEWED — facingCheckedAt\n${checked.join("\n")}\n` : "")
+          + (flagged.length ? `\n// Flagged:\n${flagged.join("\n")}\n` : ""),
       };
     },
   };

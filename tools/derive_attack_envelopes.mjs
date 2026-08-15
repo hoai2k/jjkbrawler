@@ -48,14 +48,31 @@ const POSE_SOURCES = [
 const sha = (buf) => createHash("sha1").update(buf).digest("hex").slice(0, 12);
 const fileSha = (rel) => existsSync(join(ROOT, rel)) ? sha(readFileSync(join(ROOT, rel))) : "missing";
 
+/** The manifest fields a measurement actually depends on — which body, how it
+ *  is turned, how big it is drawn, how it stands, and which clips it plays.
+ *
+ *  Hashing the whole FILE instead was too blunt: the manifest also carries
+ *  bookkeeping (`facingCheckedAt`, review notes) and appearance (`toon`,
+ *  `alt`), none of which can move a measured reach — and every one of those
+ *  edits was marking the config stale and demanding a five-minute re-bake for
+ *  nothing. A gate that cries wolf gets ignored, which is the one thing this
+ *  gate must not be. */
+const MEASURED_FIELDS = [
+  "model", "yawOffsetDeg", "renderScale", "heightM", "stanceDeg", "armDeg",
+  "headTiltDeg", "shoulderOutCm", "kneeDeg", "clips", "inheritClips",
+  "approved", "inGame",
+];
+
 function currentInputs() {
   const manifest = JSON.parse(readFileSync(join(ROOT, "render3d/assets/manifest.json"), "utf8"));
   const models = {};
+  const dials = {};
   for (const [key, entry] of Object.entries(manifest.characters || {})) {
     if (entry?.model) models[key] = fileSha(join("render3d/assets", entry.model));
+    dials[key] = MEASURED_FIELDS.map((f) => JSON.stringify(entry?.[f] ?? null)).join("|");
   }
   return {
-    manifest: fileSha("render3d/assets/manifest.json"),
+    manifest: sha(JSON.stringify(dials)),
     sprites: fileSha("sprites/assets/manifest.json"),
     poses: sha(POSE_SOURCES.map(fileSha).join("|")),
     models,
