@@ -4,6 +4,12 @@
 // get bespoke handlers; common shapes share primitives.
 
 import { state } from "./state.js";
+// Effects spawned from CODE draw here rather than through render.js, so the
+// per-drawing nudge has to be applied at each of them or the workbench dial
+// silently does nothing for exactly the art that needs it most: a wall, a
+// pillar, a ward — pieces that stand ON the floor, where being a few pixels
+// off the ground line is the whole difference between planted and hovering.
+import { sharedAdjust } from "./shared_sprites.js";
 import { clamp, sign, rand, chance } from "./utils.js";
 import { spawnMelee, spawnProjectile, opponentOf, applyHit, hurtbox, applyStatus, ownerStick } from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
@@ -728,7 +734,8 @@ const HANDLERS = {
         if (img) {
           const h = (p.spriteH || 150) * (0.6 + prog * 0.5);
           const w = img.width * h / img.height;
-          ctx.drawImage(img, tx - w / 2, ty - h / 2, w, h);
+          const adj = sharedAdjust(p.sprite);
+          ctx.drawImage(img, tx - w / 2 + adj.dx, ty - h / 2 + adj.dy, w, h);
         } else {
           ctx.strokeStyle = p.color;
           ctx.lineWidth = 3;
@@ -774,8 +781,9 @@ const HANDLERS = {
         if (img) {
           const h = p.spriteH || p.h;
           const w = img.width * h / img.height;
+          const adj = sharedAdjust(p.sprite);
           ctx.globalAlpha = 0.6 * fade;
-          ctx.drawImage(img, this.x - w / 2, this.y - h, w, h);
+          ctx.drawImage(img, this.x - w / 2 + adj.dx, this.y - h + adj.dy, w, h);
         } else {
           ctx.globalAlpha = 0.3 * fade;
           ctx.fillStyle = p.color;
@@ -868,6 +876,7 @@ function spawnSummonFlash(owner, spriteKey, duration, height, forward) {
       if (!img) return;
       const h = height;
       const w = img.width * h / img.height;
+      const adj = sharedAdjust(spriteKey);
       const alpha = Math.sin(Math.min(1, this.t / duration) * Math.PI) * 0.9;
       ctx.save();
       ctx.translate(owner.x + owner.facing * forward, owner.y + 12);
@@ -875,7 +884,9 @@ function spawnSummonFlash(owner, spriteKey, duration, height, forward) {
       ctx.globalAlpha = alpha;
       ctx.shadowColor = "#dfe8ff";
       ctx.shadowBlur = 18;
-      ctx.drawImage(img, -w / 2, -h, w, h);
+      // Inside the mirrored frame, so the nudge follows the drawing rather
+      // than reversing when the fighter turns round (render.js does the same).
+      ctx.drawImage(img, -w / 2 + adj.dx, -h + adj.dy, w, h);
       ctx.restore();
     },
   });
@@ -951,10 +962,11 @@ function makeTrap(owner, x, groundY, p, name) {
         if (sprite) {
           const h = p.spriteH || this.h;
           const w = sprite.width * h / sprite.height;
+          const adj = sharedAdjust(p.sprite);
           ctx.globalAlpha = Math.min(1, fade * 1.35);
           ctx.shadowColor = this.color;
           ctx.shadowBlur = 14;
-          ctx.drawImage(sprite, this.x - w / 2, this.y - h, w, h);
+          ctx.drawImage(sprite, this.x - w / 2 + adj.dx, this.y - h + adj.dy, w, h);
           ctx.restore();
           return;
         }
