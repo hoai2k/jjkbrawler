@@ -679,6 +679,24 @@ export function previewCharacter(charKey) {
   }
 }
 
+/** The player is LOOKING at this arena — dwelling on its card, or about to be
+ *  handed it by the Random draw — so move its backdrop to the front of the
+ *  queue. Same promotion as previewCharacter, and the same reason: the pump
+ *  will reach it eventually, and "eventually" is after twenty-seven fighters.
+ *
+ *  A full backdrop is 2.4 MB, so this is deliberately one board at a time and
+ *  deliberately a promotion rather than a claim — nothing here is committed to
+ *  yet, and a claim would put a speculative 2.4 MB ahead of a fighter the
+ *  player actually picked. */
+export function previewStage(stageKey) {
+  const id = `stage:${stageKey}`;
+  const at = queue.indexOf(id);
+  if (at > 0) {
+    queue.splice(at, 1);
+    queue.unshift(id);
+  }
+}
+
 /** The player has committed to this fighter, so start now rather than waiting
  *  for the pump — this is art the match is definitely going to need. */
 export function claimCharacter(charKey) {
