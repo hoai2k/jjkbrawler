@@ -205,6 +205,11 @@ export const SFX = {
   paperRustle: { file: "paper_flutter.mp3", category: "energy" },
   soulReshape: { file: "soul_reshape.mp3", category: "energy" },
   healChime: { file: "rct_chime.mp3", category: "energy", gain: 0.9 },
+  // Round 15. Both are the first sound their move has ever had of its own:
+  // Dagon's wave left in silence, and the one move in the game named after a
+  // drum was playing the generic punch.
+  tideCrash: { file: "tide_crash.mp3", category: "energy" },
+  drumPhrase: { file: "drum_phrase.mp3", category: "combat" },
   // Held under anything currently on fire — burn ticks, Furnace Shell — the
   // way `shield` sits under a raised guard. See the fire loop in audio.js.
   fireBurnLoop: { file: "fire_burn_loop.mp3", category: "energy", loop: true, gain: 0.55 },
@@ -322,7 +327,39 @@ export const SIGNATURE_SFX = {
 //
 // `file` takes the same shape as an SFX entry's: a string, or several
 // interchangeable files for a group that draws one per call.
-export const VOICE_ALTERNATES = {
+//
+// It was called VOICE_ALTERNATES until the bench grew past the voice. Every
+// sound in the game can be re-rolled and judged by ear — a guitar chord no less
+// than a grunt — and a table named for the first thing that needed it would
+// have quietly discouraged the second.
+export const SFX_ALTERNATES = {
+  // ---- round 15: the instruments.
+  //
+  // The first alternates in this table that are not a voice, which is what the
+  // rename was for. Judging a guitar chord is the same job as judging a grunt:
+  // nothing here can tell you whether it is the right one, and the only way to
+  // find out is to hear it next to what ships.
+  powerChord: [
+    { name: "C♯m — ringing", file: ["power_chord_alt_csharpm_1.mp3"],
+      note: "all six strings through a cranked amp, held to decay — a named chord, which the generator may only have approximated" },
+    { name: "C♯m — palm-muted", file: ["power_chord_alt_csharpm_2.mp3"],
+      note: "muted attack then let ring, thicker and darker" },
+    { name: "Metal licks", file: ["power_chord_alt_lick_1.mp3", "power_chord_alt_lick_2.mp3", "power_chord_alt_lick_3.mp3"],
+      note: "a run into a bend, legato into a pinch harmonic, and a tremolo run into a dive — short, because the move recharges in 1.1 s" },
+  ],
+  tideCrash: [
+    { name: "The deeper break", file: ["tide_crash_alt_1.mp3"],
+      note: "low-end surge and spray rather than the foam" },
+    { name: "Over shingle", file: ["tide_crash_alt_2.mp3"],
+      note: "dragging stones under the roar — the grittiest of the three" },
+  ],
+  drumPhrase: [
+    { name: "Bass tone first", file: ["drum_phrase_alt_1.mp3"],
+      note: "a deep tone then two rim slaps, rather than two tones and a slap" },
+    { name: "Talking drum", file: ["drum_phrase_alt_2.mp3"],
+      note: "three strikes with a rising pitch bend — the one that is not a djembe" },
+  ],
+
   // Gojo's line was promoted to the relaxed take; the other two stay here so
   // the choice is reversible without going through the history.
   domainCallGojo: [

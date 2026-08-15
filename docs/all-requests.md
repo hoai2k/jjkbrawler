@@ -72,7 +72,8 @@ fighter without a delivered rig.
 | — | [3D images — DI4: shared face textures](../render3d/docs/image-requests.md#round-di4--shared-face-textures-one-time-roster-wide) | 🖼️ **Images** (texture) | **delivered** — the shared highlight and a mouth sheet for every fighter | — |
 | — | [Music](music-requests.md) | 🎵 **Music** | **all 20 delivered** | — |
 | — | [Audio Rounds 1–11](audio-requests-history.md) | 🔊 Sound effects + 🎙️ voice | **all delivered** | — |
-| — | [Audio Rounds 12–14 — alternate takes](audio-requests.md#round-14--two-more-of-whatever-survived-delivered) | 🎙️ Voice | **delivered** — 43 alternates to audition; 33 auditioned and [pruned](audio-pruned.md) | — |
+| — | [Audio Rounds 12–14 — alternate takes](audio-requests.md#round-14--two-more-of-whatever-survived-delivered) | 🎙️ Voice | **delivered** — alternates to audition; 38 auditioned and [pruned](audio-pruned.md) | — |
+| — | [Audio Round 15 — the instruments](audio-requests.md#round-15--three-techniques-that-were-never-really-scored-delivered) | 🔊 Sound effects | **delivered** — a C♯m chord and metal licks for Gakuganji, the sea for Dagon, a djembe for Panda | — |
 | — | [2D art Rounds 1–21](asset-requests-history.md) | 🖼️ Images | **delivered** | — |
 
 ---

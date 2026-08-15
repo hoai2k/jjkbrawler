@@ -292,7 +292,7 @@ export function playSfx(name, intensity = 1, rate = 0) {
  * Play a sound described by a registry-shaped entry rather than by name.
  *
  * The game always knows the name; the audio workbench does not — it auditions
- * ALTERNATE takes (config_audio.js `VOICE_ALTERNATES`), which are files with no
+ * ALTERNATE takes (config_audio.js `SFX_ALTERNATES`), which are files with no
  * registry key because the game never plays them. Routing them through here
  * rather than through a bare Audio element is the point: an alternate is judged
  * at the level its category and gain would give it in a match, which is the

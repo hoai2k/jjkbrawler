@@ -14,7 +14,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { SFX, MOVE_CALL, DOMAIN_CALL, SPOKEN_LINES, SPOKEN_TIMING, VOICE_ALTERNATES, SIGNATURE_SFX } from "../src/config_audio.js";
+import { SFX, MOVE_CALL, DOMAIN_CALL, SPOKEN_LINES, SPOKEN_TIMING, SFX_ALTERNATES, SIGNATURE_SFX } from "../src/config_audio.js";
 import { CHARACTERS } from "../src/characters.js";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -107,14 +107,14 @@ for (const [charKey, moves] of Object.entries(MOVE_CALL)) {
 // notice one whose file went missing — the workbench would simply offer a
 // silent button, which is the least debuggable outcome available.
 let altCount = 0;
-for (const [key, list] of Object.entries(VOICE_ALTERNATES)) {
-  if (!SFX[key]) problems.push(`VOICE_ALTERNATES.${key}: no such registry key to stand beside`);
+for (const [key, list] of Object.entries(SFX_ALTERNATES)) {
+  if (!SFX[key]) problems.push(`SFX_ALTERNATES.${key}: no such registry key to stand beside`);
   for (const alt of list) {
     for (const f of [alt.file].flat()) {
       altCount++;
-      if (!fs.existsSync(path.join(SFX_DIR, f))) problems.push(`VOICE_ALTERNATES.${key}: no such file — ${f}`);
+      if (!fs.existsSync(path.join(SFX_DIR, f))) problems.push(`SFX_ALTERNATES.${key}: no such file — ${f}`);
     }
-    if (!alt.note) problems.push(`VOICE_ALTERNATES.${key}: an alternate with no note is a file nobody can choose between`);
+    if (!alt.note) problems.push(`SFX_ALTERNATES.${key}: an alternate with no note is a file nobody can choose between`);
   }
 }
 
@@ -157,6 +157,6 @@ if (problems.length) {
   for (const p of problems) console.log("  " + p);
   process.exit(1);
 }
-console.log(`\n  ${altCount} alternate take(s) on ${Object.keys(VOICE_ALTERNATES).length} sounds, all present`);
+console.log(`\n  ${altCount} alternate take(s) on ${Object.keys(SFX_ALTERNATES).length} sounds, all present`);
 console.log(`  ${sigCount} handler-played signature sound(s) named and present`);
 console.log("  every spoken line is registered, delivered, reachable and the right length");
