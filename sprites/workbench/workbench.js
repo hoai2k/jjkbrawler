@@ -34,6 +34,7 @@ import {
 import { initTooltips, setHelp } from "./tooltip.js";
 import { makeCharLoader, frameLoaded } from "./lazy_sprites.js";
 import { fitStageCanvas } from "./fit_stage.js";
+import { makeEffectPreview, firingUse } from "./effect_preview.js";
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("stage");
@@ -61,6 +62,12 @@ const EDITABLE = ["renderScale", "ox", "bodyBottom", "rotationDeg", "faceLeft",
                   // `bodyBottom` for the same two directions, because a pose is
                   // placed inside its cell and one of these is not.
                   "dx", "dy",
+                  // ...and where the MOVE creates it, which is a different
+                  // point entirely: `dx`/`dy` move the picture onto the spawn
+                  // point, these move the spawn point onto the character (a
+                  // lance of blood should leave the finger). Exported as a note
+                  // against the kit, since `ox`/`oy` live in characters.js.
+                  "spawnOx", "spawnOy",
                   "needsReplacement", "wantsImprovement",
                   "replacementNote", "improvementNote"];
 // Fields whose VALUE is a kind string rather than a number, so a change of kind
@@ -2767,7 +2774,63 @@ function refreshUsageInfo() {
     lines.push(`<b>No size or position controls:</b> ${can.what}.`);
   }
   box.innerHTML = lines.join("<br>");
+
+  // Offered only where there is an action to play: art fired by a move. A
+  // stage hazard or a domain backdrop has no character animation to run it
+  // against, and a button that opened an empty stage would be worse than no
+  // button.
+  const play = $("playEffectBtn");
+  if (play) {
+    const fires = isOther(state.char) ? firingUse(state.frame) : null;
+    play.hidden = !fires;
+    if (fires) play.textContent = `▶ Play it in action — ${fires.name}`;
+  }
 }
+
+// ---------------------------------------------------------- the effect player
+//
+// Opens over the bench, plays the move that fires this drawing, and writes the
+// two placements straight back into the same adjustment record everything else
+// on this page edits — so what it shows is the unsaved state, and what it
+// changes exports with the rest.
+
+const effectPreview = makeEffectPreview({
+  canvas: $("effectStage"),
+  read: () => {
+    const meta = rawMeta(OTHER_KEY, state.frame) || {};
+    return {
+      dx: meta.dx ?? 0,
+      dy: meta.dy ?? 0,
+      scale: Number.isFinite(meta.renderScale) && meta.renderScale > 0 ? meta.renderScale : 1,
+      rot: (meta.rotationDeg ?? 0) * Math.PI / 180,
+      spawnOx: Number.isFinite(meta.spawnOx) ? meta.spawnOx : undefined,
+      spawnOy: Number.isFinite(meta.spawnOy) ? meta.spawnOy : undefined,
+    };
+  },
+  // `start` marks the first write of a drag, which is where the undo point
+  // goes — exactly as setAttackBox does it for the box on the main canvas.
+  write: (patch, start) => {
+    if (start) pushHistory(OTHER_KEY, state.frame);
+    Object.assign(rawMeta(OTHER_KEY, state.frame), patch);
+    refreshControls();
+    refreshUsageInfo();
+    render();
+  },
+  onClose: () => { $("effectOverlay").hidden = true; },
+});
+
+function openEffectPreview() {
+  const title = $("effectTitle");
+  if (!effectPreview.open(state.frame)) return;
+  const u = effectPreview.use;
+  title.textContent = `${u.name} — ${CHARACTERS[u.charKey]?.name || u.charKey}, ${u.state}`;
+  $("effectOverlay").hidden = false;
+}
+$("playEffectBtn")?.addEventListener("click", openEffectPreview);
+$("effectClose")?.addEventListener("click", () => effectPreview.close());
+addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !$("effectOverlay").hidden) effectPreview.close();
+});
 
 function refreshTag() {
   const meta = rawMeta(state.char, state.frame);

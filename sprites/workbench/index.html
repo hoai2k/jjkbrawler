@@ -214,6 +214,9 @@
         <div class="group" id="usageGroup" hidden>
           <label data-help="These sprites are not part of any character&apos;s sheet: they are the shared &lt;code&gt;effect:&lt;/code&gt; and &lt;code&gt;summon:&lt;/code&gt; art the game draws for techniques, shikigami and stage props.&lt;br&gt;&lt;br&gt;They carry no per-frame placement data — the code that spawns each one decides its size and position — so the placement controls do not apply and are hidden. What you can do here is look at them at their in-game size and flag the ones that need redrawing.">Where it is used</label>
           <div id="usageInfo" class="note"></div>
+          <!-- The only question the panel above cannot answer: does it look
+               right when the move actually goes off. -->
+          <button id="playEffectBtn" class="ghost sm" hidden>▶ Play it in action</button>
         </div>
 
 
@@ -278,6 +281,26 @@
       </div>
     </div>
 
+
+    <!-- THE EFFECT PLAYER. Temporary by design: it answers one question about
+         one drawing and then gets out of the way, so it is a layer over the
+         bench rather than another panel competing with it. -->
+    <div id="effectOverlay" hidden>
+      <div class="effect-box">
+        <header>
+          <b id="effectTitle">—</b>
+          <button id="effectClose" class="ghost sm" title="Close (Esc)">✕</button>
+        </header>
+        <canvas id="effectStage" width="900" height="420"></canvas>
+        <p class="hint">Drag the <b style="color:#9fd39f">spawn</b> marker to put the
+        move's origin on the character — the finger the blood leaves, the hand the
+        beam comes off. Drag the <b style="color:#f0b45a">drawing</b> marker to sit
+        the art on that origin. They are different numbers going to different
+        places: the drawing's nudge is this sprite's adjustment, the spawn point is
+        a note against the move in <code>characters.js</code>. Both export with
+        everything else.</p>
+      </div>
+    </div>
 
     <!-- Two workbenches share this shell: the sprite editor (default) and the
          action player (?edit=actions). Only the requested one is kept in the

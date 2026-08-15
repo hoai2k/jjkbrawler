@@ -1162,3 +1162,23 @@ button.ghost:disabled { opacity: 0.35; cursor: default; border-color: var(--line
 }
 .group.approval .chips { margin-top: 8px; }
 .group.approval button { flex: 1; }
+
+/* The effect player — a layer over the bench, not another panel in it. */
+#effectOverlay {
+  position: fixed; inset: 0; z-index: 60; display: flex;
+  align-items: center; justify-content: center;
+  background: rgba(6, 9, 17, 0.82);
+}
+#effectOverlay[hidden] { display: none; }
+.effect-box {
+  background: #121728; border: 1px solid #2c3654; border-radius: 12px;
+  padding: 14px; max-width: min(940px, 94vw); display: flex;
+  flex-direction: column; gap: 10px;
+}
+.effect-box header { display: flex; align-items: center; gap: 12px; }
+.effect-box header b { flex: 1; }
+.effect-box canvas {
+  width: 100%; background: #0f1424; border: 1px solid #232c44; border-radius: 8px;
+  touch-action: none; cursor: crosshair;
+}
+.effect-box .hint { margin: 0; max-width: 70ch; }
