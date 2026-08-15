@@ -33,6 +33,7 @@ import { STATES, clipNameFor } from "./states.js";
 import { buildClipFromKeys } from "./clips.js";
 import { BATTLE_POSES } from "./battle_poses.js";
 import { baselinePose, intentFor } from "./baseline_poses.js";
+import { openGuardElbows, guardOpenFor } from "./guard_open.js";
 import { WALK_POSES, walkKeys } from "./walk_cycle.js";
 import { RUN_POSES, runKeys } from "./run_cycle.js";
 import {
@@ -78,12 +79,21 @@ const AUTHORED_CYCLES = {
   run: { poses: RUN_POSES, keys: runKeys },
 };
 
-/** Matched first, baseline behind it. Never null: the baseline is total. */
-export function poseForFrame(frame) {
+/**
+ * Matched first, baseline behind it. Never null: the baseline is total.
+ *
+ * `guardOpenDeg` is the fighter's own guard-elbow remainder (guard_open.js).
+ * It is applied HERE, on the table, rather than to the baked clip: the dial is
+ * written in the same fighter-frame degrees the tables are, so opening it
+ * before the rig is posed is the only place the number means what it says.
+ * Non-guard frames are handed back untouched whatever the dial says.
+ */
+export function poseForFrame(frame, guardOpenDeg = 0) {
+  const open = guardOpenFor(frame, guardOpenDeg);
   const matched = BATTLE_POSES[frame];
-  if (matched) return { pose: matched, from: "matched" };
+  if (matched) return { pose: openGuardElbows(matched, open), from: "matched" };
   const b = baselinePose(frame);
-  return { pose: b.pose, from: `baseline:${b.intent}` };
+  return { pose: openGuardElbows(b.pose, open), from: `baseline:${b.intent}` };
 }
 
 /**
@@ -93,13 +103,13 @@ export function poseForFrame(frame) {
  * not free, and the same forty poses are wanted by every clip that character
  * has.
  */
-export function bakeCharacterPoses(THREE, root, frames, extraPoses = null) {
+export function bakeCharacterPoses(THREE, root, frames, extraPoses = null, guardOpenDeg = 0) {
   const bones = boneIndex(root);
   if (!bones.size) return null;
   const bind = bindOf(bones);
   const baked = new Map();
   for (const frame of frames) {
-    const { pose, from } = poseForFrame(frame);
+    const { pose, from } = poseForFrame(frame, guardOpenDeg);
     applyLibraryPose(THREE, root, bones, bind, pose);
     baked.set(frame, { pose: bakeLocalEulers(THREE, bones), from });
   }
@@ -179,7 +189,7 @@ export function buildStateClip(THREE, charKey, state, baked) {
  * of where each frame's pose came from, which is what makes the coverage
  * legible rather than a claim.
  */
-export function buildCharacterClips(THREE, charKey, root, states) {
+export function buildCharacterClips(THREE, charKey, root, states, { guardOpenDeg = 0 } = {}) {
   const frames = new Set();
   const wanted = [];
   const extraPoses = {};
@@ -198,7 +208,7 @@ export function buildCharacterClips(THREE, charKey, root, states) {
   if (!frames.size && !Object.keys(extraPoses).length) {
     return { clips: new Map(), sources: new Map() };
   }
-  const baked = bakeCharacterPoses(THREE, root, frames, extraPoses);
+  const baked = bakeCharacterPoses(THREE, root, frames, extraPoses, guardOpenDeg);
   if (!baked) return { clips: new Map(), sources: new Map() };
 
   const clips = new Map();

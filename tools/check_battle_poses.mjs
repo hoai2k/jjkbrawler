@@ -15,6 +15,13 @@ import { BATTLE_POSES, MATCHED_FRAMES, GAIT_FRAMES } from "../render3d/src/battl
 import { INTENT_POSES, INTENTS, intentFor, baselinePose, CONTACTS, HEIGHTS, AIRBORNE }
   from "../render3d/src/baseline_poses.js";
 import { RIG_FIXES, applyRigFixes, fixesFor } from "../render3d/src/rig_fixes.js";
+import {
+  GUARD_OPEN_LIMIT, isGuardFrame, openGuardElbows, clampGuardOpen,
+} from "../render3d/src/guard_open.js";
+import {
+  CROUCH_ORIENT, CROUCH_GROUPS, CROUCH_ORIENT_LIMIT, crouchGroupOf,
+} from "../render3d/src/crouch_orient.js";
+import { PRESENT_DEG } from "../render3d/src/pose.js";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -219,6 +226,81 @@ for (const [charKey, fix] of Object.entries(RIG_FIXES)) {
   if (saved === undefined) delete RIG_FIXES.__check; else RIG_FIXES.__check = saved;
 }
 
+// THE GUARD DIAL. It rotates a joint, so it is checked the way a joint is: the
+// frames it reaches, the range it may ask for, and — the part worth having —
+// that it OPENS the elbow rather than closing it, which is a sign error nobody
+// would catch by reading the table.
+{
+  if (!isGuardFrame("guard")) fail("guard open: the `guard` frame is not a guard");
+  if (isGuardFrame("idle_a")) fail("guard open: the idle is not a guard and must not take the dial");
+  if (clampGuardOpen(999) !== GUARD_OPEN_LIMIT || clampGuardOpen("x") !== 0) {
+    fail("guard open: the dial does not clamp to something a joint can do");
+  }
+  const shell = BATTLE_POSES.guard;
+  const opened = openGuardElbows(shell, 20);
+  if (opened === shell) fail("guard open: a non-zero dial changed nothing");
+  if (shell.RightForeArm[0] !== BATTLE_POSES.guard.RightForeArm[0]) {
+    fail("guard open: the library table was mutated — two fighters share that object");
+  }
+  for (const bone of ["LeftForeArm", "RightForeArm"]) {
+    const [x0, , z0] = shell[bone];
+    const [x1, , z1] = opened[bone];
+    // −x IS the bend, so opening it means a SMALLER magnitude, and the inward
+    // sweep has to relax with it or the hand opens across the face.
+    if (!(Math.abs(x1) < Math.abs(x0))) fail(`guard open: ${bone} elbow did not open`);
+    if (!(Math.abs(z1) < Math.abs(z0))) fail(`guard open: ${bone} inward sweep did not relax`);
+    if (Math.sign(z1) !== Math.sign(z0)) fail(`guard open: ${bone} sweep crossed the midline`);
+  }
+  // The estimate in the tables is the one both libraries carry, or the shell a
+  // read fighter wears is not the shell everybody else does.
+  const a = BATTLE_POSES.guard; const b = INTENT_POSES.guard;
+  for (const bone of ["LeftForeArm", "RightForeArm"]) {
+    if (a[bone].join() !== b[bone].join()) {
+      fail(`guard open: matched and baseline guards disagree at ${bone} — `
+        + `${a[bone]} vs ${b[bone]}; the roster estimate has to be one number`);
+    }
+  }
+}
+
+// THE CROUCH GROUPS. The point of the table is that one decision covers a
+// group, so the thing worth checking is that the groups are still the real
+// forks in the crouch path — a fighter who grows a presentation override or a
+// matched crouch stops being covered by a number nobody looked at on them.
+{
+  for (const [group, o] of Object.entries(CROUCH_ORIENT)) {
+    if (!CROUCH_GROUPS[group]) fail(`crouch orient: "${group}" has no group description`);
+    for (const key of ["pitchDeg", "rollDeg", "yawDeg"]) {
+      const v = o?.[key];
+      if (!Number.isFinite(v)) fail(`crouch orient: ${group}.${key} is not an angle`);
+      else if (Math.abs(v) > CROUCH_ORIENT_LIMIT) {
+        fail(`crouch orient: ${group}.${key} is ${v}°, past anything a body attitude is`);
+      }
+    }
+  }
+  for (const group of Object.keys(CROUCH_GROUPS)) {
+    if (!CROUCH_ORIENT[group]) fail(`crouch orient: group "${group}" carries no orientation`);
+    if (!CROUCH_GROUPS[group].why) fail(`crouch orient: say what makes "${group}" its own path`);
+  }
+  // The forks, checked against where they actually live rather than restated.
+  const pinned = Object.keys(PRESENT_DEG).sort();
+  const grouped = Object.keys(CROUCH_GROUPS).filter((g) => g !== "roster");
+  for (const char of pinned) {
+    if (crouchGroupOf(char) === "roster") {
+      fail(`crouch orient: ${char} carries a PRESENT_DEG override — he is shown at his own `
+        + "angle, so the roster's crouch attitude was never judged on him. Give him a group.");
+    }
+  }
+  // A matched crouch is a different body under the same solve, same argument.
+  for (const frame of ["crouch_a", "crouch_b"]) {
+    if (!MATCHED_FRAMES.has(frame)) continue;
+    // Only Yuji has matched frames today; the read files say who, and the
+    // group list has to name them.
+    if (!grouped.includes("yuji")) {
+      fail(`crouch orient: ${frame} is matched (a drawn crouch) but no group covers that fighter`);
+    }
+  }
+}
+
 // Nothing should be defined and never reachable: an intent no frame resolves
 // to is either a dead pose or a resolver rule somebody forgot to write.
 const reached = new Set();
@@ -238,6 +320,11 @@ console.log(`baseline ok: ${INTENTS.length} intents cover all ${frames} frames `
   + `across the roster, ${reached.size} of them reached`);
 console.log(`contacts ok: ${Object.values(CONTACTS).filter(Boolean).length} declared, `
   + `${INTENTS.length - AIRBORNE.size} intents planted on the ground`);
+console.log(`guard ok: the shell opens at the elbow, limit ±${GUARD_OPEN_LIMIT}°, and both `
+  + `libraries carry the same estimate (${BATTLE_POSES.guard.RightForeArm.join(", ")})`);
+console.log(`crouch ok: ${Object.keys(CROUCH_GROUPS).length} orientation group(s) — `
+  + Object.entries(CROUCH_ORIENT)
+    .map(([g, o]) => `${g} ${o.pitchDeg}/${o.rollDeg}/${o.yawDeg}`).join(", "));
 console.log(`rig fixes ok: ${Object.keys(RIG_FIXES).length} character(s) carry a correction `
   + "layer, applied under every state until it is baked into the .glb");
 console.log(`intent ok: ${diverged.length} of ${MATCHED_FRAMES.size} matched poses depart `

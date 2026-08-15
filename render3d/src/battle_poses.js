@@ -133,18 +133,30 @@ export const BATTLE_POSES = {
             RightUpLeg: [13, 0, -2], RightLeg: [26, 0, 0],
             LeftArm: [-42, -12, -69], RightArm: [-36, 10, 71] },
 
-  // Matched to a TIGHT boxing guard — the shell. Both forearms vertical in
-  // front of the face, elbows pinched to the ribs, shoulders lifted to meet
-  // the chin, body folded down behind them. Distinguished from the idle by the
-  // shoulders and the crouch, not by the arms, because that is what a fighter
-  // covering up actually changes.
+  // Matched to a boxing guard — the shell. Both forearms up in front of the
+  // face, elbows down covering the ribs, shoulders lifted to meet the chin,
+  // body folded down behind them. Distinguished from the idle by the shoulders
+  // and the crouch, not by the arms, because that is what a fighter covering
+  // up actually changes.
+  //
+  // THE HANDS ARE IN FRONT OF THE FACE, NOT ON IT. This was authored as a
+  // TIGHT shell — 128° at the elbow with 66° of inward sweep — and the tight
+  // shell is a real pose that this roster cannot wear: the tables describe a
+  // 1.75m human, and on a bear, a barrel and a machine with pauldrons the same
+  // two angles bury the fists in the chin and draw the forearms through the
+  // cheekbones. So the elbow is opened 16° and the sweep relaxed with it,
+  // which carries the fists about 11cm forward — roughly where the orthodox
+  // stance next door already holds them, a hand's width clear of the head and
+  // still inside the shoulder line. Per-fighter remainders are a manifest dial
+  // (`guardOpenDeg`, guard_open.js), reviewed in the bench's "Guard hands"
+  // queue; this is the number a fighter nobody has looked at gets.
   guard: p({
     Spine: [14, -14, 0], Spine1: [6, -8, 0], Head: [4, 10, 0],
     LeftShoulder: [0, 0, -12], RightShoulder: [0, 0, 12],
     LeftUpLeg: [-20, 0, 2], LeftLeg: [30, 0, 0], LeftFoot: [-6, 0, 0],
     RightUpLeg: [10, 0, -2], RightLeg: [34, 0, 0], RightFoot: [-10, 0, 0],
-    LeftArm: [-52, -16, -74], LeftForeArm: [-128, 0, -66],
-    RightArm: [-50, 14, 74], RightForeArm: [-126, 0, 66],
+    LeftArm: [-52, -16, -74], LeftForeArm: [-112, 0, -55],
+    RightArm: [-50, 14, 74], RightForeArm: [-110, 0, 55],
   }),
 
   // ------------------------------------------------------------- the strikes
