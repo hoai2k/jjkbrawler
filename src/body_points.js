@@ -36,6 +36,15 @@ export function muzzlePoint(charKey, height, fallbackOx = 70, fallbackOy = -86) 
   return { x: fallbackOx * k, y: fallbackOy * k };
 }
 
+/** Has somebody actually placed this fighter's muzzle? When they have, the
+ *  kit's `ox`/`oy` are dead numbers — muzzlePoint returns the verified point
+ *  and never looks at them — and anything offering to edit them has to say so
+ *  rather than let a number be tuned that the game will not read. */
+export function hasMuzzlePoint(charKey) {
+  const p = BODY_POINTS[charKey]?.muzzle;
+  return !!(p && Number.isFinite(p.x) && Number.isFinite(p.y));
+}
+
 /** Where the gripping hand meets the lip on a ledge hang, or null when
  *  nobody has said — the caller keeps whatever it did before. */
 export function ledgeGrip(charKey) {

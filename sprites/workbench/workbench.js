@@ -22,8 +22,10 @@ import { drawPlatformShape } from "../../src/render.js";
 import { applySharedSpriteScales, sharedSpriteInfo, SPRITE_LIST_KEY_FIELDS } from "../../src/shared_sprites.js";
 import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../../src/moves.js";
 import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
+import { muzzlePoint, hasMuzzlePoint } from "../../src/body_points.js";
 import { PIVOTED_STATES } from "../../src/motion.js";
 import { HURTBOX, GRAB } from "../../src/constants.js";
+import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
 import { CHARACTERS, CHARACTER_KEYS, STAGED_CHARACTER_KEYS, SPRITE_ACTORS, getActor }
   from "../../src/characters.js";
 import { TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "../../src/config_transform.js";
@@ -2473,7 +2475,9 @@ function sharedView(key = state.frame) {
   // known: `y` game pixels from their feet, which is the height the crosshair
   // and everything hung off it belong at. Without a launch it falls back to the
   // viewer's own resting heights.
-  const launch = can?.launch || null;
+  // The point the move really launches from, kit numbers corrected — see
+  // launchPoint. Everything hung off the crosshair moves with it.
+  const launch = launchPoint(key);
   // An aura does not stand on the floor: render.js paints it from `f.y + 10`,
   // ten pixels UNDER the fighter's feet, so the glow skirts the platform rather
   // than being sheared off by it. Drawing it on the ground line here was a
@@ -2504,6 +2508,49 @@ function sharedView(key = state.frame) {
     ny: (meta?.dy ?? 0) * z,
     deg: meta?.rotationDeg ?? 0,
   };
+}
+
+/** Where the drawing leaves the fighter, in GAME pixels from their feet — the
+ *  point the game will really spawn it from, which is not what the kit says.
+ *
+ *  Two corrections on the kit's own `ox`/`oy`, and both were missing:
+ *
+ *    the HEIGHT SCALE   a shot is spawned through spawnProjectileScaled, which
+ *                       runs those offsets through muzzlePoint: they describe a
+ *                       149px reference body and each fighter scales them onto
+ *                       their own height. Choso fires from 66.7px forward, not
+ *                       70. The crosshair was standing where nothing leaves.
+ *    the PENDING EDIT   `spawnOx`/`spawnOy` — the muzzle dragged on the action
+ *                       preview and not yet carried into the kit. Only that
+ *                       canvas was reading them, so the two views of one drawing
+ *                       disagreed about where it comes from, and the main viewer
+ *                       was the one ignoring the change you had just made.
+ *
+ *  `edited` says the second correction is in play, and `verified` that the first
+ *  one does not apply because somebody has placed this fighter's muzzle by hand
+ *  — in which case the kit's numbers are dead and dragging them is pointless.
+ *  Both are for the readout to explain rather than for anything to draw. */
+function launchPoint(key) {
+  const base = sharedControls(key)?.launch;
+  if (!base) return null;
+  const meta = rawMeta(OTHER_KEY, key) || {};
+  const edited = Number.isFinite(meta.spawnOx) || Number.isFinite(meta.spawnOy);
+  const ox = Number.isFinite(meta.spawnOx) ? meta.spawnOx : base.forward;
+  const oy = Number.isFinite(meta.spawnOy) ? meta.spawnOy : base.y;
+  const owner = sharedOwner(key);
+  if (!base.scaled || !owner) return { ...base, forward: ox, y: oy, edited, verified: false };
+  const m = muzzlePoint(owner, bodyMetrics(owner).height, ox, oy);
+  return { ...base, forward: m.x, y: m.y, edited, verified: hasMuzzlePoint(owner) };
+}
+
+/** The kit-space multiplier the game applies to `ox`/`oy` for this drawing —
+ *  what a number dragged on a canvas has to be divided by to become the number
+ *  that belongs in the kit. 1 when nothing scales it. */
+function launchScale(key) {
+  const base = sharedControls(key)?.launch;
+  const owner = sharedOwner(key);
+  if (!base?.scaled || !owner || hasMuzzlePoint(owner)) return 1;
+  return bodyMetrics(owner).height / HEIGHT_BASE_PX;
 }
 
 /** The spawn point's place on the canvas — one definition, used by the marker
@@ -3316,14 +3363,37 @@ function refreshUsageInfo() {
       }
     }
     if (can.launch) {
-      const L = can.launch;
-      const where = `${Math.abs(L.forward)}px ${L.forward < 0 ? "behind" : "in front of"} them`
-        + `, ${L.y < 0 ? `${Math.abs(L.y)}px up` : L.y > 0 ? `${L.y}px below their feet` : "at their feet"}`;
+      const L = launchPoint(state.frame) || can.launch;
+      const round = (n) => Math.round(n * 10) / 10;
+      const where = `${round(Math.abs(L.forward))}px ${L.forward < 0 ? "behind" : "in front of"} them`
+        + `, ${L.y < 0 ? `${round(Math.abs(L.y))}px up`
+              : L.y > 0 ? `${round(L.y)}px below their feet` : "at their feet"}`;
       lines.push(`<b>Launched from the fighter:</b> ${where} — so the canvas stands them `
         + "at that distance, in the pose the move plays, and you can line the drawing up "
-        + "against the hand that throws it. That offset is the MOVE's "
-        + "(<code>ox</code>/<code>oy</code> in the kit, or the spawn site's default); it is not "
-        + "editable here, and moving the drawing off it is what the nudge does.");
+        + "against the hand that throws it. Moving the drawing off that point is what the "
+        + "nudge does.");
+      // The offset shown is rarely the kit's own number, and every way it can
+      // differ is a thing somebody has to know before they tune one.
+      const k = launchScale(state.frame);
+      if (L.verified) {
+        lines.push(`<b>${actorOf(sharedOwner(state.frame)).name}'s muzzle is placed by hand</b> `
+          + "(<code>muzzle</code> in config_body_points.js), so the kit's <code>ox</code>/"
+          + "<code>oy</code> are dead numbers for this move — the verified point wins. "
+          + "Dragging the spawn marker on the action preview changes nothing in game.");
+      } else if (Math.abs(k - 1) > 0.005) {
+        lines.push(`<b>Scaled onto this body:</b> a shot's <code>ox</code>/<code>oy</code> describe `
+          + `a ${HEIGHT_BASE_PX}px reference fighter and the game scales them onto each one's own `
+          + `height (<code>muzzlePoint</code>, spawnProjectileScaled) — ×${k.toFixed(3)} here. `
+          + "The point above is where the shot really leaves them; a number bound for the kit "
+          + "is that divided by the same amount.");
+      }
+      if (L.edited) {
+        lines.push("<b>Unsaved spawn point.</b> This is the muzzle dragged on the action "
+          + "preview, not the one the kit holds. It exports as <code>spawnOx</code>/"
+          + "<code>spawnOy</code>, which is a NOTE: nothing in the game reads those, and "
+          + "apply_sprite_adjustments.py skips them. Landing it means editing "
+          + "<code>ox</code>/<code>oy</code> on the move in src/characters.js.");
+      }
     }
     if (can.travels) {
       lines.push("<b>Directional.</b> The game mirrors this drawing to the way it is "

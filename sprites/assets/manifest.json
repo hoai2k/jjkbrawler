@@ -64467,6 +64467,14 @@
       "dy": 0.3,
       "spawnOx": 54,
       "spawnOy": -112
+    },
+    "effect:blood_orb": {
+      "edited": {
+        "dx": null,
+        "dy": null
+      },
+      "dx": -0.2,
+      "dy": -1.4
     }
   }
 }

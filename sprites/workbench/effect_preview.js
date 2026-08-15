@@ -29,6 +29,9 @@ import { CHARACTERS, CHARACTER_KEYS } from "../../src/characters.js";
 import { STATES, clipTime } from "../../render3d/src/states.js";
 import { drawCharFrame, currentFrame } from "../src/sprites.js";
 import { loadFrame, getImage } from "../../src/assets.js";
+import { bodyMetrics } from "../../src/silhouette.js";
+import { hasMuzzlePoint } from "../../src/body_points.js";
+import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
 
 /** The animation state each special slot plays (src/specials.js). */
 const SLOT_STATE = { neutral: "specialNeutral", side: "specialSide", down: "specialDown" };
@@ -51,12 +54,17 @@ export function firingUse(spriteKey) {
       const p = spec?.p;
       if (!p || p.sprite !== spriteKey) continue;
       if (spec.type && spec.type !== "projectile") continue;
+      // What the game will do to `ox`/`oy` before it uses them. A verified
+      // muzzle replaces them outright, so there is nothing to scale — and
+      // nothing to drag either, which the caption says out loud.
+      const verified = hasMuzzlePoint(charKey);
       return {
-        charKey, slot, spec, p,
+        charKey, slot, spec, p, verified,
         name: spec.name || p.label || spriteKey,
         state: SLOT_STATE[slot] || "specialNeutral",
         ox: Number.isFinite(p.ox) ? p.ox : DEFAULT_OX,
         oy: Number.isFinite(p.oy) ? p.oy : DEFAULT_OY,
+        muzzleScale: verified ? 1 : bodyMetrics(charKey).height / HEIGHT_BASE_PX,
       };
     }
   }
@@ -76,6 +84,11 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
   const FIGHTER_X = 190;
 
   let use = null;
+  /** Kit units → the pixels the game puts them at on this fighter, and back.
+   *  1 when nothing scales this move's muzzle (a verified point, or a handler
+   *  that takes its distance raw), in which case both are the identity. */
+  const toCanvas = (n) => n * (use?.muzzleScale ?? 1);
+  const toKit = (n) => n / (use?.muzzleScale ?? 1);
   let raf = 0;
   let t = 0;
   let running = false;
@@ -83,11 +96,19 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
   let grabbed = false;
   let lastTick = 0;
 
-  /** Where the shot is, in canvas pixels, `age` seconds after it left. */
+  /** Where the shot is, in canvas pixels, `age` seconds after it left.
+   *
+   *  The muzzle goes through the same correction the game applies and the main
+   *  viewer now shows: `ox`/`oy` are offsets on a reference body that each
+   *  fighter scales onto their own height (muzzlePoint, spawnProjectileScaled).
+   *  Drawing them raw put the shot a few pixels off the hand it leaves — and
+   *  worse, meant the number being dragged here was not the number the kit
+   *  wants, so a muzzle tuned until it looked right landed wrong by the scale.
+   *  Kit units in and out: `toCanvas` on the way in, `toKit` on the way back. */
   function shotAt(age, adj) {
     const dir = 1; // the preview always fires to the right
-    const ox = adj.spawnOx ?? use.ox;
-    const oy = adj.spawnOy ?? use.oy;
+    const ox = toCanvas(adj.spawnOx ?? use.ox);
+    const oy = toCanvas(adj.spawnOy ?? use.oy);
     const x0 = FIGHTER_X + dir * ox;
     const y0 = GROUND + oy;
     const g = use.p.gravity || 0;
@@ -173,7 +194,14 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     ctx.fillStyle = "#8b96b3";
     ctx.font = "12px ui-monospace, monospace";
     ctx.fillText(`${use.name} — ${use.charKey} · ${use.state} · ${use.p.speed || 0}px/s for ${dur}s`, 14, 22);
-    ctx.fillText(`spawn ox ${Math.round(adj.spawnOx ?? use.ox)}, oy ${Math.round(adj.spawnOy ?? use.oy)}`
+    // Kit units, which is what these numbers have to be to be worth writing
+    // down — the scale that turns them into the pixels above is noted beside.
+    const kitOx = Math.round(adj.spawnOx ?? use.ox);
+    const kitOy = Math.round(adj.spawnOy ?? use.oy);
+    ctx.fillText(`spawn ox ${kitOx}, oy ${kitOy} (kit)`
+      + (use.verified ? "   ·   muzzle placed by hand — the kit's ox/oy are unused"
+         : Math.abs(use.muzzleScale - 1) > 0.005
+           ? `   ·   ×${use.muzzleScale.toFixed(3)} onto this body` : "")
       + `   ·   drawing dx ${(adj.dx || 0).toFixed(1)}, dy ${(adj.dy || 0).toFixed(1)}`, 14, 40);
 
     raf = requestAnimationFrame(frame);
@@ -206,7 +234,9 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     const first = !grabbed;
     grabbed = true;
     if (drag === "spawn") {
-      write({ spawnOx: Math.round(pt.x - FIGHTER_X), spawnOy: Math.round(pt.y - GROUND) }, first);
+      // Back to kit units, because the kit is where this number has to land.
+      write({ spawnOx: Math.round(toKit(pt.x - FIGHTER_X)),
+              spawnOy: Math.round(toKit(pt.y - GROUND)) }, first);
     } else {
       const o = shotAt(0, adj);
       write({ dx: +(pt.x - o.x0).toFixed(1), dy: +(pt.y - o.y0).toFixed(1) }, first);
