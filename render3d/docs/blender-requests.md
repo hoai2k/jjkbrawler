@@ -96,27 +96,10 @@ centimetres.
 
 ## Open jobs
 
-### B1 — Inumaki: check the cut, and re-topologise if it shows
+**None right now.** The list below is kept for the next round rather than
+asking for anything today.
 
-**Status: probably already done in code — look before working.**
-
-His left arm was generated welded to his side: one surface from forearm to hip,
-invisible in the bind and stretching into a black membrane every time he ran.
-`tools/cut_fused_limb.py` removed the three shells that made it (248 faces) and
-the arm is free. Nothing shows through from front, three-quarter, below or
-behind.
-
-What is left is a rim, deliberately open. The obvious repair is wrong: the rim
-spans the gap the weld was filling, so capping it rebuilds the membrane —
-`fill_model_holes.py` did exactly that, 136 triangles, and the sheet came back.
-
-**The job, if it is needed at all:** open him at
-`render3d/workbench/?edit=rigs&char=inumaki`, put him in the T and the A, orbit
-right round and look under the arm. If the opening reads from any angle, close
-it **per side** — the arm's rim to the arm, the torso's rim to the torso — and
-never across the two. If it does not read, say so here and the job closes.
-
-### B2 — the ¾-panel faces, if the roster ever gets another generation
+### B1 — the ¾-panel faces, if the roster ever gets another generation
 
 Not outstanding, recorded so the next round does not rediscover it: the
 generator's turnaround boards are sliced front / left / back and the ¾ panel is
@@ -128,5 +111,15 @@ reconcile the two.
 
 ## Landed
 
-*(nothing yet — the first job to come back through intake gets moved here with
-what it changed and what it cost)*
+### Inumaki's welded arm — done in code, no modelling needed
+
+His left arm was generated welded to his side: one surface from forearm to hip,
+invisible in the bind and stretching into a black membrane every time he ran.
+`tools/cut_fused_limb.py` found it by weights (three shells, 248 faces, one of
+them weighted to the forearm and the thigh at once) and removed it. Checked
+from the front, three-quarter, below and behind: nothing shows through, and the
+health audit reads arms balanced at 0.97.
+
+The rim it left is open on purpose. The obvious repair is wrong — the rim spans
+the gap the weld was filling, so capping it rebuilds the membrane, which
+`fill_model_holes.py` duly did, 136 triangles of it, before anybody looked.
