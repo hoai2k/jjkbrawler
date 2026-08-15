@@ -1,6 +1,6 @@
 import { state } from "./state.js";
 import { getImage } from "./assets.js";
-import { sharedAdjust, AURA_H } from "./shared_sprites.js";
+import { sharedAdjust, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "./shared_sprites.js";
 import { getStage } from "./stages.js";
 import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { getActor } from "./characters.js";
@@ -667,7 +667,7 @@ function drawInstallAura(ctx, f) {
   const art = f.installs.aura ? getImage(f.installs.aura) : null;
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
-  const pulse = 0.88 + 0.06 * Math.sin(state.matchTime * 8);
+  const pulse = AURA_PULSE.base + AURA_PULSE.amp * Math.sin(state.matchTime * AURA_PULSE.rate);
   if (art) {
     // An aura's height is a constant here rather than a kit number, so the
     // drawing's own scale has to be read at the draw — the kit-side folding in
@@ -681,11 +681,11 @@ function drawInstallAura(ctx, f) {
     if (adj.rot) {
       // About the point it is painted on — the fighter's feet — so a tilt
       // leans the aura rather than sliding it.
-      ctx.translate(f.x, f.y + 10);
+      ctx.translate(f.x, f.y + AURA_FOOT_DY);
       ctx.rotate(adj.rot);
-      ctx.translate(-f.x, -(f.y + 10));
+      ctx.translate(-f.x, -(f.y + AURA_FOOT_DY));
     }
-    ctx.drawImage(art, f.x - w / 2 + adj.dx, f.y + 10 - h + adj.dy, w, h);
+    ctx.drawImage(art, f.x - w / 2 + adj.dx, f.y + AURA_FOOT_DY - h + adj.dy, w, h);
     ctx.restore();
     return;
   }
