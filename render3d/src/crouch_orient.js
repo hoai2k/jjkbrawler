@@ -68,9 +68,9 @@ const PRESENT_PINNED = "sukuna";
  * which is what the bench's "Crouch orientation" queue is for.
  */
 export const CROUCH_ORIENT = {
-  roster: { pitchDeg: 24, rollDeg: 0, yawDeg: 0 },
-  [MATCHED_CROUCH]: { pitchDeg: 24, rollDeg: 0, yawDeg: 0 },
-  [PRESENT_PINNED]: { pitchDeg: 24, rollDeg: 0, yawDeg: 0 },
+  "roster": { pitchDeg: 15, rollDeg: 0, yawDeg: 0 },
+  "yuji": { pitchDeg: 15, rollDeg: 0, yawDeg: 0 },
+  "sukuna": { pitchDeg: 24, rollDeg: 22, yawDeg: -9 },
 };
 
 /** A correction past this is not an attitude, it is a different pose. */
