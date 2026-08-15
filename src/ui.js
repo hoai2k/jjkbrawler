@@ -7,7 +7,7 @@ import { METER_MAX, TIME_OPTIONS } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates } from "./input.js";
 import { cameraMode } from "./camera_mode.js";
-import { cycleRenderBackend, renderBackendMenuLabel } from "./render_backend.js";
+import { cycleRenderBackend, renderBackendMenuLabel, preloadChar } from "./render_backend.js";
 import { previewCharacter, claimCharacter, loadProgress, onLoadProgress } from "./assets.js";
 import { CHARACTER_QUOTES, RANDOM_GROUP, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
 import { CONTROL_ROWS, rowAtPad } from "./config_controls.js";
@@ -239,6 +239,7 @@ function syncCpuRoll() {
     // The roll is shown on the select screen and honoured by the match, so it
     // is as committed as a human's pick — fetch it the same way.
     claimCharacter(state.cpuRoll);
+    preloadChar(state.cpuRoll, true);
   }
 }
 
@@ -248,8 +249,10 @@ function selectFighter(id, key) {
   state.selection[id] = key;
   // Committed, so this fighter's art is definitely needed: start it now instead
   // of waiting for the background queue to reach them. Random resolves at match
-  // start, so there is nothing to fetch for it yet.
-  if (key !== RANDOM_KEY) claimCharacter(key);
+  // start, so there is nothing to fetch for it yet. The active render backend
+  // gets the same nudge for its own per-character weight (a lazily-loaded 3D
+  // rig), so menu time pays the load instead of the first seconds of the match.
+  if (key !== RANDOM_KEY) { claimCharacter(key); preloadChar(key, true); }
   if (isCpuSlot(id)) {
     state.activePicker = 1;
   } else {
@@ -1127,7 +1130,7 @@ export function syncControllerPlayers(count) {
   // is claimed here rather than being discovered at the match gate.
   for (let id = 1; id <= joined; id++) {
     const key = state.selection[id];
-    if (key && key !== RANDOM_KEY) claimCharacter(key);
+    if (key && key !== RANDOM_KEY) { claimCharacter(key); preloadChar(key, true); }
   }
   updateMenuButtons();
   updateSelectionUi();
@@ -1942,12 +1945,15 @@ function setPickerCursor(playerId, key, { quiet = false } = {}) {
   // merely hinted at.
   if (isCpuSlot(playerId)) {
     state.selection[playerId] = key;
-    if (key !== RANDOM_KEY) claimCharacter(key);
+    if (key !== RANDOM_KEY) { claimCharacter(key); preloadChar(key, true); }
   } else if (key !== RANDOM_KEY) {
     // Looking at a fighter is a hint, not a commitment: they move to the head
     // of the background queue rather than starting a download of their own, so
-    // sweeping across the roster cannot kick off twenty parallel loads.
+    // sweeping across the roster cannot kick off twenty parallel loads. The
+    // backend hint is the same trade — a lazily-loaded rig starts on hover
+    // (ensureRig de-dupes, so sweeping costs one in-flight load at a time).
     previewCharacter(key);
+    preloadChar(key);
   }
   // Repaints the hero card too: the cursor drives the transient preview.
   updateSelectionUi();

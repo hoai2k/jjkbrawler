@@ -17,6 +17,7 @@
 
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 
 // src/assets.js loads the manifest over fetch, which does not do file URLs.
 // Serve it off disk instead — this is the only thing standing between the game
@@ -250,6 +251,20 @@ for (const key of CHARACTER_KEYS) {
   checkBlock(key, "ultimate", char.ultimate?.p);
 }
 console.log(`  ${specialsChecked} authored blocks checked against the reference band`);
+
+// Model-derived reach must not go stale: the rigs and pose libraries are in
+// flux, and a reach measured from a body that no longer exists is exactly the
+// hand-typed-number problem this audit was written to end. The derive tool's
+// --check recomputes the input fingerprint without a browser.
+console.log("\n=== model reach envelopes ===");
+try {
+  const toolPath = fileURLToPath(new URL("./derive_attack_envelopes.mjs", import.meta.url));
+  execFileSync(process.execPath, [toolPath, "--check"], { stdio: "pipe" });
+  console.log("  config_model_reach.js is current with the rigs and pose libraries");
+} catch (err) {
+  fail(`model reach config is stale or missing — `
+    + `${(err.stderr || err.stdout || "").toString().trim() || err.message}`);
+}
 
 console.log(`\nroster median art reach: ${n0(rosterReach())} px`
   + `   MELEE_GRACE.scale: ${MELEE_GRACE.scale}`);

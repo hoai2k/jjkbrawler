@@ -44,6 +44,8 @@ let scene = null;   // ./scene.js
 let pose = null;    // ./pose.js
 let blit = null;    // ./blit.js
 let outline = null; // ./outline.js — only the 2.5D-camera adapter needs it
+let lazyRigs = false;   // load rigs on first ask instead of all at init
+let GLTFLoaderRef = null; // kept for ensureRig when lazy
 
 const TOKEN = /^r3d:([^@]+)@(-?[\d.]+)$/;
 const warned = new Set();
@@ -88,7 +90,20 @@ export async function init() {
     const mannequin = ["none", "off", "0", ""].includes(raw.toLowerCase())
       ? [] : raw.split(",").map((s) => s.trim()).filter(Boolean);
     const { CHARACTER_KEYS } = await import("../../src/characters.js");
-    await rigs.initRigs(three, loaderMod.GLTFLoader, mannequin, CHARACTER_KEYS);
+    // Eager on desktop, lazy on touch devices: loading all ~25 rigs (~50 MB
+    // of glTF plus texture decodes) at init is exactly the pattern that OOM'd
+    // iOS Safari in the workbench (loader.js ensureRig tells the story), and
+    // a match only ever needs the fighters in it. Lazy means hasModel() kicks
+    // a background ensureRig on first ask and the fighter draws sprites until
+    // their rig lands — the same per-character fallthrough a mid-match
+    // backend switch already uses. `?rigs=eager|lazy` overrides either way.
+    GLTFLoaderRef = loaderMod.GLTFLoader;
+    const rigsParam = (params.get("rigs") || "").toLowerCase();
+    const touch = typeof navigator !== "undefined" && (navigator.maxTouchPoints || 0) > 0
+      && /Mobi|iP(hone|ad|od)|Android/i.test(navigator.userAgent || "");
+    lazyRigs = rigsParam === "lazy" || (touch && rigsParam !== "eager");
+    await rigs.initRigs(three, GLTFLoaderRef, mannequin, CHARACTER_KEYS,
+      lazyRigs ? [] : null);
 
     ready = true;
     if (typeof window !== "undefined") {
@@ -105,11 +120,51 @@ export async function init() {
 }
 
 export function hasModel(charKey) {
-  return ready && rigs.hasRig(charKey);
+  if (!ready) return false;
+  if (rigs.hasRig(charKey)) return true;
+  // Lazy mode: the first ask starts the load (ensureRig de-dupes concurrent
+  // asks); this fighter draws sprites until it lands. inGame is checked here
+  // because ensureRig is a workbench door and does not filter held-back
+  // bodies the way the eager init does.
+  if (lazyRigs && GLTFLoaderRef && rigs.inGame(charKey)) {
+    rigs.ensureRig(charKey, GLTFLoaderRef);
+  }
+  return false;
 }
 
 export function modelCount() {
   return ready ? rigs.rigCount() : 0;
+}
+
+/** Select-screen warm-up (render_backend.preloadChar): in lazy mode, start
+ *  this character's rig now so menu time pays for the load and the match
+ *  never shows the sprite-fallthrough frames. Eager mode already has
+ *  everyone; before init resolves there is nothing to queue on yet — the
+ *  hasModel path retries on first draw, so nothing is lost.
+ *
+ *  `commit` mirrors the sprite loader's claim/preview split: a committed pick
+ *  loads immediately and unconditionally, while a hover is a HINT — hints
+ *  serialise, latest-wins, so sweeping the roster costs one in-flight rig at
+ *  a time instead of fanning out a download per cursor step. */
+let hintNext = null;
+let hintBusy = false;
+export function preload(charKey, commit = false) {
+  if (!ready || !lazyRigs || !GLTFLoaderRef || !rigs.inGame(charKey)) return;
+  if (commit) { rigs.ensureRig(charKey, GLTFLoaderRef); return; }
+  hintNext = charKey;
+  if (hintBusy) return;
+  hintBusy = true;
+  (async () => {
+    try {
+      while (hintNext) {
+        const k = hintNext;
+        hintNext = null;
+        await rigs.ensureRig(k, GLTFLoaderRef);
+      }
+    } finally {
+      hintBusy = false;
+    }
+  })();
 }
 
 export function currentFrame(charKey, animKey, animTime) {

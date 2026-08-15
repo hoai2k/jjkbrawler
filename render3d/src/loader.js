@@ -394,6 +394,51 @@ export function measureIdleHeight(charKey, rigEntry = null, clip = null) {
   return h > 0.2 ? h : null;
 }
 
+/**
+ * Measure how far forward (and how high) a rig's attack clips actually reach,
+ * in METRES from the root origin — the instrument behind
+ * tools/derive_attack_envelopes.mjs.
+ *
+ * Poses each state at its contact beat (and a step before it) with no aim
+ * layers, so the reading is the clip's own committed extension, then takes
+ * the posed bounding box of everything that can hit: body AND props — a
+ * naginata's reach is the whole point — but never outline shells or hidden
+ * helper geometry. Forward is +Z (the frame the reach solver builds in;
+ * facingYaw's base correction is applied by poseRig).
+ *
+ * Returns { state: { fwd, top } } in metres, or null for a character without
+ * a real rig. Callers convert to game px with targetPx * renderScale /
+ * heightM — the same ratio the blit draws with.
+ */
+export function measureAttackReach(charKey, states, beats = {}) {
+  const rig = RIGS.get(charKey);
+  if (!rig || rig.isMannequin) return null;
+  const box = new THREE.Box3();
+  const out = {};
+  for (const state of states) {
+    const resolved = resolveClip(charKey, state);
+    if (!resolved) continue;
+    const beat = beats[state] ?? 0.1;
+    let fwd = -Infinity, top = -Infinity;
+    for (const t of [beat, beat * 0.6]) {
+      poseRig(rig, state, t, resolved.clip, { charKey, stanceDeg: rig.stanceDeg || 0 });
+      rig.root.updateMatrixWorld(true);
+      box.makeEmpty();
+      let any = false;
+      rig.root.traverse((o) => {
+        if (!o.isMesh || o.userData.isOutline || !o.visible) return;
+        box.expandByObject(o, true);
+        any = true;
+      });
+      if (!any || !Number.isFinite(box.max.z)) continue;
+      fwd = Math.max(fwd, box.max.z);
+      top = Math.max(top, box.max.y);
+    }
+    if (fwd > -Infinity) out[state] = { fwd, top };
+  }
+  return Object.keys(out).length ? out : null;
+}
+
 /** What the scale dial would have to be for the model to stand exactly its
  *  head-height target — offered to the workbench as a READING next to the dial,
  *  never applied on its own. `clip` lets the workbench measure an idle it is

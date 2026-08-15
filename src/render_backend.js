@@ -92,6 +92,7 @@ const BACKENDS = {
     cyclePhase: render3d.cyclePhase,
     init: render3d.init,
     scene3d: render3d.scene3d,
+    preload: render3d.preload,
   },
 };
 
@@ -204,6 +205,16 @@ export function cyclePhase(charKey, animKey, animTime) {
  *  hole. Options are documented on the sprite implementation in sprites.js. */
 export function drawCharFrame(ctx, charKey, frameKey, x, y, opts) {
   return active.drawCharFrame(ctx, charKey, frameKey, x, y, opts);
+}
+
+/** Warm this backend's heavy per-character assets for `charKey` — called from
+ *  the select screen when a player hovers or commits to a fighter, so menu
+ *  time pays the load instead of match time. The sprite loader already runs
+ *  its own preview/claim queue (assets.js); this is the same idea for a
+ *  backend with per-character weight of its own (the 3D rigs, when they load
+ *  lazily). A backend with nothing extra to warm simply has no hook. */
+export function preloadChar(charKey, commit = false) {
+  active.preload?.(charKey, commit);
 }
 
 /** How this backend wants to appear inside a real 3D scene — `?camera=3d`.

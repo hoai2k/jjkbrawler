@@ -135,7 +135,8 @@
         }
       },
       "armDeg": 16,
-      "baked": true
+      "baked": true,
+      "toonNote": "WORKAROUND, not art direction: shadeThreshold 0.2 (roster 0.62) and outlinePx 0.2 (roster 1.6) effectively disable shading and outlining to hide the 41-shell cursed-energy collar the generator fused into her neck. Restore roster-normal dials when her reseeded generation lands (asset-requests.md: 'Uro's neck cannot be repaired by surgery')."
     },
     "geto": {
       "model": "geto/geto.glb",

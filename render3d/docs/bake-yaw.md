@@ -1,5 +1,19 @@
 # Baking `yawOffsetDeg` into the rigs — a runbook
 
+> **⚠️ DO NOT RUN THIS as written.** A later round
+> ([asset-requests.md](asset-requests.md) §"why yawOffsetDeg stayed live")
+> found that the pose-library clip builder READS `yawOffsetDeg` at build
+> time: 702 of 729 clips are built at load against the un-baked geometry,
+> and baking the yaw while zeroing the manifest key moved clip-driven poses
+> by up to **1.1 m** (Hanami 1101 mm, Dagon 1112 mm) even though the
+> rig-check pose matched to 0.0 mm. The rig check this runbook verifies
+> with is blind to exactly the poses that break. Baking becomes safe only
+> once the clip builder's dependence on the offset is removed — until then
+> this document is the record of a verified mechanism, not a procedure to
+> follow. The §5 import guard is still worth landing first regardless: an
+> imported pre-baked rig whose manifest entry survives `billboard_intake
+> import` would be turned twice today.
+
 **Goal:** make each delivered `.glb` face the way the delivery spec says it
 does, so the engine stops turning it at pose time and
 `render3d/assets/manifest.json` stops carrying a per-character correction.
