@@ -126,6 +126,71 @@ const group = doc.changes.find((c) => Array.isArray(c.chosen));
 ok(!!group && group.dropped.length === 1, "a group's export says what was dropped",
    group ? group.dropped.join(", ") : "");
 
+// ---- only a spoken line is exclusive
+//
+// The regression this guards: `exclusive` was decided by how many files a sound
+// currently held, so a grunt group pruned down to one take started rendering a
+// radio button — the page quietly refusing to let anybody grow the bank back,
+// on half the voice groups at once. A bank is a bank however few files are in
+// it; only a spoken line, whose length is frame data, can hold exactly one.
+for (const who of ["gojo", "jogo", "panda"]) {
+  await page.goto(`${BASE}/workbench/?edit=audio&char=${who}`, { waitUntil: "load" });
+  await page.waitForTimeout(3500);
+  const kinds = await page.evaluate(() => {
+    const out = { line: new Set(), other: new Set() };
+    for (const g of document.querySelectorAll(".track-group")) {
+      const spoken = g.querySelector("h3").textContent === "Spoken lines";
+      for (const row of g.querySelectorAll(".track.file")) {
+        const t = row.querySelector(".tick--keep input")?.type;
+        if (t) out[spoken ? "line" : "other"].add(t);
+      }
+    }
+    return { line: [...out.line], other: [...out.other] };
+  });
+  ok(!kinds.other.includes("radio"),
+     `${who}: no wordless or technique sound is exclusive`, `controls: ${kinds.other.join(",") || "none"}`);
+  ok(!kinds.line.includes("checkbox"),
+     `${who}: every spoken line still picks exclusively`, `controls: ${kinds.line.join(",") || "none"}`);
+}
+
+// ---- a fighter's technique sounds are listed, and every one is registered
+await page.goto(`${BASE}/workbench/?edit=audio&char=gakuganji`, { waitUntil: "load" });
+await page.waitForTimeout(4000);
+const fx = await page.evaluate(async () => {
+  const cfg = await import("/src/config_audio.js");
+  const group = [...document.querySelectorAll(".track-group")]
+    .find((g) => g.querySelector("h3").textContent === "Techniques");
+  const keys = group
+    ? [...group.querySelectorAll(".track[data-sfx]")].map((r) => r.dataset.sfx)
+    : [];
+  return { keys, unregistered: keys.filter((k) => !cfg.SFX[k]) };
+});
+ok(fx.keys.includes("powerChord"), "Gakuganji's power chord is on the page", fx.keys.join(", "));
+ok(fx.unregistered.length === 0, "every technique sound named is registered", fx.unregistered.join(", "));
+
+// ---- playing a technique with art puts that art on the stage, then takes it away
+const stagePixels = () => page.evaluate(() => {
+  const c = document.querySelector("#stage");
+  const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+  let n = 0;
+  for (let i = 3; i < d.length; i += 4) if (d[i] > 8) n++;
+  return n;
+});
+const idleOnly = await stagePixels();
+await page.evaluate(() => {
+  const g = [...document.querySelectorAll(".track-group")]
+    .find((x) => x.querySelector("h3").textContent === "Techniques");
+  g.querySelector(".track button").click();
+});
+await page.waitForTimeout(400);
+const withArt = await stagePixels();
+await page.waitForTimeout(2600);
+const afterArt = await stagePixels();
+ok(withArt > idleOnly * 1.15, "the move's art appears while its sound plays",
+   `${idleOnly} -> ${withArt} opaque pixels`);
+ok(afterArt < withArt * 0.95, "and clears again a couple of seconds later",
+   `${withArt} -> ${afterArt}`);
+
 ok(errors.length === 0, "no page errors", errors.slice(0, 2).join(" | "));
 
 await browser.close();

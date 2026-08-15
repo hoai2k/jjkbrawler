@@ -60,6 +60,31 @@ jobs:
       - name: Prepare artifact
         run: touch .nojekyll
 
+      # A stamp the published site can read back about itself.
+      #
+      # "My change isn't on the site" has two causes that look the same in a
+      # browser — the deploy has not run, or it ran and a cache is still serving
+      # the old file — and no way to tell them apart from the page. src/
+      # deploystamp.js reads this and puts the published commit in the header of
+      # every bench, so the SHA you pushed either matches or it does not.
+      #
+      # Written here rather than committed: it is per-deploy, and a tracked copy
+      # would conflict on every merge. It is in .gitignore for the same reason.
+      - name: Stamp the build
+        run: |
+          jq -n \
+            --arg sha "$GITHUB_SHA" \
+            --arg ref "$GITHUB_REF_NAME" \
+            --arg title "$(git log -1 --pretty=%s)" \
+            --arg committed "$(git log -1 --pretty=%cI)" \
+            --arg deployed "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg run "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            --arg runNumber "$GITHUB_RUN_NUMBER" \
+            '{sha: $sha, short: $sha[0:7], ref: $ref, title: $title,
+              committed: $committed, deployed: $deployed,
+              run: $run, runNumber: ($runNumber | tonumber)}' > version.json
+          cat version.json
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

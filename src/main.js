@@ -123,10 +123,25 @@ async function resetMatch() {
   resolveRoster(plan);
   const entrants = Array.from({ length: entrantCount }, (_, i) => state.roster[i + 1]);
 
-  if (matchAssetsPending(entrants, state.stageKey)) {
-    setPhase("loading");
+  // The VS splash goes up FIRST, before any of this match's art is fetched.
+  // What it draws — the painted hero cards — is core art that is always in
+  // memory, so there was never a reason to make the player watch a loading
+  // screen and only then get the VS screen. Anything still streaming shows as
+  // a bar along the bottom of the splash instead of replacing it.
+  const pending = matchAssetsPending(entrants, state.stageKey);
+  showBattleIntro(
+    Array.from({ length: entrantCount }, (_, i) => ({
+      id: i + 1,
+      key: state.roster[i + 1],
+      cpu: !isHumanSlot(i + 1, plan),
+    })),
+    { loading: pending },
+  );
+  if (pending) {
     await ensureMatchAssets(entrants, state.stageKey, setLoadProgress);
-    if (token !== matchToken || state.phase !== "loading") return; // superseded
+    // Superseded while we waited — something else has taken the screen, and it
+    // took the splash down with it (setPhase).
+    if (token !== matchToken) return;
   }
 
   const stage = getStage(state.stageKey);
@@ -209,8 +224,9 @@ async function resetMatch() {
   // instead of the remaining pads shuffling up under the players holding them.
   freezePadSeats(true);
   playSfx("uiStart");
+  // The splash is already up (above); this only hands the screen under it to
+  // the match, and starts the countdown that will fade it.
   setPhase("playing");
-  showBattleIntro();
 }
 
 function quitToMenu() {

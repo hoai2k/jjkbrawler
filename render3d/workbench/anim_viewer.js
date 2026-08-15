@@ -17,6 +17,23 @@
 // by `inGame: false` (loader.js) is not part of "does the roster read as one
 // set", so it is not in the line-up.
 //
+// ...AND THE OTHER TWO BACKENDS. The Render dropdown draws the same grid,
+// the same clock and the same state through any of the game's three
+// renderers (src/render_backend.js registers exactly these):
+//
+//   3D          render3d — clips play live, toon-ramped and ink-outlined
+//   Billboards  the 2.5D card: one quantised pose rendered and blitted flat
+//   Sprites     the hand-drawn sheets the other two are matched against
+//
+// Each is driven through the module the game's own backend calls, not a
+// reimplementation of it: render3d's scene+blit, billboards' renderer+blit,
+// sprites' drawCharFrame. They all share ONE rig registry (loader.js), so
+// switching costs nothing already paid for, and a fighter still streams in
+// once rather than once per backend. That is what makes the dropdown worth
+// having: "does the 3D run read like the sprite run?" is the question the
+// whole 3D effort turns on, and it can only be answered by flipping between
+// them on one screen with one clock.
+//
 // TRIGGERING. Three ways in, deliberately game-shaped:
 //   * the ANIMATION GRID under the viewer — every state the engine can play,
 //     clicked with the mouse. Loops pin until replaced; one-shots play and
@@ -39,17 +56,22 @@
 
 import * as THREE from "../../vendor/three/three.module.js";
 import { GLTFLoader } from "../../vendor/three/loaders/GLTFLoader.js";
-import { STATES, clipNameFor, clipTime } from "../src/states.js";
+import { STATES, clipNameFor, clipTime, aimSolve } from "../src/states.js";
 import * as rig from "../src/loader.js";
 import * as scene from "../src/scene.js";
 import { DIALS, initPose } from "../src/pose.js";
 import { blitPose } from "../src/blit.js";
+import * as bbRenderer from "../../billboards/src/renderer.js";
+import { blitPose as bbBlitPose } from "../../billboards/src/blit.js";
+import { drawCharFrame as spriteDraw, currentFrame as spriteFrame }
+  from "../../sprites/src/sprites.js";
 import { makeOrbit } from "./orbit.js";
 import { CHARACTER_KEYS, CHARACTERS, getActor } from "../../src/characters.js";
 import { STAGES } from "../../src/stages.js";
 import { state as gameState } from "../../src/state.js";
-import { loadCoreAssets } from "../../src/assets.js";
+import { loadCoreAssets, loadFrame } from "../../src/assets.js";
 import { headHeightTarget } from "../../src/heights.js";
+import { artReach } from "../../src/silhouette.js";
 import { PAD_BUTTONS, PAD_AXES, padLabelsFor } from "../../src/config_controls.js";
 
 const $ = (id) => document.getElementById(id);
@@ -70,8 +92,8 @@ document.querySelectorAll(".bar .pose-only, .bar .anim-only, #facingReviewTop")
   const hint = document.createElement("span");
   hint.className = "hint";
   hint.textContent = "The roster performing, eight at a time — every fighter "
-    + "the game shows, playing the same clip on the same beat, through the "
-    + "game's own pipeline.";
+    + "the game shows, playing the same clip on the same beat, through any of "
+    + "the game's three renderers.";
   const back = document.createElement("a");
   back.className = "ghost sm";
   back.href = "?";
@@ -132,6 +154,18 @@ document.querySelector("main.layout").outerHTML = `
     </section>
 
     <aside class="panel">
+      <h3>Render</h3>
+      <label>Backend
+        <select id="renderSelect">
+          <option value="3d" selected>3D — anime-rendered models</option>
+          <option value="billboard">Billboards — 2.5D cards</option>
+          <option value="sprite">Sprites — the drawn sheets</option>
+        </select>
+      </label>
+      <p class="hint">The game's own three renderers (<code>?render=</code>),
+      on one grid and one clock. A fighter with no model draws their sprites
+      on either model backend, exactly as they would in a match.</p>
+
       <h3>Playback</h3>
       <label>Speed <span class="mono" id="speedVal">1.00×</span>
         <input id="speed" type="range" min="0.1" max="2" step="0.05" value="1">
@@ -203,9 +237,13 @@ const ROSTER = CHARACTER_KEYS.filter((k) => {
 
 const params = new URLSearchParams(location.search);
 
+const RENDERERS = ["3d", "billboard", "sprite"];
+
 const ui = {
   per: [1, 2, 4, 8].includes(+params.get("per")) ? +params.get("per") : 8,
   page: Math.max(0, +params.get("page") || 0),
+  /** Which of the game's renderers draws the grid. */
+  render: RENDERERS.includes(params.get("render")) ? params.get("render") : "3d",
   playing: true,
   speed: 1,
   /** Viewer clock, in animation seconds — advances by dt × speed. */
@@ -438,21 +476,59 @@ $("blur").oninput = () => {
   $("blurVal").textContent = ui.blur ? ui.blur.toFixed(2) : "off";
 };
 
+/** Whether the billboard renderer's three.js scene has been built. Declared
+ *  here rather than beside its draw function because clearRenderCaches reads
+ *  it, and a `let` further down the module would be in its dead zone. */
+let bbReady = false;
+
+/** Drop BOTH model backends' caches.
+ *
+ *  The engine dials below are shared — billboards poses through the same
+ *  pose.js DIALS that render3d does — but each backend keeps its own cache,
+ *  and neither token mentions the dials. Clearing only the one on screen left
+ *  a dial that worked until you switched backends and then showed the pose it
+ *  had cached under the old setting. */
+function clearRenderCaches() {
+  scene.clearCache();
+  if (bbReady) bbRenderer.clearCache();
+}
+
 $("hz").value = String(DIALS.sampleHz);
 $("hzVal").textContent = String(DIALS.sampleHz);
 $("hz").oninput = () => {
   DIALS.sampleHz = parseFloat($("hz").value);
   $("hzVal").textContent = String(DIALS.sampleHz);
-  scene.clearCache();
+  clearRenderCaches();
 };
 $("twosToggle").checked = DIALS.onTwos;
-$("twosToggle").onchange = () => { DIALS.onTwos = $("twosToggle").checked; scene.clearCache(); };
+$("twosToggle").onchange = () => { DIALS.onTwos = $("twosToggle").checked; clearRenderCaches(); };
 $("ikToggle").checked = DIALS.footIK;
-$("ikToggle").onchange = () => { DIALS.footIK = $("ikToggle").checked; scene.clearCache(); };
+$("ikToggle").onchange = () => { DIALS.footIK = $("ikToggle").checked; clearRenderCaches(); };
 $("breathToggle").checked = DIALS.breath;
-$("breathToggle").onchange = () => { DIALS.breath = $("breathToggle").checked; scene.clearCache(); };
+$("breathToggle").onchange = () => { DIALS.breath = $("breathToggle").checked; clearRenderCaches(); };
 $("turnToggle").checked = DIALS.turnaround;
-$("turnToggle").onchange = () => { DIALS.turnaround = $("turnToggle").checked; scene.clearCache(); };
+$("turnToggle").onchange = () => { DIALS.turnaround = $("turnToggle").checked; clearRenderCaches(); };
+
+$("renderSelect").value = ui.render;
+$("renderSelect").onchange = () => {
+  ui.render = $("renderSelect").value;
+  // View 3D is a render3d idea: the orbit is an offset on THAT backend's
+  // camera (scene.setOrbit). A card is rendered through its own fixed ortho
+  // camera and a sprite is a drawing, so on those two the control would be a
+  // dial connected to nothing — it says "not here" rather than lying.
+  const canOrbit = ui.render === "3d";
+  $("view3d").disabled = !canOrbit;
+  $("view3dBox").classList.toggle("disabled", !canOrbit);
+  if (!canOrbit && ui.view3d) {
+    $("view3d").checked = false;
+    $("view3d").onchange();
+  }
+  // The sprite path needs no rigs; the two model paths do, and the fighters
+  // on screen may never have been fetched if the page opened on sprites.
+  if (ui.render !== "sprite") ensureVisible();
+  syncPageControls();
+  notify(`drawing through the ${$("renderSelect").selectedOptions[0].textContent} backend`);
+};
 
 function setFaceLeft(left) {
   if (ui.faceLeft === left) return;
@@ -470,7 +546,7 @@ for (const s of STAGES) {
 }
 gameState.stageKey = STAGES[0].key;
 stageSel.value = gameState.stageKey;
-stageSel.onchange = () => { gameState.stageKey = stageSel.value; scene.clearCache(); };
+stageSel.onchange = () => { gameState.stageKey = stageSel.value; clearRenderCaches(); };
 
 // FREE LOOK — the shared orbit dial, driving the shared scene camera. One
 // camera renders every cell, so the whole grid turns together: that is a
@@ -495,6 +571,7 @@ function syncPageControls() {
   const url = new URL(location);
   url.searchParams.set("page", String(ui.page));
   url.searchParams.set("per", String(ui.per));
+  url.searchParams.set("render", ui.render);
   history.replaceState(null, "", url);
 }
 
@@ -504,6 +581,9 @@ function syncPageControls() {
 let loadSeq = 0;
 async function ensureVisible() {
   const seq = ++loadSeq;
+  // Sprites need no rigs, and fetching a 2 MB .glb for a backend that will
+  // not look at it is the one cost a page turn should never pay.
+  if (ui.render === "sprite") return;
   for (const char of visibleChars()) {
     const held = rig.getRig(char);
     if (held && !held.isMannequin) continue;
@@ -567,6 +647,86 @@ function syncAnimGrid() {
 /** Grid shape per density: eight is the 4×2 the page is named for. */
 const SHAPES = { 1: [1, 1], 2: [2, 1], 4: [2, 2], 8: [4, 2] };
 
+// ------------------------------------------------------------- the renderers
+//
+// One fighter, one state, one instant, drawn by whichever of the game's three
+// backends is selected — each through the module the game's own backend calls,
+// so this is the real renderer rather than a lookalike.
+
+/** Does this fighter have a model loaded and ready to pose? Both model
+ *  backends ask exactly this before drawing, and both fall through to the
+ *  fighter's sprites when the answer is no — mid-roster, per character. */
+function modelReady(char) {
+  const r = rig.getRig(char);
+  return !!r && !r.isMannequin;
+}
+
+/** The aim solution the game hands both model backends. There is no opponent
+ *  on this page, so the point is null — which is NOT "no solve": a strike
+ *  still goes somewhere, and for the states with a fixed elevation
+ *  (states.js AIM_ELEVATIONS) that somewhere is what makes an up-heavy go up.
+ *  Leaving it out drew every attack un-solved, which is a different animation
+ *  from the one the game plays. */
+function aimFor(char, state, footY, facing) {
+  const targetPx = headHeightTarget(char);
+  return aimSolve(0, footY, footY - targetPx * 0.55, null, facing, state, artReach(char));
+}
+
+/** render3d: pose the live rig, render it toon-shaded, blit the texture —
+ *  the same three calls as render3d/src/backend.js drawCharFrame. */
+function draw3d(char, state, t, facing) {
+  const solved = aimFor(char, state, 0, facing);
+  const layers = {
+    reach: solved ? { dx: solved.dx, dy: solved.dy, targetPx: headHeightTarget(char) } : null,
+    turnYawRad: DIALS.turnaround && facing < 0 ? scene.turnaroundYaw() : 0,
+  };
+  const entry = scene.renderPose(char, state, t, rig.getRig(char),
+    rig.resolveClip(char, state), layers);
+  if (!entry) return false;
+  blitPose(ctx, entry, char, 0, 0, { scale: getActor(char)?.scale, facing, alpha: 1 });
+  return true;
+}
+
+/** Billboards: the 2.5D card — one quantised pose rendered through the fixed
+ *  ¾ ortho camera and blitted flat, mirrored for facing (the card's whole
+ *  economy). billboards/src/billboard.js does exactly this pair of calls. */
+function drawBillboard(char, state, t, facing) {
+  if (!bbReady) {
+    bbRenderer.initRenderer(THREE);
+    bbReady = true;
+  }
+  const targetPx = headHeightTarget(char);
+  const entry = bbRenderer.renderPose(char, state, t, rig.resolveClip,
+    aimFor(char, state, 0, facing), targetPx);
+  if (!entry) return false;
+  bbBlitPose(ctx, entry, char, 0, 0, { scale: getActor(char)?.scale, facing, alpha: 1 });
+  return true;
+}
+
+/** Sprites: the drawn sheets, through the sprite backend's own two calls.
+ *  The frame is fetched lazily — a sheet not in memory yet simply does not
+ *  draw this frame, and does on the next one. */
+function drawSprite(char, state, t, facing) {
+  const frame = spriteFrame(char, state, t);
+  loadFrame(char, frame).catch(() => {});
+  return spriteDraw(ctx, char, frame, 0, 0,
+    { scale: getActor(char)?.scale, facing, alpha: 1 });
+}
+
+/** Draw `char` at the origin of the current transform. Returns what actually
+ *  drew, so the caption can say when a model backend fell through to sprites
+ *  — in a match that fallthrough is invisible by design, and on a bench that
+ *  compares backends it is the single most important thing to see. */
+function drawFighter(char, state, t, facing) {
+  if (ui.render === "sprite") return drawSprite(char, state, t, facing) ? "sprite" : "";
+  if (!modelReady(char)) return drawSprite(char, state, t, facing) ? "fallback" : "";
+  const drew = ui.render === "3d"
+    ? draw3d(char, state, t, facing)
+    : drawBillboard(char, state, t, facing);
+  if (drew) return ui.render;
+  return drawSprite(char, state, t, facing) ? "fallback" : "";
+}
+
 function draw(now) {
   const dt = Math.min(0.1, (now - (draw.last || now)) / 1000);
   draw.last = now;
@@ -599,9 +759,6 @@ function draw(now) {
   const tallest = Math.max(1, ...chars.map(headHeightTarget));
   const fit = Math.min(2.2, (cellH - 120) / (tallest * 1.35), (cellW - 40) / (tallest * 1.1));
   const facing = ui.faceLeft ? -1 : 1;
-  const layers = {
-    turnYawRad: DIALS.turnaround && ui.faceLeft ? scene.turnaroundYaw() : 0,
-  };
 
   ctx.font = "13px system-ui, sans-serif";
   for (const [i, char] of chars.entries()) {
@@ -616,21 +773,21 @@ function draw(now) {
     ctx.lineTo((col + 1) * cellW - 14, ground);
     ctx.stroke();
 
-    // Everyone in this roster has a real model, so a mannequin stand-in only
-    // ever means "still streaming in" — rendering it anyway would cost a full
-    // pose render per frame and starve the very load being waited on.
-    const r = rig.getRig(char);
-    const resolved = r && !r.isMannequin ? rig.resolveClip(char, state) : null;
-    const entry = resolved ? scene.renderPose(char, state, t, r, resolved, layers) : null;
-    if (entry) {
-      ctx.save();
-      ctx.translate(cx, ground);
-      ctx.scale(fit, fit);
-      blitPose(ctx, entry, char, 0, 0, { scale: getActor(char)?.scale, facing, alpha: 1 });
-      ctx.restore();
-    }
-    ctx.fillStyle = r?.isMannequin ? "#8b96b3" : "#dbe2f0";
-    const label = (CHARACTERS[char]?.name || char) + (r?.isMannequin ? " — loading…" : "");
+    ctx.save();
+    ctx.translate(cx, ground);
+    ctx.scale(fit, fit);
+    const drew = drawFighter(char, state, t, facing);
+    ctx.restore();
+
+    // The caption says which renderer actually drew, when it is not the one
+    // selected: on a model backend a fighter still streaming in draws their
+    // sprites, and an unlabelled sprite in a row of models is a fighter you
+    // would swear had a bad model.
+    const waiting = ui.render !== "sprite" && !modelReady(char);
+    ctx.fillStyle = drew === "fallback" ? "#d3c69f" : drew ? "#dbe2f0" : "#d38f8f";
+    const note = drew === "fallback" ? (waiting ? " — loading, sprites" : " — sprites")
+      : drew ? "" : " — nothing to draw";
+    const label = (CHARACTERS[char]?.name || char) + note;
     ctx.fillText(label, cx - ctx.measureText(label).width / 2, ground + 22);
   }
 
@@ -638,10 +795,14 @@ function draw(now) {
   const ct = clipTime(state, t);
   $("nowPlaying").textContent =
     `${state}${clipNameFor(state) !== state ? ` → ${clipNameFor(state)}` : ""} · ${ct.toFixed(2)}s`;
-  const s = scene.stats;
+  // Each model backend keeps its own cache and its own counters, so the
+  // readout has to name the one that is actually drawing.
+  const s = ui.render === "billboard" ? bbRenderer.stats : scene.stats;
   $("status").textContent = performance.now() < status.until ? status.notice
-    : `renders ${s.renders} · cache ${s.hits}/${s.hits + s.misses} hits · `
-      + `${DIALS.onTwos ? `${DIALS.sampleHz} Hz on twos` : "on ones"} · page ${ui.page + 1}/${pageCount()}`;
+    : ui.render === "sprite"
+      ? `sprite sheets · page ${ui.page + 1}/${pageCount()}`
+      : `${ui.render} · renders ${s.renders} · cache ${s.hits}/${s.hits + s.misses} hits · `
+        + `${DIALS.onTwos ? `${DIALS.sampleHz} Hz on twos` : "on ones"} · page ${ui.page + 1}/${pageCount()}`;
 
   requestAnimationFrame(draw);
 }
@@ -649,6 +810,10 @@ function draw(now) {
 // ------------------------------------------------------------------ start
 
 scene.setKeyLightAngle(0.55);
+// Through the dropdown's own handler, so `?render=sprite` opens with the same
+// state a click would produce — View 3D greyed, no rigs fetched — rather than
+// with the 3D default's chrome over a sprite grid.
+$("renderSelect").onchange();
 setPage(Math.min(ui.page, pageCount() - 1));
 syncAnimGrid();
 requestAnimationFrame(draw);

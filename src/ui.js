@@ -188,6 +188,23 @@ function isCpuSlot(id) {
   return state.playerCount === 1 && id === 2;
 }
 
+/** The slot a player's cursor is steering right now.
+ *
+ *  Normally their own. But in a one-player match, once you have locked yourself
+ *  in, the only other fighter on the screen is the one you are about to fight —
+ *  so your selector keeps working and picks THEM instead of going inert. B
+ *  releases your own pick and hands the selector back to you. Nothing changes
+ *  for a local versus match, where every slot on screen belongs to a person. */
+function steeredSlot(playerId) {
+  if (playerId !== 1 || !state.ready[1] || state.playerCount !== 1) return playerId;
+  return pickedSlots().includes(2) ? 2 : playerId;
+}
+
+/** Whether player 1's selector is currently choosing their opponent. */
+function steeringCpu() {
+  return steeredSlot(1) === 2;
+}
+
 function humanIds() {
   return PLAYER_IDS.slice(0, state.playerCount);
 }
@@ -351,10 +368,14 @@ function buildCharacterCard(key) {
   btn.innerHTML = random
     ? `<b class="random-glyph">${TEXT.slot.randomGlyph}</b><span>${name}</span>`
     : `<img src="${rosterTileSrc(key)}" alt="${name}"><span>${name}</span>`;
-  btn.addEventListener("click", () => selectFighter(state.activePicker, key));
+  btn.addEventListener("click", () => {
+    const slot = steeredSlot(state.activePicker);
+    if (slot !== state.activePicker) { setPickerCursor(slot, key); return; }
+    selectFighter(state.activePicker, key);
+  });
   // Hovering previews the fighter in the active picker's hero card, the same
   // way the pad cursor does, without committing anything.
-  btn.addEventListener("mouseenter", () => setPickerCursor(state.activePicker, key, { quiet: true }));
+  btn.addEventListener("mouseenter", () => setPickerCursor(steeredSlot(state.activePicker), key, { quiet: true }));
   btn.addEventListener("contextmenu", (e) => {
     e.preventDefault();
     state.selection[2] = key;
@@ -1051,7 +1072,9 @@ export function updateSelectionUi() {
   const go = allReady();
   els.startButton.disabled = !go;
   els.startButton.textContent = go ? TEXT.menu.startReady : TEXT.menu.startWaiting;
-  els.menuHint.textContent = go ? TEXT.menu.hintReady : TEXT.menu.hintPicking;
+  els.menuHint.textContent = steeringCpu() ? TEXT.menu.hintOpponent
+    : go ? TEXT.menu.hintReady
+    : TEXT.menu.hintPicking;
   updateSpotlight();
   updatePickerCursorClasses();
 }
@@ -1297,25 +1320,38 @@ export function reportError(what, err) {
 // timers agreeing — which, at the busiest moment on the main thread, they did
 // not: the fade and the hide once landed 9ms apart and the fade became a cut.
 
-export function showBattleIntro() {
+/** Raise the VS splash.
+ *
+ *  `entrants` is [{ id, key, cpu }] taken from the resolved ROSTER rather than
+ *  from built fighters, because the splash now goes up BEFORE the match's art
+ *  is fetched — the hero paintings it needs are core assets that are always in
+ *  memory, so there is no reason to make the player watch a loading bar on an
+ *  empty screen first. When something is still streaming, `loading` adds a
+ *  slim bar along the bottom of the splash and setLoadProgress drives it. */
+export function showBattleIntro(entrants, { loading = false } = {}) {
   const el = els.introOverlay;
-  const fighters = state.fighters || [];
-  if (!el || fighters.length < 2) return;
-  const seat = (f) => f.aiState ? TEXT.intro.seatCpu : TEXT.intro.seatPlayer(f.id);
+  if (!el || !entrants || entrants.length < 2) return;
+  const seat = (e) => e.cpu ? TEXT.intro.seatCpu : TEXT.intro.seatPlayer(e.id);
   el.innerHTML = `
-    <div class="intro-splash" data-count="${fighters.length}">
-      ${fighters.map((f, i) => `
-        <div class="intro-panel" style="--seat:${f.char.theme}; --i:${i}">
-          <img src="${heroCardSrc(f.charKey)}" alt="${f.char.name}">
+    <div class="intro-splash" data-count="${entrants.length}">
+      ${entrants.map((e, i) => {
+        const char = CHARACTERS[e.key];
+        return `
+        <div class="intro-panel" style="--seat:${char.theme}; --i:${i}">
+          <img src="${heroCardSrc(e.key)}" alt="${char.name}">
           <div class="intro-plate">
-            <i class="intro-seat">${seat(f)}</i>
-            <b class="intro-name">${f.char.name}</b>
-            <em class="intro-quote">“${quoteFor(f.charKey)}”</em>
+            <i class="intro-seat">${seat(e)}</i>
+            <b class="intro-name">${char.name}</b>
+            <em class="intro-quote">“${quoteFor(e.key)}”</em>
           </div>
-        </div>`).join("")}
+        </div>`;
+      }).join("")}
     </div>
     <b class="intro-vs" aria-hidden="true">${TEXT.intro.vs}</b>
-    <div class="intro-stage">${TEXT.intro.stageLabel(getStage(state.stageKey)?.name || "")}</div>`;
+    <div class="intro-stage">${TEXT.intro.stageLabel(getStage(state.stageKey)?.name || "")}</div>
+    ${loading ? `<div class="intro-load" role="progressbar" aria-label="${TEXT.intro.loading}">
+      <i class="intro-load-fill"></i>
+    </div>` : ""}`;
   el.classList.remove("hidden", "is-leaving");
   // Restart the entrance animations even if the overlay was just up (rematch).
   void el.offsetWidth;
@@ -1345,6 +1381,17 @@ export function setLoadProgress(done, total) {
   const pct = total ? Math.round((done / total) * 100) : 0;
   els.loadBarFill.style.width = `${pct}%`;
   els.loadBar.setAttribute("aria-valuenow", String(pct));
+  // The same progress, on the bar the VS splash carries when a match's art is
+  // still streaming behind it.
+  const onSplash = els.introOverlay?.querySelector(".intro-load-fill");
+  if (onSplash) onSplash.style.width = `${pct}%`;
+}
+
+/** Whether the splash is currently holding the screen. The menu loop asks,
+ *  because while it is up the screen underneath must not answer a pad: the
+ *  splash can go up before the match phase does (see resetMatch). */
+export function battleIntroVisible() {
+  return !!els.introOverlay && !els.introOverlay.classList.contains("hidden");
 }
 
 // ------------------------------------------------------------------- moves
@@ -1788,7 +1835,11 @@ function menuFocusables() {
   // locked in: a committed player has no selector to move, so directions take
   // them to the buttons below instead of putting a highlight back on the grid.
   // B (Backspace) releases the pick and the cards come back.
-  const gridInert = state.phase === "menu" && state.ready[state.activePicker];
+  // …unless the selector still has something to do: in a one-player match a
+  // locked-in player goes on steering, for their opponent (steeredSlot).
+  const gridInert = state.phase === "menu"
+    && state.ready[state.activePicker]
+    && steeredSlot(state.activePicker) === state.activePicker;
   return [...overlay.querySelectorAll("button, input[type=range]")]
     .filter((el) => !el.classList.contains("hidden") && el.offsetParent !== null && !el.disabled)
     .filter((el) => !(gridInert && el.classList.contains("char-card")));
@@ -1826,7 +1877,7 @@ function setFocus(el, { quiet = false } = {}) {
     focusEl.classList.add("pad-focus");
     // Keyboard focus previews too, so arrow-key browsing reads the same as pad.
     if (state.phase === "menu" && focusEl.dataset.character) {
-      setPickerCursor(state.activePicker, focusEl.dataset.character, { quiet: true });
+      setPickerCursor(steeredSlot(state.activePicker), focusEl.dataset.character, { quiet: true });
     }
     focusEl.scrollIntoView({ block: "nearest", inline: "nearest" });
     playSfx("uiMove");
@@ -1848,10 +1899,18 @@ function setPickerCursor(playerId, key, { quiet = false } = {}) {
   if (state.ready[playerId]) return;
   if (!key || pickerCursor[playerId] === key) return;
   pickerCursor[playerId] = key;
-  // Looking at a fighter is a hint, not a commitment: they move to the head of
-  // the background queue rather than starting a download of their own, so
-  // sweeping across the roster cannot kick off twenty parallel loads.
-  if (key !== RANDOM_KEY) previewCharacter(key);
+  // A CPU slot has no lock-in of its own, so pointing at a fighter IS the
+  // choice — and being a real commitment, its art is claimed rather than
+  // merely hinted at.
+  if (isCpuSlot(playerId)) {
+    state.selection[playerId] = key;
+    if (key !== RANDOM_KEY) claimCharacter(key);
+  } else if (key !== RANDOM_KEY) {
+    // Looking at a fighter is a hint, not a commitment: they move to the head
+    // of the background queue rather than starting a download of their own, so
+    // sweeping across the roster cannot kick off twenty parallel loads.
+    previewCharacter(key);
+  }
   // Repaints the hero card too: the cursor drives the transient preview.
   updateSelectionUi();
   if (!quiet) playSfx("uiMove");
@@ -1943,6 +2002,30 @@ function cycleUtility(dir, n = UTILITY_IDS.length) {
     : (utilityIdx < 0 ? n - 1 : utilityIdx - 1);
 }
 
+/** One pad's directions, walking one slot's cursor, with the hold-to-repeat
+ *  the roster has always had. Shared by a player steering their own pick and
+ *  by a locked-in player steering their opponent's. */
+function steerPad(slot, pad, repeat, dt) {
+  // A slot with no cursor yet (fresh boot, or just backed out) parks on its
+  // own pick, else on the first fighter in the grid.
+  if (!pickerCursor[slot]) pickerCursor[slot] = state.selection[slot] || CHARACTER_KEYS[0];
+  let dx = 0, dy = 0;
+  if (pad.left) dx = -1;
+  else if (pad.right) dx = 1;
+  else if (pad.up) dy = -1;
+  else if (pad.down) dy = 1;
+  const dirKey = dx !== 0 ? `x${dx}` : dy !== 0 ? `y${dy}` : null;
+  if (!dirKey) { repeat.dir = null; return; }
+  if (repeat.dir !== dirKey) {
+    repeat.dir = dirKey;
+    repeat.t = 0.34;
+    movePickerCursor(slot, dx, dy);
+  } else {
+    repeat.t -= dt;
+    if (repeat.t <= 0) { repeat.t = 0.13; movePickerCursor(slot, dx, dy); }
+  }
+}
+
 function updateCharacterPickerPads(dt) {
   const pads = padsMenuStates();
 
@@ -1974,32 +2057,19 @@ function updateCharacterPickerPads(dt) {
 
     // Ready players stop steering the grid. A starts the match (once everyone
     // is ready); B releases their pick so they can browse again.
+    // Locked in. B releases the pick, A starts the match — and in a
+    // one-player match the directions keep working, choosing the opponent
+    // (steeredSlot) rather than doing nothing.
     if (state.ready[playerId]) {
-      repeat.dir = null;
-      if (pad.backP) unready(playerId);
-      else if (pad.confirmP) tryStart();
+      if (pad.backP) { repeat.dir = null; unready(playerId); continue; }
+      if (pad.confirmP) { repeat.dir = null; tryStart(); continue; }
+      const slot = steeredSlot(playerId);
+      if (slot === playerId) { repeat.dir = null; continue; }
+      steerPad(slot, pad, repeat, dt);
       continue;
     }
 
-    // A slot with no cursor yet (fresh boot, or just backed out) parks on its
-    // own pick, else on the first fighter in the grid.
-    if (!pickerCursor[playerId]) pickerCursor[playerId] = state.selection[playerId] || CHARACTER_KEYS[0];
-    let dx = 0, dy = 0;
-    if (pad.left) dx = -1;
-    else if (pad.right) dx = 1;
-    else if (pad.up) dy = -1;
-    else if (pad.down) dy = 1;
-    const dirKey = dx !== 0 ? `x${dx}` : dy !== 0 ? `y${dy}` : null;
-    if (dirKey) {
-      if (repeat.dir !== dirKey) {
-        repeat.dir = dirKey;
-        repeat.t = 0.34;
-        movePickerCursor(playerId, dx, dy);
-      } else {
-        repeat.t -= dt;
-        if (repeat.t <= 0) { repeat.t = 0.13; movePickerCursor(playerId, dx, dy); }
-      }
-    } else repeat.dir = null;
+    steerPad(playerId, pad, repeat, dt);
     if (pad.confirmP) {
       selectFighter(playerId, pickerCursor[playerId] || state.selection[playerId]);
     }
@@ -2088,6 +2158,10 @@ function menuBack() {
 // Called every frame by the main loop while a menu phase is active.
 export function updateMenuNav(dt) {
   if (rouletteRunning) return; // the draw owns the arena screen until it lands
+  // The VS splash goes up before the match does, and can sit over the stage
+  // screen while that match's art streams in. Whatever is underneath it has
+  // stopped being the screen the player is on.
+  if (battleIntroVisible()) return;
   // The title splash has one control: any button begins. A pad player is
   // sitting down to play, so this path takes the screen — main.js handles the
   // Start button itself the same way.

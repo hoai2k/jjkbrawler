@@ -117,7 +117,7 @@ the query (`&char=gojo`) travels with you.
 
 | Shortcut | Bench | |
 |---|---|---|
-| [`?edit=audio`](workbench/?edit=audio) | [`/workbench/`](workbench/) | **Audio** — every voice in the game beside the fighter it belongs to, each recording on its own button, with the timing the move plays at. Auditioning a take is the one thing the generator cannot check; **⭳ Export changes** hands the verdict back as JSON |
+| [`?edit=audio`](workbench/?edit=audio) | [`/workbench/`](workbench/) | **Audio** — every voice in the game beside the fighter it belongs to, and every sound their techniques make, each recording on its own button. Playing a technique puts its art on the stage for two seconds, so a sound is judged against the thing it belongs to. Auditioning a take is the one thing the generator cannot check; **⭳ Export changes** hands the verdict back as JSON |
 | [`?edit=sprites`](workbench/?edit=sprites) | [`/sprites/workbench/`](sprites/workbench/) | 2D sprite placement, anchors, the cleanup flags |
 | [`?edit=actions`](workbench/?edit=actions) | `/sprites/workbench/?edit=actions` | play any character action |
 | [`?edit=billboards`](workbench/?edit=billboards) | [`/billboards/workbench/`](billboards/workbench/) | the 2.5D posed-model path |
@@ -127,6 +127,31 @@ the query (`&char=gojo`) travels with you.
 
 `node tools/smoke_workbench_routes.mjs` walks every one of those, plus the
 aliases (`sprite`, `2d`, `anim`, `render3d`, …).
+
+### Is the site showing my change yet?
+
+The header of every bench ends with a **deploy stamp** — `deployed 21d99b1 ·
+4 min ago`, linking to the run that published it. Compare the SHA to the commit
+you pushed and the usual confusion resolves itself:
+
+- **The stamp is an older commit.** The deploy has not landed. A push to `main`
+  takes about a minute to publish; the run is at
+  [Actions → Deploy to GitHub Pages](https://github.com/hoai2k/jjkbrawler/actions/workflows/deploy-pages.yml),
+  and the [Pages deployment log](https://github.com/hoai2k/jjkbrawler/deployments/github-pages)
+  lists what is actually live. A run stuck in `queued` holds the concurrency
+  group and starves the ones behind it — cancel it and the queue drains (the
+  workflow file spells this out).
+- **The stamp is your commit but the page still looks old.** A cache is holding
+  a file: Pages sends a ten-minute `max-age`, and a browser can keep an ES
+  module in a tab with no revalidation at all. Hit **↻ Refresh** on the audio
+  bench, or add `?bust=1` to the URL — every file the page uses is refetched
+  under a key nothing has seen.
+- **`local build`** means there is no `version.json`: you are on `node
+  server.mjs`, looking at the files on disk.
+
+The stamp is written by the workflow's "Stamp the build" step and read by
+[`src/deploystamp.js`](src/deploystamp.js). It is fetched with a cache-buster,
+so the stamp itself is never the stale thing.
 
 ## Docs
 
@@ -148,6 +173,8 @@ aliases (`sprite`, `2d`, `anim`, `render3d`, …).
   and whether each one is images, 3D models, sound effects, voice or music
 - [Asset requests](docs/asset-requests.md) — open art rounds
   ([history](docs/asset-requests-history.md))
-- [Audio requests](docs/audio-requests.md) — nothing outstanding; the sound and
-  voice rounds and their prompts are in
-  [history](docs/audio-requests-history.md)
+- [Audio requests](docs/audio-requests.md) — the grab pack is the only round
+  still open; the sound and voice rounds and their prompts are in
+  [history](docs/audio-requests-history.md), and the takes that were auditioned
+  and thrown out are in [pruned](docs/audio-pruned.md) — a list both generators
+  read, so a deleted take stays deleted

@@ -88,18 +88,18 @@ export const SFX = {
   // and one variant is drawn at random per call, so a repeated special does not
   // loop the identical sample.
   gruntYoungMale: { file: ["grunt_young_male_alt_2.mp3", "grunt_young_male_alt_4.mp3", "grunt_young_male_alt_6.mp3"], category: "voice" },
-  gruntAdultMale: { file: ["grunt_adult_male_alt_5.mp3", "grunt_adult_male_alt_6.mp3"], category: "voice" },
-  gruntBig: { file: "grunt_big_alt_6.mp3", category: "voice" },
+  gruntAdultMale: { file: ["grunt_adult_male_alt_6.mp3", "grunt_adult_male_alt_7.mp3"], category: "voice" },
+  gruntBig: { file: "grunt_big_alt_1.mp3", category: "voice" },
   gruntFemale: { file: ["grunt_female_alt_1.mp3", "grunt_female_alt_2.mp3", "grunt_female_alt_3.mp3"], category: "voice" },
-  gruntMonster: { file: "grunt_monster_alt_3.mp3", category: "voice" },
+  gruntMonster: { file: "grunt_monster_alt_1.mp3", category: "voice" },
   gruntAnimal: { file: "grunt_animal_2.mp3", category: "voice" },
 
   koYoungMale: { file: "ko_young_male_alt_2.mp3", category: "voice" },
-  koAdultMale: { file: "ko_adult_male_alt_3.mp3", category: "voice" },
-  koBig: { file: "ko_big_alt_1.mp3", category: "voice" },
+  koAdultMale: { file: "ko_adult_male_alt_5.mp3", category: "voice" },
+  koBig: { file: "ko_big_alt_4.mp3", category: "voice" },
   koFemale: { file: "ko_female_alt_2.mp3", category: "voice" },
-  koMonster: { file: "ko_monster_alt_2.mp3", category: "voice" },
-  koAnimal: { file: "ko_animal.mp3", category: "voice" },
+  koMonster: { file: "ko_monster_alt_4.mp3", category: "voice" },
+  koAnimal: { file: "ko_animal_alt_5.mp3", category: "voice" },
 
   // ---- Tier 4: menus
   uiMove: { file: "ui_move.mp3", category: "ui" },
@@ -276,6 +276,36 @@ export const MOVE_CALL = {
   },
 };
 
+// ------------------------------------------- signatures the handlers play
+//
+// Almost every sound a technique makes is DECLARED on the move: `fireSfx`,
+// `castSfx` or `sfx` in the move's `p` block in characters.js, plus the element
+// layer its `fxElement` picks out of ELEMENT_HIT_SFX. Anything declared that
+// way is discoverable — the audio workbench walks the kits and finds it, and a
+// technique given a sound tomorrow appears there with no edit to anything.
+//
+// Two are not declared. They are played by a literal `playSfx("…")` inside the
+// handler, because they fire on a condition the move data has no field for: a
+// clap that happens on the swap rather than on a hit, and a crit band's seam.
+// Nothing walking the kits can see either one, so they were invisible to the
+// bench — which is to say the two sounds most specific to their owners were the
+// two nobody could audition.
+//
+// This table is the patch for that, and it is a RECORD OF A DUPLICATION rather
+// than a source of truth: the handler still decides when to play them, and
+// moving one without updating the other makes this table lie. `check_voice.mjs`
+// checks the keys are real; it cannot check the attribution.
+export const SIGNATURE_SFX = {
+  todo: [{
+    move: "Boogie Woogie", sfx: "boogieClap",
+    note: "specials.js plays it on the swap — the technique IS this sound",
+  }],
+  nanami: [{
+    move: "7:3 ratio hit", sfx: "seamCrack",
+    note: "combat.js plays it when his crit band lands, on any attack",
+  }],
+};
+
 // ------------------------------------------------------- alternate takes
 //
 // Other recordings of a sound that is already in the game, kept beside it so
@@ -313,77 +343,90 @@ export const VOICE_ALTERNATES = {
   // the rejected rounds stay visible until somebody says otherwise, rather than
   // quietly accumulating in assets/sfx/ where the only way to find them is a
   // directory listing.
+  // ---- every take that exists for a voice group and is not currently in it.
+  //
+  // Listed exhaustively ON PURPOSE. The bench is where takes get pruned as well
+  // as chosen, and a file nobody can see is a file nobody can delete.
+  //
+  // **This list is now short because it was USED.** One pass through the bench
+  // deleted 33 files and moved 2, which is what the rounds of alternates were
+  // for: a wide net cast, judged by ear, and hauled in. What is left is the
+  // survivors and the round-14 pairs bred from them — every "Round 14" entry
+  // below was cast from the same voice, pitch and settings as the take its
+  // group actually kept, rather than from a fresh guess.
   gruntYoungMale: [
-    { name: "Round 13", file: ["grunt_young_male_alt_5.mp3"],
-      note: "wordless bank — non-lexical, one utterance each" },
-    { name: "Round 12", file: ["grunt_young_male_alt_1.mp3", "grunt_young_male_alt_3.mp3"],
-      note: "the kiai round; some of these contain words" },
-    { name: "Original", file: ["grunt_young_male_1.mp3", "grunt_young_male_2.mp3", "grunt_young_male_3.mp3"],
-      note: "the round-8 take, from the sound-effects endpoint" },
+    { name: "Round 14", file: ["grunt_young_male_alt_8.mp3"],
+      note: "bred from the live takes — same voice, pitch and settings" },
+    { name: "Round 12", file: ["grunt_young_male_alt_1.mp3"],
+      note: "the kiai round — the only one of it left in this group" },
   ],
   gruntAdultMale: [
+    { name: "Round 14", file: ["grunt_adult_male_alt_8.mp3"],
+      note: "bred from the live takes; alt_7 was promoted into the group" },
     { name: "Round 13", file: ["grunt_adult_male_alt_4.mp3"],
       note: "wordless bank — non-lexical, one utterance each" },
-    { name: "Round 12", file: ["grunt_adult_male_alt_1.mp3", "grunt_adult_male_alt_2.mp3", "grunt_adult_male_alt_3.mp3"],
-      note: "the kiai round; some of these contain words" },
-    { name: "Original", file: ["grunt_adult_male_1.mp3", "grunt_adult_male_2.mp3", "grunt_adult_male_3.mp3"],
-      note: "the round-8 take, from the sound-effects endpoint" },
   ],
   gruntBig: [
-    { name: "Round 13", file: ["grunt_big_alt_4.mp3", "grunt_big_alt_5.mp3"],
-      note: "wordless bank — non-lexical, one utterance each" },
-    { name: "Round 12", file: ["grunt_big_alt_1.mp3", "grunt_big_alt_2.mp3", "grunt_big_alt_3.mp3"],
-      note: "the kiai round; some of these contain words" },
-    { name: "Original", file: ["grunt_big_1.mp3", "grunt_big_2.mp3", "grunt_big_3.mp3"],
-      note: "the round-8 take, from the sound-effects endpoint" },
+    { name: "Round 14", file: ["grunt_big_alt_8.mp3"],
+      note: "Sho at pitch 0.94, matching the live take" },
+    { name: "Round 13", file: ["grunt_big_alt_4.mp3", "grunt_big_alt_6.mp3"],
+      note: "wordless bank — alt_6 shipped until the kiai take beat it" },
   ],
   gruntFemale: [
-    { name: "Original", file: ["grunt_female_1.mp3", "grunt_female_2.mp3", "grunt_female_3.mp3"],
-      note: "the round-8 take, from the sound-effects endpoint" },
+    { name: "Round 14", file: ["grunt_female_alt_4.mp3", "grunt_female_alt_5.mp3"],
+      note: "two more from Rina, the voice all three live takes came from" },
+    // Adopted, not generated. These were cast as ADULT MALE grunts in round 12
+    // and judged in the bench to sit better here — which is a thing only a
+    // listener can decide, and the reason the bench grew a move control.
+    // The filenames are left alone deliberately: renaming an asset to match
+    // where it ended up breaks every prompt record that produced it.
+    { name: "Adopted from gruntAdultMale", file: ["grunt_adult_male_alt_2.mp3", "grunt_adult_male_alt_3.mp3"],
+      note: "Nagi's round-12 takes, moved here by ear — the names are their origin, not their group" },
   ],
   gruntMonster: [
-    { name: "Round 13", file: ["grunt_monster_alt_1.mp3", "grunt_monster_alt_2.mp3"],
-      note: "wordless bank — non-lexical, one utterance each" },
-    { name: "Original", file: ["grunt_monster_1.mp3", "grunt_monster_2.mp3", "grunt_monster_3.mp3"],
-      note: "the round-8 take, from the sound-effects endpoint" },
+    { name: "Round 14", file: ["grunt_monster_alt_4.mp3", "grunt_monster_alt_5.mp3"],
+      note: "Shimura at pitch 0.85, matching the live take" },
+    { name: "Round 13", file: ["grunt_monster_alt_2.mp3", "grunt_monster_alt_3.mp3"],
+      note: "wordless bank — alt_3 shipped until alt_1 beat it" },
   ],
+  // The animal groups went the other way from every human one: their
+  // voice-cast alternates were all deleted and the effects-endpoint takes are
+  // what survived — until round 14, whose effects-endpoint KO cry then beat
+  // the round-8 original outright and replaced it.
   gruntAnimal: [
-    { name: "Original", file: ["grunt_animal_1.mp3", "grunt_animal_3.mp3"],
-      note: "the round-8 take, from the sound-effects endpoint" },
+    { name: "Round 14", file: ["grunt_animal_alt_1.mp3", "grunt_animal_alt_2.mp3"],
+      note: "effects endpoint, varied off grunt_animal_2 — the take that survived" },
   ],
-  koYoungMale: [
-    { name: "Round 13", file: ["ko_young_male_alt_1.mp3", "ko_young_male_alt_3.mp3"],
-      note: "wordless bank — non-lexical, one utterance each" },
-    { name: "Original", file: ["ko_young_male.mp3"],
-      note: "the round-8 take, from the sound-effects endpoint" },
-  ],
+  // Nothing left to compare against: both round-14 takes were auditioned and
+  // deleted, and every earlier one before them. An empty list is a result.
+  koYoungMale: [],
   koAdultMale: [
-    { name: "Round 13", file: ["ko_adult_male_alt_1.mp3", "ko_adult_male_alt_2.mp3"],
-      note: "wordless bank — non-lexical, one utterance each" },
-    { name: "Original", file: ["ko_adult_male.mp3"],
-      note: "the round-8 take, from the sound-effects endpoint" },
+    { name: "Round 14", file: ["ko_adult_male_alt_4.mp3"],
+      note: "the breathless falling cry the group kept; alt_5 was promoted" },
+    { name: "Round 13", file: ["ko_adult_male_alt_1.mp3", "ko_adult_male_alt_2.mp3", "ko_adult_male_alt_3.mp3"],
+      note: "wordless bank — alt_3 shipped until round 14 beat it" },
   ],
   koBig: [
-    { name: "Round 13", file: ["ko_big_alt_2.mp3", "ko_big_alt_3.mp3"],
-      note: "wordless bank — non-lexical, one utterance each" },
-    { name: "Original", file: ["ko_big.mp3"],
-      note: "the round-8 take, from the sound-effects endpoint" },
+    { name: "Round 14", file: ["ko_big_alt_5.mp3"],
+      note: "Sho at pitch 0.94; alt_4 was promoted into the game" },
+    { name: "Round 13", file: ["ko_big_alt_1.mp3", "ko_big_alt_2.mp3", "ko_big_alt_3.mp3"],
+      note: "wordless bank — alt_1 shipped until round 14 beat it" },
   ],
   koFemale: [
+    { name: "Round 14", file: ["ko_female_alt_4.mp3", "ko_female_alt_5.mp3"],
+      note: "both keep the sharp cry of pain the group kept" },
     { name: "Round 13", file: ["ko_female_alt_1.mp3", "ko_female_alt_3.mp3"],
       note: "wordless bank — non-lexical, one utterance each" },
-    { name: "Original", file: ["ko_female.mp3"],
-      note: "the round-8 take, from the sound-effects endpoint" },
   ],
   koMonster: [
-    { name: "Round 13", file: ["ko_monster_alt_1.mp3", "ko_monster_alt_3.mp3"],
-      note: "wordless bank — non-lexical, one utterance each" },
-    { name: "Original", file: ["ko_monster.mp3"],
-      note: "the round-8 take, from the sound-effects endpoint" },
+    { name: "Round 14", file: ["ko_monster_alt_5.mp3"],
+      note: "Shimura at pitch 0.85; alt_4 was promoted into the game" },
+    { name: "Round 13", file: ["ko_monster_alt_1.mp3", "ko_monster_alt_2.mp3", "ko_monster_alt_3.mp3"],
+      note: "wordless bank — alt_2 shipped until round 14 beat it" },
   ],
   koAnimal: [
-    { name: "Round 13", file: ["ko_animal_alt_1.mp3", "ko_animal_alt_2.mp3", "ko_animal_alt_3.mp3"],
-      note: "wordless bank — non-lexical, one utterance each" },
+    { name: "Round 14", file: ["ko_animal_alt_4.mp3"],
+      note: "effects endpoint; alt_5 was promoted and the round-8 original deleted" },
   ],
 };
 

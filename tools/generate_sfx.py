@@ -56,6 +56,33 @@ ENTRY = re.compile(
 # was written to avoid.
 VOICE_FIELD = re.compile(r"·\s*voice\s+`")
 
+# ------------------------------------------------------------------ pruning
+#
+# A take that was auditioned and rejected gets DELETED from assets/sfx/ — but
+# its prompt stays in the docs, because a prompt is the record of how the file
+# was made and this repo keeps those verbatim even for work that did not land.
+#
+# Those two facts fight. Both generators are idempotent by "does the file
+# exist", so a deleted file is indistinguishable from an undelivered one, and
+# the next run would faithfully recreate all 33 takes somebody had just spent
+# an evening listening to and throwing out. The prompt has to survive without
+# the entry staying live.
+#
+# So the pruned list is the third state: delivered, judged, and gone on
+# purpose. Both tools read it and skip those filenames — including under
+# --force, which is the flag for re-rolling a take you are keeping, not for
+# undoing a decision. Putting a name back in play means taking it off this
+# list, which is one edit and a deliberate one.
+PRUNED_DOC = os.path.join(ROOT, "docs", "audio-pruned.md")
+PRUNED_LINE = re.compile(r"^\s*[-*]\s+`([a-z_0-9]+\.wav)`", re.M)
+
+
+def pruned():
+    """-> set of filenames deleted on purpose and not to be regenerated."""
+    if not os.path.exists(PRUNED_DOC):
+        return set()
+    return set(PRUNED_LINE.findall(open(PRUNED_DOC).read()))
+
 
 def parse_doc():
     """-> [(filename, seconds, prompt)] in document order, open requests first.
@@ -64,13 +91,13 @@ def parse_doc():
     re-roll case (a delivered sound being re-requested with a new prompt), and
     the open wording is the newer intent.
     """
-    out, seen = [], set()
+    out, seen, gone = [], set(), pruned()
     for doc in DOCS:
         if not os.path.exists(doc):
             continue
         for m in ENTRY.finditer(open(doc).read()):
             name, header = m.group(1), m.group(2)
-            if name in seen or VOICE_FIELD.search(header):
+            if name in seen or name in gone or VOICE_FIELD.search(header):
                 continue
             seen.add(name)
             out.append((name, float(m.group(3)), m.group(4).strip()))

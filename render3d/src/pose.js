@@ -33,7 +33,7 @@ import { STATES, clipNameFor, clipTime, aimable } from "./states.js";
 import { applyRigFixes, applySkeletonSymmetry, modelFixesEnabled } from "./rig_fixes.js";
 import { groundOffset } from "./pose_library.js";
 import {
-  applyReach, reaches, makeScratch, applyTwoHandGrip, applyMorphs, applyIdleStand, applyIdleArms, applyShoulderWidth, applyBindPose, applyKneeTurn, clearIdleStand,
+  applyReach, reaches, makeScratch, applyTwoHandGrip, applyCarry, applyGrip, applyMorphs, applyIdleStand, applyIdleArms, applyShoulderWidth, applyBindPose, applyKneeTurn, clearIdleStand,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
   reachChain, gripBones,
 } from "./ik.js";
@@ -103,6 +103,138 @@ export function parallaxDeg(x, cameraX, worldHalfW) {
 export function flinchSide(animKey, x, aim, facing) {
   if (!DIALS.flinch || !aim || !FLINCH_STATES.has(clipNameFor(animKey))) return 0;
   return Math.sign((aim.x - x) * (facing < 0 ? -1 : 1)) || 1;
+}
+
+// ------------------------------------------------------- which way they face
+//
+// FACING LEFT IS A MIRROR OF FACING RIGHT — of the picture, not of the model.
+//
+// The rig is turned rather than flipped (an asymmetric costume has to stay on
+// the side it belongs on), so the question is which yaw makes the TURNED body
+// present the same silhouette angle the un-turned one does, the other way
+// round. scene.turnaroundYaw answers it with a constant, 2θ, derived by
+// reflecting +Z across the camera's view plane — and that is exact only for a
+// fighter whose forward really is +Z once their `yawOffsetDeg` has corrected
+// them. Nobody's is. Measured across the delivered roster, the bodies present
+// between 20° and 53° off the lens facing right, where +Z would be 60°; adding
+// a flat −120° to that lands them at −67° to −100°, which is side-on. So every
+// fighter was angled three-quarter facing right and in flat profile facing
+// left, and the two directions did not look like the same character running.
+//
+// A rotation cannot mirror a body, but it can mirror the ANGLE the body is
+// seen at, which is all "left should look like right" means here: measure the
+// angle α the fighter presents at (a fact about the delivery, constant across
+// every clip — the pelvis barely yaws), then turn by −2α, so α becomes −α.
+// At α = 60° that is exactly the old constant, which is why this reads as a
+// generalisation of it rather than a different idea.
+//
+// PRESENTATION is the other half of the same dial. `presentDeg` overrides the
+// angle a fighter is SHOWN at rather than accepting their own: Sukuna's
+// delivery presents at −10°, chest to the lens, which reads as a fighter
+// running at the camera rather than across it, and no offset correction makes
+// a run out of it. Pinning him to profile turns both directions to the same
+// full-side stride.
+
+/** The states whose facing is mirrored rather than flat-turned — see
+ *  facingYaw for why this is not simply "all of them". */
+const MIRROR_FACING_STATES = new Set(["idle", "walk", "run", "dash"]);
+
+/** How each fighter presents while facing right, in degrees off the lens:
+ *  0 is chest-on, +90 is a full profile facing screen-right. Absent means
+ *  "however the delivery stands", which is what everyone but Sukuna wants. */
+export const PRESENT_DEG = {
+  // Delivered at −10°: nearly square to the camera, so his run read as a
+  // fighter jogging on the spot toward the viewer while the same clip on
+  // everyone else read as a sprint across the screen. Turned all the way to
+  // profile instead, both directions — the one fighter on the roster whose
+  // locomotion is better side-on than three-quarter.
+  sukuna: 68,
+};
+
+/** The camera-space angle this rig presents at, in radians, measured once off
+ *  the delivered body and cached on the rig.
+ *
+ *  Measured rather than derived: it is the composition of the model's own
+ *  authored orientation and the `yawOffsetDeg` meant to cancel it, and the
+ *  residual between those two is exactly the thing no formula here knows. */
+function presentRad(rig) {
+  if (rig._presentRad !== undefined) return rig._presentRad;
+  let angle = null;
+  const root = rig.root;
+  if (root) {
+    const bones = {};
+    root.traverse((o) => { if (o.isBone) bones[o.name] = o; });
+    const L = bones.LeftUpLeg, R = bones.RightUpLeg;
+    if (L && R) {
+      const yaw = root.rotation.y;
+      root.rotation.y = rig.yawOffset || 0;
+      root.updateMatrixWorld(true);
+      const a = _v4.setFromMatrixPosition(L.matrixWorld);
+      const b = _v5.setFromMatrixPosition(R.matrixWorld);
+      // Hip axis -> the fighter's own right; forward is up × right.
+      const lat = b.sub(a).setY(0);
+      if (lat.lengthSq() > 1e-8) {
+        lat.normalize();
+        // forward = up × right = (0,1,0) × lat. Getting this the other way
+        // round costs nothing in the default case — the mirror is symmetric,
+        // so a 180° error cancels — and silently inverts every explicit
+        // `PRESENT_DEG`, which is how Sukuna ended up pinned to profile
+        // facing the wrong way down the screen.
+        const fx = lat.z, fz = -lat.x;
+        // ...expressed against the camera: across the screen, and toward the
+        // lens. Same two dot products scene.js frames the shot with.
+        const t = CAMERA_YAW_RAD;
+        const across = fx * Math.cos(t) - fz * Math.sin(t);
+        const toward = fx * Math.sin(t) + fz * Math.cos(t);
+        angle = Math.atan2(across, toward);
+      }
+      root.rotation.y = yaw;
+      root.updateMatrixWorld(true);
+    }
+  }
+  rig._presentRad = angle;
+  return angle;
+}
+
+/** The camera yaw scene.js frames with. Stated here rather than imported
+ *  because pose.js is deliberately free of the renderer. */
+const CAMERA_YAW_RAD = (-60 * Math.PI) / 180;
+
+/** The root yaw for this pose: the delivery's own correction, plus whatever
+ *  it takes to present at the wanted angle and, facing left, to present at
+ *  its mirror. Falls back to exactly the old behaviour — the caller's flat
+ *  turnaround constant — for a body with no measurable hip axis. */
+function facingYaw(rig, animKey, layers) {
+  const base = rig.yawOffset || 0;
+  const left = !!layers.turnYawRad;
+  // LOCOMOTION ONLY, and the boundary is load-bearing.
+  //
+  // The mirror is computed for the BODY's axis — measured off the hips, which
+  // is what you see. The reach solver builds its target along the ROOT's axis
+  // instead (pose.js applyMachineReach: the offsets are root-local), and on
+  // these deliveries the two do not coincide — `yawOffsetDeg` leaves them tens
+  // of degrees apart. One yaw cannot mirror both, so mirroring the body would
+  // stop mirroring the strike: facing left, an attack kept reaching toward
+  // screen-right (tools/smoke_render3d.mjs asserts exactly this).
+  //
+  // Travelling states run no reach solve, so there the body IS the whole
+  // picture and the mirror is free. Attacks keep the flat turnaround they were
+  // tuned against. Fixing this properly means measuring the offsets so the two
+  // axes agree — `tools/check_model_facing.mjs --solve` is the instrument —
+  // and is a roster pass, not a rendering change.
+  if (!MIRROR_FACING_STATES.has(clipNameFor(animKey))) {
+    return (layers.turnYawRad || 0) + base;
+  }
+  const alpha = presentRad(rig);
+  if (alpha === null) return (layers.turnYawRad || 0) + base;
+  // The presentation override is a LOCOMOTION note — Sukuna's run was the
+  // complaint, and his standing pose is nobody's problem — so the idle keeps
+  // whatever angle the delivery stands at and only the travel states re-aim.
+  const pinned = PRESENT_DEG[rig.charKey];
+  const want = pinned !== undefined && clipNameFor(animKey) !== "idle"
+    ? (pinned * Math.PI) / 180
+    : alpha;
+  return base + ((left ? -want : want) - alpha);
 }
 
 /** How far a relaxed arm hangs from straight down, in degrees, for a fighter
@@ -371,6 +503,166 @@ function standOnGround(rig, animKey) {
   root.updateMatrixWorld(true);
 }
 
+// ------------------------------------------------------ both feet on the floor
+//
+// The crouch is authored as a SPRINTER'S THREE-POINT SET (battle_poses.js
+// crouch_a, read off Yuji's own sheet): front knee ~90°, rear knee ~125°, hips
+// high, trunk folded over. Read as a drawing that is exactly right. Stood up
+// as a body it is not, because the rear knee is folded so far that the rear
+// foot rides well clear of the floor — so every fighter crouched with one leg
+// tucked up behind them, hanging, which reads as floating rather than as
+// crouching.
+//
+// Neither existing pass catches it. `standOnGround` TRANSLATES the body until
+// its LOWEST point is on the floor, which the front foot already satisfies;
+// `plantFeet` only pushes feet that have sunk BELOW the line back up. A foot
+// in the air above a planted one is invisible to both.
+//
+// The fix is the one you reach for when you look at it: the pose is fine, it
+// is just tilted — so PITCH it about the fighter's own lateral axis until the
+// trailing foot comes down too, then let standOnGround re-settle. That keeps
+// every authored angle exactly as drawn and changes only the attitude of the
+// whole body, which is what "rotate it until both feet are down" means.
+//
+// The angle is SOLVED rather than derived, by measuring how the foot gap
+// responds to a small test rotation and taking one Newton step from it. Two
+// sign conventions meet here — the lateral axis's and the bone rotation's —
+// and picking them off by hand is how you get a crouch that tips the wrong way
+// on half the roster. Measuring costs one extra matrix update and cannot be
+// wrong about which way is down.
+
+// ------------------------------------------------------------- a limb that is
+//
+// SOME LIMBS ARE NOT WORKING LIMBS. Hanami's left arm is a mass of branches
+// where a forearm should be — the delivery carries 1021 vertices on
+// LeftForeArm reaching 59cm past the elbow, against 473 reaching 26cm on the
+// right, and no left hand to speak of. The shared clip library has no idea:
+// it swings both arms through every cycle and throws the guard up with both,
+// so a ruined arm gestured along as neatly as the good one, which is the one
+// thing it should never do.
+//
+// Freezing is the whole fix. The bones are held at BIND — the rest the model
+// was built in — after every other layer has run, so the clip, the reach solve
+// and the breath all move on around a limb that simply hangs. The attacks need
+// no rework: they already reach with the right arm (ik.js REACH), which is his
+// good one, so the strike lands exactly as authored with the branches trailing
+// beside it.
+
+/** Per character, bones the clips must not drive. */
+const FROZEN_BONES = {
+  hanami: ["LeftArm", "LeftForeArm", "LeftHand"],
+};
+
+/** Each frozen bone's bind-pose LOCAL rotation, cached per rig.
+ *
+ *  Taken from the skeleton's own bind matrices rather than from the clean-pose
+ *  buffer: that buffer is refreshed with whatever the clip just did (keepClean),
+ *  so restoring from it would hold the arm wherever this frame's animation put
+ *  it — which is not freezing, it is lagging by a frame. */
+function frozenLocals(rig, names) {
+  if (rig._frozen) return rig._frozen;
+  const out = [];
+  const world = new Map();
+  rig.root.traverse((o) => {
+    if (!o.isSkinnedMesh || !o.skeleton) return;
+    o.skeleton.bones.forEach((b, i) => {
+      if (world.has(b.name)) return;
+      world.set(b.name, new THREE.Matrix4().copy(o.skeleton.boneInverses[i]).invert());
+    });
+  });
+  for (const name of names) {
+    const bone = rig.root.getObjectByName(name);
+    const here = world.get(name);
+    if (!bone || !here) continue;
+    const parent = bone.parent && world.get(bone.parent.name);
+    const local = parent
+      ? new THREE.Matrix4().copy(parent).invert().multiply(here)
+      : here.clone();
+    out.push([bone, new THREE.Quaternion().setFromRotationMatrix(local)]);
+  }
+  rig._frozen = out;
+  return out;
+}
+
+/** Hold a ruined limb still, after everything else has moved. */
+function freezeBones(rig, charKey) {
+  const names = FROZEN_BONES[charKey];
+  if (!names || !rig?.root) return;
+  const held = frozenLocals(rig, names);
+  if (!held.length) return;
+  for (const [bone, q] of held) bone.quaternion.copy(q);
+  rig.root.updateMatrixWorld(true);
+}
+
+/** States authored with a foot off the floor that should have both down. */
+const LEVEL_FEET_STATES = new Set(["crouch"]);
+
+/** How high one foot's sole sits in the root's frame. */
+function soleY(root, side) {
+  const bones = new Map();
+  for (const n of [`${side}Foot`, `${side}ToeBase`]) {
+    const b = root.getObjectByName(n);
+    if (b) bones.set(n, b);
+  }
+  if (!bones.size) return null;
+  // groundOffset hands back the DROP to the lowest of what it is given, so
+  // the sole's height is its negation.
+  return -groundOffset(THREE, bones, { root });
+}
+
+/** Put the trailing foot down.
+ *
+ *  By EXTENDING ITS KNEE, not by tilting the body. Tilting was tried first and
+ *  is what the eye reaches for — the pose is right, it is just leaning — but
+ *  the rear knee is folded 124°, which tucks that foot up behind the thigh,
+ *  and no rotation brings it down without reclining the whole fighter into
+ *  what reads as sitting in a chair. Unfolding the knee lands the foot where a
+ *  crouching person's rear foot actually is and leaves every other angle —
+ *  the trunk fold, the hips, the guard — exactly as the sheet drew them.
+ *
+ *  The angle is SOLVED rather than derived: a test rotation, a measurement,
+ *  one Newton step. Two sign conventions meet here (the lateral axis's and the
+ *  bone rotation's) and guessing them is how a crouch ends up folding the leg
+ *  further instead of straightening it.
+ */
+const LEVEL_MAX_RAD = 70 * DEG;
+function levelFeet(rig, animKey) {
+  if (!LEVEL_FEET_STATES.has(clipNameFor(animKey))) return;
+  const root = rig?.root;
+  if (!root) return;
+  root.updateMatrixWorld(true);
+  const left = soleY(root, "Left");
+  const right = soleY(root, "Right");
+  if (left === null || right === null) return;
+  // The trailing foot is the higher one; standOnGround has already put the
+  // other on the floor. A centimetre is a foot on the floor.
+  const gap = Math.abs(left - right);
+  if (gap < 0.01) return;
+  const side = left > right ? "Left" : "Right";
+  const knee = root.getObjectByName(`${side}Leg`);
+  if (!knee) return;
+
+  const axis = characterLateral(THREE, root, _v1);
+  const TEST = 5 * DEG;
+  const h0 = soleY(root, side);
+  rotateBoneAboutWorldAxis(THREE, knee, axis, TEST, _ik);
+  root.updateMatrixWorld(true);
+  const h1 = soleY(root, side);
+  if (h0 === null || h1 === null) return;
+
+  const slope = (h1 - h0) / TEST;
+  let total = 0;
+  if (Number.isFinite(slope) && Math.abs(slope) > 1e-6) {
+    // Aim the sole at the height the planted foot is already at.
+    const target = Math.min(left, right);
+    total = Math.max(-LEVEL_MAX_RAD, Math.min(LEVEL_MAX_RAD, (target - h0) / slope));
+  }
+  rotateBoneAboutWorldAxis(THREE, knee, axis, total - TEST, _ik);
+  root.updateMatrixWorld(true);
+  // Straightening the leg may have pushed the body up off its planted foot.
+  standOnGround(rig, animKey);
+}
+
 /** Foot IK: clamp feet that sink below the ground line back onto it, with a
  *  short CCD pass over knee and hip. Only grounded states, only downward
  *  penetration — a raised foot is the clip's business. */
@@ -529,7 +821,7 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   // The delivery's own facing joins the turnaround: a rig built facing -Z
   // (loader.js yawOffsetDeg) is turned once, here, and every layer below sees
   // a fighter whose forward is where the spec says it is.
-  rig.root.rotation.y = (layers.turnYawRad || 0) + (rig.yawOffset || 0);
+  rig.root.rotation.y = facingYaw(rig, animKey, layers);
   rig.root.updateMatrixWorld(true);
 
   restoreClean(rig.root);
@@ -561,6 +853,9 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   // line back up to it. This is the other direction, and it is a translation
   // rather than a bend: the body drops until its lowest foot is on the ground.
   standOnGround(rig, animKey);
+  // ...and, where the pose was drawn with a foot in the air that should be on
+  // the floor, tilt until it is (the crouch — see levelFeet).
+  levelFeet(rig, animKey);
   // Body morphs (Mahito's transfiguration arms) precede aim/reach so every
   // solve sees the morphed limb.
   if (layers.charKey) applyMorphs(rig.root, layers.charKey, animKey, clipTime(animKey, sampled));
@@ -571,8 +866,16 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   // the striking hand — the shaft rides it (ik.js applyTwoHandGrip; a no-op
   // without layers.charKey or for one-handed fighters).
   if (layers.charKey) {
+    // Where the hand sits on the shaft, before anything is asked of the
+    // weapon: the grip is a fact about the fighter, so both the two-hand
+    // solve and the carry below want it already corrected.
+    applyGrip(THREE, rig.root, layers.charKey, _ik);
     applyTwoHandGrip(THREE, rig.root, layers.charKey, animKey,
       clipTime(animKey, sampled), _ik);
+    // ...and while TRAVELLING, the weapon is luggage rather than a statement:
+    // heavy end trailing, low and behind (ik.js applyCarry). After the grip
+    // solve, which is a no-op in these states anyway, so the two never argue.
+    applyCarry(THREE, rig.root, layers.charKey, animKey, _ik);
   }
   if (DIALS.lookAt && layers.lookRad) applyLook(rig.root, layers.lookRad);
   applyFlinch(rig.root, layers.flinch || 0);
@@ -581,6 +884,8 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   // Target-space edits, last: an offset on top of whatever the solvers made
   // of this bone (see applyPoseEdits).
   applyPoseEdits(rig.root, layers.postEdits);
+  // ...and a limb that does not work stays where it is, after everything.
+  if (layers.charKey) freezeBones(rig, layers.charKey);
 }
 
 /** Which layer OWNS each bone in `animKey` — what the workbench has to know to

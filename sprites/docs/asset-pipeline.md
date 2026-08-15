@@ -641,6 +641,23 @@ other outcome — the new art needed nothing — and exports as `clearUpdated`, 
 `apply_sprite_adjustments.py` reads. Neither takes effect until the export is
 applied, so a pose stays on the list, ticked or dotted, while it is worked on.
 
+Directly beneath it is its mirror image, **All Needing Regeneration**: every pose
+carrying a `needsReplacement` flag, across the whole roster, grouped by kind. The
+updated list is what *arrived*; this one is what was *sent back*, and it is the
+list an art round is written from. Before it existed the only way to read that
+was to open all twenty-eight characters and count the flagged cells, which is how
+a flag set in one session got forgotten by the next.
+
+**A pose you flagged and then pointed at a drawing that works is not on it.**
+Marking the delivered art bad and choosing a good alternate is a fix, not a
+request — asking again would commission a drawing that is already in the repo.
+Nothing enforces that rule directly: `needsReplacement` reads the *pose*, and a
+pose mirrors whichever drawing it currently points at (`poseView`), so a
+reassigned pose simply stops being flagged. The rejected drawing keeps its own
+tag, which is what the variants menu and `delete` want. `tools/smoke_workbench.mjs`
+asserts both halves, because on screen a listed pose and an unlisted one look
+exactly alike.
+
 ### Improvement requests
 
 `wantsImprovement` is the softer ask: the art *works*, it is just not as good as
