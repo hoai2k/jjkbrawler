@@ -677,6 +677,7 @@ with the side it fights for.
 | Special | B |
 | Dash | Shove the stick, or double-tap |
 | Dash attack | Light or heavy, while running |
+| Angled attack (45°) | Hold the stick into a corner, then attack |
 | Ultimate | RB |
 | Domain Expansion | LB |
 | Shield / dodges | LT |

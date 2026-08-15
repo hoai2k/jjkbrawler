@@ -199,21 +199,31 @@ export function aimable(state) {
  * between an up attack and a side attack is for.
  */
 export const AIM_ELEVATIONS = {
-  light:          [0],
-  sideHeavy:      [0],
+  // The side attacks carry the DIAGONALS (constants.ATTACK_DIAG_DEG): a stick
+  // pushed into a corner throws this same move angled 45°, with its hitbox
+  // swung to match (moves.swingMove), so the limb has to be allowed to follow
+  // it there. Level stays an anchor of its own, so a neutral press is still
+  // dead ahead rather than drifting toward whichever diagonal is nearer.
+  light:          [-45, 0, 45],
+  sideHeavy:      [-45, 0, 45],
+  airLight:       [-45, 0, 45],
   specialNeutral: [0],
   upHeavy:        [55],
   downHeavy:      [-25],
-  crouchAttack:   [-30],
+  crouchAttack:   [-45, -30],
   specialSide:    [-15],
-  airLight:       [-45, 0],
 };
 
 /** How far off its anchor an attack may be aimed, in degrees. Wide enough that
  *  an opponent a platform up or a body down is visibly aimed at; narrow enough
- *  that the limb stays inside the hitbox the move actually swings, which does
- *  not rotate (moves.js builds a box in front at a fixed height). */
-export const AIM_BAND_DEG = 26;
+ *  that the limb stays inside the hitbox the move actually swings.
+ *
+ *  It is also strictly under HALF the gap between neighbouring anchors, which
+ *  is what keeps the diagonals from swallowing level: at 45° apart, a band of
+ *  more than 22° would let an opponent slightly above drag a neutral jab onto
+ *  the up-diagonal's anchor, and the fighter would throw a level attack while
+ *  pointing 45° up. 20 leaves that margin and still covers a platform. */
+export const AIM_BAND_DEG = 20;
 
 function nearestElevation(list, deg) {
   let best = list[0];

@@ -1,7 +1,9 @@
 import { state } from "./state.js";
 import { clamp, sign } from "./utils.js";
 import { getCharacter } from "./characters.js";
-import { lightMove, heavyMove } from "./moves.js";
+import { lightMove, heavyMove, swingMove } from "./moves.js";
+import { bodyMetrics } from "./silhouette.js";
+import { comFrac } from "./body_points.js";
 import { spawnMelee, opponentOf, updateStatuses } from "./combat.js";
 import { performSpecial, updateSpecialState } from "./specials.js";
 import { performUltimate } from "./ultimates.js";
@@ -22,7 +24,7 @@ import {
   LEDGE_CATCH_SPEED, LEDGE_CATCH_MIN, LEDGE_CATCH_MAX,
   LEDGE_INVULN_TRAVEL, LEDGE_REGRAB_SCALE, LEDGE_HANG_INVULN, LEDGE_JUMP_INVULN,
   TEETER_EDGE, TEETER_DELAY,
-  RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE,
+  RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE, ATTACK_DIAG_DEG,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
 import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "./config_tuning.js";
@@ -84,6 +86,10 @@ export function makeFighter(id, charKey, x, facing) {
     // fighter (and stepped at the fixed rate) so it stays deterministic and
     // freezes with the rest of the fighter during hitlag.
     spin: 0, spinAngle: 0, facingVis: facing,
+    // Where this fighter's strike is pointed, while one is out. Null means
+    // "at whoever is nearest" (render.js). Set by fighter.js aimAlong for an
+    // angled attack and dropped with the action.
+    aimPoint: null,
     landT: 0, takeoffT: 0, trail: [], trailTick: 0, fxTrailT: 0,
     aiState: null,
     // The input this fighter last acted on, written by the sim loop. Summons
@@ -177,8 +183,67 @@ function executeMove(f, move, opts = {}) {
   if (opts.grunt) playGrunt(f.charKey);
 }
 
+// --------------------------------------------------------------- aiming
+//
+// WHICH WAY AN ATTACK IS THROWN, in one place, because two things have to
+// agree about it: the hitbox (swung by moves.swingMove) and the POSE (the
+// striking limb solves onto `f.aimPoint`, render.js). They used to be
+// independent — the angled smash swung its box while the body kept aiming at
+// whoever was nearest, and every other attack could not be angled at all.
+//
+// THE SCHEME. A cardinal direction picks a different MOVE, with its own pose
+// and its own hitbox; a DIAGONAL angles the neutral one by 45°:
+//
+//   grounded   nothing        straight ahead
+//              up             the up attack (its own move)
+//              up + forward   ahead, angled 45° UP
+//              down           crouching; straight down is the down attack
+//              down + forward crouching, angled 45° DOWN — at the legs
+//   airborne   the same four, off the aerial, which kicks rather than punches
+//
+// A diagonal is both directions being held at once, which is what a stick
+// pushed into a corner already reports (input.js) and what Up+Right already is
+// on a keyboard. Nothing new to press.
+
+/** The tilt this input asks for, in radians, positive DOWNWARD as y is. Zero
+ *  unless a diagonal is held. */
+function attackTilt(f, input) {
+  const forward = input.left || input.right;
+  if (!forward) return 0;
+  const diag = (ATTACK_DIAG_DEG * Math.PI) / 180;
+  if (input.up) return -diag;
+  if (input.down) return diag;
+  return 0;
+}
+
+/** Point the BODY along `tilt` (radians, positive downward) for this attack,
+ *  by handing render.js an aim point on that line at the fighter's own reach.
+ *  Cleared when the action ends, so a fighter goes back to tracking whoever is
+ *  in front of them the moment the swing is over. */
+function aimAlong(f, tilt) {
+  const key = f.spriteChar || f.charKey;
+  const r = bodyMetrics(key).reach;
+  const chestY = f.y - bodyMetrics(key).height * comFrac(key);
+  f.aimPoint = {
+    x: f.x + f.facing * Math.cos(tilt) * r,
+    y: chestY + Math.sin(tilt) * r,
+  };
+}
+
 function beginLight(f, input) {
   let variant;
+  // A DIAGONAL ANGLES THE NEUTRAL ATTACK rather than picking a vertical one:
+  // up-and-forward is the side attack aimed 45° up, not the up attack. See
+  // attackTilt. Checked before the cardinal branches below, which read
+  // `input.up` / `input.down` on their own and would otherwise swallow it.
+  const tilt = attackTilt(f, input);
+  if (tilt) {
+    const move = lightMove(f.char, f.grounded ? "side" : "air");
+    swingMove(move, tilt);
+    aimAlong(f, tilt);
+    executeMove(f, move);
+    return;
+  }
   if (!f.grounded) {
     variant = input.down ? "downAir" : input.up ? "upAir" : "air";
   } else if (f.crouching || input.down) {
@@ -278,12 +343,9 @@ function releaseHeavy(f, input) {
   const aim = clamp(input?.tiltY || 0, -1, 1);
   if (c.variant === "side" && Math.abs(aim) > 0.25) {
     const tilt = aim * SMASH_TILT;                 // + is downward, as y is
-    const radius = move.ox + move.w * 0.5;
-    move.oy += Math.sin(tilt) * radius;
-    move.ox *= Math.cos(tilt);
-    move.w *= Math.cos(tilt);
-    move.angle = clamp(move.angle - tilt * SMASH_TILT_ANGLE, -1.2, 1.4);
+    swingMove(move, tilt);
     move.label = (tilt < 0 ? "High " : "Low ") + move.label;
+    aimAlong(f, -tilt);
   }
   executeMove(f, move, { grunt: charge > 0.5 });
   if (charge > 0.25) {
@@ -471,7 +533,7 @@ function tryGrabLedge(f) {
       // LEDGE_CATCH_TIME, still drawing the fall (or the rise) they arrived
       // on. `updateLedgeMove` swaps to the hang pose when the hands land.
       f.spin = 0;
-      f.action = null;
+      f.action = null; f.aimPoint = null;
       f.charging = null;
       f.shielding = false;
       f.airJumpsLeft = stats(f).airJumps;
@@ -698,7 +760,7 @@ function resolvePlatforms(f, prevY) {
         if (f.action && f.action.kind === "attack" && f.action.move) {
           const lag = Math.max(AERIAL_LAND_LAG_MIN,
                                (f.action.move.recover || 0) * AERIAL_LAND_LAG_MULT);
-          f.action = null;
+          f.action = null; f.aimPoint = null;
           f.landLag = lag;
           f.landTimer = Math.max(f.landTimer, lag);
         }
@@ -770,7 +832,7 @@ export function ringOut(f) {
   // theirs — but dropping the reference here keeps a dead fighter out of it.
   if (state.domainCasting?.f === f) state.domainCasting = null;
 
-  f.action = null; f.charging = null; f.counter = null; f.reflect = null; f.healing = null;
+  f.action = null; f.aimPoint = null; f.charging = null; f.counter = null; f.reflect = null; f.healing = null;
   f.simpleDomain = null;
   clearGrabLinks(f);
   f.installs = null; f.spriteChar = null; f.hitstun = 0; f.statuses = freshStatuses();
@@ -834,7 +896,7 @@ function respawn(f) {
   // follows you off it. Leaving early cuts it down to the grace (leaveRespawnPlatform).
   f.invuln = RESPAWN_PLATFORM_TIME + RESPAWN_GRACE;
   f.grounded = true;
-  f.action = null; f.charging = null; f.bufferedAction = null;
+  f.action = null; f.aimPoint = null; f.charging = null; f.bufferedAction = null;
   f.hitstun = 0; f.landLag = 0; f.landTimer = 0;
   setAnim(f, "idle");
   f.airJumpsLeft = stats(f).airJumps;
@@ -1127,7 +1189,7 @@ export function updateFighter(f, dt, input) {
       // still runs out of it, so nothing deliberate is taken away, and the
       // lunge has decayed on its way here so this is a stop rather than a wall.
       if (f.action.lunge && f.grounded && !inHitstun && input.dirX !== Math.sign(f.vx)) f.vx = 0;
-      f.action = null;
+      f.action = null; f.aimPoint = null;
     }
   }
 
@@ -1390,7 +1452,7 @@ export function updateFighter(f, dt, input) {
       f.grounded = false;
       f.jumpHeldT = 0;
       f.jumpCut = false;
-      if (f.action?.kind === "dodge") f.action = null;
+      if (f.action?.kind === "dodge") f.action = null; f.aimPoint = null;
       dust(f.x, f.y, 12);
       playSfx("jump");
     } else if (f.airJumpsLeft > 0 && !inHitstun) {
