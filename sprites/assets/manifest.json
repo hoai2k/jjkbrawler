@@ -63974,6 +63974,11 @@
    "src": {
     "file": "assets/sprites/effects/tide_wave.png",
     "sha": "87ac42d36885"
+   },
+   "hit": {
+    "dx": -106.6,
+    "dy": -33.7,
+    "scale": 1.178
    }
   },
   "effect:triceratops": {
