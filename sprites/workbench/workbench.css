@@ -1152,6 +1152,11 @@ button.ghost:disabled { opacity: 0.35; cursor: default; border-color: var(--line
 .expando > summary:hover { color: var(--text); }
 .expando > .note { margin-top: 8px; }
 
+/* The Play button lives OUTSIDE the "Where it is used" fold, so it keeps its
+   own breathing room whether the prose above it is open or shut. Without this
+   it sat flush against the summary line when collapsed and read as part of it. */
+#usageGroup > #playEffectBtn { margin-top: 10px; }
+
 /* A replacement the game is NOT drawing yet. Warm border because it is the one
    panel that means "the thing on screen is not what just arrived". */
 .group.approval {

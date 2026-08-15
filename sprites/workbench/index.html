@@ -219,9 +219,18 @@
              below a box whose height varies with how many anchors a pose has.
              Each slider is paired with the number it sets, which is editable —
              a value read off one pose can be typed into the next. -->
+        <!-- The prose is long by design — it is the only place that says what
+             draws this, from where, at what size and against what — and that
+             length pushed the one BUTTON in this panel off the bottom of a
+             short screen. So the reading is folded away and the button is not:
+             it sits outside the fold, where it is one click from anywhere.
+             `expando` remembers nothing on purpose; closed is the useful
+             default and opening it is cheap. -->
         <div class="group" id="usageGroup" hidden>
-          <label data-help="These sprites are not part of any character&apos;s sheet: they are the shared &lt;code&gt;effect:&lt;/code&gt; and &lt;code&gt;summon:&lt;/code&gt; art the game draws for techniques, shikigami and stage props.&lt;br&gt;&lt;br&gt;They carry no per-frame placement data — the code that spawns each one decides its size and position — so the placement controls do not apply and are hidden. What you can do here is look at them at their in-game size and flag the ones that need redrawing.">Where it is used</label>
-          <div id="usageInfo" class="note"></div>
+          <details class="expando" id="usageFold">
+            <summary data-help="These sprites are not part of any character&apos;s sheet: they are the shared &lt;code&gt;effect:&lt;/code&gt; and &lt;code&gt;summon:&lt;/code&gt; art the game draws for techniques, shikigami and stage props.&lt;br&gt;&lt;br&gt;They carry no per-frame placement data — the code that spawns each one decides its size and position — so the placement controls do not apply and are hidden. What you can do here is look at them at their in-game size and flag the ones that need redrawing.">Where it is used <span class="sub" id="usageVal"></span></summary>
+            <div id="usageInfo" class="note"></div>
+          </details>
           <!-- The only question the panel above cannot answer: does it look
                right when the move actually goes off. -->
           <button id="playEffectBtn" class="ghost sm" hidden>▶ Play it in action</button>
