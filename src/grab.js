@@ -31,7 +31,7 @@
 import { state } from "./state.js";
 import { clamp, rectsOverlap, sign } from "./utils.js";
 import { bodyMetrics } from "./silhouette.js";
-import { applyHit, hurtbox } from "./combat.js";
+import { applyHit, hurtbox, debugShape } from "./combat.js";
 import { burst, dust, popup, ring } from "./particles.js";
 import { playSfx, playGrunt, stopShieldLoop } from "./audio.js";
 import { rumbleFighter } from "./rumble.js";
@@ -82,6 +82,7 @@ export function updateGrabReach(f) {
     x: f.facing === 1 ? f.x : f.x - reach,
     y: f.y - h, w: reach, h,
   };
+  debugShape(rect);
   for (const t of state.fighters) {
     if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
     // A hand cannot close on: i-frames (dodges included), someone freshly

@@ -1006,6 +1006,34 @@ function drawDebug(ctx) {
       ctx.strokeRect(a.x, a.y, a.w, a.h);
     }
   }
+  // Projectiles: the circle the flight test actually uses (combat.js).
+  ctx.strokeStyle = "rgba(255, 120, 120, 0.85)";
+  ctx.lineWidth = 1;
+  for (const p of state.projectiles) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  // Ad-hoc shapes the special/ultimate scripts registered (combat.js
+  // debugShape): the inline rects and circles their scripts test hurtboxes
+  // against, which this overlay was blind to. They decay here so a one-frame
+  // detonation still shows for a beat.
+  for (let i = state.debugShapes.length - 1; i >= 0; i--) {
+    const s = state.debugShapes[i];
+    s.ttl -= 1 / 60;
+    if (s.ttl <= 0) { state.debugShapes.splice(i, 1); continue; }
+    ctx.fillStyle = "rgba(255, 80, 80, 0.18)";
+    ctx.strokeStyle = "rgba(255, 120, 120, 0.8)";
+    if (s.r != null) {
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      ctx.fillRect(s.x, s.y, s.w, s.h);
+      ctx.strokeRect(s.x, s.y, s.w, s.h);
+    }
+  }
   for (const f of state.fighters) {
     if (f.dead) continue;
     const r = hurtbox(f);

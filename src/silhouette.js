@@ -68,6 +68,12 @@ const NEUTRAL_STATES = ["idle", "walk"];
 // fifteen fighters ducking under attacks on screen while standing upright.
 const CROUCH_STATES = ["crouch", "crouchAttack"];
 
+// And the airborne states, for how much of standing height a jump or fall
+// pose actually occupies — tucked legs and a lowered head make an airborne
+// fighter a shorter target, and the box should know by measurement, not by
+// assumption, for the same reason the crouch is measured.
+const AIR_STATES = ["jump", "fall"];
+
 const cache = new Map();
 let rosterCache = null;
 
@@ -163,9 +169,15 @@ function measure(charKey, height) {
     crouchRaw ? crouchRaw / height : HURTBOX.crouchH,
     HURTBOX.crouchMin, HURTBOX.crouchMax
   );
+  // ...and how much of standing height an airborne pose occupies, same deal.
+  const airRaw = poseHeight(charKey, AIR_STATES, scaleOf(charKey));
+  const air = clamp(
+    airRaw ? airRaw / height : HURTBOX.airH,
+    HURTBOX.airMin, HURTBOX.airMax
+  );
 
   return {
-    charKey, height, width, reach, crouch,
+    charKey, height, width, reach, crouch, air,
     measured: reachRaw != null,
     // False means this character's numbers came from art nobody has sized or
     // positioned yet, so they will move once somebody does.

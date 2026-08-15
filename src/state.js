@@ -68,6 +68,9 @@ export const state = {
   // How the match ended, for the result screen: "ko" | "time" | "suddenDeath".
   endReason: "ko",
   debugHitboxes: false,
+  // Ad-hoc hit-test shapes registered by special/ultimate scripts while the
+  // overlay is on (combat.js debugShape); drawn and decayed by drawDebug.
+  debugShapes: [],
   // Mirrors of main.js's round countdown / round end timers, written each sim
   // step. Read-only for everyone else; the 2.5D camera rig keys its intro
   // pull-out and final-blow framing off them.

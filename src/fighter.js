@@ -148,6 +148,11 @@ function setAnim(f, key) {
 
 function beginAction(f, kind, dur, anim, opts = {}) {
   f.action = { kind, t: 0, dur, anim, ...opts };
+  // Committing to an action ends the visual facing sweep: hitboxes mirror on
+  // `facing` snapshotted at spawn (combat.js), and for up to TURN_TIME the art
+  // could still be drawn mid-turn the other way. A fighter who swings turns
+  // decisively.
+  f.facingVis = f.facing;
   // A rewind is a cut even when the key does not change (jab 2 restarting the
   // jab clip), so it records prevAnim the same way setAnim does — and before
   // the rewind, while animTime still says where the old playhead was.

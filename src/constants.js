@@ -232,6 +232,12 @@ export const HURTBOX = {
   crouchW: 1.12,
   proneH: 0.25,
   proneW: 0.62,     // of HEIGHT, not width — a body on its side is body-length
+  // Airborne: jump/fall poses tuck, so the box is shorter than standing. The
+  // live value is measured from the character's own air art (`air` in
+  // src/silhouette.js), like crouch; this is the fallback and its guards.
+  airH: 0.78,
+  airMin: 0.55,
+  airMax: 0.92,
   ledgeH: 0.78,
   ledgeW: 0.94,
   ledgeTop: 0.76,

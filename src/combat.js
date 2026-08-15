@@ -22,6 +22,7 @@ import { breakGrabsOn } from "./grab.js";
 import {
   TUMBLE_KB_MIN, TUMBLE_SPIN_PER_KB, TUMBLE_SPIN_MAX,
   DI_MAX_TURN, DI_SPEED, STALE_QUEUE, STALE_DMG_STEP, STALE_KB_STEP,
+  HEIGHT_BASE_PX,
 } from "./config_tuning.js";
 
 // The aim pad (the d-pad) belonging to a fighter, or a centred one when they have no
@@ -58,6 +59,16 @@ export function hurtbox(f) {
     return { x: f.x - W * HURTBOX.ledgeW / 2, y: f.y - H * HURTBOX.ledgeTop,
              w: W * HURTBOX.ledgeW, h: H * HURTBOX.ledgeH };
   }
+  // Tumbling near horizontal (motion.js draws the body spun by spinAngle): an
+  // upright standing box on a body drawn sideways was the biggest remaining
+  // silhouette/box divergence in the air. Long and low like prone, but hung
+  // about the centre of mass — the point the spin pivots on.
+  if (!f.grounded && Math.abs(Math.sin(f.spinAngle || 0)) > 0.7) {
+    const bh = H * HURTBOX.proneH;
+    const cy = f.y - H * 0.55;
+    return { x: f.x - H * HURTBOX.proneW / 2, y: cy - bh / 2,
+             w: H * HURTBOX.proneW, h: bh };
+  }
   // Lying flat: long and low, matching what is drawn. High pokes whiff over a
   // downed fighter, which is most of what makes a knockdown mean anything.
   if (f.prone > 0 && f.hitstun <= 0 && f.grounded) {
@@ -77,6 +88,12 @@ export function hurtbox(f) {
   if (f.hitstun > 0) {
     return { x: f.x - W * HURTBOX.hurtW / 2, y: f.y - H * HURTBOX.hurtH,
              w: W * HURTBOX.hurtW, h: H * HURTBOX.hurtH };
+  }
+  // Airborne: jump and fall poses tuck, so the box is the measured air height
+  // (`b.air`, from this fighter's own jump/fall art) rather than full standing.
+  if (!f.grounded) {
+    const ah = H * b.air;
+    return { x: f.x - W / 2, y: f.y - ah, w: W, h: ah };
   }
   return { x: f.x - W / 2, y: f.y - H * HURTBOX.standH, w: W, h: H * HURTBOX.standH };
 }
@@ -121,6 +138,40 @@ export function spawnMelee(owner, cfg) {
     swung: false,
     hits: new Map(), // fighter -> {count, nextAt}
   });
+}
+
+/** Height scale for hand-authored offsets: kit blocks write oy/h for the
+ *  reference body (HEIGHT_BASE_PX), so a fighter drawn taller carries them
+ *  proportionally. Normals already scale in moves.js (`g.vy`); the wrappers
+ *  below do the same for the hand-authored half of the kit — specials and
+ *  ultimates import them under the plain names, so every kit call site scales
+ *  without being edited (docs/hitbox-audit.md item: "attack vertical offsets
+ *  are absolute, not scaled" — fixed for normals, now fixed here too). */
+function heightScaleOf(f) {
+  return bodyMetrics(f.spriteChar || f.charKey).height / HEIGHT_BASE_PX;
+}
+
+/** Register an ad-hoc hit test's shape for the debug overlay (backquote
+ *  toggles it — render.js drawDebug). The special/ultimate scripts test
+ *  hurtboxes against inline rects and circles that the overlay could not see;
+ *  each such site calls this beside its test. Rects are {x,y,w,h}, circles
+ *  {x,y,r}. No-op with the overlay off. Shapes decay in the overlay itself,
+ *  so a test that runs once (a detonation) still shows for a beat. */
+export function debugShape(shape) {
+  if (!state.debugHitboxes) return;
+  state.debugShapes.push({ ...shape, ttl: 0.12 });
+}
+
+export function spawnMeleeScaled(owner, cfg) {
+  const k = heightScaleOf(owner);
+  return spawnMelee(owner, { ...cfg, oy: (cfg.oy ?? -96) * k, h: (cfg.h ?? 100) * k });
+}
+
+export function spawnProjectileScaled(owner, cfg) {
+  const k = heightScaleOf(owner);
+  // Spawn offsets only: the shot leaves the caster's hand, wherever that is on
+  // this body — the shot's own size and flight are the move's, not the body's.
+  return spawnProjectile(owner, { ...cfg, ox: (cfg.ox ?? 70) * k, oy: (cfg.oy ?? -86) * k });
 }
 
 // ------------------------------------------------------------ hitting summons
@@ -382,8 +433,11 @@ export function updateProjectiles(dt) {
 
     if (!remove && target && target.respawnTimer <= 0 && !p.hit.has(target)) {
       const box = hurtbox(target);
-      // crouching under a high projectile dodges it
-      const ducked = target.crouching && p.y < target.y - 70;
+      // Crouching under a high projectile dodges it. The threshold is this
+      // fighter's own measured crouch top — a flat 70 px was over half of one
+      // body and a third of another.
+      const tb = bodyMetrics(target.spriteChar || target.charKey);
+      const ducked = target.crouching && p.y < target.y - tb.height * tb.crouch;
       // Sky Fold (Uro): projectiles entering the folded sky are bent straight
       // back at their owner instead of landing
       if (!ducked && target.reflect && target.reflect.t > 0 &&
@@ -741,7 +795,18 @@ export function applyHit(owner, target, hit, source) {
   const band = hit.critBand;
   let zone = null;
   if (band) {
-    zone = Math.abs(dx - band.center) <= band.tolerance ? "sweet"
+    // A derived tipper (moves.js tipBand) is measured from the swinger's
+    // centre, while `dx` is centre-to-centre — the band sits outside the tip
+    // by the VICTIM's half-width. The baked `center` stood that in with a
+    // fixed 30 px because the victim is unknown at build time; the victim is
+    // known here, so use their real half-width (a tipper on a narrow target
+    // sat outside anything the swing could touch, and inside a broad one).
+    // An authored band (no `ring`) is a character decision and keeps its own
+    // centre.
+    const center = band.ring != null
+      ? band.ring + bodyMetrics(target.spriteChar || target.charKey).width / 2
+      : band.center;
+    zone = Math.abs(dx - center) <= band.tolerance ? "sweet"
       : band.sourDmg || band.sourKb ? "sour" : null;
   }
   if (hit.critChance && Math.random() < hit.critChance) zone = "sweet";

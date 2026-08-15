@@ -223,6 +223,34 @@ console.log("\n  (a mix is fine and wanted — this is here so the mix stays a d
   + "   'only the tall ones' is the interesting bucket: those gaps are where being\n"
   + "   drawn tall buys real stage control.)");
 
+// Hand-authored kit hitboxes. Special/ultimate `p` blocks write oy/w/h as
+// literals for the reference body and are height-scaled at spawn
+// (combat.js spawnMeleeScaled) — so the literals themselves must stay inside
+// a reference-body sanity band, or a typo'd offset floats a hit above every
+// head on the roster and nothing else would ever say so.
+console.log("\n=== hand-authored special hitboxes (reference-body literals) ===");
+let specialsChecked = 0;
+const checkBlock = (key, name, p) => {
+  if (!p || typeof p !== "object") return;
+  if (p.w == null && p.h == null) return; // not a melee rect block
+  specialsChecked++;
+  if (p.oy != null && (p.oy < -300 || p.oy > 60)) {
+    fail(`${key}.${name}: oy ${p.oy} is outside the reference band (-300..60) — `
+      + `authored offsets are per reference body and scale at spawn`);
+  }
+  if (p.h != null && (p.h <= 0 || p.h > 360)) {
+    fail(`${key}.${name}: h ${p.h} is outside the reference band (0..360)`);
+  }
+};
+for (const key of CHARACTER_KEYS) {
+  const char = CHARACTERS[key];
+  for (const [slot, cfg] of Object.entries(char.specials || {})) {
+    checkBlock(key, `specials.${slot}`, cfg?.p);
+  }
+  checkBlock(key, "ultimate", char.ultimate?.p);
+}
+console.log(`  ${specialsChecked} authored blocks checked against the reference band`);
+
 console.log(`\nroster median art reach: ${n0(rosterReach())} px`
   + `   MELEE_GRACE.scale: ${MELEE_GRACE.scale}`);
 console.log(errors ? `\n${errors} invariant(s) failed` : "\nall invariants hold");
