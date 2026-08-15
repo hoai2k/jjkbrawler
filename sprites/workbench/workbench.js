@@ -3282,12 +3282,12 @@ function sharedControls(key) {
     return { used: true, size: false, offset: false, rotate: false, info,
              what: info.what };
   }
-  // Two spawn sites paint straight from `getImage` and never read sharedAdjust
-  // (src/shared_sprites.js names them): a trap erupting out of the floor, and
-  // one of Reggie's drops. Their size still works — that is folded into the
-  // kit's own height — but a nudge or a tilt set against one is stored and
-  // inert, which is the same lie the Size slider used to tell on summons. So
-  // the controls come off rather than sit there looking live.
+  // Every spawn site reads sharedAdjust now, so the nudge and the tilt are
+  // always live. They were not: a dozen ultimate directors and a handful of
+  // specials painted straight from `getImage`, and this took the controls off
+  // rather than let them look live and do nothing. The right fix was the other
+  // one — make the sites read it — because "this drawing cannot be moved" is
+  // never a fact about a drawing, only a gap in the code that paints it.
   const nudge = info.nudge !== false;
   return {
     used: true,

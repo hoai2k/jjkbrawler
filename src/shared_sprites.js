@@ -394,19 +394,38 @@ function buildRegistry() {
   // that stands on the stage. Reading the prefix instead got Nue exactly
   // backwards.
   //
-  // `nudge` is the other half of what a spawn site decides: whether it reads
-  // sharedAdjust at all. The two that place a drawing on a moving thing do —
-  // render.js for projectiles and auras, summons.js for creatures — and the
-  // handlers that paint a set piece themselves do not. A drawing they own can
-  // still be sized, because the size is folded into the kit's own height
-  // before it reaches them, but a dx/dy or a tilt set against one is stored and
-  // inert. Saying so here is what stops the workbench offering a control the
-  // game ignores.
+  // `nudge` used to be the other half of what a spawn site decides: whether it
+  // reads sharedAdjust at all. Two of them did — render.js for projectiles and
+  // auras, summons.js for creatures — and the handlers painting a set piece
+  // themselves did not, so a dx/dy or a tilt set against one was stored and
+  // inert, and this table's job was to stop the workbench offering a control
+  // the game ignored.
+  //
+  // They all read it now. An image is never guaranteed to arrive needing no
+  // adjustment, so "this drawing cannot be moved" was never a property worth
+  // preserving — it was a gap. What the site still records is which code paints
+  // it, for the readout, and where a handler fixes its own height, that height
+  // and `sizable: false`.
   //
   // Every entry below was read off its handler. Where a handler paints at a
   // height of its own rather than the kit's, that height is here too and
   // `sizable: false` says the slider cannot move it.
-  const SELF = (site) => ({ nudge: false, site });
+  // A handler that paints its own art rather than going through the projectile
+  // or creature renderer. That USED to mean "and therefore ignores the nudge",
+  // and `SELF` set `nudge: false` to say so — which is why the workbench took
+  // the offset and rotation controls away on all of them.
+  //
+  // It is no longer true of any of them, and had stopped being true of seven
+  // before that: the trap, the cloud field, the warp strike and the four
+  // spawnSummonFlash moves all grew a `sharedAdjust` call in specials.js while
+  // this table went on saying they had not, so the workbench hid live controls.
+  // The twelve directors in ultimates.js and the random drop have them now too.
+  //
+  // So what `SELF` records is the one thing still worth recording: WHICH code
+  // paints it, for the readout to name. Nothing turns a control off any more —
+  // a drawing the game shows is a drawing that can be adjusted, because we can
+  // never assume a delivered image needs no adjustment.
+  const SELF = (site) => ({ site });
   // WHERE it leaves the fighter, in game pixels from their feet, forward being
   // the way they face. Read off each handler, and where the handler defaults a
   // kit field the default is here too — `spawnProjectile` puts a shot at
@@ -501,7 +520,7 @@ function buildRegistry() {
     // A one-shot flash of art beside the fighter — Todo's clap, Yuji's
     // divergent impact, Rika's fist, Todo's drum. spawnSummonFlash stands it on
     // the ground at the fighter's feet and mirrors it with their facing, at the
-    // move's own `spriteH`; it never reads the nudge.
+    // move's own `spriteH`.
     swap: { anchor: "feet", mirrored: true, ...SELF("spawnSummonFlash (src/specials.js)") },
     echoStrike: { anchor: "feet", mirrored: true, ...SELF("spawnSummonFlash (src/specials.js)") },
     burst: { anchor: "feet", mirrored: true, ...SELF("spawnSummonFlash (src/specials.js)") },
@@ -532,9 +551,10 @@ function buildRegistry() {
       site = DRAW_SITES[node.type];
       drawnBy = site.anchor;
       const shown = { travels: !!site.travels, mirrored: !!site.travels || !!site.mirrored };
-      nudge = site.nudge
-        ? { nudge: true, ...shown }
-        : { nudge: false, nudgeSite: site.site, ...shown };
+      // Every spawn site reads sharedAdjust now, so the nudge is always live.
+      // `nudgeSite` survives as provenance — which code paints this, worth
+      // naming in the readout — rather than as a reason to hide a control.
+      nudge = { nudge: true, ...(site.site ? { nudgeSite: site.site } : {}), ...shown };
       launch = LAUNCH[node.type] || null;
       melee = MELEE[node.type] || null;
     }

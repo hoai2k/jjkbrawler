@@ -872,8 +872,16 @@ const HANDLERS = {
           ctx.globalAlpha = Math.max(0, 1 - (this.t - fallT) / 0.6);
         }
         if (img) {
+          const adj = sharedAdjust(drop.key);
           const w = img.width * drop.h / img.height;
-          ctx.drawImage(img, tx - w / 2, y - drop.h, w, drop.h);
+          // The drop stands on the point it lands on, so the tilt turns about
+          // its feet rather than sliding a falling vending machine sideways.
+          if (adj.rot) {
+            ctx.translate(tx, y);
+            ctx.rotate(adj.rot);
+            ctx.translate(-tx, -y);
+          }
+          ctx.drawImage(img, tx - w / 2 + adj.dx, y - drop.h + adj.dy, w, drop.h);
         } else {
           ctx.fillStyle = p.color;
           ctx.globalAlpha *= 0.8;

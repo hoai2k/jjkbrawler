@@ -17,6 +17,7 @@
 // declared in `SPRITE_FIELDS` (src/shared_sprites.js) — so that is what this
 // asks, against the real kits. A move that names its drawing under a new field
 // fails here rather than in a workbench nobody is looking at.
+import { readFileSync } from "node:fs";
 import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
 import { SPRITE_KEY_FIELDS, SPRITE_LIST_KEY_FIELDS } from "../src/shared_sprites.js";
 import { SUMMON_ART } from "../src/config_summons.js";
@@ -107,6 +108,51 @@ const badCreature = creatures.filter(([key, art]) => !key || typeof art !== "obj
 check(badCreature.length === 0,
   "every creature in SUMMON_ART is keyed",
   `${creatures.length} creature(s)`);
+
+// EVERY SITE THAT PAINTS SHARED ART HONOURS ITS ADJUSTMENT.
+//
+// The one this file exists to have caught and did not. src/ultimates.js did not
+// import shared_sprites.js at all, so a nudge or a tilt set on a meteor, a
+// tempest or a supernova orb was stored, shown in the workbench, and never
+// reached the screen — while the SIZE did reach it, because that is folded into
+// `spriteH` before a kit is read, which is what made the gap so easy to miss.
+// Four entries in the registry's own `nudge` table were stale for the opposite
+// reason: the handler had grown a `sharedAdjust` call and the table still said
+// it had not, so the workbench hid controls that worked.
+//
+// A drawing the game shows is a drawing that can be adjusted: art is never
+// guaranteed to arrive needing nothing. So every `drawImage` of shared art has
+// to consume `adj`. Text-level rather than clever, because the alternative is
+// no check at all — the failure was invisible for as long as it was.
+const PAINTERS = ["src/ultimates.js", "src/specials.js", "src/stage_fx.js",
+                  "src/summons.js", "src/render.js"];
+const unadjusted = [];
+for (const rel of PAINTERS) {
+  const src = readFileSync(new URL(`../${rel}`, import.meta.url), "utf8");
+  const lines = src.split("\n");
+  lines.forEach((line, i) => {
+    if (!/\bctx\.drawImage\(/.test(line)) return;
+    // A stage BACKDROP is not shared sprite art — it is `bg:<stage>`, painted
+    // from the stage table, with no `otherSprites` entry and nothing in the
+    // workbench that could adjust it.
+    if (/getImage\(`bg:/.test(lines.slice(Math.max(0, i - 8), i).join("\n"))) return;
+    // THE CALL ITSELF has to carry the nudge, not merely sit near a variable
+    // holding one. Checking the surrounding lines was the first attempt and it
+    // is worthless: every one of these sites resolves `adj` a few lines above,
+    // so a draw that had its `+ adj.dx` deleted still passed. The offsets are
+    // the whole point, so they are what gets asserted. Two lines, because a
+    // long call wraps.
+    const call = line + "\n" + (lines[i + 1] || "");
+    // `adj`, `tAdj`, `dAdj`, `fa` — whatever the site named what sharedAdjust
+    // gave back. What matters is that the offsets are in the draw.
+    if (/\w*[Aa]dj\.(dx|dy)|\bfa\.(dx|dy)/.test(call)) return;
+    unadjusted.push(`${rel}:${i + 1}`);
+  });
+}
+check(unadjusted.length === 0,
+  "every site painting shared art reads its adjustment",
+  unadjusted.length ? unadjusted.join(", ")
+    : `${PAINTERS.length} painting module(s) clean`);
 
 console.log(failed ? `\n${failed} check(s) failed` : "\nall shared-sprite invariants hold");
 process.exit(failed ? 1 : 0);
