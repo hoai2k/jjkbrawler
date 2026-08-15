@@ -102,9 +102,22 @@ export const BODY_POINTS = {
  * "checked and correct" from "nobody has looked yet".
  *
  * Cases: stand | crouch | air | hurt | prone | ledge.
+ *
+ * `prone` does double duty: combat.js builds the same box for a fighter lying
+ * flat AND for one tumbling near horizontal in mid-air, which is the same body
+ * spun. The bench reviews it on the flat drawing, so a prone fit is also a
+ * tumble fit — worth knowing before widening one to cover a sprawl.
  */
 export const HURTBOX_FIT = {
-  // "hanami": { air: { w: 1.1, h: 0.95, dx: -0.08 } },
+  "inumaki": { stand: { w: 0.59, h: 1.025, dx: 0.002, dy: 0.098 }, crouch: { w: 0.879, h: 0.799, dx: 0.06 }, air: { w: 0.829, h: 0.715, dx: 0.087, dy: 0.285 }, hurt: { w: 0.927, h: 0.692, dx: -0.047, dy: 0.314 }, prone: { w: 1.577, h: 0.588, dy: -0.019 }, ledge: { w: 0.675, h: 1.125, dx: -0.03, dy: 0.311 } },
+  "maki": { stand: { w: 0.504, h: 0.949, dx: 0.115, dy: 0.18 }, crouch: { w: 0.796, h: 0.654, dx: 0.009, dy: 0.081 }, air: { w: 0.757, h: 0.711, dx: 0.144, dy: 0.31 }, hurt: { w: 0.916, h: 0.814, dx: -0.022, dy: 0.166 }, prone: { w: 1.533, h: 0.615, dx: 0.071, dy: -0.159 }, ledge: { w: 0.408, h: 1.18, dx: -0.008, dy: 0.195 } },
+  "mechamaru": { stand: { w: 0.679, h: 1.119, dx: 0.022, dy: 0.018 }, crouch: { w: 1.007, h: 0.782, dx: 0.002 }, air: { w: 0.955, h: 0.789, dx: 0.023, dy: 0.183 }, hurt: { w: 0.933, h: 0.828, dx: -0.043, dy: 0.27 }, prone: { w: 1.498, h: 0.624, dx: -0.015, dy: -0.049 }, ledge: { w: 0.9, h: 1.36, dx: -0.005, dy: 0.241 } },
+  "megumi": { stand: { w: 0.573, h: 1.067, dx: -0.03, dy: 0.049 }, crouch: { w: 0.867, h: 0.692, dx: 0.031, dy: -0.001 }, air: { w: 0.827, h: 0.635, dx: 0.056, dy: 0.328 }, hurt: { w: 0.935, h: 0.72, dx: -0.024, dy: 0.266 }, prone: { w: 1.592, h: 0.698, dx: 0.059, dy: -0.184 }, ledge: { w: 0.593, h: 1.013, dx: -0.204, dy: 0.424 } },
+  "nobara": { stand: { w: 0.606, h: 1.132, dx: 0.021, dy: 0.022 }, crouch: { w: 0.932, h: 0.806, dx: 0.035 }, air: { w: 0.816, h: 0.656, dx: 0.013, dy: 0.336 }, hurt: { w: 1.035, h: 0.714, dx: -0.072, dy: 0.309 }, prone: { w: 1.449, h: 0.508, dx: 0.018, dy: -0.095 }, ledge: { w: 0.549, h: 1.128, dx: -0.049, dy: 0.291 } },
+  "panda": { stand: { w: 0.935, h: 1.004, dx: 0.01, dy: 0.109 }, crouch: { w: 0.926, h: 0.76, dx: -0.004, dy: 0.102 }, air: { w: 1.014, h: 0.756, dx: 0.042, dy: 0.292 }, hurt: { w: 1.032, h: 0.793, dx: -0.092, dy: 0.27 }, prone: { w: 1.547, h: 0.918, dx: -0.01, dy: -0.077 }, ledge: { w: 1, h: 1, dx: -0.336, dy: 0.437 } },
+  "todo": { stand: { w: 0.853, h: 0.892, dx: -0.003, dy: 0.224 } },
+  "yuji": { stand: { w: 0.571, h: 1.076, dx: 0.017, dy: 0.028 }, crouch: { w: 1.21, h: 0.899, dx: 0.173 }, air: { w: 0.753, h: 0.658, dx: 0.139, dy: 0.292 }, hurt: { w: 0.951, h: 0.844, dx: -0.011, dy: 0.252 }, prone: { w: 1.587, h: 0.687, dx: 0.004, dy: -0.167 }, ledge: { w: 0.569, h: 1.221, dx: -0.015, dy: 0.191 } },
+  "yuta": { stand: { w: 0.661, h: 1.083, dx: 0.018, dy: 0.042 }, crouch: { w: 0.994, h: 0.868, dx: 0.014, dy: 0.08 }, air: { w: 0.965, h: 0.67, dx: 0.188, dy: 0.447 }, hurt: { w: 0.967, h: 0.866, dx: -0.012, dy: 0.154 }, prone: { w: 1.535, h: 0.542, dx: -0.009, dy: -0.168 }, ledge: { w: 0.624, h: 1.096, dx: -0.168, dy: 0.297 } },
 };
 
 /** Who checked what, and when. Same keys; `at` is an ISO date. */
