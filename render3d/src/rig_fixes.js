@@ -168,19 +168,25 @@ export const RIG_FIXES = {
   //   * ELBOWS at 25°, which is exactly MAX_IDLE_ELBOW — both arms are as
   //     straight as the idle layer will allow and still read bent.
   //
-  // TWO ENTRIES TO WATCH, kept because the point of this round is to find out
-  // whether hand-dialling a rig works at all, and dropping the ones that look
-  // odd would answer a different question:
-  //   * LeftLeg / RightLeg. Both knees measure exactly straight in this pose
-  //     (the rig check straightens them), so these ADD a bend of 12° and 15°
-  //     rather than removing one, in opposite directions.
-  //   * LeftHand. A 33° wrist correction rides under the weapon-grip solver in
-  //     every state.
+  // FOUR ENTRIES DROPPED before the bake, because baking sets a mistake in
+  // stone where applying it live only made it every frame:
+  //   * LeftLeg [11.63,0,0] and RightLeg [-15.12,0,0]. Both knees measure
+  //     exactly straight in this pose, so these ADD a bend of 12° and 15°
+  //     rather than removing one — and in opposite directions, which is a
+  //     scissor rather than a fix.
+  //   * LeftHand [33.47,-24.96,15.59] and RightHand [0,29.64,0]. Large
+  //     eyeballed wrist corrections on the bone the grip solver owns. They are
+  //     worth re-dialling after the bake, against a skeleton that has stopped
+  //     moving, rather than baked as they are.
+  //
+  // The feet and toes ARE baked, though they were dialled before the mirror
+  // and overshoot by a few degrees because of it (26°/46° of splay became
+  // 20°/7° the other way). Baked they are an improvement rather than a
+  // correction, and the last few degrees come off in the rig bench once the
+  // model holds still. That is the workflow the bake exists to make possible.
   geto: {
     LeftUpLeg: [0, 0, -2.47],
     RightUpLeg: [0, 0, 10.5],
-    LeftLeg: [11.63, 0, 0],
-    RightLeg: [-15.12, 0, 0],
     LeftFoot: [0, 16.19, 0],
     RightFoot: [-1.48, -47.28, 0],
     LeftToeBase: [-9.2, 11.57, 0],
@@ -189,8 +195,6 @@ export const RIG_FIXES = {
     RightArm: [1.03, 0, 0],
     LeftForeArm: [19.1, 0, 0],
     RightForeArm: [-13.43, 0, 0],
-    LeftHand: [33.47, -24.96, 15.59],
-    RightHand: [0, 29.64, 0],
   },
 
   // WHAT IS DELIBERATELY NOT HERE, because the same loop said so:
