@@ -63964,9 +63964,17 @@
   },
   "effect:tide_wave": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": true,
+   "dx": -52.9,
+   "dy": -46.8,
+   "src": {
+    "file": "assets/sprites/effects/tide_wave.png",
+    "sha": "87ac42d36885"
+   }
   },
   "effect:triceratops": {
    "edited": {
@@ -64173,10 +64181,16 @@
   "effect:sound_wave": {
    "edited": {
     "dx": null,
-    "dy": null
+    "dy": null,
+    "faceLeft": null
    },
-   "dx": -2.6,
-   "dy": -5.1
+   "dx": -51.7,
+   "dy": -4.9,
+   "faceLeft": true,
+   "src": {
+    "file": "assets/sprites/effects/sound_wave.png",
+    "sha": "5610e9199467"
+   }
   },
   "effect:tempest": {
    "edited": {
@@ -64462,15 +64476,49 @@
   "effect:piercing_blood": {
    "renderScale": 0.635,
    "dx": -57.1,
-   "dy": 0.3
+   "dy": 0.3,
+   "src": {
+    "file": "assets/sprites/effects/piercing_blood.png",
+    "sha": "e475fe29c415"
+   }
   },
   "effect:blood_orb": {
    "edited": {
     "dx": null,
     "dy": null
    },
-   "dx": -0.2,
-   "dy": -1.4
+   "dx": -0.4,
+   "dy": 0,
+   "src": {
+    "file": "assets/sprites/effects/blood_orb.png",
+    "sha": "28a0222deb31"
+   }
+  },
+  "effect:aura_amber": {
+   "edited": {
+    "renderScale": null,
+    "dx": null,
+    "dy": null
+   },
+   "renderScale": 0.885,
+   "dx": -11,
+   "dy": 1.9,
+   "src": {
+    "file": "assets/sprites/effects/aura_amber.png",
+    "sha": "a05912b06397"
+   }
+  },
+  "effect:feedback_wall": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -3.7,
+   "dy": 26.3,
+   "src": {
+    "file": "assets/sprites/effects/feedback_wall.png",
+    "sha": "052eab1a8f8e"
+   }
   }
  }
 }

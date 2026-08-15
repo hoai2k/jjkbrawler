@@ -147,6 +147,49 @@ function scaleOf(key) {
 }
 
 /**
+ * WHERE THE SHOT ACTUALLY HITS, relative to where the game puts it.
+ *
+ * A projectile has had exactly one point since the beginning: its position is
+ * both what it collides on and what the picture hangs off, so `dx`/`dy` move
+ * the art and the collision circle stays put. For most art that is right — the
+ * shot IS the drawing, and moving the picture onto the point is the whole job.
+ *
+ * It stops being right when the drawing is not a ball. Dagon's tide is a wall
+ * of water 130px tall drawn along the floor: the part that should hit is the
+ * face of the wave, not the middle of a mostly-empty plate, and no amount of
+ * nudging the picture fixes that — nudging it moves the water off the point
+ * instead. The collision needs to move to the water.
+ *
+ *   dx, dy  the centre, offset from the projectile's own position in game px.
+ *           `dx` is FORWARD along the way it is travelling, so it mirrors with
+ *           the shot exactly as the drawing does; `dy` is down.
+ *   scale   a multiplier on whatever the kit declares — `r` for a circle. The
+ *           kit still owns the number, because how far a move reaches is
+ *           balance; this is the correction for art whose dense part is a
+ *           different size from the plate it arrived in.
+ *
+ * Per drawing rather than per move, like every other adjustment here and for
+ * the same reason: it is a fact about the picture. A drawing two moves throw
+ * gets one answer, which is the same bargain `renderScale` already makes.
+ */
+export function sharedHit(key) {
+  const h = entryOf(key)?.hit;
+  const n = (v, d) => (Number.isFinite(v) ? v : d);
+  return {
+    dx: n(h?.dx, 0),
+    dy: n(h?.dy, 0),
+    scale: h && Number.isFinite(h.scale) && h.scale > 0 ? h.scale : 1,
+  };
+}
+
+/** Has anybody moved or resized this drawing's hit region? For the workbench,
+ *  which says so, and for the checker. */
+export function hasSharedHit(key) {
+  const h = entryOf(key)?.hit;
+  return !!(h && (Number.isFinite(h.dx) || Number.isFinite(h.dy) || Number.isFinite(h.scale)));
+}
+
+/**
  * Every per-drawing adjustment for a shared sprite, resolved.
  *
  *   scale   a multiplier on whatever height the drawing is drawn at, wherever
@@ -426,6 +469,20 @@ function buildRegistry() {
   // a drawing the game shows is a drawing that can be adjusted, because we can
   // never assume a delivered image needs no adjustment.
   const SELF = (site) => ({ site });
+
+  // EVERY SHARED DRAWING IS BEHIND THE FIGHTERS, without exception, and the
+  // workbench drew all of them in front.
+  //
+  // The flat renderer's order is entities, then projectiles, then fighters
+  // (src/render.js `draw`), so every `e.draw` set piece and every shot passes
+  // under the bodies; the install aura is painted inside drawFighters between
+  // the shadow and the body, which is the same side. The two hazards that opt
+  // into `drawTop` — the hook for effects that mean to cover the fighters —
+  // are procedural fills with no art, so they are not drawings at all.
+  //
+  // It matters wherever the art overlaps the caster. Gakuganji's concert wave
+  // is centred on his chest: in the game he stands in front of it, and in the
+  // workbench it covered him.
   // WHERE it leaves the fighter, in game pixels from their feet, forward being
   // the way they face. Read off each handler, and where the handler defaults a
   // kit field the default is here too — `spawnProjectile` puts a shot at
@@ -460,6 +517,28 @@ function buildRegistry() {
     // body replaces the fighter where they stand.
     install: () => ({ forward: -58, y: 18 }),
     rampage: () => ({ forward: 0, y: 10 }),
+
+    // --- ultimate directors that paint ON THE CASTER -----------------------
+    // Read straight off their draw calls in src/ultimates.js. Without these the
+    // workbench had no point to put them on, so it fell back to floating them
+    // in the middle of the canvas with the fighter off to one side — which
+    // reads exactly like a spawn point that moves around at random, and is the
+    // question that prompted all four of these.
+    //
+    // `forwardOfWidth` is for the one whose offset is a fraction of the ART's
+    // own width rather than a fixed distance: `f.x + f.facing * w * 0.3`. It
+    // has to be resolved against the drawing, so it is named rather than
+    // guessed at.
+    concert: () => ({ forward: 0, y: -110 }),
+    shout: () => ({ forward: 0, forwardOfWidth: 0.3, y: -105 }),
+    massDrive: () => ({ forward: 150, y: -100 }),
+
+    // --- and the two that paint on the OPPONENT ----------------------------
+    // A distance this canvas has no second fighter to show, exactly as with a
+    // trap planted at the enemy's feet. Saying so beats standing the caster
+    // where the victim goes, which would be a confident lie.
+    skyInvert: () => ({ atOpponent: true, y: -140 }),
+    supernova: (n) => ({ atOpponent: true, y: 0, ringRadius: n.radius ?? 240 }),
   };
   // The MOVE's own hitbox, for the handlers whose art is a flash beside a melee
   // swing. Its `w`/`h` sit on the same node as the drawing and read like the

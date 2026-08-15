@@ -19,7 +19,9 @@ import {
   variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS, NOTE_FIELDS, ALTERNATE_KIND,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../../src/render.js";
-import { applySharedSpriteScales, sharedSpriteInfo, SPRITE_LIST_KEY_FIELDS } from "../../src/shared_sprites.js";
+import {
+  applySharedSpriteScales, sharedSpriteInfo, SPRITE_LIST_KEY_FIELDS, sharedHit,
+} from "../../src/shared_sprites.js";
 import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../../src/moves.js";
 import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
 import { muzzleOf, spawnOffset, REFERENCE_MUZZLE } from "../../src/muzzle.js";
@@ -343,6 +345,8 @@ const state = {
   anchorForced: new Set(),
   dragging: false,
   dragAttack: null,
+  // Dragging the hit circle: "move" on its centre, "size" on its rim.
+  dragHit: null,
   // RECENT_KEY while the cross-character updated list is open. `char` stays a
   // real character throughout — every control below edits the pose that is
   // selected, and which list it was picked from changes nothing about that.
@@ -991,6 +995,7 @@ function snapshot(charKey, frameKey) {
   // deep so an undo entry can't alias the live anchors object
   out.anchors = meta.anchors ? JSON.parse(JSON.stringify(meta.anchors)) : null;
   out.attackBox = meta.attackBox ? { ...meta.attackBox } : null;
+  out.hit = meta.hit ? { ...meta.hit } : null;
   return out;
 }
 
@@ -1003,6 +1008,8 @@ function restore(charKey, frameKey, snap) {
   // the thing that is supposed to take it back.
   if (snap.attackBox) meta.attackBox = { ...snap.attackBox };
   else delete meta.attackBox;
+  if (snap.hit) meta.hit = { ...snap.hit };
+  else delete meta.hit;
 }
 
 // ------------------------------------------------------------------ anchors
@@ -1108,7 +1115,8 @@ function isDirty(charKey, frameKey) {
     if (BOOLEAN_FIELDS.has(f)) return !!meta[f] !== !!orig[f];
     if (TEXT_FIELDS.has(f)) return (meta[f] || "") !== (orig[f] || "");
     return Math.abs((meta[f] ?? 0) - (orig[f] ?? 0)) > 1e-4;
-  }) || anchorsDirty(charKey, frameKey) || attackBoxDirty(charKey, frameKey);
+  }) || anchorsDirty(charKey, frameKey) || attackBoxDirty(charKey, frameKey)
+    || hitDirty(charKey, frameKey);
 }
 
 /** A creature's attack box, compared whole.
@@ -1123,6 +1131,17 @@ function attackBoxDirty(charKey, frameKey) {
   if (!orig) return false;
   const now = rawMeta(charKey, frameKey)?.attackBox;
   return JSON.stringify(now ?? null) !== JSON.stringify(orig.attackBox ?? null);
+}
+
+/** The hit region's correction, compared whole, and in the dirty test for
+ *  exactly the reason the attack box is: `payloadFor` walks the dirty list, so
+ *  a drawing whose only change was its hit circle would never be reached and
+ *  the edit would be dropped at export. */
+function hitDirty(charKey, frameKey) {
+  const orig = state.originals[charKey]?.[frameKey];
+  if (!orig) return false;
+  const now = rawMeta(charKey, frameKey)?.hit;
+  return JSON.stringify(now ?? null) !== JSON.stringify(orig.hit ?? null);
 }
 
 // Two INDEPENDENT questions get asked about a frame, and they must not be
@@ -1666,20 +1685,20 @@ function render() {
   // canvas and the fighter shrinks against it, which is the same fact seen from
   // the other side — the effect is getting bigger relative to a man.
   const sharedV = isOther(state.char) ? sharedView() : null;
-  // An install aura is WORN, not thrown, and standing the fighter off to one
-  // side answers only "how big" — leaving the questions an aura actually raises
-  // (is it centred on him, does it sit at his feet, does his head come out of
-  // the top) answerable nowhere but in a match. So the reference goes INSIDE
-  // the drawing instead of beside it, and is drawn after it, because the game
-  // paints the aura under the body. See the aura branch of drawSharedSprite.
-  const auraOverlay = !!comparison && sharedV?.can?.kind === "aura";
-  if (comparison && !auraOverlay) {
-    // Standing at the distance the move puts between them: the drawing holds the
-    // middle of the canvas and the FIGHTER moves to where they would be, so
-    // switching drawings does not send the thing you are looking at wandering.
-    const x = sharedV?.launch ? canvasCentreX() - sharedV.launch.forward * sharedV.z : null;
-    drawComparison(comparison, sharedV ? sharedV.z : state.zoom, x);
-  }
+  // THE FIGHTER GOES ON TOP OF A SHARED DRAWING, always, because that is the
+  // game's own order: entities, then projectiles, then fighters (render.js
+  // `draw`), and the install aura is painted between a fighter's shadow and
+  // their body. Every one of them passes UNDER. This canvas paints the
+  // reference first, so it was showing all of it in front — invisible on a
+  // shot flying away from its caster, and a different picture entirely on art
+  // centred on him. Gakuganji's concert wave covered him here and stands
+  // behind him in a match.
+  //
+  // Where the fighter STANDS is the other half, and it is per drawing: at the
+  // launch distance when the move declares one, at the drawing's own centre
+  // when the move paints on the caster, and off at the benchmark inset when
+  // there is nothing to be relative to.
+  const fighterX = comparison && sharedV ? referenceX(sharedV) : null;
   // Overlaid, and only overlaid: within one sprite set the question is whether
   // this pose lines up with the character's own idle, and that is only readable
   // when the two occupy the same space. Standing it aside is the Comparison
@@ -1694,8 +1713,8 @@ function render() {
   // indistinguishable from a broken sprite — say so instead.
   if (isOther(state.char)) {
     drawSharedSprite(cx);
-    // The body over the glow, at the aura's own centre — the game's paint order.
-    if (auraOverlay) drawComparison(comparison, sharedV.z, sharedV.px);
+    // ...and the body over it, in the game's paint order.
+    if (comparison) drawComparison(comparison, sharedV ? sharedV.z : state.zoom, fighterX);
   } else if (isPending(state.char, state.frame)) {
     drawPendingNotice(cx);
   } else if (!frameLoaded(state.char, state.frame)) {
@@ -2272,6 +2291,26 @@ function drawAttackBox(key) {
 }
 
 /** Write a changed attack box back onto the drawing's manifest entry. */
+/** Move or resize a drawing's hit region. Same shape as setAttackBox below and
+ *  for the same reasons — baseline first, undo point on the first change of a
+ *  drag, and the pose list repainted because its dirty dot is feedback.
+ *
+ *  A correction that comes to nothing is REMOVED rather than stored as zeroes:
+ *  an entry saying "moved by 0, scaled by 1" claims a decision nobody made, and
+ *  the stamp/reset machinery would then carry it forward as one. */
+function setSharedHit(key, hit, start) {
+  remember(OTHER_KEY, key);
+  if (start) pushHistory(OTHER_KEY, key);
+  const meta = rawMeta(OTHER_KEY, key);
+  if (!meta) return;
+  const empty = !hit.dx && !hit.dy && (hit.scale === 1 || hit.scale === undefined);
+  if (empty) delete meta.hit;
+  else meta.hit = { dx: hit.dx || 0, dy: hit.dy || 0, scale: hit.scale ?? 1 };
+  refreshControls();
+  buildPoseList();
+  render();
+}
+
 function setAttackBox(key, box, start) {
   // Take the baseline before the first change of a drag, the same as every
   // other edit does. Without it the box was compared against nothing, so it
@@ -2349,11 +2388,37 @@ function drawSharedHit(v) {
   const note = follows ? "height follows Size · width fixed" : "fixed";
   let label = "", topOf;
   if (hit.shape === "circle") {
-    const r = hit.r * z;
-    ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2);
+    // A circle is the one shape the drawing can move and resize for itself —
+    // it is what a projectile collides on, and a shot whose art is a wall of
+    // water has no business colliding from the middle of its plate. The kit
+    // still owns the radius; this is a multiplier and an offset on top.
+    const c = hitCentreOnCanvas(v);
+    const r = hit.r * v.hitAdj.scale * z;
+    ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
     ctx.fill(); ctx.stroke();
-    label = `hit radius ${hit.r}px · ${note}`;
-    topOf = py - r;
+    const moved = v.hitAdj.dx || v.hitAdj.dy;
+    const sized = v.hitAdj.scale !== 1;
+    label = `hit radius ${Math.round(hit.r * v.hitAdj.scale)}px`
+      + (sized ? ` (${hit.r} × ${v.hitAdj.scale.toFixed(2)})` : "")
+      + (moved ? ` · moved ${v.hitAdj.dx}, ${v.hitAdj.dy} from the spawn point`
+               : " · on the spawn point");
+    topOf = c.y - r;
+    // Two handles: the centre moves it, the rim on the right sizes it. Only
+    // while the shape is on screen at all, since it hangs off the Hurtbox
+    // toggle like everything else here.
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+    for (const [hx, hy, held] of [[c.x, c.y, state.dragHit?.mode === "move"],
+                                  [c.x + r, c.y, state.dragHit?.mode === "size"]]) {
+      ctx.beginPath();
+      ctx.arc(hx, hy, HANDLE_R * 0.8, 0, Math.PI * 2);
+      ctx.fillStyle = held ? "rgba(255, 240, 190, 0.95)" : "rgba(255, 210, 90, 0.55)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255, 226, 150, 0.95)";
+      ctx.stroke();
+    }
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = "rgba(255, 210, 90, 0.9)";
   } else {
     const hh = hit.h * (follows ? scale : 1);
     const w = hit.w * z, h = hh * z;
@@ -2377,6 +2442,32 @@ function drawSharedHit(v) {
 
 /** The canvas x every sprite is drawn about. */
 const canvasCentreX = () => canvas.width / 2;
+
+/** Where the reference fighter stands beside a shared drawing.
+ *
+ *  Three answers, and the drawing decides which:
+ *
+ *    at the LAUNCH distance   the move declares where it leaves them, so they
+ *                             stand that far from the drawing and the art can
+ *                             be lined up against the hand that throws it.
+ *    at the DRAWING'S CENTRE  the move paints ON the caster — an aura worn, a
+ *                             concert wave centred on the chest, a transformed
+ *                             body replacing them. Standing them aside answers
+ *                             only "how big" and leaves every question the art
+ *                             actually raises unanswerable off-stage.
+ *    at the BENCHMARK INSET   nothing relates the two: a stage hazard, a domain
+ *                             backdrop, a shot centred on the OPPONENT. Null,
+ *                             and drawComparison falls back on its own.
+ */
+function referenceX(v) {
+  const launch = v.launch;
+  if (!launch || launch.atOpponent) return v.can?.kind === "aura" ? v.px : null;
+  // `forwardOfWidth` is an offset expressed as a fraction of the ART's width —
+  // Gakuganji's shout sits at `f.facing * w * 0.3` — so it can only be resolved
+  // once the drawing's width is known.
+  const forward = launch.forward + (launch.forwardOfWidth || 0) * (v.w / v.z);
+  return forward ? canvasCentreX() - forward * v.z : v.px;
+}
 
 /** Which way a travelling drawing flies, and which way its plate has to point.
  *
@@ -2487,6 +2578,10 @@ function sharedView(key = state.frame) {
   const py = launch ? GROUND_Y + launch.y * z : anchorScreenY(anchor, h) + footDy * z;
   return {
     img, can, meta, scale, hit, z, h, anchor, launch, footDy,
+    // The drawing's own correction on the hit region — where it sits relative
+    // to the point the game spawns on, and how big. Resolved here so the
+    // drawing, the drag and the readout cannot disagree about it.
+    hitAdj: sharedHit(key),
     // Two different things worth saying out loud, and only one of them is a
     // compromise: `fitted` means the view was shrunk because the drawing has no
     // declared size to hold it to, `overflows` means it is drawn at full size
@@ -2556,6 +2651,17 @@ function launchScale(key) {
   const owner = sharedOwner(key);
   if (!base?.scaled || !owner) return 1;
   return bodyMetrics(owner).height / HEIGHT_BASE_PX;
+}
+
+/** Where the hit circle's centre lands on the canvas — the spawn point plus the
+ *  drawing's own correction. One definition, so the shape, its two handles and
+ *  the drag that moves them cannot disagree.
+ *
+ *  `dx` is FORWARD, and the viewer shows travelling art as fired (mirrored), so
+ *  it runs the same way the picture does on this canvas. */
+function hitCentreOnCanvas(v) {
+  const sx = v.mirror ? -1 : 1;
+  return { x: v.px + sx * v.hitAdj.dx * v.z, y: v.py + v.hitAdj.dy * v.z };
 }
 
 /** The spawn point's place on the canvas — one definition, used by the marker
@@ -3347,8 +3453,15 @@ function refreshUsageInfo() {
             + "disagree — but the art keeps its aspect while <code>w</code> stays put, so "
             + "sizing up makes the picture wider than the box it lands in. Width is the "
             + "only thing there is to match here. "
-          : "<b>It does not follow Size or the spawn point</b>, so the art is what moves to meet it. ")
-        + "Turn on Hurtbox to see it.");
+          : "It does not follow Size — the kit owns how far this move reaches. ")
+        + "Turn on Hurtbox to see it."
+        + (h.shape === "circle" && !h.melee
+          ? " <b>The circle has its own two handles:</b> drag its centre to move it off the "
+            + "spawn point, drag its right edge to resize it. Both are corrections stored "
+            + "against this DRAWING — a shot whose art is a wall of water should collide "
+            + "with the water, not with the middle of a mostly-empty plate — and they ride "
+            + "on top of the kit's own number rather than replacing it."
+          : ""));
     }
     // A creature with no authored pair measures its box off this drawing, so
     // there is no target to match and nothing worth drawing: the box is the
@@ -3415,8 +3528,11 @@ function refreshUsageInfo() {
         + "firing right sees it flipped. There is only ONE point here: the projectile's "
         + "position is both what it collides on and what the picture is hung around "
         + "(<code>drawProjectiles</code>, render.js). Moving the drawing off that point "
-        + "is what the nudge does — the hit region cannot be moved away from it, "
-        + "because in the game there is nothing else to move.");
+        + "is what the nudge does, and moving the CIRCLE off it is what the hit handles "
+        + "do — the two used to be locked together, which was right until the art stopped "
+        + "being a ball. Both are in the drawing's own frame, so they mirror with it: put "
+        + "the collision on the face of a wave and it stays on the face whichever way the "
+        + "wave rolls.");
     }
     if (can.offset) {
       lines.push(`<b>Spawn point:</b> ${ANCHOR_WORDS[can.anchor] || ""}. `
@@ -4402,14 +4518,23 @@ function rememberInUrl() {
   // set whether or not the updated list is what it was reached through; `list`
   // says which of the two the dropdown was on.
   const list = inRecent() ? "updated" : inFlagged() ? "flagged" : null;
-  if (url.searchParams.get("char") === state.char
-      && url.searchParams.get("frame") === state.frame
-      && (url.searchParams.get("list") || null) === list) return;
+  // The VIEW is part of where you are, and it was the one thing not written
+  // down: a reload of a fighter's effects list came back as Other Sprites on
+  // the default filter, which is neither the drawing you were on nor the list
+  // you were working through. `owner` is the other half — while the effects
+  // list is open the drawing lives in the shared set and the LIST belongs to a
+  // fighter, so both have to be said or the pair cannot be rebuilt.
+  const view = state.view === "unedited" ? null : state.view;
+  const owner = state.effectsOwner || null;
+  const same = (k, v) => (url.searchParams.get(k) || null) === v;
+  if (same("char", state.char) && same("frame", state.frame)
+      && same("list", list) && same("view", view) && same("owner", owner)) return;
   url.searchParams.set("char", state.char);
-  if (state.frame) url.searchParams.set("frame", state.frame);
-  else url.searchParams.delete("frame");
-  if (list) url.searchParams.set("list", list);
-  else url.searchParams.delete("list");
+  for (const [k, v] of [["frame", state.frame], ["list", list],
+                        ["view", view], ["owner", owner]]) {
+    if (v) url.searchParams.set(k, v);
+    else url.searchParams.delete(k);
+  }
   history.replaceState(null, "", url);
 }
 
@@ -4687,6 +4812,12 @@ function payloadFor(charKey) {
     // only mean anything together.
     if (meta.attackBox && JSON.stringify(meta.attackBox) !== JSON.stringify(orig.attackBox)) {
       entry.attackBox = meta.attackBox;
+    }
+    // The hit region's own correction, likewise whole — an offset and a scale
+    // that only mean anything together. `null` when it has been dragged back to
+    // nothing, because clearing has to export as clearly as setting.
+    if (JSON.stringify(meta.hit ?? null) !== JSON.stringify(orig.hit ?? null)) {
+      entry.hit = meta.hit ?? null;
     }
     if (Object.keys(entry).length) {
       // WHICH DRAWING this tuning was measured against. A shared key resolves
@@ -5017,6 +5148,26 @@ async function boot() {
         return;
       }
     }
+    // The hit circle before the spawn point: it is the smaller target, it sits
+    // ON the spawn point until somebody moves it, and it is the one you came to
+    // grab if you are looking at it.
+    if (isOther(state.char) && $("showHurtbox")?.checked) {
+      const v = sharedView();
+      if (v?.hit?.shape === "circle" && !v.hit.melee) {
+        const c = hitCentreOnCanvas(v);
+        const r = v.hit.r * v.hitAdj.scale * v.z;
+        const onRim = Math.abs(Math.hypot(p.x - c.x, p.y - c.y) - r) <= HANDLE_R * 1.6
+                      && p.x > c.x;
+        const onCentre = Math.hypot(p.x - c.x, p.y - c.y) <= HANDLE_R * 1.6;
+        if (onRim || onCentre) {
+          state.dragHit = { mode: onCentre ? "move" : "size", grabX: p.x, grabY: p.y,
+                            hit: { ...v.hitAdj }, started: false };
+          canvas.setPointerCapture(e.pointerId);
+          e.preventDefault();
+          return;
+        }
+      }
+    }
     if (isOther(state.char) && sharedControls(state.frame)?.offset) {
       const home = spawnHome();
       if (Math.hypot(home.x - p.x, home.y - p.y) <= HANDLE_R * 3) {
@@ -5064,6 +5215,32 @@ async function boot() {
       d.started = true;
       return;
     }
+    if (state.dragHit) {
+      const p = eventToCanvas(e);
+      const d = state.dragHit;
+      const v = sharedView();
+      if (!v) return;
+      const z = v.z || state.zoom;
+      if (d.mode === "move") {
+        const sx = v.mirror ? -1 : 1;
+        setSharedHit(state.frame, {
+          ...d.hit,
+          dx: round1(d.hit.dx + sx * (p.x - d.grabX) / z),
+          dy: round1(d.hit.dy + (p.y - d.grabY) / z),
+        }, !d.started);
+      } else {
+        // The rim drags the radius directly: how far the pointer is from the
+        // centre, over the kit's own number, is the multiplier.
+        const c = hitCentreOnCanvas(v);
+        const want = Math.hypot(p.x - c.x, p.y - c.y) / z;
+        setSharedHit(state.frame, {
+          ...d.hit,
+          scale: clampNum(+(want / v.hit.r).toFixed(3), 0.1, 4),
+        }, !d.started);
+      }
+      d.started = true;
+      return;
+    }
     if (state.dragSpawn) {
       const p = eventToCanvas(e);
       const d = state.dragSpawn;
@@ -5096,6 +5273,11 @@ async function boot() {
       try { canvas.releasePointerCapture(e.pointerId); } catch { /* already gone */ }
       render();
       return;
+    }
+    if (state.dragHit) {
+      state.dragHit = null;
+      refreshControls();
+      render();
     }
     if (state.dragSpawn) {
       state.dragSpawn = null;
@@ -5355,9 +5537,26 @@ async function boot() {
   // were working through is as much a part of where you were as which pose is
   // selected.
   const startList = params.get("list");
+  // `?view=` restores the filter, and with it the one view whose selection is
+  // not a pose of the character in the dropdown: `?owner=` names the fighter
+  // whose effects list was open, so a reload of "Choso · Effects this fighter
+  // uses · aura_crimson" comes back as all three rather than as Other Sprites
+  // on the default filter. Validated against the real sets, so a stale link
+  // falls back rather than opening something broken.
+  const startView = params.get("view");
+  if (VIEWS[startView]) {
+    state.view = startView;
+    $("viewSel").value = startView;
+  }
+  const owner = params.get("owner");
+  const startOwner = VIEWS[state.view]?.shared && WB_FIGHTERS.includes(owner) ? owner : null;
+
   if (startList === "updated") setRecent(startChar, wantedFrame);
   else if (startList === "flagged") setFlagged(startChar, wantedFrame);
-  else setChar(startChar, wantedFrame);
+  else if (startOwner) {
+    state.effectsOwner = startOwner;
+    openChar(OTHER_KEY, wantedFrame);
+  } else setChar(startChar, wantedFrame);
   if (wantedFrame) {
     const btn = $("poseList").querySelector("button.sel");
     if (btn) $("poseList").scrollTop = Math.max(0, btn.offsetTop - $("poseList").clientHeight / 2);
@@ -5378,6 +5577,17 @@ async function boot() {
   // Same shape as `window.__render3d`, and nothing here mutates.
   window.__spriteWorkbench = {
     flaggedPoses, allFlagBearingPoses, needsReplacement,
+    // Where the hit circle and its two handles are on the canvas right now.
+    // Read-only, and here for the same reason the flag predicates are: a
+    // draggable shape drawn on a canvas has no DOM for a test to grab, so
+    // without this a smoke can only click at coordinates it guessed.
+    hitGeometry() {
+      const v = isOther(state.char) ? sharedView() : null;
+      if (!v?.hit || v.hit.shape !== "circle" || v.hit.melee) return null;
+      const c = hitCentreOnCanvas(v);
+      const r = v.hit.r * v.hitAdj.scale * v.z;
+      return { cx: c.x, cy: c.y, r, rimX: c.x + r, rimY: c.y, adj: { ...v.hitAdj } };
+    },
   };
 }
 

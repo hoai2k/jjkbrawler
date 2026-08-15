@@ -1112,12 +1112,12 @@ export const CHARACTERS = {
       neutral: {
         name: "Piercing Blood", type: "projectile", cooldown: 1.15,
         desc: "Blood pressurized past the speed of sound — a needle-thin lance across the whole lane. It costs him a little of himself.",
-        p: { speed: 940, vy: 0, r: 18, dur: 0.6, dmg: 12, base: 380, growth: 7.0, angle: 0.28, color: "#c22e4a", pierce: true, bloodCost: 1.5, fxElement: "blood", label: "Piercing Blood", ox: 57, oy: -118, sprite: "effect:piercing_blood", spriteH: 70 },
+        p: { speed: 940, vy: 0, r: 18, dur: 0.6, dmg: 12, base: 380, growth: 7.0, angle: 0.28, color: "#c22e4a", pierce: true, bloodCost: 1.5, fxElement: "blood", label: "Piercing Blood", ox: 63, oy: -85, sprite: "effect:piercing_blood", spriteH: 70 },
       },
       side: {
         name: "Convergence: Blood Meteorite", type: "projectile", cooldown: 1.6,
         desc: "Hardened blood compressed into a dense sphere that detonates on arrival.",
-        p: { speed: 520, vy: -20, gravity: 80, r: 34, dur: 1.0, dmg: 15, base: 470, growth: 7.8, angle: 0.5, color: "#a01f38", explode: 85, bloodCost: 2, fxElement: "blood", label: "Blood Meteorite", ox: 25, oy: -111, sprite: "effect:blood_orb", spriteH: 88 },
+        p: { speed: 520, vy: -20, gravity: 80, r: 34, dur: 1.0, dmg: 15, base: 470, growth: 7.8, angle: 0.5, color: "#a01f38", explode: 85, bloodCost: 2, fxElement: "blood", label: "Blood Meteorite", ox: 45, oy: -83, sprite: "effect:blood_orb", spriteH: 88 },
       },
       down: {
         name: "Flowing Red Scale", type: "install", cooldown: 6.5,
