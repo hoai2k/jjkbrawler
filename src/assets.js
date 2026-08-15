@@ -193,7 +193,21 @@ export function getImage(key) {
  *  other way needs flipping once, at the source, or every spawn site would
  *  have to know about that one file. */
 function sharedMirror(key) {
-  return !!spriteManifest?.otherSprites?.[key]?.faceLeft;
+  const all = spriteManifest?.otherSprites;
+  if (!all) return false;
+  // A CREATURE'S POSES INHERIT ITS FACING, the same way they inherit its size
+  // (entryOf in shared_sprites.js). Six plates of one creature are one drawing
+  // set pointing one way, so "this art arrived facing the wrong way" is a fact
+  // about the creature and not about `idle_b` — and reading the pose key alone
+  // meant a Mirror set on the creature did nothing, while getting it right
+  // meant ticking the same box six times and hoping. The pose still wins where
+  // one has been set, which is the same precedence everything else here uses.
+  const parts = String(key).split(":");
+  const creature = parts[0] === "summon" && parts.length === 3
+    ? `${parts[0]}:${parts[1]}` : null;
+  const own = all[key]?.faceLeft;
+  if (own !== undefined) return !!own;
+  return !!(creature && all[creature]?.faceLeft);
 }
 
 const mirrored = new Map();
