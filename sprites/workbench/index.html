@@ -152,6 +152,24 @@
           </div>
         </div>
 
+        <!-- SHARED DRAWINGS ONLY. A pose is placed in its cell by `ox` and
+             `bodyBottom` (the two groups below); a shared drawing has no cell,
+             and is placed by nudging it off the point the game paints it on.
+             That nudge was draggable on the canvas and nowhere else, which is
+             fine until the drawing is a 940px scream wave and the handle is a
+             12px marker lost in the middle of it. Size and Rotation both have a
+             field here; position is the one that did not. -->
+        <div class="group" id="nudgeGroup" hidden>
+          <label data-help="Where the picture sits relative to the point the game spawns it on — the orange handle on the canvas, as numbers.&lt;br&gt;&lt;br&gt;Positive x is FORWARD along the way the drawing travels and positive y is DOWN. It moves the picture only: what the effect collides on does not move with it, which is the whole point — art arrives off-centre in its plate and the collision point is not negotiable.">Drawing offset <span class="sub" id="nudgeVal"></span></label>
+          <div class="slider-row">
+            <input type="number" id="nudgeXNum" class="num" step="0.5" inputmode="decimal" aria-label="Drawing offset, forward">
+            <span class="unit">x</span>
+            <input type="number" id="nudgeYNum" class="num" step="0.5" inputmode="decimal" aria-label="Drawing offset, down">
+            <span class="unit">y</span>
+            <button id="nudgeClear" class="ghost sm" type="button">centre</button>
+          </div>
+        </div>
+
         <div class="group" id="groundGroup">
           <label data-help="Where the sprite sits vertically. On a grounded pose that is the floor contact: it defaults to the lowest opaque pixel, which is wrong when perspective puts one foot lower than the standing plane — raise it so the &lt;em&gt;near&lt;/em&gt; foot rests on the platform.&lt;br&gt;&lt;br&gt;An airborne pose has no floor contact, but it still has to sit right against the &lt;b&gt;hurtbox&lt;/b&gt; — that is the body the game actually tests, and it does not move when the fighter leaves the ground. So the control stays live there and reads as plain vertical placement; turn on the hurtbox overlay and line the pose up inside it.&lt;br&gt;&lt;br&gt;The track covers the usual range; a pose that needs more can have the number typed in and the slider grows to reach it.">Vertical position <span class="sub" id="groundVal"></span></label>
           <div class="slider-row">

@@ -3520,6 +3520,9 @@ function applyPanelMode() {
   const can = other ? sharedControls(state.frame) : null;
   $("scaleGroup")?.toggleAttribute("hidden", other && !can?.size);
   $("rotationGroup")?.toggleAttribute("hidden", other && !can?.rotate);
+  // The nudge is the shared-drawing counterpart of a pose's placement fields,
+  // so it appears exactly where those disappear.
+  $("nudgeGroup")?.toggleAttribute("hidden", !(other && can?.offset));
   if (other) refreshUsageInfo();
 
   // A pose with no art yet has nothing to place: the controls stay visible so
@@ -3856,7 +3859,40 @@ function refreshTag() {
     (left ? ` <span class="flag">mirrored</span>` : "");
 }
 
+/** The drawing's nudge, as numbers. Mirrors the canvas handle exactly — same
+ *  field, same units — so whichever way you reach for it you are editing one
+ *  thing. Fields rather than sliders: a nudge has no natural range (a scream
+ *  wave wants tens of pixels, a lance wants sixty) and typing a number is the
+ *  precise half of this pairing. */
+function refreshNudge() {
+  const x = $("nudgeXNum"), y = $("nudgeYNum"), val = $("nudgeVal");
+  if (!x || !isOther(state.char)) return;
+  const meta = rawMeta(OTHER_KEY, state.frame) || {};
+  const dx = round1(meta.dx ?? 0), dy = round1(meta.dy ?? 0);
+  if (document.activeElement !== x) x.value = String(dx);
+  if (document.activeElement !== y) y.value = String(dy);
+  if (val) val.textContent = dx || dy ? `${dx}, ${dy} px from the spawn point` : "on the spawn point";
+}
+
+function setNudge(patch) {
+  remember(OTHER_KEY, state.frame);
+  pushHistory(OTHER_KEY, state.frame);
+  const meta = rawMeta(OTHER_KEY, state.frame);
+  if (!meta) return;
+  if (Number.isFinite(patch.dx)) meta.dx = round1(patch.dx);
+  if (Number.isFinite(patch.dy)) meta.dy = round1(patch.dy);
+  refreshNudge();
+  refreshControls();
+  buildPoseList();
+  render();
+}
+
+$("nudgeXNum")?.addEventListener("change", (e) => setNudge({ dx: Number(e.target.value) }));
+$("nudgeYNum")?.addEventListener("change", (e) => setNudge({ dy: Number(e.target.value) }));
+$("nudgeClear")?.addEventListener("click", () => setNudge({ dx: 0, dy: 0 }));
+
 function refreshControls() {
+  refreshNudge();
   refreshHeadControl();
   refreshUpdatedControl();
   refreshSelfIdleOptions();
