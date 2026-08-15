@@ -56,7 +56,14 @@ export const DIALS = {
   footIK: true,
   breath: true,               // additive shoulder breath on held states
   breathDeg: 1.6,
+  blend: true,                // cross-fade state changes instead of cutting
+  blendTime: 0.1,             // seconds of fade; quantised by the backend
 };
+
+/** States a change INTO is a snap on purpose — the cut IS the read. An impact
+ *  that eased in would look absorbed rather than taken. Clip names
+ *  (post-alias), like every state set here: `grabbed` is covered by `hurt`. */
+export const NO_BLEND_IN = new Set(["hurt", "land"]);
 
 /** States whose head may track the opponent. Never during attacks — the
  *  clip owns the head then. */
@@ -375,7 +382,14 @@ export function playClip(rig, animKey, sampled, clip) {
     rig.mixer.stopAllAction();
     action.reset().play();
   }
-  rig.mixer.setTime(sampled);
+  // One-shots clamp to the CLIP's own end, not just the state table's: the
+  // table durations now run past the last drawing (the recovery tail), and a
+  // DELIVERED clip authored to the old length would wrap under LoopRepeat —
+  // the strike replaying mid-recovery. Library-built clips carry a settle key
+  // at the full table duration, so for them this clamp never engages. Loops
+  // keep raw time: the mixer's own wrap is correct for a short loop clip.
+  const oneShot = STATES[name] && !STATES[name].loop;
+  rig.mixer.setTime(oneShot ? Math.min(sampled, clip.duration - 1e-4) : sampled);
 }
 
 /** NOD `name` by `rad` — a rotation in the vertical plane the character faces
@@ -899,10 +913,56 @@ export function bakedBind(rig, charKey) {
   return out;
 }
 
+/** Per-rig scratch for the cross-fade: the outgoing pose, snapshotted after
+ *  its full solve, that the incoming pose is blended toward. */
+const BLEND_SNAP = new WeakMap();
+
+function snapshotPose(root) {
+  let snap = BLEND_SNAP.get(root);
+  if (!snap) {
+    snap = [];
+    root.traverse((o) => {
+      if (o.isBone) snap.push([o, new THREE.Quaternion(), new THREE.Vector3()]);
+    });
+    BLEND_SNAP.set(root, snap);
+  }
+  for (const e of snap) { e[1].copy(e[0].quaternion); e[2].copy(e[0].position); }
+  return snap;
+}
+
 export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   // A RIG CHECK IS NOT A STATE. It takes the turnaround and the correction
   // layer and stops there — see poseRigCheck.
   if (layers.rigCheck) return poseRigCheck(rig, layers.rigCheck, layers);
+  // THE CROSS-FADE. A state change used to be a hard cut — stopAllAction and
+  // play, a different body on the next frame. When the backend hands over
+  // where the cut came from (layers.blend: the outgoing state, its frozen
+  // playhead, its resolved clip, and how far in [0..1) the fade is), the
+  // outgoing pose is solved in full, kept, the incoming pose solved on top,
+  // and every bone slerped back toward the outgoing by the fade's remainder.
+  // Both poses go through the whole layer stack, so the blend is between two
+  // finished bodies rather than two raw clips — the same reason CLEAN_POSE
+  // exists. Cost: one extra solve, only on cache-miss frames inside the
+  // ~0.1 s window. The backend quantises the fraction so it joins the token.
+  const blend = layers.blend;
+  if (blend?.clip) {
+    poseOnce(rig, blend.key, blend.sampled, blend.clip,
+      { ...layers, blend: null, beat: undefined, aimRad: 0, reach: null });
+    const snap = snapshotPose(rig.root);
+    poseOnce(rig, animKey, sampled, clip, layers);
+    const k = Math.min(Math.max(blend.k, 0), 1);
+    const w = 1 - k * k * (3 - 2 * k); // outgoing weight, smooth at both ends
+    for (const [bone, q, p] of snap) {
+      bone.quaternion.slerp(q, w);
+      bone.position.lerp(p, w);
+    }
+    rig.root.updateMatrixWorld(true);
+    return;
+  }
+  return poseOnce(rig, animKey, sampled, clip, layers);
+}
+
+function poseOnce(rig, animKey, sampled, clip, layers = {}) {
   // The turnaround goes on FIRST, before anything reads a world matrix.
   // Facing here is a real 180° yaw rather than a mirror, so it changes which
   // way "forward" points in the world — and the reach solve below builds its

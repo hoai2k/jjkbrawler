@@ -48,17 +48,24 @@ export const STATES = {
   land:           { loop: false, duration: 0.15,  tier: "library" },
   hurt:           { loop: true,  duration: 0.5,   tier: "library" },
   crouch:         { loop: true,  duration: 0.667, tier: "library" },
-  crouchAttack:   { loop: false, duration: 0.18,  beat: 0.09,  aim: true,  tier: "archetype" },
+  // One-shot attacks carry a RECOVERY TAIL past the last sprite key: the
+  // durations here approximate the move's own delay+dur+recover (moves.js),
+  // where they used to stop at the last drawing — which froze the fighter at
+  // full extension for the back ~40% of every attack. The tail is a settle
+  // key back toward the wind-up (pose_clips.js buildStateClip), so the swing
+  // retracts instead of holding. The beat is unchanged; a clip that outlives
+  // its action is simply cut by the next state, which the cross-fade smooths.
+  crouchAttack:   { loop: false, duration: 0.30,  beat: 0.09,  aim: true,  tier: "archetype" },
   shield:         { loop: true,  duration: 0.6,   tier: "library" },
   ledge:          { loop: true,  duration: 0.8,   tier: "library" },
   dodge:          { loop: true,  duration: 0.4,   tier: "library" },
   dodge_roll:     { loop: true,  duration: 0.4,   tier: "library" },
   dodge_air:      { loop: true,  duration: 0.4,   tier: "library" },
-  light:          { loop: false, duration: 0.167, beat: 0.083, aim: true,  tier: "archetype" },
-  airLight:       { loop: false, duration: 0.25,  beat: 0.125, aim: true,  tier: "archetype" },
-  sideHeavy:      { loop: false, duration: 0.333, beat: 0.167, aim: true,  tier: "archetype" },
-  upHeavy:        { loop: false, duration: 0.4,   beat: 0.167, aim: true,  tier: "archetype" },
-  downHeavy:      { loop: false, duration: 0.4,   beat: 0.167, aim: true,  tier: "archetype" },
+  light:          { loop: false, duration: 0.30,  beat: 0.083, aim: true,  tier: "archetype" },
+  airLight:       { loop: false, duration: 0.35,  beat: 0.125, aim: true,  tier: "archetype" },
+  sideHeavy:      { loop: false, duration: 0.55,  beat: 0.167, aim: true,  tier: "archetype" },
+  upHeavy:        { loop: false, duration: 0.55,  beat: 0.167, aim: true,  tier: "archetype" },
+  downHeavy:      { loop: false, duration: 0.55,  beat: 0.167, aim: true,  tier: "archetype" },
   charge:         { loop: true,  duration: 0.5,   tier: "identity" },
   specialNeutral: { loop: false, duration: 0.5,   beat: 0.125, aim: true,  tier: "identity" },
   specialSide:    { loop: false, duration: 0.5,   beat: 0.125, aim: true,  tier: "identity" },
@@ -70,8 +77,8 @@ export const STATES = {
   // and the sprite side stands it in the same way until its pose is drawn
   // (round 20D). A dedicated pair of clips is a billboard round when somebody
   // wants one, not a hole in the roster today.
-  dashAttack:     { loop: false, duration: 0.167, beat: 0.083, aim: true,  tier: "archetype" },
-  dashAttackHeavy:{ loop: false, duration: 0.333, beat: 0.167, aim: true,  tier: "archetype" },
+  dashAttack:     { loop: false, duration: 0.30,  beat: 0.083, aim: true,  tier: "archetype" },
+  dashAttackHeavy:{ loop: false, duration: 0.55,  beat: 0.167, aim: true,  tier: "archetype" },
   dizzy:          { loop: true,  duration: 1.0,   tier: "library" },
   prone:          { loop: true,  duration: 1.0,   tier: "library" },
   win:            { loop: true,  duration: 1.2,   tier: "identity" },

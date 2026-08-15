@@ -45,20 +45,36 @@ export function poseSchedule(charKey, state) {
   const frames = anim?.frames?.filter(Boolean) || [];
   if (!frames.length || !anim.fps) return [];
   const dur = spec?.duration ?? frames.length / anim.fps;
+  const times = frames.map((_, i) => Math.min(+(i / anim.fps).toFixed(4), dur));
+  // The CONTACT frame of an attack: the last frame scheduled at or before the
+  // beat (every frame, when the wind-up is the whole pre-beat sheet). The
+  // segments either side of it travel differently — see `ease` below.
+  let contactT = null;
+  if (spec?.beat !== undefined) {
+    contactT = times[0];
+    for (const t of times) if (t <= spec.beat + 1e-4) contactT = t;
+  }
   return frames.map((frame, i) => ({
     frame,
     i,
     // Clamped into the clip: a state whose art outruns its duration (a
     // fallback pose set playing at the wrong fps) would otherwise schedule
     // keys past the end, where nothing samples them.
-    t: Math.min(+(i / anim.fps).toFixed(4), dur),
+    t: times[i],
     fps: anim.fps,
     // How the pose travels OUT of this frame. A sprite cuts; a model has to
     // travel, and how it travels is the one animation decision the drawings
     // cannot make — so it is a per-pose setting with a sane default rather
-    // than a constant. Attacks snap (most of the distance early, which is why
-    // a punch reads fast); everything else eases.
-    ease: spec?.beat !== undefined ? "snap" : "ease",
+    // than a constant.
+    //
+    // Attacks are two different motions either side of the contact. INTO the
+    // contact frame is the strike: it accelerates out of the coil ("in" —
+    // slow leaving the wind-up, explosive arriving), which is what gives a
+    // punch anticipation; the old constant "snap" front-loaded the travel and
+    // showed the extended arm for most of the wind-up window instead. OUT of
+    // the contact frame is follow-through: fast off the hit, settling ("out").
+    // Everything that is not an attack just eases.
+    ease: contactT === null ? "ease" : (times[i] < contactT ? "in" : "out"),
   }));
 }
 

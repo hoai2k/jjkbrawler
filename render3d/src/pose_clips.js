@@ -156,6 +156,16 @@ export function buildStateClip(THREE, charKey, state, baked) {
   if (spec?.loop && keys.length > 1 && keys[keys.length - 1].t < duration) {
     keys.push({ ...keys[0], t: duration, ease: keys[0].ease });
   }
+  // FOLLOW-THROUGH. A one-shot attack's duration now runs past its last
+  // drawing (states.js), and what fills the tail is a settle back toward the
+  // first key — the wind-up, which is that fighter's own coiled guard, so an
+  // air attack settles to an air pose and a naginata swing to a naginata
+  // ready. Without this the clip clamped on the extended strike and the
+  // fighter held a frozen full extension through their whole recovery.
+  if (!spec?.loop && spec?.beat !== undefined
+      && keys[keys.length - 1].t < duration - 1e-3) {
+    keys.push({ ...keys[0], t: duration, ease: "out" });
+  }
   return buildClipFromKeys(THREE, name, keys, {
     duration, beat: spec?.beat, loop: !!spec?.loop,
   });

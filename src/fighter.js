@@ -135,6 +135,10 @@ function speedMul(f) {
 
 function setAnim(f, key) {
   if (f.animKey !== key) {
+    // Where the animation was CUT from, for backends that can blend a state
+    // change instead of snapping (render3d): the outgoing state and the
+    // playhead it was left at. Sprites ignore it — a drawing cuts.
+    f.prevAnim = { key: f.animKey, t: f.animTime };
     f.animKey = key;
     f.animTime = 0;
   }
@@ -144,8 +148,12 @@ function setAnim(f, key) {
 
 function beginAction(f, kind, dur, anim, opts = {}) {
   f.action = { kind, t: 0, dur, anim, ...opts };
-  f.animTime = 0;
+  // A rewind is a cut even when the key does not change (jab 2 restarting the
+  // jab clip), so it records prevAnim the same way setAnim does — and before
+  // the rewind, while animTime still says where the old playhead was.
+  if (anim && f.animKey === anim) f.prevAnim = { key: anim, t: f.animTime };
   if (anim) setAnim(f, anim);
+  f.animTime = 0;
 }
 
 function executeMove(f, move, opts = {}) {
