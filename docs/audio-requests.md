@@ -832,13 +832,57 @@ lists every sound instead of the loudest per category. It fails on the two
 things that are bugs rather than taste — a sound that clips on its own, and one
 under -40 dBFS that no fight would let you hear. It runs in `npm run check`.
 
-**One thing it found and this change did not fix:** `hitSteel` comes out at
--38.8 dBFS, a hair above the floor, because a quiet file meets the 0.5 trim
-every element layer carries. It was **-47.6 dBFS** before — inaudible rather
-than merely quiet — so the raise has already helped it more than most. Bringing
-it up properly means re-rolling the file or giving that one sound a gain, and
-both are changes to the balance rather than to the level, so neither belongs in
-this pass.
+### The audit that came out of it, and what it found
+
+`hitSteel` was the thread. Pulling it turned up **21 delivered files that were
+never on the pipeline's contract at all** — and it was never a case for a gain
+tweak, which is what it looked like from the mixer.
+
+`generate_sfx.py` writes **mono, peak-normalised to -3 dBFS**, and 143 of the
+169 files in `assets/sfx/` are exactly that. The rest arrived some other way —
+an older pass, a hand-added file, a round predating the tool — and nothing ever
+checked, so nothing noticed. They spanned **27 dB** on a number that is supposed
+to be one number:
+
+| | was | why it mattered |
+|---|---|---|
+| `hit_steel.mp3` | -22.7 dBFS | -38.8 in play under the 0.5 element trim — inaudible |
+| `boogie_clap.mp3` | -26.9 | Todo's signature, the sound the technique *is*, 24 dB under |
+| `paper_flutter.mp3` | -16.0 | Reggie's blade, barely there |
+| `energy_charge.mp3` | -13.5 | the charge loop |
+| `crow_caw.mp3`, `hit_wind.mp3` | **0.0** | no headroom at all — clipped by their own encode |
+
+**And 15 of them were stereo, in a mono pipeline.** Three were significantly out
+of phase between channels — `hit_fire` at -0.77 correlation, `rct_chime` at
+-0.66, `hit_shadow` at -0.50 — which means they were already losing level on
+anything that sums to mono: a phone speaker, most laptops, most Bluetooth. Fire
+hits measured 8 dB quieter summed than on their louder channel alone, and
+nothing about the config could have told you.
+
+`tools/normalize_sfx.py` repairs all of it and `--check` guards it in
+`npm run check`. **The downmix is chosen per file rather than always averaged**,
+which is the part worth knowing: averaging anti-correlated channels cancels them
+— the average of a signal and its inverse is silence — so those files keep their
+louder channel whole instead. Losing the stereo image costs nothing here; the
+game plays every sound through a mono Audio element anyway.
+
+**Normalising was the whole fix — no gain needed changing.** The ten element hit
+layers are the clearest evidence: they sat anywhere from -15.3 to -38.8 dBFS and
+now sit between -15.5 and -15.9, because they always carried the same 0.5 trim
+and were finally given the same starting level to trim. The mixer's job is
+relative balance and it can only do that job on files that start level.
+
+**The audio checks now run FIRST in `npm run check`.** They used to sit behind
+`check_battle_poses`, which exits 1 on a pre-existing rig problem, and a chain
+joined with `&&` stops there — so every check after it, these included, had
+quietly not been running. Cheap independent checks belong at the front for
+exactly that reason.
+
+**Still worth knowing, and deliberately not touched:** thirteen files on disk are
+referenced by nothing — mostly `sound_*.mp3` originals from before the round-8
+pass. `normalize_sfx.py` skips them by default and says so; `--include-orphans`
+takes them too. They are dead weight rather than a defect, and deleting art is a
+decision, not a cleanup.
 
 ## Hearing what you have
 
