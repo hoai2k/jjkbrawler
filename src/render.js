@@ -969,18 +969,29 @@ function drawRevivalPlatform(ctx, f) {
   ctx.restore();
 }
 
-// Boxes over the art, on the debug toggle (main.js). Everything the audit in
-// docs/hitbox-audit.md measured offline is checkable here by eye: the red box
-// is what the swing hits, the white outline is what can be hit, the amber line
-// is where the ART stops — so the amber-to-red gap IS the grace margin, and it
-// should look the same width on every character.
+// Boxes over the art, on the debug toggle (backquote, main.js) or from the
+// start under `?debug=hitbox` (flags.js). Everything the audit in
+// docs/hitbox-audit.md measured offline is checkable here by eye. Two colours
+// carry the whole reading: RED is a region that HITS — a swing's box, a
+// summon's attack box, a projectile, an ad-hoc blast — and BLUE is a body that
+// CAN BE HIT, on fighters and summons alike. Where a red shape overlaps a blue
+// one, that is a hit. The amber line is where the ART stops, so the amber-to-red
+// gap IS the grace margin, and it should look the same width on every character.
+const HIT_FILL = "rgba(255, 80, 80, 0.30)";
+const HIT_LINE = "rgba(255, 120, 120, 0.85)";
+const HURT_FILL = "rgba(70, 150, 255, 0.26)";
+const HURT_LINE = "rgba(120, 190, 255, 0.85)";
+
 function drawDebug(ctx) {
   ctx.save();
   for (const hb of state.hitboxes) {
     if (hb.age < 0) continue;
     const r = hitboxRect(hb);
-    ctx.fillStyle = "rgba(255, 80, 80, 0.32)";
+    ctx.fillStyle = HIT_FILL;
     ctx.fillRect(r.x, r.y, r.w, r.h);
+    ctx.strokeStyle = HIT_LINE;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(r.x, r.y, r.w, r.h);
     // The sweetspot, as the distance band it actually is.
     if (hb.critBand) {
       const facing = hb.facing ?? hb.owner.facing;
@@ -996,30 +1007,34 @@ function drawDebug(ctx) {
     }
   }
   // Summons carry the same two shapes a fighter does, and for the same reason:
-  // white is what it can be hit ON (the whole drawing), red is what it hits
+  // blue is what it can be hit ON (the whole drawing), red is what it hits
   // WITH (summons.js — the front of the creature by default, or wherever the
   // sprite workbench put it). They used to be one box, which is how a dog's
   // tail came to bite.
   for (const e of state.entities) {
     if (e.kind !== "summon" || e.dead || e.intangible) continue;
     const b = summonBox(e);
-    ctx.strokeStyle = "rgba(255,255,255,0.55)";
+    ctx.fillStyle = HURT_FILL;
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.strokeStyle = HURT_LINE;
     ctx.lineWidth = 1;
     ctx.strokeRect(b.x, b.y, b.w, b.h);
     const a = e.attackRect?.();
     if (a) {
-      ctx.fillStyle = "rgba(255, 80, 80, 0.22)";
+      ctx.fillStyle = HIT_FILL;
       ctx.fillRect(a.x, a.y, a.w, a.h);
-      ctx.strokeStyle = "rgba(255, 120, 120, 0.85)";
+      ctx.strokeStyle = HIT_LINE;
       ctx.strokeRect(a.x, a.y, a.w, a.h);
     }
   }
   // Projectiles: the circle the flight test actually uses (combat.js).
-  ctx.strokeStyle = "rgba(255, 120, 120, 0.85)";
   ctx.lineWidth = 1;
   for (const p of state.projectiles) {
+    ctx.fillStyle = HIT_FILL;
+    ctx.strokeStyle = HIT_LINE;
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fill();
     ctx.stroke();
   }
   // Ad-hoc shapes the special/ultimate scripts registered (combat.js
@@ -1030,8 +1045,8 @@ function drawDebug(ctx) {
     const s = state.debugShapes[i];
     s.ttl -= 1 / 60;
     if (s.ttl <= 0) { state.debugShapes.splice(i, 1); continue; }
-    ctx.fillStyle = "rgba(255, 80, 80, 0.18)";
-    ctx.strokeStyle = "rgba(255, 120, 120, 0.8)";
+    ctx.fillStyle = HIT_FILL;
+    ctx.strokeStyle = HIT_LINE;
     if (s.r != null) {
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
@@ -1045,7 +1060,9 @@ function drawDebug(ctx) {
   for (const f of state.fighters) {
     if (f.dead) continue;
     const r = hurtbox(f);
-    ctx.strokeStyle = "rgba(255,255,255,0.8)";
+    ctx.fillStyle = HURT_FILL;
+    ctx.fillRect(r.x, r.y, r.w, r.h);
+    ctx.strokeStyle = HURT_LINE;
     ctx.lineWidth = 1;
     ctx.strokeRect(r.x, r.y, r.w, r.h);
     // Where this character's artwork actually reaches, measured from their own
