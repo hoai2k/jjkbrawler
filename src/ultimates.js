@@ -21,6 +21,14 @@ import { rumbleEvent } from "./rumble.js";
 import { circleRectOverlap } from "./utils.js";
 import { ULT_METER_COST, METER_MAX } from "./constants.js";
 import { getImage } from "./assets.js";
+// Every director here paints its own art, so every one of them has to honour
+// the workbench's standing adjustment. None of them did: this file had no idea
+// shared_sprites.js existed, so a nudge or a tilt set against a meteor, a
+// tempest or a supernova orb was stored, shown in the workbench, and never
+// reached the screen. The size DID reach it — that is folded into `spriteH`
+// before a kit is read (applySharedSpriteScales) — which is what made the gap
+// so easy to miss.
+import { sharedAdjust } from "./shared_sprites.js";
 import { isFoe } from "./teams.js";
 
 // The two halves of an ultimate's opening. They fire on the same frame for the
@@ -246,13 +254,15 @@ const DIRECTORS = {
             const my = -160 + prog * (groundY - 40 + 160);
             const img = p.sprite ? getImage(p.sprite) : null;
             if (img) {
+              const adj = sharedAdjust(p.sprite);
               const h = p.spriteH || 310;
               const w = img.width * h / img.height;
               ctx.save();
               ctx.translate(tx, my);
               ctx.shadowColor = p.color;
               ctx.shadowBlur = 24;
-              ctx.drawImage(img, -w / 2, -h / 2, w, h);
+              if (adj.rot) ctx.rotate(adj.rot);
+              ctx.drawImage(img, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
               ctx.restore();
               return;
             }
@@ -338,6 +348,7 @@ const DIRECTORS = {
       draw(ctx) {
         const img = p.sprite ? getImage(p.sprite) : null;
         if (img) {
+          const adj = sharedAdjust(p.sprite);
           const h = p.spriteH || 250;
           const w = img.width * h / img.height;
           ctx.save();
@@ -345,7 +356,8 @@ const DIRECTORS = {
           ctx.rotate(this.t * 0.75);
           ctx.shadowColor = p.color;
           ctx.shadowBlur = 24;
-          ctx.drawImage(img, -w / 2, -h / 2, w, h);
+          if (adj.rot) ctx.rotate(adj.rot);
+          ctx.drawImage(img, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
           ctx.restore();
           return;
         }
@@ -405,6 +417,7 @@ const DIRECTORS = {
       draw(ctx) {
         const img = p.sprite ? getImage(p.sprite) : null;
         if (img) {
+          const adj = sharedAdjust(p.sprite);
           const h = p.spriteH || 650;
           const w = img.width * h / img.height;
           const sway = Math.sin(this.t * 2.6) * 34;
@@ -413,7 +426,8 @@ const DIRECTORS = {
           ctx.globalAlpha = Math.min(0.78, this.t * 1.6) * Math.min(1, (p.duration - this.t) * 3);
           ctx.shadowColor = p.color;
           ctx.shadowBlur = 28;
-          ctx.drawImage(img, -w / 2, -h, w, h);
+          if (adj.rot) ctx.rotate(adj.rot);
+          ctx.drawImage(img, -w / 2 + adj.dx, -h + adj.dy, w, h);
           ctx.restore();
           return;
         }
@@ -460,6 +474,7 @@ const DIRECTORS = {
         draw(ctx) {
           const img = getImage(p.sprite);
           if (!img) return;
+          const adj = sharedAdjust(p.sprite);
           const h = 238;
           const w = img.width * h / img.height;
           ctx.save();
@@ -468,7 +483,8 @@ const DIRECTORS = {
           ctx.globalAlpha = 0.58;
           ctx.shadowColor = p.color;
           ctx.shadowBlur = 20;
-          ctx.drawImage(img, -w / 2, -h, w, h);
+          if (adj.rot) ctx.rotate(adj.rot);
+          ctx.drawImage(img, -w / 2 + adj.dx, -h + adj.dy, w, h);
           ctx.restore();
         },
       });
@@ -589,9 +605,20 @@ const DIRECTORS = {
             const h = Math.max(0, 130 * (1 - age * 0.8));
             if (h <= 4) continue;
             if (roots) {
+              const adj = sharedAdjust(p.sprite);
               const drawH = h * 1.65;
               const drawW = roots.width * drawH / roots.height;
-              ctx.drawImage(roots, px - drawW / 2, groundY - drawH, drawW, drawH);
+              // Each spike stands on the floor at `px`, so the tilt turns about
+              // the point it comes out of rather than sliding it along.
+              ctx.save();
+              if (adj.rot) {
+                ctx.translate(px, groundY);
+                ctx.rotate(adj.rot);
+                ctx.translate(-px, -groundY);
+              }
+              ctx.drawImage(roots, px - drawW / 2 + adj.dx, groundY - drawH + adj.dy,
+                            drawW, drawH);
+              ctx.restore();
               continue;
             }
             ctx.beginPath();
@@ -657,6 +684,7 @@ const DIRECTORS = {
       draw(ctx) {
         const img = p.sprite ? getImage(p.sprite) : null;
         if (!img || this.t > 1.75) return;
+        const adj = sharedAdjust(p.sprite);
         const h = p.spriteH || 290;
         const w = img.width * h / img.height;
         const travel = Math.min(1, this.t / 1.45);
@@ -667,7 +695,8 @@ const DIRECTORS = {
         ctx.globalAlpha = Math.min(0.82, this.t * 3) * Math.min(1, (1.75 - this.t) * 4);
         ctx.shadowColor = p.color;
         ctx.shadowBlur = 20;
-        ctx.drawImage(img, -w / 2, -h / 2, w, h);
+        if (adj.rot) ctx.rotate(adj.rot);
+        ctx.drawImage(img, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
         ctx.restore();
       },
     });
@@ -701,6 +730,7 @@ const DIRECTORS = {
           const a = 1 - (this.t - 0.45) / 0.55;
           const img = p.sprite ? getImage(p.sprite) : null;
           if (img) {
+            const adj = sharedAdjust(p.sprite);
             const h = (p.spriteH || 330) * (0.65 + (this.t - 0.45) * 1.2);
             const w = img.width * h / img.height;
             ctx.save();
@@ -709,7 +739,8 @@ const DIRECTORS = {
             ctx.globalAlpha = Math.max(0, a) * 0.85;
             ctx.shadowColor = p.color;
             ctx.shadowBlur = 24;
-            ctx.drawImage(img, -w / 2, -h / 2, w, h);
+            if (adj.rot) ctx.rotate(adj.rot);
+            ctx.drawImage(img, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
             ctx.restore();
             return;
           }
@@ -838,6 +869,7 @@ const DIRECTORS = {
       },
       draw(ctx) {
         const img = p.sprite ? getImage(p.sprite) : null;
+        const adj = sharedAdjust(p.sprite);
         const windup = Math.min(1, this.t / p.delay);
         ctx.save();
         for (let i = 0; i < p.orbs; i++) {
@@ -850,7 +882,17 @@ const DIRECTORS = {
             const h = (p.spriteH || 88) * 0.7;
             const w = img.width * h / img.height;
             ctx.globalAlpha = 0.5 + windup * 0.5;
-            ctx.drawImage(img, ox - w / 2, oy - h / 2, w, h);
+            // Saved PER ORB: eight of them are drawn in this loop off one outer
+            // save, so a tilt applied without restoring would compound around
+            // the ring — the eighth orb spun eight times as far as the first.
+            ctx.save();
+            if (adj.rot) {
+              ctx.translate(ox, oy);
+              ctx.rotate(adj.rot);
+              ctx.translate(-ox, -oy);
+            }
+            ctx.drawImage(img, ox - w / 2 + adj.dx, oy - h / 2 + adj.dy, w, h);
+            ctx.restore();
           } else {
             ctx.globalAlpha = 0.6 + windup * 0.4;
             const grad = ctx.createRadialGradient(ox, oy, 3, ox, oy, 20);
@@ -969,6 +1011,7 @@ const DIRECTORS = {
         const img = p.sprite ? getImage(p.sprite) : null;
         ctx.save();
         if (img) {
+          const adj = sharedAdjust(p.sprite);
           const h = (p.spriteH || 260) * (0.7 + Math.min(1, this.t) * 0.5);
           const w = img.width * h / img.height;
           ctx.translate(t2.x, t2.y - 140);
@@ -976,7 +1019,8 @@ const DIRECTORS = {
           ctx.globalAlpha = 0.8;
           ctx.shadowColor = p.color;
           ctx.shadowBlur = 24;
-          ctx.drawImage(img, -w / 2, -h / 2, w, h);
+          if (adj.rot) ctx.rotate(adj.rot);
+          ctx.drawImage(img, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
         } else {
           // cracked-sky shards closing around the victim
           ctx.globalAlpha = 0.55;
@@ -1083,6 +1127,7 @@ const DIRECTORS = {
       draw(ctx) {
         const groundY = state.platforms[0]?.y ?? 568;
         const img = p.sprite ? getImage(p.sprite) : null;
+        const adj = sharedAdjust(p.sprite);
         const carH = p.spriteH || 170;
         const carW = img ? img.width * carH / img.height : 300;
         const face = this.dir || f.facing;
@@ -1100,7 +1145,8 @@ const DIRECTORS = {
             ctx.globalAlpha = 1;
             ctx.translate(tx, y);
             ctx.rotate(f.facing * 0.25 * (1 - prog));
-            if (img) ctx.drawImage(img, -carW / 2, -carH / 2, carW, carH);
+            if (adj.rot) ctx.rotate(adj.rot);
+            if (img) ctx.drawImage(img, -carW / 2 + adj.dx, -carH / 2 + adj.dy, carW, carH);
             else { ctx.fillStyle = p.color; ctx.fillRect(-140, -50, 280, 100); }
           }
           ctx.restore();
@@ -1117,7 +1163,8 @@ const DIRECTORS = {
           ctx.translate(this.x, groundY - lift);
           ctx.rotate(rock);
           ctx.scale(face > 0 ? 1 : -1, 1);
-          if (img) ctx.drawImage(img, -carW / 2, -carH, carW, carH);
+          if (adj.rot) ctx.rotate(adj.rot);
+          if (img) ctx.drawImage(img, -carW / 2 + adj.dx, -carH + adj.dy, carW, carH);
           else { ctx.fillStyle = p.color; ctx.fillRect(-140, -carH, 280, 100); }
           ctx.restore();
           if (this.phase === "bouncing") {
@@ -1190,13 +1237,19 @@ const DIRECTORS = {
         const img = p.sprite ? getImage(p.sprite) : null;
         if (img) {
           const pulse = 0.8 + 0.25 * Math.sin(this.t * 9);
+          const adj = sharedAdjust(p.sprite);
           const h = (p.spriteH || 300) * pulse;
           const w = img.width * h / img.height;
           ctx.save();
           ctx.globalAlpha = 0.6;
           ctx.shadowColor = p.color;
           ctx.shadowBlur = 24;
-          ctx.drawImage(img, f.x - w / 2, f.y - 110 - h / 2, w, h);
+          if (adj.rot) {
+            ctx.translate(f.x, (f.y - 110));
+            ctx.rotate(adj.rot);
+            ctx.translate(-f.x, -(f.y - 110));
+          }
+          ctx.drawImage(img, f.x - w / 2 + adj.dx, f.y - 110 - h / 2 + adj.dy, w, h);
           ctx.restore();
           return;
         }
@@ -1333,13 +1386,15 @@ const DIRECTORS = {
         if (this.struck) {
           if (!img) return;
           const fade = Math.max(0, 1 - (this.t - charge) / 0.5);
+          const adj = sharedAdjust(p.sprite);
           const h = (p.spriteH || 280) * (1 + (1 - fade) * 0.5);
           const w = img.width * h / img.height;
           ctx.save();
           ctx.globalAlpha = fade;
           ctx.translate(f.x + f.facing * 150, f.y - 100);
           ctx.scale(f.facing > 0 ? -1 : 1, 1);
-          ctx.drawImage(img, -w / 2, -h / 2, w, h);
+          if (adj.rot) ctx.rotate(adj.rot);
+          ctx.drawImage(img, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
           ctx.restore();
           return;
         }

@@ -543,7 +543,14 @@ function drawFighters(ctx, { bodies = true } = {}) {
       ctx.globalAlpha = flicker ? 0.6 : 1;
       ctx.shadowColor = f.installs.color || f.char.shadow;
       ctx.shadowBlur = 24;
-      ctx.drawImage(transformed, -w / 2, -h, w, h);
+      // A transformed body is shared art like any other — Mahoraga standing in
+      // for Megumi, the triceratops for Panda — and it stands on a fighter's
+      // feet, where being a few pixels out is as visible as it gets. Its HEIGHT
+      // is the renderer's (the kit has no say, hence `sizable: false` in the
+      // registry), but the nudge and the tilt are the drawing's own.
+      const tAdj = sharedAdjust(f.installs.sprite);
+      if (tAdj.rot) ctx.rotate(tAdj.rot);
+      ctx.drawImage(transformed, -w / 2 + tAdj.dx, -h + tAdj.dy, w, h);
       ctx.restore();
     } else if (bodies) {
       drawTrail(ctx, f);
@@ -1097,7 +1104,11 @@ function drawDomainBackdrop(ctx) {
     const w = art.width * scale;
     const h = art.height * scale;
     ctx.globalAlpha = Math.min(0.82, a * 1.35);
-    ctx.drawImage(art, (WORLD.w - w) / 2, (WORLD.h - h) / 2, w, h);
+    // Cover-fitted to the stage, so there is no size to set — but a plate wider
+    // than the frame has a CHOICE about which part of it shows, and the nudge is
+    // that choice. Centred was not a decision, only a default.
+    const dAdj = sharedAdjust(d.sprite);
+    ctx.drawImage(art, (WORLD.w - w) / 2 + dAdj.dx, (WORLD.h - h) / 2 + dAdj.dy, w, h);
   }
   // finish with a light color grade
   ctx.globalAlpha = Math.min(0.18, a * 0.22);
