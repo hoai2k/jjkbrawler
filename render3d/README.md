@@ -117,6 +117,29 @@ those bones are solved at pose time, so the note belongs in the solver's
 shares, not in a clip. Everything lives in the page only; nothing on disk moves
 until the JSON is applied by hand.
 
+## Two paths, two ways of facing left
+
+Which way a fighter faces is answered differently depending on who is holding
+the camera, and the two answers must not be combined.
+
+- **Flat blit** (`?render=3d` drawn into the 2D world) renders through an
+  offscreen camera pinned at −60°: the ¾ view comes from the LENS, and the
+  fighter stands wherever their delivery leaves them. Facing left therefore has
+  to be *built* — `pose.facingYaw` measures the angle the body presents at and
+  re-aims it to the mirror of that angle. This path asks for it explicitly, via
+  `presentMirror: true` on the live layers.
+- **In-scene** (`?camera=3d`, the default) renders through the game's own
+  head-on camera: the ¾ comes from the FIGHTER, whom `scene.sceneFacingYaw`
+  yaws to ±¾. That *is* the mirror, exactly and by construction, so this path
+  sets no `presentMirror` and keeps its own turn.
+
+Layering one on the other mirrors twice, about an angle measured against a
+camera that is not the one looking. `facingYaw` used to infer "facing left"
+from the turn yaw being non-zero — true in the flat path, true of *both*
+directions in the scene — so every fighter in the scene faced left in every
+locomotion state while their attacks still turned correctly. `tools/smoke_facing.mjs`
+covers both paths.
+
 ## Size and facing, per delivery
 
 Two facts about a MODEL that no clip can carry, both on the manifest entry and

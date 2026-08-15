@@ -283,7 +283,16 @@ const HANDLERS = {
   },
 
   dashStrike(f, p, cfg) {
-    beginSpecialAction(f, currentSlot(cfg, f), (p.delay || 0.06) + (p.dur || 0.2) + 0.22, { lockMovement: true, keepMomentum: true });
+    // `lunge`, not `keepMomentum`. The two are not the same thing wearing one
+    // name: keepMomentum means "the speed you already had carries through this
+    // move" — the dash attack, the roll, the dash grab, all of which set their
+    // own distance and want no drag. This move SETS the speed, several times a
+    // run, and held it flat for the whole action: 520 px/s for 0.58 s is 302 px
+    // of travel with movement locked, ending at 426 px/s and then stopping
+    // dead. That is the "sliding fast in one direction" nobody asked for.
+    // `lunge` decays instead (fighter.js LUNGE_DRAG) and can be stopped by the
+    // ledge brake, which keepMomentum actions still cannot.
+    beginSpecialAction(f, currentSlot(cfg, f), (p.delay || 0.06) + (p.dur || 0.2) + 0.22, { lockMovement: true, lunge: true });
     effortSound(f, cfg);
     f.vx = f.facing * (p.vel || 520);
     if (p.iframes) f.invuln = Math.max(f.invuln, p.iframes);

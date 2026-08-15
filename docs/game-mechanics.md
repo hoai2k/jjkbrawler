@@ -111,6 +111,20 @@ input: running off to chase, dropping to the ledge, edge-cancelling an aerial.
 **Knockback is never braked** — being hit off the stage is the game working, and
 so is a dash attack whose slide carries its owner over the end.
 
+**A special's lunge is braked, though.** The `dashStrike` specials — Hakari's
+Restless Rush and the rest — set their own travel speed and used to carry
+`keepMomentum`, which means *no friction at all*: the fighter crossed 302 px at
+a flat 520 px/s with movement locked out, was still doing 426 px/s when the
+action ended, and then stopped dead. On screen that is the "sudden slide fast in
+one direction" that has nothing to do with the stick, and because the ledge
+brake exempted every action, it was also a common way to be launched off the
+stage by your own attack. A dash strike is a *lunge* now (`action.lunge`), which
+differs from `keepMomentum` twice over: it decays under a gentle drag
+(`LUNGE_DRAG`) instead of holding its speed, and the ledge brake stops it at the
+lip like any other unheld movement — 302 px becomes 240, ending at 272 px/s.
+Holding the direction still takes you over, because that is a decision.
+Measured with `tools/debug/measure_lunge.mjs`; guarded in `tools/smoke_ledge.mjs`.
+
 ### Ledges
 Only the main platform has grabbable ledges. Falling near an edge (after real
 airtime — no walk-off regrab loops) catches the fighter onto a hang (brief

@@ -143,6 +143,11 @@ function liveLayers(charKey, animKey, x, y, opts) {
     // Derived from the camera, not 180° — see scene.turnaroundYaw. A flat
     // half-turn under a ¾ camera shows the fighter's back.
     turnYawRad: D.turnaround && facing < 0 ? scene.turnaroundYaw() : 0,
+    // The presentation mirror is this path's (pose.facingYaw), and it needs
+    // the facing stated: it used to read "left" off turnYawRad being non-zero,
+    // which is true here and true of both directions in the scene.
+    presentMirror: D.turnaround,
+    facing,
     parallaxDeg: pose.parallaxDeg(x, state.camera?.x ?? WORLD.w / 2, WORLD.w / 2),
   };
 }
@@ -202,6 +207,9 @@ export const scene3d = {
       // and carry it mirrored. See scene.sceneFacingYaw for why the pair that
       // used to be here pointed one facing at the lens and the other away.
       turnYawRad: scene.sceneFacingYaw(facing),
+      facing,
+      // No `presentMirror`: ±¾ IS the mirror here, exactly and by
+      // construction. See pose.facingYaw.
     });
     return true;
   },

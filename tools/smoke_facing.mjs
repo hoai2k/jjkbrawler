@@ -198,9 +198,14 @@ try {
     // Pose directly: renderPose would cache-hit and leave the rig standing in
     // whatever the previous check posed it as — which is how this check first
     // reported a pass it had not earned.
-    scene.renderPose(char, "idle", 0.1, rig, rigs.resolveClip(char, "idle"), { turnYawRad: 0 });
+    scene.renderPose(char, "idle", 0.1, rig, rigs.resolveClip(char, "idle"),
+      { turnYawRad: 0, presentMirror: true, facing: 1 });
+    // The layers the FLAT path actually ships (backend.js liveLayers), not a
+    // hand-rolled subset of them: `presentMirror` is what asks pose.facingYaw
+    // for the measured mirror rather than the flat turnaround constant, and
+    // without it this measured a code path the game does not take.
     pose.poseRig(rig, "idle", 0.1, rigs.resolveClip(char, "idle").clip,
-      { turnYawRad: scene.turnaroundYaw() });
+      { turnYawRad: scene.turnaroundYaw(), presentMirror: true, facing: -1 });
     rig.root.updateMatrixWorld(true);
     const cam = scene.__cam();
     const heel = rig.root.getObjectByName("LeftFoot");

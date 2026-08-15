@@ -394,9 +394,43 @@ const MAX_ROSTER_ROWS = 5;
 // is how a row count that is otherwise right survives a short window.
 const ROSTER_ASPECTS = ["3 / 4", "1 / 1", "5 / 4", "3 / 2", "2 / 1"];
 
-// Under this, the name plate starts losing characters, so the fitter treats the
-// layout as too cramped and stacks another row to win the width back.
+// Under this, the name plate starts losing characters, so a layout this narrow
+// is only ever taken as a last resort.
 const MIN_CARD_WIDTH = 96;
+
+// How much bigger a deeper layout's cards have to come out before the extra row
+// is worth it. Without a margin, a rounding-sized win would keep stacking rows
+// for cards nobody can tell apart.
+const DEPTH_GAIN = 1.06;
+
+/** How much vertical room the roster may take, in px.
+ *
+ *  Measured as "the overlay, less everything else in it" rather than asked of
+ *  the overlay directly. #menuOverlay is a centred flex column, and centred
+ *  content that overflows spills out of BOTH ends — only the bottom half of it
+ *  counts towards scrollHeight, so `scrollHeight > clientHeight` misses an
+ *  overflow until it is twice as bad as it looks. The fitter used to test
+ *  exactly that, read every candidate as overflowing, and fall through to its
+ *  last-resort layout at every window size: a two-row band of 2/1 letterboxes
+ *  down at the bottom of the screen with the middle of the menu left empty. */
+function rosterHeightBudget(grid) {
+  const overlay = els.menuOverlay;
+  const cs = getComputedStyle(overlay);
+  const gap = parseFloat(cs.rowGap) || 0;
+  let others = 0;
+  let items = 0;
+  for (const child of overlay.children) {
+    // The spotlight art is inset:0 behind everything and costs no room; a
+    // hidden line costs neither height nor the gap that would follow it.
+    if (getComputedStyle(child).position === "absolute") continue;
+    const height = child === grid ? 0 : child.getBoundingClientRect().height;
+    if (child !== grid && !height) continue;
+    others += height;
+    items += 1;
+  }
+  const pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+  return overlay.clientHeight - pad - others - gap * Math.max(items - 1, 0);
+}
 
 // Sizes the roster to the window. The row count is fixed across the whole grid
 // and each category claims however many columns its members need at that depth,
@@ -408,28 +442,32 @@ export function layoutCharacterGrid() {
   if (!grid || !grid.clientWidth) return; // hidden overlay: nothing to measure
   if (!grid.querySelector(".char-card")) return;
   grid.style.removeProperty("--grid-height"); // measure the natural size first
+  const budget = rosterHeightBudget(grid);
 
-  // Deeper layouts are wider-carded but taller, so walk from the shallowest and
-  // keep going only while the cards are still too narrow to read.
+  // Every depth that fits, scored on how big its cards come out. A deeper
+  // roster is narrower — each category needs fewer columns — so it buys card
+  // WIDTH with height, and the point of the search is to spend the room the
+  // menu actually has rather than to stop at the first layout that is merely
+  // legible.
+  let best = null;
   let fallback = null;
-  let chosen = null;
-  for (let rows = MIN_ROSTER_ROWS; rows <= MAX_ROSTER_ROWS && !chosen; rows++) {
+  for (let rows = MIN_ROSTER_ROWS; rows <= MAX_ROSTER_ROWS; rows++) {
     placeRosterBlocks(grid, rows);
     for (const aspect of ROSTER_ASPECTS) {
       grid.style.setProperty("--card-aspect", aspect);
-      // scrollHeight > clientHeight means this depth overflows the menu at this
-      // crop, so crop harder before giving up on it.
-      if (els.menuOverlay.scrollHeight > els.menuOverlay.clientHeight) continue;
-      const fit = { rows, aspect, width: grid.querySelector(".char-card").getBoundingClientRect().width };
-      // The first depth that fits is the shortest one; keep it unless its cards
-      // came out too small, in which case a deeper, wider layout is worth the
-      // height — and if none of them fit either, this is still the best we have.
-      if (!fallback || fit.width > fallback.width) fallback = fit;
-      if (fit.width >= MIN_CARD_WIDTH) chosen = fit;
+      if (grid.getBoundingClientRect().height > budget) continue; // crop harder
+      const card = grid.querySelector(".char-card").getBoundingClientRect();
+      const fit = { rows, aspect, width: card.width, area: card.width * card.height };
+      // Only the tallest crop that fits is worth scoring at a given depth: the
+      // flatter ones below it are the same cards with more of the art thrown
+      // away. Ties go to the shallower layout, which is why DEPTH_GAIN is a
+      // multiplier rather than a plain >.
+      if (!fallback || fit.area > fallback.area) fallback = fit;
+      if (fit.width >= MIN_CARD_WIDTH && (!best || fit.area > best.area * DEPTH_GAIN)) best = fit;
       break;
     }
   }
-  chosen ??= fallback ?? { rows: MIN_ROSTER_ROWS, aspect: ROSTER_ASPECTS[ROSTER_ASPECTS.length - 1] };
+  const chosen = best ?? fallback ?? { rows: MIN_ROSTER_ROWS, aspect: ROSTER_ASPECTS[ROSTER_ASPECTS.length - 1] };
   placeRosterBlocks(grid, chosen.rows);
   grid.style.setProperty("--card-aspect", chosen.aspect);
   // Pin the fitted height so the roster cannot shift while a player is choosing.

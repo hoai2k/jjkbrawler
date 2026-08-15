@@ -73,6 +73,17 @@ export const WALK_MAX = 0.62;
 /** Below this the stick is at rest — the same deadzone input.js reads. */
 export const MOVE_DEADZONE = 0.28;
 
+// How hard a dashStrike special's lunge bleeds off, as a rate against the
+// character's own friction (the locked-action rate is 40, ordinary ground
+// friction 60). It used to be ZERO — `keepMomentum` meant no drag at all — so
+// Hakari's Restless Rush travelled 302 px at a flat 520 px/s with movement
+// locked and stopped dead still doing 426. That is 40% of the main platform,
+// chosen by the move rather than the player, and it was the commonest way
+// anyone left a stage by accident once the ledge brake had stopped everything
+// else. At 4 the same lunge covers ~235 px and arrives at ~300 px/s: still the
+// longest travelling move in the game, now visibly running out.
+export const LUNGE_DRAG = 4;
+
 // shield
 export const SHIELD_MAX = 100;
 export const SHIELD_DRAIN = 22;

@@ -107,7 +107,17 @@ sits in an angled-ribbon frame. Gold lives here and nowhere else.
   chip + ready badge live on it); roster tiles stay rectangular for scanning,
   with angled name bands and sharp seat-color rings; category titles become
   slash-cut tags; the central VS column uses the display face; the primary
-  action is a long parallelogram "GO" plate.
+  action is a long parallelogram "GO" plate. The roster **sizes itself to the
+  window** (`layoutCharacterGrid`): it tries every depth from 2 rows to 5, takes
+  the tallest crop that fits at each, and keeps whichever gives the biggest
+  cards — a deeper roster needs fewer columns per category and so buys card
+  width with height. Ties go to the shallower layout. The height it fits into is
+  the overlay less everything else in it, computed directly: #menuOverlay is a
+  centred flex column, and centred content that overflows spills out of *both*
+  ends, so `scrollHeight > clientHeight` under-reports an overflow by half and
+  cannot be used as the fit test. It was, which is why the roster shipped for a
+  while as a two-row band of 2/1 letterboxes across the bottom of an empty
+  screen. Guarded by `tools/smoke_select_layout.mjs`.
 - **Stage select** — straight 16:9 thumbnails (art wins), angled name bands,
   Random as a wide parallelogram draw button; the roulette highlight keeps its
   sweep-and-land grammar.
