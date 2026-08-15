@@ -29,7 +29,7 @@
 import { bodyMetrics } from "./silhouette.js";
 import { MODEL_REACH } from "./config_model_reach.js";
 import { STRIKE_POINTS, STRIKE_POINT_META } from "./config_strike_points.js";
-import { COM_BODY_FRAC } from "./config_tuning.js";
+import { comFrac } from "./body_points.js";
 
 /** Attack states that have a strike point at all. A state absent here has no
  *  single point of contact — a quake comes out of the floor everywhere. */
@@ -91,7 +91,7 @@ function solve(charKey, state) {
   // arm strike from a body that size would land.
   return {
     x: Math.round(b.reach * 0.75),
-    y: -Math.round(b.height * COM_BODY_FRAC),
+    y: -Math.round(b.height * comFrac(charKey)),
     source: "derived",
   };
 }
