@@ -58,7 +58,18 @@
 //   BAKED, because they change the SHAPE of the model:
 //     the mirrored skeleton, headTiltDeg, shoulderOutCm, kneeDeg, RIG_FIXES
 //       — all of them are bone transforms, so they bake as one rest pose
-//     yawOffsetDeg — the whole rig turned about Y
+//
+//   NOT BAKED: yawOffsetDeg. It looked like the easiest of the lot — turn the
+//   whole rig and delete the number — and baking it moved every yawed
+//   fighter's clip-driven poses by up to 1.1m while their rig check matched
+//   to 0.0mm. The tell was that the error tracked the offset: Hanami (75°)
+//   1101mm, Dagon (80°) 1112mm, Choso (0°) 97mm. The clip BUILDER reads the
+//   offset — 702 of the roster's 729 clips are built at load from the pose
+//   libraries — so zeroing the number while pre-rotating the geometry hands
+//   it a fighter whose bones say one thing and whose manifest says another.
+//   Rotating a model is not a defect anyway; it is the same class of number
+//   as renderScale, and it stays where the engine already handles it
+//   consistently.
 //
 //   NOT BAKED: renderScale. It is not a defect in the model. The .glb is the
 //   size it is; `renderScale` says how big the fighter is DRAWN, and the blit
@@ -119,7 +130,7 @@ for (const char of keys) {
     return {
       char: key,
       model: entry.model,
-      yawOffsetDeg: entry.yawOffsetDeg || 0,
+      yawOffsetDeg: 0,
       pending: Object.keys(fixes.pendingFixes(key, entry)),
       bones,
     };
@@ -136,7 +147,7 @@ console.log("fighter       bones  yaw   baking");
 let baked = 0;
 for (const spec of specs) {
   const entry = man.characters[spec.char];
-  const willBake = spec.pending.filter((k) => k !== "renderScale");
+  const willBake = spec.pending.filter((k) => k !== "renderScale" && k !== "yawOffsetDeg");
   console.log(`${spec.char.padEnd(13)} ${String(Object.keys(spec.bones).length).padStart(5)}`
     + `  ${String(spec.yawOffsetDeg).padStart(3)}°  `
     + (willBake.length ? willBake.join(", ") : "nothing"));
@@ -159,7 +170,7 @@ for (const spec of specs) {
   execFileSync("cp", [out, model]);
   // The numbers come OUT of the manifest in the same breath as they go into
   // the file. Leaving them would apply every correction twice.
-  for (const k of ["yawOffsetDeg", "headTiltDeg", "shoulderOutCm", "kneeDeg"]) delete entry[k];
+  for (const k of ["headTiltDeg", "shoulderOutCm", "kneeDeg"]) delete entry[k];
   entry.baked = true;
   baked++;
 }

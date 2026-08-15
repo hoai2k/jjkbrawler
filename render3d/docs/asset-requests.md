@@ -238,7 +238,40 @@ Geto's foot, toe and leg entries are in `RIG_FIXES` today so they can be looked
 at, and they carry this warning in the file. They are the strongest argument
 yet for getting the bake done rather than living on the correction layer.
 
-### The mirror is on for everybody
+### THE LAYER IS BAKED (and what is left in it)
+
+The corrections are in the `.glb`s. `tools/bake_model_fixes.mjs` asked the
+engine what each fighter's corrected bind is (`bakedBind`), and
+`tools/bake_glb_bind.py` rewrote the file to hold it: skinned vertices moved by
+their own weighted blend of `B'ᵢ · Bᵢ⁻¹`, joint nodes rewritten, inverse-bind
+matrices inverted, and every delivered clip's rotation and translation keys
+carried through the same delta. `RIG_FIXES` and `SYMMETRISE` are empty and the
+manifest's `headTiltDeg`, `shoulderOutCm` and `kneeDeg` are gone.
+
+**Two things stayed out, and both are deliberate.**
+
+`renderScale` is not a defect in the model — the `.glb` is the size it is, and
+the number says how big the fighter is DRAWN (blit.js divides it by `heightM`).
+
+`yawOffsetDeg` looked like the easy one and was not. Baking it — turn the rig,
+delete the number — moved every yawed fighter's clip-driven poses by up to
+1.1m while their rig check still matched to 0.0mm. The error tracked the
+offset exactly: Hanami (75°) 1101mm, Dagon (80°) 1112mm, Choso (0°) 97mm. The
+CLIP BUILDER reads the offset, and 702 of the roster's 729 clips are built at
+load from the pose libraries, so zeroing the number while pre-rotating the
+geometry hands it a fighter whose bones say one thing and whose manifest says
+another. Rotating a model is a calibration, not a defect; it stays.
+
+**What the bake cost.** A baked correction sits in the bind, where the old
+layer sat on top of the pose, and the idle layers aim limbs FROM the bind — so
+the same `armDeg` is a different pose once the shoulders move. `tools/redial_idle.mjs`
+searched each fighter's `armDeg`/`stanceDeg` back onto their pre-bake idle;
+what is left is 18–105mm at the extremities, most of the roster between 25 and
+75. That is the correction landing in the right place rather than an error, and
+`tools/smoke_bake.mjs` measures it against a reference captured before the bake
+so the number is never a guess.
+
+### The mirror was on for everybody
 
 A body is symmetric. That is not a style choice about these characters, it is
 what the drawings show and what every pose library assumes when it says one
@@ -256,7 +289,7 @@ A third of the roster is lopsided by over a centimetre in the joints that
 matter. Every non-exempt fighter now measures **0.00cm** at the shoulders and
 knees, and the eighteen that were already square pay nothing.
 
-**Hanami is exempt**, alone. His arm roots are 8.5cm apart — the widest gap on
+**Hanami was exempt**, alone. His arm roots are 8.5cm apart — the widest gap on
 the roster by a distance, which is either the worst rig we have or the point of
 the character, and those look identical from here.
 

@@ -128,99 +128,18 @@ export function pendingFixes(charKey, entry = null) {
  * inconsistent one.
  */
 export const RIG_FIXES = {
-  // ------------------------------------------------- the shoulder rolls, gone
+  // EMPTY BECAUSE IT WAS BAKED, which is the ending this table was written
+  // for. Geto's ten bone corrections — the hand-dialled feet, toes, hips and
+  // forearms — are in `geto.glb` now, along with the head tilts, the shoulder
+  // widenings and the mirrored skeletons the rest of the roster carried.
+  // `tools/bake_model_fixes.mjs` put them there and cleared the manifest keys
+  // in the same pass.
   //
-  // Yuji, Megumi and Jogo carried a solved LeftShoulder roll here — 19.2°,
-  // 3.6° and 16.7°, found by `tools/rig_calibrate.mjs` by applying a trial
-  // rotation to the posed rig and scaling. They worked. They are gone anyway,
-  // because SYMMETRISE now does the same job properly and running both
-  // double-corrects:
-  //
-  //     arm roots, left minus right (cm)   neither   roll   mirror   both
-  //       yuji                              -1.96   -0.13     0.00   +2.52
-  //       megumi                            -0.40   -0.01     0.00   +0.56
-  //       jogo                              -6.94   -0.05     0.00   +6.56
-  //
-  // The roll was a ROTATION compensating for a POSITION error — it tilted the
-  // clavicle until the arm root happened to come out level, which is why it
-  // had to be solved numerically and why it landed near zero rather than on
-  // it. The mirror moves the joint to where it belongs, is exact, and is safe
-  // in every state; the roll was approximate and rode on top of every clip.
-  // Two fixes for one defect, and this is the one that keeps.
-
-  // ------------------------------------------------------------------ geto
-  //
-  // HAND-DIALLED IN THE RIG BENCH (?edit=rigs), not solved: somebody stood
-  // him in a T-pose and turned joints until he looked like one. That is a
-  // different instrument from the calibrate loop above and it reaches things
-  // the loop cannot — the loop only knows how to level shoulders, and most of
-  // what is wrong with this rig is somewhere else.
-  //
-  // The measurements behind it, taken off the posed rig:
-  //   * FEET SPLAYED, AND UNEQUALLY. Toes 26° out on the left, 46° on the
-  //     right — 19° apart from each other. The foot yaws below square both
-  //     forward, and yaw is the one thing applyIdleStand deliberately never
-  //     touches (a fighter who stands with their feet turned out is a pose,
-  //     not an error), so a bone fix is the only thing that can.
-  //   * ARMS 12° APART in the T-pose, left 5.7° above horizontal and right
-  //     6.2° below, off arm roots 3.9cm apart in HEIGHT. That last one is a
-  //     position, not a rotation, and is why SYMMETRISE carries him too.
-  //   * ELBOWS at 25°, which is exactly MAX_IDLE_ELBOW — both arms are as
-  //     straight as the idle layer will allow and still read bent.
-  //
-  // FOUR ENTRIES DROPPED before the bake, because baking sets a mistake in
-  // stone where applying it live only made it every frame:
-  //   * LeftLeg [11.63,0,0] and RightLeg [-15.12,0,0]. Both knees measure
-  //     exactly straight in this pose, so these ADD a bend of 12° and 15°
-  //     rather than removing one — and in opposite directions, which is a
-  //     scissor rather than a fix.
-  //   * LeftHand [33.47,-24.96,15.59] and RightHand [0,29.64,0]. Large
-  //     eyeballed wrist corrections on the bone the grip solver owns. They are
-  //     worth re-dialling after the bake, against a skeleton that has stopped
-  //     moving, rather than baked as they are.
-  //
-  // The feet and toes ARE baked, though they were dialled before the mirror
-  // and overshoot by a few degrees because of it (26°/46° of splay became
-  // 20°/7° the other way). Baked they are an improvement rather than a
-  // correction, and the last few degrees come off in the rig bench once the
-  // model holds still. That is the workflow the bake exists to make possible.
-  geto: {
-    LeftUpLeg: [0, 0, -2.47],
-    RightUpLeg: [0, 0, 10.5],
-    LeftFoot: [0, 16.19, 0],
-    RightFoot: [-1.48, -47.28, 0],
-    LeftToeBase: [-9.2, 11.57, 0],
-    RightToeBase: [-5.91, -4.99, 0],
-    LeftArm: [1.32, 0, 0],
-    RightArm: [1.03, 0, 0],
-    LeftForeArm: [19.1, 0, 0],
-    RightForeArm: [-13.43, 0, 0],
-  },
-
-  // WHAT IS DELIBERATELY NOT HERE, because the same loop said so:
-  //
-  //   * Nanami, Dagon and Mahito, tilted the OTHER way, where the solve made
-  //     them worse rather than better — Nanami's 0.087 became 0.174, because a
-  //     right-shoulder correction is not a mirrored left-shoulder one on these
-  //     rigs. SYMMETRISE takes all three to exactly zero without needing to
-  //     know which way anybody leans, which is the answer that whole line of
-  //     enquiry was looking for.
-  //   * Uro, Hakari, Meimei, Kurourushi and Choso measure ZERO shoulder tilt
-  //     once posed: the idle clip sets their clavicles and levels the skeleton, so
-  //     a bone correction has nothing to correct. Their unevenness is in the
-  //     MESH (Uro -0.069, Kurourushi -0.234) and a rotation that levels skin
-  //     while the bones are already level is a different fix, sized off a
-  //     different measurement.
-  //   * Every knee — but not because the knees are fine. The frontal KINK is
-  //     real in the bind (Geto's shins jut 18° and 34° out of their thighs)
-  //     and does not survive into a posed state, so a bend correction applied
-  //     there only ADDS one: Geto gained 2.9° and 5.4° and visibly widened.
-  //     A shin that splays out of its knee has its own dial, `kneeDeg`, in
-  //     the manifest beside the other model corrections — it is measured and
-  //     applied about the BODY's forward axis rather than the bone's own, so
-  //     it does not belong in this bone-local table. Measured, no fighter
-  //     needs it: on the posed idle every knee reads a bow of 0.0.
+  // A NEW delivery starts the cycle again: the rig bench produces numbers,
+  // they live here until somebody bakes them, and the bake empties the entry.
+  // Nothing about the layer is retired — it is just, for once, done.
 };
+
 
 
 /** The fixes for a character, or null. Never throws on an unknown key. */
@@ -308,12 +227,13 @@ export function applyRigFixes(THREE, root, charKey) {
  * "It looked odd" is not — that is what the rig bench's checkbox is for.
  */
 export const SYMMETRISE = {
-  // Hanami's arm roots are 8.5cm apart in height, the widest gap on the
-  // roster by a distance — which is either the worst rig we have or the point
-  // of the character, and those look identical from here. Held out until
-  // somebody has looked at him with the checkbox on and off.
-  hanami: false,
+  // Empty for the same reason RIG_FIXES is: every skeleton that needed
+  // mirroring has been mirrored IN THE FILE. Hanami's exemption went with it —
+  // he was the one fighter held out, and holding him out of a fix nobody is
+  // applying any more is a note rather than a setting. It is recorded in
+  // render3d/docs/asset-requests.md, where the next round will look.
 };
+
 
 /** The bones a mirror applies to: everything the standard skeleton names in
  *  pairs, plus the centre line it mirrors about. Prop and hair bones are
@@ -322,9 +242,16 @@ export const SYMMETRISE = {
 const PAIRED = ["Shoulder", "Arm", "ForeArm", "Hand", "UpLeg", "Leg", "Foot", "ToeBase"];
 const CENTRED = ["Hips", "Spine", "Spine1", "Spine2", "Neck", "Head"];
 
-/** Does this fighter's skeleton get mirrored? Everybody, unless exempted. */
+/** Does this fighter's skeleton get mirrored?
+ *
+ *  OPT-IN NOW, where it used to be opt-out. The default flipped when the
+ *  roster was baked: a mirror applied to an already-mirrored skeleton is a
+ *  no-op, so leaving it on would have been harmless but dishonest — the report
+ *  would have gone on listing work that was finished. A new delivery turns it
+ *  on for itself, in the rig bench or here, and turns it off again by being
+ *  baked. */
 export function symmetrises(charKey) {
-  return SYMMETRISE[charKey] !== false;
+  return SYMMETRISE[charKey] === true;
 }
 
 /**
