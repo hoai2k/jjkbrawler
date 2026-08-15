@@ -273,6 +273,12 @@ const HANDLERS = {
       spawnProjectile(f, { ...p, wave: true, ox: 60 + i * 54, sprite });
     }
     dust(f.x + f.facing * 50, f.y, 10);
+    // Same signature-sound field the projectile handler reads, and it belongs
+    // here for the same reason: a wave is a thing that LEAVES, and the moment
+    // it leaves is the moment worth scoring. Dagon's tide was silent on release
+    // until this line existed — the only thing you could hear of the biggest
+    // water move in the game was the element layer under its impact.
+    if (p.fireSfx) playSfx(p.fireSfx, 0.9);
     grantSummonMeter(f, cfg);
   },
 

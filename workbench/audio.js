@@ -42,7 +42,7 @@ import { state } from "../src/state.js";
 // audio.js's own copy and revalidates on the ordinary schedule.
 const CACHE_KEY = new URL(import.meta.url).searchParams.get("v") || "";
 const {
-  DOMAIN_CALL, MOVE_CALL, SFX, SPOKEN_LINES, SPOKEN_TIMING, AUDIO_MIX, VOICE_ALTERNATES,
+  DOMAIN_CALL, MOVE_CALL, SFX, SPOKEN_LINES, SPOKEN_TIMING, AUDIO_MIX, SFX_ALTERNATES,
   ELEMENT_HIT_SFX, SFX_ALIASES, SIGNATURE_SFX,
 } = await import(`../src/config_audio.js${CACHE_KEY ? `?v=${encodeURIComponent(CACHE_KEY)}` : ""}`);
 
@@ -313,7 +313,7 @@ function trackRow(t) {
   const length = SPOKEN_LINES[t.sfx];
   const bits = [];
   if (t.detail) bits.push(t.detail);
-  if (VOICE_ALTERNATES[t.sfx]) bits.push('<span class="tag tag--live">in game</span>');
+  if (SFX_ALTERNATES[t.sfx]) bits.push('<span class="tag tag--live">in game</span>');
   // Say the art is coming BEFORE it appears. A still that turns up on the
   // stage two panels away is easy to miss entirely if nothing said it would.
   if (t.sprite) bits.push(`<span class="tag tag--art">shows <code>${t.sprite}</code></span>`);
@@ -342,7 +342,7 @@ function trackRow(t) {
   // Other recordings of the same sound, if any were kept. Shown UNDER the take
   // in play and marked as alternates, because the comparison only means
   // anything if it is obvious which one the game actually uses.
-  const alts = VOICE_ALTERNATES[t.sfx] || [];
+  const alts = SFX_ALTERNATES[t.sfx] || [];
   const out = [row];
   if (!alts.length && files.length < 2) return out;
   row.classList.add("has-alts");
@@ -480,9 +480,17 @@ function fileRow(key, entry, file, kind, label, exclusive) {
   bin.checked = deleted.has(file);
   binLabel.append(bin, document.createTextNode("delete"));
 
-  // Move to another group. The checkbox is the decision; the select is where it
-  // goes, and stays hidden until there is a decision to make, because most rows
-  // are never moved and a select on every one of them is noise.
+  // Move to another group — but only for a sound that HAS other groups to move
+  // between. The targets are the voice banks, so the control makes sense for a
+  // grunt that would sit better as a female one and makes no sense at all for a
+  // guitar lick, which has nowhere to go: offering it would be inviting an
+  // export nobody could apply. Round 15 put the first non-voice alternates in
+  // the table, which is when this stopped being hypothetical.
+  //
+  // The checkbox is the decision; the select is where it goes, and stays hidden
+  // until there is a decision to make, because most rows are never moved and a
+  // select on every one of them is noise.
+  const movable = MOVE_TARGETS.includes(key);
   const moveLabel = document.createElement("label");
   moveLabel.className = "tick tick--move";
   const mover = document.createElement("input");
@@ -501,6 +509,10 @@ function fileRow(key, entry, file, kind, label, exclusive) {
     where.append(opt);
   }
   where.value = moved.get(file) || MOVE_TARGETS.find((t) => t !== key);
+  if (!movable) {
+    moveLabel.hidden = true;
+    where.hidden = true;
+  }
 
   const syncRow = () => {
     row.classList.toggle("binned", bin.checked);
@@ -614,7 +626,7 @@ async function exportChanges() {
   const reassignments = [...moved].map(([file, to]) => ({
     file,
     from: Object.keys(SFX).find((k) => [SFX[k].file].flat().includes(file))
-      || Object.entries(VOICE_ALTERNATES).find(([, list]) =>
+      || Object.entries(SFX_ALTERNATES).find(([, list]) =>
            list.some((a) => [a.file].flat().includes(file)))?.[0] || null,
     to,
   }));

@@ -627,7 +627,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Unblockable Drumming Beat", type: "burst", cooldown: 1.5,
         desc: "A resonant palm that drums straight through any guard.",
-        p: { delay: 0.18, dur: 0.16, ox: 56, oy: -100, w: 180, h: 120, dmg: 13, base: 430, growth: 7.0, angle: 0.4, unblockable: true, label: "Drumming Beat", color: "#c9b6ff", sfx: "punch", sprite: "effect:drum_burst", spriteH: 170 },
+        p: { delay: 0.18, dur: 0.16, ox: 56, oy: -100, w: 180, h: 120, dmg: 13, base: 430, growth: 7.0, angle: 0.4, unblockable: true, label: "Drumming Beat", color: "#c9b6ff", sfx: "drumPhrase", sprite: "effect:drum_burst", spriteH: 170 },
       },
       side: {
         name: "Cursed Corpse Charge", type: "dashStrike", cooldown: 1.45,
@@ -1463,7 +1463,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Disaster Tides", type: "wave", cooldown: 1.3,
         desc: "Water from nothing: a wall of it rolls out along the floor and takes everything with it.",
-        p: { speed: 420, r: 46, dur: 1.1, dmg: 12, base: 400, growth: 6.8, angle: 0.36, color: "#2f8fd8", pierce: true, effect: "drench", count: 2, fxElement: "water", label: "Tides", sprite: "effect:tide_wave", spriteH: 130 },
+        p: { speed: 420, r: 46, dur: 1.1, dmg: 12, base: 400, growth: 6.8, angle: 0.36, color: "#2f8fd8", pierce: true, effect: "drench", count: 2, fxElement: "water", fireSfx: "tideCrash", label: "Tides", sprite: "effect:tide_wave", spriteH: 130 },
       },
       side: {
         name: "Man-Eating Shikigami", type: "summon", cooldown: 4.0,

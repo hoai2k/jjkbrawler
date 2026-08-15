@@ -191,6 +191,44 @@ ok(withArt > idleOnly * 1.15, "the move's art appears while its sound plays",
 ok(afterArt < withArt * 0.95, "and clears again a couple of seconds later",
    `${withArt} -> ${afterArt}`);
 
+// ---- a technique sound's alternates are auditionable, and cannot be "moved"
+//
+// The move control files a take into a different VOICE bank. That is a real
+// decision for a grunt and a meaningless one for a guitar lick, which has
+// nowhere to go — offering it would invite an export nobody could apply.
+await page.goto(`${BASE}/workbench/?edit=audio&char=gakuganji`, { waitUntil: "load" });
+await page.waitForTimeout(4000);
+const chord = await page.evaluate(() => {
+  const row = document.querySelector('.track[data-sfx="powerChord"]');
+  const group = row?.parentElement;
+  const files = [...(group?.querySelectorAll(".track.file") || [])];
+  return {
+    alts: group ? group.querySelectorAll(".track.alt").length : 0,
+    files: files.length,
+    keeps: files.filter((r) => r.querySelector(".tick--keep input")?.type === "checkbox").length,
+    movesOffered: files.filter((r) => {
+      const l = r.querySelector(".tick--move");
+      return l && !l.hidden;
+    }).length,
+  };
+});
+ok(chord.alts >= 3 && chord.files >= 6, "the power chord's alternates are on the page",
+   JSON.stringify(chord));
+ok(chord.keeps === chord.files, "and every one of them keeps rather than picks",
+   `${chord.keeps}/${chord.files} checkboxes`);
+ok(chord.movesOffered === 0, "and none of them offers to move into a voice bank",
+   `${chord.movesOffered} move control(s) shown`);
+
+// A grunt still can be moved — the control is narrowed, not removed.
+await page.goto(`${BASE}/workbench/?edit=audio&char=gojo`, { waitUntil: "load" });
+await page.waitForTimeout(3500);
+const gruntMoves = await page.evaluate(() => {
+  const row = document.querySelector('.track[data-sfx="gruntYoungMale"]');
+  return [...(row?.parentElement.querySelectorAll(".track.file .tick--move") || [])]
+    .filter((l) => !l.hidden).length;
+});
+ok(gruntMoves > 0, "a voice take can still be moved between banks", `${gruntMoves} offered`);
+
 ok(errors.length === 0, "no page errors", errors.slice(0, 2).join(" | "));
 
 await browser.close();

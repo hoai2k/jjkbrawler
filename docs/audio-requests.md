@@ -53,6 +53,128 @@ round 11 the second. `tools/generate_voice.py` is the route both used, and
 `MOVE_CALL` (`src/config_audio.js`) is now the wiring any further slice needs:
 a row per move, no new code.
 
+## Round 15 — three techniques that were never really scored *(delivered)*
+
+Round 14 was about the voice. This one is about the **instruments**, and about
+two moves that turned out never to have had a sound of their own at all.
+
+| Move | What it plays today | What this round asks for |
+|---|---|---|
+| Gakuganji — **Power Chord** | `power_chord.mp3`, one distorted strike | An actual **C♯m chord** on an electric guitar, and some short flashy **metal licks** |
+| Dagon — **Disaster Tides** | **nothing** — only the water element layer under the hit | **Ocean waves crashing on a shore** |
+| Panda — **Unblockable Drumming Beat** | `punch` — the generic medium impact | **A short African drum phrase** |
+
+**Two of these are not alternates, whatever the request called them.** Dagon's
+neutral special declares no sound at all: the wave leaves his hands in silence
+and the only thing you hear is `hitWater` playing *under* the impact when it
+connects. Panda's drum is worse in an interesting way — it has a sound, and the
+sound is a punch, so the one move in the game named after a drum is the one move
+that does not sound like one. Neither has anything to be an alternate *to*, so
+each gets a **new registry key wired into the move**, and the extra takes sit
+beside it in `SFX_ALTERNATES` the way an alternate always has.
+
+**These prompts deliberately do not say "no music".** Every other entry in these
+documents ends with that, and it is right for every other entry — a hit that
+comes back with a soundtrack under it is unusable. These three *are* music: a
+named chord, a played lick, a drummed phrase. Carrying the boilerplate over
+would have been asking the model not to do the thing being asked for.
+
+**A named chord is the one thing here the generator may simply refuse to do.**
+Sound generation is not a synthesiser and does not take a pitch; "C♯m" is a
+direction it may follow, approximate or ignore entirely, and nothing in this
+repo can tell which of the three happened — `audit_voice_takes.py` counts
+utterances, not intervals. Two takes are requested for exactly that reason, and
+whether either is really in C♯m is a question for the person who can hear it.
+
+**Delivered.** All 11 files are in `assets/sfx/`. `tideCrash` and `drumPhrase`
+are registered and wired into their moves; the other nine sit in
+`SFX_ALTERNATES` and the game never plays them. Nothing here has been judged by
+ear yet — every one of the eleven is a candidate, including the two now in play,
+and the [audio workbench](../workbench/?edit=audio) is where that gets settled.
+
+**One engine line came with it.** `fireSfx` was read by the *projectile*
+handler and not by the *wave* handler, so declaring it on Dagon's tide would
+have been silent — the field existed, the move accepted it, and nothing played
+it. `specials.js` now reads it in both. Dagon is the first wave in the game to
+declare one; Geto's dragon is the other wave and declares none, so nothing else
+changed.
+
+### Gakuganji — the chord itself
+
+**`power_chord_alt_csharpm_1.wav`** · `powerChord` alternate — a real C♯m · 1.2 s
+```
+a single C sharp minor chord struck on a distorted electric guitar, all six strings ringing out through a cranked valve amp, close-miked and aggressive, one strike only, held to a natural decay
+```
+
+**`power_chord_alt_csharpm_2.wav`** · `powerChord` alternate — a real C♯m, palm-muted attack · 1.2 s
+```
+a C sharp minor chord on an electric guitar, tight palm-muted attack then let ring, thick high-gain distortion and amp hum, dark and heavy, one strike only
+```
+
+### Gakuganji — the licks
+
+Short and flashy, because this fires on a cooldown of 1.1 s and a lick that
+outlasts the projectile would be a solo playing over the next exchange.
+
+**`power_chord_alt_lick_1.wav`** · `powerChord` alternate — fast run into a bend · 0.9 s
+```
+a short flashy heavy metal guitar lick, fast alternate-picked run up the neck ending on a screaming high bend, high-gain electric guitar, close-miked and dry
+```
+
+**`power_chord_alt_lick_2.wav`** · `powerChord` alternate — legato into a squeal · 0.9 s
+```
+a short shred guitar lick, rapid legato run finishing on a pinch harmonic squeal, heavily distorted electric guitar, tight and dry, one phrase only
+```
+
+**`power_chord_alt_lick_3.wav`** · `powerChord` alternate — descending run and dive · 0.9 s
+```
+a short aggressive metal guitar lick, tremolo-picked descending run into a whammy bar dive, high-gain electric guitar, raw amp tone, one phrase only
+```
+
+### Dagon — the sea arriving
+
+A new key, `tideCrash`, wired as the neutral special's `fireSfx` so it plays as
+the wave leaves rather than when it lands — the impact already has the water
+layer, and doubling the two would put the whole ocean on one frame.
+
+**`tide_crash.wav`** · `tideCrash` — Dagon's Disaster Tides · 1.4 s
+```
+a large ocean wave crashing onto a shore, heavy water impact followed by hissing foam rushing up the sand, close and full-bodied, mono field recording
+```
+
+**`tide_crash_alt_1.wav`** · `tideCrash` alternate — the deeper break · 1.4 s
+```
+a big breaking wave collapsing onto a beach, deep low-end surge with heavy spray, powerful and close, mono field recording
+```
+
+**`tide_crash_alt_2.wav`** · `tideCrash` alternate — over shingle · 1.4 s
+```
+a wall of seawater slamming down and rushing forward over shingle, surging roar with dense foam and dragging stones, close-miked, mono
+```
+
+### Panda — an actual drum
+
+A new key, `drumPhrase`, replacing the generic `punch` on the move's `sfx`. Kept
+short: this is the move's impact, so it lands on the frame the palm connects and
+anything long would smear across the hitstop.
+
+**`drum_phrase.wav`** · `drumPhrase` — Panda's Unblockable Drumming Beat · 0.8 s
+```
+a short African hand drum phrase, three quick djembe strikes, two open tones and a slap, tight and resonant, close-miked single player in a dry room
+```
+
+**`drum_phrase_alt_1.wav`** · `drumPhrase` alternate — bass tone first · 0.8 s
+```
+a short djembe phrase, a deep bass tone followed by two sharp rim slaps, resonant goatskin head, dry and close
+```
+
+**`drum_phrase_alt_2.wav`** · `drumPhrase` alternate — talking drum · 0.8 s
+```
+a short African talking drum phrase, three rapid strikes with a rising pitch bend between them, woody and tight, close-miked
+```
+
+---
+
 ## Round 14 — two more of whatever survived *(delivered)*
 
 Rounds 12 and 13 were a wide net: 52 takes across fourteen sounds, most of them
@@ -94,7 +216,7 @@ exactly the reverse of the human case. **So these two go back to
 
 **Two adult-male grunts are now female grunts.** `grunt_adult_male_alt_2` and
 `_alt_3` — Nagi's takes — were moved into `gruntFemale` rather than deleted with
-the rest of his round. They are listed in `VOICE_ALTERNATES` under their new
+the rest of his round. They are listed in `SFX_ALTERNATES` under their new
 group with their origin noted, because a file called `grunt_adult_male_*`
 sitting in the female bank is confusing precisely once and forever after.
 
@@ -111,7 +233,7 @@ tripwire for the generator, not a veto over a human verdict, and a KO cry that
 breaks into a yelp and a fading tail is a cry rather than a word.
 
 **Delivered.** All 24 are in `assets/sfx/` and registered as alternates in
-`VOICE_ALTERNATES` (`src/config_audio.js`), auditionable in the
+`SFX_ALTERNATES` (`src/config_audio.js`), auditionable in the
 [audio workbench](../workbench/?edit=audio) beside the take each was bred from.
 Nothing in this round is in play: promoting one is still a deliberate edit. The
 33 files the round replaced are gone, and listed in
@@ -586,10 +708,10 @@ which is why the brief allows 3.0 s for a 2.25 s line.
 
 | | |
 |---|---|
-| Sound files | **108** in play, in `assets/sfx/`, plus **43** alternate takes nothing plays |
-| Registry keys | **103** in `SFX` (`src/config_audio.js`) |
+| Sound files | **110** in play, in `assets/sfx/`, plus **46** alternate takes nothing plays |
+| Registry keys | **105** in `SFX` (`src/config_audio.js`) |
 | With a generation prompt on file | **all but one** — `sound_shield.mp3` predates the rounds and has none |
-| Deleted on purpose | **33**, listed in [audio-pruned.md](audio-pruned.md) so no generator run recreates them |
+| Deleted on purpose | **38**, listed in [audio-pruned.md](audio-pruned.md) so no generator run recreates them |
 | Fighters with a voice | **27 of 27** — six voice groups, 1–3 grunt variants each after the prune, plus a matching KO cry |
 | Fighters with a spoken line | **9** — the 8 domain owners, plus Inumaki on all four of his commands |
 | Domain Expansions with their own sting | **8 of 8** |
@@ -680,7 +802,7 @@ convenient way to hear what an interrupted line sounds like.
 **Alternate takes appear under the take they would replace**, marked `in game`
 and `not in game`, and are mixed through the same category and gain — so what
 you are comparing is the performance and nothing else. They live in
-`VOICE_ALTERNATES` (`src/config_audio.js`) and **the game never plays them**.
+`SFX_ALTERNATES` (`src/config_audio.js`) and **the game never plays them**.
 
 **A sound holds a BANK of files unless it is a spoken line**, and the page's
 controls now say so: a bank's recordings get checkboxes and any subset can be
