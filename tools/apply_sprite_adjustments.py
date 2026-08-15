@@ -99,6 +99,10 @@ ALLOWED = {"renderScale", "ox", "bodyBottom", "rotationDeg", "anchors", "faceLef
            # src/shared_sprites.js). Its hurt box is the whole drawing and is
            # measured, so there is nothing to store for that one.
            "attackBox",
+           # Seconds of fade as a projectile leaves — 0 or absent is the hard
+           # cut every shot has always had (sharedFadeIn in
+           # src/shared_sprites.js). Energy art gathers rather than appearing.
+           "fadeIn",
            # Shared PROJECTILES: where the collision circle sits relative to the
            # shot's own position, and how big — { dx, dy, scale }, sharedHit in
            # src/shared_sprites.js. A shot used to have exactly one point, which
@@ -114,7 +118,7 @@ TEXT = {"replacementNote", "improvementNote"}
 # Flags whose VALUE is a kind string. `false` clears; a legacy `true` means the
 # first kind in the list.
 KIND_FIELDS = {"needsReplacement": "replace", "wantsImprovement": "quality"}
-NUMERIC = {"renderScale", "ox", "bodyBottom", "rotationDeg", "dx", "dy"}
+NUMERIC = {"renderScale", "ox", "bodyBottom", "rotationDeg", "dx", "dy", "fadeIn"}
 # Fields whose value is an object, taken whole rather than compared as a number.
 OBJECT = {"attackBox", "anchors", "hit"}
 BOOLEAN = {"faceLeft"}

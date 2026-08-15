@@ -47,9 +47,39 @@ const DEFAULT_OY = -86;
  * Returns null for art no kit fires — a stage hazard, a domain backdrop, a
  * creature — which is the honest answer: there is no "action" to play.
  */
+/**
+ * The ULTIMATES that throw a real projectile, and the config they throw it with.
+ *
+ * A special declares its shot in the kit, so `p` is the whole answer. A
+ * director does not: Gojo's Hollow Purple charges for 0.55s and then calls
+ * spawnProjectile with numbers written into src/ultimates.js — `speed: 860`,
+ * `ox: 90`, `oy: -96`, a radius of half the move's declared width. The kit says
+ * `width` and `duration`; the handler says everything else.
+ *
+ * So the handler's half is recorded here, the same way the shared registry
+ * records each spawn site's launch point, and for the same reason: a drawing
+ * the game throws should be previewable, and Hollow Purple was showing a spawn
+ * crosshair and a travel arrow with no way to see the shot they describe.
+ */
+const ULT_SHOTS = {
+  beam: (p) => ({ ...p, speed: 860, ox: 90, oy: -96, r: p.width / 2, dur: p.duration }),
+};
+
 export function firingUse(spriteKey) {
   for (const charKey of CHARACTER_KEYS) {
     const c = CHARACTERS[charKey];
+    const ult = c?.ultimate;
+    const shot = ULT_SHOTS[ult?.type];
+    if (shot && ult?.p?.sprite === spriteKey) {
+      const p = shot(ult.p);
+      const solved = spawnOffset(charKey, "ult", p.ox, p.oy);
+      return {
+        charKey, slot: "ult", spec: ult, p, state: "ult",
+        name: ult.name || spriteKey,
+        ox: p.ox, oy: p.oy, solved,
+        muzzleScale: bodyMetrics(charKey).height / HEIGHT_BASE_PX,
+      };
+    }
     for (const [slot, spec] of Object.entries(c?.specials || {})) {
       const p = spec?.p;
       // `sprite` names the one drawing a move throws; `spritePool` names four
@@ -145,10 +175,15 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
   }
 
   /** The projectile, painted exactly as render.js paints it. */
-  function drawShot(sprite, pos, adj) {
+  function drawShot(sprite, pos, adj, age) {
     const h = (use.p.spriteH || use.p.r * 3) * (adj.scale || 1);
     const w = sprite.width * h / sprite.height;
     ctx.save();
+    // The same ramp drawProjectiles applies (sharedFadeIn), read live so the
+    // slider under the canvas shows up on the next loop of the same playthrough
+    // — which is the only way to judge it, since a few frames of fade is a
+    // thing you see in motion or not at all.
+    if (adj.fadeIn) ctx.globalAlpha = Math.min(1, age / adj.fadeIn);
     ctx.translate(pos.x, pos.y);
     const flip = pos.vx > 0 ? -1 : 1;
     if (use.p.vy || use.p.gravity) ctx.rotate(Math.atan2(-flip * pos.vy, -flip * pos.vx));
@@ -206,7 +241,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
 
     const pos = shotAt(t, adj);
     const sprite = getImage(use.spriteKey);
-    if (sprite && t <= dur) drawShot(sprite, pos, adj);
+    if (sprite && t <= dur) drawShot(sprite, pos, adj, t);
 
     // The two points, always visible: the one the game spawns from and the one
     // the drawing is centred on after the nudge.

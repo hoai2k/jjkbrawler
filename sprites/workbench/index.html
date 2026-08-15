@@ -309,6 +309,15 @@
           <button id="effectClose" class="ghost sm" title="Close (Esc)">✕</button>
         </header>
         <canvas id="effectStage" width="900" height="420"></canvas>
+        <!-- The one thing about a shot you can only judge in motion, so it is
+             set HERE rather than in the panel behind: energy art wants a few
+             frames of ramp as it leaves, and whether it is enough is a question
+             about watching it go. -->
+        <div class="effect-controls">
+          <label for="fadeInRange">Fade-in <span class="sub" id="fadeInVal"></span></label>
+          <input type="range" id="fadeInRange" min="0" max="0.3" step="0.01" value="0">
+          <button id="fadeInClear" class="ghost sm" type="button">hard cut</button>
+        </div>
         <p class="hint">Drag the <b style="color:#9fd39f">spawn</b> marker to put the
         move's origin on the character — the finger the blood leaves, the hand the
         beam comes off. Drag the <b style="color:#f0b45a">drawing</b> marker to sit

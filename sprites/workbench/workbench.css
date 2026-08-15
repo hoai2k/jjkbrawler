@@ -1168,6 +1168,15 @@ button.ghost:disabled { opacity: 0.35; cursor: default; border-color: var(--line
 .group.approval .chips { margin-top: 8px; }
 .group.approval button { flex: 1; }
 
+/* The one live control inside the player. Sits under the canvas, on the same
+   row, because it is about what you are watching rather than about the panel. */
+.effect-controls {
+  display: flex; align-items: center; gap: 10px; margin-top: 10px;
+}
+.effect-controls label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--dim); white-space: nowrap; }
+.effect-controls input[type="range"] { flex: 1; }
+
 /* The effect player — a layer over the bench, not another panel in it. */
 #effectOverlay {
   position: fixed; inset: 0; z-index: 60; display: flex;

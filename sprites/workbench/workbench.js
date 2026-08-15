@@ -72,6 +72,10 @@ const EDITABLE = ["renderScale", "ox", "bodyBottom", "rotationDeg", "faceLeft",
                   // lance of blood should leave the finger). Exported as a note
                   // against the kit, since `ox`/`oy` live in characters.js.
                   "spawnOx", "spawnOy",
+                  // A few frames of ramp as an energy shot leaves, in seconds
+                  // (sharedFadeIn). Set in the Play window, where whether it is
+                  // enough is a thing you can actually see.
+                  "fadeIn",
                   "needsReplacement", "wantsImprovement",
                   "replacementNote", "improvementNote"];
 // Fields whose VALUE is a kind string rather than a number, so a change of kind
@@ -3781,6 +3785,7 @@ const effectPreview = makeEffectPreview({
       rot: (meta.rotationDeg ?? 0) * Math.PI / 180,
       spawnOx: Number.isFinite(meta.spawnOx) ? meta.spawnOx : undefined,
       spawnOy: Number.isFinite(meta.spawnOy) ? meta.spawnOy : undefined,
+      fadeIn: Number.isFinite(meta.fadeIn) && meta.fadeIn > 0 ? meta.fadeIn : 0,
     };
   },
   // `start` marks the first write of a drag, which is where the undo point
@@ -3800,8 +3805,39 @@ function openEffectPreview() {
   if (!effectPreview.open(state.frame)) return;
   const u = effectPreview.use;
   title.textContent = `${u.name} — ${CHARACTERS[u.charKey]?.name || u.charKey}, ${u.state}`;
+  refreshFadeIn();
   $("effectOverlay").hidden = false;
 }
+/** The fade-in slider inside the player. Written straight onto the drawing's
+ *  meta like every other adjustment, so it exports with the rest and the
+ *  running preview picks it up on its next frame. */
+function setFadeIn(seconds, start) {
+  remember(OTHER_KEY, state.frame);
+  if (start) pushHistory(OTHER_KEY, state.frame);
+  const meta = rawMeta(OTHER_KEY, state.frame);
+  if (!meta) return;
+  if (seconds > 0) meta.fadeIn = Number(seconds.toFixed(2));
+  else delete meta.fadeIn;
+  refreshFadeIn();
+  refreshControls();
+  buildPoseList();
+}
+
+function refreshFadeIn() {
+  const range = $("fadeInRange"), val = $("fadeInVal");
+  if (!range) return;
+  const held = rawMeta(OTHER_KEY, state.frame)?.fadeIn ?? 0;
+  range.value = String(held);
+  if (val) val.textContent = held > 0 ? `${held.toFixed(2)}s ramp` : "hard cut";
+}
+
+$("fadeInRange")?.addEventListener("input", (e) =>
+  setFadeIn(Number(e.target.value), !fadeDragging(e)));
+let fadeStarted = false;
+const fadeDragging = () => (fadeStarted ? true : (fadeStarted = true, false));
+$("fadeInRange")?.addEventListener("change", () => { fadeStarted = false; });
+$("fadeInClear")?.addEventListener("click", () => { fadeStarted = false; setFadeIn(0, true); });
+
 $("playEffectBtn")?.addEventListener("click", openEffectPreview);
 $("effectClose")?.addEventListener("click", () => effectPreview.close());
 addEventListener("keydown", (e) => {
@@ -5002,7 +5038,13 @@ function payloadFor(charKey) {
       }
       if (!Number.isFinite(value)) continue;
       if (Math.abs(value - (orig[f] ?? 0)) > 1e-4) {
-        entry[f] = f === "renderScale" ? Number(value.toFixed(4)) : Number(value.toFixed(1));
+        // A tenth of a pixel is the right precision for a nudge and far too
+        // coarse for the two fields that are not pixels: a scale needs four
+        // places, and a fade measured in seconds over a 0–0.3 range has only
+        // three usable steps at one. Each field gets the precision its UNIT
+        // deserves rather than the one that suits most of them.
+        const places = f === "renderScale" ? 4 : f === "fadeIn" ? 2 : 1;
+        entry[f] = Number(value.toFixed(places));
       }
     }
     if (anchorsDirty(charKey, key) && meta.anchors) entry.anchors = meta.anchors;

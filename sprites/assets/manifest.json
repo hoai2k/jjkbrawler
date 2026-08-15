@@ -64195,17 +64195,30 @@
     "dx": null,
     "dy": null
    },
-   "faceLeft": true,
-   "dx": -21.2,
-   "dy": -2.9
+   "faceLeft": false,
+   "dx": 25.8,
+   "dy": -0.4,
+   "src": {
+    "file": "assets/sprites/effects/purple.png",
+    "sha": "294c7d3a0d90"
+   }
   },
   "effect:red": {
    "edited": {
     "dx": null,
     "dy": null
    },
-   "dx": -17.6,
-   "dy": -1.5
+   "dx": -8.8,
+   "dy": -0.8,
+   "hit": {
+    "dx": -1.9,
+    "dy": 3.4,
+    "scale": 1
+   },
+   "src": {
+    "file": "assets/sprites/effects/red.png",
+    "sha": "60c803879079"
+   }
   },
   "effect:sedan": {
    "edited": {
@@ -64608,6 +64621,18 @@
    "src": {
     "file": "assets/sprites/effects/curse_d.png",
     "sha": "fd5045e4c704"
+   }
+  },
+  "effect:blue": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.4,
+   "dy": 0.5,
+   "src": {
+    "file": "assets/sprites/effects/blue.png",
+    "sha": "2e506a2c9e8f"
    }
   }
  }
