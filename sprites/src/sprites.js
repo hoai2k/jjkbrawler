@@ -560,6 +560,39 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
 
   let offX = opts.offsetX || 0;
   let offY = opts.offsetY || 0;
+  // HANGING A BODY FROM ITS MASS INSTEAD OF ITS FEET.
+  //
+  // A drawing is placed by its foot line, which is right on the ground and
+  // wrong in the air: the foot line means something different in every airborne
+  // pose — a tuck carries it up to the hips, a sprawl puts it out sideways — so
+  // anchoring there makes the pose's own movement of the feet read as the whole
+  // fighter jumping about. Nothing is holding still because the point being
+  // held still is not on the body in any consistent way.
+  //
+  // `holdComY` asks for the frame's centre of mass to land at a fixed height
+  // above the placement point instead, and the caller passes the height the SIM
+  // already believes the mass is at — the same `f.y - H * comFrac` that
+  // combat.js centres an airborne hurtbox on. So the drawing and the hurtbox
+  // stop being able to disagree, which is the other half of the win.
+  //
+  // The feet then move, which is correct: they are not on anything.
+  //
+  // BOUNDED, because a per-frame anchor can be wrong. It is a bake, not a
+  // judgement, and `tools/audit_sprite_com.mjs` finds ~11% of upright frames
+  // more than 0.09 of body height from where a person placed that fighter's
+  // centre — some because the pose really does carry its mass elsewhere (an
+  // up-attack raises it), some because the measurement missed. As a pivot a
+  // bad anchor tilts a fighter slightly; as a placement it would throw them,
+  // so the correction is capped: a good anchor gets the full hold, a wild one
+  // gets a nudge and shows up in the audit rather than on screen.
+  if (opts.holdComY !== undefined && opts.holdComY !== null) {
+    const hold = anchorPoint(charKey, frameKey, "com", meta);
+    if (hold) {
+      const want = opts.holdComY - worldY(hold.y);
+      const cap = opts.holdComMax;
+      offY += cap ? Math.max(-cap, Math.min(cap, want)) : want;
+    }
+  }
   if (opts.anchorTo) {
     const a = anchorPoint(charKey, frameKey, opts.anchorTo.name, meta);
     if (a) {
