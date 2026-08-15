@@ -400,7 +400,16 @@ function allFramesOf(charKey) {
   // shikigami and other summons, then the domain backdrops.
   if (isOther(charKey)) {
     const rank = (k) => (k.startsWith("effect:") ? 0 : k.startsWith("summon:") ? 1 : 2);
-    return sharedSpriteKeys().slice().sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+    // EVERYTHING THE GAME CAN DRAW, which is more than everything with a file.
+    // `sharedSpriteKeys` lists registered fetches, and a creature whose art is a
+    // pose set has no fetch under its own name — `summon:curseHound` is a name,
+    // its six plates are the files. It was therefore missing from this list,
+    // which is what `dirtyFrames` walks, so an edit stored against the creature
+    // (its attack box, which is one fact about the creature and not six) could
+    // never be exported. The kits know it exists; that is the other half of the
+    // set.
+    const named = new Set([...sharedSpriteKeys(), ...sharedUsage().keys()]);
+    return [...named].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
   }
   const delivered = Object.keys(spriteManifest?.characters?.[charKey] || {});
   // An actor lists the poses its transformation needs even before they exist,
@@ -1160,6 +1169,14 @@ function attackBoxDirty(charKey, frameKey) {
   if (!orig) return false;
   const now = rawMeta(charKey, frameKey)?.attackBox;
   return JSON.stringify(now ?? null) !== JSON.stringify(orig.attackBox ?? null);
+}
+
+/** A creature's poses and the creature share one attack box, so editing it from
+ *  a pose has to mark the CREATURE dirty — the export walks the dirty list, and
+ *  a box placed on the attack pose would otherwise never be reached. */
+function markCreatureDirty(key) {
+  const owner = attackBoxKey(key);
+  if (owner !== key) remember(OTHER_KEY, owner);
 }
 
 /** The hit region's correction, compared whole, and in the dirty test for
@@ -2253,9 +2270,25 @@ function canPlaceAttack(key) {
   return !!(can?.used && can.measuredBox && can.anchor === "feet");
 }
 
+/** THE CREATURE AN ATTACK BOX BELONGS TO.
+ *
+ *  A creature bites with one part of itself, and that is one fact about the
+ *  creature — not six facts, one per pose. summons.js reads exactly one box for
+ *  it (`sharedAttack(poseKeyOf(cfg.sprites))`, the creature's own key), and
+ *  shared_sprites.js already resolves a pose's READ back to the creature. Only
+ *  the write was landing on the pose, so a box placed while looking at the
+ *  attack drawing — which is the drawing you would want to place it against —
+ *  was stored somewhere nothing reads.
+ *
+ *  So the pose is where you LOOK and the creature is where it is KEPT. */
+function attackBoxKey(key) {
+  const parts = String(key || "").split(":");
+  return parts[0] === "summon" && parts.length === 3 ? `${parts[0]}:${parts[1]}` : key;
+}
+
 /** The stored box, or the default, for the drawing on screen. */
 function attackBoxOf(key) {
-  const stored = rawMeta(OTHER_KEY, key)?.attackBox;
+  const stored = rawMeta(OTHER_KEY, attackBoxKey(key))?.attackBox;
   return { ...DEFAULT_ATTACK_BOX, ...(stored || {}) };
 }
 
@@ -2339,7 +2372,8 @@ function setSharedHit(key, hit, start) {
   render();
 }
 
-function setAttackBox(key, box, start) {
+function setAttackBox(rawKey, box, start) {
+  const key = attackBoxKey(rawKey);
   // Take the baseline before the first change of a drag, the same as every
   // other edit does. Without it the box was compared against nothing, so it
   // could not be dirty, could not show its dot, and — because the export walks
@@ -5774,6 +5808,9 @@ async function boot() {
       const v = isOther(state.char) ? sharedView() : null;
       return v ? drawingHome(v) : null;
     },
+    /** The creature attack box on the canvas, and where it is stored. */
+    attackBox: () => (isOther(state.char) && canPlaceAttack(state.frame)
+      ? { rect: attackBoxOnCanvas(state.frame), storedOn: attackBoxKey(state.frame) } : null),
     hitGeometry() {
       const v = isOther(state.char) ? sharedView() : null;
       if (!v?.hit || v.hit.shape !== "circle" || v.hit.melee) return null;
