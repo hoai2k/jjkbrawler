@@ -32,7 +32,8 @@
 // wind-up in the game into the same straight-line poke.
 
 import { STATES, clipNameFor } from "./states.js";
-import { twoHandGrip, CHARACTER_MORPHS, morphBones } from "./props.js";
+import { twoHandGrip, CHARACTER_MORPHS, morphBones, CHARACTER_PROPS,
+  CARRY_DROP_DEG, CARRY_OVERRIDES } from "./props.js";
 
 /** Which limb reaches, per state: [root, mid, end] bone names.
  *
@@ -379,6 +380,104 @@ export function fitPropShaft(THREE, root3d, propBoneName) {
   let extent = 0;
   for (const p of locals) extent = Math.max(extent, p.dot(dir));
   return { dir, extent };
+}
+
+/**
+ * Slide a delivered weapon along its own axis so the hand grips where it
+ * should. See props.js `gripAt` for why this is a runtime layer and not a
+ * change to `grip`.
+ *
+ * The prop mesh hangs off the prop bone, so moving the BONE moves the weapon
+ * and nothing else — the hand stays where the clip put it. Shifting the bone
+ * by −s along the measured shaft brings the point s metres down-shaft to
+ * where the grip is now, which is the whole of it.
+ *
+ * Runs in every state: where a weapon is held is a fact about the fighter,
+ * not about the move.
+ */
+export function applyGrip(THREE, root3d, charKey, tmp) {
+  let moved = false;
+  for (const p of CHARACTER_PROPS[charKey] || []) {
+    if (p.gripAt === undefined || !p.lengthM) continue;
+    const bone = root3d.getObjectByName(p.bone);
+    if (!bone) continue;
+    if (bone.userData.__shaft === undefined) {
+      bone.userData.__shaft = fitPropShaft(THREE, root3d, p.bone);
+    }
+    const shaft = bone.userData.__shaft;
+    if (!shaft) continue;
+    // Both fractions are measured FROM THE HEAVY END, so a bigger `grip` than
+    // `gripAt` means the hand is too far up and must travel down-shaft.
+    const s = clamp((p.grip - p.gripAt) * p.lengthM, -shaft.extent, shaft.extent);
+    if (Math.abs(s) < 1e-4) continue;
+    bone.position.add(tmp.v1.copy(shaft.dir).multiplyScalar(-s)
+      .applyQuaternion(bone.quaternion));
+    bone.updateMatrixWorld(true);
+    moved = true;
+  }
+  return moved;
+}
+
+/** The states a weapon is CARRIED through rather than presented in: the
+ *  fighter is travelling, and the prop is luggage. Everything else — every
+ *  attack, every guard, the idle — keeps the presentation its pose authored,
+ *  because there the weapon's angle is the point of the pose. */
+const CARRY_STATES = new Set(["walk", "run", "dash"]);
+
+/**
+ * Swing a carried weapon so its heavy end trails, low and behind.
+ *
+ * See the note in props.js for why this is one rule rather than a table of
+ * per-weapon angles: `fitPropShaft` measures which way the heavy end lies in
+ * the prop bone's own frame, so "trail it" is the same instruction for a
+ * naginata, a guitar and a broom.
+ *
+ * The swing is applied to the PROP BONE, not the arm: the fighter's hand goes
+ * where the run cycle put it and only the thing in it turns, which is what
+ * lets this run after the clip without fighting it. Returns true when
+ * something was actually turned.
+ */
+export function applyCarry(THREE, root3d, charKey, state, tmp) {
+  if (!CARRY_STATES.has(clipNameFor(state))) return false;
+  const props = CHARACTER_PROPS[charKey] || [];
+  if (!props.length || CARRY_OVERRIDES[charKey]?.carry === false) return false;
+
+  // Which way the fighter faces, from their own hips — the same measure every
+  // other layer here uses, so a turned-around body carries it turned around.
+  // characterLateral hands back the fighter's lateral axis built as
+  // (fwd.z, 0, -fwd.x); inverting that recovers the forward it came from.
+  // Deriving it the other way round points the weapon forward instead of back,
+  // which is the exact bug this layer exists to fix — so it is spelled out
+  // rather than left as a cross product to re-derive.
+  const lat = characterLateral(THREE, root3d, tmp.v3);
+  const fwdX = -lat.z, fwdZ = lat.x;
+  const drop = ((CARRY_OVERRIDES[charKey]?.dropDeg ?? CARRY_DROP_DEG) * Math.PI) / 180;
+  const cos = Math.cos(drop);
+  const want = tmp.v2.set(-fwdX * cos, -Math.sin(drop), -fwdZ * cos).normalize();
+
+  let turned = false;
+  for (const p of props) {
+    if (!p.hand) continue;                        // not held: nothing to carry
+    const bone = root3d.getObjectByName(p.bone);
+    if (!bone) continue;
+    if (bone.userData.__shaft === undefined) {
+      bone.userData.__shaft = fitPropShaft(THREE, root3d, p.bone);
+    }
+    const shaft = bone.userData.__shaft;
+    if (!shaft) continue;
+    bone.updateWorldMatrix(true, false);
+    // Where the heavy end points NOW, in the world.
+    const cur = tmp.v1.copy(shaft.dir).transformDirection(bone.matrixWorld).normalize();
+    if (cur.lengthSq() < 1e-8) continue;
+    const swing = tmp.q1.setFromUnitVectors(cur, want);
+    const parentQ = bone.parent ? bone.parent.getWorldQuaternion(tmp.q2) : tmp.q2.identity();
+    // world-space swing, expressed back in the bone's parent frame
+    const inv = tmp.q3.copy(parentQ).invert();
+    bone.quaternion.premultiply(parentQ).premultiply(swing).premultiply(inv);
+    bone.updateMatrixWorld(true);
+    turned = true;
+  }
+  return turned;
 }
 
 /**
