@@ -428,9 +428,21 @@ export function strikeArcs(m, bodyH) {
   const low = y0 > armY + STRIKE_ARC.lowStrike * bodyH;
   const pivotY = low ? (y0 + y1) / 2 : armY;
   const half = m.h / 2;
+  // WHICH WAY THE SWING WENT.
+  //
+  // Dead ahead unless the move was ANGLED, in which case swingMove recorded
+  // the tilt it swung the box by and the crescent turns with it. Taken from
+  // the move rather than re-derived from the box: a box's own geometry cannot
+  // tell a 45° uppercut apart from a level strike that simply hangs low, and
+  // guessing turned every ordinary attack's arc downward.
+  //
+  // The angled smash carried a note saying the arc followed the aim "for
+  // free". It did not — this was hardcoded to zero, and only `low` moved it,
+  // and only once a box had dropped far enough to trip that.
+  const aim = m.aimTilt || 0;
   const arcs = [];
   if (x1 >= STRIKE_ARC.minRadius) {
-    arcs.push({ pivotY, radius: x1, aim: 0, span: arcSpan(half, x1) });
+    arcs.push({ pivotY, radius: x1, aim, span: arcSpan(half, x1) });
   }
   // Backward too, for the down-smash quakes whose box spans both sides.
   if (-x0 >= STRIKE_ARC.minRadius) {
@@ -451,9 +463,10 @@ function vertical(pivotY, radius, aim, half) {
  * y is). Mutates and returns the move.
  *
  * The box keeps its distance and travels along the new line rather than being
- * nudged off the old one, so an angled attack reaches as far as a level one —
- * and because the strike arc is measured off the hitbox (strikeArcs above), the
- * crescent follows for free.
+ * nudged off the old one, so an angled attack reaches as far as a level one.
+ * The crescent follows because strikeArcs above reads the angle back off the
+ * box — which it did NOT do until the diagonals arrived, whatever the note
+ * here used to claim.
  *
  * Extracted from the angled smash, which had this inline and was the only
  * thing that could aim. It is now the one definition of what "aim an attack"
@@ -463,6 +476,9 @@ function vertical(pivotY, radius, aim, half) {
  */
 export function swingMove(move, tilt) {
   if (!tilt) return move;
+  // Kept so strikeArcs can turn the crescent the same way — see the note there
+  // for why it is recorded rather than measured back off the box.
+  move.aimTilt = (move.aimTilt || 0) + tilt;
   const radius = move.ox + move.w * 0.5;
   move.oy += Math.sin(tilt) * radius;
   move.ox *= Math.cos(tilt);
