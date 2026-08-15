@@ -34,6 +34,7 @@ import { HURTBOX } from "../src/constants.js";
 import {
   ZOOM, GROUND_Y, CENTRE_X, toCanvas, toGame, drawStage, marker, heightLine,
   caption, slider, pointEditor, frameStepper,
+  prefetchTask,
 } from "./verify_common.js";
 
 /** Everything these sets read is the sprite manifest and the kit tables, so
@@ -97,6 +98,7 @@ export async function comProvider() {
       caption(ctx, canvas, "where would this body balance if you spun it?");
       ctx.fillText("drag to place", 10, canvas.height - 10);
     },
+    prefetch: prefetchTask,
     exportBlock: (decisions) => blockFor(decisions, "com",
       (d) => {
         const b = bodyMetrics(d.char);
@@ -158,6 +160,7 @@ export async function muzzleProvider() {
       caption(ctx, canvas, "where does the shot leave the caster?");
       ctx.fillText("drag to place", 10, canvas.height - 10);
     },
+    prefetch: prefetchTask,
     exportBlock: (decisions) => blockFor(decisions, "muzzle",
       (d) => `{ x: ${d.value.x}, y: ${d.value.y} }`),
   };
@@ -216,6 +219,7 @@ export async function ledgeProvider() {
       caption(ctx, canvas, "the amber band is the platform lip — put the hand on it");
       ctx.fillText("drag to place", 10, canvas.height - 10);
     },
+    prefetch: prefetchTask,
     exportBlock: (decisions) => blockFor(decisions, "ledgeGrip",
       (d) => `{ x: ${d.value.x}, y: ${d.value.y} }`),
   };

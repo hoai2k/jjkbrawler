@@ -32,12 +32,14 @@ import { resolvedAnim } from "../sprites/src/sprites.js";
 import { CHARACTER_KEYS } from "../src/characters.js";
 import { MODEL_REACH, ENVELOPE_INPUTS } from "../src/config_model_reach.js";
 import { STRIKE_POINTS } from "../src/config_strike_points.js";
+import { contactFrame, imageToGame, gameToImage } from "../src/strike_points.js";
 import { bodyMetrics } from "../src/silhouette.js";
+import { frameMeta } from "../src/assets.js";
 import { STATES, clipNameFor } from "../render3d/src/states.js";
 import { COM_BODY_FRAC } from "../src/config_tuning.js";
 import {
   ZOOM, toCanvas, toGame, drawStage, marker, caption,
-  frameStepper, pointEditor,
+  frameStepper, pointEditor, prefetchTask,
 } from "./verify_common.js";
 
 /** The attacks worth checking, in the order somebody would want to walk them:
@@ -54,13 +56,18 @@ export async function provider() {
       // no art for a state would be a blank canvas and an unanswerable
       // question.
       if (!resolvedAnim(charKey, state)?.frames?.length) continue;
+      // The decision is about the DRAWING, so the frame travels with it —
+      // see src/config_strike_points.js for why the config is keyed that way
+      // rather than by state.
+      const frame = contactFrame(charKey, state);
       tasks.push({
         id: `${charKey}/${state}`,
         title: `${charKey} · ${state}`,
-        subtitle: sourceOf(charKey, state),
+        subtitle: `${frame} — ${sourceOf(charKey, state)}`,
         charKey,
         state,
-        exportKeys: { char: charKey, state },
+        frame,
+        exportKeys: { char: charKey, state, frame },
       });
     }
   }
@@ -68,12 +75,14 @@ export async function provider() {
     tasks,
     fingerprint: `${ENVELOPE_INPUTS.manifest}-${ENVELOPE_INPUTS.poses}-${ENVELOPE_INPUTS.sprites}`,
     initialValue, describe, renderEditor, draw, onCanvasDrag, exportBlock,
+    prefetch: prefetchTask,
   };
 }
 
 /** Where the value on screen came from before anybody touched it. */
 function sourceOf(charKey, state) {
-  if (STRIKE_POINTS[charKey]?.[state]) return "already verified in config";
+  const frame = contactFrame(charKey, state);
+  if (frame && STRIKE_POINTS[charKey]?.[frame]) return "already verified in config";
   const m = MODEL_REACH[charKey]?.states?.[state];
   if (m && Number.isFinite(m.sx)) return m.via === "prop" ? "measured — weapon" : "measured — limb";
   return "derived from body (no rig)";
@@ -81,8 +90,14 @@ function sourceOf(charKey, state) {
 
 function initialValue(task) {
   const { charKey, state } = task;
-  const human = STRIKE_POINTS[charKey]?.[state];
-  if (human) return { x: human.x, y: human.y };
+  // A stored decision is in the DRAWING's pixels; the reviewer works in game
+  // px, so it is converted for display exactly as the game converts it.
+  const frame = contactFrame(charKey, state);
+  const human = STRIKE_POINTS[charKey]?.[frame];
+  if (human) {
+    const g = imageToGame(charKey, frame, human.x, human.y);
+    if (g) return { x: Math.round(g.x), y: Math.round(g.y) };
+  }
   const m = MODEL_REACH[charKey]?.states?.[state];
   if (m && Number.isFinite(m.sx)) return { x: m.sx, y: -m.sy };
   const b = bodyMetrics(charKey);
@@ -124,7 +139,8 @@ function draw(task, { ctx, canvas, value, redraw }) {
   marker(ctx, p.x, p.y, "rgba(120, 240, 255, 0.95)");
 
   const beat = STATES[clipNameFor(task.state)]?.beat ?? 0;
-  caption(ctx, canvas, `beat ${Math.round(beat * 1000)}ms · ${ZOOM}× · white box = hurtbox`);
+  caption(ctx, canvas,
+    `${task.frame} · beat ${Math.round(beat * 1000)}ms · ${ZOOM}× · white box = hurtbox`);
   ctx.fillText("drag to place", 10, canvas.height - 10);
 }
 
@@ -132,6 +148,8 @@ function baseValue(task) {
   const m = MODEL_REACH[task.charKey]?.states?.[task.state];
   return m && Number.isFinite(m.sx) ? { x: m.sx, y: -m.sy } : null;
 }
+
+const fileOf = (charKey, frame) => frameMeta(charKey, frame)?.file || null;
 
 /** The decisions as a block to paste into src/config_strike_points.js.
  *  Approved-as-measured items are included too: "a person looked at this and
@@ -141,29 +159,46 @@ function baseValue(task) {
 function exportBlock(decisions) {
   const byChar = new Map();
   const flagged = [];
-  for (const d of decisions) {
+  for (let d of decisions) {
     if (d.status === "skipped") continue;
     if (d.status === "rejected") {
-      flagged.push(`//   ${d.char}.${d.state}: ${d.note || "flagged, no note"}`);
+      flagged.push(`//   ${d.char}.${d.frame || d.state}: ${d.note || "flagged, no note"}`);
       continue;
     }
-    if (!byChar.has(d.char)) byChar.set(d.char, []);
-    byChar.get(d.char).push(d);
+    if (!d.frame) continue;   // nothing to file it under
+    // Back into the drawing's own pixels — a point is a claim about the
+    // artwork, so it has to survive the sprite being nudged or resized.
+    const img = gameToImage(d.char, d.frame, d.value.x, d.value.y);
+    if (!img) continue;
+    d = { ...d, image: { x: Math.round(img.x * 10) / 10, y: Math.round(img.y * 10) / 10 } };
+    if (!byChar.has(d.char)) byChar.set(d.char, new Map());
+    // Keyed by FRAME, so two states showing one drawing collapse to one entry.
+    // Last decision wins, and the states it was reviewed under are collected
+    // for the meta — a reader should be able to see that a shared drawing was
+    // signed off from more than one place.
+    const held = byChar.get(d.char).get(d.frame);
+    byChar.get(d.char).set(d.frame, {
+      ...d,
+      states: [...new Set([...(held?.states || []), d.state])],
+    });
   }
   const lines = [];
   const meta = [];
-  for (const [char, list] of [...byChar].sort()) {
-    const sorted = list.sort((a, b) => a.state.localeCompare(b.state));
+  for (const [char, frames] of [...byChar].sort()) {
+    const sorted = [...frames].sort(([a], [b]) => a.localeCompare(b));
     lines.push(`  ${JSON.stringify(char)}: { `
-      + sorted.map((d) => `${d.state}: { x: ${d.value.x}, y: ${d.value.y} }`).join(", ")
+      + sorted.map(([frame, d]) => `${frame}: { x: ${d.image.x}, y: ${d.image.y}`
+        + `, file: ${JSON.stringify(fileOf(d.char, frame))} }`).join(", ")
       + ` },`);
     meta.push(`  ${JSON.stringify(char)}: { `
-      + sorted.map((d) => `${d.state}: { at: ${JSON.stringify((d.at || "").slice(0, 10))}`
+      + sorted.map(([frame, d]) => `${frame}: { at: ${JSON.stringify((d.at || "").slice(0, 10))}`
+        + `, states: ${JSON.stringify(d.states)}`
         + (d.note ? `, note: ${JSON.stringify(d.note)}` : "") + ` }`).join(", ")
       + ` },`);
   }
   return {
     file: "src/config_strike_points.js",
+    note: "keyed by sprite frame — a point is a claim about one drawing",
     text: `export const STRIKE_POINTS = {\n${lines.join("\n")}\n};\n\n`
       + `export const STRIKE_POINT_META = {\n${meta.join("\n")}\n};\n`
       + (flagged.length
