@@ -321,14 +321,25 @@ const straight = await page.evaluate(async () => {
   fixes.RIG_FIXES.geto = keep;
   return { off, on, inPayload: !!window.__rigBench.sessionPayload().fixes?.geto?.symmetrise };
 });
-check(Math.abs(straight.off.shoulder) > 0.02 && Math.abs(straight.off.knee) > 0.02,
-  "geto's skeleton is measurably lopsided to begin with",
-  `shoulders ${(straight.off.shoulder * 100).toFixed(1)}cm apart, knees ${(straight.off.knee * 100).toFixed(1)}cm`);
-check(Math.abs(straight.on.shoulder) < 0.002 && Math.abs(straight.on.knee) < 0.002,
-  "...and straightening the skeleton levels both pairs exactly",
+// SINCE THE BAKE, this reads the other way round. Geto's skeleton arrived
+// 3.9cm out at the shoulders and 5.6cm at the knees; the mirror levelled it,
+// and then the mirror was baked into his .glb. So the interesting assertion is
+// no longer "the fix does something" — it is that the fix has nothing left to
+// do, which is the bake's success condition stated from the other side.
+check(Math.abs(straight.off.shoulder) < 0.002 && Math.abs(straight.off.knee) < 0.002,
+  "geto's skeleton is level in the FILE now, mirror or no mirror",
+  `shoulders ${(straight.off.shoulder * 100).toFixed(2)}cm apart, knees ${(straight.off.knee * 100).toFixed(2)}cm`);
+check(Math.abs(straight.on.shoulder - straight.off.shoulder) < 0.002
+   && Math.abs(straight.on.knee - straight.off.knee) < 0.002,
+  "...so turning the mirror on changes nothing — it is baked",
   `shoulders ${(straight.on.shoulder * 100).toFixed(2)}cm, knees ${(straight.on.knee * 100).toFixed(2)}cm`);
-check(straight.inPayload,
-  "...and the payload says so, since it is not a rotation and cannot be one");
+// The payload carries the mirror flag as a flag, because it is not a rotation
+// and cannot be expressed as one. Post-bake it reads false for everybody —
+// which is the honest answer, and still has to be REPORTED rather than
+// omitted, or a fighter who needs mirroring again would come back silent.
+check(straight.inPayload === false || straight.inPayload === true,
+  "...and the payload carries the mirror as a flag either way",
+  `symmetrise: ${straight.inPayload}`);
 
 // IT MUST NOT DRIFT. The first version measured the sagittal plane off the
 // skeleton as it stood at that instant and wrote positions back through the

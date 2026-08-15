@@ -241,6 +241,22 @@ def node_from_mat(m):
     return ([m[12], m[13], m[14]], [v / n for v in q], [sx, sy, sz])
 
 
+def mat_to_quat(m):
+    """The rotation half of a matrix, as xyzw — scale divided out first so a
+    corrected joint that carries one does not come back as a bent quaternion."""
+    _t, r, _s = node_from_mat(m)
+    return r
+
+
+def quat_mul(a, b):
+    ax, ay, az, aw = a
+    bx, by, bz, bw = b
+    return (aw * bx + ax * bw + ay * bz - az * by,
+            aw * by - ax * bz + ay * bw + az * bx,
+            aw * bz + ax * by - ay * bx + az * bw,
+            aw * bw - ax * bx - ay * by - az * bz)
+
+
 def yaw_matrix(deg):
     a = math.radians(deg)
     c, s = math.cos(a), math.sin(a)
@@ -425,13 +441,57 @@ def bake(src, dst, spec, report=print):
         node["rotation"] = [round(v, 7) for v in r]
         node["scale"] = [round(v, 7) for v in s]
 
+    # ------------------------------------------------- and rewrite the CLIPS
+    #
+    # THE PIECE THAT IS EASY TO MISS, and it undoes the whole bake when it is
+    # missing. A clip track sets a bone's local rotation ABSOLUTELY. Bake a
+    # correction into the bind and the first clip that animates that bone
+    # writes the uncorrected rotation straight back over it — and because the
+    # skin is now bound to the CORRECTED bind, the mesh is dragged back to
+    # exactly the shape the correction was removing.
+    #
+    # It shows up as a bake that is perfect in the rig check and wrong
+    # everywhere else: Hanami's T-pose matched to 0.0mm while his idle was out
+    # by 579mm, because his head tilt lives on a bone his idle animates.
+    #
+    # The fix is the same delta, applied to the keys: the correction is
+    # D = newLocal · oldLocal⁻¹ in the parent's frame, so a key q becomes D·q
+    # and a key t becomes D·t. Bones no clip touches need nothing; bones every
+    # clip touches need it in every clip.
+    delta_local = {}
+    for i, g in new_global.items():
+        old_local = mat_from_node(nodes[i])
+        p_i = parent_of.get(i)
+        parent_g = new_global.get(p_i, original_global.get(p_i)) if p_i is not None else None
+        new_local = mat_mul(mat_inverse(parent_g), g) if parent_g is not None else g
+        delta_local[i] = mat_mul(new_local, mat_inverse(old_local))
+
+    touched_channels = 0
+    for anim in doc.get("animations", []):
+        for ch in anim.get("channels", []):
+            node_i = ch.get("target", {}).get("node")
+            path = ch.get("target", {}).get("path")
+            d = delta_local.get(node_i)
+            if d is None or path not in ("rotation", "translation"):
+                continue
+            sampler = anim["samplers"][ch["sampler"]]
+            keys = acc_read(doc, blob, sampler["output"])
+            if path == "rotation":
+                dq = mat_to_quat(d)
+                out = [quat_mul(dq, k) for k in keys]
+            else:
+                out = [mat_apply(d, k) for k in keys]
+            acc_write(doc, blob, sampler["output"], out)
+            touched_channels += 1
+
     # ANYTHING ELSE HANGING OFF A CORRECTED JOINT — a weapon on Prop_Main, an
     # unskinned accessory — is parented to that joint, so it has already moved
     # with it. Nothing to do, and doing something would move it twice.
 
     write_glb(dst, doc, blob)
     report(f"  bind rewritten: {len(new_global)} joint(s), "
-           f"{len(moved_meshes)} skinned mesh(es)"
+           f"{len(moved_meshes)} skinned mesh(es), "
+           f"{touched_channels} clip channel(s)"
            + (f", yaw {yaw:g}°" if yaw else ""))
     return len(new_global)
 
