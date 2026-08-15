@@ -124,7 +124,7 @@ const DIRECTORS = {
         if (this.t > 0.55 && !this.fired) {
           this.fired = true;
           spawnProjectile(f, {
-            speed: 860, ox: 90, oy: -96, r: p.width / 2, dur: p.duration,
+            speed: 860, ox: 79, oy: -78, r: p.width / 2, dur: p.duration,
             dmg: p.dmg, base: p.base, growth: p.growth, angle: 0.4,
             color: p.color, pierce: true, unblockable: true,
             clearsProjectiles: true, label: "Hollow Purple",

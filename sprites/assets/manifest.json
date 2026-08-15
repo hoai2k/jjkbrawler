@@ -63856,9 +63856,18 @@
   },
   "effect:cursed_bud": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": true,
+   "dx": -35,
+   "dy": -5.9,
+   "fadeIn": 0.07,
+   "src": {
+    "file": "assets/sprites/effects/cursed_bud.png",
+    "sha": "1f2d967add9b"
+   }
   },
   "effect:cursed_spirit_orb": {
    "edited": {
@@ -63880,15 +63889,33 @@
   },
   "effect:egg_shot": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "dx": 56,
+   "dy": 0.2,
+   "fadeIn": 0.06,
+   "hit": {
+    "dx": -62.2,
+    "dy": 0.2,
+    "scale": 1.52
+   },
+   "src": {
+    "file": "assets/sprites/effects/egg_shot.png",
+    "sha": "c40b3b1e165a"
+   }
   },
   "effect:ember": {
    "edited": {
     "faceLeft": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "src": {
+    "file": "assets/sprites/effects/ember.png",
+    "sha": "7ab2d9aca6cc"
+   }
   },
   "effect:fuga": {
    "edited": {
@@ -63936,9 +63963,15 @@
   },
   "effect:scream_wave": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "renderScale": null
    },
-   "faceLeft": true
+   "faceLeft": true,
+   "renderScale": 0.925,
+   "src": {
+    "file": "assets/sprites/effects/scream_wave.png",
+    "sha": "b1085a4d32ae"
+   }
   },
   "effect:shikigami_fish": {
    "edited": {
@@ -63948,9 +63981,27 @@
   },
   "effect:shutter": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "renderScale": null,
+    "rotationDeg": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": true,
+   "renderScale": 0.755,
+   "rotationDeg": 2,
+   "dx": 2,
+   "dy": -4.7,
+   "fadeIn": 0.24,
+   "hit": {
+    "dx": -18.5,
+    "dy": 6.9,
+    "scale": 0.945
+   },
+   "src": {
+    "file": "assets/sprites/effects/shutter.png",
+    "sha": "590eae18bfc0"
+   }
   },
   "effect:soul_touch": {
    "edited": {
@@ -63960,9 +64011,23 @@
   },
   "effect:speech_word": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": true,
+   "dx": -14.6,
+   "dy": 4.8,
+   "fadeIn": 0.05,
+   "hit": {
+    "dx": -22.4,
+    "dy": 3.8,
+    "scale": 1
+   },
+   "src": {
+    "file": "assets/sprites/effects/speech_word.png",
+    "sha": "09029bac04f8"
+   }
   },
   "effect:sword_beam": {
    "edited": {
@@ -64196,11 +64261,17 @@
     "dy": null
    },
    "faceLeft": false,
-   "dx": 25.8,
-   "dy": -0.4,
+   "dx": 0,
+   "dy": 0.6,
    "src": {
     "file": "assets/sprites/effects/purple.png",
     "sha": "294c7d3a0d90"
+   },
+   "fadeIn": 0.14,
+   "hit": {
+    "dx": -30.1,
+    "dy": 3.8,
+    "scale": 1
    }
   },
   "effect:red": {
@@ -64208,8 +64279,8 @@
     "dx": null,
     "dy": null
    },
-   "dx": -8.8,
-   "dy": -0.8,
+   "dx": 7.6,
+   "dy": 0.5,
    "hit": {
     "dx": -1.9,
     "dy": 3.4,
@@ -64218,7 +64289,8 @@
    "src": {
     "file": "assets/sprites/effects/red.png",
     "sha": "60c803879079"
-   }
+   },
+   "fadeIn": 0.13
   },
   "effect:sedan": {
    "edited": {
@@ -64590,8 +64662,8 @@
    },
    "renderScale": 0.515,
    "faceLeft": true,
-   "dx": -7.4,
-   "dy": -7.3,
+   "dx": 16.2,
+   "dy": -25.7,
    "hit": {
     "dx": 2.2,
     "dy": 0.3,
@@ -64633,6 +64705,33 @@
    "src": {
     "file": "assets/sprites/effects/blue.png",
     "sha": "2e506a2c9e8f"
+   },
+   "fadeIn": 0.14
+  },
+  "summon:cockroach_swarm": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 0.4,
+   "dy": 5.8,
+   "src": {
+    "file": "assets/sprites/summons/cockroach_swarm.png",
+    "sha": "ce2f0aba70d6"
+   }
+  },
+  "summon:kurourushi_child": {
+   "edited": {
+    "renderScale": null,
+    "dx": null,
+    "dy": null
+   },
+   "renderScale": 0.685,
+   "dx": 1.2,
+   "dy": 7.4,
+   "src": {
+    "file": "assets/sprites/summons/kurourushi_child.png",
+    "sha": "dfe20e6292ba"
    }
   }
  }

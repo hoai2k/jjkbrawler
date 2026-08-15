@@ -62,13 +62,50 @@ const DEFAULT_OY = -86;
  * crosshair and a travel arrow with no way to see the shot they describe.
  */
 const ULT_SHOTS = {
-  beam: (p) => ({ ...p, speed: 860, ox: 90, oy: -96, r: p.width / 2, dur: p.duration }),
+  beam: (p) => ({ ...p, speed: 860, ox: 79, oy: -78, r: p.width / 2, dur: p.duration }),
 };
 
-export function firingUse(spriteKey) {
-  for (const charKey of CHARACTER_KEYS) {
+/**
+ * The ULTIMATES that drop something onto a target instead of throwing it.
+ *
+ * Jogo's Maximum: Meteor never calls spawnProjectile — its director pushes an
+ * entity that paints the drawing falling from `y: -160` to the floor over
+ * `fallTime`, above the OPPONENT's x (src/ultimates.js, `meteor`). There is no
+ * muzzle and no `ox`/`oy`, so the shot machinery had nothing to offer it and
+ * the drawing had no Play button at all — leaving the two questions it most
+ * needs answered, how big and at what angle, answerable only in a real match.
+ *
+ * `delay` is the beat before it appears, `from` the height it starts at, and
+ * `to` its offset above the floor at impact: the same three numbers the
+ * director uses, kept here so the fall reads at the speed the game falls it.
+ */
+const ULT_DROPS = {
+  meteor: (p) => ({ ...p, delay: 0.5, from: -160, to: -40, fall: p.fallTime ?? 1.1 }),
+};
+
+/**
+ * @param spriteKey  the drawing to find an action for.
+ * @param preferChar the fighter whose effects list this was opened from. A
+ *   drawing more than one kit fires has no single answer to "who fires it", and
+ *   the walk's first hit is the wrong one whenever you are standing in somebody
+ *   else's list — the same reason `sharedOwner` prefers the context character.
+ *   Aligning art to a body is worthless against the wrong body.
+ */
+export function firingUse(spriteKey, preferChar) {
+  const order = preferChar && CHARACTERS[preferChar]
+    ? [preferChar, ...CHARACTER_KEYS.filter((k) => k !== preferChar)]
+    : CHARACTER_KEYS;
+  for (const charKey of order) {
     const c = CHARACTERS[charKey];
     const ult = c?.ultimate;
+    const drop = ULT_DROPS[ult?.type];
+    if (drop && ult?.p?.sprite === spriteKey) {
+      return {
+        charKey, slot: "ult", spec: ult, p: drop(ult.p), state: "ult", mode: "drop",
+        name: ult.name || spriteKey,
+        muzzleScale: bodyMetrics(charKey).height / HEIGHT_BASE_PX,
+      };
+    }
     const shot = ULT_SHOTS[ult?.type];
     if (shot && ult?.p?.sprite === spriteKey) {
       const p = shot(ult.p);
@@ -123,6 +160,16 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
   const ctx = canvas.getContext("2d");
   const GROUND = canvas.height - 70;
   const FIGHTER_X = 190;
+  // Somebody to aim at. A shot with `homing` bends toward whoever it is chasing
+  // and a meteor falls on their head, so an empty stage was showing neither:
+  // the ember arc looked like a plain lob because there was nothing for it to
+  // lean toward, and the meteor had no x to fall at. Far enough away that the
+  // bend is visible over the shot's own flight time.
+  const ENEMY_X = 640;
+  /** Who stands there: anybody but the fighter casting. */
+  const enemyFor = (charKey) => (charKey === "yuji" ? "megumi" : "yuji");
+  /** What the shot chases, in the shape combat.js's homing reads. */
+  const targetPoint = () => ({ x: ENEMY_X, y: GROUND });
 
   let use = null;
 
@@ -165,14 +212,47 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     const x0 = FIGHTER_X + dir * m.x;
     const y0 = GROUND + m.y;
     const g = use.p.gravity || 0;
+    const home = { x0, y0, source: m.source };
+    // A shot that chases nobody has a closed form; a shot with `homing` does
+    // not — combat.js bends it a little every frame toward the target, so the
+    // only honest way to draw the path is to walk it the way the game walks it
+    // (src/combat.js, the homing block). Fixed step so the same `age` always
+    // lands in the same place however the browser paces its frames.
+    let x = x0, y = y0, vx = dir * (use.p.speed || 500), vy = use.p.vy || 0;
+    if (!use.p.homing) {
+      return { ...home, x: x0 + vx * age, y: y0 + vy * age + 0.5 * g * age * age,
+               vx, vy: vy + g * age };
+    }
+    const target = targetPoint();
+    const STEP = 1 / 120;
+    for (let t = 0; t < age; t += STEP) {
+      const dt = Math.min(STEP, age - t);
+      vx += Math.sign(target.x - x) * use.p.homing * dt * 8;
+      vy += Math.max(-220, Math.min(220, (target.y - 60) - y)) * dt * 3;
+      vy += g * dt;
+      x += vx * dt;
+      y += vy * dt;
+    }
+    return { ...home, x, y, vx, vy };
+  }
+
+  /** Where a DROPPED drawing is, `age` seconds in: straight down onto the
+   *  target's head, at the speed src/ultimates.js falls it. */
+  function dropAt(age) {
+    const p = use.p;
+    const prog = Math.max(0, (age - p.delay) / p.fall);
+    const y0 = GROUND + p.from;
+    const y1 = GROUND + p.to;
     return {
-      x0, y0, source: m.source,
-      x: x0 + dir * (use.p.speed || 500) * age,
-      y: y0 + (use.p.vy || 0) * age + 0.5 * g * age * age,
-      vx: dir * (use.p.speed || 500),
-      vy: (use.p.vy || 0) + g * age,
+      x0: ENEMY_X, y0,
+      x: ENEMY_X, y: y0 + Math.min(1, prog) * (y1 - y0),
+      vx: 0, vy: (y1 - y0) / p.fall, visible: age >= p.delay,
     };
   }
+
+  /** The point the drawing is measured from, whichever way this action puts it
+   *  on the stage: a shot's muzzle, or the top of a drop's fall. */
+  const originAt = (adj) => (use.mode === "drop" ? dropAt(use.p.delay) : shotAt(0, adj));
 
   /** The projectile, painted exactly as render.js paints it. */
   function drawShot(sprite, pos, adj, age) {
@@ -185,9 +265,15 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // thing you see in motion or not at all.
     if (adj.fadeIn) ctx.globalAlpha = Math.min(1, age / adj.fadeIn);
     ctx.translate(pos.x, pos.y);
-    const flip = pos.vx > 0 ? -1 : 1;
-    if (use.p.vy || use.p.gravity) ctx.rotate(Math.atan2(-flip * pos.vy, -flip * pos.vx));
-    ctx.scale(flip, 1);
+    // A dropped drawing is painted upright — its director never mirrors it and
+    // never turns it into its fall, so the only tilt it has is the standing
+    // one, and previewing it under the projectile's flight rotate would show a
+    // meteor lying on its side that the game draws nose-down.
+    if (use.mode !== "drop") {
+      const flip = pos.vx > 0 ? -1 : 1;
+      if (use.p.vy || use.p.gravity || use.p.homing) ctx.rotate(Math.atan2(-flip * pos.vy, -flip * pos.vx));
+      ctx.scale(flip, 1);
+    }
     if (adj.rot) ctx.rotate(adj.rot);
     ctx.shadowColor = use.p.color || "#8fd3ff";
     ctx.shadowBlur = 12;
@@ -218,7 +304,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     if (!running) return;
     const dt = Math.min(0.05, (now - lastTick) / 1000 || 0);
     lastTick = now;
-    const dur = use.p.dur || 0.9;
+    const dur = use.mode === "drop" ? use.p.delay + use.p.fall + 0.3 : (use.p.dur || 0.9);
     const cycle = Math.max(STATES[use.state]?.duration || 0.5, dur) + 0.35;
     t = (t + dt) % cycle;
 
@@ -239,31 +325,52 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     drawCharFrame(ctx, use.charKey, cf, FIGHTER_X, GROUND,
       { scale: CHARACTERS[use.charKey]?.scale, facing: 1 });
 
-    const pos = shotAt(t, adj);
+    // The target, standing where the shot is aimed. Drawn for every action so
+    // the flight has a scale to be judged against, and REQUIRED by the two that
+    // are about a target: a homing shot bends toward this body and a meteor
+    // falls on it. Dimmed, because it is scenery for this question.
+    ctx.save();
+    ctx.globalAlpha = 0.75;
+    const ek = enemyFor(use.charKey);
+    const ef = currentFrame(ek, "idle", t);
+    await loadFrame(ek, ef).catch(() => {});
+    drawCharFrame(ctx, ek, ef, ENEMY_X, GROUND,
+      { scale: CHARACTERS[ek]?.scale, facing: -1 });
+    ctx.restore();
+
+    const pos = use.mode === "drop" ? dropAt(t) : shotAt(t, adj);
     const sprite = getImage(use.spriteKey);
-    if (sprite && t <= dur) drawShot(sprite, pos, adj, t);
+    if (sprite && t <= dur && pos.visible !== false) drawShot(sprite, pos, adj, t);
 
     // The two points, always visible: the one the game spawns from and the one
-    // the drawing is centred on after the nudge.
-    const origin = shotAt(0, adj);
-    marker(origin.x0, origin.y0, "#9fd39f", "spawn", false);
+    // the drawing is centred on after the nudge. A drop has no muzzle to place
+    // — the director picks the target's x, and nothing about that is the
+    // drawing's to move — so only the drawing marker is offered.
+    const origin = use.mode === "drop" ? dropAt(use.p.delay) : shotAt(0, adj);
+    if (use.mode !== "drop") marker(origin.x0, origin.y0, "#9fd39f", "spawn", false);
     marker(origin.x0 + (adj.dx || 0), origin.y0 + (adj.dy || 0), "#f0b45a", "drawing", true);
 
     ctx.fillStyle = "#8b96b3";
     ctx.font = "12px ui-monospace, monospace";
-    ctx.fillText(`${use.name} — ${use.charKey} · ${use.state} · ${use.p.speed || 0}px/s for ${dur}s`, 14, 22);
-    // Kit units, which is what these numbers have to be to be worth writing
-    // down — the scale that turns them into the pixels above is noted beside.
-    const kitOx = Math.round(adj.spawnOx ?? use.ox);
-    const kitOy = Math.round(adj.spawnOy ?? use.oy);
-    const SOURCE = {
-      human: "hand-placed muzzle",
-      model: "muzzle measured off the rig",
-      derived: "muzzle unplaced — reference scaled",
-    };
-    ctx.fillText(`spawn ox ${kitOx}, oy ${kitOy} (kit)`
-      + `   ·   ${SOURCE[pos.source] || pos.source}`
-      + `   ·   drawing dx ${(adj.dx || 0).toFixed(1)}, dy ${(adj.dy || 0).toFixed(1)}`, 14, 40);
+    const nudge = `drawing dx ${(adj.dx || 0).toFixed(1)}, dy ${(adj.dy || 0).toFixed(1)}`;
+    if (use.mode === "drop") {
+      ctx.fillText(`${use.name} — ${use.charKey} · ${use.state} · falls onto the target in ${use.p.fall}s`, 14, 22);
+      ctx.fillText(`no muzzle — the drop picks the target's x   ·   ${nudge}`, 14, 40);
+    } else {
+      ctx.fillText(`${use.name} — ${use.charKey} · ${use.state} · ${use.p.speed || 0}px/s for ${dur}s`
+        + (use.p.homing ? ` · homes at ${use.p.homing}` : ""), 14, 22);
+      // Kit units, which is what these numbers have to be to be worth writing
+      // down — the scale that turns them into the pixels above is noted beside.
+      const kitOx = Math.round(adj.spawnOx ?? use.ox);
+      const kitOy = Math.round(adj.spawnOy ?? use.oy);
+      const SOURCE = {
+        human: "hand-placed muzzle",
+        model: "muzzle measured off the rig",
+        derived: "muzzle unplaced — reference scaled",
+      };
+      ctx.fillText(`spawn ox ${kitOx}, oy ${kitOy} (kit)`
+        + `   ·   ${SOURCE[pos.source] || pos.source}   ·   ${nudge}`, 14, 40);
+    }
 
     raf = requestAnimationFrame(frame);
   }
@@ -278,12 +385,12 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     if (!use) return;
     const pt = pointFor(ev);
     const adj = read();
-    const o = shotAt(0, adj);
+    const o = originAt(adj);
     const dPt = { x: o.x0 + (adj.dx || 0), y: o.y0 + (adj.dy || 0) };
     // The drawing marker wins a tie: it is the one that moves most often, and
     // it sits on top of the spawn point whenever the nudge is zero.
     if (Math.hypot(pt.x - dPt.x, pt.y - dPt.y) < 18) drag = "drawing";
-    else if (Math.hypot(pt.x - o.x0, pt.y - o.y0) < 18) drag = "spawn";
+    else if (use.mode !== "drop" && Math.hypot(pt.x - o.x0, pt.y - o.y0) < 18) drag = "spawn";
     else return;
     grabbed = false;
     canvas.setPointerCapture(ev.pointerId);
@@ -297,7 +404,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     if (drag === "spawn") {
       write(toKit(pt), first);   // kit units, because the kit is where it lands
     } else {
-      const o = shotAt(0, adj);
+      const o = originAt(adj);
       write({ dx: +(pt.x - o.x0).toFixed(1), dy: +(pt.y - o.y0).toFixed(1) }, first);
     }
   });
@@ -307,8 +414,8 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
 
   return {
     /** Start playing `spriteKey`; returns false when no move fires it. */
-    open(spriteKey) {
-      const found = firingUse(spriteKey);
+    open(spriteKey, preferChar) {
+      const found = firingUse(spriteKey, preferChar);
       if (!found) return false;
       use = { ...found, spriteKey };
       t = 0;
