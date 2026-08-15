@@ -308,7 +308,12 @@ def main():
         print("(dry run — nothing written)")
         return 0
     with open(MANIFEST, "w") as fh:
-        json.dump(man, fh, indent=2)
+        # indent=2 here and indent=1 in the ten other tools that write this file
+        # meant whichever ran last reformatted all 64,000 lines, so the next
+        # two-line adjustment arrived as a 128,000-line diff with the actual
+        # change buried in it. Nothing about 2 was better than 1; it was just
+        # the odd one out, so it is the one that moves.
+        json.dump(man, fh, indent=1)
         fh.write("\n")
     print("manifest updated")
     return 0
