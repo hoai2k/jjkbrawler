@@ -37,17 +37,21 @@ import { sceneAdapter } from "../render_backend.js";
 import { headHeightTarget } from "../heights.js";
 import { fighterTransform } from "../motion.js";
 import { COM_BODY_FRAC as COM_FRAC } from "../config_tuning.js";
+import { LIGHT_RIG } from "../../render3d/src/light_rig.js";
 
 const S = C.simScale;
 
 export function makeModels() {
   const group = new Group();
   const lights = new Group();
-  const hemi = new HemisphereLight(0xf4f6ff, 0x3a4152, 2.2);
-  const key = new DirectionalLight(0xffffff, 1.9);
+  // The same rig the offscreen toon pass builds, from the same numbers
+  // (render3d/src/light_rig.js) — hand-duplicating them here is how a fighter
+  // gets lit two ways depending on a URL flag.
+  const hemi = new HemisphereLight(LIGHT_RIG.hemi.sky, LIGHT_RIG.hemi.ground, LIGHT_RIG.hemi.intensity);
+  const key = new DirectionalLight(LIGHT_RIG.key.color, LIGHT_RIG.key.intensity);
   // Roughly the flat path's key direction, in world axes: up, and toward the
   // camera-ish side, so the terminator falls where the offscreen render puts it.
-  key.position.set(1.5, 2.5, 2.0);
+  key.position.set(...LIGHT_RIG.key.position);
   lights.add(hemi, key);
   group.add(lights);
 

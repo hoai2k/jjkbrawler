@@ -30,6 +30,7 @@ import { state } from "../../src/state.js";
 import { getStage } from "../../src/stages.js";
 import { DIALS, sampleTime, poseRig } from "./pose.js";
 import { setRimColor, TOON } from "./toon.js";
+import { LIGHT_RIG } from "./light_rig.js";
 import { setWorldWidth, OUTLINE } from "./outline.js";
 
 export const TEX_SIZE = 384;
@@ -86,10 +87,16 @@ export function initScene(three) {
   // the downsample averages anyway.
   renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
   renderer.setClearColor(0x000000, 0);
+  // Colour management stated rather than inherited: the output space and the
+  // absence of tone mapping are both load-bearing for the toon ramp (a filmic
+  // curve would re-grade the two bands), so they are set here even where they
+  // match the three.js defaults of the vendored build.
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.NoToneMapping;
   scene = new THREE.Scene();
-  hemiLight = new THREE.HemisphereLight(0xf4f6ff, 0x3a4152, 2.2);
-  keyLight = new THREE.DirectionalLight(0xffffff, 1.9);
-  keyLight.position.set(1.5, 2.5, 2.0);
+  hemiLight = new THREE.HemisphereLight(LIGHT_RIG.hemi.sky, LIGHT_RIG.hemi.ground, LIGHT_RIG.hemi.intensity);
+  keyLight = new THREE.DirectionalLight(LIGHT_RIG.key.color, LIGHT_RIG.key.intensity);
+  keyLight.position.set(...LIGHT_RIG.key.position);
   scene.add(hemiLight, keyLight);
   camera = new THREE.PerspectiveCamera(FOV_DEG, 1, 0.05, 80);
   _proj = new THREE.Vector3();

@@ -141,6 +141,9 @@ export function makeToonMaterial(THREE, src, overrides = {}) {
     depthWrite: src?.depthWrite ?? true,
   });
   if (src?.name) mat.name = src.name;
+  // The camera sits at a 15° lens and the blit downsamples — a touch of
+  // anisotropy keeps painted costume detail from mushing at glancing angles.
+  if (mat.map) mat.map.anisotropy = Math.max(mat.map.anisotropy || 1, 4);
   const u = {
     uShadeColor: { value: new THREE.Color(
       p.shadeTint[0], p.shadeTint[1], p.shadeTint[2]) },

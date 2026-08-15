@@ -7,16 +7,17 @@ toon-ramped, ink-outlined, sampled on twos — and composited into the unchanged
 **`/render3d`** (the backend NAME is `3d`, the directory avoids a leading
 digit). The game, the sim, the sprites and the billboard path are untouched.
 
-> **Status: D0 and the D1/D2 engine side are BUILT.** The pipe runs against
-> the mannequin (`?render=3d`, which stands one in for every fighter without
-> a delivered rig), the toon/outline/on-twos pass
-> is live, and the 2.5D layers (turnaround, parallax, aim, look-at, flinch,
-> stage light rig, foot IK) each sit behind a dial in `render3d/src/pose.js`.
-> What remains is art: the D-rounds in
-> [asset-requests.md](asset-requests.md) (models and clips) and the image
-> inputs in [image-requests.md](image-requests.md). The moment a delivered
-> rig passes intake and workbench approval, its fighter draws live 3D
-> mid-roster with no further engine work.
+> **Status: the roster is DELIVERED and live.** 27 rigged characters are in
+> `render3d/assets/` (25 in game; Mei Mei and Kurourushi are held back by
+> `inGame: false` pending rebuilds), the toon/outline/on-twos pass is live,
+> and the 2.5D layers (turnaround, parallax, aim, look-at, flinch, stage
+> light rig, foot IK, contact-beat sync, cross-fades) each sit behind a dial
+> in `render3d/src/pose.js`. The mannequin remains the stand-in for pipeline
+> work (`?mannequin=all`). Still outstanding from this plan: smears (§6),
+> the eyes/face pass (§4 — the mouth sheets and eye highlight are on disk
+> under `assets/textures/`, but wiring them needs per-character mouth/eye
+> placement data that no delivery carries yet, so it is an art round before
+> it is engine work), contact shadows (§9), and costume variants (§9).
 
 This is the sibling of `billboards/` and deliberately its heir: the billboard
 backend proved the pipe (offscreen WebGL → texture → blit through the

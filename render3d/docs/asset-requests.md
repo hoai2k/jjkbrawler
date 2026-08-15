@@ -16,12 +16,14 @@ and follows the same rules: everything here is **outstanding**, delivered
 rounds move to a history file when the first one lands, and round numbers
 (D1, D2…) are permanent so commits citing them keep resolving.
 
-**Current status: nothing delivered — the pipeline is built and waiting**
-(phase D0: live playback, on-twos sampling, toon ramp, ink outlines, foot IK,
-turnaround, stage lighting, intake, workbench review and inheritance all run
-today against the mannequin, which `?render=3d` stands in for every
-fighter without a delivered rig; see
-[plan.md](plan.md)). **D1 is the round to draw against.**
+**Current status: the roster is delivered** — 27 rigs are in
+`render3d/assets/` and 25 draw in game (`inGame: false` holds back Mei Mei
+and Kurourushi pending rebuilds; see the D6 round below). The pipeline
+(live playback, on-twos sampling, toon ramp, ink outlines, foot IK,
+turnaround, stage lighting, intake, workbench review and inheritance) runs
+against the delivered bodies, with the mannequin still available as the
+stand-in (`?mannequin=all`); see [plan.md](plan.md). Open work is the
+per-round list below.
 
 The 2D image inputs this track needs (Tripo seeding boards, face sheets,
 shade-palette swatches, eye/mouth textures) are requested separately in
