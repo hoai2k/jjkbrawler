@@ -9,7 +9,7 @@
 import {
   loadCoreAssets, loadFrame, frameImage, spriteManifest, sharedSpriteKeys, loadSharedImage, getImage,
   forgetSharedMirror,
-  frameMeta, loadSpriteFile, spriteFileImage,
+  frameMeta, loadSpriteFile, spriteFileImage, sharedFileOf,
 } from "../../src/assets.js";
 import {
   drawCharFrame, anchorLocal, anchorsForFrame, statesUsingFrame, isAirborneOnly, isAnchorPlaced, animsOf, resolvedAnim,
@@ -4688,7 +4688,17 @@ function payloadFor(charKey) {
     if (meta.attackBox && JSON.stringify(meta.attackBox) !== JSON.stringify(orig.attackBox)) {
       entry.attackBox = meta.attackBox;
     }
-    if (Object.keys(entry).length) out[key] = entry;
+    if (Object.keys(entry).length) {
+      // WHICH DRAWING this tuning was measured against. A shared key resolves
+      // to one fixed filename — `blood_orb.png` is always `blood_orb.png` — so
+      // unlike a character pose, whose replacement lands under a new name, a
+      // redelivered effect leaves no trace that the numbers beside it were
+      // chosen for a picture that is gone. Naming the file is what lets the
+      // apply tool fingerprint it and the checker notice later.
+      const file = isOther(charKey) ? sharedFileOf(key) : null;
+      if (file) entry.file = file;
+      out[key] = entry;
+    }
   }
   // Which drawing each pose should use, when that was changed this session.
   // Exported separately from the numbers because it is a different decision:

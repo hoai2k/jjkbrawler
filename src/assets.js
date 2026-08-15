@@ -496,6 +496,35 @@ function groupJobs(id) {
   // "shared" — art that belongs to no one fighter and could turn up in any
   // match. Every one of these has a procedural fallback in the renderer, which
   // is why the match gate does not wait on them.
+  for (const [key, file, opt] of sharedArt()) {
+    (opt ? optional : add)(key, file);
+  }
+  for (const [name, charKey] of Object.entries(DOMAIN_BACKGROUNDS)) {
+    if (CHARACTER_KEYS.includes(charKey)) {
+      optional(`domain:${name}`, `assets/backgrounds/domains/${name}.jpg`);
+    }
+  }
+  return jobs;
+}
+
+/**
+ * Every shared drawing and the file it comes from, as `[key, file, optional]`.
+ *
+ * Pulled out of the loader because the mapping is a FACT worth asking about on
+ * its own, and this was the only place it existed — written as template
+ * literals inside the fetch loop, reachable only by fetching. Anything wanting
+ * to know which image `effect:blood_orb` is had to guess the convention and
+ * hope, which is no way to hang an identity on a drawing: the workbench's
+ * adjustments are tuned against a specific picture, and telling whether that
+ * picture has since been redelivered means naming the file first.
+ *
+ * Paths are repo-relative, so a tool can open one and the loader can fetch it.
+ */
+export function sharedArt() {
+  const out = [];
+  const add = (key, file) => out.push([key, file, false]);
+  const optional = (key, file) => out.push([key, file, true]);
+
   // Summons whose art is not a creature standing on the stage: Mahoraga's is
   // the fallback still for a set that fails its pose check (he animates
   // through the actor sprite set), and Rika is drawn by Yuta's moves and his
@@ -525,7 +554,7 @@ function groupJobs(id) {
   for (const key of EFFECT_KEYS) add(`effect:${key}`, `assets/sprites/effects/${key}.png`);
   // Round-7 effects load automatically the moment their fighter is promoted
   // into CHARACTER_KEYS — no loader change needed at integration. Optional
-  // because a fighter may ship ahead of their effect art (see above).
+  // because a fighter may ship ahead of their effect art.
   for (const charKey of CHARACTER_KEYS) {
     for (const key of STAGED_EFFECT_KEYS[charKey] || []) {
       optional(`effect:${key}`, `assets/sprites/effects/${key}.png`);
@@ -536,19 +565,25 @@ function groupJobs(id) {
       optional(key, `assets/sprites/${file}`);
     }
   }
-  for (const [name, charKey] of Object.entries(DOMAIN_BACKGROUNDS)) {
-    if (CHARACTER_KEYS.includes(charKey)) {
-      optional(`domain:${name}`, `assets/backgrounds/domains/${name}.jpg`);
-    }
-  }
   for (const key of STAGE_FX_SPRITES) {
     optional(`stagefx:${key}`, `assets/sprites/effects/${key}.png`);
   }
   for (const key of GARNISH_SPRITES) {
     optional(`garnish:${key}`, `assets/sprites/garnish/${key}.png`);
   }
-  return jobs;
+  return out;
 }
+
+/** The file a shared drawing is painted from, repo-relative, or null when
+ *  nothing registers that key. */
+export function sharedFileOf(key) {
+  if (!sharedFileIndex) {
+    sharedFileIndex = new Map();
+    for (const [k, file] of sharedArt()) if (!sharedFileIndex.has(k)) sharedFileIndex.set(k, file);
+  }
+  return sharedFileIndex.get(key) || null;
+}
+let sharedFileIndex = null;
 
 // ------------------------------------------------------------ background pump
 
