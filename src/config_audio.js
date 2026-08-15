@@ -30,8 +30,28 @@ export const SFX_DIR = "assets/sfx/";
 // under a busy exchange rather than compete with it.
 export const AUDIO_MIX = {
   // Default slider positions (0..1). Players override these in Settings.
-  musicVolume: 0.28,
-  sfxVolume: 0.20,
+  //
+  // These were 0.28 and 0.20, and the game was audibly quieter than the rest of
+  // the web. Nothing was wrong with the FILES — every one is peak-normalised to
+  // -3 dBFS by the generator — the mix was simply throwing four fifths of that
+  // away before it reached the speakers. A heavy hit left at 0.706 × 1.0 × 0.20
+  // × 0.9 = 0.127, which is -18 dBFS: a fifth of the available range, on the
+  // loudest single sound in the game.
+  //
+  // Both were multiplied by the SAME factor, 2.75, which is the point. Every
+  // relationship in this file is multiplicative — category trim, per-sound
+  // gain, the menu track's scale — so scaling the two sliders together moves
+  // the whole mix up and leaves every balance inside it exactly as it was. A
+  // hit now peaks at -9.1 dBFS and a music track at -4.7.
+  //
+  // 2.75 is close to the ceiling, and MUSIC is what sets it rather than sfx.
+  // The `master` trim below is applied to sound effects and not to music (see
+  // playMusic in audio.js), so the music slider is the one number here that
+  // reaches the output unattenuated: at 0.77 it is already three quarters of
+  // the way up, and pushing the pair further would leave a player who wants MORE
+  // music with a slider that has nowhere left to go.
+  musicVolume: 0.77,
+  sfxVolume: 0.55,
 
   // Hard ceiling applied after everything else, so a stacked frame — several
   // hits, a grunt and a hazard in the same 100 ms — cannot clip.
