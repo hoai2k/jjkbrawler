@@ -123,13 +123,6 @@ export function ensureFrames(charKey) {
   return load;
 }
 
-/** Fetch a character's art without drawing anything — used to warm the next
- *  item in the queue while the current one is being looked at, so stepping
- *  through a set does not stall on every new fighter. */
-export function prefetchFrames(charKey) {
-  if (charKey && !ready.has(charKey)) ensureFrames(charKey);
-}
-
 // ------------------------------------------------------------------ canvas
 
 /**
@@ -162,10 +155,11 @@ export function drawStage(task, { ctx, canvas, guides = {}, redraw }) {
   const drew = drawCharFrame(ctx, charKey, frame, CENTRE_X, GROUND_Y,
     { scale: artScaleFor(charKey), facing: 1 });
   if (!drew) {
+    // The engine has already asked for this art and will repaint when it
+    // lands (verification.js renderCurrent) — this only says so meanwhile.
     ctx.fillStyle = "#9aa4c0";
     ctx.font = "13px system-ui";
     ctx.fillText("loading art…", CENTRE_X - 34, GROUND_Y - 60);
-    ensureFrames(charKey).then((fresh) => { if (fresh) redraw?.(); });
   }
 
   if (guides.hurtbox) {
@@ -270,8 +264,22 @@ export function pointEditor(container, charKey, value, onChange) {
   }, (y) => onChange({ ...value, y }));
 }
 
-/** The provider hook the engine calls to warm an upcoming item. */
-export const prefetchTask = (task) => prefetchFrames(task?.charKey);
+/**
+ * THE FRAMEWORK HOOK. Everything a task needs in memory before it can be
+ * drawn — for every sprite-backed set, that is its character's frames.
+ *
+ * Providers export this as `ensureReady` and do nothing else about loading:
+ * the ENGINE calls it for the item on screen and repaints when it resolves,
+ * and calls it again for the neighbours to warm them. Leaving it to each
+ * provider is how the canvas ended up stuck on "loading art…" in the sets
+ * whose draw function forgot to ask.
+ *
+ * Resolves true when art arrived on this call's watch, false when there was
+ * nothing to wait for — which is what stops the engine repainting forever.
+ */
+export const ensureTaskArt = (task) =>
+  (task?.charKey ? ensureFrames(task.charKey) : Promise.resolve(false));
+
 
 /** A read-only line of context above the editor. */
 export const describeXY = (charKey, value, source) => {

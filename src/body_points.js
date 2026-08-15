@@ -36,12 +36,9 @@ export function muzzlePoint(charKey, height, fallbackOx = 70, fallbackOy = -86) 
   return { x: fallbackOx * k, y: fallbackOy * k };
 }
 
-/** Where the gripping hand meets the lip on a ledge hang, or null when
- *  nobody has said — the caller keeps whatever it did before. */
-export function ledgeGrip(charKey) {
-  const p = BODY_POINTS[charKey]?.ledgeGrip;
-  return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? p : null;
-}
+// No ledgeGrip reader: that fact lives in the sprite manifest as a per-frame
+// `ledge` anchor (sprites.js ANCHORED_STATES), which is where a point on a
+// drawing belongs. See the note in config_body_points.js.
 
 /** Multipliers on a derived hurtbox for one state, or 1×1. Cases:
  *  stand | crouch | air | hurt | prone | ledge. */

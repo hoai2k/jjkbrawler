@@ -31,7 +31,7 @@ import { clearCache } from "../render3d/src/scene.js";
 import * as render3d from "../render3d/src/backend.js";
 import { STATES, clipNameFor } from "../render3d/src/states.js";
 import {
-  ZOOM, GROUND_Y, artScaleFor, ensureFrames, caption, slider, frameStepper, frameIndex,
+  ZOOM, GROUND_Y, artScaleFor, ensureTaskArt, caption, slider, frameStepper, frameIndex,
 } from "./verify_common.js";
 
 /** The 3D engine, started once and shared by both sets. Resolves false when
@@ -86,7 +86,10 @@ function drawPair(task, { ctx, canvas, redraw, yawDeg = 0, state }) {
   const t = anim?.fps ? (idx + 0.5) / anim.fps : 0;
   const drew = spriteDraw(ctx, charKey, spriteFrame(charKey, state, t), SPRITE_X, GROUND_Y,
     { scale, facing: 1 });
-  if (!drew) ensureFrames(charKey).then((fresh) => { if (fresh) redraw?.(); });
+  if (!drew) {
+    ctx.fillStyle = "#9aa4c0";
+    ctx.fillText("loading art…", SPRITE_X - 34, GROUND_Y - 60);
+  }
 
   // The model, posed through the backend's own token path so what is on
   // screen is what a match would draw.
@@ -138,6 +141,7 @@ export async function facingProvider() {
     tasks,
     fingerprint: fingerprint(),
     ready: ok,
+    ensureReady: ensureTaskArt,
     initialValue: (task) => ({ yaw: manifest[task.charKey]?.yawOffsetDeg ?? 0 }),
     describe: (task, value) =>
       `stored <b>${manifest[task.charKey]?.yawOffsetDeg ?? 0}°</b>`
@@ -215,6 +219,7 @@ export async function poseProvider() {
     tasks,
     fingerprint: fingerprint(),
     ready: ok,
+    ensureReady: ensureTaskArt,
     // Nothing to edit: this set's answer is a verdict, and its value carries
     // the reviewer's reading of WHY rather than a number to apply.
     initialValue: () => ({ reads: true }),

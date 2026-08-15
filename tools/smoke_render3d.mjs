@@ -100,6 +100,7 @@ async function bootAndFight(page, url) {
   const r = await page.evaluate(async (before) => {
     const { state } = await import("/src/state.js");
     const { renderBackendName } = await import("/src/render_backend.js");
+    const { simulates } = await import("/render3d/src/props.js");
     const stats = window.__render3d.stats;
     const dials = window.__render3d.dials;
     const elapsed = (performance.now() - before.t) / 1000;
@@ -157,6 +158,15 @@ async function bootAndFight(page, url) {
       renders: stats.renders, hits: stats.hits, misses: stats.misses,
       windowRenders: stats.renders - before.renders, elapsed,
       hz: dials.sampleHz, fighters: state.fighters.length,
+      // WHO is fighting, and whether any of them is a rig the cache cannot
+      // serve. Mei Mei's braids and Uro's mane are simulated (props.js): a
+      // Verlet chain carries state, so identical tokens no longer draw
+      // identical pixels and such a fighter deliberately neither reads nor
+      // writes the cache. The CPU opponent here is a random roll, so roughly
+      // one match in twelve contains one — and its hit rate then says nothing
+      // about the cache.
+      cast: state.fighters.map((x) => x.charKey),
+      simulated: state.fighters.map((x) => x.charKey).filter((k) => simulates(k)),
       pixels: hit, sky, sampled: !!f,
     };
   }, before);
@@ -170,7 +180,16 @@ async function bootAndFight(page, url) {
   const budget = r.hz * r.fighters * r.elapsed * 2.5;
   check(r.windowRenders <= budget, "renders/sec stays inside the on-twos budget",
     `${r.windowRenders} renders in ${r.elapsed.toFixed(1)}s vs budget ${Math.round(budget)}`);
-  check(r.hits > r.misses, "the pose cache carries most frames", `${r.hits} hits / ${r.misses} misses`);
+  // Only meaningful when every fighter on screen is cache-eligible — see the
+  // note where `simulated` is collected. Reported either way, so a run that
+  // skips it says so instead of quietly proving nothing.
+  if (r.simulated.length) {
+    console.log(`  --   pose cache ratio not asserted: ${r.simulated.join(", ")} `
+      + `simulate chains and bypass the cache by design   ${r.hits} hits / ${r.misses} misses`);
+  } else {
+    check(r.hits > r.misses, "the pose cache carries most frames",
+      `${r.hits} hits / ${r.misses} misses  (${r.cast.join(" vs ")})`);
+  }
   check(r.sampled && r.pixels > 200 && r.pixels > r.sky * 3,
     "an inked 3D body is drawn where a fighter stands",
     `${r.pixels} edge px on the fighter vs ${r.sky} on an empty patch of stage`);

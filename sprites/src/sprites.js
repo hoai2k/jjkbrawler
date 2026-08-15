@@ -1,7 +1,8 @@
 import { frameMeta, frameImage, spriteManifest } from "../../src/assets.js";
 import { animFor, getActor, DEFAULT_ANIMS } from "../../src/characters.js";
 import { CELL_W, CELL_H, CELL_FOOT_Y } from "../../src/constants.js";
-import { COM_BODY_FRAC, LEDGE_GRIP_Y_FRAC } from "../../src/config_tuning.js";
+import { LEDGE_GRIP_Y_FRAC } from "../../src/config_tuning.js";
+import { comFrac } from "../../src/body_points.js";
 import { clamp } from "../../src/utils.js";
 
 const DEG = Math.PI / 180;
@@ -261,7 +262,11 @@ function defaultCom(charKey, frameKey, meta) {
   const footLocal = (meta.bodyBottom ?? CELL_H * CELL_FOOT_Y) - (meta.oy ?? 0);
   const com = [
     (meta.centroidX ?? CELL_W / 2) - (meta.ox ?? 0),
-    footLocal * (1 - COM_BODY_FRAC),
+    // This fighter's own verified balance point where one exists, the
+    // roster default otherwise (body_points.js). Only reached for a frame
+    // carrying no baked `anchors.com` — every frame has one today, so this
+    // is the answer for art that arrives before the anchor bake runs.
+    footLocal * (1 - comFrac(charKey)),
   ];
   comCache.set(id, com);
   return com;

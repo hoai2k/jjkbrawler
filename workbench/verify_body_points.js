@@ -20,22 +20,28 @@
 //                   reference body and nobody else's, so shots depart one
 //                   fighter's forehead and another's waist.
 //
-//   ledge grip      A ledge hang is a body dangling from one hand. The game
-//                   hangs the hurtbox off the fighter's origin and the art off
-//                   a baked anchor; where the HAND actually meets the lip is
-//                   the thing neither of them states.
+// THERE IS NO LEDGE-GRIP SET, and there should not be. Where the hand meets
+// the lip is already a per-frame `ledge` anchor in the sprite manifest —
+// baked on all 28 hang frames, consumed by sprites.js (ANCHORED_STATES) to
+// hang the art off the real platform corner, and draggable in the SPRITE
+// workbench, which is the tool for moving a point on a drawing. A second
+// answer to the same question here would be a duplicate that rots: the two
+// would drift, and nothing would say which one the game believed.
 
 import { resolvedAnim } from "../sprites/src/sprites.js";
 import { CHARACTER_KEYS, CHARACTERS } from "../src/characters.js";
 import { BODY_POINTS } from "../src/config_body_points.js";
 import { bodyMetrics } from "../src/silhouette.js";
 import { COM_BODY_FRAC } from "../src/config_tuning.js";
-import { HURTBOX } from "../src/constants.js";
 import {
   ZOOM, GROUND_Y, CENTRE_X, toCanvas, toGame, drawStage, marker, heightLine,
-  caption, slider, pointEditor, frameStepper,
-  prefetchTask,
+  caption, slider, pointEditor, frameStepper, ensureTaskArt,
 } from "./verify_common.js";
+
+/** Is this fighter's answer for `key` already in src/config_body_points.js?
+ *  A committed answer is settled and the queue stops asking — see
+ *  verification.js statusOf. */
+const committedFor = (key) => (task) => BODY_POINTS[task.charKey]?.[key] !== undefined;
 
 /** Everything these sets read is the sprite manifest and the kit tables, so
  *  one fingerprint serves all three: it changes when the art placement does. */
@@ -98,7 +104,8 @@ export async function comProvider() {
       caption(ctx, canvas, "where would this body balance if you spun it?");
       ctx.fillText("drag to place", 10, canvas.height - 10);
     },
-    prefetch: prefetchTask,
+    ensureReady: ensureTaskArt,
+    committed: committedFor("com"),
     exportBlock: (decisions) => blockFor(decisions, "com",
       (d) => {
         const b = bodyMetrics(d.char);
@@ -160,67 +167,9 @@ export async function muzzleProvider() {
       caption(ctx, canvas, "where does the shot leave the caster?");
       ctx.fillText("drag to place", 10, canvas.height - 10);
     },
-    prefetch: prefetchTask,
+    ensureReady: ensureTaskArt,
+    committed: committedFor("muzzle"),
     exportBlock: (decisions) => blockFor(decisions, "muzzle",
-      (d) => `{ x: ${d.value.x}, y: ${d.value.y} }`),
-  };
-}
-
-// -------------------------------------------------------------- ledge grip
-
-export async function ledgeProvider() {
-  const tasks = roster("ledge").map((charKey) => ({
-    id: `ledge/${charKey}`,
-    title: charKey,
-    subtitle: BODY_POINTS[charKey]?.ledgeGrip ? "already verified" : "assumed from the box",
-    charKey,
-    state: "ledge",
-    exportKeys: { char: charKey, kind: "ledgeGrip" },
-  }));
-  return {
-    tasks,
-    fingerprint: fingerprint(),
-    initialValue(task) {
-      const held = BODY_POINTS[task.charKey]?.ledgeGrip;
-      if (held) return { x: held.x, y: held.y };
-      // The top-forward corner of the ledge hurtbox: where the game currently
-      // behaves as though the hand is.
-      const b = bodyMetrics(task.charKey);
-      return {
-        x: Math.round(b.width * HURTBOX.ledgeW / 2),
-        y: -Math.round(b.height * HURTBOX.ledgeTop),
-      };
-    },
-    describe: (task, value) =>
-      `${task.subtitle} · <b>x ${value.x}</b>, <b>y ${value.y}</b> — the gripping hand`,
-    renderEditor(task, { container, value, onChange }) {
-      container.replaceChildren();
-      pointEditor(container, task.charKey, value, onChange);
-    },
-    onCanvasDrag: (task, pt) => toGame(pt),
-    draw(task, { ctx, canvas, value, redraw }) {
-      drawStage(task, { ctx, canvas, redraw, guides: {} });
-      const b = bodyMetrics(task.charKey);
-      // The ledge box, and a lip drawn at the grip — a hand that is not ON the
-      // lip is the whole fault this set is looking for.
-      const boxH = b.height * HURTBOX.ledgeH * ZOOM;
-      const boxW = b.width * HURTBOX.ledgeW * ZOOM;
-      const boxTop = GROUND_Y - b.height * HURTBOX.ledgeTop * ZOOM;
-      ctx.strokeStyle = "rgba(255,255,255,0.30)";
-      ctx.strokeRect(CENTRE_X - boxW / 2, boxTop, boxW, boxH);
-      const p = toCanvas(value);
-      ctx.fillStyle = "rgba(255, 190, 90, 0.25)";
-      ctx.fillRect(p.x, p.y, canvas.width - p.x, 10);
-      ctx.strokeStyle = "rgba(255, 190, 90, 0.8)";
-      ctx.beginPath();
-      ctx.moveTo(p.x, p.y); ctx.lineTo(canvas.width - 8, p.y);
-      ctx.stroke();
-      marker(ctx, p.x, p.y, "rgba(120, 240, 255, 0.95)");
-      caption(ctx, canvas, "the amber band is the platform lip — put the hand on it");
-      ctx.fillText("drag to place", 10, canvas.height - 10);
-    },
-    prefetch: prefetchTask,
-    exportBlock: (decisions) => blockFor(decisions, "ledgeGrip",
       (d) => `{ x: ${d.value.x}, y: ${d.value.y} }`),
   };
 }
@@ -233,6 +182,15 @@ export async function ledgeProvider() {
 function blockFor(decisions, key, render) {
   const rows = [];
   const flagged = [];
+  // Committed answers first, so the block is the whole picture for this key
+  // and pasting it replaces rather than truncates.
+  const seen = new Set();
+  for (const [char, held] of Object.entries(BODY_POINTS)) {
+    if (held?.[key] === undefined) continue;
+    if (decisions.some((d) => d.char === char && d.status !== "skipped")) continue;
+    seen.add(char);
+    rows.push(`  ${JSON.stringify(char)}: { ${key}: ${JSON.stringify(held[key])} },`);
+  }
   for (const d of decisions) {
     if (d.status === "skipped") continue;
     if (d.status === "rejected") {
