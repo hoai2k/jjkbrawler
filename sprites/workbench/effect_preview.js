@@ -29,6 +29,9 @@ import { CHARACTERS, CHARACTER_KEYS } from "../../src/characters.js";
 import { STATES, clipTime } from "../../render3d/src/states.js";
 import { drawCharFrame, currentFrame } from "../src/sprites.js";
 import { loadFrame, getImage } from "../../src/assets.js";
+import { bodyMetrics } from "../../src/silhouette.js";
+import { spawnOffset, REFERENCE_MUZZLE } from "../../src/muzzle.js";
+import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
 
 /** The animation state each special slot plays (src/specials.js). */
 const SLOT_STATE = { neutral: "specialNeutral", side: "specialSide", down: "specialDown" };
@@ -51,12 +54,20 @@ export function firingUse(spriteKey) {
       const p = spec?.p;
       if (!p || p.sprite !== spriteKey) continue;
       if (spec.type && spec.type !== "projectile") continue;
+      // The point the game will really spawn from: this fighter's hand in the
+      // pose this move plays, plus whatever the move asks for beyond the
+      // reference (src/muzzle.js). `source` says whether anybody has looked at
+      // that hand, which the caption repeats — a muzzle nobody has placed is a
+      // roster-wide guess and worth knowing about before art is aligned to it.
+      const state = SLOT_STATE[slot] || "specialNeutral";
+      const solved = spawnOffset(charKey, state, p.ox, p.oy);
       return {
-        charKey, slot, spec, p,
+        charKey, slot, spec, p, state,
         name: spec.name || p.label || spriteKey,
-        state: SLOT_STATE[slot] || "specialNeutral",
         ox: Number.isFinite(p.ox) ? p.ox : DEFAULT_OX,
         oy: Number.isFinite(p.oy) ? p.oy : DEFAULT_OY,
+        solved,
+        muzzleScale: bodyMetrics(charKey).height / HEIGHT_BASE_PX,
       };
     }
   }
@@ -76,6 +87,26 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
   const FIGHTER_X = 190;
 
   let use = null;
+
+  /** The spawn point in GAME px from the fighter's feet, for kit offsets `ox`
+   *  and `oy` — the fighter's own hand plus the move's displacement from the
+   *  reference. Exactly what combat.js resolves, so the shot is drawn where the
+   *  game will make it. */
+  const solve = (ox, oy) => spawnOffset(use.charKey, use.state, ox, oy);
+
+  /** A dragged canvas point back into the KIT units the kit has to hold: undo
+   *  the hand and the body scale that `solve` applied. Without this a muzzle
+   *  tuned until it looked right landed wrong by the fighter's own scale, and
+   *  once a hand is verified the raw canvas number stops meaning anything at
+   *  all — the kit's job is to say how far from the hand, not where. */
+  function toKit(pt) {
+    const home = solve(REFERENCE_MUZZLE.x, REFERENCE_MUZZLE.y);   // the hand itself
+    const k = use.muzzleScale || 1;
+    return {
+      spawnOx: Math.round((pt.x - FIGHTER_X - home.x) / k + REFERENCE_MUZZLE.x),
+      spawnOy: Math.round((pt.y - GROUND - home.y) / k + REFERENCE_MUZZLE.y),
+    };
+  }
   let raf = 0;
   let t = 0;
   let running = false;
@@ -83,16 +114,21 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
   let grabbed = false;
   let lastTick = 0;
 
-  /** Where the shot is, in canvas pixels, `age` seconds after it left. */
+  /** Where the shot is, in canvas pixels, `age` seconds after it left.
+   *
+   *  The muzzle is resolved rather than read off the kit: the fighter's own
+   *  hand — verified, measured off their rig, or the reference scaled onto
+   *  their height — with the move's offset on top. Drawing the raw kit number
+   *  put the shot a few pixels off the hand it leaves, and meant the number
+   *  being dragged here was not the number the kit wants. */
   function shotAt(age, adj) {
     const dir = 1; // the preview always fires to the right
-    const ox = adj.spawnOx ?? use.ox;
-    const oy = adj.spawnOy ?? use.oy;
-    const x0 = FIGHTER_X + dir * ox;
-    const y0 = GROUND + oy;
+    const m = solve(adj.spawnOx ?? use.ox, adj.spawnOy ?? use.oy);
+    const x0 = FIGHTER_X + dir * m.x;
+    const y0 = GROUND + m.y;
     const g = use.p.gravity || 0;
     return {
-      x0, y0,
+      x0, y0, source: m.source,
       x: x0 + dir * (use.p.speed || 500) * age,
       y: y0 + (use.p.vy || 0) * age + 0.5 * g * age * age,
       vx: dir * (use.p.speed || 500),
@@ -173,7 +209,17 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     ctx.fillStyle = "#8b96b3";
     ctx.font = "12px ui-monospace, monospace";
     ctx.fillText(`${use.name} — ${use.charKey} · ${use.state} · ${use.p.speed || 0}px/s for ${dur}s`, 14, 22);
-    ctx.fillText(`spawn ox ${Math.round(adj.spawnOx ?? use.ox)}, oy ${Math.round(adj.spawnOy ?? use.oy)}`
+    // Kit units, which is what these numbers have to be to be worth writing
+    // down — the scale that turns them into the pixels above is noted beside.
+    const kitOx = Math.round(adj.spawnOx ?? use.ox);
+    const kitOy = Math.round(adj.spawnOy ?? use.oy);
+    const SOURCE = {
+      human: "hand-placed muzzle",
+      model: "muzzle measured off the rig",
+      derived: "muzzle unplaced — reference scaled",
+    };
+    ctx.fillText(`spawn ox ${kitOx}, oy ${kitOy} (kit)`
+      + `   ·   ${SOURCE[pos.source] || pos.source}`
       + `   ·   drawing dx ${(adj.dx || 0).toFixed(1)}, dy ${(adj.dy || 0).toFixed(1)}`, 14, 40);
 
     raf = requestAnimationFrame(frame);
@@ -206,7 +252,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     const first = !grabbed;
     grabbed = true;
     if (drag === "spawn") {
-      write({ spawnOx: Math.round(pt.x - FIGHTER_X), spawnOy: Math.round(pt.y - GROUND) }, first);
+      write(toKit(pt), first);   // kit units, because the kit is where it lands
     } else {
       const o = shotAt(0, adj);
       write({ dx: +(pt.x - o.x0).toFixed(1), dy: +(pt.y - o.y0).toFixed(1) }, first);

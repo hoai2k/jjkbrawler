@@ -1,4 +1,4 @@
-// THREE POINTS ON A BODY — centre of mass, muzzle, ledge grip.
+// TWO POINTS ON A BODY — centre of mass, and the muzzle.
 //
 // One module because they are one job: a fighter, a drawing, and a place on
 // it that the simulation currently assumes rather than knows. Each is a
@@ -15,10 +15,11 @@
 //                   measured, and a fighter carrying a heavy coat or a broom
 //                   does not balance where a bare one does.
 //
-//   muzzle          A projectile leaves at ox 70, oy -86 from the caster,
-//                   scaled by height. That is a hand's position on the
-//                   reference body and nobody else's, so shots depart one
-//                   fighter's forehead and another's waist.
+//   muzzle          Where a shot leaves. Resolved per pose by src/muzzle.js;
+//                   without a verified answer it is the reference body's
+//                   70, -86 scaled by height — a hand's position on nobody in
+//                   particular, so shots depart one fighter's forehead and
+//                   another's waist.
 //
 // THERE IS NO LEDGE-GRIP SET, and there should not be. Where the hand meets
 // the lip is already a per-frame `ledge` anchor in the sprite manifest —
@@ -31,6 +32,7 @@
 import { resolvedAnim } from "../sprites/src/sprites.js";
 import { CHARACTER_KEYS, CHARACTERS } from "../src/characters.js";
 import { BODY_POINTS } from "../src/config_body_points.js";
+import { muzzleOf } from "../src/muzzle.js";
 import { bodyMetrics } from "../src/silhouette.js";
 import { COM_BODY_FRAC } from "../src/config_tuning.js";
 import {
@@ -125,11 +127,21 @@ function shooters() {
   });
 }
 
+/** What the game is using for this fighter right now, in words — so the list
+ *  says which of the three answers each task is starting from rather than
+ *  "verified or not". A measured hand is a much better starting point than the
+ *  roster-wide guess, and worth telling apart from it. */
+const MUZZLE_SUBTITLE = {
+  human: "already verified",
+  model: "measured off the rig — confirm it",
+  derived: "assumed 70, -86 scaled",
+};
+
 export async function muzzleProvider() {
   const tasks = shooters().map((charKey) => ({
     id: `muzzle/${charKey}`,
     title: charKey,
-    subtitle: BODY_POINTS[charKey]?.muzzle ? "already verified" : "assumed 70, -86 scaled",
+    subtitle: MUZZLE_SUBTITLE[muzzleOf(charKey, "specialNeutral").source],
     charKey,
     state: "specialNeutral",
     exportKeys: { char: charKey, kind: "muzzle" },
@@ -138,12 +150,13 @@ export async function muzzleProvider() {
     tasks,
     fingerprint: fingerprint(),
     initialValue(task) {
-      const held = BODY_POINTS[task.charKey]?.muzzle;
-      if (held) return { x: held.x, y: held.y };
-      // The default combat.js applies today: the reference offsets, scaled to
-      // this body's height.
-      const k = bodyMetrics(task.charKey).height / 149;
-      return { x: Math.round(70 * k), y: Math.round(-86 * k) };
+      // Whatever the game is using now — a point already placed, else the rig's
+      // measured hand, else the reference scaled onto this body. Starting from
+      // the best available answer means confirming a good measurement is one
+      // click rather than a re-drag, which is the difference between the rig
+      // bake being useful and being ignored.
+      const m = muzzleOf(task.charKey, task.state);
+      return { x: Math.round(m.x), y: Math.round(m.y) };
     },
     describe: (task, value) =>
       `${task.subtitle} · <b>x ${value.x}</b>, <b>y ${value.y}</b> — where the shot leaves`,

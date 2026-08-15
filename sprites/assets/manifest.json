@@ -64457,16 +64457,20 @@
     "effect:dismantle": {
       "faceLeft": true,
       "dx": -36.2,
-      "dy": 2.2,
-      "spawnOx": 47,
-      "spawnOy": -105
+      "dy": 2.2
     },
     "effect:piercing_blood": {
       "renderScale": 0.635,
       "dx": -57.1,
-      "dy": 0.3,
-      "spawnOx": 54,
-      "spawnOy": -112
+      "dy": 0.3
+    },
+    "effect:blood_orb": {
+      "edited": {
+        "dx": null,
+        "dy": null
+      },
+      "dx": -0.2,
+      "dy": -1.4
     }
   }
 }

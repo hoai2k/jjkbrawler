@@ -112,8 +112,15 @@ const measured = await page.evaluate(async () => {
   const { COM_BODY_FRAC } = await import("/src/config_tuning.js");
   const { CHARACTER_KEYS } = await import("/src/characters.js");
   const ATTACKS = ["light", "sideHeavy", "upHeavy", "downHeavy", "crouchAttack", "airLight"];
+  // The casting poses, measured for their MUZZLE — where the throwing hand is
+  // at the moment the move goes off (src/muzzle.js reads the same `sx`/`sy`).
+  // Deliberately apart from ATTACKS: `reach` is the maximum over the states a
+  // fighter HITS with, and a cast is not one of them. Folding these into that
+  // maximum would quietly widen hurtboxes and hitboxes across the roster.
+  const CASTS = ["specialNeutral", "specialSide", "specialDown", "ult"];
+  const MEASURED = [...ATTACKS, ...CASTS];
   const beats = {};
-  for (const s of ATTACKS) beats[s] = STATES[clipNameFor(s)]?.beat ?? 0.1;
+  for (const s of MEASURED) beats[s] = STATES[clipNameFor(s)]?.beat ?? 0.1;
   const out = {};
   for (const charKey of CHARACTER_KEYS) {
     if (!loader.hasRig(charKey)) continue;
@@ -125,7 +132,7 @@ const measured = await page.evaluate(async () => {
     // hand rather than the limb a player sees.
     const targetPx = headHeightTarget(charKey);
     const layersFor = {};
-    for (const s of ATTACKS) {
+    for (const s of MEASURED) {
       const solved = aimSolve(0, 0, -targetPx * COM_BODY_FRAC, null, 1, s, artReach(charKey));
       if (!solved) continue;
       layersFor[s] = {
@@ -133,7 +140,7 @@ const measured = await page.evaluate(async () => {
         reach: { dx: solved.dx, dy: solved.dy, targetPx },
       };
     }
-    const m = loader.measureAttackReach(charKey, ATTACKS, beats, layersFor);
+    const m = loader.measureAttackReach(charKey, MEASURED, beats, layersFor);
     if (!m) continue;
     const pxPerM = (headHeightTarget(charKey) * (rig.renderScale ?? 1)) / rig.height;
     const states = {};
@@ -149,7 +156,8 @@ const measured = await page.evaluate(async () => {
         states[state].sy = Math.round(v.strike.u * pxPerM);
         states[state].via = v.via;
       }
-      reach = Math.max(reach, fwd);
+      // Casts contribute a muzzle and nothing else — see CASTS above.
+      if (!CASTS.includes(state)) reach = Math.max(reach, fwd);
     }
     out[charKey] = { reach, states };
   }

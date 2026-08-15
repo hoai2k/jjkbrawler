@@ -25,16 +25,14 @@ export function comFrac(charKey) {
   return typeof v === "number" && v > 0.2 && v < 0.9 ? v : COM_BODY_FRAC;
 }
 
-/** Where a projectile leaves this fighter, in game px from their centre line
- *  and foot line (up negative). `height` is their measured drawn height; the
- *  fallback is the reference body's offsets scaled onto it, which is what
- *  combat.js did for everyone before anybody checked. */
-export function muzzlePoint(charKey, height, fallbackOx = 70, fallbackOy = -86) {
-  const p = BODY_POINTS[charKey]?.muzzle;
-  if (p && Number.isFinite(p.x) && Number.isFinite(p.y)) return p;
-  const k = height / HEIGHT_BASE_PX;
-  return { x: fallbackOx * k, y: fallbackOy * k };
-}
+// The muzzle used to be resolved here, as one verified point per character
+// beating a height-scaled default. It now has three sources rather than two —
+// the rig's measured hand sits between them — and a per-pose entry above the
+// per-character one, which is more than a two-line reader should be carrying.
+// It lives in src/muzzle.js, next to strike_points.js, which answers the same
+// shape of question about the same bodies. This file still OWNS the config it
+// reads from; muzzle.js reads `BODY_POINTS[char].muzzle` out of it directly,
+// exactly as strike_points.js reads STRIKE_POINTS.
 
 // No ledgeGrip reader: that fact lives in the sprite manifest as a per-frame
 // `ledge` anchor (sprites.js ANCHORED_STATES), which is where a point on a
