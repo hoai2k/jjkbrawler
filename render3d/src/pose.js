@@ -610,56 +610,64 @@ function soleY(root, side) {
   return -groundOffset(THREE, bones, { root });
 }
 
-/** Put the trailing foot down.
+/** Put the trailing foot down, by TILTING THE WHOLE BODY.
  *
- *  By EXTENDING ITS KNEE, not by tilting the body. Tilting was tried first and
- *  is what the eye reaches for — the pose is right, it is just leaning — but
- *  the rear knee is folded 124°, which tucks that foot up behind the thigh,
- *  and no rotation brings it down without reclining the whole fighter into
- *  what reads as sitting in a chair. Unfolding the knee lands the foot where a
- *  crouching person's rear foot actually is and leaves every other angle —
- *  the trunk fold, the hips, the guard — exactly as the sheet drew them.
+ *  Two ways to ground a foot the pose left in the air, and the choice between
+ *  them is a matter of taste rather than of correctness:
  *
- *  The angle is SOLVED rather than derived: a test rotation, a measurement,
- *  one Newton step. Two sign conventions meet here (the lateral axis's and the
- *  bone rotation's) and guessing them is how a crouch ends up folding the leg
- *  further instead of straightening it.
+ *    EXTEND THE TRAILING KNEE. Keeps the authored trunk fold exactly, and the
+ *    fighter stays low — but unfolding the rear leg pushes the hips up, so the
+ *    crouch stops being much of a crouch and reads as a forward bend.
+ *
+ *    PITCH THE BODY about the fighter's own lateral axis until the foot comes
+ *    down. Every authored angle survives untouched, the fighter genuinely
+ *    settles, and the price is that they come up more upright than the drawing
+ *    — the trunk rotates with everything else.
+ *
+ *  This is the second. It was the first thing tried, swapped for the knee, and
+ *  swapped back on the note that upright-and-low beats bent-and-high: a crouch
+ *  that is not low is not reading as a crouch at all, whereas a crouch that
+ *  stands a little straighter still is.
+ *
+ *  The angle is SOLVED rather than derived: a test rotation, a measurement, one
+ *  Newton step. Two sign conventions meet here — the lateral axis's and the
+ *  bone rotation's — and guessing them is how a crouch tips the wrong way on
+ *  half the roster.
  */
-const LEVEL_MAX_RAD = 70 * DEG;
+const LEVEL_MAX_RAD = 45 * DEG;
 function levelFeet(rig, animKey) {
   if (!LEVEL_FEET_STATES.has(clipNameFor(animKey))) return;
   const root = rig?.root;
-  if (!root) return;
+  const hips = root && (root.getObjectByName("Hips")
+    || root.getObjectByName("mixamorigHips"));
+  if (!hips) return;
   root.updateMatrixWorld(true);
-  const left = soleY(root, "Left");
-  const right = soleY(root, "Right");
-  if (left === null || right === null) return;
-  // The trailing foot is the higher one; standOnGround has already put the
-  // other on the floor. A centimetre is a foot on the floor.
-  const gap = Math.abs(left - right);
-  if (gap < 0.01) return;
-  const side = left > right ? "Left" : "Right";
-  const knee = root.getObjectByName(`${side}Leg`);
-  if (!knee) return;
+  const gap = () => {
+    const l = soleY(root, "Left"), r = soleY(root, "Right");
+    return l === null || r === null ? null : l - r;
+  };
+  const g0 = gap();
+  // A centimetre of difference is a foot on the floor; solving that away would
+  // spend a rotation to fix something nobody can see.
+  if (g0 === null || Math.abs(g0) < 0.01) return;
 
   const axis = characterLateral(THREE, root, _v1);
-  const TEST = 5 * DEG;
-  const h0 = soleY(root, side);
-  rotateBoneAboutWorldAxis(THREE, knee, axis, TEST, _ik);
+  const TEST = 4 * DEG;
+  rotateBoneAboutWorldAxis(THREE, hips, axis, TEST, _ik);
   root.updateMatrixWorld(true);
-  const h1 = soleY(root, side);
-  if (h0 === null || h1 === null) return;
+  const g1 = gap();
+  if (g1 === null) return;
 
-  const slope = (h1 - h0) / TEST;
+  const slope = (g1 - g0) / TEST;
+  // No response means the legs do not answer to this rotation (a rig parented
+  // somewhere unexpected) — undo the probe and leave the pose alone.
   let total = 0;
   if (Number.isFinite(slope) && Math.abs(slope) > 1e-6) {
-    // Aim the sole at the height the planted foot is already at.
-    const target = Math.min(left, right);
-    total = Math.max(-LEVEL_MAX_RAD, Math.min(LEVEL_MAX_RAD, (target - h0) / slope));
+    total = Math.max(-LEVEL_MAX_RAD, Math.min(LEVEL_MAX_RAD, -g0 / slope));
   }
-  rotateBoneAboutWorldAxis(THREE, knee, axis, total - TEST, _ik);
+  rotateBoneAboutWorldAxis(THREE, hips, axis, total - TEST, _ik);
   root.updateMatrixWorld(true);
-  // Straightening the leg may have pushed the body up off its planted foot.
+  // The pitch lifted or dropped the whole body; put it back on the floor.
   standOnGround(rig, animKey);
 }
 

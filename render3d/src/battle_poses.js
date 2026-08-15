@@ -252,12 +252,21 @@ export const BATTLE_POSES = {
     RightArm: [-18, 6, 76], RightForeArm: [-10, 0, 10],
     LeftArm: [34, 6, -58], LeftForeArm: [-62, 0, -15],
   }),
+  // A CROUCH BREATHES; IT DOES NOT BOUNCE. This used to sit 6° away from
+  // crouch_a at the knee and the hip, which is a small number on a joint and a
+  // large one at the hips: a held crouch pumped up and down several centimetres
+  // a second, and the settle pass under it (pose.js levelFeet) re-grounded the
+  // body on every frame of it, so the whole fighter throbbed. The pair are one
+  // held crouch a breath apart — the same relationship idle_a/idle_b have — so
+  // the difference is damped to about a quarter of what it was: still alive,
+  // no longer a bob. The legs carry the least of it because they carry the
+  // hips; the trunk and arms keep more, because that is where a breath shows.
   crouch_b: p({
-    Spine: [50, -6, 0], Spine1: [18, -4, 0], Head: [-34, 4, 0],
-    LeftUpLeg: [-62, 0, 4], LeftLeg: [94, 0, 0], LeftFoot: [-14, 0, 0],
-    RightUpLeg: [-18, 0, -4], RightLeg: [128, 0, 0], RightFoot: [-26, 0, 0],
-    RightArm: [-22, 6, 78], RightForeArm: [-8, 0, 8],
-    LeftArm: [30, 6, -60], LeftForeArm: [-66, 0, -15],
+    Spine: [47.5, -6, 0], Spine1: [16.5, -4, 0], Head: [-32.5, 4, 0],
+    LeftUpLeg: [-57.5, 0, 4], LeftLeg: [89.5, 0, 0], LeftFoot: [-14, 0, 0],
+    RightUpLeg: [-15, 0, -4], RightLeg: [125, 0, 0], RightFoot: [-24.5, 0, 0],
+    RightArm: [-19.5, 6, 77], RightForeArm: [-9.5, 0, 9],
+    LeftArm: [33, 6, -59], LeftForeArm: [-63, 0, -15],
   }),
   // Driving OUT of the set — the sprint start's first step, with a strike on
   // the end of it. Rear leg extending behind, trunk still low, lead arm out.
