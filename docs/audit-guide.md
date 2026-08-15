@@ -374,6 +374,31 @@ height is not pose-invariant, and head-size detection fails on this art (see
 `sprites/docs/asset-pipeline.md`). Two attempts at algorithmic normalisation both made
 things worse; the working method is the review sheet plus `workbench/`.
 
+### The verification bench — work that is a LIST
+
+`workbench/?edit=verification` is the odd one out among the benches, and the
+one to reach for when the job is *check these two hundred things* rather than
+*edit this one thing*. It presents one item at a time with the art it is a
+claim about, takes approve / edit / flag / skip, keeps your place, and exports
+every decision as JSON — including, where the task set knows the shape of the
+file its answers belong in, a paste-ready block.
+
+The first task set is **strike points**: where each attack actually lands, per
+fighter per move (`docs/strike-points.md`). Adding another is a provider
+module — see `workbench/verify_strike_points.js`, which is written as the
+reference implementation of the contract; register it in `SETS` and the
+navigation, progress, decisions, keyboard handling and export already work.
+
+Good candidates for new sets are anywhere the codebase currently *measures*
+something a person could settle better, or where automation is known to fail —
+`tools/check_model_facing.mjs` explains at length that an outline cannot tell
+front from back, and the automated version of that check turned five fighters
+around backwards before anybody noticed.
+
+Nothing the bench records reaches the game: an export has to be applied to a
+config file and committed. That is what makes resuming from browser storage
+safe here, where the pose bench had to stop doing it.
+
 ### The sprite workbench
 
 `workbench/?edit=sprites` is a live editor for per-frame **size**
