@@ -69,6 +69,13 @@ void main() {
 }
 `;
 
+/** The outline materials living under each rig root, so setWorldWidth is a
+ *  short array walk instead of a full graph traversal per render. A WeakMap
+ *  rather than userData: three.js deep-copies userData on clone, and material
+ *  references do not survive that. Cloned roots (per-fighter instances) fall
+ *  back to a traversal. */
+const ROOT_MATS = new WeakMap();
+
 function makeOutlineMaterial(THREE, mesh) {
   const geo = mesh.geometry;
   const hasWidthChannel = !!geo?.attributes?.color;
@@ -111,14 +118,30 @@ export function addOutlines(THREE, root) {
   root.traverse((o) => {
     if (o.isMesh && !o.userData.isOutline && !o.userData.hasOutline) meshes.push(o);
   });
+  // One shell material per (body material, width channel, cutout) triple
+  // rather than one per mesh: a generated body arrives as hundreds of shells
+  // sharing a handful of materials, and giving each its own uniform block
+  // multiplied uniform uploads for identical state. The same dedup
+  // applyToonMaterials does for the body pass.
+  const shared = new Map();
+  const mats = ROOT_MATS.get(root) || [];
   for (const mesh of meshes) {
     if (mesh.userData.outline === false || mesh.material?.userData?.outline === false) continue;
+    const body = mesh.material;
+    const key = `${body?.uuid || "-"}|${!!mesh.geometry?.attributes?.color}|${!!mesh.geometry?.attributes?.uv}`;
+    let mat = shared.get(key);
+    if (!mat) {
+      mat = makeOutlineMaterial(THREE, mesh);
+      shared.set(key, mat);
+      mats.push(mat);
+    }
     const shell = mesh.clone(false);
-    shell.material = makeOutlineMaterial(THREE, mesh);
+    shell.material = mat;
     shell.userData = { isOutline: true };
     mesh.userData.hasOutline = true;
     mesh.parent.add(shell);
   }
+  ROOT_MATS.set(root, mats);
 }
 
 /** Convert the pixel width into world units for this render — scene.js calls
@@ -129,8 +152,17 @@ export function setWorldWidth(root, worldPerPx) {
   // drowns in the global width, and one with fine detail loses it. Falls back
   // to the global dial, which is still the art direction for the roster.
   const px = root.userData.outlinePx ?? OUTLINE.px;
+  const w = px * worldPerPx;
+  // The rig this root was outlined as keeps its material list; a cloned
+  // instance (2.5D camera) shares the original's materials but is not in the
+  // map, so it walks — the uncommon path.
+  const mats = ROOT_MATS.get(root);
+  if (mats) {
+    for (const m of mats) m.uniforms.uWidth.value = w;
+    return;
+  }
   root.traverse((o) => {
-    if (o.userData.isOutline) o.material.uniforms.uWidth.value = px * worldPerPx;
+    if (o.userData.isOutline) o.material.uniforms.uWidth.value = w;
   });
 }
 

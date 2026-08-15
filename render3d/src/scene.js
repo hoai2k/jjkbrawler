@@ -52,16 +52,39 @@ let hemiLight = null;
 let rimStage = null; // last stage key the light rig was derived from
 let neutralRim = null; // toon.js's own rim, captured before any stage override
 let contextLost = false;
+let mounted = null; // the rig root currently in the scene (renderPose swaps it)
 
 const cache = new Map(); // token -> { canvas, heightM, rowsPerMetre, yawed }
 export const stats = { renders: 0, hits: 0, misses: 0, evictions: 0, lostFrames: 0 };
+
+// Recycled cache canvases. A miss used to allocate a fresh 384² canvas — at
+// CACHE_MAX 160 that is ~94 MB of backing store churning through the GC as
+// entries evict. Evicted (and cleared) entries hand their canvas back here
+// instead, so a full cache allocates its canvases exactly once.
+const canvasPool = [];
+function takeCanvas() {
+  const c = canvasPool.pop();
+  if (c) return c;
+  const fresh = document.createElement("canvas");
+  fresh.width = TEX_SIZE;
+  fresh.height = TEX_SIZE;
+  return fresh;
+}
+/** Empty the cache, returning every entry's canvas to the pool. */
+function dropCache() {
+  for (const entry of cache.values()) canvasPool.push(entry.canvas);
+  cache.clear();
+}
 
 export function initScene(three) {
   THREE = three;
   const canvas = document.createElement("canvas");
   canvas.width = TEX_SIZE * SUPERSAMPLE;
   canvas.height = TEX_SIZE * SUPERSAMPLE;
-  renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  // No MSAA: the render is already 2× supersampled and downsampled into the
+  // cache texture, so multisampling on top was pure fill-rate cost for pixels
+  // the downsample averages anyway.
+  renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
   renderer.setClearColor(0x000000, 0);
   scene = new THREE.Scene();
   hemiLight = new THREE.HemisphereLight(0xf4f6ff, 0x3a4152, 2.2);
@@ -93,7 +116,7 @@ export function initScene(three) {
     contextLost = false;
     // Whatever landed during the outage is unreliable, and it is cheaper to
     // redraw the roster than to work out which entries are blank.
-    cache.clear();
+    dropCache();
   });
 
   if (typeof window !== "undefined") {
@@ -387,7 +410,7 @@ export function poseToken(charKey, animKey, animTime, layers) {
 
 /** For the determinism smoke: drop every cached render. */
 export function clearCache() {
-  cache.clear();
+  dropCache();
 }
 
 /**
@@ -480,9 +503,15 @@ export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {
   const frameH = rig.height * FRAME_MUL;
   setWorldWidth(rig.root, frameH / TEX_SIZE);
 
-  scene.add(rig.root);
+  // The rig stays mounted between renders — adding and removing it around
+  // every render forced a render-list rebuild each time. Only an actual
+  // character change swaps the child.
+  if (mounted !== rig.root) {
+    if (mounted) scene.remove(mounted);
+    scene.add(rig.root);
+    mounted = rig.root;
+  }
   renderer.render(scene, camera);
-  scene.remove(rig.root);
   rig.root.rotation.y = 0;
   if (contextLost) {
     // Nothing was drawn. Draw NOTHING rather than cache the blank: a missing
@@ -493,11 +522,12 @@ export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {
   }
   stats.renders++;
 
-  // Downsample the supersampled render once, into the cached texture.
-  const canvas = document.createElement("canvas");
-  canvas.width = TEX_SIZE;
-  canvas.height = TEX_SIZE;
+  // Downsample the supersampled render once, into a (recycled) cache texture.
+  const canvas = takeCanvas();
   const c2 = canvas.getContext("2d");
+  // A recycled canvas still holds its previous pose; drawImage alone would
+  // leave the old pixels showing through the new render's transparent parts.
+  c2.clearRect(0, 0, TEX_SIZE, TEX_SIZE);
   c2.drawImage(renderer.domElement, 0, 0, TEX_SIZE, TEX_SIZE);
 
   const entry = {
@@ -516,7 +546,9 @@ export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {
   if (live) return entry;   // never stored: see the note at the cache read
   cache.set(token, entry);
   if (cache.size > CACHE_MAX) {
-    cache.delete(cache.keys().next().value);
+    const oldest = cache.keys().next().value;
+    canvasPool.push(cache.get(oldest).canvas);
+    cache.delete(oldest);
     stats.evictions++;
   }
   return entry;

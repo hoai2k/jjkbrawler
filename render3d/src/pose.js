@@ -52,7 +52,11 @@ export const DIALS = {
   turnaround: true,           // yaw the rig for facing, instead of mirroring
   parallax: true,             // per-character camera yaw by stage position
   parallaxMaxDeg: 7,
-  parallaxQuantDeg: 2,
+  // 3.5°: the dominant pose-cache-key dimension (plan.md measured it as the
+  // reason this backend re-renders more than billboards), and the first knob
+  // the plan says to turn. Five buckets across the stage instead of eight,
+  // for a change in implied viewpoint well under what the eye tracks.
+  parallaxQuantDeg: 3.5,
   footIK: true,
   breath: true,               // additive shoulder breath on held states
   breathDeg: 1.6,
