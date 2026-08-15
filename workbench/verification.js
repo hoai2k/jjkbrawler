@@ -54,6 +54,40 @@ const SETS = {
       + "checked against the fighter's own drawing.",
     load: () => import(withKey("./verify_strike_points.js")).then((m) => m.provider()),
   },
+  "center-of-mass": {
+    label: "Centre of mass",
+    blurb: "Where each fighter's weight sits. One global 0.55 drives the tumble "
+      + "pivot, the 3D rotation and the aim chest line — it was chosen, never measured.",
+    load: () => import(withKey("./verify_body_points.js")).then((m) => m.comProvider()),
+  },
+  "muzzle-points": {
+    label: "Muzzle points",
+    blurb: "Where a shot leaves the caster. Today it is one offset for the whole "
+      + "roster, scaled by height — so it departs one fighter's forehead and another's waist.",
+    load: () => import(withKey("./verify_body_points.js")).then((m) => m.muzzleProvider()),
+  },
+  "ledge-grip": {
+    label: "Ledge grip",
+    blurb: "Where the hand meets the lip on a ledge hang, per fighter.",
+    load: () => import(withKey("./verify_body_points.js")).then((m) => m.ledgeProvider()),
+  },
+  "hurtbox-fit": {
+    label: "Hurtbox fit",
+    blurb: "Does the box you can be hit on cover the body that is drawn — standing, "
+      + "ducking, airborne, reeling and flat out.",
+    load: () => import(withKey("./verify_hurtbox_fit.js")).then((m) => m.provider()),
+  },
+  "model-facing": {
+    label: "Model facing",
+    blurb: "Is the 3D model facing the way its drawing is? An outline provably cannot "
+      + "tell front from back — the automated pass turned five fighters around.",
+    load: () => import(withKey("./verify_model.js")).then((m) => m.facingProvider()),
+  },
+  "pose-reads": {
+    label: "Pose reads",
+    blurb: "Does the model's pose read as the drawing it was built from?",
+    load: () => import(withKey("./verify_model.js")).then((m) => m.poseProvider()),
+  },
 };
 
 const params = new URL(location.href).searchParams;
@@ -157,50 +191,105 @@ const bench = {
   tasks: [],
   i: 0,
   filter: "all",
-  /** taskId -> { status, value, note, at }. status is one of
-   *  approved | edited | rejected | skipped. An item absent is undecided. */
-  decisions: new Map(),
+  /** EVERY set's work, together, because the export is a single document:
+   *  setId -> { fingerprint, i, decisions: Map(taskId -> decision) }. A
+   *  decision is { status, value, note, at }, status one of
+   *  approved | edited | rejected | skipped; an item absent is undecided.
+   *
+   *  Kept for sets that are not open — switching sets must not lose a pass,
+   *  and one download has to carry the lot so a batch of decisions can be
+   *  applied in one go. */
+  work: new Map(),
+  /** Providers already loaded, by set id. Export needs a provider for every
+   *  set carrying decisions (for the measured value and the apply block), and
+   *  after a reload that may be a set nobody has opened yet. */
+  providers: new Map(),
 };
 
-/** Storage key per task set. The provider's `fingerprint` joins it, so a
- *  re-bake of the underlying measurements starts a clean queue instead of
- *  restoring decisions about numbers that have since moved — the failure the
- *  pose bench's stored edits used to cause, headed off rather than repeated. */
-const storeKey = () =>
-  `jjk.verify.${bench.setId}.${bench.provider?.fingerprint || "0"}`;
+/** One store for the whole bench. Each set carries the fingerprint of the
+ *  measurements it was reviewing, so a re-bake drops THAT set's stale
+ *  decisions and leaves the others alone — the failure the pose bench's
+ *  stored edits used to cause, headed off rather than repeated. */
+const STORE = "jjk.verify.v2";
+
+function setWork(setId) {
+  let w = bench.work.get(setId);
+  if (!w) bench.work.set(setId, (w = { fingerprint: null, i: 0, decisions: new Map() }));
+  return w;
+}
 
 function persist() {
   try {
-    localStorage.setItem(storeKey(), JSON.stringify({
-      at: new Date().toISOString(),
-      i: bench.i,
-      decisions: [...bench.decisions],
-    }));
+    const out = {};
+    for (const [id, w] of bench.work) {
+      if (!w.decisions.size) continue;
+      out[id] = { fingerprint: w.fingerprint, i: w.i, decisions: [...w.decisions] };
+    }
+    localStorage.setItem(STORE, JSON.stringify({ at: new Date().toISOString(), sets: out }));
   } catch { /* private mode, quota — the export is the real record */ }
 }
 
-function restore() {
+/** Read every set's stored work back. Called once, before any set opens, so
+ *  the total is known even for sets this session never visits. */
+function restoreAll() {
   let saved = null;
-  try { saved = JSON.parse(localStorage.getItem(storeKey()) || "null"); } catch { saved = null; }
-  if (!saved?.decisions?.length) { els.resume.hidden = true; return; }
-  bench.decisions = new Map(saved.decisions);
-  bench.i = Math.min(saved.i || 0, Math.max(0, bench.tasks.length - 1));
+  try { saved = JSON.parse(localStorage.getItem(STORE) || "null"); } catch { saved = null; }
+  if (!saved?.sets) return;
+  for (const [id, w] of Object.entries(saved.sets)) {
+    if (!SETS[id]) continue;   // a set that has since been removed
+    bench.work.set(id, {
+      fingerprint: w.fingerprint || null,
+      i: w.i || 0,
+      decisions: new Map(w.decisions || []),
+    });
+  }
+  bench.restoredAt = saved.at || null;
+}
+
+/** Drop a set's restored decisions when the numbers they were about have
+ *  moved. Announced rather than silent: a queue that quietly emptied itself
+ *  would read as the bench losing work. */
+function reconcileFingerprint(setId, fingerprint) {
+  const w = setWork(setId);
+  if (w.fingerprint && fingerprint && w.fingerprint !== fingerprint && w.decisions.size) {
+    const n = w.decisions.size;
+    w.decisions.clear();
+    w.i = 0;
+    w.fingerprint = fingerprint;
+    return n;
+  }
+  w.fingerprint = fingerprint;
+  return 0;
+}
+
+function renderResume(dropped) {
+  const total = totalDecisions();
+  if (!total && !dropped) { els.resume.hidden = true; return; }
   els.resume.hidden = false;
-  const when = (saved.at || "").slice(0, 16).replace("T", " ");
-  els.resume.innerHTML = `Resumed <b>${saved.decisions.length}</b> decision(s) from ${when}. `
-    + `<button class="ghost sm" id="vDiscard" type="button">Discard and start over</button>`;
+  const when = (bench.restoredAt || "").slice(0, 16).replace("T", " ");
+  const parts = [];
+  if (total) parts.push(`Holding <b>${total}</b> decision(s) across ${setsWithWork().length} set(s)`
+    + (when ? `, last touched ${when}` : ""));
+  if (dropped) parts.push(`<b>${dropped}</b> dropped — the measurements they were about have changed`);
+  els.resume.innerHTML = `${parts.join(". ")}. `
+    + `<button class="ghost sm" id="vDiscard" type="button">Discard all and start over</button>`;
   el("vDiscard").addEventListener("click", () => {
-    if (!confirm("Throw away the decisions restored from this browser?")) return;
-    try { localStorage.removeItem(storeKey()); } catch { /* nothing to clear */ }
-    bench.decisions.clear();
+    if (!confirm("Throw away every decision in every set?")) return;
+    try { localStorage.removeItem(STORE); } catch { /* nothing to clear */ }
+    bench.work.clear();
+    setWork(bench.setId).fingerprint = bench.provider?.fingerprint || null;
     bench.i = 0;
-    els.resume.hidden = true;
     renderAll();
   });
 }
 
+const totalDecisions = () => [...bench.work.values()]
+  .reduce((n, w) => n + w.decisions.size, 0);
+const setsWithWork = () => [...bench.work].filter(([, w]) => w.decisions.size).map(([id]) => id);
+
+const decisions = () => setWork(bench.setId).decisions;
 const current = () => bench.tasks[bench.i] || null;
-const decisionFor = (task) => (task ? bench.decisions.get(task.id) || null : null);
+const decisionFor = (task) => (task ? decisions().get(task.id) || null : null);
 
 /** The value in play for a task: whatever a decision recorded, else the
  *  provider's own starting value. */
@@ -210,10 +299,10 @@ function valueFor(task) {
 }
 
 function setDecision(task, patch) {
-  const prev = bench.decisions.get(task.id) || {};
-  bench.decisions.set(task.id, {
-    ...prev, ...patch, at: new Date().toISOString(),
-  });
+  const map = decisions();
+  const prev = map.get(task.id) || {};
+  map.set(task.id, { ...prev, ...patch, at: new Date().toISOString() });
+  setWork(bench.setId).i = bench.i;
   persist();
 }
 
@@ -223,6 +312,15 @@ function renderAll() {
   renderList();
   renderCurrent();
   renderProgress();
+  refreshSetCounts();
+}
+
+/** Decision counts on the set picker's options. */
+function refreshSetCounts() {
+  for (const opt of els.set.options) {
+    const n = bench.work.get(opt.value)?.decisions.size || 0;
+    opt.textContent = n ? `${SETS[opt.value].label} (${n})` : SETS[opt.value].label;
+  }
 }
 
 function statusOf(task) {
@@ -281,7 +379,16 @@ function renderProgress() {
     ? `${decided} / ${total} decided (${pct}%) · ${edited} edited · ${flagged} flagged`
     : "nothing to review";
   els.barFill.style.width = `${pct}%`;
-  els.exportBtn.textContent = decided ? `⭳ Export ${decided} decision(s)` : "⭳ Export decisions";
+  // The button counts EVERY set's work, because that is what it downloads —
+  // a number that only described the open set would understate the file.
+  const all = totalDecisions();
+  const others = setsWithWork().filter((id) => id !== bench.setId).length;
+  els.exportBtn.textContent = all
+    ? `⭳ Export ${all} decision(s)${others ? ` · ${others + 1} sets` : ""}`
+    : "⭳ Export decisions";
+  els.exportBtn.title = others
+    ? `Downloads every set's decisions in one file — including ${others} set(s) you are not looking at`
+    : "Downloads every decision so far, as one JSON file";
 }
 
 function renderCurrent() {
@@ -335,6 +442,7 @@ function draw() {
 function goTo(index) {
   if (!bench.tasks.length) return;
   bench.i = (index + bench.tasks.length) % bench.tasks.length;
+  setWork(bench.setId).i = bench.i;
   persist();
   renderAll();
 }
@@ -387,7 +495,7 @@ function skip() {
 function clearDecision() {
   const task = current();
   if (!task) return;
-  bench.decisions.delete(task.id);
+  decisions().delete(task.id);
   persist();
   renderAll();
 }
@@ -396,7 +504,7 @@ function resetValue() {
   const task = current();
   if (!task) return;
   const d = decisionFor(task);
-  if (d) bench.decisions.set(task.id, { ...d, value: undefined });
+  if (d) decisions().set(task.id, { ...d, value: undefined });
   renderCurrent();
   renderProgress();
   persist();
@@ -404,81 +512,138 @@ function resetValue() {
 
 // ----------------------------------------------------------------- export
 
-function exportDecisions() {
-  const decided = bench.tasks.filter((t) => statusOf(t) !== "todo");
-  const doc = {
-    tool: "verification-workbench",
-    format: 1,
-    taskSet: bench.setId,
-    benchCacheKey: CACHE_KEY || null,
-    fingerprint: bench.provider.fingerprint || null,
-    summary: summaryLine(),
-    decisions: decided.map((t) => {
-      const d = decisionFor(t);
-      return {
-        id: t.id,
+/** Everything, from every set, in one document.
+ *
+ *  One download rather than one per set: a pass over this bench is usually a
+ *  sitting that touches several kinds of check, and the person applying it
+ *  wants a single artifact to land — not six files to keep in step. Each set
+ *  keeps its own section, its own fingerprint and its own paste-ready block,
+ *  so applying is still per-file where the answers live. */
+async function exportDecisions() {
+  els.state.textContent = "gathering…";
+  els.state.className = "loading";
+  const sets = {};
+  let total = 0;
+  for (const setId of setsWithWork()) {
+    const w = bench.work.get(setId);
+    // A set with decisions but no provider loaded — restored from a previous
+    // session and never opened this one — still has to export properly, and
+    // that needs its provider for the measured value and the apply block.
+    const provider = await providerFor(setId);
+    if (!provider) continue;
+    const byId = new Map(provider.tasks.map((t) => [t.id, t]));
+    const rows = [];
+    for (const [taskId, d] of w.decisions) {
+      const task = byId.get(taskId);
+      if (!task) continue;   // an item the set no longer has
+      const measured = provider.initialValue(task);
+      rows.push({
+        id: taskId,
         status: d.status,
-        ...(t.exportKeys || {}),
-        value: d.value !== undefined ? d.value : bench.provider.initialValue(t),
-        measured: bench.provider.initialValue(t),
+        ...(task.exportKeys || {}),
+        value: d.value !== undefined ? d.value : measured,
+        measured,
         ...(d.note ? { note: d.note } : {}),
         at: d.at,
-      };
-    }),
-  };
-  // A set that knows the shape of the file its answers belong in hands over a
-  // paste-ready block, so applying a pass is a copy rather than a transcription.
-  if (bench.provider.exportBlock) {
-    const block = bench.provider.exportBlock(doc.decisions);
-    if (block) doc.apply = block;
+      });
+    }
+    if (!rows.length) continue;
+    total += rows.length;
+    sets[setId] = {
+      label: SETS[setId]?.label || setId,
+      fingerprint: provider.fingerprint || null,
+      counts: countStatuses(rows),
+      decisions: rows,
+    };
+    // A set that knows the shape of the file its answers belong in hands over
+    // a paste-ready block, so applying is a copy rather than a transcription.
+    if (provider.exportBlock) {
+      const block = provider.exportBlock(rows);
+      if (block) sets[setId].apply = block;
+    }
   }
+
+  const doc = {
+    tool: "verification-workbench",
+    format: 2,
+    benchCacheKey: CACHE_KEY || null,
+    exportedAt: new Date().toISOString(),
+    summary: Object.entries(sets)
+      .map(([id, s]) => `${id}: ${summarise(s.counts)}`).join(" · ") || "no decisions yet",
+    sets,
+  };
   const blob = new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `${bench.setId}-verification.json`;
+  a.download = "verification-decisions.json";
   document.body.appendChild(a);
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-  els.state.textContent = decided.length
-    ? `exported ${decided.length} decision(s)` : "exported — nothing decided yet";
+  els.state.textContent = total
+    ? `exported ${total} decision(s) across ${Object.keys(sets).length} set(s)`
+    : "exported — nothing decided yet";
   els.state.className = "loading done";
 }
 
-function summaryLine() {
+function countStatuses(rows) {
   const counts = { approved: 0, edited: 0, rejected: 0, skipped: 0 };
-  for (const t of bench.tasks) {
-    const s = statusOf(t);
-    if (s in counts) counts[s]++;
-  }
-  const parts = Object.entries(counts).filter(([, n]) => n).map(([k, n]) => `${n} ${k}`);
-  return parts.length ? parts.join(" · ") : "no decisions yet";
+  for (const r of rows) if (r.status in counts) counts[r.status]++;
+  return counts;
 }
 
+const summarise = (counts) => Object.entries(counts)
+  .filter(([, n]) => n).map(([k, n]) => `${n} ${k}`).join(", ") || "none";
+
 // ------------------------------------------------------------------- boot
+
+/** A set's provider, loaded once and kept. Returns null when the module
+ *  fails — a broken set must not take the rest of the bench down. */
+async function providerFor(setId) {
+  if (bench.providers.has(setId)) return bench.providers.get(setId);
+  try {
+    const p = await SETS[setId].load();
+    bench.providers.set(setId, p);
+    return p;
+  } catch (err) {
+    console.error(`verification: task set "${setId}" failed to load`, err);
+    bench.providers.set(setId, null);
+    return null;
+  }
+}
 
 async function openSet(id) {
   bench.setId = id;
   bench.provider = null;
   bench.tasks = [];
-  bench.decisions = new Map();
   bench.i = 0;
   els.state.textContent = "loading…";
   els.state.className = "loading";
   els.blurb.textContent = SETS[id]?.blurb || "";
-  try {
-    bench.provider = await SETS[id].load();
-    bench.tasks = bench.provider.tasks;
-    restore();
-    const wanted = parseInt(params.get("i") || "", 10);
-    if (Number.isFinite(wanted)) bench.i = Math.max(0, Math.min(wanted, bench.tasks.length - 1));
-    els.state.textContent = `${bench.tasks.length} item(s)`;
-    els.state.className = "loading done";
-  } catch (err) {
-    els.state.textContent = `failed: ${err.message}`;
+  // The URL follows the set, so a deep link to an item is shareable and Back
+  // lands where it looks like it should.
+  const url = new URL(location.href);
+  url.searchParams.set("set", id);
+  url.searchParams.delete("i");
+  history.replaceState(null, "", url);
+
+  const provider = await providerFor(id);
+  if (!provider) {
+    els.state.textContent = `“${SETS[id]?.label || id}” failed to load — see the console`;
     els.state.className = "loading";
-    console.error(err);
+    renderAll();
+    return;
   }
+  bench.provider = provider;
+  bench.tasks = provider.tasks;
+  const dropped = reconcileFingerprint(id, provider.fingerprint);
+  const w = setWork(id);
+  bench.i = Math.min(w.i || 0, Math.max(0, bench.tasks.length - 1));
+  const wanted = parseInt(params.get("i") || "", 10);
+  if (Number.isFinite(wanted)) bench.i = Math.max(0, Math.min(wanted, bench.tasks.length - 1));
+  els.state.textContent = `${bench.tasks.length} item(s)`;
+  els.state.className = "loading done";
+  renderResume(dropped);
   renderAll();
 }
 
@@ -492,6 +657,10 @@ function wire() {
   const asked = params.get("set");
   els.set.value = SETS[asked] ? asked : Object.keys(SETS)[0];
   els.set.addEventListener("change", () => openSet(els.set.value));
+  // How much work each set is holding, in the picker itself — so switching
+  // sets is an informed move rather than a guess, and a pass left half-done
+  // somewhere else is visible from here.
+  refreshSetCounts();
 
   els.prev.addEventListener("click", () => goTo(bench.i - 1));
   els.next.addEventListener("click", () => goTo(bench.i + 1));
@@ -576,5 +745,6 @@ function wire() {
 }
 
 await loadCoreAssets();
+restoreAll();
 wire();
 await openSet(els.set.value);

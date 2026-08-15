@@ -46,11 +46,18 @@ Both change what the player feels, and both are only as good as the point they
 measure from. A radial tipper built on a strike point that sits at a fighter's
 elbow would quietly retune every spacing in the game, and it would be very
 hard to tell from the inside whether the *rule* was wrong or the *point* was.
-So: verify first, then build. The gate is a pass through the verification bench
-covering every fighter's `light` and `sideHeavy` at minimum, plus a check that
-`COM_BODY_FRAC` (0.55) is where these bodies' mass actually sits — the same
-constant drives tumble rotation, the 3D pivot and the aim chest line, and it
-has never been measured, only chosen.
+So: verify first, then build. The gate is two passes through the verification
+bench (`/workbench/?edit=verification`):
+
+1. **strike points** — every fighter's `light` and `sideHeavy` at minimum;
+2. **centre of mass** — its own task set now, because `COM_BODY_FRAC` (0.55)
+   drives tumble rotation, the in-scene 3D pivot, the aim chest line and the
+   airborne prone box, and it was chosen rather than measured. `comFrac()`
+   in `src/body_points.js` already reads a per-fighter answer and falls back
+   to 0.55, so that pass is applied by pasting one block.
+
+Both sets export into the same download, so the gate is one sitting and one
+file.
 
 ---
 
