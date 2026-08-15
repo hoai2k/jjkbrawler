@@ -266,6 +266,28 @@ try {
     + `${(err.stderr || err.stdout || "").toString().trim() || err.message}`);
 }
 
+// Hurtbox fits are HUMAN answers about DRAWINGS, and drawings change. This
+// does not fail the audit — a fit reviewed against slightly older art is still
+// a better box than none, and failing here would block an art commit on a
+// review queue. It reports, so the work is visible and the bench (which asks
+// again for exactly these) is not the only place it shows.
+console.log("\n=== hurtbox fits vs the art they were reviewed against ===");
+{
+  const { outstandingFits, HURTBOX_CASES } = await import("../src/hurtbox_art.js");
+  const { missing, stale } = outstandingFits(CHARACTER_KEYS);
+  const total = CHARACTER_KEYS.length * HURTBOX_CASES.length;
+  console.log(`  ${total - missing.length - stale.length} of ~${total} case(s) fitted `
+    + `against the art as it stands`);
+  const list = (label, xs) => {
+    if (!xs.length) return;
+    console.log(`  ${label}: ${xs.length}`);
+    for (let i = 0; i < xs.length; i += 8) console.log(`    ${xs.slice(i, i + 8).join(" ")}`);
+  };
+  list("never fitted", missing);
+  list("REDRAWN SINCE — the bench will ask again", stale);
+  if (!missing.length && !stale.length) console.log("  every case is current");
+}
+
 console.log(`\nroster median art reach: ${n0(rosterReach())} px`
   + `   MELEE_GRACE.scale: ${MELEE_GRACE.scale}`);
 console.log(errors ? `\n${errors} invariant(s) failed` : "\nall invariants hold");

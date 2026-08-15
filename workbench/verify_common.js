@@ -17,8 +17,9 @@ import { currentFrame, drawCharFrame } from "../src/render_backend.js";
 import { resolvedAnim } from "../sprites/src/sprites.js";
 import { getActor } from "../src/characters.js";
 import { bodyMetrics } from "../src/silhouette.js";
-import { HURTBOX } from "../src/constants.js";
+import { HURTBOX, LEDGE_HANG_X, LEDGE_HANG_Y } from "../src/constants.js";
 import { COM_BODY_FRAC } from "../src/config_tuning.js";
+import { comFrac } from "../src/body_points.js";
 import { STATES, clipNameFor } from "../render3d/src/states.js";
 
 export const ZOOM = 1.7;
@@ -134,7 +135,7 @@ export function ensureFrames(charKey) {
  * about either. Returns false when the art was not in memory (it asks for it
  * and the caller repaints).
  */
-export function drawStage(task, { ctx, canvas, guides = {}, redraw }) {
+export function drawStage(task, { ctx, canvas, guides = {}, redraw, spin = 0 }) {
   const { charKey, state } = task;
   const b = bodyMetrics(charKey);
 
@@ -152,8 +153,36 @@ export function drawStage(task, { ctx, canvas, guides = {}, redraw }) {
   const idx = frameIndex(task);
   const t = anim?.fps ? (idx + 0.5) / anim.fps : 0;
   const frame = currentFrame(charKey, state, t);
+  // A HANG IS NOT DRAWN FROM THE FOOT LINE. render.js hangs a ledge frame from
+  // its `ledge` anchor onto the real platform corner (`anchorTo`), so the hand
+  // meets the lip rather than the feet standing in mid-air beside it. Reviewing
+  // a hang box against art placed the other way is reviewing it against a
+  // picture the game never draws — the body sits at a different height, and
+  // every judgement about the box's top edge inherits the difference.
+  const ledge = state === "ledge"
+    ? { name: "ledge", x: CENTRE_X + LEDGE_HANG_X * ZOOM, y: GROUND_Y - LEDGE_HANG_Y * ZOOM }
+    : null;
+  if (ledge) {
+    // The corner itself, so the relationship is visible rather than implied.
+    ctx.strokeStyle = "rgba(150, 170, 220, 0.55)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(ledge.x, ledge.y); ctx.lineTo(canvas.width, ledge.y);
+    ctx.moveTo(ledge.x, ledge.y); ctx.lineTo(ledge.x, canvas.height);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(150, 170, 220, 0.8)";
+    ctx.font = "10px system-ui";
+    ctx.fillText("platform", ledge.x + 6, ledge.y - 6);
+  }
+  // `spin` turns the BODY and nothing else — the ground line and the centre
+  // line stay put, because they are the frame the numbers are quoted in. Used
+  // by the tumble case, which reviews a box against a body the game draws
+  // rotated about its centre of mass (motion.js fighterTransform).
+  const pivotY = GROUND_Y - b.height * comFrac(charKey) * ZOOM;
+  if (spin) { ctx.save(); ctx.translate(CENTRE_X, pivotY); ctx.rotate(spin); ctx.translate(-CENTRE_X, -pivotY); }
   const drew = drawCharFrame(ctx, charKey, frame, CENTRE_X, GROUND_Y,
-    { scale: artScaleFor(charKey), facing: 1 });
+    { scale: artScaleFor(charKey), facing: 1, anchorTo: ledge });
+  if (spin) ctx.restore();
   if (!drew) {
     // The engine has already asked for this art and will repaint when it
     // lands (verification.js renderCurrent) — this only says so meanwhile.

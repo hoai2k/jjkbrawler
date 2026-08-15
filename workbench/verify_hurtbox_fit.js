@@ -34,23 +34,27 @@
 import { resolvedAnim } from "../sprites/src/sprites.js";
 import { CHARACTER_KEYS } from "../src/characters.js";
 import { HURTBOX_FIT } from "../src/config_body_points.js";
+import { HURTBOX_CASES, hurtboxArtToken, fitState } from "../src/hurtbox_art.js";
 import { bodyMetrics } from "../src/silhouette.js";
+import { comFrac } from "../src/body_points.js";
 import { HURTBOX } from "../src/constants.js";
 import {
   ZOOM, GROUND_Y, CENTRE_X, drawStage, caption, slider, frameStepper,
   ensureTaskArt,
 } from "./verify_common.js";
 
-/** The states whose box the game actually builds, with the drawing that shows
- *  the body in it. `tumble` reuses the air art: it is the same body, spun. */
-const CASES = [
-  { key: "stand", state: "idle", label: "standing" },
-  { key: "crouch", state: "crouch", label: "ducking" },
-  { key: "air", state: "fall", label: "airborne" },
-  { key: "hurt", state: "hurt", label: "reeling" },
-  { key: "prone", state: "prone", label: "flat out" },
-  { key: "ledge", state: "ledge", label: "hanging" },
-];
+/** The cases, their drawings and how each is presented, all from the one
+ *  definition combat.js and the audit also read (src/hurtbox_art.js). */
+const CASES = HURTBOX_CASES;
+const SPIN = Object.fromEntries(CASES.map((c) => [c.key, c.spin || 0]));
+
+/** Cases the fighter is STANDING ON THE FLOOR in. combat.js extends these
+ *  boxes back down to the foot line whatever the fit says, so a leg sweep
+ *  cannot whiff on somebody standing in front of it — the reviewed bottom edge
+ *  is advisory here and the top edge is the decision. Said on the canvas so
+ *  nobody spends time dragging a bottom that will not be honoured. */
+const GROUNDED = new Set(CASES.filter((c) => c.grounded).map((c) => c.key));
+const CASE_ORDER = CASES.map((c) => c.key);
 
 /** How close a pointer has to be to a corner to have grabbed it rather than
  *  the box. Generous: these are 1.5px strokes on a busy canvas. */
@@ -65,14 +69,18 @@ export async function provider() {
     const b = bodyMetrics(charKey);
     for (const c of CASES) {
       if (!resolvedAnim(charKey, c.state)?.frames?.length) continue;
+      const s = fitState(charKey, c.key);
       tasks.push({
         id: `fit/${charKey}/${c.key}`,
         title: `${charKey} · ${c.label}`,
-        subtitle: HURTBOX_FIT[charKey]?.[c.key] ? "already adjusted" : describeSource(c.key, b),
+        subtitle: s.stale ? "the drawing changed since this was fitted"
+          : s.has ? "already adjusted" : describeSource(c.key, b),
         charKey,
         state: c.state,
         caseKey: c.key,
-        exportKeys: { char: charKey, case: c.key },
+        // The art the answer is about, carried into the export so the next
+        // redraw can tell that this decision is no longer about it.
+        exportKeys: { char: charKey, case: c.key, art: s.token },
       });
     }
   }
@@ -128,7 +136,7 @@ export async function provider() {
     },
     onCanvasDrag,
     draw(task, { ctx, canvas, value, redraw }) {
-      drawStage(task, { ctx, canvas, redraw, guides: {} });
+      drawStage(task, { ctx, canvas, redraw, guides: {}, spin: SPIN[task.caseKey] });
       const g = geom(task, value);
       // The derived box, ghosted, and the adjusted one over it.
       strokeBox(ctx, { left: CENTRE_X - g.bw / 2, right: CENTRE_X + g.bw / 2,
@@ -138,12 +146,35 @@ export async function provider() {
       handles(ctx, g);
       caption(ctx, canvas,
         `${task.caseKey} box · white = derived · cyan = what would ship`);
+      // The floor line a grounded box is extended back down to, so the reviewer
+      // can see that the bottom edge is not theirs to worry about.
+      if (GROUNDED.has(task.caseKey) && g.bottom < GROUND_Y) {
+        ctx.strokeStyle = "rgba(120, 240, 255, 0.35)";
+        ctx.setLineDash([3, 4]);
+        ctx.beginPath();
+        ctx.moveTo(g.left, g.bottom); ctx.lineTo(g.left, GROUND_Y);
+        ctx.moveTo(g.right, g.bottom); ctx.lineTo(g.right, GROUND_Y);
+        ctx.moveTo(g.left, GROUND_Y); ctx.lineTo(g.right, GROUND_Y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = "rgba(120, 240, 255, 0.55)";
+        ctx.fillText("extended to the floor in game — sweeps still connect",
+          g.right + 8, GROUND_Y - 4);
+        ctx.fillStyle = "#9aa4c0";
+      }
       ctx.fillText("drag a corner to resize, the middle to move — "
         + "does it cover the body, and nothing that is not the body?",
         10, canvas.height - 10);
     },
     ensureReady: ensureTaskArt,
-    committed: (task) => HURTBOX_FIT[task.charKey]?.[task.caseKey] !== undefined,
+    // Settled means a fit exists AND it was reviewed against the drawing that
+    // is on screen now. A redrawn pose puts its case back on the queue by
+    // itself, which is the only way a review of 189 items stays honest across
+    // an art delivery — nobody is going to remember which fighters moved.
+    committed: (task) => {
+      const s = fitState(task.charKey, task.caseKey);
+      return s.has && !s.stale;
+    },
     exportBlock,
   };
 }
@@ -151,6 +182,7 @@ export async function provider() {
 function describeSource(key, b) {
   if (key === "crouch") return `measured crouch ${(b.crouch).toFixed(2)} of height`;
   if (key === "air") return `measured air ${(b.air ?? 0.78).toFixed(2)} of height`;
+  if (key === "tumble") return "the hurt pose, spun — hung about the centre of mass";
   return "derived from the fractions";
 }
 
@@ -167,6 +199,12 @@ function baseBox(task) {
     }
     case "hurt": return { w: W * HURTBOX.hurtW, h: H * HURTBOX.hurtH, top: H * HURTBOX.hurtH };
     case "prone": return { w: H * HURTBOX.proneW, h: H * HURTBOX.proneH, top: H * HURTBOX.proneH };
+    case "tumble": {
+      // Same long low shape as prone, but hung about the centre of mass rather
+      // than resting on the floor — that is the point the spin pivots on.
+      const h = H * HURTBOX.proneH;
+      return { w: H * HURTBOX.proneW, h, top: H * comFrac(task.charKey) + h / 2 };
+    }
     case "ledge": return { w: W * HURTBOX.ledgeW, h: H * HURTBOX.ledgeH, top: H * HURTBOX.ledgeTop };
     default: return { w: W, h: H * HURTBOX.standH, top: H * HURTBOX.standH };
   }
@@ -320,24 +358,43 @@ function exportBlock(decisions) {
     if (!byChar.has(d.char)) byChar.set(d.char, []);
     byChar.get(d.char).push(d);
   }
-  // Committed fits first, so the block replaces the file cleanly.
+  // Committed fits first, so the block replaces the file cleanly. A case
+  // carried over keeps whatever art token it was committed with — re-exporting
+  // it must not silently re-bless a fit somebody has not looked at again.
   for (const [char, held] of Object.entries(HURTBOX_FIT)) {
-    if (byChar.has(char)) continue;
-    byChar.set(char, Object.entries(held).map(([c, v]) => ({ char, case: c, value: v })));
+    for (const [c, v] of Object.entries(held)) {
+      const list = byChar.get(char) || [];
+      if (list.some((d) => d.case === c)) continue;
+      list.push({ char, case: c, value: v, art: fitState(char, c).stored });
+      byChar.set(char, list);
+    }
   }
-  const lines = [];
-  for (const [char, list] of [...byChar].sort()) {
-    lines.push(`  ${JSON.stringify(char)}: { `
-      + list.map((d) => `${d.case}: ${fitLiteral({
+  // Merged into one pass so a case appears in the same order in both maps.
+  const ordered = [...byChar].sort();
+  const fits = [], art = [];
+  for (const [char, list] of ordered) {
+    const sorted = list.slice().sort(
+      (a, b) => CASE_ORDER.indexOf(a.case) - CASE_ORDER.indexOf(b.case));
+    fits.push(`  ${JSON.stringify(char)}: { `
+      + sorted.map((d) => `${d.case}: ${fitLiteral({
         w: d.value.w ?? 1, h: d.value.h ?? 1, dx: d.value.dx ?? 0, dy: d.value.dy ?? 0,
       })}`).join(", ") + ` },`);
+    const tokens = sorted.filter((d) => d.art);
+    if (tokens.length) {
+      art.push(`  ${JSON.stringify(char)}: { `
+        + tokens.map((d) => `${d.case}: ${JSON.stringify(d.art)}`).join(", ") + ` },`);
+    }
   }
   return {
     file: "src/config_body_points.js",
-    note: "replaces HURTBOX_FIT. A box approved as-derived is recorded at 1x1 — "
-      + "a no-op multiplier that still says somebody checked it. `dx`/`dy` appear "
-      + "only where the box was shifted off the derived centre.",
-    text: `export const HURTBOX_FIT = {\n${lines.join("\n")}\n};\n`
+    note: "replaces HURTBOX_FIT and HURTBOX_FIT_ART — paste both. A box approved "
+      + "as-derived is recorded at 1x1: a no-op multiplier that still says somebody "
+      + "checked it. `dx`/`dy` appear only where the box was shifted off the derived "
+      + "centre. The art token says WHICH DRAWING each answer is about, so a redraw "
+      + "puts the case back on the queue instead of leaving a stale judgement in "
+      + "place unnoticed (src/hurtbox_art.js).",
+    text: `export const HURTBOX_FIT = {\n${fits.join("\n")}\n};\n\n`
+      + `export const HURTBOX_FIT_ART = {\n${art.join("\n")}\n};\n`
       + (flagged.length ? `\n// Flagged — a fix at the source:\n${flagged.join("\n")}\n` : ""),
   };
 }
