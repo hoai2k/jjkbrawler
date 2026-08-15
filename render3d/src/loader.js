@@ -103,6 +103,32 @@ export function rigComFrac(charKey) {
   return RIGS.get(charKey)?.comFrac ?? null;
 }
 
+/** How high this rig's mass is AS IT STANDS RIGHT NOW, in metres above its
+ *  origin — the posed answer, where `rigComFrac` is the bind-pose one.
+ *
+ *  Read after posing (scene.renderPose) so the flat blit can hold the mass
+ *  still the way the in-scene layer does: a fraction of height cannot know
+ *  that a tuck carried the hips up and a sprawl put them down, and that
+ *  difference is exactly what a foot-anchored blit turns into the fighter
+ *  bobbing. Returns null when no COM bone is there. */
+export function posedComM(rig) {
+  const root = rig?.root;
+  if (!root) return null;
+  let bone = rig._comBone;
+  if (bone === undefined) {
+    bone = null;
+    const found = {};
+    root.traverse((o) => { if (o.isBone) found[o.name] = o; });
+    for (const name of COM_BONES) if (found[name]) { bone = found[name]; break; }
+    rig._comBone = bone;
+  }
+  if (!bone) return null;
+  // Relative to the root, so where the rig is standing and what it is scaled
+  // to cannot leak into the answer.
+  const scaleY = root.scale?.y || 1;
+  return (bone.matrixWorld.elements[13] - root.matrixWorld.elements[13]) / scaleY;
+}
+
 /** Measured at registration, where the rig is certainly in its bind pose — a
  *  lazy read would catch whatever pose the workbench last left it in, and then
  *  cache that. Heights are taken RELATIVE TO THE ROOT so the answer does not

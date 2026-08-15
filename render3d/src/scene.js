@@ -32,6 +32,7 @@ import { DIALS, sampleTime, poseRig } from "./pose.js";
 import { setRimColor, TOON } from "./toon.js";
 import { LIGHT_RIG } from "./light_rig.js";
 import { setWorldWidth, OUTLINE } from "./outline.js";
+import { posedComM } from "./loader.js";
 
 export const TEX_SIZE = 384;
 export const SUPERSAMPLE = 2;
@@ -558,6 +559,12 @@ export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {
     // consumer applies the artist's intent explicitly.
     renderScale: rig.renderScale ?? 1,
     rowsPerMetre: TEX_SIZE / frameH,
+    // Where the mass ended up in THIS pose, metres above the rig's origin.
+    // Measured after posing, so it carries what the clip did — the blit turns
+    // it into the rotation pivot and, airborne, into the point the drawing
+    // hangs from (blit.js). Null for a rig with no COM bone; the blit falls
+    // back to a fraction of height there.
+    comM: posedComM(rig),
     // With the turnaround on, facing lives in the render (yaw 0 or 180°) and
     // the blit must NOT mirror; with it off, blit-time mirroring owns facing.
     yawed: DIALS.turnaround,

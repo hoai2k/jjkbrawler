@@ -18,8 +18,12 @@ import { headHeightTarget } from "../../src/heights.js";
 import { getActor } from "../../src/characters.js";
 import { TEX_SIZE, FOOT_FRAC } from "./scene.js";
 
-/** Centre of mass height as a fraction of body height — the pivot rotations
- *  turn about (the hips, effectively; same constant as billboards). */
+/** Centre of mass height as a fraction of body height, for a render that could
+ *  not measure its own. The entry normally carries `comM` — the mass AS POSED,
+ *  read off the rig's spine (loader.posedComM) — and this is what a rig with no
+ *  COM bone falls back to. It was the only answer here until recently: one
+ *  constant for the whole roster, ignoring both each fighter's verified value
+ *  and what the pose had actually done with their hips. */
 const COM_FRAC = 0.55;
 
 export function blitPose(ctx, entry, charKey, x, y, opts = {}) {
@@ -35,15 +39,37 @@ export function blitPose(ctx, entry, charKey, x, y, opts = {}) {
   const drawW = TEX_SIZE * s;
   const drawH = TEX_SIZE * s;
   const footRow = TEX_SIZE * (1 - FOOT_FRAC);
-  const comY = -targetPx * scaleRatio * COM_FRAC;
+  // The mass, as this pose actually left it (scene.renderPose comM), in blitted
+  // pixels above the foot line. The old constant was a flat 0.55 of the target
+  // height for every fighter in every pose — and, because it multiplied
+  // `targetPx` rather than the rows the body really occupies, it also quietly
+  // ignored `renderScale`. Both are gone: this is the same number the in-scene
+  // layer turns the rig about.
+  const comPx = entry.comM != null
+    ? entry.comM * entry.rowsPerMetre * s
+    : targetPx * scaleRatio * COM_FRAC;
+  const comY = -comPx;
 
   const facing = opts.facing ?? 1;
   const rotation = opts.rotation || 0;
   const sx = opts.scaleX ?? 1;
   const sy = opts.scaleY ?? 1;
 
+  // AIRBORNE, HANG FROM THE MASS. The texture is drawn by its foot row, which
+  // is right on the ground and wrong in the air — the feet are somewhere
+  // different in every airborne pose, so anchoring there turns the pose's own
+  // movement into the fighter bobbing. Same contract the sprite renderer takes
+  // (sprites.js holdComY), same reason, and capped the same way so a rig whose
+  // measured centre is odd gets a nudge rather than a jump.
+  let offY = opts.offsetY || 0;
+  if (opts.holdComY !== undefined && opts.holdComY !== null) {
+    const want = opts.holdComY - comY;
+    const cap = opts.holdComMax;
+    offY += cap ? Math.max(-cap, Math.min(cap, want)) : want;
+  }
+
   ctx.save();
-  ctx.translate(x + (opts.offsetX || 0), y + (opts.offsetY || 0));
+  ctx.translate(x + (opts.offsetX || 0), y + offY);
   if (sx !== 1 || sy !== 1) ctx.scale(sx, sy);
   if (rotation !== 0) {
     ctx.translate(0, comY);
