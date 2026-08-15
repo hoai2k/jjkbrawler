@@ -16,7 +16,8 @@
       "armDeg": 13.75,
       "baked": true,
       "stanceDeg": 3.75,
-      "yawOffsetDeg": 10
+      "yawOffsetDeg": 10,
+      "facingCheckedAt": "2026-08-15"
     },
     "maki": {
       "model": "maki/maki.glb",
@@ -48,7 +49,8 @@
         }
       },
       "baked": true,
-      "armDeg": 8.75
+      "armDeg": 8.75,
+      "facingCheckedAt": "2026-08-15"
     },
     "jogo": {
       "model": "jogo/jogo.glb",
@@ -65,7 +67,8 @@
       "renderScale": 1.01,
       "stanceDeg": 22.25,
       "armDeg": 10,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "megumi": {
       "model": "megumi/megumi.glb",
@@ -81,7 +84,8 @@
       "renderScale": 1.02,
       "stanceDeg": 9,
       "armDeg": 11.5,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "hanami": {
       "model": "hanami/hanami.glb",
@@ -98,7 +102,8 @@
       "renderScale": 1.02,
       "stanceDeg": 13,
       "armDeg": 23,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "uro": {
       "model": "uro/uro_alt.glb",
@@ -137,7 +142,8 @@
       },
       "armDeg": 16,
       "baked": true,
-      "toonNote": "WORKAROUND, not art direction: shadeThreshold 0.2 (roster 0.62) and outlinePx 0.2 (roster 1.6) effectively disable shading and outlining to hide the 41-shell cursed-energy collar the generator fused into her neck. Restore roster-normal dials when her reseeded generation lands (asset-requests.md: 'Uro's neck cannot be repaired by surgery')."
+      "toonNote": "WORKAROUND, not art direction: shadeThreshold 0.2 (roster 0.62) and outlinePx 0.2 (roster 1.6) effectively disable shading and outlining to hide the 41-shell cursed-energy collar the generator fused into her neck. Restore roster-normal dials when her reseeded generation lands (asset-requests.md: 'Uro's neck cannot be repaired by surgery').",
+      "facingCheckedAt": "2026-08-15"
     },
     "geto": {
       "model": "geto/geto.glb",
@@ -154,7 +160,8 @@
       "stanceDeg": 12.25,
       "armDeg": 13.25,
       "yawOffsetDeg": 5,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "mahito": {
       "model": "mahito/mahito.glb",
@@ -170,7 +177,8 @@
       "yawOffsetDeg": 340,
       "armDeg": 10.75,
       "baked": true,
-      "stanceDeg": 2.75
+      "stanceDeg": 2.75,
+      "facingCheckedAt": "2026-08-15"
     },
     "gojo": {
       "model": "gojo/gojo.glb",
@@ -183,10 +191,11 @@
           0.8485
         ]
       },
-      "yawOffsetDeg": 45,
       "armDeg": 11,
       "baked": true,
-      "stanceDeg": 0
+      "stanceDeg": 0,
+      "facingCheckedAt": "2026-08-15",
+      "yawOffsetDeg": 45
     },
     "sukuna": {
       "model": "sukuna/sukuna.glb",
@@ -203,7 +212,8 @@
       "stanceDeg": 19,
       "idleArms": false,
       "baked": true,
-      "armDeg": 9
+      "armDeg": 9,
+      "facingCheckedAt": "2026-08-15"
     },
     "nobara": {
       "model": "nobara/nobara.glb",
@@ -220,7 +230,8 @@
       "renderScale": 1.03,
       "stanceDeg": 5.5,
       "armDeg": 14.75,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "choso": {
       "model": "choso/choso.glb",
@@ -237,7 +248,8 @@
       "renderScale": 1.03,
       "stanceDeg": 8,
       "armDeg": 11,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "gakuganji": {
       "model": "gakuganji/gakuganji.glb",
@@ -268,7 +280,8 @@
         }
       },
       "armDeg": 14.75,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "hakari": {
       "model": "hakari/hakari.glb",
@@ -285,7 +298,8 @@
       "renderScale": 1.01,
       "stanceDeg": 4,
       "armDeg": 13.25,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "mechamaru": {
       "model": "mechamaru/mechamaru.glb",
@@ -302,7 +316,8 @@
       "renderScale": 1.02,
       "stanceDeg": 14.75,
       "armDeg": 8,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "meimei": {
       "model": "meimei/meimei.glb",
@@ -350,7 +365,8 @@
       "yawOffsetDeg": 45,
       "stanceDeg": 11,
       "armDeg": 13.5,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "yuta": {
       "model": "yuta/yuta.glb",
@@ -367,7 +383,8 @@
       "renderScale": 1.03,
       "stanceDeg": 5,
       "armDeg": 11.25,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "inumaki": {
       "model": "inumaki/inumaki.glb",
@@ -384,7 +401,8 @@
       "renderScale": 1.01,
       "stanceDeg": 10,
       "armDeg": 15.5,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "kurourushi": {
       "model": "kurourushi/kurourushi.glb",
@@ -435,7 +453,9 @@
         }
       },
       "armDeg": 12.5,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15",
+      "facingNote": "model kept as stored; the SPRITE's body faces the wrong way (her face is the right way and matters more) — a sprite job, not a yaw one"
     },
     "nanami": {
       "model": "nanami/nanami.glb",
@@ -451,7 +471,8 @@
       "yawOffsetDeg": 65,
       "stanceDeg": 7,
       "armDeg": 15.5,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "todo": {
       "model": "todo/todo.glb",
@@ -467,7 +488,8 @@
       "yawOffsetDeg": 35,
       "stanceDeg": 13.25,
       "armDeg": 10,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "dagon": {
       "model": "dagon/dagon.glb",
@@ -500,7 +522,8 @@
       "yawOffsetDeg": 45,
       "stanceDeg": 10.25,
       "armDeg": 16,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "reggie": {
       "model": "reggie/reggie.glb",
@@ -517,7 +540,8 @@
       "renderScale": 1.01,
       "stanceDeg": 15,
       "armDeg": 14.75,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     },
     "yuki": {
       "model": "yuki/yuki.glb",
@@ -534,7 +558,8 @@
       "renderScale": 1.01,
       "stanceDeg": 11,
       "armDeg": 13.25,
-      "baked": true
+      "baked": true,
+      "facingCheckedAt": "2026-08-15"
     }
   }
 }

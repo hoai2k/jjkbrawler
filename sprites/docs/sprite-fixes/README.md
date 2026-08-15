@@ -26,3 +26,22 @@ with a note on what moved. There is no source file behind these PNGs, so the
 diff and a picture of it are the only account of the change. Check the frame's
 alpha bounding box afterwards: if it moved, `w`/`h`/`ox`/`oy` and the anchors in
 `manifest.json` all need re-measuring with `tools/bake_anchors.py`.
+
+## Momo — idle body faces the wrong way (2026-08-15)
+
+Found in the verification bench's **model facing** set
+(`/workbench/?edit=verification&set=model-facing`), which puts each fighter's
+drawing beside their 3D model.
+
+Her idle sprite has her **body** turned one way and her **face** the other.
+The face is the more important read and is correct, so the drawing ships as
+it is — but it means the sprite cannot be used as the reference for "which way
+is this fighter facing", which is what that set normally leans on.
+
+The MODEL is right and keeps `yawOffsetDeg: 65`. Deliberately not matched to
+the sprite: that dial turns the model when the game draws it
+(`pose.facingYaw`, `ik.characterLateral`), so matching a wrong drawing would
+rotate her model wrong in play to reproduce the mistake.
+
+If her idle is ever redrawn, squaring the body to the face is the fix. Nothing
+in the engine is waiting on it.
