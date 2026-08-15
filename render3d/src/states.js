@@ -215,6 +215,28 @@ export const AIM_ELEVATIONS = {
  *  not rotate (moves.js builds a box in front at a fixed height). */
 export const AIM_BAND_DEG = 26;
 
+/** …and narrower where the ANGLE IS THE MOVE.
+ *
+ *  A side attack is a side attack whether it tilts up at someone on the
+ *  platform above or not, so it can take the full band. A crouch poke that
+ *  comes up to level is not a crouch poke — its whole identity is going low,
+ *  and at the default band an opponent standing at chest height pulled it from
+ *  -30° to -4°, which is the move losing the thing it is for.
+ *  tools/smoke_billboard.mjs is what caught that.
+ *
+ *  So the band is per state, and the rule is how much of the move's meaning is
+ *  its elevation. Absent means the default. */
+const AIM_BAND_BY_STATE = {
+  crouchAttack: 10,
+  downHeavy: 12,
+  specialSide: 14,
+  airLight: 18,
+};
+
+export function aimBandFor(state) {
+  return AIM_BAND_BY_STATE[clipNameFor(state)] ?? AIM_BAND_DEG;
+}
+
 function nearestElevation(list, deg) {
   let best = list[0];
   for (const e of list) if (Math.abs(e - deg) < Math.abs(best - deg)) best = e;
@@ -224,9 +246,9 @@ function nearestElevation(list, deg) {
 /** The anchor nearest `deg`, with `deg` allowed to pull it up to a band away.
  *  Anchoring first and banding second is what keeps `airLight`'s two
  *  elevations from merging into one continuous arc between them. */
-function bandedElevation(list, deg) {
+function bandedElevation(list, deg, band) {
   const anchor = nearestElevation(list, deg);
-  return clamp(deg, anchor - AIM_BAND_DEG, anchor + AIM_BAND_DEG);
+  return clamp(deg, anchor - band, anchor + band);
 }
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
@@ -272,7 +294,7 @@ export function aimSolve(x, footY, chestY, aim, facing = 1, state = null, reachP
   // sits exactly on its anchor — banding a `deg` of 0 would drag an up-smash
   // down to 29° for a fighter swinging at nobody.
   deg = elevs
-    ? (aim ? bandedElevation(elevs, deg) : nearestElevation(elevs, deg))
+    ? (aim ? bandedElevation(elevs, deg, aimBandFor(state)) : nearestElevation(elevs, deg))
     : clamp(deg, -AIM_MAX_DEG, AIM_MAX_DEG);
   const rad = (deg * Math.PI) / 180;
 

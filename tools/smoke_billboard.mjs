@@ -227,7 +227,7 @@ try {
     const THREE = await import("/vendor/three/three.module.js");
     const rig = await import("/render3d/src/loader.js");
     const renderer = await import("/billboards/src/renderer.js");
-    const { aimSolve, STATES } = await import("/render3d/src/states.js");
+    const { aimSolve, STATES, AIM_BAND_DEG } = await import("/render3d/src/states.js");
     renderer.initRenderer(THREE);
     await rig.initRigs(THREE, null, ["mann"], ["mann"]);
 
@@ -257,24 +257,37 @@ try {
       out.elevations[label] = Math.round(Math.atan2(aim.dy - (-chestY), aim.dx) * 180 / Math.PI);
     }
 
-    // 2. A grounded arm strike is thrown LEVEL wherever the opponent stands.
-    //    Continuous aim is what pointed a standing jab at the floor.
+    // 2. A grounded arm strike follows the opponent WITHIN ITS BAND. Free
+    //    continuous aim is what pointed a standing jab at the floor; a band is
+    //    what lets it point at someone on the platform above without that.
+    const tilts = [];
     for (const [dx, dy] of [[300, 300], [300, 95], [300, -140], [700, 20]]) {
       const a = aimSolve(0, 0, chestY, { x: dx, y: -dy }, 1, "light", 96);
       out.invariant.push(`${a.dx},${a.dy}`);
+      tilts.push((a.pitch * 180) / Math.PI);
     }
+    out.tiltSpan = Math.round(Math.max(...tilts) - Math.min(...tilts));
+    out.band = AIM_BAND_DEG;
     return out;
   });
 
   check(r.worst < 1, "the striking hand lands on the solved target, every state",
     `worst ${r.worst.toFixed(2)}° — ${r.byState.join(" ")}`);
-  check(new Set(r.invariant).size === 1,
-    "a grounded arm strike is thrown level wherever the opponent stands",
-    `solutions: ${[...new Set(r.invariant)].join(" | ")}`);
-  // The move IS the aim: an up attack goes up, a crouch poke goes low, and a
-  // standing jab goes neither.
-  check(r.elevations.up > 30 && r.elevations.level === 0 && r.elevations.low < -10,
-    "each attack keeps its own elevation",
+  // These two used to assert that the aim SNAPPED to its anchor exactly — a
+  // grounded arm strike identical wherever the opponent stood, and each state
+  // pinned to one elevation. They are anchors with a band now
+  // (states.AIM_BAND_DEG): inside it the limb follows the real direction of the
+  // attack, so a side attack at someone a platform up is visibly aimed at them
+  // instead of dead level. The reason the snap existed is unchanged and is what
+  // the band enforces — a jab must not angle at the floor because the opponent
+  // is a little lower — so what is checked is the BOUND, not the absence.
+  check(r.tiltSpan > 0 && r.tiltSpan <= r.band * 2 + 2,
+    "a grounded arm strike follows the opponent, but only within its band",
+    `${r.tiltSpan}° of travel across the sweep, band ±${r.band}°`);
+  // The move is still the aim: an up attack goes up, a crouch poke goes low,
+  // and a standing jab goes neither — each about its own anchor.
+  check(r.elevations.up > 30 && Math.abs(r.elevations.level) <= r.band && r.elevations.low < -10,
+    "each attack still keeps its own elevation",
     `up ${r.elevations.up}°, level ${r.elevations.level}°, low ${r.elevations.low}°`);
   check(errors.length === 0, "no page errors solving IK", errors.slice(0, 2).join(" | "));
   await page.close();

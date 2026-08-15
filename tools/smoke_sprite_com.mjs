@@ -1,4 +1,5 @@
-// An airborne sprite hangs from its centre of mass, not from its feet.
+// An airborne fighter hangs from their centre of mass, not from their feet —
+// whichever backend draws them.
 //
 // A drawing is placed by its foot line, which is right on the ground and wrong
 // in the air: the foot line means something different in every airborne pose —
@@ -175,6 +176,66 @@ check(live.heldSpan < live.freeSpan,
 check(live.heldSpan <= live.freeSpan * 0.75,
   "...by a clear margin, not a rounding",
   `centroids ${live.held.join(", ")} (foot-anchored: ${live.free.join(", ")})`);
+
+// ---------------------------------------------------------------- flat blit
+//
+// `?render=3d&camera=flat` renders the rig to a texture and blits it by its
+// foot row, so it had the same fault and takes the same option. It also had one
+// of its own: the pivot was a flat 0.55 of the target height for every fighter
+// in every pose, multiplied against `targetPx` rather than the rows the body
+// really occupies — so it ignored `renderScale` too.
+// Its own page: this file's first one runs the SPRITE backend, where no 3D
+// engine has been loaded and there is no rig to ask.
+await page.close();
+const flat = await browser.newPage();
+flat.on("pageerror", (e) => console.log("page error:", String(e).slice(0, 200)));
+await flat.goto(`${BASE}/?render=3d&camera=flat`);
+await pressStart(flat);
+await flat.click('[data-character="nobara"]');
+await flat.waitForTimeout(400);
+await flat.click("#startButton");
+await flat.waitForSelector(".stage-card", { timeout: 30000 });
+await flat.locator(".stage-card").nth(0).click();
+for (let w = 0; ; w += 250) {
+  const ok = await flat.evaluate(async () => {
+    const { state } = await import("/src/state.js");
+    return state.phase === "playing" && state.fighters.length > 1;
+  });
+  if (ok) break;
+  if (w > 180000) throw new Error("match never started");
+  await flat.waitForTimeout(250);
+}
+await flat.waitForTimeout(6000);
+
+const blit = await flat.evaluate(async () => {
+  const scene = await import("/render3d/src/scene.js");
+  const rigs = await import("/render3d/src/loader.js");
+  const rig = rigs.getRig("nobara");
+  if (!rig) return null;
+  // Render a few airborne poses and read back where each one left its mass.
+  const seen = [];
+  for (const [animKey, t] of [["jump", 0.1], ["fall", 0.1], ["hurt", 0.1], ["dodge_air", 0.1]]) {
+    const resolved = rigs.resolveClip("nobara", animKey);
+    if (!resolved) continue;
+    const entry = scene.renderPose("nobara", animKey, t, rig, resolved, {});
+    if (entry?.comM != null) seen.push(+entry.comM.toFixed(4));
+  }
+  return { comMs: seen, heightM: +rig.height.toFixed(3) };
+});
+
+check(blit && blit.comMs.length >= 3,
+  "the flat blit's render carries the mass it actually posed",
+  blit ? `nobara comM ${blit.comMs.join(", ")} m of a ${blit.heightM} m body` : "no rig here");
+if (blit && blit.comMs.length >= 3) {
+  const span = Math.max(...blit.comMs) - Math.min(...blit.comMs);
+  check(span > 0.001,
+    "...which really does move between airborne poses, so holding it is not a no-op",
+    `${(span * 100).toFixed(1)} cm between the highest and lowest`);
+  const flat = 0.55 * blit.heightM;
+  check(blit.comMs.some((v) => Math.abs(v - flat) > 0.02),
+    "...and it is not the flat 0.55 of height the blit used to assume",
+    `measured ${blit.comMs.join(", ")} against a constant ${flat.toFixed(3)}`);
+}
 
 await browser.close();
 console.log(failed ? `\n${failed} check(s) failed` : "\nall sprite COM checks passed");

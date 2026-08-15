@@ -178,6 +178,16 @@ roll at every yaw — exactly, not approximately.
 Guarded by `tools/smoke_roll_axis.mjs`, which checks the composition, the
 measurement, and the shipped layer in a real match.
 
+**The flat blit does the same two things**, and had its own version of the
+second fault: it turned every fighter about a flat 0.55 of their target height,
+in every pose, multiplied against `targetPx` rather than the rows the body
+really occupies — so it ignored `renderScale` as well. `scene.renderPose` now
+carries `comM` on the entry, the mass AS POSED in metres (`loader.posedComM`),
+and `blit.js` uses it both as the rotation pivot and — airborne, through the
+same `holdComY` the sprite renderer takes — as the point the drawing hangs from.
+Nobara's posed mass measures 1.006 m on a 1.6 m body, which is 0.63 of height
+against the 0.55 that was assumed: a 12.6 cm pivot error, for everyone.
+
 ## What angle each state is shown at
 
 A stand is a portrait: the costume and the face are the point, so the idle keeps
@@ -219,6 +229,14 @@ choosing between an up attack and a side attack is *for*; inside it, the limb
 points where the strike is going. Swinging at nobody still sits exactly on the
 anchor. The band is bounded by the hitbox, which does not rotate — `moves.js`
 builds a box in front at a fixed height.
+
+**The band narrows where the angle IS the move** (`aimBandFor`). A side attack
+is a side attack whether it tilts up at someone on the platform above or not, so
+it takes the full 26°. A crouch poke that comes up to level is not a crouch poke
+— at the flat band an opponent standing at chest height pulled it from −30° to
+−4°, which is the move losing the thing it exists for. `crouchAttack` gets 10°,
+`downHeavy` 12°, `specialSide` 14°, `airLight` 18°. `tools/smoke_billboard.mjs`
+is what caught it.
 
 Where a *shot* leaves is a separate, older answer: `src/muzzle.js` resolves it
 per fighter and per pose from a human-placed point (the verification bench's
