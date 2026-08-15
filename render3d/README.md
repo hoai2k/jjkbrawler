@@ -140,6 +140,54 @@ directions in the scene — so every fighter in the scene faced left in every
 locomotion state while their attacks still turned correctly. `tools/smoke_facing.mjs`
 covers both paths.
 
+## What angle each state is shown at
+
+A stand is a portrait: the costume and the face are the point, so the idle keeps
+whatever three-quarter its delivery was drawn at. Everything the fighter *does*
+turns out toward profile — a run seen at ¾ is a jog toward the viewer, and a
+punch at ¾ goes past the camera instead of across it. `pose.PRESENT_STATE_DEG`
+holds the per-state angle in degrees off chest-on (`null` = keep the delivery's
+own), and `pose.presentDegFor()` is what both paths ask.
+
+| state | angle |
+|---|---|
+| idle, crouch, shield, hurt, ledge, teeter | the delivery's own (≈60° in scene) |
+| walk / run / dash | 76 / 82 / 84 |
+| jump / fall / land | 72 / 72 / 68 |
+| any attack | 46 → 88 across the wind-up |
+
+**An attack turns through the swing.** The wind-up faces the camera more than a
+stand does — it is the moment the move is legible as a *particular* move, and
+the chest, the weapon and the gathering arm all read from the front. The contact
+arrives in profile, because that is the frame where the strike has to be seen
+crossing the screen and landing on someone. In the sprite sets that is
+`attack_a` and `attack_b`; here it is the same read against the clip's own
+contact beat, which is where `_b` would have been drawn. Held through the
+follow-through rather than eased back, matching `ik.reachWeight`.
+
+The strike direction follows the body, and that is the point rather than a side
+effect: the reach target is built in the rig's own frame
+(`pose.applyMachineReach`), so turning the fighter more side-on turns their
+punch more side-on with them. It stays an exact mirror at every angle because it
+is still one signed yaw.
+
+**Aim anchors have a band.** `states.AIM_ELEVATIONS` gives each attack the
+elevation it is thrown at, and the aim used to snap to it exactly — so a side
+attack at an opponent a platform up stayed dead level, and an up-smash reached
+the same 55° whether the target was overhead or barely above. They are anchors
+now, with `AIM_BAND_DEG` (26°) of pull toward the real direction of the attack.
+Outside the band the move is simply not the move for that angle, which is what
+choosing between an up attack and a side attack is *for*; inside it, the limb
+points where the strike is going. Swinging at nobody still sits exactly on the
+anchor. The band is bounded by the hitbox, which does not rotate — `moves.js`
+builds a box in front at a fixed height.
+
+Where a *shot* leaves is a separate, older answer: `src/muzzle.js` resolves it
+per fighter and per pose from a human-placed point (the verification bench's
+`muzzle-points` set), else the rig's measured hand, else a scaled reference.
+
+Guarded by `tools/smoke_present.mjs`.
+
 ## Size and facing, per delivery
 
 Two facts about a MODEL that no clip can carry, both on the manifest entry and

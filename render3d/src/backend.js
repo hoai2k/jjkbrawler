@@ -30,7 +30,7 @@ import {
   currentFrame as spriteFrame,
   cyclePhase as spriteCycle,
 } from "../../sprites/src/sprites.js";
-import { STATES, cycleInfo, aimPitch, aimSolve, aimable, clipNameFor } from "./states.js";
+import { STATES, cycleInfo, aimPitch, aimSolve, aimable, clipNameFor, clipTime } from "./states.js";
 import { headHeightTarget } from "../../src/heights.js";
 import { comFrac } from "../../src/body_points.js";
 import { artReach } from "../../src/silhouette.js";
@@ -317,7 +317,8 @@ export const scene3d = {
       // to carry the three-quarter the flat path gets from its lens position,
       // and carry it mirrored. See scene.sceneFacingYaw for why the pair that
       // used to be here pointed one facing at the lens and the other away.
-      turnYawRad: scene.sceneFacingYaw(facing),
+      turnYawRad: scene.sceneFacingYaw(facing,
+        pose.presentDegFor(animKey, clipTime(animKey, animTime), beat)),
       facing,
       // No `presentMirror`: ±¾ IS the mirror here, exactly and by
       // construction. See pose.facingYaw.

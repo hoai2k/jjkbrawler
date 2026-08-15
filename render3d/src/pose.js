@@ -157,9 +157,70 @@ export function flinchSide(animKey, x, aim, facing) {
  *  facingYaw for why this is not simply "all of them". */
 const MIRROR_FACING_STATES = new Set(["idle", "walk", "run", "dash"]);
 
+/** How far off the lens each STATE is shown at, in degrees: 0 is chest-on,
+ *  90 is a full profile facing the way the fighter faces.
+ *
+ *  A standing fighter reads best at three-quarter — it is a portrait, the
+ *  costume and the face are the point, and a profile stand looks like a fighter
+ *  waiting to be photographed from the side. Everything the fighter DOES reads
+ *  better nearer profile: a run across the screen is a run, and a run at ¾ is a
+ *  jog toward the viewer; a punch across the screen lands, and a punch at ¾
+ *  goes past the camera. So locomotion turns out toward the side and the stand
+ *  stays where it is.
+ *
+ *  `null` means "whatever angle this delivery happens to stand at" — the flat
+ *  path measures that per rig (presentRad) and it is the right answer for the
+ *  states nobody has an opinion about.
+ */
+export const PRESENT_STATE_DEG = {
+  idle: null, teeter: null, crouch: null, shield: null, hurt: null,
+  ledge: null, dodge: null, dodge_air: null,
+  // TRAVEL, turned out toward the side: this is the change you see.
+  walk: 76,
+  run: 82,
+  dash: 84,
+  dodge_roll: 80,
+  jump: 72,
+  fall: 72,
+  land: 68,
+};
+
+/** An attack turns THROUGH the swing rather than sitting at one angle.
+ *
+ *  The wind-up faces the camera more than a stand does — it is the moment the
+ *  move is legible as a particular move, and the chest, the weapon and the
+ *  gathering arm all read from the front. The contact then arrives in profile,
+ *  because that is the frame where the strike has to be seen crossing the
+ *  screen and landing on someone. In the sprite sets that is the difference
+ *  between `attack_a` and `attack_b`; here it is the same read against the
+ *  clip's own contact beat, which is where `_b` would have been drawn.
+ *
+ *  Held through the follow-through rather than eased back, matching the reach
+ *  solver (ik.js reachWeight): the recovery belongs to the strike, not to the
+ *  wind-up. */
+export const ATTACK_PRESENT_DEG = { windup: 46, strike: 88 };
+
+/** The angle to show `animKey` at, `clipT` seconds into its clip. Degrees, in
+ *  the same frame as PRESENT_STATE_DEG; null to keep the delivery's own. */
+export function presentDegFor(animKey, clipT = 0, beat = undefined) {
+  const name = clipNameFor(animKey);
+  const b = beat ?? STATES[name]?.beat;
+  if (b > 0) {
+    const k = Math.min(Math.max(clipT / b, 0), 1);
+    const e = k * k * (3 - 2 * k);
+    const { windup, strike } = ATTACK_PRESENT_DEG;
+    return windup + (strike - windup) * e;
+  }
+  return name in PRESENT_STATE_DEG ? PRESENT_STATE_DEG[name] : null;
+}
+
 /** How each fighter presents while facing right, in degrees off the lens:
  *  0 is chest-on, +90 is a full profile facing screen-right. Absent means
- *  "however the delivery stands", which is what everyone but Sukuna wants. */
+ *  "however the delivery stands", which is what everyone but Sukuna wants.
+ *
+ *  A per-CHARACTER override, where PRESENT_STATE_DEG above is per-state; this
+ *  one wins, because it exists to correct a delivery rather than to say
+ *  anything about the move. */
 export const PRESENT_DEG = {
   // Delivered at −10°: nearly square to the camera, so his run read as a
   // fighter jogging on the spot toward the viewer while the same clip on
@@ -222,7 +283,7 @@ const CAMERA_YAW_RAD = (-60 * Math.PI) / 180;
  *  it takes to present at the wanted angle and, facing left, to present at
  *  its mirror. Falls back to exactly the old behaviour — the caller's flat
  *  turnaround constant — for a body with no measurable hip axis. */
-function facingYaw(rig, animKey, layers) {
+function facingYaw(rig, animKey, sampled, layers) {
   const base = rig.yawOffset || 0;
   // THE PRESENTATION MIRROR IS THE FLAT BLIT'S, and only the flat blit's.
   //
@@ -265,13 +326,16 @@ function facingYaw(rig, animKey, layers) {
   }
   const alpha = presentRad(rig);
   if (alpha === null) return (layers.turnYawRad || 0) + base;
-  // The presentation override is a LOCOMOTION note — Sukuna's run was the
-  // complaint, and his standing pose is nobody's problem — so the idle keeps
-  // whatever angle the delivery stands at and only the travel states re-aim.
+  // WHAT ANGLE TO SHOW THIS STATE AT, in three tiers, most specific first:
+  // the character override (a delivery correction, so it wins), then the
+  // state's own angle, then the angle this delivery happens to stand at.
+  // The idle is the case that wants the last of those — a stand is a portrait
+  // and the delivery's own three-quarter is the portrait it was drawn as.
   const pinned = PRESENT_DEG[rig.charKey];
+  const stateDeg = presentDegFor(animKey, clipTime(animKey, sampled), layers.beat);
   const want = pinned !== undefined && clipNameFor(animKey) !== "idle"
     ? (pinned * Math.PI) / 180
-    : alpha;
+    : (stateDeg === null ? alpha : (stateDeg * Math.PI) / 180);
   // `facingK` is the facing SWEEP (backend.js quantises fighter.js's
   // facingVis): ±1 at rest, passing through 0 mid-turn, so a turnaround is a
   // few frames of the body re-aiming through the lens instead of a snap.
@@ -976,7 +1040,7 @@ function poseOnce(rig, animKey, sampled, clip, layers = {}) {
   // The delivery's own facing joins the turnaround: a rig built facing -Z
   // (loader.js yawOffsetDeg) is turned once, here, and every layer below sees
   // a fighter whose forward is where the spec says it is.
-  rig.root.rotation.y = facingYaw(rig, animKey, layers);
+  rig.root.rotation.y = facingYaw(rig, animKey, sampled, layers);
   rig.root.updateMatrixWorld(true);
 
   restoreClean(rig.root);

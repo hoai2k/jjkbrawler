@@ -186,6 +186,17 @@ export function aimable(state) {
  * hitting what is beneath you.
  *
  * A state absent here keeps the free continuous aim, clamped to AIM_MAX_DEG.
+ *
+ * They are ANCHORS WITH A BAND, not points. Snapping to the point was half
+ * right: the reason it exists is that a jab must not angle at the floor because
+ * the opponent is a little lower, and that reason bounds the tilt rather than
+ * forbidding it. Pinned exactly, an up-smash at a target well overhead reached
+ * at the same 55° as one at a target barely above, and a side attack at
+ * someone on the platform above stayed dead level while the hitbox that went
+ * with it did not — the strike pointed at nothing in particular. Inside
+ * AIM_BAND_DEG the limb follows the real direction of the attack; outside it
+ * the move is simply not the move for that angle, which is what choosing
+ * between an up attack and a side attack is for.
  */
 export const AIM_ELEVATIONS = {
   light:          [0],
@@ -198,10 +209,24 @@ export const AIM_ELEVATIONS = {
   airLight:       [-45, 0],
 };
 
+/** How far off its anchor an attack may be aimed, in degrees. Wide enough that
+ *  an opponent a platform up or a body down is visibly aimed at; narrow enough
+ *  that the limb stays inside the hitbox the move actually swings, which does
+ *  not rotate (moves.js builds a box in front at a fixed height). */
+export const AIM_BAND_DEG = 26;
+
 function nearestElevation(list, deg) {
   let best = list[0];
   for (const e of list) if (Math.abs(e - deg) < Math.abs(best - deg)) best = e;
   return best;
+}
+
+/** The anchor nearest `deg`, with `deg` allowed to pull it up to a band away.
+ *  Anchoring first and banding second is what keeps `airLight`'s two
+ *  elevations from merging into one continuous arc between them. */
+function bandedElevation(list, deg) {
+  const anchor = nearestElevation(list, deg);
+  return clamp(deg, anchor - AIM_BAND_DEG, anchor + AIM_BAND_DEG);
 }
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
@@ -243,7 +268,12 @@ export function aimSolve(x, footY, chestY, aim, facing = 1, state = null, reachP
     const fwd = Math.max(40, (aim.x - x) * sign);
     deg = (Math.atan2(chestY - aim.y, fwd) * 180) / Math.PI;
   }
-  deg = elevs ? nearestElevation(elevs, deg) : clamp(deg, -AIM_MAX_DEG, AIM_MAX_DEG);
+  // With no opponent to aim at there is no direction to follow, so the move
+  // sits exactly on its anchor — banding a `deg` of 0 would drag an up-smash
+  // down to 29° for a fighter swinging at nobody.
+  deg = elevs
+    ? (aim ? bandedElevation(elevs, deg) : nearestElevation(elevs, deg))
+    : clamp(deg, -AIM_MAX_DEG, AIM_MAX_DEG);
   const rad = (deg * Math.PI) / 180;
 
   // The target is built from the STRIKE, not from the opponent's position: out
