@@ -86,11 +86,20 @@ repo can tell which of the three happened — `audit_voice_takes.py` counts
 utterances, not intervals. Two takes are requested for exactly that reason, and
 whether either is really in C♯m is a question for the person who can hear it.
 
-**Delivered.** All 11 files are in `assets/sfx/`. `tideCrash` and `drumPhrase`
-are registered and wired into their moves; the other nine sit in
-`SFX_ALTERNATES` and the game never plays them. Nothing here has been judged by
-ear yet — every one of the eleven is a candidate, including the two now in play,
-and the [audio workbench](../workbench/?edit=audio) is where that gets settled.
+**Delivered, and judged.** All 11 files are in `assets/sfx/`. `tideCrash` and
+`drumPhrase` are registered and wired into their moves.
+
+**Gakuganji's Power Chord now draws from all three metal licks**, one per shot,
+rather than playing one sample. That is the same reasoning the grunt trios were
+built on and it matters more here than it does for a grunt: the move recharges
+in 1.1 s, so an identical chord four times in six seconds is what makes a sound
+read as a sound effect rather than as a guitarist. The round-8 original and both
+C♯m takes are alternates now — the named chord went unused, which is roughly
+what asking a sound model for a pitch deserves.
+
+The sea and the drum are still unjudged; every take of both is a candidate,
+including the two in play, and the
+[audio workbench](../workbench/?edit=audio) is where that gets settled.
 
 **One engine line came with it.** `fireSfx` was read by the *projectile*
 handler and not by the *wave* handler, so declaring it on Dagon's tide would
@@ -813,6 +822,16 @@ refusing to let anybody grow the bank back, on half the voice groups at once.
 Only a spoken line is genuinely single, and for a reason no pruning can change:
 its length is frame data (`SPOKEN_LINES`), so two takes of different lengths
 under one key would be a move whose timing changed per draw.
+
+**A move can produce more than one row, and they are different files.**
+Gakuganji's Power Chord makes two: the chord he plays (`powerChord`) and the
+generic `sound` layer under its impact (`hitSound`). They were both labelled
+with the move's name, which invited the reasonable belief that editing one
+edited both — wrong twice over, because `hitSound` is also the layer under
+Inumaki's "Don't Move". The layer row is now labelled for what it is, and **any
+technique sound another move also plays carries a `shared` tag naming them**.
+The export writes to a registry key, and a key does not know whose page it was
+ticked on.
 
 **Techniques are on the page too, not only voices.** Every sound a fighter's
 specials and ultimate make is listed under *Techniques*, walked out of the kits

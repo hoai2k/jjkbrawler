@@ -139,8 +139,18 @@ function effectTracks(charKey) {
     for (const [field, when] of SFX_SOURCES) {
       if (p[field]) out.push(effectTrack(move, slot, p, resolve(p[field]), when));
     }
+    // The element layer gets a label of its own rather than the move's. Two
+    // rows both reading "Power Chord" is how you end up believing a change to
+    // one is a change to both, and they are not remotely the same file: one is
+    // the chord Gakuganji plays, the other is the generic `sound` layer he
+    // shares with Inumaki's "Don't Move".
     const layer = ELEMENT_HIT_SFX[p.fxElement];
-    if (layer) out.push(effectTrack(move, slot, p, layer, `${p.fxElement} layer, under the hit`));
+    if (layer) {
+      out.push({
+        ...effectTrack(move, slot, p, layer, `under ${move.name || slot}'s impact`),
+        label: `${p.fxElement} hit layer`,
+      });
+    }
   }
   // The two nobody could reach: played by a handler rather than declared on a
   // move, so nothing that walks the kits can see them. See SIGNATURE_SFX.
@@ -163,6 +173,41 @@ function effectTrack(move, slot, p, sfx, when) {
     // the stage while the sound plays — see showcase().
     sprite: p.sprite || p.aura || null,
     spriteH: p.spriteH || null,
+  };
+}
+
+// Who else plays this sound.
+//
+// The question that prompted this: two rows on Gakuganji's page both said
+// "Power Chord", and the reasonable assumption — that editing one edits both —
+// was wrong twice over. They are different registry keys, and the second one is
+// SHARED: `hitSound` is the layer under Inumaki's "Don't Move" as well, so
+// changing it changes a move belonging to a different fighter.
+//
+// A bench that lets you re-request a sound has to say when the sound is not
+// yours alone. Built by walking the whole roster once, so it stays true as kits
+// change rather than being a note somebody has to remember to update.
+const SFX_USERS = (() => {
+  const map = new Map();
+  for (const charKey of Object.keys(CHARACTERS)) {
+    for (const t of effectTracks(charKey)) {
+      if (!map.has(t.sfx)) map.set(t.sfx, []);
+      map.get(t.sfx).push(`${CHARACTERS[charKey].name} — ${t.label}`);
+    }
+  }
+  return map;
+})();
+
+/** "also 3 other moves", with the list in the tooltip — or null when it is
+ *  this move's alone and there is nothing to warn about. */
+function sharedNote(sfx, charKey) {
+  const users = SFX_USERS.get(sfx) || [];
+  const mine = `${CHARACTERS[charKey].name} — `;
+  const others = users.filter((u) => !u.startsWith(mine));
+  if (!others.length) return null;
+  return {
+    text: `shared · also ${others.length} other move${others.length === 1 ? "" : "s"}`,
+    title: `Changing ${sfx} changes these too:\n` + others.join("\n"),
   };
 }
 
@@ -317,6 +362,11 @@ function trackRow(t) {
   // Say the art is coming BEFORE it appears. A still that turns up on the
   // stage two panels away is easy to miss entirely if nothing said it would.
   if (t.sprite) bits.push(`<span class="tag tag--art">shows <code>${t.sprite}</code></span>`);
+  // And say when the sound is not this fighter's alone, because the export is
+  // a change to a registry key and the key does not know whose page it was
+  // ticked on. The tooltip names the moves that come with it.
+  const shared = t.kind === "effect" ? sharedNote(t.sfx, selected) : null;
+  if (shared) bits.push(`<span class="tag tag--shared" title="${shared.title}">${shared.text}</span>`);
   bits.push(`<code>${t.sfx}</code>`);
   if (files.length) bits.push(files.length > 1 ? `${files.length} files` : `<code>${files[0]}</code>`);
 

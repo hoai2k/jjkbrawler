@@ -229,6 +229,33 @@ const gruntMoves = await page.evaluate(() => {
 });
 ok(gruntMoves > 0, "a voice take can still be moved between banks", `${gruntMoves} offered`);
 
+// ---- two rows for one move are two different sounds, and say so
+//
+// Gakuganji's Power Chord produces two rows: the chord he plays (`powerChord`)
+// and the generic `sound` layer under its impact (`hitSound`). They both used
+// to be labelled "Power Chord", which invited the reasonable and wrong belief
+// that editing one edits both — wrong twice over, because the second is also
+// SHARED with Inumaki's "Don't Move".
+await page.goto(`${BASE}/workbench/?edit=audio&char=gakuganji`, { waitUntil: "load" });
+await page.waitForTimeout(3500);
+const rows = await page.evaluate(() => {
+  const g = [...document.querySelectorAll(".track-group")]
+    .find((x) => x.querySelector("h3").textContent === "Techniques");
+  return [...g.querySelectorAll(".track[data-sfx]")].map((r) => ({
+    key: r.dataset.sfx,
+    label: r.querySelector(".label").textContent.trim(),
+    shared: r.querySelector(".tag--shared")?.getAttribute("title") || null,
+  }));
+});
+const labels = rows.map((r) => r.label);
+ok(new Set(labels).size === labels.length, "no two technique rows carry the same label",
+   labels.join(" | "));
+const layer = rows.find((r) => r.key === "hitSound");
+ok(!!layer && /Inumaki/.test(layer.shared || ""),
+   "a sound another fighter also plays says whose", layer ? layer.shared : "(no layer row)");
+const solo = rows.find((r) => r.key === "powerChord");
+ok(!!solo && solo.shared === null, "and a sound nobody else plays does not");
+
 ok(errors.length === 0, "no page errors", errors.slice(0, 2).join(" | "));
 
 await browser.close();
