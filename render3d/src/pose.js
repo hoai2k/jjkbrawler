@@ -1129,7 +1129,7 @@ function poseOnce(rig, animKey, sampled, clip, layers = {}) {
     // solve and the carry below want it already corrected.
     applyGrip(THREE, rig.root, layers.charKey, _ik);
     applyTwoHandGrip(THREE, rig.root, layers.charKey, animKey,
-      clipTime(animKey, sampled), _ik, layers.beat);
+      clipTime(animKey, sampled), _ik, layers.beat, rig._aimTargetWorld);
     // ...and while TRAVELLING, the weapon is luggage rather than a statement:
     // heavy end trailing, low and behind (ik.js applyCarry). After the grip
     // solve, which is a no-op in these states anyway, so the two never argue.
@@ -1202,11 +1202,12 @@ function applyMachineReach(rig, animKey, sampled, layers) {
   // a camera-relative direction. Building the card's target the rig-relative
   // way put the striking hand 30° off.
   if (DIALS.reach && layers.reachTarget && reaches(animKey)) {
+    rig._aimTargetWorld = layers.reachTarget;
     applyReach(THREE, rig.root, animKey, clipTime(animKey, sampled), layers.reachTarget, _ik, layers.beat);
     return;
   }
   const reach = layers.reach;
-  if (!DIALS.reach || !reach || !reaches(animKey)) return;
+  if (!DIALS.reach || !reach || !reaches(animKey)) { rig._aimTargetWorld = null; return; }
   const targetPx = reach.targetPx || 0;
   if (targetPx <= 0 || !rig.height) return;
   const mPerPx = rig.height / targetPx;
@@ -1223,5 +1224,8 @@ function applyMachineReach(rig, animKey, sampled, layers) {
   // arrives where it was sent.
   if (rig._presentDelta) _reachTarget.applyAxisAngle(_yAxis, -rig._presentDelta);
   rig.root.localToWorld(_reachTarget);
+  // Kept for the two-hand solve: a weapon fighter aims the SHAFT at this same
+  // point, and it is computed here (ik.js applyTwoHandGrip).
+  rig._aimTargetWorld = (rig._aimTargetWorld || _reachTarget.clone()).copy(_reachTarget);
   applyReach(THREE, rig.root, animKey, clipTime(animKey, sampled), _reachTarget, _ik, layers.beat);
 }
