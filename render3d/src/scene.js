@@ -346,12 +346,25 @@ export function turnaroundYaw() {
  */
 export const THREE_QUARTER_RAD = -CAMERA_YAW_RAD;
 
-export function sceneFacingYaw(facing) {
+export function sceneFacingYaw(facing, presentDeg) {
   // Continuous on purpose: this path is live geometry with no pose cache, so
   // the turnaround can ride fighter.js's facingVis sweep directly — the body
   // yaws through the lens over TURN_TIME instead of snapping between ±¾.
   // At rest facingVis sits at ±1 and this is exactly the old two-pole answer.
-  return THREE_QUARTER_RAD * Math.max(-1, Math.min(1, facing));
+  //
+  // `presentDeg` re-aims it per state (pose.PRESENT_STATE_DEG): the stand keeps
+  // the three-quarter, travel and strikes turn out toward profile. It is still
+  // an exact mirror at every angle, because it is still one signed yaw — which
+  // is why this path needs no presentation mirror on top (pose.facingYaw).
+  //
+  // The strike direction follows the body here, and that is the point rather
+  // than a side effect: the reach target is built in the rig's own frame
+  // (pose.applyMachineReach), so turning the fighter more side-on turns their
+  // punch more side-on with them.
+  const rad = presentDeg === null || presentDeg === undefined
+    ? THREE_QUARTER_RAD
+    : (presentDeg * Math.PI) / 180;
+  return rad * Math.max(-1, Math.min(1, facing));
 }
 
 // ------------------------------------------------------------- the render
