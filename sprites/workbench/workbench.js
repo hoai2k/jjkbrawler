@@ -173,9 +173,25 @@ const isStaged = (key) => STAGED_CHARACTER_KEYS.includes(key);
 const RECENT_KEY = "__recent";
 const RECENT_LABEL = "All Recently Updated Poses";
 
+// Its sibling: the poses somebody has asked to have DRAWN AGAIN. The updated
+// list answers "what landed and still needs placing"; this one answers "what
+// did I reject", which is the question a request round is written from and
+// which was only answerable by opening all twenty-eight characters in turn.
+//
+// A flag is not a rejection once the pose has been pointed at another drawing.
+// That falls out of where the flag is read rather than being special-cased
+// here: `needsReplacement` reads the POSE, and the pose mirrors whichever
+// option it currently uses (poseView), so choosing a good drawing takes it off
+// this list while the bad drawing keeps its own tag for the variants menu.
+const FLAGGED_KEY = "__flagged";
+const FLAGGED_LABEL = "All Needing Regeneration";
+
 const isOther = (charKey) => charKey === OTHER_KEY;
 const isActor = (charKey) => ACTOR_KEYS.includes(charKey);
 const inRecent = () => state.group === RECENT_KEY;
+const inFlagged = () => state.group === FLAGGED_KEY;
+/** Either cross-character work list — neither is a sprite set. */
+const inList = () => inRecent() || inFlagged();
 
 /** Character-ish record for anything selectable, real fighter or not. */
 function actorOf(charKey) {
@@ -474,7 +490,9 @@ function charTodo(charKey) {
 function markEditedChars() {
   for (const o of $("charSel")?.options || []) {
     const key = o.value;
-    if (!o.dataset.name || isOther(key) || key === RECENT_KEY) continue;
+    // The two work lists carry their own counts (refreshRecentOption), so
+    // stamping a to-do marker over them would overwrite it.
+    if (!o.dataset.name || isOther(key) || key === RECENT_KEY || key === FLAGGED_KEY) continue;
     const todo = charTodo(key);
     o.textContent = (todo ? TODO_MARK : NO_TODO_PAD) + o.dataset.name;
     o.title = todo || "Nothing waiting \u2014 every pose placed, every replacement approved";
@@ -538,6 +556,73 @@ function recentUpdates() {
     || (b.lost.length ? 1 : 0) - (a.lost.length ? 1 : 0)
     || a.char.localeCompare(b.char)
     || a.frame.localeCompare(b.frame));
+}
+
+/** Every pose flagged for a redraw, across the whole roster.
+ *
+ *  The counterpart to recentUpdates(): that one is what ARRIVED, this one is
+ *  what was sent back. It is the list an art round is written from, and until
+ *  now the only way to read it was to open each character and count the
+ *  flagged cells — which is how a flag set in one session got forgotten by the
+ *  next.
+ *
+ *  WHAT IS NOT ON IT. A pose whose flag is still on a drawing it no longer
+ *  uses. Marking the delivered art bad and then pointing the pose at a good
+ *  alternate is a fix, not a rejection, and asking for it again would commission
+ *  a drawing that is already there. Nothing here enforces that: `needsReplacement`
+ *  reads the pose, the pose mirrors the option it points at, so a reassigned
+ *  pose is simply not flagged any more. The bad drawing keeps its own tag,
+ *  which is what the variants menu and `delete` want.
+ *
+ *  Grouped by kind — the same order the flag's own menu offers, so the list
+ *  reads as "these were rejected outright, then these want another pass" —
+ *  and by character within it, so it holds still while it is worked through. */
+function flaggedPoses() {
+  const out = [];
+  // allFramesOf rather than the manifest's own keys, because the shared effect
+  // and summon art keeps its flags in a section beside the characters — read
+  // the characters map and every rejected effect plate is missing from the one
+  // list that exists to find them.
+  for (const charKey of [...WB_FIGHTERS, ...ACTOR_KEYS, OTHER_KEY]) {
+    for (const frameKey of allFramesOf(charKey)) {
+      const kind = replacementKind(peekMeta(charKey, frameKey));
+      // `delete` is about one drawing among several, not about the pose, and
+      // poseView already keeps it off a pose. Guarded again because this walks
+      // the manifest directly and a shared sprite's flags do not go through it.
+      if (!kind || VARIANT_ONLY_KINDS.has(kind)) continue;
+      out.push({ char: charKey, frame: frameKey, kind });
+    }
+  }
+  const order = REPLACEMENT_KINDS.map(([k]) => k);
+  const rank = (e) => {
+    const i = order.indexOf(e.kind);
+    return i < 0 ? order.length : i;
+  };
+  return out.sort((a, b) =>
+    rank(a) - rank(b)
+    || a.char.localeCompare(b.char)
+    || a.frame.localeCompare(b.frame));
+}
+
+/** Every pose with a redraw flag ANYWHERE on it — on the drawing it uses now or
+ *  on one of its alternates. The superset flaggedPoses() narrows.
+ *
+ *  Only the difference between the two is interesting, and it is the whole
+ *  point of the list: a pose in here but not in there is one somebody rejected
+ *  and then fixed by choosing another drawing. Nothing on screen distinguishes
+ *  those, which is why the smoke asserts against this rather than against a
+ *  fixture it would have to stage. */
+function allFlagBearingPoses() {
+  const out = [];
+  for (const charKey of [...WB_FIGHTERS, ...ACTOR_KEYS, OTHER_KEY]) {
+    for (const frameKey of allFramesOf(charKey)) {
+      const own = replacementKind(peekMeta(charKey, frameKey));
+      const any = poseVariants(charKey, frameKey)
+        .some((o) => o.needsReplacement && !VARIANT_ONLY_KINDS.has(o.needsReplacement));
+      if ((own && !VARIANT_ONLY_KINDS.has(own)) || any) out.push({ char: charKey, frame: frameKey });
+    }
+  }
+  return out;
 }
 
 /** What was overwritten, in a sentence. Reads off the marker rather than
@@ -765,6 +850,18 @@ function rawMeta(charKey, frameKey) {
     spriteManifest.otherSprites[frameKey] ||= {};
     return spriteManifest.otherSprites[frameKey];
   }
+  return spriteManifest?.characters?.[charKey]?.[frameKey] || null;
+}
+
+/** The same object, but WITHOUT bringing it into being.
+ *
+ *  `rawMeta` creates a shared sprite's entry on demand, which is right when
+ *  something is about to be written to it and wrong when the whole roster is
+ *  being read. flaggedPoses() walks every sprite there is; doing that through
+ *  rawMeta would seed an empty object for each one and quietly undo the
+ *  "an untouched sprite adds nothing to the file" promise above. */
+function peekMeta(charKey, frameKey) {
+  if (isOther(charKey)) return spriteManifest?.otherSprites?.[frameKey] || null;
   return spriteManifest?.characters?.[charKey]?.[frameKey] || null;
 }
 
@@ -3607,6 +3704,10 @@ function refreshRecentOption() {
   if (!opt) return;
   const waiting = recentUpdates().filter((e) => !isUpdateReviewed(e.char, e.frame)).length;
   opt.textContent = waiting ? `${RECENT_LABEL} (${waiting})` : RECENT_LABEL;
+  const flagged = $("charSel")?.querySelector(`option[value="${FLAGGED_KEY}"]`);
+  if (!flagged) return;
+  const open = flaggedPoses().length;
+  flagged.textContent = open ? `${FLAGGED_LABEL} (${open})` : FLAGGED_LABEL;
 }
 
 /** Character-level, so it must update even when no pose is selected. */
@@ -3631,8 +3732,9 @@ function buildPoseList() {
   // has nobody dealt with"). The updated list is already a filter, of a
   // different kind, so the select is locked while it is open rather than
   // silently ignored.
-  $("viewSel").disabled = inRecent();
+  $("viewSel").disabled = inList();
   if (inRecent()) { buildRecentPoseList(list); return; }
+  if (inFlagged()) { buildFlaggedPoseList(list); return; }
 
   const frames = framesOf(state.char);
   const hidden = allFramesOf(state.char).length - frames.length;
@@ -3734,6 +3836,34 @@ function buildRecentPoseList(list) {
       + "art — a new pose that has never been placed, or new art written over a "
       + "pose that already had work on it — and leave as each one is tuned or "
       + "marked reviewed.";
+    list.appendChild(empty);
+    return;
+  }
+  for (const entry of entries) {
+    list.appendChild(buildPoseEntry(entry.char, entry.frame, { owner: true }));
+  }
+}
+
+/** The cross-character list of poses flagged for a redraw. */
+function buildFlaggedPoseList(list) {
+  const entries = flaggedPoses();
+  const byKind = new Map();
+  for (const e of entries) byKind.set(e.kind, (byKind.get(e.kind) || 0) + 1);
+  // The kind's own label carries its explanation after a dash — right on the
+  // flag's menu, far too long for a tally of seven. The word before the dash is
+  // the name of the kind.
+  const kindWord = (k) => kindLabel(k).split("—")[0].trim().toLowerCase();
+  $("poseCount").textContent = entries.length
+    ? `${entries.length} to redraw · `
+      + [...byKind].map(([k, n]) => `${n} ${kindWord(k)}`).join(" · ")
+    : "none";
+  if (!entries.length) {
+    const empty = document.createElement("p");
+    empty.className = "note";
+    empty.textContent = "Nothing is flagged. Poses land here when the drawing is "
+      + "marked as needing to be drawn again, and leave when the flag is cleared "
+      + "or the pose is pointed at a drawing that works — choosing a good "
+      + "alternate is a fix, not a request, so it is not asked for again.";
     list.appendChild(empty);
     return;
   }
@@ -3849,6 +3979,7 @@ function poseColumns() {
  *  keys walk this, so they cannot disagree with what is on screen. */
 function poseEntries() {
   if (inRecent()) return recentUpdates().map((e) => ({ char: e.char, frame: e.frame }));
+  if (inFlagged()) return flaggedPoses().map((e) => ({ char: e.char, frame: e.frame }));
   return framesOf(state.char).map((frame) => ({ char: state.char, frame }));
 }
 
@@ -3929,14 +4060,25 @@ function setChar(charKey, wantFrame = null) {
  *  screen alone: there is nothing to select, and blanking the canvas to say so
  *  would be worse than the note in the list. */
 function setRecent(wantChar = null, wantFrame = null) {
-  state.group = RECENT_KEY;
+  openList(RECENT_KEY, recentUpdates(), wantChar, wantFrame);
+}
+
+/** Open the cross-character flagged list, on the same terms. */
+function setFlagged(wantChar = null, wantFrame = null) {
+  openList(FLAGGED_KEY, flaggedPoses(), wantChar, wantFrame);
+}
+
+/** Both lists open the same way, so they cannot drift apart: land on the pose
+ *  asked for if it is on the list, on the first entry otherwise, and leave the
+ *  pose on screen alone when the list is empty — blanking the canvas to say
+ *  "nothing here" would be worse than the note in the list itself. */
+function openList(key, entries, wantChar, wantFrame) {
+  state.group = key;
   defaultSelfIdleMode("alternate");
-  const entries = recentUpdates();
   const target = entries.find((e) => e.char === wantChar && e.frame === wantFrame) || entries[0];
   if (target) { openChar(target.char, target.frame); return; }
-  // Nothing on the list: the pose on screen stays put behind the note. At boot
-  // there is no pose yet to stay on, so the character asked for is opened —
-  // an empty list must not leave a blank canvas.
+  // At boot there is no pose yet to stay on, so the character asked for is
+  // opened — an empty list must not leave a blank canvas.
   if (state.frame) { syncCharSelect(); syncAll(); }
   else openChar(wantChar && allFramesOf(wantChar).length ? wantChar : "gojo", wantFrame);
 }
@@ -3977,7 +4119,7 @@ function rememberInUrl() {
   // `char` is always the real character, so a link opens on the right sprite
   // set whether or not the updated list is what it was reached through; `list`
   // says which of the two the dropdown was on.
-  const list = inRecent() ? "updated" : null;
+  const list = inRecent() ? "updated" : inFlagged() ? "flagged" : null;
   if (url.searchParams.get("char") === state.char
       && url.searchParams.get("frame") === state.frame
       && (url.searchParams.get("list") || null) === list) return;
@@ -4499,17 +4641,20 @@ async function boot() {
   rule.disabled = true;
   rule.textContent = "──────────";
   charSel.appendChild(rule);
-  for (const key of [...ACTOR_KEYS, OTHER_KEY, RECENT_KEY]) {
+  for (const key of [...ACTOR_KEYS, OTHER_KEY, RECENT_KEY, FLAGGED_KEY]) {
     const o = document.createElement("option");
     o.value = key;
     o.dataset.name = key === RECENT_KEY ? RECENT_LABEL
+      : key === FLAGGED_KEY ? FLAGGED_LABEL
       : isOther(key) ? OTHER_LABEL
       : `${actorOf(key).name} (not a fighter)`;
     o.textContent = o.dataset.name;
     charSel.appendChild(o);
   }
   charSel.onchange = () =>
-    (charSel.value === RECENT_KEY ? setRecent() : setChar(charSel.value));
+    (charSel.value === RECENT_KEY ? setRecent()
+      : charSel.value === FLAGGED_KEY ? setFlagged()
+      : setChar(charSel.value));
 
   $("updatedClear").onclick = () => toggleUpdateReviewed(state.char, state.frame);
 
@@ -4897,10 +5042,13 @@ async function boot() {
   // first, rather than fetching the default idle and then discarding it.
   const frame = params.get("frame");
   const wantedFrame = frame && allFramesOf(startChar).includes(frame) ? frame : null;
-  // `?list=updated` comes back to the cross-character updated list rather than
-  // to the character the pose happens to belong to — which list you were working
-  // through is as much a part of where you were as which pose is selected.
-  if (params.get("list") === "updated") setRecent(startChar, wantedFrame);
+  // `?list=updated` / `?list=flagged` come back to the cross-character list
+  // rather than to the character the pose happens to belong to — which list you
+  // were working through is as much a part of where you were as which pose is
+  // selected.
+  const startList = params.get("list");
+  if (startList === "updated") setRecent(startChar, wantedFrame);
+  else if (startList === "flagged") setFlagged(startChar, wantedFrame);
   else setChar(startChar, wantedFrame);
   if (wantedFrame) {
     const btn = $("poseList").querySelector("button.sel");
@@ -4913,6 +5061,16 @@ async function boot() {
   // it would delay the pose you actually came to look at.
   loadBenchmarkFrame();
   refreshHistoryButtons();
+
+  // A read-only window onto the two questions the flagged list turns on, for
+  // tools/smoke_workbench.mjs. The rule it checks — a pose reassigned to a
+  // drawing that works is not asked for again — is invisible on screen: both
+  // the listed and the unlisted pose look like an ordinary cell, and the only
+  // way to test it from the DOM would be to stage a fixture in the manifest.
+  // Same shape as `window.__render3d`, and nothing here mutates.
+  window.__spriteWorkbench = {
+    flaggedPoses, allFlagBearingPoses, needsReplacement,
+  };
 }
 
 boot();
