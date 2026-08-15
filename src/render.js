@@ -5,7 +5,9 @@ import { getStage } from "./stages.js";
 import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
-import { TRAIL_ALPHA, STRIKE_ARC } from "./config_tuning.js";
+import { bodyMetrics } from "./silhouette.js";
+import { comFrac } from "./body_points.js";
+import { TRAIL_ALPHA, STRIKE_ARC, COM_HOLD_MAX_FRAC } from "./config_tuning.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
 import { hitboxRect, hurtbox, summonBox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
@@ -586,6 +588,17 @@ function drawFighters(ctx, { bodies = true } = {}) {
         scaleY: m.scaleY,
         offsetX: m.offsetX,
         offsetY: m.offsetY,
+        // Airborne, the drawing hangs from its CENTRE OF MASS rather than
+        // standing on its foot line — there is nothing under the feet to stand
+        // on, and every airborne pose puts the foot line somewhere different,
+        // so a foot anchor turns the pose's own movement into the fighter
+        // jumping about. The height passed is the one the sim already believes
+        // the mass is at: the same `f.y - H * comFrac` combat.js centres an
+        // airborne hurtbox on, so the picture and the box agree.
+        holdComY: f.grounded || f.ledge ? null : -bodyMetrics(spriteKey).height * comFrac(spriteKey),
+        // …and no further than this, so a mis-baked frame anchor is a nudge
+        // rather than a fighter teleporting. See the note at holdComY.
+        holdComMax: bodyMetrics(spriteKey).height * COM_HOLD_MAX_FRAC,
         // A frame with a ledge-grip anchor is hung from that hand on the real
         // platform corner, instead of standing its feet in mid-air beside it.
         anchorTo: f.ledge

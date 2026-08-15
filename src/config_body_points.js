@@ -24,6 +24,17 @@
 //              has run. The two do not compete — one is per drawing, the other
 //              is per fighter.
 //
+//              IT IS ALSO THE HEIGHT AN AIRBORNE DRAWING HANGS FROM.
+//              src/render.js passes `holdComY` when a fighter is off the
+//              ground: the frame's own anchor is placed at this fraction of
+//              body height, instead of the drawing standing on a foot line
+//              that is somewhere different in every airborne pose. That makes
+//              the per-frame anchors load-bearing in a way they were not — a
+//              bad one used to tilt a tumble slightly and would now move the
+//              whole fighter — so the shift is capped (COM_HOLD_MAX_FRAC) and
+//              `node tools/audit_sprite_com.mjs` names the frames whose anchor
+//              disagrees with the value here.
+//
 //              IT IS NOT WHAT A 3D MODEL TURNS ABOUT any more. This is a
 //              fraction of the DRAWN SPRITE's height, placed by eye on the
 //              drawing, and a rig is a different body: Panda's drawing carries
