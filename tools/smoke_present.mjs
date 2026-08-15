@@ -116,6 +116,109 @@ check(Math.abs(r.upHeavyAnchor - r.upHeavyAnchorDeclared) <= 2 && Math.abs(r.lig
   "swinging at nobody sits exactly on the anchor",
   `light ${r.lightAnchor}°, upHeavy ${r.upHeavyAnchor}° against ${r.upHeavyAnchorDeclared}°`);
 
+// 5. THE ANGLES REACH THE FLAT PATH, which is the one the game renders in by
+//    default and the one the verification bench draws.
+//
+//    Everything above tests what the angle SHOULD be and what the scene path
+//    does with it. For a while that was the whole test, and the flat path was
+//    quietly ignoring all of it: pose.facingYaw carried an allowlist of
+//    idle/walk/run/dash and returned the delivery's own angle for every other
+//    state, so crouch, shield, hurt, win and every attack stood at the stand's
+//    ~60° while the table asked for 80–88. A check that only exercises the
+//    path which happens to work is not a check.
+const flat = await page.evaluate(async () => {
+  const pose = await import("/render3d/src/pose.js");
+  const loader = await import("/render3d/src/loader.js");
+  const ik = await import("/render3d/src/ik.js");
+  const { STATES, clipNameFor, aimSolve } = await import("/render3d/src/states.js");
+  const { artReach } = await import("/src/silhouette.js");
+  const { headHeightTarget } = await import("/src/heights.js");
+  const { CHARACTER_KEYS } = await import("/src/characters.js");
+  const deg = (r) => (r * 180) / Math.PI;
+
+  // (a) Which states get re-aimed at all, posed through the flat path's layers.
+  const rig = loader.getRig("nobara");
+  const applied = {};
+  for (const st of ["idle", "walk", "run", "crouch", "shield", "hurt", "win", "light", "jump"]) {
+    const resolved = loader.resolveClip("nobara", st);
+    if (!resolved) continue;
+    const beat = STATES[clipNameFor(st)]?.beat;
+    const t = pose.sampleTime(st, beat > 0 ? beat : 0, beat);
+    pose.poseRig(rig, st, t, resolved.clip,
+      { charKey: "nobara", beat, presentMirror: true, facing: 1, facingK: 1, turnYawRad: 0 });
+    applied[st] = deg(rig._presentDelta || 0);
+  }
+
+  // (b) The presentation must not drag the strike with it. The reach target is
+  //     built root-local, so turning the body would swing the punch off its
+  //     aim — applyMachineReach counter-rotates by the same delta. Measured as
+  //     "how far short of its target does the hand end up", which must be the
+  //     same number whether the body was turned or not.
+  const hand = (r, animKey) => {
+    const names = ik.reachChain(animKey);
+    const b = names && r.root.getObjectByName(names[names.length - 1]);
+    if (!b) return null;
+    r.root.updateMatrixWorld(true);
+    return b.getWorldPosition(new (b.position.constructor)());
+  };
+  let worstDrift = 0, poses = 0, turned = 0;
+  for (const charKey of CHARACTER_KEYS) {
+    const rg = loader.getRig(charKey);
+    if (!rg || rg.isMannequin || !rg.height) continue;
+    for (const st of ["light", "sideHeavy", "upHeavy", "downHeavy"]) {
+      const resolved = loader.resolveClip(charKey, st);
+      if (!resolved) continue;
+      const beat = STATES[clipNameFor(st)]?.beat;
+      const targetPx = headHeightTarget(charKey);
+      const solved = aimSolve(0, 0, -targetPx * 0.55, null, 1, st, artReach(charKey));
+      if (!solved) continue;
+      const mPerPx = rg.height / targetPx;
+      const V = rg.root.position.constructor;
+      const layers = { charKey, beat, presentMirror: true, facing: 1, facingK: 1,
+                       turnYawRad: 0, reach: { dx: solved.dx, dy: solved.dy, targetPx } };
+      const t = pose.sampleTime(st, beat, beat);
+      const missBy = () => {
+        const v = new V(0, solved.dy * mPerPx, solved.dx * mPerPx);
+        if (rg._presentDelta) v.applyAxisAngle(new V(0, 1, 0), -rg._presentDelta);
+        rg.root.updateMatrixWorld(true);
+        const target = rg.root.localToWorld(v);
+        const h = hand(rg, st);
+        return h ? h.distanceTo(target) : null;
+      };
+      pose.poseRig(rg, st, t, resolved.clip, layers);
+      const on = missBy();
+      if (Math.abs(deg(rg._presentDelta || 0)) > 5) turned++;
+      pose.poseRig(rg, st, t, resolved.clip, { ...layers, presentMirror: false });
+      const off = missBy();
+      if (on === null || off === null) continue;
+      poses++;
+      worstDrift = Math.max(worstDrift, Math.abs(on - off));
+    }
+  }
+  return { applied, worstDrift, poses, turned };
+});
+
+const idleFlat = Math.abs(flat.applied.idle ?? 99);
+const doing = ["crouch", "shield", "hurt", "win", "light"];
+const unturned = doing.filter((s) => Math.abs(flat.applied[s] ?? 0) < 5);
+check(idleFlat < 0.01,
+  "the flat path leaves the stand at its delivery's own angle",
+  `idle re-aimed by ${idleFlat.toFixed(1)}°`);
+check(unturned.length === 0,
+  "...and turns out everything the fighter DOES, not just travel",
+  unturned.length ? `still at the stand's angle: ${unturned.join(", ")}`
+    : doing.map((s) => `${s} ${flat.applied[s].toFixed(0)}°`).join(", "));
+
+// Only the rigs this page has actually loaded — the bench loads them on
+// demand, so this is a handful rather than the roster. It is enough: the
+// counter-rotation is exact arithmetic (R(base+d)·R(-d) = R(base)), so one
+// turned pose that does not drift is the same evidence as a hundred. Stated
+// rather than asserted at a number, so a page that loads more says so.
+check(flat.poses > 0 && flat.turned === flat.poses && flat.worstDrift < 0.005,
+  "presenting the body does not drag the strike off its aim",
+  `${flat.poses} attack pose(s) loaded, ${flat.turned} of them turned; `
+    + `worst change in hand-to-target ${(flat.worstDrift * 100).toFixed(2)}cm`);
+
 await browser.close();
 console.log(failed ? `\n${failed} check(s) failed` : "\nall presentation checks passed");
 process.exit(failed ? 1 : 0);

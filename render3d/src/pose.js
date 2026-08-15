@@ -153,9 +153,11 @@ export function flinchSide(animKey, x, aim, facing) {
 // a run out of it. Pinning him to profile turns both directions to the same
 // full-side stride.
 
-/** The states whose facing is mirrored rather than flat-turned — see
- *  facingYaw for why this is not simply "all of them". */
-const MIRROR_FACING_STATES = new Set(["idle", "walk", "run", "dash"]);
+// There is no longer a set of states this applies to. It used to be
+// idle/walk/run/dash, on the grounds that a reach solve and a body turn cannot
+// share one yaw — see facingYaw and applyMachineReach, where that is now
+// answered by counter-rotating the reach target instead of by excluding the
+// states that have one.
 
 /** How far off the lens each STATE is shown at, in degrees: 0 is chest-on,
  *  90 is a full profile facing the way the fighter faces.
@@ -173,9 +175,21 @@ const MIRROR_FACING_STATES = new Set(["idle", "walk", "run", "dash"]);
  *  states nobody has an opinion about.
  */
 export const PRESENT_STATE_DEG = {
-  idle: null, teeter: null, crouch: null, shield: null, hurt: null,
-  ledge: null, dodge: null, dodge_air: null,
-  // TRAVEL, turned out toward the side: this is the change you see.
+  // A STAND IS A PORTRAIT and keeps whatever three-quarter its delivery was
+  // drawn at — the costume and the face are the point. So is a hang, which is
+  // a held pose the camera dwells on, and a teeter, which is a stand that has
+  // run out of floor.
+  idle: null, teeter: null, ledge: null, dodge: null, dodge_air: null,
+  // EVERYTHING THE FIGHTER DOES turns out toward the side. A crouch seen at
+  // three-quarter is a fighter squatting toward the viewer; a block is a
+  // shoulder presented to the blow, and at three-quarter it is presented to
+  // the camera instead. These sat at `null` — the stand's angle — which read
+  // as the fighter never committing to the plane they are fighting in.
+  crouch: 80,
+  shield: 80,
+  hurt: 80,
+  win: 80,
+  // TRAVEL.
   walk: 76,
   run: 82,
   dash: 84,
@@ -317,15 +331,30 @@ function facingYaw(rig, animKey, sampled, layers) {
   // screen-right (tools/smoke_render3d.mjs asserts exactly this).
   //
   // Travelling states run no reach solve, so there the body IS the whole
-  // picture and the mirror is free. Attacks keep the flat turnaround they were
-  // tuned against. Fixing this properly means measuring the offsets so the two
-  // axes agree — `tools/check_model_facing.mjs --solve` is the instrument —
-  // and is a roster pass, not a rendering change.
-  if (!MIRROR_FACING_STATES.has(clipNameFor(animKey))) {
+  // picture and the mirror is free.
+  //
+  // IT USED TO STOP THERE, with an allowlist of idle/walk/run/dash, and that
+  // was the whole of the presentation in the flat path. Everything else —
+  // crouch, shield, hurt, win, every attack, jump and fall — returned here and
+  // kept the angle its delivery happened to stand at, whatever
+  // PRESENT_STATE_DEG said about it. The angles were being written and not
+  // read: an attack asks for 88° at contact and was getting the stand's ~60°,
+  // which is a punch going past the camera rather than across it. It was
+  // invisible because the scene path (backend.js, `camera=3d`) builds its own
+  // turn and does honour them, and because the check that guards this only
+  // ever exercised that path.
+  //
+  // What the allowlist was really protecting is the RE-AIM, not the states: a
+  // reach solve builds its target in root-local space (applyMachineReach), so
+  // turning the root turns the strike with it and a punch stops going where it
+  // was aimed. That is answered where it happens now — the reach offset is
+  // counter-rotated by exactly this delta, so the body presents freely and the
+  // hand still lands where the solver put it.
+  const alpha = presentRad(rig);
+  if (alpha === null) {
+    rig._presentDelta = 0;
     return (layers.turnYawRad || 0) + base;
   }
-  const alpha = presentRad(rig);
-  if (alpha === null) return (layers.turnYawRad || 0) + base;
   // WHAT ANGLE TO SHOW THIS STATE AT, in three tiers, most specific first:
   // the character override (a delivery correction, so it wins), then the
   // state's own angle, then the angle this delivery happens to stand at.
@@ -341,7 +370,13 @@ function facingYaw(rig, animKey, sampled, layers) {
   // few frames of the body re-aiming through the lens instead of a snap.
   // Callers without the sweep fall back to the sign, the old behaviour.
   const k = layers.facingK ?? (left ? -1 : 1);
-  return base + (want * k - alpha);
+  // Stashed for applyMachineReach: how far this pose turned the body AWAY from
+  // the angle its delivery stands at. A reach target is built in root-local
+  // space, so it has to be turned back by the same amount to stay pointing
+  // where the aim solver aimed it.
+  const delta = want * k - alpha;
+  rig._presentDelta = delta;
+  return base + delta;
 }
 
 /** How far a relaxed arm hangs from straight down, in degrees, for a fighter
@@ -356,6 +391,9 @@ export const IDLE_ARM_DEG = 9;
 let THREE = null;
 let _q1, _q2, _q3, _v1, _v2, _v3, _v4, _v5, _e1;
 let _ik = null, _reachTarget = null, _lateral = null;
+/** The world up axis, for the one rotation that is always about it: undoing
+ *  the presentation turn on a reach target (applyMachineReach). */
+let _yAxis = null;
 
 export function initPose(three) {
   THREE = three;
@@ -363,6 +401,7 @@ export function initPose(three) {
   initLayerAxes(three);
   _reachTarget = new three.Vector3();
   _lateral = new three.Vector3();
+  _yAxis = new three.Vector3(0, 1, 0);
   _e1 = new three.Euler();
   _q1 = new THREE.Quaternion();
   _q2 = new THREE.Quaternion();
@@ -1172,6 +1211,17 @@ function applyMachineReach(rig, animKey, sampled, layers) {
   if (targetPx <= 0 || !rig.height) return;
   const mPerPx = rig.height / targetPx;
   _reachTarget.set(0, (reach.dy || 0) * mPerPx, (reach.dx || 0) * mPerPx);
+  // THE STRIKE IS AIMED IN THE WORLD; the body is only PRESENTED.
+  //
+  // `dx`/`dy` come from the aim solver as "out along the facing at this
+  // fighter's reach, at the elevation this move is allowed" — a direction in
+  // the scene, not a direction in the model. Reading them as root-local means
+  // every degree the presentation turns the body also swings the punch, which
+  // is why the presentation used to be switched off for every state that
+  // strikes. Turning the offset back by the same delta first makes the two
+  // independent: the body can face wherever it reads best and the hand still
+  // arrives where it was sent.
+  if (rig._presentDelta) _reachTarget.applyAxisAngle(_yAxis, -rig._presentDelta);
   rig.root.localToWorld(_reachTarget);
   applyReach(THREE, rig.root, animKey, clipTime(animKey, sampled), _reachTarget, _ik, layers.beat);
 }
