@@ -808,6 +808,52 @@ function applyModelFixes(rig, layers) {
   if (fixKey) applyRigFixes(THREE, rig.root, fixKey);
 }
 
+/**
+ * THE BAKE, DEFINED ONCE, IN THE ENGINE.
+ *
+ * Put a rig into the pose its .glb should have been delivered in: the bind,
+ * plus the whole correction layer and nothing else — no clip, no idle stand,
+ * no arms, no live layer. Read the bones back and you have exactly what has to
+ * go into the file for `setModelFixesEnabled(false)` to change nothing.
+ *
+ * It lives here rather than in the baking tool on purpose. A tool that
+ * reimplemented these corrections in Blender would be a second opinion about
+ * what the fix is, and the first time the two drifted the bake would quietly
+ * stop matching the engine — which is the one thing a bake must not do. The
+ * tool asks the engine what the answer is and writes it down.
+ *
+ * Returns the corrected LOCAL transform of every bone, which is what a rest
+ * pose is made of.
+ */
+export function bakedBind(rig, charKey) {
+  const layers = { charKey };
+  rig.root.rotation.y = 0;
+  rig.root.updateMatrixWorld(true);
+  applyBindPose(THREE, rig.root);
+  applySkeletonFixes(rig, layers);
+  applyModelFixes(rig, layers);
+  rig.root.updateMatrixWorld(true);
+  // MATRICES IN THE RIG'S OWN SPACE, not local transforms.
+  //
+  // The obvious handover — each bone's local position and rotation — is wrong,
+  // and wrong in a way that looks right until you see it: glTF stores a node's
+  // transform relative to its parent node, while Blender stores a POSE CHANNEL
+  // relative to a rest bone that has its own axis convention (Y runs along the
+  // bone) and a roll the importer chose. The two are different numbers for the
+  // same thing. Handed the glTF ones, Blender built a rig with the head inside
+  // the chest.
+  //
+  // A bone's matrix in the ARMATURE's space is the same fact in both, up to
+  // the Y-up/Z-up swap, and Blender's `pose_bone.matrix` speaks exactly that.
+  const inv = new THREE.Matrix4().copy(rig.root.matrixWorld).invert();
+  const out = {};
+  rig.root.traverse((o) => {
+    if (!o.isBone) return;
+    out[o.name] = new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld).toArray();
+  });
+  return out;
+}
+
 export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   // A RIG CHECK IS NOT A STATE. It takes the turnaround and the correction
   // layer and stops there — see poseRigCheck.
