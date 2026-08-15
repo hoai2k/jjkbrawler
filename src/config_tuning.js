@@ -132,6 +132,23 @@ export const HEAD_ABOVE_BODY = 1.014;
 // are measured offline by tools/bake_anchors.py.
 export const COM_BODY_FRAC = 0.55;
 
+/** How far an AIRBORNE drawing may be shifted to hang from its centre of mass,
+ *  as a fraction of body height (src/render.js holdComMax).
+ *
+ *  The shift itself is the point — a body in the air should hang from its mass,
+ *  not stand on a foot line that is somewhere different in every pose — but the
+ *  per-frame `anchors.com` it is measured against is a BAKE, and
+ *  tools/audit_sprite_com.mjs finds about 11% of upright frames more than 0.09
+ *  of body height away from where a person placed that fighter's centre. Some
+ *  of those are the pose (an up-attack really does raise the mass); some are
+ *  the measurement. Capping the correction means a good anchor gets the full
+ *  hold and a wild one gets a nudge — the fault stays in the audit instead of
+ *  arriving on screen as a fighter jumping sideways.
+ *
+ *  0.10 covers the honest spread of upright poses with room to spare; the
+ *  frames it clips are the ones the audit is already asking about. */
+export const COM_HOLD_MAX_FRAC = 0.10;
+
 // Where an unplaced `ledge` grip starts, as a fraction down the artwork. On a
 // hang pose the topmost thing in the frame is the raised hand.
 export const LEDGE_GRIP_Y_FRAC = 0.04;

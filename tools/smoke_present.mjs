@@ -38,7 +38,7 @@ await page.waitForTimeout(4000);
 const r = await page.evaluate(async () => {
   const pose = await import("/render3d/src/pose.js");
   const scene = await import("/render3d/src/scene.js");
-  const { STATES, aimSolve, AIM_ELEVATIONS, AIM_BAND_DEG } = await import("/render3d/src/states.js");
+  const { STATES, aimSolve, AIM_ELEVATIONS, AIM_BAND_DEG, AIM_STEP_DEG } = await import("/render3d/src/states.js");
   const deg = (rad) => (rad * 180) / Math.PI;
   // Missing entirely on a build without any of this, and a guard should report
   // that as failed checks rather than crash on the first call.
@@ -75,6 +75,8 @@ const r = await page.evaluate(async () => {
     lightAnchor: anchorOnly("light"),
     upHeavyAnchor: anchorOnly("upHeavy"),
     upHeavyAnchorDeclared: AIM_ELEVATIONS.upHeavy[0],
+    lightAnchors: AIM_ELEVATIONS.light,
+    step: AIM_STEP_DEG ?? 0,
   };
 });
 
@@ -106,9 +108,25 @@ check(Math.abs(r.yawRunR + r.yawRunL) < 0.01 && Math.abs(r.yawHitR + r.yawHitL) 
 check(r.lightUp > 10 && r.lightDown < -10,
   "a side attack aims at an opponent above or below, not dead level",
   `up ${r.lightUp}°, level ${r.lightLevel}°, down ${r.lightDown}°`);
-check(Math.abs(r.lightUp) <= r.band && Math.abs(r.lightDown) <= r.band,
+// Measured off the NEAREST ANCHOR, not off level. A side attack now has three
+// anchors — level and the two diagonals — because a stick in a corner throws it
+// angled 45° with its hitbox swung to match, so "inside its band" means inside
+// the band of whichever anchor it snapped to. Checking against zero was right
+// when level was the only one, and would now fail an attack that is aimed
+// exactly where its own hitbox went.
+const offAnchor = (d) => Math.min(...r.lightAnchors.map((a) => Math.abs(d - a)));
+// Plus half a quantisation step: the solved pitch is rounded to AIM_STEP_DEG
+// before it leaves aimSolve (it joins the pose-cache key), so a value sitting
+// exactly on the band edge can land one step outside it. That is the rounding,
+// not the band.
+const slop = r.band + r.step / 2;
+check(offAnchor(r.lightUp) <= slop && offAnchor(r.lightDown) <= slop,
   "...but never further than its band, so it stays inside its own hitbox",
-  `band ±${r.band}°, worst ${Math.max(Math.abs(r.lightUp), Math.abs(r.lightDown))}°`);
+  `band ±${r.band}° (+${r.step / 2}° rounding) off the nearest of ${r.lightAnchors.join("/")}°, `
+    + `worst ${Math.max(offAnchor(r.lightUp), offAnchor(r.lightDown))}°`);
+check(r.band * 2 < 45,
+  "...and the band cannot reach a neighbouring anchor, so level stays level",
+  `band ±${r.band}° against 45° between anchors`);
 check(r.upHeavyFar > r.upHeavyNear + 10,
   "an up attack reaches higher for a target further overhead",
   `${r.upHeavyNear}° just above vs ${r.upHeavyFar}° well above`);

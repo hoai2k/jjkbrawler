@@ -175,6 +175,9 @@ export function makeScratch(THREE) {
     p1: new THREE.Vector3(), p2: new THREE.Vector3(), p3: new THREE.Vector3(),
     p4: new THREE.Vector3(), p5: new THREE.Vector3(), p6: new THREE.Vector3(),
     q1: new THREE.Quaternion(), q2: new THREE.Quaternion(), q3: new THREE.Quaternion(),
+    // The weapon aim blends the grip hand, and cannot borrow q1-q3: aimBoneAt
+    // uses all three while it works.
+    q4: new THREE.Quaternion(), q5: new THREE.Quaternion(),
     // Dedicated: the solver reuses p1-p6 internally, so the effective target
     // needs a slot it cannot clobber mid-solve.
     eff: new THREE.Vector3(),
@@ -200,29 +203,39 @@ export function applyReach(THREE, root3d, state, clipT, targetWorld, tmp, beat) 
   const bones = chain.map((n) => root3d.getObjectByName(n));
   if (bones.some((b) => !b)) return false;
 
-  // Re-aim the strike; do not re-LENGTHEN it.
+  // REACH FOR IT. The limb goes as far toward the aim point as it can.
   //
-  // At fighting range the opponent is metres away and a limb reaches half a
-  // metre, so solving straight at them would straighten every limb to full
-  // stretch on every blow — a jab, a hook and a lunge all collapsing into the
-  // same rigid poke. What the clip already says is how far this attack
-  // extends; the target only says which way. So the effective target sits at
-  // the clip's OWN reach distance along the direction to the aim point, and
-  // pulls in closer when the opponent is nearer than the strike would extend
-  // (nobody punches through a body).
+  // It used to stop at the CLIP's own reach and only re-aim the direction, on
+  // the grounds that solving straight at a target metres away would straighten
+  // every limb on every blow and collapse a jab, a hook and a lunge into the
+  // same rigid poke. That is a real risk and it is not what was happening: an
+  // aim target sits at the fighter's own measured reach, which is beyond the
+  // clip's extension in 126 of 150 melee poses across the roster, so the
+  // clamp was binding almost always. Hanami's fist stopped 120 cm from what he
+  // was punching at, Yuji's 38 cm, and every up-tilt on the roster held its
+  // elbow at 84% with the target still 44 px further out. Pointing the right
+  // way while visibly not going there reads worse than a straight arm does.
   //
-  // Because that distance is always inside the limb's range, the solve is
-  // exact rather than clamped: the hand lands on the point, every time.
+  // So the ceiling is the LIMB's span rather than the clip's, and the floor is
+  // unchanged: still never past the aim point itself, because nobody punches
+  // through a body. Close-in strikes keep the clip's shape, because there the
+  // aim point is nearer than either bound; only the ones that were giving up
+  // early change. Where the target is beyond even a full stretch, the limb
+  // ends up straight and pointed at it — which is a fighter trying, and the
+  // attack arc is drawn at the true distance regardless (moves.js).
   bones[0].updateWorldMatrix(true, true);
   const rootP = tmp.p1.setFromMatrixPosition(bones[0].matrixWorld);
+  const midP = tmp.p3.setFromMatrixPosition(bones[1].matrixWorld);
   const endP = tmp.p2.setFromMatrixPosition(bones[2].matrixWorld);
-  const clipReach = endP.distanceTo(rootP);
+  // A hair inside full lock, so the two-bone solve stays exact rather than
+  // hitting its own clamp, and the elbow keeps a degree of bend to read by.
+  const limbSpan = (rootP.distanceTo(midP) + midP.distanceTo(endP)) * 0.995;
   const toAim = tmp.v3.subVectors(targetWorld, rootP);
   const aimDist = toAim.length();
-  if (aimDist < 1e-6 || clipReach < 1e-6) return false;
+  if (aimDist < 1e-6 || limbSpan < 1e-6) return false;
   const effective = tmp.eff
     .copy(rootP)
-    .addScaledVector(toAim.multiplyScalar(1 / aimDist), Math.min(aimDist, clipReach));
+    .addScaledVector(toAim.multiplyScalar(1 / aimDist), Math.min(aimDist, limbSpan));
 
   // Blend by remembering the clip's pose and easing toward the solved one:
   // solving at full strength from the first frame would erase the wind-up.
@@ -488,7 +501,7 @@ export function applyCarry(THREE, root3d, charKey, state, tmp) {
  * states where a two-handed grip reads. Call AFTER applyAim/applyReach — the
  * shaft rides the striking hand, so this must see its final position.
  */
-export function applyTwoHandGrip(THREE, root3d, charKey, state, clipT, tmp, beat) {
+export function applyTwoHandGrip(THREE, root3d, charKey, state, clipT, tmp, beat, aimTarget = null) {
   const grip = twoHandGrip(charKey);
   if (!grip || !TWO_HAND_STATES.has(clipNameFor(state))) return false;
   const bone = root3d.getObjectByName(grip.bone);
@@ -508,8 +521,20 @@ export function applyTwoHandGrip(THREE, root3d, charKey, state, clipT, tmp, beat
   }
   if (!gripHand) return false;
   const off = gripHand === "RightHand" ? "Left" : "Right";
-  const chain = [`${off}Arm`, `${off}ForeArm`, `${off}Hand`]
-    .map((n) => root3d.getObjectByName(n));
+  const chainNames = [`${off}Arm`, `${off}ForeArm`, `${off}Hand`];
+
+  // THE STRIKE OUTRANKS THE GRIP when they want the same arm.
+  //
+  // Gakuganji carries his guitar in the left hand and punches with the right —
+  // which is also the arm this solve would put on the shaft. Running anyway
+  // meant the grip landed after applyReach and quietly undid it: his fist was
+  // dragged back to the guitar, 36–64 px short of what he was aiming at and
+  // pointing up to 12° off, on every one of his four arm attacks. A fighter
+  // who is punching is not steadying their instrument with the same hand.
+  const striking = REACH[clipNameFor(state)];
+  if (striking && striking[striking.length - 1] === chainNames[2]) return false;
+
+  const chain = chainNames.map((n) => root3d.getObjectByName(n));
   if (chain.some((b) => !b)) return false;
 
   const mainChain = [`${gripHand === "RightHand" ? "Right" : "Left"}Arm`,
@@ -580,6 +605,42 @@ export function applyTwoHandGrip(THREE, root3d, charKey, state, clipT, tmp, beat
         mainChain[i].quaternion.copy(tmp.saved2[i]).slerp(solved, weight);
       }
       mainChain[0].updateMatrixWorld(true);
+    }
+  }
+
+  // POINT THE WEAPON AT WHAT IT IS HITTING.
+  //
+  // A fist is aimed by applyReach because the fist IS the strike. A spear is
+  // not: the hand holds it somewhere near the middle and the TIP is what
+  // arrives, so aiming the knuckles leaves the blade pointing wherever the
+  // clip happened to leave it. Measured before this existed, Maki's shaft sat
+  // 77–118° off the target on every one of her six melee states and
+  // Gakuganji's 35–121° — a spear thrust delivered sideways.
+  //
+  // Turning the GRIP HAND is the whole solve: the prop hangs off that bone, so
+  // rotating it swings the shaft and nothing else. It happens here, after the
+  // pull-in has decided where the main hand sits and before the off hand is
+  // landed, because the grasp point has to be computed against the shaft's
+  // final direction — which is exactly the seam the note below describes.
+  if (aimTarget) {
+    const mainHand = mainChain[2];
+    if (mainHand) {
+      bone.updateWorldMatrix(true, false);
+      mainHand.updateWorldMatrix(true, false);
+      const handPos = tmp.p1.setFromMatrixPosition(mainHand.matrixWorld);
+      const tipPos = tmp.p2.copy(shaft.dir).multiplyScalar(shaft.extent)
+        .applyMatrix4(bone.matrixWorld);
+      // Blended on the same curve as the strike, so the weapon swings onto
+      // line through the wind-up instead of snapping there.
+      if (weight >= 1) {
+        aimBoneAt(THREE, mainHand, handPos, tipPos, aimTarget, tmp);
+      } else {
+        const before = tmp.q4.copy(mainHand.quaternion);
+        aimBoneAt(THREE, mainHand, handPos, tipPos, aimTarget, tmp);
+        const solved = tmp.q5.copy(mainHand.quaternion);
+        mainHand.quaternion.copy(before).slerp(solved, weight);
+        mainHand.updateMatrixWorld(true);
+      }
     }
   }
 

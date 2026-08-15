@@ -56,8 +56,11 @@ const SETS = {
   },
   "center-of-mass": {
     label: "Centre of mass",
-    blurb: "Where each fighter's weight sits. One global 0.55 drives the tumble "
-      + "pivot, the 3D rotation and the aim chest line — it was chosen, never measured.",
+    blurb: "Where each fighter's weight sits. It is the tumble pivot, the airborne "
+      + "hurtbox centre, the aim chest line — and now the point an AIRBORNE drawing "
+      + "hangs from, so being wrong moves the whole fighter rather than tilting them. "
+      + "Per-frame anchors are dragged in the sprite workbench; "
+      + "`node tools/audit_sprite_com.mjs` lists the frames worth a look.",
     load: () => import(withKey("./verify_body_points.js")).then((m) => m.comProvider()),
   },
   "muzzle-points": {

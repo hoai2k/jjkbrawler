@@ -33,7 +33,7 @@
 // 153 px Momo throws an up smash whose box floats 73 px above her own head.
 
 import { STRIKE_ARC, MELEE_GRACE, REACH_PRICE, SWEETSPOT, HEIGHT_BASE_PX } from "./config_tuning.js";
-import { SAKURAI } from "./constants.js";
+import { SAKURAI, SMASH_TILT_ANGLE } from "./constants.js";
 import { artReach, bodyWidth, bodyMetrics, rosterReach } from "./silhouette.js";
 import { clamp } from "./utils.js";
 
@@ -444,4 +444,29 @@ export function strikeArcs(m, bodyH) {
 function vertical(pivotY, radius, aim, half) {
   if (radius < STRIKE_ARC.minRadius) return [];
   return [{ pivotY, radius, aim, span: arcSpan(half, radius) }];
+}
+
+/**
+ * Swing a melee box about the fighter, by `tilt` radians (positive is DOWN, as
+ * y is). Mutates and returns the move.
+ *
+ * The box keeps its distance and travels along the new line rather than being
+ * nudged off the old one, so an angled attack reaches as far as a level one —
+ * and because the strike arc is measured off the hitbox (strikeArcs above), the
+ * crescent follows for free.
+ *
+ * Extracted from the angled smash, which had this inline and was the only
+ * thing that could aim. It is now the one definition of what "aim an attack"
+ * means to the hitbox, so a diagonal tilt and a charged smash's analogue tilt
+ * cannot drift apart — and so the POSE can be aimed at the same angle knowing
+ * the box went with it (fighter.js aimPointFor).
+ */
+export function swingMove(move, tilt) {
+  if (!tilt) return move;
+  const radius = move.ox + move.w * 0.5;
+  move.oy += Math.sin(tilt) * radius;
+  move.ox *= Math.cos(tilt);
+  move.w *= Math.cos(tilt);
+  move.angle = clamp(move.angle - tilt * SMASH_TILT_ANGLE, -1.2, 1.4);
+  return move;
 }
