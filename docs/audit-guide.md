@@ -388,17 +388,32 @@ claim about, takes approve / edit / flag / skip, keeps your place, and exports
 every decision as JSON — including, where the task set knows the shape of the
 file its answers belong in, a paste-ready block.
 
-Seven task sets ship, picked from the dropdown in the header:
+Eight task sets ship, picked from the dropdown in the header:
 
 | set | asks | answers land in |
 |---|---|---|
 | **Strike points** | where each attack lands — fist, foot or blade | `src/config_strike_points.js` |
 | **Centre of mass** | where this body balances (0.55 is assumed for everyone) | `src/config_body_points.js` |
 | **Muzzle points** | where a shot leaves the caster | `src/config_body_points.js` |
-| **Ledge grip** | where the hand meets the lip | `src/config_body_points.js` |
 | **Hurtbox fit** | does the box cover the body, in each state | `src/config_body_points.js` |
 | **Model facing** | is the 3D model facing the way its drawing is | `render3d/assets/manifest.json` |
+| **Guard hands** | does the guard hold the hands in front of the chest and head, or through them | `render3d/assets/manifest.json` (`guardOpenDeg`) |
+| **Crouch orientation** | which way the crouched body points | `render3d/src/crouch_orient.js` |
 | **Pose reads** | does the model's pose read as the drawing | a work list |
+
+**Crouch orientation is one item per GROUP, not per fighter**, and it is the
+shape to copy when a fault is shared rather than per body. The crouch is tilted
+by a solve (`pose.js levelFeet`, which pitches the body until the trailing foot
+comes down), so the attitude it lands on is wrong the same way for everybody —
+one decision, not twenty-seven chances to answer it differently. The item then
+proves it is really one group: a **prev / next fighter** stepper inside the
+editor walks every member with the proposed orientation live on each, so
+approving is a claim about the whole list rather than about whoever was on
+screen. The groups are the real forks in the crouch path — Yuji has the only
+*matched* crouch (his sheet draws a sprinter's three-point set), Sukuna the only
+per-character presentation override (`PRESENT_DEG`) — and
+`tools/check_battle_poses.mjs` fails the build if a third fighter grows either
+without being given a group.
 
 **One download carries every set.** Decisions are kept per set and exported
 together as a single `verification-decisions.json`, so a sitting that touched

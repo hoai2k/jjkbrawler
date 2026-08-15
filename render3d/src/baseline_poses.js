@@ -55,15 +55,19 @@ export const INTENT_POSES = {
     LeftArm: [-40, -12, -70], LeftForeArm: [-110, 0, -60],
     RightArm: [-38, 10, 70], RightForeArm: [-108, 0, 60],
   }),
-  // The shell: forearms up in front of the face, elbows pinched to the ribs,
-  // body folded down behind them.
+  // The shell: forearms up IN FRONT OF the face, elbows down covering the
+  // ribs, body folded down behind them. The elbow carries 16° more opening
+  // than the tight shell it was authored as, for the reason the matched set
+  // gives at length: the same two angles that make a shell on a 1.75m human
+  // put the fists inside the chin on half this roster. `guardOpenDeg` in the
+  // manifest is the per-fighter remainder (guard_open.js).
   guard: p({
     Spine: [14, -14, 0], Spine1: [6, -8, 0], Head: [4, 10, 0],
     LeftShoulder: [0, 0, -12], RightShoulder: [0, 0, 12],
     LeftUpLeg: [-20, 0, 2], LeftLeg: [30, 0, 0], LeftFoot: [-6, 0, 0],
     RightUpLeg: [10, 0, -2], RightLeg: [34, 0, 0], RightFoot: [-10, 0, 0],
-    LeftArm: [-52, -16, -74], LeftForeArm: [-128, 0, -66],
-    RightArm: [-50, 14, 74], RightForeArm: [-126, 0, 66],
+    LeftArm: [-52, -16, -74], LeftForeArm: [-112, 0, -55],
+    RightArm: [-50, 14, 74], RightForeArm: [-110, 0, 55],
   }),
 
   // The anticipation: chest rotates AWAY, rear hand chambers at the jaw,

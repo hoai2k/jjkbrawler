@@ -51,7 +51,13 @@ import { clearCache } from "../render3d/src/scene.js";
 import * as render3d from "../render3d/src/backend.js";
 import { STATES, clipNameFor } from "../render3d/src/states.js";
 import {
-  ZOOM, GROUND_Y, artScaleFor, ensureTaskArt, caption, slider, frameStepper, frameIndex,
+  CROUCH_ORIENT, CROUCH_GROUPS, CROUCH_ORIENT_EDIT, CROUCH_ORIENT_LIMIT,
+  crouchGroupOf, clampCrouchOrient,
+} from "../render3d/src/crouch_orient.js";
+import { GUARD_OPEN_LIMIT } from "../render3d/src/guard_open.js";
+import {
+  ZOOM, GROUND_Y, artScaleFor, ensureTaskArt, ensureFrames, caption, slider,
+  frameStepper, frameIndex,
 } from "./verify_common.js";
 
 /** The 3D engine, started once and shared by both sets. Resolves false when
@@ -242,6 +248,351 @@ export async function facingProvider() {
               + `// Nothing to change in the manifest for these:\n`
               + artNotes.map((l) => `//   ${l}`).join("\n") + "\n" : "")
           + (checked.length ? `\n// REVIEWED — facingCheckedAt\n${checked.join("\n")}\n` : "")
+          + (flagged.length ? `\n// Flagged:\n${flagged.join("\n")}\n` : ""),
+      };
+    },
+  };
+}
+
+// ------------------------------------------------------------- guard hands
+//
+// THE ONE POSE WHOSE ARMS ARE MEANT TO BE IN FRONT OF THE FACE, and the one
+// place a shared table cannot be right for everybody: the guard is authored
+// for a 1.75m human, and the same two forearm angles that make a shell on him
+// put the fists inside the chin on a bear, a barrel and a machine with
+// pauldrons. The libraries carry a roster-wide estimate (guard_open.js); this
+// queue is the per-fighter remainder, judged the only way it can be — with the
+// fighter on screen.
+
+/** The guard opening currently applied to each rig, so the clip rebuild that
+ *  a change costs happens once per change and not once per repaint. */
+const appliedGuard = new Map();
+
+function applyGuardOpen(charKey, deg) {
+  const want = Math.round(deg || 0);
+  if (appliedGuard.get(charKey) === want) return;
+  appliedGuard.set(charKey, want);
+  setRigSettings(charKey, { guardOpenDeg: want });
+  clearCache();
+}
+
+export async function guardProvider() {
+  const ok = await startEngine();
+  const keys = ok ? await rigged() : [];
+  const manifest = rigManifest?.()?.characters || {};
+  const stored = (charKey) => manifest[charKey]?.guardOpenDeg ?? 0;
+  const tasks = keys.map((charKey) => ({
+    id: `guard/${charKey}`,
+    title: charKey,
+    subtitle: `guardOpenDeg ${stored(charKey)}`,
+    charKey,
+    state: "shield",
+    exportKeys: { char: charKey, kind: "guardOpenDeg" },
+  }));
+  return {
+    tasks,
+    fingerprint: fingerprint(),
+    ready: ok,
+    ensureReady: ensureTaskArt,
+    // Same problem the facing set has: a fighter approved at the shared
+    // estimate carries no number to diff, so the REVIEW is what gets recorded.
+    committed: (task) => !!manifest[task.charKey]?.guardCheckedAt,
+    initialValue: (task) => ({ open: stored(task.charKey) }),
+    describe: (task, value) =>
+      `elbow opening <b>${value.open > 0 ? "+" : ""}${value.open}°</b> on top of the `
+      + `roster estimate${value.open !== stored(task.charKey)
+        ? ` (stored ${stored(task.charKey)})` : ""} — are the hands IN FRONT of `
+      + `the chest and head, rather than through them?`,
+    renderEditor(task, { container, value, onChange, bindSync }) {
+      container.replaceChildren();
+      const s = slider(container, {
+        label: "guardOpenDeg", hint: "+ opens the elbows, hands forward; − tightens the shell",
+        min: -GUARD_OPEN_LIMIT, max: GUARD_OPEN_LIMIT, step: 2, value: value.open, unit: "°",
+      }, (open) => onChange({ open }));
+      bindSync((v) => s.set(v.open));
+      frameStepper(container, task, () => {});
+      const wrap = document.createElement("div");
+      wrap.className = "v-nav v-nav--wrap";
+      wrap.innerHTML = `<button class="ghost sm" data-open="0" type="button">Back to the estimate</button>`
+        + `<button class="ghost sm" data-open="8" type="button">+8° more room</button>`;
+      for (const btn of wrap.querySelectorAll("[data-open]")) {
+        btn.addEventListener("click", () => onChange({ open: Number(btn.dataset.open) }));
+      }
+      container.appendChild(wrap);
+      const p = document.createElement("p");
+      p.className = "legend";
+      p.textContent = "Judge the HANDS, not the stance: the fists should sit ahead of the "
+        + "chest with daylight between them and the face. The legs, the lean and the "
+        + "shoulders are the guard pose's own business and this dial does not touch them.";
+      container.appendChild(p);
+    },
+    draw(task, ctx) {
+      applyGuardOpen(task.charKey, ctx.value.open);
+      drawPair(task, { ...ctx, state: task.state });
+      caption(ctx.ctx, ctx.canvas,
+        `${task.charKey}'s guard — hands in front of the chest, or through it?`);
+    },
+    exportBlock(decisions) {
+      const rows = [];
+      const checked = [];
+      const flagged = [];
+      for (const d of decisions) {
+        if (d.status === "skipped") continue;
+        if (d.status === "rejected") {
+          flagged.push(`//   ${d.char}: ${d.note || "flagged, no note"}`);
+          continue;
+        }
+        checked.push(`  ${JSON.stringify(d.char)}: ${JSON.stringify((d.at || "").slice(0, 10))},`);
+        if (d.value.open === d.measured.open) continue;   // approved as stored
+        rows.push(`  ${JSON.stringify(d.char)}: ${d.value.open},`
+          + (d.note ? `  // ${d.note}` : ""));
+      }
+      return {
+        file: "render3d/assets/manifest.json",
+        note: "set each character's guardOpenDeg to these (0 means the shared estimate "
+          + "and wants no key at all), and `guardCheckedAt` on everyone under REVIEWED.",
+        text: (rows.length ? `// guardOpenDeg\n${rows.join("\n")}\n` : "// no guard changes\n")
+          + (checked.length ? `\n// REVIEWED — guardCheckedAt\n${checked.join("\n")}\n` : "")
+          + (flagged.length ? `\n// Flagged:\n${flagged.join("\n")}\n` : ""),
+      };
+    },
+  };
+}
+
+// ------------------------------------------------------- crouch orientation
+//
+// THE ONE ITEM PER GROUP SET. Every other queue here asks about a fighter;
+// this one asks about a ROTATION that a whole group of fighters shares, which
+// is the shape of the fault: `pose.js levelFeet` tilts the crouch until the
+// trailing foot comes down, the tilt it lands on is nobody's choice, and it is
+// the same wrong tilt on everyone because it is one solve against one pose.
+// Twenty-seven identical decisions would be twenty-seven chances to answer it
+// differently.
+//
+// So a task is a group, and the check that it really is one group is BUILT
+// INTO THE ITEM: the member stepper walks every fighter the decision would
+// apply to, with the proposed orientation live on each. Approving is then a
+// claim about all of them rather than about whichever one happened to be on
+// screen.
+
+/** Which member of a group is on screen, per task. A VIEW, like the frame
+ *  stepper's index: never part of a value, never exported. */
+const MEMBER_VIEW = new Map();
+
+const membersOf = (group, keys) => keys.filter((k) => crouchGroupOf(k) === group);
+
+function memberIndex(task) {
+  return MEMBER_VIEW.get(task.id) || 0;
+}
+
+function memberOf(task) {
+  return task.members[memberIndex(task) % task.members.length];
+}
+
+/** Put a group's proposed orientation on the engine. The pose cache does not
+ *  key on it, so the cache goes with it. */
+function applyOrient(group, value) {
+  const groups = { ...(CROUCH_ORIENT_EDIT.groups || {}) };
+  groups[group] = value;
+  CROUCH_ORIENT_EDIT.groups = groups;
+  clearCache();
+}
+
+// THE HANDLE. A trackball, drawn over the fighter's hips and dragged: across
+// turns the body about the vertical, up and down tips it over its toes, and
+// the rim rolls it. Three axes on one control because the three are one
+// question — which way is this body pointing — and a reviewer answering it
+// with three sliders is reading numbers instead of looking at a fighter.
+const HANDLE = { x: 300, y: 250, r: 74 };
+const RIM = 0.72;   // inside this fraction of the radius is turn/tip; outside rolls
+
+/** Where the pointer went, as an orientation. */
+function dragToOrient(pt, value, grab) {
+  const dx = pt.x - grab.x;
+  const dy = pt.y - grab.y;
+  if (grab.roll) {
+    // Roll follows the ANGLE about the handle's centre, so the knob stays
+    // under the pointer all the way round rather than sliding off it.
+    const a0 = Math.atan2(grab.y - HANDLE.y, grab.x - HANDLE.x);
+    const a1 = Math.atan2(pt.y - HANDLE.y, pt.x - HANDLE.x);
+    let d = ((a1 - a0) * 180) / Math.PI;
+    while (d > 180) d -= 360;
+    while (d < -180) d += 360;
+    return { rollDeg: clampOrient(grab.rollDeg + d) };
+  }
+  // A degree per pixel-and-a-bit, which puts the whole useful range inside the
+  // handle: a drag across it is ±60°, and that is the limit anyway.
+  return {
+    yawDeg: clampOrient(grab.yawDeg + dx * 0.8),
+    pitchDeg: clampOrient(grab.pitchDeg - dy * 0.8),
+  };
+}
+
+const clampOrient = (v) => Math.round(Math.max(-CROUCH_ORIENT_LIMIT,
+  Math.min(CROUCH_ORIENT_LIMIT, v)));
+
+let orientGrab = null;
+
+function onOrientDrag(task, pt, { value, phase }) {
+  if (phase === "start") {
+    const d = Math.hypot(pt.x - HANDLE.x, pt.y - HANDLE.y);
+    orientGrab = d > HANDLE.r * 1.25 ? null
+      : { ...pt, ...value, roll: d > HANDLE.r * RIM };
+    return undefined;
+  }
+  if (!orientGrab) return undefined;
+  const next = dragToOrient(pt, value, orientGrab);
+  if (phase === "end") orientGrab = null;
+  return next;
+}
+
+/** The trackball itself, and what it is currently saying. */
+function drawHandle(ctx, value) {
+  const { x, y, r } = HANDLE;
+  ctx.save();
+  ctx.strokeStyle = "rgba(120, 240, 255, 0.55)";
+  ctx.fillStyle = "rgba(120, 240, 255, 0.06)";
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  // The roll rim.
+  ctx.strokeStyle = "rgba(120, 240, 255, 0.28)";
+  ctx.beginPath(); ctx.arc(x, y, r * RIM, 0, Math.PI * 2); ctx.stroke();
+  // The two in-ball axes, drawn where the current value has pushed them, so
+  // the handle reads as a body attitude rather than as a dial.
+  const kx = x + (value.yawDeg / CROUCH_ORIENT_LIMIT) * r * RIM;
+  const ky = y - (value.pitchDeg / CROUCH_ORIENT_LIMIT) * r * RIM;
+  ctx.strokeStyle = "rgba(120, 240, 255, 0.35)";
+  ctx.setLineDash([3, 4]);
+  ctx.beginPath();
+  ctx.moveTo(x - r * RIM, y); ctx.lineTo(x + r * RIM, y);
+  ctx.moveTo(x, y - r * RIM); ctx.lineTo(x, y + r * RIM);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = "rgba(120, 240, 255, 0.95)";
+  ctx.beginPath(); ctx.arc(kx, ky, 6, 0, Math.PI * 2); ctx.fill();
+  // The roll knob, out on the rim.
+  const ra = (value.rollDeg * Math.PI) / 180 - Math.PI / 2;
+  ctx.beginPath();
+  ctx.arc(x + Math.cos(ra) * r, y + Math.sin(ra) * r, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#9aa4c0";
+  ctx.font = "11px system-ui";
+  ctx.fillText("drag: across turns · up/down tips · the rim rolls", x - r, y + r + 18);
+  ctx.restore();
+}
+
+export async function crouchProvider() {
+  const ok = await startEngine();
+  const keys = ok ? await rigged() : [];
+  const groups = Object.keys(CROUCH_GROUPS)
+    .map((group) => ({ group, members: membersOf(group, keys) }))
+    .filter((g) => g.members.length);
+  const tasks = groups.map(({ group, members }) => ({
+    id: `crouch/${group}`,
+    title: CROUCH_GROUPS[group].label,
+    subtitle: `${members.length} fighter(s) — ${CROUCH_GROUPS[group].why}`,
+    group,
+    members,
+    // `charKey` is what the framework preloads art for; it follows the member
+    // on screen, which is why renderEditor re-reads it on every step.
+    get charKey() { return memberOf(this); },
+    state: "crouch",
+    exportKeys: { group, members },
+  }));
+  return {
+    tasks,
+    fingerprint: fingerprint(),
+    ready: ok,
+    ensureReady: (task) => ensureFrames(memberOf(task)),
+    // THE TABLE, never the live edit. This is what "reset" goes back to and
+    // what the export diffs against, so a value the bench itself is currently
+    // driving would make both of them mean nothing.
+    initialValue: (task) => clampCrouchOrient(CROUCH_ORIENT[task.group]),
+    describe: (task, value) =>
+      `<b>${CROUCH_GROUPS[task.group].label}</b> — pitch <b>${value.pitchDeg}°</b>, `
+      + `roll <b>${value.rollDeg}°</b>, yaw <b>${value.yawDeg}°</b> on top of what the `
+      + `foot-levelling solve leaves. Showing <b>${memberOf(task)}</b> `
+      + `(${memberIndex(task) % task.members.length + 1} of ${task.members.length})`,
+    renderEditor(task, { container, value, onChange, redraw, bindSync }) {
+      container.replaceChildren();
+      const members = document.createElement("div");
+      members.className = "group";
+      const i = memberIndex(task) % task.members.length;
+      members.innerHTML = `
+        <label>Who this applies to <span class="sub">${i + 1} of ${task.members.length}
+          — ${memberOf(task)}</span></label>
+        <div class="v-nav v-nav--wrap">
+          <button class="ghost sm" data-member="-1" type="button">‹ prev fighter</button>
+          <button class="ghost sm" data-member="1" type="button">next fighter ›</button>
+          <button class="ghost sm" data-member="0" type="button">first</button>
+        </div>
+        <p class="legend">${task.members.join(", ")}</p>`;
+      for (const btn of members.querySelectorAll("[data-member]")) {
+        btn.addEventListener("click", () => {
+          const step = Number(btn.dataset.member);
+          const n = task.members.length;
+          MEMBER_VIEW.set(task.id, step === 0 ? 0 : (memberIndex(task) + step + n) % n);
+          // A different body, so a different sprite to load and a rebuilt
+          // editor — the same door the frame stepper uses.
+          ensureFrames(memberOf(task)).then(() => redraw());
+          redraw();
+        });
+      }
+      container.appendChild(members);
+      const pitch = slider(container, {
+        label: "Pitch", hint: "+ tips the body forward over its toes",
+        min: -CROUCH_ORIENT_LIMIT, max: CROUCH_ORIENT_LIMIT, step: 1,
+        value: value.pitchDeg, unit: "°",
+      }, (pitchDeg) => onChange({ pitchDeg }));
+      const roll = slider(container, {
+        label: "Roll", hint: "+ tips it toward the fighter's own right",
+        min: -CROUCH_ORIENT_LIMIT, max: CROUCH_ORIENT_LIMIT, step: 1,
+        value: value.rollDeg, unit: "°",
+      }, (rollDeg) => onChange({ rollDeg }));
+      const yaw = slider(container, {
+        label: "Yaw", hint: "+ turns the body toward its own left",
+        min: -CROUCH_ORIENT_LIMIT, max: CROUCH_ORIENT_LIMIT, step: 1,
+        value: value.yawDeg, unit: "°",
+      }, (yawDeg) => onChange({ yawDeg }));
+      bindSync((v) => { pitch.set(v.pitchDeg); roll.set(v.rollDeg); yaw.set(v.yawDeg); });
+      const p = document.createElement("p");
+      p.className = "legend";
+      p.innerHTML = "<b>Step through every fighter before approving.</b> One decision here "
+        + "moves all of them, so the question is not whether this attitude suits the one on "
+        + "screen — it is whether it suits the whole list above. A body that only works for "
+        + "one of them is a fighter who needs their own group, which is a note rather than "
+        + "a nudge: flag it and say who.";
+      container.appendChild(p);
+    },
+    onCanvasDrag: onOrientDrag,
+    draw(task, ctx) {
+      applyOrient(task.group, ctx.value);
+      const member = memberOf(task);
+      drawPair({ ...task, charKey: member }, { ...ctx, state: "crouch" });
+      drawHandle(ctx.ctx, ctx.value);
+      caption(ctx.ctx, ctx.canvas,
+        `${member} · crouch — ${CROUCH_GROUPS[task.group].label}`);
+    },
+    exportBlock(decisions) {
+      const rows = [];
+      const flagged = [];
+      for (const d of decisions) {
+        if (d.status === "skipped") continue;
+        if (d.status === "rejected") {
+          flagged.push(`//   ${d.group}: ${d.note || "flagged, no note"}`);
+          continue;
+        }
+        const v = d.value;
+        rows.push(`  ${JSON.stringify(d.group)}: `
+          + `{ pitchDeg: ${v.pitchDeg}, rollDeg: ${v.rollDeg}, yawDeg: ${v.yawDeg} },`
+          + (d.note ? `  // ${d.note}` : ""));
+      }
+      return {
+        file: "render3d/src/crouch_orient.js",
+        note: "CROUCH_ORIENT — one attitude per crouch group, applied after the "
+          + "foot-levelling solve. A group whose members disagreed wants splitting, "
+          + "which is a code change here rather than a number.",
+        text: (rows.length ? `export const CROUCH_ORIENT = {\n${rows.join("\n")}\n};\n`
+          : "// no crouch changes\n")
           + (flagged.length ? `\n// Flagged:\n${flagged.join("\n")}\n` : ""),
       };
     },

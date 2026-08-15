@@ -81,6 +81,18 @@ const SETS = {
       + "tell front from back — the automated pass turned five fighters around.",
     load: () => import(withKey("./verify_model.js")).then((m) => m.facingProvider()),
   },
+  "guard-hands": {
+    label: "Guard hands",
+    blurb: "Does the guard put the hands IN FRONT of the chest and head, or through them? "
+      + "One shell, authored for a 1.75m human, worn by a bear and a barrel.",
+    load: () => import(withKey("./verify_model.js")).then((m) => m.guardProvider()),
+  },
+  "crouch-orientation": {
+    label: "Crouch orientation",
+    blurb: "Which way the crouched body points. The foot-levelling solve tilts everyone "
+      + "by the same wrong amount, so this is one decision per group, not per fighter.",
+    load: () => import(withKey("./verify_model.js")).then((m) => m.crouchProvider()),
+  },
   "pose-reads": {
     label: "Pose reads",
     blurb: "Does the model's pose read as the drawing it was built from?",

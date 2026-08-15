@@ -33,6 +33,7 @@ import { addOutlines, setOutlineFor } from "./outline.js";
 import { captureCleanPose, poseRig } from "./pose.js";
 import { reachChain } from "./ik.js";
 import { buildCharacterClips } from "./pose_clips.js";
+import { clampGuardOpen } from "./guard_open.js";
 import { CLIP_STATES } from "./states.js";
 
 /** charKey -> { root, height, clips: Map, mixer, actions: Map, entry } */
@@ -355,6 +356,11 @@ function applyEntrySettings(rig, entry) {
   // stand-in does not take it.
   const knee = Number(entry?.kneeDeg);
   rig.kneeDeg = delivered && Number.isFinite(knee) ? knee : 0;
+  // How far this fighter's guard opens at the elbow beyond the roster estimate
+  // (guard_open.js). A fact about how a BODY wears the shell — a bear needs
+  // more room than a schoolboy — so the stand-in takes it too: it is built to
+  // the character's declared height and wears the same guard.
+  rig.guardOpenDeg = clampGuardOpen(entry?.guardOpenDeg);
 }
 
 /** Carry the GLB correction layer from one rig object to another — a fresh
@@ -371,8 +377,13 @@ function copyModelFixes(dst, src) {
   return dst;
 }
 
-/** Set them live, from the workbench. */
-export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg, headTiltDeg, armDeg, shoulderOutCm, kneeDeg } = {}) {
+/** Set them live, from the workbench.
+ *
+ *  `guardOpenDeg` is the one that costs something: it is baked into this
+ *  fighter's clips rather than applied per frame, so moving it rebuilds them.
+ *  That is deliberate — a dial the game reads every frame is a dial the game
+ *  pays for every frame, and this one changes about once per review. */
+export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg, headTiltDeg, armDeg, shoulderOutCm, kneeDeg, guardOpenDeg } = {}) {
   const rig = RIGS.get(charKey);
   if (!rig) return null;
   if (renderScale !== undefined && Number.isFinite(renderScale) && renderScale > 0) {
@@ -388,6 +399,13 @@ export function setRigSettings(charKey, { renderScale, yawOffsetDeg, stanceDeg, 
   if (armDeg !== undefined) rig.armDeg = Number.isFinite(armDeg) ? armDeg : null;
   if (shoulderOutCm !== undefined) rig.shoulderOutCm = Number.isFinite(shoulderOutCm) ? shoulderOutCm : 0;
   if (kneeDeg !== undefined) rig.kneeDeg = Number.isFinite(kneeDeg) ? kneeDeg : 0;
+  if (guardOpenDeg !== undefined) {
+    const want = clampGuardOpen(guardOpenDeg);
+    if (want !== (rig.guardOpenDeg || 0)) {
+      rig.guardOpenDeg = want;
+      buildLibraryClips(charKey, rig.root);
+    }
+  }
   // Instances already handed out share the character's settings.
   for (const inst of INSTANCES.values()) {
     if (inst.charKey !== charKey) continue;
@@ -647,7 +665,9 @@ function registerRig(charKey, { root, height, clips, isMannequin = false }, entr
 function buildLibraryClips(charKey, root) {
   if (!THREE || !root) return;
   try {
-    const { clips: built, sources } = buildCharacterClips(THREE, charKey, root, CLIP_STATES);
+    const guardOpenDeg = RIGS.get(charKey)?.guardOpenDeg || 0;
+    const { clips: built, sources } =
+      buildCharacterClips(THREE, charKey, root, CLIP_STATES, { guardOpenDeg });
     if (built.size) { BUILT.set(charKey, built); BUILT_SOURCES.set(charKey, sources); }
   } catch (err) {
     console.warn(`pose library: could not build clips for ${charKey} —`, err.message);

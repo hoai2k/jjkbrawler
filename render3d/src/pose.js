@@ -33,6 +33,9 @@ import { STATES, clipNameFor, clipTime, aimable } from "./states.js";
 import { applyRigFixes, applySkeletonSymmetry, modelFixesEnabled } from "./rig_fixes.js";
 import { groundOffset } from "./pose_library.js";
 import {
+  CROUCH_ORIENT_STATES, crouchOrientFor, isIdentityOrient,
+} from "./crouch_orient.js";
+import {
   applyReach, reaches, makeScratch, applyTwoHandGrip, applyCarry, applyGrip, applyMorphs, applyIdleStand, applyIdleArms, applyShoulderWidth, applyBindPose, applyKneeTurn, clearIdleStand,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
   reachChain, gripBones,
@@ -829,6 +832,51 @@ function levelFeet(rig, animKey) {
   standOnGround(rig, animKey);
 }
 
+/** WHERE THE TILT SHOULD HAVE STOPPED — the authored crouch attitude.
+ *
+ *  `levelFeet` above solves for one thing only: the trailing foot on the
+ *  floor. It finds it, and the attitude it leaves behind is nobody's choice —
+ *  the trunk ends about 25° BEHIND vertical, which is a fighter sitting down
+ *  in mid-air rather than crouching. Same solve, same pose, so the same wrong
+ *  rotation on the whole roster, which is exactly the shape of thing that
+ *  should be corrected once rather than twenty-seven times.
+ *
+ *  So: turn the whole body — every authored joint angle untouched, the same
+ *  move levelFeet just made — by the correction its group carries
+ *  (crouch_orient.js), and re-plant it. Three axes rather than one because the
+ *  reviewer is looking at a fighter and not at a foot gap: the pitch is what
+ *  the solve got wrong, and the roll and yaw are there for the two fighters
+ *  whose crouch does not come down the same path.
+ *
+ *  AFTER levelFeet and not instead of it. The solve is still what puts the
+ *  trailing foot down, and it has to run against the pose as drawn — a body
+ *  pitched first would be solved back out of the correction.
+ */
+function applyCrouchOrient(rig, animKey) {
+  if (!CROUCH_ORIENT_STATES.has(clipNameFor(animKey))) return;
+  const o = crouchOrientFor(rig?.charKey);
+  if (isIdentityOrient(o)) return;
+  const root = rig?.root;
+  const hips = root && (root.getObjectByName("Hips")
+    || root.getObjectByName("mixamorigHips"));
+  if (!hips) return;
+  // The fighter's own axes, in the world: their right (the axis a pitch turns
+  // about), and their forward, which is that right turned a quarter about up.
+  const right = characterLateral(THREE, root, _v2);
+  const fwd = _v3.set(-right.z, 0, right.x);
+  // Sign conventions, each one measured rather than assumed: +pitch about the
+  // right axis carries the head forward over the toes, and +roll about the
+  // forward axis carries it toward the fighter's LEFT — so the roll is applied
+  // negated, because "positive is toward their right" is the half of the pair
+  // a person reading the table can check against a drawing.
+  rotateBoneAboutWorldAxis(THREE, hips, right, o.pitchDeg * DEG, _ik);
+  rotateBoneAboutWorldAxis(THREE, hips, fwd, -o.rollDeg * DEG, _ik);
+  rotateBoneAboutWorldAxis(THREE, hips, _yAxis, o.yawDeg * DEG, _ik);
+  root.updateMatrixWorld(true);
+  // Turning the body lifted or dropped it; put it back on the floor.
+  standOnGround(rig, animKey);
+}
+
 /** Foot IK: clamp feet that sink below the ground line back onto it, with a
  *  short CCD pass over knee and hip. Only grounded states, only downward
  *  penetration — a raised foot is the clip's business. */
@@ -1112,8 +1160,10 @@ function poseOnce(rig, animKey, sampled, clip, layers = {}) {
   // rather than a bend: the body drops until its lowest foot is on the ground.
   standOnGround(rig, animKey);
   // ...and, where the pose was drawn with a foot in the air that should be on
-  // the floor, tilt until it is (the crouch — see levelFeet).
+  // the floor, tilt until it is (the crouch — see levelFeet), then put the
+  // body back at the attitude somebody chose (applyCrouchOrient).
   levelFeet(rig, animKey);
+  applyCrouchOrient(rig, animKey);
   // Body morphs (Mahito's transfiguration arms) precede aim/reach so every
   // solve sees the morphed limb.
   if (layers.charKey) applyMorphs(rig.root, layers.charKey, animKey, clipTime(animKey, sampled), layers.beat);
