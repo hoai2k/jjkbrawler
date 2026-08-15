@@ -115,6 +115,25 @@ export function backgroundFile(stage, flat) {
   return `assets/backgrounds/flat/${FLAT_BG_FILES[stage.key] || stage.bgFile}`;
 }
 
+/** The same painting at MENU size — what the arena cards draw.
+ *
+ *  The cards are about 200 px wide and were being handed the match backdrop to
+ *  fill them: 3200x1800 and 2.4 MB apiece, 67 MB across both trees, which is
+ *  what made the arena grid fill in one slow card at a time. `tools/
+ *  make_thumbnails.py` builds these (480 px wide, 1.6 MB for the lot) and
+ *  `--check` fails if one is missing or older than its painting.
+ *
+ *  Always `.jpg`, whatever the painting is: the thumbnails are re-encoded, so
+ *  the flat Shibuya Night's `.webp` has a `.jpg` thumbnail like everything
+ *  else. Nothing here can 404 the card — src/ui.js falls the <img> back to the
+ *  full painting — so a board dropped in before the tool is run still shows,
+ *  just slowly. */
+export function thumbFile(stage, flat) {
+  const full = backgroundFile(stage, flat);
+  const name = full.slice(full.lastIndexOf("/") + 1).replace(/\.[^.]+$/, ".jpg");
+  return flat ? `assets/backgrounds/thumbs/flat/${name}` : `assets/backgrounds/thumbs/${name}`;
+}
+
 // Where a match of `count` fighters lines up. Two, three and four are placed by
 // hand — those are the spacings the stages were laid out around. A crowd (the
 // Players vs CPUs and Battle Royal modes) is spread evenly across the middle of

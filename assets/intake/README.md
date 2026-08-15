@@ -39,7 +39,12 @@ element also needs a spawner in `garnish.js` the way `signal_gantry` did.
 **Cards take the short path.** Neither kind is keyed, trimmed, measured or
 registered in the manifest, so landing one is a move into `assets/cards/` (hero
 cards) or `assets/cards/simple/` (the simplified roster tiles asked for in round
-15B) and nothing else. Everything below is about sprites.
+15B) and nothing else. They get no thumbnails, unlike the backgrounds: the
+select screen's spotlight already paints a card at up to 1371 px wide against a
+640–1085 px file, so these are being upscaled rather than downscaled, and the
+roster tile and the spotlight share one fetch. Measured with
+`tools/debug/measure_menu_art.mjs` — re-run it if a card is ever delivered much
+larger than that. Everything below is about sprites.
 
 Delivered **sound** goes to `assets/intake/sfx/` and takes the short path: it
 needs no keying or measuring, so landing it is a move into `assets/sfx/`, a key
@@ -61,7 +66,13 @@ its own `idle_a`, so landing that pose is also what retires any authored
 `hitW`/`hitH` pair in `src/config_summons.js`.
 
 A **background** takes the short path too — no keying, no measuring, no manifest
-entry — so landing one is a copy into `assets/backgrounds/` and nothing else.
+entry — so landing one is a copy into `assets/backgrounds/` and **then
+`python3 tools/make_thumbnails.py`**. That second step is not optional: the
+arena select draws menu-sized copies from `assets/backgrounds/thumbs/`, and a
+board whose painting has been replaced but whose thumbnail has not still shows
+the OLD picture on its card while the match draws the new one. The tool only
+rebuilds what changed, and `--check` (which `tools/check_menu_art.mjs` runs)
+fails on any thumbnail that is missing or older than its painting.
 **Copy the painting it replaces into `assets/reference/backgrounds_<round>/`
 first** (18E's went to `backgrounds_previous/`, 20B's to `backgrounds_18e/`).
 Putting a board back is then one file copy rather than a trip through git.

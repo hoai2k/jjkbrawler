@@ -131,7 +131,57 @@ sits in an angled-ribbon frame. Gold lives here and nowhere else.
   wooden-sign character (it is set dressing, not chrome).
 - **Loading** — slash-cut progress bar, display-face status line.
 
-## 5. Consistency contract
+## 5. How the menu art arrives
+
+Menu pictures are HTML, not canvas, so the browser fetches them when their
+element renders — which is the moment the screen opens, in front of the player.
+The arena grid was the visible case: twenty cards each holding a 3200×1800,
+2.4 MB match backdrop behind `loading="lazy"`, filling in one card at a time
+while the player watched. Two things answer it.
+
+**Menu-sized copies.** An arena card is about 198 px wide at a 2560 window, so
+`tools/make_thumbnails.py` builds 480 px copies into
+`assets/backgrounds/thumbs/` (and `thumbs/flat/` — a board ships one painting
+per camera and the menu draws whichever the running camera wants). 480 covers a
+2× display with headroom. Across both trees that is **1.6 MB where the paintings
+are 67 MB**. `src/stages.js thumbFile()` builds the URL and the card's `<img>`
+falls back to the full painting on error, so a board added before the tool is
+run still shows — just slowly.
+
+Character cards get no thumbnails, and the measurement is why: the select
+screen's spotlight paints `assets/cards/<key>_card.jpg` at up to 1371 px wide
+against a 640–1085 px file, so those are already being *upscaled*, and the
+roster tile and the spotlight share a single fetch. A tile-sized variant would
+add a second download per fighter to save nothing. Re-check with
+`tools/debug/measure_menu_art.mjs` if a card is ever delivered much larger.
+
+**Warming the next screen.** `src/menu_art.js` asks for the art a screen early,
+in idle time (`requestIdleCallback`), three at a time, at `fetchPriority=low` —
+so it never competes with the screen the player is on, and the `<img>` that
+renders later gets a cache hit. The order is "what you are about to look at,
+then what you look at after that": on the title screen that is the roster then
+the arenas, on the roster it flips. Calling it again re-prioritises, dropping
+whatever has not started yet.
+
+**Two full backdrops are fetched on spec**, via `previewStage` (which promotes a
+board in the same loader queue `previewCharacter` uses):
+
+- **The board Random has drawn.** The draw used to happen on the click, so the
+  winning board's 2.4 MB backdrop started arriving at the one moment the player
+  was already waiting. It is drawn in advance instead — `nextRandomStage()` —
+  which changes nothing observable (still uniform, still unknown until the wheel
+  stops) and lets the backdrop be in hand before the wheel is spun.
+- **A board the cursor rests on** for 260 ms. The delay is what makes it a dwell
+  rather than a sweep: steering across the grid brushes every card on the way,
+  and promoting all of them is the same as promoting none.
+
+Guarded by `tools/smoke_menu_preload.mjs` (the grid is fully drawn the moment it
+opens; both speculative fetches land) and `tools/check_menu_art.mjs`, which
+fails on a thumbnail that is missing or older than its painting — the failure
+that would otherwise ship silently, with the card showing the old picture and
+the match showing the new one.
+
+## 6. Consistency contract
 
 Any future screen follows from five questions: (1) shouting or reading? picks
 the face; (2) whose is it? picks the seat color; (3) is it a surface or
