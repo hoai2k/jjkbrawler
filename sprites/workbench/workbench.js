@@ -1713,8 +1713,12 @@ function render() {
   // indistinguishable from a broken sprite — say so instead.
   if (isOther(state.char)) {
     drawSharedSprite(cx);
-    // ...and the body over it, in the game's paint order.
+    // ...the body over it, in the game's paint order...
     if (comparison) drawComparison(comparison, sharedV ? sharedV.z : state.zoom, fighterX);
+    // ...and every handle and label over BOTH. They are the tool, not the
+    // scene: a crosshair hidden behind the caster is a control that does not
+    // exist as far as anybody using it is concerned.
+    drawSharedOverlay();
   } else if (isPending(state.char, state.frame)) {
     drawPendingNotice(cx);
   } else if (!frameLoaded(state.char, state.frame)) {
@@ -2175,19 +2179,6 @@ function drawSharedSprite(cx) {
     ctx.setLineDash([]);
   }
   ctx.restore();
-
-  // The region the move actually acts on, at the same scale as the drawing —
-  // the one thing art has to agree with that cannot be seen in the art. Under
-  // the same toggle as a fighter's hurtbox, because it is the same question.
-  if ($("showHurtbox")?.checked && v.hit) drawSharedHit(v);
-  // A creature has no fixed hit region to draw — its hurt box is the drawing —
-  // so the same toggle shows the one shape that IS placed by hand.
-  if ($("showHurtbox")?.checked && canPlaceAttack(state.frame)) drawAttackBox(state.frame);
-  // Drawn wherever the game has a point to paint this on, even where the nudge
-  // is not honoured: the crosshair is the ground contact — the thing the art
-  // has to be sitting on — before it is a handle to drag.
-  if (v.can?.used && v.can.anchor) drawSpawnPoint(px, py, v.anchor, v.can.offset);
-  if (v.can?.travels) drawTravelDirection(v);
 
   // The drawing is too big for the viewer and everything on the canvas has been
   // shrunk to hold it. Said out loud because the alternative is a slider that
@@ -2665,6 +2656,89 @@ function launchScale(key) {
   const owner = sharedOwner(key);
   if (!base?.scaled || !owner) return 1;
   return bodyMetrics(owner).height / HEIGHT_BASE_PX;
+}
+
+/**
+ * EVERY HANDLE AND LABEL FOR A SHARED DRAWING, drawn after the reference
+ * fighter rather than with the art.
+ *
+ * The art goes UNDER the fighter, because that is the game's paint order. The
+ * handles are not art — they are the tool — and putting them under the fighter
+ * too hid them: on Dagon's tide the caster stands 2.7px from the drawing, so
+ * the spawn crosshair was completely behind his body. It was still draggable,
+ * and dragging it still worked, which is the worst version of a bug like this:
+ * the thing you cannot see is the thing you are told to grab.
+ */
+function drawSharedOverlay() {
+  const v = sharedView();
+  if (!v) return;
+  if ($("showHurtbox")?.checked && v.hit) drawSharedHit(v);
+  // A creature has no fixed hit region to draw — its hurt box is the drawing —
+  // so the same toggle shows the one shape that IS placed by hand.
+  if ($("showHurtbox")?.checked && canPlaceAttack(state.frame)) drawAttackBox(state.frame);
+  if (v.can?.used && v.can.anchor) drawSpawnPoint(v.px, v.py, v.anchor, v.can.offset);
+  if (v.can?.offset) drawDrawingPoint(v);
+  if (v.can?.travels) drawTravelDirection(v);
+}
+
+/** Where the DRAWING's own anchor sits on the canvas: the spawn point plus its
+ *  nudge. Mirrored the way the picture is, because `dx` is applied inside the
+ *  as-fired flip (render.js) — the same frame hitCentreOnCanvas works in. */
+function drawingHome(v) {
+  const sx = v.mirror ? -1 : 1;
+  return { x: v.px + sx * (v.meta?.dx ?? 0) * v.z, y: v.py + (v.meta?.dy ?? 0) * v.z };
+}
+
+/**
+ * The handle that moves the PICTURE — the second of the two points the action
+ * preview has always shown and the main viewer never did.
+ *
+ * The viewer had one marker, the spawn crosshair, and dragging it moved the art
+ * beneath a handle that stayed put. That is defensible — the point belongs to
+ * the game and not to us — and it is also why moving a drawing looked like
+ * nothing happening: the thing under the pointer did not move, and on art as
+ * large as a tide wave the picture sliding a few pixels behind a fighter is
+ * easy to miss entirely.
+ *
+ * So the picture gets a handle of its own, at the picture's anchor, and it
+ * moves with the picture. The crosshair beside it stays exactly where the game
+ * spawns the effect, which is what makes the gap between them readable: that
+ * gap IS `dx`/`dy`.
+ */
+function drawDrawingPoint(v) {
+  const d = drawingHome(v);
+  const held = !!state.dragSpawn;
+  const moved = (v.meta?.dx ?? 0) || (v.meta?.dy ?? 0);
+  ctx.save();
+  // The line back to the spawn point, so the offset is a thing you can see
+  // rather than two numbers to subtract.
+  if (moved) {
+    ctx.strokeStyle = "rgba(240, 180, 90, 0.5)";
+    ctx.setLineDash([3, 4]);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(v.px, v.py); ctx.lineTo(d.x, d.y); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.strokeStyle = held ? "rgba(255, 226, 170, 0.98)" : "rgba(240, 180, 90, 0.95)";
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(d.x, d.y, HANDLE_R, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(d.x, d.y, HANDLE_R * 2.1, 0, Math.PI * 2); ctx.stroke();
+  ctx.font = "600 11px Inter, sans-serif";
+  ctx.textAlign = "left";
+  const label = moved
+    ? `drawing · ${round1(v.meta.dx ?? 0)}, ${round1(v.meta.dy ?? 0)} from the spawn point`
+    : "drawing · drag to move the picture";
+  const wLab = ctx.measureText(label).width;
+  const flip = d.x + 18 + wLab + 12 > canvas.width - 8;
+  const bx = flip ? d.x - 18 - wLab - 12 : d.x + 18;
+  ctx.globalAlpha = 0.82;
+  ctx.fillStyle = "rgba(8, 12, 20, 0.86)";
+  ctx.fillRect(bx, d.y + 4, wLab + 12, 18);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = held ? "rgba(255, 226, 170, 0.98)" : "rgba(245, 200, 130, 0.95)";
+  ctx.fillText(label, bx + 6, d.y + 17);
+  ctx.restore();
 }
 
 /** The circle's two grab points, both ON THE RIM. Deliberately not at the
@@ -3480,14 +3554,13 @@ function refreshUsageInfo() {
         + "Turn on Hurtbox to see it."
         + (h.shape === "circle" && !h.melee
           ? " <b>Two handles on the circle's edge:</b> the top one moves it, the right one "
-            + "resizes it — or drag anywhere inside the shape to move it. Both sit on the "
-            + "RIM rather than the middle on purpose: until you move the circle its centre "
-            + "is exactly where the spawn crosshair is, and the crosshair keeps the middle "
-            + "so the DRAWING can still be nudged. The two are separate edits — where the "
-            + "picture sits, and where the shot actually connects. Corrections against this "
-            + "drawing (a shot whose art is a wall of water should collide with the water, "
-            + "not with the middle of a mostly-empty plate), riding on top of the kit's own "
-            + "number rather than replacing it."
+            + "resizes it — or drag anywhere inside the shape to move it. They sit on the "
+            + "RIM so they never compete with the spawn crosshair, which the circle starts "
+            + "centred on. This is a different edit from moving the picture: <b>the orange "
+            + "handle places the art, these place what the shot actually connects with.</b> "
+            + "Corrections against this drawing (a shot whose art is a wall of water should "
+            + "collide with the water, not with the middle of a mostly-empty plate), riding "
+            + "on top of the kit's own number rather than replacing it."
           : ""));
     }
     // A creature with no authored pair measures its box off this drawing, so
@@ -3563,7 +3636,9 @@ function refreshUsageInfo() {
     }
     if (can.offset) {
       lines.push(`<b>Spawn point:</b> ${ANCHOR_WORDS[can.anchor] || ""}. `
-        + "Drag the crosshair on the canvas to move the drawing under it.");
+        + "The blue crosshair is that point and it does not move — it is the game's, not "
+        + "yours. The <b>orange handle beside it is the DRAWING</b>: drag that to move the "
+        + "picture, and the dashed line between the two is the offset you are setting.");
       lines.push(`Drawing sits ${dx || dy ? `${dx > 0 ? "+" : ""}${dx}, ${dy > 0 ? "+" : ""}${dy} px from it`
                                           : "on the point, unmoved"}`
         + (deg ? ` · tilted ${deg > 0 ? "+" : ""}${deg}°` : ""));
@@ -5219,9 +5294,16 @@ async function boot() {
         }
       }
     }
+    // The PICTURE's own handle, which sits at the picture rather than at the
+    // spawn point and moves with it. Both are offered — grabbing the crosshair
+    // still nudges the art, since that is the gesture this viewer has always
+    // had — but the one that moves under your pointer is the one at the art.
     if (isOther(state.char) && sharedControls(state.frame)?.offset) {
+      const v = sharedView();
+      const d = v ? drawingHome(v) : null;
       const home = spawnHome();
-      if (Math.hypot(home.x - p.x, home.y - p.y) <= HANDLE_R * 3) {
+      const onDrawing = d && Math.hypot(d.x - p.x, d.y - p.y) <= HANDLE_R * 3;
+      if (onDrawing || Math.hypot(home.x - p.x, home.y - p.y) <= HANDLE_R * 3) {
         state.dragSpawn = { grabX: p.x, grabY: p.y, meta: rawMeta(state.char, state.frame) };
         pushHistory(state.char, state.frame);
         canvas.setPointerCapture(e.pointerId);
@@ -5295,20 +5377,25 @@ async function boot() {
     if (state.dragSpawn) {
       const p = eventToCanvas(e);
       const d = state.dragSpawn;
-      // The handle stays where the game puts it; what moves is the art beneath
-      // it, so dragging the handle right pushes the drawing LEFT relative to
-      // the point. Divided by the VIEW zoom — the one the drawing is actually
-      // painted at, which is smaller than the slider's whenever a big drawing
-      // has been fitted — because dx/dy are game pixels.
+      // THE PICTURE FOLLOWS THE POINTER. It used to do the opposite: the handle
+      // was the spawn point, the spawn point does not move, so dragging it
+      // right pushed the art LEFT beneath it. That was a defensible reading of
+      // "the point belongs to the game" and a bad handle — the thing under the
+      // pointer stayed still and the thing you were editing slid the other way,
+      // which on a big drawing behind a fighter looked like nothing happening
+      // at all. The picture has its own handle now (drawDrawingPoint) and both
+      // it and the crosshair drag the same way: toward the pointer.
+      //
+      // Divided by the VIEW zoom — the one the drawing is actually painted at,
+      // smaller than the slider's whenever a big drawing has been fitted —
+      // because dx/dy are game pixels. Mirrored where the picture is, since
+      // render.js applies dx inside the as-fired flip.
       const meta = d.meta;
       const view = sharedView();
       const z = view?.z || state.zoom;
-      // In the mirrored (as-fired) view the drawing's own x runs the other way,
-      // so the same gesture writes the opposite sign — the picture still
-      // follows the pointer.
-      const sx = view?.mirror ? 1 : -1;
+      const sx = view?.mirror ? -1 : 1;
       meta.dx = round1((meta.dx ?? 0) + sx * (p.x - d.grabX) / z);
-      meta.dy = round1((meta.dy ?? 0) - (p.y - d.grabY) / z);
+      meta.dy = round1((meta.dy ?? 0) + (p.y - d.grabY) / z);
       d.grabX = p.x; d.grabY = p.y;
       refreshControls(); buildPoseList(); render();
       return;
@@ -5632,8 +5719,12 @@ async function boot() {
     // Read-only, and here for the same reason the flag predicates are: a
     // draggable shape drawn on a canvas has no DOM for a test to grab, so
     // without this a smoke can only click at coordinates it guessed.
-    /** The spawn crosshair's place on the canvas, for the same reason. */
+    /** The spawn crosshair and the drawing's own handle, for the same reason. */
     spawnPoint: () => (isOther(state.char) ? spawnHome() : null),
+    drawingPoint: () => {
+      const v = isOther(state.char) ? sharedView() : null;
+      return v ? drawingHome(v) : null;
+    },
     hitGeometry() {
       const v = isOther(state.char) ? sharedView() : null;
       if (!v?.hit || v.hit.shape !== "circle" || v.hit.melee) return null;
