@@ -86,6 +86,7 @@ export function makeModels() {
     const beat = typeof delay === "number" && f.action.anim === f.animKey ? delay : undefined;
     const posed = adapter.poseInstance(inst, charKey, f.animKey, f.animTime, {
       facing: f.facingVis, aim, x: f.x, chestY: f.y - onScreenPx * COM_FRAC, beat,
+      prevAnim: f.prevAnim,
     });
     if (!posed) return false;
 

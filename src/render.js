@@ -561,6 +561,9 @@ function drawFighters(ctx, { bodies = true } = {}) {
         // the state table's beat is one global number). animTime and the
         // action run on the same clock — beginAction rewinds both.
         beat: actionBeat(f),
+        // Where the current state was cut from (fighter.js setAnim), for
+        // backends that cross-fade a state change instead of snapping.
+        prevAnim: f.prevAnim,
         alpha: flicker ? 0.6 : 1,
         rotation: m.rotation,
         scaleX: m.scaleX,

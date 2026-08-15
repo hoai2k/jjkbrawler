@@ -138,6 +138,28 @@ function beatOverride(animKey, opts) {
   return Math.min(Math.round(b * 1000) / 1000, spec.duration - 0.02);
 }
 
+/** The cross-fade layer for this draw, or null. `opts.prevAnim` says where
+ *  the current state was cut from (fighter.js setAnim); inside the fade
+ *  window the outgoing pose is solved at its frozen playhead and the new
+ *  pose blended toward it (pose.poseRig). The fraction is quantised to
+ *  quarters of the window so at most four extra tokens exist per transition;
+ *  impact states are exempt — there the cut IS the read. */
+function blendLayer(charKey, animKey, animTime, opts) {
+  const D = pose.DIALS;
+  const prev = opts.prevAnim;
+  if (!D.blend || !prev?.key) return null;
+  if (pose.NO_BLEND_IN.has(clipNameFor(animKey))) return null;
+  if (!(animTime >= 0 && animTime < D.blendTime)) return null;
+  const resolved = rigs.resolveClip(charKey, prev.key);
+  if (!resolved) return null;
+  const prevSampled = pose.sampleTime(prev.key, prev.t);
+  // The same clip at the same playhead is not a cut (an alias handover).
+  if (clipNameFor(prev.key) === clipNameFor(animKey)
+      && Math.abs(prevSampled - pose.sampleTime(animKey, animTime)) < 1e-3) return null;
+  const k = Math.min(0.75, Math.round((animTime / D.blendTime) * 4) / 4);
+  return { key: prev.key, sampled: prevSampled, clip: resolved.clip, k };
+}
+
 /** The live layers for this draw, every one quantised so it joins the pose
  *  cache key without exploding it (pose.js documents each dial). */
 function liveLayers(charKey, animKey, x, y, opts) {
@@ -229,6 +251,7 @@ export const scene3d = {
     pose.poseRig(inst, animKey, pose.sampleTime(animKey, animTime, beat), resolved.clip, {
       charKey,
       beat,
+      blend: blendLayer(charKey, animKey, animTime, opts),
       aimRad: D.aim && aimable(animKey) ? pitch : 0,
       reach: solved ? { dx: solved.dx, dy: solved.dy, targetPx } : null,
       lookRad: D.lookAt && pose.LOOK_STATES.has(clipNameFor(animKey)) ? pitch : 0,
@@ -268,6 +291,7 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
   const animTime = parseFloat(t);
   try {
     const layers = liveLayers(charKey, animKey, x, y, opts);
+    layers.blend = blendLayer(charKey, animKey, animTime, opts);
     const rig = rigs.getRig(charKey);
     const resolved = rigs.resolveClip(charKey, animKey);
     const entry = scene.renderPose(charKey, animKey, animTime, rig, resolved, layers);

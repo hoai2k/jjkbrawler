@@ -343,6 +343,13 @@ export function poseToken(charKey, animKey, animTime, layers) {
   // ramps, so it is part of the pose. Moves' delays are a small discrete set
   // per character, so the key stays dense.
   const bt = layers.beat ? `~k${Math.round(layers.beat * 1000)}` : "";
+  // The cross-fade: the outgoing clip, its frozen playhead, and the fade
+  // step. Quantised to quarters by the backend, so a transition adds at most
+  // four tokens — and blended frames are different pixels, so a cache that
+  // ignored them would serve the finished pose for the whole fade.
+  const bl = layers.blend
+    ? `~B${clipNameFor(layers.blend.key)}@${Math.round(layers.blend.sampled * 720)}k${Math.round(layers.blend.k * 4)}`
+    : "";
   const aim = aimable(animKey) && layers.aimRad ? `~a${Math.round((layers.aimRad * 180) / Math.PI)}` : "";
   const look = layers.lookRad ? `~l${Math.round((layers.lookRad * 180) / Math.PI)}` : "";
   const fl = layers.flinch ? `~f${layers.flinch}` : "";
@@ -374,7 +381,7 @@ export function poseToken(charKey, animKey, animTime, layers) {
   // from, and with the other rig check.
   const rc = layers.rigCheck ? `~C${layers.rigCheck}` : "";
   const orb = orbitKey();
-  return `${charKey}/${clipNameFor(animKey)}@${q}${bt}${aim}${look}${fl}${turn}${rch}${par}${st}${ed}${mq}${rc}`
+  return `${charKey}/${clipNameFor(animKey)}@${q}${bt}${bl}${aim}${look}${fl}${turn}${rch}${par}${st}${ed}${mq}${rc}`
     + `${orb ? `~o${orb}` : ""}~L${lightKey()}`;
 }
 
