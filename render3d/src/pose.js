@@ -60,13 +60,13 @@ export const DIALS = {
 
 /** States whose head may track the opponent. Never during attacks — the
  *  clip owns the head then. */
-export const LOOK_STATES = new Set(["idle", "run", "charge"]);
+export const LOOK_STATES = new Set(["idle", "walk", "run", "charge"]);
 
 /** States that flinch away from the hit's direction. */
 export const FLINCH_STATES = new Set(["hurt", "dizzy", "prone"]);
 
 /** Grounded states the foot IK may touch. */
-const PLANT_STATES = new Set(["idle", "run", "crouch", "shield", "charge", "dizzy", "win", "land"]);
+const PLANT_STATES = new Set(["idle", "walk", "run", "crouch", "shield", "charge", "dizzy", "win", "land"]);
 
 /** Breathing holds: alive without clips baking breath (which would double
  *  motion.js's bob — the delivery rule). */
@@ -75,14 +75,21 @@ const BREATH_STATES = new Set(["idle", "crouch", "shield"]);
 const DEG = Math.PI / 180;
 
 /** Clip time for a state, stepped on twos. The contact beat is always a
- *  sampled frame. Returns seconds into the clip. */
-export function sampleTime(animKey, animTime) {
+ *  sampled frame. Returns seconds into the clip.
+ *
+ *  `beatOverride` replaces the state table's contact instant with the MOVE's
+ *  own: the table's `beat` is one number per state derived from sprite fps,
+ *  while the hitbox goes live at `move.delay` — per move (an up-tilt and an
+ *  up-smash share the upHeavy clip at different startups) and speed-scaled
+ *  per character. The game passes the delay through (render.js -> backend
+ *  `layers.beat`) so full extension shows the instant the hitbox turns on. */
+export function sampleTime(animKey, animTime, beatOverride) {
   const t = clipTime(animKey, animTime);
   const name = clipNameFor(animKey);
   if (!DIALS.onTwos || DIALS.onOnesStates.has(name)) return t;
   const q = 1 / DIALS.sampleHz;
   let s = Math.floor(t / q) * q;
-  const beat = STATES[name]?.beat;
+  const beat = beatOverride ?? STATES[name]?.beat;
   if (beat !== undefined && t >= beat && s < beat) s = beat;
   return s;
 }
@@ -254,7 +261,12 @@ function facingYaw(rig, animKey, layers) {
   const want = pinned !== undefined && clipNameFor(animKey) !== "idle"
     ? (pinned * Math.PI) / 180
     : alpha;
-  return base + ((left ? -want : want) - alpha);
+  // `facingK` is the facing SWEEP (backend.js quantises fighter.js's
+  // facingVis): ±1 at rest, passing through 0 mid-turn, so a turnaround is a
+  // few frames of the body re-aiming through the lens instead of a snap.
+  // Callers without the sweep fall back to the sign, the old behaviour.
+  const k = layers.facingK ?? (left ? -1 : 1);
+  return base + (want * k - alpha);
 }
 
 /** How far a relaxed arm hangs from straight down, in degrees, for a fighter
@@ -471,10 +483,15 @@ function applyPoseEdits(root, edits) {
  * air and stays where the clip puts it — a jump that touches the floor is a
  * worse lie than one that hovers.
  */
+// CLIP names (post-alias, like every set here): standOnGround tests
+// clipNameFor(animKey), so aliased states are covered by the clip they play
+// (grabReach→light, grabbed→hurt, ...) and a raw state name that is not a
+// clip name would never match.
 const GROUNDED = new Set([
-  "idle", "run", "crouch", "shield", "charge", "dizzy", "win", "land",
-  "light", "heavy", "sideHeavy", "upHeavy", "downHeavy", "crouchAttack",
-  "grab", "grabbed", "hurt", "prone", "dash", "special",
+  "idle", "walk", "run", "crouch", "shield", "charge", "dizzy", "win", "land",
+  "light", "sideHeavy", "upHeavy", "downHeavy", "crouchAttack",
+  "hurt", "prone", "dash",
+  "specialNeutral", "specialSide", "specialDown",
 ]);
 
 /** Each rig's armature node and where it sits in the bind, so the ground drop
@@ -932,7 +949,7 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
   levelFeet(rig, animKey);
   // Body morphs (Mahito's transfiguration arms) precede aim/reach so every
   // solve sees the morphed limb.
-  if (layers.charKey) applyMorphs(rig.root, layers.charKey, animKey, clipTime(animKey, sampled));
+  if (layers.charKey) applyMorphs(rig.root, layers.charKey, animKey, clipTime(animKey, sampled), layers.beat);
   applyPoseEdits(rig.root, layers.edits);
   if (DIALS.aim && layers.aimRad && aimable(animKey)) applyAim(rig.root, layers.aimRad);
   applyMachineReach(rig, animKey, sampled, layers);
@@ -945,7 +962,7 @@ export function poseRig(rig, animKey, sampled, clip, layers = {}) {
     // solve and the carry below want it already corrected.
     applyGrip(THREE, rig.root, layers.charKey, _ik);
     applyTwoHandGrip(THREE, rig.root, layers.charKey, animKey,
-      clipTime(animKey, sampled), _ik);
+      clipTime(animKey, sampled), _ik, layers.beat);
     // ...and while TRAVELLING, the weapon is luggage rather than a statement:
     // heavy end trailing, low and behind (ik.js applyCarry). After the grip
     // solve, which is a no-op in these states anyway, so the two never argue.
@@ -1018,7 +1035,7 @@ function applyMachineReach(rig, animKey, sampled, layers) {
   // a camera-relative direction. Building the card's target the rig-relative
   // way put the striking hand 30° off.
   if (DIALS.reach && layers.reachTarget && reaches(animKey)) {
-    applyReach(THREE, rig.root, animKey, clipTime(animKey, sampled), layers.reachTarget, _ik);
+    applyReach(THREE, rig.root, animKey, clipTime(animKey, sampled), layers.reachTarget, _ik, layers.beat);
     return;
   }
   const reach = layers.reach;
@@ -1028,5 +1045,5 @@ function applyMachineReach(rig, animKey, sampled, layers) {
   const mPerPx = rig.height / targetPx;
   _reachTarget.set(0, (reach.dy || 0) * mPerPx, (reach.dx || 0) * mPerPx);
   rig.root.localToWorld(_reachTarget);
-  applyReach(THREE, rig.root, animKey, clipTime(animKey, sampled), _reachTarget, _ik);
+  applyReach(THREE, rig.root, animKey, clipTime(animKey, sampled), _reachTarget, _ik, layers.beat);
 }

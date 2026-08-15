@@ -38,16 +38,33 @@ void main() {
     // vertex color R tapers the line: 0.5 = nominal, 1.0 = double, 0 = gone
     w *= color.r * 2.0;
   #endif
+  #if defined( OUTLINE_CUTOUT )
+    vCutoutUv = uv;
+  #endif
   vec3 transformed = position + normalize( objectNormal ) * w;
   #include <skinning_vertex>
   gl_Position = projectionMatrix * modelViewMatrix * vec4( transformed, 1.0 );
 }
 `;
 
+const VERT_CUTOUT_PARS = /* glsl */ `
+varying vec2 vCutoutUv;
+`;
+
 const FRAG = /* glsl */ `
 uniform vec3 uColor;
 uniform float uOpacity;
+#if defined( OUTLINE_CUTOUT )
+  // The body material cuts holes with alphaTest (hair cards, lash planes); a
+  // shell that ignored that drew a solid slab of ink behind every cutout.
+  uniform sampler2D uCutoutMap;
+  uniform float uCutoutTest;
+  varying vec2 vCutoutUv;
+#endif
 void main() {
+  #if defined( OUTLINE_CUTOUT )
+    if ( texture2D( uCutoutMap, vCutoutUv ).a < uCutoutTest ) discard;
+  #endif
   gl_FragColor = vec4( uColor, uOpacity );
 }
 `;
@@ -55,15 +72,28 @@ void main() {
 function makeOutlineMaterial(THREE, mesh) {
   const geo = mesh.geometry;
   const hasWidthChannel = !!geo?.attributes?.color;
+  // Runs AFTER toon conversion (loader.js order), so the body material's
+  // alphaTest/map are whatever survives to the screen.
+  const body = mesh.material;
+  const cutout = (body?.alphaTest ?? 0) > 0 && !!body?.map && !!geo?.attributes?.uv;
+  const uniforms = {
+    uWidth: { value: 0.01 }, // world units; scene.js sets the real value per render
+    uColor: { value: new THREE.Color(...OUTLINE.color) },
+    uOpacity: { value: OUTLINE.opacity },
+  };
+  if (cutout) {
+    uniforms.uCutoutMap = { value: body.map };
+    uniforms.uCutoutTest = { value: body.alphaTest };
+  }
   const mat = new THREE.ShaderMaterial({
-    vertexShader: VERT,
+    vertexShader: cutout ? VERT_CUTOUT_PARS + VERT : VERT,
     fragmentShader: FRAG,
-    uniforms: {
-      uWidth: { value: 0.01 }, // world units; scene.js sets the real value per render
-      uColor: { value: new THREE.Color(...OUTLINE.color) },
-      uOpacity: { value: OUTLINE.opacity },
-    },
+    defines: cutout ? { OUTLINE_CUTOUT: "" } : {},
+    uniforms,
     side: THREE.BackSide,
+    // The opacity dial only blends when the material is transparent; a
+    // ShaderMaterial never flips that on by itself. setOutline keeps it live.
+    transparent: OUTLINE.opacity < 1,
     // vertexColors makes three declare the `color` attribute (vec3 or vec4)
     // and define USE_COLOR / USE_COLOR_ALPHA to match the geometry.
     vertexColors: hasWidthChannel,
@@ -115,7 +145,10 @@ export function setOutline(partial) {
   Object.assign(OUTLINE, partial);
   for (const mat of LIVE) {
     if (partial.color) mat.uniforms.uColor.value.setRGB(...partial.color);
-    if (partial.opacity !== undefined) mat.uniforms.uOpacity.value = partial.opacity;
+    if (partial.opacity !== undefined) {
+      mat.uniforms.uOpacity.value = partial.opacity;
+      mat.transparent = partial.opacity < 1;
+    }
     // px takes effect on the next render via setWorldWidth
   }
 }
