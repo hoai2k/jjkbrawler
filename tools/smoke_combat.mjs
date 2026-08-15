@@ -221,6 +221,13 @@ for (const s of samples) {
   for (const f of s.fighters) {
     const wr = f.box.w / f.want.width;
     const hr = f.box.h / f.want.height;
+    // A body drawn FLAT — prone on the floor, or spun horizontal in a tumble
+    // (combat.js hurtbox) — is legitimately body-LENGTH wide and knee-high:
+    // its width is a fraction of the fighter's HEIGHT, not their standing
+    // width. Admit exactly that shape (low, and no longer than the body) so
+    // the bound still catches a box that is simply wrong-sized.
+    const flat = hr <= 0.30 && f.box.w <= f.want.height * 0.70 && wr >= 0.55;
+    if (flat) continue;
     if (wr < 0.55 || wr > 1.25 || hr > 0.95) {
       offenders.push(`${f.charKey} as ${f.drawn} `
         + `${Math.round(f.box.w)}x${Math.round(f.box.h)} `

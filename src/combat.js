@@ -714,6 +714,37 @@ function pushStale(owner, id) {
   if (owner.recentMoves.length > STALE_QUEUE) owner.recentMoves.shift();
 }
 
+/**
+ * Where a hit visibly lands, for the impact FX.
+ *
+ * Melee: the seam between the swing's live rect and the victim's hurtbox —
+ * x at the middle of their overlap, y at the ATTACKER's arm height clamped
+ * into it (the swing rect is deliberately generous downward so it catches a
+ * croucher, and the overlap's own midpoint would put every spark at the
+ * waist). Projectiles: the shot's centre clamped into the box. Script hits
+ * (ultimate set pieces) keep the old victim-centre offsets — their shapes
+ * are ad hoc and their FX are usually the set piece itself.
+ */
+function contactPoint(owner, target, hit, source, dir) {
+  const box = hurtbox(target);
+  if (source === "projectile" && hit.x != null && hit.r != null) {
+    return {
+      x: clamp(hit.x, box.x, box.x + box.w),
+      y: clamp(hit.y, box.y, box.y + box.h),
+    };
+  }
+  if (source === "melee" && hit.owner === owner && hit.ox != null && hit.dur != null) {
+    const r = hitboxRect(hit);
+    const x0 = Math.max(r.x, box.x), x1 = Math.min(r.x + r.w, box.x + box.w);
+    const y0 = Math.max(r.y, box.y), y1 = Math.min(r.y + r.h, box.y + box.h);
+    if (x1 > x0 && y1 > y0) {
+      const armY = owner.y - bodyMetrics(owner.spriteChar || owner.charKey).height * 0.55;
+      return { x: (x0 + x1) / 2, y: clamp(armY, y0, y1) };
+    }
+  }
+  return { x: target.x + dir * -14, y: target.y - 96 };
+}
+
 export function applyHit(owner, target, hit, source) {
   // The one gate every damage path funnels through, so friendly fire is off in
   // a team match no matter which kit spawned the hit (teams.js).
@@ -979,9 +1010,13 @@ export function applyHit(owner, target, hit, source) {
   rumbleFighter(owner, rStrong * RUMBLE.attackerEcho, rStrong * 0.4, RUMBLE.hitTime);
 
   // presentation — element-aware: a magma hit burns, a blade hit glints, and
-  // a kit with no fxElement tags draws exactly the old theme burst.
-  const hx = target.x + dir * -14;
-  const hy = target.y - 96;
+  // a kit with no fxElement tags draws exactly the old theme burst. Placed at
+  // the CONTACT POINT — where what hit overlaps what was hit — rather than a
+  // fixed offset from the victim's centre, which parked every spark at the
+  // same spot on the body regardless of where the fist visibly was.
+  const cp = contactPoint(owner, target, hit, source, dir);
+  const hx = cp.x;
+  const hy = cp.y;
   const fxEl = elementOf(hit, owner);
   hitFx(fxEl, hx, hy, dir, dmg, owner.char.theme);
   // The element's own sound, layered quietly under the hit sound, louder with
