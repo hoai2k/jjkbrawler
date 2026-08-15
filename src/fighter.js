@@ -15,7 +15,7 @@ import {
   SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
   DASH_MULT, ACTION_BUFFER, AERIAL_LAND_LAG_MULT, AERIAL_LAND_LAG_MIN, SHIELD_MAX, SHIELD_DRAIN, SHIELD_REGEN, ROLL_TIME, ROLL_DIST,
   SPOT_DODGE_TIME, AIR_DODGE_TIME, DODGE_STALE_WINDOW, METER_MAX, METER_PASSIVE,
-  RUN_TILT, WALK_MIN, WALK_MAX, MOVE_DEADZONE,
+  RUN_TILT, WALK_MIN, WALK_MAX, MOVE_DEADZONE, LUNGE_DRAG,
   ULT_METER_COST, DOMAIN_METER_COST,
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
   LEDGE_CLIMB_TIME, LEDGE_ROLL_TIME, LEDGE_ATTACK_TIME,
@@ -593,7 +593,14 @@ function standMargin(plat) {
  * end is a move with a cost, not an accident.
  */
 function brakeAtLedge(f, input) {
-  if (!f.wasGrounded || f.hitstun > 0 || f.action || f.ledge || f.dead) return;
+  if (!f.wasGrounded || f.hitstun > 0 || f.ledge || f.dead) return;
+  // Committed actions are exempt — a dash attack whose slide carries its owner
+  // off the end is a move with a cost, and the roll and the dash grab both
+  // spend momentum the player built themselves. A LUNGE is not that: the move
+  // chooses the speed and the direction, holds the player still for it, and was
+  // by far the commonest way anyone left a platform without deciding to. It
+  // brakes like anything else, and holding the direction still takes it over.
+  if (f.action && !f.action.lunge) return;
   const plat = f.currentPlatform;
   if (!plat || plat.ghost) return;
   const dir = Math.sign(f.vx);
@@ -1319,8 +1326,13 @@ export function updateFighter(f, dt, input) {
   } else if (inHitstun) {
     f.vx *= Math.pow(0.988, dt * 60);
   } else if (f.grounded && !f.action?.keepMomentum) {
-    // locked ground action (attack/special lunge): momentum carries but decays
-    f.vx *= Math.pow(friction, dt * 40);
+    // A locked ground action. A LUNGE gets its own, much gentler drag: it is
+    // the one action that sets a big velocity and then holds the fighter still
+    // for half a second, so at the ordinary rate it would die in three frames
+    // and at no rate at all it slid the width of a quarter of the stage at a
+    // flat 520 px/s before stopping dead. Decaying is what makes it read as a
+    // lunge that ran out rather than a fighter being dragged.
+    f.vx *= Math.pow(friction, dt * (f.action?.lunge ? LUNGE_DRAG : 40));
     if (Math.abs(f.vx) < 8) f.vx = 0;
   }
 

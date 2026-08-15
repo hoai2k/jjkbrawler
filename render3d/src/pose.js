@@ -206,7 +206,27 @@ const CAMERA_YAW_RAD = (-60 * Math.PI) / 180;
  *  turnaround constant — for a body with no measurable hip axis. */
 function facingYaw(rig, animKey, layers) {
   const base = rig.yawOffset || 0;
-  const left = !!layers.turnYawRad;
+  // THE PRESENTATION MIRROR IS THE FLAT BLIT'S, and only the flat blit's.
+  //
+  // There, the ¾ comes from the LENS — the offscreen camera sits at −60° and
+  // the fighter stands where their delivery leaves them — so facing left has
+  // to be built by re-aiming the body, and how far to turn it depends on the
+  // angle that body happens to present at. That is what everything below
+  // measures.
+  //
+  // In a real scene the camera is head-on and the ¾ comes from the FIGHTER:
+  // `scene.sceneFacingYaw` yaws them ±¾, which is a mirror already, exactly
+  // and by construction. Re-aiming on top of it mirrors twice — and worse,
+  // mirrors about an angle measured against a camera that is not the one
+  // looking. So the scene keeps its own turn.
+  //
+  // It also has to be ASKED for rather than inferred. This used to read
+  // "facing left" as "the turn yaw is non-zero", which is true in the flat
+  // path and true of BOTH directions in the scene — so every fighter there
+  // faced left in every locomotion state while their attacks still turned
+  // correctly, which is exactly what it looked like.
+  if (!layers.presentMirror) return (layers.turnYawRad || 0) + base;
+  const left = (layers.facing ?? 1) < 0;
   // LOCOMOTION ONLY, and the boundary is load-bearing.
   //
   // The mirror is computed for the BODY's axis — measured off the hips, which

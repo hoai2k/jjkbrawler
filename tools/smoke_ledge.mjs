@@ -82,6 +82,86 @@ try {
 
     const out = {};
 
+    // 0. A LUNGE IS BRAKED LIKE ANYTHING ELSE — and this runs FIRST, because
+    //    it is the one check here that needs a fighter in ordinary standing
+    //    condition. Run after the ledge checks it inherited a fighter who
+    //    would not land for sixty frames, and a lunge in the air has no ground
+    //    friction to drag it and no brake to stop it, so it passed for the
+    //    wrong reason and then failed for the right one.
+    //
+    //    `dashStrike` specials set their own velocity and lock movement for `dashStrike` specials set
+    //    half a second, so the player picks neither the speed nor the moment
+    //    it ends — and until the brake covered them they were far and away the
+    //    commonest way anyone left a platform without deciding to. Holding the
+    //    direction still takes it over, exactly as a run does.
+    {
+      const { performSpecial } = await import("/src/specials.js");
+      const { CHARACTERS, getActor } = await import("/src/characters.js");
+      const lungeKey = Object.keys(CHARACTERS).find((k) =>
+        ["neutral", "side", "down"].some((sl) =>
+          CHARACTERS[k].specials?.[sl]?.type === "dashStrike"));
+      const lungeSlot = lungeKey && ["neutral", "side", "down"].find(
+        (sl) => CHARACTERS[lungeKey].specials[sl].type === "dashStrike");
+      out.lungeChar = lungeKey || null;
+      if (lungeKey) {
+        // Borrowed, and given back: every check below is Gojo's, and leaving
+        // the fighter as somebody else changed their speed, friction and reach
+        // under the rest of the file.
+        const ownKey = a.charKey;
+        const ownChar = a.char;
+        const cast = (input) => {
+          reset(60);
+          a.charKey = lungeKey;
+          a.char = getActor(lungeKey) || CHARACTERS[lungeKey];
+          Object.assign(a, {
+            specialCd: {}, cooldowns: {}, meter: 100, ledgeMove: null,
+            ledgeGrabs: 0, stocks: 99, respawnTimer: 0, respawnPlat: null,
+            charging: null, dropTimer: 0, landLag: 0, airT: 0, shielding: false,
+          });
+          // LAND them rather than declaring them landed. Setting grounded
+          // true and y to the deck did not survive the state the checks above
+          // leave behind — the fighter stayed airborne, and a lunge in the air
+          // has no ground friction to drag it and no brake to stop it, so the
+          // trace read as a pass for entirely the wrong reason. Dropping onto
+          // the platform is the path the game itself uses.
+          Object.assign(a, { y: main.y - 6, vy: 60, grounded: false });
+          for (let i = 0; i < 60 && !a.grounded; i++) updateFighter(a, dt, blankInput());
+          settle(2, blankInput());
+          // AFTER settling: a fighter standing still turns to face the
+          // opponent, and this one is parked far to the left, so the lunge
+          // fired backwards into open stage and the check passed on a fighter
+          // who never went near the lip.
+          a.facing = 1;
+          const stocks0 = a.stocks;
+          const wasStanding = a.grounded;
+          performSpecial(a, lungeSlot);
+          const fired = !!a.action;
+          // Only as long as the action, plus the slide it leaves: running on
+          // past that lets a respawn move the fighter and read as a pass.
+          // Only as long as the action, plus the slide it leaves: running on
+          // past that lets a respawn move the fighter and read as a pass.
+          for (let i = 0; i < 90 && (a.action || Math.abs(a.vx) > 2); i++) {
+            updateFighter(a, dt, input);
+          }
+          return {
+            grounded: a.grounded, past: +(a.x - edge).toFixed(1),
+            lost: stocks0 - a.stocks, cast: fired, stood: wasStanding,
+            vx: Math.round(a.vx),
+          };
+        };
+        const loose = cast(blankInput());
+        const held = cast(IN({ right: true, dirX: 1, moveX: 1 }));
+        a.charKey = ownKey;
+        a.char = ownChar;
+        out.lungeStopped = loose.stood && loose.cast && loose.grounded
+          && loose.lost === 0 && loose.past <= 30;
+        out.lungePast = loose.past;
+        out.lungeLost = loose.lost;
+        out.lungeHeldLeft = held.stood && held.cast && !held.grounded;
+      }
+    }
+
+
     // 1. Dash at the edge, then LET GO. The slide must stop on the platform.
     //    Started INSIDE the un-braked stopping distance on purpose: a single
     //    dash flick used to need 42px of runway and this begins with 20, so
@@ -330,6 +410,12 @@ try {
   check(r.groundedResets === 0,
     "...and touching the ground is the only thing that clears it",
     `ledgeGrabs=${r.groundedResets} after landing`);
+  check(r.lungeChar && r.lungeStopped,
+    "a special's lunge stops at the lip instead of carrying you off",
+    `${r.lungeChar} stopped ${r.lungePast}px past the lip, ${r.lungeLost} stock(s) lost`);
+  check(r.lungeHeldLeft,
+    "...but lunging with the direction held still goes over",
+    `grounded=${!r.lungeHeldLeft}`);
   check(r.teeterAnim === "teeter" && r.teeterGrounded,
     "stopping on the lip draws the teeter",
     `anim=${r.teeterAnim} dir=${r.teeterDir} grounded=${r.teeterGrounded}`);
