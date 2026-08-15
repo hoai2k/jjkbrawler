@@ -52,7 +52,15 @@ export function firingUse(spriteKey) {
     const c = CHARACTERS[charKey];
     for (const [slot, spec] of Object.entries(c?.specials || {})) {
       const p = spec?.p;
-      if (!p || p.sprite !== spriteKey) continue;
+      // `sprite` names the one drawing a move throws; `spritePool` names four
+      // it picks between, one per shot — Geto's volley throws a random cursed
+      // spirit. Both are thrown by the same handler from the same muzzle, so
+      // both have an action to play, and only the first was being offered one:
+      // all four curses had the Play button greyed out with no way to see how
+      // they are used. `sprites` stays out — that is a creature's stand-in
+      // stack, and a creature is not fired.
+      const inPool = Array.isArray(p?.spritePool) && p.spritePool.includes(spriteKey);
+      if (!p || (p.sprite !== spriteKey && !inPool)) continue;
       if (spec.type && spec.type !== "projectile") continue;
       // The point the game will really spawn from: this fighter's hand in the
       // pose this move plays, plus whatever the move asks for beyond the

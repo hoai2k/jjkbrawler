@@ -63976,8 +63976,8 @@
     "sha": "87ac42d36885"
    },
    "hit": {
-    "dx": -106.6,
-    "dy": -33.7,
+    "dx": -53.7,
+    "dy": 13.1,
     "scale": 1.178
    }
   },
@@ -64086,10 +64086,23 @@
   "effect:curse_a": {
    "edited": {
     "dx": null,
-    "dy": null
+    "dy": null,
+    "renderScale": null,
+    "faceLeft": null
    },
-   "dx": -10.9,
-   "dy": -2.1
+   "dx": -11.9,
+   "dy": -2.2,
+   "renderScale": 0.685,
+   "faceLeft": true,
+   "hit": {
+    "dx": -0.6,
+    "dy": 3.0,
+    "scale": 1.072
+   },
+   "src": {
+    "file": "assets/sprites/effects/curse_a.png",
+    "sha": "58ac7634972c"
+   }
   },
   "effect:curse_c": {
    "edited": {
@@ -64132,8 +64145,12 @@
     "dx": null,
     "dy": null
    },
-   "dx": -0.4,
-   "dy": -2.3
+   "dx": -2.8,
+   "dy": 9.9,
+   "src": {
+    "file": "assets/sprites/effects/concert_wave.png",
+    "sha": "684987b95d32"
+   }
   },
   "effect:divergent_shock": {
    "edited": {
@@ -64189,12 +64206,17 @@
     "dy": null,
     "faceLeft": null
    },
-   "dx": -51.7,
-   "dy": -4.9,
+   "dx": -95.3,
+   "dy": -37,
    "faceLeft": true,
    "src": {
     "file": "assets/sprites/effects/sound_wave.png",
     "sha": "5610e9199467"
+   },
+   "hit": {
+    "dx": -0.7,
+    "dy": 3.5,
+    "scale": 1
    }
   },
   "effect:tempest": {

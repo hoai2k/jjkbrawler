@@ -160,9 +160,18 @@ function scaleOf(key) {
  * nudging the picture fixes that — nudging it moves the water off the point
  * instead. The collision needs to move to the water.
  *
- *   dx, dy  the centre, offset from the projectile's own position in game px.
- *           `dx` is FORWARD along the way it is travelling, so it mirrors with
- *           the shot exactly as the drawing does; `dy` is down.
+ *   dx, dy  the centre, offset from THE PICTURE in game px — not from the shot's
+ *           own position. `dx` is FORWARD along the way it is travelling, so it
+ *           mirrors with the drawing exactly as the drawing does; `dy` is down.
+ *
+ *           Measured from the picture because of what this is FOR: naming the
+ *           part of the drawing that does the damage. That part does not move
+ *           when the picture is nudged into place, so the number describing it
+ *           should not have to be re-entered every time — which is exactly what
+ *           storing it against the spawn point required.
+ *
+ *           A drawing nobody has placed keeps the circle on the shot's own
+ *           position, unchanged. See `placed` below.
  *   scale   a multiplier on whatever the kit declares — `r` for a circle. The
  *           kit still owns the number, because how far a move reaches is
  *           balance; this is the correction for art whose dense part is a
@@ -173,12 +182,27 @@ function scaleOf(key) {
  * gets one answer, which is the same bargain `renderScale` already makes.
  */
 export function sharedHit(key) {
-  const h = entryOf(key)?.hit;
+  const e = entryOf(key);
+  const h = e?.hit;
   const n = (v, d) => (Number.isFinite(v) ? v : d);
+  const scale = h && Number.isFinite(h.scale) && h.scale > 0 ? h.scale : 1;
+  // NOT PLACED: the circle stays exactly on the shot's own position, which is
+  // where it has always been and where it belongs for most art. A lance is the
+  // case that settles it — `dx` slides the long plate so its business end meets
+  // the collision point, and a circle that followed the picture's centre would
+  // land halfway down the shaft. So an untouched drawing changes nothing.
+  if (!h) return { dx: 0, dy: 0, scale: 1, placed: false, ownDx: 0, ownDy: 0 };
+  // PLACED: the offset is measured from the PICTURE, and resolved back to the
+  // shot's position by adding the picture's own. That is what makes moving the
+  // art carry the collision with it — you place the circle on the part of the
+  // drawing that should hurt, once, and it stays on that part wherever the
+  // drawing goes. Storing it against the spawn point instead meant re-placing
+  // it after every nudge, which is what it was doing.
+  const ownDx = n(h.dx, 0), ownDy = n(h.dy, 0);
   return {
-    dx: n(h?.dx, 0),
-    dy: n(h?.dy, 0),
-    scale: h && Number.isFinite(h.scale) && h.scale > 0 ? h.scale : 1,
+    dx: n(e.dx, 0) + ownDx,
+    dy: n(e.dy, 0) + ownDy,
+    scale, placed: true, ownDx, ownDy,
   };
 }
 
@@ -721,7 +745,18 @@ function buildRegistry() {
         h = bodyH ?? 110;
         what = "the creature's height on stage (its kit's own `h`)";
       }
-      for (const key of node[field]) put(key, { h, anchor: drawnBy, owner: who, hit, what, ...nudge });
+      // The LAUNCH belongs to these as much as to a `sprite`, and leaving it off
+      // was why Geto's four volley curses had a spawn crosshair floating in the
+      // middle of the canvas with nothing to be relative to. They are thrown by
+      // the same handler at the same muzzle — `spritePool` only decides WHICH
+      // of the four this shot happens to draw — so the point is the move's, not
+      // the field's. Guarded on the field having a launch at all, which keeps a
+      // creature's `sprites` list (a stand-in stack, not a thrown thing) out.
+      const listLaunch = field === "spritePool" && launch && launch(node)
+        ? { launch: { ...launch(node), anim: SLOT_ANIM[slot] || null } } : {};
+      for (const key of node[field]) {
+        put(key, { h, anchor: drawnBy, owner: who, hit, what, ...nudge, ...listLaunch });
+      }
     }
     for (const value of Object.values(node)) {
       if (value && typeof value === "object") {

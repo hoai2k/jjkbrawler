@@ -2294,7 +2294,15 @@ function setSharedHit(key, hit, start) {
   if (start) pushHistory(OTHER_KEY, key);
   const meta = rawMeta(OTHER_KEY, key);
   if (!meta) return;
-  const empty = !hit.dx && !hit.dy && (hit.scale === 1 || hit.scale === undefined);
+  // ZERO IS A DECISION NOW, not an absence. No entry means "the circle sits on
+  // the shot's own position"; `{0, 0, 1}` means "the circle sits on the
+  // picture" — and those are different places the moment the picture has been
+  // nudged anywhere. Dropping the entry at zero would have snapped the circle
+  // off the art and back onto the spawn point. It is only really empty when the
+  // drawing has no offset either, so the two readings coincide.
+  const nudged = (meta.dx ?? 0) || (meta.dy ?? 0);
+  const empty = !hit.dx && !hit.dy && !nudged
+    && (hit.scale === 1 || hit.scale === undefined);
   if (empty) delete meta.hit;
   else meta.hit = { dx: hit.dx || 0, dy: hit.dy || 0, scale: hit.scale ?? 1 };
   refreshControls();
@@ -2387,12 +2395,13 @@ function drawSharedHit(v) {
     const r = hit.r * v.hitAdj.scale * z;
     ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
     ctx.fill(); ctx.stroke();
-    const moved = v.hitAdj.dx || v.hitAdj.dy;
     const sized = v.hitAdj.scale !== 1;
     label = `hit radius ${Math.round(hit.r * v.hitAdj.scale)}px`
       + (sized ? ` (${hit.r} × ${v.hitAdj.scale.toFixed(2)})` : "")
-      + (moved ? ` · moved ${v.hitAdj.dx}, ${v.hitAdj.dy} from the spawn point`
-               : " · on the spawn point");
+      + (!v.hitAdj.placed ? " · on the spawn point"
+         : (v.hitAdj.ownDx || v.hitAdj.ownDy)
+           ? ` · ${round1(v.hitAdj.ownDx)}, ${round1(v.hitAdj.ownDy)} from the drawing`
+           : " · on the drawing");
     topOf = c.y - r;
     // Both handles on the RIM — see hitHandles for why not the centre. The
     // shape's interior is draggable too, but a big circle makes that obvious
@@ -2409,13 +2418,15 @@ function drawSharedHit(v) {
       ctx.strokeStyle = "rgba(255, 226, 150, 0.95)";
       ctx.stroke();
     }
-    // A short tick from the circle's centre toward the spawn point whenever the
-    // two have parted, so "how far has this been moved, and from what" is
-    // readable without doing arithmetic on the numbers in the panel.
-    if (v.hitAdj.dx || v.hitAdj.dy) {
+    // A short tick from the circle's centre to WHAT IT IS MEASURED FROM — the
+    // picture once it has been placed, the spawn point until then — so "how far
+    // has this been moved, and from what" is readable without doing arithmetic
+    // on the numbers in the panel.
+    const from = v.hitAdj.placed ? drawingHome(v) : { x: px, y: py };
+    if (Math.hypot(c.x - from.x, c.y - from.y) > 2) {
       ctx.globalAlpha = 0.5;
       ctx.beginPath();
-      ctx.moveTo(c.x, c.y); ctx.lineTo(px, py);
+      ctx.moveTo(c.x, c.y); ctx.lineTo(from.x, from.y);
       ctx.stroke();
       ctx.globalAlpha = 1;
       ctx.beginPath();
@@ -2758,6 +2769,10 @@ function hitHandles(c, r) {
  *  it runs the same way the picture does on this canvas. */
 function hitCentreOnCanvas(v) {
   const sx = v.mirror ? -1 : 1;
+  // `hitAdj.dx/dy` is already resolved back to the spawn point by sharedHit —
+  // the picture's offset folded in — so this stays anchored on the crosshair
+  // and the circle nevertheless rides with the art. One arithmetic, in one
+  // place, and the workbench cannot disagree with the game about it.
   return { x: v.px + sx * v.hitAdj.dx * v.z, y: v.py + v.hitAdj.dy * v.z };
 }
 
@@ -5235,79 +5250,72 @@ async function boot() {
   canvas.addEventListener("pointerdown", (e) => {
     if (!state.frame) return;
     const p = eventToCanvas(e);
-    // Shared drawings have one handle and it is the spawn point. Dragging it
-    // moves the DRAWING under the point rather than moving the point, because
-    // the point is the game's and not ours — see drawSpawnPoint().
-    if (isOther(state.char) && canPlaceAttack(state.frame) && $("showHurtbox")?.checked) {
-      const b = attackBoxOnCanvas(state.frame);
-      const corner = b && Math.hypot(p.x - (b.x + b.w), p.y - (b.y + b.h)) <= HANDLE_R * 2.2;
-      const inside = b && p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h;
-      if (corner || inside) {
-        state.dragAttack = { mode: corner ? "size" : "move", grabX: p.x, grabY: p.y,
-                             box: attackBoxOf(state.frame), rect: b.rect, started: false };
+    // WHICH OF THE OVERLAPPING THINGS DID YOU MEAN.
+    //
+    // A shared drawing can have four grab targets and they legitimately sit on
+    // top of one another: the hit circle starts centred on the spawn crosshair,
+    // the drawing handle starts there too, and the circle's INTERIOR covers all
+    // of it. Every previous attempt here fixed one pair and broke another — the
+    // circle's centre swallowed the crosshair, then the circle's interior
+    // swallowed the drawing handle — because each was a special case rather
+    // than a rule.
+    //
+    // The rule: EXPLICIT MARKERS BEAT BULK AREA, and among markers the nearest
+    // wins. A marker is a thing drawn as a handle at a point; the bulk area is
+    // the circle's fill, which is a convenience for big shapes and must never
+    // outrank something somebody aimed at.
+    if (isOther(state.char)) {
+      const v = sharedView();
+      const showHit = $("showHurtbox")?.checked && v?.hit?.shape === "circle" && !v.hit.melee;
+      const c = showHit ? hitCentreOnCanvas(v) : null;
+      const r = showHit ? v.hit.r * v.hitAdj.scale * v.z : 0;
+      const rim = showHit ? hitHandles(c, r) : null;
+      const canOffset = !!sharedControls(state.frame)?.offset;
+
+      const markers = [];
+      if (rim) {
+        markers.push({ at: rim.move, take: "hit-move" });
+        markers.push({ at: rim.size, take: "hit-size" });
+      }
+      if (canOffset && v) {
+        markers.push({ at: spawnHome(), take: "spawn" });
+        markers.push({ at: drawingHome(v), take: "drawing" });
+      }
+      let best = null;
+      for (const m of markers) {
+        const d = Math.hypot(m.at.x - p.x, m.at.y - p.y);
+        if (d <= HANDLE_R * 2.4 && (!best || d < best.d)) best = { ...m, d };
+      }
+      // Nothing aimed at, but inside the circle: move the circle. Last, so it
+      // can never take a gesture meant for a handle sitting on top of it.
+      if (!best && showHit && Math.hypot(p.x - c.x, p.y - c.y) < r) best = { take: "hit-move" };
+
+      if (best?.take === "hit-move" || best?.take === "hit-size") {
+        state.dragHit = { mode: best.take === "hit-size" ? "size" : "move",
+                          grabX: p.x, grabY: p.y, hit: { ...v.hitAdj }, started: false };
         canvas.setPointerCapture(e.pointerId);
         e.preventDefault();
         return;
       }
-    }
-    // TWO POINTS THAT START ON TOP OF EACH OTHER, and both have to stay
-    // reachable. The hit circle is centred on the spawn point until somebody
-    // moves it, so a grab test that took the circle's CENTRE swallowed the
-    // spawn crosshair whole: the drawing could not be nudged at all until the
-    // circle had been dragged out of the way first, which is not an order
-    // anybody would guess.
-    //
-    // So the two are grabbed by different parts of themselves. The crosshair
-    // keeps the middle — it is the smaller, more precise target and the one
-    // that is there on every drawing. The circle is taken by its RIM to resize
-    // and by its AREA to move, which is a much bigger target than the point it
-    // is centred on and never competes for the same pixels.
-    const spawn = sharedControls(state.frame)?.offset ? spawnHome() : null;
-    const onSpawn = spawn && Math.hypot(spawn.x - p.x, spawn.y - p.y) <= HANDLE_R * 3;
-    const near = (x, y) => Math.hypot(p.x - x, p.y - y) <= HANDLE_R * 1.8;
-    if (isOther(state.char) && $("showHurtbox")?.checked) {
-      const v = sharedView();
-      if (v?.hit?.shape === "circle" && !v.hit.melee) {
-        const c = hitCentreOnCanvas(v);
-        const r = v.hit.r * v.hitAdj.scale * v.z;
-        const h = hitHandles(c, r);
-        // The two handles first, and they sit ON THE RIM rather than at the
-        // centre — which is the whole reason they exist. The circle starts
-        // centred on the spawn crosshair, so anything grabbed near the middle
-        // is ambiguous, and on a small circle (Piercing Blood's is 18 game px)
-        // there is barely any "inside but clear of the crosshair" to aim at.
-        // Out on the edge there is never a contest, whatever the radius.
-        const mode = near(h.move.x, h.move.y) ? "move"
-          : near(h.size.x, h.size.y) ? "size"
-          // The interior stays live as well: on something the size of a tide
-          // wave, dragging the shape itself is the obvious gesture and the
-          // handles are a long way apart. Yields to the crosshair, which keeps
-          // the middle.
-          : (!onSpawn && Math.hypot(p.x - c.x, p.y - c.y) < r) ? "move"
-          : null;
-        if (mode) {
-          state.dragHit = { mode, grabX: p.x, grabY: p.y,
-                            hit: { ...v.hitAdj }, started: false };
-          canvas.setPointerCapture(e.pointerId);
-          e.preventDefault();
-          return;
-        }
-      }
-    }
-    // The PICTURE's own handle, which sits at the picture rather than at the
-    // spawn point and moves with it. Both are offered — grabbing the crosshair
-    // still nudges the art, since that is the gesture this viewer has always
-    // had — but the one that moves under your pointer is the one at the art.
-    if (isOther(state.char) && sharedControls(state.frame)?.offset) {
-      const v = sharedView();
-      const d = v ? drawingHome(v) : null;
-      const home = spawnHome();
-      const onDrawing = d && Math.hypot(d.x - p.x, d.y - p.y) <= HANDLE_R * 3;
-      if (onDrawing || Math.hypot(home.x - p.x, home.y - p.y) <= HANDLE_R * 3) {
+      if (best?.take === "spawn" || best?.take === "drawing") {
         state.dragSpawn = { grabX: p.x, grabY: p.y, meta: rawMeta(state.char, state.frame) };
         pushHistory(state.char, state.frame);
         canvas.setPointerCapture(e.pointerId);
         e.preventDefault();
+        return;
+      }
+      // A creature's attack box is the one shape with no marker of its own —
+      // it is a rectangle you grab by its body and size by its corner.
+      if (canPlaceAttack(state.frame) && $("showHurtbox")?.checked) {
+        const bx = attackBoxOnCanvas(state.frame);
+        const corner = bx && Math.hypot(p.x - (bx.x + bx.w), p.y - (bx.y + bx.h)) <= HANDLE_R * 2.2;
+        const inside = bx && p.x >= bx.x && p.x <= bx.x + bx.w && p.y >= bx.y && p.y <= bx.y + bx.h;
+        if (corner || inside) {
+          state.dragAttack = { mode: corner ? "size" : "move", grabX: p.x, grabY: p.y,
+                               box: attackBoxOf(state.frame), rect: bx.rect, started: false };
+          canvas.setPointerCapture(e.pointerId);
+          e.preventDefault();
+        }
       }
       return;
     }
@@ -5355,11 +5363,14 @@ async function boot() {
       if (!v) return;
       const z = v.z || state.zoom;
       if (d.mode === "move") {
+        // Written as an offset from the PICTURE (`ownDx`/`ownDy`), which is
+        // what makes it stay on the part of the drawing it was put on when the
+        // drawing is moved afterwards.
         const sx = v.mirror ? -1 : 1;
         setSharedHit(state.frame, {
           ...d.hit,
-          dx: round1(d.hit.dx + sx * (p.x - d.grabX) / z),
-          dy: round1(d.hit.dy + (p.y - d.grabY) / z),
+          dx: round1(d.hit.ownDx + sx * (p.x - d.grabX) / z),
+          dy: round1(d.hit.ownDy + (p.y - d.grabY) / z),
         }, !d.started);
       } else {
         // The rim drags the radius directly: how far the pointer is from the
@@ -5367,7 +5378,7 @@ async function boot() {
         const c = hitCentreOnCanvas(v);
         const want = Math.hypot(p.x - c.x, p.y - c.y) / z;
         setSharedHit(state.frame, {
-          ...d.hit,
+          dx: d.hit.ownDx, dy: d.hit.ownDy,
           scale: clampNum(+(want / v.hit.r).toFixed(3), 0.1, 4),
         }, !d.started);
       }
