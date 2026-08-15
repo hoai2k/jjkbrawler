@@ -50,6 +50,12 @@ these instructions together (`node tools/check_controls.mjs --fix`).
 
 The in-game `i` button lists the full move set.
 
+**Backquote (`` ` ``) shows the hitbox overlay**, or load the page with
+`?debug=hitbox` to have it on from the first frame. **Blue** boxes are hurtboxes
+— what can be hit, on fighters and summons — and **red** ones are attack regions
+— swings, summon attack boxes, projectiles and the blast shapes specials test
+against. Where red overlaps blue, that is a hit.
+
 **Settings → Render** switches how characters are drawn — Sprites, 3D or
 Billboards — without leaving the match. It is the same choice `?render=` makes
 at boot (see [Rendering](#rendering)), reachable from inside the game.

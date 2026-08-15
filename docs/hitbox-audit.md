@@ -553,11 +553,11 @@ only if the platform heights themselves are intentional.
   anchored by its grip hand rather than its feet, so this is a different
   coordinate problem from the rest, but the box is currently unrelated to the art
   by a factor of nearly 3.
-- **The debug view is good and under-used.** `state.debugHitboxes` (toggled in
-  `main.js`) draws hitboxes and hurtboxes over the fighters. Everything in this
-  document is checkable by eye with that toggle on — worth mentioning in the
-  audit guide, and worth extending to draw the *art* bbox alongside the boxes
-  once §1a bakes it.
+- **The debug view is good and under-used.** `state.debugHitboxes` (toggled on
+  backquote in `main.js`, or started on with `?debug=hitbox`) draws hitboxes in
+  red and hurtboxes in blue over the fighters. Everything in this document is
+  checkable by eye with that overlay on — worth extending to draw the *art* bbox
+  alongside the boxes once §1a bakes it.
 
 ---
 

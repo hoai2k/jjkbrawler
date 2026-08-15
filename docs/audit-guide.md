@@ -115,7 +115,12 @@ new Promise(r => setTimeout(r, 3000))
 - Menu element IDs change as the UI evolves. **Don't assume** `modeButton` etc.
   exists — enumerate first:
   `[...document.querySelectorAll("#menuOverlay button")].map(b => b.id)`.
-- Hitbox debug: send a `Backquote` keydown, or set `state.debugHitboxes = true`.
+- Hitbox debug: load the page with `?debug=hitbox` and the overlay is already on
+  before the first frame — no keypress to forget, and it survives the reload a
+  capture script does. Live, it is still a `Backquote` keydown or
+  `state.debugHitboxes = true`. **Blue** is a hurtbox (what can be hit — fighters
+  and summons), **red** is an attack region (hitboxes, summon attack boxes,
+  projectiles, ad-hoc blast shapes); an overlap is a hit.
 - **The console buffer survives reloads**, so stale errors look current. To
   test for *new* errors, install your own listener and count:
   `window.__e=[]; addEventListener("error", e=>window.__e.push(e.message))`.
