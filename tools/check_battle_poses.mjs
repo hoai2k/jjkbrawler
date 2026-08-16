@@ -21,7 +21,7 @@ import {
 import {
   CROUCH_ORIENT, CROUCH_GROUPS, CROUCH_ORIENT_LIMIT, crouchGroupOf,
 } from "../render3d/src/crouch_orient.js";
-import { PRESENT_DEG } from "../render3d/src/pose.js";
+import { PRESENT_DEG, PRESENT_STATE_DEG, FACE_KEEP_DEG } from "../render3d/src/pose.js";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -282,12 +282,27 @@ for (const [charKey, fix] of Object.entries(RIG_FIXES)) {
     if (!CROUCH_GROUPS[group].why) fail(`crouch orient: say what makes "${group}" its own path`);
   }
   // The forks, checked against where they actually live rather than restated.
-  const pinned = Object.keys(PRESENT_DEG).sort();
   const grouped = Object.keys(CROUCH_GROUPS).filter((g) => g !== "roster");
-  for (const char of pinned) {
-    if (crouchGroupOf(char) === "roster") {
-      fail(`crouch orient: ${char} carries a PRESENT_DEG override — he is shown at his own `
-        + "angle, so the roster's crouch attitude was never judged on him. Give him a group.");
+  // A PER-CHARACTER PRESENTATION PIN IS NO LONGER A FORK, and this is what
+  // keeps it that way. The pin (pose.PRESENT_DEG) only reaches a state with no
+  // angle of its own; the crouch has one, so every fighter's crouch is shown at
+  // the same angle and one attitude covers them all. Take that angle away and
+  // the pins start diverting the crouch again — silently, on exactly the
+  // fighters whose attitude was dialled on somebody else.
+  const pinned = Object.keys(PRESENT_DEG).sort();
+  if (pinned.length && !(PRESENT_STATE_DEG.crouch > 0)) {
+    fail(`crouch orient: the crouch has no presentation angle of its own, so the `
+      + `character pin(s) (${pinned.join(", ")}) divert it — either give the crouch an `
+      + "angle back or give each pinned fighter their own crouch group");
+  }
+  // THE FACE KEEP is a rotation on two bones, so it is checked like one: a
+  // fighter holding their head back further than the body was ever turned is
+  // not keeping a face angle, they are looking over their shoulder.
+  for (const [char, deg] of Object.entries(FACE_KEEP_DEG)) {
+    if (!Number.isFinite(deg) || deg <= 0) {
+      fail(`face keep: ${char} is ${deg}° — a keep is a positive number of degrees`);
+    } else if (deg > 45) {
+      fail(`face keep: ${char} holds ${deg}°, which is a fighter looking away from the fight`);
     }
   }
   // A matched crouch is a different body under the same solve, same argument.
