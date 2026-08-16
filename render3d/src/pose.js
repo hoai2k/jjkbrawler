@@ -231,13 +231,31 @@ export function presentDegFor(animKey, clipT = 0, beat = undefined) {
   return name in PRESENT_STATE_DEG ? PRESENT_STATE_DEG[name] : null;
 }
 
-/** How each fighter presents while facing right, in degrees off the lens:
- *  0 is chest-on, +90 is a full profile facing screen-right. Absent means
- *  "however the delivery stands", which is what everyone but Sukuna wants.
+/**
+ * How each fighter presents in the states that have NO angle of their own, in
+ * degrees off the lens: 0 is chest-on, +90 is a full profile facing
+ * screen-right. Absent means "however the delivery stands", which is what
+ * everyone but Sukuna wants.
  *
- *  A per-CHARACTER override, where PRESENT_STATE_DEG above is per-state; this
- *  one wins, because it exists to correct a delivery rather than to say
- *  anything about the move. */
+ * A PER-CHARACTER FLOOR, NOT AN OVERRIDE, and it used to be the other way
+ * round. The pin exists to correct a DELIVERY — Sukuna's arrives at −10°,
+ * nearly square to the lens — and when it was written the flat path honoured
+ * `PRESENT_STATE_DEG` for locomotion only, so pinning the character was the
+ * only way to say anything about the rest of his states. Every state honours
+ * its own angle now, and those angles are absolute (measured from the lens),
+ * so they already cancel a crooked delivery. Leaving the pin on top of them
+ * made it a CEILING instead: his crouch asked for 80° and got 68, his contact
+ * frames asked for 88° and got 68, and the one fighter with a correction was
+ * the one fighter turned toward the camera in every action pose.
+ *
+ * So the order is now: the move's own angle, then this, then the delivery's.
+ * The pin still does the job it was written for — a hang, a teeter and a
+ * dodge have no angle of their own, and without it they keep his square-on
+ * delivery — and it no longer overrules a state that does have one.
+ *
+ * The idle is excluded from the pin entirely: a stand is a portrait and the
+ * angle his delivery was drawn at is the portrait.
+ */
 export const PRESENT_DEG = {
   // Delivered at −10°: nearly square to the camera, so his run read as a
   // fighter jogging on the spot toward the viewer while the same clip on
@@ -245,6 +263,32 @@ export const PRESENT_DEG = {
   // profile instead, both directions — the one fighter on the roster whose
   // locomotion is better side-on than three-quarter.
   sukuna: 68,
+};
+
+/**
+ * HOW MUCH OF A PRESENTATION TURN A FIGHTER'S HEAD DECLINES TO TAKE, degrees.
+ *
+ * Turning the body is a whole-rig rotation, so the face goes with it, and for
+ * a fighter whose delivery carries a distinctive head angle that is a real
+ * loss: square his body up to the plane he is fighting in and the look he was
+ * modelled with — chin round toward the viewer — squares up with it and is
+ * gone. Body in profile with the face still turned out is not a compromise
+ * between those two, it is the shot the drawings are actually composed as.
+ *
+ * So the head is turned BACK against the presentation, about the world's up,
+ * by up to this many degrees — never more than the body was turned, so it can
+ * only ever return the face toward where the delivery had it and never crank
+ * it past. Split across the neck and the skull, the way the look-at layer
+ * splits its own share, because a head yawed off a rigid neck is a stare.
+ *
+ * Absent means the head takes the turn with the rest of the body, which is
+ * what a fighter modelled facing forward wants.
+ */
+export const FACE_KEEP_DEG = {
+  // His face reads as the character — the tattoos and the grin are the point
+  // of the model, and they are drawn at three-quarter. 22° holds them there
+  // while his shoulders go to the profile every action pose asks for.
+  sukuna: 22,
 };
 
 /** The camera-space angle this rig presents at, in radians, measured once off
@@ -321,7 +365,15 @@ function facingYaw(rig, animKey, sampled, layers) {
   // path and true of BOTH directions in the scene — so every fighter there
   // faced left in every locomotion state while their attacks still turned
   // correctly, which is exactly what it looked like.
-  if (!layers.presentMirror) return (layers.turnYawRad || 0) + base;
+  // Nothing was turned away from the delivery's own angle here, and saying so
+  // matters: `_presentDelta` is read by two layers after this one (the reach
+  // counter-rotation and the face keep), and a value left over from the last
+  // pose this rig held would have them correcting a turn that did not happen.
+  // The scene path renders the same rig objects as the flat one.
+  if (!layers.presentMirror) {
+    rig._presentDelta = 0;
+    return (layers.turnYawRad || 0) + base;
+  }
   const left = (layers.facing ?? 1) < 0;
   // LOCOMOTION ONLY, and the boundary is load-bearing.
   //
@@ -358,16 +410,29 @@ function facingYaw(rig, animKey, sampled, layers) {
     rig._presentDelta = 0;
     return (layers.turnYawRad || 0) + base;
   }
-  // WHAT ANGLE TO SHOW THIS STATE AT, in three tiers, most specific first:
-  // the character override (a delivery correction, so it wins), then the
-  // state's own angle, then the angle this delivery happens to stand at.
+  // WHAT ANGLE TO SHOW THIS STATE AT, in three tiers, THE MOVE FIRST:
+  //
+  //   1. the state's own angle, because it is about what the fighter is DOING
+  //      and it is absolute — measured from the lens, so it already cancels
+  //      whatever angle the delivery was built at;
+  //   2. failing that, the character's pin (PRESENT_DEG), which is a delivery
+  //      correction and only has anything to say where the move does not;
+  //   3. failing that, the angle this delivery happens to stand at.
+  //
   // The idle is the case that wants the last of those — a stand is a portrait
-  // and the delivery's own three-quarter is the portrait it was drawn as.
+  // and the delivery's own three-quarter is the portrait it was drawn as — so
+  // it takes no pin either.
+  //
+  // THE PIN USED TO COME FIRST and that was the bug: it is a smaller angle
+  // than most states ask for, so the one fighter carrying a correction had his
+  // crouch shown at 68° where the state asks 80° and his contact frames at 68°
+  // where they ask 88°, which is a punch and a duck aimed past the camera.
   const pinned = PRESENT_DEG[rig.charKey];
   const stateDeg = presentDegFor(animKey, clipTime(animKey, sampled), layers.beat);
-  const want = pinned !== undefined && clipNameFor(animKey) !== "idle"
-    ? (pinned * Math.PI) / 180
-    : (stateDeg === null ? alpha : (stateDeg * Math.PI) / 180);
+  const want = stateDeg !== null ? (stateDeg * Math.PI) / 180
+    : (pinned !== undefined && clipNameFor(animKey) !== "idle"
+      ? (pinned * Math.PI) / 180
+      : alpha);
   // `facingK` is the facing SWEEP (backend.js quantises fighter.js's
   // facingVis): ±1 at rest, passing through 0 mid-turn, so a turnaround is a
   // few frames of the body re-aiming through the lens instead of a snap.
@@ -536,6 +601,38 @@ function applyLook(root, pitchRad) {
   if (!pitchRad) return;
   rotateBoneNod(root, "Neck", -pitchRad * DIALS.lookShare * 0.5);
   rotateBoneNod(root, "Head", -pitchRad * DIALS.lookShare * 0.5);
+}
+
+/**
+ * KEEP THE FACE WHERE THE DELIVERY PUT IT while the body turns to the plane
+ * the fighter is fighting in.
+ *
+ * The presentation turn (facingYaw) is a rotation of the whole rig, so a
+ * fighter modelled with his chin round toward the viewer loses that the moment
+ * his shoulders are squared to the screen. This turns the head back against it
+ * — about the WORLD's up, the same axis the presentation turned about, since
+ * that is the rotation being partly undone — by at most `FACE_KEEP_DEG` and at
+ * most the turn itself, so the face can end up anywhere between the delivery's
+ * angle and the body's, and never past either.
+ *
+ * Split across the neck and the skull for the reason the look-at layer splits:
+ * the whole yaw on `Head` alone is a head screwed round on a rigid neck.
+ *
+ * Runs after the aim and look layers rather than before, because those two
+ * NOD and this one YAWS — they compose in either order, and last is where a
+ * correction that must survive belongs.
+ */
+const FACE_KEEP_BONES = [["Neck", 0.4], ["Head", 0.6]];
+function applyFaceKeep(rig, charKey) {
+  const keep = FACE_KEEP_DEG[charKey];
+  const delta = rig?._presentDelta || 0;
+  if (!keep || !delta) return;
+  const back = -Math.sign(delta) * Math.min(Math.abs(delta), keep * DEG);
+  for (const [name, share] of FACE_KEEP_BONES) {
+    const bone = rig.root.getObjectByName(name);
+    if (bone) rotateBoneAboutWorldAxis(THREE, bone, _yAxis, back * share, _ik);
+  }
+  rig.root.updateMatrixWorld(true);
 }
 
 /** Hit-direction flinch: lean the spine a few degrees away from the
@@ -1186,6 +1283,9 @@ function poseOnce(rig, animKey, sampled, clip, layers = {}) {
     applyCarry(THREE, rig.root, layers.charKey, animKey, _ik);
   }
   if (DIALS.lookAt && layers.lookRad) applyLook(rig.root, layers.lookRad);
+  // The body has been turned to the angle this move is shown at; give the face
+  // back the share of that turn this fighter's delivery is worth keeping.
+  if (layers.charKey) applyFaceKeep(rig, layers.charKey);
   applyFlinch(rig.root, layers.flinch || 0);
   applyBreath(rig.root, animKey, sampled);
   plantFeet(rig.root, animKey);
@@ -1209,6 +1309,13 @@ export function boneOwners(animKey, charKey = null) {
     for (const [bone] of AIM_BONES) owners.set(bone, "target");
   }
   if (DIALS.lookAt && LOOK_STATES.has(name)) {
+    owners.set("Neck", "target");
+    owners.set("Head", "target");
+  }
+  // A fighter whose face is held against the presentation turn has an engine
+  // layer on the same two bones in every state but the idle (applyFaceKeep),
+  // and an edit made without knowing that lands in the wrong space.
+  if (charKey && FACE_KEEP_DEG[charKey] && name !== "idle") {
     owners.set("Neck", "target");
     owners.set("Head", "target");
   }

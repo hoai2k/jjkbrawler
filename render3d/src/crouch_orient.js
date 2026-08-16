@@ -27,18 +27,23 @@
 //              sprinter's three-point set and battle_poses.js follows it
 //              (`crouch_a`/`crouch_b`), which is a different body from the
 //              squat everyone else stands in. Different pose, different tilt.
-//   `sukuna`   the only fighter carrying a per-character PRESENTATION override
-//              (`PRESENT_DEG.sukuna`, pose.js): his delivery presents at −10°,
-//              nearly square to the lens, and is pinned to 68° in every state
-//              while the crouch's own angle is 80°. He is therefore the one
-//              fighter seen from a different angle, and an attitude dialled by
-//              eye against everybody else does not transfer to him.
 //
-// Those three are the whole of the fork today, and the check next door
-// (tools/check_battle_poses.mjs) asserts it: a fourth fighter growing a
-// presentation override or a matched crouch fails the build until they are
-// given a group here, rather than quietly inheriting a number that was never
-// looked at on them.
+// SUKUNA USED TO BE A THIRD, and the reason he no longer is says what a group
+// is FOR. He carries the roster's one per-character presentation pin
+// (`PRESENT_DEG.sukuna`, pose.js), and while that pin overruled a state's own
+// angle he really was seen from somewhere else — 68° against the crouch's 80°
+// — so an attitude dialled by eye on everybody else did not transfer to him,
+// and his entry had picked up 22° of roll and 9° of yaw compensating for it.
+// The pin is a floor rather than an override now: the crouch has an angle of
+// its own, so it wins, and Sukuna's crouch is shown at exactly the same angle
+// as everyone else's. Same pose, same solve, same view — so the same number,
+// and a group of one that says nothing is worse than no group at all.
+//
+// A group is a FORK IN THE PATH, not a fighter somebody wants to nudge. The
+// check next door (tools/check_battle_poses.mjs) holds the line: a fighter who
+// grows a matched crouch fails the build until they are given a group here,
+// and so does anyone who takes the crouch's own presentation angle away, which
+// is what would let the pins start diverting it again.
 //
 // THE ANGLES are degrees in the fighter's own frame, the same convention the
 // pose libraries use and in the same order:
@@ -54,23 +59,21 @@
 
 /** The one fighter with a matched (drawn) crouch rather than the baseline. */
 const MATCHED_CROUCH = "yuji";
-/** The one fighter pinned to their own presentation angle (pose.PRESENT_DEG). */
-const PRESENT_PINNED = "sukuna";
 
 /**
  * The correction each group carries.
  *
  * `roster` is the estimate: the solve leaves the trunk about 25° behind
  * vertical, and standing it back up over the feet is most of what a crouch
- * needs to read as one. The other two start from the same number because they
- * have the same solver under them — they are separate ENTRIES rather than
- * separate values so that the review has somewhere to put a different answer,
- * which is what the bench's "Crouch orientation" queue is for.
+ * needs to read as one. `yuji` starts from the same number because the same
+ * solver is under it — it is a separate ENTRY rather than a separate value so
+ * that the review has somewhere to put a different answer for a crouch that is
+ * a different pose, which is what the bench's "Crouch orientation" queue is
+ * for.
  */
 export const CROUCH_ORIENT = {
   "roster": { pitchDeg: 15, rollDeg: 0, yawDeg: 0 },
   "yuji": { pitchDeg: 15, rollDeg: 0, yawDeg: 0 },
-  "sukuna": { pitchDeg: 24, rollDeg: 22, yawDeg: -9 },
 };
 
 /** A correction past this is not an attitude, it is a different pose. */
@@ -85,7 +88,6 @@ export const CROUCH_ORIENT_STATES = new Set(["crouch"]);
 /** Which group a fighter's crouch belongs to. Total: everyone lands somewhere. */
 export function crouchGroupOf(charKey) {
   if (charKey === MATCHED_CROUCH) return MATCHED_CROUCH;
-  if (charKey === PRESENT_PINNED) return PRESENT_PINNED;
   return "roster";
 }
 
@@ -100,11 +102,6 @@ export const CROUCH_GROUPS = {
     label: "Yuji",
     why: "the only MATCHED crouch — his sheet draws a sprinter's three-point set, "
       + "so the body being tilted is a different body",
-  },
-  [PRESENT_PINNED]: {
-    label: "Sukuna",
-    why: "the only per-character presentation override (PRESENT_DEG 68° against the "
-      + "crouch's 80°) — he is the one fighter seen from a different angle",
   },
 };
 
