@@ -28,7 +28,7 @@ import { getImage } from "./assets.js";
 // reached the screen. The size DID reach it — that is folded into `spriteH`
 // before a kit is read (applySharedSpriteScales) — which is what made the gap
 // so easy to miss.
-import { sharedAdjust } from "./shared_sprites.js";
+import { sharedAdjust, meteorAt } from "./shared_sprites.js";
 import { isFoe } from "./teams.js";
 
 // The two halves of an ultimate's opening. They fire on the same frame for the
@@ -250,31 +250,37 @@ const DIRECTORS = {
           ctx.stroke();
           ctx.restore();
           if (this.t > 0.5) {
-            const prog = (this.t - 0.5) / p.fallTime;
-            const my = -160 + prog * (groundY - 40 + 160);
+            // Entering from far away rather than sliding down at one size —
+            // the approach curve lives in shared_sprites.js so the workbench's
+            // playback of it is the same arithmetic (meteorAt).
+            const fall = meteorAt(p, (this.t - 0.5) / p.fallTime, tx, groundY - 40);
             const img = p.sprite ? getImage(p.sprite) : null;
             if (img) {
               const adj = sharedAdjust(p.sprite);
-              const h = p.spriteH || 310;
+              // The nudge is a correction to the DRAWING, so it shrinks with
+              // the drawing: a dx measured against the rock at arrival would
+              // otherwise throw the distant speck clean off its own path.
+              const h = (p.spriteH || 310) * fall.scale;
               const w = img.width * h / img.height;
               ctx.save();
-              ctx.translate(tx, my);
+              ctx.translate(fall.x, fall.y);
               ctx.shadowColor = p.color;
-              ctx.shadowBlur = 24;
+              ctx.shadowBlur = 24 * fall.scale;
               if (adj.rot) ctx.rotate(adj.rot);
-              ctx.drawImage(img, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
+              ctx.drawImage(img, -w / 2 + adj.dx * fall.scale, -h / 2 + adj.dy * fall.scale, w, h);
               ctx.restore();
               return;
             }
+            const r = 90 * fall.scale;
             ctx.save();
             ctx.globalCompositeOperation = "lighter";
-            const grad = ctx.createRadialGradient(tx, my, 10, tx, my, 90);
+            const grad = ctx.createRadialGradient(fall.x, fall.y, r / 9, fall.x, fall.y, r);
             grad.addColorStop(0, "#fff3d0");
             grad.addColorStop(0.4, "#ff9a3f");
             grad.addColorStop(1, "rgba(255,90,31,0)");
             ctx.fillStyle = grad;
             ctx.beginPath();
-            ctx.arc(tx, my, 90, 0, Math.PI * 2);
+            ctx.arc(fall.x, fall.y, r, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
           }
