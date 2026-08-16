@@ -33,8 +33,9 @@ and a meter-funded ultimate for every fighter.
 - **KOs** happen only at blast zones: past the sides (−300 / 1580), the top
   (−420, for vertical KOs), or the bottom (1000). Losing a stock resets percent
   and starts the respawn below.
-- **Hitlag** (freeze frames): both fighters freeze for `0.03 + damage × 0.0045`
-  seconds on contact (25% longer on heavies) while the victim vibrates — this
+- **Hitlag** (freeze frames): both fighters freeze for `0.028 + damage × 0.0045`
+  seconds on contact, clamped to 0.03–0.15 s and 25% longer on heavies (the
+  victim holds it 10% longer than the attacker), while the victim vibrates — this
   is the "crunch" that makes hits read. The world also gets brief **slow-mo**
   and a camera **zoom kick** on knockouts and heavy launches.
 
@@ -58,13 +59,13 @@ the moment you get hit. It dims and then blinks as its time runs out.
 | Mechanic | Detail |
 |---|---|
 | **Walk** | **Partial stick tilt** (0.28–0.72) → 34–62% of run speed, scaled by how far you push. A keyboard has no axis and always runs |
-| Run | Full tilt: per-character top speed (356–468 px/s) and acceleration |
+| Run | Full tilt: per-character top speed (350–468 px/s) and acceleration |
 | **Dash** | **Shove the left stick** out from centre (past 0.78 within 0.14 s of leaving the 0.36 rest zone), or double-tap a direction within 0.24 s → a 1.20× burst for 0.07 s (about 5 frames and ~45 px on Gojo — brief and uncommittal by design) |
 | **Dash attack** | Light or heavy while running: the run's own committal attack (§4) |
 | **Ledge brake** | Momentum never carries you off a platform, and a WALK never does either — see below |
 | Turn lock | Reversing at speed costs 0.08 s of traction — spacing has commitment |
 | Jump | Per-character impulse; **short hop** by releasing jump within ~0.09 s |
-| Double jump | One air jump at 92% power (Momo gets two — broom flight) |
+| Double jump | One air jump at 92% power. Three fighters get two — Momo's broom, Uro's sky-riding, Kurourushi's wings |
 | Jump buffer / coyote time | 0.15 s buffer, 0.10 s coyote window |
 | **Fast fall** | Press down while airborne: fall cap rises 1.62× |
 | Crouch | Shrinks the hurtbox; ducks under high projectiles |
@@ -94,8 +95,10 @@ they cover every way a fighter used to leave the ground without meaning to:
 - **The dash is short.** It covers about 45 px, down from ~70: a dash across a
   platform used to arrive at the far lip with speed to spare, which made
   running off the end the default outcome of a dash rather than a decision.
-  Measured with `tools/debug/measure_dash.mjs`; the slide a *released* dash
-  leaves behind is unchanged at 55 px, because that one is the brake's job.
+  Measured off a one-off harness against the real movement code (not kept in
+  the repo); the slide a *released* dash leaves behind is unchanged at 55 px,
+  because that one is the brake's job. `tools/smoke_ledge.mjs` is what guards
+  the result.
 - **A walk never carries you off either.** Hold a partial tilt into the lip and
   the fighter stops there and stays there, however long you hold it. Push the
   stick to a run and they go straight over.
@@ -125,7 +128,7 @@ differs from `keepMomentum` twice over: it decays under a gentle drag
 (`LUNGE_DRAG`) instead of holding its speed, and the ledge brake stops it at the
 lip like any other unheld movement — 302 px becomes 240, ending at 272 px/s.
 Holding the direction still takes you over, because that is a decision.
-Measured with `tools/debug/measure_lunge.mjs`; guarded in `tools/smoke_ledge.mjs`.
+Guarded in `tools/smoke_ledge.mjs`.
 
 ### Ledges
 Only the main platform has grabbable ledges. Falling near an edge (after real
@@ -280,12 +283,12 @@ Maki's light dash attack goes 1037 px → 332; the heavy 1028 → 468. Holding
 forward still runs out of it (708 px). This follows Smash, which cut most of
 this carryover in *Ultimate*: dash attacks there inherited "a large amount of
 momentum from the prior dash" in earlier games, and only a few still do
-([SmashWiki](https://www.ssbwiki.com/Dash_attack)). Measured with
-`tools/debug/measure_dashattack.mjs`; guarded in `tools/smoke_ledge.mjs`.
+([SmashWiki](https://www.ssbwiki.com/Dash_attack)). Guarded in
+`tools/smoke_ledge.mjs`.
 
 `keepMomentum` survives on the two actions it was really for — the **roll**,
-which sets a constant velocity to cover exactly `ROLL_DIST` (216 px, stopping
-43 px later), and the **dash grab**, which spends the run the player built
+which sets a constant velocity to cover exactly `ROLL_DIST` (210 px, plus a
+short slide), and the **dash grab**, which spends the run the player built
 themselves. Neither picks a speed the player did not.
 
 Both draw `attack_dash`, a pose round 20D added to the semantic set: one
@@ -318,7 +321,7 @@ Twelve moves in the game are **announced out loud** — Inumaki's three commands
 and his ultimate, and the eight Domain Expansions. Those moves do not happen on
 the frame you press the button. The fighter holds the move's own pose, says the
 line, and the move lands **80% of the way through it** (`SPOKEN_TIMING` in
-`src/config_audio.js`; clamped to 0.35–2.2 s, so Gojo's 3.28-second call-out
+`src/config_audio.js`; clamped to 0.35–2.2 s, so Gojo's 2.83-second call-out
 does not stall the match for its whole length).
 
 This is frame data, not decoration.
@@ -331,8 +334,9 @@ happens: no barrier, no hitbox, no ultimate. Land one after it and the move
 goes off anyway; by then it is already underway, and taking it back would read
 as the game reneging on something it had visibly started.
 
-For Gojo's 3.28-second call-out that is a 1.64 s window to punish, against a
-move that lands at 2.20 s. For Inumaki's "Don't Move" it is 0.36 s.
+For Gojo's 2.83-second call-out that is a 1.42 s window to punish, against a
+move that lands at 2.20 s. For Inumaki's "Don't Move" it is 0.36 s. `node
+tools/check_voice.mjs` prints the whole table.
 
 **Being cut off is legible in both channels.** The line **stops mid-word**
 (faded over 60 ms so it does not click), the fighter makes a short winded grunt
@@ -436,7 +440,7 @@ of it, so it travels with the art. Unplaced it is the leading 44% of the
 creature's length, which is the right end of every quadruped, serpent and hulk
 in the pools; a bomber's is its whole body, since it detonates on contact and
 what touches you is whichever part arrived first. Turn on debug hitboxes to see
-both: white is what it is hit on, red is what it hits with.
+both: blue is what it is hit on, red is what it hits with.
 
 **Hitting one moves it.** A summon that took a hit and kept walking looked like
 a summon that had not been hit, so a blow now **staggers** it: shoved along the
@@ -460,12 +464,13 @@ bombers detonate, the support summon keeps firing on its cooldown — so driving
 one never means abandoning your own fighter mid-combo. All of a player's live
 summons answer the same pad, so Megumi's two dogs drive as a pack.
 
-The vertical axis depends on what the summon is:
+The vertical axis depends on what the summon is, and the split is by behaviour
+rather than by name: a **support** summon flies, everything else has feet.
 
 | Summon | Up | Down |
 |---|---|---|
-| Divine Dogs, Rainbow Dragon, Transfigured Human, Mahoraga (grounded) | **Jump** — one per push, lands on platforms like a fighter | Fast-fall |
-| Inventory Curse (flyer) | Fly up | Fly down |
+| Every chaser, bomber and brawler — Divine Dogs, Great Serpent, Max Elephant, Rabbit Escape, the Hulk, the Crawlers, the Hounds, the Womb, the Coil and Husk Curses, Rainbow Dragon, Transfigured Human, Mahoraga | **Jump** — one per push, lands on platforms like a fighter | Fast-fall |
+| The supports, which hover — Toad, Spitter, Smallpox Deity, Inventory Curse | Fly up | Fly down |
 
 Holding up gives one jump, not a hover: the pad has to be released
 before the next one. Only piloted summons jump — a hunting one has no way to
@@ -527,7 +532,7 @@ spends it all on the character's **cinematic ultimate** — a domain, a meteor,
 an install transformation, a flurry rush. Ultimates are the comeback valve:
 getting beaten up funds yours faster.
 
-A full bar is also exactly what a **Domain Expansion** costs, so the seven
+A full bar is also exactly what a **Domain Expansion** costs, so the eight
 fighters who have one spend every filled bar on a choice: fire the ultimate
 now, or open the domain instead. Nobody gets both off one bar.
 
@@ -537,6 +542,7 @@ now, or open the domain instead. Nobody gets both off one bar.
 |---|---|---|
 | Burn | Jogo, Sukuna's Fuga | % ticks for 2.6 s (Jogo's burn 50% hotter) |
 | Bleed | Sukuna | % ticks for 3.2 s, only while moving fast |
+| Poison | Reggie's Insecticide, Geto's Smallpox Deity | % ticks for 3.0 s whether or not they move, and movement down to 85% |
 | Snare | Megumi, Hanami, Inumaki | Movement slowed to 60% |
 | Soul Mark | Mahito | +18% damage taken from everything for 3.4 s |
 | Nail Mark | Nobara | Stacking marks that Hairpin/Resonance consume |
@@ -780,8 +786,9 @@ have (`STATE_ALIASES` in `render3d/src/states.js`).
 Universal attack hitboxes are derived from each character's `reach` profile and
 then scaled to the sprites: the sheet art physically caps visible reach at
 ~94 px in front of a fighter, so `moves.js` applies `REACH_SCALE` so that hit
-ranges land at the visuals plus a small grace margin. Hold `` ` `` in a match to
-see live hitboxes (red) and hurtboxes (white).
+ranges land at the visuals plus a small grace margin. Press `` ` `` in a match
+to toggle the overlay — live hitboxes in **red**, hurtboxes in **blue** — or
+load the page with `?debug=hitbox` to start with it on.
 
 Sprite placement itself is normalized offline (`tools/extract_sprites.py`):
 per-frame foot anchoring, per-frame facing correction (the sheets mix left- and

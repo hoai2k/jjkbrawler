@@ -37,7 +37,8 @@ export const AIR_JUMP_MULT = 0.92;
 // is the opposite of what this pass is for.
 //
 // Measured on Gojo (468 speed), distance covered while the dash is live, with
-// the direction held (tools/debug/measure_dash.mjs):
+// the direction held (a throwaway harness against this module and fighter.js,
+// not kept in the repo; tools/smoke_ledge.mjs is what guards the result):
 //
 //     0.22 / 1.45   87px    the original, before the dash was made a burst
 //     0.10 / 1.55   71px    too far: a dash across a platform ran off the end
@@ -143,8 +144,8 @@ export const LEDGE_HANG_Y = 58;
 // actually published, are 34 frames of invincibility on the getup and ~48 for
 // the roll), so these are not slow by the genre's standards. They are normal.
 //
-// Measured worst frame, tools/debug/measure_ledge_pop.mjs, against the 7.8 px
-// a run covers:
+// Measured worst frame against the 7.8 px a run covers (tools/smoke_ledge.mjs
+// re-checks both the per-frame step and the poses drawn over it):
 //
 //     climb   24 frames   7.9 px    3 hanging, 14 rising, 8 landing
 //     roll    38 frames   8.2 px    4 hanging, 24 rolling, 10 landing

@@ -19,7 +19,7 @@ The split is **art a fighter is drawn from** versus **art the renderer spawns**.
 
 | In `sprites/assets/` | Stays in `assets/` |
 | --- | --- |
-| The 29 character sheet sets, including `hanami_alt` | `assets/sprites/effects/` — techniques, auras, impacts |
+| The 28 character sheet sets — one per fighter on the 27-strong roster, plus one more | `assets/sprites/effects/` — techniques, auras, impacts |
 | `mahoraga/` — a summon in the fiction, but animated out of a character sprite set like any fighter | `assets/sprites/summons/` — shikigami and creature stills |
 | Each character's `archive/`, `alt/` and `incoming/` backups | `assets/backgrounds/`, `assets/cards/`, `assets/ui/` |
 | `manifest.json`, the index naming the file each pose draws from | `assets/music/`, `assets/sfx/`, `assets/intake/`, `assets/reference/` |
@@ -45,7 +45,8 @@ both kinds of art were mixed together.
 The renderer side of the same idea is `src/render_backend.js`: three functions
 (`currentFrame`, `cyclePhase`, `drawCharFrame`) are the whole surface the game
 uses to put a character on screen. `sprites/src/sprites.js` is one implementation
-of them; `billboards/src/billboard.js` is the other.
+of them; `billboards/src/billboard.js` (2.5D cards) and `render3d/src/backend.js`
+(live 3D) are the other two.
 
 ## Running the workbench
 

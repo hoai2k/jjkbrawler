@@ -1247,7 +1247,7 @@ export function updateFighter(f, dt, input) {
   // ---- crouch
   f.crouching = f.grounded && canAct && input.down && !f.shielding;
 
-  // ---- shield grab (?throw=true)
+  // ---- shield grab (on by default; `?throw=false` drops it)
   // Light or the grab button while the shield is up drops the shield into a
   // grab — Smash's answer to "they are just standing on my bubble", and the
   // reason holding shield against a grappler is the wrong plan.

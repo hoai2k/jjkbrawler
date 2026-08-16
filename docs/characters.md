@@ -12,7 +12,7 @@ adding all three; they should not drift from the heading here.
 
 **Reading a kit:** every character has universal lights/heavies (same inputs,
 different reach/speed/damage/effects), three specials (neutral, side, down),
-one ultimate, and one always-on passive. Seven of them also have a **Domain
+one ultimate, and one always-on passive. Eight of them also have a **Domain
 Expansion** — see the section at the end.
 
 **Nothing is staged.** Round 15's four late additions — Mechamaru, Yuki
@@ -29,11 +29,12 @@ exercises), and the sprite workbench lists staged fighters alongside the roster,
 labelled *(not on the roster yet)*, so a delivered set can be placed and
 approved before the fighter is promoted. All four of round 15's went that way.
 
-**Cursed Energy has two tiers.** An ultimate costs **half** a bar, so a match
-has several. A Domain Expansion costs the **whole** bar and only the seven
-fighters who canonically have one can open it. That is what makes the second
-half of the bar a decision instead of a formality: bank it for the domain, or
-spend it now on a second ultimate. Stats shown as
+**A full bar buys one super.** An ultimate and a Domain Expansion each cost the
+**whole** Cursed Energy bar (`ULT_METER_COST` and `DOMAIN_METER_COST` are both
+`METER_MAX`), so the eight fighters who canonically have a domain spend every
+filled bar on a choice rather than getting both: fire the ultimate now, or open
+the domain instead. Everyone else has only the one thing to spend it on. Stats
+shown as
 *speed / weight* where speed is ground px/s and weight divides knockback
 (higher = harder to launch).
 
@@ -112,7 +113,7 @@ called her worthless.
 
 **Design mapping:** Pure rushdown with zero magic and maximum steel — the
 anti-defense character. If they hide in shield, Maki is the answer.
-- *Stats:* 452 / 1.00 — second-fastest, real weapons give her the longest
+- *Stats:* 452 / 1.00 — third-fastest, real weapons give her the longest
   normal reach.
 - Her lights and heavies all carry **weaponBreak** (+18 flat shield damage);
   her side special multiplies that.
@@ -201,7 +202,7 @@ brother (Unblockable Drumming Beat), and the bashful **Triceratops** sister.
 Personality: easygoing, wise-cracking, secretly the school's most stable soul.
 
 **Design mapping:** The armored heavyweight with a mode switch.
-- *Stats:* 356 / 1.28 — slowest and heaviest body in the game.
+- *Stats:* 356 / 1.28 — heaviest body in the game, and joint second-slowest.
 - **Unblockable Drumming Beat** (neutral): the guard-ignoring palm, straight
   from canon.
 - **Cursed Corpse Charge** (side): armored tackle — he trades and wins.
@@ -241,7 +242,7 @@ can't fight heavy.
 
 **Design mapping:** The lightest, floatiest zoner — queen of the air, allergic
 to getting hit.
-- *Stats:* 428 / 0.88 — lightest in the game, best air drift, and **three
+- *Stats:* 428 / 0.88 — lightest in the game, third-best air drift, and **three
   jumps** (broom).
 - **Wind Scythe** (neutral): twin vacuum blades.
 - **Broom Charge** (side): a flying rush that works midair — offense and
@@ -389,7 +390,7 @@ the kindest thing on the roster and still a monster.
 
 **Design mapping:** The patient fortress. Slow, huge normals, endless
 attrition.
-- *Stats:* 358 / 1.24 — second-heaviest.
+- *Stats:* 358 / 1.24 — third-heaviest.
 - Attacks inflict **root snare** (slow + sap).
 - **Cursed Buds** (neutral): lobbed parasite seeds.
 - **Root Eruption** (side): impaling roots under the opponent.
@@ -455,7 +456,7 @@ a professional soldier's pragmatism, and real joy in a proper fight.
 **Design mapping:** The air-superiority trickster. Nothing about her plays in
 a straight line: her poke arrives out of the air behind you, and shooting at
 her is a good way to get shot.
-- *Stats:* 432 / 0.90 — light, fast, **three jumps** and the second-best air
+- *Stats:* 432 / 0.90 — light, fast, **three jumps** and the best air
   drift in the game.
 - **Sky Warp Palm** (neutral): marks the spot the target holds, then the blow
   falls out of the sky onto it a beat later — dodge by not standing there.
@@ -483,7 +484,7 @@ a proper death.
 **Design mapping:** The honest fists-first brawler with a slot-machine heart:
 his whole kit is clean fundamentals, and the Black Flash roll is the spike of
 drama on top.
-- *Stats:* 448 / 1.02 — third-fastest ground speed; a pure rushdown frame.
+- *Stats:* 448 / 1.02 — fourth-fastest ground speed; a pure rushdown frame.
 - **Divergent Fist** (neutral): a punch whose cursed-energy impact arrives a
   beat later — one input, two hits, and the delayed hit is the launcher. Great
   for catching shields dropped too early.
@@ -531,7 +532,7 @@ traditionalist, institutional to the bone — until the guitar comes out.
 
 **Design mapping:** The slow fortress-zoner whose walls are made of sound.
 Weakest legs on the roster, but a stage that is always ringing.
-- *Stats:* 356 / 1.18 — slowest fighter in the game; plays entirely off
+- *Stats:* 356 / 1.18 — joint second-slowest fighter; plays entirely off
   spacing and walls.
 - **Power Chord** (neutral): a piercing wall of amplified sound down the lane.
 - **Feedback Wall** (side): plants a standing wave of shrieking feedback that
@@ -581,7 +582,7 @@ excellent tactician who plans several moves past his opponent.
 **Design mapping:** The artillery piece. Slow, heavy, armoured, and the only
 fighter whose damage comes disproportionately from things that are not his
 fists — which is exactly what his restriction traded for.
-- *Stats:* 372 / 1.22 — second-slowest, third-heaviest.
+- *Stats:* 372 / 1.22 — sixth-slowest, fourth-heaviest.
 - **Ultra Cannon** (neutral): a piercing bolt down the lane. His bread and
   butter, and the thing his passive is really about.
 - **Boost On** (side): elbow thrusters, armoured. Half a ton of puppet arrives

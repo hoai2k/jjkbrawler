@@ -51,7 +51,7 @@ these instructions together (`node tools/check_controls.mjs --fix`).
 
 The in-game `i` button lists the full move set.
 
-**Backquote (`` ` ``) shows the hitbox overlay**, or load the page with
+**Backquote (`` ` ``) toggles the hitbox overlay**, or load the page with
 `?debug=hitbox` to have it on from the first frame. **Blue** boxes are hurtboxes
 — what can be hit, on fighters and summons — and **red** ones are attack regions
 — swings, summon attack boxes, projectiles and the blast shapes specials test
@@ -74,16 +74,17 @@ Menus additionally answer to the mouse, and to the arrow keys and Enter.
 ## Rendering
 
 Characters are drawn through a named render backend (`src/render_backend.js`),
-picked at boot with `?render=` — `sprite`/`sprites`, `billboard`/`billboards`
-and `3d`/`render3d`/`anime` all resolve (the extra spellings are aliases):
+picked at boot with `?render=` — `sprite`/`sprites`/`2d`,
+`billboard`/`billboards`/`2.5d` and `3d`/`render3d`/`model`/`models`/`anime`
+all resolve (the extra spellings are aliases):
 
 - [`sprites/`](sprites/README.md) — the 2D sprite path: art, the renderer, the
   sprite workbench (`/sprites/workbench/`) and its documentation. The default.
 - [`billboards/`](billboards/README.md) — the 2.5D path: 3D models posed at
   quantised holds, rendered offscreen and blitted into the same 2D world. The
   pipeline is built (try `?render=billboard`, review in
-  `/billboards/workbench/`); fighters draw as models per character as rigs
-  are delivered, and as their sprites otherwise.
+  `/billboards/workbench/`), and the whole roster is rigged; a fighter whose
+  rig is held back draws as their sprites instead, per character.
 - [`render3d/`](render3d/README.md) — the live-3D anime path: the same
   rigs animated at full frame rate, toon-ramped, ink-outlined and stepped on
   twos, with real turnarounds, aimed strikes, head tracking and stage-derived
@@ -130,10 +131,14 @@ the query (`&char=gojo`) travels with you.
 | [`?edit=billboards`](workbench/?edit=billboards) | [`/billboards/workbench/`](billboards/workbench/) | the 2.5D posed-model path |
 | [`?edit=3d`](workbench/?edit=3d) | [`/render3d/workbench/`](render3d/workbench/) | live 3D poses |
 | [`?edit=animation`](workbench/?edit=animation) | `/render3d/workbench/?edit=animation` | the keyframe bench |
-| [`?edit=pose`](workbench/?edit=pose) | `/render3d/workbench/?edit=pose` | sprite joint reads |
+| [`?edit=pose`](workbench/?edit=pose) | `/render3d/workbench/?edit=pose` | the sprite pose editor — sixteen joints dragged onto each frame |
+| [`?edit=reads`](workbench/?edit=reads) | `/render3d/workbench/?edit=reads` | the joint reads those poses produce |
+| [`?edit=rigs`](workbench/?edit=rigs) | `/render3d/workbench/?edit=rigs` | the skeleton itself — bones, bind pose, facing |
+| [`?edit=verification`](workbench/?edit=verification) | [`/workbench/`](workbench/) | the review queue: everything waiting to be checked off, one at a time |
 
 `node tools/smoke_workbench_routes.mjs` walks every one of those, plus the
-aliases (`sprite`, `2d`, `anim`, `render3d`, …).
+aliases (`sprite`, `2d`, `anim`, `render3d`, `rig`, `review`, …). The full
+route and alias tables are `ROUTES` and `ALIASES` in `workbench/router.js`.
 
 ### Is the site showing my change yet?
 
@@ -163,8 +168,8 @@ so the stamp itself is never the stale thing.
 ## Docs
 
 - [Game mechanics](docs/game-mechanics.md)
-- [Gameplay TODO](docs/gameplay-todo.md) — the missing grab/throw and four
-  fairness patches: what to build and why they were deferred
+- [Gameplay TODO](docs/gameplay-todo.md) — the grab/throw brief and the three
+  fairness patches, all shipped; what is left is two shield tweaks
 - [2.5D camera](docs/2.5d-camera-plan.md) — the default camera: plan,
   implementation status, per-board camera treatments
 - [Move list](docs/move-list.md) — every fighter's specials, ultimate and domain
@@ -178,8 +183,8 @@ so the stamp itself is never the stale thing.
 - [**All requests**](docs/all-requests.md) — every open request in one index:
   what is outstanding, what order to commission it in, what depends on what,
   and whether each one is images, 3D models, sound effects, voice or music
-- [Asset requests](docs/asset-requests.md) — open art rounds
-  ([history](docs/asset-requests-history.md))
+- [Asset requests](docs/asset-requests.md) — where a 2D art round is authored;
+  nothing is outstanding today ([history](docs/asset-requests-history.md))
 - [Audio requests](docs/audio-requests.md) — the grab pack is the only round
   still open; the sound and voice rounds and their prompts are in
   [history](docs/audio-requests-history.md), and the takes that were auditioned
