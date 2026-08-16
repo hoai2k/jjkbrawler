@@ -64760,13 +64760,7 @@
    "edited": {
     "dy": null
    },
-   "dy": 1.6,
-   "attackBox": {
-    "x": 0.283,
-    "y": 0.667,
-    "w": 0.44,
-    "h": 0.76
-   }
+   "dy": 1.6
   },
   "summon:transfiguredHulk": {
    "edited": {

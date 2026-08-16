@@ -31,7 +31,8 @@ import { drawCharFrame, currentFrame } from "../src/sprites.js";
 import { loadFrame, getImage } from "../../src/assets.js";
 import { bodyMetrics } from "../../src/silhouette.js";
 import { spawnOffset, REFERENCE_MUZZLE } from "../../src/muzzle.js";
-import { meteorAt, METEOR_FALL } from "../../src/shared_sprites.js";
+import { meteorAt, METEOR_FALL, sharedAdjust, sharedAttack } from "../../src/shared_sprites.js";
+import { SUMMON_ANIMS } from "../../src/config_summons.js";
 import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
 
 /** The animation state each special slot plays (src/specials.js). */
@@ -121,6 +122,97 @@ const FLASH_MOVES = {
 };
 
 /**
+ * The SPECIALS that put something on the stage and leave it there.
+ *
+ * A trap is planted a set distance in front (or on the opponent), takes
+ * `armTime` to come up, and hits anything inside `w`×`h` for `lifetime`
+ * seconds. A cloud field is the same shape with a different clock: it is up
+ * immediately and ticks for `duration`. Both stand on the floor, both are
+ * exactly as big as their box says, and neither had an action to play — so
+ * eight drawings whose whole job is to fill a rectangle could only be judged
+ * against a rectangle nobody could see.
+ *
+ * `armed` is when it becomes dangerous, `life` when it goes away, and `box`
+ * the rectangle it fills — drawn beside it for the same reason the flash's
+ * reach is: the art is a picture of that rectangle.
+ */
+const PLANTED_MOVES = {
+  trap: (p) => ({
+    dist: p.atOpponent ? null : (p.dist || 220), height: p.spriteH || p.h,
+    armed: p.armTime ?? 0.5, life: (p.armTime ?? 0.5) + (p.lifetime ?? 3),
+    box: { w: p.w, h: p.h }, what: "a trap — comes up, then hits anything inside it",
+  }),
+  cloudField: (p) => ({
+    dist: p.dist || 210, height: p.spriteH || p.h,
+    armed: 0, life: p.duration ?? 2.4,
+    box: { w: p.w, h: p.h },
+    what: `a field — ticks ${p.tickDmg ?? 0}% every ${p.tickRate ?? 0.5}s while you stand in it`,
+  }),
+};
+
+/**
+ * The SPECIALS that drop an object out of the sky onto the opponent.
+ *
+ * Reggie's Big-Ticket Item picks one of `drops` at random and falls it onto
+ * the enemy's head; his cardrop does the same with a car. Each drop names its
+ * own art and its own `w`/`h`, so the entry is per DRAWING rather than per
+ * move — which is why this one is resolved differently from the rest: the
+ * playback needs the drop, not just the special.
+ */
+const DROP_MOVES = new Set(["randomDrop", "cardrop"]);
+
+/**
+ * THE CREATURES, and the fighter whose kit keeps each one.
+ *
+ * A creature was the largest class of drawing with no action to play, and the
+ * most expensive one to be blind about: what a summon DOES is its behaviour,
+ * and behaviour is where the surprises are. A bomber walks into you and
+ * detonates, so its contact is its whole body on purpose; a support hovers at
+ * its summoner's shoulder and shoots and never touches anybody at all. Neither
+ * fact is visible in a still, and both change what its art has to show — the
+ * Spitter had a bite box placed on it that nothing would ever read, and one
+ * look at it hovering and spitting would have said so.
+ *
+ * Walks the pools the way the registry does, keeping the fighter, the pool
+ * entry, and the special that summons it.
+ */
+function summonUse(spriteKey, preferChar) {
+  const order = preferChar && CHARACTERS[preferChar]
+    ? [preferChar, ...CHARACTER_KEYS.filter((k) => k !== preferChar)]
+    : CHARACTER_KEYS;
+  for (const charKey of order) {
+    const c = CHARACTERS[charKey];
+    // An ULTIMATE can put a creature down too, and the two biggest things in
+    // the game arrive that way: Mahoraga, and Kurourushi's brood.
+    const slots = Object.entries(c?.specials || {});
+    if (c?.ultimate) slots.push(["ult", c.ultimate]);
+    for (const [slot, spec] of slots) {
+      // A summon comes two ways: a POOL the move rolls from (Geto's jar,
+      // Megumi's shikigami), or ONE creature the move always puts down —
+      // Maki's Garuda, Mahoraga, the roach swarm. Reading only pools left five
+      // creatures with no action, including the two biggest things in the game.
+      const pool = spec?.p?.pool || (spec?.type === "summon" && spec.p ? [spec.p] : []);
+      for (const entry of pool) {
+        // The creature is its OWN art, at the head of the stack. A stand-in
+        // behind it is a fallback the creature's poses supersede, and playing
+        // the creature's behaviour under a stand-in's name would be showing
+        // art the game does not draw there (see supersededStandIn).
+        for (const cfg of [entry, ...(entry.units || entry.members || [])]) {
+          if (cfg.sprites?.[0] !== spriteKey && entry.sprites?.[0] !== spriteKey) continue;
+          return {
+            charKey, slot, spec, cfg: { ...entry, ...cfg }, mode: "summon",
+            state: slot === "ult" ? "ult" : (SLOT_STATE[slot] || "specialDown"),
+            name: entry.name || spec.name || spriteKey,
+            p: { ...entry, ...cfg },
+          };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/**
  * @param spriteKey  the drawing to find an action for.
  * @param preferChar the fighter whose effects list this was opened from. A
  *   drawing more than one kit fires has no single answer to "who fires it", and
@@ -163,8 +255,31 @@ export function firingUse(spriteKey, preferChar) {
       // all four curses had the Play button greyed out with no way to see how
       // they are used. `sprites` stays out — that is a creature's stand-in
       // stack, and a creature is not fired.
+      // A DROP names its art per object rather than on the move: three
+      // different things fall out of one special, each with its own size.
+      if (DROP_MOVES.has(spec.type)) {
+        const d = (p?.drops || []).find((x) => x.key === spriteKey)
+          ?? (p?.sprite === spriteKey ? { key: spriteKey, name: p.label, h: p.spriteH, w: p.r * 2 } : null);
+        if (d) {
+          return {
+            charKey, slot, spec, mode: "planted", state: SLOT_STATE[slot] || "specialDown",
+            name: d.name || spec.name || spriteKey,
+            p: { dist: null, height: d.h, armed: p.armTime ?? p.fallTime ?? 0.55,
+                 life: (p.armTime ?? p.fallTime ?? 0.55) + 0.6,
+                 falls: true, box: { w: d.w, h: d.h },
+                 what: "falls onto the opponent, hits where it lands, and is gone" },
+          };
+        }
+      }
       const inPool = Array.isArray(p?.spritePool) && p.spritePool.includes(spriteKey);
       if (!p || (p.sprite !== spriteKey && !inPool)) continue;
+      const planted = PLANTED_MOVES[spec.type];
+      if (planted) {
+        return {
+          charKey, slot, spec, mode: "planted", state: SLOT_STATE[slot] || "specialDown",
+          name: spec.name || p.label || spriteKey, p: { ...p, ...planted(p) },
+        };
+      }
       const flash = FLASH_MOVES[spec.type];
       if (flash) {
         return {
@@ -174,7 +289,11 @@ export function firingUse(spriteKey, preferChar) {
           muzzleScale: bodyMetrics(charKey).height / HEIGHT_BASE_PX,
         };
       }
-      if (spec.type && spec.type !== "projectile") continue;
+      // `wave` is spawnProjectileScaled with `wave: true` — a shot that rides
+      // the floor rather than flying free. Same launch, same flight, so the
+      // shot playback is right for it and excluding it left Dagon's tides with
+      // no way to be seen moving.
+      if (spec.type && spec.type !== "projectile" && spec.type !== "wave") continue;
       // The point the game will really spawn from: this fighter's hand in the
       // pose this move plays, plus whatever the move asks for beyond the
       // reference (src/muzzle.js). `source` says whether anybody has looked at
@@ -192,7 +311,7 @@ export function firingUse(spriteKey, preferChar) {
       };
     }
   }
-  return null;
+  return summonUse(spriteKey, preferChar);
 }
 
 /**
@@ -313,10 +432,183 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     };
   }
 
+  // ------------------------------------------------------------- a creature
+  //
+  // What a summon does, run forward from the moment it lands. Not the game's
+  // own entity — that wants a match around it — but the same numbers driving
+  // the same three behaviours, so the thing the canvas shows is the thing the
+  // creature is: a chaser closing and biting on its cooldown, a bomber walking
+  // in and detonating, a support hovering at the shoulder and spitting.
+
+  const APPEAR = 0.35;          // the arrival fade (summons.js, APPEAR_TIME)
+
+  /** How long one full showing of this creature takes. */
+  function summonCycle() {
+    const c = use.cfg;
+    const travel = Math.abs(reach()) / Math.max(60, c.speed || 300);
+    return APPEAR + travel + (c.behavior === "support" ? 2.4 : 1.6);
+  }
+
+  /** How far the creature has to cover to reach its quarry — from where it is
+   *  put down to where it wants to stand. */
+  function reach() {
+    const c = use.cfg;
+    const from = FIGHTER_X - (c.backOff ?? 60);
+    return ENEMY_X - (c.standOff ?? 0) - from;
+  }
+
+  /** Where the creature is, and what it is doing, `age` seconds in. */
+  function summonAt(age) {
+    const c = use.cfg;
+    const t = Math.max(0, age - APPEAR);
+    const appear = Math.min(1, age / APPEAR);
+    if (c.behavior === "support") {
+      // It never travels: it holds station behind and above its summoner and
+      // shoots from there. `hover` is the whole of its movement.
+      const cd = c.attack?.cd ?? 1.0;
+      return {
+        x: FIGHTER_X - (c.hover?.back ?? 70), y: GROUND - (c.hover?.up ?? 150),
+        dir: 1, appear, anim: "idle", flying: true,
+        shot: t > 0.5 ? ((t - 0.5) % cd) / cd : null,
+      };
+    }
+    const from = FIGHTER_X - (c.backOff ?? 60);
+    const span = reach();
+    const speed = c.speed || 300;
+    const arriveAt = Math.abs(span) / speed;
+    const walking = t < arriveAt;
+    const x = from + Math.sign(span) * Math.min(Math.abs(span), speed * t);
+    if (walking) return { x, y: GROUND, dir: 1, appear, anim: "move" };
+    // Arrived. A bomber spends itself on contact; a chaser bites on a cooldown.
+    const since = t - arriveAt;
+    if (c.behavior === "bomber") {
+      return { x, y: GROUND, dir: 1, appear, anim: "attack",
+               blast: since < 0.55 ? since / 0.55 : 1, gone: since > 0.06 };
+    }
+    const cd = c.attack?.cd ?? 0.8;
+    const phase = since % cd;
+    return { x, y: GROUND, dir: 1, appear, anim: phase < 0.26 ? "attack" : "idle",
+             biting: phase < 0.26 };
+  }
+
+  /** The creature's own drawing for the pose it is holding — the same
+   *  resolution summons.js does, so a creature with pose plates animates and
+   *  one without holds its single still. */
+  function summonImage(anim) {
+    const base = use.spriteKey;
+    const frames = SUMMON_ANIMS[anim]?.frames || ["idle_a"];
+    const drawn = frames.map((pose) => getImage(`${base}:${pose}`)).filter(Boolean);
+    if (!drawn.length) return getImage(base);
+    const fps = SUMMON_ANIMS[anim]?.fps || 2.4;
+    return drawn[Math.floor(t * fps) % drawn.length];
+  }
+
+  function drawSummon(adj) {
+    const c = use.cfg;
+    const s = summonAt(t);
+    const img = summonImage(s.anim);
+    const h = (c.h ?? 110) * (adj.scale || 1);
+
+    // The ring the game tightens under an arriving summon.
+    if (s.appear < 1) {
+      ctx.save();
+      ctx.globalAlpha = 0.35 + 0.4 * s.appear;
+      ctx.strokeStyle = c.color || "#8fd3ff";
+      ctx.lineWidth = 2 + 3 * s.appear;
+      ctx.beginPath();
+      ctx.ellipse(s.x, s.y, h * 0.5 * (1.6 - 0.9 * s.appear), h * 0.13, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // A bomber that has gone off is GONE — that is the point of a bomber, and
+    // a preview that kept drawing it standing there would be hiding the one
+    // fact about it that matters most.
+    if (!s.gone && img) {
+      const w = img.width * h / img.height;
+      ctx.save();
+      ctx.globalAlpha = s.appear;
+      ctx.translate(s.x, s.y);
+      ctx.scale(c.faceRight ? 1 : -1, 1);   // summon art faces left in source
+      ctx.shadowColor = c.color || "#8fd3ff";
+      ctx.shadowBlur = 14;
+      if (adj.rot) ctx.rotate(adj.rot);
+      ctx.drawImage(img, -w / 2 + (adj.dx || 0), -h + (adj.dy || 0), w, h);
+      ctx.restore();
+    }
+
+    // WHAT IT HITS WITH, which is the whole question its art has to answer.
+    // A bomber's is its own body and it spends it once; a chaser's is a box on
+    // the front of it, on a cooldown; a support never touches anybody, so it
+    // gets a shot instead of a box and the absence is the answer.
+    if (s.blast != null) {
+      const r = (c.attack?.r || 90) * (0.3 + 0.7 * s.blast);
+      ctx.save();
+      ctx.globalAlpha = 1 - s.blast;
+      ctx.strokeStyle = "#ffd35a";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y - h * 0.45, r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = "#ffd35a";
+      ctx.font = "11px ui-monospace, monospace";
+      const label = `detonates — ${Math.round(c.attack?.r || 90)}px blast`;
+      ctx.fillText(label, Math.min(s.x - r, canvas.width - ctx.measureText(label).width - 8),
+        s.y - h * 0.45 - r - 6);
+      ctx.restore();
+    } else if (!s.flying && img) {
+      const box = sharedAttack(use.spriteKey)
+        ?? (c.behavior === "bomber" ? { x: 0, y: 0.5, w: 1, h: 1 }
+                                    : { x: 0.28, y: 0.52, w: 0.44, h: 0.76 });
+      const w = img.width * h / img.height;
+      ctx.save();
+      ctx.strokeStyle = s.biting ? "#ff8f6f" : "#6fb0e8";
+      ctx.setLineDash(s.biting ? [] : [5, 4]);
+      ctx.globalAlpha = s.appear * (s.biting ? 1 : 0.5);
+      ctx.strokeRect(s.x + box.x * w - (box.w * w) / 2, s.y - box.y * h - (box.h * h) / 2,
+        box.w * w, box.h * h);
+      ctx.restore();
+    }
+    if (s.shot != null) {
+      // Its projectile, on the arc it really fires: out of the hover, aimed at
+      // whoever it is watching.
+      const p = c.attack?.projectile || {};
+      const flight = s.shot * (c.attack?.cd ?? 1.0);
+      ctx.save();
+      ctx.fillStyle = p.color || c.color || "#8fd3ff";
+      ctx.globalAlpha = 0.9;
+      ctx.beginPath();
+      ctx.arc(s.x + (p.speed || 560) * flight, s.y + flight * 90, p.r || 20, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    return s;
+  }
+
+  /** Where a PLANTED drawing sits: on the floor at its own distance, or on the
+   *  opponent's head when the move says so. A drop falls onto that point over
+   *  its arm time; a trap or a field is simply there. */
+  function plantedAt(age) {
+    const p = use.p;
+    const x = p.dist == null ? ENEMY_X : FIGHTER_X + p.dist;
+    if (!p.falls) {
+      return { x0: x, y0: GROUND, x, y: GROUND, vx: 0, vy: 0, foot: true,
+               armed: age >= p.armed, visible: age <= p.life,
+               alpha: Math.min(1, age * 3) * Math.min(1, (p.life - age) * 2) };
+    }
+    const prog = Math.min(1, age / p.armed);
+    return { x0: x, y0: GROUND, x, y: -140 + prog * (GROUND + 140),
+             vx: 0, vy: 0, foot: true, landed: prog >= 1, armed: prog >= 1,
+             visible: age <= p.life,
+             alpha: prog < 1 ? 1 : Math.max(0, 1 - (age - p.armed) / 0.6) };
+  }
+
   /** The point the drawing is measured from, whichever way this action puts it
    *  on the stage: a shot's muzzle, or the top of a drop's fall. */
   const originAt = (adj) => (use.mode === "drop" ? dropAt(use.p.delay + use.p.fall)
     : use.mode === "flash" ? flashAt(0)
+    : use.mode === "summon" ? { x0: FIGHTER_X - (use.cfg.backOff ?? 60), y0: GROUND }
+    : use.mode === "planted" ? plantedAt(use.p.armed)
     : shotAt(0, adj));
 
   /** The projectile, painted exactly as render.js paints it. */
@@ -326,7 +618,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // reason it does in the director: dx/dy correct the drawing, and a
     // correction measured at arrival would throw the speck off its own path.
     const persp = pos.persp ?? 1;
-    const h = (use.mode === "flash" ? use.p.height
+    const h = (use.mode === "flash" || use.mode === "planted" ? use.p.height
       : (use.p.spriteH || use.p.r * 3)) * (adj.scale || 1) * persp;
     const w = sprite.width * h / sprite.height;
     ctx.save();
@@ -346,7 +638,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // meteor lying on its side that the game draws nose-down.
     if (use.mode === "flash") {
       ctx.scale(-1, 1);   // spawnSummonFlash mirrors it to the fighter's facing
-    } else if (use.mode !== "drop") {
+    } else if (use.mode !== "drop" && use.mode !== "planted") {
       const flip = pos.vx > 0 ? -1 : 1;
       if (use.p.vy || use.p.gravity || use.p.homing) ctx.rotate(Math.atan2(-flip * pos.vy, -flip * pos.vx));
       ctx.scale(flip, 1);
@@ -386,6 +678,8 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     lastTick = now;
     const dur = use.mode === "drop" ? use.p.delay + use.p.fall + 0.3
       : use.mode === "flash" ? use.p.life
+      : use.mode === "summon" ? summonCycle()
+      : use.mode === "planted" ? use.p.life
       : (use.p.dur || 0.9);
     const cycle = Math.max(STATES[use.state]?.duration || 0.5, dur) + 0.35;
     t = (t + dt) % cycle;
@@ -420,11 +714,19 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       { scale: CHARACTERS[ek]?.scale, facing: -1 });
     ctx.restore();
 
-    const pos = use.mode === "drop" ? dropAt(t)
-      : use.mode === "flash" ? flashAt(t)
-      : shotAt(t, adj);
-    const sprite = getImage(use.spriteKey);
-    if (sprite && t <= dur && pos.visible !== false) drawShot(sprite, pos, adj, t);
+    // Kept out here because the shot's caption names where its muzzle came
+    // from, and that is a fact the playback works out rather than one the panel
+    // already knows.
+    let pos = null;
+    if (use.mode === "summon") drawSummon(adj);
+    else {
+      pos = use.mode === "drop" ? dropAt(t)
+        : use.mode === "flash" ? flashAt(t)
+        : use.mode === "planted" ? plantedAt(t)
+        : shotAt(t, adj);
+      const sprite = getImage(use.spriteKey);
+      if (sprite && t <= dur && pos.visible !== false) drawShot(sprite, pos, adj, t);
+    }
 
     // The two points, always visible: the one the game spawns from and the one
     // the drawing is centred on after the nudge. A drop has no muzzle to place
@@ -444,15 +746,50 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       ctx.fillText("reach", FIGHTER_X + b.ox - b.w / 2 + 3, GROUND + b.oy - b.h / 2 - 4);
       ctx.restore();
     }
-    if (use.mode === "shot" || (use.mode !== "drop" && use.mode !== "flash")) {
+    // A creature has no second point: it is put down at its own feet and its
+    // nudge is measured from there, so the two markers would sit on top of one
+    // another and only one of them would be draggable.
+    if (use.mode !== "summon" && use.mode !== "drop" && use.mode !== "flash"
+        && use.mode !== "planted") {
       marker(origin.x0, origin.y0, "#9fd39f", "spawn", false);
+    }
+    // What it fills, for a thing whose whole job is to fill it.
+    if (use.mode === "planted" && use.p.box?.w) {
+      const b = use.p.box;
+      const live = plantedAt(t).armed;
+      ctx.save();
+      ctx.strokeStyle = live ? "#ff8f6f" : "#6fb0e8";
+      ctx.setLineDash(live ? [] : [5, 4]);
+      ctx.globalAlpha = live ? 1 : 0.55;
+      ctx.strokeRect(origin.x0 - b.w / 2, GROUND - b.h, b.w, b.h);
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.font = "11px ui-monospace, monospace";
+      ctx.fillText(live ? "live" : "arming", origin.x0 - b.w / 2 + 3, GROUND - b.h - 4);
+      ctx.restore();
     }
     marker(origin.x0 + (adj.dx || 0), origin.y0 + (adj.dy || 0), "#f0b45a", "drawing", true);
 
     ctx.fillStyle = "#8b96b3";
     ctx.font = "12px ui-monospace, monospace";
     const nudge = `drawing dx ${(adj.dx || 0).toFixed(1)}, dy ${(adj.dy || 0).toFixed(1)}`;
-    if (use.mode === "flash") {
+    if (use.mode === "planted") {
+      const p = use.p;
+      ctx.fillText(`${use.name} — ${use.charKey} · ${p.box?.w ?? "?"}x${p.box?.h ?? "?"} on the floor`
+        + (p.dist == null ? ", on the opponent" : `, ${p.dist}px in front`)
+        + ` · ${p.life.toFixed(2)}s`, 14, 22);
+      ctx.fillText(`${p.what}   ·   ${nudge}`, 14, 40);
+    } else if (use.mode === "summon") {
+      const c = use.cfg;
+      const WHAT = {
+        chaser: "closes and bites on its cooldown — the box is what it hits with",
+        bomber: "walks in and DETONATES — its whole body is the contact, so there is no bite to place",
+        support: "hovers at the shoulder and shoots — it never touches anybody, so it has no bite at all",
+        brawler: "fights: it picks its moves, telegraphs them, and commits",
+      };
+      ctx.fillText(`${use.name} — ${use.charKey} · ${c.behavior || "chaser"} · `
+        + `${c.h ?? 110}px tall, ${c.speed || 0}px/s, ${c.duration ?? "?"}s on stage`, 14, 22);
+      ctx.fillText(`${WHAT[c.behavior] || WHAT.chaser}   ·   ${nudge}`, 14, 40);
+    } else if (use.mode === "flash") {
       ctx.fillText(`${use.name} — ${use.charKey} · ${use.state} · flashes for ${use.p.life}s, ${use.p.forward}px in front`, 14, 22);
       ctx.fillText(`stands on the floor — no spawn point to place`
         + (use.p.box ? `, the reach is the dashed box` : "") + `   ·   ${nudge}`, 14, 40);
@@ -472,7 +809,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
         derived: "muzzle unplaced — reference scaled",
       };
       ctx.fillText(`spawn ox ${kitOx}, oy ${kitOy} (kit)`
-        + `   ·   ${SOURCE[pos.source] || pos.source}   ·   ${nudge}`, 14, 40);
+        + `   ·   ${SOURCE[pos?.source] || pos?.source || "muzzle"}   ·   ${nudge}`, 14, 40);
     }
 
     raf = requestAnimationFrame(frame);
@@ -493,7 +830,9 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // The drawing marker wins a tie: it is the one that moves most often, and
     // it sits on top of the spawn point whenever the nudge is zero.
     if (Math.hypot(pt.x - dPt.x, pt.y - dPt.y) < 18) drag = "drawing";
-    else if (use.mode !== "drop" && use.mode !== "flash" && Math.hypot(pt.x - o.x0, pt.y - o.y0) < 18) drag = "spawn";
+    else if (use.mode !== "drop" && use.mode !== "flash" && use.mode !== "summon"
+             && use.mode !== "planted"
+             && Math.hypot(pt.x - o.x0, pt.y - o.y0) < 18) drag = "spawn";
     else return;
     grabbed = false;
     canvas.setPointerCapture(ev.pointerId);
