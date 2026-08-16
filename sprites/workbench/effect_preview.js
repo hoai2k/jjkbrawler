@@ -28,11 +28,11 @@
 import { CHARACTERS, CHARACTER_KEYS } from "../../src/characters.js";
 import { STATES, clipTime } from "../../render3d/src/states.js";
 import { drawCharFrame, currentFrame } from "../src/sprites.js";
-import { loadFrame, getImage } from "../../src/assets.js";
+import { loadFrame, getImage, loadSharedImage } from "../../src/assets.js";
 import { bodyMetrics } from "../../src/silhouette.js";
 import { spawnOffset, REFERENCE_MUZZLE } from "../../src/muzzle.js";
 import { meteorAt, METEOR_FALL, sharedAdjust, sharedAttack } from "../../src/shared_sprites.js";
-import { SUMMON_ANIMS } from "../../src/config_summons.js";
+import { SUMMON_ANIMS, SUMMON_POSES } from "../../src/config_summons.js";
 import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
 
 /** The animation state each special slot plays (src/specials.js). */
@@ -446,6 +446,11 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
   function summonCycle() {
     const c = use.cfg;
     const travel = Math.abs(reach()) / Math.max(60, c.speed || 300);
+    // A bomber spends itself the moment it arrives, so the tail after it is a
+    // tail with nothing in it: give it just long enough to read the blast and
+    // then start again. A long one meant the crawler was OFF SCREEN for half
+    // of every loop, which looks exactly like a preview that is not working.
+    if (c.behavior === "bomber") return APPEAR + travel + 0.75;
     return APPEAR + travel + (c.behavior === "support" ? 2.4 : 1.6);
   }
 
@@ -860,6 +865,16 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       const found = firingUse(spriteKey, preferChar);
       if (!found) return false;
       use = { ...found, spriteKey };
+      // A CREATURE ANIMATES, and `getImage` only answers for art that has
+      // already been fetched. Selecting a creature in the panel fetches its
+      // resting plate and nothing else, so every walk and bite frame came back
+      // null and the playback drew an empty stage — a preview that looked
+      // broken rather than one that was missing its art. Kicked off here and
+      // not awaited: the loop picks each plate up on the frame it lands.
+      if (found.mode === "summon") {
+        for (const pose of SUMMON_POSES) loadSharedImage(`${spriteKey}:${pose}`);
+        loadSharedImage(spriteKey);
+      }
       t = 0;
       lastTick = performance.now();
       running = true;
