@@ -35,6 +35,8 @@ import { STATES, clipNameFor } from "./states.js";
 import { twoHandGrip, CHARACTER_MORPHS, morphBones, CHARACTER_PROPS,
   CARRY_DROP_DEG, CARRY_OVERRIDES } from "./props.js";
 
+const DEG = Math.PI / 180;
+
 /** Which limb reaches, per state: [root, mid, end] bone names.
  *
  *  Arms for punches, the lead leg for the aerial (the default set kicks with
@@ -396,6 +398,55 @@ export function fitPropShaft(THREE, root3d, propBoneName) {
   let extent = 0;
   for (const p of locals) extent = Math.max(extent, p.dot(dir));
   return { dir, extent };
+}
+
+/**
+ * Turn a delivered weapon the right way round — see props.js "which way the
+ * weapon points" for why a correct attach can still arrive backwards.
+ *
+ * Both angles are measured in the WEAPON's frame rather than the bone's:
+ * `rollDeg` about the shaft `fitPropShaft` found, `flipDeg` about an axis
+ * across it. That is what makes them portable — a bone's local axes are
+ * whatever the exporter chose, and the shaft is a fact about the object.
+ *
+ * The turn goes into the PROP BONE's own rotation, so it pivots about the
+ * bone's origin (the grip) and moves the weapon and nothing else: the hand
+ * stays exactly where the clip put it. It runs before `applyGrip`, whose
+ * slide is expressed along the same shaft axis and therefore follows the
+ * weapon round.
+ */
+export function applyPropOrient(THREE, root3d, charKey, tmp) {
+  let turned = false;
+  for (const p of CHARACTER_PROPS[charKey] || []) {
+    if (!p.flipDeg && !p.rollDeg) continue;
+    const bone = root3d.getObjectByName(p.bone);
+    if (!bone) continue;
+    if (bone.userData.__shaft === undefined) {
+      bone.userData.__shaft = fitPropShaft(THREE, root3d, p.bone);
+    }
+    const shaft = bone.userData.__shaft;
+    if (!shaft) continue;
+    const axis = tmp.v1.copy(shaft.dir);
+    if (p.flipDeg) {
+      // ANY axis across the shaft turns it end for end, and which one is
+      // picked decides the roll the flip leaves behind. Rather than author
+      // that choice per weapon, take the stable one — the shaft crossed with
+      // whichever basis axis it leans on least, so a shaft lying along a basis
+      // axis is as well behaved as one lying between two — and let `rollDeg`
+      // say what to do about the leftover.
+      const a = Math.abs(axis.x), b = Math.abs(axis.y), c = Math.abs(axis.z);
+      const e = tmp.v2.set(a <= b && a <= c ? 1 : 0, b < a && b <= c ? 1 : 0, 0);
+      if (!e.x && !e.y) e.z = 1;
+      const across = tmp.v3.crossVectors(axis, e).normalize();
+      bone.quaternion.multiply(tmp.q1.setFromAxisAngle(across, p.flipDeg * DEG));
+    }
+    if (p.rollDeg) {
+      bone.quaternion.multiply(tmp.q1.setFromAxisAngle(axis, p.rollDeg * DEG));
+    }
+    bone.updateMatrixWorld(true);
+    turned = true;
+  }
+  return turned;
 }
 
 /**

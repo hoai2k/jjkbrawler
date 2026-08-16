@@ -89,10 +89,10 @@ const r = await page.evaluate(async () => {
     return max;
   };
 
-  swayChains(root, 0.0, "uro");
+  swayChains(THREE, root, 0.0, "uro");
   root.updateMatrixWorld(true);
   const hairA = skinned(hairVerts), headA = skinned(headVerts);
-  swayChains(root, 0.9, "uro");
+  swayChains(THREE, root, 0.9, "uro");
   root.updateMatrixWorld(true);
   const hairB = skinned(hairVerts), headB = skinned(headVerts);
 
