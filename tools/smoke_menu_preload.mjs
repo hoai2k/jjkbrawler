@@ -113,11 +113,20 @@ const dwell = await page.evaluate(async () => {
   card.dispatchEvent(new MouseEvent("mouseenter"));
   return { key: card.dataset.stage, before };
 });
-await page.waitForTimeout(6000);   // the dwell delay, and then the fetch
-const dwellLanded = await page.evaluate(async (key) => {
-  const { images } = await import("/src/assets.js");
-  return images.has(`bg:${key}`);
-}, dwell.key);
+// POLLED, not waited out. A backdrop is ~2.4 MB and the loader is deliberately
+// one board at a time behind whatever else is queued, so a fixed sleep races
+// the download — this check failed about one run in three on a machine that was
+// otherwise fine, which is worse than no check at all. What is being asserted
+// is that the fetch STARTS, so waiting longer for a slow one costs nothing and
+// a genuine failure still takes the full timeout and then fails.
+let dwellLanded = false;
+for (let waited = 0; waited < 25000 && !dwellLanded; waited += 400) {
+  await page.waitForTimeout(400);
+  dwellLanded = await page.evaluate(async (key) => {
+    const { images } = await import("/src/assets.js");
+    return images.has(`bg:${key}`);
+  }, dwell.key);
+}
 check(!dwell.before && dwellLanded,
   "dwelling on an arena starts fetching its full backdrop",
   `${dwell.key}: in memory before=${dwell.before} after=${dwellLanded}`);

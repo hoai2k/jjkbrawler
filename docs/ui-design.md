@@ -107,7 +107,15 @@ sits in an angled-ribbon frame. Gold lives here and nowhere else.
   chip + ready badge live on it); roster tiles stay rectangular for scanning,
   with angled name bands and sharp seat-color rings; category titles become
   slash-cut tags; the central VS column uses the display face; the primary
-  action is a long parallelogram "GO" plate. The roster **sizes itself to the
+  action is a long parallelogram "GO" plate. **A ring on the grid means a
+  selector** — this is a cursor, it is yours, it is where your next press lands
+  — so in a one-player match the CPU's ring waits until the player has locked in
+  and their own cursor has moved over to choosing their opponent
+  (`ui.steeredSlot`). Painted from the start it sat on Random beside the
+  player's own and read as a second cursor of theirs, in a colour they had not
+  chosen. Which fighter the CPU is holding is never hidden — that is on the hero
+  card, which is the place that is about the fighter rather than about the
+  cursor. Guarded by `tools/smoke_cpu_marker.mjs`. The roster **sizes itself to the
   window** (`layoutCharacterGrid`): it tries every depth from 2 rows to 5, takes
   the tallest crop that fits at each, and keeps whichever gives the biggest
   cards — a deeper roster needs fewer columns per category and so buys card

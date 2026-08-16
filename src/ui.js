@@ -1077,6 +1077,26 @@ function pickedSlots() {
   return seats.filter((id) => id < cpuFrom);
 }
 
+/** The slots that get a RING ON THE ROSTER — which is not quite the slots that
+ *  have a pick.
+ *
+ *  A ring on the grid reads as a selector: this is a cursor, it is yours, it is
+ *  where your next press lands. In a one-player match that is true of the CPU's
+ *  ring only once you have locked yourself in and your selector has moved over
+ *  to choosing your opponent (steeredSlot). Before that the CPU's fighter is
+ *  something the game is holding, not something anybody is steering, and a
+ *  second coloured box sitting on the roster beside your own read as a second
+ *  cursor of yours — which is what was reported.
+ *
+ *  It is only the RING that waits. Which fighter the CPU currently holds is
+ *  still shown, in the place that is about the fighter rather than about the
+ *  cursor: their hero card, on the right, the whole time. */
+function markedSlots() {
+  const slots = pickedSlots();
+  if (state.playerCount !== 1 || steeringCpu()) return slots;
+  return slots.filter((id) => id !== 2);
+}
+
 // A human slot that has not locked in is "browsing": its card shows whatever
 // the cursor is over (or its last pick) greyed out, because nothing is settled
 // yet. The CPU slot never browses — it is committed to whatever it holds.
@@ -1117,7 +1137,7 @@ function markedKey(id) {
  *  four seats; the stylesheet just consumes --mark-rings. */
 function renderRosterMarkers() {
   const marks = new Map();
-  for (const id of pickedSlots()) {
+  for (const id of markedSlots()) {
     const key = markedKey(id);
     if (!key) continue;
     if (!marks.has(key)) marks.set(key, []);
