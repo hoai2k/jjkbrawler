@@ -15,9 +15,10 @@
 // DIFFERENT ANSWER behind — posed 3D models rendered to a texture and blitted
 // into the same 2D world, say — without the rest of the game knowing.
 //
-// This module is that waist, made explicit. Today there is one backend and it
-// is the sprite sheets; the point of naming it is that adding a second one is
-// a new entry in BACKENDS rather than a fork of render.js.
+// This module is that waist, made explicit. There are three backends today —
+// the sprite sheets, the 2.5D cards and the live-3D path — and each of them is
+// a new entry in BACKENDS rather than a fork of render.js, which is the whole
+// point of naming the seam.
 //
 // ---------------------------------------------------------------------------
 // WHAT A BACKEND OWES THE GAME

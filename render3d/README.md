@@ -3,13 +3,14 @@
 Rigged 3D models animated at full frame rate, rendered in a hand-drawn anime
 style — toon-ramped, ink-outlined, stepped on twos — and blitted into the
 same 2D world the sprite path draws into. The billboard path's heir: same
-delivery spec, same 26-state clip contract (imported from
-`billboards/src/states.js`, never copied), same per-character fallthrough to
-sprites. **Phase D0 and the D1/D2 engine side are built**: live playback,
-the anime pass, foot IK, real turnarounds, aimed strikes, head look-at, hurt
-flinch, micro-parallax and stage-derived lighting all run today, proven by
-the mannequin and a generated test delivery. What it waits on now is art
-(round D1 in [docs/asset-requests.md](docs/asset-requests.md)).
+delivery spec, same clip contract (`src/states.js` — 38 states over 27
+clips, the rest aliased), same per-character fallthrough to sprites. **Phase D0
+and the D1/D2 engine side are built**: live playback, the anime pass, foot IK,
+real turnarounds, aimed strikes, head look-at, hurt flinch, micro-parallax and
+stage-derived lighting all run today. **The roster is delivered too** — 27 rigs
+in `assets/`, 25 of them drawing in game (`inGame: false` holds Mei Mei and
+Kurourushi back pending rebuilds). Open work is in
+[docs/asset-requests.md](docs/asset-requests.md).
 
     node server.mjs
     open 'http://127.0.0.1:5174/?render=3d'               # the real thing
@@ -35,7 +36,7 @@ you would actually be looking closely.
 
 Strikes **aim and reach**: attack states pitch toward the target and the
 striking limb is solved onto it by the shared two-bone IK
-(`billboards/src/ik.js` — the same solver, the same clip contract). Facing here
+(`src/ik.js` — the same solver the billboard path draws through). Facing here
 is a real 180° yaw rather than a mirror, so the reach target is built in the
 rig's own frame and pushed through `localToWorld`; that is what keeps a
 left-facing fighter reaching the way they are actually facing.
@@ -55,6 +56,11 @@ render3d/
                live layers, every dial), toon.js (ramp/shade/rim), outline.js
                (ink shells), scene.js (offscreen WebGL + pose cache + stage
                light rig), blit.js (into the 2D world; no mirror — turnaround)
+               …and the model machinery BOTH backends share, which lives here
+               rather than in billboards/: states.js (the state and clip
+               contract), ik.js, clips.js, mannequin.js, props.js, and the
+               pose libraries (sprite_poses.js, pose_library.js, pose_clips.js)
+               that build a fighter's states out of their own sprite poses
   assets/      approved runtime rigs + manifest.json (the registry)
   intake/      deliveries land here; validate -> import -> review -> apply
   workbench/   /render3d/workbench/ — pose editor, look-dev dials,
@@ -83,7 +89,7 @@ anyone can apply. **Edit pose** in `/render3d/workbench/` turns it into
 keyframes.
 
 It edits EXTREMES, not frames. A clip is a handful of poses with a timing and
-a curve between them (`billboards/src/clips.js`), so the editor gives you the
+a curve between them (`src/clips.js`), so the editor gives you the
 extremes and nothing else: pick a key from the strip, pose the body, choose how
 it travels out of that key (`ease`, `snap`, `back`, `hold`…), and the
 in-betweens rebuild. Keys can be added at the playhead or at the contact beat,
@@ -112,7 +118,7 @@ screen. **Output changes** downloads `clip-edits.json`:
 ```
 
 The `keys` drop straight into the `POSES`/`stateKeys` tables in
-`billboards/src/mannequin.js`. `targetSpaceOffsetsDeg` deliberately does not:
+`src/mannequin.js`. `targetSpaceOffsetsDeg` deliberately does not:
 those bones are solved at pose time, so the note belongs in the solver's
 shares, not in a clip. Everything lives in the page only; nothing on disk moves
 until the JSON is applied by hand.

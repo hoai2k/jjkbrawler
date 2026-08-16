@@ -8,12 +8,13 @@ round's audit, prompts and delivery record.
 
 ## Round 12 — the grab pack (open) — 3 sounds
 
-The Smash-style grab/throw mechanic shipped behind `?throw=true`
-(`src/grab.js`, [game-mechanics.md §8](game-mechanics.md#grabs--throws--on-by-default-throwfalse-turns-them-off)).
+The Smash-style grab/throw mechanic is **on by default** — `?throw=false` plays
+without it (`src/grab.js`,
+[game-mechanics.md §8](game-mechanics.md#grabs--throws--on-by-default-throwfalse-turns-them-off)).
 It is fully voiced today off existing files — the table below is the interim
 wiring — so nothing is silent; these three are what give the mechanic its own
-sonic identity instead of a borrowed one. If the mechanic graduates from its
-flag, this round should land with it.
+sonic identity instead of a borrowed one. The flag has already graduated, so
+this round is simply overdue.
 
 | Key | Moment | What it should be | Playing in the meantime |
 |---|---|---|---|

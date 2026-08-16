@@ -1,9 +1,9 @@
-# Gameplay TODO — the defensive triangle, and four fairness gaps
+# Gameplay TODO — the defensive triangle, and three fairness gaps
 
-Two pieces of work that came out of the round-18 polish review. Status, as of
-round 19:
+Two pieces of work that came out of the round-18 polish review. Both have since
+shipped; what is left is the two shield tweaks in §1a. Status:
 
-- **The grab (§1) is BUILT and now ON BY DEFAULT** — `src/grab.js`,
+- **The grab (§1) is BUILT and ON BY DEFAULT** — `src/grab.js`,
   `src/flags.js`. It matches this brief: shield-ignoring reach with whiff
   recovery, four throws routed through `applyHit`, damage-scaled mash escape,
   break-out punish window, a no-regrab beat, `isFoe` teams routing — plus a
@@ -63,6 +63,9 @@ A grab on every fighter:
   conventional answer is **shield + attack** (LT + X), which is also how a new
   player discovers it by accident, and which reads correctly — you are giving up
   your guard to reach for them.
+  *(What shipped instead: **RT**, taken back from the second jump, because grab
+  wants the button a Smash player's index finger reaches for. Shield + Light
+  survives as the shield grab, so the discovery-by-accident route still works.)*
 - **Properties.** Short range, slow startup, and losing to any attack that
   connects first. That losing-to-attack part is not a drawback, it is the whole
   point: it is the third side of the triangle.

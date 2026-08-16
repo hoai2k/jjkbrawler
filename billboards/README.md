@@ -31,13 +31,15 @@ render3d's manifest and this path went on drawing them the old way, and the
 same happened again with size and stance a day later. One registry is the fix
 that makes that class of bug impossible rather than merely fixed.
 
-**Yuji plays as a model today** — round B1 is delivered: his rig is conformed to
-spec and carries all 26 clips. What the pilot cost and what it found is
-[docs/b1-yuji.md](docs/b1-yuji.md); the whole roster has rigs now.
+**The whole roster plays as models** — all 27 rigs are delivered and approved in
+`render3d/assets/manifest.json`, and 25 of them draw in game (Mei Mei and
+Kurourushi are held back by `inGame: false` pending rebuilds). Yuji was the
+pilot; what round B1 cost and what it found is
+[docs/b1-yuji.md](docs/b1-yuji.md).
 
     node server.mjs
     open 'http://127.0.0.1:5174/?render=billboard'               # the real thing
-    open 'http://127.0.0.1:5174/?render=billboard&mannequin=all'  # grey proof bodies for the un-rigged
+    open 'http://127.0.0.1:5174/?render=billboard&mannequin=all'  # grey proof bodies instead of rigs (or &mannequin=gojo,yuji)
     open 'http://127.0.0.1:5174/billboards/workbench/'           # the review tool
 
 `?render=billboards` and `?render=sprites` work too — the plural spellings are
@@ -47,7 +49,9 @@ aliases (src/render_backend.js), not typos.
   architecture, phases, risks.
 - **[docs/asset-requests.md](docs/asset-requests.md)** — every rig and clip the
   roster needs: delivery spec, clip timing contract, prop and chain bone
-  naming, the aim contract. Round B1 (the Yuji pilot) is open.
+  naming, the aim contract. Round B1 (the Yuji pilot) is delivered; the live
+  rounds are the D-rounds in
+  [`render3d/docs/asset-requests.md`](../render3d/docs/asset-requests.md).
 - **[intake/README.md](intake/README.md)** — retired: rigs land in
   `render3d/intake/` and this path draws them.
 
@@ -64,42 +68,45 @@ poses a rig per unique `(character, state, quantised time, aim)` and caches the
 texture — most states are holds, so a fighter costs a couple of renders a
 second, not sixty. The blit anchors the foot line to `(x, y)` and applies the
 same mirror/squash/rotate arithmetic as sprites.js, so every piece of game feel
-in motion.js reads identically on both backends. Characters without a rig fall
-through to sprites per character, per draw — one delivered fighter plays in a
-roster of 27 sprite ones, and every failure (bad load, missing clip, render
-error) degrades to sprites loudly rather than to an invisible fighter.
+in motion.js reads identically on both backends. Characters without a usable rig
+fall through to sprites per character, per draw — so a fighter held back sits in
+a match beside model ones without anything special happening, and every failure
+(bad load, missing clip, render error) degrades to sprites loudly rather than to
+an invisible fighter.
 
 ## The default pose set and clip inheritance
 
 The mannequin's programmatic clips are **the default pose set**: any state a
 rig does not cover, and nothing else answers, plays the default clip on that
 rig — so a fighter delivered with only their six identity clips is playable on
-day one. Between "own" and "default" sits inheritance, edited in the workbench
-and stored in `assets/manifest.json`: a per-state override ("draw `sideHeavy`
+day one. (Ahead of all of it today sits the pose libraries: with
+`POSE_LIBRARY_CLIPS` on, a fighter's states are built by interpolating THEIR
+OWN sprite poses, and the order below is what a rig falls back to.) Between "own" and "default" sits inheritance, edited in the workbench
+and stored in `render3d/assets/manifest.json`: a per-state override ("draw `sideHeavy`
 with Todo's clip"), or a whole-set fallback (`inheritClips`). Clips bind by
 bone name and every rig honours the standard skeleton, which is what makes a
 clip portable between rigs. Resolution order — hand-set override, own clip,
-inherited set, default — is `resolveClip` in `src/rig.js`.
+inherited set, default — is `resolveClip` in `render3d/src/loader.js`.
 
 ## Weapons, props, physics, aim
 
 - **Props are rig bones** (`Prop_Main`, `Prop_Off`, `Prop_Float`), never
   separate files. The mannequin hangs crude placeholders for every fighter the
-  roster table arms (props.js) so clips are authored against the silhouette
+  roster table arms (`render3d/src/props.js`) so clips are authored against the silhouette
   that will actually swing.
 - **Physics chains** (`Chain_<name>_<i>` — Mei Mei's braid, Dagon's tendrils)
   sway deterministically off the pose clock, which keeps the pose cache honest;
   true integration is a per-rig opt-in later, at per-frame render cost.
 - **Strikes aim, and reach.** Aimable states pitch the spine toward a target —
   the controller's point when input sets `fighter.aimPoint`, else the nearest
-  opponent (render.js) — and **two-bone IK** (`src/ik.js`) then solves the
+  opponent (render.js) — and **two-bone IK** (`render3d/src/ik.js`) then solves the
   striking limb so the hand points at it exactly. The solve re-aims without
   re-lengthening: the clip's own extension is preserved and only the direction
   tracks, so a jab stays a jab while landing at any angle. IK ramps in over the
   wind-up so the clip keeps its anticipation. Clips are authored aim-neutral;
   the workbench's draggable crosshair runs the same math the game does.
-- **Two-handed weapons are a coupled solve** (`props.js TWO_HANDED_KINDS`,
-  `ik.js applyTwoHandGrip`). During attacks and braced holds the off hand
+- **Two-handed weapons are a coupled solve** (`render3d/src/props.js`
+  `TWO_HANDED_KINDS`, `render3d/src/ik.js` `applyTwoHandGrip`). During attacks and braced holds the off hand
   grips the weapon's shaft — measured from the rig's own geometry, never
   assumed — at the point nearest its shoulder. When the clip flings the
   weapon out of the off arm's reach (every authored strike does), the MAIN
