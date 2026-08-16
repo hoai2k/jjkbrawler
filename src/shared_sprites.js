@@ -504,8 +504,16 @@ function buildRegistry() {
         : null);
       const measured = !(Number.isFinite(entry.hitW) && Number.isFinite(entry.hitH));
       const owner = entry.name || entry.id || "a summon";
+      // WHETHER IT TOUCHES ANYBODY. `tryContact` — the only reader of a
+      // creature's attack box — runs for a chaser and a bomber. A SUPPORT
+      // creature hovers at its summoner's shoulder and shoots (updateSupport →
+      // fireSupport, src/summons.js); it never makes contact, so a box placed
+      // on it is stored, drawn in the workbench, and read by nothing. Carried
+      // here rather than re-derived because this is the file that already knows
+      // what each draw site does with a drawing.
+      const bites = (entry.behavior || "chaser") !== "support";
       const creature = (keys, height, hit) => (poolLists.add(keys), keys).forEach((key, i) => {
-        const info = { h: height, anchor: "feet", owner, hit, measuredBox: measured, ...NUDGED,
+        const info = { h: height, anchor: "feet", owner, hit, measuredBox: measured, bites, ...NUDGED,
                        what: i === 0
                          ? "the creature's height on stage (config_summons.js)"
                          : `a STAND-IN for ${owner} — only drawn if that creature's own art is missing (config_summons.js)` };
