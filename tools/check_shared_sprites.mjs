@@ -154,5 +154,24 @@ check(unadjusted.length === 0,
   unadjusted.length ? unadjusted.join(", ")
     : `${PAINTERS.length} painting module(s) clean`);
 
+// WHICH WAY A CREATURE FACES IS ONE FACT ABOUT IT, not six.
+//
+// summons.js reads the creature's key and nothing else, and shared_sprites.js
+// only falls back from a pose to its creature when the pose has no entry — so a
+// `faceLeft` on `summon:x:idle_a` is either redundant or a lie, and it was a
+// lie: four stale pose flags survived the move to a face-right default and
+// turned the Transfigured Human round while every one of its plates faces
+// right. The flag belongs on the creature, where the code looks for it.
+const manifest = JSON.parse(
+  readFileSync(new URL("../sprites/assets/manifest.json", import.meta.url), "utf8"));
+const posesFacing = Object.keys(manifest.otherSprites || {}).filter((key) => {
+  const parts = key.split(":");
+  return parts[0] === "summon" && parts.length === 3
+    && manifest.otherSprites[key]?.faceLeft !== undefined;
+});
+check(posesFacing.length === 0,
+  "a creature's facing is kept on the creature, not on its poses",
+  posesFacing.length ? posesFacing.join(", ") : "no pose carries its own faceLeft");
+
 console.log(failed ? `\n${failed} check(s) failed` : "\nall shared-sprite invariants hold");
 process.exit(failed ? 1 : 0);

@@ -64118,60 +64118,6 @@
    },
    "faceLeft": true
   },
-  "summon:smallpoxDeity:attack": {
-   "edited": {
-    "faceLeft": null
-   },
-   "faceLeft": true
-  },
-  "summon:smallpoxDeity:idle_a": {
-   "edited": {
-    "faceLeft": null
-   },
-   "faceLeft": true
-  },
-  "summon:smallpoxDeity:idle_b": {
-   "edited": {
-    "faceLeft": null
-   },
-   "faceLeft": true
-  },
-  "summon:smallpoxDeity:move_a": {
-   "edited": {
-    "faceLeft": null
-   },
-   "faceLeft": true
-  },
-  "summon:smallpoxDeity:move_b": {
-   "edited": {
-    "faceLeft": null
-   },
-   "faceLeft": true
-  },
-  "summon:transfiguredHuman:attack": {
-   "edited": {
-    "faceLeft": null
-   },
-   "faceLeft": true
-  },
-  "summon:transfiguredHuman:hurt": {
-   "edited": {
-    "faceLeft": null
-   },
-   "faceLeft": true
-  },
-  "summon:transfiguredHuman:idle_a": {
-   "edited": {
-    "faceLeft": null
-   },
-   "faceLeft": true
-  },
-  "summon:transfiguredHuman:idle_b": {
-   "edited": {
-    "faceLeft": null
-   },
-   "faceLeft": true
-  },
   "stagefx:stage_weak_curse": {
    "edited": {
     "faceLeft": null
