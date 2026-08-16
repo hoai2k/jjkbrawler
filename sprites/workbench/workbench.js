@@ -2302,7 +2302,11 @@ const DEFAULT_ATTACK_BOX = { x: 0.28, y: 0.52, w: 0.44, h: 0.76 };
  *  collision is its move's `r` and is not a shape anybody draws here. */
 function canPlaceAttack(key) {
   const can = sharedControls(key);
-  return !!(can?.used && can.measuredBox && can.anchor === "feet");
+  // `bites` is the difference between a box the game reads and a box nothing
+  // reads: a support creature hovers and shoots and never runs the contact
+  // test, so offering it a bite to place would be offering an edit that cannot
+  // reach the screen — the exact fault this panel keeps being fixed for.
+  return !!(can?.used && can.measuredBox && can.anchor === "feet" && can.bites !== false);
 }
 
 /** THE CREATURE AN ATTACK BOX BELONGS TO.
@@ -3627,6 +3631,7 @@ function sharedControls(key) {
     anchor: info.anchor,
     owner: info.owner,
     measuredBox: !!info.measuredBox,
+    bites: info.bites,
   };
 }
 

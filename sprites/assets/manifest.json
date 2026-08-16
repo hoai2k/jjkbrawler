@@ -63877,9 +63877,19 @@
   },
   "effect:cursed_tool": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "rotationDeg": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "rotationDeg": 17.5,
+   "dx": 1.9,
+   "dy": 1.6,
+   "src": {
+    "file": "assets/sprites/effects/cursed_tool.png",
+    "sha": "b4c9d80c1217"
+   }
   },
   "effect:drum_burst": {
    "edited": {
@@ -63964,14 +63974,18 @@
   "effect:scream_wave": {
    "edited": {
     "faceLeft": null,
-    "renderScale": null
+    "renderScale": null,
+    "dx": null,
+    "dy": null
    },
    "faceLeft": true,
    "renderScale": 0.925,
    "src": {
     "file": "assets/sprites/effects/scream_wave.png",
     "sha": "b1085a4d32ae"
-   }
+   },
+   "dx": 78.2,
+   "dy": -13.4
   },
   "effect:shikigami_fish": {
    "edited": {
@@ -64005,9 +64019,17 @@
   },
   "effect:soul_touch": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "dx": -2.2,
+   "dy": -62.9,
+   "src": {
+    "file": "assets/sprites/effects/soul_touch.png",
+    "sha": "a7ffcf6125c1"
+   }
   },
   "effect:speech_word": {
    "edited": {
@@ -64732,6 +64754,40 @@
    "src": {
     "file": "assets/sprites/summons/kurourushi_child.png",
     "sha": "dfe20e6292ba"
+   }
+  },
+  "summon:transfiguredCrawler": {
+   "edited": {
+    "dy": null
+   },
+   "dy": 1.6,
+   "attackBox": {
+    "x": 0.283,
+    "y": 0.667,
+    "w": 0.44,
+    "h": 0.76
+   }
+  },
+  "summon:transfiguredHulk": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.3,
+   "dy": 5.5,
+   "attackBox": {
+    "x": 0.024,
+    "y": 0.497,
+    "w": 0.653,
+    "h": 0.905
+   }
+  },
+  "summon:transfiguredSpitter": {
+   "attackBox": {
+    "x": 0.277,
+    "y": 0.637,
+    "w": 0.44,
+    "h": 0.76
    }
   }
  }
