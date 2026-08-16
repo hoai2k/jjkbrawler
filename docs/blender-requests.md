@@ -1,5 +1,19 @@
 # Blender requests — the far-arm deformation
 
+> **MOSTLY SOLVED, AND NOT IN BLENDER.** The far arm was a WELD — a sheet of
+> geometry the generator built across the gap between an arm and the ribs,
+> invisible in the bind and stretched into a slab the moment the arm lifts. It
+> is found by skinning the mesh in two poses and comparing triangle areas
+> (`tools/cut_weld_triangles.py`), which needs no Blender, and it is cut from
+> the index buffer, which needs no Blender either. Six rigs carried one —
+> gakuganji at 11% of his skin, nanami 9.5%, panda 7.9%, hakari 4.3%, jogo
+> 1.5%, todo 0.3% — and all six are repaired.
+>
+> What is left for Blender is Yuki, Sukuna and Todo, who have no sheet at all
+> and whose complaints are about the SHAPE of the limb rather than its surface.
+> The evidence below still stands and is what ruled the other theories out.
+> Full numbers in [rig-and-animation-audit.md](rig-and-animation-audit.md).
+
 Work that needs Blender and a person looking at the model. Nothing here can be
 fixed from JS: the skeleton is provably doing the right thing and the mesh is
 not following it.
