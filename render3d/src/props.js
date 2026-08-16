@@ -74,15 +74,24 @@ export const CHARACTER_PROPS = {
   // ever is. OPT-IN because loose clothing looks identical to that test.
   meimei:    [{ bone: "Prop_Main", kind: "axe", hand: "RightHand",
                 rescue: "offBone", lengthM: 1.30, grip: 0.80 }],
+  // `flipDeg: 180` — see WHICH WAY THE WEAPON POINTS below. She was delivered
+  // end-for-end: butt of the shaft up and forward, blade back and down, where
+  // her sprite leads with the blade and trails the tassel.
   maki:      [{ bone: "Prop_Main", kind: "spear2h", hand: "RightHand",
-                lengthM: 1.80, grip: 0.45 }],
+                lengthM: 1.80, grip: 0.45, flipDeg: 180 }],
   momo:      [{ bone: "Prop_Main", kind: "broom", hand: "RightHand",
                 lengthM: 1.40, grip: 0.70 }],
   // `gripAt` re-grips a DELIVERED weapon at runtime — see the note under
   // CARRY_DROP_DEG. He arrived holding the guitar by the headstock, which is
   // the one place on a guitar nobody holds it.
+  // He arrived holding it the other way up as well, which `gripAt` could only
+  // make tidier: the V of the body ABOVE the fretting hand with its prongs in
+  // the air and the headstock lost somewhere in his robe, where the drawing
+  // hangs the body low off a neck running up past his shoulder. Same `flipDeg`
+  // as Maki, and the roll that flip happens to leave is the one worth keeping
+  // — pickups and bridge out toward the camera.
   gakuganji: [{ bone: "Prop_Main", kind: "guitar", hand: "LeftHand",
-                lengthM: 1.00, grip: 0.75, gripAt: 0.42 }],
+                lengthM: 1.00, grip: 0.75, gripAt: 0.42, flipDeg: 180 }],
   mahoraga:  [{ bone: "Prop_Float", kind: "wheel", hand: null,
                 lengthM: 0.90, grip: 0.50 }],
 };
@@ -116,8 +125,22 @@ export const CHARACTER_CHAINS = {
            { name: "tendrilR", from: "Head", segments: 3, length: 0.3, sway: 10 }],
   // A mane that reads as its own mass — big, slow and trailing, so it lags
   // the head rather than shadowing it.
+  //
+  // `lay` is where that mass HANGS before any of it moves. Carved out of the
+  // skull's skin, her mane keeps the direction it was modelled in, which is
+  // straight up: a plume standing on end in every state, where the drawing
+  // sweeps it back off her face. The obvious lever was `headTiltDeg` — tip the
+  // head back and the hair goes with it — and it takes her chin up with it
+  // too, in a fighter whose face is the thing you are trying to keep pointed
+  // at the opponent. The hair has its own bones (fromSkin put it there for
+  // exactly this reason), so it can be laid back on its own.
+  //
+  // Degrees at the TIP, spread down the chain: negative lays it back, away
+  // from the way she faces. −80 is where the mass clears her face and sits
+  // behind and above her the way the drawing has it; −130 collapses it onto
+  // her shoulder and −40 is still a plume.
   uro:    [{ name: "hair", from: "Head", segments: 3, length: 0.6, sway: 16,
-             fromSkin: true }],
+             lay: -80, fromSkin: true }],
 };
 
 // ------------------------------------------------------- two-handed weapons
@@ -176,6 +199,42 @@ export const TWO_HANDED_KINDS = {
 // his guitar by the headstock — a real grip is at the base of the neck, a
 // third of a metre down — and re-gripping it here is a line of data against
 // re-exporting the model.
+
+// ------------------------------------------------- which way the weapon points
+//
+// `grip` says WHERE ALONG the weapon the hand is and `lengthM` says how long it
+// is, and between them they seat a delivered weapon at the right point of the
+// right hand. Neither says anything about which way it is TURNED — the contract
+// opens by admitting as much: "which end is heavy is measurable and which end is
+// the top is not". So `blender_attach_prop.py` can do its arithmetic perfectly
+// and still hand back a naginata blade-down, and it did: Maki carried hers with
+// the butt of the shaft up past her ear and the blade at her heel, while
+// Gakuganji's guitar was the right way up the neck and rolled a half turn about
+// it, playing face-in.
+//
+// Two numbers close that gap, both in the WEAPON's own measured frame (the axis
+// fitPropShaft finds down the shaft) rather than in the bone's, so they mean the
+// same thing on every delivery and read the same way in the diff:
+//
+//   flipDeg   degrees about an axis ACROSS the shaft. 180 is the end-for-end
+//             turn — the heavy end changes ends and the hand keeps its grip.
+//   rollDeg   degrees about the shaft ITSELF. This is the one that turns a
+//             guitar face-out or a blade's edge forward; it cannot move either
+//             end, so it is never the answer to a weapon pointing backwards.
+//
+// They are RUNTIME corrections, like `gripAt` below and for the same reason: a
+// line of data against re-exporting a model. Applied in every state, because
+// which way round a weapon is held is a fact about the fighter rather than
+// about the move — and applied BEFORE the grip slide, so the slide runs down
+// the shaft the weapon actually ends up lying along (ik.js applyPropOrient).
+//
+// The perpendicular `flipDeg` turns about is chosen for the shaft rather than
+// authored, so a half-turn also lands a half-turn of roll that nobody asked
+// for. `rollDeg` is what answers that, and why the pair are dialled together
+// in the bench rather than derived: flip until the right end leads, then roll
+// until the right face is out. On both fighters here the leftover roll came
+// out right and `rollDeg` stayed 0 — it is the second dial rather than the
+// unused one, because without it the axis choice above would be unanswerable.
 
 /** Degrees below horizontal the trailing end is carried at. Shallow: past
  *  about forty the weapon drags on the floor on the shorter fighters. */
@@ -405,8 +464,26 @@ export function propsOf(root) {
  *
  *  Chains declaring `simulate: true` are skipped here — simulateChains owns
  *  them, and running both would fight over the same rotations. */
-export function swayChains(root, time, charKey) {
+export function swayChains(THREE, root, time, charKey) {
   const spec = CHARACTER_CHAINS[charKey];
+  // WHERE IT HANGS, before it moves — `lay`, and it is deliberately NOT one
+  // more term in the two Euler assignments below. Those turn the bone about
+  // its OWN axes, which is the trap pose.js rotateBoneNod is written up
+  // against: a chain carved out of a skull's skin keeps whatever frame the
+  // extraction gave it, and on Uro that frame is rolled about forty-five
+  // degrees off the plane she faces along, so local −x lays her mane over her
+  // shoulder rather than down her back. Sway does not care — it is a wobble,
+  // and a wobble in a rolled frame is still a wobble. A rest angle does.
+  //
+  // So the lay turns about the CHARACTER's lateral axis, in the world, and is
+  // composed on top of the sway. Spread down the chain rather than hinged at
+  // the root, so a laid-back mane curves.
+  const laid = spec?.some((c) => c.lay && !c.simulate);
+  const lateral = laid ? characterLateral(THREE, root) : null;
+  const q1 = laid ? new THREE.Quaternion() : null;
+  const q2 = laid ? new THREE.Quaternion() : null;
+  const v1 = laid ? new THREE.Vector3() : null;
+  const bones = [];
   root.traverse((o) => {
     const m = /^Chain_(.+)_(\d+)$/.exec(o.name || "");
     if (!m) return;
@@ -417,7 +494,34 @@ export function swayChains(root, time, charKey) {
     // Later segments lag and swing wider — a whip, not a rod.
     o.rotation.x = Math.sin(time * 2.1 + i * 0.9) * amp * (0.4 + i * 0.35);
     o.rotation.z = Math.cos(time * 1.7 + i * 0.7) * amp * 0.3 * (0.4 + i * 0.35);
+    if (conf?.lay) bones.push([o, (conf.lay * DEG) / (conf.segments || 1)]);
   });
+  if (!bones.length || !lateral) return;
+  // Root outward: each bone's world matrix has to already carry its parent's
+  // lay before its own is converted out of world space, or the chain unbends
+  // from the second segment on.
+  bones.sort((a, b) => a[0].name.localeCompare(b[0].name));
+  for (const [bone, rad] of bones) {
+    bone.parent?.updateWorldMatrix(true, false);
+    const parentWorld = bone.parent ? bone.parent.getWorldQuaternion(q2) : q2.identity();
+    const axis = v1.copy(lateral).applyQuaternion(parentWorld.invert()).normalize();
+    bone.quaternion.premultiply(q1.setFromAxisAngle(axis, rad));
+    bone.updateWorldMatrix(false, false);
+  }
+}
+
+/** The fighter's own lateral (their right), in world space — the axis a nod
+ *  turns about. Duplicated from ik.js characterLateral rather than imported:
+ *  ik.js reads this module, and a cycle to borrow nine lines of trigonometry
+ *  is a worse trade than the nine lines. */
+function characterLateral(THREE, root) {
+  const off = root.userData?.yawOffsetRad || 0;
+  const fwd = new THREE.Vector3(-Math.sin(off), 0, Math.cos(off))
+    .applyQuaternion(root.getWorldQuaternion(new THREE.Quaternion()));
+  fwd.y = 0;
+  if (fwd.lengthSq() < 1e-8) return new THREE.Vector3(1, 0, 0);
+  fwd.normalize();
+  return new THREE.Vector3(fwd.z, 0, -fwd.x);
 }
 
 // ------------------------------------------------------ simulated chains

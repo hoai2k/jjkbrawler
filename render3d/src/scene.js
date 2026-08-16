@@ -457,7 +457,7 @@ export function posePreview(charKey, animKey, animTime, rig, resolved, layers = 
   layers = withStance(rig, layers);
   const sampled = sampleTime(animKey, animTime, layers.beat);
   poseRig(rig, animKey, sampled, resolved.clip, { ...layers, charKey });
-  swayChains(rig.root, sampled, charKey);
+  swayChains(THREE, rig.root, sampled, charKey);
   frameCamera(rig.height, (layers.parallaxDeg || 0) * Math.PI / 180);
   rig.root.updateMatrixWorld(true);
   return true;
@@ -514,7 +514,7 @@ export function renderPose(charKey, animKey, animTime, rig, resolved, layers = {
   const sampled = sampleTime(animKey, animTime, layers.beat);
   poseRig(rig, animKey, sampled, resolved.clip, { ...layers, charKey });
   // Secondary motion on the same quantised clock as the pose — cache-honest.
-  swayChains(rig.root, sampled, charKey);
+  swayChains(THREE, rig.root, sampled, charKey);
   // ...except chains that asked to be simulated, driven by real elapsed time.
   if (live) simulateChains(THREE, rig.root, frameDelta(), charKey);
   frameCamera(rig.height, (layers.parallaxDeg || 0) * Math.PI / 180);

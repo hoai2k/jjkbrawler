@@ -36,7 +36,7 @@ import {
   CROUCH_ORIENT_STATES, crouchOrientFor, isIdentityOrient,
 } from "./crouch_orient.js";
 import {
-  applyReach, reaches, makeScratch, applyTwoHandGrip, applyCarry, applyGrip, applyMorphs, applyIdleStand, applyIdleArms, applyShoulderWidth, applyBindPose, applyKneeTurn, clearIdleStand,
+  applyReach, reaches, makeScratch, applyTwoHandGrip, applyCarry, applyGrip, applyPropOrient, applyMorphs, applyIdleStand, applyIdleArms, applyShoulderWidth, applyBindPose, applyKneeTurn, clearIdleStand,
   characterLateral, rotateBoneAboutWorldAxis, initLayerAxes,
   reachChain, gripBones,
 } from "./ik.js";
@@ -1271,9 +1271,12 @@ function poseOnce(rig, animKey, sampled, clip, layers = {}) {
   // the striking hand — the shaft rides it (ik.js applyTwoHandGrip; a no-op
   // without layers.charKey or for one-handed fighters).
   if (layers.charKey) {
-    // Where the hand sits on the shaft, before anything is asked of the
-    // weapon: the grip is a fact about the fighter, so both the two-hand
-    // solve and the carry below want it already corrected.
+    // Which way round the weapon is held, and where the hand sits on it —
+    // both facts about the fighter rather than about the move, so both are
+    // corrected before anything is asked of the weapon and both the two-hand
+    // solve and the carry below see the corrected article. Orientation first:
+    // the grip slide runs down the shaft, which the turn has just moved.
+    applyPropOrient(THREE, rig.root, layers.charKey, _ik);
     applyGrip(THREE, rig.root, layers.charKey, _ik);
     applyTwoHandGrip(THREE, rig.root, layers.charKey, animKey,
       clipTime(animKey, sampled), _ik, layers.beat, rig._aimTargetWorld);
