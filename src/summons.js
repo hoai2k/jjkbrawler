@@ -1128,8 +1128,15 @@ export function spawnSummon(owner, cfg) {
                  + (lunge / 16) * this.dir * MOTION.summonLunge
                  + stagger;
       ctx.rotate(sway);
-      // summon art faces left in source unless flagged; mirror to face dir
-      ctx.scale(this.dir > 0 ? (cfg.faceRight ? 1 : -1) : (cfg.faceRight ? -1 : 1), 1);
+      // SUMMON ART FACES RIGHT, like every other drawing in the game, and is
+      // mirrored to face left — the same rule a fighter's sheet follows. It
+      // used to be the other way round here, with a `faceRight` flag for the
+      // exceptions, and the assumption was simply wrong: most of the delivered
+      // creatures face right, so most of them RAN BACKWARDS, head trailing,
+      // whenever they chased to the right. Art that really does face left says
+      // so in the manifest (`faceLeft`), where a fact about a drawing belongs,
+      // and assets.js turns it before anything here sees it.
+      ctx.scale(this.dir > 0 ? 1 : -1, 1);
       ctx.shadowColor = cfg.color;
       // A driven summon glows harder than one running itself. With four
       // fighters and several summons on screen, the player needs to see at a

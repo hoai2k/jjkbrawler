@@ -531,7 +531,7 @@ function framesOf(charKey) {
 
 /** The intake marker on a pose, or null. */
 function updateNote(charKey, frameKey) {
-  if (isOther(charKey)) return null;
+  if (isOther(charKey)) return sharedTodoNote(frameKey);
   const meta = spriteManifest?.characters?.[charKey]?.[frameKey];
   // A pose still waiting to be approved belongs on the list whatever else has
   // happened to it. The `replaced` marker clears the moment the pose is
@@ -545,6 +545,47 @@ function updateNote(charKey, frameKey) {
   }
   return meta?.replaced || surfacedNote(charKey, frameKey);
 }
+
+/**
+ * A SHARED DRAWING NOBODY HAS DECIDED ABOUT, for the same list.
+ *
+ * The updated list is where work that is scattered across the roster goes to be
+ * found, and shared art has exactly that shape: it belongs to no character, so
+ * the only way to work through it was to open Other Sprites and remember which
+ * of ninety drawings you had already looked at. The "no saved edits" view
+ * answers the question one character at a time, and shared art has no
+ * character.
+ *
+ * A drawing counts as undecided when the game draws it and nobody has saved a
+ * number against it. A MACHINE-placed number does not count — `autoTuned` is
+ * how auto_tune records a starting point, and it means the same thing here: the
+ * four creatures whose facing was read off their own plates rather than chosen
+ * are on this list precisely so somebody can disagree.
+ */
+function sharedTodoNote(frameKey) {
+  if (!frameKey || !isUsed(OTHER_KEY, frameKey)) return null;
+  // One entry per DRAWING. A creature's six poses are one drawing set with one
+  // set of numbers (entryOf, shared_sprites.js), so listing each pose would put
+  // the same decision on the list six times and bury everything else.
+  if (attackBoxKey(frameKey) !== frameKey) return null;
+  const meta = rawMeta(OTHER_KEY, frameKey);
+  const auto = meta?.autoTuned?.fields || {};
+  // NOT `hasSavedEdits`. That reads the `edited` record, which several tools
+  // write and several older ones did not: effect:piercing_blood carries a
+  // renderScale and two nudges and no `edited` at all, and calling that
+  // untouched would have put most of the finished work back on the to-do list.
+  // A NUMBER AGAINST THE DRAWING is the decision; the record of it is
+  // bookkeeping. A number a machine placed is not a decision — same rule
+  // auto_tune has always followed — so it is subtracted here.
+  const decided = meta && Object.keys(meta).some((f) =>
+    !BOOKKEEPING.has(f) && !(f in auto) && meta[f] != null);
+  if (decided) return null;
+  return { at: meta?.autoTuned?.at || "", kept: "keep",
+           how: Object.keys(auto).length ? "placed" : "unreviewed", lost: [] };
+}
+
+/** Fields on a shared entry that are not somebody's decision about the art. */
+const BOOKKEEPING = new Set(["edited", "src", "autoTuned"]);
 
 // A second way onto the list, and the same job: poses that need a look now and
 // would otherwise have to be hunted for.
@@ -658,8 +699,14 @@ function toggleUpdateReviewed(charKey, frameKey) {
  *  list holds still while it is worked through. */
 function recentUpdates() {
   const out = [];
-  for (const charKey of [...WB_FIGHTERS, ...ACTOR_KEYS]) {
-    for (const frameKey of Object.keys(spriteManifest?.characters?.[charKey] || {})) {
+  // The shared set is walked from its own key list rather than from the
+  // manifest, because a drawing nobody has ever tuned has no manifest entry to
+  // be found under — and those are exactly the ones this list is for.
+  const sets = [...WB_FIGHTERS, ...ACTOR_KEYS].map((c) =>
+    [c, Object.keys(spriteManifest?.characters?.[c] || {})]);
+  sets.push([OTHER_KEY, allFramesOf(OTHER_KEY)]);
+  for (const [charKey, frames] of sets) {
+    for (const frameKey of frames) {
       const note = updateNote(charKey, frameKey);
       if (!note) continue;
       out.push({
@@ -675,7 +722,10 @@ function recentUpdates() {
   // belong to, sit under them rather than interleaving by an empty timestamp.
   // Poses with tuning to redo lead, then the round's brand-new poses, then the
   // surfaced ones, which belong to no round at all.
-  const rank = (e) => (e.how === "surfaced" ? 2 : e.how === "new" ? 1 : 0);
+  // A machine-placed number leads the undecided ones: it is a claim waiting to
+  // be agreed with, which is more urgent than a drawing nobody has touched.
+  const rank = (e) => (e.how === "placed" ? 2 : e.how === "unreviewed" ? 3
+                       : e.how === "surfaced" ? 2.5 : e.how === "new" ? 1 : 0);
   return out.sort((a, b) =>
     rank(a) - rank(b)
     || b.at.localeCompare(a.at)
@@ -754,6 +804,18 @@ function allFlagBearingPoses() {
 /** What was overwritten, in a sentence. Reads off the marker rather than
  *  guessing, so "nothing was lost" is stated rather than implied by silence. */
 function updateSummary(note) {
+  if (note.how === "unreviewed") {
+    return "The game draws this and <b>nobody has set a number against it</b> — "
+      + "it is on whatever size and position the pipeline gave it.<br>"
+      + "Play it in action to see what it has to match, then place it, or mark "
+      + "it reviewed if it is already right.";
+  }
+  if (note.how === "placed") {
+    return "Something here was <b>placed by a machine, not chosen</b> — it is "
+      + "on this list so somebody can disagree with it.<br>"
+      + "The panel says which field and why. Change it, or mark it reviewed to "
+      + "agree with it.";
+  }
   if (note.how === "new") {
     const at = note.at ? new Date(note.at) : null;
     const when = at && !Number.isNaN(at.getTime()) ? at.toLocaleString() : (note.at || "an earlier round");

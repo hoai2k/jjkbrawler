@@ -534,7 +534,11 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       ctx.save();
       ctx.globalAlpha = s.appear;
       ctx.translate(s.x, s.y);
-      ctx.scale(c.faceRight ? 1 : -1, 1);   // summon art faces left in source
+      // Same rule summons.js follows: the art faces right and is mirrored to
+      // face left. The preview always walks right, so it is never mirrored —
+      // and while this still carried the OLD rule it drew every creature
+      // backwards, which is the fault it was built to catch.
+      ctx.scale(s.dir > 0 ? 1 : -1, 1);
       ctx.shadowColor = c.color || "#8fd3ff";
       ctx.shadowBlur = 14;
       if (adj.rot) ctx.rotate(adj.rot);

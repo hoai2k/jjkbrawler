@@ -68,10 +68,13 @@ export const SUMMON_ANIMS = {
 //   poses      the SUMMON_POSES frames exist as `<file>_<pose>.png` and are
 //              fetched (individually optional, so a half-delivered set is
 //              fine — a missing pose falls back to the still).
-//   faceRight  the art is drawn facing right, against the renderer's
-//              face-left default.
+//   (faceRight) GONE. It said "this one faces right, against the default",
+//              and the default was wrong: the delivered set faces right almost
+//              to a creature. Art that faces LEFT now says so as `faceLeft` in
+//              the manifest, beside its size and its nudge, because which way a
+//              drawing points is a fact about the drawing (summons.js).
 //
-// BOTH FLAGS DEFAULT OFF, and turning one on is what integrating a delivery
+// THE FLAGS DEFAULT OFF, and turning one on is what integrating a delivery
 // means here — the same shape as staging a fighter or switching on a
 // transform. Nothing is fetched speculatively, so a creature nobody has drawn
 // costs no requests.
@@ -85,9 +88,9 @@ export const SUMMON_ANIMS = {
 // do it with.
 export const SUMMON_ART = {
   // ---- delivered
-  divineDogWhite: { file: "divine_dog_white", delivered: true, faceRight: true, poses: true },
-  divineDogBlack: { file: "divine_dog_black", delivered: true, faceRight: true, poses: true },
-  rainbowDragon: { file: "rainbow_dragon", delivered: true, faceRight: true, poses: true },
+  divineDogWhite: { file: "divine_dog_white", delivered: true, poses: true },
+  divineDogBlack: { file: "divine_dog_black", delivered: true, poses: true },
+  rainbowDragon: { file: "rainbow_dragon", delivered: true, poses: true },
   transfiguredHuman: { file: "transfigured_human", delivered: true, poses: true },
   inventoryCurse: { file: "inventory_curse", delivered: true, poses: true },
 
@@ -120,7 +123,7 @@ export const SHIKIGAMI_POOL = [
   {
     name: "Divine Dogs", label: "Divine Dogs",
     behavior: "chaser", duration: 6, speed: 470, maxActive: 2,
-    faceRight: true, h: 118, standOff: 24,
+    h: 118, standOff: 24,
     attack: { dmg: 6.5, base: 240, growth: 4.6, angle: 0.34, cd: 0.9, effect: "snare", sfx: "slash" },
     units: [
       { sprites: ["summon:divineDogWhite"], backOff: 40 },
@@ -131,7 +134,7 @@ export const SHIKIGAMI_POOL = [
     // Reach and speed, no snare and not much staying power: it is a knife.
     name: "Great Serpent", label: "Great Serpent",
     behavior: "chaser", duration: 6, speed: 540, maxActive: 1, hp: 38,
-    faceRight: true, h: 104, standOff: 34, bobAmp: 5,
+    h: 104, standOff: 34, bobAmp: 5,
     sprites: ["summon:greatSerpent", "effect:curse_dragon"],
     attack: { dmg: 12, base: 320, growth: 5.6, angle: 0.3, cd: 1.1, sfx: "slash" },
   },
@@ -218,7 +221,7 @@ export const CURSE_POOL = [
   {
     name: "Rainbow Dragon", label: "Rainbow Dragon",
     behavior: "chaser", duration: 5, speed: 380, maxActive: 1,
-    faceRight: true, h: 170, standOff: 40,
+    h: 170, standOff: 40,
     sprites: ["summon:rainbowDragon", "effect:curse_dragon"],
     attack: { dmg: 11, base: 380, growth: 6.6, angle: 0.42, cd: 1.05, effect: "curseDrain", sfx: "slashHeavy" },
   },
