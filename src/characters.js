@@ -1020,7 +1020,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Ember Insects", type: "projectile", cooldown: 1.05,
         desc: "A swarm of blazing embers lobbed in an arc, igniting whatever they land on.",
-        p: { speed: 460, vy: -140, gravity: 320, r: 30, dur: 1.15, dmg: 10, base: 360, growth: 6.8, angle: 0.5, color: "#ff7a2f", effect: "burn", count: 2, spread: 130, fxElement: "fire", label: "Embers", sprite: "effect:ember", spriteH: 86 },
+        p: { speed: 460, vy: -140, gravity: 320, r: 30, dur: 1.15, dmg: 10, base: 360, growth: 6.8, angle: 0.5, color: "#ff7a2f", effect: "burn", count: 2, spread: 130, homing: 120, fxElement: "fire", label: "Embers", sprite: "effect:ember", spriteH: 86 },
       },
       side: {
         name: "Lava Geyser", type: "trap", cooldown: 1.9,

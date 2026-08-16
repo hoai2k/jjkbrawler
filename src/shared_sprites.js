@@ -356,6 +356,57 @@ export const AURA_FOOT_DY = 10;
  *  moment, and the mid-point is the only defensible one. */
 export const AURA_PREVIEW_H = Math.round(AURA_H * AURA_PULSE.base);
 
+/**
+ * A METEOR'S APPROACH — the one place the fall is described.
+ *
+ * It used to slide down a straight line at a constant screen speed, full size
+ * the whole way, which is what a lift does and not what a rock entering the
+ * atmosphere does. Nothing about it read as fast, because nothing about it read
+ * as FAR: a thing at constant apparent size is a thing that never approached.
+ *
+ * So the fall is a perspective one. The rock travels toward the camera at a
+ * constant rate, `z` running from `far` back to 1, and everything on screen is
+ * that one number: apparent size is `1/z`, and the distance travelled from the
+ * point it came out of is `1/z` as well. That is not a stylistic curve — it is
+ * what a straight-line approach looks like through a lens, and it is why the
+ * thing appears to hang as a speck for most of its flight and then cross the
+ * whole sky in the last quarter second. The `fallTime` never changed; where the
+ * time is SPENT did.
+ *
+ * `far` is how big it looks at the start as a fraction of its size on arrival —
+ * 0.09 means it enters a eleventh of full size, eleven times further away.
+ * `fromX` and `fromY` are where it enters, measured back from the impact point,
+ * so it comes down and to the right on a shallow entry path the way a body
+ * arriving from orbit does, rather than dropping like a weight. Kept inside the
+ * shortest stage anyone paints this on — the workbench's 900x420 — so the speck
+ * is on screen from the first frame instead of streaking in from the void.
+ */
+export const METEOR_FALL = { far: 0.09, fromX: 430, fromY: 300 };
+
+/**
+ * Where a falling meteor is, and how big, `u` of the way through its fall.
+ *
+ * Read by the game's director AND by the workbench's preview of it, because a
+ * preview whose approach curve is a re-derivation of the game's is a preview
+ * that will quietly stop matching. `impactX`/`impactY` are where it lands.
+ *
+ * Returns `{ x, y, scale }` — `scale` multiplies the drawing's height.
+ */
+export function meteorAt(p, u, impactX, impactY) {
+  const far = p?.far ?? METEOR_FALL.far;
+  const t = Math.max(0, Math.min(1, u));
+  // z: the distance, in units of "as far as it is at impact". Linear in time,
+  // because the rock is not slowing down.
+  const z = (1 / far) + (1 - 1 / far) * t;
+  const scale = 1 / z;                        // apparent size, `far` .. 1
+  const along = (scale - far) / (1 - far);    // 0 at entry, 1 at impact
+  return {
+    x: impactX - (p?.fromX ?? METEOR_FALL.fromX) * (1 - along),
+    y: impactY - (p?.fromY ?? METEOR_FALL.fromY) * (1 - along),
+    scale,
+  };
+}
+
 /** Hazard art, with the height and anchor each draw site uses (stage_fx.js). */
 const STAGE_FX = {
   "stagefx:stage_fang": { h: 72, anchor: "centre", what: "a rising fang, and the diving one" },

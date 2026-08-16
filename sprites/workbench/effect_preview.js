@@ -31,6 +31,7 @@ import { drawCharFrame, currentFrame } from "../src/sprites.js";
 import { loadFrame, getImage } from "../../src/assets.js";
 import { bodyMetrics } from "../../src/silhouette.js";
 import { spawnOffset, REFERENCE_MUZZLE } from "../../src/muzzle.js";
+import { meteorAt, METEOR_FALL } from "../../src/shared_sprites.js";
 import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
 
 /** The animation state each special slot plays (src/specials.js). */
@@ -75,12 +76,48 @@ const ULT_SHOTS = {
  * the drawing had no Play button at all — leaving the two questions it most
  * needs answered, how big and at what angle, answerable only in a real match.
  *
- * `delay` is the beat before it appears, `from` the height it starts at, and
- * `to` its offset above the floor at impact: the same three numbers the
- * director uses, kept here so the fall reads at the speed the game falls it.
+ * `delay` is the beat before it appears and `to` its offset above the floor at
+ * impact; the approach itself — where it enters, and how its apparent size
+ * grows on the way in — is `meteorAt`, which the director calls too, so the
+ * playback cannot drift from the fall the game draws.
  */
 const ULT_DROPS = {
-  meteor: (p) => ({ ...p, delay: 0.5, from: -160, to: -40, fall: p.fallTime ?? 1.1 }),
+  meteor: (p) => ({ ...p, delay: 0.5, to: -40, fall: p.fallTime ?? 1.1 }),
+};
+
+/**
+ * The SPECIALS that flash a drawing beside the fighter instead of throwing one.
+ *
+ * Mahito's Idle Transfiguration reaches out and touches a soul: no projectile
+ * leaves him, so `firingUse` found nothing and the drawing had no action to
+ * play. What the game actually does is `spawnSummonFlash` (src/specials.js) —
+ * paint the art standing on the floor a set distance in front of him, fade it
+ * up and back down over half a second — and, separately, swing an unblockable
+ * MELEE box. Four moves work this way and none of them could be previewed.
+ *
+ * The box matters as much as the drawing: it is the reach, the art is the
+ * picture of the reach, and the only question worth asking of the picture is
+ * whether it covers the box. So it is recorded here and drawn as an outline.
+ *
+ * `forward` is how far in front the drawing stands, `h` its height, `life` the
+ * fade; `box` is the hit the move really lands, in the same fighter-relative
+ * units spawnMelee takes. All read off the handlers, so a change there is one
+ * grep from being a change here.
+ */
+const FLASH_MOVES = {
+  burst: (p) => ({
+    life: 0.52, height: p.spriteH || 220, forward: p.spriteForward || 105,
+    box: { ox: p.ox ?? 70, oy: p.oy ?? -96, w: p.w || 170, h: p.h || 104 },
+  }),
+  commandGrab: (p) => ({
+    life: 0.5, height: p.spriteH || 150, forward: p.spriteForward || 78,
+    box: { ox: 24, oy: -104, w: p.range || 120, h: 110 },
+  }),
+  swap: (p) => ({ life: 0.42, height: p.spriteH || 190, forward: 0, box: null }),
+  echoStrike: (p) => ({
+    life: 0.3, height: p.spriteH || 140, forward: 80,
+    box: { ox: p.ox ?? 70, oy: p.oy ?? -96, w: (p.w || 170) * 1.15, h: (p.h || 104) * 1.15 },
+  }),
 };
 
 /**
@@ -128,6 +165,15 @@ export function firingUse(spriteKey, preferChar) {
       // stack, and a creature is not fired.
       const inPool = Array.isArray(p?.spritePool) && p.spritePool.includes(spriteKey);
       if (!p || (p.sprite !== spriteKey && !inPool)) continue;
+      const flash = FLASH_MOVES[spec.type];
+      if (flash) {
+        return {
+          charKey, slot, spec, p: { ...p, ...flash(p) }, mode: "flash",
+          state: SLOT_STATE[slot] || "specialNeutral",
+          name: spec.name || p.label || spriteKey,
+          muzzleScale: bodyMetrics(charKey).height / HEIGHT_BASE_PX,
+        };
+      }
       if (spec.type && spec.type !== "projectile") continue;
       // The point the game will really spawn from: this fighter's hand in the
       // pose this move plays, plus whatever the move asks for beyond the
@@ -240,23 +286,48 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
    *  target's head, at the speed src/ultimates.js falls it. */
   function dropAt(age) {
     const p = use.p;
-    const prog = Math.max(0, (age - p.delay) / p.fall);
-    const y0 = GROUND + p.from;
-    const y1 = GROUND + p.to;
+    const impactY = GROUND + p.to;
+    // The game's own approach curve, not a re-derivation of it: a straight-line
+    // entry seen through a lens, so the rock reads as far away and arriving
+    // fast rather than descending at one size (src/shared_sprites.js, meteorAt).
+    const f = meteorAt(p, (age - p.delay) / p.fall, ENEMY_X, impactY);
     return {
-      x0: ENEMY_X, y0,
-      x: ENEMY_X, y: y0 + Math.min(1, prog) * (y1 - y0),
-      vx: 0, vy: (y1 - y0) / p.fall, visible: age >= p.delay,
+      x0: ENEMY_X, y0: impactY,     // where the drawing's nudge is measured
+      x: f.x, y: f.y, persp: f.scale,
+      vx: 0, vy: 0, visible: age >= p.delay,
+    };
+  }
+
+  /** Where a FLASHED drawing stands: a fixed distance in front of the fighter,
+   *  on the floor, fading up and back down. spawnSummonFlash anchors it at the
+   *  feet rather than at its middle — the one placement rule that differs from
+   *  every other site here, and the reason aligning it by eye never worked. */
+  function flashAt(age) {
+    const p = use.p;
+    return {
+      x0: FIGHTER_X + p.forward, y0: GROUND + 12,
+      x: FIGHTER_X + p.forward, y: GROUND + 12,
+      vx: 0, vy: 0, foot: true,
+      alpha: Math.sin(Math.min(1, age / p.life) * Math.PI) * 0.9,
+      visible: age <= p.life,
     };
   }
 
   /** The point the drawing is measured from, whichever way this action puts it
    *  on the stage: a shot's muzzle, or the top of a drop's fall. */
-  const originAt = (adj) => (use.mode === "drop" ? dropAt(use.p.delay) : shotAt(0, adj));
+  const originAt = (adj) => (use.mode === "drop" ? dropAt(use.p.delay + use.p.fall)
+    : use.mode === "flash" ? flashAt(0)
+    : shotAt(0, adj));
 
   /** The projectile, painted exactly as render.js paints it. */
   function drawShot(sprite, pos, adj, age) {
-    const h = (use.p.spriteH || use.p.r * 3) * (adj.scale || 1);
+    // `persp` is the drop's apparent size — the rock is a speck when it enters
+    // and full size when it lands. The nudge shrinks with it for the same
+    // reason it does in the director: dx/dy correct the drawing, and a
+    // correction measured at arrival would throw the speck off its own path.
+    const persp = pos.persp ?? 1;
+    const h = (use.mode === "flash" ? use.p.height
+      : (use.p.spriteH || use.p.r * 3)) * (adj.scale || 1) * persp;
     const w = sprite.width * h / sprite.height;
     ctx.save();
     // The same ramp drawProjectiles applies (sharedFadeIn), read live so the
@@ -264,12 +335,18 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // — which is the only way to judge it, since a few frames of fade is a
     // thing you see in motion or not at all.
     if (adj.fadeIn) ctx.globalAlpha = Math.min(1, age / adj.fadeIn);
+    // A flash has a fade of its own, written into the handler rather than into
+    // the drawing — showing it at full opacity would be showing something the
+    // game never draws.
+    if (pos.alpha != null) ctx.globalAlpha *= pos.alpha;
     ctx.translate(pos.x, pos.y);
     // A dropped drawing is painted upright — its director never mirrors it and
     // never turns it into its fall, so the only tilt it has is the standing
     // one, and previewing it under the projectile's flight rotate would show a
     // meteor lying on its side that the game draws nose-down.
-    if (use.mode !== "drop") {
+    if (use.mode === "flash") {
+      ctx.scale(-1, 1);   // spawnSummonFlash mirrors it to the fighter's facing
+    } else if (use.mode !== "drop") {
       const flip = pos.vx > 0 ? -1 : 1;
       if (use.p.vy || use.p.gravity || use.p.homing) ctx.rotate(Math.atan2(-flip * pos.vy, -flip * pos.vx));
       ctx.scale(flip, 1);
@@ -277,7 +354,10 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     if (adj.rot) ctx.rotate(adj.rot);
     ctx.shadowColor = use.p.color || "#8fd3ff";
     ctx.shadowBlur = 12;
-    ctx.drawImage(sprite, -w / 2 + (adj.dx || 0), -h / 2 + (adj.dy || 0), w, h);
+    // A flash stands on the floor; everything else is painted around its
+    // middle. Same drawing, two anchors, and the handler's is the one to match.
+    const top = pos.foot ? -h : -h / 2;
+    ctx.drawImage(sprite, -w / 2 + (adj.dx || 0) * persp, top + (adj.dy || 0) * persp, w, h);
     ctx.restore();
   }
 
@@ -304,7 +384,9 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     if (!running) return;
     const dt = Math.min(0.05, (now - lastTick) / 1000 || 0);
     lastTick = now;
-    const dur = use.mode === "drop" ? use.p.delay + use.p.fall + 0.3 : (use.p.dur || 0.9);
+    const dur = use.mode === "drop" ? use.p.delay + use.p.fall + 0.3
+      : use.mode === "flash" ? use.p.life
+      : (use.p.dur || 0.9);
     const cycle = Math.max(STATES[use.state]?.duration || 0.5, dur) + 0.35;
     t = (t + dt) % cycle;
 
@@ -338,7 +420,9 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       { scale: CHARACTERS[ek]?.scale, facing: -1 });
     ctx.restore();
 
-    const pos = use.mode === "drop" ? dropAt(t) : shotAt(t, adj);
+    const pos = use.mode === "drop" ? dropAt(t)
+      : use.mode === "flash" ? flashAt(t)
+      : shotAt(t, adj);
     const sprite = getImage(use.spriteKey);
     if (sprite && t <= dur && pos.visible !== false) drawShot(sprite, pos, adj, t);
 
@@ -346,15 +430,34 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // the drawing is centred on after the nudge. A drop has no muzzle to place
     // — the director picks the target's x, and nothing about that is the
     // drawing's to move — so only the drawing marker is offered.
-    const origin = use.mode === "drop" ? dropAt(use.p.delay) : shotAt(0, adj);
-    if (use.mode !== "drop") marker(origin.x0, origin.y0, "#9fd39f", "spawn", false);
+    const origin = originAt(adj);
+    // The reach this move really lands, where the move has one: the drawing is
+    // a picture of it, and whether the picture covers it is the whole question.
+    if (use.mode === "flash" && use.p.box) {
+      const b = use.p.box;
+      ctx.save();
+      ctx.strokeStyle = "#6fb0e8";
+      ctx.setLineDash([5, 4]);
+      ctx.strokeRect(FIGHTER_X + b.ox - b.w / 2, GROUND + b.oy - b.h / 2, b.w, b.h);
+      ctx.fillStyle = "#6fb0e8";
+      ctx.font = "11px ui-monospace, monospace";
+      ctx.fillText("reach", FIGHTER_X + b.ox - b.w / 2 + 3, GROUND + b.oy - b.h / 2 - 4);
+      ctx.restore();
+    }
+    if (use.mode === "shot" || (use.mode !== "drop" && use.mode !== "flash")) {
+      marker(origin.x0, origin.y0, "#9fd39f", "spawn", false);
+    }
     marker(origin.x0 + (adj.dx || 0), origin.y0 + (adj.dy || 0), "#f0b45a", "drawing", true);
 
     ctx.fillStyle = "#8b96b3";
     ctx.font = "12px ui-monospace, monospace";
     const nudge = `drawing dx ${(adj.dx || 0).toFixed(1)}, dy ${(adj.dy || 0).toFixed(1)}`;
-    if (use.mode === "drop") {
-      ctx.fillText(`${use.name} — ${use.charKey} · ${use.state} · falls onto the target in ${use.p.fall}s`, 14, 22);
+    if (use.mode === "flash") {
+      ctx.fillText(`${use.name} — ${use.charKey} · ${use.state} · flashes for ${use.p.life}s, ${use.p.forward}px in front`, 14, 22);
+      ctx.fillText(`stands on the floor — no spawn point to place`
+        + (use.p.box ? `, the reach is the dashed box` : "") + `   ·   ${nudge}`, 14, 40);
+    } else if (use.mode === "drop") {
+      ctx.fillText(`${use.name} — ${use.charKey} · ${use.state} · falls onto the target in ${use.p.fall}s, from ${Math.round(1 / (use.p.far ?? METEOR_FALL.far))}x out`, 14, 22);
       ctx.fillText(`no muzzle — the drop picks the target's x   ·   ${nudge}`, 14, 40);
     } else {
       ctx.fillText(`${use.name} — ${use.charKey} · ${use.state} · ${use.p.speed || 0}px/s for ${dur}s`
@@ -390,7 +493,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // The drawing marker wins a tie: it is the one that moves most often, and
     // it sits on top of the spawn point whenever the nudge is zero.
     if (Math.hypot(pt.x - dPt.x, pt.y - dPt.y) < 18) drag = "drawing";
-    else if (use.mode !== "drop" && Math.hypot(pt.x - o.x0, pt.y - o.y0) < 18) drag = "spawn";
+    else if (use.mode !== "drop" && use.mode !== "flash" && Math.hypot(pt.x - o.x0, pt.y - o.y0) < 18) drag = "spawn";
     else return;
     grabbed = false;
     canvas.setPointerCapture(ev.pointerId);
