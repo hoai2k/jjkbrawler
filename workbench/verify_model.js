@@ -47,7 +47,7 @@ import {
 } from "../sprites/src/sprites.js";
 import { CHARACTER_KEYS } from "../src/characters.js";
 import { rigManifest, setRigSettings } from "../render3d/src/loader.js";
-import { clearCache } from "../render3d/src/scene.js";
+import { clearCache, setOrbit } from "../render3d/src/scene.js";
 import * as render3d from "../render3d/src/backend.js";
 import { STATES, clipNameFor } from "../render3d/src/states.js";
 import {
@@ -105,6 +105,12 @@ function drawPair(task, { ctx, canvas, redraw, yawDeg = 0, state }) {
   ctx.font = "11px system-ui";
   ctx.fillText("the drawing", SPRITE_X - 32, 34);
   ctx.fillText("the model", MODEL_X - 26, 34);
+  const turned = orbitCaption();
+  if (turned) {
+    ctx.fillStyle = "rgba(255, 190, 90, 0.95)";
+    ctx.fillText(turned, 10, canvas.height - 10);
+    ctx.fillStyle = "#9aa4c0";
+  }
 
   const scale = artScaleFor(charKey);
   const anim = resolvedAnim(charKey, state);
@@ -134,6 +140,64 @@ function drawPair(task, { ctx, canvas, redraw, yawDeg = 0, state }) {
     ctx.fillText(`model: ${err.message}`, MODEL_X - 60, GROUND_Y - 80);
   }
 }
+
+// ------------------------------------------------------------------ orbit
+//
+// TURN THE SCENE TO SEE WHAT IS WRONG WITH IT.
+//
+// Every model set here shows the game's own three-quarter, which is the view
+// the answer is about — but it is a bad view for diagnosing a body. An arm
+// that reads as "long and bent strangely" from the front is a mis-weighted
+// shoulder seen edge-on; a weapon that looks upside down could be rolled or
+// simply pointing away. Neither is decidable without walking round it.
+//
+// The camera already knew how (scene.setOrbit, built for the rig bench); this
+// wires it to the drag the reviewer's hand is already making, and to a way
+// back. RESET IS THE POINT — an orbit is for looking, and every judgement
+// these sets record is about the game's view, so the bench must always be one
+// click from it.
+
+const orbit = { yawDeg: 0, pitchDeg: 0, dolly: 1 };
+const orbited = () => orbit.yawDeg !== 0 || orbit.pitchDeg !== 0 || orbit.dolly !== 1;
+
+function pushOrbit() {
+  setOrbit(orbit);
+  clearCache();
+}
+
+export function resetOrbit() {
+  if (!orbited()) return false;
+  orbit.yawDeg = 0; orbit.pitchDeg = 0; orbit.dolly = 1;
+  pushOrbit();
+  return true;
+}
+
+/** Drag to turn, wheel to dolly. Returns true when the view moved, so the
+ *  caller repaints. Deliberately NOT a decision: the engine's onCanvasDrag
+ *  records values, and where the camera is standing is not one. */
+let dragFrom = null;
+export function orbitDrag(pt, phase) {
+  if (phase === "start") { dragFrom = { ...pt, yaw: orbit.yawDeg, pitch: orbit.pitchDeg }; return false; }
+  if (!dragFrom) return false;
+  orbit.yawDeg = dragFrom.yaw + (pt.x - dragFrom.x) * 0.5;
+  orbit.pitchDeg = Math.max(-80, Math.min(80, dragFrom.pitch - (pt.y - dragFrom.y) * 0.4));
+  if (phase === "end") dragFrom = null;
+  pushOrbit();
+  return true;
+}
+
+export function orbitZoom(delta) {
+  orbit.dolly = Math.max(0.3, Math.min(4, orbit.dolly * (delta < 0 ? 1.1 : 1 / 1.1)));
+  pushOrbit();
+  return true;
+}
+
+/** A line for the canvas, so a turned view can never be mistaken for the
+ *  game's. Empty at rest. */
+export const orbitCaption = () => (orbited()
+  ? `orbited ${Math.round(orbit.yawDeg)}° / ${Math.round(orbit.pitchDeg)}°`
+    + `${orbit.dolly !== 1 ? ` · ${orbit.dolly.toFixed(2)}×` : ""} — not the game's view`
+  : "");
 
 /** The yaw currently applied to each rig, so the cache is only dropped when
  *  the number actually moves — a clear on every repaint would re-render the
@@ -168,6 +232,13 @@ export async function facingProvider() {
     fingerprint: fingerprint(),
     ready: ok,
     ensureReady: ensureTaskArt,
+    // Dragging the stage TURNS THE CAMERA here rather than placing anything —
+    // these sets have no point to drag, and a body is the one thing you cannot
+    // judge from a single angle. Returns undefined so the engine records no
+    // decision (verification.js applyValue ignores it) and just repaints.
+    onCanvasDrag: (task, pt, { phase }) => { orbitDrag(pt, phase); return undefined; },
+    resetOrbit,
+    onCanvasWheel: (delta) => orbitZoom(delta),
     // Reviewed facings are recorded in the manifest as `facingCheckedAt`,
     // because an approved-as-stored yaw looks EXACTLY like an unreviewed one
     // — there is no value to diff. Without a record of the review itself the
@@ -294,6 +365,13 @@ export async function guardProvider() {
     fingerprint: fingerprint(),
     ready: ok,
     ensureReady: ensureTaskArt,
+    // Dragging the stage TURNS THE CAMERA here rather than placing anything —
+    // these sets have no point to drag, and a body is the one thing you cannot
+    // judge from a single angle. Returns undefined so the engine records no
+    // decision (verification.js applyValue ignores it) and just repaints.
+    onCanvasDrag: (task, pt, { phase }) => { orbitDrag(pt, phase); return undefined; },
+    resetOrbit,
+    onCanvasWheel: (delta) => orbitZoom(delta),
     // Same problem the facing set has: a fighter approved at the shared
     // estimate carries no number to diff, so the REVIEW is what gets recorded.
     committed: (task) => !!manifest[task.charKey]?.guardCheckedAt,
@@ -627,6 +705,13 @@ export async function poseProvider() {
     fingerprint: fingerprint(),
     ready: ok,
     ensureReady: ensureTaskArt,
+    // Dragging the stage TURNS THE CAMERA here rather than placing anything —
+    // these sets have no point to drag, and a body is the one thing you cannot
+    // judge from a single angle. Returns undefined so the engine records no
+    // decision (verification.js applyValue ignores it) and just repaints.
+    onCanvasDrag: (task, pt, { phase }) => { orbitDrag(pt, phase); return undefined; },
+    resetOrbit,
+    onCanvasWheel: (delta) => orbitZoom(delta),
     // Nothing to edit: this set's answer is a verdict, and its value carries
     // the reviewer's reading of WHY rather than a number to apply.
     initialValue: () => ({ reads: true }),

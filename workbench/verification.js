@@ -145,6 +145,8 @@ root.innerHTML = `
         <p class="sub" id="vSubtitle"></p>
       </div>
       <div class="v-nav">
+        <button id="vOrbitReset" class="ghost sm" type="button" hidden
+                title="Back to the view the game draws (O)">⟲ Game view</button>
         <button id="vPrev" class="ghost" type="button" title="Previous (←)">← Prev</button>
         <button id="vApprove" class="ghost ghost--go" type="button"
                 title="Looks right — record it and move on (Enter)">✓ Approve</button>
@@ -178,7 +180,8 @@ root.innerHTML = `
       </p>
       <p class="legend" id="vKeys">
         <b>←/→</b> or <b>↑/↓</b> move · <b>Enter</b> approve &amp; next · <b>S</b> skip ·
-        <b>R</b> flag · <b>Z</b> undo edit · drag on the canvas to place.
+        <b>R</b> flag · <b>Z</b> undo edit · <b>O</b> game view · drag on the canvas to place
+        (or, on the model sets, to turn it).
       </p>
     </section>
   </main>
@@ -192,6 +195,7 @@ const els = {
   editor: el("vEditor"), note: el("vNote"), resume: el("vResume"),
   prev: el("vPrev"), next: el("vNext"), approve: el("vApprove"), skip: el("vSkip"),
   reset: el("vReset"), reject: el("vReject"), clear: el("vClear"),
+  orbitReset: el("vOrbitReset"),
 };
 
 // ---------------------------------------------------------------- the state
@@ -791,6 +795,7 @@ async function openSet(id) {
   const wanted = parseInt(params.get("i") || "", 10);
   if (Number.isFinite(wanted)) bench.i = Math.max(0, Math.min(wanted, bench.tasks.length - 1));
   snapToVisible();
+  els.orbitReset.hidden = !provider.resetOrbit;
   els.state.textContent = `${bench.tasks.length} item(s)`;
   els.state.className = "loading done";
   renderResume();
@@ -812,6 +817,15 @@ function wire() {
   // somewhere else is visible from here.
   refreshSetCounts();
 
+  // Only the sets that can be turned offer a way back, and it is always
+  // visible while they are open — an orbited stage that cannot be un-orbited
+  // is a bench showing something other than the game with no way to say so.
+  const resetOrbit = () => {
+    if (!bench.provider?.resetOrbit) return;
+    bench.provider.resetOrbit();
+    scheduleDraw();
+  };
+  els.orbitReset.addEventListener("click", resetOrbit);
   els.prev.addEventListener("click", () => goTo(bench.i - 1));
   els.next.addEventListener("click", () => goTo(bench.i + 1));
   els.approve.addEventListener("click", approve);
@@ -860,6 +874,9 @@ function wire() {
       case "s": case "S": skip(); break;
       case "r": case "R": reject(); break;
       case "z": case "Z": resetValue(); break;
+      case "o": case "O":
+        if (bench.provider?.resetOrbit) { bench.provider.resetOrbit(); scheduleDraw(); }
+        break;
       case "Escape": e.target.blur?.(); break;
       default: return;
     }
@@ -882,6 +899,10 @@ function wire() {
       canvas: els.stage, value: valueFor(task), phase,
     });
     applyValue(task, value);
+    // Repainted whether or not a value came back: a set can use the drag to
+    // move the VIEW instead of a value (the model sets orbit the camera with
+    // it), and that has to show even though nothing was decided.
+    scheduleDraw();
   };
   els.stage.addEventListener("pointerdown", (e) => {
     if (!bench.provider?.onCanvasDrag) return;
@@ -893,6 +914,14 @@ function wire() {
   const end = (e) => { if (!dragging) return; dragging = false; handle(e, "end"); };
   els.stage.addEventListener("pointerup", end);
   els.stage.addEventListener("pointercancel", end);
+  // The wheel is the other half of turning a body over: dolly in on the hand
+  // that is wrong. Only for sets that want it, and never scrolls the page.
+  els.stage.addEventListener("wheel", (e) => {
+    if (!bench.provider?.onCanvasWheel) return;
+    e.preventDefault();
+    bench.provider.onCanvasWheel(e.deltaY);
+    scheduleDraw();
+  }, { passive: false });
 }
 
 await loadCoreAssets();
