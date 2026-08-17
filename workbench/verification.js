@@ -48,6 +48,18 @@ const withKey = (path) => (CACHE_KEY ? `${path}?v=${encodeURIComponent(CACHE_KEY
 // to load says so in its own place instead of taking the bench down with it.
 
 const SETS = {
+  // FIRST, so it is what opens: this is the queue with somebody waiting on it.
+  // Changing summon art to a face-right default inverted the correct `faceLeft`
+  // for every creature at once, and which way a drawing points is not something
+  // the code can re-derive — it is a fact about a picture.
+  "creature-facing": {
+    label: "Creature facing",
+    blurb: "Which way each creature's art points. Summon art is now assumed to face "
+      + "right like every other drawing, which flipped the meaning of the stored flag "
+      + "for all of them — so each one is shown moving right, drawn as the game will "
+      + "draw it, and the question is whether it leads with its head.",
+    load: () => import(withKey("./verify_creature_facing.js")).then((m) => m.provider()),
+  },
   "strike-points": {
     label: "Strike points",
     blurb: "Where each attack actually lands — the fist, the foot or the blade — "
