@@ -32,6 +32,25 @@
 // platforms like a fighter, fast-falling on down. Only the support flyer reads
 // the vertical axis as flight.
 //
+// FOOTING. A summon lives on the whole stage, not on the floor of it. It forms
+// on the surface its owner is standing on — cast one from a rooftop and it
+// lands on the rooftop — and what it does with that surface depends on whether
+// it has anybody to chase. CHASING, it leaves freely: it walks off the ledge
+// after somebody across the board, and drops straight through the shelf after
+// somebody standing underneath it, because there is no edge that would get it
+// there. NOT CHASING, it roams: legs of a walk with pauses between them, turning
+// at the edges rather than stepping off them.
+//
+// The exception is a creature the shelf cannot hold. A Max Elephant measures
+// 292 px across and every side platform in the game is narrower than the two
+// body widths it wants; standing on one it is on a plinth rather than a floor.
+// So it leaves — and it leaves by walking INWARD, over the middle of the shelf,
+// and falling out of that stride. A creature that shuffled to the lip and
+// toppled off would read as one that had made a mistake. Which creatures this
+// catches is entirely a matter of how big they are drawn (see ROAM_SPAN):
+// elephants and dragons head for the floor, insects stay where they were cast.
+// tools/smoke_summon_platforms.mjs prints that census for the whole roster.
+//
 // Summons are lifetime-limited and capped per (owner, id): recasting past the
 // cap dismisses the oldest. They die with their owner's elimination; match
 // reset clears state.entities wholesale.
@@ -129,15 +148,27 @@ function groundY() {
   return stageGroundY(state.platforms);
 }
 
+// ---------------------------------------------------------------- footing
+//
+// A summon lives on the same shelves a fighter does, not only on the floor. It
+// forms on the surface its owner is standing on, walks that surface when it has
+// nothing to hunt, and leaves it two ways: off an edge, because it was chasing
+// somebody and the ledge ran out, or ON PURPOSE, because the shelf is too small
+// to be a floor for something its size.
+//
+// `dropping` is the drop-through window, the same trick a fighter's down-tap
+// uses: while it is open the thin platforms are not there for this creature, so
+// it falls through the one it is standing on instead of being held up by it.
+
 // The surface a falling summon should land on: the highest platform it is over
 // and was above last step. Mirrors the fighter rule (see resolvePlatforms) so
-// a dog stands where a fighter would, minus the drop-through handling — nothing
-// gives a summon the input to drop through.
-function landingY(x, prevY, y, vy) {
+// a dog stands where a fighter would.
+function landingY(x, prevY, y, vy, dropping) {
   if (vy < 0) return null;
   let best = null;
   for (const plat of state.platforms) {
     if (plat.ghost) continue;
+    if (dropping && plat.kind !== "main") continue;
     const margin = plat.kind === "main" ? 14 : 24;
     if (x < plat.x - margin || x > plat.x + plat.w + margin) continue;
     if (prevY <= plat.y + 4 && y >= plat.y) {
@@ -147,19 +178,71 @@ function landingY(x, prevY, y, vy) {
   return best;
 }
 
-// Is there still a platform holding this summon up at `y`? A summon that walks
-// off the end of the ledge it landed on has to start falling — without this it
-// would be pinned to that height out over open air.
-function supported(x, y) {
+// The platform holding this summon up at `y`, or null out over open air. A
+// summon that walks off the end of the ledge it landed on has to start falling
+// — without this it would be pinned to that height over nothing — and one that
+// is standing on a ledge needs the ledge itself to ask how much room it has.
+function platformAt(x, y, dropping) {
   for (const plat of state.platforms) {
     if (plat.ghost) continue;
+    if (dropping && plat.kind !== "main") continue;
     if (Math.abs(plat.y - y) > 1) continue;
     const margin = plat.kind === "main" ? 14 : 24;
-    if (x >= plat.x - margin && x <= plat.x + plat.w + margin) return true;
+    if (x >= plat.x - margin && x <= plat.x + plat.w + margin) return plat;
   }
-  return false;
+  return null;
 }
 
+function supported(x, y, dropping) {
+  return platformAt(x, y, dropping) !== null;
+}
+
+/** The surface a summon forms on: the one its owner is standing on when the
+ *  summon's own x is over it, and the highest surface under that x otherwise.
+ *  A shikigami cast on a rooftop lands on the rooftop — it used to form beside
+ *  its owner and drop straight past them to the floor, every cast, because the
+ *  floor was the only place a summon knew how to be. */
+function spawnSurfaceY(owner, x) {
+  let best = groundY();
+  for (const plat of state.platforms) {
+    if (plat.ghost) continue;
+    const margin = plat.kind === "main" ? 14 : 24;
+    if (x < plat.x - margin || x > plat.x + plat.w + margin) continue;
+    if (plat.y < owner.y - 4) continue;      // never above the caster
+    if (plat.y < best) best = plat.y;
+  }
+  return best;
+}
+
+// How much room a creature wants underfoot before a shelf counts as somewhere
+// it can live: two of its own body widths, which is room to stand and room to
+// turn around in. Anything tighter is a perch rather than a floor, and the
+// creature heads down to the one surface on the board that is neither — which
+// is why a Max Elephant (292 px across on its art) leaves every side platform
+// in the game and a Crawler (82 px) stays on the one it was cast onto.
+// tools/smoke_summon_platforms.mjs prints that table for the whole roster, so
+// changing this number is a decision you can see the consequences of first.
+const ROAM_SPAN = 2;
+
+// The deliberate descent. It walks INWARD for this long — away from the lip,
+// over the middle of the shelf — and then lets the shelf go from under itself.
+// A creature that shuffled to the edge and toppled off would read as having
+// made a mistake; falling out of a stride that was heading the other way reads
+// as having decided.
+const DESCEND_WALK = 0.34;
+
+// How long a descending summon ignores the thin platforms. Short, like a
+// fighter's drop: long enough to clear the shelf it was on, short enough that
+// it can still land on the next one down rather than tunnelling past
+// everything between it and the floor.
+const DROP_THROUGH = 0.22;
+
+// Roaming: a stroll rather than a hunt, in legs of a walk with pauses between
+// them, so a summon with nothing to chase looks like it is waiting for
+// something rather than switched off.
+const ROAM_SPEED = 0.42;
+const ROAM_WALK = [0.7, 1.9];
+const ROAM_PAUSE = [0.5, 1.5];
 
 function nearestTarget(owner, x) {
   let best = null;
@@ -343,6 +426,7 @@ export function spawnSummon(owner, cfg) {
   const behavior = cfg.behavior || "chaser";
   const flies = behavior === "support";
   const bodyH = cfg.h ?? 110;
+  const spawnX = clamp(owner.x - owner.facing * (cfg.backOff ?? 60) + (cfg.offsetX || 0), 90, 1190);
 
   const s = {
     kind: "summon",
@@ -356,8 +440,8 @@ export function spawnSummon(owner, cfg) {
     // The actor whose sprite set this summon animates through, for a brawler.
     // Everything else draws a single still image (cfg.sprites).
     actor: cfg.actor || null,
-    x: clamp(owner.x - owner.facing * (cfg.backOff ?? 60) + (cfg.offsetX || 0), 90, 1190),
-    y: groundY(),
+    x: spawnX,
+    y: spawnSurfaceY(owner, spawnX),
     dir: owner.facing,
     t: 0,
     dur: cfg.duration ?? 6,
@@ -386,6 +470,16 @@ export function spawnSummon(owner, cfg) {
     vy: 0,
     airborne: false,
     jumpArmed: true,
+
+    // --- footing. Where it walks with nothing to hunt (`roamDir` for this leg
+    // of the stroll, `roamT` until the next one), the inward stride it takes
+    // before letting a shelf go (`descendT`/`descendDir`), and the window in
+    // which the thin platforms are not there for it (`dropT`).
+    roamDir: 0,
+    roamT: 0,
+    descendT: 0,
+    descendDir: 0,
+    dropT: 0,
 
     // --- animation. `animKey` is the pose set being played (idle / move /
     // attack / hurt for a creature; a fighter anim key for a brawler) and
@@ -650,6 +744,7 @@ export function spawnSummon(owner, cfg) {
       this.lungeT = Math.max(0, this.lungeT - dt);
       this.hurtT = Math.max(0, this.hurtT - dt);
       this.attackT = Math.max(0, this.attackT - dt);
+      this.dropT = Math.max(0, this.dropT - dt);
       this.animTime += dt;
       this.moving = false;
 
@@ -734,6 +829,12 @@ export function spawnSummon(owner, cfg) {
     // does when it reaches someone — is the automatic behavior's job, so a
     // driven summon hits exactly as hard as one that found its own way there.
     updatePiloted(dt, stick, target) {
+      // Taking the reins cancels anything the creature had decided for itself,
+      // including a descent it was walking into. Steering it is the whole
+      // point; it should not finish a plan the player just overrode.
+      this.descendT = 0;
+      this.roamDir = 0;
+      this.roamT = 0;
       // A brawler mid-swing is committed the way a fighter is: the stick steers
       // it at a crawl rather than sliding it out of its own animation.
       const committed = this.behavior === "brawler" && this.move;
@@ -785,20 +886,128 @@ export function spawnSummon(owner, cfg) {
     // chaser + bomber share pursuit; they differ in what contact means.
     updatePursuit(dt, target) {
       const speed = cfg.speed ?? 420;
-      if (target) {
+      // The shelf gets a say before the hunt does: a creature too big for the
+      // one it landed on is on its way down, and one with nobody to chase
+      // walks the one it has instead of standing on it like a statue.
+      if (!this.stepFooting(dt, target, speed) && target) {
         this.dir = sign(target.x - this.x) || this.dir;
         const gap = Math.abs(target.x - this.x);
         const desired = this.behavior === "bomber" ? 0 : (cfg.standOff ?? 30);
         if (gap > desired) {
+          // Chasing walks off ledges. Somebody a shelf below is reason enough
+          // to step into the fall, which is what stepGravity does the moment
+          // there is nothing underfoot — the creature commits to the pursuit
+          // and lands wherever the pursuit takes it.
           this.x = clamp(this.x + this.dir * speed * dt, 90, 1190);
           this.moving = true;
         }
       }
-      // Finishes any jump the player left it in before pinning back to the
-      // ground; a hunting summon never starts one.
+      // Finishes any jump the player left it in before settling back onto a
+      // surface; a hunting summon never starts one.
       this.stepGravity(dt, false);
       if (!this.airborne && Math.random() < dt * 5) dust(this.x - this.dir * 20, this.y, 3);
       if (target) this.tryContact(target);
+    },
+
+    /**
+     * The part of a grounded summon's movement that is about the SHELF it is
+     * standing on rather than about its target.
+     *
+     * Returns true when it has taken this frame's movement — the creature is
+     * descending on purpose, or roaming with nothing to hunt — and false when
+     * the hunt should drive.
+     */
+    stepFooting(dt, target, speed) {
+      if (this.airborne) { this.descendT = 0; return false; }
+
+      // Committed to going down: walk inward and let go at the end of it.
+      if (this.descendT > 0) {
+        this.descendT -= dt;
+        this.dir = this.descendDir;
+        this.x = clamp(this.x + this.descendDir * speed * ROAM_SPEED * dt, 90, 1190);
+        this.moving = true;
+        if (this.descendT <= 0) {
+          this.dropT = DROP_THROUGH;
+          dust(this.x, this.y, 5);
+        }
+        return true;
+      }
+
+      const plat = platformAt(this.x, this.y, false);
+      if (plat && this.wantsDown(plat, target)) {
+        // Inward is toward the middle of the shelf, so the fall starts over
+        // the platform and not off the lip of it.
+        this.descendDir = sign(plat.x + plat.w / 2 - this.x) || -this.dir;
+        this.descendT = DESCEND_WALK;
+        return true;
+      }
+
+      if (target) return false;
+      this.roam(dt, plat, speed);
+      return true;
+    },
+
+    /**
+     * Does this creature want off the shelf it is standing on? Two reasons,
+     * and both are about room.
+     *
+     * It is TOO BIG for the shelf — a Max Elephant on a 150 px sign is standing
+     * on a plinth, not a floor, and there is nowhere on it to walk. Or it is
+     * hunting something BELOW it that walking cannot reach, because the target
+     * is under the very platform it is standing on and there is no edge to
+     * chase them off.
+     *
+     * Never off the main platform: that one IS the floor, and under it there is
+     * only the blast zone.
+     */
+    wantsDown(plat, target) {
+      if (plat.kind === "main" || this.y >= groundY()) return false;
+      if (!this.fitsShelf(plat)) return true;
+      if (!target) return false;
+      const reached = Math.abs(target.x - this.x) < (cfg.standOff ?? 30) + 30;
+      return reached && target.y > this.y + 40;
+    },
+
+    /** Is there room enough on `plat` for this creature to live on it? The
+     *  floor always counts, and so does open air — a target with no platform
+     *  under them is not a reason to stay put.
+     *
+     *  Measured only once the box is the drawing's: sizing a creature off the
+     *  70 px placeholder would walk it off shelves it actually fits on. */
+    fitsShelf(plat) {
+      if (!plat || plat.kind === "main" || !this.boxFromArt) return true;
+      return this.hitW * ROAM_SPAN <= plat.w;
+    },
+
+    /**
+     * What it does with nothing to hunt: walk the shelf it is on. Legs of a
+     * stroll with pauses between them, turning at the edges rather than
+     * stepping off them — roaming is not chasing, and a summon that wandered
+     * off its own platform every time the last foe respawned would undo the
+     * reason it is up there.
+     */
+    roam(dt, plat, speed) {
+      this.roamT -= dt;
+      if (!plat) { this.roamDir = 0; return; }
+      if (this.roamT <= 0) {
+        // Alternates: a walk, then a stand, then a walk the other way as often
+        // as not.
+        const walking = this.roamDir !== 0;
+        this.roamT = rand(...(walking ? ROAM_PAUSE : ROAM_WALK));
+        this.roamDir = walking ? 0 : (Math.random() < 0.5 ? -1 : 1);
+      }
+      if (!this.roamDir) return;
+      // Keep a half body clear of the lip, or a third of the shelf on one it
+      // barely fits on.
+      const inset = Math.min(this.hitW * 0.5, plat.w * 0.34);
+      const left = plat.x + inset;
+      const right = plat.x + plat.w - inset;
+      if (right - left < 4) return;               // no room to pace at all
+      if (this.x <= left && this.roamDir < 0) this.roamDir = 1;
+      else if (this.x >= right && this.roamDir > 0) this.roamDir = -1;
+      this.dir = this.roamDir;
+      this.x = clamp(this.x + this.roamDir * speed * ROAM_SPEED * dt, 90, 1190);
+      this.moving = true;
     },
 
     // ------------------------------------------------------------- brawler
@@ -815,6 +1024,9 @@ export function spawnSummon(owner, cfg) {
       if (this.move) {
         // Committed. It does not walk out of its own swing.
         this.stepMove(dt, target);
+      } else if (this.stepFooting(dt, target, speed)) {
+        // Off a shelf it does not fit on, or pacing one with nothing to fight.
+        walking = this.moving;
       } else if (target) {
         this.decideT -= dt;
         const dx = target.x - this.x;
@@ -827,8 +1039,12 @@ export function spawnSummon(owner, cfg) {
           this.moving = true;
         }
         // Chase upward the way a fighter does: if they are standing above it
-        // and roughly overhead, jump after them.
-        if (!this.airborne && target.y < this.y - 110 && adx < 210 && this.decideT <= 0) {
+        // and roughly overhead, jump after them — but never onto a shelf it is
+        // too big to stand on, because it would walk straight back off that
+        // one (wantsDown) and the chase would become a loop of hopping up and
+        // stepping down for as long as they stayed there.
+        if (!this.airborne && target.y < this.y - 110 && adx < 210 && this.decideT <= 0
+            && this.fitsShelf(platformAt(target.x, target.y, false))) {
           this.decideT = 0.6;
           this.airborne = true;
           this.vy = PILOT_JUMP_VY;
@@ -922,10 +1138,14 @@ export function spawnSummon(owner, cfg) {
     // because a summon released mid-jump has to finish the arc — snapping it to
     // the floor the instant the stick centres would read as a teleport.
     stepGravity(dt, fastFall) {
+      // While the drop-through window is open the thin platforms are not there
+      // for this creature — that is how a deliberate descent gets through the
+      // shelf it was just standing on.
+      const dropping = this.dropT > 0;
       if (!this.airborne) {
         // Standing: hold the surface it landed on, and step off into a fall the
         // moment that surface stops being under it.
-        if (this.y < groundY() && !supported(this.x, this.y)) {
+        if (this.y < groundY() && !supported(this.x, this.y, dropping)) {
           this.airborne = true;
           this.vy = 0;
         } else {
@@ -936,7 +1156,7 @@ export function spawnSummon(owner, cfg) {
       const prevY = this.y;
       this.vy += PILOT_GRAVITY * (fastFall ? PILOT_FASTFALL : 1) * dt;
       this.y += this.vy * dt;
-      const land = landingY(this.x, prevY, this.y, this.vy);
+      const land = landingY(this.x, prevY, this.y, this.vy, dropping);
       const floor = groundY();
       if (land !== null) {
         this.y = land;
