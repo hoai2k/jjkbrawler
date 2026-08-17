@@ -42,7 +42,32 @@
 // tuned is never worse than it was.
 
 export const CARD_FOCUS = {
-  // gojo: 18,
+  yuji:       26.3, // Yuji
+  nobara:     11.4, // Nobara
+  megumi:     8.3,  // Megumi
+  yuta:       9.8,  // Yuta
+  maki:       2.3,  // Maki
+  inumaki:    10.6, // Inumaki
+  panda:      2.7,  // Panda
+  mechamaru:  0.5,  // Mechamaru
+  momo:       9.5,  // Momo
+  gojo:       7.8,  // Gojo
+  nanami:     3.4,  // Nanami
+  meimei:     7.6,  // Mei Mei
+  gakuganji:  2.4,  // Gakuganji
+  toji:       1.4,  // Toji
+  yuki:       3.8,  // Yuki
+  hakari:     0.2,  // Hakari
+  uro:        38.3, // Uro
+  reggie:     4.1,  // Reggie Star
+  mahito:     0,    // Mahito
+  jogo:       12.4, // Jogo
+  hanami:     3.5,  // Hanami
+  dagon:      6.1,  // Dagon
+  kurourushi: 6.6,  // Kurourushi
+  geto:       7,    // Geto
+  choso:      19,   // Choso
+  sukuna:     2.6,  // Sukuna
 };
 
 /** The crop focus for `key`, as a percentage from the painting's top edge.
