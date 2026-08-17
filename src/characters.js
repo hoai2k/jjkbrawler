@@ -716,7 +716,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Wind Scythe", type: "projectile", cooldown: 0.9,
         desc: "A vacuum blade whipped off the broom bristles, sharpened with grit and gravel.",
-        p: { speed: 580, vy: -6, r: 30, dur: 0.85, dmg: 10, base: 330, growth: 6.6, angle: 0.34, color: "#b7b8ff", effect: "gust", count: 2, spread: 120, fxElement: "wind", label: "Wind Scythe", sprite: "effect:wind_scythe", spriteH: 84 },
+        p: { speed: 580, vy: -6, r: 30, dur: 0.85, dmg: 10, base: 330, growth: 6.6, angle: 0.34, color: "#b7b8ff", effect: "gust", count: 2, spread: 120, fxElement: "wind", ox: 62, oy: -60, label: "Wind Scythe", sprite: "effect:wind_scythe", spriteH: 84 },
       },
       side: {
         name: "Broom Charge", type: "dashStrike", cooldown: 1.2,
@@ -854,7 +854,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Dismantle", type: "projectile", cooldown: 0.85,
         desc: "The default slash of the King of Curses, thrown as easily as breathing.",
-        p: { speed: 720, vy: -4, r: 26, dur: 0.7, dmg: 11, base: 360, growth: 7.0, angle: 0.3, color: "#ff4c55", effect: "bleed", label: "Dismantle", ox: 52, oy: -116, sprite: "effect:dismantle", spriteH: 82 },
+        p: { speed: 720, vy: -4, r: 26, dur: 0.7, dmg: 11, base: 360, growth: 7.0, angle: 0.3, color: "#ff4c55", effect: "bleed", label: "Dismantle", ox: 42, oy: -88, sprite: "effect:dismantle", spriteH: 82 },
       },
       side: {
         name: "Cleave", type: "dashStrike", cooldown: 1.25,
@@ -1268,7 +1268,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Receipt: Katana Umbrella", type: "projectile", cooldown: 1.0,
         desc: "Tears a receipt and the purchase appears mid-swing — a blade wave off the umbrella's edge.",
-        p: { speed: 580, vy: -4, r: 30, dur: 0.85, dmg: 11, base: 360, growth: 6.8, angle: 0.34, color: "#86d67c", fireSfx: "paperRustle", label: "Umbrella Blade", sprite: "effect:receipt_blade", spriteH: 86 },
+        p: { speed: 580, vy: -4, r: 30, dur: 0.85, dmg: 11, base: 360, growth: 6.8, angle: 0.34, color: "#86d67c", fireSfx: "paperRustle", ox: 80, oy: -72, label: "Umbrella Blade", sprite: "effect:receipt_blade", spriteH: 86 },
       },
       side: {
         name: "Receipt: Insecticide", type: "cloudField", cooldown: 2.0,
