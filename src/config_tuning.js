@@ -149,6 +149,18 @@ export const COM_BODY_FRAC = 0.55;
  *  frames it clips are the ones the audit is already asking about. */
 export const COM_HOLD_MAX_FRAC = 0.10;
 
+/** Seconds the COM hold takes to blend in after leaving the ground, and out
+ *  again after landing (fighter.js comHoldW -> render.js holdComW).
+ *
+ *  The hold used to arrive as a STEP: the frame `grounded` flipped, the whole
+ *  correction applied at once — a one-frame vertical jump of 14 px on the
+ *  roster median (17 on Hanami), measured with tools/debug/probe_com_pop.mjs.
+ *  Near ledges `grounded` flips constantly — walk-off, teeter-drop, catch,
+ *  climb — which is exactly where the game was reported as flickery. A tenth
+ *  of a second turns the jump into a slide short enough to read as the body
+ *  settling into the air. */
+export const COM_HOLD_EASE = 0.1;
+
 // Where an unplaced `ledge` grip starts, as a fraction down the artwork. On a
 // hang pose the topmost thing in the frame is the raised hand.
 export const LEDGE_GRIP_Y_FRAC = 0.04;

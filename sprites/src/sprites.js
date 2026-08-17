@@ -585,12 +585,18 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
   // bad anchor tilts a fighter slightly; as a placement it would throw them,
   // so the correction is capped: a good anchor gets the full hold, a wild one
   // gets a nudge and shows up in the audit rather than on screen.
+  //
+  // AND EASED, via `holdComW` (0..1): the caller ramps it across the
+  // grounded flip (fighter.js comHoldW) instead of switching the hold on
+  // whole. Applied as a step it was a one-frame 14 px jump every time a
+  // fighter left the ground or landed — worst exactly where grounded flips
+  // most, at the ledge.
   if (opts.holdComY !== undefined && opts.holdComY !== null) {
     const hold = anchorPoint(charKey, frameKey, "com", meta);
     if (hold) {
       const want = opts.holdComY - worldY(hold.y);
       const cap = opts.holdComMax;
-      offY += cap ? Math.max(-cap, Math.min(cap, want)) : want;
+      offY += (cap ? Math.max(-cap, Math.min(cap, want)) : want) * (opts.holdComW ?? 1);
     }
   }
   if (opts.anchorTo) {

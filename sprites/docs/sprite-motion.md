@@ -210,6 +210,36 @@ control is locked — it keeps the detected value. The ground line, platform and
 idle ghost stay on screen as a size reference. `AIRBORNE_STATES` in
 `sprites/src/sprites.js` is the list.
 
+## What never steps: the smoothness contract
+
+Three mechanisms keep a fighter's drawing from changing by a visible step in
+one frame, all added after the game was reported as "flickery, especially near
+the edges" — which is where all three faults concentrated, because the ledge is
+where states and `grounded` churn fastest. Guarded by `tools/smoke_smooth.mjs`.
+
+- **The COM hold eases across the grounded flip.** An airborne drawing hangs
+  from its centre of mass, and applying that hold the frame `grounded` flipped
+  was a one-frame vertical jump of 14 px on the roster median
+  (`tools/debug/probe_com_pop.mjs`). `fighter.js` ramps `comHoldW` over
+  `COM_HOLD_EASE` (0.1 s) instead, and both sprite and flat-blit renderers
+  scale the held offset by it (`holdComW`).
+- **The teeter exits on the ramp it entered on.** The lean eased in over
+  `ledgeLeanIn` and vanished in one frame, because it lived on the teeter POSE
+  and the pose flips the instant the stillness gate breaks — which
+  micro-adjusting your footing at the lip does constantly. The gate has
+  hysteresis (enter under 24 px/s, drop only over 48), `teeterT` decays at 3×
+  instead of zeroing, and `motion.js` applies the lean off the timer rather
+  than the pose, so it fades out through whatever state comes next.
+- **Sprite state changes cross-fade.** The 3D backend blends a state change
+  over 0.1 s off the `prevAnim` record `setAnim` keeps; the sprite renderer
+  ignored the same record and cut. `render.js` now draws the outgoing frame
+  under the new one at falling alpha for `SPRITE_XFADE` (0.08 s) — one extra
+  drawImage per fighter for ~5 frames after a switch. Frames stepping *within*
+  a loop are not blended: `animTime` only resets on a state change, and the
+  snap of limited animation is the style. `hurt` and `land` stay cuts
+  (`SPRITE_NO_XFADE`, mirroring the 3D backend's `NO_BLEND_IN`): an impact
+  that eases in looks absorbed rather than taken.
+
 ## Tuning
 
 All of it is in `src/config_tuning.js`:
