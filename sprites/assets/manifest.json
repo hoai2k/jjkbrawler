@@ -64106,9 +64106,20 @@
   },
   "effect:sword_beam": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "renderScale": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "renderScale": 0.785,
+   "dx": 32.4,
+   "dy": -4.5,
+   "fadeIn": 0.07,
+   "src": {
+    "file": "assets/sprites/effects/sword_beam.png",
+    "sha": "578ced2853de"
+   }
   },
   "effect:tide_wave": {
    "edited": {
@@ -64209,9 +64220,17 @@
   },
   "summon:rika": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "dx": -38.3,
+   "dy": 4.2,
+   "src": {
+    "file": "assets/sprites/summons/rika.png",
+    "sha": "1d27d335f2cd"
+   }
   },
   "stagefx:stage_weak_curse": {
    "edited": {
@@ -64310,8 +64329,12 @@
     "dx": null,
     "dy": null
    },
-   "dx": 1.2,
-   "dy": 1.4
+   "dx": 35.8,
+   "dy": -40.9,
+   "src": {
+    "file": "assets/sprites/effects/divergent_shock.png",
+    "sha": "85687270b02e"
+   }
   },
   "effect:pigeon_orb": {
    "edited": {
@@ -64978,9 +65001,20 @@
   },
   "summon:garuda": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "renderScale": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": false
+   "faceLeft": false,
+   "renderScale": 1.235,
+   "dx": 36.2,
+   "dy": -13.6,
+   "fadeIn": 0.13,
+   "src": {
+    "file": "assets/sprites/summons/garuda.png",
+    "sha": "c883ea42bc5b"
+   }
   },
   "summon:rainbowDragon": {
    "edited": {
@@ -65030,6 +65064,32 @@
    "src": {
     "file": "assets/sprites/effects/wind_scythe.png",
     "sha": "8f9523f729c8"
+   }
+  },
+  "effect:aura_indigo": {
+   "edited": {
+    "renderScale": null,
+    "dx": null,
+    "dy": null
+   },
+   "renderScale": 0.785,
+   "dx": -0.5,
+   "dy": -10.7,
+   "src": {
+    "file": "assets/sprites/effects/aura_indigo.png",
+    "sha": "1a6a1b8a3d3a"
+   }
+  },
+  "effect:star_rage_impact": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 34.7,
+   "dy": -26.8,
+   "src": {
+    "file": "assets/sprites/effects/star_rage_impact.png",
+    "sha": "58e352600675"
    }
   }
  }
