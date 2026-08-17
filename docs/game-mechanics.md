@@ -454,6 +454,37 @@ A summon can be pushed around and never off — otherwise every summon would be 
 free stock for whoever hits hardest, which is exactly what giving them hit
 points was meant to avoid.
 
+**A summon lives on the whole stage, not on the floor of it.** It forms on the
+surface its owner is standing on — cast one from a rooftop and it lands on the
+rooftop, rather than dropping past you to the ground the way every summon used
+to. What it does with that surface depends on whether it has anybody to chase.
+
+**Chasing, it leaves freely.** Somebody across the board is reason enough to
+walk off the ledge, and it falls to whatever is under it — the floor, or the
+next shelf down. Somebody standing directly *underneath* it gets the same
+commitment by the only route that reaches them: it drops straight through the
+platform it is on, because there is no edge that would get it there.
+
+**Not chasing, it roams.** Legs of a walk with pauses between them, along the
+shelf it is on, turning at the edges rather than stepping off them — a
+shikigami with nothing to hunt should look like it is waiting for something
+rather than switched off.
+
+**Unless it is too big for the shelf.** A creature wants about two of its own
+body widths underfoot; on anything tighter it is standing on a plinth rather
+than a floor, and it heads for the ground. It goes down by walking *inward*,
+over the middle of the platform, and falling out of that stride — a creature
+that shuffled to the lip and toppled off would read as one that had made a
+mistake, not one that had decided. This is entirely a matter of how big the
+creature is drawn: a Max Elephant is 292 px across and leaves **every** side
+platform in the game, a Rainbow Dragon leaves all but Crosswalk Rush's long
+deck, and the Crawlers, the Rabbits and the Husk Curse stay on the shelf they
+were cast onto. `node tools/smoke_summon_platforms.mjs` prints that table for
+the whole roster.
+
+The one summon that jumps of its own accord — Mahoraga — will not jump *onto* a
+shelf he is too big for, since he would only walk back off it.
+
 Each one **hunts on its own** the moment it lands, so casting one costs no
 attention. Push the **D-pad** and you take it over instead — it goes where you point until the stick has been
 centred for 1.2 s, then resumes hunting. A driven summon is marked with a white
