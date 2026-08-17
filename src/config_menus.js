@@ -38,6 +38,17 @@ function padName(id) {
  */
 export const USE_SIMPLE_CARDS = false;
 
+/** The shapes a roster tile is allowed to take, tallest first.
+ *
+ *  layoutCharacterGrid() (src/ui.js) walks this ladder and takes the tallest
+ *  rung that fits the window, so cropping the art is how a row count that is
+ *  otherwise right survives a short screen. It lives HERE rather than beside
+ *  the fitter because the card workbench (/workbench/?edit=cards) previews
+ *  every rung, and a bench that hard-coded its own copy would drift from the
+ *  game the first time a rung changed — while importing the fitter's module
+ *  would drag the whole running UI into a page that drives nothing. */
+export const ROSTER_ASPECTS = ["3 / 4", "1 / 1", "5 / 4", "3 / 2", "2 / 1"];
+
 // Fighter-select categories, in the order they appear on screen. Each group's
 // `members` are character keys from CHARACTERS in characters.js, shown left to
 // right.

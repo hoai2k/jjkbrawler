@@ -53,6 +53,28 @@ for (const [mode, expectPath] of ROUTES) {
   ok(url.pathname === expectPath, `?edit=${mode}`, `→ ${url.pathname}${url.search}`);
 }
 
+// Three benches live at /workbench/ itself, so a pathname cannot tell them
+// apart — which is exactly why they are the easy ones to break. `data-bench` on
+// the root element is what the router decides and what index.html and the
+// module loader both act on, so that is the thing to assert.
+for (const [mode, expect] of [
+  ["audio", "audio"], ["voice", "audio"],
+  ["verification", "verification"], ["review", "verification"], ["queue", "verification"],
+  ["cards", "cards"], ["card", "cards"], ["crop", "cards"], ["focus", "cards"],
+]) {
+  await page.goto(`${BASE}/workbench/?edit=${mode}`, { waitUntil: "load" });
+  await page.waitForTimeout(600);
+  const got = await page.evaluate(() => ({
+    bench: document.documentElement.dataset.bench,
+    // …and the bench that was NOT asked for must be gone, not merely hidden:
+    // its ids would otherwise answer the live bench's getElementById.
+    bars: document.querySelectorAll(".bar").length,
+    title: document.title,
+  }));
+  ok(got.bench === expect && got.bars === 1,
+     `?edit=${mode} is the ${expect} bench`, `data-bench=${got.bench}, ${got.bars} header(s), “${got.title}”`);
+}
+
 // The modes that carry their own `edit` through to the destination must arrive
 // with it — landing on the 3D directory is not the same as landing on the
 // keyframe bench.
@@ -98,8 +120,13 @@ ok(new URL(page.url()).pathname === "/workbench/", "/workbench/ with no query is
 // The dev server has no version.json — that reading is the local one, and it
 // has to say so rather than going blank, or a missing stamp and a working one
 // look the same.
+// The two benches that build their OWN header are the ones this went missing
+// on: the stamp used to mount into the audio shell that index.html was about
+// to delete, and go with it.
 for (const [path, name] of [
   ["/workbench/?edit=audio", "audio"],
+  ["/workbench/?edit=verification", "verification"],
+  ["/workbench/?edit=cards", "cards"],
   ["/sprites/workbench/", "sprites"],
   ["/billboards/workbench/", "billboards"],
   ["/render3d/workbench/", "3d"],

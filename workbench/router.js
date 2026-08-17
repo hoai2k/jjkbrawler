@@ -24,7 +24,7 @@
   // one thing no cache argues with.
   //
   // BUMP THIS WHENEVER THE BENCH CHANGES.
-  var BENCH_VERSION = "14";
+  var BENCH_VERSION = "15";
   if (document.currentScript) document.currentScript.dataset.version = BENCH_VERSION;
   // Where each mode lives. Paths are RELATIVE, so the whole thing keeps working
   // under a subdirectory — the GitHub Pages build serves this at
@@ -35,6 +35,7 @@
     // injects. Everything else in this table is somewhere else in the repo.
     audio: null,
     verification: null,
+    cards: null,
     sprites: "../sprites/workbench/",
     actions: "../sprites/workbench/?edit=actions",
     billboards: "../billboards/workbench/",
@@ -64,13 +65,16 @@
     // want is "show me things to check off one at a time".
     verify: "verification", review: "verification", check: "verification",
     approve: "verification", checks: "verification", queue: "verification",
+    // The card bench. Every word for "the picture is cropped wrong".
+    card: "cards", crop: "cards", cropping: "cards", focus: "cards",
+    framing: "cards", art: "cards", portraits: "cards",
   };
 
   var here = new URL(window.location.href);
   var asked = (here.searchParams.get("edit") || "audio").toLowerCase();
   var mode = ALIASES[asked] || asked;
   // Stated on the element so the second block (and the bench modules) can read
-  // which of the two local benches this page is, without re-parsing the URL.
+  // which of the local benches this page is, without re-parsing the URL.
   document.documentElement.dataset.bench = (mode in ROUTES) && ROUTES[mode] === null
     ? mode : "audio";
 
@@ -116,14 +120,20 @@
   var key = bust || version || "0";
   window.__benchCacheKey = key;
 
-  // Two benches live at this address (see ROUTES), and they do not share a
+  // Three benches live at this address (see ROUTES), and they do not share a
   // module or a stylesheet — so which files get the cache key depends on
   // which one was asked for. The shared palette and header classes are in
   // workbench.css either way; a bench with more of its own adds a second
   // sheet rather than duplicating that one.
   var bench = document.documentElement.dataset.bench || "audio";
-  var MODULES = { audio: "audio.js", verification: "verification.js" };
-  var EXTRA_CSS = { verification: "verification.css" };
+  var MODULES = { audio: "audio.js", verification: "verification.js", cards: "cards.js" };
+  var EXTRA_CSS = { verification: "verification.css", cards: "cards.css" };
+
+  // The document's <title> is the audio bench's, because that is whose markup
+  // index.html holds. A tab that says "Audio Workbench" over the card bench is
+  // wrong in the one place a person looks when three of these are open.
+  var TITLES = { verification: "Verification", cards: "Card Workbench" };
+  if (TITLES[bench]) document.title = TITLES[bench] + " — JJK Brawler II";
 
   var sheets = ["workbench.css"];
   if (EXTRA_CSS[bench]) sheets.push(EXTRA_CSS[bench]);
