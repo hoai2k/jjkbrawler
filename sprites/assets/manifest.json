@@ -64090,9 +64090,18 @@
   },
   "effect:ultra_cannon": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": true,
+   "dx": -26.5,
+   "dy": 1.2,
+   "fadeIn": 0.11,
+   "src": {
+    "file": "assets/sprites/effects/ultra_cannon.png",
+    "sha": "1df0379dff82"
+   }
   },
   "summon:coilCurse:attack": {
    "edited": {
@@ -64108,9 +64117,17 @@
   },
   "summon:nue": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "dx": 10.4,
+   "dy": -20.9,
+   "src": {
+    "file": "assets/sprites/summons/nue.png",
+    "sha": "04b178adc30d"
+   }
   },
   "summon:rika": {
    "edited": {
@@ -64338,10 +64355,16 @@
   "summon:divineDogBlack": {
    "edited": {
     "dx": null,
-    "dy": null
+    "dy": null,
+    "renderScale": null
    },
    "dx": -0.1,
-   "dy": 9.3
+   "dy": 9.3,
+   "renderScale": 0.755,
+   "src": {
+    "file": "assets/sprites/summons/divine_dog_black.png",
+    "sha": "6a76e1ebb676"
+   }
   },
   "summon:divineDogBlack:hurt": {
    "edited": {
@@ -64731,12 +64754,23 @@
    }
   },
   "summon:greatSerpent": {
-   "faceLeft": true,
+   "faceLeft": false,
    "autoTuned": {
     "at": "2026-08-16",
     "fields": {
      "faceLeft": "read off the drawing: the cobra's head and hood are on the left of the plate"
     }
+   },
+   "edited": {
+    "renderScale": null,
+    "faceLeft": true
+   },
+   "renderScale": 1.13,
+   "attackBox": {
+    "x": 0.103,
+    "y": 0.81,
+    "w": 0.44,
+    "h": 0.76
    }
   },
   "summon:huskCurse": {
@@ -64764,6 +64798,46 @@
     "fields": {
      "faceLeft": "read off the drawing: the stacked faces look left"
     }
+   }
+  },
+  "effect:aura_jade": {
+   "edited": {
+    "renderScale": null,
+    "dx": null,
+    "dy": null
+   },
+   "renderScale": 0.89,
+   "dx": 5,
+   "dy": -0.4,
+   "src": {
+    "file": "assets/sprites/effects/aura_jade.png",
+    "sha": "181ac37a0bff"
+   }
+  },
+  "summon:divineDogWhite": {
+   "edited": {
+    "renderScale": null,
+    "dx": null,
+    "dy": null
+   },
+   "renderScale": 0.76,
+   "dx": 0.1,
+   "dy": 4.7,
+   "src": {
+    "file": "assets/sprites/summons/divine_dog_white.png",
+    "sha": "6f76dab3d1ef"
+   }
+  },
+  "summon:maxElephant": {
+   "edited": {
+    "renderScale": null
+   },
+   "renderScale": 1.275,
+   "attackBox": {
+    "x": 0.305,
+    "y": 0.529,
+    "w": 0.44,
+    "h": 0.76
    }
   }
  }

@@ -35,6 +35,7 @@ import {
   headHeightTarget, applyHeightScale, hasHeightOverride, heightRatio, measuredIdleSpan,
   heightLabel,
 } from "../../src/heights.js";
+import { actorPosesReady } from "../../src/ultimates.js";
 import { initTooltips, setHelp } from "./tooltip.js";
 import { makeCharLoader, frameLoaded } from "./lazy_sprites.js";
 import { fitStageCanvas } from "./fit_stage.js";
@@ -269,7 +270,14 @@ function sharedOwner(key) {
  *  Mirrors summons.js: the creature is drawn from its own pose set when it has
  *  one, and every entry behind it is dead weight. Only entries AFTER the first
  *  drawable one can be superseded — the head of the stack is the creature. */
-function supersededStandIn(stack, key) {
+function supersededStandIn(stack, key, cfg) {
+  // A creature that animates through an ACTOR — a full sprite set of its own —
+  // never draws its still either. Mahoraga has one and it is complete, so
+  // summons.js takes the actor branch every time (`drawActor`) and
+  // `summon:mahoraga.png` is a fallback for art that is no longer missing. He
+  // was showing up as a creature to size, and mirrored by the creature rule
+  // rather than the character one, which is why he faced the wrong way.
+  if (cfg?.actor && actorPosesReady(cfg.actor)) return true;
   const i = stack.indexOf(key);
   if (i <= 0) return false;
   // Asked of the REGISTERED fetches rather than of loaded images: this index is
@@ -309,7 +317,7 @@ function sharedUsage() {
         // drawn for him, and listing it under his effects sent you to align art
         // against a body that never shows it. Recorded as a dead stand-in
         // rather than dropped, so the panel can still say who kept it.
-        const dead = field === "sprites" && supersededStandIn(node[field], k);
+        const dead = field === "sprites" && supersededStandIn(node[field], k, node);
         note(k, who, label, node.spriteH, charKey, dead);
       }
     }
@@ -3694,6 +3702,7 @@ function sharedControls(key) {
     owner: info.owner,
     measuredBox: !!info.measuredBox,
     bites: info.bites,
+    hovers: info.hovers || null,
   };
 }
 
@@ -3753,6 +3762,13 @@ function refreshUsageInfo() {
     // A creature with no authored pair measures its box off this drawing, so
     // there is no target to match and nothing worth drawing: the box is the
     // picture, at 85% of it, and it follows Size because it is derived from it.
+    if (can.hovers) {
+      lines.push(`<b>It never lands.</b> This one holds station ${can.hovers.back}px `
+        + `behind its summoner and ${can.hovers.up}px up, for its whole life — the `
+        + "canvas here stands it on the floor because that is what the anchor says, "
+        + "and the floor is somewhere the game never puts it. Play it in action to "
+        + "see it where it actually sits.");
+    }
     if (can.measuredBox) {
       lines.push("<b>Hurt box:</b> measured from this drawing — 85% of the drawn "
         + "rectangle, so it follows Size and there is nothing to match it against. "

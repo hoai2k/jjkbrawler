@@ -64,7 +64,20 @@ const DEFAULT_OY = -86;
  * crosshair and a travel arrow with no way to see the shot they describe.
  */
 const ULT_SHOTS = {
-  beam: (p) => ({ ...p, speed: 860, ox: 79, oy: -78, r: p.width / 2, dur: p.duration }),
+  beam: (p) => [{ sprite: p.sprite,
+    p: { ...p, speed: 860, ox: 79, oy: -78, r: p.width / 2, dur: p.duration } }],
+  // Mode: Absolute throws TWO drawings from one director — a volley of homing
+  // orbs, then the cannon — so a director's entry is a list. Reading only the
+  // first left effect:pigeon_orb with no action at all, and it is the one of
+  // the two whose size is hardest to guess.
+  cannonade: (p) => [
+    { sprite: p.sprite,
+      p: { ...p, speed: 940, ox: 96, oy: -100, r: (p.width || 170) / 2,
+           dur: p.duration || 1.2 } },
+    { sprite: p.orbSprite,
+      p: { ...p, speed: 460, ox: 54, oy: -150, r: p.orbR ?? 22, dur: 1.9,
+           homing: 190, spriteH: p.orbSpriteH || 64 } },
+  ],
 };
 
 /**
@@ -235,9 +248,10 @@ export function firingUse(spriteKey, preferChar) {
         muzzleScale: bodyMetrics(charKey).height / HEIGHT_BASE_PX,
       };
     }
-    const shot = ULT_SHOTS[ult?.type];
-    if (shot && ult?.p?.sprite === spriteKey) {
-      const p = shot(ult.p);
+    const shots = ULT_SHOTS[ult?.type] ? ULT_SHOTS[ult.type](ult.p) : [];
+    const shot = shots.find((x) => x.sprite === spriteKey);
+    if (shot) {
+      const p = shot.p;
       const solved = spawnOffset(charKey, "ult", p.ox, p.oy);
       return {
         charKey, slot: "ult", spec: ult, p, state: "ult",
