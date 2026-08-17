@@ -116,11 +116,12 @@ const r = await page.evaluate(async () => {
     out.roam = { minY, maxY, minX: Math.round(minX), maxX: Math.round(maxX) };
   }
 
-  // ---- too big for the shelf: inward stride, then down
+  // ---- too big for the shelf, with nothing to hunt: inward stride, then down
   setStage("shibuyaNight");
   {
     const { s } = cast(of("SHIKIGAMI_POOL", "Max Elephant"), 300, 452, 1000, 566);
     step(s, ARRIVE);
+    state.fighters[1].dead = true;          // nothing to chase -> room decides
     const landed = { y: s.y, x: s.x, hitW: s.hitW };
     const fromX = s.x;
     step(s, 0.5);
@@ -129,6 +130,21 @@ const r = await page.evaluate(async () => {
     const inward = Math.sign(s.x - fromX);
     step(s, 3);
     out.tooBig = { landed, inward, endY: s.y };
+  }
+
+  // ---- but CHASING, room stops mattering: the same elephant on the same
+  //      cramped shelf stays on it while a foe is up there with it
+  setStage("shibuyaNight");
+  {
+    const { s, foe } = cast(of("SHIKIGAMI_POOL", "Max Elephant"), 300, 452, 380, 452);
+    step(s, ARRIVE);
+    const levels = new Set();
+    for (let i = 0; i < 60 * 8; i++) {
+      s.update(1 / 60);
+      foe.x = 380; foe.y = 452; foe.hp = 100;   // hold them on the shelf
+      if (!s.airborne) levels.add(Math.round(s.y));
+    }
+    out.chasingIgnoresRoom = { levels: [...levels] };
   }
 
   // ---- chasing leaves the shelf: off the edge after a distant foe...
@@ -145,6 +161,37 @@ const r = await page.evaluate(async () => {
     const { s } = cast(of("TRANSFIGURED_POOL", "Crawlers"), 300, 452, 300, 566);
     step(s, ARRIVE + 4);
     out.chaseUnder = { y: s.y };
+  }
+
+  // ---- ...but only when the fall leads somewhere. Shibuya Night's two side
+  //      shelves are both at y=452; stepping off after somebody on the far one
+  //      would strand it on the floor underneath them forever, so it holds the
+  //      lip and shadows them instead.
+  setStage("shibuyaNight");
+  {
+    const { s, foe } = cast(of("TRANSFIGURED_POOL", "Crawlers"), 300, 452, 950, 452);
+    step(s, ARRIVE);
+    let maxX = s.x;
+    const levels = new Set();
+    for (let i = 0; i < 60 * 8; i++) {
+      s.update(1 / 60);
+      foe.x = 950; foe.y = 452;
+      maxX = Math.max(maxX, s.x);
+      if (!s.airborne) levels.add(Math.round(s.y));
+    }
+    out.unreachable = { levels: [...levels], maxX: Math.round(maxX), lip: 420 };
+  }
+
+  // ---- and once that same foe drops to the floor, the fall DOES lead
+  //      somewhere and it goes after them
+  setStage("shibuyaNight");
+  {
+    const { s, foe } = cast(of("TRANSFIGURED_POOL", "Crawlers"), 300, 452, 950, 452);
+    step(s, ARRIVE + 2);
+    const heldUp = s.y;
+    foe.y = 566;                              // they come down
+    step(s, 4);
+    out.thenReachable = { heldUp, endY: s.y };
   }
 
   // ---- the floor is never left: there is nothing under it but the blast zone
@@ -191,13 +238,13 @@ const r = await page.evaluate(async () => {
       step(s, 4);
       out.brawlerDown = { hitW: s.hitW, landed, endY: s.y };
     }
-    // A foe camping a shelf he does not fit on: he must NOT hop up and walk
-    // back off, over and over, which is what the fitsShelf gate on his chase
-    // jump is there to prevent.
+    // A foe camping a shelf he does not fit on: he jumps up after them anyway
+    // (he can jump back off, so room never talks him out of a chase) and then
+    // STAYS, rather than looping up and down as the room rule once made him.
     setStage("shibuyaNight");
     {
       const { s, foe } = cast(MAHORAGA, 300, 566, 340, 452);
-      step(s, 1.5);
+      step(s, 3);
       const levels = new Set();
       for (let i = 0; i < 60 * 8; i++) {
         s.update(1 / 60);
@@ -261,11 +308,18 @@ check(r.roam.minX >= SHELF.x && r.roam.maxX <= SHELF.x + SHELF.w, "roaming stays
 
 check(r.tooBig.landed.y === SHELF.y, "the Elephant lands on the shelf first", JSON.stringify(r.tooBig.landed));
 check(r.tooBig.landed.hitW * 2 > SHELF.w, "the Elephant does not fit it", `${r.tooBig.landed.hitW}px on ${SHELF.w}px`);
-check(r.tooBig.inward === 1, "it walks INWARD before dropping, not off the near lip", `dir=${r.tooBig.inward}`);
-check(r.tooBig.endY === FLOOR, "and it ends up on the floor", `y=${r.tooBig.endY}`);
+check(r.tooBig.inward === 1, "with nothing to hunt it walks INWARD, not off the near lip", `dir=${r.tooBig.inward}`);
+check(r.tooBig.endY === FLOOR, "and ends up on the floor", `y=${r.tooBig.endY}`);
+check(r.chasingIgnoresRoom.levels.length === 1 && r.chasingIgnoresRoom.levels[0] === SHELF.y,
+      "but chasing, it stays on the shelf it does not fit — room stops mattering", JSON.stringify(r.chasingIgnoresRoom));
 
-check(r.chaseOff.y === FLOOR && r.chaseOff.x > SHELF.x + SHELF.w, "a chase walks off the edge after a distant foe", JSON.stringify(r.chaseOff));
+check(r.chaseOff.y === FLOOR && r.chaseOff.x > SHELF.x + SHELF.w, "a chase walks off the edge after a foe BELOW", JSON.stringify(r.chaseOff));
 check(r.chaseUnder.y === FLOOR, "and drops through after one directly beneath", JSON.stringify(r.chaseUnder));
+check(r.unreachable.levels.length === 1 && r.unreachable.levels[0] === SHELF.y,
+      "but never off after one LEVEL with it, where the fall leads nowhere", JSON.stringify(r.unreachable));
+check(r.unreachable.maxX <= r.unreachable.lip + 1, "it presses to the lip and shadows them from up there", JSON.stringify(r.unreachable));
+check(r.thenReachable.heldUp === SHELF.y && r.thenReachable.endY === FLOOR,
+      "and goes after them the moment they drop to the floor", JSON.stringify(r.thenReachable));
 
 check(r.floor.minY === FLOOR && r.floor.maxY === FLOOR, "nothing ever leaves the floor", JSON.stringify(r.floor));
 check(r.tiered.landed === 236, "a descent starts on the shelf it was cast onto", JSON.stringify(r.tiered));
@@ -274,10 +328,10 @@ check(r.flyer.y < SHELF.y, "the flyer still hovers, untouched by any of it", JSO
 
 check(r.brawlerDown && r.brawlerDown.landed === SHELF.y && r.brawlerDown.endY === FLOOR,
       "the brawler leaves a shelf it does not fit on", JSON.stringify(r.brawlerDown));
-check(r.brawlerHolds && r.brawlerHolds.levels.length === 1 && r.brawlerHolds.levels[0] === FLOOR,
-      "and never loops up onto it after a foe camping there", JSON.stringify(r.brawlerHolds));
+check(r.brawlerHolds && r.brawlerHolds.levels.length === 1 && r.brawlerHolds.levels[0] === SHELF.y,
+      "but jumps onto one anyway after a foe, and stays without looping", JSON.stringify(r.brawlerHolds));
 check(r.brawlerClimbs && r.brawlerClimbs.levels.includes(430),
-      "but still climbs to one it fits on", JSON.stringify(r.brawlerClimbs));
+      "and climbs to a roomy one the same way", JSON.stringify(r.brawlerClimbs));
 
 console.log("\nside-platform widths in the game:", r.census.widths.join(", "));
 console.log("creature            width   needs   stays on");

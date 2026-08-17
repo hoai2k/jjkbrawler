@@ -35,21 +35,34 @@
 // FOOTING. A summon lives on the whole stage, not on the floor of it. It forms
 // on the surface its owner is standing on — cast one from a rooftop and it
 // lands on the rooftop — and what it does with that surface depends on whether
-// it has anybody to chase. CHASING, it leaves freely: it walks off the ledge
-// after somebody across the board, and drops straight through the shelf after
-// somebody standing underneath it, because there is no edge that would get it
-// there. NOT CHASING, it roams: legs of a walk with pauses between them, turning
-// at the edges rather than stepping off them.
+// it has anybody to chase.
 //
-// The exception is a creature the shelf cannot hold. A Max Elephant measures
-// 292 px across and every side platform in the game is narrower than the two
-// body widths it wants; standing on one it is on a plinth rather than a floor.
-// So it leaves — and it leaves by walking INWARD, over the middle of the shelf,
-// and falling out of that stride. A creature that shuffled to the lip and
-// toppled off would read as one that had made a mistake. Which creatures this
-// catches is entirely a matter of how big they are drawn (see ROAM_SPAN):
-// elephants and dragons head for the floor, insects stay where they were cast.
-// tools/smoke_summon_platforms.mjs prints that census for the whole roster.
+// CHASING, it leaves — but only where leaving leads somewhere. Falling is the
+// only way down a summon has and there is no way back up, so stepping off is a
+// one-way trip and it is worth taking only for a target BELOW: it walks off the
+// ledge after somebody on the floor, and drops straight through the shelf after
+// somebody standing underneath it, where no edge would have got it there. After
+// somebody LEVEL with it — the shelf across the stage — it holds the lip and
+// shadows them, because taking the fall would only strand it on the floor
+// beneath them, having swapped a bad angle for a hopeless one. A summon that
+// JUMPS is not bound by any of this: the brawler can climb back out of any
+// mistake, so everywhere is reachable and the ledge never gives it pause.
+//
+// NOT CHASING, it roams: legs of a walk with pauses between them, turning at
+// the edges rather than stepping off them — unless the shelf cannot hold it. A
+// Max Elephant measures 292 px across and every side platform in the game is
+// narrower than the two body widths it wants; standing on one it is on a plinth
+// rather than a floor, so it goes and finds somewhere there is room. It leaves
+// by walking INWARD, over the middle of the shelf, and falling out of that
+// stride — a creature that shuffled to the lip and toppled off would read as
+// one that had made a mistake. Which creatures this catches is entirely how big
+// they are drawn (see ROAM_SPAN): elephants and dragons head for the floor,
+// insects stay where they were cast. tools/smoke_summon_platforms.mjs prints
+// that census for the whole roster.
+//
+// Room is a question only when there is nothing to hunt. Mid-chase a creature
+// does not break off to relocate for elbow room, however cramped the shelf —
+// it stays and swings.
 //
 // Summons are lifetime-limited and capped per (owner, id): recasting past the
 // cap dismisses the oldest. They die with their owner's elimination; match
@@ -892,21 +905,61 @@ export function spawnSummon(owner, cfg) {
       if (!this.stepFooting(dt, target, speed) && target) {
         this.dir = sign(target.x - this.x) || this.dir;
         const gap = Math.abs(target.x - this.x);
-        const desired = this.behavior === "bomber" ? 0 : (cfg.standOff ?? 30);
-        if (gap > desired) {
-          // Chasing walks off ledges. Somebody a shelf below is reason enough
-          // to step into the fall, which is what stepGravity does the moment
-          // there is nothing underfoot — the creature commits to the pursuit
-          // and lands wherever the pursuit takes it.
-          this.x = clamp(this.x + this.dir * speed * dt, 90, 1190);
-          this.moving = true;
-        }
+        if (gap > this.stopGap() && this.chaseStep(this.dir, speed * dt, target)) this.moving = true;
       }
       // Finishes any jump the player left it in before settling back onto a
       // surface; a hunting summon never starts one.
       this.stepGravity(dt, false);
       if (!this.airborne && Math.random() < dt * 5) dust(this.x - this.dir * 20, this.y, 3);
       if (target) this.tryContact(target);
+    },
+
+    /**
+     * One step of a chase, with the ledge taken into account. Returns whether
+     * it actually got anywhere.
+     *
+     * Walking off a shelf is a ONE-WAY trip for anything that cannot jump —
+     * there is no route back up — so it is only worth taking when the fall
+     * lands the creature somewhere it can carry on from. Chasing somebody on
+     * the shelf OPPOSITE by stepping off this one would spend the rest of the
+     * summon's life on the floor underneath them, having swapped a bad angle
+     * for a hopeless one. When the drop leads nowhere it presses to the lip
+     * instead and shadows them from up here, which is the closest it can
+     * honestly get.
+     */
+    chaseStep(dir, dist, target) {
+      let x = clamp(this.x + dir * dist, 90, 1190);
+      if (!this.airborne && !this.canReach(target)) {
+        // Held to the shelf, but all the way out to its lip: pressing at the
+        // edge is what wanting to get at somebody looks like.
+        const plat = platformAt(this.x, this.y, false);
+        if (plat) x = clamp(x, plat.x, plat.x + plat.w);
+      }
+      if (x === this.x) return false;
+      this.x = x;
+      return true;
+    },
+
+    /**
+     * Can this creature get to `target` at all from where it is standing?
+     *
+     * Falling is the only way down it has and there is no way back up, so the
+     * question reduces to whether the target is BELOW it. Anything level with
+     * it — the shelf across the stage — or above it is not reachable by
+     * stepping off, however much the horizontal gap says otherwise.
+     *
+     * Two cases skip the question entirely. On the floor there is nothing to
+     * fall off, and a summon that JUMPS (the brawler) can climb back out of
+     * any mistake, so for it everywhere is reachable and the ledge is never a
+     * reason to hold back.
+     */
+    canReach(target) {
+      if (!target || this.behavior === "brawler") return true;
+      if (this.y >= groundY()) return true;
+      // A fighter's y is their feet, so this is one surface against another.
+      // The margin keeps a target standing on the same shelf, or hopping a few
+      // pixels off it, from reading as "below".
+      return target.y > this.y + 8;
     },
 
     /**
@@ -951,26 +1004,40 @@ export function spawnSummon(owner, cfg) {
      * Does this creature want off the shelf it is standing on? Two reasons,
      * and both are about room.
      *
-     * It is TOO BIG for the shelf — a Max Elephant on a 150 px sign is standing
-     * on a plinth, not a floor, and there is nowhere on it to walk. Or it is
-     * hunting something BELOW it that walking cannot reach, because the target
-     * is under the very platform it is standing on and there is no edge to
-     * chase them off.
+     * With NOTHING TO HUNT, room is the whole question: a Max Elephant on a
+     * 150 px sign is standing on a plinth, not a floor, and there is nowhere on
+     * it to walk, so it goes and finds somewhere there is.
+     *
+     * CHASING, room stops mattering. A creature in a fight does not break off
+     * to relocate for elbow room, however cramped the shelf — it stays and
+     * swings. The one thing that still takes it down mid-chase is the target
+     * standing UNDER the very platform it is on, where walking cannot reach
+     * them because there is no edge that leads to them.
      *
      * Never off the main platform: that one IS the floor, and under it there is
      * only the blast zone.
      */
     wantsDown(plat, target) {
       if (plat.kind === "main" || this.y >= groundY()) return false;
-      if (!this.fitsShelf(plat)) return true;
-      if (!target) return false;
-      const reached = Math.abs(target.x - this.x) < (cfg.standOff ?? 30) + 30;
+      if (!target) return !this.fitsShelf(plat);
+      const reached = Math.abs(target.x - this.x) < this.stopGap() + 30;
       return reached && target.y > this.y + 40;
     },
 
+    /** How close this creature walks before it stops closing. A chaser holds
+     *  its kit's stand-off, a bomber wants to be touching, and a brawler stops
+     *  at swinging distance — which is much further out, and is why this is
+     *  asked rather than assumed: "as near as walking will take me" is the
+     *  thing wantsDown needs, and reading a chaser's 30 px off a summon that
+     *  parks at 118 left it forever a step short of deciding to drop. */
+    stopGap() {
+      if (this.behavior === "bomber") return 0;
+      if (this.behavior === "brawler") return BRAWLER_MOVES.smash.reach * 0.78;
+      return cfg.standOff ?? 30;
+    },
+
     /** Is there room enough on `plat` for this creature to live on it? The
-     *  floor always counts, and so does open air — a target with no platform
-     *  under them is not a reason to stay put.
+     *  floor always counts, and so does open air.
      *
      *  Measured only once the box is the drawing's: sizing a creature off the
      *  70 px placeholder would walk it off shelves it actually fits on. */
@@ -1032,19 +1099,16 @@ export function spawnSummon(owner, cfg) {
         const dx = target.x - this.x;
         const adx = Math.abs(dx);
         this.dir = sign(dx) || this.dir;
-        const reach = BRAWLER_MOVES.smash.reach * 0.78;
-        if (adx > reach) {
-          this.x = clamp(this.x + this.dir * speed * dt, 90, 1190);
+        if (adx > this.stopGap() && this.chaseStep(this.dir, speed * dt, target)) {
           walking = true;
           this.moving = true;
         }
         // Chase upward the way a fighter does: if they are standing above it
-        // and roughly overhead, jump after them — but never onto a shelf it is
-        // too big to stand on, because it would walk straight back off that
-        // one (wantsDown) and the chase would become a loop of hopping up and
-        // stepping down for as long as they stayed there.
-        if (!this.airborne && target.y < this.y - 110 && adx < 210 && this.decideT <= 0
-            && this.fitsShelf(platformAt(target.x, target.y, false))) {
+        // and roughly overhead, jump after them. It goes anywhere, including
+        // onto shelves too narrow to be a home — it can jump back off, so a
+        // cramped landing is a moment rather than a trap, and nothing about
+        // room is allowed to talk it out of a chase.
+        if (!this.airborne && target.y < this.y - 110 && adx < 210 && this.decideT <= 0) {
           this.decideT = 0.6;
           this.airborne = true;
           this.vy = PILOT_JUMP_VY;

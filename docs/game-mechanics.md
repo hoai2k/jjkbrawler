@@ -540,11 +540,21 @@ surface its owner is standing on — cast one from a rooftop and it lands on the
 rooftop, rather than dropping past you to the ground the way every summon used
 to. What it does with that surface depends on whether it has anybody to chase.
 
-**Chasing, it leaves freely.** Somebody across the board is reason enough to
-walk off the ledge, and it falls to whatever is under it — the floor, or the
-next shelf down. Somebody standing directly *underneath* it gets the same
-commitment by the only route that reaches them: it drops straight through the
-platform it is on, because there is no edge that would get it there.
+**Chasing, it leaves — where leaving leads somewhere.** Falling is the only way
+down a summon has and there is no way back up, so stepping off a ledge is a
+one-way trip and it only takes one for a target **below**. Somebody on the floor
+is reason enough to walk off the edge, and it lands on whatever is under it —
+the ground, or the next shelf down. Somebody standing directly *underneath* it
+gets the same commitment by the only route that reaches them: straight down
+through the platform, because there is no edge that would get it there.
+
+Somebody **level with it** — the shelf across the stage — it will not step off
+after. The fall would only strand it on the floor beneath them, having swapped a
+bad angle for a hopeless one, so it presses to the lip and shadows them from up
+there until they come down. The moment they do, it goes.
+
+**Mahoraga is exempt from all of that**, because he jumps: he can climb back out
+of any mistake, so everywhere is reachable and no ledge ever gives him pause.
 
 **Not chasing, it roams.** Legs of a walk with pauses between them, along the
 shelf it is on, turning at the edges rather than stepping off them — a
@@ -563,8 +573,9 @@ deck, and the Crawlers, the Rabbits and the Husk Curse stay on the shelf they
 were cast onto. `node tools/smoke_summon_platforms.mjs` prints that table for
 the whole roster.
 
-The one summon that jumps of its own accord — Mahoraga — will not jump *onto* a
-shelf he is too big for, since he would only walk back off it.
+Room is a question only when there is nothing to hunt. **Mid-chase a creature
+never breaks off to relocate for elbow room**, however cramped the shelf — it
+stays and swings.
 
 Each one **hunts on its own** the moment it lands, so casting one costs no
 attention. Push the **D-pad** and you take it over instead — it goes where you point until the stick has been
