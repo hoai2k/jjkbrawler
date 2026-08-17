@@ -135,10 +135,11 @@ the query (`&char=gojo`) travels with you.
 | [`?edit=reads`](workbench/?edit=reads) | `/render3d/workbench/?edit=reads` | the joint reads those poses produce |
 | [`?edit=rigs`](workbench/?edit=rigs) | `/render3d/workbench/?edit=rigs` | the skeleton itself — bones, bind pose, facing |
 | [`?edit=verification`](workbench/?edit=verification) | [`/workbench/`](workbench/) | the review queue: everything waiting to be checked off, one at a time |
+| [`?edit=cards`](workbench/?edit=cards) | [`/workbench/`](workbench/) | **Cards** — where each painting is cropped. Drag one line to the height that must survive, and every hole the game squeezes that card into re-crops beside it at its real size: five roster rungs, both hero cards, the HUD portrait, the pause chip, the intro panel, the victory art. **⭳ Export JSON**, then `node tools/apply_card_focus.mjs <file> --apply` writes `src/config_cards.js` |
 
 `node tools/smoke_workbench_routes.mjs` walks every one of those, plus the
-aliases (`sprite`, `2d`, `anim`, `render3d`, `rig`, `review`, …). The full
-route and alias tables are `ROUTES` and `ALIASES` in `workbench/router.js`.
+aliases (`sprite`, `2d`, `anim`, `render3d`, `rig`, `review`, `crop`, …). The
+full route and alias tables are `ROUTES` and `ALIASES` in `workbench/router.js`.
 
 ### Is the site showing my change yet?
 

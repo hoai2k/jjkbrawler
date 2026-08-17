@@ -34,8 +34,32 @@ function ago(iso) {
   return `${Math.round(hours / 24)} d ago`;
 }
 
-function mount() {
-  const bar = document.querySelector(".bar");
+/** The header bar to hang the stamp on — which may not exist yet.
+ *
+ *  Two of the benches at /workbench/ build their own header from a module
+ *  (verification.js, cards.js), and a module the ROUTER appends is async by
+ *  default — a script element created in script is not deferred — so it can
+ *  evaluate after this one, which has no imports to wait for. Looking once and
+ *  giving up is why those were the two pages in the repo where "is this my
+ *  change?" had no answer: the stamp mounted nowhere and nothing said so.
+ *
+ *  Resolves null on a page that has no bar at all rather than watching the
+ *  document for the life of the tab. */
+function barSoon() {
+  const now = document.querySelector(".bar");
+  if (now) return Promise.resolve(now);
+  return new Promise((resolve) => {
+    const finish = (bar) => { obs.disconnect(); clearTimeout(timer); resolve(bar); };
+    const obs = new MutationObserver(() => {
+      const bar = document.querySelector(".bar");
+      if (bar) finish(bar);
+    });
+    obs.observe(document.documentElement, { childList: true, subtree: true });
+    const timer = setTimeout(() => finish(null), 8000);
+  });
+}
+
+function mount(bar) {
   if (!bar) return null;
   const el = document.createElement("a");
   el.className = "deploy-stamp";
@@ -49,7 +73,7 @@ function mount() {
   return el;
 }
 
-const el = mount();
+const el = mount(await barSoon());
 if (el) {
   try {
     const res = await fetch(`${STAMP_URL}?t=${Date.now()}`, { cache: "no-store" });
