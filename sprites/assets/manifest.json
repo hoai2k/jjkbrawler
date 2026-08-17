@@ -63844,15 +63844,30 @@
   },
   "effect:crow": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "rotationDeg": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "rotationDeg": 50,
+   "fadeIn": 0.11,
+   "src": {
+    "file": "assets/sprites/effects/crow.png",
+    "sha": "37b96bb1de36"
+   }
   },
   "effect:crow_flock": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "dx": 97.6,
+   "dy": 1,
+   "src": {
+    "file": "assets/sprites/effects/crow_flock.png",
+    "sha": "801a720e1dd0"
+   }
   },
   "effect:cursed_bud": {
    "edited": {
