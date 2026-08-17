@@ -1307,7 +1307,7 @@ const DIRECTORS = {
         if (!this.fired && this.t >= charge + 0.45) {
           this.fired = true;
           spawnProjectile(f, {
-            speed: 940, ox: 96, oy: -100, r: (p.width || 170) / 2, dur: p.duration || 1.2,
+            speed: 940, ox: 71, oy: -83, r: (p.width || 170) / 2, dur: p.duration || 1.2,
             dmg: p.dmg, base: p.base, growth: p.growth, angle: 0.36,
             color: p.color, pierce: true, unblockable: true, clearsProjectiles: true,
             fxElement: "machine", fxRing: 8,

@@ -31,7 +31,8 @@ import { drawCharFrame, currentFrame } from "../src/sprites.js";
 import { loadFrame, getImage, loadSharedImage } from "../../src/assets.js";
 import { bodyMetrics } from "../../src/silhouette.js";
 import { spawnOffset, REFERENCE_MUZZLE } from "../../src/muzzle.js";
-import { meteorAt, METEOR_FALL, sharedAdjust, sharedAttack } from "../../src/shared_sprites.js";
+import { meteorAt, METEOR_FALL, sharedAdjust, sharedAttack,
+         AURA_H, AURA_PULSE, AURA_FOOT_DY } from "../../src/shared_sprites.js";
 import { SUMMON_ANIMS, SUMMON_POSES } from "../../src/config_summons.js";
 import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
 
@@ -79,9 +80,15 @@ const ULT_SHOTS = {
       p: { ...p, speed: p.speed * 0.55, ox: 40, oy: -80, r: 26, dur: 1.8,
            homing: 120, spriteH: 84 } },
   ],
+  // Megumi's DEATH SWARM: eight volleys of homing fish, the last one bigger.
+  deathSwarm: (p) => [
+    { sprite: p.sprite,
+      p: { ...p, speed: 620, ox: 70, oy: -86, r: 30, dur: 1.4, homing: p.homing ?? 260,
+           spriteH: (p.spriteH || 90) * 1.8 } },
+  ],
   cannonade: (p) => [
     { sprite: p.sprite,
-      p: { ...p, speed: 940, ox: 96, oy: -100, r: (p.width || 170) / 2,
+      p: { ...p, speed: 940, ox: 71, oy: -83, r: (p.width || 170) / 2,
            dur: p.duration || 1.2 } },
     { sprite: p.orbSprite,
       p: { ...p, speed: 460, ox: 54, oy: -150, r: p.orbR ?? 22, dur: 1.9,
@@ -184,6 +191,137 @@ const PLANTED_MOVES = {
 const DROP_MOVES = new Set(["randomDrop", "cardrop"]);
 
 /**
+ * A DOMAIN's backdrop: the whole screen, behind everybody.
+ *
+ * Nine drawings that are not placed at all — they are cover-fitted over the
+ * stage while the domain runs, so there is no spawn point and no size to set.
+ * That made them look like art with no question to ask, and they were left with
+ * no action; but the question they DO have is whether two fighters read against
+ * them, and that is only answerable with two fighters standing on one.
+ */
+const BACKDROPS = new Set([
+  "domain:unlimited_void", "domain:malevolent_shrine", "domain:shadow_garden",
+  "domain:self_embodiment", "domain:iron_mountain", "domain:mutual_love",
+  "domain:captivating_skandha", "domain:idle_death_gamble", "effect:domain_gamble",
+]);
+
+/**
+ * The STAGE's own art: hazards a stage spawns, with nobody casting them.
+ *
+ * Four drawings that belong to no kit at all — the fang that rises out of the
+ * floor, the bloom, the hung lantern, the curse that wanders. `firingUse`
+ * walked the kits and so could never reach them. The heights and anchors are
+ * the registry's own (STAGE_FX in shared_sprites.js), which is where stage_fx.js
+ * reads them, so the size shown is the size drawn.
+ */
+const HAZARDS = {
+  "stagefx:stage_fang": { h: 72, anchor: "centre", life: 1.6,
+    rise: true, what: "rises out of the floor and dives back" },
+  "stagefx:stage_flower": { h: 46, anchor: "feet", life: 2.0,
+    what: "a bloom, open on the platform" },
+  "stagefx:stage_lantern": { h: 44, anchor: "top", life: 2.0,
+    sway: true, what: "hangs from its cord and swings" },
+  "stagefx:stage_weak_curse": { h: 60, anchor: "feet", life: 2.4,
+    wander: true, what: "wanders the stage" },
+};
+
+/**
+ * The drawings a fighter WEARS rather than throws.
+ *
+ * An install aura is painted around the body every frame while the install
+ * runs, breathing between 0.82 and 0.94 of its nominal height and skirting the
+ * floor (AURA_PULSE / AURA_FOOT_DY). Panda's rampage is the same shape with a
+ * different picture: `applyInstall` with a `sprite`, drawn as a BODY over him.
+ *
+ * Neither throws anything, so `firingUse` found nothing and eleven auras plus
+ * the triceratops had no action — on the one class of drawing whose whole
+ * question is how it sits on a body, which is unanswerable from a plate.
+ */
+const WORN = {
+  aura: () => ({ pulse: true, foot: AURA_FOOT_DY, height: AURA_H, glow: true }),
+  rampage: (p) => ({ pulse: false, foot: 0, height: p.spriteH || 210, glow: false }),
+};
+
+/**
+ * The ULTIMATES that paint their own drawing, at a point they work out.
+ *
+ * Nine directors call `getImage` and `drawImage` straight, with no projectile
+ * and no creature in between — so nothing in the shot, drop, flash or planted
+ * machinery could reach them. Each entry is that handler's arithmetic: where
+ * the art goes over the action's life, how tall, and which way round.
+ *
+ *   `at(u, S)`    position; `u` runs 0..1 across `life`, and `S` is the stage
+ *                 geometry (FIGHTER_X, ENEMY_X, GROUND) — these recipes are
+ *                 module-level and the stage is not, so it is handed in
+ *   `h(u, p)`     height at that moment — several of these grow as they land
+ *   `anchor`      "centre" or "feet", matching the handler's own drawImage
+ *   `flip`        mirrored to the caster's facing, as the handler does it
+ *
+ * Read off src/ultimates.js and src/specials.js; a change there is one grep
+ * from being a change here.
+ */
+const DIRECTORS = {
+  // Gakuganji's chord, centred on him and beating.
+  concert: (p) => ({
+    life: 1.6, anchor: "centre", flip: false,
+    at: (u, S) => ({ x: S.FIGHTER_X, y: S.GROUND - 110 }),
+    h: (u) => (p.spriteH || 300) * (0.9 + 0.1 * Math.sin(u * 22)),
+    what: "beats around the caster",
+  }),
+  // Toji's nail storm sweeps the whole stage at a fixed height.
+  nailstorm: (p) => ({
+    life: 1.4, anchor: "centre", flip: true,
+    at: (u, S) => ({ x: -100 + u * 1100, y: S.GROUND - 258 }),
+    h: () => p.spriteH || 290,
+    what: "sweeps across the stage",
+  }),
+  // Geto's uzumaki travels forward at its own speed.
+  vortex: (p) => ({
+    life: 1.6, anchor: "centre", flip: false,
+    at: (u, S) => ({ x: S.FIGHTER_X + u * (p.speed || 300) * 1.6, y: S.GROUND - 150 }),
+    h: () => p.spriteH || 250,
+    what: "travels forward, grinding",
+  }),
+  // Hanami's tempest stands in the middle of the stage and rises out of it.
+  tempest: (p) => ({
+    life: 2.2, anchor: "feet", flip: false,
+    at: (u, S) => ({ x: 450 + Math.sin(u * 7) * 12, y: S.GROUND }),
+    h: () => p.spriteH || 650,
+    what: "stands on the floor and rises out of it",
+  }),
+  // Mei Mei's sky palm opens where it lands, growing as it arrives.
+  warpStrike: (p) => ({
+    life: 0.9, anchor: "centre", flip: false,
+    at: (u, S) => ({ x: S.ENEMY_X, y: S.GROUND - 110 }),
+    h: (u) => (p.spriteH || 150) * (0.6 + u * 0.5),
+    what: "opens on the target",
+  }),
+  // Inverted Sky: a shard over the opponent's head, swelling.
+  skyInvert: (p) => ({
+    life: 1.4, anchor: "centre", flip: false,
+    at: (u, S) => ({ x: S.ENEMY_X, y: S.GROUND - 140 }),
+    h: (u) => (p.spriteH || 260) * (0.7 + Math.min(1, u * 1.4) * 0.5),
+    what: "hangs over the target and swells",
+  }),
+  // Inumaki's shout leaves the mouth and widens.
+  shout: (p) => ({
+    life: 1.1, anchor: "centre", flip: true,
+    at: (u, S) => ({ x: S.FIGHTER_X + 120, y: S.GROUND - 105 }),
+    h: (u) => (p.spriteH || 330) * (0.65 + u * 1.0),
+    what: "leaves the mouth and widens",
+  }),
+  // Reggie's sedan falls onto the target and then slides through.
+  cardrop: (p) => ({
+    life: 2.0, anchor: "feet", flip: false,
+    at: (u, S) => (u < 0.45
+      ? { x: S.ENEMY_X, y: S.GROUND - 200 + (u / 0.45) * 200 }
+      : { x: S.ENEMY_X + (u - 0.45) * (p.slideSpeed || 760) * 1.2, y: S.GROUND }),
+    h: () => p.spriteH || 170,
+    what: "falls onto the target, then keeps going",
+  }),
+};
+
+/**
  * THE CREATURES, and the fighter whose kit keeps each one.
  *
  * A creature was the largest class of drawing with no action to play, and the
@@ -198,6 +336,21 @@ const DROP_MOVES = new Set(["randomDrop", "cardrop"]);
  * Walks the pools the way the registry does, keeping the fighter, the pool
  * entry, and the special that summons it.
  */
+/** An install's aura, or a rampage's body: art painted ON the fighter. */
+function wornUse(charKey, slot, spec, spriteKey) {
+  const p = spec?.p;
+  if (!p) return null;
+  const kind = p.aura === spriteKey ? "aura"
+    : (DIRECTORS[spec.type] ? null : (spec.type === "rampage" && p.sprite === spriteKey ? "rampage" : null));
+  if (!kind) return null;
+  return {
+    charKey, slot, spec, mode: "worn",
+    state: slot === "ult" ? "ult" : (SLOT_STATE[slot] || "specialNeutral"),
+    name: spec.name || p.label || spriteKey,
+    p: { ...p, ...WORN[kind](p), kind },
+  };
+}
+
 function summonUse(spriteKey, preferChar) {
   const order = preferChar && CHARACTERS[preferChar]
     ? [preferChar, ...CHARACTER_KEYS.filter((k) => k !== preferChar)]
@@ -213,7 +366,14 @@ function summonUse(spriteKey, preferChar) {
       // Megumi's shikigami), or ONE creature the move always puts down —
       // Maki's Garuda, Mahoraga, the roach swarm. Reading only pools left five
       // creatures with no action, including the two biggest things in the game.
-      const pool = spec?.p?.pool || (spec?.type === "summon" && spec.p ? [spec.p] : []);
+      // A creature comes three ways: a POOL the move rolls from, ONE creature a
+      // move always puts down, and OFFSPRING an install breeds while it runs —
+      // Kurourushi's brood, which is a creature nested a level deeper than the
+      // other two and so had no action at all.
+      const pool = spec?.p?.pool
+        || (spec?.type === "summon" && spec.p ? [spec.p] : [])
+        || [];
+      if (spec?.p?.offspring) pool.push(spec.p.offspring);
       for (const entry of pool) {
         // The creature is its OWN art, at the head of the stack. A stand-in
         // behind it is a fallback the creature's poses supersede, and playing
@@ -243,6 +403,18 @@ function summonUse(spriteKey, preferChar) {
  *   Aligning art to a body is worthless against the wrong body.
  */
 export function firingUse(spriteKey, preferChar) {
+  // A backdrop is cover-fitted behind everything; nobody casts it into a place.
+  if (BACKDROPS.has(spriteKey)) {
+    return { charKey: "yuji", slot: null, spec: null, mode: "backdrop", state: "idle",
+             name: spriteKey.split(":")[1].replace(/_/g, " "), p: {} };
+  }
+  // Stage art has no caster to walk the kits for.
+  const hazard = HAZARDS[spriteKey];
+  if (hazard) {
+    return { charKey: "yuji", slot: null, spec: null, mode: "hazard", state: "idle",
+             name: spriteKey.replace("stagefx:", "").replace(/_/g, " "),
+             p: { ...hazard } };
+  }
   const order = preferChar && CHARACTERS[preferChar]
     ? [preferChar, ...CHARACTER_KEYS.filter((k) => k !== preferChar)]
     : CHARACTER_KEYS;
@@ -255,6 +427,19 @@ export function firingUse(spriteKey, preferChar) {
         charKey, slot: "ult", spec: ult, p: drop(ult.p), state: "ult", mode: "drop",
         name: ult.name || spriteKey,
         muzzleScale: bodyMetrics(charKey).height / HEIGHT_BASE_PX,
+      };
+    }
+    // Art the fighter WEARS, and art the director paints itself. Checked before
+    // the shot table because several of these hang off a kit that also names a
+    // projectile, and the drawing decides which is being asked about.
+    const worn = wornUse(charKey, "ult", ult, spriteKey);
+    if (worn) return worn;
+    const director = DIRECTORS[ult?.type];
+    if (director && ult?.p?.sprite === spriteKey) {
+      return {
+        charKey, slot: "ult", spec: ult, mode: "director", state: "ult",
+        name: ult.name || spriteKey,
+        p: { ...ult.p, ...director(ult.p) },
       };
     }
     const shots = ULT_SHOTS[ult?.type] ? ULT_SHOTS[ult.type](ult.p) : [];
@@ -293,6 +478,20 @@ export function firingUse(spriteKey, preferChar) {
                  what: "falls onto the opponent, hits where it lands, and is gone" },
           };
         }
+      }
+      const wornHere = wornUse(charKey, slot, spec, spriteKey);
+      if (wornHere) return wornHere;
+      // A director is not only an ultimate: Mei Mei's Sky Palm is a SPECIAL
+      // that paints its own ripple where it lands, and checking ults alone left
+      // it out.
+      const dir = DIRECTORS[spec?.type];
+      if (dir && p?.sprite === spriteKey) {
+        return {
+          charKey, slot, spec, mode: "director",
+          state: SLOT_STATE[slot] || "specialNeutral",
+          name: spec.name || p.label || spriteKey,
+          p: { ...p, ...dir(p) },
+        };
       }
       const inPool = Array.isArray(p?.spritePool) && p.spritePool.includes(spriteKey);
       if (!p || (p.sprite !== spriteKey && !inPool)) continue;
@@ -635,12 +834,50 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
              alpha: prog < 1 ? 1 : Math.max(0, 1 - (age - p.armed) / 0.6) };
   }
 
+  /** Art the fighter wears: around the body, breathing, skirting the floor. */
+  function wornAt() {
+    return { x0: FIGHTER_X, y0: GROUND + (use.p.foot || 0),
+             x: FIGHTER_X, y: GROUND + (use.p.foot || 0),
+             vx: 0, vy: 0, foot: true };
+  }
+
+  /** A stage hazard, on the floor doing whatever it does. */
+  function hazardAt(age) {
+    const p = use.p;
+    const u = (age % p.life) / p.life;
+    const x = ENEMY_X - 160 + (p.wander ? Math.sin(u * Math.PI * 2) * 120 : 0);
+    const rise = p.rise ? Math.sin(u * Math.PI) : 1;
+    return {
+      // The marker belongs on the point the drawing is measured from, which for
+      // a hung lantern is the cord above it rather than the floor below.
+      x0: x, y0: GROUND - (p.anchor === "top" ? 210 : 0),
+      x, y: GROUND - (p.anchor === "top" ? 210 : 0),
+      vx: 0, vy: 0,
+      foot: p.anchor === "feet", top: p.anchor === "top",
+      sway: p.sway ? Math.sin(u * Math.PI * 2) * 0.12 : 0,
+      h: p.h * (p.rise ? Math.max(0.15, rise) : 1),
+    };
+  }
+
+  /** Where a director's own drawing is, `u` of the way through its action. */
+  function directorAt(age) {
+    const p = use.p;
+    const u = Math.max(0, Math.min(1, age / p.life));
+    const at = p.at(u, { FIGHTER_X, ENEMY_X, GROUND });
+    return { x0: at.x, y0: at.y, x: at.x, y: at.y, vx: 0, vy: 0,
+             foot: p.anchor === "feet", h: p.h(u, p), visible: age <= p.life };
+  }
+
   /** The point the drawing is measured from, whichever way this action puts it
    *  on the stage: a shot's muzzle, or the top of a drop's fall. */
   const originAt = (adj) => (use.mode === "drop" ? dropAt(use.p.delay + use.p.fall)
     : use.mode === "flash" ? flashAt(0)
     : use.mode === "summon" ? { x0: FIGHTER_X - (use.cfg.backOff ?? 60), y0: GROUND }
     : use.mode === "planted" ? plantedAt(use.p.armed)
+    : use.mode === "worn" ? wornAt()
+    : use.mode === "director" ? directorAt(0)
+    : use.mode === "hazard" ? hazardAt(0)
+    : use.mode === "backdrop" ? { x0: FIGHTER_X, y0: GROUND }
     : shotAt(0, adj));
 
   /** The projectile, painted exactly as render.js paints it. */
@@ -650,8 +887,14 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // reason it does in the director: dx/dy correct the drawing, and a
     // correction measured at arrival would throw the speck off its own path.
     const persp = pos.persp ?? 1;
-    const h = (use.mode === "flash" || use.mode === "planted" ? use.p.height
-      : (use.p.spriteH || use.p.r * 3)) * (adj.scale || 1) * persp;
+    // Several actions decide the height themselves, and two of them change it
+    // over the action's life — a sky shard swells as it lands, an aura breathes.
+    const own = (use.mode === "director" || use.mode === "hazard") ? pos.h
+      : use.mode === "worn" ? use.p.height * (use.p.pulse
+          ? AURA_PULSE.base + AURA_PULSE.amp * Math.sin(age * AURA_PULSE.rate) : 1)
+      : (use.mode === "flash" || use.mode === "planted") ? use.p.height
+      : null;
+    const h = (own ?? (use.p.spriteH || use.p.r * 3)) * (adj.scale || 1) * persp;
     const w = sprite.width * h / sprite.height;
     ctx.save();
     // The same ramp drawProjectiles applies (sharedFadeIn), read live so the
@@ -668,9 +911,11 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // never turns it into its fall, so the only tilt it has is the standing
     // one, and previewing it under the projectile's flight rotate would show a
     // meteor lying on its side that the game draws nose-down.
-    if (use.mode === "flash") {
-      ctx.scale(-1, 1);   // spawnSummonFlash mirrors it to the fighter's facing
-    } else if (use.mode !== "drop" && use.mode !== "planted") {
+    if (use.mode === "flash" || (use.mode === "director" && use.p.flip)
+        || (use.mode === "worn" && use.p.kind === "rampage")) {
+      ctx.scale(-1, 1);   // mirrored to the caster's facing, as the handler does
+    } else if (use.mode !== "drop" && use.mode !== "planted"
+               && use.mode !== "worn" && use.mode !== "director") {
       const flip = pos.vx > 0 ? -1 : 1;
       if (use.p.vy || use.p.gravity || use.p.homing) ctx.rotate(Math.atan2(-flip * pos.vy, -flip * pos.vx));
       ctx.scale(flip, 1);
@@ -680,7 +925,10 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     ctx.shadowBlur = 12;
     // A flash stands on the floor; everything else is painted around its
     // middle. Same drawing, two anchors, and the handler's is the one to match.
-    const top = pos.foot ? -h : -h / 2;
+    // Three anchors, because the game has three: standing on the point, hung
+    // from it, or painted around it (ANCHOR_WORDS in the sprite bench).
+    const top = pos.foot ? -h : pos.top ? 0 : -h / 2;
+    if (pos.sway) ctx.rotate(pos.sway);
     ctx.drawImage(sprite, -w / 2 + (adj.dx || 0) * persp, top + (adj.dy || 0) * persp, w, h);
     ctx.restore();
   }
@@ -712,6 +960,10 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       : use.mode === "flash" ? use.p.life
       : use.mode === "summon" ? summonCycle()
       : use.mode === "planted" ? use.p.life
+      : use.mode === "worn" ? 1.6
+      : use.mode === "director" ? use.p.life + 0.25
+      : use.mode === "hazard" ? use.p.life
+      : use.mode === "backdrop" ? 2.0
       : (use.p.dur || 0.9);
     const cycle = Math.max(STATES[use.state]?.duration || 0.5, dur) + 0.35;
     t = (t + dt) % cycle;
@@ -720,6 +972,17 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#0f1424";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // A DOMAIN GOES DOWN FIRST, cover-fitted over the whole stage, because
+    // that is what it is: everything else in the scene is painted on top of it.
+    if (use.mode === "backdrop") {
+      const img = getImage(use.spriteKey);
+      if (img) {
+        const cover = Math.max(canvas.width / img.width, canvas.height / img.height);
+        const w = img.width * cover, h = img.height * cover;
+        ctx.drawImage(img, (canvas.width - w) / 2 + (adj.dx || 0),
+          (canvas.height - h) / 2 + (adj.dy || 0), w, h);
+      }
+    }
     ctx.strokeStyle = "#2c3654";
     ctx.beginPath();
     ctx.moveTo(0, GROUND);
@@ -750,11 +1013,15 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // from, and that is a fact the playback works out rather than one the panel
     // already knows.
     let pos = null;
-    if (use.mode === "summon") drawSummon(adj);
-    else {
+    if (use.mode === "backdrop" || use.mode === "summon") {
+      if (use.mode === "summon") drawSummon(adj);
+    } else {
       pos = use.mode === "drop" ? dropAt(t)
         : use.mode === "flash" ? flashAt(t)
         : use.mode === "planted" ? plantedAt(t)
+        : use.mode === "worn" ? wornAt()
+        : use.mode === "director" ? directorAt(t)
+        : use.mode === "hazard" ? hazardAt(t)
         : shotAt(t, adj);
       const sprite = getImage(use.spriteKey);
       if (sprite && t <= dur && pos.visible !== false) drawShot(sprite, pos, adj, t);
@@ -781,8 +1048,8 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // A creature has no second point: it is put down at its own feet and its
     // nudge is measured from there, so the two markers would sit on top of one
     // another and only one of them would be draggable.
-    if (use.mode !== "summon" && use.mode !== "drop" && use.mode !== "flash"
-        && use.mode !== "planted") {
+    if (!["summon", "drop", "flash", "planted", "worn", "director", "hazard", "backdrop"]
+        .includes(use.mode)) {
       marker(origin.x0, origin.y0, "#9fd39f", "spawn", false);
     }
     // What it fills, for a thing whose whole job is to fill it.
@@ -799,12 +1066,30 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       ctx.fillText(live ? "live" : "arming", origin.x0 - b.w / 2 + 3, GROUND - b.h - 4);
       ctx.restore();
     }
-    marker(origin.x0 + (adj.dx || 0), origin.y0 + (adj.dy || 0), "#f0b45a", "drawing", true);
+    if (use.mode !== "backdrop") {
+      marker(origin.x0 + (adj.dx || 0), origin.y0 + (adj.dy || 0), "#f0b45a", "drawing", true);
+    }
 
     ctx.fillStyle = "#8b96b3";
     ctx.font = "12px ui-monospace, monospace";
     const nudge = `drawing dx ${(adj.dx || 0).toFixed(1)}, dy ${(adj.dy || 0).toFixed(1)}`;
-    if (use.mode === "planted") {
+    if (use.mode === "backdrop") {
+      ctx.fillText(`${use.name} — a domain backdrop, cover-fitted over the whole stage`, 14, 22);
+      ctx.fillText("no spawn point and no size: it fills the screen behind everybody. "
+        + "The question is whether the fighters read against it.", 14, 40);
+    } else if (use.mode === "hazard") {
+      ctx.fillText(`${use.name} — the stage's own, no caster · ${use.p.h}px`, 14, 22);
+      ctx.fillText(`${use.p.what}   ·   ${nudge}`, 14, 40);
+    } else if (use.mode === "worn") {
+      ctx.fillText(`${use.name} — ${use.charKey} · ${use.p.kind === "aura" ? "install aura" : "worn body"}`
+        + ` · ${use.p.height}px${use.p.pulse ? ", breathing" : ""}`, 14, 22);
+      ctx.fillText(`painted ON the fighter for as long as the install runs`
+        + (use.p.foot ? `, ${use.p.foot}px below their feet` : "") + `   ·   ${nudge}`, 14, 40);
+    } else if (use.mode === "director") {
+      ctx.fillText(`${use.name} — ${use.charKey} · painted by its own director`
+        + ` · ${use.p.life}s`, 14, 22);
+      ctx.fillText(`${use.p.what}   ·   ${nudge}`, 14, 40);
+    } else if (use.mode === "planted") {
       const p = use.p;
       ctx.fillText(`${use.name} — ${use.charKey} · ${p.box?.w ?? "?"}x${p.box?.h ?? "?"} on the floor`
         + (p.dist == null ? ", on the opponent" : `, ${p.dist}px in front`)
@@ -862,8 +1147,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // The drawing marker wins a tie: it is the one that moves most often, and
     // it sits on top of the spawn point whenever the nudge is zero.
     if (Math.hypot(pt.x - dPt.x, pt.y - dPt.y) < 18) drag = "drawing";
-    else if (use.mode !== "drop" && use.mode !== "flash" && use.mode !== "summon"
-             && use.mode !== "planted"
+    else if (!["drop", "flash", "summon", "planted", "worn", "director", "hazard"].includes(use.mode)
              && Math.hypot(pt.x - o.x0, pt.y - o.y0) < 18) drag = "spawn";
     else return;
     grabbed = false;

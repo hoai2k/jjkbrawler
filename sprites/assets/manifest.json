@@ -63840,7 +63840,12 @@
    "edited": {
     "faceLeft": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "fadeIn": 0.04,
+   "src": {
+    "file": "assets/sprites/effects/chain.png",
+    "sha": "a218aa3bfb78"
+   }
   },
   "effect:crow": {
    "edited": {
@@ -63908,9 +63913,17 @@
   },
   "effect:drum_burst": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "dx": -25.7,
+   "dy": -33.8,
+   "src": {
+    "file": "assets/sprites/effects/drum_burst.png",
+    "sha": "398745218c79"
+   }
   },
   "effect:egg_shot": {
    "edited": {
@@ -63944,9 +63957,18 @@
   },
   "effect:fuga": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "dx": -0.7,
+   "dy": 2.5,
+   "fadeIn": 0.08,
+   "src": {
+    "file": "assets/sprites/effects/fuga.png",
+    "sha": "609d6883b074"
+   }
   },
   "effect:meteor": {
    "edited": {
@@ -63958,19 +63980,35 @@
    "edited": {
     "faceLeft": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "src": {
+    "file": "assets/sprites/effects/nail.png",
+    "sha": "2a755c8fb891"
+   }
   },
   "effect:nail_storm": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "renderScale": null
    },
-   "faceLeft": true
+   "faceLeft": true,
+   "renderScale": 0.885,
+   "src": {
+    "file": "assets/sprites/effects/nail_storm.png",
+    "sha": "d51b53874267"
+   }
   },
   "effect:ratio_wave": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "renderScale": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "renderScale": 1.105,
+   "src": {
+    "file": "assets/sprites/effects/ratio_wave.png",
+    "sha": "660c74a314e7"
+   }
   },
   "effect:scissors_curse": {
    "edited": {
@@ -64068,9 +64106,20 @@
   },
   "effect:sword_beam": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "renderScale": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "renderScale": 0.785,
+   "dx": 32.4,
+   "dy": -4.5,
+   "fadeIn": 0.07,
+   "src": {
+    "file": "assets/sprites/effects/sword_beam.png",
+    "sha": "578ced2853de"
+   }
   },
   "effect:tide_wave": {
    "edited": {
@@ -64095,13 +64144,33 @@
    "edited": {
     "faceLeft": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "src": {
+    "file": "assets/sprites/effects/triceratops.png",
+    "sha": "0a1e1efd7132"
+   }
   },
   "effect:ultimate_cannon": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "renderScale": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "renderScale": 0.815,
+   "dx": -35.6,
+   "dy": 0.8,
+   "fadeIn": 0.07,
+   "hit": {
+    "dx": -11.6,
+    "dy": 0.6,
+    "scale": 1
+   },
+   "src": {
+    "file": "assets/sprites/effects/ultimate_cannon.png",
+    "sha": "177cfd100b56"
+   }
   },
   "effect:ultra_cannon": {
    "edited": {
@@ -64109,13 +64178,18 @@
     "dx": null,
     "dy": null
    },
-   "faceLeft": true,
-   "dx": -26.5,
-   "dy": 1.2,
-   "fadeIn": 0.11,
+   "faceLeft": false,
+   "dx": -11.2,
+   "dy": 1.1,
+   "fadeIn": 0.09,
    "src": {
     "file": "assets/sprites/effects/ultra_cannon.png",
     "sha": "1df0379dff82"
+   },
+   "hit": {
+    "dx": -34.5,
+    "dy": 3,
+    "scale": 1.14
    }
   },
   "summon:coilCurse:attack": {
@@ -64146,9 +64220,17 @@
   },
   "summon:rika": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": true
+   "faceLeft": false,
+   "dx": -38.3,
+   "dy": 4.2,
+   "src": {
+    "file": "assets/sprites/summons/rika.png",
+    "sha": "1d27d335f2cd"
+   }
   },
   "stagefx:stage_weak_curse": {
    "edited": {
@@ -64223,8 +64305,12 @@
     "dx": null,
     "dy": null
    },
-   "dx": -1.9,
-   "dy": -2.6
+   "dx": -23.1,
+   "dy": -33.8,
+   "src": {
+    "file": "assets/sprites/effects/boogie_clap.png",
+    "sha": "7d776105a885"
+   }
   },
   "effect:concert_wave": {
    "edited": {
@@ -64243,16 +64329,27 @@
     "dx": null,
     "dy": null
    },
-   "dx": 1.2,
-   "dy": 1.4
+   "dx": 35.8,
+   "dy": -40.9,
+   "src": {
+    "file": "assets/sprites/effects/divergent_shock.png",
+    "sha": "85687270b02e"
+   }
   },
   "effect:pigeon_orb": {
    "edited": {
     "dx": null,
-    "dy": null
+    "dy": null,
+    "rotationDeg": null
    },
    "dx": -33.4,
-   "dy": -5.6
+   "dy": -5.6,
+   "rotationDeg": 160,
+   "fadeIn": 0.05,
+   "src": {
+    "file": "assets/sprites/effects/pigeon_orb.png",
+    "sha": "2c226f8d836b"
+   }
   },
   "effect:purple": {
    "edited": {
@@ -64329,7 +64426,11 @@
    "edited": {
     "renderScale": null
    },
-   "renderScale": 0.815
+   "renderScale": 0.5623,
+   "src": {
+    "file": "assets/sprites/effects/tempest.png",
+    "sha": "7f03f9c59b8f"
+   }
   },
   "summon:curseHound:idle_a": {
    "edited": {
@@ -64613,8 +64714,22 @@
   },
   "effect:dismantle": {
    "faceLeft": true,
-   "dx": -36.2,
-   "dy": 2.2
+   "dx": 5.3,
+   "dy": 0.8,
+   "edited": {
+    "dx": -36.2,
+    "dy": 2.2
+   },
+   "fadeIn": 0.08,
+   "hit": {
+    "dx": -23,
+    "dy": 2.6,
+    "scale": 1.14
+   },
+   "src": {
+    "file": "assets/sprites/effects/dismantle.png",
+    "sha": "1d31ec0013cc"
+   }
   },
   "effect:piercing_blood": {
    "renderScale": 0.635,
@@ -64800,12 +64915,22 @@
    "faceLeft": false,
    "edited": {
     "faceLeft": true
+   },
+   "attackBox": {
+    "x": -0.163,
+    "y": 0.57,
+    "w": 0.44,
+    "h": 0.76
    }
   },
   "summon:inventoryCurse": {
    "faceLeft": false,
    "edited": {
     "faceLeft": true
+   },
+   "src": {
+    "file": "assets/sprites/summons/inventory_curse.png",
+    "sha": "8661158bdaa2"
    }
   },
   "summon:smallpoxDeity": {
@@ -64876,9 +65001,20 @@
   },
   "summon:garuda": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "renderScale": null,
+    "dx": null,
+    "dy": null
    },
-   "faceLeft": false
+   "faceLeft": false,
+   "renderScale": 1.235,
+   "dx": 36.2,
+   "dy": -13.6,
+   "fadeIn": 0.13,
+   "src": {
+    "file": "assets/sprites/summons/garuda.png",
+    "sha": "c883ea42bc5b"
+   }
   },
   "summon:rainbowDragon": {
    "edited": {
@@ -64897,6 +65033,64 @@
     "faceLeft": null
    },
    "faceLeft": false
+  },
+  "effect:receipt_blade": {
+   "edited": {
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
+   },
+   "faceLeft": true,
+   "dx": 25.4,
+   "dy": -1.8,
+   "fadeIn": 0.09,
+   "src": {
+    "file": "assets/sprites/effects/receipt_blade.png",
+    "sha": "42705769aaf7"
+   }
+  },
+  "effect:wind_scythe": {
+   "edited": {
+    "rotationDeg": null,
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
+   },
+   "rotationDeg": -30,
+   "faceLeft": true,
+   "dx": -6.7,
+   "dy": -15.6,
+   "fadeIn": 0.03,
+   "src": {
+    "file": "assets/sprites/effects/wind_scythe.png",
+    "sha": "8f9523f729c8"
+   }
+  },
+  "effect:aura_indigo": {
+   "edited": {
+    "renderScale": null,
+    "dx": null,
+    "dy": null
+   },
+   "renderScale": 0.785,
+   "dx": -0.5,
+   "dy": -10.7,
+   "src": {
+    "file": "assets/sprites/effects/aura_indigo.png",
+    "sha": "1a6a1b8a3d3a"
+   }
+  },
+  "effect:star_rage_impact": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 34.7,
+   "dy": -26.8,
+   "src": {
+    "file": "assets/sprites/effects/star_rage_impact.png",
+    "sha": "58e352600675"
+   }
   }
  }
 }
