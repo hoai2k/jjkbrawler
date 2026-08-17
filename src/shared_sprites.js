@@ -512,8 +512,17 @@ function buildRegistry() {
       // here rather than re-derived because this is the file that already knows
       // what each draw site does with a drawing.
       const bites = (entry.behavior || "chaser") !== "support";
+      // AND WHETHER IT EVER TOUCHES THE FLOOR. A support creature holds station
+      // behind and above its summoner's shoulder for its whole life
+      // (updateSupport, src/summons.js) — the anchor is still its feet, but its
+      // feet are in the air. Saying only "painted standing on the point" left
+      // the workbench standing the Toad on the ground, which is somewhere the
+      // game never puts it, and made its size look wrong against a floor it
+      // does not use.
+      const hovers = (entry.behavior || "chaser") === "support" && entry.hover
+        ? { back: entry.hover.back ?? 70, up: entry.hover.up ?? 150 } : null;
       const creature = (keys, height, hit) => (poolLists.add(keys), keys).forEach((key, i) => {
-        const info = { h: height, anchor: "feet", owner, hit, measuredBox: measured, bites, ...NUDGED,
+        const info = { h: height, anchor: "feet", owner, hit, measuredBox: measured, bites, hovers, ...NUDGED,
                        what: i === 0
                          ? "the creature's height on stage (config_summons.js)"
                          : `a STAND-IN for ${owner} — only drawn if that creature's own art is missing (config_summons.js)` };

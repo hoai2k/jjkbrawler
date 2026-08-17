@@ -460,7 +460,7 @@ export const CHARACTERS = {
         // Nue is a creature, not a bullet: the d-pad aims the launch and
         // flies it. Steering suspends the arc, so a hand-flown Nue holds its
         // line instead of dropping.
-        p: { speed: 520, vy: -120, gravity: 260, r: 38, dur: 1.0, dmg: 11, base: 360, growth: 7.0, angle: 0.5, color: "#7c8cff", effect: "snare", label: "Nue", sprite: "summon:nue", spriteH: 132, steerable: true, steerRate: 6.0 },
+        p: { speed: 520, vy: -120, gravity: 260, r: 38, dur: 1.0, dmg: 11, base: 360, growth: 7.0, angle: 0.5, color: "#7c8cff", effect: "snare", ox: 74, oy: -118, label: "Nue", sprite: "summon:nue", spriteH: 132, steerable: true, steerRate: 6.0 },
       },
       side: {
         name: "Ten Shadows: Shikigami", type: "summon", cooldown: 7.5,
@@ -1368,7 +1368,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Ultra Cannon", type: "projectile", cooldown: 1.15,
         desc: "The palm opens and a bolt of purification fire goes down the lane.",
-        p: { speed: 700, vy: 0, r: 30, dur: 0.8, dmg: 12, base: 400, growth: 7.0, angle: 0.3, color: "#63c7b0", pierce: true, fxElement: "machine", label: "Ultra Cannon", sprite: "effect:ultra_cannon", spriteH: 96 },
+        p: { speed: 700, vy: 0, r: 30, dur: 0.8, dmg: 12, base: 400, growth: 7.0, angle: 0.3, color: "#63c7b0", pierce: true, fxElement: "machine", ox: 72, oy: -88, label: "Ultra Cannon", sprite: "effect:ultra_cannon", spriteH: 96 },
       },
       side: {
         name: "Boost On", type: "dashStrike", cooldown: 1.35,
