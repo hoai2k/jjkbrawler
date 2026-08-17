@@ -115,8 +115,16 @@ export function performUltimate(f) {
 
 const DIRECTORS = {
   // Gojo — Hollow Purple: a massive erasing mass that crosses the stage.
+  // Where Hollow Purple leaves him. Placed on the sprite workbench's effect
+  // preview (`spawnOx`/`spawnOy` in the export, which nothing reads
+  // automatically — a spawn point is a fact about the MOVE, so it lands here by
+  // hand). It used to be -78, which is his waist: the biggest technique in the
+  // game came out of his hip while the charge orb formed at his chest. Both
+  // numbers are used for both, so the thing that gathers and the thing that
+  // leaves are now the same point.
   beam(f, p) {
     beginUltAction(f, 0.9);
+    const MUZZLE = { ox: 77, oy: -144 };
     state.entities.push({
       owner: f, t: 0, dead: false,
       update(dt) {
@@ -124,7 +132,7 @@ const DIRECTORS = {
         if (this.t > 0.55 && !this.fired) {
           this.fired = true;
           spawnProjectile(f, {
-            speed: 860, ox: 79, oy: -78, r: p.width / 2, dur: p.duration,
+            speed: 860, ox: MUZZLE.ox, oy: MUZZLE.oy, r: p.width / 2, dur: p.duration,
             dmg: p.dmg, base: p.base, growth: p.growth, angle: 0.4,
             color: p.color, pierce: true, unblockable: true,
             clearsProjectiles: true, label: "Hollow Purple",
@@ -143,8 +151,8 @@ const DIRECTORS = {
           ctx.save();
           ctx.globalCompositeOperation = "lighter";
           ctx.globalAlpha = 0.75;
-          const cx = f.x + f.facing * 90;
-          const cy = f.y - 96;
+          const cx = f.x + f.facing * MUZZLE.ox;
+          const cy = f.y + MUZZLE.oy;
           const grad = ctx.createRadialGradient(cx, cy, 4, cx, cy, 20 + g * 70);
           grad.addColorStop(0, "#ffffff");
           grad.addColorStop(0.5, p.color);

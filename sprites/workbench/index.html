@@ -18,6 +18,9 @@
       <nav class="modes">
         <a id="modeSprites" href="./">Sprites</a>
         <a id="modeActions" href="./?edit=actions">Actions</a>
+        <!-- Kits rather than drawings: the buttons a fighter's techniques are
+             bound to, what they cost, and each one played as a real match. -->
+        <a id="modeSpecials" href="./?edit=specials">Specials</a>
         <!-- Strike points are placed against these drawings, but they are a
              LIST — every fighter's every attack — so they are reviewed in the
              queue bench rather than edited a pose at a time here. -->
@@ -32,6 +35,7 @@
     </header>
 
     <main id="actionsView" hidden></main>
+    <main id="specialsView" class="sp-layout" hidden></main>
 
     <main class="layout" id="spriteView">
       <!-- ---------------------------------------------------------- stage -->
@@ -355,9 +359,23 @@
       const suffix = char ? `&char=${encodeURIComponent(char)}` : "";
       document.getElementById("modeSprites").href = `./${char ? `?char=${encodeURIComponent(char)}` : ""}`;
       document.getElementById("modeActions").href = `./?edit=actions${suffix}`;
+      document.getElementById("modeSpecials").href = `./?edit=specials${suffix}`;
 
-      if (params.get("edit") === "actions") {
+      const mode = params.get("edit");
+      if (mode === "specials") {
         document.getElementById("spriteView").remove();
+        document.getElementById("actionsView").remove();
+        document.querySelector(".history").remove();
+        document.getElementById("specialsView").hidden = false;
+        document.getElementById("wbTitle").textContent = "Specials Workbench";
+        document.querySelector(".hint").textContent =
+          "Every technique a fighter has, the button that casts it, and what it costs — each one played as a real match.";
+        document.title = "Specials Workbench — JJK Brawler II";
+        document.getElementById("modeSpecials").classList.add("on");
+        import("./specials.js");
+      } else if (mode === "actions") {
+        document.getElementById("spriteView").remove();
+        document.getElementById("specialsView").remove();
         document.querySelector(".history").remove();
         document.getElementById("actionsView").hidden = false;
         document.getElementById("wbTitle").textContent = "Action Workbench";
@@ -368,6 +386,7 @@
         import("./actions.js");
       } else {
         document.getElementById("actionsView").remove();
+        document.getElementById("specialsView").remove();
         document.getElementById("modeSprites").classList.add("on");
         import("./workbench.js");
       }

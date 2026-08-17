@@ -128,6 +128,7 @@ the query (`&char=gojo`) travels with you.
 | [`?edit=audio`](workbench/?edit=audio) | [`/workbench/`](workbench/) | **Audio** — every voice in the game beside the fighter it belongs to, and every sound their techniques make, each recording on its own button. Playing a technique puts its art on the stage for two seconds, so a sound is judged against the thing it belongs to. Auditioning a take is the one thing the generator cannot check; **⭳ Export changes** hands the verdict back as JSON |
 | [`?edit=sprites`](workbench/?edit=sprites) | [`/sprites/workbench/`](sprites/workbench/) | 2D sprite placement, anchors, the cleanup flags |
 | [`?edit=actions`](workbench/?edit=actions) | `/sprites/workbench/?edit=actions` | play any character action |
+| [`?edit=specials`](workbench/?edit=specials) | `/sprites/workbench/?edit=specials` | **Specials** — one fighter's whole technique list: the three B specials, the ultimate and the Domain Expansion, each with the button that casts it and what it costs. Pressing one plays it as a real match against a live dummy, so a mapping and a power number are checked against the move rather than against the file it is written in |
 | [`?edit=billboards`](workbench/?edit=billboards) | [`/billboards/workbench/`](billboards/workbench/) | the 2.5D posed-model path |
 | [`?edit=3d`](workbench/?edit=3d) | [`/render3d/workbench/`](render3d/workbench/) | live 3D poses |
 | [`?edit=animation`](workbench/?edit=animation) | `/render3d/workbench/?edit=animation` | the keyframe bench |

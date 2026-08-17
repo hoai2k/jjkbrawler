@@ -18,6 +18,7 @@ import { CHARACTERS, CHARACTER_KEYS, animFor } from "../../src/characters.js";
 import { lightMove, heavyMove } from "../../src/moves.js";
 import { fighterTransform } from "../../src/motion.js";
 import { initTooltips } from "./tooltip.js";
+import { fillCharSelect } from "./char_select.js";
 import { makeCharLoader, frameLoaded } from "./lazy_sprites.js";
 import { fitStageCanvas } from "./fit_stage.js";
 import { SHIELD_MAX, MAX_FALL } from "../../src/constants.js";
@@ -1011,12 +1012,10 @@ async function boot() {
   ctx = canvas.getContext("2d");
   fitStageCanvas(canvas);
 
-  const sel = $("aChar");
-  for (const key of CHARACTER_KEYS) {
-    const o = document.createElement("option");
-    o.value = key; o.textContent = CHARACTERS[key].name;
-    sel.appendChild(o);
-  }
+  // The roster alphabetically, the same list the other benches show. It used
+  // to be in CHARACTER_KEYS order, which is select-screen order and tells you
+  // nothing when you are looking for a name.
+  const sel = fillCharSelect($("aChar"));
   sel.onchange = () => setChar(sel.value);
 
   const sw = $("aBg");
