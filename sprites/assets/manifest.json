@@ -64362,10 +64362,12 @@
   "summon:dagon_shikigami": {
    "edited": {
     "dx": null,
-    "dy": null
+    "dy": null,
+    "faceLeft": null
    },
    "dx": 0.2,
-   "dy": 21.7
+   "dy": 21.7,
+   "faceLeft": false
   },
   "summon:divineDogBlack": {
    "edited": {
@@ -64574,7 +64576,8 @@
   "summon:transfiguredHuman": {
    "edited": {
     "dx": null,
-    "dy": null
+    "dy": null,
+    "faceLeft": null
    },
    "dx": 1,
    "dy": 12.4,
@@ -64583,7 +64586,8 @@
     "y": 0.582,
     "w": 0.491,
     "h": 0.808
-   }
+   },
+   "faceLeft": false
   },
   "summon:transfiguredHuman:move_a": {
    "edited": {
@@ -64717,14 +64721,16 @@
   "summon:cockroach_swarm": {
    "edited": {
     "dx": null,
-    "dy": null
+    "dy": null,
+    "faceLeft": null
    },
    "dx": 0.4,
    "dy": 5.8,
    "src": {
     "file": "assets/sprites/summons/cockroach_swarm.png",
     "sha": "ce2f0aba70d6"
-   }
+   },
+   "faceLeft": false
   },
   "summon:kurourushi_child": {
    "edited": {
@@ -64742,14 +64748,17 @@
   },
   "summon:transfiguredCrawler": {
    "edited": {
-    "dy": null
+    "dy": null,
+    "faceLeft": null
    },
-   "dy": 1.6
+   "dy": 1.6,
+   "faceLeft": false
   },
   "summon:transfiguredHulk": {
    "edited": {
     "dx": null,
-    "dy": null
+    "dy": null,
+    "faceLeft": null
    },
    "dx": -0.3,
    "dy": 5.5,
@@ -64758,7 +64767,8 @@
     "y": 0.497,
     "w": 0.653,
     "h": 0.905
-   }
+   },
+   "faceLeft": false
   },
   "summon:transfiguredSpitter": {
    "attackBox": {
@@ -64766,16 +64776,14 @@
     "y": 0.637,
     "w": 0.44,
     "h": 0.76
-   }
+   },
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": false
   },
   "summon:greatSerpent": {
    "faceLeft": false,
-   "autoTuned": {
-    "at": "2026-08-16",
-    "fields": {
-     "faceLeft": "read off the drawing: the cobra's head and hood are on the left of the plate"
-    }
-   },
    "edited": {
     "renderScale": null,
     "faceLeft": true
@@ -64789,30 +64797,21 @@
    }
   },
   "summon:huskCurse": {
-   "faceLeft": true,
-   "autoTuned": {
-    "at": "2026-08-16",
-    "fields": {
-     "faceLeft": "read off the drawing: it walks to the left \u2014 head, stride and lead arm all point left"
-    }
+   "faceLeft": false,
+   "edited": {
+    "faceLeft": true
    }
   },
   "summon:inventoryCurse": {
-   "faceLeft": true,
-   "autoTuned": {
-    "at": "2026-08-16",
-    "fields": {
-     "faceLeft": "read off the drawing: the zipper-mouth is upper-left, the tail curls away right"
-    }
+   "faceLeft": false,
+   "edited": {
+    "faceLeft": true
    }
   },
   "summon:smallpoxDeity": {
    "faceLeft": true,
-   "autoTuned": {
-    "at": "2026-08-16",
-    "fields": {
-     "faceLeft": "read off the drawing: the stacked faces look left"
-    }
+   "edited": {
+    "faceLeft": true
    }
   },
   "effect:aura_jade": {
@@ -64845,7 +64844,8 @@
   },
   "summon:maxElephant": {
    "edited": {
-    "renderScale": null
+    "renderScale": null,
+    "faceLeft": null
    },
    "renderScale": 1.275,
    "attackBox": {
@@ -64853,7 +64853,50 @@
     "y": 0.529,
     "w": 0.44,
     "h": 0.76
-   }
+   },
+   "faceLeft": false
+  },
+  "summon:toad": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": false
+  },
+  "summon:rabbitEscape": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": false
+  },
+  "summon:coilCurse": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": false
+  },
+  "summon:garuda": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": false
+  },
+  "summon:rainbowDragon": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": false
+  },
+  "summon:curseHound": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": false
+  },
+  "summon:cursedWomb": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": false
   }
  }
 }
