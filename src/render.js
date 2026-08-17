@@ -23,6 +23,13 @@ import { strikeArcs, visibleArtReach, swingExtent } from "./moves.js";
 import { bodyWidth } from "./silhouette.js";
 import { strikePoint, STRIKE_STATES } from "./strike_points.js";
 import { respawnX } from "./fighter.js";
+
+// The cross-fade window on a sprite state change, and the states a change INTO
+// stays a cut. Both mirror the 3D backend's contract (pose.js DIALS.blendTime
+// and NO_BLEND_IN): an impact that eases in looks absorbed rather than taken,
+// and a landing that eases in looks like sinking into the deck.
+const SPRITE_XFADE = 0.08;
+const SPRITE_NO_XFADE = new Set(["hurt", "land"]);
 import { isFoe } from "./teams.js";
 
 export function draw(ctx) {
@@ -565,7 +572,7 @@ function drawFighters(ctx, { bodies = true } = {}) {
     } else if (bodies) {
       drawTrail(ctx, f);
       const m = fighterTransform(f);
-      const drew = drawCharFrame(ctx, spriteKey, frameKey, f.x + shakeX, f.y, {
+      const drawOpts = {
         scale: spriteActor.scale,
         facing: f.facingVis,
         // Strike aiming, for backends that pose per draw (billboards): an
@@ -595,7 +602,14 @@ function drawFighters(ctx, { bodies = true } = {}) {
         // jumping about. The height passed is the one the sim already believes
         // the mass is at: the same `f.y - H * comFrac` combat.js centres an
         // airborne hurtbox on, so the picture and the box agree.
-        holdComY: f.grounded || f.ledge ? null : -bodyMetrics(spriteKey).height * comFrac(spriteKey),
+        // Gated on the WEIGHT rather than on `grounded`, because the weight
+        // outlives the flip: it eases 0->1 after leaving the ground and back
+        // down after landing (fighter.js comHoldW), which is what turned the
+        // hold's one-frame 14 px arrival into a slide. A ledge hang is the
+        // exception either way — the drawing is anchored by the hand there.
+        holdComY: !f.ledge && (f.comHoldW ?? 0) > 0
+          ? -bodyMetrics(spriteKey).height * comFrac(spriteKey) : null,
+        holdComW: f.comHoldW ?? 1,
         // …and no further than this, so a mis-baked frame anchor is a nudge
         // rather than a fighter teleporting. See the note at holdComY.
         holdComMax: bodyMetrics(spriteKey).height * COM_HOLD_MAX_FRAC,
@@ -606,7 +620,34 @@ function drawFighters(ctx, { bodies = true } = {}) {
           : null,
         glow: glowing ? (f.installs ? f.installs.color : f.char.shadow) : f.char.shadow,
         glowBlur: glowing ? 26 : 12,
-      });
+      };
+      // CROSS-FADE ON A STATE CHANGE — the sprite renderer's version of the
+      // blend the 3D backend already does off the same `prevAnim` record. A
+      // drawing cannot be inbetweened, but the pose it CUT from can linger:
+      // the outgoing frame is drawn under the new one at a falling alpha for
+      // SPRITE_XFADE seconds after the switch (animTime is the time since —
+      // setAnim zeroes it), which turns every seam around a ledge — run to
+      // teeter to fall to hang to climb — from a cut into a step with a
+      // shadow of where the body just was. Within-state frame steps are NOT
+      // blended: animTime does not reset inside a loop, and the snap of
+      // limited animation is the style. Skipped for the states whose cut IS
+      // the read (SPRITE_NO_XFADE, mirroring pose.js NO_BLEND_IN), and for
+      // any backend token carrying a ":" — those backends blend bones
+      // themselves, and a ghost on top would double it.
+      const prev = f.prevAnim;
+      if (prev && f.animTime < SPRITE_XFADE && !SPRITE_NO_XFADE.has(f.animKey)
+          && !String(frameKey).includes(":")) {
+        const prevFrame = currentFrame(spriteKey, prev.key, prev.t);
+        if (prevFrame && !String(prevFrame).includes(":")) {
+          const k = f.animTime / SPRITE_XFADE;
+          // No glow on the ghost: two glows stack into a flash, which is the
+          // opposite of what a fade is for.
+          drawCharFrame(ctx, spriteKey, prevFrame, f.x + shakeX, f.y, {
+            ...drawOpts, alpha: (drawOpts.alpha ?? 1) * (1 - k), glow: null, prevAnim: null,
+          });
+        }
+      }
+      const drew = drawCharFrame(ctx, spriteKey, frameKey, f.x + shakeX, f.y, drawOpts);
       // Art that did not load leaves a fighter who is simply not on screen —
       // still fighting, still taking damage, invisible. Draw the space they
       // occupy instead, so a missing sprite reads as a missing sprite rather

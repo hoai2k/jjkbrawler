@@ -27,7 +27,7 @@ import {
   RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE, ATTACK_DIAG_DEG,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
-import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME } from "./config_tuning.js";
+import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE } from "./config_tuning.js";
 import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
 import { currentFrame } from "./render_backend.js";
@@ -56,7 +56,7 @@ export function makeFighter(id, charKey, x, facing) {
     jumpBuffer: 0, coyote: 0, jumpHeldT: 0, jumpCut: false,
     dashT: 0, dashDir: 0, lastTap: { dir: 0, t: -10 },
     turnLock: 0, landTimer: 0, dropTimer: 0, bufferedAction: null, landLag: 0,
-    teeterT: 0, teeterDir: 0,
+    teeterT: 0, teeterDir: 0, comHoldW: 0,
     invuln: 1.4, hitstun: 0, hitPause: 0, shakeMag: 0,
     dizzy: 0, prone: 0, dodgeStale: 0, lastDodgeAt: -10,
     airT: 0, shieldDownSince: -10,
@@ -712,17 +712,35 @@ function brakeAtLedge(f, input) {
  */
 function updateTeeter(f, dt) {
   const plat = f.currentPlatform;
+  // HYSTERESIS on the stillness gate. Settling INTO the teeter takes
+  // near-stillness (24 px/s), but micro-adjusting your footing at the lip —
+  // the thing a player standing there is constantly doing — crosses that
+  // limit on every tap, and dropping the teeter for it meant the lean
+  // flicked off and on with each correction. Once teetering, only real
+  // movement (double the gate) ends it.
+  const vxLimit = f.teeterT > 0 ? 48 : 24;
   const still = f.grounded && !f.action && !f.charging && !f.shielding
     && !f.crouching && !f.ledge && !f.ledgeMove && f.hitstun <= 0
-    && Math.abs(f.vx) < 24;
-  if (!still || !plat || plat.ghost) { f.teeterT = 0; f.teeterDir = 0; return; }
-  const m = standMargin(plat);
-  const left = plat.x - m;
-  const right = plat.x + plat.w + m;
-  const dir = f.x >= right - TEETER_EDGE ? 1 : f.x <= left + TEETER_EDGE ? -1 : 0;
-  if (!dir) { f.teeterT = 0; f.teeterDir = 0; return; }
-  f.teeterDir = dir;
-  f.teeterT += dt;
+    && Math.abs(f.vx) < vxLimit;
+  const m = plat && !plat.ghost ? standMargin(plat) : 0;
+  const dir = !still || !plat || plat.ghost ? 0
+    : f.x >= plat.x + plat.w + m - TEETER_EDGE ? 1
+    : f.x <= plat.x - m + TEETER_EDGE ? -1 : 0;
+  if (dir) {
+    f.teeterDir = dir;
+    // Capped: the lean is fully in at ledgeLeanIn (~0.12 s) and the decay
+    // below runs at 3× — an uncapped timer after a long stand would take as
+    // long to unwind as the stand took to accumulate.
+    f.teeterT = Math.min(f.teeterT + dt, 0.5);
+    return;
+  }
+  // EASED OUT, not zeroed. The lean ramps in over ledgeLeanIn
+  // (motion.js), and zeroing the timer removed several degrees of body
+  // rotation in a single frame — the most visible pop at the lip. Decaying
+  // back down leaves the same ramp to ride out on; the direction is kept
+  // until the lean is gone, because it is what the fade is leaning toward.
+  f.teeterT = Math.max(0, f.teeterT - dt * 3);
+  if (f.teeterT === 0) f.teeterDir = 0;
 }
 
 /** Whether the teeter has held long enough to be worth drawing. */
@@ -1501,6 +1519,15 @@ export function updateFighter(f, dt, input) {
   // After the contact test, so it reads the platform this step actually left
   // the fighter standing on.
   updateTeeter(f, dt);
+  // The COM hold's blend weight (render.js holdComY/holdComW): 1 hanging the
+  // drawing from its mass, 0 standing it on its feet, EASED across the flip
+  // rather than switched on it. The hold applied as a step was a one-frame
+  // vertical jump of 14 px on the roster median the instant `grounded`
+  // flipped — and near ledges grounded flips constantly, which is where the
+  // game read as flickery. A ledge hang counts as grounded here: the drawing
+  // is anchored by the gripping hand there, not by either of these.
+  const holdOn = !f.grounded && !f.ledge && !f.ledgeMove;
+  f.comHoldW = clamp((f.comHoldW ?? 0) + (holdOn ? dt : -dt) / COM_HOLD_EASE, 0, 1);
   // ONLY THE GROUND clears the regrab penalty (constants.js
   // LEDGE_REGRAB_SCALE). Not time, not being hit, not letting go — Smash's
   // rule verbatim, and the reason grab -> drop -> regrab is the loop that

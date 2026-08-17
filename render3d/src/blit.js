@@ -65,7 +65,9 @@ export function blitPose(ctx, entry, charKey, x, y, opts = {}) {
   if (opts.holdComY !== undefined && opts.holdComY !== null) {
     const want = opts.holdComY - comY;
     const cap = opts.holdComMax;
-    offY += cap ? Math.max(-cap, Math.min(cap, want)) : want;
+    // `holdComW` eases the hold across the grounded flip — same contract as
+    // sprites.js, same reason: applied whole in one frame it is a pop.
+    offY += (cap ? Math.max(-cap, Math.min(cap, want)) : want) * (opts.holdComW ?? 1);
   }
 
   ctx.save();
