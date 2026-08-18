@@ -192,7 +192,7 @@ block overrides `SEMANTIC_ANIMS`.
 
 ---
 
-## The roster — 31 rigs
+## The roster — 35 rigs
 
 Heights are `heightCm` from src/characters.js. Fighters with no published
 height are modeled at **190 cm working height** — not a canon claim, but how
@@ -233,6 +233,10 @@ billboard workbench verifies against his sprites.
 | `kashimo` | Hajime Kashimo | 185 cm | standard | polearm | Nyoi staff (red shaft, gold caps); lightning is engine-side |
 | `yaga` | Masamichi Yaga | 188 cm | standard, heavy build | unarmed | Sunglasses never come off; dolls are summons, engine-side |
 | `naoya` | Naoya Zen'in | 181 cm | standard | unarmed | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
+| `kirara` | Kirara Hoshi | 172 cm | standard | unarmed | Star-pupil eyes in the face texture; marks/repulsion are engine-side |
+| `haruta` | Haruta Shigemo | 168 cm | standard | blade | The Hand Sword's sculpted-hand hilt is part of the prop |
+| `tengen` | Master Tengen | 175 cm | standard + head | caster | Cylindrical four-eyed head is bespoke geometry on a standard body; floor-length robe wants cloth bones |
+| `miwa` | Kasumi Miwa | 162 cm | standard | blade | Katana + scabbard; sheathed at idle, and the draw is the kit |
 
 \* working height, see above.
 

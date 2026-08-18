@@ -978,6 +978,56 @@ const HANDLERS = {
     }
   },
 
+  // Kirara — Southern Cross. The chart, cashed in: every star set on the
+  // target flares at once, and the constellation hurls them away from the
+  // point they were forbidden to approach. Mirrors Nobara's detonate — marks
+  // are spent, and more stars is more everything.
+  constellation(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.46);
+    const opp = opponentOf(f);
+    const marks = opp ? opp.statuses.starMarks : 0;
+    if (!opp || marks <= 0) {
+      popup(f.x, f.y - 160, "no stars set…", "#9aa4c0", 15);
+      return;
+    }
+    effortSound(f, cfg);
+    const color = p.color || f.char.theme;
+    burst(opp.x, opp.y - 90, color, 14 + marks * 6, 0.9 + marks * 0.15);
+    for (let i = 0; i < marks; i++) ring(opp.x, opp.y - 90, i % 2 ? "#ffffff" : color, 60 + i * 30);
+    applyHit(f, opp, {
+      dmg: p.dmgPerMark * marks,
+      baseKb: p.base + marks * (p.basePerMark || 90),
+      growth: (p.growthPerMark || 1.8) * marks,
+      angle: p.angle, label: `Southern Cross ×${marks}`, sfx: "blast",
+    }, "script");
+    opp.statuses.starMarks = 0;
+    opp.statuses.starT = 0;
+    opp.statuses.starFrom = null;
+    playSfx("blast", 0.9, 1.1);
+    state.camera.shake = Math.max(state.camera.shake, 5 + marks);
+  },
+
+  // Haruta — Grovel. Flat on the ground, hands over his head, entirely
+  // sincere — and cosmically it works: the moment passes him by and another
+  // small miracle goes in the bank.
+  playDead(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), (p.iframes || 0.7) + 0.2, { lockMovement: true });
+    f.animKey = "prone";
+    f.action.anim = "prone";
+    f.invuln = Math.max(f.invuln, p.iframes || 0.7);
+    f.vx = 0;
+    if (f.miracleStock === undefined) f.miracleStock = 2;
+    if (f.miracleStock < 3) {
+      f.miracleStock += 1;
+      popup(f.x, f.y - 150, `a miracle banked (${f.miracleStock})`, p.color || f.char.theme, 15);
+    } else {
+      popup(f.x, f.y - 150, "please don't", p.color || f.char.theme, 15);
+    }
+    if (p.heal) f.damage = Math.max(0, f.damage - p.heal);
+    dust(f.x, f.y, 10);
+    playSfx("whoosh", 0.6, 0.7);
+  },
+
   // Yaga — Sentient Cores. Three mutually compatible souls in every corpse he
   // makes, and the maker can reach into all of them at once: every doll of his
   // on the stage is mended, kept out longer and set swinging immediately — and

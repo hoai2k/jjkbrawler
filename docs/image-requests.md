@@ -12,10 +12,10 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**165 images outstanding.**
+**337 images outstanding.**
 
-- **The sprite game** — 153 images, round 22
-- **The live-3D anime path** — 12 images
+- **The sprite game** — 309 images, round 22
+- **The live-3D anime path** — 28 images
 
 ## Rules that hold everywhere here
 
@@ -45,7 +45,7 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**153 images, round 22.** Authored in
+**309 images, round 22.** Authored in
 [docs/asset-requests.md](asset-requests.md) and reproduced whole below.
 
 - **22A** — Balanced on the lip: the teeter (27 sprites)
@@ -56,6 +56,13 @@ the path all 27 fighters actually ship on. Keyed plates, delivered to
 - **22F** — Yaga's doll family summons (4 sprites)
 - **22G** — Hero cards for the staged three (3 images)
 - **22H** — Naoya's domain background (1 image)
+- **23A** — Kirara's sprite set (36 sprites)
+- **23B** — Haruta's sprite set (36 sprites)
+- **23C** — Tengen's sprite set (36 sprites)
+- **23D** — Miwa's sprite set (36 sprites)
+- **23E** — Round 24 technique effects (7 sprites)
+- **23F** — Tengen's pure barrier (1 sprite)
+- **23G** — Hero cards for the staged four (4 images)
 - **20E** — Yuji's four Round 20 poses (4 sprites)
 
 ## 22A. Balanced on the lip: the teeter — 27 sprites
@@ -276,6 +283,165 @@ the open roof, everything faintly banded in vertical divisions — the renderer
 draws its own filmstrip sprockets and frame lines over the plate, so keep the
 mid-tones open and the banding subtle.
 
+# Round 23 — open
+
+**Round 24's four staged fighters — Kirara Hoshi, Haruta Shigemo, Master
+Tengen and Kasumi Miwa.** A separate round from 22 on purpose: 22's sets are
+already being generated, and a delivery needs to say which batch it answers.
+Everything about round 22B–22H's shape holds here unchanged — the kits are
+live in code (`STAGED_CHARACTER_KEYS`), both workbenches list the four as
+*(not on the roster yet)*, nothing blocks on this art, and the design
+rationale is the round-24 section of [characters.md](characters.md).
+
+The same two standing rules, restated so this round is self-contained:
+
+**Absolute URLs.** This batch is expected to be generated outside the repo, so
+every reference below is an absolute URL. The character blocks to use verbatim
+are the `kirara`, `haruta`, `tengen` and `miwa` rows of the table above.
+
+**Work idle-first — the `idle_a` is its own delivery.** Generate each
+fighter's `idle_a` alone first (plain, square-on stance per
+[pose-brief.md](../sprites/docs/pose-brief.md)); intake and approve it in the
+sprite workbench; run `tools/build_canon_reference.py`; then generate the
+other 35 poses **against that approved idle**, so costume, proportions,
+palette, line weight and shading stay locked across the set. Once the idles
+land on `main` they resolve at:
+
+- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kirara_idle.png>
+- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/haruta_idle.png>
+- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/tengen_idle.png>
+- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/miwa_idle.png>
+
+## 23A. Kirara's sprite set — 36 sprites
+
+The standard 36-pose semantic set ([pose-brief.md](../sprites/docs/pose-brief.md)
+first, especially the reach rules).
+
+**Canonical reference (absolute):**
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kirara_anime.png>
+(the wiki render: [Kirara Hoshi (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/2/21/Kirara_Hoshi_%28Anime%29.png/revision/latest?cb=20251230190130)).
+
+**What they are holding:** nothing — Love Rendezvous is touch and posture, so
+the attack poses are open-handed: raking scratches, a driven heel, a palm laid
+flat where a star lands. The star-shaped pupils survive every expression,
+`hurt` and `dizzy` included. `special_neutral` casts a small glowing star
+sigil off an extended palm; `special_side` is an underhand lob, debris
+wrapped in star-light; `special_down` is both arms flung up, five points of
+light in a cross around them; `ult_a`/`ult_b` hold the completed constellation
+— five stars orbiting, hair lifting, entirely smug.
+
+Deliver to `assets/intake/kirara/<pose_key>.png`. Key: `kirara`, exactly —
+the canon spelling, **not `kiara`**. **Key screen: mid-grey `#808080`** — the
+camisole straps and socks are magenta, which a magenta screen eats.
+
+## 23B. Haruta's sprite set — 36 sprites
+
+The standard 36-pose set, same brief and rules as 23A.
+
+**Canonical reference (absolute):**
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/haruta_anime.png>
+(the wiki render: [Haruta Shigemo (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/f/fb/Haruta_Shigemo_%28Anime%29.png/revision/latest?cb=20230903193020)).
+
+**What he is holding:** the **Hand Sword** — a single-edged blade whose hilt
+is a sculpted human hand — in every attack pose, gripped wrong, swung without
+a stance. The lilac teardrop marks under his eyes appear in every pose; his
+posture is never brave: attacks lean back even as they land. `attack_light_*`
+sloppy slashes, `attack_heavy_*` an overcommitted two-handed hack;
+`special_neutral` is the release of an underarm throw, the sword crawling
+mid-air on its hilt-fingers; `special_side` is a flinch turning into a lunge;
+`special_down` is him flat on the ground, hands over his head (this is also
+roughly his `prone`, drawn distinctly — the special is deliberate);
+`ult_a`/`ult_b` are him wreathed in small lilac glints, eyes wide, luckier
+than anyone deserves.
+
+Deliver to `assets/intake/haruta/<pose_key>.png`. Key: `haruta`, exactly.
+**Key screen: mid-grey `#808080`** — the eye markings and glove are lilac,
+which sits too close to a magenta screen.
+
+## 23C. Tengen's sprite set — 36 sprites
+
+The standard 36-pose set, same brief and rules as 23A.
+
+**Canonical reference (absolute):**
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/tengen_anime.png>
+(the wiki render: [Tengen (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/1/16/Tengen_%28Anime%29.png/revision/latest?cb=20251119121513)).
+
+**What they are holding:** nothing, ever — Tengen fights space, not people.
+The robe reaches the floor, so like Kurourushi the legs show only in motion
+poses (`run_*`, `dash`, `dodge_roll`: bare long-toed feet beneath a lifted
+hem). All four eyes track in every pose; the face barely moves — serenity is
+the costume. Attacks are open palms trailing flat translucent planes of
+barrier; `special_neutral` is both palms shoved forward behind a wall of
+force; `special_side` sets a standing pane of light with one hand;
+`special_down` is the figure mid-vanish, sliced vertically by a corridor
+edge; `ult_a`/`ult_b` raise both arms as barrier walls climb around them.
+
+Deliver to `assets/intake/tengen/<pose_key>.png`. Key: `tengen`, exactly.
+
+## 23D. Miwa's sprite set — 36 sprites
+
+The standard 36-pose set, same brief and rules as 23A.
+
+**Canonical reference (absolute):**
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/miwa_anime.png>
+(the wiki render: [Kasumi Miwa (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/6/64/Kasumi_Miwa_%28Anime%29.png/revision/latest?cb=20240621021537)).
+Draw her **long-haired, pre-Shibuya era**, matching the render.
+
+**What she is holding:** a standard katana in a brown scabbard — and the
+scabbard matters more than for anyone else on the roster: her whole kit is
+the draw, so **sheathed poses outnumber drawn ones**. `idle_a`/`idle_b`,
+`guard` and `special_side` keep the sword sheathed, hand resting on the hilt;
+`attack_light_*` and `attack_heavy_*` are draw-cuts, the scabbard still
+moving; `special_neutral` is the batto lunge at full extension, blade a
+horizontal line; `special_down` is the Simple Domain stance — feet planted,
+knees bent, a thin circle inscribed at her feet; `ult_a`/`ult_b` are the vow:
+a long low crouch with the hilt gripped white, then the single enormous cut.
+
+Deliver to `assets/intake/miwa/<pose_key>.png`. Key: `miwa`, exactly.
+
+## 23E. Round 24 technique effects — 7 sprites
+
+Effect plates for the staged kits, spec per [Delivery spec](asset-requests.md#delivery-spec),
+pointing **LEFT** where directional. The loader already knows every path
+(`STAGED_EFFECT_KEYS`, `src/assets.js`); the moves draw procedural stand-ins
+until these land.
+
+| File | Fighter | What to draw |
+|---|---|---|
+| `star_bolt.png` | Kirara | A small five-pointed star sigil in violet `#d9a8ff` with a gold core, trailing thin chart-lines like a constellation diagram |
+| `star_debris.png` | Kirara | A chunk of urban debris (pipe, brick, signage) wrapped in violet star-light, a small gold star burning on its face |
+| `aura_star.png` | Kirara | An install aura plate: five stars in the Southern Cross arrangement orbiting a body-height envelope, faint chart-lines linking them |
+| `aura_lilac.png` | Haruta | An install aura plate: a loose swirl of small lilac glints and clock-hands, dense at 11 and 1 o'clock |
+| `hand_sword.png` | Haruta | The Hand Sword in flight, horizontal: a single-edged blade, the sculpted-hand hilt gripping air with splayed fingers |
+| `star_tomb.png` | Tengen | A rising barrier hall: translucent parchment-grey wall panes with star motifs, stacked and overlapping like a shrine interior |
+| `batto_flash.png` | Miwa | One iai cut as light: a single long horizontal crescent of pale blue-white, hilt-end dense, tip feathering out |
+
+Deliver to `assets/intake/effects/<name>.png`.
+
+## 23F. Tengen's pure barrier — 1 sprite
+
+A summon plate, format per round 8: one body per file, full height, facing
+**RIGHT** (trivially — it is a pane).
+
+| File | Fighter | What to draw |
+|---|---|---|
+| `pure_barrier.png` | Tengen | A standing rectangular pane of pure barrier: translucent parchment-white, faint star-chart etching, edges hard as cut glass — a wall with no interior conditions, wanting nothing |
+
+Deliver to `assets/intake/summons/pure_barrier.png` — **never** straight into
+`assets/sprites/summons/`.
+
+## 23G. Hero cards for the staged four — 4 images
+
+Same spec as round 9A: **JPEG, portrait, full-bleed background**, no text.
+Match the delivered set in `assets/cards/` for crop and energy.
+
+| File | Suggested backdrop |
+|---|---|
+| `assets/intake/cards/kirara_card.jpg` | The fight-club door at night, neon spill, five stars burning in the dark around them, arms folded — nobody gets in |
+| `assets/intake/cards/haruta_card.jpg` | A Shibuya alley mid-ambush: him grinning over one shoulder, the Hand Sword crawling along a wall behind him |
+| `assets/intake/cards/tengen_card.jpg` | The Tomb of the Star Corridor: floating shrine architecture receding forever, Tengen small and central, all four eyes lit |
+| `assets/intake/cards/miwa_card.jpg` | A Kyoto training yard at dawn, mid-draw, the blade a line of light — earnest, not epic |
+
 # Round 20 — delivered
 
 **All four requests are in.** The last of them was Yuji's own four poses, which
@@ -404,13 +570,13 @@ GENERATED from, and textures the anime pass reads at runtime. They serve
 `?render=billboard` too, which reads the same rigs. These are NOT keyed
 plates — each round states its own delivery.
 
-**12 images.** Authored in
+**28 images.** Authored in
 [render3d/docs/image-requests.md](../render3d/docs/image-requests.md) and reproduced whole below.
 
-- **DI1** — model-generation turnaround boards (the Tripo inputs) (3 images)
-- **DI2** — face sheets (the face-first gate's reference) (3 images)
-- **DI3** — shade palette swatches (3 images)
-- **DI4** — shared face textures (3 images)
+- **DI1** — model-generation turnaround boards (the Tripo inputs) (7 images)
+- **DI2** — face sheets (the face-first gate's reference) (7 images)
+- **DI3** — shade palette swatches (7 images)
+- **DI4** — shared face textures (7 images)
 - **DI5** — regeneration seeds (0 images)
 
 ## Round DI1 — model-generation turnaround boards (the Tripo inputs)
@@ -447,7 +613,7 @@ the refusal note above, and in
 [docs/image-requests.md](../docs/image-requests.md), which resolves it
 against what is on disk.
 
-### DI1: who is still owed one — 3 of 31
+### DI1: who is still owed one — 7 of 35
 
 A fighter whose rig has already been delivered is NOT listed: a turnaround board's only job is to be the thing a model is generated from, and theirs exists.
 
@@ -456,6 +622,10 @@ A fighter whose rig has already been delivered is NOT listed: a turnaround board
 | Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_anime.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
 | Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_anime.png` | Sunglasses never come off; dolls are summons, engine-side |
 | Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_anime.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
+| Kirara Hoshi | `kirara` | 172 cm | unarmed | `assets/reference/canon/kirara_anime.png` | Star-pupil eyes in the face texture; marks/repulsion are engine-side |
+| Haruta Shigemo | `haruta` | 168 cm | blade | `assets/reference/canon/haruta_anime.png` | The Hand Sword's sculpted-hand hilt is part of the prop |
+| Master Tengen | `tengen` | 175 cm | caster | `assets/reference/canon/tengen_anime.png` | Cylindrical four-eyed head is bespoke geometry on a standard body; floor-length robe wants cloth bones |
+| Kasumi Miwa | `miwa` | 162 cm | blade | `assets/reference/canon/miwa_anime.png` | Katana + scabbard; sheathed at idle, and the draw is the kit |
 
 ## Round DI2 — face sheets (the face-first gate's reference)
 
@@ -468,7 +638,7 @@ the modeller combs the normals along it (D-spec addition 3).
 
 **Deliverable: 1 sheet per fighter, same gating as DI1.**
 
-### DI2: who is still owed one — 3 of 31
+### DI2: who is still owed one — 7 of 35
 
 Listed for delivered rigs too — this is what the face-first review gate reads AGAINST, so it is wanted whether or not the model exists.
 
@@ -477,6 +647,10 @@ Listed for delivered rigs too — this is what the face-first review gate reads 
 | Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_anime.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
 | Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_anime.png` | Sunglasses never come off; dolls are summons, engine-side |
 | Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_anime.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
+| Kirara Hoshi | `kirara` | 172 cm | unarmed | `assets/reference/canon/kirara_anime.png` | Star-pupil eyes in the face texture; marks/repulsion are engine-side |
+| Haruta Shigemo | `haruta` | 168 cm | blade | `assets/reference/canon/haruta_anime.png` | The Hand Sword's sculpted-hand hilt is part of the prop |
+| Master Tengen | `tengen` | 175 cm | caster | `assets/reference/canon/tengen_anime.png` | Cylindrical four-eyed head is bespoke geometry on a standard body; floor-length robe wants cloth bones |
+| Kasumi Miwa | `miwa` | 162 cm | blade | `assets/reference/canon/miwa_anime.png` | Katana + scabbard; sheathed at idle, and the draw is the kit |
 
 ## Round DI3 — shade palette swatches
 
@@ -492,7 +666,7 @@ sheet is what review holds them against.
 **Deliverable: 1 swatch sheet per fighter, same gating as DI1. Format free —
 a labelled PNG grid is fine.**
 
-### DI3: who is still owed one — 3 of 31
+### DI3: who is still owed one — 7 of 35
 
 Listed for delivered rigs too: these numbers land in the rig's material extras at intake, and not one delivered rig carries a `toon` block today — all of them are running on engine defaults.
 
@@ -501,6 +675,10 @@ Listed for delivered rigs too: these numbers land in the rig's material extras a
 | Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_anime.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
 | Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_anime.png` | Sunglasses never come off; dolls are summons, engine-side |
 | Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_anime.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
+| Kirara Hoshi | `kirara` | 172 cm | unarmed | `assets/reference/canon/kirara_anime.png` | Star-pupil eyes in the face texture; marks/repulsion are engine-side |
+| Haruta Shigemo | `haruta` | 168 cm | blade | `assets/reference/canon/haruta_anime.png` | The Hand Sword's sculpted-hand hilt is part of the prop |
+| Master Tengen | `tengen` | 175 cm | caster | `assets/reference/canon/tengen_anime.png` | Cylindrical four-eyed head is bespoke geometry on a standard body; floor-length robe wants cloth bones |
+| Kasumi Miwa | `miwa` | 162 cm | blade | `assets/reference/canon/miwa_anime.png` | Katana + scabbard; sheathed at idle, and the draw is the kit |
 
 ## Round DI4 — shared face textures *(one-time, roster-wide)*
 
@@ -520,7 +698,7 @@ per-fighter art:
 **Deliverable: 1 shared highlight texture now; mouth sheets ride whichever
 D-round their fighter ships in.**
 
-### DI4: who is still owed one — 3 of 31
+### DI4: who is still owed one — 7 of 35
 
 The shared eye-highlight texture is delivered; these are the optional per-fighter mouth sheets. Nothing ships blocked on one.
 
@@ -529,6 +707,10 @@ The shared eye-highlight texture is delivered; these are the optional per-fighte
 | Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_anime.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
 | Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_anime.png` | Sunglasses never come off; dolls are summons, engine-side |
 | Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_anime.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
+| Kirara Hoshi | `kirara` | 172 cm | unarmed | `assets/reference/canon/kirara_anime.png` | Star-pupil eyes in the face texture; marks/repulsion are engine-side |
+| Haruta Shigemo | `haruta` | 168 cm | blade | `assets/reference/canon/haruta_anime.png` | The Hand Sword's sculpted-hand hilt is part of the prop |
+| Master Tengen | `tengen` | 175 cm | caster | `assets/reference/canon/tengen_anime.png` | Cylindrical four-eyed head is bespoke geometry on a standard body; floor-length robe wants cloth bones |
+| Kasumi Miwa | `miwa` | 162 cm | blade | `assets/reference/canon/miwa_anime.png` | Katana + scabbard; sheathed at idle, and the draw is the kit |
 
 ## Round DI5 — regeneration seeds *(delivered — read the verdict before generating)*
 
@@ -570,7 +752,7 @@ that the hair standing 29% of her stature above her head is her design, not
 generated damage. Her legs at 55% of a normal leg still stand, and so does the
 scale the Idle Review kept fighting.
 
-### DI5: who is still owed one — 0 of 31
+### DI5: who is still owed one — 0 of 35
 
 Named by MEASUREMENT, not by eye: tools/audit_model_health.py weighs the mesh bound to each limb against the roster's median and reports what cannot be true of a body. A fighter leaves this list when a replacement board lands — not when their model is regenerated, since regenerating from the same board is what produced the fault.
 
@@ -627,6 +809,10 @@ ambiguous sentence was drawn the wrong way twice.
 | `kashimo` | "Hajime Kashimo from Jujutsu Kaisen, tall lean young man with shaggy mint-green hair sticking out in tufts and two horn-like coiled locks rising from the top of his head, sharp green eyes with a short zig-zag lightning marking under each eye, wearing a loose all-white high-collared padded robe with puffed sleeves gathered at the elbow, white bandage wraps on both forearms, loose white trousers wrapped in white bandages from knee to ankle, pale grey ankle boots, carrying a long red staff with gold caps and a gold ball finial" |
 | `yaga` | "Masamichi Yaga from Jujutsu Kaisen, tall broad heavily built middle-aged man with tan skin, dark brown hair in a short spiked crop with shaved sides, a chinstrap beard and moustache, small dark oval sunglasses always covering his eyes, wearing a plain black zip-up high-collared jacket, black trousers and black dress shoes" |
 | `naoya` | "Naoya Zen'in from Jujutsu Kaisen, tall slim young man with short olive-blond hair with darker roots swept to one side, narrow brown eyes and a permanent smug smirk, small earrings on his left ear, wearing a white band-collar shirt under a dark teal kimono jacket, a pale grey pleated hakama tied at the waist, dark tabi socks and zōri sandals" |
+| `kirara` | "Kirara Hoshi from Jujutsu Kaisen, a slender young person with long black hair past the shoulders, blunt-cut bangs with the right section dyed cyan and two flat face-framing strands, large purple eyes with yellow star-shaped pupils, two beauty marks by the mouth, a black studded choker, an off-shoulder cream ribbed crop top over magenta camisole straps with a bare midriff, a doubled red-brown belt with a gold star buckle, black flared trousers cropped above the ankle, magenta socks and black lace-up ankle boots, black painted nails" |
+| `haruta` | "Haruta Shigemo from Jujutsu Kaisen, a short lean young man with slicked blond hair pulled into a long side ponytail tied on the left, thin eyebrows, drooping purple eyes with a lilac teardrop marking under each eye, a faint smug pout, bare-chested under a black one-shoulder jumpsuit with loose trousers gathered at the calves, a pale lilac glove on his sword hand, brown loafers worn barefoot, carrying a single-edged sword whose hilt is a sculpted human hand" |
+| `tengen` | "Master Tengen from Jujutsu Kaisen, an inhuman robed figure with a tall smooth cylindrical hairless head, four narrow eyes stacked in two pairs down the face, a small stern mouth, pale grey-white skin, draped floor-length grey-white layered robes with a cowled folded neck and wide sleeves, long-fingered pale hands held open at the sides, bare feet with long toes" |
+| `miwa` | "Kasumi Miwa from Jujutsu Kaisen, a young woman with long light-blue hair falling past her shoulders with blunt bangs, dark blue eyes and an earnest expression, wearing the dark navy Kyoto Jujutsu High uniform — a fitted suit-style jacket over a white collared shirt and navy tie, matching navy trousers, brown loafers — with a katana in a brown scabbard at her hip" |
 
 ---
 

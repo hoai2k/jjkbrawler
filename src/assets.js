@@ -104,6 +104,11 @@ const STAGED_EFFECT_KEYS = {
   kashimo: ["lightning_bolt", "nyoi_staff", "amber_aura"],
   yaga: ["windup_doll", "doll_needle"],
   naoya: ["naoya_spirit"],
+  // Round 24 — the four staged fighters (asset-requests round 23E).
+  kirara: ["star_bolt", "star_debris", "aura_star"],
+  haruta: ["hand_sword", "aura_lilac"],
+  tengen: ["star_tomb"],
+  miwa: ["batto_flash"],
 };
 
 // Summon minions belonging to a staged fighter. The delivered summons in the
@@ -126,6 +131,8 @@ const STAGED_SUMMON_KEYS = {
     ["summon:cathy", "summons/cathy.png"],
     ["summon:comfort_doll", "summons/comfort_doll.png"],
   ],
+  // Round 24 — Tengen's standing barrier pane (asset-requests round 23F).
+  tengen: [["summon:pure_barrier", "summons/pure_barrier.png"]],
 };
 
 // Stage-hazard polish art (Active Boards — src/stage_fx.js), requested as

@@ -8,7 +8,7 @@ re-run. Its companions are [characters.md](characters.md), which explains *why*
 each kit is the way it is, and [game-mechanics.md](game-mechanics.md), which
 explains the systems the moves are built from.
 
-**30 fighters**, 3 of them staged and not yet selectable — every one with three specials and an
+**34 fighters**, 7 of them staged and not yet selectable — every one with three specials and an
 ultimate, and **9** of them with a Domain Expansion as well.
 
 An ultimate and a Domain Expansion each cost the **whole** meter bar, so a
@@ -49,6 +49,10 @@ are free and run on individual cooldowns instead.
 | [Kashimo](#kashimo) | Staged (not yet selectable) | Lightning Discharge | Nyoi Recall | Hollow Wicker Basket | Mythical Beast Amber | — |
 | [Yaga](#yaga) | Staged (not yet selectable) | Cursed Corpse: Tsukamoto | Wind-Up Corpse | Sentient Cores | The Doll Family | — |
 | [Naoya](#naoya) | Staged (not yet selectable) | Projection Sorcery: 24 Frames | The 24 FPS Rule | Pre-Read | Vengeful Spirit: Mach 3 | Time Cell Moon Palace |
+| [Kirara](#kirara) | Staged (not yet selectable) | Love Rendezvous | Same Star: Debris | Southern Cross | Complete Southern Cross | — |
+| [Haruta](#haruta) | Staged (not yet selectable) | Hand Sword: Fist Launch | Sneak Attack | Grovel | 11:11 — Every Miracle at Once | — |
+| [Tengen](#tengen) | Staged (not yet selectable) | Barrier Pulse | Pure Barrier | Star Corridor | Tomb of the Star Corridor | — |
+| [Miwa](#miwa) | Staged (not yet selectable) | Batto Sword Drawing | Sheathed Stance | New Shadow Style: Simple Domain | Binding Vow: The Last Draw | — |
 
 ## Every kit in full
 
@@ -433,3 +437,51 @@ are free and run on individual cooldowns instead.
 - Domain Expansion — **Time Cell Moon Palace** — The 24-frame rule applied at the cellular level: inside the palace, every body runs on his clock.
   - *How it plays:* Foes strobe-freeze on his frame beat for the whole domain. Press SPECIAL to blink a frame behind the enemy with a strike — short cooldown, keep the pressure on.
 - Passive — **Projection Sorcery** — His movement is pre-choreographed at 24 frames a second: sustained sprinting winds him up to +24% speed, and his path is drawn as the frames he planned.
+
+<a id="kirara"></a>
+
+### Kirara Hoshi — "The Gatekeeper"
+
+*Staged (not yet selectable) · `kirara` · theme `#d9a8ff`*
+
+- Neutral special *(0.9s cooldown)* — **Love Rendezvous** — A star sigil cast down the lane. It marks what it touches — and a marked body answers to the chart.
+- Side special *(1.25s cooldown)* — **Same Star: Debris** — The attraction half of the chart: loose debris marked with the enemy's own star, thrown — and same stars are drawn together, so it hunts them.
+- Down special *(2.6s cooldown)* — **Southern Cross** — The full constellation, invoked: every star on the target flares at once and the chart hurls them away from the point they were forbidden to approach.
+- Ultimate — **Complete Southern Cross** — All five stars, held at once — Imai included, the faint one nobody counts. Everything they touch is marked, and the whole stage answers to the chart.
+- Passive — **Love Rendezvous** — A marked body cannot approach them: closing the distance on Kirara while carrying a star is answered with repulsion — harder the closer they get.
+
+<a id="haruta"></a>
+
+### Haruta Shigemo — "The Lucky Coward"
+
+*Staged (not yet selectable) · `haruta` · theme `#c8a8e0`*
+
+- Neutral special *(1.3s cooldown)* — **Hand Sword: Fist Launch** — The sword's hilt is a sculpted hand, and it is half alive: launched crawling down the lane, then it drags itself back to him through everything on the way.
+- Side special *(1.4s cooldown)* — **Sneak Attack** — He flinches away — and the flinch was the setup. The lunge comes from the retreat, which is the only direction he has ever been honest about.
+- Down special *(6s cooldown)* — **Grovel** — Flat on the ground, hands over his head, entirely sincere. Cosmically, disgustingly, it works: the moment passes him by and another small miracle goes in the bank.
+- Ultimate — **11:11 — Every Miracle at Once** — Every clock he ever glanced at, spent in one go: for a few seconds his luck is a solid object. Nothing lands on him, and everything that tries gets cut on the way past.
+- Passive — **Miracles** — Small miracles bank themselves under his eyes — one every nine seconds, three at most — and a blow that should land instead spends one: his body is yanked out of the way without him ever knowing.
+
+<a id="tengen"></a>
+
+### Master Tengen — "The Immortal"
+
+*Staged (not yet selectable) · `tengen` · theme `#d6cfae`*
+
+- Neutral special *(1.3s cooldown)* — **Barrier Pulse** — A wall of pure barrier shoved outward in one beat. Little of it is damage; most of it is the word NO.
+- Side special *(5.5s cooldown)* — **Pure Barrier** — A standing pane of barrier with no interior conditions — it wants nothing, asks nothing, and nothing gets through it.
+- Down special *(2.6s cooldown)* — **Star Corridor** — The Tomb's trick: the corridor moves so it can never be found. For a moment, so do they.
+- Ultimate — **Tomb of the Star Corridor** — The sanctuary raised around the fight: a shifting barrier hall that grinds everything caught inside it, and closes with the whole structure clapping shut.
+- Passive — **Immortality** — Not eternal youth — the body simply refuses to die: wounds knit constantly, without channelling, whether or not anyone lets them.
+
+<a id="miwa"></a>
+
+### Kasumi Miwa — "Useless Miwa"
+
+*Staged (not yet selectable) · `miwa` · theme `#8fd0ea`*
+
+- Neutral special *(1.2s cooldown)* — **Batto Sword Drawing** — The fastest strike in the New Shadow Style: sheathed, then already past you. Everything she has is fundamentals, and this is the fundamental.
+- Side special *(2.2s cooldown)* — **Sheathed Stance** — Hand on the hilt, weight settled, waiting. The draw is faster than the thing that triggers it.
+- Down special *(4.2s cooldown)* — **New Shadow Style: Simple Domain** — The 2.21-metre circle, cast properly for once — she is the style's actual student. Anything that enters is cut faster than she can decide to cut it, and a domain's sure hit stops being sure.
+- Ultimate — **Binding Vow: The Last Draw** — Everything she was ever going to be as a swordswoman, staked on one draw. The wind-up is the vow being spoken; the cut is everything it bought.
+- Passive — **Iai** — The first cut is the whole art: a strike begun from stillness — half a second without moving her feet — lands 20% harder.

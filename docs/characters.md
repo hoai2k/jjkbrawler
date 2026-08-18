@@ -15,13 +15,15 @@ different reach/speed/damage/effects), three specials (neutral, side, down),
 one ultimate, and one always-on passive. Eight of them also have a **Domain
 Expansion** — see the section at the end — and staged Naoya carries a ninth.
 
-**Three are staged.** Round 15's four late additions — Mechamaru, Yuki
+**Seven are staged.** Round 15's four late additions — Mechamaru, Yuki
 Tsukumo, Dagon and Kurourushi — were built in full in `src/characters.js` before
 any of their art existed, held off the select screen by `STAGED_CHARACTER_KEYS`
 while it was drawn, and all four have shipped. Round 23 stages three more the
-same way: **Hajime Kashimo, Masamichi Yaga and Naoya Zen'in** (see their
-section below). The roster is 27 fighters; the three staged kits are complete
-and testable, held off the select screen until their round-22 art lands.
+same way — **Hajime Kashimo, Masamichi Yaga and Naoya Zen'in** — and round 24
+stages four on top: **Kirara Hoshi, Haruta Shigemo, Master Tengen and Kasumi
+Miwa** (see their sections below). The roster is 27 fighters; the seven staged
+kits are complete and testable, held off the select screen until their art
+(rounds 22 and 23 in asset-requests.md) lands.
 
 The staging machinery is how they were built:
 `node tools/smoke_staged.mjs` plays every staged kit's moves in a real match,
@@ -810,6 +812,147 @@ frames — the whole kit is legible as cut film.
   up to **+24% speed** (of course it is 24), and once wound, his run draws the
   frame trail. Maki's counter is written in too: Heavenly Restricted bodies
   are immune to framelock.
+
+# Round 24 — the staged four
+
+Kirara, Haruta, Tengen and Miwa, built exactly the way rounds 15 and 23 were:
+kit first, art as a delivery against it. All four are complete in
+`src/characters.js`, held off the select screen by `STAGED_CHARACTER_KEYS`,
+exercised by `node tools/smoke_staged.mjs`, and listed in the sprite and card
+workbenches as *(not on the roster yet)*. Their art is round 23A–23G in
+[asset-requests.md](asset-requests.md).
+
+They introduce **one status** and **two passive mechanics** nobody on the
+roster has:
+
+| New thing | Owner | What it does |
+|---|---|---|
+| **starMark** | Kirara | A Southern Cross star set by touch, up to the full five. No damage of its own: while any star is held, the marked body **cannot approach Kirara** — closing the distance is answered with repulsion — their Same Star debris homes on it, and Southern Cross cashes the whole chart in. |
+| **Miracles** | Haruta | A stock of banked miracles (one every nine seconds, three at most, the count under his eyes). A blow that should land **spends one instead**: his body is yanked clear with iframes, without him ever knowing. Finite ammo, exactly as canon — run him dry and he is just a coward with a sword. |
+| **Iai** | Miwa | A strike begun from stillness — half a second without moving her feet — lands 20% harder. The first cut is the whole art. |
+
+## Kirara Hoshi — "The Gatekeeper"
+**Canon:** Third-year at Tokyo Jujutsu High, doorkeeper of Hakari's
+underground fight club, and the reason nobody unwanted gets near it. Their
+innate technique **Love Rendezvous** charts the **Southern Cross** — five
+stars in fixed order, Imai → Acrux → Mimosa → Ginan → Gacrux, the faint fifth
+star being the trap — onto bodies and objects by touch. A marked body cannot
+approach another marked point except along the constellation's legal route:
+break the order and space itself repels you. The attraction half is just as
+weaponised — objects carrying the *same* star are drawn together, so marked
+debris becomes homing ammunition. Megumi beat the puzzle only by realising the
+chart had five stars, not four. Personality: cool, catty, sardonic with
+strangers, visibly soft around Hakari. Canon deliberately leaves their gender
+unstated; this document, like the wiki, uses they/them.
+
+**Design mapping:** The space-control zoner — a fighter you lose to by being
+unable to walk forward. Touch sets stars; stars are a wall, a homing beacon
+and a bomb, in that order.
+- *Stats:* 430 / 0.92 — slender and quick, launches early.
+- **Love Rendezvous** (neutral): a star sigil down the lane. It marks what it
+  touches, and their normals mark by touch too — the chart accumulates fast.
+- **Same Star: Debris** (side): the attraction rule — a lobbed marked object
+  that homes on anyone carrying a star (the same `seekStatus` mechanic as
+  Kashimo's Discharge, from the opposite end of the physics).
+- **Southern Cross** (down): the detonate — every star flares and the chart
+  hurls the target away from the point it was forbidden to approach. More
+  stars, more everything; with none set it fizzles.
+- **Ultimate — Complete Southern Cross:** all five stars held at once. Every
+  hit sets a star whatever the move was, and the repulsion radius widens by
+  half. For eight seconds the answer to "walk at Kirara" is simply no.
+- *Passive — Love Rendezvous:* the approach rule itself — a marked body
+  closing on Kirara is repelled, harder the closer it gets.
+
+## Haruta Shigemo — "The Lucky Coward"
+**Canon:** A curse user in Kenjaku's faction and the series' designated
+cockroach: a whiny, giggling serial killer who bullies the weak, grovels
+before the strong, and fights exclusively by ambush. His innate technique
+**Miracles** stockpiles the small ones — every 11:11 glanced at is erased
+from his memory and banked as the lilac marks under his eyes — and when death
+arrives, a stored miracle is spent to yank his body out of the way. He never
+consciously dodges and genuinely believes he is just lucky. Finite ammo:
+Nanami's opening blow "should have killed him", and did the moment the stock
+ran dry. Fights with the **Hand Sword**, a cursed tool whose hilt is a
+sculpted human hand — semi-autonomous, crawling, launchable.
+
+**Design mapping:** The fighter you have to *drain* before you can hurt him —
+and who was never dangerous, only expensive. Low commitment everywhere, one
+genuinely obnoxious defensive economy.
+- *Stats:* 424 / 0.9 — small, slippery, launches like a paper bag once the
+  miracles are gone.
+- **Hand Sword: Fist Launch** (neutral): the sword crawls out and drags
+  itself back (the same throw-and-recall handler as Kashimo's Nyoi — this one
+  literally has fingers).
+- **Sneak Attack** (side): the retreat IS the setup — a flinch away with
+  iframes, then the lunge out of it. The one honest thing about him.
+- **Grovel** (down): flat on the floor, hands over his head, briefly
+  untouchable — and it banks another miracle. Disgusting. Effective.
+- **Ultimate — 11:11 — Every Miracle at Once:** seven seconds where every
+  dodge is free and everything that swings at him gets cut on the way past.
+  His luck, briefly, is a solid object.
+- *Passive — Miracles:* the auto-dodge stock. One banked every nine seconds,
+  three at most, each one eating a hit that had already landed.
+
+## Master Tengen — "The Immortal"
+**Canon:** The thousand-year foundation of the jujutsu world: the greatest
+barrier master alive, dwelling in the ever-shifting **Tomb of the Star
+Corridor** beneath Jujutsu High, maintaining the pure barriers that shield
+Japan. Their technique is **Immortality** — not eternal youth: the body
+refuses to die but keeps ageing, and every ~500 years must merge with a Star
+Plasma Vessel or evolve past humanity. The 2006 merger failed (Toji killed
+Riko Amanai), and the body on this roster is what grew afterwards — the
+cylindrical head, the four stacked eyes, "more cursed spirit than human".
+Canonically Tengen does not fight — they dispel, eject, shield and stall while
+others do — so a Tengen who takes the stage at all is this game's one honest
+invention, built out of exactly the things canon shows: barriers, the
+corridor, and a body that will not die.
+
+**Design mapping:** The fortress. Slowest fighter in the game, weak hands,
+absolute space — Tengen wins by making the stage smaller than your patience.
+- *Stats:* 336 / 1.2 — slowest on the roster, hard to launch, regenerating.
+- **Barrier Pulse** (neutral): a wall of force shoved outward — little
+  damage, enormous shove. The word NO as a hitbox.
+- **Pure Barrier** (side): a standing pane of barrier with no interior
+  conditions — a stationary, unshovable summon that soaks hits and blocks
+  projectiles, two at a time. The wall game.
+- **Star Corridor** (down): the Tomb's trick, personally — a long teleport
+  with generous iframes. The corridor moves so it can never be found.
+- **Ultimate — Tomb of the Star Corridor:** the sanctuary raised around the
+  fight — a grinding barrier hall (the same director as Gakuganji's Encore)
+  that closes with the whole structure clapping shut.
+- *Passive — Immortality:* constant regeneration, no channel, no cap — a
+  third of a healing install's rate, running forever. Attrition does not work
+  on the immortal; you have to launch them.
+
+## Kasumi Miwa — "Useless Miwa"
+**Canon:** Kyoto's second-year normal girl, grade 3, who took up sorcery
+because it pays and her family was poor. No innate technique at all — pure
+**New Shadow Style** swordsmanship: **Batto Sword Drawing**, the
+cursed-energy iai quick-draw, and the style's **Simple Domain**, a circle of
+exactly 2.21 metres in which anything that enters is cut faster than she can
+decide to cut it — provided her feet never leave their stance. Earnest,
+sweet, chronically unlucky, narrating her own failures ("Useless Miwa…");
+devoted to Kokichi Muta, and in canon she eventually stakes a Binding Vow —
+"I will never swing a sword again" — on one empowered strike at Kenjaku. It
+fails; the cost stands. Her sword is borrowed time, and this kit is built on
+knowing that.
+
+**Design mapping:** The honest fundamentals character: no projectile, no
+technique, three ways to make a katana arrive first. The third Simple Domain
+on the roster, and the only one cast by its actual student.
+- *Stats:* 426 / 0.95 — brisk, ordinary, exactly as advertised.
+- **Batto Sword Drawing** (neutral): the iai lunge — sheathed, then already
+  past you. Her whole offence, so it is fast and it commits.
+- **Sheathed Stance** (side): the counter — hand on the hilt, waiting. The
+  draw is faster than whatever triggers it, and the stance announces BATTO!
+- **New Shadow Style: Simple Domain** (down): the 2.21-metre circle, longest
+  held of the three (she is the adept), on the domain button like the others.
+- **Ultimate — Binding Vow: The Last Draw:** everything she was ever going to
+  be as a swordswoman, staked on one draw (the massDrive director — a visible
+  wind-up, then one enormous cut and its shockwave). The vow is the charge.
+- *Passive — Iai:* a strike begun from half a second of stillness lands 20%
+  harder. She is at her best the moment before she moves, which is the most
+  swordswoman sentence in the game.
 
 ---
 

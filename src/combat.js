@@ -681,6 +681,16 @@ export function applyStatus(effect, owner, target, extra = {}) {
       s.blind = Math.max(s.blind || 0, 2.4);
       popup(target.x, target.y - 150, "BLINDED", "#8f3b4e", 18);
       break;
+    // Kirara — Love Rendezvous. A star of the Southern Cross set by touch, up
+    // to the full five (Imai included). No damage of its own: while any star
+    // is held, the approach rule applies — the marked body cannot close on
+    // Kirara (fighter.js repulsion) — and Southern Cross cashes the chart in.
+    case "starMark":
+      s.starMarks = Math.min(5, (s.starMarks || 0) + 1);
+      s.starT = 5.0;
+      s.starFrom = owner;
+      popup(target.x, target.y - 150, `★ ${s.starMarks}`, "#d9a8ff", 16);
+      break;
     // Kashimo — static planted by an electrified blow. No damage of its own:
     // a charged body takes 15% more from him (his `galvanize` passive) and his
     // discharge bolts bend toward it (`seekStatus`, updateProjectiles) — the
@@ -777,6 +787,12 @@ export function updateStatuses(f, dt) {
   if (s.nailT > 0) {
     s.nailT -= dt;
     if (s.nailT <= 0) s.nailMarks = 0;
+  }
+  if (s.starT > 0) {
+    s.starT -= dt;
+    // still charted — a faint star-glint off the marked body
+    if (Math.random() < 2 * dt) burst(f.x + (Math.random() - 0.5) * 40, f.y - 100, "#d9a8ff", 2, 0.35);
+    if (s.starT <= 0) { s.starMarks = 0; s.starFrom = null; }
   }
 }
 
@@ -916,6 +932,35 @@ export function applyHit(owner, target, hit, source) {
     return "countered";
   }
 
+  // Miracles (Haruta): a blow that should land instead spends a banked
+  // miracle — his body is yanked clear without him ever knowing, iframes
+  // covering the follow-through so a multi-hit move costs one miracle, not
+  // three. His 11:11 ultimate makes the dodges free and adds a spiteful cut on
+  // the way past. Nothing here answers a scripted sure-hit's caller checks —
+  // those test invuln themselves — so the stock is only ever spent on hits
+  // that were really arriving.
+  if (target.char.passive.id === "miracles" && target.invuln <= 0 && target.hitPause <= 0) {
+    const surge = !!(target.installs && target.installs.miracleSurge);
+    if (target.miracleStock === undefined) target.miracleStock = 2;
+    if (surge || target.miracleStock > 0) {
+      if (!surge) target.miracleStock -= 1;
+      const away = -dir;
+      target.x = clamp(target.x + away * 130, 70, 1210);
+      target.invuln = Math.max(target.invuln, 0.5);
+      dust(target.x, target.y, 8);
+      burst(target.x, target.y - 90, "#c8a8e0", 10, 0.7);
+      popup(target.x, target.y - 160, surge ? "11:11" : `MIRACLE (${target.miracleStock} left)`, "#c8a8e0", 18);
+      playSfx("whoosh", 0.8, 1.3);
+      if (surge && Math.abs(owner.x - target.x) < 200 && owner.invuln <= 0) {
+        owner.damage = Math.min(999, owner.damage + 6);
+        owner.hitstun = Math.max(owner.hitstun, 0.2);
+        popup(owner.x, owner.y - 150, "CUT ON THE WAY PAST", "#c8a8e0", 15);
+        playSfx("slash", 0.8);
+      }
+      return "ignored";
+    }
+  }
+
   // A landed hit shakes any grab apart (?throw=true): striking the grabber
   // frees their victim, and a third party striking the victim knocks them out
   // of the hands holding them. The holder's own pummel is exempt (grab.js).
@@ -1040,6 +1085,11 @@ export function applyHit(owner, target, hit, source) {
   if (owner.char.passive.id === "tideBorn" && target.statuses.drench > 0) dmg *= 1.15;
   // Kashimo hits a charged target harder — the static he planted completes his circuit.
   if (owner.char.passive.id === "galvanize" && target.statuses.charge > 0) dmg *= 1.15;
+  // Miwa's iai: a strike begun from stillness is the whole art.
+  if (owner.char.passive.id === "battoSense" && source === "melee" && (owner.stillT || 0) > 0.5) {
+    dmg *= 1.2;
+    popup(target.x, target.y - 172, "IAI", "#8fd0ea", 18);
+  }
   // Yaga's corpses watch over their maker: while one of his stands, he takes less.
   if (target.char.passive.id === "dollMaker" &&
       state.entities.some((e) => e.kind === "summon" && e.owner === target && !e.dead && e.vanishT <= 0)) {
@@ -1197,6 +1247,12 @@ export function applyHit(owner, target, hit, source) {
   playSfx(hit.sfx === "melee" ? "punch" : hit.sfx || "punch", Math.min(1.05, 0.7 + dmg / 26));
 
   applyStatus(hit.effect, owner, target, { stunBonus: hit.stunBonus });
+
+  // Complete Southern Cross (Kirara): while the full chart is held, everything
+  // they land sets a star, whatever the move's own effect was.
+  if (owner.installs && owner.installs.markOnHit) {
+    applyStatus(owner.installs.markOnHit, owner, target);
+  }
 
   // Rika echoes Yuta's blows during Full Manifestation
   if (owner.installs && owner.installs.echoDamage && source === "melee") {

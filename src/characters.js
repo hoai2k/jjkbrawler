@@ -1,4 +1,4 @@
-// All 27 fighters — plus three staged ones at the bottom of the table who are
+// All 27 fighters — plus seven staged ones at the bottom of the table who are
 // not on the roster yet: stats, sprite-frame mappings, attack profiles,
 // specials, ultimates, passives. Design rationale for every kit lives in
 // docs/characters.md.
@@ -56,7 +56,12 @@ import { SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL } from ".
 // Palace). Their kits are live and testable via tools/smoke_staged.mjs and the
 // sprite workbench lists them; their art is round 22B–22H in
 // docs/asset-requests.md.
-export const STAGED_CHARACTER_KEYS = ["kashimo", "yaga", "naoya"];
+//
+// Round 24 stages four more: Kirara (the `starMark` status and the
+// approach-repulsion rule), Haruta (the Miracles auto-dodge stock), Tengen
+// (barrier summons, passive regeneration) and Miwa (the third Simple Domain
+// and the iai stillness bonus). Their art is round 23 in docs/asset-requests.md.
+export const STAGED_CHARACTER_KEYS = ["kashimo", "yaga", "naoya", "kirara", "haruta", "tengen", "miwa"];
 
 // Sentinel selection meaning "draw a fresh fighter at the start of every match"
 // rather than naming one. Never a key in CHARACTERS — resolve it through
@@ -1723,6 +1728,181 @@ export const CHARACTERS = {
     }],
     passive: { id: "projection", name: "Projection Sorcery", desc: "His movement is pre-choreographed at 24 frames a second: sustained sprinting winds him up to +24% speed, and his path is drawn as the frames he planned." },
     ai: { style: "rush", range: 240 },
+  },
+
+  // ================================================================ ROUND 24
+  // Four more staged the same way — Kirara (the starMark status and the
+  // approach-repulsion rule), Haruta (the Miracles auto-dodge stock), Tengen
+  // (barrier walls and passive immortality) and Miwa (the third Simple Domain,
+  // and the iai stillness bonus). Art is round 23 in docs/asset-requests.md.
+
+  // ---------------------------------------------------------------- KIRARA
+  kirara: {
+    name: "Kirara",
+    fullName: "Kirara Hoshi",
+    epithet: "The Gatekeeper",
+    heightCm: 172,     // estimated ("young and slender"; none published)
+    theme: "#d9a8ff",
+    shadow: "rgba(217, 168, 255, 0.36)",
+    scale: 0.60,
+    stats: { speed: 430, airSpeed: 330, accel: 2700, jump: 845, airJumps: 1, weight: 0.92, friction: 0.85 },
+    anims: SEMANTIC_ANIMS,
+    // Love Rendezvous marks by TOUCH, so the normals are how the chart gets
+    // drawn: every landed blow sets a star (see `starMark`, combat.js), and the
+    // passive's approach rule does the rest.
+    light: { dmg: 7.5, speed: 1.08, angle: 0.3, effect: "starMark", label: "Star Scratch", sfx: "punch" },
+    heavy: { dmg: 14, speed: 1.02, angle: 0.44, effect: "starMark", label: "Gatekeeper's Heel", sfx: "punch", shieldMul: 1.5 },
+    specials: {
+      neutral: {
+        name: "Love Rendezvous", type: "projectile", cooldown: 0.9,
+        desc: "A star sigil cast down the lane. It marks what it touches — and a marked body answers to the chart.",
+        p: { speed: 640, vy: -2, r: 24, dur: 0.8, dmg: 7, base: 260, growth: 5.2, angle: 0.32, color: "#d9a8ff", effect: "starMark", ox: 60, oy: -90, label: "Love Rendezvous", sprite: "effect:star_bolt", spriteH: 64 },
+      },
+      side: {
+        name: "Same Star: Debris", type: "projectile", cooldown: 1.25,
+        desc: "The attraction half of the chart: loose debris marked with the enemy's own star, thrown — and same stars are drawn together, so it hunts them.",
+        p: { speed: 520, vy: -60, gravity: 160, r: 26, dur: 1.1, dmg: 11, base: 360, growth: 6.6, angle: 0.4, color: "#d9a8ff", seekStatus: "starMark", seekRate: 8, ox: 56, oy: -96, label: "Same Star", sprite: "effect:star_debris", spriteH: 70 },
+      },
+      down: {
+        name: "Southern Cross", type: "constellation", cooldown: 2.6,
+        desc: "The full constellation, invoked: every star on the target flares at once and the chart hurls them away from the point they were forbidden to approach.",
+        p: { dmgPerMark: 5, base: 240, growthPerMark: 1.8, basePerMark: 90, angle: 0.42, color: "#d9a8ff", label: "Southern Cross" },
+      },
+    },
+    ultimate: {
+      name: "Complete Southern Cross", type: "install",
+      desc: "All five stars, held at once — Imai included, the faint one nobody counts. Everything they touch is marked, and the whole stage answers to the chart.",
+      p: { duration: 8, dmgMul: 1.15, markOnHit: "starMark", starField: 1.6, color: "#d9a8ff", label: "COMPLETE SOUTHERN CROSS", aura: "effect:aura_star" },
+    },
+    passive: { id: "loveRendezvous", name: "Love Rendezvous", desc: "A marked body cannot approach them: closing the distance on Kirara while carrying a star is answered with repulsion — harder the closer they get." },
+    ai: { style: "zoner", range: 320 },
+  },
+
+  // ---------------------------------------------------------------- HARUTA
+  haruta: {
+    name: "Haruta",
+    fullName: "Haruta Shigemo",
+    epithet: "The Lucky Coward",
+    heightCm: 168,     // estimated ("short and slightly muscular"; none published)
+    theme: "#c8a8e0",
+    shadow: "rgba(200, 168, 224, 0.34)",
+    scale: 0.60,
+    stats: { speed: 424, airSpeed: 318, accel: 2650, jump: 840, airJumps: 1, weight: 0.9, friction: 0.84 },
+    anims: SEMANTIC_ANIMS,
+    // No discipline, no stance — a murderer's swings with a cursed tool doing
+    // the aiming for him. The kit's real power is the passive.
+    light: { dmg: 8, speed: 1.08, angle: 0.3, effect: null, label: "Hand Sword", sfx: "slash" },
+    heavy: { dmg: 14.5, speed: 1.02, angle: 0.44, effect: "bleed", label: "Coward's Cleave", sfx: "slashHeavy", shieldMul: 1.5 },
+    specials: {
+      neutral: {
+        name: "Hand Sword: Fist Launch", type: "boomerang", cooldown: 1.3,
+        desc: "The sword's hilt is a sculpted hand, and it is half alive: launched crawling down the lane, then it drags itself back to him through everything on the way.",
+        p: { speed: 620, returnAt: 0.4, r: 26, dur: 0.42, dmg: 9, base: 320, growth: 6.0, angle: 0.3, color: "#c8a8e0", effect: "bleed", ox: 58, oy: -88, label: "Hand Sword", sprite: "effect:hand_sword", spriteH: 56, returnDmg: 11, returnBase: 380 },
+      },
+      side: {
+        name: "Sneak Attack", type: "feint", cooldown: 1.4,
+        desc: "He flinches away — and the flinch was the setup. The lunge comes from the retreat, which is the only direction he has ever been honest about.",
+        p: { iframes: 0.3, lunge: 580, delay: 0.04, dur: 0.18, ox: 56, oy: -96, w: 180, h: 104, dmg: 13, base: 430, growth: 7.0, angle: 0.34, color: "#c8a8e0", label: "Sneak Attack" },
+      },
+      down: {
+        name: "Grovel", type: "playDead", cooldown: 6,
+        desc: "Flat on the ground, hands over his head, entirely sincere. Cosmically, disgustingly, it works: the moment passes him by and another small miracle goes in the bank.",
+        p: { iframes: 0.7, heal: 3, color: "#c8a8e0" },
+      },
+    },
+    ultimate: {
+      name: "11:11 — Every Miracle at Once", type: "install",
+      desc: "Every clock he ever glanced at, spent in one go: for a few seconds his luck is a solid object. Nothing lands on him, and everything that tries gets cut on the way past.",
+      p: { duration: 7, speedMul: 1.2, miracleSurge: true, color: "#c8a8e0", label: "11:11", aura: "effect:aura_lilac" },
+    },
+    passive: { id: "miracles", name: "Miracles", desc: "Small miracles bank themselves under his eyes — one every nine seconds, three at most — and a blow that should land instead spends one: his body is yanked out of the way without him ever knowing." },
+    ai: { style: "balanced", range: 260 },
+  },
+
+  // ---------------------------------------------------------------- TENGEN
+  tengen: {
+    name: "Tengen",
+    fullName: "Master Tengen",
+    epithet: "The Immortal",
+    heightCm: 175,     // estimated (an evolved body; none published)
+    theme: "#d6cfae",
+    shadow: "rgba(214, 207, 174, 0.34)",
+    scale: 0.60,
+    stats: { speed: 336, airSpeed: 262, accel: 2100, jump: 780, airJumps: 1, weight: 1.2, friction: 0.78 },
+    anims: SEMANTIC_ANIMS,
+    // Tengen does not really fight, which is the design: weak hands, absolute
+    // space. The barriers are the kit; the palms are for whoever ignores them.
+    light: { dmg: 7, speed: 0.95, angle: 0.32, effect: null, label: "Barrier Palm", sfx: "punch" },
+    heavy: { dmg: 13.5, speed: 0.9, angle: 0.46, effect: null, label: "Pure Barrier Slam", sfx: "blast", shieldMul: 2.0 },
+    specials: {
+      neutral: {
+        name: "Barrier Pulse", type: "shout", cooldown: 1.3,
+        desc: "A wall of pure barrier shoved outward in one beat. Little of it is damage; most of it is the word NO.",
+        p: { ox: 30, oy: -120, w: 280, h: 180, dmg: 7, base: 560, growth: 7.6, angle: 0.5, color: "#d6cfae" },
+      },
+      side: {
+        name: "Pure Barrier", type: "summon", cooldown: 5.5,
+        desc: "A standing pane of barrier with no interior conditions — it wants nothing, asks nothing, and nothing gets through it.",
+        p: {
+          id: "pureBarrier", behavior: "chaser", duration: 8, speed: 0, maxActive: 2,
+          color: "#d6cfae", h: 150, hp: 90, hitW: 84, hitH: 150, standOff: 0, knockTake: 0,
+          sprites: ["summon:pure_barrier"],
+          attack: { dmg: 2, base: 340, growth: 4.0, angle: 0.5, cd: 0.9, sfx: "shield" },
+        },
+      },
+      down: {
+        name: "Star Corridor", type: "shadowPort", cooldown: 2.6,
+        desc: "The Tomb's trick: the corridor moves so it can never be found. For a moment, so do they.",
+        p: { dist: 340, iframes: 0.5, color: "#d6cfae" },
+      },
+    },
+    ultimate: {
+      name: "Tomb of the Star Corridor", type: "concert",
+      desc: "The sanctuary raised around the fight: a shifting barrier hall that grinds everything caught inside it, and closes with the whole structure clapping shut.",
+      p: { duration: 5.5, tickRate: 0.5, dmgTick: 3, finalDmg: 16, finalBase: 720, finalGrowth: 9, radius: 260, color: "#d6cfae", label: "TOMB OF THE STAR", sprite: "effect:star_tomb", spriteH: 300 },
+    },
+    passive: { id: "immortality", name: "Immortality", desc: "Not eternal youth — the body simply refuses to die: wounds knit constantly, without channelling, whether or not anyone lets them." },
+    ai: { style: "zoner", range: 380 },
+  },
+
+  // ------------------------------------------------------------------ MIWA
+  miwa: {
+    name: "Miwa",
+    fullName: "Kasumi Miwa",
+    epithet: "Useless Miwa",
+    heightCm: 162,     // cited (fanbook figure widely quoted; unverified)
+    theme: "#8fd0ea",
+    shadow: "rgba(143, 208, 234, 0.34)",
+    scale: 0.60,
+    stats: { speed: 426, airSpeed: 320, accel: 2680, jump: 840, airJumps: 1, weight: 0.95, friction: 0.85 },
+    anims: SEMANTIC_ANIMS,
+    light: { dmg: 8, speed: 1.05, angle: 0.3, effect: null, label: "Batto Combo", sfx: "slash" },
+    heavy: { dmg: 15, speed: 1.0, angle: 0.44, effect: null, label: "Quick-Draw Arc", sfx: "slashHeavy", shieldMul: 1.8 },
+    specials: {
+      neutral: {
+        name: "Batto Sword Drawing", type: "dashStrike", cooldown: 1.2,
+        desc: "The fastest strike in the New Shadow Style: sheathed, then already past you. Everything she has is fundamentals, and this is the fundamental.",
+        p: { vel: 640, iframes: 0.08, delay: 0.04, dur: 0.2, ox: 66, oy: -94, w: 200, h: 100, dmg: 14, base: 440, growth: 7.2, angle: 0.3, color: "#8fd0ea", label: "Batto", sfx: "slashHeavy" },
+      },
+      side: {
+        name: "Sheathed Stance", type: "counter", cooldown: 2.2,
+        desc: "Hand on the hilt, weight settled, waiting. The draw is faster than the thing that triggers it.",
+        p: { window: 0.6, dmg: 13, base: 430, growth: 7.0, angle: 0.45, counterName: "BATTO!", color: "#8fd0ea" },
+      },
+      down: {
+        name: "New Shadow Style: Simple Domain", type: "simpleDomain", cooldown: 4.2,
+        domainButton: true,
+        desc: "The 2.21-metre circle, cast properly for once — she is the style's actual student. Anything that enters is cut faster than she can decide to cut it, and a domain's sure hit stops being sure.",
+        p: { duration: 1.8, dmg: 12, base: 420, growth: 7.0, angle: 0.45, radius: 150, color: "#d8f2ff" },
+      },
+    },
+    ultimate: {
+      name: "Binding Vow: The Last Draw", type: "massDrive",
+      desc: "Everything she was ever going to be as a swordswoman, staked on one draw. The wind-up is the vow being spoken; the cut is everything it bought.",
+      p: { charge: 0.6, dmg: 30, base: 920, growth: 11, radius: 200, shockwave: 320, color: "#8fd0ea", label: "THE LAST DRAW", sprite: "effect:batto_flash", spriteH: 260 },
+    },
+    passive: { id: "battoSense", name: "Iai", desc: "The first cut is the whole art: a strike begun from stillness — half a second without moving her feet — lands 20% harder." },
+    ai: { style: "balanced", range: 240 },
   },
 };
 
