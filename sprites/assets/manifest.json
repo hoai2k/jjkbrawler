@@ -41697,16 +41697,10 @@
     "ox": -7.8,
     "oy": -806,
     "bodyBottom": 251.0,
-    "bodyH": 279.2,
+    "bodyH": 287.6,
     "centroidX": 136.3,
-    "renderScale": 0.25,
+    "renderScale": 0.2575,
     "file": "kashimo/idle_a.png",
-    "replaced": {
-     "at": "2026-08-18T18:16:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 370,
@@ -41714,8 +41708,8 @@
     "coreRight": 307.2,
     "anchors": {
      "com": [
-      165.1,
-      469.1
+      207.0,
+      443.3
      ]
     },
     "autoTuned": {
@@ -41724,6 +41718,9 @@
       "bodyBottom": "foot=0.946 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "idle_b": {
@@ -41732,16 +41729,10 @@
     "ox": -11.7,
     "oy": -809,
     "bodyBottom": 250.8,
-    "bodyH": 279.2,
+    "bodyH": 289.0,
     "centroidX": 139.2,
-    "renderScale": 0.249,
+    "renderScale": 0.2577,
     "file": "kashimo/idle_b.png",
-    "replaced": {
-     "at": "2026-08-18T18:16:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 372,
@@ -41749,8 +41740,8 @@
     "coreRight": 308.0,
     "anchors": {
      "com": [
-      168.4,
-      471.9
+      217.4,
+      450.4
      ]
     },
     "autoTuned": {
@@ -41761,6 +41752,9 @@
       "renderScale": "idle is uniform",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.249
     }
    },
    "jump_rise": {
@@ -42964,12 +42958,6 @@
     "centroidX": 149.3,
     "renderScale": 0.25,
     "file": "naoya/idle_a.png",
-    "replaced": {
-     "at": "2026-08-18T18:16:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 382,
@@ -42977,8 +42965,8 @@
     "coreRight": 340.7,
     "anchors": {
      "com": [
-      185.5,
-      548.4
+      218.7,
+      496.2
      ]
     },
     "autoTuned": {
@@ -42999,12 +42987,6 @@
     "centroidX": 130.9,
     "renderScale": 0.248,
     "file": "naoya/idle_b.png",
-    "replaced": {
-     "at": "2026-08-18T18:16:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 685,
@@ -43012,8 +42994,8 @@
     "coreRight": 604.0,
     "anchors": {
      "com": [
-      317.6,
-      577.4
+      322.7,
+      484.1
      ]
     },
     "autoTuned": {
@@ -44229,12 +44211,6 @@
     "centroidX": 142.4,
     "renderScale": 0.25,
     "file": "yaga/idle_a.png",
-    "replaced": {
-     "at": "2026-08-18T18:16:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 366,
@@ -44242,8 +44218,8 @@
     "coreRight": 310.8,
     "anchors": {
      "com": [
-      167.6,
-      519.3
+      204.7,
+      471.7
      ]
     },
     "autoTuned": {
@@ -44264,12 +44240,6 @@
     "centroidX": 127.6,
     "renderScale": 0.25,
     "file": "yaga/idle_b.png",
-    "replaced": {
-     "at": "2026-08-18T18:16:22+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 452,
@@ -44277,8 +44247,8 @@
     "coreRight": 377.7,
     "anchors": {
      "com": [
-      197.2,
-      512.6
+      241.4,
+      465.8
      ]
     },
     "autoTuned": {
@@ -67651,7 +67621,8 @@
   "yuji": 270.88,
   "dagon": 321.63,
   "mechamaru": 360.68,
-  "kurourushi": 348.9
+  "kurourushi": 348.9,
+  "kashimo": 264.25
  },
  "otherSprites": {
   "effect:aura_chitin": {

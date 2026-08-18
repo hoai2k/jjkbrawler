@@ -1850,6 +1850,15 @@ function render() {
   // when the move paints on the caster, and off at the benchmark inset when
   // there is nothing to be relative to.
   const fighterX = comparison && sharedV ? referenceX(sharedV) : null;
+  // A FIGHTER'S OWN COMPARISON, which is the case this slot exists for: their
+  // idle standing beside the pose, because a pose is read against the idle and
+  // nothing else. It is drawn here, before the pose, exactly where it used to
+  // be — the shared-art branch below needs the reference painted AFTER the
+  // drawing to get the game's paint order, and moving the one call in there to
+  // do that (#61) left every ordinary fighter with no comparison at all. Two
+  // call sites because the two cases genuinely differ in order, not one call
+  // site that has to be right for both.
+  if (comparison && !isOther(state.char)) drawComparison(comparison);
   // Overlaid, and only overlaid: within one sprite set the question is whether
   // this pose lines up with the character's own idle, and that is only readable
   // when the two occupy the same space. Standing it aside is the Comparison
