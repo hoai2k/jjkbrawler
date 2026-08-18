@@ -27,7 +27,8 @@ them; these files are where each is written.)
 then 22A and 22E–22H (the roster teeter, six technique effects, four dolls,
 three hero cards, one domain backdrop — 41 assets) have all landed and are
 [in the history](asset-requests-history.md#round-22a-and-22e22h--the-teeter-the-effects-the-summons-the-cards-and-the-backdrop-delivered).
-What is left of it is **22I**, the four frames its own review boards rejected.
+What is left of it is **22I**, the ten frames its own review boards rejected —
+six of them the same wind-up fault across Yaga's and Naoya's attack pairs.
 Round 23 — round 24's four staged fighters — is untouched. Nothing in either
 round is blocking: all seven fighters are staged, and Kashimo, Yaga and Naoya
 now have their full set, effects, cards and (for Naoya) a domain backdrop, so
@@ -67,7 +68,7 @@ round 11 finished the conversion that round 5 started, so the 4×5 sprite sheet
 is retired and no action anywhere plays a grid cell. Nothing outstanding blocks
 play.
 
-Read **[pose-brief.md](../sprites/docs/pose-brief.md)** before drawing a fighter. It is the
+Read **[pose-brief.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/docs/pose-brief.md)** before drawing a fighter. It is the
 standing brief — what every pose has to be, the four criteria the engine
 measures, and the faults that have each cost the roster a re-request — and it is
 cumulative, so it is the reason a new set should arrive better than the last one.
@@ -381,19 +382,30 @@ single addition: **no drawn shadow of any kind** — the game casts its own.
 
 # Round 22 — open
 
-## 22I. Four frames the round-22 boards rejected — 4 sprites
+## 22I. Ten frames the round-22 boards rejected — 10 sprites
 
-The faults found reviewing round 22 — three from the 22B–22D sprite sets and
+The faults found reviewing round 22 — nine from the 22B–22D sprite sets and
 one from the teeter. Everything else in those deliveries is in the game; these
-four are in it too, drawing what was delivered, and flagged in the workbench so
+ten are in it too, drawing what was delivered, and flagged in the workbench so
 they are visible while they wait. Same character blocks, same key screens, same
 delivery paths as the sets they belong to.
+
+**Six of them are one fault**, and it is the reason the brief now measures the
+wind-up: every `attack_*_a` in the round was drawn already mid-strike. The `_a`
+rule restated at the head of round 23 applies to these redraws too, and both
+halves of the pair have to pass the ruler.
 
 | File | Fighter | What is wrong, and what to draw |
 |---|---|---|
 | `kashimo/special_side.png` | Kashimo | **Costume, not pose.** The action is right — the staff has already left his hand and the throwing arm is extended, which is exactly Nyoi Recall. But the costume drifts from his own `idle_a`: he is wearing **black boots and a navy waist sash**, and the **white knee-to-ankle bandage wraps are missing**. Redraw the same pose with the pale grey ankle boots, the leg wraps, and no sash — match `kashimo/idle_a.png`, which is now his canonical reference |
 | `yaga/crouch_a.png` | Yaga | **A fighting stance, not a crouch.** Knees barely bent, head dropping about a tenth of standing height where the brief asks for a quarter. Draw an actual crouch: hips down, head low, weight settled — `naoya/crouch_a.png` from the same delivery is what it should read like |
 | `yaga/crouch_b.png` | Yaga | Same fault, same fix. It is currently the wider half of one guard stance rather than the second beat of a crouch; it must also read as *lower than standing*, which it does not |
+| `naoya/attack_light_a.png` | Naoya | **The wind-up is already the strike.** Drawn mid-blow, so the light attack has no coil and no tell. Redraw as the coil: striking hand drawn back beside the body, shoulders turned away from the target, weight on the back foot, lead arm up as a guard. It must reach **no further forward than `naoya/idle_a.png`** |
+| `naoya/attack_heavy_a.png` | Naoya | Same fault. Redraw as the wind-up of one committed blow: fist drawn as far back as the body allows, hips loaded, front foot light — and inside the idle's reach |
+| `naoya/attack_air_a.png` | Naoya | Same fault, airborne. Body coiled mid-jump, striking limb cocked, legs gathered — the extension belongs to `attack_air_b` |
+| `yaga/attack_light_a.png` | Yaga | Same fault as Naoya's, same fix, against `yaga/idle_a.png` |
+| `yaga/attack_heavy_a.png` | Yaga | Same fault. It is standing in on his `guard` frame in the workbench meanwhile, which is a stopgap and not a wind-up — the delivered plate needs redrawing as the coil |
+| `yaga/attack_air_a.png` | Yaga | Same fault, airborne |
 | `nanami/teeter.png` | Nanami | **Framing.** The pose is right — weight back, arms out, head down toward the drop — but his blunt blade runs off the LEFT edge of the plate and is cut flat by the canvas. The delivery spec's "nothing may touch the canvas edge" rule, and the "reach falls off the canvas" fault the brief has named since round 13. Redraw the same pose with margin on all four sides so the blade finishes inside the frame |
 
 **A promoted fighter owes a teeter.** 22A drew the pose for the roster of 27;
@@ -428,9 +440,19 @@ The same two standing rules, restated so this round is self-contained:
 every reference below is an absolute URL. The character blocks to use verbatim
 are the `kirara`, `haruta`, `tengen` and `miwa` rows of the table above.
 
+**The `_a` of an attack pair is the WIND-UP, and it must not extend.** Restated
+here rather than left to the link, because the link is what has not been
+reaching: `attack_light_a`, `attack_heavy_a`, `attack_air_a` and
+`crouch_attack_a` are the coil — striking hand or weapon drawn BACK, shoulders
+turned away from the target, weight on the back foot. The `_b` is the blow. Both
+halves are checkable with a ruler and both have to pass: `_a` reaches no further
+forward than that fighter's own `idle_a`, and `_b` reaches further than `_a`.
+Round 22B–22D came back with all nine wind-ups already mid-strike, on three
+fighters at once, which is what this paragraph exists to stop.
+
 **Work idle-first — the `idle_a` is its own delivery.** Generate each
 fighter's `idle_a` alone first (plain, square-on stance per
-[pose-brief.md](../sprites/docs/pose-brief.md)); intake and approve it in the
+[pose-brief.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/docs/pose-brief.md)); intake and approve it in the
 sprite workbench; run `tools/build_canon_reference.py`; then generate the
 other 35 poses **against that approved idle**, so costume, proportions,
 palette, line weight and shading stay locked across the set. Once the idles
@@ -443,7 +465,7 @@ land on `main` they resolve at:
 
 ## 23A. Kirara's sprite set — 36 sprites
 
-The standard 36-pose semantic set ([pose-brief.md](../sprites/docs/pose-brief.md)
+The standard 36-pose semantic set ([pose-brief.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/docs/pose-brief.md)
 first, especially the reach rules).
 
 **Canonical reference (absolute):**
