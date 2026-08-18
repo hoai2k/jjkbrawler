@@ -25,6 +25,12 @@ offered up to be sized. Those have no intake marker to remove, so reviewing one
 as it stands writes `surfacedReviewed` instead; adjusting one clears it, the
 same way an adjustment clears `replaced`.
 
+Shared drawings (`character: "__other"`) reach that list by a third route — the
+game draws them and nobody has ever set a number against them — and leave it by
+the same `clearUpdated`, written into `otherSprites` beside the placement
+fields. Their entry is created if it does not exist, because "has no entry" is
+precisely what put them on the list.
+
 Usage:
   python3 apply_sprite_adjustments.py patch.json [more.json ...]
   pbpaste | python3 apply_sprite_adjustments.py -        # straight from clipboard
@@ -269,6 +275,15 @@ def main():
             # src/shared_sprites.js.
             frames = man.setdefault("otherSprites", {})
             for key in (payload.get("adjustments") or {}):
+                frames.setdefault(key, {})
+            # A shared drawing nobody has ever tuned has no entry here at all —
+            # that is the promise `rawMeta` keeps, an untouched sprite adds
+            # nothing to the file — and those are exactly the ones the to-do
+            # list is made of. Reviewing one has to be able to CREATE its entry,
+            # or the only drawings that could be marked reviewed were the ones
+            # already carrying numbers, and `stagefx:stage_flower` would be
+            # reported as "not in manifest" and left on the list forever.
+            for key in (payload.get("clearUpdated") or []):
                 frames.setdefault(key, {})
         else:
             frames = man["characters"].get(char)

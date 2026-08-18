@@ -493,6 +493,34 @@ if (updated.poses) {
     "and the panel explains what the round overwrote");
 }
 
+// A SHARED DRAWING ON THE LIST HAS A WAY OFF IT. The list carries effect and
+// summon art the game draws that nobody has ever placed a number on, and the
+// panel tells the reader to mark it reviewed if it is already right — while the
+// button that does that was hidden for the whole shared set, a gate written
+// before those entries could exist. So: select one, check the button is
+// offered, and check that pressing it reaches the export rather than only
+// dimming the cell.
+const sharedEntry = await page.evaluate(() =>
+  window.__spriteWorkbench.recentUpdates().find((e) => e.char === "__other")?.frame || null);
+if (sharedEntry) {
+  await page.evaluate((frame) => {
+    [...document.querySelectorAll("#poseList button")]
+      .find((b) => b.title.startsWith(`__other/${frame}`))?.click();
+  }, sharedEntry);
+  await page.waitForTimeout(400);
+  check(await page.evaluate(() => !document.getElementById("updatedClearGroup").hidden),
+    "a shared drawing on the updated list can be marked reviewed", sharedEntry);
+  await page.click("#updatedClear");
+  await page.waitForTimeout(300);
+  check(await page.evaluate((frame) =>
+    (window.__spriteWorkbench.payloadFor("__other")?.clearUpdated || []).includes(frame), sharedEntry),
+    "...and the review travels in the export", sharedEntry);
+  check(await page.evaluate(() =>
+    /put it back/i.test(document.getElementById("updatedClear").textContent)),
+    "...and can be undone from the same button");
+  await page.click("#updatedClear");
+}
+
 // ---- its sibling: the cross-character flagged list
 //
 // Same shape, opposite direction — what was sent back rather than what arrived.
