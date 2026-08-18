@@ -558,8 +558,9 @@ and cursed speech — a body with no cursed energy to curse. Choso is immune to
 bleed and poison; Dagon cannot be soaked and Kurourushi cannot be infested or
 blinded, which only ever comes up in a mirror match.
 
-Every status here is reachable in a match: the last three belonged to staged
-fighters until Dagon and then Kurourushi shipped, and nothing is staged now.
+Every status here is reachable in a match: several of them belonged to staged
+fighters — Dagon's and Kurourushi's, then the seven of rounds 23 and 24 — and
+every one of those fighters has since shipped, so nothing is staged now.
 
 ## 6. Stages & camera
 

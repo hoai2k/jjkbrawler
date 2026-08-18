@@ -12,9 +12,9 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**30 images outstanding.**
+**37 images outstanding.**
 
-- **The sprite game** — 30 images, round 22
+- **The sprite game** — 37 images, round 22
 - **The live-3D anime path** — 0 images
 
 ## Rules that hold everywhere here
@@ -45,11 +45,12 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**30 images, round 22.** Authored in
+**37 images, round 22.** Authored in
 [docs/asset-requests.md](asset-requests.md) and reproduced whole below.
 
 - **22I** — Seven frames the round-22 boards rejected (7 sprites)
 - **22J** — Everything else the workbench has flagged (23 sprites)
+- **22K** — A teeter for the seven newly promoted (7 sprites)
 
 ## 22I. Seven frames the round-22 boards rejected — 7 sprites
 
@@ -81,15 +82,6 @@ too, and both halves of the pair have to pass the ruler.
 | `yaga/attack_heavy_a.png` | Yaga | Same fault. It is standing in on his `guard` frame in the workbench meanwhile, which is a stopgap and not a wind-up — the delivered plate needs redrawing as the coil |
 | `yaga/attack_air_a.png` | Yaga | Same fault, airborne |
 | `nanami/teeter.png` | Nanami | **Framing.** The pose is right — weight back, arms out, head down toward the drop — but his blunt blade runs off the LEFT edge of the plate and is cut flat by the canvas. The delivery spec's "nothing may touch the canvas edge" rule, and the "reach falls off the canvas" fault the brief has named since round 13. Redraw the same pose with margin on all four sides so the blade finishes inside the frame |
-
-**A promoted fighter owes a teeter.** 22A drew the pose for the roster of 27;
-the seven staged fighters were not in it, and until each is promoted their
-teeter falls back to their idle frames with the procedural lean `src/motion.js`
-supplies — which is what the whole roster did before 22A landed, so nothing is
-broken. But promoting one without drawing it leaves that fighter the only one
-on the select screen with no teeter drawing, so it belongs in the round that
-promotes them: **`teeter` for `kashimo`, `yaga`, `naoya`, `kirara`, `haruta`,
-`tengen` and `miwa`**, one sprite each, on the 22A brief.
 
 **Kashimo's canonical reference is now his own idle**, not the wiki render —
 36 poses landed, so the rule that governs every other fighter applies to him:
@@ -154,93 +146,40 @@ the figures on either sheet is a dizzy pose — they are idles, draws, crouches
 and slashes. Both are re-requests, and both draw the fighter's `hurt` frame
 meanwhile, which is the closest read the set has.
 
-# Round 23 — open
+## 22K. A teeter for the seven newly promoted — 7 sprites
 
-**Round 24's four staged fighters — Kirara Hoshi, Haruta Shigemo, Master
-Tengen and Kasumi Miwa.** A separate round from 22 on purpose: 22's sets are
-already being generated, and a delivery needs to say which batch it answers.
-Everything about round 22B–22H's shape holds here unchanged — the kits are
-live in code (`STAGED_CHARACTER_KEYS`), both workbenches list the four as
-*(not on the roster yet)*, nothing blocks on this art, and the design
-rationale is the round-24 section of [characters.md](characters.md).
+22A drew this pose for the roster of 27. The seven fighters staged behind
+rounds 23 and 24 were deliberately not in it, because none of them was on the
+select screen yet; all seven are now, which makes them the only fighters in the
+game without a teeter drawing.
 
-The same two standing rules, restated so this round is self-contained:
+**Nothing is broken meanwhile.** The state falls back to the fighter's own idle
+frames with the procedural lean `src/motion.js` supplies — exactly what the
+whole roster did before 22A landed — so this upgrades a read that already
+exists.
 
-**Absolute URLs.** This batch is expected to be generated outside the repo, so
-every reference below is an absolute URL. The character blocks to use verbatim
-are the `kirara`, `haruta`, `tengen` and `miwa` rows of the table above.
+**The brief is 22A's, unchanged**: a standing pose, weight shifted BACK from the
+drop, arms out for balance, front foot at or just over the lip, head turned down
+toward the fall. Caught rather than alarmed — the moment after realising the
+ground ran out. It has to read against that fighter's own idle at a glance,
+which is the test. Drawn facing RIGHT with the drop on the right, like every
+other pose; the engine mirrors it for the left-hand lip.
 
-**The `_a` of an attack pair is the WIND-UP, and the pair has to OPEN.**
-Restated here rather than left to the link, because the link is what has not
-been reaching: `attack_light_a`, `attack_heavy_a`, `attack_air_a` and
-`crouch_attack_a` are the coil — striking hand or weapon drawn BACK, shoulders
-turned away from the target, weight on the back foot. The `_b` is the blow.
+Each fighter's own `idle_a` is the canon for costume, proportions and palette:
 
-The check is one comparison, and it is between the two frames rather than
-against anything else: **`_b` must reach further forward than its own `_a`, by
-at least 0.05 of the fighter's standing height** — the shipped roster's median
-pair opens by 0.10. Both frames are drawn at one zoom, so this needs no
-placement; `python3 tools/audit_windup.py` measures every pair in the game.
+| Sprite | Fighter | Idle to draw against |
+|---|---|---|
+| `kashimo/teeter.png` | Kashimo | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kashimo/idle_a.png> |
+| `yaga/teeter.png` | Yaga | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yaga/idle_a.png> |
+| `naoya/teeter.png` | Naoya | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/idle_a.png> |
+| `kirara/teeter.png` | Kirara | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kirara/idle_a.png> |
+| `haruta/teeter.png` | Haruta | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/haruta/idle_a.png> |
+| `tengen/teeter.png` | Tengen | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/tengen/idle_a.png> |
+| `miwa/teeter.png` | Miwa | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/miwa/idle_a.png> |
 
-Two ways round 22 broke it, and they have different fixes. Six of Yaga's and
-Naoya's wind-ups were drawn about as extended as their own strikes — those need
-redrawing. Kashimo's aerial pair was drawn correctly and delivered INVERTED,
-the two filenames the wrong way round; that one is a swap, not a redraw.
-
-**Work idle-first — the `idle_a` is its own delivery.** Generate each
-fighter's `idle_a` alone first (plain, square-on stance per
-[pose-brief.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/docs/pose-brief.md)); intake and approve it in the
-sprite workbench; run `tools/build_canon_reference.py`; then generate the
-other 35 poses **against that approved idle**, so costume, proportions,
-palette, line weight and shading stay locked across the set. Once the idles
-land on `main` they resolve at:
-
-- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kirara_idle.png>
-- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/haruta_idle.png>
-- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/tengen_idle.png>
-- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/miwa_idle.png>
-
-# Round 20 — delivered
-
-**All four requests are in.** The last of them was Yuji's own four poses, which
-landed as [20E](asset-requests-history.md#20e-yujis-four-round-20-poses--4-sprites) and are in the game:
-his grab now reads as a grab and his dash attack as a lunge, like everybody
-else's. Nothing in round 20 is outstanding.
-
-- **~~44 of the 114 summon plates hold six creatures instead of one~~** —
-  delivered. All forty-four came back as one figure each,
-  `tools/check_summon_plates.py` passes on the whole tree of 114, and the seven
-  authored hit boxes that were standing in for an unmeasurable plate came out
-  with them.
-- **~~Twenty backgrounds, re-extended from the paintings 18E replaced~~** —
-  delivered, all twenty at 3200×1800, and in the game. Each one carries its
-  source painting's composition rather than a fresh take on the brief, which is
-  the whole thing 18E got wrong and the only thing this round was asking for.
-  See [the history entry](asset-requests-history.md#20b-twenty-backgrounds-re-extended--delivered).
-- **~~The grab poses~~** and **~~the dash attack pose~~** — delivered, 26
-  fighters of 27 each, plus Mahoraga. Both are in the game: every one is a new
-  pose key, so nothing was replaced and nothing waited for an approval. A grab
-  now reads as a grab and a dash attack as a lunge, on everybody except Yuji.
-- **~~Yuji's four~~** — [20E](asset-requests-history.md#20e-yujis-four-round-20-poses--4-sprites),
-  delivered. 20C and 20D each asked for 27, one per fighter, and each arrived
-  as 27 files with Mahoraga in Yuji's place; this was the correction, and it
-  came back as the four missing drawings. Imported, anchored, and seeded a
-  pose read each — the seeder had to learn that the REFERENCE character can
-  gain frames too, since it was skipping him wholesale and he was then the one
-  fighter with unread art.
-
-Round 18 is closed and everything in it landed.
-
-**Round 18 was delivered complete** — 28 sprites and 14 near-field cards, every
-section of it, plus the five render3d image inputs (DI1–DI4). Its record, and
-the reasoning behind each request in it, is now in
-[the history](asset-requests-history.md#round-18--delivered).
-
-**Round 20 is the open round.** (19 is skipped as a request number: it was used
-for the *intake* of round 18, so `assets/reference/round19/` holds the delivered
-plates and no request ever carried that number. Reusing it would make "round 19"
-mean two different things.) Anything found from here — a placement pass, an
-approval rejection, a manifest audit — lands in 20 beside 20B.
+**Tengen is white and grey.** His delivered panes carried a magenta cast from
+the screen they were shot against and have been neutralised in place, so draw
+the robe and the barrier as white glass — nothing on him is violet.
 
 ---
 

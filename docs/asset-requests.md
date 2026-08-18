@@ -23,25 +23,27 @@ numbered DI1, DI2… — so the tracks never collide. All of them are gathered i
 them; these files are where each is written.)
 
 **Current status: rounds 1–21 delivered. Rounds 22 and 23 are open.**
-**Both rounds are nearly closed, and all seven staged fighters now have their
-art.** Round 22 delivered its three 36-pose sets (22B–22D), the roster teeter,
+**Both rounds are nearly closed, and all seven fighters staged behind rounds 23
+and 24 are on the select screen.** Round 22 delivered its three 36-pose sets (22B–22D), the roster teeter,
 the effects, the dolls, the cards and Naoya's backdrop (22A, 22E–22H); round 23
 delivered four more 36-pose sets, seven effects, Tengen's barrier and four
 hero cards, and answered three of 22I's rejects along the way. Both are
 [in the history](asset-requests-history.md#round-23--round-24s-four-staged-fighters-delivered).
 
-What is left is **30 frames**, and they are all redraws of art already in the
+What is left is **37 frames**. Thirty of them are redraws of art already in the
 game rather than anything missing: **22I** (seven — six the one wind-up fault
 across Yaga's and Naoya's attack pairs, plus `nanami/teeter`) and **22J**
 (twenty-three more the workbench has flagged, some carried since round 18).
-Plus a decision about the colour of Tengen's barrier. That total is the same
-number `tools/list_replacements.py` reports, and the two are kept equal on
-purpose: a flag with no request is work nobody can see. Nothing is
-blocking. **Every one of the seven staged fighters is now drawable** — full
-pose set, effects, hero card, and a domain backdrop for the two who have a
-domain — so any of them can be promoted whenever their owner says so. A
-promoted fighter still owes a `teeter`, which is the one pose 22A did not
-cover for them.
+That thirty is the same number `tools/list_replacements.py` reports, and the two
+are kept equal on purpose: a flag with no request is work nobody can see. The
+other seven are **22K**, the one pose the newly promoted fighters do not have.
+Nothing is blocking: every frame in all three sections is drawing something
+today.
+
+**Tengen's barrier is settled and no longer a question.** The panes arrived
+carrying the magenta screen they were shot against, which is where the violet
+came from; `tools/depurple_panes.py` takes the hue out and leaves white glass,
+so his art matches the white-and-grey figure and no redraw is owed for it.
 Round 21's walk cycle landed complete — 54 sprites, two frames for each of the
 twenty-seven — and is
 [in the history](asset-requests-history.md#round-21--the-walk-cycle).
@@ -68,8 +70,9 @@ decisions are the queue that is open now.
 **Kurourushi is shipped.** His 36-pose set, his hero card, his simplified tile
 and both his summons landed with round 15; the set was placed and approved pose
 by pose, and his key now sits in the Curses group in `src/config_menus.js`, so
-`STAGED_CHARACTER_KEYS` in `src/characters.js` is empty for the first time since
-round 15. The roster is 27 fighters. What his placement pass found became
+`STAGED_CHARACTER_KEYS` in `src/characters.js` was empty for the first time
+since round 15, and the roster was 27 fighters. (It is empty again, and the
+roster is 34: rounds 23 and 24's seven have all been promoted.) What his placement pass found became
 **18B**, now delivered.
 
 The roster is complete and **every fighter now has one sprite per action** —
@@ -413,15 +416,6 @@ too, and both halves of the pair have to pass the ruler.
 | `yaga/attack_air_a.png` | Yaga | Same fault, airborne |
 | `nanami/teeter.png` | Nanami | **Framing.** The pose is right — weight back, arms out, head down toward the drop — but his blunt blade runs off the LEFT edge of the plate and is cut flat by the canvas. The delivery spec's "nothing may touch the canvas edge" rule, and the "reach falls off the canvas" fault the brief has named since round 13. Redraw the same pose with margin on all four sides so the blade finishes inside the frame |
 
-**A promoted fighter owes a teeter.** 22A drew the pose for the roster of 27;
-the seven staged fighters were not in it, and until each is promoted their
-teeter falls back to their idle frames with the procedural lean `src/motion.js`
-supplies — which is what the whole roster did before 22A landed, so nothing is
-broken. But promoting one without drawing it leaves that fighter the only one
-on the select screen with no teeter drawing, so it belongs in the round that
-promotes them: **`teeter` for `kashimo`, `yaga`, `naoya`, `kirara`, `haruta`,
-`tengen` and `miwa`**, one sprite each, on the 22A brief.
-
 **Kashimo's canonical reference is now his own idle**, not the wiki render —
 36 poses landed, so the rule that governs every other fighter applies to him:
 
@@ -485,6 +479,72 @@ the figures on either sheet is a dizzy pose — they are idles, draws, crouches
 and slashes. Both are re-requests, and both draw the fighter's `hurt` frame
 meanwhile, which is the closest read the set has.
 
+## 22K. A teeter for the seven newly promoted — 7 sprites
+
+22A drew this pose for the roster of 27. The seven fighters staged behind
+rounds 23 and 24 were deliberately not in it, because none of them was on the
+select screen yet; all seven are now, which makes them the only fighters in the
+game without a teeter drawing.
+
+**Nothing is broken meanwhile.** The state falls back to the fighter's own idle
+frames with the procedural lean `src/motion.js` supplies — exactly what the
+whole roster did before 22A landed — so this upgrades a read that already
+exists.
+
+**The brief is 22A's, unchanged**: a standing pose, weight shifted BACK from the
+drop, arms out for balance, front foot at or just over the lip, head turned down
+toward the fall. Caught rather than alarmed — the moment after realising the
+ground ran out. It has to read against that fighter's own idle at a glance,
+which is the test. Drawn facing RIGHT with the drop on the right, like every
+other pose; the engine mirrors it for the left-hand lip.
+
+Each fighter's own `idle_a` is the canon for costume, proportions and palette:
+
+| Sprite | Fighter | Idle to draw against |
+|---|---|---|
+| `kashimo/teeter.png` | Kashimo | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kashimo/idle_a.png> |
+| `yaga/teeter.png` | Yaga | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yaga/idle_a.png> |
+| `naoya/teeter.png` | Naoya | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/idle_a.png> |
+| `kirara/teeter.png` | Kirara | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kirara/idle_a.png> |
+| `haruta/teeter.png` | Haruta | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/haruta/idle_a.png> |
+| `tengen/teeter.png` | Tengen | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/tengen/idle_a.png> |
+| `miwa/teeter.png` | Miwa | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/miwa/idle_a.png> |
+
+**Tengen is white and grey.** His delivered panes carried a magenta cast from
+the screen they were shot against and have been neutralised in place, so draw
+the robe and the barrier as white glass — nothing on him is violet.
+
+## Also outstanding, but work here rather than art
+
+Four things, and none of them is a drawing anybody owes us:
+
+- **25 poses are waiting in the approval queue.** Round 18's sprites are in the
+  repo but not in the game: each is a decision in the sprite workbench, and
+  until it is made the pose keeps drawing what it drew before. This is the
+  [approval step](../assets/intake/README.md#the-confirm-step) working as
+  intended, not a backlog. `mechamaru/run_reach_a` is the one exception — it
+  filled an empty pose rather than replacing a drawn one, so it went straight
+  in and completed his run cycle.
+- **The two alpha fixes** above — `hakari/dodge_air` and `toji/dodge_air` — are
+  repo work on delivered files, not art anybody owes us.
+- **Six variant options point at art that was retired.** `hanami_alt/` was
+  folded away when the alternate-art-set machinery went ([8843a0f]) and its
+  drawings moved to `assets/reference/hanami_alt/`, but six options in
+  `manifest["variants"]["hanami"]` still name the old path — a chevron offering
+  a file that is not there. It is also what `tools/canonicalise_sprites.py`
+  refuses on, so the step that puts canonical names back on approved art cannot
+  run until those six entries are dropped or repointed. Round 20's own sprites
+  did not need it — a new pose key lands at its canonical name — but round 18's
+  approvals do.
+- **Rejections from the approval pass** will become round 20. A pose rejected
+  at approval is pointed at another frame so the game keeps drawing something,
+  which raises no flag; [18G](asset-requests-history.md#18g-seven-a-pose-is-drawing-somebody-elses-art--7-sprites)
+  is what that costs when nobody checks, and the manifest audit that found it is
+  how the count at the top of this file is now derived.
+
+---
+
+---
 # Round 23 — open
 
 **Round 24's four staged fighters — Kirara Hoshi, Haruta Shigemo, Master
@@ -573,34 +633,3 @@ plates and no request ever carried that number. Reusing it would make "round 19"
 mean two different things.) Anything found from here — a placement pass, an
 approval rejection, a manifest audit — lands in 20 beside 20B.
 
-## Also outstanding, but work here rather than art
-
-Four things, and none of them is a drawing anybody owes us:
-
-- **25 poses are waiting in the approval queue.** Round 18's sprites are in the
-  repo but not in the game: each is a decision in the sprite workbench, and
-  until it is made the pose keeps drawing what it drew before. This is the
-  [approval step](../assets/intake/README.md#the-confirm-step) working as
-  intended, not a backlog. `mechamaru/run_reach_a` is the one exception — it
-  filled an empty pose rather than replacing a drawn one, so it went straight
-  in and completed his run cycle.
-- **The two alpha fixes** above — `hakari/dodge_air` and `toji/dodge_air` — are
-  repo work on delivered files, not art anybody owes us.
-- **Six variant options point at art that was retired.** `hanami_alt/` was
-  folded away when the alternate-art-set machinery went ([8843a0f]) and its
-  drawings moved to `assets/reference/hanami_alt/`, but six options in
-  `manifest["variants"]["hanami"]` still name the old path — a chevron offering
-  a file that is not there. It is also what `tools/canonicalise_sprites.py`
-  refuses on, so the step that puts canonical names back on approved art cannot
-  run until those six entries are dropped or repointed. Round 20's own sprites
-  did not need it — a new pose key lands at its canonical name — but round 18's
-  approvals do.
-- **Rejections from the approval pass** will become round 20. A pose rejected
-  at approval is pointed at another frame so the game keeps drawing something,
-  which raises no flag; [18G](asset-requests-history.md#18g-seven-a-pose-is-drawing-somebody-elses-art--7-sprites)
-  is what that costs when nobody checks, and the manifest audit that found it is
-  how the count at the top of this file is now derived.
-
----
-
----

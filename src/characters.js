@@ -1,5 +1,4 @@
-// All 27 fighters — plus seven staged ones at the bottom of the table who are
-// not on the roster yet: stats, sprite-frame mappings, attack profiles,
+// All 34 fighters — stats, sprite-frame mappings, attack profiles,
 // specials, ultimates, passives. Design rationale for every kit lives in
 // docs/characters.md.
 //
@@ -50,18 +49,16 @@ import { SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL } from ".
 // the select screen — this list keeps it out of randomCharacterKey() and out of
 // the "unreachable fighter" warning at the bottom of this file.
 //
-// Round 23 stages three more the same way: Kashimo (the lightning element and
-// the `charge` status), Yaga (the doll summoner) and Naoya (Projection Sorcery
-// — the `framelock` status, the frame-strip afterimages and Time Cell Moon
-// Palace). Their kits are live and testable via tools/smoke_staged.mjs and the
-// sprite workbench lists them; their art is round 22B–22H in
-// docs/asset-requests.md.
-//
-// Round 24 stages four more: Kirara (the `starMark` status and the
+// Rounds 23 and 24 staged seven more the same way — Kashimo (the lightning
+// element and the `charge` status), Yaga (the doll summoner), Naoya
+// (Projection Sorcery: the `framelock` status, the frame-strip afterimages and
+// Time Cell Moon Palace), Kirara (the `starMark` status and the
 // approach-repulsion rule), Haruta (the Miracles auto-dodge stock), Tengen
 // (barrier summons, passive regeneration) and Miwa (the third Simple Domain
-// and the iai stillness bonus). Their art is round 23 in docs/asset-requests.md.
-export const STAGED_CHARACTER_KEYS = ["kashimo", "yaga", "naoya", "kirara", "haruta", "tengen", "miwa"];
+// and the iai stillness bonus). All seven have landed their 36-pose sets and
+// are on the select screen, so the list is empty again — that is its resting
+// state, not a bug.
+export const STAGED_CHARACTER_KEYS = [];
 
 // Sentinel selection meaning "draw a fresh fighter at the start of every match"
 // rather than naming one. Never a key in CHARACTERS — resolve it through
