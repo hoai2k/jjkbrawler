@@ -80,6 +80,10 @@ rather than editing these in place.
 | `naoya_anime.png` | [Naoya Zenin (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/2/27/Naoya_Zenin_%28Anime%29.png/revision/latest?cb=20251230174702) |
 | `naoya_design_anime.jpg` | [Myamura — "NAOYA ZENIN CHARACTER DESIGN" (X post)](https://x.com/Go_Jover/status/1981293295029633294), image at [pbs.twimg.com/media/G373wAUWwAAMcEN.jpg](https://pbs.twimg.com/media/G373wAUWwAAMcEN.jpg) — supplementary turnaround/pose reference |
 | `naoya_fullbody.jpg` | uploaded reference — a figure photo, three-quarter dynamic pose; supplementary pose reference only, the render above is the design authority |
+| `kirara_anime.png` | [Kirara Hoshi (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/2/21/Kirara_Hoshi_%28Anime%29.png/revision/latest?cb=20251230190130) |
+| `haruta_anime.png` | [Haruta Shigemo (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/f/fb/Haruta_Shigemo_%28Anime%29.png/revision/latest?cb=20230903193020) |
+| `tengen_anime.png` | [Tengen (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/1/16/Tengen_%28Anime%29.png/revision/latest?cb=20251119121513) |
+| `miwa_anime.png` | [Kasumi Miwa (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/6/64/Kasumi_Miwa_%28Anime%29.png/revision/latest?cb=20240621021537) |
 
 **The last five are round 15's four fighters** (Mechamaru, Yuki Tsukumo, Dagon,
 Kurourushi). They were the one case where `<char>_anime.png` was not the
@@ -92,7 +96,12 @@ draws — and `mechamaru_absolute_anime.png` is Mode: Absolute, for his ultimate
 **Kashimo, Yaga and Naoya are round 23's staged three** and are in that same
 position today: no delivered art, so their **(Anime)** renders above are the
 only authority until their round-22 sets land and `<char>_idle.png` is
-generated for them.
+generated for them. **Kirara, Haruta, Tengen and Miwa are round 24's staged
+four**, in the identical position — their renders above are the authority until
+their round-23 sets land. (The uploaded `kiara_anime.webp`, `haruta_anime.webp`,
+`tengen_anime.webp` and `miwa_anime.webp` were the same subjects and are
+superseded by these fetched-and-converted PNGs; note the key is `kirara`, from
+the character's canon name Kirara Hoshi, not `kiara`.)
 
 Finding a character's file, if you need one that is not here yet: the wiki's
 character page lists its images, and the full-body render is almost always
