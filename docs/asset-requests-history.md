@@ -37,6 +37,7 @@ why the numbering is not strictly chronological.
 | 20C | The grab set — `grab_reach`, `grab_hold`, `grabbed` — for the `?throw=true` mechanic (81 sprites asked, 78 + Mahoraga delivered) | Delivered for 26 fighters; Yuji's three are 20E |
 | 20D | The dash attack pose, one drawing serving both running attacks (27 sprites asked, 26 + Mahoraga delivered) | Delivered for 26 fighters; Yuji's is 20E |
 | 22B–22D | The three staged fighters' 36-pose sets — Kashimo, Yaga, Naoya (108 sprites) | Delivered and imported whole; three of Yaga's frames needed a `FACING_OVERRIDE`, and three frames came back flagged as 22I |
+| 22A, 22E–22H | The roster-wide teeter, round 23's technique effects, Yaga's doll family, three hero cards and Naoya's domain backdrop (41 assets) + 12 DI reference images | Delivered; `nanami/teeter` came back with the blade off the canvas and is re-requested |
 
 ---
 
@@ -3308,7 +3309,7 @@ Yuji are still outstanding.
   a row in [pose-brief.md § 5](../sprites/docs/pose-brief.md#5-the-faults-that-keep-coming-back)
   and a `ROSTER COVERAGE` report that `tools/intake.py` prints on every
   delivery, naming who is missing and who is not a fighter. Yuji's four are
-  [20E](asset-requests.md#20e-yujis-four-round-20-poses--4-sprites), still open.
+  [20E](#20e-yujis-four-round-20-poses--4-sprites), still open.
 - **Quality was the best of any round so far.** 152 plates: no low-resolution
   figure, no contact sheet, no mirrored strike, seven plates flipped to face
   right by the detector, and four canvas edges touched
@@ -3571,7 +3572,7 @@ anchored, auto-tuned, and seeded with pose reads. Every one is a new key, so
 nothing was overwritten and the "All Recently Updated Poses" list is a round's
 worth of new art to place rather than of tuning to redo.
 
-Yuji is the exception in both, and is [20E](asset-requests.md#20e-yujis-four-round-20-poses--4-sprites).
+Yuji is the exception in both, and is [20E](#20e-yujis-four-round-20-poses--4-sprites).
 
 # 20B. Twenty backgrounds, re-extended — delivered
 
@@ -3871,3 +3872,256 @@ breaking out of him**: a pale segmented worm-like mass erupting around his
 silhouette, star-shaped six-holed mask where the face should be.
 
 Deliver to `assets/intake/naoya/<pose_key>.png`. Key: `naoya`, exactly.
+
+---
+
+# Round 22A and 22E–22H — the teeter, the effects, the summons, the cards and the backdrop, delivered
+
+**41 assets in one batch**, closing four of the five things round 22 still
+held: the roster-wide teeter, round 23's six technique effects, Yaga's four
+dolls, the three hero cards and Naoya's domain backdrop. Twelve DI reference
+images for the same three fighters came with it and went through their own
+importer (`tools/import_render3d_images.py`).
+
+**The teeter is the cleanest roster-wide round yet delivered.** All 27 read as
+the same idea — weight back from the drop, arms out, front foot at the lip,
+head turned down toward the fall — every one facing right, every one on-model,
+and reviewed as a single 27-up board rather than 27 separate ones, which is the
+right way to look at a one-pose round. One fault in twenty-seven:
+
+- **`nanami/teeter` has the blade running off the left edge of the plate**, cut
+  flat by the canvas. It is flagged and re-requested; see the open round.
+
+The seven staged fighters are deliberately **not** in this round: 22A asked for
+the roster of 27, and Kashimo, Yaga, Naoya, Kirara, Haruta, Tengen and Miwa
+were staged when it was written. Until each is promoted their teeter falls back
+to their idle frames with the procedural lean `src/motion.js` supplies, which
+is what every fighter did before this round landed — so nothing is broken, but
+**a promoted fighter owes a teeter** and that is now tracked in the open round.
+
+**Yuji's four round-20 poses arrived again in the same upload.** They were
+already delivered and in the game, so this is a re-delivery rather than 20E
+being answered late — but the new `attack_dash` is materially longer (a 1.61
+width-to-height silhouette against the shipped 1.08, a third more extension on
+the one move whose whole point is committed reach) and the new `grab_reach`
+extends further too. All four were imported as replacements, which means they
+are sitting in the **workbench approval queue** rather than in the game: a
+replacement lands beside the art it would replace and waits for somebody to
+choose. The other two are equivalent to what shipped.
+
+Worth writing down while both versions are side by side: **Yuji's `grab_hold`
+does not match the roster's convention**, in the shipped drawing and in the new
+one alike. Every other fighter's grab hold extends the lead arm and closes the
+fist on a body at arm's length; both of Yuji's keep the fists back at the
+chest, which reads as a guard rather than a hold. That is a pre-existing
+outlier this delivery neither caused nor fixed.
+
+**The cards and the backdrop arrived twice**, once as JPEG and once as PNG at
+identical dimensions. The spec is JPEG for both — full-bleed paintings where
+lossless buys nothing and costs six times the bytes — so the JPEGs landed and
+the PNGs went to the archive with the rest of the originals.
+
+Originals are archived at `assets/reference/round22b/`; the DI images at
+`assets/reference/round21/`, where their own importer puts them.
+
+## 22A. Balanced on the lip: the teeter — 27 sprites
+
+**One new pose key, `teeter`, for every fighter.** Nothing is blocked by it:
+until it lands the state draws the fighter's own IDLE frames with a procedural
+lean supplied by `src/motion.js`, so the read exists today and the drawing
+upgrades it.
+
+**What it is for.** The ledge brake (`brakeAtLedge` in `src/fighter.js`) stops
+a fighter dead on the last pixel of a platform whenever momentum would have
+carried them off — that is its entire job, and it happens constantly. Nothing
+drew it, so the most common thing that happens at an edge looked exactly like
+standing in the middle of the stage. It is also the answer to when a fighter
+should NOT be hanging: someone who stopped at the edge has not left it, and a
+ledge hang would be telling the player they fell when they did not.
+
+**The brief.** A standing pose, weight shifted BACK from the drop, arms out for
+balance, front foot at or just over the lip, head turned down toward the fall.
+Not alarmed — this roster does not panic — but caught: the moment after
+realising the ground ran out. It reads at a glance against the idle beside it,
+which is the test: a player should be able to tell from the silhouette that
+they are on the edge.
+
+**Facing.** Drawn facing RIGHT like every other pose, with the drop on the
+right. The engine mirrors it for the left-hand lip and leans it the correct way
+either side (`teeterLean` in `src/config_tuning.js`), so one drawing serves
+both edges.
+
+| pose key | count |
+|---|---|
+| `teeter` | 27 (one per fighter) |
+
+**Not requested, deliberately: a ledge-climb pose.** Getting on and off a ledge
+is now an animated transition rather than a teleport (`beginLedgeMove` in
+`src/fighter.js`), and it is built from poses the roster already has — the fall
+carries onto the ledge, the climb rises on `jump_rise` and arrives on `land`,
+the roll uses `dodge_roll`. A bespoke `ledge_climb` would be an upgrade to
+that, not a dependency, and 27 more sprites is not worth spending before the
+reused ones have been seen in motion.
+
+---
+
+**22B–22H are round 23's three staged fighters** — Hajime Kashimo, Masamichi
+Yaga and Naoya Zen'in. Their kits are complete and live in `src/characters.js`
+(`STAGED_CHARACTER_KEYS` holds them off the select screen), so nothing blocks on
+this art: it lands, gets placed in the sprite workbench — which already lists
+all three as *(not on the roster yet)* — and the keys move into
+`CHARACTER_GROUPS`. Design rationale is the round-23 section of
+[characters.md](characters.md).
+
+Because this batch is expected to be generated **outside this repo**, every
+reference below is given as an **absolute URL**. The character blocks to use
+verbatim are the `kashimo`, `yaga` and `naoya` rows of the table above.
+
+**Work idle-first — the `idle_a` is its own delivery.** The standing rule
+("draw each one's `idle_a` first and place it before drawing anything else")
+becomes the delivery order for this batch:
+
+1. **Generate `idle_a` alone** for each fighter, from the character block plus
+   the anime render — a clean interpretation in the game's style, and a
+   *plain, square-on standing stance* per
+   [pose-brief.md](../sprites/docs/pose-brief.md) (hurtbox width is measured
+   off it).
+2. **Intake and approve it** (`tools/intake.py` → the sprite workbench, which
+   already lists all three as *(not on the roster yet)*), then run
+   `tools/build_canon_reference.py` so it lands as
+   `assets/reference/canon/<key>_idle.png`.
+3. **Generate the other 35 poses against that approved idle** — it becomes the
+   reference image for the rest of the set, so costume, proportions, palette,
+   line weight and shading stay locked across all 36 instead of drifting
+   render-to-render. Once step 2 has landed on `main`, the idles resolve at:
+   - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kashimo_idle.png>
+   - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yaga_idle.png>
+   - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_idle.png>
+
+Round 7's hardest lesson was that a new character has no frame to inherit
+placement from; this order gives the other 35 poses a frame to inherit
+*design* from as well.
+
+## 22E. Round 23 technique effects — 6 sprites
+
+Effect plates for the staged kits, spec per
+[Delivery spec](asset-requests.md#delivery-spec) and pointing **LEFT** where directional
+(see [Directional effects point LEFT](asset-requests.md#directional-effects-point-left)). The
+loader already knows every path (`STAGED_EFFECT_KEYS`, `src/assets.js`) and the
+moves draw procedural stand-ins until these land.
+
+| File | Fighter | What to draw |
+|---|---|---|
+| `lightning_bolt.png` | Kashimo | A horizontal cursed-lightning bolt: a hard white core, mint-cyan `#6ef7d0` forks, drawn as one jagged discharge |
+| `nyoi_staff.png` | Kashimo | His red-and-gold staff horizontal in flight, spinning slightly, arcs of `#6ef7d0` trailing off both ends |
+| `amber_aura.png` | Kashimo | An install aura plate: a body-height envelope of forked amber-and-cyan electricity, densest at the shoulders |
+| `windup_doll.png` | Yaga | A squat cursed-corpse doll, stitched fabric over a carved body, one key turning in its back, green cursed energy leaking at the seams |
+| `doll_needle.png` | Yaga | A long sewing needle trailing green thread-light, drawn horizontal |
+| `naoya_spirit.png` | Naoya | His vengeful cursed-spirit form: a pale segmented worm/centipede body compressed into a horizontal ram, star-shaped six-holed mask at the head, air intakes flared |
+
+Deliver to `assets/intake/effects/<name>.png`.
+
+## 22F. Yaga's doll family summons — 4 sprites
+
+Persistent creatures that walk the stage on their own, format per round 8: one
+creature per file, full body, facing **RIGHT**. Design authority for all four:
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yaga_powers_anime.jpg>
+— and remember the fanbook note: he likes cute things and will not admit it.
+The dolls should be **genuinely adorable and visibly cursed**, both at once.
+
+| File | Fighter | What to draw |
+|---|---|---|
+| `tsukamoto.png` | Yaga | The boxing bear: a round plush brown bear, waist-high, oversized red boxing gloves stitched onto both paws, one button eye loose, green cursed energy at the seams |
+| `takeru.png` | Yaga | The dog puppet: a small patchwork dog, visibly hand-sewn, mid-run with ears back, stitched grin of felt teeth |
+| `cathy.png` | Yaga | The training doll: a limbless torso-and-head practice dummy hovering upright, painted target rings on the chest, needles orbiting it |
+| `comfort_doll.png` | Yaga | A comfort doll: small, soft, arms permanently open for a hug, slightly too many stitches across the chest — the hug is the detonation |
+
+Deliver to `assets/intake/summons/<name>.png` — **never** straight into
+`assets/sprites/summons/` (they must pass `tools/intake.py`).
+
+## 22G. Hero cards for the staged three — 3 images
+
+Same spec as round 9A: **JPEG, portrait, full-bleed background** — a card, not
+a keyed sprite. Character three-quarter or facing, dramatic lighting, a
+background that reads at tile size, no text of any kind. Match the delivered
+set in `assets/cards/` for crop and energy.
+
+| File | Suggested backdrop |
+|---|---|
+| `assets/intake/cards/kashimo_card.jpg` | Night storm over the Sakurajima colony, the staff planted, forked lightning frozen mid-strike behind him |
+| `assets/intake/cards/yaga_card.jpg` | His workshop at Jujutsu High: shelves of dolls in half-light behind him, green cursed energy in his raised fist |
+| `assets/intake/cards/naoya_card.jpg` | A Zen'in estate corridor at dusk, his frame-strip afterimages hanging in the air behind the smirk |
+
+## 22H. Naoya's domain background — 1 image
+
+`time_cell_moon_palace.jpg` — the backdrop for **Time Cell Moon Palace**, same
+spec as the round 9C domain backgrounds.
+
+```
+assets/intake/backgrounds/time_cell_moon_palace.jpg
+```
+
+Landscape, full-bleed, no characters, no text. A vast pale lunar palace
+interior: moonlit stone, tall cell-like chambers repeating into the distance
+with the regularity of film frames, a huge full moon dominating the sky through
+the open roof, everything faintly banded in vertical divisions — the renderer
+draws its own filmstrip sprockets and frame lines over the plate, so keep the
+mid-tones open and the banding subtle.
+
+---
+
+# Round 20E — Yuji's four Round 20 poses, delivered
+
+## 20E. Yuji's four Round 20 poses — 4 sprites
+
+**Delivered.** All four landed, keyed and measured through `tools/intake.py`,
+imported with `tools/intake_import.py`, anchored, and given a seeded pose read
+apiece — those four are marked `seed`, not `source`, so the joint-reads bench
+knows they are a starting point rather than a read of the art.
+
+**The remainder of 20C and 20D, and the whole of it is one fighter.** Both
+rounds asked for one file per fighter, both arrived as twenty-seven files, and
+both of those twenty-seven were Mahoraga rather than Yuji. Mahoraga is animated
+out of a character sprite set and has an intake directory like everyone else,
+but he is a summon and is not on `CHARACTER_KEYS`; his four are landed and
+welcome, and they are not a fighter's. So the count was right twice and the
+roster was wrong twice, which is now a row in
+[pose-brief.md § 5](../sprites/docs/pose-brief.md#5-the-faults-that-keep-coming-back)
+and a `ROSTER COVERAGE` line that `tools/intake.py` prints on every delivery.
+
+**Nothing is blocked.** Yuji draws exactly what the whole roster drew before
+round 20: `grabReach` falls back to his first light-attack frame, `grabHold` to
+`charge`, `grabbed` to `hurt`, and both dash attacks to his standing strike
+(`src/characters.js`). He is the one fighter whose grab still reads as a frozen
+jab, which is precisely the thing 20C was written to end.
+
+| File | Pose line |
+|---|---|
+| `assets/intake/yuji/grab_reach.png` | "a committed forward lunge with one open, grasping hand leading — reaching to seize, not to strike — the other arm up as a guard" |
+| `assets/intake/yuji/grab_hold.png` | "gripping an unseen opponent at arm's length by the collar: front hand closed in a fist at chest height, weight planted, body coiled to heave" |
+| `assets/intake/yuji/grabbed.png` | "seized and struggling: body arched back from the collar, feet scrabbling, both hands prying at an unseen grip at their own chest" |
+| `assets/intake/yuji/attack_dash.png` | "sprinting forward and striking at the same moment, body low and driving, weight thrown ahead of the leading foot, back leg extended behind, striking arm fully extended forward along the direction of the run, trailing arm swept back, at the instant of impact" |
+
+The two grab poses have to answer the same grip-point rule the other twenty-six
+already do — **fist and prying hands both at chest height on the leading edge of
+the body** — because the game draws Yuji's `grab_hold` against somebody else's
+`grabbed` at a fixed gap, so his is not judged on its own. Open any delivered
+pair (`sprites/assets/gojo/grab_hold.png` beside
+`sprites/assets/nobara/grabbed.png`) and match the height.
+
+Otherwise the standard spec: grey key screen (Yuji is on the warm-palette list),
+facing right, one zoom matched to his own `idle_a`, at least 600 px of body, one
+subject per file. His character block and canonical reference are above, and
+[pose-brief.md](../sprites/docs/pose-brief.md) has all four pose lines in the
+set they now belong to.
+
+---
+
+**Re-delivered with the 22A batch, and left in the approval queue.** All four
+arrived again in the round-22A upload. Two are better than what shipped — the
+new `attack_dash` measures a 1.61 width-to-height silhouette against 1.08, a
+third more extension on the one move whose whole point is committed reach, and
+`grab_reach` extends further too. All four were imported as replacements, so
+they sit in the sprite workbench waiting for somebody to choose between them
+and the drawings in the game; the other two are equivalent.
+

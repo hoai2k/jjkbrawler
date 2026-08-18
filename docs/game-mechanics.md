@@ -776,7 +776,7 @@ spends its own holds on throws. **The grab set is drawn** — round 20C delivere
 `grab_reach`, `grab_hold` and `grabbed` for twenty-six of the twenty-seven, all
 of them placing the grip at chest height so a hold reads as one action across
 any pairing. Yuji is the exception and still reuses the nearest poses
-([20E](asset-requests.md#20e-yujis-four-round-20-poses--4-sprites)), as does
+([20E](asset-requests-history.md#20e-yujis-four-round-20-poses--4-sprites)), as does
 every fighter for the four throws, which play the heavy attack swung that way on
 purpose. The 2.5D and live-3D paths alias all seven states to clips they already
 have (`STATE_ALIASES` in `render3d/src/states.js`).
