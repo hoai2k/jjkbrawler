@@ -12,9 +12,9 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**337 images outstanding.**
+**232 images outstanding.**
 
-- **The sprite game** — 309 images, round 22
+- **The sprite game** — 204 images, round 22
 - **The live-3D anime path** — 28 images
 
 ## Rules that hold everywhere here
@@ -45,17 +45,15 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**309 images, round 22.** Authored in
+**204 images, round 22.** Authored in
 [docs/asset-requests.md](asset-requests.md) and reproduced whole below.
 
 - **22A** — Balanced on the lip: the teeter (27 sprites)
-- **22B** — Kashimo's sprite set (36 sprites)
-- **22C** — Yaga's sprite set (36 sprites)
-- **22D** — Naoya's sprite set (36 sprites)
 - **22E** — Round 23 technique effects (6 sprites)
 - **22F** — Yaga's doll family summons (4 sprites)
 - **22G** — Hero cards for the staged three (3 images)
 - **22H** — Naoya's domain background (1 image)
+- **22I** — Three frames the round-22 boards rejected (3 sprites)
 - **23A** — Kirara's sprite set (36 sprites)
 - **23B** — Haruta's sprite set (36 sprites)
 - **23C** — Tengen's sprite set (36 sprites)
@@ -143,80 +141,6 @@ Round 7's hardest lesson was that a new character has no frame to inherit
 placement from; this order gives the other 35 poses a frame to inherit
 *design* from as well.
 
-## 22B. Kashimo's sprite set — 36 sprites
-
-The standard 36-pose semantic set (`SEMANTIC_ANIMS`, `src/characters.js` — the
-pose list and every rule is [pose-brief.md](../sprites/docs/pose-brief.md); read
-it first, especially the reach rules for `attack_light_b` / `attack_heavy_b`).
-
-**Canonical reference (absolute):**
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kashimo_anime.png>
-(the wiki render: [Hajime Kashimo (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/0/02/Hajime_Kashimo_%28Anime%29.png/revision/latest?cb=20260205162107)).
-
-**What he is holding:** the **Nyoi staff** — long, red-shafted, gold caps and a
-gold ball finial — in every attack pose. He is a four-hundred-year-old master
-enjoying himself: relaxed shoulders, easy smile, never strained.
-`attack_light_*` and `attack_heavy_*` are staff strikes with visible reach;
-`special_neutral` levels the staff like a lightning rod, arcs crawling off the
-tip; `special_side` is the release of a full-body throw, empty hand still
-extended; `special_down` is a braced two-handed stance inside a woven
-basket-weave sphere of thin lines (Hollow Wicker Basket); `ult_a`/`ult_b` are
-Mythical Beast Amber — hair lifting, eyes alight, forked electricity wrapping
-both arms and the staff abandoned mid-air beside him.
-
-Deliver to `assets/intake/kashimo/<pose_key>.png`. Key: `kashimo`, exactly —
-not `hajime`. **Key screen: mid-grey `#808080`** — the staff is red, which a
-magenta screen eats.
-
-## 22C. Yaga's sprite set — 36 sprites
-
-The standard 36-pose set, same brief and rules as 22B.
-
-**Canonical reference (absolute):**
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yaga_anime.png>
-(the wiki render: [Masamichi Yaga (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/5/51/Masamichi_Yaga_%28Anime%29.png/revision/latest?cb=20201025153339)).
-For his cursed energy (green) and the dolls around him:
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yaga_powers_anime.jpg>.
-
-**What he is holding:** nothing — the principal fights **bare-fisted**, with
-cursed-energy-reinforced hands (green when energy shows). Sunglasses on in
-every pose, `hurt` and `dizzy` included; the face barely changes, the body does
-the talking. `attack_light_*` a straight jab, `attack_heavy_*` a full
-shoulders-through cross; `special_neutral` a beckoning gesture with a small
-plush bear mid-leap beside him (Tsukamoto); `special_side` setting a squat
-wind-up doll on the ground; `special_down` one hand raised, three small motes
-of green light orbiting it (the three souls); `ult_a`/`ult_b` arms spread wide
-with small doll silhouettes rising around him.
-
-Deliver to `assets/intake/yaga/<pose_key>.png`. Key: `yaga`, exactly.
-
-## 22D. Naoya's sprite set — 36 sprites
-
-The standard 36-pose set, same brief and rules as 22B.
-
-**Canonical reference (absolute):**
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_anime.png>
-(the wiki render: [Naoya Zenin (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/2/27/Naoya_Zenin_%28Anime%29.png/revision/latest?cb=20251230174702)).
-Supplementary pose/turnaround references:
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_design_anime.jpg>
-(from <https://x.com/Go_Jover/status/1981293295029633294>, image
-<https://pbs.twimg.com/media/G373wAUWwAAMcEN.jpg>) and
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_fullbody.jpg>.
-
-**What he is holding:** nothing — Hei-unit taijutsu, all low stances and open
-palms, and the **smirk in every single pose** including `hurt`; smugness is the
-costume. His speed is drawn by the engine as crisp stepped afterimages of these
-very sprites, so clean silhouettes matter more than for anyone else on the
-roster. `attack_light_*` a knife-hand, `attack_heavy_*` a driving heel;
-`special_neutral` a low sprinter's break, body already past vertical (the frame
-rush); `special_side` a single extended palm, almost gentle (the 24 FPS Rule);
-`special_down` arms folded, head tilted, utterly unimpressed (Pre-Read —
-the counter is the disrespect); `ult_a`/`ult_b` are his **cursed-spirit form
-breaking out of him**: a pale segmented worm-like mass erupting around his
-silhouette, star-shaped six-holed mask where the face should be.
-
-Deliver to `assets/intake/naoya/<pose_key>.png`. Key: `naoya`, exactly.
-
 ## 22E. Round 23 technique effects — 6 sprites
 
 Effect plates for the staged kits, spec per
@@ -282,6 +206,26 @@ with the regularity of film frames, a huge full moon dominating the sky through
 the open roof, everything faintly banded in vertical divisions — the renderer
 draws its own filmstrip sprockets and frame lines over the plate, so keep the
 mid-tones open and the banding subtle.
+
+## 22I. Three frames the round-22 boards rejected — 3 sprites
+
+The three faults found reviewing 22B–22D. Everything else in that delivery is
+in the game; these three are in it too, drawing what was delivered, and flagged
+in the workbench so they are visible while they wait. Same character blocks,
+same key screens, same delivery paths as the sets they belong to.
+
+| File | Fighter | What is wrong, and what to draw |
+|---|---|---|
+| `kashimo/special_side.png` | Kashimo | **Costume, not pose.** The action is right — the staff has already left his hand and the throwing arm is extended, which is exactly Nyoi Recall. But the costume drifts from his own `idle_a`: he is wearing **black boots and a navy waist sash**, and the **white knee-to-ankle bandage wraps are missing**. Redraw the same pose with the pale grey ankle boots, the leg wraps, and no sash — match `kashimo/idle_a.png`, which is now his canonical reference |
+| `yaga/crouch_a.png` | Yaga | **A fighting stance, not a crouch.** Knees barely bent, head dropping about a tenth of standing height where the brief asks for a quarter. Draw an actual crouch: hips down, head low, weight settled — `naoya/crouch_a.png` from the same delivery is what it should read like |
+| `yaga/crouch_b.png` | Yaga | Same fault, same fix. It is currently the wider half of one guard stance rather than the second beat of a crouch; it must also read as *lower than standing*, which it does not |
+
+**Kashimo's canonical reference is now his own idle**, not the wiki render —
+36 poses landed, so the rule that governs every other fighter applies to him:
+
+- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kashimo/idle_a.png>
+- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/idle_a.png>
+- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yaga/idle_a.png>
 
 # Round 23 — open
 
@@ -619,9 +563,9 @@ A fighter whose rig has already been delivered is NOT listed: a turnaround board
 
 | Fighter | Key | Model at | Archetype | Canon reference | Notes |
 |---|---|---|---|---|---|
-| Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_anime.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
-| Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_anime.png` | Sunglasses never come off; dolls are summons, engine-side |
-| Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_anime.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
+| Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_idle.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
+| Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_idle.png` | Sunglasses never come off; dolls are summons, engine-side |
+| Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_idle.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
 | Kirara Hoshi | `kirara` | 172 cm | unarmed | `assets/reference/canon/kirara_anime.png` | Star-pupil eyes in the face texture; marks/repulsion are engine-side |
 | Haruta Shigemo | `haruta` | 168 cm | blade | `assets/reference/canon/haruta_anime.png` | The Hand Sword's sculpted-hand hilt is part of the prop |
 | Master Tengen | `tengen` | 175 cm | caster | `assets/reference/canon/tengen_anime.png` | Cylindrical four-eyed head is bespoke geometry on a standard body; floor-length robe wants cloth bones |
@@ -644,9 +588,9 @@ Listed for delivered rigs too — this is what the face-first review gate reads 
 
 | Fighter | Key | Model at | Archetype | Canon reference | Notes |
 |---|---|---|---|---|---|
-| Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_anime.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
-| Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_anime.png` | Sunglasses never come off; dolls are summons, engine-side |
-| Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_anime.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
+| Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_idle.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
+| Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_idle.png` | Sunglasses never come off; dolls are summons, engine-side |
+| Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_idle.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
 | Kirara Hoshi | `kirara` | 172 cm | unarmed | `assets/reference/canon/kirara_anime.png` | Star-pupil eyes in the face texture; marks/repulsion are engine-side |
 | Haruta Shigemo | `haruta` | 168 cm | blade | `assets/reference/canon/haruta_anime.png` | The Hand Sword's sculpted-hand hilt is part of the prop |
 | Master Tengen | `tengen` | 175 cm | caster | `assets/reference/canon/tengen_anime.png` | Cylindrical four-eyed head is bespoke geometry on a standard body; floor-length robe wants cloth bones |
@@ -672,9 +616,9 @@ Listed for delivered rigs too: these numbers land in the rig's material extras a
 
 | Fighter | Key | Model at | Archetype | Canon reference | Notes |
 |---|---|---|---|---|---|
-| Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_anime.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
-| Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_anime.png` | Sunglasses never come off; dolls are summons, engine-side |
-| Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_anime.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
+| Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_idle.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
+| Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_idle.png` | Sunglasses never come off; dolls are summons, engine-side |
+| Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_idle.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
 | Kirara Hoshi | `kirara` | 172 cm | unarmed | `assets/reference/canon/kirara_anime.png` | Star-pupil eyes in the face texture; marks/repulsion are engine-side |
 | Haruta Shigemo | `haruta` | 168 cm | blade | `assets/reference/canon/haruta_anime.png` | The Hand Sword's sculpted-hand hilt is part of the prop |
 | Master Tengen | `tengen` | 175 cm | caster | `assets/reference/canon/tengen_anime.png` | Cylindrical four-eyed head is bespoke geometry on a standard body; floor-length robe wants cloth bones |
@@ -704,9 +648,9 @@ The shared eye-highlight texture is delivered; these are the optional per-fighte
 
 | Fighter | Key | Model at | Archetype | Canon reference | Notes |
 |---|---|---|---|---|---|
-| Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_anime.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
-| Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_anime.png` | Sunglasses never come off; dolls are summons, engine-side |
-| Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_anime.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
+| Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_idle.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
+| Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_idle.png` | Sunglasses never come off; dolls are summons, engine-side |
+| Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_idle.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
 | Kirara Hoshi | `kirara` | 172 cm | unarmed | `assets/reference/canon/kirara_anime.png` | Star-pupil eyes in the face texture; marks/repulsion are engine-side |
 | Haruta Shigemo | `haruta` | 168 cm | blade | `assets/reference/canon/haruta_anime.png` | The Hand Sword's sculpted-hand hilt is part of the prop |
 | Master Tengen | `tengen` | 175 cm | caster | `assets/reference/canon/tengen_anime.png` | Cylindrical four-eyed head is bespoke geometry on a standard body; floor-length robe wants cloth bones |
@@ -824,7 +768,7 @@ is not its own says so silently, which is how seven of them stayed invisible
 until round 18G. Neither can see a pose that was never drawn — that is what
 the rounds above are for.
 
-**7 flagged, 20 drawing somebody else's art.**
+**10 flagged, 20 drawing somebody else's art.**
 
 | Fighter | Pose | Why |
 |---|---|---|
@@ -835,6 +779,9 @@ the rounds above are for.
 | dagon | `crouch_b` | pose |
 | dagon | `run_reach_a` | pose |
 | dagon | `run_reach_b` | pose |
+| yaga | `crouch_a` | pose |
+| yaga | `crouch_b` | pose |
+| kashimo | `special_side` | character |
 | hanami | `attack_light_b` | drawing `special_neutral` |
 | sukuna | `attack_light_b` | drawing `r3c0` |
 | megumi | `attack_light_a` | drawing `crouch_a_2` |

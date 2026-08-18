@@ -268,6 +268,17 @@ FACING_OVERRIDE = {
     # right, since replacing the art rolls that hand edit back in the same
     # breath.
     "panda/walk_b": "right",
+    # Round 22B–22D: three of Yaga's frames, and the pattern is the one every
+    # entry above describes — a punch delivered facing RIGHT, called left with
+    # confidence, and turned round so it lands behind him. What makes him
+    # readable-wrong is the suit: a plain black silhouette with no prop, no
+    # hair sweep and no colour asymmetry gives the detector almost nothing but
+    # the extended arm, and an extended arm is the one part of a strike that
+    # looks the same either way. Kashimo and Naoya, who carry a staff and a
+    # hakama respectively, needed no entries at all.
+    "yaga/attack_heavy_a": "right",
+    "yaga/attack_light_b": "right",
+    "yaga/crouch_attack_a": "right",
 }
 
 

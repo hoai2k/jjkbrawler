@@ -22,8 +22,15 @@ numbered DI1, DI2… — so the tracks never collide. All of them are gathered i
 [image-requests.md](image-requests.md), which is what to read to draw any of
 them; these files are where each is written.)
 
-**Current status: rounds 1–21 delivered. Round 22 is open** — one pose key for
-every fighter, 27 sprites, below. Nothing is blocked by it.
+**Current status: rounds 1–21 delivered. Rounds 22 and 23 are open.**
+Round 22 still holds the teeter (22A), round 23's technique effects, summons,
+cards and domain backdrop (22E–22H), and three frames its own review boards
+rejected (22I). **22B–22D are delivered** — Kashimo's, Yaga's and Naoya's
+36-pose sets, 108 sprites, imported whole and
+[in the history](asset-requests-history.md#round-22b22d--the-three-staged-fighters-sprite-sets-delivered).
+Round 23 is round 24's four staged fighters, untouched so far. Nothing in
+either round is blocking: all seven fighters are staged, and the three whose
+art has landed are ready to be promoted whenever their owner says so.
 Round 21's walk cycle landed complete — 54 sprites, two frames for each of the
 twenty-seven — and is
 [in the history](asset-requests-history.md#round-21--the-walk-cycle).
@@ -268,6 +275,9 @@ keep resolving after a sprite is replaced.
 | Takako Uro | `uro` | `assets/reference/canon/uro_idle.png` |
 | Yuji | `yuji` | `assets/reference/canon/yuji_idle.png` |
 | Yuta | `yuta` | `assets/reference/canon/yuta_idle.png` |
+| Hajime Kashimo | `kashimo` | `assets/reference/canon/kashimo_idle.png` |
+| Masamichi Yaga | `yaga` | `assets/reference/canon/yaga_idle.png` |
+| Naoya Zen'in | `naoya` | `assets/reference/canon/naoya_idle.png` |
 
 **Gakuganji, Reggie Star and Uro used to be exceptions** — their old art was a
 different character, so their `idle_a` was exactly what must *not* be matched.
@@ -291,23 +301,26 @@ this rule cannot cover: there is nothing to match yet. Their canon is the wiki's
 | Mechamaru | `mechamaru` | `assets/reference/canon/mechamaru_anime.png` (plus `mechamaru_absolute_anime.png` for Mode: Absolute) |
 | Yuki Tsukumo | `yuki` | `assets/reference/canon/yuki_anime.png` |
 
-**The seven staged fighters — round 23's three and round 24's four — are the
-same case today**: no `idle_a` exists yet, so their canon is the wiki's
+**Round 24's four staged fighters are the one case this rule cannot cover
+today**: no `idle_a` exists for them yet, so their canon is the wiki's
 **(Anime)** render, checked in beside everyone else's. Because their art will
 mostly be generated outside this repo, the table below carries **absolute
-URLs** as well as the repo paths — use either; they are the same image:
+URLs** as well as the repo paths — use either; they are the same image.
+
+(**Round 23's three are out of this table**: Kashimo's, Yaga's and Naoya's
+36-pose sets landed with 22B–22D, so `<char>_idle.png` exists for all three and
+they are matched against their own idle like the rest of the roster — they are
+in the table above. Their `<char>_anime.png` renders stay in the directory for
+design questions.)
 
 | Fighter | Key | Canonical image | Absolute URL |
 |---|---|---|---|
-| Hajime Kashimo | `kashimo` | `assets/reference/canon/kashimo_anime.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kashimo_anime.png> |
-| Masamichi Yaga | `yaga` | `assets/reference/canon/yaga_anime.png` (plus `yaga_powers_anime.jpg` for his cursed corpses) | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yaga_anime.png> |
-| Naoya Zen'in | `naoya` | `assets/reference/canon/naoya_anime.png` (plus `naoya_design_anime.jpg` and `naoya_fullbody.jpg` for poses) | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_anime.png> |
 | Kirara Hoshi | `kirara` | `assets/reference/canon/kirara_anime.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kirara_anime.png> |
 | Haruta Shigemo | `haruta` | `assets/reference/canon/haruta_anime.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/haruta_anime.png> |
 | Master Tengen | `tengen` | `assets/reference/canon/tengen_anime.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/tengen_anime.png> |
 | Kasumi Miwa | `miwa` | `assets/reference/canon/miwa_anime.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/miwa_anime.png> |
 
-*(The first three are round 23's staged fighters, the last four round 24's.)*
+*(All four are round 24's staged fighters.)*
 
 **Draw each one's `idle_a` first and place it before drawing anything else for
 them** — every other pose of that fighter is then matched against their own
@@ -445,80 +458,6 @@ Round 7's hardest lesson was that a new character has no frame to inherit
 placement from; this order gives the other 35 poses a frame to inherit
 *design* from as well.
 
-## 22B. Kashimo's sprite set — 36 sprites
-
-The standard 36-pose semantic set (`SEMANTIC_ANIMS`, `src/characters.js` — the
-pose list and every rule is [pose-brief.md](../sprites/docs/pose-brief.md); read
-it first, especially the reach rules for `attack_light_b` / `attack_heavy_b`).
-
-**Canonical reference (absolute):**
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kashimo_anime.png>
-(the wiki render: [Hajime Kashimo (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/0/02/Hajime_Kashimo_%28Anime%29.png/revision/latest?cb=20260205162107)).
-
-**What he is holding:** the **Nyoi staff** — long, red-shafted, gold caps and a
-gold ball finial — in every attack pose. He is a four-hundred-year-old master
-enjoying himself: relaxed shoulders, easy smile, never strained.
-`attack_light_*` and `attack_heavy_*` are staff strikes with visible reach;
-`special_neutral` levels the staff like a lightning rod, arcs crawling off the
-tip; `special_side` is the release of a full-body throw, empty hand still
-extended; `special_down` is a braced two-handed stance inside a woven
-basket-weave sphere of thin lines (Hollow Wicker Basket); `ult_a`/`ult_b` are
-Mythical Beast Amber — hair lifting, eyes alight, forked electricity wrapping
-both arms and the staff abandoned mid-air beside him.
-
-Deliver to `assets/intake/kashimo/<pose_key>.png`. Key: `kashimo`, exactly —
-not `hajime`. **Key screen: mid-grey `#808080`** — the staff is red, which a
-magenta screen eats.
-
-## 22C. Yaga's sprite set — 36 sprites
-
-The standard 36-pose set, same brief and rules as 22B.
-
-**Canonical reference (absolute):**
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yaga_anime.png>
-(the wiki render: [Masamichi Yaga (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/5/51/Masamichi_Yaga_%28Anime%29.png/revision/latest?cb=20201025153339)).
-For his cursed energy (green) and the dolls around him:
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yaga_powers_anime.jpg>.
-
-**What he is holding:** nothing — the principal fights **bare-fisted**, with
-cursed-energy-reinforced hands (green when energy shows). Sunglasses on in
-every pose, `hurt` and `dizzy` included; the face barely changes, the body does
-the talking. `attack_light_*` a straight jab, `attack_heavy_*` a full
-shoulders-through cross; `special_neutral` a beckoning gesture with a small
-plush bear mid-leap beside him (Tsukamoto); `special_side` setting a squat
-wind-up doll on the ground; `special_down` one hand raised, three small motes
-of green light orbiting it (the three souls); `ult_a`/`ult_b` arms spread wide
-with small doll silhouettes rising around him.
-
-Deliver to `assets/intake/yaga/<pose_key>.png`. Key: `yaga`, exactly.
-
-## 22D. Naoya's sprite set — 36 sprites
-
-The standard 36-pose set, same brief and rules as 22B.
-
-**Canonical reference (absolute):**
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_anime.png>
-(the wiki render: [Naoya Zenin (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/2/27/Naoya_Zenin_%28Anime%29.png/revision/latest?cb=20251230174702)).
-Supplementary pose/turnaround references:
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_design_anime.jpg>
-(from <https://x.com/Go_Jover/status/1981293295029633294>, image
-<https://pbs.twimg.com/media/G373wAUWwAAMcEN.jpg>) and
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_fullbody.jpg>.
-
-**What he is holding:** nothing — Hei-unit taijutsu, all low stances and open
-palms, and the **smirk in every single pose** including `hurt`; smugness is the
-costume. His speed is drawn by the engine as crisp stepped afterimages of these
-very sprites, so clean silhouettes matter more than for anyone else on the
-roster. `attack_light_*` a knife-hand, `attack_heavy_*` a driving heel;
-`special_neutral` a low sprinter's break, body already past vertical (the frame
-rush); `special_side` a single extended palm, almost gentle (the 24 FPS Rule);
-`special_down` arms folded, head tilted, utterly unimpressed (Pre-Read —
-the counter is the disrespect); `ult_a`/`ult_b` are his **cursed-spirit form
-breaking out of him**: a pale segmented worm-like mass erupting around his
-silhouette, star-shaped six-holed mask where the face should be.
-
-Deliver to `assets/intake/naoya/<pose_key>.png`. Key: `naoya`, exactly.
-
 ## 22E. Round 23 technique effects — 6 sprites
 
 Effect plates for the staged kits, spec per
@@ -584,6 +523,26 @@ with the regularity of film frames, a huge full moon dominating the sky through
 the open roof, everything faintly banded in vertical divisions — the renderer
 draws its own filmstrip sprockets and frame lines over the plate, so keep the
 mid-tones open and the banding subtle.
+
+## 22I. Three frames the round-22 boards rejected — 3 sprites
+
+The three faults found reviewing 22B–22D. Everything else in that delivery is
+in the game; these three are in it too, drawing what was delivered, and flagged
+in the workbench so they are visible while they wait. Same character blocks,
+same key screens, same delivery paths as the sets they belong to.
+
+| File | Fighter | What is wrong, and what to draw |
+|---|---|---|
+| `kashimo/special_side.png` | Kashimo | **Costume, not pose.** The action is right — the staff has already left his hand and the throwing arm is extended, which is exactly Nyoi Recall. But the costume drifts from his own `idle_a`: he is wearing **black boots and a navy waist sash**, and the **white knee-to-ankle bandage wraps are missing**. Redraw the same pose with the pale grey ankle boots, the leg wraps, and no sash — match `kashimo/idle_a.png`, which is now his canonical reference |
+| `yaga/crouch_a.png` | Yaga | **A fighting stance, not a crouch.** Knees barely bent, head dropping about a tenth of standing height where the brief asks for a quarter. Draw an actual crouch: hips down, head low, weight settled — `naoya/crouch_a.png` from the same delivery is what it should read like |
+| `yaga/crouch_b.png` | Yaga | Same fault, same fix. It is currently the wider half of one guard stance rather than the second beat of a crouch; it must also read as *lower than standing*, which it does not |
+
+**Kashimo's canonical reference is now his own idle**, not the wiki render —
+36 poses landed, so the rule that governs every other fighter applies to him:
+
+- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kashimo/idle_a.png>
+- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/idle_a.png>
+- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yaga/idle_a.png>
 
 # Round 23 — open
 
