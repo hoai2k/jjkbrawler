@@ -463,6 +463,11 @@ function updateSimulation(dt, held) {
 }
 
 let lastFrameAt = 0;
+// The last time a REAL rAF callback ran, which is the only evidence that the
+// browser is still driving frames. Kept apart from `lastFrameAt` because the
+// watchdog below writes that one too, so a watchdog tick used to look exactly
+// like a delivered frame.
+let lastRafAt = 0;
 let rafPending = false;
 
 // Edge presses are latched here until a simulation step consumes them, so
@@ -491,6 +496,7 @@ function clearLatchedEdges() {
 
 function rafLoop(time) {
   rafPending = false;
+  lastRafAt = performance.now();
   loop(time);
 }
 
@@ -598,6 +604,7 @@ function initPageGuards() {
       // tab went away, and the gap would otherwise arrive as one enormous dt.
       previousTime = performance.now();
       lastFrameAt = previousTime;
+      lastRafAt = previousTime;
       accumulator = 0;
     }
   });
@@ -677,6 +684,7 @@ async function init() {
   startBackgroundLoad();
   previousTime = performance.now();
   lastFrameAt = previousTime;
+  lastRafAt = previousTime;
   rafPending = true;
   requestAnimationFrame(rafLoop);
   // rAF can be throttled or suspended (embedded webviews, a window dragged
@@ -688,10 +696,26 @@ async function init() {
   // on in ~30x slow motion behind the player's back — they came back to a
   // stock they never saw lost. A hidden tab is handled by pausing instead
   // (see the visibilitychange listener above).
+  //
+  // It watches for rAF STOPPING, not for rAF being slow, and the difference
+  // is the whole thing. It used to poll every 12 ms and fire a whole extra
+  // frame — simulation, HUD and a full draw — whenever 28 ms had passed since
+  // the last one. 28 ms is 36 fps: any machine merely having a hard time
+  // crossed it constantly, and every crossing bought it a SECOND frame's work
+  // to do, which made the next frame later still. A four-fighter match on the
+  // 2.5D camera measured 143 loop() calls for 74 delivered frames — half the
+  // frame budget spent rendering pictures the browser had not asked for and
+  // was never going to show. The heavier the machine's load, the harder this
+  // pushed, which is exactly backwards.
+  //
+  // So: poll slowly, and only step in when rAF has genuinely stopped. A quarter
+  // of a second with no callback is not a slow machine, it is a suspended one
+  // (an embedded webview, a window dragged between displays) — the case this
+  // was written for, and the only case it now answers.
   setInterval(() => {
     if (document.hidden) return;
-    if (performance.now() - lastFrameAt > 28) loop(performance.now());
-  }, 12);
+    if (performance.now() - lastRafAt > 250) loop(performance.now());
+  }, 100);
 }
 
 init();

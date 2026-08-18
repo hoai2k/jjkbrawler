@@ -141,11 +141,19 @@ export function makeQuadPool({ depthTest = true } = {}) {
       used++;
       mesh.visible = true;
       const mat = mesh.material;
+      // `needsUpdate` ONLY when the shader actually changes — that is, when the
+      // map appears or disappears (three compiles USE_MAP into the program).
+      // Swapping one texture for another, or changing opacity, blending or
+      // colour, are uniform and state writes the existing program already
+      // handles. Setting it unconditionally re-ran getParameters +
+      // getProgramCacheKey + the program lookup for EVERY card EVERY frame —
+      // dozens per frame, growing with the fighter count — for a shader that
+      // was identical each time.
+      if (!mat.map !== !tex) mat.needsUpdate = true;
       mat.map = tex;
       mat.opacity = alpha;
       mat.blending = blending;
       mat.color.set(color);
-      mat.needsUpdate = true;
       // Column-major fill of a 4×4 from the 2D affine: quad-local (u, v, 0)
       // lands at sim (a·u + c·v + e, b·u + d·v + f), pushed to depth z.
       _m4.set(

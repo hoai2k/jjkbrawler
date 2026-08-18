@@ -1951,8 +1951,8 @@ export function updateHud() {
       void el.offsetWidth;
       el.classList.add("is-hit");
     });
-    renderStocks(els[`p${id}Stocks`], f);
-    renderMeter(els[`p${id}Meter`], els[`p${id}MeterLabel`], f);
+    renderStocks(id, els[`p${id}Stocks`], f);
+    renderMeter(id, els[`p${id}Meter`], els[`p${id}MeterLabel`], f);
   }
 }
 
@@ -1966,33 +1966,44 @@ function updateMatchClock() {
   els.matchClock.classList.toggle("match-clock--urgent", state.timeLeft <= 10);
 }
 
-function renderStocks(el, f) {
-  if (el.childElementCount !== state.stocks) {
-    el.innerHTML = "";
-    for (let i = 0; i < state.stocks; i++) {
-      const dot = document.createElement("span");
-      dot.className = "stock-dot";
-      el.appendChild(dot);
+// Guarded like every other panel write above (hudSet): a stock is lost a
+// handful of times a match, so rebuilding the dot list and walking it every
+// frame for eight panels was style-recalculation work for a picture that had
+// not changed since the last KO.
+function renderStocks(id, el, f) {
+  hudSet(`${id}:stocks`, `${state.stocks}/${f.stocks}`, () => {
+    if (el.childElementCount !== state.stocks) {
+      el.innerHTML = "";
+      for (let i = 0; i < state.stocks; i++) {
+        const dot = document.createElement("span");
+        dot.className = "stock-dot";
+        el.appendChild(dot);
+      }
     }
-  }
-  [...el.children].forEach((dot, i) => {
-    dot.classList.toggle("stock-dot--lost", i >= f.stocks);
+    [...el.children].forEach((dot, i) => {
+      dot.classList.toggle("stock-dot--lost", i >= f.stocks);
+    });
   });
 }
 
-function renderMeter(fillEl, labelEl, f) {
+function renderMeter(id, fillEl, labelEl, f) {
+  // Quantised to a tenth of a percent — a hair under a bar pixel at any size
+  // the HUD is drawn at — so a bar that is charging still animates smoothly
+  // while a bar that is sitting still stops writing layout every frame.
   const pct = (f.meter / METER_MAX) * 100;
-  fillEl.style.width = `${pct}%`;
+  hudSet(`${id}:meter`, Math.round(pct * 10) / 10, (v) => { fillEl.style.width = `${v}%`; });
   // One threshold: a full bar, spendable on either super. There is nothing to
   // signal below it, so the bar is either charging or ready.
   const full = f.meter >= METER_MAX;
   const hasDomain = !!f.char.domains?.length;
-  fillEl.parentElement.classList.toggle("meter--full", full);
   // A fighter with no domain has only one thing to spend the bar on, so they
   // are told that rather than offered a choice they cannot make.
-  labelEl.textContent = !full ? ""
-    : hasDomain ? TEXT.hud.superChoiceReady
-    : TEXT.hud.ultimateReady;
+  hudSet(`${id}:meterFull`, full && hasDomain ? "domain" : full ? "ult" : "", (v) => {
+    fillEl.parentElement.classList.toggle("meter--full", !!v);
+    labelEl.textContent = !v ? ""
+      : v === "domain" ? TEXT.hud.superChoiceReady
+      : TEXT.hud.ultimateReady;
+  });
 }
 
 /** The result screen. `side` is set only in a team match, where the result
