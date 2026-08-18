@@ -12,9 +12,9 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**24 images outstanding.**
+**30 images outstanding.**
 
-- **The sprite game** — 24 images, round 22
+- **The sprite game** — 30 images, round 22
 - **The live-3D anime path** — 0 images
 
 ## Rules that hold everywhere here
@@ -45,12 +45,11 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**24 images, round 22.** Authored in
+**30 images, round 22.** Authored in
 [docs/asset-requests.md](asset-requests.md) and reproduced whole below.
 
 - **22I** — Seven frames the round-22 boards rejected (7 sprites)
-- **22J** — Everything else the workbench has flagged (16 sprites)
-- **23H** — Miwa's heavy strike (1 sprite)
+- **22J** — Everything else the workbench has flagged (23 sprites)
 
 ## 22I. Seven frames the round-22 boards rejected — 7 sprites
 
@@ -99,62 +98,61 @@ promotes them: **`teeter` for `kashimo`, `yaga`, `naoya`, `kirara`, `haruta`,
 - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/idle_a.png>
 - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yaga/idle_a.png>
 
-## 22J. Everything else the workbench has flagged — 16 sprites
+## 22J. Everything else the workbench has flagged — 23 sprites
 
 Frames carrying a workbench flag that no other section asks for. The file
 defines a pose as outstanding if it is flagged *or* drawing a file that is not
-its own, and these had drifted out of the rounds — some since round 18, some
+its own, and these had drifted out of the rounds — some since round 18, most
 from the placement passes over rounds 22 and 23. They are listed here so the
-request documents stop understating what is owed; each is in the game today,
-drawing what was delivered.
+request documents stop understating what is owed.
+
+**Every one of them is in the game today**, drawing what the `File` column
+names — a flag asks for a better drawing, it never takes the current one out of
+play. Where that file is another pose's, it is a deliberate stand-in chosen in
+the workbench and it stays until something better arrives.
 
 Written from `python3 tools/list_replacements.py --markdown`, which reads the
 flags themselves, so this table cannot disagree with the workbench.
 
-| Fighter | Pose | Kind | What is wrong |
-|---|---|---|---|
-| Dagon | `dagon/attack_light_a.png` | pose | should be wind-up for attack |
-| Dagon | `dagon/crouch_attack_b.png` | pose | — |
-| Dagon | `dagon/crouch_b.png` | pose | Drops 21% of standing height where the brief asks for a quarter, and reads taller than crouch_a beside it. Same crouch as crouch_a, a breath later. |
-| Dagon | `dagon/run_reach_a.png` | pose | Should reach with leg not with arm |
-| Dagon | `dagon/run_reach_b.png` | pose | should reach with leg instead of arm |
-| Haruta Shigemo | `haruta/attack_air_a.png` | pose | Needs to be winding-up for attack, not already attacking |
-| Haruta Shigemo | `haruta/dizzy.png` | pose | I'm using a new image that better approximates it, but we need to redo the "dizzy" sprite which came out as an erroneous sheet of multiple images. |
-| Haruta Shigemo | `haruta/special_down.png` | pose | Needs to be winding-up for attack, not already attacking |
-| Hajime Kashimo | `kashimo/attack_air_b.png` | quality | — |
-| Hajime Kashimo | `kashimo/attack_up.png` | quality | Has double knee and also strike focus should be upward |
-| Hajime Kashimo | `kashimo/ledge_hang.png` | character | Different hair color |
-| Kirara Hoshi | `kirara/attack_down.png` | pose | should be aiming attack at the ground |
-| Kirara Hoshi | `kirara/attack_heavy_b.png` | pose | Should have her right arm forward in a punch |
-| Kirara Hoshi | `kirara/attack_light_b.png` | pose | should have her right arm out in a punch |
-| Mahito | `mahito/attack_light_a.png` | quality | — |
-| Takako Uro | `uro/attack_light_b.png` | quality | — |
+| Fighter | Pose | Kind | Drawing today | What is wrong |
+|---|---|---|---|---|
+| Dagon | `dagon/attack_light_a` | pose | `dagon/attack_light_a.png` | should be wind-up for attack |
+| Dagon | `dagon/crouch_attack_b` | pose | `dagon/crouch_attack_b.png` | — |
+| Dagon | `dagon/crouch_b` | pose | `dagon/crouch_b.png` | Drops 21% of standing height where the brief asks for a quarter, and reads taller than crouch_a beside it. Same crouch as crouch_a, a breath later. |
+| Dagon | `dagon/run_reach_a` | pose | `dagon/run_reach_a.png` | Should reach with leg not with arm |
+| Dagon | `dagon/run_reach_b` | pose | `dagon/run_reach_b.png` | should reach with leg instead of arm |
+| Haruta Shigemo | `haruta/attack_air_a` | pose | `haruta/attack_air_a.png` | Needs to be winding-up for attack, not already attacking |
+| Haruta Shigemo | `haruta/dizzy` | pose | `haruta/hurt.png` | I'm using a new image that better approximates it, but we need to redo the "dizzy" sprite which came out as an erroneous sheet of multiple images. |
+| Haruta Shigemo | `haruta/special_down` | pose | `haruta/attack_air_a.png` | Needs to be winding-up for attack, not already attacking |
+| Hajime Kashimo | `kashimo/attack_air_b` | quality | `kashimo/attack_air_a.png` | — |
+| Hajime Kashimo | `kashimo/attack_up` | quality | `kashimo/attack_up.png` | Has double knee and also strike focus should be upward |
+| Hajime Kashimo | `kashimo/ledge_hang` | character | `kashimo/ledge_hang.png` | Different hair color |
+| Kirara Hoshi | `kirara/attack_down` | pose | `kirara/attack_down.png` | should be aiming attack at the ground |
+| Kirara Hoshi | `kirara/attack_heavy_b` | pose | `kirara/attack_heavy_b.png` | Should have her right arm forward in a punch |
+| Kirara Hoshi | `kirara/attack_light_b` | pose | `kirara/attack_light_b.png` | should have her right arm out in a punch |
+| Mahito | `mahito/attack_light_a` | quality | `mahito/attack_light_a.png` | — |
+| Kasumi Miwa | `miwa/attack_heavy_a` | quality | `miwa/attack_heavy_a.png` | her drawn back sword has no blade on it |
+| Kasumi Miwa | `miwa/attack_light_a` | quality | `miwa/attack_light_a.png` | Her sword should be unsheathed in her wind-up to attack. |
+| Kasumi Miwa | `miwa/attack_light_b` | quality | `miwa/attack_light_b.png` | Her sword is cut off / clipped on the right |
+| Kasumi Miwa | `miwa/charge` | pose | `miwa/charge.png` | She looks like she's just idling instead of charging up |
+| Kasumi Miwa | `miwa/dizzy` | quality | `miwa/hurt.png` | I replaced with another sprite as a backup, but we need a new "dizzy" one (old one was a sheet showing multiple at once). |
+| Kasumi Miwa | `miwa/special_neutral` | quality | `miwa/special_neutral.png` | Her sword is cut off on the right |
+| Kasumi Miwa | `miwa/ult_a` | quality | `miwa/ult_a.png` | her sword is going through her leg |
+| Takako Uro | `uro/attack_light_b` | quality | `uro/attack_light_a.png` | — |
 
-**Six of them are the same wind-up fault** the brief now measures, on the
-fighters round 22I already names for it — Kashimo's and Haruta's `_a` frames
-and Kirara's strikes. The `_a` rule in
-[pose-brief.md](../sprites/docs/pose-brief.md) governs all of them, and both
-halves of every pair have to pass the ruler.
+**Two of Miwa's are unrecoverable crops, not framing.** `attack_light_b` and
+`special_neutral` were delivered with the blade running off the RIGHT edge of
+the plate — 26 px and 23 px of the source's own right-hand column is figure, so
+the tip was never drawn and no re-crop can bring it back. Both need the pose
+redrawn with margin on all four sides.
 
-## 23H. Miwa's heavy strike — 1 sprite
-
-The one fault found reviewing round 23. Her set is otherwise excellent and all
-36 poses are in the game; this frame is in it too, drawing what was delivered,
-and flagged in the workbench while it waits.
-
-| File | Fighter | What is wrong, and what to draw |
-|---|---|---|
-| `miwa/attack_heavy_b.png` | Miwa | **The heavy does not finish bigger than the light.** Both are a level thrust with the blade forward at chest height; measured forward of her own centre they are the same (+0.12 and +0.11 of standing height), and she is the roster's most sword-dependent fighter reaching less far than every unarmed fighter in round 22. Redraw it as a committed cut that TRAVELS — hips rotated through, the blade finishing well past where `attack_light_b` ends. Her canonical reference is now her own idle: <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/miwa_idle.png> |
-
-**Not a request, a decision: Tengen's barrier is violet and his kit is
-parchment.** `tengen/special_side` and `pure_barrier.png` both draw the barrier
-as a violet-pink pane where 23C and 23F asked for translucent parchment-white.
-The art is coherent with itself and keys cleanly, so it reads as a choice
-rather than a slip — but `tengen.theme` is `#d6cfae`, which is what his HUD,
-his install aura and his popups use, so art and fighter currently disagree
-about what colour he is. Moving the theme to the violet is a one-line change to
-`src/characters.js`; moving the art to parchment is a re-request of two plates.
-Nobody should pick one silently.
+**The two `dizzy` sheets cannot be salvaged either.** `miwa/dizzy` came back as
+fifteen figures on one 1536x1024 canvas and `haruta/dizzy` as eleven; the
+tallest figure on either sheet is 495 px against the spec's 600 px body
+minimum, and the median is under 310 px. Even setting resolution aside, none of
+the figures on either sheet is a dizzy pose — they are idles, draws, crouches
+and slashes. Both are re-requests, and both draw the fighter's `hurt` frame
+meanwhile, which is the closest read the set has.
 
 # Round 23 — open
 
@@ -475,13 +473,19 @@ is not its own says so silently, which is how seven of them stayed invisible
 until round 18G. Neither can see a pose that was never drawn — that is what
 the rounds above are for.
 
-**24 flagged, 24 drawing somebody else's art.**
+**30 flagged, 25 drawing somebody else's art.**
 
 | Fighter | Pose | Why |
 |---|---|---|
 | kashimo | `attack_air_b` | quality |
 | kashimo | `attack_up` | quality |
 | mahito | `attack_light_a` | quality |
+| miwa | `attack_heavy_a` | quality |
+| miwa | `attack_light_a` | quality |
+| miwa | `attack_light_b` | quality |
+| miwa | `dizzy` | quality |
+| miwa | `special_neutral` | quality |
+| miwa | `ult_a` | quality |
 | nanami | `teeter` | quality |
 | uro | `attack_light_b` | quality |
 | dagon | `attack_light_a` | pose |
@@ -495,7 +499,7 @@ the rounds above are for.
 | kirara | `attack_down` | pose |
 | kirara | `attack_heavy_b` | pose |
 | kirara | `attack_light_b` | pose |
-| miwa | `attack_heavy_b` | pose |
+| miwa | `charge` | pose |
 | naoya | `attack_air_a` | pose |
 | naoya | `attack_heavy_a` | pose |
 | naoya | `attack_light_a` | pose |
@@ -527,6 +531,7 @@ the rounds above are for.
 | kashimo | `attack_air_b` | drawing `attack_air_a` |
 | haruta | `dizzy` | drawing `hurt` |
 | haruta | `special_down` | drawing `attack_air_a` |
+| miwa | `dizzy` | drawing `hurt` |
 
 Separately, **2 improvement requests** — the art works and is just
 not as good as it should be. Nothing is blocked by one, and the standing

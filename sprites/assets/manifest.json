@@ -49077,16 +49077,10 @@
     "ox": -146.8,
     "oy": -1000,
     "bodyBottom": 310.4,
-    "bodyH": 327.8,
+    "bodyH": 334.4,
     "centroidX": 128.8,
-    "renderScale": 0.25,
+    "renderScale": 0.255,
     "file": "miwa/attack_air_a.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 663,
@@ -49094,8 +49088,8 @@
     "coreRight": 499.8,
     "anchors": {
      "com": [
-      304.5,
-      461.1
+      344.9,
+      511.7
      ]
     },
     "autoTuned": {
@@ -49103,6 +49097,9 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "attack_air_b": {
@@ -49111,16 +49108,10 @@
     "ox": -419.3,
     "oy": -502,
     "bodyBottom": 310.4,
-    "bodyH": 203.2,
+    "bodyH": 296.7,
     "centroidX": -10.7,
-    "renderScale": 0.25,
+    "renderScale": 0.365,
     "file": "miwa/attack_air_b.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1487,
@@ -49128,8 +49119,8 @@
     "coreRight": 1226.8,
     "anchors": {
      "com": [
-      576.6,
-      291.4
+      572.5,
+      346.8
      ]
     },
     "autoTuned": {
@@ -49137,6 +49128,9 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "attack_down": {
@@ -49144,17 +49138,11 @@
     "h": 1295,
     "ox": -261.7,
     "oy": -984,
-    "bodyBottom": 241.9,
-    "bodyH": 323.8,
+    "bodyBottom": 63.9,
+    "bodyH": 388.6,
     "centroidX": 204.7,
-    "renderScale": 0.25,
+    "renderScale": 0.3,
     "file": "miwa/attack_down.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 741,
@@ -49162,8 +49150,8 @@
     "coreRight": 688.0,
     "anchors": {
      "com": [
-      420.9,
-      484.9
+      434.4,
+      468.0
      ]
     },
     "autoTuned": {
@@ -49172,24 +49160,24 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 241.9,
+     "rotationDeg": null
+    },
+    "rotationDeg": 8.5
    },
    "attack_heavy_a": {
     "w": 833,
     "h": 1599,
-    "ox": -243.3,
+    "ox": -285.8,
     "oy": -1288,
     "bodyBottom": 225.7,
     "bodyH": 399.8,
     "centroidX": 140.3,
     "renderScale": 0.25,
     "file": "miwa/attack_heavy_a.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 833,
@@ -49207,24 +49195,23 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "ox": -243.3
+    },
+    "needsReplacement": "quality",
+    "replacementNote": "her drawn back sword has no blade on it"
    },
    "attack_heavy_b": {
     "w": 841,
     "h": 952,
-    "ox": -143.7,
+    "ox": -101.2,
     "oy": -641,
     "bodyBottom": 260.2,
-    "bodyH": 238.0,
+    "bodyH": 378.4,
     "centroidX": 36.7,
-    "renderScale": 0.25,
+    "renderScale": 0.3975,
     "file": "miwa/attack_heavy_b.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 841,
@@ -49232,8 +49219,8 @@
     "coreRight": 624.8,
     "anchors": {
      "com": [
-      300.3,
-      361.8
+      262.6,
+      360.6
      ]
     },
     "autoTuned": {
@@ -49243,25 +49230,21 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "needsReplacement": "pose",
-    "replacementNote": "Her heavy does not finish bigger than her light: both are a level thrust with the blade forward at chest height, and measured forward of her own centre they are the same (+0.12 and +0.11 of standing height). She is the roster's most sword-dependent fighter and her heavy currently reaches less far than every unarmed fighter in round 22. Redraw it as a committed cut that travels \u2014 hips rotated through, the blade finishing well past where attack_light_b ends."
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -143.7
+    }
    },
    "attack_light_a": {
     "w": 798,
     "h": 1589,
     "ox": -277.2,
     "oy": -1278,
-    "bodyBottom": 226.2,
-    "bodyH": 397.2,
+    "bodyBottom": 109.7,
+    "bodyH": 429.0,
     "centroidX": 191.7,
-    "renderScale": 0.25,
+    "renderScale": 0.27,
     "file": "miwa/attack_light_a.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 798,
@@ -49269,8 +49252,8 @@
     "coreRight": 744.8,
     "anchors": {
      "com": [
-      432.4,
-      614.5
+      436.3,
+      588.7
      ]
     },
     "autoTuned": {
@@ -49279,24 +49262,26 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 226.2,
+     "rotationDeg": null
+    },
+    "rotationDeg": -6,
+    "needsReplacement": "quality",
+    "replacementNote": "Her sword should be unsheathed in her wind-up to attack."
    },
    "attack_light_b": {
     "w": 857,
     "h": 1295,
-    "ox": -176.7,
+    "ox": -133.7,
     "oy": -984,
-    "bodyBottom": 241.9,
-    "bodyH": 323.8,
+    "bodyBottom": 203.9,
+    "bodyH": 417.7,
     "centroidX": 61.7,
-    "renderScale": 0.25,
+    "renderScale": 0.3225,
     "file": "miwa/attack_light_b.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 857,
@@ -49304,8 +49289,8 @@
     "coreRight": 671.8,
     "anchors": {
      "com": [
-      334.4,
-      490.5
+      315.2,
+      487.0
      ]
     },
     "autoTuned": {
@@ -49314,7 +49299,14 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -176.7,
+     "bodyBottom": 241.9
+    },
+    "needsReplacement": "quality",
+    "replacementNote": "Her sword is cut off / clipped on the right"
    },
    "attack_up": {
     "w": 553,
@@ -49322,16 +49314,10 @@
     "ox": -121.7,
     "oy": -1255,
     "bodyBottom": 227.5,
-    "bodyH": 391.5,
+    "bodyH": 528.5,
     "centroidX": 158.7,
-    "renderScale": 0.25,
+    "renderScale": 0.3375,
     "file": "miwa/attack_up.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 553,
@@ -49339,8 +49325,8 @@
     "coreRight": 508.9,
     "anchors": {
      "com": [
-      281.4,
-      601.4
+      321.3,
+      645.3
      ]
     },
     "autoTuned": {
@@ -49349,6 +49335,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "charge": {
@@ -49356,17 +49345,11 @@
     "h": 1691,
     "ox": -133.6,
     "oy": -1380,
-    "bodyBottom": 220.8,
-    "bodyH": 422.8,
+    "bodyBottom": 182.3,
+    "bodyH": 433.3,
     "centroidX": 124.1,
-    "renderScale": 0.25,
+    "renderScale": 0.2562,
     "file": "miwa/charge.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 646,
@@ -49374,8 +49357,8 @@
     "coreRight": 486.2,
     "anchors": {
      "com": [
-      290.3,
-      675.0
+      334.1,
+      650.6
      ]
     },
     "autoTuned": {
@@ -49384,7 +49367,13 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 220.8
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "She looks like she's just idling instead of charging up"
    },
    "crouch_a": {
     "w": 897,
@@ -49392,16 +49381,10 @@
     "ox": -318.3,
     "oy": -541,
     "bodyBottom": 265.6,
-    "bodyH": 213.0,
+    "bodyH": 224.7,
     "centroidX": 183.3,
-    "renderScale": 0.25,
+    "renderScale": 0.2637,
     "file": "miwa/crouch_a.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 897,
@@ -49409,8 +49392,8 @@
     "coreRight": 740.0,
     "anchors": {
      "com": [
-      475.5,
-      403.8
+      496.9,
+      455.4
      ]
     },
     "autoTuned": {
@@ -49419,6 +49402,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "crouch_attack_a": {
@@ -49427,16 +49413,10 @@
     "ox": -208.8,
     "oy": -589,
     "bodyBottom": 263.0,
-    "bodyH": 225.0,
+    "bodyH": 238.5,
     "centroidX": 197.3,
-    "renderScale": 0.25,
+    "renderScale": 0.265,
     "file": "miwa/crouch_attack_a.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 650,
@@ -49454,24 +49434,21 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "crouch_attack_b": {
     "w": 1554,
     "h": 766,
-    "ox": -432.9,
+    "ox": -332.9,
     "oy": -455,
     "bodyBottom": 270.1,
-    "bodyH": 191.5,
+    "bodyH": 239.4,
     "centroidX": -30.6,
-    "renderScale": 0.25,
+    "renderScale": 0.3125,
     "file": "miwa/crouch_attack_b.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1554,
@@ -49479,8 +49456,8 @@
     "coreRight": 1214.1,
     "anchors": {
      "com": [
-      590.0,
-      369.4
+      475.3,
+      384.7
      ]
     },
     "autoTuned": {
@@ -49489,6 +49466,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -432.9
     }
    },
    "crouch_b": {
@@ -49496,17 +49477,11 @@
     "h": 1013,
     "ox": -163.3,
     "oy": -702,
-    "bodyBottom": 257.0,
-    "bodyH": 253.2,
+    "bodyBottom": 212.5,
+    "bodyH": 283.6,
     "centroidX": 148.3,
-    "renderScale": 0.25,
+    "renderScale": 0.28,
     "file": "miwa/crouch_b.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 657,
@@ -49524,6 +49499,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 257.0
     }
    },
    "dash": {
@@ -49531,17 +49510,11 @@
     "h": 1038,
     "ox": -270.4,
     "oy": -727,
-    "bodyBottom": 255.6,
-    "bodyH": 259.5,
+    "bodyBottom": 296.6,
+    "bodyH": 352.9,
     "centroidX": 187.4,
-    "renderScale": 0.25,
+    "renderScale": 0.34,
     "file": "miwa/dash.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 793,
@@ -49549,8 +49522,8 @@
     "coreRight": 713.6,
     "anchors": {
      "com": [
-      426.6,
-      394.0
+      458.2,
+      418.7
      ]
     },
     "autoTuned": {
@@ -49559,35 +49532,40 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 255.6
     }
    },
    "dizzy": {
-    "w": 1478,
-    "h": 984,
-    "ox": -582.2,
-    "oy": -673,
-    "bodyBottom": 310.4,
-    "bodyH": 246.0,
-    "centroidX": 84.2,
-    "renderScale": 0.25,
-    "file": "miwa/dizzy.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
-    "bodyTop": 0,
+    "file": "miwa/hurt.png",
     "bodyLeft": 0,
     "bodyRight": 1478,
     "coreLeft": 55.4,
     "coreRight": 1376.4,
+    "borrowedFrom": "hurt",
+    "w": 869,
+    "h": 1423,
+    "ox": -255.9,
+    "oy": -1112,
+    "bodyBottom": 211.1,
+    "bodyH": 355.8,
+    "bodyTop": 0,
+    "centroidX": 134.9,
+    "renderScale": 0.25,
     "anchors": {
      "com": [
-      667.4,
-      440.9
+      496.9,
+      517.3
      ]
-    }
+    },
+    "replacementNote": "I replaced with another sprite as a backup, but we need a new \"dizzy\" one (old one was a sheet showing multiple at once).",
+    "edited": {
+     "ox": -255.9,
+     "bodyBottom": 211.1
+    },
+    "needsReplacement": "quality"
    },
    "dodge_air": {
     "w": 656,
@@ -49595,16 +49573,10 @@
     "ox": -176.8,
     "oy": -1029,
     "bodyBottom": 310.4,
-    "bodyH": 335.0,
+    "bodyH": 353.4,
     "centroidX": 162.3,
-    "renderScale": 0.25,
+    "renderScale": 0.2637,
     "file": "miwa/dodge_air.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 656,
@@ -49612,8 +49584,8 @@
     "coreRight": 527.6,
     "anchors": {
      "com": [
-      332.6,
-      488.9
+      357.6,
+      536.3
      ]
     },
     "autoTuned": {
@@ -49621,6 +49593,9 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "dodge_roll": {
@@ -49633,12 +49608,6 @@
     "centroidX": 152.2,
     "renderScale": 0.25,
     "file": "miwa/dodge_roll.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 711,
@@ -49646,8 +49615,8 @@
     "coreRight": 579.8,
     "anchors": {
      "com": [
-      352.8,
-      367.8
+      350.9,
+      429.7
      ]
     },
     "autoTuned": {
@@ -49656,7 +49625,11 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "rotationDeg": null
+    },
+    "rotationDeg": 12
    },
    "fall": {
     "w": 819,
@@ -49668,12 +49641,6 @@
     "centroidX": 250.9,
     "renderScale": 0.25,
     "file": "miwa/fall.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 819,
@@ -49681,8 +49648,8 @@
     "coreRight": 745.9,
     "anchors": {
      "com": [
-      505.0,
-      497.9
+      529.7,
+      597.1
      ]
     },
     "autoTuned": {
@@ -49697,17 +49664,11 @@
     "h": 1646,
     "ox": -157.4,
     "oy": -1335,
-    "bodyBottom": 223.2,
-    "bodyH": 411.5,
+    "bodyBottom": 160.2,
+    "bodyH": 423.8,
     "centroidX": 161.4,
-    "renderScale": 0.25,
+    "renderScale": 0.2575,
     "file": "miwa/guard.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 619,
@@ -49725,24 +49686,24 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 223.2,
+     "rotationDeg": null
+    },
+    "rotationDeg": 4.5
    },
    "hurt": {
     "w": 869,
     "h": 1423,
     "ox": -255.9,
     "oy": -1112,
-    "bodyBottom": 235.1,
+    "bodyBottom": 211.1,
     "bodyH": 355.8,
     "centroidX": 134.9,
     "renderScale": 0.25,
     "file": "miwa/hurt.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 869,
@@ -49750,8 +49711,8 @@
     "coreRight": 756.0,
     "anchors": {
      "com": [
-      414.3,
-      526.6
+      496.9,
+      517.3
      ]
     },
     "autoTuned": {
@@ -49760,6 +49721,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 235.1
     }
    },
    "idle_a": {
@@ -49767,17 +49731,11 @@
     "h": 1683,
     "ox": -129.7,
     "oy": -1372,
-    "bodyBottom": 221.2,
-    "bodyH": 420.8,
+    "bodyBottom": 206.7,
+    "bodyH": 425.0,
     "centroidX": 129.2,
-    "renderScale": 0.25,
+    "renderScale": 0.2525,
     "file": "miwa/idle_a.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 628,
@@ -49795,6 +49753,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 221.2
     }
    },
    "idle_b": {
@@ -49802,17 +49764,11 @@
     "h": 1725,
     "ox": -126.5,
     "oy": -1414,
-    "bodyBottom": 219.0,
-    "bodyH": 420.8,
+    "bodyBottom": 195.5,
+    "bodyH": 427.2,
     "centroidX": 129.0,
-    "renderScale": 0.244,
+    "renderScale": 0.2477,
     "file": "miwa/idle_b.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 622,
@@ -49832,6 +49788,10 @@
       "renderScale": "idle is uniform",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.244,
+     "bodyBottom": 219.0
     }
    },
    "jump_rise": {
@@ -49840,16 +49800,10 @@
     "ox": -103.1,
     "oy": -1263,
     "bodyBottom": 310.4,
-    "bodyH": 393.5,
+    "bodyH": 497.7,
     "centroidX": 147.1,
-    "renderScale": 0.25,
+    "renderScale": 0.3162,
     "file": "miwa/jump_rise.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 539,
@@ -49857,8 +49811,8 @@
     "coreRight": 482.0,
     "anchors": {
      "com": [
-      261.3,
-      641.0
+      334.3,
+      668.5
      ]
     },
     "autoTuned": {
@@ -49866,6 +49820,9 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "land": {
@@ -49874,16 +49831,10 @@
     "ox": -243.8,
     "oy": -635,
     "bodyBottom": 260.5,
-    "bodyH": 236.5,
+    "bodyH": 241.2,
     "centroidX": 207.8,
-    "renderScale": 0.25,
+    "renderScale": 0.255,
     "file": "miwa/land.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 699,
@@ -49901,6 +49852,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "ledge_hang": {
@@ -49909,16 +49863,10 @@
     "ox": -74.0,
     "oy": -1245,
     "bodyBottom": 310.4,
-    "bodyH": 389.0,
+    "bodyH": 527.0,
     "centroidX": 116.0,
-    "renderScale": 0.25,
+    "renderScale": 0.3387,
     "file": "miwa/ledge_hang.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 543,
@@ -49926,8 +49874,8 @@
     "coreRight": 379.3,
     "anchors": {
      "com": [
-      232.0,
-      642.4
+      252.1,
+      693.9
      ],
      "ledge": [
       225.6,
@@ -49939,6 +49887,9 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "prone": {
@@ -49946,17 +49897,11 @@
     "h": 402,
     "ox": -586.1,
     "oy": -91,
-    "bodyBottom": 310.4,
+    "bodyBottom": 121.9,
     "bodyH": 100.5,
     "centroidX": 110.6,
     "renderScale": 0.25,
     "file": "miwa/prone.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1578,
@@ -49973,6 +49918,9 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 310.4
     }
    },
    "run_pass_a": {
@@ -49980,17 +49928,11 @@
     "h": 1463,
     "ox": -249.7,
     "oy": -1152,
-    "bodyBottom": 233.0,
-    "bodyH": 365.8,
+    "bodyBottom": 291,
+    "bodyH": 409.7,
     "centroidX": 209.7,
-    "renderScale": 0.25,
+    "renderScale": 0.28,
     "file": "miwa/run_pass_a.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 707,
@@ -50008,6 +49950,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 233.0
     }
    },
    "run_pass_b": {
@@ -50015,17 +49961,11 @@
     "h": 1149,
     "ox": -218.3,
     "oy": -838,
-    "bodyBottom": 249.7,
-    "bodyH": 287.2,
+    "bodyBottom": 290.7,
+    "bodyH": 366.1,
     "centroidX": 168.3,
-    "renderScale": 0.25,
+    "renderScale": 0.3187,
     "file": "miwa/run_pass_b.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 727,
@@ -50033,8 +49973,8 @@
     "coreRight": 632.0,
     "anchors": {
      "com": [
-      374.6,
-      427.5
+      411.3,
+      468.1
      ]
     },
     "autoTuned": {
@@ -50043,6 +49983,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 249.7
     }
    },
    "run_reach_a": {
@@ -50050,17 +49994,11 @@
     "h": 1149,
     "ox": -274.0,
     "oy": -838,
-    "bodyBottom": 249.7,
-    "bodyH": 287.2,
+    "bodyBottom": 281.7,
+    "bodyH": 349.0,
     "centroidX": 169.0,
-    "renderScale": 0.25,
+    "renderScale": 0.3038,
     "file": "miwa/run_reach_a.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 837,
@@ -50078,6 +50016,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 249.7
     }
    },
    "run_reach_b": {
@@ -50085,17 +50027,11 @@
     "h": 1176,
     "ox": -399.4,
     "oy": -865,
-    "bodyBottom": 248.3,
-    "bodyH": 294.0,
+    "bodyBottom": 291.3,
+    "bodyH": 335.2,
     "centroidX": 215.4,
-    "renderScale": 0.25,
+    "renderScale": 0.285,
     "file": "miwa/run_reach_b.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 995,
@@ -50113,6 +50049,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 248.3
     }
    },
    "special_down": {
@@ -50120,17 +50060,11 @@
     "h": 1541,
     "ox": -260.6,
     "oy": -1230,
-    "bodyBottom": 228.8,
-    "bodyH": 385.2,
+    "bodyBottom": 165.3,
+    "bodyH": 423.7,
     "centroidX": 165.6,
-    "renderScale": 0.25,
+    "renderScale": 0.275,
     "file": "miwa/special_down.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 817,
@@ -50148,24 +50082,22 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 228.8
     }
    },
    "special_neutral": {
     "w": 852,
     "h": 928,
-    "ox": -215.4,
+    "ox": -167.9,
     "oy": -617,
-    "bodyBottom": 261.5,
-    "bodyH": 232.0,
+    "bodyBottom": 264,
+    "bodyH": 348.0,
     "centroidX": 102.9,
-    "renderScale": 0.25,
+    "renderScale": 0.375,
     "file": "miwa/special_neutral.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 852,
@@ -50183,24 +50115,25 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -215.4,
+     "bodyBottom": 261.5
+    },
+    "needsReplacement": "quality",
+    "replacementNote": "Her sword is cut off on the right"
    },
    "special_side": {
     "w": 730,
     "h": 1544,
     "ox": -190.6,
     "oy": -1233,
-    "bodyBottom": 228.6,
-    "bodyH": 386.0,
+    "bodyBottom": 278.6,
+    "bodyH": 411.0,
     "centroidX": 139.1,
-    "renderScale": 0.25,
+    "renderScale": 0.2662,
     "file": "miwa/special_side.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 730,
@@ -50218,6 +50151,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 228.6
     }
    },
    "ult_a": {
@@ -50225,17 +50162,11 @@
     "h": 1252,
     "ox": -268.3,
     "oy": -941,
-    "bodyBottom": 244.2,
-    "bodyH": 313.0,
+    "bodyBottom": 96.2,
+    "bodyH": 378.7,
     "centroidX": 184.3,
-    "renderScale": 0.25,
+    "renderScale": 0.3025,
     "file": "miwa/ult_a.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 795,
@@ -50253,7 +50184,13 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 244.2
+    },
+    "needsReplacement": "quality",
+    "replacementNote": "her sword is going through her leg"
    },
    "ult_b": {
     "w": 822,
@@ -50261,16 +50198,10 @@
     "ox": -158.2,
     "oy": -1207,
     "bodyBottom": 230.0,
-    "bodyH": 379.5,
+    "bodyH": 417.5,
     "centroidX": 60.7,
-    "renderScale": 0.25,
+    "renderScale": 0.275,
     "file": "miwa/ult_b.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 822,
@@ -50288,6 +50219,9 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "victory": {
@@ -50295,17 +50229,11 @@
     "h": 1674,
     "ox": -159.5,
     "oy": -1363,
-    "bodyBottom": 221.7,
-    "bodyH": 418.5,
+    "bodyBottom": 186.2,
+    "bodyH": 428.9,
     "centroidX": 144.5,
-    "renderScale": 0.25,
+    "renderScale": 0.2562,
     "file": "miwa/victory.png",
-    "replaced": {
-     "at": "2026-08-18T21:40:56+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 657,
@@ -50323,6 +50251,10 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 221.7
     }
    }
   }
@@ -73552,6 +73484,53 @@
      }
     ]
    }
+  },
+  "miwa": {
+   "dizzy": {
+    "options": [
+     {
+      "file": "miwa/dizzy.png",
+      "label": "Delivered",
+      "w": 1478,
+      "h": 984,
+      "ox": -582.2,
+      "oy": -673,
+      "bodyBottom": 310.4,
+      "bodyH": 246,
+      "bodyTop": 0,
+      "centroidX": 84.2,
+      "renderScale": 0.25,
+      "anchors": {
+       "com": [
+        667.4,
+        440.9
+       ]
+      },
+      "needsReplacement": "quality"
+     },
+     {
+      "file": "miwa/hurt.png",
+      "label": "From hurt",
+      "borrowedFrom": "hurt",
+      "w": 869,
+      "h": 1423,
+      "ox": -255.9,
+      "oy": -1112,
+      "bodyBottom": 211.1,
+      "bodyH": 355.8,
+      "bodyTop": 0,
+      "centroidX": 134.9,
+      "renderScale": 0.25,
+      "anchors": {
+       "com": [
+        496.9,
+        517.3
+       ]
+      },
+      "replacementNote": "I replaced with another sprite as a backup, but we need a new \"dizzy\" one (old one was a sheet showing multiple at once)."
+     }
+    ]
+   }
   }
  },
  "heightSpans": {
@@ -73580,7 +73559,8 @@
   "mechamaru": 360.68,
   "kurourushi": 348.9,
   "kashimo": 264.25,
-  "kirara": 331.57
+  "kirara": 331.57,
+  "miwa": 398.3
  },
  "otherSprites": {
   "effect:aura_chitin": {
