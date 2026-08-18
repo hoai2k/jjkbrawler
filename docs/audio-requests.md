@@ -1,9 +1,8 @@
 # Audio Requests — open requests
 
-**One round is open: round 17, the sounds owed to round 24's staged four —
-three sounds.** Rounds 12 and 16 — the grab pack and the four sounds owed
-to round 23's staged three — are delivered and wired in. Every round's audit,
-prompts and delivery record is here or in
+**Nothing is open.** Round 17 — the three sounds owed to round 24's staged
+four — is delivered and wired in, as are rounds 12 and 16 before it. Every
+round's audit, prompts and delivery record is here or in
 [audio-requests-history.md](audio-requests-history.md).
 
 **Round 16 is the one worth copying, and round 17 copies it.** It was requested
@@ -13,7 +12,7 @@ found. Round 15's lesson was that a silence noticed in play has already
 shipped; 16 was the first round to act on it in advance and 17 does the same
 for Kirara, Haruta, Tengen and Miwa.
 
-## Round 17 — round 24's staged four (open) — 3 sounds
+## Round 17 — round 24's staged four *(delivered)* — 3 sounds
 
 Kirara, Haruta, Tengen and Miwa are staged (`STAGED_CHARACTER_KEYS`,
 `src/characters.js`; art is round 23A–23G in
@@ -29,13 +28,51 @@ is not theirs.
 | `battoDraw` | Miwa's iai leaving the sheath — the Batto lunge, the Sheathed Stance counter firing, and The Last Draw's cut | plays `slashHeavy`, which is a swing; a draw is a *ring* |
 | `barrierPulse` | Tengen's Barrier Pulse shoving outward | plays the generic `blast` via the shout handler |
 
-**Wiring when they land:** register all three in `SFX`
-(`src/config_audio.js`). `starRepel` needs nothing else — `fighter.js` already
-plays it. `battoDraw` replaces the `sfx` on Miwa's Batto Sword Drawing and
-Sheathed Stance in `src/characters.js`; `barrierPulse` needs the shout handler
-to read a `p.sfx` override (one line in `src/specials.js`) or a swap at the
-call. Haruta and Kirara's remaining moves keep the standard set deliberately —
-nothing of theirs is silent or misvoiced.
+**Delivered and wired.** All three are registered. Haruta and Kirara's other
+moves keep the standard set deliberately — nothing of theirs is silent or
+misvoiced.
+
+**The brief said `p.sfx` for the shout override and this used `castSfx`
+instead**, which is worth writing down because it is a deviation. `sfx` already
+means *the sound of the hit landing* everywhere in this codebase — `moves.js`
+reads it that way for every melee and projectile — and both overrides this round
+needed are the sound of the move FIRING. `castSfx` is the field that already
+means that (Yuta's heal chime, Mahito's soul reshape), so the audio workbench
+lists both of these automatically, with no edit to the bench at all. Using
+`sfx` would have made the same word mean two things and made the bench label
+them wrongly.
+
+Three handlers learned to take a per-move sound, and every one of them keeps
+its old behaviour for the fighters that share it:
+
+| Handler | Change | Who keeps the old sound |
+|---|---|---|
+| `shout` (`specials.js`) | reads `p.castSfx`, and `p.sfx` on its melee | Inumaki's four shouts — the pitched-up `blast` goes with the borrowed file |
+| `counter` (`specials.js`) + `triggerCounter` (`combat.js`) | the stance stores what its riposte hits with | Gojo's Infinity and Naoya's Pre-Read |
+| `massDrive` (`ultimates.js`) | reads `p.castSfx` | Todo's Maximum Mass — it is a fist, and 0.5× is what makes it heavy |
+
+Miwa's stance was the one worth the engine change: the counter and the special
+are **the same cut**, and a riposte firing a generic blast made the fastest
+sword in the game sound like everybody else.
+
+### `starRepel` was worse than silent, and Kirara worse than that
+
+The call site in `fighter.js` has NAMED that key since Kirara was built, so the
+game had been asking the mixer for a file that did not exist. `playSfx` treats
+an unregistered key as silence, which is the right behaviour and exactly why
+nothing ever complained.
+
+The second half only turned up on delivery: **Kirara could not be reached in the
+audio workbench at all.** She has no domain call, no `MOVE_CALL` line, and her
+one sound is played by a handler rather than declared on a move — so nothing
+walking the kits could see her, she never entered the cast list, and the page's
+fall-back showed **Gojo** to anyone who asked for her. Not an error, no warning;
+just the wrong fighter.
+
+`SIGNATURE_SFX` fixes it in one row, the way it did for Todo's clap and Nanami's
+seam. `check_voice.mjs` now fails if a registered sound belongs to a fighter and
+nothing declares it — because "a sound nobody can reach is a sound nobody can
+judge" is the one job that page exists to do.
 
 **`star_repel.wav`** · Love Rendezvous repulsion · 0.5 s
 ```
@@ -844,8 +881,8 @@ which is why the brief allows 3.0 s for a 2.25 s line.
 
 | | |
 |---|---|
-| Sound files | **119** in play, in `assets/sfx/`, plus **44** alternate takes nothing plays |
-| Registry keys | **112** in `SFX` (`src/config_audio.js`) |
+| Sound files | **122** in play, in `assets/sfx/`, plus **44** alternate takes nothing plays |
+| Registry keys | **115** in `SFX` (`src/config_audio.js`) |
 | With a generation prompt on file | **all but one** — `sound_shield.mp3` predates the rounds and has none |
 | Deleted on purpose | **38**, listed in [audio-pruned.md](audio-pruned.md) so no generator run recreates them |
 | Fighters with a voice | **27 of 27** — six voice groups, 1–3 grunt variants each after the prune, plus a matching KO cry |
@@ -854,7 +891,7 @@ which is why the brief allows 3.0 s for a 2.25 s line.
 | Element hit layers | **11 of 12** — fire, blood, steel, wind, sound, shadow, soul, water, machine, swarm, lightning. Only `feather` has none |
 | Generic sounds left in `stage_fx.js` | **none** — all 26 calls name a specific hazard sound |
 
-Categories and their mix levels: `combat` (30), `voice` (25), `energy` (16),
+Categories and their mix levels: `combat` (31), `voice` (25), `energy` (18),
 `domain` (14), `hazard` (10), `ui` (8), `stinger` (5), `movement` (4).
 
 Every one of those files is **mono, peak-normalised to -3 dBFS**, and

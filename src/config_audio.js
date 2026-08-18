@@ -257,6 +257,15 @@ export const SFX = {
   thunderCrack: { file: "thunder_crack.mp3", category: "energy" },
   domainTimeCellMoonPalace: { file: "domain_time_cell_moon_palace.mp3", category: "domain" },
   domainCallNaoya: { file: "domain_call_naoya.mp3", category: "voice", gain: 1.1 },
+
+  // ---- Round 17: round 24's staged four. `starRepel` is the odd one — the
+  // call site in fighter.js has NAMED it since Kirara was built, so the game
+  // has been asking the mixer for a file that did not exist. playSfx treats an
+  // unregistered key as silence, which is the right behaviour and the reason
+  // nothing ever complained.
+  starRepel: { file: "star_repel.mp3", category: "energy" },
+  battoDraw: { file: "batto_draw.mp3", category: "combat" },
+  barrierPulse: { file: "barrier_pulse.mp3", category: "energy" },
   // Held under anything currently on fire — burn ticks, Furnace Shell — the
   // way `shield` sits under a raised guard. See the fire loop in audio.js.
   fireBurnLoop: { file: "fire_burn_loop.mp3", category: "energy", loop: true, gain: 0.55 },
@@ -357,6 +366,14 @@ export const SIGNATURE_SFX = {
   nanami: [{
     move: "7:3 ratio hit", sfx: "seamCrack",
     note: "combat.js plays it when his crit band lands, on any attack",
+  }],
+  // Kirara's whole audible kit, and she had NO way into the audio workbench
+  // without this row — her passive is played from fighter.js and she declares
+  // no move sound at all, so the bench's fall-back quietly showed Gojo instead
+  // of saying she was not in the list.
+  kirara: [{
+    move: "Love Rendezvous — repelled", sfx: "starRepel",
+    note: "fighter.js plays it on the passive's chart shoving a marked body back",
   }],
 };
 

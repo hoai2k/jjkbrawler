@@ -933,7 +933,7 @@ so adding those three rows was part of landing the files, and is done.
 
 ---
 
-## Round 11 — Inumaki's cursed speech *(open)*
+## Round 11 — Inumaki's cursed speech *(delivered)*
 
 **Inumaki is the one fighter whose entire kit is his voice**, and he is
 currently the loudest argument for this round: every one of his four commands

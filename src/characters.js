@@ -1838,7 +1838,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Barrier Pulse", type: "shout", cooldown: 1.3,
         desc: "A wall of pure barrier shoved outward in one beat. Little of it is damage; most of it is the word NO.",
-        p: { ox: 30, oy: -120, w: 280, h: 180, dmg: 7, base: 560, growth: 7.6, angle: 0.5, color: "#d6cfae" },
+        p: { ox: 30, oy: -120, w: 280, h: 180, dmg: 7, base: 560, growth: 7.6, angle: 0.5, color: "#d6cfae", castSfx: "barrierPulse" },
       },
       side: {
         name: "Pure Barrier", type: "summon", cooldown: 5.5,
@@ -1882,12 +1882,12 @@ export const CHARACTERS = {
       neutral: {
         name: "Batto Sword Drawing", type: "dashStrike", cooldown: 1.2,
         desc: "The fastest strike in the New Shadow Style: sheathed, then already past you. Everything she has is fundamentals, and this is the fundamental.",
-        p: { vel: 640, iframes: 0.08, delay: 0.04, dur: 0.2, ox: 66, oy: -94, w: 200, h: 100, dmg: 14, base: 440, growth: 7.2, angle: 0.3, color: "#8fd0ea", label: "Batto", sfx: "slashHeavy" },
+        p: { vel: 640, iframes: 0.08, delay: 0.04, dur: 0.2, ox: 66, oy: -94, w: 200, h: 100, dmg: 14, base: 440, growth: 7.2, angle: 0.3, color: "#8fd0ea", label: "Batto", sfx: "battoDraw" },
       },
       side: {
         name: "Sheathed Stance", type: "counter", cooldown: 2.2,
         desc: "Hand on the hilt, weight settled, waiting. The draw is faster than the thing that triggers it.",
-        p: { window: 0.6, dmg: 13, base: 430, growth: 7.0, angle: 0.45, counterName: "BATTO!", color: "#8fd0ea" },
+        p: { window: 0.6, dmg: 13, base: 430, growth: 7.0, angle: 0.45, counterName: "BATTO!", color: "#8fd0ea", sfx: "battoDraw" },
       },
       down: {
         name: "New Shadow Style: Simple Domain", type: "simpleDomain", cooldown: 4.2,
@@ -1899,7 +1899,7 @@ export const CHARACTERS = {
     ultimate: {
       name: "Binding Vow: The Last Draw", type: "massDrive",
       desc: "Everything she was ever going to be as a swordswoman, staked on one draw. The wind-up is the vow being spoken; the cut is everything it bought.",
-      p: { charge: 0.6, dmg: 30, base: 920, growth: 11, radius: 200, shockwave: 320, color: "#8fd0ea", label: "THE LAST DRAW", sprite: "effect:batto_flash", spriteH: 260 },
+      p: { charge: 0.6, dmg: 30, base: 920, growth: 11, radius: 200, shockwave: 320, color: "#8fd0ea", castSfx: "battoDraw", label: "THE LAST DRAW", sprite: "effect:batto_flash", spriteH: 260 },
     },
     passive: { id: "battoSense", name: "Iai", desc: "The first cut is the whole art: a strike begun from stillness — half a second without moving her feet — lands 20% harder." },
     ai: { style: "balanced", range: 240 },

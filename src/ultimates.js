@@ -1382,7 +1382,10 @@ const DIRECTORS = {
         this.struck = true;
         const ix = f.x + f.facing * 150;
         const iy = f.y - 100;
-        playSfx("blast", 1, 0.5);
+        // Todo's Maximum Mass is a fist and keeps the blast, slowed to 0.5 for
+        // weight. Miwa's Last Draw is a sword, and pitching a sword down half
+        // an octave is how it stops sounding like one.
+        playSfx(p.castSfx || "blast", 1, p.castSfx ? 1 : 0.5);
         state.camera.shake = Math.max(state.camera.shake, 20);
         state.slowMo = Math.max(state.slowMo, 0.28);
         state.screenFlash = { color: p.color, life: 0.3, maxLife: 0.3 };

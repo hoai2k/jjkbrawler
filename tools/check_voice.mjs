@@ -143,6 +143,40 @@ for (const [charKey, list] of Object.entries(SIGNATURE_SFX)) {
   }
 }
 
+// Every registered sound is reachable from somewhere.
+//
+// Kirara is why. Her one sound is played from fighter.js and she declares none
+// on a move, so nothing that walks the kits could see her — and the audio
+// workbench, asked for her, quietly showed GOJO instead of saying she was not
+// in the list. A sound nobody can reach is a sound nobody can judge, which is
+// the one job that page exists to do.
+//
+// Only the sounds a FIGHTER owns are checked. Menu blips, hazards and stage
+// gimmicks belong to no character and are reachable by playing the game.
+{
+  const owned = new Set();
+  for (const [charKey, char] of Object.entries(CHARACTERS)) {
+    const moves = [
+      ...Object.values(char.specials || {}),
+      ...(char.ultimate ? [char.ultimate] : []),
+    ];
+    for (const move of moves) {
+      const p = move.p || {};
+      for (const f of ["fireSfx", "castSfx", "sfx"]) if (p[f]) owned.add(p[f]);
+    }
+    for (const sig of SIGNATURE_SFX[charKey] || []) owned.add(sig.sfx);
+  }
+  // A sound a fighter's kit names, that is registered, but that no fighter's
+  // page can show: the signature table is the fix, and it is one row.
+  const handlerOnly = ["starRepel", "boogieClap", "seamCrack"];
+  for (const key of handlerOnly) {
+    if (SFX[key] && !owned.has(key)) {
+      problems.push(`${key} is registered and belongs to a fighter, but nothing declares it — `
+        + "add a SIGNATURE_SFX row or the audio workbench cannot reach it");
+    }
+  }
+}
+
 rows.sort((a, b) => a.key.localeCompare(b.key));
 console.log(`${rows.length} spoken lines · fires ${SPOKEN_TIMING.fraction * 100}% in (clamped to ` +
             `${SPOKEN_TIMING.min}–${SPOKEN_TIMING.max}s) · interruptible for the first ` +

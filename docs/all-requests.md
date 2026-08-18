@@ -76,6 +76,7 @@ fighter without a delivered rig.
 | — | [Audio Round 15 — the instruments](audio-requests.md#round-15--three-techniques-that-were-never-really-scored-delivered) | 🔊 Sound effects | **delivered** — a C♯m chord and metal licks for Gakuganji, the sea for Dagon, a djembe for Panda | — |
 | — | [Audio Round 12 — the grab pack](audio-requests.md#round-12--the-grab-pack-delivered--3-sounds) | 🔊 Sound effects | **delivered** — the seize, the break and the heave, off borrowed files at last | — |
 | — | [Audio Round 16 — round 23's staged three](audio-requests.md#round-16--round-23s-staged-three-delivered--4-sounds) | 🔊 Sound effects + 🎙️ voice | **delivered** — Kashimo's lightning layer and discharge, Naoya's domain sting and call-out, all before they leave staging | — |
+| — | [Audio Round 17 — round 24's staged four](audio-requests.md#round-17--round-24s-staged-four-delivered--3-sounds) | 🔊 Sound effects | **delivered** — Kirara's repulsion (wired but silent since she was built), Miwa's draw, Tengen's barrier | — |
 | — | [2D art Rounds 1–21](asset-requests-history.md) | 🖼️ Images | **delivered** | — |
 
 ---
