@@ -5364,13 +5364,24 @@ function downloadJson(json, filename) {
 function bindSlider(id, apply) {
   const el = $(id);
   let dragging = false;
-  el.addEventListener("pointerdown", () => { dragging = false; });
+  el.addEventListener("pointerdown", () => { dragging = false; heldRange = id; });
   el.addEventListener("input", (e) => {
     const v = parseFloat(e.target.value);
     if (!dragging) { dragging = true; apply(v, true); } else apply(v, false);
   });
-  el.addEventListener("change", () => { dragging = false; });
+  const release = () => { dragging = false; if (heldRange === id) heldRange = null; };
+  el.addEventListener("change", release);
+  el.addEventListener("pointerup", release);
+  el.addEventListener("pointercancel", release);
+  el.addEventListener("blur", release);
 }
+
+/** The track a pointer is currently on, if any.
+ *
+ *  The one thing the elastic range must never do is resize the track somebody
+ *  is dragging: the thumb is pinned to a position, so moving the ends moves the
+ *  value under the hand. While a track is held it may only grow. */
+let heldRange = null;
 
 // Each placement control is a slider paired with the number it sets. The number
 // is what the nudge buttons used to be for, only better: it reads out the exact
@@ -5388,9 +5399,10 @@ const PAIRS = {
 /** Write a value to both halves of a pair, without either echoing back. */
 function setPair(name, value) {
   const p = PAIRS[name];
-  // A pose saved with a value beyond the default span (see growRangeToFit)
-  // must not snap back to the end of the track when it is selected.
-  growRangeToFit(`${name}Range`, value);
+  // A pose saved with a value beyond the default span must not snap back to the
+  // end of the track when it is selected — and one saved INSIDE it should get
+  // the ordinary track back rather than inheriting a range the last pose grew.
+  fitRange(`${name}Range`, value);
   $(`${name}Range`).value = value.toFixed(3);
   const num = $(`${name}Num`);
   // Leave a field being typed in alone: rewriting it would fight the caret and
@@ -5407,10 +5419,11 @@ function bindPair(name, apply) {
     if (!Number.isFinite(shown)) { refreshControls(); return; } // junk: put it back
     // The typed number wins. Some sprites genuinely need more offset than the
     // slider's default span — Mei Mei's run needs ox past -500 — and clamping
-    // to the slider silently threw those edits away. The slider grows to cover
-    // whatever was typed instead, so it can still be dragged from there.
+    // to the slider silently threw those edits away. The track is refitted
+    // around whatever was typed instead, so it can still be dragged from there
+    // — and shrinks back to its authored span once the value is inside it.
     const v = p.store(shown);
-    growRangeToFit(`${name}Range`, v);
+    fitRange(`${name}Range`, v);
     apply(v, true);
   };
   num.addEventListener("change", commit);
@@ -5426,17 +5439,55 @@ function clampNum(v, lo, hi) {
   return Math.min(hi, Math.max(lo, v));
 }
 
-/** Widen a slider so a value outside its span is still on it. Rounded outward
- *  to a whole step so the track keeps sensible numbers, and never narrowed —
- *  a range that grew for one pose stays put while you work through the rest. */
-function growRangeToFit(rangeId, value) {
+/** The span each track was authored with, captured before anything moves it.
+ *  Read lazily, which is safe because nothing else writes min/max — every
+ *  change goes through fitRange below. */
+const rangeDefaults = new Map();
+function defaultSpan(el) {
+  if (!rangeDefaults.has(el.id)) {
+    rangeDefaults.set(el.id, { min: parseFloat(el.min), max: parseFloat(el.max) });
+  }
+  return rangeDefaults.get(el.id);
+}
+
+/**
+ * THE TRACK IS A VIEW OF THE VALUE, not a limit on it.
+ *
+ * A slider spanning every value anything might ever want is a slider with no
+ * resolution where the work actually happens: Size covered 40–220% so the 90%
+ * to 110% that most poses live in was a few pixels of travel. The track covers
+ * the usual span instead, and the number box is the way out of it — type a
+ * value past the end and the track grows to reach it, type one back inside and
+ * it returns to the authored span.
+ *
+ * It only ever GROWS while a track is being dragged, because the thumb is
+ * pinned to a position: narrowing the ends under a moving hand would change
+ * the value being set. Nothing here touches a stored number — the value is
+ * whatever was typed either way, and this is only how far the track reaches.
+ */
+function fitRange(rangeId, value) {
   const el = $(rangeId);
   if (!el) return;
-  const min = parseFloat(el.min);
-  const max = parseFloat(el.max);
-  const pad = Math.max(Math.abs(value) * 0.1, (max - min) * 0.05);
-  if (value < min) el.min = String(Math.floor(value - pad));
-  if (value > max) el.max = String(Math.ceil(value + pad));
+  const def = defaultSpan(el);
+  // Rounded outward to something the track can show sensibly: whole units on a
+  // pixel or degree slider, twentieths on Size, which works in multipliers.
+  // A HELD TRACK IS LEFT ALONE ENTIRELY. Dragging cannot produce a value off
+  // the track — the input clamps it — so there is nothing to grow for, and
+  // growing anyway feeds back: a wider track moves the value under a thumb that
+  // has not moved, which widens it again. The first version crept from 3.35 to
+  // 3.65 over three drag steps doing exactly that.
+  if (heldRange === el.id) return;
+  const step = (def.max - def.min) < 10 ? 0.05 : 1;
+  // Rounded through the step and then to a sane number of places: `x / 0.05`
+  // is not exact in binary, and a max of "3.6500000000000004" ends up in the
+  // DOM attribute where anybody can read it.
+  const out = (v, dir) => {
+    const q = (dir < 0 ? Math.floor(v / step) : Math.ceil(v / step)) * step;
+    return Number(q.toFixed(step < 1 ? 2 : 0));
+  };
+  const pad = Math.max(Math.abs(value) * 0.1, (def.max - def.min) * 0.05);
+  el.min = String(value < def.min ? out(value - pad, -1) : def.min);
+  el.max = String(value > def.max ? out(value + pad, 1) : def.max);
 }
 
 async function boot() {
