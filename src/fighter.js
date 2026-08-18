@@ -119,6 +119,7 @@ function freshStatuses() {
     burn: null, bleed: null, poison: null, infest: null,
     snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0,
     drench: 0, blind: 0, charge: 0, framelock: 0,
+    starMarks: 0, starT: 0, starFrom: null,
   };
 }
 
@@ -1017,6 +1018,57 @@ export function updateFighter(f, dt, input) {
     const sprinting = f.grounded && f.hitstun <= 0 &&
       Math.abs(f.vx) > stats(f).speed * 0.7;
     f.machRamp = clamp((f.machRamp || 0) + (sprinting ? dt : -dt * 2.5), 0, 2);
+  }
+
+  // Miracles (Haruta): the bank refills itself — one small miracle every nine
+  // seconds, three at most. Spending them is combat.js's job (applyHit).
+  if (f.char.passive.id === "miracles") {
+    if (f.miracleStock === undefined) f.miracleStock = 2;
+    f.miracleT = (f.miracleT || 0) + dt;
+    if (f.miracleT >= 9) {
+      f.miracleT = 0;
+      if (f.miracleStock < 3) {
+        f.miracleStock += 1;
+        popup(f.x, f.y - 160, `a miracle banked (${f.miracleStock})`, "#c8a8e0", 13);
+      }
+    }
+  }
+
+  // Immortality (Tengen): the body refuses to die — wounds knit constantly,
+  // without channelling. Slow on purpose: a third of what a healing install
+  // pays, running forever.
+  if (f.char.passive.id === "immortality") {
+    f.damage = Math.max(0, f.damage - 0.8 * dt);
+  }
+
+  // Iai (Miwa): stillness is the wind-up. Feet planted and unhurried for half
+  // a second arms the bonus combat.js pays out on the next strike.
+  if (f.char.passive.id === "battoSense") {
+    const still = f.grounded && Math.abs(f.vx) < 40 && f.hitstun <= 0;
+    f.stillT = still ? (f.stillT || 0) + dt : 0;
+  }
+
+  // Love Rendezvous (Kirara): a marked body cannot approach the caster. Any
+  // movement that closes the distance while a star is held is answered with
+  // repulsion, harder the closer they get — the chart is a wall, not a wind.
+  {
+    const s = f.statuses;
+    const k = s.starMarks > 0 ? s.starFrom : null;
+    if (k && !k.dead && k.respawnTimer <= 0 && k.char.passive.id === "loveRendezvous") {
+      const radius = 250 * (k.installs?.starField || 1);
+      const dx = k.x - f.x;
+      const dist = Math.abs(dx);
+      const toward = sign(dx);
+      if (dist < radius && sign(f.vx) === toward && Math.abs(f.vx) > 30) {
+        f.vx -= toward * 2600 * dt * (1 - dist / radius);
+        if (dist < 130 && Math.random() < 4 * dt) {
+          popup(f.x, f.y - 150, "REPELLED", "#d9a8ff", 15);
+          burst(f.x + toward * 30, f.y - 90, "#d9a8ff", 6, 0.5);
+          // Audio round 17 — silence until the file lands and is registered.
+          playSfx("starRepel", 0.7);
+        }
+      }
+    }
   }
   // Paper Trail (Reggie): the fine print always favors him — cooldowns run fast
   const cdRate = f.char.passive.id === "contractor" ? 1.18 : 1;

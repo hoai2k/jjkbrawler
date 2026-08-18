@@ -83,6 +83,12 @@ export const GRUNT_GROUPS = {
   // adult group. Yaga is the broadest chest on the faculty. Naoya is a smirk
   // in his twenties.
   kashimo: "gruntAdultMale", yaga: "gruntBig", naoya: "gruntYoungMale",
+  // Staged (round 24). Kirara presents femininely (canon deliberately leaves
+  // their gender unstated — the female group is a voice choice, not a ruling);
+  // Haruta is a whine in his twenties; Tengen is a thousand years past human,
+  // which is what the monster group sounds like; Miwa is the Kyoto second-year.
+  kirara: "gruntFemale", haruta: "gruntYoungMale",
+  tengen: "gruntMonster", miwa: "gruntFemale",
 };
 
 // The KO cry that matches each voice group.

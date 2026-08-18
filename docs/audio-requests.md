@@ -1,15 +1,56 @@
 # Audio Requests — open requests
 
-**Nothing is open.** Rounds 12 and 16 — the grab pack and the four sounds owed
-to round 23's staged three — were the last of it, and both are delivered and
-wired in. Every round's audit, prompts and delivery record is here or in
+**One round is open: round 17, the sounds owed to round 24's staged four —
+three sounds.** Rounds 12 and 16 — the grab pack and the four sounds owed
+to round 23's staged three — are delivered and wired in. Every round's audit,
+prompts and delivery record is here or in
 [audio-requests-history.md](audio-requests-history.md).
 
-**Round 16 is the one worth copying.** It was requested and delivered while
-Kashimo, Yaga and Naoya were still staged — before they reached the select
-screen — which is the opposite of how every earlier gap was found. Round 15's
-lesson was that a silence noticed in play has already shipped; this is the first
-round to act on it in advance.
+**Round 16 is the one worth copying, and round 17 copies it.** It was requested
+and delivered while Kashimo, Yaga and Naoya were still staged — before they
+reached the select screen — which is the opposite of how every earlier gap was
+found. Round 15's lesson was that a silence noticed in play has already
+shipped; 16 was the first round to act on it in advance and 17 does the same
+for Kirara, Haruta, Tengen and Miwa.
+
+## Round 17 — round 24's staged four (open) — 3 sounds
+
+Kirara, Haruta, Tengen and Miwa are staged (`STAGED_CHARACTER_KEYS`,
+`src/characters.js`; art is round 23A–23G in
+[asset-requests.md](asset-requests.md)). Their voices already work — all four
+are assigned to existing grunt trios and KO cries in `GRUNT_GROUPS`
+(`src/audio.js`). No new element and no new domain arrived with this batch, so
+the list is short: the three moments that would otherwise borrow a sound that
+is not theirs.
+
+| Key | Moment | Status today |
+|---|---|---|
+| `starRepel` | Love Rendezvous refusing an approach — the chart shoving a marked body back (fighter.js already calls the key) | **wired, silent** — the one call site in the game that names a sound with no file |
+| `battoDraw` | Miwa's iai leaving the sheath — the Batto lunge, the Sheathed Stance counter firing, and The Last Draw's cut | plays `slashHeavy`, which is a swing; a draw is a *ring* |
+| `barrierPulse` | Tengen's Barrier Pulse shoving outward | plays the generic `blast` via the shout handler |
+
+**Wiring when they land:** register all three in `SFX`
+(`src/config_audio.js`). `starRepel` needs nothing else — `fighter.js` already
+plays it. `battoDraw` replaces the `sfx` on Miwa's Batto Sword Drawing and
+Sheathed Stance in `src/characters.js`; `barrierPulse` needs the shout handler
+to read a `p.sfx` override (one line in `src/specials.js`) or a swap at the
+call. Haruta and Kirara's remaining moves keep the standard set deliberately —
+nothing of theirs is silent or misvoiced.
+
+**`star_repel.wav`** · Love Rendezvous repulsion · 0.5 s
+```
+a short magnetic repulsion pulse, a soft deep thump with a glassy chime overtone snapping outward, clean and quick, about half a second, mono sound effect for a fighting game, no words, no music
+```
+
+**`batto_draw.wav`** · Miwa's iai draw-cut · 0.6 s
+```
+a katana drawn and cutting in one motion, a bright steel ring off the scabbard into a single clean slicing whoosh, fast and precise, about 0.6 seconds, mono sound effect for a fighting game, no words, no music
+```
+
+**`barrier_pulse.wav`** · Tengen's barrier shove · 0.7 s
+```
+a heavy translucent barrier slamming outward, a deep resonant whum with a crystalline shimmer at the edge, weighty and clean, about 0.7 seconds, mono sound effect for a fighting game, no words, no music
+```
 
 ## Round 12 — the grab pack *(delivered)* — 3 sounds
 
