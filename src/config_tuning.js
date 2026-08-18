@@ -294,6 +294,9 @@ export const STRIKE_ARC = {
   // VISIBLE_ART_REACH), and these carry the eye across it instead of leaving
   // the crescent hanging in space.
   echoes: 3,
+  // How many short strokes each band is stepped along. A canvas gradient
+  // cannot follow a curve, so the arc is drawn as a run of them (render.js).
+  steps: 18,
   echoStep: 0.17,     // fraction of the radius each copy falls back
   echoFade: 0.34,     // and how much of the previous copy's opacity it keeps
   echoNarrow: 0.13,   // and how much of its half-span it gives up, so the
@@ -314,6 +317,23 @@ export const STRIKE_ARC = {
   shadeWidth: 1.35,
   // Width of that head, as a fraction of the arc's half-span.
   headWidth: 0.45,
+
+  // ---- the SIMPLE setting (Settings > Strike Arcs)
+  //
+  // The arc is the most stroke-heavy thing the renderer draws — a full one is
+  // `steps` x `echoes` x three strokes, and it runs per live hitbox, so its
+  // cost climbs with how many fighters are swinging at once. This is the dial
+  // for that, and it is deliberately NOT a fidelity slider: everything the arc
+  // exists to SAY survives it.
+  //
+  // What the arc says is distance (the leading crescent sits on the hitbox's
+  // far edge), the sweetspot ring, and the launch-angle arrow. All three are
+  // kept. What goes is the echo trail — faint copies drawn inside the leading
+  // crescent, which are decoration — and some of the smoothness of the curve.
+  // Measured through the real draw path, one live hitbox: 138 stroke calls a
+  // frame down to 38, a 3.6x cut, with no reading lost.
+  simpleSteps: 10,
+  simpleEchoes: 1,
 
   // ---- what the arc SAYS, beyond where the swing reaches
   //

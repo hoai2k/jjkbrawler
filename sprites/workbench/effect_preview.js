@@ -25,7 +25,8 @@
 // separately — `dx`/`dy` as the drawing's adjustment, `spawnOx`/`spawnOy` as a
 // note against the move, because the kit is where that number has to land.
 
-import { CHARACTERS, CHARACTER_KEYS } from "../../src/characters.js";
+import { CHARACTERS, CHARACTER_KEYS, STAGED_CHARACTER_KEYS } from "../../src/characters.js";
+
 import { STATES, clipTime } from "../../render3d/src/states.js";
 import { drawCharFrame, currentFrame } from "../src/sprites.js";
 import { loadFrame, getImage, loadSharedImage } from "../../src/assets.js";
@@ -35,6 +36,19 @@ import { meteorAt, METEOR_FALL, sharedAdjust, sharedAttack,
          AURA_H, AURA_PULSE, AURA_FOOT_DY } from "../../src/shared_sprites.js";
 import { SUMMON_ANIMS, SUMMON_POSES } from "../../src/config_summons.js";
 import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
+
+/**
+ * Every fighter with a kit, INCLUDING the ones not on the roster yet.
+ *
+ * `CHARACTER_KEYS` is the playable roster, resolved from the menu groups — a
+ * staged fighter is deliberately not in it. But their kits are real, their art
+ * is what somebody is placing right now, and walking the roster alone meant a
+ * staged fighter's effects had no action to play at the exact moment their
+ * plates landed and needed placing. The workbench lists them; the preview has
+ * to reach them.
+ */
+const KIT_KEYS = [...CHARACTER_KEYS,
+                  ...STAGED_CHARACTER_KEYS.filter((k) => CHARACTERS[k])];
 
 /** The animation state each special slot plays (src/specials.js). */
 const SLOT_STATE = { neutral: "specialNeutral", side: "specialSide", down: "specialDown" };
@@ -353,8 +367,8 @@ function wornUse(charKey, slot, spec, spriteKey) {
 
 function summonUse(spriteKey, preferChar) {
   const order = preferChar && CHARACTERS[preferChar]
-    ? [preferChar, ...CHARACTER_KEYS.filter((k) => k !== preferChar)]
-    : CHARACTER_KEYS;
+    ? [preferChar, ...KIT_KEYS.filter((k) => k !== preferChar)]
+    : KIT_KEYS;
   for (const charKey of order) {
     const c = CHARACTERS[charKey];
     // An ULTIMATE can put a creature down too, and the two biggest things in
@@ -416,8 +430,8 @@ export function firingUse(spriteKey, preferChar) {
              p: { ...hazard } };
   }
   const order = preferChar && CHARACTERS[preferChar]
-    ? [preferChar, ...CHARACTER_KEYS.filter((k) => k !== preferChar)]
-    : CHARACTER_KEYS;
+    ? [preferChar, ...KIT_KEYS.filter((k) => k !== preferChar)]
+    : KIT_KEYS;
   for (const charKey of order) {
     const c = CHARACTERS[charKey];
     const ult = c?.ultimate;

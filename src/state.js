@@ -21,6 +21,12 @@ export const state = {
   // surface/gravity modifiers (src/stage_fx.js). Off = every stage reverts to
   // its static v1 layout.
   activeBoards: true,
+  // "Strike Arcs" (Settings): how richly the swing crescents are drawn. Both
+  // settings say the same things — reach, sweetspot, launch angle — so this is
+  // a cost dial, not a fidelity one. "simple" is the one to reach for on a
+  // machine that struggles with four fighters swinging at once, because the
+  // arcs are the part of the renderer whose cost climbs with that.
+  arcDetail: "full",   // "full" | "simple"
   // What each slot picked on the select screen. May be RANDOM_KEY, which
   // resolves to a different fighter every match. The CPU defaults to random.
   // P1 starts empty on purpose: the player picks their own fighter rather than

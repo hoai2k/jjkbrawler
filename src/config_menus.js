@@ -376,6 +376,7 @@ export const TEXT = {
     timeLimit: (label) => `Time limit: ${label}`,
     timeOff: "None",
     activeBoards: (on) => `Active Boards: ${on ? "On" : "Off"}`,
+    arcs: (mode) => `Strike Arcs: ${mode === "simple" ? "Simple" : "Full"}`,
     sfxEnabled: (on) => `Sound Effects: ${on ? "On" : "Off"}`,
     render: (mode) => `Render: ${mode}`,
     back: "Back",

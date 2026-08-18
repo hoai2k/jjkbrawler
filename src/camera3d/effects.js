@@ -84,6 +84,12 @@ export function makeEffectLayer() {
      *  skips the quad entirely, so a match with no effects on screen pays
      *  neither the canvas clear nor the texture upload. */
     update(st) {
+      // An entity ARMS this whole layer just by having a `draw`, whatever that
+      // draw does — a full-canvas clear, every entity called, and a 1280x720
+      // texture upload. So an empty `draw() {}` is not the free no-op it looks
+      // like: five boards whose gimmicks only move platforms carried one, and
+      // paid the entire layer every frame of every match to paint nothing.
+      // A board with nothing to draw should not define `draw` at all.
       let any = false;
       for (const e of st.entities) if (e.draw) { any = true; break; }
       if (!any) return null;
