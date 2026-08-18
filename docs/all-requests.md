@@ -10,7 +10,7 @@ answer instead of six documents to cross-read. If a detail here disagrees with
 the document it links to, **the linked document wins** and this page is stale.
 
 Nothing outstanding blocks play. The game is complete and playable on the
-sprite path with 27 fighters; everything below either extends it (the 3D
+sprite path with 34 fighters; everything below either extends it (the 3D
 tracks) or fills a gap that currently degrades to silence or to a fallback.
 
 **[image-requests.md](image-requests.md) is THE image-request document** — every

@@ -78,22 +78,25 @@ export const CHARACTER_GROUPS = [
   {
     key: "students",
     label: "Students",
-    members: ["yuji", "nobara", "megumi", "yuta", "maki", "inumaki", "panda", "mechamaru", "todo", "momo"],
+    members: [
+      "yuji", "nobara", "megumi", "yuta", "maki", "inumaki", "panda", "mechamaru", "todo", "momo",
+      "miwa", "kirara",
+    ],
   },
   {
     key: "faculty",
     label: "Faculty",
-    members: ["gojo", "nanami", "meimei", "gakuganji"],
+    members: ["gojo", "nanami", "meimei", "gakuganji", "yaga", "tengen"],
   },
   {
     key: "sorcerers",
     label: "Other Sorcerers",
-    members: ["toji", "yuki", "hakari", "uro", "reggie"],
+    members: ["toji", "yuki", "hakari", "uro", "reggie", "kashimo", "naoya"],
   },
   {
     key: "curses",
     label: "Curses and Curse Users",
-    members: ["mahito", "jogo", "hanami", "dagon", "kurourushi", "geto", "choso", "sukuna"],
+    members: ["mahito", "jogo", "hanami", "dagon", "kurourushi", "haruta", "geto", "choso", "sukuna"],
   },
 ];
 
@@ -137,6 +140,13 @@ export const CHARACTER_QUOTES = {
   geto: "Shall we usher in a new world?",
   choso: "I fight for my brothers.",
   sukuna: "Know your place, fool.",
+  kashimo: "Four hundred years, and not one good fight. Be the one.",
+  yaga: "A cursed corpse is only as strong as the heart you put in it.",
+  naoya: "You're slow. Everyone is slow.",
+  kirara: "Stay back — or the stars decide where you stand.",
+  haruta: "Relax! Luck's on my side today.",
+  tengen: "The barrier holds. It always has.",
+  miwa: "Please — I'm only doing this for the money.",
 };
 
 // Every player-facing string in the game. Values that take an argument are

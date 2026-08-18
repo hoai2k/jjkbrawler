@@ -211,7 +211,7 @@ document to read.
 
 **Voice is where the next requests go.** Every fighter has a grunt trio and a
 KO cry, and the eight domain owners have their call-out; nobody has
-per-character technique call-outs beyond that. A full pass is 27 fighters ×
+per-character technique call-outs beyond that. A full pass is 34 fighters ×
 lines and should be scoped on its own — round 10A was the first slice of it and
 round 11 the second. `tools/generate_voice.py` is the route both used, and
 `MOVE_CALL` (`src/config_audio.js`) is now the wiring any further slice needs:
