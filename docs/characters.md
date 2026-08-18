@@ -34,6 +34,15 @@ bucket in `src/config_menus.js` — and it is also what hands the sprite
 workbench the sizes and spawn points for that fighter's effect art, because the
 shared-sprite registry is built by walking the kits of `CHARACTER_KEYS`.
 
+What promotion is *not* is free. A fighter staged through two rounds was left
+out of every roster-wide art request made meanwhile, and all seven arrived on
+the select screen short seven poses each — the teeter, both walk contacts, the
+dash attack and the three grab poses — without anything going red, because each
+of those states falls back to art they do have. `node
+tools/check_pose_coverage.mjs` runs in `npm run check` and fails on a pose that
+is undrawn and unasked-for, so the next promotion states its debt instead of
+hiding it. Round 22K is the debt these seven ran up.
+
 **A full bar buys one super.** An ultimate and a Domain Expansion each cost the
 **whole** Cursed Energy bar (`ULT_METER_COST` and `DOMAIN_METER_COST` are both
 `METER_MAX`), so the eight fighters who canonically have a domain spend every

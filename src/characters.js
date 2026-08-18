@@ -58,6 +58,15 @@ import { SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL } from ".
 // and the iai stillness bonus). All seven have landed their 36-pose sets and
 // are on the select screen, so the list is empty again — that is its resting
 // state, not a bug.
+//
+// PROMOTING ONE IS NOT FREE, and this is where it was learned: a fighter who
+// sat here through two rounds was deliberately left out of every roster-wide
+// request made meanwhile, and all seven reached the select screen short SEVEN
+// poses each — the teeter, both walk contacts, the dash attack and the three
+// grab poses. Nothing went red, because each of those states falls back to art
+// the fighter does have. `node tools/check_pose_coverage.mjs` (in `npm run
+// check`) is what asks the question now: it fails on a pose that is undrawn
+// and unasked-for, so the next promotion says what it owes.
 export const STAGED_CHARACTER_KEYS = [];
 
 // Sentinel selection meaning "draw a fresh fighter at the start of every match"

@@ -58,8 +58,10 @@ holding, no ground, no background.
 will sometimes return the whole cycle as a contact sheet of small figures. It is
 unusable twice over: the figures overlap, so no single one crops out cleanly,
 and each is a fraction of the canvas, so none of them clears the 600 px body
-minimum. Round 15A lost `mechamaru/run_reach_a` this way. Four poses means four
-files.
+minimum. Round 15A lost `mechamaru/run_reach_a` this way, and round 22J lost two
+`dizzy` frames to the same thing — Miwa's came back as fifteen figures on one
+canvas, Haruta's as eleven, and not one figure on either sheet was dizzy. Four
+poses means four files; one pose means one figure.
 
 ---
 
@@ -313,17 +315,17 @@ often.
 | Fault | Where it shows | Round(s) |
 |---|---|---|
 | **The strike does not extend** | `attack_light_b`, `attack_heavy_b`, `crouch_attack_b` | 11C, 13C, 14A |
-| **The wind-up is already the strike** — `_a` drawn mid-blow, so the pair has no coil and the move has no tell | `attack_light_a`, `attack_heavy_a`, `attack_air_a` | 14A, 17A, 22C, 22D |
+| **The wind-up is already the strike** — `_a` drawn mid-blow, so the pair has no coil and the move has no tell | `attack_light_a`, `attack_heavy_a`, `attack_air_a` | 14A, 17A, 22C, 22D, 22I, 22J |
 | **The pair is delivered inverted** — both frames drawn correctly, the two filenames the wrong way round, so the move plays extend-then-retract. **Not a redraw**: point each pose at the other file in the workbench | any `_a`/`_b` pair | 13B, 22B |
 | **The crouch is a standing fighting stance** | `crouch_a`, `crouch_b`, both `crouch_attack` frames | 12A, 13A, 13B, 22C |
 | **The costume is a different reading of the character** | any pose, usually a whole sub-batch drawn in one sitting | 10, 12A, 13, 22B |
 | **Hands do not close on the weapon** | `attack_*`, `run_*` | 12A |
 | **`_b` does not finish `_a`** | every pair | 12A, 13B |
-| **The reach falls off the canvas** | `crouch_attack_b`, `attack_heavy_b` | 13 |
+| **The reach falls off the canvas** | `crouch_attack_b`, `attack_heavy_b`, `attack_light_b`, `special_neutral`, `teeter` | 13, 22I, 22J |
 | **Figure scale drifts between poses** | worst between `idle_a` and `idle_b` | 9, 12B |
 | **The technique is drawn into the pose** | `special_*`, `ult_*` | 12A |
 | **A design element is silently dropped** | Mahoraga's karma wheel | 13 |
-| **A whole cycle arrives as one contact-sheet plate** | `run_*` | 15A |
+| **A whole cycle arrives as one contact-sheet plate** | `run_*`, `dizzy` | 15A, 22J |
 | **Scenery drawn into the pose** — a ledge, a floor, a wall | `ledge_hang` | 15A, 15A(K), 17A |
 | **A minimal costume gets covered up when the figure lies down** | `prone` | 13 |
 | **An ambiguous costume sentence gets drawn the covered way** | any | 13, 18D |
