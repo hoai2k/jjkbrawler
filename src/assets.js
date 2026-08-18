@@ -731,10 +731,43 @@ export function spriteFileImage(file) {
 
 export async function loadSharedImage(key) {
   if (!sharedJobs) sharedJobs = new Map(groupJobs("shared").map((j) => [j.key, j]));
-  const job = sharedJobs.get(key);
+  const job = sharedJobs.get(key) || stagedSharedJob(key);
   if (!job) return false;
   await fetchImage(job.key, job.src, job.optional);
   return images.has(key);
+}
+
+/**
+ * The effect and summon art of a fighter who is STAGED, resolved on demand.
+ *
+ * The shared GROUP deliberately holds only the art a selectable fighter can
+ * put on screen (groupJobs, gated on CHARACTER_KEYS): the group is bulk-loaded
+ * at boot, and downloading a dozen plates for fighters nobody can pick would
+ * be a straight waste. That gate is right for the game and wrong for the
+ * sprite workbench, which lists staged fighters ON PURPOSE
+ * (WB_FIGHTERS) — so asking it for `effect:lightning_bolt` got `false` back
+ * and the bench drew "not delivered yet" over a file sitting on disk. Same
+ * class of bug as `summon:curseHound`, and the same fix: the game asks for
+ * exactly what it always did, and a caller that names a staged key by hand
+ * gets it.
+ *
+ * Nothing here changes what is fetched at boot — the job list is untouched,
+ * and these are resolved one key at a time, only when somebody asks.
+ */
+function stagedSharedJob(key) {
+  for (const keys of Object.values(STAGED_EFFECT_KEYS)) {
+    for (const name of keys) {
+      if (key === `effect:${name}`) {
+        return { key, src: assetUrl(`assets/sprites/effects/${name}.png`), optional: true };
+      }
+    }
+  }
+  for (const entries of Object.values(STAGED_SUMMON_KEYS)) {
+    for (const [name, file] of entries) {
+      if (key === name) return { key, src: assetUrl(`assets/sprites/${file}`), optional: true };
+    }
+  }
+  return null;
 }
 
 /** Move a fighter to the head of the background queue: the player is looking at
