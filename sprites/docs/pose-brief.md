@@ -99,13 +99,20 @@ Three poses now feed numbers the engine uses in play, so they are not only a
 readability question — **the art is balance data**. These are the acceptance
 criteria, and they can be checked with a ruler:
 
-**Four poses now, and the fourth is the newest.** Every `attack_*_a` joined this
-table after round 22B–22D came back with all nine wind-ups already mid-strike,
-on three fighters at once. The pose lines in §4 have described the coil in
-detail since round 13 — "drawn back beside the body, shoulders coiled away from
-the target, weight on the back foot" — and the delivery still read the pose
-NAME. Written as a sentence it gets interpreted; written as a comparison
-against the idle it gets checked.
+**Four criteria now, and the fourth is a PAIR rather than a pose.** It joined
+this table after round 22B–22D: six of Yaga's and Naoya's wind-ups came back
+drawn about as extended as their own strikes, and Kashimo's aerial pair arrived
+correct but INVERTED — both drawings good, the two filenames the wrong way
+round. The pose lines in §4 have described the coil in detail since round 13
+and the deliveries still read the pose NAME.
+
+**The first version of this criterion was wrong, and the way it was wrong is
+worth keeping.** It asked that `_a` reach no further forward than the fighter's
+own `idle_a` — which sounds right, reads well, and is broken by **135 of the
+140 pairs already shipped**, because an idle is square-on with the arms in and
+any fighting stance out-reaches it. A criterion nobody measured before writing
+it down would have failed the whole roster. The gap between the two frames is
+the thing that actually separates the good pairs from the flagged ones.
 
 **Measure them, do not eyeball them.** Round 15A stated the heavy-strike rule in
 the request itself and all three delivered sets still missed it — 9%, 16% and
@@ -119,7 +126,7 @@ fighter is drawn at one zoom.
 |---|---|---|
 | `attack_heavy_b` | The weapon or fist reaches **further forward than anything in that fighter's own `idle_a`, by at least a third of their standing height**. | Reach is measured off the art (`src/silhouette.js`). A heavy that does not extend is a fighter with short range. |
 | `attack_light_b` | Extends past `idle_a` — less far than the heavy, but unmistakably out. | Same measurement. A light attack drawn inside the idle silhouette has no range at all. This is the most re-requested fault on the roster: rounds 11C, 13C and 14A are all this one thing. |
-| every `attack_*_a` | The striking hand or weapon reaches **no further forward than the fighter's own `idle_a` does** — and the pair only passes if `_b` reaches further than `_a`. | The same ruler, pointed at the other frame. `_a` is the coil, so the striking limb is BEHIND the body: it is the one pose in an attack that must not extend. Stated as a sentence it has been read as "an attack" and drawn as one — rounds 13B (Mei Mei's pair delivered inverted, extended then retracted), 14A (Mahoraga: neither frame extends), 17A (Dagon: reads as a second strike), 22B–22D (all three staged fighters, every `_a`). As a measurement it is one comparison against a drawing that is already in front of you. |
+| every attack **pair** | `_b` reaches **further forward than its own `_a`, by at least 0.05 of standing height**. Measured from each frame's own mass centre, so the two are directly comparable. | The same ruler, pointed at the pair rather than at one frame. `_a` is the coil and `_b` is the blow, so the pair has to OPEN; how far either frame reaches on its own is a drawing-style question, and the difference between them is not. Across the shipped roster the median pair opens by 0.10 — and every pair anybody has flagged by hand sits at 0.04 or below, or inverted. `python3 tools/audit_windup.py` measures all 140. |
 | `crouch_a` / `crouch_b` | The head drops **by at least a quarter of standing height**. Hips at heel height, thighs closer to horizontal than vertical. | Crouching lowers the hurtbox. A "crouch" with the same shoulder line as the idle is not one, and the player ducks nothing. |
 | `idle_a` | A **plain, square-on standing stance** — arms in, weapon held close, nothing spread. | Hurtbox *width* is measured off the idle. A cape thrown wide or a deep three-quarter turn makes that fighter a broader target than intended. Measured across the roster, idle body width ran from 0.21 to 0.50 of standing height, which is drawing style rather than character — the engine currently trusts the measurement only 45% of the way to compensate. |
 
@@ -306,7 +313,8 @@ often.
 | Fault | Where it shows | Round(s) |
 |---|---|---|
 | **The strike does not extend** | `attack_light_b`, `attack_heavy_b`, `crouch_attack_b` | 11C, 13C, 14A |
-| **The wind-up is already the strike** — `_a` drawn mid-blow, so the pair has no coil and the move has no tell | `attack_light_a`, `attack_heavy_a`, `attack_air_a` | 13B, 14A, 17A, 22B, 22C, 22D |
+| **The wind-up is already the strike** — `_a` drawn mid-blow, so the pair has no coil and the move has no tell | `attack_light_a`, `attack_heavy_a`, `attack_air_a` | 14A, 17A, 22C, 22D |
+| **The pair is delivered inverted** — both frames drawn correctly, the two filenames the wrong way round, so the move plays extend-then-retract. **Not a redraw**: point each pose at the other file in the workbench | any `_a`/`_b` pair | 13B, 22B |
 | **The crouch is a standing fighting stance** | `crouch_a`, `crouch_b`, both `crouch_attack` frames | 12A, 13A, 13B, 22C |
 | **The costume is a different reading of the character** | any pose, usually a whole sub-batch drawn in one sitting | 10, 12A, 13, 22B |
 | **Hands do not close on the weapon** | `attack_*`, `run_*` | 12A |
