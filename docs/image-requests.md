@@ -12,9 +12,9 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**2 images outstanding.**
+**8 images outstanding.**
 
-- **The sprite game** — 2 images, round 22
+- **The sprite game** — 8 images, round 22
 - **The live-3D anime path** — 0 images
 
 ## Rules that hold everywhere here
@@ -45,25 +45,37 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**2 images, round 22.** Authored in
+**8 images, round 22.** Authored in
 [docs/asset-requests.md](asset-requests.md) and reproduced whole below.
 
-- **22I** — The frame the round-22 boards rejected (1 sprite)
+- **22I** — Seven frames the round-22 boards rejected (7 sprites)
 - **23H** — Miwa's heavy strike (1 sprite)
 
-## 22I. The frame the round-22 boards rejected — 1 sprite
+## 22I. Seven frames the round-22 boards rejected — 7 sprites
 
-The faults found reviewing round 22. Three of the four are answered: the
+The faults found reviewing round 22 — six from the 22B–22D sprite sets and one
+from the teeter. Three more were on this list and are answered: the
 `kashimo/special_side` costume and both of Yaga's crouches were redrawn with
 round 23 and are
 [in the history](asset-requests-history.md#round-23--round-24s-four-staged-fighters-delivered).
-`nanami/teeter` is what is left. Everything else in those deliveries is in the game; these
-four are in it too, drawing what was delivered, and flagged in the workbench so
+Everything else in those deliveries is in the game; these
+seven are in it too, drawing what was delivered, and flagged in the workbench so
 they are visible while they wait. Same character blocks, same key screens, same
 delivery paths as the sets they belong to.
 
+**Six of them are one fault**, and it is the reason the brief now measures the
+wind-up: every `attack_*_a` in the round was drawn already mid-strike. The `_a`
+rule in [pose-brief.md](../sprites/docs/pose-brief.md) applies to these redraws
+too, and both halves of the pair have to pass the ruler.
+
 | File | Fighter | What is wrong, and what to draw |
 |---|---|---|
+| `naoya/attack_light_a.png` | Naoya | **The wind-up is already the strike.** Drawn mid-blow, so the light attack has no coil and no tell. Redraw as the coil: striking hand drawn back beside the body, shoulders turned away from the target, weight on the back foot, lead arm up as a guard. It must reach **no further forward than `naoya/idle_a.png`** |
+| `naoya/attack_heavy_a.png` | Naoya | Same fault. Redraw as the wind-up of one committed blow: fist drawn as far back as the body allows, hips loaded, front foot light — and inside the idle's reach |
+| `naoya/attack_air_a.png` | Naoya | Same fault, airborne. Body coiled mid-jump, striking limb cocked, legs gathered — the extension belongs to `attack_air_b` |
+| `yaga/attack_light_a.png` | Yaga | Same fault as Naoya's, same fix, against `yaga/idle_a.png` |
+| `yaga/attack_heavy_a.png` | Yaga | Same fault. It is standing in on his `guard` frame in the workbench meanwhile, which is a stopgap and not a wind-up — the delivered plate needs redrawing as the coil |
+| `yaga/attack_air_a.png` | Yaga | Same fault, airborne |
 | `nanami/teeter.png` | Nanami | **Framing.** The pose is right — weight back, arms out, head down toward the drop — but his blunt blade runs off the LEFT edge of the plate and is cut flat by the canvas. The delivery spec's "nothing may touch the canvas edge" rule, and the "reach falls off the canvas" fault the brief has named since round 13. Redraw the same pose with margin on all four sides so the blade finishes inside the frame |
 
 **A promoted fighter owes a teeter.** 22A drew the pose for the roster of 27;
@@ -118,9 +130,19 @@ The same two standing rules, restated so this round is self-contained:
 every reference below is an absolute URL. The character blocks to use verbatim
 are the `kirara`, `haruta`, `tengen` and `miwa` rows of the table above.
 
+**The `_a` of an attack pair is the WIND-UP, and it must not extend.** Restated
+here rather than left to the link, because the link is what has not been
+reaching: `attack_light_a`, `attack_heavy_a`, `attack_air_a` and
+`crouch_attack_a` are the coil — striking hand or weapon drawn BACK, shoulders
+turned away from the target, weight on the back foot. The `_b` is the blow. Both
+halves are checkable with a ruler and both have to pass: `_a` reaches no further
+forward than that fighter's own `idle_a`, and `_b` reaches further than `_a`.
+Round 22B–22D came back with all nine wind-ups already mid-strike, on three
+fighters at once, which is what this paragraph exists to stop.
+
 **Work idle-first — the `idle_a` is its own delivery.** Generate each
 fighter's `idle_a` alone first (plain, square-on stance per
-[pose-brief.md](../sprites/docs/pose-brief.md)); intake and approve it in the
+[pose-brief.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/docs/pose-brief.md)); intake and approve it in the
 sprite workbench; run `tools/build_canon_reference.py`; then generate the
 other 35 poses **against that approved idle**, so costume, proportions,
 palette, line weight and shading stay locked across the set. Once the idles
@@ -404,7 +426,7 @@ is not its own says so silently, which is how seven of them stayed invisible
 until round 18G. Neither can see a pose that was never drawn — that is what
 the rounds above are for.
 
-**9 flagged, 20 drawing somebody else's art.**
+**15 flagged, 20 drawing somebody else's art.**
 
 | Fighter | Pose | Why |
 |---|---|---|
@@ -417,6 +439,12 @@ the rounds above are for.
 | dagon | `run_reach_a` | pose |
 | dagon | `run_reach_b` | pose |
 | miwa | `attack_heavy_b` | pose |
+| naoya | `attack_air_a` | pose |
+| naoya | `attack_heavy_a` | pose |
+| naoya | `attack_light_a` | pose |
+| yaga | `attack_air_a` | pose |
+| yaga | `attack_heavy_a` | pose |
+| yaga | `attack_light_a` | pose |
 | hanami | `attack_light_b` | drawing `special_neutral` |
 | sukuna | `attack_light_b` | drawing `r3c0` |
 | megumi | `attack_light_a` | drawing `crouch_a_2` |

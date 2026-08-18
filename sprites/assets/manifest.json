@@ -43376,7 +43376,9 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "Needs to be winding-up for attack, not already attacking"
    },
    "attack_air_b": {
     "w": 1183,
@@ -43469,7 +43471,9 @@
     },
     "edited": {
      "bodyBottom": 249.3
-    }
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "Needs to be winding-up for attack, not already attacking"
    },
    "attack_heavy_b": {
     "w": 1086,
@@ -43534,7 +43538,9 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "Needs to be winding-up for attack, not already attacking"
    },
    "attack_light_b": {
     "w": 902,
@@ -44510,7 +44516,9 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "Needs to be winding-up for attack, not already attacking"
    },
    "attack_air_b": {
     "w": 894,
@@ -44577,26 +44585,11 @@
     }
    },
    "attack_heavy_a": {
-    "w": 813,
-    "h": 1192,
-    "ox": -149.4,
-    "oy": -881,
-    "bodyBottom": 247.0,
-    "bodyH": 295.0,
-    "centroidX": 102.9,
-    "renderScale": 0.2475,
     "file": "yaga/attack_heavy_a.png",
-    "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 813,
     "coreLeft": 74.5,
     "coreRight": 722.6,
-    "anchors": {
-     "com": [
-      282.2,
-      422.5
-     ]
-    },
     "autoTuned": {
      "at": "2026-08-18T18:18:58+00:00",
      "fields": {
@@ -44604,10 +44597,27 @@
       "ox": "centre of mass, not of the box"
      }
     },
+    "w": 813,
+    "h": 1192,
+    "ox": -149.4,
+    "oy": -881,
+    "bodyBottom": 247,
+    "bodyH": 295,
+    "bodyTop": 0,
+    "centroidX": 102.9,
+    "renderScale": 0.2475,
+    "anchors": {
+     "com": [
+      282.2,
+      422.5
+     ]
+    },
+    "needsReplacement": "pose",
     "edited": {
      "renderScale": 0.25,
      "ox": -195.9
-    }
+    },
+    "replacementNote": "Needs to be winding-up for attack, not already attacking"
    },
    "attack_heavy_b": {
     "w": 910,
@@ -44671,7 +44681,9 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "Needs to be winding-up for attack, not already attacking"
    },
    "attack_light_b": {
     "w": 870,
@@ -73508,6 +73520,60 @@
       "file": "mechamaru/crouch_attack_b.png",
       "label": "Superseded",
       "supersededAt": "2026-08-10T23:21:06+00:00"
+     }
+    ]
+   }
+  },
+  "yaga": {
+   "attack_heavy_a": {
+    "options": [
+     {
+      "file": "yaga/attack_heavy_a.png",
+      "label": "Delivered",
+      "w": 813,
+      "h": 1192,
+      "ox": -149.4,
+      "oy": -881,
+      "bodyBottom": 247,
+      "bodyH": 295,
+      "bodyTop": 0,
+      "centroidX": 102.9,
+      "renderScale": 0.2475,
+      "anchors": {
+       "com": [
+        282.2,
+        422.5
+       ]
+      },
+      "needsReplacement": "quality",
+      "edited": {
+       "renderScale": 0.25,
+       "ox": -195.9
+      },
+      "replacementNote": "Needs to be winding-up for attack, not already attacking"
+     },
+     {
+      "file": "yaga/guard.png",
+      "label": "From guard",
+      "borrowedFrom": "guard",
+      "w": 785,
+      "h": 1448,
+      "ox": -212.4,
+      "oy": -1137,
+      "bodyBottom": 233.2,
+      "bodyH": 291.5,
+      "bodyTop": 0,
+      "centroidX": 133.4,
+      "renderScale": 0.2013,
+      "anchors": {
+       "com": [
+        393.2,
+        532.2
+       ]
+      },
+      "edited": {
+       "renderScale": 0.25
+      }
      }
     ]
    }
