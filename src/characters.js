@@ -1589,7 +1589,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Lightning Discharge", type: "projectile", cooldown: 0.95,
         desc: "A bolt off the staff that plants his charge — and a bolt fired at a foe already carrying one bends to find them. No domain required.",
-        p: { speed: 760, vy: -2, r: 26, dur: 0.7, dmg: 10, base: 340, growth: 6.6, angle: 0.34, color: "#6ef7d0", effect: "charge", fxElement: "lightning", seekStatus: "charge", seekRate: 10, ox: 64, oy: -92, label: "Discharge", sprite: "effect:lightning_bolt", spriteH: 70 },
+        p: { speed: 760, vy: -2, r: 26, dur: 0.7, dmg: 10, base: 340, growth: 6.6, angle: 0.34, color: "#6ef7d0", effect: "charge", fxElement: "lightning", seekStatus: "charge", seekRate: 10, fireSfx: "thunderCrack", ox: 64, oy: -92, label: "Discharge", sprite: "effect:lightning_bolt", spriteH: 70 },
       },
       side: {
         name: "Nyoi Recall", type: "boomerang", cooldown: 1.35,

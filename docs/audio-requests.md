@@ -1,21 +1,26 @@
 # Audio Requests — open requests
 
-**Two rounds are open: round 12, the grab pack — three sounds — and round 16,
-the sounds owed to round 23's three staged fighters — four sounds.** Round 14
-(24 alternate takes, bred from the survivors of a 33-file prune) is delivered;
-everything else is delivered, wired in and recorded in
-[audio-requests-history.md](audio-requests-history.md), along with every
-round's audit, prompts and delivery record.
+**Nothing is open.** Rounds 12 and 16 — the grab pack and the four sounds owed
+to round 23's staged three — were the last of it, and both are delivered and
+wired in. Every round's audit, prompts and delivery record is here or in
+[audio-requests-history.md](audio-requests-history.md).
 
-## Round 12 — the grab pack (open) — 3 sounds
+**Round 16 is the one worth copying.** It was requested and delivered while
+Kashimo, Yaga and Naoya were still staged — before they reached the select
+screen — which is the opposite of how every earlier gap was found. Round 15's
+lesson was that a silence noticed in play has already shipped; this is the first
+round to act on it in advance.
+
+## Round 12 — the grab pack *(delivered)* — 3 sounds
 
 The Smash-style grab/throw mechanic is **on by default** — `?throw=false` plays
 without it (`src/grab.js`,
 [game-mechanics.md §8](game-mechanics.md#grabs--throws--on-by-default-throwfalse-turns-them-off)).
-It is fully voiced today off existing files — the table below is the interim
-wiring — so nothing is silent; these three are what give the mechanic its own
-sonic identity instead of a borrowed one. The flag has already graduated, so
-this round is simply overdue.
+It had been fully audible since it shipped, borrowing three existing files —
+the table below was the interim wiring — so nothing was ever silent, and nothing
+sounded like itself either. **A seize is not a punch and a break is not a
+block**, and borrowed audio is the kind of wrong that never gets reported,
+because nothing is missing.
 
 | Key | Moment | What it should be | Playing in the meantime |
 |---|---|---|---|
@@ -23,12 +28,33 @@ this round is simply overdue.
 | `grabBreak` | the victim mashes free | a strained burst-apart — effort released, slightly triumphant, distinct from a parry | `guardHit` (pitched up) |
 | `throwHeave` | any of the four throws leaves the hands | one big body-weight heave with a whoosh tail; the landing hit already has its own sound | `whoosh` |
 
-Delivery and registration follow the standing flow in
-[Adding a sound](#adding-a-sound); wire the keys into `SFX`
-(`src/config_audio.js`) and swap the three call sites in `src/grab.js` from the
-interim keys.
+**Delivered and wired.** All three are registered in `SFX` and the three call
+sites in `src/grab.js` name them — `connectGrab`, `breakOut` and `executeThrow`
+respectively. The `1.2` playback rate went with the interim file: `guardHit` was
+pitched up so a break would not sound like a block, and `grabBreak` is its own
+recording and needs no disguise.
 
-## Round 16 — round 23's staged three (open) — 4 sounds
+Two `whoosh` calls in that file stay as they are, deliberately: the grab REACH
+(`beginGrab`) and a plain release with nothing thrown (`releaseHold`). Neither
+is one of the three moments this round is about, and giving them dedicated
+sounds is a request somebody should make on purpose rather than a tidy-up.
+
+**`grab_connect.wav`** · `grabConnect` — the hand closes on a body · 0.4 s
+```
+a short cloth-and-body clutch, fabric seized tight against a dull body thud, a grab rather than a punch, no ring-out tail, dry close-mic recording with no reverb, about 0.4 seconds, mono sound effect for a fighting game, no words, no music
+```
+
+**`grab_break.wav`** · `grabBreak` — the victim mashes free · 0.5 s
+```
+a strained burst-apart, gripped cloth tearing free in one sharp release, brief and forceful, dry close-mic recording with no reverb, about 0.5 seconds, mono sound effect for a fighting game, no words, no music
+```
+
+**`throw_heave.wav`** · `throwHeave` — any of the four throws leaves the hands · 0.6 s
+```
+one heavy body-weight heave, a large mass swung hard and released into a low whoosh tail, weighty and dry, close-mic recording with no reverb, about 0.6 seconds, mono sound effect for a fighting game, no words, no music
+```
+
+## Round 16 — round 23's staged three *(delivered)* — 4 sounds
 
 Kashimo, Yaga and Naoya are staged (`STAGED_CHARACTER_KEYS`,
 `src/characters.js`; art is round 22B–22H in
@@ -45,13 +71,20 @@ gaps become silences in play:
 | `domainTimeCellMoonPalace` | the sting under Naoya's Time Cell Moon Palace opening | `DOMAIN_STING` already names the key (`src/domains.js`) — silence until the file lands |
 | `domainCallNaoya` | Naoya speaking 領域展開 and the domain's name | unlisted in `DOMAIN_CALL`, so he opens it on his grunt — works, but he of all people would announce it |
 
-**Wiring when they land:** register the first three in `SFX`
-(`src/config_audio.js`) — `hitLightning` also gets a `lightning: "hitLightning"`
-row in `ELEMENT_HIT_SFX`, and `thunderCrack` goes on the Discharge's `fireSfx`
-in `src/characters.js`. The call-out is a spoken line: a `naoya` row in
-`DOMAIN_CALL` plus its measured length in `SPOKEN_LINES`. Yaga needs no
-signature sound yet — his dolls hit with the ordinary impact set, and a doll
-squeak is polish to judge once they are visible.
+**Delivered and wired.** All four are registered. `hitLightning` carries the
+`lightning: "hitLightning"` row in `ELEMENT_HIT_SFX` — **lightning was one of
+only two elements in the game that hit nothing at all**, and `feather` is now
+the last. `thunderCrack` is the Discharge's `fireSfx`. Naoya has his `DOMAIN_CALL`
+row and **2.74 s** in `SPOKEN_LINES`, measured off the delivered file, so his
+domain winds up for exactly as long as he takes to announce it.
+
+Yaga still needs no signature sound: his dolls hit with the ordinary impact set,
+and a doll squeak is polish to judge once they are visible.
+
+The furigana was checked against the fandom wiki before generating, as the brief
+demanded — 時胞月宮殿 is じほうげっきゅうでん, *Jihō Gekkyūden*, and the wiki's
+ruby markup confirms it character by character. Round 10 caught three wrong
+readings exactly this way; this one was already right.
 
 **`hit_lightning.wav`** · the lightning element hit layer · 0.5 s
 ```
@@ -73,9 +106,9 @@ an eerie domain-expansion sting: a film projector clattering up to speed inside 
 [smug, drawling, pleased with himself] りょういきてんかい……じほうげっきゅうでん。
 ```
 
-*(Check the furigana for 時胞月宮殿 against the fandom wiki before generating —
-the wiki is the repo's standing authority for irregular readings, and round 10
-caught three wrong romanizations exactly this way.)*
+*(The furigana for 時胞月宮殿 was checked against the fandom wiki before
+generating — the wiki is the repo's standing authority for irregular readings.
+It was correct as written.)*
 
 ---
 
@@ -441,7 +474,7 @@ One single unbroken howling whine of pain from a big animal being launched away,
 
 ---
 
-## Round 13 — a wider bank to choose from *(open)*
+## Round 13 — a wider bank to choose from *(delivered)*
 
 Round 12's grunts were judged in play and most of them failed. The verdicts,
 and what this round does about each:
@@ -629,7 +662,7 @@ cries, not exclamations.
 
 ---
 
-## Round 12 — alternate takes *(open)*
+## Round 12 — alternate takes *(delivered)*
 
 Three things in the delivered audio were judged wrong by ear, which is the one
 test neither `generate_voice.py` nor `check_voice.mjs` can run. This round is
@@ -770,18 +803,23 @@ which is why the brief allows 3.0 s for a 2.25 s line.
 
 | | |
 |---|---|
-| Sound files | **110** in play, in `assets/sfx/`, plus **46** alternate takes nothing plays |
-| Registry keys | **105** in `SFX` (`src/config_audio.js`) |
+| Sound files | **119** in play, in `assets/sfx/`, plus **44** alternate takes nothing plays |
+| Registry keys | **112** in `SFX` (`src/config_audio.js`) |
 | With a generation prompt on file | **all but one** — `sound_shield.mp3` predates the rounds and has none |
 | Deleted on purpose | **38**, listed in [audio-pruned.md](audio-pruned.md) so no generator run recreates them |
 | Fighters with a voice | **27 of 27** — six voice groups, 1–3 grunt variants each after the prune, plus a matching KO cry |
-| Fighters with a spoken line | **9** — the 8 domain owners, plus Inumaki on all four of his commands |
-| Domain Expansions with their own sting | **8 of 8** |
-| Element hit layers | **10 of 10** — fire, blood, steel, wind, sound, shadow, soul, water, machine, swarm |
+| Fighters with a spoken line | **10** — 9 domain owners, plus Inumaki on all four of his commands |
+| Domain Expansions with their own sting | **9 of 9** — Naoya's was the last |
+| Element hit layers | **11 of 12** — fire, blood, steel, wind, sound, shadow, soul, water, machine, swarm, lightning. Only `feather` has none |
 | Generic sounds left in `stage_fx.js` | **none** — all 26 calls name a specific hazard sound |
 
-Categories and their mix levels: `combat` (25), `voice` (24), `energy` (14),
-`domain` (13), `hazard` (10), `ui` (8), `stinger` (5), `movement` (4).
+Categories and their mix levels: `combat` (30), `voice` (25), `energy` (16),
+`domain` (14), `hazard` (10), `ui` (8), `stinger` (5), `movement` (4).
+
+Every one of those files is **mono, peak-normalised to -3 dBFS**, and
+`tools/normalize_sfx.py --check` holds it there — the mixer can only balance
+files that start level. `tools/check_audio_mix.mjs` reports what each one
+actually reaches the speakers at.
 
 The things the original audit was written to fix are all fixed: one explosion no
 longer covers every impact, no fighter is mute, the countdown / match end /
@@ -794,9 +832,10 @@ Expansion no longer runs seven seconds of ordinary fight mix under the biggest
 move in the game, and the barrier coming down is no longer a popup over silence.
 
 The one fxElement with no hit layer is **`feather`** (Mei Mei's crow and Axe
-Rush). It is the only element left out of `ELEMENT_HIT_SFX`, and no layer has
-been requested for it — her crow already carries `crowCaw` as a fire sound, so
-it is the one case where the element is not silent for want of that table.
+Rush). `lightning` was the other until round 16, and the two were not the same
+kind of gap: Kashimo's hits had nothing at all, while Mei Mei's crow already
+carries `crowCaw` as its own sound. Feather is the one case where the element is
+not silent for want of that table, which is why it is still the one left.
 
 ## Music
 

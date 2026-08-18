@@ -236,6 +236,17 @@ ok(gruntMoves > 0, "a voice take can still be moved between banks", `${gruntMove
 // to be labelled "Power Chord", which invited the reasonable and wrong belief
 // that editing one edits both — wrong twice over, because the second is also
 // SHARED with Inumaki's "Don't Move".
+// Kashimo is the harder case and the one that broke it: TWO of his moves carry
+// the lightning element, so labelling a layer by its element alone put two
+// identical rows on one page — the same confusion, one fighter later.
+for (const who of ["gakuganji", "kashimo", "dagon"]) {
+  await page.goto(`${BASE}/workbench/?edit=audio&char=${who}`, { waitUntil: "load" });
+  await page.waitForTimeout(3000);
+  const ls = await page.evaluate(() => [...document.querySelectorAll(".track[data-sfx]")]
+    .map((r) => r.querySelector(".label").textContent.trim()));
+  ok(new Set(ls).size === ls.length, `${who}: every row is labelled distinctly`, ls.join(" | "));
+}
+
 await page.goto(`${BASE}/workbench/?edit=audio&char=gakuganji`, { waitUntil: "load" });
 await page.waitForTimeout(3500);
 const rows = await page.evaluate(() => {

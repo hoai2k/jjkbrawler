@@ -148,7 +148,11 @@ function effectTracks(charKey) {
     if (layer) {
       out.push({
         ...effectTrack(move, slot, p, layer, `under ${move.name || slot}'s impact`),
-        label: `${p.fxElement} hit layer`,
+        // Named for the element AND the move. The element alone was enough
+        // while one fighter had one move per element; Kashimo has two lightning
+        // moves, which put two identically-labelled rows on his page — the same
+        // confusion this label was introduced to fix, one fighter later.
+        label: `${p.fxElement} layer — ${move.name || slot}`,
       });
     }
   }
