@@ -279,6 +279,18 @@ FACING_OVERRIDE = {
     "yaga/attack_heavy_a": "right",
     "yaga/attack_light_b": "right",
     "yaga/crouch_attack_a": "right",
+    # Round 23A–23D: four more, and the same story a third time. Haruta's three
+    # strikes and Miwa's jump were all delivered facing RIGHT and all four were
+    # called left. Between them they are the two costumes with the least for a
+    # right-facing detector to read — Haruta is bare-chested above a plain dark
+    # jumpsuit, Miwa is a plain dark suit — and in every one of the four the
+    # only strong asymmetry is a sword, which reads the same pointing either
+    # way. Kirara and Tengen, who have a cyan bang and a four-eyed head, needed
+    # no entries.
+    "haruta/attack_air_a": "right",
+    "haruta/attack_heavy_a": "right",
+    "haruta/attack_heavy_b": "right",
+    "miwa/jump_rise": "right",
 }
 
 

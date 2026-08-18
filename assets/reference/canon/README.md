@@ -93,12 +93,12 @@ and are the canon to draw against; these renders are back to answering design
 questions like everyone else's. `mechamaru_anime.png` is the puppet — Ultimate Mechamaru, which is what the game
 draws — and `mechamaru_absolute_anime.png` is Mode: Absolute, for his ultimate.
 
-**Kashimo, Yaga and Naoya have idles now too.** Their 36-pose sets landed as
-round 22B–22D, so `<char>_idle.png` exists for all three and is the canon to
-draw against; the renders above are back to answering design questions like
-everyone else's. **Kirara, Haruta, Tengen and Miwa are round 24's staged
-four** and are still in the position the three were: no delivered art, so their
-renders above are the only authority until their round-23 sets land. (The uploaded `kiara_anime.webp`, `haruta_anime.webp`,
+**All seven staged fighters have idles now too.** Kashimo, Yaga and Naoya's
+sets landed as round 22B–22D and Kirara, Haruta, Tengen and Miwa's as round 23,
+so `<char>_idle.png` exists for every one of them and is the canon to draw
+against; the renders above are back to answering design questions like
+everyone else's. Every fighter in the game, staged or not, is now matched
+against their own idle — Mahoraga is the only exception left. (The uploaded `kiara_anime.webp`, `haruta_anime.webp`,
 `tengen_anime.webp` and `miwa_anime.webp` were the same subjects and are
 superseded by these fetched-and-converted PNGs; note the key is `kirara`, from
 the character's canon name Kirara Hoshi, not `kiara`.)

@@ -23,16 +23,21 @@ numbered DI1, DI2… — so the tracks never collide. All of them are gathered i
 them; these files are where each is written.)
 
 **Current status: rounds 1–21 delivered. Rounds 22 and 23 are open.**
-**Round 22 is nearly closed**: 22B–22D (the three 36-pose sets, 108 sprites),
-then 22A and 22E–22H (the roster teeter, six technique effects, four dolls,
-three hero cards, one domain backdrop — 41 assets) have all landed and are
-[in the history](asset-requests-history.md#round-22a-and-22e22h--the-teeter-the-effects-the-summons-the-cards-and-the-backdrop-delivered).
-What is left of it is **22I**, the ten frames its own review boards rejected —
-six of them the same wind-up fault across Yaga's and Naoya's attack pairs.
-Round 23 — round 24's four staged fighters — is untouched. Nothing in either
-round is blocking: all seven fighters are staged, and Kashimo, Yaga and Naoya
-now have their full set, effects, cards and (for Naoya) a domain backdrop, so
-they are ready to be promoted whenever their owner says so.
+**Both rounds are nearly closed, and all seven staged fighters now have their
+art.** Round 22 delivered its three 36-pose sets (22B–22D), the roster teeter,
+the effects, the dolls, the cards and Naoya's backdrop (22A, 22E–22H); round 23
+delivered four more 36-pose sets, seven effects, Tengen's barrier and four
+hero cards, and answered three of 22I's rejects along the way. Both are
+[in the history](asset-requests-history.md#round-23--round-24s-four-staged-fighters-delivered).
+
+What is left is **22I** — seven frames, six of them the one wind-up fault
+across Yaga's and Naoya's attack pairs, plus `nanami/teeter` — and **23H**,
+Miwa's heavy, and a decision about the colour of Tengen's barrier. Nothing is
+blocking. **Every one of the seven staged fighters is now drawable** — full
+pose set, effects, hero card, and a domain backdrop for the two who have a
+domain — so any of them can be promoted whenever their owner says so. A
+promoted fighter still owes a `teeter`, which is the one pose 22A did not
+cover for them.
 Round 21's walk cycle landed complete — 54 sprites, two frames for each of the
 twenty-seven — and is
 [in the history](asset-requests-history.md#round-21--the-walk-cycle).
@@ -280,6 +285,10 @@ keep resolving after a sprite is replaced.
 | Hajime Kashimo | `kashimo` | `assets/reference/canon/kashimo_idle.png` |
 | Masamichi Yaga | `yaga` | `assets/reference/canon/yaga_idle.png` |
 | Naoya Zen'in | `naoya` | `assets/reference/canon/naoya_idle.png` |
+| Kirara Hoshi | `kirara` | `assets/reference/canon/kirara_idle.png` |
+| Haruta Shigemo | `haruta` | `assets/reference/canon/haruta_idle.png` |
+| Master Tengen | `tengen` | `assets/reference/canon/tengen_idle.png` |
+| Kasumi Miwa | `miwa` | `assets/reference/canon/miwa_idle.png` |
 
 **Gakuganji, Reggie Star and Uro used to be exceptions** — their old art was a
 different character, so their `idle_a` was exactly what must *not* be matched.
@@ -303,26 +312,13 @@ this rule cannot cover: there is nothing to match yet. Their canon is the wiki's
 | Mechamaru | `mechamaru` | `assets/reference/canon/mechamaru_anime.png` (plus `mechamaru_absolute_anime.png` for Mode: Absolute) |
 | Yuki Tsukumo | `yuki` | `assets/reference/canon/yuki_anime.png` |
 
-**Round 24's four staged fighters are the one case this rule cannot cover
-today**: no `idle_a` exists for them yet, so their canon is the wiki's
-**(Anime)** render, checked in beside everyone else's. Because their art will
-mostly be generated outside this repo, the table below carries **absolute
-URLs** as well as the repo paths — use either; they are the same image.
+**Every fighter on the roster and every staged fighter now has an `idle_a`**,
+so the rule above covers all of them without exception — rounds 22 and 23
+closed the last gap. The `<char>_anime.png` wiki renders that seeded the seven
+staged designs stay in the directory for design questions, but prefer the
+`<char>_idle.png` files: they carry the figure scale, line weight and shading
+the delivered set actually has.
 
-(**Round 23's three are out of this table**: Kashimo's, Yaga's and Naoya's
-36-pose sets landed with 22B–22D, so `<char>_idle.png` exists for all three and
-they are matched against their own idle like the rest of the roster — they are
-in the table above. Their `<char>_anime.png` renders stay in the directory for
-design questions.)
-
-| Fighter | Key | Canonical image | Absolute URL |
-|---|---|---|---|
-| Kirara Hoshi | `kirara` | `assets/reference/canon/kirara_anime.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kirara_anime.png> |
-| Haruta Shigemo | `haruta` | `assets/reference/canon/haruta_anime.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/haruta_anime.png> |
-| Master Tengen | `tengen` | `assets/reference/canon/tengen_anime.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/tengen_anime.png> |
-| Kasumi Miwa | `miwa` | `assets/reference/canon/miwa_anime.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/miwa_anime.png> |
-
-*(All four are round 24's staged fighters.)*
 
 **Draw each one's `idle_a` first and place it before drawing anything else for
 them** — every other pose of that fighter is then matched against their own
@@ -382,24 +378,25 @@ single addition: **no drawn shadow of any kind** — the game casts its own.
 
 # Round 22 — open
 
-## 22I. Ten frames the round-22 boards rejected — 10 sprites
+## 22I. Seven frames the round-22 boards rejected — 7 sprites
 
-The faults found reviewing round 22 — nine from the 22B–22D sprite sets and
-one from the teeter. Everything else in those deliveries is in the game; these
-ten are in it too, drawing what was delivered, and flagged in the workbench so
+The faults found reviewing round 22 — six from the 22B–22D sprite sets and one
+from the teeter. Three more were on this list and are answered: the
+`kashimo/special_side` costume and both of Yaga's crouches were redrawn with
+round 23 and are
+[in the history](asset-requests-history.md#round-23--round-24s-four-staged-fighters-delivered).
+Everything else in those deliveries is in the game; these
+seven are in it too, drawing what was delivered, and flagged in the workbench so
 they are visible while they wait. Same character blocks, same key screens, same
 delivery paths as the sets they belong to.
 
 **Six of them are one fault**, and it is the reason the brief now measures the
 wind-up: every `attack_*_a` in the round was drawn already mid-strike. The `_a`
-rule restated at the head of round 23 applies to these redraws too, and both
-halves of the pair have to pass the ruler.
+rule in [pose-brief.md](../sprites/docs/pose-brief.md) applies to these redraws
+too, and both halves of the pair have to pass the ruler.
 
 | File | Fighter | What is wrong, and what to draw |
 |---|---|---|
-| `kashimo/special_side.png` | Kashimo | **Costume, not pose.** The action is right — the staff has already left his hand and the throwing arm is extended, which is exactly Nyoi Recall. But the costume drifts from his own `idle_a`: he is wearing **black boots and a navy waist sash**, and the **white knee-to-ankle bandage wraps are missing**. Redraw the same pose with the pale grey ankle boots, the leg wraps, and no sash — match `kashimo/idle_a.png`, which is now his canonical reference |
-| `yaga/crouch_a.png` | Yaga | **A fighting stance, not a crouch.** Knees barely bent, head dropping about a tenth of standing height where the brief asks for a quarter. Draw an actual crouch: hips down, head low, weight settled — `naoya/crouch_a.png` from the same delivery is what it should read like |
-| `yaga/crouch_b.png` | Yaga | Same fault, same fix. It is currently the wider half of one guard stance rather than the second beat of a crouch; it must also read as *lower than standing*, which it does not |
 | `naoya/attack_light_a.png` | Naoya | **The wind-up is already the strike.** Drawn mid-blow, so the light attack has no coil and no tell. Redraw as the coil: striking hand drawn back beside the body, shoulders turned away from the target, weight on the back foot, lead arm up as a guard. It must reach **no further forward than `naoya/idle_a.png`** |
 | `naoya/attack_heavy_a.png` | Naoya | Same fault. Redraw as the wind-up of one committed blow: fist drawn as far back as the body allows, hips loaded, front foot light — and inside the idle's reach |
 | `naoya/attack_air_a.png` | Naoya | Same fault, airborne. Body coiled mid-jump, striking limb cocked, legs gathered — the extension belongs to `attack_air_b` |
@@ -423,6 +420,26 @@ promotes them: **`teeter` for `kashimo`, `yaga`, `naoya`, `kirara`, `haruta`,
 - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kashimo/idle_a.png>
 - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/idle_a.png>
 - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yaga/idle_a.png>
+
+## 23H. Miwa's heavy strike — 1 sprite
+
+The one fault found reviewing round 23. Her set is otherwise excellent and all
+36 poses are in the game; this frame is in it too, drawing what was delivered,
+and flagged in the workbench while it waits.
+
+| File | Fighter | What is wrong, and what to draw |
+|---|---|---|
+| `miwa/attack_heavy_b.png` | Miwa | **The heavy does not finish bigger than the light.** Both are a level thrust with the blade forward at chest height; measured forward of her own centre they are the same (+0.12 and +0.11 of standing height), and she is the roster's most sword-dependent fighter reaching less far than every unarmed fighter in round 22. Redraw it as a committed cut that TRAVELS — hips rotated through, the blade finishing well past where `attack_light_b` ends. Her canonical reference is now her own idle: <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/miwa_idle.png> |
+
+**Not a request, a decision: Tengen's barrier is violet and his kit is
+parchment.** `tengen/special_side` and `pure_barrier.png` both draw the barrier
+as a violet-pink pane where 23C and 23F asked for translucent parchment-white.
+The art is coherent with itself and keys cleanly, so it reads as a choice
+rather than a slip — but `tengen.theme` is `#d6cfae`, which is what his HUD,
+his install aura and his popups use, so art and fighter currently disagree
+about what colour he is. Moving the theme to the violet is a one-line change to
+`src/characters.js`; moving the art to parchment is a re-request of two plates.
+Nobody should pick one silently.
 
 # Round 23 — open
 
@@ -462,136 +479,6 @@ land on `main` they resolve at:
 - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/haruta_idle.png>
 - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/tengen_idle.png>
 - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/miwa_idle.png>
-
-## 23A. Kirara's sprite set — 36 sprites
-
-The standard 36-pose semantic set ([pose-brief.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/docs/pose-brief.md)
-first, especially the reach rules).
-
-**Canonical reference (absolute):**
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kirara_anime.png>
-(the wiki render: [Kirara Hoshi (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/2/21/Kirara_Hoshi_%28Anime%29.png/revision/latest?cb=20251230190130)).
-
-**What they are holding:** nothing — Love Rendezvous is touch and posture, so
-the attack poses are open-handed: raking scratches, a driven heel, a palm laid
-flat where a star lands. The star-shaped pupils survive every expression,
-`hurt` and `dizzy` included. `special_neutral` casts a small glowing star
-sigil off an extended palm; `special_side` is an underhand lob, debris
-wrapped in star-light; `special_down` is both arms flung up, five points of
-light in a cross around them; `ult_a`/`ult_b` hold the completed constellation
-— five stars orbiting, hair lifting, entirely smug.
-
-Deliver to `assets/intake/kirara/<pose_key>.png`. Key: `kirara`, exactly —
-the canon spelling, **not `kiara`**. **Key screen: mid-grey `#808080`** — the
-camisole straps and socks are magenta, which a magenta screen eats.
-
-## 23B. Haruta's sprite set — 36 sprites
-
-The standard 36-pose set, same brief and rules as 23A.
-
-**Canonical reference (absolute):**
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/haruta_anime.png>
-(the wiki render: [Haruta Shigemo (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/f/fb/Haruta_Shigemo_%28Anime%29.png/revision/latest?cb=20230903193020)).
-
-**What he is holding:** the **Hand Sword** — a single-edged blade whose hilt
-is a sculpted human hand — in every attack pose, gripped wrong, swung without
-a stance. The lilac teardrop marks under his eyes appear in every pose; his
-posture is never brave: attacks lean back even as they land. `attack_light_*`
-sloppy slashes, `attack_heavy_*` an overcommitted two-handed hack;
-`special_neutral` is the release of an underarm throw, the sword crawling
-mid-air on its hilt-fingers; `special_side` is a flinch turning into a lunge;
-`special_down` is him flat on the ground, hands over his head (this is also
-roughly his `prone`, drawn distinctly — the special is deliberate);
-`ult_a`/`ult_b` are him wreathed in small lilac glints, eyes wide, luckier
-than anyone deserves.
-
-Deliver to `assets/intake/haruta/<pose_key>.png`. Key: `haruta`, exactly.
-**Key screen: mid-grey `#808080`** — the eye markings and glove are lilac,
-which sits too close to a magenta screen.
-
-## 23C. Tengen's sprite set — 36 sprites
-
-The standard 36-pose set, same brief and rules as 23A.
-
-**Canonical reference (absolute):**
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/tengen_anime.png>
-(the wiki render: [Tengen (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/1/16/Tengen_%28Anime%29.png/revision/latest?cb=20251119121513)).
-
-**What they are holding:** nothing, ever — Tengen fights space, not people.
-The robe reaches the floor, so like Kurourushi the legs show only in motion
-poses (`run_*`, `dash`, `dodge_roll`: bare long-toed feet beneath a lifted
-hem). All four eyes track in every pose; the face barely moves — serenity is
-the costume. Attacks are open palms trailing flat translucent planes of
-barrier; `special_neutral` is both palms shoved forward behind a wall of
-force; `special_side` sets a standing pane of light with one hand;
-`special_down` is the figure mid-vanish, sliced vertically by a corridor
-edge; `ult_a`/`ult_b` raise both arms as barrier walls climb around them.
-
-Deliver to `assets/intake/tengen/<pose_key>.png`. Key: `tengen`, exactly.
-
-## 23D. Miwa's sprite set — 36 sprites
-
-The standard 36-pose set, same brief and rules as 23A.
-
-**Canonical reference (absolute):**
-<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/miwa_anime.png>
-(the wiki render: [Kasumi Miwa (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/6/64/Kasumi_Miwa_%28Anime%29.png/revision/latest?cb=20240621021537)).
-Draw her **long-haired, pre-Shibuya era**, matching the render.
-
-**What she is holding:** a standard katana in a brown scabbard — and the
-scabbard matters more than for anyone else on the roster: her whole kit is
-the draw, so **sheathed poses outnumber drawn ones**. `idle_a`/`idle_b`,
-`guard` and `special_side` keep the sword sheathed, hand resting on the hilt;
-`attack_light_*` and `attack_heavy_*` are draw-cuts, the scabbard still
-moving; `special_neutral` is the batto lunge at full extension, blade a
-horizontal line; `special_down` is the Simple Domain stance — feet planted,
-knees bent, a thin circle inscribed at her feet; `ult_a`/`ult_b` are the vow:
-a long low crouch with the hilt gripped white, then the single enormous cut.
-
-Deliver to `assets/intake/miwa/<pose_key>.png`. Key: `miwa`, exactly.
-
-## 23E. Round 24 technique effects — 7 sprites
-
-Effect plates for the staged kits, spec per [Delivery spec](#delivery-spec),
-pointing **LEFT** where directional. The loader already knows every path
-(`STAGED_EFFECT_KEYS`, `src/assets.js`); the moves draw procedural stand-ins
-until these land.
-
-| File | Fighter | What to draw |
-|---|---|---|
-| `star_bolt.png` | Kirara | A small five-pointed star sigil in violet `#d9a8ff` with a gold core, trailing thin chart-lines like a constellation diagram |
-| `star_debris.png` | Kirara | A chunk of urban debris (pipe, brick, signage) wrapped in violet star-light, a small gold star burning on its face |
-| `aura_star.png` | Kirara | An install aura plate: five stars in the Southern Cross arrangement orbiting a body-height envelope, faint chart-lines linking them |
-| `aura_lilac.png` | Haruta | An install aura plate: a loose swirl of small lilac glints and clock-hands, dense at 11 and 1 o'clock |
-| `hand_sword.png` | Haruta | The Hand Sword in flight, horizontal: a single-edged blade, the sculpted-hand hilt gripping air with splayed fingers |
-| `star_tomb.png` | Tengen | A rising barrier hall: translucent parchment-grey wall panes with star motifs, stacked and overlapping like a shrine interior |
-| `batto_flash.png` | Miwa | One iai cut as light: a single long horizontal crescent of pale blue-white, hilt-end dense, tip feathering out |
-
-Deliver to `assets/intake/effects/<name>.png`.
-
-## 23F. Tengen's pure barrier — 1 sprite
-
-A summon plate, format per round 8: one body per file, full height, facing
-**RIGHT** (trivially — it is a pane).
-
-| File | Fighter | What to draw |
-|---|---|---|
-| `pure_barrier.png` | Tengen | A standing rectangular pane of pure barrier: translucent parchment-white, faint star-chart etching, edges hard as cut glass — a wall with no interior conditions, wanting nothing |
-
-Deliver to `assets/intake/summons/pure_barrier.png` — **never** straight into
-`assets/sprites/summons/`.
-
-## 23G. Hero cards for the staged four — 4 images
-
-Same spec as round 9A: **JPEG, portrait, full-bleed background**, no text.
-Match the delivered set in `assets/cards/` for crop and energy.
-
-| File | Suggested backdrop |
-|---|---|
-| `assets/intake/cards/kirara_card.jpg` | The fight-club door at night, neon spill, five stars burning in the dark around them, arms folded — nobody gets in |
-| `assets/intake/cards/haruta_card.jpg` | A Shibuya alley mid-ambush: him grinning over one shoulder, the Hand Sword crawling along a wall behind him |
-| `assets/intake/cards/tengen_card.jpg` | The Tomb of the Star Corridor: floating shrine architecture receding forever, Tengen small and central, all four eyes lit |
-| `assets/intake/cards/miwa_card.jpg` | A Kyoto training yard at dawn, mid-draw, the blade a line of light — earnest, not epic |
 
 # Round 20 — delivered
 
