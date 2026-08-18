@@ -12,9 +12,9 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**8 images outstanding.**
+**24 images outstanding.**
 
-- **The sprite game** — 8 images, round 22
+- **The sprite game** — 24 images, round 22
 - **The live-3D anime path** — 0 images
 
 ## Rules that hold everywhere here
@@ -45,10 +45,11 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**8 images, round 22.** Authored in
+**24 images, round 22.** Authored in
 [docs/asset-requests.md](asset-requests.md) and reproduced whole below.
 
 - **22I** — Seven frames the round-22 boards rejected (7 sprites)
+- **22J** — Everything else the workbench has flagged (16 sprites)
 - **23H** — Miwa's heavy strike (1 sprite)
 
 ## 22I. Seven frames the round-22 boards rejected — 7 sprites
@@ -64,7 +65,11 @@ they are visible while they wait. Same character blocks, same key screens, same
 delivery paths as the sets they belong to.
 
 **Six of them are one fault**, and it is the reason the brief now measures the
-wind-up: every `attack_*_a` in the round was drawn already mid-strike. The `_a`
+wind-up: Yaga's and Naoya's `_a` frames were drawn about as extended as their
+own strikes. Kashimo's set is not among them — his light and heavy pairs read
+correctly, and his aerial pair was drawn correctly and delivered INVERTED,
+which was fixed by pointing each pose at the other file rather than by a
+redraw. The `_a`
 rule in [pose-brief.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/docs/pose-brief.md) applies to these redraws
 too, and both halves of the pair have to pass the ruler.
 
@@ -93,6 +98,43 @@ promotes them: **`teeter` for `kashimo`, `yaga`, `naoya`, `kirara`, `haruta`,
 - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kashimo/idle_a.png>
 - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/idle_a.png>
 - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yaga/idle_a.png>
+
+## 22J. Everything else the workbench has flagged — 16 sprites
+
+Frames carrying a workbench flag that no other section asks for. The file
+defines a pose as outstanding if it is flagged *or* drawing a file that is not
+its own, and these had drifted out of the rounds — some since round 18, some
+from the placement passes over rounds 22 and 23. They are listed here so the
+request documents stop understating what is owed; each is in the game today,
+drawing what was delivered.
+
+Written from `python3 tools/list_replacements.py --markdown`, which reads the
+flags themselves, so this table cannot disagree with the workbench.
+
+| Fighter | Pose | Kind | What is wrong |
+|---|---|---|---|
+| Dagon | `dagon/attack_light_a.png` | pose | should be wind-up for attack |
+| Dagon | `dagon/crouch_attack_b.png` | pose | — |
+| Dagon | `dagon/crouch_b.png` | pose | Drops 21% of standing height where the brief asks for a quarter, and reads taller than crouch_a beside it. Same crouch as crouch_a, a breath later. |
+| Dagon | `dagon/run_reach_a.png` | pose | Should reach with leg not with arm |
+| Dagon | `dagon/run_reach_b.png` | pose | should reach with leg instead of arm |
+| Haruta Shigemo | `haruta/attack_air_a.png` | pose | Needs to be winding-up for attack, not already attacking |
+| Haruta Shigemo | `haruta/dizzy.png` | pose | I'm using a new image that better approximates it, but we need to redo the "dizzy" sprite which came out as an erroneous sheet of multiple images. |
+| Haruta Shigemo | `haruta/special_down.png` | pose | Needs to be winding-up for attack, not already attacking |
+| Hajime Kashimo | `kashimo/attack_air_b.png` | quality | — |
+| Hajime Kashimo | `kashimo/attack_up.png` | quality | Has double knee and also strike focus should be upward |
+| Hajime Kashimo | `kashimo/ledge_hang.png` | character | Different hair color |
+| Kirara Hoshi | `kirara/attack_down.png` | pose | should be aiming attack at the ground |
+| Kirara Hoshi | `kirara/attack_heavy_b.png` | pose | Should have her right arm forward in a punch |
+| Kirara Hoshi | `kirara/attack_light_b.png` | pose | should have her right arm out in a punch |
+| Mahito | `mahito/attack_light_a.png` | quality | — |
+| Takako Uro | `uro/attack_light_b.png` | quality | — |
+
+**Six of them are the same wind-up fault** the brief now measures, on the
+fighters round 22I already names for it — Kashimo's and Haruta's `_a` frames
+and Kirara's strikes. The `_a` rule in
+[pose-brief.md](../sprites/docs/pose-brief.md) governs all of them, and both
+halves of every pair have to pass the ruler.
 
 ## 23H. Miwa's heavy strike — 1 sprite
 
@@ -433,10 +475,12 @@ is not its own says so silently, which is how seven of them stayed invisible
 until round 18G. Neither can see a pose that was never drawn — that is what
 the rounds above are for.
 
-**15 flagged, 20 drawing somebody else's art.**
+**24 flagged, 24 drawing somebody else's art.**
 
 | Fighter | Pose | Why |
 |---|---|---|
+| kashimo | `attack_air_b` | quality |
+| kashimo | `attack_up` | quality |
 | mahito | `attack_light_a` | quality |
 | nanami | `teeter` | quality |
 | uro | `attack_light_b` | quality |
@@ -445,6 +489,12 @@ the rounds above are for.
 | dagon | `crouch_b` | pose |
 | dagon | `run_reach_a` | pose |
 | dagon | `run_reach_b` | pose |
+| haruta | `attack_air_a` | pose |
+| haruta | `dizzy` | pose |
+| haruta | `special_down` | pose |
+| kirara | `attack_down` | pose |
+| kirara | `attack_heavy_b` | pose |
+| kirara | `attack_light_b` | pose |
 | miwa | `attack_heavy_b` | pose |
 | naoya | `attack_air_a` | pose |
 | naoya | `attack_heavy_a` | pose |
@@ -452,6 +502,7 @@ the rounds above are for.
 | yaga | `attack_air_a` | pose |
 | yaga | `attack_heavy_a` | pose |
 | yaga | `attack_light_a` | pose |
+| kashimo | `ledge_hang` | character |
 | hanami | `attack_light_b` | drawing `special_neutral` |
 | sukuna | `attack_light_b` | drawing `r3c0` |
 | megumi | `attack_light_a` | drawing `crouch_a_2` |
@@ -472,6 +523,10 @@ the rounds above are for.
 | kurourushi | `attack_light_b` | drawing `attack_air_b_2` |
 | kurourushi | `crouch_attack_b` | drawing `dash_2` |
 | kurourushi | `dash` | drawing `dodge_roll_2` |
+| kashimo | `attack_air_a` | drawing `attack_air_b` |
+| kashimo | `attack_air_b` | drawing `attack_air_a` |
+| haruta | `dizzy` | drawing `hurt` |
+| haruta | `special_down` | drawing `attack_air_a` |
 
 Separately, **2 improvement requests** — the art works and is just
 not as good as it should be. Nothing is blocked by one, and the standing
