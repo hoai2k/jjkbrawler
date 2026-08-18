@@ -333,6 +333,14 @@
              "footL": [34.5, 83.6], "toeL": [37.9, 85.7], "hipR": [47.7, 47.5], "kneeR": [55.1, 58.2],
              "footR": [66.5, 65.8], "toeR": [63.5, 65.3]}
     },
+    "teeter": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.6, 7], "neck": [48.4, 14], "chest": [48.4, 20], "pelvis": [46.3, 47],
+             "shoulderL": [50.1, 22.2], "elbowL": [59.1, 32], "handL": [61.3, 45], "shoulderR": [42, 18],
+             "elbowR": [37.1, 32.3], "handR": [34.1, 44.5], "hipL": [52.7, 47], "kneeL": [45.1, 68],
+             "footL": [47.5, 94.8], "toeL": [49.9, 98.1], "hipR": [39.9, 47], "kneeR": [54.9, 68],
+             "footR": [69.3, 87.9], "toeR": [69.9, 89.5]}
+    },
     "ult_a": {
       "seed": "fitted from yuji/ult_a",
       "j": {"head": [51.7, 8.5], "neck": [50.1, 14.4], "chest": [49.4, 19.4], "pelvis": [47, 48.3],

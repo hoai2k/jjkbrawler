@@ -356,6 +356,14 @@
              "footL": [31, 76], "toeL": [33, 78.4], "hipR": [39, 48], "kneeR": [62, 55],
              "footR": [88, 60], "toeR": [89.8, 62.3]}
     },
+    "teeter": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.9, 7], "neck": [48.6, 14], "chest": [48.6, 20], "pelvis": [46.3, 47],
+             "shoulderL": [55.5, 18], "elbowL": [60.1, 32], "handL": [64.6, 38.7], "shoulderR": [41.7, 18],
+             "elbowR": [38.6, 31.9], "handR": [39.9, 43.8], "hipL": [53.2, 47], "kneeL": [43.3, 71.5],
+             "footL": [37.4, 93.4], "toeL": [42.6, 82], "hipR": [39.4, 47], "kneeR": [51.3, 67.3],
+             "footR": [70.9, 89.3], "toeR": [71.6, 89.5]}
+    },
     "ult_a": {
       "read": "Ultimate, first beat \u2014 near arm at full extension with the red burst on the fist, far fist chambered at the ribs, deep long stance, torso upright. Skeletally this is attack_heavy_b with a different effect.",
       "flags": [{"k": "dup", "t": "skeleton of attack_heavy_b"}],

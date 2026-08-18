@@ -480,6 +480,25 @@ export const BATTLE_POSES = {
   // Yuji hangs from ONE arm with the other at his side — the sheet is explicit
   // and the two-armed grip is somebody else's ledge. Body straight below the
   // grip, toes pointed, knees just off straight: dangling, not standing.
+  // Balanced on the very lip of a platform (22A). A STAND, not a step: the
+  // hips shift back off the drop, the front foot stays planted at the edge
+  // with the knee soft, the arms swing wide and low for balance, and the head
+  // turns down toward the fall. Read off the delivered sprites, which all draw
+  // the drop on the RIGHT — so the weight goes back over the left leg and the
+  // torso counter-rotates away from it.
+  //
+  // Aliased to `idle` at the STATE level (states.js), so no rig owes a clip;
+  // this entry is what the joint bench reads the sprite frame against, and it
+  // has to be its own pose because a teeter that reads as an idle is exactly
+  // the tell the round existed to add.
+  teeter: p({
+    Spine: [-6, -8, 4], Spine1: [-3, -5, 3], Head: [16, 10, -4],
+    LeftUpLeg: [-22, 0, 4], LeftLeg: [26, 0, 0], LeftFoot: [-4, 0, 0],
+    RightUpLeg: [14, 0, -4], RightLeg: [10, 0, 0], RightFoot: [-14, 0, 0],
+    LeftArm: [-14, -10, -96], LeftForeArm: [-16, 0, -12],
+    RightArm: [-10, 10, 98], RightForeArm: [-14, 0, 10],
+  }),
+
   ledge_hang: p({
     Spine: [-2, 6, 0], Spine1: [0, 4, 0], Head: [-10, -8, 0],
     RightArm: [0, -6, -82], RightForeArm: [-4, 0, 4],
