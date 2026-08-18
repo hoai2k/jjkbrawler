@@ -177,17 +177,27 @@ const DIRECTORS = {
     applyInstall(f, { t: p.duration, label: p.label, color: p.color, dmgTakenMul: p.selfDamageMul }, 2);
     const opp = opponentOf(f);
     const dir = opp ? sign(opp.x - f.x) || 1 : 1;
-    spawnSummon(f, {
-      label: p.label,
-      ...p,
-      // Animated from the actor's own sprite set where that set is complete;
-      // where it is not, the summon falls back to the single still image in
-      // `p.sprites` rather than to a hole in the stage.
-      actor: p.actor && actorPosesReady(p.actor) ? p.actor : null,
-      // Between Megumi and whoever he is fighting, facing the fight.
-      offsetX: dir * 150,
-      backOff: 0,
-    });
+    // `units` spawns several minions per cast with per-unit overrides, the same
+    // shape the summon SPECIAL has (Yaga's Doll Family). One entry — or none,
+    // Megumi's single Mahoraga — behaves exactly as before.
+    const { units, ...base } = p;
+    for (const unit of units || [{}]) {
+      const spec = {
+        label: p.label,
+        ...base,
+        // Between the caster and whoever they are fighting, facing the fight.
+        offsetX: dir * 150,
+        backOff: 0,
+        ...unit,
+      };
+      spawnSummon(f, {
+        ...spec,
+        // Animated from the actor's own sprite set where that set is complete;
+        // where it is not, the summon falls back to the single still image in
+        // `sprites` rather than to a hole in the stage.
+        actor: spec.actor && actorPosesReady(spec.actor) ? spec.actor : null,
+      });
+    }
     state.camera.shake = Math.max(state.camera.shake, 10);
   },
 
@@ -467,6 +477,9 @@ const DIRECTORS = {
       speedMul: p.speedMul, dmgMul: p.dmgMul, armor: p.armor,
       unblockable: p.unblockable, healPerSec: p.healPerSec,
       echoDamage: p.echoDamage, dmgTakenMul: p.dmgTakenMul, aura: p.aura,
+      // Mythical Beast Amber (Kashimo): the transformation is a double-edged
+      // sword — his body shocks whoever touches it, and burns while he wears it.
+      contactShock: p.contactShock, selfDrainPerSec: p.selfDrainPerSec,
     }, 2);
     // Maki's Awakening: power as the absence of glow — speed-lines and dust.
     if (f.char.fxElement === "steel") steelInstallFx(f);
@@ -768,8 +781,9 @@ const DIRECTORS = {
   // Panda — Triceratops stampede.
   rampage(f, p, ult) {
     const total = p.passes * 1.0;
+    const label = p.label || "TRICERATOPS";
     beginUltAction(f, total, { lockMovement: true });
-    applyInstall(f, { t: total, label: "TRICERATOPS", color: p.color, armor: true, dmgMul: 1.1, sprite: p.sprite }, 2);
+    applyInstall(f, { t: total, label, color: p.color, armor: true, dmgMul: 1.1, sprite: p.sprite }, 2);
     f.invuln = Math.max(f.invuln, 0.5);
     state.entities.push({
       owner: f, t: 0, pass: 0, dir: f.facing, dead: false, hitCd: new Map(),
@@ -782,6 +796,9 @@ const DIRECTORS = {
         }
         f.vx = this.dir * p.speed;
         f.facing = this.dir;
+        // Mach 3 (Naoya): the spirit's passes are drawn as his frame-strip
+        // afterimages — the trail timer is held up for the whole stampede.
+        if (p.trail) f.fxTrailT = Math.max(f.fxTrailT, 0.1);
         // Turn at the edge of the platform he is ON, not at the stage bounds:
         // a stampede that charges off the end of the main platform just dumps
         // Panda into the blast zone mid-ultimate. The platform is found by
@@ -811,7 +828,7 @@ const DIRECTORS = {
             this.hitCd.set(t, state.matchTime + 0.5);
             applyHit(f, t, {
               dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: 0.6,
-              label: "TRICERATOPS", sfx: "punch", unblockable: true, heavy: true,
+              label, sfx: "punch", unblockable: true, heavy: true, effect: p.effect,
             }, "script");
           }
         }

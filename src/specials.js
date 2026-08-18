@@ -23,6 +23,9 @@ import { rectsOverlap, circleRectOverlap } from "./utils.js";
 import { getImage } from "./assets.js";
 import { spawnSummon } from "./summons.js";
 import { dashLaunchFx, muzzleFx, glints, steelInstallFx } from "./fx.js";
+// Naoya's frame rush draws the caster's own current pose as a strip of stills,
+// so it goes through the same frame renderer the trail system uses.
+import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { CHAR_FX } from "./config_fx.js";
 import { isFoe } from "./teams.js";
 
@@ -343,7 +346,9 @@ const HANDLERS = {
     f.counter = {
       t: p.window || 0.55, holdStill: true,
       dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: p.angle,
-      label: cfg.name, name: "INFINITY",
+      // The stance's own shout. "INFINITY" was hardcoded when Gojo was the only
+      // counter in the game; Naoya's Pre-Read reads its name from the kit.
+      label: cfg.name, name: p.counterName || "INFINITY", color: p.color,
     };
     ring(f.x, f.y - 90, p.color || f.char.theme, 100);
     playSfx("shield", 0.7, 1.4);
@@ -891,6 +896,114 @@ const HANDLERS = {
       },
     });
   },
+
+  // Kashimo — the Nyoi staff, a conductive cursed tool: one piercing pass down
+  // the lane, then recalled at lightning speed through everything on the way
+  // back. The recall knows where HE is, not where he was — the return leg
+  // flies to the hand that threw it, so moving after the throw re-aims it.
+  boomerang(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), (p.returnAt || 0.42) + 0.3, { events: [] });
+    effortSound(f, cfg);
+    spawnProjectile(f, { ...p, pierce: true });
+    const mz = spawnOffset(f.spriteChar || f.charKey, f.animKey, p.ox, p.oy);
+    muzzleFx(p.fxElement, f.x + f.facing * mz.x, f.y + mz.y, f.facing, p.color || f.char.theme);
+    const thrownFacing = f.facing;
+    f.action.events.push({
+      at: p.returnAt || 0.42,
+      fn: (self) => {
+        const far = clamp(self.x + thrownFacing * (p.speed ?? 680) * (p.returnAt || 0.42), 60, 1220);
+        const back = sign(self.x - far) || -thrownFacing;
+        spawnProjectile(self, {
+          ...p, pierce: true,
+          dmg: p.returnDmg ?? p.dmg, base: p.returnBase ?? p.base,
+          x: far, y: self.y - 86,
+          vx: back * (p.speed ?? 680), vy: 0,
+          label: "Nyoi Recall",
+        });
+        glints(far, self.y - 86, back, 6, 0.9, [p.color || f.char.theme, "#ffffff"]);
+        playSfx("whoosh", 0.9, 1.4);
+      },
+    });
+  },
+
+  // Naoya — Projection Sorcery. He pre-choreographs a handful of frames down
+  // the lane and executes them in one blink: a strip of crisp stills is left
+  // hanging where each planned frame was, and everything standing in the path
+  // is struck. The technique's rule cuts both ways — trace an impossible
+  // trajectory (a rush that touches nobody) and the caster is the one frozen.
+  frameRush(f, p, cfg) {
+    beginSpecialAction(f, currentSlot(cfg, f), 0.5, { lockMovement: true });
+    effortSound(f, cfg);
+    const startX = f.x;
+    const endX = clamp(f.x + f.facing * (p.dist || 360), 90, 1190);
+    const count = p.frames || 6;
+    const frame = currentFrame(f.spriteChar || f.charKey, f.animKey, f.animTime);
+    const ghosts = [];
+    for (let i = 1; i <= count; i++) ghosts.push(startX + (endX - startX) * (i / count));
+    const rect = {
+      x: Math.min(startX, endX) - 30, y: f.y - (p.h || 130),
+      w: Math.abs(endX - startX) + 60, h: p.h || 130,
+    };
+    debugShape(rect);
+    let connected = false;
+    for (const t of state.fighters) {
+      if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
+      if (!rectsOverlap(rect, hurtbox(t))) continue;
+      const res = applyHit(f, t, {
+        dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: p.angle,
+        label: cfg.name, sfx: "punch",
+      }, "script");
+      if (res !== "ignored") connected = true;
+    }
+    // The planned frames themselves: crisp, evenly stepped stills of the pose
+    // he cast from, held for a beat and then cut — film, not motion blur.
+    const facing = f.facing, y = f.y, charKey = f.charKey, char = f.char;
+    state.entities.push({
+      owner: f, t: 0, dead: false,
+      update(dt) { this.t += dt; if (this.t > 0.5) this.dead = true; },
+      draw(ctx) {
+        const alpha = 0.55 * (1 - this.t / 0.5);
+        for (const gx of ghosts) {
+          drawCharFrame(ctx, charKey, frame, gx, y, { scale: char.scale, facing, alpha });
+        }
+      },
+    });
+    dust(startX, f.y, 8);
+    f.x = endX;
+    f.fxTrailT = Math.max(f.fxTrailT, 0.25);
+    playSfx("whoosh", 1, 1.3);
+    if (!connected) {
+      applyStatus("framelock", f, f, { dur: p.selfLock || 0.7 });
+      popup(f.x, f.y - 176, "IMPOSSIBLE TRAJECTORY", "#9aa4c0", 16);
+    }
+  },
+
+  // Yaga — Sentient Cores. Three mutually compatible souls in every corpse he
+  // makes, and the maker can reach into all of them at once: every doll of his
+  // on the stage is mended, kept out longer and set swinging immediately — and
+  // each one hands its maker a little cursed energy back.
+  puppetSurge(f, p, cfg) {
+    const dolls = state.entities.filter(
+      (e) => e.kind === "summon" && e.owner === f && !e.dead && e.vanishT <= 0
+    );
+    if (!dolls.length) {
+      f.cooldowns[currentSlot(cfg, f)] = 0.8; // nothing to wind shouldn't cost the full wait
+      popup(f.x, f.y - 160, "no corpses out…", "#9aa4c0", 15);
+      return;
+    }
+    beginSpecialAction(f, currentSlot(cfg, f), 0.5);
+    effortSound(f, cfg);
+    for (const d of dolls) {
+      d.hp = Math.min(d.maxHp, d.hp + (p.heal ?? 22));
+      d.dur += p.extend ?? 2.5;
+      d.attackCd = Math.min(d.attackCd, 0.1);
+      burst(d.x, d.y - 60, p.color || f.char.theme, 14, 0.8);
+      ring(d.x, d.y - 60, p.color || f.char.theme, 80);
+      f.meter = clamp(f.meter + (p.meterPer ?? 4), 0, METER_MAX);
+    }
+    popup(f.x, f.y - 176, "SENTIENT CORES", p.color || f.char.theme, 18);
+    playSfx("ult", 0.5, 1.2);
+  },
 };
 
 function spawnSummonFlash(owner, spriteKey, duration, height, forward) {
@@ -932,6 +1045,7 @@ function grantSummonMeter(f, cfg) {
   const id = f.char.passive.id;
   if (id === "tenShadows") f.meter = clamp(f.meter + 3, 0, METER_MAX);
   if (id === "curseHoard") f.meter = clamp(f.meter + 4, 0, METER_MAX);
+  if (id === "dollMaker") f.meter = clamp(f.meter + 4, 0, METER_MAX);
 }
 
 function groundYAt() {

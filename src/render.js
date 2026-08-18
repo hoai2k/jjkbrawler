@@ -697,6 +697,23 @@ function drawTrail(ctx, f) {
   const strength = trailStrength(f);
   if (!strength || f.trail.length < 2) return;
   ctx.save();
+  // Projection Sorcery (Naoya, char.frameTrail): his afterimages are FRAMES,
+  // not motion blur — every other sample, hard-edged, at a flat opacity, like
+  // a strip of film laid along the path he choreographed. No glow: the soft
+  // shadow is exactly the smear the 24-fps read exists to refuse.
+  if (f.char.frameTrail) {
+    for (let i = f.trail.length % 2; i < f.trail.length; i += 2) {
+      const g = f.trail[i];
+      drawCharFrame(ctx, f.charKey, g.frame, g.x, g.y, {
+        scale: f.char.scale,
+        facing: g.facing,
+        alpha: 0.34 * strength,
+        rotation: g.rot,
+      });
+    }
+    ctx.restore();
+    return;
+  }
   ctx.shadowColor = f.char.theme;
   ctx.shadowBlur = 10;
   for (let i = 0; i < f.trail.length; i++) {

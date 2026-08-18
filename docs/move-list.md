@@ -8,8 +8,8 @@ re-run. Its companions are [characters.md](characters.md), which explains *why*
 each kit is the way it is, and [game-mechanics.md](game-mechanics.md), which
 explains the systems the moves are built from.
 
-**27 fighters** — every one with three specials and an
-ultimate, and **8** of them with a Domain Expansion as well.
+**30 fighters**, 3 of them staged and not yet selectable — every one with three specials and an
+ultimate, and **9** of them with a Domain Expansion as well.
 
 An ultimate and a Domain Expansion each cost the **whole** meter bar, so a
 fighter who has both is choosing between them every time the bar fills. Specials
@@ -46,6 +46,9 @@ are free and run on individual cooldowns instead.
 | [Geto](#geto) | Curses and Curse Users | Cursed Spirit Volley | Cursed Spirit Release | Kuchisake-Onna's Scissors | Maximum: Uzumaki | — |
 | [Choso](#choso) | Curses and Curse Users | Piercing Blood | Convergence: Blood Meteorite | Flowing Red Scale | Supernova | — |
 | [Sukuna](#sukuna) | Curses and Curse Users | Dismantle | Cleave | Divine Flame: Fuga | Dismantle: Merciless Barrage | Malevolent Shrine |
+| [Kashimo](#kashimo) | Staged (not yet selectable) | Lightning Discharge | Nyoi Recall | Hollow Wicker Basket | Mythical Beast Amber | — |
+| [Yaga](#yaga) | Staged (not yet selectable) | Cursed Corpse: Tsukamoto | Wind-Up Corpse | Sentient Cores | The Doll Family | — |
+| [Naoya](#naoya) | Staged (not yet selectable) | Projection Sorcery: 24 Frames | The 24 FPS Rule | Pre-Read | Vengeful Spirit: Mach 3 | Time Cell Moon Palace |
 
 ## Every kit in full
 
@@ -392,3 +395,41 @@ are free and run on individual cooldowns instead.
 - Domain Expansion — **Malevolent Shrine** — The shrine of skulls, raised without walls. Everything inside its reach is already cut.
   - *How it plays:* A ring of cleave-blades orbits the shrine and slashes rain on the enemy automatically. Press SPECIAL to snatch a blade out of the air, then LIGHT or HEAVY to unleash it as a colossal Cleave — the more blades still orbiting when you throw, the harder it lands.
 - Passive — **King's Contempt** — Scents weakness: +10% damage against opponents past 80%.
+
+<a id="kashimo"></a>
+
+### Hajime Kashimo — "God of Lightning"
+
+*Staged (not yet selectable) · `kashimo` · theme `#6ef7d0`*
+
+- Neutral special *(0.95s cooldown)* — **Lightning Discharge** — A bolt off the staff that plants his charge — and a bolt fired at a foe already carrying one bends to find them. No domain required.
+- Side special *(1.35s cooldown)* — **Nyoi Recall** — The conductive staff, hurled straight through everything in the lane — then recalled at lightning speed, and the way back hurts more.
+- Down special *(4.5s cooldown)* — **Hollow Wicker Basket** — The old anti-domain art, four hundred years practiced. Inside the woven veil nothing arrives unopposed — not even a sure hit.
+- Ultimate — **Mythical Beast Amber** — The one-use trump card he kept four hundred years for the strongest: his body becomes the beast, every nerve a live wire — and it burns him alive while he wears it.
+- Passive — **God of Lightning** — His cursed energy carries the properties of electricity: his blows plant a static charge, and he hits charged targets 15% harder.
+
+<a id="yaga"></a>
+
+### Masamichi Yaga — "The Doll Maker"
+
+*Staged (not yet selectable) · `yaga` · theme `#5bc46e`*
+
+- Neutral special *(6s cooldown)* — **Cursed Corpse: Tsukamoto** — The boxing bear that sleeps while it is fed cursed energy. He stops feeding it.
+- Side special *(1.7s cooldown)* — **Wind-Up Corpse** — An ordinary cursed corpse with one pre-set command wound into it. It waits, then it goes off.
+- Down special *(5s cooldown)* — **Sentient Cores** — Three compatible souls installed to observe each other. He reaches in and winds every doll on the stage back to full fury — and they feed him for it.
+- Ultimate — **The Doll Family** — Every corpse he ever gave a soul answers at once: Takeru hunts, Cathy covers the lane, and the comfort dolls squeeze like bombs.
+- Passive — **Independent Cursed Corpses** — His corpses watch over their maker: 10% less damage taken while one of his is on the stage, and summoning one feeds him meter.
+
+<a id="naoya"></a>
+
+### Naoya Zen'in — "Heir of the Zen'in"
+
+*Staged (not yet selectable) · `naoya` · theme `#bfe25c`*
+
+- Neutral special *(1.6s cooldown)* — **Projection Sorcery: 24 Frames** — He plots six frames down the lane and executes them in a blink — through whoever is standing in them. Trace an impossible path (touch nothing) and HE is the one frozen.
+- Side special *(2.6s cooldown)* — **The 24 FPS Rule** — The palm lands and the rule applies: a body that cannot process twenty-four frames a second is frozen stiff for one.
+- Down special *(2.4s cooldown)* — **Pre-Read** — He watched your move a frame before you made it — and he is smug enough to stand there and prove it.
+- Ultimate — **Vengeful Spirit: Mach 3** — What he became when he died badly: a living jet engine circling the stage past the sound barrier, wall to wall, too fast to see.
+- Domain Expansion — **Time Cell Moon Palace** — The 24-frame rule applied at the cellular level: inside the palace, every body runs on his clock.
+  - *How it plays:* Foes strobe-freeze on his frame beat for the whole domain. Press SPECIAL to blink a frame behind the enemy with a strike — short cooldown, keep the pressure on.
+- Passive — **Projection Sorcery** — His movement is pre-choreographed at 24 frames a second: sustained sprinting winds him up to +24% speed, and his path is drawn as the frames he planned.

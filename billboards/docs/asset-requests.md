@@ -192,7 +192,7 @@ block overrides `SEMANTIC_ANIMS`.
 
 ---
 
-## The roster — 28 rigs
+## The roster — 31 rigs
 
 Heights are `heightCm` from src/characters.js. Fighters with no published
 height are modeled at **190 cm working height** — not a canon claim, but how
@@ -230,6 +230,9 @@ billboard workbench verifies against his sprites.
 | `dagon` | Dagon | 215 cm | standard + head tentacles | bulk | Extra bones for the tendrils |
 | `kurourushi` | Kurourushi | 190 cm* | **bespoke** (insectoid) | bulk | The one nonstandard skeleton; bulk clips as reference only |
 | `mahoraga` | Mahoraga | match in-game | standard + wheel | bulk | Megumi's install actor (config_transform.js) |
+| `kashimo` | Hajime Kashimo | 185 cm | standard | polearm | Nyoi staff (red shaft, gold caps); lightning is engine-side |
+| `yaga` | Masamichi Yaga | 188 cm | standard, heavy build | unarmed | Sunglasses never come off; dolls are summons, engine-side |
+| `naoya` | Naoya Zen'in | 181 cm | standard | unarmed | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
 
 \* working height, see above.
 

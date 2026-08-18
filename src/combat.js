@@ -481,6 +481,18 @@ export function updateProjectiles(dt) {
       }
     }
 
+    // Kashimo — the planted charge makes the next bolt a sure thing: a shot
+    // tagged `seekStatus` bends hard toward any foe carrying that status,
+    // preserving its speed. This is his charge-separation trick — no domain,
+    // and the discharge still cannot miss a body he has already marked.
+    if (p.seekStatus && target && !steering && (target.statuses?.[p.seekStatus] || 0) > 0) {
+      const speed = Math.hypot(p.vx, p.vy) || 1;
+      const dx = target.x - p.x, dy = (target.y - 80) - p.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const k = Math.min(1, (p.seekRate ?? 10) * dt);
+      p.vx += ((dx / len) * speed - p.vx) * k;
+      p.vy += ((dy / len) * speed - p.vy) * k;
+    }
     // A hand-flown shot answers to the hand: its own homing and its arc would
     // otherwise fight the stick for the same velocity.
     if (p.homing && target && !steering) {
@@ -588,7 +600,9 @@ export function applyStatus(effect, owner, target, extra = {}) {
   if (!effect) return;
   const s = target.statuses;
   const immune = (target.char.passive.id === "heavenlyBody" &&
-    ["burn", "snare", "soulMark", "rootSnare", "cursedSpeech"].includes(effect)) ||
+    // framelock too: a Heavenly Restricted body reads all twenty-four frames —
+    // it is exactly how Maki beat Projection Sorcery.
+    ["burn", "snare", "soulMark", "rootSnare", "cursedSpeech", "framelock"].includes(effect)) ||
     // Choso is made of the stuff — bleeding and poisoning blood is pointless
     (target.char.passive.id === "deathPainting" && ["bleed", "poison"].includes(effect)) ||
     // A curse born from the fear of drowning does not drown, and the cockroach
@@ -667,6 +681,27 @@ export function applyStatus(effect, owner, target, extra = {}) {
       s.blind = Math.max(s.blind || 0, 2.4);
       popup(target.x, target.y - 150, "BLINDED", "#8f3b4e", 18);
       break;
+    // Kashimo — static planted by an electrified blow. No damage of its own:
+    // a charged body takes 15% more from him (his `galvanize` passive) and his
+    // discharge bolts bend toward it (`seekStatus`, updateProjectiles) — the
+    // canon trick of separating charges so the strike is a sure thing.
+    case "charge":
+      s.charge = Math.max(s.charge || 0, 4.0);
+      break;
+    // Naoya — the 24 FPS rule. A body that cannot process twenty-four frames a
+    // second is frozen stiff mid-frame: velocity zeroed, gravity suspended
+    // (fighter.js physics), held for a second. `extra.dur` lets the technique's
+    // own penalty — the caster freezing on an impossible trajectory — run
+    // shorter than the rule it broke.
+    case "framelock": {
+      const dur = extra.dur ?? 1.0;
+      s.framelock = Math.max(s.framelock || 0, dur);
+      target.hitstun = Math.max(target.hitstun, dur);
+      target.vx = 0;
+      target.vy = 0;
+      popup(target.x, target.y - 150, "24 FPS", "#eef4d8", 20);
+      break;
+    }
     case "weaponBreak":
       break; // handled at shield contact
     default:
@@ -727,6 +762,16 @@ export function updateStatuses(f, dt) {
     if (Math.random() < 3 * dt) spray(f.x + (Math.random() - 0.5) * 48, f.y - 30, 0, 1, 0.3);
   }
   if (s.blind > 0) s.blind -= dt;
+  if (s.charge > 0) {
+    s.charge -= dt;
+    // still carrying the static — an occasional white arc off the body
+    if (Math.random() < 2.5 * dt) sparkLine(f.x, f.y - 90, Math.random() < 0.5 ? 1 : -1, "#d8fff4", 3);
+  }
+  if (s.framelock > 0) {
+    s.framelock -= dt;
+    // held between frames: a hard white edge-flicker, not a glow
+    if (Math.random() < 6 * dt) sparkLine(f.x, f.y - 80, Math.random() < 0.5 ? 1 : -1, "#ffffff", 2);
+  }
   if (s.soulMark > 0) s.soulMark -= dt;
   if (s.silence > 0) s.silence -= dt;
   if (s.nailT > 0) {
@@ -993,6 +1038,13 @@ export function applyHit(owner, target, hit, source) {
   if (owner.statuses.blind > 0) dmg *= 0.88;
   // Dagon hits a soaked target harder — water conducts what he is.
   if (owner.char.passive.id === "tideBorn" && target.statuses.drench > 0) dmg *= 1.15;
+  // Kashimo hits a charged target harder — the static he planted completes his circuit.
+  if (owner.char.passive.id === "galvanize" && target.statuses.charge > 0) dmg *= 1.15;
+  // Yaga's corpses watch over their maker: while one of his stands, he takes less.
+  if (target.char.passive.id === "dollMaker" &&
+      state.entities.some((e) => e.kind === "summon" && e.owner === target && !e.dead && e.vanishT <= 0)) {
+    dmg *= 0.9;
+  }
   // Mechamaru's Heavenly Restriction is output, not muscle: it pays out on
   // everything that is NOT his own fists, and the puppet frame pays for it.
   if (owner.char.passive.id === "heavenlyOutput" && source !== "melee") dmg *= 1.15;
@@ -1158,6 +1210,13 @@ export function applyHit(owner, target, hit, source) {
   if (target.installs && target.installs.contactBurn && source === "melee") {
     applyStatus("burn", target, owner);
     burst(owner.x, owner.y - 80, "#ff7a2f", 10, 0.7);
+  }
+
+  // Mythical Beast Amber (Kashimo): the whole body is a live terminal — strike
+  // it up close and the charge jumps to you.
+  if (target.installs && target.installs.contactShock && source === "melee") {
+    applyStatus("charge", target, owner);
+    sparkLine(owner.x, owner.y - 90, sign(target.x - owner.x) || 1, "#d8fff4", 6);
   }
 
   recordHit(owner, target, dmg, armored);
