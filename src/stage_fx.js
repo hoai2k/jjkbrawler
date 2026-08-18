@@ -612,7 +612,6 @@ const STAGE_FX = {
           }
         }
       },
-      draw() {},
     };
   },
 
@@ -702,7 +701,6 @@ const STAGE_FX = {
           if (p.ghost && !wasGhost) playSfx("hazardElectricArc", 0.3, 1.5);
         });
       },
-      draw() {},
     };
   },
 
@@ -717,7 +715,6 @@ const STAGE_FX = {
         const nx = baseX + Math.sin(state.matchTime * (Math.PI * 2) / 8) * 70;
         movePlatform(plat, nx, plat.y);
       },
-      draw() {},
     };
   },
 
@@ -761,7 +758,6 @@ const STAGE_FX = {
           if (glide.t >= GLIDE) glide = null;
         }
       },
-      draw() {},
     };
   },
 
@@ -1201,7 +1197,6 @@ const STAGE_FX = {
           }
         });
       },
-      draw() {},
     };
   },
 

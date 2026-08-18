@@ -65,7 +65,7 @@ export function initUi(cb) {
     "movesModeButton",
     "randomStageButton", "stageBackButton", "roundKicker", "winnerText", "rematchButton", "menuButton",
     "resumeButton", "pauseResetButton", "pauseMenuButton",
-    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsTimeButton", "settingsBoardsButton", "settingsRenderButton", "musicVolumeRange", "musicVolumeLabel",
+    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsTimeButton", "settingsBoardsButton", "settingsArcsButton", "settingsRenderButton", "musicVolumeRange", "musicVolumeLabel",
     "sfxVolumeRange", "sfxVolumeLabel", "settingsBackButton",
   ]) {
     els[id] = $(id);
@@ -1004,6 +1004,13 @@ function bindMenuButtons() {
     state.activeBoards = !state.activeBoards;
     updateMenuButtons();
   });
+  // Applies to the match already running, like Render below it: it changes how
+  // a swing is DRAWN and not one thing about where it reaches, so there is
+  // nothing to be unfair about mid-fight.
+  els.settingsArcsButton.addEventListener("click", () => {
+    state.arcDetail = state.arcDetail === "simple" ? "full" : "simple";
+    updateMenuButtons();
+  });
   // The one setting here that applies to the match already running: it changes
   // how fighters are DRAWN, not any rule they are playing by, so there is
   // nothing to be unfair about mid-fight and waiting for the next match would
@@ -1135,6 +1142,7 @@ export function updateMenuButtons() {
     state.timeLimit ? formatClock(state.timeLimit) : TEXT.settings.timeOff
   );
   els.settingsBoardsButton.textContent = TEXT.settings.activeBoards(state.activeBoards);
+  els.settingsArcsButton.textContent = TEXT.settings.arcs(state.arcDetail);
   els.settingsSfxButton.textContent = TEXT.settings.sfxEnabled(state.sfxEnabled);
   els.settingsRenderButton.textContent = TEXT.settings.render(renderBackendMenuLabel());
 }
