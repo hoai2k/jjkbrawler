@@ -1064,7 +1064,6 @@ export function updateFighter(f, dt, input) {
         if (dist < 130 && Math.random() < 4 * dt) {
           popup(f.x, f.y - 150, "REPELLED", "#d9a8ff", 15);
           burst(f.x + toward * 30, f.y - 90, "#d9a8ff", 6, 0.5);
-          // Audio round 17 — silence until the file lands and is registered.
           playSfx("starRepel", 0.7);
         }
       }

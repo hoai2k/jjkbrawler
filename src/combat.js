@@ -1386,7 +1386,7 @@ export function triggerCounter(target, attacker) {
   if (Math.abs(attacker.x - target.x) < 300) {
     applyHit(target, attacker, {
       dmg: c.dmg, baseKb: c.baseKb, growth: c.growth, angle: c.angle,
-      label: c.label, sfx: "blast", unblockable: true,
+      label: c.label, sfx: c.sfx || "blast", unblockable: true,
     }, "counter");
   }
 }

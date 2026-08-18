@@ -349,6 +349,10 @@ const HANDLERS = {
       // The stance's own shout. "INFINITY" was hardcoded when Gojo was the only
       // counter in the game; Naoya's Pre-Read reads its name from the kit.
       label: cfg.name, name: p.counterName || "INFINITY", color: p.color,
+      // What the riposte hits with. Miwa's stance IS a draw — the counter and
+      // the special are the same cut — and a counter that fired a generic
+      // blast made the fastest sword in the game sound like everyone else.
+      sfx: p.sfx,
     };
     ring(f.x, f.y - 90, p.color || f.char.theme, 100);
     playSfx("shield", 0.7, 1.4);
@@ -492,7 +496,7 @@ const HANDLERS = {
     spawnMelee(f, {
       delay: 0.1, dur: 0.12, ox: p.ox ?? 40, oy: p.oy ?? -120, w: p.w, h: p.h,
       dmg: p.dmg, base: p.base, growth: p.growth, angle: p.angle,
-      label: cfg.name, sfx: "blast", unblockable: !!p.ultShout,
+      label: cfg.name, sfx: p.sfx || "blast", unblockable: !!p.ultShout,
     });
     // Sound made visible: stacked concentric wavefronts and a cone of
     // streaks, not one lonely ring.
@@ -500,7 +504,11 @@ const HANDLERS = {
     ring(f.x + f.facing * 80, f.y - 100, p.color, 120);
     ring(f.x + f.facing * 80, f.y - 100, "#ffffff", 180);
     glints(f.x + f.facing * 40, f.y - 100, f.facing, 8, 0.9, [p.color, "#ffffff"]);
-    playSfx("blast", 0.9, 1.2);
+    // Inumaki's shouts keep the pitched-up blast; Tengen's barrier has its own
+    // recording. The 1.2 goes with the borrowed file — a generic blast was
+    // sped up so a shout would not sound like an explosion, and a sound made
+    // for the move needs no such disguise.
+    playSfx(p.castSfx || "blast", 0.9, p.castSfx ? 1 : 1.2);
   },
 
   crush(f, p, cfg) {
