@@ -186,8 +186,8 @@ so the stamp itself is never the stale thing.
   and whether each one is images, 3D models, sound effects, voice or music
 - [Asset requests](docs/asset-requests.md) — where a 2D art round is authored;
   nothing is outstanding today ([history](docs/asset-requests-history.md))
-- [Audio requests](docs/audio-requests.md) — the grab pack is the only round
-  still open; the sound and voice rounds and their prompts are in
+- [Audio requests](docs/audio-requests.md) — **nothing outstanding**; every
+  sound and voice round and its prompts are here or in
   [history](docs/audio-requests-history.md), and the takes that were auditioned
   and thrown out are in [pruned](docs/audio-pruned.md) — a list both generators
   read, so a deleted take stays deleted

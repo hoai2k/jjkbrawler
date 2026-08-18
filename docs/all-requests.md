@@ -74,6 +74,8 @@ fighter without a delivered rig.
 | — | [Audio Rounds 1–11](audio-requests-history.md) | 🔊 Sound effects + 🎙️ voice | **all delivered** | — |
 | — | [Audio Rounds 12–14 — alternate takes](audio-requests.md#round-14--two-more-of-whatever-survived-delivered) | 🎙️ Voice | **delivered** — alternates to audition; 38 auditioned and [pruned](audio-pruned.md) | — |
 | — | [Audio Round 15 — the instruments](audio-requests.md#round-15--three-techniques-that-were-never-really-scored-delivered) | 🔊 Sound effects | **delivered** — a C♯m chord and metal licks for Gakuganji, the sea for Dagon, a djembe for Panda | — |
+| — | [Audio Round 12 — the grab pack](audio-requests.md#round-12--the-grab-pack-delivered--3-sounds) | 🔊 Sound effects | **delivered** — the seize, the break and the heave, off borrowed files at last | — |
+| — | [Audio Round 16 — round 23's staged three](audio-requests.md#round-16--round-23s-staged-three-delivered--4-sounds) | 🔊 Sound effects + 🎙️ voice | **delivered** — Kashimo's lightning layer and discharge, Naoya's domain sting and call-out, all before they leave staging | — |
 | — | [2D art Rounds 1–21](asset-requests-history.md) | 🖼️ Images | **delivered** | — |
 
 ---
@@ -125,6 +127,11 @@ three element hit layers the staged fighters had been owed. Nothing in
 
 Round 11 followed it and is also delivered: **Inumaki's cursed speech**, his
 three commands and his ultimate in Japanese, in a voice cast for him alone.
+
+Rounds 12 and 16 closed the last of it. Round 16 is the one worth copying: it
+was requested and delivered while Kashimo, Yaga and Naoya were still **staged**,
+so the sounds were waiting when the fighters arrived rather than being noticed
+missing once somebody played them.
 
 **Voice is no longer a request the repo cannot fill itself.** 10A was the only
 🎙️ entry here and was written on the assumption it needed a Japanese-speaking

@@ -135,7 +135,7 @@ function connectGrab(f, victim) {
   victim.shakeMag = 4;
   popup(victim.x, victim.y - 160, "GRABBED!", f.char.theme, 20);
   burst(victim.x, victim.y - 90, f.char.theme, 10, 0.8);
-  playSfx("punch", 0.8);
+  playSfx("grabConnect", 0.9);
   rumbleFighter(victim, 0.5, 0.3, 0.12);
   rumbleFighter(f, 0.3, 0.2, 0.1);
 }
@@ -243,7 +243,7 @@ function breakOut(f, v) {
   popup(v.x, v.y - 160, "BROKE FREE!", "#ffffff", 22);
   ring(v.x, v.y - 90, v.char.theme, 90);
   dust(v.x, v.y, 8);
-  playSfx("guardHit", 0.9, 1.2);
+  playSfx("grabBreak", 0.95);
   rumbleFighter(f, 0.4, 0.25, 0.12);
 }
 
@@ -310,7 +310,7 @@ function executeThrow(f, v, dir) {
     state.camera.shake = Math.max(state.camera.shake, 6);
   }
   playGrunt(f.charKey);
-  playSfx("whoosh", 0.8);
+  playSfx("throwHeave", 0.95);
   const gain = 3;
   f.meter = clamp(f.meter + gain, 0, METER_MAX);
 }

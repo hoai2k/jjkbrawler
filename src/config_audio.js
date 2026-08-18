@@ -241,6 +241,22 @@ export const SFX = {
   // drum was playing the generic punch.
   tideCrash: { file: "tide_crash.mp3", category: "energy" },
   drumPhrase: { file: "drum_phrase.mp3", category: "combat" },
+
+  // ---- Round 12, finally. The grab mechanic had been fully audible since it
+  // shipped, borrowing `punch`, `guardHit` pitched up and `whoosh` — so nothing
+  // was silent and nothing sounded like itself either. A seize is not a punch
+  // and a break is not a block.
+  grabConnect: { file: "grab_connect.mp3", category: "combat" },
+  grabBreak: { file: "grab_break.mp3", category: "combat" },
+  throwHeave: { file: "throw_heave.mp3", category: "combat" },
+
+  // ---- Round 16: what round 23's staged three are owed, requested before
+  // they reach the select screen rather than after, which is the whole lesson
+  // of round 15 — a gap noticed in play has already been shipped.
+  hitLightning: { file: "hit_lightning.mp3", category: "combat", gain: 0.5 },
+  thunderCrack: { file: "thunder_crack.mp3", category: "energy" },
+  domainTimeCellMoonPalace: { file: "domain_time_cell_moon_palace.mp3", category: "domain" },
+  domainCallNaoya: { file: "domain_call_naoya.mp3", category: "voice", gain: 1.1 },
   // Held under anything currently on fire — burn ticks, Furnace Shell — the
   // way `shield` sits under a raised guard. See the fire loop in audio.js.
   fireBurnLoop: { file: "fire_burn_loop.mp3", category: "energy", loop: true, gain: 0.55 },
@@ -261,6 +277,7 @@ export const SFX = {
 // she is the one case where the element is not silent for want of this table.
 export const ELEMENT_HIT_SFX = {
   fire: "hitFire",
+  lightning: "hitLightning",
   blood: "hitBlood",
   steel: "hitSteel",
   wind: "hitWind",
@@ -301,6 +318,7 @@ export const DOMAIN_CALL = {
   dagon: "domainCallDagon",
   hakari: "domainCallHakari",
   yuta: "domainCallYuta",
+  naoya: "domainCallNaoya",
 };
 
 export const MOVE_CALL = {
@@ -524,6 +542,7 @@ export const SPOKEN_LINES = {
   domainCallDagon: 2.59,
   domainCallHakari: 2.03,
   domainCallYuta: 2.42,
+  domainCallNaoya: 2.74,
   callInumakiBlastAway: 1.14,
   callInumakiDontMove: 0.73,
   callInumakiGetCrushed: 0.97,
