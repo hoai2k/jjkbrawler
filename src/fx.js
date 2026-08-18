@@ -215,6 +215,13 @@ export function hitFx(element, x, y, dir, dmg, theme) {
       smoke(x, y, n(r.smoke, power), ELEMENT_PALETTES.swarm);
       burst(x, y, "#5a2f38", n(r.burst, power), 0.7 * power);
       break;
+    case "lightning":
+      // Forked arcs off the point of contact, then hard white glints — the
+      // electricity is the hit, so nothing here is soft.
+      crackle(x, y, ELEMENT_PALETTES.lightning, n(r.forks, power), 55 + dmg * 2);
+      glints(x, y, dir, n(r.glints, power), 1, ELEMENT_PALETTES.lightning);
+      sparkLine(x, y, dir, "#ffffff", n(r.sparks, power));
+      break;
     default:
       // The pre-FX look, exactly: theme burst + white spark line.
       burst(x, y, theme, Math.round(n(r.burst, 1) + dmg * 1.2), power);
@@ -261,6 +268,7 @@ export function projectileEmit(p, dt) {
     case "water": spray(p.x, p.y, back, 1, 0.45); break;
     case "machine": smoke(p.x, p.y, 1, ELEMENT_PALETTES.steam); break;
     case "swarm": specks(p.x, p.y, 1, 0.5); break;
+    case "lightning": crackle(p.x, p.y, ELEMENT_PALETTES.lightning, 1, 26); break;
   }
 }
 
@@ -422,6 +430,11 @@ export function muzzleFx(element, x, y, dir, color) {
     case "fire":
       flames(x, y, n(6, 1), 0.8);
       embers(x, y, n(4, 1), 0.8);
+      break;
+    case "lightning":
+      // The bolt leaves as arcs off the staff head, not as a colour pop.
+      crackle(x, y, ELEMENT_PALETTES.lightning, n(3, 1), 40);
+      glints(x, y, dir, n(5, 1), 1, ELEMENT_PALETTES.lightning);
       break;
     default:
       burst(x, y, color, 16, 0.9);

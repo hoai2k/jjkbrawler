@@ -13,21 +13,22 @@ adding all three; they should not drift from the heading here.
 **Reading a kit:** every character has universal lights/heavies (same inputs,
 different reach/speed/damage/effects), three specials (neutral, side, down),
 one ultimate, and one always-on passive. Eight of them also have a **Domain
-Expansion** — see the section at the end.
+Expansion** — see the section at the end — and staged Naoya carries a ninth.
 
-**Nothing is staged.** Round 15's four late additions — Mechamaru, Yuki
+**Three are staged.** Round 15's four late additions — Mechamaru, Yuki
 Tsukumo, Dagon and Kurourushi — were built in full in `src/characters.js` before
 any of their art existed, held off the select screen by `STAGED_CHARACTER_KEYS`
-while it was drawn. All four have now shipped; Kurourushi was the last, joining
-the Curses group once his 36-pose set was placed and approved. The roster is 27
-fighters and `STAGED_CHARACTER_KEYS` is empty.
+while it was drawn, and all four have shipped. Round 23 stages three more the
+same way: **Hajime Kashimo, Masamichi Yaga and Naoya Zen'in** (see their
+section below). The roster is 27 fighters; the three staged kits are complete
+and testable, held off the select screen until their round-22 art lands.
 
-The staging machinery stays, because it is how the next fighter gets built:
-`node tools/smoke_staged.mjs` plays every staged kit's moves in a real match
-(with nothing staged it still checks the round-15 mechanics no other fighter
-exercises), and the sprite workbench lists staged fighters alongside the roster,
+The staging machinery is how they were built:
+`node tools/smoke_staged.mjs` plays every staged kit's moves in a real match,
+and the sprite workbench lists staged fighters alongside the roster,
 labelled *(not on the roster yet)*, so a delivered set can be placed and
-approved before the fighter is promoted. All four of round 15's went that way.
+approved before the fighter is promoted. All four of round 15's went that way,
+and round 23's three will too.
 
 **A full bar buys one super.** An ultimate and a Domain Expansion each cost the
 **whole** Cursed Energy bar (`ULT_METER_COST` and `DOMAIN_METER_COST` are both
@@ -681,6 +682,134 @@ share of everything.
   every bite anywhere on the stage puts the parent back together.
 - *Passive — Bottomless Appetite:* it recovers 12% of all damage it deals, and
   the eggs go on feeding it long after the cut.
+
+# Round 23 — the staged three
+
+Kashimo, Yaga and Naoya are built the way round 15's four were: kit first, art
+as a delivery against it. All three are complete in `src/characters.js`, held
+off the select screen by `STAGED_CHARACTER_KEYS`, exercised by
+`node tools/smoke_staged.mjs`, and listed in the sprite workbench as *(not on
+the roster yet)*. Their art is round 22B–22H in
+[asset-requests.md](asset-requests.md).
+
+They introduce **two statuses**, **one element** and **one rendering mechanic**
+that nobody on the roster has:
+
+| New thing | Owner | What it does |
+|---|---|---|
+| **charge** | Kashimo | Static planted by his electrified blows. No damage of its own: a charged body takes 15% more from him (his passive), and his Discharge bolts **bend toward a charged target** — the canon charge-separation trick that makes his strike a sure thing without a domain. |
+| **framelock** | Naoya | The 24 FPS rule. A touched body that cannot process twenty-four frames a second is **frozen stiff for a second** — velocity zeroed, gravity suspended, held mid-frame. Heavenly Restriction is immune: reading all twenty-four frames is exactly how Maki beat it. |
+| **lightning** (element) | Kashimo | A new `fxElement`: hits land as forked arcs (the Black Flash's crackle emitter, in his palette) and hard white glints — electricity, never a soft glow. |
+| **frame trail** | Naoya | His afterimages draw as a strip of **crisp, evenly stepped stills** — cut film, not motion blur (`char.frameTrail`, render.js). His dashes, his rush, his domain blinks and his Mach 3 passes all leave it. |
+
+## Hajime Kashimo — "God of Lightning"
+**Canon:** A sorcerer from four hundred years ago, called the **God of
+Lightning** (*Raijin*), who slaughtered every challenger of his era, found
+nobody worth the fight, and took Kenjaku's deal — soul banked in a cursed
+object, incarnated into the Culling Game — for one promised duel with Sukuna.
+His cursed energy innately carries the **physical properties of electricity**:
+his body is permanently charged, he can separate positive and negative charge
+so a discharge becomes a guaranteed hit, and he fights with the **Nyoi staff**,
+a conductive cursed tool he hurls through targets and recalls at lightning
+speed. He carries the **Hollow Wicker Basket**, the classical anti-domain art,
+and holds one true technique in reserve: **Mythical Beast Amber**, a one-use
+transformation into an electric beast that shattered even Sukuna's guard — and
+wrecks the body that wears it. Personality: battle-junkie serenity — calm,
+wry, almost gentle, and alive only in a fight worth dying in.
+
+**Design mapping:** The duelist. Fast, light, and built around one loop: plant
+the charge with anything, then collect on it — the marked target takes more
+from him and cannot dodge his bolts.
+- *Stats:* 448 / 0.95 — quick and crisp, launches early. He wants the fight
+  over before attrition matters, which is very him.
+- **Lightning Discharge** (neutral): a fast bolt that plants charge — and a
+  bolt fired at an already-charged foe **homes**. Land anything first and the
+  follow-up cannot miss.
+- **Nyoi Recall** (side): the staff thrown clean through the lane, then
+  recalled through everything on the way back. The return leg flies to
+  wherever he is NOW, so moving after the throw re-aims it.
+- **Hollow Wicker Basket** (down): the same Simple Domain circle Mechamaru
+  runs on cartridges — he simply knows the old art. The domain button casts it.
+- **Ultimate — Mythical Beast Amber:** an install, and a double-edged one:
+  +30% speed, +25% damage, his body shocks anyone who strikes it up close —
+  and it burns his own health for every second he wears it. The canon trade,
+  stated as a drain.
+- *Passive — God of Lightning:* every blow plants charge, and charged targets
+  take 15% more from him. The kit is the passive, cashed three ways.
+
+## Masamichi Yaga — "The Doll Maker"
+**Canon:** Principal of Tokyo Jujutsu High, grade 1, former teacher of Gojo,
+Geto and Shoko, and the foremost practitioner of **Cursed Corpse creation**.
+His masterwork is the independent, sentient cursed corpse — made by installing
+**three mutually compatible souls in one body** so they observe each other —
+of which Panda is the first. Around Panda there is a whole family: **Tsukamoto**
+the boxing-glove bear that attacks the moment its cursed-energy feed stops,
+**Takeru** the dog puppet, **Cathy** the training doll, and a colony of
+comfort dolls he leaves for stressed students. He fights bare-fisted — he broke
+Gakuganji's guitar with reinforced hands — and died refusing to hand the
+formula to the higher-ups, giving it to Gakuganji instead: *"It's a curse from
+me to you."* Personality: stern gatekeeper ("Why do you want to become a
+jujutsu sorcerer?"), secret softie who likes cute things and refuses to admit
+his corpses are deliberately adorable.
+
+**Design mapping:** The summoner who is also a brawler — where Megumi rolls a
+pool, Yaga *places* named dolls and then fights beside them, and his down
+special turns a board full of dolls into a payoff. Panda is deliberately
+nowhere in this kit: Panda is his own fighter, and the family answers instead.
+- *Stats:* 380 / 1.16 — faculty frame, heavyweight fists.
+- **Cursed Corpse: Tsukamoto** (neutral): the boxing bear, placed and swinging.
+  He stops feeding it; it does the rest.
+- **Wind-Up Corpse** (side): an ordinary pre-programmed corpse with one command
+  wound into it — arm, wait, go off. His zoning tool.
+- **Sentient Cores** (down): the three-souls ritual, live: every doll of his on
+  the stage is mended, kept out longer, set swinging immediately — and each
+  one feeds him meter. Worthless with an empty board, which is the point.
+- **Ultimate — The Doll Family:** everyone at once. Takeru hunts with a snaring
+  bite, Cathy hovers and fires needles down the lane, and two comfort dolls
+  chase and squeeze like bombs. Four bodies, one command.
+- *Passive — Independent Cursed Corpses:* his corpses watch over their maker —
+  10% less damage taken while one of his stands, and summoning feeds him
+  meter. A summoner who is safest mid-swarm.
+
+## Naoya Zen'in — "Heir of the Zen'in"
+**Canon:** Special grade 1, head of the Zen'in clan's Hei unit, self-anointed
+heir, and the fandom's most cheerfully hated man — a smirking Kansai-dialect
+misogynist who idolises Toji and torments Maki. His inherited technique is
+**Projection Sorcery**: the second is divided into **24 frames**, his movement
+pre-choreographed across them and executed at once — blinding speed with a
+rule attached. Anything his palm touches must also run at 24 frames; a body
+that cannot is **frozen stiff for one second**. Break the choreography — trace
+a physically impossible trajectory — and HE freezes instead. Killed without
+cursed energy (a kitchen knife, held by Maki's mother), he manifested as a
+**vengeful cursed spirit**: a jet-engine body that circles to build speed and
+rams at **Mach 3**, and the domain his spirit form learned, **Time Cell Moon
+Palace**, applies the 24-frame rule at the cellular level.
+
+**Design mapping:** The fastest thing on the ground, balanced by his own rule:
+his best move punishes *him* when it whiffs. Everything he does draws as
+frames — the whole kit is legible as cut film.
+- *Stats:* 486 / 0.94 — fastest ground speed in the game, glass frame,
+  and his passive winds it higher.
+- **Projection Sorcery: 24 Frames** (neutral): six frames plotted down the
+  lane and executed in a blink, through whoever stands in them — the stills
+  hang in the air where each planned frame was. Touch nobody and the penalty
+  is his: an IMPOSSIBLE TRAJECTORY freezes *him* for 0.7 s.
+- **The 24 FPS Rule** (side): the palm. Unblockable at point-blank, almost no
+  damage — the payoff is a full second of framelock, which for him is a
+  lifetime.
+- **Pre-Read** (down): a counter, because he watched your move a frame before
+  you made it. The stance announces PRE-READ, smugly.
+- **Ultimate — Vengeful Spirit: Mach 3:** the thing he became. Wall-to-wall
+  supersonic passes at 1250 px/s, unblockable, every pass trailing his frame
+  strip.
+- **Domain — Time Cell Moon Palace:** the stage becomes a filmstrip. Foes
+  strobe-freeze on his beat for the whole domain, and SPECIAL blinks him a
+  frame behind the enemy with a strike, on a short cooldown. A domain you
+  *operate* — his canon sure-hit, translated as tempo rather than raw damage.
+- *Passive — Projection Sorcery:* sustained sprinting winds the choreography
+  up to **+24% speed** (of course it is 24), and once wound, his run draws the
+  frame trail. Maki's counter is written in too: Heavenly Restricted bodies
+  are immune to framelock.
 
 ---
 

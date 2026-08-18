@@ -51,7 +51,14 @@ const anchor = (key) => `<a id="${key}"></a>`;
 const rows = [];
 const blocks = [];
 
-for (const group of CHARACTER_GROUPS) {
+// Staged fighters have complete kits and belong in the list — this document
+// describes fighters nobody is playing yet as much as the ones they are. They
+// get a group of their own at the end, labelled for what they are.
+const groups = STAGED_CHARACTER_KEYS.length
+  ? [...CHARACTER_GROUPS, { label: "Staged (not yet selectable)", members: STAGED_CHARACTER_KEYS }]
+  : CHARACTER_GROUPS;
+
+for (const group of groups) {
   for (const key of group.members) {
     const c = CHARACTERS[key];
     if (!c) continue;

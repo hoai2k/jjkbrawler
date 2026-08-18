@@ -26,7 +26,17 @@
 // src/ui.js and the note in src/config_cards.js on why the focus means the
 // paintings.
 
-import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
+import { CHARACTERS, CHARACTER_KEYS, STAGED_CHARACTER_KEYS } from "../src/characters.js";
+
+// Cards the workbench crops: the roster, plus the fighters still staged. Same
+// reasoning as the sprite workbench's WB_FIGHTERS — a staged fighter's hero
+// card arrives through the same intake and needs the same crop line settled
+// before the fighter is promoted, and leaving them out meant the card could
+// not be looked at until the fighter was already live. Their tiles are
+// labelled rather than hidden; a card that has not been delivered yet simply
+// shows the broken-image placeholder until it lands in assets/cards/.
+const WB_CARD_KEYS = [...CHARACTER_KEYS, ...STAGED_CHARACTER_KEYS];
+const isStaged = (key) => STAGED_CHARACTER_KEYS.includes(key);
 import { CARD_FOCUS, cardFocus } from "../src/config_cards.js";
 import { ROSTER_ASPECTS, USE_SIMPLE_CARDS } from "../src/config_menus.js";
 
@@ -190,7 +200,7 @@ function paint() {
 function select(key) {
   current = key;
   const char = CHARACTERS[key];
-  for (const k of CHARACTER_KEYS) {
+  for (const k of WB_CARD_KEYS) {
     el(`tile-${k}`)?.classList.toggle("is-selected", k === key);
   }
   el("who").textContent = char?.fullName || char?.name || key;
@@ -210,7 +220,7 @@ const EXPORT_VERSION = 1;
 
 function snapshot() {
   const cards = {};
-  for (const key of CHARACTER_KEYS) {
+  for (const key of WB_CARD_KEYS) {
     cards[key] = {
       // `set` is the one thing a reader cannot derive: a card parked at 0
       // because nobody touched it and a card deliberately SET to 0 export the
@@ -229,8 +239,8 @@ function snapshot() {
     howToApply: "node tools/apply_card_focus.mjs <this file>. Rebuilds CARD_FOCUS wholesale: an entry for every key whose `set` is true, dropping the rest. `focus` is a percentage from the painting's top edge and goes to CSS as the y half of object-position.",
     defaults: { focus: 0 },
     counts: {
-      cards: CHARACTER_KEYS.length,
-      set: CHARACTER_KEYS.filter((k) => touched.has(k) || CARD_FOCUS[k] !== undefined).length,
+      cards: WB_CARD_KEYS.length,
+      set: WB_CARD_KEYS.filter((k) => touched.has(k) || CARD_FOCUS[k] !== undefined).length,
     },
     cards,
   };
@@ -255,10 +265,10 @@ function exportJSON() {
 // ----------------------------------------------------------------- the shell
 
 function shell() {
-  const tiles = CHARACTER_KEYS.map((key) => `
+  const tiles = WB_CARD_KEYS.map((key) => `
     <button class="tile" id="tile-${key}" type="button" data-key="${key}">
       <img class="tile-thumb tile-thumb--card" src="${cardSrc(key)}" alt="">
-      <span class="tile-name">${CHARACTERS[key]?.name || key}</span>
+      <span class="tile-name">${CHARACTERS[key]?.name || key}${isStaged(key) ? " (not on the roster yet)" : ""}</span>
       <span class="dot"></span>
     </button>`).join("");
 
@@ -395,7 +405,7 @@ function bindLine() {
 function boot(root) {
   root.innerHTML = shell();
 
-  for (const key of CHARACTER_KEYS) {
+  for (const key of WB_CARD_KEYS) {
     store.set(key, cardFocus(key));
     el(`tile-${key}`).addEventListener("click", () => select(key));
   }
@@ -427,7 +437,7 @@ function boot(root) {
     ev.returnValue = "";
   });
 
-  select(CHARACTER_KEYS[0]);
+  select(WB_CARD_KEYS[0]);
 }
 
 // This bench builds into its own root, like the verification queue: index.html

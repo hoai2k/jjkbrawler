@@ -1,4 +1,4 @@
-// All 23 fighters — plus four staged ones at the bottom of the table who are
+// All 27 fighters — plus three staged ones at the bottom of the table who are
 // not on the roster yet: stats, sprite-frame mappings, attack profiles,
 // specials, ultimates, passives. Design rationale for every kit lives in
 // docs/characters.md.
@@ -45,12 +45,18 @@ import { SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL } from ".
 // Round 15 staged four — Mechamaru, Yuki Tsukumo, Dagon and Kurourushi — whose
 // kits, statuses, specials, ultimates, Dagon's domain and all four passives
 // were live in code before any art existed. All four have since landed their
-// 36-pose sets and are on the select screen, so the list is empty; it stays
-// because it is how the next fighter gets staged. A staged key is deliberately
+// 36-pose sets and are on the select screen. A staged key is deliberately
 // NOT in any CHARACTER_GROUPS bucket, which is the other half of keeping it off
 // the select screen — this list keeps it out of randomCharacterKey() and out of
 // the "unreachable fighter" warning at the bottom of this file.
-export const STAGED_CHARACTER_KEYS = [];
+//
+// Round 23 stages three more the same way: Kashimo (the lightning element and
+// the `charge` status), Yaga (the doll summoner) and Naoya (Projection Sorcery
+// — the `framelock` status, the frame-strip afterimages and Time Cell Moon
+// Palace). Their kits are live and testable via tools/smoke_staged.mjs and the
+// sprite workbench lists them; their art is round 22B–22H in
+// docs/asset-requests.md.
+export const STAGED_CHARACTER_KEYS = ["kashimo", "yaga", "naoya"];
 
 // Sentinel selection meaning "draw a fresh fighter at the start of every match"
 // rather than naming one. Never a key in CHARACTERS — resolve it through
@@ -1555,6 +1561,168 @@ export const CHARACTERS = {
     },
     passive: { id: "infiniteHunger", name: "Bottomless Appetite", desc: "It eats what it hurts: it recovers 12% of all damage it deals, and the eggs it plants keep feeding it after the cut." },
     ai: { style: "rush", range: 260 },
+  },
+
+  // ================================================================ ROUND 23
+  // The three staged fighters — Kashimo, Yaga and Naoya. Kits, statuses (charge,
+  // framelock), the lightning element, the frame-trail rendering and Naoya's
+  // domain are all live in code; nothing below reaches the select screen until
+  // the art lands and the keys move out of STAGED_CHARACTER_KEYS.
+
+  // --------------------------------------------------------------- KASHIMO
+  kashimo: {
+    name: "Kashimo",
+    fullName: "Hajime Kashimo",
+    epithet: "God of Lightning",
+    heightCm: 185,     // estimated (none published)
+    theme: "#6ef7d0",
+    fxElement: "lightning",  // his cursed energy IS electricity — forks, glints, no soft glow
+    shadow: "rgba(110, 247, 208, 0.36)",
+    scale: 0.60,
+    stats: { speed: 448, airSpeed: 342, accel: 2900, jump: 860, airJumps: 1, weight: 0.95, friction: 0.85 },
+    anims: SEMANTIC_ANIMS,
+    // Every blow shocks: his body is permanently charged, so even the jab
+    // plants the static his discharge bolts home on (see `charge`, combat.js).
+    light: { dmg: 8, speed: 1.12, angle: 0.3, effect: "charge", label: "Nyoi Combo", sfx: "slash" },
+    heavy: { dmg: 15, speed: 1.02, angle: 0.44, effect: "charge", label: "Thundercrack Sweep", sfx: "slashHeavy", shieldMul: 1.6 },
+    specials: {
+      neutral: {
+        name: "Lightning Discharge", type: "projectile", cooldown: 0.95,
+        desc: "A bolt off the staff that plants his charge — and a bolt fired at a foe already carrying one bends to find them. No domain required.",
+        p: { speed: 760, vy: -2, r: 26, dur: 0.7, dmg: 10, base: 340, growth: 6.6, angle: 0.34, color: "#6ef7d0", effect: "charge", fxElement: "lightning", seekStatus: "charge", seekRate: 10, ox: 64, oy: -92, label: "Discharge", sprite: "effect:lightning_bolt", spriteH: 70 },
+      },
+      side: {
+        name: "Nyoi Recall", type: "boomerang", cooldown: 1.35,
+        desc: "The conductive staff, hurled straight through everything in the lane — then recalled at lightning speed, and the way back hurts more.",
+        p: { speed: 680, returnAt: 0.42, r: 30, dur: 0.45, dmg: 11, base: 380, growth: 6.8, angle: 0.3, color: "#6ef7d0", effect: "charge", fxElement: "lightning", ox: 60, oy: -88, label: "Nyoi", sprite: "effect:nyoi_staff", spriteH: 60, returnDmg: 13, returnBase: 460 },
+      },
+      down: {
+        name: "Hollow Wicker Basket", type: "simpleDomain", cooldown: 4.5,
+        domainButton: true,
+        desc: "The old anti-domain art, four hundred years practiced. Inside the woven veil nothing arrives unopposed — not even a sure hit.",
+        p: { duration: 1.6, dmg: 11, base: 400, growth: 6.8, angle: 0.45, radius: 132, color: "#d8fff4" },
+      },
+    },
+    ultimate: {
+      name: "Mythical Beast Amber", type: "install",
+      desc: "The one-use trump card he kept four hundred years for the strongest: his body becomes the beast, every nerve a live wire — and it burns him alive while he wears it.",
+      p: { duration: 8, speedMul: 1.3, dmgMul: 1.25, contactShock: true, selfDrainPerSec: 2.4, color: "#6ef7d0", label: "MYTHICAL BEAST AMBER", aura: "effect:amber_aura" },
+    },
+    passive: { id: "galvanize", name: "God of Lightning", desc: "His cursed energy carries the properties of electricity: his blows plant a static charge, and he hits charged targets 15% harder." },
+    ai: { style: "rush", range: 280 },
+  },
+
+  // ------------------------------------------------------------------ YAGA
+  yaga: {
+    name: "Yaga",
+    fullName: "Masamichi Yaga",
+    epithet: "The Doll Maker",
+    heightCm: 188,     // estimated (none published)
+    theme: "#5bc46e",
+    shadow: "rgba(91, 196, 110, 0.34)",
+    scale: 0.60,
+    stats: { speed: 380, airSpeed: 285, accel: 2350, jump: 800, airJumps: 1, weight: 1.16, friction: 0.8 },
+    anims: SEMANTIC_ANIMS,
+    // The principal fights bare-fisted — he broke Gakuganji's guitar with
+    // cursed-energy-reinforced hands. The dolls are the technique.
+    light: { dmg: 9, speed: 0.98, angle: 0.3, effect: null, label: "Reinforced Fist", sfx: "punch" },
+    heavy: { dmg: 16.5, speed: 0.92, angle: 0.44, effect: null, label: "Principal's Judgement", sfx: "punch", shieldMul: 1.7 },
+    specials: {
+      neutral: {
+        name: "Cursed Corpse: Tsukamoto", type: "summon", cooldown: 6,
+        desc: "The boxing bear that sleeps while it is fed cursed energy. He stops feeding it.",
+        p: {
+          id: "tsukamoto", behavior: "chaser", duration: 7, speed: 420, maxActive: 1,
+          color: "#5bc46e", h: 104, hp: 55, standOff: 20,
+          sprites: ["summon:tsukamoto"],
+          attack: { dmg: 7, base: 300, growth: 5.2, angle: 0.34, cd: 0.8, sfx: "punch" },
+        },
+      },
+      side: {
+        name: "Wind-Up Corpse", type: "trap", cooldown: 1.7,
+        desc: "An ordinary cursed corpse with one pre-set command wound into it. It waits, then it goes off.",
+        p: { dist: 250, armTime: 0.5, lifetime: 1.6, w: 150, h: 132, dmg: 13, base: 440, growth: 7.0, angle: 0.6, color: "#8fe6a1", sprite: "effect:windup_doll", spriteH: 140 },
+      },
+      down: {
+        name: "Sentient Cores", type: "puppetSurge", cooldown: 5,
+        desc: "Three compatible souls installed to observe each other. He reaches in and winds every doll on the stage back to full fury — and they feed him for it.",
+        p: { heal: 22, extend: 2.5, meterPer: 4, color: "#b8f0c4" },
+      },
+    },
+    ultimate: {
+      name: "The Doll Family", type: "summon",
+      desc: "Every corpse he ever gave a soul answers at once: Takeru hunts, Cathy covers the lane, and the comfort dolls squeeze like bombs.",
+      p: {
+        id: "dollFamily", label: "THE DOLL FAMILY", color: "#5bc46e",
+        duration: 9, maxActive: 4,
+        units: [
+          { behavior: "chaser", speed: 520, h: 92, hp: 45, standOff: 18, backOff: 40,
+            sprites: ["summon:takeru"],
+            attack: { dmg: 6, base: 260, growth: 4.8, angle: 0.3, cd: 0.7, effect: "snare", sfx: "slash" } },
+          { behavior: "support", h: 96, hp: 40, backOff: 90, hover: { back: 170, up: 150 },
+            sprites: ["summon:cathy"],
+            attack: { cd: 1.3, projectile: { speed: 560, r: 16, dur: 0.9, dmg: 6, base: 220, growth: 4.4, angle: 0.3, color: "#8fe6a1", sprite: "effect:doll_needle", spriteH: 46 } } },
+          { behavior: "bomber", speed: 470, h: 70, hp: 30, backOff: 60,
+            sprites: ["summon:comfort_doll"],
+            attack: { dmg: 12, base: 430, growth: 7.0, angle: 0.5, r: 90, sfx: "blast" } },
+          { behavior: "bomber", speed: 470, h: 70, hp: 30, backOff: 120, firstAttackDelay: 0.9,
+            sprites: ["summon:comfort_doll"],
+            attack: { dmg: 12, base: 430, growth: 7.0, angle: 0.5, r: 90, sfx: "blast" } },
+        ],
+      },
+    },
+    passive: { id: "dollMaker", name: "Independent Cursed Corpses", desc: "His corpses watch over their maker: 10% less damage taken while one of his is on the stage, and summoning one feeds him meter." },
+    ai: { style: "balanced", range: 300 },
+  },
+
+  // ----------------------------------------------------------------- NAOYA
+  naoya: {
+    name: "Naoya",
+    fullName: "Naoya Zen'in",
+    epithet: "Heir of the Zen'in",
+    heightCm: 181,     // exhibition: "over 180 cm"
+    theme: "#bfe25c",
+    shadow: "rgba(191, 226, 92, 0.34)",
+    scale: 0.60,
+    // Projection Sorcery renders as FRAMES, not blur: motion.js/render.js draw
+    // his afterimages as a strip of crisp stepped stills, like cut film.
+    frameTrail: true,
+    stats: { speed: 486, airSpeed: 360, accel: 3100, jump: 850, airJumps: 1, weight: 0.94, friction: 0.87 },
+    anims: SEMANTIC_ANIMS,
+    light: { dmg: 7.5, speed: 1.15, angle: 0.3, effect: null, label: "Hei Style", sfx: "punch" },
+    heavy: { dmg: 14.5, speed: 1.08, angle: 0.44, effect: null, label: "Projection Heel", sfx: "punch", shieldMul: 1.5 },
+    specials: {
+      neutral: {
+        name: "Projection Sorcery: 24 Frames", type: "frameRush", cooldown: 1.6,
+        desc: "He plots six frames down the lane and executes them in a blink — through whoever is standing in them. Trace an impossible path (touch nothing) and HE is the one frozen.",
+        p: { dist: 360, h: 130, dmg: 11, base: 400, growth: 7.0, angle: 0.35, frames: 6, selfLock: 0.7, color: "#bfe25c" },
+      },
+      side: {
+        name: "The 24 FPS Rule", type: "commandGrab", cooldown: 2.6,
+        desc: "The palm lands and the rule applies: a body that cannot process twenty-four frames a second is frozen stiff for one.",
+        p: { range: 120, dmg: 6, base: 110, growth: 2.0, angle: 0.25, effect: "framelock", color: "#bfe25c" },
+      },
+      down: {
+        name: "Pre-Read", type: "counter", cooldown: 2.4,
+        desc: "He watched your move a frame before you made it — and he is smug enough to stand there and prove it.",
+        p: { window: 0.55, dmg: 13, base: 440, growth: 7.2, angle: 0.5, counterName: "PRE-READ", color: "#bfe25c" },
+      },
+    },
+    ultimate: {
+      name: "Vengeful Spirit: Mach 3", type: "rampage",
+      desc: "What he became when he died badly: a living jet engine circling the stage past the sound barrier, wall to wall, too fast to see.",
+      p: { passes: 4, speed: 1250, dmg: 14, base: 500, growth: 7.8, color: "#bfe25c", label: "MACH 3", sprite: "effect:naoya_spirit", trail: true },
+    },
+    // ---- Domain Expansion -------------------------------------------------
+    domains: [{
+      name: "Time Cell Moon Palace",
+      type: "timeCellMoonPalace",
+      desc: "The 24-frame rule applied at the cellular level: inside the palace, every body runs on his clock.",
+      howTo: "Foes strobe-freeze on his frame beat for the whole domain. Press SPECIAL to blink a frame behind the enemy with a strike — short cooldown, keep the pressure on.",
+      p: { duration: 7, color: "#bfe25c", bg: "domain:time_cell_moon_palace", cadence: 1.3, hold: 0.5, blinkDmg: 10, blinkBase: 360, blinkGrowth: 6.6, blinkCd: 0.9 },
+    }],
+    passive: { id: "projection", name: "Projection Sorcery", desc: "His movement is pre-choreographed at 24 frames a second: sustained sprinting winds him up to +24% speed, and his path is drawn as the frames he planned." },
+    ai: { style: "rush", range: 240 },
   },
 };
 

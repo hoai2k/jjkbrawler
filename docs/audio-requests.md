@@ -1,6 +1,7 @@
 # Audio Requests — open requests
 
-**One small round is open: round 12, the grab pack — three sounds.** Round 14
+**Two rounds are open: round 12, the grab pack — three sounds — and round 16,
+the sounds owed to round 23's three staged fighters — four sounds.** Round 14
 (24 alternate takes, bred from the survivors of a 33-file prune) is delivered;
 everything else is delivered, wired in and recorded in
 [audio-requests-history.md](audio-requests-history.md), along with every
@@ -26,6 +27,57 @@ Delivery and registration follow the standing flow in
 [Adding a sound](#adding-a-sound); wire the keys into `SFX`
 (`src/config_audio.js`) and swap the three call sites in `src/grab.js` from the
 interim keys.
+
+## Round 16 — round 23's staged three (open) — 4 sounds
+
+Kashimo, Yaga and Naoya are staged (`STAGED_CHARACTER_KEYS`,
+`src/characters.js`; art is round 22B–22H in
+[asset-requests.md](asset-requests.md)). Their voices already work — all three
+are assigned to existing grunt trios and KO cries in `GRUNT_GROUPS`
+(`src/audio.js`), so nobody will be mute on promotion. What round 15's lesson
+says to request NOW, before these fighters reach the select screen and the
+gaps become silences in play:
+
+| Key | Moment | Status today |
+|---|---|---|
+| `hitLightning` | the element layer under every Kashimo hit (`fxElement: "lightning"`) | the one element with no hit layer besides `feather` — silent |
+| `thunderCrack` | Kashimo's Lightning Discharge leaving the staff (`fireSfx`) | silent, like Dagon's tide was |
+| `domainTimeCellMoonPalace` | the sting under Naoya's Time Cell Moon Palace opening | `DOMAIN_STING` already names the key (`src/domains.js`) — silence until the file lands |
+| `domainCallNaoya` | Naoya speaking 領域展開 and the domain's name | unlisted in `DOMAIN_CALL`, so he opens it on his grunt — works, but he of all people would announce it |
+
+**Wiring when they land:** register the first three in `SFX`
+(`src/config_audio.js`) — `hitLightning` also gets a `lightning: "hitLightning"`
+row in `ELEMENT_HIT_SFX`, and `thunderCrack` goes on the Discharge's `fireSfx`
+in `src/characters.js`. The call-out is a spoken line: a `naoya` row in
+`DOMAIN_CALL` plus its measured length in `SPOKEN_LINES`. Yaga needs no
+signature sound yet — his dolls hit with the ordinary impact set, and a doll
+squeak is polish to judge once they are visible.
+
+**`hit_lightning.wav`** · the lightning element hit layer · 0.5 s
+```
+a sharp electric shock impact, a crisp static discharge snap with a short crackling tail, close and dry, no rumble, about half a second, mono sound effect for a fighting game, no words, no music
+```
+
+**`thunder_crack.wav`** · Kashimo's discharge leaving the staff · 0.8 s
+```
+a close-range thunder crack, an instantaneous electric snap into a short dry rolling tail, aggressive and bright, about 0.8 seconds, mono sound effect for a fighting game, no words, no music
+```
+
+**`domain_time_cell_moon_palace.wav`** · Time Cell Moon Palace sting · 2.5 s
+```
+an eerie domain-expansion sting: a film projector clattering up to speed inside a vast cold stone hall, a deep moonlit drone underneath, ticking at a strict regular rate like frames passing a gate, unsettling and precise, about 2.5 seconds, mono, no words, no melody
+```
+
+**`domain_call_naoya.wav`** · Naoya — Time Cell Moon Palace · voice `WFLyIjdIbVuEXaAkU0Xb` *(Ryunosuke — the young-male group's voice; direct him smug)* · 3.0 s
+```
+[smug, drawling, pleased with himself] りょういきてんかい……じほうげっきゅうでん。
+```
+
+*(Check the furigana for 時胞月宮殿 against the fandom wiki before generating —
+the wiki is the repo's standing authority for irregular readings, and round 10
+caught three wrong romanizations exactly this way.)*
+
+---
 
 Round 11 was the last of them: **Inumaki's cursed speech** — his three commands
 and his ultimate, spoken in Japanese in a voice cast for him alone, replacing

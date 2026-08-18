@@ -100,6 +100,10 @@ const STAGED_EFFECT_KEYS = {
   yuki: ["star_rage_impact"],
   dagon: ["tide_wave", "shikigami_fish"],
   kurourushi: ["egg_shot", "blinding_sacs", "aura_chitin"],
+  // Round 23 — the three staged fighters (asset-requests round 22E).
+  kashimo: ["lightning_bolt", "nyoi_staff", "amber_aura"],
+  yaga: ["windup_doll", "doll_needle"],
+  naoya: ["naoya_spirit"],
 };
 
 // Summon minions belonging to a staged fighter. The delivered summons in the
@@ -114,6 +118,13 @@ const STAGED_SUMMON_KEYS = {
   kurourushi: [
     ["summon:cockroach_swarm", "summons/cockroach_swarm.png"],
     ["summon:kurourushi_child", "summons/kurourushi_child.png"],
+  ],
+  // Round 23 — Yaga's doll family (asset-requests round 22F).
+  yaga: [
+    ["summon:tsukamoto", "summons/tsukamoto.png"],
+    ["summon:takeru", "summons/takeru.png"],
+    ["summon:cathy", "summons/cathy.png"],
+    ["summon:comfort_doll", "summons/comfort_doll.png"],
   ],
 };
 
@@ -150,6 +161,8 @@ const DOMAIN_BACKGROUNDS = {
   // Staged with Dagon (round 15). Gated on CHARACTER_KEYS like the rest, so it
   // is not fetched until he is on the roster.
   captivating_skandha: "dagon",
+  // Staged with Naoya (round 23), gated the same way.
+  time_cell_moon_palace: "naoya",
 };
 
 function loadImage(src) {

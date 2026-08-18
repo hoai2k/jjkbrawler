@@ -42,6 +42,10 @@ export const HIT_RECIPES = {
   // Kurourushi's hits are always partly the roaches: specks that scatter and
   // crawl, over a dark chitinous burst.
   swarm:  { specks: 14, smoke: 4, burst: 8 },
+  // Round 23 — Kashimo. His cursed energy carries the physical properties of
+  // electricity, so a hit is forked arcs and hard white glints — crackle, the
+  // Black Flash's branch emitter, in his own palette — never a soft glow.
+  lightning: { forks: 3, glints: 7, sparks: 6 },
 };
 
 // Colour ramps per element. A particle with a ramp walks it over its life —
@@ -59,6 +63,7 @@ export const ELEMENT_PALETTES = {
   water:  ["#eaf7ff", "#7fc9ec", "#2f8fd8", "#17537f"],
   steam:  ["rgba(214,224,232,0.5)", "rgba(160,174,188,0.38)", "rgba(96,108,120,0.22)"],
   swarm:  ["#5a2f38", "#3b1d26", "#1a0e12"],
+  lightning: ["#ffffff", "#d8fff4", "#6ef7d0", "#1f8f7a"],
 };
 
 // --------------------------------------------------------- projectile trails
@@ -78,7 +83,7 @@ export const PROJ_TRAIL = {
 // (or 0) sheds nothing — the trail alone carries it.
 export const PROJ_EMIT = {
   fire: 30, blood: 22, feather: 10, wind: 16, sound: 5, shadow: 16, soul: 12,
-  water: 26, machine: 14, swarm: 20,
+  water: 26, machine: 14, swarm: 20, lightning: 18,
 };
 
 // ------------------------------------------------------ per-character extras

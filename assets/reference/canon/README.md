@@ -74,6 +74,12 @@ rather than editing these in place.
 | `yuki_anime.png` | [Yuki Tsukumo (Anime 3).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/2/22/Yuki_Tsukumo_%28Anime_3%29.png/revision/latest?cb=20251230190559) |
 | `dagon_anime.png` | [Dagon (Anime 2).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/5/5b/Dagon_%28Anime_2%29.png/revision/latest?cb=20231026164038) |
 | `kurourushi_anime.png` | [Kurourushi (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/4/48/Kurourushi_%28Anime%29.png/revision/latest?cb=20260322133008) |
+| `kashimo_anime.png` | [Hajime Kashimo (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/0/02/Hajime_Kashimo_%28Anime%29.png/revision/latest?cb=20260205162107) |
+| `yaga_anime.png` | [Masamichi Yaga (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/5/51/Masamichi_Yaga_%28Anime%29.png/revision/latest?cb=20201025153339) |
+| `yaga_powers_anime.jpg` | uploaded reference — Yaga seated among his cursed corpses, green cursed energy; the design authority for his summons (Tsukamoto, Takeru, Cathy, the comfort dolls) |
+| `naoya_anime.png` | [Naoya Zenin (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/2/27/Naoya_Zenin_%28Anime%29.png/revision/latest?cb=20251230174702) |
+| `naoya_design_anime.jpg` | [Myamura — "NAOYA ZENIN CHARACTER DESIGN" (X post)](https://x.com/Go_Jover/status/1981293295029633294), image at [pbs.twimg.com/media/G373wAUWwAAMcEN.jpg](https://pbs.twimg.com/media/G373wAUWwAAMcEN.jpg) — supplementary turnaround/pose reference |
+| `naoya_fullbody.jpg` | uploaded reference — a figure photo, three-quarter dynamic pose; supplementary pose reference only, the render above is the design authority |
 
 **The last five are round 15's four fighters** (Mechamaru, Yuki Tsukumo, Dagon,
 Kurourushi). They were the one case where `<char>_anime.png` was not the
@@ -82,6 +88,11 @@ to key off. All four have shipped since, so their `<char>_idle.png` files exist
 and are the canon to draw against; these renders are back to answering design
 questions like everyone else's. `mechamaru_anime.png` is the puppet — Ultimate Mechamaru, which is what the game
 draws — and `mechamaru_absolute_anime.png` is Mode: Absolute, for his ultimate.
+
+**Kashimo, Yaga and Naoya are round 23's staged three** and are in that same
+position today: no delivered art, so their **(Anime)** renders above are the
+only authority until their round-22 sets land and `<char>_idle.png` is
+generated for them.
 
 Finding a character's file, if you need one that is not here yet: the wiki's
 character page lists its images, and the full-body render is almost always

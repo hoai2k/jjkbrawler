@@ -6,8 +6,9 @@
 // SPECIAL (and, for Sukuna, to LIGHT/HEAVY afterwards). That is the whole design
 // brief — a domain you watch is a cutscene, a domain you operate is a move.
 //
-// Only the ten sorcerers who canonically have a domain get one; eight of those
-// are on the roster. `char.domains` is an array so a fighter with more than one
+// Only the sorcerers who canonically have a domain get one; eight of those are
+// on the roster, and staged Naoya carries a ninth (Time Cell Moon Palace, the
+// domain his cursed-spirit form manifests). `char.domains` is an array so a fighter with more than one
 // could split them across the left stick; nobody has two, so the domain button
 // alone opens the one they have.
 //
@@ -42,6 +43,8 @@ const DOMAIN_STING = {
   "domain:idle_death_gamble": "domainIdleDeathGamble",
   "domain:mutual_love": "domainMutualLove",
   "domain:captivating_skandha": "domainCaptivatingSkandha",
+  // Staged with Naoya (round 23) — silence until the sound is delivered.
+  "domain:time_cell_moon_palace": "domainTimeCellMoonPalace",
 };
 
 export { DOMAIN_CALL };
@@ -795,6 +798,86 @@ const HANDLERS = {
         ctx.restore();
       }
       hint(ctx, dom.s.cd > 0 ? "RIKA IS RECOVERING" : "SPECIAL — SEND RIKA", dom.color);
+    },
+  },
+
+  // NAOYA (as a cursed spirit) — Time Cell Moon Palace. The 24-frames-a-second
+  // rule applied at the cellular level: inside the palace everyone runs on his
+  // clock. Foes strobe — held stiff for the first part of every beat, free for
+  // the rest — and SPECIAL blinks him a frame behind the enemy with a strike.
+  // The whole domain is drawn as what it is: a strip of film.
+  timeCellMoonPalace: {
+    init: () => ({ blinkCd: 0 }),
+    update(dom, f, dt) {
+      dom.s.blinkCd = Math.max(0, dom.s.blinkCd - dt);
+      const cadence = dom.p.cadence || 1.3;
+      const hold = dom.p.hold || 0.5;
+      const phase = dom.t % cadence;
+      if (phase < hold) {
+        for (const t of sureHitFoesOf(f)) {
+          // held between frames, not launched: the strobe is control, the
+          // damage is what Naoya does with it
+          t.hitstun = Math.max(t.hitstun, 0.12);
+          t.vx *= 0.6;
+          if (!t.grounded) t.vy = Math.min(t.vy, 40);
+          if (Math.random() < 5 * dt) {
+            burst(t.x, t.y - 90, "#ffffff", 2, 0.35);
+          }
+        }
+      }
+    },
+    input(dom, f, input) {
+      if (!input.specialP || dom.s.blinkCd > 0) return false;
+      const opp = opponentOf(f);
+      if (!opp) return false;
+      dom.s.blinkCd = dom.p.blinkCd || 0.9;
+      const side = f.x < opp.x ? 1 : -1;          // arrive on their far side
+      burst(f.x, f.y - 70, dom.color, 14, 0.8);
+      f.x = clamp(opp.x + side * 76, 80, 1200);
+      f.y = opp.y;
+      f.facing = -side;
+      f.grounded = false;
+      f.invuln = Math.max(f.invuln, 0.2);
+      f.fxTrailT = Math.max(f.fxTrailT, 0.25);    // the blink leaves its frames
+      burst(f.x, f.y - 70, dom.color, 16, 0.9);
+      playSfx("whoosh", 0.9, 1.3);
+      spawnMelee(f, {
+        delay: 0.04, dur: 0.12, ox: 24, oy: -104, w: 170, h: 120,
+        dmg: dom.p.blinkDmg, base: dom.p.blinkBase, growth: dom.p.blinkGrowth,
+        angle: 0.4, label: "24 Frames", sfx: "punch",
+      });
+      return true;
+    },
+    draw(dom, f, ctx) {
+      const cadence = dom.p.cadence || 1.3;
+      const hold = dom.p.hold || 0.5;
+      const frozen = (dom.t % cadence) < hold;
+      ctx.save();
+      // Sprocket holes along the top and bottom: the stage as a filmstrip.
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = "#05060c";
+      ctx.fillRect(0, 44, 1280, 26);
+      ctx.fillRect(0, 660, 1280, 26);
+      ctx.fillStyle = dom.color;
+      for (let x = 24; x < 1280; x += 64) {
+        ctx.fillRect(x, 51, 18, 12);
+        ctx.fillRect(x, 667, 18, 12);
+      }
+      // Frame divisions crawling with his clock; they snap, never glide.
+      const step = Math.floor(dom.t * 24) % 8;
+      ctx.globalAlpha = frozen ? 0.34 : 0.14;
+      ctx.strokeStyle = frozen ? "#ffffff" : dom.color;
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 9; i++) {
+        const x = ((i * 160 + step * 20) % 1440) - 80;
+        ctx.beginPath();
+        ctx.moveTo(x, 70);
+        ctx.lineTo(x, 660);
+        ctx.stroke();
+      }
+      ctx.restore();
+      hint(ctx, dom.s.blinkCd > 0 ? "REWINDING THE FRAMES…"
+                                  : "SPECIAL — BLINK A FRAME BEHIND THEM", dom.color);
     },
   },
 };

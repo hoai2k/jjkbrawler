@@ -12,10 +12,10 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**31 images outstanding.**
+**165 images outstanding.**
 
-- **The sprite game** — 31 images, round 22
-- **The live-3D anime path** — 0 images
+- **The sprite game** — 153 images, round 22
+- **The live-3D anime path** — 12 images
 
 ## Rules that hold everywhere here
 
@@ -45,10 +45,17 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**31 images, round 22.** Authored in
+**153 images, round 22.** Authored in
 [docs/asset-requests.md](asset-requests.md) and reproduced whole below.
 
 - **22A** — Balanced on the lip: the teeter (27 sprites)
+- **22B** — Kashimo's sprite set (36 sprites)
+- **22C** — Yaga's sprite set (36 sprites)
+- **22D** — Naoya's sprite set (36 sprites)
+- **22E** — Round 23 technique effects (6 sprites)
+- **22F** — Yaga's doll family summons (4 sprites)
+- **22G** — Hero cards for the staged three (3 images)
+- **22H** — Naoya's domain background (1 image)
 - **20E** — Yuji's four Round 20 poses (4 sprites)
 
 ## 22A. Balanced on the lip: the teeter — 27 sprites
@@ -89,6 +96,185 @@ carries onto the ledge, the climb rises on `jump_rise` and arrives on `land`,
 the roll uses `dodge_roll`. A bespoke `ledge_climb` would be an upgrade to
 that, not a dependency, and 27 more sprites is not worth spending before the
 reused ones have been seen in motion.
+
+---
+
+**22B–22H are round 23's three staged fighters** — Hajime Kashimo, Masamichi
+Yaga and Naoya Zen'in. Their kits are complete and live in `src/characters.js`
+(`STAGED_CHARACTER_KEYS` holds them off the select screen), so nothing blocks on
+this art: it lands, gets placed in the sprite workbench — which already lists
+all three as *(not on the roster yet)* — and the keys move into
+`CHARACTER_GROUPS`. Design rationale is the round-23 section of
+[characters.md](characters.md).
+
+Because this batch is expected to be generated **outside this repo**, every
+reference below is given as an **absolute URL**. The character blocks to use
+verbatim are the `kashimo`, `yaga` and `naoya` rows of the table above.
+
+**Work idle-first — the `idle_a` is its own delivery.** The standing rule
+("draw each one's `idle_a` first and place it before drawing anything else")
+becomes the delivery order for this batch:
+
+1. **Generate `idle_a` alone** for each fighter, from the character block plus
+   the anime render — a clean interpretation in the game's style, and a
+   *plain, square-on standing stance* per
+   [pose-brief.md](../sprites/docs/pose-brief.md) (hurtbox width is measured
+   off it).
+2. **Intake and approve it** (`tools/intake.py` → the sprite workbench, which
+   already lists all three as *(not on the roster yet)*), then run
+   `tools/build_canon_reference.py` so it lands as
+   `assets/reference/canon/<key>_idle.png`.
+3. **Generate the other 35 poses against that approved idle** — it becomes the
+   reference image for the rest of the set, so costume, proportions, palette,
+   line weight and shading stay locked across all 36 instead of drifting
+   render-to-render. Once step 2 has landed on `main`, the idles resolve at:
+   - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kashimo_idle.png>
+   - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yaga_idle.png>
+   - <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_idle.png>
+
+Round 7's hardest lesson was that a new character has no frame to inherit
+placement from; this order gives the other 35 poses a frame to inherit
+*design* from as well.
+
+## 22B. Kashimo's sprite set — 36 sprites
+
+The standard 36-pose semantic set (`SEMANTIC_ANIMS`, `src/characters.js` — the
+pose list and every rule is [pose-brief.md](../sprites/docs/pose-brief.md); read
+it first, especially the reach rules for `attack_light_b` / `attack_heavy_b`).
+
+**Canonical reference (absolute):**
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kashimo_anime.png>
+(the wiki render: [Hajime Kashimo (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/0/02/Hajime_Kashimo_%28Anime%29.png/revision/latest?cb=20260205162107)).
+
+**What he is holding:** the **Nyoi staff** — long, red-shafted, gold caps and a
+gold ball finial — in every attack pose. He is a four-hundred-year-old master
+enjoying himself: relaxed shoulders, easy smile, never strained.
+`attack_light_*` and `attack_heavy_*` are staff strikes with visible reach;
+`special_neutral` levels the staff like a lightning rod, arcs crawling off the
+tip; `special_side` is the release of a full-body throw, empty hand still
+extended; `special_down` is a braced two-handed stance inside a woven
+basket-weave sphere of thin lines (Hollow Wicker Basket); `ult_a`/`ult_b` are
+Mythical Beast Amber — hair lifting, eyes alight, forked electricity wrapping
+both arms and the staff abandoned mid-air beside him.
+
+Deliver to `assets/intake/kashimo/<pose_key>.png`. Key: `kashimo`, exactly —
+not `hajime`. **Key screen: mid-grey `#808080`** — the staff is red, which a
+magenta screen eats.
+
+## 22C. Yaga's sprite set — 36 sprites
+
+The standard 36-pose set, same brief and rules as 22B.
+
+**Canonical reference (absolute):**
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yaga_anime.png>
+(the wiki render: [Masamichi Yaga (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/5/51/Masamichi_Yaga_%28Anime%29.png/revision/latest?cb=20201025153339)).
+For his cursed energy (green) and the dolls around him:
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yaga_powers_anime.jpg>.
+
+**What he is holding:** nothing — the principal fights **bare-fisted**, with
+cursed-energy-reinforced hands (green when energy shows). Sunglasses on in
+every pose, `hurt` and `dizzy` included; the face barely changes, the body does
+the talking. `attack_light_*` a straight jab, `attack_heavy_*` a full
+shoulders-through cross; `special_neutral` a beckoning gesture with a small
+plush bear mid-leap beside him (Tsukamoto); `special_side` setting a squat
+wind-up doll on the ground; `special_down` one hand raised, three small motes
+of green light orbiting it (the three souls); `ult_a`/`ult_b` arms spread wide
+with small doll silhouettes rising around him.
+
+Deliver to `assets/intake/yaga/<pose_key>.png`. Key: `yaga`, exactly.
+
+## 22D. Naoya's sprite set — 36 sprites
+
+The standard 36-pose set, same brief and rules as 22B.
+
+**Canonical reference (absolute):**
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_anime.png>
+(the wiki render: [Naoya Zenin (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/2/27/Naoya_Zenin_%28Anime%29.png/revision/latest?cb=20251230174702)).
+Supplementary pose/turnaround references:
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_design_anime.jpg>
+(from <https://x.com/Go_Jover/status/1981293295029633294>, image
+<https://pbs.twimg.com/media/G373wAUWwAAMcEN.jpg>) and
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_fullbody.jpg>.
+
+**What he is holding:** nothing — Hei-unit taijutsu, all low stances and open
+palms, and the **smirk in every single pose** including `hurt`; smugness is the
+costume. His speed is drawn by the engine as crisp stepped afterimages of these
+very sprites, so clean silhouettes matter more than for anyone else on the
+roster. `attack_light_*` a knife-hand, `attack_heavy_*` a driving heel;
+`special_neutral` a low sprinter's break, body already past vertical (the frame
+rush); `special_side` a single extended palm, almost gentle (the 24 FPS Rule);
+`special_down` arms folded, head tilted, utterly unimpressed (Pre-Read —
+the counter is the disrespect); `ult_a`/`ult_b` are his **cursed-spirit form
+breaking out of him**: a pale segmented worm-like mass erupting around his
+silhouette, star-shaped six-holed mask where the face should be.
+
+Deliver to `assets/intake/naoya/<pose_key>.png`. Key: `naoya`, exactly.
+
+## 22E. Round 23 technique effects — 6 sprites
+
+Effect plates for the staged kits, spec per
+[Delivery spec](asset-requests.md#delivery-spec) and pointing **LEFT** where directional
+(see [Directional effects point LEFT](asset-requests.md#directional-effects-point-left)). The
+loader already knows every path (`STAGED_EFFECT_KEYS`, `src/assets.js`) and the
+moves draw procedural stand-ins until these land.
+
+| File | Fighter | What to draw |
+|---|---|---|
+| `lightning_bolt.png` | Kashimo | A horizontal cursed-lightning bolt: a hard white core, mint-cyan `#6ef7d0` forks, drawn as one jagged discharge |
+| `nyoi_staff.png` | Kashimo | His red-and-gold staff horizontal in flight, spinning slightly, arcs of `#6ef7d0` trailing off both ends |
+| `amber_aura.png` | Kashimo | An install aura plate: a body-height envelope of forked amber-and-cyan electricity, densest at the shoulders |
+| `windup_doll.png` | Yaga | A squat cursed-corpse doll, stitched fabric over a carved body, one key turning in its back, green cursed energy leaking at the seams |
+| `doll_needle.png` | Yaga | A long sewing needle trailing green thread-light, drawn horizontal |
+| `naoya_spirit.png` | Naoya | His vengeful cursed-spirit form: a pale segmented worm/centipede body compressed into a horizontal ram, star-shaped six-holed mask at the head, air intakes flared |
+
+Deliver to `assets/intake/effects/<name>.png`.
+
+## 22F. Yaga's doll family summons — 4 sprites
+
+Persistent creatures that walk the stage on their own, format per round 8: one
+creature per file, full body, facing **RIGHT**. Design authority for all four:
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yaga_powers_anime.jpg>
+— and remember the fanbook note: he likes cute things and will not admit it.
+The dolls should be **genuinely adorable and visibly cursed**, both at once.
+
+| File | Fighter | What to draw |
+|---|---|---|
+| `tsukamoto.png` | Yaga | The boxing bear: a round plush brown bear, waist-high, oversized red boxing gloves stitched onto both paws, one button eye loose, green cursed energy at the seams |
+| `takeru.png` | Yaga | The dog puppet: a small patchwork dog, visibly hand-sewn, mid-run with ears back, stitched grin of felt teeth |
+| `cathy.png` | Yaga | The training doll: a limbless torso-and-head practice dummy hovering upright, painted target rings on the chest, needles orbiting it |
+| `comfort_doll.png` | Yaga | A comfort doll: small, soft, arms permanently open for a hug, slightly too many stitches across the chest — the hug is the detonation |
+
+Deliver to `assets/intake/summons/<name>.png` — **never** straight into
+`assets/sprites/summons/` (they must pass `tools/intake.py`).
+
+## 22G. Hero cards for the staged three — 3 images
+
+Same spec as round 9A: **JPEG, portrait, full-bleed background** — a card, not
+a keyed sprite. Character three-quarter or facing, dramatic lighting, a
+background that reads at tile size, no text of any kind. Match the delivered
+set in `assets/cards/` for crop and energy.
+
+| File | Suggested backdrop |
+|---|---|
+| `assets/intake/cards/kashimo_card.jpg` | Night storm over the Sakurajima colony, the staff planted, forked lightning frozen mid-strike behind him |
+| `assets/intake/cards/yaga_card.jpg` | His workshop at Jujutsu High: shelves of dolls in half-light behind him, green cursed energy in his raised fist |
+| `assets/intake/cards/naoya_card.jpg` | A Zen'in estate corridor at dusk, his frame-strip afterimages hanging in the air behind the smirk |
+
+## 22H. Naoya's domain background — 1 image
+
+`time_cell_moon_palace.jpg` — the backdrop for **Time Cell Moon Palace**, same
+spec as the round 9C domain backgrounds.
+
+```
+assets/intake/backgrounds/time_cell_moon_palace.jpg
+```
+
+Landscape, full-bleed, no characters, no text. A vast pale lunar palace
+interior: moonlit stone, tall cell-like chambers repeating into the distance
+with the regularity of film frames, a huge full moon dominating the sky through
+the open roof, everything faintly banded in vertical divisions — the renderer
+draws its own filmstrip sprockets and frame lines over the plate, so keep the
+mid-tones open and the banding subtle.
 
 # Round 20 — delivered
 
@@ -218,13 +404,13 @@ GENERATED from, and textures the anime pass reads at runtime. They serve
 `?render=billboard` too, which reads the same rigs. These are NOT keyed
 plates — each round states its own delivery.
 
-**0 images.** Authored in
+**12 images.** Authored in
 [render3d/docs/image-requests.md](../render3d/docs/image-requests.md) and reproduced whole below.
 
-- **DI1** — model-generation turnaround boards (the Tripo inputs) (0 images)
-- **DI2** — face sheets (the face-first gate's reference) (0 images)
-- **DI3** — shade palette swatches (0 images)
-- **DI4** — shared face textures (0 images)
+- **DI1** — model-generation turnaround boards (the Tripo inputs) (3 images)
+- **DI2** — face sheets (the face-first gate's reference) (3 images)
+- **DI3** — shade palette swatches (3 images)
+- **DI4** — shared face textures (3 images)
 - **DI5** — regeneration seeds (0 images)
 
 ## Round DI1 — model-generation turnaround boards (the Tripo inputs)
@@ -261,11 +447,15 @@ the refusal note above, and in
 [docs/image-requests.md](../docs/image-requests.md), which resolves it
 against what is on disk.
 
-### DI1: who is still owed one — 0 of 28
+### DI1: who is still owed one — 3 of 31
 
 A fighter whose rig has already been delivered is NOT listed: a turnaround board's only job is to be the thing a model is generated from, and theirs exists.
 
-**Nothing outstanding.** Every fighter has one.
+| Fighter | Key | Model at | Archetype | Canon reference | Notes |
+|---|---|---|---|---|---|
+| Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_anime.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
+| Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_anime.png` | Sunglasses never come off; dolls are summons, engine-side |
+| Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_anime.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
 
 ## Round DI2 — face sheets (the face-first gate's reference)
 
@@ -278,11 +468,15 @@ the modeller combs the normals along it (D-spec addition 3).
 
 **Deliverable: 1 sheet per fighter, same gating as DI1.**
 
-### DI2: who is still owed one — 0 of 28
+### DI2: who is still owed one — 3 of 31
 
 Listed for delivered rigs too — this is what the face-first review gate reads AGAINST, so it is wanted whether or not the model exists.
 
-**Nothing outstanding.** Every fighter has one.
+| Fighter | Key | Model at | Archetype | Canon reference | Notes |
+|---|---|---|---|---|---|
+| Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_anime.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
+| Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_anime.png` | Sunglasses never come off; dolls are summons, engine-side |
+| Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_anime.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
 
 ## Round DI3 — shade palette swatches
 
@@ -298,11 +492,15 @@ sheet is what review holds them against.
 **Deliverable: 1 swatch sheet per fighter, same gating as DI1. Format free —
 a labelled PNG grid is fine.**
 
-### DI3: who is still owed one — 0 of 28
+### DI3: who is still owed one — 3 of 31
 
 Listed for delivered rigs too: these numbers land in the rig's material extras at intake, and not one delivered rig carries a `toon` block today — all of them are running on engine defaults.
 
-**Nothing outstanding.** Every fighter has one.
+| Fighter | Key | Model at | Archetype | Canon reference | Notes |
+|---|---|---|---|---|---|
+| Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_anime.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
+| Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_anime.png` | Sunglasses never come off; dolls are summons, engine-side |
+| Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_anime.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
 
 ## Round DI4 — shared face textures *(one-time, roster-wide)*
 
@@ -322,11 +520,15 @@ per-fighter art:
 **Deliverable: 1 shared highlight texture now; mouth sheets ride whichever
 D-round their fighter ships in.**
 
-### DI4: who is still owed one — 0 of 28
+### DI4: who is still owed one — 3 of 31
 
 The shared eye-highlight texture is delivered; these are the optional per-fighter mouth sheets. Nothing ships blocked on one.
 
-**Nothing outstanding.** Every fighter has one.
+| Fighter | Key | Model at | Archetype | Canon reference | Notes |
+|---|---|---|---|---|---|
+| Hajime Kashimo | `kashimo` | 185 cm | polearm | `assets/reference/canon/kashimo_anime.png` | Nyoi staff (red shaft, gold caps); lightning is engine-side |
+| Masamichi Yaga | `yaga` | 188 cm | unarmed | `assets/reference/canon/yaga_anime.png` | Sunglasses never come off; dolls are summons, engine-side |
+| Naoya Zen'in | `naoya` | 181 cm | unarmed | `assets/reference/canon/naoya_anime.png` | Kimono-over-hakama needs cloth bones; spirit form is an effect plate, not a rig |
 
 ## Round DI5 — regeneration seeds *(delivered — read the verdict before generating)*
 
@@ -368,7 +570,7 @@ that the hair standing 29% of her stature above her head is her design, not
 generated damage. Her legs at 55% of a normal leg still stand, and so does the
 scale the Idle Review kept fighting.
 
-### DI5: who is still owed one — 0 of 28
+### DI5: who is still owed one — 0 of 31
 
 Named by MEASUREMENT, not by eye: tools/audit_model_health.py weighs the mesh bound to each limb against the roster's median and reports what cannot be true of a body. A fighter leaves this list when a replacement board lands — not when their model is regenerated, since regenerating from the same board is what produced the fault.
 
@@ -422,6 +624,9 @@ ambiguous sentence was drawn the wrong way twice.
 | `dagon` | "Dagon from Jujutsu Kaisen, a tall broad hunched humanoid cursed spirit with deep red outer limbs and a tan inner chest and belly, a black midsection, a smooth red octopus-like head with blank pale eyes and a beard of thick red tentacles hanging from the jaw, black bat-like wings folded at the lower back, four heavy clawed fingers per hand and broad two-toed feet" |
 | `kurourushi` | "Kurourushi from Jujutsu Kaisen, a tall cockroach cursed spirit draped head to floor in a smooth glossy black shroud, a maroon insect face with eight red-and-orange eyes in uneven pairs and a wide grin of human teeth behind layered jaws, six very long thin purple antennae sweeping out from the head, dark chitinous insect legs splayed out at the base of the shroud, wielding a long dark cursed sword with six firing barrels along its spine" |
 | `mahoraga` | "Mahoraga from Jujutsu Kaisen, the Divine General shikigami — a towering pale-white humanoid with grey sculpted musculature, a long segmented tail, and a fanned crest of white blade-like spines sweeping back from his head. **A brass eight-spoked karma wheel is mounted on the headdress behind his skull, with a ball at the end of each spoke** — it is part of his head and turns with it. Bandaged wrap and beads at the throat, a torn dark charcoal skirt over a pale sash, purple-grey wraps at wrists and ankles, barefoot, carrying a long pale bone-textured sword" |
+| `kashimo` | "Hajime Kashimo from Jujutsu Kaisen, tall lean young man with shaggy mint-green hair sticking out in tufts and two horn-like coiled locks rising from the top of his head, sharp green eyes with a short zig-zag lightning marking under each eye, wearing a loose all-white high-collared padded robe with puffed sleeves gathered at the elbow, white bandage wraps on both forearms, loose white trousers wrapped in white bandages from knee to ankle, pale grey ankle boots, carrying a long red staff with gold caps and a gold ball finial" |
+| `yaga` | "Masamichi Yaga from Jujutsu Kaisen, tall broad heavily built middle-aged man with tan skin, dark brown hair in a short spiked crop with shaved sides, a chinstrap beard and moustache, small dark oval sunglasses always covering his eyes, wearing a plain black zip-up high-collared jacket, black trousers and black dress shoes" |
+| `naoya` | "Naoya Zen'in from Jujutsu Kaisen, tall slim young man with short olive-blond hair with darker roots swept to one side, narrow brown eyes and a permanent smug smirk, small earrings on his left ear, wearing a white band-collar shirt under a dark teal kimono jacket, a pale grey pleated hakama tied at the waist, dark tabi socks and zōri sandals" |
 
 ---
 
@@ -433,11 +638,12 @@ is not its own says so silently, which is how seven of them stayed invisible
 until round 18G. Neither can see a pose that was never drawn — that is what
 the rounds above are for.
 
-**6 flagged, 12 drawing somebody else's art.**
+**7 flagged, 20 drawing somebody else's art.**
 
 | Fighter | Pose | Why |
 |---|---|---|
-| uro | `attack_light_a` | quality |
+| mahito | `attack_light_a` | quality |
+| uro | `attack_light_b` | quality |
 | dagon | `attack_light_a` | pose |
 | dagon | `crouch_attack_b` | pose |
 | dagon | `crouch_b` | pose |
@@ -445,11 +651,19 @@ the rounds above are for.
 | dagon | `run_reach_b` | pose |
 | hanami | `attack_light_b` | drawing `special_neutral` |
 | sukuna | `attack_light_b` | drawing `r3c0` |
+| megumi | `attack_light_a` | drawing `crouch_a_2` |
 | yuta | `attack_heavy_b` | drawing `attack_dash` |
 | yuta | `attack_light_a` | drawing `attack_air_a` |
 | yuta | `attack_light_b` | drawing `attack_air_b` |
-| uro | `attack_light_a` | drawing `attack_light_b` |
+| nobara | `attack_heavy_b` | drawing `crouch_attack_b` |
+| nobara | `attack_light_a` | drawing `crouch_b_2` |
+| nobara | `attack_light_b` | drawing `specialNeutral` |
+| nobara | `crouch_attack_b` | drawing `attack_dash` |
+| inumaki | `attack_light_a` | drawing `crouch_a_2` |
+| uro | `attack_light_a` | drawing `attack_heavy_a_3` |
 | uro | `attack_light_b` | drawing `attack_light_a` |
+| yuji | `attack_light_a` | drawing `guard` |
+| reggie | `attack_light_a` | drawing `attack_heavy_a_2` |
 | yuki | `attack_heavy_b` | drawing `ult_b` |
 | kurourushi | `attack_heavy_b` | drawing `attack_light_b` |
 | kurourushi | `attack_light_b` | drawing `attack_air_b_2` |

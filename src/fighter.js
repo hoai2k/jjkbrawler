@@ -118,7 +118,7 @@ function freshStatuses() {
   return {
     burn: null, bleed: null, poison: null, infest: null,
     snare: 0, soulMark: 0, nailMarks: 0, nailT: 0, silence: 0,
-    drench: 0, blind: 0,
+    drench: 0, blind: 0, charge: 0, framelock: 0,
   };
 }
 
@@ -136,6 +136,11 @@ function speedMul(f) {
   // Waterlogged: Dagon's soaking is a movement tax, not damage.
   if (f.statuses.drench > 0 && !unslowable) m *= 0.84;
   if (f.installs && f.installs.speedMul) m *= f.installs.speedMul;
+  // Projection Sorcery (Naoya): the choreography compounds — every held second
+  // of sprint is another planned frame, up to +24%. Tracked in machRamp below.
+  if (f.char.passive.id === "projection" && f.machRamp > 0) {
+    m *= 1 + Math.min(0.24, f.machRamp * 0.12);
+  }
   return m;
 }
 
@@ -1005,6 +1010,14 @@ export function updateFighter(f, dt, input) {
   f.armorT = Math.max(0, f.armorT - dt);
   f.grabImmune = Math.max(0, f.grabImmune - dt);
   f.airT = f.grounded ? 0 : f.airT + dt;
+  // Projection Sorcery (Naoya): sustained ground speed winds the choreography
+  // up (read by speedMul above); losing the run — or the plot — unwinds it
+  // faster than it built.
+  if (f.char.passive.id === "projection") {
+    const sprinting = f.grounded && f.hitstun <= 0 &&
+      Math.abs(f.vx) > stats(f).speed * 0.7;
+    f.machRamp = clamp((f.machRamp || 0) + (sprinting ? dt : -dt * 2.5), 0, 2);
+  }
   // Paper Trail (Reggie): the fine print always favors him — cooldowns run fast
   const cdRate = f.char.passive.id === "contractor" ? 1.18 : 1;
   for (const k of Object.keys(f.cooldowns)) f.cooldowns[k] = Math.max(0, f.cooldowns[k] - dt * cdRate);
@@ -1499,7 +1512,12 @@ export function updateFighter(f, dt, input) {
   }
 
   // ---- physics
-  if (!f.grounded) {
+  // The 24 FPS rule (Naoya): a framelocked body is held BETWEEN frames — no
+  // drift, no fall, a still. Gravity resumes on the next frame it is allowed.
+  if (f.statuses.framelock > 0) {
+    f.vx = 0;
+    f.vy = 0;
+  } else if (!f.grounded) {
     const fallCap = f.fastFalling ? MAX_FALL * FASTFALL_MULT : MAX_FALL;
     f.vy = Math.min(f.vy + GRAVITY * (state.stageMods.gravityMul || 1) * dt, fallCap);
   }

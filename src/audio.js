@@ -78,6 +78,11 @@ export const GRUNT_GROUPS = {
   // a puppet, so he takes the young-male group like the other students.
   mechamaru: "gruntYoungMale", yuki: "gruntFemale",
   dagon: "gruntMonster", kurourushi: "gruntMonster",
+  // Staged (round 23), assigned now for the same reason. Kashimo's vessel is a
+  // young man but the voice is four hundred years of settled certainty — the
+  // adult group. Yaga is the broadest chest on the faculty. Naoya is a smirk
+  // in his twenties.
+  kashimo: "gruntAdultMale", yaga: "gruntBig", naoya: "gruntYoungMale",
 };
 
 // The KO cry that matches each voice group.
