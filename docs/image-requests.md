@@ -104,9 +104,19 @@ The same two standing rules, restated so this round is self-contained:
 every reference below is an absolute URL. The character blocks to use verbatim
 are the `kirara`, `haruta`, `tengen` and `miwa` rows of the table above.
 
+**The `_a` of an attack pair is the WIND-UP, and it must not extend.** Restated
+here rather than left to the link, because the link is what has not been
+reaching: `attack_light_a`, `attack_heavy_a`, `attack_air_a` and
+`crouch_attack_a` are the coil — striking hand or weapon drawn BACK, shoulders
+turned away from the target, weight on the back foot. The `_b` is the blow. Both
+halves are checkable with a ruler and both have to pass: `_a` reaches no further
+forward than that fighter's own `idle_a`, and `_b` reaches further than `_a`.
+Round 22B–22D came back with all nine wind-ups already mid-strike, on three
+fighters at once, which is what this paragraph exists to stop.
+
 **Work idle-first — the `idle_a` is its own delivery.** Generate each
 fighter's `idle_a` alone first (plain, square-on stance per
-[pose-brief.md](../sprites/docs/pose-brief.md)); intake and approve it in the
+[pose-brief.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/docs/pose-brief.md)); intake and approve it in the
 sprite workbench; run `tools/build_canon_reference.py`; then generate the
 other 35 poses **against that approved idle**, so costume, proportions,
 palette, line weight and shading stay locked across the set. Once the idles
@@ -119,7 +129,7 @@ land on `main` they resolve at:
 
 ## 23A. Kirara's sprite set — 36 sprites
 
-The standard 36-pose semantic set ([pose-brief.md](../sprites/docs/pose-brief.md)
+The standard 36-pose semantic set ([pose-brief.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/docs/pose-brief.md)
 first, especially the reach rules).
 
 **Canonical reference (absolute):**
