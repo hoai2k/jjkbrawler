@@ -384,7 +384,13 @@ function strikeArc(ctx, x, y, facing, a, k, color, power = 1, hb = null, sweet =
   // apart at a glance rather than by reading a damage popup afterwards.
   const thick = clamp(radius * A.thickness, A.thicknessMin, A.thicknessMax)
     * (1 + (power - 1) * A.powerThickness);
-  const echoes = clamp(Math.round(A.echoes * power), A.echoesMin, A.echoesMax);
+  // Settings > Strike Arcs. "Simple" drops the echo trail and coarsens the
+  // step, which is most of the stroke count, and keeps every reading the arc
+  // carries — reach, sweetspot, launch angle. See STRIKE_ARC in
+  // config_tuning.js for why it is drawn that way round.
+  const simple = state.arcDetail === "simple";
+  const echoes = simple ? A.simpleEchoes
+    : clamp(Math.round(A.echoes * power), A.echoesMin, A.echoesMax);
   // Where the bright head has got to, in the arc's own -1..1 coordinate.
   const head = -1 + 2 * (k < 0.5 ? 2 * k * k : 1 - (1 - k) ** 2 * 2);
 
@@ -393,7 +399,7 @@ function strikeArc(ctx, x, y, facing, a, k, color, power = 1, hb = null, sweet =
   ctx.scale(facing, 1);       // arcs are authored facing +x; mirror the frame
   ctx.lineCap = "round";
 
-  const STEPS = 18;
+  const STEPS = simple ? A.simpleSteps : A.steps;
   // A dark band under the leading crescent, in normal compositing, before any
   // of the additive light goes down. Additive alone adds nothing over bright
   // ground, so on a sunlit stage the arc would fade out in exactly the frame it
