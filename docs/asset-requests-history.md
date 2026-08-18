@@ -36,6 +36,7 @@ why the numbering is not strictly chronological.
 | 20A | The forty-four summon plates that shipped as contact sheets of six creatures, redrawn as one figure each (44 sprites) | Delivered — every plate in the tree passes `check_summon_plates.py`, and the seven authored hit boxes came out with them |
 | 20C | The grab set — `grab_reach`, `grab_hold`, `grabbed` — for the `?throw=true` mechanic (81 sprites asked, 78 + Mahoraga delivered) | Delivered for 26 fighters; Yuji's three are 20E |
 | 20D | The dash attack pose, one drawing serving both running attacks (27 sprites asked, 26 + Mahoraga delivered) | Delivered for 26 fighters; Yuji's is 20E |
+| 22B–22D | The three staged fighters' 36-pose sets — Kashimo, Yaga, Naoya (108 sprites) | Delivered and imported whole; three of Yaga's frames needed a `FACING_OVERRIDE`, and three frames came back flagged as 22I |
 
 ---
 
@@ -3756,3 +3757,117 @@ Checked on delivery, per plate:
 4. no text, border, watermark or signature anywhere, ring included.
 
 ---
+
+---
+
+# Round 22B–22D — the three staged fighters' sprite sets, delivered
+
+**108 sprites: Kashimo, Yaga and Naoya, 36 poses each.** Delivered in one batch
+and imported whole. Their kits had been live in code since round 23 of
+[characters.md](characters.md) — this is the art catching up, and all three
+stay off the select screen (`STAGED_CHARACTER_KEYS`) until each is promoted
+deliberately.
+
+**The reach rule passed on delivery, for the first time.** Every previous set
+of a new fighter has come back with a heavy strike that does not extend — the
+brief's headline criterion, and the most re-requested fault on the roster.
+Measured against each fighter's own `idle_a`, this batch clears it everywhere:
+
+| Fighter | `attack_light_b` | `attack_heavy_b` | idle width | rule |
+|---|---|---|---|---|
+| Kashimo | 0.88 × height | 1.03 × height | 0.33 | ≥ idle + ⅓ height |
+| Naoya | 0.76 | 0.92 | 0.32 | passed |
+| Yaga | 0.73 | 0.77 | 0.31 | passed |
+
+**What the review boards caught, and what it cost.** Two faults, both found at
+`tools/intake_sheets.py` before anything was imported, which is exactly the
+step's job:
+
+- **Three of Yaga's frames came back mirrored.** `attack_heavy_a`,
+  `attack_light_b` and `crouch_attack_a` were all delivered facing RIGHT and
+  all three were called left *with confidence* by the facing detector, so the
+  import turned them round and put the punch behind him. They are now in
+  `FACING_OVERRIDE` (`tools/intake.py`) with the reason: a plain black suit
+  gives a right-facing detector almost nothing to read — no prop, no hair
+  sweep, no colour asymmetry — and an extended arm looks the same either way.
+  Kashimo (staff) and Naoya (hakama) needed no entries. This is the fifth
+  round to need that table and the first where one costume explains all of it.
+- **Kashimo's `special_side` is off-model** — see 22I below.
+
+**Two of Yaga's crouches are not crouches** — also 22I.
+
+The originals are archived at `assets/reference/round22/<char>/`.
+
+## 22B. Kashimo's sprite set — 36 sprites
+
+The standard 36-pose semantic set (`SEMANTIC_ANIMS`, `src/characters.js` — the
+pose list and every rule is [pose-brief.md](../sprites/docs/pose-brief.md); read
+it first, especially the reach rules for `attack_light_b` / `attack_heavy_b`).
+
+**Canonical reference (absolute):**
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kashimo_anime.png>
+(the wiki render: [Hajime Kashimo (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/0/02/Hajime_Kashimo_%28Anime%29.png/revision/latest?cb=20260205162107)).
+
+**What he is holding:** the **Nyoi staff** — long, red-shafted, gold caps and a
+gold ball finial — in every attack pose. He is a four-hundred-year-old master
+enjoying himself: relaxed shoulders, easy smile, never strained.
+`attack_light_*` and `attack_heavy_*` are staff strikes with visible reach;
+`special_neutral` levels the staff like a lightning rod, arcs crawling off the
+tip; `special_side` is the release of a full-body throw, empty hand still
+extended; `special_down` is a braced two-handed stance inside a woven
+basket-weave sphere of thin lines (Hollow Wicker Basket); `ult_a`/`ult_b` are
+Mythical Beast Amber — hair lifting, eyes alight, forked electricity wrapping
+both arms and the staff abandoned mid-air beside him.
+
+Deliver to `assets/intake/kashimo/<pose_key>.png`. Key: `kashimo`, exactly —
+not `hajime`. **Key screen: mid-grey `#808080`** — the staff is red, which a
+magenta screen eats.
+
+## 22C. Yaga's sprite set — 36 sprites
+
+The standard 36-pose set, same brief and rules as 22B.
+
+**Canonical reference (absolute):**
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yaga_anime.png>
+(the wiki render: [Masamichi Yaga (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/5/51/Masamichi_Yaga_%28Anime%29.png/revision/latest?cb=20201025153339)).
+For his cursed energy (green) and the dolls around him:
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yaga_powers_anime.jpg>.
+
+**What he is holding:** nothing — the principal fights **bare-fisted**, with
+cursed-energy-reinforced hands (green when energy shows). Sunglasses on in
+every pose, `hurt` and `dizzy` included; the face barely changes, the body does
+the talking. `attack_light_*` a straight jab, `attack_heavy_*` a full
+shoulders-through cross; `special_neutral` a beckoning gesture with a small
+plush bear mid-leap beside him (Tsukamoto); `special_side` setting a squat
+wind-up doll on the ground; `special_down` one hand raised, three small motes
+of green light orbiting it (the three souls); `ult_a`/`ult_b` arms spread wide
+with small doll silhouettes rising around him.
+
+Deliver to `assets/intake/yaga/<pose_key>.png`. Key: `yaga`, exactly.
+
+## 22D. Naoya's sprite set — 36 sprites
+
+The standard 36-pose set, same brief and rules as 22B.
+
+**Canonical reference (absolute):**
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_anime.png>
+(the wiki render: [Naoya Zenin (Anime).png](https://static.wikia.nocookie.net/jujutsu-kaisen/images/2/27/Naoya_Zenin_%28Anime%29.png/revision/latest?cb=20251230174702)).
+Supplementary pose/turnaround references:
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_design_anime.jpg>
+(from <https://x.com/Go_Jover/status/1981293295029633294>, image
+<https://pbs.twimg.com/media/G373wAUWwAAMcEN.jpg>) and
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_fullbody.jpg>.
+
+**What he is holding:** nothing — Hei-unit taijutsu, all low stances and open
+palms, and the **smirk in every single pose** including `hurt`; smugness is the
+costume. His speed is drawn by the engine as crisp stepped afterimages of these
+very sprites, so clean silhouettes matter more than for anyone else on the
+roster. `attack_light_*` a knife-hand, `attack_heavy_*` a driving heel;
+`special_neutral` a low sprinter's break, body already past vertical (the frame
+rush); `special_side` a single extended palm, almost gentle (the 24 FPS Rule);
+`special_down` arms folded, head tilted, utterly unimpressed (Pre-Read —
+the counter is the disrespect); `ult_a`/`ult_b` are his **cursed-spirit form
+breaking out of him**: a pale segmented worm-like mass erupting around his
+silhouette, star-shaped six-holed mask where the face should be.
+
+Deliver to `assets/intake/naoya/<pose_key>.png`. Key: `naoya`, exactly.

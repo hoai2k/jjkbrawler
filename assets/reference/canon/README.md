@@ -93,12 +93,12 @@ and are the canon to draw against; these renders are back to answering design
 questions like everyone else's. `mechamaru_anime.png` is the puppet — Ultimate Mechamaru, which is what the game
 draws — and `mechamaru_absolute_anime.png` is Mode: Absolute, for his ultimate.
 
-**Kashimo, Yaga and Naoya are round 23's staged three** and are in that same
-position today: no delivered art, so their **(Anime)** renders above are the
-only authority until their round-22 sets land and `<char>_idle.png` is
-generated for them. **Kirara, Haruta, Tengen and Miwa are round 24's staged
-four**, in the identical position — their renders above are the authority until
-their round-23 sets land. (The uploaded `kiara_anime.webp`, `haruta_anime.webp`,
+**Kashimo, Yaga and Naoya have idles now too.** Their 36-pose sets landed as
+round 22B–22D, so `<char>_idle.png` exists for all three and is the canon to
+draw against; the renders above are back to answering design questions like
+everyone else's. **Kirara, Haruta, Tengen and Miwa are round 24's staged
+four** and are still in the position the three were: no delivered art, so their
+renders above are the only authority until their round-23 sets land. (The uploaded `kiara_anime.webp`, `haruta_anime.webp`,
 `tengen_anime.webp` and `miwa_anime.webp` were the same subjects and are
 superseded by these fetched-and-converted PNGs; note the key is `kirara`, from
 the character's canon name Kirara Hoshi, not `kiara`.)

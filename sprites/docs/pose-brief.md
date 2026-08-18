@@ -297,8 +297,8 @@ often.
 | Fault | Where it shows | Round(s) |
 |---|---|---|
 | **The strike does not extend** | `attack_light_b`, `attack_heavy_b`, `crouch_attack_b` | 11C, 13C, 14A |
-| **The crouch is a standing fighting stance** | `crouch_a`, `crouch_b`, both `crouch_attack` frames | 12A, 13A, 13B |
-| **The costume is a different reading of the character** | any pose, usually a whole sub-batch drawn in one sitting | 10, 12A, 13 |
+| **The crouch is a standing fighting stance** | `crouch_a`, `crouch_b`, both `crouch_attack` frames | 12A, 13A, 13B, 22C |
+| **The costume is a different reading of the character** | any pose, usually a whole sub-batch drawn in one sitting | 10, 12A, 13, 22B |
 | **Hands do not close on the weapon** | `attack_*`, `run_*` | 12A |
 | **`_b` does not finish `_a`** | every pair | 12A, 13B |
 | **The reach falls off the canvas** | `crouch_attack_b`, `attack_heavy_b` | 13 |
