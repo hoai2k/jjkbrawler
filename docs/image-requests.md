@@ -65,7 +65,7 @@ delivery paths as the sets they belong to.
 
 **Six of them are one fault**, and it is the reason the brief now measures the
 wind-up: every `attack_*_a` in the round was drawn already mid-strike. The `_a`
-rule in [pose-brief.md](../sprites/docs/pose-brief.md) applies to these redraws
+rule in [pose-brief.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/docs/pose-brief.md) applies to these redraws
 too, and both halves of the pair have to pass the ruler.
 
 | File | Fighter | What is wrong, and what to draw |
@@ -130,15 +130,22 @@ The same two standing rules, restated so this round is self-contained:
 every reference below is an absolute URL. The character blocks to use verbatim
 are the `kirara`, `haruta`, `tengen` and `miwa` rows of the table above.
 
-**The `_a` of an attack pair is the WIND-UP, and it must not extend.** Restated
-here rather than left to the link, because the link is what has not been
-reaching: `attack_light_a`, `attack_heavy_a`, `attack_air_a` and
+**The `_a` of an attack pair is the WIND-UP, and the pair has to OPEN.**
+Restated here rather than left to the link, because the link is what has not
+been reaching: `attack_light_a`, `attack_heavy_a`, `attack_air_a` and
 `crouch_attack_a` are the coil — striking hand or weapon drawn BACK, shoulders
-turned away from the target, weight on the back foot. The `_b` is the blow. Both
-halves are checkable with a ruler and both have to pass: `_a` reaches no further
-forward than that fighter's own `idle_a`, and `_b` reaches further than `_a`.
-Round 22B–22D came back with all nine wind-ups already mid-strike, on three
-fighters at once, which is what this paragraph exists to stop.
+turned away from the target, weight on the back foot. The `_b` is the blow.
+
+The check is one comparison, and it is between the two frames rather than
+against anything else: **`_b` must reach further forward than its own `_a`, by
+at least 0.05 of the fighter's standing height** — the shipped roster's median
+pair opens by 0.10. Both frames are drawn at one zoom, so this needs no
+placement; `python3 tools/audit_windup.py` measures every pair in the game.
+
+Two ways round 22 broke it, and they have different fixes. Six of Yaga's and
+Naoya's wind-ups were drawn about as extended as their own strikes — those need
+redrawing. Kashimo's aerial pair was drawn correctly and delivered INVERTED,
+the two filenames the wrong way round; that one is a swap, not a redraw.
 
 **Work idle-first — the `idle_a` is its own delivery.** Generate each
 fighter's `idle_a` alone first (plain, square-on stance per

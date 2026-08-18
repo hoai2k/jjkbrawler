@@ -293,6 +293,7 @@ drops files in). **Screen every delivery before trusting it.**
 
 ```sh
 python3 tools/prep_effects.py      # trim padding + downscale; idempotent
+python3 tools/audit_windup.py      # does each attack pair wind up before it strikes
 ```
 
 Then check for the two chroma-key failure modes:
