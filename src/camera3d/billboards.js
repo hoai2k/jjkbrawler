@@ -19,7 +19,7 @@
 // half-delivered roster mixes models and sprites in one shot.
 
 import {
-  CanvasTexture, SRGBColorSpace, AdditiveBlending, NormalBlending, Group,
+  CanvasTexture, SRGBColorSpace, AdditiveBlending, NormalBlending, Group, LinearFilter,
 } from "../../vendor/three/three.module.js";
 import {
   makeQuadPool, imageTexture, rectMatrix, ORDER,
@@ -118,6 +118,10 @@ function proceduralAura(f) {
     canvas.width = w; canvas.height = h;
     entry = { canvas, tex: new CanvasTexture(canvas), w, h };
     entry.tex.colorSpace = SRGBColorSpace;
+    // Repainted and re-uploaded every frame (the ellipse pulses), so the mip
+    // chain three would rebuild each time is pure cost — see effects.js.
+    entry.tex.generateMipmaps = false;
+    entry.tex.minFilter = LinearFilter;
     auraCanvases.set(f.id, entry);
   }
   const ctx = entry.canvas.getContext("2d");

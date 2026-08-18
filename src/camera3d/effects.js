@@ -24,7 +24,7 @@
 // and y — the camera's yaw makes the projected sim rect a hair non-rectangular
 // and fitting a stretched rect to it would smear the art.
 
-import { CanvasTexture, SRGBColorSpace } from "../../vendor/three/three.module.js";
+import { CanvasTexture, SRGBColorSpace, LinearFilter } from "../../vendor/three/three.module.js";
 import { overlayTransform } from "./rig.js";
 import { WORLD } from "../constants.js";
 
@@ -68,6 +68,14 @@ export function makeEffectLayer() {
   const ctx = canvas.getContext("2d");
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
+  // NO MIPMAPS. three's default for a CanvasTexture is LinearMipmapLinearFilter
+  // with generateMipmaps on, so every one of the per-frame uploads below also
+  // built the whole mip chain for a 1280x720 texture — an 11-level reduction,
+  // 60 times a second, for a picture that is never minified: the quad covers
+  // the visible sim rect at roughly 1:1, and at DPR 2 it is magnified, so not
+  // one of those levels was ever sampled.
+  texture.generateMipmaps = false;
+  texture.minFilter = LinearFilter;
 
   return {
     texture,
