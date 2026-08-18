@@ -291,6 +291,15 @@ FACING_OVERRIDE = {
     "haruta/attack_heavy_a": "right",
     "haruta/attack_heavy_b": "right",
     "miwa/jump_rise": "right",
+    # Round 22I/22J: Kirara after all, and on the one frame where her cyan bang
+    # cannot help. `attack_down` is a low diving stomp — the head is down at the
+    # shoulder line, the hair falls across the face, and both arms are flung out
+    # sideways, so the silhouette is nearly symmetrical about a diagonal. She was
+    # delivered facing RIGHT, called left, and the mirror put the dive behind
+    # her. The lesson the other entries keep teaching, in its usual form: it is
+    # the POSE that defeats the detector, not the character, so a fighter who
+    # needed no entry for 35 frames can still need one for the 36th.
+    "kirara/attack_down": "right",
 }
 
 

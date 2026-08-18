@@ -653,6 +653,29 @@ changes what an approval means: nothing is drawing either drawing today, so the
 decision settles which one the set carries when the fighter ships. The
 **Replacement waiting** panel says so on a staged fighter.
 
+#### And promoting one owes every roster-wide round it missed
+
+A fighter staged for two rounds is a fighter deliberately left out of every
+roster-wide request made in the meantime. Kashimo, Yaga, Naoya, Kirara, Haruta,
+Tengen and Miwa reached the select screen short seven poses each — the teeter
+(22A), both walk contacts (21), the dash attack (20D) and the three grab poses
+(20C) — and nothing went red, because every one of those states falls back to
+art the fighter does have. The gap that gets noticed is the one somebody
+happens to look at.
+
+`node tools/check_pose_coverage.mjs` is the answer, and it runs in
+`npm run check`. It compares every fighter's animation states against the
+manifest and fails on a pose that is undrawn AND unasked-for — the same rule the
+request docs keep for workbench flags, that a gap with no request is work nobody
+can see. It does not fail on missing art as such: an art round IS missing art.
+Write the request and it goes green.
+
+Two kinds of entry are exempt, both deliberately: `fallback` frames, which are
+by definition somebody else's pose, and the four throw keys, which 20C
+registered without requesting because the heavy attack swung that way already
+reads as a throw. That exemption lives in the check with the reason attached,
+because a silent exemption is how the teeter happened.
+
 The sprite workbench's character dropdown ends with **All Recently Updated
 Poses**, which is those markers listed across the whole roster, newest round
 first and the poses that lost tuning at the top. It is not a character: selecting
