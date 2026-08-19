@@ -335,6 +335,7 @@ export function applySharedSpriteScales() {
 import {
   SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL,
 } from "./config_summons.js";
+import { SPAWN_SHAPES } from "./config_spawn_shapes.js";
 
 /** The install aura's nominal painted height (src/render.js, drawInstallAura). */
 export const AURA_H = 220;
@@ -427,7 +428,7 @@ const POOLS = [SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL];
 
 /** The usual answer: this drawing's spawn site reads sharedAdjust, so a dx/dy
  *  and a tilt set against it are honoured. Spread into an entry rather than
- *  assumed, so the two sites that do NOT (DRAW_SITES below) read as a decision
+ *  assumed, so a site that did NOT would read as a decision
  *  rather than as a field somebody forgot. */
 const NUDGED = { nudge: true };
 
@@ -557,208 +558,22 @@ function buildRegistry() {
   // that stands on the stage. Reading the prefix instead got Nue exactly
   // backwards.
   //
-  // `nudge` used to be the other half of what a spawn site decides: whether it
-  // reads sharedAdjust at all. Two of them did — render.js for projectiles and
-  // auras, summons.js for creatures — and the handlers painting a set piece
-  // themselves did not, so a dx/dy or a tilt set against one was stored and
-  // inert, and this table's job was to stop the workbench offering a control
-  // the game ignored.
+  // WHAT EACH MOVE TYPE DOES WITH ITS DRAWING now lives in one table, read by
+  // this registry and by the workbench's action player alike
+  // (src/config_spawn_shapes.js). It used to be three tables here — the draw
+  // site, the launch point and the melee box — plus seven more inside the
+  // player, and a move type entered in one set and not the other was invisible
+  // until somebody noticed a staff pointing the wrong way. `SPAWN_SHAPES` is
+  // the single answer; `node tools/check_spawn_shapes.mjs` fails when a type a
+  // kit uses is missing from it.
   //
-  // They all read it now. An image is never guaranteed to arrive needing no
-  // adjustment, so "this drawing cannot be moved" was never a property worth
-  // preserving — it was a gap. What the site still records is which code paints
-  // it, for the readout, and where a handler fixes its own height, that height
-  // and `sizable: false`.
-  //
-  // Every entry below was read off its handler. Where a handler paints at a
-  // height of its own rather than the kit's, that height is here too and
-  // `sizable: false` says the slider cannot move it.
-  // A handler that paints its own art rather than going through the projectile
-  // or creature renderer. That USED to mean "and therefore ignores the nudge",
-  // and `SELF` set `nudge: false` to say so — which is why the workbench took
-  // the offset and rotation controls away on all of them.
-  //
-  // It is no longer true of any of them, and had stopped being true of seven
-  // before that: the trap, the cloud field, the warp strike and the four
-  // spawnSummonFlash moves all grew a `sharedAdjust` call in specials.js while
-  // this table went on saying they had not, so the workbench hid live controls.
-  // The twelve directors in ultimates.js and the random drop have them now too.
-  //
-  // So what `SELF` records is the one thing still worth recording: WHICH code
-  // paints it, for the readout to name. Nothing turns a control off any more —
-  // a drawing the game shows is a drawing that can be adjusted, because we can
-  // never assume a delivered image needs no adjustment.
-  const SELF = (site) => ({ site });
-
-  // EVERY SHARED DRAWING IS BEHIND THE FIGHTERS, without exception, and the
-  // workbench drew all of them in front.
-  //
-  // The flat renderer's order is entities, then projectiles, then fighters
-  // (src/render.js `draw`), so every `e.draw` set piece and every shot passes
-  // under the bodies; the install aura is painted inside drawFighters between
-  // the shadow and the body, which is the same side. The two hazards that opt
-  // into `drawTop` — the hook for effects that mean to cover the fighters —
-  // are procedural fills with no art, so they are not drawings at all.
-  //
-  // It matters wherever the art overlaps the caster. Gakuganji's concert wave
-  // is centred on his chest: in the game he stands in front of it, and in the
-  // workbench it covered him.
-  // WHERE it leaves the fighter, in game pixels from their feet, forward being
-  // the way they face. Read off each handler, and where the handler defaults a
-  // kit field the default is here too — `spawnProjectile` puts a shot at
-  // `ox ?? 70` forward and `oy ?? -86` up, which is chest height on a fighter.
-  //
-  // This is what lets the workbench stand the drawing where the move actually
-  // puts it, beside the pose that throws it, instead of alone in the middle of
-  // a canvas: a beam can be lined up with the hand that fires it.
-  // `scaled` is the one thing these numbers do NOT say on their own: a shot is
-  // spawned through spawnProjectileScaled, which runs the kit's offsets through
-  // the resolved muzzle (src/muzzle.js). They are offsets on a 149px REFERENCE
-  // body, and every fighter scales them onto their own height — Choso from 66.7
-  // rather than 70, Panda from 73.7 — or ignores them outright once somebody
-  // has placed a verified muzzle for him. The flash handlers below take their
-  // forward distance raw, which is why it is a per-entry fact and not a rule.
-  const LAUNCH = {
-    projectile: (n) => ({ forward: n.ox ?? 70, y: n.oy ?? -86, scaled: true }),
-    // The wave handler overrides ox itself, one wave per 54px: `ox: 60 + i * 54`.
-    wave: (n) => ({ forward: 60, y: n.oy ?? -86, scaled: true }),
-    // A boomerang is spawnProjectile from the move's own muzzle, like any shot
-    // — the return leg is a second projectile sent back from the far point, and
-    // it leaves from a place the caster does not choose. This entry was missing
-    // for as long as the type has existed, and its absence was invisible in the
-    // usual way: the viewer stopped mirroring the drawing (so it faced one way
-    // there and the other in the player), stopped standing the fighter in the
-    // pose that throws it, and stopped offering the crosshair.
-    boomerang: (n) => ({ forward: n.ox ?? 70, y: n.oy ?? -86, scaled: true }),
-    // spawnSummonFlash: on the ground at the fighter's feet (`owner.y + 12`),
-    // `forward` px ahead of them, each handler passing its own.
-    swap: () => ({ forward: 0, y: 12 }),
-    echoStrike: () => ({ forward: 80, y: 12 }),
-    burst: (n) => ({ forward: n.spriteForward ?? 105, y: 12 }),
-    commandGrab: (n) => ({ forward: n.spriteForward ?? 78, y: 12 }),
-    // Planted on the ground ahead of them, at the move's own reach — unless it
-    // is planted at the OPPONENT's feet instead, which is a distance this
-    // canvas has no second fighter to show.
-    trap: (n) => (n.atOpponent ? null : { forward: n.dist ?? 220, y: 0 }),
-    cloudField: (n) => ({ forward: n.dist ?? 210, y: 0 }),
-    // Rika stands BEHIND Yuta — `f.x - f.facing * 58` — and the transformed
-    // body replaces the fighter where they stand.
-    install: () => ({ forward: -58, y: 18 }),
-    rampage: () => ({ forward: 0, y: 10 }),
-
-    // --- ultimate directors that paint ON THE CASTER -----------------------
-    // Read straight off their draw calls in src/ultimates.js. Without these the
-    // workbench had no point to put them on, so it fell back to floating them
-    // in the middle of the canvas with the fighter off to one side — which
-    // reads exactly like a spawn point that moves around at random, and is the
-    // question that prompted all four of these.
-    //
-    // `forwardOfWidth` is for the one whose offset is a fraction of the ART's
-    // own width rather than a fixed distance: `f.x + f.facing * w * 0.3`. It
-    // has to be resolved against the drawing, so it is named rather than
-    // guessed at.
-    // The beam director charges for 0.55s, then throws a real projectile with
-    // offsets of its OWN — `ox: 90, oy: -96` written into the handler rather
-    // than into the kit (src/ultimates.js). Through spawnProjectileScaled like
-    // any shot, so it rides the fighter's muzzle too.
-    beam: () => ({ forward: 90, y: -96, scaled: true }),
-    concert: () => ({ forward: 0, y: -110 }),
-    // The spiral is cast ahead of the caster and travels from there. Its point
-    // is the kit's now (`ox`/`oy`, src/characters.js) rather than the handler's,
-    // which is what makes it draggable at all: the same number decides where it
-    // is drawn and where it collides.
-    vortex: (n) => ({ forward: n.ox ?? 130, y: n.oy ?? -110 }),
-    shout: () => ({ forward: 0, forwardOfWidth: 0.3, y: -105 }),
-    massDrive: () => ({ forward: 150, y: -100 }),
-
-    // --- and the two that paint on the OPPONENT ----------------------------
-    // A distance this canvas has no second fighter to show, exactly as with a
-    // trap planted at the enemy's feet. Saying so beats standing the caster
-    // where the victim goes, which would be a confident lie.
-    skyInvert: () => ({ atOpponent: true, y: -140 }),
-    supernova: (n) => ({ atOpponent: true, y: 0, ringRadius: n.radius ?? 240 }),
-  };
-  // The MOVE's own hitbox, for the handlers whose art is a flash beside a melee
-  // swing. Its `w`/`h` sit on the same node as the drawing and read like the
-  // drawing's own box, and they are nothing of the kind: spawnMelee puts them on
-  // the FIGHTER, at its own offset, while the art stands somewhere else
-  // entirely. Drawing that rectangle around the picture claimed a shape the
-  // game never tests there.
-  const MELEE = {
-    burst: (n) => ({ forward: n.ox ?? 40, y: n.oy ?? -96, w: n.w ?? 160, h: n.h ?? 100 }),
-    echoStrike: (n) => ({ forward: n.ox ?? 40, y: n.oy ?? -96, w: n.w ?? 160, h: n.h ?? 100 }),
-    // This one's numbers are in the handler, not the kit: `ox: 24, oy: -104`.
-    commandGrab: (n) => ({ forward: 24, y: -104, w: n.range ?? 120, h: 110 }),
-  };
+  // The two things this file still decides for itself are how a CREATURE and a
+  // STAGE HAZARD are placed, because neither is a move.
+  const shapeOf = (type) => SPAWN_SHAPES[type] || null;
   // Which pose the fighter is in while it happens. A special plays the anim for
   // its slot (slotAnim, specials.js); an ultimate plays `ult`.
   const SLOT_ANIM = { neutral: "specialNeutral", side: "specialSide", down: "specialDown",
                       ult: "ult" };
-  const DRAW_SITES = {
-    // --- drawn by render.js / summons.js, on something that moves ---------
-    summon: { anchor: "feet", nudge: true },
-    // A projectile is drawn centred on its own position, which IS the circle it
-    // collides on, and mirrored to the way it is travelling.
-    projectile: { anchor: "centre", nudge: true, travels: true },
-    // `mirrored` is the same fact for art that does not fly: spawnSummonFlash
-    // and the two install bodies scale by `facing > 0 ? -1 : 1`, so what a
-    // player sees a right-facing fighter produce is the mirror of the plate,
-    // exactly as with a shot travelling right.
-    wave: { anchor: "centre", nudge: true, travels: true },
-    boomerang: { anchor: "centre", nudge: true, travels: true },
-    beam: { anchor: "centre", nudge: true, travels: true },
-    cannonade: { anchor: "centre", nudge: true, travels: true },
-    birdstrike: { anchor: "centre", nudge: true, travels: true },
-    deathSwarm: { anchor: "centre", nudge: true, travels: true },
-    parthenogenesis: { anchor: "feet", nudge: true },
-
-    // --- painted by their own handler, straight from getImage -------------
-    // Standing on the ground: `-h` under the point, or drawn at a ground line
-    // the handler works out for itself.
-    trap: { anchor: "feet", ...SELF("makeTrap (src/specials.js)") },
-    randomDrop: { anchor: "feet", ...SELF("randomDrop (src/specials.js)") },
-    cloudField: { anchor: "feet", ...SELF("cloudField (src/specials.js)") },
-    // A tornado stands on the floor and rises out of it — `translate(640, 595)`
-    // then `-h` — so it is a ground drawing, not one centred on a point in the
-    // air, however much a centred crosshair suggested otherwise.
-    tempest: { anchor: "feet", ...SELF("tempest (src/ultimates.js)") },
-    eruption: { anchor: "feet", ...SELF("eruption (src/ultimates.js)") },
-    cardrop: { anchor: "feet", ...SELF("cardrop (src/ultimates.js)") },
-    // Centred on the point the handler puts them on: a falling meteor, a ring
-    // of blood orbs, a shout in front of the mouth.
-    meteor: { anchor: "centre", ...SELF("meteor (src/ultimates.js)") },
-    vortex: { anchor: "centre", ...SELF("vortex (src/ultimates.js)") },
-    // These three MIRROR with the caster — `scale(f.facing > 0 ? -1 : 1)` in
-    // their own draw, the same rule a shot follows — and said they did not, so
-    // the viewer showed the plate the way it was drawn while the player and the
-    // game showed its mirror. Checked against the handlers one by one; the
-    // other nine directors paint unmirrored and are correct as they stand.
-    nailstorm: { anchor: "centre", mirrored: true, ...SELF("nailstorm (src/ultimates.js)") },
-    shout: { anchor: "centre", mirrored: true, ...SELF("shout (src/ultimates.js)") },
-    skyInvert: { anchor: "centre", ...SELF("skyInvert (src/ultimates.js)") },
-    massDrive: { anchor: "centre", mirrored: true, ...SELF("massDrive (src/ultimates.js)") },
-    supernova: { anchor: "centre", ...SELF("supernova (src/ultimates.js)") },
-    concert: { anchor: "centre", ...SELF("concert (src/ultimates.js)") },
-    warpStrike: { anchor: "centre", ...SELF("warpStrike (src/specials.js)") },
-    // A one-shot flash of art beside the fighter — Todo's clap, Yuji's
-    // divergent impact, Rika's fist, Todo's drum. spawnSummonFlash stands it on
-    // the ground at the fighter's feet and mirrors it with their facing, at the
-    // move's own `spriteH`.
-    swap: { anchor: "feet", mirrored: true, ...SELF("spawnSummonFlash (src/specials.js)") },
-    echoStrike: { anchor: "feet", mirrored: true, ...SELF("spawnSummonFlash (src/specials.js)") },
-    burst: { anchor: "feet", mirrored: true, ...SELF("spawnSummonFlash (src/specials.js)") },
-    commandGrab: { anchor: "feet", mirrored: true, ...SELF("spawnSummonFlash (src/specials.js)") },
-
-    // --- a second body for the fighter, at a height the RENDERER fixes -----
-    // Yuta's Rika stands behind him at 238px; Panda's triceratops replaces his
-    // body at 210px. Neither reads the kit's height, so the Size slider has
-    // nothing to multiply — which is why it is marked unsizable rather than
-    // left looking live.
-    install: { anchor: "feet", spriteH: 238, sizable: false, mirrored: true,
-               ...SELF("install (src/ultimates.js)") },
-    rampage: { anchor: "feet", spriteH: 210, sizable: false, mirrored: true,
-               ...SELF("the transformed-body branch of drawFighters (src/render.js)") },
-  };
   // `bodyH` is the nearest enclosing creature's own height. A summon declared
   // inline in a special — Dagon's shikigami, Mahoraga, Kurourushi's brood —
   // never passes through the pool walk above, and its size is `h` on the config
@@ -770,16 +585,16 @@ function buildRegistry() {
                  slot = null, launch = null, melee = null) => {
     if (!node || typeof node !== "object" || seen.has(node)) return;
     seen.add(node);
-    if (typeof node.type === "string" && DRAW_SITES[node.type]) {
-      site = DRAW_SITES[node.type];
+    if (typeof node.type === "string" && shapeOf(node.type)) {
+      site = shapeOf(node.type);
       drawnBy = site.anchor;
       const shown = { travels: !!site.travels, mirrored: !!site.travels || !!site.mirrored };
-      // Every spawn site reads sharedAdjust now, so the nudge is always live.
+      // Every spawn site reads sharedAdjust, so the nudge is always live.
       // `nudgeSite` survives as provenance — which code paints this, worth
       // naming in the readout — rather than as a reason to hide a control.
       nudge = { nudge: true, ...(site.site ? { nudgeSite: site.site } : {}), ...shown };
-      launch = LAUNCH[node.type] || null;
-      melee = MELEE[node.type] || null;
+      launch = site.launch || null;
+      melee = site.melee || null;
     }
     if (Number.isFinite(node.h)) bodyH = node.h;
     // A creature config, wherever it hangs. `behavior` is the field spawnSummon
