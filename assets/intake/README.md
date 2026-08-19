@@ -132,7 +132,13 @@ that way, so this is the normal case, not a mistake.
    the new frames are fitted. (`--force` still reseeds a whole character from
    the reference and throws their hand work away.)
 7. The untouched originals are moved to `assets/reference/round<N>/<char>/` so a
-   frame can be reprocessed later without regenerating it.
+   frame can be reprocessed later without regenerating it. **Then delete the
+   drained delivery directories.** A `assets/intake/<char>/` holding nothing but
+   its own README is indistinguishable at a glance from one holding art nobody
+   has run yet, so an emptied round leaves seven directories that each look like
+   pending work. Once the originals are archived, `git rm -r` the directory:
+   this file plus the gitignored `_processed/` is what "intake is clear" looks
+   like, and `tools/intake.py` recreates whatever it needs on the next drop.
 8. **Once the round's verdicts are applied, put the names back on the
    drawings.** `python3 tools/canonicalise_sprites.py` moves whatever each pose
    ended up drawing to `sprites/assets/<char>/<pose>.png`, and whatever used to

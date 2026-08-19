@@ -12,9 +12,9 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**49 images outstanding.**
+**0 images outstanding.**
 
-- **The sprite game** — 49 images, round 22
+- **The sprite game** — 0 images
 - **The live-3D anime path** — 0 images
 
 ## Rules that hold everywhere here
@@ -45,160 +45,7 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**49 images, round 22.** Authored in
-[docs/asset-requests.md](asset-requests.md) and reproduced whole below.
-
-- **22K** — The four rounds that ran without the newly promoted seven (49 sprites)
-
-## 22K. The four rounds that ran without the newly promoted seven — 49 sprites
-
-Seven fighters joined the select screen when their kits came out of
-`STAGED_CHARACTER_KEYS`, and four roster-wide rounds had already run without
-them: they were staged at the time, deliberately left out, and the rounds are
-in the history. So each of the seven is short the same seven poses, and this
-asks for all of them together rather than one round at a time.
-
-**Nothing is broken meanwhile, which is exactly why it went unnoticed.** Every
-one of these states falls back to art the fighter does have — the teeter to
-their idle with the procedural lean `src/motion.js` supplies, the walk to the
-run, the dash attack to the light strike, the grab set to a light attack, the
-`charge` and `hurt` frames. It reads correctly enough that nobody notices, and
-`node tools/check_pose_coverage.mjs` now says so out loud instead: it compares
-every fighter's states against what has been drawn and fails on a gap no round
-has asked for. That check is what turned a missing teeter into this list.
-
-| Pose | Round it belongs to | What it must read as |
-|---|---|---|
-| `teeter` | [22A](asset-requests-history.md#22a-balanced-on-the-lip-the-teeter--27-sprites) | Balanced on the lip: weight shifted BACK from the drop, arms out, front foot at or just over the edge, head turned down toward the fall. Caught, not alarmed — the moment after realising the ground ran out |
-| `walk_a`, `walk_b` | [21](asset-requests-history.md#round-21--the-walk-cycle) | The two contacts of an unhurried walk, one per leading leg — a stroll, not a slowed run |
-| `attack_dash` | [20D](asset-requests-history.md#20d-the-dash-attack-pose--27-sprites) | The blow that ends a run, one pose: the run was the wind-up, so there is no coil to draw |
-| `grab_reach` | [20C](asset-requests-history.md#20c-the-grab-poses--81-sprites) | A committed forward lunge with one open, grasping hand leading — reaching to seize, not to strike. The other arm guards |
-| `grab_hold` | 20C | Gripping an unseen opponent at arm's length by the collar — front hand closed in a fist at **chest height on the leading edge of the body**, weight planted, coiled to heave. The opponent is NOT in the drawing |
-| `grabbed` | 20C | Seized and struggling: body arched back from the collar, feet scrabbling, both hands prying at an unseen grip at their own chest, at that same chest height |
-
-**The grip point is the one hard constraint**, carried over from 20C: the fist
-in `grab_hold` and the prying hands in `grabbed` both sit at chest height on
-the leading edge, because the game overlaps the two drawings at a fixed gap
-(`holdGap` in `src/grab.js`). A fist drawn high on one fighter and low on
-another makes every pairing look like they are holding different arguments.
-
-**Facing.** Drawn facing RIGHT like every other pose. The teeter is drawn with
-the drop on the right; the engine mirrors it for the left-hand lip and leans it
-the correct way either side (`teeterLean` in `src/config_tuning.js`), so one
-drawing serves both edges.
-
-Seven poses each, for seven fighters — 49 sprites. Each fighter's own `idle_a`
-is the canon for costume, proportions, palette and figure scale:
-
-| Fighter | Sprites | Idle to draw against |
-|---|---|---|
-| Kashimo | `kashimo/teeter.png`, `kashimo/walk_a.png`, `kashimo/walk_b.png`, `kashimo/attack_dash.png`, `kashimo/grab_reach.png`, `kashimo/grab_hold.png`, `kashimo/grabbed.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kashimo/idle_a.png> |
-| Yaga | `yaga/teeter.png`, `yaga/walk_a.png`, `yaga/walk_b.png`, `yaga/attack_dash.png`, `yaga/grab_reach.png`, `yaga/grab_hold.png`, `yaga/grabbed.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yaga/idle_a.png> |
-| Naoya | `naoya/teeter.png`, `naoya/walk_a.png`, `naoya/walk_b.png`, `naoya/attack_dash.png`, `naoya/grab_reach.png`, `naoya/grab_hold.png`, `naoya/grabbed.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/idle_a.png> |
-| Kirara | `kirara/teeter.png`, `kirara/walk_a.png`, `kirara/walk_b.png`, `kirara/attack_dash.png`, `kirara/grab_reach.png`, `kirara/grab_hold.png`, `kirara/grabbed.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kirara/idle_a.png> |
-| Haruta | `haruta/teeter.png`, `haruta/walk_a.png`, `haruta/walk_b.png`, `haruta/attack_dash.png`, `haruta/grab_reach.png`, `haruta/grab_hold.png`, `haruta/grabbed.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/haruta/idle_a.png> |
-| Tengen | `tengen/teeter.png`, `tengen/walk_a.png`, `tengen/walk_b.png`, `tengen/attack_dash.png`, `tengen/grab_reach.png`, `tengen/grab_hold.png`, `tengen/grabbed.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/tengen/idle_a.png> |
-| Miwa | `miwa/teeter.png`, `miwa/walk_a.png`, `miwa/walk_b.png`, `miwa/attack_dash.png`, `miwa/grab_reach.png`, `miwa/grab_hold.png`, `miwa/grabbed.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/miwa/idle_a.png> |
-
-**Tengen is white and grey.** The panes on his delivered set arrived carrying
-the magenta screen they were shot against and have been neutralised in place
-(`tools/depurple_panes.py`), so draw the robe and any barrier as white glass —
-nothing on him is violet.
-
-**The four throw poses are NOT in this list**, for the reason 20C gave when it
-registered them: `throw_fwd`, `throw_back`, `throw_up` and `throw_down` each
-play the heavy attack swung that way, a throw IS a heave in that direction, and
-nobody on the roster has bespoke art for them. They are recorded as deliberately
-unowed in `tools/check_pose_coverage.mjs` so the coverage check does not ask
-for 136 sprites nobody wants.
-
-# Round 23 — open
-
-**Round 24's four staged fighters — Kirara Hoshi, Haruta Shigemo, Master
-Tengen and Kasumi Miwa.** A separate round from 22 on purpose: 22's sets are
-already being generated, and a delivery needs to say which batch it answers.
-Everything about round 22B–22H's shape holds here unchanged — the kits are
-live in code (`STAGED_CHARACTER_KEYS`), both workbenches list the four as
-*(not on the roster yet)*, nothing blocks on this art, and the design
-rationale is the round-24 section of [characters.md](characters.md).
-
-The same two standing rules, restated so this round is self-contained:
-
-**Absolute URLs.** This batch is expected to be generated outside the repo, so
-every reference below is an absolute URL. The character blocks to use verbatim
-are the `kirara`, `haruta`, `tengen` and `miwa` rows of the table above.
-
-**The `_a` of an attack pair is the WIND-UP, and the pair has to OPEN.**
-Restated here rather than left to the link, because the link is what has not
-been reaching: `attack_light_a`, `attack_heavy_a`, `attack_air_a` and
-`crouch_attack_a` are the coil — striking hand or weapon drawn BACK, shoulders
-turned away from the target, weight on the back foot. The `_b` is the blow.
-
-The check is one comparison, and it is between the two frames rather than
-against anything else: **`_b` must reach further forward than its own `_a`, by
-at least 0.05 of the fighter's standing height** — the shipped roster's median
-pair opens by 0.10. Both frames are drawn at one zoom, so this needs no
-placement; `python3 tools/audit_windup.py` measures every pair in the game.
-
-Two ways round 22 broke it, and they have different fixes. Six of Yaga's and
-Naoya's wind-ups were drawn about as extended as their own strikes — those need
-redrawing. Kashimo's aerial pair was drawn correctly and delivered INVERTED,
-the two filenames the wrong way round; that one is a swap, not a redraw.
-
-**Work idle-first — the `idle_a` is its own delivery.** Generate each
-fighter's `idle_a` alone first (plain, square-on stance per
-[pose-brief.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/docs/pose-brief.md)); intake and approve it in the
-sprite workbench; run `tools/build_canon_reference.py`; then generate the
-other 35 poses **against that approved idle**, so costume, proportions,
-palette, line weight and shading stay locked across the set. Once the idles
-land on `main` they resolve at:
-
-- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kirara_idle.png>
-- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/haruta_idle.png>
-- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/tengen_idle.png>
-- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/miwa_idle.png>
-
-# Round 20 — delivered
-
-**All four requests are in.** The last of them was Yuji's own four poses, which
-landed as [20E](asset-requests-history.md#20e-yujis-four-round-20-poses--4-sprites) and are in the game:
-his grab now reads as a grab and his dash attack as a lunge, like everybody
-else's. Nothing in round 20 is outstanding.
-
-- **~~44 of the 114 summon plates hold six creatures instead of one~~** —
-  delivered. All forty-four came back as one figure each,
-  `tools/check_summon_plates.py` passes on the whole tree of 114, and the seven
-  authored hit boxes that were standing in for an unmeasurable plate came out
-  with them.
-- **~~Twenty backgrounds, re-extended from the paintings 18E replaced~~** —
-  delivered, all twenty at 3200×1800, and in the game. Each one carries its
-  source painting's composition rather than a fresh take on the brief, which is
-  the whole thing 18E got wrong and the only thing this round was asking for.
-  See [the history entry](asset-requests-history.md#20b-twenty-backgrounds-re-extended--delivered).
-- **~~The grab poses~~** and **~~the dash attack pose~~** — delivered, 26
-  fighters of 27 each, plus Mahoraga. Both are in the game: every one is a new
-  pose key, so nothing was replaced and nothing waited for an approval. A grab
-  now reads as a grab and a dash attack as a lunge, on everybody except Yuji.
-- **~~Yuji's four~~** — [20E](asset-requests-history.md#20e-yujis-four-round-20-poses--4-sprites),
-  delivered. 20C and 20D each asked for 27, one per fighter, and each arrived
-  as 27 files with Mahoraga in Yuji's place; this was the correction, and it
-  came back as the four missing drawings. Imported, anchored, and seeded a
-  pose read each — the seeder had to learn that the REFERENCE character can
-  gain frames too, since it was skipping him wholesale and he was then the one
-  fighter with unread art.
-
-Round 18 is closed and everything in it landed.
-
-**Round 18 was delivered complete** — 28 sprites and 14 near-field cards, every
-section of it, plus the five render3d image inputs (DI1–DI4). Its record, and
-the reasoning behind each request in it, is now in
-[the history](asset-requests-history.md#round-18--delivered).
-
-**Round 20 is the open round.** (19 is skipped as a request number: it was used
-for the *intake* of round 18, so `assets/reference/round19/` holds the delivered
-plates and no request ever carried that number. Reusing it would make "round 19"
-mean two different things.) Anything found from here — a placement pass, an
-approval rejection, a manifest audit — lands in 20 beside 20B.
+**Nothing outstanding.** No open round in [asset-requests.md](asset-requests.md).
 
 ---
 
@@ -431,10 +278,11 @@ is not its own says so silently, which is how seven of them stayed invisible
 until round 18G. Neither can see a pose that was never drawn — that is what
 the rounds above are for.
 
-**0 flagged, 20 drawing somebody else's art.**
+**1 flagged, 25 drawing somebody else's art.**
 
 | Fighter | Pose | Why |
 |---|---|---|
+| haruta | `special_down` | pose |
 | hanami | `attack_light_b` | drawing `special_neutral` |
 | sukuna | `attack_light_b` | drawing `r3c0` |
 | megumi | `attack_light_a` | drawing `crouch_a_2` |
@@ -449,12 +297,17 @@ the rounds above are for.
 | uro | `attack_light_a` | drawing `attack_heavy_a_3` |
 | yuji | `attack_light_a` | drawing `guard` |
 | reggie | `attack_light_a` | drawing `attack_heavy_a_2` |
+| dagon | `attack_light_a` | drawing `attack_light_a-2` |
+| dagon | `crouch_attack_b` | drawing `crouch_attack_b-2` |
+| dagon | `crouch_b` | drawing `crouch_b-2` |
+| dagon | `run_reach_a` | drawing `run_reach_a-2` |
 | yuki | `attack_heavy_b` | drawing `ult_b` |
 | kurourushi | `attack_heavy_b` | drawing `attack_light_b` |
 | kurourushi | `attack_light_b` | drawing `attack_air_b_2` |
 | kurourushi | `crouch_attack_b` | drawing `dash_2` |
 | kurourushi | `dash` | drawing `dodge_roll_2` |
 | kashimo | `attack_air_a` | drawing `attack_air_b` |
+| haruta | `special_down` | drawing `attack_air_a` |
 
 Separately, **2 improvement requests** — the art works and is just
 not as good as it should be. Nothing is blocked by one, and the standing
