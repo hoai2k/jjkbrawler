@@ -237,6 +237,16 @@ is the attack a run throws.
 | `grabbed` | seized and struggling: body arched back from the collar, feet scrabbling, both hands prying at an unseen grip at their own chest |
 | `attack_dash` | sprinting forward and striking at the same moment, body low and driving, weight thrown ahead of the leading foot, back leg extended behind, striking arm or weapon fully extended forward along the direction of the run, trailing arm swept back, at the instant of impact |
 
+**What each guide line in the workbench means, because two of the three are not
+places to move the drawing to.** `grab_reach` shows the far edge of the box the
+game tests (`updateGrabReach`: the fighter's own reach x0.85 plus a closing
+grace) — that IS a distance the art should meet, so the grasping hand belongs
+ON it; a hand falling well short means the fighter seizes people they visibly
+are not touching. The two holding poses show the OTHER body, standing where
+`holdGap` pins it, and a grip line halfway between the two — and neither pose
+moves to either. The body stays on its own ground contact, because the game
+puts it there; what lines up is the HANDS.
+
 **The grip point is the constraint that spans fighters.** `grab_hold`'s closed
 fist and `grabbed`'s prying hands must both sit at **chest height on the leading
 edge of the body**, because the game draws the two side by side at a fixed gap

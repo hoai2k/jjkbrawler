@@ -423,6 +423,9 @@ in `grab_hold` and the prying hands in `grabbed` both sit at chest height on
 the leading edge, because the game overlaps the two drawings at a fixed gap
 (`holdGap` in `src/grab.js`). A fist drawn high on one fighter and low on
 another makes every pairing look like they are holding different arguments.
+**The sprite workbench draws that grip line** on both poses now — halfway
+between the two body centres, where the fist and the prying hands meet — so it
+can be checked on the drawing rather than agreed in words.
 
 **Facing.** Drawn facing RIGHT like every other pose. The teeter is drawn with
 the drop on the right; the engine mirrors it for the left-hand lip and leans it
