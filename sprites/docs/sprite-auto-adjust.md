@@ -1,5 +1,14 @@
 # Can the placement pass be automated?
 
+> **Re-measured, over twice the data.** This document's numbers are the 1,605
+> corrections that existed when the rules were written. The manifest now holds
+> 3,170, and three of the answers below have moved — the foot line is one
+> fraction *per state* rather than one for the roster, the size rule has
+> switched itself off over six fighters' idle frames, and the horizontal centre
+> has a better source sitting beside it. See
+> [sprite-import-defaults.md](sprite-import-defaults.md); the reasoning here is
+> the reasoning it builds on.
+
 Every intake round lands art at numbers the pipeline derives, and then somebody
 opens the workbench and moves them. That pass is the most expensive thing about
 a delivery, so the question is whether any of it is mechanical.
