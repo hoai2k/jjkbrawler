@@ -52,7 +52,8 @@ import {
 } from "./bench_state.js";
 import {
   VIEWS, primaryState, frameLabel, actorOf, sharedOwner, sharedUsage, movesDrawing,
-  effectsOf, statesUsing, allFramesOf, isPending, approvalNote, framesOf, updateNote,
+  effectsOf, statesUsing, allFramesOf, isPending, approvalNote, awaitingApproval, isUsed,
+  framesOf, updateNote,
   TODO_MARK, NO_TODO_PAD, charTodo, updatesCleared, isUpdateReviewed, recentUpdates,
   flaggedPoses, allFlagBearingPoses, updateSummary, autoTuneSummary, poseVariants,
   variantEntry, takeBanked, poseView, variantPicks, variantFlagEdits, currentOption,
@@ -2149,8 +2150,13 @@ function buildPoseList() {
   // The dimmed ones are counted separately and named for what they are waiting
   // on, so the number that matters — how many of these are actually yours to
   // place — can be read off the line rather than counted off the grid.
+  // Counted before the grid is built so the line can name what is in it. The
+  // approval count leads for the same reason charTodo leads with it: it is the
+  // only one of these where the game is drawing something nobody has agreed to.
+  const awaiting = frames.filter((k) => awaitingApproval(state.char, k)).length;
   $("poseCount").textContent = `${frames.length} shown`
     + (hidden > 0 ? ` · ${hidden} hidden` : "")
+    + (awaiting > 0 ? ` · ${awaiting} awaiting approval` : "")
     + (flagged > 0 ? ` · ${frames.length - flagged} to place · ${flagged} awaiting redraw` : "");
   if (!frames.length) {
     const empty = document.createElement("p");
@@ -2197,13 +2203,25 @@ function buildPoseEntry(charKey, key, { owner = false, sub: subOverride = null }
   b.title = (owner ? `${charKey}/${key}` : key)
     + (states.length ? ` — ${states.map(stateLabel).join(", ")}` : " — not drawn by any state")
     + (requested ? " — ⚠ new art is on order for this pose; placing it now is"
-                 + " optional, the replacement is measured from scratch" : "");
+                 + " optional, the replacement is measured from scratch" : "")
+    + (awaitingApproval(charKey, key)
+        ? " — a replacement has landed and is NOT in the game: stand the two"
+          + " side by side and approve or reject it" : "");
   const selected = charKey === state.char && key === state.frame;
+  // THE TWO THINGS THE CHARACTER DOT COUNTS, said per pose. The dropdown marks
+  // a fighter with work left and names the reason in its tooltip, but the grid
+  // said nothing about WHICH poses, so the dot pointed at a set of 47 cells.
+  // `charTodo` orders them the same way: art the game is not drawing yet
+  // because nobody has picked, then poses nobody has placed.
+  const awaiting = awaitingApproval(charKey, key);
+  const unplaced = isUsed(charKey, key) && !hasSavedEdits(charKey, key);
   b.className = (selected ? "sel " : "")
     + (isDirty(charKey, key) || variantFlagEdits.has(`${charKey}/${key}`) ? "dirty " : "")
     + (needsReplacement(charKey, key) || doomed ? "flagged " : "")
     + (wantsImprovement(charKey, key) ? "wanted " : "")
     + (requested ? "warned " : "")
+    + (awaiting ? "awaiting " : "")
+    + (unplaced ? "unplaced " : "")
     + (isUpdateReviewed(charKey, key) ? "reviewed" : "");
   const kind = doomed ? "delete" : replacementKind(rawMeta(charKey, key));
   if (kind) b.dataset.kind = kind;
@@ -2223,6 +2241,18 @@ function buildPoseEntry(charKey, key, { owner = false, sub: subOverride = null }
     // text would rename every pose it lands on.
     warn.setAttribute("aria-label", "new art on order");
     b.appendChild(warn);
+  }
+  // The confirm step, marked where the work is chosen. Top LEFT, because the
+  // top right already carries the redraw caution and a pose can be in both
+  // states at once — new art has landed AND a further redraw is on order. Same
+  // reason the glyph is drawn by CSS: a mark that joined the cell's text would
+  // rename the pose for every arrow walk and every smoke test that finds it by
+  // name.
+  if (awaiting) {
+    const badge = document.createElement("i");
+    badge.className = "pose-awaiting";
+    badge.setAttribute("aria-label", "replacement awaiting approval");
+    b.appendChild(badge);
   }
 
   if (!host) return b;

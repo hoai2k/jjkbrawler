@@ -424,6 +424,44 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   color: #ff5a6e;
   pointer-events: none;    /* the cell behind it still selects the pose */
 }
+/* A REPLACEMENT HAS LANDED AND IS NOT IN THE GAME. The character dropdown has
+   always counted these first --- it is the only state where what players see is
+   something nobody has agreed to --- but the grid said nothing about which pose,
+   so the dot pointed at the whole set. Top LEFT: the top right carries the
+   redraw caution and a pose can be in both states at once, new art landed AND a
+   further redraw on order. */
+.pose-list button .pose-awaiting::before { content: "\21c4"; }
+.pose-list button .pose-awaiting {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 1;
+  color: var(--warn);
+  pointer-events: none;    /* the cell behind it still selects the pose */
+}
+.pose-list button.awaiting {
+  border-color: var(--warn);
+  box-shadow: inset 0 0 0 1px rgba(255, 185, 95, 0.35);
+  /* Room for the mark, the same way .warned makes room on the right --- an
+     absolute badge over the label would sit on the first letter of the pose
+     name, and the name is how a cell is found. */
+  padding-left: 16px;
+}
+
+/* Nobody has placed this one. The OTHER thing the character dot counts, and
+   deliberately the quietest mark on a cell: the default view already filters to
+   exactly these, where marking every cell would be noise. It earns its keep in
+   "Used in game" and "All sprites", which are the views where a placed pose and
+   an unplaced one are otherwise identical. A bar rather than a glyph for the
+   same reason --- it has to survive being on two thirds of the grid.
+
+   A hue of its own: cyan is the selection, amber is approval, pink is a redraw
+   request. Violet is not any of those, so the bar reads as one more fact about
+   the cell rather than as a weaker version of a state it already has. */
+.pose-list button.unplaced { border-left: 2px solid rgba(168, 148, 255, 0.7); }
+
 /* A pose already requested for redraw is dimmed: the replacement is measured
    from scratch when it lands, so placing this drawing now is work that gets
    thrown away. What is left bright is what is worth doing today.
