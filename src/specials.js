@@ -9,7 +9,7 @@ import { state } from "./state.js";
 // silently does nothing for exactly the art that needs it most: a wall, a
 // pillar, a ward — pieces that stand ON the floor, where being a few pixels
 // off the ground line is the whole difference between planted and hovering.
-import { sharedAdjust } from "./shared_sprites.js";
+import { sharedAdjust, paintedHeight } from "./shared_sprites.js";
 import { spawnOffset } from "./muzzle.js";
 import { clamp, sign, rand, chance } from "./utils.js";
 // The scaled spawns: kit blocks author oy/h for the reference body, and these
@@ -764,7 +764,7 @@ const HANDLERS = {
         ctx.save();
         ctx.globalAlpha = 0.35 + prog * 0.45;
         if (img) {
-          const h = (p.spriteH || 150) * (0.6 + prog * 0.5);
+          const h = paintedHeight(p.sprite, p.spriteH || 150) * (0.6 + prog * 0.5);
           const w = img.width * h / img.height;
           const adj = sharedAdjust(p.sprite);
           // The standing tilt, about the point it is painted on. Every other
@@ -817,7 +817,7 @@ const HANDLERS = {
         const img = p.sprite ? getImage(p.sprite) : null;
         ctx.save();
         if (img) {
-          const h = p.spriteH || p.h;
+          const h = paintedHeight(p.sprite, p.spriteH || p.h);
           const w = img.width * h / img.height;
           const adj = sharedAdjust(p.sprite);
           ctx.globalAlpha = 0.6 * fade;
@@ -852,6 +852,11 @@ const HANDLERS = {
     const drop = p.drops[Math.floor(Math.random() * p.drops.length)];
     const groundY = groundYAt();
     const fallT = p.armTime || 0.55;
+    // A DROP USES ITS HEIGHT TWICE: it is painted at `h` and it lands in a box
+    // `h` tall, which is why resizing the picture in the workbench moves the
+    // box with it (`followsSize` in the shared registry). One resolved number,
+    // used for both, so the two cannot drift apart.
+    const dropH = paintedHeight(drop.key, drop.h);
     state.entities.push({
       owner: f, t: 0, dead: false, landed: false,
       update(dt) {
@@ -859,11 +864,11 @@ const HANDLERS = {
         if (this.t >= fallT && !this.landed) {
           this.landed = true;
           dust(tx, groundY, 14);
-          burst(tx, groundY - drop.h * 0.4, p.color, 20, 1.1);
+          burst(tx, groundY - dropH * 0.4, p.color, 20, 1.1);
           playSfx("blast", 0.85, drop.dud ? 1.5 : 0.8);
           state.camera.shake = Math.max(state.camera.shake, drop.dud ? 2 : 7);
-          popup(tx, groundY - drop.h - 30, drop.name.toUpperCase(), p.color, 16);
-          const rect = { x: tx - drop.w / 2, y: groundY - drop.h, w: drop.w, h: drop.h };
+          popup(tx, groundY - dropH - 30, drop.name.toUpperCase(), p.color, 16);
+          const rect = { x: tx - drop.w / 2, y: groundY - dropH, w: drop.w, h: dropH };
           debugShape(rect);
           for (const t of state.fighters) {
             if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
@@ -895,7 +900,7 @@ const HANDLERS = {
         }
         if (img) {
           const adj = sharedAdjust(drop.key);
-          const w = img.width * drop.h / img.height;
+          const w = img.width * dropH / img.height;
           // The drop stands on the point it lands on, so the tilt turns about
           // its feet rather than sliding a falling vending machine sideways.
           if (adj.rot) {
@@ -903,11 +908,11 @@ const HANDLERS = {
             ctx.rotate(adj.rot);
             ctx.translate(-tx, -y);
           }
-          ctx.drawImage(img, tx - w / 2 + adj.dx, y - drop.h + adj.dy, w, drop.h);
+          ctx.drawImage(img, tx - w / 2 + adj.dx, y - dropH + adj.dy, w, dropH);
         } else {
           ctx.fillStyle = p.color;
           ctx.globalAlpha *= 0.8;
-          ctx.fillRect(tx - drop.w / 2, y - drop.h, drop.w, drop.h);
+          ctx.fillRect(tx - drop.w / 2, y - dropH, drop.w, dropH);
         }
         ctx.restore();
       },
@@ -1074,6 +1079,10 @@ const HANDLERS = {
 };
 
 function spawnSummonFlash(owner, spriteKey, duration, height, forward) {
+  // The authored height times the workbench's size, resolved once here rather
+  // than at each of the four call sites — one place to be right, and the flash
+  // handlers stay about timing and placement.
+  const painted = paintedHeight(spriteKey, height);
   state.entities.push({
     owner, t: 0, dead: false,
     update(dt) {
@@ -1083,7 +1092,7 @@ function spawnSummonFlash(owner, spriteKey, duration, height, forward) {
     draw(ctx) {
       const img = getImage(spriteKey);
       if (!img) return;
-      const h = height;
+      const h = painted;
       const w = img.width * h / img.height;
       const adj = sharedAdjust(spriteKey);
       const alpha = Math.sin(Math.min(1, this.t / duration) * Math.PI) * 0.9;
@@ -1174,7 +1183,7 @@ function makeTrap(owner, x, groundY, p, name) {
         const fade = 1 - (this.t - this.armTime) / (this.lifetime - this.armTime);
         const sprite = p.sprite ? getImage(p.sprite) : null;
         if (sprite) {
-          const h = p.spriteH || this.h;
+          const h = paintedHeight(p.sprite, p.spriteH || this.h);
           const w = sprite.width * h / sprite.height;
           const adj = sharedAdjust(p.sprite);
           ctx.globalAlpha = Math.min(1, fade * 1.35);

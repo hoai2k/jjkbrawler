@@ -32,7 +32,7 @@ import { drawCharFrame, currentFrame } from "../src/sprites.js";
 import { loadFrame, getImage, loadSharedImage } from "../../src/assets.js";
 import { bodyMetrics } from "../../src/silhouette.js";
 import { spawnOffset, REFERENCE_MUZZLE } from "../../src/muzzle.js";
-import { meteorAt, METEOR_FALL, sharedAdjust, sharedAttack,
+import { meteorAt, METEOR_FALL, sharedAdjust, sharedAttack, paintedHeight,
          AURA_H, AURA_PULSE, AURA_FOOT_DY } from "../../src/shared_sprites.js";
 import { SUMMON_ANIMS, SUMMON_POSES } from "../../src/config_summons.js";
 import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
@@ -56,35 +56,16 @@ const KIT_KEYS = [...CHARACTER_KEYS,
                   ...STAGED_CHARACTER_KEYS.filter((k) => CHARACTERS[k])];
 
 /**
- * A kit node with its AUTHORED heights, before the workbench's size was folded
- * into them.
+ * KIT HEIGHTS ARE AUTHORED HEIGHTS, and this used to have to say so.
  *
- * `applySharedSpriteScales` (src/shared_sprites.js) multiplies a drawing's
- * renderScale into the height its kit declares — `spriteH` becomes 104 where
- * the kit said 260 and the workbench says 0.4 — and keeps the original as
- * `spriteHBase`. Every spawn site in the game therefore reads a height with the
- * size ALREADY IN IT and never touches `adj.scale` again.
- *
- * This canvas was reading the folded number and multiplying by the scale a
- * second time, so a drawing sized to 0.4 was previewed at 0.16 of its plate
- * while the game drew it at 0.4 — the numbers you set here and the picture the
- * match shows disagreed, silently, on every drawing anybody had resized.
- *
- * Unfolding here rather than dropping the multiply keeps the slider LIVE: the
- * playback re-reads the adjustment every frame, and `use.p` is a snapshot taken
- * when the preview opened, so a folded height would freeze at whatever the size
- * was when you pressed Play.
+ * A drawing's size was once folded into every kit's `spriteH` at boot, so a
+ * spawn site read a height with the workbench's scale already in it — and this
+ * canvas read the same field and multiplied by the scale a second time, which
+ * previewed anything anybody had resized at scale-squared. There is no fold any
+ * more: `paintedHeight` (src/shared_sprites.js) does the one multiply where the
+ * drawing is painted, here as in the game, so what a kit says is what its
+ * author wrote.
  */
-const HEIGHT_FIELDS = ["spriteH", "h", "orbSpriteH"];
-function authored(node) {
-  if (!node || typeof node !== "object") return node;
-  const out = { ...node };
-  for (const field of HEIGHT_FIELDS) {
-    const base = node[`${field}Base`];
-    if (Number.isFinite(base)) out[field] = base;
-  }
-  return out;
-}
 
 /** Which playback a move type gets — the shape table's answer, so the player
  *  and the registry cannot disagree about what a type is. */
@@ -164,7 +145,7 @@ const BACKDROPS = new Set([
  */
 /** An install's aura, or a rampage's body: art painted ON the fighter. */
 function wornUse(charKey, slot, spec, spriteKey) {
-  const p = authored(spec?.p);
+  const p = spec?.p;
   if (!p) return null;
   const kind = p.aura === spriteKey ? "aura"
     : (playOf(spec.type) === "director" ? null
@@ -263,7 +244,7 @@ export function firingUse(spriteKey, preferChar) {
     const drop = playOf(ult?.type) === "ultDrop" ? ULT_DROP[ult.type] : null;
     if (drop && ult?.p?.sprite === spriteKey) {
       return {
-        charKey, slot: "ult", spec: ult, p: drop(authored(ult.p)), state: "ult", mode: "drop",
+        charKey, slot: "ult", spec: ult, p: drop(ult.p), state: "ult", mode: "drop",
         name: ult.name || spriteKey,
         muzzleScale: bodyMetrics(charKey).height / HEIGHT_BASE_PX,
       };
@@ -280,11 +261,11 @@ export function firingUse(spriteKey, preferChar) {
         name: ult.name || spriteKey,
         // `kitLaunch` rides along from the shape table: a director whose cast
         // point the KIT owns can be dragged here, and most cannot.
-        p: { ...authored(ult.p), ...director(authored(ult.p)),
+        p: { ...ult.p, ...director(ult.p),
              kitLaunch: !!spawnShape(ult.type)?.kitLaunch },
       };
     }
-    const shots = playOf(ult?.type) === "ultShot" ? ULT_SHOT[ult.type](authored(ult.p)) : [];
+    const shots = playOf(ult?.type) === "ultShot" ? ULT_SHOT[ult.type](ult.p) : [];
     const shot = shots.find((x) => x.sprite === spriteKey);
     if (shot) {
       const p = shot.p;
@@ -297,7 +278,7 @@ export function firingUse(spriteKey, preferChar) {
       };
     }
     for (const [slot, spec] of Object.entries(c?.specials || {})) {
-      const p = authored(spec?.p);
+      const p = spec?.p;
       // `sprite` names the one drawing a move throws; `spritePool` names four
       // it picks between, one per shot — Geto's volley throws a random cursed
       // spirit. Both are thrown by the same handler from the same muzzle, so
@@ -311,7 +292,7 @@ export function firingUse(spriteKey, preferChar) {
         // `authored` again on the entry itself: a drop declares its own `h`
         // per object (`{ key, w, h }`) and the fold lands on that, not on the
         // move above it.
-        const d = authored((p?.drops || []).find((x) => x.key === spriteKey))
+        const d = (p?.drops || []).find((x) => x.key === spriteKey)
           ?? (p?.sprite === spriteKey ? { key: spriteKey, name: p.label, h: p.spriteH, w: p.r * 2 } : null);
         if (d) {
           return {
@@ -642,7 +623,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // needle's marker walk Yaga's doll across the stage while the needle
     // stayed put.
     const adj = use.shotSprite ? sharedAdjust(use.body || use.spriteKey) : liveAdj;
-    const h = (c.h ?? 110) * (adj.scale || 1);
+    const h = paintedHeight(use.body || use.spriteKey, c.h ?? 110);
 
     // The ring the game tightens under an arriving summon.
     if (s.appear < 1) {
@@ -716,9 +697,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       // it over one that HAS been delivered was hiding the very thing this
       // preview is open to check. The live adjustment rides along when the
       // shot is the drawing under review.
-      // The creature's own shot, at the height its kit AUTHORED — the fold is
-      // in `spriteH` here as much as anywhere else.
-      const p = authored(c.attack?.projectile) || {};
+      const p = c.attack?.projectile || {};
       const flight = s.shot * (c.attack?.cd ?? 1.0);
       const x = s.x + (p.speed || 560) * flight;
       const y = s.y + flight * 90;
@@ -728,7 +707,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       ctx.save();
       ctx.globalAlpha = 0.9;
       if (img) {
-        const h = (p.spriteH || 46) * (shotAdj.scale || 1);
+        const h = paintedHeight(p.sprite, p.spriteH || 46);
         const w = img.width * h / img.height;
         ctx.translate(x + (shotAdj.dx || 0), y + (shotAdj.dy || 0));
         if (shotAdj.rot) ctx.rotate(shotAdj.rot);
@@ -841,7 +820,10 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
           ? AURA_PULSE.base + AURA_PULSE.amp * Math.sin(age * AURA_PULSE.rate) : 1)
       : (use.mode === "flash" || use.mode === "planted") ? use.p.height
       : null;
-    const h = (own ?? (use.p.spriteH || use.p.r * 3)) * (adj.scale || 1) * persp;
+    // The same function the game paints through, so the number under the
+    // slider and the number on stage are one calculation rather than two that
+    // agree by inspection.
+    const h = paintedHeight(use.spriteKey, own ?? (use.p.spriteH || use.p.r * 3)) * persp;
     const w = sprite.width * h / sprite.height;
     ctx.save();
     // The same ramp drawProjectiles applies (sharedFadeIn), read live so the

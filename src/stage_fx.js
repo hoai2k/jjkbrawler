@@ -16,7 +16,7 @@
 import { state } from "./state.js";
 import { getStage, mainPlatform } from "./stages.js";
 import { getImage } from "./assets.js";
-import { sharedAdjust } from "./shared_sprites.js";
+import { sharedAdjust, paintedHeight } from "./shared_sprites.js";
 import { playSfx } from "./audio.js";
 import { burst, dust, popup, banner, ring, sparkLine } from "./particles.js";
 import { hitboxRect, shieldBreak } from "./combat.js";
@@ -56,6 +56,9 @@ const fxImage = (name) => getImage(`stagefx:${name}`);
 // reaches these only by being read here; `dx`/`dy` move the picture and never
 // the hazard, whose position is what it hits you with.
 const fxAdjust = (name) => sharedAdjust(`stagefx:${name}`);
+/** A hazard's painted height: its own number times the workbench's size, the
+ *  one multiply every shared drawing goes through (paintedHeight). */
+const fxHeight = (name, base) => paintedHeight(`stagefx:${name}`, base);
 
 // A hazard landing on a fighter. Deliberately simpler than combat.applyHit:
 // no attacker exists, so there is no meter economy, staling or passives —
@@ -397,7 +400,7 @@ const STAGE_FX = {
             for (let i = 0; i < count; i++) {
               const fx = z.x + (i + 0.5) * (z.w / count);
               const fa = fxAdjust("stage_fang");
-              const h = (34 + (i % 3) * 14) * rise * fa.scale;
+              const h = fxHeight("stage_fang", 34 + (i % 3) * 14) * rise;
               if (img) {
                 const w = img.width * (h * 2) / img.height;
                 ctx.save();
@@ -476,7 +479,7 @@ const STAGE_FX = {
         ctx.save();
         if (img && grow >= 1) {
           const fa = fxAdjust("stage_flower");
-          const h = 46 * fa.scale;
+          const h = fxHeight("stage_flower", 46);
           const w = img.width * h / img.height;
           ctx.translate(bloom.x, y);
           if (fa.rot) ctx.rotate(fa.rot);
@@ -575,7 +578,7 @@ const STAGE_FX = {
           }
           if (img) {
             const fa = fxAdjust("stage_lantern");
-            const h = 44 * fa.scale;
+            const h = fxHeight("stage_lantern", 44);
             const w = img.width * h / img.height;
             // About the cord it hangs from, which is the top of the drawing:
             // a lantern swings from its knot, not about its middle.
@@ -976,7 +979,7 @@ const STAGE_FX = {
             ctx.globalAlpha = 1;
             if (img) {
               const fa = fxAdjust("stage_fang");
-              const h = 72 * fa.scale;
+              const h = fxHeight("stage_fang", 72);
               const w = img.width * h / img.height;
               ctx.translate(fang.x, fang.y);
               ctx.rotate(Math.PI); // art points up; this one dives
@@ -1145,7 +1148,7 @@ const STAGE_FX = {
         ctx.save();
         if (img) {
           const fa = fxAdjust("stage_weak_curse");
-          const h = 60 * fa.scale;
+          const h = fxHeight("stage_weak_curse", 60);
           const w = img.width * h / img.height;
           ctx.translate(bx, by);
           ctx.scale(blob.vx > 0 ? -1 : 1, 1);

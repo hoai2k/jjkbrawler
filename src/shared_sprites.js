@@ -272,49 +272,35 @@ export function sharedScale(key) {
   return scaleOf(key) ?? 1;
 }
 
-/** Fold each shared sprite's scale into the `spriteH` of every kit entry that
- *  draws it, once, after the manifest has loaded.
+/**
+ * HOW TALL A SHARED DRAWING IS PAINTED — the one answer, for every caller.
  *
- *  The declared heights are the only size the spawn sites read, so multiplying
- *  them here reaches every one — including the effects drawn by code that has
- *  no idea the workbench exists. Idempotent: the baseline is remembered per
- *  node, so re-running after an edit re-derives rather than compounding.
+ * A drawing's size is two numbers multiplied: the height its kit (or its
+ * handler, or the aura constant, or a stage hazard) declares, and the
+ * `renderScale` somebody set on the picture in the workbench. There is nothing
+ * subtle about the arithmetic; what went wrong for a year is WHO DOES IT.
+ *
+ * It used to be folded — `applySharedSpriteScales` multiplied the scale into
+ * every kit's `spriteH` once at boot and kept the authored number beside it as
+ * `spriteHBase`, so a spawn site read a height with the size already in it and
+ * must not multiply again, while the registry un-folded to `spriteHBase` and
+ * multiplied itself, and the aura and the stage hazards (whose heights are not
+ * kit numbers at all) multiplied at the draw. Three conventions, and the only
+ * way to know which one a given line was written under was to know the whole
+ * history: the action player read the folded height AND multiplied, so every
+ * drawing anybody had resized was previewed at scale-squared.
+ *
+ * So there is no fold. A kit's height is the authored height, always, and
+ * everything that paints a shared drawing asks this:
+ *
+ *     const h = paintedHeight("effect:batto_flash", p.spriteH || 280);
+ *
+ * One multiply, at the moment of painting, visible in the line that draws.
+ * `node tools/check_shared_heights.mjs` fails on a draw site that multiplies
+ * by a scale itself.
  */
-export function applySharedSpriteScales() {
-  const seen = new Set();
-  const visit = (node) => {
-    if (!node || typeof node !== "object" || seen.has(node)) return;
-    seen.add(node);
-    for (const [field, heightFields] of SPRITE_FIELDS) {
-      if (!isSharedKey(node[field])) continue;
-      const heightField = heightFields.find((h) => Number.isFinite(node[h]));
-      if (!heightField) continue;
-      // Remembered on first visit, so an edit in the workbench scales the
-      // authored height rather than the one the last edit left behind.
-      const base = `${heightField}Base`;
-      if (!Number.isFinite(node[base])) node[base] = node[heightField];
-      const scale = scaleOf(node[field]);
-      node[heightField] = scale ? node[base] * scale : node[base];
-    }
-    // A list of drawings under one declared height (SPRITE_LIST_FIELDS): the
-    // first member with a scale set decides it, because there is a single
-    // number to fold it into.
-    for (const [field, heightField] of SPRITE_LIST_FIELDS) {
-      if (!Array.isArray(node[field]) || !Number.isFinite(node[heightField])) continue;
-      const base = `${heightField}Base`;
-      if (!Number.isFinite(node[base])) node[base] = node[heightField];
-      const scale = node[field].filter(isSharedKey).map(scaleOf).find((s) => s !== null);
-      node[heightField] = scale ? node[base] * scale : node[base];
-    }
-    for (const value of Object.values(node)) {
-      if (value && typeof value === "object") visit(value);
-    }
-  };
-  for (const key of CHARACTER_KEYS) {
-    const char = CHARACTERS[key];
-    visit(char?.specials);
-    visit(char?.ultimate);
-  }
+export function paintedHeight(key, base) {
+  return (Number.isFinite(base) ? base : 0) * (scaleOf(key) ?? 1);
 }
 
 // ---------------------------------------------------------------- the registry
@@ -457,10 +443,9 @@ function hitOfNode(node) {
              what: "the radius it collides on, half the move's width" };
   }
   if (Number.isFinite(node.w) && Number.isFinite(node.h)) {
-    // `hBase` is the authored height, before applySharedSpriteScales folded a
-    // workbench size into it — the same number the drawing is measured from,
-    // so the two cannot disagree about what "1×" means.
-    return { shape: "rect", w: node.w, h: node.hBase ?? node.h, from: "w/h",
+    // The AUTHORED height, which is now the only kind there is: the box is a
+    // kit fact and does not move when somebody resizes the picture.
+    return { shape: "rect", w: node.w, h: node.h, from: "w/h",
              what: "the box it lands in" };
   }
   return null;
@@ -630,8 +615,8 @@ function buildRegistry() {
       : hitOfNode(node);
     for (const [field, heightFields, ownHit] of SPRITE_FIELDS) {
       if (field === "aura" || !isSharedKey(node[field])) continue;
-      const hf = heightFields.find((h) => Number.isFinite(node[`${h}Base`]) || Number.isFinite(node[h]));
-      const h = hf ? (node[`${hf}Base`] ?? node[hf]) : null;
+      const hf = heightFields.find((h) => Number.isFinite(node[h]));
+      const h = hf ? node[hf] : null;
       // A drop declares one `h` and uses it twice — the height it is painted at
       // and the height of the box it lands in (randomDrop, specials.js) — so a
       // size set here moves the box with the art. That is the opposite of every
@@ -670,7 +655,7 @@ function buildRegistry() {
     }
     for (const [field, heightField] of SPRITE_LIST_FIELDS) {
       if (!Array.isArray(node[field]) || poolLists.has(node[field])) continue;
-      let h = node[`${heightField}Base`] ?? node[heightField] ?? null;
+      let h = node[heightField] ?? null;
       let what = h ? "the height its move declares (the kit's own number)"
                    : "sized by the code that spawns it";
       // `sprites` is a creature's still list and nothing else, so a summon that

@@ -50,7 +50,7 @@ import { isFoe } from "./teams.js";
 import { burst, dust, ring, popup, emit } from "./particles.js";
 import { playSfx } from "./audio.js";
 import { getImage } from "./assets.js";
-import { sharedAdjust, sharedAttack } from "./shared_sprites.js";
+import { sharedAdjust, sharedAttack, paintedHeight } from "./shared_sprites.js";
 import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { SUMMON_ANIMS } from "./config_summons.js";
 import { MOTION } from "./config_tuning.js";
@@ -1147,8 +1147,9 @@ export function spawnSummon(owner, cfg) {
       // read was added: the number was stored, shown, and inert. The nudge
       // moves the drawing only — the creature's hitbox and its footing on the
       // stage are `hitW`/`hitH` and this.y, and they do not move.
-      const adj = sharedAdjust(poseKeyOf(cfg.sprites) || cfg.sprites?.[0]);
-      const h = (cfg.h ?? 110) * adj.scale;
+      const artKey = poseKeyOf(cfg.sprites) || cfg.sprites?.[0];
+      const adj = sharedAdjust(artKey);
+      const h = paintedHeight(artKey, cfg.h ?? 110);
       if (img) {
         const w = img.width * h / img.height;
         if (adj.rot) ctx.rotate(adj.rot);

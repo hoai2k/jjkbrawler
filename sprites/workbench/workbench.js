@@ -20,7 +20,7 @@ import {
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../../src/render.js";
 import {
-  applySharedSpriteScales, sharedSpriteInfo, SPRITE_LIST_KEY_FIELDS, sharedHit,
+  sharedSpriteInfo, SPRITE_LIST_KEY_FIELDS, sharedHit, paintedHeight,
 } from "../../src/shared_sprites.js";
 import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../../src/moves.js";
 import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
@@ -2817,7 +2817,11 @@ function sharedView(key = state.frame) {
   // has no height in game pixels to work in, so its own plate stands in for
   // one. The scale still moves it, which keeps the control honest about being
   // relative rather than absolute.
-  const artH = (Number.isFinite(gameH) ? gameH : img.height) * scale;
+  // `paintedHeight` rather than a multiply of its own: the viewer, the action
+  // player and the game all ask the same function how tall a drawing is, so
+  // there is one answer and no way for two of the three to agree while the
+  // third quietly does something else.
+  const artH = Number.isFinite(gameH) ? paintedHeight(key, gameH) : img.height * scale;
   const hit = can?.info?.hit || null;
   // A drop's box IS the height the art is painted at (`h` serves both in
   // randomDrop), so it grows with Size; every other shape is a fixed kit
@@ -5163,8 +5167,10 @@ function applyScale(relative, commit) {
   // A shared sprite has no head-height reference to pin — nothing is solved
   // from it — and its scale multiplies the height its kit declares.
   if (isOther(state.char)) {
+    // Nothing to re-fold: a shared drawing's size is applied where it is
+    // painted (paintedHeight, src/shared_sprites.js), so writing the number
+    // here IS the edit, in the game's arithmetic as well as this canvas's.
     rawMeta(state.char, state.frame).renderScale = Math.max(0.02, (orig.renderScale ?? 1) * relative);
-    applySharedSpriteScales();
     refreshControls(); buildPoseList(); render();
     return;
   }

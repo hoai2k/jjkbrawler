@@ -28,7 +28,7 @@ import { getImage } from "./assets.js";
 // reached the screen. The size DID reach it — that is folded into `spriteH`
 // before a kit is read (applySharedSpriteScales) — which is what made the gap
 // so easy to miss.
-import { sharedAdjust, meteorAt } from "./shared_sprites.js";
+import { sharedAdjust, meteorAt, paintedHeight } from "./shared_sprites.js";
 import { isFoe } from "./teams.js";
 
 // The two halves of an ultimate's opening. They fire on the same frame for the
@@ -270,7 +270,7 @@ const DIRECTORS = {
               // The nudge is a correction to the DRAWING, so it shrinks with
               // the drawing: a dx measured against the rock at arrival would
               // otherwise throw the distant speck clean off its own path.
-              const h = (p.spriteH || 310) * fall.scale;
+              const h = paintedHeight(p.sprite, p.spriteH || 310) * fall.scale;
               const w = img.width * h / img.height;
               ctx.save();
               ctx.translate(fall.x, fall.y);
@@ -371,7 +371,7 @@ const DIRECTORS = {
         const img = p.sprite ? getImage(p.sprite) : null;
         if (img) {
           const adj = sharedAdjust(p.sprite);
-          const h = p.spriteH || 250;
+          const h = paintedHeight(p.sprite, p.spriteH || 250);
           const w = img.width * h / img.height;
           ctx.save();
           ctx.translate(this.x, this.y);
@@ -444,7 +444,7 @@ const DIRECTORS = {
         const img = p.sprite ? getImage(p.sprite) : null;
         if (img) {
           const adj = sharedAdjust(p.sprite);
-          const h = p.spriteH || 650;
+          const h = paintedHeight(p.sprite, p.spriteH || 650);
           const w = img.width * h / img.height;
           const sway = Math.sin(this.t * 2.6) * 34;
           ctx.save();
@@ -507,7 +507,7 @@ const DIRECTORS = {
           const img = getImage(p.sprite);
           if (!img) return;
           const adj = sharedAdjust(p.sprite);
-          const h = 238;
+          const h = paintedHeight(p.sprite, 238);
           const w = img.width * h / img.height;
           ctx.save();
           ctx.translate(f.x - f.facing * 58, f.y + 18);
@@ -717,7 +717,7 @@ const DIRECTORS = {
         const img = p.sprite ? getImage(p.sprite) : null;
         if (!img || this.t > 1.75) return;
         const adj = sharedAdjust(p.sprite);
-        const h = p.spriteH || 290;
+        const h = paintedHeight(p.sprite, p.spriteH || 290);
         const w = img.width * h / img.height;
         const travel = Math.min(1, this.t / 1.45);
         const x = f.facing > 0 ? -w / 2 + travel * (1280 + w) : 1280 + w / 2 - travel * (1280 + w);
@@ -763,7 +763,7 @@ const DIRECTORS = {
           const img = p.sprite ? getImage(p.sprite) : null;
           if (img) {
             const adj = sharedAdjust(p.sprite);
-            const h = (p.spriteH || 330) * (0.65 + (this.t - 0.45) * 1.2);
+            const h = paintedHeight(p.sprite, p.spriteH || 330) * (0.65 + (this.t - 0.45) * 1.2);
             const w = img.width * h / img.height;
             ctx.save();
             ctx.translate(f.x + f.facing * w * 0.3, f.y - 105);
@@ -916,7 +916,7 @@ const DIRECTORS = {
           const ox = cx + Math.cos(a) * rr;
           const oy = cy + Math.sin(a) * rr * 0.6;
           if (img) {
-            const h = (p.spriteH || 88) * 0.7;
+            const h = paintedHeight(p.sprite, p.spriteH || 88) * 0.7;
             const w = img.width * h / img.height;
             ctx.globalAlpha = 0.5 + windup * 0.5;
             // Saved PER ORB: eight of them are drawn in this loop off one outer
@@ -1049,7 +1049,7 @@ const DIRECTORS = {
         ctx.save();
         if (img) {
           const adj = sharedAdjust(p.sprite);
-          const h = (p.spriteH || 260) * (0.7 + Math.min(1, this.t) * 0.5);
+          const h = paintedHeight(p.sprite, p.spriteH || 260) * (0.7 + Math.min(1, this.t) * 0.5);
           const w = img.width * h / img.height;
           ctx.translate(t2.x, t2.y - 140);
           ctx.rotate(Math.sin(this.t * 3) * 0.15);
@@ -1165,7 +1165,7 @@ const DIRECTORS = {
         const groundY = state.platforms[0]?.y ?? 568;
         const img = p.sprite ? getImage(p.sprite) : null;
         const adj = sharedAdjust(p.sprite);
-        const carH = p.spriteH || 170;
+        const carH = paintedHeight(p.sprite, p.spriteH || 170);
         const carW = img ? img.width * carH / img.height : 300;
         const face = this.dir || f.facing;
         ctx.save();
@@ -1275,7 +1275,7 @@ const DIRECTORS = {
         if (img) {
           const pulse = 0.8 + 0.25 * Math.sin(this.t * 9);
           const adj = sharedAdjust(p.sprite);
-          const h = (p.spriteH || 300) * pulse;
+          const h = paintedHeight(p.sprite, p.spriteH || 300) * pulse;
           const w = img.width * h / img.height;
           ctx.save();
           ctx.globalAlpha = 0.6;
@@ -1427,7 +1427,7 @@ const DIRECTORS = {
           if (!img) return;
           const fade = Math.max(0, 1 - (this.t - charge) / 0.5);
           const adj = sharedAdjust(p.sprite);
-          const h = (p.spriteH || 280) * (1 + (1 - fade) * 0.5);
+          const h = paintedHeight(p.sprite, p.spriteH || 280) * (1 + (1 - fade) * 0.5);
           const w = img.width * h / img.height;
           ctx.save();
           ctx.globalAlpha = fade;

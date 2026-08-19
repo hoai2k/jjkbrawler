@@ -27,7 +27,7 @@ import {
 } from "./quads.js";
 import { frameMeta, frameImage, getImage } from "../assets.js";
 import { paintProceduralAura, AURA_ELLIPSE } from "../render.js";
-import { sharedAdjust, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "../shared_sprites.js";
+import { sharedAdjust, paintedHeight, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "../shared_sprites.js";
 import { makeEffectLayer } from "./effects.js";
 // The SPRITE pose resolver, deliberately not the render-backend dispatcher.
 //
@@ -298,7 +298,7 @@ export function makeBillboards() {
     const pulse = AURA_PULSE.base + AURA_PULSE.amp * Math.sin(gameState.matchTime * AURA_PULSE.rate);
     if (art) {
       const adj = sharedAdjust(f.installs.aura);
-      const h = AURA_H * pulse * adj.scale;
+      const h = paintedHeight(f.installs.aura, AURA_H) * pulse;
       const w = art.width * h / art.height;
       const m = matIdentity();
       matTranslate(m, f.x, f.y + AURA_FOOT_DY);
