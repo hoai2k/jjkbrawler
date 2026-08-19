@@ -1736,7 +1736,7 @@
     "h": 1448,
     "ox": -324.9,
     "oy": -1137,
-    "bodyBottom": 256.2,
+    "bodyBottom": 295.2,
     "bodyH": 276.7,
     "centroidX": 206.4,
     "renderScale": 0.1911,
@@ -1752,8 +1752,8 @@
       550.7
      ],
      "teeter": [
-      837.1,
-      1443.5
+      636.5,
+      1432.9
      ]
     },
     "autoTuned": {
@@ -1765,7 +1765,13 @@
     },
     "edited": {
      "renderScale": 0.281,
-     "bodyBottom": 243.2
+     "bodyBottom": 243.2,
+     "anchors": {
+      "teeter": [
+       837.1,
+       1443.5
+      ]
+     }
     }
    }
   },
@@ -4924,7 +4930,7 @@
     "h": 1810,
     "ox": -252.9,
     "oy": -1499,
-    "bodyBottom": 164.2,
+    "bodyBottom": 270.7,
     "bodyH": 330.5,
     "centroidX": 163.9,
     "renderScale": 0.1825,
@@ -4940,8 +4946,8 @@
       695.1
      ],
      "teeter": [
-      650.5,
-      1804.3
+      596.9,
+      1776.8
      ]
     },
     "autoTuned": {
@@ -4952,7 +4958,14 @@
      }
     },
     "edited": {
-     "renderScale": 0.231
+     "renderScale": 0.231,
+     "bodyBottom": 164.2,
+     "anchors": {
+      "teeter": [
+       650.5,
+       1804.3
+      ]
+     }
     }
    }
   },
@@ -6447,7 +6460,7 @@
     "h": 1344,
     "ox": -289.5,
     "oy": -1033,
-    "bodyBottom": 285.5,
+    "bodyBottom": 312.5,
     "bodyH": 304.7,
     "centroidX": 182.5,
     "renderScale": 0.2269,
@@ -6463,8 +6476,8 @@
       566.1
      ],
      "teeter": [
-      827.4,
-      1339.8
+      624.5,
+      1325.7
      ]
     },
     "autoTuned": {
@@ -6476,7 +6489,13 @@
     },
     "edited": {
      "renderScale": 0.313,
-     "bodyBottom": 258.0
+     "bodyBottom": 258.0,
+     "anchors": {
+      "teeter": [
+       827.4,
+       1339.8
+      ]
+     }
     }
    }
   },
@@ -7932,7 +7951,7 @@
     "h": 1372,
     "ox": -306.7,
     "oy": -1061,
-    "bodyBottom": 250.8,
+    "bodyBottom": 297.8,
     "bodyH": 332.3,
     "centroidX": 170.2,
     "renderScale": 0.2424,
@@ -7948,8 +7967,8 @@
       564.4
      ],
      "teeter": [
-      776.0,
-      1367.7
+      551.3,
+      1352.9
      ]
     },
     "autoTuned": {
@@ -7960,7 +7979,14 @@
      }
     },
     "edited": {
-     "renderScale": 0.332
+     "renderScale": 0.332,
+     "bodyBottom": 250.8,
+     "anchors": {
+      "teeter": [
+       776.0,
+       1367.7
+      ]
+     }
     }
    }
   },
@@ -9719,7 +9745,7 @@
     "h": 1624,
     "ox": -281.2,
     "oy": -1313,
-    "bodyBottom": 223.7,
+    "bodyBottom": 294.2,
     "bodyH": 316.2,
     "centroidX": 172.7,
     "renderScale": 0.1944,
@@ -9735,8 +9761,8 @@
       599.1
      ],
      "teeter": [
-      705.4,
-      1618.9
+      562.0,
+      1612.0
      ]
     },
     "autoTuned": {
@@ -9747,7 +9773,14 @@
      }
     },
     "edited": {
-     "renderScale": 0.216
+     "renderScale": 0.216,
+     "bodyBottom": 223.7,
+     "anchors": {
+      "teeter": [
+       705.4,
+       1618.9
+      ]
+     }
     }
    }
   },
@@ -11228,8 +11261,8 @@
       518.0
      ],
      "teeter": [
-      896.3,
-      1422.5
+      599.7,
+      1288.1
      ]
     },
     "autoTuned": {
@@ -11241,7 +11274,13 @@
     },
     "edited": {
      "renderScale": 0.219,
-     "bodyBottom": 228.6
+     "bodyBottom": 228.6,
+     "anchors": {
+      "teeter": [
+       896.3,
+       1422.5
+      ]
+     }
     }
    }
   },
@@ -12741,7 +12780,7 @@
     "h": 1306,
     "ox": -300.2,
     "oy": -995,
-    "bodyBottom": 231.3,
+    "bodyBottom": 301.8,
     "bodyH": 320.2,
     "centroidX": 143.2,
     "renderScale": 0.2451,
@@ -12757,8 +12796,8 @@
       525.9
      ],
      "teeter": [
-      934.6,
-      1301.9
+      325.8,
+      1304.6
      ]
     },
     "autoTuned": {
@@ -12769,7 +12808,14 @@
      }
     },
     "edited": {
-     "renderScale": 0.215
+     "renderScale": 0.215,
+     "bodyBottom": 231.3,
+     "anchors": {
+      "teeter": [
+       934.6,
+       1301.9
+      ]
+     }
     }
    }
   },
@@ -14290,7 +14336,7 @@
     "h": 1281,
     "ox": -341.3,
     "oy": -970,
-    "bodyBottom": 246.1,
+    "bodyBottom": 269.1,
     "bodyH": 290.4,
     "centroidX": 199.8,
     "renderScale": 0.2264,
@@ -14306,8 +14352,8 @@
       481.6
      ],
      "teeter": [
-      908.7,
-      1277.0
+      587.2,
+      1248.4
      ]
     },
     "autoTuned": {
@@ -14318,7 +14364,14 @@
      }
     },
     "edited": {
-     "renderScale": 0.222
+     "renderScale": 0.222,
+     "bodyBottom": 246.1,
+     "anchors": {
+      "teeter": [
+       908.7,
+       1277.0
+      ]
+     }
     }
    }
   },
@@ -15774,7 +15827,7 @@
     "h": 1348,
     "ox": -257.9,
     "oy": -1037,
-    "bodyBottom": 216.3,
+    "bodyBottom": 296.8,
     "bodyH": 318.7,
     "centroidX": 159.4,
     "renderScale": 0.2367,
@@ -15790,8 +15843,8 @@
       468.6
      ],
      "teeter": [
-      821.4,
-      1343.8
+      340.2,
+      1335.0
      ]
     },
     "autoTuned": {
@@ -15802,7 +15855,14 @@
      }
     },
     "edited": {
-     "renderScale": 0.322
+     "renderScale": 0.322,
+     "bodyBottom": 216.3,
+     "anchors": {
+      "teeter": [
+       821.4,
+       1343.8
+      ]
+     }
     }
    }
   },
@@ -17543,8 +17603,8 @@
       515.9
      ],
      "teeter": [
-      876.1,
-      1288.0
+      287.6,
+      1226.8
      ]
     },
     "autoTuned": {
@@ -17555,7 +17615,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.182
+     "renderScale": 0.182,
+     "anchors": {
+      "teeter": [
+       876.1,
+       1288.0
+      ]
+     }
     }
    }
   },
@@ -19369,7 +19435,7 @@
     "h": 1259,
     "ox": -379.9,
     "oy": -948,
-    "bodyBottom": 241.1,
+    "bodyBottom": 288.6,
     "bodyH": 296.6,
     "centroidX": 201.4,
     "renderScale": 0.2356,
@@ -19385,8 +19451,8 @@
       500.7
      ],
      "teeter": [
-      979.7,
-      1255.1
+      551.8,
+      1252.3
      ]
     },
     "autoTuned": {
@@ -19397,7 +19463,14 @@
      }
     },
     "edited": {
-     "renderScale": 0.198
+     "renderScale": 0.198,
+     "bodyBottom": 241.1,
+     "anchors": {
+      "teeter": [
+       979.7,
+       1255.1
+      ]
+     }
     }
    }
   },
@@ -20902,7 +20975,7 @@
     "h": 1308,
     "ox": -320.5,
     "oy": -997,
-    "bodyBottom": 235.9,
+    "bodyBottom": 298.9,
     "bodyH": 306.0,
     "centroidX": 168.0,
     "renderScale": 0.2338,
@@ -20918,8 +20991,8 @@
       544.9
      ],
      "teeter": [
-      903.3,
-      1303.9
+      508.5,
+      1300.9
      ]
     },
     "autoTuned": {
@@ -20930,7 +21003,14 @@
      }
     },
     "edited": {
-     "renderScale": 0.349
+     "renderScale": 0.349,
+     "bodyBottom": 235.9,
+     "anchors": {
+      "teeter": [
+       903.3,
+       1303.9
+      ]
+     }
     }
    }
   },
@@ -22440,7 +22520,7 @@
     "h": 1411,
     "ox": -217.8,
     "oy": -1100,
-    "bodyBottom": 229.0,
+    "bodyBottom": 290,
     "bodyH": 262.2,
     "centroidX": 107.8,
     "renderScale": 0.1855,
@@ -22456,8 +22536,8 @@
       568.3
      ],
      "teeter": [
-      842.2,
-      1406.6
+      389.7,
+      1395.4
      ]
     },
     "autoTuned": {
@@ -22468,7 +22548,14 @@
      }
     },
     "edited": {
-     "renderScale": 0.181
+     "renderScale": 0.181,
+     "bodyBottom": 229.0,
+     "anchors": {
+      "teeter": [
+       842.2,
+       1406.6
+      ]
+     }
     }
    }
   },
@@ -23936,8 +24023,8 @@
       464.1
      ],
      "teeter": [
-      855.5,
-      1202.2
+      443.6,
+      1146.5
      ]
     },
     "autoTuned": {
@@ -23948,7 +24035,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.299
+     "renderScale": 0.299,
+     "anchors": {
+      "teeter": [
+       855.5,
+       1202.2
+      ]
+     }
     }
    }
   },
@@ -25367,8 +25460,8 @@
       576.3
      ],
      "teeter": [
-      850.7,
-      1391.6
+      356.7,
+      1321.5
      ]
     },
     "autoTuned": {
@@ -25379,7 +25472,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.325
+     "renderScale": 0.325,
+     "anchors": {
+      "teeter": [
+       850.7,
+       1391.6
+      ]
+     }
     }
    }
   },
@@ -26879,8 +26978,8 @@
       550.8
      ],
      "teeter": [
-      877.2,
-      1351.8
+      461.9,
+      1294.8
      ]
     },
     "autoTuned": {
@@ -26891,7 +26990,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.313
+     "renderScale": 0.313,
+     "anchors": {
+      "teeter": [
+       877.2,
+       1351.8
+      ]
+     }
     }
    }
   },
@@ -28212,7 +28317,7 @@
     "h": 1442,
     "ox": -258.2,
     "oy": -1131,
-    "bodyBottom": 284,
+    "bodyBottom": 298,
     "bodyH": 301.6,
     "centroidX": 134.7,
     "renderScale": 0.2087,
@@ -28228,8 +28333,8 @@
       580.4
      ],
      "teeter": [
-      869.7,
-      1437.5
+      441.9,
+      1443.7
      ]
     },
     "autoTuned": {
@@ -28241,7 +28346,13 @@
     },
     "edited": {
      "renderScale": 0.196,
-     "bodyBottom": 248.5
+     "bodyBottom": 248.5,
+     "anchors": {
+      "teeter": [
+       869.7,
+       1437.5
+      ]
+     }
     }
    }
   },
@@ -29556,8 +29667,8 @@
       633.6
      ],
      "teeter": [
-      861.2,
-      1501.3
+      582.6,
+      1487.5
      ]
     },
     "autoTuned": {
@@ -29568,7 +29679,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.207
+     "renderScale": 0.207,
+     "anchors": {
+      "teeter": [
+       861.2,
+       1501.3
+      ]
+     }
     }
    }
   },
@@ -30923,8 +31040,8 @@
       707.6
      ],
      "teeter": [
-      782.6,
-      1426.5
+      322.3,
+      1451.7
      ]
     },
     "autoTuned": {
@@ -30937,7 +31054,13 @@
     "edited": {
      "renderScale": 0.249,
      "bodyBottom": 230.6,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "teeter": [
+       782.6,
+       1426.5
+      ]
+     }
     },
     "rotationDeg": -13
    }
@@ -32251,8 +32374,8 @@
       538.8
      ],
      "teeter": [
-      840.9,
-      1361.7
+      320.0,
+      1293.5
      ]
     },
     "autoTuned": {
@@ -32263,7 +32386,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.193
+     "renderScale": 0.193,
+     "anchors": {
+      "teeter": [
+       840.9,
+       1361.7
+      ]
+     }
     }
    }
   },
@@ -33616,9 +33745,9 @@
    "teeter": {
     "w": 955,
     "h": 1434,
-    "ox": -356.9,
+    "ox": -366.9,
     "oy": -1123,
-    "bodyBottom": 230.5,
+    "bodyBottom": 297,
     "bodyH": 303.8,
     "centroidX": 192.9,
     "renderScale": 0.2116,
@@ -33634,8 +33763,8 @@
       544.6
      ],
      "teeter": [
-      954.5,
-      1429.5
+      572.3,
+      1417.6
      ]
     },
     "autoTuned": {
@@ -33646,7 +33775,15 @@
      }
     },
     "edited": {
-     "renderScale": 0.217
+     "renderScale": 0.217,
+     "ox": -356.9,
+     "bodyBottom": 230.5,
+     "anchors": {
+      "teeter": [
+       954.5,
+       1429.5
+      ]
+     }
     }
    }
   },
@@ -34970,8 +35107,8 @@
       517.2
      ],
      "teeter": [
-      641.2,
-      1372.7
+      548.7,
+      1312.1
      ]
     },
     "autoTuned": {
@@ -34979,6 +35116,14 @@
      "fields": {
       "bodyBottom": "foot=0.953 (character)",
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "anchors": {
+      "teeter": [
+       641.2,
+       1372.7
+      ]
      }
     }
    }
@@ -37750,8 +37895,8 @@
       478.6
      ],
      "teeter": [
-      740.6,
-      1381.7
+      681.1,
+      1214.9
      ]
     },
     "autoTuned": {
@@ -37763,7 +37908,13 @@
     },
     "edited": {
      "bodyBottom": 194.9,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "teeter": [
+       740.6,
+       1381.7
+      ]
+     }
     },
     "rotationDeg": -2
    }
@@ -39159,7 +39310,7 @@
     "h": 1372,
     "ox": -329.7,
     "oy": -1061,
-    "bodyBottom": 218.9,
+    "bodyBottom": 300.4,
     "bodyH": 349.9,
     "centroidX": 173.7,
     "renderScale": 0.255,
@@ -39175,8 +39326,8 @@
       567.4
      ],
      "teeter": [
-      904.7,
-      1367.7
+      391.5,
+      1367.6
      ]
     },
     "autoTuned": {
@@ -39184,6 +39335,15 @@
      "fields": {
       "bodyBottom": "foot=0.933 (character)",
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "bodyBottom": 218.9,
+     "anchors": {
+      "teeter": [
+       904.7,
+       1367.7
+      ]
      }
     }
    }
@@ -40581,8 +40741,8 @@
       584.8
      ],
      "teeter": [
-      718.9,
-      1560.1
+      371.2,
+      1500.1
      ]
     },
     "autoTuned": {
@@ -40593,7 +40753,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.25
+     "renderScale": 0.25,
+     "anchors": {
+      "teeter": [
+       718.9,
+       1560.1
+      ]
+     }
     }
    }
   },
@@ -41981,7 +42147,7 @@
     "h": 1355,
     "ox": -228.9,
     "oy": -1044,
-    "bodyBottom": 196.2,
+    "bodyBottom": 291.2,
     "bodyH": 418.2,
     "centroidX": 130.9,
     "renderScale": 0.3081,
@@ -41997,8 +42163,8 @@
       628.8
      ],
      "teeter": [
-      817.2,
-      1350.8
+      562.0,
+      1341.2
      ]
     },
     "autoTuned": {
@@ -42009,7 +42175,14 @@
      }
     },
     "edited": {
-     "renderScale": 0.292
+     "renderScale": 0.292,
+     "bodyBottom": 196.2,
+     "anchors": {
+      "teeter": [
+       817.2,
+       1350.8
+      ]
+     }
     }
    }
   },

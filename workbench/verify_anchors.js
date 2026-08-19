@@ -48,12 +48,18 @@ function frameOf(task) {
   return frames[frameIndex(task)] || frames[0] || null;
 }
 
-/** Has a human placed this anchor, as opposed to it sitting on the default the
- *  bake guessed? `anchorLocal` answers with the default when nothing is
- *  stored, so the manifest has to be asked directly. */
+/** Has a HUMAN placed this anchor, as opposed to it sitting on what the bake
+ *  measured? Not the same question as whether a value exists: tools/bake_anchors
+ *  writes `teeter` and `ledge` for every frame that owes one, so presence is
+ *  the bake talking. The first version of this asked `anchors[name] !== undefined`
+ *  and reported all 34 teeters as confirmed before anybody had answered one —
+ *  and the first sitting then moved 26 of them by hundreds of pixels. What a
+ *  hand placed is recorded under `edited.anchors` by
+ *  tools/apply_sprite_adjustments.py, which is the same convention every other
+ *  tuned field uses. */
 function placed(charKey, frameKey, name) {
   const meta = spriteManifest?.characters?.[charKey]?.[frameKey];
-  return Array.isArray(meta?.anchors?.[name]);
+  return meta?.edited?.anchors?.[name] !== undefined;
 }
 
 /** One provider per named anchor. The set is defined by EXTRA_ANCHORS, so a
@@ -72,7 +78,7 @@ export function anchorProvider(name) {
       id: `${name}/${charKey}`,
       title: charKey,
       subtitle: placed(charKey, frameOf({ charKey, state, id: `${name}/${charKey}` }), name)
-        ? "already placed" : "on the default guess",
+        ? "already placed" : "on the bake's measurement",
       charKey,
       state,
       anchorName: name,
