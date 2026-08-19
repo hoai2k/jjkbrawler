@@ -21,7 +21,8 @@ is exactly how 172 images once went missing from this list.
 ## Rules that hold everywhere here
 
 - **The canon reference is the subject.** A fighter's own `<char>_idle.png`
-  under `assets/reference/canon/` carries their costume, proportions, palette,
+  at `https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/<char>_idle.png`
+  carries their costume, proportions, palette,
   line weight and shading. The drawing is that character, not an
   interpretation of them.
 - **The character block goes in the prompt verbatim.** All of them are at the
@@ -29,6 +30,14 @@ is exactly how 172 images once went missing from this list.
 - **Any subset is useful.** Everything here lands per fighter or per file, and
   anything undelivered keeps whatever the engine does today. Nothing in this
   file blocks play.
+- **Every reference here is a full URL, and every OUTPUT path is relative.**
+  That is the whole convention, and the two are never mixed. Anything you have
+  to look at — a canon reference, the drawing being replaced, a brief, another
+  document — is an `https://raw.githubusercontent.com/…` link you can fetch
+  without a copy of the repository. Anything you have to NAME, like
+  `kashimo/teeter.png`, is where the delivered file goes once somebody lands
+  it in `assets/intake/`, and stays relative because you cannot write to a
+  raw URL.
 
 **The modes want opposite deliveries, and it is the one thing worth not
 getting wrong.** Sprite rounds are keyed plates — flat magenta `#FF00FF` or
@@ -46,7 +55,7 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**Nothing outstanding.** No open round in [asset-requests.md](asset-requests.md).
+**Nothing outstanding.** No open round in [asset-requests.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests.md).
 
 ---
 
@@ -58,7 +67,7 @@ GENERATED from, and textures the anime pass reads at runtime. They serve
 plates — each round states its own delivery.
 
 **0 images.** Authored in
-[render3d/docs/image-requests.md](../render3d/docs/image-requests.md) and reproduced whole below.
+[render3d/docs/image-requests.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/render3d/docs/image-requests.md) and reproduced whole below.
 
 - **DI1** — model-generation turnaround boards (the Tripo inputs) (0 images)
 - **DI2** — face sheets (the face-first gate's reference) (0 images)
@@ -97,7 +106,7 @@ refuses a board whose head runs off the edge.
 
 **Deliverable: 1 board per fighter.** Twelve are outstanding — the list is in
 the refusal note above, and in
-[docs/image-requests.md](../docs/image-requests.md), which resolves it
+[docs/image-requests.md](#), which resolves it
 against what is on disk.
 
 ### DI1: who is still owed one — 0 of 35
@@ -220,7 +229,7 @@ Named by MEASUREMENT, not by eye: tools/audit_model_health.py weighs the mesh bo
 Used **verbatim** as `[CHARACTER BLOCK]` in every prompt above — this is how
 a fighter stays the same character across their sprites, their card and
 their turnaround. Reproduced from
-[asset-requests.md](asset-requests.md#character-blocks), which owns them.
+[asset-requests.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests.md#character-blocks), which owns them.
 
 **Where the block and the canon reference disagree, the reference wins.**
 Every fighter now has a `<char>_idle.png`, regenerated from their approved
@@ -281,89 +290,89 @@ the rounds above are for.
 
 **29 flagged, 52 drawing somebody else's art.**
 
-| Fighter | Pose | Why |
-|---|---|---|
-| gakuganji | `attack_light_b` | quality |
-| hakari | `attack_light_a` | quality |
-| kirara | `attack_light_a` | quality |
-| mahoraga | `attack_light_b` | quality |
-| mahoraga | `crouch_attack_a` | quality |
-| maki | `attack_air_b` | quality |
-| maki | `crouch_attack_b` | quality |
-| toji | `attack_light_a` | quality |
-| toji | `attack_light_b` | quality |
-| uro | `attack_light_a` | quality |
-| geto | `attack_heavy_b` | pose |
-| hakari | `attack_heavy_b` | pose |
-| hakari | `attack_light_b` | pose |
-| haruta | `special_down` | pose |
-| kirara | `attack_heavy_b` | pose |
-| kirara | `attack_light_b` | pose |
-| kirara | `crouch_attack_a` | pose |
-| kirara | `crouch_attack_b` | pose |
-| mahoraga | `attack_light_a` | pose |
-| meimei | `attack_heavy_b` | pose |
-| meimei | `crouch_attack_a` | pose |
-| meimei | `crouch_attack_b` | pose |
-| naoya | `crouch_a` | pose |
-| naoya | `crouch_attack_a` | pose |
-| naoya | `crouch_b` | pose |
-| naoya | `idle_b` | pose |
-| uro | `crouch_attack_b` | pose |
-| yuji | `crouch_a` | pose |
-| uro | `attack_heavy_b` | character |
-| gojo | `attack_light_a` | drawing `attack_heavy_a` |
-| hanami | `attack_light_b` | drawing `special_neutral` |
-| geto | `attack_heavy_a` | drawing `attack_down_2` |
-| geto | `attack_heavy_b` | drawing `attack_down_5` |
-| geto | `attack_light_a` | drawing `attack_heavy_a` |
-| geto | `attack_light_b` | drawing `attack_dash` |
-| geto | `crouch_attack_b` | drawing `dodge_air` |
-| sukuna | `attack_light_b` | drawing `r3c0` |
-| hakari | `attack_heavy_a` | drawing `crouch_a_2` |
-| hakari | `attack_heavy_b` | drawing `attack_air_b` |
-| hakari | `attack_light_a` | drawing `attack_heavy_a` |
-| hakari | `attack_light_b` | drawing `attack_dash` |
-| yuta | `attack_heavy_b` | drawing `attack_dash` |
-| yuta | `attack_light_a` | drawing `attack_air_a` |
-| yuta | `attack_light_b` | drawing `attack_air_b` |
-| nobara | `crouch_attack_b` | drawing `attack_dash` |
-| maki | `attack_air_a` | drawing `attack_air_b` |
-| maki | `attack_air_b` | drawing `attack_air_a` |
-| maki | `attack_light_a` | drawing `attack_heavy_a_3` |
-| maki | `attack_light_b` | drawing `r3c0` |
-| maki | `crouch_attack_b` | drawing `r4c3` |
-| panda | `attack_heavy_b` | drawing `r2c1` |
-| panda | `attack_light_a` | drawing `r0c2` |
-| panda | `crouch_attack_a` | drawing `r4c1` |
-| todo | `attack_heavy_a` | drawing `r4c2` |
-| todo | `attack_heavy_b` | drawing `attack_dash` |
-| todo | `attack_light_a` | drawing `attack_heavy_a` |
-| todo | `attack_light_b` | drawing `special_side` |
-| toji | `attack_heavy_a` | drawing `attack_heavy_a_2` |
-| toji | `attack_heavy_b` | drawing `attack_heavy_b_2` |
-| toji | `attack_light_a` | drawing `attack_heavy_a` |
-| toji | `attack_light_b` | drawing `attack_heavy_b_4` |
-| meimei | `crouch_attack_a` | drawing `crouch_a` |
-| meimei | `crouch_attack_b` | drawing `crouch_attack_a` |
-| uro | `attack_light_a` | drawing `crouch_b_2` |
-| uro | `crouch_attack_b` | drawing `attack_dash` |
-| uro | `attack_air_a` | drawing `attack_air` |
-| yuji | `attack_light_a` | drawing `guard` |
-| yuji | `crouch_attack_a` | drawing `crouch_a` |
-| gakuganji | `attack_light_a` | drawing `attack_heavy_a_2` |
-| gakuganji | `crouch_attack_b` | drawing `attack_dash` |
-| gakuganji | `attack_air_b` | drawing `attack_air` |
-| mahoraga | `attack_light_a` | drawing `attack_light_b_2` |
-| mahoraga | `attack_light_b` | drawing `attack_heavy_b` |
-| mahoraga | `crouch_attack_a` | drawing `crouch_attack_b` |
-| mahoraga | `crouch_attack_b` | drawing `attack_dash` |
-| mahoraga | `attack_heavy_b` | drawing `attack_light_b` |
-| yuki | `attack_heavy_b` | drawing `ult_b` |
-| naoya | `attack_heavy_a` | drawing `run_pass_a` |
-| naoya | `crouch_attack_a` | drawing `crouch_a` |
-| kirara | `attack_heavy_a` | drawing `attack_light_a` |
-| kirara | `attack_light_a` | drawing `attack_heavy_a` |
+| Fighter | Pose | Why | What is wrong | The drawing now | Canon reference |
+|---|---|---|---|---|---|
+| Yoshinobu Gakuganji | `attack_light_b` | quality | — | [attack_light_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gakuganji/attack_light_b.png) | [gakuganji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/gakuganji_idle.png) |
+| Kinji Hakari | `attack_light_a` | quality | — | [attack_heavy_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hakari/attack_heavy_a.png) | [hakari_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/hakari_idle.png) |
+| Kirara Hoshi | `attack_light_a` | quality | — | [attack_heavy_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kirara/attack_heavy_a.png) | [kirara_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kirara_idle.png) |
+| Eight-Handled Sword Divergent Sila Divine General Mahoraga | `attack_light_b` | quality | — | [attack_heavy_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mahoraga/attack_heavy_b.png) | [mahoraga_canon.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/mahoraga_canon.png) |
+| Eight-Handled Sword Divergent Sila Divine General Mahoraga | `crouch_attack_a` | quality | — | [crouch_attack_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mahoraga/crouch_attack_b.png) | [mahoraga_canon.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/mahoraga_canon.png) |
+| Maki Zen'in | `attack_air_b` | quality | — | [attack_air_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/maki/attack_air_a.png) | [maki_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/maki_idle.png) |
+| Maki Zen'in | `crouch_attack_b` | quality | low resolution, can be drawn higher res. | [r4c3.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/maki/r4c3.png) | [maki_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/maki_idle.png) |
+| Toji Fushiguro | `attack_light_a` | quality | — | [attack_heavy_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/toji/attack_heavy_a.png) | [toji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/toji_idle.png) |
+| Toji Fushiguro | `attack_light_b` | quality | Should show full sword extended to the right in attack. (alt has a spear which is wrong) | [attack_heavy_b_4.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/toji/archive/attack_heavy_b_4.png) | [toji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/toji_idle.png) |
+| Takako Uro | `attack_light_a` | quality | — | [crouch_b_2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/uro/archive/crouch_b_2.png) | [uro_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/uro_idle.png) |
+| Suguru Geto | `attack_heavy_b` | pose | Attack should be straight down instead of down and right (right? or?) | [attack_down_5.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/geto/archive/attack_down_5.png) | [geto_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/geto_idle.png) |
+| Kinji Hakari | `attack_heavy_b` | pose | He should be doing a strong kick. (current version it taken from airborne because original wasn't sufficient) | [attack_air_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hakari/attack_air_b.png) | [hakari_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/hakari_idle.png) |
+| Kinji Hakari | `attack_light_b` | pose | He should be punching forward with the close arm instead of the far arm. | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hakari/attack_dash.png) | [hakari_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/hakari_idle.png) |
+| Haruta Shigemo | `special_down` | pose | Needs to be winding-up for attack, not already attacking | [special_down.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/haruta/special_down.png) | [haruta_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/haruta_idle.png) |
+| Kirara Hoshi | `attack_heavy_b` | pose | Should be doing a strong kick at full extension | [attack_heavy_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kirara/attack_heavy_b.png) | [kirara_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kirara_idle.png) |
+| Kirara Hoshi | `attack_light_b` | pose | Should be doing a punch with the close arm instead of the far arm | [attack_light_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kirara/attack_light_b.png) | [kirara_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kirara_idle.png) |
+| Kirara Hoshi | `crouch_attack_a` | pose | Should be crouching and preparing for a leg sweep attack | [crouch_attack_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kirara/crouch_attack_a.png) | [kirara_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kirara_idle.png) |
+| Kirara Hoshi | `crouch_attack_b` | pose | Should be doing a leg sweep attack, with her leg at full extension. (arms helping support her instead of reaching out) | [crouch_attack_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kirara/crouch_attack_b.png) | [kirara_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kirara_idle.png) |
+| Eight-Handled Sword Divergent Sila Divine General Mahoraga | `attack_light_a` | pose | The blade stays across the body, tip down and back. Nothing reaches forward. The redraw must also carry the karma wheel. | [attack_light_b_2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mahoraga/archive/attack_light_b_2.png) | [mahoraga_canon.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/mahoraga_canon.png) |
+| Mei Mei | `attack_heavy_b` | pose | Should have the axe stretched more out forward at full extension | [attack_heavy_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/meimei/attack_heavy_b.png) | [meimei_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/meimei_idle.png) |
+| Mei Mei | `crouch_attack_a` | pose | Should be winding up the axe ready to strike | [crouch_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/meimei/crouch_a.png) | [meimei_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/meimei_idle.png) |
+| Mei Mei | `crouch_attack_b` | pose | Should be extending the axe out forward more | [crouch_attack_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/meimei/crouch_attack_a.png) | [meimei_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/meimei_idle.png) |
+| Naoya Zen'in | `crouch_a` | pose | Needs a deeper crouch | [crouch_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/crouch_a.png) | [naoya_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_idle.png) |
+| Naoya Zen'in | `crouch_attack_a` | pose | Deeper crouch and wind-up for a sweep kick | [crouch_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/crouch_a.png) | [naoya_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_idle.png) |
+| Naoya Zen'in | `crouch_b` | pose | Needs a deeper crouch. | [crouch_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/crouch_b.png) | [naoya_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_idle.png) |
+| Naoya Zen'in | `idle_b` | pose | Should be an idle pose similar (though slightly different) than his other idle pose. | [idle_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/idle_b.png) | [naoya_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_idle.png) |
+| Takako Uro | `crouch_attack_b` | pose | Should be crouching and leaning rightward, stretching out her attack rightward at full extension. | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/uro/attack_dash.png) | [uro_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/uro_idle.png) |
+| Yuji Itadori | `crouch_a` | pose | Low neutral crouch position | [crouch_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuji/crouch_a.png) | [yuji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yuji_idle.png) |
+| Takako Uro | `attack_heavy_b` | character | Costume | [attack_heavy_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/uro/attack_heavy_b.png) | [uro_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/uro_idle.png) |
+| gojo | `attack_light_a` | drawing another pose's file | it is `attack_heavy_a`, not `attack_light_a` | [attack_heavy_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gojo/attack_heavy_a.png) | [gojo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/gojo_idle.png) |
+| hanami | `attack_light_b` | drawing another pose's file | it is `special_neutral`, not `attack_light_b` | [special_neutral.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hanami/special_neutral.png) | [hanami_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/hanami_idle.png) |
+| geto | `attack_heavy_a` | drawing another pose's file | it is `attack_down_2`, not `attack_heavy_a` | [attack_down_2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/geto/attack_down_2.png) | [geto_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/geto_idle.png) |
+| geto | `attack_heavy_b` | drawing another pose's file | it is `attack_down_5`, not `attack_heavy_b` | [attack_down_5.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/geto/attack_down_5.png) | [geto_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/geto_idle.png) |
+| geto | `attack_light_a` | drawing another pose's file | it is `attack_heavy_a`, not `attack_light_a` | [attack_heavy_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/geto/attack_heavy_a.png) | [geto_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/geto_idle.png) |
+| geto | `attack_light_b` | drawing another pose's file | it is `attack_dash`, not `attack_light_b` | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/geto/attack_dash.png) | [geto_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/geto_idle.png) |
+| geto | `crouch_attack_b` | drawing another pose's file | it is `dodge_air`, not `crouch_attack_b` | [dodge_air.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/geto/dodge_air.png) | [geto_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/geto_idle.png) |
+| sukuna | `attack_light_b` | drawing another pose's file | it is `r3c0`, not `attack_light_b` | [r3c0.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/sukuna/r3c0.png) | [sukuna_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/sukuna_idle.png) |
+| hakari | `attack_heavy_a` | drawing another pose's file | it is `crouch_a_2`, not `attack_heavy_a` | [crouch_a_2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hakari/crouch_a_2.png) | [hakari_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/hakari_idle.png) |
+| hakari | `attack_heavy_b` | drawing another pose's file | it is `attack_air_b`, not `attack_heavy_b` | [attack_air_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hakari/attack_air_b.png) | [hakari_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/hakari_idle.png) |
+| hakari | `attack_light_a` | drawing another pose's file | it is `attack_heavy_a`, not `attack_light_a` | [attack_heavy_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hakari/attack_heavy_a.png) | [hakari_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/hakari_idle.png) |
+| hakari | `attack_light_b` | drawing another pose's file | it is `attack_dash`, not `attack_light_b` | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hakari/attack_dash.png) | [hakari_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/hakari_idle.png) |
+| yuta | `attack_heavy_b` | drawing another pose's file | it is `attack_dash`, not `attack_heavy_b` | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuta/attack_dash.png) | [yuta_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yuta_idle.png) |
+| yuta | `attack_light_a` | drawing another pose's file | it is `attack_air_a`, not `attack_light_a` | [attack_air_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuta/attack_air_a.png) | [yuta_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yuta_idle.png) |
+| yuta | `attack_light_b` | drawing another pose's file | it is `attack_air_b`, not `attack_light_b` | [attack_air_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuta/attack_air_b.png) | [yuta_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yuta_idle.png) |
+| nobara | `crouch_attack_b` | drawing another pose's file | it is `attack_dash`, not `crouch_attack_b` | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/nobara/attack_dash.png) | [nobara_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/nobara_idle.png) |
+| maki | `attack_air_a` | drawing another pose's file | it is `attack_air_b`, not `attack_air_a` | [attack_air_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/maki/attack_air_b.png) | [maki_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/maki_idle.png) |
+| maki | `attack_air_b` | drawing another pose's file | it is `attack_air_a`, not `attack_air_b` | [attack_air_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/maki/attack_air_a.png) | [maki_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/maki_idle.png) |
+| maki | `attack_light_a` | drawing another pose's file | it is `attack_heavy_a_3`, not `attack_light_a` | [attack_heavy_a_3.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/maki/attack_heavy_a_3.png) | [maki_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/maki_idle.png) |
+| maki | `attack_light_b` | drawing another pose's file | it is `r3c0`, not `attack_light_b` | [r3c0.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/maki/r3c0.png) | [maki_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/maki_idle.png) |
+| maki | `crouch_attack_b` | drawing another pose's file | it is `r4c3`, not `crouch_attack_b` | [r4c3.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/maki/r4c3.png) | [maki_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/maki_idle.png) |
+| panda | `attack_heavy_b` | drawing another pose's file | it is `r2c1`, not `attack_heavy_b` | [r2c1.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/panda/r2c1.png) | [panda_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/panda_idle.png) |
+| panda | `attack_light_a` | drawing another pose's file | it is `r0c2`, not `attack_light_a` | [r0c2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/panda/r0c2.png) | [panda_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/panda_idle.png) |
+| panda | `crouch_attack_a` | drawing another pose's file | it is `r4c1`, not `crouch_attack_a` | [r4c1.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/panda/r4c1.png) | [panda_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/panda_idle.png) |
+| todo | `attack_heavy_a` | drawing another pose's file | it is `r4c2`, not `attack_heavy_a` | [r4c2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/todo/r4c2.png) | [todo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/todo_idle.png) |
+| todo | `attack_heavy_b` | drawing another pose's file | it is `attack_dash`, not `attack_heavy_b` | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/todo/attack_dash.png) | [todo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/todo_idle.png) |
+| todo | `attack_light_a` | drawing another pose's file | it is `attack_heavy_a`, not `attack_light_a` | [attack_heavy_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/todo/attack_heavy_a.png) | [todo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/todo_idle.png) |
+| todo | `attack_light_b` | drawing another pose's file | it is `special_side`, not `attack_light_b` | [special_side.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/todo/special_side.png) | [todo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/todo_idle.png) |
+| toji | `attack_heavy_a` | drawing another pose's file | it is `attack_heavy_a_2`, not `attack_heavy_a` | [attack_heavy_a_2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/toji/attack_heavy_a_2.png) | [toji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/toji_idle.png) |
+| toji | `attack_heavy_b` | drawing another pose's file | it is `attack_heavy_b_2`, not `attack_heavy_b` | [attack_heavy_b_2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/toji/attack_heavy_b_2.png) | [toji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/toji_idle.png) |
+| toji | `attack_light_a` | drawing another pose's file | it is `attack_heavy_a`, not `attack_light_a` | [attack_heavy_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/toji/attack_heavy_a.png) | [toji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/toji_idle.png) |
+| toji | `attack_light_b` | drawing another pose's file | it is `attack_heavy_b_4`, not `attack_light_b` | [attack_heavy_b_4.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/toji/attack_heavy_b_4.png) | [toji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/toji_idle.png) |
+| meimei | `crouch_attack_a` | drawing another pose's file | it is `crouch_a`, not `crouch_attack_a` | [crouch_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/meimei/crouch_a.png) | [meimei_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/meimei_idle.png) |
+| meimei | `crouch_attack_b` | drawing another pose's file | it is `crouch_attack_a`, not `crouch_attack_b` | [crouch_attack_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/meimei/crouch_attack_a.png) | [meimei_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/meimei_idle.png) |
+| uro | `attack_light_a` | drawing another pose's file | it is `crouch_b_2`, not `attack_light_a` | [crouch_b_2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/uro/crouch_b_2.png) | [uro_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/uro_idle.png) |
+| uro | `crouch_attack_b` | drawing another pose's file | it is `attack_dash`, not `crouch_attack_b` | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/uro/attack_dash.png) | [uro_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/uro_idle.png) |
+| uro | `attack_air_a` | drawing another pose's file | it is `attack_air`, not `attack_air_a` | [attack_air.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/uro/attack_air.png) | [uro_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/uro_idle.png) |
+| yuji | `attack_light_a` | drawing another pose's file | it is `guard`, not `attack_light_a` | [guard.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuji/guard.png) | [yuji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yuji_idle.png) |
+| yuji | `crouch_attack_a` | drawing another pose's file | it is `crouch_a`, not `crouch_attack_a` | [crouch_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuji/crouch_a.png) | [yuji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yuji_idle.png) |
+| gakuganji | `attack_light_a` | drawing another pose's file | it is `attack_heavy_a_2`, not `attack_light_a` | [attack_heavy_a_2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gakuganji/attack_heavy_a_2.png) | [gakuganji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/gakuganji_idle.png) |
+| gakuganji | `crouch_attack_b` | drawing another pose's file | it is `attack_dash`, not `crouch_attack_b` | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gakuganji/attack_dash.png) | [gakuganji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/gakuganji_idle.png) |
+| gakuganji | `attack_air_b` | drawing another pose's file | it is `attack_air`, not `attack_air_b` | [attack_air.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gakuganji/attack_air.png) | [gakuganji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/gakuganji_idle.png) |
+| mahoraga | `attack_light_a` | drawing another pose's file | it is `attack_light_b_2`, not `attack_light_a` | [attack_light_b_2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mahoraga/attack_light_b_2.png) | [mahoraga_canon.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/mahoraga_canon.png) |
+| mahoraga | `attack_light_b` | drawing another pose's file | it is `attack_heavy_b`, not `attack_light_b` | [attack_heavy_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mahoraga/attack_heavy_b.png) | [mahoraga_canon.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/mahoraga_canon.png) |
+| mahoraga | `crouch_attack_a` | drawing another pose's file | it is `crouch_attack_b`, not `crouch_attack_a` | [crouch_attack_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mahoraga/crouch_attack_b.png) | [mahoraga_canon.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/mahoraga_canon.png) |
+| mahoraga | `crouch_attack_b` | drawing another pose's file | it is `attack_dash`, not `crouch_attack_b` | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mahoraga/attack_dash.png) | [mahoraga_canon.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/mahoraga_canon.png) |
+| mahoraga | `attack_heavy_b` | drawing another pose's file | it is `attack_light_b`, not `attack_heavy_b` | [attack_light_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mahoraga/attack_light_b.png) | [mahoraga_canon.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/mahoraga_canon.png) |
+| yuki | `attack_heavy_b` | drawing another pose's file | it is `ult_b`, not `attack_heavy_b` | [ult_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuki/ult_b.png) | [yuki_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yuki_idle.png) |
+| naoya | `attack_heavy_a` | drawing another pose's file | it is `run_pass_a`, not `attack_heavy_a` | [run_pass_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/run_pass_a.png) | [naoya_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_idle.png) |
+| naoya | `crouch_attack_a` | drawing another pose's file | it is `crouch_a`, not `crouch_attack_a` | [crouch_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/crouch_a.png) | [naoya_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_idle.png) |
+| kirara | `attack_heavy_a` | drawing another pose's file | it is `attack_light_a`, not `attack_heavy_a` | [attack_light_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kirara/attack_light_a.png) | [kirara_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kirara_idle.png) |
+| kirara | `attack_light_a` | drawing another pose's file | it is `attack_heavy_a`, not `attack_light_a` | [attack_heavy_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kirara/attack_heavy_a.png) | [kirara_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/kirara_idle.png) |
 
 Separately, **2 improvement requests** — the art works and is just
 not as good as it should be. Nothing is blocked by one, and the standing
