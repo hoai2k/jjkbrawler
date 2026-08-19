@@ -246,6 +246,14 @@ def load_payloads(sources):
         # tolerate the workbench's "// no changes" placeholder
         raw = raw.strip()
         if not raw or raw.startswith("//"):
+            # SAY SO. This used to `continue` in silence, and a real export that
+            # happened to open with a comment line was therefore read as "no
+            # changes" and applied as nothing --- the run printed its usual
+            # "nothing to apply" and looked like a file with no work in it. A
+            # skip that cannot be told from an empty file is a skip that hides
+            # a bug, so it is announced.
+            print(f"  SKIP {src}: starts with a comment, read as the "
+                  f"'no changes' placeholder --- nothing in it was applied")
             continue
         data = json.loads(raw)
         payloads.extend(data if isinstance(data, list) else [data])

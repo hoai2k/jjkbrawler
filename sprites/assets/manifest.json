@@ -1620,6 +1620,10 @@
      "com": [
       450.2,
       476.0
+     ],
+     "grabHand": [
+      905.9,
+      253.3
      ]
     },
     "autoTuned": {
@@ -1630,7 +1634,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.281
+     "renderScale": 0.281,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -1652,6 +1659,10 @@
      "com": [
       305.4,
       634.8
+     ],
+     "grabChest": [
+      198.5,
+      258.6
      ]
     },
     "autoTuned": {
@@ -1662,7 +1673,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.281
+     "renderScale": 0.281,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -3104,6 +3118,10 @@
      "com": [
       458.4,
       471.2
+     ],
+     "grabHand": [
+      965.7,
+      229.5
      ]
     },
     "autoTuned": {
@@ -3115,7 +3133,10 @@
     },
     "edited": {
      "renderScale": 0.303,
-     "bodyBottom": 259.8
+     "bodyBottom": 259.8,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -3137,6 +3158,10 @@
      "com": [
       456.7,
       655.6
+     ],
+     "grabChest": [
+      331.8,
+      242.1
      ]
     },
     "autoTuned": {
@@ -3148,7 +3173,10 @@
     },
     "edited": {
      "renderScale": 0.303,
-     "bodyBottom": 248.5
+     "bodyBottom": 248.5,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -3222,10 +3250,10 @@
     "h": 1237,
     "ox": -349.6,
     "oy": -975,
-    "bodyBottom": 213.3,
-    "bodyH": 382.7,
+    "bodyBottom": 250.3,
+    "bodyH": 287.1,
     "centroidX": 223.6,
-    "renderScale": 0.309,
+    "renderScale": 0.2318,
     "file": "nanami/teeter.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -3238,8 +3266,8 @@
       405.2
      ],
      "teeter": [
-      862.0,
-      1233.1
+      807.5,
+      1231.0
      ]
     },
     "autoTuned": {
@@ -3247,6 +3275,16 @@
      "fields": {
       "bodyBottom": "foot=0.961 (character)",
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "renderScale": 0.309,
+     "bodyBottom": 213.3,
+     "anchors": {
+      "teeter": [
+       862.0,
+       1233.1
+      ]
      }
     }
    }
@@ -4811,6 +4849,10 @@
      "com": [
       609.0,
       501.2
+     ],
+     "grabHand": [
+      1244.3,
+      275.6
      ]
     },
     "autoTuned": {
@@ -4821,7 +4863,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.231
+     "renderScale": 0.231,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -4843,6 +4888,10 @@
      "com": [
       376.6,
       668.3
+     ],
+     "grabChest": [
+      414.9,
+      321.4
      ]
     },
     "autoTuned": {
@@ -4855,7 +4904,10 @@
     "edited": {
      "renderScale": 0.231,
      "bodyBottom": 183.6,
-     "faceLeft": null
+     "faceLeft": null,
+     "anchors": {
+      "grabChest": null
+     }
     },
     "faceLeft": true
    },
@@ -6342,6 +6394,10 @@
      "com": [
       470.2,
       518.8
+     ],
+     "grabHand": [
+      955.1,
+      251.7
      ]
     },
     "autoTuned": {
@@ -6353,7 +6409,10 @@
     },
     "edited": {
      "renderScale": 0.313,
-     "bodyBottom": 263.0
+     "bodyBottom": 263.0,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -6375,6 +6434,10 @@
      "com": [
       412.5,
       644.7
+     ],
+     "grabChest": [
+      354.0,
+      278.4
      ]
     },
     "autoTuned": {
@@ -6386,7 +6449,10 @@
     },
     "edited": {
      "renderScale": 0.313,
-     "bodyBottom": 253.9
+     "bodyBottom": 253.9,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -7833,6 +7899,10 @@
      "com": [
       478.6,
       471.2
+     ],
+     "grabHand": [
+      921.1,
+      304.0
      ]
     },
     "autoTuned": {
@@ -7844,7 +7914,10 @@
     },
     "edited": {
      "renderScale": 0.332,
-     "bodyBottom": 256.0
+     "bodyBottom": 256.0,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -7866,6 +7939,10 @@
      "com": [
       434.2,
       581.1
+     ],
+     "grabChest": [
+      583.0,
+      360.1
      ]
     },
     "autoTuned": {
@@ -7877,7 +7954,10 @@
     },
     "edited": {
      "renderScale": 0.332,
-     "ox": -276.3
+     "ox": -276.3,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -9628,6 +9708,10 @@
      "com": [
       326.1,
       574.3
+     ],
+     "grabHand": [
+      782.0,
+      248.4
      ]
     },
     "autoTuned": {
@@ -9639,7 +9723,10 @@
     },
     "edited": {
      "renderScale": 0.216,
-     "bodyBottom": 225.4
+     "bodyBottom": 225.4,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -9661,6 +9748,10 @@
      "com": [
       414.2,
       678.4
+     ],
+     "grabChest": [
+      295.5,
+      261.8
      ]
     },
     "autoTuned": {
@@ -9672,7 +9763,10 @@
     },
     "edited": {
      "renderScale": 0.216,
-     "bodyBottom": 221.2
+     "bodyBottom": 221.2,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -11130,6 +11224,10 @@
      "com": [
       588.0,
       400.8
+     ],
+     "grabHand": [
+      1176.0,
+      265.1
      ]
     },
     "autoTuned": {
@@ -11140,7 +11238,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.22
+     "renderScale": 0.22,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -11162,6 +11263,10 @@
      "com": [
       347.3,
       614.0
+     ],
+     "grabChest": [
+      283.9,
+      317.7
      ]
     },
     "autoTuned": {
@@ -11172,7 +11277,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.219
+     "renderScale": 0.219,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -12664,6 +12772,10 @@
      "com": [
       406.9,
       522.9
+     ],
+     "grabHand": [
+      911.5,
+      288.2
      ]
     },
     "autoTuned": {
@@ -12674,7 +12786,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.215
+     "renderScale": 0.215,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -12696,6 +12811,10 @@
      "com": [
       359.1,
       666.2
+     ],
+     "grabChest": [
+      253.9,
+      298.0
      ]
     },
     "autoTuned": {
@@ -12706,7 +12825,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.215
+     "renderScale": 0.215,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -14214,6 +14336,10 @@
      "com": [
       490.1,
       461.6
+     ],
+     "grabHand": [
+      880.0,
+      372.3
      ]
     },
     "autoTuned": {
@@ -14224,7 +14350,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.222
+     "renderScale": 0.222,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -14246,6 +14375,10 @@
      "com": [
       472.2,
       626.8
+     ],
+     "grabChest": [
+      498.6,
+      373.0
      ]
     },
     "autoTuned": {
@@ -14257,7 +14390,10 @@
     },
     "edited": {
      "renderScale": 0.222,
-     "faceLeft": null
+     "faceLeft": null,
+     "anchors": {
+      "grabChest": null
+     }
     },
     "faceLeft": true
    },
@@ -15710,6 +15846,10 @@
      "com": [
       498.5,
       478.9
+     ],
+     "grabHand": [
+      940.8,
+      229.6
      ]
     },
     "autoTuned": {
@@ -15721,7 +15861,10 @@
     },
     "edited": {
      "renderScale": 0.322,
-     "bodyBottom": 219.0
+     "bodyBottom": 219.0,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -15743,6 +15886,10 @@
      "com": [
       404.0,
       591.8
+     ],
+     "grabChest": [
+      334.9,
+      268.1
      ]
     },
     "autoTuned": {
@@ -15753,7 +15900,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.322
+     "renderScale": 0.322,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -17467,6 +17617,10 @@
      "com": [
       469.2,
       437.5
+     ],
+     "grabHand": [
+      958.9,
+      298.3
      ]
     },
     "autoTuned": {
@@ -17479,7 +17633,10 @@
     "edited": {
      "renderScale": 0.182,
      "bodyBottom": 254.9,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "grabHand": null
+     }
     },
     "rotationDeg": 6
    },
@@ -17502,6 +17659,10 @@
      "com": [
       304.3,
       608.1
+     ],
+     "grabChest": [
+      188.2,
+      244.7
      ]
     },
     "autoTuned": {
@@ -17513,7 +17674,10 @@
     },
     "edited": {
      "renderScale": 0.182,
-     "bodyBottom": 241.3
+     "bodyBottom": 241.3,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -19315,6 +19479,10 @@
      "com": [
       485.5,
       475.7
+     ],
+     "grabHand": [
+      941.4,
+      232.8
      ]
     },
     "autoTuned": {
@@ -19327,7 +19495,10 @@
     "edited": {
      "renderScale": 0.198,
      "bodyBottom": 239.9,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "grabHand": null
+     }
     },
     "rotationDeg": 7
    },
@@ -19350,6 +19521,10 @@
      "com": [
       286.9,
       609.4
+     ],
+     "grabChest": [
+      216.4,
+      255.8
      ]
     },
     "autoTuned": {
@@ -19361,7 +19536,10 @@
     },
     "edited": {
      "renderScale": 0.198,
-     "bodyBottom": 227.7
+     "bodyBottom": 227.7,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -20857,6 +21035,10 @@
      "com": [
       449.1,
       443.7
+     ],
+     "grabHand": [
+      878.3,
+      238.3
      ]
     },
     "autoTuned": {
@@ -20868,7 +21050,10 @@
     },
     "edited": {
      "renderScale": 0.349,
-     "bodyBottom": 244.4
+     "bodyBottom": 244.4,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -20890,6 +21075,10 @@
      "com": [
       391.0,
       561.6
+     ],
+     "grabChest": [
+      245.4,
+      229.8
      ]
     },
     "autoTuned": {
@@ -20901,7 +21090,10 @@
     },
     "edited": {
      "renderScale": 0.349,
-     "bodyBottom": 231.2
+     "bodyBottom": 231.2,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -22403,6 +22595,10 @@
      "com": [
       466.8,
       438.2
+     ],
+     "grabHand": [
+      933.9,
+      209.2
      ]
     },
     "autoTuned": {
@@ -22414,7 +22610,10 @@
     },
     "edited": {
      "renderScale": 0.181,
-     "bodyBottom": 245.4
+     "bodyBottom": 245.4,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -22436,6 +22635,10 @@
      "com": [
       345.3,
       613.0
+     ],
+     "grabChest": [
+      245.1,
+      239.2
      ]
     },
     "autoTuned": {
@@ -22446,7 +22649,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.181
+     "renderScale": 0.181,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -23889,6 +24095,10 @@
      "com": [
       534.0,
       391.8
+     ],
+     "grabHand": [
+      1074.2,
+      240.5
      ]
     },
     "autoTuned": {
@@ -23899,7 +24109,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.299
+     "renderScale": 0.299,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -23921,6 +24134,10 @@
      "com": [
       403.0,
       598.7
+     ],
+     "grabChest": [
+      279.8,
+      233.7
      ]
     },
     "autoTuned": {
@@ -23931,7 +24148,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.299
+     "renderScale": 0.299,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -25325,6 +25545,10 @@
      "com": [
       450.1,
       508.2
+     ],
+     "grabHand": [
+      1008.9,
+      303.0
      ]
     },
     "autoTuned": {
@@ -25337,7 +25561,10 @@
     "edited": {
      "renderScale": 0.325,
      "bodyBottom": 236.8,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "grabHand": null
+     }
     },
     "rotationDeg": 6.5
    },
@@ -25360,6 +25587,10 @@
      "com": [
       398.2,
       643.2
+     ],
+     "grabChest": [
+      264.9,
+      228.9
      ]
     },
     "autoTuned": {
@@ -25370,7 +25601,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.325
+     "renderScale": 0.325,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -26846,6 +27080,10 @@
      "com": [
       435.8,
       499.9
+     ],
+     "grabHand": [
+      916.8,
+      208.8
      ]
     },
     "autoTuned": {
@@ -26856,7 +27094,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.313
+     "renderScale": 0.313,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -26878,6 +27119,10 @@
      "com": [
       384.9,
       623.0
+     ],
+     "grabChest": [
+      292.3,
+      263.8
      ]
     },
     "autoTuned": {
@@ -26888,7 +27133,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.313
+     "renderScale": 0.313,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -28199,6 +28447,10 @@
      "com": [
       430.3,
       536.8
+     ],
+     "grabHand": [
+      934.0,
+      353.1
      ]
     },
     "autoTuned": {
@@ -28210,7 +28462,10 @@
     },
     "edited": {
      "renderScale": 0.196,
-     "bodyBottom": 255.5
+     "bodyBottom": 255.5,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -28232,6 +28487,10 @@
      "com": [
       303.4,
       711.5
+     ],
+     "grabChest": [
+      225.7,
+      364.6
      ]
     },
     "autoTuned": {
@@ -28243,7 +28502,10 @@
     },
     "edited": {
      "renderScale": 0.196,
-     "bodyBottom": 238.3
+     "bodyBottom": 238.3,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -29536,6 +29798,10 @@
      "com": [
       420.2,
       603.0
+     ],
+     "grabHand": [
+      816.0,
+      191.3
      ]
     },
     "autoTuned": {
@@ -29547,7 +29813,10 @@
     },
     "edited": {
      "renderScale": 0.207,
-     "bodyBottom": 288.2
+     "bodyBottom": 288.2,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -29569,6 +29838,10 @@
      "com": [
       480.1,
       669.6
+     ],
+     "grabChest": [
+      423.5,
+      224.8
      ]
     },
     "autoTuned": {
@@ -29579,7 +29852,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.207
+     "renderScale": 0.207,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -30907,6 +31183,10 @@
      "com": [
       474.8,
       500.7
+     ],
+     "grabHand": [
+      901.8,
+      472.8
      ]
     },
     "autoTuned": {
@@ -30918,7 +31198,10 @@
     },
     "edited": {
      "renderScale": 0.249,
-     "bodyBottom": 242.1
+     "bodyBottom": 242.1,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -30940,6 +31223,10 @@
      "com": [
       433.7,
       626.2
+     ],
+     "grabChest": [
+      392.3,
+      533.6
      ]
     },
     "autoTuned": {
@@ -30950,7 +31237,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.249
+     "renderScale": 0.249,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -32245,12 +32535,19 @@
      "com": [
       490.3,
       455.9
+     ],
+     "grabHand": [
+      926.6,
+      242.2
      ]
     },
     "edited": {
      "renderScale": 0.193,
      "bodyBottom": 310.4,
-     "ox": -335.2
+     "ox": -335.2,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -32279,12 +32576,19 @@
      "com": [
       408.2,
       585.0
+     ],
+     "grabChest": [
+      347.2,
+      239.7
      ]
     },
     "edited": {
      "renderScale": 0.193,
      "bodyBottom": 310.4,
-     "ox": -230.8
+     "ox": -230.8,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -33630,6 +33934,10 @@
      "com": [
       431.7,
       622.8
+     ],
+     "grabHand": [
+      754.9,
+      302.0
      ]
     },
     "autoTuned": {
@@ -33641,7 +33949,10 @@
     },
     "edited": {
      "renderScale": 0.217,
-     "bodyBottom": 217.4
+     "bodyBottom": 217.4,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -33663,6 +33974,10 @@
      "com": [
       361.3,
       681.1
+     ],
+     "grabChest": [
+      428.9,
+      289.4
      ]
     },
     "autoTuned": {
@@ -33674,7 +33989,10 @@
     },
     "edited": {
      "renderScale": 0.217,
-     "faceLeft": null
+     "faceLeft": null,
+     "anchors": {
+      "grabChest": null
+     }
     },
     "faceLeft": true
    },
@@ -34975,6 +35293,10 @@
      "com": [
       383.6,
       594.0
+     ],
+     "grabHand": [
+      852.6,
+      316.7
      ]
     },
     "autoTuned": {
@@ -34985,7 +35307,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.209
+     "renderScale": 0.209,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -35007,6 +35332,10 @@
      "com": [
       420.9,
       682.1
+     ],
+     "grabChest": [
+      390.3,
+      245.7
      ]
     },
     "autoTuned": {
@@ -35017,7 +35346,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.209
+     "renderScale": 0.209,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -37734,6 +38066,10 @@
      "com": [
       474.4,
       454.1
+     ],
+     "grabHand": [
+      939.2,
+      334.9
      ]
     },
     "autoTuned": {
@@ -37745,7 +38081,10 @@
     },
     "edited": {
      "renderScale": 0.261,
-     "bodyBottom": 193.3
+     "bodyBottom": 193.3,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -37767,6 +38106,10 @@
      "com": [
       487.3,
       569.0
+     ],
+     "grabChest": [
+      489.2,
+      292.7
      ]
     },
     "autoTuned": {
@@ -37777,7 +38120,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.261
+     "renderScale": 0.261,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -39163,6 +39509,10 @@
      "com": [
       463.9,
       540.6
+     ],
+     "grabHand": [
+      854.3,
+      190.8
      ]
     },
     "autoTuned": {
@@ -39174,7 +39524,10 @@
     },
     "edited": {
      "renderScale": 0.255,
-     "bodyBottom": 220.1
+     "bodyBottom": 220.1,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -39196,6 +39549,10 @@
      "com": [
       323.7,
       625.9
+     ],
+     "grabChest": [
+      433.9,
+      186.1
      ]
     },
     "autoTuned": {
@@ -39207,7 +39564,10 @@
     },
     "edited": {
      "renderScale": 0.255,
-     "faceLeft": null
+     "faceLeft": null,
+     "anchors": {
+      "grabChest": null
+     }
     },
     "faceLeft": true
    },
@@ -40580,6 +40940,10 @@
      "com": [
       408.2,
       512.1
+     ],
+     "grabHand": [
+      816.0,
+      251.5
      ]
     },
     "autoTuned": {
@@ -40591,7 +40955,10 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 249.9
+     "bodyBottom": 249.9,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -40613,6 +40980,10 @@
      "com": [
       340.0,
       554.5
+     ],
+     "grabChest": [
+      301.6,
+      261.5
      ]
     },
     "autoTuned": {
@@ -40623,7 +40994,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.25
+     "renderScale": 0.25,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -42005,6 +42379,10 @@
      "com": [
       391.3,
       721.6
+     ],
+     "grabHand": [
+      890.0,
+      468.2
      ]
     },
     "autoTuned": {
@@ -42015,7 +42393,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.292
+     "renderScale": 0.292,
+     "anchors": {
+      "grabHand": null
+     }
     }
    },
    "grabbed": {
@@ -42037,6 +42418,10 @@
      "com": [
       528.7,
       764.2
+     ],
+     "grabChest": [
+      505.0,
+      429.0
      ]
     },
     "autoTuned": {
@@ -42047,7 +42432,10 @@
      }
     },
     "edited": {
-     "renderScale": 0.292
+     "renderScale": 0.292,
+     "anchors": {
+      "grabChest": null
+     }
     }
    },
    "walk_a": {
@@ -43360,17 +43748,11 @@
     "h": 1087,
     "ox": -105.9,
     "oy": -776,
-    "bodyBottom": 230.8,
+    "bodyBottom": 260.8,
     "bodyH": 279.9,
     "centroidX": 83.4,
     "renderScale": 0.257,
     "file": "kashimo/grab_hold.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 672,
@@ -43388,6 +43770,9 @@
       "bodyBottom": "foot=0.926 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 230.8
     }
    },
    "grab_reach": {
@@ -43396,16 +43781,10 @@
     "ox": -300.9,
     "oy": -697,
     "bodyBottom": 236.7,
-    "bodyH": 259.6,
+    "bodyH": 251.9,
     "centroidX": 128.4,
-    "renderScale": 0.258,
+    "renderScale": 0.2503,
     "file": "kashimo/grab_reach.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 972,
@@ -43415,6 +43794,10 @@
      "com": [
       457.3,
       424.3
+     ],
+     "grabHand": [
+      937.7,
+      241.8
      ]
     },
     "autoTuned": {
@@ -43423,6 +43806,12 @@
       "bodyBottom": "foot=0.926 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "anchors": {
+      "grabHand": null
+     },
+     "renderScale": 0.258
     }
    },
    "grabbed": {
@@ -43431,16 +43820,10 @@
     "ox": -128.7,
     "oy": -817,
     "bodyBottom": 227.8,
-    "bodyH": 290.5,
+    "bodyH": 278.9,
     "centroidX": 158.7,
-    "renderScale": 0.258,
+    "renderScale": 0.2477,
     "file": "kashimo/grabbed.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 567,
@@ -43450,6 +43833,10 @@
      "com": [
       284.5,
       451.7
+     ],
+     "grabChest": [
+      243.1,
+      204.7
      ]
     },
     "autoTuned": {
@@ -43458,6 +43845,12 @@
       "bodyBottom": "foot=0.926 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "anchors": {
+      "grabChest": null
+     },
+     "renderScale": 0.258
     }
    },
    "teeter": {
@@ -44764,16 +45157,10 @@
     "ox": -58.3,
     "oy": -864,
     "bodyBottom": 269.5,
-    "bodyH": 293.8,
+    "bodyH": 289.3,
     "centroidX": 47.8,
-    "renderScale": 0.25,
+    "renderScale": 0.2462,
     "file": "naoya/grab_hold.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 648,
@@ -44791,6 +45178,9 @@
       "bodyBottom": "foot=0.965 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "grab_reach": {
@@ -44803,12 +45193,6 @@
     "centroidX": 164.8,
     "renderScale": 0.25,
     "file": "naoya/grab_reach.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1015,
@@ -44818,6 +45202,10 @@
      "com": [
       516.0,
       444.1
+     ],
+     "grabHand": [
+      981.7,
+      174.6
      ]
     },
     "autoTuned": {
@@ -44826,24 +45214,24 @@
       "bodyBottom": "foot=0.965 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "anchors": {
+      "grabHand": null
+     }
+    },
+    "surfacedReviewed": true
    },
    "grabbed": {
     "w": 523,
     "h": 1174,
     "ox": -112.4,
     "oy": -863,
-    "bodyBottom": 269.6,
-    "bodyH": 293.5,
+    "bodyBottom": 251.1,
+    "bodyH": 280.2,
     "centroidX": 164.4,
-    "renderScale": 0.25,
+    "renderScale": 0.2387,
     "file": "naoya/grabbed.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 523,
@@ -44853,6 +45241,10 @@
      "com": [
       268.6,
       574.3
+     ],
+     "grabChest": [
+      150.6,
+      176.7
      ]
     },
     "autoTuned": {
@@ -44861,6 +45253,13 @@
       "bodyBottom": "foot=0.965 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "anchors": {
+      "grabChest": null
+     },
+     "renderScale": 0.25,
+     "bodyBottom": 269.6
     }
    },
    "teeter": {
@@ -46167,17 +46566,11 @@
     "h": 1302,
     "ox": -277.5,
     "oy": -991,
-    "bodyBottom": 219.3,
-    "bodyH": 325.5,
+    "bodyBottom": 210.3,
+    "bodyH": 289.7,
     "centroidX": 106.0,
-    "renderScale": 0.25,
+    "renderScale": 0.2225,
     "file": "yaga/grab_hold.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 970,
@@ -46195,6 +46588,10 @@
       "bodyBottom": "foot=0.930 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 219.3
     }
    },
    "grab_reach": {
@@ -46202,17 +46599,11 @@
     "h": 1189,
     "ox": -339.0,
     "oy": -878,
-    "bodyBottom": 227.2,
-    "bodyH": 297.2,
+    "bodyBottom": 265.7,
+    "bodyH": 263.1,
     "centroidX": 167.0,
-    "renderScale": 0.25,
+    "renderScale": 0.2213,
     "file": "yaga/grab_reach.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 971,
@@ -46222,6 +46613,10 @@
      "com": [
       497.6,
       493.1
+     ],
+     "grabHand": [
+      913.7,
+      269.3
      ]
     },
     "autoTuned": {
@@ -46230,6 +46625,13 @@
       "bodyBottom": "foot=0.930 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "anchors": {
+      "grabHand": null
+     },
+     "renderScale": 0.25,
+     "bodyBottom": 227.2
     }
    },
    "grabbed": {
@@ -46237,17 +46639,11 @@
     "h": 1155,
     "ox": -144.1,
     "oy": -844,
-    "bodyBottom": 229.6,
-    "bodyH": 288.8,
+    "bodyBottom": 281.1,
+    "bodyH": 267.2,
     "centroidX": 140.1,
-    "renderScale": 0.25,
+    "renderScale": 0.2313,
     "file": "yaga/grabbed.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 635,
@@ -46257,6 +46653,10 @@
      "com": [
       301.5,
       483.5
+     ],
+     "grabChest": [
+      202.1,
+      169.3
      ]
     },
     "autoTuned": {
@@ -46265,6 +46665,13 @@
       "bodyBottom": "foot=0.930 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "anchors": {
+      "grabChest": null
+     },
+     "renderScale": 0.25,
+     "bodyBottom": 229.6
     }
    },
    "teeter": {
@@ -46272,17 +46679,11 @@
     "h": 1258,
     "ox": -368.4,
     "oy": -947,
-    "bodyBottom": 222.4,
-    "bodyH": 314.5,
+    "bodyBottom": 191.4,
+    "bodyH": 268.8,
     "centroidX": 200.4,
-    "renderScale": 0.25,
+    "renderScale": 0.2137,
     "file": "yaga/teeter.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 963,
@@ -46294,8 +46695,8 @@
       503.1
      ],
      "teeter": [
-      955.3,
-      1254.1
+      360.8,
+      1141.6
      ]
     },
     "autoTuned": {
@@ -46303,6 +46704,16 @@
      "fields": {
       "bodyBottom": "foot=0.930 (character)",
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 222.4,
+     "anchors": {
+      "teeter": [
+       955.3,
+       1254.1
+      ]
      }
     }
    },
@@ -47591,16 +48002,10 @@
     "ox": -131.8,
     "oy": -946,
     "bodyBottom": 261.5,
-    "bodyH": 309.5,
+    "bodyH": 343.6,
     "centroidX": 70.8,
-    "renderScale": 0.246,
+    "renderScale": 0.2731,
     "file": "kirara/grab_hold.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 749,
@@ -47618,24 +48023,21 @@
       "bodyBottom": "foot=0.961 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.246
     }
    },
    "grab_reach": {
     "w": 875,
     "h": 1076,
-    "ox": -320.9,
+    "ox": -288.4,
     "oy": -765,
     "bodyBottom": 268.6,
-    "bodyH": 264.9,
+    "bodyH": 323.2,
     "centroidX": 196.9,
-    "renderScale": 0.246,
+    "renderScale": 0.3001,
     "file": "kirara/grab_reach.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 875,
@@ -47645,6 +48047,10 @@
      "com": [
       477.7,
       459.9
+     ],
+     "grabHand": [
+      847.4,
+      204.2
      ]
     },
     "autoTuned": {
@@ -47653,6 +48059,13 @@
       "bodyBottom": "foot=0.961 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "anchors": {
+      "grabHand": null
+     },
+     "renderScale": 0.246,
+     "ox": -320.9
     }
    },
    "grabbed": {
@@ -47665,12 +48078,6 @@
     "centroidX": 145.5,
     "renderScale": 0.246,
     "file": "kirara/grabbed.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 615,
@@ -47680,6 +48087,10 @@
      "com": [
       295.3,
       582.2
+     ],
+     "grabChest": [
+      236.3,
+      234.7
      ]
     },
     "autoTuned": {
@@ -47688,7 +48099,13 @@
       "bodyBottom": "foot=0.961 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "anchors": {
+      "grabChest": null
+     }
+    },
+    "surfacedReviewed": true
    },
    "teeter": {
     "w": 827,
@@ -49054,8 +49471,8 @@
       420.2
      ],
      "grabHand": [
-      810.9,
-      186.1
+      810.6,
+      206.4
      ]
     },
     "autoTuned": {
@@ -49078,16 +49495,10 @@
     "ox": -259.1,
     "oy": -905,
     "bodyBottom": 257.8,
-    "bodyH": 304.0,
+    "bodyH": 345.1,
     "centroidX": 192.1,
-    "renderScale": 0.25,
+    "renderScale": 0.2838,
     "file": "haruta/grabbed.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 761,
@@ -49097,6 +49508,10 @@
      "com": [
       415.8,
       516.8
+     ],
+     "grabChest": [
+      354.2,
+      196.2
      ]
     },
     "autoTuned": {
@@ -49105,6 +49520,12 @@
       "bodyBottom": "foot=0.956 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "anchors": {
+      "grabChest": null
+     },
+     "renderScale": 0.25
     }
    },
    "teeter": {
@@ -50438,17 +50859,11 @@
     "h": 1246,
     "ox": -286.5,
     "oy": -935,
-    "bodyBottom": 278.8,
-    "bodyH": 303.7,
+    "bodyBottom": 230.8,
+    "bodyH": 334.1,
     "centroidX": 164.0,
-    "renderScale": 0.244,
+    "renderScale": 0.2684,
     "file": "tengen/grab_hold.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 872,
@@ -50466,6 +50881,10 @@
       "bodyBottom": "foot=0.974 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.244,
+     "bodyBottom": 278.8
     }
    },
    "grab_reach": {
@@ -50473,17 +50892,11 @@
     "h": 1170,
     "ox": -308.7,
     "oy": -859,
-    "bodyBottom": 280.7,
-    "bodyH": 285.1,
+    "bodyBottom": 241.2,
+    "bodyH": 335.0,
     "centroidX": 156.2,
-    "renderScale": 0.244,
+    "renderScale": 0.2867,
     "file": "tengen/grab_reach.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 932,
@@ -50493,6 +50906,10 @@
      "com": [
       464.3,
       545.4
+     ],
+     "grabHand": [
+      839.2,
+      257.2
      ]
     },
     "autoTuned": {
@@ -50501,6 +50918,13 @@
       "bodyBottom": "foot=0.974 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "anchors": {
+      "grabHand": null
+     },
+     "renderScale": 0.244,
+     "bodyBottom": 280.7
     }
    },
    "grabbed": {
@@ -50508,17 +50932,11 @@
     "h": 1406,
     "ox": -142.4,
     "oy": -1095,
-    "bodyBottom": 274.6,
-    "bodyH": 342.6,
+    "bodyBottom": 229.1,
+    "bodyH": 356.4,
     "centroidX": 117.9,
-    "renderScale": 0.244,
+    "renderScale": 0.2538,
     "file": "tengen/grabbed.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 676,
@@ -50528,6 +50946,10 @@
      "com": [
       299.8,
       651.5
+     ],
+     "grabChest": [
+      236.9,
+      269.1
      ]
     },
     "autoTuned": {
@@ -50536,6 +50958,13 @@
       "bodyBottom": "foot=0.974 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "anchors": {
+      "grabChest": null
+     },
+     "renderScale": 0.244,
+     "bodyBottom": 274.6
     }
    },
    "teeter": {
@@ -51856,19 +52285,13 @@
    "grab_hold": {
     "w": 770,
     "h": 929,
-    "ox": -227.2,
+    "ox": -215.7,
     "oy": -618,
     "bodyBottom": 243.8,
-    "bodyH": 234.6,
+    "bodyH": 375.4,
     "centroidX": 155.7,
-    "renderScale": 0.253,
+    "renderScale": 0.4048,
     "file": "miwa/grab_hold.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 770,
@@ -51886,6 +52309,10 @@
       "bodyBottom": "foot=0.928 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.253,
+     "ox": -227.2
     }
    },
    "grab_reach": {
@@ -51894,16 +52321,10 @@
     "ox": -310.7,
     "oy": -567,
     "bodyBottom": 247.5,
-    "bodyH": 221.7,
+    "bodyH": 354.7,
     "centroidX": 124.2,
-    "renderScale": 0.253,
+    "renderScale": 0.4048,
     "file": "miwa/grab_reach.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1000,
@@ -51913,6 +52334,10 @@
      "com": [
       467.9,
       349.9
+     ],
+     "grabHand": [
+      950.7,
+      194.9
      ]
     },
     "autoTuned": {
@@ -51921,6 +52346,12 @@
       "bodyBottom": "foot=0.928 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "anchors": {
+      "grabHand": null
+     },
+     "renderScale": 0.253
     }
    },
    "grabbed": {
@@ -51933,12 +52364,6 @@
     "centroidX": 120.4,
     "renderScale": 0.253,
     "file": "miwa/grabbed.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 634,
@@ -51948,6 +52373,10 @@
      "com": [
       281.1,
       633.4
+     ],
+     "grabChest": [
+      218.7,
+      253.6
      ]
     },
     "autoTuned": {
@@ -51956,7 +52385,13 @@
       "bodyBottom": "foot=0.928 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "anchors": {
+      "grabChest": null
+     }
+    },
+    "surfacedReviewed": true
    },
    "teeter": {
     "w": 944,
@@ -77786,8 +78221,8 @@
     "dx": null,
     "dy": null
    },
-   "dx": -2,
-   "dy": 0.1,
+   "dx": 0.5,
+   "dy": 6.1,
    "fadeIn": 0.04,
    "src": {
     "file": "assets/sprites/effects/star_bolt.png",
@@ -77799,8 +78234,8 @@
     "dx": null,
     "dy": null
    },
-   "dx": 1.3,
-   "dy": 0.5,
+   "dx": 0.5,
+   "dy": 1.7,
    "fadeIn": 0.04,
    "src": {
     "file": "assets/sprites/effects/star_debris.png",
@@ -77826,8 +78261,8 @@
     "dx": null,
     "dy": null
    },
-   "dx": -0.4,
-   "dy": 29.3,
+   "dx": 70.4,
+   "dy": 5.3,
    "src": {
     "file": "assets/sprites/summons/cathy.png",
     "sha": "60fc9cc1938e"
@@ -77852,7 +78287,7 @@
     "dx": null,
     "dy": null
    },
-   "renderScale": 0.4,
+   "renderScale": 0.25,
    "dx": 0.3,
    "dy": -0.3,
    "src": {
@@ -77906,7 +78341,9 @@
   },
   "effect:doll_needle": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
    "faceLeft": true,
    "hit": {
@@ -77917,7 +78354,9 @@
    "src": {
     "file": "assets/sprites/effects/doll_needle.png",
     "sha": "50782cdde6e3"
-   }
+   },
+   "dx": 114.4,
+   "dy": -19.6
   },
   "effect:drop_futon": {
    "edited": {
@@ -78008,6 +78447,32 @@
   },
   "stagefx:stage_fang": {
    "surfacedReviewed": true
+  },
+  "effect:hand_sword": {
+   "edited": {
+    "renderScale": null,
+    "dx": null,
+    "dy": null
+   },
+   "renderScale": 0.46,
+   "dx": 0.4,
+   "dy": -1.5,
+   "src": {
+    "file": "assets/sprites/effects/hand_sword.png",
+    "sha": "809ca5307baf"
+   }
+  },
+  "effect:nyoi_staff": {
+   "edited": {
+    "renderScale": null,
+    "rotationDeg": null
+   },
+   "renderScale": 0.735,
+   "rotationDeg": 1.5,
+   "src": {
+    "file": "assets/sprites/effects/nyoi_staff.png",
+    "sha": "abe0d4417607"
+   }
   }
  }
 }

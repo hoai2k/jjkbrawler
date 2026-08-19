@@ -165,8 +165,17 @@ export function anchorProvider(name) {
           };
         }
         if (!Object.keys(out).length) return null;
-        return "// python3 tools/apply_sprite_adjustments.py <file>\n"
-             + JSON.stringify({ characters: out }, null, 2);
+        // THE SHAPE tools/apply_sprite_adjustments.py READS, which is a list of
+        // { character, adjustments } — not the { characters: {...} } tree the
+        // first version emitted. And NO LEADING COMMENT: load_payloads skips a
+        // file whose first character is `/` outright (it is how the workbench's
+        // "// no changes" placeholder is tolerated), so a helpful header turned
+        // the whole export into a silent no-op. Both faults cost a hand
+        // conversion of 68 points before anybody noticed the file did nothing.
+        return JSON.stringify(
+          Object.entries(out).sort(([a], [b]) => a.localeCompare(b))
+            .map(([character, adjustments]) => ({ character, adjustments })),
+          null, 2);
       },
     };
   };
