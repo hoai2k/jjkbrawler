@@ -12,13 +12,18 @@ import { state } from "./state.js";
 import { paintedHeight } from "./shared_sprites.js";
 import { paintShared } from "./shared_paint.js";
 import { spawnOffset } from "./muzzle.js";
-import { clamp, sign, rand, chance } from "./utils.js";
+import { clamp, sign } from "./utils.js";
 // The scaled spawns: kit blocks author oy/h for the reference body, and these
 // wrappers size them to the caster (combat.js spawnMeleeScaled) — the same
 // height-normalisation moves.js applies to normals.
-import { spawnMeleeScaled as spawnMelee, spawnProjectileScaled as spawnProjectile, opponentOf, applyHit, hurtbox, applyStatus, ownerStick, debugShape } from "./combat.js";
+import {
+  spawnMeleeScaled as spawnMelee, spawnProjectileScaled as spawnProjectile, opponentOf,
+  applyHit, hurtbox, applyStatus, ownerStick, debugShape,
+} from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
-import { playSfx, playGrunt, moveCallFor, spokenLead, spokenCommitAt, cutSfx, playCutGrunt } from "./audio.js";
+import {
+  playSfx, playGrunt, moveCallFor, spokenLead, spokenCommitAt, cutSfx, playCutGrunt,
+} from "./audio.js";
 import { METER_MAX } from "./constants.js";
 import { rectsOverlap, circleRectOverlap } from "./utils.js";
 import { getImage } from "./assets.js";

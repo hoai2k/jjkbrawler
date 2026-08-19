@@ -32,8 +32,10 @@ import { drawCharFrame, currentFrame } from "../src/sprites.js";
 import { loadFrame, getImage, loadSharedImage } from "../../src/assets.js";
 import { bodyMetrics } from "../../src/silhouette.js";
 import { spawnOffset, REFERENCE_MUZZLE } from "../../src/muzzle.js";
-import { meteorAt, METEOR_FALL, sharedAdjust, sharedAttack, paintedHeight,
-         AURA_H, AURA_PULSE, AURA_FOOT_DY } from "../../src/shared_sprites.js";
+import {
+  meteorAt, METEOR_FALL, sharedAdjust, sharedAttack, paintedHeight, AURA_H, AURA_PULSE,
+  AURA_FOOT_DY,
+} from "../../src/shared_sprites.js";
 import { paintShared } from "../../src/shared_paint.js";
 import { SUMMON_ANIMS, SUMMON_POSES } from "../../src/config_summons.js";
 import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";

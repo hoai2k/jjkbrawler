@@ -12,10 +12,14 @@
 // hook rather than as an import — which is what keeps this module off the
 // cycle that would otherwise run picker → workbench → picker.
 
-import { loadFrame, frameImage, frameMeta, loadSpriteFile, spriteFileImage } from "../../src/assets.js";
-import { variantsOf } from "../src/sprites.js";
+import {
+  loadFrame, frameImage, frameMeta, loadSpriteFile, spriteFileImage,
+} from "../../src/assets.js";
 import { $, canvas, state } from "./bench_state.js";
-import { frameLabel, statesUsing, allFramesOf, poseVariants, variantEntry, poseView, variantFlagEdits, remember, needsReplacement } from "./bench_model.js";
+import {
+  frameLabel, statesUsing, allFramesOf, poseVariants, variantEntry, poseView,
+  variantFlagEdits, remember,
+} from "./bench_model.js";
 
 /** Repaint the pose list and the panel after a flag written from a tile. Set
  *  once at boot by workbench.js; the picker never imports it, so this module
@@ -258,6 +262,12 @@ export function cancelDwell() {
   clearTimeout(dwellTimer);
   dwellTimer = 0;
 }
+
+// -------------------------------------------------- the tile context menu
+//
+// Right-click asks about the DRAWING under the cursor rather than the pose in
+// the panel, which is the only place that question can be asked of art the
+// pose is not using — a bad alternate is invisible everywhere else.
 
 export function closePickerMenu() {
   document.getElementById("pickerMenu")?.remove();

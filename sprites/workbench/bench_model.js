@@ -10,8 +10,12 @@
 // It sits above bench_state.js (the canvas, the geometry, the mutable `state`)
 // and below workbench.js (the viewer, the panels, the wiring).
 
-import { spriteManifest, sharedSpriteKeys, getImage, frameMeta } from "../../src/assets.js";
-import { anchorLocal, anchorsForFrame, statesUsingFrame, animsOf, drawnByFallbackOnly, EXTRA_ANCHORS, REPLACEMENT_KINDS, replacementKind, improvementKind, variantsOf, VARIANT_BANKED, VARIANT_ONLY_KINDS } from "../src/sprites.js";
+import { spriteManifest, sharedSpriteKeys, getImage } from "../../src/assets.js";
+import {
+  anchorLocal, anchorsForFrame, statesUsingFrame, drawnByFallbackOnly, EXTRA_ANCHORS,
+  REPLACEMENT_KINDS, replacementKind, improvementKind, variantsOf, VARIANT_BANKED,
+  VARIANT_ONLY_KINDS,
+} from "../src/sprites.js";
 import { sharedSpriteInfo, SPRITE_LIST_KEY_FIELDS } from "../../src/shared_sprites.js";
 import { PIVOTED_STATES } from "../../src/motion.js";
 import { WORLD } from "../../src/constants.js";
@@ -19,7 +23,10 @@ import { CHARACTERS, getActor } from "../../src/characters.js";
 import { TRANSFORM_POSES, TRANSFORM_POSE_ALTERNATIVES } from "../../src/config_transform.js";
 import { headHeightTarget, applyHeightScale, measuredIdleSpan } from "../../src/heights.js";
 import { actorPosesReady } from "../../src/ultimates.js";
-import { $, canvas, EDITABLE, KIND_FIELDS, BOOLEAN_FIELDS, TEXT_FIELDS, STATE_ORDER, stateLabel, stateRank, OTHER_KEY, OTHER_LABEL, ACTOR_KEYS, WB_FIGHTERS, isOther, isActor, state } from "./bench_state.js";
+import {
+  $, EDITABLE, KIND_FIELDS, BOOLEAN_FIELDS, TEXT_FIELDS, stateLabel, stateRank, OTHER_KEY,
+  OTHER_LABEL, ACTOR_KEYS, WB_FIGHTERS, isOther, isActor, state,
+} from "./bench_state.js";
 
 // What the pose list shows. These filter on what is SAVED in the codebase, not
 // on what you have done since the page loaded — "unedited" means "no adjustment
@@ -1248,3 +1255,13 @@ export function sharedControls(key) {
     hovers: info.hovers || null,
   };
 }
+
+/** The frames the kit itself gives this state, ignoring any override. */
+export function originalAnimFrames(charKey, stateName) {
+  return state.originalAnims[charKey]?.[stateName] ?? null;
+}
+
+// Decisions made this session, exported as `approvals`. Kept apart from the
+// numbers because it is a different kind of change: not "this pose moved" but
+// "this drawing is the one the game should use from now on".
+export const approvalSettled = new Map();

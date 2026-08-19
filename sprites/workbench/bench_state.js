@@ -33,6 +33,12 @@ export const PLATFORM_W = 680;
 // middle of it. `canvas` is not defined yet at module scope, so this is a
 // getter rather than a constant.
 export const platformX = () => canvas.width / 2 - PLATFORM_W / 2;
+/** The grab handles on the canvas — a drag target big enough to hit and small
+ *  enough not to hide what it is placing. */
+export const HANDLE_R = 7;
+/** One decimal place, which is as fine as any of these numbers is read. */
+export const round1 = (v) => Math.round(v * 10) / 10;
+
 export const BENCHMARK_INSET = 78;
 export const CELL_W = 313.5;
 
