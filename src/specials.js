@@ -767,7 +767,12 @@ const HANDLERS = {
           const h = (p.spriteH || 150) * (0.6 + prog * 0.5);
           const w = img.width * h / img.height;
           const adj = sharedAdjust(p.sprite);
-          ctx.drawImage(img, tx - w / 2 + adj.dx, ty - h / 2 + adj.dy, w, h);
+          // The standing tilt, about the point it is painted on. Every other
+          // spawn site reads it and this one did not, so a rotation set on this
+          // drawing in the workbench was stored, shown there, and ignored here.
+          ctx.translate(tx, ty);
+          if (adj.rot) ctx.rotate(adj.rot);
+          ctx.drawImage(img, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
         } else {
           ctx.strokeStyle = p.color;
           ctx.lineWidth = 3;
@@ -816,7 +821,11 @@ const HANDLERS = {
           const w = img.width * h / img.height;
           const adj = sharedAdjust(p.sprite);
           ctx.globalAlpha = 0.6 * fade;
-          ctx.drawImage(img, this.x - w / 2 + adj.dx, this.y - h + adj.dy, w, h);
+          // About its own foot, so a tilt leans the cloud rather than sliding
+          // it off the point it was planted on.
+          ctx.translate(this.x, this.y);
+          if (adj.rot) ctx.rotate(adj.rot);
+          ctx.drawImage(img, -w / 2 + adj.dx, -h + adj.dy, w, h);
         } else {
           ctx.globalAlpha = 0.3 * fade;
           ctx.fillStyle = p.color;
@@ -1086,6 +1095,9 @@ function spawnSummonFlash(owner, spriteKey, duration, height, forward) {
       ctx.shadowBlur = 18;
       // Inside the mirrored frame, so the nudge follows the drawing rather
       // than reversing when the fighter turns round (render.js does the same).
+      // The tilt is in there with it, for the same reason and because a
+      // control the workbench offers has to reach the screen.
+      if (adj.rot) ctx.rotate(adj.rot);
       ctx.drawImage(img, -w / 2 + adj.dx, -h + adj.dy, w, h);
       ctx.restore();
     },
@@ -1168,7 +1180,12 @@ function makeTrap(owner, x, groundY, p, name) {
           ctx.globalAlpha = Math.min(1, fade * 1.35);
           ctx.shadowColor = this.color;
           ctx.shadowBlur = 14;
-          ctx.drawImage(sprite, this.x - w / 2 + adj.dx, this.y - h + adj.dy, w, h);
+          // About its own foot: a trap leans out of the ground, it does not
+          // slide along it. The last of the four spawn sites that were storing
+          // a tilt and never drawing one.
+          ctx.translate(this.x, this.y);
+          if (adj.rot) ctx.rotate(adj.rot);
+          ctx.drawImage(sprite, -w / 2 + adj.dx, -h + adj.dy, w, h);
           ctx.restore();
           return;
         }

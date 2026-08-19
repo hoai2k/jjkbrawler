@@ -36,6 +36,7 @@ import { meteorAt, METEOR_FALL, sharedAdjust, sharedAttack,
          AURA_H, AURA_PULSE, AURA_FOOT_DY } from "../../src/shared_sprites.js";
 import { SUMMON_ANIMS, SUMMON_POSES } from "../../src/config_summons.js";
 import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
+import { WORLD } from "../../src/constants.js";
 
 /**
  * Every fighter with a kit, INCLUDING the ones not on the roster yet.
@@ -49,6 +50,37 @@ import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
  */
 const KIT_KEYS = [...CHARACTER_KEYS,
                   ...STAGED_CHARACTER_KEYS.filter((k) => CHARACTERS[k])];
+
+/**
+ * A kit node with its AUTHORED heights, before the workbench's size was folded
+ * into them.
+ *
+ * `applySharedSpriteScales` (src/shared_sprites.js) multiplies a drawing's
+ * renderScale into the height its kit declares — `spriteH` becomes 104 where
+ * the kit said 260 and the workbench says 0.4 — and keeps the original as
+ * `spriteHBase`. Every spawn site in the game therefore reads a height with the
+ * size ALREADY IN IT and never touches `adj.scale` again.
+ *
+ * This canvas was reading the folded number and multiplying by the scale a
+ * second time, so a drawing sized to 0.4 was previewed at 0.16 of its plate
+ * while the game drew it at 0.4 — the numbers you set here and the picture the
+ * match shows disagreed, silently, on every drawing anybody had resized.
+ *
+ * Unfolding here rather than dropping the multiply keeps the slider LIVE: the
+ * playback re-reads the adjustment every frame, and `use.p` is a snapshot taken
+ * when the preview opened, so a folded height would freeze at whatever the size
+ * was when you pressed Play.
+ */
+const HEIGHT_FIELDS = ["spriteH", "h", "orbSpriteH"];
+function authored(node) {
+  if (!node || typeof node !== "object") return node;
+  const out = { ...node };
+  for (const field of HEIGHT_FIELDS) {
+    const base = node[`${field}Base`];
+    if (Number.isFinite(base)) out[field] = base;
+  }
+  return out;
+}
 
 /** The animation state each special slot plays (src/specials.js). */
 const SLOT_STATE = { neutral: "specialNeutral", side: "specialSide", down: "specialDown" };
@@ -393,7 +425,7 @@ const DIRECTORS = {
  */
 /** An install's aura, or a rampage's body: art painted ON the fighter. */
 function wornUse(charKey, slot, spec, spriteKey) {
-  const p = spec?.p;
+  const p = authored(spec?.p);
   if (!p) return null;
   const kind = p.aura === spriteKey ? "aura"
     : (DIRECTORS[spec.type] ? null : (spec.type === "rampage" && p.sprite === spriteKey ? "rampage" : null));
@@ -491,7 +523,7 @@ export function firingUse(spriteKey, preferChar) {
     const drop = ULT_DROPS[ult?.type];
     if (drop && ult?.p?.sprite === spriteKey) {
       return {
-        charKey, slot: "ult", spec: ult, p: drop(ult.p), state: "ult", mode: "drop",
+        charKey, slot: "ult", spec: ult, p: drop(authored(ult.p)), state: "ult", mode: "drop",
         name: ult.name || spriteKey,
         muzzleScale: bodyMetrics(charKey).height / HEIGHT_BASE_PX,
       };
@@ -506,10 +538,10 @@ export function firingUse(spriteKey, preferChar) {
       return {
         charKey, slot: "ult", spec: ult, mode: "director", state: "ult",
         name: ult.name || spriteKey,
-        p: { ...ult.p, ...director(ult.p) },
+        p: { ...authored(ult.p), ...director(authored(ult.p)) },
       };
     }
-    const shots = ULT_SHOTS[ult?.type] ? ULT_SHOTS[ult.type](ult.p) : [];
+    const shots = ULT_SHOTS[ult?.type] ? ULT_SHOTS[ult.type](authored(ult.p)) : [];
     const shot = shots.find((x) => x.sprite === spriteKey);
     if (shot) {
       const p = shot.p;
@@ -522,7 +554,7 @@ export function firingUse(spriteKey, preferChar) {
       };
     }
     for (const [slot, spec] of Object.entries(c?.specials || {})) {
-      const p = spec?.p;
+      const p = authored(spec?.p);
       // `sprite` names the one drawing a move throws; `spritePool` names four
       // it picks between, one per shot — Geto's volley throws a random cursed
       // spirit. Both are thrown by the same handler from the same muzzle, so
@@ -533,7 +565,10 @@ export function firingUse(spriteKey, preferChar) {
       // A DROP names its art per object rather than on the move: three
       // different things fall out of one special, each with its own size.
       if (DROP_MOVES.has(spec.type)) {
-        const d = (p?.drops || []).find((x) => x.key === spriteKey)
+        // `authored` again on the entry itself: a drop declares its own `h`
+        // per object (`{ key, w, h }`) and the fold lands on that, not on the
+        // move above it.
+        const d = authored((p?.drops || []).find((x) => x.key === spriteKey))
           ?? (p?.sprite === spriteKey ? { key: spriteKey, name: p.label, h: p.spriteH, w: p.r * 2 } : null);
         if (d) {
           return {
@@ -600,6 +635,9 @@ export function firingUse(spriteKey, preferChar) {
       const solved = spawnOffset(charKey, state, p.ox, p.oy);
       return {
         charKey, slot, spec, p, state,
+        // Whether combat.js will plant this shot on the floor and render.js
+        // will drop its picture the rest of the way. See shotAt / drawShot.
+        wave: spec.type === "wave",
         name: spec.name || p.label || spriteKey,
         ox: Number.isFinite(p.ox) ? p.ox : DEFAULT_OX,
         oy: Number.isFinite(p.oy) ? p.oy : DEFAULT_OY,
@@ -695,15 +733,21 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     const dir = 1; // the preview always fires to the right
     const m = solve(adj.spawnOx ?? use.ox, adj.spawnOy ?? use.oy);
     const x0 = FIGHTER_X + dir * m.x;
-    const y0 = GROUND + m.y;
-    const g = use.p.gravity || 0;
+    // A WAVE DOES NOT LEAVE THE HAND. `spawnProjectile` puts an ordinary shot
+    // at the muzzle, and then combat.js overrides a wave's y outright —
+    // `p.y = groundY - p.r * 0.7` — because a wave is a thing that rides the
+    // floor. Previewing it at chest height, where its `oy` says it starts, drew
+    // Gakuganji's chords and Dagon's tides a body's height above the ground
+    // they sweep along.
+    const y0 = use.wave ? GROUND - (use.p.r || 0) * 0.7 : GROUND + m.y;
+    const g = use.wave ? 0 : (use.p.gravity || 0);
     const home = { x0, y0, source: m.source };
     // A shot that chases nobody has a closed form; a shot with `homing` does
     // not — combat.js bends it a little every frame toward the target, so the
     // only honest way to draw the path is to walk it the way the game walks it
     // (src/combat.js, the homing block). Fixed step so the same `age` always
     // lands in the same place however the browser paces its frames.
-    let x = x0, y = y0, vx = dir * (use.p.speed || 500), vy = use.p.vy || 0;
+    let x = x0, y = y0, vx = dir * (use.p.speed || 500), vy = use.wave ? 0 : (use.p.vy || 0);
     if (!use.p.homing) {
       return { ...home, x: x0 + vx * age, y: y0 + vy * age + 0.5 * g * age * age,
                vx, vy: vy + g * age };
@@ -830,10 +874,17 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     return drawn[Math.floor(t * fps) % drawn.length];
   }
 
-  function drawSummon(adj) {
+  function drawSummon(liveAdj) {
     const c = use.cfg;
     const s = summonAt(t);
     const img = summonImage(s.anim);
+    // WHICH DRAWING THE DIALS BELONG TO. A creature preview edits the
+    // creature; a SHOT preview edits the shot, and the creature is only there
+    // for scale — so it is drawn from its own stored numbers, not from the
+    // ones being dragged. Getting this backwards is what made dragging the
+    // needle's marker walk Yaga's doll across the stage while the needle
+    // stayed put.
+    const adj = use.shotSprite ? sharedAdjust(use.body || use.spriteKey) : liveAdj;
     const h = (c.h ?? 110) * (adj.scale || 1);
 
     // The ring the game tightens under an arriving summon.
@@ -908,19 +959,22 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       // it over one that HAS been delivered was hiding the very thing this
       // preview is open to check. The live adjustment rides along when the
       // shot is the drawing under review.
-      const p = c.attack?.projectile || {};
+      // The creature's own shot, at the height its kit AUTHORED — the fold is
+      // in `spriteH` here as much as anywhere else.
+      const p = authored(c.attack?.projectile) || {};
       const flight = s.shot * (c.attack?.cd ?? 1.0);
       const x = s.x + (p.speed || 560) * flight;
       const y = s.y + flight * 90;
       const mine = use.shotSprite === p.sprite;
+      const shotAdj = mine ? liveAdj : sharedAdjust(p.sprite);
       const img = p.sprite ? getImage(p.sprite) : null;
       ctx.save();
       ctx.globalAlpha = 0.9;
       if (img) {
-        const h = (p.spriteH || 46) * (mine ? (adj.scale || 1) : 1);
+        const h = (p.spriteH || 46) * (shotAdj.scale || 1);
         const w = img.width * h / img.height;
-        ctx.translate(x + (mine ? adj.dx : 0), y + (mine ? adj.dy : 0));
-        if (mine && adj.rot) ctx.rotate(adj.rot);
+        ctx.translate(x + (shotAdj.dx || 0), y + (shotAdj.dy || 0));
+        if (shotAdj.rot) ctx.rotate(shotAdj.rot);
         ctx.drawImage(img, -w / 2, -h / 2, w, h);
       } else {
         ctx.fillStyle = p.color || c.color || "#8fd3ff";
@@ -993,7 +1047,15 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
    *  on the stage: a shot's muzzle, or the top of a drop's fall. */
   const originAt = (adj) => (use.mode === "drop" ? dropAt(use.p.delay + use.p.fall)
     : use.mode === "flash" ? flashAt(0)
-    : use.mode === "summon" ? { x0: FIGHTER_X - (use.cfg.backOff ?? 60), y0: GROUND }
+    : use.mode === "summon"
+      // A SHOT leaves the creature, so its marker belongs on the creature's
+      // firing position — dragging it there moves the needle, which is the
+      // drawing on the bench. The creature's own marker is its feet, where it
+      // is put down.
+      ? (use.shotSprite
+        ? { x0: FIGHTER_X - (use.cfg.hover?.back ?? 70),
+            y0: GROUND - (use.cfg.hover?.up ?? 150) }
+        : { x0: FIGHTER_X - (use.cfg.backOff ?? 60), y0: GROUND })
     : use.mode === "planted" ? plantedAt(use.p.armed)
     : use.mode === "worn" ? wornAt()
     : use.mode === "director" ? directorAt(0)
@@ -1028,7 +1090,10 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // the drawing — showing it at full opacity would be showing something the
     // game never draws.
     if (pos.alpha != null) ctx.globalAlpha *= pos.alpha;
-    ctx.translate(pos.x, pos.y);
+    // render.js paints a wave `r * 0.68` BELOW the point it collides on, so the
+    // crest sits above the floor line and the body of it washes along the
+    // ground. The same offset here, or the picture and the crosshair disagree.
+    ctx.translate(pos.x, pos.y + (use.wave ? (use.p.r || 0) * 0.68 : 0));
     // A dropped drawing is painted upright — its director never mirrors it and
     // never turns it into its fall, so the only tilt it has is the standing
     // one, and previewing it under the projectile's flight rotate would show a
@@ -1104,8 +1169,13 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
         drew = true;
         const cover = Math.max(canvas.width / img.width, canvas.height / img.height);
         const w = img.width * cover, h = img.height * cover;
-        ctx.drawImage(img, (canvas.width - w) / 2 + (adj.dx || 0),
-          (canvas.height - h) / 2 + (adj.dy || 0), w, h);
+        // The pan is stored in WORLD pixels — drawDomainBackdrop applies it to
+        // a 1280x720 frame — and this canvas is smaller, so it has to be
+        // scaled or a nudge that shifts the plate a tenth of the stage would
+        // look like a third of it here.
+        const k = canvas.width / WORLD.w;
+        ctx.drawImage(img, (canvas.width - w) / 2 + (adj.dx || 0) * k,
+          (canvas.height - h) / 2 + (adj.dy || 0) * k, w, h);
       }
     }
     ctx.strokeStyle = "#2c3654";

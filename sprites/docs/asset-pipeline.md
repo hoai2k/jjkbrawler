@@ -613,6 +613,50 @@ another scatters that work exactly the way an overwrite does.
 selects a delivered alternate over the art a pose was pointing at, because the
 pose's numbers stop applying just the same.
 
+#### What the action player is FOR, and what it promises
+
+"Play it in action" exists so a shared drawing can be placed against the thing
+the game does with it, and the only thing that makes it worth anything is
+fidelity: the height, the anchor, the mirroring, the layer order and the nudge
+have to be the ones the real spawn site uses. An audit of it in one sitting
+turned up five ways it was lying, and each is worth knowing about because each
+is the shape the next one will take:
+
+- **The size was applied twice.** `applySharedSpriteScales` folds a drawing's
+  `renderScale` into the height its kit declares (`spriteH` 260 becomes 104 at
+  0.4×) and keeps the authored number as `spriteHBase`. Every spawn site reads
+  the folded height and never touches the scale again — and the player read the
+  folded height and multiplied by the scale a second time, so anything anybody
+  had resized was previewed at scale² of its plate. It now unfolds to the
+  authored height and applies the scale once, which is both correct and live.
+- **The drawing under review was not the one the dials moved.** A creature's
+  own projectile is previewed by playing the creature that fires it; dragging
+  the marker moved the CREATURE, because the playback applied the live
+  adjustment to whatever it drew first. The body now draws from its own stored
+  numbers and the live ones follow the drawing that is actually on the bench.
+- **A wave was previewed in mid-air.** `combat.js` overrides a wave's y to
+  `groundY - r * 0.7` and `render.js` paints it `r * 0.68` lower still, because
+  a wave rides the floor. The player put it at the muzzle its `oy` names.
+- **Everything was painted over the fighter**, where the game paints every
+  shared drawing behind them.
+- **One anchor described neither of its uses.** `stagefx:stage_fang` is drawn
+  from the platform line UP, so it grows out of the floor; the registry called
+  it centre-anchored and the bench swelled it about its middle.
+
+The same pass found the mismatch in the other direction — a control the bench
+offered that the game ignored, and one the game honoured that the bench hid.
+Four spawn sites (the warp strike, the cloud field, `spawnSummonFlash` and the
+trap) plus the four stage hazards were storing a rotation and never drawing
+one, so they read it now; and a domain backdrop, which the bench said could not
+be moved at all, has always been panned by `dx`/`dy` in `drawDomainBackdrop` —
+a real choice about which part of an over-wide plate shows, and the only one
+those nine drawings have.
+
+`node tools/check_effect_previews.mjs` guards the first question (is there a
+preview, and does it paint anything). The rest of this is arithmetic that no
+check can see: when a new spawn shape is added, the honest test is to open the
+handler and the player side by side.
+
 #### Shared art is on the same list, for a different reason
 
 An effect or a summon has no intake marker to carry: a delivery overwrites those
@@ -858,9 +902,14 @@ that differed. Hanami's round-6 tree design was the first and the only one.
 It is gone. Round 17A redrew him to canon, that set was approved, and one
 toggle serving one retired design is not a feature worth carrying — so the
 manifest key, the loader path and the Settings button all came out together.
-The eight frames and their measurements are archived at
-[`assets/reference/hanami_alt/`](../../assets/reference/hanami_alt/), whose
-README says what would be involved in bringing it back.
+The eight frames are kept at
+[`assets/reference/hanami_alt/`](../../assets/reference/hanami_alt/) as a
+record of art that shipped for a while, and nothing else: the design is
+retired for good, and the last six references to it — dead variant options on
+four sheet-era poses, pointing at files that moved out of the sprite tree with
+the feature — came out of the manifest with it. They were the one thing
+`tools/canonicalise_sprites.py` refused on, so the names could not be put back
+on the drawings while they were there.
 
 Not to be confused with a pose's **variants**, which are alive and are a
 different thing: several drawings of ONE pose, chosen between in the workbench

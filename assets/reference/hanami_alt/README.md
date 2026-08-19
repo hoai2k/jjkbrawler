@@ -34,20 +34,19 @@ what remains is these files.
 action. They are what the frames were called; they are not poses any current
 code knows about.
 
-## If it ever needs to come back
+## It is not coming back
 
-The frames and their measurements are complete, so this is recoverable — but
-the code that read them is not here. Restoring it means: putting the PNGs back
-under `sprites/assets/hanami_alt/`, merging `manifest-alternates.json` back into
-the sprite manifest as `alternates`, and reinstating the loader and Settings
-paths (`spriteSet` / `setSpriteSet` / `hasAlternate` in `src/assets.js`, the
-`settingsSpritesButton` handler in `src/ui.js`). The commit that removed them is
-the reference for what that was.
+Retired for good, said here so nobody has to work it out from the silence. The
+last references to it — six dead variant options on four sheet-era poses,
+pointing at files that left the sprite tree with the feature — came out of
+`sprites/assets/manifest.json` when the design was written off; they were also
+the one thing `tools/canonicalise_sprites.py` refused on, so the whole roster's
+drawings could not be given their canonical names while they were there.
 
-Worth knowing before doing any of that: the alternate-set path had a real bug in
-it, fixed once and documented at `nativeLeftApplies()` in `src/assets.js` — a
-`nativeLeft` guess measured against the DELIVERED drawing was allowed to speak
-for a different drawing offered later, which brought sprites up mirrored while
-the workbench's Mirror box showed them unmirrored. The scoping that fixed it
-stayed, because per-pose variants have the same shape. Anything reviving this
-should read that comment first.
+What is kept is what is above: eight pictures and the numbers they were tuned
+to, because a design that shipped for most of the project's life is worth being
+able to look at. Nothing loads them, nothing asks for them, and no code path
+reads `manifest-alternates.json` — it is a record of how those frames were
+placed, not a file the game or the tools will ever open. Reviving the design
+would mean redrawing it, not restoring it, and the commit that removed the
+alternate-set machinery is the reference for what that machinery was.
