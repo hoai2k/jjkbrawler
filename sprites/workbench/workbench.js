@@ -22,6 +22,7 @@ import { drawPlatformShape } from "../../src/render.js";
 import {
   sharedSpriteInfo, SPRITE_LIST_KEY_FIELDS, sharedHit, paintedHeight,
 } from "../../src/shared_sprites.js";
+import { paintShared, sharedPlacement, sharedRect } from "../../src/shared_paint.js";
 import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../../src/moves.js";
 import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
 import { muzzleOf, spawnOffset, REFERENCE_MUZZLE } from "../../src/muzzle.js";
@@ -2388,39 +2389,39 @@ function drawSharedSprite(cx) {
   }
   const v = sharedView();
   if (!v) return;
-  const { h, w, px, py, top, nx, ny, deg } = v;
+  const { h, px, py } = v;
 
-  ctx.save();
-  // The same transform render.js builds, in the same order: to the point, mirror
-  // if it travels, then the drawing's own tilt, then the picture with its nudge
-  // — so a `dx` moves the art the same way here as it does in a match.
-  ctx.translate(px, py);
-  if (v.mirror) ctx.scale(-1, 1);
-  if (deg) ctx.rotate(deg * Math.PI / 180);
-  // An aura is an additive glow with the install's colour bleeding off its edge,
-  // and it was being shown here as a flat opaque plate. Two different pictures:
-  // the plate reads as a hard-edged shape you would align by its bounding box,
-  // and the thing the player sees has no edge at all. Same numbers as
-  // drawInstallAura, so what is on this canvas is what goes on the screen.
-  if (v.can?.kind === "aura") {
-    ctx.globalCompositeOperation = "lighter";
-    ctx.globalAlpha = 0.72;
-    ctx.shadowColor = installColorOf(state.frame);
-    ctx.shadowBlur = 18 * v.z;
-  }
-  ctx.drawImage(img, -w / 2 + nx, top - py + ny, w, h);
-  // The box is an annotation, not part of the drawing — it must not pick up the
-  // aura's blend, or it stops being readable on exactly the art that needs it.
-  ctx.globalCompositeOperation = "source-over";
-  ctx.globalAlpha = 1;
-  ctx.shadowBlur = 0;
+  // THE SAME FUNCTION THE GAME PAINTS THROUGH (src/shared_paint.js), given the
+  // adjustment being edited rather than the stored one: to the point, mirror if
+  // it travels, then the drawing's own tilt, then the picture with its nudge.
+  // This canvas used to rebuild that chain by hand, which is how it came to
+  // disagree with the action player about which way a staff points.
+  //
+  // An aura is an additive glow with the install's colour bleeding off its
+  // edge, and it was once shown here as a flat opaque plate. Two different
+  // pictures: the plate reads as a hard-edged shape you would align by its
+  // bounding box, and the thing the player sees has no edge at all.
+  const place = sharedPlace(v);
+  paintShared(ctx, state.frame, img, { x: px, y: py }, h, v.can?.kind === "aura"
+    ? { ...place, composite: "lighter", alpha: 0.72,
+        shadow: { color: installColorOf(state.frame), blur: 18 * v.z } }
+    : place);
+  // The box is an annotation rather than part of the drawing — painted after,
+  // so it never picks up the aura's blend and stops being readable on exactly
+  // the art that needs it, and off the same numbers, so it cannot come to
+  // describe a rectangle the picture is not in.
   if ($("showBox").checked) {
+    const box = sharedPlacement(state.frame, img, h, place);
+    ctx.save();
+    ctx.translate(px, py);
+    if (box.mirrored) ctx.scale(-1, 1);
+    if (box.rot) ctx.rotate(box.rot);
     ctx.strokeStyle = "rgba(255, 120, 160, 0.8)";
     ctx.setLineDash([4, 4]);
-    ctx.strokeRect(-w / 2 + nx, top - py + ny, w, h);
+    ctx.strokeRect(box.ox, box.oy, box.w, box.h);
     ctx.setLineDash([]);
+    ctx.restore();
   }
-  ctx.restore();
 
   // The drawing is too big for the viewer and everything on the canvas has been
   // shrunk to hold it. Said out loud because the alternative is a slider that
@@ -2501,7 +2502,9 @@ function drawnRectOnCanvas(key) {
   // head by the same amount the drawing had shrunk.
   const v = sharedView(key);
   if (!v || !Number.isFinite(v.h) || v.h <= 0) return null;
-  return { x: v.px - v.w / 2 + v.nx, y: v.top + v.ny, w: v.w, h: v.h };
+  // sharedRect, so it is the placement the paint uses rather than a second
+  // reading of the same four numbers.
+  return sharedRect(key, v.img, { x: v.px, y: v.py }, v.h, sharedPlace(v));
 }
 
 /** The attack box on the canvas, from the fractions. The art is drawn facing
@@ -2881,10 +2884,21 @@ function sharedView(key = state.frame) {
     w: img.width * h / img.height,
     px: canvasCentreX(),
     py,
-    top: anchor === "centre" ? py - h / 2 : anchor === "top" ? py : py - h,
-    nx: (meta?.dx ?? 0) * z,
-    ny: (meta?.dy ?? 0) * z,
-    deg: meta?.rotationDeg ?? 0,
+  };
+}
+
+/** The placement options paintShared needs, out of a view: the anchor, the
+ *  mirror, and the UNSAVED adjustment this panel is editing — the nudge and the
+ *  tilt as they are on the sliders right now, at the viewer's zoom, since a
+ *  `dx` of 6 game pixels is 6 × z on a canvas that has been scaled. */
+function sharedPlace(v) {
+  return {
+    anchor: v.anchor, mirrored: v.mirror, nudgeScale: v.z,
+    adjust: {
+      dx: v.meta?.dx ?? 0, dy: v.meta?.dy ?? 0,
+      rot: (v.meta?.rotationDeg ?? 0) * Math.PI / 180,
+      scale: v.scale,
+    },
   };
 }
 

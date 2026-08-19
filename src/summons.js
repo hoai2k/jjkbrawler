@@ -50,7 +50,8 @@ import { isFoe } from "./teams.js";
 import { burst, dust, ring, popup, emit } from "./particles.js";
 import { playSfx } from "./audio.js";
 import { getImage } from "./assets.js";
-import { sharedAdjust, sharedAttack, paintedHeight } from "./shared_sprites.js";
+import { sharedAttack, paintedHeight } from "./shared_sprites.js";
+import { paintShared, ORIGIN } from "./shared_paint.js";
 import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { SUMMON_ANIMS } from "./config_summons.js";
 import { MOTION } from "./config_tuning.js";
@@ -442,7 +443,7 @@ export function spawnSummon(owner, cfg) {
       // Actor summons (Mahoraga) are drawn from a fighter's sprite set through
       // drawCharFrame, not from one image, so their box stays with the kit.
       if (this.actor) { this.boxFromArt = true; return; }
-      const drawnH = (cfg.h ?? 110) * sharedAdjust(poseKeyOf(cfg.sprites) || cfg.sprites?.[0]).scale;
+      const drawnH = paintedHeight(poseKeyOf(cfg.sprites) || cfg.sprites?.[0], cfg.h ?? 110);
       const box = derivedBox(cfg, drawnH);
       if (!box) return;                       // art still loading — try again next step
       this.hitW = box.w;
@@ -1136,7 +1137,6 @@ export function spawnSummon(owner, cfg) {
       // whenever they chased to the right. Art that really does face left says
       // so in the manifest (`faceLeft`), where a fact about a drawing belongs,
       // and assets.js turns it before anything here sees it.
-      ctx.scale(this.dir > 0 ? 1 : -1, 1);
       ctx.shadowColor = cfg.color;
       // A driven summon glows harder than one running itself. With four
       // fighters and several summons on screen, the player needs to see at a
@@ -1148,16 +1148,18 @@ export function spawnSummon(owner, cfg) {
       // moves the drawing only — the creature's hitbox and its footing on the
       // stage are `hitW`/`hitH` and this.y, and they do not move.
       const artKey = poseKeyOf(cfg.sprites) || cfg.sprites?.[0];
-      const adj = sharedAdjust(artKey);
       const h = paintedHeight(artKey, cfg.h ?? 110);
       if (img) {
-        const w = img.width * h / img.height;
-        if (adj.rot) ctx.rotate(adj.rot);
-        ctx.drawImage(img, -w / 2 + adj.dx, -h + adj.dy, w, h);
+        // Standing on this.y, mirrored to run left, tilted by whatever the
+        // drawing's own correction says — the shared transform, at the origin
+        // the sway above has already moved to.
+        const place = { anchor: "feet", mirrored: this.dir <= 0 };
+        paintShared(ctx, artKey, img, ORIGIN, h, place);
+        // Brightened by painting itself again additively, on top of the
+        // alpha the caller already set.
         if (flash > 0) {
-          ctx.globalCompositeOperation = "lighter";
-          ctx.globalAlpha = alpha * flash;
-          ctx.drawImage(img, -w / 2 + adj.dx, -h + adj.dy, w, h);
+          paintShared(ctx, artKey, img, ORIGIN, h,
+            { ...place, alpha: flash, composite: "lighter" });
         }
       } else {
         // no art at all: glowing orb silhouette

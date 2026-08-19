@@ -27,7 +27,8 @@ import {
 } from "./quads.js";
 import { frameMeta, frameImage, getImage } from "../assets.js";
 import { paintProceduralAura, AURA_ELLIPSE } from "../render.js";
-import { sharedAdjust, paintedHeight, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "../shared_sprites.js";
+import { paintedHeight, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "../shared_sprites.js";
+import { sharedPlacement } from "../shared_paint.js";
 import { makeEffectLayer } from "./effects.js";
 // The SPRITE pose resolver, deliberately not the render-backend dispatcher.
 //
@@ -297,13 +298,16 @@ export function makeBillboards() {
     const art = f.installs.aura ? getImage(f.installs.aura) : null;
     const pulse = AURA_PULSE.base + AURA_PULSE.amp * Math.sin(gameState.matchTime * AURA_PULSE.rate);
     if (art) {
-      const adj = sharedAdjust(f.installs.aura);
-      const h = paintedHeight(f.installs.aura, AURA_H) * pulse;
-      const w = art.width * h / art.height;
+      // The same chain paintShared applies with the canvas, out of the same
+      // numbers (sharedPlacement) — the scene cannot call it, but it must not
+      // get a different answer from it either.
+      const { w, h, rot, ox, oy } =
+        sharedPlacement(f.installs.aura, art, paintedHeight(f.installs.aura, AURA_H) * pulse,
+          { anchor: "feet" });
       const m = matIdentity();
       matTranslate(m, f.x, f.y + AURA_FOOT_DY);
-      if (adj.rot) matRotate(m, adj.rot);
-      matTranslate(m, -w / 2 + adj.dx, -h + adj.dy);
+      if (rot) matRotate(m, rot);
+      matTranslate(m, ox, oy);
       matScale(m, w, h);
       behindPool.draw(imageTexture(art), m, {
         z: BEHIND_Z, order, alpha: 0.72, blending: AdditiveBlending,

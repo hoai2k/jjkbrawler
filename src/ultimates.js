@@ -28,7 +28,8 @@ import { getImage } from "./assets.js";
 // reached the screen. The size DID reach it — that is folded into `spriteH`
 // before a kit is read (applySharedSpriteScales) — which is what made the gap
 // so easy to miss.
-import { sharedAdjust, meteorAt, paintedHeight } from "./shared_sprites.js";
+import { meteorAt, paintedHeight } from "./shared_sprites.js";
+import { paintShared } from "./shared_paint.js";
 import { isFoe } from "./teams.js";
 
 // The two halves of an ultimate's opening. They fire on the same frame for the
@@ -266,19 +267,15 @@ const DIRECTORS = {
             const fall = meteorAt(p, (this.t - 0.5) / p.fallTime, tx, groundY - 40);
             const img = p.sprite ? getImage(p.sprite) : null;
             if (img) {
-              const adj = sharedAdjust(p.sprite);
               // The nudge is a correction to the DRAWING, so it shrinks with
-              // the drawing: a dx measured against the rock at arrival would
-              // otherwise throw the distant speck clean off its own path.
-              const h = paintedHeight(p.sprite, p.spriteH || 310) * fall.scale;
-              const w = img.width * h / img.height;
-              ctx.save();
-              ctx.translate(fall.x, fall.y);
-              ctx.shadowColor = p.color;
-              ctx.shadowBlur = 24 * fall.scale;
-              if (adj.rot) ctx.rotate(adj.rot);
-              ctx.drawImage(img, -w / 2 + adj.dx * fall.scale, -h / 2 + adj.dy * fall.scale, w, h);
-              ctx.restore();
+              // the drawing (nudgeScale): a dx measured against the rock at
+              // arrival would otherwise throw the distant speck clean off its
+              // own path.
+              paintShared(ctx, p.sprite, img, fall,
+                paintedHeight(p.sprite, p.spriteH || 310) * fall.scale, {
+                  shadow: { color: p.color, blur: 24 * fall.scale },
+                  nudgeScale: fall.scale,
+                });
               return;
             }
             const r = 90 * fall.scale;
@@ -370,21 +367,14 @@ const DIRECTORS = {
       draw(ctx) {
         const img = p.sprite ? getImage(p.sprite) : null;
         if (img) {
-          const adj = sharedAdjust(p.sprite);
-          const h = paintedHeight(p.sprite, p.spriteH || 250);
-          const w = img.width * h / img.height;
-          ctx.save();
-          ctx.translate(this.x, this.y);
           // IT IS A SPIRAL, so it turns. At 0.75 rad/s it managed a third of a
           // revolution across its whole 2.6s life, which on a swirling cloud
           // reads as a still picture drifting sideways — the fallback shape
           // behind it spins at 7. `spin` is the kit's, in rad/s.
-          ctx.rotate(this.t * (p.spin ?? 2.2));
-          ctx.shadowColor = p.color;
-          ctx.shadowBlur = 24;
-          if (adj.rot) ctx.rotate(adj.rot);
-          ctx.drawImage(img, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
-          ctx.restore();
+          paintShared(ctx, p.sprite, img, this, paintedHeight(p.sprite, p.spriteH || 250), {
+            rotation: this.t * (p.spin ?? 2.2),
+            shadow: { color: p.color, blur: 24 },
+          });
           return;
         }
         ctx.save();
@@ -443,18 +433,13 @@ const DIRECTORS = {
       draw(ctx) {
         const img = p.sprite ? getImage(p.sprite) : null;
         if (img) {
-          const adj = sharedAdjust(p.sprite);
-          const h = paintedHeight(p.sprite, p.spriteH || 650);
-          const w = img.width * h / img.height;
           const sway = Math.sin(this.t * 2.6) * 34;
-          ctx.save();
-          ctx.translate(640 + sway, 595);
-          ctx.globalAlpha = Math.min(0.78, this.t * 1.6) * Math.min(1, (p.duration - this.t) * 3);
-          ctx.shadowColor = p.color;
-          ctx.shadowBlur = 28;
-          if (adj.rot) ctx.rotate(adj.rot);
-          ctx.drawImage(img, -w / 2 + adj.dx, -h + adj.dy, w, h);
-          ctx.restore();
+          paintShared(ctx, p.sprite, img, { x: 640 + sway, y: 595 },
+            paintedHeight(p.sprite, p.spriteH || 650), {
+              anchor: "feet",
+              alpha: Math.min(0.78, this.t * 1.6) * Math.min(1, (p.duration - this.t) * 3),
+              shadow: { color: p.color, blur: 28 },
+            });
           return;
         }
         ctx.save();
@@ -506,18 +491,11 @@ const DIRECTORS = {
         draw(ctx) {
           const img = getImage(p.sprite);
           if (!img) return;
-          const adj = sharedAdjust(p.sprite);
-          const h = paintedHeight(p.sprite, 238);
-          const w = img.width * h / img.height;
-          ctx.save();
-          ctx.translate(f.x - f.facing * 58, f.y + 18);
-          ctx.scale(f.facing > 0 ? -1 : 1, 1);
-          ctx.globalAlpha = 0.58;
-          ctx.shadowColor = p.color;
-          ctx.shadowBlur = 20;
-          if (adj.rot) ctx.rotate(adj.rot);
-          ctx.drawImage(img, -w / 2 + adj.dx, -h + adj.dy, w, h);
-          ctx.restore();
+          paintShared(ctx, p.sprite, img, { x: f.x - f.facing * 58, y: f.y + 18 },
+            paintedHeight(p.sprite, 238), {
+              anchor: "feet", mirrored: f.facing > 0, alpha: 0.58,
+              shadow: { color: p.color, blur: 20 },
+            });
         },
       });
     }
@@ -637,20 +615,11 @@ const DIRECTORS = {
             const h = Math.max(0, 130 * (1 - age * 0.8));
             if (h <= 4) continue;
             if (roots) {
-              const adj = sharedAdjust(p.sprite);
-              const drawH = h * 1.65;
-              const drawW = roots.width * drawH / roots.height;
-              // Each spike stands on the floor at `px`, so the tilt turns about
-              // the point it comes out of rather than sliding it along.
-              ctx.save();
-              if (adj.rot) {
-                ctx.translate(px, groundY);
-                ctx.rotate(adj.rot);
-                ctx.translate(-px, -groundY);
-              }
-              ctx.drawImage(roots, px - drawW / 2 + adj.dx, groundY - drawH + adj.dy,
-                            drawW, drawH);
-              ctx.restore();
+              // Each spike stands on the floor at `px` — "feet" is what makes
+              // the tilt turn about the point it comes out of rather than
+              // sliding the spike along the ground.
+              paintShared(ctx, p.sprite, roots, { x: px, y: groundY },
+                paintedHeight(p.sprite, h * 1.65), { anchor: "feet" });
               continue;
             }
             ctx.beginPath();
@@ -716,20 +685,15 @@ const DIRECTORS = {
       draw(ctx) {
         const img = p.sprite ? getImage(p.sprite) : null;
         if (!img || this.t > 1.75) return;
-        const adj = sharedAdjust(p.sprite);
         const h = paintedHeight(p.sprite, p.spriteH || 290);
         const w = img.width * h / img.height;
         const travel = Math.min(1, this.t / 1.45);
         const x = f.facing > 0 ? -w / 2 + travel * (1280 + w) : 1280 + w / 2 - travel * (1280 + w);
-        ctx.save();
-        ctx.translate(x, 310);
-        ctx.scale(f.facing > 0 ? -1 : 1, 1);
-        ctx.globalAlpha = Math.min(0.82, this.t * 3) * Math.min(1, (1.75 - this.t) * 4);
-        ctx.shadowColor = p.color;
-        ctx.shadowBlur = 20;
-        if (adj.rot) ctx.rotate(adj.rot);
-        ctx.drawImage(img, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
-        ctx.restore();
+        paintShared(ctx, p.sprite, img, { x, y: 310 }, h, {
+          mirrored: f.facing > 0,
+          alpha: Math.min(0.82, this.t * 3) * Math.min(1, (1.75 - this.t) * 4),
+          shadow: { color: p.color, blur: 20 },
+        });
       },
     });
   },
@@ -762,18 +726,13 @@ const DIRECTORS = {
           const a = 1 - (this.t - 0.45) / 0.55;
           const img = p.sprite ? getImage(p.sprite) : null;
           if (img) {
-            const adj = sharedAdjust(p.sprite);
             const h = paintedHeight(p.sprite, p.spriteH || 330) * (0.65 + (this.t - 0.45) * 1.2);
             const w = img.width * h / img.height;
-            ctx.save();
-            ctx.translate(f.x + f.facing * w * 0.3, f.y - 105);
-            ctx.scale(f.facing > 0 ? -1 : 1, 1);
-            ctx.globalAlpha = Math.max(0, a) * 0.85;
-            ctx.shadowColor = p.color;
-            ctx.shadowBlur = 24;
-            if (adj.rot) ctx.rotate(adj.rot);
-            ctx.drawImage(img, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
-            ctx.restore();
+            paintShared(ctx, p.sprite, img, { x: f.x + f.facing * w * 0.3, y: f.y - 105 }, h, {
+              mirrored: f.facing > 0,
+              alpha: Math.max(0, a) * 0.85,
+              shadow: { color: p.color, blur: 24 },
+            });
             return;
           }
           ctx.save();
@@ -906,7 +865,6 @@ const DIRECTORS = {
       },
       draw(ctx) {
         const img = p.sprite ? getImage(p.sprite) : null;
-        const adj = sharedAdjust(p.sprite);
         const windup = Math.min(1, this.t / p.delay);
         ctx.save();
         for (let i = 0; i < p.orbs; i++) {
@@ -916,20 +874,13 @@ const DIRECTORS = {
           const ox = cx + Math.cos(a) * rr;
           const oy = cy + Math.sin(a) * rr * 0.6;
           if (img) {
-            const h = paintedHeight(p.sprite, p.spriteH || 88) * 0.7;
-            const w = img.width * h / img.height;
-            ctx.globalAlpha = 0.5 + windup * 0.5;
-            // Saved PER ORB: eight of them are drawn in this loop off one outer
-            // save, so a tilt applied without restoring would compound around
-            // the ring — the eighth orb spun eight times as far as the first.
-            ctx.save();
-            if (adj.rot) {
-              ctx.translate(ox, oy);
-              ctx.rotate(adj.rot);
-              ctx.translate(-ox, -oy);
-            }
-            ctx.drawImage(img, ox - w / 2 + adj.dx, oy - h / 2 + adj.dy, w, h);
-            ctx.restore();
+            // One call per orb, and each one saves and restores its own
+            // transform: eight are drawn in this loop off a single outer save,
+            // so a tilt left applied would compound around the ring and the
+            // eighth orb would spin eight times as far as the first.
+            paintShared(ctx, p.sprite, img, { x: ox, y: oy },
+              paintedHeight(p.sprite, p.spriteH || 88) * 0.7,
+              { alpha: 0.5 + windup * 0.5 });
           } else {
             ctx.globalAlpha = 0.6 + windup * 0.4;
             const grad = ctx.createRadialGradient(ox, oy, 3, ox, oy, 20);
@@ -1048,16 +999,11 @@ const DIRECTORS = {
         const img = p.sprite ? getImage(p.sprite) : null;
         ctx.save();
         if (img) {
-          const adj = sharedAdjust(p.sprite);
-          const h = paintedHeight(p.sprite, p.spriteH || 260) * (0.7 + Math.min(1, this.t) * 0.5);
-          const w = img.width * h / img.height;
-          ctx.translate(t2.x, t2.y - 140);
-          ctx.rotate(Math.sin(this.t * 3) * 0.15);
-          ctx.globalAlpha = 0.8;
-          ctx.shadowColor = p.color;
-          ctx.shadowBlur = 24;
-          if (adj.rot) ctx.rotate(adj.rot);
-          ctx.drawImage(img, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
+          paintShared(ctx, p.sprite, img, { x: t2.x, y: t2.y - 140 },
+            paintedHeight(p.sprite, p.spriteH || 260) * (0.7 + Math.min(1, this.t) * 0.5), {
+              rotation: Math.sin(this.t * 3) * 0.15, alpha: 0.8,
+              shadow: { color: p.color, blur: 24 },
+            });
         } else {
           // cracked-sky shards closing around the victim
           ctx.globalAlpha = 0.55;
@@ -1164,7 +1110,6 @@ const DIRECTORS = {
       draw(ctx) {
         const groundY = state.platforms[0]?.y ?? 568;
         const img = p.sprite ? getImage(p.sprite) : null;
-        const adj = sharedAdjust(p.sprite);
         const carH = paintedHeight(p.sprite, p.spriteH || 170);
         const carW = img ? img.width * carH / img.height : 300;
         const face = this.dir || f.facing;
@@ -1180,11 +1125,15 @@ const DIRECTORS = {
             const prog = (this.t - 0.5) / p.fallTime;
             const y = -200 + prog * (groundY + 200);
             ctx.globalAlpha = 1;
-            ctx.translate(tx, y);
-            ctx.rotate(f.facing * 0.25 * (1 - prog));
-            if (adj.rot) ctx.rotate(adj.rot);
-            if (img) ctx.drawImage(img, -carW / 2 + adj.dx, -carH / 2 + adj.dy, carW, carH);
-            else { ctx.fillStyle = p.color; ctx.fillRect(-140, -50, 280, 100); }
+            if (img) {
+              paintShared(ctx, p.sprite, img, { x: tx, y }, carH,
+                { rotation: f.facing * 0.25 * (1 - prog) });
+            } else {
+              ctx.translate(tx, y);
+              ctx.rotate(f.facing * 0.25 * (1 - prog));
+              ctx.fillStyle = p.color;
+              ctx.fillRect(-140, -50, 280, 100);
+            }
           }
           ctx.restore();
         } else {
@@ -1197,12 +1146,17 @@ const DIRECTORS = {
             lift = Math.abs(Math.sin(k * Math.PI * 3)) * 34 * (1 - k) * (1 - k);
             rock = Math.sin(this.phaseT * 40) * 0.02 * (1 - k);
           }
-          ctx.translate(this.x, groundY - lift);
-          ctx.rotate(rock);
-          ctx.scale(face > 0 ? 1 : -1, 1);
-          if (adj.rot) ctx.rotate(adj.rot);
-          if (img) ctx.drawImage(img, -carW / 2 + adj.dx, -carH + adj.dy, carW, carH);
-          else { ctx.fillStyle = p.color; ctx.fillRect(-140, -carH, 280, 100); }
+          // The car is drawn nose-right, so it is the LEFTWARD run that
+          // mirrors — the opposite of a fighter's drawing.
+          if (img) {
+            paintShared(ctx, p.sprite, img, { x: this.x, y: groundY - lift }, carH,
+              { anchor: "feet", mirrored: face <= 0, rotation: rock });
+          } else {
+            ctx.translate(this.x, groundY - lift);
+            ctx.rotate(rock);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-140, -carH, 280, 100);
+          }
           ctx.restore();
           if (this.phase === "bouncing") {
             // Spinning wheels as skid blurs under each axle, brightening toward
@@ -1274,20 +1228,10 @@ const DIRECTORS = {
         const img = p.sprite ? getImage(p.sprite) : null;
         if (img) {
           const pulse = 0.8 + 0.25 * Math.sin(this.t * 9);
-          const adj = sharedAdjust(p.sprite);
-          const h = paintedHeight(p.sprite, p.spriteH || 300) * pulse;
-          const w = img.width * h / img.height;
-          ctx.save();
-          ctx.globalAlpha = 0.6;
-          ctx.shadowColor = p.color;
-          ctx.shadowBlur = 24;
-          if (adj.rot) {
-            ctx.translate(f.x, (f.y - 110));
-            ctx.rotate(adj.rot);
-            ctx.translate(-f.x, -(f.y - 110));
-          }
-          ctx.drawImage(img, f.x - w / 2 + adj.dx, f.y - 110 - h / 2 + adj.dy, w, h);
-          ctx.restore();
+          paintShared(ctx, p.sprite, img, { x: f.x, y: f.y - 110 },
+            paintedHeight(p.sprite, p.spriteH || 300) * pulse, {
+              alpha: 0.6, shadow: { color: p.color, blur: 24 },
+            });
           return;
         }
         ctx.save();
@@ -1426,16 +1370,9 @@ const DIRECTORS = {
         if (this.struck) {
           if (!img) return;
           const fade = Math.max(0, 1 - (this.t - charge) / 0.5);
-          const adj = sharedAdjust(p.sprite);
-          const h = paintedHeight(p.sprite, p.spriteH || 280) * (1 + (1 - fade) * 0.5);
-          const w = img.width * h / img.height;
-          ctx.save();
-          ctx.globalAlpha = fade;
-          ctx.translate(f.x + f.facing * 150, f.y - 100);
-          ctx.scale(f.facing > 0 ? -1 : 1, 1);
-          if (adj.rot) ctx.rotate(adj.rot);
-          ctx.drawImage(img, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
-          ctx.restore();
+          paintShared(ctx, p.sprite, img, { x: f.x + f.facing * 150, y: f.y - 100 },
+            paintedHeight(p.sprite, p.spriteH || 280) * (1 + (1 - fade) * 0.5),
+            { mirrored: f.facing > 0, alpha: fade });
           return;
         }
         // mass gathering at the fist: a dense core that gets heavier, not bigger

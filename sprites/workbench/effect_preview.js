@@ -34,6 +34,7 @@ import { bodyMetrics } from "../../src/silhouette.js";
 import { spawnOffset, REFERENCE_MUZZLE } from "../../src/muzzle.js";
 import { meteorAt, METEOR_FALL, sharedAdjust, sharedAttack, paintedHeight,
          AURA_H, AURA_PULSE, AURA_FOOT_DY } from "../../src/shared_sprites.js";
+import { paintShared } from "../../src/shared_paint.js";
 import { SUMMON_ANIMS, SUMMON_POSES } from "../../src/config_summons.js";
 import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
 import { spawnShape } from "../../src/config_spawn_shapes.js";
@@ -642,20 +643,15 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // fact about it that matters most.
     if (!s.gone && img) {
       drew = true;
-      const w = img.width * h / img.height;
-      ctx.save();
-      ctx.globalAlpha = s.appear;
-      ctx.translate(s.x, s.y);
-      // Same rule summons.js follows: the art faces right and is mirrored to
-      // face left. The preview always walks right, so it is never mirrored —
-      // and while this still carried the OLD rule it drew every creature
-      // backwards, which is the fault it was built to catch.
-      ctx.scale(s.dir > 0 ? 1 : -1, 1);
-      ctx.shadowColor = c.color || "#8fd3ff";
-      ctx.shadowBlur = 14;
-      if (adj.rot) ctx.rotate(adj.rot);
-      ctx.drawImage(img, -w / 2 + (adj.dx || 0), -h + (adj.dy || 0), w, h);
-      ctx.restore();
+      // Same rule summons.js follows, through the same function: the art faces
+      // right and is mirrored to face left. The preview always walks right, so
+      // it is never mirrored — and while this still carried the OLD rule it
+      // drew every creature backwards, which is the fault it was built to
+      // catch.
+      paintShared(ctx, use.body || use.spriteKey, img, { x: s.x, y: s.y }, h, {
+        anchor: "feet", mirrored: s.dir <= 0, alpha: s.appear,
+        shadow: { color: c.color || "#8fd3ff", blur: 14 }, adjust: adj,
+      });
     }
 
     // WHAT IT HITS WITH, which is the whole question its art has to answer.
@@ -704,21 +700,19 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       const mine = use.shotSprite === p.sprite;
       const shotAdj = mine ? liveAdj : sharedAdjust(p.sprite);
       const img = p.sprite ? getImage(p.sprite) : null;
-      ctx.save();
-      ctx.globalAlpha = 0.9;
       if (img) {
-        const h = paintedHeight(p.sprite, p.spriteH || 46);
-        const w = img.width * h / img.height;
-        ctx.translate(x + (shotAdj.dx || 0), y + (shotAdj.dy || 0));
-        if (shotAdj.rot) ctx.rotate(shotAdj.rot);
-        ctx.drawImage(img, -w / 2, -h / 2, w, h);
+        paintShared(ctx, p.sprite, img, { x, y },
+          paintedHeight(p.sprite, p.spriteH || 46),
+          { alpha: 0.9, adjust: shotAdj });
       } else {
+        ctx.save();
+        ctx.globalAlpha = 0.9;
         ctx.fillStyle = p.color || c.color || "#8fd3ff";
         ctx.beginPath();
         ctx.arc(x, y, p.r || 20, 0, Math.PI * 2);
         ctx.fill();
+        ctx.restore();
       }
-      ctx.restore();
     }
     return s;
   }
@@ -824,50 +818,47 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // slider and the number on stage are one calculation rather than two that
     // agree by inspection.
     const h = paintedHeight(use.spriteKey, own ?? (use.p.spriteH || use.p.r * 3)) * persp;
-    const w = sprite.width * h / sprite.height;
-    ctx.save();
-    // The same ramp drawProjectiles applies (sharedFadeIn), read live so the
-    // slider under the canvas shows up on the next loop of the same playthrough
-    // — which is the only way to judge it, since a few frames of fade is a
-    // thing you see in motion or not at all.
-    if (adj.fadeIn) ctx.globalAlpha = Math.min(1, age / adj.fadeIn);
-    // A flash has a fade of its own, written into the handler rather than into
-    // the drawing — showing it at full opacity would be showing something the
-    // game never draws.
-    if (pos.alpha != null) ctx.globalAlpha *= pos.alpha;
-    // render.js paints a wave `r * 0.68` BELOW the point it collides on, so the
-    // crest sits above the floor line and the body of it washes along the
-    // ground. The same offset here, or the picture and the crosshair disagree.
-    ctx.translate(pos.x, pos.y + (use.wave ? (use.p.r || 0) * 0.68 : 0));
     // A dropped drawing is painted upright — its director never mirrors it and
     // never turns it into its fall, so the only tilt it has is the standing
     // one, and previewing it under the projectile's flight rotate would show a
     // meteor lying on its side that the game draws nose-down.
     let mirrored = false;
+    let flight = 0;
     if (use.mode === "flash" || (use.mode === "director" && use.p.flip)
         || (use.mode === "worn" && use.p.kind === "rampage")) {
-      ctx.scale(-1, 1);   // mirrored to the caster's facing, as the handler does
-      mirrored = true;
+      mirrored = true;    // mirrored to the caster's facing, as the handler does
     } else if (use.mode !== "drop" && use.mode !== "planted"
                && use.mode !== "worn" && use.mode !== "director") {
       const flip = pos.vx > 0 ? -1 : 1;
-      if (use.p.vy || use.p.gravity || use.p.homing) ctx.rotate(Math.atan2(-flip * pos.vy, -flip * pos.vx));
-      ctx.scale(flip, 1);
+      if (use.p.vy || use.p.gravity || use.p.homing) flight = Math.atan2(-flip * pos.vy, -flip * pos.vx);
       mirrored = flip < 0;
     }
-    if (pos.spin) ctx.rotate(pos.spin);
-    if (adj.rot) ctx.rotate(adj.rot);
-    ctx.shadowColor = use.p.color || "#8fd3ff";
-    ctx.shadowBlur = 12;
     // A flash stands on the floor; everything else is painted around its
-    // middle. Same drawing, two anchors, and the handler's is the one to match.
-    // Three anchors, because the game has three: standing on the point, hung
-    // from it, or painted around it (ANCHOR_WORDS in the sprite bench).
-    const top = pos.foot ? -h : pos.top ? 0 : -h / 2;
-    painted = { anchor: pos.foot ? "feet" : pos.top ? "top" : "centre", mirrored };
-    if (pos.sway) ctx.rotate(pos.sway);
-    ctx.drawImage(sprite, -w / 2 + (adj.dx || 0) * persp, top + (adj.dy || 0) * persp, w, h);
-    ctx.restore();
+    // middle. Same drawing, three anchors, because the game has three
+    // (ANCHOR_WORDS in the sprite bench): standing on the point, hung from it,
+    // or painted around it. The handler's is the one to match.
+    const anchor = pos.foot ? "feet" : pos.top ? "top" : "centre";
+    painted = { anchor, mirrored };
+    let alpha = 1;
+    // The same ramp drawProjectiles applies (sharedFadeIn), read live so the
+    // slider under the canvas shows up on the next loop of the same playthrough
+    // — which is the only way to judge it, since a few frames of fade is a
+    // thing you see in motion or not at all.
+    if (adj.fadeIn) alpha = Math.min(1, age / adj.fadeIn);
+    // A flash has a fade of its own, written into the handler rather than into
+    // the drawing — showing it at full opacity would be showing something the
+    // game never draws.
+    if (pos.alpha != null) alpha *= pos.alpha;
+    // render.js paints a wave `r * 0.68` BELOW the point it collides on, so the
+    // crest sits above the floor line and the body of it washes along the
+    // ground. The same offset here, or the picture and the crosshair disagree.
+    paintShared(ctx, use.spriteKey, sprite,
+      { x: pos.x, y: pos.y + (use.wave ? (use.p.r || 0) * 0.68 : 0) }, h, {
+        anchor, mirrored, rotation: flight,
+        spin: (pos.spin || 0) + (pos.sway || 0),
+        alpha, nudgeScale: persp, adjust: adj,
+        shadow: { color: use.p.color || "#8fd3ff", blur: 12 },
+      });
   }
 
   function marker(x, y, colour, label, filled) {

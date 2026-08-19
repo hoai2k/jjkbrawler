@@ -9,7 +9,8 @@ import { state } from "./state.js";
 // silently does nothing for exactly the art that needs it most: a wall, a
 // pillar, a ward — pieces that stand ON the floor, where being a few pixels
 // off the ground line is the whole difference between planted and hovering.
-import { sharedAdjust, paintedHeight } from "./shared_sprites.js";
+import { paintedHeight } from "./shared_sprites.js";
+import { paintShared } from "./shared_paint.js";
 import { spawnOffset } from "./muzzle.js";
 import { clamp, sign, rand, chance } from "./utils.js";
 // The scaled spawns: kit blocks author oy/h for the reference body, and these
@@ -764,15 +765,9 @@ const HANDLERS = {
         ctx.save();
         ctx.globalAlpha = 0.35 + prog * 0.45;
         if (img) {
-          const h = paintedHeight(p.sprite, p.spriteH || 150) * (0.6 + prog * 0.5);
-          const w = img.width * h / img.height;
-          const adj = sharedAdjust(p.sprite);
-          // The standing tilt, about the point it is painted on. Every other
-          // spawn site reads it and this one did not, so a rotation set on this
-          // drawing in the workbench was stored, shown there, and ignored here.
-          ctx.translate(tx, ty);
-          if (adj.rot) ctx.rotate(adj.rot);
-          ctx.drawImage(img, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
+          paintShared(ctx, p.sprite, img, { x: tx, y: ty },
+            paintedHeight(p.sprite, p.spriteH || 150) * (0.6 + prog * 0.5),
+            { anchor: "centre" });
         } else {
           ctx.strokeStyle = p.color;
           ctx.lineWidth = 3;
@@ -817,15 +812,9 @@ const HANDLERS = {
         const img = p.sprite ? getImage(p.sprite) : null;
         ctx.save();
         if (img) {
-          const h = paintedHeight(p.sprite, p.spriteH || p.h);
-          const w = img.width * h / img.height;
-          const adj = sharedAdjust(p.sprite);
-          ctx.globalAlpha = 0.6 * fade;
-          // About its own foot, so a tilt leans the cloud rather than sliding
-          // it off the point it was planted on.
-          ctx.translate(this.x, this.y);
-          if (adj.rot) ctx.rotate(adj.rot);
-          ctx.drawImage(img, -w / 2 + adj.dx, -h + adj.dy, w, h);
+          paintShared(ctx, p.sprite, img, { x: this.x, y: this.y },
+            paintedHeight(p.sprite, p.spriteH || p.h),
+            { anchor: "feet", alpha: 0.6 * fade });
         } else {
           ctx.globalAlpha = 0.3 * fade;
           ctx.fillStyle = p.color;
@@ -899,16 +888,9 @@ const HANDLERS = {
           ctx.globalAlpha = Math.max(0, 1 - (this.t - fallT) / 0.6);
         }
         if (img) {
-          const adj = sharedAdjust(drop.key);
-          const w = img.width * dropH / img.height;
-          // The drop stands on the point it lands on, so the tilt turns about
-          // its feet rather than sliding a falling vending machine sideways.
-          if (adj.rot) {
-            ctx.translate(tx, y);
-            ctx.rotate(adj.rot);
-            ctx.translate(-tx, -y);
-          }
-          ctx.drawImage(img, tx - w / 2 + adj.dx, y - dropH + adj.dy, w, dropH);
+          // Standing on the point it lands on, so a tilt turns about its feet
+          // rather than sliding a falling vending machine sideways.
+          paintShared(ctx, drop.key, img, { x: tx, y }, dropH, { anchor: "feet" });
         } else {
           ctx.fillStyle = p.color;
           ctx.globalAlpha *= 0.8;
@@ -1092,23 +1074,14 @@ function spawnSummonFlash(owner, spriteKey, duration, height, forward) {
     draw(ctx) {
       const img = getImage(spriteKey);
       if (!img) return;
-      const h = painted;
-      const w = img.width * h / img.height;
-      const adj = sharedAdjust(spriteKey);
-      const alpha = Math.sin(Math.min(1, this.t / duration) * Math.PI) * 0.9;
-      ctx.save();
-      ctx.translate(owner.x + owner.facing * forward, owner.y + 12);
-      ctx.scale(owner.facing > 0 ? -1 : 1, 1);
-      ctx.globalAlpha = alpha;
-      ctx.shadowColor = "#dfe8ff";
-      ctx.shadowBlur = 18;
-      // Inside the mirrored frame, so the nudge follows the drawing rather
-      // than reversing when the fighter turns round (render.js does the same).
-      // The tilt is in there with it, for the same reason and because a
-      // control the workbench offers has to reach the screen.
-      if (adj.rot) ctx.rotate(adj.rot);
-      ctx.drawImage(img, -w / 2 + adj.dx, -h + adj.dy, w, h);
-      ctx.restore();
+      // Standing on the ground at the fighter's feet and mirrored with them,
+      // fading in and out over its own life.
+      paintShared(ctx, spriteKey, img,
+        { x: owner.x + owner.facing * forward, y: owner.y + 12 }, painted, {
+          anchor: "feet", mirrored: owner.facing > 0,
+          alpha: Math.sin(Math.min(1, this.t / duration) * Math.PI) * 0.9,
+          shadow: { color: "#dfe8ff", blur: 18 },
+        });
     },
   });
 }
@@ -1183,18 +1156,11 @@ function makeTrap(owner, x, groundY, p, name) {
         const fade = 1 - (this.t - this.armTime) / (this.lifetime - this.armTime);
         const sprite = p.sprite ? getImage(p.sprite) : null;
         if (sprite) {
-          const h = paintedHeight(p.sprite, p.spriteH || this.h);
-          const w = sprite.width * h / sprite.height;
-          const adj = sharedAdjust(p.sprite);
-          ctx.globalAlpha = Math.min(1, fade * 1.35);
-          ctx.shadowColor = this.color;
-          ctx.shadowBlur = 14;
-          // About its own foot: a trap leans out of the ground, it does not
-          // slide along it. The last of the four spawn sites that were storing
-          // a tilt and never drawing one.
-          ctx.translate(this.x, this.y);
-          if (adj.rot) ctx.rotate(adj.rot);
-          ctx.drawImage(sprite, -w / 2 + adj.dx, -h + adj.dy, w, h);
+          paintShared(ctx, p.sprite, sprite, { x: this.x, y: this.y },
+            paintedHeight(p.sprite, p.spriteH || this.h), {
+              anchor: "feet", alpha: Math.min(1, fade * 1.35),
+              shadow: { color: this.color, blur: 14 },
+            });
           ctx.restore();
           return;
         }
