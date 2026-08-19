@@ -184,7 +184,18 @@ that way, so this is the normal case, not a mistake.
    oversight. `node tools/check_kits.mjs` catches an animKey with no state at
    all; it cannot tell you that an alias is the wrong clip, which is why this is
    a step and not just a check.
-10. **Update the request docs.** A delivery answers a request, and the request
+10. **A WORKBENCH FLAG IS A REQUEST, and the doc is generated — so run the
+   generator.** Marking a sprite "needs replacement" writes the flag into
+   `manifest.json`, and `docs/image-requests.md` reports those flags in its
+   "Outstanding by manifest, not by request" section. But that file is
+   GENERATED: flagging ten sprites changes nothing anybody can read until
+   `node tools/build_image_requests.mjs` runs. It went stale exactly that way —
+   the doc's headline read "0 images outstanding" while 28 flagged sprites sat
+   in a section further down, because the last generation predated them.
+   `npm run check` runs `build_image_requests.mjs --check` now, so a flag with
+   no regeneration fails a check instead of going quiet.
+
+11. **Update the request docs.** A delivery answers a request, and the request
    file is defined as "everything in here is outstanding" — so art that has
    landed has to leave it the same day, or the file starts lying about what is
    still needed. Move the delivered section out of

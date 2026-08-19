@@ -12,10 +12,11 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**0 images outstanding.**
+**0 images requested by a round, and 29 sprites flagged in the workbench.**
 
 - **The sprite game** — 0 images
 - **The live-3D anime path** — 0 images
+- **[Flagged in the workbench](#outstanding-by-manifest-not-by-request)** — 29 sprites whose art exists and is wrong, plus 52 drawing another pose's file
 
 ## Rules that hold everywhere here
 
@@ -278,36 +279,91 @@ is not its own says so silently, which is how seven of them stayed invisible
 until round 18G. Neither can see a pose that was never drawn — that is what
 the rounds above are for.
 
-**1 flagged, 25 drawing somebody else's art.**
+**29 flagged, 52 drawing somebody else's art.**
 
 | Fighter | Pose | Why |
 |---|---|---|
+| gakuganji | `attack_light_b` | quality |
+| hakari | `attack_light_a` | quality |
+| kirara | `attack_light_a` | quality |
+| mahoraga | `attack_light_b` | quality |
+| mahoraga | `crouch_attack_a` | quality |
+| maki | `attack_air_b` | quality |
+| maki | `crouch_attack_b` | quality |
+| toji | `attack_light_a` | quality |
+| toji | `attack_light_b` | quality |
+| uro | `attack_light_a` | quality |
+| geto | `attack_heavy_b` | pose |
+| hakari | `attack_heavy_b` | pose |
+| hakari | `attack_light_b` | pose |
 | haruta | `special_down` | pose |
+| kirara | `attack_heavy_b` | pose |
+| kirara | `attack_light_b` | pose |
+| kirara | `crouch_attack_a` | pose |
+| kirara | `crouch_attack_b` | pose |
+| mahoraga | `attack_light_a` | pose |
+| meimei | `attack_heavy_b` | pose |
+| meimei | `crouch_attack_a` | pose |
+| meimei | `crouch_attack_b` | pose |
+| naoya | `crouch_a` | pose |
+| naoya | `crouch_attack_a` | pose |
+| naoya | `crouch_b` | pose |
+| naoya | `idle_b` | pose |
+| uro | `crouch_attack_b` | pose |
+| yuji | `crouch_a` | pose |
+| uro | `attack_heavy_b` | character |
+| gojo | `attack_light_a` | drawing `attack_heavy_a` |
 | hanami | `attack_light_b` | drawing `special_neutral` |
+| geto | `attack_heavy_a` | drawing `attack_down_2` |
+| geto | `attack_heavy_b` | drawing `attack_down_5` |
+| geto | `attack_light_a` | drawing `attack_heavy_a` |
+| geto | `attack_light_b` | drawing `attack_dash` |
+| geto | `crouch_attack_b` | drawing `dodge_air` |
 | sukuna | `attack_light_b` | drawing `r3c0` |
-| megumi | `attack_light_a` | drawing `crouch_a_2` |
+| hakari | `attack_heavy_a` | drawing `crouch_a_2` |
+| hakari | `attack_heavy_b` | drawing `attack_air_b` |
+| hakari | `attack_light_a` | drawing `attack_heavy_a` |
+| hakari | `attack_light_b` | drawing `attack_dash` |
 | yuta | `attack_heavy_b` | drawing `attack_dash` |
 | yuta | `attack_light_a` | drawing `attack_air_a` |
 | yuta | `attack_light_b` | drawing `attack_air_b` |
-| nobara | `attack_heavy_b` | drawing `crouch_attack_b` |
-| nobara | `attack_light_a` | drawing `crouch_b_2` |
-| nobara | `attack_light_b` | drawing `specialNeutral` |
 | nobara | `crouch_attack_b` | drawing `attack_dash` |
-| inumaki | `attack_light_a` | drawing `crouch_a_2` |
-| uro | `attack_light_a` | drawing `attack_heavy_a_3` |
+| maki | `attack_air_a` | drawing `attack_air_b` |
+| maki | `attack_air_b` | drawing `attack_air_a` |
+| maki | `attack_light_a` | drawing `attack_heavy_a_3` |
+| maki | `attack_light_b` | drawing `r3c0` |
+| maki | `crouch_attack_b` | drawing `r4c3` |
+| panda | `attack_heavy_b` | drawing `r2c1` |
+| panda | `attack_light_a` | drawing `r0c2` |
+| panda | `crouch_attack_a` | drawing `r4c1` |
+| todo | `attack_heavy_a` | drawing `r4c2` |
+| todo | `attack_heavy_b` | drawing `attack_dash` |
+| todo | `attack_light_a` | drawing `attack_heavy_a` |
+| todo | `attack_light_b` | drawing `special_side` |
+| toji | `attack_heavy_a` | drawing `attack_heavy_a_2` |
+| toji | `attack_heavy_b` | drawing `attack_heavy_b_2` |
+| toji | `attack_light_a` | drawing `attack_heavy_a` |
+| toji | `attack_light_b` | drawing `attack_heavy_b_4` |
+| meimei | `crouch_attack_a` | drawing `crouch_a` |
+| meimei | `crouch_attack_b` | drawing `crouch_attack_a` |
+| uro | `attack_light_a` | drawing `crouch_b_2` |
+| uro | `crouch_attack_b` | drawing `attack_dash` |
+| uro | `attack_air_a` | drawing `attack_air` |
 | yuji | `attack_light_a` | drawing `guard` |
-| reggie | `attack_light_a` | drawing `attack_heavy_a_2` |
-| dagon | `attack_light_a` | drawing `attack_light_a-2` |
-| dagon | `crouch_attack_b` | drawing `crouch_attack_b-2` |
-| dagon | `crouch_b` | drawing `crouch_b-2` |
-| dagon | `run_reach_a` | drawing `run_reach_a-2` |
+| yuji | `crouch_attack_a` | drawing `crouch_a` |
+| gakuganji | `attack_light_a` | drawing `attack_heavy_a_2` |
+| gakuganji | `crouch_attack_b` | drawing `attack_dash` |
+| gakuganji | `attack_air_b` | drawing `attack_air` |
+| mahoraga | `attack_light_a` | drawing `attack_light_b_2` |
+| mahoraga | `attack_light_b` | drawing `attack_heavy_b` |
+| mahoraga | `crouch_attack_a` | drawing `crouch_attack_b` |
+| mahoraga | `crouch_attack_b` | drawing `attack_dash` |
+| mahoraga | `attack_heavy_b` | drawing `attack_light_b` |
 | yuki | `attack_heavy_b` | drawing `ult_b` |
-| kurourushi | `attack_heavy_b` | drawing `attack_light_b` |
-| kurourushi | `attack_light_b` | drawing `attack_air_b_2` |
-| kurourushi | `crouch_attack_b` | drawing `dash_2` |
-| kurourushi | `dash` | drawing `dodge_roll_2` |
-| kashimo | `attack_air_a` | drawing `attack_air_b` |
-| haruta | `special_down` | drawing `attack_air_a` |
+| naoya | `attack_heavy_a` | drawing `run_pass_a` |
+| naoya | `crouch_attack_a` | drawing `crouch_a` |
+| kirara | `attack_heavy_a` | drawing `attack_light_a` |
+| kirara | `attack_light_a` | drawing `attack_heavy_a` |
 
 Separately, **2 improvement requests** — the art works and is just
 not as good as it should be. Nothing is blocked by one, and the standing
