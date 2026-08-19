@@ -80,10 +80,50 @@ def reach(chars, char, frame):
     return ((xs.max() - xs.mean()) * meta.get("renderScale", 1)) / idle_h
 
 
+DEFAULT_BASE = "http://localhost:5174"
+
+
+def links(base, inverted, thin):
+    """A deep link per offending pair, grouped by fighter.
+
+    The workbench takes `?char=&frame=`, so a pair is two addresses: the `_a`
+    that reaches too far and the `_b` it is supposed to open into. Both are
+    printed because the fault is the RELATIONSHIP between them --- opening the
+    `_a` alone tells you it looks extended, not that it out-reaches its own
+    strike, and the fix is usually to point one of the two at a different
+    drawing rather than to nudge either.
+    """
+    base = base.rstrip("/")
+    groups = {}
+    for kind, rows in (("inverted", inverted), ("thin", thin)):
+        for gap, name, ra, rb in rows:
+            char, a = name.split("/", 1)
+            groups.setdefault(char, []).append((gap, a, ra, rb, kind))
+    total = sum(len(v) for v in groups.values())
+    print(f"{total} pair(s) to fix across {len(groups)} fighter(s)\n")
+    # Worst fighter first, and worst pair first within a fighter, so working
+    # top-down is working in order of how badly the move reads.
+    for char in sorted(groups, key=lambda c: min(g for g, *_ in groups[c])):
+        print(char)
+        for gap, a, ra, rb, kind in sorted(groups[char]):
+            b = a.rsplit("_a", 1)[0] + "_b"
+            tag = "INVERTED" if kind == "inverted" else "thin"
+            print(f"  {tag:8} {gap:+.3f}   _a {ra:.3f} -> _b {rb:.3f}")
+            print(f"    {base}/sprites/workbench/?char={char}&frame={a}")
+            print(f"    {base}/sprites/workbench/?char={char}&frame={b}")
+        print()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--warn", type=float, default=0.05,
                     help="a pair opening by less than this reads as no wind-up")
+    ap.add_argument("--links", metavar="BASE", nargs="?", const=DEFAULT_BASE,
+                    help="print a sprite-workbench deep link per offending pair "
+                         "instead of the report, grouped by fighter. BASE "
+                         f"defaults to {DEFAULT_BASE}")
+    ap.add_argument("--inverted-only", action="store_true",
+                    help="with --links, skip the thin pairs")
     args = ap.parse_args()
 
     chars = json.load(open(MANIFEST))["characters"]
@@ -95,6 +135,10 @@ def main():
                 continue
             row = (rb - ra, f"{char}/{a}", ra, rb)
             (inverted if rb < ra else thin if rb - ra < args.warn else ok).append(row)
+
+    if args.links:
+        links(args.links, inverted, [] if args.inverted_only else thin)
+        return 0
 
     for label, rows in (("INVERTED — the wind-up reaches further than the strike", inverted),
                         (f"THIN — the pair opens by less than {args.warn:.2f}", thin)):
