@@ -557,6 +557,13 @@ function drawFighters(ctx, { bodies = true } = {}) {
     const glowing = ["specialNeutral", "specialSide", "specialDown", "ult", "charge"].includes(f.animKey) || f.installs;
 
     const transformed = bodies && f.installs?.sprite ? getImage(f.installs.sprite) : null;
+    // TWO WAYS TO WEAR A BODY, and the kit says which. Mahoraga REPLACES
+    // Megumi and the triceratops replaces Panda: for the length of the install
+    // the fighter IS that drawing, and their own sprite is not painted at all.
+    // Naoya's vengeful spirit is the other kind — he did not become the
+    // centipede, it runs with him — so it is painted BEHIND his body and he
+    // goes on animating in front of it (`behind` on the move, src/characters.js).
+    const behind = !!f.installs?.spriteBehind;
     if (transformed) {
       const h = 210;
       const w = transformed.width * h / transformed.height;
@@ -575,7 +582,11 @@ function drawFighters(ctx, { bodies = true } = {}) {
       if (tAdj.rot) ctx.rotate(tAdj.rot);
       ctx.drawImage(transformed, -w / 2 + tAdj.dx, -h + tAdj.dy, w, h);
       ctx.restore();
-    } else if (bodies) {
+    }
+    // The fighter's own body — unless the drawing REPLACED it, which is the
+    // case this guard is for. When it stands behind, both are painted, in this
+    // order.
+    if (bodies && !(transformed && !behind)) {
       drawTrail(ctx, f);
       const m = fighterTransform(f);
       const drawOpts = {

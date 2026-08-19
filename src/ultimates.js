@@ -786,7 +786,8 @@ const DIRECTORS = {
     const total = p.passes * 1.0;
     const label = p.label || "TRICERATOPS";
     beginUltAction(f, total, { lockMovement: true });
-    applyInstall(f, { t: total, label, color: p.color, armor: true, dmgMul: 1.1, sprite: p.sprite }, 2);
+    applyInstall(f, { t: total, label, color: p.color, armor: true, dmgMul: 1.1,
+                      sprite: p.sprite, spriteBehind: !!p.behind }, 2);
     f.invuln = Math.max(f.invuln, 0.5);
     state.entities.push({
       owner: f, t: 0, pass: 0, dir: f.facing, dead: false, hitCd: new Map(),

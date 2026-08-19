@@ -1,5 +1,4 @@
-// All 27 fighters — plus seven staged ones at the bottom of the table who are
-// not on the roster yet: stats, sprite-frame mappings, attack profiles,
+// All 34 fighters — stats, sprite-frame mappings, attack profiles,
 // specials, ultimates, passives. Design rationale for every kit lives in
 // docs/characters.md.
 //
@@ -50,18 +49,25 @@ import { SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL } from ".
 // the select screen — this list keeps it out of randomCharacterKey() and out of
 // the "unreachable fighter" warning at the bottom of this file.
 //
-// Round 23 stages three more the same way: Kashimo (the lightning element and
-// the `charge` status), Yaga (the doll summoner) and Naoya (Projection Sorcery
-// — the `framelock` status, the frame-strip afterimages and Time Cell Moon
-// Palace). Their kits are live and testable via tools/smoke_staged.mjs and the
-// sprite workbench lists them; their art is round 22B–22H in
-// docs/asset-requests.md.
-//
-// Round 24 stages four more: Kirara (the `starMark` status and the
+// Rounds 23 and 24 staged seven more the same way — Kashimo (the lightning
+// element and the `charge` status), Yaga (the doll summoner), Naoya
+// (Projection Sorcery: the `framelock` status, the frame-strip afterimages and
+// Time Cell Moon Palace), Kirara (the `starMark` status and the
 // approach-repulsion rule), Haruta (the Miracles auto-dodge stock), Tengen
 // (barrier summons, passive regeneration) and Miwa (the third Simple Domain
-// and the iai stillness bonus). Their art is round 23 in docs/asset-requests.md.
-export const STAGED_CHARACTER_KEYS = ["kashimo", "yaga", "naoya", "kirara", "haruta", "tengen", "miwa"];
+// and the iai stillness bonus). All seven have landed their 36-pose sets and
+// are on the select screen, so the list is empty again — that is its resting
+// state, not a bug.
+//
+// PROMOTING ONE IS NOT FREE, and this is where it was learned: a fighter who
+// sat here through two rounds was deliberately left out of every roster-wide
+// request made meanwhile, and all seven reached the select screen short SEVEN
+// poses each — the teeter, both walk contacts, the dash attack and the three
+// grab poses. Nothing went red, because each of those states falls back to art
+// the fighter does have. `node tools/check_pose_coverage.mjs` (in `npm run
+// check`) is what asks the question now: it fails on a pose that is undrawn
+// and unasked-for, so the next promotion says what it owes.
+export const STAGED_CHARACTER_KEYS = [];
 
 // Sentinel selection meaning "draw a fresh fighter at the start of every match"
 // rather than naming one. Never a key in CHARACTERS — resolve it through
@@ -1594,7 +1600,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Lightning Discharge", type: "projectile", cooldown: 0.95,
         desc: "A bolt off the staff that plants his charge — and a bolt fired at a foe already carrying one bends to find them. No domain required.",
-        p: { speed: 760, vy: -2, r: 26, dur: 0.7, dmg: 10, base: 340, growth: 6.6, angle: 0.34, color: "#6ef7d0", effect: "charge", fxElement: "lightning", seekStatus: "charge", seekRate: 10, fireSfx: "thunderCrack", ox: 64, oy: -92, label: "Discharge", sprite: "effect:lightning_bolt", spriteH: 70 },
+        p: { speed: 760, vy: -2, r: 26, dur: 0.7, dmg: 10, base: 340, growth: 6.6, angle: 0.34, color: "#6ef7d0", effect: "charge", fxElement: "lightning", seekStatus: "charge", seekRate: 10, fireSfx: "thunderCrack", ox: 85, oy: -112, label: "Discharge", sprite: "effect:lightning_bolt", spriteH: 70 },
       },
       side: {
         name: "Nyoi Recall", type: "boomerang", cooldown: 1.35,
@@ -1716,7 +1722,12 @@ export const CHARACTERS = {
     ultimate: {
       name: "Vengeful Spirit: Mach 3", type: "rampage",
       desc: "What he became when he died badly: a living jet engine circling the stage past the sound barrier, wall to wall, too fast to see.",
-      p: { passes: 4, speed: 1250, dmg: 14, base: 500, growth: 7.8, color: "#bfe25c", label: "MACH 3", sprite: "effect:naoya_spirit", trail: true },
+      // `behind` is the difference between Panda's rampage and this one. The
+      // triceratops REPLACES Panda — he is the dinosaur for the duration. Naoya
+      // does not become the centipede; the vengeful spirit he died into runs
+      // WITH him, so the drawing stands behind his own body instead of over it
+      // and he goes on animating in front of it.
+      p: { passes: 4, speed: 1250, dmg: 14, base: 500, growth: 7.8, color: "#bfe25c", label: "MACH 3", sprite: "effect:naoya_spirit", behind: true, trail: true },
     },
     // ---- Domain Expansion -------------------------------------------------
     domains: [{
@@ -1756,12 +1767,12 @@ export const CHARACTERS = {
       neutral: {
         name: "Love Rendezvous", type: "projectile", cooldown: 0.9,
         desc: "A star sigil cast down the lane. It marks what it touches — and a marked body answers to the chart.",
-        p: { speed: 640, vy: -2, r: 24, dur: 0.8, dmg: 7, base: 260, growth: 5.2, angle: 0.32, color: "#d9a8ff", effect: "starMark", ox: 60, oy: -90, label: "Love Rendezvous", sprite: "effect:star_bolt", spriteH: 64 },
+        p: { speed: 640, vy: -2, r: 24, dur: 0.8, dmg: 7, base: 260, growth: 5.2, angle: 0.32, color: "#d9a8ff", effect: "starMark", ox: 49, oy: -120, label: "Love Rendezvous", sprite: "effect:star_bolt", spriteH: 64 },
       },
       side: {
         name: "Same Star: Debris", type: "projectile", cooldown: 1.25,
         desc: "The attraction half of the chart: loose debris marked with the enemy's own star, thrown — and same stars are drawn together, so it hunts them.",
-        p: { speed: 520, vy: -60, gravity: 160, r: 26, dur: 1.1, dmg: 11, base: 360, growth: 6.6, angle: 0.4, color: "#d9a8ff", seekStatus: "starMark", seekRate: 8, ox: 56, oy: -96, label: "Same Star", sprite: "effect:star_debris", spriteH: 70 },
+        p: { speed: 520, vy: -60, gravity: 160, r: 26, dur: 1.1, dmg: 11, base: 360, growth: 6.6, angle: 0.4, color: "#d9a8ff", seekStatus: "starMark", seekRate: 8, ox: 79, oy: -133, label: "Same Star", sprite: "effect:star_debris", spriteH: 70 },
       },
       down: {
         name: "Southern Cross", type: "constellation", cooldown: 2.6,

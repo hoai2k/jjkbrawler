@@ -222,8 +222,11 @@ export function makeModels() {
       for (const f of st.fighters) {
         if (f.dead || f.respawnTimer > 0) continue;
         // A transformed fighter (Megumi as Mahoraga) draws from the install's
-        // own still art in every mode; leave it to the card path.
-        if (f.installs?.sprite) continue;
+        // own still art in every mode; leave it to the card path. Unless the
+        // drawing stands BEHIND them rather than replacing them (Naoya's
+        // vengeful spirit): the card path paints the spirit and leaves the
+        // body, which is this.
+        if (f.installs?.sprite && !f.installs.spriteBehind) continue;
         const aim = nearestOpponentPoint(f, st);
         if (!place(f, adapter, aim)) continue;
         live.add(`${f.spriteChar || f.charKey}#${f.id}`);

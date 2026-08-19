@@ -13,24 +13,35 @@ adding all three; they should not drift from the heading here.
 **Reading a kit:** every character has universal lights/heavies (same inputs,
 different reach/speed/damage/effects), three specials (neutral, side, down),
 one ultimate, and one always-on passive. Eight of them also have a **Domain
-Expansion** — see the section at the end — and staged Naoya carries a ninth.
+Expansion** — see the section at the end — and Naoya carries a ninth.
 
-**Seven are staged.** Round 15's four late additions — Mechamaru, Yuki
-Tsukumo, Dagon and Kurourushi — were built in full in `src/characters.js` before
-any of their art existed, held off the select screen by `STAGED_CHARACTER_KEYS`
-while it was drawn, and all four have shipped. Round 23 stages three more the
-same way — **Hajime Kashimo, Masamichi Yaga and Naoya Zen'in** — and round 24
-stages four on top: **Kirara Hoshi, Haruta Shigemo, Master Tengen and Kasumi
-Miwa** (see their sections below). The roster is 27 fighters; the seven staged
-kits are complete and testable, held off the select screen until their art
-(rounds 22 and 23 in asset-requests.md) lands.
+**The roster is 34, and nothing is staged.** Round 15's four late additions —
+Mechamaru, Yuki Tsukumo, Dagon and Kurourushi — were built in full in
+`src/characters.js` before any of their art existed, held off the select screen
+by `STAGED_CHARACTER_KEYS` while it was drawn, and all four shipped that way.
+Round 23's three — **Hajime Kashimo, Masamichi Yaga and Naoya Zen'in** — and
+round 24's four — **Kirara Hoshi, Haruta Shigemo, Master Tengen and Kasumi
+Miwa** — went the same route and are now selectable alongside everyone else
+(see their sections below).
 
-The staging machinery is how they were built:
+The staging machinery is how they were built, and it is idle rather than gone:
 `node tools/smoke_staged.mjs` plays every staged kit's moves in a real match,
-and the sprite workbench lists staged fighters alongside the roster,
-labelled *(not on the roster yet)*, so a delivered set can be placed and
-approved before the fighter is promoted. All four of round 15's went that way,
-and round 23's three will too.
+and the sprite workbench lists staged fighters alongside the roster, labelled
+*(not on the roster yet)*, so a delivered set can be placed and approved before
+the fighter is promoted. Promotion is two edits — the key leaves
+`STAGED_CHARACTER_KEYS` in `src/characters.js` and joins a `CHARACTER_GROUPS`
+bucket in `src/config_menus.js` — and it is also what hands the sprite
+workbench the sizes and spawn points for that fighter's effect art, because the
+shared-sprite registry is built by walking the kits of `CHARACTER_KEYS`.
+
+What promotion is *not* is free. A fighter staged through two rounds was left
+out of every roster-wide art request made meanwhile, and all seven arrived on
+the select screen short seven poses each — the teeter, both walk contacts, the
+dash attack and the three grab poses — without anything going red, because each
+of those states falls back to art they do have. `node
+tools/check_pose_coverage.mjs` runs in `npm run check` and fails on a pose that
+is undrawn and unasked-for, so the next promotion states its debt instead of
+hiding it. Round 22K is the debt these seven ran up.
 
 **A full bar buys one super.** An ultimate and a Domain Expansion each cost the
 **whole** Cursed Energy bar (`ULT_METER_COST` and `DOMAIN_METER_COST` are both
@@ -685,14 +696,13 @@ share of everything.
 - *Passive — Bottomless Appetite:* it recovers 12% of all damage it deals, and
   the eggs go on feeding it long after the cut.
 
-# Round 23 — the staged three
+# Round 23 — Kashimo, Yaga and Naoya
 
-Kashimo, Yaga and Naoya are built the way round 15's four were: kit first, art
-as a delivery against it. All three are complete in `src/characters.js`, held
-off the select screen by `STAGED_CHARACTER_KEYS`, exercised by
-`node tools/smoke_staged.mjs`, and listed in the sprite workbench as *(not on
-the roster yet)*. Their art is round 22B–22H in
-[asset-requests.md](asset-requests.md).
+Built the way round 15's four were: kit first, art as a delivery against it.
+All three were complete in `src/characters.js` and held off the select screen
+by `STAGED_CHARACTER_KEYS` while rounds 22B–22H were drawn
+([asset-requests.md](asset-requests.md)); that art has landed and all three are
+selectable. `node tools/smoke_staged.mjs` was what exercised them meanwhile.
 
 They introduce **two statuses**, **one element** and **one rendering mechanic**
 that nobody on the roster has:
@@ -803,7 +813,10 @@ frames — the whole kit is legible as cut film.
   you made it. The stance announces PRE-READ, smugly.
 - **Ultimate — Vengeful Spirit: Mach 3:** the thing he became. Wall-to-wall
   supersonic passes at 1250 px/s, unblockable, every pass trailing his frame
-  strip.
+  strip. The spirit is drawn **behind** him rather than over him (`behind` on
+  the move): Panda's rampage replaces his body because Panda *is* the
+  triceratops for the duration, and Naoya is the other case — the centipede
+  runs with him, and he goes on animating in front of it.
 - **Domain — Time Cell Moon Palace:** the stage becomes a filmstrip. Foes
   strobe-freeze on his beat for the whole domain, and SPECIAL blinks him a
   frame behind the enemy with a strike, on a short cooldown. A domain you
@@ -813,14 +826,13 @@ frames — the whole kit is legible as cut film.
   frame trail. Maki's counter is written in too: Heavenly Restricted bodies
   are immune to framelock.
 
-# Round 24 — the staged four
+# Round 24 — Kirara, Haruta, Tengen and Miwa
 
-Kirara, Haruta, Tengen and Miwa, built exactly the way rounds 15 and 23 were:
-kit first, art as a delivery against it. All four are complete in
-`src/characters.js`, held off the select screen by `STAGED_CHARACTER_KEYS`,
-exercised by `node tools/smoke_staged.mjs`, and listed in the sprite and card
-workbenches as *(not on the roster yet)*. Their art is round 23A–23G in
-[asset-requests.md](asset-requests.md).
+Built exactly the way rounds 15 and 23 were: kit first, art as a delivery
+against it. All four were complete in `src/characters.js` and held off the
+select screen by `STAGED_CHARACTER_KEYS` while round 23A–23G was drawn
+([asset-requests.md](asset-requests.md)); that art has landed and all four are
+selectable.
 
 They introduce **one status** and **two passive mechanics** nobody on the
 roster has:
@@ -984,9 +996,9 @@ on the roster, and the only one cast by its actual student.
 | Reggie | Wildcard zoner | ★★★☆ | Mid | Area denial, falling appliances |
 | Gakuganji | Sound fortress | ★☆ | Heavy | Walls of sound, unflinching trades |
 
-All 27 fighters are live. The six round-7 additions (Choso, Mei Mei, Uro, Yuji,
+All 34 fighters are live. The six round-7 additions (Choso, Mei Mei, Uro, Yuji,
 Reggie, Gakuganji) were built and balanced in code before their art existed, and
-round 15's four did the same; that history is in
+round 15's four and rounds 23-24's seven did the same; that history is in
 [asset-requests-history.md](asset-requests-history.md).
 
 Round 15's four, at the same glance:

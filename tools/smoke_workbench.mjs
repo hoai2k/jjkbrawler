@@ -493,6 +493,80 @@ if (updated.poses) {
     "and the panel explains what the round overwrote");
 }
 
+// A SHARED DRAWING ON THE LIST HAS A WAY OFF IT. The list carries effect and
+// summon art the game draws that nobody has ever placed a number on, and the
+// panel tells the reader to mark it reviewed if it is already right — while the
+// button that does that was hidden for the whole shared set, a gate written
+// before those entries could exist. So: select one, check the button is
+// offered, and check that pressing it reaches the export rather than only
+// dimming the cell.
+const sharedEntry = await page.evaluate(() =>
+  window.__spriteWorkbench.recentUpdates().find((e) => e.char === "__other")?.frame || null);
+if (sharedEntry) {
+  await page.evaluate((frame) => {
+    [...document.querySelectorAll("#poseList button")]
+      .find((b) => b.title.startsWith(`__other/${frame}`))?.click();
+  }, sharedEntry);
+  await page.waitForTimeout(400);
+  check(await page.evaluate(() => !document.getElementById("updatedClearGroup").hidden),
+    "a shared drawing on the updated list can be marked reviewed", sharedEntry);
+  await page.click("#updatedClear");
+  await page.waitForTimeout(300);
+  check(await page.evaluate((frame) =>
+    (window.__spriteWorkbench.payloadFor("__other")?.clearUpdated || []).includes(frame), sharedEntry),
+    "...and the review travels in the export", sharedEntry);
+  check(await page.evaluate(() =>
+    /put it back/i.test(document.getElementById("updatedClear").textContent)),
+    "...and can be undone from the same button");
+  await page.click("#updatedClear");
+}
+
+// EVERY DRAWING A KIT NAMES CAN BE PLAYED. The Other Sprites panel offers a
+// "Play it in action" button wherever `firingUse` finds the move that spawns a
+// drawing, and it finds it by walking tables of spawn shapes — one per special
+// type, per director, per creature. A NEW kind of move is therefore a drawing
+// with no action, silently: five of them had accumulated that way (a boomerang,
+// a massDrive ultimate, a domain backdrop added after the list of backdrops was
+// written, and a creature's own projectile), and the only symptom is a button
+// that is not there.
+//
+// The exception is a drawing nothing draws: a stand-in behind a creature whose
+// own plates have landed is never reached, so having no action is the correct
+// answer for it. That is read from the usage index rather than listed here, so
+// the exception cannot go stale either.
+const unplayable = await page.evaluate(async () => {
+  const ep = await import("/sprites/workbench/effect_preview.js");
+  const ch = await import("/src/characters.js");
+  const usage = window.__spriteWorkbench.sharedUsage();
+  const keys = new Set(); const owners = {};
+  const walk = (n) => {
+    if (!n || typeof n !== "object") return;
+    for (const v of Object.values(n)) {
+      if (typeof v === "string" && /^(effect|summon|domain|stagefx):/.test(v)) keys.add(v);
+      else if (Array.isArray(v)) v.forEach((x) => (typeof x === "string" && /^(effect|summon):/.test(x))
+        ? keys.add(x) : walk(x));
+      else walk(v);
+    }
+  };
+  for (const key of ch.CHARACTER_KEYS) {
+    const before = new Set(keys);
+    const c = ch.CHARACTERS[key];
+    walk(c.specials); walk(c.ultimate); walk(c.domains);
+    for (const k of keys) if (!before.has(k)) owners[k] = key;
+  }
+  const out = [];
+  for (const k of keys) {
+    const uses = usage[k] || [];
+    if (uses.length && uses.every((u) => u.dead)) continue;   // retired stand-in
+    let found = null;
+    try { found = ep.firingUse(k, owners[k]); } catch (e) { out.push(`${k} (threw: ${e.message})`); continue; }
+    if (!found) out.push(k);
+  }
+  return out;
+});
+check(unplayable.length === 0,
+  "every shared drawing a kit names has an action to play", unplayable.join(", ") || "none");
+
 // ---- its sibling: the cross-character flagged list
 //
 // Same shape, opposite direction — what was sent back rather than what arrived.

@@ -572,6 +572,21 @@ function updateNote(charKey, frameKey) {
  */
 function sharedTodoNote(frameKey) {
   if (!frameKey || !isUsed(OTHER_KEY, frameKey)) return null;
+  // "I looked at this and it needed nothing" is a decision about the drawing,
+  // and this list is a list of undecided ones. It is the same marker a pose
+  // leaves by (`surfacedReviewed`, written by apply_sprite_adjustments.py) and
+  // it is read explicitly rather than counted as a number below, because it is
+  // a record of the looking rather than a placement.
+  if (peekMeta(OTHER_KEY, frameKey)?.surfacedReviewed) return null;
+  // A DRAWING WITH NOTHING TO DECIDE is not undecided. A domain backdrop is
+  // cover-fitted to the whole stage (drawDomainBackdrop, render.js): no size,
+  // no offset, no tilt, and the panel says so. All nine sat here permanently,
+  // because the only way off this list is a number and there is no number to
+  // set — a to-do item nobody could ever do. What such a drawing still has is a
+  // redraw flag, which is the other list and the right place for "this backdrop
+  // is wrong".
+  const controls = sharedControls(frameKey);
+  if (controls && !controls.size && !controls.offset && !controls.rotate) return null;
   // One entry per DRAWING. A creature's six poses are one drawing set with one
   // set of numbers (entryOf, shared_sprites.js), so listing each pose would put
   // the same decision on the list six times and bury everything else.
@@ -593,7 +608,7 @@ function sharedTodoNote(frameKey) {
 }
 
 /** Fields on a shared entry that are not somebody's decision about the art. */
-const BOOKKEEPING = new Set(["edited", "src", "autoTuned"]);
+const BOOKKEEPING = new Set(["edited", "src", "autoTuned", "surfacedReviewed"]);
 
 // A second way onto the list, and the same job: poses that need a look now and
 // would otherwise have to be hunted for.
@@ -3763,6 +3778,16 @@ function refreshUsageInfo() {
   lines.push(uses.length
     ? uses.map((u) => `${u.who} — ${u.label}`).join("<br>")
     : "No kit references this sprite — it is spawned from code (a stage hazard, a domain, or a shikigami).");
+  // WHY THERE IS NO PLAY BUTTON, on the one class of drawing that will never
+  // get one. A stand-in behind a creature whose own plates have landed is
+  // never reached (summons.js draws the first that loaded), so there is no
+  // action to play — and a greyed-out button with no explanation reads as a
+  // preview that is broken rather than a drawing that is retired.
+  if (uses.length && uses.every((u) => u.dead)) {
+    lines.push("<b>Nothing draws this today.</b> It is a STAND-IN behind a creature whose "
+      + "own art has since been delivered, kept so the fighter still has something to draw "
+      + "if that art is ever pulled. There is no action to play for the same reason.");
+  }
   const can = sharedControls(state.frame);
   if (can?.used && (can.size || can.offset)) {
     const meta = rawMeta(state.char, state.frame);
@@ -4254,6 +4279,11 @@ function refreshUpdatedControl() {
   $("updatedVal").textContent = reviewed ? "reviewed — clears on export"
     : note.how === "new" ? "new art — never placed"
     : note.how === "surfaced" ? "newly in the in-game list — never sized"
+    // The two a shared drawing arrives with. Without them both fell through to
+    // "tuning carried over", which describes a redraw that kept its numbers —
+    // the opposite of a drawing that has never had any.
+    : note.how === "unreviewed" ? "in the game — never placed"
+    : note.how === "placed" ? "placed by a machine — never agreed with"
     : note.lost?.length ? "tuning rolled back" : "tuning carried over";
   $("updatedInfo").innerHTML = updateSummary(note);
   refreshReviewButton();
@@ -4273,8 +4303,19 @@ function refreshReviewButton() {
   const other = isOther(state.char);
   const note = updateNote(state.char, state.frame);
   const done = hasSavedEdits(state.char, state.frame);
-  // Nothing to say on a pose that is already accounted for by its own tuning.
-  group.hidden = other || (!note && done);
+  // SHARED ART GETS THE BUTTON TOO, wherever it is on the list. It was hidden
+  // here before the shared set could BE on a list: sharedTodoNote came later,
+  // and the gate it was written against was never revisited — so a drawing like
+  // `stagefx:stage_flower` sat on "All Recently Updated Poses" with the panel
+  // telling the reader to "mark it reviewed if it is already right" and no
+  // button to do it with. The only way off was to change a number on a drawing
+  // that did not need one, which is exactly what this button exists to avoid.
+  //
+  // What is still withheld is the no-saved-edits half. A shared drawing's
+  // membership of that list IS "nobody has set a number against it", which is
+  // the same fact its note carries, so offering "mark as done" where there is
+  // no note would be answering a question nothing asked.
+  group.hidden = other ? !note : (!note && done);
   if (group.hidden) return;
   const reviewed = isUpdateReviewed(state.char, state.frame);
   $("updatedClear").textContent = reviewed
@@ -6083,6 +6124,14 @@ async function boot() {
   // Same shape as `window.__render3d`, and nothing here mutates.
   window.__spriteWorkbench = {
     flaggedPoses, allFlagBearingPoses, needsReplacement,
+    // The updated list and what an export would carry, for the one rule that
+    // has no DOM either: a shared drawing marked reviewed has to leave by the
+    // export, not just by dimming on screen.
+    recentUpdates, payloadFor,
+    // Who draws each shared drawing, and whether that use is a dead stand-in.
+    // The smoke asserts every drawing the game really shows has an action to
+    // play; the ones nothing shows are the exception it has to be able to see.
+    sharedUsage: () => Object.fromEntries([...sharedUsage()].map(([k, v]) => [k, v])),
     // Where the hit circle and its two handles are on the canvas right now.
     // Read-only, and here for the same reason the flag predicates are: a
     // draggable shape drawn on a canvas has no DOM for a test to grab, so

@@ -613,6 +613,31 @@ another scatters that work exactly the way an overwrite does.
 selects a delivered alternate over the art a pose was pointing at, because the
 pose's numbers stop applying just the same.
 
+#### Shared art is on the same list, for a different reason
+
+An effect or a summon has no intake marker to carry: a delivery overwrites those
+bytes in place, by hand, and nothing stamps the pose. What puts one on the list
+is the same question asked directly — **the game draws this and nobody has ever
+set a number against it**. A machine-placed number does not count; `autoTuned`
+is a starting point offered up to be disagreed with, which is why those entries
+read *placed by a machine — never agreed with* rather than being treated as
+done.
+
+Two rules keep that honest, and both were learned by getting them wrong:
+
+- **A drawing with nothing to decide is not undecided.** A domain backdrop is
+  cover-fitted to the whole stage, so it has no size, no offset and no tilt.
+  All nine sat on the list permanently — the only way off is a number, and
+  there is no number to set. They are excluded. A backdrop that is *wrong* has
+  the redraw flag, which is the other list.
+- **"I looked at it and it needed nothing" has to be sayable.** Marking a
+  drawing reviewed writes `surfacedReviewed` onto its `otherSprites` entry, the
+  same marker a pose leaves by, creating the entry if the drawing never had one
+  — having no entry is precisely what put it on the list. Before that the
+  button was hidden for the whole shared set, a gate written before shared art
+  could be on a list at all, and the only way off was to nudge a drawing that
+  did not need nudging.
+
 ### Staged fighters are edited here too
 
 The dropdown lists every fighter in `CHARACTER_KEYS` **plus every one in
@@ -627,6 +652,29 @@ They are labelled *(not on the roster yet)* rather than hidden, because it
 changes what an approval means: nothing is drawing either drawing today, so the
 decision settles which one the set carries when the fighter ships. The
 **Replacement waiting** panel says so on a staged fighter.
+
+#### And promoting one owes every roster-wide round it missed
+
+A fighter staged for two rounds is a fighter deliberately left out of every
+roster-wide request made in the meantime. Kashimo, Yaga, Naoya, Kirara, Haruta,
+Tengen and Miwa reached the select screen short seven poses each — the teeter
+(22A), both walk contacts (21), the dash attack (20D) and the three grab poses
+(20C) — and nothing went red, because every one of those states falls back to
+art the fighter does have. The gap that gets noticed is the one somebody
+happens to look at.
+
+`node tools/check_pose_coverage.mjs` is the answer, and it runs in
+`npm run check`. It compares every fighter's animation states against the
+manifest and fails on a pose that is undrawn AND unasked-for — the same rule the
+request docs keep for workbench flags, that a gap with no request is work nobody
+can see. It does not fail on missing art as such: an art round IS missing art.
+Write the request and it goes green.
+
+Two kinds of entry are exempt, both deliberately: `fallback` frames, which are
+by definition somebody else's pose, and the four throw keys, which 20C
+registered without requesting because the heavy attack swung that way already
+reads as a throw. That exemption lives in the check with the reason attached,
+because a silent exemption is how the teeter happened.
 
 The sprite workbench's character dropdown ends with **All Recently Updated
 Poses**, which is those markers listed across the whole roster, newest round

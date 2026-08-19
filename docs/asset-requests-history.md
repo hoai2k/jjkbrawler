@@ -39,6 +39,7 @@ why the numbering is not strictly chronological.
 | 22B–22D | The three staged fighters' 36-pose sets — Kashimo, Yaga, Naoya (108 sprites) | Delivered and imported whole; three of Yaga's frames needed a `FACING_OVERRIDE`, and three frames came back flagged as 22I |
 | 22A, 22E–22H | The roster-wide teeter, round 23's technique effects, Yaga's doll family, three hero cards and Naoya's domain backdrop (41 assets) + 12 DI reference images | Delivered; `nanami/teeter` came back with the blade off the canvas and is re-requested |
 | 23 | Round 24's four staged fighters — four 36-pose sets, seven effects, Tengen's barrier, four hero cards (156 assets) + 16 DI references, plus three of 22I's redraws | Delivered; `miwa/attack_heavy_b` re-requested as 23H, and Tengen's barrier colour needs a decision |
+| 22I, 22J | The redraw round: the wind-up fault across Yaga's, Naoya's, Dagon's and Haruta's attack pairs, Nanami's re-framed teeter, both `dizzy` contact sheets, Miwa's cropped blades and everything else the workbench had flagged (30 sprites) | Delivered whole; `kirara/attack_down` needed a `FACING_OVERRIDE`, and every frame is in the workbench's approval queue |
 
 ---
 
@@ -4314,3 +4315,119 @@ Match the delivered set in `assets/cards/` for crop and energy.
 | `assets/intake/cards/haruta_card.jpg` | A Shibuya alley mid-ambush: him grinning over one shoulder, the Hand Sword crawling along a wall behind him |
 | `assets/intake/cards/tengen_card.jpg` | The Tomb of the Star Corridor: floating shrine architecture receding forever, Tengen small and central, all four eyes lit |
 | `assets/intake/cards/miwa_card.jpg` | A Kyoto training yard at dawn, mid-draw, the blade a line of light — earnest, not epic |
+
+---
+
+# Round 22I and 22J — the redraw round, delivered
+
+Thirty frames, every one a redraw of art already in the game: the faults the
+round-22 and round-23 review boards found, plus everything the workbench had
+flagged and no section had asked for. They landed together on 2026-08-18 and
+were imported as replacements, so each one sits in the sprite workbench's
+approval queue with the drawing it replaces still in play until somebody says
+yes — the standing rule that whatever is left in the workbench is what the game
+uses.
+
+**One frame needed a `FACING_OVERRIDE`: `kirara/attack_down`.** She had gone
+thirty-five frames without one, and the frame that caught her is the one where
+her cyan bang cannot help — a low diving stomp, head down at the shoulder line,
+hair across the face, both arms flung out, so the silhouette is nearly
+symmetrical about a diagonal. Delivered facing right, called left, mirrored,
+and the dive landed behind her. Caught on the review board before the import,
+which is the whole reason that step is not optional.
+
+The sections below are the requests as they were written.
+
+## 22I. Seven frames the round-22 boards rejected — 7 sprites
+
+The faults found reviewing round 22 — six from the 22B–22D sprite sets and one
+from the teeter. Three more were on this list and are answered: the
+`kashimo/special_side` costume and both of Yaga's crouches were redrawn with
+round 23 and are
+[in the history](asset-requests-history.md#round-23--round-24s-four-staged-fighters-delivered).
+Everything else in those deliveries is in the game; these
+seven are in it too, drawing what was delivered, and flagged in the workbench so
+they are visible while they wait. Same character blocks, same key screens, same
+delivery paths as the sets they belong to.
+
+**Six of them are one fault**, and it is the reason the brief now measures the
+wind-up: Yaga's and Naoya's `_a` frames were drawn about as extended as their
+own strikes. Kashimo's set is not among them — his light and heavy pairs read
+correctly, and his aerial pair was drawn correctly and delivered INVERTED,
+which was fixed by pointing each pose at the other file rather than by a
+redraw. The `_a`
+rule in [pose-brief.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/docs/pose-brief.md) applies to these redraws
+too, and both halves of the pair have to pass the ruler.
+
+| File | Fighter | What is wrong, and what to draw |
+|---|---|---|
+| `naoya/attack_light_a.png` | Naoya | **The wind-up is already the strike.** Drawn mid-blow, so the light attack has no coil and no tell. Redraw as the coil: striking hand drawn back beside the body, shoulders turned away from the target, weight on the back foot, lead arm up as a guard. It must reach **no further forward than `naoya/idle_a.png`** |
+| `naoya/attack_heavy_a.png` | Naoya | Same fault. Redraw as the wind-up of one committed blow: fist drawn as far back as the body allows, hips loaded, front foot light — and inside the idle's reach |
+| `naoya/attack_air_a.png` | Naoya | Same fault, airborne. Body coiled mid-jump, striking limb cocked, legs gathered — the extension belongs to `attack_air_b` |
+| `yaga/attack_light_a.png` | Yaga | Same fault as Naoya's, same fix, against `yaga/idle_a.png` |
+| `yaga/attack_heavy_a.png` | Yaga | Same fault. It is standing in on his `guard` frame in the workbench meanwhile, which is a stopgap and not a wind-up — the delivered plate needs redrawing as the coil |
+| `yaga/attack_air_a.png` | Yaga | Same fault, airborne |
+| `nanami/teeter.png` | Nanami | **Framing.** The pose is right — weight back, arms out, head down toward the drop — but his blunt blade runs off the LEFT edge of the plate and is cut flat by the canvas. The delivery spec's "nothing may touch the canvas edge" rule, and the "reach falls off the canvas" fault the brief has named since round 13. Redraw the same pose with margin on all four sides so the blade finishes inside the frame |
+
+**Kashimo's canonical reference is now his own idle**, not the wiki render —
+36 poses landed, so the rule that governs every other fighter applies to him:
+
+- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kashimo/idle_a.png>
+- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/idle_a.png>
+- <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yaga/idle_a.png>
+
+## 22J. Everything else the workbench has flagged — 23 sprites
+
+Frames carrying a workbench flag that no other section asks for. The file
+defines a pose as outstanding if it is flagged *or* drawing a file that is not
+its own, and these had drifted out of the rounds — some since round 18, most
+from the placement passes over rounds 22 and 23. They are listed here so the
+request documents stop understating what is owed.
+
+**Every one of them is in the game today**, drawing what the `File` column
+names — a flag asks for a better drawing, it never takes the current one out of
+play. Where that file is another pose's, it is a deliberate stand-in chosen in
+the workbench and it stays until something better arrives.
+
+Written from `python3 tools/list_replacements.py --markdown`, which reads the
+flags themselves, so this table cannot disagree with the workbench.
+
+| Fighter | Pose | Kind | Drawing today | What is wrong |
+|---|---|---|---|---|
+| Dagon | `dagon/attack_light_a` | pose | `dagon/attack_light_a.png` | should be wind-up for attack |
+| Dagon | `dagon/crouch_attack_b` | pose | `dagon/crouch_attack_b.png` | — |
+| Dagon | `dagon/crouch_b` | pose | `dagon/crouch_b.png` | Drops 21% of standing height where the brief asks for a quarter, and reads taller than crouch_a beside it. Same crouch as crouch_a, a breath later. |
+| Dagon | `dagon/run_reach_a` | pose | `dagon/run_reach_a.png` | Should reach with leg not with arm |
+| Dagon | `dagon/run_reach_b` | pose | `dagon/run_reach_b.png` | should reach with leg instead of arm |
+| Haruta Shigemo | `haruta/attack_air_a` | pose | `haruta/attack_air_a.png` | Needs to be winding-up for attack, not already attacking |
+| Haruta Shigemo | `haruta/dizzy` | pose | `haruta/hurt.png` | I'm using a new image that better approximates it, but we need to redo the "dizzy" sprite which came out as an erroneous sheet of multiple images. |
+| Haruta Shigemo | `haruta/special_down` | pose | `haruta/attack_air_a.png` | Needs to be winding-up for attack, not already attacking |
+| Hajime Kashimo | `kashimo/attack_air_b` | quality | `kashimo/attack_air_a.png` | — |
+| Hajime Kashimo | `kashimo/attack_up` | quality | `kashimo/attack_up.png` | Has double knee and also strike focus should be upward |
+| Hajime Kashimo | `kashimo/ledge_hang` | character | `kashimo/ledge_hang.png` | Different hair color |
+| Kirara Hoshi | `kirara/attack_down` | pose | `kirara/attack_down.png` | should be aiming attack at the ground |
+| Kirara Hoshi | `kirara/attack_heavy_b` | pose | `kirara/attack_heavy_b.png` | Should have her right arm forward in a punch |
+| Kirara Hoshi | `kirara/attack_light_b` | pose | `kirara/attack_light_b.png` | should have her right arm out in a punch |
+| Mahito | `mahito/attack_light_a` | quality | `mahito/attack_light_a.png` | — |
+| Kasumi Miwa | `miwa/attack_heavy_a` | quality | `miwa/attack_heavy_a.png` | her drawn back sword has no blade on it |
+| Kasumi Miwa | `miwa/attack_light_a` | quality | `miwa/attack_light_a.png` | Her sword should be unsheathed in her wind-up to attack. |
+| Kasumi Miwa | `miwa/attack_light_b` | quality | `miwa/attack_light_b.png` | Her sword is cut off / clipped on the right |
+| Kasumi Miwa | `miwa/charge` | pose | `miwa/charge.png` | She looks like she's just idling instead of charging up |
+| Kasumi Miwa | `miwa/dizzy` | quality | `miwa/hurt.png` | I replaced with another sprite as a backup, but we need a new "dizzy" one (old one was a sheet showing multiple at once). |
+| Kasumi Miwa | `miwa/special_neutral` | quality | `miwa/special_neutral.png` | Her sword is cut off on the right |
+| Kasumi Miwa | `miwa/ult_a` | quality | `miwa/ult_a.png` | her sword is going through her leg |
+| Takako Uro | `uro/attack_light_b` | quality | `uro/attack_light_a.png` | — |
+
+**Two of Miwa's are unrecoverable crops, not framing.** `attack_light_b` and
+`special_neutral` were delivered with the blade running off the RIGHT edge of
+the plate — 26 px and 23 px of the source's own right-hand column is figure, so
+the tip was never drawn and no re-crop can bring it back. Both need the pose
+redrawn with margin on all four sides.
+
+**The two `dizzy` sheets cannot be salvaged either.** `miwa/dizzy` came back as
+fifteen figures on one 1536x1024 canvas and `haruta/dizzy` as eleven; the
+tallest figure on either sheet is 495 px against the spec's 600 px body
+minimum, and the median is under 310 px. Even setting resolution aside, none of
+the figures on either sheet is a dizzy pose — they are idles, draws, crouches
+and slashes. Both are re-requests, and both draw the fighter's `hurt` frame
+meanwhile, which is the closest read the set has.
