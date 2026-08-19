@@ -38,12 +38,21 @@ they were staged. All of it is
 owed against a written request. It does not mean every drawing is right: the
 22I/22J redraws sit in the sprite workbench's approval queue rather than in the
 game, because the drawing each replaces stays in play until somebody says yes.
-And `python3 tools/audit_windup.py` still measures **13 inverted and 19 thin**
+And `python3 tools/audit_windup.py` still measures **4 inverted and 19 thin**
 attack pairs across the shipped roster — pairs whose `_a` reaches as far as or
 further than its own `_b`. Those are a redraw round waiting to be written (or,
 where the two files are simply the wrong way round, a swap and no art at all);
-they are not in this file yet because nobody has decided which of the 32 are
+they are not in this file yet because nobody has decided which of the 23 are
 worth the drawings. That decision is the next thing this file wants.
+
+The count moved because the audit was reading every frame rightward while 15
+attack frames are drawn facing left, mixed within 13 of the pairs. Corrected, six
+of the reported inversions turn out healthy — Mei Mei's light pair is a genuine
++0.189, not −0.009 — and one that had never been reported appears: **Hakari's
+light pair is inverted at −0.037**, and had been reading as a comfortable +0.137
+for as long as the audit has existed. **Tengen is the one to look at first:** his
+light and heavy pairs are four near-identical standing frames with both palms
+held at the chest, and neither pair contains a strike at all.
 
 `tools/list_replacements.py` reports two items that are repo work on delivered
 files rather than art anybody owes us — the `dodge_air` alpha fixes on Hakari
