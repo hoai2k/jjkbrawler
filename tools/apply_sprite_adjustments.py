@@ -523,10 +523,25 @@ def main():
                 if field == "anchors":
                     # merge, so exporting one anchor never drops the others
                     anchors = meta.setdefault("anchors", {})
+                    # An anchor is BAKED for every frame that owes one, so the
+                    # value being present says nothing about whether a person
+                    # ever looked at it. Without this record the verification
+                    # queue read its own bake back as 34 confirmed answers —
+                    # and this round moved 26 teeter feet by hundreds of pixels
+                    # off exactly those bakes. So remember which ones a hand
+                    # placed, under `edited` like every other tracked field,
+                    # holding what the measurement said before.
+                    was = meta.setdefault("edited", {}).setdefault("anchors", {})
                     for name, point in value.items():
                         before = anchors.get(name)
                         anchors[name] = [round(float(point[0]), 1), round(float(point[1]), 1)]
+                        if anchors[name] != before:
+                            was.setdefault(name, before)
                         applied.append(f"{char}/{key}.anchors.{name}: {before} -> {anchors[name]}")
+                    if not was:
+                        meta["edited"].pop("anchors")
+                        if not meta["edited"]:
+                            meta.pop("edited")
                     continue
                 before = meta.get(field)
                 meta[field] = value
