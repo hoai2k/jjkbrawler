@@ -222,9 +222,44 @@ let currentSrc = null;
 const loops = new Map(); // sfx key -> the Audio element holding that loop
 const active = new Set();
 
+// A board track is a several-megabyte file fetched over whatever connection the
+// player has, and `play()` returns a promise that rejects for reasons that have
+// nothing to do with the game (the fetch died, the element was re-sourced under
+// it, the browser was not ready to sound yet). Both used to be swallowed —
+// `play().catch(() => {})` and no `error` listener at all — and the cost of
+// either was the same: a match played in silence from start to finish, with
+// nothing said anywhere, because nothing ever asked again.
+//
+// So the intent is remembered instead. `musicWanted` is what syncMusic decided
+// this phase should be doing, and the two listeners below turn that intent into
+// another attempt: `canplay` re-issues a play the browser refused earlier, and
+// `error` re-fetches a track whose download failed. The retry budget is per
+// src, so a file that genuinely is not there costs two requests and then stops
+// — it does not sit in a reload loop for the rest of the session.
+let musicWanted = false;
+let musicRetries = 0;
+const MUSIC_RETRIES = 2;
+
 export function initAudio() {
   musicEl = document.getElementById("musicTrack");
+  musicEl?.addEventListener("error", onMusicError);
+  // The track arrived (or arrived again) and the phase still wants it playing:
+  // this is the retry for a play() the browser rejected while it had nothing
+  // buffered, which is the common shape of "the level started with no music".
+  musicEl?.addEventListener("canplay", () => {
+    if (musicWanted && !suspended && musicEl.paused) musicEl.play().catch(() => {});
+  });
   applyMute();
+}
+
+/** The track failed to load. Say so — a silent match is otherwise unreportable
+ *  — and ask for the same file again, up to MUSIC_RETRIES times. */
+function onMusicError() {
+  if (!musicWanted || suspended || !currentSrc || musicRetries >= MUSIC_RETRIES) return;
+  musicRetries += 1;
+  console.warn(`music failed to load (retry ${musicRetries}/${MUSIC_RETRIES}): ${currentSrc}`);
+  musicEl.load();
+  musicEl.play().catch(() => {});
 }
 
 // Autoplay policy: nothing may sound until the page has had a genuine user
@@ -492,6 +527,7 @@ export function syncMusic(phase) {
 
   musicEl.muted = audioSettings.muted;
   if (!src || off || audioSettings.muted || audioSettings.musicVolume <= 0) {
+    musicWanted = false;
     musicEl.pause();
     return;
   }
@@ -499,9 +535,13 @@ export function syncMusic(phase) {
   musicEl.volume = musicBaseVol;
   if (currentSrc !== src) {
     currentSrc = src;
+    musicRetries = 0; // a new track gets its own budget
     musicEl.src = src;
   }
   musicEl.loop = true;
+  musicWanted = true;
+  // A rejection here is not the end of it: the canplay listener above tries
+  // again once the element has something to play.
   musicEl.play().catch(() => {});
 }
 

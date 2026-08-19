@@ -37,8 +37,35 @@ const FIGHTER_IDS = Array.from({ length: MAX_FIGHTERS }, (_, i) => i + 1);
 const pickerCursor = { 1: null, 2: null, 3: null, 4: null };
 const pickerRepeat = PLAYER_IDS.map(() => ({ dir: null, t: 0 }));
 
+// Menu art that failed to arrive, asked for once more.
+//
+// Every picture on these screens is an <img> the browser fetches on its own,
+// and a fetch that dies — a connection that dropped mid-file, a request the
+// browser abandoned under a load spike — leaves that element showing the broken
+// image glyph for the rest of the session. Nothing retried, and nothing said
+// so: a fighter's card simply looked missing, as if the art had never been
+// drawn. The listener is on the document in CAPTURE phase because an <img>
+// error event does not bubble, which is also why one listener can cover cards,
+// roster tiles, arena thumbnails and victory poses alike rather than each place
+// that builds one needing its own handler.
+//
+// One retry, marked in the url so a file that really is absent (a 404) costs
+// two requests and then stops rather than looping. The marker is a query
+// string, so it also defeats the browser's cache of the failure.
+const RETRY_MARK = "retry=1";
+
+function retryBrokenArt(event) {
+  const img = event.target;
+  if (!(img instanceof HTMLImageElement)) return;
+  const src = img.getAttribute("src") || "";
+  if (!src || src.includes(RETRY_MARK)) return;
+  console.warn(`menu art failed to load, asking once more: ${src}`);
+  img.setAttribute("src", `${src}${src.includes("?") ? "&" : "?"}${RETRY_MARK}`);
+}
+
 export function initUi(cb) {
   callbacks = cb;
+  document.addEventListener("error", retryBrokenArt, true);
   // The in-match panels exist before anything looks them up: they are built
   // from MAX_FIGHTERS rather than written out per slot, because a match can
   // seat anywhere from two to eight fighters.

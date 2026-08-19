@@ -171,11 +171,26 @@ const DOMAIN_BACKGROUNDS = {
   time_cell_moon_palace: "naoya",
 };
 
-function loadImage(src) {
+// One retry before a load is called a failure. A fetch that dies for reasons
+// that have nothing to do with the file — a connection that dropped mid-image,
+// a request the browser abandoned while a match's worth of art was in flight —
+// used to cost the whole sheet for the session, and the same hole showed on the
+// menus as a fighter's card that simply looked missing (retryBrokenArt in
+// ui.js). The query string is what makes the second ask a real request rather
+// than a cache hit on the failure; a blob: url has no room for one and does not
+// need one, since the bytes are already in hand.
+function loadImage(src, retry = true) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`Failed to load ${src}`));
+    img.onerror = () => {
+      if (retry && !src.startsWith("blob:")) {
+        console.warn(`image failed to load, asking once more: ${src}`);
+        resolve(loadImage(`${src}${src.includes("?") ? "&" : "?"}retry=1`, false));
+        return;
+      }
+      reject(new Error(`Failed to load ${src}`));
+    };
     img.src = src;
   });
 }
