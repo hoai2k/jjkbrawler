@@ -179,6 +179,8 @@ so the stamp itself is never the stale thing.
 - [Asset pipeline](sprites/docs/asset-pipeline.md)
 - [Automating the placement pass](sprites/docs/sprite-auto-adjust.md) — what the hand
   tuning data says is mechanical, and what is judgement
+- [The import defaults, re-measured](sprites/docs/sprite-import-defaults.md) — the same
+  question asked again over twice the corrections, and the six answers that moved
 - [Full sprite cleanup](sprites/docs/sprite-cleanup.md) — the runbook for answering every
   flag set in the sprite workbench
 - [**All requests**](docs/all-requests.md) — every open request in one index:
