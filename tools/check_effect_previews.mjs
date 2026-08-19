@@ -24,6 +24,13 @@
 //   1. is there an action?   `firingUse` resolves the drawing to a move.
 //   2. does anything appear?  the action, played end to end, actually puts the
 //      drawing on the canvas at least once.
+//   3. do the two views agree?  the still viewer and the player are separate
+//      pieces of arithmetic over the same drawing — the viewer mirrors and
+//      anchors from `DRAW_SITES` in src/shared_sprites.js, the player decides
+//      per playback mode — and a move type entered in one table and not the
+//      other makes them disagree in silence. Kashimo's staff pointed one way in
+//      the viewer and the other in the player for as long as `boomerang` had
+//      existed, because only the player knew what a boomerang was.
 //
 // The second is what a person means by "it has no preview". An action that
 // resolves and paints nothing — art that never loaded, a director whose sprite
@@ -128,14 +135,15 @@ const SAMPLES = 12;
 const noAction = [];
 const noPixels = [];
 const noArt = [];
+const disagreed = [];
 let played = 0;
 
 for (const [key, owner] of wanted) {
-  const verdict = await page.evaluate(async ([frame, char, samples]) => {
+  const result = await page.evaluate(async ([frame, char, samples]) => {
     const wb = window.__spriteWorkbench;
     const usage = wb.sharedUsage()[frame] || [];
     // Nothing draws it: a retired stand-in. Correct to have no action.
-    if (usage.length && usage.every((u) => u.dead)) return "dead";
+    if (usage.length && usage.every((u) => u.dead)) return { verdict: "dead" };
 
     // FETCH THE ART FIRST. Selecting a drawing in the panel is what normally
     // loads it, and this never touches the panel — so without this the drawing
@@ -148,7 +156,7 @@ for (const [key, owner] of wanted) {
     const onDisk = await assets.loadSharedImage(frame);
 
     const preview = wb.effectPreview;
-    if (!preview.open(frame, char)) return "no action";
+    if (!preview.open(frame, char)) return { verdict: "no action" };
     preview.hold(true);
     const tick = () => new Promise((r) => requestAnimationFrame(() => r()));
     let seen = false;
@@ -159,26 +167,58 @@ for (const [key, owner] of wanted) {
       await tick();               // one to advance the clock, one to paint it
       if (preview.drew) { seen = true; break; }
     }
+    // What the player actually did with it, for the agreement test below. Taken
+    // from the frame that painted, so it is the picture rather than the intent.
+    const drawnAs = preview.painted;
     preview.hold(false);
     preview.close();
+    const ss = await import("/src/shared_sprites.js");
+    const info = ss.sharedSpriteInfo(frame);
+    // A creature is placed by summons.js rather than by either of these, and a
+    // backdrop is cover-fitted with no anchor to compare; both are out.
+    //
+    // So is a drawing with more than one live use. `effect:star_rage_impact` is
+    // Todo's flash AND his ultimate's impact — one picture, two spawn sites,
+    // two honest answers — and the two views pick different ones because they
+    // walk the kits in a different order. The panel lists both uses, which is
+    // the right place for that fact; a checker that insisted on one would be
+    // demanding the drawing stop being used twice.
+    const live = usage.filter((u) => !u.dead);
+    const oneUse = live.length <= 1;
+    const compare = seen && drawnAs && info && oneUse && preview.use?.mode !== "summon"
+      && preview.use?.mode !== "backdrop" && info.anchor !== "screen";
+    const disagree = compare && (drawnAs.anchor !== info.anchor
+      || drawnAs.mirrored !== !!info.mirrored)
+      ? { player: drawnAs, viewer: { anchor: info.anchor, mirrored: !!info.mirrored } }
+      : null;
+    if (disagree) return { verdict: "disagree", disagree };
     // A creature is drawn from its own POSE plates and its base key can be a
     // name rather than a picture (summons.js, canonicalImage), so "no file
     // under this key" does not mean "no art" for one — the preview resolves
     // that itself, and if it still painted nothing that is a real gap.
     const creature = preview.use?.mode === "summon";
-    return seen ? "ok" : (onDisk || creature ? "no pixels" : "no art");
+    return { verdict: seen ? "ok" : (onDisk || creature ? "no pixels" : "no art") };
   }, [key, owner, SAMPLES]);
 
+  const { verdict, disagree } = result;
   if (verdict === "dead") continue;
   if (verdict === "ok") { played++; continue; }
   if (verdict === "no action") noAction.push(key);
   else if (verdict === "no art") noArt.push(key);
+  else if (verdict === "disagree") disagreed.push([key, disagree]);
   else noPixels.push(key);
 }
 
 for (const key of noArt) console.log(`  --   ${key}: no art on disk yet — nothing to show, nothing to place`);
 
-if (noAction.length || noPixels.length) {
+for (const [key, d] of disagreed) {
+  console.error(`  FAIL ${key}: the viewer and the player disagree about it —`
+    + ` viewer says ${d.viewer.anchor}${d.viewer.mirrored ? ", mirrored" : ""},`
+    + ` the player draws it ${d.player.anchor}${d.player.mirrored ? ", mirrored" : ""}.`
+    + " One of the two tables is missing this move type.");
+}
+
+if (noAction.length || noPixels.length || disagreed.length) {
   for (const key of noAction) {
     console.error(`  FAIL ${key}: no move fires it — add its spawn shape to`
       + " sprites/workbench/effect_preview.js");
@@ -186,9 +226,11 @@ if (noAction.length || noPixels.length) {
   for (const key of noPixels) {
     console.error(`  FAIL ${key}: has an action, but nothing is painted anywhere in the loop`);
   }
-  console.error(`\n${noAction.length + noPixels.length} drawing(s) cannot be previewed.`);
+  console.error(`\n${noAction.length + noPixels.length + disagreed.length} drawing(s)`
+    + " cannot be previewed, or are previewed two different ways.");
   await finish(1);
 }
 
-console.log(`effect previews ok — ${played} drawing(s) play, ${noArt.length} awaiting art`);
+console.log(`effect previews ok — ${played} drawing(s) play and the two views agree`
+  + ` on every one, ${noArt.length} awaiting art`);
 await finish(0);

@@ -622,6 +622,14 @@ function buildRegistry() {
     projectile: (n) => ({ forward: n.ox ?? 70, y: n.oy ?? -86, scaled: true }),
     // The wave handler overrides ox itself, one wave per 54px: `ox: 60 + i * 54`.
     wave: (n) => ({ forward: 60, y: n.oy ?? -86, scaled: true }),
+    // A boomerang is spawnProjectile from the move's own muzzle, like any shot
+    // — the return leg is a second projectile sent back from the far point, and
+    // it leaves from a place the caster does not choose. This entry was missing
+    // for as long as the type has existed, and its absence was invisible in the
+    // usual way: the viewer stopped mirroring the drawing (so it faced one way
+    // there and the other in the player), stopped standing the fighter in the
+    // pose that throws it, and stopped offering the crosshair.
+    boomerang: (n) => ({ forward: n.ox ?? 70, y: n.oy ?? -86, scaled: true }),
     // spawnSummonFlash: on the ground at the fighter's feet (`owner.y + 12`),
     // `forward` px ahead of them, each handler passing its own.
     swap: () => ({ forward: 0, y: 12 }),
@@ -697,6 +705,7 @@ function buildRegistry() {
     // player sees a right-facing fighter produce is the mirror of the plate,
     // exactly as with a shot travelling right.
     wave: { anchor: "centre", nudge: true, travels: true },
+    boomerang: { anchor: "centre", nudge: true, travels: true },
     beam: { anchor: "centre", nudge: true, travels: true },
     cannonade: { anchor: "centre", nudge: true, travels: true },
     birdstrike: { anchor: "centre", nudge: true, travels: true },
@@ -719,10 +728,15 @@ function buildRegistry() {
     // of blood orbs, a shout in front of the mouth.
     meteor: { anchor: "centre", ...SELF("meteor (src/ultimates.js)") },
     vortex: { anchor: "centre", ...SELF("vortex (src/ultimates.js)") },
-    nailstorm: { anchor: "centre", ...SELF("nailstorm (src/ultimates.js)") },
-    shout: { anchor: "centre", ...SELF("shout (src/ultimates.js)") },
+    // These three MIRROR with the caster — `scale(f.facing > 0 ? -1 : 1)` in
+    // their own draw, the same rule a shot follows — and said they did not, so
+    // the viewer showed the plate the way it was drawn while the player and the
+    // game showed its mirror. Checked against the handlers one by one; the
+    // other nine directors paint unmirrored and are correct as they stand.
+    nailstorm: { anchor: "centre", mirrored: true, ...SELF("nailstorm (src/ultimates.js)") },
+    shout: { anchor: "centre", mirrored: true, ...SELF("shout (src/ultimates.js)") },
     skyInvert: { anchor: "centre", ...SELF("skyInvert (src/ultimates.js)") },
-    massDrive: { anchor: "centre", ...SELF("massDrive (src/ultimates.js)") },
+    massDrive: { anchor: "centre", mirrored: true, ...SELF("massDrive (src/ultimates.js)") },
     supernova: { anchor: "centre", ...SELF("supernova (src/ultimates.js)") },
     concert: { anchor: "centre", ...SELF("concert (src/ultimates.js)") },
     warpStrike: { anchor: "centre", ...SELF("warpStrike (src/specials.js)") },
@@ -860,8 +874,24 @@ function buildRegistry() {
       // creature's `sprites` list (a stand-in stack, not a thrown thing) out.
       const listLaunch = field === "spritePool" && launch && launch(node)
         ? { launch: { ...launch(node), anim: SLOT_ANIM[slot] || null } } : {};
-      for (const key of node[field]) {
-        put(key, { h, anchor: drawnBy, owner: who, hit, what, ...nudge, ...listLaunch });
+      for (const [i, key] of node[field].entries()) {
+        const info = { h, anchor: drawnBy, owner: who, hit, what, ...nudge, ...listLaunch };
+        // A CREATURE'S `sprites` IS A STACK, not a set — summons.js draws the
+        // first entry that has loaded and never reaches the rest — so entries
+        // after the first are stand-ins and must not outrank a use that really
+        // draws. The pool pass has always deferred them; a creature declared
+        // INLINE in a move (Dagon's shikigami) came through here instead and
+        // did not, so `effect:shikigami_fish` was described as a fish standing
+        // on the floor when what actually draws it is the Death Swarm, centred
+        // and flying. The workbench's usage index already marks that use dead;
+        // this is the registry learning the same thing.
+        // `spritePool` is not a stack: it is a random pick between four equals.
+        if (field === "sprites" && i > 0) {
+          standIns.push([key, { ...info,
+            what: `a STAND-IN for ${who} — only drawn if that creature's own art is missing` }]);
+        } else {
+          put(key, info);
+        }
       }
     }
     for (const value of Object.values(node)) {

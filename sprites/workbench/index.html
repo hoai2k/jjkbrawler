@@ -340,6 +340,14 @@
              cannot be sized by watching it go past. Stop the clock and walk the
              pass by hand: the size, the nudge and the tilt all keep working
              while it is held, so the frozen frame is a working frame. -->
+        <!-- The two points are separate numbers going to separate places, and
+             they sit on top of each other until one of them is moved — so which
+             one a drag picks up has to be a choice rather than a tie-break. -->
+        <div class="effect-controls">
+          <span class="sub">Drag moves</span>
+          <button id="moveDrawingBtn" class="ghost sm" type="button">⊕ the drawing</button>
+          <button id="moveSpawnBtn" class="ghost sm" type="button">⌖ the spawn point</button>
+        </div>
         <div class="effect-controls">
           <button id="holdBtn" class="ghost sm" type="button">⏸ Hold</button>
           <label for="scrubRange">Frame <span class="sub" id="scrubVal">playing</span></label>

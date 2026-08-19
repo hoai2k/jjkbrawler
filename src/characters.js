@@ -1008,7 +1008,7 @@ export const CHARACTERS = {
     ultimate: {
       name: "Maximum: Uzumaki", type: "vortex",
       desc: "Every stockpiled curse extracted and wrung into a single spiraling annihilation.",
-      p: { speed: 300, r: 120, dur: 2.6, tickRate: 0.18, dmgTick: 4, base: 200, growth: 4.2, finalBase: 800, pull: 420, color: "#7d58d8", label: "UZUMAKI", sprite: "effect:uzumaki", spriteH: 250, ox: 130, oy: -110, spin: 2.2 },
+      p: { speed: 300, r: 120, dur: 2.6, tickRate: 0.18, dmgTick: 4, base: 200, growth: 4.2, finalBase: 800, pull: 420, color: "#7d58d8", label: "UZUMAKI", sprite: "effect:uzumaki", spriteH: 250, ox: 150, oy: -117, spin: 2.2 },
     },
     passive: { id: "curseHoard", name: "Cursed Spirit Manipulation", desc: "Feeds on the fight: summon specials return double ultimate meter." },
     ai: { style: "zoner", range: 400 },
