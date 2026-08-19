@@ -1156,7 +1156,9 @@ export const CHARACTERS = {
     name: "Mei Mei",
     fullName: "Mei Mei",
     epithet: "The Mercenary",
-    heightCm: null,    // unknown
+    // No figure published. Drawn as a tall, slender adult woman — she reads at
+    // Maki's height beside the other sorcerers, and clearly under Gojo.
+    heightCm: 170,     // estimated (none published)
     theme: "#d8b95c",
     shadow: "rgba(216, 185, 92, 0.36)",
     scale: 0.60,
@@ -1319,7 +1321,9 @@ export const CHARACTERS = {
     name: "Gakuganji",
     fullName: "Yoshinobu Gakuganji",
     epithet: "The Old Guard",
-    heightCm: null,    // unknown
+    // No figure published. An elderly man drawn well short of his own students
+    // — Todo towers over him — so the reference default was far too tall.
+    heightCm: 168,     // estimated (none published)
     theme: "#d89b3f",
     shadow: "rgba(216, 155, 63, 0.36)",
     scale: 0.60,
