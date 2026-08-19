@@ -22,6 +22,10 @@ import {
   MOTION as A, SQUASH, SQUASH_DEPTH as S, TRAIL_STRENGTH,
   LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME,
 } from "./config_tuning.js";
+import { BODY_POINTS } from "./config_body_points.js";
+
+/** How far the teeter may slide the DRAWING to seat its foot on the lip. */
+const TEETER_FOOT_MAX = 16;
 
 const TAU = Math.PI * 2;
 
@@ -190,6 +194,19 @@ export function fighterTransform(f) {
     const w = Math.sin(t * A.teeterRate + phase(f));
     rot += (f.teeterDir * A.teeterLean + w * A.teeterSway) * k;
     dx += f.teeterDir * w * A.teeterShift * k;
+    // PUT THE DRAWN FOOT ON THE LIP, where somebody has said which point of
+    // the foot that is. The teeter is drawn at the fighter's own x, so how
+    // much of the foot hangs over the edge has been whatever each drawing
+    // happened to do — a pose balanced on nothing next to one standing well
+    // clear. Bounded to a nudge: the correction is for the drawing's own
+    // framing, not a rubber band that drags the art toward a lip the fighter
+    // is still walking to, and it moves the PICTURE only — the hurtbox is
+    // where the fighter is.
+    const foot = BODY_POINTS[f.spriteChar || f.charKey]?.teeterFoot;
+    if (Number.isFinite(foot) && Number.isFinite(f.teeterEdge)) {
+      const want = f.teeterEdge - (f.x + f.facing * foot);
+      dx += clamp(want, -TEETER_FOOT_MAX, TEETER_FOOT_MAX) * k;
+    }
   }
 
   // ---- squash & stretch, layered on top of whatever the pose is doing
