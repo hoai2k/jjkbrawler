@@ -62,6 +62,31 @@ const SETS = {
       + "draw it, and the question is whether it leads with its head.",
     load: () => import(withKey("./verify_creature_facing.js")).then((m) => m.provider()),
   },
+  // The three anchor queues. Each edits `meta.anchors[<name>]` in the sprite
+  // manifest — the same field the SPRITE workbench's handles drag and the game
+  // already reads. Not a parallel store: a value moved in either tool is the
+  // same number, and the export is an ordinary sprite-adjustments block.
+  "grab-hand": {
+    label: "Grabbing hand",
+    blurb: "The open hand that closes on the collar, on each fighter's grab_reach. "
+      + "The grab reaches exactly this far instead of a formula off measured art reach. "
+      + "Same anchor the sprite workbench drags; src/grab.js reads it.",
+    load: () => import(withKey("./verify_anchors.js")).then((m) => m.anchorProvider("grabHand")()),
+  },
+  "grab-chest": {
+    label: "Held chest",
+    blurb: "Where the prying hands sit on each fighter's grabbed pose — the point the "
+      + "holder's fist lands on. It only means anything ACROSS fighters: a fist high on "
+      + "one and low on another makes every pairing read as a different argument.",
+    load: () => import(withKey("./verify_anchors.js")).then((m) => m.anchorProvider("grabChest")()),
+  },
+  "teeter-foot": {
+    label: "Teeter foot",
+    blurb: "The foot at the lip. The brake stops everyone with their CENTRE a fixed "
+      + "distance past the edge, and each teeter drawing puts its leading foot somewhere "
+      + "different inside its own plate. Moves the drawing only — no hurtbox, no spacing.",
+    load: () => import(withKey("./verify_anchors.js")).then((m) => m.anchorProvider("teeter")()),
+  },
   "strike-points": {
     label: "Strike points",
     blurb: "Where each attack actually lands — the fist, the foot or the blade — "
