@@ -16,12 +16,24 @@ turned into a measurement.
 WHAT IS MEASURED. For each frame, how far the art reaches FORWARD of its own
 mass centre, in units of that fighter's standing height:
 
-    reach = (rightmost opaque pixel - mean opaque x) * renderScale / idle bodyH
+    reach = (forward-most opaque pixel - mean opaque x) * renderScale / idle bodyH
 
 Every pose of a fighter is drawn at one zoom, so the two halves of a pair are
-directly comparable with no placement involved. Sprites face right, so forward
-is +x. The mass centre rather than the canvas centre because the canvas is
-whatever the generator framed; the body is the thing the reach is relative to.
+directly comparable with no placement involved. The mass centre rather than the
+canvas centre because the canvas is whatever the generator framed; the body is
+the thing the reach is relative to.
+
+WHICH WAY IS FORWARD. Most sheets are drawn facing right, so forward is +x --- but
+not all of them, and the manifest says so per FRAME with `faceLeft`, which
+sprites.js mirrors at draw time. A pair can be mixed: 13 of the 35 pairs here
+have one half drawn facing left and the other facing right, which is invisible
+in game and fatal to a measurement that assumes +x.
+
+This audit read every frame rightward until 2026-08-19. It cost accuracy in both
+directions: Mei Mei's light and air pairs were reported INVERTED when both are
+healthy (+0.189 and +0.106 read correctly), and Hakari's light pair --- a genuine
+inversion at -0.037 --- was reported as a comfortable +0.137 and went unlooked-at
+for as long as the file has existed. A frame is measured toward its own front.
 
 THE RULE IS THE GAP, NOT THE ABSOLUTE. An earlier version of this rule asked
 that `_a` reach no further than the fighter's own `idle_a`, which sounded right
@@ -63,7 +75,11 @@ ALPHA_FLOOR = 8
 
 
 def reach(chars, char, frame):
-    """Forward extent past the drawing's own mass centre, in standing heights."""
+    """Forward extent past the drawing's own mass centre, in standing heights.
+
+    Forward follows the frame's own `faceLeft`, not the sheet convention --- see
+    WHICH WAY IS FORWARD above for what reading every frame rightward cost.
+    """
     meta = chars.get(char, {}).get(frame)
     if not isinstance(meta, dict):
         return None
@@ -77,7 +93,8 @@ def reach(chars, char, frame):
     idle_h = (chars[char].get("idle_a") or {}).get("bodyH")
     if not idle_h:
         return None
-    return ((xs.max() - xs.mean()) * meta.get("renderScale", 1)) / idle_h
+    forward = xs.mean() - xs.min() if meta.get("faceLeft") else xs.max() - xs.mean()
+    return (forward * meta.get("renderScale", 1)) / idle_h
 
 
 DEFAULT_BASE = "http://localhost:5174"
