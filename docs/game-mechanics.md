@@ -208,6 +208,20 @@ where the art exists (round 22A), and otherwise the idle with a lean out over
 the drop and a slow sway back, which is what a teeter is. Somebody who stopped
 at the edge has not left it, so it is a stance, not a hang.
 
+**The front foot goes on the real lip.** The brake stops every fighter's
+CENTRE the same fixed distance past the edge — 14 px on a main platform, 24 on
+a small one — and each teeter drawing carries its leading foot somewhere
+different inside its own plate, so the pose the brief calls "front foot at or
+just over the lip" landed with the foot in mid-air on one fighter and a
+boot-length short on the next. Each teeter frame now carries a `teeter` anchor
+on that foot (measured by `tools/bake_anchors.py`, draggable in the sprite
+workbench beside the ledge grip), and the drawing slides sideways so the point
+lands on the platform's own edge. It is cosmetic by construction: the fighter's
+x, their hurtbox and the brake are untouched, so nobody's spacing changes. It
+applies only while they are facing the drop — the drawing is mirrored with the
+fighter, so a fighter who turned round at the lip has that foot pointing
+inland, and their centre is the honest answer there.
+
 ## 3. Defense
 
 - **Shield** (hold): a health bubble (100 HP) that shrinks as it drains.

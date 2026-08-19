@@ -81,10 +81,14 @@ WORK_SIZE = 160
 # Extra anchors that can be measured rather than placed by hand, keyed by the
 # frame they belong on. `band` takes the centroid of the opaque pixels in the
 # top fraction of the artwork — on a ledge hang, the hand holding the edge.
+# `front` takes the leading edge of the BOTTOM band instead: on a teeter, the
+# toe of the front foot, which is the thing the pose puts over the drop and the
+# point the drawing is slid onto the platform's lip (render.js `teeterLip`).
 # Frame keys match the animation data in src/characters.js, where every
-# character's `ledge` state resolves to `ledge_hang`.
+# character's `ledge` state resolves to `ledge_hang` and `teeter` to `teeter`.
 EXTRA = {
     "ledge_hang": {"ledge": {"band": 0.08}},
+    "teeter": {"teeter": {"front": 0.12}},
 }
 
 
@@ -217,6 +221,43 @@ def band_centroid(path, top_frac):
         return None
     return (round((sx / total + 0.5) * scale, 1),
             round((sy / total + 0.5) * scale, 1))
+
+
+def front_foot(path, bottom_frac):
+    """The leading edge of the bottom `bottom_frac` of the artwork.
+
+    Art is drawn facing right, so the foot at the lip is the RIGHTMOST opaque
+    pixel of the bottom band, and its y is the foot line itself rather than the
+    band's middle — the point has to sit where the sole meets the ground or
+    sliding it onto the lip would put the ankle there instead.
+
+    A centroid is wrong for this on purpose: both feet are in the band, and
+    their average is the middle of the stance, which is roughly where the body
+    already is. What the pose is about is the front one.
+    """
+    small, scale, bbox = _mask(path)
+    if bbox is None:
+        return None
+    w, _h = small.size
+    bottom = bbox[3] / scale
+    height = (bbox[3] - bbox[1]) / scale
+    cutoff = bottom - height * bottom_frac
+    right = None
+    floor = None
+    for i, weight in enumerate(small.getdata()):
+        if not weight:
+            continue
+        y = i // w
+        if y < cutoff:
+            continue
+        x = i % w
+        if right is None or x > right:
+            right = x
+        if floor is None or y > floor:
+            floor = y
+    if right is None:
+        return None
+    return (round((right + 0.5) * scale, 1), round((floor + 0.5) * scale, 1))
 
 
 # How far ABOVE the silhouette centroid the real centre of mass sits, as a
@@ -387,6 +428,7 @@ def main():
             for name in todo:
                 rule = wanted[name]
                 point = (band_centroid(path, rule["band"]) if rule and "band" in rule
+                         else front_foot(path, rule["front"]) if rule and "front" in rule
                          else com_point(path, meta))
                 if point is None:
                     missing.append(f"{char}/{key}.{name}: nothing opaque to measure")

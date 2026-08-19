@@ -318,7 +318,13 @@ const DIRECTORS = {
     beginUltAction(f, 0.9);
     state.entities.push({
       owner: f,
-      x: f.x + f.facing * 130, y: f.y - 110, t: 0, tick: 0.4, dead: false,
+      // WHERE IT IS CAST, from the kit rather than from here. It was 130
+      // forward and 110 up written into the handler, which meant the one
+      // number that decides both where the spiral is drawn AND where it
+      // collides could not be moved without editing this file — and the sprite
+      // workbench, which offers exactly that drag for every kit-owned muzzle,
+      // had nothing to offer for it.
+      x: f.x + f.facing * (p.ox ?? 130), y: f.y + (p.oy ?? -110), t: 0, tick: 0.4, dead: false,
       update(dt) {
         this.t += dt;
         this.x += f.facing * p.speed * dt;
@@ -369,7 +375,11 @@ const DIRECTORS = {
           const w = img.width * h / img.height;
           ctx.save();
           ctx.translate(this.x, this.y);
-          ctx.rotate(this.t * 0.75);
+          // IT IS A SPIRAL, so it turns. At 0.75 rad/s it managed a third of a
+          // revolution across its whole 2.6s life, which on a swirling cloud
+          // reads as a still picture drifting sideways — the fallback shape
+          // behind it spins at 7. `spin` is the kit's, in rad/s.
+          ctx.rotate(this.t * (p.spin ?? 2.2));
           ctx.shadowColor = p.color;
           ctx.shadowBlur = 24;
           if (adj.rot) ctx.rotate(adj.rot);

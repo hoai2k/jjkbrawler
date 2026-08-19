@@ -409,7 +409,15 @@ export function meteorAt(p, u, impactX, impactY) {
 
 /** Hazard art, with the height and anchor each draw site uses (stage_fx.js). */
 const STAGE_FX = {
-  "stagefx:stage_fang": { h: 72, anchor: "centre", what: "a rising fang, and the diving one" },
+  // ONE DRAWING, TWO USES, and the anchor belongs to the one that grows: the
+  // fang that comes out of the floor is drawn from the platform line UP
+  // (`-h * 2` above `plat.y + 6`, src/stage_fx.js), so its bottom is pinned and
+  // it grows out of the ground. The diving fang is centred on its own falling
+  // point and rotated to point down. Describing this as "centre" made the
+  // workbench swell it about its middle, which is the one thing neither use
+  // does — and is what got reported as the game being wrong when the game was
+  // right.
+  "stagefx:stage_fang": { h: 72, anchor: "feet", what: "a fang that grows out of the floor (the diving one is the same drawing, centred on its fall)" },
   "stagefx:stage_flower": { h: 46, anchor: "feet", what: "a bloom on the platform" },
   "stagefx:stage_lantern": { h: 44, anchor: "top", what: "a lantern hung from its cord" },
   "stagefx:stage_weak_curse": { h: 60, anchor: "feet", what: "the curse that wanders the stage" },
@@ -647,6 +655,11 @@ function buildRegistry() {
     // any shot, so it rides the fighter's muzzle too.
     beam: () => ({ forward: 90, y: -96, scaled: true }),
     concert: () => ({ forward: 0, y: -110 }),
+    // The spiral is cast ahead of the caster and travels from there. Its point
+    // is the kit's now (`ox`/`oy`, src/characters.js) rather than the handler's,
+    // which is what makes it draggable at all: the same number decides where it
+    // is drawn and where it collides.
+    vortex: (n) => ({ forward: n.ox ?? 130, y: n.oy ?? -110 }),
     shout: () => ({ forward: 0, forwardOfWidth: 0.3, y: -105 }),
     massDrive: () => ({ forward: 150, y: -100 }),
 

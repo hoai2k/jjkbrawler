@@ -336,6 +336,15 @@
           <input type="range" id="fadeInRange" min="0" max="0.3" step="0.01" value="0">
           <button id="fadeInClear" class="ghost sm" type="button">hard cut</button>
         </div>
+        <!-- A drawing that is on screen for half a second of a two-second loop
+             cannot be sized by watching it go past. Stop the clock and walk the
+             pass by hand: the size, the nudge and the tilt all keep working
+             while it is held, so the frozen frame is a working frame. -->
+        <div class="effect-controls">
+          <button id="holdBtn" class="ghost sm" type="button">⏸ Hold</button>
+          <label for="scrubRange">Frame <span class="sub" id="scrubVal">playing</span></label>
+          <input type="range" id="scrubRange" min="0" max="1" step="0.005" value="0" disabled>
+        </div>
         <p class="hint">Drag the <b style="color:#9fd39f">spawn</b> marker to put the
         move's origin on the character — the finger the blood leaves, the hand the
         beam comes off. Drag the <b style="color:#f0b45a">drawing</b> marker to sit
