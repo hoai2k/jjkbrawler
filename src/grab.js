@@ -31,7 +31,8 @@
 import { state } from "./state.js";
 import { clamp, rectsOverlap, sign } from "./utils.js";
 import { bodyMetrics } from "./silhouette.js";
-import { anchorLocal, resolvedAnim } from "../sprites/src/sprites.js";
+import { resolvedAnim } from "../sprites/src/sprites.js";
+import { spriteManifest } from "./assets.js";
 import { imageToGame } from "./strike_points.js";
 import { applyHit, hurtbox, debugShape } from "./combat.js";
 import { burst, dust, popup, ring } from "./particles.js";
@@ -47,22 +48,62 @@ function setAnim(f, key) {
   }
 }
 
-/** How far apart the two bodies sit during a hold, centre to centre. */
 /**
  * The x of an anchor on the frame a state draws, in game px forward of the
- * fighter's centre line — or null where nobody has placed it.
+ * fighter's centre line — or null where nobody has PLACED one.
  *
  * Read from the SPRITE MANIFEST, which is where a point on a drawing lives and
  * what the sprite workbench edits. There is no second copy of these numbers
  * anywhere: a `grabHand` moved on the drawing is the one the grab uses.
+ *
+ * IT HAS TO BE THE STORED VALUE, not `anchorLocal`, and this cost a real
+ * regression. `anchorLocal` answers with a DEFAULT when nothing is stored —
+ * for these two, the centre of mass at chest height — so asking it made every
+ * fighter on the roster report a placed hand sitting on their own centre line,
+ * and the grab reached about zero px instead of the formula's ~40. The reach
+ * fell back to nothing precisely because the fallback never fired.
+ *
+ * A default is the right answer for a HANDLE, which has to start somewhere on
+ * the drawing; it is the wrong answer for a MEASUREMENT, which has to be able
+ * to say it does not have one. Nothing bakes `grabHand` or `grabChest`
+ * (tools/bake_anchors.py measures only `ledge` and `teeter`), so a stored value
+ * here means a person put it there.
  */
 function anchorX(charKey, state, name) {
   const frame = resolvedAnim(charKey, state)?.frames?.filter(Boolean)?.[0];
   if (!frame) return null;
-  const local = anchorLocal(charKey, frame, name);
-  if (!local) return null;
+  const local = spriteManifest?.characters?.[charKey]?.[frame]?.anchors?.[name];
+  if (!Array.isArray(local)) return null;
   const g = imageToGame(charKey, frame, local[0], local[1]);
   return g ? g.x : null;
+}
+
+/** How far the grab reaches, from the fighter's own centre line, WITHOUT the
+ *  closing grace. Exported because the sprite workbench draws this line, and a
+ *  guide computed a second way is a guide that starts lying the moment somebody
+ *  places an anchor — which is exactly what it did: the canvas went on drawing
+ *  the roster formula and telling the artist to move the hand onto it, while
+ *  the game had already switched to the hand they had placed. */
+export function grabReachOf(charKey) {
+  const placed = anchorX(charKey, "grabReach", "grabHand");
+  return Number.isFinite(placed)
+    ? { reach: placed, source: "hand" }
+    : { reach: bodyMetrics(charKey).reach * 0.85, source: "formula" };
+}
+
+/** The gap between the two bodies of a hold, by character key. Same answer
+ *  `holdGap` gives for a live pair, available to the workbench, which has only
+ *  one fighter on the canvas and stands them against another of this build. */
+export function holdGapOf(holderKey, victimKey) {
+  const hand = anchorX(holderKey, "grabHold", "grabHand")
+            ?? anchorX(holderKey, "grabReach", "grabHand");
+  const chest = anchorX(victimKey, "grabbed", "grabChest");
+  if (Number.isFinite(hand) && Number.isFinite(chest)) {
+    return { gap: hand - chest, source: "grip" };
+  }
+  const a = bodyMetrics(holderKey);
+  const b = bodyMetrics(victimKey);
+  return { gap: (a.width + b.width) * 0.45, source: "formula" };
 }
 
 function holdGap(holder, victim) {
@@ -74,12 +115,7 @@ function holdGap(holder, victim) {
   // standing the victim (hand - chest) ahead puts the one on the other by
   // construction — instead of asking every drawing in the roster to agree with
   // a formula about widths.
-  const hand = anchorX(h, "grabHold", "grabHand") ?? anchorX(h, "grabReach", "grabHand");
-  const chest = anchorX(v, "grabbed", "grabChest");
-  if (Number.isFinite(hand) && Number.isFinite(chest)) return hand - chest;
-  const a = bodyMetrics(h);
-  const b = bodyMetrics(v);
-  return (a.width + b.width) * 0.45;
+  return holdGapOf(h, v).gap;
 }
 
 // ------------------------------------------------------------------ reaching
@@ -111,8 +147,7 @@ export function updateGrabReach(f) {
   // been placed; otherwise the roster formula, which is a guess at the same
   // thing. Either way the grace is added — it is the closing hand's forgiveness
   // and belongs to the mechanic rather than to the drawing.
-  const placed = anchorX(who, "grabReach", "grabHand");
-  const reach = (Number.isFinite(placed) ? placed : m.reach * 0.85) + GRAB.grace;
+  const reach = grabReachOf(who).reach + GRAB.grace;
   const h = m.height * 0.9;
   const rect = {
     x: f.facing === 1 ? f.x : f.x - reach,

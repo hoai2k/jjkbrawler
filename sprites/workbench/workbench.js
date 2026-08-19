@@ -27,6 +27,7 @@ import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
 import { muzzleOf, spawnOffset, REFERENCE_MUZZLE } from "../../src/muzzle.js";
 import { PIVOTED_STATES } from "../../src/motion.js";
 import { HURTBOX, GRAB } from "../../src/constants.js";
+import { grabReachOf, holdGapOf } from "../../src/grab.js";
 import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
 import { CHARACTERS, CHARACTER_KEYS, STAGED_CHARACTER_KEYS, SPRITE_ACTORS, getActor }
   from "../../src/characters.js";
@@ -2074,16 +2075,25 @@ function grabShapes(charKey, anim) {
   if (!["grabReach", "grabHold", "grabbed"].includes(anim)) return [];
   const m = bodyMetrics(charKey);
   if (anim === "grabReach") {
-    // updateGrabReach: a box from the fighter's own x, forward by their
-    // measured reach plus the closing hand's grace, 90% of body height tall.
-    return [{ kind: "reach", w: m.reach * 0.85 + GRAB.grace, h: m.height * 0.9 }];
+    // ASKED OF src/grab.js RATHER THAN RECOMPUTED, and that is the whole point.
+    // This line used to be the roster formula with "put the grasping hand ON
+    // it" written beside it — a second answer to the question the `grabHand`
+    // anchor answers. The moment anybody placed the anchor the game used the
+    // hand and the canvas went on drawing the formula, so the guide was telling
+    // the artist to move a hand that had already been measured. Now the line
+    // follows the hand: place the anchor and the reach moves with it.
+    const r = grabReachOf(charKey);
+    return [{ kind: "reach", w: r.reach + GRAB.grace, hand: r.reach,
+              source: r.source, h: m.height * 0.9 }];
   }
-  // pinVictim puts the two bodies (a.width + b.width) * 0.45 apart, and turns
-  // the victim to face the holder. So from EITHER pose, drawn facing right, the
-  // other fighter stands the same gap ahead — the holder in front of the one
-  // being held, the victim in front of the one holding. Measured against
-  // another fighter of this build, there being only one body on this canvas.
-  return [{ kind: "partner", gap: m.width * 0.9, w: m.width, h: m.height * HURTBOX.standH,
+  // pinVictim stands the two bodies `holdGapOf` apart and turns the victim to
+  // face the holder. So from EITHER pose, drawn facing right, the other fighter
+  // stands the same gap ahead — the holder in front of the one being held, the
+  // victim in front of the one holding. Measured against another fighter of
+  // this build, there being only one body on this canvas.
+  const g = holdGapOf(charKey, charKey);
+  return [{ kind: "partner", gap: g.gap, source: g.source,
+            w: m.width, h: m.height * HURTBOX.standH,
             label: anim === "grabHold" ? "the fighter held" : "the fighter holding" }];
 }
 
@@ -2107,10 +2117,26 @@ function drawGrabShape(cx, g) {
     ctx.beginPath();                       // the far edge: the last px it closes on
     ctx.moveTo(wx(g.w), wy(-g.h)); ctx.lineTo(wx(g.w), wy(0));
     ctx.stroke();
+    const note = g.source === "hand"
+      ? `follows the Grabbing hand anchor · +${Math.round(g.w - g.hand)}px closing grace`
+      : "no Grabbing hand placed — this is the roster formula, not this drawing";
+    // Measured rather than guessed at: the note is a sentence, and on a
+    // long-armed fighter at high zoom it ran off the right edge of the canvas.
+    const room = wx(g.w) + 6 + ctx.measureText(note).width < canvas.width - 4;
+    ctx.textAlign = room ? "left" : "right";
+    const lx = wx(g.w) + (room ? 6 : -6);
+    // ABOVE the box, not inside it: flipped to the left the notes landed on
+    // top of the hurtbox caption, and two red-on-blue sentences over each other
+    // are worse than no caption at all.
     ctx.fillText(`Grab reach · ${Math.round(g.w)}px — a grab connects up to here`,
-      wx(g.w) + 6, wy(-g.h) + 12);
+      lx, wy(-g.h) - 18);
     ctx.fillStyle = "rgba(255, 140, 110, 0.7)";
-    ctx.fillText("put the grasping hand ON it", wx(g.w) + 6, wy(-g.h) + 26);
+    // WHICH OF THE TWO IS THE ANSWER, said out loud. With the hand placed this
+    // line is a readout of it and there is nothing to do here; without one it
+    // is the roster's guess, and the fix is still to place the anchor rather
+    // than to slide the drawing until it touches a line.
+    ctx.fillText(note, lx, wy(-g.h) - 5);
+    ctx.textAlign = "left";
   } else {
     // The other body, where the pin puts it: a plain hurtbox, because that is
     // all the pose has to agree with — hands on it, and not through it.
@@ -2136,6 +2162,13 @@ function drawGrabShape(cx, g) {
     // lines up with this is the HANDS. Sliding the drawing sideways to reach
     // the line would take the fighter off the spot the game pins them to.
     const grip = g.gap / 2;
+    // Which store this gap came from — the two placed anchors, or the width
+    // formula that stands in until they are.
+    ctx.fillStyle = "rgba(255, 140, 110, 0.7)";
+    ctx.fillText(g.source === "grip"
+      ? "gap from the placed Grabbing hand and Held chest"
+      : "gap from the width formula — place both grip anchors to set it",
+      wx(g.gap - g.w / 2), wy(-g.h) - 18);
     ctx.strokeStyle = "rgba(120, 210, 240, 0.9)";
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
@@ -2143,7 +2176,9 @@ function drawGrabShape(cx, g) {
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = "rgba(150, 220, 250, 0.95)";
-    ctx.fillText("the grip — hands here, chest height", wx(grip) + 6, wy(-g.h * 0.62));
+    // Clear of the anchor handle's own label, which sits at chest height —
+    // which is exactly where this line is about.
+    ctx.fillText("the grip — hands here, chest height", wx(grip) + 6, wy(-g.h * 0.82));
   }
   ctx.restore();
 }
