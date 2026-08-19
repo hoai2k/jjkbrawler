@@ -734,10 +734,6 @@ function updateTeeter(f, dt) {
     : f.x <= plat.x - m + TEETER_EDGE ? -1 : 0;
   if (dir) {
     f.teeterDir = dir;
-    // The lip itself, kept for the renderer: motion.js puts the drawn foot on
-    // it where a person has placed that foot (BODY_POINTS.teeterFoot). Recorded
-    // here because this is the only place that knows which edge, and where.
-    f.teeterEdge = dir > 0 ? plat.x + plat.w + m : plat.x - m;
     // Capped: the lean is fully in at ledgeLeanIn (~0.12 s) and the decay
     // below runs at 3× — an uncapped timer after a long stand would take as
     // long to unwind as the stand took to accumulate.

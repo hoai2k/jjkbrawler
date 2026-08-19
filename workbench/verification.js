@@ -52,30 +52,6 @@ const SETS = {
   // Changing summon art to a face-right default inverted the correct `faceLeft`
   // for every creature at once, and which way a drawing points is not something
   // the code can re-derive — it is a fact about a picture.
-  // ---- open: waiting on answers -------------------------------------------
-  "grab-hand": {
-    label: "Grab: the hand",
-    blurb: "Where the grabbing hand closes, on each fighter's `grab_reach`. The grab "
-      + "box is a formula off measured art reach today, applied to everybody and never "
-      + "checked against the hand actually drawn reaching — place the line on the hand "
-      + "and it becomes this fighter's real closing distance.",
-    load: () => import(withKey("./verify_body_points.js")).then((m) => m.grabHandProvider()),
-  },
-  "grab-chest": {
-    label: "Grab: the held chest",
-    blurb: "The other half of the same measurement, on `grabbed`: where the prying "
-      + "hands sit, which is where the grip lands. With both halves placed the gap "
-      + "between holder and held stops being a formula — it is hand minus chest, which "
-      + "puts the hand ON the chest.",
-    load: () => import(withKey("./verify_body_points.js")).then((m) => m.grabChestProvider()),
-  },
-  "teeter-foot": {
-    label: "Teeter foot",
-    blurb: "Which point of the front foot is on the very edge. A teeter is drawn at the "
-      + "fighter's own x today, so how much of the foot hangs over the lip is whatever "
-      + "each drawing happened to do; placed here, the renderer can put this foot on it.",
-    load: () => import(withKey("./verify_body_points.js")).then((m) => m.teeterFootProvider()),
-  },
   // ---- answered: kept because a re-bake or a redraw reopens them -----------
   "creature-facing": {
     archived: true,
