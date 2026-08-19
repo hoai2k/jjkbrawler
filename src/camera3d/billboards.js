@@ -450,7 +450,7 @@ export function makeBillboards() {
   // Posed-model cards drawn last frame, and why the last attempt declined.
   // Same reasoning as the quad count: a card layer that silently drew sprites
   // instead of models looks identical from outside to one that worked.
-  return { group, update, count: pool.count,
+  return { group, update, resize: effects.resize, fxLayerSize: effects.size, count: pool.count,
            auraCount: () => auraQuads,
            fxLayerDrawn: () => fxLayer,
            quadPools: () => ({ body: pool.group, behind: behindPool.group }),

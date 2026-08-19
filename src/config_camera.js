@@ -85,6 +85,37 @@ export const DRAMA = {
 // only part of this mode that deliberately puts things BETWEEN the lens and
 // the fight — so it is the first thing to reach for if a board ever reads as
 // too busy, and the one part a player might simply not want.
+// The entity effect layer (src/camera3d/effects.js): traps, ultimate waves,
+// domains and stage hazards, painted into one offscreen canvas and uploaded as
+// a single texture every frame.
+//
+// Its canvas used to be a hardcoded 1280x720 — WORLD — regardless of what it
+// was displayed at, and that constant is wrong in BOTH directions. The GL
+// canvas it feeds is the CSS box times the device pixel ratio (capped at 2), so
+// a 900 px window at DPR 1 was painting 1280 px of texture to show 900, while
+// any display at 1280 CSS px and DPR 2 has a 2560-wide buffer being fed a
+// 1280-wide picture — the ultimates and domains on this layer are softer than
+// the fighters standing in front of them, which are sampled from their sprite
+// art at full resolution.
+//
+// So the canvas is sized to the pixels it is actually shown at, between these
+// bounds. The layer keeps WORLD's aspect either way; only the resolution moves.
+export const EFFECT_LAYER = {
+  // The ceiling, as a multiple of WORLD. At 1 the layer only ever SHRINKS: a
+  // small window costs less than it used to and nothing costs more, which is
+  // the safe default for a change made to stop the game hitching.
+  //
+  // 2 is the other setting worth having, and it is the one that fixes the
+  // softness described above on a high-DPI display. It is not free — the
+  // per-frame upload is the canvas's AREA, so 2 is four times the bytes — and
+  // it should be turned up off a measurement on real hardware rather than on
+  // principle. Software GL cannot tell you anything useful about it.
+  maxScale: 1,
+  // …and the floor, so a game squeezed into a thumbnail still paints its
+  // ultimates at something legible rather than matching a 300 px window.
+  minWidth: 640,
+};
+
 export const GARNISH = {
   enabled: true,
   // Scales the gap between ambient spawns (leaves, lanterns). Above 1 is

@@ -36,6 +36,9 @@ export function debugStats() {
     quads: billboards ? billboards.count() : 0,
     auras: billboards ? billboards.auraCount() : 0,
     fxLayer: billboards ? billboards.fxLayerDrawn() : false,
+    // Sized to the pixels it is displayed at (EFFECT_LAYER, config_camera.js),
+    // so this is the one number that says whether that actually happened.
+    fxLayerSize: billboards ? billboards.fxLayerSize() : null,
     models: models ? models.count() : 0,
     posedCards: billboards ? billboards.posedCount() : 0,
     cardBail: billboards ? billboards.lastBail() : null,
@@ -122,9 +125,14 @@ export function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const rect = canvas.getBoundingClientRect();
   renderer.setPixelRatio(dpr);
-  renderer.setSize(Math.max(1, Math.round(rect.width)), Math.max(1, Math.round(rect.height)), false);
+  const cssW = Math.max(1, Math.round(rect.width));
+  renderer.setSize(cssW, Math.max(1, Math.round(rect.height)), false);
   camera.aspect = WORLD.w / WORLD.h;
   camera.updateProjectionMatrix();
+  // The entity effect layer paints into its own canvas and is stretched across
+  // this buffer, so it is sized off the same number rather than off a constant
+  // that could only ever be right at one window size (effects.js resize).
+  billboards?.resize(cssW * dpr);
 }
 
 let lastDrawAt = 0;
