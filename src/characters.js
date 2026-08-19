@@ -1600,7 +1600,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Lightning Discharge", type: "projectile", cooldown: 0.95,
         desc: "A bolt off the staff that plants his charge — and a bolt fired at a foe already carrying one bends to find them. No domain required.",
-        p: { speed: 760, vy: -2, r: 26, dur: 0.7, dmg: 10, base: 340, growth: 6.6, angle: 0.34, color: "#6ef7d0", effect: "charge", fxElement: "lightning", seekStatus: "charge", seekRate: 10, fireSfx: "thunderCrack", ox: 64, oy: -92, label: "Discharge", sprite: "effect:lightning_bolt", spriteH: 70 },
+        p: { speed: 760, vy: -2, r: 26, dur: 0.7, dmg: 10, base: 340, growth: 6.6, angle: 0.34, color: "#6ef7d0", effect: "charge", fxElement: "lightning", seekStatus: "charge", seekRate: 10, fireSfx: "thunderCrack", ox: 85, oy: -112, label: "Discharge", sprite: "effect:lightning_bolt", spriteH: 70 },
       },
       side: {
         name: "Nyoi Recall", type: "boomerang", cooldown: 1.35,
@@ -1722,7 +1722,12 @@ export const CHARACTERS = {
     ultimate: {
       name: "Vengeful Spirit: Mach 3", type: "rampage",
       desc: "What he became when he died badly: a living jet engine circling the stage past the sound barrier, wall to wall, too fast to see.",
-      p: { passes: 4, speed: 1250, dmg: 14, base: 500, growth: 7.8, color: "#bfe25c", label: "MACH 3", sprite: "effect:naoya_spirit", trail: true },
+      // `behind` is the difference between Panda's rampage and this one. The
+      // triceratops REPLACES Panda — he is the dinosaur for the duration. Naoya
+      // does not become the centipede; the vengeful spirit he died into runs
+      // WITH him, so the drawing stands behind his own body instead of over it
+      // and he goes on animating in front of it.
+      p: { passes: 4, speed: 1250, dmg: 14, base: 500, growth: 7.8, color: "#bfe25c", label: "MACH 3", sprite: "effect:naoya_spirit", behind: true, trail: true },
     },
     // ---- Domain Expansion -------------------------------------------------
     domains: [{
@@ -1762,12 +1767,12 @@ export const CHARACTERS = {
       neutral: {
         name: "Love Rendezvous", type: "projectile", cooldown: 0.9,
         desc: "A star sigil cast down the lane. It marks what it touches — and a marked body answers to the chart.",
-        p: { speed: 640, vy: -2, r: 24, dur: 0.8, dmg: 7, base: 260, growth: 5.2, angle: 0.32, color: "#d9a8ff", effect: "starMark", ox: 60, oy: -90, label: "Love Rendezvous", sprite: "effect:star_bolt", spriteH: 64 },
+        p: { speed: 640, vy: -2, r: 24, dur: 0.8, dmg: 7, base: 260, growth: 5.2, angle: 0.32, color: "#d9a8ff", effect: "starMark", ox: 49, oy: -120, label: "Love Rendezvous", sprite: "effect:star_bolt", spriteH: 64 },
       },
       side: {
         name: "Same Star: Debris", type: "projectile", cooldown: 1.25,
         desc: "The attraction half of the chart: loose debris marked with the enemy's own star, thrown — and same stars are drawn together, so it hunts them.",
-        p: { speed: 520, vy: -60, gravity: 160, r: 26, dur: 1.1, dmg: 11, base: 360, growth: 6.6, angle: 0.4, color: "#d9a8ff", seekStatus: "starMark", seekRate: 8, ox: 56, oy: -96, label: "Same Star", sprite: "effect:star_debris", spriteH: 70 },
+        p: { speed: 520, vy: -60, gravity: 160, r: 26, dur: 1.1, dmg: 11, base: 360, growth: 6.6, angle: 0.4, color: "#d9a8ff", seekStatus: "starMark", seekRate: 8, ox: 79, oy: -133, label: "Same Star", sprite: "effect:star_debris", spriteH: 70 },
       },
       down: {
         name: "Southern Cross", type: "constellation", cooldown: 2.6,

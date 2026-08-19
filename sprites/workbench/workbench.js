@@ -3755,6 +3755,16 @@ function refreshUsageInfo() {
   lines.push(uses.length
     ? uses.map((u) => `${u.who} — ${u.label}`).join("<br>")
     : "No kit references this sprite — it is spawned from code (a stage hazard, a domain, or a shikigami).");
+  // WHY THERE IS NO PLAY BUTTON, on the one class of drawing that will never
+  // get one. A stand-in behind a creature whose own plates have landed is
+  // never reached (summons.js draws the first that loaded), so there is no
+  // action to play — and a greyed-out button with no explanation reads as a
+  // preview that is broken rather than a drawing that is retired.
+  if (uses.length && uses.every((u) => u.dead)) {
+    lines.push("<b>Nothing draws this today.</b> It is a STAND-IN behind a creature whose "
+      + "own art has since been delivered, kept so the fighter still has something to draw "
+      + "if that art is ever pulled. There is no action to play for the same reason.");
+  }
   const can = sharedControls(state.frame);
   if (can?.used && (can.size || can.offset)) {
     const meta = rawMeta(state.char, state.frame);
@@ -6095,6 +6105,10 @@ async function boot() {
     // has no DOM either: a shared drawing marked reviewed has to leave by the
     // export, not just by dimming on screen.
     recentUpdates, payloadFor,
+    // Who draws each shared drawing, and whether that use is a dead stand-in.
+    // The smoke asserts every drawing the game really shows has an action to
+    // play; the ones nothing shows are the exception it has to be able to see.
+    sharedUsage: () => Object.fromEntries([...sharedUsage()].map(([k, v]) => [k, v])),
     // Where the hit circle and its two handles are on the canvas right now.
     // Read-only, and here for the same reason the flag predicates are: a
     // draggable shape drawn on a canvas has no DOM for a test to grab, so

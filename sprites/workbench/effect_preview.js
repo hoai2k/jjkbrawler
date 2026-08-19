@@ -213,11 +213,23 @@ const DROP_MOVES = new Set(["randomDrop", "cardrop"]);
  * no action; but the question they DO have is whether two fighters read against
  * them, and that is only answerable with two fighters standing on one.
  */
+// DERIVED FROM THE KITS, not listed. It was a list of eight, written when there
+// were eight, and Naoya's Time Cell Moon Palace — the ninth — was simply not in
+// it: his backdrop fell through to the kit walk, which never finds a `bg`, and
+// came out with no action at all. A domain names its backdrop in exactly two
+// places, so read both and the tenth domain is on the list the day it exists.
 const BACKDROPS = new Set([
-  "domain:unlimited_void", "domain:malevolent_shrine", "domain:shadow_garden",
-  "domain:self_embodiment", "domain:iron_mountain", "domain:mutual_love",
-  "domain:captivating_skandha", "domain:idle_death_gamble", "effect:domain_gamble",
-]);
+  // `p.bg` on a domain, which is what drawDomainBackdrop reads at runtime.
+  ...KIT_KEYS.flatMap((key) =>
+    Object.values(CHARACTERS[key]?.domains || {}).map((d) => d?.p?.bg)),
+  // `domainSprite` on an install — Hakari's Jackpot dresses the stage without
+  // being a domain in the kit's sense.
+  ...KIT_KEYS.flatMap((key) => {
+    const c = CHARACTERS[key];
+    return [...Object.values(c?.specials || {}), c?.ultimate]
+      .map((spec) => spec?.p?.domainSprite);
+  }),
+].filter(Boolean));
 
 /**
  * The STAGE's own art: hazards a stage spawns, with nobody casting them.
@@ -253,7 +265,13 @@ const HAZARDS = {
  */
 const WORN = {
   aura: () => ({ pulse: true, foot: AURA_FOOT_DY, height: AURA_H, glow: true }),
-  rampage: (p) => ({ pulse: false, foot: 0, height: p.spriteH || 210, glow: false }),
+  // `behind` is the kit's own word for it (src/characters.js): a rampage body
+  // either REPLACES the fighter — Panda is the triceratops — or runs behind
+  // them, which is Naoya and his vengeful spirit. The preview has to paint them
+  // in the same order the game does, or the one question this drawing asks
+  // ("does it read behind him?") is answered wrong here.
+  rampage: (p) => ({ pulse: false, foot: 0, height: p.spriteH || 210, glow: false,
+                     behind: !!p.behind, replaces: !p.behind }),
 };
 
 /**
@@ -323,6 +341,17 @@ const DIRECTORS = {
     at: (u, S) => ({ x: S.FIGHTER_X + 120, y: S.GROUND - 105 }),
     h: (u) => (p.spriteH || 330) * (0.65 + u * 1.0),
     what: "leaves the mouth and widens",
+  }),
+  // Todo's Maximum Mass and Miwa's Last Draw: the blow lands out at arm's
+  // reach and the drawing swells as it fades (`massDrive`, src/ultimates.js).
+  // The director paints it itself, so there is no shot to follow — and without
+  // an entry here `effect:batto_flash`, the whole of Miwa's ultimate, had no
+  // action at all.
+  massDrive: (p) => ({
+    life: 0.5, anchor: "centre", flip: true,
+    at: (u, S) => ({ x: S.FIGHTER_X + 150, y: S.GROUND - 100 }),
+    h: (u) => (p.spriteH || 280) * (1 + u * 0.5),
+    what: "lands at arm's reach and swells as it fades",
   }),
   // Reggie's sedan falls onto the target and then slides through.
   cardrop: (p) => ({
@@ -394,11 +423,23 @@ function summonUse(spriteKey, preferChar) {
         // the creature's behaviour under a stand-in's name would be showing
         // art the game does not draw there (see supersededStandIn).
         for (const cfg of [entry, ...(entry.units || entry.members || [])]) {
-          if (cfg.sprites?.[0] !== spriteKey && entry.sprites?.[0] !== spriteKey) continue;
+          // WHAT THE CREATURE SHOOTS is a drawing too, and it had no action of
+          // its own: `effect:doll_needle` is fired by one of Yaga's dolls
+          // (`attack.projectile.sprite`, spawned by fireSupport in
+          // src/summons.js), so no kit throws it and no creature is named by
+          // it. Matched here and played as the creature that fires it, with
+          // the shot drawn as its own art rather than as a placeholder disc.
+          const shot = cfg.attack?.projectile?.sprite === spriteKey;
+          if (!shot && cfg.sprites?.[0] !== spriteKey && entry.sprites?.[0] !== spriteKey) continue;
           return {
             charKey, slot, spec, cfg: { ...entry, ...cfg }, mode: "summon",
+            // The creature is what the canvas has to draw; `shotSprite` says
+            // which of the two drawings on it is the one being reviewed.
+            body: (cfg.sprites || entry.sprites || [])[0],
+            shotSprite: shot ? spriteKey : null,
             state: slot === "ult" ? "ult" : (SLOT_STATE[slot] || "specialDown"),
-            name: entry.name || spec.name || spriteKey,
+            name: shot ? `${entry.name || spec.name} — its shot`
+                       : (entry.name || spec.name || spriteKey),
             p: { ...entry, ...cfg },
           };
         }
@@ -529,7 +570,15 @@ export function firingUse(spriteKey, preferChar) {
       // the floor rather than flying free. Same launch, same flight, so the
       // shot playback is right for it and excluding it left Dagon's tides with
       // no way to be seen moving.
-      if (spec.type && spec.type !== "projectile" && spec.type !== "wave") continue;
+      // `wave` and `boomerang` are both spawnProjectile from the move's own
+      // muzzle — a wave rides the floor, a boomerang is thrown with `pierce`
+      // and a second shot sent back from the far point 0.42s later — so the
+      // shot playback is right for the outbound leg, which is the leg the
+      // spawn point belongs to. Excluding them left Kashimo's staff and
+      // Haruta's hand sword with no action on the one question their art asks:
+      // where does it leave him.
+      if (spec.type && spec.type !== "projectile" && spec.type !== "wave"
+          && spec.type !== "boomerang") continue;
       // The point the game will really spawn from: this fighter's hand in the
       // pose this move plays, plus whatever the move asks for beyond the
       // reference (src/muzzle.js). `source` says whether anybody has looked at
@@ -736,7 +785,9 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
    *  resolution summons.js does, so a creature with pose plates animates and
    *  one without holds its single still. */
   function summonImage(anim) {
-    const base = use.spriteKey;
+    // `body`, not `spriteKey`: when the drawing under review is the creature's
+    // PROJECTILE, the creature itself is still what stands on the floor.
+    const base = use.body || use.spriteKey;
     const frames = SUMMON_ANIMS[anim]?.frames || ["idle_a"];
     const drawn = frames.map((pose) => getImage(`${base}:${pose}`)).filter(Boolean);
     if (!drawn.length) return getImage(base);
@@ -816,15 +867,31 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     }
     if (s.shot != null) {
       // Its projectile, on the arc it really fires: out of the hover, aimed at
-      // whoever it is watching.
+      // whoever it is watching. Drawn as its own art where the art exists —
+      // the disc is a stand-in for a drawing nobody has delivered, and showing
+      // it over one that HAS been delivered was hiding the very thing this
+      // preview is open to check. The live adjustment rides along when the
+      // shot is the drawing under review.
       const p = c.attack?.projectile || {};
       const flight = s.shot * (c.attack?.cd ?? 1.0);
+      const x = s.x + (p.speed || 560) * flight;
+      const y = s.y + flight * 90;
+      const mine = use.shotSprite === p.sprite;
+      const img = p.sprite ? getImage(p.sprite) : null;
       ctx.save();
-      ctx.fillStyle = p.color || c.color || "#8fd3ff";
       ctx.globalAlpha = 0.9;
-      ctx.beginPath();
-      ctx.arc(s.x + (p.speed || 560) * flight, s.y + flight * 90, p.r || 20, 0, Math.PI * 2);
-      ctx.fill();
+      if (img) {
+        const h = (p.spriteH || 46) * (mine ? (adj.scale || 1) : 1);
+        const w = img.width * h / img.height;
+        ctx.translate(x + (mine ? adj.dx : 0), y + (mine ? adj.dy : 0));
+        if (mine && adj.rot) ctx.rotate(adj.rot);
+        ctx.drawImage(img, -w / 2, -h / 2, w, h);
+      } else {
+        ctx.fillStyle = p.color || c.color || "#8fd3ff";
+        ctx.beginPath();
+        ctx.arc(x, y, p.r || 20, 0, Math.PI * 2);
+        ctx.fill();
+      }
       ctx.restore();
     }
     return s;
@@ -1003,12 +1070,22 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     ctx.lineTo(canvas.width, GROUND);
     ctx.stroke();
 
-    // The fighter, on their own animation for the state this move plays.
+    // The fighter, on their own animation for the state this move plays. Held
+    // as a function rather than drawn here because ONE drawing goes under the
+    // body rather than over it — a rampage marked `behind` — and the whole
+    // point of previewing it is the layer order.
     const animT = Math.min(t, STATES[use.state]?.duration ?? t);
     const cf = currentFrame(use.charKey, use.state, animT);
     await loadFrame(use.charKey, cf).catch(() => {});
-    drawCharFrame(ctx, use.charKey, cf, FIGHTER_X, GROUND,
-      { scale: CHARACTERS[use.charKey]?.scale, facing: 1 });
+    const wornBehind = use.mode === "worn" && use.p.behind;
+    // A rampage that REPLACES the fighter draws no fighter at all, exactly as
+    // render.js does not: Panda is the triceratops for the duration.
+    const drawTheFighter = () => {
+      if (use.mode === "worn" && use.p.replaces) return;
+      drawCharFrame(ctx, use.charKey, cf, FIGHTER_X, GROUND,
+        { scale: CHARACTERS[use.charKey]?.scale, facing: 1 });
+    };
+    if (!wornBehind) drawTheFighter();
 
     // The target, standing where the shot is aimed. Drawn for every action so
     // the flight has a scale to be judged against, and REQUIRED by the two that
@@ -1040,6 +1117,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       const sprite = getImage(use.spriteKey);
       if (sprite && t <= dur && pos.visible !== false) drawShot(sprite, pos, adj, t);
     }
+    if (wornBehind) drawTheFighter();
 
     // The two points, always visible: the one the game spawns from and the one
     // the drawing is centred on after the nudge. A drop has no muzzle to place
@@ -1097,7 +1175,13 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     } else if (use.mode === "worn") {
       ctx.fillText(`${use.name} — ${use.charKey} · ${use.p.kind === "aura" ? "install aura" : "worn body"}`
         + ` · ${use.p.height}px${use.p.pulse ? ", breathing" : ""}`, 14, 22);
-      ctx.fillText(`painted ON the fighter for as long as the install runs`
+      // Which of the three it is, said plainly: an aura sits on the body, a
+      // replacing body IS the fighter, and one marked `behind` stands behind
+      // them while they go on animating in front of it.
+      const where = use.p.behind ? "painted BEHIND the fighter, who goes on animating in front of it"
+        : use.p.replaces ? "REPLACES the fighter for as long as the install runs — their own sprite is not drawn"
+        : "painted ON the fighter for as long as the install runs";
+      ctx.fillText(where
         + (use.p.foot ? `, ${use.p.foot}px below their feet` : "") + `   ·   ${nudge}`, 14, 40);
     } else if (use.mode === "director") {
       ctx.fillText(`${use.name} — ${use.charKey} · painted by its own director`
@@ -1118,8 +1202,12 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
         brawler: "fights: it picks its moves, telegraphs them, and commits",
       };
       ctx.fillText(`${use.name} — ${use.charKey} · ${c.behavior || "chaser"} · `
-        + `${c.h ?? 110}px tall, ${c.speed || 0}px/s, ${c.duration ?? "?"}s on stage`, 14, 22);
-      ctx.fillText(`${WHAT[c.behavior] || WHAT.chaser}   ·   ${nudge}`, 14, 40);
+        + (use.shotSprite
+          ? `its shot, ${c.attack?.projectile?.spriteH ?? 46}px, fired every ${c.attack?.cd ?? 1}s`
+          : `${c.h ?? 110}px tall, ${c.speed || 0}px/s, ${c.duration ?? "?"}s on stage`), 14, 22);
+      ctx.fillText((use.shotSprite
+        ? "the creature is here for scale — the marker moves the SHOT, which is the drawing you are on"
+        : (WHAT[c.behavior] || WHAT.chaser)) + `   ·   ${nudge}`, 14, 40);
     } else if (use.mode === "flash") {
       ctx.fillText(`${use.name} — ${use.charKey} · ${use.state} · flashes for ${use.p.life}s, ${use.p.forward}px in front`, 14, 22);
       ctx.fillText(`stands on the floor — no spawn point to place`
@@ -1197,8 +1285,14 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       // broken rather than one that was missing its art. Kicked off here and
       // not awaited: the loop picks each plate up on the frame it lands.
       if (found.mode === "summon") {
-        for (const pose of SUMMON_POSES) loadSharedImage(`${spriteKey}:${pose}`);
-        loadSharedImage(spriteKey);
+        // The creature, which is not always the drawing that was asked for: a
+        // shot's preview stands its shooter on the floor, and a body nobody
+        // fetched is an empty stage again.
+        const body = found.body || spriteKey;
+        for (const pose of SUMMON_POSES) loadSharedImage(`${body}:${pose}`);
+        loadSharedImage(body);
+        const shot = found.cfg?.attack?.projectile?.sprite;
+        if (shot) loadSharedImage(shot);
       }
       t = 0;
       lastTick = performance.now();

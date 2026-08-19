@@ -75724,6 +75724,83 @@
     "file": "assets/sprites/effects/star_rage_impact.png",
     "sha": "58e352600675"
    }
+  },
+  "effect:lightning_bolt": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -0.4,
+   "dy": -0.6,
+   "fadeIn": 0.06,
+   "src": {
+    "file": "assets/sprites/effects/lightning_bolt.png",
+    "sha": "7eeda5e493fb"
+   }
+  },
+  "effect:star_bolt": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -2,
+   "dy": 0.1,
+   "fadeIn": 0.04,
+   "src": {
+    "file": "assets/sprites/effects/star_bolt.png",
+    "sha": "2089963053e4"
+   }
+  },
+  "effect:star_debris": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 1.3,
+   "dy": 0.5,
+   "fadeIn": 0.04,
+   "src": {
+    "file": "assets/sprites/effects/star_debris.png",
+    "sha": "f986e73afbc0"
+   }
+  },
+  "effect:windup_doll": {
+   "edited": {
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
+   },
+   "faceLeft": true,
+   "dx": -0.3,
+   "dy": 11.2,
+   "src": {
+    "file": "assets/sprites/effects/windup_doll.png",
+    "sha": "93533711d44f"
+   }
+  },
+  "summon:cathy": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 25,
+   "dy": 15.8,
+   "src": {
+    "file": "assets/sprites/summons/cathy.png",
+    "sha": "60fc9cc1938e"
+   }
+  },
+  "summon:comfort_doll": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -6.8,
+   "dy": -4.7,
+   "src": {
+    "file": "assets/sprites/summons/comfort_doll.png",
+    "sha": "ccb9a926031c"
+   }
   }
  }
 }
