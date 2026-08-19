@@ -3980,7 +3980,30 @@ function openEffectPreview() {
   const u = effectPreview.use;
   title.textContent = `${u.name} — ${CHARACTERS[u.charKey]?.name || u.charKey}, ${u.state}`;
   refreshFadeIn();
+  setHold(false);
   $("effectOverlay").hidden = false;
+}
+
+/** Stop the clock, or start it again.
+ *
+ *  The player loops one pass of the move, and for a short-lived drawing the
+ *  drawing is a small part of that pass: Miwa's Last Draw is on screen for
+ *  0.5s of a 1.85s loop, so four fifths of every pass is an empty stage — which
+ *  is indistinguishable from a preview that does not work, and is how a
+ *  perfectly good playback got reported as a missing one. Held, the frame stays
+ *  put and the scrubber walks the pass by hand; every control on the page goes
+ *  on working against the frozen frame, which is the point. */
+function setHold(on) {
+  const btn = $("holdBtn"), range = $("scrubRange"), val = $("scrubVal");
+  const held = effectPreview.hold(on);
+  if (btn) btn.textContent = held ? "▶ Play" : "⏸ Hold";
+  if (range) {
+    range.disabled = !held;
+    range.value = String(effectPreview.at);
+  }
+  if (val) val.textContent = held
+    ? `${(effectPreview.at * effectPreview.cycle).toFixed(2)}s of ${effectPreview.cycle.toFixed(2)}s`
+    : "playing";
 }
 /** The fade-in slider inside the player. Written straight onto the drawing's
  *  meta like every other adjustment, so it exports with the rest and the
@@ -4011,6 +4034,14 @@ let fadeStarted = false;
 const fadeDragging = () => (fadeStarted ? true : (fadeStarted = true, false));
 $("fadeInRange")?.addEventListener("change", () => { fadeStarted = false; });
 $("fadeInClear")?.addEventListener("click", () => { fadeStarted = false; setFadeIn(0, true); });
+
+$("holdBtn")?.addEventListener("click", () => setHold(!effectPreview.held));
+$("scrubRange")?.addEventListener("input", (e) => {
+  effectPreview.at = Number(e.target.value);
+  const val = $("scrubVal");
+  if (val) val.textContent = `${(effectPreview.at * effectPreview.cycle).toFixed(2)}s`
+    + ` of ${effectPreview.cycle.toFixed(2)}s`;
+});
 
 $("playEffectBtn")?.addEventListener("click", openEffectPreview);
 $("effectClose")?.addEventListener("click", () => effectPreview.close());
@@ -6128,6 +6159,9 @@ async function boot() {
     // has no DOM either: a shared drawing marked reviewed has to leave by the
     // export, not just by dimming on screen.
     recentUpdates, payloadFor,
+    // The player itself, for the coverage check: it opens each drawing, walks
+    // the loop with the clock held, and asks whether anything was painted.
+    effectPreview,
     // Who draws each shared drawing, and whether that use is a dead stand-in.
     // The smoke asserts every drawing the game really shows has an action to
     // play; the ones nothing shows are the exception it has to be able to see.

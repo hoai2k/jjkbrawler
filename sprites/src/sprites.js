@@ -24,6 +24,26 @@ const DEG = Math.PI / 180;
  *  workbench builds its editor from this, so supporting a new one is an entry
  *  here plus the renderer call that reads it. */
 export const EXTRA_ANCHORS = {
+  // The foot at the lip. The ledge brake stops a fighter with their CENTRE a
+  // fixed 14px (24 on a small platform) past the edge — one number for the
+  // whole roster — and each teeter drawing puts its leading foot somewhere
+  // different inside its own plate, so where that foot lands relative to the
+  // real edge is different for every fighter and every platform kind. The
+  // brief for the pose says "front foot at or just over the lip"; this is the
+  // point that makes it true on screen.
+  //
+  // It moves the DRAWING and nothing else — the hurtbox, the collision x and
+  // the brake are all untouched, so nobody's spacing changes. See the
+  // `anchorTo` call in src/render.js, which applies it on the x axis only and
+  // fades it in with the teeter's own ramp.
+  teeter: {
+    label: "Teeter foot",
+    states: ["teeter"],
+    hint: "The foot that is at the edge — the leading one, at the front of the " +
+          "stance. The drawing slides so this point lands on the platform's " +
+          "lip. Starts at the frontmost pixel of the bottom of the art.",
+    defaultYFrac: 0.97,
+  },
   ledge: {
     label: "Ledge grip",
     states: ["ledge"],
@@ -602,8 +622,18 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
   if (opts.anchorTo) {
     const a = anchorPoint(charKey, frameKey, opts.anchorTo.name, meta);
     if (a) {
-      offX += opts.anchorTo.x - (x + worldX(a.x));
-      offY += opts.anchorTo.y - (y + worldY(a.y));
+      // `axis` and `w` are for an anchor that answers ONE question. A ledge
+      // grip answers both: the hand is at the corner, so the whole drawing
+      // hangs from it. A teeter foot answers only where the body sits ALONG
+      // the platform — the fighter is standing, and their height is already
+      // the pose's own `bodyBottom` — so pulling y as well would lift or bury
+      // them by however far the foot anchor happens to sit from that line.
+      // The weight eases it in with the teeter ramp rather than snapping the
+      // drawing sideways the moment the state changes.
+      const w = opts.anchorTo.w ?? 1;
+      const axis = opts.anchorTo.axis || "xy";
+      if (axis !== "y") offX += (opts.anchorTo.x - (x + worldX(a.x))) * w;
+      if (axis !== "x") offY += (opts.anchorTo.y - (y + worldY(a.y))) * w;
     }
   }
 

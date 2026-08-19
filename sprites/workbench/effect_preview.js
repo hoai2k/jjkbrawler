@@ -241,8 +241,10 @@ const BACKDROPS = new Set([
  * reads them, so the size shown is the size drawn.
  */
 const HAZARDS = {
-  "stagefx:stage_fang": { h: 72, anchor: "centre", life: 1.6,
-    rise: true, what: "rises out of the floor and dives back" },
+  // Bottom pinned to the platform line, exactly as stage_fx.js draws it: this
+  // one GROWS out of the ground rather than swelling about its middle.
+  "stagefx:stage_fang": { h: 72, anchor: "feet", life: 1.6,
+    rise: true, what: "grows out of the floor and sinks back" },
   "stagefx:stage_flower": { h: 46, anchor: "feet", life: 2.0,
     what: "a bloom, open on the platform" },
   "stagefx:stage_lantern": { h: 44, anchor: "top", life: 2.0,
@@ -308,11 +310,21 @@ const DIRECTORS = {
     what: "sweeps across the stage",
   }),
   // Geto's uzumaki travels forward at its own speed.
+  // Mahito's Uzumaki. Cast at the kit's own `ox`/`oy` and carried forward at
+  // its speed, spinning at the rate the handler spins it — a spiral previewed
+  // without its rotation is a still picture, which is what "shouldn't it be
+  // spinning?" was about. The handler's own numbers, read off src/ultimates.js.
   vortex: (p) => ({
-    life: 1.6, anchor: "centre", flip: false,
-    at: (u, S) => ({ x: S.FIGHTER_X + u * (p.speed || 300) * 1.6, y: S.GROUND - 150 }),
+    life: p.dur || 2.6, anchor: "centre", flip: false,
+    at: (u, S) => ({ x: S.FIGHTER_X + (p.ox ?? 130) + u * (p.dur || 2.6) * (p.speed || 300),
+                     y: S.GROUND + (p.oy ?? -110) }),
     h: () => p.spriteH || 250,
-    what: "travels forward, grinding",
+    spin: (u) => u * (p.dur || 2.6) * (p.spin ?? 2.2),
+    // The cast point is the KIT's, so it can be dragged here like a muzzle.
+    // Most directors' points are written into their handler and cannot be, and
+    // offering a marker that goes nowhere is worse than offering none.
+    kitLaunch: true,
+    what: "cast ahead of the caster and driven forward, spinning",
   }),
   // Hanami's tempest stands in the middle of the stage and rises out of it.
   tempest: (p) => ({
@@ -635,6 +647,15 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
    *  once a hand is verified the raw canvas number stops meaning anything at
    *  all — the kit's job is to say how far from the hand, not where. */
   function toKit(pt) {
+    // A DIRECTOR'S POINT IS RAW. A shot is spawned through spawnProjectileScaled
+    // — the kit's offsets are a displacement on a 149px reference body that
+    // every fighter scales onto their own height (src/muzzle.js) — but a
+    // director casts at `f.x + facing * ox`, `f.y + oy` and scales nothing. Run
+    // through the muzzle solve, a point dragged onto the screen would come back
+    // as a kit number that lands somewhere else.
+    if (use.mode === "director") {
+      return { spawnOx: Math.round(pt.x - FIGHTER_X), spawnOy: Math.round(pt.y - GROUND) };
+    }
     const home = solve(REFERENCE_MUZZLE.x, REFERENCE_MUZZLE.y);   // the hand itself
     const k = use.muzzleScale || 1;
     return {
@@ -645,6 +666,20 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
   let raf = 0;
   let t = 0;
   let running = false;
+  // HELD, and where. A drawing that is only on screen for a fraction of its
+  // loop cannot be sized by watching it: Miwa's Last Draw lands and fades in
+  // half a second while her ultimate animation runs three times that, so the
+  // stage is empty for most of every pass and the preview reads as broken. The
+  // answer is not to lie about the timing — it is to let the clock stop.
+  let held = false;
+  let cycleLen = 1;
+  // Whether the last frame actually PUT THE DRAWING ON THE CANVAS. An action
+  // that resolves is not the same as a drawing you can see: a director whose
+  // art never becomes visible, a shot that leaves the canvas before its first
+  // frame, an image nobody fetched — each of those has a Play button and shows
+  // nothing, which is what a missing preview looks like from the outside.
+  // tools/check_effect_previews.mjs walks the loop and asks.
+  let drew = false;
   let drag = null;
   let grabbed = false;
   let lastTick = 0;
@@ -817,6 +852,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // a preview that kept drawing it standing there would be hiding the one
     // fact about it that matters most.
     if (!s.gone && img) {
+      drew = true;
       const w = img.width * h / img.height;
       ctx.save();
       ctx.globalAlpha = s.appear;
@@ -946,7 +982,11 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     const u = Math.max(0, Math.min(1, age / p.life));
     const at = p.at(u, { FIGHTER_X, ENEMY_X, GROUND });
     return { x0: at.x, y0: at.y, x: at.x, y: at.y, vx: 0, vy: 0,
-             foot: p.anchor === "feet", h: p.h(u, p), visible: age <= p.life };
+             foot: p.anchor === "feet", h: p.h(u, p),
+             // A director that turns its own drawing — the spiral — says so,
+             // in radians at this point in its life.
+             spin: p.spin ? p.spin(u) : 0,
+             visible: age <= p.life };
   }
 
   /** The point the drawing is measured from, whichever way this action puts it
@@ -963,6 +1003,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
 
   /** The projectile, painted exactly as render.js paints it. */
   function drawShot(sprite, pos, adj, age) {
+    drew = true;
     // `persp` is the drop's apparent size — the rock is a speck when it enters
     // and full size when it lands. The nudge shrinks with it for the same
     // reason it does in the director: dx/dy correct the drawing, and a
@@ -1001,6 +1042,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       if (use.p.vy || use.p.gravity || use.p.homing) ctx.rotate(Math.atan2(-flip * pos.vy, -flip * pos.vx));
       ctx.scale(flip, 1);
     }
+    if (pos.spin) ctx.rotate(pos.spin);
     if (adj.rot) ctx.rotate(adj.rot);
     ctx.shadowColor = use.p.color || "#8fd3ff";
     ctx.shadowBlur = 12;
@@ -1047,7 +1089,8 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       : use.mode === "backdrop" ? 2.0
       : (use.p.dur || 0.9);
     const cycle = Math.max(STATES[use.state]?.duration || 0.5, dur) + 0.35;
-    t = (t + dt) % cycle;
+    cycleLen = cycle;
+    if (!held) t = (t + dt) % cycle;
 
     const adj = read();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1058,6 +1101,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     if (use.mode === "backdrop") {
       const img = getImage(use.spriteKey);
       if (img) {
+        drew = true;
         const cover = Math.max(canvas.width / img.width, canvas.height / img.height);
         const w = img.width * cover, h = img.height * cover;
         ctx.drawImage(img, (canvas.width - w) / 2 + (adj.dx || 0),
@@ -1070,14 +1114,20 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     ctx.lineTo(canvas.width, GROUND);
     ctx.stroke();
 
-    // The fighter, on their own animation for the state this move plays. Held
-    // as a function rather than drawn here because ONE drawing goes under the
-    // body rather than over it — a rampage marked `behind` — and the whole
-    // point of previewing it is the layer order.
+    // THE ORDER IS THE GAME'S ORDER, and it is not the order this used to use.
+    //
+    // Every shared drawing is painted BEHIND the fighters: src/render.js draws
+    // entities, then projectiles, then the bodies, and the install aura goes on
+    // inside drawFighters between the shadow and the body. There is one hook
+    // for art that means to cover them (`drawTop`) and no shared drawing uses
+    // it. This canvas painted the fighter first and the drawing over the top of
+    // them, which is the opposite, and it is why a barrier that stands behind
+    // Tengen in a match looked like it was pasted over his chest here.
+    //
+    // So the bodies are held as functions and drawn after the effect.
     const animT = Math.min(t, STATES[use.state]?.duration ?? t);
     const cf = currentFrame(use.charKey, use.state, animT);
     await loadFrame(use.charKey, cf).catch(() => {});
-    const wornBehind = use.mode === "worn" && use.p.behind;
     // A rampage that REPLACES the fighter draws no fighter at all, exactly as
     // render.js does not: Panda is the triceratops for the duration.
     const drawTheFighter = () => {
@@ -1085,20 +1135,20 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       drawCharFrame(ctx, use.charKey, cf, FIGHTER_X, GROUND,
         { scale: CHARACTERS[use.charKey]?.scale, facing: 1 });
     };
-    if (!wornBehind) drawTheFighter();
-
     // The target, standing where the shot is aimed. Drawn for every action so
     // the flight has a scale to be judged against, and REQUIRED by the two that
     // are about a target: a homing shot bends toward this body and a meteor
     // falls on it. Dimmed, because it is scenery for this question.
-    ctx.save();
-    ctx.globalAlpha = 0.75;
     const ek = enemyFor(use.charKey);
     const ef = currentFrame(ek, "idle", t);
     await loadFrame(ek, ef).catch(() => {});
-    drawCharFrame(ctx, ek, ef, ENEMY_X, GROUND,
-      { scale: CHARACTERS[ek]?.scale, facing: -1 });
-    ctx.restore();
+    const drawTheEnemy = () => {
+      ctx.save();
+      ctx.globalAlpha = 0.75;
+      drawCharFrame(ctx, ek, ef, ENEMY_X, GROUND,
+        { scale: CHARACTERS[ek]?.scale, facing: -1 });
+      ctx.restore();
+    };
 
     // Kept out here because the shot's caption names where its muzzle came
     // from, and that is a fact the playback works out rather than one the panel
@@ -1117,7 +1167,9 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       const sprite = getImage(use.spriteKey);
       if (sprite && t <= dur && pos.visible !== false) drawShot(sprite, pos, adj, t);
     }
-    if (wornBehind) drawTheFighter();
+    // ...and now the bodies, over it, the way the game paints them.
+    drawTheFighter();
+    drawTheEnemy();
 
     // The two points, always visible: the one the game spawns from and the one
     // the drawing is centred on after the nudge. A drop has no muzzle to place
@@ -1141,7 +1193,8 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // nudge is measured from there, so the two markers would sit on top of one
     // another and only one of them would be draggable.
     if (!["summon", "drop", "flash", "planted", "worn", "director", "hazard", "backdrop"]
-        .includes(use.mode)) {
+        .includes(use.mode)
+        || (use.mode === "director" && use.p.kitLaunch)) {
       marker(origin.x0, origin.y0, "#9fd39f", "spawn", false);
     }
     // What it fills, for a thing whose whole job is to fill it.
@@ -1249,7 +1302,11 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // The drawing marker wins a tie: it is the one that moves most often, and
     // it sits on top of the spawn point whenever the nudge is zero.
     if (Math.hypot(pt.x - dPt.x, pt.y - dPt.y) < 18) drag = "drawing";
-    else if (!["drop", "flash", "summon", "planted", "worn", "director", "hazard"].includes(use.mode)
+    // A director joins the draggable set only where the kit owns its cast
+    // point (`kitLaunch`); the rest write their offsets into their own handler,
+    // where a number dragged here could not land.
+    else if ((!["drop", "flash", "summon", "planted", "worn", "director", "hazard"].includes(use.mode)
+              || (use.mode === "director" && use.p.kitLaunch))
              && Math.hypot(pt.x - o.x0, pt.y - o.y0) < 18) drag = "spawn";
     else return;
     grabbed = false;
@@ -1302,9 +1359,26 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     },
     close() {
       running = false;
+      held = false;
       cancelAnimationFrame(raf);
       onClose?.();
     },
+    /** Stop the clock where it is, or start it again. */
+    hold(on) {
+      held = !!on;
+      return held;
+    },
+    get held() { return held; },
+    /** Where in the loop the frozen clock sits, 0..1. */
+    get at() { return cycleLen ? t / cycleLen : 0; },
+    set at(u) { t = Math.max(0, Math.min(1, u)) * cycleLen; },
+    /** How long one pass takes, for the scrubber to label itself. */
+    get cycle() { return cycleLen; },
+    /** Did the last rendered frame put the drawing on the canvas? Reset it,
+     *  advance the clock, and ask again — that is the coverage check's whole
+     *  method. */
+    get drew() { return drew; },
+    clearDrew() { drew = false; },
     get use() { return use; },
   };
 }

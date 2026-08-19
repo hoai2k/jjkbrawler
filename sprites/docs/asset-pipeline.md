@@ -746,8 +746,9 @@ by the game. Three steps, each separable so a bad delivery stops at the door:
    state each frame drives, for human approval.
 3. `tools/intake_import.py --approve FILE` — copies approved frames into
    `sprites/assets/` and registers them.
-4. `tools/bake_anchors.py` — measures the rotation pivot (and the ledge grip on
-   a hang pose) for anything newly registered. Skips frames whose anchors were
+4. `tools/bake_anchors.py` — measures the rotation pivot (and the two placed
+   points: the ledge grip on a hang pose, the front foot on a teeter) for
+   anything newly registered. Skips frames whose anchors were
    placed by hand, so it is safe to re-run over the whole roster.
 5. `tools/auto_tune.py` — applies the placement corrections that are mechanical.
    See [the tuning phase](#the-tuning-phase) below.

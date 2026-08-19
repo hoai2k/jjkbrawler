@@ -226,6 +226,10 @@ export const MOTION = {
   teeterSway: 0.055,      // rad of counter-sway on top
   teeterRate: 3.1,        // rad/s of that sway
   teeterShift: 2.6,       // px of drift with it
+  // How long the drawing takes to slide its front foot onto the lip
+  // (`teeterLip` in render.js). The same 0.12s the lean uses, for the same
+  // reason: the two arrive together, so the pose settles as one movement.
+  teeterFootIn: 0.12,     // s
   summonSway: 0.045,      // hovering summons
   summonLunge: 0.12,      // and their lean into an attack
 };

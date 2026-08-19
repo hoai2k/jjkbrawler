@@ -7,7 +7,7 @@ import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
 import { bodyMetrics } from "./silhouette.js";
 import { comFrac } from "./body_points.js";
-import { TRAIL_ALPHA, STRIKE_ARC, COM_HOLD_MAX_FRAC } from "./config_tuning.js";
+import { TRAIL_ALPHA, STRIKE_ARC, COM_HOLD_MAX_FRAC, MOTION } from "./config_tuning.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
 import { hitboxRect, hurtbox, summonBox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
@@ -525,6 +525,34 @@ function drawAngleTick(ctx, hx, hy, hb, fade, power, color) {
 // afterimages are billboards in the WebGL scene, so this canvas draws only the
 // adornments around them — markers, revival platforms, auras, bubbles, meters,
 // status effects. Everything positions in the same sim coordinates either way.
+/** Where the platform's edge is under a teetering fighter, for the drawing to
+ *  put its front foot on — or null when they are not teetering, which is the
+ *  normal case and costs one comparison.
+ *
+ *  `teeterDir` is which lip they are at (fighter.js updateTeeter) and it
+ *  survives the fade-out, so the slide unwinds with the lean instead of
+ *  snapping back when the state ends. The weight is the same ramp the wobble
+ *  uses, capped at 1. */
+export function teeterLip(f) {
+  if (!f.teeterDir || !(f.teeterT > 0) || !f.currentPlatform) return null;
+  // ONLY WHEN THEY ARE FACING THE DROP. The pose is drawn facing right with
+  // the drop on the right (22A's brief) and the renderer mirrors it with the
+  // fighter, so the anchored foot is the one on the FACING side. A fighter who
+  // turned round at the lip has their back to it — the drawing's front foot is
+  // now pointing inland, and pulling that onto the edge would drag the whole
+  // body out over the drop. Their centre is the honest answer there, which is
+  // what they get.
+  if (Math.sign(f.facing) !== f.teeterDir) return null;
+  const plat = f.currentPlatform;
+  return {
+    name: "teeter",
+    axis: "x",
+    w: Math.min(1, f.teeterT / (MOTION.teeterFootIn || 0.12)),
+    x: f.teeterDir > 0 ? plat.x + plat.w : plat.x,
+    y: plat.y,
+  };
+}
+
 function drawFighters(ctx, { bodies = true } = {}) {
   const sorted = [...state.fighters].sort((a, b) => a.y - b.y);
   for (const f of sorted) {
@@ -632,9 +660,18 @@ function drawFighters(ctx, { bodies = true } = {}) {
         holdComMax: bodyMetrics(spriteKey).height * COM_HOLD_MAX_FRAC,
         // A frame with a ledge-grip anchor is hung from that hand on the real
         // platform corner, instead of standing its feet in mid-air beside it.
+        // A TEETER puts its leading foot on the lip, on the x axis only: the
+        // brake stops every fighter's centre the same fixed distance past the
+        // edge (standMargin, fighter.js), and each drawing carries its front
+        // foot somewhere different, so without this the pose the brief calls
+        // "front foot at or just over the lip" lands with the foot in mid-air
+        // on one fighter and a boot-length short on the next. Cosmetic by
+        // construction — the fighter's x, hurtbox and brake are untouched —
+        // and eased in on the teeter's own ramp so the drawing slides rather
+        // than jumps.
         anchorTo: f.ledge
           ? { name: "ledge", x: f.ledge.edgeX, y: f.ledge.plat.y }
-          : null,
+          : teeterLip(f),
         glow: glowing ? (f.installs ? f.installs.color : f.char.shadow) : f.char.shadow,
         glowBlur: glowing ? 26 : 12,
       };

@@ -521,51 +521,10 @@ if (sharedEntry) {
   await page.click("#updatedClear");
 }
 
-// EVERY DRAWING A KIT NAMES CAN BE PLAYED. The Other Sprites panel offers a
-// "Play it in action" button wherever `firingUse` finds the move that spawns a
-// drawing, and it finds it by walking tables of spawn shapes — one per special
-// type, per director, per creature. A NEW kind of move is therefore a drawing
-// with no action, silently: five of them had accumulated that way (a boomerang,
-// a massDrive ultimate, a domain backdrop added after the list of backdrops was
-// written, and a creature's own projectile), and the only symptom is a button
-// that is not there.
-//
-// The exception is a drawing nothing draws: a stand-in behind a creature whose
-// own plates have landed is never reached, so having no action is the correct
-// answer for it. That is read from the usage index rather than listed here, so
-// the exception cannot go stale either.
-const unplayable = await page.evaluate(async () => {
-  const ep = await import("/sprites/workbench/effect_preview.js");
-  const ch = await import("/src/characters.js");
-  const usage = window.__spriteWorkbench.sharedUsage();
-  const keys = new Set(); const owners = {};
-  const walk = (n) => {
-    if (!n || typeof n !== "object") return;
-    for (const v of Object.values(n)) {
-      if (typeof v === "string" && /^(effect|summon|domain|stagefx):/.test(v)) keys.add(v);
-      else if (Array.isArray(v)) v.forEach((x) => (typeof x === "string" && /^(effect|summon):/.test(x))
-        ? keys.add(x) : walk(x));
-      else walk(v);
-    }
-  };
-  for (const key of ch.CHARACTER_KEYS) {
-    const before = new Set(keys);
-    const c = ch.CHARACTERS[key];
-    walk(c.specials); walk(c.ultimate); walk(c.domains);
-    for (const k of keys) if (!before.has(k)) owners[k] = key;
-  }
-  const out = [];
-  for (const k of keys) {
-    const uses = usage[k] || [];
-    if (uses.length && uses.every((u) => u.dead)) continue;   // retired stand-in
-    let found = null;
-    try { found = ep.firingUse(k, owners[k]); } catch (e) { out.push(`${k} (threw: ${e.message})`); continue; }
-    if (!found) out.push(k);
-  }
-  return out;
-});
-check(unplayable.length === 0,
-  "every shared drawing a kit names has an action to play", unplayable.join(", ") || "none");
+// (Every drawing a kit names having an action to play is checked by
+// tools/check_effect_previews.mjs, which runs in `npm run check` — it opens
+// each one and asserts the loop actually paints it, which needs the player
+// rather than the page this smoke is looking at.)
 
 // ---- its sibling: the cross-character flagged list
 //

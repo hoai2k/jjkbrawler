@@ -389,6 +389,33 @@ try {
     out.teeterAnim = a.animKey;
     out.teeterDir = a.teeterDir;
     out.teeterGrounded = a.grounded;
+    // THE FOOT GOES ON THE LIP. The brake stops every fighter's centre the same
+    // fixed distance past the edge, and each teeter drawing carries its front
+    // foot somewhere different inside its own plate, so the drawing is slid
+    // sideways to put that foot on the real edge (render.js teeterLip, and the
+    // `teeter` anchor bake_anchors.py measures). Cosmetic — the fighter's x is
+    // untouched — which is why it is checked here rather than in the geometry
+    // above: what has to hold is that the renderer is ASKED for it, on the
+    // right edge, and only while they are facing the drop.
+    const { teeterLip } = await import("/src/render.js");
+    // FACING THE DROP, which in this fixture has to be said out loud: the
+    // dummy opponent is parked far to the LEFT so it stays out of the geometry,
+    // and a standing fighter turns to face the nearest one — so the fixture's
+    // fighter reaches the right-hand lip looking inland, which is the one case
+    // the anchor deliberately skips (the drawing's front foot is on the other
+    // side then). Both readings are checked, this one first.
+    a.facing = a.teeterDir;
+    const lipTarget = teeterLip(a);
+    out.teeterAnchor = lipTarget && {
+      name: lipTarget.name, axis: lipTarget.axis,
+      onEdge: Math.round(lipTarget.x - edge),
+    };
+    const wasFacing = a.facing;
+    a.facing = -a.teeterDir;                 // turned round at the lip
+    out.teeterAnchorTurned = teeterLip(a);
+    a.facing = wasFacing;
+    out.teeterAnchorBaked = !!(await import("/sprites/src/sprites.js"))
+      .anchorPoint(a.spriteChar || a.charKey, "teeter", "teeter");
 
     // 6. Standing still at the lip is undisturbed — the brake must not shove
     //    anyone back from where they are legitimately allowed to stand.
@@ -474,6 +501,14 @@ try {
   check(r.lungeHeldLeft,
     "...but lunging with the direction held still goes over",
     `grounded=${!r.lungeHeldLeft}`);
+  check(r.teeterAnchor?.name === "teeter" && r.teeterAnchor.axis === "x"
+        && Math.abs(r.teeterAnchor.onEdge) < 1,
+    "...with its front foot slid onto the platform's own edge",
+    `anchor=${JSON.stringify(r.teeterAnchor)}`);
+  check(r.teeterAnchorTurned === null,
+    "...and not when they have turned their back on the drop",
+    `turned=${JSON.stringify(r.teeterAnchorTurned)}`);
+  check(r.teeterAnchorBaked, "...off a point measured on the drawing itself");
   check(r.teeterAnim === "teeter" && r.teeterGrounded,
     "stopping on the lip draws the teeter",
     `anim=${r.teeterAnim} dir=${r.teeterDir} grounded=${r.teeterGrounded}`);
