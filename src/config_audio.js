@@ -164,22 +164,31 @@ export const SFX = {
   // Per CHARACTER rather than per voice group — eight fighters have a domain
   // and this is the one line each of them is known for, so the grunt-group
   // sharing that covers 27 fighters' effort noises is the wrong economy here.
-  domainCallGojo: { file: "domain_call_gojo_alt_relaxed.mp3", category: "voice", gain: 1.1 },
-  domainCallSukuna: { file: "domain_call_sukuna.mp3", category: "voice", gain: 1.1 },
-  domainCallMegumi: { file: "domain_call_megumi.mp3", category: "voice", gain: 1.1 },
-  domainCallMahito: { file: "domain_call_mahito.mp3", category: "voice", gain: 1.1 },
-  domainCallJogo: { file: "domain_call_jogo.mp3", category: "voice", gain: 1.1 },
-  domainCallDagon: { file: "domain_call_dagon_alt_deep.mp3", category: "voice", gain: 1.1 },
-  domainCallHakari: { file: "domain_call_hakari.mp3", category: "voice", gain: 1.1 },
-  domainCallYuta: { file: "domain_call_yuta.mp3", category: "voice", gain: 1.1 },
+  //
+  // Trimmed at 1.25 rather than the 1.1 they shipped at: under the sting, the
+  // barrier and the interior bed all landing together the call-out was being
+  // sat on by its own moment. It is now the loudest thing in the voice
+  // category, which is what a name-drop nobody else gets should be.
+  domainCallGojo: { file: "domain_call_gojo_alt_relaxed.mp3", category: "voice", gain: 1.25 },
+  domainCallSukuna: { file: "domain_call_sukuna.mp3", category: "voice", gain: 1.25 },
+  domainCallMegumi: { file: "domain_call_megumi.mp3", category: "voice", gain: 1.25 },
+  domainCallMahito: { file: "domain_call_mahito.mp3", category: "voice", gain: 1.25 },
+  domainCallJogo: { file: "domain_call_jogo.mp3", category: "voice", gain: 1.25 },
+  domainCallDagon: { file: "domain_call_dagon_alt_deep.mp3", category: "voice", gain: 1.25 },
+  domainCallHakari: { file: "domain_call_hakari.mp3", category: "voice", gain: 1.25 },
+  domainCallYuta: { file: "domain_call_yuta.mp3", category: "voice", gain: 1.25 },
   // ---- Inumaki's cursed speech, round 11. The command itself, in Japanese,
   // in his voice — see MOVE_CALL below for how these reach a move. He is the
   // one fighter whose entire technique is his voice, and until these landed he
   // fired the wordless young-male grunt he shares with four other students.
-  callInumakiBlastAway: { file: "call_inumaki_blast_away.mp3", category: "voice", gain: 1.1 },
-  callInumakiDontMove: { file: "call_inumaki_dont_move.mp3", category: "voice", gain: 1.1 },
-  callInumakiGetCrushed: { file: "call_inumaki_get_crushed.mp3", category: "voice", gain: 1.1 },
-  callInumakiUltimate: { file: "call_inumaki_ultimate.mp3", category: "voice", gain: 1.1 },
+  //
+  // Louder still than the domain call-outs (1.45 against 1.25): those are one
+  // line at the biggest moment of a match, while these ARE the move — the
+  // command has to carry over the hit it causes, every time he throws one.
+  callInumakiBlastAway: { file: "call_inumaki_blast_away.mp3", category: "voice", gain: 1.45 },
+  callInumakiDontMove: { file: "call_inumaki_dont_move.mp3", category: "voice", gain: 1.45 },
+  callInumakiGetCrushed: { file: "call_inumaki_get_crushed.mp3", category: "voice", gain: 1.45 },
+  callInumakiUltimate: { file: "call_inumaki_ultimate.mp3", category: "voice", gain: 1.45 },
 
   // The barrier itself, and the room it encloses.
   domainBarrier: { file: "domain_barrier.mp3", category: "domain", gain: 0.9 },
@@ -256,7 +265,7 @@ export const SFX = {
   hitLightning: { file: "hit_lightning.mp3", category: "combat", gain: 0.5 },
   thunderCrack: { file: "thunder_crack.mp3", category: "energy" },
   domainTimeCellMoonPalace: { file: "domain_time_cell_moon_palace.mp3", category: "domain" },
-  domainCallNaoya: { file: "domain_call_naoya.mp3", category: "voice", gain: 1.1 },
+  domainCallNaoya: { file: "domain_call_naoya.mp3", category: "voice", gain: 1.25 },
 
   // ---- Round 17: round 24's staged four. `starRepel` is the odd one — the
   // call site in fighter.js has NAMED it since Kirara was built, so the game

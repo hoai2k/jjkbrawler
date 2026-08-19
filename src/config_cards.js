@@ -51,10 +51,12 @@ export const CARD_FOCUS = {
   panda:      2.7,  // Panda
   mechamaru:  0.5,  // Mechamaru
   momo:       9.5,  // Momo
+  kirara:     0,    // Kirara
   gojo:       7.8,  // Gojo
   nanami:     3.4,  // Nanami
   meimei:     7.6,  // Mei Mei
   gakuganji:  2.4,  // Gakuganji
+  tengen:     59.7, // Tengen
   toji:       1.4,  // Toji
   yuki:       3.8,  // Yuki
   hakari:     0.2,  // Hakari
