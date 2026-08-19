@@ -3250,10 +3250,10 @@
     "h": 1237,
     "ox": -349.6,
     "oy": -975,
-    "bodyBottom": 213.3,
-    "bodyH": 382.7,
+    "bodyBottom": 250.3,
+    "bodyH": 287.1,
     "centroidX": 223.6,
-    "renderScale": 0.309,
+    "renderScale": 0.2318,
     "file": "nanami/teeter.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -3266,8 +3266,8 @@
       405.2
      ],
      "teeter": [
-      862.0,
-      1233.1
+      807.5,
+      1231.0
      ]
     },
     "autoTuned": {
@@ -3275,6 +3275,16 @@
      "fields": {
       "bodyBottom": "foot=0.961 (character)",
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "renderScale": 0.309,
+     "bodyBottom": 213.3,
+     "anchors": {
+      "teeter": [
+       862.0,
+       1233.1
+      ]
      }
     }
    }
@@ -78211,8 +78221,8 @@
     "dx": null,
     "dy": null
    },
-   "dx": -2,
-   "dy": 0.1,
+   "dx": 0.5,
+   "dy": 6.1,
    "fadeIn": 0.04,
    "src": {
     "file": "assets/sprites/effects/star_bolt.png",
@@ -78224,8 +78234,8 @@
     "dx": null,
     "dy": null
    },
-   "dx": 1.3,
-   "dy": 0.5,
+   "dx": 0.5,
+   "dy": 1.7,
    "fadeIn": 0.04,
    "src": {
     "file": "assets/sprites/effects/star_debris.png",
@@ -78251,8 +78261,8 @@
     "dx": null,
     "dy": null
    },
-   "dx": -0.4,
-   "dy": 29.3,
+   "dx": 70.4,
+   "dy": 5.3,
    "src": {
     "file": "assets/sprites/summons/cathy.png",
     "sha": "60fc9cc1938e"
@@ -78277,7 +78287,7 @@
     "dx": null,
     "dy": null
    },
-   "renderScale": 0.4,
+   "renderScale": 0.25,
    "dx": 0.3,
    "dy": -0.3,
    "src": {
@@ -78331,7 +78341,9 @@
   },
   "effect:doll_needle": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
    },
    "faceLeft": true,
    "hit": {
@@ -78342,7 +78354,9 @@
    "src": {
     "file": "assets/sprites/effects/doll_needle.png",
     "sha": "50782cdde6e3"
-   }
+   },
+   "dx": 114.4,
+   "dy": -19.6
   },
   "effect:drop_futon": {
    "edited": {
