@@ -26,7 +26,8 @@ import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../../src/mov
 import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
 import { muzzleOf, spawnOffset, REFERENCE_MUZZLE } from "../../src/muzzle.js";
 import { PIVOTED_STATES } from "../../src/motion.js";
-import { HURTBOX, GRAB } from "../../src/constants.js";
+import { HURTBOX, GRAB, WORLD } from "../../src/constants.js";
+import { grabReachOf, holdGapOf } from "../../src/grab.js";
 import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
 import { CHARACTERS, CHARACTER_KEYS, STAGED_CHARACTER_KEYS, SPRITE_ACTORS, getActor }
   from "../../src/characters.js";
@@ -578,13 +579,22 @@ function sharedTodoNote(frameKey) {
   // it is read explicitly rather than counted as a number below, because it is
   // a record of the looking rather than a placement.
   if (peekMeta(OTHER_KEY, frameKey)?.surfacedReviewed) return null;
-  // A DRAWING WITH NOTHING TO DECIDE is not undecided. A domain backdrop is
-  // cover-fitted to the whole stage (drawDomainBackdrop, render.js): no size,
-  // no offset, no tilt, and the panel says so. All nine sat here permanently,
-  // because the only way off this list is a number and there is no number to
-  // set — a to-do item nobody could ever do. What such a drawing still has is a
-  // redraw flag, which is the other list and the right place for "this backdrop
-  // is wrong".
+  // A DOMAIN BACKDROP IS NEVER TO-DO. Cover-fitted to the whole stage
+  // (drawDomainBackdrop, render.js): no size, no offset, no tilt. All nine sat
+  // here permanently once, because the only way off this list is a number and
+  // there was no number to set — a to-do item nobody could ever do.
+  //
+  // They came BACK when the panel learned that a plate wider than the frame can
+  // be panned, because "has a control" is what this list reads as "has a
+  // decision". Two of the nine really can pan — captivating_skandha and
+  // time_cell_moon_palace are 1536x1024 against a 1280x720 stage, so 133px of
+  // vertical is a genuine choice — but choosing a crop on a backdrop drawn at
+  // 0.82 alpha behind a fight is not work anybody is waiting on, and the list is
+  // for work somebody must do. The control stays in the panel, where the art is
+  // loaded and the slack can be measured; the queue does not ask for it. What a
+  // backdrop still has is a redraw flag, which is the other list and the right
+  // place for "this backdrop is wrong".
+  if (sharedSpriteInfo(frameKey)?.anchor === "screen") return null;
   const controls = sharedControls(frameKey);
   if (controls && !controls.size && !controls.offset && !controls.rotate) return null;
   // One entry per DRAWING. A creature's six poses are one drawing set with one
@@ -2074,16 +2084,25 @@ function grabShapes(charKey, anim) {
   if (!["grabReach", "grabHold", "grabbed"].includes(anim)) return [];
   const m = bodyMetrics(charKey);
   if (anim === "grabReach") {
-    // updateGrabReach: a box from the fighter's own x, forward by their
-    // measured reach plus the closing hand's grace, 90% of body height tall.
-    return [{ kind: "reach", w: m.reach * 0.85 + GRAB.grace, h: m.height * 0.9 }];
+    // ASKED OF src/grab.js RATHER THAN RECOMPUTED, and that is the whole point.
+    // This line used to be the roster formula with "put the grasping hand ON
+    // it" written beside it — a second answer to the question the `grabHand`
+    // anchor answers. The moment anybody placed the anchor the game used the
+    // hand and the canvas went on drawing the formula, so the guide was telling
+    // the artist to move a hand that had already been measured. Now the line
+    // follows the hand: place the anchor and the reach moves with it.
+    const r = grabReachOf(charKey);
+    return [{ kind: "reach", w: r.reach + GRAB.grace, hand: r.reach,
+              source: r.source, h: m.height * 0.9 }];
   }
-  // pinVictim puts the two bodies (a.width + b.width) * 0.45 apart, and turns
-  // the victim to face the holder. So from EITHER pose, drawn facing right, the
-  // other fighter stands the same gap ahead — the holder in front of the one
-  // being held, the victim in front of the one holding. Measured against
-  // another fighter of this build, there being only one body on this canvas.
-  return [{ kind: "partner", gap: m.width * 0.9, w: m.width, h: m.height * HURTBOX.standH,
+  // pinVictim stands the two bodies `holdGapOf` apart and turns the victim to
+  // face the holder. So from EITHER pose, drawn facing right, the other fighter
+  // stands the same gap ahead — the holder in front of the one being held, the
+  // victim in front of the one holding. Measured against another fighter of
+  // this build, there being only one body on this canvas.
+  const g = holdGapOf(charKey, charKey);
+  return [{ kind: "partner", gap: g.gap, source: g.source,
+            w: m.width, h: m.height * HURTBOX.standH,
             label: anim === "grabHold" ? "the fighter held" : "the fighter holding" }];
 }
 
@@ -2107,10 +2126,26 @@ function drawGrabShape(cx, g) {
     ctx.beginPath();                       // the far edge: the last px it closes on
     ctx.moveTo(wx(g.w), wy(-g.h)); ctx.lineTo(wx(g.w), wy(0));
     ctx.stroke();
+    const note = g.source === "hand"
+      ? `follows the Grabbing hand anchor · +${Math.round(g.w - g.hand)}px closing grace`
+      : "no Grabbing hand placed — this is the roster formula, not this drawing";
+    // Measured rather than guessed at: the note is a sentence, and on a
+    // long-armed fighter at high zoom it ran off the right edge of the canvas.
+    const room = wx(g.w) + 6 + ctx.measureText(note).width < canvas.width - 4;
+    ctx.textAlign = room ? "left" : "right";
+    const lx = wx(g.w) + (room ? 6 : -6);
+    // ABOVE the box, not inside it: flipped to the left the notes landed on
+    // top of the hurtbox caption, and two red-on-blue sentences over each other
+    // are worse than no caption at all.
     ctx.fillText(`Grab reach · ${Math.round(g.w)}px — a grab connects up to here`,
-      wx(g.w) + 6, wy(-g.h) + 12);
+      lx, wy(-g.h) - 18);
     ctx.fillStyle = "rgba(255, 140, 110, 0.7)";
-    ctx.fillText("put the grasping hand ON it", wx(g.w) + 6, wy(-g.h) + 26);
+    // WHICH OF THE TWO IS THE ANSWER, said out loud. With the hand placed this
+    // line is a readout of it and there is nothing to do here; without one it
+    // is the roster's guess, and the fix is still to place the anchor rather
+    // than to slide the drawing until it touches a line.
+    ctx.fillText(note, lx, wy(-g.h) - 5);
+    ctx.textAlign = "left";
   } else {
     // The other body, where the pin puts it: a plain hurtbox, because that is
     // all the pose has to agree with — hands on it, and not through it.
@@ -2136,6 +2171,13 @@ function drawGrabShape(cx, g) {
     // lines up with this is the HANDS. Sliding the drawing sideways to reach
     // the line would take the fighter off the spot the game pins them to.
     const grip = g.gap / 2;
+    // Which store this gap came from — the two placed anchors, or the width
+    // formula that stands in until they are.
+    ctx.fillStyle = "rgba(255, 140, 110, 0.7)";
+    ctx.fillText(g.source === "grip"
+      ? "gap from the placed Grabbing hand and Held chest"
+      : "gap from the width formula — place both grip anchors to set it",
+      wx(g.gap - g.w / 2), wy(-g.h) - 18);
     ctx.strokeStyle = "rgba(120, 210, 240, 0.9)";
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
@@ -2143,7 +2185,9 @@ function drawGrabShape(cx, g) {
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = "rgba(150, 220, 250, 0.95)";
-    ctx.fillText("the grip — hands here, chest height", wx(grip) + 6, wy(-g.h * 0.62));
+    // Clear of the anchor handle's own label, which sits at chest height —
+    // which is exactly where this line is about.
+    ctx.fillText("the grip — hands here, chest height", wx(grip) + 6, wy(-g.h * 0.82));
   }
   ctx.restore();
 }
@@ -3711,6 +3755,24 @@ const CODE_DRAWN = {
   "effect:shrine": "the shrine behind Sukuna's domain (src/domains.js)",
 };
 
+/** How much of a cover-fitted backdrop falls outside the frame, in stage px, or
+ *  null when none of it does. The cover fit scales the plate up until it covers
+ *  the stage on both axes; whatever the longer axis has left over is the range
+ *  a pan can move within. A plate at the stage's own aspect has none, which is
+ *  the case for seven of the nine domains. */
+function panSlack(key) {
+  const art = getImage(key);
+  // NOT LOADED IS NOT "NO SLACK". Domain plates are fetched lazily (`optional`
+  // in src/assets.js), so the panel can be built before the picture arrives —
+  // and answering "no" then would take a live control away on a race. Undefined
+  // means unknown; the caller offers the control and the note stays general.
+  if (!art?.width || !art?.height) return undefined;
+  const scale = Math.max(WORLD.w / art.width, WORLD.h / art.height);
+  const x = art.width * scale - WORLD.w;
+  const y = art.height * scale - WORLD.h;
+  return (x > 1 || y > 1) ? { x: Math.max(0, x), y: Math.max(0, y) } : null;
+}
+
 function sharedControls(key) {
   if (!key) return null;
   const info = sharedSpriteInfo(key);
@@ -3719,13 +3781,30 @@ function sharedControls(key) {
              what: "nothing in the game draws this, so there is no size or position to set" };
   }
   if (info.anchor === "screen") {
-    // A domain backdrop: cover-fitted, so no size and no tilt — but `pan` says
-    // the one thing it CAN do. drawDomainBackdrop reads dx/dy to choose which
-    // part of an over-wide plate shows, and this panel used to say the drawing
-    // could not be moved at all, which was wrong about the nine largest
-    // drawings in the game.
-    return { used: true, size: false, offset: !!info.pan, rotate: false, info,
-             what: info.what };
+    // A domain backdrop: cover-fitted, so no size and no tilt. `pan` is the one
+    // thing it can do — drawDomainBackdrop reads dx/dy to choose which part of
+    // an over-wide plate shows — but ONLY where the plate is actually bigger
+    // than the frame it is fitted into. Seven of the nine are exactly 1280x720,
+    // the stage's own aspect: the cover fit consumes the whole picture, so a
+    // nudge slides it off one edge and leaves a gap at the other. There is no
+    // choice to make.
+    //
+    // Saying `pan: true` for all nine put every domain on the recently-updated
+    // list, because "has a control" is what that list means by "has a decision
+    // to make". Two of them belong there — captivating_skandha and
+    // time_cell_moon_palace are 1536x1024 and carry 133px of vertical slack, so
+    // which 720 rows show is a real unmade decision. The other seven do not.
+    const slack = panSlack(key);
+    return { used: true, size: false, rotate: false, info, slack,
+             offset: !!info.pan && slack !== null,
+             what: slack
+               ? `${info.what} — this plate has ${Math.round(slack.y)}px of vertical`
+                 + `${slack.x > 1 ? ` and ${Math.round(slack.x)}px of horizontal` : ""}`
+                 + " slack to choose from"
+               : slack === null
+                 ? "a full-screen backdrop at exactly the stage's aspect — the fit uses"
+                   + " the whole plate, so there is no size, no tilt and nothing to pan to"
+                 : info.what };
   }
   // Every spawn site reads sharedAdjust now, so the nudge and the tilt are
   // always live. They were not: a dozen ultimate directors and a handful of
