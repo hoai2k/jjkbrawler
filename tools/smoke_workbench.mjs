@@ -267,7 +267,15 @@ const VAR = await page.evaluate(async () => {
     for (const [frame, entry] of Object.entries(poses)) {
       const meta = spriteManifest.characters?.[char]?.[frame];
       if (!meta || meta.awaitingApproval) continue;         // mid-delivery
-      const others = (entry.options || []).filter((o) => o.file !== meta.file);
+      // The alternate has to be UNFLAGGED, or the question cannot be asked of
+      // it: what is checked below is that the flag set on THIS pose does not
+      // follow the switch, and a drawing that arrived carrying a tag of its own
+      // — an archived design someone condemned rounds ago — answers "flagged"
+      // either way. Retiring hanami_alt left exactly that as the first option
+      // on the first pose here, and the fixture failed on data rather than on
+      // behaviour.
+      const others = (entry.options || []).filter(
+        (o) => o.file !== meta.file && !o.needsReplacement && !o.wantsImprovement);
       if (others.length) return { char, frame, own: meta.file, other: others[0].file };
     }
   }

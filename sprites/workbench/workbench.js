@@ -3719,7 +3719,12 @@ function sharedControls(key) {
              what: "nothing in the game draws this, so there is no size or position to set" };
   }
   if (info.anchor === "screen") {
-    return { used: true, size: false, offset: false, rotate: false, info,
+    // A domain backdrop: cover-fitted, so no size and no tilt — but `pan` says
+    // the one thing it CAN do. drawDomainBackdrop reads dx/dy to choose which
+    // part of an over-wide plate shows, and this panel used to say the drawing
+    // could not be moved at all, which was wrong about the nine largest
+    // drawings in the game.
+    return { used: true, size: false, offset: !!info.pan, rotate: false, info,
              what: info.what };
   }
   // Every spawn site reads sharedAdjust now, so the nudge and the tilt are

@@ -3220,7 +3220,7 @@
     "bodyH": 382.7,
     "centroidX": 223.6,
     "renderScale": 0.309,
-    "file": "nanami/incoming/teeter.png",
+    "file": "nanami/teeter.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 879,
@@ -4204,7 +4204,7 @@
     "bodyH": 329.7,
     "centroidX": 169.3,
     "renderScale": 0.2144,
-    "file": "hanami/incoming/attack_light_a.png",
+    "file": "hanami/attack_light_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 920,
@@ -4337,7 +4337,7 @@
     "bodyH": 407.3,
     "centroidX": 111.0,
     "renderScale": 0.2454,
-    "file": "hanami/incoming/crouch_attack_b.png",
+    "file": "hanami/crouch_attack_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1014,
@@ -4369,7 +4369,7 @@
     "bodyH": 167.0,
     "centroidX": 166.4,
     "renderScale": 0.168,
-    "file": "hanami/incoming/crouch_b.png",
+    "file": "hanami/crouch_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 854,
@@ -5593,7 +5593,7 @@
     "bodyH": 395.1,
     "centroidX": 151.8,
     "renderScale": 0.2183,
-    "file": "geto/incoming/attack_down.png",
+    "file": "geto/attack_down.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 860,
@@ -8981,7 +8981,7 @@
     "bodyH": 305.9,
     "centroidX": 136.4,
     "renderScale": 0.2067,
-    "file": "mahito/incoming/attack_light_a.png",
+    "file": "mahito/attack_light_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 762,
@@ -12011,7 +12011,7 @@
     "coreRight": 894.2
    },
    "attack_light_a": {
-    "file": "megumi/archive/crouch_a_2.png",
+    "file": "megumi/attack_light_a.png",
     "bodyLeft": 0,
     "bodyRight": 880,
     "coreLeft": 64.3,
@@ -18585,7 +18585,7 @@
     "coreRight": 596.9
    },
    "attack_heavy_b": {
-    "file": "nobara/crouch_attack_b.png",
+    "file": "nobara/attack_heavy_b.png",
     "bodyLeft": 0,
     "bodyRight": 952,
     "coreLeft": 59.5,
@@ -18613,7 +18613,7 @@
     }
    },
    "attack_light_a": {
-    "file": "nobara/archive/crouch_b_2.png",
+    "file": "nobara/attack_light_a.png",
     "bodyLeft": 0,
     "bodyRight": 845,
     "coreLeft": 42.4,
@@ -18643,7 +18643,7 @@
     }
    },
    "attack_light_b": {
-    "file": "nobara/specialNeutral.png",
+    "file": "nobara/attack_light_b.png",
     "bodyLeft": 0,
     "bodyRight": 948,
     "coreLeft": 67.7,
@@ -21696,7 +21696,7 @@
     "coreRight": 821.4
    },
    "attack_light_a": {
-    "file": "inumaki/archive/crouch_a_2.png",
+    "file": "inumaki/attack_light_a.png",
     "bodyLeft": 0,
     "bodyRight": 804,
     "coreLeft": 53.1,
@@ -26114,7 +26114,7 @@
     "bodyH": 313.9,
     "centroidX": -24.9,
     "renderScale": 0.2774,
-    "file": "toji/incoming/attack_heavy_b.png",
+    "file": "toji/attack_heavy_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1099,
@@ -28914,7 +28914,7 @@
     "bodyH": 291.7,
     "centroidX": 177.1,
     "renderScale": 0.2025,
-    "file": "meimei/incoming/special_down.png",
+    "file": "meimei/special_down.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 896,
@@ -29677,7 +29677,7 @@
     "coreRight": 816.0
    },
    "attack_light_a": {
-    "file": "uro/archive/attack_heavy_a_3.png",
+    "file": "uro/attack_light_a.png",
     "bodyLeft": 0,
     "bodyRight": 734,
     "coreLeft": 46.2,
@@ -29713,7 +29713,7 @@
     "bodyH": 350.5,
     "centroidX": 145.8,
     "renderScale": 0.2885,
-    "file": "uro/incoming/attack_light_b.png",
+    "file": "uro/attack_light_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 931,
@@ -32039,7 +32039,7 @@
     "bodyH": 189.1,
     "centroidX": 205.0,
     "renderScale": 0.215,
-    "file": "yuji/incoming/attack_dash.png",
+    "file": "yuji/attack_dash.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1411,
@@ -32378,7 +32378,7 @@
     "coreRight": 815.7
    },
    "attack_light_a": {
-    "file": "reggie/archive/attack_heavy_a_2.png",
+    "file": "reggie/attack_light_a.png",
     "bodyLeft": 0,
     "bodyRight": 905,
     "coreLeft": 184.1,
@@ -34475,7 +34475,7 @@
     "bodyH": 243.7,
     "centroidX": 100.5,
     "renderScale": 0.2236,
-    "file": "gakuganji/incoming/attack_air_a.png",
+    "file": "gakuganji/attack_air_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 906,
@@ -36484,7 +36484,7 @@
     "bodyH": 317.2,
     "centroidX": 194.1,
     "renderScale": 0.2934,
-    "file": "dagon/incoming/attack_light_a-2.png",
+    "file": "dagon/attack_light_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 945,
@@ -36683,7 +36683,7 @@
     "bodyH": 212.6,
     "centroidX": 86.3,
     "renderScale": 0.3359,
-    "file": "dagon/incoming/crouch_attack_b-2.png",
+    "file": "dagon/crouch_attack_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1524,
@@ -36715,7 +36715,7 @@
     "bodyH": 195.3,
     "centroidX": 187.5,
     "renderScale": 0.2205,
-    "file": "dagon/incoming/crouch_b-2.png",
+    "file": "dagon/crouch_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1146,
@@ -37244,7 +37244,7 @@
     "bodyH": 286.8,
     "centroidX": 157.3,
     "renderScale": 0.324,
-    "file": "dagon/incoming/run_reach_a-2.png",
+    "file": "dagon/run_reach_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 958,
@@ -37913,7 +37913,7 @@
     "bodyH": 232.7,
     "centroidX": 2.2,
     "renderScale": 0.3085,
-    "file": "mechamaru/incoming/attack_heavy_b.png",
+    "file": "mechamaru/attack_heavy_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 972,
@@ -38140,7 +38140,7 @@
     "bodyH": 217.8,
     "centroidX": 70.6,
     "renderScale": 0.2972,
-    "file": "mechamaru/incoming/crouch_attack_b.png",
+    "file": "mechamaru/crouch_attack_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1043,
@@ -39554,7 +39554,7 @@
     "bodyH": 214.2,
     "centroidX": 37.2,
     "renderScale": 0.2782,
-    "file": "yuki/incoming/crouch_attack_b.png",
+    "file": "yuki/crouch_attack_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 992,
@@ -40112,7 +40112,7 @@
     "bodyH": 252.2,
     "centroidX": 191.3,
     "renderScale": 0.2903,
-    "file": "yuki/incoming/run_reach_a.png",
+    "file": "yuki/run_reach_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1014,
@@ -40145,7 +40145,7 @@
     "bodyH": 297.2,
     "centroidX": 116.6,
     "renderScale": 0.2472,
-    "file": "yuki/incoming/run_reach_b.png",
+    "file": "yuki/run_reach_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 872,
@@ -40729,7 +40729,7 @@
     }
    },
    "attack_heavy_b": {
-    "file": "kurourushi/attack_light_b.png",
+    "file": "kurourushi/attack_heavy_b.png",
     "bodyLeft": 0,
     "bodyRight": 1159,
     "coreLeft": 101.4,
@@ -40796,7 +40796,7 @@
     }
    },
    "attack_light_b": {
-    "file": "kurourushi/archive/attack_air_b_2.png",
+    "file": "kurourushi/attack_light_b.png",
     "bodyLeft": 0,
     "bodyRight": 1121,
     "coreLeft": 133.3,
@@ -40962,7 +40962,7 @@
     }
    },
    "crouch_attack_b": {
-    "file": "kurourushi/archive/dash_2.png",
+    "file": "kurourushi/crouch_attack_b.png",
     "bodyLeft": 0,
     "bodyRight": 1171,
     "coreLeft": 124.4,
@@ -41028,7 +41028,7 @@
     }
    },
    "dash": {
-    "file": "kurourushi/archive/dodge_roll_2.png",
+    "file": "kurourushi/dash.png",
     "bodyLeft": 0,
     "bodyRight": 1144,
     "coreLeft": 85.8,
@@ -42015,7 +42015,7 @@
   },
   "kashimo": {
    "attack_air_a": {
-    "file": "kashimo/attack_air_b.png",
+    "file": "kashimo/attack_air_a.png",
     "bodyLeft": 0,
     "bodyRight": 831,
     "coreLeft": 83.6,
@@ -42055,7 +42055,7 @@
     "bodyH": 257.2,
     "centroidX": 16.3,
     "renderScale": 0.297,
-    "file": "kashimo/incoming/attack_air_b.png",
+    "file": "kashimo/attack_air_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1154,
@@ -42246,7 +42246,7 @@
     "bodyH": 349.5,
     "centroidX": 126.5,
     "renderScale": 0.3128,
-    "file": "kashimo/incoming/attack_up.png",
+    "file": "kashimo/attack_up.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 754,
@@ -42788,7 +42788,7 @@
     "bodyH": 344.5,
     "centroidX": 166.4,
     "renderScale": 0.2951,
-    "file": "kashimo/incoming/ledge_hang.png",
+    "file": "kashimo/ledge_hang.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 289,
@@ -43181,7 +43181,7 @@
     "bodyH": 218.9,
     "centroidX": 165.9,
     "renderScale": 0.2259,
-    "file": "naoya/incoming/attack_air_a.png",
+    "file": "naoya/attack_air_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 635,
@@ -43273,7 +43273,7 @@
     "bodyH": 269.8,
     "centroidX": 145.5,
     "renderScale": 0.2566,
-    "file": "naoya/incoming/attack_heavy_a.png",
+    "file": "naoya/attack_heavy_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 915,
@@ -43340,7 +43340,7 @@
     "bodyH": 296.0,
     "centroidX": 138.5,
     "renderScale": 0.2366,
-    "file": "naoya/incoming/attack_light_a.png",
+    "file": "naoya/attack_light_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 783,
@@ -44318,7 +44318,7 @@
     "bodyH": 198.8,
     "centroidX": 170.8,
     "renderScale": 0.2206,
-    "file": "yaga/incoming/attack_air_a.png",
+    "file": "yaga/attack_air_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 643,
@@ -44413,7 +44413,7 @@
     "bodyH": 280.1,
     "centroidX": 168.3,
     "renderScale": 0.2397,
-    "file": "yaga/incoming/attack_heavy_a.png",
+    "file": "yaga/attack_heavy_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 804,
@@ -44477,7 +44477,7 @@
     "bodyH": 295.8,
     "centroidX": 122.4,
     "renderScale": 0.2291,
-    "file": "yaga/incoming/attack_light_a.png",
+    "file": "yaga/attack_light_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 750,
@@ -45524,7 +45524,7 @@
     "bodyH": 227.7,
     "centroidX": 262.2,
     "renderScale": 0.2627,
-    "file": "kirara/incoming/attack_down.png",
+    "file": "kirara/attack_down.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 766,
@@ -45681,7 +45681,7 @@
     "bodyH": 327.1,
     "centroidX": 113.5,
     "renderScale": 0.2675,
-    "file": "kirara/incoming/attack_light_b.png",
+    "file": "kirara/attack_light_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 869,
@@ -46665,7 +46665,7 @@
     "bodyH": 338.2,
     "centroidX": 270.1,
     "renderScale": 0.3294,
-    "file": "haruta/incoming/attack_air_a.png",
+    "file": "haruta/attack_air_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 651,
@@ -47115,7 +47115,7 @@
     "bodyH": 344.2,
     "centroidX": 146.2,
     "renderScale": 0.402,
-    "file": "haruta/incoming/dizzy.png",
+    "file": "haruta/dizzy.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 360,
@@ -47618,7 +47618,7 @@
     }
    },
    "special_down": {
-    "file": "haruta/attack_air_a.png",
+    "file": "haruta/special_down.png",
     "bodyLeft": 0,
     "bodyRight": 1050,
     "coreLeft": 65.6,
@@ -49106,7 +49106,7 @@
     "bodyH": 501.7,
     "centroidX": 166.8,
     "renderScale": 0.3087,
-    "file": "miwa/incoming/attack_heavy_a.png",
+    "file": "miwa/attack_heavy_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 730,
@@ -49172,7 +49172,7 @@
     "bodyH": 440.9,
     "centroidX": 160.8,
     "renderScale": 0.2853,
-    "file": "miwa/incoming/attack_light_a.png",
+    "file": "miwa/attack_light_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 813,
@@ -49205,7 +49205,7 @@
     "bodyH": 412.8,
     "centroidX": -96.0,
     "renderScale": 0.4003,
-    "file": "miwa/incoming/attack_light_b.png",
+    "file": "miwa/attack_light_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1191,
@@ -49270,7 +49270,7 @@
     "bodyH": 327.7,
     "centroidX": 173.8,
     "renderScale": 0.2922,
-    "file": "miwa/incoming/charge.png",
+    "file": "miwa/charge.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 853,
@@ -49465,7 +49465,7 @@
     "bodyH": 410.9,
     "centroidX": 160.3,
     "renderScale": 0.3892,
-    "file": "miwa/incoming/dizzy.png",
+    "file": "miwa/dizzy.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 376,
@@ -50018,7 +50018,7 @@
     "bodyH": 348.0,
     "centroidX": -96.3,
     "renderScale": 0.4035,
-    "file": "miwa/incoming/special_neutral.png",
+    "file": "miwa/special_neutral.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1288,
@@ -50084,7 +50084,7 @@
     "bodyH": 469.5,
     "centroidX": 176.9,
     "renderScale": 0.3105,
-    "file": "miwa/incoming/ult_a.png",
+    "file": "miwa/ult_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 741,
@@ -50275,18 +50275,6 @@
       "coreRight": 677.5
      },
      {
-      "file": "hanami_alt/dodge_air.png",
-      "label": "Alternate set",
-      "w": 798,
-      "h": 1165,
-      "ox": -242.2,
-      "oy": -854,
-      "bodyBottom": 310.4,
-      "bodyH": 341.3,
-      "centroidX": 253.7,
-      "renderScale": 0.293
-     },
-     {
       "w": 798,
       "h": 1165,
       "ox": -242.2,
@@ -50339,18 +50327,6 @@
       "coreRight": 1017.4
      },
      {
-      "file": "hanami_alt/dodge_roll.png",
-      "label": "Alternate set",
-      "w": 1035,
-      "h": 876,
-      "ox": -360.8,
-      "oy": -565,
-      "bodyBottom": 310.4,
-      "bodyH": 256.7,
-      "centroidX": 213.4,
-      "renderScale": 0.293
-     },
-     {
       "file": "hanami/r1c2.png",
       "label": "Sheet cell r1c2",
       "w": 290,
@@ -50392,150 +50368,6 @@
       "file": "hanami/archive/dodge_roll_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T23:23:22+00:00"
-     }
-    ]
-   },
-   "r4c0": {
-    "options": [
-     {
-      "file": "hanami/r4c0.png",
-      "label": "Delivered",
-      "w": 740,
-      "h": 900,
-      "ox": -213.2,
-      "oy": -587,
-      "bodyBottom": 309,
-      "bodyH": 174,
-      "bodyTop": 4,
-      "centroidX": 142.9,
-      "renderScale": 0.195,
-      "anchors": {
-       "com": [
-        357.9,
-        428.4
-       ]
-      },
-      "faceLeft": true
-     },
-     {
-      "file": "hanami_alt/r4c0.png",
-      "label": "Alternate set",
-      "w": 840,
-      "h": 1144,
-      "ox": -263.2,
-      "oy": -835,
-      "bodyBottom": 309.0,
-      "bodyH": 175.5,
-      "centroidX": 197.5,
-      "renderScale": 0.153
-     }
-    ]
-   },
-   "r4c1": {
-    "options": [
-     {
-      "file": "hanami/r4c1.png",
-      "label": "Delivered",
-      "w": 840,
-      "h": 900,
-      "ox": -263.8,
-      "oy": -587,
-      "bodyBottom": 309,
-      "bodyH": 178,
-      "bodyTop": 4,
-      "centroidX": 188.6,
-      "renderScale": 0.2,
-      "anchors": {
-       "com": [
-        451.6,
-        421.9
-       ]
-      },
-      "faceLeft": true
-     },
-     {
-      "file": "hanami_alt/r4c1.png",
-      "label": "Alternate set",
-      "w": 836,
-      "h": 1216,
-      "ox": -261.2,
-      "oy": -907,
-      "bodyBottom": 309.0,
-      "bodyH": 180.0,
-      "centroidX": 161.9,
-      "renderScale": 0.148
-     }
-    ]
-   },
-   "r4c2": {
-    "options": [
-     {
-      "file": "hanami/r4c2.png",
-      "label": "Delivered",
-      "w": 900,
-      "h": 766,
-      "ox": -293.2,
-      "oy": -454,
-      "bodyBottom": 309,
-      "bodyH": 173,
-      "bodyTop": 4,
-      "centroidX": 116.4,
-      "renderScale": 0.228,
-      "anchors": {
-       "com": [
-        410.0,
-        365.5
-       ]
-      },
-      "faceLeft": true
-     },
-     {
-      "file": "hanami_alt/r4c2.png",
-      "label": "Alternate set",
-      "w": 966,
-      "h": 1176,
-      "ox": -326.2,
-      "oy": -867,
-      "bodyBottom": 309.0,
-      "bodyH": 174.6,
-      "centroidX": 232.8,
-      "renderScale": 0.148
-     }
-    ]
-   },
-   "r4c3": {
-    "options": [
-     {
-      "file": "hanami/r4c3.png",
-      "label": "Delivered",
-      "w": 900,
-      "h": 616,
-      "ox": -293.2,
-      "oy": -304,
-      "bodyBottom": 309,
-      "bodyH": 183,
-      "bodyTop": 4,
-      "centroidX": 187.3,
-      "renderScale": 0.3,
-      "anchors": {
-       "com": [
-        481.1,
-        307.3
-       ]
-      },
-      "faceLeft": true
-     },
-     {
-      "file": "hanami_alt/r4c3.png",
-      "label": "Alternate set",
-      "w": 1377,
-      "h": 1030,
-      "ox": -531.8,
-      "oy": -721,
-      "bodyBottom": 309.0,
-      "bodyH": 184.8,
-      "centroidX": 193.8,
-      "renderScale": 0.179
      }
     ]
    },
@@ -50813,7 +50645,7 @@
         534.1
        ]
       },
-      "file": "hanami/incoming/crouch_b.png",
+      "file": "hanami/crouch_b.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 854,
@@ -50915,7 +50747,7 @@
        "renderScale": 0.293,
        "bodyBottom": 310.4
       },
-      "file": "hanami/crouch_b.png",
+      "file": "hanami/archive/crouch_b_4.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T23:23:22+00:00"
      },
@@ -50940,7 +50772,7 @@
        "ox": -481.7,
        "bodyBottom": 204.60000000000002
       },
-      "file": "hanami/crouch_attack_b.png",
+      "file": "hanami/archive/crouch_attack_b_4.png",
       "label": "Superseded",
       "supersededAt": "2026-08-10T23:21:06+00:00"
      }
@@ -51069,7 +50901,7 @@
         371.8
        ]
       },
-      "file": "hanami/incoming/crouch_attack_b.png",
+      "file": "hanami/crouch_attack_b.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 1014,
@@ -51176,7 +51008,7 @@
        "renderScale": 0.489,
        "bodyBottom": 266.1
       },
-      "file": "hanami/crouch_attack_b.png",
+      "file": "hanami/archive/crouch_attack_b_4.png",
       "label": "Superseded",
       "supersededAt": "2026-08-10T23:21:06+00:00"
      }
@@ -51200,7 +51032,7 @@
         572.5
        ]
       },
-      "file": "hanami/incoming/attack_light_a.png",
+      "file": "hanami/attack_light_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 920,
@@ -51268,7 +51100,7 @@
        "ox": -329.2,
        "bodyBottom": 310.4
       },
-      "file": "hanami/attack_light_a.png",
+      "file": "hanami/archive/attack_light_a_4.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T23:23:22+00:00"
      },
@@ -51392,7 +51224,7 @@
       "supersededAt": "2026-08-09T23:23:22+00:00"
      },
      {
-      "file": "hanami/incoming/attack_light_b.png",
+      "file": "hanami/archive/attack_light_b_4.png",
       "w": 922,
       "h": 1379,
       "ox": -278.5,
@@ -53103,7 +52935,7 @@
        "renderScale": 0.341,
        "bodyBottom": 145.6
       },
-      "file": "geto/incoming/attack_down.png",
+      "file": "geto/attack_down.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 860,
@@ -53200,7 +53032,7 @@
       "edited": {
        "renderScale": 0.44
       },
-      "file": "geto/attack_down.png",
+      "file": "geto/archive/attack_down_5.png",
       "label": "Superseded",
       "supersededAt": "2026-08-10T23:21:06+00:00"
      }
@@ -56124,7 +55956,7 @@
        "bodyBottom": 310.4,
        "rotationDeg": null
       },
-      "file": "inumaki/archive/crouch_a_2.png",
+      "file": "inumaki/attack_light_a.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T16:00:44+00:00"
      }
@@ -56398,7 +56230,7 @@
    "attack_light_a": {
     "options": [
      {
-      "file": "inumaki/attack_light_a.png",
+      "file": "inumaki/archive/attack_light_a_2.png",
       "label": "Delivered",
       "w": 804,
       "h": 1415,
@@ -56463,7 +56295,7 @@
       }
      },
      {
-      "file": "inumaki/archive/crouch_a_2.png",
+      "file": "inumaki/attack_light_a.png",
       "label": "From crouch_a",
       "borrowedFrom": "crouch_a",
       "w": 758,
@@ -59793,7 +59625,7 @@
        "bodyBottom": 310.4,
        "rotationDeg": null
       },
-      "file": "megumi/archive/crouch_a_2.png",
+      "file": "megumi/attack_light_a.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T16:00:44+00:00"
      }
@@ -60081,7 +59913,7 @@
    "attack_light_a": {
     "options": [
      {
-      "file": "megumi/attack_light_a.png",
+      "file": "megumi/archive/attack_light_a_2.png",
       "label": "Delivered",
       "w": 880,
       "h": 1469,
@@ -60148,7 +59980,7 @@
       }
      },
      {
-      "file": "megumi/archive/crouch_a_2.png",
+      "file": "megumi/attack_light_a.png",
       "label": "From crouch_a",
       "borrowedFrom": "crouch_a",
       "w": 882,
@@ -61833,7 +61665,7 @@
         1233.1
        ]
       },
-      "file": "nanami/incoming/teeter.png",
+      "file": "nanami/teeter.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 879,
@@ -61858,7 +61690,7 @@
       },
       "needsReplacement": "quality",
       "replacementNote": "The blunt blade runs off the LEFT edge of the delivered plate \u2014 the tip is cut flat by the canvas. The delivery spec's 'nothing may touch the canvas edge' rule, and the 'reach falls off the canvas' fault the brief has named since round 13. The pose itself is right; redraw it with margin on all four sides so the blade finishes inside the frame.",
-      "file": "nanami/teeter.png",
+      "file": "nanami/archive/teeter_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -61975,7 +61807,7 @@
       "coreRight": 837.9
      },
      {
-      "file": "nobara/specialNeutral.png",
+      "file": "nobara/attack_light_b.png",
       "label": "Alternate",
       "w": 945,
       "h": 1168,
@@ -62101,7 +61933,7 @@
        "bodyBottom": 310.4,
        "rotationDeg": null
       },
-      "file": "nobara/archive/crouch_b_2.png",
+      "file": "nobara/attack_light_a.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T16:00:44+00:00"
      }
@@ -62251,7 +62083,7 @@
    "attack_light_a": {
     "options": [
      {
-      "file": "nobara/attack_light_a.png",
+      "file": "nobara/archive/attack_light_a_2.png",
       "label": "Delivered",
       "w": 845,
       "h": 1358,
@@ -62278,7 +62110,7 @@
       }
      },
      {
-      "file": "nobara/archive/crouch_b_2.png",
+      "file": "nobara/attack_light_a.png",
       "label": "From crouch_b",
       "borrowedFrom": "crouch_b",
       "w": 618,
@@ -62313,7 +62145,7 @@
    "attack_light_b": {
     "options": [
      {
-      "file": "nobara/attack_light_b.png",
+      "file": "nobara/archive/attack_light_b_2.png",
       "label": "Delivered",
       "w": 948,
       "h": 1203,
@@ -62338,7 +62170,7 @@
       }
      },
      {
-      "file": "nobara/specialNeutral.png",
+      "file": "nobara/attack_light_b.png",
       "label": "From special_neutral",
       "borrowedFrom": "special_neutral",
       "w": 945,
@@ -62367,7 +62199,7 @@
    "attack_heavy_b": {
     "options": [
      {
-      "file": "nobara/attack_heavy_b.png",
+      "file": "nobara/archive/attack_heavy_b_2.png",
       "label": "Delivered",
       "w": 952,
       "h": 941,
@@ -62391,7 +62223,7 @@
       }
      },
      {
-      "file": "nobara/crouch_attack_b.png",
+      "file": "nobara/attack_heavy_b.png",
       "label": "From crouch_attack_b",
       "borrowedFrom": "crouch_attack_b",
       "w": 868,
@@ -62424,7 +62256,7 @@
    "crouch_attack_b": {
     "options": [
      {
-      "file": "nobara/crouch_attack_b.png",
+      "file": "nobara/attack_heavy_b.png",
       "label": "Delivered",
       "w": 868,
       "h": 1083,
@@ -63598,7 +63430,7 @@
         436.2
        ]
       },
-      "file": "toji/incoming/attack_heavy_b.png",
+      "file": "toji/attack_heavy_b.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 1099,
@@ -63668,7 +63500,7 @@
        "bodyBottom": 310.4,
        "ox": -339.2
       },
-      "file": "toji/attack_heavy_b.png",
+      "file": "toji/archive/attack_heavy_b_4.png",
       "label": "Superseded",
       "supersededAt": "2026-08-10T23:21:06+00:00"
      }
@@ -64476,7 +64308,7 @@
       "edited": {
        "renderScale": 0.245
       },
-      "file": "reggie/archive/attack_heavy_a_2.png",
+      "file": "reggie/attack_light_a.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T18:18:03+00:00"
      },
@@ -64575,7 +64407,7 @@
    "attack_light_a": {
     "options": [
      {
-      "file": "reggie/attack_light_a.png",
+      "file": "reggie/archive/attack_light_a_2.png",
       "label": "Delivered",
       "w": 905,
       "h": 1403,
@@ -64604,7 +64436,7 @@
       }
      },
      {
-      "file": "reggie/archive/attack_heavy_a_2.png",
+      "file": "reggie/attack_light_a.png",
       "label": "From attack_heavy_a",
       "borrowedFrom": "attack_heavy_a",
       "w": 763,
@@ -68828,7 +68660,7 @@
       "supersededAt": "2026-08-09T23:23:22+00:00"
      },
      {
-      "file": "choso/incoming/attack_light_b.png",
+      "file": "choso/archive/attack_light_b_5.png",
       "w": 936,
       "h": 1117,
       "ox": -314.6,
@@ -69190,7 +69022,7 @@
         519.9
        ]
       },
-      "file": "meimei/incoming/special_down.png",
+      "file": "meimei/special_down.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 896,
@@ -69214,7 +69046,7 @@
        ]
       },
       "needsReplacement": "pose",
-      "file": "meimei/special_down.png",
+      "file": "meimei/archive/special_down_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-10T23:21:06+00:00"
      }
@@ -69389,7 +69221,7 @@
       "coreRight": 739.6
      },
      {
-      "file": "uro/archive/attack_heavy_a_3.png",
+      "file": "uro/attack_light_a.png",
       "w": 840,
       "h": 1455,
       "ox": -248.4,
@@ -69577,7 +69409,7 @@
       "supersededAt": "2026-08-09T22:59:19+00:00"
      },
      {
-      "file": "uro/incoming/prone.png",
+      "file": "uro/archive/prone_4.png",
       "w": 1219,
       "h": 966,
       "ox": -356.0,
@@ -69616,7 +69448,7 @@
         603.0
        ]
       },
-      "file": "uro/incoming/attack_light_b.png",
+      "file": "uro/attack_light_b.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 931,
@@ -69624,7 +69456,7 @@
       "coreRight": 798.0
      },
      {
-      "file": "uro/attack_light_b.png",
+      "file": "uro/archive/attack_light_b_2.png",
       "label": "Delivered",
       "w": 765,
       "h": 1493,
@@ -69672,7 +69504,7 @@
        "bodyBottom": 310.4,
        "rotationDeg": null
       },
-      "file": "uro/attack_light_a.png",
+      "file": "uro/archive/attack_light_a_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -69681,7 +69513,7 @@
    "attack_light_a": {
     "options": [
      {
-      "file": "uro/attack_light_a.png",
+      "file": "uro/archive/attack_light_a_2.png",
       "label": "Delivered",
       "w": 734,
       "h": 1480,
@@ -69733,7 +69565,7 @@
       }
      },
      {
-      "file": "uro/attack_light_b.png",
+      "file": "uro/archive/attack_light_b_2.png",
       "label": "From attack_light_b",
       "borrowedFrom": "attack_light_b",
       "w": 765,
@@ -69788,7 +69620,7 @@
       }
      },
      {
-      "file": "uro/archive/attack_heavy_a_3.png",
+      "file": "uro/attack_light_a.png",
       "label": "From attack_heavy_a",
       "borrowedFrom": "attack_heavy_a",
       "w": 840,
@@ -70030,7 +69862,7 @@
         590.3
        ]
       },
-      "file": "mahito/incoming/attack_light_a.png",
+      "file": "mahito/attack_light_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 762,
@@ -70089,7 +69921,7 @@
        "rotationDeg": null,
        "ox": -218.2
       },
-      "file": "mahito/attack_light_a.png",
+      "file": "mahito/archive/attack_light_a_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -70257,7 +70089,7 @@
         471.0
        ]
       },
-      "file": "gakuganji/incoming/attack_air_a.png",
+      "file": "gakuganji/attack_air_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 906,
@@ -70327,7 +70159,7 @@
        "ox": -268.6,
        "bodyBottom": 244.9
       },
-      "file": "gakuganji/attack_air_a.png",
+      "file": "gakuganji/archive/attack_air_a_4.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T22:59:19+00:00"
      },
@@ -70905,7 +70737,7 @@
       "coreRight": 907.6
      },
      {
-      "file": "yuji/incoming/grab_hold.png",
+      "file": "yuji/archive/grab_hold_2.png",
       "w": 1003,
       "h": 1497,
       "ox": -311.6,
@@ -70957,7 +70789,7 @@
       "coreRight": 1086.6
      },
      {
-      "file": "yuji/incoming/grab_reach.png",
+      "file": "yuji/archive/grab_reach_2.png",
       "w": 1172,
       "h": 1199,
       "ox": -474.1,
@@ -71009,7 +70841,7 @@
       "coreRight": 780.7
      },
      {
-      "file": "yuji/incoming/grabbed.png",
+      "file": "yuji/archive/grabbed_2.png",
       "w": 845,
       "h": 1487,
       "ox": -292.9,
@@ -71048,7 +70880,7 @@
         343.8
        ]
       },
-      "file": "yuji/incoming/attack_dash.png",
+      "file": "yuji/attack_dash.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 1411,
@@ -71074,7 +70906,7 @@
       "edited": {
        "renderScale": 0.193
       },
-      "file": "yuji/attack_dash.png",
+      "file": "yuji/archive/attack_dash_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T21:07:28+00:00"
      }
@@ -71130,7 +70962,7 @@
       "coreRight": 819.0
      },
      {
-      "file": "yuki/incoming/attack_heavy_b.png",
+      "file": "yuki/archive/attack_heavy_b_2.png",
       "w": 936,
       "h": 1248,
       "ox": -212.1,
@@ -71169,7 +71001,7 @@
         319.7
        ]
       },
-      "file": "yuki/incoming/crouch_attack_b.png",
+      "file": "yuki/crouch_attack_b.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 992,
@@ -71197,7 +71029,7 @@
        "renderScale": 0.25,
        "bodyBottom": 265.3
       },
-      "file": "yuki/crouch_attack_b.png",
+      "file": "yuki/archive/crouch_attack_b_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-10T23:21:06+00:00"
      }
@@ -71221,7 +71053,7 @@
         381.8
        ]
       },
-      "file": "yuki/incoming/run_reach_a.png",
+      "file": "yuki/run_reach_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 1014,
@@ -71250,7 +71082,7 @@
        "renderScale": 0.25,
        "bodyBottom": 257.1
       },
-      "file": "yuki/run_reach_a.png",
+      "file": "yuki/archive/run_reach_a_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-10T23:21:06+00:00"
      }
@@ -71274,7 +71106,7 @@
         451.5
        ]
       },
-      "file": "yuki/incoming/run_reach_b.png",
+      "file": "yuki/run_reach_b.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 872,
@@ -71303,7 +71135,7 @@
        "renderScale": 0.25,
        "bodyBottom": 247.5
       },
-      "file": "yuki/run_reach_b.png",
+      "file": "yuki/archive/run_reach_b_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-10T23:21:06+00:00"
      }
@@ -71314,7 +71146,7 @@
    "attack_heavy_b": {
     "options": [
      {
-      "file": "kurourushi/attack_heavy_b.png",
+      "file": "kurourushi/archive/attack_heavy_b_3.png",
       "label": "Delivered",
       "w": 844,
       "h": 1431,
@@ -71334,7 +71166,7 @@
       "needsReplacement": "quality"
      },
      {
-      "file": "kurourushi/attack_light_b.png",
+      "file": "kurourushi/attack_heavy_b.png",
       "label": "From attack_light_b",
       "borrowedFrom": "attack_light_b",
       "w": 1353,
@@ -71371,7 +71203,7 @@
       "supersededAt": "2026-08-09T23:23:22+00:00"
      },
      {
-      "file": "kurourushi/incoming/attack_heavy_b.png",
+      "file": "kurourushi/archive/attack_heavy_b_4.png",
       "w": 1159,
       "h": 885,
       "ox": -285.6,
@@ -71395,7 +71227,7 @@
    "attack_light_b": {
     "options": [
      {
-      "file": "kurourushi/attack_light_b.png",
+      "file": "kurourushi/attack_heavy_b.png",
       "label": "Delivered",
       "w": 1353,
       "h": 909,
@@ -71415,7 +71247,7 @@
       "needsReplacement": "quality"
      },
      {
-      "file": "kurourushi/archive/attack_air_b_2.png",
+      "file": "kurourushi/attack_light_b.png",
       "label": "From attack_air_b",
       "borrowedFrom": "attack_air_b",
       "w": 1373,
@@ -71452,7 +71284,7 @@
       "supersededAt": "2026-08-09T23:23:22+00:00"
      },
      {
-      "file": "kurourushi/incoming/attack_light_b.png",
+      "file": "kurourushi/archive/attack_light_b_3.png",
       "w": 1121,
       "h": 1185,
       "ox": -274.3,
@@ -71476,7 +71308,7 @@
    "crouch_attack_b": {
     "options": [
      {
-      "file": "kurourushi/crouch_attack_b.png",
+      "file": "kurourushi/archive/crouch_attack_b_3.png",
       "label": "Delivered",
       "w": 1430,
       "h": 881,
@@ -71496,7 +71328,7 @@
       "needsReplacement": "quality"
      },
      {
-      "file": "kurourushi/archive/dash_2.png",
+      "file": "kurourushi/crouch_attack_b.png",
       "label": "Delivered",
       "borrowedFrom": "dash",
       "w": 1474,
@@ -71533,7 +71365,7 @@
       "supersededAt": "2026-08-09T23:23:22+00:00"
      },
      {
-      "file": "kurourushi/incoming/crouch_attack_b.png",
+      "file": "kurourushi/archive/crouch_attack_b_4.png",
       "w": 1171,
       "h": 781,
       "ox": -327.5,
@@ -71557,7 +71389,7 @@
    "dash": {
     "options": [
      {
-      "file": "kurourushi/dash.png",
+      "file": "kurourushi/archive/dash_3.png",
       "label": "Delivered",
       "w": 1474,
       "h": 903,
@@ -71577,7 +71409,7 @@
       "needsReplacement": "quality"
      },
      {
-      "file": "kurourushi/crouch_attack_b.png",
+      "file": "kurourushi/archive/crouch_attack_b_3.png",
       "label": "Delivered",
       "borrowedFrom": "crouch_attack_b",
       "w": 1430,
@@ -71598,7 +71430,7 @@
       "needsReplacement": "quality"
      },
      {
-      "file": "kurourushi/archive/dodge_roll_2.png",
+      "file": "kurourushi/dash.png",
       "label": "From dodge_roll",
       "borrowedFrom": "dodge_roll",
       "w": 1368,
@@ -71630,12 +71462,12 @@
       "bodyH": 225.8,
       "centroidX": 97.5,
       "renderScale": 0.25,
-      "file": "kurourushi/archive/dash_2.png",
+      "file": "kurourushi/crouch_attack_b.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T23:23:22+00:00"
      },
      {
-      "file": "kurourushi/incoming/dash.png",
+      "file": "kurourushi/archive/dash_4.png",
       "w": 1144,
       "h": 1055,
       "ox": -368.0,
@@ -71810,7 +71642,7 @@
       "bodyH": 254.8,
       "centroidX": -12.5,
       "renderScale": 0.25,
-      "file": "kurourushi/archive/attack_air_b_2.png",
+      "file": "kurourushi/attack_light_b.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T23:23:22+00:00"
      }
@@ -72250,7 +72082,7 @@
       "bodyH": 201.2,
       "centroidX": 110.2,
       "renderScale": 0.25,
-      "file": "kurourushi/archive/dodge_roll_2.png",
+      "file": "kurourushi/dash.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T23:23:22+00:00"
      }
@@ -72960,7 +72792,7 @@
         272.9
        ]
       },
-      "file": "dagon/incoming/crouch_attack_b-2.png",
+      "file": "dagon/crouch_attack_b.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 1524,
@@ -72968,7 +72800,7 @@
       "coreRight": 1381.1
      },
      {
-      "file": "dagon/incoming/crouch_attack_b.png",
+      "file": "dagon/archive/crouch_attack_b_3.png",
       "w": 1117,
       "h": 877,
       "ox": -335.9,
@@ -73009,7 +72841,7 @@
        "ox": -455.6,
        "bodyBottom": 269.0
       },
-      "file": "dagon/crouch_attack_b.png",
+      "file": "dagon/archive/crouch_attack_b_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -73033,7 +72865,7 @@
         425.6
        ]
       },
-      "file": "dagon/incoming/attack_light_a-2.png",
+      "file": "dagon/attack_light_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 945,
@@ -73041,7 +72873,7 @@
       "coreRight": 873.2
      },
      {
-      "file": "dagon/incoming/attack_light_a.png",
+      "file": "dagon/archive/attack_light_a_3.png",
       "w": 877,
       "h": 1181,
       "ox": -274.5,
@@ -73083,7 +72915,7 @@
        "bodyBottom": 259.3,
        "ox": -337.8
       },
-      "file": "dagon/attack_light_a.png",
+      "file": "dagon/archive/attack_light_a_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -73107,7 +72939,7 @@
         415.5
        ]
       },
-      "file": "dagon/incoming/crouch_b-2.png",
+      "file": "dagon/crouch_b.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 1146,
@@ -73115,7 +72947,7 @@
       "coreRight": 1074.4
      },
      {
-      "file": "dagon/incoming/crouch_b.png",
+      "file": "dagon/archive/crouch_b_3.png",
       "w": 1050,
       "h": 1063,
       "ox": -362.3,
@@ -73157,7 +72989,7 @@
        "bodyBottom": 253.9,
        "ox": -384.4
       },
-      "file": "dagon/crouch_b.png",
+      "file": "dagon/archive/crouch_b_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -73181,7 +73013,7 @@
         326.7
        ]
       },
-      "file": "dagon/incoming/run_reach_a-2.png",
+      "file": "dagon/run_reach_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 958,
@@ -73189,7 +73021,7 @@
       "coreRight": 856.2
      },
      {
-      "file": "dagon/incoming/run_reach_a.png",
+      "file": "dagon/archive/run_reach_a_2.png",
       "w": 1272,
       "h": 931,
       "ox": -528.4,
@@ -73231,7 +73063,7 @@
        "ox": -282.2,
        "bodyBottom": 257.5
       },
-      "file": "dagon/run_reach_a.png",
+      "file": "dagon/archive/run_reach_a_3.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -73270,7 +73102,7 @@
       "coreRight": 971.5
      },
      {
-      "file": "dagon/incoming/run_reach_b.png",
+      "file": "dagon/archive/run_reach_b_2.png",
       "w": 1052,
       "h": 1160,
       "ox": -303.4,
@@ -73311,7 +73143,7 @@
         398.6
        ]
       },
-      "file": "mechamaru/incoming/attack_heavy_b.png",
+      "file": "mechamaru/attack_heavy_b.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 972,
@@ -73339,7 +73171,7 @@
       "edited": {
        "renderScale": 0.25
       },
-      "file": "mechamaru/attack_heavy_b.png",
+      "file": "mechamaru/archive/attack_heavy_b_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-10T23:21:06+00:00"
      }
@@ -73363,7 +73195,7 @@
         328.3
        ]
       },
-      "file": "mechamaru/incoming/crouch_attack_b.png",
+      "file": "mechamaru/crouch_attack_b.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 1043,
@@ -73391,7 +73223,7 @@
       "edited": {
        "renderScale": 0.25
       },
-      "file": "mechamaru/crouch_attack_b.png",
+      "file": "mechamaru/archive/crouch_attack_b_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-10T23:21:06+00:00"
      }
@@ -73417,7 +73249,7 @@
         487.1
        ]
       },
-      "file": "yaga/incoming/attack_heavy_a.png",
+      "file": "yaga/attack_heavy_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 804,
@@ -73469,7 +73301,7 @@
        "renderScale": 0.25,
        "ox": -195.9
       },
-      "file": "yaga/attack_heavy_a.png",
+      "file": "yaga/archive/attack_heavy_a_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -73493,7 +73325,7 @@
         390.5
        ]
       },
-      "file": "yaga/incoming/attack_air_a.png",
+      "file": "yaga/attack_air_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 643,
@@ -73521,7 +73353,7 @@
       "edited": {
        "renderScale": 0.25
       },
-      "file": "yaga/attack_air_a.png",
+      "file": "yaga/archive/attack_air_a_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -73545,7 +73377,7 @@
         518.5
        ]
       },
-      "file": "yaga/incoming/attack_light_a.png",
+      "file": "yaga/attack_light_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 750,
@@ -73573,7 +73405,7 @@
       "edited": {
        "renderScale": 0.25
       },
-      "file": "yaga/attack_light_a.png",
+      "file": "yaga/archive/attack_light_a_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -73584,7 +73416,7 @@
    "attack_air_a": {
     "options": [
      {
-      "file": "kashimo/attack_air_a.png",
+      "file": "kashimo/archive/attack_air_a_2.png",
       "label": "Delivered",
       "w": 831,
       "h": 1029,
@@ -73604,7 +73436,7 @@
       "needsReplacement": "quality"
      },
      {
-      "file": "kashimo/attack_air_b.png",
+      "file": "kashimo/attack_air_a.png",
       "label": "From attack_air_b",
       "borrowedFrom": "attack_air_b",
       "w": 978,
@@ -73647,7 +73479,7 @@
         332.2
        ]
       },
-      "file": "kashimo/incoming/attack_air_b.png",
+      "file": "kashimo/attack_air_b.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 1154,
@@ -73655,7 +73487,7 @@
       "coreRight": 973.7
      },
      {
-      "file": "kashimo/attack_air_b.png",
+      "file": "kashimo/attack_air_a.png",
       "label": "Delivered",
       "w": 978,
       "h": 1018,
@@ -73694,7 +73526,7 @@
       "edited": {
        "ox": -174.6
       },
-      "file": "kashimo/attack_air_a.png",
+      "file": "kashimo/archive/attack_air_a_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -73718,7 +73550,7 @@
         584.2
        ]
       },
-      "file": "kashimo/incoming/attack_up.png",
+      "file": "kashimo/attack_up.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 754,
@@ -73747,7 +73579,7 @@
        "renderScale": 0.25,
        "bodyBottom": 247.6
       },
-      "file": "kashimo/attack_up.png",
+      "file": "kashimo/archive/attack_up_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -73775,7 +73607,7 @@
         12.9
        ]
       },
-      "file": "kashimo/incoming/ledge_hang.png",
+      "file": "kashimo/ledge_hang.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 289,
@@ -73807,7 +73639,7 @@
       "edited": {
        "renderScale": 0.25
       },
-      "file": "kashimo/ledge_hang.png",
+      "file": "kashimo/archive/ledge_hang_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -73833,7 +73665,7 @@
         305.9
        ]
       },
-      "file": "haruta/incoming/dizzy.png",
+      "file": "haruta/dizzy.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 360,
@@ -73841,7 +73673,7 @@
       "coreRight": 304.9
      },
      {
-      "file": "haruta/dizzy.png",
+      "file": "haruta/archive/dizzy_2.png",
       "label": "Delivered",
       "w": 1487,
       "h": 867,
@@ -73892,7 +73724,7 @@
    "special_down": {
     "options": [
      {
-      "file": "haruta/special_down.png",
+      "file": "haruta/archive/special_down_3.png",
       "label": "Delivered",
       "w": 840,
       "h": 441,
@@ -73912,7 +73744,7 @@
       "needsReplacement": "quality"
      },
      {
-      "file": "haruta/attack_air_a.png",
+      "file": "haruta/special_down.png",
       "label": "From attack_air_a",
       "borrowedFrom": "attack_air_a",
       "w": 909,
@@ -73938,7 +73770,7 @@
       "coreRight": 1010.6
      },
      {
-      "file": "haruta/incoming/special_down.png",
+      "file": "haruta/archive/special_down_2.png",
       "w": 1050,
       "h": 297,
       "ox": -449.2,
@@ -73977,7 +73809,7 @@
         344.3
        ]
       },
-      "file": "haruta/incoming/attack_air_a.png",
+      "file": "haruta/attack_air_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 651,
@@ -74006,7 +73838,7 @@
        "renderScale": 0.25,
        "ox": -178.5
       },
-      "file": "haruta/attack_air_a.png",
+      "file": "haruta/special_down.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -74032,7 +73864,7 @@
         410.5
        ]
       },
-      "file": "miwa/incoming/dizzy.png",
+      "file": "miwa/dizzy.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 376,
@@ -74040,7 +73872,7 @@
       "coreRight": 336.6
      },
      {
-      "file": "miwa/dizzy.png",
+      "file": "miwa/archive/dizzy_2.png",
       "label": "Delivered",
       "w": 1478,
       "h": 984,
@@ -74105,7 +73937,7 @@
         696.4
        ]
       },
-      "file": "miwa/incoming/attack_heavy_a.png",
+      "file": "miwa/attack_heavy_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 730,
@@ -74133,7 +73965,7 @@
       "edited": {
        "ox": -243.3
       },
-      "file": "miwa/attack_heavy_a.png",
+      "file": "miwa/archive/attack_heavy_a_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -74157,7 +73989,7 @@
         633.1
        ]
       },
-      "file": "miwa/incoming/attack_light_a.png",
+      "file": "miwa/attack_light_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 813,
@@ -74188,7 +74020,7 @@
        "bodyBottom": 226.2,
        "rotationDeg": null
       },
-      "file": "miwa/attack_light_a.png",
+      "file": "miwa/archive/attack_light_a_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -74212,7 +74044,7 @@
         410.4
        ]
       },
-      "file": "miwa/incoming/attack_light_b.png",
+      "file": "miwa/attack_light_b.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 1191,
@@ -74242,7 +74074,7 @@
        "ox": -176.7,
        "bodyBottom": 241.9
       },
-      "file": "miwa/attack_light_b.png",
+      "file": "miwa/archive/attack_light_b_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -74266,7 +74098,7 @@
         454.3
        ]
       },
-      "file": "miwa/incoming/charge.png",
+      "file": "miwa/charge.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 853,
@@ -74295,7 +74127,7 @@
        "renderScale": 0.25,
        "bodyBottom": 220.8
       },
-      "file": "miwa/charge.png",
+      "file": "miwa/archive/charge_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -74319,7 +74151,7 @@
         329.8
        ]
       },
-      "file": "miwa/incoming/special_neutral.png",
+      "file": "miwa/special_neutral.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 1288,
@@ -74349,7 +74181,7 @@
        "ox": -215.4,
        "bodyBottom": 261.5
       },
-      "file": "miwa/special_neutral.png",
+      "file": "miwa/archive/special_neutral_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -74373,7 +74205,7 @@
         704.2
        ]
       },
-      "file": "miwa/incoming/ult_a.png",
+      "file": "miwa/ult_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 741,
@@ -74402,7 +74234,7 @@
        "renderScale": 0.25,
        "bodyBottom": 244.2
       },
-      "file": "miwa/ult_a.png",
+      "file": "miwa/archive/ult_a_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -74428,7 +74260,7 @@
         359.8
        ]
       },
-      "file": "kirara/incoming/attack_down.png",
+      "file": "kirara/attack_down.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 766,
@@ -74458,7 +74290,7 @@
        "bodyBottom": 248.3,
        "rotationDeg": null
       },
-      "file": "kirara/attack_down.png",
+      "file": "kirara/archive/attack_down_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -74482,7 +74314,7 @@
         461.7
        ]
       },
-      "file": "kirara/incoming/attack_light_b.png",
+      "file": "kirara/attack_light_b.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 869,
@@ -74510,7 +74342,7 @@
       "edited": {
        "renderScale": 0.25
       },
-      "file": "kirara/attack_light_b.png",
+      "file": "kirara/archive/attack_light_b_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -74536,7 +74368,7 @@
         418.2
        ]
       },
-      "file": "naoya/incoming/attack_air_a.png",
+      "file": "naoya/attack_air_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 635,
@@ -74561,7 +74393,7 @@
       },
       "needsReplacement": "pose",
       "replacementNote": "Needs to be winding-up for attack, not already attacking",
-      "file": "naoya/attack_air_a.png",
+      "file": "naoya/archive/attack_air_a_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -74585,7 +74417,7 @@
         490.2
        ]
       },
-      "file": "naoya/incoming/attack_heavy_a.png",
+      "file": "naoya/attack_heavy_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 915,
@@ -74613,7 +74445,7 @@
       "edited": {
        "bodyBottom": 249.3
       },
-      "file": "naoya/attack_heavy_a.png",
+      "file": "naoya/archive/attack_heavy_a_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -74637,7 +74469,7 @@
         622.8
        ]
       },
-      "file": "naoya/incoming/attack_light_a.png",
+      "file": "naoya/attack_light_a.png",
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 783,
@@ -74665,7 +74497,7 @@
       "edited": {
        "renderScale": 0.25
       },
-      "file": "naoya/attack_light_a.png",
+      "file": "naoya/archive/attack_light_a_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }

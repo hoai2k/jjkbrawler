@@ -137,16 +137,43 @@ def on_disk():
     return out
 
 
+def undecided(man):
+    """Every file belonging to a pose whose approval has not been settled.
+
+    This runs AFTER a round's verdicts, and a pose still in the approval queue
+    has no verdict: its `file` is the drawing that ARRIVED and the game is
+    still drawing `awaitingApproval.live`. Renaming the newcomer onto the
+    pose's name and pushing the live drawing into the archive would hand the
+    name to art nobody has said yes to, and leave "keep what we have" pointing
+    at an archive path — a decision made by a file move rather than by a
+    person. Both drawings are left exactly where they are until somebody
+    decides, and the next run picks them up.
+    """
+    out = set()
+    for char, poses in (man.get("characters") or {}).items():
+        for pose, meta in poses.items():
+            if not isinstance(meta, dict) or not meta.get("awaitingApproval"):
+                continue
+            out.add(meta.get("file"))
+            live = (meta.get("awaitingApproval") or {}).get("live")
+            if isinstance(live, dict):
+                out.add(live.get("file"))
+    return {f for f in out if f}
+
+
 def plan(man, files):
     """file -> new path, for everything that should move."""
     refs = collect(man)
     targets = {}
     claimed = {}       # canonical path -> file that won it
+    pending = undecided(man)
 
     def leave_alone(path):
         # Sheet cells keep their grid name, and an alternate art set is a
-        # parallel tree with its own canonical names.
-        return SHEET_CELL.match(stem(path)) or "_alt/" in path or "/" not in path
+        # parallel tree with its own canonical names. A pose in the approval
+        # queue is left alone too — see undecided().
+        return (SHEET_CELL.match(stem(path)) or "_alt/" in path or "/" not in path
+                or path in pending)
 
     # 1. The drawing each pose DRAWS claims the pose's name. A drawing serving
     #    several poses is claimed by the one whose name it already carries;

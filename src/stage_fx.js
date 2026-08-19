@@ -402,6 +402,10 @@ const STAGE_FX = {
                 const w = img.width * (h * 2) / img.height;
                 ctx.save();
                 ctx.translate(fx, plat.y + 6);
+                // The standing tilt, about the point it grows out of. The four
+                // hazards were the last drawings storing a rotation nobody
+                // drew.
+                if (fa.rot) ctx.rotate(fa.rot);
                 ctx.drawImage(img, -w / 2 + fa.dx, -h * 2 + fa.dy, w, h * 2);
                 ctx.restore();
               } else {
@@ -474,7 +478,9 @@ const STAGE_FX = {
           const fa = fxAdjust("stage_flower");
           const h = 46 * fa.scale;
           const w = img.width * h / img.height;
-          ctx.drawImage(img, bloom.x - w / 2 + fa.dx, y - h + fa.dy, w, h);
+          ctx.translate(bloom.x, y);
+          if (fa.rot) ctx.rotate(fa.rot);
+          ctx.drawImage(img, -w / 2 + fa.dx, -h + fa.dy, w, h);
         } else {
           // stem
           ctx.strokeStyle = "#5aa86a";
@@ -571,7 +577,13 @@ const STAGE_FX = {
             const fa = fxAdjust("stage_lantern");
             const h = 44 * fa.scale;
             const w = img.width * h / img.height;
-            ctx.drawImage(img, x - w / 2 + fa.dx, lantern.y - 16 + fa.dy, w, h);
+            // About the cord it hangs from, which is the top of the drawing:
+            // a lantern swings from its knot, not about its middle.
+            ctx.save();
+            ctx.translate(x, lantern.y - 16);
+            if (fa.rot) ctx.rotate(fa.rot);
+            ctx.drawImage(img, -w / 2 + fa.dx, fa.dy, w, h);
+            ctx.restore();
           } else {
             ctx.fillStyle = "#c8452e";
             ctx.strokeStyle = "#5a2618";
@@ -1137,6 +1149,7 @@ const STAGE_FX = {
           const w = img.width * h / img.height;
           ctx.translate(bx, by);
           ctx.scale(blob.vx > 0 ? -1 : 1, 1);
+          if (fa.rot) ctx.rotate(fa.rot);
           ctx.drawImage(img, -w / 2 + fa.dx, -h + fa.dy, w, h);
         } else {
           ctx.fillStyle = "#4b2d73";

@@ -904,8 +904,15 @@ export function sharedSpriteInfo(key) {
   if (!key) return null;
   registry ||= buildRegistry();
   if (String(key).startsWith("domain:")) {
-    return { h: null, anchor: "screen", owner: "a domain",
-             what: "a full-screen backdrop, fitted to the stage — nothing to size or move" };
+    // A backdrop is cover-fitted, so there is no size to set and no tilt worth
+    // one — but it CAN be moved, and the game has always honoured that: a plate
+    // wider than the frame has a choice about which part of it shows, and
+    // `dAdj.dx/dy` in drawDomainBackdrop (src/render.js) is that choice. Saying
+    // "nothing to move" here took the one live control away from the nine
+    // biggest drawings in the game.
+    return { h: null, anchor: "screen", owner: "a domain", pan: true,
+             what: "a full-screen backdrop, fitted to the stage — no size to set,"
+                   + " but it can be panned to choose which part of the plate shows" };
   }
   // A summon pose inherits its creature's entry, the same way its scale does.
   const parts = String(key).split(":");

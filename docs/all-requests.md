@@ -40,9 +40,8 @@ their own — and is
 
 Round 18 was delivered complete and is
 [in the history](asset-requests-history.md#round-18--delivered). Also
-outstanding but not art: poses waiting on approval in the sprite workbench,
-and six retired `hanami_alt` variant options that
-`tools/canonicalise_sprites.py` refuses on.
+outstanding but not art: the poses waiting on approval in the sprite workbench,
+which is a decision rather than a commission.
 
 **All three render modes are covered here.** The sprite path is fed by the 2D
 art rounds (row 1); the billboard and render3d paths are fed by **one shared
