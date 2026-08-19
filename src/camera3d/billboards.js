@@ -392,12 +392,17 @@ export function makeBillboards() {
       const shakeX = f.shakeMag > 0 ? (Math.random() - 0.5) * f.shakeMag : 0;
 
       const transformed = f.installs?.sprite ? getImage(f.installs.sprite) : null;
+      // Same two kinds render.js draws: a body that REPLACES the fighter
+      // (Mahoraga, the triceratops) and one that runs BEHIND them — Naoya's
+      // vengeful spirit, which he did not become. Behind means both are drawn,
+      // the spirit first, and the loop goes on to the fighter's own card.
+      const behind = !!f.installs?.spriteBehind;
       if (transformed) {
         const h = 210;
         const w = transformed.width * h / transformed.height;
         drawRect(imageTexture(transformed), f.x + shakeX, f.y + 10 - h / 2, w, h,
           { flipX: f.facing > 0, alpha: flicker ? 0.6 : 1 }, 0, order++);
-        continue;
+        if (!behind) continue;
       }
 
       // afterimage trail

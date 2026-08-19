@@ -813,7 +813,10 @@ frames — the whole kit is legible as cut film.
   you made it. The stance announces PRE-READ, smugly.
 - **Ultimate — Vengeful Spirit: Mach 3:** the thing he became. Wall-to-wall
   supersonic passes at 1250 px/s, unblockable, every pass trailing his frame
-  strip.
+  strip. The spirit is drawn **behind** him rather than over him (`behind` on
+  the move): Panda's rampage replaces his body because Panda *is* the
+  triceratops for the duration, and Naoya is the other case — the centipede
+  runs with him, and he goes on animating in front of it.
 - **Domain — Time Cell Moon Palace:** the stage becomes a filmstrip. Foes
   strobe-freeze on his beat for the whole domain, and SPECIAL blinks him a
   frame behind the enemy with a strike, on a short cooldown. A domain you
