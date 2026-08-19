@@ -44,6 +44,30 @@ export const EXTRA_ANCHORS = {
           "lip. Starts at the frontmost pixel of the bottom of the art.",
     defaultYFrac: 0.97,
   },
+  // THE TWO HALVES OF A GRAB, and the reason they are anchors rather than a
+  // pair of per-fighter numbers: each is a point ON A DRAWING, which is what an
+  // anchor is and what the sprite workbench is for. The brief has had to ask,
+  // in words, for every fist and every pair of prying hands across the roster
+  // to land at one depth so the crossing reads (pose-brief.md, "the grip point
+  // is the constraint that spans fighters"). Placed here it stops being a
+  // request and becomes a measurement: src/grab.js reads both and stands the
+  // two bodies hand-on-chest.
+  grabHand: {
+    label: "Grabbing hand",
+    states: ["grabReach"],
+    hint: "The open hand that closes on the collar — the leading one. The grab " +
+          "reaches exactly this far, instead of a formula off measured art " +
+          "reach. Starts at chest height on the frontmost pixel.",
+    defaultYFrac: 0.45,
+  },
+  grabChest: {
+    label: "Held chest",
+    states: ["grabbed"],
+    hint: "Where the prying hands are — the point the grabber's fist lands on. " +
+          "The two drawings are stood so this meets the holder's Grabbing hand. " +
+          "Starts at chest height.",
+    defaultYFrac: 0.45,
+  },
   ledge: {
     label: "Ledge grip",
     states: ["ledge"],

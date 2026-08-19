@@ -31,7 +31,8 @@
 import { state } from "./state.js";
 import { clamp, rectsOverlap, sign } from "./utils.js";
 import { bodyMetrics } from "./silhouette.js";
-import { BODY_POINTS } from "./config_body_points.js";
+import { anchorLocal, resolvedAnim } from "../sprites/src/sprites.js";
+import { imageToGame } from "./strike_points.js";
 import { applyHit, hurtbox, debugShape } from "./combat.js";
 import { burst, dust, popup, ring } from "./particles.js";
 import { playSfx, playGrunt, stopShieldLoop } from "./audio.js";
@@ -47,17 +48,34 @@ function setAnim(f, key) {
 }
 
 /** How far apart the two bodies sit during a hold, centre to centre. */
+/**
+ * The x of an anchor on the frame a state draws, in game px forward of the
+ * fighter's centre line — or null where nobody has placed it.
+ *
+ * Read from the SPRITE MANIFEST, which is where a point on a drawing lives and
+ * what the sprite workbench edits. There is no second copy of these numbers
+ * anywhere: a `grabHand` moved on the drawing is the one the grab uses.
+ */
+function anchorX(charKey, state, name) {
+  const frame = resolvedAnim(charKey, state)?.frames?.filter(Boolean)?.[0];
+  if (!frame) return null;
+  const local = anchorLocal(charKey, frame, name);
+  if (!local) return null;
+  const g = imageToGame(charKey, frame, local[0], local[1]);
+  return g ? g.x : null;
+}
+
 function holdGap(holder, victim) {
   const h = holder.spriteChar || holder.charKey;
   const v = victim.spriteChar || victim.charKey;
-  // WHERE THE TWO DRAWINGS ACTUALLY MEET, once somebody has said where on each
-  // of them the grip is. The holder's fist is `grabHand` forward of their own
-  // centre line and the victim's prying hands are `grabChest` forward of
-  // theirs, so standing the victim (hand - chest) ahead puts the one on the
-  // other by construction — instead of asking every drawing in the roster to
-  // agree with a formula about widths.
-  const hand = BODY_POINTS[h]?.grabHand;
-  const chest = BODY_POINTS[v]?.grabChest;
+  // WHERE THE TWO DRAWINGS ACTUALLY MEET, once somebody has placed the grip on
+  // each of them. The holder's fist is `grabHand` forward of their own centre
+  // line and the victim's prying hands are `grabChest` forward of theirs, so
+  // standing the victim (hand - chest) ahead puts the one on the other by
+  // construction — instead of asking every drawing in the roster to agree with
+  // a formula about widths.
+  const hand = anchorX(h, "grabHold", "grabHand") ?? anchorX(h, "grabReach", "grabHand");
+  const chest = anchorX(v, "grabbed", "grabChest");
   if (Number.isFinite(hand) && Number.isFinite(chest)) return hand - chest;
   const a = bodyMetrics(h);
   const b = bodyMetrics(v);
@@ -93,7 +111,7 @@ export function updateGrabReach(f) {
   // been placed; otherwise the roster formula, which is a guess at the same
   // thing. Either way the grace is added — it is the closing hand's forgiveness
   // and belongs to the mechanic rather than to the drawing.
-  const placed = BODY_POINTS[who]?.grabHand;
+  const placed = anchorX(who, "grabReach", "grabHand");
   const reach = (Number.isFinite(placed) ? placed : m.reach * 0.85) + GRAB.grace;
   const h = m.height * 0.9;
   const rect = {
