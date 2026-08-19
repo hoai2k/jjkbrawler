@@ -42794,9 +42794,9 @@
     "ox": -329.5,
     "oy": -697,
     "bodyBottom": 256.9,
-    "bodyH": 252.0,
+    "bodyH": 244.4,
     "centroidX": 244.5,
-    "renderScale": 0.25,
+    "renderScale": 0.2425,
     "file": "kashimo/attack_heavy_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -42815,6 +42815,9 @@
       "bodyBottom": "foot=0.946 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "attack_heavy_b": {
@@ -44413,8 +44416,8 @@
     "coreRight": 612.5,
     "anchors": {
      "com": [
-      324.5,
-      464.6
+      344.4,
+      428.6
      ]
     },
     "autoTuned": {
@@ -44422,6 +44425,14 @@
      "fields": {
       "bodyBottom": "foot=0.946 (roster)",
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "anchors": {
+      "com": [
+       324.5,
+       464.6
+      ]
      }
     }
    },
@@ -44620,7 +44631,8 @@
       "bodyBottom": "foot=0.946 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "dodge_air": {
     "w": 658,
@@ -44628,9 +44640,9 @@
     "ox": -206.4,
     "oy": -444,
     "bodyBottom": 310.4,
-    "bodyH": 188.8,
+    "bodyH": 177.5,
     "centroidX": 190.9,
-    "renderScale": 0.25,
+    "renderScale": 0.235,
     "file": "naoya/dodge_air.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -44648,6 +44660,9 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "dodge_roll": {
@@ -44708,7 +44723,8 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "guard": {
     "w": 706,
@@ -44780,10 +44796,10 @@
     "h": 1185,
     "ox": -26.8,
     "oy": -874,
-    "bodyBottom": 247.4,
-    "bodyH": 296.2,
+    "bodyBottom": 258.9,
+    "bodyH": 293.2,
     "centroidX": 149.3,
-    "renderScale": 0.25,
+    "renderScale": 0.2475,
     "file": "naoya/idle_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -44802,6 +44818,10 @@
       "bodyBottom": "foot=0.946 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 247.4
     }
    },
    "idle_b": {
@@ -44809,7 +44829,7 @@
     "h": 1193,
     "ox": -159.9,
     "oy": -882,
-    "bodyBottom": 246.9,
+    "bodyBottom": 209.9,
     "bodyH": 296.2,
     "centroidX": 130.9,
     "renderScale": 0.248,
@@ -44833,7 +44853,12 @@
       "renderScale": "idle is uniform",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "bodyBottom": 246.9
+    },
+    "needsReplacement": "pose",
+    "replacementNote": "Should be an idle pose similar (though slightly different) than his other idle pose."
    },
    "jump_rise": {
     "w": 691,
@@ -44852,14 +44877,22 @@
     "coreRight": 640.2,
     "anchors": {
      "com": [
-      455.8,
-      442.7
+      431.3,
+      427.8
      ]
     },
     "autoTuned": {
      "at": "2026-08-18T18:18:58+00:00",
      "fields": {
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "anchors": {
+      "com": [
+       455.8,
+       442.7
+      ]
      }
     }
    },
@@ -45835,7 +45868,8 @@
       "bodyBottom": "foot=0.946 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "crouch_a": {
     "w": 611,
@@ -46112,14 +46146,22 @@
     "coreRight": 458.3,
     "anchors": {
      "com": [
-      268.3,
-      424.8
+      244.6,
+      414.6
      ]
     },
     "autoTuned": {
      "at": "2026-08-18T18:18:58+00:00",
      "fields": {
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "anchors": {
+      "com": [
+       268.3,
+       424.8
+      ]
      }
     }
    },
@@ -46988,7 +47030,8 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "attack_air_b": {
     "w": 901,
@@ -47524,7 +47567,8 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "fall": {
     "w": 744,
@@ -47552,7 +47596,8 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "guard": {
     "w": 566,
@@ -48697,7 +48742,8 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "crouch_a": {
     "w": 783,
@@ -48758,7 +48804,8 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "crouch_attack_b": {
     "w": 1202,
@@ -48864,7 +48911,7 @@
     "h": 856,
     "ox": -12.7,
     "oy": -617,
-    "bodyBottom": 200.5,
+    "bodyBottom": 179.5,
     "bodyH": 344.2,
     "centroidX": 146.2,
     "renderScale": 0.402,
@@ -48886,6 +48933,9 @@
       "bodyBottom": "foot=0.955 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 200.5
     }
    },
    "dodge_air": {
@@ -49043,7 +49093,8 @@
       "bodyBottom": "foot=0.947 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "idle_a": {
     "w": 553,
@@ -51832,9 +51883,9 @@
     "ox": -346.9,
     "oy": -1015,
     "bodyBottom": 310.4,
-    "bodyH": 331.5,
+    "bodyH": 323.1,
     "centroidX": 250.9,
-    "renderScale": 0.25,
+    "renderScale": 0.2437,
     "file": "miwa/fall.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -51852,6 +51903,9 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "guard": {
@@ -79204,7 +79258,8 @@
   "kashimo": 264.25,
   "kirara": 331.57,
   "miwa": 398.3,
-  "tengen": 347.65
+  "tengen": 347.65,
+  "naoya": 280.35
  },
  "otherSprites": {
   "effect:aura_chitin": {

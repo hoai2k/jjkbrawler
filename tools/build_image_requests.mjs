@@ -322,8 +322,7 @@ function blocksSection(keys) {
   return out.join("\n");
 }
 
-function manifestSection() {
-  const work = spriteWork();
+function manifestSection(work) {
   const out = ["# Outstanding by manifest, not by request", "",
     "The other half of the question, and a narrower one: poses whose art EXISTS",
     "and is wrong. A workbench flag says so directly; a pose drawing a file that",
@@ -360,6 +359,22 @@ function manifestSection() {
 const sources = SOURCES.map(roundsFrom);
 const total = sources.reduce((n, s) => n + totalOf(s), 0);
 
+// THE HEADLINE HAS TO COUNT BOTH KINDS OF WORK, and for a long time it counted
+// one. `total` is images a ROUND asks for --- art that is absent --- and the
+// manifest section below counts art that EXISTS AND IS WRONG. They are
+// deliberately different questions (see the note at the top of this file), but
+// a reader does not open a request document to learn that: they read the first
+// bold line and stop. So the file said "0 images outstanding" over a section
+// listing 28 flagged sprites, and somebody who had spent an afternoon flagging
+// them in the workbench came away thinking the flags had gone nowhere.
+//
+// Two numbers rather than a sum, because the distinction is real and a sum
+// would hide it --- one is answered by drawing something new, the other by
+// redrawing something that exists.
+const work = spriteWork();
+const flaggedN = work ? work.replacements.length + work.deletions.length : null;
+const standInN = work ? work.standIns.length : null;
+
 const doc = [
   "# Image Requests — every image still to draw",
   "",
@@ -375,12 +390,22 @@ const doc = [
   "that second one is the guard, because a round written in an unexpected shape",
   "is exactly how 172 images once went missing from this list.",
   "",
-  `**${total} images outstanding.**`,
+  `**${total} image${total === 1 ? "" : "s"} requested by a round`
+    + (flaggedN === null
+        ? ", and the manifest was not checked.**"
+        : flaggedN
+          ? `, and ${flaggedN} sprite${flaggedN === 1 ? "" : "s"} flagged in the workbench.**`
+          : ", and nothing flagged in the workbench.**"),
   "",
   ...sources.map((s) => {
     const n = totalOf(s);
     return `- **${s.heading}** — ${n} image${n === 1 ? "" : "s"}${s.round ? `, round ${s.round}` : ""}`;
   }),
+  ...(flaggedN
+    ? [`- **[Flagged in the workbench](#outstanding-by-manifest-not-by-request)** — ${flaggedN} sprite`
+       + `${flaggedN === 1 ? "" : "s"} whose art exists and is wrong`
+       + (standInN ? `, plus ${standInN} drawing another pose's file` : "")]
+    : []),
   "",
   "## Rules that hold everywhere here",
   "",
@@ -408,7 +433,7 @@ const doc = [
   blocksSection(KEYS.filter((k) => blocks.has(k))),
   "---",
   "",
-  manifestSection(),
+  manifestSection(work),
 ].join("\n").replace(/\n{3,}/g, "\n\n");
 
 // The guard: a source that has an open round we recognised nothing in.
