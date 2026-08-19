@@ -233,7 +233,65 @@ function health() {
 
 // ------------------------------------------------------------------- rendering
 
-const linkTo = (file) => (file.startsWith("docs/") ? path.basename(file) : `../${file}`);
+// EVERY REFERENCE OUT OF THIS FILE IS A FULL URL, because the file's reader is
+// not standing in the repository. It is handed to an image generator that has
+// the document and nothing else --- no working copy, no directory structure --
+// so `../assets/reference/canon/yuji_idle.png` is not a reference to anything
+// it can reach, and `see pose-brief.md` is a dead end.
+//
+// The one exception is where a file GOES. An output path is an instruction to
+// the person landing the delivery, who does have the repo, and a URL there
+// would be wrong in a different way: you cannot write to raw.githubusercontent.
+const RAW = "https://raw.githubusercontent.com/hoai2k/jjkbrawler/main";
+
+const TREE = "https://github.com/hoai2k/jjkbrawler/tree/main";
+
+/** A repo-relative path as something a reader can actually fetch.
+ *
+ *  A DIRECTORY takes the tree URL instead, because raw.githubusercontent does
+ *  not list directories --- it 404s. `assets/reference/canon/` linked into raw
+ *  is a dead link, which is worse than the relative path it replaced: relative
+ *  at least tells you what to go and look for. */
+const rawUrl = (repoPath) => {
+  const clean = repoPath.replace(/^\.?\//, "");
+  return clean.endsWith("/") ? `${TREE}/${clean.replace(/\/+$/, "")}` : `${RAW}/${clean}`;
+};
+
+const linkTo = (file) => rawUrl(file);
+
+/** Rewrite the relative links inside text this tool copies through.
+ *
+ *  Round text is reproduced VERBATIM --- that is the point of it, a summary of
+ *  a prompt is not a prompt --- and it was authored in a document that sits
+ *  beside the things it links to. Copied here it keeps those relative targets
+ *  and they all break, so they are resolved against the SOURCE file's directory
+ *  and turned into URLs on the way through. Editing a round with an ordinary
+ *  relative link therefore still produces a usable one in the output, which is
+ *  the right place for this rule to live: the author should not have to
+ *  remember it, and the reader cannot do without it.
+ *
+ *  Left alone: anything already absolute, and a bare `#anchor`, which points
+ *  inside the output and still resolves there.
+ */
+function absolutise(text, sourceFile) {
+  const dir = path.dirname(sourceFile);
+  return text.replace(/\]\(([^)\s]+)(\s+"[^"]*")?\)/g, (whole, target, title) => {
+    if (/^(https?:|mailto:|#)/.test(target)) return whole;
+    const [file, hash = ""] = target.split(/(?=#)/);
+    // A link to the generated file itself becomes the anchor alone: the reader
+    // is already holding it, and sending them to a raw URL of the page they are
+    // reading is worse than a jump.
+    // normalize() drops a trailing slash and the slash is what says "directory",
+    // so it is put back before rawUrl decides which host to use.
+    // normalize() keeps a trailing slash where there was one, and the slash is
+    // what says "directory" — but only where it survived, so the marker is
+    // re-derived from the ORIGINAL target rather than appended blind.
+    const resolved = path.posix.normalize(path.posix.join(dir, file))
+      .replace(/\/*$/, file.endsWith("/") ? "/" : "");
+    if (resolved === "docs/image-requests.md") return hash ? `](${hash})` : "](#)";
+    return `](${rawUrl(resolved)}${hash})${title ? "" : ""}`;
+  });
+}
 
 const fighterRow = (k) => {
   const r = roster.get(k) || {};
@@ -248,14 +306,13 @@ const fighterRow = (k) => {
  *  docs/ has relative links rooted at its own directory. A link that silently
  *  goes nowhere is the failure check_doc_links.py exists to catch. */
 function sectionText(section, source) {
-  const dir = path.dirname(source.file);
   const owner = linkTo(source.file);
-  let text = section.text.replace(/\]\(#/g, `](${owner}#`);
-  if (dir !== "docs") {
-    text = text.replace(/\]\((?!https?:|#|\.\.\/|\/)([^)\s]+)\)/g, (_, t) => `](../${dir}/${t})`);
-    text = text.replace(/\]\(\.\.\/\.\.\/([^)\s]+)\)/g, "](../$1)");
-  }
-  return text;
+  // A bare `#anchor` inside a copied round points into the document that
+  // AUTHORED it, not into this one, so it has to name that document before
+  // absolutise() sees it — otherwise it would be left alone as a same-page jump
+  // and land nowhere.
+  const text = section.text.replace(/\]\(#/g, `](${owner}#`);
+  return absolutise(text, source.file);
 }
 
 function renderSection(section, source) {
@@ -272,7 +329,10 @@ function renderSection(section, source) {
            "|---|---|---|---|---|---|");
   for (const k of pending) {
     const f = fighterRow(k);
-    out.push(`| ${f.name} | \`${k}\` | ${f.height} | ${f.archetype} | \`${f.canon}\` | ${f.notes || "—"} |`);
+    // The canon reference is the SUBJECT of the drawing, so it is the one link
+    // in the table that has to be fetchable rather than merely named.
+    out.push(`| ${f.name} | \`${k}\` | ${f.height} | ${f.archetype} | `
+      + `${f.canon === "—" ? "—" : `[${path.basename(f.canon)}](${rawUrl(f.canon)})`} | ${f.notes || "—"} |`);
   }
   out.push("");
   return out.join("\n");
@@ -301,7 +361,7 @@ function blocksSection(keys) {
     "Used **verbatim** as `[CHARACTER BLOCK]` in every prompt above — this is how",
     "a fighter stays the same character across their sprites, their card and",
     "their turnaround. Reproduced from",
-    "[asset-requests.md](asset-requests.md#character-blocks), which owns them.",
+    `[asset-requests.md](${rawUrl("docs/asset-requests.md")}#character-blocks), which owns them.`,
     "",
     "**Where the block and the canon reference disagree, the reference wins.**",
     "Every fighter now has a `<char>_idle.png`, regenerated from their approved",
@@ -322,6 +382,16 @@ function blocksSection(keys) {
   return out.join("\n");
 }
 
+/** The fighter's approved idle, as something the reader can fetch. Every table
+ *  that asks for a drawing carries one: the rule at the top of the file says
+ *  the canon reference is the subject, and a rule you cannot act on is a
+ *  sentence. `—` where no canon plate has been built yet. */
+function canonLink(charKey) {
+  const canon = ["_idle", "_anime", "_canon"]
+    .map((suffix) => `assets/reference/canon/${charKey}${suffix}.png`).find(exists);
+  return canon ? `[${path.basename(canon)}](${rawUrl(canon)})` : "—";
+}
+
 function manifestSection(work) {
   const out = ["# Outstanding by manifest, not by request", "",
     "The other half of the question, and a narrower one: poses whose art EXISTS",
@@ -340,9 +410,24 @@ function manifestSection(work) {
       "drawing a file that is not its own.");
   } else {
     out.push(`**${flagged.length} flagged, ${work.standIns.length} drawing somebody else's art.**`, "",
-      "| Fighter | Pose | Why |", "|---|---|---|");
-    for (const r of flagged) out.push(`| ${r.char || r.character} | \`${r.key || r.frame}\` | ${r.kind || r.reason || "flagged"} |`);
-    for (const s of work.standIns) out.push(`| ${s.char} | \`${s.key}\` | drawing \`${s.drawing}\` |`);
+      // The drawing that is wrong, and the fighter it has to look like. Naming
+      // a pose is enough for somebody standing in the repo and no use at all to
+      // the reader this file is written for, who cannot open
+      // `gakuganji/attack_light_b.png` and has no idea what is wrong with it
+      // until they can see it.
+      "| Fighter | Pose | Why | What is wrong | The drawing now | Canon reference |",
+      "|---|---|---|---|---|---|");
+    for (const r of flagged) {
+      const char = r.char || r.character;
+      const key = r.key || r.frame;
+      out.push(`| ${r.name || char} | \`${key}\` | ${r.kind || r.reason || "flagged"} `
+        + `| ${r.note || "—"} | ${r.file ? `[${path.basename(r.file)}](${rawUrl(`sprites/assets/${r.file}`)})` : "—"} `
+        + `| ${canonLink(char)} |`);
+    }
+    for (const s of work.standIns) {
+      out.push(`| ${s.char} | \`${s.key}\` | drawing another pose's file | it is \`${s.drawing}\`, not \`${s.key}\` `
+        + `| [${s.drawing}.png](${rawUrl(`sprites/assets/${s.char}/${s.drawing}.png`)}) | ${canonLink(s.char)} |`);
+    }
   }
   out.push("");
   if (work.improvements.length) {
@@ -410,7 +495,8 @@ const doc = [
   "## Rules that hold everywhere here",
   "",
   "- **The canon reference is the subject.** A fighter's own `<char>_idle.png`",
-  "  under `assets/reference/canon/` carries their costume, proportions, palette,",
+  "  at `" + RAW + "/assets/reference/canon/<char>_idle.png`",
+  "  carries their costume, proportions, palette,",
   "  line weight and shading. The drawing is that character, not an",
   "  interpretation of them.",
   "- **The character block goes in the prompt verbatim.** All of them are at the",
@@ -418,6 +504,14 @@ const doc = [
   "- **Any subset is useful.** Everything here lands per fighter or per file, and",
   "  anything undelivered keeps whatever the engine does today. Nothing in this",
   "  file blocks play.",
+  "- **Every reference here is a full URL, and every OUTPUT path is relative.**",
+  "  That is the whole convention, and the two are never mixed. Anything you have",
+  "  to look at — a canon reference, the drawing being replaced, a brief, another",
+  "  document — is an `https://raw.githubusercontent.com/…` link you can fetch",
+  "  without a copy of the repository. Anything you have to NAME, like",
+  "  `kashimo/teeter.png`, is where the delivered file goes once somebody lands",
+  "  it in `assets/intake/`, and stays relative because you cannot write to a",
+  "  raw URL.",
   "",
   "**The modes want opposite deliveries, and it is the one thing worth not",
   "getting wrong.** Sprite rounds are keyed plates — flat magenta `#FF00FF` or",
