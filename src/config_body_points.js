@@ -68,6 +68,23 @@
 // and draggable in the sprite workbench — a second copy here would be a
 // duplicate that drifts.
 
+//   grabHand   x in game px, forward of the centre line, on `grab_reach`: where
+//              this fighter's open hand actually closes. The grab box was the
+//              measured art reach x0.85 for everybody, a formula never checked
+//              against the hand drawn reaching (src/grab.js updateGrabReach).
+//
+//   grabChest  the other half, on `grabbed`: where the prying hands sit, which
+//              is where a grip lands. With both placed the hold gap stops being
+//              a formula off two widths — it is holder's hand minus victim's
+//              chest, which puts the one on the other by construction
+//              (src/grab.js holdGap). Written by "grab-hand" / "grab-chest".
+//
+//   teeterFoot x on `teeter` of the point that rests on the lip. The pose is
+//              drawn at the fighter's own x, so how much of the foot hangs over
+//              the edge has been whatever each drawing did; motion.js seats it
+//              on the real edge, bounded to a nudge and moving the PICTURE only.
+//              Written by "teeter-foot".
+//
 export const BODY_POINTS = {
   "choso": { com: 0.585, muzzle: { x: 53, y: -113 } },
   "dagon": { com: 0.605, muzzle: { x: 14, y: 0 } },
@@ -96,6 +113,9 @@ export const BODY_POINTS = {
   "yuji": { com: 0.582 },
   "yuki": { com: 0.623 },
   "yuta": { com: 0.618, muzzle: { x: 49, y: -81 } },
+  // Round 23's and 24's staged fighters, verified as their art landed.
+  "kashimo": { muzzle: { x: 78, y: -109 } },
+  "kirara": { muzzle: { x: 36, y: -105 } },
 };
 
 /**
@@ -251,4 +271,6 @@ export const BODY_POINT_META = {
   "yuji": { com: { at: "2026-08-15" } },
   "yuki": { com: { at: "2026-08-15" } },
   "yuta": { com: { at: "2026-08-15" }, muzzle: { at: "2026-08-15" } },
+  "kashimo": { muzzle: { at: "2026-08-19" } },
+  "kirara": { muzzle: { at: "2026-08-19" } },
 };

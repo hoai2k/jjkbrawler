@@ -31,6 +31,7 @@
 import { state } from "./state.js";
 import { clamp, rectsOverlap, sign } from "./utils.js";
 import { bodyMetrics } from "./silhouette.js";
+import { BODY_POINTS } from "./config_body_points.js";
 import { applyHit, hurtbox, debugShape } from "./combat.js";
 import { burst, dust, popup, ring } from "./particles.js";
 import { playSfx, playGrunt, stopShieldLoop } from "./audio.js";
@@ -47,8 +48,19 @@ function setAnim(f, key) {
 
 /** How far apart the two bodies sit during a hold, centre to centre. */
 function holdGap(holder, victim) {
-  const a = bodyMetrics(holder.spriteChar || holder.charKey);
-  const b = bodyMetrics(victim.spriteChar || victim.charKey);
+  const h = holder.spriteChar || holder.charKey;
+  const v = victim.spriteChar || victim.charKey;
+  // WHERE THE TWO DRAWINGS ACTUALLY MEET, once somebody has said where on each
+  // of them the grip is. The holder's fist is `grabHand` forward of their own
+  // centre line and the victim's prying hands are `grabChest` forward of
+  // theirs, so standing the victim (hand - chest) ahead puts the one on the
+  // other by construction — instead of asking every drawing in the roster to
+  // agree with a formula about widths.
+  const hand = BODY_POINTS[h]?.grabHand;
+  const chest = BODY_POINTS[v]?.grabChest;
+  if (Number.isFinite(hand) && Number.isFinite(chest)) return hand - chest;
+  const a = bodyMetrics(h);
+  const b = bodyMetrics(v);
   return (a.width + b.width) * 0.45;
 }
 
@@ -75,8 +87,14 @@ export function updateGrabReach(f) {
   const a = f.action;
   if (!a || a.kind !== "grabReach") return;
   if (a.t < GRAB.startup || a.t > GRAB.startup + GRAB.active) return;
-  const m = bodyMetrics(f.spriteChar || f.charKey);
-  const reach = m.reach * 0.85 + GRAB.grace;
+  const who = f.spriteChar || f.charKey;
+  const m = bodyMetrics(who);
+  // The hand a person placed on this fighter's own `grab_reach`, where one has
+  // been placed; otherwise the roster formula, which is a guess at the same
+  // thing. Either way the grace is added — it is the closing hand's forgiveness
+  // and belongs to the mechanic rather than to the drawing.
+  const placed = BODY_POINTS[who]?.grabHand;
+  const reach = (Number.isFinite(placed) ? placed : m.reach * 0.85) + GRAB.grace;
   const h = m.height * 0.9;
   const rect = {
     x: f.facing === 1 ? f.x : f.x - reach,

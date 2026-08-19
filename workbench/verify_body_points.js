@@ -221,3 +221,124 @@ function blockFor(decisions, key, render) {
       + (flagged.length ? `\n// Flagged — a fix at the source:\n${flagged.join("\n")}\n` : ""),
   };
 }
+
+// ------------------------------------------------------- the vertical lines
+//
+// Three sets that ask for ONE NUMBER each — an x on a drawing — because the
+// thing being placed is a line, not a point. Where a hand is on the way out,
+// where a chest is on the way in, where a foot meets the lip. The height is
+// not the question in any of them: what has to agree is how far forward.
+//
+// WHY THEY ARE HERE AND NOT IN THE SPRITE WORKBENCH. That bench moves the
+// DRAWING; these leave the drawing exactly where it is and mark a feature on
+// it. A grab hand and a grabbed chest are two halves of one measurement taken
+// on two different fighters, which is a queue, not a slider.
+
+/** One `x` on one pose, as a task set. `state` picks the pose, `key` the
+ *  BODY_POINTS field it lands in, and `seed` the value to start from. */
+function lineProvider({ key, state, label, question, hint, seed, colour }) {
+  return async function provider() {
+    const tasks = roster(state).map((charKey) => ({
+      id: `${key}/${charKey}`,
+      title: charKey,
+      subtitle: label,
+      charKey,
+      state,
+      exportKeys: { char: charKey, kind: key },
+    }));
+    return {
+      tasks,
+      fingerprint: fingerprint(),
+      initialValue: (task) => ({ x: Math.round(BODY_POINTS[task.charKey]?.[key] ?? seed(task.charKey)) }),
+      describe: (task, value) =>
+        `${label} · <b>x ${value.x}</b> forward of the centre line — ${question}`,
+      renderEditor(task, { container, value, onChange, redraw, bindSync }) {
+        container.replaceChildren();
+        frameStepper(container, task, redraw);
+        const b = bodyMetrics(task.charKey);
+        const s = slider(container, {
+          label: "Forward", hint,
+          min: -Math.round(b.width), max: Math.round(Math.max(b.reach * 2.2, b.width * 3)),
+          value: value.x,
+        }, (x) => onChange({ x }));
+        bindSync((v) => s.set(v.x));
+      },
+      // Only the x moves: dragging anywhere on the canvas sets the line's
+      // distance, so the pointer does not have to find a 9px dot.
+      onCanvasDrag: (task, pt) => ({ x: Math.round(toGame(pt).x) }),
+      draw(task, { ctx, canvas, value, redraw }) {
+        drawStage(task, { ctx, canvas, redraw, guides: { hurtbox: true } });
+        const x = CENTRE_X + value.x * ZOOM;
+        ctx.strokeStyle = colour;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, 24); ctx.lineTo(x, GROUND_Y);
+        ctx.stroke();
+        ctx.fillStyle = colour;
+        ctx.font = "11px system-ui";
+        ctx.fillText(`${value.x}px`, x + 6, 36);
+        caption(ctx, canvas, question);
+        ctx.fillText("drag anywhere to move the line", 10, canvas.height - 10);
+      },
+      ensureReady: ensureTaskArt,
+      committed: committedFor(key),
+      exportBlock: (decisions) => blockFor(decisions, key, (d) => `${d.value.x}`),
+    };
+  };
+}
+
+/**
+ * WHERE THE GRABBING HAND IS, on `grab_reach`.
+ *
+ * The grab box is currently the fighter's measured art reach x0.85 plus a
+ * closing grace — a formula, applied to everybody, that has never been
+ * compared against the hand actually drawn reaching. Placed here it becomes
+ * the real thing: the distance at which THIS fighter's hand closes.
+ */
+export const grabHandProvider = lineProvider({
+  key: "grabHand",
+  state: "grabReach",
+  label: "the grabbing hand",
+  question: "where does the open hand close?",
+  hint: "put the line on the grasping hand",
+  seed: (c) => bodyMetrics(c).reach * 0.85,
+  colour: "rgba(255, 140, 110, 0.95)",
+});
+
+/**
+ * WHERE THE HELD CHEST IS, on `grabbed`.
+ *
+ * The other half of the same measurement, taken on the other fighter. The
+ * game stands the two at `holdGap` — a formula off both their widths — and
+ * the brief has had to ask, in words, for every fist and every pair of prying
+ * hands to land at one height and one depth so the crossing reads. With this
+ * placed on both fighters the gap is not a formula any more: it is holder's
+ * hand minus victim's chest, which puts the hand ON the chest by construction.
+ */
+export const grabChestProvider = lineProvider({
+  key: "grabChest",
+  state: "grabbed",
+  label: "the held chest",
+  question: "where do the prying hands sit — where the grip lands?",
+  hint: "put the line on the chest, at the grip",
+  seed: (c) => bodyMetrics(c).width * 0.25,
+  colour: "rgba(120, 210, 240, 0.95)",
+});
+
+/**
+ * WHERE THE TEETERING FOOT IS, on `teeter`.
+ *
+ * A teeter is a fighter balanced on the lip with the ground gone under the
+ * front foot, and the game draws it at the fighter's own x — so how much of
+ * the foot is over the edge is whatever that drawing happened to do. Placed
+ * here, the renderer can put THIS foot on the lip.
+ */
+export const teeterFootProvider = lineProvider({
+  key: "teeterFoot",
+  state: "teeter",
+  label: "the teetering foot",
+  question: "which point of the foot is on the very edge?",
+  hint: "put the line on the front foot's contact",
+  seed: (c) => bodyMetrics(c).width * 0.3,
+  colour: "rgba(255, 210, 120, 0.95)",
+});

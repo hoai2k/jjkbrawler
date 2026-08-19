@@ -52,7 +52,33 @@ const SETS = {
   // Changing summon art to a face-right default inverted the correct `faceLeft`
   // for every creature at once, and which way a drawing points is not something
   // the code can re-derive — it is a fact about a picture.
+  // ---- open: waiting on answers -------------------------------------------
+  "grab-hand": {
+    label: "Grab: the hand",
+    blurb: "Where the grabbing hand closes, on each fighter's `grab_reach`. The grab "
+      + "box is a formula off measured art reach today, applied to everybody and never "
+      + "checked against the hand actually drawn reaching — place the line on the hand "
+      + "and it becomes this fighter's real closing distance.",
+    load: () => import(withKey("./verify_body_points.js")).then((m) => m.grabHandProvider()),
+  },
+  "grab-chest": {
+    label: "Grab: the held chest",
+    blurb: "The other half of the same measurement, on `grabbed`: where the prying "
+      + "hands sit, which is where the grip lands. With both halves placed the gap "
+      + "between holder and held stops being a formula — it is hand minus chest, which "
+      + "puts the hand ON the chest.",
+    load: () => import(withKey("./verify_body_points.js")).then((m) => m.grabChestProvider()),
+  },
+  "teeter-foot": {
+    label: "Teeter foot",
+    blurb: "Which point of the front foot is on the very edge. A teeter is drawn at the "
+      + "fighter's own x today, so how much of the foot hangs over the lip is whatever "
+      + "each drawing happened to do; placed here, the renderer can put this foot on it.",
+    load: () => import(withKey("./verify_body_points.js")).then((m) => m.teeterFootProvider()),
+  },
+  // ---- answered: kept because a re-bake or a redraw reopens them -----------
   "creature-facing": {
+    archived: true,
     label: "Creature facing",
     blurb: "Which way each creature's art points. Summon art is now assumed to face "
       + "right like every other drawing, which flipped the meaning of the stored flag "
@@ -383,8 +409,11 @@ function renderAll() {
 /** Decision counts on the set picker's options. */
 function refreshSetCounts() {
   for (const opt of els.set.options) {
+    // The rule between the two groups is an option too, and it names no set.
+    const def = SETS[opt.value];
+    if (!def) continue;
     const n = bench.work.get(opt.value)?.decisions.size || 0;
-    opt.textContent = n ? `${SETS[opt.value].label} (${n})` : SETS[opt.value].label;
+    opt.textContent = n ? `${def.label} (${n})` : def.label;
   }
 }
 
@@ -815,14 +844,32 @@ async function openSet(id) {
 }
 
 function wire() {
-  for (const [id, def] of Object.entries(SETS)) {
+  // OPEN SETS FIRST, THEN A RULE, THEN THE SETTLED ONES. The list only grows,
+  // and a set whose questions have all been answered is not a set anybody is
+  // going to the picker for — but it is worth keeping, because a re-bake or a
+  // redraw reopens it. `archived: true` in the table above is that distinction,
+  // and the rule between the two groups is a disabled option, which is the
+  // separator every browser renders and cannot be landed on by keyboard.
+  const open = Object.entries(SETS).filter(([, d]) => !d.archived);
+  const done = Object.entries(SETS).filter(([, d]) => d.archived);
+  const add = ([id, def]) => {
     const opt = document.createElement("option");
     opt.value = id;
     opt.textContent = def.label;
     els.set.appendChild(opt);
+  };
+  open.forEach(add);
+  if (open.length && done.length) {
+    const rule = document.createElement("option");
+    rule.disabled = true;
+    rule.textContent = "────── answered ──────";
+    els.set.appendChild(rule);
   }
+  done.forEach(add);
   const asked = params.get("set");
-  els.set.value = SETS[asked] ? asked : Object.keys(SETS)[0];
+  // The first OPEN set, not the first entry: the default has to be somewhere
+  // there is work, or the bench opens on a queue with nothing in it.
+  els.set.value = SETS[asked] ? asked : (open[0] || done[0] || [])[0];
   els.set.addEventListener("change", () => openSet(els.set.value));
   // How much work each set is holding, in the picker itself — so switching
   // sets is an informed move rather than a guess, and a pass left half-done
